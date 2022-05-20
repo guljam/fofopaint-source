@@ -1,0 +1,112 @@
+﻿package
+{
+
+	import flash.display.Sprite;
+	import flash.display.SimpleButton;
+	import flash.text.TextField;
+	import flash.geom.ColorTransform;
+
+	public class replayTimeBar extends Sprite {
+		public var replayBGBar:SimpleButton = replayBGBar;
+		public var replayDeleteBar:SimpleButton = replayDeleteBar;
+		public var replayTotalBar:SimpleButton = replayTotalBar;
+		public var replayNowBar:SimpleButton = replayNowBar;
+		public var playButton:SimpleButton = playButton;
+		public var pauseButton:SimpleButton = pauseButton;
+		public var replayPrev:SimpleButton = replayPrev;
+		public var replayNext:SimpleButton = replayNext;
+		public var frameInfo:TextField = frameInfo;
+		public var BARSIZE:Number = 35;
+		private var nowBarColorSave:uint = 0;
+
+		public function resetNowbarColor():void
+		{
+			if(nowBarColorSave === 0)
+			{
+				return;
+			}
+
+			const c1:ColorTransform = new ColorTransform();
+			c1.color = nowBarColorSave;
+			replayNowBar.transform.colorTransform = c1;
+
+		}
+		public function changeUIColor(base:uint,op:uint,color1:uint,index:uint):void
+		{
+			const b:ColorTransform = new ColorTransform();
+			const o:ColorTransform = new ColorTransform();
+			const c1:ColorTransform = new ColorTransform();
+			const c2:ColorTransform = new ColorTransform();
+			
+			b.color = base;
+			o.color = op;
+			c1.color = color1;
+			replayBGBar.transform.colorTransform = b;
+            replayNowBar.transform.colorTransform = c1;
+            playButton.transform.colorTransform = o;
+            pauseButton.transform.colorTransform = o;
+            replayPrev.transform.colorTransform = o;
+            replayNext.transform.colorTransform = o;
+
+			nowBarColorSave = color1;
+
+			if(index === 2)
+            {
+				c2.color = 0xE7E7E7;
+                replayTotalBar.transform.colorTransform = c2;
+                frameInfo.textColor = op;
+            }
+            else if(index === 3)
+			{
+				c2.color = 0xFFFFFF;
+                replayTotalBar.transform.colorTransform = c2;
+				frameInfo.textColor = op;
+			}
+            else 
+            {
+                replayTotalBar.transform.colorTransform = o;
+                frameInfo.textColor = base;
+            }
+		}
+
+		public function replayTimeBar() {
+			// constructor code
+			visible = false;
+
+			const floor:Function = Math.floor;
+
+			replayTotalBar.y = 5;
+			replayNowBar.y = replayTotalBar.y;
+			replayDeleteBar.y = replayTotalBar.y;
+
+			playButton.useHandCursor = false;
+			pauseButton.useHandCursor = false;
+			replayPrev.useHandCursor = false;
+			replayNext.useHandCursor = false;
+
+			playButton.x = 3;
+			playButton.y = replayTotalBar.y-5;
+			pauseButton.x = playButton.x;
+			pauseButton.y = playButton.y;
+			replayPrev.x = pauseButton.x+pauseButton.width+5;
+			replayPrev.y = playButton.y;
+			replayNext.x = replayPrev.x+replayPrev.width+8;
+			replayNext.y = playButton.y;
+			
+			replayBGBar.useHandCursor = false;
+			replayDeleteBar.useHandCursor = false;
+			replayDeleteBar.visible = false;
+			replayTotalBar.useHandCursor = false;
+			replayNowBar.useHandCursor = false;
+
+			replayTotalBar.x = floor(replayNext.x+replayNext.width+7);
+			replayDeleteBar.x = replayTotalBar.x;
+			replayNowBar.x = replayTotalBar.x;
+			frameInfo.x = replayTotalBar.x;
+			frameInfo.y = replayTotalBar.y;
+			frameInfo.width = replayTotalBar.width;
+
+			cacheAsBitmap = true;
+		}
+	}
+}

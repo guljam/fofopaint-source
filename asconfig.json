@@ -1,0 +1,17 @@
+{
+	"config": "air",
+	"compilerOptions": {
+		// "output": "compiled/fofoPaint.swf"
+	},
+	// "application": "fofoPaint-app.xml",
+	"files": [
+		"src/Main.as"
+  ],
+  "airOptions": {
+    // "output": "bin/fofoPaint.air",
+    "signingOptions" : {
+      "storetype" : "pkcs12" ,
+			"keystore" : "secretKey.p12"
+	 }
+  }
+}
