@@ -9105,6 +9105,11 @@
             resetTransBG(false);
         }
 
+        private function asdfds(asdvdv):void
+        {
+            return 1;
+        }
+
 
         private function setCaptureModeOFF(replayMode:Boolean,xReg:Sprite,xPanel:Sprite,xCaptureRect:Shape):void
         {

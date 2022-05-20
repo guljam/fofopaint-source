@@ -5,7 +5,7 @@
 		}
 	],
 	"settings": {
-		"as3mxml.sdk.framework": "h:\\AIRSDK_Compiler",
+		"as3mxml.sdk.framework": "e:\\AIRSDK_Compiler32.0",
 		"as3mxml.problems.realTime": false
 	}
 }

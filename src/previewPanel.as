@@ -1,6 +1,5 @@
 ﻿package
 {
-	
 	import flash.display.Sprite;
 	import flash.geom.ColorTransform;
 	import flash.display.BitmapData;

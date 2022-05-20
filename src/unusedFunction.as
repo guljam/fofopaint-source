@@ -1,3 +1,11 @@
+package
+{
+    import flash.display.Sprite;
+
+    public function unusedFunction():void
+    {
+    }
+}
 /*
 package
 {
