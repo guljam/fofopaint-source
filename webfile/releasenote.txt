@@ -1,4 +1,4 @@
-오류로 설치가 되지 않을경우 아래 홈페이지에서 직접 다운받으시길 바랍니다.
+설치가 되지 않을경우 아래 홈페이지에서 직접 다운받으시길 바랍니다.
 エラーで自動インストールができなかった場合、下のページで直接ダウンロードしてください
 Visit FOFO Paint main page and download the file when auto-install failed
 
