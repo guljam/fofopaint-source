@@ -428,6 +428,7 @@
                     ,needUpdate:int = 0 //새버전 나왔을때 올려주는 플래그
 
         //cut Frame 관련 변수
+                    ,cutFrameActiveButton:SimpleButton
                     ,cutFrameClickCounter:uint = 0 //1번 누르면 미리 보기, 2번 누르면 실행
                     ,cutFrameClickedButton:int = -1 //무슨 버튼 눌렀는지 저장
                     ,rCutDataSaveFrame:Number = 0//슈퍼언도나 앞짜르기 할때 마우스 왔다갔다 하면서 반복해서 눌러줄때 skiponeframe이 계속작동되는거 방지해줌 
@@ -5545,6 +5546,40 @@
             canvasPanel.y = floor(rcanvasPanel.y);
             updateResizeButtonPos();
         }
+        
+        
+        private function resetClickCounter():void
+        {
+            if(cutFrameActiveButton !== null)
+            {
+                cutFrameActiveButton.removeEventListener(MouseEvent.MOUSE_OUT,resetClickCounterEvent);
+            }
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,resetClickCounterMouseDownEvent);
+            cutFrameClickCounter = 0;
+            replayTimeBox["replayDeleteBar"].visible = false;
+            cutFrameActiveButton = null;
+            cutFrameClickedButton = -1;
+        }
+
+
+        private function resetClickCounterMouseDownEvent(e:MouseEvent):void
+        {
+            if(e.target && cutFrameActiveButton === e.target)
+            {
+
+            }
+            else
+            {
+                resetClickCounter();
+                topBar.hintOFF();
+            }
+        }
+
+        private function resetClickCounterEvent(e:MouseEvent):void
+        {
+            cutFrameClickedButton = -1;
+            resetClickCounter();
+        }
 
         private function cutFrameData(flag:int,shortcutKey:Boolean):void
         {
@@ -5552,72 +5587,51 @@
 
             const _replayTimeBox:replayTimeBar = replayTimeBox;
             const replayNowBar:SimpleButton = _replayTimeBox["replayNowBar"] as SimpleButton;
-            var activeButton:SimpleButton;
 
             if(flag === 0)
             {
-                activeButton = topBar["superUndoButton"];
+                cutFrameActiveButton = topBar["superUndoButton"];
             }
             else if(flag === 1)
             {
-                activeButton = topBar["reRecordingButton"];
+                cutFrameActiveButton = topBar["reRecordingButton"];
             }
             else if(flag === 2)
             {
-                activeButton = topBar["cutPrevDataButton"];
+                cutFrameActiveButton = topBar["cutPrevDataButton"];
             }
-            if(activeButton.alpha < 1.0) return;
+
+            if(cutFrameActiveButton.alpha < 1.0)
+            {
+                return;
+            }
             // const prevCutButton:SimpleButton = topBar["cutPrevDataButton"];
             // const rrButton:SimpleButton = topBar["reRecordingButton"];
             // const sUndoButton:SimpleButton = topBar["superUndoButton"];
             const deleteBar:SimpleButton = _replayTimeBox["replayDeleteBar"];
             const _replayTotalBar:SimpleButton = _replayTimeBox["replayTotalBar"];
 
-            function resetClickCounterMouseDownEvent(e:MouseEvent):void
-            {
-                if(e.target && activeButton === e.target)
-                {
-
-                }
-                else
-                {
-                    resetClickCounter();
-                    topBar.hintOFF();
-                }
-            }
-
-            function resetClickCounterEvent(e:MouseEvent):void
-            {
-                cutFrameClickedButton = -1;
-                resetClickCounter();
-            }
-
-            function resetClickCounter():void
-            {
-                // toolTipBox.visible = true;
-                activeButton.removeEventListener(MouseEvent.MOUSE_OUT,resetClickCounterEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,resetClickCounterMouseDownEvent);
-                cutFrameClickCounter = 0;
-                deleteBar.visible = false;
-            }
-
             cutFrameClickCounter++;
 
-            if(cutFrameClickedButton !== flag)
+            if(cutFrameClickedButton < 0)
+            {
+                cutFrameClickedButton = flag;
+            }
+            else if(cutFrameClickedButton !== flag)
             {
                 resetClickCounter();
                 cutFrameClickCounter = 1;
             }
-            cutFrameClickedButton = flag;
 
             if(cutFrameClickCounter === 1)
             {
                 toolTipBox.visible = false;
                 const totalBarWidth:Number = _replayTotalBar.width;
 
-                activeButton.addEventListener(MouseEvent.MOUSE_OUT,resetClickCounterEvent);
+                cutFrameActiveButton.addEventListener(MouseEvent.MOUSE_OUT,resetClickCounterEvent);
                 if(shortcutKey)
                 {
+                    trace('chortcut event go');
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,resetClickCounterMouseDownEvent);
                 }
 
@@ -5632,7 +5646,7 @@
                     }
 
                     //oneframe처리후에 프레임이 아이콘이 비활성화 되면 해주지 않음
-                    if(activeButton.alpha < 1.0)
+                    if(cutFrameActiveButton.alpha < 1.0)
                     {
                         resetClickCounter();
                         return;
@@ -5658,7 +5672,7 @@
 
                 if(shortcutKey === false)
                 {
-                    topBar.hint("One more click to OK (Red area will be deleted)",activeButton);
+                    topBar.hint("One more click to OK (Red area will be deleted)",cutFrameActiveButton);
                 }
                 else if(shortcutKey === true)
                 {
@@ -5666,7 +5680,7 @@
                                             :(flag === 1) ? "Re-recording : "
                                             :(flag === 2) ? "Delete front data : "
                                             : "";
-                    topBar.hint(funcName + "One more press key to OK (Red area will be deleted)",activeButton);
+                    topBar.hint(funcName + "One more press key to OK (Red area will be deleted)",cutFrameActiveButton);
                 }
 
 
@@ -7640,7 +7654,12 @@
                 rFileStream.open(repFile,FileMode.READ);
                 rFileStream.position = rLastBytes;
             }
-
+            
+            if(cutFrameClickCounter > 0)
+            {
+                cutFrameClickedButton = -1;
+                resetClickCounter();
+            }
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
 

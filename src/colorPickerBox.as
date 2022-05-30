@@ -149,7 +149,7 @@
 			var x:Number = 0;
 			var y:Number = 0;
 			const offsetX:Number = 0;
-			const offsetY:Number = height;
+			const offsetY:Number = 0;
 
 			for(var i:uint=1;i<=17;i++)
 			{
@@ -166,7 +166,7 @@
 					if(i == 10)
 					{
 						x = width*7;
-						y = -height;
+						y = height;
 					}
 				}
 			}
@@ -364,12 +364,12 @@
 			colorHistoryBox.y = floor(colorHistoryText.y+colorHistoryText.height);
 
 			drawrText.x = colorHistoryText.x;
-			drawrText.y = floor(colorHistoryBox.y+colorHistoryBox.height+22);
+			drawrText.y = floor(colorHistoryBox.y+colorHistoryBox.height+21);
 			drawrPresetBox.x = colorHistoryBox.x;
-			drawrPresetBox.y =floor(drawrText.y+drawrText.height-14);
+			drawrPresetBox.y =floor(drawrText.y+drawrText.height-1);
 
 			tegakiText.x = colorHistoryText.x;
-			tegakiText.y = floor(drawrPresetBox.y+drawrPresetBox.height+2);
+			tegakiText.y = floor(drawrPresetBox.y+drawrPresetBox.height+1);
 			tegakiPresetBox.x = colorHistoryBox.x;
 			tegakiPresetBox.y = floor(tegakiText.y+tegakiText.height);
 
