@@ -280,7 +280,7 @@
 
 			const floor:Function = Math.floor;
 			const offsetX:Number = 0;
-			const infoBottom:Number = floor(controlInfo.y + controlInfo.height + 7);
+			const infoBottom:Number = floor(controlInfo.y + controlInfo.height+1);
 
 			controlInfo.width = BOX_WIDTH - 5;
 			controlInfo.x = -3;
@@ -300,14 +300,8 @@
 			penSmoothSliderSet["penSmoothButton"].useHandCursor = false;
 			penSmoothSliderSet["penSmoothSlider"].useHandCursor = false;
 
-			// const smoothSlider:SimpleButton = penSmoothSliderSet.getChildByName("penSmoothSlider") as SimpleButton;
-			// if(smoothSlider)
-			// {
-			// smoothSlider.useHandCursor = false;
-			// }
-
 			penSizeGrid.x = offsetX;
-			penSizeGrid.y = floor(penSmoothSliderSet.y + penSmoothSliderSet.height) - 5;
+			penSizeGrid.y = floor(penSmoothSliderSet.y + penSmoothSliderSet.height)-10;
 			penSizeTransButtonBox.x = penSizeGrid.x + 2;
 			penSizeTransButtonBox.y = penSizeGrid.y + 2;
 			// penSizeTransButtonBox.addChild(sizeSelectCursor);

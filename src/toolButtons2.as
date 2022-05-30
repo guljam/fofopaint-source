@@ -6,8 +6,6 @@
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.display.Shape;
-	import flash.display.Graphics;
 	
 	
 	public class toolButtons2 extends Sprite {

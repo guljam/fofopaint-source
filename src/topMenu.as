@@ -9,8 +9,6 @@
 	import flash.display.DisplayObject;
 	import flash.utils.setTimeout;
 	import flash.utils.clearTimeout;
-	import flash.events.MouseEvent;
-	import flash.events.KeyboardEvent;
 
 	public class topMenu extends Sprite {
 		private const startX:Number = 3;
@@ -36,6 +34,7 @@
 		public var drawModeButton:SimpleButton = drawModeButton;
 		public var topBarColorButton:SimpleButton = topBarColorButton;
 		public var sideBarPositionButton:SimpleButton = sideBarPositionButton;
+		public var sideBarPositionButton2:SimpleButton = sideBarPositionButton2;
 		public var cutPrevDataButton:SimpleButton = cutPrevDataButton;
 		public var superUndoButton:SimpleButton = superUndoButton;
 		public var reRecordingButton:SimpleButton = reRecordingButton;
@@ -97,6 +96,7 @@
 			drawModeButton.transform.colorTransform = o;
 			topBarColorButton.transform.colorTransform = o;
 			sideBarPositionButton.transform.colorTransform = o;
+			sideBarPositionButton2.transform.colorTransform = o;
 			cutPrevDataButton.transform.colorTransform = o;
 			superUndoButton.transform.colorTransform = o;
 			reRecordingButton.transform.colorTransform = o;
@@ -273,6 +273,8 @@
 					}
 				}
 			}
+			sideBarPositionButton2.x = sideBarPositionButton.x;
+			sideBarPositionButton2.y = sideBarPositionButton.y;
 		}
 		
 
@@ -328,6 +330,8 @@
 			drawModeButton.useHandCursor = false;
 			topBarColorButton.useHandCursor = false;
 			sideBarPositionButton.useHandCursor = false;
+			sideBarPositionButton2.useHandCursor = false;
+			sideBarPositionButton2.visible = false;
 			cutPrevDataButton.useHandCursor = false;
 			superUndoButton.useHandCursor = false;
 			reRecordingButton.useHandCursor = false;

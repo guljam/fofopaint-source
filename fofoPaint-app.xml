@@ -18,7 +18,7 @@
 -->
 <application xmlns="http://ns.adobe.com/air/application/33.1">
   <id>fofoPaint</id>
-  <versionNumber>13.44</versionNumber>
+  <versionNumber>13.45</versionNumber>
   <filename>fofoPaint</filename>
   <description/>
   <name>fofoPaint</name>
@@ -43,49 +43,11 @@
     <image32x32>resource/icon/icon32.png</image32x32>
     <image48x48>resource/icon/icon48.png</image48x48>
     <image128x128>resource/icon/icon128.png</image128x128>
+    <image144x144>resource/icon/icon144.png</image144x144>
+    <image256x256>resource/icon/icon256.png</image256x256>
+    <image512x512>resource/icon/icon512.png</image512x512>
   </icon>
   <customUpdateUI>false</customUpdateUI>
   <allowBrowserInvocation>false</allowBrowserInvocation>
   <supportedProfiles>desktop extendedDesktop </supportedProfiles>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 </application>
