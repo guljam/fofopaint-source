@@ -5583,7 +5583,26 @@
 
         private function cutFrameData(flag:int,shortcutKey:Boolean):void
         {
-            if(replayStartON) stopReplay();
+            if(replayStartON)
+            {
+                stopReplay();
+            }
+            
+            if(cutFrameClickedButton < 0)
+            {
+                cutFrameClickedButton = flag;
+                cutFrameClickCounter++;
+            }
+            else if(cutFrameClickedButton !== flag)
+            {
+                resetClickCounter();
+                cutFrameClickCounter = 1;
+                cutFrameClickedButton = flag;
+            }
+            else
+            {
+                cutFrameClickCounter++;
+            }
 
             const _replayTimeBox:replayTimeBar = replayTimeBox;
             const replayNowBar:SimpleButton = _replayTimeBox["replayNowBar"] as SimpleButton;
@@ -5605,23 +5624,9 @@
             {
                 return;
             }
-            // const prevCutButton:SimpleButton = topBar["cutPrevDataButton"];
-            // const rrButton:SimpleButton = topBar["reRecordingButton"];
-            // const sUndoButton:SimpleButton = topBar["superUndoButton"];
+
             const deleteBar:SimpleButton = _replayTimeBox["replayDeleteBar"];
             const _replayTotalBar:SimpleButton = _replayTimeBox["replayTotalBar"];
-
-            cutFrameClickCounter++;
-
-            if(cutFrameClickedButton < 0)
-            {
-                cutFrameClickedButton = flag;
-            }
-            else if(cutFrameClickedButton !== flag)
-            {
-                resetClickCounter();
-                cutFrameClickCounter = 1;
-            }
 
             if(cutFrameClickCounter === 1)
             {
@@ -5631,7 +5636,6 @@
                 cutFrameActiveButton.addEventListener(MouseEvent.MOUSE_OUT,resetClickCounterEvent);
                 if(shortcutKey)
                 {
-                    trace('chortcut event go');
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,resetClickCounterMouseDownEvent);
                 }
 
@@ -5682,7 +5686,6 @@
                                             : "";
                     topBar.hint(funcName + "One more press key to OK (Red area will be deleted)",cutFrameActiveButton);
                 }
-
 
                 deleteBar.visible = true;
             }
