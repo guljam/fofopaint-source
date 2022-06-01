@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 13.46;
+        private const APP_VERSION:Number = 13.47;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -170,10 +170,10 @@
         private const canvas1Bitmap:Bitmap = new Bitmap(canvas1BitmapData,"auto",true)
                     ,canvas2Bitmap:Bitmap = new Bitmap(canvas2BitmapData,"auto",true)
 
-        private const resizeButtonR:Sprite = new Sprite()//캔버스 리사이즈 하는 버튼
-                    ,resizeButtonD:Sprite = new Sprite()
-                    ,resizeButtonL:Sprite = new Sprite()
-                    ,resizeButtonU:Sprite = new Sprite()
+        private const resizeButtonR:canvasResizeButton = new canvasResizeButton()//캔버스 리사이즈 하는 버튼
+                    ,resizeButtonD:canvasResizeButton = new canvasResizeButton()
+                    ,resizeButtonL:canvasResizeButton = new canvasResizeButton()
+                    ,resizeButtonU:canvasResizeButton = new canvasResizeButton()
                     ,regPoint:Sprite = new Sprite()//회전 스프라이트 부모
                     ,canvasPanel:Sprite = new Sprite()//회색 부분을 제외한 그리기 영역 추가       
                     ,canvas1:Sprite = new Sprite() //캔버스 1번 레이어 1
@@ -262,8 +262,6 @@
                     ,eraseAirBrushON:Boolean = false
                     ,penListShapeFlag:Boolean = false //펜 리스트에서 펜 모양 버튼 눌러줄때 툴이랑 상관없이 바꿔줌, 펜 미리보기 할때 필요
                     ,penLastUpdateInfo:Array = [null,null,null,null,null,null] //updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뙴
-                    // ,penAlphaPrevTimer:uint = 0
-                    ,resizeButtonActive:Boolean = false ///캔버스 리사이즈 버튼 클릭했을때 올려줌
                     ,addUndoMode:uint = 0 //addundo했을때 캔버스 이동 리사이즈, 배경색 변경 등 중복되는거 체크하는것임.
 
         //컬러픽커 관련 변수
@@ -273,7 +271,7 @@
                     ,HUECOLOR:Vector.<Number> = new Vector.<Number> (3,true) //hue컬러 다른 함수들이랑 통신하기 위해서 전역으로 만들어줌
                     ,pickerBoxColorBackup:uint = 0 //컬러 픽커 켜질때 원래 색깔 저장하는 곳
                     ,changedColor:int = -1 // 컬러 히스토리에서 고른 색깔을 여기다가 넣어줌
-                    ,pickerMode:uint = 1
+                    ,pickerMode:uint = 1 //1이면 펜컬러 2이면 배경색
                     // ,pickerBoxON:Boolean = false
                     ,pickerOpaClicked:Boolean = false //피커박스에서 투명도 조절했을때 올려줌 mouse out 이벤트 하나만 작동되게 할라고
                     ,pickerColorSelected:Boolean = false //피커박스에서 컬러를 한번이라도 조절했으면 올려줌
@@ -324,8 +322,6 @@
                     ]
         //window resize 관련 변수
                     ,lastWindowSize:Vector.<Number> = new Vector.<Number> (2,true) //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
-                    ,reizeButtonClickEnt:Sprite
-
         //save load 관련 변수
                     ,saveOneTime:Boolean = false //세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
                     ,saveFileName:String = "untitled.png"//세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
@@ -506,7 +502,7 @@
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarSetHeight:Number = 740
+                    ,sideBarSetHeight:Number = 745
         //기타
                     ,windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
@@ -566,15 +562,6 @@
             this.addEventListener(Event.ADDED_TO_STAGE, init);
         }
 
-        // private function printColorInfo(x:Number,y:Number):void //init1
-        // {
-        //     const c:uint = canvas1BitmapData.getPixel32(x,y);
-        //     const a:uint = (c & 0xFF000000) >>> 24;
-        //     const r:uint = (c & 0x00FF0000) >>> 16;
-        //     const g:uint = (c & 0x0000FF00) >>> 8;
-        //     const b:uint = (c & 0x000000FF);
-        // }
-
         private function init(e:Event):void //init1
         {
             windowStageElementSetting();
@@ -632,17 +619,17 @@
 
             pickerColorSelected = true;
 
-            setHSVCursorPosByColor(hexColor);
-
             if(mode === 1)
             {
                 penColor = hexColor;//색깔이 다를때만
                 updateOpaBoxColor(hexColor);
                 updateOpacityCursor(penAlphaIndex);
+                setHSVCursorPosByColor(hexColor);
             }
             else if(mode === 2)
             {
                 setBackgroundColor(hexColor);
+                setHSVCursorPosByColor(hexColor);
                 updateColorHistoryList();
                 rDataBuffer.push(["bgColor",hexColor]);
                 addUndoData(3);
@@ -651,6 +638,7 @@
             _pickerBox.setRGBInfo(colorHint);
             // pickerLastHint = colorHint;
         }
+
         private function setTegakiPresetColor(targetName:String):void
         {
             const lastNumber:String = targetName.substr(6,1);
@@ -661,7 +649,23 @@
             setBackgroundColor(arr[1]);
             rDataBuffer.push(["bgColor",arr[1]]);
             addUndoData(3);
-            setHSVCursorPosByColor(arr[0]);
+
+            if(!colorHistoryUpdateReady)
+            {
+                colorHistoryUpdateReady = true;
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
+            }
+
+            if(pickerMode === 1)
+            {
+                updatePickerCurrentColor(arr[0]);
+                setHSVCursorPosByColor(arr[0]);
+            }
+            else if(pickerMode === 2)
+            {
+                updatePickerCurrentColor(arr[1]);
+                setHSVCursorPosByColor(arr[1]);
+            }
         }
 
         private function isTrue2020File(file:File):Boolean
@@ -2072,14 +2076,13 @@
             const c:Vector.<uint> = HEXtoRGB(hexColor);
             const colorHint:String = "RGB "+c[0]+","+c[1]+","+c[2];
 
+            setHSVCursorPosByColor(hexColor);
+
             if(bgFlag === false)
             {
-                penColor = hexColor;//색깔이 다를때만
+                penColor = hexColor;
                 updateOpaBoxColor(hexColor);
                 updateOpacityCursor(penAlphaIndex);
-                setHSVCursorPosByColor(hexColor);
-
-                // pickerLastHint = colorHint;
                 forceSetMainDrawTool();
             }
             else if(bgFlag === true)
@@ -3330,16 +3333,6 @@
             stage.nativeWindow.title = saveFileName + " - FOFO Paint " + APP_VERSION.toFixed(2);
         }
 
-        private function changeResizeButtonColor(color:uint):void
-        {
-            const c:ColorTransform = new ColorTransform();
-            c.color = color;
-            resizeButtonR.transform.colorTransform = c;
-            resizeButtonD.transform.colorTransform = c;
-            resizeButtonL.transform.colorTransform = c;
-            resizeButtonU.transform.colorTransform = c;
-        }
-
         private function setUIColorButton():void
         {
             uiColorIndex++;
@@ -3368,7 +3361,6 @@
 
             updateStageBG(bg);
             controlBox.changeUIColor(base,op);
-            changeResizeButtonColor(border);
             toolTipBox.changeUIColor(base,op);
             pickerBox.changeUIColor(op);
             updatePickerCurrentColor(penColor);
@@ -8347,35 +8339,12 @@
                 cg.beginFill(arr[i]);
                 cg.drawRect(x*w,y,w,h);
                 x++;
-                if(x%10===0)
-                {
-                    x = 0;
-                    y += colorHistoryRectH;
-                }
             }
             cg.endFill();
         }
 
         private function makeResizeButtonFamily():void
         {
-            const _regPoint:Sprite = regPoint;
-            const color:uint = RESIZE_BUTTON_COLOR;
-
-            function drawRect(ent:Object):void
-            {
-                const g:Graphics = ent.graphics;
-                g.clear();
-                g.lineStyle(0,0,0);
-                g.beginFill(color);
-                g.drawRect(0,0,20,20);
-                g.endFill();
-            }
-
-            drawRect(resizeButtonR);
-            drawRect(resizeButtonD);
-            drawRect(resizeButtonL);
-            drawRect(resizeButtonU);
-
             resizeButtonR.name = "resizeButtonR";
             resizeButtonD.name = "resizeButtonD";
             resizeButtonL.name = "resizeButtonL";
@@ -8396,41 +8365,6 @@
                 eraseAirBrushON = !eraseAirBrushON;
                 setAirBrushCheckBox(eraseAirBrushON,false);
             }
-        }
-
-        private function setDeactiveResizeButton():void
-        {
-            if(reizeButtonClickEnt !== null)
-            {
-                setColorTransform(reizeButtonClickEnt as DisplayObject,uiColorSet[uiColorIndex][3]);
-                reizeButtonClickEnt = null;
-                toolTipBox.visible = false;
-            }
-            penCursorOFFFlag = false;
-        }
-
-        private function setActiveResizeButton(target:Sprite):void
-        {
-            setColorTransform(target,0xD3EFFF);
-            reizeButtonClickEnt = target;
-            setTopChildIndex(target);
-
-            resizeButtonActive = true;
-            penCursorOFFFlag = true;
-            toolTipBox.visible = true;
-            penSizeCursor.visible = false;
-
-            setToolTipString(CANVAS_WIDTH+" x "+CANVAS_HEIGHT);
-        }
-
-        private function canvasSizeButtonMouseUPEvent(e:MouseEvent):void
-        {
-            toolTipBox.visible = false;
-            resizeButtonActive = false;
-
-            setDeactiveResizeButton();
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, canvasSizeButtonMouseUPEvent);
-            stage.removeEventListener(MouseEvent.MOUSE_UP, canvasSizeButtonMouseUPEvent);
         }
 
         private function makeSkipImage():void //loadrep
@@ -11142,7 +11076,8 @@
             const bgColor:uint = CANVAS_BG_COLOR;
             const stageColor:uint = STAGE_BG_COLOR;
 
-            var resizeClickPos:Vector.<Number> = new Vector.<Number> (2,true);
+            const resizeClickPosX:Number = canvasPanel.mouseX;
+            const resizeClickPosY:Number = canvasPanel.mouseY;
             var finalWidth:uint = 0;
             var finalHeight:uint = 0;
             var movedX:int = 0;
@@ -11150,10 +11085,8 @@
 
             function resizeButtonMouseUpEvent(e:MouseEvent):void
             {
-                // var me:MouseEvent;
-                
-                resizeButtonActive = false; //엑티브 플래그 해제
-                setDeactiveResizeButton();
+                toolTipBox.visible = false;
+                penCursorOFFFlag = false;
 
                 reiszePreviewRect.graphics.clear();
                 reiszePreviewRect.visible = false;
@@ -11162,11 +11095,6 @@
                 stage.removeEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonMouseUpEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,resizeButtonMouseMoveEvent);
-
-                // me = new MouseEvent(MouseEvent.RIGHT_MOUSE_UP);
-                // stage.dispatchEvent(me);
-                // me = new MouseEvent(MouseEvent.MOUSE_UP);
-                // stage.dispatchEvent(me);
 
                 setResizeButtonVisible(true);
 
@@ -11190,10 +11118,10 @@
                 const resizeg:Graphics = reiszePreviewRect.graphics;
                 var edgePoint:Number;
 
-                var subX:int = (targetName === "resizeButtonR")  ? canvasPanel.mouseX-resizeClickPos[0]:
-                               (targetName === "resizeButtonL") ? resizeClickPos[0]-canvasPanel.mouseX: 0;
-                var subY:int = (targetName === "resizeButtonD")  ? canvasPanel.mouseY-resizeClickPos[1]:
-                               (targetName === "resizeButtonU") ? resizeClickPos[1]-canvasPanel.mouseY: 0;
+                var subX:int = (targetName === "resizeButtonR")  ? canvasPanel.mouseX-resizeClickPosX:
+                               (targetName === "resizeButtonL") ? resizeClickPosX-canvasPanel.mouseX: 0;
+                var subY:int = (targetName === "resizeButtonD")  ? canvasPanel.mouseY-resizeClickPosY:
+                               (targetName === "resizeButtonU") ? resizeClickPosY-canvasPanel.mouseY: 0;
 
                 finalWidth = (w+subX < minL) ? minL:
                            (w+subX > maxL) ? maxL:w+subX;
@@ -11241,9 +11169,6 @@
 
             //canvaspanel로 마우스 좌표 해주는 이유는
             //회전 되었을때도 panel좌표가 0도기준으로 유지 되기 때문
-            resizeClickPos[0] = canvasPanel.mouseX;
-            resizeClickPos[1] = canvasPanel.mouseY;
-
             setResizeButtonVisible(false);
             reiszePreviewRect.x = canvasPanel.x;
             reiszePreviewRect.y = canvasPanel.y;
@@ -11252,7 +11177,6 @@
             reiszePreviewRect.visible = true;
 
             stage.addEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonMouseUpEvent);
             stage.addEventListener(MouseEvent.MOUSE_MOVE,resizeButtonMouseMoveEvent);
         }
 
@@ -11831,33 +11755,28 @@
         //캔버스 판넬위치 따라 다니면서 크기 똑같이 해줌
         private function updateResizeButtonPos():void
         {
-            function setpos(ent:Sprite,x:Number,y:Number,w:Number,h:Number):void
+            function setpos(ent:canvasResizeButton,x:Number,y:Number):void
             {
                 ent.x = x;
                 ent.y = y;
-                ent.width = w;
-                ent.height = h;
             }
 
-            const rx:Number = regPoint.x;
-            const ry:Number = regPoint.y;
             const cpPosX:Number = canvasPanel.x;
             const cpPosY:Number = canvasPanel.y;
             const w:Number = CANVAS_WIDTH;
             const h:Number = CANVAS_HEIGHT;
-            const posX:Number = cpPosX+w;
-            const posY:Number = cpPosY+h;
-            const defSize:Number = 20/zoomed;
-            const tmpClac:Number = cpPosY-defSize;
-            const tmpCalc2:Number = h+defSize*2;
+            const mid:Number = resizeButtonU.width/2;
+            const xHalf:Number = cpPosX+w/2-mid;
+            const xLeft:Number = cpPosX-mid;
+            const xRight:Number = cpPosX+w-mid;
+            const yHalf:Number = cpPosY+h/2-mid;
+            const yTop:Number = cpPosY-mid;
+            const yBottom:Number = cpPosY+h-mid;
 
-            const stWidth:uint = stage.stageWidth;
-            const stHeight:uint = stage.stageHeight;
-
-            setpos(resizeButtonU,cpPosX-defSize,tmpClac,w+defSize*2,defSize);
-            setpos(resizeButtonD,cpPosX-defSize,posY,w+defSize*2,defSize);
-            setpos(resizeButtonL,cpPosX-defSize,tmpClac,defSize,tmpCalc2);
-            setpos(resizeButtonR,posX,tmpClac,defSize,tmpCalc2);
+            setpos(resizeButtonU,xHalf,yTop);
+            setpos(resizeButtonD,xHalf,yBottom);
+            setpos(resizeButtonL,xLeft,yHalf);
+            setpos(resizeButtonR,xRight,yHalf);
         }
 
         //라소 취소하면 undo이전 이미지로 되돌림
@@ -12689,11 +12608,6 @@
             cdg.endFill();
         }
 
-        private function updateSideBarRightPosition():void
-        {
-            sideBar.x = stage.stageWidth-sideBar.w;
-        }
-
         private function setSideBarRightPosition(ignoreCanvasMove:Boolean):void
         {
             const _sideBar:sidePanel = sideBar;
@@ -12715,7 +12629,7 @@
             pickerBox.y = controlBox.y+controlBox.height+5;
             toolBox.zoomIconRightPos();
 
-            sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width-3;
+            sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width-2;
             sideBarScrollBar.y = scrollBarMovedY;
 
             _sideBar.y = topBar.BARSIZE;
@@ -12760,7 +12674,7 @@
             toolBox.y = controlBox.y+5;
             toolBox.zoomIconLeftPos();
 
-            sideBarScrollBar.x = _sideBar.w+3;
+            sideBarScrollBar.x = _sideBar.w+2;
             sideBarScrollBar.y = scrollBarMovedY;
 
             _sideBar.y = topBar.BARSIZE;
@@ -12785,7 +12699,8 @@
             const color2:uint = uiColorSet[uiColorIndex][0];
 
             g.clear();
-            g.lineStyle(1,color1,1.0,true);
+            // g.lineStyle(1,color1,1.0,true);
+            g.lineStyle(0,0,0);
             g.beginFill(color2,1.0);
             g.drawRect(0,0,8,height);
             g.endFill();
@@ -13119,7 +13034,7 @@
 
                 if(isRightSidebar)
                 {
-                    updateSideBarRightPosition();
+                    sideBar.x = stage.stageWidth-sideBar.w;
                 }
                 // consoleBox.updateConsoleHeight(sth);
                 updatePreviewCursorPos();
@@ -14279,29 +14194,15 @@
             return false;
         }
 
-        private function checkResizeButton(target:Sprite,shortcutKey:Boolean):Boolean
+        private function setCanvasResizeButton(target:canvasResizeButton):Boolean
         {   
-            if(reizeButtonClickEnt === target)
-            {
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, canvasSizeButtonMouseUPEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_UP, canvasSizeButtonMouseUPEvent);
-                setCanvasSize(reizeButtonClickEnt.name);
-                return true; //밑에 tool이 실행되기 때문에 조건 만족할때만 return해야함
-            }
-            else if(shortcutKey === true)
-            {
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, canvasSizeButtonMouseUPEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_UP, canvasSizeButtonMouseUPEvent);
-                setActiveResizeButton(target);
-                setCanvasSize(target.name);
+            penCursorOFFFlag = true;
+            toolTipBox.visible = true;
+            penSizeCursor.visible = false;
+            setToolTipString(CANVAS_WIDTH+" x "+CANVAS_HEIGHT);
 
-                return true;
-            }
-            else
-            {
-                setDeactiveResizeButton();
-            }
-            return false;
+            setCanvasSize(target.name);
+            return true; //밑에 tool이 실행되기 때문에 조건 만족할때만 return해야함
         }
 
         private function checkReplaySpeedState():void
@@ -14665,28 +14566,7 @@
 
             const targetName:String = e.target.name;
 
-            if(targetName === "resizeButtonR"
-            || targetName === "resizeButtonD"
-            || targetName === "resizeButtonL"
-            || targetName === "resizeButtonU")
-            {
-                if(!lassoToolON)
-                {
-                    setActiveResizeButton(e.target as Sprite);
-                    stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, canvasSizeButtonMouseUPEvent);
-                    stage.addEventListener(MouseEvent.MOUSE_UP, canvasSizeButtonMouseUPEvent);
-                }
-            }
-            // else if(targetName === "prevStageBG"
-            // ||targetName === "prevBitmapBG"
-            // ||targetName === "prevBitmap"
-            // ||targetName === "prevCursor")
-            // {
-            //     previewBox.prevBitmapBG.visible =  !previewBox.prevBitmapBG.visible
-            //     previewBox.prevBitmap.visible = !previewBox.prevBitmap.visible
-            //     previewBox.prevCursor.visible =  !previewBox.prevCursor.visible
-            // }
-            else if(targetName === "saveButton")
+            if(targetName === "saveButton")
             {
                 saveFile(true);
             }
@@ -14870,6 +14750,7 @@
                 {
                     setCurrentColor(pickerMode);
                 }
+                return;
 
                 case "tegaki0":
                 case "tegaki1":
@@ -15041,11 +14922,6 @@
                     return;
                 }
             }
-            else if(reizeButtonClickEnt !== null && reizeButtonClickEnt !== target)
-            {
-                setDeactiveResizeButton();
-                return;
-            }
             else if(sideBarScrollSet.hitTestPoint(mouseX,mouseY,true))
             {
                 if(checkPickerBoxButtons(target) && nowKey === 0) 
@@ -15157,7 +15033,7 @@
                     //안해주면 캔버스 조절할때 펜이 캔버스에 그어짐
                     if(!lassoToolON)
                     {
-                        if(checkResizeButton(target as Sprite,e.controlKey) === true)
+                        if(setCanvasResizeButton(target as canvasResizeButton) === true)
                         {
                             return;
                         }
