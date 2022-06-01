@@ -8,12 +8,14 @@
 	public class sidePanel extends Sprite {
 
 		private const sideBG:Shape = new Shape();
-		public const WIDTH:Number = 220;
+		public const w:Number = 220;
+		public var h:Number = 220;
 
 		public function updateSideBGSize(sth:Number):void
 		{
-			sideBG.width = WIDTH;
+			sideBG.width = w;
 			sideBG.height = sth;
+			h = sth;
 		}
 
 		public function changeUIColor(color:uint,op:uint):void

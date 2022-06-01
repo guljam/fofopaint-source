@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 13.45;
+        private const APP_VERSION:Number = 13.46;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -149,7 +149,7 @@
                     ,COLOR_MID_DARK:uint = 0x535353//0x5B5B5B//중간 어두운색
                     ,COLOR_MID_BRIGHT:uint = 0xB8B8B8//중간 밝은색
                     ,COLOR_BRIGHT:uint = 0xF0F0F0//0xECEAE7//밝은색
-                    ,AFK_TIME_OUT:int = 5
+                    ,AFK_TIME_OUT:int = 2
                     ,GC_TIME_OUT:int = 30
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -161,10 +161,10 @@
                     ,RCANVAS_WIDTH:Number = 600
                     ,RCANVAS_HEIGHT:Number = 390
                     ,APP_RUNNING_TIME:Number = 0 //앱 실행시간
-                    ,TOP_OFFSET:Number = 0 //창 상하좌우 여백
-                    ,LEFT_OFFSET:Number = 0
-                    ,BOTTOM_OFFSET:Number = 0
-                    ,RIGHT_OFFSET:Number = 0
+                    ,STAGE_TOP_OFFSET:Number = 0 //창 상하좌우 여백
+                    ,STAGE_LEFT_OFFSET:Number = 0
+                    ,STAGE_BOTTOM_OFFSET:Number = 0
+                    ,STAGE_RIGHT_OFFSET:Number = 0
 
         //element
         private const canvas1Bitmap:Bitmap = new Bitmap(canvas1BitmapData,"auto",true)
@@ -206,6 +206,8 @@
                     ,appInfoBox:appInfoBar = new appInfoBar()
                     ,previewBox:previewPanel = new previewPanel()
                     ,sideBar:sidePanel = new sidePanel()
+                    ,sideBarScrollBar:Sprite = new Sprite()
+                    ,sideBarScrollSet:Sprite = new Sprite()
                     // ,consoleBox:consolePanel = new consolePanel()
                     ,transBGBMPD:BitmapData = new BitmapData(16,16,false,0xFFFFFF);
                      //draw var
@@ -500,7 +502,11 @@
                     ,updatePenCursorPosition:Function = ClosureUpdatePenCursorPosition()
                     ,checkMainDrawTool:Function = ClosureCheckMainDrawTool()
                     ,drawCaptureArea:Object = ClosureDrawCaptureArea()
-
+        //스크롤바 변수
+                    ,scrollSetMovedY:Number = 0
+                    ,scrollBarMovedY:Number = 0
+                    ,scrollBarHeight:Number = 0
+                    ,sideBarSetHeight:Number = 740
         //기타
                     ,windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
@@ -944,8 +950,8 @@
                 {
                     clickedButton = targetName;
                 }
-                else if(!(mx <= LEFT_OFFSET || mx >= stage.stageWidth -RIGHT_OFFSET
-                       || my <= TOP_OFFSET  || my >= stage.stageHeight-BOTTOM_OFFSET
+                else if(!(mx <= STAGE_LEFT_OFFSET || mx >= stage.stageWidth -STAGE_RIGHT_OFFSET
+                       || my <= STAGE_TOP_OFFSET  || my >= stage.stageHeight-STAGE_BOTTOM_OFFSET
                        || clickBlockFlag === true))
                 {
                     stage.addEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
@@ -1519,10 +1525,10 @@
                 nt = nowTool;
                 mx = mouseX;
                 my = mouseY;
-                posInStage = mx >= LEFT_OFFSET 
-                          && mx <= stage.stageWidth-RIGHT_OFFSET
-                          && my >= TOP_OFFSET
-                          && my <= stage.stageHeight-BOTTOM_OFFSET;
+                posInStage = mx >= STAGE_LEFT_OFFSET 
+                          && mx <= stage.stageWidth-STAGE_RIGHT_OFFSET
+                          && my >= STAGE_TOP_OFFSET
+                          && my <= stage.stageHeight-STAGE_BOTTOM_OFFSET;
 
                 if((nt > 4 && nt !== TOOL_FILL_PEN )|| penCursorOFFFlag || !posInStage)//1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                 {
@@ -1879,13 +1885,13 @@
 
         private function updatePreviewCursorPos():void
         {
-            const gp:Point = canvas1Bitmap.globalToLocal(new Point(LEFT_OFFSET,TOP_OFFSET));
+            const gp:Point = canvas1Bitmap.globalToLocal(new Point(STAGE_LEFT_OFFSET,STAGE_TOP_OFFSET));
             const z:Number = zoomed;
 
             previewBox.updateCursor(gp.x*z
                                     ,gp.y*z
-                                    ,stage.stageWidth-LEFT_OFFSET-RIGHT_OFFSET
-                                    ,stage.stageHeight-TOP_OFFSET-BOTTOM_OFFSET
+                                    ,stage.stageWidth-STAGE_LEFT_OFFSET-STAGE_RIGHT_OFFSET
+                                    ,stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET
                                     ,CANVAS_WIDTH*z
                                     ,regPoint.rotation);
         }
@@ -2241,7 +2247,7 @@
 
         private function toolBoxHintOFFEvent(e:MouseEvent):void
         {
-            if(toolBox.toolInfo.visible)// && mouseX >= sideBar.WIDTH-5)
+            if(toolBox.toolInfo.visible)// && mouseX >= sideBar.w-5)
             {
                 toolBox.hintOFF();
             }
@@ -3390,6 +3396,7 @@
                 changePickerModeToNormal();
             }
             pickerBox.setPickerMode(pickerMode);
+            updateScrollBar(scrollBarHeight);
         }
 
         private function windowStageElementSetting():void
@@ -7726,13 +7733,8 @@
                 toolBoxAlwaysClickTool = "";
                 return;
             }
-            toolBoxAlwaysClickTool = "";
 
-            // if(targetName !== null && targetName.indexOf("tool") !== -1)
-            // {
-            //     // const target:DisplayObject = e.target as DisplayObject;
-            //     // updateToolBoxMousePos(target);
-            // }
+            toolBoxAlwaysClickTool = "";
 
             switch(targetName)
             {
@@ -10978,9 +10980,9 @@
                 canvasGrid.x = 0;
             }
 
-            const halfCanvas:Number = (stage.stageWidth-sideBar.WIDTH)/2;
+            const halfCanvas:Number = (stage.stageWidth-sideBar.w)/2;
             var stageHalf:Number = (isRightSidebar) ? halfCanvas
-                                                    : LEFT_OFFSET+halfCanvas;
+                                                    : STAGE_LEFT_OFFSET+halfCanvas;
             //창 절반을 기준점으로 regpoint x축 이동.
             regPoint.x += Math.round((stageHalf-p.x)*2);
             updatePreviewCursorPos();
@@ -11709,8 +11711,8 @@
                 moveEraseButton("toolSpuit");
                 
                 if(canvas1Bitmap.hitTestPoint(mouseX,mouseY) === true
-                && mouseX > LEFT_OFFSET && mouseX < stage.stageWidth-RIGHT_OFFSET //캔버스 영역안에서만
-                && mouseY > TOP_OFFSET && mouseY < stage.stageHeight-BOTTOM_OFFSET)
+                && mouseX > STAGE_LEFT_OFFSET && mouseX < stage.stageWidth-STAGE_RIGHT_OFFSET //캔버스 영역안에서만
+                && mouseY > STAGE_TOP_OFFSET && mouseY < stage.stageHeight-STAGE_BOTTOM_OFFSET)
                 {
                     spuitCursor.x = mouseX;
                     spuitCursor.y = mouseY;
@@ -12687,76 +12689,41 @@
             cdg.endFill();
         }
 
-        // private function checkPenSize(shapeFlag:Boolean=false,shape:Boolean=false,xSize:Number=0):void
-        // {
-        //     const eraseFlag:Boolean = isEraseTool();
-        //     const pp:Shape = penSizePrev;
-
-        //     if(shapeFlag === false)
-        //     {
-        //         shape = (!eraseFlag) ? penShape : eraseShape;
-        //     }
-
-        //     if(xSize === 0)
-        //     {
-        //         xSize = (!eraseFlag) ? penSize : eraseSize;
-        //     }
- 
-        //     const toolSize:Number = xSize*zoomed;
-        //     const pg:Graphics = pp.graphics;
-
-        //     penSizePrev.alpha = 1.0;
-
-        //     pg.clear();
-        //     pg.lineStyle(1,0xBAD2EE);
-        //     pg.beginFill(0x8DB1D9);
-
-        //     if(shape === false)
-        //     {
-        //         pg.drawCircle(0,0,toolSize/2);
-        //     }
-        //     else
-        //     {
-        //         pg.drawRect(-toolSize/2,-toolSize/2,toolSize,toolSize);
-        //     }
-        //     pg.endFill();
-        // }
-
         private function updateSideBarRightPosition():void
         {
-            sideBar.x = stage.stageWidth-sideBar.WIDTH;
+            sideBar.x = stage.stageWidth-sideBar.w;
         }
 
         private function setSideBarRightPosition(ignoreCanvasMove:Boolean):void
         {
             const _sideBar:sidePanel = sideBar;
             const floor:Function = Math.floor;
-            const sidebarOffsetX:Number = 5+toolBox.BOX_WIDTH+5;
 
-            _sideBar.x = stage.stageWidth-_sideBar.WIDTH;
+            _sideBar.x = stage.stageWidth-_sideBar.w;
 
-            previewBox.x = 5;
+            sideBarScrollSet.x = 5;
+            sideBarScrollSet.y = scrollSetMovedY;
+            previewBox.x = 0;
             previewBox.y = 0;
-
-            appInfoBox.x = 42;
-            appInfoBox.y = previewBox.y+previewBox.BOX_HEIGHT+5;
-
-            controlBox.x = sidebarOffsetX;
-            controlBox.y = floor(appInfoBox.y+appInfoBox.height+3);
-
-            toolBox.x = 4;
-            toolBox.y = appInfoBox.y;
+            appInfoBox.x = 0;
+            appInfoBox.y = previewBox.y+previewBox.BOX_HEIGHT+3;
+            toolBox.x = 0;
+            toolBox.y = appInfoBox.y+appInfoBox.height;
+            controlBox.x = 39;
+            controlBox.y = toolBox.y+5;
+            pickerBox.x = 39;
+            pickerBox.y = controlBox.y+controlBox.height+5;
             toolBox.zoomIconRightPos();
 
-            pickerBox.x = sidebarOffsetX;
-            pickerBox.y = floor(controlBox.y+controlBox.height+10);
+            sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width-3;
+            sideBarScrollBar.y = scrollBarMovedY;
 
             _sideBar.y = topBar.BARSIZE;
 
-            RIGHT_OFFSET = _sideBar.WIDTH;
-            LEFT_OFFSET = 0;
+            STAGE_RIGHT_OFFSET = _sideBar.w;
+            STAGE_LEFT_OFFSET = 0;
 
-            _sideBar.updateSideBGSize(stage.stageHeight);
+            // _sideBar.updateSideBGSize(stage.stageHeight-STAGE_TOP_OFFSET);
 
             const fillPenIconPos:Point = toolBox.toolFillPen.localToGlobal(new Point(0,0));
             fillPenBox.x = fillPenIconPos.x-34;
@@ -12764,7 +12731,7 @@
 
             if(ignoreCanvasMove === false)
             {
-                regPoint.x -= RIGHT_OFFSET;
+                regPoint.x -= STAGE_RIGHT_OFFSET;
             }
 
             topBar.sideBarPositionButton.visible = false;
@@ -12775,39 +12742,55 @@
         {
             const _sideBar:sidePanel = sideBar;
             const floor:Function = Math.floor;
-            const sidebarOffsetX:Number = 5;
 
             _sideBar.x = 0;
 
-            previewBox.x = sidebarOffsetX;
+            sideBarScrollSet.x = 5;
+            sideBarScrollSet.y = scrollSetMovedY;
+
+            previewBox.x = 0;
             previewBox.y = 0;
-
-            appInfoBox.x = 3;
-            appInfoBox.y = previewBox.y+previewBox.BOX_HEIGHT+5;
-
-            controlBox.x = sidebarOffsetX;
-            controlBox.y = floor(appInfoBox.y+appInfoBox.height+3);
-
-            toolBox.x = floor(controlBox.x+controlBox.width+1);
-            toolBox.y = appInfoBox.y;
+            appInfoBox.x = 0;
+            appInfoBox.y = previewBox.y+previewBox.BOX_HEIGHT+3;
+            controlBox.x = 0;
+            controlBox.y = appInfoBox.y+appInfoBox.height;
+            pickerBox.x = 0;
+            pickerBox.y = controlBox.y+controlBox.height+5;
+            toolBox.x = controlBox.x+controlBox.width;
+            toolBox.y = controlBox.y+5;
             toolBox.zoomIconLeftPos();
 
-            pickerBox.x = sidebarOffsetX;
-            pickerBox.y = floor(controlBox.y+controlBox.height+10);
+            sideBarScrollBar.x = _sideBar.w+3;
+            sideBarScrollBar.y = scrollBarMovedY;
 
             _sideBar.y = topBar.BARSIZE;
 
-            LEFT_OFFSET = _sideBar.WIDTH;
-            RIGHT_OFFSET = 0;
+            STAGE_LEFT_OFFSET = _sideBar.w;
+            STAGE_RIGHT_OFFSET = 0;
 
             const fillPenIconPos:Point = toolBox.toolFillPen.localToGlobal(new Point(0,0));
             fillPenBox.x = fillPenIconPos.x;
             fillPenBox.y = fillPenIconPos.y;
 
-            regPoint.x += LEFT_OFFSET;
+            regPoint.x += STAGE_LEFT_OFFSET;
 
             topBar.sideBarPositionButton.visible = true;
             topBar.sideBarPositionButton2.visible = false;
+        }
+
+        private function updateScrollBar(height:Number):void
+        {
+            var g:Graphics = sideBarScrollBar.graphics;
+            const color1:uint = uiColorSet[uiColorIndex][1];
+            const color2:uint = uiColorSet[uiColorIndex][0];
+
+            g.clear();
+            g.lineStyle(1,color1,1.0,true);
+            g.beginFill(color2,1.0);
+            g.drawRect(0,0,8,height);
+            g.endFill();
+
+            scrollBarHeight = height;
         }
 
         private function makeMenuFamlity():void
@@ -12824,20 +12807,22 @@
             penSizePrev.y = stH2;
 
             topBar.name = "topBar";
-            // _topBar.alignButtons();
+            sideBarScrollBar.name = "sideBarScrollBar";
             topBar.makeTopbarBG(COLOR_MID_DARK);
             changeTopBarIcons("draw");
 
-            sideBar.addChild(previewBox);
-            sideBar.addChild(appInfoBox);
-            sideBar.addChild(toolBox);
-            sideBar.addChild(controlBox);
-            sideBar.addChild(pickerBox);
-            // sideBar.addChild(consoleBox);
+            sideBarScrollSet.addChild(previewBox);
+            sideBarScrollSet.addChild(appInfoBox);
+            sideBarScrollSet.addChild(toolBox);
+            sideBarScrollSet.addChild(controlBox);
+            sideBarScrollSet.addChild(pickerBox);
+            sideBar.addChild(sideBarScrollBar);
+            sideBar.addChild(sideBarScrollSet);
             sideBar.updateSideBGSize(stage.stageHeight);
             setSideBarLeftPosition();
+            sideBarScrollBar.alpha = 0.7;
 
-            TOP_OFFSET = topBar.BARSIZE;
+            STAGE_TOP_OFFSET = topBar.BARSIZE;
 
             updateWorkingTime();
             topBar.updateTimerPos(stage.stageWidth);
@@ -13009,6 +12994,55 @@
             saveTraceImage();
         }
 
+        private function getScrollSetBottom():Number
+        {
+            const g:Point = (pickerBox.tegakiPresetBox).localToGlobal(new Point(0,0));
+            return g.y+30-STAGE_TOP_OFFSET;
+        }
+
+        private function updateScrollBarHeight(sth:Number):void
+        {
+            const floor:Function = Math.floor;
+            const topOffset:Number = STAGE_TOP_OFFSET;
+            const _sideBarSetHeight:Number = sideBarSetHeight-topOffset; //top offset빼줘야함
+            sth = floor(sth-topOffset); //상단 메뉴 길이 빼줌 sth랑 sideBarSetHeight 같이 빼야함
+
+            //창이 늘어났을때 여유공간 있으면 아랫쪽으로 옮겨줌
+            const nowScrollSetBottom:Number = getScrollSetBottom();
+            if(nowScrollSetBottom < sth)
+            {
+                var newYPos:Number = floor(sideBarScrollSet.y+(sth-nowScrollSetBottom));
+                if(newYPos > 0)
+                {
+                    newYPos = 0;
+                }
+                sideBarScrollSet.y = newYPos;
+                scrollSetMovedY = newYPos;
+            }
+            
+            if(_sideBarSetHeight < sth)
+            {
+                sideBarScrollBar.visible = false;
+                return;
+            }
+
+            var scrollBarSize:Number = floor(sth-(_sideBarSetHeight-sth));
+            if(scrollBarSize < 35)
+            {
+                scrollBarSize = 35;
+            }
+
+            scrollBarHeight = scrollBarSize;
+            updateScrollBar(scrollBarSize);
+
+            //스크롤바 위치 갱신
+            const scrollSetY:Number = Math.abs(sideBarScrollSet.y);
+            const factor:Number = (sth-scrollBarSize)/(_sideBarSetHeight-sth);
+            sideBarScrollBar.y = floor(scrollSetY*factor);
+
+            sideBarScrollBar.visible = true;
+        }
+
         private function windowResizedBeforeClosingEvent(e:Event):void
         {
             lastWindowState = 1
@@ -13025,16 +13059,12 @@
                 const _lastWindowSize0:Number = _lastWindowSize[0];
                 const _lastWindowSize1:Number = _lastWindowSize[1];
                 const windowW:Number = stage.nativeWindow.width;
-                const windowH:Number = stage.nativeWindow.height
+                const windowH:Number = stage.nativeWindow.height;
                 const stw:Number = stage.stageWidth;
                 const sth:Number = stage.stageHeight;
                 const round:Function = Math.round;
-                // const panelPosX:int = regPoint.x + canvasPanel.x;
-                // const panelPosY:int = regPoint.y + canvasPanel.y;
                 const dx:Number = round((windowW-_lastWindowSize0)/1.75);
                 const dy:Number = round((windowH-_lastWindowSize1)/1.75);
-                // const dx1:Number = round((windowW-_lastWindowSize0));//창길이의 1배만큼 움직여줌
-                // const dy1:Number = round((windowH-_lastWindowSize1));
 
                 //창움직임에 따라서 약간씩 움직여줌
                 rregPoint.x = rregPoint.x+dx;
@@ -13058,6 +13088,7 @@
 
                 penSizePrev.x = stage.stageWidth/2;
                 penSizePrev.y = stage.stageHeight/2;
+
                 if(captureModeON)
                 {
                     canvasFitWindow(true);
@@ -13065,6 +13096,10 @@
 
                 checkCanvasPanelPos();
 
+                if(aboutPanelON)
+                {
+                    setAboutPanelCenterPos();
+                }
 
                 if(replayModeON)
                 {
@@ -13076,15 +13111,11 @@
                     updateResizeButtonPos();//리사이즈 버튼 위치도 업데이트
                 }
 
-                if(aboutPanelON)
-                {
-                    setAboutPanelCenterPos();
-                }
-
                 updateStageBG(uiColorSet[uiColorIndex][2]);
                 topBar.updateTopbarBG(stw);
                 topBar.updateTimerPos(stage.stageWidth);
-                sideBar.updateSideBGSize(sth);
+                sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
+                updateScrollBarHeight(sth);
 
                 if(isRightSidebar)
                 {
@@ -13185,10 +13216,10 @@
         //check box position함수는 요소 전체가 창에서 넘어가만 않게 하는거고
         private function checkBoxPosition(ent:DisplayObject):void
         {
-            var offsetTop:Number = TOP_OFFSET;
-            var offsetLeft:Number = LEFT_OFFSET;
-            var offsetBottom:Number = BOTTOM_OFFSET;
-            var offsetRight:Number = RIGHT_OFFSET;
+            var offsetTop:Number = STAGE_TOP_OFFSET;
+            var offsetLeft:Number = STAGE_LEFT_OFFSET;
+            var offsetBottom:Number = STAGE_BOTTOM_OFFSET;
+            var offsetRight:Number = STAGE_RIGHT_OFFSET;
 
             const left:Number = ent.x;
             const top:Number = ent.y;
@@ -13219,10 +13250,10 @@
             }
             const offset:int = 100; //최소 100픽셀 은 보여야함
             const BRECT:Object = getBoundRect(xCanvas);
-            const leftLimit:Number = LEFT_OFFSET+offset;
-            const rightLimit:Number = stage.stageWidth-(RIGHT_OFFSET+offset);
-            const topLimit:Number = TOP_OFFSET+offset;
-            const bottomLimit:Number = stage.stageHeight-(BOTTOM_OFFSET+offset);
+            const leftLimit:Number = STAGE_LEFT_OFFSET+offset;
+            const rightLimit:Number = stage.stageWidth-(STAGE_RIGHT_OFFSET+offset);
+            const topLimit:Number = STAGE_TOP_OFFSET+offset;
+            const bottomLimit:Number = stage.stageHeight-(STAGE_BOTTOM_OFFSET+offset);
 
             //getbound는 보이는 그대로 사각형 끝점 좌표를 반환함
             const left:Number = BRECT.left;
@@ -13243,7 +13274,7 @@
         {
             const floor:Function = Math.floor;
             const topBarOffset:Number = topBar.BARSIZE;
-            var centerX:Number = (isRightSidebar) ? floor((stage.stageWidth-RIGHT_OFFSET)/2) : floor(LEFT_OFFSET+(stage.stageWidth-LEFT_OFFSET)/2);
+            var centerX:Number = (isRightSidebar) ? floor((stage.stageWidth-STAGE_RIGHT_OFFSET)/2) : floor(STAGE_LEFT_OFFSET+(stage.stageWidth-STAGE_LEFT_OFFSET)/2);
             var centerY:Number = floor(topBarOffset+(stage.stageHeight-topBarOffset)/2);
 
             if(captureMode)
@@ -14131,6 +14162,55 @@
                 checkLassoMenuPos();
             }
         }
+       
+
+        private function sideBarScrollReady(clickY:Number):void
+        {
+            const floor:Function = Math.floor;
+            const sth:Number = stage.stageHeight;
+            const canMoveHeight:Number = (sth-STAGE_TOP_OFFSET)-scrollBarHeight;
+            const diffHeight:Number = (sideBarSetHeight-STAGE_TOP_OFFSET)-(sth-STAGE_TOP_OFFSET);
+            const factor:Number = diffHeight/canMoveHeight;
+            var scrollStarted:Boolean = false;
+            var my1:Number = sideBarScrollBar.y;
+            var my2:Number = sideBarScrollSet.y;
+
+            function sideBarMouseUpEvent(e:MouseEvent):void
+            {
+                scrollSetMovedY = sideBarScrollSet.y;
+                scrollBarMovedY = sideBarScrollBar.y;
+
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,sideBarMouseMoveEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
+            }
+
+            function sideBarMouseMoveEvent(e:MouseEvent):void
+            {
+                const subY:Number = clickY-mouseY;
+
+                my1 = my1-subY;
+                my2 = my2+subY*factor;
+
+                if(my1 < 0)
+                {
+                    my1 = 0;
+                    my2 = 0;
+                }
+                else if(my1 > sideBar.h-sideBarScrollBar.height)
+                {
+                    my1 = sideBar.h-sideBarScrollBar.height;
+                    my2 = -diffHeight;
+                }
+
+                sideBarScrollBar.y = floor(my1);
+                sideBarScrollSet.y = floor(my2);
+                clickY = mouseY;
+            }
+
+            clickY = clickY;
+            stage.addEventListener(MouseEvent.MOUSE_MOVE,sideBarMouseMoveEvent);
+            stage.addEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
+        }
 
         private function checkToolBoxButtons(targetName:String):Boolean
         {
@@ -14142,9 +14222,7 @@
             {
                 stage.addEventListener(MouseEvent.MOUSE_UP,checkToolBoxButtonUpEvent);
             }
-            
-            setTopChildIndex(toolBox);
-            
+
             switch(targetName)
             {
                 case "toolBoxMoveButton":
@@ -14805,7 +14883,7 @@
             }
         }
 
-        private function checkLassoToolButtons(targetName:String):void //mdown1
+        private function checkLassoToolButtons(targetName:String):void
         {
             switch(targetName)
             {
@@ -14912,7 +14990,7 @@
             }
         }
 
-        private function mouseDownEvent(e:MouseEvent):void //mdown1
+        private function mouseDownEvent(e:MouseEvent):void
         {
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rightMouseDownEvent);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownEvent);
@@ -14968,7 +15046,7 @@
                 setDeactiveResizeButton();
                 return;
             }
-            else if(sideBar.hitTestPoint(mouseX,mouseY,true) )
+            else if(sideBarScrollSet.hitTestPoint(mouseX,mouseY,true))
             {
                 if(checkPickerBoxButtons(target) && nowKey === 0) 
                 {
@@ -15026,6 +15104,12 @@
                 }
                 return;
 
+                case "sideBarScrollBar":
+                {
+                    sideBarScrollReady(mouseY);
+                }
+                return;
+                
                 case "prevStageBG":
                 case "prevBitmapBG":
                 case "prevBitmap":
@@ -15097,8 +15181,8 @@
             const mx:Number = mouseX;
             const my:Number = mouseY;
 
-            if(mx <= LEFT_OFFSET || mx >= stage.stageWidth -RIGHT_OFFSET
-            || my <= TOP_OFFSET  || my >= stage.stageHeight-BOTTOM_OFFSET
+            if(mx <= STAGE_LEFT_OFFSET || mx >= stage.stageWidth -STAGE_RIGHT_OFFSET
+            || my <= STAGE_TOP_OFFSET  || my >= stage.stageHeight-STAGE_BOTTOM_OFFSET
             || clickBlockFlag === true)
             {
                 return;

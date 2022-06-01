@@ -1736,8 +1736,8 @@ private function setLassoTool():void
             }
 
             if(canvas1Bitmap.hitTestPoint(mouseX,mouseY) === true
-            && mouseX > LEFT_OFFSET && mouseX < stage.stageWidth-RIGHT_OFFSET //캔버스 영역안에서만
-            && mouseY > TOP_OFFSET && mouseY < stage.stageHeight-BOTTOM_OFFSET)
+            && mouseX > STAGE_LEFT_OFFSET && mouseX < stage.stageWidth-STAGE_RIGHT_OFFSET //캔버스 영역안에서만
+            && mouseY > STAGE_TOP_OFFSET && mouseY < stage.stageHeight-STAGE_BOTTOM_OFFSET)
             {
                 spuitCursor.x = mouseX;
                 spuitCursor.y = mouseY;

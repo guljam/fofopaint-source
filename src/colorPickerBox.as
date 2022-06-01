@@ -61,7 +61,7 @@
 
 		public var currentColor:Sprite = new Sprite();
 		public var currentColorColor:uint = 0;
-		public var currentColorWidth:Number = 27;
+		public var currentColorWidth:Number = 28;
 		private var lastCurrentShape:int = 0;
 		public var hueCursor:SimpleButton = hueCursor;
 		public var svCursor:SimpleButton = svCursor;
@@ -80,7 +80,7 @@
 		private var panelWidth:Number = 0;
 		private var panelHeight:Number = 0;
 
-		private var rgbInfoWidth:int = 137;
+		private var rgbInfoWidth:int = 136;
 		private var rgbInfoHeight:int = 19;
 
 		//피커박스 구조
@@ -293,9 +293,9 @@
 			colorPickerInfo.y = 0;
 			colorPickerInfo.text = "Color";
 
-			paperColorButton.x = colorPickerInfo.x+colorPickerInfo.textWidth+63;
+			paperColorButton.x = colorPickerInfo.x+colorPickerInfo.textWidth+62;
 			paperColorButton.y = colorPickerInfo.y;
-			penColorButton.x = paperColorButton.x+paperColorButton.width+3;
+			penColorButton.x = paperColorButton.x+paperColorButton.width+4;
 			penColorButton.y = paperColorButton.y;
 
 			penColorButton.useHandCursor = false;
