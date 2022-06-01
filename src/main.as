@@ -2374,7 +2374,7 @@
 
             const buttonSetVisible:Function = _tb.buttonSetVisible;
 
-            buttonSetVisible(mode,true);
+            buttonSetVisible(mode,true,isRightSidebar);
 
             if(mode === "draw")
             {
@@ -2388,7 +2388,7 @@
             else if(mode === "replay")
             {
                 const _replayTimeBox:replayTimeBar = replayTimeBox
-                buttonSetVisible("draw",false);
+                buttonSetVisible("draw",false,isRightSidebar);
                 buttonSetVisible("capture",false);
 
                 if(replayStartON)
@@ -2406,7 +2406,7 @@
             else if(mode === "capture")
             {
                 buttonSetVisible("replay",false);
-                buttonSetVisible("draw",false);
+                buttonSetVisible("draw",false,isRightSidebar);
                 _tb.changeHintYPos(_tb.BARSIZE);
             }
         }

@@ -234,7 +234,7 @@
 			topbarBGColor = color;
         }
 
-		public function buttonSetVisible(mode:String,flag:Boolean):void
+		public function buttonSetVisible(mode:String,flag:Boolean,rightSidebar:Boolean=false):void
 		{
 			const arr:Array = (mode === "replay")  ? replayModeButtons
 							: (mode === "capture") ? captureModeButtons
@@ -247,6 +247,17 @@
 			{
 				ent = arr[i] as DisplayObject;
 				if(ent) arr[i].visible = flag;
+			}
+			if(mode === "draw" && flag === true)
+			{
+				if(rightSidebar)
+				{
+					sideBarPositionButton.visible = false;
+				}
+				else
+				{
+					sideBarPositionButton2.visible = false;
+				}
 			}
 		}
 
@@ -364,6 +375,7 @@
 									gridButton,
 									topBarColorButton,
 									sideBarPositionButton,
+									sideBarPositionButton2,
 									aboutButton
 							  ];
 
