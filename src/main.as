@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 13.48;
+        private const APP_VERSION:Number = 14.0;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -1416,6 +1416,7 @@
 
                 // e.updateAfterEvent();
             }
+
 
             return function (penFlag:Boolean):void
             {
@@ -3837,6 +3838,7 @@
         {
             const keycode:int = e.keyCode;
 
+
             if(keycode === gKey.shift && !shiftKeyON)
             {
                 shiftKeyON = true;
@@ -3859,7 +3861,7 @@
                 }
             }
 
-            if(lassoToolON || captureModeON || e.ctrlKey || e.altKey) return;
+            if(lassoToolON || captureModeON || e.ctrlKey || e.altKey || keycode === 91) return;
         
             if(keyBufferArr.lastIndexOf(keycode) === -1 && nowKey !== keycode)
             {
@@ -13552,6 +13554,7 @@
         private function keyDownEvent(e:KeyboardEvent):void//keydown1
         {
             const keyCode:uint = e.keyCode;
+            trace('keyCode',keyCode);
 
             if(nowKey !== 0)
             {
