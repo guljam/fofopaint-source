@@ -167,6 +167,7 @@
 			var btn:SimpleButton;
 			var btnUp:DisplayObject;
 			var btnOver:DisplayObjectContainer;
+			var btnDown:DisplayObjectContainer;
 
 			for(var i:uint=0;i<len;i++)
 			{
@@ -176,9 +177,17 @@
 				btnOver = btn.overState as DisplayObjectContainer;
 				btnOver.getChildAt(0).transform.colorTransform = activeColor;//버튼 배경
 				btnOver.getChildAt(1).transform.colorTransform = iconLeft; //버튼 아이콘
-				btn.downState = btn.overState;
+				btnDown = btn.downState as DisplayObjectContainer;
+				btnDown.getChildAt(0).transform.colorTransform = activeColor;//버튼 배경
+				btnDown.getChildAt(1).transform.colorTransform = iconLeft; //버튼 아이콘
+				btnDown.x = 2;
+				btnDown.y = 2;
 			}
 
+			const rotateButton:DisplayObjectContainer = toolRotate.downState as DisplayObjectContainer;
+			rotateButton.x = 0;
+			rotateButton.y = 0;
+			
 			//텍스트
 			toolInfo.textColor = arr[2];
 		}

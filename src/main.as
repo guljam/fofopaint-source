@@ -51,12 +51,13 @@
     import flash.net.navigateToURL;
    	import flash.net.URLLoaderDataFormat;
     import flash.text.TextField;
+    import flash.ui.Mouse;
     import flash.filters.BlurFilter; 
     import flash.filters.ConvolutionFilter;// ConvolutionFilter가 끝임
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 13.47;
+        private const APP_VERSION:Number = 13.48;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -209,7 +210,7 @@
                     ,sideBarScrollBar:Sprite = new Sprite()
                     ,sideBarScrollSet:Sprite = new Sprite()
                     // ,consoleBox:consolePanel = new consolePanel()
-                    ,transBGBMPD:BitmapData = new BitmapData(16,16,false,0xFFFFFF);
+                    ,transBGBMPD:BitmapData = new BitmapData(16,16,false,0xFFFFFF)
                      //draw var
         private var canvas1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,canvas2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
@@ -518,11 +519,11 @@
                                                 [COLOR_BRIGHT,    0x505050,      0xE1E1E1,    0xCBCBCB,            0xCEE5C5],
                                         ]
                     ,uiToolBoxColorSet:Array =
-                    [ //컬러 셋 이름,     윗부분 막대색, 전체 배경색, upstate왼쪽아이콘색, update오른쪽 아이콘색, overstate 버튼배경색 overstate 아이콘색
-                        [COLOR_DARK,      0x434343,      0xE5E5E5,   0xE5E5E5,            0x6E98B4,             0xE5E5E5],
-                        [COLOR_MID_DARK,  0xE3E3E1,      0xE3E3E1,   COLOR_MID_DARK,      0xB1DFEE,             COLOR_MID_DARK],
-                        [COLOR_MID_BRIGHT,0xD6D5D4,      0x505050,   0x505050,            0xBADAE5,             0x505050],
-                        [COLOR_BRIGHT,    0xE7E7E7,      0x505050,   0x505050,            0xCEEBF2,             0x505050]
+                    [ //컬러 셋 이름,       윗부분 막대색, 전체 배경색, upstate왼쪽아이콘색,  overstate 버튼배경색  overstate 아이콘색
+                        [COLOR_DARK,        0x434343,   0xE5E5E5,  0xE5E5E5,           0x6E98B4,           0xE5E5E5],
+                        [COLOR_MID_DARK,    0xE3E3E1,   0xE3E3E1,  COLOR_MID_DARK,     0xB1DFEE,           COLOR_MID_DARK],
+                        [COLOR_MID_BRIGHT,  0xD6D5D4,   0x505050,  0x505050,           0xBADAE5,           0x505050],
+                        [COLOR_BRIGHT,      0xE7E7E7,   0x505050,  0x505050,           0xCEEBF2,           0x505050]
                     ]
                     ,tegaKiPresetColor:Vector.<Array> = new <Array>[
                                                                         [0x800000,0xF0E0D6],
@@ -4408,7 +4409,6 @@
                 lassoBMP.smoothing = true;
                 _lassoMenu.visible = true;
                 _rotateCursorBox.visible = false;
-                toolTipBox.visible = false;
                 
                 stage.removeEventListener(MouseEvent.MOUSE_UP, lassoRotateButtonUpEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, lassoRotateButtonMoveEvent);
@@ -4431,17 +4431,14 @@
 
                 _lassoBox.rotation = deg;
                 angleCursor.rotation = deg;
-
-                setToolTipString(abs(_lassoBox.rotation)+"°");
             }
+
             _rotateCursorBox.x = mouseX;
             _rotateCursorBox.y = mouseY+50;
             angleCursor.rotation = _lassoBox.rotation;
             _rotateCursorBox.visible = true;
             setTopChildIndex(_rotateCursorBox);
             lastAng = Math.atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
-            setToolTipString(floor(abs(_lassoBox.rotation))+"°");
-            toolTipBox.visible = true;
 
             lassoMenuClickPos[0] = _lassoMenu.mouseX;
             lassoMenuClickPos[1] = _lassoMenu.mouseY;
@@ -5523,7 +5520,22 @@
                         }
                         break;
 
-                    
+                        case "lassoOK":
+                        {
+                            setLassoOKButton();
+                        }
+                        break;
+
+                        case "lassoCancel":
+                        {
+                            if(lassoToolON === true)
+                            {
+                                setLassoCancelButton();
+                            }
+                        }
+                        break;
+
+                        
                     }
                 }
             }
@@ -12619,14 +12631,14 @@
             sideBarScrollSet.y = scrollSetMovedY;
             previewBox.x = 0;
             previewBox.y = 0;
-            appInfoBox.x = 0;
+            appInfoBox.x = -2;
             appInfoBox.y = previewBox.y+previewBox.BOX_HEIGHT+3;
-            toolBox.x = 0;
-            toolBox.y = appInfoBox.y+appInfoBox.height;
             controlBox.x = 39;
-            controlBox.y = toolBox.y+5;
+            controlBox.y = appInfoBox.y+appInfoBox.height;
             pickerBox.x = 39;
             pickerBox.y = controlBox.y+controlBox.height+5;
+            toolBox.x = 0;
+            toolBox.y = controlBox.y+2;
             toolBox.zoomIconRightPos();
 
             sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width-2;
@@ -12661,17 +12673,16 @@
 
             sideBarScrollSet.x = 5;
             sideBarScrollSet.y = scrollSetMovedY;
-
             previewBox.x = 0;
             previewBox.y = 0;
-            appInfoBox.x = 0;
+            appInfoBox.x = -2;
             appInfoBox.y = previewBox.y+previewBox.BOX_HEIGHT+3;
             controlBox.x = 0;
             controlBox.y = appInfoBox.y+appInfoBox.height;
             pickerBox.x = 0;
             pickerBox.y = controlBox.y+controlBox.height+5;
             toolBox.x = controlBox.x+controlBox.width;
-            toolBox.y = controlBox.y+5;
+            toolBox.y = controlBox.y+2;
             toolBox.zoomIconLeftPos();
 
             sideBarScrollBar.x = _sideBar.w+2;
@@ -14768,6 +14779,56 @@
         {
             switch(targetName)
             {
+                case "lassoMove":
+                {
+                    setLassoMoveButton();
+                }
+                break;
+
+                case "lassoResize":
+                {
+                    setLassoResizeButton();
+                }
+                break;
+
+                case "lassoRotate":
+                {
+                    setLassoRotateButton();
+                }
+                break;
+
+                case "lassoInfo":
+                case "lassoMenuMoveButton":
+                {
+                    setTopChildIndex(lassoMenu);
+                    moveToolBoxByType(1);
+                }
+                break;
+
+                case "lassoCRotate":
+                {
+                    lassoMenu.visible = false;
+                    lassoMenuTempOFF = true;
+                    setRotateTool();
+                }
+                break;
+
+                case "lassoCZoom":
+                {
+                    lassoMenu.visible = false;
+                    lassoMenuTempOFF = true;
+                    setZoomTool();
+                }
+                break;
+
+                case "lassoCHand":
+                {
+                    lassoMenu.visible = false;
+                    lassoMenuTempOFF = true;
+                    setHandTool(false);
+                }
+                break;
+                
                 case "lassoMirror":
                 {
                     lassoMirrorON = !lassoMirrorON;
@@ -14776,98 +14837,41 @@
                     //캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
                     lassoBox.rotation = -lassoBox.rotation-(regPoint.rotation*2);
                 }
-                return;
+                break;
 
                 case "lasso1pxLeft":
                 {
                     setLasso1PxMoveButton("left");
                 }
-                return;
+                break;
                 case "lasso1pxRight":
                 {
                     setLasso1PxMoveButton("right");
                 }
-                return;
+                break;
                 case "lasso1pxUp":
                 {
                     setLasso1PxMoveButton("up");
                 }
-                return;
+                break;
                 case "lasso1pxDown":
                 {
                     setLasso1PxMoveButton("down");
                 }
-                return;
-                case "lassoMove":
-                {
-                    setLassoMoveButton();
-                }
-                return;
-
-                case "lassoResize":
-                {
-                    setLassoResizeButton();
-                }
-                return;
-
-                case "lassoRotate":
-                {
-                    setLassoRotateButton();
-                }
-                return;
+                break;
 
                 case "lassoCopy":
                 {
                     setLassoCopyButton();
                 }
-                return;
+                break;
 
                 case "lassoOK":
-                {
-                    setLassoOKButton();
-                }
-                return;
-
                 case "lassoCancel":
                 {
-                    if(lassoToolON === true)
-                    {
-                        setLassoCancelButton();
-                    }
+                    checkButtonUp(targetName);
                 }
-                return;
-
-                case "lassoInfo":
-                case "lassoMenuMoveButton":
-                {
-                    setTopChildIndex(lassoMenu);
-                    moveToolBoxByType(1);
-                }
-                return;
-
-                case "lassoCRotate":
-                {
-                    lassoMenu.visible = false;
-                    lassoMenuTempOFF = true;
-                    setRotateTool();
-                }
-                return;
-
-                case "lassoCZoom":
-                {
-                    lassoMenu.visible = false;
-                    lassoMenuTempOFF = true;
-                    setZoomTool();
-                }
-                return;
-
-                case "lassoCHand":
-                {
-                    lassoMenu.visible = false;
-                    lassoMenuTempOFF = true;
-                    setHandTool(false);
-                }
-                return;
+                break;
             }
         }
 

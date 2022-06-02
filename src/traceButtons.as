@@ -98,6 +98,7 @@
 			traceMenuMoveButton.transform.colorTransform = base;
 			traceMenuBG.transform.colorTransform = base;
 			traceMenuBG2.transform.colorTransform = subBase;
+			traceCancelButton.transform.colorTransform = iconLeft;
 
 			traceOpaBar.transform.colorTransform = iconLeft;
 			traceOpaButton.transform.colorTransform = iconLeft;
