@@ -1901,7 +1901,7 @@
                                     ,regPoint.rotation);
         }
 
-        private function setHandToolPreviewBox():void
+        private function setHandToolPreviewBox(cursorClicked:Boolean):void
         {
             const floor:Function = Math.floor;
             const cursor:Sprite = previewBox.prevCursor;
@@ -1964,11 +1964,10 @@
             setRegPoint(0,0);
 
             //클릭한 지점이 커서 바깥부분일때 강제로 캔버스 중심으로 옮겨줌
-            // if(!cursorClicked)
-            // {
-            //     setCenter(mouseX,mouseY);
-            // }
-            setCenter(mouseX,mouseY);
+            if(!cursorClicked)
+            {
+                setCenter(mouseX,mouseY);
+            }
 
             stage.addEventListener(MouseEvent.MOUSE_MOVE,consolBoxHandToolMoveEvent)
             stage.addEventListener(MouseEvent.MOUSE_UP,consolBoxHandToolUpEvent)
@@ -14994,15 +14993,14 @@
                 case "prevStageBG":
                 case "prevBitmapBG":
                 case "prevBitmap":
-                case "prevCursor":
                 {
-                    setHandToolPreviewBox();
+                    setHandToolPreviewBox(false);
                 }
                 return;
 
-                // case "prevCursor":
-                //     setHandToolPreviewBox();
-                // return;
+                case "prevCursor":
+                    setHandToolPreviewBox(true);
+                return;
 
                 case "traceRotateButton":
                 {
