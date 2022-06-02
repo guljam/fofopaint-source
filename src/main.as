@@ -1901,7 +1901,7 @@
                                     ,regPoint.rotation);
         }
 
-        private function setHandToolPreviewBox(cursorClicked:Boolean):void
+        private function setHandToolPreviewBox():void
         {
             const floor:Function = Math.floor;
             const cursor:Sprite = previewBox.prevCursor;
@@ -1964,10 +1964,11 @@
             setRegPoint(0,0);
 
             //클릭한 지점이 커서 바깥부분일때 강제로 캔버스 중심으로 옮겨줌
-            if(!cursorClicked)
-            {
-                setCenter(mouseX,mouseY);
-            }
+            // if(!cursorClicked)
+            // {
+            //     setCenter(mouseX,mouseY);
+            // }
+            setCenter(mouseX,mouseY);
 
             stage.addEventListener(MouseEvent.MOUSE_MOVE,consolBoxHandToolMoveEvent)
             stage.addEventListener(MouseEvent.MOUSE_UP,consolBoxHandToolUpEvent)
@@ -10702,6 +10703,7 @@
                 // toolTipBox.visible = false;
 
                 updatePenSizeCursor();
+                updateResizeButtonPos();
                 setOptimizeCanvasMove(false);
 
                 if(lassoMenuTempOFF === true)
@@ -11715,8 +11717,6 @@
                         }
                         checkLassoMenuPos();
                     }
-                    
-
                     updatePreviewCursorPos();
                 }
                 else
@@ -11728,7 +11728,6 @@
             function handToolMoveEvent(e:MouseEvent):void
             {
                 if(limitMouseMoveEventTime() === true) return;
-                if(isDrawMode) updateResizeButtonPos();
 
                 xReg.x += (mouseX-oldX);
                 xReg.y += (mouseY-oldY);
@@ -11769,6 +11768,9 @@
         {
             function setpos(ent:canvasResizeButton,x:Number,y:Number):void
             {
+                const z:Number = 1/zoomed;
+                ent.scaleX = z;
+                ent.scaleY = z;
                 ent.x = x;
                 ent.y = y;
             }
@@ -11777,13 +11779,12 @@
             const cpPosY:Number = canvasPanel.y;
             const w:Number = CANVAS_WIDTH;
             const h:Number = CANVAS_HEIGHT;
-            const mid:Number = resizeButtonU.width/2;
-            const xHalf:Number = cpPosX+w/2-mid;
-            const xLeft:Number = cpPosX-mid;
-            const xRight:Number = cpPosX+w-mid;
-            const yHalf:Number = cpPosY+h/2-mid;
-            const yTop:Number = cpPosY-mid;
-            const yBottom:Number = cpPosY+h-mid;
+            const xHalf:Number = cpPosX+w/2;
+            const xLeft:Number = cpPosX;
+            const xRight:Number = cpPosX+w;
+            const yHalf:Number = cpPosY+h/2;
+            const yTop:Number = cpPosY;
+            const yBottom:Number = cpPosY+h;
 
             setpos(resizeButtonU,xHalf,yTop);
             setpos(resizeButtonD,xHalf,yBottom);
@@ -14993,12 +14994,15 @@
                 case "prevStageBG":
                 case "prevBitmapBG":
                 case "prevBitmap":
-                    setHandToolPreviewBox(false);
+                case "prevCursor":
+                {
+                    setHandToolPreviewBox();
+                }
                 return;
 
-                case "prevCursor":
-                    setHandToolPreviewBox(true);
-                return;
+                // case "prevCursor":
+                //     setHandToolPreviewBox();
+                // return;
 
                 case "traceRotateButton":
                 {
