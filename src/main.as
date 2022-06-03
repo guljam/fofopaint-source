@@ -1588,7 +1588,10 @@
                     stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
                     clearTimeout(sidebarOffTimer);
                     sidebarOffTimer = 0;
-                    setSidebarVisible(false,true);
+                    if(isSidebarVisible === false)
+                    {
+                        setSidebarVisible(false,true);
+                    }
                 }
             }
 
@@ -1641,9 +1644,12 @@
                             {
                                 sidebarOffTimer = setTimeout(function():void
                                 {
-                                    sidebarOffTimer = 0;
-                                    setSidebarVisible(false,true);
                                     stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
+                                    sidebarOffTimer = 0;
+                                    if(isSidebarVisible === false)
+                                    {
+                                        setSidebarVisible(false,true);
+                                    }
                                 },1000);
                             }
                             stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
@@ -1977,6 +1983,11 @@
 
         private function setSideBarPositionButton():void
         {   
+            if(isSidebarVisible === false)
+            {
+                return;
+            }
+            
             const _sideBar:sidePanel = sideBar;
 
             if(isRightSidebar === false)

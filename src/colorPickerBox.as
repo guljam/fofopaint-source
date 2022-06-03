@@ -109,7 +109,7 @@
 
 			paperColorButton.x = floor(colorPickerInfo.x+colorPickerInfo.textWidth+62);
 			paperColorButton.y = floor(colorPickerInfo.y);
-			penColorButton.x = floor(paperColorButton.x+paperColorButton.width+4);
+			penColorButton.x = floor(paperColorButton.x+paperColorButton.width+5);
 			penColorButton.y = floor(paperColorButton.y);
 
 			penColorButton.useHandCursor = false;
