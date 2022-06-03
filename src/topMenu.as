@@ -9,6 +9,7 @@
 	import flash.display.DisplayObject;
 	import flash.utils.setTimeout;
 	import flash.utils.clearTimeout;
+	import flash.display.DisplayObjectContainer;
 
 	public class topMenu extends Sprite {
 		private const startX:Number = 3;
@@ -73,6 +74,8 @@
 		{
 			const o:ColorTransform = new ColorTransform();
 			const b:ColorTransform = new ColorTransform();
+			var alphaBackup:Number = 0.0;
+
 			o.color = op;
 			b.color = base;
 			topbarBGColor = base;
@@ -98,8 +101,12 @@
 			replayModeButton.transform.colorTransform = o;
 			drawModeButton.transform.colorTransform = o;
 			topBarColorButton.transform.colorTransform = o;
+			alphaBackup = sideBarPositionButton.alpha;
 			sideBarPositionButton.transform.colorTransform = o;
+			sideBarPositionButton.alpha = alphaBackup;
+			alphaBackup = sideBarPositionButton2.alpha;
 			sideBarPositionButton2.transform.colorTransform = o;
+			sideBarPositionButton2.alpha = alphaBackup;
 			sideBarVisibleButton.transform.colorTransform = o;
 			sideBarVisibleButton2.transform.colorTransform = o;
 			cutPrevDataButton.transform.colorTransform = o;
@@ -270,6 +277,54 @@
 			}
 		}
 
+		public function initMouseDownState():void //버튼위치 설정
+		{
+			const arr:Vector.<SimpleButton> = new <SimpleButton>[
+												captureButton,
+												repCaptureButton,
+												capRotate,
+												capFlip,
+												capFull,
+												capOff,
+												capTrans,
+
+												saveButton,
+												repSaveButton,
+												loadButton,
+												repLoadButton,
+												clipButton,
+												clearButton,
+												gridButton,
+												replayModeButton,
+												drawModeButton,
+												topBarColorButton,
+												sideBarPositionButton,
+												sideBarPositionButton2,
+												sideBarVisibleButton,
+												sideBarVisibleButton2,
+												aboutButton,
+
+												cutPrevDataButton,
+												superUndoButton,
+												reRecordingButton,
+												replayZoomInButton,
+												replayZoomOutButton,
+												];
+			const len:int = arr.length;
+			// var btn:SimpleButton;
+			var btnUp:DisplayObjectContainer;
+			var btnDown:DisplayObjectContainer;
+
+			for(var i:int=0;i<len;i++)
+			{
+				btnUp = arr[i].upState as DisplayObjectContainer;
+				btnDown = arr[i].downState as DisplayObjectContainer;
+				btnDown.getChildAt(0).x -= 1;
+				btnDown.getChildAt(0).y -= 1;
+				btnDown.getChildAt(1).x -= 1;
+				btnDown.getChildAt(1).y -= 1;
+			}
+		}
 		public function initModeButtons():void //버튼위치 설정
 		{
 			const floor:Function = Math.floor;
@@ -301,8 +356,7 @@
 
 			updateButton.x = aboutButton.x;
 			updateButton.y = aboutButton.y;
-		}
-		
+		}	
 
 		public function topMenu()
 		{
@@ -355,9 +409,10 @@
 			replayModeButton.useHandCursor = false;
 			drawModeButton.useHandCursor = false;
 			topBarColorButton.useHandCursor = false;
+			sideBarVisibleButton.useHandCursor = false;
+			sideBarVisibleButton2.useHandCursor = false;
 			sideBarPositionButton.useHandCursor = false;
 			sideBarPositionButton2.useHandCursor = false;
-			sideBarPositionButton2.visible = false;
 			cutPrevDataButton.useHandCursor = false;
 			superUndoButton.useHandCursor = false;
 			reRecordingButton.useHandCursor = false;
@@ -419,6 +474,7 @@
 									capTrans
 								 ];
 			initModeButtons();
+			initMouseDownState();
 
 			updateButton.visible = false;
 			topMenuInfo.width = 500;
@@ -441,7 +497,6 @@
 			addChild(topbarInfoBG);
 			setChildIndex(topbarBG,0);
 			setChildIndex(topMenuInfo,numChildren-1);
-
 			cacheAsBitmap = true;
 		}
 	}

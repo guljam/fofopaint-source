@@ -5,12 +5,13 @@
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
+	import flash.display.Graphics;
 
 	public class replayTimeBar extends Sprite {
-		public var replayBGBar:SimpleButton = replayBGBar;
-		public var replayDeleteBar:SimpleButton = replayDeleteBar;
-		public var replayTotalBar:SimpleButton = replayTotalBar;
-		public var replayNowBar:SimpleButton = replayNowBar;
+		public var replayBGBar:Sprite = new Sprite();
+		public var replayDeleteBar:Sprite = new Sprite();
+		public var replayTotalBar:Sprite = new Sprite();
+		public var replayNowBar:Sprite = new Sprite();
 		public var playButton:SimpleButton = playButton;
 		public var pauseButton:SimpleButton = pauseButton;
 		public var replayPrev:SimpleButton = replayPrev;
@@ -69,11 +70,56 @@
             }
 		}
 
+		public function initReplayBox():void
+		{
+			var g:Graphics;
+			
+			g = replayBGBar.graphics;
+			g.lineStyle(0,0,0);
+			g.beginFill(0xFFFFFF);
+			g.drawRect(0,0,35,35);
+			g.endFill();
+			replayBGBar.name = "replayBGBar";
+
+			g = replayDeleteBar.graphics;
+			g.lineStyle(0,0,0);
+			// g.beginFill(0xFD7A80);
+			g.beginFill(0xFE8185);
+			g.drawRect(0,0,20,20);
+			g.endFill();
+			replayDeleteBar.name = "replayDeleteBar";
+
+			g = replayNowBar.graphics;
+			g.lineStyle(0,0,0);
+			g.beginFill(0xFFFFFF);
+			g.drawRect(0,0,20,20);
+			g.endFill();
+			replayNowBar.name = "replayNowBar";
+
+			g = replayTotalBar.graphics;
+			g.lineStyle(0,0,0);
+			g.beginFill(0xFFFFFF);
+			g.drawRect(0,0,20,20);
+			g.endFill();
+			replayTotalBar.name = "replayTotalBar";
+
+			addChild(replayBGBar);
+			addChild(replayTotalBar);
+			addChild(replayNowBar);
+			addChild(replayDeleteBar);
+			setChildIndex(replayBGBar,0);
+			setChildIndex(replayTotalBar,1);
+			setChildIndex(replayNowBar,2);
+			setChildIndex(replayDeleteBar,3);
+		}
+
 		public function replayTimeBar() {
 			// constructor code
 			visible = false;
 
 			const floor:Function = Math.floor;
+
+			initReplayBox();
 
 			replayTotalBar.y = 5;
 			replayNowBar.y = replayTotalBar.y;
@@ -93,11 +139,7 @@
 			replayNext.x = replayPrev.x+replayPrev.width+8;
 			replayNext.y = playButton.y;
 			
-			replayBGBar.useHandCursor = false;
-			replayDeleteBar.useHandCursor = false;
 			replayDeleteBar.visible = false;
-			replayTotalBar.useHandCursor = false;
-			replayNowBar.useHandCursor = false;
 
 			replayTotalBar.x = floor(replayNext.x+replayNext.width+7);
 			replayDeleteBar.x = replayTotalBar.x;

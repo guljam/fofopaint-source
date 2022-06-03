@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.01;
+        private const APP_VERSION:Number = 14.02;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -661,6 +661,7 @@
                 {
                     STAGE_LEFT_OFFSET = sideBar.w;
                 }
+                trace('mmmm');
                 updatePreviewCursorPos();
                 sideBar.visible = true;
             }
@@ -3797,7 +3798,7 @@
         private function updateReplayBarPos(stw:Number,sth:Number):void
         {
             const _replayTimeBox:replayTimeBar = replayTimeBox;
-            const replayTotalBar:SimpleButton = _replayTimeBox["replayTotalBar"];
+            const replayTotalBar:Sprite = _replayTimeBox["replayTotalBar"];
             const maxWidth:Number = stw-_replayTimeBox["replayTotalBar"].x-5;
             const totalFrame:Number = TOTAL_FRAME;
 
@@ -4311,20 +4312,9 @@
             const xCapture:Shape = (replayMode) ? rcapturePreviewCursor : capturePreviewCursor;
             const g:Graphics = xCapture.graphics;
             const cursorSize:Number = 100*zoomed;
+
             xcapturePreviewCursor = xCapture;
 
-            // g.clear();
-            // g.lineStyle(3*zoomed,0,1.0,true,"normal","none");
-            // g.moveTo(-cursorSize,0);
-            // g.lineTo(cursorSize,0);
-            // g.moveTo(0,-cursorSize);
-            // g.lineTo(0,cursorSize);
-
-            // g.lineStyle(1*zoomed,0xFFFFFF,1.0,true,"normal","none");
-            // g.moveTo(-cursorSize,0);
-            // g.lineTo(cursorSize,0);
-            // g.moveTo(0,-cursorSize);
-            // g.lineTo(0,cursorSize);
             g.clear();
             g.lineStyle(Math.ceil(2*zoomed),0x0099FF,1.0,true,"normal","none");
             g.moveTo(-cursorSize,0);
@@ -5715,7 +5705,7 @@
             }
 
             const _replayTimeBox:replayTimeBar = replayTimeBox;
-            const replayNowBar:SimpleButton = _replayTimeBox["replayNowBar"] as SimpleButton;
+            const replayNowBar:Sprite = _replayTimeBox["replayNowBar"] as Sprite;
 
             if(flag === 0)
             {
@@ -5735,8 +5725,8 @@
                 return;
             }
 
-            const deleteBar:SimpleButton = _replayTimeBox["replayDeleteBar"];
-            const _replayTotalBar:SimpleButton = _replayTimeBox["replayTotalBar"];
+            const deleteBar:Sprite = _replayTimeBox["replayDeleteBar"] as Sprite;
+            const _replayTotalBar:Sprite = _replayTimeBox["replayTotalBar"] as Sprite;
 
             if(cutFrameClickCounter === 1)
             {
@@ -5963,12 +5953,19 @@
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,topBarHintOFFEvent);
             }
 
-
             if(targetName !== null)
             {
                 var str:String = "";
                 switch(targetName)
                 {
+                    case "frameInfo":
+                    case "replayTotalBar":
+                    case "replayNowBar":
+                    case "replayDeleteBar":
+                    {
+                        setTopBarHintOFF();
+                    }
+                    return;
                     case "timer":
                         str = "Actual working time (click to reset timer)";
                     break;
@@ -7632,9 +7629,9 @@
             }
 
             const floor:Function = Math.floor;
-            const totalBar:SimpleButton = replayTimeBox["replayTotalBar"];
+            const totalBar:Sprite = replayTimeBox["replayTotalBar"] as Sprite;
             const totalBarScale:Number = totalBar.scaleX;
-            const nowBar:SimpleButton = replayTimeBox["replayNowBar"];
+            const nowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
             const maxWidth:Number = totalBar.width;//replayPrograssBaseBarWidth*scaleX;
             var clickedX:Number = totalBar.mouseX*totalBarScale;
             var skipUpdateTimer:uint = 0;
