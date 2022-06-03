@@ -503,7 +503,7 @@
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarSetHeight:Number = 745
+                    ,sideBarSetHeight:Number = 750
         //기타
                     ,windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
@@ -661,7 +661,7 @@
                 {
                     STAGE_LEFT_OFFSET = sideBar.w;
                 }
-                trace('mmmm');
+                
                 updatePreviewCursorPos();
                 sideBar.visible = true;
             }
@@ -13051,7 +13051,7 @@
         private function getScrollSetBottom():Number
         {
             const g:Point = (pickerBox.tegakiPresetBox).localToGlobal(new Point(0,0));
-            return g.y+30-STAGE_TOP_OFFSET;
+            return g.y+27-STAGE_TOP_OFFSET;
         }
 
         private function updateScrollBarHeight(sth:Number):void
@@ -14217,7 +14217,8 @@
             const floor:Function = Math.floor;
             const sth:Number = stage.stageHeight;
             const canMoveHeight:Number = (sth-STAGE_TOP_OFFSET)-scrollBarHeight;
-            const diffHeight:Number = (sideBarSetHeight-STAGE_TOP_OFFSET)-(sth-STAGE_TOP_OFFSET);
+            // const diffHeight:Number = (sideBarSetHeight-STAGE_TOP_OFFSET)-(sth-STAGE_TOP_OFFSET);
+            const diffHeight:Number = sideBarSetHeight-sth;
             const factor:Number = diffHeight/canMoveHeight;
             var scrollStarted:Boolean = false;
             var my1:Number = sideBarScrollBar.y;
@@ -14252,6 +14253,7 @@
 
                 sideBarScrollBar.y = floor(my1);
                 sideBarScrollSet.y = floor(my2);
+
                 clickY = mouseY;
             }
 
