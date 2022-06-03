@@ -714,14 +714,15 @@
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
             }
 
+
             if(pickerMode === 1)
             {
-                updatePickerCurrentColor(arr[0]);
+                // updatePickerCurrentColor(arr[0]);
                 setHSVCursorPosByColor(arr[0]);
             }
             else if(pickerMode === 2)
             {
-                updatePickerCurrentColor(arr[1]);
+                // updatePickerCurrentColor(arr[1]);
                 setHSVCursorPosByColor(arr[1]);
             }
         }
@@ -2134,7 +2135,7 @@
             _pickerBox.setRGBInfoColor(getInvertColor(color,1.0
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]));
-            _pickerBox.updateRGBInfoBG(color);
+            _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
             updatePickerCurrentColor(color);
         }
 
@@ -4727,10 +4728,15 @@
             controlBox.movePenSizeCursor(index);
         }
 
-        private function updatePickerCurrentColor(color:uint):void
+        private function setColorBorder(color:uint):uint
         {
             const defColor:Number = getColorDifferenceForHuman(color,uiColorSet[uiColorIndex][0]);
-            pickerBox.updateCurrentColor(color,defColor <= 15,uiColorSet[uiColorIndex][1]);
+            return (defColor <= 15) ? uiColorSet[uiColorIndex][1] : 0;
+        }
+
+        private function updatePickerCurrentColor(color:uint):void
+        {
+            pickerBox.updateCurrentColor(color,setColorBorder(color));
         }
 
         private function changePickerModeToBG():void
@@ -4815,7 +4821,7 @@
                 pickedColor = color;
                 pickerColorSelected = true;
                 _pickerBox.changeHueColor(baseHexColor);
-                _pickerBox.updateRGBInfoBG(color);
+                _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
             }
 
             function hueColorButtonMoveEvent(e:MouseEvent):void
@@ -4913,7 +4919,7 @@
                 const color:uint = setPickerHSV(hue0,sValue,vValue,mode);
 
                 pickedColor = color;
-                _pickerBox.updateRGBInfoBG(color);
+                _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
             }
 
             function svColorButtonMoveEvent(e:MouseEvent):void
@@ -12589,7 +12595,9 @@
             _pickerBox.setRGBInfoColor(getInvertColor(color,1.0
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]));
-            _pickerBox.updateRGBInfoBG(color);
+            const defColor:Number = getColorDifferenceForHuman(color,uiColorSet[uiColorIndex][0]);
+
+            _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
         }
 
         //hex에서 rgb vector 배열로 반환

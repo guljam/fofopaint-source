@@ -266,12 +266,12 @@
 			{
 				if(rightSidebar)
 				{
-					sideBarVisibleButton.visible = false;
+					sideBarVisibleButton2.visible = false;
 					sideBarPositionButton.visible = false;
 				}
 				else
 				{
-					sideBarVisibleButton2.visible = false;
+					sideBarVisibleButton.visible = false;
 					sideBarPositionButton2.visible = false;
 				}
 			}

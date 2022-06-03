@@ -64,7 +64,7 @@
 			name = "pickerBox";
 			initDrawrPreset();
 			initTegakiPreset();
-			updateRGBInfoBG(0);
+			updateRGBInfoBG(0,0);
 
 			const floor:Function = Math.floor;
 			var gradMatrix:Matrix = new Matrix();
@@ -191,7 +191,7 @@
 			panelWidth = 180;
 			panelHeight = mainPresetBox.y+mainPresetBox.height+3;
 
-			updateCurrentColor(0,false,0);
+			updateCurrentColor(0,0);
 			svCursor.mask = hsvSetBoxMask;
 			svCursor.useHandCursor = false;
 			hueCursor.useHandCursor = false;
@@ -280,26 +280,27 @@
 			const offsetX:Number = 0;
 			const offsetY:Number = 0;
 
-			const drawrColor:Vector.<uint>= new <uint>[
-														0x000000,
-														0x808080,
-														0xC0C0C0,
+			const drawrColor:Vector.<uint> = new <uint> [
 														0xFFFFFF,
-														0xFF3B21,
+														0xC0C0C0,
+														0xFF3B21,//빨간색
 														0xFFBD16,
 														0xF5F30F,
 														0xA5E975,
 														0x71DBFD,
 														0xFA80F9,
-														0x3F037E,
-														0x8E0000,
+														0x000000,
+														0x808080,
+														0x8E0000,//갈색
 														0xFFCC99,
 														0x877D30,
 														0x008F47,
 														0x313BCD,
-														0xC02E97
+														0xC02E97,
+														0x3F037E
 													  ];
-			for(var i:uint=0;i<17;i++)
+			const len:int = drawrColor.length;
+			for(var i:uint=0;i<len;i++)
 			{
 				btn = new Sprite();
 				btn.name = "drawr"+i;
@@ -311,12 +312,18 @@
 				colorT = new ColorTransform()
 				colorT.color = drawrColor[i];
 				btn.transform.colorTransform = colorT;
+				
+				if(i == 2 || i == 10)
+				{
+					x = x-width;
+				}
+
 				btn.x = (i*width)-x;
 				btn.y = y;
 
-				if(i == 9)
+				if(i == 7)
 				{
-					x = width*7;
+					x = width*8;
 					y = height;
 				}
 				drawrPresetBox.addChild(btn);
@@ -338,19 +345,12 @@
 			rgbInfo.text = str;
 		}
 
-		public function updateRGBInfoBG(color:uint,borderColor:uint=0):void
+		public function updateRGBInfoBG(color:uint,borderColor:uint):void
 		{
 			const g:Graphics = rgbInfoBG.graphics;
 
 			g.clear();
-			if(borderColor === 0)
-			{
-				g.lineStyle(1,color);
-			}
-			else
-			{
-				g.lineStyle(1,borderColor);
-			}
+			g.lineStyle(1,(borderColor === 0) ? color:borderColor);
 			g.beginFill(color);
 			g.drawRect(0,0 ,rgbInfoWidth ,rgbInfoHeight);
 			g.endFill();
@@ -358,34 +358,21 @@
 			rgbInfoBGColor = color;
 		}
 
-		public function updateCurrentColor(color:uint,isSimilar:Boolean,invColor:uint):void
+		public function updateCurrentColor(color:uint,invColor:uint):void
 		{
 			const g:Graphics = currentColor.graphics;
 			currentColorColor = color;
 
 			g.clear();
-			if(isSimilar)
-			{
-				g.lineStyle(1,invColor);
-			}
-			else
-			{
-				invColor = 0;
-				g.lineStyle(1,color);
-			}
+			g.lineStyle(1,(invColor === 0) ? color:invColor);
 			g.beginFill(color);
 			g.drawRoundRectComplex(0,0,currentColorWidth,19,0,lastCurrentShape,0,0);
 			g.endFill();
-
-			updateRGBInfoBG(color,invColor);
 		}
 
 		public function changeHueColor(color:uint):void
 		{
 			const g:Graphics = svBase.graphics;
-			// const t:ColorTransform = new ColorTransform();
-			// t.color = color;
-			// svBase.transform.colorTransform = t;
 
 			g.clear();
 			g.lineStyle(0,0,0);
