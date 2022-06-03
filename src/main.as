@@ -150,7 +150,7 @@
                     ,COLOR_MID_DARK:uint = 0x535353//0x5B5B5B//중간 어두운색
                     ,COLOR_MID_BRIGHT:uint = 0xB8B8B8//중간 밝은색
                     ,COLOR_BRIGHT:uint = 0xF0F0F0//0xECEAE7//밝은색
-                    ,AFK_TIME_OUT:int = 2
+                    ,AFK_TIME_OUT:int = 1
                     ,GC_TIME_OUT:int = 30
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -628,9 +628,12 @@
             if(undoDataFile.exists) undoDataFile.deleteFile();
             if(traceImageFile.exists) traceImageFile.deleteFile();
         }
-        private function setSidebarVisible(flag:Boolean):void
+        private function setSidebarVisible(flag:Boolean,tempFlag:Boolean):void
         {
-            isSidebarVisible = flag;
+            if(tempFlag === false)
+            {
+                isSidebarVisible = flag;
+            }
 
             if(!flag)
             {
@@ -644,8 +647,12 @@
             }
             else
             {
-                topBar.sideBarPositionButton.alpha = 1.0;
-                topBar.sideBarPositionButton2.alpha = 1.0;
+                if(tempFlag === false)
+                {
+                    topBar.sideBarPositionButton.alpha = 1.0;
+                    topBar.sideBarPositionButton2.alpha = 1.0;
+                }
+
                 if(isRightSidebar)
                 {
                     STAGE_RIGHT_OFFSET = sideBar.w;
@@ -1574,6 +1581,17 @@
             var my:Number;
             var posInStage:Boolean;
 
+            function sidebarOffMouseDownEvent(e:MouseEvent):void
+            {
+                if(sideBar.hitTestPoint(mouseX,mouseY) === false)
+                {
+                    stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
+                    clearTimeout(sidebarOffTimer);
+                    sidebarOffTimer = 0;
+                    setSidebarVisible(false,true);
+                }
+            }
+
             return function():void
             {
                 nt = nowTool;
@@ -1610,22 +1628,12 @@
                     {
                         if(!mouseClickON && !mouseDragON)
                         {
-                            sideBar.visible = true;   
+                            sideBar.visible = true;
+                            setSidebarVisible(true,true);
                         }
                     }
                     else if(sideBar.visible)
                     {
-                        function sidebarOffMouseDownEvent(e:MouseEvent):void
-                        {
-                            if(sideBar.hitTestPoint(mouseX,mouseY) === false)
-                            {
-                                stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
-                                clearTimeout(sidebarOffTimer);
-                                sidebarOffTimer = 0;
-                                sideBar.visible = false;
-                            }
-                        }
-
                         if((!isRightSidebar && mx > sideBar.w || isRightSidebar && mx < stage.stageWidth-sideBar.w)
                         || my <= STAGE_TOP_OFFSET)
                         {
@@ -1634,7 +1642,7 @@
                                 sidebarOffTimer = setTimeout(function():void
                                 {
                                     sidebarOffTimer = 0;
-                                    sideBar.visible = false;
+                                    setSidebarVisible(false,true);
                                     stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
                                 },1000);
                             }
@@ -1668,7 +1676,7 @@
                     gcONCount++;
                 }
      
-                if(afkONCount === AFK_TIME_OUT)
+                if(afkONCount >= AFK_TIME_OUT)
                 {
                     afkONCount++;
                     stopWorkingTimer();
@@ -3919,7 +3927,7 @@
             }
             if(keycode === gKey.tab || keycode === gKey.backslash)
             {
-                setSidebarVisible(!isSidebarVisible);
+                setSidebarVisible(!isSidebarVisible,false);
             }
 
             const index:int = keyBufferArr.lastIndexOf(keycode);
@@ -5446,7 +5454,7 @@
 
                         case "sideBarVisibleButton":
                         case "sideBarVisibleButton2":
-                            setSidebarVisible(!isSidebarVisible);
+                            setSidebarVisible(!isSidebarVisible,false);
                         break;
 
                         case "traceLoadButton":
@@ -10117,7 +10125,7 @@
                     isSidebarVisible = d["isSidebarVisible"];
 
                     if(d["isRightSidebar"]) setSideBarRightPosition(true);
-                    if(!d["isSidebarVisible"])  setSidebarVisible(d["isSidebarVisible"]);
+                    if(!d["isSidebarVisible"]) setSidebarVisible(d["isSidebarVisible"],false);
 
                     rSkipImageInit = d["rSkipImageInit"];
                     rBGColorSave = d["rBGColorSave"];
