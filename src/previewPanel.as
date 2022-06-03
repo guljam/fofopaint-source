@@ -43,12 +43,13 @@
 		//canvasWidth 줌배율을 적용한 캔버스 크기
 		public function updateCursor(x:Number,y:Number,w:Number,h:Number,canvasWidth:Number,rotation:Number):void
 		{
+			const floor:Function = Math.floor;
 			const _prevBitmap:Bitmap = prevBitmap;
 			const f1:Number = _prevBitmap.width/canvasWidth;
 			// const f2:Number = _prevBitmap.height/canvasHeight;
 			const g:Graphics = prevCursor.graphics;
-			var cursorWidth:Number = w*f1;
-			var cursorHeight:Number = h*f1;
+			var cursorWidth:Number = floor(w*f1);
+			var cursorHeight:Number = floor(h*f1);
 
 			prevCursorMultiply = f1;
 
@@ -57,12 +58,12 @@
 			g.beginFill(0xFF0000,0);
 			g.drawRect(0,0,cursorWidth,cursorHeight)//썸네일 비트맵/실제 캔버스 길이 배율을 곱해주면 캔버스 부분이 작게 축소됨
 			g.endFill();
-
+			
 			prevCursor.rotation = -rotation;
 			//캔버스 원점 위치 음수값으로 넣어주고 당연 배율 적용하고,
 			//중앙정렬해준 x y 값이 있으니깐오프셋으로 더해줌
-			prevCursor.x = x*f1+_prevBitmap.x;
-			prevCursor.y = y*f1+_prevBitmap.y;
+			prevCursor.x = floor(x*f1+_prevBitmap.x);
+			prevCursor.y = floor(y*f1+_prevBitmap.y);
 		}
 
 		public function updateImage(bmpd:BitmapData,bg:uint):void

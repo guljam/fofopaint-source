@@ -51,13 +51,12 @@
     import flash.net.navigateToURL;
    	import flash.net.URLLoaderDataFormat;
     import flash.text.TextField;
-    import flash.ui.Mouse;
     import flash.filters.BlurFilter; 
     import flash.filters.ConvolutionFilter;// ConvolutionFilter가 끝임
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.0;
+        private const APP_VERSION:Number = 14.01;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -122,7 +121,8 @@
                                         f3:114,
                                         f4:115,
                                         f5:116,
-                                        f6:117
+                                        f6:117,
+                                        backslash:220
                                         // f7:118,
                                         // f8:119,
                                         // f9:120,
@@ -346,7 +346,7 @@
                     ,toolTipBoxTimer:uint = 0
 
         //리플레이 관련 변수
-        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1342.301")
+        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1401.301")
                     ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata.301")
                     ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata.301")
                     ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("temp_repdata.301") //파일을 저장하거나 불러올때 씀
@@ -546,6 +546,7 @@
                     ,clickBlockTimer:int = 0 //비활성에서 활성화 될때 약간의 텀을주는 타이머
                     ,penSizeOpaKeyUpEventON:Boolean = false //펜 투명도 사이즈 단축키로 조절시 올려줌
                     ,isRightSidebar:Boolean = false // 사이드바 위치 0이 왼쩾 1이 오른쪽
+                    ,isSidebarVisible:Boolean = true
                     ,limitMouseMoveEventTime:Function = closureLimitMouseMoveEventTime()
                     // ,mouseMoveEventLastTime:int = 0
                     // ,mouseMoveEventTimeLimit:int = 2
@@ -609,6 +610,54 @@
         }
         
         //functions
+        private function setWindowTitleStar():void
+        {
+            if(stage.nativeWindow.title.lastIndexOf("*") === -1)
+            {
+                stage.nativeWindow.title = stage.nativeWindow.title+"*";
+            }
+        }
+
+        private function resetApp():void
+        {
+            appResetFlag = true;
+            if(appDataFile.exists) appDataFile.deleteFile(); //파일이 있으면 지워줌
+            if(repFile.exists) repFile.deleteFile();
+            if(rSkipImageFolder.exists) rSkipImageFolder.deleteDirectory(true);
+            if(rSkipImageFrameDataFile.exists) rSkipImageFrameDataFile.deleteFile();
+            if(undoDataFile.exists) undoDataFile.deleteFile();
+            if(traceImageFile.exists) traceImageFile.deleteFile();
+        }
+        private function setSidebarVisible(flag:Boolean):void
+        {
+            isSidebarVisible = flag;
+
+            if(!flag)
+            {
+                sideBar.visible = false;
+
+                STAGE_RIGHT_OFFSET = 0;
+                STAGE_LEFT_OFFSET = 0;
+
+                topBar.sideBarPositionButton.alpha = BUTTON_OFF_ALPHA;
+                topBar.sideBarPositionButton2.alpha = BUTTON_OFF_ALPHA;
+            }
+            else
+            {
+                topBar.sideBarPositionButton.alpha = 1.0;
+                topBar.sideBarPositionButton2.alpha = 1.0;
+                if(isRightSidebar)
+                {
+                    STAGE_RIGHT_OFFSET = sideBar.w;
+                }
+                else
+                {
+                    STAGE_LEFT_OFFSET = sideBar.w;
+                }
+                updatePreviewCursorPos();
+                sideBar.visible = true;
+            }
+        }
 
         private function setCurrentColor(mode:uint):void
         {
@@ -1519,8 +1568,7 @@
         private function ClosureUpdatePenCursorPosition():Function
         {
             const _penSizeCursor:Shape = penSizeCursor;
-            const canvas1BitmapData:BitmapData = canvas1BitmapData;
-
+            var sidebarOffTimer:int;
             var nt:int;
             var mx:Number;
             var my:Number;
@@ -1552,6 +1600,52 @@
                     else
                     {
                         _penSizeCursor.visible = true;
+                    }
+                }
+
+                if(isSidebarVisible === false)
+                {
+                    if((!isRightSidebar && mx <= 30 || isRightSidebar && mx >= stage.stageWidth-30)
+                    && my > STAGE_TOP_OFFSET)
+                    {
+                        if(!mouseClickON && !mouseDragON)
+                        {
+                            sideBar.visible = true;   
+                        }
+                    }
+                    else if(sideBar.visible)
+                    {
+                        function sidebarOffMouseDownEvent(e:MouseEvent):void
+                        {
+                            if(sideBar.hitTestPoint(mouseX,mouseY) === false)
+                            {
+                                stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
+                                clearTimeout(sidebarOffTimer);
+                                sidebarOffTimer = 0;
+                                sideBar.visible = false;
+                            }
+                        }
+
+                        if((!isRightSidebar && mx > sideBar.w || isRightSidebar && mx < stage.stageWidth-sideBar.w)
+                        || my <= STAGE_TOP_OFFSET)
+                        {
+                            if(sidebarOffTimer === 0)
+                            {
+                                sidebarOffTimer = setTimeout(function():void
+                                {
+                                    sidebarOffTimer = 0;
+                                    sideBar.visible = false;
+                                    stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
+                                },1000);
+                            }
+                            stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
+                        }
+                        else if(sidebarOffTimer !== 0)
+                        {
+                            clearTimeout(sidebarOffTimer);
+                            sidebarOffTimer = 0;
+                            stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
+                        }
                     }
                 }
             }
@@ -1612,11 +1706,11 @@
         }
 
         //리턴값
-		// <= 1.0	인간의 눈으로 인식 할 수 없습니다.
-		// 1 ~ 2	면밀한 관찰을 통해 인식 할 수 있습니다.
-		// 2 ~ 10	한눈에 알아볼 수 있습니다.
-		// 11-49	색상이 반대보다 비슷합니다.
-		// 100	    색상이 정반대입니다.
+		// <= 1.0	인간의 눈으로 인식 할 수 없음
+		// 1 ~ 2	면밀한 관찰을 통해 인식 가능
+		// 2 ~ 10	한눈에 알아볼 수 있음
+		// 11-49	색상이 반대보다 비슷
+		// 100	    색상이 정반대
 		private function getColorDifferenceForHuman(rgbA:uint, rgbB:uint):Number
 		{
 			function rgb2lab(rgb:uint):Vector.<Number>
@@ -2069,7 +2163,7 @@
             }
         }
 
-        private function setPresetColor(target:SimpleButton,bgFlag:Boolean):void
+        private function setPresetColor(target:Sprite,bgFlag:Boolean):void
         {
             if(!target) return;
 
@@ -2379,7 +2473,7 @@
 
             const buttonSetVisible:Function = _tb.buttonSetVisible;
 
-            buttonSetVisible(mode,true,isRightSidebar);
+            buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);
 
             if(mode === "draw")
             {
@@ -3332,7 +3426,7 @@
 
         private function updateWindowTitle():void
         {
-            stage.nativeWindow.title = saveFileName + " - FOFO Paint " + APP_VERSION.toFixed(2);
+            stage.nativeWindow.title = saveFileName;
         }
 
         private function setUIColorButton():void
@@ -3359,7 +3453,6 @@
             const op:uint = _arr[index][1];
             const bg:uint = _arr[index][2];
             const border:uint = _arr[index][3];
-            const subBase:uint = _arr2[1];
 
             updateStageBG(bg);
             controlBox.changeUIColor(base,op);
@@ -3380,11 +3473,9 @@
             fillPenBox.changeBGColor(_arr2);
             checkClipBoardImage();
             appInfoBox.canvasInfo.textColor = op;
-
             pickerBox.setRGBInfoColor(getInvertColor(pickerBox.rgbInfoBGColor,1.0
                                                     ,(uiColorIndex >= 2) ? base:op
                                                     ,(uiColorIndex >= 2) ? op:base));
-            // pickerBox.updateRGBInfoBG(pickerBox.rgbInfoBGColor);
             if(pickerMode !== 1)
             {
                 changePickerModeToNormal();
@@ -3396,7 +3487,8 @@
         private function windowStageElementSetting():void
         {
             updateWindowTitle();
-            stage.vsyncEnabled = false;
+            setWindowTitleStar();
+            stage.vsyncEnabled = true;
             stage.scaleMode = StageScaleMode.NO_SCALE; //창크기 상관없이 스테이지 크기 고정
             stage.align = StageAlign.TOP_LEFT;
             stage.quality = StageQuality.BEST;
@@ -3825,6 +3917,10 @@
             {
                 controlKeyON = false;
             }
+            if(keycode === gKey.tab || keycode === gKey.backslash)
+            {
+                setSidebarVisible(!isSidebarVisible);
+            }
 
             const index:int = keyBufferArr.lastIndexOf(keycode);
 
@@ -3837,7 +3933,6 @@
         private function keyDownBufferEvent(e:KeyboardEvent):void
         {
             const keycode:int = e.keyCode;
-
 
             if(keycode === gKey.shift && !shiftKeyON)
             {
@@ -4777,7 +4872,7 @@
         private function setSVcolorButton():void
         {
             const _pickerBox:colorPickerBox = pickerBox;
-            const svColorBox:Sprite = _pickerBox["hsvSetBox"];
+            const svColorBox:Sprite = _pickerBox["svBox"];
             const svCursor:SimpleButton = _pickerBox["svCursor"];
             const _colorBarWidth:Number = _pickerBox["svBoxWidth"];
             const _colorBarHeight:Number = _pickerBox["svBoxHeight"];
@@ -4788,7 +4883,7 @@
             mouseDragON = true;
             penCursorOFFFlag = true;
 
-            function svMoveStart(mx:Number,my:Number):void
+            function setSVBoxMouseMoveEvent(mx:Number,my:Number):void
             {
                 var svCursorX:Number = mx;
                 var svCursorY:Number = my;
@@ -4814,12 +4909,12 @@
             function svColorButtonMoveEvent(e:MouseEvent):void
             {
                 pickerColorSelected = true;
-                svMoveStart(svColorBox.mouseX,svColorBox.mouseY);
+                setSVBoxMouseMoveEvent(svColorBox.mouseX,svColorBox.mouseY);
             }
 
             function svColorButtonUpEvent(e:MouseEvent):void
             {
-                svMoveStart(svColorBox.mouseX,svColorBox.mouseY);
+                setSVBoxMouseMoveEvent(svColorBox.mouseX,svColorBox.mouseY);
 
                 if(mode === 1)
                 {
@@ -4844,7 +4939,7 @@
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,svColorButtonMoveEvent);
             }
 
-            svMoveStart(svColorBox.mouseX,svColorBox.mouseY);
+            setSVBoxMouseMoveEvent(svColorBox.mouseX,svColorBox.mouseY);
 
             stage.addEventListener(MouseEvent.MOUSE_UP,svColorButtonUpEvent);
             stage.addEventListener(MouseEvent.MOUSE_MOVE,svColorButtonMoveEvent);
@@ -5027,23 +5122,14 @@
                             fileLoader.addEventListener(Event.COMPLETE,downloadSuccessEvent);
                             fileLoader.addEventListener(IOErrorEvent.IO_ERROR,downloadFailedEvent);
 
-                            function setDownloadText(flag:int):void
+                            function setDownloadText(updateFlag:int):void
                             {
                                 fileLoader.removeEventListener(Event.COMPLETE,downloadSuccessEvent);
                                 fileLoader.removeEventListener(IOErrorEvent.IO_ERROR,downloadFailedEvent);
 
-                                const versionStr2:String = "Version " + versionStr + " released!";
-                                const downloadButton:TextField = aboutPanel["downloadButton"];
-
-                                //html text적용
-                                downloadButton.visible = true;
-                                downloadButton.text = versionStr2;
-                                needUpdate = flag;
-
-                                if(checkOnly === false)
-                                {
-                                    openAboutPanel(2);
-                                }
+                                needUpdate = updateFlag;
+                                topBar.aboutButton.visible = false;
+                                topBar.updateButton.visible = true;
                             }
 
                             function downloadFailedEvent(e:Event):void
@@ -5068,7 +5154,6 @@
                                 fs.open(UPDATE_FILE,FileMode.WRITE);
                                 fs.writeBytes(fileLoader.data);
                                 fs.close();
-                                //여기까지 다운로드 appdata에 파일 저장거임
                                 setDownloadText(1);
                             }
 
@@ -5102,7 +5187,7 @@
         {
             if(!replayModeON && !captureModeON) addMainEvent();
 
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN,aboutOFFEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
             aboutPanelON = false;
             aboutPanel.visible = false;
             clickBlockTimer = setTimeout(function():void
@@ -5111,66 +5196,37 @@
             },150);
         }
 
-        private function aboutOFFEvent(e:MouseEvent):void
+        private function aboutOFFMouseDownEvent(e:MouseEvent):void
         {
             const targetName:String = e.target.name;
-            var url:URLRequest;
 
             switch(targetName)
             {
+                case "appResetButton":
+                {
+                    checkButtonUp(targetName);
+                }
+                break;
+                
                 case "aboutButton":
                 {
                     closeAboutPanel();
                 }
                 break;
-                case "logo1":
-                case "logo2":
-                case "logo3":
-                case "logo4":
-                case "logo5":
-                case "downloadButton":
-                {
-                    if(needUpdate === 1)
-                    {
-                        url = new URLRequest("https://guljam.github.io/2020FlashPaint/releasenote.txt");
-                        navigateToURL(url);
-
-                        closeAboutPanel();
-                        setTimeout(function():void
-                        {
-                            installNewVersion();
-                        },500);
-                    }
-                    else if(needUpdate === 2)
-                    {
-                        url = new URLRequest("https://guljam.github.io/2020FlashPaint/");
-                        navigateToURL(url);
-                        closeAboutPanel();
-                    }
-                    else
-                    {
-                        closeAboutPanel();
-                    }
-                }
-                break;
 
                 case "kor":
-                    url = new URLRequest("https://guljam.github.io/2020FlashPaint/kr.html");
-                    navigateToURL(url);
+                    navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/kr.html"));
                 break;
 
                 case "jp":
-                    url = new URLRequest("https://guljam.github.io/2020FlashPaint/jp.html"); 
-                    navigateToURL(url);
+                    navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/jp.html"));
                 break;
 
                 case "eng":
-                    url = new URLRequest("https://guljam.github.io/2020FlashPaint/en.html")
-                    navigateToURL(url);
+                    navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/en.html"));
                 break;
                 case "aboutTwitterLink":
-                    url = new URLRequest("https://twitter.com/ninanoninini")
-                    navigateToURL(url);
+                    navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));
                 break;
 
                 default:
@@ -5194,41 +5250,32 @@
         private function openAboutPanel(flag:uint=0):void //welcome:Boolean=false):void
         {
             const _aboutPanel:aboutBox = aboutPanel;
+
             setTopChildIndex(_aboutPanel);
             aboutPanelON = true;
             clickBlockFlag = true;
 
+            if(!replayModeON)
+            {
+                removeMainEvent();
+            }
 
-            if(!replayModeON) removeMainEvent();
-            // closeTopbar();
-
+            aboutPanel.appResetButton.visible = true;
             if(flag === 0)
             {
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFEvent);
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
             }
             else if(flag === 1) //처음 시작 할때
             {
+                aboutPanel.appResetButton.visible = false;
                 setTimeout(function():void
                 {
-                    stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFEvent);
-                },1000);
-            }
-            else if(flag === 2) // 업데이트 할때
-            {
-                setTimeout(function():void
-                {
-                    stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFEvent);
+                    stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
                 },1000);
             }
 
             aboutPanel.randomLogo();
             setAboutPanelCenterPos();
-            
-            if(needUpdate === 0)
-            {
-                checkVersion(true);
-            }
-            // checkUsedMemory();
         }
 
         private function clearData(reRecordFlag:Boolean = false):void
@@ -5294,6 +5341,7 @@
             saveFilePath = newPath;
 
             updateWindowTitle();
+            setWindowTitleStar();
         }
 
         private function setClearData(keyFlag:Boolean=false):void
@@ -5354,6 +5402,11 @@
         {
             if(aboutPanelON)
             {
+                if(targetName === "appResetButton")
+                {
+                    resetApp();
+                    stage.nativeWindow.close();
+                }
                 return;
             }
 
@@ -5362,14 +5415,38 @@
                 stage.removeEventListener(MouseEvent.MOUSE_UP, buttonUpEvent);
 
                 const upTargetName:String = e.target.name;
+                var url:URLRequest;
 
                 if(targetName === upTargetName)
                 {
                     switch(upTargetName)
                     {
+                        case "updateButton":
+                        {
+                            if(needUpdate === 1)
+                            {
+                                navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/releasenote.txt"));
+
+                                setTimeout(function():void
+                                {
+                                    installNewVersion();
+                                },500);
+                            }
+                            else if(needUpdate === 2)
+                            {
+                                navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/"));
+                            }
+                        }
+                        break;
+
                         case "sideBarPositionButton":
                         case "sideBarPositionButton2":
                             setSideBarPositionButton();
+                        break;
+
+                        case "sideBarVisibleButton":
+                        case "sideBarVisibleButton2":
+                            setSidebarVisible(!isSidebarVisible);
                         break;
 
                         case "traceLoadButton":
@@ -5984,6 +6061,11 @@
                         str = "Grid (f1)";
                     break;
 
+                    case "sideBarVisibleButton":
+                    case "sideBarVisibleButton2":
+                        str = "Sidebar ON/OFF (tab, \\ )";
+                    break;
+
                     case "sideBarPositionButton":
                         str = "Right sidebar (f2)";
                     break;
@@ -5998,6 +6080,11 @@
 
                     case "aboutButton":
                         str = "About";
+                    break;
+
+                    case "updateButton":
+                        str = "Update to version " + NEW_VERSION;
+                       
                     break;
 
                     case "drawModeButton":
@@ -8845,6 +8932,7 @@
             updateResizeButtonPos();
             addUndoData();
             updateWindowTitle();
+            setWindowTitleStar();
             setSubLayer(false);
             setReplaySubLayer(false);
             // checkUsedMemory();
@@ -8975,7 +9063,6 @@
             }
             else
             {
-                sideBar.visible = iFlag;
                 resizeButtonR.visible = iFlag;
                 resizeButtonL.visible = iFlag;
                 resizeButtonD.visible = iFlag;
@@ -8984,6 +9071,7 @@
 
             if(flag === true)
             {
+                sideBar.visible = false;
                 topBar.resetHintColor();
                 penSizeCursor.visible = false;
                 canvasTrace.visible = false;
@@ -8996,6 +9084,11 @@
             }
             else 
             {
+                if(isSidebarVisible === true)
+                {
+                    sideBar.visible = true;
+                }
+
                 canvasTrace.visible = true;
                 appInfoBox.updateCanvasInfo();
 
@@ -9596,6 +9689,7 @@
 
                     byteArray.clear();
                     saveReplayFile(imageSize);
+                    updateWindowTitle();
                     saveOneTime = true;
                 }
                 else //파일을 못찾으면 새로 저장
@@ -9890,7 +9984,8 @@
                             "rSkipImageInit":rSkipImageInit,
                             "rBGColorSave":rBGColorSave,
                             "isRightSidebar":isRightSidebar,
-                            "saveFilePath":saveFilePath
+                            "saveFilePath":saveFilePath,
+                            "isSidebarVisible":isSidebarVisible
                             });
             fs.close();
         }
@@ -10019,8 +10114,10 @@
                     traceMenuBox.y = d["traceMenuPos[1]"];
                     traceReizeMoveSum = d["traceReizeMoveSum"];
                     isRightSidebar = d["isRightSidebar"];
-                    if(isRightSidebar) setSideBarRightPosition(true);
+                    isSidebarVisible = d["isSidebarVisible"];
 
+                    if(d["isRightSidebar"]) setSideBarRightPosition(true);
+                    if(!d["isSidebarVisible"])  setSidebarVisible(d["isSidebarVisible"]);
 
                     rSkipImageInit = d["rSkipImageInit"];
                     rBGColorSave = d["rBGColorSave"];
@@ -10049,7 +10146,6 @@
                     updateColorHistoryList();
                     updatePreviewCursorPos();
                     // consoleBox.updateConsoleHeight(_nativeWindow.width);
-                    updateWindowTitle();
                     appInfoBox.insertCanvasInfo([null,null,null,regPoint.rotation,null]);
                     updatePenSizeCursor();
                 },150);
@@ -10074,6 +10170,9 @@
                 appInfoBox.insertCanvasInfo([CANVAS_WIDTH,CANVAS_HEIGHT,zoomed*100,regPoint.rotation]);
                 updatePenSizeCursor();
             }
+
+            updateWindowTitle();
+            setWindowTitleStar();
         }
 
         //빈 stage공백에 광클하면 쓸데없는 addundo가 되서
@@ -10084,6 +10183,10 @@
             {
                 if(penSizeCursor.hitTestObject(canvas1Bitmap))
                 {
+                    if(readyAddUndo === false)
+                    {
+                        setWindowTitleStar();
+                    }
                     clearButtonClicked = false; //undo추가 예약되어있으면 그때 꺼줌
                     readyAddUndo = true;
                 }
@@ -12664,6 +12767,8 @@
 
             topBar.sideBarPositionButton.visible = false;
             topBar.sideBarPositionButton2.visible = true;
+            topBar.sideBarVisibleButton.visible = true;
+            topBar.sideBarVisibleButton2.visible = false;
         }
 
         private function setSideBarLeftPosition():void
@@ -12703,6 +12808,8 @@
 
             topBar.sideBarPositionButton.visible = true;
             topBar.sideBarPositionButton2.visible = false;
+            topBar.sideBarVisibleButton.visible = false;
+            topBar.sideBarVisibleButton2.visible = true;
         }
 
         private function updateScrollBar(height:Number):void
@@ -12730,6 +12837,8 @@
             const stH2:Number = floor(stH/2);
 
             aboutPanel.name = "aboutPanel";
+            aboutPanel.setVersionInfo(APP_VERSION.toFixed(2));
+
             penSizePrev.alpha = 0.6;
             penSizePrev.x = stw2;
             penSizePrev.y = stH2;
@@ -13107,19 +13216,14 @@
                 return;
             }
             windowClosingFlag = true;
+
             if(replayStartON === true) stopReplay();
             if(captureModeON === true) captureOFF();
             if(nowTool === TOOL_LASSO) setLassoCancelButton();
 
-            if(shiftKeyON === true)
+            if(shiftKeyON)
             {
-                appResetFlag = true;
-                if(appDataFile.exists) appDataFile.deleteFile(); //파일이 있으면 지워줌
-                if(repFile.exists) repFile.deleteFile();
-                if(rSkipImageFolder.exists) rSkipImageFolder.deleteDirectory(true);
-                if(rSkipImageFrameDataFile.exists) rSkipImageFrameDataFile.deleteFile();
-                if(undoDataFile.exists) undoDataFile.deleteFile();
-                if(traceImageFile.exists) traceImageFile.deleteFile();
+                resetApp();
             }
             else if(stage.nativeWindow.displayState === "maximized") //최대화이면 복원해주고 닫아줌
             {
@@ -13554,8 +13658,6 @@
         private function keyDownEvent(e:KeyboardEvent):void//keydown1
         {
             const keyCode:uint = e.keyCode;
-            trace('keyCode',keyCode);
-
             if(nowKey !== 0)
             {
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rightMouseDownEvent);
@@ -14256,12 +14358,16 @@
             replayTimeBox.visible = flag; //탐색바 켜줌
             rCursor.visible = flag;
             replayTimeBox["pauseButton"].visible = false;
-            sideBar.visible = iFlag;
             setTopChildIndex(replayTimeBox);
 
             if(iFlag) //리플레이 꺼줄때
             {
                 clearDataButtonCount = 0;
+
+                if(isSidebarVisible === true)
+                {
+                    sideBar.visible = true;
+                }
 
                 if(replayStartON === true)
                 {
@@ -14287,6 +14393,7 @@
             }
             else if(flag) //리플레이 켜줄때
             {
+                sideBar.visible = false;
                 rCursor.visible = false;
                 setTopChildIndex(rCursor);
                 removeMainEvent();
@@ -14714,9 +14821,9 @@
             colorHistoryUpdateReady = false;
             // stage.removeEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
             // setTopChildIndex(pickerBox);
-            if(targetName && targetName.indexOf("cpreset") !== -1)
+            if(targetName && targetName.indexOf("drawr") !== -1)
             {
-                setPresetColor(target as SimpleButton,(pickerMode == 2) ? true : false);
+                setPresetColor(target as Sprite,(pickerMode == 2) ? true : false);
                 return;
             }
 
@@ -14740,7 +14847,7 @@
                 }
                 return;
 
-                case "hsvSetBox":
+                case "svBox":
                 case "svCursor":
                 {
                     setSVcolorButton();
@@ -14963,8 +15070,11 @@
                 case "gridButton":
                 case "penOptionButton":
                 case "aboutButton":
+                case "updateButton":
                 case "sideBarPositionButton":
                 case "sideBarPositionButton2":
+                case "sideBarVisibleButton":
+                case "sideBarVisibleButton2":
                 case "dragDropFileButton":
                 case "dragDropRefButton":
                 case "dragDropCancelButton":
@@ -14977,6 +15087,7 @@
                 case "traceDeleteButton":
                 case "traceVisibleONButton":
                 case "traceVisibleOFFButton":
+                case "appResetButton":
                 {
                     if(toolBox2ON || lassoToolON || fillPenStarted || nowKey !== 0 || e.target.alpha < 1.0)
                     {

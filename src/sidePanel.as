@@ -9,7 +9,7 @@
 
 		private const sideBG:Shape = new Shape();
 		public const w:Number = 220;
-		public var h:Number = 220;
+		public var h:Number = 0;
 
 		public function updateSideBGSize(sth:Number):void
 		{

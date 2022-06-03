@@ -7,7 +7,8 @@
 
 	public class aboutBox extends Sprite {
 
-		public var downloadButton:TextField = downloadButton;
+		public var versionInfo:TextField = versionInfo;
+		public var appResetButton:TextField = appResetButton;
 		public var aboutTwitterLink:SimpleButton = aboutTwitterLink;
 		public var logo1:SimpleButton = logo1;
 		public var logo2:SimpleButton = logo2;
@@ -28,12 +29,15 @@
 
 			nowIndex = index;
 		}
+		public function setVersionInfo(str:String):void
+		{
+			versionInfo.text = "version " + str;
+		}
 		
 		public function aboutBox() {
 			// constructor codef
 			nowIndex = Math.floor(Math.random()*4);
 			visible = false;
-			downloadButton.visible = false;
 			logo2.visible = false;
 			logo3.visible = false;
 			logo4.visible = false;

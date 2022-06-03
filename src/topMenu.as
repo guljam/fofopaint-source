@@ -35,10 +35,13 @@
 		public var topBarColorButton:SimpleButton = topBarColorButton;
 		public var sideBarPositionButton:SimpleButton = sideBarPositionButton;
 		public var sideBarPositionButton2:SimpleButton = sideBarPositionButton2;
+		public var sideBarVisibleButton:SimpleButton = sideBarVisibleButton;
+		public var sideBarVisibleButton2:SimpleButton = sideBarVisibleButton2;
 		public var cutPrevDataButton:SimpleButton = cutPrevDataButton;
 		public var superUndoButton:SimpleButton = superUndoButton;
 		public var reRecordingButton:SimpleButton = reRecordingButton;
 		public var aboutButton:SimpleButton = aboutButton;
+		public var updateButton:SimpleButton = updateButton;
 		public var replayZoomInButton:SimpleButton = replayZoomInButton;
 		public var replayZoomOutButton:SimpleButton = replayZoomOutButton;
 		public var replayRotateButton:SimpleButton = replayRotateButton;
@@ -97,6 +100,8 @@
 			topBarColorButton.transform.colorTransform = o;
 			sideBarPositionButton.transform.colorTransform = o;
 			sideBarPositionButton2.transform.colorTransform = o;
+			sideBarVisibleButton.transform.colorTransform = o;
+			sideBarVisibleButton2.transform.colorTransform = o;
 			cutPrevDataButton.transform.colorTransform = o;
 			superUndoButton.transform.colorTransform = o;
 			reRecordingButton.transform.colorTransform = o;
@@ -152,7 +157,7 @@
 			hintTimer2 = setTimeout(function():void
 			{
 				resetHintColor();
-			},3000);
+			},4000);
 		}
 
 		public function hintTimeOff():void
@@ -234,7 +239,7 @@
 			topbarBGColor = color;
         }
 
-		public function buttonSetVisible(mode:String,flag:Boolean,rightSidebar:Boolean=false):void
+		public function buttonSetVisible(mode:String,flag:Boolean,rightSidebar:Boolean=false,sidebarVisible:Boolean=false):void
 		{
 			const arr:Array = (mode === "replay")  ? replayModeButtons
 							: (mode === "capture") ? captureModeButtons
@@ -243,19 +248,23 @@
 
 			const len:uint = arr.length;
 			var ent:DisplayObject;
+
 			for(var i:uint=0;i<len;i++)
 			{
 				ent = arr[i] as DisplayObject;
 				if(ent) arr[i].visible = flag;
 			}
+
 			if(mode === "draw" && flag === true)
 			{
 				if(rightSidebar)
 				{
+					sideBarVisibleButton.visible = false;
 					sideBarPositionButton.visible = false;
 				}
 				else
 				{
+					sideBarVisibleButton2.visible = false;
 					sideBarPositionButton2.visible = false;
 				}
 			}
@@ -284,8 +293,14 @@
 					}
 				}
 			}
+
 			sideBarPositionButton2.x = sideBarPositionButton.x;
 			sideBarPositionButton2.y = sideBarPositionButton.y;
+			sideBarVisibleButton2.x = sideBarVisibleButton.x;
+			sideBarVisibleButton2.y = sideBarVisibleButton.y;
+
+			updateButton.x = aboutButton.x;
+			updateButton.y = aboutButton.y;
 		}
 		
 
@@ -347,6 +362,7 @@
 			superUndoButton.useHandCursor = false;
 			reRecordingButton.useHandCursor = false;
 			aboutButton.useHandCursor = false;
+			updateButton.useHandCursor = false;
 			replayZoomInButton.useHandCursor = false;
 			replayZoomOutButton.useHandCursor = false;
 			replayRotateButton.useHandCursor = false;
@@ -360,9 +376,9 @@
 								[clearButton,superUndoButton],
 								[gridButton,cutPrevDataButton],
 								[sideBarPositionButton,replayZoomInButton],
-								[topBarColorButton,replayZoomOutButton],
-								[aboutButton,replayRotateButton],
-								[replaySpeedSet]
+								[sideBarVisibleButton,replayZoomOutButton],
+								[topBarColorButton,replayRotateButton],
+								[aboutButton,replaySpeedSet]
 							];
 
 			drawModeButtons = [
@@ -376,6 +392,8 @@
 									topBarColorButton,
 									sideBarPositionButton,
 									sideBarPositionButton2,
+									sideBarVisibleButton,
+									sideBarVisibleButton2,
 									aboutButton
 							  ];
 
@@ -402,6 +420,7 @@
 								 ];
 			initModeButtons();
 
+			updateButton.visible = false;
 			topMenuInfo.width = 500;
 			topMenuInfo.x = startX;
 
@@ -409,7 +428,7 @@
 			
 			topbarInfoBG.graphics.clear();
 			topbarInfoBG.graphics.lineStyle(0,0,0);
-			topbarInfoBG.graphics.beginFill(0xCCCCCC)
+			topbarInfoBG.graphics.beginFill(0xCCCCCC);
 			topbarInfoBG.graphics.drawRect(0,0,10,10);
 			topbarInfoBG.graphics.endFill();
 			topbarInfoBG.x = 0;
