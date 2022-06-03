@@ -1637,7 +1637,8 @@
                     }
                     else if(sideBar.visible)
                     {
-                        if((!isRightSidebar && mx > sideBar.w || isRightSidebar && mx < stage.stageWidth-sideBar.w)
+                        const offset:Number = (sideBarScrollBar.visible) ? 10 : 0;
+                        if((!isRightSidebar && mx > sideBar.w+offset || isRightSidebar && mx < stage.stageWidth-sideBar.w-offset)
                         || my <= STAGE_TOP_OFFSET)
                         {
                             if(sidebarOffTimer === 0)
