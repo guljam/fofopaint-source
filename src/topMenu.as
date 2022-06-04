@@ -36,8 +36,10 @@
 		public var topBarColorButton:SimpleButton = topBarColorButton;
 		public var sideBarPositionButton:SimpleButton = sideBarPositionButton;
 		public var sideBarPositionButton2:SimpleButton = sideBarPositionButton2;
-		public var sideBarVisibleButton:SimpleButton = sideBarVisibleButton;
-		public var sideBarVisibleButton2:SimpleButton = sideBarVisibleButton2;
+		public var sideBarOFFButton:SimpleButton = sideBarOFFButton;
+		public var sideBarOFFButton2:SimpleButton = sideBarOFFButton2;
+		public var sideBarONButton:SimpleButton = sideBarONButton;
+		public var sideBarONButton2:SimpleButton = sideBarONButton2;
 		public var cutPrevDataButton:SimpleButton = cutPrevDataButton;
 		public var superUndoButton:SimpleButton = superUndoButton;
 		public var reRecordingButton:SimpleButton = reRecordingButton;
@@ -107,8 +109,10 @@
 			alphaBackup = sideBarPositionButton2.alpha;
 			sideBarPositionButton2.transform.colorTransform = o;
 			sideBarPositionButton2.alpha = alphaBackup;
-			sideBarVisibleButton.transform.colorTransform = o;
-			sideBarVisibleButton2.transform.colorTransform = o;
+			sideBarOFFButton.transform.colorTransform = o;
+			sideBarOFFButton2.transform.colorTransform = o;
+			sideBarONButton.transform.colorTransform = o;
+			sideBarONButton2.transform.colorTransform = o;
 			cutPrevDataButton.transform.colorTransform = o;
 			superUndoButton.transform.colorTransform = o;
 			reRecordingButton.transform.colorTransform = o;
@@ -246,12 +250,48 @@
 			topbarBGColor = color;
         }
 
+		public function checkSideBarONOFFButton(visible:Boolean,rightSidebar:Boolean):void
+		{
+			function check(index:int):void
+			{
+				const arr:Array = [sideBarONButton,
+									sideBarOFFButton,
+									sideBarONButton2,
+									sideBarOFFButton2];
+				const len:int = arr.length;
+
+				for(var i:int=0;i<len;i++)
+				{
+					if(i === index)
+					{
+						(arr[i] as SimpleButton).visible = true;
+					}
+					else
+					{
+						(arr[i] as SimpleButton).visible = false;
+					}
+				}
+			}
+
+			if(rightSidebar)
+			{
+				if(visible) check(1);
+				else check(0);
+			}
+			else
+			{
+				if(visible) check(3);
+				else check(2);
+			}
+		}
+
 		public function buttonSetVisible(mode:String,flag:Boolean,rightSidebar:Boolean=false,sidebarVisible:Boolean=false):void
 		{
 			const arr:Array = (mode === "replay")  ? replayModeButtons
 							: (mode === "capture") ? captureModeButtons
 							: (mode === "draw")    ? drawModeButtons
 							: null;
+			if(!arr) return;
 
 			const len:uint = arr.length;
 			var ent:DisplayObject;
@@ -264,16 +304,10 @@
 
 			if(mode === "draw" && flag === true)
 			{
-				if(rightSidebar)
-				{
-					sideBarVisibleButton2.visible = false;
-					sideBarPositionButton.visible = false;
-				}
-				else
-				{
-					sideBarVisibleButton.visible = false;
-					sideBarPositionButton2.visible = false;
-				}
+				if(rightSidebar) sideBarPositionButton.visible = false;
+				else sideBarPositionButton2.visible = false;
+				
+				checkSideBarONOFFButton(sidebarVisible,rightSidebar);
 			}
 		}
 
@@ -300,8 +334,10 @@
 												topBarColorButton,
 												sideBarPositionButton,
 												sideBarPositionButton2,
-												sideBarVisibleButton,
-												sideBarVisibleButton2,
+												sideBarOFFButton,
+												sideBarOFFButton2,
+												sideBarONButton,
+												sideBarONButton2,
 												aboutButton,
 
 												cutPrevDataButton,
@@ -311,18 +347,13 @@
 												replayZoomOutButton,
 												];
 			const len:int = arr.length;
-			// var btn:SimpleButton;
-			var btnUp:DisplayObjectContainer;
 			var btnDown:DisplayObjectContainer;
 
 			for(var i:int=0;i<len;i++)
 			{
-				btnUp = arr[i].upState as DisplayObjectContainer;
 				btnDown = arr[i].downState as DisplayObjectContainer;
-				btnDown.getChildAt(0).x -= 1;
-				btnDown.getChildAt(0).y -= 1;
-				btnDown.getChildAt(1).x -= 1;
-				btnDown.getChildAt(1).y -= 1;
+				btnDown.x = 2;
+				btnDown.y = 2;
 			}
 		}
 		public function initModeButtons():void //버튼위치 설정
@@ -351,8 +382,12 @@
 
 			sideBarPositionButton2.x = sideBarPositionButton.x;
 			sideBarPositionButton2.y = sideBarPositionButton.y;
-			sideBarVisibleButton2.x = sideBarVisibleButton.x;
-			sideBarVisibleButton2.y = sideBarVisibleButton.y;
+			sideBarOFFButton2.x = sideBarOFFButton.x;
+			sideBarOFFButton2.y = sideBarOFFButton.y;
+			sideBarONButton.x = sideBarOFFButton.x;
+			sideBarONButton.y = sideBarOFFButton.y;
+			sideBarONButton2.x = sideBarOFFButton.x;
+			sideBarONButton2.y = sideBarOFFButton.y;
 
 			updateButton.x = aboutButton.x;
 			updateButton.y = aboutButton.y;
@@ -409,8 +444,10 @@
 			replayModeButton.useHandCursor = false;
 			drawModeButton.useHandCursor = false;
 			topBarColorButton.useHandCursor = false;
-			sideBarVisibleButton.useHandCursor = false;
-			sideBarVisibleButton2.useHandCursor = false;
+			sideBarOFFButton.useHandCursor = false;
+			sideBarOFFButton2.useHandCursor = false;
+			sideBarONButton.useHandCursor = false;
+			sideBarONButton2.useHandCursor = false;
 			sideBarPositionButton.useHandCursor = false;
 			sideBarPositionButton2.useHandCursor = false;
 			cutPrevDataButton.useHandCursor = false;
@@ -422,6 +459,10 @@
 			replayZoomOutButton.useHandCursor = false;
 			replayRotateButton.useHandCursor = false;
 
+			sideBarOFFButton2.visible = false;
+			sideBarONButton.visible = false;
+			sideBarONButton2.visible = false;
+
 			buttonOrder =   [ 
 								[replayModeButton,drawModeButton,capOff],
 								[captureButton,capFull,repCaptureButton],
@@ -431,7 +472,7 @@
 								[clearButton,superUndoButton],
 								[gridButton,cutPrevDataButton],
 								[sideBarPositionButton,replayZoomInButton],
-								[sideBarVisibleButton,replayZoomOutButton],
+								[sideBarOFFButton,replayZoomOutButton],
 								[topBarColorButton,replayRotateButton],
 								[aboutButton,replaySpeedSet]
 							];
@@ -447,8 +488,10 @@
 									topBarColorButton,
 									sideBarPositionButton,
 									sideBarPositionButton2,
-									sideBarVisibleButton,
-									sideBarVisibleButton2,
+									sideBarOFFButton,
+									sideBarOFFButton2,
+									sideBarONButton,
+									sideBarONButton2,
 									aboutButton
 							  ];
 

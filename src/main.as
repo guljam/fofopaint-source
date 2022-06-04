@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.02;
+        private const APP_VERSION:Number = 14.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -628,6 +628,7 @@
             if(undoDataFile.exists) undoDataFile.deleteFile();
             if(traceImageFile.exists) traceImageFile.deleteFile();
         }
+
         private function setSidebarVisible(flag:Boolean,tempFlag:Boolean):void
         {
             if(tempFlag === false)
@@ -635,35 +636,57 @@
                 isSidebarVisible = flag;
             }
 
-            if(!flag)
-            {
-                sideBar.visible = false;
+            const tb:topMenu = topBar;
 
-                STAGE_RIGHT_OFFSET = 0;
-                STAGE_LEFT_OFFSET = 0;
-
-                topBar.sideBarPositionButton.alpha = BUTTON_OFF_ALPHA;
-                topBar.sideBarPositionButton2.alpha = BUTTON_OFF_ALPHA;
-            }
-            else
+            if(flag)
             {
                 if(tempFlag === false)
                 {
-                    topBar.sideBarPositionButton.alpha = 1.0;
-                    topBar.sideBarPositionButton2.alpha = 1.0;
+                    tb.sideBarPositionButton.alpha = 1.0;
+                    tb.sideBarPositionButton2.alpha = 1.0;
                 }
 
                 if(isRightSidebar)
                 {
                     STAGE_RIGHT_OFFSET = sideBar.w;
+                    if(tempFlag === false) regPoint.x -= STAGE_RIGHT_OFFSET;
                 }
                 else
                 {
                     STAGE_LEFT_OFFSET = sideBar.w;
+                    if(tempFlag === false) regPoint.x += STAGE_LEFT_OFFSET;
                 }
-                
+
                 updatePreviewCursorPos();
+                sideBar.updateSideBGSize(stage.stageHeight-STAGE_TOP_OFFSET);
+                updateScrollBarHeight(stage.stageHeight);
                 sideBar.visible = true;
+            }
+            else
+            {
+                sideBar.visible = false;
+
+                if(tempFlag === false)
+                {
+                    if(isRightSidebar)
+                    {
+                        regPoint.x += STAGE_RIGHT_OFFSET;
+                    }
+                    else
+                    {
+                        regPoint.x -= STAGE_LEFT_OFFSET;
+                    }
+                }
+
+                STAGE_RIGHT_OFFSET = 0;
+                STAGE_LEFT_OFFSET = 0;
+
+                tb.sideBarPositionButton.alpha = BUTTON_OFF_ALPHA;
+                tb.sideBarPositionButton2.alpha = BUTTON_OFF_ALPHA;
+            }
+            if(tempFlag === false)
+            {
+                tb.checkSideBarONOFFButton(flag,isRightSidebar);
             }
         }
 
@@ -1577,19 +1600,62 @@
         private function ClosureUpdatePenCursorPosition():Function
         {
             const _penSizeCursor:Shape = penSizeCursor;
-            var sidebarOffTimer:int;
+            var sidebarOFFTimer:int;
+            var sidebarONTimer:int;
+            var sidebarTempOFF:Boolean;
+            var mouseUpEventON:Boolean;
+            var visibleMouseUpEventON:Boolean;
             var nt:int;
             var mx:Number;
             var my:Number;
             var posInStage:Boolean;
+
+            function sideBarTimeOut():void
+            {
+                clearTimeout(sidebarOFFTimer);
+                sidebarOFFTimer = setTimeout(function():void
+                {
+                    stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
+                    stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarOffMouseDownEvent);
+                    stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
+                    sidebarOFFTimer = 0;
+                    if(isSidebarVisible === false)
+                    {
+                        setSidebarVisible(false,true);
+                    }
+                },500);
+            }
+
+            function sidebarONMouseUpEvent(e:MouseEvent):void
+            {
+                stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
+                visibleMouseUpEventON = false;
+                sidebarTempOFF = true;
+                clearTimeout(sidebarONTimer);
+                sidebarONTimer = setTimeout(function():void
+                {
+                    sidebarTempOFF = false;
+                },500);
+            }
+
+            function sidebarOffMouseUpEvent(e:MouseEvent):void
+            {
+                if(sideBar.hitTestPoint(mouseX,mouseY) === false)
+                {
+                    mouseUpEventON = false;
+                    sideBarTimeOut();
+                }
+            }
 
             function sidebarOffMouseDownEvent(e:MouseEvent):void
             {
                 if(sideBar.hitTestPoint(mouseX,mouseY) === false)
                 {
                     stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
-                    clearTimeout(sidebarOffTimer);
-                    sidebarOffTimer = 0;
+                    stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,sidebarOffMouseDownEvent);
+                    stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
+                    clearTimeout(sidebarOFFTimer);
+                    sidebarOFFTimer = 0;
                     if(isSidebarVisible === false)
                     {
                         setSidebarVisible(false,true);
@@ -1628,40 +1694,54 @@
 
                 if(isSidebarVisible === false)
                 {
-                    if((!isRightSidebar && mx <= 30 || isRightSidebar && mx >= stage.stageWidth-30)
+                    if(sideBar.visible)
+                    {
+                        const offset:Number = (sideBarScrollBar.visible) ? 10 : 0;
+                        //마우스 사이드바 바깥으로 나감
+                        if((!isRightSidebar && mx > sideBar.w+offset || isRightSidebar && mx < stage.stageWidth-sideBar.w-offset)
+                        || my <= STAGE_TOP_OFFSET)
+                        {
+                            if(mouseClickON || mouseDragON)
+                            {
+                                if(mouseUpEventON === false)
+                                {
+                                    mouseUpEventON = true;
+                                    stage.addEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
+                                }
+                            }
+                            else 
+                            {
+                                if(sidebarOFFTimer === 0)
+                                {
+                                    sideBarTimeOut();
+                                    stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
+                                    stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarOffMouseDownEvent);
+                                }
+                            }
+                        }
+                        else if(sidebarOFFTimer !== 0)
+                        {
+                            clearTimeout(sidebarOFFTimer);
+                            sidebarOFFTimer = 0;
+                            stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
+                            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarOffMouseDownEvent);
+                            stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
+                        }
+                    } //마우스 사이드바 활성 영역으로 들어옴
+                    else if((!isRightSidebar && mx <= 30 || isRightSidebar && mx >= stage.stageWidth-30)
                     && my > STAGE_TOP_OFFSET)
                     {
                         if(!mouseClickON && !mouseDragON)
                         {
-                            sideBar.visible = true;
-                            setSidebarVisible(true,true);
-                        }
-                    }
-                    else if(sideBar.visible)
-                    {
-                        const offset:Number = (sideBarScrollBar.visible) ? 10 : 0;
-                        if((!isRightSidebar && mx > sideBar.w+offset || isRightSidebar && mx < stage.stageWidth-sideBar.w-offset)
-                        || my <= STAGE_TOP_OFFSET)
-                        {
-                            if(sidebarOffTimer === 0)
+                            if(!sidebarTempOFF)
                             {
-                                sidebarOffTimer = setTimeout(function():void
-                                {
-                                    stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
-                                    sidebarOffTimer = 0;
-                                    if(isSidebarVisible === false)
-                                    {
-                                        setSidebarVisible(false,true);
-                                    }
-                                },1000);
+                                setSidebarVisible(true,true);
                             }
-                            stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
                         }
-                        else if(sidebarOffTimer !== 0)
+                        else if(visibleMouseUpEventON === false) //클릭한 상태에서 들어올경우
                         {
-                            clearTimeout(sidebarOffTimer);
-                            sidebarOffTimer = 0;
-                            stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
+                            visibleMouseUpEventON = true;
+                            stage.addEventListener(MouseEvent.MOUSE_UP,sidebarONMouseUpEvent);
                         }
                     }
                 }
@@ -2505,6 +2585,7 @@
                 nowToolBackup = TOOL_PEN;
                 nowTool = TOOL_PEN;
                 selectPenTool();
+                
             }
             else if(mode === "replay")
             {
@@ -3931,17 +4012,22 @@
 
             afkONCount = 0;
 
-            if(keycode === gKey.shift)
+            switch(keycode)
             {
-                shiftKeyON = false;
-            }
-            if(keycode === gKey.ctrl || keycode === 25 || keycode === 17)
-            {
-                controlKeyON = false;
-            }
-            if(keycode === gKey.tab || keycode === gKey.backslash)
-            {
-                setSidebarVisible(!isSidebarVisible,false);
+                case gKey.shift:
+                    shiftKeyON = false;
+                break;
+
+                case gKey.ctrl:
+                case 25:
+                case 17:
+                    controlKeyON = false;
+                break;
+
+                case gKey.tab:
+                case gKey.backslash:
+                    setSidebarVisible(!isSidebarVisible,false);
+                break;
             }
 
             const index:int = keyBufferArr.lastIndexOf(keycode);
@@ -3955,6 +4041,7 @@
         private function keyDownBufferEvent(e:KeyboardEvent):void
         {
             const keycode:int = e.keyCode;
+            sideBar.updateSideBGSize(stage.stageHeight-STAGE_TOP_OFFSET);
 
             if(keycode === gKey.shift && !shiftKeyON)
             {
@@ -5460,9 +5547,14 @@
                             setSideBarPositionButton();
                         break;
 
-                        case "sideBarVisibleButton":
-                        case "sideBarVisibleButton2":
-                            setSidebarVisible(!isSidebarVisible,false);
+                        case "sideBarOFFButton":
+                        case "sideBarOFFButton2":
+                            setSidebarVisible(false,false);
+                        break;
+
+                        case "sideBarONButton":
+                        case "sideBarONButton2":
+                            setSidebarVisible(true,false);
                         break;
 
                         case "traceLoadButton":
@@ -6084,9 +6176,14 @@
                         str = "Grid (f1)";
                     break;
 
-                    case "sideBarVisibleButton":
-                    case "sideBarVisibleButton2":
-                        str = "Sidebar ON/OFF (tab, \\ )";
+                    case "sideBarOFFButton":
+                    case "sideBarOFFButton2":
+                        str = "Sidebar OFF (tab, \\ )";
+                    break;
+
+                    case "sideBarONButton":
+                    case "sideBarONButton2":
+                        str = "Sidebar ON (tab, \\ )";
                     break;
 
                     case "sideBarPositionButton":
@@ -12771,15 +12868,13 @@
             toolBox.y = controlBox.y+2;
             toolBox.zoomIconRightPos();
 
-            sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width-2;
+            sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width;
             sideBarScrollBar.y = scrollBarMovedY;
 
             _sideBar.y = topBar.BARSIZE;
 
             STAGE_RIGHT_OFFSET = _sideBar.w;
             STAGE_LEFT_OFFSET = 0;
-
-            // _sideBar.updateSideBGSize(stage.stageHeight-STAGE_TOP_OFFSET);
 
             const fillPenIconPos:Point = toolBox.toolFillPen.localToGlobal(new Point(0,0));
             fillPenBox.x = fillPenIconPos.x-34;
@@ -12792,8 +12887,8 @@
 
             topBar.sideBarPositionButton.visible = false;
             topBar.sideBarPositionButton2.visible = true;
-            topBar.sideBarVisibleButton.visible = true;
-            topBar.sideBarVisibleButton2.visible = false;
+            topBar.sideBarOFFButton.visible = true;
+            topBar.sideBarOFFButton2.visible = false;
         }
 
         private function setSideBarLeftPosition():void
@@ -12817,7 +12912,7 @@
             toolBox.y = controlBox.y+2;
             toolBox.zoomIconLeftPos();
 
-            sideBarScrollBar.x = _sideBar.w+2;
+            sideBarScrollBar.x = _sideBar.w;
             sideBarScrollBar.y = scrollBarMovedY;
 
             _sideBar.y = topBar.BARSIZE;
@@ -12833,8 +12928,8 @@
 
             topBar.sideBarPositionButton.visible = true;
             topBar.sideBarPositionButton2.visible = false;
-            topBar.sideBarVisibleButton.visible = false;
-            topBar.sideBarVisibleButton2.visible = true;
+            topBar.sideBarOFFButton.visible = false;
+            topBar.sideBarOFFButton2.visible = true;
         }
 
         private function updateScrollBar(height:Number):void
@@ -12846,8 +12941,8 @@
             g.clear();
             // g.lineStyle(1,color1,1.0,true);
             g.lineStyle(0,0,0);
-            g.beginFill(color2,1.0);
-            g.drawRect(0,0,8,height);
+            g.beginFill(color2);
+            g.drawRect(0,0,10,height);
             g.endFill();
 
             scrollBarHeight = height;
@@ -13089,9 +13184,9 @@
             }
 
             var scrollBarSize:Number = floor(sth-(_sideBarSetHeight-sth));
-            if(scrollBarSize < 35)
+            if(scrollBarSize < 50)
             {
-                scrollBarSize = 35;
+                scrollBarSize = 50;
             }
 
             scrollBarHeight = scrollBarSize;
@@ -13158,34 +13253,30 @@
 
                 checkCanvasPanelPos();
 
-                if(aboutPanelON)
-                {
-                    setAboutPanelCenterPos();
-                }
-
+                if(aboutPanelON) setAboutPanelCenterPos();
+                
                 if(replayModeON)
                 {
                     updateReplayBarPos(stw,sth);
                     updateReplayCanvasBounds();
                 }
-                else
-                {
-                    updateResizeButtonPos();//리사이즈 버튼 위치도 업데이트
-                }
+                else updateResizeButtonPos();//리사이즈 버튼 위치도 업데이트
+                
 
                 updateStageBG(uiColorSet[uiColorIndex][2]);
                 topBar.updateTopbarBG(stw);
                 topBar.updateTimerPos(stage.stageWidth);
-                sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
-                updateScrollBarHeight(sth);
 
-                if(isRightSidebar)
+                if(sideBar.visible)
                 {
-                    sideBar.x = stage.stageWidth-sideBar.w;
+                    sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
+                    updateScrollBarHeight(sth);
+
+                    if(isRightSidebar) sideBar.x = stage.stageWidth-sideBar.w;
+                    
+                    updatePreviewCursorPos();
                 }
-                // consoleBox.updateConsoleHeight(sth);
-                updatePreviewCursorPos();
-            
+
                 if(fileDragSelectBox.visible === true)
                 {
                     setDragDropSelectBoxCenterPos();
@@ -14218,7 +14309,6 @@
                 checkLassoMenuPos();
             }
         }
-       
 
         private function sideBarScrollReady(clickY:Number):void
         {
@@ -14232,8 +14322,11 @@
             var my1:Number = sideBarScrollBar.y;
             var my2:Number = sideBarScrollSet.y;
 
+            mouseDragON = true;
+
             function sideBarMouseUpEvent(e:MouseEvent):void
             {
+                mouseDragON = false;
                 scrollSetMovedY = sideBarScrollSet.y;
                 scrollBarMovedY = sideBarScrollBar.y;
 
@@ -15100,8 +15193,10 @@
                 case "updateButton":
                 case "sideBarPositionButton":
                 case "sideBarPositionButton2":
-                case "sideBarVisibleButton":
-                case "sideBarVisibleButton2":
+                case "sideBarOFFButton":
+                case "sideBarOFFButton2":
+                case "sideBarONButton":
+                case "sideBarONButton2":
                 case "dragDropFileButton":
                 case "dragDropRefButton":
                 case "dragDropCancelButton":
