@@ -6,6 +6,7 @@
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.display.Graphics;
+	import flash.geom.Matrix;
 
 	public class replayTimeBar extends Sprite {
 		public var replayBGBar:Sprite = new Sprite();
@@ -147,7 +148,6 @@
 			frameInfo.x = replayTotalBar.x;
 			frameInfo.y = replayTotalBar.y;
 			frameInfo.width = replayTotalBar.width;
-
 			cacheAsBitmap = true;
 		}
 	}

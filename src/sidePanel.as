@@ -4,11 +4,12 @@
 	import flash.display.Graphics;
 	import flash.geom.ColorTransform;
 	import flash.display.Shape;
+	import flash.geom.Matrix;
 
 	public class sidePanel extends Sprite {
 		private const sideBG:Shape = new Shape();
 		public const w:Number = 220;
-		public var h:Number = 0;
+		public var h:Number = 220;
 
 		public function updateSideBGSize(sth:Number):void
 		{
@@ -29,6 +30,8 @@
 
 		public function sidePanel()
 		{
+			name = "sideBar";
+
 			const g:Graphics = sideBG.graphics;
             g.clear();
             g.lineStyle(0,0,0);
@@ -36,7 +39,7 @@
             g.drawRect(0,0,10,10);
             g.endFill();
 			addChild(sideBG);
-			cacheAsBitmap = true;
+            cacheAsBitmap = true;
 		}
 	}
 }

@@ -649,12 +649,10 @@
                 if(isRightSidebar)
                 {
                     STAGE_RIGHT_OFFSET = sideBar.w;
-                    if(tempFlag === false) regPoint.x -= STAGE_RIGHT_OFFSET;
                 }
                 else
                 {
                     STAGE_LEFT_OFFSET = sideBar.w;
-                    if(tempFlag === false) regPoint.x += STAGE_LEFT_OFFSET;
                 }
 
                 sideBar.visible = true;
@@ -662,18 +660,6 @@
             else
             {
                 sideBar.visible = false;
-
-                if(tempFlag === false)
-                {
-                    if(isRightSidebar)
-                    {
-                        regPoint.x += STAGE_RIGHT_OFFSET;
-                    }
-                    else
-                    {
-                        regPoint.x -= STAGE_LEFT_OFFSET;
-                    }
-                }
 
                 STAGE_RIGHT_OFFSET = 0;
                 STAGE_LEFT_OFFSET = 0;
@@ -1620,7 +1606,7 @@
                     {
                         setSidebarVisible(false,true);
                     }
-                },500);
+                },300);
             }
 
             function sidebarONMouseUpEvent(e:MouseEvent):void
@@ -1632,7 +1618,7 @@
                 sidebarONTimer = setTimeout(function():void
                 {
                     sidebarTempOFF = false;
-                },500);
+                },1000);
             }
 
             function sidebarOffMouseUpEvent(e:MouseEvent):void
@@ -1725,7 +1711,7 @@
                             stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
                         }
                     } //마우스 사이드바 활성 영역으로 들어옴
-                    else if((!isRightSidebar && mx <= 30 || isRightSidebar && mx >= stage.stageWidth-30)
+                    else if((!isRightSidebar && mx <= 20 || isRightSidebar && mx >= stage.stageWidth-20)
                     && my > STAGE_TOP_OFFSET)
                     {
                         if(!mouseClickON && !mouseDragON)
@@ -2370,7 +2356,7 @@
 
 
                 default:
-                    traceMenuBox.traceInfo.text = "REFERENCE LAYER";
+                    traceMenuBox.traceInfo.text = "Reference layer";
                 return;
             }
 
@@ -2431,7 +2417,7 @@
                 break;
 
                 default:
-                    lassoMenu.lassoInfo.text = "LASSO";
+                    lassoMenu.lassoInfo.text = "Lasso tool";
                 return;
             }
 
@@ -4038,7 +4024,6 @@
         private function keyDownBufferEvent(e:KeyboardEvent):void
         {
             const keycode:int = e.keyCode;
-            sideBar.updateSideBGSize(stage.stageHeight-STAGE_TOP_OFFSET);
 
             if(keycode === gKey.shift && !shiftKeyON)
             {
@@ -10232,10 +10217,16 @@
                     traceReizeMoveSum = d["traceReizeMoveSum"];
                     isRightSidebar = d["isRightSidebar"];
                     isSidebarVisible = d["isSidebarVisible"];
-
                     if(d["isRightSidebar"]) setSideBarRightPosition(true);
-                    if(!d["isSidebarVisible"]) setSidebarVisible(d["isSidebarVisible"],false);
-
+                    if(!d["isSidebarVisible"])
+                    {
+                        sideBar.cacheAsBitmap = false;
+                        setSidebarVisible(d["isSidebarVisible"],false);
+                        setTimeout(function():void //비트맵 캐싱을 하면 처음에 그래픽이 깨져서 일단 일캐해줌
+                        {
+                            sideBar.cacheAsBitmap = true;
+                        },1000);
+                    }
                     rSkipImageInit = d["rSkipImageInit"];
                     rBGColorSave = d["rBGColorSave"];
                     saveFilePath = d["saveFilePath"];
@@ -13258,7 +13249,6 @@
                     updateReplayCanvasBounds();
                 }
                 else updateResizeButtonPos();//리사이즈 버튼 위치도 업데이트
-                
 
                 updateStageBG(uiColorSet[uiColorIndex][2]);
                 topBar.updateTopbarBG(stw);
@@ -15148,7 +15138,7 @@
                     return;
                 }
             }
-            else if(sideBarScrollSet.hitTestPoint(mouseX,mouseY,true))
+            else if(sideBar.visible && sideBarScrollSet.hitTestPoint(mouseX,mouseY,true))
             {
                 if(checkPickerBoxButtons(target) && nowKey === 0) 
                 {
