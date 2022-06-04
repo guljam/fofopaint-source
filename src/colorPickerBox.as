@@ -312,12 +312,6 @@
 				colorT = new ColorTransform()
 				colorT.color = drawrColor[i];
 				btn.transform.colorTransform = colorT;
-				
-				if(i == 2 || i == 10)
-				{
-					x = x-width;
-				}
-
 				btn.x = (i*width)-x;
 				btn.y = y;
 

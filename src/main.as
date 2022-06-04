@@ -610,6 +610,20 @@
         }
         
         //functions
+        private function sideBarVisibleMouseLeaveEvent(e:Event):void
+        {
+            if(!isSidebarVisible && !sideBar.visible)
+            {
+                const mx:Number = mouseX;
+
+                if((isRightSidebar && mx > stage.stageWidth-sideBar.w)
+                || (!isRightSidebar && mx < sideBar.w))
+                {
+                    setSidebarVisible(true,true);
+                }
+            }
+        }
+
         private function setWindowTitleStar():void
         {
             if(stage.nativeWindow.title.lastIndexOf("*") === -1)
@@ -1606,7 +1620,7 @@
                     {
                         setSidebarVisible(false,true);
                     }
-                },300);
+                },500);
             }
 
             function sidebarONMouseUpEvent(e:MouseEvent):void
@@ -1681,8 +1695,9 @@
                     {
                         const offset:Number = (sideBarScrollBar.visible) ? 10 : 0;
                         //마우스 사이드바 바깥으로 나감
-                        if((!isRightSidebar && mx > sideBar.w+offset || isRightSidebar && mx < stage.stageWidth-sideBar.w-offset)
-                        || my <= STAGE_TOP_OFFSET)
+                        // if((!isRightSidebar && mx > sideBar.w+offset || isRightSidebar && mx < stage.stageWidth-sideBar.w-offset)
+                        // || my <= STAGE_TOP_OFFSET)
+                        if(sideBar.hitTestPoint(mx,my) === false)
                         {
                             if(mouseClickON || mouseDragON)
                             {
@@ -3614,6 +3629,9 @@
 
             fillPenBox.addEventListener(MouseEvent.MOUSE_OVER,fillPenBoxHintONEvent);
             fillPenBox.addEventListener(MouseEvent.MOUSE_OUT,fillPenBoxHintOFFEvent);
+
+            stage.addEventListener(Event.MOUSE_LEAVE,sideBarVisibleMouseLeaveEvent);
+
 
             // pickerBox.addEventListener(MouseEvent.MOUSE_OVER,pickerBoxHintONEvent);
             // private function pickerBoxHintONEvent(e:MouseEvent):void
