@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.03;
+        private const APP_VERSION:Number = 14.04;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -1726,7 +1726,7 @@
                             stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
                         }
                     } //마우스 사이드바 활성 영역으로 들어옴
-                    else if((!isRightSidebar && mx <= 20 || isRightSidebar && mx >= stage.stageWidth-20)
+                    else if((!isRightSidebar && mx <= 30 || isRightSidebar && mx >= stage.stageWidth-30)
                     && my > STAGE_TOP_OFFSET)
                     {
                         if(!mouseClickON && !mouseDragON)
