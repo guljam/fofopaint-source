@@ -3183,7 +3183,7 @@ private function setLassoTool():void
                     penMove2(mx,my);
                 }
 
-                // e.updateAfterEvent();
+                e.updateAfterEvent();
             }
 
             function penToolUpEvent(e:MouseEvent):void
@@ -3275,7 +3275,7 @@ private function setLassoTool():void
                 penCommand.length = 0;
                 penPoints.length = 0;
 
-                // e.updateAfterEvent();
+                e.updateAfterEvent();
             }
 
             return function (penFlag:Boolean):void

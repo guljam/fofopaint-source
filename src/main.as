@@ -1414,7 +1414,7 @@
                     penMove2(mx,my);
                 }
 
-                // e.updateAfterEvent();
+                e.updateAfterEvent();
             }
 
             function penToolUpEvent(e:MouseEvent):void
@@ -1478,7 +1478,7 @@
                 penCommand.length = 0;
                 penPoints.length = 0;
 
-                // e.updateAfterEvent();
+                e.updateAfterEvent();
             }
 
 
@@ -10551,7 +10551,7 @@
                     checkUndoReady();
                 }
 
-                // e.updateAfterEvent();
+                e.updateAfterEvent();
             }
 
             function lineUpEvent(e:MouseEvent):void
@@ -10598,7 +10598,7 @@
                 }
 
                 drawDone();
-                // e.updateAfterEvent();
+                e.updateAfterEvent();
             }
 
             return function (lineToolFlag:Boolean):void
