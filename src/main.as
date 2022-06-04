@@ -657,9 +657,6 @@
                     if(tempFlag === false) regPoint.x += STAGE_LEFT_OFFSET;
                 }
 
-                updatePreviewCursorPos();
-                sideBar.updateSideBGSize(stage.stageHeight-STAGE_TOP_OFFSET);
-                updateScrollBarHeight(stage.stageHeight);
                 sideBar.visible = true;
             }
             else
@@ -13267,15 +13264,10 @@
                 topBar.updateTopbarBG(stw);
                 topBar.updateTimerPos(stage.stageWidth);
 
-                if(sideBar.visible)
-                {
-                    sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
-                    updateScrollBarHeight(sth);
-
-                    if(isRightSidebar) sideBar.x = stage.stageWidth-sideBar.w;
-                    
-                    updatePreviewCursorPos();
-                }
+                sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
+                updateScrollBarHeight(sth);
+                if(isRightSidebar) sideBar.x = stage.stageWidth-sideBar.w;
+                updatePreviewCursorPos();
 
                 if(fileDragSelectBox.visible === true)
                 {
