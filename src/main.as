@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.06;
+        private const APP_VERSION:Number = 14.07;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -230,7 +230,6 @@
                     ,nowToolBackup:int = 1 //툴백업
                     ,nowKey:uint = 0 //단축키 누른거 여기다가 저장
                     ,rNowKey:uint = 0 //리플레이 단축키 누른거 저장
-                    ,mouseClickPos:Vector.<Number> = new Vector.<Number> (2,true) //함수간에 통신 전역으로 쓰고 싶을때, 클릭한 자리 저장
                     ,afterToolOff:Boolean = false //키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
                     ,penAlpha:Number = 1.0 //펜 변수
                     ,penColor:uint = 0x000000
@@ -274,7 +273,7 @@
 
         //툴메뉴 관련 변수
         //어디 클릭했는지 위치 저장해줘서 다음에 켰을때 그 위치에서 툴메뉴가 켜지게끔 해줌
-                    ,toolBoxLastClickPos:Vector.<Number> = new Vector.<Number> (2,true)//툴박스 마지막 위치 저장
+                    ,toolBoxLastClickPos:Point = new Point()//툴박스 마지막 위치 저장
                     ,toolBoxAlwaysClickTool:String = "" //toolbox 항상 on해줬을때 아이콘을 클릭하고 땠을때 같은 아이콘인지 확인해주는 거임
                     ,toolBox2ON:Boolean = false //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
 
@@ -316,7 +315,7 @@
                         ],3]
                     ]
         //window resize 관련 변수
-                    ,lastWindowSize:Vector.<Number> = new Vector.<Number> (2,true) //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
+                    ,lastWindowSize:Point = new Point() //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
         //save load 관련 변수
                     ,saveOneTime:Boolean = false //세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
                     ,saveFileName:String = "untitled.png"//세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
@@ -338,7 +337,7 @@
                     ,toolTipBoxTimer:uint = 0
 
         //리플레이 관련 변수
-        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1401.301")
+        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1407.301")
                     ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata.301")
                     ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata.301")
                     ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("temp_repdata.301") //파일을 저장하거나 불러올때 씀
@@ -570,8 +569,8 @@
             initPickerBoxInfo(penColor);
             
             //캔버스 중점으로 옮겨주고, 리사이즈 이벤트 추가
-            lastWindowSize[0] = stage.nativeWindow.width;
-            lastWindowSize[1] = stage.nativeWindow.height;
+            lastWindowSize.x = stage.nativeWindow.width;
+            lastWindowSize.y = stage.nativeWindow.height;
             setCenvasCenterPos();
             setCenvasCenterPos(true);
             previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
@@ -675,8 +674,7 @@
         private function setCurrentColor(mode:uint):void
         {
             const _pickerBox:colorPickerBox = pickerBox;
-            const hexColor:uint = pickerBox.currentColorColor;
-            const _setColorTransform:Function = setColorTransform;
+            const hexColor:uint = _pickerBox.currentColorColor;
             const c:Vector.<uint> = HEXtoRGB(hexColor);
             const colorHint:String = "RGB "+c[0]+","+c[1]+","+c[2];
 
@@ -2044,7 +2042,6 @@
             var sy:Number = previewBox.mouseY;
             const _consoleBitmap:Bitmap = previewBox.prevBitmap;
             const _regPoint:Sprite = regPoint;
-            const _zoomed:Number = zoomed;
             const prevToCanvasMultiply:Number = previewBox.prevCursorMultiply
 
             mouseClickON = true;
@@ -2516,7 +2513,7 @@
             }
             else if(mode === "replay")
             {
-                const _replayTimeBox:replayTimeBar = replayTimeBox
+                const _replayTimeBox:replayTimeBar = replayTimeBox;
                 buttonSetVisible("draw",false,isRightSidebar);
                 buttonSetVisible("capture",false);
 
@@ -7245,6 +7242,7 @@
             return sum;
         }
 
+        //targetFrame이 rDataPreviewCacheImages데이터에 몆 번 인덱스에 있나 구해줌
         private function getCacheImageIndex(targetFrame:Number):Number
         {
             const arr:Array = rDataPreviewCacheImages;
@@ -7267,7 +7265,7 @@
             return index;
         }
 
-        //targetFrame이 rSkipImageFrameData데이터에 몆번 인덱스에 있나 구해줌
+        //targetFrame이 rSkipImageFrameData데이터에 몆 번 인덱스에 있나 구해줌
         private function getSkipImageIndex(targetFrame:Number):Number
         {
             const arr:Array = rSkipImageFrameData;
@@ -7682,7 +7680,6 @@
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
 
-        //똑같은 이름에 배경색이 다를경우 raw파일 배경색 이름을 업데이트 해줌
         private function moveToolBoxByType(type:int=0):void
         {
             var xBox:Sprite = null;
@@ -7690,9 +7687,7 @@
             if(type === 1) xBox = lassoMenu;
             else if(type === 2) xBox = traceMenuBox;
 
-            mouseClickPos[0] = mouseX;
-            mouseClickPos[1] = mouseY;
-
+            const click:Point = new Point(mouseX,mouseY);
             setTopChildIndex(xBox);
 
             function toolBoxMoveMouseUpEvent(e:MouseEvent):void
@@ -7704,11 +7699,11 @@
 
             function toolBoxMoveMouseMoveEvent(e:MouseEvent):void
             {
-                xBox.x += mouseX-mouseClickPos[0];
-                xBox.y += mouseY-mouseClickPos[1];
+                xBox.x += mouseX-click.x;
+                xBox.y += mouseY-click.y;
 
-                mouseClickPos[0] = mouseX;
-                mouseClickPos[1] = mouseY;
+                click.x = mouseX;
+                click.y = mouseY;
             }
 
             stage.addEventListener(MouseEvent.MOUSE_MOVE, toolBoxMoveMouseMoveEvent);
@@ -9845,8 +9840,8 @@
                             "saveFileName":saveFileName,
                             "colorHistoryList":colorHistoryList,
                             "CANVAS_BG_COLOR":CANVAS_BG_COLOR,
-                            "toolBoxLastClickPos[0]":toolBoxLastClickPos[0],
-                            "toolBoxLastClickPos[1]":toolBoxLastClickPos[1],
+                            "toolBoxLastClickPos.x":toolBoxLastClickPos.x,
+                            "toolBoxLastClickPos.y":toolBoxLastClickPos.y,
                             "rFileTotalFrame":rFileTotalFrame,
                             "toolBox.scaleX":toolBox.scaleX,
                             "lastWindowState":lastWindowState,
@@ -9944,8 +9939,8 @@
                     _nativeWindow.height = d["stage.nativeWindow.height"];
                     _nativeWindow.x = d["stage.nativeWindow.x"];
                     _nativeWindow.y = d["stage.nativeWindow.y"];
-                    lastWindowSize[0] = d["stage.nativeWindow.width"];
-                    lastWindowSize[1] = d["stage.nativeWindow.height"];
+                    lastWindowSize.x = d["stage.nativeWindow.width"];
+                    lastWindowSize.y = d["stage.nativeWindow.height"];
 
                     //캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
                     if(d["lastWindowState"] === 1)
@@ -9987,8 +9982,8 @@
                     eraseAlphaIndex = alphaArr.indexOf(d["eraseAlpha"]);
                     eraseSizeIndex = d["eraseSizeIndex"];
                     setPenSize(d["penSizeIndex"]);
-                    toolBoxLastClickPos[0] = d["toolBoxLastClickPos[0]"];
-                    toolBoxLastClickPos[1] = d["toolBoxLastClickPos[1]"];
+                    toolBoxLastClickPos.x = d["toolBoxLastClickPos.x"];
+                    toolBoxLastClickPos.y = d["toolBoxLastClickPos.y"];
                     rFileTotalFrame = d["rFileTotalFrame"];
                     saveFileName = saveFilePath = d["saveFileName"];
                     colorHistoryList = d["colorHistoryList"] as Array;
@@ -10044,10 +10039,10 @@
             }
             else //복원파일이 없을때
             {
-                lastWindowSize[0] = 680;
-                lastWindowSize[1] = 768;
-                _nativeWindow.width = lastWindowSize[0];
-                _nativeWindow.height = lastWindowSize[1];
+                lastWindowSize.x = 680;
+                lastWindowSize.y = 768;
+                _nativeWindow.width = lastWindowSize.x;
+                _nativeWindow.height = lastWindowSize.y;
 
                 setPenSize(penSizeIndex);
                 setPanelSize(CANVAS_WIDTH,CANVAS_HEIGHT,0,0,false);
@@ -10847,7 +10842,7 @@
         //캔버스의 중심좌표를 구함 컨트롤 박스 옵션 박스 포함
         private function getCanvasPanelMidPos():Point
         {
-            const floor:Function = Math.floor;
+            const round:Function = Math.round;
             const boundRect:Object = getBoundRect(canvas1);
             const left:Number = boundRect.left;
             const top:Number = boundRect.top;
@@ -10855,8 +10850,8 @@
             const bottom:Number = boundRect.bottom;
             const visualWidth:Number = right-left;//회전해있어도 상관없음
             const visualHeight:Number = bottom-top;//양끝 모서리들의 직선거리를 구함
-            const visualMidX:Number = floor((left+right)/2);//회전한 캔버스의 중심점을 구함
-            const visualMidY:Number = floor((top+bottom)/2); //floor안하면 1픽셀씩 내려감 0.5를 아래 setRegPoint 함수 에서 반올림 해줘서 그럼
+            const visualMidX:Number = round((left+right)/2);//회전한 캔버스의 중심점을 구함
+            const visualMidY:Number = round((top+bottom)/2); //floor안하면 1픽셀씩 내려감 0.5를 아래 setRegPoint 함수 에서 반올림 해줘서 그럼
             const p:Point = new Point(visualMidX,visualMidY);
 
             return p;
@@ -10896,8 +10891,10 @@
             }
 
             const halfCanvas:Number = (stage.stageWidth-sideBar.w)/2;
-            var stageHalf:Number = (isRightSidebar) ? halfCanvas
-                                                    : STAGE_LEFT_OFFSET+halfCanvas;
+            var stageHalf:Number = (sideBar.visible === false) ? stage.stageWidth/2
+                                 : (isRightSidebar) ? halfCanvas
+                                 : STAGE_LEFT_OFFSET+halfCanvas;
+
             //창 절반을 기준점으로 regpoint x축 이동.
             regPoint.x += Math.round((stageHalf-p.x)*2);
             updatePreviewCursorPos();
@@ -12902,9 +12899,9 @@
             clearTimeout(windowResizeDelayTimer)
             windowResizeDelayTimer = setTimeout(function():void 
             {
-                const _lastWindowSize:Vector.<Number> = lastWindowSize;
-                const _lastWindowSize0:Number = _lastWindowSize[0];
-                const _lastWindowSize1:Number = _lastWindowSize[1];
+                const _lastWindowSize:Point = lastWindowSize;
+                const _lastWindowSize0:Number = _lastWindowSize.x;
+                const _lastWindowSize1:Number = _lastWindowSize.y;
                 const windowW:Number = stage.nativeWindow.width;
                 const windowH:Number = stage.nativeWindow.height;
                 const stw:Number = stage.stageWidth;
@@ -12966,8 +12963,8 @@
                     setDragDropSelectBoxCenterPos();
                 }
     
-                _lastWindowSize[0] = windowW;
-                _lastWindowSize[1] = windowH;
+                _lastWindowSize.x = windowW;
+                _lastWindowSize.y = windowH;
             },200);
         }
 
@@ -13058,16 +13055,12 @@
             const bottom:Number = top+ent.height; //info text 사이즈 더해줌
             const xLimit:Number = stage.stageWidth;
             const yLimit:Number = stage.stageHeight;
-            const vec:Vector.<Number> = new Vector.<Number> (2,true);
 
             if(right > xLimit-offsetRight) ent.x = xLimit-ent.width-offsetRight;
             else if(left < offsetLeft) ent.x = offsetLeft;
 
             if(top < offsetTop) ent.y = offsetTop;
             else if(bottom > yLimit-offsetBottom) ent.y = (yLimit-offsetBottom)-ent.height;
-
-            vec[0] = ent.x;
-            vec[1] = ent.y;
         }
 
         private function checkCanvasPanelPos(replayMode:Boolean = false):void
@@ -13820,8 +13813,8 @@
             if(!target) return;
             if(target.parent as Sprite === toolBox2)
             {
-                toolBoxLastClickPos[0] = -(target.x+target.width/2)*toolBox2.scaleX;//*scale;
-                toolBoxLastClickPos[1] = -(target.y+target.height/2)*toolBox2.scaleX;//*scale;
+                toolBoxLastClickPos.x = -(target.x+target.width/2)*toolBox2.scaleX;//*scale;
+                toolBoxLastClickPos.y = -(target.y+target.height/2)*toolBox2.scaleX;//*scale;
             }
         }
 
@@ -14080,8 +14073,6 @@
                 {
                     toolBoxAlwaysClickTool = targetName;
                     setTopChildIndex(_toolBox);
-                    mouseClickPos[0] = mouseX;
-                    mouseClickPos[1] = mouseY;
                 }
                 return true;
 
@@ -14102,8 +14093,6 @@
                 {
                     setTopChildIndex(_toolBox);
                     toolBoxAlwaysClickTool = targetName;
-                    mouseClickPos[0] = mouseX;
-                    mouseClickPos[1] = mouseY;
                     return true;
                 }
 
@@ -14173,16 +14162,9 @@
             {
                 clearDataButtonCount = 0;
 
-                if(isSidebarVisible === true)
-                {
-                    sideBar.visible = true;
-                }
+                if(isSidebarVisible === true) sideBar.visible = true;
+                if(replayStartON === true) stopReplay();
 
-                if(replayStartON === true)
-                {
-                    stopReplay();
-                }
-                
                 rSkipLastIndex = -2;//스킵 이미지 인덱스 원래대로 되돌려줌
                 setResizeButtonVisible(true);
                 removeReplayMainEvent();
@@ -14463,13 +14445,13 @@
             const _toolBox2:toolButtons2 = toolBox2;
             const floor:Function = Math.floor;
 
-            if(toolBoxLastClickPos[0] === 0 && toolBoxLastClickPos[1] === 0)
+            if(toolBoxLastClickPos.x === 0 && toolBoxLastClickPos.y === 0)
             {
-                toolBoxLastClickPos[0] = -_toolBox2.width/2;
-                toolBoxLastClickPos[1] = -_toolBox2.height/2;
+                toolBoxLastClickPos.x = -_toolBox2.width/2;
+                toolBoxLastClickPos.y = -_toolBox2.height/2;
             }
-            _toolBox2.x = floor(mx+toolBoxLastClickPos[0]);//원점에서 마지막으로 클릭한 위치로 옮겨줌
-            _toolBox2.y = floor(my+toolBoxLastClickPos[1]);
+            _toolBox2.x = floor(mx+toolBoxLastClickPos.x);//원점에서 마지막으로 클릭한 위치로 옮겨줌
+            _toolBox2.y = floor(my+toolBoxLastClickPos.y);
             _toolBox2.visible = true;
             toolBox2ON = true;
             setTopChildIndex(_toolBox2);
