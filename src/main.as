@@ -5009,7 +5009,7 @@
             isCheckingUpdate = true;
             clearTimeout(updateRryTimer);
 
-            var url:URLRequest = new URLRequest("https://guljam.github.io/2020FlashPaint/versionInfo.txt");
+            var url:URLRequest = new URLRequest("https://raw.githubusercontent.com/guljam/fofopaint-source/main/fofoversion");
             var loader:URLLoader = new URLLoader();
 
             if(url.useCache)
