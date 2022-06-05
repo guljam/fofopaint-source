@@ -5536,8 +5536,6 @@
                         {
                             if(needUpdate === 1)
                             {
-                                navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/releasenote.txt"));
-
                                 setTimeout(function():void
                                 {
                                     installNewVersion();
@@ -5545,7 +5543,7 @@
                             }
                             else if(needUpdate === 2)
                             {
-                                navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/"));
+                                navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint"));
                             }
                         }
                         break;

@@ -31,8 +31,8 @@
     <fullScreen>false</fullScreen>
     <aspectRatio>portrait</aspectRatio>
     <renderMode>auto</renderMode>
-    <width>1024</width>
-    <height>768</height>
+    <width>1000</width>
+    <height>800</height>
     <minSize>200 200</minSize>
     <maximizable>true</maximizable>
     <minimizable>true</minimizable>
