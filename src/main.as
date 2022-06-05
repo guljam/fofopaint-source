@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.01;
+        private const APP_VERSION:Number = 14.05;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -425,6 +425,8 @@
         //about 관련 변수
                     ,aboutPanelON:Boolean = false //어바웃 창 떴을때 킴
                     ,needUpdate:int = 0 //새버전 나왔을때 올려주는 플래그
+                    ,updateRryTimer:uint = 0
+                    ,isCheckingUpdate:Boolean = false
 
         //cut Frame 관련 변수
                     ,cutFrameActiveButton:SimpleButton
@@ -5140,11 +5142,11 @@
         }
 
         //문자열을 소수 2번째 자리까지만 변환
-        private function stringToNumber(str:String):Number
+        private function parseVersion(str:String):Array
         {
             const dotIndex:int = str.indexOf(".");
 
-            if(dotIndex === -1) return NaN;
+            if(dotIndex === -1) return null;
 
             const head:String = str.slice(0,dotIndex);
             var tail:String = str.slice(dotIndex+1,str.length);
@@ -5156,11 +5158,10 @@
                 tailLen = tail.length;
             }
 
-            const headNum:Number = parseInt(head);
-            const tailNum:Number = parseInt(tail)/Math.pow(10,tailLen);
-            const num:Number = headNum+tailNum;
+            const ver1:Number = parseInt(head);
+            const ver2:Number = parseInt(tail)/Math.pow(10,tailLen);
 
-            return num;
+            return [ver1,ver2];
         }
 
         // private function checkUsedMemory():void
@@ -5173,6 +5174,14 @@
 
         private function checkVersion():void
         {
+            if(isCheckingUpdate)
+            {
+                return;
+            }
+
+            isCheckingUpdate = true;
+            clearTimeout(updateRryTimer);
+
             var url:URLRequest = new URLRequest("https://guljam.github.io/2020FlashPaint/versionInfo.txt");
             var loader:URLLoader = new URLLoader();
 
@@ -5187,6 +5196,7 @@
 
             function urlLoadFailEvent(e:IOErrorEvent):void
             {
+                isCheckingUpdate = false;
                 loader.removeEventListener(Event.COMPLETE, urlLoadCompleteEvent);
                 loader.removeEventListener(IOErrorEvent.IO_ERROR, urlLoadFailEvent);
                 loader = null;
@@ -5199,20 +5209,18 @@
 
                 if(findVersionStr !== -1)
                 {
-                    var newVersion:Number = stringToNumber(versionStr);
+                    var newVersion:Array = parseVersion(versionStr);
                     //getVersion이 NaN일수도 있음
                     if(newVersion)
                     {
                         const floor:Function = Math.floor;
-                        const oldnewVersion:Number = APP_VERSION;
-                        const oldv:Number = oldnewVersion*100;
-                        const newv:Number = newVersion*100;
-                        var updateRryTimer:uint = 0;
+                        const oldVersion:Array = parseVersion(String(APP_VERSION));
+                        const isNewVersion:Boolean = (newVersion[0] > oldVersion[0]) || (newVersion[1] > oldVersion[1]);
                         var tryCount:uint = 0;
 
                         url = new URLRequest("https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air");
 
-                        if(newv > oldv)
+                        if(isNewVersion)
                         {
                             NEW_VERSION = versionStr;
                             var fileLoader:URLLoader = e.target as URLLoader;
@@ -5229,6 +5237,7 @@
                                 needUpdate = updateFlag;
                                 topBar.aboutButton.visible = false;
                                 topBar.updateButton.visible = true;
+                                isCheckingUpdate = false;
                             }
 
                             function downloadFailedEvent(e:Event):void
@@ -5258,8 +5267,7 @@
 
                             if(Updater.isSupported)
                             {
-                                //다운로드를 시작함
-                                fileLoader.load(url);
+                                fileLoader.load(url); //다운로드를 시작함
                             }
                             else
                             {
@@ -5275,6 +5283,10 @@
                             }
                         }
                     }
+                }
+                else
+                {
+                    isCheckingUpdate = false;
                 }
                 loader.removeEventListener(Event.COMPLETE, urlLoadCompleteEvent);
                 loader.removeEventListener(IOErrorEvent.IO_ERROR, urlLoadFailEvent);
