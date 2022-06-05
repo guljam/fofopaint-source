@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.09;
+        private const APP_VERSION:Number = 14.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -11456,7 +11456,7 @@
         private function closureSpuitTool():Function
         {
             //일단 흰색으로 배경 깔아줌
-            const spuitCursor:Sprite = spuitZoomCursor;
+            const spuitCursor:spuitMag = spuitZoomCursor;
             const humaneye:Function = getColorDifferenceForHuman;
             const _setColorTransform:Function = setColorTransform;
             var canvas1bmp:Bitmap;
@@ -11477,7 +11477,6 @@
                 const nowColor:uint = (canvas1Bitmap.hitTestPoint(mouseX,mouseY))
                                 ? spuitbmpd.getPixel(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY)
                                 : penColorBackup;
-
                 var closeColorIndex:int = -1;
                 var lastDiffColor:Number = 100.0;
 
@@ -11496,23 +11495,35 @@
                         closeColorIndex = i;
                     }
                 }
-
                 const g:Graphics = colorMatchCursor.graphics;
-                g.clear();
                 
                 if(closeColorIndex >= 0)
                 {
-                    const gp:Point = pickerBox.colorHistoryBox.localToGlobal(new Point(0,0));
-                    const gpx:Number = gp.x+(closeColorIndex*colorHistoryItemWidth)+colorMatchMidX;
-                    const gpy:Number = gp.y+colorMatchMidX;
-                    g.lineStyle(9,0xFFFFFF-nowColor);
-                    g.moveTo(mouseX,mouseY);
-                    g.lineTo(gpx,gpy);
-                    g.lineStyle(7,nowColor);
-                    g.moveTo(mouseX,mouseY);
-                    g.lineTo(gpx,gpy);
+                    if(sideBar.visible)
+                    {   
+                        g.clear();
+                        const gp:Point = pickerBox.colorHistoryBox.localToGlobal(new Point(0,0));
+                        const gpx:Number = gp.x+(closeColorIndex*colorHistoryItemWidth)+colorMatchMidX;
+                        const gpy:Number = gp.y+colorMatchMidX;
+                        g.lineStyle(9,0xFFFFFF-nowColor);
+                        g.moveTo(mouseX,mouseY);
+                        g.lineTo(gpx,gpy);
+                        g.lineStyle(7,nowColor);
+                        g.moveTo(mouseX,mouseY);
+                        g.lineTo(gpx,gpy);
+                    }
+                    else
+                    {
+                        spuitCursor.setCircleColor(nowColor);
+                        spuitCursor.setCircleVisible(true);
+                    }
                 }
-
+                else
+                {
+                    g.clear();
+                    spuitCursor.setCircleVisible(false);
+                }
+                
                 return nowColor;
             }
 
@@ -11556,26 +11567,11 @@
                 if(okFlag && spuitCursor.visible === true)
                 {
                     const pickedColor:uint = pickColor();
-                    const findIndex:int = _colorHistoryList.lastIndexOf(pickedColor);
-                    const c:Vector.<uint> = HEXtoRGB(pickedColor);
-                    const colorHint:String =  "RGB "+c[0]+","+c[1]+","+c[2];
 
-                    // pickerONButton.transform.colorTransform = newColor;
-                    // changedColor = pickedColor; //이 변수는 컬러 히스토리를 선택했을때 선택할 색을 저장하는 변수인데 여기다가도 변경해줘서
+                    changedColor = pickedColor; //이 변수는 컬러 히스토리를 선택했을때 선택할 색을 저장하는 변수인데 여기다가도 변경해줘서
                     penColor = pickedColor;
                     updatePickerCurrentColor(pickedColor);
                     setHSVCursorPosByColor(pickedColor);
-
-                    if(findIndex !== -1)
-                    {
-                        changedColor = int.MAX_VALUE;
-                        
-                        if(!colorHistoryUpdateReady)
-                        {
-                            colorHistoryUpdateReady = true;
-                            stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
-                        }
-                    }
 
                     if(oldTool === TOOL_LINE) nowToolBackup = TOOL_LINE;
                     else if(oldTool === TOOL_FILL_PEN) nowToolBackup = TOOL_FILL_PEN;
