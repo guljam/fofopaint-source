@@ -2839,7 +2839,7 @@ private function setLassoTool():void
         // }
 
         //13.26버전 필펜 따로 추가 되기전에 펜툴 함수
-        private function ClosurePenTool():Function
+        private function closurePenTool():Function
         {
             const cd:Shape = canvas2Draw;
             const floor:Function = Math.floor; 
