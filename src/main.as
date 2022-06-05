@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.05;
+        private const APP_VERSION:Number = 14.01;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -578,7 +578,7 @@
             updateColorHistoryList();
             loadAppData(); //이전 세팅 복원
             resetReplayDataFile();
-            checkVersion(false);
+            checkVersion();
             initPickerBoxInfo(penColor);
             
             //캔버스 중점으로 옮겨주고, 리사이즈 이벤트 추가
@@ -5171,7 +5171,7 @@
         //     appInfoBox.memoryCacheInfo(memory);
         // }
 
-        private function checkVersion(checkOnly:Boolean):void
+        private function checkVersion():void
         {
             var url:URLRequest = new URLRequest("https://guljam.github.io/2020FlashPaint/versionInfo.txt");
             var loader:URLLoader = new URLLoader();
@@ -5346,7 +5346,7 @@
             panel.visible = true;
         }
 
-        private function openAboutPanel(flag:uint=0):void //welcome:Boolean=false):void
+        private function openAboutPanel(flag:uint=0):void
         {
             const _aboutPanel:aboutBox = aboutPanel;
 
@@ -5362,6 +5362,7 @@
             aboutPanel.appResetButton.visible = true;
             if(flag === 0)
             {
+                checkVersion();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
             }
             else if(flag === 1) //처음 시작 할때
@@ -6189,7 +6190,7 @@
                     break;
 
                     case "updateButton":
-                        str = "Update to version " + NEW_VERSION;
+                        str = "Version " + NEW_VERSION + " released!";
                        
                     break;
 
@@ -13153,7 +13154,6 @@
 
             //창이 늘어났을때 여유공간 있으면 아랫쪽으로 옮겨줌
             const nowScrollSetBottom:Number = sideBarSetHeight+sideBarScrollSet.y;
-            trace('nowScrollSetBottom',nowScrollSetBottom);
             if(nowScrollSetBottom < sth)
             {
                 var newYPos:Number = floor(sideBarScrollSet.y+(sth-nowScrollSetBottom));
