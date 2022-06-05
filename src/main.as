@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.05;
+        private const APP_VERSION:Number = 14.06;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -150,7 +150,6 @@
                     ,COLOR_MID_DARK:uint = 0x535353//0x5B5B5B//중간 어두운색
                     ,COLOR_MID_BRIGHT:uint = 0xB8B8B8//중간 밝은색
                     ,COLOR_BRIGHT:uint = 0xF0F0F0//0xECEAE7//밝은색
-                    ,AFK_TIME_OUT:int = 1
                     ,GC_TIME_OUT:int = 30
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -1761,12 +1760,12 @@
                     gcONCount++;
                 }
      
-                if(afkONCount >= AFK_TIME_OUT)
+                if(afkONCount >= 1)
                 {
                     afkONCount++;
                     stopWorkingTimer();
                 }
-                else if(afkONCount < AFK_TIME_OUT)
+                else if(afkONCount < 1)
                 {
                     afkONCount++;
                     APP_RUNNING_TIME += 1000;
@@ -5326,15 +5325,15 @@
                 break;
 
                 case "kor":
-                    navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/kr.html"));
+                    navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%EC%84%A4%EB%AA%85%EC%84%9C"));
                 break;
 
                 case "jp":
-                    navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/jp.html"));
+                    navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB"));
                 break;
 
                 case "eng":
-                    navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/en.html"));
+                    navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-manual"));
                 break;
                 case "aboutTwitterLink":
                     navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));

@@ -4,11 +4,13 @@
 	import flash.display.Sprite;
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
+	import flash.system.System;
 
 	public class aboutBox extends Sprite {
 
 		public var versionInfo:TextField = versionInfo;
 		public var appResetButton:TextField = appResetButton;
+		public var memoryInfo:TextField = memoryInfo;
 		public var aboutTwitterLink:SimpleButton = aboutTwitterLink;
 		public var logo1:SimpleButton = logo1;
 		public var logo2:SimpleButton = logo2;
@@ -18,6 +20,11 @@
 
 		private var nowIndex:int = 0;
 
+		public function updateMemoryInfo():void
+		{
+			memoryInfo.text = "memory usage: "+Math.floor(System.privateMemory/1048576)+"MB";
+		}
+		
 		public function randomLogo():void
 		{
 			const arr:Array = [logo1,logo2,logo3,logo4,logo5];
@@ -28,6 +35,8 @@
 			arr[index].visible = true;
 
 			nowIndex = index;
+
+			updateMemoryInfo();
 		}
 		public function setVersionInfo(str:String):void
 		{
