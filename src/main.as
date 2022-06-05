@@ -11484,13 +11484,14 @@
                 for(var i:int=colorHistoryLen-1; i>=0; i--)
                 {
                     const found1:Number = humaneye(_colorHistoryList[i],nowColor);
-                    if(found1 === 0.0) //눈에 가장 근접한 색으로 설정함
+                    if(found1 === 0.0)
                     {
                         closeColorIndex = i;
                         break;
                     }
-                    else if(found1 <= 2.0 && found1 < lastDiffColor)
+                    else if(found1 < 2.0 && found1 < lastDiffColor)
                     {
+                        //눈에 가장 근접한 색으로 설정함
                         lastDiffColor = found1;
                         closeColorIndex = i;
                     }
