@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.08;
+        private const APP_VERSION:Number = 14.09;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -332,6 +332,7 @@
                     ,colorHistoryIndex:uint = 1 //선택된 컬러 list의 인덱스
                     ,colorHistoryUpdateReady:Boolean = false //히스토리 업데이트 이벤트 추가되면 올려주는거
                     ,colorHistoryUpdateBGReady:Boolean = false //히스토리 업데이트 이벤트 추가되면 올려주는거
+                    ,colorHistorySpuitMatchCursor:Shape = new Shape()
 
         //툴팁 관련 변수
                     ,toolTipHint:String = "" //topbar관련 힌트 여기 저장
@@ -11456,18 +11457,62 @@
         {
             //일단 흰색으로 배경 깔아줌
             const spuitCursor:Sprite = spuitZoomCursor;
+            const humaneye:Function = getColorDifferenceForHuman;
             const _setColorTransform:Function = setColorTransform;
-            const canvas1bmpd:BitmapData = canvas1BitmapData;
+            var canvas1bmp:Bitmap;
+            var canvas1bmpd:BitmapData;
             var oldTool:int;
             var spuitbmpd:BitmapData;
             var penColorBackup:uint;
-            const zerop:Point = new Point(0,0);
             const pickerBox:colorPickerBox = pickerBox;
+            var colorMatchCursor:Shape = colorHistorySpuitMatchCursor;
+            var colorMatchCursorG:Shape = colorHistorySpuitMatchCursor;
+            const colorHistoryItemWidth:Number = colorHistoryColorWidth;
+            const colorMatchMidX:Number = colorHistoryItemWidth/2;
+            var _colorHistoryList:Array;
+            var colorHistoryLen:int;
 
             function pickColor():uint
             {
-                return (canvas1Bitmap.hitTestPoint(mouseX,mouseY)) ? spuitbmpd.getPixel(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY)
-                                                                     : penColorBackup;
+                const nowColor:uint = (canvas1Bitmap.hitTestPoint(mouseX,mouseY))
+                                ? spuitbmpd.getPixel(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY)
+                                : penColorBackup;
+
+                var closeColorIndex:int = -1;
+                var lastDiffColor:Number = 100.0;
+
+                for(var i:int=colorHistoryLen-1; i>=0; i--)
+                {
+                    const found1:Number = humaneye(_colorHistoryList[i],nowColor);
+                    if(found1 === 0.0) //눈에 가장 근접한 색으로 설정함
+                    {
+                        closeColorIndex = i;
+                        break;
+                    }
+                    else if(found1 <= 2.0 && found1 < lastDiffColor)
+                    {
+                        lastDiffColor = found1;
+                        closeColorIndex = i;
+                    }
+                }
+
+                const g:Graphics = colorMatchCursor.graphics;
+                g.clear();
+                
+                if(closeColorIndex >= 0)
+                {
+                    const gp:Point = pickerBox.colorHistoryBox.localToGlobal(new Point(0,0));
+                    const gpx:Number = gp.x+(closeColorIndex*colorHistoryItemWidth)+colorMatchMidX;
+                    const gpy:Number = gp.y+colorMatchMidX;
+                    g.lineStyle(9,0xFFFFFF-nowColor);
+                    g.moveTo(mouseX,mouseY);
+                    g.lineTo(gpx,gpy);
+                    g.lineStyle(7,nowColor);
+                    g.moveTo(mouseX,mouseY);
+                    g.lineTo(gpx,gpy);
+                }
+
+                return nowColor;
             }
 
             //픽커 도중에 오른쪽 클릭하면 캔슬해줌
@@ -11510,19 +11555,17 @@
                 if(okFlag && spuitCursor.visible === true)
                 {
                     const pickedColor:uint = pickColor();
-                    const colorhistoryArr:Array = colorHistoryList;
-                    const colorhistoryArrlength:uint = colorhistoryArr.length;
-                    const findIndex:int = colorhistoryArr.lastIndexOf(pickedColor);
+                    const findIndex:int = _colorHistoryList.lastIndexOf(pickedColor);
                     const c:Vector.<uint> = HEXtoRGB(pickedColor);
                     const colorHint:String =  "RGB "+c[0]+","+c[1]+","+c[2];
 
                     // pickerONButton.transform.colorTransform = newColor;
-                    changedColor = pickedColor; //이 변수는 컬러 히스토리를 선택했을때 선택할 색을 저장하는 변수인데 여기다가도 변경해줘서
+                    // changedColor = pickedColor; //이 변수는 컬러 히스토리를 선택했을때 선택할 색을 저장하는 변수인데 여기다가도 변경해줘서
                     penColor = pickedColor;
                     updatePickerCurrentColor(pickedColor);
                     setHSVCursorPosByColor(pickedColor);
 
-                    if(colorhistoryArrlength > 1 && findIndex !== -1)
+                    if(findIndex !== -1)
                     {
                         changedColor = int.MAX_VALUE;
                         
@@ -11533,20 +11576,12 @@
                         }
                     }
 
-                    if(oldTool === TOOL_LINE)
-                    {
-                        nowToolBackup = TOOL_LINE;
-                    }
-                    else if(oldTool === TOOL_FILL_PEN)
-                    {
-                        nowToolBackup = TOOL_FILL_PEN;
-                    }
-                    else
-                    {
-                        nowToolBackup = TOOL_PEN;
-                    }
+                    if(oldTool === TOOL_LINE) nowToolBackup = TOOL_LINE;
+                    else if(oldTool === TOOL_FILL_PEN) nowToolBackup = TOOL_FILL_PEN;
+                    else nowToolBackup = TOOL_PEN;
                 }
-
+                stage.removeChild(colorHistorySpuitMatchCursor);
+                colorMatchCursor.graphics.clear();
                 spuitbmpd.dispose();
                 spuitCursor.visible = false;
                 setPrevTool();
@@ -11577,6 +11612,13 @@
 
             return function ():void
             {
+                stage.addChild(colorHistorySpuitMatchCursor);
+                setTopChildIndex(colorHistorySpuitMatchCursor);
+
+                canvas1bmp = canvas1Bitmap;
+                canvas1bmpd = canvas1BitmapData;
+                _colorHistoryList = colorHistoryList;
+                colorHistoryLen = colorHistoryList.length;
                 toolBox.moveToolCursor("toolSpuit");
 
                 oldTool = nowTool;
