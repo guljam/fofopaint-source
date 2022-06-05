@@ -32,6 +32,7 @@
 			g.endFill();
 
 			historyColorFoundCircle.y = -107;
+			historyColorFoundCircle.visible = false;
 			addChild(historyColorFoundCircle);
 
 			visible = false;

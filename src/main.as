@@ -11579,6 +11579,7 @@
                 }
                 stage.removeChild(colorHistorySpuitMatchCursor);
                 colorMatchCursor.graphics.clear();
+                spuitCursor.setCircleVisible(false);
                 spuitbmpd.dispose();
                 spuitCursor.visible = false;
                 setPrevTool();
