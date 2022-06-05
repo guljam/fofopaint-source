@@ -8,6 +8,7 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Shape;
 	import flash.display.Graphics;
+	import flash.events.MouseEvent;
 
 	public class toolButtons extends Sprite {
 		public var toolPen:SimpleButton = toolPen;
@@ -27,7 +28,6 @@
 		public var zoomOutButton:SimpleButton = zoomOutButton;
 		public var toolSelectCursor:SimpleButton = toolSelectCursor
 		private var lastTool:String = "toolPen";
-		private var isZoomIconRightPos:Boolean = false;
 		
 		public const BOX_WIDTH:Number = 34;
 		public const BOX_HEIGHT:Number = 476;
@@ -35,59 +35,39 @@
 		// public var toolBoxBG2:SimpleButton = toolBoxBG2;
 		public var toolInfo:TextField = toolInfo;
 		public var toolInfoBG:Shape = new Shape();
-		public var zoomIconBG:Shape = new Shape();
 		
 		public function isZoomIconON():Boolean
 		{
 			return zoomInButton.visible;
 		}
 
-		public function zoomIconRightPos():void
+		private function zoomIconOFFEvent(e:MouseEvent):void
 		{
-			isZoomIconRightPos = true;
-			zoomInButton.x = toolZoom.x;
-			zoomInButton.y = toolZoom.y;
-			zoomOutButton.x = zoomInButton.x-zoomInButton.width-5;
-			zoomOutButton.y = toolZoom.y;
-			zoomIconBG.x = zoomOutButton.x-5;
-			zoomIconBG.y = zoomOutButton.y;
-		}
+            const targetName:String = e.target.name;
 
-		public function zoomIconLeftPos():void
-		{
-			isZoomIconRightPos = false;
-			zoomInButton.x = toolZoom.x;
-			zoomInButton.y = toolZoom.y;
-			zoomOutButton.x = zoomInButton.x+zoomOutButton.width+5;
-			zoomOutButton.y = toolZoom.y;
-			zoomIconBG.x = zoomOutButton.x;
-			zoomIconBG.y = zoomOutButton.y;
+			if(!(targetName === "zoomInButton" || targetName === "zoomOutButton"))
+			{
+			    stage.removeEventListener(MouseEvent.MOUSE_MOVE,zoomIconOFFEvent);
+				zoomIconOFF();
+			}
 		}
 
 		public function zoomIconON():void
 		{
-			drawZoomIconBG();
-			if(isZoomIconRightPos) zoomIconRightPos();
-			else zoomIconLeftPos();
-
 			toolZoom.visible = false;
+			toolRotate.visible = false;
 			zoomInButton.visible = true;
 			zoomOutButton.visible = true;
-			zoomIconBG.visible =  true;
 			hintOFF();
+			stage.addEventListener(MouseEvent.MOUSE_MOVE,zoomIconOFFEvent);
 		}
 
 		public function zoomIconOFF():void
 		{
 			toolZoom.visible = true;
+			toolRotate.visible = true;
 			zoomInButton.visible = false;
 			zoomOutButton.visible = false;
-			zoomIconBG.visible =  false;
-
-			zoomInButton.x = 0;
-			zoomOutButton.x = 0;
-			zoomIconBG.x = 0;
-			zoomIconBG.graphics.clear();
 		}
 
 		public function hintOFF():void
@@ -161,7 +141,6 @@
            	activeIconColor.color = arr[5];
 
 			toolInfoBG.transform.colorTransform = base;
-			zoomIconBG.transform.colorTransform = base;
 
 			var len:uint = buttonArr.length;
 			var btn:SimpleButton;
@@ -183,6 +162,13 @@
 				btnDown.x = 2;
 				btnDown.y = 2;
 			}
+
+			zoomInButton.x = toolZoom.x;
+			zoomInButton.y = toolZoom.y;
+			zoomOutButton.x = toolRotate.x;
+			zoomOutButton.y = toolRotate.y;
+			setChildIndex(zoomInButton,numChildren-1);
+			setChildIndex(zoomOutButton,numChildren-1);
 
 			const rotateButton:DisplayObjectContainer = toolRotate.downState as DisplayObjectContainer;
 			rotateButton.x = 0;
@@ -221,15 +207,6 @@
 			}
 		}
 
-		public function drawZoomIconBG():void
-		{
-			zoomIconBG.graphics.clear();
-			zoomIconBG.graphics.lineStyle(0,0,0);
-			zoomIconBG.graphics.beginFill(0xCCCCCC);
-			zoomIconBG.graphics.drawRect(0,-5,zoomInButton.width+6,zoomInButton.height+10);
-			zoomIconBG.graphics.endFill();
-		}
-
 		public function toolButtons() {
 
 			toolInfoBG.visible = false;
@@ -243,13 +220,7 @@
 
 			addChild(toolInfoBG);
 			setChildIndex(toolInfoBG,0);
-
 			zoomIconOFF();
-			drawZoomIconBG();
-			
-			zoomIconLeftPos();
-			addChild(zoomIconBG);
-			setChildIndex(zoomIconBG,0);
 
 			// initPenSizeCursor();
 			toolPen.useHandCursor = false;

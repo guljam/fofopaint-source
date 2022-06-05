@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.07;
+        private const APP_VERSION:Number = 14.08;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -151,6 +151,7 @@
                     ,COLOR_MID_BRIGHT:uint = 0xB8B8B8//중간 밝은색
                     ,COLOR_BRIGHT:uint = 0xF0F0F0//0xECEAE7//밝은색
                     ,GC_TIME_OUT:int = 30
+                    ,REPLAY_FASTEST_LIMIT_TIME:Number = 60
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
                     ,STAGE_BG_COLOR:uint = 0xCCCCCC
@@ -404,7 +405,7 @@
                     ,rFrameTextDelayTime:int = 0 //프레임 바 딜레이
 
                     ,rCanvasBounds:Object = null
-                    ,REPLAY_FASTEST_TOTAL_TIME:Number = 0 //최고 배속으로 돌렸는데도 총 재생시간이 30초 이상이면 올려줌
+                    ,REPLAY_FASTEST_TOTAL_TIME:Number = 0 //최고 배속으로 돌렸는데도 총 재생시간이 60초 이상이면 올려줌
                     ,REPLAY_SLOWDRAW_ACTIVE_SPEED:Number = 50 //이 배속 이상일경우 doDrawSlowEvent를 걸어줌
                     ,doDrawSlowEventON:Boolean = false //doDrawSlowEvent가 켜지면 올려줌
                     ,rSkipMouseON:Boolean = false //스킵프레임 마우스로 할때 올려줌 dodraw에서 바조절 안되게 하려고 하는거임
@@ -6829,7 +6830,7 @@
                 //REPLAY_SLOWDRAW_ACTIVE_SPEED 이상으로 전체 재생 시간이 60초 이하일경우 작동
                 if(skipCount > _REPLAY_SLOWDRAW_ACTIVE_SPEED)
                 {
-                    if(REPLAY_FASTEST_TOTAL_TIME > 60 && skipFlag === 0)
+                    if(REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME && skipFlag === 0)
                     {
                         setSlowDraw();
                         return;
@@ -6987,16 +6988,22 @@
             };
         }
 
-        private function getReplayTime(speed:Number,totalF:Number,slowFRAME:Boolean=false):String
+        private function getReplayTime(speed:Number,totalFrame:Number,slowFrame:Boolean=false):String
         {
-            const fps:Number = (slowFRAME === true) ? 1 : STAGE_FRAME;
+            const fps:Number = (slowFrame === true) ? 1 : STAGE_FRAME;
             const floor:Function = Math.floor;
-            const sec:Number = (totalF/(fps*speed))+1;
-            const min:Number = sec/60;
-            const hour:Number = min/60;
-            var timeStr:String = (floor(hour) > 0) ? floor(hour*10)/10+" hrs"
-                                :(floor(min)  > 0) ? floor(min*10)/10+" min"
-                                                   : floor(sec+0.5)+" sec";
+            const totalSec:Number = totalFrame/(fps*speed);
+            const hour:Number = totalSec/3600;
+            const min:Number = (totalSec%3600)/60;
+            const sec:Number = totalSec%60;
+            var timeStr:String = "";
+            if(floor(hour) > 0) timeStr += floor(hour) +":";
+
+            if(floor(min) > 0)
+                timeStr += (floor(min) >= 10) ? floor(min)+":" : "0"+floor(min)+":";
+            else timeStr = "00:";
+
+            if(floor(sec) > 0) timeStr += (floor(sec) >= 10) ? floor(sec) : "0"+floor(sec);
 
             return timeStr;
         }
@@ -7168,7 +7175,8 @@
 
             function getReplayTotalTime(_speed:uint):String
             {
-                if(REPLAY_FASTEST_TOTAL_TIME > 60)
+                if(_speed > REPLAY_SLOWDRAW_ACTIVE_SPEED
+                && REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME)
                 {
                     _speed = getAutoSkipFrame(_speed);
                     timeStr = getReplayTime(_speed,totalF,true);
@@ -7710,22 +7718,6 @@
             stage.addEventListener(MouseEvent.MOUSE_UP, toolBoxMoveMouseUpEvent);
         }
 
-
-		private function zoomIconOFFEvent(e:MouseEvent):void
-		{
-			const targetName:String = e.target.name;
-			if(targetName && targetName === "zoomInButton" || targetName === "zoomOutButton"
-            || targetName === "toolZoom")
-			{
-
-			}
-			else
-			{
-			    stage.removeEventListener(MouseEvent.MOUSE_DOWN,zoomIconOFFEvent);
-				toolBox.zoomIconOFF();
-			}
-		}
-
         private function checkToolBoxButtonUpEvent(e:MouseEvent):void
         {
             stage.removeEventListener(MouseEvent.MOUSE_UP,checkToolBoxButtonUpEvent);
@@ -7829,7 +7821,6 @@
                 case "toolZoom":
                 {
                     toolBox.zoomIconON();
-                    stage.addEventListener(MouseEvent.MOUSE_DOWN,zoomIconOFFEvent);
                 }
                 break;
 
@@ -12569,7 +12560,6 @@
             pickerBox.y = controlBox.y+controlBox.height+5;
             toolBox.x = 0;
             toolBox.y = controlBox.y+2;
-            toolBox.zoomIconRightPos();
 
             sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width;
             sideBarScrollBar.y = scrollBarMovedY;
@@ -12613,7 +12603,6 @@
             pickerBox.y = controlBox.y+controlBox.height+5;
             toolBox.x = controlBox.x+controlBox.width;
             toolBox.y = controlBox.y+2;
-            toolBox.zoomIconLeftPos();
 
             sideBarScrollBar.x = _sideBar.w;
             sideBarScrollBar.y = scrollBarMovedY;
@@ -14115,17 +14104,17 @@
         private function checkReplaySpeedState():void
         {
             const floor:Function = Math.floor;
-            const maxf:Number = TOTAL_FRAME;
+            const totalFrame:Number = TOTAL_FRAME;
             const rf:Number = rFrameSum;
             const bw:Number = replayTimeBox["replayTotalBar"].width;
 
-            replayTimeBox["frameInfo"].text = rf+" / "+maxf;
-            replayTimeBox["replayNowBar"].width = (maxf === 0) ? 0 : bw*(rf/maxf);
-
-            if(maxf < STAGE_FRAME*3) topBar["replaySpeedSet"].alpha = BUTTON_OFF_ALPHA;
+            if(totalFrame < STAGE_FRAME*3) topBar["replaySpeedSet"].alpha = BUTTON_OFF_ALPHA;
             else topBar["replaySpeedSet"].alpha = 1.0;
             //리플레이 속도를 최고 빠르게 했을때 시간 체크
-            REPLAY_FASTEST_TOTAL_TIME = floor(maxf/(REPLAY_MAX_SPEED*STAGE_FRAME));
+            REPLAY_FASTEST_TOTAL_TIME = floor(totalFrame/(REPLAY_MAX_SPEED*STAGE_FRAME));
+
+            replayTimeBox["frameInfo"].text = rf+" / "+totalFrame;
+            replayTimeBox["replayNowBar"].width = (totalFrame === 0) ? 0 : bw*(rf/totalFrame);
         }
 
         private function resetKeyBuffer():void

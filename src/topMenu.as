@@ -69,7 +69,11 @@
 		
 		public function updateTimerPos(stw:Number):void
 		{
-			timer.x = stw-timer.textWidth-15;
+			const limitX:Number = replaySpeedSet.x+replaySpeedSet.width-10;
+			var newX:Number = stw-timer.textWidth-15;
+			if(newX < limitX) newX = limitX;
+			
+			timer.x = newX;
 		}
 
 		public function changeUIColor(base:uint,op:uint,hintOKColor:uint):void
