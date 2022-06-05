@@ -8,12 +8,9 @@
 	import flash.text.TextField;
 
 	public class previewPanel extends Sprite {		
-		// private var printcount:int = 0;
-		// private var resetTimer:int = 0;
 		public var prevCursor:Sprite = new Sprite();
 		private var prevInfo:TextField = prevInfo;
 		private var prevStageBG:Sprite = new Sprite();
-		// private var consoleBG:Sprite = new Sprite();
 		public var prevBitmapBG:Sprite = new Sprite();
 		public var prevBitmap:Bitmap = new Bitmap(new BitmapData(1,1));
 		public var prevBitmapLastWidth:Number = 0;
@@ -23,8 +20,6 @@
 		private const maskShape:Sprite = new Sprite();
 		private const prevCursorOffsetX:Number = 0;
 		private const prevCursorOffsetY:Number = 0;
-		// public var prevCursorWidth:Number = 0;
-		// public var prevCursorHeight:Number = 0;
 		public var prevCursorMultiply:Number = 0;
 
 		public function setMask():void
@@ -140,11 +135,6 @@
 			g.lineStyle(0,0,0);
 			g.beginFill(0xFFFFFF);
 			g.drawRect(0,0,BOX_WIDTH,BOX_HEIGHT);
-
-			// g = consoleBG.graphics;
-			// g.lineStyle(0,0,0);
-			// g.beginFill(0xFFFFFF,0.3);
-			// g.drawRect(0,0,BOX_WIDTH,BOX_HEIGHT);
 
 			g = prevBitmapBG.graphics;
 			g.lineStyle(0,0,0);

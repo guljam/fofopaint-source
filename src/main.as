@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.04;
+        private const APP_VERSION:Number = 14.05;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -204,8 +204,8 @@
                     ,fileDragSelectBox:loadBox = new loadBox()
                     ,controlBox:controlMenu = new controlMenu()
                     ,pickerBox:colorPickerBox = new colorPickerBox()
-                    ,appInfoBox:appInfoBar = new appInfoBar()
                     ,previewBox:previewPanel = new previewPanel()
+                    ,appInfoBox:appInfoBar = new appInfoBar()
                     ,sideBar:sidePanel = new sidePanel()
                     ,sideBarScrollBar:Sprite = new Sprite()
                     ,sideBarScrollSet:Sprite = new Sprite()
@@ -503,7 +503,7 @@
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarSetHeight:Number = 750
+                    ,sideBarSetHeight:Number = 720
         //기타
                     ,windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
@@ -552,6 +552,7 @@
                     // ,mouseMoveEventTimeLimit:int = 2
                     // ,mouseMoveEventTimeLimitCount:int = mouseMoveEventTimeLimit
                     ,windowResizeDelayTimer:int = 0
+                    ,windowMoveDelayTimer:int = 0
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
                     ,afkONCount:int = 0
                     ,gcONCount:int = 0
@@ -612,6 +613,8 @@
         //functions
         private function sideBarVisibleMouseLeaveEvent(e:Event):void
         {
+            if(replayModeON || captureModeON) return;
+
             if(!isSidebarVisible && !sideBar.visible)
             {
                 const mx:Number = mouseX;
@@ -646,9 +649,7 @@
         private function setSidebarVisible(flag:Boolean,tempFlag:Boolean):void
         {
             if(tempFlag === false)
-            {
                 isSidebarVisible = flag;
-            }
 
             const tb:topMenu = topBar;
 
@@ -661,13 +662,9 @@
                 }
 
                 if(isRightSidebar)
-                {
                     STAGE_RIGHT_OFFSET = sideBar.w;
-                }
                 else
-                {
                     STAGE_LEFT_OFFSET = sideBar.w;
-                }
 
                 sideBar.visible = true;
             }
@@ -779,6 +776,7 @@
 
             return maxIndex === find2020;
         }
+
         private function ClosureFillPenTool():Object
         {
             const floor:Function = Math.floor;
@@ -819,9 +817,7 @@
                 commandUndoIndexArr = [0];
 
                 if(traceMenuON)
-                {
                     traceMenuBox.visible = false;
-                }
 
                 command.push(1);
                 data.push(cd.mouseX);
@@ -3601,7 +3597,7 @@
             const _nativeWindow:NativeWindow = stage.nativeWindow;
             _nativeWindow.x = Capabilities.screenResolutionX/2 - 680/2;
             _nativeWindow.y = Capabilities.screenResolutionY/2 - 768/2 - 50;
-            _nativeWindow.addEventListener(Event.RESIZE,windowResizedEvent);
+            _nativeWindow.addEventListener(Event.RESIZE,windowResizeEvent);
             _nativeWindow.addEventListener(Event.DEACTIVATE,windowDeactiveEvent);
             _nativeWindow.addEventListener(Event.ACTIVATE,windowActiveEvent);
             _nativeWindow.addEventListener(Event.CLOSING, windowClosingEvent);
@@ -4009,11 +4005,11 @@
 
         private function keyUpBufferEvent(e:KeyboardEvent):void
         {
-            const keycode:int = e.keyCode;
+            const keyCode:int = e.keyCode;
 
             afkONCount = 0;
 
-            switch(keycode)
+            switch(keyCode)
             {
                 case gKey.shift:
                     shiftKeyON = false;
@@ -4031,7 +4027,7 @@
                 break;
             }
 
-            const index:int = keyBufferArr.lastIndexOf(keycode);
+            const index:int = keyBufferArr.lastIndexOf(keyCode);
 
             if(index > -1) // 이거 해줘야 하는지 잘 모르겠음 남겨둠 if(keycode === nowKey)
             {
@@ -4041,40 +4037,40 @@
 
         private function keyDownBufferEvent(e:KeyboardEvent):void
         {
-            const keycode:int = e.keyCode;
+            const keyCode:int = e.keyCode;
 
-            if(keycode === gKey.shift && !shiftKeyON)
+            if(keyCode === gKey.shift && !shiftKeyON)
             {
                 shiftKeyON = true;
             }
 
-            if((keycode === gKey.ctrl || keycode === 25 || keycode === 17) && !controlKeyON)
+            if((keyCode === gKey.ctrl || keyCode === 25 || keyCode === 17) && !controlKeyON)
             {
                 controlKeyON = true;
             }
 
             if(shiftKeyON && controlKeyON)
             {
-                if(keycode === gKey.s)
+                if(keyCode === gKey.s)
                 {
                     saveFile(true);
                 }
-                else if(keycode === gKey.o)
+                else if(keyCode === gKey.o)
                 {
                     loadFile();
                 }
             }
 
-            if(lassoToolON || captureModeON || e.ctrlKey || e.altKey || keycode === 91) return;
+            if(lassoToolON || captureModeON || e.ctrlKey || e.altKey || keyCode === 91) return;
         
-            if(keyBufferArr.lastIndexOf(keycode) === -1 && nowKey !== keycode)
+            if(keyBufferArr.lastIndexOf(keyCode) === -1 && nowKey !== keyCode)
             {
-                keyBufferArr.push(keycode);
+                keyBufferArr.push(keyCode);
             }
 
             if(!mouseClickON && !mouseDragON)
             {
-                switch(keycode)
+                switch(keyCode)
                 {
                     case gKey.f:
                     case gKey.h:
@@ -5746,21 +5742,22 @@
         }
         
         
-        private function resetClickCounter():void
+        private function resetCutFrameClickCounter():void
         {
             if(cutFrameActiveButton !== null)
             {
-                cutFrameActiveButton.removeEventListener(MouseEvent.MOUSE_OUT,resetClickCounterEvent);
+                cutFrameActiveButton.removeEventListener(MouseEvent.MOUSE_OUT,resetCutFrameClickCounterEvent);
+                cutFrameActiveButton = null;
             }
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN,resetClickCounterMouseDownEvent);
+
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
             cutFrameClickCounter = 0;
-            replayTimeBox["replayDeleteBar"].visible = false;
-            cutFrameActiveButton = null;
             cutFrameClickedButton = -1;
+            topBar.hintOFF();
+            replayTimeBox["replayDeleteBar"].visible = false;
         }
 
-
-        private function resetClickCounterMouseDownEvent(e:MouseEvent):void
+        private function resetCutFrameClickCounterMouseDownEvent(e:MouseEvent):void
         {
             if(e.target && cutFrameActiveButton === e.target)
             {
@@ -5768,24 +5765,145 @@
             }
             else
             {
-                resetClickCounter();
-                topBar.hintOFF();
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
+                resetCutFrameClickCounter();
             }
         }
 
-        private function resetClickCounterEvent(e:MouseEvent):void
+        private function resetCutFrameClickCounterEvent(e:MouseEvent):void
         {
-            cutFrameClickedButton = -1;
-            resetClickCounter();
+            resetCutFrameClickCounter();
+        }
+
+        private function deleteReplayFrontData():void
+        {
+            const replayTotalBar:Sprite = replayTimeBox["replayTotalBar"] as Sprite;
+            const replayNowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
+            //첫 이미지 새로 만들어줌
+            if(rSkipImageFolder.exists) rSkipImageFolder.deleteDirectory(true);
+            rSkipImageFolder.createDirectory();
+
+            updateFirstImage(rcanvas1BitmapData,RCANVAS_BG_COLOR);
+
+            if(repFileTemp.exists)//이미 있으면 지워주고
+            {
+                repFileTemp.deleteFile();
+            }
+            const sourceFS:FileStream = new FileStream();
+
+            if(rDataReadFlag === true)
+            {
+                //repfile 초기화
+                sourceFS.open(repFile,FileMode.WRITE);
+                sourceFS.close();
+
+                forceUndoAndDeleteFrontData(rIndex+1);
+                TOTAL_FRAME = getTotalFrame();
+                resetReplayTime();
+                replayTimeBox["frameInfo"].text = "Replay data is ready "+getReplayFileSize();
+                replayNowBar.width = 0;
+            }
+            else if(rDataReadFlag === false)
+            {
+                //make skipimage에서 변경해주기 때문에
+                if(repFileTemp.exists)//이미 있으면 지워주고
+                {
+                    repFileTemp.deleteFile();
+                }
+                const targetFS:FileStream = new FileStream();
+                var d:Array;
+
+                sourceFS.open(repFile,FileMode.READ);
+                sourceFS.position = rLastBytes;
+                targetFS.open(repFileTemp,FileMode.APPEND);
+                while(1)
+                {
+                    if(sourceFS.bytesAvailable === 0)
+                    {
+                        break;
+                    }
+                    d = sourceFS.readObject() as Array;
+
+                    targetFS.writeObject(d);
+                }
+                sourceFS.close();
+                targetFS.close();
+
+                repFileTemp.copyTo(repFile,true);
+                repFileTemp.deleteFile();
+
+                makeSkipImage();
+                rCursor.visible = false;
+                replayNowBar.width = 0;
+                saveOneTime = false;
+            }
+            checkReplaySpeedState();
+        }
+
+        private function superUndo():void
+        {
+            if(rDataReadFlag === true)
+            {
+                //위에서 setSkipOneFrame을 해줘서 rindex가 증가되었기 때문에
+                //실제 undo해줘야할 인덱스는 -1해줘야하는거임
+                forceUndoToIndex(rIndex);
+                resetReplayTime();
+            }
+            else if(rDataReadFlag === false)
+            {
+                const replayTotalBar:Sprite = replayTimeBox["replayTotalBar"] as Sprite;
+                const replayNowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
+                const fs:FileStream = new FileStream();
+                const bw:Number = replayTotalBar.width;
+
+                fs.open(repFile,FileMode.UPDATE);
+                fs.position = rLastBytes;
+                fs.truncate(); //데이터 위에 짤라주고
+                fs.close();
+
+                //썸네일 이미지도 날려줌
+                const _rframeSum:Number = rFrameSum;
+                const list:Array = rSkipImageFolder.getDirectoryListing();
+                const index:Number = getSkipImageIndex(_rframeSum);
+                //index번 이후 파일 삭제
+                for (var i:uint = 0,len:uint=list.length; i < len; i++)
+                {
+                    const fileNumber:Number = parseInt(list[i].name);
+                    if(fileNumber > index) list[i].deleteFile();
+                }
+                //framedata도 인덱스 이후꺼 날려줌
+                rSkipImageFrameData.splice(index+1);
+                rFileTotalFrame = _rframeSum;
+                TOTAL_FRAME = _rframeSum;
+
+                canvas1BitmapData = rcanvas1BitmapData.clone();
+                canvas1Bitmap.bitmapData = canvas1BitmapData;
+                setPanelSize(canvas1Bitmap.width,canvas1Bitmap.height,0,0,false);
+                resetReplayTime();
+                resetUndo();
+                setBackgroundColor(RCANVAS_BG_COLOR);
+                addUndoData();
+                setCanvasSameReplayCanvas();
+
+                replayNowBar.width = bw;
+            }
+            setReplayUI(false);
         }
 
         private function cutFrameData(flag:int,shortcutKey:Boolean):void
         {
-            if(replayStartON)
+            if(flag === 0) cutFrameActiveButton = topBar["superUndoButton"];
+            else if(flag === 1) cutFrameActiveButton = topBar["reRecordingButton"];
+            else if(flag === 2) cutFrameActiveButton = topBar["cutPrevDataButton"];
+
+            if(cutFrameActiveButton.alpha < 1.0)
             {
-                stopReplay();
+                resetCutFrameClickCounter();
+                return;
             }
-            
+
+            if(replayStartON) stopReplay();
+
             if(cutFrameClickedButton < 0)
             {
                 cutFrameClickedButton = flag;
@@ -5793,82 +5911,54 @@
             }
             else if(cutFrameClickedButton !== flag)
             {
-                resetClickCounter();
+                resetCutFrameClickCounter();
                 cutFrameClickCounter = 1;
                 cutFrameClickedButton = flag;
+
+                if(flag === 0) cutFrameActiveButton = topBar["superUndoButton"];
+                else if(flag === 1) cutFrameActiveButton = topBar["reRecordingButton"];
+                else if(flag === 2) cutFrameActiveButton = topBar["cutPrevDataButton"];
             }
             else
             {
                 cutFrameClickCounter++;
             }
 
-            const _replayTimeBox:replayTimeBar = replayTimeBox;
-            const replayNowBar:Sprite = _replayTimeBox["replayNowBar"] as Sprite;
-
-            if(flag === 0)
-            {
-                cutFrameActiveButton = topBar["superUndoButton"];
-            }
-            else if(flag === 1)
-            {
-                cutFrameActiveButton = topBar["reRecordingButton"];
-            }
-            else if(flag === 2)
-            {
-                cutFrameActiveButton = topBar["cutPrevDataButton"];
-            }
-
-            if(cutFrameActiveButton.alpha < 1.0)
-            {
-                return;
-            }
-
-            const deleteBar:Sprite = _replayTimeBox["replayDeleteBar"] as Sprite;
-            const _replayTotalBar:Sprite = _replayTimeBox["replayTotalBar"] as Sprite;
-
             if(cutFrameClickCounter === 1)
             {
+                const replayTimeBox:replayTimeBar = replayTimeBox;
+                const replayNowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
+                const deleteBar:Sprite = replayTimeBox["replayDeleteBar"] as Sprite;
+                const replayTotalBar:Sprite = replayTimeBox["replayTotalBar"] as Sprite;
+
                 toolTipBox.visible = false;
-                const totalBarWidth:Number = _replayTotalBar.width;
-
-                cutFrameActiveButton.addEventListener(MouseEvent.MOUSE_OUT,resetClickCounterEvent);
-                if(shortcutKey)
-                {
-                    stage.addEventListener(MouseEvent.MOUSE_DOWN,resetClickCounterMouseDownEvent);
-                }
-
+                cutFrameActiveButton.addEventListener(MouseEvent.MOUSE_OUT,resetCutFrameClickCounterEvent);
+                
                 if(flag !== 1)
                 {
-                    //중간 데이터다 넘기고 짤라줘야함
+                    //데이터 전부 읽고 짤라줘야함
                     if(rFrame < rFrameArr.length) 
                     {
                         setSkipFrame(rFrameSum+rFrameArr.length-rFrame,3);
                         rOneSkipFlag = false;
                         checkCutFrameButtons();
                     }
-
-                    //oneframe처리후에 프레임이 아이콘이 비활성화 되면 해주지 않음
-                    if(cutFrameActiveButton.alpha < 1.0)
-                    {
-                        resetClickCounter();
-                        return;
-                    }
                 }
 
                 if(flag === 0)
                 {
-                    const width:Number = (totalBarWidth*(rFrameSum/TOTAL_FRAME));
-                    deleteBar.x = _replayTotalBar.x+width;
-                    deleteBar.width = (totalBarWidth-width);
+                    const width:Number = (replayTotalBar.width*(rFrameSum/TOTAL_FRAME));
+                    deleteBar.x = replayTotalBar.x+width;
+                    deleteBar.width = (replayTotalBar.width-width);
                 }
                 else if(flag === 1)
                 {
-                    deleteBar.x = _replayTotalBar.x;
-                    deleteBar.width = totalBarWidth;
+                    deleteBar.x = replayTotalBar.x;
+                    deleteBar.width = replayTotalBar.width;
                 }
                 else if(flag === 2)
                 {
-                    deleteBar.x = _replayTotalBar.x;
+                    deleteBar.x = replayTotalBar.x;
                     deleteBar.width = replayNowBar.width;
                 }
 
@@ -5883,135 +5973,31 @@
                                             :(flag === 2) ? "Delete front data : "
                                             : "";
                     topBar.hint(funcName + "One more press key to OK (Red area will be deleted)",cutFrameActiveButton);
+                    stage.addEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
                 }
 
                 deleteBar.visible = true;
             }
-            else if(cutFrameClickCounter === 2)
+            else if(cutFrameClickCounter >= 2)
             {
                 saveContinue = false;
-                resetClickCounter();
+                resetCutFrameClickCounter();
                 selectPenTool();
-                cutFrameClickedButton = -1;
 
                 if(flag === 0) //super undo
                 {
-                    if(rDataReadFlag === true)
-                    {
-                        //위에서 setSkipOneFrame을 해줘서 rindex가 증가되었기 때문에
-                        //실제 undo해줘야할 인덱스는 -1해줘야하는거임
-                        forceUndoToIndex(rIndex);
-                        resetReplayTime();
-                    }
-                    else if(rDataReadFlag === false)
-                    {
-                        const fs:FileStream = new FileStream();
-                        const bw:Number = _replayTotalBar.width;
-                        fs.open(repFile,FileMode.UPDATE);
-                        fs.position = rLastBytes;
-                        fs.truncate(); //데이터 위에 짤라주고
-                        fs.close();
-
-                        //썸네일 이미지도 날려줌
-                        const _rframeSum:Number = rFrameSum;
-                        const list:Array = rSkipImageFolder.getDirectoryListing();
-                        const index:Number = getSkipImageIndex(_rframeSum);
-                        //index번 이후 파일 삭제
-                        for (var i:uint = 0,len:uint=list.length; i < len; i++)
-                        {
-                            const fileNumber:Number = parseInt(list[i].name);
-                            if(fileNumber > index) list[i].deleteFile();
-                        }
-                        //framedata도 인덱스 이후꺼 날려줌
-                        rSkipImageFrameData.splice(index+1);
-
-                        rFileTotalFrame = _rframeSum;
-                        TOTAL_FRAME = _rframeSum;
-
-                        canvas1BitmapData = rcanvas1BitmapData.clone();
-                        canvas1Bitmap.bitmapData = canvas1BitmapData;
-                        setPanelSize(canvas1Bitmap.width,canvas1Bitmap.height,0,0,false);
-                        resetReplayTime();
-                        resetUndo();
-                        setBackgroundColor(RCANVAS_BG_COLOR);
-                        addUndoData();
-                        setCanvasSameReplayCanvas();
-
-                        replayNowBar.width = bw;
-                    }
-                    setReplayUI(false);
+                    superUndo();
                 }
                 else if(flag === 1) //re-recording
                 {
                     clearData(true);
-                    replayNowBar.width = 0;
                     setCanvasSameReplayCanvas();
                     setReplayUI(false);
                 }
                 else if(flag === 2) //cut prev data 앞부분 잘라주기 
                 {
-                    //첫 이미지 새로 만들어줌
-                    if(rSkipImageFolder.exists) rSkipImageFolder.deleteDirectory(true);
-                    rSkipImageFolder.createDirectory();
-
-                    updateFirstImage(rcanvas1BitmapData,RCANVAS_BG_COLOR);
-
-                    if(repFileTemp.exists)//이미 있으면 지워주고
-                    {
-                        repFileTemp.deleteFile();
-                    }
-                    const sourceFS:FileStream = new FileStream();
-
-                    if(rDataReadFlag === true)
-                    {
-                        //repfile 초기화
-                        sourceFS.open(repFile,FileMode.WRITE);
-                        sourceFS.close();
-
-                        forceUndoAndDeleteFrontData(rIndex+1);
-                        TOTAL_FRAME = getTotalFrame();
-                        resetReplayTime();
-                        replayTimeBox["frameInfo"].text = "Replay data is ready "+getReplayFileSize();
-                        replayNowBar.width = 0;
-                    }
-                    else if(rDataReadFlag === false)
-                    {
-                        //make skipimage에서 변경해주기 때문에
-                        if(repFileTemp.exists)//이미 있으면 지워주고
-                        {
-                            repFileTemp.deleteFile();
-                        }
-                        const targetFS:FileStream = new FileStream();
-                        var d:Array;
-
-                        sourceFS.open(repFile,FileMode.READ);
-                        sourceFS.position = rLastBytes;
-                        targetFS.open(repFileTemp,FileMode.APPEND);
-                        while(1)
-                        {
-                            if(sourceFS.bytesAvailable === 0)
-                            {
-                                break;
-                            }
-                            d = sourceFS.readObject() as Array;
-
-                            targetFS.writeObject(d);
-                        }
-                        sourceFS.close();
-                        targetFS.close();
-
-                        repFileTemp.copyTo(repFile,true);
-                        repFileTemp.deleteFile();
-
-                        makeSkipImage();
-                        rCursor.visible = false;
-                        replayNowBar.width = 0;
-                        saveOneTime = false;
-                    }
-                    checkReplaySpeedState();
-                    return;
+                    deleteReplayFrontData();
                 }
-                // closeTopbar();
             }
         }
 
@@ -6109,7 +6095,7 @@
 
                     case "clearButton":
                     {
-                        str = "New file (esc, delete) x 2";
+                        str = "New file (esc, delete)";
                     }
                     break;
 
@@ -6145,7 +6131,7 @@
                         }
                         else
                         {
-                            str = "Super-undo (ctrl+z, f5) x 2";
+                            str = "Super-undo (f5, ctrl+z, ctrl+.)";
                         }
                     break;
 
@@ -6156,7 +6142,7 @@
                         }
                         else
                         {
-                            str = "Re-recording from this image (ctrl+c, f4) x 2";
+                            str = "Re-recording from this image (f4, ctrl+c, ctrl+,)";
                         }
                     break;
 
@@ -6167,7 +6153,7 @@
                         }
                         else
                         {
-                            str = "Delete front data (ctrl+x, f6) x 2";   
+                            str = "Delete front data (c6, ctrl+x, ctrl+m)";   
                         }
                     break;
 
@@ -7558,7 +7544,10 @@
 
         private function setSkipOneFrame(prev:Boolean,useKey:Boolean=false,trueOneFrame:Boolean=false):void
         {
-            if(cutFrameClickCounter > 0) return;
+            if(cutFrameClickCounter > 0)
+            {
+                resetCutFrameClickCounter();
+            }
 
             var cancelFlag:Boolean = false;
 
@@ -7857,6 +7846,7 @@
             tb["cutPrevDataButton"].alpha = 1.0;
 
             rCursor.visible = true;
+
             if(replayAllEnd === true) //리플레이 시간 등등 초기화 시키고 시작
             {
                 resetReplayTime();
@@ -7879,10 +7869,8 @@
             }
             
             if(cutFrameClickCounter > 0)
-            {
-                cutFrameClickedButton = -1;
-                resetClickCounter();
-            }
+                resetCutFrameClickCounter();
+
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
 
@@ -9175,10 +9163,13 @@
             const tb:Sprite = topBar;
             const replayMode:Boolean = replayModeON;
 
+            resetKeyBuffer();
             canvasGrid.visible = iFlag;
 
             if(replayMode)
             {
+                resetCutFrameClickCounter();
+                topBar.hintOFF();
                 replayTimeBox.visible = iFlag;
             }
             else
@@ -9204,11 +9195,6 @@
             }
             else 
             {
-                if(isSidebarVisible === true)
-                {
-                    sideBar.visible = true;
-                }
-
                 canvasTrace.visible = true;
                 appInfoBox.updateCanvasInfo();
 
@@ -9218,10 +9204,12 @@
                 }
                 else
                 {
+                    if(isSidebarVisible === true)
+                        sideBar.visible = true;
+
                     if(traceMenuON === true)
-                    {
                         traceMenuBox.visible = true;
-                    }
+
                     changeTopBarIcons("draw");
                 }
 
@@ -9376,7 +9364,6 @@
             if(replayMode)
             {
                 resetTransBG(true);
-                changeTopBarIcons("replay");
                 rCursor.visible = true;
             }
             else if(!replayMode)
@@ -13157,39 +13144,32 @@
             saveTraceImage();
         }
 
-        private function getScrollSetBottom():Number
-        {
-            const g:Point = (pickerBox.tegakiPresetBox).localToGlobal(new Point(0,0));
-            return g.y+27-STAGE_TOP_OFFSET;
-        }
-
         private function updateScrollBarHeight(sth:Number):void
         {
             const floor:Function = Math.floor;
             const topOffset:Number = STAGE_TOP_OFFSET;
-            const _sideBarSetHeight:Number = sideBarSetHeight-topOffset; //top offset빼줘야함
+            const sideBarSetHeight:Number = sideBarSetHeight;
             sth = floor(sth-topOffset); //상단 메뉴 길이 빼줌 sth랑 sideBarSetHeight 같이 빼야함
 
             //창이 늘어났을때 여유공간 있으면 아랫쪽으로 옮겨줌
-            const nowScrollSetBottom:Number = getScrollSetBottom();
+            const nowScrollSetBottom:Number = sideBarSetHeight+sideBarScrollSet.y;
+            trace('nowScrollSetBottom',nowScrollSetBottom);
             if(nowScrollSetBottom < sth)
             {
                 var newYPos:Number = floor(sideBarScrollSet.y+(sth-nowScrollSetBottom));
-                if(newYPos > 0)
-                {
-                    newYPos = 0;
-                }
+                if(newYPos > 0) newYPos = 0;
+
                 sideBarScrollSet.y = newYPos;
                 scrollSetMovedY = newYPos;
             }
             
-            if(_sideBarSetHeight < sth)
+            if(sideBarSetHeight < sth)
             {
                 sideBarScrollBar.visible = false;
                 return;
             }
 
-            var scrollBarSize:Number = floor(sth-(_sideBarSetHeight-sth));
+            var scrollBarSize:Number = floor(sth-(sideBarSetHeight-sth));
             if(scrollBarSize < 50)
             {
                 scrollBarSize = 50;
@@ -13200,7 +13180,7 @@
 
             //스크롤바 위치 갱신
             const scrollSetY:Number = Math.abs(sideBarScrollSet.y);
-            const factor:Number = (sth-scrollBarSize)/(_sideBarSetHeight-sth);
+            const factor:Number = (sth-scrollBarSize)/(sideBarSetHeight-sth);
             sideBarScrollBar.y = floor(scrollSetY*factor);
 
             sideBarScrollBar.visible = true;
@@ -13213,7 +13193,7 @@
             stage.nativeWindow.close();
         }
 
-        private function windowResizedEvent(e:Event):void
+        private function windowResizeEvent(e:Event):void
         {
             clearTimeout(windowResizeDelayTimer)
             windowResizeDelayTimer = setTimeout(function():void 
@@ -13537,6 +13517,52 @@
         {
             const keyCode:uint = e.keyCode;
 
+            if(e.shiftKey === true) //자툴이 있기 때문에 아래 return 해주지 않음
+            {
+                if(keyCode === gKey.s)
+                {
+                    if(e.controlKey === true)
+                    {
+                        saveFile(true);
+                    }
+                    return;
+                }
+            }
+            else if(e.altKey === true)
+            {
+                if(keyCode === gKey.s)
+                {
+                    setCaptureReady();
+                }
+                return;
+            }
+            else if(e.controlKey === true || keyCode ===  gKey.ctrl || keyCode === 25 || keyCode === 17 || controlKeyON)
+            {
+                controlKeyON = true;
+
+                if(keyCode === gKey.s)
+                {
+                    saveFile(false);
+                }
+                else if(keyCode === gKey.o)
+                {
+                    loadFile();
+                }
+                else if(keyCode === gKey.z || keyCode === gKey.dot)
+                {
+                    cutFrameData(0,true);
+                }
+                else if(keyCode === gKey.c  || keyCode === gKey.m)
+                {
+                    cutFrameData(1,true);
+                }
+                else if(keyCode === gKey.x  || keyCode === gKey.comma)
+                {
+                    cutFrameData(2,true);
+                }
+                return;
+            }
+
             switch(keyCode)
             {
                 case gKey.left:
@@ -13592,54 +13618,20 @@
                 return;
             }
 
-            if(e.shiftKey === true) //자툴이 있기 때문에 아래 return 해주지 않음
-            {
-                if(keyCode === gKey.s)
-                {
-                    if(e.controlKey === true)
-                    {
-                        saveFile(true);
-                    }
-                    return;
-                }
-            }
-            else if(e.controlKey === true)
-            {
-                if(keyCode === gKey.s)
-                {
-                    saveFile(false);
-                }
-                else if(keyCode === gKey.o)
-                {
-                    loadFile();
-                }
-                else if(keyCode === gKey.z)
-                {
-                    cutFrameData(0,true);
-                }
-                else if(keyCode === gKey.c)
-                {
-                    cutFrameData(1,true);
-                }
-                else if(keyCode === gKey.x)
-                {
-                    cutFrameData(2,true);
-                }
-                return;
-            }
-            else if(e.altKey === true)
-            {
-                if(keyCode === gKey.s)
-                {
-                    setCaptureReady();
-                }
-                return;
-            }
-
             rNowKey = keyCode;
 
             switch(keyCode)
             {
+                case gKey.esc:
+                {
+                    if(cutFrameClickedButton > 0)
+                    {
+                        resetCutFrameClickCounter();
+                    }
+                    else setReplayUI(false);
+                }
+                break;
+
                 case gKey.f4:
                 {
                     cutFrameData(1,true);
@@ -13699,6 +13691,10 @@
             {
                 repSpaceKeyON = false;
             }
+            else if(e.controlKey === true || keyCode ===  gKey.ctrl || keyCode === 25 || keyCode === 17)
+            {
+                controlKeyON = false;
+            }
         }
 
         private function keyUpEvent(e:KeyboardEvent):void //keyup1
@@ -13749,16 +13745,13 @@
                     {
                         setPrevTool();
                     }
-
+                    
                     if(keyBufferArr.length > 0)
                     {
                         const nextKey:int = keyBufferArr.shift();
                         checkToolKeyDown(nextKey);
                     }
-                    else
-                    {
-                        nowKey = 0;
-                    }
+                    else nowKey = 0;
                 }
 
                 if(!replayModeON) //키를 누른채로 replaymode로 변경하는 경우도 있어서 조건 걸어줌
@@ -13795,14 +13788,11 @@
             //저장 불러오기 단축키 먼저 체크
             if(e.shiftKey === true) //자툴이 있기 때문에 아래 return 해주지 않음
             {
-                if(checkKeWhileShiftKey(keyCode) === true)
-                {
-                    return;
-                }
+                if(checkKeWhileShiftKey(keyCode) === true) return;
                 //이 공간에서 리턴 해주면 안됨
             }
 
-            if(e.controlKey === true || keyCode === 25 || keyCode === 17) //오른쪽 컨트롤키
+            if(e.controlKey === true || keyCode === 25 || keyCode === 17 || controlKeyON) //오른쪽 컨트롤키
             {
                 checkKeWhileControlKey(keyCode);
                 return;
@@ -14310,13 +14300,13 @@
             }
         }
 
-        private function sideBarScrollReady(clickY:Number):void
+        private function setSideBarScrollMove(clickY:Number):void
         {
             const floor:Function = Math.floor;
             const sth:Number = stage.stageHeight;
             const canMoveHeight:Number = (sth-STAGE_TOP_OFFSET)-scrollBarHeight;
             // const diffHeight:Number = (sideBarSetHeight-STAGE_TOP_OFFSET)-(sth-STAGE_TOP_OFFSET);
-            const diffHeight:Number = sideBarSetHeight-sth;
+            const diffHeight:Number = sideBarSetHeight-(sth-STAGE_TOP_OFFSET);
             const factor:Number = diffHeight/canMoveHeight;
             var scrollStarted:Boolean = false;
             var my1:Number = sideBarScrollBar.y;
@@ -14457,18 +14447,22 @@
             REPLAY_FASTEST_TOTAL_TIME = floor(maxf/(REPLAY_MAX_SPEED*STAGE_FRAME));
         }
 
+        private function resetKeyBuffer():void
+        {
+            keyBufferArr = [];
+            nowKey = 0;
+            rNowKey = 0;
+            shiftKeyON = false;
+            repSpaceKeyON = false;
+            controlKeyON = false;
+        }
+
         private function setReplayUI(flag:Boolean):void
         {
             const iFlag:Boolean = !flag;
 
-            keyBufferArr = [];
-            nowKey = 0;
-            rNowKey = 0;
-
             replayModeON = flag;
             penCursorOFFFlag = flag;
-            // replayModeONFirstSkip = flag;
-            repSpaceKeyON = iFlag;
             rregPoint.visible = flag;
             regPoint.visible = iFlag;
             resizeButtonR.visible = iFlag;
@@ -14479,6 +14473,9 @@
             rCursor.visible = flag;
             replayTimeBox["pauseButton"].visible = false;
             setTopChildIndex(replayTimeBox);
+            resetCutFrameClickCounter();
+            topBar.hintOFF();
+            resetKeyBuffer();
 
             if(iFlag) //리플레이 꺼줄때
             {
@@ -15222,7 +15219,7 @@
 
                 case "sideBarScrollBar":
                 {
-                    sideBarScrollReady(mouseY);
+                    setSideBarScrollMove(mouseY);
                 }
                 return;
                 
