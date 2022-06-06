@@ -53,6 +53,7 @@
 				btnUp.getChildAt(0).transform.colorTransform = subBase; 
 				childButton = btnOver.getChildAt(0) as SimpleButton;
 				btnOver.getChildAt(0).transform.colorTransform = activeColor;
+				btn.downState = btn.overState;
 
 				//폰트색깔
 				childText = btnUp.getChildAt(1) as TextField;

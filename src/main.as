@@ -1468,7 +1468,7 @@
                 const mx:Number = x+xOffset;
                 const my:Number = y+xOffset;
 
-                if(penToolFlag && traceMemoryTraining)
+                if(penToolFlag && _traceMemoryTraining)
                 {
                     canvasTrace.visible = true;
                 }
@@ -1559,6 +1559,7 @@
 
                 if(penFlag && _traceMemoryTraining)
                 {
+                    trace('melbz');
                     canvasTrace.visible = false;
                 }
 
@@ -6852,10 +6853,7 @@
                     }
                 }
 
-                if(drawLimit < 0)
-                {
-                    rFrameSumLast = rFrameSum - 1;
-                }
+                if(drawLimit < 0) rFrameSumLast = rFrameSum - 1;
 
                 for(var i:Number=0;i<=drawLimit;i++)
                 {
@@ -8170,7 +8168,7 @@
                 }
 
                 tmpFileName = file.name;
-                fs.open(file, FileMode.READ);
+                fs.openAsync(file, FileMode.READ);
             }
         }
 
@@ -9543,7 +9541,7 @@
                     imageSize = byteArray.length;
 
                     fs.addEventListener(IOErrorEvent.IO_ERROR, saveContinueErrorEvent);
-                    fs.open(normalFile,FileMode.WRITE);
+                    fs.openAsync(normalFile,FileMode.WRITE);
                     fs.writeBytes(byteArray);
                     fs.close();
 
@@ -9660,7 +9658,7 @@
                         saveFilePath = f1.nativePath;
                         saveFileName = dotPNG;
                     }
-                    fs.open(f1,FileMode.WRITE);
+                    fs.openAsync(f1,FileMode.WRITE);
                     fs.writeBytes(byteArray);
                     fs.close();
 
