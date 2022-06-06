@@ -602,31 +602,26 @@
         private function closureStageMouseMoveEvent():Object
         {
             const arr:Vector.<Function> = new Vector.<Function>()
+            const rand:Function = Math.random;
+            var limit:int;
+            var lastTime:int = 0;
+            var sumTime:int = 0;
+            var nowTime:int = 0;
+            var subTime:int = 0;
 
             //mosue move 이벤트 일정 시간 이내는 무시함
-            function moveEventLimit():Function
+            function moveEventLimit():Boolean
             {
-                const rand:Function = Math.random;
-                const abs:Function = Math.abs;
-                var limit:int;
-                var lastTime:int = 0;
-                var sumTime:int = 0;
-                var nowTime:int = 0;
-                var subTime:int = 0;
+                limit = rand()*16;
+                nowTime = getTimer();
+                subTime = nowTime-lastTime;
+                sumTime += subTime;
 
-                return function ():Boolean
-                {
-                    limit = rand()*16;
-                    nowTime = getTimer();
-                    subTime = nowTime-lastTime;
-                    sumTime += subTime;
-                    
-                    if(sumTime <= limit) return true;
-                    else sumTime = 0;
+                if(sumTime <= limit) return true;
+                else sumTime = 0;
 
-                    lastTime = nowTime;
-                    return false;
-                }
+                lastTime = nowTime;
+                return false;
             }
 
             function add(func:Function):void
@@ -649,8 +644,9 @@
             function run(e:Event):void
             {
                 if(moveEventLimit() === true) return;
-                
+
                 var start:int = arr.length-1;
+
                 for(var i:int = start;i>= 0;i--)
                 {
                     (arr[i] as Function)(e);
@@ -5015,7 +5011,7 @@
             }
 
             const ver1:Number = parseInt(head);
-            const ver2:Number = parseInt(tail)/Math.pow(10,tailLen);
+            const ver2:Number = parseInt(tail);///Math.pow(10,tailLen);
 
             return [ver1,ver2];
         }
@@ -5058,7 +5054,6 @@
                 if(findVersionStr !== -1)
                 {
                     var newVersion:Array = parseVersion(versionStr);
-                    //getVersion이 NaN일수도 있음
                     if(newVersion)
                     {
                         const floor:Function = Math.floor;
