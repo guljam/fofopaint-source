@@ -18,7 +18,7 @@
 -->
 <application xmlns="http://ns.adobe.com/air/application/33.1">
   <id>fofoPaint</id>
-  <versionNumber>14.10</versionNumber>
+  <versionNumber>14.11</versionNumber>
   <filename>fofoPaint</filename>
   <name>fofoPaint</name>
   <copyright>c301</copyright>
@@ -49,4 +49,4 @@
   <customUpdateUI>false</customUpdateUI>
   <allowBrowserInvocation>false</allowBrowserInvocation>
   <supportedProfiles>desktop extendedDesktop </supportedProfiles>
-</application>
+  </application>

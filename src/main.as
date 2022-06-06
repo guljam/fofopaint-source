@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.10;
+        private const APP_VERSION:Number = 14.11;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -329,10 +329,8 @@
                     ,colorHistoryLimit:uint = 10
                     ,colorHistoryColorWidth:uint = 17//Math.floor(pickerBox.svBoxWidth/colorHistoryLimit)//히스토리 개별 색깔 가로 크기
                     ,colorHistoryRectH:uint = 19
-                    ,colorHistoryIndex:uint = 1 //선택된 컬러 list의 인덱스
                     ,colorHistoryUpdateReady:Boolean = false //히스토리 업데이트 이벤트 추가되면 올려주는거
                     ,colorHistoryUpdateBGReady:Boolean = false //히스토리 업데이트 이벤트 추가되면 올려주는거
-                    ,colorHistorySpuitMatchCursor:Shape = new Shape()
 
         //툴팁 관련 변수
                     ,toolTipHint:String = "" //topbar관련 힌트 여기 저장
@@ -491,6 +489,7 @@
                     ,updatePenCursorPosition:Function = closureUpdatePenCursorPosition()
                     ,checkMainDrawTool:Function = closureCheckMainDrawTool()
                     ,drawCaptureArea:Object = closureDrawCaptureArea()
+                    ,stageMouseMoveEvent:Object = closureStageMouseMoveEvent()
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
@@ -539,7 +538,6 @@
                     ,penSizeOpaKeyUpEventON:Boolean = false //펜 투명도 사이즈 단축키로 조절시 올려줌
                     ,isRightSidebar:Boolean = false // 사이드바 위치 0이 왼쩾 1이 오른쪽
                     ,isSidebarVisible:Boolean = true
-                    ,limitMouseMoveEventTime:Function = closureLimitMouseMoveEventTime()
                     ,windowResizeDelayTimer:int = 0
                     ,windowMoveDelayTimer:int = 0
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
@@ -586,9 +584,8 @@
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpBufferEvent,false,3);
             
             //펜커서 업데이트 이벤트
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,updatePenCursorPositionEvent,false,-3);
+            stageMouseMoveEvent.add(updatePenCursorPositionEvent);
             stage.addEventListener(MouseEvent.MOUSE_UP,updatePenCursorPositionEvent,false,-3);
-            //
             stage.addEventListener(Event.MOUSE_LEAVE,stageHintOFFEvent,false);
 
             if(Capabilities.hasIME && IME.enabled) //다른 언어로 하면 자판 안먹어서 그냥 ime자체를안씀
@@ -597,9 +594,82 @@
             }
 
             startWorkingTimer();
+            stageMouseMoveEvent.start();
         }
         
         //functions
+
+        private function closureStageMouseMoveEvent():Object
+        {
+            const arr:Vector.<Function> = new Vector.<Function>()
+
+            //mosue move 이벤트 일정 시간 이내는 무시함
+            function moveEventLimit():Function
+            {
+                const rand:Function = Math.random;
+                const abs:Function = Math.abs;
+                var limit:int;
+                var lastTime:int = 0;
+                var sumTime:int = 0;
+                var nowTime:int = 0;
+                var subTime:int = 0;
+
+                return function ():Boolean
+                {
+                    limit = rand()*16;
+                    nowTime = getTimer();
+                    subTime = nowTime-lastTime;
+                    sumTime += subTime;
+                    
+                    if(sumTime <= limit) return true;
+                    else sumTime = 0;
+
+                    lastTime = nowTime;
+                    return false;
+                }
+            }
+
+            function add(func:Function):void
+            {
+                if(arr.lastIndexOf(func) === -1)
+                    arr.push(func);
+            }
+
+            function remove(func:Function):void
+            {
+                var start:int = arr.length-1;
+
+                for(var i:int=start; i>=0; i--)
+                {
+                    if((arr[i] as Function) === func)
+                        arr.removeAt(i);
+                }
+            }
+
+            function run(e:Event):void
+            {
+                if(moveEventLimit() === true) return;
+                
+                var start:int = arr.length-1;
+                for(var i:int = start;i>= 0;i--)
+                {
+                    (arr[i] as Function)(e);
+                }
+            }
+
+            function start():void
+            {
+                //전역 마우스 move 이벤트
+                stage.addEventListener(MouseEvent.MOUSE_MOVE,run);
+            }
+
+            return {
+                start:start,
+                remove:remove,
+                add:add
+            }
+        }
+
         private function sideBarVisibleMouseLeaveEvent(e:Event):void
         {
             if(replayModeON || captureModeON) return;
@@ -718,7 +788,6 @@
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
             }
 
-
             if(pickerMode === 1)
             {
                 setHSVCursorPosByColor(arr[0]);
@@ -818,7 +887,7 @@
 
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
                 stage.addEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
-                stage.addEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
+                stageMouseMoveEvent.add(fillPenMouseMoveEvent);
                 stage.addEventListener(KeyboardEvent.KEY_UP,fillPenKeyUpEvent);
             }
 
@@ -855,7 +924,7 @@
             function cancelFillPen():void
             {
                 stage.removeEventListener(KeyboardEvent.KEY_UP,fillPenKeyUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
+                stageMouseMoveEvent.remove(fillPenMouseMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
                 
@@ -949,11 +1018,6 @@
 
             function fillPenMouseMoveEvent(e:MouseEvent):void
             {
-                if(limitMouseMoveEventTime() === true)
-                {
-                    return;
-                }
-
                 if(readyAddUndo === false)
                 {
                     _checkUndoReady();
@@ -1018,7 +1082,7 @@
                        || my <= STAGE_TOP_OFFSET  || my >= stage.stageHeight-STAGE_BOTTOM_OFFSET
                        || clickBlockFlag === true))
                 {
-                    stage.addEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
+                    stageMouseMoveEvent.add(fillPenMouseMoveEvent);
                     clickedButton = null;
 
                     var cdx:Number = cd.mouseX;
@@ -1067,7 +1131,7 @@
                 mouseMoveCount = 0;
                 mouseDragON = false;
                 mouseClickON = false;
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
+                stageMouseMoveEvent.remove(fillPenMouseMoveEvent);
 
                 const targetName:String = e.target.name;
 
@@ -1325,13 +1389,6 @@
 
             function penToolMoveEvent(e:MouseEvent):void
             {
-                //일정 시간 이내는 무시함
-                if(limitMouseMoveEventTime() === true)
-                {
-                    shortDistFlag = true;
-                    return;
-                }
-
                 const mx:Number = cd.mouseX+xOffset;
                 const my:Number = cd.mouseY+xOffset;
                 const fx:Number = floor(mx-xOffset)+xOffset;
@@ -1408,7 +1465,7 @@
             function penToolUpEvent(e:MouseEvent):void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, penToolUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, penToolMoveEvent);
+                stageMouseMoveEvent.remove(penToolMoveEvent);
 
                 const x:Number = cd.mouseX;
                 const y:Number = cd.mouseY;
@@ -1543,7 +1600,8 @@
 
                 checkUndoReady();
 
-                stage.addEventListener(MouseEvent.MOUSE_MOVE,penToolMoveEvent);
+                stageMouseMoveEvent.add(penToolMoveEvent);
+                // stageMouseMoveEvent.add(penToolMoveEvent);
                 stage.addEventListener(MouseEvent.MOUSE_UP,penToolUpEvent);
             };
         }
@@ -1557,12 +1615,8 @@
 
         private function updatePenCursorPositionEvent(e:MouseEvent):void
         {
-            if(clickBlockFlag || replayModeON || captureModeON)
-            {
-                return;
-            }
-            afkONCount = 0;
-
+            afkONCount = 2;
+            if(clickBlockFlag || replayModeON || captureModeON) return;
             updatePenCursorPosition();
         }
 
@@ -1725,7 +1779,7 @@
                 if(gcONCount === GC_TIME_OUT)
                 {
                     gcONCount = 0;
-                    // System.pauseForGCIfCollectionImminent(0.5);
+                    System.pauseForGCIfCollectionImminent(0.75);
                     System.gc();
                 }
                 else
@@ -1733,9 +1787,9 @@
                     gcONCount++;
                 }
      
-                if(afkONCount >= 1)
+                if(afkONCount === 1)
                 {
-                    afkONCount++;
+                    afkONCount = 2;
                     stopWorkingTimer();
                 }
                 else if(afkONCount < 1)
@@ -1747,14 +1801,15 @@
             },1000);
         }
 
+        private function workingTimerResumeEvent(e:MouseEvent):void
+        {
+            stageMouseMoveEvent.remove(workingTimerResumeEvent);
+            afkONCount = 0;
+        }
+
         private function stopWorkingTimer():void
         {
-            function workingTimerResumeEvent(e:MouseEvent):void
-            {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,workingTimerResumeEvent);
-                afkONCount = 0;
-            }
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,workingTimerResumeEvent);
+            stageMouseMoveEvent.add(workingTimerResumeEvent);
         }
 
 		private function makeTransBG():void
@@ -1866,49 +1921,6 @@
                 setOptimizeCanvasMove(false);
                 updatePenSizeCursor();
                 updatePreviewCursorPos();
-            }
-        }
-
-        //mosue move 이벤트 일정 시간 이내는 무시함
-        private function closureLimitMouseMoveEventTime():Function
-        {
-            const rand:Function = Math.random;
-            var limit:int = rand()*7+1;
-            var lastTime:int = 0;
-            var count:int = 0;
-            var nowTime:int = 0;
-            var subTime:int = 0;
-
-            return function ():Boolean
-            {
-                nowTime = getTimer();
-                subTime = nowTime-lastTime;
-
-                if(subTime < limit)
-                {
-                    limit = rand()*7+1;
-                    count = count-subTime;
-
-                    if(count <= 0)
-                    {
-                        count = limit;
-                    }
-                    return true;
-                }
-                else
-                {
-                    lastTime = nowTime;
-                    count = count-subTime;
-
-                    if(count <= 0)
-                    {
-                        count = rand()*7+1;
-                    }
-
-                    return false;
-
-                }
-                return false;
             }
         }
 
@@ -2074,7 +2086,7 @@
                 updatePreviewCursorPos();
                 mouseClickON = false;
                 mouseDragON = false
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,consolBoxHandToolMoveEvent);
+                stageMouseMoveEvent.remove(consolBoxHandToolMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,consolBoxHandToolUpEvent);
             }
 
@@ -2103,7 +2115,7 @@
                 setCenter(mouseX,mouseY);
             }
 
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,consolBoxHandToolMoveEvent)
+            stageMouseMoveEvent.add(consolBoxHandToolMoveEvent)
             stage.addEventListener(MouseEvent.MOUSE_UP,consolBoxHandToolUpEvent)
         }
                 //원점 penSmoothX oy로부터 dx쪽으로 dist 만큼 떨어진 거리 점을 리턴함
@@ -2390,7 +2402,7 @@
             if(zoomToolHintON) zoomToolHintON = false;
             else toolTipBox.visible = false;
 
-            stage.removeEventListener(MouseEvent.MOUSE_MOVE,toolBoxHintMoveEvent);
+            stageMouseMoveEvent.remove(toolBoxHintMoveEvent);
         }
 
         private function toolBoxHintONEvent(e:MouseEvent):void
@@ -2471,7 +2483,7 @@
                     else
                     {
                         toolTipBox.visible = false;
-                        stage.removeEventListener(MouseEvent.MOUSE_MOVE,toolBoxHintMoveEvent);
+                        stageMouseMoveEvent.remove(toolBoxHintMoveEvent);
                     }
                 return;
             }
@@ -2805,7 +2817,7 @@
                 _rotateCursorBox.visible = false;
                 canvasTraceBitmap.smoothing = true;
                 stage.removeEventListener(MouseEvent.MOUSE_UP,traceRotateButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,traceRotateButtonMoveEvent);
+                stageMouseMoveEvent.remove(traceRotateButtonMoveEvent);
             }
 
             function traceRotateButtonMoveEvent(e:MouseEvent):void
@@ -2836,7 +2848,7 @@
             setToolTipString(abs(_canvasTrace.rotation)+"°");
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceRotateButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,traceRotateButtonMoveEvent);
+            stageMouseMoveEvent.add(traceRotateButtonMoveEvent);
         }
 
         private function setTraceResizeButton():void
@@ -2871,7 +2883,7 @@
                 canvasTraceBitmap.smoothing = true;
                 toolTipBox.visible = false;
                 stage.removeEventListener(MouseEvent.MOUSE_UP,traceResizeButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,traceResizeButtonMove);
+                stageMouseMoveEvent.remove(traceResizeButtonMove);
             }
 
             function traceResizeButtonMove(e:MouseEvent):void
@@ -2935,7 +2947,7 @@
             }
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceResizeButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,traceResizeButtonMove);
+            stageMouseMoveEvent.add(traceResizeButtonMove);
         }
 
         private function setTraceMoveButton():void
@@ -2962,7 +2974,7 @@
                 tracePosInfo[1] = _canvasTraceBitmap.y;
                 canvasTraceBitmap.smoothing = true;
                 stage.removeEventListener(MouseEvent.MOUSE_UP,traceMoveButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,traceMoveButtonMoveEvent);
+                stageMouseMoveEvent.remove(traceMoveButtonMoveEvent);
             }
 
             function traceMoveButtonMoveEvent(e:MouseEvent):void
@@ -2976,7 +2988,7 @@
             }
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceMoveButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,traceMoveButtonMoveEvent);
+            stageMouseMoveEvent.add(traceMoveButtonMoveEvent);
         }
 
         private function setTraceClipButton():void
@@ -3031,7 +3043,7 @@
             {
                 mouseDragON = false;
                 stage.removeEventListener(MouseEvent.MOUSE_UP,traceOpaButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,traceOpaButtonMoveEvent);
+                stageMouseMoveEvent.remove(traceOpaButtonMoveEvent);
             }
 
             function traceOpaButtonMoveEvent(e:MouseEvent):void
@@ -3073,7 +3085,7 @@
             setTraceOpaValue();
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceOpaButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,traceOpaButtonMoveEvent);
+            stageMouseMoveEvent.add(traceOpaButtonMoveEvent);
         }
 
         private function saveTraceImage():void
@@ -3728,6 +3740,7 @@
             if(!ent) return;
 
             const c:ColorTransform = new ColorTransform();
+
             if(!defaultFlag)
             {
                 c.color = color; //-1이면 기본 컬러로 간다
@@ -3867,6 +3880,8 @@
 
         private function keyUpBufferEvent(e:KeyboardEvent):void
         {
+            if(clickBlockFlag) return;
+
             const keyCode:int = e.keyCode;
 
             afkONCount = 0;
@@ -3899,6 +3914,8 @@
 
         private function keyDownBufferEvent(e:KeyboardEvent):void
         {
+            if(clickBlockFlag) return;
+
             const keyCode:int = e.keyCode;
 
             if(keyCode === gKey.shift && !shiftKeyON)
@@ -4056,7 +4073,7 @@
             {
                 mouseDragON = false;
                 stage.removeEventListener(MouseEvent.MOUSE_UP,penSmoothButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,penSmoothButtonMoveEvent);
+                stageMouseMoveEvent.remove(penSmoothButtonMoveEvent);
             }
 
             function setpenSmoothSlideValue():void
@@ -4101,7 +4118,7 @@
             setpenSmoothSlideValue();
 
             stage.addEventListener(MouseEvent.MOUSE_UP,penSmoothButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,penSmoothButtonMoveEvent);
+            stageMouseMoveEvent.add(penSmoothButtonMoveEvent);
         }
 
         private function mergeCanvas(replayMode:Boolean,transBG:Boolean):BitmapData
@@ -4276,6 +4293,7 @@
             {
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryBGEvent);
                 colorHistoryUpdateBGReady = false;
+                addColorToHistory(CANVAS_BG_COLOR);
                 changePickerModeToNormal();
             }
         }
@@ -4291,21 +4309,15 @@
                 colorHistoryUpdateReady = false;
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
 
-                var chUpdateFlag:Boolean = false; //컬러 히스토리 업데이트 할지 결정해주는 플래그
-                const xColor:uint = penColor;
+                const _penColor:uint = penColor;
 
-                if(changedColor !== xColor)
+                if(changedColor !== _penColor)
                 {
-                    chUpdateFlag = true;
-                    changedColor = xColor;
-                    addColorToHistory(xColor);
+                    changedColor = _penColor;
+                    addColorToHistory(_penColor);
+                    updateColorHistoryList();
+                    updatePickerCurrentColor(_penColor);
                 }
-
-                if(pickerMode)
-                {
-                    updatePickerCurrentColor(xColor);
-                }
-                checkColorHistoryLastColor(xColor,chUpdateFlag);
             }
         }
 
@@ -4446,7 +4458,7 @@
                 _rotateCursorBox.visible = false;
                 
                 stage.removeEventListener(MouseEvent.MOUSE_UP, lassoRotateButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, lassoRotateButtonMoveEvent);
+                stageMouseMoveEvent.remove(lassoRotateButtonMoveEvent);
             }
 
             function lassoRotateButtonMoveEvent(e:MouseEvent):void
@@ -4476,8 +4488,8 @@
             lassoMenuClickPos[1] = _lassoMenu.mouseY;
 
             _lassoMenu.visible = false;
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, lassoRotateButtonMoveEvent);
-            stage.addEventListener(MouseEvent.MOUSE_UP, lassoRotateButtonUpEvent);
+            stageMouseMoveEvent.add(lassoRotateButtonMoveEvent);
+            stage.addEventListener(MouseEvent.MOUSE_UP,lassoRotateButtonUpEvent);
         }
 
         private function setLassoResizeButton():void
@@ -4509,7 +4521,7 @@
                 toolTipBox.visible = false;
                 
                 stage.removeEventListener(MouseEvent.MOUSE_UP,lassoResizeButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,lassoResizeButtonMoveEvent);
+                stageMouseMoveEvent.remove(lassoResizeButtonMoveEvent);
             }
 
             function lassoResizeButtonMoveEvent(e:MouseEvent):void
@@ -4563,7 +4575,7 @@
 
             _lassoMenu.visible = false;
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoResizeButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,lassoResizeButtonMoveEvent);
+            stageMouseMoveEvent.add(lassoResizeButtonMoveEvent);
         }
 
         private function isLassoUsed():Boolean
@@ -4598,7 +4610,7 @@
                 _lassoMenu.visible = true;
                 checkLassoMenuPos();
                 stage.removeEventListener(MouseEvent.MOUSE_UP,lassoMoveButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,lassoMoveButtonMoveEvent);
+                stageMouseMoveEvent.remove(lassoMoveButtonMoveEvent);
             }
 
             function lassoMoveButtonMoveEvent(e:MouseEvent):void
@@ -4624,7 +4636,7 @@
 
             _lassoMenu.visible = false;
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoMoveButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,lassoMoveButtonMoveEvent);
+            stageMouseMoveEvent.add(lassoMoveButtonMoveEvent);
         }
 
         private function setPenSize(index:uint):void
@@ -4677,10 +4689,17 @@
         {
             const color:uint = penColor;
             pickerMode = 1;
+            addColorToHistory(CANVAS_BG_COLOR);
+            addColorToHistory(penColor);
             setHSVCursorPosByColor(color);
             updatePickerCurrentColor(color);
             pickerBox.setPickerMode(1);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryBGEvent);
+            // if(colorHistoryUpdateReady === false)
+            // {
+            //     colorHistoryUpdateReady = true;
+            //     stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
+            // }
         }
 
         private function setShapeButton(shapeFlag:Boolean):void
@@ -4777,11 +4796,11 @@
                 forceSetMainDrawTool();
                 //timer로 동작하는 경우 마지막 커서위치에 안가있을수도 있기 때문에 up에서도 해줌
                 stage.removeEventListener(MouseEvent.MOUSE_UP,hueColorButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,hueColorButtonMoveEvent);
+                stageMouseMoveEvent.remove(hueColorButtonMoveEvent);
             }
             hueMoveStart(hueColorBox.mouseX);
             stage.addEventListener(MouseEvent.MOUSE_UP,hueColorButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,hueColorButtonMoveEvent);
+            stageMouseMoveEvent.add(hueColorButtonMoveEvent);
         }
         
         private function setPickerHSV(h:Number,s:Number,v:Number,mode:uint):uint
@@ -4874,13 +4893,13 @@
                 forceSetMainDrawTool();
 
                 stage.removeEventListener(MouseEvent.MOUSE_UP,svColorButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,svColorButtonMoveEvent);
+                stageMouseMoveEvent.remove(svColorButtonMoveEvent);
             }
 
             setSVBoxMouseMoveEvent(svColorBox.mouseX,svColorBox.mouseY);
 
             stage.addEventListener(MouseEvent.MOUSE_UP,svColorButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,svColorButtonMoveEvent);
+            stageMouseMoveEvent.add(svColorButtonMoveEvent);
         }
 
         //단축키를  after tool mouse up에서 이전툴을 복구해줌
@@ -6783,7 +6802,7 @@
                 const totalF:Number = TOTAL_FRAME;
                 const _rFrameSum:Number = rFrameSum;
                 const getTimeStr:String = getReplayTime(nextFrame,totalF-_rFrameSum,true);
-                const timeStr:String = (getTimeStr === "0 sec") ? "" : " ("+getTimeStr+")";
+                const timeStr:String = getTimeStr;
 
                 setSkipFrame(finalFrame,1); 
                 replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + timeStr;
@@ -6994,19 +7013,22 @@
             const fps:Number = (slowFrame === true) ? 1 : STAGE_FRAME;
             const floor:Function = Math.floor;
             const totalSec:Number = totalFrame/(fps*speed);
-            const hour:Number = totalSec/3600;
-            const min:Number = (totalSec%3600)/60;
-            const sec:Number = totalSec%60;
-            var timeStr:String = "";
-            if(floor(hour) > 0) timeStr += floor(hour) +":";
+            if(totalSec === 0) return "";
 
-            if(floor(min) > 0)
-                timeStr += (floor(min) >= 10) ? floor(min)+":" : "0"+floor(min)+":";
+            const hour:int = totalSec/3600;
+            const min:int = totalSec%3600/60;
+            const sec:int = totalSec%60;
+            var timeStr:String = "";
+
+            if(hour > 0) timeStr += hour +":";
+
+            if(min > 0) timeStr += (min >= 10) ? min+":" : "0"+min+":";
             else timeStr = "00:";
 
-            if(floor(sec) > 0) timeStr += (floor(sec) >= 10) ? floor(sec) : "0"+floor(sec);
+            if(sec > 0) timeStr += (sec >= 10) ? sec : "0"+sec;
+            else if(sec === 0) return " (00:00)"
 
-            return timeStr;
+            return " ("+timeStr+")";
         }
 
         //autoscroll check에서 계속 갱신해주면 부하 걸릴거같아서 줌하거나 캔버스 사이즈 조절되거나
@@ -7145,9 +7167,8 @@
             const totalF:Number = TOTAL_FRAME;
             const _rFrameSum:Number = rFrameSum;
             const namojiTime:String = getReplayTime(rSpeed,totalF-_rFrameSum);
-            const namojiTimeStr:String = (namojiTime === "0 sec") ? "" : " ("+namojiTime+")";
 
-            replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + namojiTimeStr;
+            replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + namojiTime;
         }
 
         private function setReplaySpeedButton():void
@@ -7199,8 +7220,8 @@
 
                 if(nowSpeed > max) nowSpeed = max;
 
-                const finalStr:String = "Playback speed x "+rSpeed+" ("+timeStr+")";
                 timeStr = getReplayTotalTime(nowSpeed);
+                const finalStr:String = "Playback speed x "+rSpeed+" "+ timeStr;
                 topBar.hint(finalStr,topBar.replaySpeedSet);
                 rSpeedLastStr = finalStr;
                 rSpeed = nowSpeed;
@@ -7220,7 +7241,7 @@
                 mouseDragON = false;
                 // topBar.hintOFF()
                 updateReplayRemainTime();
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,replaySpeedButtomMoveEvent);
+                stageMouseMoveEvent.remove(replaySpeedButtomMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,replaySpeedButtomUpEvent);
             }
 
@@ -7231,7 +7252,7 @@
             moveButton(set.mouseX);
             setSpeed(set.mouseX);
 
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,replaySpeedButtomMoveEvent);
+            stageMouseMoveEvent.add(replaySpeedButtomMoveEvent);
             stage.addEventListener(MouseEvent.MOUSE_UP,replaySpeedButtomUpEvent);
         }
 
@@ -7412,21 +7433,15 @@
             skipOneFrame(prev,trueOneFrame);
         }
 
+        //flag = 1 //딱 한프레임만 스킵할때
+        //flag = 2 //이전 탐색 할때 올려줌
+        //flag = 3 //앞 탐색 할때 올려줌
         private function setSkipFrame(jumpframe:Number,flag:uint=1):void //skipp 
         {
-            //flag = 1 //딱 한프레임만 스킵할때
-            //flag = 2 //이전 탐색 할때 올려줌
-            //flag = 3 //앞 탐색 할때 올려줌
             const fSum:Number = rFrameSum;
-            
-            if(jumpframe < 0)
-            {
-                jumpframe = 0;
-            }
-            if(jumpframe === fSum)
-            {
-                return;
-            }
+
+            if(jumpframe < 0) jumpframe = 0;
+            if(jumpframe === fSum) return;
 
             const prevSkipFlag:Boolean = jumpframe < fSum;
             const tcursor:SimpleButton = rCursor;
@@ -7554,8 +7569,7 @@
             nowBar.width = clickedX;
 
             checkBarLimit();
-            oldFrame = finalFrame;
-            setSkipFrame(finalFrame);
+            oldFrame = finalFrame;;
 
             function checkBarLimit():void
             {
@@ -7581,7 +7595,6 @@
                 skipUpdateTimer = 0;
                 oldFrame = finalFrame;
                 setSkipFrame(finalFrame);
-
                 checkBarLimit();
 
                 //skipframe함수 이후에 실행
@@ -7599,17 +7612,12 @@
                     stopReplay();
                 }
 
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,replayTimeMouseMoveEvent);
+                stageMouseMoveEvent.remove(replayTimeMouseMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,replayTimeMouseUpEvent);
             }
 
             function replayTimeMouseMoveEvent(e:MouseEvent):void
             {
-                if(limitMouseMoveEventTime() === true)
-                {
-                    return;
-                }
-
                 checkBarLimit();
                 
                 if(skipUpdateTimer === 0)
@@ -7625,7 +7633,7 @@
             }
 
             stage.addEventListener(MouseEvent.MOUSE_UP,replayTimeMouseUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,replayTimeMouseMoveEvent);
+            stageMouseMoveEvent.add(replayTimeMouseMoveEvent);
         }
 
         private function stopReplay():void
@@ -7702,7 +7710,7 @@
             function toolBoxMoveMouseUpEvent(e:MouseEvent):void
             {
                 checkBoxPosition(xBox);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, toolBoxMoveMouseMoveEvent);
+                stageMouseMoveEvent.remove(toolBoxMoveMouseMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, toolBoxMoveMouseUpEvent);
             }
 
@@ -7715,8 +7723,8 @@
                 click.y = mouseY;
             }
 
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, toolBoxMoveMouseMoveEvent);
-            stage.addEventListener(MouseEvent.MOUSE_UP, toolBoxMoveMouseUpEvent);
+            stageMouseMoveEvent.add(toolBoxMoveMouseMoveEvent);
+            stage.addEventListener(MouseEvent.MOUSE_UP,toolBoxMoveMouseUpEvent);
         }
 
         private function checkToolBoxButtonUpEvent(e:MouseEvent):void
@@ -7904,7 +7912,7 @@
             clearTimeout(toolTipBoxTimer);
             toolTipBoxTimer = setTimeout(function():void
             {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,toolTipBoxTimerOFFEvent);
+                stageMouseMoveEvent.remove(toolTipBoxTimerOFFEvent);
                 if(toolTipBox["toolTipInfoText"].text === str)
                 {
                     toolTipBoxTimer = 0;
@@ -8167,11 +8175,11 @@
                 }
 
                 tmpFileName = file.name;
-                fs.openAsync(file, FileMode.READ);
+                fs.open(file, FileMode.READ);
             }
         }
 
-        private function pickHistoryColor():void
+        private function selectHistoryColor():void
         {
             const _pickerMode:uint = pickerMode;
             const historyBox:Sprite = pickerBox.colorHistoryBox;
@@ -8201,9 +8209,8 @@
             }
             else if(_pickerMode === 1)
             {
-                changedColor = pickedColor;
+                // changedColor = pickedColor;
                 penColor = pickedColor;
-                colorHistoryIndex = index;
 
                 setHSVCursorPosByColor(pickedColor);
 
@@ -8242,54 +8249,52 @@
         {
             const color:uint = (pickerMode === 2) ? CANVAS_BG_COLOR:penColor;
             changedColor = color;
-
-            const findIndex:int = addColorToHistory(color);
             const arr:Array = colorHistoryList;
             const c:Vector.<uint> = HEXtoRGB(color);
 
-            if(findIndex < 1)
-            {
-                setToolTipStringTime("Added RGB "+c[0]+","+c[1]+","+c[2]);
-                toolTipBox.visible = true;
-                updateColorHistoryList();
-            }
-            else checkColorHistoryLastColor(color,true);  //이미 컬러가 있으면 그냥 업뎃
+            addColorToHistory(color);
+
+            setToolTipStringTime("Added RGB "+c[0]+","+c[1]+","+c[2]);
+            toolTipBox.visible = true;
         }
 
         //최근에 쓴 컬러를 항상 마지막에 오게함
-        private function checkColorHistoryLastColor(color:uint,updateFlag:Boolean):void
+        private function setColorHistoryLastColorByIndex(index:int):void
         {
             const arr:Array = colorHistoryList;
-            const arrlength:uint = arr.length;
-            const findIndex:int = arr.lastIndexOf(color);
+            const arrlength:int = arr.length;
+            const lastIndex:int = arr.length-1;
 
-            if(arrlength > 1 && color !== arr[arrlength-1])
+            if(arrlength > 0 && index !== lastIndex)
             {
-                updateFlag = true;
-                colorHistoryList.push(arr.splice(findIndex,1)[0]);
-            }
-
-            if(updateFlag === true)
-            {
-                updateColorHistoryList();
+                const temp:int = arr[lastIndex];
+                arr[lastIndex] = arr[index];
+                arr[index] = temp;
             }
         }
 
-        private function addColorToHistory(color:uint):int
+        //최근에 쓴 컬러를 항상 마지막에 오게함   
+        private function setColorHistoryLastColor(color:uint):void
+        {
+            const index:int = colorHistoryList.lastIndexOf(color);
+            setColorHistoryLastColorByIndex(index);
+        }
+
+        private function addColorToHistory(color:uint):void
         {
             const arr:Array = colorHistoryList;
-            //리스트 안에 컬러가 있으면 넣어주지 않음
             const findIndex:int = arr.lastIndexOf(color);
-
-            if(findIndex < 1)
+            //리스트 안에 컬러가 있으면 넣어주지 않음
+            if(findIndex === -1)
             {
                 arr.push(color);
+
                 if(arr.length > colorHistoryLimit)
-                {
                     arr.splice(0,1);
-                }
             }
-            return findIndex;
+            else setColorHistoryLastColorByIndex(findIndex);
+
+            updateColorHistoryList();
         }
 
         private function getColorBright(color:uint,alpha:Number=1.0):Number
@@ -8321,20 +8326,12 @@
             const w:Number = colorHistoryColorWidth;
             const h:Number = colorHistoryRectH;
             const len:int = arr.length;
-            var x:Number = 0;
-            var y:Number = 0;
 
             cg.clear();
-
             for(var i:int=0;i<len;i++)
             {
-                if(changedColor === arr[i] && i !== 0)
-                {
-                    colorHistoryIndex = i;
-                }
                 cg.beginFill(arr[i]);
-                cg.drawRect(x*w,y,w,h);
-                x++;
+                cg.drawRect(i*w,0,w,h);
             }
             cg.endFill();
         }
@@ -8544,7 +8541,6 @@
                 const imageFileSizeStr:String = (imageFileSize > 1024) ?  (imageFileSize/1024).toFixed(1)+" MB":imageFileSize.toFixed(1)+" KB";
 
                 topBar.hintTimeOK("Saved *.2020 ("+repFileSizeStr+") *.png("+imageFileSizeStr+")");
-
             }
         }
 
@@ -9026,7 +9022,7 @@
         {
             if(!captureModeON)
             {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,captureMouseMoveHintEvent);
+                stageMouseMoveEvent.remove(captureMouseMoveHintEvent);
                 return;
             }
             const cursor:Shape = xcapturePreviewCursor;
@@ -9050,7 +9046,7 @@
 
             captureModeON = true;
             penCursorOFFFlag = true;
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,captureMouseMoveHintEvent);
+            stageMouseMoveEvent.add(captureMouseMoveHintEvent);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,captureKeydownEvent);
             stage.addEventListener(KeyboardEvent.KEY_UP,captureKeyUpEvent);
 
@@ -9167,14 +9163,9 @@
 
             function captureMouseMove(e:MouseEvent):void
             {
-                if(limitMouseMoveEventTime() === true)
-                {
-                    return;
-                }
-
                 if(!captureModeON)
                 {
-                    stage.removeEventListener(MouseEvent.MOUSE_MOVE,captureMouseMove);
+                    stageMouseMoveEvent.remove(captureMouseMove);
                     stage.removeEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
                 }
 
@@ -9244,7 +9235,7 @@
 
             function captureMouseUp(e:MouseEvent):void
             {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,captureMouseMove);
+                stageMouseMoveEvent.remove(captureMouseMove);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
 
                 xcapturePreviewCursor.visible = true;
@@ -9309,7 +9300,7 @@
                 cx = floor(cx);
                 cy = floor(cy);
 
-                stage.addEventListener(MouseEvent.MOUSE_MOVE,captureMouseMove);
+                stageMouseMoveEvent.add(captureMouseMove);
                 stage.addEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
             };
 
@@ -9557,7 +9548,7 @@
                     imageSize = byteArray.length;
 
                     fs.addEventListener(IOErrorEvent.IO_ERROR, saveContinueErrorEvent);
-                    fs.openAsync(normalFile,FileMode.WRITE);
+                    fs.open(normalFile,FileMode.WRITE);
                     fs.writeBytes(byteArray);
                     fs.close();
 
@@ -10291,11 +10282,6 @@
 
             function lineMoveEvent(e:MouseEvent):void
             {
-                if(limitMouseMoveEventTime() === true)
-                {
-                    return;
-                }
-
                 if(!mouseMovedFlag)
                 {
                     mouseDragON = true;
@@ -10309,7 +10295,7 @@
 
             function lineUpEvent(e:MouseEvent):void
             {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, lineMoveEvent);
+                stageMouseMoveEvent.remove(lineMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, lineUpEvent);
 
                 if(_traceMemoryTraining)
@@ -10384,7 +10370,7 @@
                 checkUndoReady();
 
                 //선 관련 이벤트 함수 붙여줌
-                stage.addEventListener(MouseEvent.MOUSE_MOVE,lineMoveEvent);
+                stageMouseMoveEvent.add(lineMoveEvent);
                 stage.addEventListener(MouseEvent.MOUSE_UP,lineUpEvent);
             };
         }
@@ -10413,7 +10399,7 @@
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, rotateToolUpEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, rotateToolUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, rotateToolMoveEvent);
+                stageMouseMoveEvent.remove(rotateToolMoveEvent);
 
                 mouseDragON = false;
                 penCursorOFFFlag = false;
@@ -10445,7 +10431,6 @@
 
             function rotateToolMoveEvent(e:MouseEvent):void
             {
-                if(limitMouseMoveEventTime() === true) return;
                 const abs:Function = Math.abs;
                 const nowAng:Number = Math.atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
                 const subAng:Number = lastAng-nowAng;
@@ -10507,9 +10492,9 @@
                 //regpoint와 각도 가이드가 전부이동한 후에 lastAng을 갱신해줌
                 lastAng = Math.atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
 
-                stage.addEventListener(MouseEvent.MOUSE_MOVE, rotateToolMoveEvent);
-                stage.addEventListener(MouseEvent.MOUSE_UP, rotateToolUpEvent);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, rotateToolUpEvent);
+                stageMouseMoveEvent.add(rotateToolMoveEvent);
+                stage.addEventListener(MouseEvent.MOUSE_UP,rotateToolUpEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rotateToolUpEvent);
             };
         }
 
@@ -10523,7 +10508,7 @@
 
             function moveToolOFFEvent(e:MouseEvent):void
             {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, moveToolMoveEvent);
+                stageMouseMoveEvent.remove(moveToolMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, moveToolOFFEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, moveToolOFFEvent);
 
@@ -10560,7 +10545,6 @@
 
             function moveToolMoveEvent(e:MouseEvent):void
             {
-                if(limitMouseMoveEventTime() === true) return;
                 const dx:Number = mouseX-oldX;
                 const dy:Number = mouseY-oldY;
                 const rPos:Point = rotatePoint(dx,dy,regPoint.rotation);
@@ -10585,9 +10569,9 @@
                 mouseDragON = true;
                 penCursorOFFFlag = true;
 
-                stage.addEventListener(MouseEvent.MOUSE_MOVE, moveToolMoveEvent);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, moveToolOFFEvent);
-                stage.addEventListener(MouseEvent.MOUSE_UP, moveToolOFFEvent);
+                stageMouseMoveEvent.add(moveToolMoveEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,moveToolOFFEvent);
+                stage.addEventListener(MouseEvent.MOUSE_UP,moveToolOFFEvent);
             };
         }
 
@@ -10654,7 +10638,7 @@
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, zoomToolMouseUpEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, zoomToolMouseUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, zoomToolMouseMoveEvent);
+                stageMouseMoveEvent.remove(zoomToolMouseMoveEvent);
 
                 zoomToolHintON = false;
                 mouseDragON = false;
@@ -10709,7 +10693,6 @@
 
             function zoomToolMouseMoveEvent(e:MouseEvent):void
             {
-                if(limitMouseMoveEventTime() === true) return;
                 var abs:Function = Math.abs;
                 var mx:Number = mouseX;
                 var my:Number = mouseY;
@@ -10809,7 +10792,7 @@
                     setRegPoint(panelLimitedX,panelLimitedY,false);
                 }
 
-                stage.addEventListener(MouseEvent.MOUSE_MOVE,zoomToolMouseMoveEvent);
+                stageMouseMoveEvent.add(zoomToolMouseMoveEvent);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, zoomToolMouseUpEvent);
                 stage.addEventListener(MouseEvent.MOUSE_UP, zoomToolMouseUpEvent);
             };
@@ -11062,7 +11045,7 @@
 
                 stage.removeEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonMouseUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,resizeButtonMouseMoveEvent);
+                stageMouseMoveEvent.remove(resizeButtonMouseMoveEvent);
 
                 setResizeButtonVisible(true);
 
@@ -11145,7 +11128,7 @@
             reiszePreviewRect.visible = true;
 
             stage.addEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,resizeButtonMouseMoveEvent);
+            stageMouseMoveEvent.add(resizeButtonMouseMoveEvent);
         }
 
         //지우개랑 펜이랑 합쳐져있음
@@ -11326,7 +11309,7 @@
             
             function lassoDrawMouseUp():void
             {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,lassoDrawMouseMove);
+                stageMouseMoveEvent.remove(lassoDrawMouseMove);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,lassoDrawMouseUp);
 
                 if(lassoRect[0] < 0) lassoRect[0] = 0;
@@ -11366,8 +11349,6 @@
 
             function lassoDrawMouseMove(MouseEvent:Event):void
             {
-                if(limitMouseMoveEventTime() === true) return;
-
                 const x:Number = cd.mouseX;
                 const y:Number = cd.mouseY;
 
@@ -11429,7 +11410,7 @@
                 lassog.moveTo(lassoClickX,lassoClickY);
                 lassoPoints.push([lassoClickX,lassoClickY]);
 
-                stage.addEventListener(MouseEvent.MOUSE_MOVE,lassoDrawMouseMove);
+                stageMouseMoveEvent.add(lassoDrawMouseMove);
                 stage.addEventListener(MouseEvent.MOUSE_UP,lassoDrawMouseUp);
             };
         }
@@ -11465,15 +11446,16 @@
             var spuitbmpd:BitmapData;
             var penColorBackup:uint;
             const pickerBox:colorPickerBox = pickerBox;
-            var colorMatchCursor:Shape = colorHistorySpuitMatchCursor;
-            var colorMatchCursorG:Shape = colorHistorySpuitMatchCursor;
             const colorHistoryItemWidth:Number = colorHistoryColorWidth;
             const colorMatchMidX:Number = colorHistoryItemWidth/2;
             var _colorHistoryList:Array;
             var colorHistoryLen:int;
+            var colorHistoryFindIndex:int;
 
             function pickColor():uint
             {
+                const rawColorVector:Vector.<uint> = canvas1bmpd.getVector(new Rectangle(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY,1,1));
+                const rawColor:uint = (rawColorVector[0] === 0) ? CANVAS_BG_COLOR : 0x00FFFFFF & rawColorVector[0];
                 const nowColor:uint = (canvas1Bitmap.hitTestPoint(mouseX,mouseY))
                                 ? spuitbmpd.getPixel(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY)
                                 : penColorBackup;
@@ -11483,7 +11465,9 @@
                 for(var i:int=colorHistoryLen-1; i>=0; i--)
                 {
                     const found1:Number = humaneye(_colorHistoryList[i],nowColor);
-                    if(found1 === 0.0)
+                    const found2:Number = humaneye(_colorHistoryList[i],rawColor);
+
+                    if(found1 === 0.0 || found2 === 0.0)
                     {
                         closeColorIndex = i;
                         break;
@@ -11494,33 +11478,22 @@
                         lastDiffColor = found1;
                         closeColorIndex = i;
                     }
+
+                    if(found2 < 2.0 && found2 < lastDiffColor)
+                    {
+                        lastDiffColor = found1;
+                        closeColorIndex = i;
+                    }
                 }
-                const g:Graphics = colorMatchCursor.graphics;
-                
+
                 if(closeColorIndex >= 0)
                 {
-                    if(sideBar.visible)
-                    {   
-                        g.clear();
-                        const gp:Point = pickerBox.colorHistoryBox.localToGlobal(new Point(0,0));
-                        const gpx:Number = gp.x+(closeColorIndex*colorHistoryItemWidth)+colorMatchMidX;
-                        const gpy:Number = gp.y+colorMatchMidX;
-                        g.lineStyle(9,0xFFFFFF-nowColor);
-                        g.moveTo(mouseX,mouseY);
-                        g.lineTo(gpx,gpy);
-                        g.lineStyle(7,nowColor);
-                        g.moveTo(mouseX,mouseY);
-                        g.lineTo(gpx,gpy);
-                    }
-                    else
-                    {
-                        spuitCursor.setCircleColor(nowColor);
-                        spuitCursor.setCircleVisible(true);
-                    }
+                    colorHistoryFindIndex = closeColorIndex;
+                    spuitCursor.setCircleColor(nowColor);
+                    spuitCursor.setCircleVisible(true);
                 }
                 else
                 {
-                    g.clear();
                     spuitCursor.setCircleVisible(false);
                 }
                 
@@ -11559,7 +11532,7 @@
             function colorPickerOFF(okFlag:Boolean):void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,colorPickerOKMouseEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,colorPickerMoveEvent);
+                stageMouseMoveEvent.remove(colorPickerMoveEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, colorPickerCancelMouseEvent);
                 stage.removeEventListener(KeyboardEvent.KEY_DOWN, colorPickerCancelKeyDownEvent);
                 stage.removeEventListener(KeyboardEvent.KEY_UP, colorPickerCancelKeyUpEvent);
@@ -11568,17 +11541,21 @@
                 {
                     const pickedColor:uint = pickColor();
 
+
                     changedColor = pickedColor; //이 변수는 컬러 히스토리를 선택했을때 선택할 색을 저장하는 변수인데 여기다가도 변경해줘서
                     penColor = pickedColor;
                     updatePickerCurrentColor(pickedColor);
                     setHSVCursorPosByColor(pickedColor);
+                    if(colorHistoryFindIndex !== -1)
+                    {
+                        setColorHistoryLastColorByIndex(colorHistoryFindIndex);
+                        updateColorHistoryList();
+                    }
 
                     if(oldTool === TOOL_LINE) nowToolBackup = TOOL_LINE;
                     else if(oldTool === TOOL_FILL_PEN) nowToolBackup = TOOL_FILL_PEN;
                     else nowToolBackup = TOOL_PEN;
                 }
-                stage.removeChild(colorHistorySpuitMatchCursor);
-                colorMatchCursor.graphics.clear();
                 spuitCursor.setCircleVisible(false);
                 spuitbmpd.dispose();
                 spuitCursor.visible = false;
@@ -11588,10 +11565,6 @@
 
             function colorPickerMoveEvent(e:MouseEvent):void
             {
-                if(limitMouseMoveEventTime() === true)
-                {
-                    return;
-                }
                 const targetName:String = e.target.name;
 
                 spuitCursor.x = mouseX;
@@ -11610,13 +11583,11 @@
 
             return function ():void
             {
-                stage.addChild(colorHistorySpuitMatchCursor);
-                setTopChildIndex(colorHistorySpuitMatchCursor);
-
                 canvas1bmp = canvas1Bitmap;
                 canvas1bmpd = canvas1BitmapData;
                 _colorHistoryList = colorHistoryList;
                 colorHistoryLen = colorHistoryList.length;
+                colorHistoryFindIndex = -1;
                 toolBox.moveToolCursor("toolSpuit");
 
                 oldTool = nowTool;
@@ -11640,7 +11611,7 @@
                 }
 
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,colorPickerOKMouseEvent,false,-2);
-                stage.addEventListener(MouseEvent.MOUSE_MOVE,colorPickerMoveEvent);
+                stageMouseMoveEvent.add(colorPickerMoveEvent);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, colorPickerCancelMouseEvent);
                 stage.addEventListener(KeyboardEvent.KEY_DOWN, colorPickerCancelKeyDownEvent,false,2);
                 stage.addEventListener(KeyboardEvent.KEY_UP, colorPickerCancelKeyUpEvent,false,2);
@@ -11668,7 +11639,7 @@
 
             function handToolUpEvent(e:MouseEvent):void
             {   
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, handToolMoveEvent);
+                stageMouseMoveEvent.remove(handToolMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, handToolUpEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, handToolUpEvent);
 
@@ -11705,8 +11676,6 @@
 
             function handToolMoveEvent(e:MouseEvent):void
             {
-                if(limitMouseMoveEventTime() === true) return;
-
                 xReg.x += (mouseX-oldX);
                 xReg.y += (mouseY-oldY);
 
@@ -11728,10 +11697,10 @@
 
                 if(isDrawMode) setOptimizeCanvasMove(true);
 
-                stage.addEventListener(MouseEvent.MOUSE_MOVE, handToolMoveEvent);
-                stage.addEventListener(MouseEvent.MOUSE_UP, handToolUpEvent);
+                stageMouseMoveEvent.add(handToolMoveEvent);
+                stage.addEventListener(MouseEvent.MOUSE_UP,handToolUpEvent);
                 //윈도우 바깥에서 up을 하면 hand가 안꺼져서 오른쪽 마우스 뗄떼도 꺼주게함
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, handToolUpEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,handToolUpEvent);
             };
         }
 
@@ -13231,7 +13200,7 @@
             }
 
             const timeStr:String = getReplayTime(oldSpeed,TOTAL_FRAME);
-            const finalStr:String = "Playback speed x "+oldSpeed+" ("+timeStr+")";
+            const finalStr:String = "Playback speed x "+oldSpeed+timeStr;
             topBar.hintTime(finalStr,topBar.replaySpeedSet);
 
             rSpeed = oldSpeed;
@@ -14044,7 +14013,7 @@
                 scrollSetMovedY = sideBarScrollSet.y;
                 scrollBarMovedY = sideBarScrollBar.y;
 
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,sideBarMouseMoveEvent);
+                stageMouseMoveEvent.remove(sideBarMouseMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
             }
 
@@ -14073,7 +14042,7 @@
             }
 
             clickY = clickY;
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,sideBarMouseMoveEvent);
+            stageMouseMoveEvent.add(sideBarMouseMoveEvent);
             stage.addEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
         }
 
@@ -14675,7 +14644,7 @@
                 case "colorHistoryBox":
                 case "colorHistoryBoxBG":
                 {
-                    pickHistoryColor();
+                    selectHistoryColor();
                 }
                 return;
 
