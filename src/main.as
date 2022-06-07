@@ -548,6 +548,7 @@
                     ,gcONCount:int = 0
                     ,workingTimer:int = 0
                     ,isDeepUndoON:Boolean = false
+                    ,isDeepUndoOFFReady:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ;
         //vars
@@ -606,6 +607,7 @@
         //functions
         private function exitDeepUndoMode():void
         {
+            isDeepUndoOFFReady = false;
             setReplayUI(false);
         }
 
@@ -6894,6 +6896,7 @@
             function next():void
             {
                 if(!data || data.length === 0) return;
+
                 d = data[index];
                 index++;
 
@@ -7412,17 +7415,10 @@
 
         private function updateReplayRemainTime():void
         {
-            if(isDeepUndoON)
-            {
-                replayTimeBox["frameInfo"].text = "Super-undo";
-            }
-            else
-            {
-                const totalF:Number = TOTAL_FRAME;
-                const _rFrameSum:Number = rNowFrame;
-                const namojiTime:String = getReplayTime(rSpeed,totalF-_rFrameSum);
-                replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + namojiTime;
-            }
+            const totalF:Number = TOTAL_FRAME;
+            const _rFrameSum:Number = rNowFrame;
+            const namojiTime:String = (isDeepUndoON) ? "" : getReplayTime(rSpeed,totalF-_rFrameSum);
+            replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + namojiTime;
         }
 
         private function setReplaySpeedButton():void
@@ -7602,14 +7598,8 @@
         {
             if(trueOneFrame)
             {
-                if(frontFlag && rNowFrame > 0)
-                {
-                    setSkipFrame(rNowFrame-1);
-                }
-                else if(!frontFlag && rNowFrame < TOTAL_FRAME)
-                {
-                    setSkipFrame(rNowFrame+1);
-                }
+                if(frontFlag && rNowFrame > 0) setSkipFrame(rNowFrame-1);
+                else if(!frontFlag && rNowFrame < TOTAL_FRAME) setSkipFrame(rNowFrame+1);
             }
             else
             {
@@ -7811,7 +7801,15 @@
 
             if(tempRedoFlag && rNowFrame >= TOTAL_FRAME)
             {
-                exitDeepUndoMode();
+                if(isDeepUndoOFFReady)
+                {
+                    exitDeepUndoMode();
+                }
+                else
+                {
+                    setSkipFrame(TOTAL_FRAME+1);
+                    isDeepUndoOFFReady = true;
+                }
             }
         }
 
@@ -14489,7 +14487,7 @@
                 sideBarScrollBar.visible = false;
                 addDeepUndoEvent();
                 updateRCursorScale(zoomed);
-                replayTimeBox["frameInfo"].text = "Super-undo";
+                // replayTimeBox["frameInfo"].text = "Super-undo";
             }
             else
             {
@@ -14597,7 +14595,6 @@
                     }
                 }
 
-
                 checkCutFrameButtons();
                 updateReplayBarPos(stage.stageWidth,stage.stageHeight);
                 updateReplayCanvasBounds();
@@ -14644,6 +14641,7 @@
                 if(isDeepUndoON)
                 {
                     setDeepUndoUI(true);
+                    setSkipFrame(rFileTotalFrame);
                 }
                 else
                 {
