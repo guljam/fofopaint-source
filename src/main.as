@@ -7606,7 +7606,7 @@
                 checkAutoScroll.check(tcursor.x,tcursor.y);
             }
 
-            if(tempRedoFlag && rFrameSum === TOTAL_FRAME)
+            if(tempRedoFlag && rFrameSum >= TOTAL_FRAME)
             {
                 exitDeepUndoMode();
             }
@@ -12233,7 +12233,6 @@
                 saveOneTime = false;
                 drawUndoData(true); 
             }
-            
         }
 
         private function setUndoButton():void
