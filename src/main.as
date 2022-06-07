@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.1;
+        private const APP_VERSION:Number = 14.12;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -5048,6 +5048,8 @@
                 return;
             }
 
+            topBar.aboutButton.visible = true;
+            topBar.updateButton.visible = false;
             isCheckingUpdate = true;
             clearTimeout(updateRryTimer);
 
@@ -5144,6 +5146,9 @@
                         }
                         else
                         {
+                            isCheckingUpdate = false;
+                            topBar.aboutButton.visible = true;
+                            topBar.updateButton.visible = false;
                             //최신 버전이면 이미 다운로드한 파일 있는지 체크하고 제거
                             if(UPDATE_FILE.exists)
                             {
