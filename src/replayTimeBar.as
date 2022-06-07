@@ -6,7 +6,6 @@
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.display.Graphics;
-	import flash.geom.Matrix;1
 
 	public class replayTimeBar extends Sprite {
 		public var replayBGBar:Sprite = new Sprite();
@@ -20,6 +19,54 @@
 		public var frameInfo:TextField = frameInfo;
 		public var BARSIZE:Number = 35;
 		private var nowBarColorSave:uint = 0;
+
+		public function setTimeBarOnly(flag:Boolean,topbarSize:Number=0):void
+		{
+			if(flag)
+			{
+				this.x = 0;
+				this.y = 0;
+				tempTotalBarX();
+				frameInfo.text = "Super-undo mode"
+			}
+			else
+			{
+				this.x = 0;
+				this.y = topbarSize;
+				initTotalBarX();
+			}
+			visible = flag;
+			playButton.visible = !flag;
+			pauseButton.visible = !flag;
+			replayPrev.visible = !flag;
+			replayNext.visible = !flag;
+		}
+
+		public function tempTotalBarX():void
+		{
+			replayTotalBar.x = 5;
+			replayTotalBar.y = 10;
+			replayDeleteBar.x = replayTotalBar.x;
+			replayDeleteBar.y = replayTotalBar.y;
+			replayNowBar.x = replayTotalBar.x;
+			replayNowBar.y = replayTotalBar.y;
+			frameInfo.x = replayTotalBar.x;
+			frameInfo.y = replayTotalBar.y;
+			frameInfo.width = replayTotalBar.width;
+		}
+
+		public function initTotalBarX():void
+		{
+			replayTotalBar.x = Math.floor(replayNext.x+replayNext.width+7);
+			replayTotalBar.y = 5;
+			replayDeleteBar.x = replayTotalBar.x;
+			replayDeleteBar.y = replayTotalBar.y;
+			replayNowBar.x = replayTotalBar.x;
+			replayNowBar.y = replayTotalBar.y;
+			frameInfo.x = replayTotalBar.x;
+			frameInfo.y = replayTotalBar.y;
+			frameInfo.width = replayTotalBar.width;
+		}
 
 		public function resetNowbarColor():void
 		{
@@ -142,12 +189,7 @@
 			
 			replayDeleteBar.visible = false;
 
-			replayTotalBar.x = floor(replayNext.x+replayNext.width+7);
-			replayDeleteBar.x = replayTotalBar.x;
-			replayNowBar.x = replayTotalBar.x;
-			frameInfo.x = replayTotalBar.x;
-			frameInfo.y = replayTotalBar.y;
-			frameInfo.width = replayTotalBar.width;
+			initTotalBarX();
 			cacheAsBitmap = true;
 		}
 	}

@@ -26,6 +26,8 @@
 		public var toolZoom:SimpleButton = toolZoom;
 		public var zoomInButton:SimpleButton = zoomInButton;
 		public var zoomOutButton:SimpleButton = zoomOutButton;
+		public var deepUndoOK:SimpleButton = deepUndoOK;
+		public var deepUndoCancel:SimpleButton = deepUndoCancel;
 		public var toolSelectCursor:SimpleButton = toolSelectCursor
 		private var lastTool:String = "toolPen";
 		
@@ -50,6 +52,42 @@
 			    stage.removeEventListener(MouseEvent.MOUSE_MOVE,zoomIconOFFEvent);
 				zoomIconOFF();
 			}
+		}
+		
+		public function deepUndoEtcIconAlpha(alpha:Number):void
+		{
+			toolPen.alpha = alpha;
+			toolFillPen.alpha = alpha;
+			toolErase.alpha = alpha;
+			toolSpuit.alpha = alpha;
+			toolMirror.alpha = alpha;
+			toolLasso.alpha = alpha;
+			toolMove.alpha = alpha;
+			toolRotate.alpha = alpha;
+			toolLine.alpha = alpha;
+			toolTrace.alpha = alpha;
+			toolZoom.alpha = alpha;
+		}
+
+		public function deepUndoIconON():void
+		{
+			deepUndoOK.visible = true;
+			deepUndoCancel.visible = true;
+			toolMove.visible = false;
+			toolPen.visible = false
+			toolSelectCursor.visible = false;
+			deepUndoEtcIconAlpha(0.15);
+		}
+
+		public function deepUndoIconOFF():void
+		{
+			deepUndoOK.visible = false;
+			deepUndoCancel.visible = false;
+			toolMove.visible = true;
+			toolPen.visible = true;
+			toolSelectCursor.visible = true;
+
+			deepUndoEtcIconAlpha(1.0);
 		}
 
 		public function zoomIconON():void
@@ -109,6 +147,8 @@
 		{	
 			const buttonArr:Array =
 			[
+				deepUndoOK,
+				deepUndoCancel,
 				zoomInButton,
 				zoomOutButton,
 				toolZoom,
@@ -132,6 +172,7 @@
 			// const iconRight:ColorTransform = new ColorTransform();
 			const activeColor:ColorTransform = new ColorTransform();
 			const activeIconColor:ColorTransform = new ColorTransform();
+			const defaultColor:ColorTransform = new ColorTransform();
            	base.color = arr[0];
            	// subBase.color = arr[1];
            	iconLeft.color = arr[2];
@@ -167,6 +208,11 @@
 			zoomInButton.y = toolZoom.y;
 			zoomOutButton.x = toolRotate.x;
 			zoomOutButton.y = toolRotate.y;
+			deepUndoOK.x = toolMove.x;
+			deepUndoOK.y = toolMove.y;
+			deepUndoCancel.x = toolPen.x;
+			deepUndoCancel.y = toolPen.y;
+
 			setChildIndex(zoomInButton,numChildren-1);
 			setChildIndex(zoomOutButton,numChildren-1);
 
@@ -221,6 +267,7 @@
 			addChild(toolInfoBG);
 			setChildIndex(toolInfoBG,0);
 			zoomIconOFF();
+			deepUndoIconOFF();
 
 			// initPenSizeCursor();
 			toolPen.useHandCursor = false;

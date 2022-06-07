@@ -275,10 +275,11 @@
         //툴메뉴 관련 변수
         //어디 클릭했는지 위치 저장해줘서 다음에 켰을때 그 위치에서 툴메뉴가 켜지게끔 해줌
                     ,toolBoxLastClickPos:Point = new Point()//툴박스 마지막 위치 저장
-                    ,toolBoxAlwaysClickTool:String = "" //toolbox 항상 on해줬을때 아이콘을 클릭하고 땠을때 같은 아이콘인지 확인해주는 거임
+                    ,toolBoxClickedTarget:String = "" //toolbox 항상 on해줬을때 아이콘을 클릭하고 땠을때 같은 아이콘인지 확인해주는 거임
                     ,toolBox2ON:Boolean = false //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
 
         //undo 관련변수
+                    ,undoDataBackup:Array = [] //딥에서 수퍼언도 해주기 전에 백업해주는거
                     ,undoData:Array = [] //undo 이미지 데이터 보관소
                     ,undoIndex:int = 0 //undo redo할때 무슨 이미지인지 알려주는 undoImageData의 포인터 인덱스임
                     ,undoDelFlag:Boolean = false //undo하고 나서 addundo가 되었을때 뒷부분 데이터 전부 날려주는 플래그
@@ -337,7 +338,7 @@
                     ,toolTipBoxTimer:uint = 0
 
         //리플레이 관련 변수
-        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1407.301")
+        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1412.301")
                     ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata.301")
                     ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata.301")
                     ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("temp_repdata.301") //파일을 저장하거나 불러올때 씀
@@ -368,6 +369,7 @@
                     ,replayEndWithcanvasFitWindow:Boolean = false //리플레이가 follow cursor옵션으로 캔버스 작게 축소되서 끝났을때
                     ,replayModeON:Boolean = false //이건 모드 자체 껐다 켰다
 
+                    ,rDataBufferBackup:Array = []
                     ,rDataBuffer:Array = []
                     ,rData:Array = [] //rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
                     ,rDataFrame:Array = [] //rdata안에 몇프레임이 들어있는지 저장
@@ -380,7 +382,7 @@
                     ,rFrameArr:Array = [] //이안의 데이터를 재생시킴
                     ,rLineStyleSave:Array = [] //tempdone에서 쓰는 플래그임
                     ,rSubLayerSave:Boolean = false //리플레이 실행할때 이걸로 비교해서 캔버스 스왑해줌
-                    ,rTinyCursorPos:Array = [] //작은 커서 위치 갱신해주는데 쓰임
+                    ,rTinyCursorPos:Point = new Point(0,0) //작은 커서 위치 갱신해주는데 쓰임
                     ,rBGColorSave:uint = RCANVAS_BG_COLOR //load replay에서 씀
                     ,rDataReadFlag:Boolean = false //rData에서 frameArr한번만 등록해주는 플래그
                     ,rSpeed:Number = 1 //리플레이 속도 for루프로 2번씩혹은 3번씩 읽히게 만듬
@@ -544,6 +546,8 @@
                     ,afkONCount:int = 0
                     ,gcONCount:int = 0
                     ,workingTimer:int = 0
+                    ,isDeepUndoON:Boolean = false
+                    ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ;
         //vars
 
@@ -598,6 +602,11 @@
         }
         
         //functions
+
+        private function exitDeepUndoMode():void
+        {
+            setReplayUI(false);
+        }
 
         private function closureStageMouseMoveEvent():Object
         {
@@ -723,7 +732,7 @@
 
                 sideBar.visible = true;
             }
-            else
+            else if(isDeepUndoON === false)
             {
                 sideBar.visible = false;
 
@@ -733,6 +742,7 @@
                 tb.sideBarPositionButton.alpha = BUTTON_OFF_ALPHA;
                 tb.sideBarPositionButton2.alpha = BUTTON_OFF_ALPHA;
             }
+
             if(tempFlag === false)
             {
                 tb.checkSideBarONOFFButton(flag,isRightSidebar);
@@ -1559,7 +1569,6 @@
 
                 if(penFlag && _traceMemoryTraining)
                 {
-                    trace('melbz');
                     canvasTrace.visible = false;
                 }
 
@@ -2438,6 +2447,14 @@
                     str = "Eye dropper (c, m)";
                 break;
 
+                case "deepUndoOK":
+                    str = "Undo (enter, ctrl+z, ctrl+.)";
+                break;
+
+                case "deepUndoCancel":
+                    str = "Redo (esc)";
+                break;
+
                 case "toolUndo":
                     str = "Undo (z, .)";
                 break;
@@ -2520,7 +2537,6 @@
                 nowToolBackup = TOOL_PEN;
                 nowTool = TOOL_PEN;
                 selectPenTool();
-                
             }
             else if(mode === "replay")
             {
@@ -3912,7 +3928,6 @@
         private function keyDownBufferEvent(e:KeyboardEvent):void
         {
             if(clickBlockFlag) return;
-
             const keyCode:int = e.keyCode;
 
             if(keyCode === gKey.shift && !shiftKeyON)
@@ -4320,15 +4335,32 @@
 
         private function removeReplayMainEvent():void
         {
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rightMouseDownReplayModeEvent);
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN, mouseDownReplayModeEvent);
-            stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownReplayModeEvent);
-            stage.removeEventListener(KeyboardEvent.KEY_UP, keyUpReplayModeEvent);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownReplayModeEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownReplayModeEvent);
+            stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownReplayModeEvent);
+            stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpReplayModeEvent);
+        }
+
+        private function removeDeepUndoEvent():void
+        {
+            nowKey = 0;
+            stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpDeepUndo);
+            stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownDeepUndo);
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownDeepUndo);
+        }
+
+        private function addDeepUndoEvent():void
+        {
+            nowKey = 0;
+            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDeepUndo);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDeepUndo);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDeepUndo);
         }
 
         private function addReplayMainEvent():void
         {
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rightMouseDownReplayModeEvent);
+            if(isDeepUndoON) return;
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownReplayModeEvent);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownReplayModeEvent);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownReplayModeEvent);
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpReplayModeEvent);
@@ -5251,10 +5283,11 @@
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
                 canvas1Bitmap.bitmapData = rcanvas1BitmapData.clone();
 
-                setPanelSize(canvas1Bitmap.width,canvas1Bitmap.height);
+                changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height);
                 setBackgroundColor(RCANVAS_BG_COLOR);
 
                 clearButtonClicked = false;
+                controlKeyON = false;
             }
             else
             {
@@ -5262,7 +5295,8 @@
                 clearCanvasReplayMode();
                 clearButtonClicked = true;
             }
-            rTinyCursorPos = [];
+            
+            rTinyCursorPos = new Point(0,0);
             rBGColorSave = CANVAS_BG_COLOR;
             updateFirstImage(canvas1BitmapData,CANVAS_BG_COLOR);
             saveContinue = false;
@@ -5566,8 +5600,6 @@
                             }
                         }
                         break;
-
-                        
                     }
                 }
             }
@@ -5633,12 +5665,15 @@
             rSkipImageFolder.createDirectory();
 
             updateFirstImage(rcanvas1BitmapData,RCANVAS_BG_COLOR);
+            isDeepUndoON = false;
 
             if(repFileTemp.exists)//이미 있으면 지워주고
             {
                 repFileTemp.deleteFile();
             }
             const sourceFS:FileStream = new FileStream();
+
+            controlKeyON = false;
 
             if(rDataReadFlag === true)
             {
@@ -5681,7 +5716,7 @@
                 repFileTemp.copyTo(repFile,true);
                 repFileTemp.deleteFile();
 
-                makeSkipImage();
+                makeSkipImage(false);
                 rCursor.visible = false;
                 replayNowBar.width = 0;
                 saveOneTime = false;
@@ -5689,8 +5724,9 @@
             checkReplaySpeedState();
         }
 
-        private function superUndo():void
+        private function doSuperUndo():void
         {
+            controlKeyON = false;
             if(rDataReadFlag === true)
             {
                 //위에서 setSkipOneFrame을 해줘서 rindex가 증가되었기 때문에
@@ -5727,15 +5763,15 @@
 
                 canvas1BitmapData = rcanvas1BitmapData.clone();
                 canvas1Bitmap.bitmapData = canvas1BitmapData;
-                setPanelSize(canvas1Bitmap.width,canvas1Bitmap.height,0,0,false);
+                changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height,0,0,false);
                 resetReplayTime();
                 resetUndo();
                 setBackgroundColor(RCANVAS_BG_COLOR);
-                addUndoData();
-                setCanvasSameReplayCanvas();
-
                 replayNowBar.width = bw;
+                setCanvasSameReplayCanvas();
+                addUndoData();
             }
+            isDeepUndoONDelayTime = getTimer();
             setReplayUI(false);
         }
 
@@ -5788,8 +5824,7 @@
                     //데이터 전부 읽고 짤라줘야함
                     if(rFrame < rFrameArr.length) 
                     {
-                        setSkipFrame(rFrameSum+rFrameArr.length-rFrame,3);
-                        rOneSkipFlag = false;
+                        drawRemainReplayData();
                         checkCutFrameButtons();
                     }
                 }
@@ -5835,7 +5870,7 @@
 
                 if(flag === 0) //super undo
                 {
-                    superUndo();
+                    doSuperUndo();
                 }
                 else if(flag === 1) //re-recording
                 {
@@ -6118,7 +6153,7 @@
             rcanvas1BitmapData = bmpd.clone();
 
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-            setPanelSizeReplayMode(rcanvas1Bitmap.width,rcanvas1Bitmap.height);
+            changeCanvasSizeReplayMode(rcanvas1Bitmap.width,rcanvas1Bitmap.height);
             setBackgroundColor(data[3],true);
         }
 
@@ -6465,7 +6500,7 @@
 
                         if(lastFlag)
                         {
-                            rTinyCursorPos = [d[1] as Number,d[2] as Number];
+                            rTinyCursorPos = new Point(d[1] as Number,d[2] as Number);
                         }
                     }
                     break;
@@ -6497,7 +6532,7 @@
 
                         if(lastFlag)
                         {
-                            rTinyCursorPos = [d[5][0] as Number,d[5][1] as Number];
+                            rTinyCursorPos = new Point(d[5][0] as Number,d[5][1] as Number);
                         }
                     }
                     break;
@@ -6527,7 +6562,7 @@
 
                         if(lastFlag)
                         {
-                            rTinyCursorPos = [arr[0] as Number,arr[1] as Number];
+                            rTinyCursorPos = new Point(arr[0] as Number,arr[1] as Number);
                         }
                     }
                     break;
@@ -6567,7 +6602,7 @@
 
                         if(lastFlag)
                         {
-                            rTinyCursorPos = [d[5] as Number,d[6] as Number];
+                            rTinyCursorPos = new Point(d[5] as Number,d[6] as Number);
                         }
 
                         cd2.endFill();
@@ -6609,7 +6644,7 @@
 
                         if(lastFlag)
                         {
-                            rTinyCursorPos = [d[7],d[8]];
+                            rTinyCursorPos = new Point(d[7],d[8]);
                         }
                     }
                     break;
@@ -6698,7 +6733,7 @@
 
                     case "canvasSize":
                     {
-                        setPanelSizeReplayMode(d[1] as Number,d[2] as Number,d[3] as Number,d[4] as Number,d[5] as Boolean);
+                        changeCanvasSizeReplayMode(d[1] as Number,d[2] as Number,d[3] as Number,d[4] as Number,d[5] as Boolean);
                     }
                     break;
 
@@ -6974,12 +7009,12 @@
                     if(nt-rFrameCursorDelayTime >= 100)
                     {
                         rFrameCursorDelayTime = nt;
-                        tcursor.x = rTinyCursorPos[0];
-                        tcursor.y = rTinyCursorPos[1];
+                        tcursor.x = rTinyCursorPos.x;
+                        tcursor.y = rTinyCursorPos.y;
                         
-                        if(!mouseClickON)
+                        if(!mouseClickON && isDeepUndoON === false)
                         {
-                            checkAutoScroll.check(rTinyCursorPos[0],rTinyCursorPos[1]);
+                            checkAutoScroll.check(rTinyCursorPos.x,rTinyCursorPos.y);
                         }
                     }
 
@@ -7157,11 +7192,18 @@
 
         private function updateReplayRemainTime():void
         {
-            const totalF:Number = TOTAL_FRAME;
-            const _rFrameSum:Number = rFrameSum;
-            const namojiTime:String = getReplayTime(rSpeed,totalF-_rFrameSum);
+            if(isDeepUndoON)
+            {
+                replayTimeBox["frameInfo"].text = "Super-undo mode";
+            }
+            else
+            {
+                const totalF:Number = TOTAL_FRAME;
+                const _rFrameSum:Number = rFrameSum;
+                const namojiTime:String = getReplayTime(rSpeed,totalF-_rFrameSum);
+                replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + namojiTime;
+            }
 
-            replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + namojiTime;
         }
 
         private function setReplaySpeedButton():void
@@ -7358,7 +7400,7 @@
                 {
                     setSkipFrame(rFrameSumLast,2);
                 }
-                else if(!prev && _rFrameSum < TOTAL_FRAME)
+                else if(!prev && _rFrameSum <= TOTAL_FRAME)
                 {
                     var goFrame:Number = rFrameSum+rFrameArr.length-rFrame+1;
                     //dodraw에서 3번 플래그는 break해줘서 infinity로 해도 되는데
@@ -7371,7 +7413,14 @@
                     goFrame = rFrameSum+rFrameArr.length-rFrame+1;
                     setSkipFrame(goFrame,3);
 
-                    if(rOneSkipFlag !== prev)
+                    if(isDeepUndoON)
+                    {
+                        if(rFrame < rFrameArr.length) 
+                        {
+                            drawRemainReplayData();
+                        }
+                    }
+                    else if(rOneSkipFlag !== prev)
                     {
                         goFrame = rFrameSum+rFrameArr.length-rFrame+1;
                         setSkipFrame(goFrame,3);
@@ -7385,42 +7434,61 @@
 
         private function setSkipOneFrame(prev:Boolean,useKey:Boolean=false,trueOneFrame:Boolean=false):void
         {
-            if(cutFrameClickCounter > 0)
+            if(rOneSkipTimer !== 0)
             {
-                resetCutFrameClickCounter();
+                return;
             }
 
-            var cancelFlag:Boolean = false;
+            if(cutFrameClickCounter > 0)
+                resetCutFrameClickCounter();
 
-            if(replayStartON) stopReplay();
+            if(replayStartON)
+                stopReplay();
   
             topBar["reRecordingButton"].visible = true;
+            rOneSkipTimer = 0;
             
-            function autoOneFrameSkipEvent(e:Event):void
-            {
-                skipOneFrame(prev,trueOneFrame);
-            }
-
-            function autoOneFrameSkipCancelEvent(e:Object):void
+            function cancelAutoKeyEvent(e:Object):void
             {
                 clearTimeout(rOneSkipTimer);
-                stage.removeEventListener(Event.ENTER_FRAME,autoOneFrameSkipEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_UP,autoOneFrameSkipCancelEvent);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,autoOneFrameSkipCancelEvent);
-                stage.nativeWindow.removeEventListener(Event.DEACTIVATE,autoOneFrameSkipCancelEvent);
+                clearInterval(rOneSkipTimer);
+                rOneSkipTimer = 0;
+                stage.removeEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
+                stage.nativeWindow.removeEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
+                stage.removeEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
             }
 
-            if(!useKey) //마우스로 버튼 클릭했을때
+            if(rOneSkipTimer === 0)
             {
-                //오래누르고 있으면 enter frame으로 계속 발동 앞으로 가기만
-                clearTimeout(rOneSkipTimer);
-                rOneSkipTimer = setTimeout(function():void
+                if(!useKey) //마우스로 버튼 클릭했을때
                 {
-                    stage.addEventListener(Event.ENTER_FRAME,autoOneFrameSkipEvent);
-                },300);
-                stage.nativeWindow.addEventListener(Event.DEACTIVATE,autoOneFrameSkipCancelEvent);
-                stage.addEventListener(MouseEvent.MOUSE_UP,autoOneFrameSkipCancelEvent);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,autoOneFrameSkipCancelEvent);
+                    //오래누르고 있으면 enter frame으로 계속 발동 앞으로 가기만
+                    clearTimeout(rOneSkipTimer);
+                    rOneSkipTimer = setTimeout(function():void
+                    {
+                        rOneSkipTimer = setInterval(function():void
+                        {
+                            skipOneFrame(prev,trueOneFrame);
+                        },100)
+                    },300);
+                    stage.nativeWindow.addEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
+                    stage.addEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
+                    stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
+                }
+                else
+                {
+                    clearTimeout(rOneSkipTimer);
+                    rOneSkipTimer = setTimeout(function():void
+                    {
+                        rOneSkipTimer = setInterval(function():void
+                        {
+                            skipOneFrame(prev,trueOneFrame);
+                        },100)
+                        
+                    },300);
+                    stage.addEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
+                }
             }
 
             skipOneFrame(prev,trueOneFrame);
@@ -7432,9 +7500,17 @@
         private function setSkipFrame(jumpframe:Number,flag:uint=1):void //skipp 
         {
             const fSum:Number = rFrameSum;
+            const tempRedoFlag:Boolean = isDeepUndoON && flag === 3;
 
             if(jumpframe < 0) jumpframe = 0;
-            if(jumpframe === fSum) return;
+            if(jumpframe === fSum)
+            {
+                if(tempRedoFlag)
+                {
+                    exitDeepUndoMode();
+                }
+                return;
+            }
 
             const prevSkipFlag:Boolean = jumpframe < fSum;
             const tcursor:SimpleButton = rCursor;
@@ -7497,7 +7573,7 @@
                 rcanvas1BitmapData.dispose();
                 rcanvas1BitmapData = tempBmpd.clone();
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-                setPanelSizeReplayMode(rcanvas1Bitmap.width,rcanvas1Bitmap.height);
+                changeCanvasSizeReplayMode(rcanvas1Bitmap.width,rcanvas1Bitmap.height);
                 setBackgroundColor(skipImageData[3],true);
             }
             else //점프 프레임이 기존 프레임 이후일때는 계속 그림
@@ -7525,10 +7601,26 @@
             {
                 replayAllEnd = false;
                 tcursor.visible = true;
-                tcursor.x = rTinyCursorPos[0];
-                tcursor.y = rTinyCursorPos[1];
+                tcursor.x = rTinyCursorPos.x;
+                tcursor.y = rTinyCursorPos.y;
             }
-            checkAutoScroll.check(tcursor.x,tcursor.y);
+
+            if(isDeepUndoON === false)
+            {
+                checkAutoScroll.check(tcursor.x,tcursor.y);
+            }
+
+            if(tempRedoFlag && rFrameSum === TOTAL_FRAME)
+            {
+                exitDeepUndoMode();
+            }
+        }
+
+        //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
+        private function drawRemainReplayData():void
+        {
+            setSkipFrame(rFrameSum+rFrameArr.length-rFrame,3);
+            rOneSkipFlag = false;
         }
 
         private function setSkipFrameButton():void
@@ -7585,9 +7677,17 @@
             {
                 rSkipMouseON = false;
                 clearTimeout(skipUpdateTimer);
+                setSkipFrame(finalFrame);
+                if(isDeepUndoON)
+                {
+                    if(rFrame < rFrameArr.length) 
+                    {
+                        drawRemainReplayData();
+                    }
+                }
+
                 skipUpdateTimer = 0;
                 oldFrame = finalFrame;
-                setSkipFrame(finalFrame);
                 checkBarLimit();
 
                 //skipframe함수 이후에 실행
@@ -7726,13 +7826,13 @@
             
             const targetName:String = e.target.name;
 
-            if(toolBoxAlwaysClickTool !== targetName)
+            if(toolBoxClickedTarget !== targetName)
             {
-                toolBoxAlwaysClickTool = "";
+                toolBoxClickedTarget = "";
                 return;
             }
 
-            toolBoxAlwaysClickTool = "";
+            toolBoxClickedTarget = "";
 
             switch(targetName)
             {
@@ -8018,6 +8118,7 @@
         {
             rFileStream.close();
             restartTimerCancel();
+            if(isDeepUndoON) exitDeepUndoMode();
 
             tempDragDropFile = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
 
@@ -8353,7 +8454,7 @@
             }
         }
 
-        private function makeSkipImage():void //loadrep
+        private function makeSkipImage(fromDeepUndo:Boolean):void //loadrep
         {
             const fs:FileStream = new FileStream();
             const cd2:Graphics = rcanvas2Draw.graphics;
@@ -8364,18 +8465,19 @@
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
             var _rSkipImageCount:uint = 0;
+
             rSkipImageInit = 2;
             clearCanvasReplayMode();//일단 리플레이 캔버스 먼저 깨끗하게
             rcanvas1BitmapData = rFirstImage.clone(); 
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-            setPanelSizeReplayMode(rcanvas1BitmapData.width,rcanvas1BitmapData.height); //크기도 바꿔주고
+            changeCanvasSizeReplayMode(rcanvas1BitmapData.width,rcanvas1BitmapData.height); //크기도 바꿔주고
 
             replayInfoText.text = "Reading replay data..";
             rFrame = 0;//꼭 해줘야함 이전 파일 리플레이에서 rframe이 0이 아닌상태가 있기 때문에 아래 while시작 초기화 없이 시작하면 에러남
             fs.open(rf,FileMode.READ);
             fs.position = 0;
 
-            rregPoint.visible = false;
+            if(!fromDeepUndo) rregPoint.visible = false;
 
             const _doTickDraw:Function = doTickDraw;
 
@@ -8392,7 +8494,7 @@
                         fs.close();
                         rFileTotalFrame = _frameSum;
                         rSkipImageInit = 0;
-                        rregPoint.visible = true;
+                        if(!fromDeepUndo) rregPoint.visible = true;
                         replayInfoText.text = "Replay data is ready "+getReplayFileSize();
                         resetReplayTime();
                         TOTAL_FRAME = getTotalFrame();
@@ -8402,14 +8504,10 @@
                         rFrameSum = TOTAL_FRAME;
                         rFrameSumLast = _frameSumLast;
                         checkReplaySpeedState();
-
-                        stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rightMouseDownReplayModeEvent);
-                        stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownReplayModeEvent);
-                        stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownReplayModeEvent);
-                        stage.addEventListener(KeyboardEvent.KEY_UP,keyUpReplayModeEvent);
-
+                        addReplayMainEvent();
                         return;
                     }
+
                     const d:Array = fs.readObject() as Array;
                     const dlen:Number = d.length;
 
@@ -8756,11 +8854,11 @@
                 setFillPenTool.cancel();
             }
 
-            rTinyCursorPos = [];
+            rTinyCursorPos = new Point(0,0);
             tmpBMPD.draw(imageData,scaleMat,null,null,null,true);
             canvas1BitmapData = tmpBMPD.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
-            setPanelSize(scaledwidth,scaledheight,0,0,false);
+            changeCanvasSize(scaledwidth,scaledheight,0,0,false);
             if(cloneFlag) rFirstImage = tmpBMPD.clone();
 
             tmpBMPD.dispose();
@@ -9717,8 +9815,8 @@
 
                     setBackgroundColor(bg);
                     setBackgroundColor(bg,true);
-                    setPanelSize(w,h,0,0,false);
-                    setPanelSizeReplayMode(w,h);
+                    changeCanvasSize(w,h,0,0,false);
+                    changeCanvasSizeReplayMode(w,h);
 
                     addUndoMode = 0;
                 }
@@ -10021,7 +10119,7 @@
                 _nativeWindow.height = lastWindowSize.y;
 
                 setPenSize(penSizeIndex);
-                setPanelSize(CANVAS_WIDTH,CANVAS_HEIGHT,0,0,false);
+                changeCanvasSize(CANVAS_WIDTH,CANVAS_HEIGHT,0,0,false);
                 setHSVCursorPosByColor(penColor);
                 addUndoData();
                 openAboutPanel(1);
@@ -10869,7 +10967,7 @@
             saveOneTime = false; //미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
         }
 
-        private function setPanelSizeReplayMode(w:Number,h:Number,moveX:Number=0,moveY:Number=0,movedFlag:Boolean=false):void
+        private function changeCanvasSizeReplayMode(w:Number,h:Number,moveX:Number=0,moveY:Number=0,movedFlag:Boolean=false):void
         {
             const cpg:Graphics = rcanvasPanel.graphics;
             const maskg:Graphics = rcanvasPanelMask.graphics;
@@ -10911,7 +11009,7 @@
             checkCanvasPanelPos(true);
         }
 
-        private function setPanelSize(w:Number,h:Number,moveX:Number=0,moveY:Number=0,undoFlag:Boolean=true,movedFlag:Boolean=false):void
+        private function changeCanvasSize(w:Number,h:Number,moveX:Number=0,moveY:Number=0,undoFlag:Boolean=true,movedFlag:Boolean=false):void
         {
             const cg:Graphics = canvasPanel.graphics;
             const maskg:Graphics = canvasPanelMask.graphics;
@@ -11049,7 +11147,7 @@
                 }
 
                 const centerMoved:Boolean = (targetName === "resizeButtonL" || targetName === "resizeButtonU") ? true:false;
-                setPanelSize(finalWidth,finalHeight,movedX,movedY,true,centerMoved);
+                changeCanvasSize(finalWidth,finalHeight,movedX,movedY,true,centerMoved);
 
             }
 
@@ -12103,7 +12201,7 @@
             var mirrorChanged:Boolean = false; //미러플래그 변화를 감지함
 
             //undo한 데이터와 캔버스 사이즈가 다르면 비트맵데이터 크기바꿈
-            if(w !== CANVAS_WIDTH || h !== CANVAS_HEIGHT) setPanelSize(w,h,0,0,false);
+            if(w !== CANVAS_WIDTH || h !== CANVAS_HEIGHT) (w,h,0,0,false);
             if(bg !== CANVAS_BG_COLOR) setBackgroundColor(bg);
 
             canvas1BitmapData = data.clone();//clone으로 해주어야함
@@ -12123,9 +12221,10 @@
             checkCanvasPanelPos(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
             updatePreviewCursorPos();
         }
+
         private function setRedoButton():void
         {
-            ++undoIndex;
+            undoIndex++;
             const len:uint = undoData.length-1;
             if(undoIndex > len)
             {
@@ -12136,19 +12235,22 @@
             else
             {
                 saveOneTime = false;
-                drawUndoData(true);
+                drawUndoData(true); 
             }
-
-            const str:String = "Redo " + undoIndex + " / " + (undoData.length-1);
+            
         }
 
         private function setUndoButton():void
         {
-            --undoIndex;
-
+            undoIndex--;
             if(undoIndex < 0)
             {
                 undoIndex = 0;
+                if(getTimer() - isDeepUndoONDelayTime > 200 && rFileTotalFrame > 0)
+                {
+                    isDeepUndoON = true;
+                    setReplayUI(true);
+                }
             }
             else
             {
@@ -12159,8 +12261,6 @@
                 addUndoMode = 0;
                 drawUndoData(false);
             }
-
-            const str:String = "Undo " + undoIndex + " / " + (undoData.length-1);
         }
 
         private function forceUndoAndDeleteFrontData(index:int):void
@@ -12212,7 +12312,7 @@
                     rDataFrame.splice(startIndex);
                 }
 
-                if(undoData.length >= 6) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
+                if(undoData.length >= 4) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
                 {
                     var pushReady:Array = rData[0];
 
@@ -13202,6 +13302,8 @@
 
         private function keyDownReplayModeEvent(e:KeyboardEvent):void//keydown2
         {
+            if(clickBlockFlag) return;
+
             const keyCode:uint = e.keyCode;
 
             if(e.shiftKey === true) //자툴이 있기 때문에 아래 return 해주지 않음
@@ -13565,7 +13667,7 @@
             return function(keyCode:int):void
             {
                 nowKey = keyCode;
-                
+
                 switch (keyCode)
                 {
                     case gKey.q:
@@ -14043,8 +14145,6 @@
         {
             if(nowKey !== 0) return true;
 
-            const _toolBox:toolButtons = toolBox;
-
             if(lassoToolON === false)
             {
                 stage.addEventListener(MouseEvent.MOUSE_UP,checkToolBoxButtonUpEvent);
@@ -14062,8 +14162,8 @@
                 case "zoomInButton":
                 case "zoomOutButton":
                 {
-                    toolBoxAlwaysClickTool = targetName;
-                    setTopChildIndex(_toolBox);
+                    toolBoxClickedTarget = targetName;
+                    setTopChildIndex(toolBox);
                 }
                 return true;
 
@@ -14082,8 +14182,8 @@
                 case "toolTrace":
                 case "toolBoxBG":
                 {
-                    setTopChildIndex(_toolBox);
-                    toolBoxAlwaysClickTool = targetName;
+                    setTopChildIndex(toolBox);
+                    toolBoxClickedTarget = targetName;
                     return true;
                 }
 
@@ -14129,6 +14229,41 @@
             controlKeyON = false;
         }
 
+        private function setDeepUndoUI(flag:Boolean):void
+        {
+            if(flag)
+            {
+                sideBar.visible = true;
+                toolBox.deepUndoIconON();
+                replayTimeBox.setTimeBarOnly(true);
+                updateReplayBarPos(stage.stageWidth,stage.stageHeight);
+                controlBox.alpha = BUTTON_OFF_ALPHA;
+                pickerBox.alpha = BUTTON_OFF_ALPHA;
+                previewBox.alpha = BUTTON_OFF_ALPHA;
+                appInfoBox.alpha = BUTTON_OFF_ALPHA;
+                addDeepUndoEvent();
+
+                const z:Number = 1/zoomed;
+
+                rCursor.scaleX = z;
+                rCursor.scaleY = z;
+            }
+            else
+            {
+                if(!isSidebarVisible)
+                {
+                    sideBar.visible = false;
+                }
+                replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
+                toolBox.deepUndoIconOFF();
+                controlBox.alpha = 1.0;
+                pickerBox.alpha = 1.0;
+                previewBox.alpha = 1.0;
+                appInfoBox.alpha = 1.0;
+                removeDeepUndoEvent();
+            }
+        }
+
         private function setReplayUI(flag:Boolean):void
         {
             const iFlag:Boolean = !flag;
@@ -14148,11 +14283,16 @@
             resetCutFrameClickCounter();
             topBar.hintOFF();
             resetKeyBuffer();
-
+            
             if(iFlag) //리플레이 꺼줄때
             {
-                clearDataButtonCount = 0;
+                if(isDeepUndoON)
+                {
+                    setDeepUndoUI(false);
+                    isDeepUndoON = false;
+                }
 
+                clearDataButtonCount = 0;
                 if(isSidebarVisible === true) sideBar.visible = true;
                 if(replayStartON === true) stopReplay();
 
@@ -14175,7 +14315,6 @@
             }
             else if(flag) //리플레이 켜줄때
             {
-                sideBar.visible = false;
                 rCursor.visible = false;
                 setTopChildIndex(rCursor);
                 removeMainEvent();
@@ -14185,11 +14324,11 @@
 
                 //frame sum이 재계산된 maxframe을 넘어가면 리플레이 프레임이 넘어가기 때문에 끝난거임
                 //그래서 캔버스 복사해주고 리플레이를 리셋해줌
-                if(rSkipImageInit === 0)
+                if(rSkipImageInit === 0 || isDeepUndoON)
                 {
                     const _rregPoint:Sprite = rregPoint;
                     
-                    if(CANVAS_WIDTH === RCANVAS_WIDTH && CANVAS_HEIGHT === RCANVAS_HEIGHT)
+                    if(isDeepUndoON || CANVAS_WIDTH === RCANVAS_WIDTH && CANVAS_HEIGHT === RCANVAS_HEIGHT)
                     {
                         const _regPoint:Sprite = regPoint;
                         const _rcanvasPanel:Sprite = rcanvasPanel;
@@ -14224,13 +14363,11 @@
                     traceMenuBox.visible = false;
                 }
 
-                changeTopBarIcons("replay");
-
                 if(rSkipImageInit === 1)
                 {
                     setTimeout(function():void
                     {
-                        makeSkipImage();
+                        makeSkipImage(false);
                     },100);
                 }
                 else if(rSkipImageInit === 0)
@@ -14250,18 +14387,124 @@
                         rcanvas1BitmapData.dispose();
                         rcanvas1BitmapData = canvas1BitmapData.clone();
                         rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-                        setPanelSizeReplayMode(canvas1Bitmap.width,canvas1Bitmap.height);
+                        changeCanvasSizeReplayMode(canvas1Bitmap.width,canvas1Bitmap.height);
                         setBackgroundColor(CANVAS_BG_COLOR,true);
                     }
 
                     checkCanvasPanelPos(flag);
                     addReplayMainEvent();
                 }
+                
+                if(isDeepUndoON) setDeepUndoUI(true);
+                else
+                {
+                    sideBar.visible = false;
+                    changeTopBarIcons("replay");
+                }
+
+            }
+        }
+
+        private function mouseDownDeepUndo(e:MouseEvent):void
+        {
+            if(clickBlockFlag) return;
+
+            const target:DisplayObject = e.target as DisplayObject;
+            const targetName:String = target.name;
+
+            
+            if(targetName && (targetName.indexOf("rcanvas") !== -1 || targetName === "stageBG"))
+            {
+                setHandTool(true);
+                return;
+            }
+
+            switch(targetName)
+            {
+                case "replayNowBar":
+                case "replayTotalBar":
+                case "frameInfo":
+                {
+                    setSkipFrameButton();
+                }
+                break;
+
+                case "toolUndo":
+                {
+                    setSkipOneFrame(true,false,false);
+                }
+                break;
+
+                case "toolRedo":
+                {
+                    setSkipOneFrame(false,false,false);
+                }
+                break;
+
+                case "deepUndoOK":
+                {
+                    doSuperUndo();
+                }
+                break;
+
+                case "deepUndoCancel":
+                {
+                    exitDeepUndoMode();
+                }
+                break;
+            } 
+        }
+
+        private function keyUpDeepUndo(e:KeyboardEvent):void
+        {
+            const keyCode:uint = e.keyCode;
+            if(nowKey === keyCode) nowKey = 0;
+
+            if(e.controlKey === true || keyCode === 25 || keyCode === 17 || controlKeyON) //오른쪽 컨트롤키
+            {
+                controlKeyON = false;
+            }
+        }
+
+        private function keyDownDeepUndo(e:KeyboardEvent):void
+        {
+            if(clickBlockFlag) return;
+
+            const keyCode:uint = e.keyCode;;
+            if(nowKey === keyCode) return;
+
+            nowKey = keyCode;
+
+            if(e.controlKey === true || keyCode === 25 || keyCode === 17 || controlKeyON) //오른쪽 컨트롤키
+            {
+                controlKeyON = true;
+            }
+
+            if(keyCode === gKey.enter)
+            {
+                doSuperUndo();
+            }
+            else if(keyCode === gKey.z || keyCode === gKey.dot)
+            {
+                if(controlKeyON)
+                {
+                    doSuperUndo();
+                }
+                else setSkipOneFrame(true,true,false);
+            }
+            else if(keyCode === gKey.x  || keyCode === gKey.comma)
+            {
+                setSkipOneFrame(false,true,false);
+            }
+            else if(keyCode === gKey.esc)
+            {
+                exitDeepUndoMode();
             }
         }
 
         private function mouseUpReplayModeEvent(e:MouseEvent):void
         {
+            if(clickBlockFlag) return;
             mouseClickON = false;
             stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpReplayModeEvent);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownReplayModeEvent);
@@ -14272,6 +14515,10 @@
             if(mouseClickON || clickBlockFlag)
             {
                 return;
+            }
+            else if(isDeepUndoON)
+            {
+                setReplayUI(false);
             }
 
             mouseClickON = true;
@@ -14336,7 +14583,6 @@
                     setSkipOneFrame(false,false,e.shiftKey);
                 }
                 break;
-
 
                 case "loadButton":
                 case "repLoadButton":
@@ -14820,7 +15066,7 @@
                 {
                     return;
                 }
-                else if(checkToolBoxButtons(targetName)) 
+                else if(target.alpha === 1.0 && checkToolBoxButtons(targetName)) 
                 {
                     return;
                 }
