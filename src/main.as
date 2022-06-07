@@ -2415,7 +2415,9 @@
         {
             if(mouseClickON || mouseDragON || lassoToolON || fillPenStarted) return;
 
-            const targetName:String = e.target.name;
+            const target:DisplayObject = e.target as DisplayObject;
+            if(target.alpha < 1.0) return;
+            const targetName:String = target.name;
             const _tb2:toolButtons2 = toolBox2;
             const toolBox2Flag:Boolean = _tb2.visible;
             var str:String = "";
@@ -4347,6 +4349,7 @@
             stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpDeepUndo);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownDeepUndo);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownDeepUndo);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDeepUndo);
         }
 
         private function addDeepUndoEvent():void
@@ -4355,6 +4358,7 @@
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDeepUndo);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDeepUndo);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDeepUndo);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDeepUndo);
         }
 
         private function addReplayMainEvent():void
@@ -13978,17 +13982,33 @@
                 closeToolBox2();
                 return;
             }
-
+            const target:SimpleButton = e.target as SimpleButton;
+            if(!target || target.alpha < 1.0)
+            {
+                closeToolBox2();
+                return;
+            }
             const targetName:String = e.target.name;
 
             if(targetName !== null && targetName.indexOf("tool") !== -1)
             {
-                const target:SimpleButton = e.target as SimpleButton;
                 updateToolBoxMousePos(target);
             }
 
             switch(targetName)
             {
+                case "deepUndoOK":
+                {
+                    doSuperUndo();
+                }
+                break;
+
+                case "deepUndoCancel":
+                {
+                    exitDeepUndoMode();
+                }
+                break;
+
                 case "toolPen":
                 {
                     selectPenTool();
@@ -14028,10 +14048,22 @@
                 }
                 break;
                 case "toolUndo":
-                    setUndoButton();
+                {
+                    if(isDeepUndoON)
+                    {
+                        skipOneFrame(true,false);
+                    }
+                    else setUndoButton();
+                }
                 break;
                 case "toolRedo":
-                    setRedoButton();
+                {
+                    if(isDeepUndoON)
+                    {
+                        skipOneFrame(false,false);
+                    }
+                    else setRedoButton();
+                }
                 break;
                 case "toolMirror":
                     mirrorCanvas();
@@ -14235,6 +14267,7 @@
             {
                 sideBar.visible = true;
                 toolBox.deepUndoIconON();
+                toolBox2.deepUndoIconON();
                 replayTimeBox.setTimeBarOnly(true);
                 updateReplayBarPos(stage.stageWidth,stage.stageHeight);
                 controlBox.alpha = BUTTON_OFF_ALPHA;
@@ -14256,6 +14289,7 @@
                 }
                 replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
                 toolBox.deepUndoIconOFF();
+                toolBox2.deepUndoIconOFF();
                 controlBox.alpha = 1.0;
                 pickerBox.alpha = 1.0;
                 previewBox.alpha = 1.0;
@@ -14403,6 +14437,12 @@
                 }
 
             }
+        }
+
+        private function rightMouseDownDeepUndo(e:MouseEvent):void
+        {
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,toolBox2MouseUpEvent);
+            openToolBox2();
         }
 
         private function mouseDownDeepUndo(e:MouseEvent):void

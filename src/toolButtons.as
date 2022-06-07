@@ -266,8 +266,10 @@
 
 			addChild(toolInfoBG);
 			setChildIndex(toolInfoBG,0);
-			zoomIconOFF();
-			deepUndoIconOFF();
+			toolZoom.visible = true;
+			toolRotate.visible = true;
+			deepUndoOK.visible = false;
+			deepUndoCancel.visible = false;
 
 			// initPenSizeCursor();
 			toolPen.useHandCursor = false;
