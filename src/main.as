@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.13;
+        private const APP_VERSION:Number = 14.14;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -7413,7 +7413,7 @@
                     {
                         if(rFrame < rFrameArr.length) 
                         {
-                            drawRemainReplayData();
+                            drawRemainReplayData(0);
                         }
                     }
                     else if(rOneSkipFlag !== prev)
@@ -7613,9 +7613,9 @@
         }
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
-        private function drawRemainReplayData():void
+        private function drawRemainReplayData(flag:int=3):void
         {
-            setSkipFrame(rFrameSum+rFrameArr.length-rFrame,3);
+            setSkipFrame(rFrameSum+rFrameArr.length-rFrame,flag);
             rOneSkipFlag = false;
         }
 
@@ -7678,7 +7678,7 @@
                 {
                     if(rFrame < rFrameArr.length) 
                     {
-                        drawRemainReplayData();
+                        drawRemainReplayData(1);
                     }
                 }
 
@@ -7686,19 +7686,22 @@
                 oldFrame = finalFrame;
                 checkBarLimit();
 
-                //skipframe함수 이후에 실행
-                if(!replayStartONSave)
+                if(!isDeepUndoON)
                 {
-                    checkCutFrameButtons();
-                }
-                //재생중에 스킵하고 있었으면 다시 시작
-                if(replayStartONSave && !replayAllEnd)
-                {
-                    startReplay();
-                }
-                else if(replayAllEnd)
-                {
-                    stopReplay();
+                    //skipframe함수 이후에 실행
+                    if(!replayStartONSave)
+                    {
+                        checkCutFrameButtons();
+                    }
+                    //재생중에 스킵하고 있었으면 다시 시작
+                    if(replayStartONSave && !replayAllEnd)
+                    {
+                        startReplay();
+                    }
+                    else if(replayAllEnd)
+                    {
+                        stopReplay();
+                    }
                 }
 
                 stageMouseMoveEvent.remove(replayTimeMouseMoveEvent);
@@ -12307,7 +12310,7 @@
                     rDataFrame.splice(startIndex);
                 }
 
-                if(undoData.length >= 6) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
+                if(undoData.length >= 4) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
                 {
                     var pushReady:Array = rData[0];
 
@@ -12701,6 +12704,11 @@
             toolBox.x = controlBox.x+controlBox.width;
             toolBox.y = controlBox.y+2;
 
+            if(toolBox.getDeafultY() === 0)
+            {
+                toolBox.setDeafultY(toolBox.y);
+            }
+
             sideBarScrollBar.x = _sideBar.w;
             sideBarScrollBar.y = scrollBarMovedY;
 
@@ -12728,10 +12736,10 @@
             const color2:uint = uiColorSet[uiColorIndex][0];
 
             g.clear();
-            // g.lineStyle(1,color1,1.0,true);
-            g.lineStyle(0,0,0);
+            g.lineStyle(1,color1,1.0,true);
+            // g.lineStyle(1,0,0);
             g.beginFill(color2);
-            g.drawRect(0,0,10,height);
+            g.drawRect(0,0,9,height);
             g.endFill();
 
             scrollBarHeight = height;
@@ -12766,7 +12774,7 @@
             sideBar.addChild(sideBarScrollSet);
             sideBar.updateSideBGSize(stage.stageHeight);
             setSideBarLeftPosition();
-            sideBarScrollBar.alpha = 0.7;
+            sideBarScrollBar.alpha = 0.5;
 
             STAGE_TOP_OFFSET = topBar.BARSIZE;
 
@@ -12950,7 +12958,7 @@
                 scrollSetMovedY = newYPos;
             }
             
-            if(sideBarSetHeight < sth)
+            if(sideBarSetHeight < sth || isDeepUndoON)
             {
                 sideBarScrollBar.visible = false;
                 return;
@@ -13042,6 +13050,10 @@
                 sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
                 updateScrollBarHeight(sth);
                 if(isRightSidebar) sideBar.x = stage.stageWidth-sideBar.w;
+                if(isDeepUndoON)
+                {
+                    toolBox.deepUndoTempMoveON();
+                }
                 updatePreviewCursorPos();
 
                 if(fileDragSelectBox.visible === true)
@@ -14257,33 +14269,36 @@
         {
             if(flag)
             {
-                sideBar.visible = true;
+                sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
+                
+                toolBox.deepUndoTempMoveON();
                 toolBox.deepUndoIconON();
                 toolBox2.deepUndoIconON();
                 replayTimeBox.setTimeBarOnly(true);
                 updateReplayBarPos(stage.stageWidth,stage.stageHeight);
-                controlBox.alpha = BUTTON_OFF_ALPHA;
-                pickerBox.alpha = BUTTON_OFF_ALPHA;
-                previewBox.alpha = BUTTON_OFF_ALPHA;
-                appInfoBox.alpha = BUTTON_OFF_ALPHA;
+                controlBox.visible = false;
+                pickerBox.visible = false;
+                previewBox.visible = false;
+                appInfoBox.visible = false;
+                sideBarScrollBar.visible = false;
                 addDeepUndoEvent();
                 updateRCursorScale(zoomed);
                 replayTimeBox["frameInfo"].text = "Super-undo";
             }
             else
             {
-                if(!isSidebarVisible)
-                {
-                    sideBar.visible = false;
-                }
+                sideBar.setTempVisibleOFF(isRightSidebar);
                 replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
+                toolBox.deepUndoTempMoveOFF();
                 toolBox.deepUndoIconOFF();
                 toolBox2.deepUndoIconOFF();
-                controlBox.alpha = 1.0;
-                pickerBox.alpha = 1.0;
-                previewBox.alpha = 1.0;
-                appInfoBox.alpha = 1.0;
+                controlBox.visible = true;
+                pickerBox.visible = true;
+                previewBox.visible = true;
+                appInfoBox.visible = true;
+                sideBarScrollBar.visible = true;
                 removeDeepUndoEvent();
+                updateScrollBarHeight(stage.stageHeight);
             }
         }
 

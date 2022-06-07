@@ -9,6 +9,7 @@
 	import flash.display.Shape;
 	import flash.display.Graphics;
 	import flash.events.MouseEvent;
+	import flash.geom.Point;
 
 	public class toolButtons extends Sprite {
 		public var toolPen:SimpleButton = toolPen;
@@ -37,7 +38,18 @@
 		// public var toolBoxBG2:SimpleButton = toolBoxBG2;
 		public var toolInfo:TextField = toolInfo;
 		public var toolInfoBG:Shape = new Shape();
+		private var deafultY:Number = 0;
 		
+		public function getDeafultY():Number
+		{
+			return deafultY;
+		}
+
+		public function setDeafultY(y:Number):void
+		{
+			deafultY = y;
+		}
+
 		public function isZoomIconON():Boolean
 		{
 			return zoomInButton.visible;
@@ -67,6 +79,25 @@
 			toolLine.alpha = alpha;
 			toolTrace.alpha = alpha;
 			toolZoom.alpha = alpha;
+		}
+
+		public function deepUndoTempMoveOFF():void
+		{
+			y = deafultY;
+		}
+
+		public function deepUndoTempMoveON():void
+		{
+			const bottom:Number = (deepUndoCancel.localToGlobal(new Point(0,0)) as Point).y + deepUndoCancel.height;
+			if(bottom > stage.stageHeight)
+			{
+				y = y-(bottom-stage.stageHeight);
+			}
+			else
+			{
+				y = y-(bottom-stage.stageHeight);
+				if(y > deafultY) deepUndoTempMoveOFF();
+			}
 		}
 
 		public function deepUndoIconON():void

@@ -4,12 +4,32 @@
 	import flash.display.Graphics;
 	import flash.geom.ColorTransform;
 	import flash.display.Shape;
-	import flash.geom.Matrix;
+	import flash.display.DisplayObject;
 
 	public class sidePanel extends Sprite {
 		private const sideBG:Shape = new Shape();
 		public const w:Number = 220;
 		public var h:Number = 220;
+
+		public function setTempVisibleOFF(rightSide:Boolean):void
+		{
+			visible = false;
+
+			if(rightSide)
+				x = stage.stageWidth-w;
+			else
+				x = 0;
+		}
+
+		public function setTempVisibleON(toolBarWidth:Number,rightSide:Boolean):void
+		{
+			if(rightSide)
+				x = x+w-toolBarWidth;
+			else
+				x = -w+toolBarWidth;
+
+			visible = true;
+		}
 
 		public function updateSideBGSize(sth:Number):void
 		{
