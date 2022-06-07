@@ -14473,17 +14473,19 @@
         {
             if(flag)
             {
-                sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
+                if(!sideBar.visible)
+                    sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
+                
                 
                 toolBox.deepUndoTempMoveON();
                 toolBox.deepUndoIconON();
                 toolBox2.deepUndoIconON();
                 replayTimeBox.setTimeBarOnly(true);
                 updateReplayBarPos(stage.stageWidth,stage.stageHeight);
-                controlBox.visible = false;
-                pickerBox.visible = false;
-                previewBox.visible = false;
-                appInfoBox.visible = false;
+                controlBox.alpha = BUTTON_OFF_ALPHA;
+                pickerBox.alpha = BUTTON_OFF_ALPHA;
+                previewBox.alpha = BUTTON_OFF_ALPHA;
+                appInfoBox.alpha = BUTTON_OFF_ALPHA;
                 sideBarScrollBar.visible = false;
                 addDeepUndoEvent();
                 updateRCursorScale(zoomed);
@@ -14492,14 +14494,15 @@
             else
             {
                 sideBar.setTempVisibleOFF(isRightSidebar);
+
                 replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
                 toolBox.deepUndoTempMoveOFF();
                 toolBox.deepUndoIconOFF();
                 toolBox2.deepUndoIconOFF();
-                controlBox.visible = true;
-                pickerBox.visible = true;
-                previewBox.visible = true;
-                appInfoBox.visible = true;
+                controlBox.alpha = 1.0;
+                pickerBox.alpha = 1.0;
+                previewBox.alpha = 1.0;
+                appInfoBox.alpha = 1.0;
                 sideBarScrollBar.visible = true;
                 removeDeepUndoEvent();
                 updateScrollBarHeight(stage.stageHeight);
