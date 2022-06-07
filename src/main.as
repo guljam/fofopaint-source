@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.11;
+        private const APP_VERSION:Number = 14.1;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -1621,7 +1621,7 @@
 
         private function updatePenCursorPositionEvent(e:MouseEvent):void
         {
-            afkONCount = 2;
+            afkONCount = 0;
             if(clickBlockFlag || replayModeON || captureModeON) return;
             updatePenCursorPosition();
         }
@@ -1792,13 +1792,13 @@
                 {
                     gcONCount++;
                 }
-     
-                if(afkONCount === 1)
+
+
+                if(afkONCount === 2)
                 {
-                    afkONCount = 2;
-                    stopWorkingTimer();
+                    afkONCount = 3;
                 }
-                else if(afkONCount < 1)
+                else if(afkONCount < 2)
                 {
                     afkONCount++;
                     APP_RUNNING_TIME += 1000;
@@ -1807,16 +1807,6 @@
             },1000);
         }
 
-        private function workingTimerResumeEvent(e:MouseEvent):void
-        {
-            stageMouseMoveEvent.remove(workingTimerResumeEvent);
-            afkONCount = 0;
-        }
-
-        private function stopWorkingTimer():void
-        {
-            stageMouseMoveEvent.add(workingTimerResumeEvent);
-        }
 
 		private function makeTransBG():void
         {
@@ -3898,8 +3888,6 @@
             if(clickBlockFlag) return;
 
             const keyCode:int = e.keyCode;
-
-            afkONCount = 0;
 
             switch(keyCode)
             {

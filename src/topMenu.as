@@ -312,6 +312,11 @@
 				else sideBarPositionButton2.visible = false;
 				
 				checkSideBarONOFFButton(sidebarVisible,rightSidebar);
+
+				if(updateButton.visible)
+				{
+					aboutButton.visible = false;
+				}
 			}
 		}
 
@@ -496,7 +501,8 @@
 									sideBarOFFButton2,
 									sideBarONButton,
 									sideBarONButton2,
-									aboutButton
+									aboutButton,
+									updateButton
 							  ];
 
 			replayModeButtons = [
