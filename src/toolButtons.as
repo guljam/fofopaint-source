@@ -266,8 +266,9 @@
 
 			addChild(toolInfoBG);
 			setChildIndex(toolInfoBG,0);
-			toolZoom.visible = true;
-			toolRotate.visible = true;
+			
+			zoomInButton.visible = false;
+			zoomOutButton.visible = false;
 			deepUndoOK.visible = false;
 			deepUndoCancel.visible = false;
 

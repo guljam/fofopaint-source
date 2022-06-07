@@ -27,7 +27,6 @@
 				this.x = 0;
 				this.y = 0;
 				tempTotalBarX();
-				frameInfo.text = "Super-undo mode"
 			}
 			else
 			{

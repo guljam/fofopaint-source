@@ -2450,11 +2450,11 @@
                 break;
 
                 case "deepUndoOK":
-                    str = "Undo (enter, ctrl+z, ctrl+.)";
+                    str = "OK (enter, ctrl+z, ctrl+.)";
                 break;
 
                 case "deepUndoCancel":
-                    str = "Redo (esc)";
+                    str = "Cancel (esc)";
                 break;
 
                 case "toolUndo":
@@ -7198,7 +7198,7 @@
         {
             if(isDeepUndoON)
             {
-                replayTimeBox["frameInfo"].text = "Super-undo mode";
+                replayTimeBox["frameInfo"].text = "Super-undo";
             }
             else
             {
@@ -7207,7 +7207,6 @@
                 const namojiTime:String = getReplayTime(rSpeed,totalF-_rFrameSum);
                 replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + namojiTime;
             }
-
         }
 
         private function setReplaySpeedButton():void
@@ -12316,7 +12315,7 @@
                     rDataFrame.splice(startIndex);
                 }
 
-                if(undoData.length >= 4) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
+                if(undoData.length >= 6) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
                 {
                     var pushReady:Array = rData[0];
 
@@ -14280,6 +14279,8 @@
 
                 rCursor.scaleX = z;
                 rCursor.scaleY = z;
+
+                replayTimeBox["frameInfo"].text = "Super-undo";
             }
             else
             {
