@@ -44,7 +44,7 @@
 		public function tempTotalBarX():void
 		{
 			replayTotalBar.x = 5;
-			replayTotalBar.y = 10;
+			replayTotalBar.y = 9;
 			replayDeleteBar.x = replayTotalBar.x;
 			replayDeleteBar.y = replayTotalBar.y;
 			replayNowBar.x = replayTotalBar.x;
