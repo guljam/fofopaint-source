@@ -67,6 +67,11 @@
 		public var replaySpeedBar:SimpleButton = replaySpeedBar;
 		public var replaySpeedSet:Sprite = new Sprite();
 		
+		public function updateButtonVisible(flag:Boolean):void
+		{
+			updateButton.visible = flag;
+			aboutButton.visible = !flag;
+		}
 		public function updateTimerPos(stw:Number):void
 		{
 			const limitX:Number = replaySpeedSet.x+replaySpeedSet.width-10;
@@ -312,11 +317,6 @@
 				else sideBarPositionButton2.visible = false;
 				
 				checkSideBarONOFFButton(sidebarVisible,rightSidebar);
-
-				if(updateButton.visible)
-				{
-					aboutButton.visible = false;
-				}
 			}
 		}
 
@@ -501,8 +501,7 @@
 									sideBarOFFButton2,
 									sideBarONButton,
 									sideBarONButton2,
-									aboutButton,
-									updateButton
+									aboutButton
 							  ];
 
 			replayModeButtons = [

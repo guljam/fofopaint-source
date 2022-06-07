@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.12;
+        private const APP_VERSION:Number = 14.13;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -2519,7 +2519,8 @@
 
             const buttonSetVisible:Function = _tb.buttonSetVisible;
 
-            buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);
+            buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);  
+            _tb.updateButtonVisible(false);
 
             if(mode === "draw")
             {
@@ -2529,6 +2530,10 @@
                 nowToolBackup = TOOL_PEN;
                 nowTool = TOOL_PEN;
                 selectPenTool();
+                if(needUpdate)
+                {
+                    _tb.updateButtonVisible(true);
+                }
             }
             else if(mode === "replay")
             {
@@ -5048,8 +5053,6 @@
                 return;
             }
 
-            topBar.aboutButton.visible = true;
-            topBar.updateButton.visible = false;
             isCheckingUpdate = true;
             clearTimeout(updateRryTimer);
 
@@ -5105,8 +5108,7 @@
                                 fileLoader.removeEventListener(IOErrorEvent.IO_ERROR,downloadFailedEvent);
 
                                 needUpdate = updateFlag;
-                                topBar.aboutButton.visible = false;
-                                topBar.updateButton.visible = true;
+                                topBar.updateButtonVisible(true);
                                 isCheckingUpdate = false;
                             }
 
@@ -5147,8 +5149,6 @@
                         else
                         {
                             isCheckingUpdate = false;
-                            topBar.aboutButton.visible = true;
-                            topBar.updateButton.visible = false;
                             //최신 버전이면 이미 다운로드한 파일 있는지 체크하고 제거
                             if(UPDATE_FILE.exists)
                             {
@@ -13066,14 +13066,8 @@
             }
             else
             {
-                const rz:Number = fz;
-                const rzo:Number = 1/rz;
-                const tCursor:SimpleButton = rCursor;
-
-                rzoomed = rz;
-                tCursor.scaleX = rzo;
-                tCursor.scaleY = rzo;
-
+                updateRCursorScale(fz)
+                rzoomed = fz;
                 xReg = rregPoint;
             }
 
@@ -14253,6 +14247,13 @@
             controlKeyON = false;
         }
 
+        private function updateRCursorScale(zoom:Number):void
+        {
+            const z:Number = 1/zoom;
+            rCursor.scaleX = z;
+            rCursor.scaleY = z;    
+        }
+
         private function setDeepUndoUI(flag:Boolean):void
         {
             if(flag)
@@ -14267,12 +14268,7 @@
                 previewBox.alpha = BUTTON_OFF_ALPHA;
                 appInfoBox.alpha = BUTTON_OFF_ALPHA;
                 addDeepUndoEvent();
-
-                const z:Number = 1/zoomed;
-
-                rCursor.scaleX = z;
-                rCursor.scaleY = z;
-
+                updateRCursorScale(zoomed);
                 replayTimeBox["frameInfo"].text = "Super-undo";
             }
             else
@@ -14385,6 +14381,7 @@
                 updateReplayBarPos(stage.stageWidth,stage.stageHeight);
                 updateReplayCanvasBounds();
                 topBar.resetHintColor();
+                updateRCursorScale(rzoomed);
 
                 if(traceMenuON === true)
                 {
