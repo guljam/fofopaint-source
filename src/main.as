@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.15;
+        private const APP_VERSION:Number = 14.16;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -203,9 +203,7 @@
                     ,toolTipBox:toolTipBoxSet = new toolTipBoxSet()//도움말 버튼
                     ,stageBG:Sprite = new Sprite() //드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
                     ,aboutPanel:aboutBox = new aboutBox()
-                    ,fillPenBox:fillPenButtons = new fillPenButtons()
 
-                    // ,canvasTransBMP:canvasTransPanel = new canvasTransPanel()
                     ,fileDragSelectBox:loadBox = new loadBox()
                     ,controlBox:controlMenu = new controlMenu()
                     ,pickerBox:colorPickerBox = new colorPickerBox()
@@ -214,9 +212,8 @@
                     ,sideBar:sidePanel = new sidePanel()
                     ,sideBarScrollBar:Sprite = new Sprite()
                     ,sideBarScrollSet:Sprite = new Sprite()
-                    // ,consoleBox:consolePanel = new consolePanel()
                     ,transBGBMPD:BitmapData = new BitmapData(16,16,false,0xFFFFFF)
-                     //draw var
+
         private var canvas1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,canvas2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,lassoBMP:Bitmap = new Bitmap()
@@ -735,7 +732,7 @@
 
                 sideBar.visible = true;
             }
-            else if(isDeepUndoON === false)
+            else if(isDeepUndoON === false && fillPenStarted === false)
             {
                 sideBar.visible = false;
 
@@ -886,11 +883,9 @@
                 data.push(cd.mouseX);
                 data.push(cd.mouseY);
 
-                setTopChildIndex(fillPenBox);
-                fillPenBox.visible = true;
+                setFillpenUI(true);
+
                 fillPenStarted = true;
-                toolBox.toolSelectCursor.visible = false;
-                toolBox.alpha = BUTTON_OFF_ALPHA;
 
                 _checkUndoReady();
 
@@ -915,11 +910,9 @@
                 const dataLen:int = data.length;
 
                 g.clear();
+                if(dataLen === 0) return;
                 g.lineStyle(1,xColor);
-                if(finish)
-                {
-                    g.beginFill(xColor);
-                }
+                if(finish) g.beginFill(xColor);
                 g.drawPath(command,data);
                 g.endFill();
 
@@ -941,19 +934,13 @@
                 mouseMoveCount = 0;
                 timer = 0;
                 fillPenStarted = false;
-                fillPenBox.visible = false;
-                toolBox.toolSelectCursor.visible = true;
+                setFillpenUI(false);
                 command.length = 0;
                 data.length = 0;
                 commandUndoIndexArr.length = 0;
                 cd.graphics.clear();
 
-                if(traceMenuON)
-                {
-                    traceMenuBox.visible = true;
-                }
-
-                toolBox.alpha = 1.0;
+                if(traceMenuON) traceMenuBox.visible = true;
             }
 
             function endFillPenOK():void
@@ -1715,13 +1702,9 @@
                     _penSizeCursor.y = my;
 
                     if(_penSizeCursor.width < (8/zoomed) || nowTool === TOOL_FILL_PEN)
-                    {
                         _penSizeCursor.visible = false;
-                    }
                     else
-                    {
                         _penSizeCursor.visible = true;
-                    }
                 }
 
                 if(isSidebarVisible === false)
@@ -2406,7 +2389,7 @@
 
         private function toolBoxHintONEvent(e:MouseEvent):void
         {
-            if(mouseClickON || mouseDragON || lassoToolON || fillPenStarted) return;
+            if(mouseClickON || mouseDragON) return;
 
             const target:DisplayObject = e.target as DisplayObject;
             if(target.alpha < 1.0) return;
@@ -2418,70 +2401,61 @@
             
             switch(targetName)
             {
-                case "toolBoxCloseButton":
-                    str = "Close";
+                case "fillPenOK": str = "OK (q, o, enter, right-click)";
                 break;
 
-                case "toolPen":
-                    str = "Pen (q, o key up) ";
+                case "fillPenCancel": str = "cancel (esc)";
                 break;
 
-                case "toolFillPen":
-                    str = "Fill pen (q, o)";
+                case "fillPenUndo": str = "undo (w, z / i, .)";
                 break;
 
-                case "toolErase":
-                    str = "Eraser (d, j)";
+                case "toolBoxCloseButton": str = "Close";
                 break;
 
-                case "toolLasso":
-                    str = "Lasso (r, y)";
+                case "toolPen": str = "Pen (q, o key up) ";
                 break;
 
-                case "toolSpuit":
-                    str = "Eye dropper (c, m)";
+                case "toolFillPen": str = "Fill pen (q, o)";
                 break;
 
-                case "deepUndoOK":
-                    str = "OK (enter, ctrl+z, ctrl+.)";
+                case "toolErase": str = "Eraser (d, j)";
                 break;
 
-                case "deepUndoCancel":
-                    str = "Cancel (esc)";
+                case "toolLasso": str = "Lasso (r, y)";
                 break;
 
-                case "toolUndo":
-                    str = "Undo (z, .)";
+                case "toolSpuit": str = "Eye dropper (c, m)";
                 break;
 
-                case "toolRedo":
-                    str = "Redo (x, ,)";
+                case "deepUndoOK": str = "OK (enter, ctrl+z, ctrl+.)";
                 break;
 
-                case "toolMirror":
-                    str = "Flip canvas(a, l)";
+                case "deepUndoCancel": str = "Cancel (esc)";
                 break;
 
-                case "toolLine":
-                {
-                    str = "Line (shift)";
-                }
+                case "toolUndo": str = "Undo (z, .)";
                 break;
 
-                case "toolMove":
-                    str = "Move image (e, u)";
+                case "toolRedo": str = "Redo (x, ,)";
                 break;
 
-                case "toolZoom":
-                    if(!toolBox.isZoomIconON()) str = "Zoom (w, i)";
+                case "toolMirror": str = "Flip canvas(a, l)";
                 break;
 
-                case "toolRotate":
-                    str = "Rotate (s, k)";
+                case "toolLine": str = "Line (shift)";
                 break;
 
-                case "toolTrace":
-                    str = "Reference layer (t)";
+                case "toolMove": str = "Move image (e, u)";
+                break;
+
+                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)";
+                break;
+
+                case "toolRotate": str = "Rotate (s, k)";
+                break;
+
+                case "toolTrace": str = "Reference layer (t)";
                 break;
 
                 default:
@@ -3448,10 +3422,10 @@
         private function setUIColorButton():void
         {
             uiColorIndex++;
+
             if(uiColorIndex > uiColorSet.length-1)
-            {
                 uiColorIndex = 0;
-            }
+
             setUIColor(uiColorIndex);
             const uiColorName:String = (uiColorIndex === 0 ) ? "Black"
                 :(uiColorIndex === 1) ?"Dark Gray"
@@ -3485,7 +3459,6 @@
             rotateCursorBox.changeUIColor(base,op);
             fileDragSelectBox.changeUIColor(_arr2);
             replayTimeBox.changeUIColor(base,op,_arr2[4],index);
-            fillPenBox.changeBGColor(_arr2);
             checkClipBoardImage();
             appInfoBox.canvasInfo.textColor = op;
             pickerBox.setRGBInfoColor(getInvertColor(pickerBox.rgbInfoBGColor,1.0
@@ -3541,53 +3514,8 @@
             controlBox.addEventListener(MouseEvent.MOUSE_OVER,controlBoxHintONEvent);
             controlBox.addEventListener(MouseEvent.MOUSE_OUT,controlBoxHintOFFEvent);
 
-            fillPenBox.addEventListener(MouseEvent.MOUSE_OVER,fillPenBoxHintONEvent);
-            fillPenBox.addEventListener(MouseEvent.MOUSE_OUT,fillPenBoxHintOFFEvent);
-
             stage.addEventListener(Event.MOUSE_LEAVE,sideBarVisibleMouseLeaveEvent);
             topBar.addEventListener(MouseEvent.CLICK,topBarClickEvent);
-        }
-
-        private function fillPenBoxHintOFFEvent(e:MouseEvent):void
-        {
-            toolTipBox.visible = false;
-        }
-
-        private function fillPenBoxHintONEvent(e:MouseEvent):void
-        {
-            if(mouseDragON || mouseClickON) return;
-
-            const target:DisplayObject = e.target as DisplayObject;
-            const targetName:String = target.name;
-            var str:String = "";
-
-            switch(targetName)
-            {      
-                case "fillPenOK":
-                {
-                    str = "OK (q, o, enter, right-click)";
-                }
-                break;
-
-                case "fillPenCancel":
-                {
-                    str = "cancel (esc)";
-                }
-                break;
-
-                case "fillPenUndo":
-                {
-                    str = "undo (w, z / i, .)";
-                }
-                break;
-
-                default:
-                    toolTipBox.visible = false;
-                return;
-            }
-
-            setToolTipString(str);
-            toolTipBox.visible = true;
         }
 
         private function setControlBoxInfoOFF():void
@@ -12872,14 +12800,8 @@
             STAGE_RIGHT_OFFSET = _sideBar.w;
             STAGE_LEFT_OFFSET = 0;
 
-            const fillPenIconPos:Point = toolBox.toolFillPen.localToGlobal(new Point(0,0));
-            fillPenBox.x = fillPenIconPos.x-34;
-            fillPenBox.y = fillPenIconPos.y-1;
-
             if(ignoreCanvasMove === false)
-            {
                 regPoint.x -= STAGE_RIGHT_OFFSET;
-            }
 
             topBar.sideBarPositionButton.visible = false;
             topBar.sideBarPositionButton2.visible = true;
@@ -12908,9 +12830,7 @@
             toolBox.y = controlBox.y+2;
 
             if(toolBox.getDeafultY() === 0)
-            {
                 toolBox.setDeafultY(toolBox.y);
-            }
 
             sideBarScrollBar.x = _sideBar.w;
             sideBarScrollBar.y = scrollBarMovedY;
@@ -12919,10 +12839,6 @@
 
             STAGE_LEFT_OFFSET = _sideBar.w;
             STAGE_RIGHT_OFFSET = 0;
-
-            const fillPenIconPos:Point = toolBox.toolFillPen.localToGlobal(new Point(0,0));
-            fillPenBox.x = fillPenIconPos.x;
-            fillPenBox.y = fillPenIconPos.y;
 
             regPoint.x += STAGE_LEFT_OFFSET;
 
@@ -12993,7 +12909,6 @@
             stage.addChild(toolBox2);
             stage.addChild(rotateCursorBox);
             stage.addChild(toolTipBox);
-            stage.addChild(fillPenBox);
             setTopChildIndex(topBar);
         }
 
@@ -13161,7 +13076,7 @@
                 scrollSetMovedY = newYPos;
             }
             
-            if(sideBarSetHeight < sth || isDeepUndoON)
+            if(sideBarSetHeight < sth || isDeepUndoON || fillPenStarted)
             {
                 sideBarScrollBar.visible = false;
                 return;
@@ -13253,10 +13168,8 @@
                 sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
                 updateScrollBarHeight(sth);
                 if(isRightSidebar) sideBar.x = stage.stageWidth-sideBar.w;
-                if(isDeepUndoON)
-                {
-                    toolBox.deepUndoTempMoveON();
-                }
+                if(isDeepUndoON) toolBox.tempVisibleMoveON(true);
+                else if(fillPenStarted) toolBox.tempVisibleMoveON(false);
                 updatePreviewCursorPos();
 
                 if(fileDragSelectBox.visible === true)
@@ -14469,6 +14382,38 @@
             rCursor.scaleY = z;    
         }
 
+        private function setFillpenUI(flag:Boolean):void
+        {
+            if(flag)
+            {
+                if(!sideBar.visible)
+                {
+                    sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
+                }
+                toolBox.fillPenIconON();
+                controlBox.alpha = BUTTON_OFF_ALPHA;
+                pickerBox.alpha = BUTTON_OFF_ALPHA;
+                previewBox.alpha = BUTTON_OFF_ALPHA;
+                appInfoBox.alpha = BUTTON_OFF_ALPHA;
+                sideBarScrollBar.visible = false;
+                toolBox.tempVisibleMoveON(false);
+            }
+            else
+            {
+                if(isSidebarVisible === false)
+                    sideBar.setTempVisibleOFF(isRightSidebar);
+
+                toolBox.fillPenIconOFF();
+                toolBox.tempVisibleMoveOFF();
+                controlBox.alpha = 1.0;
+                pickerBox.alpha = 1.0;
+                previewBox.alpha = 1.0;
+                appInfoBox.alpha = 1.0;
+                updateScrollBarHeight(stage.stageHeight);
+                sideBarScrollBar.visible = true;
+            }
+        }
+
         private function setDeepUndoUI(flag:Boolean):void
         {
             if(flag)
@@ -14476,8 +14421,7 @@
                 if(!sideBar.visible)
                     sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
                 
-                
-                toolBox.deepUndoTempMoveON();
+                toolBox.tempVisibleMoveON(true);
                 toolBox.deepUndoIconON();
                 toolBox2.deepUndoIconON();
                 replayTimeBox.setTimeBarOnly(true);
@@ -14493,19 +14437,20 @@
             }
             else
             {
-                sideBar.setTempVisibleOFF(isRightSidebar);
+                if(isSidebarVisible === false)
+                    sideBar.setTempVisibleOFF(isRightSidebar);
 
                 replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
-                toolBox.deepUndoTempMoveOFF();
+                toolBox.tempVisibleMoveOFF();
                 toolBox.deepUndoIconOFF();
                 toolBox2.deepUndoIconOFF();
                 controlBox.alpha = 1.0;
                 pickerBox.alpha = 1.0;
                 previewBox.alpha = 1.0;
                 appInfoBox.alpha = 1.0;
-                sideBarScrollBar.visible = true;
                 removeDeepUndoEvent();
                 updateScrollBarHeight(stage.stageHeight);
+                sideBarScrollBar.visible = true;
             }
         }
 

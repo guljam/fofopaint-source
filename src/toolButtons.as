@@ -29,6 +29,9 @@
 		public var zoomOutButton:SimpleButton = zoomOutButton;
 		public var deepUndoOK:SimpleButton = deepUndoOK;
 		public var deepUndoCancel:SimpleButton = deepUndoCancel;
+		public var fillPenOK:SimpleButton = fillPenOK;
+		public var fillPenUndo:SimpleButton = fillPenUndo;
+		public var fillPenCancel:SimpleButton = fillPenCancel;
 		public var toolSelectCursor:SimpleButton = toolSelectCursor
 		private var lastTool:String = "toolPen";
 		
@@ -66,6 +69,47 @@
 			}
 		}
 		
+		public function fillPenIconOFF():void
+		{
+			fillPenUndo.visible = false;
+			fillPenCancel.visible = false;
+			fillPenOK.visible = false;
+			toolSelectCursor.visible = false;
+			toolErase.visible = true;
+			toolFillPen.visible = true;
+			toolSpuit.visible = true;
+			toolSelectCursor.visible = true;
+			fillPenEtcIconAlpha(1.0);
+		}
+
+		public function fillPenIconON():void
+		{
+			fillPenUndo.visible = true;
+			fillPenCancel.visible = true;
+			fillPenOK.visible = true;
+			toolSelectCursor.visible = true;
+			toolErase.visible = false;
+			toolFillPen.visible = false;
+			toolSpuit.visible = false;
+			toolSelectCursor.visible = false;
+			fillPenEtcIconAlpha(0.15);
+		}
+
+		public function fillPenEtcIconAlpha(alpha:Number):void
+		{
+			toolPen.alpha = alpha;
+			toolFillPen.alpha = alpha;
+			toolMirror.alpha = alpha;
+			toolLasso.alpha = alpha;
+			toolMove.alpha = alpha;
+			toolRotate.alpha = alpha;
+			toolLine.alpha = alpha;
+			toolTrace.alpha = alpha;
+			toolZoom.alpha = alpha;
+			toolUndo.alpha = alpha;
+			toolRedo.alpha = alpha;
+		}
+
 		public function deepUndoEtcIconAlpha(alpha:Number):void
 		{
 			toolPen.alpha = alpha;
@@ -81,14 +125,16 @@
 			toolZoom.alpha = alpha;
 		}
 
-		public function deepUndoTempMoveOFF():void
+		public function tempVisibleMoveOFF():void
 		{
 			y = deafultY;
 		}
 
-		public function deepUndoTempMoveON():void
+		public function tempVisibleMoveON(deepUndoFlag:Boolean):void
 		{
-			const bottom:Number = (deepUndoCancel.localToGlobal(new Point(0,0)) as Point).y + deepUndoCancel.height;
+			const bottom:Number = (deepUndoFlag) ? (deepUndoCancel.localToGlobal(new Point(0,0)) as Point).y + deepUndoCancel.height
+												: (fillPenCancel.localToGlobal(new Point(0,0)) as Point).y + fillPenCancel.height;
+
 			if(bottom > stage.stageHeight)
 			{
 				y = y-(bottom-stage.stageHeight);
@@ -96,7 +142,7 @@
 			else
 			{
 				y = y-(bottom-stage.stageHeight);
-				if(y > deafultY) deepUndoTempMoveOFF();
+				if(y > deafultY) tempVisibleMoveOFF();
 			}
 		}
 
@@ -195,6 +241,9 @@
 				toolMirror,
 				toolLasso,
 				toolLine,
+				fillPenOK,
+				fillPenCancel,
+				fillPenUndo
 			];
 
 			const base:ColorTransform = new ColorTransform();
@@ -243,6 +292,12 @@
 			deepUndoOK.y = toolMove.y;
 			deepUndoCancel.x = toolPen.x;
 			deepUndoCancel.y = toolPen.y;
+			fillPenOK.x = toolErase.x;
+			fillPenOK.y = toolErase.y;
+			fillPenCancel.x = toolSpuit.x;
+			fillPenCancel.y = toolSpuit.y;
+			fillPenUndo.x = toolFillPen.x;
+			fillPenUndo.y = toolFillPen.y;
 
 			setChildIndex(zoomInButton,numChildren-1);
 			setChildIndex(zoomOutButton,numChildren-1);
@@ -254,17 +309,6 @@
 			//텍스트
 			toolInfo.textColor = arr[2];
 		}
-
-		// public function initPenSizeCursor():void
-		// {
-		// 	const g:Graphics = toolSelectCursor.graphics;
-		// 	const btn:SimpleButton = getChildByName("toolPen") as SimpleButton;
-
-		// 	g.clear();
-		// 	g.lineStyle(1,0xFF6600,1.0,true);
-		// 	g.drawRect(0,0,btn.width,btn.height);
-		// 	addChild(toolSelectCursor);
-		// }
 
 		public function moveToolCursorInit():void
 		{
@@ -302,6 +346,9 @@
 			zoomOutButton.visible = false;
 			deepUndoOK.visible = false;
 			deepUndoCancel.visible = false;
+			fillPenOK.visible = false;
+			fillPenCancel.visible = false;
+			fillPenUndo.visible = false;
 
 			// initPenSizeCursor();
 			toolPen.useHandCursor = false;
