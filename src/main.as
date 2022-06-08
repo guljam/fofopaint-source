@@ -96,6 +96,7 @@
                                         ctrl:17,
                                         shift:16,
                                         space:32,
+                                        backspace:8,
                                         enter:13,
                                         esc:27,
                                         del:46,
@@ -1004,7 +1005,7 @@
                 {
                     endFillPenOK();
                 }
-                else if(keyCode === gKey.esc)
+                else if(keyCode === gKey.esc || keyCode === gKey.backspace)
                 {
                     cancelFillPen();
                 }
@@ -1984,6 +1985,7 @@
                 break;
 
                 case gKey.esc:
+                case gKey.backspace:
                     setLassoCancelButton();
                 break;
             }
@@ -2333,7 +2335,7 @@
             switch(targetName)
             {
                 case "fillPenOK": str = "OK (q, o, enter, right-click)"; break;
-                case "fillPenCancel": str = "cancel (esc)"; break;
+                case "fillPenCancel": str = "cancel (esc, backspace)"; break;
                 case "fillPenUndo": str = "undo (w, z / i, .)"; break;
                 case "toolBoxCloseButton": str = "Close"; break;
                 case "toolPen": str = "Pen (q, o key up) "; break;
@@ -2342,7 +2344,7 @@
                 case "toolLasso": str = "Lasso (r, y)"; break;
                 case "toolSpuit": str = "Eye dropper (c, m)"; break;
                 case "deepUndoOK": str = "OK (enter, ctrl+z, ctrl+.)"; break;
-                case "deepUndoCancel": str = "Cancel (esc)"; break;
+                case "deepUndoCancel": str = "Cancel (esc, backspace)"; break;
                 case "toolUndo": str = "Undo (z, .)"; break;
                 case "toolRedo": str = "Redo (x, ,)"; break;
                 case "toolMirror": str = "Flip canvas(a, l)"; break;
@@ -5672,7 +5674,7 @@
                     break;
 
                     case "clearButton":
-                        str="New file (esc, delete)";
+                        str="New file (esc, backspace, delete)";
                     break;
 
                     case "captureButton":
@@ -5681,7 +5683,7 @@
                     break;
 
                     case "capOff":
-                        str="Exit capture mode (esc)";
+                        str="Exit capture mode (esc, backspace)";
                     break;
 
                     case "capFull":
@@ -8861,7 +8863,7 @@
             {
                 setCaptureTransButton();
             }
-            else if(e.keyCode === gKey.esc)
+            else if(keyCode === gKey.esc || keyCode === gKey.backspace)
             {
                 setCaptureOFFButton(true);
             }
@@ -13152,8 +13154,11 @@
 
             rNowKey = keyCode;
 
+            trace('keyCode',keyCode);
+
             switch(keyCode)
             {
+                case gKey.backspace:
                 case gKey.esc:
                 {
                     if(cutFrameClickedButton > 0)
@@ -13534,6 +13539,7 @@
 
                     case gKey.esc:
                     case gKey.del:
+                    case gKey.backspace:
                     {
                         if(lassoToolON === false && nowTool !== TOOL_SPUIT)
                         {
@@ -14286,7 +14292,7 @@
             {
                 setSkipOneFrame(false,true,false);
             }
-            else if(keyCode === gKey.esc)
+            else if(keyCode === gKey.esc || keyCode === gKey.backspace)
             {
                 exitDeepUndoMode();
             }
