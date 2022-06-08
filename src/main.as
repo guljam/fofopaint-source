@@ -602,6 +602,22 @@
         }
         
         //functions
+
+        private function stageMouseUpEvent(e:MouseEvent):void
+        {
+            const mx:Number = mouseX;
+            const my:Number = mouseY;
+
+            if(mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight)
+            {
+                clearTimeout(sideBarONMouseLeaveTimer);
+                sideBarONMouseLeaveTimer = setTimeout(function():void
+                {
+                    sideBarONMouseLeaveTimer = 0;
+                },1000);
+            }
+        }
+
         private function exitDeepUndoMode():void
         {
             isDeepUndoOFFReady = false;
@@ -3387,6 +3403,9 @@
 
             stage.addEventListener(Event.MOUSE_LEAVE,sideBarVisibleMouseLeaveEvent);
             topBar.addEventListener(MouseEvent.CLICK,topBarClickEvent);
+
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,stageMouseUpEvent,false,-1);
+            stage.addEventListener(MouseEvent.MOUSE_UP,stageMouseUpEvent,false,-1);
         }
 
         private function setControlBoxInfoOFF():void
@@ -14395,19 +14414,6 @@
         private function mouseUpEvent(e:MouseEvent):void //mouseup1
         {
             mouseClickON = false;
-
-            const mx:Number = mouseX;
-            const my:Number = mouseY;
-
-            if(mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight)
-            {
-                clearTimeout(sideBarONMouseLeaveTimer);
-                sideBarONMouseLeaveTimer = setTimeout(function():void
-                {
-                    sideBarONMouseLeaveTimer = 0;
-                },1000);
-            }
-
             if(afterToolOff)//단축키 떼고 마우스 땠을때 원래대로 돌림
             {
                 afterToolOff = false;
@@ -14430,7 +14436,7 @@
                 stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownEvent,false,-1);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rightMouseDownEvent,false,-1);
             }
-            stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpEvent);
         }
 
         private function rightMouseDownReplayModeEvent(e:MouseEvent):void
