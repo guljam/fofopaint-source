@@ -8490,9 +8490,8 @@
 
             if(arrlength > 0 && index !== lastIndex)
             {
-                const temp:int = arr[lastIndex];
-                arr[lastIndex] = arr[index];
-                arr[index] = temp;
+                arr.push(arr[index]);
+                arr.splice(index,1);
             }
         }
 
@@ -11652,6 +11651,7 @@
             //일단 흰색으로 배경 깔아줌
             const spuitCursor:spuitMag = spuitZoomCursor;
             const humaneye:Function = getColorDifferenceForHuman;
+            const floor:Function = Math.floor;
             const _setColorTransform:Function = setColorTransform;
             var canvas1bmp:Bitmap;
             var canvas1bmpd:BitmapData;
@@ -11667,7 +11667,7 @@
 
             function pickColor():uint
             {
-                const rawColorVector:Vector.<uint> = canvas1bmpd.getVector(new Rectangle(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY,1,1));
+                const rawColorVector:Vector.<uint> = canvas1bmpd.getVector(new Rectangle(floor(canvas1Bitmap.mouseX),floor(canvas1Bitmap.mouseY),1,1));
                 const rawColor:uint = (rawColorVector[0] === 0) ? CANVAS_BG_COLOR : 0x00FFFFFF & rawColorVector[0];
                 const nowColor:uint = (canvas1Bitmap.hitTestPoint(mouseX,mouseY))
                                 ? spuitbmpd.getPixel(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY)
