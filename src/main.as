@@ -320,7 +320,7 @@
                     ,lastWindowSize:Point = new Point() //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
         //save load 관련 변수
                     ,saveOneTime:Boolean = false //세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
-                    ,saveFileName:String = "untitled.png"//세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
+                    ,saveFileName:String = getTimeStampSimple()+" "+getRandomString()//세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
                     ,saveFilePath:String = saveFileName//파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
                     ,saveContinue:Boolean = false//한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
                     ,clearDataButtonCount:uint = 0 //리플레이 취소 카운터
@@ -681,7 +681,6 @@
         {
             if(replayModeON || captureModeON || sideBarONMouseLeaveTimer > 0)
             {
-                trace('리턴');
                 return;
             }
 
@@ -5022,8 +5021,7 @@
             resetReplayTime();
             addUndoData();
 
-            const randomStrCount:int = 6+Math.random()*10;
-            const fileName:String = getRandomString(randomStrCount)+".png";
+            const fileName:String = getTimeStampSimple()+" "+getRandomString()+".png";
             const name:String = saveFileName;
             const path:String = saveFilePath;
             const newName:String = name.substr(0,name.lastIndexOf(name))+fileName;
@@ -9158,8 +9156,9 @@
             };
         }
 
-        private function getRandomString(count:int):String
+        private function getRandomString():String
         {
+            var count:int = 6+Math.random()*10;
             const chars:String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             const charsLen:uint = chars.length;
             var randomString:String = "";
