@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.16;
+        private const APP_VERSION:Number = 14.17;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -150,7 +150,6 @@
                     ,CANVAS_MAX_SIZE:int = 2000
                     ,BUTTON_OFF_ALPHA:Number = 0.15
                     ,COLOR_DARK:uint = 0x323232//어두운색
-                    // ,COLOR_MID_DARK:uint = 0x666666//중간 어두운색
                     ,COLOR_MID_DARK:uint = 0x535353//0x5B5B5B//중간 어두운색
                     ,COLOR_MID_BRIGHT:uint = 0xB8B8B8//중간 밝은색
                     ,COLOR_BRIGHT:uint = 0xF0F0F0//0xECEAE7//밝은색
@@ -191,8 +190,8 @@
                     ,penSizePrevCenter:Shape = new Shape() //캔버스 마스크
                     ,penSizeCursor:Shape = new Shape() //펜사이즈 미리 보기
                     ,reiszePreviewRect:Sprite = new Sprite()//캔버스 크기조절 미리보기 그려줌
-                    ,capturePreviewRect:Shape = new Shape()//스크린샷 박스 미리보기 그려줌
-                    ,capturePreviewCursor:Shape = new Shape()//스크린샷 박스 미리보기 그려줌
+                    ,captureAreaRect:Shape = new Shape()//스크린샷 박스 미리보기 그려줌
+                    ,captureCrossCursor:Shape = new Shape()//스크린샷 박스 미리보기 그려줌
                     ,toolBox:toolButtons = new toolButtons()
                     ,toolBox2:toolButtons2 = new toolButtons2()
                     ,rotateCursorBox:rotateCursor = new rotateCursor()//회전이 얼마나 됐는지 표시
@@ -254,7 +253,6 @@
                     ,airBrushON:Boolean = false
                     ,fillPenStarted:Boolean = false //채우기 펜 시작됨
 
-                    // ,penSmoothTimer:uint = 0 //펜 손떨방 타이머 저장소
                     ,eraseOddOffset:Number = 0//지우개 변수
                     ,eraseSize:uint = 12
                     ,eraseSizeIndex:uint = 8
@@ -478,7 +476,6 @@
                     ,setMoveTool:Function = closureMoveTool()
                     ,setSpuitTool:Function = closureSpuitTool()
                     ,setFillPenTool:Object = closureFillPenTool()
-                    ,drawCommand:Object = closureDrawCommand()
                     ,tickDraw:Object = closureTickDraw()
                     ,doDraw:Function = closureDoDraw()
                     ,checkAutoScroll:Object = closureAutoScroll()
@@ -495,13 +492,7 @@
                     ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
                     ,sideBarSetHeight:Number = 730
-        //기타
-                    ,windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
-                    ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
-                    ,penCursorOFFFlag:Boolean = false //펜커서 이게 on되면 안보여줌
-                    ,altCursorON:Boolean = false //키보드로 커서 변경해줄때 마지막 커서 색깔이 뭐였는지 저장
-                    ,keyBufferArr:Array = [] //정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
-                                             
+        //ui 색깔 변수
                     ,uiColorIndex:int = 1
                     ,uiColorSet:Array = [       //주 컬러,        주컬러 반대색, stage배경색, 캔버스 조절 막대 색, 리플레이 완료 막대 색
                                                 [COLOR_DARK,      0xE5E5E5,      0x4B4B4B,    0x676767,            0x74AC74], 
@@ -523,10 +514,16 @@
                                                                         [0x313768,0xD5E9F3],
                                                                         [0xA80515,0xF1D0D0]
                                                                     ]
+        //기타
+                    ,windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
+                    ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
+                    ,penCursorOFFFlag:Boolean = false //펜커서 이게 on되면 안보여줌
+                    ,altCursorON:Boolean = false //키보드로 커서 변경해줄때 마지막 커서 색깔이 뭐였는지 저장
+                    ,keyBufferArr:Array = [] //정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
+                                             
 
                     ,tempDragDropFile:Object = []
                     ,tempCopiedImage:BitmapData
-                    ,selectedNewPenSizeButtonIndex:int = 3
                     ,penSizePrevOFFTimer:int = 0
                     ,eraseMovedButton:SimpleButton = null //툴 선택해줬을때 지우개툴이 이동한 툴을 저장해줌 다시원래대로 복원해주려고
                     ,toolBox2ToolClicked:Boolean = false //툴박스에서 줌 이동 회전툴 클릭해주었을때 올려줌
@@ -568,9 +565,7 @@
             updateColorHistoryList();
             loadAppData(); //이전 세팅 복원
             resetReplayDataFile();
-            checkVersion();
             initPickerBoxInfo(penColor);
-            drawCommand.initTickDraw();
             
             //캔버스 중점으로 옮겨주고, 리사이즈 이벤트 추가
             lastWindowSize.x = stage.nativeWindow.width;
@@ -594,11 +589,14 @@
 
             if(Capabilities.hasIME && IME.enabled) //다른 언어로 하면 자판 안먹어서 그냥 ime자체를안씀
             {
+                IME.compositionAbandoned();
                 IME.enabled = false;
             }
 
+
             startWorkingTimer();
             stageMouseMoveEvent.start();
+            checkVersion();
         }
         
         //functions
@@ -1873,17 +1871,13 @@
             {
                 lastZoomIndex++;
                 if(lastZoomIndex > zoomMax) 
-                {
                     lastZoomIndex = zoomMax;
-                }
             }
             else
             {
                 lastZoomIndex--;
                 if(lastZoomIndex < 0)
-                {
                     lastZoomIndex = 0;
-                }
             }
 
             const newZoom:Number = _zoomArr[lastZoomIndex];
@@ -2252,52 +2246,19 @@
             var str:String = "";
             switch(targetName)
             {
-                case "traceCancelButton":
-                    str = "Close";
-                break;
-
-                case "traceImageButton":
-                    str = "Transfer to ref. layer";
-                break;
-                case "traceLoadButton":
-                    str = "Paste image from file";
-                break;
-
-                case "traceClipButton":
-                    str = "Paste image from clipboard";
-                break;
-
-                case "traceButtonWrapper":
-                    str = "Adjust opacity";
-                break;
-
-                case "traceRotateButton":
-                    str = "Rotate image";
-                break;
-
-                case "traceMoveButton":
-                    str = "Move image";
-                break;
-
-                case "traceResizeButton":
-                    str = "Resize image";
-                break;
-
-                case "traceCancelButton":
-                    str = "Close";
-                break;
-                case "traceMirrorButton":
-                    str = "Flip image";
-                break;
-
+                case "traceCancelButton":str = "Close"; break;
+                case "traceImageButton":str = "Transfer to ref. layer"; break;
+                case "traceLoadButton":str = "Paste image from file"; break;
+                case "traceClipButton":str = "Paste image from clipboard"; break;
+                case "traceButtonWrapper":str = "Adjust opacity"; break;
+                case "traceRotateButton":str = "Rotate image"; break;
+                case "traceMoveButton":str = "Move image"; break;
+                case "traceResizeButton":str = "Resize image"; break;
+                case "traceCancelButton":str = "Close"; break;
+                case "traceMirrorButton":str = "Flip image"; break;
                 case "traceVisibleONButton":
-                case "traceVisibleOFFButton":
-                    str = "Memory training ON/OFF";
-                break;
-
-                case "traceDeleteButton":
-                    str = "Erase reference image";
-                break;
+                case "traceVisibleOFFButton":str = "Memory training ON/OFF"; break;
+                case "traceDeleteButton":str = "Erase reference image"; break;
 
 
                 default:
@@ -2315,45 +2276,16 @@
 
             switch(targetName)
             {
-                case "lassoOK":
-                    str = "OK";
-                break;
-
-                case "lassoCancel":
-                    str = "Cancel";
-                break;
-
-                case "lassoCopy":
-                    str = "Copy image";
-                break;
-
-                case "lassoMove":
-                    str = "Move image";
-                break;
-
-                case "lassoRotate":
-                    str = "Rotate image";
-                break;
-
-                case "lassoCZoom":
-                    str = "Zoom canvas";
-                break;
-
-                case "lassoCRotate":
-                    str = "Rotate Canvas"
-                break;
-                case "lassoCHand":
-                    str = "Move canvas";
-                break;
-
-                case "lassoMirror":
-                    str = "Flip image";
-                break;
-
-                case "lassoResize":
-                    str = "Resize image";
-                break;
-
+                case "lassoOK":str = "OK"; break;
+                case "lassoCancel":str = "Cancel"; break;
+                case "lassoCopy":str = "Copy image"; break;
+                case "lassoMove":str = "Move image"; break;
+                case "lassoRotate":str = "Rotate image"; break;
+                case "lassoCZoom":str = "Zoom canvas"; break;
+                case "lassoCRotate":str = "Rotate Canvas"; break;
+                case "lassoCHand":str = "Move canvas"; break;
+                case "lassoMirror":str = "Flip image"; break;
+                case "lassoResize":str = "Resize image"; break;
                 case "lasso1pxLeft":
                 case "lasso1pxRight":
                 case "lasso1pxUp":
@@ -2361,8 +2293,7 @@
                     str = "Move image 1px"
                 break;
 
-                default:
-                    lassoMenu.lassoInfo.text = "Lasso tool";
+                default: lassoMenu.lassoInfo.text = "Lasso tool";
                 return;
             }
 
@@ -2401,63 +2332,25 @@
             
             switch(targetName)
             {
-                case "fillPenOK": str = "OK (q, o, enter, right-click)";
-                break;
-
-                case "fillPenCancel": str = "cancel (esc)";
-                break;
-
-                case "fillPenUndo": str = "undo (w, z / i, .)";
-                break;
-
-                case "toolBoxCloseButton": str = "Close";
-                break;
-
-                case "toolPen": str = "Pen (q, o key up) ";
-                break;
-
-                case "toolFillPen": str = "Fill pen (q, o)";
-                break;
-
-                case "toolErase": str = "Eraser (d, j)";
-                break;
-
-                case "toolLasso": str = "Lasso (r, y)";
-                break;
-
-                case "toolSpuit": str = "Eye dropper (c, m)";
-                break;
-
-                case "deepUndoOK": str = "OK (enter, ctrl+z, ctrl+.)";
-                break;
-
-                case "deepUndoCancel": str = "Cancel (esc)";
-                break;
-
-                case "toolUndo": str = "Undo (z, .)";
-                break;
-
-                case "toolRedo": str = "Redo (x, ,)";
-                break;
-
-                case "toolMirror": str = "Flip canvas(a, l)";
-                break;
-
-                case "toolLine": str = "Line (shift)";
-                break;
-
-                case "toolMove": str = "Move image (e, u)";
-                break;
-
-                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)";
-                break;
-
-                case "toolRotate": str = "Rotate (s, k)";
-                break;
-
-                case "toolTrace": str = "Reference layer (t)";
-                break;
-
+                case "fillPenOK": str = "OK (q, o, enter, right-click)"; break;
+                case "fillPenCancel": str = "cancel (esc)"; break;
+                case "fillPenUndo": str = "undo (w, z / i, .)"; break;
+                case "toolBoxCloseButton": str = "Close"; break;
+                case "toolPen": str = "Pen (q, o key up) "; break;
+                case "toolFillPen": str = "Fill pen (q, o)"; break;
+                case "toolErase": str = "Eraser (d, j)"; break;
+                case "toolLasso": str = "Lasso (r, y)"; break;
+                case "toolSpuit": str = "Eye dropper (c, m)"; break;
+                case "deepUndoOK": str = "OK (enter, ctrl+z, ctrl+.)"; break;
+                case "deepUndoCancel": str = "Cancel (esc)"; break;
+                case "toolUndo": str = "Undo (z, .)"; break;
+                case "toolRedo": str = "Redo (x, ,)"; break;
+                case "toolMirror": str = "Flip canvas(a, l)"; break;
+                case "toolLine": str = "Line (shift)"; break;
+                case "toolMove": str = "Move image (e, u)"; break;
+                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)"; break;
+                case "toolRotate": str = "Rotate (s, k)"; break;
+                case "toolTrace": str = "Reference layer (t)"; break;
                 default:
                     if(toolBox2Flag === true)
                     {
@@ -3219,25 +3112,13 @@
         {
             var blurSize:Number = size/2;
             
-            if(blurSize <= 2)
-            {
-                blurSize = 2;
-            }
-            if(blurSize > 30)
-            {
-                blurSize = 30;
-            }
+            if(blurSize <= 2) blurSize = 2;
+            else if(blurSize > 30) blurSize = 30;
 
             const blurf:BlurFilter = new BlurFilter(blurSize,blurSize,3);
 
-            if(replayMode)
-            {
-                rcanvas2Draw.filters = [blurf];
-            }
-            else
-            {
-                canvas2Draw.filters = [blurf];
-            }
+            if(replayMode) rcanvas2Draw.filters = [blurf];
+            else canvas2Draw.filters = [blurf];
         }
 
         private function setAirBrushCheckBox(flag:Boolean,penFlag:Boolean):void
@@ -3249,14 +3130,8 @@
             if(flag)
             {
                 var size:uint;
-                if(penFlag)
-                {
-                    size = penSize;
-                }
-                else
-                {
-                    size = eraseSize;
-                }
+                if(penFlag) size = penSize;
+                else size = eraseSize;
 
                 setBlurCanvas2DrawBySize(size,false);
                 _controlBox.blurShapeSetON();
@@ -3272,14 +3147,8 @@
         {
             const penFlag:Boolean = isPenTool();
 
-            if(penFlag)
-            {
-                airBrushON = flag;
-            }
-            else
-            {
-                eraseAirBrushON = flag;
-            }
+            if(penFlag) airBrushON = flag;
+            else eraseAirBrushON = flag;
 
             setAirBrushCheckBox(flag,penFlag);
         }
@@ -3347,14 +3216,8 @@
             _controlBox["subLayerOFFButton"].visible = flag;
             _controlBox["subLayerONButton"].visible = !flag;
 
-            if(subLayerON)
-            {
-                canvasPanel.setChildIndex(canvas1,2);
-            }
-            else
-            {
-                canvasPanel.setChildIndex(canvas2,2);
-            }
+            if(subLayerON) canvasPanel.setChildIndex(canvas1,2);
+            else canvasPanel.setChildIndex(canvas2,2);
         }   
 
         public function setPixelSnap(flag:Boolean):void
@@ -3552,16 +3415,8 @@
 
             switch(targetName)
             {      
-                case "shapeCircle":
-                {
-                    str = "Circle";
-                }
-                break;
-                case "shapeRect":
-                {
-                    str = "Square";
-                }
-                break;
+                case "shapeCircle": str = "Circle"; break;
+                case "shapeRect": str = "Square"; break;
 
                 case "penSmoothSlider":
                 case "penSmoothButton":
@@ -3591,36 +3446,28 @@
                 case "alphaButton1":
                 case "alphaButton2":
                 case "alphaButton3":
-                {   
                     str = getAlphaHint(targetName)+" (g, b)";
-                }
                 break;
 
                 case "pixelSnapButtonWrapper":
                 case "pixelSnapOFFButton":
                 case "pixelSnapONButton":
                 case "pixelSnapText":
-                {   
                     str = "Sharp line (3, 9)";
-                }
                 break;
 
                 case "airBrushWrapper":
                 case "airBrushOFFButton":
                 case "airBrushONButton":
                 case "airBrushText":
-                {   
                     str = "Air brush (4, 0)";
-                }
                 break;
 
                 case "subLayerButtonWrapper":
                 case "subLayerOFFButton":
                 case "subLayerONButton":
                 case "subLayerText":
-                {   
                     str = "Sub layer (5, -)";
-                }
                 break;
             }
 
@@ -4030,14 +3877,8 @@
                 button.x = xpos;
                 penSmoothButtonX = xpos;
 
-                if(value === 0)
-                {
-                    penSmoothValue = 0;
-                }
-                else
-                {
-                    penSmoothValue = maxValue-(value*stepValue);
-                }
+                if(value === 0) penSmoothValue = 0;
+                else penSmoothValue = maxValue-(value*stepValue);
 
                 penSmoothSlideValue = value;
 
@@ -4121,81 +3962,50 @@
         {
             browseWindowON = false;
 
-            capturePreviewCursor.x = 0;
-            capturePreviewCursor.y = 0;
+            captureCrossCursor.x = 0;
+            captureCrossCursor.y = 0;
             rcapturePreviewCursor.x = 0;
             rcapturePreviewCursor.y = 0;
             
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,captureKeydownEvent);
             stage.removeEventListener(KeyboardEvent.KEY_UP,captureKeyUpEvent);
-            if(replayModeON)
-            {
-                setCaptureModeOFF(true,rregPoint,rcanvasPanel,rcapturePreviewRect);
-            }
-            else
-            {
-                setCaptureModeOFF(false,regPoint,canvasPanel,capturePreviewRect);
-            }
 
+            if(replayModeON) setCaptureModeOFF(true,rregPoint,rcanvasPanel,rcapturePreviewRect);
+            else setCaptureModeOFF(false,regPoint,canvasPanel,captureAreaRect);
         }
 
         private function setCaptureOFFButton(shortcut:Boolean):void
         {
-            if(shortcut)
-            {
-                captureModeShortCutOFF = true;
-            }
+            if(shortcut) captureModeShortCutOFF = true; 
             captureOFF();
         }
 
         private function setFullCaptrueButton():void
         {
-            if(replayModeON)
-            {
-                saveCaptureImage(0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height);
-            }
-            else
-            {
-                saveCaptureImage(0,0,canvas1BitmapData.width,canvas1BitmapData.height);
-            }
+            if(replayModeON) saveCaptureImage(0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height);
+            else saveCaptureImage(0,0,canvas1BitmapData.width,canvas1BitmapData.height);
         }
 
         private function setCaptureTransButton():void
         {
             captureTransBGON = !captureTransBGON;
 
-            if(captureTransBGON)
-            {
-                setTransBG(replayModeON);
-            }
-            else
-            {
-                resetTransBG(replayModeON);
-            }
+            if(captureTransBGON) setTransBG(replayModeON);
+            else resetTransBG(replayModeON);
         }
 
         private function setCaptureRotateButton():void
         {
             captureRotated++;
-            if(captureRotated >= 4)
-            {
-                captureRotated = 0;
-            }
-
-            if(toolTipBox.visible === true)
-            {
-                changeToolTipString(drawCaptureArea.getRotatedRectSizeString()+" (Click canvas to save again)")
-
-            }
-
+            if(captureRotated >= 4) captureRotated = 0;
             canvasFitWindow(true);
         }
 
         private function setCaptureCursorON(replayMode:Boolean,zoomed:Number):void
         {
-            const xCapture:Shape = (replayMode) ? rcapturePreviewCursor : capturePreviewCursor;
+            const xCapture:Shape = (replayMode) ? rcapturePreviewCursor : captureCrossCursor;
             const g:Graphics = xCapture.graphics;
-            const cursorSize:Number = 100*zoomed;
+            const cursorSize:Number = 50*zoomed;
 
             xcapturePreviewCursor = xCapture;
 
@@ -4213,10 +4023,8 @@
         //rotate hand zoom에서 쓰임
         private function setResizeButtonVisible(flag:Boolean):void
         {
-            if(flag)
-            {
-                updateResizeButtonPos();
-            }
+            if(flag) updateResizeButtonPos();
+
             resizeButtonR.visible = flag;
             resizeButtonL.visible = flag;
             resizeButtonD.visible = flag;
@@ -4342,7 +4150,7 @@
                     if(toolBox2ON || nowKey !== 0) return;
                     setClearData();
                 }
-                return;
+                break;
 
                 case "replayModeButton": //켬1
                 {
@@ -4351,31 +4159,12 @@
 
                     mouseClickON = false; //리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
                 }
-                return;
-
-                case "drawModeButton": //끔1
-                {
-                    setReplayUI(false);
-                }
                 break;
 
-                case "superUndoButton":
-                {
-                    cutFrameData(0,false);
-                }
-                break;
-
-                case "reRecordingButton":
-                {
-                    cutFrameData(1,false);
-                }
-                break;
-                case "cutPrevDataButton":
-                {
-                    cutFrameData(2,false);
-                }
-                break;
-
+                case "drawModeButton": setReplayUI(false); break;
+                case "superUndoButton":cutFrameData(0,false); break;
+                case "reRecordingButton":cutFrameData(1,false); break;
+                case "cutPrevDataButton":cutFrameData(2,false); break;
             }
         }
 
@@ -4896,25 +4685,11 @@
                     updatePenSizeCursor();
                 break;
 
-                case TOOL_SPUIT:
-                    setSpuitTool();
-                break;
-
-                case TOOL_LASSO:
-                    selectLassoTool();
-                break;
-
-                case TOOL_MOVE:
-                    selectMoveTool();
-                break;
-
-                case TOOL_ROTATE:
-                    selectRotateTool();
-                break;
-
-                case TOOL_ZOOM:
-                    selectZoomTool();
-                break;
+                case TOOL_SPUIT:setSpuitTool(); break;
+                case TOOL_LASSO:selectLassoTool(); break;
+                case TOOL_MOVE:selectMoveTool(); break;
+                case TOOL_ROTATE:selectRotateTool(); break;
+                case TOOL_ZOOM:selectZoomTool(); break;
             }
 
             nowTool = prevTool;
@@ -5118,15 +4893,11 @@
             switch(targetName)
             {
                 case "appResetButton":
-                {
                     checkButtonUp(targetName);
-                }
                 break;
                 
                 case "aboutButton":
-                {
                     closeAboutPanel();
-                }
                 break;
 
                 case "kor":
@@ -5400,31 +5171,22 @@
                         break;
 
                         case "topBarColorButton":
-                        {
                             setUIColorButton();
-                        }
                         break;
 
                         case "gridButton":
-                        {
                             setGridButton();
-                        }
                         break;
 
                         case "aboutButton":
-                        {
                             openAboutPanel();
-                        }
+                        
                         case "replayZoomInButton":
-                        {
                             setZoomInButton(true,true);
-                        }
                         break;
 
                         case "replayZoomOutButton":
-                        {
                             setZoomInButton(false,true);
-                        }
                         break;
                         
                         case "dragDropFileButton":
@@ -5503,15 +5265,11 @@
                         break;
 
                         case "playButton":
-                        {
                             startReplay();
-                        }
                         break;
 
                         case "pauseButton":
-                        {
                             stopReplay();
-                        }
                         break;
 
                         case "lassoOK":
@@ -5818,7 +5576,15 @@
             clearDataButtonCount = 0;
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,topBarHintOFFEvent);
             topBarHintClickEventON = false;
-            topBar.hintOFF();
+            if(captureModeON)
+            {
+                const hint:String = drawCaptureArea.getRotatedRectSizeString();
+                if(hint === "")
+                    topBar.hintOFF();
+                else
+                    topBar.hint(hint+" (Click canvas to save)",topBar.capOff);
+            }
+            else topBar.hintOFF();
         }
         
         private function topBarHintOFFEvent(e:MouseEvent):void
@@ -5863,184 +5629,156 @@
                     }
                     return;
                     case "timer":
-                        str = "Actual working time (click to reset timer)";
+                        str="Actual working time (click to reset timer)";
                     break;
 
                     case "playButton":
-                        str = "Play (enter, space)";
+                        str="Play (enter, space)";
                     break;
 
                     case "pauseButton":
-                        str = "Pause (enter, space)";
+                        str="Pause (enter, space)";
                     break;
 
                     case "replayPrev":
-                        str = "Prev (left, z, .), 1 frame(right-click, shift+click)";
+                        str="Prev (left, z, .), 1 frame(right-click, shift+click)";
                     break;
 
                     case "replayNext":
-                        str = "Next (right, x, ,), 1 frame(right-click, shift+click)";
+                        str="Next (right, x, ,), 1 frame(right-click, shift+click)";
                     break;
+
                     case "replaySpeedBarWrapper":
                     {
-                        if(rSpeedLastStr === "") str = "Change playback speed(up, down / f, v / h, n)";
-                        else str = rSpeedLastStr;
+                        if(rSpeedLastStr === "") str="Change playback speed(up, down / f, v / h, n)";
+                        else str=rSpeedLastStr;
                     }
-                    
                     break;
 
                     case "saveButton":
                     case "repSaveButton":
-                        str = "Save (ctrl+s), As..(right-click, shift+ctrl+s)";
+                        str="Save (ctrl+s), As..(right-click, shift+ctrl+s)";
                     break;
 
                     case "loadButton":
-                        str = "Load (ctrl+o), Load to Reference layer (right-click, ctrl+shift+o)";
+                        str="Load (ctrl+o), Load to Reference layer (right-click, ctrl+shift+o)";
                     break;
                     case "repLoadButton":
-                        str = "Load (ctrl+o)";
+                        str="Load (ctrl+o)";
                     break;
 
                     case "clipButton":
-                        str = "Load clipboard image (ctrl+v)";
+                        str="Load clipboard image (ctrl+v)";
                     break;
 
                     case "clearButton":
-                    {
-                        str = "New file (esc, delete)";
-                    }
+                        str="New file (esc, delete)";
                     break;
 
                     case "captureButton":
                     case "repCaptureButton":
-                        str = "Capture mode (alt+s)";
+                        str="Capture mode (alt+s)";
                     break;
 
                     case "capOff":
-                        str = "Exit capture mode (esc)";
+                        str="Exit capture mode (esc)";
                     break;
 
                     case "capFull":
-                        str = "Save full image (alt+s)";
+                        str="Save full image (alt+s)";
                     break;
 
                     case "capTrans":
-                         str = "Background color ON/OFF (d, j)";
+                        str="Background color ON/OFF (d, j)";
                     break;
 
                     case "capRotate":
-                        str = "Rotate image (s, k)";
+                        str="Rotate image (s, k)";
                     break;
 
                     case "capFlip":
-                        str = "Flip image (a, l)";
+                        str="Flip image (a, l)";
                     break;
 
                     case "superUndoButton":
+                    {
                         if(cutFrameClickCounter === 1 && cutFrameClickedButton === 0)
-                        {
-                            str = "One more click to OK (Red area will be deleted)";
-                        }
+                            str="One more click to OK (Red area will be deleted)";
                         else
-                        {
-                            str = "Super-undo (f5, ctrl+z, ctrl+.)";
-                        }
+                            str="Super-undo (f5, ctrl+z, ctrl+.)";
+                    }
                     break;
 
                     case "reRecordingButton":
+                    {
                         if(cutFrameClickCounter === 1 && cutFrameClickedButton === 1)
-                        {
-                            str = "One more click to OK (Red area will be deleted)";
-                        }
+                            str="One more click to OK (Red area will be deleted)";
                         else
-                        {
-                            str = "Re-recording from this image (f4, ctrl+c, ctrl+,)";
-                        }
+                            str="Re-recording from this image (f4, ctrl+c, ctrl+,)";
+                    }
                     break;
 
                     case "cutPrevDataButton":
+                    {
                         if(cutFrameClickCounter === 1 && cutFrameClickedButton === 2)
-                        {
-                            str = "One more click to OK (Red area will be deleted)";
-                        }
+                            str="One more click to OK (Red area will be deleted)";
                         else
-                        {
-                            str = "Delete front data (c6, ctrl+x, ctrl+m)";   
-                        }
+                            str="Delete front data (c6, ctrl+x, ctrl+m)";   
+                    }
                     break;
 
 
                     case "gridButton":
-                        str = "Grid (f1)";
+                        str="Grid (f1)";
                     break;
 
                     case "sideBarOFFButton":
                     case "sideBarOFFButton2":
-                        str = "Sidebar OFF (tab, \\ )";
+                        str="Sidebar OFF (tab, \\ )";
                     break;
 
                     case "sideBarONButton":
                     case "sideBarONButton2":
-                        str = "Sidebar ON (tab, \\ )";
+                        str="Sidebar ON (tab, \\ )";
                     break;
 
                     case "sideBarPositionButton":
-                        str = "Right sidebar (f2)";
+                        str="Right sidebar (f2)";
                     break;
 
                     case "sideBarPositionButton2":
-                        str = "Left sidebar (f2)";
+                        str="Left sidebar (f2)";
                     break;
 
                     case "topBarColorButton":
-                        str = "Change UI color (f3)";
+                        str="Change UI color (f3)";
                     break;
 
                     case "aboutButton":
-                        str = "About";
+                        str="About";
                     break;
 
                     case "updateButton":
-                        str = "Version " + NEW_VERSION + " released!";
+                        str="Version " + NEW_VERSION + " released!";
                        
                     break;
 
-                    case "drawModeButton":
-                        str = "Draw mode (1, 7)";
-                    break;
-
-                    case "replayModeButton":
-                        str = "Replay mode (2, 8)";
-                    break;
-                    
-                    case "toolBoxONButton":
-                       str = "Tool-box ON/OFF";
-                    break;
-
-                    case "replayZoomInButton":
-                        str = "Zoom in";
-                    break;
-                     case "replayZoomOutButton":
-                        str = "Zoom out";
-                    break;
-
-                    case "replayRotateButton":
-                        str = "Rotate";
-                    break;
+                    case "drawModeButton":str="Draw mode (1, 7)"; break;
+                    case "replayModeButton":str="Replay mode (2, 8)"; break;
+                    case "toolBoxONButton":str="Tool-box ON/OFF"; break;
+                    case "replayZoomInButton":str="Zoom in"; break;
+                    case "replayZoomOutButton":str="Zoom out"; break;
+                    case "replayRotateButton":str="Rotate"; break;
 
                     default:
-                        
                     return;
                 }
                 
                 if(targetName === "replaySpeedBarWrapper")
-                {
                     topBar.hint(str,topBar.replaySpeedSet);
-                }
                 else
-                {
                     topBar.hint(str,e.target as DisplayObject);
-                }
+
                 setTopChildIndex(topBar);
             }
         }
@@ -6056,9 +5794,8 @@
                 fs.close();
 
                 if(rSkipImageFolder.exists)
-                {
                     rSkipImageFolder.deleteDirectory(true);
-                }
+
                 rSkipImageFolder.createDirectory();
                 updateFirstImage(canvas1BitmapData,CANVAS_BG_COLOR);
             }
@@ -6153,15 +5890,8 @@
             var z:Number = stw/w;
             const zh:Number = sth/h;
 
-            if(zh < z)
-            {
-                z = zh;
-            }
-
-            if(z > 1.0)
-            {
-                z = 1.0;
-            }
+            if(zh < z) z = zh;
+            if(z > 1.0) z = 1.0;
 
             if(captureMode)
             {
@@ -6169,23 +5899,17 @@
                 xReg.rotation = 90*_captureRotated;
             }
             else 
-            {
                 xReg.rotation = 0;
-            }
 
             if(replayMode === true && z < 1.0)
-            {
                 replayEndWithcanvasFitWindow = true;
-            }
             
             setZoomCanvas(z,replayMode);
             setCenvasCenterPos(replayMode,captureMode);
             xBitmap.smoothing = true;
 
             if(captureMode)
-            {
                 setCaptureCursorON(replayMode,1/z);
-            }
         }
 
         private function replayCompleteEffect():void
@@ -6371,14 +6095,109 @@
             mirrorBMPD = null;
         }
 
-        private function closureDrawCommand():Object
+        private function closureTickDraw():Object
         {
             const cd2:Graphics = rcanvas2Draw.graphics;
-            var _tickDraw:Object;
+            var lineStyleBackup:Array; //tempdone에서 쓰는 플래그임
+            var index:uint;
+            var data:Array; //데이터 뭉치
+            var d:Array; // 데이터 뭉치안에 데이터 뭉치
+            var rTinyCursorPos:Point = new Point(0,0);
 
-            function initTickDraw():void
+            function updateLineStyleBackup(arr:Array):void
             {
-                _tickDraw = tickDraw;
+                lineStyleBackup = arr;
+            }
+
+            function updateRCursorPos():void
+            {
+                rCursor.x = rTinyCursorPos.x;
+                rCursor.y = rTinyCursorPos.y;
+            }
+
+            function resetgetRCursorPos():void
+            {
+                rTinyCursorPos = new Point(0,0);
+            }
+
+            function setRCursorPos(x:Number,y:Number):void
+            {
+                rTinyCursorPos = new Point(x,y);
+            }
+
+            function getRCursorPos():Point
+            {
+                return rTinyCursorPos;
+            }
+
+            function reset():void
+            {
+                data = [];
+                index = 0;
+            }
+
+            function ready(refData:Array,refIndex:uint=0):void
+            {
+                data = refData;
+                index = refIndex;
+            }
+
+            function getRestDataCount():Number
+            {
+                if(!data) return 0;
+                return data.length-index;
+            }
+
+            function getNextDataCount():Number
+            {
+                if(!data) return 0;
+                return data.length-index+1;
+            }
+
+            function isIndexLessData():Boolean
+            {
+                if(!data) return false;
+                return index < data.length;
+            }
+            function isIndexBiggerData():Boolean
+            {
+                if(!data) return false;
+                return index > data.length-1;
+            }
+
+            function getDataLength():uint
+            {
+                if(!data) return 0;
+                return data.length;
+            }
+
+            function getIndex():uint
+            {
+                return index;
+            }
+
+            function setIndex(newIndex:uint):void
+            {
+                index = newIndex;
+            }
+
+            function getLineStyleAlpha():Number
+            {
+                return lineStyleBackup[0];
+            }
+
+            function getrLineStyleSave():Array
+            {
+                return lineStyleBackup;
+            }
+
+            function drawAll():void
+            {
+                var len:int = data.length;
+                for(var i:int = 0; i < len; i++)
+                {
+                    next();
+                }
             }
 
             function lineStyle(data:Array):void
@@ -6394,7 +6213,7 @@
                 const subLayer:Boolean = data[9] as Boolean;
                 const airBrush:Boolean = data[10] as Boolean;
 
-                _tickDraw.updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup([alpha,blendMode]);
 
                 if((replayStartON && subLayer) !== null)
                     setReplaySubLayer(subLayer);
@@ -6423,8 +6242,9 @@
             {
                 const x:Number = data[1] as Number;
                 const y:Number = data[2] as Number;
+                
                 cd2.lineTo(x,y);
-                _tickDraw.setRCursorPos(x,y);
+                setRCursorPos(x,y);
             }
 
             function sqline(data:Array):void
@@ -6441,7 +6261,7 @@
                 rcanvas2BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
                 cd2.clear();
 
-                _tickDraw.updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup([alpha,blendMode]);
                 rcanvas2.alpha = alpha;
                 cd2.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
                 cd2.drawPath(command, xyData);
@@ -6456,13 +6276,13 @@
                 const xyData:Vector.<Number> = data[5] as Vector.<Number>;
 
                 rcanvas2Draw.filters = [];
-                _tickDraw.updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup([alpha,blendMode]);
                 rcanvas2.alpha = alpha;
                 cd2.clear();
                 cd2.lineStyle(1,color);
                 cd2.beginFill(color);
                 cd2.drawPath(command,xyData);
-                _tickDraw.setRCursorPos(xyData[0],xyData[1]);
+                setRCursorPos(xyData[0],xyData[1]);
             }
 
             function fill2(data:Array):void
@@ -6474,7 +6294,7 @@
                 const len:uint = arr.length;
 
                 rcanvas2Draw.filters = [];
-                _tickDraw.updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup([alpha,blendMode]);
                 rcanvas2.alpha = alpha;
                 cd2.clear();
                 cd2.lineStyle(1,color);
@@ -6489,7 +6309,7 @@
                 }
 
                 cd2.endFill();
-                _tickDraw.setRCursorPos(arr[0],arr[1]);
+                setRCursorPos(arr[0],arr[1]);
             }
 
             function dot(data:Array):void
@@ -6514,7 +6334,7 @@
                 else if(rcanvas2Draw.filters.length > 0)
                     rcanvas2Draw.filters = [];
 
-                _tickDraw.updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup([alpha,blendMode]);
                 rcanvas2.alpha = alpha;
                 cd2.lineStyle(0,0,0);
                 cd2.beginFill(color);
@@ -6522,7 +6342,7 @@
                 if(shape) cd2.drawRect(startX-size/2,startY-size/2,size,size);
                 else cd2.drawCircle(startX,startY,size/2);
                 
-                _tickDraw.setRCursorPos(startX,startY);
+                setRCursorPos(startX,startY);
                 cd2.endFill();
             }
 
@@ -6541,7 +6361,7 @@
                 const airBrush:Boolean = data[11] as Boolean;
 
                 rcanvasPanel.setChildIndex(rcanvas2,1);
-                _tickDraw.updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup([alpha,blendMode]);
                 rcanvas2.alpha = alpha;
 
                 if((replayStartON && subLayer) !== null)
@@ -6555,7 +6375,7 @@
 
                 cd2.moveTo(startX,startY);
                 cd2.lineTo(endX,endY);
-                _tickDraw.setRCursorPos(endX,endY);
+                setRCursorPos(endX,endY);
             }
 
             function move(data:Array):void
@@ -6660,7 +6480,7 @@
             function drawDone(data:Array):void
             {
                 const subLayer:Boolean = data[1] as Boolean;
-                const lineStyleData:Array = _tickDraw.getrLineStyleSave();
+                const lineStyleData:Array = getrLineStyleSave();
                 const canvasAlpha:ColorTransform = new ColorTransform(1,1,1,lineStyleData[0] as Number);
 
                 rcanvas2BitmapData.draw(rcanvas2Draw);
@@ -6695,132 +6515,6 @@
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
             }
 
-            return{
-                initTickDraw:initTickDraw,
-                lineStyle:lineStyle,
-                lineTo:lineTo,
-                sqline:sqline,
-                fill:fill,
-                dot:dot,
-                line:line,
-                move:move,
-                lasso:lasso,
-                mirror:mirror,
-                bgColor:bgColor,
-                canvasSize:canvasSize,
-                tempDone:tempDone,
-                drawDone:drawDone,
-                clear:clear
-            }
-        }
-
-        private function closureTickDraw():Object
-        {
-            const cd2:Graphics = rcanvas2Draw.graphics;
-            const _drawCommand:Object = drawCommand;
-
-            var lineStyleBackup:Array; //tempdone에서 쓰는 플래그임
-            var index:uint;
-            var data:Array;
-            var d:Array;
-            var rTinyCursorPos:Point = new Point(0,0);
-
-            function updateLineStyleBackup(arr:Array):void
-            {
-                lineStyleBackup = arr.concat();
-            }
-
-            function updateRCursorPos():void
-            {
-                rCursor.x = rTinyCursorPos.x;
-                rCursor.y = rTinyCursorPos.y;
-            }
-
-            function resetgetRCursorPos():void
-            {
-                rTinyCursorPos = new Point(0,0);
-            }
-
-            function setRCursorPos(x:Number,y:Number):void
-            {
-                rTinyCursorPos = new Point(x,y);
-            }
-
-            function getRCursorPos():Point
-            {
-                return rTinyCursorPos;
-            }
-
-            function reset():void
-            {
-                data = [];
-                index = 0;
-            }
-
-            function ready(refData:Array,refIndex:uint=0):void
-            {
-                data = refData;
-                index = refIndex;
-            }
-
-            function getRestDataCount():Number
-            {
-                if(!data) return 0;
-                return data.length-index;
-            }
-
-            function getNextDataCount():Number
-            {
-                if(!data) return 0;
-                return data.length-index+1;
-            }
-
-            function isIndexLessData():Boolean
-            {
-                if(!data) return false;
-                return index < data.length;
-            }
-            function isIndexBiggerData():Boolean
-            {
-                if(!data) return false;
-                return index > data.length-1;
-            }
-
-            function getDataLength():uint
-            {
-                if(!data) return 0;
-                return data.length;
-            }
-
-            function getIndex():uint
-            {
-                return index;
-            }
-
-            function setIndex(newIndex:uint):void
-            {
-                index = newIndex;
-            }
-
-            function getLineStyleAlpha():Number
-            {
-                return lineStyleBackup[0];
-            }
-
-            function getrLineStyleSave():Array
-            {
-                return lineStyleBackup;
-            }
-
-            function drawAll():void
-            {
-                var len:int = data.length;
-                for(var i:int = 0; i < len; i++)
-                {
-                    next();
-                }
-            }
-
             function next():void
             {
                 if(!data || data.length === 0) return;
@@ -6830,50 +6524,21 @@
 
                 switch(d[0] as String)
                 {
-                    case "lineStyle": _drawCommand.lineStyle(d);
-                    break;
-
-                    case "lineTo": _drawCommand.lineTo(d);
-                    break;
-
-                    case "sqline": _drawCommand.sqline(d);
-                    break;
-
-                    case "fill": _drawCommand.fill(d);
-                    break;
-
-                    case "fill2": _drawCommand.fill2(d);
-                    break;
-
-                    case "dot": _drawCommand.dot(d);
-                    break;
-
-                    case "line": _drawCommand.line(d);
-                    break;
-
-                    case "move": _drawCommand.move(d);
-                    break;
-
-                    case "lasso": _drawCommand.lasso(d);
-                    break;
-
-                    case "mirror": _drawCommand.mirror();
-                    break;
-
-                    case "bgColor": _drawCommand.bgColor(d);
-                    break;
-
-                    case "canvasSize": _drawCommand.canvasSize(d);
-                    break;
-
-                    case "tempDone": _drawCommand.tempDone(d);
-                    break;
-
-                    case "drawDone": _drawCommand.drawDone(d);
-                    break;
-
-                    case "clear": _drawCommand.clear(d);
-                    break;
+                    case "lineStyle": lineStyle(d); break;
+                    case "lineTo": lineTo(d); break;
+                    case "sqline": sqline(d); break;
+                    case "fill": fill(d); break;
+                    case "fill2": fill2(d); break;
+                    case "dot": dot(d); break;
+                    case "line": line(d); break;
+                    case "move": move(d); break;
+                    case "lasso": lasso(d); break;
+                    case "mirror": mirror(); break;
+                    case "bgColor": bgColor(d); break;
+                    case "canvasSize": canvasSize(d); break;
+                    case "tempDone": tempDone(d); break;
+                    case "drawDone": drawDone(d); break;
+                    case "clear": clear(d); break;
                 }
             }
 
@@ -8018,41 +7683,13 @@
                     setSpuitTool();
                 }
                 break;
-                case "toolUndo":
-                {
-                    setUndoButton();
-                }
-                break;
-                case "toolRedo":
-                {
-                    setRedoButton();
-                }
-                break;
-                case "toolMirror":
-                {
-                    mirrorCanvas();
-                }
-                break;
-                case "toolMove":
-                {
-                    selectMoveTool();
-                }
-                break;
-                case "zoomInButton":
-                {
-                    setZoomInButton(true,false);
-                }
-                break;
-                case "zoomOutButton":
-                {
-                    setZoomInButton(false,false);
-                }
-                break;
-                case "toolZoom":
-                {
-                    toolBox.zoomIconON();
-                }
-                break;
+                case "toolUndo": setUndoButton(); break;
+                case "toolRedo": setRedoButton(); break;
+                case "toolMirror": mirrorCanvas(); break;
+                case "toolMove": selectMoveTool(); break;
+                case "zoomInButton": setZoomInButton(true,false); break;
+                case "zoomOutButton": setZoomInButton(false,false); break;
+                case "toolZoom": toolBox.zoomIconON(); break;
 
                 case "toolTrace":
                 {
@@ -9237,9 +8874,9 @@
                 stageMouseMoveEvent.remove(captureMouseMoveHintEvent);
                 return;
             }
+
             const cursor:Shape = xcapturePreviewCursor;
             const xPanel:Sprite = (replayModeON) ? rcanvasPanel:canvasPanel;
-
             cursor.x = xPanel.mouseX;
             cursor.y = xPanel.mouseY;
         }
@@ -9270,7 +8907,7 @@
             // captureTransBGON = false;
 
             const floor:Function = Math.floor;
-            var xCaptureRect:Shape = capturePreviewRect;
+            var xCaptureRect:Shape = captureAreaRect;
             var xReg:Sprite = regPoint
             var xPanel:Sprite = canvasPanel;
             var xZoomed:Number = zoomed;
@@ -9359,7 +8996,7 @@
             const abs:Function = Math.abs;
             const replayMode:Boolean = replayModeON;
             const scZoomed:Number = captureZoomed;
-
+            const cursor:Shape = captureCrossCursor;
             var mouseMoved:Boolean;
             var xCaptureRect:Shape;
             var xReg:Sprite;
@@ -9385,23 +9022,11 @@
                 var ww:Number = xPanel.mouseX-cx;
                 var hh:Number = xPanel.mouseY-cy;
 
-                if(ww < -cx) 
-                {
-                    ww = -cx;
-                }
-                else if(ww > canvasWidth-cx) 
-                {
-                    ww = canvasWidth-cx;
-                }
+                if(ww < -cx) ww = -cx;
+                else if(ww > canvasWidth-cx) ww = canvasWidth-cx;
 
-                if(hh < -cy) 
-                {
-                    hh = -cy;
-                }
-                else if(hh > canvasHeight-cy) 
-                {
-                    hh = canvasHeight-cy;
-                }
+                if(hh < -cy) hh = -cy;
+                else if(hh > canvasHeight-cy) hh = canvasHeight-cy;
 
                 ww = floor(ww+0.5);
                 hh = floor(hh+0.5);
@@ -9417,17 +9042,18 @@
                     g.clear();
                     g.lineStyle(lineSize,0x0099FF,1.0,true);
                     g.drawRect(cx,cy,ww,hh);
-
-                    setToolTipString(getRotatedRectSizeString());
-                    toolTipBox.visible = true;
+                    topBar.hint(getRotatedRectSizeString(),topBar.capOff);
                     mouseMoved = true;
                 }
             }
 
             function getRotatedRectSizeString():String
             {
-                return (captureRotated === 0 || captureRotated === 2) ? abs(rectW)+" x "+abs(rectH)
-                                                                      : abs(rectH)+" x "+abs(rectW);
+                if(!rectW || !rectH || (rectW < 10 && rectW < 10))
+                    return "";
+                else
+                    return (captureRotated === 0 || captureRotated === 2) ? abs(rectW)+" x "+abs(rectH)
+                                                                          : abs(rectH)+" x "+abs(rectW);
             }
 
             function reset():void
@@ -9469,9 +9095,7 @@
 
                     rectX = cx;
                     rectY = cy;
-                    changeToolTipString(getRotatedRectSizeString()+" (Click canvas to save again)")
-                    
-                    saveCaptureImage(cx,cy,rectW,rectH);
+                    topBar.hint(getRotatedRectSizeString()+" (Click canvas to save)",topBar.capOff);
                 }
                 else if(abs(rectW) > 10 && abs(rectH) > 10)
                 {
@@ -9481,7 +9105,7 @@
                 mouseMoved = false;
             }
 
-            function start (replayMode:Boolean):void
+            function start(replayMode:Boolean):void
             {
                 if(replayMode) //리플레이 변수로 변경
                 {
@@ -9495,7 +9119,7 @@
                 {
                     canvasWidth = CANVAS_WIDTH;
                     canvasHeight = CANVAS_HEIGHT;
-                    xCaptureRect = capturePreviewRect;
+                    xCaptureRect = captureAreaRect;
                     xReg = regPoint;
                     xPanel = canvasPanel;
                 }
@@ -9511,6 +9135,8 @@
 
                 cx = floor(cx);
                 cy = floor(cy);
+
+                xcapturePreviewCursor.visible = false;
 
                 stageMouseMoveEvent.add(captureMouseMove);
                 stage.addEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
@@ -12992,11 +12618,11 @@
 
             reiszePreviewRect.visible = false;
 
-            capturePreviewCursor.visible = false;
-            capturePreviewCursor.blendMode = "difference";
+            captureCrossCursor.visible = false;
+            captureCrossCursor.blendMode = "difference";
 
-            capturePreviewRect.visible = false;
-            capturePreviewRect.blendMode = "difference";
+            captureAreaRect.visible = false;
+            captureAreaRect.blendMode = "difference";
 
             g = _canvasPanel.graphics;
             g.clear();
@@ -13025,8 +12651,8 @@
             _canvasPanel.addChild(canvas2);//판넬에 canvas2추가
             _canvasPanel.addChild(lassoBox);
             _canvasPanel.addChild(canvasGrid);
-            _canvasPanel.addChild(capturePreviewRect);
-            _canvasPanel.addChild(capturePreviewCursor);
+            _canvasPanel.addChild(captureAreaRect);
+            _canvasPanel.addChild(captureCrossCursor);
             _canvasPanel.addChild(canvasPanelMask);//판넬에  마스크 추가
             _canvasPanel.mask = canvasPanelMask;//마스크 해줘서 판 밖으로 선나타나지 않도록함
 
@@ -13539,28 +13165,20 @@
                 break;
 
                 case gKey.f4:
-                {
                     cutFrameData(1,true);
-                }
                 break;
 
                 case gKey.f5:
-                {
                     cutFrameData(0,true);
-                }
                 break;
 
                 case gKey.f6:
-                {
                     cutFrameData(2,true);
-                }
                 break;
 
                 case gKey.n1:
                 case gKey.n7:
-                {
                     setReplayUI(false);
-                }
                 break;
 
                 case gKey.enter:
@@ -13571,13 +13189,9 @@
                         repSpaceKeyON = true;
 
                         if(replayStartON === false)
-                        {
                             startReplay();
-                        }
                         else
-                        {
                             stopReplay();
-                        }
                     }
                 }
                 break;
@@ -13590,17 +13204,11 @@
 
             rNowKey = 0;
             if(keyCode === gKey.shift && shiftKeyON)
-            {
                 shiftKeyON = false;
-            }
             else if(keyCode === gKey.enter || keyCode === gKey.space)
-            {
                 repSpaceKeyON = false;
-            }
             else if(e.controlKey === true || keyCode ===  gKey.ctrl || keyCode === 25 || keyCode === 17)
-            {
                 controlKeyON = false;
-            }
         }
 
         private function keyUpEvent(e:KeyboardEvent):void //keyup1
@@ -14079,10 +13687,7 @@
                 updateToolBoxMousePos(toolBox2.toolPen);
                 closeToolBox2();
 
-                if(nowTool !== TOOL_HAND)
-                {
-                    nowToolBackup = nowTool;
-                }
+                if(nowTool !== TOOL_HAND) nowToolBackup = nowTool;
                 nowTool = TOOL_HAND;
             }
         }
@@ -14091,12 +13696,15 @@
         private function toolBox2MouseUpEvent(e:MouseEvent):void
         {
             penCursorOFFFlag = false;
+
             if(lassoToolON === true)
             {
                 closeToolBox2();
                 return;
             }
+
             const target:SimpleButton = e.target as SimpleButton;
+
             if(!target || target.alpha < 1.0)
             {
                 closeToolBox2();
@@ -14629,35 +14237,17 @@
                 }
                 break;
 
-                case "toolUndo":
-                {
-                    setSkipOneFrame(true,false,false);
-                }
-                break;
-
-                case "toolRedo":
-                {
-                    setSkipOneFrame(false,false,false);
-                }
-                break;
-
-                case "deepUndoOK":
-                {
-                    doSuperUndo();
-                }
-                break;
-
-                case "deepUndoCancel":
-                {
-                    exitDeepUndoMode();
-                }
-                break;
+                case "toolUndo":setSkipOneFrame(true,false,false); break;
+                case "toolRedo":setSkipOneFrame(false,false,false); break;
+                case "deepUndoOK":doSuperUndo(); break;
+                case "deepUndoCancel":exitDeepUndoMode(); break;
             } 
         }
 
         private function keyUpDeepUndo(e:KeyboardEvent):void
         {
             const keyCode:uint = e.keyCode;
+
             if(nowKey === keyCode) nowKey = 0;
 
             if(e.controlKey === true || keyCode === 25 || keyCode === 17 || controlKeyON) //오른쪽 컨트롤키
@@ -14742,13 +14332,11 @@
             if(targetName && (targetName.indexOf("rcanvas") !== -1 || targetName === "stageBG"))
             {
                 setHandTool(true);
+
                 return;
             }
 
-            if(target.alpha < 1.0)
-            {
-                return;
-            }
+            if(target.alpha < 1.0) return;
 
             switch(targetName)
             {
@@ -14762,7 +14350,7 @@
                 {
                     setReplaySpeedButton();
                 }
-                return;
+                break;
 
                 case "replayNowBar":
                 case "replayTotalBar":
@@ -14813,7 +14401,7 @@
                     if(nowKey !== 0) return;
                     checkButtonUp(targetName);
                 }
-                return;
+                break;
             }
         }
 
@@ -15404,41 +14992,15 @@
 
             switch (nowTool)
             {
-                case TOOL_FILL_PEN:
-                    setFillPenTool.start();
-                break;
-
-                case TOOL_PEN:
-                    setPenTool(true);
-                break;
-
-                case TOOL_ERASE:
-                    setPenTool(false);
-                break;
-
-                case TOOL_LINE:
-                    setLineTool(true);
-                break;
-
-                case TOOL_HAND:
-                    setHandTool();
-                break;
-
-                case TOOL_LASSO:
-                    setLassoTool();
-                break;
-
-                case TOOL_ROTATE:
-                    setRotateTool();
-                break;
-
-                case TOOL_ZOOM:
-                    setZoomTool();
-                break;
-
-                case TOOL_MOVE:
-                    setMoveTool();
-                break;
+                case TOOL_FILL_PEN:setFillPenTool.start();break;
+                case TOOL_PEN:setPenTool(true);break;
+                case TOOL_ERASE:setPenTool(false);break;
+                case TOOL_LINE:setLineTool(true);break;
+                case TOOL_HAND:setHandTool();break;
+                case TOOL_LASSO:setLassoTool();break;
+                case TOOL_ROTATE:setRotateTool();break;
+                case TOOL_ZOOM:setZoomTool();break;
+                case TOOL_MOVE:setMoveTool();break;
             }
         }
     }

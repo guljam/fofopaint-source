@@ -241,6 +241,8 @@
 				topbarInfoBG.width = stage.stageWidth;
 				topbarInfoBG.visible = true;
 				topMenuInfo.visible = true;
+
+				trace('topbarInfoBG.visible',topbarInfoBG.visible);
 			}
 		}
 

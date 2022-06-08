@@ -1817,7 +1817,7 @@ private function setLassoTool():void
                         rcanvas2.alpha = alpha;
                     }
                 }
-                break;
+               break;
 
                 case "lineTo":
                 {
@@ -1830,7 +1830,7 @@ private function setLassoTool():void
 
                     if(lastFlag) rTinyCursorPos = [x,y];
                 }
-                break;
+               break;
 
                 case "sqline":
                 {
@@ -1849,7 +1849,7 @@ private function setLassoTool():void
                     cd2.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
                     cd2.drawPath(d[5] as Vector.<int>, d[6] as Vector.<Number>);
                 }
-                break;
+               break;
 
                 case "fill":
                 {
@@ -1868,7 +1868,7 @@ private function setLassoTool():void
 
                     if(lastFlag) rTinyCursorPos = [d[5][0] as Number,d[5][1] as Number];
                 }
-                break;
+               break;
 
                 case "fill2":
                 {
@@ -1901,7 +1901,7 @@ private function setLassoTool():void
                         rTinyCursorPos = [arr[0] as Number,arr[1] as Number];
                     }
                 }
-                break;
+               break;
 
                 case "dot":
                 {
@@ -1940,7 +1940,7 @@ private function setLassoTool():void
 
                     cd2.endFill();
                 }
-                break;
+               break;
 
                 case "line":
                 {
@@ -1980,7 +1980,7 @@ private function setLassoTool():void
 
                     if(lastFlag) rTinyCursorPos = [d[7],d[8]];
                 }
-                break;
+               break;
 
                 case "move":
                 {
@@ -1988,7 +1988,7 @@ private function setLassoTool():void
                     y = d[2] as Number;
                     replayMoveImage(x,y);
                 }
-                break;
+               break;
 
                 case "lasso":
                 {
@@ -2026,7 +2026,7 @@ private function setLassoTool():void
                     if(!lassoDone)
                     {
                         resetLassoBox2();
-                        break;
+                       break;
                     }
 
                     var posMatrix:Matrix = new Matrix();
@@ -2049,12 +2049,12 @@ private function setLassoTool():void
                     resetLassoBox2();
 
                 }
-                break;
+               break;
 
                 case "mirror":
                 {
                     replayMirrorCanvas();
-                    break;
+                   break;
                 }
                 case "bgColor":
                 {
@@ -2062,7 +2062,7 @@ private function setLassoTool():void
                     rBGColorSave = color;
                     setBackgroundColor(color,true);
                 }
-                break;
+               break;
 
                 case "canvasSize":
                 {
@@ -2073,7 +2073,7 @@ private function setLassoTool():void
                     shape = d[5] as Boolean;
                     setReplayPanelSize(x,y,x2,y2,shape);
                 }
-                break;
+               break;
 
                 case "tempDone":
                 {
@@ -2082,7 +2082,7 @@ private function setLassoTool():void
                     // rcanvas2Bitmap.smoothing = true;
                     cd2.clear();
                 }
-                break;
+               break;
 
                 case "drawDone":
                 {
@@ -2115,7 +2115,7 @@ private function setLassoTool():void
 
                     cd2.clear();
                 }
-                break;
+               break;
 
                 case "clear":
                 {
@@ -2123,7 +2123,7 @@ private function setLassoTool():void
                     rcanvas1BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
                     rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
                 }
-                break;
+               break;
             }
             rFrame++;
         }
@@ -2358,7 +2358,7 @@ private function setLassoTool():void
                                 return;
                             }
 
-                            break;
+                           break;
                         }
 
                         rFrameSumLast = rFrameSum;
@@ -2476,7 +2476,7 @@ private function setLassoTool():void
                         rcanvas2.alpha = alpha;
                     }
                 }
-                break;
+               break;
 
                 case "lineTo":
                 {
@@ -2487,7 +2487,7 @@ private function setLassoTool():void
 
                     if(lastFlag) rTinyCursorPos = [x,y];
                 }
-                break;
+               break;
 
                 case "sqline":
                 {
@@ -2506,7 +2506,7 @@ private function setLassoTool():void
                     cd2.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
                     cd2.drawPath(d[5] as Vector.<int>, d[6] as Vector.<Number>);
                 }
-                break;
+               break;
 
                 case "fill":
                 {
@@ -2525,7 +2525,7 @@ private function setLassoTool():void
 
                     if(lastFlag) rTinyCursorPos = [d[5][0] as Number,d[5][1] as Number];
                 }
-                break;
+               break;
 
                 case "fill2":
                 {
@@ -2558,7 +2558,7 @@ private function setLassoTool():void
                         rTinyCursorPos = [arr[0] as Number,arr[1] as Number];
                     }
                 }
-                break;
+               break;
 
                 case "dot":
                 {
@@ -2597,7 +2597,7 @@ private function setLassoTool():void
 
                     cd2.endFill();
                 }
-                break;
+               break;
 
                 case "line":
                 {
@@ -2637,7 +2637,7 @@ private function setLassoTool():void
 
                     if(lastFlag) rTinyCursorPos = [d[7],d[8]];
                 }
-                break;
+               break;
 
                 case "move":
                 {
@@ -2645,7 +2645,7 @@ private function setLassoTool():void
                     y = d[2] as Number;
                     replayMoveImage(x,y);
                 }
-                break;
+               break;
 
                 case "lasso":
                 {
@@ -2683,7 +2683,7 @@ private function setLassoTool():void
                     if(!lassoDone)
                     {
                         resetLassoBox2();
-                        break;
+                       break;
                     }
 
                     var posMatrix:Matrix = new Matrix();
@@ -2706,12 +2706,12 @@ private function setLassoTool():void
                     resetLassoBox2();
 
                 }
-                break;
+               break;
 
                 case "mirror":
                 {
                     replayMirrorCanvas();
-                    break;
+                   break;
                 }
                 case "bgColor":
                 {
@@ -2719,7 +2719,7 @@ private function setLassoTool():void
                     rBGColorSave = color;
                     setBackgroundColor(color,true);
                 }
-                break;
+               break;
 
                 case "canvasSize":
                 {
@@ -2730,7 +2730,7 @@ private function setLassoTool():void
                     shape = d[5] as Boolean;
                     setReplayPanelSize(x,y,x2,y2,shape);
                 }
-                break;
+               break;
 
                 case "tempDone":
                 {
@@ -2739,7 +2739,7 @@ private function setLassoTool():void
                     // rcanvas2Bitmap.smoothing = true;
                     cd2.clear();
                 }
-                break;
+               break;
 
                 case "drawDone":
                 {
@@ -2772,7 +2772,7 @@ private function setLassoTool():void
 
                     cd2.clear();
                 }
-                break;
+               break;
 
                 case "clear":
                 {
@@ -2780,7 +2780,7 @@ private function setLassoTool():void
                     rcanvas1BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
                     rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
                 }
-                break;
+               break;
             }
             rFrame++;
         }
