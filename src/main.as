@@ -649,7 +649,7 @@
                 }
             }
 
-            function run(e:Event):void
+            function event(e:MouseEvent):void
             {
                 if(moveEventLimit() === true) return;
 
@@ -659,12 +659,14 @@
                 {
                     (arr[i] as Function)(e);
                 }
+
+                if(!replayStartON) e.updateAfterEvent();
             }
 
             function start():void
             {
                 //전역 마우스 move 이벤트
-                stage.addEventListener(MouseEvent.MOUSE_MOVE,run);
+                stage.addEventListener(MouseEvent.MOUSE_MOVE,event);
             }
 
             return {
@@ -11295,50 +11297,9 @@
 
             function pickColor():uint
             {
-                const rawColorVector:Vector.<uint> = canvas1bmpd.getVector(new Rectangle(floor(canvas1Bitmap.mouseX),floor(canvas1Bitmap.mouseY),1,1));
-                const rawColor:uint = (rawColorVector[0] === 0) ? CANVAS_BG_COLOR : 0x00FFFFFF & rawColorVector[0];
-                const nowColor:uint = (canvas1Bitmap.hitTestPoint(mouseX,mouseY))
-                                ? spuitbmpd.getPixel(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY)
-                                : penColorBackup;
-                var closeColorIndex:int = -1;
-                var lastDiffColor:Number = 100.0;
-
-                for(var i:int=colorHistoryLen-1; i>=0; i--)
-                {
-                    const found1:Number = humaneye(_colorHistoryList[i],nowColor);
-                    const found2:Number = humaneye(_colorHistoryList[i],rawColor);
-
-                    if(found1 === 0.0 || found2 === 0.0)
-                    {
-                        closeColorIndex = i;
-                        break;
-                    }
-                    else if(found1 < 2.0 && found1 < lastDiffColor)
-                    {
-                        //눈에 가장 근접한 색으로 설정함
-                        lastDiffColor = found1;
-                        closeColorIndex = i;
-                    }
-
-                    if(found2 < 2.0 && found2 < lastDiffColor)
-                    {
-                        lastDiffColor = found1;
-                        closeColorIndex = i;
-                    }
-                }
-
-                if(closeColorIndex >= 0)
-                {
-                    colorHistoryFindIndex = closeColorIndex;
-                    spuitCursor.setCircleColor(nowColor);
-                    spuitCursor.setCircleVisible(true);
-                }
-                else
-                {
-                    spuitCursor.setCircleVisible(false);
-                }
-                
-                return nowColor;
+                return (canvas1Bitmap.hitTestPoint(mouseX,mouseY)) ?
+                  spuitbmpd.getPixel(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY)
+                : penColorBackup;
             }
 
             //픽커 도중에 오른쪽 클릭하면 캔슬해줌
@@ -11381,15 +11342,15 @@
                 if(okFlag && spuitCursor.visible === true)
                 {
                     const pickedColor:uint = pickColor();
-
+                    const findColor:uint = colorHistoryList.lastIndexOf(pickedColor)
 
                     changedColor = pickedColor; //이 변수는 컬러 히스토리를 선택했을때 선택할 색을 저장하는 변수인데 여기다가도 변경해줘서
                     penColor = pickedColor;
                     updatePickerCurrentColor(pickedColor);
                     setHSVCursorPosByColor(pickedColor);
-                    if(colorHistoryFindIndex !== -1)
+                    if(findColor !== -1)
                     {
-                        setColorHistoryLastColorByIndex(colorHistoryFindIndex);
+                        setColorHistoryLastColorByIndex(findColor);
                         updateColorHistoryList();
                     }
 
@@ -11397,7 +11358,6 @@
                     else if(oldTool === TOOL_FILL_PEN) nowToolBackup = TOOL_FILL_PEN;
                     else nowToolBackup = TOOL_PEN;
                 }
-                spuitCursor.setCircleVisible(false);
                 spuitbmpd.dispose();
                 spuitCursor.visible = false;
                 setPrevTool();
@@ -13153,8 +13113,6 @@
             }
 
             rNowKey = keyCode;
-
-            trace('keyCode',keyCode);
 
             switch(keyCode)
             {
