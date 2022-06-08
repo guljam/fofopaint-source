@@ -545,6 +545,7 @@
                     ,isDeepUndoON:Boolean = false
                     ,isDeepUndoOFFReady:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
+                    ,sideBarONMouseLeaveTimer:int = 0 //마우스 클릭후 바깥으로 나갔을때 사이드바 잠깐 안켜주는 플래그
                     ;
         //vars
 
@@ -678,7 +679,11 @@
 
         private function sideBarVisibleMouseLeaveEvent(e:Event):void
         {
-            if(replayModeON || captureModeON) return;
+            if(replayModeON || captureModeON || sideBarONMouseLeaveTimer > 0)
+            {
+                trace('리턴');
+                return;
+            }
 
             if(!isSidebarVisible && !sideBar.visible)
             {
@@ -1643,7 +1648,7 @@
                     {
                         setSidebarVisible(false,true);
                     }
-                },500);
+                },100);
             }
 
             function sidebarONMouseUpEvent(e:MouseEvent):void
@@ -14372,6 +14377,18 @@
         private function mouseUpEvent(e:MouseEvent):void //mouseup1
         {
             mouseClickON = false;
+
+            const mx:Number = mouseX;
+            const my:Number = mouseY;
+
+            if(mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight)
+            {
+                clearTimeout(sideBarONMouseLeaveTimer);
+                sideBarONMouseLeaveTimer = setTimeout(function():void
+                {
+                    sideBarONMouseLeaveTimer = 0;
+                },1000);
+            }
 
             if(afterToolOff)//단축키 떼고 마우스 땠을때 원래대로 돌림
             {
