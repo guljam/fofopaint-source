@@ -4,7 +4,6 @@
 	import flash.display.Graphics;
 	import flash.geom.ColorTransform;
 	import flash.display.Shape;
-	import flash.display.DisplayObject;
 
 	public class sidePanel extends Sprite {
 		private const sideBG:Shape = new Shape();
