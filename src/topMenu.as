@@ -177,7 +177,7 @@
 			hintTimer2 = setTimeout(function():void
 			{
 				resetHintColor();
-			},4000);
+			},5000);
 		}
 
 		public function hintTimeOff():void

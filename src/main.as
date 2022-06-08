@@ -5666,7 +5666,7 @@
 
                     case "saveButton":
                     case "repSaveButton":
-                        str="Save (ctrl+s), As..(right-click, shift+ctrl+s)";
+                        str="Save (ctrl+s), Save as..(right-click, shift+ctrl+s)";
                     break;
 
                     case "loadButton":
@@ -9202,6 +9202,20 @@
             return newStr;
         }
 
+        private function getTimeStampSimple():String
+        {
+            const date:Date = new Date();
+            const y:Number = date.getFullYear();
+            const m:Number = date.getMonth()+1;
+            const d:Number = date.getDate();
+            const daystr:String = (d < 10) ? "0"+d : ""+d;
+            const monthstr:String = (m < 10) ? "0"+m : ""+m;
+
+            const timeStr:String = "["+y+"_"+monthstr+daystr+"]";
+
+            return timeStr;
+        }
+
         private function getTimeStamp():String
         {
             const date:Date = new Date();
@@ -9223,10 +9237,7 @@
 
         private function saveCaptureImage(cx:Number,cy:Number,rectW:Number,rectH:Number):void
         {
-            if(browseWindowON)
-            {
-                return;
-            }
+            if(browseWindowON) return;
 
             const replayMode:Boolean = replayModeON;
             var name:String = saveFileName;
@@ -9352,6 +9363,32 @@
             }
         }
 
+        private function checkSaveFileName(saveFailed:Boolean):File
+        {
+            const timeStamp:String = getTimeStampSimple();
+            const timeStampPettern:RegExp = /\[\d\d\d\d_\d\d\d\d\]/g;
+            var _path:String = saveFilePath;
+            var _name:String = saveFileName;
+
+            //파일 이름 빼고 경로만 추출
+            const nameStatIndex:int = _path.lastIndexOf(_name);
+            const pathonly:String = _path.substr(0,nameStatIndex);
+            
+            //파일 이름에 시간이 찍혀있으면 이름 그대로 반환하고 없으면 앞에 붙여줌
+            const findTimeStamp:String = timeStampPettern.exec(_name);
+            var fileName:String = (findTimeStamp === null) ? timeStamp+" "+_name : _name;
+            var filePath:String = pathonly+fileName;
+            
+            if(saveFailed)
+            {
+                //파일 쓰기가 실패하면 뒤에 new 붙임
+                filePath = _path.substr(0,_path.lastIndexOf(".png"))+"_new.png";
+                fileName = _name.substr(0,_name.lastIndexOf(".png"))+"_new.png";
+            }
+
+            return (_name !== _path) ? new File(filePath) : File.desktopDirectory.resolvePath(fileName);
+        }
+
         private function saveFile(asFlag:Boolean,saveFailed:Boolean=false):void
         {
             //계속 저장하는거 방지 다른 이름으로 저장은 예외
@@ -9412,28 +9449,10 @@
             }
             else
             {
-                if(browseWindowON)
-                {
-                    return;
-                }
+                if(browseWindowON) return;
 
-                var _path:String = saveFilePath;
-                var _name:String = saveFileName;
-                const firstSaveFlag:Boolean = (_name !== _path);
-
-                if(saveFailed)
-                {
-                    _path = _path.substr(0,_path.lastIndexOf(".png"))+"_new.png";
-                    _name = _name.substr(0,_name.lastIndexOf(".png"))+"_new.png";
-                }
-
-                var file:File = (_name !== _path) ? new File(_path) : File.desktopDirectory.resolvePath(_name);
-                var saveWindowTitle:String = (asFlag === true) ? "Save file As..":"Save file";
-
-                if(saveFailed)
-                {
-                    saveWindowTitle = "Save failed: try saving with a new name ..";
-                }
+                const file:File = checkSaveFileName(saveFailed);
+                const saveWindowTitle:String = (asFlag === true) ? "Save file As..":"Save file";
 
                 file.addEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
                 file.addEventListener(Event.CANCEL, onCancelEvent);
@@ -9815,7 +9834,8 @@
                     toolBoxLastClickPos.x = d["toolBoxLastClickPos.x"];
                     toolBoxLastClickPos.y = d["toolBoxLastClickPos.y"];
                     rFileTotalFrame = d["rFileTotalFrame"];
-                    saveFileName = saveFilePath = d["saveFileName"];
+                    saveFileName = d["saveFileName"];
+                    saveFilePath = d["saveFileName"];
                     colorHistoryList = d["colorHistoryList"] as Array;
                     APP_RUNNING_TIME = d["APP_RUNNING_TIME"];
                     updateWorkingTime();
@@ -9865,6 +9885,8 @@
                     updatePreviewCursorPos();
                     appInfoBox.insertCanvasInfo([null,null,null,regPoint.rotation,null]);
                     updatePenSizeCursor();
+                    updateWindowTitle();
+                    setWindowTitleStar();
                 },150);
             }
             else //복원파일이 없을때
@@ -9885,10 +9907,9 @@
                 updateWindowSizeInfo();
                 appInfoBox.insertCanvasInfo([CANVAS_WIDTH,CANVAS_HEIGHT,zoomed*100,regPoint.rotation]);
                 updatePenSizeCursor();
+                updateWindowTitle();
+                setWindowTitleStar();
             }
-
-            updateWindowTitle();
-            setWindowTitleStar();
         }
 
         //빈 stage공백에 광클하면 쓸데없는 addundo가 되서
@@ -9899,10 +9920,8 @@
             {
                 if(penSizeCursor.hitTestObject(canvas1Bitmap))
                 {
-                    if(readyAddUndo === false)
-                    {
-                        setWindowTitleStar();
-                    }
+                    if(!readyAddUndo) setWindowTitleStar();
+
                     clearButtonClicked = false; //undo추가 예약되어있으면 그때 꺼줌
                     readyAddUndo = true;
                 }
