@@ -6118,7 +6118,12 @@
 
         private function closureTickDraw():Object
         {
-            const cd2:Graphics = rcanvas2Draw.graphics;
+            var cd2:Graphics = rcanvas2Draw.graphics;
+            var bmp1:Bitmap = rcanvas1Bitmap;
+            var bmpd1:BitmapData = rcanvas1BitmapData;
+            var bmp2:Bitmap = rcanvas2Bitmap;
+            var bmpd2:BitmapData = rcanvas2BitmapData;
+
             var lineStyleBackup:Array; //tempdone에서 쓰는 플래그임
             var index:uint;
             var data:Array; //데이터 뭉치
@@ -7327,13 +7332,9 @@
             rFileStream.open(repFile,FileMode.READ);
 
             if(index !== rSkipImageIndexSave)
-            {
                 rDataPreviewCacheImages = [];
-            }
             else if(rDataPreviewCacheImages.length > 0) //프리뷰 썸네일 데이터 있을경우
-            {
                 prevSkipImageIndex = getCacheImageIndex(jumpframe);
-            }
 
             if(index !== rSkipImageIndexSave || prevSkipFlag)
             {
@@ -7409,9 +7410,7 @@
             }
 
             if(isDeepUndoON === false)
-            {
                 checkAutoScroll.check();
-            }
 
             if(tempRedoFlag && rNowFrame >= TOTAL_FRAME)
             {
