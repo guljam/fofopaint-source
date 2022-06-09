@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.17;
+        private const APP_VERSION:Number = 14.18;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -96,6 +96,7 @@
                                         ctrl:17,
                                         shift:16,
                                         space:32,
+                                        backslash:220,
                                         backspace:8,
                                         enter:13,
                                         esc:27,
@@ -123,9 +124,8 @@
                                         f4:115,
                                         f5:116,
                                         f6:117,
-                                        backslash:220
-                                        // f7:118,
-                                        // f8:119,
+                                        f7:118,
+                                        f8:119
                                         // f9:120,
                                         // f10:121,
                                         // f11:122,
@@ -5751,7 +5751,7 @@
 
 
                     case "gridButton":
-                        str="Grid (f1)";
+                        str="Grid (f1, f6)";
                     break;
 
                     case "sideBarOFFButton":
@@ -5765,15 +5765,15 @@
                     break;
 
                     case "sideBarPositionButton":
-                        str="Right sidebar (f2)";
+                        str="Right sidebar (f2, f7)";
                     break;
 
                     case "sideBarPositionButton2":
-                        str="Left sidebar (f2)";
+                        str="Left sidebar (f2, f7)";
                     break;
 
                     case "topBarColorButton":
-                        str="Change UI color (f3)";
+                        str="Change UI color (f3, f8)";
                     break;
 
                     case "aboutButton":
@@ -7086,7 +7086,7 @@
                 if(nowSpeed > max) nowSpeed = max;
 
                 timeStr = getReplayTotalTime(nowSpeed);
-                const finalStr:String = "Playback speed x "+rSpeed+" "+ timeStr;
+                const finalStr:String = "Playback speed x"+rSpeed+" "+ timeStr;
                 topBar.hint(finalStr,topBar.replaySpeedSet);
                 rSpeedLastStr = finalStr;
                 rSpeed = nowSpeed;
@@ -11074,7 +11074,7 @@
 
             //bitmap1canvas에서 그려준 영역을 지워줌
             if(!copyFlag)
-            {
+            {   
                 x = lassoP0[0];
                 y = lassoP0[1];
                 cdg.clear();
@@ -11124,14 +11124,12 @@
                 if(lassoDottedLineCount > lassoDottedLineLimit)
                 {
                     lassoDottedLineCount = 0;
+
                     if(lassoDottedLineColor === 0)
-                    {
                         lassoDottedLineColor = 0xFFFFFF;
-                    }
                     else
-                    {
                         lassoDottedLineColor = 0;
-                    }
+
                     lassog.lineStyle(1,lassoDottedLineColor);
                     lassog.moveTo(lassoDottedLineLastX,lassoDottedLineLastY);
                 }
@@ -11159,13 +11157,9 @@
             lassoBMP.smoothing = true;
 
             if(replayMode)
-            {
                 rcanvas2Draw.filters = canvas2FilterBackUp.concat();
-            }
             else
-            {
                 canvas2Draw.filters = canvas2FilterBackUp.concat();
-            }
 
             return true;
         }
@@ -11218,9 +11212,7 @@
                 setTopChildIndex(_lassoMenu);
 
                 if(traceMenuON === true)
-                {
                     traceMenuBox.visible = false;
-                }
 
                 toolBox.alpha = BUTTON_OFF_ALPHA;
 
@@ -11239,13 +11231,9 @@
                     lassoDottedLineCount = 0;
 
                     if(lassoDottedLineColor === 0)
-                    {
                         lassoDottedLineColor = 0xFFFFFF;
-                    }
                     else
-                    {
                         lassoDottedLineColor = 0;
-                    }
 
                     lassog.lineStyle(1,lassoDottedLineColor);
                     lassog.moveTo(lassoDottedLineLastX,lassoDottedLineLastY);
@@ -11651,7 +11639,6 @@
                     lassoBMP.bitmapData.dispose();
                     lassoBMP.bitmapData = null;
                 }
-
                 resetLassoBox();
             }
 
@@ -13323,16 +13310,16 @@
                 return;
             }
 
-            if(keyCode === gKey.f1)
+            if(keyCode === gKey.f1 || keyCode === gKey.f6)
             {
                 setGridButton();
                 topBar.hintTimeOff();
             }
-            else if(keyCode === gKey.f2)
+            else if(keyCode === gKey.f2 || keyCode === gKey.f7)
             {
                 setSideBarPositionButton();
             }
-            else if(keyCode === gKey.f3)
+            else if(keyCode === gKey.f3 || keyCode === gKey.f8)
             {
                 setUIColorButton();
                 topBar.hintTimeOff();
