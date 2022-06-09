@@ -763,6 +763,7 @@
             {
                 tb.checkSideBarONOFFButton(flag,isRightSidebar);
             }
+            updatePreviewCursorPos();
         }
 
         private function setCurrentColor(mode:uint):void
