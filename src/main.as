@@ -51,7 +51,7 @@
     import flash.net.navigateToURL;
     import flash.net.URLLoaderDataFormat;
     import flash.text.TextField;
-    import flash.filters.BlurFilter; 
+    import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;// ConvolutionFilter가 끝임
 
     public class main extends Sprite
@@ -602,7 +602,6 @@
         }
         
         //functions
-
         private function stageMouseUpEvent(e:MouseEvent):void
         {
             const mx:Number = mouseX;
@@ -2388,7 +2387,6 @@
             {
                 toolBox2.toolInfo.text = str;
                 toolBox2.toolInfo.height = 22.7;
-                toolBox2.toolBoxMoveButton.height = 25;
             }
             else
             {
@@ -14494,7 +14492,8 @@
                 {
                     setFillPenTool.ok();
                 }
-                else if(targetName && (targetName.indexOf("canvas") !== -1 || targetName === "stageBG" || targetName === "canvasGrid"))
+                else if(targetName && (targetName.indexOf("canvas") !== -1 || targetName === "stageBG" || targetName === "canvasGrid")
+                || toolBox2.hitTestPoint(mouseX,mouseY))
                 {
                     openToolBox2();
                 }

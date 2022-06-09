@@ -22,7 +22,6 @@
 		public var toolLine:SimpleButton = toolLine;
 		public var toolTrace:SimpleButton = toolTrace;
 		public var toolZoom:SimpleButton = toolZoom;
-		public var toolBoxMoveButton:SimpleButton = toolBoxMoveButton;
 		public var toolBoxBG:SimpleButton = toolBoxBG;
 		public var toolBoxBG2:SimpleButton = toolBoxBG2;
 		public var deepUndoOK:SimpleButton = deepUndoOK;
@@ -102,7 +101,6 @@
 			//배경
 			toolBoxBG.transform.colorTransform = base;
 			toolBoxBG2.transform.colorTransform = subBase;
-			toolBoxMoveButton.transform.colorTransform = base;
 			var i:uint = 0;
 			var len:uint = leftButtonArr.length;
 			var btn:SimpleButton ;
@@ -155,7 +153,6 @@
 			toolLine.useHandCursor = false;
 			toolTrace.useHandCursor = false;
 			toolZoom.useHandCursor = false;
-			toolBoxMoveButton.useHandCursor = false;
 			toolBoxBG.useHandCursor = false;
 			toolBoxBG2.useHandCursor = false;
 			deepUndoOK.useHandCursor = false;
