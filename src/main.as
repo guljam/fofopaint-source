@@ -1635,6 +1635,7 @@
         private function closureUpdatePenCursorPosition():Function
         {
             const _penSizeCursor:Shape = penSizeCursor;
+            const sideBarVisibleOffset:Number = 20;
             var sidebarOFFTimer:int;
             var sidebarONTimer:int;
             var sidebarTempOFF:Boolean;
@@ -1758,7 +1759,7 @@
                             stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
                         }
                     } //마우스 사이드바 활성 영역으로 들어옴
-                    else if((!isRightSidebar && mx <= 30 || isRightSidebar && mx >= stage.stageWidth-30)
+                    else if((!isRightSidebar && mx <= sideBarVisibleOffset || isRightSidebar && mx >= stage.stageWidth-sideBarVisibleOffset)
                     && my > STAGE_TOP_OFFSET)
                     {
                         if(!mouseClickON && !mouseDragON)
@@ -5430,7 +5431,7 @@
             checkReplaySpeedState();
         }
 
-        private function doSuperUndo():void
+        private function superUndo():void
         {
             controlKeyON = false;
             if(rDataReadFlag === true)
@@ -5576,7 +5577,7 @@
 
                 if(flag === 0) //super undo
                 {
-                    doSuperUndo();
+                    superUndo();
                 }
                 else if(flag === 1) //re-recording
                 {
@@ -11732,13 +11733,9 @@
                     _controlBox.subLayerButtonWrapper.alpha = 1.0;
                                 
                     if(subLayerON)
-                    {
                         canvasPanel.setChildIndex(canvas1,2);
-                    }
                     else
-                    {
                         canvasPanel.setChildIndex(canvas2,2);
-                    }
 
                     setAirBrushCheckBox(airBrushON,true);
                 }
@@ -11771,10 +11768,7 @@
                     }
                     else
                     {
-                        if(eraseMovedButton) 
-                        {
-                            eraseMovedButton.visible = true;
-                        }
+                        if(eraseMovedButton) eraseMovedButton.visible = true;
 
                         eraseMovedButton = null;
 
@@ -13708,7 +13702,7 @@
             {
                 case "deepUndoOK":
                 {
-                    doSuperUndo();
+                    superUndo();
                 }
                 break;
 
@@ -14088,10 +14082,11 @@
                 changePickerModeToNormal();
                 rDataPreviewCacheImages = [];
 
-                if(traceMenuON === true)
-                {
-                    traceMenuBox.visible = true;
-                }
+                nowToolBackup = TOOL_PEN;
+                selectPenTool();
+                updatePenSizeCursor();
+
+                if(traceMenuON === true) traceMenuBox.visible = true;
 
                 changeTopBarIcons("draw");
                 addMainEvent();
@@ -14144,10 +14139,7 @@
                 topBar.resetHintColor();
                 updateRCursorScale(rzoomed);
 
-                if(traceMenuON === true)
-                {
-                    traceMenuBox.visible = false;
-                }
+                if(traceMenuON === true) traceMenuBox.visible = false;
 
                 if(rSkipImageInit === 1)
                 {
@@ -14226,7 +14218,7 @@
 
                 case "toolUndo":setSkipOneFrame(true,false,false); break;
                 case "toolRedo":setSkipOneFrame(false,false,false); break;
-                case "deepUndoOK":doSuperUndo(); break;
+                case "deepUndoOK":superUndo(); break;
                 case "deepUndoCancel":exitDeepUndoMode(); break;
             } 
         }
@@ -14259,13 +14251,13 @@
 
             if(keyCode === gKey.enter)
             {
-                doSuperUndo();
+                superUndo();
             }
             else if(keyCode === gKey.z || keyCode === gKey.dot)
             {
                 if(controlKeyON)
                 {
-                    doSuperUndo();
+                    superUndo();
                 }
                 else setSkipOneFrame(true,true,false);
             }
