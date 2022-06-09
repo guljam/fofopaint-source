@@ -690,7 +690,7 @@
 
         private function sideBarVisibleMouseLeaveEvent(e:Event):void
         {
-            if(replayModeON || captureModeON || sideBarONMouseLeaveTimer > 0)
+            if(replayModeON || captureModeON || sideBarONMouseLeaveTimer > 0 || clickBlockFlag)
             {
                 return;
             }
@@ -1724,7 +1724,7 @@
                         _penSizeCursor.visible = true;
                 }
 
-                if(isSidebarVisible === false)
+                if(isSidebarVisible === false && clickBlockFlag === false)
                 {
                     if(sideBar.visible)
                     {
@@ -13574,6 +13574,8 @@
             afterToolOff = false;
             shiftKeyON = false;
             controlKeyON = false;
+
+            if(!isSidebarVisible) setSidebarVisible(false,true);
 
             if(topBarHintClickEventON)
             {
