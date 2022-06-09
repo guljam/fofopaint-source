@@ -626,7 +626,7 @@
 
         private function closureStageMouseMoveEvent():Object
         {
-            const arr:Vector.<Function> = new Vector.<Function>()
+            const arr:Vector.<Function> = new Vector.<Function>();
             const rand:Function = Math.random;
             var limit:int;
             var lastTime:int = 0;
@@ -670,14 +670,10 @@
             {
                 if(moveEventLimit() === true) return;
 
-                var start:int = arr.length-1;
-
-                for(var i:int = start;i>= 0;i--)
+                for(var i:int = arr.length-1; i>=0; i--)
                 {
                     (arr[i] as Function)(e);
                 }
-
-                if(!replayStartON) e.updateAfterEvent();
             }
 
             function start():void
