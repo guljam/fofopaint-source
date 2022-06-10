@@ -638,6 +638,7 @@
 
             function checkRedo():void
             {
+                trace('undoIndex',undoIndex,'rData.length-1',rData.length-1);
                 if(undoIndex === rData.length-1)
                 {
                     redoButton1.alpha = BUTTON_OFF_ALPHA;
@@ -1845,7 +1846,6 @@
 
                 if(isSidebarVisible === false && clickBlockFlag === false)
                 {
-                    //마우스 사이드바 활성 영역으로 들어옴
                     if((!isRightSidebar && mx <= sideBarVisibleOffset || isRightSidebar && mx >= stage.stageWidth-sideBarVisibleOffset)
                     && my > STAGE_TOP_OFFSET)
                     {
@@ -14117,7 +14117,7 @@
             }
             else
             {
-                if(isSidebarVisible === false && sideBar.hitTestPoint(mouseX,mouseY) === false)
+                if(isSidebarVisible === false)// && sideBar.hitTestPoint(mouseX,mouseY) === false)
                     sideBar.setTempVisibleOFF(isRightSidebar);
 
                 toolBox.fillPenIconOFF();
@@ -14155,7 +14155,7 @@
             }
             else
             {
-                if(isSidebarVisible === false && sideBar.hitTestPoint(mouseX,mouseY) === false)
+                if(isSidebarVisible === false)// && sideBar.hitTestPoint(mouseX,mouseY) === false)
                     sideBar.setTempVisibleOFF(isRightSidebar);
 
                 replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
