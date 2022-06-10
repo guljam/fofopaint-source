@@ -751,7 +751,8 @@
             }
             else if(isDeepUndoON === false && fillPenStarted === false)
             {
-                sideBar.visible = false;
+                // sideBar.visible = false;
+                sideBar.setTempVisibleOFF(isRightSidebar);
 
                 STAGE_RIGHT_OFFSET = 0;
                 STAGE_LEFT_OFFSET = 0;
@@ -7704,8 +7705,8 @@
                     setSpuitTool();
                 }
                 break;
-                case "toolUndo": setUndoButton(); break;
-                case "toolRedo": setRedoButton(); break;
+                case "toolUndo": setUndoButton(false); break;
+                case "toolRedo": setRedoButton(false); break;
                 case "toolMirror": mirrorCanvas(); break;
                 case "toolMove": selectMoveTool(); break;
                 case "zoomInButton": setZoomInButton(true,false); break;
@@ -11960,16 +11961,16 @@
             }
         }
 
-        private function setRedoButton():void
+        private function setRedoButton(useAutoKey:Boolean):void
         {
             redo();
-            checkUndoRedoHoldKey(redo);
+            if(useAutoKey) checkUndoRedoHoldKey(redo);
         }
 
-        private function setUndoButton():void
+        private function setUndoButton(useAutoKey:Boolean):void
         {
             undo();
-            checkUndoRedoHoldKey(undo);
+            if(useAutoKey) checkUndoRedoHoldKey(undo);
         }
 
         private function forceUndoAndDeleteFrontData(index:int):void
@@ -13482,14 +13483,14 @@
                     case gKey.x:
                     case gKey.comma:
                     {
-                        setRedoButton();
+                        setRedoButton(true);
                     }
                     break;
 
                     case gKey.z:
                     case gKey.dot:
                     {
-                        setUndoButton();
+                        setUndoButton(true);
                     }
                     break;
 
@@ -13788,7 +13789,7 @@
                     {
                         skipOneFrame(true,false);
                     }
-                    else setUndoButton();
+                    else setUndoButton(false);
                 }
                 break;
                 case "toolRedo":
@@ -13797,7 +13798,7 @@
                     {
                         skipOneFrame(false,false);
                     }
-                    else setRedoButton();
+                    else setRedoButton(false);
                 }
                 break;
                 case "toolMirror":
@@ -14008,9 +14009,8 @@
             if(flag)
             {
                 if(!sideBar.visible)
-                {
                     sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
-                }
+
                 toolBox.fillPenIconON();
                 controlBox.alpha = BUTTON_OFF_ALPHA;
                 pickerBox.alpha = BUTTON_OFF_ALPHA;
@@ -14021,7 +14021,7 @@
             }
             else
             {
-                if(isSidebarVisible === false)
+                if(isSidebarVisible === false && sideBar.hitTestPoint(mouseX,mouseY) === false)
                     sideBar.setTempVisibleOFF(isRightSidebar);
 
                 toolBox.fillPenIconOFF();
@@ -14058,7 +14058,7 @@
             }
             else
             {
-                if(isSidebarVisible === false)
+                if(isSidebarVisible === false && sideBar.hitTestPoint(mouseX,mouseY) === false)
                     sideBar.setTempVisibleOFF(isRightSidebar);
 
                 replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
