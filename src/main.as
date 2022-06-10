@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.18;
+        private const APP_VERSION:Number = 14.21;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -221,8 +221,9 @@
                     ,controlKeyON:Boolean = false
                     ,appResetFlag:Boolean = false
                     ,repSpaceKeyON:Boolean = false//리플레이 스페이스 키 재생에서 계속누르는거 방지
+                    ,rMirrorON:Boolean = false //대칭 켜지면 올려줌
                     ,mirrorON:Boolean = false //대칭 켜지면 올려줌
-                    ,mirrorPushON:Boolean = false//undo redo하고 있는데 미러가 달라서 mirror draw가 실행 되고 난후에 올려줌
+                    ,mirrorPushReady:Boolean = false//undo redo하고 있는데 미러가 달라서 mirror draw가 실행 되고 난후에 올려줌
                     ,zoomArr:Array = [0.25,0.5,0.75,1.0,2.0,3.0,4.0,6.0,8.0,12.0,16.0,24.0,32.0]
                     ,zoomed:Number = 1.0
                     ,zoomedIndex:int = 3
@@ -280,7 +281,6 @@
                     ,toolBox2ON:Boolean = false //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
 
         //undo 관련변수
-                    ,undoData:Array = [] //undo 이미지 데이터 보관소
                     ,undoIndex:int = 0 //undo redo할때 무슨 이미지인지 알려주는 undoImageData의 포인터 인덱스임
                     ,undoDelFlag:Boolean = false //undo하고 나서 addundo가 되었을때 뒷부분 데이터 전부 날려주는 플래그
                     ,readyAddUndo:Boolean = false //선을 그어줄대 선전체가 캔버스 바깥쪽에 있을수도 있으니까 이걸 판단해줌
@@ -338,8 +338,8 @@
                     ,toolTipBoxTimer:uint = 0
 
         //리플레이 관련 변수
-        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1412.301")
-                    ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata.301")
+        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1421.301")
+                    ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata1.301")
                     ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata.301")
                     ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("temp_repdata.301") //파일을 저장하거나 불러올때 씀
                     ,rSkipImageFolder:File = File.applicationStorageDirectory.resolvePath("skipImages")
@@ -357,7 +357,7 @@
                     ,replayTimeBox:replayTimeBar = new replayTimeBar()
                     ,rcanvas1Bitmap:Bitmap = new Bitmap(rcanvas1BitmapData,"auto",true)
                     ,rcanvas2Bitmap:Bitmap = new Bitmap(rcanvas2BitmapData,"auto",true)
-                    ,IMG_CACHE_INTERVAL:uint = 13000
+                    ,IMG_CACHE_INTERVAL:uint = 10000
                     ,REPLAY_MAX_SPEED:Number = 200
                     ,REPLAY_SPEED_DIST:Number = 180
                     ,rCursor:SimpleButton = new tinyCursor(); //재생할때 틀어주는 작은 마우스
@@ -383,18 +383,17 @@
                     ,rDataReadFlag:Boolean = false //rData에서 frameArr한번만 등록해주는 플래그
                     ,rSpeed:Number = 1 //리플레이 속도 for루프로 2번씩혹은 3번씩 읽히게 만듬
                     ,TOTAL_FRAME:Number = 0//rdata+file 프레임 전부 합친거
-                    ,rFileTotalFrame:Number = 0 //file에저장된 프레임수 누적해서 저장
+                    // ,rFileTotalFrame:Number = 0 //file에저장된 프레임수 누적해서 저장
                     ,rNowFrame:Number = 0 //dodraw에서 현재까지 플레이된 프레임수 누적, skip frame이 가동됐을때 프레임 누적갯수를 세서 썸네일 이미지 만들어줌
                     ,rNowFrameSave:Number = 0 //skip one frame 에서 이전 프레임 탐색할때 이 프레임으로 탐색해줌
                     ,rFirstImage:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rFirstBGColor:uint = CANVAS_BG_COLOR
                     ,rzoomed:Number = 1.0 //리플레이 줌
-                    ,rSkipImageIndexSave:Number = -2 //썸네일 인덱스 바뀌면 여기다 저장
+                    ,rSkipImageIndexSave:int = -2 //썸네일 인덱스 바뀌면 여기다 저장
                     ,rSkipImageFrameData:Array = [0] //스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
-                    ,rSkipImageCount:uint = 0//데이터로 저장할때  rDataFrame 카운터 누적
                     ,rSkipImageInit:int = 0 //0이상이면 make skip image함수를 실행함. skipframe함수에서 체크
                     ,rOneSkipFlagSave:Boolean = false //oneskipframe에서 prev인지 next인지 마지막 상태 저장해줌, 방향바꿀대 버튼 2번씩 눌러야 스킵되는거 방지하는거임
-                    ,rOneSkipTimer:int = 0 //키 오래 누르고 있으면 한꺼번에 처리해주는 타이머
+                    ,rOneSkipKeyTimer:int = 0 //키 오래 누르고 있으면 한꺼번에 처리해주는 타이머
                     ,rOneSkipPrevSum:Number = 0 //뒤로 스킵키 오래누르고 있으면 프레임 합산은 여기다가 올려줌
                     ,replayONUndoUpdate:Boolean = true//undo가 된 상태에서 리플레이 켜줄때 file까지만 읽은 상태까지 프레임 스킵 해주는
                     ,rRestartTimer:uint = 0 //리스타트 타이머
@@ -407,6 +406,7 @@
                     ,doDrawSlowEventON:Boolean = false //doDrawSlowEvent가 켜지면 올려줌
                     ,rSkipMouseON:Boolean = false //스킵프레임 마우스로 할때 올려줌 dodraw에서 바조절 안되게 하려고 하는거임
                     ,rDataPreviewCacheImages:Array = [] //이전 탐색 프레임 빠르게 하기 위해서 skipimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
+                    ,updateCacheImageFlag:Boolean = false //setskipframe에서 skipimage그룹 인덱스가 다르면 올려줌, dodarw에서이 플래그가 올라갔을때만 캐시이미지를 생성함
                     ,rSpeedLastStr:String = ""
 
         //about 관련 변수
@@ -482,7 +482,8 @@
                     ,checkAutoScroll:Object = closureAutoScroll()
                     ,checkUndoReady:Function = closureCheckUndoReady()
                     ,updatePenSizeCursor:Function = closureUpdatePenSizeCursor()
-                    ,addUndoData:Function = closureAddUndoData()
+                    ,undoData:Object = closureAddUndoData()
+                    ,addUndoData:Function = undoData.add
                     ,checkToolKeyDown:Function = closureCheckToolKeyDown()
                     ,updatePenCursorPosition:Function = closureUpdatePenCursorPosition()
                     ,checkMainDrawTool:Function = closureCheckMainDrawTool()
@@ -4770,7 +4771,8 @@
             }
 
             const ver1:Number = parseInt(head);
-            const ver2:Number = parseInt(tail);///Math.pow(10,tailLen);
+            //예를들어 뒷자리가 20인데 현제 버전이 19면 파싱했을때 2와 19를 비교하기 때문에 나눠줘서 0.20와 0.19를 비교해야함
+            const ver2:Number = parseInt(tail)/Math.pow(10,tailLen);
 
             return [ver1,ver2];
         }
@@ -4898,7 +4900,10 @@
 
         private function closeAboutPanel():void
         {
-            if(!replayModeON && !captureModeON) addMainEvent();
+            if(!replayModeON && !captureModeON)
+            {
+                addMainEvent();
+            }
 
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
             aboutPanelON = false;
@@ -4956,7 +4961,7 @@
             panel.visible = true;
         }
 
-        private function openAboutPanel(flag:uint=0):void
+        private function openAboutPanel(welcome:Boolean):void
         {
             const _aboutPanel:aboutBox = aboutPanel;
 
@@ -4970,12 +4975,12 @@
             }
 
             aboutPanel.appResetButton.visible = true;
-            if(flag === 0)
+            if(welcome === false)
             {
                 checkVersion();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
             }
-            else if(flag === 1) //처음 시작 할때
+            else if(welcome === true)
             {
                 aboutPanel.appResetButton.visible = false;
                 setTimeout(function():void
@@ -5001,6 +5006,7 @@
                 //캔버스 2번 지워줘야함
                 rcanvas2Draw.graphics.clear();
                 rcanvas2BitmapData.dispose();
+                rcanvas2BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
 
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
                 canvas1Bitmap.bitmapData = rcanvas1BitmapData.clone();
@@ -5020,20 +5026,21 @@
             
             tickDraw.resetgetRCursorPos();
             rBGColorSave = CANVAS_BG_COLOR;
-            updateFirstImage(canvas1BitmapData,CANVAS_BG_COLOR);
             saveContinue = false;
+            rMirrorON = false;
             mirrorON = false;
-            mirrorPushON = false;
+            mirrorPushReady = false;
             rDataReadFlag = false;
             rSpeed = 1;
-            rFileTotalFrame = 0;
+            undoData.setRFileTotalFrame(0);
             TOTAL_FRAME = 0;
             rSkipImageInit = 0;
             topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x;
 
-            resetUndo();
+            updateFirstImage(canvas1BitmapData,CANVAS_BG_COLOR);
             resetReplayDataFile(true);
             resetReplayTime();
+            resetUndo();
             addUndoData();
 
             const fileName:String = getTimeStampSimple()+" "+getRandomString()+".png";
@@ -5201,7 +5208,8 @@
                         break;
 
                         case "aboutButton":
-                            openAboutPanel();
+                            openAboutPanel(false);
+                        break;
                         
                         case "replayZoomInButton":
                             setZoomInButton(true,true);
@@ -5386,14 +5394,17 @@
             if(rDataReadFlag === true)
             {
                 //repfile 초기화
+                undoData.setUndoRefImageByReplayMode();
                 sourceFS.open(repFile,FileMode.WRITE);
                 sourceFS.close();
-
                 forceUndoAndDeleteFrontData(rIndex+1);
                 TOTAL_FRAME = getTotalFrame();
                 resetReplayTime();
                 replayTimeBox["frameInfo"].text = "Replay data is ready "+getReplayFileSize();
                 replayNowBar.width = 0;
+                
+                rcanvas1BitmapData = canvas1BitmapData.clone();
+                rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
             }
             else if(rDataReadFlag === false)
             {
@@ -5410,10 +5421,7 @@
                 targetFS.open(repFileTemp,FileMode.APPEND);
                 while(1)
                 {
-                    if(sourceFS.bytesAvailable === 0)
-                    {
-                        break;
-                    }
+                    if(sourceFS.bytesAvailable === 0) break;
                     d = sourceFS.readObject() as Array;
 
                     targetFS.writeObject(d);
@@ -5466,17 +5474,17 @@
                 }
                 //framedata도 인덱스 이후꺼 날려줌
                 rSkipImageFrameData.splice(index+1);
-                rFileTotalFrame = _rframeSum;
+                undoData.setRFileTotalFrame(_rframeSum);
                 TOTAL_FRAME = _rframeSum;
 
                 canvas1BitmapData = rcanvas1BitmapData.clone();
                 canvas1Bitmap.bitmapData = canvas1BitmapData;
                 changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height,0,0,false);
                 resetReplayTime();
-                resetUndo();
                 setBackgroundColor(RCANVAS_BG_COLOR);
                 replayNowBar.width = bw;
                 setCanvasSameReplayCanvas();
+                resetUndo();
                 addUndoData();
             }
             isDeepUndoONDelayTime = getTimer();
@@ -5868,7 +5876,7 @@
         {
             undoIndex = 0;
             addUndoMode = 0;
-            undoData = [];//undo 데이터 다 지워줌
+            undoData.setUndoRefImageByDrawMode();
             rData = [];
             rDataFrame = [];
             rDataBuffer = [];
@@ -6115,6 +6123,8 @@
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
             mirrorBMPD.dispose();
             mirrorBMPD = null;
+
+            rMirrorON = !rMirrorON;
         }
 
         private function closureTickDraw():Object
@@ -6646,7 +6656,7 @@
 
         private function doDrawEvent(e:Event):void
         {
-            doDraw(rSpeed,SKIP_FRAME_PLAY);
+            doDraw(rSpeed,SKIP_FRAME_PLAY,false);
         }
 
         //skipFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
@@ -6657,7 +6667,7 @@
             const cd2:Graphics = rcanvas2Draw.graphics;
             const tcursor:SimpleButton = rCursor;
             const _rfs:FileStream = rFileStream;
-            const CACHE_DIV_10:Number= Math.floor(IMG_CACHE_INTERVAL/20);
+            const _CACHE_DIV_20:Number= Math.floor(IMG_CACHE_INTERVAL/20);
             const _tickDraw:Object = tickDraw;
             const _SKIP_FRAME_ONCE:int = SKIP_FRAME_ONCE;
             const _SKIP_FRAME_FRONT:int = SKIP_FRAME_FRONT;
@@ -6673,19 +6683,23 @@
             var getTimeStr:String;
             var timeStr:String;
             var readCount:Number = 0;
+            var skipImageGroupIndex:int
 
             function checkMakeCacheImage(skipFlag:int):void
             {
-                if(skipFlag === _SKIP_FRAME_ONCE || skipFlag === _SKIP_FRAME_FRONT)
+                if(updateCacheImageFlag)
                 {
-                    if(prevSkipImageSaveCount >= CACHE_DIV_10)
+                    if(skipFlag === _SKIP_FRAME_ONCE || skipFlag === _SKIP_FRAME_FRONT)
                     {
-                        prevSkipImageSaveCount = 0;
-                        if(!rDataPreviewCacheImages[prevSkipImageSaveIndex])
+                        if(prevSkipImageSaveCount >= _CACHE_DIV_20)
                         {
-                            rDataPreviewCacheImages[prevSkipImageSaveIndex] = [rcanvas1BitmapData.clone(),rcanvas1BitmapData.width,rcanvas1BitmapData.height,RCANVAS_BG_COLOR,rFileCutBytes,rNowFrame];
+                            prevSkipImageSaveCount = 0;
+                            if(!rDataPreviewCacheImages[prevSkipImageSaveIndex])
+                            {
+                                rDataPreviewCacheImages[prevSkipImageSaveIndex] = [rcanvas1BitmapData.clone(),rcanvas1BitmapData.width,rcanvas1BitmapData.height,RCANVAS_BG_COLOR,rFileCutBytes,rNowFrame];
+                            }
+                            prevSkipImageSaveIndex++;
                         }
-                        prevSkipImageSaveIndex++;
                     }
                 }
             }
@@ -6696,9 +6710,9 @@
                 rIndex = 0;
                 rDataLen = rData.length;
 
-                if(rFileTotalFrame !== rNowFrame)//다시한번 체크하고 갱신해줌
+                if(undoData.getRFileTotalFrame() !== rNowFrame)//다시한번 체크하고 갱신해줌
                 {
-                    rFileTotalFrame = rNowFrame;
+                    undoData.setRFileTotalFrame(rNowFrame);
                     TOTAL_FRAME = getTotalFrame();
                 }
 
@@ -6739,7 +6753,7 @@
             {
                 if(rIndex > undoIndex || rDataLen === 0) //자연적 으로 끝났을때
                 {
-                    if(mirrorPushON) replayMirrorCanvas();
+                    if(mirrorPushReady) replayMirrorCanvas();
 
                     tcursor.visible = false;
                     replayAllEnd = true;
@@ -6832,7 +6846,7 @@
                 }
             }
 
-            return function(skipCount:Number,skipFlag:int,undoFlag:Boolean=false):void
+            return function(skipCount:Number,skipFlag:int,undoFlag:Boolean):void
             {
                 if(undoFlag)
                 {
@@ -7128,12 +7142,12 @@
 
         private function getTotalFrame():Number
         {
-            var totalF:Number = rFileTotalFrame;
+            var totalF:Number = undoData.getRFileTotalFrame();
             const _rDataFrame:Array = rDataFrame;
             var rDataSum:Number = 0;
             var aa:uint;
 
-            for(var i:uint=0,len:uint=undoIndex;i<=len;i++)
+            for(var i:int=0,len:int=undoIndex;i<=len;i++)
             {
                 aa = _rDataFrame[i];
                 rDataSum += aa;
@@ -7241,12 +7255,19 @@
             checkCutFrameButtons();
         }
 
-        private function setSkipOneFrame(prev:Boolean,useKey:Boolean=false,trueOneFrame:Boolean=false):void
+        private function cancelAutoKeyEvent(e:Object):void
         {
-            if(rOneSkipTimer !== 0)
-            {
-                return;
-            }
+            clearTimeout(rOneSkipKeyTimer);
+            clearInterval(rOneSkipKeyTimer);
+            rOneSkipKeyTimer = 0;
+            stage.removeEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
+            stage.nativeWindow.removeEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
+            stage.removeEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
+        }
+        private function setSkipOneFrame(prev:Boolean,oneFrame:Boolean=false):void
+        {
+            if(rOneSkipKeyTimer !== 0) return;
 
             if(cutFrameClickCounter > 0)
                 resetCutFrameClickCounter();
@@ -7255,51 +7276,26 @@
                 stopReplay();
   
             topBar["reRecordingButton"].visible = true;
-            rOneSkipTimer = 0;
-            
-            function cancelAutoKeyEvent(e:Object):void
+            rOneSkipKeyTimer = 0;
+        
+            if(rOneSkipKeyTimer === 0)
             {
-                clearTimeout(rOneSkipTimer);
-                clearInterval(rOneSkipTimer);
-                rOneSkipTimer = 0;
-                stage.removeEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
-                stage.nativeWindow.removeEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
-                stage.removeEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
+                //오래누르고 있으면 enter frame으로 계속 발동 앞으로 가기만
+                clearTimeout(rOneSkipKeyTimer);
+                rOneSkipKeyTimer = setTimeout(function():void
+                {
+                    rOneSkipKeyTimer = setInterval(function():void
+                    {
+                        skipOneFrame(prev,oneFrame);
+                    },66);
+                },300);
+                stage.nativeWindow.addEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
+                stage.addEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
+                stage.addEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
             }
 
-            if(rOneSkipTimer === 0)
-            {
-                if(!useKey) //마우스로 버튼 클릭했을때
-                {
-                    //오래누르고 있으면 enter frame으로 계속 발동 앞으로 가기만
-                    clearTimeout(rOneSkipTimer);
-                    rOneSkipTimer = setTimeout(function():void
-                    {
-                        rOneSkipTimer = setInterval(function():void
-                        {
-                            skipOneFrame(prev,trueOneFrame);
-                        },66);
-                    },300);
-                    stage.nativeWindow.addEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
-                    stage.addEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
-                    stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
-                }
-                else
-                {
-                    clearTimeout(rOneSkipTimer);
-                    rOneSkipTimer = setTimeout(function():void
-                    {
-                        rOneSkipTimer = setInterval(function():void
-                        {
-                            skipOneFrame(prev,trueOneFrame);
-                        },66);
-                    },300);
-                    stage.addEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
-                }
-            }
-
-            skipOneFrame(prev,trueOneFrame);
+            skipOneFrame(prev,oneFrame);
         }
 
         //flag = 1 //딱 한프레임만 스킵할때
@@ -7329,11 +7325,15 @@
             var prevSkipImageIndex:Number = 0; //자잘 썸네일 인덱스를 넣어줌
             var skipImageData:Array = [];
             var tempBmpd:BitmapData = new BitmapData(1,1,true,0);
+            updateCacheImageFlag = false;
 
             rFileStream.open(repFile,FileMode.READ);
 
             if(index !== rSkipImageIndexSave)
+            {
+                updateCacheImageFlag = true;
                 rDataPreviewCacheImages = [];
+            }
             else if(rDataPreviewCacheImages.length > 0) //프리뷰 썸네일 데이터 있을경우
                 prevSkipImageIndex = getCacheImageIndex(jumpframe);
 
@@ -7388,7 +7388,7 @@
                 jumpframe = jumpframe - nowFrame;
             }
 
-            doDraw(jumpframe,flag);
+            doDraw(jumpframe,flag,false);
             rFileStream.close();
             
             //dodraw밑이기 때문에 rFrameSum이 갱신되서 위에 nowFrame은 쓸수가 없음
@@ -7398,7 +7398,7 @@
                 tcursor.visible = false;
                 //보통 스킵일때 마지막 임시 mirror가 켜져있을때 여기서 해줌
                 //스킵이 너무 딱맞게 되서 마지막을 안하나?
-                if(mirrorPushON && flag === 1)
+                if(mirrorPushReady && flag === 1)
                 {
                     replayMirrorCanvas();
                 }
@@ -8265,7 +8265,7 @@
             if(!fromDeepUndo) rregPoint.visible = false;
 
             const _tickDraw:Object = tickDraw;
-
+            
             function onFrameEnter(e:Event):void
             {
                 while(1)
@@ -8277,7 +8277,7 @@
                         _tickDraw.reset();
                         stage.removeEventListener(Event.ENTER_FRAME,onFrameEnter);
                         fs.close();
-                        rFileTotalFrame = _frameSum;
+                        undoData.setRFileTotalFrame(_frameSum);
                         rSkipImageInit = 0;
                         if(!fromDeepUndo) rregPoint.visible = true;
                         replayInfoText.text = "Replay data is ready "+getReplayFileSize();
@@ -8374,7 +8374,7 @@
                     fs.writeObject(_readUndoArray);
                 }
 
-                if(mirrorPushON) //임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
+                if(mirrorPushReady) //임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
                 {
                     const tempMirrorData:Array = [["mirror"]];
                     fs.writeObject(tempMirrorData);
@@ -8569,7 +8569,7 @@
         {
             if(replayModeON) setReplayUI(false);
             TOTAL_FRAME = 0;
-            rFileTotalFrame = 0;
+            undoData.setRFileTotalFrame(0);
             rSkipImageInit = 0;
             traceRawBMPD = null;
             traceRawArr = null;
@@ -8617,10 +8617,10 @@
             saveFileName = fileName;
             saveFilePath = filePath;
             saveContinue = false;//연속 세이브 플래그 취소
+            rMirrorON = false;
             mirrorON = false;
-            mirrorPushON = false;
+            mirrorPushReady = false;
             clearButtonClicked = false;
-            resetUndo();
 
             if(lassoToolON === true)
             {
@@ -8645,6 +8645,9 @@
             regPoint.rotation = 0;
             zoomedIndex = 3;
             setZoomCanvas(1.0);
+            //bitmapdata가 갱신된이후에 업데이트 해줘야함
+            resetUndo();
+
             if(traceRawArr === null)
             {
                 clearTraceImage();
@@ -9224,7 +9227,7 @@
             const daystr:String = (d < 10) ? "0"+d : ""+d;
             const monthstr:String = (m < 10) ? "0"+m : ""+m;
 
-            const timeStr:String = "["+y+"_"+monthstr+daystr+"]";
+            const timeStr:String = "["+y+"-"+monthstr+daystr+"]";
 
             return timeStr;
         }
@@ -9379,7 +9382,7 @@
         private function checkSaveFileName(saveFailed:Boolean):File
         {
             const timeStamp:String = getTimeStampSimple();
-            const timeStampPettern:RegExp = /\[\d\d\d\d_\d\d\d\d\]/g;
+            const timeStampPettern:RegExp = /\[\d\d\d\d-\d\d\d\d\]/g;
             var _path:String = saveFilePath;
             var _name:String = saveFileName;
 
@@ -9570,86 +9573,49 @@
                 return;
             }
 
+            rMirrorON = false;
+            mirrorON = false;
             const fs:FileStream = new FileStream();
             fs.open(undoDataFile,FileMode.READ);
-            const lastUndoIndex:uint = fs.readUnsignedInt();
-            undoIndex = lastUndoIndex;
-            var arr:Array = fs.readObject() as Array;
+            const lastUndoIndex:int = fs.readInt();
+            const arr:Array = fs.readObject() as Array; //undodata first
             const len:uint = arr.length;
-            var newRectangle:Rectangle;
-			
-            for(var i:uint=0;i<len;i++)
-            {
-                const a:Array = arr[i] as Array;
-                const bmpd:BitmapData = new BitmapData(a[2],a[3],true,0);
-
-                newRectangle = new Rectangle(0,0,a[2],a[3]);
-                // a[0].uncompress();
-                bmpd.lock();
-                bmpd.setPixels(newRectangle,a[0]);
-                bmpd.unlock();
-                a[0] = bmpd.clone();
-
-                if(i === lastUndoIndex)
-                {
-                    canvas1BitmapData = a[0].clone();
-                    canvas1Bitmap.bitmapData = canvas1BitmapData;
-                    //canvas1Bitmap.smoothing = true;
-                    mirrorON = a[1]; //mirrorPushON할 필요 없음
-
-                    const w:uint = a[2];
-                    const h:uint = a[3];
-                    const bg:uint = a[4];
-
-                    setBackgroundColor(bg);
-                    setBackgroundColor(bg,true);
-                    changeCanvasSize(w,h,0,0,false);
-                    changeCanvasSizeReplayMode(w,h);
-
-                    addUndoMode = 0;
-                }
-                bmpd.dispose();
-            }
-            //undo index가 arr의 가장 마지막 부분이 아니면 undo를 하던 중이니까 undoDelFlag 켜줌
-            if(lastUndoIndex < arr.length-1)
-            {
-                undoDelFlag = true;
-            }
-            else 
-            {
-                undoDelFlag = false;
-            }
-
+            const newRectangle:Rectangle = new Rectangle(0,0,arr[1],arr[2]);
+            const bmpd:BitmapData = new BitmapData(arr[1],arr[2],true,0);
             const arr1:Array = fs.readObject() as Array;
             const arr2:Array = fs.readObject() as Array;
 
-            fs.close();
-
-            undoData = arr.concat();
             rData = arr1.concat();
             rDataFrame = arr2.concat();
+            fs.close();
+
+            undoIndex = lastUndoIndex;
+            bmpd.lock();
+            bmpd.setPixels(newRectangle,arr[0]);
+            bmpd.unlock();
+            undoData.setUndoRefImage([bmpd.clone(),arr[1],arr[2],arr[3]]);
+            drawUndoData();
+            addUndoMode = 0;
+            bmpd.dispose();
+
+            //undo index가 arr의 가장 마지막 부분이 아니면 undo를 하던 중이니까 undoDelFlag 켜줌
+            if(lastUndoIndex < rData.length-1) undoDelFlag = true;
+            else undoDelFlag = false;
         }
 
         private function saveUndoData():void
         {
             const fs:FileStream = new FileStream();
-            const arr:Array = undoData;
-            var newArr:Array = [];
-            var newRectangle:Rectangle;
+            const arr:Array = undoData.getUndoRefImage();
+            const bmpd:BitmapData = arr[0];
+            const ba:ByteArray = new ByteArray();
+            var newRectangle:Rectangle = new Rectangle(0,0,arr[1],arr[2]);
 
-            for(var i:uint=0,len:uint=arr.length;i<len;i++)
-            {
-                const ba:ByteArray = new ByteArray();
-                const u:Array = arr[i] as Array;
-
-                newRectangle = new Rectangle(0,0,u[2],u[3]);
-                u[0].copyPixelsToByteArray(newRectangle,ba);
-                // ba.compress();
-                newArr.push([ba,u[1],u[2],u[3],u[4]]);
-            }
+            bmpd.copyPixelsToByteArray(newRectangle,ba);
+            var newArr:Array = [ba,arr[1],arr[2],arr[3],arr[4]];
 
             fs.open(undoDataFile,FileMode.WRITE);
-            fs.writeUnsignedInt(undoIndex);
+            fs.writeInt(undoIndex);
             fs.writeObject(newArr);
             fs.writeObject(rData);
             fs.writeObject(rDataFrame);
@@ -9704,7 +9670,7 @@
                             "CANVAS_BG_COLOR":CANVAS_BG_COLOR,
                             "toolBoxLastClickPos.x":toolBoxLastClickPos.x,
                             "toolBoxLastClickPos.y":toolBoxLastClickPos.y,
-                            "rFileTotalFrame":rFileTotalFrame,
+                            "rFileTotalFrame":undoData.getRFileTotalFrame(),
                             "toolBox.scaleX":toolBox.scaleX,
                             "lastWindowState":lastWindowState,
                             "uiColorIndex":uiColorIndex,
@@ -9794,7 +9760,8 @@
                 fs.close();
 
                 //loadUndoData함수에서 canvaspanel이 호출되는데 이전에 trace이미지 정보값을 넣어두어야함
-                loadUndoData();//undo data 복구 먼저 해줌
+                if(undoDataFile.exists) loadUndoData();//undo data 복구 먼저 해줌
+
                 setTimeout(function():void //그냥 해주면 창크기 적용이 안되서 타이머 걸어줌
                 {
                     _nativeWindow.width = d["stage.nativeWindow.width"];
@@ -9846,7 +9813,7 @@
                     setPenSize(d["penSizeIndex"]);
                     toolBoxLastClickPos.x = d["toolBoxLastClickPos.x"];
                     toolBoxLastClickPos.y = d["toolBoxLastClickPos.y"];
-                    rFileTotalFrame = d["rFileTotalFrame"];
+                    undoData.setRFileTotalFrame(d["rFileTotalFrame"] as Number);
                     saveFileName = d["saveFileName"];
                     saveFilePath = d["saveFileName"];
                     colorHistoryList = d["colorHistoryList"] as Array;
@@ -9913,7 +9880,7 @@
                 changeCanvasSize(CANVAS_WIDTH,CANVAS_HEIGHT,0,0,false);
                 setHSVCursorPosByColor(penColor);
                 addUndoData();
-                openAboutPanel(1);
+                openAboutPanel(true);
 
                 setUIColor(uiColorIndex);
                 updatePreviewCursorPos();
@@ -10718,7 +10685,7 @@
             const _traceInfo:Array = tracePosInfo;
 
             mirrorON = !mirrorON;
-            mirrorPushON = !mirrorPushON;
+            mirrorPushReady = !mirrorPushReady;
             mirrorDraw();
 
             //회전각 부호를 바꿔야 제대로 mirror가됨
@@ -10760,22 +10727,19 @@
             const cpg:Graphics = rcanvasPanel.graphics;
             const maskg:Graphics = rcanvasPanelMask.graphics;
             const bgColor:uint = RCANVAS_BG_COLOR;
-            //캔버스가 회전되어있으면 회전된 방향으로 움직여줘야함
 
+            //캔버스가 회전되어있으면 회전된 방향으로 움직여줘야함
             cpg.clear();
             cpg.beginFill(bgColor);
             cpg.drawRect(0,0,w,h);
             cpg.endFill();
-
             maskg.clear();
             maskg.beginFill(bgColor);//paneldraw마스크 아무색이나 상관없음 어차피 마스크로 쓸거라
             maskg.drawRect(0,0,w,h);
             maskg.endFill();
             rcanvasPanel.mask = rcanvasPanelMask;//마스크 다시 씌워줌
-
             rcanvas1BitmapData = new BitmapData(w,h,true,0);
             rcanvas2BitmapData = new BitmapData(w,h,true,0);
-
             RCANVAS_WIDTH = w;
             RCANVAS_HEIGHT = h;
 
@@ -10791,8 +10755,6 @@
                 rcanvas1BitmapData.draw(rcanvas1Bitmap);
             }
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-            // rcanvas1Bitmap.smoothing = true;
-
             updateReplayCanvasBounds();
             checkCanvasPanelPos(true);
         }
@@ -10806,35 +10768,21 @@
             const _canvasTrace:Sprite = canvasTrace;
             const _canvasTraceBitmap:Bitmap = canvasTraceBitmap;
 
-            if(w > maxSize) 
-            {
-                w = maxSize;
-            }
-            else if(w < 1)
-            {
-                w = 1;
-            }
+            if(w > maxSize)  w = maxSize;
+            else if(w < 1) w = 1;
 
-            if(h > maxSize) 
-            {
-                h = maxSize;
-            }
-            else if(h < 1) 
-            {
-                h = 1;
-            }
+            if(h > maxSize) h = maxSize;
+            else if(h < 1) h = 1;
 
             cg.clear();
             cg.beginFill(bgColor);
             cg.drawRect(0,0,w,h);
             cg.endFill();
-
             maskg.clear();
             maskg.beginFill(bgColor);//paneldraw마스크 아무색이나 상관없음 어차피 마스크로 쓸거라
             maskg.drawRect(0, 0, w, h);
             maskg.endFill();
             canvasPanel.mask = canvasPanelMask;//마스크 다시 씌워줌
-
             canvas1BitmapData = new BitmapData(w,h,true,0);
             canvas2BitmapData = new BitmapData(w,h,true,0);
 
@@ -10854,7 +10802,6 @@
                 canvas1BitmapData.draw(canvas1Bitmap);
             }
             canvas1Bitmap.bitmapData = canvas1BitmapData;
-            //canvas1Bitmap.smoothing = true;
 
             const subW:Number = (CANVAS_WIDTH-w)/2;
             const subH:Number = (CANVAS_HEIGHT-h)/2;
@@ -11615,18 +11562,8 @@
 
         private function lassoCanceleBmpd():void
         {
-            const u:Array = undoData[undoIndex];
-
-            canvas1BitmapData = u[0].clone();
-            canvas1Bitmap.bitmapData = canvas1BitmapData;
-            if(mirrorON !== u[1])
-            {
-                mirrorDraw();
-            }
-            else
-            {
-                previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
-            }
+            drawUndoData();
+            previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
         }
 
         private function setLassoCancelButton(copyFlag:Boolean=false):void
@@ -11641,7 +11578,7 @@
                 resetLassoBox();
             }
 
-            if(undoData.length > 0)
+            if(rData.length > 0)
             {
                 lassoCanceleBmpd();
             }
@@ -11916,42 +11853,55 @@
 
         private function drawUndoData():void
         {
-            const d:Array = undoData;
-            const index:uint = undoIndex;
+            const d:Array = undoData.getUndoRefImage();
+            const data:BitmapData = d[0];
+            const w:uint = d[1];
+            const h:uint = d[2];
+            const bg:uint = d[3];
+            const len:int = undoIndex;
 
-            const u:Array = d[index];
-            const data:BitmapData = u[0];
-            const mirrorFlag:Boolean = u[1];
-            const w:uint = u[2];
-            const h:uint = u[3];
-            const bg:uint = u[4];
+            rMirrorON = false; //미러가 안된 상태의 undoimage를 깔아주기 때문에 처음에는 false로 설정해야함
+            if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
+            if(bg !== RCANVAS_BG_COLOR) setBackgroundColor(bg,true);
 
-            //undo한 데이터와 캔버스 사이즈가 다르면 비트맵데이터 크기바꿈
-            if(w !== CANVAS_WIDTH || h !== CANVAS_HEIGHT) (w,h,0,0,false);
-            if(bg !== CANVAS_BG_COLOR) setBackgroundColor(bg);
+            rcanvas1BitmapData = data.clone();
+            rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
 
-            canvas1BitmapData = data.clone();//clone으로 해주어야함
-            canvas1Bitmap.bitmapData = canvas1BitmapData;
-            previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
-
-            if(mirrorON !== mirrorFlag)
+            if(rData.length > 0)
             {
-                mirrorPushON = true;
+                for(var i:int = 0; i <= len; i++)
+                {
+                    if(!rData[i]) continue;
+
+                    tickDraw.ready(rData[i]);
+                    tickDraw.drawAll();
+                }
+            }
+
+            setBackgroundColor(RCANVAS_BG_COLOR);
+            changeCanvasSize(RCANVAS_WIDTH,RCANVAS_HEIGHT,0,0,false);
+            canvas1BitmapData = rcanvas1BitmapData.clone();
+            canvas1Bitmap.bitmapData = canvas1BitmapData;
+
+            if(mirrorON !== rMirrorON)
+            {
+                mirrorPushReady = true;
                 mirrorDraw();
             }
             else
             {
-                mirrorPushON = false;
+                mirrorPushReady = false;
             }
 
+            previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
             checkCanvasPanelPos(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
             updatePreviewCursorPos();
         }
 
-        private function setRedoButton():void
+        private function redo():void
         {
+            const len:int = rData.length-1;
             undoIndex++;
-            const len:uint = undoData.length-1;
             if(undoIndex > len)
             {
                 undoDelFlag = false;
@@ -11965,13 +11915,13 @@
             }
         }
 
-        private function setUndoButton():void
+        private function undo():void
         {
             undoIndex--;
-            if(undoIndex < 0)
+            if(undoIndex < -1)
             {
-                undoIndex = 0;
-                if(getTimer() - isDeepUndoONDelayTime > 200 && rFileTotalFrame > 0)
+                undoIndex = -1;
+                if(getTimer() - isDeepUndoONDelayTime > 200 && undoData.getRFileTotalFrame() > 0)
                 {
                     isDeepUndoON = true;
                     setReplayUI(true);
@@ -11988,18 +11938,47 @@
             }
         }
 
+        private function checkUndoRedoHoldKey(func:Function):void
+        {
+            if(rOneSkipKeyTimer !== 0) return;
+            rOneSkipKeyTimer = 0;
+            if(rOneSkipKeyTimer === 0)
+            {
+                //오래누르고 있으면 enter frame으로 계속 발동 앞으로 가기만
+                clearTimeout(rOneSkipKeyTimer);
+                rOneSkipKeyTimer = setTimeout(function():void
+                {
+                    rOneSkipKeyTimer = setInterval(function():void
+                    {
+                        func();
+                    },66);
+                },300);
+                stage.nativeWindow.addEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
+                stage.addEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
+                stage.addEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
+            }
+        }
+
+        private function setRedoButton():void
+        {
+            redo();
+            checkUndoRedoHoldKey(redo);
+        }
+
+        private function setUndoButton():void
+        {
+            undo();
+            checkUndoRedoHoldKey(undo);
+        }
+
         private function forceUndoAndDeleteFrontData(index:int):void
         {
             const endIndex:uint = index;
-            undoData.splice(0,endIndex);  
+
             rData.splice(0,endIndex);
             rDataFrame.splice(0,endIndex);
-
-            undoData.unshift([rFirstImage.clone(),false,rFirstImage.width,rFirstImage.height,rFirstBGColor]);
-            rData.unshift([]);
-            rDataFrame.unshift(0);
-
-            undoIndex = undoIndex-(index-1);
+            undoIndex = rData.length-1;
             saveOneTime = false;
             clearButtonClicked = false;
             replayONUndoUpdate = true;
@@ -12017,18 +11996,76 @@
 
             //데이터 뒷부분 지워줌
             const startIndex:uint = index+1;
-            undoData.splice(startIndex);
             rData.splice(startIndex);
             rDataFrame.splice(startIndex);
         }
 
-        private function closureAddUndoData():Function
+        private function closureAddUndoData():Object
         {
+            const undoLimit:int = 20;
+            var rSkipImageCount:uint = 0;//데이터로 저장할때  rDataFrame 카운터 누적
+            var rFileTotalFrame:Number = 0; //file에저장된 프레임수 누적해서 저장
+            //undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
+            var UndoRefImage:Array = [rFirstImage.clone(),CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR];
+
+            function setUndoRefImageByReplayMode():void
+            {
+                const bmpd:BitmapData = rcanvas1BitmapData;
+                undoData.setUndoRefImage([bmpd.clone(),bmpd.width,bmpd.height,RCANVAS_BG_COLOR]);
+            }
+
+            function setUndoRefImageByDrawMode():void
+            {
+                const bmpd:BitmapData = canvas1BitmapData;
+                undoData.setUndoRefImage([bmpd.clone(),bmpd.width,bmpd.height,CANVAS_BG_COLOR]);
+            }
+
+            function updateUndoDataFirst():void
+            {
+                const d:Array = UndoRefImage;
+                const data:BitmapData = d[0];
+                const w:uint = d[1];
+                const h:uint = d[2];
+                const bg:uint = d[3];
+                const len:int = undoIndex;
+
+                if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
+                if(bg !== RCANVAS_BG_COLOR) setBackgroundColor(bg,true);
+
+                rcanvas1BitmapData = data.clone();
+                rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+
+                tickDraw.ready(rData[0]);
+                tickDraw.drawAll();
+
+                UndoRefImage = [rcanvas1BitmapData.clone(),RCANVAS_WIDTH,RCANVAS_HEIGHT,RCANVAS_BG_COLOR];
+            }
+
+            function getUndoRefImage():Array
+            {
+                return UndoRefImage;
+            }
+
+            function setUndoRefImage(arr:Array):void
+            {
+                UndoRefImage = arr.concat();
+            }
+
+            function getRFileTotalFrame():Number
+            {
+                return rFileTotalFrame;
+            }
+
+            function setRFileTotalFrame(frame:Number):void
+            {
+                rFileTotalFrame = frame;
+            }
+
             function updateLastRDataMirror(addMode:int):void
             {
-                if(mirrorPushON)
+                if(mirrorPushReady)
                 {
-                    mirrorPushON = false;
+                    mirrorPushReady = false;
                     if(rDataBuffer.length > 0 && rDataBuffer[0][0] !== "mirror")
                     {
                         addMode = 0;
@@ -12036,7 +12073,7 @@
                         rDataBuffer.unshift(["mirror"]);
                     }
                 }
-                else if(!mirrorPushON)
+                else
                 {
                     if(rDataBuffer.length > 0 && rDataBuffer[0][0] === "mirror")
                     {
@@ -12049,7 +12086,6 @@
 
             function updateLastRData(addMode:int):void
             {
-                const lastUndoData:Array = undoData[undoData.length-1];
                 var arr:Array;
 
                 if(addMode === 3) //배경색은 mirror랑 상관없어서 직접 대입
@@ -12071,25 +12107,9 @@
 
                 rDataFrame[rDataFrame.length-1] = rData[rData.length-1].length;
                 rDataBuffer = [];
-
-                if(addMode === 1) //move툴 중복 사용
-                {
-                    lastUndoData[0] = canvas1BitmapData.clone();
-                }
-                else if(addMode === 2)//add1 //캔버스 사이즈 변경
-                {
-                    //사이즈 변경된 bitmapdata까지 갱신해줘야함
-                    lastUndoData[0] = canvas1BitmapData.clone();
-                    lastUndoData[2] = CANVAS_WIDTH;
-                    lastUndoData[3] = CANVAS_HEIGHT;
-                }
-                else if(addMode === 3) //배경색 중복 사용
-                {
-                    lastUndoData[4] = CANVAS_BG_COLOR;
-                }
             }
 
-            return function(addMode:int=0):void
+            function add(addMode:int=0):void
             {
                 replayONUndoUpdate = true;
 
@@ -12097,12 +12117,11 @@
                 {
                     const startIndex:uint = undoIndex+1;
                     undoDelFlag = false;
-                    undoData.splice(startIndex);
                     rData.splice(startIndex);
                     rDataFrame.splice(startIndex);
                 }
 
-                if(undoData.length >= 4) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
+                if(rData.length >= undoLimit) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
                 {
                     var oldData:Array = rData[0];
 
@@ -12111,6 +12130,7 @@
                         const fs:FileStream = new FileStream();
                         const c:uint = rDataFrame[0];
                         const rf:File = repFile;
+                        
 
                         fs.open(rf,FileMode.APPEND);
                         fs.writeObject(oldData);
@@ -12119,27 +12139,28 @@
 
                         rFileTotalFrame += c;
                         rSkipImageCount += c;
+                        updateUndoDataFirst();
 
                         if(rSkipImageInit === 0)
                         {
                             if(rSkipImageCount > IMG_CACHE_INTERVAL)
                             {
-                                //위에서 쓰고나서 가능한 바이트랑 실제 바이트 = rf.size랑 다름, rf.size가 정확함
-                                const rFileMaxFrameSave:Number = rFileTotalFrame;
-
-                                rSkipImageFrameData.push(rFileMaxFrameSave);
+                                const data:Array = UndoRefImage;
+                                const bmpd:BitmapData = data[0];
+                                const w:int = data[1];
+                                const h:int = data[2]
+                                const bgColor:uint = data[3];
+                                const _rFileTotalFrame:Number = rFileTotalFrame;
+                                //위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
+                                rSkipImageFrameData.push(_rFileTotalFrame);
 
                                 const skipimg:File = rSkipImageFolder.resolvePath((rSkipImageFrameData.length-1)+".img");
                                 const imgData:ByteArray = new ByteArray();
-                                const u:Array = undoData[0];
-                                const w:uint= u[2];
-                                const h:uint= u[3];
-                                const bgColor:uint = u[4];
                                 const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
-                                u[0].copyPixelsToByteArray(newRectangle,imgData);
+                                bmpd.copyPixelsToByteArray(newRectangle,imgData);
                                 fs.open(skipimg,FileMode.WRITE);
-                                fs.writeObject([imgData,w,h,bgColor,rf.size,rFileMaxFrameSave]);//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
+                                fs.writeObject([imgData,w,h,bgColor,rf.size,_rFileTotalFrame]);//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
                                 fs.close();
                                 imgData.clear();
                                 rSkipImageCount = 0;
@@ -12147,7 +12168,6 @@
                         }
                     }
 
-                    undoData.shift();
                     rData.shift();
                     rDataFrame.shift();
                 }
@@ -12159,23 +12179,29 @@
                 {
                     updateLastRData(addMode);
                 }
-                else
-                {
-                    undoData.push([canvas1BitmapData.clone(),mirrorON,canvas1Bitmap.width,canvas1Bitmap.height,CANVAS_BG_COLOR]);
+                else if(rDataBuffer.length > 0)
+                { 
                     rData.push(rDataBuffer);
                     rDataFrame.push(rDataBuffer.length);
                     rDataBuffer = [];
 
-                    if(saveOneTime === true)
-                    {
-                        saveOneTime = false;
-                    }
+                    saveOneTime = false;
                 }
 
-                undoIndex = undoData.length-1;
+                undoIndex = rData.length-1;
                 addUndoMode = addMode;
                 previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
             };
+
+            return {
+                add:add,
+                setRFileTotalFrame:setRFileTotalFrame,
+                getRFileTotalFrame:getRFileTotalFrame,
+                getUndoRefImage:getUndoRefImage,
+                setUndoRefImage:setUndoRefImage,
+                setUndoRefImageByReplayMode:setUndoRefImageByReplayMode,
+                setUndoRefImageByDrawMode:setUndoRefImageByDrawMode
+            }
         }
 
         // hsv커서가 color에 맞춰서 위치를 움직여줌
@@ -12981,9 +13007,6 @@
             const w:uint = CANVAS_WIDTH;
             const h:uint = CANVAS_HEIGHT;
 
-            mirrorON = false;
-            mirrorPushON = false;
-
             canvas1BitmapData.dispose();
             canvas1BitmapData = new BitmapData(w,h,true,0);
             canvas1Bitmap.bitmapData = canvas1BitmapData;
@@ -13080,7 +13103,7 @@
                 case gKey.z:
                 case gKey.dot:
                 {
-                    setSkipOneFrame(true,true,e.shiftKey);
+                    setSkipOneFrame(true,e.shiftKey);
                 }
                 break;
 
@@ -13088,7 +13111,7 @@
                 case gKey.x:
                 case gKey.comma:
                 {
-                    setSkipOneFrame(false,true,e.shiftKey);
+                    setSkipOneFrame(false,e.shiftKey);
                 }
                 break;
 
@@ -13552,11 +13575,18 @@
             //알탭해주고 창 활성화 해줄때 한번은 안하게끔함
             startWorkingTimer();
             checkClipBoardImage();
-            clearTimeout(clickBlockTimer);
-            clickBlockTimer = setTimeout(function():void
+            if(aboutPanelON)
             {
-                clickBlockFlag = false;
-            },150);
+                clickBlockFlag = true;
+            }
+            else
+            {
+                clearTimeout(clickBlockTimer);
+                clickBlockTimer = setTimeout(function():void
+                {
+                    clickBlockFlag = false;
+                },150);
+            }
         }
 
         private function windowDeactiveEvent(e:Event):void
@@ -14074,15 +14104,14 @@
                 }
 
                 clearDataButtonCount = 0;
+                
                 if(isSidebarVisible === true) sideBar.visible = true;
                 if(replayStartON === true) stopReplay();
 
-                rSkipImageIndexSave = -2;//스킵 이미지 인덱스 원래대로 되돌려줌
                 setResizeButtonVisible(true);
                 removeReplayMainEvent();
                 updatePreviewCursorPos();
                 changePickerModeToNormal();
-                rDataPreviewCacheImages = [];
 
                 nowToolBackup = TOOL_PEN;
                 selectPenTool();
@@ -14103,6 +14132,7 @@
 
                 TOTAL_FRAME = getTotalFrame();
                 checkReplaySpeedState();
+
 
                 //frame sum이 재계산된 maxframe을 넘어가면 리플레이 프레임이 넘어가기 때문에 끝난거임
                 //그래서 캔버스 복사해주고 리플레이를 리셋해줌
@@ -14150,12 +14180,11 @@
                         makeSkipImage(false);
                     },100);
                 }
-                else if(rSkipImageInit === 0)
+                else if(rSkipImageInit === 0 && isDeepUndoON === false)
                 {
-                    const totalFrame:Number = TOTAL_FRAME;
-                
                     if(replayONUndoUpdate)
                     {
+                        const totalFrame:Number = TOTAL_FRAME;
                         rDataReadFlag = false;
                         replayTimeBox["frameInfo"].text = totalFrame+" / " + totalFrame;
                         replayTimeBox["replayNowBar"].width = (totalFrame === 0) ? 0 : replayTimeBox["replayTotalBar"].width;
@@ -14178,7 +14207,7 @@
                 if(isDeepUndoON)
                 {
                     setDeepUndoUI(true);
-                    setSkipFrame(rFileTotalFrame);
+                    setSkipFrame(undoData.getRFileTotalFrame());
                 }
                 else
                 {
@@ -14218,8 +14247,8 @@
                 }
                 break;
 
-                case "toolUndo":setSkipOneFrame(true,false,false); break;
-                case "toolRedo":setSkipOneFrame(false,false,false); break;
+                case "toolUndo":setSkipOneFrame(true,false); break;
+                case "toolRedo":setSkipOneFrame(false,false); break;
                 case "deepUndoOK":superUndo(); break;
                 case "deepUndoCancel":exitDeepUndoMode(); break;
             } 
@@ -14261,11 +14290,11 @@
                 {
                     superUndo();
                 }
-                else setSkipOneFrame(true,true,false);
+                else setSkipOneFrame(true,false);
             }
             else if(keyCode === gKey.x  || keyCode === gKey.comma)
             {
-                setSkipOneFrame(false,true,false);
+                setSkipOneFrame(false,false);
             }
             else if(keyCode === gKey.esc || keyCode === gKey.backspace)
             {
@@ -14343,13 +14372,13 @@
 
                 case "replayPrev":
                 {
-                    setSkipOneFrame(true,false,e.shiftKey);
+                    setSkipOneFrame(true,e.shiftKey);
                 }
                 break;
 
                 case "replayNext":
                 {
-                    setSkipOneFrame(false,false,e.shiftKey);
+                    setSkipOneFrame(false,e.shiftKey);
                 }
                 break;
 
@@ -14428,11 +14457,11 @@
             }
             else if(targetName === "replayPrev")
             {
-                setSkipOneFrame(true,false,true);
+                setSkipOneFrame(true,true);
             }
             else if(targetName === "replayNext")
             {
-                setSkipOneFrame(false,false,true);
+                setSkipOneFrame(false,true);
             }
         }
 
@@ -14787,16 +14816,15 @@
                 return;
             }
 
-            if(fillPenStarted === true) 
-            {
-                return;
-            }
-            else if(lassoToolON && !lassoMenuTempOFF)
+            if(fillPenStarted === true) return;
+
+            if(lassoToolON && !lassoMenuTempOFF)
             {
                 checkLassoToolButtons(targetName);
                 return;
             }
-            else if(captureModeON)
+
+            if(captureModeON)
             {
                 switch(targetName)
                 {
@@ -14946,13 +14974,14 @@
                         }
                     }
                 }
-                break;
+                return;
 
                 case "traceInfo":
                 case "traceMenuMoveButton":
                 {
                     moveToolBoxByType(2);
                 }
+                return;
 
                 case "dragDropFileBG":
                 return;
