@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.22;
+        private const APP_VERSION:Number = 14.23;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -229,6 +229,7 @@
                     ,zoomedIndex:int = 3
                     ,rzoomedIndex:int = 3
                     ,mouseClickON:Boolean = false //클릭하면 올려줌
+                    ,rightMouseClickON:Boolean = false //클릭하면 올려줌
                     ,mouseDragON:Boolean = false//툴을 계속 클릭한채로 움직이면 topmenu의 힌트가 안켜지도록 함
                     ,nowTool:int = 1 //현재 툴 번호
                     ,nowToolBackup:int = 1 //툴백업
@@ -484,7 +485,8 @@
                     ,undoData:Object = closureAddUndoData()
                     ,addUndoData:Function = undoData.add
                     ,checkToolKeyDown:Function = closureCheckToolKeyDown()
-                    ,updatePenCursorPosition:Function = closureUpdatePenCursorPosition()
+                    ,penCursorPosition:Object = closureUpdatePenCursorPosition()
+                    ,updatePenCursorPosition:Function = penCursorPosition.check
                     ,checkMainDrawTool:Function = closureCheckMainDrawTool()
                     ,drawCaptureArea:Object = closureDrawCaptureArea()
                     ,stageMouseMoveEvent:Object = closureStageMouseMoveEvent()
@@ -655,18 +657,40 @@
             }
         }
 
+        private function stageMouseDownEvent(e:MouseEvent):void
+        {
+            mouseClickON = true;
+            
+        }
+
+        private function stageRightMouseDownEvent(e:MouseEvent):void
+        {
+            rightMouseClickON = true;
+        }
+
         private function stageMouseUpEvent(e:MouseEvent):void
         {
             const mx:Number = mouseX;
             const my:Number = mouseY;
 
+            mouseClickON = false;
+
             if(mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight)
             {
-                clearTimeout(sideBarONMouseLeaveTimer);
-                sideBarONMouseLeaveTimer = setTimeout(function():void
-                {
-                    sideBarONMouseLeaveTimer = 0;
-                },1000);
+                penCursorPosition.setSideBarONWaitEvents();
+            }
+        }
+
+        private function stageRightMouseUpEvent(e:MouseEvent):void
+        {
+            const mx:Number = mouseX;
+            const my:Number = mouseY;
+
+            rightMouseClickON = false;
+
+            if(mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight)
+            {
+                penCursorPosition.setSideBarONWaitEvents();
             }
         }
 
@@ -755,7 +779,7 @@
                 if((isRightSidebar && mx > stage.stageWidth-sideBar.w)
                 || (!isRightSidebar && mx < sideBar.w))
                 {
-                    setSidebarVisible(true,true);
+                    penCursorPosition.checkSideBarON();
                 }
             }
         }
@@ -781,8 +805,7 @@
 
         private function setSidebarVisible(flag:Boolean,tempFlag:Boolean):void
         {
-            if(tempFlag === false)
-                isSidebarVisible = flag;
+            if(tempFlag === false) isSidebarVisible = flag;
 
             const tb:topMenu = topBar;
 
@@ -1182,7 +1205,6 @@
                     clearTimeout(timer);
                     drawFillPenData();
                     mouseDragON = true;
-                    mouseClickON = true;
 
                     if(readyAddUndo === false)
                     {
@@ -1687,74 +1709,116 @@
             updatePenCursorPosition();
         }
 
-        private function closureUpdatePenCursorPosition():Function
+        private function closureUpdatePenCursorPosition():Object
         {
             const _penSizeCursor:Shape = penSizeCursor;
             const sideBarVisibleOffset:Number = 20;
-            var sidebarOFFTimer:int;
             var sidebarONTimer:int;
+            var mouseDownEventON:Boolean;
             var sidebarTempOFF:Boolean;
-            var mouseUpEventON:Boolean;
             var visibleMouseUpEventON:Boolean;
             var nt:int;
             var mx:Number;
             var my:Number;
             var posInStage:Boolean;
 
-            function sideBarTimeOut():void
+            function setSideBarOFF():void
             {
-                clearTimeout(sidebarOFFTimer);
-                sidebarOFFTimer = setTimeout(function():void
+                clearSideBarClickEvents();
+                if(isSidebarVisible === false)
                 {
-                    stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
-                    stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarOffMouseDownEvent);
-                    stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
-                    sidebarOFFTimer = 0;
-                    if(isSidebarVisible === false)
-                    {
-                        setSidebarVisible(false,true);
-                    }
-                },1000);
+                    setSidebarVisible(false,true);
+                }
             }
 
+            function isSidebarTempOFF():Boolean
+            {
+                return visibleMouseUpEventON
+            }
+
+            function setSideBarONWaitEvents():void
+            {
+                visibleMouseUpEventON = true;
+                stage.addEventListener(MouseEvent.MOUSE_UP,sidebarONMouseUpEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,sidebarONMouseUpEvent);
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarONMouseDownEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarONMouseDownEvent);
+            }
+
+            function setSideBarClickEvents():void
+            {
+                mouseDownEventON = true
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarOFFMouseDownEvent,false,1);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarOFFRightMouseDownEvent,false,1);
+            }
+
+            function clearSideBarClickEvents():void
+            {
+                clearTimeout(sidebarONTimer);
+                sidebarTempOFF = false;
+                mouseDownEventON = false;
+                visibleMouseUpEventON = false;
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOFFMouseDownEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarOFFRightMouseDownEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarONMouseUpEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,sidebarONMouseUpEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarONMouseDownEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarONMouseDownEvent);
+            }
+
+            function sidebarONMouseDownEvent(e:MouseEvent):void
+            {
+                clearSideBarClickEvents();
+            }
+
+            //클릭한 상태로 sidebar on틀어줬을때 1초정도 켜지지 않게함
             function sidebarONMouseUpEvent(e:MouseEvent):void
             {
-                stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
-                visibleMouseUpEventON = false;
                 sidebarTempOFF = true;
                 clearTimeout(sidebarONTimer);
                 sidebarONTimer = setTimeout(function():void
                 {
+                    visibleMouseUpEventON = false;
                     sidebarTempOFF = false;
+                    clearSideBarClickEvents();
                 },1000);
             }
 
-            function sidebarOffMouseUpEvent(e:MouseEvent):void
+            function sidebarOFFRightMouseDownEvent(e:MouseEvent):void
             {
+                clickBlockFlag = true;
+                setClickBlockFlagOFFDelay();
                 if(sideBar.hitTestPoint(mouseX,mouseY) === false)
                 {
-                    mouseUpEventON = false;
-                    sideBarTimeOut();
+                    setSideBarOFF();
                 }
             }
 
-            function sidebarOffMouseDownEvent(e:MouseEvent):void
+            function sidebarOFFMouseDownEvent(e:MouseEvent):void
             {
                 if(sideBar.hitTestPoint(mouseX,mouseY) === false)
                 {
-                    stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
-                    stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,sidebarOffMouseDownEvent);
-                    stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
-                    clearTimeout(sidebarOFFTimer);
-                    sidebarOFFTimer = 0;
-                    if(isSidebarVisible === false)
+                    setSideBarOFF();
+                }
+            }
+
+            function checkSideBarON():void
+            {
+                if(!mouseClickON && !rightMouseClickON)
+                {
+                    if(!sidebarTempOFF)
                     {
-                        setSidebarVisible(false,true);
+                        if(mouseDownEventON === false) setSideBarClickEvents();
+                        if(sideBar.visible === false) setSidebarVisible(true,true);
                     }
                 }
+                else if(visibleMouseUpEventON === false) //클릭한 상태에서 들어올경우
+                {
+                    setSideBarONWaitEvents();
+                }
             }
 
-            return function():void
+            function check():void
             {
                 nt = nowTool;
                 mx = mouseX;
@@ -1781,57 +1845,21 @@
 
                 if(isSidebarVisible === false && clickBlockFlag === false)
                 {
-                    if(sideBar.visible)
-                    {
-                        const offset:Number = (sideBarScrollBar.visible) ? 10 : 0;
-                        //마우스 사이드바 바깥으로 나감
-                        if(sideBar.hitTestPoint(mx,my) === false)
-                        {
-                            if(mouseClickON || mouseDragON)
-                            {
-                                if(mouseUpEventON === false)
-                                {
-                                    mouseUpEventON = true;
-                                    stage.addEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
-                                }
-                            }
-                            else 
-                            {
-                                if(sidebarOFFTimer === 0)
-                                {
-                                    sideBarTimeOut();
-                                    stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
-                                    stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarOffMouseDownEvent);
-                                }
-                            }
-                        }
-                        else if(sidebarOFFTimer !== 0)
-                        {
-                            clearTimeout(sidebarOFFTimer);
-                            sidebarOFFTimer = 0;
-                            stage.removeEventListener(MouseEvent.MOUSE_DOWN,sidebarOffMouseDownEvent);
-                            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarOffMouseDownEvent);
-                            stage.removeEventListener(MouseEvent.MOUSE_UP,sidebarOffMouseUpEvent);
-                        }
-                    } //마우스 사이드바 활성 영역으로 들어옴
-                    else if((!isRightSidebar && mx <= sideBarVisibleOffset || isRightSidebar && mx >= stage.stageWidth-sideBarVisibleOffset)
+                    //마우스 사이드바 활성 영역으로 들어옴
+                    if((!isRightSidebar && mx <= sideBarVisibleOffset || isRightSidebar && mx >= stage.stageWidth-sideBarVisibleOffset)
                     && my > STAGE_TOP_OFFSET)
                     {
-                        if(!mouseClickON && !mouseDragON)
-                        {
-                            if(!sidebarTempOFF)
-                            {
-                                setSidebarVisible(true,true);
-                            }
-                        }
-                        else if(visibleMouseUpEventON === false) //클릭한 상태에서 들어올경우
-                        {
-                            visibleMouseUpEventON = true;
-                            stage.addEventListener(MouseEvent.MOUSE_UP,sidebarONMouseUpEvent);
-                        }
+                        checkSideBarON();
                     }
                 }
             }
+
+            return {
+                check:check,
+                setSideBarONWaitEvents:setSideBarONWaitEvents,
+                checkSideBarON:checkSideBarON,
+                setSideBarOFF:setSideBarOFF
+            };
         }
 
         private function startWorkingTimer():void
@@ -2109,9 +2137,7 @@
             const _regPoint:Sprite = regPoint;
             const prevToCanvasMultiply:Number = previewBox.prevCursorMultiply
 
-            mouseClickON = true;
             mouseDragON = true;
-
             setOptimizeCanvasMove(true);
 
             function setCenter(x:Number,y:Number):void
@@ -3454,8 +3480,11 @@
             stage.addEventListener(Event.MOUSE_LEAVE,sideBarVisibleMouseLeaveEvent);
             topBar.addEventListener(MouseEvent.CLICK,topBarClickEvent);
 
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,stageMouseUpEvent,false,-1);
-            stage.addEventListener(MouseEvent.MOUSE_UP,stageMouseUpEvent,false,-1);
+            //전역스테이지 이벤트 closureStageMouseMoveEvent <- 스테이지 마우스 무브는 클로저로 하고있음
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,stageMouseDownEvent,false,5);
+            stage.addEventListener(MouseEvent.MOUSE_UP,stageMouseUpEvent,false,5);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,stageRightMouseUpEvent,false,5);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,stageRightMouseDownEvent,false,5);
         }
 
         private function setControlBoxInfoOFF():void
@@ -13627,6 +13656,14 @@
             }
         }
 
+        private function setClickBlockFlagOFFDelay():void
+        {
+            clearTimeout(clickBlockTimer);
+            clickBlockTimer = setTimeout(function():void
+            {
+                clickBlockFlag = false;
+            },150);
+        }
         private function windowActiveEvent(e:Event):void
         {
             //알탭해주고 창 활성화 해줄때 한번은 안하게끔함
@@ -13638,11 +13675,7 @@
             }
             else
             {
-                clearTimeout(clickBlockTimer);
-                clickBlockTimer = setTimeout(function():void
-                {
-                    clickBlockFlag = false;
-                },150);
+                setClickBlockFlagOFFDelay();
             }
         }
 
@@ -13662,7 +13695,10 @@
             shiftKeyON = false;
             controlKeyON = false;
 
-            if(!isSidebarVisible) setSidebarVisible(false,true);
+            if(!isSidebarVisible)
+            {
+                penCursorPosition.setSideBarOFF();
+            }
 
             if(topBarHintClickEventON)
             {
@@ -14380,8 +14416,6 @@
                 setReplayUI(false);
             }
 
-            mouseClickON = true;
-
             stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpReplayModeEvent);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownReplayModeEvent);
 
@@ -14553,10 +14587,7 @@
 
         private function rightMouseDownEvent(e:MouseEvent):void //rdown1
         {
-            if(captureModeON || lassoToolON)
-            {
-                return;
-            }
+            if(captureModeON || lassoToolON || clickBlockFlag) return;
 
             const targetName:String = e.target.name;
 
@@ -14866,8 +14897,6 @@
 
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
-
-            mouseClickON = true;
 
             if(toolBox2ToolClicked)
             {
