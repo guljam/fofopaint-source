@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.21;
+        private const APP_VERSION:Number = 14.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -620,8 +620,6 @@
             {
                 const fileFrame:Number = undoData.getRFileTotalFrame();
                 const _nowFrame:Number = rNowFrame;
-
-                trace('_nowFrame',_nowFrame,'undoIndex',undoIndex,'isDeepUndoON',isDeepUndoON);
 
                 if((_nowFrame === 0 && undoIndex < 0)
                 || (_nowFrame === 0 && isDeepUndoON))
@@ -12248,7 +12246,7 @@
 
                 undoIndex = rData.length-1;
                 addUndoMode = addMode;
-                checkUndoButtonActive.checkRedo();
+                checkUndoButtonActive.checkAll();
                 previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
             };
 
@@ -14090,6 +14088,7 @@
                 appInfoBox.alpha = 1.0;
                 updateScrollBarHeight(stage.stageHeight);
                 sideBarScrollBar.visible = true;
+                checkUndoButtonActive.checkAll();
             }
         }
 
@@ -14130,6 +14129,7 @@
                 removeDeepUndoEvent();
                 updateScrollBarHeight(stage.stageHeight);
                 sideBarScrollBar.visible = true;
+                checkUndoButtonActive.checkAll();
             }
         }
 
