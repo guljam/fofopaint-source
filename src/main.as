@@ -406,7 +406,6 @@
                     ,doDrawSlowEventON:Boolean = false //doDrawSlowEvent가 켜지면 올려줌
                     ,rSkipMouseON:Boolean = false //스킵프레임 마우스로 할때 올려줌 dodraw에서 바조절 안되게 하려고 하는거임
                     ,rDataPreviewCacheImages:Array = [] //이전 탐색 프레임 빠르게 하기 위해서 skipimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
-                    ,updateCacheImageFlag:Boolean = false //setskipframe에서 skipimage그룹 인덱스가 다르면 올려줌, dodarw에서이 플래그가 올라갔을때만 캐시이미지를 생성함
                     ,rSpeedLastStr:String = ""
 
         //about 관련 변수
@@ -6668,7 +6667,7 @@
             const cd2:Graphics = rcanvas2Draw.graphics;
             const tcursor:SimpleButton = rCursor;
             const _rfs:FileStream = rFileStream;
-            const _CACHE_DIV_20:Number= Math.floor(IMG_CACHE_INTERVAL/20);
+            const _CACHE_DIV_10:Number= Math.floor(IMG_CACHE_INTERVAL/10);
             const _tickDraw:Object = tickDraw;
             const _SKIP_FRAME_ONCE:int = SKIP_FRAME_ONCE;
             const _SKIP_FRAME_FRONT:int = SKIP_FRAME_FRONT;
@@ -6688,19 +6687,16 @@
 
             function checkMakeCacheImage(skipFlag:int):void
             {
-                if(updateCacheImageFlag)
+                if(skipFlag === _SKIP_FRAME_ONCE || skipFlag === _SKIP_FRAME_FRONT)
                 {
-                    if(skipFlag === _SKIP_FRAME_ONCE || skipFlag === _SKIP_FRAME_FRONT)
+                    if(prevSkipImageSaveCount >= _CACHE_DIV_10)
                     {
-                        if(prevSkipImageSaveCount >= _CACHE_DIV_20)
+                        prevSkipImageSaveCount = 0;
+                        if(!rDataPreviewCacheImages[prevSkipImageSaveIndex])
                         {
-                            prevSkipImageSaveCount = 0;
-                            if(!rDataPreviewCacheImages[prevSkipImageSaveIndex])
-                            {
-                                rDataPreviewCacheImages[prevSkipImageSaveIndex] = [rcanvas1BitmapData.clone(),rcanvas1BitmapData.width,rcanvas1BitmapData.height,RCANVAS_BG_COLOR,rFileCutBytes,rNowFrame];
-                            }
-                            prevSkipImageSaveIndex++;
+                            rDataPreviewCacheImages[prevSkipImageSaveIndex] = [rcanvas1BitmapData.clone(),rcanvas1BitmapData.width,rcanvas1BitmapData.height,RCANVAS_BG_COLOR,rFileCutBytes,rNowFrame];
                         }
+                        prevSkipImageSaveIndex++;
                     }
                 }
             }
@@ -7326,16 +7322,11 @@
             var prevSkipImageIndex:Number = 0; //자잘 썸네일 인덱스를 넣어줌
             var skipImageData:Array = [];
             var tempBmpd:BitmapData = new BitmapData(1,1,true,0);
-            updateCacheImageFlag = false;
 
             rFileStream.open(repFile,FileMode.READ);
 
-            if(index !== rSkipImageIndexSave)
-            {
-                updateCacheImageFlag = true;
-                rDataPreviewCacheImages = [];
-            }
-            else if(rDataPreviewCacheImages.length > 0) //프리뷰 썸네일 데이터 있을경우
+            if(index !== rSkipImageIndexSave) rDataPreviewCacheImages = [];
+            else if(rDataPreviewCacheImages.length > 0)
                 prevSkipImageIndex = getCacheImageIndex(jumpframe);
 
             if(index !== rSkipImageIndexSave || prevSkipFlag)
@@ -12003,7 +11994,7 @@
 
         private function closureAddUndoData():Object
         {
-            const undoLimit:int = 20;
+            const undoLimit:int = 30;
             var rSkipImageCount:uint = 0;//데이터로 저장할때  rDataFrame 카운터 누적
             var rFileTotalFrame:Number = 0; //file에저장된 프레임수 누적해서 저장
             //undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
@@ -14108,6 +14099,7 @@
                 if(isSidebarVisible === true) sideBar.visible = true;
                 if(replayStartON === true) stopReplay();
 
+                rDataPreviewCacheImages = [];
                 setResizeButtonVisible(true);
                 removeReplayMainEvent();
                 updatePreviewCursorPos();
