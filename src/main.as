@@ -8299,6 +8299,10 @@
             resizeButtonL.name = "resizeButtonL";
             resizeButtonU.name = "resizeButtonU";
 
+            resizeButtonD.rotation = 180;
+            resizeButtonL.rotation = -90;
+            resizeButtonR.rotation = 90;
+
             regPoint.addChild(resizeButtonU);
             regPoint.addChild(resizeButtonD);
             regPoint.addChild(resizeButtonL);
