@@ -490,7 +490,6 @@
                     ,checkMainDrawTool:Function = closureCheckMainDrawTool()
                     ,drawCaptureArea:Object = closureDrawCaptureArea()
                     ,stageMouseMoveEvent:Object = closureStageMouseMoveEvent()
-                    ,checkUndoButtonActive:Object = closureCheckUndoButtonActive()
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
@@ -605,59 +604,6 @@
         }
         
         //functions
-        private function closureCheckUndoButtonActive():Object
-        {
-            const undoButton1:SimpleButton = toolBox.toolUndo;
-            const undoButton2:SimpleButton = toolBox2.toolUndo;
-            const redoButton1:SimpleButton = toolBox.toolRedo;
-            const redoButton2:SimpleButton = toolBox2.toolRedo;
-
-            function checkAll():void
-            {
-                checkUndo();
-                checkRedo();
-            }
-
-            function checkUndo():void
-            {
-                const fileFrame:Number = undoData.getRFileTotalFrame();
-                const _nowFrame:Number = rNowFrame;
-
-                if((_nowFrame === 0 && undoIndex < 0)
-                || (_nowFrame === 0 && isDeepUndoON))
-                {
-                    undoButton1.alpha = BUTTON_OFF_ALPHA;
-                    undoButton2.alpha = BUTTON_OFF_ALPHA;
-                }
-                else
-                {
-                    undoButton1.alpha = 1.0;
-                    undoButton2.alpha = 1.0;
-                }
-            }
-
-            function checkRedo():void
-            {
-                trace('undoIndex',undoIndex,'rData.length-1',rData.length-1);
-                if(undoIndex === rData.length-1)
-                {
-                    redoButton1.alpha = BUTTON_OFF_ALPHA;
-                    redoButton2.alpha = BUTTON_OFF_ALPHA;
-                }
-                else
-                {
-                    redoButton1.alpha = 1.0;
-                    redoButton2.alpha = 1.0;
-                }
-            }
-
-            return {
-                checkRedo:checkRedo,
-                checkUndo:checkUndo,
-                checkAll:checkAll
-            }
-        }
-
         private function stageMouseDownEvent(e:MouseEvent):void
         {
             mouseClickON = true;
@@ -1769,7 +1715,10 @@
 
             function sidebarONMouseDownEvent(e:MouseEvent):void
             {
-                clearSideBarClickEvents();
+                if(sideBar.hitTestPoint(mouseX,mouseY) === false)
+                {
+                    clearSideBarClickEvents();
+                }
             }
 
             //클릭한 상태로 sidebar on틀어줬을때 1초정도 켜지지 않게함
@@ -1813,8 +1762,9 @@
                         if(sideBar.visible === false) setSidebarVisible(true,true);
                     }
                 }
-                else if(visibleMouseUpEventON === false) //클릭한 상태에서 들어올경우
+                else if(visibleMouseUpEventON === false && sideBar.visible === false) //클릭한 상태에서 들어올경우
                 {
+                    trace('클릭한 상태에서 들어옴');
                     setSideBarONWaitEvents();
                 }
             }
@@ -5965,7 +5915,6 @@
             readyAddUndo = false;
             replayONUndoUpdate = false;
             undoDelFlag = false;
-            checkUndoButtonActive.checkAll();
         }
 
         //창크기에 맞추어서 캔버스를 축소해줌
@@ -7484,9 +7433,6 @@
                 tcursor.visible = true;
             }
 
-            if(isDeepUndoON)
-                checkUndoButtonActive.checkAll();
-            else
                 checkAutoScroll.check();
 
             if(tempRedoFlag && rNowFrame >= TOTAL_FRAME)
@@ -9937,7 +9883,6 @@
                     drawGrid();
 
                     //혹시 몰라서 위치 체크 해줌
-                    checkUndoButtonActive.checkAll();
                     setCenvasCenterPos(true);
                     checkCanvasPanelPos();
                     checkCanvasPanelPos(true);
@@ -9963,7 +9908,6 @@
                 addUndoData();
                 openAboutPanel(true);
 
-                checkUndoButtonActive.checkAll();
                 setUIColor(uiColorIndex);
                 updatePreviewCursorPos();
                 updateWindowSizeInfo();
@@ -11989,13 +11933,11 @@
                 undoDelFlag = false;
                 replayONUndoUpdate = false;
                 undoIndex = len;
-                checkUndoButtonActive.checkRedo();
             }
             else
             {
                 saveOneTime = false;
                 drawUndoData();
-                checkUndoButtonActive.checkUndo();
             }
         }
 
@@ -12010,17 +11952,11 @@
                     isDeepUndoON = true;
                     setReplayUI(true);
                 }
-                checkUndoButtonActive.checkUndo();
-            }
-            else
-            {
-                saveOneTime = false;
                 clearButtonClicked = false;
                 undoDelFlag = true;
                 replayONUndoUpdate = true;
                 addUndoMode = 0;
                 drawUndoData();
-                checkUndoButtonActive.checkRedo();
             }
         }
 
@@ -12070,7 +12006,6 @@
             clearButtonClicked = false;
             replayONUndoUpdate = true;
             addUndoMode = 0;
-            checkUndoButtonActive.checkAll();
         }
 
         private function forceUndoToIndex(index:int):void
@@ -12081,7 +12016,6 @@
             replayONUndoUpdate = true;
             addUndoMode = 0;
             drawUndoData();
-            checkUndoButtonActive.checkAll();
 
             //데이터 뒷부분 지워줌
             const startIndex:uint = index+1;
@@ -12279,7 +12213,6 @@
 
                 undoIndex = rData.length-1;
                 addUndoMode = addMode;
-                checkUndoButtonActive.checkAll();
                 previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
             };
 
@@ -14128,7 +14061,6 @@
                 appInfoBox.alpha = 1.0;
                 updateScrollBarHeight(stage.stageHeight);
                 sideBarScrollBar.visible = true;
-                checkUndoButtonActive.checkAll();
             }
         }
 
@@ -14169,7 +14101,6 @@
                 removeDeepUndoEvent();
                 updateScrollBarHeight(stage.stageHeight);
                 sideBarScrollBar.visible = true;
-                checkUndoButtonActive.checkAll();
             }
         }
 
