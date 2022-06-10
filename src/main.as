@@ -488,6 +488,7 @@
                     ,checkMainDrawTool:Function = closureCheckMainDrawTool()
                     ,drawCaptureArea:Object = closureDrawCaptureArea()
                     ,stageMouseMoveEvent:Object = closureStageMouseMoveEvent()
+                    ,checkUndoButtonActive:Object = closureCheckUndoButtonActive()
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
@@ -602,6 +603,60 @@
         }
         
         //functions
+        private function closureCheckUndoButtonActive():Object
+        {
+            const undoButton1:SimpleButton = toolBox.toolUndo;
+            const undoButton2:SimpleButton = toolBox2.toolUndo;
+            const redoButton1:SimpleButton = toolBox.toolRedo;
+            const redoButton2:SimpleButton = toolBox2.toolRedo;
+
+            function checkAll():void
+            {
+                checkUndo();
+                checkRedo();
+            }
+
+            function checkUndo():void
+            {
+                const fileFrame:Number = undoData.getRFileTotalFrame();
+                const _nowFrame:Number = rNowFrame;
+
+                trace('_nowFrame',_nowFrame,'undoIndex',undoIndex,'isDeepUndoON',isDeepUndoON);
+
+                if((_nowFrame === 0 && undoIndex < 0)
+                || (_nowFrame === 0 && isDeepUndoON))
+                {
+                    undoButton1.alpha = BUTTON_OFF_ALPHA;
+                    undoButton2.alpha = BUTTON_OFF_ALPHA;
+                }
+                else
+                {
+                    undoButton1.alpha = 1.0;
+                    undoButton2.alpha = 1.0;
+                }
+            }
+
+            function checkRedo():void
+            {
+                if(undoIndex === rData.length-1)
+                {
+                    redoButton1.alpha = BUTTON_OFF_ALPHA;
+                    redoButton2.alpha = BUTTON_OFF_ALPHA;
+                }
+                else
+                {
+                    redoButton1.alpha = 1.0;
+                    redoButton2.alpha = 1.0;
+                }
+            }
+
+            return {
+                checkRedo:checkRedo,
+                checkUndo:checkUndo,
+                checkAll:checkAll
+            }
+        }
+
         private function stageMouseUpEvent(e:MouseEvent):void
         {
             const mx:Number = mouseX;
@@ -1661,7 +1716,7 @@
                     {
                         setSidebarVisible(false,true);
                     }
-                },100);
+                },1000);
             }
 
             function sidebarONMouseUpEvent(e:MouseEvent):void
@@ -5874,7 +5929,7 @@
 
         private function resetUndo():void
         {
-            undoIndex = 0;
+            undoIndex = -1;
             addUndoMode = 0;
             undoData.setUndoRefImageByDrawMode();
             rData = [];
@@ -5883,6 +5938,7 @@
             readyAddUndo = false;
             replayONUndoUpdate = false;
             undoDelFlag = false;
+            checkUndoButtonActive.checkAll();
         }
 
         //창크기에 맞추어서 캔버스를 축소해줌
@@ -6664,7 +6720,6 @@
         {
             //skipflag 1번은 마우스 커서로 무작위 스킵, 2,3번은 스트로크 단위혹은 프레임 단위로 앞뒤로 탐색
             const _REPLAY_SLOWDRAW_ACTIVE_SPEED:Number = REPLAY_SLOWDRAW_ACTIVE_SPEED;
-            const cd2:Graphics = rcanvas2Draw.graphics;
             const tcursor:SimpleButton = rCursor;
             const _rfs:FileStream = rFileStream;
             const _CACHE_DIV_10:Number= Math.floor(IMG_CACHE_INTERVAL/10);
@@ -7262,6 +7317,7 @@
             stage.nativeWindow.removeEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
             stage.removeEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
         }
+
         private function setSkipOneFrame(prev:Boolean,oneFrame:Boolean=false):void
         {
             if(rOneSkipKeyTimer !== 0) return;
@@ -7274,7 +7330,6 @@
   
             topBar["reRecordingButton"].visible = true;
             rOneSkipKeyTimer = 0;
-        
             if(rOneSkipKeyTimer === 0)
             {
                 //오래누르고 있으면 enter frame으로 계속 발동 앞으로 가기만
@@ -7402,7 +7457,9 @@
                 tcursor.visible = true;
             }
 
-            if(isDeepUndoON === false)
+            if(isDeepUndoON)
+                checkUndoButtonActive.checkAll();
+            else
                 checkAutoScroll.check();
 
             if(tempRedoFlag && rNowFrame >= TOTAL_FRAME)
@@ -9849,6 +9906,7 @@
                     drawGrid();
 
                     //혹시 몰라서 위치 체크 해줌
+                    checkUndoButtonActive.checkAll();
                     setCenvasCenterPos(true);
                     checkCanvasPanelPos();
                     checkCanvasPanelPos(true);
@@ -9874,6 +9932,7 @@
                 addUndoData();
                 openAboutPanel(true);
 
+                checkUndoButtonActive.checkAll();
                 setUIColor(uiColorIndex);
                 updatePreviewCursorPos();
                 updateWindowSizeInfo();
@@ -11899,11 +11958,13 @@
                 undoDelFlag = false;
                 replayONUndoUpdate = false;
                 undoIndex = len;
+                checkUndoButtonActive.checkRedo();
             }
             else
             {
                 saveOneTime = false;
                 drawUndoData();
+                checkUndoButtonActive.checkUndo();
             }
         }
 
@@ -11918,6 +11979,7 @@
                     isDeepUndoON = true;
                     setReplayUI(true);
                 }
+                checkUndoButtonActive.checkUndo();
             }
             else
             {
@@ -11927,6 +11989,7 @@
                 replayONUndoUpdate = true;
                 addUndoMode = 0;
                 drawUndoData();
+                checkUndoButtonActive.checkRedo();
             }
         }
 
@@ -11942,7 +12005,8 @@
                 {
                     rOneSkipKeyTimer = setInterval(function():void
                     {
-                        func();
+                        if(isDeepUndoON) cancelAutoKeyEvent({});
+                        else func();
                     },66);
                 },300);
                 stage.nativeWindow.addEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
@@ -11975,6 +12039,7 @@
             clearButtonClicked = false;
             replayONUndoUpdate = true;
             addUndoMode = 0;
+            checkUndoButtonActive.checkAll();
         }
 
         private function forceUndoToIndex(index:int):void
@@ -11985,6 +12050,7 @@
             replayONUndoUpdate = true;
             addUndoMode = 0;
             drawUndoData();
+            checkUndoButtonActive.checkAll();
 
             //데이터 뒷부분 지워줌
             const startIndex:uint = index+1;
@@ -11994,7 +12060,7 @@
 
         private function closureAddUndoData():Object
         {
-            const undoLimit:int = 30;
+            const undoLimit:int = 20;
             var rSkipImageCount:uint = 0;//데이터로 저장할때  rDataFrame 카운터 누적
             var rFileTotalFrame:Number = 0; //file에저장된 프레임수 누적해서 저장
             //undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
@@ -12182,6 +12248,7 @@
 
                 undoIndex = rData.length-1;
                 addUndoMode = addMode;
+                checkUndoButtonActive.checkRedo();
                 previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
             };
 
