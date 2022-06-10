@@ -14407,7 +14407,7 @@
 
         private function mouseDownReplayModeEvent(e:MouseEvent):void //repdown1
         {
-            if(mouseClickON || clickBlockFlag)
+            if(clickBlockFlag)
             {
                 return;
             }
