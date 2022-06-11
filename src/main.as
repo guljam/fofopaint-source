@@ -611,7 +611,7 @@
             const my:Number = mouseY;
 
             mouseClickON = false;
-            mouseDragON = false;
+            if(!mouseClickON && rightMouseClickON) mouseDragON = false;
 
             if(mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight)
             {
@@ -625,6 +625,7 @@
             const my:Number = mouseY;
 
             rightMouseClickON = false;
+            if(!mouseClickON && rightMouseClickON) mouseDragON = false;
 
             if(mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight)
             {
@@ -1794,6 +1795,7 @@
                 }
 
                 if(mouseClickON || rightMouseClickON) mouseDragON = true;
+                else mouseDragON = false;
             }
 
             return {
@@ -2301,8 +2303,6 @@
                 case "traceVisibleONButton":
                 case "traceVisibleOFFButton":str = "Memory training ON/OFF"; break;
                 case "traceDeleteButton":str = "Erase reference image"; break;
-
-
                 default:
                     traceMenuBox.traceInfo.text = "Reference layer";
                 return;
@@ -2350,9 +2350,7 @@
         private function toolBoxHintOFFEvent(e:MouseEvent):void
         {
             if(toolBox.toolInfo.visible)// && mouseX >= sideBar.w-5)
-            {
                 toolBox.hintOFF();
-            }
 
             if(zoomToolHintON) zoomToolHintON = false;
             else toolTipBox.visible = false;
@@ -2360,18 +2358,10 @@
             stageMouseMoveEvent.remove(toolBoxHintMoveEvent);
         }
 
-        private function toolBoxHintONEvent(e:MouseEvent):void
+        private function checkToolBoxHint(targetName:String):String
         {
-            if(mouseClickON || mouseDragON) return;
-
-            const target:DisplayObject = e.target as DisplayObject;
-            if(target.alpha < 1.0) return;
-            const targetName:String = target.name;
-            const _tb2:toolButtons2 = toolBox2;
-            const toolBox2Flag:Boolean = _tb2.visible;
             var str:String = "";
-            // var twoLineHint:Boolean = false;
-            
+
             switch(targetName)
             {
                 case "fillPenOK": str = "OK (q, o, enter, right-click)"; break;
@@ -2393,27 +2383,35 @@
                 case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)"; break;
                 case "toolRotate": str = "Rotate (s, k)"; break;
                 case "toolTrace": str = "Reference layer (t)"; break;
-                default:
-                    if(toolBox2Flag === true)
-                    {
-                        toolBox2.toolInfo.text = "Tools";
-                    }
-                    else
-                    {
-                        toolTipBox.visible = false;
-                        stageMouseMoveEvent.remove(toolBoxHintMoveEvent);
-                    }
-                return;
             }
+            return str;
+        }
 
-            if(toolBox2Flag === true)
+        private function toolBoxHint2ONEvent(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+            if(!target || target.alpha < 1.0) return;
+
+            const hintStr:String = checkToolBoxHint(target.name);
+            toolBox2.toolInfo.text = (hintStr === "") ? "Tools" : hintStr;
+
+        }
+
+        private function toolBoxHintONEvent(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+            if(!target || mouseClickON || mouseDragON || target.alpha < 1.0) return;
+
+            const hintStr:String = checkToolBoxHint(target.name);
+
+            if(hintStr === "")
             {
-                toolBox2.toolInfo.text = str;
-                toolBox2.toolInfo.height = 22.7;
+                toolTipBox.visible = false;
+                stageMouseMoveEvent.remove(toolBoxHintMoveEvent);
             }
             else
             {
-                toolBox.hint(str,e.target as SimpleButton,isRightSidebar);
+                toolBox.hint(hintStr,(e.target as SimpleButton),isRightSidebar);
             }
         }
 
@@ -3399,7 +3397,7 @@
             //힌트 보여주는 이벤트
             toolBox.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHintONEvent);
             toolBox.addEventListener(MouseEvent.MOUSE_OUT,toolBoxHintOFFEvent);
-            toolBox2.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHintONEvent);
+            toolBox2.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHint2ONEvent);
             toolBox2.addEventListener(MouseEvent.MOUSE_OUT,toolBoxHintOFFEvent);
             // toolBox2.addEventListener(MouseEvent.MOUSE_OUT,toolBox2HintOFF);
             lassoMenu.addEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
