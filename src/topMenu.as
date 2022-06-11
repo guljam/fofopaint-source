@@ -72,6 +72,7 @@
 			updateButton.visible = flag;
 			aboutButton.visible = !flag;
 		}
+		
 		public function updateTimerPos(stw:Number):void
 		{
 			const limitX:Number = replaySpeedSet.x+replaySpeedSet.width-10;
