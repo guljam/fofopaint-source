@@ -2342,11 +2342,6 @@
             lassoMenu.lassoInfo.text = str;
         }
 
-        private function toolBoxHintMoveEvent(e:MouseEvent):void
-        {
-            setToolTipString("");
-        }
-
         private function toolBoxHintOFFEvent(e:MouseEvent):void
         {
             if(toolBox.toolInfo.visible)// && mouseX >= sideBar.w-5)
@@ -2354,8 +2349,6 @@
 
             if(zoomToolHintON) zoomToolHintON = false;
             else toolTipBox.visible = false;
-
-            stageMouseMoveEvent.remove(toolBoxHintMoveEvent);
         }
 
         private function checkToolBoxHint(targetName:String):String
@@ -2407,7 +2400,6 @@
             if(hintStr === "")
             {
                 toolTipBox.visible = false;
-                stageMouseMoveEvent.remove(toolBoxHintMoveEvent);
             }
             else
             {
