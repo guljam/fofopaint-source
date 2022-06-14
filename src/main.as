@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.26;
+        private const APP_VERSION:Number = 14.27;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -13099,18 +13099,7 @@
             if(keyCode === nowKey)
             {
                 if(mouseClickON === true) afterToolOff = true;
-                else
-                {
-                    if(nowToolBackup > 0)setPrevTool();
-
-                    if(keyBuffer.length > 0)
-                    {
-                        const nextKey:int = keyBuffer[0];
-                        nowKey = nextKey;
-                        checkToolKeyDown(nextKey);
-                    }
-                    else nowKey = 0;
-                }
+                else checkNextKeyDown();
             }
         }
 
@@ -14205,23 +14194,26 @@
             }
         }
 
+        private function checkNextKeyDown():void
+        {
+            if(nowToolBackup > 0) setPrevTool();
+
+            if(keyBuffer.length > 0)
+            {
+                const nextKey:int = keyBuffer[0];
+                nowKey = nextKey;
+                checkToolKeyDown(nextKey);
+            }
+            else nowKey = 0;
+            updatePenCursorPosition();
+        }
+
         private function mouseUpDrawMode(e:MouseEvent):void //mouseup1
         {
             if(afterToolOff)//단축키 떼고 마우스 땠을때 원래대로 돌림
             {
                 afterToolOff = false;
-
-                if(keyBuffer.length > 0)
-                {
-                    const nextKey:int = keyBuffer[0];
-                    nowKey = nextKey;
-                    checkToolKeyDown(nextKey);
-                }
-                else
-                {
-                    nowKey = 0;
-                    selectPenTool();
-                }
+                checkNextKeyDown();
             }
         }
 
