@@ -1802,9 +1802,6 @@
                 clickBlockFlag = true;
                 setClickBlockFlagOFFDelay();
                 setSideBarOFF();
-                // if(sideBar.hitTestPoint(mouseX,mouseY) === false)
-                // {
-                // }
             }
 
             function sidebarOFFMouseDownEvent(e:MouseEvent):void
