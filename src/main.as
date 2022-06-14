@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.27;
+        private const APP_VERSION:Number = 14.28;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -273,6 +273,7 @@
                     ,mouseDragON:Boolean = false//툴을 계속 클릭한채로 움직이면 topmenu의 힌트가 안켜지도록 함
                     ,nowTool:int = 1 //현재 툴 번호
                     ,nowToolBackup:int = 1 //툴백업
+                    ,keyBuffer:Array = [] //정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
                     ,nowKey:uint = 0 //단축키 누른거 여기다가 저장
                     ,nowKeyNotKeyUp:uint = 0 //keyup에서 체크 안하는 단축키는 여기다가 저장
                     ,afterToolOff:Boolean = false //키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
@@ -316,6 +317,7 @@
                     ,toolBoxLastClickPos:Point = new Point()//툴박스 마지막 위치 저장
                     ,toolBoxClickedTarget:String = "" //toolbox 항상 on해줬을때 아이콘을 클릭하고 땠을때 같은 아이콘인지 확인해주는 거임
                     ,toolBox2ON:Boolean = false //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
+                    ,toolBox2ToolClicked:Boolean = false //툴박스에서 줌 이동 회전툴 클릭해주었을때 올려줌
         //undo 관련변수
                     ,undoIndex:int = 0 //undo redo할때 무슨 이미지인지 알려주는 undoImageData의 포인터 인덱스임
                     ,undoDelFlag:Boolean = false //undo하고 나서 addundo가 되었을때 뒷부분 데이터 전부 날려주는 플래그
@@ -521,14 +523,11 @@
                     ,windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
                     ,penCursorOFFFlag:Boolean = false //펜커서 이게 on되면 안보여줌
-                    ,altCursorON:Boolean = false //키보드로 커서 변경해줄때 마지막 커서 색깔이 뭐였는지 저장
-                    ,keyBuffer:Array = [] //정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
-                                             
                     ,tempDragDropFile:Object = []
                     ,tempCopiedImage:BitmapData
                     ,penSizePrevOFFTimer:int = 0
                     ,eraseMovedButton:SimpleButton = null //툴 선택해줬을때 지우개툴이 이동한 툴을 저장해줌 다시원래대로 복원해주려고
-                    ,toolBox2ToolClicked:Boolean = false //툴박스에서 줌 이동 회전툴 클릭해주었을때 올려줌
+                    
                     ,zoomToolHintON:Boolean = false //툴박스에서 마우스 클릭해서 줌툴써줄때 mouse out이벤트가 가장 늦게 되서 줌 배율 힌트가 처음에 보이지 않는거 해결
                     ,controlBoxHintTimer:uint = 0 //컨트롤 박스 힌트 타이머 스무딩 힌트 일시적으로 보여줄때 사용
                     ,updateManualTimer:int = 0
@@ -753,9 +752,9 @@
 
             function remove(func:Function):void
             {
-                var start:int = arr.length-1;
+                var len:int = arr.length-1;
 
-                for(var i:int=start; i>=0; i--)
+                for(var i:int=len; i>=0; i--)
                 {
                     if((arr[i] as Function) === func)
                         arr.removeAt(i);
@@ -4067,6 +4066,7 @@
 
         private function addInputEventDrawMode():void
         {
+            trace('input draw mode');
             resetKeyBuffer();
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDrawMode,false);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false); 
@@ -5229,7 +5229,7 @@
                     }
                 }
             }
-            stage.addEventListener(MouseEvent.MOUSE_UP, buttonUpEvent);
+            stage.addEventListener(MouseEvent.MOUSE_UP,buttonUpEvent);
         }
 
         private function setCanvasSameReplayCanvas():void
@@ -10150,7 +10150,6 @@
 
                 mouseDragON = false;
                 penCursorOFFFlag = false;
-                // xBitmap.smoothing = true;
 
                 if(!_replayMode)
                 {                    
@@ -10539,8 +10538,8 @@
                 }
 
                 stageMouseMoveEvent.add(zoomToolMouseMoveEvent);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, zoomToolMouseUpEvent);
-                stage.addEventListener(MouseEvent.MOUSE_UP, zoomToolMouseUpEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,zoomToolMouseUpEvent);
+                stage.addEventListener(MouseEvent.MOUSE_UP,zoomToolMouseUpEvent);
             };
         }
 
@@ -11287,9 +11286,9 @@
 
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,colorPickerOKMouseEvent,false,-2);
                 stageMouseMoveEvent.add(colorPickerMoveEvent);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, colorPickerCancelMouseEvent);
-                stage.addEventListener(KeyboardEvent.KEY_DOWN, colorPickerCancelKeyDownEvent,false,2);
-                stage.addEventListener(KeyboardEvent.KEY_UP, colorPickerCancelKeyUpEvent,false,2);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,colorPickerCancelMouseEvent);
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,colorPickerCancelKeyDownEvent,false,2);
+                stage.addEventListener(KeyboardEvent.KEY_UP,colorPickerCancelKeyUpEvent,false,2);
             };
         }
 
@@ -12582,9 +12581,9 @@
             stage.setChildIndex(stageBG,0);
 
             //add event
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rightMouseDownDrawMode,false,-1);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownDrawMode,false,-1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownDrawMode,false,-1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDrawMode,false,-1);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode,false,-1);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false,-1);
         }
 
         private function saveAllData():void
@@ -13447,8 +13446,8 @@
             
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,mouseUpToolBox2);
             toolBox2.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownToolBox2);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownDrawMode);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownDrawMode,false,-1);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false,-1);
         }
 
         //툴메뉴에서 클릭했을때
