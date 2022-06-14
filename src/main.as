@@ -11339,8 +11339,8 @@
                             nowKey = 0;
                         }
                         checkLassoMenuPos();
-                    }
-                    // else if(nowKey !== gKey.space) setPrevTool();
+                    } //tool box에서 클릭해서 핸드툴 들어갈때 필요함
+                    else if(nowKey !== gKey.space) setPrevTool();
 
                     updatePreviewBoxRectPos();
                 }
@@ -13460,14 +13460,14 @@
             toolTipBox.visible = false;
             // if(toolBoxAlwaysON) toolBox.visible = true;
             
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,toolBox2MouseUpEvent);
-            toolBox2.removeEventListener(MouseEvent.MOUSE_DOWN,toolBox2MouseDownEvent);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,mouseUpToolBox2);
+            toolBox2.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownToolBox2);
             stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownDrawMode);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownDrawMode,false,-1);
         }
 
         //툴메뉴에서 클릭했을때
-        private function toolBox2MouseDownEvent(e:MouseEvent):void
+        private function mouseDownToolBox2(e:MouseEvent):void
         {
             const target:SimpleButton = e.target as SimpleButton;
             if(!target) return;
@@ -13509,7 +13509,7 @@
         }
 
         //툴메뉴 오른쪽 클릭 땠을때
-        private function toolBox2MouseUpEvent(e:MouseEvent):void
+        private function mouseUpToolBox2(e:MouseEvent):void
         {
             penCursorOFFFlag = false;
 
@@ -14257,8 +14257,8 @@
             toolBox2ON = true;
             setTopChildIndex(_toolBox2);
 
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,toolBox2MouseUpEvent);
-            _toolBox2.addEventListener(MouseEvent.MOUSE_DOWN,toolBox2MouseDownEvent);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,mouseUpToolBox2);
+            _toolBox2.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownToolBox2);
         }
 
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
