@@ -89,7 +89,6 @@
                                         x:88,
                                         y:89,
                                         z:90,
-                                        
                                         dot:190,
                                         comma:188,
                                         shift:16,
@@ -128,11 +127,11 @@
                                         f6:117,
                                         f7:118,
                                         f8:119,
-                                        window:91
                                         // f9:120,
                                         // f10:121,
                                         // f11:122,
                                         // f12:123
+                                        window:91
                                     }
         //툴 번호 미리 지정
                     ,TOOL_PEN:int = 1
@@ -153,7 +152,6 @@
 
                     ,CANVAS_MIN_SIZE:int = 100
                     ,CANVAS_MAX_SIZE:int = 2000
-
 
                     ,COLOR_DARK:uint = 0x323232//어두운색
                     ,COLOR_MID_DARK:uint = 0x535353//0x5B5B5B//중간 어두운색
@@ -193,7 +191,6 @@
                     ]
                     ,COMMAND_CTRL:int = (1 << 0)
                     ,COMMAND_CTRL_SHIFT:int = (1 << 1)
-
                     ,KEY_REPEAT_DELAY:Number = 300
                     ,KEY_REPEAT_INTERVAL:Number = 70
                     ;
@@ -219,8 +216,7 @@
         //element
         private const canvas1Bitmap:Bitmap = new Bitmap(canvas1BitmapData,"auto",true)
                     ,canvas2Bitmap:Bitmap = new Bitmap(canvas2BitmapData,"auto",true)
-
-        private const resizeButtonR:canvasResizeButton = new canvasResizeButton()//캔버스 리사이즈 하는 버튼
+                    ,resizeButtonR:canvasResizeButton = new canvasResizeButton()//캔버스 리사이즈 하는 버튼
                     ,resizeButtonD:canvasResizeButton = new canvasResizeButton()
                     ,resizeButtonL:canvasResizeButton = new canvasResizeButton()
                     ,resizeButtonU:canvasResizeButton = new canvasResizeButton()
@@ -695,7 +691,7 @@
 
             if(mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight)
             {
-                penCursorPosition.setSideBarONWaitEvents();
+                if(sideBar.visible === false) penCursorPosition.setSideBarONWaitEvents();
             }
         }
 
@@ -709,7 +705,7 @@
 
             if(mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight)
             {
-                penCursorPosition.setSideBarONWaitEvents();
+                if(sideBar.visible === false) penCursorPosition.setSideBarONWaitEvents();
             }
         }
 
@@ -1742,7 +1738,7 @@
 
             function isSidebarTempOFF():Boolean
             {
-                return visibleMouseUpEventON
+                return visibleMouseUpEventON;
             }
 
             function setSideBarONWaitEvents():void
@@ -1806,9 +1802,7 @@
             function sidebarOFFMouseDownEvent(e:MouseEvent):void
             {
                 if(sideBar.hitTestPoint(mouseX,mouseY) === false)
-                {
                     setSideBarOFF();
-                }
             }
 
             function checkSideBarON():void
@@ -1860,8 +1854,6 @@
                         checkSideBarON();
                     }
                 }
-                // if(mouseClickON || rightMouseClickON) mouseDragON = true;
-                // else mouseDragON = false;
             }
 
             return {
@@ -4066,7 +4058,6 @@
 
         private function addInputEventDrawMode():void
         {
-            trace('input draw mode');
             resetKeyBuffer();
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDrawMode,false);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false); 
