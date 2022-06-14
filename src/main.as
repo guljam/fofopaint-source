@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.25;
+        private const APP_VERSION:Number = 14.26;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -146,24 +146,32 @@
                     ,TOOL_ROTATE:int = 9
                     ,TOOL_MOVE:int = 10
                     ,TOOL_FILL_PEN:int = 11
+
                     ,SKIP_FRAME_PLAY:int = 0
                     ,SKIP_FRAME_ONCE:int = 1
                     ,SKIP_FRAME_FRONT:int = 2
                     ,SKIP_FRAME_BACK:int = 3
+
                     ,CANVAS_MIN_SIZE:int = 100
                     ,CANVAS_MAX_SIZE:int = 2000
-                    ,BUTTON_OFF_ALPHA:Number = 0.15
+
+
                     ,COLOR_DARK:uint = 0x323232//어두운색
                     ,COLOR_MID_DARK:uint = 0x535353//0x5B5B5B//중간 어두운색
                     ,COLOR_MID_BRIGHT:uint = 0xB8B8B8//중간 밝은색
                     ,COLOR_BRIGHT:uint = 0xF0F0F0//0xECEAE7//밝은색
+
                     ,GC_TIME_OUT:int = 30
+                    ,BUTTON_OFF_ALPHA:Number = 0.15
+
                     ,REPLAY_FASTEST_LIMIT_TIME:Number = 60
                     ,IMG_CACHE_INTERVAL:uint = 10000
                     ,REPLAY_MAX_SPEED:Number = 200
+
                     ,GRID_GAP:uint = 30
                     ,GRID_NORMAL_COLOR:uint = 0xBABABA
                     ,GRID_5UNIT_COLOR:uint = 0x515151
+
                     ,LASSO_SHARP_DATA:Array =
                     [
                         [[
@@ -186,6 +194,9 @@
                     ]
                     ,COMMAND_CTRL:int = (1 << 0)
                     ,COMMAND_CTRL_SHIFT:int = (1 << 1)
+
+                    ,KEY_REPEAT_DELAY:Number = 300
+                    ,KEY_REPEAT_INTERVAL:Number = 70
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -264,6 +275,7 @@
                     ,nowTool:int = 1 //현재 툴 번호
                     ,nowToolBackup:int = 1 //툴백업
                     ,nowKey:uint = 0 //단축키 누른거 여기다가 저장
+                    ,nowKeyNotKeyUp:uint = 0 //keyup에서 체크 안하는 단축키는 여기다가 저장
                     ,afterToolOff:Boolean = false //키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
                     ,penAlpha:Number = 1.0 //펜 변수
                     ,penColor:uint = 0x000000
@@ -576,6 +588,33 @@
         }
         
         //functions
+        private function checkOpaSizeKeyDown(keyCode:int):Boolean
+        {
+            const key:Object = gKey;
+            switch(keyCode)
+            {
+                case key.f:
+                case key.h:
+                    shortcutAlphaSizeHoldKey(shortCutPenSize,true);
+                return true;
+
+                case key.v:
+                case key.n:
+                    shortcutAlphaSizeHoldKey(shortCutPenSize,false);
+                return true;
+
+                case key.g:
+                    shortcutAlphaSizeHoldKey(shortCutPenAlpha,true);
+                return true;
+
+                case key.b:
+                    shortcutAlphaSizeHoldKey(shortCutPenAlpha,false);
+                return true;
+            }
+
+            return false;
+        }
+
         private function isPressingControl():Boolean
         {
             return getCommandKey() === COMMAND_CTRL;
@@ -7167,8 +7206,8 @@
                     keyHoldTimer = setInterval(function():void
                     {
                         skipOneFrame(prev,oneFrame);
-                    },100);
-                },300);
+                    },KEY_REPEAT_INTERVAL);
+                },KEY_REPEAT_DELAY);
                 addCancelAutoKeyEvent();
             };
 
@@ -11589,6 +11628,7 @@
                 }
 
                 _controlBox.shapeFlag(shape);
+                updatePenCursorPosition();
             }
         }
 
@@ -11820,8 +11860,8 @@
                     keyHoldTimer = setInterval(function():void
                     {
                         func(flag);
-                    },66);
-                },300);
+                    },KEY_REPEAT_INTERVAL);
+                },KEY_REPEAT_DELAY);
                 addCancelAutoKeyEvent();
             }
 
@@ -11845,7 +11885,7 @@
                     keyHoldTimer = setInterval(function():void
                     {
                         func();
-                    },100);
+                    },66);
                 },300);
                 addCancelAutoKeyEvent();
             }
@@ -13049,33 +13089,28 @@
 
         private function keyUpDrawMode(e:KeyboardEvent):void //keyup1
         {
-            const key:Object = gKey;
+            const keyCode:int = e.keyCode;
 
-            if(e.keyCode === nowKey)
+            if(keyCode === nowKeyNotKeyUp)
             {
-                if(mouseClickON === true)
-                {
-                    afterToolOff = true;
-                }
+                nowKeyNotKeyUp = 0;
+                if(keyBuffer.length === 0) nowKey = 0;
+            }
+            if(keyCode === nowKey)
+            {
+                if(mouseClickON === true) afterToolOff = true;
                 else
                 {
-                    if(nowToolBackup > 0)
-                    {
-                        setPrevTool();
-                    }
+                    if(nowToolBackup > 0)setPrevTool();
 
                     if(keyBuffer.length > 0)
                     {
-                        const nextKey:int = keyBuffer.shift();
+                        const nextKey:int = keyBuffer[0];
                         nowKey = nextKey;
                         checkToolKeyDown(nextKey);
                     }
-                    else
-                    {
-                        nowKey = 0;
-                    }
+                    else nowKey = 0;
                 }
-                updatePenCursorPosition();
             }
         }
 
@@ -13085,6 +13120,7 @@
 
             const keyCode:uint = keyBuffer[0];
             const key:Object = gKey;
+            var nt:int = nowTool;
             var subKey:int;
 
             //자툴이 nowkey를 쓰기 때문에 nowkey 리턴 이전에서 체크해야함
@@ -13103,43 +13139,7 @@
                 }
                 return;
             }
-            else
-            {
-                switch(keyCode)
-                {
-                    case key.f:
-                    case key.h: 
-                        shortcutAlphaSizeHoldKey(shortCutPenSize,true);
-                    return;
-
-                    case key.v:
-                    case key.n:
-                        shortcutAlphaSizeHoldKey(shortCutPenSize,false);
-                    return;
-
-                    case key.g:
-                        shortcutAlphaSizeHoldKey(shortCutPenAlpha,true);
-                    return;
-
-                    case key.b: 
-                        shortcutAlphaSizeHoldKey(shortCutPenAlpha,false);
-                    return;
-
-                    case key.x:
-                    case key.comma:
-                        setRedoButton(true);
-                    return;
-
-                    case key.z:
-                    case key.dot:
-                        setUndoButton(true);
-                    return;
-                }
-            }
-
-            if(nowKey === keyCode) return;
-
-            if(isPressingControl())
+            else if(isPressingControl())
             {
                 if(keyBuffer.length === 2)
                 {
@@ -13149,21 +13149,30 @@
                     if(subKey === key.s) saveFile(false);
                     else if(subKey === key.o) loadFile();
                     else if(subKey === key.c || subKey === key.m) setCaptureReady();
-                    else if(subKey === key.v)
-                    {
-                        if(clipImageON) setClipButton();
-                    }
+                    else if(subKey === key.v && clipImageON) setClipButton();
                 }
                 return;
             }
+
+            //지우개키 조합 따로 체크
+            if(nowKey === key.d || nowKey === key.j)
+            {
+                subKey = (keyBuffer.length >= 2) ? keyBuffer[1] : keyCode;
+                if(checkOpaSizeKeyDown(subKey)) return;
+            }
+
+            if(nowKey === keyCode) return;
             
             nowKey = keyCode;
+
+            if(checkOpaSizeKeyDown(keyCode)) return;
 
             switch(keyCode)
             {
                 case key.f1:
                 case key.f6:
                 {
+                    nowKeyNotKeyUp = keyCode;
                     setGridButton();
                     topBar.hintTimeOff();
                 }
@@ -13172,6 +13181,7 @@
                 case key.f2:
                 case key.f7:
                 {
+                    nowKeyNotKeyUp = keyCode;
                     setSideBarPositionButton();
                 }
                 return;
@@ -13179,6 +13189,7 @@
                 case key.f3:
                 case key.f8:
                 {
+                    nowKeyNotKeyUp = keyCode;
                     setUIColorButton();
                     topBar.hintTimeOff();
                 }
@@ -13187,6 +13198,7 @@
                 case key.n2:
                 case key.n8:
                 {
+                    nowKeyNotKeyUp = keyCode;
                     setReplayUI(true);
                 }
                 return;
@@ -13194,6 +13206,7 @@
                 case key.n3:
                 case key.n9:
                 {
+                    nowKeyNotKeyUp = keyCode;
                     if(controlBox.pixelSnapButtonWrapper.alpha === 1.0)
                         setPixelSnap(!pixelSnapON);
                 }
@@ -13202,6 +13215,7 @@
                 case key.n4:
                 case key.n0:
                 {
+                    nowKeyNotKeyUp = keyCode;
                     airBrushON = !airBrushON;
                     setAirBrushCheckBox(airBrushON,true);
                 }
@@ -13210,9 +13224,28 @@
                 case key.n5:
                 case key.minus:
                 {
+                    nowKeyNotKeyUp = keyCode;
                     if(controlBox.subLayerButtonWrapper.alpha === 1.0)
                         setSubLayer(!subLayerON);
                 }
+                return;
+
+                case key.x:
+                case key.comma:
+                    nowKeyNotKeyUp = keyCode;
+                    setRedoButton(true);
+                return;
+
+                case key.z:
+                case key.dot:
+                    nowKeyNotKeyUp = keyCode;
+                    setUndoButton(true);
+                return;
+
+                case key.tab:
+                case key.backslash:
+                    nowKeyNotKeyUp = keyCode;
+                    setSidebarVisible(!isSidebarVisible,false);
                 return;
             }
 
@@ -13226,38 +13259,22 @@
                 const key:Object = gKey;
                 switch (keyCode)
                 {
-                    case key.tab:
-                    case key.backslash:
-                        setSidebarVisible(!isSidebarVisible,false);
-                    break;
-
                     case key.q:
                     case key.o:
-                    {
                         selectFillPenTool();
-                    }
                     break;
 
                     case key.t:
                     {
-                        if(!traceMenuON) 
-                        {
-                            openTraceWindow();
-                        }
-                        else if(traceMenuON) 
-                        {
-                            closeTraceMenu();
-                        }
+                        if(!traceMenuON) openTraceWindow();
+                        else if(traceMenuON) closeTraceMenu();
                     }
                     break;
 
                     case key.a:
                     case key.l:
-                    {
                         mirrorCanvas();
-                    }
                     break;
-
 
                     case key.c:
                     case key.m:
@@ -13274,9 +13291,7 @@
                     case key.y:
                     {
                         if(nowTool !== TOOL_LASSO)
-                        {
                             selectLassoTool();
-                        }
                     }
                     break;
 
@@ -13306,10 +13321,7 @@
                     case key.k:
                     {
                         if(nowTool !== TOOL_ROTATE)
-                        {
                             selectRotateTool();
-                        }
-
                     }
                     break;
 
@@ -13317,9 +13329,7 @@
                     case key.u:
                     {
                         if(nowTool !== TOOL_MOVE)
-                        {
                             selectMoveTool();
-                        }
                     }
                     break;
 
@@ -13327,9 +13337,7 @@
                     case key.i:
                     {
                         if(nowTool !== TOOL_ZOOM)
-                        {
                             selectZoomTool();
-                        }
                     }
                     break;
 
@@ -13349,9 +13357,7 @@
                     case key.backspace:
                     {
                         if(lassoToolON === false && nowTool !== TOOL_SPUIT)
-                        {
                             setClearData(true);
-                        }
                     }
                     break;
                 }
@@ -13788,6 +13794,7 @@
         {
             keyBuffer = [];
             nowKey = 0;
+            nowKeyNotKeyUp = 0;
         }
 
         private function updateRCursorScale(zoom:Number):void
