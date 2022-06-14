@@ -53,7 +53,6 @@
     import flash.text.TextField;
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;// ConvolutionFilter가 끝임
-    import flash.sampler.startSampling;
 
     public class main extends Sprite
     {   
@@ -1802,10 +1801,10 @@
             {
                 clickBlockFlag = true;
                 setClickBlockFlagOFFDelay();
-                if(sideBar.hitTestPoint(mouseX,mouseY) === false)
-                {
-                    setSideBarOFF();
-                }
+                setSideBarOFF();
+                // if(sideBar.hitTestPoint(mouseX,mouseY) === false)
+                // {
+                // }
             }
 
             function sidebarOFFMouseDownEvent(e:MouseEvent):void
