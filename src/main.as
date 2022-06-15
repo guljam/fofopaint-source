@@ -134,16 +134,17 @@
                                         window:91
                                     }
         //툴 번호 미리 지정
-                    ,TOOL_PEN:int = 1
-                    ,TOOL_ERASE:int = 2
-                    ,TOOL_LINE:int = 3
-                    ,TOOL_HAND:int = 5
-                    ,TOOL_LASSO:int = 6
-                    ,TOOL_SPUIT:int = 7
-                    ,TOOL_ZOOM:int = 8
-                    ,TOOL_ROTATE:int = 9
-                    ,TOOL_MOVE:int = 10
-                    ,TOOL_FILL_PEN:int = 11
+                    ,TOOL_PEN:int = (1 << 0)
+                    ,TOOL_ERASE:int = (1 << 1)
+                    ,TOOL_LINE:int = (1 << 2)
+                    ,TOOL_FILL_PEN:int = (1 << 3)
+                    ,TOOL_HAND:int = (1 << 4)
+                    ,TOOL_LASSO:int = (1 << 5)
+                    ,TOOL_SPUIT:int = (1 << 6)
+                    ,TOOL_ZOOM:int = (1 << 7)
+                    ,TOOL_ROTATE:int = (1 << 8)
+                    ,TOOL_MOVE:int = (1 << 9)
+                    ,TOOL_NONE:int = 0
 
                     ,SKIP_FRAME_PLAY:int = 0
                     ,SKIP_FRAME_ONCE:int = 1
@@ -1749,6 +1750,7 @@
         {
             const _penSizeCursor:Shape = penSizeCursor;
             const sideBarVisibleOffset:Number = 20;
+            const useCursorTool:int = TOOL_LINE;
             var sidebarONTimer:int;
             var mouseDownEventON:Boolean;
             var sidebarTempOFF:Boolean;
@@ -1857,12 +1859,12 @@
                 nt = nowTool;
                 mx = mouseX;
                 my = mouseY;
-                posInStage = mx >= STAGE_LEFT_OFFSET 
-                          && mx <= stage.stageWidth-STAGE_RIGHT_OFFSET
-                          && my >= STAGE_TOP_OFFSET
-                          && my <= stage.stageHeight-STAGE_BOTTOM_OFFSET;
+                posInStage = mx >= STAGE_LEFT_OFFSET &&
+                             mx <= stage.stageWidth-STAGE_RIGHT_OFFSET &&
+                             my >= STAGE_TOP_OFFSET &&
+                             my <= stage.stageHeight-STAGE_BOTTOM_OFFSET;
 
-                if(nt > 4 || penCursorOFFFlag || !posInStage)//1 2 3 4 펜 지우개 라인툴 라인-지우개툴
+                if(nt > useCursorTool || penCursorOFFFlag || !posInStage)//1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                 {
                     _penSizeCursor.visible = false;
                 }
