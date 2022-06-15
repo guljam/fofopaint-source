@@ -485,6 +485,7 @@
                     ,undoData:Object = closureAddUndoData()
                     ,addUndoData:Function = undoData.add
                     ,checkToolKeyDown:Function = closureCheckToolKeyDown()
+                    ,checkEtcKeyDown:Function = closureCheckEtcKeyDown()
                     ,penCursorPosition:Object = closureUpdatePenCursorPosition()
                     ,updatePenCursorPosition:Function = penCursorPosition.check
                     ,checkMainDrawTool:Function = closureCheckMainDrawTool()
@@ -3741,28 +3742,20 @@
             const keyCode:int = e.keyCode;
             const index:int = keyBuffer.lastIndexOf(keyCode);
 
-            if(index > -1)
-            {
-                keyBuffer.splice(index,1);
-            }
+            if(index > -1) keyBuffer.splice(index,1);
         }
 
         private function stageKeyDownEvent(e:KeyboardEvent):void
         {
             const keyCode:int = e.keyCode;
             const key:Object = gKey;
+
             if(fileDragSelectBox.visible || keyCode === key.window) return;
 
             const index:int = keyBuffer.lastIndexOf(keyCode);
 
-            //tab 눌렀을때 노란 박스 안나오게함
-            if(keyCode === key.tab || keyCode === key.alt)
-                e.preventDefault();
-
-            if(index === -1)
-            {
-                keyBuffer.push(keyCode);
-            }
+            if(keyCode === key.tab || keyCode === key.alt) e.preventDefault();
+            if(index === -1) keyBuffer.push(keyCode);
         }
 
         private function setAlphaButton(targetName:String):void
@@ -8646,7 +8639,6 @@
 
             function fileSelectCompleteHandler(e:Event):void
             {
-                trace('load comp');
                 browseWindowON = false;
                 //2020파일 처리
                 if(is2020Ext(file.name) === true)
@@ -8782,7 +8774,7 @@
         private function keyDownCaptureMode(e:KeyboardEvent):void
         {
             const keyCode:uint = keyBuffer[0];
-            if(mouseClickON || nowKey === keyCode) return;
+            if(mouseClickON || rightMouseClickON || nowKey === keyCode) return;
             const key:Object = gKey;
 
             nowKey = keyCode;
@@ -12512,11 +12504,6 @@
             stage.addChild(penSizeCursor);
             stage.setChildIndex(regPoint,0);
             stage.setChildIndex(stageBG,0);
-
-            //add event
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDrawMode,false,-1);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode,false,-1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false,-1);
         }
 
         private function saveAllData():void
@@ -12905,11 +12892,7 @@
         {
             const keyCode:uint = keyBuffer[0];
 
-            if(mouseClickON || nowKey === keyCode)
-            {
-                return;
-            }
-            
+            if(mouseClickON || rightMouseClickON || nowKey === keyCode) return;
 
             const key:Object = gKey;
             var subKey:int;
@@ -12939,7 +12922,7 @@
                 }
                 return;
             }
-            //shift랑 contrl키는 등록안함
+
             nowKey = keyCode;
 
             switch(keyCode)
@@ -12961,15 +12944,13 @@
                 case key.h:
                     setReplaySpeedByKeyButton(true);
                 break;
+
                 case key.down:
                 case key.v:
                 case key.n:
                     setReplaySpeedByKeyButton(false);
                 break;
-            }
 
-            switch(keyCode)
-            {
                 case key.backspace:
                 case key.esc:
                 {
@@ -13021,6 +13002,7 @@
                 nowKeyNotKeyUp = 0;
                 if(keyBuffer.length === 0) nowKey = 0;
             }
+
             if(keyCode === nowKey)
             {
                 if(mouseClickON === true) afterToolOff = true;
@@ -13030,7 +13012,7 @@
 
         private function keyDownDrawMode(e:KeyboardEvent):void//keydown1
         {
-            if(mouseClickON || afterToolOff || fillPenStarted) return;
+            if(mouseClickON || rightMouseClickON || afterToolOff || fillPenStarted) return;
 
             const keyCode:uint = keyBuffer[0];
             const key:Object = gKey;
@@ -13075,102 +13057,111 @@
                 if(checkOpaSizeKeyDown(subKey)) return;
             }
 
-            if(nowKey === keyCode) return;
-            
-            nowKey = keyCode;
-
-            if(checkOpaSizeKeyDown(keyCode)) return;
-
-            switch(keyCode)
+            if(nowKey === keyCode)
             {
-                case key.f1:
-                case key.f6:
-                {
-                    nowKeyNotKeyUp = keyCode;
-                    setGridButton();
-                    topBar.hintTimeOff();
-                }
-                return;
-
-                case key.f2:
-                case key.f7:
-                {
-                    nowKeyNotKeyUp = keyCode;
-                    setSideBarPositionButton();
-                }
-                return;
-
-                case key.f3:
-                case key.f8:
-                {
-                    nowKeyNotKeyUp = keyCode;
-                    setUIColorButton();
-                    topBar.hintTimeOff();
-                }
-                return;
-                
-                case key.n2:
-                case key.n8:
-                {
-                    nowKeyNotKeyUp = keyCode;
-                    setReplayUI(true);
-                }
-                return;
-
-                case key.n3:
-                case key.n9:
-                {
-                    nowKeyNotKeyUp = keyCode;
-                    if(controlBox.pixelSnapButtonWrapper.alpha === 1.0)
-                        setPixelSnap(!pixelSnapON);
-                }
-                return;
-
-                case key.n4:
-                case key.n0:
-                {
-                    nowKeyNotKeyUp = keyCode;
-                    airBrushON = !airBrushON;
-                    setAirBrushCheckBox(airBrushON,true);
-                }
-                return;
-
-                case key.n5:
-                case key.minus:
-                {
-                    nowKeyNotKeyUp = keyCode;
-                    if(controlBox.subLayerButtonWrapper.alpha === 1.0)
-                        setSubLayer(!subLayerON);
-                }
-                return;
-
-                case key.x:
-                case key.comma:
-                    nowKeyNotKeyUp = keyCode;
-                    setRedoButton(true);
-                return;
-
-                case key.z:
-                case key.dot:
-                    nowKeyNotKeyUp = keyCode;
-                    setUndoButton(true);
-                return;
-
-                case key.tab:
-                case key.backslash:
-                    nowKeyNotKeyUp = keyCode;
-                    setSidebarVisible(!isSidebarVisible,false);
                 return;
             }
+            if(checkOpaSizeKeyDown(keyCode)) return;
+            nowKey = keyCode;
+            //etc키 먼저 체크하고 false반환하면 툴키 체크
+            if(!checkEtcKeyDown(keyCode)) checkToolKeyDown(keyCode);
+        }
 
-            checkToolKeyDown(keyCode);
+        private function closureCheckEtcKeyDown():Function
+        {
+            const key:Object = gKey;
+            return function(keyCode:int):Boolean
+            {
+                switch(keyCode)
+                {
+                    case key.f1:
+                    case key.f6:
+                    {
+                        nowKeyNotKeyUp = keyCode;
+                        setGridButton();
+                        topBar.hintTimeOff();
+                    }
+                    return true;
+
+                    case key.f2:
+                    case key.f7:
+                    {
+                        nowKeyNotKeyUp = keyCode;
+                        setSideBarPositionButton();
+                    }
+                    return true;
+
+                    case key.f3:
+                    case key.f8:
+                    {
+                        nowKeyNotKeyUp = keyCode;
+                        setUIColorButton();
+                        topBar.hintTimeOff();
+                    }
+                    return true;
+                    
+                    case key.n2:
+                    case key.n8:
+                    {
+                        nowKeyNotKeyUp = keyCode;
+                        setReplayUI(true);
+                    }
+                    return true;
+
+                    case key.n3:
+                    case key.n9:
+                    {
+                        nowKeyNotKeyUp = keyCode;
+                        if(controlBox.pixelSnapButtonWrapper.alpha === 1.0)
+                            setPixelSnap(!pixelSnapON);
+                    }
+                    return true;
+
+                    case key.n4:
+                    case key.n0:
+                    {
+                        nowKeyNotKeyUp = keyCode;
+                        airBrushON = !airBrushON;
+                        setAirBrushCheckBox(airBrushON,true);
+                    }
+                    return true;
+
+                    case key.n5:
+                    case key.minus:
+                    {
+                        nowKeyNotKeyUp = keyCode;
+                        if(controlBox.subLayerButtonWrapper.alpha === 1.0)
+                            setSubLayer(!subLayerON);
+                    }
+                    return true;
+
+                    case key.x:
+                    case key.comma:
+                        nowKeyNotKeyUp = keyCode;
+                        setRedoButton(true);
+                    return true;
+
+                    case key.z:
+                    case key.dot:
+                        nowKeyNotKeyUp = keyCode;
+                        setUndoButton(true);
+                    return true;
+
+                    case key.tab:
+                    case key.backslash:
+                        nowKeyNotKeyUp = keyCode;
+                        setSidebarVisible(!isSidebarVisible,false);
+                    return true;
+                }
+                return false;
+            }
         }
 
         private function closureCheckToolKeyDown():Function
         {
+            const key:Object = gKey;
             return function(keyCode:int):void
             {
-                const key:Object = gKey;
                 switch (keyCode)
                 {
                     case key.q:
@@ -13275,7 +13266,6 @@
                     }
                     break;
                 }
-
                 updatePenCursorPosition();
             }
         }
@@ -13372,12 +13362,8 @@
             toolBox2ON = false;
             toolBox2.visible = false;
             toolTipBox.visible = false;
-            // if(toolBoxAlwaysON) toolBox.visible = true;
-            
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,mouseUpToolBox2);
             toolBox2.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownToolBox2);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false,-1);
         }
 
         //툴메뉴에서 클릭했을때
@@ -13935,6 +13921,8 @@
 
         private function rightMouseDownDeepUndo(e:MouseEvent):void
         {
+            if(mouseClickON || nowKey !== 0) return;
+
             if(cursorInDrawArea())
             {
                 openToolBox2();
@@ -13980,7 +13968,7 @@
         private function keyDownDeepUndo(e:KeyboardEvent):void
         {
             const keyCode:uint = keyBuffer[0];
-            if(mouseClickON || nowKey === keyCode) return;
+            if(mouseClickON || rightMouseClickON || nowKey === keyCode) return;
 
             var subKey:int;
             const key:Object = gKey;
@@ -14111,8 +14099,11 @@
                 nowKey = nextKey;
                 checkToolKeyDown(nextKey);
             }
-            else nowKey = 0;
-            updatePenCursorPosition();
+            else
+            {
+                nowKey = 0;
+                updatePenCursorPosition();
+            }
         }
 
         private function mouseUpDrawMode(e:MouseEvent):void //mouseup1
@@ -14126,7 +14117,7 @@
 
         private function rightMouseDownReplayMode(e:MouseEvent):void
         {
-            if(nowKey !== 0) return;
+            if(mouseClickON || nowKey !== 0) return;
 
             const targetName:String = e.target.name;
 
@@ -14162,7 +14153,7 @@
 
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
-            if(mouseClickON || keyBuffer.length > 0) return;
+            if(mouseClickON || nowKey !== 0) return;
 
             const targetName:String = e.target.name;
 
