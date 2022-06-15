@@ -334,7 +334,8 @@
 		}
 
 		public function toolButtons() {
-
+			
+			moveToolCursorInit();
 			toolInfoBG.visible = false;
 			const g:Graphics = toolInfoBG.graphics;
 			g.lineStyle(0,0,0);

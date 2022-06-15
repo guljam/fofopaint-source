@@ -581,6 +581,7 @@
             stageMouseMoveEvent.start();
             checkVersion();
             setIMEDisabled();
+            selectPenTool();
         }
         
         //functions
@@ -601,10 +602,7 @@
 
         private function updateOldTool():void
         {
-            if(oldTool === TOOL_NONE)
-            {
-                oldTool = nowTool;
-            }
+            if(oldTool === TOOL_NONE) oldTool = nowTool;
         }
 
         private function setHoldKeyRepeat(func:Function,...args):Boolean
@@ -9701,7 +9699,6 @@
                 _nativeWindow.width = lastWindowSize.x;
                 _nativeWindow.height = lastWindowSize.y;
 
-                setPenSize(penSizeIndex);
                 changeCanvasSize(CANVAS_WIDTH,CANVAS_HEIGHT,0,0,false);
                 setHSVCursorPosByColor(penColor);
                 addUndoData();
@@ -9711,9 +9708,6 @@
                 updatePreviewBoxRectPos();
                 updateWindowSizeInfo();
                 appInfoBox.insertCanvasInfo([CANVAS_WIDTH,CANVAS_HEIGHT,zoomed*100,regPoint.rotation]);
-                updatePenSizeCursor();
-                updateWindowTitle();
-                setWindowTitleStar();
             }
         }
 
@@ -11487,10 +11481,8 @@
                     _controlBox.pixelSnapButtonWrapper.alpha = 1.0;
                     _controlBox.subLayerButtonWrapper.alpha = 1.0;
                                 
-                    if(subLayerON)
-                        canvasPanel.setChildIndex(canvas1,2);
-                    else
-                        canvasPanel.setChildIndex(canvas2,2);
+                    if(subLayerON) canvasPanel.setChildIndex(canvas1,2);
+                    else canvasPanel.setChildIndex(canvas2,2);
 
                     setAirBrushCheckBox(airBrushON,true);
                 }
@@ -12149,8 +12141,8 @@
 
             const alphaCursor:SimpleButton = _opabox["alphaCursor"];
 
-            alphaCursor.x = curButton.x;//+curButton.width/2-alphaCursor.width/2;
-            alphaCursor.y = curButton.y+3;//+curButton.height/2;//-alphaCursor.height/2;
+            alphaCursor.x = curButton.x;
+            alphaCursor.y = curButton.y+3;
         }
 
         private function setPenAlpha(alpha:Number=0):void
@@ -14045,7 +14037,7 @@
         //키를 2개 이상 누르고 있을때 먼저 누른키를 떼면 다음키로 설정함
         private function checkNextKeyDown():void
         {
-            if(oldTool > 0) setOldTool();
+            if(oldTool > TOOL_NONE) setOldTool();
 
             if(keyBuffer.length > 0)
             {
