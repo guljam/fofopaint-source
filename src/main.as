@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.29;
+        private const APP_VERSION:Number = 14.30;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -192,7 +192,7 @@
                     ,COMMAND_CTRL:int = (1 << 0)
                     ,COMMAND_CTRL_SHIFT:int = (1 << 1)
                     ,KEY_REPEAT_DELAY:Number = 300
-                    ,KEY_REPEAT_INTERVAL:Number = 70
+                    ,KEY_REPEAT_INTERVAL:Number = 60
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -582,6 +582,37 @@
         }
         
         //functions
+        private function setHoldKeyRepeat(func:Function,...args):Boolean
+        {
+            if(keyHoldTimer !== 0) return false;
+            
+            function callFunc(args:Array):void
+            {
+                const len:int = args.length;
+                if(len === 0) func();
+                else if(len === 1) func(args[0]);
+                else if(len === 2) func(args[0],args[1]);
+            }
+
+            keyHoldTimer = 0;
+            if(keyHoldTimer === 0)
+            {
+                //오래누르고 있으면 enter frame으로 계속 발동 앞으로 가기만
+                clearTimeout(keyHoldTimer);
+                keyHoldTimer = setTimeout(function():void
+                {
+                    keyHoldTimer = setInterval(function():void
+                    {
+                        callFunc(args);
+                    },KEY_REPEAT_INTERVAL);
+                },KEY_REPEAT_DELAY);
+                addCancelAutoKeyEvent();
+            };
+
+            callFunc(args);
+            return true;
+        }
+
         private function checkOpaSizeKeyDown(keyCode:int):Boolean
         {
             const key:Object = gKey;
@@ -589,20 +620,20 @@
             {
                 case key.f:
                 case key.h:
-                    shortcutAlphaSizeHoldKey(shortCutPenSize,true);
+                    setHoldKeyRepeat(shortCutPenSize,true);
                 return true;
 
                 case key.v:
                 case key.n:
-                    shortcutAlphaSizeHoldKey(shortCutPenSize,false);
+                    setHoldKeyRepeat(shortCutPenSize,false);
                 return true;
 
                 case key.g:
-                    shortcutAlphaSizeHoldKey(shortCutPenAlpha,true);
+                    setHoldKeyRepeat(shortCutPenAlpha,true);
                 return true;
 
                 case key.b:
-                    shortcutAlphaSizeHoldKey(shortCutPenAlpha,false);
+                    setHoldKeyRepeat(shortCutPenAlpha,false);
                 return true;
             }
 
@@ -928,7 +959,7 @@
             catch(err:Error)
             {
                 fs.close();
-                topBar.hintTimeError("Load failed");
+                topBar.hintTimeError("Failed to load file");
                 return false;
             }
 
@@ -7176,28 +7207,12 @@
 
         private function setSkipOneFrame(prev:Boolean,oneFrame:Boolean=false):void
         {
-            if(keyHoldTimer !== 0) return;
-            if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
-            if(replayStartON) stopReplay();
-  
-            topBar["reRecordingButton"].visible = true;
-
-            keyHoldTimer = 0;
-            if(keyHoldTimer === 0)
+            if(setHoldKeyRepeat(skipOneFrame,prev,oneFrame) === true)
             {
-                //오래누르고 있으면 enter frame으로 계속 발동 앞으로 가기만
-                clearTimeout(keyHoldTimer);
-                keyHoldTimer = setTimeout(function():void
-                {
-                    keyHoldTimer = setInterval(function():void
-                    {
-                        skipOneFrame(prev,oneFrame);
-                    },KEY_REPEAT_INTERVAL);
-                },KEY_REPEAT_DELAY);
-                addCancelAutoKeyEvent();
-            };
-
-            skipOneFrame(prev,oneFrame);
+                if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
+                if(replayStartON) stopReplay();
+                topBar["reRecordingButton"].visible = true;
+            }
         }
 
         //flag = 1 //딱 한프레임만 스킵할때
@@ -7858,6 +7873,7 @@
                 //실제적으로 loader가 읽어서 캔버스에 그림
                 function loaderIOErrorHandlerEvent(e:Event):void
                 {
+                    topBar.hintTimeError("Failed to load file");
                     tempDragDropFile = null;
                     loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderIOErrorHandlerEvent);
                     loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, startDrawImgEvent);
@@ -8218,7 +8234,7 @@
             stage.addEventListener(Event.ENTER_FRAME,onFrameEnter);
         }
 
-        private function saveReplayFile(imageSize:Number):void
+        private function saveReplayFile():void
         {
             if(repFile.exists)
             {
@@ -8288,17 +8304,8 @@
                 fs.close();
                 rImgData.clear();
                 lastImgData.clear();
-
-                // const round:Function = Math.round;
-                // const rawrepSize:Number = repFileTemp.size;
-                // const repFileSize:Number = round(repFileTemp.size/1024);
-                repFileTemp.moveTo(copyFile,true);//원래 목표했던 경로에 덮어쓰기 이동 덮어쓰기
-
-                // const imageFileSize:Number = round(imageSize/1024);
-                // const repFileSizeStr:String = (repFileSize > 1024) ? (repFileSize/1024).toFixed(1)+" MB": repFileSize.toFixed(1)+" KB";
-                // const imageFileSizeStr:String = (imageFileSize > 1024) ?  (imageFileSize/1024).toFixed(1)+" MB":imageFileSize.toFixed(1)+" KB";
-
-                topBar.hintTimeOK("File saved");
+                repFileTemp.moveTo(copyFile,true);
+                topBar.hintTimeOK("File saved successfully");
             }
         }
 
@@ -8410,7 +8417,7 @@
         {
             if(isTrue2020File(file) === false)
             {
-                topBar.hintTimeError("Load failed");
+                topBar.hintTimeError("Failed to load file");
                 return;
             }
 
@@ -8468,9 +8475,10 @@
         {
             if(!imageData)
             {
-                topBar.hintTimeError("Load failed");
+                topBar.hintTimeError("Failed to load file");
                 return;
             }
+            
             const floor:Function = Math.floor;
             var maxLength:Number = (width > height) ? width : height;
             var scaleFix:Number = (maxLength > CANVAS_MAX_SIZE) ? CANVAS_MAX_SIZE/maxLength : 1.0;
@@ -8573,20 +8581,16 @@
 
         private function loadFile(subLayer:Boolean=false):void
         {
-            if(replayStartON)
-            {
-                stopReplay();
-            }
-
+            if(replayStartON) stopReplay();
             if(lassoToolON || browseWindowON || fillPenStarted) return;
-
-            var newFileFilter:FileFilter = new FileFilter("Image or 2020 file", "*.2020;*.png;*.jpg;*.gif");
+            const allowedExt:String = "*.2020;*.png;*.jpg;*.gif";
+            var newFileFilter:FileFilter = new FileFilter("Image or 2020 file",allowedExt);
             var windowTitle:String = "Open file";
             var imgExt:Array = [newFileFilter];
 
             if(subLayer === true)
             {
-                newFileFilter = new FileFilter("Image file", "*.2020;*.png;*.jpg;*.gif");
+                newFileFilter = new FileFilter("Image file",allowedExt);
                 windowTitle = "Open reference layer image";
                 imgExt = [newFileFilter];
             }
@@ -8603,14 +8607,8 @@
                 var loaderInfo:LoaderInfo = LoaderInfo(e.target);
 
                 //2020이 아닌 보통 이미지 처리
-                if(subLayer === true)
-                {
-                    pasteTraceImage(loaderInfo.loader,loaderInfo.width,loaderInfo.height);
-                }
-                else
-                {
-                    loadImageFile(file.name,file.nativePath,loaderInfo.width,loaderInfo.height,loaderInfo.loader);
-                }
+                if(subLayer === true) pasteTraceImage(loaderInfo.loader,loaderInfo.width,loaderInfo.height);
+                else loadImageFile(file.name,file.nativePath,loaderInfo.width,loaderInfo.height,loaderInfo.loader);
 
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
                 loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,loadFileCompleteEvent);
@@ -8620,6 +8618,7 @@
 
             function loadErrorEvent(e:Event):void
             {
+                topBar.hintTimeError("Failed to load file");
                 browseWindowON = false;
                 //에러나면 아무것도 안해줌
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
@@ -8647,18 +8646,13 @@
 
             function fileSelectCompleteHandler(e:Event):void
             {
+                trace('load comp');
                 browseWindowON = false;
                 //2020파일 처리
                 if(is2020Ext(file.name) === true)
                 {
-                    if(subLayer === true)
-                    {
-                        loadRawFileToReferenceLayer(file);
-                    }
-                    else
-                    {
-                        loadReplayFile(file,file.name,file.nativePath);
-                    }
+                    if(subLayer === true) loadRawFileToReferenceLayer(file);
+                    else loadReplayFile(file,file.name,file.nativePath);
                 }
                 else //일반 이미지 처리
                 {
@@ -9316,9 +9310,6 @@
             }
             
             const fs:FileStream = new FileStream();
-            var imageSize:Number;
-
-            // checkUsedMemory();
             if(continueFlag)
             {
                 const normalFile:File = new File(saveFilePath);
@@ -9340,7 +9331,6 @@
 
                     bmpd.draw(canvas1BitmapData);
                     bmpd.encode(newRectangle,pngOption,byteArray);
-                    imageSize = byteArray.length;
 
                     fs.addEventListener(IOErrorEvent.IO_ERROR, saveContinueErrorEvent);
                     fs.openAsync(normalFile,FileMode.WRITE);
@@ -9348,7 +9338,7 @@
                     fs.close();
 
                     byteArray.clear();
-                    saveReplayFile(imageSize);
+                    saveReplayFile();
                     updateWindowTitle();
                     saveOneTime = true;
                 }
@@ -9416,7 +9406,6 @@
 
                     saveFileName = fName;
                     saveFilePath = fPath;
-                    imageSize = byteArray.length;
 
                     //확장자가 2020이거나 png일경우 무시하고 원래 이름대로 저장  img.2020.png이렇게 중복되게 저장되는거 막음
                     if(fName.lastIndexOf(".2020") !== -1)
@@ -9448,7 +9437,7 @@
 
                     byteArray.clear();
                     updateWindowTitle();
-                    saveReplayFile(imageSize);
+                    saveReplayFile();
                 }
             }
         }
@@ -11749,6 +11738,7 @@
             const h:uint = d[2];
             const bg:uint = d[3];
             const len:int = undoIndex;
+            const _tickDraw:Object = tickDraw;
 
             rMirrorON = false; //미러가 안된 상태의 undoimage를 깔아주기 때문에 처음에는 false로 설정해야함
             if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
@@ -11763,8 +11753,8 @@
                 {
                     if(!rData[i]) continue;
 
-                    tickDraw.ready(rData[i]);
-                    tickDraw.drawAll();
+                    _tickDraw.ready(rData[i]);
+                    _tickDraw.drawAll();
                 }
             }
 
@@ -11831,66 +11821,16 @@
             }
         }
 
-        private function shortcutAlphaSizeHoldKey(func:Function,flag:Boolean):void
-        {
-            if(keyHoldTimer !== 0)
-            {
-                return;
-            }
-
-            //오래누르고 있으면 enter frame으로 계속 발동 앞으로 가기만
-            clearTimeout(keyHoldTimer);
-            keyHoldTimer = 0;
-            if(keyHoldTimer === 0)
-            {
-                keyHoldTimer = setTimeout(function():void
-                {
-                    keyHoldTimer = setInterval(function():void
-                    {
-                        func(flag);
-                    },KEY_REPEAT_INTERVAL);
-                },KEY_REPEAT_DELAY);
-                addCancelAutoKeyEvent();
-            }
-
-            func(flag);
-        }
-
-        private function checkUndoRedoHoldKey(func:Function):void
-        {
-            if(keyHoldTimer !== 0)
-            {
-                return;
-            }
-
-            //오래누르고 있으면 enter frame으로 계속 발동 앞으로 가기만
-            clearTimeout(keyHoldTimer);
-            keyHoldTimer = 0;
-            if(keyHoldTimer === 0)
-            {
-                keyHoldTimer = setTimeout(function():void
-                {
-                    keyHoldTimer = setInterval(function():void
-                    {
-                        func();
-                    },66);
-                },300);
-                addCancelAutoKeyEvent();
-            }
-        }
-
         private function setRedoButton(useAutoKey:Boolean):void
         {
-            if(keyHoldTimer !== 0) return;
-            redo();
-            if(useAutoKey) checkUndoRedoHoldKey(redo);
+            if(useAutoKey) setHoldKeyRepeat(redo);
+            else redo();
         }
 
         private function setUndoButton(useAutoKey:Boolean):void
         {
-            if(keyHoldTimer !== 0) return;
-            undo();
-            if(useAutoKey) checkUndoRedoHoldKey(undo);
+            if(useAutoKey)setHoldKeyRepeat(undo);
+            else undo();
         }
 
         private function forceUndoAndDeleteFrontData(index:int):void
@@ -12947,6 +12887,11 @@
             topBar.setSpeedButtonPosByValue(oldSpeed,max);
         }
 
+        private function setReplaySpeedByKeyButton(upFlag:Boolean):void
+        {
+            setHoldKeyRepeat(setReplaySpeedByKey,upFlag);
+        }
+
         private function keyUpReplayMode(e:KeyboardEvent):void
         {
             if(e.keyCode === nowKey)
@@ -13002,32 +12947,24 @@
                 case key.left:
                 case key.z:
                 case key.dot:
-                {
                     setSkipOneFrame(true,e.shiftKey);
-                }
                 break;
 
                 case key.right:
                 case key.x:
                 case key.comma:
-                {
                     setSkipOneFrame(false,e.shiftKey);
-                }
                 break;
 
                 case key.up:
                 case key.f:
                 case key.h:
-                {
-                    setReplaySpeedByKey(true);
-                }
+                    setReplaySpeedByKeyButton(true);
                 break;
                 case key.down:
                 case key.v:
                 case key.n:
-                {
-                    setReplaySpeedByKey(false);
-                }
+                    setReplaySpeedByKeyButton(false);
                 break;
             }
 

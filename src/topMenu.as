@@ -178,7 +178,7 @@
 			hintTimer2 = setTimeout(function():void
 			{
 				resetHintColor();
-			},5000);
+			},3000);
 		}
 
 		public function hintTimeOff():void
@@ -212,10 +212,7 @@
 		{
 			if(target)
 			{
-				if(!timed)
-				{
-					clearTimeout(hintTimer);
-				}
+				if(!timed) clearTimeout(hintTimer);
 
 				const c:ColorTransform = new ColorTransform()
 
@@ -234,11 +231,11 @@
 
 				topMenuInfo.text = str;
 				topMenuInfo.width = topMenuInfo.textWidth+4;
-				topMenuInfo.x = (target.x+target.width/2-topMenuInfo.textWidth/2 < 5) ? 5 : target.x+target.width/2-topMenuInfo.width/2; //17은 아이콘 크기의 절반임;
+				topMenuInfo.x = (target.x+target.width/2-topMenuInfo.textWidth/2 < 5) ? 5
+																					  : target.x+target.width/2-topMenuInfo.width/2; //17은 아이콘 크기의 절반임;
 				if(topMenuInfo.x+topMenuInfo.width > stage.stageWidth-3)
-				{
 					topMenuInfo.x -= (topMenuInfo.x+topMenuInfo.width)-(stage.stageWidth-3);
-				}
+
 				topbarInfoBG.width = stage.stageWidth;
 				topbarInfoBG.visible = true;
 				topMenuInfo.visible = true;
