@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.30;
+        private const APP_VERSION:Number = 14.31;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -271,11 +271,11 @@
                     ,clickBlockTimer:int = 0 //비활성에서 활성화 될때 약간의 텀을주는 타이머
                     ,mouseDragON:Boolean = false//툴을 계속 클릭한채로 움직이면 topmenu의 힌트가 안켜지도록 함
                     ,nowTool:int = 1 //현재 툴 번호
-                    ,nowToolBackup:int = 1 //툴백업
+                    ,oldTool:int = TOOL_NONE //툴백업
                     ,keyBuffer:Array = [] //정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
                     ,nowKey:uint = 0 //단축키 누른거 여기다가 저장
-                    ,nowKeyNotKeyUp:uint = 0 //keyup에서 체크 안하는 단축키는 여기다가 저장
-                    ,afterToolOff:Boolean = false //키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
+                    ,nowKeyNotKeyUp:int = 0 //keyup에서 체크 안하는 단축키는 여기다가 저장
+                    ,keyWaitMouseUp:Boolean = false //키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
                     ,penAlpha:Number = 1.0 //펜 변수
                     ,penColor:uint = 0x000000
                     ,sizeOffsetFlag:Boolean = false//0.5픽셀 이동이면 true임 pensizecursormove함수에서 써줌
@@ -468,7 +468,7 @@
                     ,canvasGrid:Sprite = new Sprite()//트레이스 레이어임
                     ,gridFlag:uint = 0
 
-        //클로저 변수
+        //closure
                     ,setPenTool:Function = closurePenTool()
                     ,setLineTool:Function = closureLineTool()
                     ,setHandTool:Function = closureHandTool()
@@ -492,6 +492,7 @@
                     ,checkMainDrawTool:Function = closureCheckMainDrawTool()
                     ,drawCaptureArea:Object = closureDrawCaptureArea()
                     ,stageMouseMoveEvent:Object = closureStageMouseMoveEvent()
+                    ,keyDownDrawMode:Function = closureKeyDownDrawMode()
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
@@ -531,7 +532,6 @@
                     ,zoomToolHintON:Boolean = false //툴박스에서 마우스 클릭해서 줌툴써줄때 mouse out이벤트가 가장 늦게 되서 줌 배율 힌트가 처음에 보이지 않는거 해결
                     ,controlBoxHintTimer:uint = 0 //컨트롤 박스 힌트 타이머 스무딩 힌트 일시적으로 보여줄때 사용
                     ,updateManualTimer:int = 0
-                    ,penSizeOpaKeyUpEventON:Boolean = false //펜 투명도 사이즈 단축키로 조절시 올려줌
                     ,isRightSidebar:Boolean = false // 사이드바 위치 0이 왼쩾 1이 오른쪽
                     ,isSidebarVisible:Boolean = true
                     ,windowResizeDelayTimer:int = 0
@@ -584,6 +584,29 @@
         }
         
         //functions
+        private function isNowTool(tool:int):Boolean
+        {
+            return nowTool === tool;
+        }
+
+        private function setNowTool(tool:int):void
+        {
+            nowTool = tool;
+        }
+
+        private function resetOldTool():void
+        {
+            oldTool = TOOL_NONE;
+        }
+
+        private function updateOldTool():void
+        {
+            if(oldTool === TOOL_NONE)
+            {
+                oldTool = nowTool;
+            }
+        }
+
         private function setHoldKeyRepeat(func:Function,...args):Boolean
         {
             if(keyHoldTimer !== 0) return false;
@@ -1873,7 +1896,7 @@
                     _penSizeCursor.x = mx;
                     _penSizeCursor.y = my;
 
-                    if(_penSizeCursor.width < (8/zoomed) || nowTool === TOOL_FILL_PEN)
+                    if(_penSizeCursor.width < (8/zoomed) || isNowTool(TOOL_FILL_PEN))
                         _penSizeCursor.visible = false;
                     else
                         _penSizeCursor.visible = true;
@@ -2055,7 +2078,7 @@
                 case key.space:
                 {
                     nowKey = keyCode;
-                    nowTool = TOOL_HAND;
+                    setNowTool(TOOL_HAND);
                     lassoMenuTempOFF = true;
                 }
                 break;
@@ -2064,7 +2087,7 @@
                 case key.i:
                 {
                     nowKey = keyCode;
-                    nowTool = TOOL_ZOOM;
+                    setNowTool(TOOL_ZOOM);
                     lassoMenuTempOFF = true;
                 }
                 break;
@@ -2073,7 +2096,7 @@
                 case key.k:
                 {
                     nowKey = keyCode;
-                    nowTool = TOOL_ROTATE;
+                    setNowTool(TOOL_ROTATE);
                     lassoMenuTempOFF = true;
                 }
                 break;
@@ -2115,12 +2138,10 @@
             const gp:Point = canvas1Bitmap.globalToLocal(new Point(STAGE_LEFT_OFFSET,STAGE_TOP_OFFSET));
             const z:Number = zoomed;
 
-            previewBox.updateCursor(gp.x*z
-                                    ,gp.y*z
+            previewBox.updateCursor(gp.x*z,gp.y*z
                                     ,stage.stageWidth-STAGE_LEFT_OFFSET-STAGE_RIGHT_OFFSET
                                     ,stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET
-                                    ,CANVAS_WIDTH*z
-                                    ,regPoint.rotation);
+                                    ,CANVAS_WIDTH*z,regPoint.rotation);
         }
 
         private function setHandToolPreviewBox(cursorClicked:Boolean):void
@@ -2202,24 +2223,11 @@
 
         private function forceSetMainDrawTool():void
         {
-            if(nowTool === TOOL_LINE)
+            if(!(isPenOrLineTool() || isNowTool(TOOL_FILL_PEN)))
             {
-                nowToolBackup = TOOL_LINE;
-                selectLineTool();
+                resetOldTool();
+                selectPenTool();
                 updatePenSizeCursor();
-            }
-            else if(nowTool !== TOOL_PEN)
-            {
-                if(nowTool === TOOL_FILL_PEN)
-                {
-                    selectFillPenTool();
-                }
-                else
-                {
-                    nowToolBackup = TOOL_PEN;
-                    selectPenTool();
-                    updatePenSizeCursor();
-                }
             }
         }
 
@@ -2480,8 +2488,6 @@
                 buttonSetVisible("replay",false);
                 buttonSetVisible("capture",false);
                 _tb.changeHintYPos(_tb.BARSIZE);
-                nowToolBackup = TOOL_PEN;
-                selectPenTool();
                 updatePenSizeCursor();
                 if(needUpdate)
                 {
@@ -3189,7 +3195,7 @@
         private function setBlurCanvas2DrawBySize(size:Number,replayMode:Boolean):void
         {
             var blurSize:Number = size/2;
-            
+
             if(blurSize <= 2) blurSize = 2;
             else if(blurSize > 30) blurSize = 30;
 
@@ -3223,7 +3229,7 @@
 
         private function setAirBrush(flag:Boolean):void
         {
-            const penFlag:Boolean = isPenTool();
+            const penFlag:Boolean = isPenOrLineTool();
 
             if(penFlag) airBrushON = flag;
             else eraseAirBrushON = flag;
@@ -3576,7 +3582,7 @@
             }
         }
 
-        private function isPenTool():Boolean
+        private function isPenOrLineTool():Boolean
         {
             const nt:int = nowTool;
             const bool:Boolean = (nt === TOOL_PEN || nt === TOOL_LINE);
@@ -3672,23 +3678,11 @@
             }
 
             if(isEraseTool()) setAlpha(eraseAlpha,eraseSize);
-            else if(isPenTool()) setAlpha(penAlpha,penSize);
-
-            function printConsolAlphaEvent(e:KeyboardEvent):void
-            {
-                penSizeOpaKeyUpEventON = false;
-                stage.removeEventListener(KeyboardEvent.KEY_UP,printConsolAlphaEvent);
-            }
-            if(penSizeOpaKeyUpEventON === false)
-            {
-                penSizeOpaKeyUpEventON = true;
-                stage.addEventListener(KeyboardEvent.KEY_UP,printConsolAlphaEvent);
-            }
+            else if(isPenOrLineTool()) setAlpha(penAlpha,penSize);
         }
 
         private function shortCutPenSize(flag:Boolean):void
         {
-            var index:int = 0;
             const len:uint = sizeArr.length-1;
 
             function setSize(index:uint,alpha:Number):void
@@ -3712,28 +3706,15 @@
                 updatePenSizeCursor();
             }
 
-            if(isPenTool()) setSize(penSizeIndex,penAlpha);
-            else if(isEraseTool()) setSize(eraseSizeIndex,eraseAlpha);
-
-            function printConsolSizeEvent(e:KeyboardEvent):void
-            {   
-                if(isPenTool() && airBrushON)
-                {
-                    setBlurCanvas2DrawBySize(penSize,false);
-                }
-
-                if(isEraseTool() && eraseAirBrushON)
-                {
-                    setBlurCanvas2DrawBySize(eraseSize,false);
-                }
-                penSizeOpaKeyUpEventON = false;
-                stage.removeEventListener(KeyboardEvent.KEY_UP,printConsolSizeEvent);
-            }
-
-            if(penSizeOpaKeyUpEventON === false)
+            if(isPenOrLineTool())
             {
-                penSizeOpaKeyUpEventON = true
-                stage.addEventListener(KeyboardEvent.KEY_UP,printConsolSizeEvent);
+                setSize(penSizeIndex,penAlpha);
+                if(airBrushON) setBlurCanvas2DrawBySize(penSize,false);
+            }
+            else if(isEraseTool())
+            {
+                setSize(eraseSizeIndex,eraseAlpha);
+                if(eraseAirBrushON) setBlurCanvas2DrawBySize(eraseSize,false);
             }
         }
 
@@ -3789,11 +3770,8 @@
             updatePenSizeCursor();
             penSizePrev.visible = true;
 
-            if(isPenTool() && airBrushON)
-                setBlurCanvas2DrawBySize(penSize,false);
-
-            if(isEraseTool() && eraseAirBrushON)
-                setBlurCanvas2DrawBySize(eraseSize,false);
+            if(isPenOrLineTool() && airBrushON) setBlurCanvas2DrawBySize(penSize,false);
+            if(isEraseTool() && eraseAirBrushON) setBlurCanvas2DrawBySize(eraseSize,false);
 
             clearTimeout(penSizePrevOFFTimer);
             penSizePrevOFFTimer = setTimeout(function():void
@@ -3849,7 +3827,7 @@
             const maxValue:Number = 0.85;
             const minValue:Number = 0.02;
             const stepValue:Number = (maxValue-minValue)/step;
-            const airBrushFlag:Boolean = isPenTool() && airBrushON;
+            const airBrushFlag:Boolean = isPenOrLineTool() && airBrushON;
             const eraseAirBrushFlag:Boolean = isEraseTool() && eraseAirBrushON;
             var oldValue:int = penSmoothSlideValue;
   
@@ -4019,7 +3997,7 @@
         {
             const targetName:String =  e.target.name;
 
-            if((isPenTool() || nowTool === TOOL_FILL_PEN)
+            if((isPenOrLineTool() || isNowTool(TOOL_FILL_PEN))
             && targetName
             && (targetName.indexOf("canvas") !== -1 || targetName === "stageBG" || targetName === "canvasGrid"))
             {
@@ -4346,25 +4324,19 @@
         private function setPenSize(index:uint):void
         {
             const size:uint = sizeArr[index];
-            const isErase:Boolean = isEraseTool();
-            var blurf:BlurFilter;
 
-            if(nowTool === TOOL_FILL_PEN)
-            {
-                nowToolBackup = 1;
-                selectPenTool();
-            }
-
-            if(isPenTool()) 
+            if(isPenOrLineTool()) 
             {
                 penSize = size;
                 penSizeIndex = index;
             }
-            else if(isErase) 
+            else if(isEraseTool()) 
             {
                 eraseSize = size;
                 eraseSizeIndex = index;
             }
+            else selectPenTool();
+
             controlBox.movePenSizeCursor(index);
         }
 
@@ -4415,7 +4387,7 @@
                 penSizeCursor.rotation = regPoint.rotation;
             }
 
-            if(isPenTool())
+            if(isPenOrLineTool())
             {
                 if(penShape !== shapeFlag)
                 {
@@ -4451,7 +4423,6 @@
             function hueMoveStart(mx:Number):void
             {
                 var hueCursorX:Number = mx;
-                const barw:Number = _hueBarWidth;
 
                 if(hueCursorX < 0) hueCursorX = 0;
                 else if(hueCursorX > max) hueCursorX = max;
@@ -4604,22 +4575,17 @@
         }
 
         //단축키를  after tool mouse up에서 이전툴을 복구해줌
-        private function setPrevTool():void
+        private function setOldTool():void
         {
-            const prevTool:int = nowToolBackup;
+            const _oldTool:int = oldTool;
 
-            if(prevTool === nowTool)
-            {
-                nowToolBackup = -1;
-                return;
-            }
-            else if(nowToolBackup === -1)
+            if(_oldTool === TOOL_NONE)
             {
                 selectPenTool();
                 return;
             }
 
-            switch (prevTool)
+            switch (_oldTool)
             {
                 case TOOL_FILL_PEN:
                     selectFillPenTool();
@@ -4647,8 +4613,8 @@
                 case TOOL_ZOOM:selectZoomTool(); break;
             }
 
-            nowTool = prevTool;
-            nowToolBackup = -1;
+            nowTool = _oldTool;
+            resetOldTool();
         }
 
         private function resetTimer():void
@@ -5505,7 +5471,6 @@
             {
                 saveContinue = false;
                 resetCutFrameClickCounter();
-                selectPenTool();
 
                 if(flag === 0) //super undo
                 {
@@ -7557,7 +7522,7 @@
             {
                 case "toolPen":
                 {
-                    if(nowTool !== TOOL_PEN)
+                    if(!isNowTool(TOOL_PEN))
                     {
                         selectPenTool();
                         updatePenSizeCursor();
@@ -7566,7 +7531,7 @@
                 break;
                 case "toolFillPen":
                 {
-                    if(nowTool !== TOOL_FILL_PEN) 
+                    if(!isNowTool(TOOL_FILL_PEN))
                     {
                         selectFillPenTool();
                         updatePenSizeCursor();
@@ -7575,7 +7540,7 @@
                 break;
                 case "toolErase":
                 {
-                    if(nowTool !== TOOL_ERASE) 
+                    if(!isNowTool(TOOL_ERASE))
                     {
                         selectEraseTool();
                         updatePenSizeCursor();
@@ -7584,7 +7549,7 @@
                 break;
                 case "toolLine":
                 {
-                    if(nowTool !== TOOL_LINE) 
+                    if(!isNowTool(TOOL_LINE))
                     {
                         selectLineTool();
                         updatePenSizeCursor();
@@ -7593,7 +7558,7 @@
                 break;
                 case "toolLasso":
                 {
-                    if(nowTool !== TOOL_LASSO) 
+                    if(!isNowTool(TOOL_LASSO))
                     {
                         selectLassoTool();
                     }
@@ -7601,12 +7566,11 @@
                 break;
                 case "toolSpuit":
                 {
-                    if(nowTool !== TOOL_SPUIT) 
+                    if(!isNowTool(TOOL_SPUIT))
                     {
-                        nowToolBackup = nowTool;
+                        updateOldTool();
+                        setSpuitTool();
                     }
-
-                    setSpuitTool();
                 }
                 break;
                 case "toolUndo": setUndoButton(false); break;
@@ -7791,6 +7755,7 @@
                 {
                     setLassoCancelButton();
                     resetLassoBox();
+                    resetOldTool();
                     selectPenTool();
                 }
 
@@ -7995,26 +7960,8 @@
             {
                 // changedColor = pickedColor;
                 penColor = pickedColor;
-
                 setHSVCursorPosByColor(pickedColor);
-
-                if(nowTool === TOOL_LINE)
-                {
-                    nowToolBackup = TOOL_LINE;
-                    selectLineTool();
-                }
-                else
-                {
-                    if(nowTool === TOOL_FILL_PEN)
-                    {
-                        selectFillPenTool();
-                    }
-                    else
-                    {
-                        nowToolBackup = TOOL_PEN;
-                        selectPenTool();
-                    }
-                }
+                forceSetMainDrawTool();
             }
 
             const invColor:uint = getInvertColor(pickedColor,1.0);
@@ -9901,7 +9848,7 @@
             canvas2BitmapData.draw(canvas2Draw);
             canvas2Bitmap.bitmapData = canvas2BitmapData;
 
-            if(isPenTool() || nowTool === TOOL_FILL_PEN)
+            if(isPenOrLineTool() || isNowTool(TOOL_FILL_PEN))
             {
                 canvas2Alpha = new ColorTransform(1,1,1,penAlpha);
 
@@ -11132,7 +11079,6 @@
             const _setColorTransform:Function = setColorTransform;
             var canvas1bmp:Bitmap;
             var canvas1bmpd:BitmapData;
-            var oldTool:int;
             var spuitbmpd:BitmapData;
             var penColorBackup:uint;
             const pickerBox:colorPickerBox = pickerBox;
@@ -11203,13 +11149,13 @@
                         updateColorHistoryList();
                     }
 
-                    if(oldTool === TOOL_LINE) nowToolBackup = TOOL_LINE;
-                    else if(oldTool === TOOL_FILL_PEN) nowToolBackup = TOOL_FILL_PEN;
-                    else nowToolBackup = TOOL_PEN;
+                    if(oldTool === TOOL_LINE) oldTool = TOOL_LINE;
+                    else if(oldTool === TOOL_FILL_PEN) oldTool = TOOL_FILL_PEN;
+                    else oldTool = TOOL_PEN;
                 }
                 spuitbmpd.dispose();
                 spuitCursor.visible = false;
-                setPrevTool();
+                setOldTool();
                 //move에서 spuitBitmapData를 쓰고 있기 때문에 이벤트를 먼저 해제해주고 데이터 비워줌
             }
 
@@ -11245,7 +11191,7 @@
                 
                 spuitbmpd.draw(canvas1BitmapData);
                 penColorBackup = penColor;
-                nowTool = TOOL_SPUIT;
+                setNowTool(TOOL_SPUIT);
                 _setColorTransform(spuitCursor["spuitOldColor"],penColor);
                 moveEraseButton("toolSpuit");
                 
@@ -11311,8 +11257,9 @@
                         }
                         checkLassoMenuPos();
                     } //tool box에서 클릭해서 핸드툴 들어갈때 필요함
-                    else if(nowKey !== gKey.space) setPrevTool();
+                    else if(nowKey !== gKey.space) setOldTool();
 
+                    toolBox.setCursorVisible(true);
                     updatePreviewBoxRectPos();
                 }
                 else
@@ -11340,7 +11287,11 @@
                 oldY = mouseY;
 
                 penCursorOFFFlag = true;
-                if(isDrawMode) setOptimizeCanvasMove(true);
+                if(isDrawMode)
+                {
+                    toolBox.setCursorVisible(false);
+                    setOptimizeCanvasMove(true);
+                }
 
                 stageMouseMoveEvent.add(handToolMoveEvent);
                 stage.addEventListener(MouseEvent.MOUSE_UP,handToolUpEvent);
@@ -11459,37 +11410,32 @@
         //펜툴로 선택,세팅 껍데기만 바꿔주는거임 setPenTool은 실제 툴을 진행하는거
         private function selectMoveTool():void
         {
-            nowToolBackup = nowTool;
-            nowTool = TOOL_MOVE;
+            setNowTool(TOOL_MOVE);
             toolBox.moveToolCursor("toolMove");
         }
 
         private function selectZoomTool():void
         {
-            nowToolBackup = nowTool;
-            nowTool = TOOL_ZOOM;
+            setNowTool(TOOL_ZOOM);
             toolBox.moveToolCursor("toolZoom");
         }
 
         private function selectRotateTool():void
         {
-            nowToolBackup = nowTool;
-            nowTool = TOOL_ROTATE;
+            setNowTool(TOOL_ROTATE);
             toolBox.moveToolCursor("toolRotate");
         }
 
         private function selectLassoTool():void
         {
-            nowToolBackup = nowTool;
-            nowTool = TOOL_LASSO;
+            setNowTool(TOOL_LASSO);
             moveEraseButton("toolLasso");
             toolBox.moveToolCursor("toolLasso");
         }
 
         private function selectFillPenTool():void
         {
-            nowToolBackup = TOOL_PEN;
-            nowTool = TOOL_FILL_PEN;
+            setNowTool(TOOL_FILL_PEN);
             setFillPen(true);
             moveEraseButton("toolFillPen");
             toolBox.moveToolCursor("toolFillPen");
@@ -11605,19 +11551,19 @@
 
         private function selectLineTool():void
         {
-            nowTool = TOOL_LINE;
+            setNowTool(TOOL_LINE);
             checkMainDrawTool(penSize,penColor,penAlpha,penShape,true,true);
         }
 
         private function selectPenTool():void
         {
-            nowTool = TOOL_PEN;
+            setNowTool(TOOL_PEN);
             checkMainDrawTool(penSize,penColor,penAlpha,penShape,true,false);
         }
 
         private function selectEraseTool():void
         {
-            nowTool = TOOL_ERASE;
+            setNowTool(TOOL_ERASE);
             checkMainDrawTool(eraseSize,CANVAS_BG_COLOR,eraseAlpha,eraseShape,false,false);
         }
 
@@ -11653,7 +11599,7 @@
 
             toolBox.alpha = 1.0;
 
-            setPrevTool();
+            setOldTool();
         }
 
         //stage를 기준으로 사각형 꼭지점들 구하기
@@ -12675,7 +12621,7 @@
 
             if(replayStartON === true) stopReplay();
             if(captureModeON === true) captureOFF();
-            if(nowTool === TOOL_LASSO) setLassoCancelButton();
+            if(isNowTool(TOOL_LASSO)) setLassoCancelButton();
 
             if(stage.nativeWindow.displayState === "maximized") //최대화이면 복원해주고 닫아줌
             {
@@ -13007,66 +12953,71 @@
 
             if(keyCode === nowKey)
             {
-                if(mouseClickON === true) afterToolOff = true;
+                if(mouseClickON === true) keyWaitMouseUp = true;
                 else checkNextKeyDown();
             }
         }
 
-        private function keyDownDrawMode(e:KeyboardEvent):void//keydown1
+        private function closureKeyDownDrawMode():Function
         {
-            if(mouseClickON || rightMouseClickON || afterToolOff || fillPenStarted) return;
-
-            const keyCode:uint = keyBuffer[0];
             const key:Object = gKey;
-            var nt:int = nowTool;
             var subKey:int;
 
-            //자툴이 nowkey를 쓰기 때문에 nowkey 리턴 이전에서 체크해야함
-            if(isPressingControlShift())
+            return function(e:KeyboardEvent):void
             {
-                //shift 누르고 ctrl 순서로 누를때 이전툴로 복원
-                if(nowTool === TOOL_LINE) setPrevTool();
+                if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted) return;
 
-                if(keyBuffer.length === 3)
+                const keyCode:uint = keyBuffer[0];
+
+                //자툴이 nowkey를 쓰기 때문에 nowkey 리턴 이전에서 체크해야함
+                if(isPressingControlShift())
                 {
-                    subKey = keyBuffer[2];
-                    nowKey = subKey;
+                    //shift 누르고 ctrl 순서로 누를때 이전툴로 복원
+                    if(isNowTool(TOOL_LINE)) setOldTool();
 
-                    if(subKey === key.s) saveFile(true);
-                    else if(subKey === key.o) loadFile(true);
+                    if(keyBuffer.length === 3)
+                    {
+                        subKey = keyBuffer[2];
+                        nowKey = subKey;
+
+                        if(subKey === key.s) saveFile(true);
+                        else if(subKey === key.o) loadFile(true);
+                    }
+                    return;
                 }
-                return;
-            }
-            else if(isPressingControl())
-            {
-                if(keyBuffer.length === 2)
+                else if(isPressingControl())
                 {
-                    subKey = keyBuffer[1];
-                    nowKey = subKey;
+                    if(keyBuffer.length === 2)
+                    {
+                        subKey = keyBuffer[1];
+                        nowKey = subKey;
 
-                    if(subKey === key.s) saveFile(false);
-                    else if(subKey === key.o) loadFile();
-                    else if(subKey === key.c || subKey === key.m) setCaptureReady();
-                    else if(subKey === key.v && clipImageON) setClipButton();
+                        if(subKey === key.s) saveFile(false);
+                        else if(subKey === key.o) loadFile();
+                        else if(subKey === key.c || subKey === key.m) setCaptureReady();
+                        else if(subKey === key.v && clipImageON) setClipButton();
+                    }
+                    return;
                 }
-                return;
-            }
 
-            //지우개키 조합 따로 체크
-            if(nowKey === key.d || nowKey === key.j)
-            {
-                subKey = (keyBuffer.length >= 2) ? keyBuffer[1] : keyCode;
-                if(checkOpaSizeKeyDown(subKey)) return;
-            }
+                //지우개키 조합 따로 체크
+                if(nowKey === key.d || nowKey === key.j)
+                {
+                    subKey = (keyBuffer.length >= 2) ? keyBuffer[1] : keyCode;
+                    if(checkOpaSizeKeyDown(subKey)) return;
+                }
 
-            if(nowKey === keyCode)
-            {
-                return;
+                if(nowKey === keyCode)
+                {
+                    return;
+                }
+                if(checkOpaSizeKeyDown(keyCode)) return;
+
+                nowKey = keyCode;
+                
+                //etc키 먼저 체크하고 false반환하면 툴키 체크
+                if(!checkEtcKeyDown(keyCode)) checkToolKeyDown(keyCode);
             }
-            if(checkOpaSizeKeyDown(keyCode)) return;
-            nowKey = keyCode;
-            //etc키 먼저 체크하고 false반환하면 툴키 체크
-            if(!checkEtcKeyDown(keyCode)) checkToolKeyDown(keyCode);
         }
 
         private function closureCheckEtcKeyDown():Function
@@ -13168,7 +13119,11 @@
                 {
                     case key.q:
                     case key.o:
+                    {
+                        setNowTool(TOOL_PEN); //q키가 올라가면 펜툴로 바꿔지게
+                        updateOldTool();
                         selectFillPenTool();
+                    }
                     break;
 
                     case key.t:
@@ -13186,9 +13141,9 @@
                     case key.c:
                     case key.m:
                     {
-                        if(nowTool !== TOOL_SPUIT)
+                        if(!isNowTool(TOOL_SPUIT))
                         {
-                            nowToolBackup = nowTool;
+                            updateOldTool();
                             setSpuitTool();
                         }
                     }
@@ -13197,17 +13152,20 @@
                     case key.r:
                     case key.y:
                     {
-                        if(nowTool !== TOOL_LASSO)
+                        if(!isNowTool(TOOL_LASSO))
+                        {
+                            updateOldTool();
                             selectLassoTool();
+                        }
                     }
                     break;
 
                     case key.space:
                     {
-                        if(nowTool !== TOOL_HAND)
+                        if(!isNowTool(TOOL_HAND))
                         {
-                            nowToolBackup = nowTool;
-                            nowTool = TOOL_HAND;
+                            updateOldTool();
+                            setNowTool(TOOL_HAND);
                         }
                     }
                     break;
@@ -13215,9 +13173,9 @@
                     case key.d:
                     case key.j:
                     {
-                        if(nowTool !== TOOL_ERASE)
+                        if(!isNowTool(TOOL_ERASE))
                         {
-                            nowToolBackup = nowTool;
+                            updateOldTool();
                             selectEraseTool();
                             updatePenSizeCursor();
                         }
@@ -13227,32 +13185,41 @@
                     case key.s:
                     case key.k:
                     {
-                        if(nowTool !== TOOL_ROTATE)
+                        if(!isNowTool(TOOL_ROTATE))
+                        {
+                            updateOldTool();
                             selectRotateTool();
+                        }
                     }
                     break;
 
                     case key.e:
                     case key.u:
                     {
-                        if(nowTool !== TOOL_MOVE)
+                        if(!isNowTool(TOOL_MOVE))
+                        {
+                            updateOldTool();
                             selectMoveTool();
+                        }
                     }
                     break;
 
                     case key.w:
                     case key.i:
                     {
-                        if(nowTool !== TOOL_ZOOM)
+                        if(!isNowTool(TOOL_ZOOM))
+                        {
+                            updateOldTool();
                             selectZoomTool();
+                        }
                     }
                     break;
 
                     case key.shift:
                     {
-                        if(nowTool !== TOOL_LINE)
+                        if(!isNowTool(TOOL_LINE))
                         {
-                            nowToolBackup = nowTool;
+                            updateOldTool();
                             selectLineTool();
                             updatePenSizeCursor();
                         }
@@ -13263,8 +13230,7 @@
                     case key.del:
                     case key.backspace:
                     {
-                        if(lassoToolON === false && nowTool !== TOOL_SPUIT)
-                            setClearData(true);
+                        setClearData(true);
                     }
                     break;
                 }
@@ -13405,8 +13371,8 @@
                 updateToolBoxMousePos(toolBox2.toolPen);
                 closeToolBox2();
 
-                if(nowTool !== TOOL_HAND) nowToolBackup = nowTool;
-                nowTool = TOOL_HAND;
+                if(!isNowTool(TOOL_HAND)) updateOldTool();
+                setNowTool(TOOL_HAND);
             }
         }
 
@@ -13480,9 +13446,9 @@
                 break;
                 case "toolSpuit":
                 {
-                    if(nowTool !== TOOL_SPUIT)
+                    if(!isNowTool(TOOL_SPUIT))
                     {
-                        nowToolBackup = nowTool;
+                        oldTool = nowTool;
                     }
                     setSpuitTool();
                 }
@@ -13714,10 +13680,6 @@
                     sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
 
                 toolBox.fillPenIconON();
-                controlBox.alpha = BUTTON_OFF_ALPHA;
-                pickerBox.alpha = BUTTON_OFF_ALPHA;
-                previewBox.alpha = BUTTON_OFF_ALPHA;
-                appInfoBox.alpha = BUTTON_OFF_ALPHA;
                 sideBarScrollBar.visible = false;
                 toolBox.tempVisibleMoveON(false);
             }
@@ -13728,10 +13690,6 @@
 
                 toolBox.fillPenIconOFF();
                 toolBox.tempVisibleMoveOFF();
-                controlBox.alpha = 1.0;
-                pickerBox.alpha = 1.0;
-                previewBox.alpha = 1.0;
-                appInfoBox.alpha = 1.0;
                 updateScrollBarHeight(stage.stageHeight);
                 sideBarScrollBar.visible = true;
             }
@@ -13750,10 +13708,6 @@
                 toolBox2.deepUndoIconON();
                 replayTimeBox.setTimeBarOnly(true);
                 updateReplayBarPos(stage.stageWidth,stage.stageHeight);
-                controlBox.alpha = BUTTON_OFF_ALPHA;
-                pickerBox.alpha = BUTTON_OFF_ALPHA;
-                previewBox.alpha = BUTTON_OFF_ALPHA;
-                appInfoBox.alpha = BUTTON_OFF_ALPHA;
                 sideBarScrollBar.visible = false;
                 updateRCursorScale(zoomed);
                 removeInputEventDrawMode();
@@ -13768,10 +13722,6 @@
                 toolBox.tempVisibleMoveOFF();
                 toolBox.deepUndoIconOFF();
                 toolBox2.deepUndoIconOFF();
-                controlBox.alpha = 1.0;
-                pickerBox.alpha = 1.0;
-                previewBox.alpha = 1.0;
-                appInfoBox.alpha = 1.0;
                 updateScrollBarHeight(stage.stageHeight);
                 sideBarScrollBar.visible = true;
                 addInputEventDrawMode();
@@ -13816,7 +13766,8 @@
                 if(isSidebarVisible === true) sideBar.visible = true;
                 if(replayStartON === true) stopReplay();
 
-                nowToolBackup = TOOL_PEN;
+                resetOldTool();
+                selectPenTool();
                 rDataPreviewCacheImages = [];
                 setResizeButtonVisible(true);
                 updatePreviewBoxRectPos();
@@ -14091,13 +14042,15 @@
             }
         }
 
+        //키를 2개 이상 누르고 있을때 먼저 누른키를 떼면 다음키로 설정함
         private function checkNextKeyDown():void
         {
-            if(nowToolBackup > 0) setPrevTool();
+            if(oldTool > 0) setOldTool();
 
             if(keyBuffer.length > 0)
             {
                 const nextKey:int = keyBuffer[0];
+                trace('nextKey',nextKey);
                 nowKey = nextKey;
                 checkToolKeyDown(nextKey);
             }
@@ -14110,9 +14063,9 @@
 
         private function mouseUpDrawMode(e:MouseEvent):void //mouseup1
         {
-            if(afterToolOff)//단축키 떼고 마우스 땠을때 원래대로 돌림
+            if(keyWaitMouseUp)//단축키 떼고 마우스 땠을때 원래대로 돌림
             {
-                afterToolOff = false;
+                keyWaitMouseUp = false;
                 checkNextKeyDown();
             }
         }
@@ -14262,7 +14215,7 @@
                 case "airBrushONButton":
                 case "airBrushText":
                 {
-                    if(isPenTool())
+                    if(isPenOrLineTool())
                     {
                         setAirBrush(!airBrushON);
                     }
@@ -14365,9 +14318,9 @@
             && lassoMenu.hitTestPoint(mouseX,mouseY) === false)
             {
                 lassoMenu.visible = false;
-                if(nowTool === TOOL_HAND) setHandTool();
-                else if(nowTool === TOOL_ROTATE) setRotateTool();
-                else if(nowTool === TOOL_ZOOM) setZoomTool();
+                if(isNowTool(TOOL_HAND)) setHandTool();
+                else if(isNowTool(TOOL_ROTATE)) setRotateTool();
+                else if(isNowTool(TOOL_ZOOM)) setZoomTool();
             }
             else
             {
@@ -14490,7 +14443,7 @@
                 {
                     return;
                 }
-                else if(checkControlBoxButtons(target) && (isPenTool() || isEraseTool())) 
+                else if(checkControlBoxButtons(target) && (isPenOrLineTool() || isEraseTool())) 
                 {
                     return;
                 }

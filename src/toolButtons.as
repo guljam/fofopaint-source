@@ -43,6 +43,11 @@
 		public var toolInfoBG:Shape = new Shape();
 		private var deafultY:Number = 0;
 		
+		public function setCursorVisible(flag:Boolean):void
+		{
+			toolSelectCursor.visible = flag;
+		}
+
 		public function getDeafultY():Number
 		{
 			return deafultY;
