@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.28;
+        private const APP_VERSION:Number = 14.29;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -266,6 +266,8 @@
                     ,rzoomedIndex:int = 3
                     ,mouseClickON:Boolean = false //클릭하면 올려줌
                     ,rightMouseClickON:Boolean = false //클릭하면 올려줌
+                    ,clickBlockFlag:Boolean = false //알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
+                    ,clickBlockTimer:int = 0 //비활성에서 활성화 될때 약간의 텀을주는 타이머
                     ,mouseDragON:Boolean = false//툴을 계속 클릭한채로 움직이면 topmenu의 힌트가 안켜지도록 함
                     ,nowTool:int = 1 //현재 툴 번호
                     ,nowToolBackup:int = 1 //툴백업
@@ -527,8 +529,6 @@
                     ,zoomToolHintON:Boolean = false //툴박스에서 마우스 클릭해서 줌툴써줄때 mouse out이벤트가 가장 늦게 되서 줌 배율 힌트가 처음에 보이지 않는거 해결
                     ,controlBoxHintTimer:uint = 0 //컨트롤 박스 힌트 타이머 스무딩 힌트 일시적으로 보여줄때 사용
                     ,updateManualTimer:int = 0
-                    ,clickBlockFlag:Boolean = false //알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
-                    ,clickBlockTimer:int = 0 //비활성에서 활성화 될때 약간의 텀을주는 타이머
                     ,penSizeOpaKeyUpEventON:Boolean = false //펜 투명도 사이즈 단축키로 조절시 올려줌
                     ,isRightSidebar:Boolean = false // 사이드바 위치 0이 왼쩾 1이 오른쪽
                     ,isSidebarVisible:Boolean = true
@@ -782,7 +782,7 @@
 
         private function sideBarVisibleMouseLeaveEvent(e:Event):void
         {
-            if(replayModeON || captureModeON || sideBarONMouseLeaveTimer > 0 || clickBlockFlag)
+            if(replayModeON || captureModeON || sideBarONMouseLeaveTimer > 0)
             {
                 return;
             }
@@ -965,45 +965,6 @@
             var rotateFlag:Boolean;
             var xOffset:Number;
 
-            function start():void
-            {
-                command = new Vector.<int>();
-                data = new Vector.<Number>();
-
-                timer = 0;
-                mouseMoved = false;
-                mouseMoveCount = 0;
-                afterKeyUpOK = false;
-                clickedButton = null;
-                _pixelSnap = pixelSnapON;
-                rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
-                xOffset = (sizeOffsetFlag) ? 0.5 : 0;
-
-                xColor = penColor;
-                xAlpha = penAlpha;
-                canvas2.alpha = xAlpha;
-                xBlendMode = (xColor === CANVAS_BG_COLOR) ? "erase" : null;
-                commandUndoIndexArr = [0];
-
-                if(traceMenuON)
-                    traceMenuBox.visible = false;
-
-                command.push(1);
-                data.push(cd.mouseX);
-                data.push(cd.mouseY);
-
-                setFillpenUI(true);
-
-                fillPenStarted = true;
-
-                _checkUndoReady();
-
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
-                stage.addEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
-                stageMouseMoveEvent.add(fillPenMouseMoveEvent);
-                stage.addEventListener(KeyboardEvent.KEY_UP,fillPenKeyUpEvent);
-            }
-
             function _checkUndoReady():void
             {
                 if(canvas1Bitmap.hitTestPoint(mouseX,mouseY) === true)
@@ -1168,7 +1129,7 @@
                     {
                         timer = 0;
                         drawFillPenData();
-                    },100);
+                    },KEY_REPEAT_INTERVAL);
                 }
             }
 
@@ -1184,9 +1145,7 @@
                 {
                     clickedButton = targetName;
                 }
-                else if(!(mx <= STAGE_LEFT_OFFSET || mx >= stage.stageWidth -STAGE_RIGHT_OFFSET
-                       || my <= STAGE_TOP_OFFSET  || my >= stage.stageHeight-STAGE_BOTTOM_OFFSET
-                       || clickBlockFlag === true))
+                else if(cursorInDrawArea())
                 {
                     stageMouseMoveEvent.add(fillPenMouseMoveEvent);
                     clickedButton = null;
@@ -1271,6 +1230,46 @@
 
                 afterKeyUpOK = false;
                 mouseMoved = false;
+            }
+
+            
+            function start():void
+            {
+                command = new Vector.<int>();
+                data = new Vector.<Number>();
+
+                timer = 0;
+                mouseMoved = false;
+                mouseMoveCount = 0;
+                afterKeyUpOK = false;
+                clickedButton = null;
+                _pixelSnap = pixelSnapON;
+                rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
+                xOffset = (sizeOffsetFlag) ? 0.5 : 0;
+
+                xColor = penColor;
+                xAlpha = penAlpha;
+                canvas2.alpha = xAlpha;
+                xBlendMode = (xColor === CANVAS_BG_COLOR) ? "erase" : null;
+                commandUndoIndexArr = [0];
+
+                if(traceMenuON)
+                    traceMenuBox.visible = false;
+
+                command.push(1);
+                data.push(cd.mouseX);
+                data.push(cd.mouseY);
+
+                setFillpenUI(true);
+
+                fillPenStarted = true;
+
+                _checkUndoReady();
+
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
+                stage.addEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
+                stageMouseMoveEvent.add(fillPenMouseMoveEvent);
+                stage.addEventListener(KeyboardEvent.KEY_UP,fillPenKeyUpEvent);
             }
 
             return {
@@ -1710,7 +1709,7 @@
         private function updatePenCursorPositionEvent(e:MouseEvent):void
         {
             afkONCount = 0;
-            if(clickBlockFlag || replayModeON || captureModeON) return;
+            if(replayModeON || captureModeON) return;
             updatePenCursorPosition();
         }
 
@@ -3706,7 +3705,7 @@
 
         private function stageKeyUpEvent(e:KeyboardEvent):void
         {
-            if(clickBlockFlag || fileDragSelectBox.visible) return;
+            if(fileDragSelectBox.visible) return;
 
             const keyCode:int = e.keyCode;
             const index:int = keyBuffer.lastIndexOf(keyCode);
@@ -3721,7 +3720,7 @@
         {
             const keyCode:int = e.keyCode;
             const key:Object = gKey;
-            if(clickBlockFlag || fileDragSelectBox.visible || keyCode === key.window) return;
+            if(fileDragSelectBox.visible || keyCode === key.window) return;
 
             const index:int = keyBuffer.lastIndexOf(keyCode);
 
@@ -8748,7 +8747,7 @@
         private function mouseDownCaptureMode(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(nowKey !== 0 || clickBlockFlag || !target) return;
+            if(nowKey !== 0 || !target) return;
 
             const targetName:String = target.name;
 
@@ -8769,7 +8768,10 @@
                 return;
 
                 default:
+                {
+                    if(clickBlockFlag) return;
                     drawCaptureArea.start(replayModeON);
+                }
                 return;
             }
         }
@@ -8786,7 +8788,7 @@
         private function keyDownCaptureMode(e:KeyboardEvent):void
         {
             const keyCode:uint = keyBuffer[0];
-            if(mouseClickON || clickBlockFlag || nowKey === keyCode) return;
+            if(mouseClickON || nowKey === keyCode) return;
             const key:Object = gKey;
 
             nowKey = keyCode;
@@ -12958,7 +12960,7 @@
         {
             const keyCode:uint = keyBuffer[0];
 
-            if(mouseClickON || clickBlockFlag || nowKey === keyCode)
+            if(mouseClickON || nowKey === keyCode)
             {
                 return;
             }
@@ -14004,31 +14006,28 @@
 
         private function mouseDownDeepUndo(e:MouseEvent):void
         {
-            if(clickBlockFlag) return;
-
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
 
             if(cursorInDrawArea())
             {
                 setHandTool(true);
-                return;
             }
-
-            switch(targetName)
+            else
             {
-                case "replayNowBar":
-                case "replayTotalBar":
-                case "frameInfo":
+                switch(targetName)
                 {
-                    setSkipFrameButton();
-                }
-                return;
+                    case "replayNowBar":
+                    case "replayTotalBar":
+                    case "frameInfo":
+                        setSkipFrameButton();
+                    break;
 
-                case "toolUndo":setSkipOneFrame(true,false); return;
-                case "toolRedo":setSkipOneFrame(false,false); return;
-                case "deepUndoOK":superUndo(); return;
-                case "deepUndoCancel":exitDeepUndoMode(); return;
+                    case "toolUndo":setSkipOneFrame(true,false); break;
+                    case "toolRedo":setSkipOneFrame(false,false); break;
+                    case "deepUndoOK":superUndo(); break;
+                    case "deepUndoCancel":exitDeepUndoMode(); break;
+                }
             }
         }
 
@@ -14044,7 +14043,7 @@
         private function keyDownDeepUndo(e:KeyboardEvent):void
         {
             const keyCode:uint = keyBuffer[0];
-            if(mouseClickON || clickBlockFlag || nowKey === keyCode) return;
+            if(mouseClickON || nowKey === keyCode) return;
 
             var subKey:int;
             const key:Object = gKey;
@@ -14087,23 +14086,8 @@
 
         private function mouseDownReplayMode(e:MouseEvent):void //repdown1
         {
-            if(clickBlockFlag)
-            {
-                return;
-            }
-
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
-
-            //캡쳐 모드가 먼저 여야함
-            if(captureModeON)
-            {
-                if(!(targetName === "capRotate" || targetName === "capFlip" || targetName === "capFull" || targetName === "capOff" || targetName === "capTrans"))
-                {
-                    drawCaptureArea.start(true);
-                    return;
-                }
-            }
 
             if(targetName && (targetName.indexOf("rcanvas") !== -1 || targetName === "stageBG"))
             {
@@ -14241,7 +14225,7 @@
 
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
-            if(mouseClickON || clickBlockFlag || keyBuffer.length > 0) return;
+            if(mouseClickON || keyBuffer.length > 0) return;
 
             const targetName:String = e.target.name;
 
@@ -14559,7 +14543,7 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(clickBlockFlag === true || fillPenStarted) return;
+            if(fillPenStarted) return;
             if(toolBox2ToolClicked)
             {
                 toolBox2ToolClicked = false;
@@ -14704,7 +14688,7 @@
             }
 
             //캔버스 영역 밖에서는 해주지 않음
-            if(cursorInDrawArea())
+            if(cursorInDrawArea() && clickBlockFlag === false)
             {
                 switch (nowTool)
                 {
