@@ -649,6 +649,7 @@
                 {
                     keyHoldTimer = setInterval(function():void
                     {
+                        trace('repaet');
                         callFunc(args);
                     },KEY_REPEAT_INTERVAL);
                 },KEY_REPEAT_DELAY);
@@ -7150,8 +7151,8 @@
         private function addCancelAutoKeyEvent():void
         {
             stage.nativeWindow.addEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
-            stage.addEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,cancelAutoKeyEvent);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,cancelAutoKeyEvent);
             stage.addEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
         }
 
@@ -7160,8 +7161,8 @@
             clearTimeout(keyHoldTimer);
             clearInterval(keyHoldTimer);
             keyHoldTimer = 0;
-            stage.removeEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,cancelAutoKeyEvent);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,cancelAutoKeyEvent);
             stage.nativeWindow.removeEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
             stage.removeEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
         }
@@ -14618,8 +14619,7 @@
                 return;
             }
             //캔버스 영역 밖에서는 해주지 않음
-            if(cursorInDrawArea() && clickBlockFlag === false
-            && keyHoldTimer === 0)
+            if(cursorInDrawArea() && clickBlockFlag === false)
             {
                 switch (nowTool)
                 {
