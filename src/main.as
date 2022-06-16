@@ -751,6 +751,7 @@
         private function stageMouseDownEvent(e:MouseEvent):void
         {
             mouseClickON = true;
+            e.updateAfterEvent();
         }
 
         private function stageRightMouseDownEvent(e:MouseEvent):void
@@ -770,6 +771,7 @@
             {
                 if(sideBar.visible === false) penCursorPosition.setSideBarONWaitEvents();
             }
+            e.updateAfterEvent();
         }
 
         private function stageRightMouseUpEvent(e:MouseEvent):void
@@ -796,7 +798,6 @@
         {
             const arr:Vector.<Function> = new Vector.<Function>();
             const rand:Function = Math.random;
-            var limit:int;
             var lastTime:int = 0;
             var sumTime:int = 0;
             var nowTime:int = 0;
@@ -805,12 +806,11 @@
             //mosue move 이벤트 일정 시간 이내는 무시함
             function moveEventLimit():Boolean
             {
-                limit = rand()*7;
                 nowTime = getTimer();
                 subTime = nowTime-lastTime;
                 sumTime += subTime;
 
-                if(sumTime <= limit) return true;
+                if(sumTime <= 1) return true;
                 else sumTime = 0;
 
                 lastTime = nowTime;
@@ -842,6 +842,8 @@
                 {
                     (arr[i] as Function)(e);
                 }
+
+                e.updateAfterEvent();
             }
 
             function start():void
