@@ -4582,6 +4582,7 @@
             if(_oldTool === TOOL_NONE)
             {
                 selectPenTool();
+                updatePenSizeCursor();
                 return;
             }
 
@@ -11415,6 +11416,7 @@
 
         private function selectLassoTool():void
         {
+            updateOldTool();
             setNowTool(TOOL_LASSO);
             moveEraseButton("toolLasso");
             toolBox.moveToolCursor("toolLasso");
