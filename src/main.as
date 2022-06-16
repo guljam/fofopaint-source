@@ -52,12 +52,11 @@
     import flash.net.URLLoaderDataFormat;
     import flash.text.TextField;
     import flash.filters.BlurFilter;
-    import flash.filters.ConvolutionFilter;// ConvolutionFilter가 끝임
-    import flash.system.IMEConversionMode;
+    import flash.filters.ConvolutionFilter;//import end
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.33;
+        private const APP_VERSION:Number = 14.34;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -551,10 +550,17 @@
 
         public function main():void
         {
-            this.addEventListener(Event.ADDED_TO_STAGE, init);
+            if(stage) init();
+            else this.addEventListener(Event.ADDED_TO_STAGE,initEvent);
         }
 
-        private function init(e:Event):void //init1
+        private function initEvent(e:Event):void
+        {
+            this.removeEventListener(Event.ADDED_TO_STAGE,initEvent);
+            init();
+        }
+
+        private function init():void //init1
         {
             updateWindowTitle();
             setWindowTitleStar();
@@ -799,7 +805,7 @@
             //mosue move 이벤트 일정 시간 이내는 무시함
             function moveEventLimit():Boolean
             {
-                limit = rand()*16;
+                limit = rand()*7;
                 nowTime = getTimer();
                 subTime = nowTime-lastTime;
                 sumTime += subTime;
@@ -11914,6 +11920,7 @@
             function updateLastRData(addMode:int):void
             {
                 var arr:Array;
+
 
                 if(addMode === 3) //배경색은 mirror랑 상관없어서 직접 대입
                 {
