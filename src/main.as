@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.31;
+        private const APP_VERSION:Number = 14.32;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -585,6 +585,21 @@
         }
         
         //functions
+        private function setNowKey(key:int):void
+        {
+            nowKey = key;
+        }
+
+        private function resetNowKey():void
+        {
+            nowKey = 0;
+        }
+
+        private function isNowKey(key:int):Boolean
+        {
+            return nowKey === key;
+        }
+        
         private function isNowTool(tool:int):Boolean
         {
             return nowTool === tool;
@@ -2062,20 +2077,14 @@
         {
             const keyCode:int = keyBuffer[0];
 
-            if(nowKey === keyCode)
-            {
-                return;
-            }
-
-            nowKey = keyCode;
+            if(isNowKey(keyCode)) return;
 
             const key:Object = gKey;
-
             switch(keyCode)
             {
                 case key.space:
                 {
-                    nowKey = keyCode;
+                    setNowKey(keyCode);
                     setNowTool(TOOL_HAND);
                     lassoMenuTempOFF = true;
                 }
@@ -2084,7 +2093,7 @@
                 case key.w:
                 case key.i:
                 {
-                    nowKey = keyCode;
+                    setNowKey(keyCode);
                     setNowTool(TOOL_ZOOM);
                     lassoMenuTempOFF = true;
                 }
@@ -2093,7 +2102,7 @@
                 case key.s:
                 case key.k:
                 {
-                    nowKey = keyCode;
+                    setNowKey(keyCode);
                     setNowTool(TOOL_ROTATE);
                     lassoMenuTempOFF = true;
                 }
@@ -2244,26 +2253,6 @@
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]));
             _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
             updatePickerCurrentColor(color);
-        }
-
-        private function getReplayFileSize():String
-        {
-            var endStr:String = " MB";
-            var size:Number = Math.round((repFile.size/1048576)*100)/100;
-            if(size < 1.0)
-            {
-                size = Math.round(repFile.size/1048);
-                endStr = " KB";
-            }
-
-            if(repFile.exists)
-            {
-                return "("+size+endStr+")";
-            }
-            else
-            {
-                return "(0 MB)";
-            }
         }
 
         private function setTraceImageButton():void
@@ -5288,7 +5277,6 @@
                 forceUndoAndDeleteFrontData(rIndex+1);
                 TOTAL_FRAME = getTotalFrame();
                 resetReplayTime();
-                replayTimeBox["frameInfo"].text = "Replay data is ready "+getReplayFileSize();
                 replayNowBar.width = 0;
                 
                 rcanvas1BitmapData = canvas1BitmapData.clone();
@@ -8099,7 +8087,7 @@
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
             changeCanvasSizeReplayMode(rcanvas1BitmapData.width,rcanvas1BitmapData.height); //크기도 바꿔주고
 
-            replayInfoText.text = "Reading replay data..";
+            replayInfoText.text = "Loading...";
             fs.open(rf,FileMode.READ);
             fs.position = 0;
 
@@ -8121,7 +8109,6 @@
                         undoData.setRFileTotalFrame(_frameSum);
                         makeSkipImageFlag = 0;
                         if(!fromDeepUndo) rregPoint.visible = true;
-                        replayInfoText.text = "Replay data is ready "+getReplayFileSize();
                         resetReplayTime();
                         TOTAL_FRAME = getTotalFrame();
                         rDataReadFlag = false;
@@ -8166,7 +8153,7 @@
                         fs3.close();
                         imgData.clear();
                         _rSkipImageCount = 0;
-                        replayInfoText.text = "Reading replay data.. "+perc+"%";
+                        replayInfoText.text = "Loading... "+perc+"%";
                         return;
                     }
                 }
@@ -8713,18 +8700,18 @@
         {
             if(e.keyCode === nowKey)
             {
-                if(keyBuffer.length > 0) nowKey = keyBuffer[0];
-                else nowKey = 0;
+                if(keyBuffer.length > 0)setNowKey(keyBuffer[0]);
+                else resetNowKey();
             }
         }
 
         private function keyDownCaptureMode(e:KeyboardEvent):void
         {
             const keyCode:uint = keyBuffer[0];
-            if(mouseClickON || rightMouseClickON || nowKey === keyCode) return;
+            if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
             const key:Object = gKey;
 
-            nowKey = keyCode;
+           setNowKey(keyCode);
 
             switch(keyCode)
             {
@@ -10076,7 +10063,7 @@
                         checkLassoMenuPos();
                         lassoMenuTempOFF = false;
                         lassoMenu.visible = true;
-                        nowKey = 0;
+                        resetNowKey();
                     }
 
                     updatePenSizeCursor();
@@ -10085,7 +10072,7 @@
                 }
                 else
                 {
-                    nowKey = 0;
+                    resetNowKey();
                     updateReplayCanvasBounds();
                 }
 
@@ -10317,7 +10304,7 @@
                     checkLassoMenuPos();
                     lassoMenuTempOFF = false;
                     lassoMenu.visible = true;
-                    nowKey = 0;
+                    resetNowKey();
                 }
 
                 updatePreviewBoxRectPos();
@@ -11247,7 +11234,7 @@
                         {
                             lassoMenu.visible = true;
                             lassoMenuTempOFF = false;
-                            nowKey = 0;
+                            resetNowKey();
                         }
                         checkLassoMenuPos();
                     } //tool box에서 클릭해서 핸드툴 들어갈때 필요함
@@ -12823,8 +12810,8 @@
         {
             if(e.keyCode === nowKey)
             {
-                if(keyBuffer.length > 0) nowKey = keyBuffer[0];
-                else nowKey = 0;
+                if(keyBuffer.length > 0) setNowKey(keyBuffer[0]);
+                else resetNowKey();
             }
         }
 
@@ -12832,7 +12819,7 @@
         {
             const keyCode:uint = keyBuffer[0];
 
-            if(mouseClickON || rightMouseClickON || nowKey === keyCode) return;
+            if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
 
             const key:Object = gKey;
             var subKey:int;
@@ -12842,7 +12829,7 @@
                 if(keyBuffer.length === 3)
                 {
                     subKey = keyBuffer[2];
-                    nowKey = subKey;
+                    setNowKey(subKey);
 
                     if(subKey === key.s) saveFile(true);
                     else if(subKey === key.o) loadFile(true);
@@ -12854,7 +12841,7 @@
                 if(keyBuffer.length === 2)
                 {
                     subKey = keyBuffer[1];
-                    nowKey = subKey;
+                    setNowKey(subKey);
 
                     if(subKey === key.s) saveFile(false);
                     else if(subKey === key.o) loadFile();
@@ -12863,7 +12850,7 @@
                 return;
             }
 
-            nowKey = keyCode;
+            setNowKey(keyCode);
 
             switch(keyCode)
             {
@@ -12940,7 +12927,7 @@
             if(keyCode === nowKeyNotKeyUp)
             {
                 nowKeyNotKeyUp = 0;
-                if(keyBuffer.length === 0) nowKey = 0;
+                if(keyBuffer.length === 0) resetNowKey();
             }
 
             if(keyCode === nowKey)
@@ -12970,7 +12957,7 @@
                     if(keyBuffer.length === 3)
                     {
                         subKey = keyBuffer[2];
-                        nowKey = subKey;
+                        setNowKey(subKey);
 
                         if(subKey === key.s) saveFile(true);
                         else if(subKey === key.o) loadFile(true);
@@ -12982,7 +12969,7 @@
                     if(keyBuffer.length === 2)
                     {
                         subKey = keyBuffer[1];
-                        nowKey = subKey;
+                        setNowKey(subKey);
 
                         if(subKey === key.s) saveFile(false);
                         else if(subKey === key.o) loadFile();
@@ -12993,19 +12980,19 @@
                 }
 
                 //지우개키 조합 따로 체크
-                if(nowKey === key.d || nowKey === key.j)
+                if(isNowKey(key.d) || isNowKey(key.j))
                 {
                     subKey = (keyBuffer.length >= 2) ? keyBuffer[1] : keyCode;
                     if(checkOpaSizeKeyDown(subKey)) return;
                 }
 
-                if(nowKey === keyCode)
+                if(isNowKey(keyCode))
                 {
                     return;
                 }
                 if(checkOpaSizeKeyDown(keyCode)) return;
 
-                nowKey = keyCode;
+                setNowKey(keyCode);
                 
                 //etc키 먼저 체크하고 false반환하면 툴키 체크
                 if(!checkEtcKeyDown(keyCode)) checkToolKeyDown(keyCode);
@@ -13653,7 +13640,7 @@
         private function resetKeyBuffer():void
         {
             keyBuffer = [];
-            nowKey = 0;
+            resetNowKey();
             nowKeyNotKeyUp = 0;
         }
 
@@ -13905,15 +13892,15 @@
         {
             if(e.keyCode === nowKey)
             {
-                if(keyBuffer.length > 0) nowKey = keyBuffer[0];
-                else nowKey = 0;
+                if(keyBuffer.length > 0) setNowKey(keyBuffer[0]);
+                else resetNowKey();
             }
         }
 
         private function keyDownDeepUndo(e:KeyboardEvent):void
         {
             const keyCode:uint = keyBuffer[0];
-            if(mouseClickON || rightMouseClickON || nowKey === keyCode) return;
+            if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
 
             var subKey:int;
             const key:Object = gKey;
@@ -13929,7 +13916,7 @@
                 return;
             }
 
-            nowKey = keyCode;
+            setNowKey(keyCode);
 
             switch(keyCode)
             {
@@ -14037,18 +14024,16 @@
         //키를 2개 이상 누르고 있을때 먼저 누른키를 떼면 다음키로 설정함
         private function checkNextKeyDown():void
         {
-            if(oldTool > TOOL_NONE) setOldTool();
-
             if(keyBuffer.length > 0)
             {
                 const nextKey:int = keyBuffer[0];
-                trace('nextKey',nextKey);
-                nowKey = nextKey;
+                setNowKey(nextKey);
                 checkToolKeyDown(nextKey);
             }
             else
             {
-                nowKey = 0;
+                resetNowKey();
+                if(oldTool > TOOL_NONE) setOldTool();
                 updatePenCursorPosition();
             }
         }
@@ -14431,7 +14416,7 @@
 
             if(sideBar.visible && sideBarScrollSet.hitTestPoint(mouseX,mouseY,true))
             {
-                if(checkPickerBoxButtons(target) && nowKey === 0) 
+                if(checkPickerBoxButtons(target) && isNowKey(0)) 
                 {
                     return;
                 }
