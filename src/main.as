@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.34;
+        private const APP_VERSION:Number = 14.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -4095,14 +4095,14 @@
             {
                 case "clearButton":
                 {
-                    if(toolBox2ON || nowKey !== 0) return;
+                    if(toolBox2ON || !isNowKey(0)) return;
                     setClearData();
                 }
                 break;
 
                 case "replayModeButton":
                 {
-                    if(toolBox2ON || nowKey !== 0) return;
+                    if(toolBox2ON || !isNowKey(0)) return;
                     setReplayUI(true);
 
                     mouseClickON = false; //리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
@@ -8679,7 +8679,7 @@
         private function mouseDownCaptureMode(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(nowKey !== 0 || !target) return;
+            if(!isNowKey(0) || !target) return;
 
             const targetName:String = target.name;
 
@@ -11244,7 +11244,7 @@
                         }
                         checkLassoMenuPos();
                     } //tool box에서 클릭해서 핸드툴 들어갈때 필요함
-                    else if(nowKey !== gKey.space) setOldTool();
+                    else if(!isNowKey(gKey.space)) setOldTool();
 
                     toolBox.setCursorVisible(true);
                     updatePreviewBoxRectPos();
@@ -11799,7 +11799,7 @@
 
         private function setUndoButton(useAutoKey:Boolean):void
         {
-            if(useAutoKey)setHoldKeyRepeat(undo);
+            if(useAutoKey) setHoldKeyRepeat(undo);
             else undo();
         }
 
@@ -13037,16 +13037,14 @@
                     if(checkOpaSizeKeyDown(subKey)) return;
                 }
 
-                if(isNowKey(keyCode))
-                {
-                    return;
-                }
-                if(checkOpaSizeKeyDown(keyCode)) return;
+                if(isNowKey(keyCode)) return;
 
                 setNowKey(keyCode);
+                if(checkOpaSizeKeyDown(keyCode)) return;
                 
                 //etc키 먼저 체크하고 false반환하면 툴키 체크
-                if(!checkEtcKeyDown(keyCode)) checkToolKeyDown(keyCode);
+                if(checkEtcKeyDown(keyCode)) return
+                checkToolKeyDown(keyCode);
             }
         }
 
@@ -13612,7 +13610,7 @@
 
         private function checkToolBoxButtons(targetName:String):Boolean
         {
-            if(nowKey !== 0) return true;
+            if(!isNowKey(0)) return true;
 
             if(lassoToolON === false)
             {
@@ -13919,7 +13917,7 @@
 
         private function rightMouseDownDeepUndo(e:MouseEvent):void
         {
-            if(mouseClickON || nowKey !== 0) return;
+            if(mouseClickON || !isNowKey(0)) return;
 
             if(cursorInDrawArea())
             {
@@ -14080,7 +14078,7 @@
                 case "replayNext":
                 case "timer":
                 {
-                    if(nowKey !== 0) return;
+                    if(!isNowKey(0)) return;
                     checkButtonUp(targetName);
                 }
                 break;
@@ -14115,7 +14113,7 @@
 
         private function rightMouseDownReplayMode(e:MouseEvent):void
         {
-            if(mouseClickON || nowKey !== 0) return;
+            if(mouseClickON || !isNowKey(0)) return;
 
             const targetName:String = e.target.name;
 
@@ -14151,7 +14149,7 @@
 
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
-            if(mouseClickON || nowKey !== 0) return;
+            if(mouseClickON || !isNowKey(0)) return;
 
             const targetName:String = e.target.name;
 
@@ -14282,7 +14280,7 @@
         {
             const nt:int = nowTool;
 
-            if(toolBox2ON || (nowKey !== 0 && nt !== TOOL_FILL_PEN
+            if(toolBox2ON || (!isNowKey(0) && nt !== TOOL_FILL_PEN
                                            && nt !== TOOL_LINE
                                            && nt !== TOOL_PEN))
             {
@@ -14535,7 +14533,7 @@
                 case "traceVisibleOFFButton":
                 case "appResetButton":
                 {
-                    if(toolBox2ON || fillPenStarted || nowKey !== 0 || e.target.alpha < 1.0)
+                    if(toolBox2ON || fillPenStarted || !isNowKey(0) || e.target.alpha < 1.0)
                         return;
                         
                     checkButtonUp(targetName);
@@ -14617,9 +14615,9 @@
 
                 return;
             }
-
             //캔버스 영역 밖에서는 해주지 않음
-            if(cursorInDrawArea() && clickBlockFlag === false)
+            if(cursorInDrawArea() && clickBlockFlag === false
+            && keyHoldTimer === 0)
             {
                 switch (nowTool)
                 {
