@@ -751,7 +751,6 @@
         private function stageMouseDownEvent(e:MouseEvent):void
         {
             mouseClickON = true;
-            e.updateAfterEvent();
         }
 
         private function stageRightMouseDownEvent(e:MouseEvent):void
@@ -771,7 +770,6 @@
             {
                 if(sideBar.visible === false) penCursorPosition.setSideBarONWaitEvents();
             }
-            e.updateAfterEvent();
         }
 
         private function stageRightMouseUpEvent(e:MouseEvent):void
@@ -810,7 +808,7 @@
                 subTime = nowTime-lastTime;
                 sumTime += subTime;
 
-                if(sumTime <= 1) return true;
+                if(sumTime === 0) return true;
                 else sumTime = 0;
 
                 lastTime = nowTime;
@@ -842,8 +840,6 @@
                 {
                     (arr[i] as Function)(e);
                 }
-
-                e.updateAfterEvent();
             }
 
             function start():void
@@ -11922,7 +11918,6 @@
             function updateLastRData(addMode:int):void
             {
                 var arr:Array;
-
 
                 if(addMode === 3) //배경색은 mirror랑 상관없어서 직접 대입
                 {
