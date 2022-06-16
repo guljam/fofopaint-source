@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.35;
+        private const APP_VERSION:Number = 14.36;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -649,7 +649,6 @@
                 {
                     keyHoldTimer = setInterval(function():void
                     {
-                        trace('repaet');
                         callFunc(args);
                     },KEY_REPEAT_INTERVAL);
                 },KEY_REPEAT_DELAY);
@@ -11661,9 +11660,10 @@
         private function setTraceBitmapPosWithUndo(move:Point):void
         {
             const _canvasTraceBitmap:Bitmap = canvasTraceBitmap;
+            const _zoomed:Number = zoomed;
 
-            _canvasTraceBitmap.x -= move.x;
-            _canvasTraceBitmap.y -= move.y;
+            _canvasTraceBitmap.x -= move.x*_zoomed;
+            _canvasTraceBitmap.y -= move.y*_zoomed;
             tracePosInfo[0] = _canvasTraceBitmap.x;
             tracePosInfo[1] = _canvasTraceBitmap.y;
         }
@@ -11703,6 +11703,7 @@
             const bg:uint = d[3];
             const len:int = undoIndex;
             const _tickDraw:Object = tickDraw;
+            const _zoomed:Number = zoomed;
 
             rMirrorON = false; //미러가 안된 상태의 undoimage를 깔아주기 때문에 처음에는 false로 설정해야함
             if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
@@ -11728,8 +11729,8 @@
             const movedRegPos:Point = getCanvasMovedWithUndo(len,redoFlag);
             if(movedRegPos)
             {
-                regPoint.x += movedRegPos.x;
-                regPoint.y += movedRegPos.y;
+                regPoint.x += movedRegPos.x*_zoomed;
+                regPoint.y += movedRegPos.y*_zoomed;
                 setTraceBitmapPosWithUndo(movedRegPos);
             }
 
