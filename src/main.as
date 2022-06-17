@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.36;
+        private const APP_VERSION:Number = 14.37;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -4019,10 +4019,10 @@
         private function addInputEventReplayMode():void
         {
             if(isDeepUndoON) return;
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownReplayMode);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownReplayMode);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownReplayMode);
-            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpReplayMode);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownReplayMode,false,-1);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownReplayMode,false,-1);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownReplayMode,false,-1);
+            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpReplayMode,false,-1);
         }
 
         private function removeInputEventReplayMode():void
@@ -4044,10 +4044,10 @@
         private function addInputEventDeepUndo():void
         {
             resetKeyBuffer();
-            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDeepUndo);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDeepUndo);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDeepUndo);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDeepUndo);
+            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDeepUndo,false,-1);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDeepUndo,false,-1);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDeepUndo,false,-1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDeepUndo,false,-1);
         }
 
         private function removeInputEventDrawMode():void
@@ -4062,11 +4062,11 @@
         private function addInputEventDrawMode():void
         {
             resetKeyBuffer();
-            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDrawMode,false);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false); 
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode,false);
-            stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpDrawMode,false);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDrawMode,false);
+            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDrawMode,false,-1);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false,-1); 
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode,false,-1);
+            stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpDrawMode,false,-1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDrawMode,false,-1);
         }
 
         private function removeInputEventCaptrueMode():void
@@ -4078,9 +4078,9 @@
 
         private function addInputEventCaptrueMode():void
         {
-            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpCaptureMode);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownCaptureMode);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownCaptureMode);
+            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpCaptureMode,false,-1);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownCaptureMode,false,-1);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownCaptureMode,false,-1);
         }
 
         private function topBarClickEvent(e:MouseEvent):void
