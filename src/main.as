@@ -56,7 +56,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.37;
+        private const APP_VERSION:Number = 14.38;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -9035,7 +9035,7 @@
 
         private function cutTimeStamp(str:String):String
         {
-            const pattern:RegExp = /_\d\d\d\d\d\d/g;
+            const pattern:RegExp = /_\d\d\d\d\d\d\d\d\d/g;
             const findTimeStamp:String = pattern.exec(str);
 
             if(findTimeStamp === null) return str;
@@ -9054,7 +9054,6 @@
             const d:Number = date.getDate();
             const daystr:String = (d < 10) ? "0"+d : ""+d;
             const monthstr:String = (m < 10) ? "0"+m : ""+m;
-
             const timeStr:String = "["+y+"-"+monthstr+daystr+"]";
 
             return timeStr;
@@ -9063,18 +9062,15 @@
         private function getTimeStamp():String
         {
             const date:Date = new Date();
-            const y:Number = date.getFullYear();
-            const m:Number = date.getMonth()+1;
-            const d:Number = date.getDate();
             const hour:Number = date.getHours();
             const min:Number = date.getMinutes();
             const sec:Number = date.getSeconds();
-            const daystr:String = (d < 10) ? "0"+d : ""+d;
-            const monthstr:String = (m < 10) ? "0"+m : ""+m;
             const hourstr:String = (hour < 10) ? "0"+hour : ""+hour;
             const minstr:String = (min < 10) ? "0"+min : ""+min;
             const secstr:String = (sec < 10) ? "0"+sec : ""+sec;
-            const timeStr:String = hourstr+minstr+secstr;
+            var milisecStr:String = new String(getTimer());
+            if(milisecStr.length > 3) milisecStr = milisecStr.substr(milisecStr.length-3);
+            const timeStr:String = hourstr+minstr+secstr+milisecStr;
 
             return timeStr;
         }
@@ -12520,11 +12516,8 @@
                 return;
             }
 
-            var scrollBarSize:Number = floor(sth-(sideBarSetHeight-sth));
-            if(scrollBarSize < 50)
-            {
-                scrollBarSize = 50;
-            }
+            var scrollBarSize:Number = floor(sth*(sth/sideBarSetHeight));
+            if(scrollBarSize < 50) scrollBarSize = 50;
 
             scrollBarHeight = scrollBarSize;
             updateScrollBar(scrollBarSize);
@@ -13723,7 +13716,6 @@
                 toolBox.fillPenIconOFF();
                 toolBox.tempVisibleMoveOFF();
                 updateScrollBarHeight(stage.stageHeight);
-                sideBarScrollBar.visible = true;
             }
         }
 
@@ -13755,7 +13747,6 @@
                 toolBox.deepUndoIconOFF();
                 toolBox2.deepUndoIconOFF();
                 updateScrollBarHeight(stage.stageHeight);
-                sideBarScrollBar.visible = true;
                 addInputEventDrawMode();
                 removeDeepUndoEvent();
             }
