@@ -51,12 +51,13 @@
     import flash.net.navigateToURL;
     import flash.net.URLLoaderDataFormat;
     import flash.text.TextField;
+    import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.38;
+        private const APP_VERSION:Number = 14.39;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -494,6 +495,8 @@
                     ,drawCaptureArea:Object = closureDrawCaptureArea()
                     ,stageMouseMoveEvent:Object = closureStageMouseMoveEvent()
                     ,keyDownDrawMode:Function = closureKeyDownDrawMode()
+                    ,checkHideCursor:Object = closureCheckHideCursor()
+                    ,checkHideCursorCount:Function = checkHideCursor.check
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
@@ -550,17 +553,17 @@
 
         public function main():void
         {
-            if(stage) init();
-            else this.addEventListener(Event.ADDED_TO_STAGE,initEvent);
+            if(stage) letThereBeLight();
+            else this.addEventListener(Event.ADDED_TO_STAGE,godSays);
         }
 
-        private function initEvent(e:Event):void
+        private function godSays(e:Event):void
         {
-            this.removeEventListener(Event.ADDED_TO_STAGE,initEvent);
-            init();
+            this.removeEventListener(Event.ADDED_TO_STAGE,godSays);
+            letThereBeLight();
         }
 
-        private function init():void //init1
+        private function letThereBeLight():void
         {
             updateWindowTitle();
             setWindowTitleStar();
@@ -579,9 +582,7 @@
             addStageInputEvent();
             addInputEventStageChild();
             addInputEventDrawMode();
-            
             lastWindowSize = new Point(stage.nativeWindow.width,stage.nativeWindow.height);
-
             setCenvasCenterPos();
             setCenvasCenterPos(true);
             previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
@@ -593,6 +594,62 @@
         }
         
         //functions
+        private function closureCheckHideCursor():Object
+        {
+            const hideTime:int = STAGE_FRAME;
+            var isMouseHide:Boolean = false;
+            var count:int = 0;
+            var mx:Number = 0;
+            var my:Number = 0;
+
+            function isMouseMoved():Boolean
+            {
+                return mx !== mouseX || my !== mouseY
+                    || mouseClickON || rightMouseClickON
+            }
+
+            function updateMousePos():void
+            {
+                mx = mouseX;
+                my = mouseY;
+            }
+
+            function reset():void
+            {
+                Mouse.show();
+                isMouseHide = false;
+                count = 0;
+            }
+
+            function check():void
+            {
+                if(isMouseHide)
+                {
+                    if(isMouseMoved()) reset();
+                }
+                else
+                {
+                    if(count > hideTime)
+                    {
+                        Mouse.hide();
+                        topBar.hintOFF();
+                        isMouseHide = true;
+                        updateMousePos();
+                    }
+                    else count++;
+
+                    if(isMouseMoved()) count = 0;
+
+                    updateMousePos();
+                }
+            }
+
+            return{
+                check:check,
+                reset:reset
+            }
+        }
+
         private function setNowKey(key:int):void
         {
             nowKey = key;
@@ -1049,7 +1106,7 @@
                 }
             }
 
-            function drawFillPenData(finish:Boolean=false):void
+            function drawFillPenData():void
             {
                 const g:Graphics = cd.graphics;
                 const dataLen:int = data.length;
@@ -1057,15 +1114,46 @@
                 g.clear();
                 if(dataLen === 0) return;
                 g.lineStyle(1,xColor);
-                if(finish) g.beginFill(xColor);
+                g.beginFill(xColor);
                 g.drawPath(command,data);
                 g.endFill();
+                g.moveTo(data[dataLen-2],data[dataLen-1]);
+                g.lineTo(data[0],data[1]);
+            }
 
-                if(finish === false) //마지막 닫히는 선 그려주기 drawpath에서는 마지막선을 닫아주지 않음
+            function drawFillPenTemp():void
+            {
+                const g:Graphics = cd.graphics;
+                const _data:Vector.<Number> = data;
+                const len:int = _data.length;
+                var lineColor:uint = 0;
+                var dotCount:int = 0;
+
+                g.clear();
+                if(len < 6) return;
+                g.lineStyle(1,lineColor);
+                g.moveTo(_data[0],_data[1]);
+
+                for(var i:int=2; i<len; i+=2)
                 {
-                    g.moveTo(data[dataLen-2],data[dataLen-1]);
-                    g.lineTo(data[0],data[1]);
+                    dotCount++;
+                    if(dotCount > 3)
+                    {
+                        dotCount = 0;
+                        if(lineColor === 0) lineColor = 0xFFFFFF;
+                        else lineColor = 0;
+                        g.lineStyle(1,lineColor);
+                        g.moveTo(_data[i],_data[i+1]);
+                    }
+                    else
+                    {
+                        g.lineTo(_data[i],_data[i+1]);
+                    }
+                    
                 }
+                g.lineStyle(1,xColor);
+                g.moveTo(_data[len-2],_data[len-1]);
+                g.lineTo(_data[0],data[1]);
             }
 
             function cancelFillPen():void
@@ -1095,9 +1183,9 @@
                     command.push(2);
                     data.push(data[0]);
                     data.push(data[1]); //마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
-
+                    canvas2.alpha = xAlpha;
                     rDataBuffer.push(["fill",xColor,xAlpha,xBlendMode,command.concat(),data.concat()]);
-                    drawFillPenData(true);
+                    drawFillPenData();
                     drawDone();
                 }
 
@@ -1125,7 +1213,7 @@
                 }
                 else
                 {
-                    drawFillPenData();
+                    drawFillPenTemp();
                 }
             }
 
@@ -1179,6 +1267,7 @@
                     cdx = floor(cdx*1000)/1000;
                     cdy = floor(cdy*1000)/1000;
                 }
+
                 if(command.length === 0)
                 {
                     command.push(1);
@@ -1203,7 +1292,7 @@
                     timer = setTimeout(function():void
                     {
                         timer = 0;
-                        drawFillPenData();
+                        drawFillPenTemp();
                     },KEY_REPEAT_INTERVAL);
                 }
             }
@@ -1253,7 +1342,7 @@
                     }
 
                     clearTimeout(timer);
-                    drawFillPenData();
+                    drawFillPenTemp();
                     mouseDragON = true;
 
                     if(readyAddUndo === false)
@@ -1299,7 +1388,7 @@
                     }
                     else if(mouseMoved)
                     {
-                        drawFillPenData();
+                        drawFillPenTemp();
                     }
                 }
 
@@ -1324,7 +1413,6 @@
 
                 xColor = penColor;
                 xAlpha = penAlpha;
-                canvas2.alpha = xAlpha;
                 xBlendMode = (xColor === CANVAS_BG_COLOR) ? "erase" : null;
                 commandUndoIndexArr = [0];
 
@@ -6562,6 +6650,7 @@
         private function doDrawEvent(e:Event):void
         {
             doDraw(rSpeed,SKIP_FRAME_PLAY,false);
+            checkHideCursorCount();
         }
 
         //skipFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
@@ -7427,6 +7516,7 @@
             replayStartON = false;
             doDrawSlowEventON = false;
             checkCutFrameButtons();
+            checkHideCursor.reset();
         }
 
         private function startReplay():void
@@ -10925,11 +11015,9 @@
 
             var lassoDottedLineCount:int;
             var lassoDottedLineColor:uint;
-            var lassoDottedLineLastX:Number;
-            var lassoDottedLineLastY:Number;
+            const lassoDottedLinePos:Point = new Point(0,0);
+            const clickPos:Point = new Point(0,0);
             var canvas2FilterBackUp:Array;
-            var lassoClickX:Number;
-            var lassoClickY:Number;
             var lassoRect:Vector.<Number>;
             var lassoPoints:Array;
             
@@ -10988,13 +11076,16 @@
                         lassoDottedLineColor = 0;
 
                     lassog.lineStyle(1,lassoDottedLineColor);
-                    lassog.moveTo(lassoDottedLineLastX,lassoDottedLineLastY);
+                    lassog.moveTo(lassoDottedLinePos.x,lassoDottedLinePos.y);
+                }
+                else
+                {
+                    lassog.lineTo(x,y);
                 }
 
-                lassog.lineTo(x,y);
- 
-                lassoDottedLineLastX = x;
-                lassoDottedLineLastY = y;
+                lassoDottedLinePos.x = x;
+                lassoDottedLinePos.y = y;
+                
                 //사각형 꼭지점 체크
                 if(x < lassoRect[0]) lassoRect[0] = x;
                 else if(x > lassoRect[2]) lassoRect[2] = x;
@@ -11012,10 +11103,11 @@
                 canvas2FilterBackUp = canvas2Draw.filters.concat();
                 canvas2Draw.filters = [];
 
-                lassoClickX = cd.mouseX;
-                lassoClickY = cd.mouseY;
+                clickPos.x = cd.mouseX;
+                clickPos.y = cd.mouseY;
+
                 //left, top, right, bottom순임
-                lassoRect = new <Number> [lassoClickX,lassoClickY,lassoClickX,lassoClickY];
+                lassoRect = new <Number> [clickPos.x,clickPos.y,clickPos.x,clickPos.y];
                 lassoPoints = [];
                 lassoPointSave = [];
                 lassoDottedLineCount = 0;
@@ -11027,8 +11119,8 @@
                 lassoBox.visible = true;
                 lassog.clear();
                 lassog.lineStyle(1,lassoDottedLineColor);
-                lassog.moveTo(lassoClickX,lassoClickY);
-                lassoPoints.push([lassoClickX,lassoClickY]);
+                lassog.moveTo(clickPos.x,clickPos.y);
+                lassoPoints.push([clickPos.x,clickPos.y]);
 
                 stageMouseMoveEvent.add(lassoDrawMouseMove);
                 stage.addEventListener(MouseEvent.MOUSE_UP,lassoDrawMouseUp);
