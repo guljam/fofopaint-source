@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.39;
+        private const APP_VERSION:Number = 14.41;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -594,6 +594,14 @@
         }
         
         //functions
+        private function setResizeButtonColor(color:uint):void
+        {
+            resizeButtonR.setColor(color);
+            resizeButtonL.setColor(color);
+            resizeButtonD.setColor(color);
+            resizeButtonU.setColor(color);
+        }
+
         private function closureCheckHideCursor():Object
         {
             const hideTime:int = STAGE_FRAME;
@@ -3505,6 +3513,7 @@
             }
             pickerBox.setPickerMode(pickerMode);
             updateScrollBar(scrollBarHeight);
+            setResizeButtonColor(op);
         }
 
         private function addStageInputEvent():void
@@ -11383,10 +11392,11 @@
             function setpos(ent:canvasResizeButton,x:Number,y:Number):void
             {
                 const z:Number = 1/zoomed;
+                const floor:Function = Math.floor;
                 ent.scaleX = z;
                 ent.scaleY = z;
-                ent.x = x;
-                ent.y = y;
+                ent.x = floor(x);
+                ent.y = floor(y);
             }
 
             const cpPosX:Number = canvasPanel.x;
