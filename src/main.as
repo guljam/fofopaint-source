@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.47;
+        private const APP_VERSION:Number = 14.48;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -7018,7 +7018,15 @@
             else timeStr = "00:";
 
             if(sec > 0) timeStr += (sec >= 10) ? sec : "0"+sec;
-            else if(sec === 0) return " (00:00)"
+            else timeStr += "00";
+
+            if(hour === 0 && min === 0 && sec ===0)
+            {
+                const milisec:Number = totalSec-floor(totalSec);
+                const milisecStr:String = milisec.toFixed(1);
+
+                return " ("+milisecStr+")";
+            }
 
             return " ("+timeStr+")";
         }
