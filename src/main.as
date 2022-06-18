@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.44;
+        private const APP_VERSION:Number = 14.45;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -196,6 +196,10 @@
                     ,COMMAND_CTRL_SHIFT:int = (1 << 2)
                     ,KEY_REPEAT_DELAY:Number = 300
                     ,KEY_REPEAT_INTERVAL:Number = 60
+                    ,LASSO_1PX_MOVE_UP:int= (1 << 0)
+                    ,LASSO_1PX_MOVE_DOWN:int = (1 << 1)
+                    ,LASSO_1PX_MOVE_LEFT:int = (1 << 2)
+                    ,LASSO_1PX_MOVE_RIGHT:int = (1 << 3)
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -239,7 +243,7 @@
                     ,toolBox2:toolButtons2 = new toolButtons2()
                     ,rotateCursorBox:rotateCursor = new rotateCursor()//회전이 얼마나 됐는지 표시
                     ,lassoMenu:lassoButtons = new lassoButtons()//라소툴 버튼
-                    ,lassoDrawG:Shape = new Shape() //라소 영역 선 그려주는 쉐이프
+                    ,lassoDraw:Shape = new Shape() //라소 영역 선 그려주는 쉐이프
                     ,topBar:topMenu = new topMenu()
                     ,spuitZoomCursor:spuitMag = new spuitMag()
                     ,toolTipBox:toolTipBoxSet = new toolTipBoxSet()//도움말 버튼
@@ -333,6 +337,7 @@
                     ,lassoResizeMoveSum:Number = 0//라소 무브 클릭 움직이는 합저장 줌 1배 스냅걸리게 할때 쓰임
                     ,lassoPointSave:Array = []
                     ,lassoCopyON:Boolean = false //lasso 복사 누르면 올려줌
+                    ,lassoBitmapdataSave:BitmapData //copy나 취소했을때 원래대로 돌려주는 이미지
         //window resize 관련 변수
                     ,lastWindowSize:Point = new Point() //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
         //save load 관련 변수
@@ -472,6 +477,7 @@
                     ,gridFlag:uint = 0
 
         //closure
+                    ,dottedLine:Object = closureDottedLine()//순서 먼저 와야함
                     ,setPenTool:Function = closurePenTool()
                     ,setLineTool:Function = closureLineTool()
                     ,setHandTool:Function = closureHandTool()
@@ -595,6 +601,98 @@
         }
         
         //functions
+        
+        private function closureDottedLine():Object
+        {
+            const dotOldPoint:Point = new Point(0,0);
+            const oldPoint:Point = new Point(0,0);
+            var dotsize:Number = 4;
+            var lineSize:Number = 1;
+            var dotLineColor:uint = 0;
+
+            function updateScale(zoomed:Number):void
+            {
+                lineSize = 1/zoomed;
+                dotsize = 4/zoomed;
+            }
+
+            function ready(g:Graphics,x:Number,y:Number):void
+            {
+                dotLineColor = 0;
+                dotOldPoint.setTo(x,y);
+                oldPoint.setTo(x,y);
+                g.lineStyle(lineSize,0);
+                g.moveTo(x,y);
+            }
+
+            function getLineColor():uint
+            {
+                return dotLineColor;
+            }
+
+            function resetLineColor():void
+            {
+                dotLineColor = 0;
+            }
+
+            function setDotOldPoint(x:Number,y:Number):void
+            {
+                dotOldPoint.setTo(x,y);
+            }
+
+            function toggleLineColor():uint
+            {
+                if(dotLineColor === 0) dotLineColor = 0xFFFFFF;
+                else dotLineColor = 0;
+
+                return dotLineColor;
+            }
+
+            function draw(g:Graphics,x:Number,y:Number):void
+            {
+                const endpos:Point = new Point(x,y);
+                const dist:Number = Point.distance(dotOldPoint,endpos);
+
+                if(dist > dotsize)
+                {
+                    dotOldPoint.setTo(x,y);
+
+                    const div:Number = Math.floor(dist/dotsize);
+                    if(div > 0)
+                    {
+                        const minUnit:Number = (dotsize/dist);
+                        var pos:Point;
+                        var divPoint:Point;
+                        
+                        for(var i:Number=div; i>=1; i--)
+                        {
+                            pos = Point.interpolate(oldPoint,endpos,minUnit*i);
+                            g.lineTo(pos.x,pos.y);
+                            g.lineStyle(lineSize,toggleLineColor());
+                            g.moveTo(pos.x,pos.y);
+                        }
+                    }
+                    else
+                    {
+                        g.lineStyle(lineSize,toggleLineColor());
+                        g.moveTo(x,y);
+                    }
+                }
+                else g.lineTo(x,y);
+
+                oldPoint.setTo(x,y);
+            }
+
+            return {
+                draw:draw,
+                ready:ready,
+                setDotOldPoint:setDotOldPoint,
+                resetLineColor:resetLineColor,
+                getLineColor:getLineColor,
+                updateScale:updateScale
+            }
+        }
+
         private function setResizeButtonColor(color:uint):void
         {
             resizeButtonR.setColor(color);
@@ -807,6 +905,7 @@
 
         private function removeMouseKeyEventLassoTool():void
         {
+            stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpLassoTool);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownLassoTool);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
             addInputEventDrawMode();
@@ -814,6 +913,7 @@
 
         private function addMouseKeyEventLassoTool():void
         {
+            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpLassoTool);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownLassoTool);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
             removeInputEventDrawMode();   
@@ -1094,8 +1194,10 @@
 
         private function closureFillPenTool():Object
         {
+            const _dottedLine:Object = dottedLine;
             const floor:Function = Math.floor;
             const cd:Shape = canvas2Draw;
+            const cdg:Graphics = cd.graphics;
             var clickedButton:String;
             var command:Vector.<int>;
             var data:Vector.<Number>;
@@ -1135,39 +1237,26 @@
                 g.lineTo(data[0],data[1]);
             }
 
-            function drawFillPenTemp():void
+            function drawPreviewLine():void
             {
-                const g:Graphics = cd.graphics;
                 const _data:Vector.<Number> = data;
+                const g:Graphics = cdg;
                 const len:int = _data.length;
-                var lineColor:uint = 0;
-                var dotCount:int = 0;
+                var x:Number = _data[0];
+                var y:Number = _data[1];
 
                 g.clear();
                 if(len < 6) return;
-                g.lineStyle(1,lineColor);
-                g.moveTo(_data[0],_data[1]);
+                
+                _dottedLine.ready(g,x,y);
 
                 for(var i:int=2; i<len; i+=2)
                 {
-                    dotCount++;
-                    if(dotCount > 3)
-                    {
-                        dotCount = 0;
-                        if(lineColor === 0) lineColor = 0xFFFFFF;
-                        else lineColor = 0;
-                        g.lineStyle(1,lineColor);
-                        g.moveTo(_data[i],_data[i+1]);
-                    }
-                    else
-                    {
-                        g.lineTo(_data[i],_data[i+1]);
-                    }
-                    
+                    x = _data[i];
+                    y = _data[i+1];
+                    _dottedLine.draw(g,x,y);
                 }
-                g.lineStyle(1,xColor);
-                g.moveTo(_data[len-2],_data[len-1]);
-                g.lineTo(_data[0],data[1]);
+                _dottedLine.draw(g,data[0] as Number,data[1] as Number);
             }
 
             function cancelFillPen():void
@@ -1208,27 +1297,21 @@
 
             function undoData():void
             {
-                if(command.length === 0)
-                {
-                    return;
-                }
+                if(command.length === 0) return;
                 const commandIndex:int = commandUndoIndexArr[commandUndoIndexArr.length-1];
 
                 command.splice(commandIndex,command.length);
                 data.splice(commandIndex*2,data.length);
                 commandUndoIndexArr.pop();
 
-                if(command.length === 1)
+                if(command.length <= 1)
                 {
                     command.length = 0;
                     data.length = 0;
                     commandUndoIndexArr = [0];
                     cd.graphics.clear();
                 }
-                else
-                {
-                    drawFillPenTemp();
-                }
+                else drawPreviewLine();
             }
 
             function fillPenKeyUpEvent(e:KeyboardEvent):void
@@ -1294,8 +1377,8 @@
                     data.push(cdx);
                     data.push(cdy);
                 }
-
-                if(mouseMoveCount++ > 100)
+                mouseMoveCount++;
+                if(mouseMoveCount > 50)
                 {
                     mouseMoveCount = 0;
                     commandUndoIndexArr.push(command.length-1);
@@ -1306,7 +1389,7 @@
                     timer = setTimeout(function():void
                     {
                         timer = 0;
-                        drawFillPenTemp();
+                        drawPreviewLine();
                     },KEY_REPEAT_INTERVAL);
                 }
             }
@@ -1338,8 +1421,8 @@
                     }
                     else
                     {
-                        cdx = floor(cdx*1000)/1000;
-                        cdy = floor(cdy*1000)/1000;
+                        cdx = floor(cdx*100)/100;
+                        cdy = floor(cdy*100)/100;
                     }
 
                     if(command.length === 0)
@@ -1356,7 +1439,7 @@
                     }
 
                     clearTimeout(timer);
-                    drawFillPenTemp();
+                    drawPreviewLine();
                     mouseDragON = true;
 
                     if(readyAddUndo === false)
@@ -1402,7 +1485,7 @@
                     }
                     else if(mouseMoved)
                     {
-                        drawFillPenTemp();
+                        drawPreviewLine();
                     }
                 }
 
@@ -1430,8 +1513,8 @@
                 xBlendMode = (xColor === CANVAS_BG_COLOR) ? "erase" : null;
                 commandUndoIndexArr = [0];
 
-                if(traceMenuON)
-                    traceMenuBox.visible = false;
+                if(traceMenuON) traceMenuBox.visible = false;
+                _dottedLine.updateScale(zoomed);
 
                 command.push(1);
                 data.push(cd.mouseX);
@@ -1442,6 +1525,7 @@
                 fillPenStarted = true;
 
                 _checkUndoReady();
+                canvas2.alpha = 1.0;
 
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
                 stage.addEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
@@ -1587,8 +1671,8 @@
 
                 if(!_pixelSnap && (_penSmoothSlideValue > 0 || rotateFlag))
                 {
-                    x = floor(x*1000)/1000;
-                    y = floor(y*1000)/1000;
+                    x = floor(x*100)/100;
+                    y = floor(y*100)/100;
                 }
                 else
                 {
@@ -2060,16 +2144,9 @@
                     System.pauseForGCIfCollectionImminent(0.75);
                     System.gc();
                 }
-                else
-                {
-                    gcONCount++;
-                }
+                else gcONCount++;
 
-
-                if(afkONCount === 2)
-                {
-                    afkONCount = 3;
-                }
+                if(afkONCount === 2) afkONCount = 3;
                 else if(afkONCount < 2)
                 {
                     afkONCount++;
@@ -2078,7 +2155,6 @@
                 }
             },1000);
         }
-
 
 		private function makeTransBG():void
         {
@@ -2188,6 +2264,18 @@
             }
         }
 
+        private function keyUpLassoTool(e:KeyboardEvent):void
+        {
+            const keyCode:uint = e.keyCode;
+            if(lassoMenuTempOFF) lassoMenuTempOFF = false;
+
+            if(isNowKey(keyCode))
+            {
+                if(keyBuffer.length > 0) setNowKey(keyBuffer[0]);
+                else resetNowKey();
+            }
+        }
+
         private function keyDownLassoTool(e:KeyboardEvent):void
         {
             const keyCode:int = keyBuffer[0];
@@ -2195,6 +2283,9 @@
             if(isNowKey(keyCode)) return;
 
             const key:Object = gKey;
+            
+            setNowKey(keyCode);
+
             switch(keyCode)
             {
                 case key.space:
@@ -2494,7 +2585,7 @@
                 case "lasso1pxRight":
                 case "lasso1pxUp":
                 case "lasso1pxDown":
-                    str = "Move image 1px"
+                    str = "Move image 1px (arrow key)"
                 break;
 
                 default: lassoMenu.lassoInfo.text = "Lasso tool";
@@ -4236,7 +4327,7 @@
             
             lassoCopyON = true;
             lassoMenu["lassoCopy"].alpha = BUTTON_OFF_ALPHA;
-            setLassoCancelButton(true);
+            lassoCancelBmpd();
         }
 
         private function setLassoRotateButton():void
@@ -4382,6 +4473,7 @@
         {
             const arr:Array = lassoStartData;
             const _lassobox:Sprite = lassoBox;
+
             if(lassoCopyON 
             || arr[0] !== _lassobox.x
             || arr[1] !== _lassobox.y
@@ -6478,7 +6570,6 @@
                     lsbox.rotation = 0;
                     lsbox.visible = false;
                 }
-                
 
                 const lassoDone:Boolean = doLassoDraw(true,point1,point2,copyFlag);
                 if(!lassoDone)
@@ -10509,7 +10600,7 @@
                 }
             }
 
-            return function ():void
+            return function():void
             {
                 //왼쪽 오른쪽 클릭 두번있기 때문에 중복 툴 사용은 피해줌
                 if(zoomToolHintON === true) return;
@@ -10885,44 +10976,43 @@
             stageMouseMoveEvent.add(resizeButtonMouseMoveEvent);
         }
 
-        //지우개랑 펜이랑 합쳐져있음
-
         private function doLassoDraw(replayMode:Boolean,rectArr:Vector.<Number>,points:Array,copyFlag:Boolean=false):Boolean
         {
-            var canvas2FilterBackUp:Array = canvas2Draw.filters.concat();
+            //라소 경계 사각형 좌표와 크기
+            const floor:Function = Math.floor;
+            const rectLeft:Number = rectArr[0];
+            const rectTop:Number = rectArr[1];
+            const rectWidth:Number = rectArr[2] - rectLeft;
+            const rectHeight:Number = rectArr[3] - rectTop;
+            const lassoPointsLen:uint = points.length;
 
-            var drawEnt:Shape = canvas2Draw;
-            var canvasBitmapData:BitmapData = canvas1BitmapData;
-            var canvasBitmap:Bitmap = canvas1Bitmap;
+            //가로세로 길이가 0 이하이면 실행하지 않음
+            if(floor(rectWidth) <= 0 || floor(rectHeight) <= 0) return false;
+
+            var canvas2FilterBackUp:Array;
+            var drawEnt:Shape;
+            var canvasBitmapData:BitmapData;
+            var canvasBitmap:Bitmap;
 
             if(replayMode)
             {
                 canvas2FilterBackUp = rcanvas2Draw.filters.concat();
                 rcanvas2Draw.filters = [];
-
                 drawEnt = rcanvas2Draw;
                 canvasBitmapData = rcanvas1BitmapData;
                 canvasBitmap = rcanvas1Bitmap;
             }
             else
             {
+                canvas2FilterBackUp = canvas2Draw.filters.concat();
                 canvas2Draw.filters = [];
+                drawEnt = canvas2Draw;
+                canvasBitmapData = canvas1BitmapData;
+                canvasBitmap = canvas1Bitmap;
             }
 
             const cd:Shape = drawEnt;
             const cdg:Graphics = cd.graphics;
-            //라소 경계 사각형 좌표와 크기
-            const lassog:Graphics = lassoDrawG.graphics;
-            const rectLeft:Number = rectArr[0];
-            const rectTop:Number = rectArr[1];
-            const rectWidth:Number = rectArr[2] - rectLeft;
-            const rectHeight:Number = rectArr[3] - rectTop;
-            const lassoPointsLen:uint = points.length;
-            const floor:Function = Math.floor;
-
-            //가로세로 길이가 0 이하이면 실행하지 않음
-            if(floor(rectWidth) <= 0 || floor(rectHeight) <= 0) return false;
-
             const halfWidth:Number = rectWidth/2;
             const halfHeight:Number = rectHeight/2;
             const lassoP0:Array = points[0];
@@ -10933,15 +11023,9 @@
             var i:uint;
             var x:Number;
             var y:Number;
-            var lp:Array;
+            var nowPoint:Array;
             var xx:Number;
             var yy:Number;
-
-            var lassoDottedLineLimit:int = 3;
-            var lassoDottedLineCount:int = 0;
-            var lassoDottedLineLastX:Number = 0;
-            var lassoDottedLineLastY:Number = 0;
-            var lassoDottedLineColor:uint = 0;
 
             //지우기 전에 사각형 모양으로 그려준 부분을 copypixel 함.
             lassoBMPD.copyPixels(canvasBitmapData,newRectangle,zerop,null,null,true);
@@ -10949,19 +11033,18 @@
             //bitmap1canvas에서 그려준 영역을 지워줌
             if(!copyFlag)
             {   
-                x = lassoP0[0];
-                y = lassoP0[1];
+                x = lassoP0[0] as Number;
+                y = lassoP0[1] as Number;
                 cdg.clear();
-                // cdg.lineStyle(0,0,0);
                 cdg.beginFill(CANVAS_BG_COLOR);
                 cdg.moveTo(x,y);
 
                 //rectLeft를 빼줘서 canvasdraw2의 0,0영역에 그려줌
                 for(i=1;i<lassoPointsLen;i++)
                 {
-                    lp = points[i];
-                    x = lp[0];
-                    y = lp[1];
+                    nowPoint = points[i] as Array;
+                    x = nowPoint[0] as Number;
+                    y = nowPoint[1] as Number;
                     cdg.lineTo(x,y);
                 }
                 cdg.endFill();
@@ -10972,11 +11055,7 @@
             //-------------------------
             //clip하기 위해서 그려운 영역의 반전 부분을 0,0영역을 기준으로 그려줌
             //2번 반복하는게 좀 그런데 다른 방법 모르겠음
-            lassog.clear();
-            lassog.lineStyle(1,lassoDottedLineColor);
             //가로세로 절반 크기만큼 더해줘서 bmp의 중점으로 이동해주기 때문에 또 그만큼 빼줌
-            lassog.moveTo(lassoP0[0]-rectLeft-halfWidth,lassoP0[1]-rectTop-halfHeight);
-
             cdg.clear();
             cdg.beginFill(0x00FF00);
             cdg.drawRect(0,0,rectWidth,rectHeight);
@@ -10985,41 +11064,17 @@
             //rectLeft를 빼줘서 canvasdraw2의 0,0영역에 그려줌
             for(i=1;i<lassoPointsLen;i++)
             {
-                lp = points[i];
-                xx = lp[0]-rectLeft;
-                yy = lp[1]-rectTop;
+                nowPoint = points[i] as Array;
+                xx = (nowPoint[0]-rectLeft) as Number;
+                yy = (nowPoint[1]-rectTop) as Number;
                 cdg.lineTo(xx,yy);
-
-
-                xx = xx-halfWidth;
-                yy = yy-halfHeight;
-
-                lassoDottedLineCount++;
-                if(lassoDottedLineCount > lassoDottedLineLimit)
-                {
-                    lassoDottedLineCount = 0;
-
-                    if(lassoDottedLineColor === 0)
-                        lassoDottedLineColor = 0xFFFFFF;
-                    else
-                        lassoDottedLineColor = 0;
-
-                    lassog.lineStyle(1,lassoDottedLineColor);
-                    lassog.moveTo(lassoDottedLineLastX,lassoDottedLineLastY);
-                }
-
-                lassog.lineTo(xx,yy);
-                lassoDottedLineLastX = xx;
-                lassoDottedLineLastY = yy;
+                // xx = xx-halfWidth;
+                // yy = yy-halfHeight;
             }
 
-            //마지막으로 시작점을 이어줌 close path없나?
-            lassog.lineTo(lassoP0[0]-rectLeft-halfWidth,lassoP0[1]-rectTop-halfHeight);
+            //마지막으로 시작점을 이어줌
             cdg.endFill();
-
-            //비트맵 데이터 넣어주고
             lassoBMP.bitmapData = lassoBMPD;
-            //위에서 그려준 테두리 부분만 erase해줌
             lassoBMP.bitmapData.draw(cd,null,null,"erase");
             cdg.clear(); //꼭 해줘야함
 
@@ -11028,31 +11083,50 @@
             lassoBMP.y = -halfHeight;
             lassoBox.x = rectLeft+halfWidth;
             lassoBox.y = rectTop+halfHeight;
+            lassoDraw.x = -lassoBox.x;
+            lassoDraw.y = -lassoBox.y;
             lassoBMP.smoothing = true;
 
-            if(replayMode)
-                rcanvas2Draw.filters = canvas2FilterBackUp.concat();
-            else
-                canvas2Draw.filters = canvas2FilterBackUp.concat();
+            if(replayMode) rcanvas2Draw.filters = canvas2FilterBackUp.concat();
+            else canvas2Draw.filters = canvas2FilterBackUp.concat();
 
             return true;
         }
-
 
         private function closureLassoTool():Function
         {
             const cd:Shape = canvas2Draw;
             const lassoDottedLineLimit:int = 3;
-            const lassog:Graphics = lassoDrawG.graphics;
-
-            var lassoDottedLineCount:int;
-            var lassoDottedLineColor:uint;
-            const lassoDottedLinePos:Point = new Point(0,0);
+            const lassog:Graphics = lassoDraw.graphics;
+            const _dottedLine:Object = dottedLine;
             const clickPos:Point = new Point(0,0);
             var canvas2FilterBackUp:Array;
             var lassoRect:Vector.<Number>;
             var lassoPoints:Array;
-            
+            var timer:int = 0;
+
+            function drawPreviewLine():void
+            {
+                const _lassoPoints:Array = lassoPoints;
+                const g:Graphics = lassog;
+                const len:int = _lassoPoints.length;
+                var x:Number = _lassoPoints[0][0] as Number;
+                var y:Number = _lassoPoints[0][1] as Number;
+
+                g.clear();
+                if(_lassoPoints.length < 2) return;
+
+                _dottedLine.ready(g,x,y);
+
+                for(var i:int=0; i<len; i++)
+                {
+                    x = _lassoPoints[i][0];
+                    y = _lassoPoints[i][1];
+                    _dottedLine.draw(g,x,y);
+                }
+                _dottedLine.draw(g,_lassoPoints[0][0] as Number,_lassoPoints[0][1] as Number);
+            }
+
             function lassoDrawMouseUp():void
             {
                 stageMouseMoveEvent.remove(lassoDrawMouseMove);
@@ -11073,6 +11147,8 @@
                     return;
                 }
 
+                drawPreviewLine();
+
                 //라소 메뉴 마우스 커서에보이기
                 const _lassoMenu:lassoButtons = lassoMenu;
                 const floor:Function = Math.floor;
@@ -11083,11 +11159,8 @@
                 _lassoMenu.visible = true;
                 setTopChildIndex(_lassoMenu);
 
-                if(traceMenuON === true)
-                    traceMenuBox.visible = false;
-
+                if(traceMenuON === true) traceMenuBox.visible = false;
                 toolBox.alpha = BUTTON_OFF_ALPHA;
-
                 addMouseKeyEventLassoTool();
             }
 
@@ -11095,65 +11168,52 @@
             {
                 const x:Number = cd.mouseX;
                 const y:Number = cd.mouseY;
-
-                lassoDottedLineCount++;
-
-                if(lassoDottedLineCount >= lassoDottedLineLimit)
-                {
-                    lassoDottedLineCount = 0;
-
-                    if(lassoDottedLineColor === 0)
-                        lassoDottedLineColor = 0xFFFFFF;
-                    else
-                        lassoDottedLineColor = 0;
-
-                    lassog.lineStyle(1,lassoDottedLineColor);
-                    lassog.moveTo(lassoDottedLinePos.x,lassoDottedLinePos.y);
-                }
-                else
-                {
-                    lassog.lineTo(x,y);
-                }
-
-                lassoDottedLinePos.x = x;
-                lassoDottedLinePos.y = y;
                 
+                lassoPoints.push([x,y]);
+                if(timer === 0)
+                {
+                    timer = setTimeout(function():void
+                    {
+                        timer = 0;
+                        drawPreviewLine();
+                    },KEY_REPEAT_INTERVAL);
+                }
+
                 //사각형 꼭지점 체크
                 if(x < lassoRect[0]) lassoRect[0] = x;
                 else if(x > lassoRect[2]) lassoRect[2] = x;
 
                 if(y < lassoRect[1]) lassoRect[1] = y;
                 else if(y > lassoRect[3]) lassoRect[3] = y;
-
-                lassoPoints.push([x,y]);
             }
 
-            return function ():void
+            return function():void
             {
                 if(lassoToolON === true) return;
 
+                timer = 0;
                 canvas2FilterBackUp = canvas2Draw.filters.concat();
                 canvas2Draw.filters = [];
 
                 clickPos.x = cd.mouseX;
                 clickPos.y = cd.mouseY;
+                lassoDraw.x = 0;
+                lassoDraw.y = 0;
 
                 //left, top, right, bottom순임
                 lassoRect = new <Number> [clickPos.x,clickPos.y,clickPos.x,clickPos.y];
                 lassoPoints = [];
                 lassoPointSave = [];
-                lassoDottedLineCount = 0;
-                lassoDottedLineColor = 0;
 
                 canvas2.alpha = 1.0; //알파값이 조정되어 있을 수도 있기 때문에 해줌
                 setTopChildIndex(lassoBox);
 
-                lassoBox.visible = true;
                 lassog.clear();
-                lassog.lineStyle(1,lassoDottedLineColor);
-                lassog.moveTo(clickPos.x,clickPos.y);
+                lassoBox.visible = true;
                 lassoPoints.push([clickPos.x,clickPos.y]);
 
+                _dottedLine.updateScale(zoomed);
+                lassoBitmapdataSave = canvas1BitmapData.clone();
                 stageMouseMoveEvent.add(lassoDrawMouseMove);
                 stage.addEventListener(MouseEvent.MOUSE_UP,lassoDrawMouseUp);
             };
@@ -11471,6 +11531,7 @@
 
                     canvas1BitmapData.draw(lassoBMP,posMatrix);
                     canvas1Bitmap.bitmapData = canvas1BitmapData;
+                    if(lassoBitmapdataSave) lassoBitmapdataSave.dispose();
 
                     const point1:Vector.<Number> = lassoPointSave[0].concat();
                     const point2:Array = lassoPointSave[1].concat();
@@ -11481,10 +11542,7 @@
                     rDataBuffer.push(["lasso",point1,point2,lassoInfos,lassoCopyON]);
                     addUndoData();
                 }
-                else //그렇지 않으면 cancel이랑 똑같이
-                {
-                    lassoCanceleBmpd();
-                }
+                else lassoCancelBmpd();
 
                 lassoBMP.bitmapData.dispose();
                 lassoBMP.bitmapData = null;
@@ -11492,24 +11550,27 @@
             resetLassoBox();
         }
 
-        private function lassoCanceleBmpd():void
+        private function lassoCancelBmpd():void
         {
-            drawUndoData();
+            undoIndex = rData.length-1;
+            if(lassoBitmapdataSave)
+            {
+                canvas1BitmapData = lassoBitmapdataSave.clone();
+                canvas1Bitmap.bitmapData = canvas1BitmapData;
+                lassoBitmapdataSave.dispose();
+            }
             previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
         }
 
-        private function setLassoCancelButton(copyFlag:Boolean=false):void
+        private function setLassoCancelButton():void
         {
-            if(!copyFlag)
+            if(lassoBMP.bitmapData !== null)
             {
-                if(lassoBMP.bitmapData !== null)
-                {
-                    lassoBMP.bitmapData.dispose();
-                    lassoBMP.bitmapData = null;
-                }
-                resetLassoBox();
+                lassoBMP.bitmapData.dispose();
+                lassoBMP.bitmapData = null;
             }
-            lassoCanceleBmpd();
+            resetLassoBox();
+            lassoCancelBmpd();
         }
 
         //펜툴로 선택,세팅 껍데기만 바꿔주는거임 setPenTool은 실제 툴을 진행하는거
@@ -11684,6 +11745,8 @@
             lassoPointSave = [];
             lassoBMP.filters = [];
             lassoMenu.visible = false;
+            lassoDraw.x = 0;
+            lassoDraw.y = 0;
             lassoBox.x = 0;
             lassoBox.y = 0;
             lassoBox.scaleX = 1.0;
@@ -11954,7 +12017,7 @@
 
         private function closureAddUndoData():Object
         {
-            const undoLimit:int = 20;
+            const UNDO_LIMIT:int = 20;
             var rSkipImageCount:uint = 0;//데이터로 저장할때  rDataFrame 카운터 누적
             var rFileTotalFrame:Number = 0; //file에저장된 프레임수 누적해서 저장
             //undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
@@ -12073,7 +12136,7 @@
                     rDataFrame.splice(startIndex);
                 }
 
-                if(rData.length >= undoLimit) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
+                if(rData.length >= UNDO_LIMIT) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
                 {
                     var oldData:Array = rData[0];
 
@@ -12082,7 +12145,6 @@
                         const fs:FileStream = new FileStream();
                         const c:uint = rDataFrame[0];
                         const rf:File = repFile;
-                        
 
                         fs.open(rf,FileMode.APPEND);
                         fs.writeObject(oldData);
@@ -12552,7 +12614,7 @@
 
             lassoBox.name = "lassoBox";
             lassoBox.addChild(lassoBMP);
-            lassoBox.addChild(lassoDrawG);
+            lassoBox.addChild(lassoDraw);
 
             lassoBox.visible = false;
 
@@ -12977,7 +13039,7 @@
 
         private function keyUpReplayMode(e:KeyboardEvent):void
         {
-            if(e.keyCode === nowKey)
+            if(isNowKey(e.keyCode))
             {
                 if(keyBuffer.length > 0) setNowKey(keyBuffer[0]);
                 else resetNowKey();
@@ -13122,7 +13184,7 @@
                 if(keyBuffer.length === 0) resetNowKey();
             }
 
-            if(keyCode === nowKey)
+            if(isNowKey(keyCode))
             {
                 if(mouseClickON === true) keyWaitMouseUp = true;
                 else checkNextKeyDown();
@@ -13651,50 +13713,22 @@
             closeToolBox2();
         }
 
-        private function setLasso1PxMoveButton(command:String):void
+        private function setLasso1PxMoveButton(command:int):void
         {
             const m:Number = 1/zoomed;
             const rotate:Number = regPoint.rotation;
             var x:Number = 0;
             var y:Number = 0;
 
-            if(command === "up") y = -1;
-            else if(command === "down") y = 1;
-            else if(command === "left") x = -1;
-            else if(command === "right") x = 1;
+            if(command === LASSO_1PX_MOVE_UP) y = -1;
+            else if(command === LASSO_1PX_MOVE_DOWN) y = 1;
+            else if(command === LASSO_1PX_MOVE_LEFT) x = -1;
+            else if(command === LASSO_1PX_MOVE_RIGHT) x = 1;
 
             const r:Point = rotatePoint(x,y,rotate);
 
             lassoBox.x += r.x;
             lassoBox.y += r.y;
-        }
-
-        private function lassoToolKeyDownEvent(e:KeyboardEvent):void
-        {
-            if(lassoMenuTempOFF === true) return;
-            const keycode:uint = e.keyCode;
-            const key:Object = gKey;
-
-            if(keycode === key.up)
-            {
-                setLasso1PxMoveButton("up");
-                checkLassoMenuPos();
-            }
-            else if(keycode === key.down)
-            {
-               setLasso1PxMoveButton("down");
-                checkLassoMenuPos();
-            }
-            else if(keycode === key.left)
-            {
-                setLasso1PxMoveButton("left");
-                checkLassoMenuPos();
-            }
-            else if(keycode === key.right)
-            {
-                setLasso1PxMoveButton("right");
-                checkLassoMenuPos();
-            }
         }
 
         private function setSideBarScrollMove(clickY:Number):void
@@ -14093,7 +14127,7 @@
 
         private function keyUpDeepUndo(e:KeyboardEvent):void
         {
-            if(e.keyCode === nowKey)
+            if(isNowKey(e.keyCode))
             {
                 if(keyBuffer.length > 0) setNowKey(keyBuffer[0]);
                 else resetNowKey();
@@ -14499,35 +14533,27 @@
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
 
-            if(lassoMenuTempOFF && cursorInDrawArea()
-            && lassoMenu.hitTestPoint(mouseX,mouseY) === false)
+            if(cursorInDrawArea() && lassoMenu.hitTestPoint(mouseX,mouseY) === false)
             {
-                lassoMenu.visible = false;
-                if(isNowTool(TOOL_HAND)) setHandTool();
-                else if(isNowTool(TOOL_ROTATE)) setRotateTool();
-                else if(isNowTool(TOOL_ZOOM)) setZoomTool();
+                if(lassoMenuTempOFF)
+                {
+                    lassoMenu.visible = false;
+                    if(isNowTool(TOOL_HAND)) setHandTool();
+                    else if(isNowTool(TOOL_ZOOM)) setZoomTool();
+                    else if(isNowTool(TOOL_ROTATE)) setRotateTool();
+                }
+                else
+                {
+                    setLassoMoveButton();   
+                }
             }
             else
             {
                 switch(targetName)
                 {
-                    case "lassoMove":
-                    {
-                        setLassoMoveButton();
-                    }
-                    break;
-
-                    case "lassoResize":
-                    {
-                        setLassoResizeButton();
-                    }
-                    break;
-
-                    case "lassoRotate":
-                    {
-                        setLassoRotateButton();
-                    }
-                    break;
+                    case "lassoMove": setLassoMoveButton(); break;
+                    case "lassoResize": setLassoResizeButton(); break;
+                    case "lassoRotate": setLassoRotateButton(); break;
 
                     case "lassoInfo":
                     case "lassoMenuMoveButton":
@@ -14571,39 +14597,13 @@
                     }
                     break;
 
-                    case "lasso1pxLeft":
-                    {
-                        setLasso1PxMoveButton("left");
-                    }
-                    break;
-                    case "lasso1pxRight":
-                    {
-                        setLasso1PxMoveButton("right");
-                    }
-                    break;
-                    case "lasso1pxUp":
-                    {
-                        setLasso1PxMoveButton("up");
-                    }
-                    break;
-                    case "lasso1pxDown":
-                    {
-                        setLasso1PxMoveButton("down");
-                    }
-                    break;
-
-                    case "lassoCopy":
-                    {
-                        setLassoCopyButton();
-                    }
-                    break;
-
+                    case "lasso1pxUp": setLasso1PxMoveButton(LASSO_1PX_MOVE_UP); break;
+                    case "lasso1pxDown": setLasso1PxMoveButton(LASSO_1PX_MOVE_DOWN); break;
+                    case "lasso1pxLeft": setLasso1PxMoveButton(LASSO_1PX_MOVE_LEFT); break;
+                    case "lasso1pxRight": setLasso1PxMoveButton(LASSO_1PX_MOVE_RIGHT); break;
+                    case "lassoCopy": setLassoCopyButton(); break;
                     case "lassoOK":
-                    case "lassoCancel":
-                    {
-                        checkButtonUp(targetName);
-                    }
-                    break;
+                    case "lassoCancel": checkButtonUp(targetName); break;
                 }
             }
 

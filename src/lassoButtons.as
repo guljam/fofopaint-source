@@ -13,7 +13,6 @@
 		public var lassoMenuMoveButton:SimpleButton = lassoMenuBG;
 		public var lassoMenuBG:SimpleButton = lassoMenuBG;
 		public var lassoMenuBG2:SimpleButton = lassoMenuBG2;
-		public var lassoMove:SimpleButton = lassoMove;
 		public var lassoRotate:SimpleButton = lassoRotate;
 		public var lassoResize:SimpleButton = lassoResize;
 		public var lassoMirror:SimpleButton = lassoMirror;
@@ -42,11 +41,10 @@
 					lassoCHand,
 					lassoCZoom,
 					lassoCRotate,
-					lassoCopy
 				];
 			const rightButtonArr:Array =
 				[
-					lassoMove,
+					lassoCopy,
 					lassoRotate,
 					lassoResize,
 					lassoMirror,
@@ -132,7 +130,6 @@
 			lassoMenuMoveButton.useHandCursor = false;
 			lassoMenuBG.useHandCursor = false;
 			lassoMenuBG2.useHandCursor = false;
-			lassoMove.useHandCursor = false;
 			lassoRotate.useHandCursor = false;
 			lassoResize.useHandCursor = false;
 			lassoMirror.useHandCursor = false;
