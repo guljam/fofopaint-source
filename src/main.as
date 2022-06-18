@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.45;
+        private const APP_VERSION:Number = 14.46;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -6545,13 +6545,13 @@
 
                 const lassoInfo:Array = data[3] as Array;
                 const copyFlag:Boolean = data[4] as Boolean;
-                const lassoInfo0:Number = lassoInfo[0] as Number;
-                const lassoInfo1:Number = lassoInfo[1] as Number;
-                const lassoInfo2:Number = lassoInfo[2] as Number;
-                const lassoInfo3:Number = lassoInfo[3] as Number;
-                const lassoInfo4:Number = lassoInfo[4] as Number;
-                const lassoInfo5:Number = lassoInfo[5] as Number;
-                const lassoInfo6:Number = lassoInfo[6] as Number;
+                const bmpScaleX:Number = lassoInfo[0] as Number;
+                const bmpScaleY:Number = lassoInfo[1] as Number;
+                const bmpWidth:Number = lassoInfo[2] as Number;
+                const bmpHeight:Number = lassoInfo[3] as Number;
+                const bmpAngle:Number = lassoInfo[4] as Number;
+                const boxX:Number = lassoInfo[5] as Number;
+                const boxY:Number = lassoInfo[6] as Number;
 
                 function resetLassoBox2():void
                 {
@@ -6579,15 +6579,15 @@
                 }
 
                 var posMatrix:Matrix = new Matrix();
-                posMatrix.scale(lassoInfo0,lassoInfo1);
-                posMatrix.translate(-lassoInfo2/2,-lassoInfo3/2);
-                posMatrix.rotate(lassoInfo4);
-                posMatrix.translate(lassoInfo5,lassoInfo6);
+                posMatrix.scale(bmpScaleX,bmpScaleY);
+                posMatrix.translate(-bmpWidth/2,-bmpHeight/2);
+                posMatrix.rotate(bmpAngle);
+                posMatrix.translate(boxX,boxY);
 
                 lassoBMP.smoothing = true;
 
-                if(lassoInfo0 !== 1 || lassoInfo4 !== 0)
-                    applyLassoShapen(lassoInfo0);
+                if(bmpScaleX !== 1 || bmpAngle !== 0)
+                    applyLassoShapen(bmpScaleX);
 
                 rcanvas1BitmapData.draw(lassoBMP,posMatrix);
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
@@ -11544,33 +11544,33 @@
                 }
                 else lassoCancelBmpd();
 
-                lassoBMP.bitmapData.dispose();
-                lassoBMP.bitmapData = null;
+                disposeLassoBMP();
             }
             resetLassoBox();
         }
 
-        private function lassoCancelBmpd():void
-        {
-            undoIndex = rData.length-1;
-            if(lassoBitmapdataSave)
-            {
-                canvas1BitmapData = lassoBitmapdataSave.clone();
-                canvas1Bitmap.bitmapData = canvas1BitmapData;
-                lassoBitmapdataSave.dispose();
-            }
-            previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
-        }
-
-        private function setLassoCancelButton():void
+        private function disposeLassoBMP():void
         {
             if(lassoBMP.bitmapData !== null)
             {
                 lassoBMP.bitmapData.dispose();
                 lassoBMP.bitmapData = null;
             }
-            resetLassoBox();
+        }
+
+        private function lassoCancelBmpd():void
+        {
+            undoIndex = rData.length-1;
+            canvas1BitmapData = lassoBitmapdataSave.clone();
+            canvas1Bitmap.bitmapData = canvas1BitmapData;
+            previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
+        }
+
+        private function setLassoCancelButton():void
+        {
+            disposeLassoBMP();
             lassoCancelBmpd();
+            resetLassoBox();
         }
 
         //펜툴로 선택,세팅 껍데기만 바꿔주는거임 setPenTool은 실제 툴을 진행하는거
@@ -11755,6 +11755,7 @@
             lassoBox.visible = false;
             lassoResizeMoveSum = 0;
             lassoMenu["lassoCopy"].alpha = 1.0;
+            lassoBitmapdataSave.dispose();
 
             controlBox.visible = true;
             pickerBox.visible = true;
