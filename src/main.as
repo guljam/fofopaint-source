@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.42;
+        private const APP_VERSION:Number = 14.43;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -3094,6 +3094,17 @@
             }
         }
 
+        private function resetTraceOpa():void
+        {
+            const deafultAlpha:Number = 0.5;
+            
+            CANVAS_TRACE_ALPHA = deafultAlpha;
+            canvasTrace.alpha = deafultAlpha;
+            updateTraceOpaButtonPosByAlpha(deafultAlpha);
+            traceMenuBox.traceInfo.text = "Opacity "+Math.floor(deafultAlpha*100)+"%"
+            canvasTrace.visible = true;
+        }
+
         private function setTraceOpaButton():void
         {
             const _traceMenuBox:traceButtons = traceMenuBox;
@@ -5032,6 +5043,7 @@
             makeSkipImageFlag = 0;
             topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x;
 
+            resetTraceOpa();
             updateFirstImage(canvas1BitmapData,CANVAS_BG_COLOR);
             resetReplayDataFile(true);
             resetReplayTime();
@@ -8619,6 +8631,7 @@
                 traceRawArr = null;
                 canvasTraceBitmap.smoothing = true;
             }
+            resetTraceOpa();
             setCenvasCenterPos();
             updateResizeButtonPos();
             addUndoData();
@@ -9796,6 +9809,7 @@
                     updatePenSizeCursor();
                     updateWindowTitle();
                     setWindowTitleStar();
+                    resetTraceOpa();
                 },150);
             }
             else //복원파일이 없을때
