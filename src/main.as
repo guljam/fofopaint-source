@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.41;
+        private const APP_VERSION:Number = 14.42;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -192,7 +192,8 @@
                         ],3]
                     ]
                     ,COMMAND_CTRL:int = (1 << 0)
-                    ,COMMAND_CTRL_SHIFT:int = (1 << 1)
+                    ,COMMAND_SHIFT:int = (1 << 1)
+                    ,COMMAND_CTRL_SHIFT:int = (1 << 2)
                     ,KEY_REPEAT_DELAY:Number = 300
                     ,KEY_REPEAT_INTERVAL:Number = 60
                     ;
@@ -756,6 +757,11 @@
             return getCommandKey() === COMMAND_CTRL;
         }
 
+        private function isPressingShift():Boolean
+        {
+            return getCommandKey() === COMMAND_SHIFT;
+        }
+
         private function isPressingControlShift():Boolean
         {
             return getCommandKey() === COMMAND_CTRL_SHIFT;
@@ -770,7 +776,7 @@
 
             if((second === key.shift && (first === key.ctrl || first === key.rightCtrl))
             || (first === key.shift && (second === key.ctrl || second === key.rightCtrl))) return COMMAND_CTRL_SHIFT;
-
+            if(first === key.shift) return COMMAND_SHIFT;
             if(first === key.ctrl || first === key.rightCtrl) return COMMAND_CTRL;
 
             return 0;
@@ -5658,11 +5664,11 @@
                     break;
 
                     case "replayPrev":
-                        str = "Prev (left, z, .), 1 frame(right-click, shift+click)";
+                        str = "Prev (left, z, .), 1 frame(right-click, shift + [click, left, z, .])";
                     break;
 
                     case "replayNext":
-                        str = "Next (right, x, ,), 1 frame(right-click, shift+click)";
+                        str = "Next (right, x, ,), 1 frame(right-click, shift + [click, right, x, ,])";
                     break;
 
                     case "replaySpeedBarWrapper":
@@ -7250,6 +7256,8 @@
             stage.nativeWindow.addEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,cancelAutoKeyEvent);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,cancelAutoKeyEvent);
+            stage.addEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
             stage.addEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
         }
 
@@ -7258,9 +7266,11 @@
             clearTimeout(keyHoldTimer);
             clearInterval(keyHoldTimer);
             keyHoldTimer = 0;
+            stage.nativeWindow.removeEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,cancelAutoKeyEvent);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,cancelAutoKeyEvent);
-            stage.nativeWindow.removeEventListener(Event.DEACTIVATE,cancelAutoKeyEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_UP,cancelAutoKeyEvent);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelAutoKeyEvent);
             stage.removeEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
         }
 
@@ -8231,6 +8241,7 @@
                         checkReplaySpeedState();
                         if(!isDeepUndoON)
                         {
+                            setSkipFrame(TOTAL_FRAME+1);
                             removeInputEventDrawMode();
                             addInputEventReplayMode();
                         }
@@ -11486,11 +11497,7 @@
                 }
                 resetLassoBox();
             }
-
-            if(rData.length > 0)
-            {
-                lassoCanceleBmpd();
-            }
+            lassoCanceleBmpd();
         }
 
         //펜툴로 선택,세팅 껍데기만 바꿔주는거임 setPenTool은 실제 툴을 진행하는거
@@ -12979,10 +12986,33 @@
                 if(keyBuffer.length === 3)
                 {
                     subKey = keyBuffer[2];
-                    setNowKey(subKey);
 
                     if(subKey === key.s) saveFile(true);
                     else if(subKey === key.o) loadFile(true);
+
+                }
+                return;
+            }
+            else if(isPressingShift())
+            {
+                if(keyBuffer.length === 2)
+                {
+                    subKey = keyBuffer[1];
+
+                    switch(subKey)
+                    {
+                        case key.left:
+                        case key.z:
+                        case key.dot:
+                            setSkipOneFrame(true,true);
+                        break;
+
+                        case key.right:
+                        case key.x:
+                        case key.comma:
+                            setSkipOneFrame(false,true);
+                        break;
+                    }
                 }
                 return;
             }
@@ -13007,13 +13037,13 @@
                 case key.left:
                 case key.z:
                 case key.dot:
-                    setSkipOneFrame(true,e.shiftKey);
+                    setSkipOneFrame(true,false);
                 break;
 
                 case key.right:
                 case key.x:
                 case key.comma:
-                    setSkipOneFrame(false,e.shiftKey);
+                    setSkipOneFrame(false,false);
                 break;
 
                 case key.up:
@@ -14139,13 +14169,13 @@
 
                 case "replayPrev":
                 {
-                    setSkipOneFrame(true,e.shiftKey);
+                    setSkipOneFrame(true,isPressingControlShift());
                 }
                 break;
 
                 case "replayNext":
                 {
-                    setSkipOneFrame(false,e.shiftKey);
+                    setSkipOneFrame(false,isPressingControlShift());
                 }
                 break;
 
