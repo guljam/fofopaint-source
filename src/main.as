@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.46;
+        private const APP_VERSION:Number = 14.47;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -1043,6 +1043,7 @@
                     penCursorPosition.checkSideBarON();
                 }
             }
+            rightMouseClickON = false;
         }
 
         private function setWindowTitleStar():void
@@ -13199,7 +13200,10 @@
 
             return function(e:KeyboardEvent):void
             {
-                if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted) return;
+                if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted)
+                {
+                    return;
+                }
 
                 const keyCode:uint = keyBuffer[0];
 
@@ -13519,7 +13523,11 @@
             clearInterval(workingTimer);
             resetKeyBuffer();
 
-            if(toolBox2ON) closeToolBox2();
+            if(toolBox2ON)
+            {
+                rightMouseClickON = false;
+                closeToolBox2();
+            }
 
             if(!isSidebarVisible) penCursorPosition.setSideBarOFF();
 
@@ -14348,7 +14356,8 @@
                 }
                 else if(cursorInDrawArea())
                 {
-                    openToolBox2();
+                    if(toolBox2ON) closeToolBox2();
+                    else openToolBox2();
                 }
             }
         }
@@ -14731,15 +14740,7 @@
                 case "resizeButtonL":
                 case "resizeButtonU":
                 {
-                    //오른쪽 클릭에서 ent채워주면 그냥 리턴해야함
-                    //안해주면 캔버스 조절할때 펜이 캔버스에 그어짐
-                    if(!lassoToolON)
-                    {
-                        if(setCanvasResizeButton(target as canvasResizeButton) === true)
-                        {
-                            return;
-                        }
-                    }
+                    setCanvasResizeButton(target as canvasResizeButton);
                 }
                 return;
 
