@@ -14740,9 +14740,13 @@
                 case "resizeButtonL":
                 case "resizeButtonU":
                 {
-                    setCanvasResizeButton(target as canvasResizeButton);
+                    if(isNowKey(0) && !rightMouseClickON)
+                    {
+                        setCanvasResizeButton(target as canvasResizeButton);
+                        return;
+                    }
                 }
-                return;
+                break;
 
                 case "traceInfo":
                 case "traceMenuMoveButton":

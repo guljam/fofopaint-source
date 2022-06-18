@@ -15,7 +15,7 @@
 		
 		public function canvasResizeButton() {
 			// constructor code
-			cacheAsBitmap = true;
+			useHandCursor = false;
 		}
 	}
 	
