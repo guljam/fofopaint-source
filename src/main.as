@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.43;
+        private const APP_VERSION:Number = 14.44;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -1192,7 +1192,7 @@
 
             function endFillPenOK():void
             {
-                if(data.length > 2)
+                if(command.length > 2)
                 {
                     command.push(2);
                     data.push(data[0]);
@@ -8631,7 +8631,6 @@
                 traceRawArr = null;
                 canvasTraceBitmap.smoothing = true;
             }
-            resetTraceOpa();
             setCenvasCenterPos();
             updateResizeButtonPos();
             addUndoData();
@@ -9809,7 +9808,6 @@
                     updatePenSizeCursor();
                     updateWindowTitle();
                     setWindowTitleStar();
-                    resetTraceOpa();
                 },150);
             }
             else //복원파일이 없을때
