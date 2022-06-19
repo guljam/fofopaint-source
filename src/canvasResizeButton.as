@@ -7,9 +7,9 @@
 		
 		public function setColor(color:uint):void
 		{
-			const c1:ColorTransform = new ColorTransform();
-			c1.color = color;
-			transform.colorTransform = c1;
+			const c:ColorTransform = new ColorTransform();
+			c.color = color;
+			transform.colorTransform = c;
 		}
 		
 		public function canvasResizeButton() {
