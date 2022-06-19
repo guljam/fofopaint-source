@@ -10,6 +10,13 @@
 				"kind": "build",
 				"isDefault": true
 			}
+		},
+		{
+			"type": "actionscript",
+			"clean": true,
+			"group": "build",
+			"problemMatcher": [],
+			"label": "ActionScript: clean - asconfig.json"
 		}
 	]
 }
