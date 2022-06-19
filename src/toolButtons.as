@@ -12,34 +12,34 @@
 	import flash.geom.Point;
 
 	public class toolButtons extends Sprite {
-		public var toolPen:SimpleButton = toolPen;
-		public var toolFillPen:SimpleButton = toolFillPen;
-		public var toolErase:SimpleButton = toolErase;
-		public var toolUndo:SimpleButton = toolUndo;
-		public var toolRedo:SimpleButton = toolRedo;
-		public var toolSpuit:SimpleButton = toolSpuit;
-		public var toolMirror:SimpleButton = toolMirror;
-		public var toolLasso:SimpleButton = toolLasso;
-		public var toolMove:SimpleButton = toolMove;
-		public var toolRotate:SimpleButton = toolRotate;
-		public var toolLine:SimpleButton = toolLine;
-		public var toolTrace:SimpleButton = toolTrace;
-		public var toolZoom:SimpleButton = toolZoom;
-		public var zoomInButton:SimpleButton = zoomInButton;
-		public var zoomOutButton:SimpleButton = zoomOutButton;
-		public var deepUndoOK:SimpleButton = deepUndoOK;
-		public var deepUndoCancel:SimpleButton = deepUndoCancel;
-		public var fillPenOK:SimpleButton = fillPenOK;
-		public var fillPenUndo:SimpleButton = fillPenUndo;
-		public var fillPenCancel:SimpleButton = fillPenCancel;
-		public var toolSelectCursor:SimpleButton = toolSelectCursor
+		public var toolPen:SimpleButton = this.toolPen;
+		public var toolFillPen:SimpleButton = this.toolFillPen;
+		public var toolErase:SimpleButton = this.toolErase;
+		public var toolUndo:SimpleButton = this.toolUndo;
+		public var toolRedo:SimpleButton = this.toolRedo;
+		public var toolSpuit:SimpleButton = this.toolSpuit;
+		public var toolMirror:SimpleButton = this.toolMirror;
+		public var toolLasso:SimpleButton = this.toolLasso;
+		public var toolMove:SimpleButton = this.toolMove;
+		public var toolRotate:SimpleButton = this.toolRotate;
+		public var toolLine:SimpleButton = this.toolLine;
+		public var toolTrace:SimpleButton = this.toolTrace;
+		public var toolZoom:SimpleButton = this.toolZoom;
+		public var zoomInButton:SimpleButton = this.zoomInButton;
+		public var zoomOutButton:SimpleButton = this.zoomOutButton;
+		public var deepUndoOK:SimpleButton = this.deepUndoOK;
+		public var deepUndoCancel:SimpleButton = this.deepUndoCancel;
+		public var fillPenOK:SimpleButton = this.fillPenOK;
+		public var fillPenUndo:SimpleButton = this.fillPenUndo;
+		public var fillPenCancel:SimpleButton = this.fillPenCancel;
+		public var toolSelectCursor:SimpleButton = this.toolSelectCursor
 		private var lastTool:String = "toolPen";
 		
 		public const BOX_WIDTH:Number = 34;
 		public const BOX_HEIGHT:Number = 476;
 
 		// public var toolBoxBG2:SimpleButton = toolBoxBG2;
-		public var toolInfo:TextField = toolInfo;
+		public var toolInfo:TextField = this.toolInfo;
 		public var toolInfoBG:Shape = new Shape();
 		private var deafultY:Number = 0;
 		

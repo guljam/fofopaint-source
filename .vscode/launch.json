@@ -8,7 +8,7 @@
 			"name": "fofo paint debugging",
 			"type" : "swf",
 			"request": "launch",
-			"runtimeExecutable":"E:\\AIRSDK_Windows_33.1.1.856\\AIRSDK_Windows\\bin\\adl.exe",
+			"runtimeExecutable":"E:\\AIRSDK_Windows_33.1.1.889\\AIRSDK_Windows\\bin\\adl.exe",
 			"args": ["fofoPaint-app.xml -nodebug"],
 		}
 	]
