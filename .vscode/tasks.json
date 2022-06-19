@@ -2,7 +2,7 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "MAKE AIR,EXE, GITHUB PUSH, AUTO RELEASE",
+			"label": "FOFOPAINT:Make exe air, git push, auto github release",
 			"type": "shell",
 			"command": "D:/fofopaint-source/vscode_fofo_auto_release.bat",
 			"problemMatcher": [],
