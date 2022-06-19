@@ -2,15 +2,14 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "actionscript",
-			"debug": false,
-			"air": "air",
+			"label": "MAKE AIR,EXE, GITHUB PUSH, AUTO RELEASE",
+			"type": "shell",
+			"command": "D:/fofopaint-source/vscode_fofo_auto_release.bat",
+			"problemMatcher": [],
 			"group": {
 				"kind": "build",
 				"isDefault": true
-			},
-			"problemMatcher": [],
-			"label": "Adobe AIR: Compile"
+			}
 		}
 	]
 }
