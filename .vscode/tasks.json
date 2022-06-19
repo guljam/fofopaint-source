@@ -10,13 +10,13 @@
 		},
 		{
 			"type": "shell",
-			"command":"D:/fofopaint-source/fofoPaint.fla",
+			"command":"taskkill /im fofopaint.exe /t /f \n D:/fofopaint-source/fofoPaint.fla",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
 			"problemMatcher": [],
-			"label": "open fofopaint.fla"
+			"label": "fofopaint : run fla and task kill fofopaint"
 		}
 	]
 }

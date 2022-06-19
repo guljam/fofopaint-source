@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.51;
+        private const APP_VERSION:Number = 14.52;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -11864,11 +11864,10 @@
         private function setTraceBitmapPosUndo(move:Point):void
         {
             const _canvasTraceBitmap:Bitmap = canvasTraceBitmap;
-            const _zoomed:Number = zoomed;
-            const canvsTraceFlipped:Number = canvasTrace.scaleX;
+            const _canvasTrace:Sprite = canvasTrace;
 
-            _canvasTraceBitmap.x += (-move.x*_zoomed)*canvsTraceFlipped;
-            _canvasTraceBitmap.y += -move.y*_zoomed;
+            _canvasTraceBitmap.x += -move.x*(1/_canvasTrace.scaleX);
+            _canvasTraceBitmap.y += -move.y*(1/_canvasTrace.scaleY);
 
             tracePosInfo[0] = _canvasTraceBitmap.x;
             tracePosInfo[1] = _canvasTraceBitmap.y;
