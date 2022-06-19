@@ -6,17 +6,17 @@
 			"type": "shell",
 			"command": "D:/fofopaint-source/vscode_fofo_auto_release.bat",
 			"problemMatcher": [],
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
+			"group": "build"
 		},
 		{
 			"type": "actionscript",
-			"clean": true,
-			"group": "build",
+			"debug": true,
+			"group": {
+				"kind": "s",
+				"isDefault": true
+			},
 			"problemMatcher": [],
-			"label": "ActionScript: clean - asconfig.json"
+			"label": "as3 nothing task"
 		}
 	]
 }
