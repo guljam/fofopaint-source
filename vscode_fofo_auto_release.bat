@@ -1,3 +1,5 @@
+notepad D:\2020FlashPaint\versionInfo.txt
+
 Powershell.exe -noprofile -executionpolicy bypass -file "_make_air_file.ps1"
 Powershell.exe -noprofile -executionpolicy bypass -file "_make_exe_file.ps1"
 
@@ -6,7 +8,6 @@ git commit --file=D:\2020FlashPaint\versionInfo.txt
 git push
 
 cd D:\2020FlashPaint
-notepad versionInfo.txt
 git add versionInfo.txt
 git commit --file=versionInfo.txt
 git push
