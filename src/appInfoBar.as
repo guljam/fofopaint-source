@@ -5,27 +5,61 @@
 	
 	public class appInfoBar extends Sprite {
 		public var canvasInfo:TextField = canvasInfo;
+		private var canvasWidth:Number = 0;
+		private var canvasHeight:Number = 0;
+		private var canvasZoom:Number = 0;
+		private var canvasRotate:Number = 0;
+		private var canvasMirror:Boolean = false;
 
-		public var canvasInfoArr:Array = [0.0,0.0,100.0,0.0]; //tool, canvas w , canvas h , zoom , rotate, mirror
-		
-		public function insertCanvasInfo(arr:Array):void
+		public function init(w:Number,h:Number,z:Number,r:Number,flag:Boolean):void
 		{
-			if(arr[0] !== null) canvasInfoArr[0] = arr[0];
-			if(arr[1] !== null) canvasInfoArr[1] = arr[1];
-			if(arr[2] !== null) canvasInfoArr[2] = arr[2];
-			if(arr[3] !== null) canvasInfoArr[3] = arr[3];
-
-			updateCanvasInfo();
+			canvasWidth = w;
+			canvasHeight = h;
+			canvasZoom = z;
+			canvasRotate = r;
+			canvasMirror = flag;
+			update();
 		}
 
-		public function updateCanvasInfo():void
+		public function setSize(w:Number,h:Number):void
 		{
-			const arr:Array = canvasInfoArr;
-			const str:String = arr[0] +" x "+ arr[1] +"  "
-								+ arr[2]+"%  "
-								+ arr[3]+"°"
+			canvasWidth = w;
+			canvasHeight = h;
+			update();
+		}
+
+		public function setZoom(z:Number):void
+		{
+			canvasZoom = Math.floor(z*100);
+			update();
+		}
+
+		public function setRotate(r:Number):void
+		{
+			canvasRotate = r;
+			update();
+		}
+
+		public function getMirorrString():String
+		{
+			return (canvasMirror) ? "flipped" : "";
+		}
+
+		public function setMirror(flag:Boolean):void
+		{
+			canvasMirror = flag;
+			update();
+		}
+
+		public function update():void
+		{
+			const str:String = canvasWidth +" x "+ canvasHeight +"  "
+							 + canvasZoom+"%  "
+							 + canvasRotate+"°  "
+							 + getMirorrString();
+
 			canvasInfo.text = str;
-			canvasInfo.width = canvasInfo.textWidth+20;
+			canvasInfo.width = canvasInfo.textWidth+10;
 		}
 
 		public function appInfoBar() {

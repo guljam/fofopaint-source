@@ -3,10 +3,14 @@
 	"tasks": [
 		{
 			"type": "actionscript",
-			"debug": true,
-			"group": "build",
+			"debug": false,
+			"air": "air",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
 			"problemMatcher": [],
-			"label": "ActionScript: compile debug - asconfig.json"
-		},
+			"label": "Adobe AIR: Compile"
+		}
 	]
 }

@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.49;
+        private const APP_VERSION:Number = 14.50;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -200,6 +200,10 @@
                     ,LASSO_1PX_MOVE_DOWN:int = (1 << 1)
                     ,LASSO_1PX_MOVE_LEFT:int = (1 << 2)
                     ,LASSO_1PX_MOVE_RIGHT:int = (1 << 3)
+                    ,CUT_FRAME_NONE:int = (1 << 0)
+                    ,CUT_FRAME_SUPER_UNDO:int = (1 << 1)
+                    ,CUT_FRAME_RE_RECORD:int = (1 << 2)
+                    ,CUT_FRAME_DELETE_FRONT:int = (1 << 3)
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -434,7 +438,7 @@
         //cut Frame 관련 변수
                     ,cutFrameActiveButton:SimpleButton
                     ,cutFrameClickCounter:uint = 0 //1번 누르면 미리 보기, 2번 누르면 실행
-                    ,cutFrameClickedButton:int = -1 //무슨 버튼 눌렀는지 저장
+                    ,cutFrameClickedButton:int = CUT_FRAME_NONE //무슨 버튼 눌렀는지 저장
                     ,rCutDataSaveFrame:Number = 0//슈퍼언도나 앞짜르기 할때 마우스 왔다갔다 하면서 반복해서 눌러줄때 skiponeframe이 계속작동되는거 방지해줌 
 
         //스크린샷 관련 변수
@@ -3285,39 +3289,39 @@
             canvasTraceBitmap.bitmapData = null;
             if(traceImageFile.exists) traceImageFile.deleteFile();
 
-            setTraceImageInfo(false);
+            resetTraceImageInfo();
         }
         
-        private function setTraceImageInfo(customPos:Boolean,x:Number=0,y:Number=0,rotation:Number=0,scaleX:Number=1,scaleY:Number=1,mirror:Boolean=false):void
+        private function resetTraceImageInfo():void
+        {
+            const _canvasTrace:Sprite = canvasTrace;
+            const _canvasTraceBitmap:Bitmap = canvasTraceBitmap;
+            const ww:Number = -_canvasTraceBitmap.width/2;
+            const hh:Number = -_canvasTraceBitmap.height/2;
+            const xx:Number = (mirrorON) ? -1 : 1;
+
+            _canvasTraceBitmap.x = ww;
+            _canvasTraceBitmap.y = hh; //중점 셋팅
+            _canvasTrace.rotation = 0;
+            _canvasTrace.scaleX = 1;
+            _canvasTrace.scaleY = 1;
+            traceReizeMoveSum = 0;
+            tracePosInfo = [ww,hh,0,1,1,false];
+        }
+
+        private function setTraceImageInfo(x:Number,y:Number,rotation:Number,scaleX:Number,scaleY:Number,mirror:Boolean):void
         {
             const _canvasTrace:Sprite = canvasTrace;
             const _canvasTraceBitmap:Bitmap = canvasTraceBitmap;
 
             _canvasTrace.x = CANVAS_WIDTH/2;
             _canvasTrace.y = CANVAS_HEIGHT/2;
-            if(customPos === true)
-            {
-                _canvasTraceBitmap.x = x;
-                _canvasTraceBitmap.y = y;
-                _canvasTrace.scaleX = scaleX;
-                _canvasTrace.scaleY = scaleY;
-                _canvasTrace.rotation = rotation;
-                tracePosInfo = [x,y,rotation,scaleX,scaleY,mirror];
-            }
-            else //커스텀이 아니고 리셋 할때
-            {
-                const ww:Number = -_canvasTraceBitmap.width/2;
-                const hh:Number = -_canvasTraceBitmap.height/2;
-                const xx:Number = (mirrorON) ? -1 : 1;
-
-                _canvasTraceBitmap.x = ww;
-                _canvasTraceBitmap.y = hh; //중점 셋팅
-                _canvasTrace.rotation = 0;
-                _canvasTrace.scaleX = 1;
-                _canvasTrace.scaleY = 1;
-                traceReizeMoveSum = 0;
-                tracePosInfo = [ww,hh,0,1,1,false];
-            }
+            _canvasTraceBitmap.x = x;
+            _canvasTraceBitmap.y = y;
+            _canvasTrace.scaleX = scaleX;
+            _canvasTrace.scaleY = scaleY;
+            _canvasTrace.rotation = rotation;
+            tracePosInfo = [x,y,rotation,scaleX,scaleY,mirror];
         }
 
         private function pasteTraceImage(bmpd:IBitmapDrawable=null,w:Number=1,h:Number=1):void
@@ -3360,7 +3364,7 @@
                 canvas1Bitmap.bitmapData = canvas1BitmapData;
                 addUndoData(4);
             }
-            setTraceImageInfo(false);
+            resetTraceImageInfo();
 
             if(bmpd) // 이미지 붙여넣을때 이미지가 캔버스사이즈보다 크면 자동 리사이즈함
             {
@@ -3369,14 +3373,8 @@
                 const widthFlag:Boolean = (w >= h) ? true : false;
                 var autoScale:Number = 0;
 
-                if(w > gw && widthFlag === true)
-                {
-                    autoScale = gw/w;
-                }
-                else if (h > gh && widthFlag === false)
-                {
-                    autoScale = gh/h;
-                }
+                if(w > gw && widthFlag === true) autoScale = gw/w;
+                else if (h > gh && widthFlag === false) autoScale = gh/h;
 
                 if(autoScale > 0)
                 {
@@ -4318,9 +4316,9 @@
                 break;
 
                 case "drawModeButton": setReplayUI(false); break;
-                case "superUndoButton": cutFrameData(0,false); break;
-                case "reRecordingButton": cutFrameData(1,false); break;
-                case "cutPrevDataButton": cutFrameData(2,false); break;
+                case "superUndoButton": cutFrameData(CUT_FRAME_SUPER_UNDO,false); break;
+                case "reRecordingButton": cutFrameData(CUT_FRAME_RE_RECORD,false); break;
+                case "cutPrevDataButton": cutFrameData(CUT_FRAME_DELETE_FRONT,false); break;
             }
         }
 
@@ -4865,21 +4863,13 @@
         {
             const dotIndex:int = str.indexOf(".");
 
-            if(dotIndex === -1) return null;
+            if(dotIndex === -1) return[parseInt(str),0];
 
             const head:String = str.slice(0,dotIndex);
             var tail:String = str.slice(dotIndex+1,str.length);
             var tailLen:uint = tail.length;
-
-            if(tailLen > 2)
-            {
-                tail = tail.slice(0,2);
-                tailLen = tail.length;
-            }
-
             const ver1:Number = parseInt(head);
-            //예를들어 뒷자리가 20인데 현제 버전이 19면 파싱했을때 2와 19를 비교하기 때문에 나눠줘서 0.20와 0.19를 비교해야함
-            const ver2:Number = parseInt(tail)/Math.pow(10,tailLen);
+            const ver2:Number = parseInt(tail)/Math.pow(10,tailLen-1);
 
             return [ver1,ver2];
         }
@@ -4903,7 +4893,7 @@
             isCheckingUpdate = true;
             clearTimeout(updateRryTimer);
 
-            var url:URLRequest = new URLRequest("https://raw.githubusercontent.com/guljam/fofopaint-source/main/fofoversion");
+            var url:URLRequest = new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/versionInfo.txt");
             var loader:URLLoader = new URLLoader();
 
             if(url.useCache)
@@ -5095,36 +5085,8 @@
             setAboutPanelCenterPos();
         }
 
-        private function clearData(reRecordFlag:Boolean = false):void
+        private function clearDataResetVars():void
         {
-            if(reRecordFlag)
-            {
-                const dd:Array = tickDraw.getrLineStyleSave();
-                const newColorTransform:ColorTransform = new ColorTransform(1,1,1,dd[0]);
-                rcanvas2BitmapData.draw(rcanvas2Draw);
-                rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
-                rcanvas1BitmapData.draw(rcanvas2Bitmap,null,newColorTransform,dd[1]);
-
-                //캔버스 2번 지워줘야함
-                rcanvas2Draw.graphics.clear();
-                rcanvas2BitmapData.dispose();
-                rcanvas2BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
-
-                rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-                canvas1Bitmap.bitmapData = rcanvas1BitmapData.clone();
-
-                changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height);
-                setBackgroundColor(RCANVAS_BG_COLOR);
-
-                clearButtonClicked = false;
-            }
-            else
-            {
-                clearCanvas();
-                clearCanvasReplayMode();
-                clearButtonClicked = true;
-            }
-            
             tickDraw.resetgetRCursorPos();
             rBGColorSave = CANVAS_BG_COLOR;
             saveContinue = false;
@@ -5138,6 +5100,7 @@
             makeSkipImageFlag = 0;
             topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x;
 
+            resetTraceImageInfo();
             resetTraceOpa();
             updateFirstImage(canvas1BitmapData,CANVAS_BG_COLOR);
             resetReplayDataFile(true);
@@ -5153,10 +5116,43 @@
 
             saveFileName = newName;
             saveFilePath = newPath;
-
+            
+            appInfoBox.setMirror(false);
             updateWindowTitle();
             setWindowTitleStar();
             cancelAutoKeyEvent({});
+        }
+
+        private function setReRecordCopyCanvas():void
+        {
+            const dd:Array = tickDraw.getrLineStyleSave();
+            const newColorTransform:ColorTransform = new ColorTransform(1,1,1,dd[0]);
+
+            rcanvas2BitmapData.draw(rcanvas2Draw);
+            rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+            rcanvas1BitmapData.draw(rcanvas2Bitmap,null,newColorTransform,dd[1]);
+
+            //캔버스 2번 지워줘야함
+            rcanvas2Draw.graphics.clear();
+            rcanvas2BitmapData.dispose();
+            rcanvas2BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
+
+            rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+            canvas1Bitmap.bitmapData = rcanvas1BitmapData.clone();
+
+            changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height);
+            setBackgroundColor(RCANVAS_BG_COLOR);
+
+            clearButtonClicked = false;
+            clearDataResetVars();
+        }
+
+        private function clearData():void
+        {
+            clearButtonClicked = true;
+            clearCanvas();
+            clearCanvasReplayMode();
+            clearDataResetVars();
         }
 
         private function setClearData(keyFlag:Boolean=false):void
@@ -5452,7 +5448,7 @@
 
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
             cutFrameClickCounter = 0;
-            cutFrameClickedButton = -1;
+            cutFrameClickedButton = CUT_FRAME_NONE;
             topBar.hintOFF();
             replayTimeBox["replayDeleteBar"].visible = false;
         }
@@ -5540,6 +5536,13 @@
             checkReplaySpeedState();
         }
 
+        private function setReRecord():void
+        {
+            setReRecordCopyCanvas();
+            setCanvasSameReplayCanvas();
+            setReplayUI(false);
+        }
+
         private function superUndo():void
         {
             if(rDataReadFlag === true)
@@ -5591,11 +5594,63 @@
             saveContinue = false;
         }
 
+        private function getCutFrameOKString():String
+        {
+            return "One more click to OK (Red data will be deleted)";
+        }
+
+        private function setCutFrameRedBar(flag:int):void
+        {
+            const replayTimeBox:replayTimeBar = replayTimeBox;
+            const replayNowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
+            const deleteBar:Sprite = replayTimeBox["replayDeleteBar"] as Sprite;
+            const replayTotalBar:Sprite = replayTimeBox["replayTotalBar"] as Sprite;
+
+            if(flag === CUT_FRAME_SUPER_UNDO)
+            {
+                const width:Number = (replayTotalBar.width*(rNowFrame/TOTAL_FRAME));
+                deleteBar.x = replayTotalBar.x+width;
+                deleteBar.width = (replayTotalBar.width-width);
+            }
+            else if(flag === CUT_FRAME_RE_RECORD)
+            {
+                deleteBar.x = replayTotalBar.x;
+                deleteBar.width = replayTotalBar.width;
+            }
+            else if(flag === CUT_FRAME_DELETE_FRONT)
+            {
+                deleteBar.x = replayTotalBar.x;
+                deleteBar.width = replayNowBar.width;
+            }
+
+            deleteBar.visible = true;
+        }
+        
+        private function doCutFrame(flag:int):void
+        {
+            if(flag === CUT_FRAME_SUPER_UNDO) superUndo();
+            else if(flag === CUT_FRAME_RE_RECORD) setReRecord();
+            else if(flag === CUT_FRAME_DELETE_FRONT) deleteReplayFrontData();
+        }
+
+        private function getCutFrameHint(flag:int):String
+        {
+            return (flag === CUT_FRAME_SUPER_UNDO) ?  "Super-undo : "
+                  :(flag === CUT_FRAME_RE_RECORD) ? "Re-recording : "
+                  :(flag === CUT_FRAME_DELETE_FRONT) ? "Delete front data : "
+                  : "";
+        }
+
+        private function setCutFrameActiveButton(flag:int):void
+        {
+            if(flag === CUT_FRAME_SUPER_UNDO) cutFrameActiveButton = topBar["superUndoButton"];
+            else if(flag === CUT_FRAME_RE_RECORD) cutFrameActiveButton = topBar["reRecordingButton"];
+            else if(flag === CUT_FRAME_DELETE_FRONT) cutFrameActiveButton = topBar["cutPrevDataButton"];
+        }
+
         private function cutFrameData(flag:int,shortcutKey:Boolean):void
         {
-            if(flag === 0) cutFrameActiveButton = topBar["superUndoButton"];
-            else if(flag === 1) cutFrameActiveButton = topBar["reRecordingButton"];
-            else if(flag === 2) cutFrameActiveButton = topBar["cutPrevDataButton"];
+            setCutFrameActiveButton(flag);
 
             if(cutFrameActiveButton.alpha < 1.0)
             {
@@ -5605,7 +5660,7 @@
 
             if(replayStartON) stopReplay();
 
-            if(cutFrameClickedButton < 0)
+            if(cutFrameClickedButton === CUT_FRAME_NONE)
             {
                 cutFrameClickedButton = flag;
                 cutFrameClickCounter++;
@@ -5613,29 +5668,18 @@
             else if(cutFrameClickedButton !== flag)
             {
                 resetCutFrameClickCounter();
-                cutFrameClickCounter = 1;
                 cutFrameClickedButton = flag;
-
-                if(flag === 0) cutFrameActiveButton = topBar["superUndoButton"];
-                else if(flag === 1) cutFrameActiveButton = topBar["reRecordingButton"];
-                else if(flag === 2) cutFrameActiveButton = topBar["cutPrevDataButton"];
+                cutFrameClickCounter = 1;
+                setCutFrameActiveButton(flag);
             }
-            else
-            {
-                cutFrameClickCounter++;
-            }
+            else cutFrameClickCounter++;
 
             if(cutFrameClickCounter === 1)
             {
-                const replayTimeBox:replayTimeBar = replayTimeBox;
-                const replayNowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
-                const deleteBar:Sprite = replayTimeBox["replayDeleteBar"] as Sprite;
-                const replayTotalBar:Sprite = replayTimeBox["replayTotalBar"] as Sprite;
-
                 toolTipBox.visible = false;
                 cutFrameActiveButton.addEventListener(MouseEvent.MOUSE_OUT,resetCutFrameClickCounterEvent);
                 
-                if(flag !== 1)
+                if(flag !== CUT_FRAME_RE_RECORD)
                 {
                     //데이터 전부 읽고 짤라줘야함
                     if(tickDraw.getIndex() < tickDraw.getDataLength()) 
@@ -5645,58 +5689,23 @@
                     }
                 }
 
-                if(flag === 0)
-                {
-                    const width:Number = (replayTotalBar.width*(rNowFrame/TOTAL_FRAME));
-                    deleteBar.x = replayTotalBar.x+width;
-                    deleteBar.width = (replayTotalBar.width-width);
-                }
-                else if(flag === 1)
-                {
-                    deleteBar.x = replayTotalBar.x;
-                    deleteBar.width = replayTotalBar.width;
-                }
-                else if(flag === 2)
-                {
-                    deleteBar.x = replayTotalBar.x;
-                    deleteBar.width = replayNowBar.width;
-                }
+                setCutFrameRedBar(flag);
 
                 if(shortcutKey === false)
                 {
-                    topBar.hint("One more click to OK (Red area will be deleted)",cutFrameActiveButton);
+                    topBar.hint(getCutFrameOKString(),cutFrameActiveButton);
                 }
                 else if(shortcutKey === true)
                 {
-                    const funcName:String = (flag === 0) ?  "Super-undo : "
-                                            :(flag === 1) ? "Re-recording : "
-                                            :(flag === 2) ? "Delete front data : "
-                                            : "";
-                    topBar.hint(funcName + "One more press key to OK (Red area will be deleted)",cutFrameActiveButton);
+                    topBar.hint(getCutFrameHint(flag)+getCutFrameOKString(),cutFrameActiveButton);
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
                 }
-
-                deleteBar.visible = true;
             }
             else if(cutFrameClickCounter >= 2)
             {
                 saveContinue = false;
                 resetCutFrameClickCounter();
-
-                if(flag === 0) //super undo
-                {
-                    superUndo();
-                }
-                else if(flag === 1) //re-recording
-                {
-                    clearData(true);
-                    setCanvasSameReplayCanvas();
-                    setReplayUI(false);
-                }
-                else if(flag === 2) //cut prev data 앞부분 잘라주기 
-                {
-                    deleteReplayFrontData();
-                }
+                doCutFrame(flag);
             }
         }
 
@@ -5832,8 +5841,9 @@
 
                     case "reRecordingButton":
                     {
-                        if(cutFrameClickCounter === 1 && cutFrameClickedButton === 1)
-                            str = "One more click to OK (Red area will be deleted)";
+                        if(cutFrameClickCounter === 1
+                        && cutFrameClickedButton === CUT_FRAME_RE_RECORD)
+                            str = getCutFrameOKString();
                         else
                             str = "Re-recording from this image (f1, f6)";
                     }
@@ -5841,8 +5851,9 @@
                     break;
                     case "superUndoButton":
                     {
-                        if(cutFrameClickCounter === 1 && cutFrameClickedButton === 0)
-                            str = "One more click to OK (Red area will be deleted)";
+                        if(cutFrameClickCounter === 1
+                        && cutFrameClickedButton === CUT_FRAME_SUPER_UNDO)
+                            str = getCutFrameOKString();
                         else
                             str = "Super-undo (f2, f7)";
                     }
@@ -5850,8 +5861,9 @@
 
                     case "cutPrevDataButton":
                     {
-                        if(cutFrameClickCounter === 1 && cutFrameClickedButton === 2)
-                            str = "One more click to OK (Red area will be deleted)";
+                        if(cutFrameClickCounter === 1
+                        && cutFrameClickedButton === CUT_FRAME_DELETE_FRONT)
+                            str = getCutFrameOKString();
                         else
                             str = "Delete front data (f3, f8)";   
                     }
@@ -8678,6 +8690,7 @@
             saveContinue = false;//연속 세이브 플래그 취소
             rMirrorON = false;
             mirrorON = false;
+            appInfoBox.setMirror(false);
             mirrorPushReady = false;
             clearButtonClicked = false;
 
@@ -8716,14 +8729,12 @@
                 const tArr:Array = traceRawArr;
                 canvasTraceBitmapData = traceRawBMPD.clone();
                 canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
-                setTraceImageInfo(  true,
-                                    tArr[4],
-                                    tArr[5],
-                                    tArr[6],
-                                    tArr[7],
-                                    tArr[8],
-                                    tArr[9]
-                                );
+                setTraceImageInfo(tArr[4],
+                                  tArr[5],
+                                  tArr[6],
+                                  tArr[7],
+                                  tArr[8],
+                                  tArr[9]);
                 traceReizeMoveSum = tArr[10];
                 CANVAS_TRACE_ALPHA = tArr[11];
                 canvasTrace.alpha = tArr[11];
@@ -8877,7 +8888,6 @@
             else 
             {
                 canvasTrace.visible = true;
-                appInfoBox.updateCanvasInfo();
                 removeInputEventCaptrueMode();
 
                 if(replayMode)
@@ -9618,6 +9628,7 @@
 
             rMirrorON = false;
             mirrorON = false;
+            appInfoBox.setMirror(false);
             const fs:FileStream = new FileStream();
             fs.open(undoDataFile,FileMode.READ);
             const lastUndoIndex:int = fs.readInt();
@@ -9884,12 +9895,12 @@
                     rBGColorSave = d["rBGColorSave"];
                     saveFilePath = d["saveFilePath"];
 
-                    setTraceImageInfo(true, d["tracePosInfo[0]"],
-                                            d["tracePosInfo[1]"],
-                                            d["tracePosInfo[2]"],
-                                            d["tracePosInfo[3]"],
-                                            d["tracePosInfo[4]"],
-                                            d["tracePosInfo[5]"]);
+                    setTraceImageInfo(d["tracePosInfo[0]"],
+                                      d["tracePosInfo[1]"],
+                                      d["tracePosInfo[2]"],
+                                      d["tracePosInfo[3]"],
+                                      d["tracePosInfo[4]"],
+                                      d["tracePosInfo[5]"]);
 
                     if(mirrorON !== d["mirrorON"])
                     {
@@ -9900,13 +9911,13 @@
                     drawGrid();
 
                     //혹시 몰라서 위치 체크 해줌
+                    appInfoBox.setRotate(regPoint.rotation);
                     setCenvasCenterPos(true);
                     checkCanvasPanelPos();
                     checkCanvasPanelPos(true);
                     updateResizeButtonPos();
                     updateColorHistoryList();
                     updatePreviewBoxRectPos();
-                    appInfoBox.insertCanvasInfo([null,null,null,regPoint.rotation,null]);
                     updatePenSizeCursor();
                     updateWindowTitle();
                     setWindowTitleStar();
@@ -9927,7 +9938,7 @@
                 setUIColor(uiColorIndex);
                 updatePreviewBoxRectPos();
                 updateWindowSizeInfo();
-                appInfoBox.insertCanvasInfo([CANVAS_WIDTH,CANVAS_HEIGHT,zoomed*100,regPoint.rotation]);
+                appInfoBox.init(CANVAS_WIDTH,CANVAS_WIDTH,zoomed,regPoint.rotation,false);
             }
         }
 
@@ -10339,7 +10350,7 @@
 
                 angleCursor.rotation = deg;
                 xReg.rotation = deg;
-                appInfoBox.insertCanvasInfo([null,null,null,xReg.rotation]);
+                appInfoBox.setRotate(xReg.rotation);
             }
 
             return function (replayMode:Boolean=false):void
@@ -10723,6 +10734,7 @@
             mirrorON = !mirrorON;
             mirrorPushReady = !mirrorPushReady;
             mirrorDraw();
+            appInfoBox.setMirror(mirrorON);
 
             //회전각 부호를 바꿔야 제대로 mirror가됨
             setRegPoint(p.x,p.y);//regpoint를 회전한 캔버스 중점으로 두고
@@ -10797,7 +10809,8 @@
         {
             const _canvasTrace:Sprite = canvasTrace;
             const _canvasTraceBitmap:Bitmap = canvasTraceBitmap;
-            const sc:Number = tracePosInfo[3];
+            const scX:Number = tracePosInfo[3];
+            const scY:Number = tracePosInfo[4];
             const subW:Number = (CANVAS_WIDTH-w)/2;
             const subH:Number = (CANVAS_HEIGHT-h)/2;
             const rPos:Point = rotatePoint(subW,subH,canvasTrace.rotation);
@@ -10807,13 +10820,13 @@
 
             if(movedFlag)
             {
-                _canvasTraceBitmap.x += -rPos.x/sc;
-                _canvasTraceBitmap.y += -rPos.y/sc;
+                _canvasTraceBitmap.x += -rPos.x/scX;
+                _canvasTraceBitmap.y += -rPos.y/scY;
             }
             else
             {
-                _canvasTraceBitmap.x += rPos.x/sc;
-                _canvasTraceBitmap.y += rPos.y/sc;
+                _canvasTraceBitmap.x += rPos.x/scX;
+                _canvasTraceBitmap.y += rPos.y/scY;
             }
 
             tracePosInfo[0] = _canvasTraceBitmap.x;
@@ -10868,7 +10881,7 @@
             drawGrid();
 
             const _appInfoBox:appInfoBar = appInfoBox;
-            _appInfoBox.insertCanvasInfo([w,h,null,null]);
+            _appInfoBox.setSize(w,h);
         }
 
         private function setCanvasSize(targetName:String):void
@@ -11571,7 +11584,6 @@
 
         private function lassoCancelBmpd():void
         {
-            undoIndex = rData.length-1;
             canvas1BitmapData = lassoBitmapdataSave.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
             previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
@@ -11849,18 +11861,20 @@
             return rp;
         }
 
-        private function setTraceBitmapPosWithUndo(move:Point):void
+        private function setTraceBitmapPosUndo(move:Point):void
         {
             const _canvasTraceBitmap:Bitmap = canvasTraceBitmap;
             const _zoomed:Number = zoomed;
+            const canvsTraceFlipped:Number = canvasTrace.scaleX;
 
-            _canvasTraceBitmap.x -= move.x*_zoomed;
-            _canvasTraceBitmap.y -= move.y*_zoomed;
+            _canvasTraceBitmap.x += (-move.x*_zoomed)*canvsTraceFlipped;
+            _canvasTraceBitmap.y += -move.y*_zoomed;
+
             tracePosInfo[0] = _canvasTraceBitmap.x;
             tracePosInfo[1] = _canvasTraceBitmap.y;
         }
 
-        private function getCanvasMovedWithUndo(index:int,redoFlag:Boolean):Point
+        private function getCanvasMovedUndo(index:int,redoFlag:Boolean):Point
         {
             const prevData:Array = (redoFlag) ? rData[index] : rData[index+1];
             if(!prevData) return null;
@@ -11893,7 +11907,7 @@
             const w:uint = d[1];
             const h:uint = d[2];
             const bg:uint = d[3];
-            const len:int = undoIndex;
+            const index:int = undoIndex;
             const _tickDraw:Object = tickDraw;
             const _zoomed:Number = zoomed;
 
@@ -11906,7 +11920,7 @@
 
             if(rData.length > 0)
             {
-                for(var i:int=0; i<=len; i++)
+                for(var i:int=0; i<=index; i++)
                 {
                     if(!rData[i]) continue;
 
@@ -11918,12 +11932,12 @@
             setBackgroundColor(RCANVAS_BG_COLOR);
             changeCanvasSize(RCANVAS_WIDTH,RCANVAS_HEIGHT,0,0,false);
             //앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
-            const movedRegPos:Point = getCanvasMovedWithUndo(len,redoFlag);
+            const movedRegPos:Point = getCanvasMovedUndo(index,redoFlag);
             if(movedRegPos)
             {
                 regPoint.x += movedRegPos.x*_zoomed;
                 regPoint.y += movedRegPos.y*_zoomed;
-                setTraceBitmapPosWithUndo(movedRegPos);
+                setTraceBitmapPosUndo(movedRegPos);
             }
 
             canvas1BitmapData = rcanvas1BitmapData.clone();
@@ -12828,7 +12842,7 @@
 
             if(!captureModeON)
             {
-                appInfoBox.insertCanvasInfo([null,null,Math.floor(z*100),null]);
+                appInfoBox.setZoom(z);
             }
         }
 
@@ -13147,26 +13161,24 @@
                 case key.backspace:
                 case key.esc:
                 {
-                    if(cutFrameClickedButton > 0)
-                        resetCutFrameClickCounter();
-                    else
-                        setReplayUI(false);
+                    if(cutFrameClickedButton !== CUT_FRAME_NONE) resetCutFrameClickCounter();
+                    else setReplayUI(false);
                 }
                 break;
 
                 case key.f1:
                 case key.f6:
-                    cutFrameData(1,true);
+                    cutFrameData(CUT_FRAME_RE_RECORD,true);
                 break;
 
                 case key.f2:
                 case key.f7:
-                    cutFrameData(0,true);
+                    cutFrameData(CUT_FRAME_SUPER_UNDO,true);
                 break;
 
                 case key.f3:
                 case key.f8:
-                    cutFrameData(2,true);
+                    cutFrameData(CUT_FRAME_DELETE_FRONT,true);
                 break;
 
                 case key.n1:
@@ -13205,6 +13217,7 @@
 
         private function closureKeyDownDrawMode():Function
         {
+
             const key:Object = gKey;
             var subKey:int;
 
@@ -13998,7 +14011,7 @@
                 if(traceMenuON === true) traceMenuBox.visible = true;
 
                 changeTopBarIcons("draw");
-                appInfoBox.insertCanvasInfo([null,null,Math.floor(zoomed*100),null]);
+                appInfoBox.setZoom(zoomed);
             }
             else if(flag) //리플레이 켜줄때
             {

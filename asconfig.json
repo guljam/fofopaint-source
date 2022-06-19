@@ -7,8 +7,5 @@
 		"output": "fofoPaint.swf"
 	},
 	"application": "fofoPaint-app.xml",
-	"files": [
-		"src/main.as"
-  	],
 	"mainClass": "main"
 }
