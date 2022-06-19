@@ -1,0 +1,1 @@
+adt -package -target native bin\fofoPaint.exe bin\fofoPaint.air
