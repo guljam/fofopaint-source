@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.48;
+        private const APP_VERSION:Number = 14.49;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -908,6 +908,7 @@
             stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpLassoTool);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownLassoTool);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
             addInputEventDrawMode();
         }
 
@@ -916,6 +917,7 @@
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpLassoTool);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownLassoTool);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
             removeInputEventDrawMode();   
         }
 
@@ -14544,6 +14546,11 @@
                 }
                 return;
             }
+        }
+
+        private function rightMouseUpLassoTool(e:MouseEvent):void
+        {
+            if(lassoToolON) setLassoOKButton();
         }
 
         private function mouseDownLassoTool(e:MouseEvent):void
