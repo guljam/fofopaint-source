@@ -9,14 +9,14 @@
 			"group": "build"
 		},
 		{
-			"type": "actionscript",
-			"debug": true,
+			"type": "shell",
+			"command":"D:/fofopaint-source/fofoPaint.fla",
 			"group": {
-				"kind": "s",
+				"kind": "build",
 				"isDefault": true
 			},
 			"problemMatcher": [],
-			"label": "as3 nothing task"
+			"label": "open fofopaint.fla"
 		}
 	]
 }
