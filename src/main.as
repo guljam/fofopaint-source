@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.58;
+        private const APP_VERSION:Number = 14.60;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -406,7 +406,7 @@
                     
                     // ,rFileTotalFrame:Number = 0 //file에저장된 프레임수 누적해서 저장
                     ,rNowFrame:Number = 0 //dodraw에서 현재까지 플레이된 프레임수 누적, skip frame이 가동됐을때 프레임 누적갯수를 세서 썸네일 이미지 만들어줌
-                    ,rNowFrameSave:Number = 0 //skip one frame 에서 이전 프레임 탐색할때 이 프레임으로 탐색해줌
+                    ,rTailFrame:Number = 0 //skip one frame 에서 이전 프레임 탐색할때 이 프레임으로 탐색해줌 데이터 끝의 프레임을 저장함
                     ,rFirstImage:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rFirstBGColor:uint = CANVAS_BG_COLOR
                     ,rzoomed:Number = 1.0 //리플레이 줌
@@ -6204,7 +6204,7 @@
             rIndex = 0;
             rLastBytes = 0;
             rNowFrame = 0;
-            rNowFrameSave = 0;
+            rTailFrame = 0;
             rSkipImageIndexSave = -2;
             replayAllEnd = true;
             replayONUndoUpdate = false;
@@ -6925,7 +6925,7 @@
 
                 if(rData.length > 0)
                 {
-                    rNowFrameSave = rNowFrame;
+                    rTailFrame = rNowFrame;
                     _tickDraw.ready(rData[rIndex]);
                 }
                 else
@@ -6934,7 +6934,7 @@
                 }
             }
 
-            function insertFileDataToTickDraw():Boolean
+            function setFileDataToTickDraw():Boolean
             {
                 if(_rfs.bytesAvailable > 0)
                 {
@@ -6942,7 +6942,7 @@
                     _tickDraw.ready(obj);
                     rFileCutBytes = rLastBytes;
                     rLastBytes = _rfs.position;
-                    rNowFrameSave = rNowFrame;
+                    rTailFrame = rNowFrame;
                     return false;
                 }
                 return true;
@@ -7016,7 +7016,7 @@
                         rIndex++;
 
                         if(checkFinish(skipFlag)) return;
-                        rNowFrameSave = rNowFrame;
+                        rTailFrame = rNowFrame;
                         _tickDraw.ready(rData[rIndex]);
                     }
                     tickDraw.next();
@@ -7030,7 +7030,7 @@
                 {
                     if(_tickDraw.isIndexBiggerData())
                     {
-                        if(insertFileDataToTickDraw() === true)
+                        if(setFileDataToTickDraw() === true)
                         {
                             //더이상 읽을 데이터가 없을때 rdata 읽기로 넘겨줌
                             readyToReadRData(skipFlag);
@@ -7073,11 +7073,11 @@
 
                     //skipone에서 뒤로 돌아갈때 setskipFrame을 호출하고
                     //jumpframe이 점점 줄면서 이전프레임과 똑같이 되면 skipcount가 0이됨
-                    //이때 0이하가 되면 rNowFramesave를 -1해줘서 계속 뒤로 넘어가게 해야함
-                    if(skipCount === 0)
-                    {
-                        rNowFrameSave = rNowFrame-1;
-                    }
+                    //이때 0이하가 되면 rTailFrame를 -1해줘서 계속 뒤로 넘어가게 해야함
+                    // if(skipCount === 0)
+                    // {
+                    //     rTailFrame = rNowFrame-1;
+                    // }
                     if(!rDataReadFlag) drawFileData(skipCount,skipFlag);
                     drawRData(readCount,skipFlag);
                 }
@@ -7085,7 +7085,7 @@
                 // {
                 //     //버그 날까봐 일단 냅둠 이거 지워줘야  deepundo에서 total-1프레임일때
                 //     //데이터가 어긋나는거 해결됨
-                //     // rNowFrameSave = rNowFrame-1;
+                //     // rTailFrame = rNowFrame-1;
                 // }
                 updateCursorPosAndInfoText(skipFlag);
             };
@@ -7442,7 +7442,8 @@
             {
                 if(toback && rNowFrame > 0)
                 {
-                    _setSkipFrame(rNowFrameSave,SKIP_FRAME_BACK);
+                    if(rTailFrame === rNowFrame) _setSkipFrame(rTailFrame-1,SKIP_FRAME_BACK);
+                    else _setSkipFrame(rTailFrame,SKIP_FRAME_BACK);
                 }
                 else if(!toback && rNowFrame <= TOTAL_FRAME)
                 {
@@ -8434,7 +8435,7 @@
                         setCenvasCenterPos(true,false);
                         checkCutFrameButtons();
                         rNowFrame = TOTAL_FRAME;
-                        rNowFrameSave = _frameSumLast;
+                        rTailFrame = _frameSumLast;
                         checkReplaySpeedState();
                         if(!isDeepUndoON)
                         {
@@ -14166,7 +14167,7 @@
                             clearCanvasReplayMode();
                             resetReplayTime();
                             rNowFrame = totalFrame;
-                            rNowFrameSave = totalFrame-1;
+                            rTailFrame = totalFrame-1;
 
                             rcanvas1BitmapData.dispose();
                             rcanvas1BitmapData = canvas1BitmapData.clone();
