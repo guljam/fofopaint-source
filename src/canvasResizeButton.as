@@ -14,6 +14,7 @@
 		
 		public function canvasResizeButton() {
 			// constructor code
+			visible = false;
 			useHandCursor = false;
 		}
 	}
