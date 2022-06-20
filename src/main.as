@@ -7425,10 +7425,8 @@
                 tb["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
             }
 
-            if(rSum === TOTAL_FRAME)
-                tb["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
-            else
-                tb["reRecordingButton"].alpha = 1.0;
+            if(rSum === TOTAL_FRAME) tb["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
+            else tb["reRecordingButton"].alpha = 1.0;
         }
 
         private function _skipOneFrame(toback:Boolean,trueOneFrame:Boolean):void
