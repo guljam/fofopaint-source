@@ -12,6 +12,7 @@
 	import flash.display.DisplayObjectContainer;
 
 	public class topMenu extends Sprite {
+
 		private const startX:Number = 3;
 		private const startY:Number = 2;
 		private const gap:Number = 36;
@@ -66,7 +67,7 @@
 		public var replaySpeedMoveButton:SimpleButton = replaySpeedMoveButton;
 		public var replaySpeedBar:SimpleButton = replaySpeedBar;
 		public var replaySpeedSet:Sprite = new Sprite();
-		
+
 		public function updateButtonVisible(flag:Boolean):void
 		{
 			updateButton.visible = flag;
@@ -252,7 +253,7 @@
             const g:Graphics = topbarBG.graphics;
             g.clear();
             g.beginFill(color);
-            g.drawRect(0,0,10,BARSIZE)
+            g.drawRect(0,0,10,BARSIZE);
 			g.endFill();
 			topbarBGColor = color;
         }
