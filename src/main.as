@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.56;
+        private const APP_VERSION:Number = 14.57;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -10947,6 +10947,7 @@
             var finalHeight:uint;
             var movedX:int;
             var movedY:int;
+            var startByShortCut:Boolean;
             
             function exitCanvasResize(forceExit:Boolean):void
             {
@@ -10957,7 +10958,7 @@
                 isCanvasSizeChanging = false;
                 toolTipBox.visible = false;
                 penCursorOFFFlag = false;
-                setResizeButtonVisible((forceExit || !isPressingControl()) ? false:true);
+                setResizeButtonVisible((forceExit || (startByShortCut && !isPressingControl())) ? false:true);
                 reiszePreviewRect.graphics.clear();
                 reiszePreviewRect.visible = false;
                 regPoint.removeChild(reiszePreviewRect);
@@ -11036,8 +11037,9 @@
                 setToolTipString(finalWidth+" x "+finalHeight);
             }
 
-            function start(_targetName:String):void
+            function start(_targetName:String,shortcut:Boolean):void
             {
+                startByShortCut = shortcut;
                 targetName = _targetName;
                 w = CANVAS_WIDTH;
                 h = CANVAS_HEIGHT;
@@ -13700,7 +13702,7 @@
                 case "resizeButtonD":
                 case "resizeButtonL":
                 case "resizeButtonU":
-                    setCanvasResizeButton(targetName);
+                    setCanvasResizeButton(targetName,false);
                 break;
 
                 default:
@@ -13943,13 +13945,13 @@
             return false;
         }
 
-        private function setCanvasResizeButton(targetName:String):void
+        private function setCanvasResizeButton(targetName:String,shortcut:Boolean):void
         {   
             penCursorOFFFlag = true;
             toolTipBox.visible = true;
             penSizeCursor.visible = false;
             setToolTipString(CANVAS_WIDTH+" x "+CANVAS_HEIGHT);
-            setCanvasSize(targetName);
+            setCanvasSize(targetName,shortcut);
         }
 
         private function checkReplaySpeedState():void
@@ -14784,7 +14786,7 @@
                 case "resizeButtonL":
                 case "resizeButtonU":
                 {
-                    setCanvasResizeButton(targetName);
+                    setCanvasResizeButton(targetName,true);
                 }
                 return;
 
