@@ -1,9 +1,10 @@
+notepad D:\2020FlashPaint\versionInfo.txt
+
 git add .
 git commit --file=D:\2020FlashPaint\versionInfo.txt
 git push
 
 cd D:\2020FlashPaint
-notepad versionInfo.txt
 git add versionInfo.txt
 git commit --file=versionInfo.txt
 git push
