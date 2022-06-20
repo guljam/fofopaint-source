@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.54;
+        private const APP_VERSION:Number = 14.55;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -149,8 +149,8 @@
 
                     ,SKIP_FRAME_PLAY:int = 0
                     ,SKIP_FRAME_ONCE:int = 1
-                    ,SKIP_FRAME_FRONT:int = 2
-                    ,SKIP_FRAME_BACK:int = 3
+                    ,SKIP_FRAME_BACK:int = 2
+                    ,SKIP_FRAME_FRONT:int = 3
 
                     ,CANVAS_MIN_SIZE:int = 100
                     ,CANVAS_MAX_SIZE:int = 2000
@@ -556,7 +556,6 @@
                     ,gcONCount:int = 0
                     ,workingTimer:int = 0
                     ,isDeepUndoON:Boolean = false
-                    ,isDeepUndoOFFReady:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ,sideBarONMouseLeaveTimer:int = 0 //마우스 클릭후 바깥으로 나갔을때 사이드바 잠깐 안켜주는 플래그
                     ;
@@ -964,7 +963,6 @@
 
         private function exitDeepUndoMode():void
         {
-            isDeepUndoOFFReady = false;
             setReplayUI(false);
         }
 
@@ -4363,9 +4361,9 @@
                 break;
 
                 case "drawModeButton": setReplayUI(false); break;
-                case "superUndoButton": cutFrameData(CUT_FRAME_SUPER_UNDO,false); break;
-                case "reRecordingButton": cutFrameData(CUT_FRAME_RE_RECORD,false); break;
-                case "cutPrevDataButton": cutFrameData(CUT_FRAME_DELETE_FRONT,false); break;
+                case "superUndoButton": setCutFrameButton(CUT_FRAME_SUPER_UNDO,false); break;
+                case "reRecordingButton": setCutFrameButton(CUT_FRAME_RE_RECORD,false); break;
+                case "cutPrevDataButton": setCutFrameButton(CUT_FRAME_DELETE_FRONT,false); break;
             }
         }
 
@@ -5696,7 +5694,7 @@
             else if(flag === CUT_FRAME_DELETE_FRONT) cutFrameActiveButton = topBar["cutPrevDataButton"];
         }
 
-        private function cutFrameData(flag:int,shortcutKey:Boolean):void
+        private function setCutFrameButton(flag:int,shortcutKey:Boolean):void
         {
             setCutFrameActiveButton(flag);
 
@@ -6824,7 +6822,7 @@
                 const getTimeStr:String = getReplayTime(nextFrame,totalF-_rFrameSum,true);
                 const timeStr:String = getTimeStr;
 
-                setSkipFrame(finalFrame,SKIP_FRAME_ONCE); 
+                _setSkipFrame(finalFrame,SKIP_FRAME_ONCE); 
                 replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + timeStr;
                 rFrameTextDelayTime = nt;
             }
@@ -6846,8 +6844,8 @@
             const _CACHE_DIV_10:Number= Math.floor(IMG_CACHE_INTERVAL/10);
             const _tickDraw:Object = tickDraw;
             const _SKIP_FRAME_ONCE:int = SKIP_FRAME_ONCE;
-            const _SKIP_FRAME_FRONT:int = SKIP_FRAME_FRONT;
             const _SKIP_FRAME_BACK:int = SKIP_FRAME_BACK;
+            const _SKIP_FRAME_FRONT:int = SKIP_FRAME_FRONT;
             const _SKIP_FRAME_PLAY:int = SKIP_FRAME_PLAY;
             
             var rDataLen:uint;
@@ -6864,7 +6862,7 @@
 
             function checkMakeCacheImage(skipFlag:int):void
             {
-                if(skipFlag === _SKIP_FRAME_ONCE || skipFlag === _SKIP_FRAME_FRONT)
+                if(skipFlag === _SKIP_FRAME_ONCE || skipFlag === _SKIP_FRAME_BACK)
                 {
                     if(prevSkipImageSaveCount >= _CACHE_DIV_10)
                     {
@@ -7055,14 +7053,19 @@
                     //skipone에서 뒤로 돌아갈때 setskipFrame을 호출하고
                     //jumpframe이 점점 줄면서 이전프레임과 똑같이 되면 skipcount가 0이됨
                     //이때 0이하가 되면 rNowFramesave를 -1해줘서 계속 뒤로 넘어가게 해야함
-                    if(skipCount === 0) rNowFrameSave = rNowFrame-1;
+                    if(skipCount === 0)
+                    {
+                        rNowFrameSave = rNowFrame-1;
+                    }
                     if(!rDataReadFlag) drawFileData(skipCount,skipFlag);
                     drawRData(readCount,skipFlag);
                 }
-                else
-                {
-                    rNowFrameSave = rNowFrame-1;
-                }
+                // else
+                // {
+                //     //버그 날까봐 일단 냅둠 이거 지워줘야  deepundo에서 total-1프레임일때
+                //     //데이터가 어긋나는거 해결됨
+                //     // rNowFrameSave = rNowFrame-1;
+                // }
                 updateCursorPosAndInfoText(skipFlag);
             };
         }
@@ -7407,26 +7410,29 @@
                 tb["reRecordingButton"].alpha = 1.0;
         }
 
-        private function skipOneFrame(frontFlag:Boolean,trueOneFrame:Boolean):void
+        private function _skipOneFrame(toback:Boolean,trueOneFrame:Boolean):void
         {
             if(trueOneFrame)
             {
-                if(frontFlag && rNowFrame > 0) setSkipFrame(rNowFrame-1);
-                else if(!frontFlag && rNowFrame < TOTAL_FRAME) setSkipFrame(rNowFrame+1);
+                if(toback && rNowFrame > 0) _setSkipFrame(rNowFrame-1);
+                else if(!toback && rNowFrame < TOTAL_FRAME) _setSkipFrame(rNowFrame+1);
             }
             else
             {
-                if(frontFlag && rNowFrame > 0) setSkipFrame(rNowFrameSave,SKIP_FRAME_FRONT);
-                else if(!frontFlag && rNowFrame <= TOTAL_FRAME)
+                if(toback && rNowFrame > 0)
                 {
-                    setSkipFrame(rNowFrame+tickDraw.getNextDataCount(),SKIP_FRAME_BACK);
+                    _setSkipFrame(rNowFrameSave,SKIP_FRAME_BACK);
+                }
+                else if(!toback && rNowFrame <= TOTAL_FRAME)
+                {
+                    _setSkipFrame(rNowFrame+tickDraw.getNextDataCount(),SKIP_FRAME_FRONT);
 
-                    if(frontFlag !== rOneSkipFlagSave)
-                        setSkipFrame(rNowFrame+tickDraw.getRestDataCount(),SKIP_FRAME_BACK);
+                    if(toback !== rOneSkipFlagSave)
+                        _setSkipFrame(rNowFrame+tickDraw.getRestDataCount(),SKIP_FRAME_FRONT);
                 }
             }
 
-            rOneSkipFlagSave = frontFlag;
+            rOneSkipFlagSave = toback;
             checkCutFrameButtons();
         }
 
@@ -7455,7 +7461,7 @@
 
         private function setSkipOneFrame(prev:Boolean,oneFrame:Boolean=false):void
         {
-            if(setHoldKeyRepeat(skipOneFrame,prev,oneFrame) === true)
+            if(setHoldKeyRepeat(_skipOneFrame,prev,oneFrame) === true)
             {
                 if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
                 if(replayStartON) stopReplay();
@@ -7467,7 +7473,7 @@
         //flag = 2 //이전 탐색 할때 올려줌
         //flag = 3 //앞 탐색 할때 올려줌
         //jumpFrame으로 프레임을 이동시킴
-        private function setSkipFrame(jumpframe:Number,flag:uint=SKIP_FRAME_ONCE):void //skipp 
+        private function _setSkipFrame(jumpframe:Number,flag:uint=SKIP_FRAME_ONCE):void //skipp 
         {
             const nowFrame:Number = rNowFrame;
             const tempRedoFlag:Boolean = isDeepUndoON && flag === 3;
@@ -7570,25 +7576,21 @@
             }
 
             checkAutoScroll.check();
-
+            checkDeepUndoOFF(tempRedoFlag);
+        }
+        private function checkDeepUndoOFF(tempRedoFlag:Boolean):void
+        {
+            //리도 해줄때만 프레임이 같게되면 off시켜줌
             if(tempRedoFlag && rNowFrame >= TOTAL_FRAME)
             {
-                if(isDeepUndoOFFReady)
-                {
-                    exitDeepUndoMode();
-                }
-                else
-                {
-                    setSkipFrame(TOTAL_FRAME+1);
-                    isDeepUndoOFFReady = true;
-                }
+                exitDeepUndoMode();
             }
         }
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
-        private function drawRemainReplayData(flag:int=SKIP_FRAME_BACK):void
+        private function drawRemainReplayData(flag:int=SKIP_FRAME_FRONT):void
         {
-            setSkipFrame(rNowFrame+tickDraw.getRestDataCount(),flag);
+            _setSkipFrame(rNowFrame+tickDraw.getRestDataCount(),flag);
             rOneSkipFlagSave = false;
         }
 
@@ -7646,7 +7648,7 @@
             {
                 rSkipMouseON = false;
                 clearTimeout(skipUpdateTimer);
-                setSkipFrame(finalFrame);
+                _setSkipFrame(finalFrame);
                 if(isDeepUndoON)
                 {
                     if(tickDraw.isIndexLessData()) 
@@ -7692,7 +7694,7 @@
                     {
                         skipUpdateTimer = 0;
                         oldFrame = finalFrame;
-                        setSkipFrame(finalFrame);
+                        _setSkipFrame(finalFrame);
                     },200);
                 }
             }
@@ -8415,7 +8417,7 @@
                         checkReplaySpeedState();
                         if(!isDeepUndoON)
                         {
-                            setSkipFrame(TOTAL_FRAME+1);
+                            _setSkipFrame(TOTAL_FRAME+1);
                             removeInputEventDrawMode();
                             addInputEventReplayMode();
                         }
@@ -8903,6 +8905,7 @@
             const replayMode:Boolean = replayModeON;
 
             canvasGrid.visible = iFlag;
+            setResizeButtonVisible(false);
 
             if(replayMode)
             {
@@ -13178,17 +13181,17 @@
 
                 case key.f1:
                 case key.f6:
-                    cutFrameData(CUT_FRAME_RE_RECORD,true);
+                    setCutFrameButton(CUT_FRAME_RE_RECORD,true);
                 break;
 
                 case key.f2:
                 case key.f7:
-                    cutFrameData(CUT_FRAME_SUPER_UNDO,true);
+                    setCutFrameButton(CUT_FRAME_SUPER_UNDO,true);
                 break;
 
                 case key.f3:
                 case key.f8:
-                    cutFrameData(CUT_FRAME_DELETE_FRONT,true);
+                    setCutFrameButton(CUT_FRAME_DELETE_FRONT,true);
                 break;
 
                 case key.n1:
@@ -13223,7 +13226,7 @@
                 if(mouseClickON === true) keyWaitMouseUp = true;
                 else checkNextKeyDown();
             }
-            if(!isPressingControl())
+            if(!isPressingControl() && resizeButtonR.visible)
             {
                 setResizeButtonVisible(false);
             }
@@ -13745,7 +13748,7 @@
                 {
                     if(isDeepUndoON)
                     {
-                        skipOneFrame(true,false);
+                        _skipOneFrame(true,false);
                     }
                     else setUndoButton(false);
                 }
@@ -13754,7 +13757,7 @@
                 {
                     if(isDeepUndoON)
                     {
-                        skipOneFrame(false,false);
+                        _skipOneFrame(false,false);
                     }
                     else setRedoButton(false);
                 }
@@ -13993,6 +13996,8 @@
             penCursorOFFFlag = flag;
             rregPoint.visible = flag;
             regPoint.visible = iFlag;
+            penSizeCursor.visible = iFlag;
+            setResizeButtonVisible(false);
             replayTimeBox.visible = flag; //탐색바 켜줌
             rCursor.visible = flag;
             replayTimeBox["pauseButton"].visible = false;
@@ -14127,7 +14132,7 @@
                     if(isDeepUndoON)
                     {
                         setDeepUndoUI(true);
-                        setSkipFrame(undoData.getRFileTotalFrame());
+                        _setSkipFrame(undoData.getRFileTotalFrame());
                     }
                     else
                     {
