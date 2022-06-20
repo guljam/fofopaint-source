@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        public const APP_VERSION:Number = 14.61;
+        public const APP_VERSION:Number = 14.62;
         public var NEW_VERSION:String = APP_VERSION+"";
         public var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -561,7 +561,6 @@
                     ,isDeepUndoON:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ,sideBarONMouseLeaveTimer:int = 0 //마우스 클릭후 바깥으로 나갔을때 사이드바 잠깐 안켜주는 플래그
-                    ,isCanvasSizeChanging:Boolean = false //캔버스 사이즈 클릭드래그로 조정할때 올려줌 mouse leave에서 꺼줘야해서
                     ;
         //vars
 
@@ -1949,7 +1948,7 @@
             setControlBoxInfoOFF();
             setTopBarHintOFF();
             
-            if(isCanvasSizeChanging)
+            if(resizeCanvas.isCanvasSizeChanging())
             {
                 mouseClickON = false;
                 rightMouseClickON = false;
@@ -10904,6 +10903,12 @@
             var finalHeight:uint;
             const moved:Point = new Point(0,0);
             var startByShortCut:Boolean;
+            var canvasSizeChanging:Boolean;
+            
+            function isCanvasSizeChanging():Boolean
+            {
+                return canvasSizeChanging;
+            }
             
             function exitCanvasResize(forceExit:Boolean):void
             {
@@ -10911,7 +10916,7 @@
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonMouseUpEvent);
                 stageMouseMoveEvent.remove(resizeButtonMouseMoveEvent);
 
-                isCanvasSizeChanging = false;
+                canvasSizeChanging = false;
                 toolTipBox.visible = false;
                 penCursorOFFFlag = false;
                 setResizeButtonVisible((forceExit || (startByShortCut && !isPressingControl())) ? false:true);
@@ -11008,7 +11013,7 @@
                 finalHeight = 0;
                 moved.setTo(0,0);
 
-                isCanvasSizeChanging = true;
+                canvasSizeChanging = true;
                 //canvaspanel로 마우스 좌표 해주는 이유는
                 //회전 되었을때도 panel좌표가 0도기준으로 유지 되기 때문
                 reiszePreviewRect.x = canvasPanel.x;
@@ -11025,7 +11030,8 @@
             
             return {
                 start:start,
-                exitCanvasResize:exitCanvasResize
+                exitCanvasResize:exitCanvasResize,
+                isCanvasSizeChanging:isCanvasSizeChanging
             }
         }
 
@@ -13627,7 +13633,7 @@
             {
                 return;
             }
-            
+
             const targetName:String = target.name;
 
             switch(targetName)
