@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.55;
+        private const APP_VERSION:Number = 14.56;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -508,6 +508,8 @@
                     ,keyDownDrawMode:Function = closureKeyDownDrawMode()
                     ,checkHideCursor:Object = closureCheckHideCursor()
                     ,checkHideCursorCount:Function = checkHideCursor.check
+                    ,resizeCanvas:Object = closureSetCanvasSize()
+                    ,setCanvasSize:Function = resizeCanvas.start
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
@@ -558,6 +560,7 @@
                     ,isDeepUndoON:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ,sideBarONMouseLeaveTimer:int = 0 //마우스 클릭후 바깥으로 나갔을때 사이드바 잠깐 안켜주는 플래그
+                    ,isCanvasSizeChanging:Boolean = false //캔버스 사이즈 클릭드래그로 조정할때 올려줌 mouse leave에서 꺼줘야해서
                     ;
         //vars
 
@@ -603,6 +606,10 @@
         }
         
         //functions
+        private function isHitTestPoint(obj:DisplayObject,flag:Boolean=false):Boolean
+        {
+            return obj.hitTestPoint(mouseX,mouseY,flag) as Boolean;
+        }
         
         private function closureDottedLine():Object
         {
@@ -1219,7 +1226,7 @@
 
             function _checkUndoReady():void
             {
-                if(canvas1Bitmap.hitTestPoint(mouseX,mouseY) === true)
+                if(isHitTestPoint(canvas1Bitmap))
                 {
                     clearButtonClicked = false;
                     readyAddUndo = true;
@@ -1963,6 +1970,20 @@
         {
             setControlBoxInfoOFF();
             setTopBarHintOFF();
+            
+            if(isCanvasSizeChanging)
+            {
+                mouseClickON = false;
+                rightMouseClickON = false;
+                resizeCanvas.exitCanvasResize(true);
+            }
+            else if(toolBox2ON)
+            {
+                if(isCursorInDrawArea() === false)
+                {
+                    closeToolBox2();
+                }
+            }
         }
 
         private function updatePenCursorPositionEvent(e:MouseEvent):void
@@ -2050,7 +2071,7 @@
 
             function sidebarONMouseDownEvent(e:MouseEvent):void
             {
-                if(sideBar.hitTestPoint(mouseX,mouseY) === false)
+                if(isHitTestPoint(sideBar) === false)
                 {
                     clearSideBarClickEvents();
                 }
@@ -2083,7 +2104,7 @@
 
             function sidebarOFFMouseDownEvent(e:MouseEvent):void
             {
-                if(sideBar.hitTestPoint(mouseX,mouseY) === false)
+                if(isHitTestPoint(sideBar) === false)
                     setSideBarOFF();
             }
 
@@ -3703,7 +3724,7 @@
             clearTimeout(controlBoxHintTimer);
             controlBoxHintTimer = setTimeout(function():void
             {
-                if(controlBox.hitTestPoint(mouseX,mouseY) === false)
+                if(isHitTestPoint(controlBox) === false)
                 {
                     setControlBoxInfoOFF();
                 }
@@ -3973,7 +3994,7 @@
 
             function penSizePrevOFFEvent(e:MouseEvent):void
             {
-                if(controlBox.penSizeTransButtonBox.hitTestPoint(mouseX,mouseY) === false)
+                if(isHitTestPoint(controlBox.penSizeTransButtonBox) === false)
                 {
                     clearTimeout(penSizePrevOFFTimer);
                     penSizePrev.visible = false;
@@ -10911,35 +10932,35 @@
             _appInfoBox.setSize(w,h);
         }
 
-        private function setCanvasSize(targetName:String):void
+        private function closureSetCanvasSize():Object
         {
-            const w:Number = CANVAS_WIDTH;
-            const h:Number = CANVAS_HEIGHT;
-            const minL:int = CANVAS_MIN_SIZE;
-            const maxL:int = CANVAS_MAX_SIZE;
-            const bgColor:uint = CANVAS_BG_COLOR;
-            const stageColor:uint = STAGE_BG_COLOR;
-
-            const resizeClickPosX:Number = canvasPanel.mouseX;
-            const resizeClickPosY:Number = canvasPanel.mouseY;
-            var finalWidth:uint = 0;
-            var finalHeight:uint = 0;
-            var movedX:int = 0;
-            var movedY:int = 0;
-
-            function resizeButtonMouseUpEvent(e:MouseEvent):void
+            var targetName:String;
+            var w:Number;
+            var h:Number;
+            var minL:int;
+            var maxL:int;
+            var bgColor:uint;
+            var stageColor:uint;
+            var resizeClickPosX:Number;
+            var resizeClickPosY:Number;
+            var finalWidth:uint;
+            var finalHeight:uint;
+            var movedX:int;
+            var movedY:int;
+            
+            function exitCanvasResize(forceExit:Boolean):void
             {
-                toolTipBox.visible = false;
-                penCursorOFFFlag = false;
-                setResizeButtonVisible(true);
-
-                reiszePreviewRect.graphics.clear();
-                reiszePreviewRect.visible = false;
-                regPoint.removeChild(reiszePreviewRect);
-
                 stage.removeEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonMouseUpEvent);
                 stageMouseMoveEvent.remove(resizeButtonMouseMoveEvent);
+
+                isCanvasSizeChanging = false;
+                toolTipBox.visible = false;
+                penCursorOFFFlag = false;
+                setResizeButtonVisible((forceExit || !isPressingControl()) ? false:true);
+                reiszePreviewRect.graphics.clear();
+                reiszePreviewRect.visible = false;
+                regPoint.removeChild(reiszePreviewRect);
 
                 if(movedX === 0 && movedY === 0) return;
 
@@ -10951,6 +10972,11 @@
                 addUndoData(2);
             }
 
+            function resizeButtonMouseUpEvent(e:MouseEvent):void
+            {
+                exitCanvasResize(false);
+            }
+
             function resizeButtonMouseMoveEvent(e:MouseEvent):void
             {
                 const oPointX:Number = canvasPanel.x;
@@ -10959,7 +10985,7 @@
                 const my:Number = mouseY;
                 const resizeg:Graphics = reiszePreviewRect.graphics;
                 var edgePoint:Number;
-
+                
                 var subX:int = (targetName === "resizeButtonR")  ? canvasPanel.mouseX-resizeClickPosX:
                                (targetName === "resizeButtonL") ? resizeClickPosX-canvasPanel.mouseX: 0;
                 var subY:int = (targetName === "resizeButtonD")  ? canvasPanel.mouseY-resizeClickPosY:
@@ -11010,18 +11036,41 @@
                 setToolTipString(finalWidth+" x "+finalHeight);
             }
 
-            //canvaspanel로 마우스 좌표 해주는 이유는
-            //회전 되었을때도 panel좌표가 0도기준으로 유지 되기 때문
-            reiszePreviewRect.x = canvasPanel.x;
-            reiszePreviewRect.y = canvasPanel.y;
-            regPoint.addChild(reiszePreviewRect);
-            setTopChildIndex(reiszePreviewRect);
-            reiszePreviewRect.visible = true;
-            if(toolBox2ON) toolBox2.visible = false;
-            setResizeButtonVisible(false);
+            function start(_targetName:String):void
+            {
+                targetName = _targetName;
+                w = CANVAS_WIDTH;
+                h = CANVAS_HEIGHT;
+                minL = CANVAS_MIN_SIZE;
+                maxL = CANVAS_MAX_SIZE;
+                bgColor = CANVAS_BG_COLOR;
+                stageColor = STAGE_BG_COLOR;
+                resizeClickPosX = canvasPanel.mouseX;
+                resizeClickPosY = canvasPanel.mouseY;
+                finalWidth = 0;
+                finalHeight = 0;
+                movedX = 0;
+                movedY = 0;
 
-            stage.addEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
-            stageMouseMoveEvent.add(resizeButtonMouseMoveEvent);
+                isCanvasSizeChanging = true;
+                //canvaspanel로 마우스 좌표 해주는 이유는
+                //회전 되었을때도 panel좌표가 0도기준으로 유지 되기 때문
+                reiszePreviewRect.x = canvasPanel.x;
+                reiszePreviewRect.y = canvasPanel.y;
+                regPoint.addChild(reiszePreviewRect);
+                setTopChildIndex(reiszePreviewRect);
+                reiszePreviewRect.visible = true;
+                if(toolBox2ON) toolBox2.visible = false;
+                setResizeButtonVisible(false);
+
+                stage.addEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
+                stageMouseMoveEvent.add(resizeButtonMouseMoveEvent);
+            }
+            
+            return {
+                start:start,
+                exitCanvasResize:exitCanvasResize
+            }
         }
 
         private function doLassoDraw(replayMode:Boolean,rectArr:Vector.<Number>,points:Array,copyFlag:Boolean=false):Boolean
@@ -11306,7 +11355,7 @@
 
             function pickColor():uint
             {
-                return (canvas1Bitmap.hitTestPoint(mouseX,mouseY)) ?
+                return (isHitTestPoint(canvas1Bitmap)) ?
                   spuitbmpd.getPixel(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY)
                 : penColorBackup;
             }
@@ -11411,7 +11460,7 @@
                 _setColorTransform(spuitCursor["spuitOldColor"],penColor);
                 moveEraseButton("toolSpuit");
                 
-                if(canvas1Bitmap.hitTestPoint(mouseX,mouseY) === true
+                if(isHitTestPoint(canvas1Bitmap) === true
                 && mouseX > STAGE_LEFT_OFFSET && mouseX < stage.stageWidth-STAGE_RIGHT_OFFSET //캔버스 영역안에서만
                 && mouseY > STAGE_TOP_OFFSET && mouseY < stage.stageHeight-STAGE_BOTTOM_OFFSET)
                 {
@@ -13656,7 +13705,7 @@
 
                 default:
                 {
-                    if(isCursorInDrawArea())
+                    if(toolBox2.visible && isHitTestPoint(toolBox2))
                     {
                         updateToolBoxMousePos(toolBox2.toolPen);
                         updateOldTool();
@@ -14589,7 +14638,7 @@
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
 
-            if(isCursorInDrawArea() && lassoMenu.hitTestPoint(mouseX,mouseY) === false)
+            if(isCursorInDrawArea() && isHitTestPoint(lassoMenu) === false)
             {
                 if(lassoMenuTempOFF)
                 {
@@ -14667,13 +14716,13 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted || toolBox2ON) return;
+            if(fillPenStarted) return;
 
             const target:DisplayObject = e.target as DisplayObject;
             if(!target) return;
             const targetName:String = target.name;
 
-            if(sideBar.visible && sideBarScrollSet.hitTestPoint(mouseX,mouseY,true))
+            if(sideBar.visible && isHitTestPoint(sideBarScrollSet,true))
             {
                 if(checkPickerBoxButtons(target) && isNowKey(0)) 
                 {
