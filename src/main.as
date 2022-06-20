@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        public const APP_VERSION:Number = 14.62;
+        public const APP_VERSION:Number = 14.63;
         public var NEW_VERSION:String = APP_VERSION+"";
         public var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -10890,6 +10890,7 @@
 
         public function closureSetCanvasSize():Object
         {
+            const resizeg:Graphics = reiszePreviewRect.graphics;
             var targetName:String;
             var w:Number;
             var h:Number;
@@ -10897,8 +10898,7 @@
             var maxL:int;
             var bgColor:uint;
             var stageColor:uint;
-            var resizeClickPosX:Number;
-            var resizeClickPosY:Number;
+            const resizeClickPos:Point = new Point(0,0);
             var finalWidth:uint;
             var finalHeight:uint;
             const moved:Point = new Point(0,0);
@@ -10941,17 +10941,10 @@
 
             function resizeButtonMouseMoveEvent(e:MouseEvent):void
             {
-                const oPointX:Number = canvasPanel.x;
-                const oPointY:Number = canvasPanel.y;
-                const mx:Number = mouseX;
-                const my:Number = mouseY;
-                const resizeg:Graphics = reiszePreviewRect.graphics;
-                var edgePoint:Number;
-
-                const sub:Point = new Point((targetName === "resizeButtonR")  ? canvasPanel.mouseX-resizeClickPosX:
-                               (targetName === "resizeButtonL") ? resizeClickPosX-canvasPanel.mouseX: 0
-                               ,(targetName === "resizeButtonD")  ? canvasPanel.mouseY-resizeClickPosY:
-                               (targetName === "resizeButtonU") ? resizeClickPosY-canvasPanel.mouseY: 0);
+                const sub:Point = new Point((targetName === "resizeButtonR")  ? canvasPanel.mouseX-resizeClickPos.x:
+                               (targetName === "resizeButtonL") ? resizeClickPos.x-canvasPanel.mouseX: 0
+                               ,(targetName === "resizeButtonD")  ? canvasPanel.mouseY-resizeClickPos.y:
+                               (targetName === "resizeButtonU") ? resizeClickPos.y-canvasPanel.mouseY: 0);
                 
                 finalWidth = (w+sub.x < minL) ? minL:
                            (w+sub.x > maxL) ? maxL:w+sub.x;
@@ -11007,8 +11000,7 @@
                 maxL = CANVAS_MAX_SIZE;
                 bgColor = CANVAS_BG_COLOR;
                 stageColor = STAGE_BG_COLOR;
-                resizeClickPosX = canvasPanel.mouseX;
-                resizeClickPosY = canvasPanel.mouseY;
+                resizeClickPos.setTo(canvasPanel.mouseX,canvasPanel.mouseY);
                 finalWidth = 0;
                 finalHeight = 0;
                 moved.setTo(0,0);
@@ -11353,11 +11345,7 @@
 
             function colorPickerOFF(okFlag:Boolean):void
             {
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,colorPickerOKMouseEvent);
-                stageMouseMoveEvent.remove(colorPickerMoveEvent);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, colorPickerCancelMouseEvent);
-                stage.removeEventListener(KeyboardEvent.KEY_DOWN, colorPickerCancelKeyDownEvent);
-                stage.removeEventListener(KeyboardEvent.KEY_UP, colorPickerCancelKeyUpEvent);
+                removeSpuitEvent();
 
                 if(okFlag && spuitCursor.visible === true)
                 {
@@ -11402,6 +11390,24 @@
                 }
             }
 
+            function removeSpuitEvent():void
+            {
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,colorPickerOKMouseEvent);
+                stageMouseMoveEvent.remove(colorPickerMoveEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, colorPickerCancelMouseEvent);
+                stage.removeEventListener(KeyboardEvent.KEY_DOWN, colorPickerCancelKeyDownEvent);
+                stage.removeEventListener(KeyboardEvent.KEY_UP, colorPickerCancelKeyUpEvent);
+            }
+
+            function addSpuitEvent():void
+            {
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,colorPickerOKMouseEvent,false,-2);
+                stageMouseMoveEvent.add(colorPickerMoveEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,colorPickerCancelMouseEvent);
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,colorPickerCancelKeyDownEvent,false,2);
+                stage.addEventListener(KeyboardEvent.KEY_UP,colorPickerCancelKeyUpEvent,false,2);
+            }
+
             return function ():void
             {
                 canvas1bmp = canvas1Bitmap;
@@ -11431,11 +11437,7 @@
                     spuitCursor.visible = true;
                 }
 
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,colorPickerOKMouseEvent,false,-2);
-                stageMouseMoveEvent.add(colorPickerMoveEvent);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,colorPickerCancelMouseEvent);
-                stage.addEventListener(KeyboardEvent.KEY_DOWN,colorPickerCancelKeyDownEvent,false,2);
-                stage.addEventListener(KeyboardEvent.KEY_UP,colorPickerCancelKeyUpEvent,false,2);
+                addSpuitEvent();
             };
         }
 
