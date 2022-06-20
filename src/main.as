@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.57;
+        private const APP_VERSION:Number = 14.58;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -1979,7 +1979,7 @@
             }
             else if(toolBox2ON)
             {
-                if(isCursorInDrawArea() === false)
+                if(toolBox2.visible === false && isCursorInDrawArea() === false)
                 {
                     closeToolBox2();
                 }
@@ -5942,12 +5942,12 @@
 
                     case "sideBarOFFButton":
                     case "sideBarOFFButton2":
-                        str = "Sidebar OFF (tab, \\ )";
+                        str = "Turn sidebar OFF (tab, \\ )";
                     break;
 
                     case "sideBarONButton":
                     case "sideBarONButton2":
-                        str = "Sidebar ON (tab, \\ )";
+                        str = "Turn sidebar ON (tab, \\ )";
                     break;
 
                     case "sideBarPositionButton":
