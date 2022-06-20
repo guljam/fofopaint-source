@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.53;
+        private const APP_VERSION:Number = 14.54;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -1981,9 +1981,8 @@
             const useCursorTool:int = TOOL_LINE;
             const _isPenTool:Boolean = isPenOrLineTool();
             const _isEraseTool:Boolean = isEraseTool();
-            const deafaultVisibleOFFSize:Number = 4;
             var zoomed:Number = 1.0;
-            var cursorVisibleOFFSize:Number = deafaultVisibleOFFSize/zoomed;
+            var cursorVisibleOFFSize:Number = 4;
             var cursorSize:Number = 3.0;
 
             var sidebarONTimer:int;
@@ -2003,7 +2002,6 @@
             function updateZoom(z:Number):void 
             {
                 zoomed = z;
-                cursorVisibleOFFSize = deafaultVisibleOFFSize/z;
 
                 if(_isPenTool) cursorSize = penSize*z;
                 else if(_isEraseTool) cursorSize = eraseSize*z;
@@ -4929,7 +4927,6 @@
         {
             if(Capabilities.hasIME && IME.enabled) //다른 언어로 하면 자판 안먹어서 그냥 ime자체를안씀
             {
-                IME.conversionMode = "ALPHANUMERIC_HALF";
                 IME.enabled = false;
             }
         }
@@ -14370,7 +14367,7 @@
 
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
-            if(mouseClickON || !isNowKey(0)) return;
+            if(mouseClickON || !isNowKey(0) || isPressingControl()) return;
 
             const targetName:String = e.target.name;
 
