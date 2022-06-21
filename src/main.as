@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.65;
+        private const APP_VERSION:Number = 14.66;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -7574,9 +7574,8 @@
                 tickDraw.updateRCursorPos();
                 tcursor.visible = true;
             }
-
-            checkAutoScroll.check();
-            checkDeepUndoOFF(tempRedoFlag);
+            if(isDeepUndoON) checkDeepUndoOFF(tempRedoFlag);
+            else checkAutoScroll.check();
         }
         private function checkDeepUndoOFF(tempRedoFlag:Boolean):void
         {
@@ -14052,6 +14051,7 @@
                         _rregPoint.y = _regPoint.y;
                         _rcanvasPanel.x = _canvasPanel.x;
                         _rcanvasPanel.y = _canvasPanel.y;
+                        trace('위치 똑같이 해줌');
                     }
                     else
                     {
