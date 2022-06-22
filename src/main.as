@@ -901,12 +901,9 @@
             const mx:Number = mouseX;
             const my:Number = mouseY;
 
-            trace('mx',mx,my,'STAGE_LEFT_OFFSET',STAGE_LEFT_OFFSET,STAGE_RIGHT_OFFSET,STAGE_TOP_OFFSET,STAGE_BOTTOM_OFFSET)
-
             if(mx <= STAGE_LEFT_OFFSET || mx >= stage.stageWidth -STAGE_RIGHT_OFFSET
             || my <= STAGE_TOP_OFFSET  || my >= stage.stageHeight-STAGE_BOTTOM_OFFSET)
             {
-                trace('리턴함')
                 return false;
             }
             return true;
