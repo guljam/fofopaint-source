@@ -54,6 +54,8 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
+    import flash.trace.Trace;
+    import flash.trace.Trace;
 
     public class main extends Sprite
     {   
@@ -135,6 +137,7 @@
                                         window:91
                                     }
         //툴 번호 미리 지정
+                    ,TOOL_NONE:int = 0
                     ,TOOL_PEN:int = (1 << 0)
                     ,TOOL_ERASE:int = (1 << 1)
                     ,TOOL_LINE:int = (1 << 2)
@@ -145,12 +148,11 @@
                     ,TOOL_ZOOM:int = (1 << 7)
                     ,TOOL_ROTATE:int = (1 << 8)
                     ,TOOL_MOVE:int = (1 << 9)
-                    ,TOOL_NONE:int = 0
 
-                    ,SKIP_FRAME_PLAY:int = 0
-                    ,SKIP_FRAME_ONCE:int = 1
-                    ,SKIP_FRAME_BACK:int = 2
-                    ,SKIP_FRAME_FRONT:int = 3
+                    ,JUMP_FRAME_NONE:int = (1 << 0)
+                    ,JUMP_FRAME_ONCE:int = (1 << 1)
+                    ,JUMP_FRAME_BACK:int = (1 << 2)
+                    ,JUMP_FRAME_FRONT:int = (1 << 3)
 
                     ,CANVAS_MIN_SIZE:int = 100
                     ,CANVAS_MAX_SIZE:int = 2000
@@ -414,7 +416,7 @@
                     ,rSkipImageFrameData:Array = [0] //스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
                     ,makeSkipImageFlag:int = 0 //0이상이면 make skip image함수를 실행함. skipframe함수에서 체크
                     ,makeSKipImageWaitTimer:int = 0 //skip image 함수 중복 실행 방지
-                    ,rOneSkipFlagSave:Boolean = false //oneskipframe에서 prev인지 next인지 마지막 상태 저장해줌, 방향바꿀대 버튼 2번씩 눌러야 스킵되는거 방지하는거임
+                    ,rOnejumpFlagSave:Boolean = false //oneskipframe에서 prev인지 next인지 마지막 상태 저장해줌, 방향바꿀대 버튼 2번씩 눌러야 스킵되는거 방지하는거임
                     ,keyHoldTimer:int = 0 //키 오래 누르고 있으면 한꺼번에 처리해주는 타이머
                     ,rOneSkipPrevSum:Number = 0 //뒤로 스킵키 오래누르고 있으면 프레임 합산은 여기다가 올려줌
                     ,replayONUndoUpdate:Boolean = true//undo가 된 상태에서 리플레이 켜줄때 file까지만 읽은 상태까지 프레임 스킵 해주는
@@ -476,21 +478,29 @@
                     ,traceImageCount:int = 0 //2번이상 클릭하면 되게
                     ,traceMemoryTraining:Boolean = false // 이거 켜지면 캔버스 그릴때 임시적으로 안보이게함
                     ,traceLastAlpha:Number = 0
+
+        //마스크 변수
+                    ,canvasMaskLayer:Sprite = new Sprite()
+                    ,canvasMaskBitmapdata:BitmapData = new BitmapData(1,1,true,0)
+                    ,canvasMaskBitmap:Bitmap = new Bitmap(canvasMaskBitmapdata,"auto",true)
+                    ,maskToolStarted:Boolean = false
+
         //그리드 레이어 변수 
                     ,canvasGrid:Sprite = new Sprite()//트레이스 레이어임
                     ,gridFlag:uint = 0
 
         //closure
                     ,dottedLine:Object = closureDottedLine()//순서 먼저 와야함
-                    ,setPenTool:Function = closurePenTool()
-                    ,setLineTool:Function = closureLineTool()
-                    ,setHandTool:Function = closureHandTool()
-                    ,setLassoTool:Function = closureLassoTool()
-                    ,setRotateTool:Function = closureRotateTool()
-                    ,setZoomTool:Function = closureZoomTool()
-                    ,setMoveTool:Function = closureMoveTool()
+                    ,penTool:Function = closurePenTool()
+                    ,lineTool:Function = closureLineTool()
+                    ,handTool:Function = closureHandTool()
+                    ,lassoTool:Function = closureLassoTool()
+                    ,rotateTool:Function = closureRotateTool()
+                    ,zoomTool:Function = closureZoomTool()
+                    ,moveTool:Function = closureMoveTool()
                     ,setSpuitTool:Function = closureSpuitTool()
-                    ,setFillPenTool:Object = closureFillPenTool()
+                    ,fillPenTool:Object = closureFillPenTool()
+                    ,maskTool:Object = closureMaskTool()
                     ,tickDraw:Object = closureTickDraw()
                     ,doDraw:Function = closureDoDraw()
                     ,checkAutoScroll:Object = closureAutoScroll()
@@ -506,10 +516,11 @@
                     ,drawCaptureArea:Object = closureDrawCaptureArea()
                     ,stageMouseMoveEvent:Object = closureStageMouseMoveEvent()
                     ,keyDownDrawMode:Function = closureKeyDownDrawMode()
-                    ,checkHideCursor:Object = closureCheckHideCursor()
-                    ,checkHideCursorCount:Function = checkHideCursor.check
+                    ,replayHideCursor:Object = closureCheckHideCursor()
+                    ,checkHideCursorCount:Function = replayHideCursor.check
                     ,resizeCanvas:Object = closureSetCanvasSize()
                     ,setCanvasSize:Function = resizeCanvas.start
+
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
@@ -975,7 +986,7 @@
 
         private function exitDeepUndoMode():void
         {
-            setReplayUI(false);
+            setDeepUndoUI(false);
         }
 
         private function closureStageMouseMoveEvent():Object
@@ -1101,7 +1112,7 @@
 
                 sideBar.visible = true;
             }
-            else if(isDeepUndoON === false && fillPenStarted === false)
+            else
             {
                 // sideBar.visible = false;
                 sideBar.setTempVisibleOFF(isRightSidebar);
@@ -1208,6 +1219,119 @@
             return maxIndex === find2020;
         }
 
+        private function closureMaskTool():Object
+        {
+            var clickedButton:String;
+
+            function maskToolDelete():void
+            {
+                trace('deelte');
+            }
+
+            function maskToolErase():void
+            {
+                trace('erase');
+            }
+
+            function maskToolUndo():void
+            {
+                trace('undo');
+            }
+
+            function maskToolApply():void
+            {
+                trace('apply');
+            }
+
+            function maskToolCancel():void
+            {
+                removeEvents();
+                trace('cance');
+                setMaskToolUI(false);
+            }
+
+            function maskToolOK():void
+            {
+                trace('ok');
+                maskToolCancel();
+            }
+
+            function mouseMoveMaskTool(e:MouseEvent):void
+            {
+
+            }
+
+            function keyUpMaskTool(e:KeyboardEvent):void
+            {
+            }
+
+            function mouseUpMaskTool(e:MouseEvent):void
+            {
+                const targetName:String = e.target.name;
+
+                if(clickedButton === targetName)
+                {
+                    if(targetName === "maskOK") maskToolOK();
+                    else if(targetName === "maskCancel") maskToolCancel();
+                    else if(targetName === "maskApply") maskToolApply();
+                    else if(targetName === "maskUndo") maskToolUndo();
+                    else if(targetName === "maskErase") maskToolErase();
+                    else if(targetName === "maskDelete") maskToolDelete();
+                    clickedButton = null;
+                }
+            }
+
+            function mouseDownMaskTool(e:MouseEvent):void
+            {
+                const targetName:String = e.target.name;
+                trace('targetName',targetName);
+
+                if(targetName === "maskOK"
+                || targetName === "maskCancel"
+                || targetName === "maskApply"
+                || targetName === "maskUndo"
+                || targetName === "maskErase"
+                || targetName === "maskDelete")
+                {
+                    clickedButton = targetName;
+                    trace('저장');
+                }
+                else
+                {
+                    trace('안해줌')
+                    clickedButton = null;
+                }
+            }
+
+            function removeEvents():void
+            {
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownMaskTool);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpMaskTool);
+                stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpMaskTool);
+                stageMouseMoveEvent.remove(mouseMoveMaskTool);
+            }
+
+            function addEvents():void
+            {
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownMaskTool);
+                stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpMaskTool);
+                stage.addEventListener(KeyboardEvent.KEY_UP,keyUpMaskTool);
+            }
+
+            function start():void
+            {
+                trace('start');
+                clickedButton = null;
+                addEvents();
+            }
+
+            return {
+                start:start,
+                ok:maskToolOK,
+                cancel:maskToolCancel
+            }
+        }
+
         private function closureFillPenTool():Object
         {
             const _dottedLine:Object = dottedLine;
@@ -1231,10 +1355,13 @@
 
             function _checkUndoReady():void
             {
-                if(isHitTestPoint(canvas1Bitmap))
+                if(readyAddUndo === false)
                 {
-                    clearButtonClicked = false;
-                    readyAddUndo = true;
+                    if(isHitTestPoint(canvas1Bitmap))
+                    {
+                        clearButtonClicked = false;
+                        readyAddUndo = true;
+                    }
                 }
             }
 
@@ -1277,11 +1404,7 @@
 
             function cancelFillPen():void
             {
-                stage.removeEventListener(KeyboardEvent.KEY_UP,fillPenKeyUpEvent);
-                stageMouseMoveEvent.remove(fillPenMouseMoveEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
-                
+                removeEvents();
                 canvas2.alpha = 1.0;
                 mouseMoveCount = 0;
                 timer = 0;
@@ -1330,7 +1453,7 @@
                 else drawPreviewLine();
             }
 
-            function fillPenKeyUpEvent(e:KeyboardEvent):void
+            function keyUpFillPen(e:KeyboardEvent):void
             {
                 const keyCode:int = e.keyCode;
                 const key:Object = gKey
@@ -1361,10 +1484,7 @@
 
             function fillPenMouseMoveEvent(e:MouseEvent):void
             {
-                if(readyAddUndo === false)
-                {
-                    _checkUndoReady();
-                }
+                if(readyAddUndo === false) _checkUndoReady();
                 mouseMoved = true;
 
                 var cdx:Number = cd.mouseX;
@@ -1410,7 +1530,7 @@
                 }
             }
 
-            function fillPenMouseDownEvent(e:MouseEvent):void
+            function mouseDownFillPen(e:MouseEvent):void
             {
                 const targetName:String = e.target.name;
                 const mx:Number = mouseX;
@@ -1458,14 +1578,11 @@
                     drawPreviewLine();
                     mouseDragON = true;
 
-                    if(readyAddUndo === false)
-                    {
-                        _checkUndoReady();
-                    }
+                    if(readyAddUndo === false) _checkUndoReady();
                 }
             }
 
-            function fillPenMouseUpEvent(e:MouseEvent):void
+            function mouseupFillPen(e:MouseEvent):void
             {
                 clearTimeout(timer);
                 timer = 0;
@@ -1478,31 +1595,16 @@
 
                 if(clickedButton === targetName)
                 {
-                    if(targetName === "fillPenOK")
-                    {
-                        endFillPenOK();
-                    }
-                    else if(targetName === "fillPenCancel")
-                    {
-                        cancelFillPen();
-                    }
-                    else if(targetName === "fillPenUndo")
-                    {
-                        undoData();
-                    }
+                    if(targetName === "fillPenOK")endFillPenOK();
+                    else if(targetName === "fillPenCancel")cancelFillPen();
+                    else if(targetName === "fillPenUndo")undoData();
                 }
                 else
                 {
                     commandUndoIndexArr.push(command.length-1);
 
-                    if(afterKeyUpOK)
-                    {
-                        endFillPenOK();
-                    }
-                    else if(mouseMoved)
-                    {
-                        drawPreviewLine();
-                    }
+                    if(afterKeyUpOK) endFillPenOK();
+                    else if(mouseMoved) drawPreviewLine();
                 }
 
                 afterKeyUpOK = false;
@@ -1510,8 +1612,26 @@
             }
 
             
+            function removeEvents():void
+            {
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownFillPen);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseupFillPen);
+                stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpFillPen);
+                stageMouseMoveEvent.remove(fillPenMouseMoveEvent);
+            }
+
+            function addEvents():void
+            {
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownFillPen);
+                stage.addEventListener(MouseEvent.MOUSE_UP,mouseupFillPen);
+                stage.addEventListener(KeyboardEvent.KEY_UP,keyUpFillPen);
+                stageMouseMoveEvent.add(fillPenMouseMoveEvent);
+            }
+
             function start():void
             {
+                fillPenStarted = true;
+
                 command = new Vector.<int>();
                 data = new Vector.<Number>();
 
@@ -1537,16 +1657,10 @@
                 data.push(cd.mouseY);
 
                 setFillpenUI(true);
-
-                fillPenStarted = true;
-
-                _checkUndoReady();
+                if(readyAddUndo === false) _checkUndoReady();
                 canvas2.alpha = 1.0;
 
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
-                stage.addEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
-                stageMouseMoveEvent.add(fillPenMouseMoveEvent);
-                stage.addEventListener(KeyboardEvent.KEY_UP,fillPenKeyUpEvent);
+                addEvents();
             }
 
             return {
@@ -1677,10 +1791,7 @@
 
             function penMove2(x:Number,y:Number):void
             {
-                if(readyAddUndo === false) 
-                {
-                    checkUndoReady();
-                }
+                if(readyAddUndo === false) checkUndoReady();
 
                 if(!_pixelSnap && (_penSmoothSlideValue > 0 || rotateFlag))
                 {
@@ -1941,7 +2052,7 @@
                 distLimit = xSize/10;//penmove에서 distlimit이하이면 skip해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
                 shortDistFlag = false; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
 
-                checkUndoReady();
+                if(readyAddUndo === false) checkUndoReady();
 
                 stageMouseMoveEvent.add(penToolMoveEvent);
                 // stageMouseMoveEvent.add(penToolMoveEvent);
@@ -2014,10 +2125,13 @@
 
             function setSideBarOFF():void
             {
-                clearSideBarClickEvents();
-                if(isSidebarVisible === false)
+                if(isDeepUndoON === false)
                 {
-                    setSidebarVisible(false,true);
+                    removeSideBarClickEvents();
+                    if(isSidebarVisible === false)
+                    {
+                        setSidebarVisible(false,true);
+                    }
                 }
             }
 
@@ -2041,7 +2155,7 @@
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarOFFMouseDownEvent,false,1);
             }
 
-            function clearSideBarClickEvents():void
+            function removeSideBarClickEvents():void
             {
                 clearTimeout(sidebarONTimer);
                 sidebarTempOFF = false;
@@ -2058,7 +2172,7 @@
             {
                 if(isHitTestPoint(sideBar) === false)
                 {
-                    clearSideBarClickEvents();
+                    removeSideBarClickEvents();
                 }
             }
 
@@ -2071,7 +2185,7 @@
                 {
                     visibleMouseUpEventON = false;
                     sidebarTempOFF = false;
-                    clearSideBarClickEvents();
+                    removeSideBarClickEvents();
                 },1000);
             }
 
@@ -2651,6 +2765,13 @@
                 case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)"; break;
                 case "toolRotate": str = "Rotate (s, k)"; break;
                 case "toolTrace": str = "Reference layer (t)"; break;
+                case "toolMask": str = "Mask (sift+x, shift+,)"; break;
+                case "maskOK": str = "OK (enter, shift+x, shift+,)"; break;
+                case "maskCancel": str = "Cancel (esc, backspace)"; break;
+                case "maskApply": str = "Apply (right-click, a, l)"; break;
+                case "maskUndo": str = "Undo (z, .)"; break;
+                case "maskErase": str = "Erase (d, j)"; break;
+                case "maskDelete": str = "Delete (del, shift+d, shift+j)"; break;
             }
             return str;
         }
@@ -3844,7 +3965,7 @@
             ent.transform.colorTransform = c;
         }
 
-        private function updateReplayBarPos(stw:Number,sth:Number):void
+        private function updateReplayBarPos(stw:Number):void
         {
             const _replayTimeBox:replayTimeBar = replayTimeBox;
             const replayTotalBar:Sprite = _replayTimeBox["replayTotalBar"];
@@ -4344,7 +4465,7 @@
             if(!target) return;
             const targetName:String = target.name;
 
-            if(lassoToolON || fillPenStarted || target.alpha < 1.0) return;
+            if(lassoToolON || fillPenStarted || maskToolStarted || target.alpha < 1.0) return;
 
             switch (targetName)
             {
@@ -5528,7 +5649,6 @@
             rSkipImageFolder.createDirectory();
 
             updateFirstImage(rcanvas1BitmapData,RCANVAS_BG_COLOR);
-            isDeepUndoON = false;
 
             if(repFileTemp.exists)//이미 있으면 지워주고
             {
@@ -5638,7 +5758,8 @@
                 addUndoData();
             }
             isDeepUndoONDelayTime = getTimer();
-            setReplayUI(false);
+            if(isDeepUndoON) setDeepUndoUI(false)
+            else if(replayModeON) setReplayUI(false);
             saveContinue = false;
         }
 
@@ -5732,7 +5853,7 @@
                     //데이터 전부 읽고 짤라줘야함
                     if(tickDraw.getIndex() < tickDraw.getDataLength()) 
                     {
-                        drawRemainReplayData();
+                        drawRemainReplayData(JUMP_FRAME_FRONT);
                         checkCutFrameButtons();
                     }
                 }
@@ -6816,7 +6937,7 @@
                 const getTimeStr:String = getReplayTime(nextFrame,totalF-_rFrameSum,true);
                 const timeStr:String = getTimeStr;
 
-                _jumpFrame(finalFrame,SKIP_FRAME_ONCE); 
+                _jumpFrame(finalFrame,JUMP_FRAME_ONCE); 
                 replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + timeStr;
                 rFrameTextDelayTime = nt;
             }
@@ -6824,23 +6945,23 @@
 
         private function doDrawEvent(e:Event):void
         {
-            doDraw(rSpeed,SKIP_FRAME_PLAY,false);
+            doDraw(rSpeed,JUMP_FRAME_NONE,false);
             checkHideCursorCount();
         }
 
-        //skipFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
+        //jumpFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
         private function closureDoDraw():Function
         {
-            //skipflag 1번은 마우스 커서로 무작위 스킵, 2,3번은 스트로크 단위혹은 프레임 단위로 앞뒤로 탐색
+            //jumpFlag 1번은 마우스 커서로 무작위 스킵, 2,3번은 스트로크 단위혹은 프레임 단위로 앞뒤로 탐색
             const _REPLAY_SLOWDRAW_ACTIVE_SPEED:Number = REPLAY_SLOWDRAW_ACTIVE_SPEED;
             const tcursor:SimpleButton = rCursor;
             const _rfs:FileStream = rFileStream;
             const _CACHE_DIV_10:Number= Math.floor(IMG_CACHE_INTERVAL/10);
             const _tickDraw:Object = tickDraw;
-            const _SKIP_FRAME_ONCE:int = SKIP_FRAME_ONCE;
-            const _SKIP_FRAME_BACK:int = SKIP_FRAME_BACK;
-            const _SKIP_FRAME_FRONT:int = SKIP_FRAME_FRONT;
-            const _SKIP_FRAME_PLAY:int = SKIP_FRAME_PLAY;
+            const _JUMP_FRAME_NONE:int = JUMP_FRAME_NONE;
+            const _JUMP_FRAME_ONCE:int = JUMP_FRAME_ONCE;
+            const _JUMP_FRAME_BACK:int = JUMP_FRAME_BACK;
+            const _JUMP_FRAME_FRONT:int = JUMP_FRAME_FRONT;
             
             var rDataLen:uint;
             var prevSkipImageSaveCount:Number;
@@ -6854,9 +6975,9 @@
             var skipImageGroupIndex:int;
             var _undoIndex:int = 0;
 
-            function checkMakeCacheImage(skipFlag:int):void
+            function checkMakeCacheImage(jumpFlag:int):void
             {
-                if(skipFlag === _SKIP_FRAME_ONCE || skipFlag === _SKIP_FRAME_BACK)
+                if(jumpFlag === _JUMP_FRAME_ONCE || jumpFlag === _JUMP_FRAME_BACK)
                 {
                     if(prevSkipImageSaveCount >= _CACHE_DIV_10)
                     {
@@ -6870,7 +6991,7 @@
                 }
             }
 
-            function readyToReadRData(skipFlag:int):void
+            function readyToReadRData(jumpFlag:int):void
             {
                 _undoIndex = undoIndex;
                 if(_undoIndex < 0)
@@ -6890,7 +7011,7 @@
                     TOTAL_FRAME = getTotalFrame();
                 }
 
-                if(skipFlag === _SKIP_FRAME_PLAY)
+                if(jumpFlag === _JUMP_FRAME_NONE)
                 {
                     _rfs.close();
                     rLastBytes = 0;
@@ -6921,7 +7042,7 @@
                 return true;
             }
 
-            function checkFinish(skipFlag:int):Boolean
+            function checkFinish(jumpFlag:int):Boolean
             {
                 if(rIndex > undoIndex || rDataLen === 0) //자연적 으로 끝났을때
                 {
@@ -6930,7 +7051,7 @@
                     tcursor.visible = false;
                     replayAllEnd = true;
 
-                    if(skipFlag === _SKIP_FRAME_PLAY || doDrawSlowEventON === true)//1프레임 이상일때만 재시작 타이머 가동
+                    if(jumpFlag === _JUMP_FRAME_NONE || doDrawSlowEventON === true)//1프레임 이상일때만 재시작 타이머 가동
                     {
                         //reset replay time해주지 말고 그냥 end플래그만 올려줌
                         //왜냐하면 리플레이 자연적으로 끝나고도 스킵프레임이나 oneframe skip을 해줄수가 있기 때문
@@ -6945,9 +7066,9 @@
                 return false;
             }
 
-            function updateCursorPosAndInfoText(skipFlag:int):void
+            function updateCursorPosAndInfoText(jumpFlag:int):void
             {
-                if(skipFlag === _SKIP_FRAME_PLAY)
+                if(jumpFlag === _JUMP_FRAME_NONE)
                 {
                     nt = getTimer();
 
@@ -6980,7 +7101,7 @@
                 }
             }
             
-            function drawRData(len:Number,skipFlag:int):void
+            function drawRData(len:Number,jumpFlag:int):void
             {
                 for(var i:Number=0;i<len;i++)
                 {
@@ -6988,7 +7109,7 @@
                     {
                         rIndex++;
 
-                        if(checkFinish(skipFlag)) return;
+                        if(checkFinish(jumpFlag)) return;
                         rPrevFrame = rNowFrame;
                         _tickDraw.ready(rData[rIndex]);
                     }
@@ -6997,7 +7118,7 @@
                 }
             }
     
-            function drawFileData(len:Number,skipFlag:int):void
+            function drawFileData(len:Number,jumpFlag:int):void
             {
                 for(var i:Number=0;i<len;i++)
                 {
@@ -7006,10 +7127,10 @@
                         if(setFileDataToTickDraw() === true)
                         {
                             //더이상 읽을 데이터가 없을때 rdata 읽기로 넘겨줌
-                            readyToReadRData(skipFlag);
+                            readyToReadRData(jumpFlag);
                             return;
                         }
-                        checkMakeCacheImage(skipFlag);
+                        checkMakeCacheImage(jumpFlag);
                     }
                     tickDraw.next();
                     prevSkipImageSaveCount++;
@@ -7018,22 +7139,22 @@
                 }
             }
 
-            return function(skipCount:Number,skipFlag:int,undoFlag:Boolean):void
+            return function(skipCount:Number,jumpFlag:int,undoFlag:Boolean):void
             {
                 if(undoFlag)
                 {
-                    drawRData(skipCount,skipFlag);
+                    drawRData(skipCount,jumpFlag);
                     return;
                 }
 
-                if(replayStartON === false && !skipFlag) return;
+                if(replayStartON === false && !jumpFlag) return;
 
                 if(skipCount > 0)
                 {
                     //REPLAY_SLOWDRAW_ACTIVE_SPEED 이상으로 전체 재생 시간이 60초 이하일경우 작동
                     if(skipCount > _REPLAY_SLOWDRAW_ACTIVE_SPEED)
                     {
-                        if(REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME && skipFlag === 0)
+                        if(REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME && jumpFlag === 0)
                         {
                             setSlowDraw();
                             return;
@@ -7051,8 +7172,8 @@
                     // {
                     //     rPrevFrame = rNowFrame-1;
                     // }
-                    if(!rDataReadFlag) drawFileData(skipCount,skipFlag);
-                    drawRData(readCount,skipFlag);
+                    if(!rDataReadFlag) drawFileData(skipCount,jumpFlag);
+                    drawRData(readCount,jumpFlag);
                 }
                 // else
                 // {
@@ -7060,7 +7181,7 @@
                 //     //데이터가 어긋나는거 해결됨
                 //     // rPrevFrame = rNowFrame-1;
                 // }
-                updateCursorPosAndInfoText(skipFlag);
+                updateCursorPosAndInfoText(jumpFlag);
             };
         }
 
@@ -7405,8 +7526,8 @@
         {
             if(trueOneFrame)
             {
-                if(toback && rNowFrame > 0) _jumpFrame(rNowFrame-1);
-                else if(!toback && rNowFrame < TOTAL_FRAME) _jumpFrame(rNowFrame+1);
+                if(toback && rNowFrame > 0) _jumpFrame(rNowFrame-1,JUMP_FRAME_ONCE);
+                else if(!toback && rNowFrame < TOTAL_FRAME) _jumpFrame(rNowFrame+1,JUMP_FRAME_ONCE);
             }
             else
             {
@@ -7414,25 +7535,25 @@
                 {
                     //rPrevFrame이 rNowFrame이 같게되면 jumpframe에서 0프레임을 이동하므로
                     //-1을 해줘서 tickdarw에서 이전 데이터를 가지게 해줘야함
-                    if(rPrevFrame === rNowFrame) _jumpFrame(rNowFrame-1,SKIP_FRAME_BACK);
-                    _jumpFrame(rPrevFrame,SKIP_FRAME_BACK);
+                    if(rPrevFrame === rNowFrame) _jumpFrame(rNowFrame-1,JUMP_FRAME_BACK);
+                    _jumpFrame(rPrevFrame,JUMP_FRAME_BACK);
                 }
                 else if(!toback && rNowFrame <= TOTAL_FRAME)
                 {
                     if(tickDraw.getRestDataCount() === 0)
                     {
                         //+1해줘서 다음 데이터 갱신해주고 나머지 끝까지 그려줌
-                        _jumpFrame(rNowFrame+1,SKIP_FRAME_FRONT);
-                        _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),SKIP_FRAME_FRONT);
+                        _jumpFrame(rNowFrame+1,JUMP_FRAME_FRONT);
+                        _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_FRONT);
                     }
                     else
                     {
-                        _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),SKIP_FRAME_FRONT);
+                        _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_FRONT);
                     }
                 }
             }
 
-            rOneSkipFlagSave = toback;
+            rOnejumpFlagSave = toback;
             checkCutFrameButtons();
         }
 
@@ -7469,29 +7590,24 @@
             }
         }
 
-        //flag = 1 //딱 한프레임만 스킵할때
-        //flag = 2 //이전 탐색 할때 올려줌
-        //flag = 3 //앞 탐색 할때 올려줌
-        //jumpFrame으로 프레임을 이동시킴
-        private function _jumpFrame(frame:Number,flag:uint=SKIP_FRAME_ONCE):void //skipp 
+        private function checkExitDeepUndo(flag:int):Boolean
         {
-            const nowFrame:Number = rNowFrame;
-            const tempRedoFlag:Boolean = isDeepUndoON && flag === 3;
-
-            if(frame < 0) frame = 0;
-            if(frame === nowFrame)
+            if(isDeepUndoON && flag === JUMP_FRAME_FRONT && rNowFrame === TOTAL_FRAME)
             {
-                if(tempRedoFlag)
-                {
-                    exitDeepUndoMode();
-                }
-                return;
+                exitDeepUndoMode();
+                return true;
             }
+            return false;
+        }
 
-            if(frame > TOTAL_FRAME) frame = TOTAL_FRAME;
+        private function _jumpFrame(frame:Number,flag:int):void //skipp 
+        {
+            if(frame < 0) frame = 0;
+            else if(frame > TOTAL_FRAME) frame = TOTAL_FRAME;
+            if(checkExitDeepUndo(flag)) return;
 
-            const prevSkipFlag:Boolean = frame < nowFrame;
-            const tcursor:SimpleButton = rCursor;
+            const nowFrame:Number = rNowFrame;
+            const prevjumpFlag:Boolean = frame < nowFrame;
             const index:Number = getSkipImageIndex(frame);
             var prevSkipImageIndex:Number = 0; //자잘 썸네일 인덱스를 넣어줌
             var skipImageData:Array = [];
@@ -7502,9 +7618,9 @@
             if(index !== rSkipImageIndexSave) rDataPreviewCacheImages = [];
             else if(rDataPreviewCacheImages.length > 0) prevSkipImageIndex = getCacheImageIndex(frame);
 
-            if(index !== rSkipImageIndexSave || prevSkipFlag)
+            if(index !== rSkipImageIndexSave || prevjumpFlag)
             {
-                if(prevSkipImageIndex > 0)//prevSkipFlag && false)
+                if(prevSkipImageIndex > 0)//prevjumpFlag && false)
                 {
                     skipImageData = rDataPreviewCacheImages[prevSkipImageIndex];
                 }
@@ -7527,6 +7643,7 @@
                 rIndex = 0; //이거 먼저 초기화 시켜주어야함
                 tickDraw.reset();
                 clearCanvasReplayMode();
+                rMirrorON = false;
 
                 if(prevSkipImageIndex > 0)
                 {
@@ -7560,10 +7677,11 @@
             if(rNowFrame >= TOTAL_FRAME)
             {
                 replayAllEnd = true;
-                tcursor.visible = false;
+                rCursor.visible = false;
                 //보통 스킵일때 마지막 임시 mirror가 켜져있을때 여기서 해줌
                 //스킵이 너무 딱맞게 되서 마지막을 안하나?
-                if(mirrorPushReady && flag === 1)
+                trace('rMirrorON',rMirrorON,'mirrorPushReady',mirrorPushReady);
+                if(mirrorPushReady !== rMirrorON)
                 {
                     replayMirrorCanvas();
                 }
@@ -7572,25 +7690,17 @@
             {
                 replayAllEnd = false;
                 tickDraw.updateRCursorPos();
-                tcursor.visible = true;
+                rCursor.visible = true;
             }
-            if(isDeepUndoON) checkDeepUndoOFF(tempRedoFlag);
-            else checkAutoScroll.check();
-        }
-        private function checkDeepUndoOFF(tempRedoFlag:Boolean):void
-        {
-            //리도 해줄때만 프레임이 같게되면 off시켜줌
-            if(tempRedoFlag && rNowFrame >= TOTAL_FRAME)
-            {
-                exitDeepUndoMode();
-            }
+            if(checkExitDeepUndo(flag)) return;
+            checkAutoScroll.check();
         }
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
-        private function drawRemainReplayData(flag:int=SKIP_FRAME_FRONT):void
+        private function drawRemainReplayData(flag:int):void
         {
             _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),flag);
-            rOneSkipFlagSave = false;
+            rOnejumpFlagSave = false;
         }
 
         private function setSkipFrameButton():void
@@ -7622,7 +7732,6 @@
 
             rSkipMouseON = true;
             nowBar.width = clickedX;
-
             checkBarLimit();
             oldFrame = finalFrame;;
 
@@ -7630,14 +7739,8 @@
             {
                 var mx:Number = totalBar.mouseX*totalBarScale;
 
-                if(mx < 0)
-                {
-                    mx = 0;
-                }
-                else if(mx > maxWidth)
-                {
-                    mx = maxWidth;
-                }
+                if(mx < 0) mx = 0;
+                else if(mx > maxWidth) mx = maxWidth;
 
                 finalFrame = floor(totalF*mx/maxWidth);
                 nowBar.width = mx;
@@ -7647,7 +7750,7 @@
             {
                 rSkipMouseON = false;
                 clearTimeout(skipUpdateTimer);
-                _jumpFrame(finalFrame);
+                _jumpFrame(finalFrame,JUMP_FRAME_ONCE);
                 if(isDeepUndoON)
                 {
                     if(tickDraw.isIndexSmallerData()) 
@@ -7663,19 +7766,11 @@
                 if(!isDeepUndoON)
                 {
                     //skipframe함수 이후에 실행
-                    if(!replayStartONSave)
-                    {
-                        checkCutFrameButtons();
-                    }
+                    if(!replayStartONSave) checkCutFrameButtons();
+
                     //재생중에 스킵하고 있었으면 다시 시작
-                    if(replayStartONSave && !replayAllEnd)
-                    {
-                        startReplay();
-                    }
-                    else if(replayAllEnd)
-                    {
-                        stopReplay();
-                    }
+                    if(replayStartONSave && !replayAllEnd) startReplay();
+                    else if(replayAllEnd) stopReplay();
                 }
 
                 stageMouseMoveEvent.remove(replayTimeMouseMoveEvent);
@@ -7693,7 +7788,7 @@
                     {
                         skipUpdateTimer = 0;
                         oldFrame = finalFrame;
-                        _jumpFrame(finalFrame);
+                        _jumpFrame(finalFrame,JUMP_FRAME_ONCE);
                     },200);
                 }
             }
@@ -7715,7 +7810,7 @@
             replayStartON = false;
             doDrawSlowEventON = false;
             checkCutFrameButtons();
-            checkHideCursor.reset();
+            replayHideCursor.reset();
         }
 
         private function startReplay():void
@@ -7735,7 +7830,7 @@
             tb["superUndoButton"].alpha = 1.0;
             tb["cutPrevDataButton"].alpha = 1.0;
 
-            rCursor.visible = true;
+            rCursor.visible = false;
 
             if(replayAllEnd === true) //리플레이 시간 등등 초기화 시키고 시작
             {
@@ -7758,8 +7853,7 @@
                 rFileStream.position = rLastBytes;
             }
             
-            if(cutFrameClickCounter > 0)
-                resetCutFrameClickCounter();
+            if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
 
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
@@ -7870,6 +7964,7 @@
                 case "zoomInButton": setZoomInButton(true,false); break;
                 case "zoomOutButton": setZoomInButton(false,false); break;
                 case "toolZoom": toolBox.zoomIconON(); break;
+                case "toolMask": setMaskToolUI(true); break;
 
                 case "toolTrace":
                 {
@@ -7879,6 +7974,8 @@
                         traceMenuBox.y = mouseY-60;
                     }
                 }
+
+
                 break;
             }
         }
@@ -8404,9 +8501,13 @@
                         rNowFrame = TOTAL_FRAME;
                         rPrevFrame = _frameSumLast;
                         checkReplaySpeedState();
-                        if(!isDeepUndoON)
+                        if(isDeepUndoON)
                         {
-                            _jumpFrame(TOTAL_FRAME+1);
+                            setDeepUndoUI(true);
+                        }
+                        else
+                        {
+                            _jumpFrame(TOTAL_FRAME+1,JUMP_FRAME_ONCE);
                             removeInputEventDrawMode();
                             addInputEventReplayMode();
                         }
@@ -8739,10 +8840,8 @@
                 resetLassoBox();
             }
 
-            if(fillPenStarted)
-            {
-                setFillPenTool.cancel();
-            }
+            if(fillPenStarted) fillPenTool.cancel();
+            if(maskToolStarted) maskTool.cancel();
 
             tickDraw.resetgetRCursorPos();
             tmpBMPD.draw(imageData,scaleMat,null,null,null,true);
@@ -8795,7 +8894,7 @@
         private function loadFile(subLayer:Boolean=false):void
         {
             if(replayStartON) stopReplay();
-            if(lassoToolON || browseWindowON || fillPenStarted) return;
+            if(lassoToolON || browseWindowON || fillPenStarted || maskToolStarted) return;
             const allowedExt:String = "*.2020;*.png;*.jpg;*.gif";
             var newFileFilter:FileFilter = new FileFilter("Image or 2020 file",allowedExt);
             var windowTitle:String = "Open file";
@@ -9504,7 +9603,7 @@
 
             const continueFlag:Boolean = saveContinue === true && asFlag === false;
 
-            if((saveOneTime === true && continueFlag) || lassoToolON || fillPenStarted)
+            if((saveOneTime === true && continueFlag) || lassoToolON || fillPenStarted || maskToolStarted)
             {
                 return;
             }
@@ -10255,10 +10354,7 @@
                     penSizeCursor.rotation = regPoint.rotation;
                 }
 
-                if(readyAddUndo === false)
-                {
-                    checkUndoReady();
-                }
+                if(readyAddUndo === false) checkUndoReady();
 
                 drawDone();
             }
@@ -10289,8 +10385,7 @@
                 canvas2BitmapData.dispose();
                 canvas2Bitmap.bitmapData = null;
                 canvas2BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
-
-                checkUndoReady();
+                if(readyAddUndo === false) checkUndoReady();
 
                 //선 관련 이벤트 함수 붙여줌
                 stageMouseMoveEvent.add(lineMoveEvent);
@@ -11611,7 +11706,7 @@
             resetLassoBox();
         }
 
-        //펜툴로 선택,세팅 껍데기만 바꿔주는거임 setPenTool은 실제 툴을 진행하는거
+        //펜툴로 선택,세팅 껍데기만 바꿔주는거임 penTool은 실제 툴을 진행하는거
         private function selectMoveTool():void
         {
             setNowTool(TOOL_MOVE);
@@ -11995,8 +12090,7 @@
                     if(getTimer() - isDeepUndoONDelayTime > 200
                     && (makeSkipImageFlag === 1 || (makeSkipImageFlag === 0 && undoData.getRFileTotalFrame() > 0)))
                     {
-                        isDeepUndoON = true;
-                        setReplayUI(true);
+                        setDeepUndoUI(true);
                     }
                 }
             }
@@ -12718,7 +12812,7 @@
                 scrollSetMovedY = newYPos;
             }
             
-            if(sideBarSetHeight < sth || isDeepUndoON || fillPenStarted)
+            if(sideBarSetHeight < sth || isDeepUndoON || fillPenStarted || maskToolStarted)
             {
                 sideBarScrollBar.visible = false;
                 return;
@@ -12790,7 +12884,7 @@
                 
                 if(replayModeON)
                 {
-                    updateReplayBarPos(stw,sth);
+                    updateReplayBarPos(stw);
                     updateReplayCanvasBounds();
                 }
 
@@ -12801,8 +12895,10 @@
                 sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
                 updateScrollBarHeight(sth);
                 if(isRightSidebar) sideBar.x = stage.stageWidth-sideBar.w;
-                if(isDeepUndoON) toolBox.tempVisibleMoveON(true);
-                else if(fillPenStarted) toolBox.tempVisibleMoveON(false);
+                if(isDeepUndoON) toolBox.checkDeepUndoIconBottom();
+                else if(fillPenStarted) toolBox.checkFillPenIconBottom();
+                else if(maskToolStarted) toolBox.checkMaskToolIconBottom();
+
                 updatePreviewBoxRectPos();
 
                 if(fileDragSelectBox.visible === true)
@@ -13077,25 +13173,22 @@
             const key:Object = gKey;
             var subKey:int;
 
-            if(isPressingControlShift())  //자툴이 있기 때문에 아래 return 해주지 않음
+            if(isPressingControlShift())
             {
-                if(keyBuffer.length === 3)
+                checkCommandSubKey(3,function(input:int):void
                 {
-                    subKey = keyBuffer[2];
-
-                    if(subKey === key.s) saveFile(true);
-                    else if(subKey === key.o) loadFile(true);
-
-                }
+                    const key:Object = gKey;
+                    if(input === key.s) saveFile(true);
+                    else if(input === key.o) loadFile(true);
+                });
                 return;
             }
             else if(isPressingShift())
             {
-                if(keyBuffer.length === 2)
+                checkCommandSubKey(2,function(input:int):void
                 {
-                    subKey = keyBuffer[1];
-
-                    switch(subKey)
+                    const key:Object = gKey;
+                    switch(input)
                     {
                         case key.left:
                         case key.z:
@@ -13109,20 +13202,18 @@
                             setSkipOneFrame(false,true);
                         break;
                     }
-                }
+                });
                 return;
             }
             else if(isPressingControl())
             {
-                if(keyBuffer.length === 2)
+                checkCommandSubKey(2,function(input:int):void
                 {
-                    subKey = keyBuffer[1];
-                    setNowKey(subKey);
-
-                    if(subKey === key.s) saveFile(false);
-                    else if(subKey === key.o) loadFile();
-                    else if(subKey === key.c || subKey === key.m) setCaptureReady();
-                }
+                    const key:Object = gKey;
+                    if(input === key.s) saveFile(false);
+                    else if(input === key.o) loadFile();
+                    else if(input === key.c || input === key.m) setCaptureReady();
+                });
                 return;
             }
 
@@ -13215,15 +13306,26 @@
             }
         }
 
+        private function checkCommandSubKey(length:uint,func:Function):Boolean
+        {
+            if(keyBuffer.length === length)
+            {
+                const subKey:int = keyBuffer[length-1];
+                setNowKey(subKey);
+                func(subKey);
+                return true;
+            }
+            return false;
+        }
+
         private function closureKeyDownDrawMode():Function
         {
-
             const key:Object = gKey;
             var subKey:int;
 
             return function(e:KeyboardEvent):void
             {
-                if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted)
+                if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted || maskToolStarted)
                 {
                     return;
                 }
@@ -13236,33 +13338,39 @@
                     //shift 누르고 ctrl 순서로 누를때 이전툴로 복원
                     if(isNowTool(TOOL_LINE)) setOldTool();
 
-                    if(keyBuffer.length === 3)
+                    checkCommandSubKey(3,function(input:int):void
                     {
-                        subKey = keyBuffer[2];
-                        setNowKey(subKey);
-
-                        if(subKey === key.s) saveFile(true);
-                        else if(subKey === key.o) loadFile(true);
-                    }
+                        const key:Object = gKey;
+                        if(input === key.s) saveFile(true);
+                        else if(input === key.o) loadFile(true);
+                    })
                     return;
+                }
+                else if(isPressingShift())
+                {
+                    checkCommandSubKey(2,function(input:int):void
+                    {
+                        const key:Object = gKey;
+                        if(input === key.x || input === key.comma)
+                        {
+                            setMaskToolUI(true);
+                        }
+                    });
                 }
                 else if(isPressingControl())
                 {
-                    if(keyBuffer.length === 2)
+                    if(checkCommandSubKey(2,function(input:int):void
                     {
-                        subKey = keyBuffer[1];
-                        setNowKey(subKey);
-                        setResizeButtonVisible(false);
-                        
-                        if(subKey === key.s) saveFile(false);
-                        else if(subKey === key.o) loadFile();
-                        else if(subKey === key.c || subKey === key.m) setCaptureReady();
-                        else if(subKey === key.v || subKey === key.n)
+                        const key:Object = gKey;
+                        if(input === key.s) saveFile(false);
+                        else if(input === key.o) loadFile();
+                        else if(input === key.c || input === key.m) setCaptureReady();
+                        else if(input === key.v || input === key.n)
                         {
                             if(clipImageON) setClipButton();
                         }
-                    }
-                    else setResizeButtonVisible(true);
+                    }) === false) setResizeButtonVisible(true);
+
                     return;
                 }
 
@@ -13623,15 +13731,15 @@
             switch(targetName)
             {
                 case "toolZoom":
-                    setToolBox2ClickTool(target as SimpleButton,setZoomTool);
+                    setToolBox2ClickTool(target as SimpleButton,zoomTool);
                 break;
 
                 case "toolMove":
-                    setToolBox2ClickTool(target as SimpleButton,setMoveTool);
+                    setToolBox2ClickTool(target as SimpleButton,moveTool);
                 break;
 
                 case "toolRotate":
-                    setToolBox2ClickTool(target as SimpleButton,setRotateTool);
+                    setToolBox2ClickTool(target as SimpleButton,rotateTool);
                 break;
                 
                 case "resizeButtonR":
@@ -13647,7 +13755,7 @@
                     {
                         updateToolBoxMousePos(toolBox2.toolPen);
                         updateOldTool();
-                        setHandTool();
+                        handTool();
                         closeToolBox2();
                     }
                 }
@@ -13843,7 +13951,7 @@
             {
                 case "toolRotate":
                 {
-                    setRotateTool(false);
+                    rotateTool(false);
                 }
                 break;
 
@@ -13870,6 +13978,7 @@
                 case "toolRotate":
                 case "toolTrace":
                 case "toolBoxBG":
+                case "toolMask":
                 {
                     setTopChildIndex(toolBox);
                     toolBoxClickedTarget = targetName;
@@ -13920,6 +14029,24 @@
             rCursor.scaleY = z;    
         }
 
+        private function setMaskToolUI(flag:Boolean):void
+        {
+            maskToolStarted = flag;
+
+            if(flag)
+            {
+                toolBox.maskToolIconON();
+                setOldTool(); //자툴이 눌려있기 때문에 리셋해줌
+                maskTool.start();
+                toolBox.bgBoxVisible(true);
+            }
+            else
+            {
+                toolBox.maskToolIconOFF();
+                toolBox.bgBoxVisible(false);
+            }
+        }
+
         private function setFillpenUI(flag:Boolean):void
         {
             if(flag)
@@ -13928,8 +14055,9 @@
                     sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
 
                 toolBox.fillPenIconON();
+                toolBox.bgBoxVisible(true);
                 sideBarScrollBar.visible = false;
-                toolBox.tempVisibleMoveON(false);
+                toolBox.checkFillPenIconBottom();
             }
             else
             {
@@ -13937,42 +14065,128 @@
                     sideBar.setTempVisibleOFF(isRightSidebar);
 
                 toolBox.fillPenIconOFF();
-                toolBox.tempVisibleMoveOFF();
+                toolBox.checkBottomOFF();
+                toolBox.bgBoxVisible(false);
                 updateScrollBarHeight(stage.stageHeight);
             }
         }
 
         private function setDeepUndoUI(flag:Boolean):void
         {
+            isDeepUndoON = flag;
+            const iFlag:Boolean = !flag;
             cancelAutoKeyEvent({});
+
+            topBar.hintOFF();
+            penCursorOFFFlag = flag;
+            rregPoint.visible = flag;
+            regPoint.visible = iFlag;
+            penSizeCursor.visible = iFlag;
+            rCursor.visible = flag;
+            replayTimeBox.visible = flag;
+            setTopChildIndex(replayTimeBox);
+            setTopChildIndex(rCursor);
+
             if(flag)
             {
-                if(!sideBar.visible)
-                    sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
-                
-                toolBox.tempVisibleMoveON(true);
-                toolBox.deepUndoIconON();
-                toolBox2.deepUndoIconON();
                 replayTimeBox.setTimeBarOnly(true);
-                updateReplayBarPos(stage.stageWidth,stage.stageHeight);
-                sideBarScrollBar.visible = false;
-                updateRCursorScale(zoomed);
-                removeInputEventDrawMode();
-                addInputEventDeepUndo();
+            
+                if(makeSkipImageFlag === 1)
+                {
+                    replayTimeBox["frameInfo"].text = "Loading...";
+                    setMakeSkipImage();
+                }
+                else
+                {
+                    if(!sideBar.visible) sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
+                    TOTAL_FRAME = getTotalFrame();
+                    toolBox.checkDeepUndoIconBottom();
+                    toolBox.deepUndoIconON();
+                    toolBox.bgBoxVisible(true);
+                    toolBox2.deepUndoIconON();
+                    updateReplayBarPos(stage.stageWidth);
+                    sideBarScrollBar.visible = false;
+                    updateRCursorScale(zoomed);
+                    removeInputEventDrawMode();
+                    addInputEventDeepUndo();
+                    syncReplayCanvasWithDrawMode();
+                    updateRCursorScale(rzoomed);
+                    topBar.resetHintColor();
+                    if(traceMenuON === true) traceMenuBox.visible = false;
+                    trace('undoData.getRFileTotalFrame()',undoData.getRFileTotalFrame());
+                    _jumpFrame(undoData.getRFileTotalFrame()-1,JUMP_FRAME_ONCE);
+                    _jumpFrame(rPrevFrame,JUMP_FRAME_ONCE);
+                    rOnejumpFlagSave = true;
+                }
             }
             else
             {
-                if(isSidebarVisible === false)
-                    sideBar.setTempVisibleOFF(isRightSidebar);
-
+                if(isSidebarVisible === false) sideBar.setTempVisibleOFF(isRightSidebar);
                 replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
-                toolBox.tempVisibleMoveOFF();
+                toolBox.checkBottomOFF();
                 toolBox.deepUndoIconOFF();
+                toolBox.bgBoxVisible(false);
                 toolBox2.deepUndoIconOFF();
                 updateScrollBarHeight(stage.stageHeight);
+                syncDrawCanvasWithReplayMode();
                 addInputEventDrawMode();
                 removeDeepUndoEvent();
+                if(traceMenuON === true) traceMenuBox.visible = true;
+                if(isSidebarVisible === true) sideBar.visible = true;
+                rDataPreviewCacheImages = [];
+                changePickerModeToNormal();
+                updatePenSizeCursor();
+                updatePenCursorPosition();
+                // changeTopBarIcons("draw");
             }
+        }
+
+        private function setMakeSkipImage():void
+        {
+            if(makeSKipImageWaitTimer === 0)
+            {
+                makeSKipImageWaitTimer = setTimeout(function():void
+                {
+                    makeSKipImageWaitTimer = 0;
+                    makeSkipImage();
+                },60);
+            }
+        }
+
+        private function syncDrawCanvasWithReplayMode():void
+        {
+            const _rregPoint:Sprite = rregPoint;
+            const _regPoint:Sprite = regPoint;
+            const _rcanvasPanel:Sprite = rcanvasPanel;
+            const _canvasPanel:Sprite = canvasPanel;
+            
+            zoomed = rzoomed;//줌배율도 공유
+            zoomedIndex = rzoomedIndex;
+            _regPoint.scaleX = _rregPoint.scaleX;
+            _regPoint.scaleY = _rregPoint.scaleY;
+            _regPoint.rotation = _rregPoint.rotation;
+            _regPoint.x = _rregPoint.x;
+            _regPoint.y = _rregPoint.y;
+            _rcanvasPanel.x = _rcanvasPanel.x;
+            _rcanvasPanel.y = _rcanvasPanel.y;
+        }
+
+        private function syncReplayCanvasWithDrawMode():void
+        {
+            const _rregPoint:Sprite = rregPoint;
+            const _regPoint:Sprite = regPoint;
+            const _rcanvasPanel:Sprite = rcanvasPanel;
+            const _canvasPanel:Sprite = canvasPanel;
+            
+            rzoomed = zoomed;//줌배율도 공유
+            rzoomedIndex = zoomedIndex;
+            _rregPoint.scaleX = _regPoint.scaleX;
+            _rregPoint.scaleY = _regPoint.scaleY;
+            _rregPoint.rotation = _regPoint.rotation;
+            _rregPoint.x = _regPoint.x;
+            _rregPoint.y = _regPoint.y;
+            _rcanvasPanel.x = _canvasPanel.x;
+            _rcanvasPanel.y = _canvasPanel.y;
         }
 
         private function setReplayUI(flag:Boolean):void
@@ -13984,8 +14198,7 @@
             rregPoint.visible = flag;
             regPoint.visible = iFlag;
             penSizeCursor.visible = iFlag;
-            setResizeButtonVisible(false);
-            replayTimeBox.visible = flag; //탐색바 켜줌
+            replayTimeBox.visible = flag;
             rCursor.visible = flag;
             replayTimeBox["pauseButton"].visible = false;
             setTopChildIndex(replayTimeBox);
@@ -13994,17 +14207,8 @@
 
             if(iFlag) //리플레이 꺼줄때
             {
-                if(isDeepUndoON)
-                {
-                    setDeepUndoUI(false);
-                    isDeepUndoON = false;
-                }
-                else
-                {
-                    addInputEventDrawMode();
-                    removeInputEventReplayMode();
-                }
-
+                removeInputEventReplayMode();
+                addInputEventDrawMode();
                 clearDataButtonCount = 0;
                 
                 if(isSidebarVisible === true) sideBar.visible = true;
@@ -14025,6 +14229,9 @@
             }
             else if(flag) //리플레이 켜줄때
             {
+                removeInputEventDrawMode();
+                addInputEventReplayMode();
+
                 rCursor.visible = false;
                 setTopChildIndex(rCursor);
             
@@ -14033,38 +14240,24 @@
 
                 //frame sum이 재계산된 maxframe을 넘어가면 리플레이 프레임이 넘어가기 때문에 끝난거임
                 //그래서 캔버스 복사해주고 리플레이를 리셋해줌
-                if(makeSkipImageFlag === 0 || isDeepUndoON)
+                if(makeSkipImageFlag === 0)
                 {
-                    const _rregPoint:Sprite = rregPoint;
-                    
-                    if(isDeepUndoON || CANVAS_WIDTH === RCANVAS_WIDTH && CANVAS_HEIGHT === RCANVAS_HEIGHT)
+                    if(CANVAS_WIDTH === RCANVAS_WIDTH && CANVAS_HEIGHT === RCANVAS_HEIGHT)
                     {
-                        const _regPoint:Sprite = regPoint;
-                        const _rcanvasPanel:Sprite = rcanvasPanel;
-                        const _canvasPanel:Sprite = canvasPanel;
-                        rzoomed = zoomed;//줌배율도 공유
-                        rzoomedIndex = zoomedIndex;
-                        _rregPoint.scaleX = _regPoint.scaleX;
-                        _rregPoint.scaleY = _regPoint.scaleY;
-                        _rregPoint.rotation = _regPoint.rotation;
-                        _rregPoint.x = _regPoint.x;
-                        _rregPoint.y = _regPoint.y;
-                        _rcanvasPanel.x = _canvasPanel.x;
-                        _rcanvasPanel.y = _canvasPanel.y;
-                        trace('위치 똑같이 해줌');
+                        syncReplayCanvasWithDrawMode();
                     }
                     else
                     {
                         canvasFitWindow();
                         rzoomed = 1;
-                        _rregPoint.scaleX = 1;
-                        _rregPoint.scaleY = 1;
+                        rregPoint.scaleX = 1;
+                        rregPoint.scaleY = 1;
                         rzoomedIndex = zoomArr.indexOf(rzoomed);
                     }
                 }
 
                 checkCutFrameButtons();
-                updateReplayBarPos(stage.stageWidth,stage.stageHeight);
+                updateReplayBarPos(stage.stageWidth);
                 updateReplayCanvasBounds();
                 updateRCursorScale(rzoomed);
                 topBar.resetHintColor();
@@ -14074,62 +14267,33 @@
                 if(makeSkipImageFlag === 1)
                 {
                     replayTimeBox["frameInfo"].text = "Loading...";
-                    if(isDeepUndoON) setDeepUndoUI(true);
-                    else
-                    {
-                        sideBar.visible = false;
-                        changeTopBarIcons("replay");
-                    }
-
-                    if(makeSKipImageWaitTimer === 0)
-                    {
-                        makeSKipImageWaitTimer = setTimeout(function():void
-                        {
-                            makeSKipImageWaitTimer = 0;
-                            makeSkipImage();
-                        },60);
-                    }
+                    sideBar.visible = false;
+                    changeTopBarIcons("replay");
+                    setMakeSkipImage();
                 }
                 else if(makeSkipImageFlag === 0)
                 {
-                    if(isDeepUndoON === false)
+                    if(replayONUndoUpdate)
                     {
-                        if(replayONUndoUpdate)
-                        {
-                            const totalFrame:Number = TOTAL_FRAME;
-                            rDataReadFlag = false;
-                            replayTimeBox["frameInfo"].text = totalFrame+" / " + totalFrame;
-                            replayTimeBox["replayNowBar"].width = (totalFrame === 0) ? 0 : replayTimeBox["replayTotalBar"].width;
-                            clearCanvasReplayMode();
-                            resetReplayTime();
-                            rNowFrame = totalFrame;
-                            rPrevFrame = totalFrame-1;
+                        const totalFrame:Number = TOTAL_FRAME;
+                        rDataReadFlag = false;
+                        replayTimeBox["frameInfo"].text = totalFrame+" / " + totalFrame;
+                        replayTimeBox["replayNowBar"].width = (totalFrame === 0) ? 0 : replayTimeBox["replayTotalBar"].width;
+                        clearCanvasReplayMode();
+                        resetReplayTime();
+                        rNowFrame = totalFrame;
+                        rPrevFrame = totalFrame-1;
 
-                            rcanvas1BitmapData.dispose();
-                            rcanvas1BitmapData = canvas1BitmapData.clone();
-                            rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-                            changeCanvasSizeReplayMode(canvas1Bitmap.width,canvas1Bitmap.height);
-                            setBackgroundColorReplayMode(CANVAS_BG_COLOR);
-                        }
-
-                        checkCanvasPanelPos(flag);
-                        removeInputEventDrawMode();
-                        addInputEventReplayMode();
+                        rcanvas1BitmapData.dispose();
+                        rcanvas1BitmapData = canvas1BitmapData.clone();
+                        rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+                        changeCanvasSizeReplayMode(canvas1Bitmap.width,canvas1Bitmap.height);
+                        setBackgroundColorReplayMode(CANVAS_BG_COLOR);
                     }
 
-                    if(isDeepUndoON)
-                    {
-                        setDeepUndoUI(true);
-                        //파일 끝 프레임으로 스킵해줘서 rPrevFrame을 갱신해줘야함
-                        _jumpFrame(undoData.getRFileTotalFrame());
-                        _jumpFrame(rPrevFrame);
-                        rOneSkipFlagSave = true;
-                    }
-                    else
-                    {
-                        sideBar.visible = false;
-                        changeTopBarIcons("replay");
-                    }
+                    checkCanvasPanelPos(flag);
+                    sideBar.visible = false;
+                    changeTopBarIcons("replay");
                 }
             }
         }
@@ -14147,7 +14311,7 @@
 
             if(isCursorInDrawArea())
             {
-                setHandTool(true);
+                handTool(true);
             }
             else
             {
@@ -14185,18 +14349,16 @@
             const key:Object = gKey;
             if(isPressingControl())
             {
-                if(keyBuffer.length === 2)
+                checkCommandSubKey(2,function(input:int):void
                 {
-                    subKey = keyBuffer[1];
-                        
-                    if(subKey === key.z || subKey === key.dot) superUndo();
-                    else if(subKey === key.c || subKey === key.m)
+                    const key:Object = gKey;
+                    if(input === key.z || input === key.dot) superUndo();
+                    else if(input === key.c || input === key.m)
                     {
                         exitDeepUndoMode();
                         setCaptureReady();
                     }
-                    
-                }
+                })
                 return;
             }
 
@@ -14239,7 +14401,7 @@
 
             if(targetName && (targetName.indexOf("rcanvas") !== -1 || targetName === "stageBG"))
             {
-                setHandTool(true);
+                handTool(true);
                 return;
             }
 
@@ -14249,7 +14411,7 @@
             {
                 case "replayRotateButton":
                 {
-                    setRotateTool(true);
+                    rotateTool(true);
                 }
                 break;
 
@@ -14379,19 +14541,17 @@
 
             const targetName:String = e.target.name;
 
-            if(targetName === "saveButton")
-            {
-                saveFile(true);
-            }
-            else if(targetName === "loadButton")
-            {
-                loadFile(true);
-            }
+            if(targetName === "saveButton") saveFile(true);
+            else if(targetName === "loadButton") loadFile(true);
             else
             {
-                if(fillPenStarted === true)
+                if(fillPenStarted)
                 {
-                    setFillPenTool.ok();
+                    fillPenTool.ok();
+                }
+                else if(maskToolStarted)
+                {
+                    maskTool.apply();
                 }
                 else if(!isSidebarVisible && sideBar.visible)
                 {
@@ -14597,9 +14757,9 @@
                 if(lassoMenuTempOFF)
                 {
                     lassoMenu.visible = false;
-                    if(isNowTool(TOOL_HAND)) setHandTool();
-                    else if(isNowTool(TOOL_ZOOM)) setZoomTool();
-                    else if(isNowTool(TOOL_ROTATE)) setRotateTool();
+                    if(isNowTool(TOOL_HAND)) handTool();
+                    else if(isNowTool(TOOL_ZOOM)) zoomTool();
+                    else if(isNowTool(TOOL_ROTATE)) rotateTool();
                 }
                 else
                 {
@@ -14626,7 +14786,7 @@
                     {
                         lassoMenu.visible = false;
                         lassoMenuTempOFF = true;
-                        setRotateTool();
+                        rotateTool();
                     }
                     break;
 
@@ -14634,7 +14794,7 @@
                     {
                         lassoMenu.visible = false;
                         lassoMenuTempOFF = true;
-                        setZoomTool();
+                        zoomTool();
                     }
                     break;
 
@@ -14642,7 +14802,7 @@
                     {
                         lassoMenu.visible = false;
                         lassoMenuTempOFF = true;
-                        setHandTool(false);
+                        handTool(false);
                     }
                     break;
                     
@@ -14670,7 +14830,7 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted) return;
+            if(fillPenStarted || maskToolStarted) return;
 
             const target:DisplayObject = e.target as DisplayObject;
             if(!target) return;
@@ -14726,7 +14886,7 @@
                 case "traceVisibleOFFButton":
                 case "appResetButton":
                 {
-                    if(toolBox2ON || fillPenStarted || !isNowKey(0) || e.target.alpha < 1.0)
+                    if(toolBox2ON || !isNowKey(0) || e.target.alpha < 1.0)
                         return;
                         
                     checkButtonUp(targetName);
@@ -14805,15 +14965,15 @@
             {
                 switch (nowTool)
                 {
-                    case TOOL_FILL_PEN:setFillPenTool.start();break;
-                    case TOOL_PEN:setPenTool(true);break;
-                    case TOOL_ERASE:setPenTool(false);break;
-                    case TOOL_LINE:setLineTool(true);break;
-                    case TOOL_HAND:setHandTool();break;
-                    case TOOL_LASSO:setLassoTool();break;
-                    case TOOL_ROTATE:setRotateTool();break;
-                    case TOOL_ZOOM:setZoomTool();break;
-                    case TOOL_MOVE:setMoveTool();break;
+                    case TOOL_FILL_PEN:fillPenTool.start();break;
+                    case TOOL_PEN:penTool(true);break;
+                    case TOOL_ERASE:penTool(false);break;
+                    case TOOL_LINE:lineTool(true);break;
+                    case TOOL_HAND:handTool();break;
+                    case TOOL_LASSO:lassoTool();break;
+                    case TOOL_ROTATE:rotateTool();break;
+                    case TOOL_ZOOM:zoomTool();break;
+                    case TOOL_MOVE:moveTool();break;
                 }
             }
         }
