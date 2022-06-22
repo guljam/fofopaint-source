@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.72;
+        private const APP_VERSION:Number = 14.73;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -1043,7 +1043,7 @@
             }
         }
 
-        private function sideBarVisibleMouseLeaveEvent(e:Event):void
+        private function mouseLeaveSideBarON():void
         {
             if(replayModeON || captureModeON || sideBarONMouseLeaveTimer > 0)
             {
@@ -1060,7 +1060,6 @@
                     penCursorPosition.checkSideBarON();
                 }
             }
-            rightMouseClickON = false;
         }
 
         private function setWindowTitleStar():void
@@ -1944,15 +1943,17 @@
         }
 
 
-        private function stageHintOFFEvent(e:Event):void
+        private function stageMouseLeaveEvent(e:Event):void
         {
+            mouseClickON = false;
+            rightMouseClickON = false;
+            mouseDragON = false;
+            
             setControlBoxInfoOFF();
             setTopBarHintOFF();
             
             if(resizeCanvas.isCanvasSizeChanging())
             {
-                mouseClickON = false;
-                rightMouseClickON = false;
                 resizeCanvas.exitCanvasResize(true);
             }
             else if(toolBox2ON)
@@ -1962,6 +1963,8 @@
                     closeToolBox2();
                 }
             }
+
+            mouseLeaveSideBarON();
         }
 
         private function updatePenCursorPositionEvent(e:MouseEvent):void
@@ -1974,7 +1977,7 @@
         private function closureUpdatePenCursorPosition():Object
         {
             const _penSizeCursor:Shape = penSizeCursor;
-            const sideBarVisibleOffset:Number = 20;
+            const sideBarVisibleOffset:Number = 15;
             const useCursorTool:int = TOOL_LINE;
             const _isPenTool:Boolean = isPenOrLineTool();
             const _isEraseTool:Boolean = isEraseTool();
@@ -3651,7 +3654,7 @@
             stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
             stageMouseMoveEvent.add(updatePenCursorPositionEvent);
             stage.addEventListener(MouseEvent.MOUSE_UP,updatePenCursorPositionEvent,false,-1);
-            stage.addEventListener(Event.MOUSE_LEAVE,stageHintOFFEvent,false);
+            stage.addEventListener(Event.MOUSE_LEAVE,stageMouseLeaveEvent,false);
         }
 
         private function addInputEventStageChild():void
@@ -3686,7 +3689,6 @@
             controlBox.addEventListener(MouseEvent.MOUSE_OVER,controlBoxHintONEvent);
             controlBox.addEventListener(MouseEvent.MOUSE_OUT,controlBoxHintOFFEvent);
 
-            stage.addEventListener(Event.MOUSE_LEAVE,sideBarVisibleMouseLeaveEvent);
             topBar.addEventListener(MouseEvent.CLICK,topBarClickEvent);
         }
 
