@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.70;
+        private const APP_VERSION:Number = 14.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -14147,7 +14147,7 @@
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
 
-            if(sideBar.hitTestPoint(mouseX,mouseY) === false)
+            if(isCursorInDrawArea() && sideBar.hitTestPoint(mouseX,mouseY) === false)
             {
                 handTool(true);
             }
