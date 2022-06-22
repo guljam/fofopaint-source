@@ -33,13 +33,6 @@
 		public var fillPenUndo:SimpleButton = fillPenUndo;
 		public var fillPenCancel:SimpleButton = fillPenCancel;
 		public var toolSelectCursor:SimpleButton = toolSelectCursor;
-		public var toolMask:SimpleButton = toolMask;
-		public var maskOK:SimpleButton = maskOK;
-		public var maskCancel:SimpleButton = maskCancel;
-		public var maskUndo:SimpleButton = maskUndo;
-		public var maskApply:SimpleButton = maskApply;
-		public var maskErase:SimpleButton = maskErase;
-		public var maskDelete:SimpleButton = maskDelete;
 		private var lastTool:String = "toolPen";
 		
 		public const BOX_WIDTH:Number = 34;
@@ -103,58 +96,6 @@
 				zoomIconOFF();
 			}
 		}
-		
-		public function maskToolIconAlpha(alpha:Number):void
-		{
-			toolZoom.alpha = alpha;
-			toolRotate.alpha = alpha;
-			toolMirror.alpha = alpha;
-			toolMove.alpha = alpha;
-			toolSpuit.alpha = alpha;
-			toolLasso.alpha = alpha;
-			toolLine.alpha = alpha;
-			toolTrace.alpha = alpha;
-		}
-
-		public function maskToolIconOFF():void
-		{
-			maskOK.visible = false;
-			maskCancel.visible = false;
-			maskUndo.visible = false;
-			maskApply.visible = false;
-			maskErase.visible = false;
-			maskDelete.visible = false;
-
-			toolUndo.visible = true;
-			toolRedo.visible = true;
-			toolMask.visible = true;
-			toolPen.visible = true;
-			toolErase.visible = true;
-			toolFillPen.visible = true;
-			toolSelectCursor.visible = true;
-
-			maskToolIconAlpha(1.0);
-		}
-
-		public function maskToolIconON():void
-		{
-			maskOK.visible = true;
-			maskCancel.visible = true;
-			maskUndo.visible = true;
-			maskApply.visible = true;
-			maskErase.visible = true;
-			maskDelete.visible = true;
-
-			toolUndo.visible = false;
-			toolRedo.visible = false;
-			toolMask.visible = false;
-			toolPen.visible = false;
-			toolErase.visible = false;
-			toolFillPen.visible = false;
-			toolSelectCursor.visible = false;
-
-			maskToolIconAlpha(0.15);
-		}
 
 		public function fillPenIconOFF():void
 		{
@@ -195,7 +136,6 @@
 			toolZoom.alpha = alpha;
 			toolUndo.alpha = alpha;
 			toolRedo.alpha = alpha;
-			toolMask.alpha = alpha;
 		}
 
 		public function deepUndoEtcIconAlpha(alpha:Number):void
@@ -230,11 +170,6 @@
 			y = deafultY;
 		}
 
-		public function checkMaskToolIconBottom():void
-		{
-			_checkBottomPos((maskDelete.localToGlobal(new Point(0,0)) as Point).y + maskDelete.height);
-		}
-
 		public function checkDeepUndoIconBottom():void
 		{
 			_checkBottomPos((deepUndoCancel.localToGlobal(new Point(0,0)) as Point).y + deepUndoCancel.height);
@@ -250,7 +185,7 @@
 			deepUndoOK.visible = true;
 			deepUndoCancel.visible = true;
 			toolMove.visible = false;
-			toolMask.visible = false
+			toolPen.visible = false;
 			toolSelectCursor.visible = false;
 			deepUndoEtcIconAlpha(0.15);
 		}
@@ -260,7 +195,7 @@
 			deepUndoOK.visible = false;
 			deepUndoCancel.visible = false;
 			toolMove.visible = true;
-			toolMask.visible = true;
+			toolPen.visible = true;
 			toolSelectCursor.visible = true;
 
 			deepUndoEtcIconAlpha(1.0);
@@ -331,7 +266,6 @@
 				toolMove,
 				toolRotate,
 				toolTrace,
-				toolMask,
 				toolPen,
 				toolFillPen,
 				toolErase,
@@ -344,12 +278,6 @@
 				fillPenOK,
 				fillPenCancel,
 				fillPenUndo,
-				maskOK,
-				maskCancel,
-				maskUndo,
-				maskApply,
-				maskErase,
-				maskDelete
 			];
 
 			const base:ColorTransform = new ColorTransform();
@@ -396,26 +324,14 @@
 			zoomOutButton.y = toolRotate.y;
 			deepUndoOK.x = toolMove.x;
 			deepUndoOK.y = toolMove.y;
-			deepUndoCancel.x = toolMask.x;
-			deepUndoCancel.y = toolMask.y;
+			deepUndoCancel.x = toolPen.x;
+			deepUndoCancel.y = toolPen.y;
 			fillPenOK.x = toolErase.x;
 			fillPenOK.y = toolErase.y;
 			fillPenCancel.x = toolSpuit.x;
 			fillPenCancel.y = toolSpuit.y;
 			fillPenUndo.x = toolFillPen.x;
 			fillPenUndo.y = toolFillPen.y;
-			maskOK.x = toolUndo.x;
-			maskOK.y = toolUndo.y;
-			maskApply.x = toolRedo.x;
-			maskApply.y = toolRedo.y;
-			maskCancel.x = toolMask.x;
-			maskCancel.y = toolMask.y;
-			maskUndo.x = toolPen.x;
-			maskUndo.y = toolPen.y;
-			maskErase.x = toolErase.x;
-			maskErase.y = toolErase.y;
-			maskDelete.x = toolFillPen.x;
-			maskDelete.y = toolFillPen.y;
 
 			setChildIndex(zoomInButton,numChildren-1);
 			setChildIndex(zoomOutButton,numChildren-1);
@@ -469,13 +385,6 @@
 			fillPenOK.visible = false;
 			fillPenCancel.visible = false;
 			fillPenUndo.visible = false;
-
-			maskOK.visible = false;
-			maskCancel.visible = false;
-			maskUndo.visible = false;
-			maskApply.visible = false;
-			maskErase.visible = false;
-			maskDelete.visible = false;
 
 			// initPenSizeCursor();
 			toolPen.useHandCursor = false;

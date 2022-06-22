@@ -14,18 +14,14 @@
 		{
 			visible = false;
 
-			if(rightSide)
-				x = stage.stageWidth-w;
-			else
-				x = 0;
+			if(rightSide) x = stage.stageWidth-w;
+			else x = 0;
 		}
 
 		public function setTempVisibleON(toolBarWidth:Number,rightSide:Boolean):void
 		{
-			if(rightSide)
-				x = x+w-toolBarWidth;
-			else
-				x = -w+toolBarWidth;
+			if(rightSide) x = x+w-toolBarWidth;
+			else x = -w+toolBarWidth;
 
 			visible = true;
 		}

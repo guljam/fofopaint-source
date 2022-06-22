@@ -54,12 +54,10 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
-    import flash.trace.Trace;
-    import flash.trace.Trace;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.66;
+        private const APP_VERSION:Number = 14.67;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -366,13 +364,13 @@
                     ,toolTipBoxTimer:uint = 0
 
         //리플레이 관련 변수
-        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1421.301")
+        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1466.301")
                     ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata1.301")
                     ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata.301")
                     ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("temp_repdata.301") //파일을 저장하거나 불러올때 씀
-                    ,rSkipImageFolder:File = File.applicationStorageDirectory.resolvePath("skipImages")
-                    ,rSkipImageFrameDataFile:File = File.applicationStorageDirectory.resolvePath("skipframedata.301")
-                    ,rFirstImageFile:File = rSkipImageFolder.resolvePath("0.img")
+                    ,rJumpImageFolder:File = File.applicationStorageDirectory.resolvePath("jumpImages")
+                    ,rJumpImageFrameDataFile:File = File.applicationStorageDirectory.resolvePath("jumpframedata.301")
+                    ,rFirstImageFile:File = rJumpImageFolder.resolvePath("0.img")
                     ,rFileStream:FileStream = new FileStream()//함수들을 왔다갔다 해야해서 전역으로 하나 ,
                     ,rregPoint:Sprite = new Sprite()//회전 스프라이트 부모
                     ,rcanvasPanel:Sprite = new Sprite()
@@ -407,18 +405,18 @@
                     ,rSpeed:Number = 1 //리플레이 속도 for루프로 2번씩혹은 3번씩 읽히게 만듬
                     
                     // ,rFileTotalFrame:Number = 0 //file에저장된 프레임수 누적해서 저장
-                    ,rNowFrame:Number = 0 //dodraw에서 현재까지 플레이된 프레임수 누적, skip frame이 가동됐을때 프레임 누적갯수를 세서 썸네일 이미지 만들어줌
-                    ,rPrevFrame:Number = 0 //skip one frame 에서 이전 프레임 탐색할때 이 프레임으로 탐색해줌 tickdraw에서 data 끝의 프레임을 저장함
+                    ,rNowFrame:Number = 0 //dodraw에서 현재까지 플레이된 프레임수 누적, jump frame이 가동됐을때 프레임 누적갯수를 세서 썸네일 이미지 만들어줌
+                    ,rPrevFrame:Number = 0 //jump one frame 에서 이전 프레임 탐색할때 이 프레임으로 탐색해줌 tickdraw에서 data 끝의 프레임을 저장함
                     ,rFirstImage:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rFirstBGColor:uint = CANVAS_BG_COLOR
                     ,rzoomed:Number = 1.0 //리플레이 줌
-                    ,rSkipImageIndexSave:int = -2 //썸네일 인덱스 바뀌면 여기다 저장
-                    ,rSkipImageFrameData:Array = [0] //스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
-                    ,makeSkipImageFlag:int = 0 //0이상이면 make skip image함수를 실행함. skipframe함수에서 체크
-                    ,makeSKipImageWaitTimer:int = 0 //skip image 함수 중복 실행 방지
-                    ,rOnejumpFlagSave:Boolean = false //oneskipframe에서 prev인지 next인지 마지막 상태 저장해줌, 방향바꿀대 버튼 2번씩 눌러야 스킵되는거 방지하는거임
+                    ,rJumpImageIndexSave:int = -2 //썸네일 인덱스 바뀌면 여기다 저장
+                    ,rJumpImageFrameData:Array = [0] //스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
+                    ,makeJumpImageFlag:int = 0 //0이상이면 make jump image함수를 실행함. jumpframe함수에서 체크
+                    ,makeSKipImageWaitTimer:int = 0 //jump image 함수 중복 실행 방지
+                    ,rOnejumpFlagSave:Boolean = false //onejumpframe에서 prev인지 next인지 마지막 상태 저장해줌, 방향바꿀대 버튼 2번씩 눌러야 스킵되는거 방지하는거임
                     ,keyHoldTimer:int = 0 //키 오래 누르고 있으면 한꺼번에 처리해주는 타이머
-                    ,rOneSkipPrevSum:Number = 0 //뒤로 스킵키 오래누르고 있으면 프레임 합산은 여기다가 올려줌
+                    ,rOneJumpPrevSum:Number = 0 //뒤로 스킵키 오래누르고 있으면 프레임 합산은 여기다가 올려줌
                     ,replayONUndoUpdate:Boolean = true//undo가 된 상태에서 리플레이 켜줄때 file까지만 읽은 상태까지 프레임 스킵 해주는
                     ,rRestartTimer:uint = 0 //리스타트 타이머
                     ,rRestartTimerCount:uint = 0 //리스타트 타이머
@@ -427,8 +425,8 @@
                     ,rCanvasBounds:Object = null
                     
                     ,doDrawSlowEventON:Boolean = false //doDrawSlowEvent가 켜지면 올려줌
-                    ,rSkipMouseON:Boolean = false //스킵프레임 마우스로 할때 올려줌 dodraw에서 바조절 안되게 하려고 하는거임
-                    ,rDataPreviewCacheImages:Array = [] //이전 탐색 프레임 빠르게 하기 위해서 skipimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
+                    ,rJumpMouseON:Boolean = false //스킵프레임 마우스로 할때 올려줌 dodraw에서 바조절 안되게 하려고 하는거임
+                    ,rDataPreviewCacheImages:Array = [] //이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
                     ,rSpeedLastStr:String = ""
 
         //about 관련 변수
@@ -441,7 +439,7 @@
                     ,cutFrameActiveButton:SimpleButton
                     ,cutFrameClickCounter:uint = 0 //1번 누르면 미리 보기, 2번 누르면 실행
                     ,cutFrameClickedButton:int = CUT_FRAME_NONE //무슨 버튼 눌렀는지 저장
-                    ,rCutDataSaveFrame:Number = 0//슈퍼언도나 앞짜르기 할때 마우스 왔다갔다 하면서 반복해서 눌러줄때 skiponeframe이 계속작동되는거 방지해줌 
+                    ,rCutDataSaveFrame:Number = 0//슈퍼언도나 앞짜르기 할때 마우스 왔다갔다 하면서 반복해서 눌러줄때 jumponeframe이 계속작동되는거 방지해줌 
 
         //스크린샷 관련 변수
                     ,captureModeON:Boolean = false //스크린샷 켜지면 올려줌
@@ -479,12 +477,6 @@
                     ,traceMemoryTraining:Boolean = false // 이거 켜지면 캔버스 그릴때 임시적으로 안보이게함
                     ,traceLastAlpha:Number = 0
 
-        //마스크 변수
-                    ,canvasMaskLayer:Sprite = new Sprite()
-                    ,canvasMaskBitmapdata:BitmapData = new BitmapData(1,1,true,0)
-                    ,canvasMaskBitmap:Bitmap = new Bitmap(canvasMaskBitmapdata,"auto",true)
-                    ,maskToolStarted:Boolean = false
-
         //그리드 레이어 변수 
                     ,canvasGrid:Sprite = new Sprite()//트레이스 레이어임
                     ,gridFlag:uint = 0
@@ -500,7 +492,6 @@
                     ,moveTool:Function = closureMoveTool()
                     ,setSpuitTool:Function = closureSpuitTool()
                     ,fillPenTool:Object = closureFillPenTool()
-                    ,maskTool:Object = closureMaskTool()
                     ,tickDraw:Object = closureTickDraw()
                     ,doDraw:Function = closureDoDraw()
                     ,checkAutoScroll:Object = closureAutoScroll()
@@ -910,9 +901,12 @@
             const mx:Number = mouseX;
             const my:Number = mouseY;
 
+            trace('mx',mx,my,'STAGE_LEFT_OFFSET',STAGE_LEFT_OFFSET,STAGE_RIGHT_OFFSET,STAGE_TOP_OFFSET,STAGE_BOTTOM_OFFSET)
+
             if(mx <= STAGE_LEFT_OFFSET || mx >= stage.stageWidth -STAGE_RIGHT_OFFSET
             || my <= STAGE_TOP_OFFSET  || my >= stage.stageHeight-STAGE_BOTTOM_OFFSET)
             {
+                trace('리턴함')
                 return false;
             }
             return true;
@@ -1085,8 +1079,8 @@
             appResetFlag = true;
             if(appDataFile.exists) appDataFile.deleteFile(); //파일이 있으면 지워줌
             if(repFile.exists) repFile.deleteFile();
-            if(rSkipImageFolder.exists) rSkipImageFolder.deleteDirectory(true);
-            if(rSkipImageFrameDataFile.exists) rSkipImageFrameDataFile.deleteFile();
+            if(rJumpImageFolder.exists) rJumpImageFolder.deleteDirectory(true);
+            if(rJumpImageFrameDataFile.exists) rJumpImageFrameDataFile.deleteFile();
             if(undoDataFile.exists) undoDataFile.deleteFile();
             if(traceImageFile.exists) traceImageFile.deleteFile();
         }
@@ -1217,119 +1211,6 @@
             const maxIndex:int = Math.max(gif,jpg,png,find2020);
 
             return maxIndex === find2020;
-        }
-
-        private function closureMaskTool():Object
-        {
-            var clickedButton:String;
-
-            function maskToolDelete():void
-            {
-                trace('deelte');
-            }
-
-            function maskToolErase():void
-            {
-                trace('erase');
-            }
-
-            function maskToolUndo():void
-            {
-                trace('undo');
-            }
-
-            function maskToolApply():void
-            {
-                trace('apply');
-            }
-
-            function maskToolCancel():void
-            {
-                removeEvents();
-                trace('cance');
-                setMaskToolUI(false);
-            }
-
-            function maskToolOK():void
-            {
-                trace('ok');
-                maskToolCancel();
-            }
-
-            function mouseMoveMaskTool(e:MouseEvent):void
-            {
-
-            }
-
-            function keyUpMaskTool(e:KeyboardEvent):void
-            {
-            }
-
-            function mouseUpMaskTool(e:MouseEvent):void
-            {
-                const targetName:String = e.target.name;
-
-                if(clickedButton === targetName)
-                {
-                    if(targetName === "maskOK") maskToolOK();
-                    else if(targetName === "maskCancel") maskToolCancel();
-                    else if(targetName === "maskApply") maskToolApply();
-                    else if(targetName === "maskUndo") maskToolUndo();
-                    else if(targetName === "maskErase") maskToolErase();
-                    else if(targetName === "maskDelete") maskToolDelete();
-                    clickedButton = null;
-                }
-            }
-
-            function mouseDownMaskTool(e:MouseEvent):void
-            {
-                const targetName:String = e.target.name;
-                trace('targetName',targetName);
-
-                if(targetName === "maskOK"
-                || targetName === "maskCancel"
-                || targetName === "maskApply"
-                || targetName === "maskUndo"
-                || targetName === "maskErase"
-                || targetName === "maskDelete")
-                {
-                    clickedButton = targetName;
-                    trace('저장');
-                }
-                else
-                {
-                    trace('안해줌')
-                    clickedButton = null;
-                }
-            }
-
-            function removeEvents():void
-            {
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownMaskTool);
-                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpMaskTool);
-                stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpMaskTool);
-                stageMouseMoveEvent.remove(mouseMoveMaskTool);
-            }
-
-            function addEvents():void
-            {
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownMaskTool);
-                stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpMaskTool);
-                stage.addEventListener(KeyboardEvent.KEY_UP,keyUpMaskTool);
-            }
-
-            function start():void
-            {
-                trace('start');
-                clickedButton = null;
-                addEvents();
-            }
-
-            return {
-                start:start,
-                ok:maskToolOK,
-                cancel:maskToolCancel
-            }
         }
 
         private function closureFillPenTool():Object
@@ -1698,7 +1579,7 @@
             const moveEventLast:Point = new Point(0,0);
             const moveEventLast2:Point = new Point(0,0);
             var penSmoothTimer:int; //펜 스무딩 할때 커서가 움직이지 않을때 나머지 그려지지않은 점들 이어주는 타이머임
-            var distLimit:Number;//penmove에서 distlimit이하이면 skip해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
+            var distLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var shortDistFlag:Boolean; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
             var subLayerFlag:Boolean;
             const sqPenCursorLast:Point = new Point(0,0);
@@ -1937,8 +1818,10 @@
                 stage.removeEventListener(MouseEvent.MOUSE_UP, penToolUpEvent);
                 stageMouseMoveEvent.remove(penToolMoveEvent);
 
-                const mx:Number = cd.mouseX+xOffset;
-                const my:Number = cd.mouseY+xOffset;
+                const xx:Number = cd.mouseX;
+                const yy:Number = cd.mouseY;
+                const mx:Number = xx+xOffset;
+                const my:Number = yy+xOffset;
 
                 if(penToolFlag && _traceMemoryTraining) canvasTraceLayer.visible = true;
                 
@@ -1962,7 +1845,7 @@
                         drawDot(xShape,xSize,xColor,smoothPos.x,smoothPos.y);
                     }
                 }
-                else if(mouseMovedFlag === false && ((click.x === x && click.y === y) || shortDistFlag))
+                else if(mouseMovedFlag === false && ((click.x === xx && click.y === yy) || shortDistFlag))
                 {
                     rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,_airBrushON]);
                     drawDot(xShape,xSize,xColor,mx,my);
@@ -1976,8 +1859,11 @@
                         rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]); //cx cy 처음 클릭한 지점으로 지정해줘야함
                         rDataBuffer.push(["moveTo",mx,my]);
                     }
-                    cdg.lineTo(mx,my);
-                    rDataBuffer.push(["lineTo",mx,my]);
+                    else
+                    {
+                        cdg.lineTo(mx,my);
+                        rDataBuffer.push(["lineTo",mx,my]);
+                    }
                 }
 
                 drawDone();
@@ -2049,7 +1935,7 @@
                 sqPenCursorLast.setTo(smoothPos.x,smoothPos.y);
 
                 penSmoothTimer = 0; //펜 스무딩 할때 커서가 움직이지 않을때 나머지 그려지지않은 점들 이어주는 타이머임
-                distLimit = xSize/10;//penmove에서 distlimit이하이면 skip해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
+                distLimit = xSize/10;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
                 shortDistFlag = false; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
 
                 if(readyAddUndo === false) checkUndoReady();
@@ -2655,8 +2541,7 @@
         {
             const _lassoMenu:lassoButtons = lassoMenu;
             const _lassoBox:Sprite = lassoBox;
-            const zerop:Point = new Point(0,0);
-            const g:Point = _lassoBox.localToGlobal(zerop);
+            const g:Point = _lassoBox.localToGlobal(new Point(0,0));
             const floor:Function = Math.floor;
             const stw:Number = stage.stageWidth;
             const sth:Number = stage.stageHeight;
@@ -2664,10 +2549,9 @@
             var lassoH:Number = _lassoMenu.height;
 
             if(lassoW > stw) lassoW = stw;
-            if(lassoH > sth) lassoH = sth;
 
             _lassoMenu.x = floor(g.x-lassoW/2);
-            _lassoMenu.y = floor(g.y+lassoH);
+            _lassoMenu.y = floor(g.y+lassoBox.height/2+15);
 
             checkBoxPosition(_lassoMenu);
         }
@@ -2768,10 +2652,10 @@
                 case "toolMask": str = "Mask (sift+x, shift+,)"; break;
                 case "maskOK": str = "OK (enter, shift+x, shift+,)"; break;
                 case "maskCancel": str = "Cancel (esc, backspace)"; break;
-                case "maskApply": str = "Apply (right-click, a, l)"; break;
+                case "maskApply": str = "Apply to mask (right-click, a, l)"; break;
                 case "maskUndo": str = "Undo (z, .)"; break;
-                case "maskErase": str = "Erase (d, j)"; break;
-                case "maskDelete": str = "Delete (del, shift+d, shift+j)"; break;
+                case "maskErase": str = "Eraser (d, j)"; break;
+                case "maskDelete": str = "Delete all mask (del, shift+d, shift+j)"; break;
             }
             return str;
         }
@@ -4465,7 +4349,7 @@
             if(!target) return;
             const targetName:String = target.name;
 
-            if(lassoToolON || fillPenStarted || maskToolStarted || target.alpha < 1.0) return;
+            if(lassoToolON || fillPenStarted || target.alpha < 1.0) return;
 
             switch (targetName)
             {
@@ -5266,7 +5150,7 @@
             rSpeed = 1;
             undoData.setRFileTotalFrame(0);
             TOTAL_FRAME = 0;
-            makeSkipImageFlag = 0;
+            makeJumpImageFlag = 0;
             topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x;
 
             resetTraceImageInfo();
@@ -5645,8 +5529,8 @@
             const replayTotalBar:Sprite = replayTimeBox["replayTotalBar"] as Sprite;
             const replayNowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
             //첫 이미지 새로 만들어줌
-            if(rSkipImageFolder.exists) rSkipImageFolder.deleteDirectory(true);
-            rSkipImageFolder.createDirectory();
+            if(rJumpImageFolder.exists) rJumpImageFolder.deleteDirectory(true);
+            rJumpImageFolder.createDirectory();
 
             updateFirstImage(rcanvas1BitmapData,RCANVAS_BG_COLOR);
 
@@ -5672,7 +5556,7 @@
             }
             else if(rDataReadFlag === false)
             {
-                //make skipimage에서 변경해주기 때문에
+                //make jumpimage에서 변경해주기 때문에
                 if(repFileTemp.exists)//이미 있으면 지워주고
                 {
                     repFileTemp.deleteFile();
@@ -5696,7 +5580,7 @@
                 repFileTemp.copyTo(repFile,true);
                 repFileTemp.deleteFile();
 
-                makeSkipImage();
+                makeJumpImage();
                 rCursor.visible = false;
                 replayNowBar.width = 0;
                 saveOneTime = false;
@@ -5715,7 +5599,7 @@
         {
             if(rDataReadFlag === true)
             {
-                //위에서 setSkipOneFrame을 해줘서 rindex가 증가되었기 때문에
+                //위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
                 //실제 undo해줘야할 인덱스는 -1해줘야하는거임
                 forceUndoToIndex(rIndex);
                 resetReplayTime();
@@ -5734,8 +5618,8 @@
 
                 //썸네일 이미지도 날려줌
                 const _rframeSum:Number = rNowFrame;
-                const list:Array = rSkipImageFolder.getDirectoryListing();
-                const index:Number = getSkipImageIndex(_rframeSum);
+                const list:Array = rJumpImageFolder.getDirectoryListing();
+                const index:Number = getJumpImageIndex(_rframeSum);
                 //index번 이후 파일 삭제
                 for (var i:uint = 0,len:uint=list.length; i < len; i++)
                 {
@@ -5743,7 +5627,7 @@
                     if(fileNumber > index) list[i].deleteFile();
                 }
                 //framedata도 인덱스 이후꺼 날려줌
-                rSkipImageFrameData.splice(index+1);
+                rJumpImageFrameData.splice(index+1);
                 undoData.setRFileTotalFrame(_rframeSum);
                 TOTAL_FRAME = _rframeSum;
 
@@ -6103,18 +5987,18 @@
                 fs.open(repFile,FileMode.WRITE);
                 fs.close();
 
-                if(rSkipImageFolder.exists)
-                    rSkipImageFolder.deleteDirectory(true);
+                if(rJumpImageFolder.exists)
+                    rJumpImageFolder.deleteDirectory(true);
 
-                rSkipImageFolder.createDirectory();
+                rJumpImageFolder.createDirectory();
                 updateFirstImage(canvas1BitmapData,CANVAS_BG_COLOR);
             }
         }
 
-        private function resetSkipImage():void
+        private function resetJumpImage():void
         {
             const fs:FileStream = new FileStream();
-            const file:File = rSkipImageFolder.resolvePath("0.img");
+            const file:File = rJumpImageFolder.resolvePath("0.img");
             fs.open(file,FileMode.READ);
             const data:Array = fs.readObject() as Array;
             fs.close();
@@ -6140,7 +6024,7 @@
             const h:int = bmpd.height;
             const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
-            rSkipImageFrameData = [0];
+            rJumpImageFrameData = [0];
 
             bmpd.copyPixelsToByteArray(newRectangle,ba);
             rFirstImage = bmpd.clone();
@@ -6307,10 +6191,10 @@
             rLastBytes = 0;
             rNowFrame = 0;
             rPrevFrame = 0;
-            rSkipImageIndexSave = -2;
+            rJumpImageIndexSave = -2;
             replayAllEnd = true;
             replayONUndoUpdate = false;
-            // replayModeONFirstSkip = true;
+            // replayModeONFirstJump = true;
             doDrawSlowEventON = false;
             rSpeedLastStr = "";
             tickDraw.reset();
@@ -6890,7 +6774,7 @@
             }
         }
 
-        private function getAutoSkipFrame(oldspeed:Number):Number
+        private function getAutoJumpFrame(oldspeed:Number):Number
         {
             const biasSpeed:Number = REPLAY_SLOWDRAW_ACTIVE_SPEED;
             const minTime:Number = TOTAL_FRAME/(biasSpeed*STAGE_FRAME);
@@ -6899,9 +6783,9 @@
             const unitTime:Number = subTime/subSpeed;
             const nowSpeed:Number = oldspeed-biasSpeed;
             const newTime:Number = (subTime-unitTime*nowSpeed)+40;
-            const newSkipFrame:Number = Math.floor(TOTAL_FRAME/newTime);
+            const newJumpFrame:Number = Math.floor(TOTAL_FRAME/newTime);
 
-            return newSkipFrame;
+            return newJumpFrame;
         }
 
         private function setSlowDraw():void
@@ -6930,7 +6814,7 @@
             
             if(nt - rFrameTextDelayTime >= 500)
             {   
-                const nextFrame:Number = getAutoSkipFrame(rSpeed);
+                const nextFrame:Number = getAutoJumpFrame(rSpeed);
                 const finalFrame:Number = rNowFrame+Math.floor(nextFrame/2);
                 const totalF:Number = TOTAL_FRAME;
                 const _rFrameSum:Number = rNowFrame;
@@ -6964,29 +6848,29 @@
             const _JUMP_FRAME_FRONT:int = JUMP_FRAME_FRONT;
             
             var rDataLen:uint;
-            var prevSkipImageSaveCount:Number;
-            var prevSkipImageSaveIndex:uint;
+            var prevJumpImageSaveCount:Number;
+            var prevJumpImageSaveIndex:uint;
             var nt:int;
             var rFrameCursorDelayTime:int = 0; //커서 딜레이
             var _rFrameTextDelayTime:int = 0; //프레임 바 딜레이
             var getTimeStr:String;
             var timeStr:String;
             var readCount:Number = 0;
-            var skipImageGroupIndex:int;
+            var jumpImageGroupIndex:int;
             var _undoIndex:int = 0;
 
             function checkMakeCacheImage(jumpFlag:int):void
             {
                 if(jumpFlag === _JUMP_FRAME_ONCE || jumpFlag === _JUMP_FRAME_BACK)
                 {
-                    if(prevSkipImageSaveCount >= _CACHE_DIV_10)
+                    if(prevJumpImageSaveCount >= _CACHE_DIV_10)
                     {
-                        prevSkipImageSaveCount = 0;
-                        if(!rDataPreviewCacheImages[prevSkipImageSaveIndex])
+                        prevJumpImageSaveCount = 0;
+                        if(!rDataPreviewCacheImages[prevJumpImageSaveIndex])
                         {
-                            rDataPreviewCacheImages[prevSkipImageSaveIndex] = [rcanvas1BitmapData.clone(),rcanvas1BitmapData.width,rcanvas1BitmapData.height,RCANVAS_BG_COLOR,rFileCutBytes,rNowFrame];
+                            rDataPreviewCacheImages[prevJumpImageSaveIndex] = [rcanvas1BitmapData.clone(),rcanvas1BitmapData.width,rcanvas1BitmapData.height,RCANVAS_BG_COLOR,rFileCutBytes,rNowFrame];
                         }
-                        prevSkipImageSaveIndex++;
+                        prevJumpImageSaveIndex++;
                     }
                 }
             }
@@ -7054,7 +6938,7 @@
                     if(jumpFlag === _JUMP_FRAME_NONE || doDrawSlowEventON === true)//1프레임 이상일때만 재시작 타이머 가동
                     {
                         //reset replay time해주지 말고 그냥 end플래그만 올려줌
-                        //왜냐하면 리플레이 자연적으로 끝나고도 스킵프레임이나 oneframe skip을 해줄수가 있기 때문
+                        //왜냐하면 리플레이 자연적으로 끝나고도 스킵프레임이나 oneframe jump을 해줄수가 있기 때문
                         replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width;
                         replayTimeBox["frameInfo"].text = TOTAL_FRAME+" / " +TOTAL_FRAME;
                         stopReplay();//플레이 아이콘 내주지 말기
@@ -7095,7 +6979,7 @@
                     updateReplayRemainTime();
                 }
 
-                if(!rSkipMouseON)
+                if(!rJumpMouseON)
                 {
                     replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*rNowFrame/TOTAL_FRAME;
                 }
@@ -7133,26 +7017,26 @@
                         checkMakeCacheImage(jumpFlag);
                     }
                     tickDraw.next();
-                    prevSkipImageSaveCount++;
+                    prevJumpImageSaveCount++;
                     rNowFrame++;
                     readCount--;
                 }
             }
 
-            return function(skipCount:Number,jumpFlag:int,undoFlag:Boolean):void
+            return function(jumpCount:Number,jumpFlag:int,undoFlag:Boolean):void
             {
                 if(undoFlag)
                 {
-                    drawRData(skipCount,jumpFlag);
+                    drawRData(jumpCount,jumpFlag);
                     return;
                 }
 
                 if(replayStartON === false && !jumpFlag) return;
 
-                if(skipCount > 0)
+                if(jumpCount > 0)
                 {
                     //REPLAY_SLOWDRAW_ACTIVE_SPEED 이상으로 전체 재생 시간이 60초 이하일경우 작동
-                    if(skipCount > _REPLAY_SLOWDRAW_ACTIVE_SPEED)
+                    if(jumpCount > _REPLAY_SLOWDRAW_ACTIVE_SPEED)
                     {
                         if(REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME && jumpFlag === 0)
                         {
@@ -7161,18 +7045,18 @@
                         }
                     }
 
-                    prevSkipImageSaveCount = 0;
-                    prevSkipImageSaveIndex = 0;
-                    readCount = skipCount;
+                    prevJumpImageSaveCount = 0;
+                    prevJumpImageSaveIndex = 0;
+                    readCount = jumpCount;
 
-                    //skipone에서 뒤로 돌아갈때 setskipFrame을 호출하고
-                    //jumpframe이 점점 줄면서 이전프레임과 똑같이 되면 skipcount가 0이됨
+                    //jumpone에서 뒤로 돌아갈때 setjumpFrame을 호출하고
+                    //jumpframe이 점점 줄면서 이전프레임과 똑같이 되면 jumpcount가 0이됨
                     //이때 0이하가 되면 rTailFrame를 -1해줘서 계속 뒤로 넘어가게 해야함
-                    // if(skipCount === 0)
+                    // if(jumpCount === 0)
                     // {
                     //     rPrevFrame = rNowFrame-1;
                     // }
-                    if(!rDataReadFlag) drawFileData(skipCount,jumpFlag);
+                    if(!rDataReadFlag) drawFileData(jumpCount,jumpFlag);
                     drawRData(readCount,jumpFlag);
                 }
                 // else
@@ -7205,7 +7089,7 @@
             if(sec > 0) timeStr += (sec >= 10) ? sec : "0"+sec;
             else timeStr += "00";
 
-            if(hour === 0 && min === 0 && sec ===0)
+            if(hour === 0 && min === 0 && sec === 0)
             {
                 const milisec:Number = totalSec-floor(totalSec);
                 const milisecStr:String = milisec.toFixed(1);
@@ -7384,7 +7268,7 @@
                 if(_speed > REPLAY_SLOWDRAW_ACTIVE_SPEED
                 && REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME)
                 {
-                    _speed = getAutoSkipFrame(_speed);
+                    _speed = getAutoJumpFrame(_speed);
                     timeStr = getReplayTime(_speed,totalF,true);
                 }
                 else
@@ -7479,10 +7363,10 @@
             return index;
         }
 
-        //targetFrame이 rSkipImageFrameData데이터에 몆 번 인덱스에 있나 구해줌
-        private function getSkipImageIndex(targetFrame:Number):Number
+        //targetFrame이 rJumpImageFrameData데이터에 몆 번 인덱스에 있나 구해줌
+        private function getJumpImageIndex(targetFrame:Number):Number
         {
-            const arr:Array = rSkipImageFrameData;
+            const arr:Array = rJumpImageFrameData;
             var low:Number = 0;
             var high:Number = arr.length-1;
             if(high === 0) return 0;
@@ -7522,7 +7406,7 @@
             else tb["reRecordingButton"].alpha = 1.0;
         }
 
-        private function _skipOneFrame(toback:Boolean,trueOneFrame:Boolean):void
+        private function _jumpOneFrame(toback:Boolean,trueOneFrame:Boolean):void
         {
             if(trueOneFrame)
             {
@@ -7580,9 +7464,9 @@
             stage.removeEventListener(KeyboardEvent.KEY_UP,cancelAutoKeyEvent);
         }
 
-        private function setSkipOneFrame(prev:Boolean,oneFrame:Boolean=false):void
+        private function setJumpOneFrame(prev:Boolean,oneFrame:Boolean=false):void
         {
-            if(setHoldKeyRepeat(_skipOneFrame,prev,oneFrame) === true)
+            if(setHoldKeyRepeat(_jumpOneFrame,prev,oneFrame) === true)
             {
                 if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
                 if(replayStartON) stopReplay();
@@ -7600,7 +7484,7 @@
             return false;
         }
 
-        private function _jumpFrame(frame:Number,flag:int):void //skipp 
+        private function _jumpFrame(frame:Number,flag:int):void //jumpp 
         {
             if(frame < 0) frame = 0;
             else if(frame > TOTAL_FRAME) frame = TOTAL_FRAME;
@@ -7608,53 +7492,53 @@
 
             const nowFrame:Number = rNowFrame;
             const prevjumpFlag:Boolean = frame < nowFrame;
-            const index:Number = getSkipImageIndex(frame);
-            var prevSkipImageIndex:Number = 0; //자잘 썸네일 인덱스를 넣어줌
-            var skipImageData:Array = [];
+            const index:Number = getJumpImageIndex(frame);
+            var prevJumpImageIndex:Number = 0; //자잘 썸네일 인덱스를 넣어줌
+            var jumpImageData:Array = [];
             var tempBmpd:BitmapData = new BitmapData(1,1,true,0);
 
             rFileStream.open(repFile,FileMode.READ);
 
-            if(index !== rSkipImageIndexSave) rDataPreviewCacheImages = [];
-            else if(rDataPreviewCacheImages.length > 0) prevSkipImageIndex = getCacheImageIndex(frame);
+            if(index !== rJumpImageIndexSave) rDataPreviewCacheImages = [];
+            else if(rDataPreviewCacheImages.length > 0) prevJumpImageIndex = getCacheImageIndex(frame);
 
-            if(index !== rSkipImageIndexSave || prevjumpFlag)
+            if(index !== rJumpImageIndexSave || prevjumpFlag)
             {
-                if(prevSkipImageIndex > 0)//prevjumpFlag && false)
+                if(prevJumpImageIndex > 0)//prevjumpFlag && false)
                 {
-                    skipImageData = rDataPreviewCacheImages[prevSkipImageIndex];
+                    jumpImageData = rDataPreviewCacheImages[prevJumpImageIndex];
                 }
                 else
                 {
-                    const file:File = rSkipImageFolder.resolvePath(index+".img");
+                    const file:File = rJumpImageFolder.resolvePath(index+".img");
                     const fs:FileStream = new FileStream();
                     fs.open(file,FileMode.READ);
-                    skipImageData = fs.readObject() as Array;
+                    jumpImageData = fs.readObject() as Array;
                     fs.close();
                 }
 
-                rSkipImageIndexSave = index;
-                rLastBytes = skipImageData[4]; //마지막 바이트
-                rFileStream.position = skipImageData[4];
-                rNowFrame = skipImageData[5]; //썸네일 이미지를 저장한 프레임
+                rJumpImageIndexSave = index;
+                rLastBytes = jumpImageData[4]; //마지막 바이트
+                rFileStream.position = jumpImageData[4];
+                rNowFrame = jumpImageData[5]; //썸네일 이미지를 저장한 프레임
                 //원하는 프레임에서 썸네일 이미지 프레임을 빼줌 나머지 프레임만 그려주면 되니깐
-                frame = frame-skipImageData[5]; 
+                frame = frame-jumpImageData[5]; 
                 rDataReadFlag = false;
                 rIndex = 0; //이거 먼저 초기화 시켜주어야함
                 tickDraw.reset();
                 clearCanvasReplayMode();
                 rMirrorON = false;
 
-                if(prevSkipImageIndex > 0)
+                if(prevJumpImageIndex > 0)
                 {
-                    tempBmpd = skipImageData[0];
+                    tempBmpd = jumpImageData[0];
                 }
                 else
                 {
-                    tempBmpd = new BitmapData(skipImageData[1],skipImageData[2],true,0);
-                    const newRectangle:Rectangle = new Rectangle(0,0,skipImageData[1],skipImageData[2]);
+                    tempBmpd = new BitmapData(jumpImageData[1],jumpImageData[2],true,0);
+                    const newRectangle:Rectangle = new Rectangle(0,0,jumpImageData[1],jumpImageData[2]);
                     tempBmpd.lock();
-                    tempBmpd.setPixels(newRectangle,skipImageData[0]);
+                    tempBmpd.setPixels(newRectangle,jumpImageData[0]);
                     tempBmpd.unlock();
                 }
 
@@ -7662,7 +7546,7 @@
                 rcanvas1BitmapData = tempBmpd.clone();
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
                 changeCanvasSizeReplayMode(rcanvas1Bitmap.width,rcanvas1Bitmap.height);
-                setBackgroundColorReplayMode(skipImageData[3]);
+                setBackgroundColorReplayMode(jumpImageData[3]);
             }
             else //점프 프레임이 기존 프레임 이후일때는 계속 그림
             {
@@ -7680,7 +7564,6 @@
                 rCursor.visible = false;
                 //보통 스킵일때 마지막 임시 mirror가 켜져있을때 여기서 해줌
                 //스킵이 너무 딱맞게 되서 마지막을 안하나?
-                trace('rMirrorON',rMirrorON,'mirrorPushReady',mirrorPushReady);
                 if(mirrorPushReady !== rMirrorON)
                 {
                     replayMirrorCanvas();
@@ -7693,7 +7576,7 @@
                 rCursor.visible = true;
             }
             if(checkExitDeepUndo(flag)) return;
-            checkAutoScroll.check();
+            if(!isDeepUndoON) checkAutoScroll.check();
         }
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
@@ -7703,10 +7586,10 @@
             rOnejumpFlagSave = false;
         }
 
-        private function setSkipFrameButton():void
+        private function setJumpFrameButton():void
         {
             const totalF:Number = TOTAL_FRAME;
-            if(totalF === 0 || makeSkipImageFlag > 0) return;
+            if(totalF === 0 || makeJumpImageFlag > 0) return;
 
             //리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
             var replayStartONSave:Boolean = false;
@@ -7726,11 +7609,11 @@
             const nowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
             const maxWidth:Number = totalBar.width;//replayPrograssBaseBarWidth*scaleX;
             var clickedX:Number = totalBar.mouseX*totalBarScale;
-            var skipUpdateTimer:uint = 0;
+            var jumpUpdateTimer:uint = 0;
             var oldFrame:Number = floor(totalF*clickedX/maxWidth);
             var finalFrame:Number = 0;
 
-            rSkipMouseON = true;
+            rJumpMouseON = true;
             nowBar.width = clickedX;
             checkBarLimit();
             oldFrame = finalFrame;;
@@ -7748,8 +7631,8 @@
 
             function replayTimeMouseUpEvent(e:MouseEvent):void
             {
-                rSkipMouseON = false;
-                clearTimeout(skipUpdateTimer);
+                rJumpMouseON = false;
+                clearTimeout(jumpUpdateTimer);
                 _jumpFrame(finalFrame,JUMP_FRAME_ONCE);
                 if(isDeepUndoON)
                 {
@@ -7759,13 +7642,13 @@
                     }
                 }
 
-                skipUpdateTimer = 0;
+                jumpUpdateTimer = 0;
                 oldFrame = finalFrame;
                 checkBarLimit();
 
                 if(!isDeepUndoON)
                 {
-                    //skipframe함수 이후에 실행
+                    //jumpframe함수 이후에 실행
                     if(!replayStartONSave) checkCutFrameButtons();
 
                     //재생중에 스킵하고 있었으면 다시 시작
@@ -7781,12 +7664,12 @@
             {
                 checkBarLimit();
                 
-                if(skipUpdateTimer === 0)
+                if(jumpUpdateTimer === 0)
                 {
-                    clearTimeout(skipUpdateTimer);
-                    skipUpdateTimer = setTimeout(function():void
+                    clearTimeout(jumpUpdateTimer);
+                    jumpUpdateTimer = setTimeout(function():void
                     {
-                        skipUpdateTimer = 0;
+                        jumpUpdateTimer = 0;
                         oldFrame = finalFrame;
                         _jumpFrame(finalFrame,JUMP_FRAME_ONCE);
                     },200);
@@ -7830,13 +7713,13 @@
             tb["superUndoButton"].alpha = 1.0;
             tb["cutPrevDataButton"].alpha = 1.0;
 
-            rCursor.visible = false;
+            rCursor.visible = true;
 
             if(replayAllEnd === true) //리플레이 시간 등등 초기화 시키고 시작
             {
                 resetReplayTime();
                 clearCanvasReplayMode();
-                resetSkipImage();
+                resetJumpImage();
                 rDataReadFlag = false;
                 replayAllEnd = false;//resetReplayTime함수 에서 이걸 true로 해주기 때문에 아래쪽에서 변경
             }
@@ -7964,7 +7847,6 @@
                 case "zoomInButton": setZoomInButton(true,false); break;
                 case "zoomOutButton": setZoomInButton(false,false); break;
                 case "toolZoom": toolBox.zoomIconON(); break;
-                case "toolMask": setMaskToolUI(true); break;
 
                 case "toolTrace":
                 {
@@ -8455,7 +8337,7 @@
             regPoint.addChild(resizeButtonR);
         }
 
-        private function makeSkipImage():void //loadrep
+        private function makeJumpImage():void //loadrep
         {
             const fs:FileStream = new FileStream();
             const cd2:Graphics = rcanvas2Draw.graphics;
@@ -8465,9 +8347,9 @@
             const replayInfoText:TextField = replayTimeBox["frameInfo"];
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
-            var _rSkipImageCount:uint = 0;
+            var _rJumpImageCount:uint = 0;
 
-            makeSkipImageFlag = 2;
+            makeJumpImageFlag = 2;
             clearCanvasReplayMode();//일단 리플레이 캔버스 먼저 깨끗하게
             rcanvas1BitmapData = rFirstImage.clone(); 
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
@@ -8491,7 +8373,7 @@
                         stage.removeEventListener(Event.ENTER_FRAME,onFrameEnter);
                         fs.close();
                         undoData.setRFileTotalFrame(_frameSum);
-                        makeSkipImageFlag = 0;
+                        makeJumpImageFlag = 0;
                         rregPoint.visible = true;
                         resetReplayTime();
                         TOTAL_FRAME = getTotalFrame();
@@ -8520,16 +8402,16 @@
                     _tickDraw.ready(d);
                     _frameSumLast = _frameSum;
                     _frameSum += dlen;
-                    _rSkipImageCount += dlen;
+                    _rJumpImageCount += dlen;
                     _tickDraw.drawAll();
 
-                    if(_rSkipImageCount > _IMG_CACHE_INTERVAL)
+                    if(_rJumpImageCount > _IMG_CACHE_INTERVAL)
                     {
-                        rSkipImageFrameData.push(_frameSum); // skipimg:File변수보다 먼저 와야함
+                        rJumpImageFrameData.push(_frameSum); // jumpimg:File변수보다 먼저 와야함
 
                         const perc:Number = Math.floor(((totalSize-namojiBytes)/totalSize)*100);
                         const fs3:FileStream = new FileStream();
-                        const skipimg:File = rSkipImageFolder.resolvePath((rSkipImageFrameData.length-1)+".img");
+                        const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+".img");
                         const lastBytePos:Number = fs.position;
                         const imgData:ByteArray = new ByteArray();
                         const w:Number = rcanvas1BitmapData.width;
@@ -8537,11 +8419,11 @@
                         const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
                         rcanvas1BitmapData.copyPixelsToByteArray(newRectangle,imgData);
-                        fs3.open(skipimg,FileMode.WRITE);
+                        fs3.open(jumpimg,FileMode.WRITE);
                         fs3.writeObject([imgData,w,h,rBGColorSave,lastBytePos,_frameSum])//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
                         fs3.close();
                         imgData.clear();
-                        _rSkipImageCount = 0;
+                        _rJumpImageCount = 0;
                         replayInfoText.text = "Loading... "+perc+"%";
                         return;
                     }
@@ -8654,7 +8536,7 @@
             }
 
             fs.open(repFileTemp,FileMode.READ);
-            rSkipImageFrameData = [0];
+            rJumpImageFrameData = [0];
 
             while(1)
             {
@@ -8724,7 +8606,7 @@
             fs.close();
 
             repFileTemp.moveTo(repFile,true);
-            makeSkipImageFlag = 1;
+            makeJumpImageFlag = 1;
             loadFileAfter(fileName,filePath,imgW,imgH,finalIMGBMPD,false,bg);
             addInputEventDrawMode();
         }
@@ -8780,7 +8662,7 @@
             if(replayModeON) setReplayUI(false);
             TOTAL_FRAME = 0;
             undoData.setRFileTotalFrame(0);
-            makeSkipImageFlag = 0;
+            makeJumpImageFlag = 0;
             traceRawBMPD = null;
             traceRawArr = null;
             loadFileAfter(fileName,filePath,width,height,imageData,true);
@@ -8841,7 +8723,6 @@
             }
 
             if(fillPenStarted) fillPenTool.cancel();
-            if(maskToolStarted) maskTool.cancel();
 
             tickDraw.resetgetRCursorPos();
             tmpBMPD.draw(imageData,scaleMat,null,null,null,true);
@@ -8894,7 +8775,7 @@
         private function loadFile(subLayer:Boolean=false):void
         {
             if(replayStartON) stopReplay();
-            if(lassoToolON || browseWindowON || fillPenStarted || maskToolStarted) return;
+            if(lassoToolON || browseWindowON || fillPenStarted) return;
             const allowedExt:String = "*.2020;*.png;*.jpg;*.gif";
             var newFileFilter:FileFilter = new FileFilter("Image or 2020 file",allowedExt);
             var windowTitle:String = "Open file";
@@ -9603,7 +9484,7 @@
 
             const continueFlag:Boolean = saveContinue === true && asFlag === false;
 
-            if((saveOneTime === true && continueFlag) || lassoToolON || fillPenStarted || maskToolStarted)
+            if((saveOneTime === true && continueFlag) || lassoToolON || fillPenStarted)
             {
                 return;
             }
@@ -9744,8 +9625,8 @@
         private function saveReplayFrameData():void
         {
             const fs:FileStream = new FileStream();
-            fs.open(rSkipImageFrameDataFile,FileMode.WRITE);
-            fs.writeObject(rSkipImageFrameData);
+            fs.open(rJumpImageFrameDataFile,FileMode.WRITE);
+            fs.writeObject(rJumpImageFrameData);
             fs.close();
         }
 
@@ -9875,7 +9756,7 @@
                             "hueCursor.x":pickerBox["hueCursor"].x,
                             "svBaseColor":pickerBox["svBaseColor"],
                             "HUECOLOR[0]":HUECOLOR[0],
-                            "makeSkipImageFlag":makeSkipImageFlag,
+                            "makeJumpImageFlag":makeJumpImageFlag,
                             "rBGColorSave":rBGColorSave,
                             "isRightSidebar":isRightSidebar,
                             "saveFilePath":saveFilePath,
@@ -9929,12 +9810,12 @@
                 bmpd = null;
             }
 
-            if(rSkipImageFrameDataFile.exists === true)
+            if(rJumpImageFrameDataFile.exists === true)
             {
-                fs.open(rSkipImageFrameDataFile,FileMode.READ);
+                fs.open(rJumpImageFrameDataFile,FileMode.READ);
                 arr = fs.readObject() as Array;
                 fs.close();
-                rSkipImageFrameData = arr.concat();
+                rJumpImageFrameData = arr.concat();
             }
 
             if(appDataFile.exists === true)
@@ -10021,7 +9902,7 @@
                             sideBar.cacheAsBitmap = true;
                         },1000);
                     }
-                    makeSkipImageFlag = d["makeSkipImageFlag"];
+                    makeJumpImageFlag = d["makeJumpImageFlag"];
                     rBGColorSave = d["rBGColorSave"];
                     saveFilePath = d["saveFilePath"];
 
@@ -10865,6 +10746,7 @@
             //창 절반을 기준점으로 regpoint x축 이동.
             regPoint.x += Math.round((stageHalf-p.x)*2);
             updatePreviewBoxRectPos();
+            replayONUndoUpdate = true;
             saveOneTime = false; //미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
         }
 
@@ -12088,7 +11970,7 @@
                 if(!isDeepUndoON)
                 {
                     if(getTimer() - isDeepUndoONDelayTime > 200
-                    && (makeSkipImageFlag === 1 || (makeSkipImageFlag === 0 && undoData.getRFileTotalFrame() > 0)))
+                    && (makeJumpImageFlag === 1 || (makeJumpImageFlag === 0 && undoData.getRFileTotalFrame() > 0)))
                     {
                         setDeepUndoUI(true);
                     }
@@ -12147,7 +12029,7 @@
         private function closureAddUndoData():Object
         {
             const UNDO_LIMIT:int = 20;
-            var rSkipImageCount:uint = 0;//데이터로 저장할때  rDataFrame 카운터 누적
+            var rJumpImageCount:uint = 0;//데이터로 저장할때  rDataFrame 카운터 누적
             var rFileTotalFrame:Number = 0; //file에저장된 프레임수 누적해서 저장
             //undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
             var UndoRefImage:Array = [rFirstImage.clone(),CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR];
@@ -12281,12 +12163,12 @@
                         oldData = null;
 
                         rFileTotalFrame += c;
-                        rSkipImageCount += c;
+                        rJumpImageCount += c;
                         updateUndoDataFirst();
 
-                        if(makeSkipImageFlag === 0)
+                        if(makeJumpImageFlag === 0)
                         {
-                            if(rSkipImageCount > IMG_CACHE_INTERVAL)
+                            if(rJumpImageCount > IMG_CACHE_INTERVAL)
                             {
                                 const data:Array = UndoRefImage;
                                 const bmpd:BitmapData = data[0];
@@ -12295,18 +12177,18 @@
                                 const bgColor:uint = data[3];
                                 const _rFileTotalFrame:Number = rFileTotalFrame;
                                 //위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
-                                rSkipImageFrameData.push(_rFileTotalFrame);
+                                rJumpImageFrameData.push(_rFileTotalFrame);
 
-                                const skipimg:File = rSkipImageFolder.resolvePath((rSkipImageFrameData.length-1)+".img");
+                                const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+".img");
                                 const imgData:ByteArray = new ByteArray();
                                 const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
                                 bmpd.copyPixelsToByteArray(newRectangle,imgData);
-                                fs.open(skipimg,FileMode.WRITE);
+                                fs.open(jumpimg,FileMode.WRITE);
                                 fs.writeObject([imgData,w,h,bgColor,rf.size,_rFileTotalFrame]);//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
                                 fs.close();
                                 imgData.clear();
-                                rSkipImageCount = 0;
+                                rJumpImageCount = 0;
                             }
                         }
                     }
@@ -12812,7 +12694,7 @@
                 scrollSetMovedY = newYPos;
             }
             
-            if(sideBarSetHeight < sth || isDeepUndoON || fillPenStarted || maskToolStarted)
+            if(sideBarSetHeight < sth || isDeepUndoON || fillPenStarted)
             {
                 sideBarScrollBar.visible = false;
                 return;
@@ -12897,7 +12779,6 @@
                 if(isRightSidebar) sideBar.x = stage.stageWidth-sideBar.w;
                 if(isDeepUndoON) toolBox.checkDeepUndoIconBottom();
                 else if(fillPenStarted) toolBox.checkFillPenIconBottom();
-                else if(maskToolStarted) toolBox.checkMaskToolIconBottom();
 
                 updatePreviewBoxRectPos();
 
@@ -12943,7 +12824,7 @@
 
         private function windowClosingEvent(e:Event):void
         {
-            if(makeSkipImageFlag === 2)
+            if(makeJumpImageFlag === 2)
             {
                 e.preventDefault();
                 return;
@@ -13175,7 +13056,7 @@
 
             if(isPressingControlShift())
             {
-                checkCommandSubKey(3,function(input:int):void
+                checkCommandSubKey(3,false,function(input:int):void
                 {
                     const key:Object = gKey;
                     if(input === key.s) saveFile(true);
@@ -13185,7 +13066,7 @@
             }
             else if(isPressingShift())
             {
-                checkCommandSubKey(2,function(input:int):void
+                checkCommandSubKey(2,false,function(input:int):void
                 {
                     const key:Object = gKey;
                     switch(input)
@@ -13193,13 +13074,13 @@
                         case key.left:
                         case key.z:
                         case key.dot:
-                            setSkipOneFrame(true,true);
+                            setJumpOneFrame(true,true);
                         break;
 
                         case key.right:
                         case key.x:
                         case key.comma:
-                            setSkipOneFrame(false,true);
+                            setJumpOneFrame(false,true);
                         break;
                     }
                 });
@@ -13207,7 +13088,7 @@
             }
             else if(isPressingControl())
             {
-                checkCommandSubKey(2,function(input:int):void
+                checkCommandSubKey(2,false,function(input:int):void
                 {
                     const key:Object = gKey;
                     if(input === key.s) saveFile(false);
@@ -13224,13 +13105,13 @@
                 case key.left:
                 case key.z:
                 case key.dot:
-                    setSkipOneFrame(true,false);
+                    setJumpOneFrame(true,false);
                 break;
 
                 case key.right:
                 case key.x:
                 case key.comma:
-                    setSkipOneFrame(false,false);
+                    setJumpOneFrame(false,false);
                 break;
 
                 case key.up:
@@ -13306,12 +13187,12 @@
             }
         }
 
-        private function checkCommandSubKey(length:uint,func:Function):Boolean
+        private function checkCommandSubKey(length:uint,saveFlag:Boolean,func:Function):Boolean
         {
             if(keyBuffer.length === length)
             {
                 const subKey:int = keyBuffer[length-1];
-                setNowKey(subKey);
+                if(saveFlag) setNowKey(subKey);
                 func(subKey);
                 return true;
             }
@@ -13325,7 +13206,7 @@
 
             return function(e:KeyboardEvent):void
             {
-                if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted || maskToolStarted)
+                if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted)
                 {
                     return;
                 }
@@ -13338,7 +13219,7 @@
                     //shift 누르고 ctrl 순서로 누를때 이전툴로 복원
                     if(isNowTool(TOOL_LINE)) setOldTool();
 
-                    checkCommandSubKey(3,function(input:int):void
+                    checkCommandSubKey(3,true,function(input:int):void
                     {
                         const key:Object = gKey;
                         if(input === key.s) saveFile(true);
@@ -13346,20 +13227,9 @@
                     })
                     return;
                 }
-                else if(isPressingShift())
-                {
-                    checkCommandSubKey(2,function(input:int):void
-                    {
-                        const key:Object = gKey;
-                        if(input === key.x || input === key.comma)
-                        {
-                            setMaskToolUI(true);
-                        }
-                    });
-                }
                 else if(isPressingControl())
                 {
-                    if(checkCommandSubKey(2,function(input:int):void
+                    if(checkCommandSubKey(2,true,function(input:int):void
                     {
                         const key:Object = gKey;
                         if(input === key.s) saveFile(false);
@@ -13843,7 +13713,7 @@
                 {
                     if(isDeepUndoON)
                     {
-                        _skipOneFrame(true,false);
+                        _jumpOneFrame(true,false);
                     }
                     else setUndoButton(false);
                 }
@@ -13852,7 +13722,7 @@
                 {
                     if(isDeepUndoON)
                     {
-                        _skipOneFrame(false,false);
+                        _jumpOneFrame(false,false);
                     }
                     else setRedoButton(false);
                 }
@@ -14029,31 +13899,11 @@
             rCursor.scaleY = z;    
         }
 
-        private function setMaskToolUI(flag:Boolean):void
-        {
-            maskToolStarted = flag;
-
-            if(flag)
-            {
-                toolBox.maskToolIconON();
-                setOldTool(); //자툴이 눌려있기 때문에 리셋해줌
-                maskTool.start();
-                toolBox.bgBoxVisible(true);
-            }
-            else
-            {
-                toolBox.maskToolIconOFF();
-                toolBox.bgBoxVisible(false);
-            }
-        }
-
         private function setFillpenUI(flag:Boolean):void
         {
             if(flag)
             {
-                if(!sideBar.visible)
-                    sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
-
+                if(!sideBar.visible) sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
                 toolBox.fillPenIconON();
                 toolBox.bgBoxVisible(true);
                 sideBarScrollBar.visible = false;
@@ -14061,8 +13911,7 @@
             }
             else
             {
-                if(isSidebarVisible === false)
-                    sideBar.setTempVisibleOFF(isRightSidebar);
+                if(isSidebarVisible === false) sideBar.setTempVisibleOFF(isRightSidebar);
 
                 toolBox.fillPenIconOFF();
                 toolBox.checkBottomOFF();
@@ -14091,10 +13940,10 @@
             {
                 replayTimeBox.setTimeBarOnly(true);
             
-                if(makeSkipImageFlag === 1)
+                if(makeJumpImageFlag === 1)
                 {
                     replayTimeBox["frameInfo"].text = "Loading...";
-                    setMakeSkipImage();
+                    setMakeJumpImage();
                 }
                 else
                 {
@@ -14113,7 +13962,6 @@
                     updateRCursorScale(rzoomed);
                     topBar.resetHintColor();
                     if(traceMenuON === true) traceMenuBox.visible = false;
-                    trace('undoData.getRFileTotalFrame()',undoData.getRFileTotalFrame());
                     _jumpFrame(undoData.getRFileTotalFrame()-1,JUMP_FRAME_ONCE);
                     _jumpFrame(rPrevFrame,JUMP_FRAME_ONCE);
                     rOnejumpFlagSave = true;
@@ -14141,14 +13989,14 @@
             }
         }
 
-        private function setMakeSkipImage():void
+        private function setMakeJumpImage():void
         {
             if(makeSKipImageWaitTimer === 0)
             {
                 makeSKipImageWaitTimer = setTimeout(function():void
                 {
                     makeSKipImageWaitTimer = 0;
-                    makeSkipImage();
+                    makeJumpImage();
                 },60);
             }
         }
@@ -14240,7 +14088,7 @@
 
                 //frame sum이 재계산된 maxframe을 넘어가면 리플레이 프레임이 넘어가기 때문에 끝난거임
                 //그래서 캔버스 복사해주고 리플레이를 리셋해줌
-                if(makeSkipImageFlag === 0)
+                if(makeJumpImageFlag === 0)
                 {
                     if(CANVAS_WIDTH === RCANVAS_WIDTH && CANVAS_HEIGHT === RCANVAS_HEIGHT)
                     {
@@ -14264,14 +14112,14 @@
 
                 if(traceMenuON === true) traceMenuBox.visible = false;
 
-                if(makeSkipImageFlag === 1)
+                if(makeJumpImageFlag === 1)
                 {
                     replayTimeBox["frameInfo"].text = "Loading...";
                     sideBar.visible = false;
                     changeTopBarIcons("replay");
-                    setMakeSkipImage();
+                    setMakeJumpImage();
                 }
-                else if(makeSkipImageFlag === 0)
+                else if(makeJumpImageFlag === 0)
                 {
                     if(replayONUndoUpdate)
                     {
@@ -14309,7 +14157,7 @@
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
 
-            if(isCursorInDrawArea())
+            if(sideBar.hitTestPoint(mouseX,mouseY) === false)
             {
                 handTool(true);
             }
@@ -14320,11 +14168,11 @@
                     case "replayNowBar":
                     case "replayTotalBar":
                     case "frameInfo":
-                        setSkipFrameButton();
+                        setJumpFrameButton();
                     break;
 
-                    case "toolUndo":setSkipOneFrame(true,false); break;
-                    case "toolRedo":setSkipOneFrame(false,false); break;
+                    case "toolUndo":setJumpOneFrame(true,false); break;
+                    case "toolRedo":setJumpOneFrame(false,false); break;
                     case "deepUndoOK":superUndo(); break;
                     case "deepUndoCancel":exitDeepUndoMode(); break;
                 }
@@ -14349,7 +14197,7 @@
             const key:Object = gKey;
             if(isPressingControl())
             {
-                checkCommandSubKey(2,function(input:int):void
+                checkCommandSubKey(2,false,function(input:int):void
                 {
                     const key:Object = gKey;
                     if(input === key.z || input === key.dot) superUndo();
@@ -14372,12 +14220,12 @@
 
                 case key.z:
                 case key.dot:
-                    setSkipOneFrame(true,false);
+                    setJumpOneFrame(true,false);
                 break;
 
                 case key.x:
                 case key.comma:
-                    setSkipOneFrame(false,false);
+                    setJumpOneFrame(false,false);
                 break;
 
                 case key.esc:
@@ -14425,19 +14273,19 @@
                 case "replayTotalBar":
                 case "frameInfo":
                 {
-                    setSkipFrameButton();
+                    setJumpFrameButton();
                 }
                 break;
 
                 case "replayPrev":
                 {
-                    setSkipOneFrame(true,isPressingControlShift());
+                    setJumpOneFrame(true,isPressingControlShift());
                 }
                 break;
 
                 case "replayNext":
                 {
-                    setSkipOneFrame(false,isPressingControlShift());
+                    setJumpOneFrame(false,isPressingControlShift());
                 }
                 break;
 
@@ -14507,8 +14355,8 @@
             const targetName:String = e.target.name;
 
             if(targetName === "repSaveButton") saveFile(true);
-            else if(targetName === "replayPrev") setSkipOneFrame(true,true);
-            else if(targetName === "replayNext") setSkipOneFrame(false,true);
+            else if(targetName === "replayPrev") setJumpOneFrame(true,true);
+            else if(targetName === "replayNext") setJumpOneFrame(false,true);
         }
 
         private function openToolBox2():void
@@ -14548,10 +14396,6 @@
                 if(fillPenStarted)
                 {
                     fillPenTool.ok();
-                }
-                else if(maskToolStarted)
-                {
-                    maskTool.apply();
                 }
                 else if(!isSidebarVisible && sideBar.visible)
                 {
@@ -14830,7 +14674,7 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted || maskToolStarted) return;
+            if(fillPenStarted) return;
 
             const target:DisplayObject = e.target as DisplayObject;
             if(!target) return;

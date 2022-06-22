@@ -105,7 +105,7 @@ package
 
                 for(var x:Number=minX; x<=maxX; x++)
                 {
-                    // skip testing, if testing previous line within previous range
+                    // jump testing, if testing previous line within previous range
                     var empty:Boolean = (isNext || (x<r[0] || x>r[1])) && test(x, newY);
                     if(!inRange && empty)
                     {
@@ -121,7 +121,7 @@ package
                     {
                         paint(x, newY);
                     }
-                    // skip
+                    // jump
                     if(!isNext && x==r[0])
                     {
                         x = r[1];
@@ -232,7 +232,7 @@ function floodFillScanline(x, y, width, height, diagonal, test, paint) {
             var rMinX = minX;
             var inRange = false;
             for(var x=minX; x<=maxX; x++) {
-                // skip testing, if testing previous line within previous range
+                // jump testing, if testing previous line within previous range
                 var empty = (isNext || (x<r[0] || x>r[1])) && test(x, newY);
                 if(!inRange && empty) {
                     rMinX = x;
@@ -245,7 +245,7 @@ function floodFillScanline(x, y, width, height, diagonal, test, paint) {
                 if(inRange) {
                     paint(x, newY);
                 }
-                // skip
+                // jump
                 if(!isNext && x==r[0]) {
                     x = r[1];
                 }
@@ -502,7 +502,7 @@ import flash.ui.MouseCursorData;
                     var inRange:Boolean = false;
                     for(var x:int=minX; x<=maxX; x++)
                     {
-                        // skip testing, if testing previous line within previous range
+                        // jump testing, if testing previous line within previous range
                         var empty:Boolean = (isNext || (x<r[0] || x>r[1])) && test(x, newY);
 
                         if(!inRange && empty) {
@@ -516,7 +516,7 @@ import flash.ui.MouseCursorData;
                         if(inRange) {
                             paint(x, newY);
                         }
-                        // skip
+                        // jump
                         if(!isNext && x==r[0]) {
                             x = r[1];
                         }
@@ -619,7 +619,7 @@ private function setPenTool(penToolFlag:Boolean):void
     var moveEventLastX2:Number = cx;//픽셀거리 검출 변수
     var moveEventLastY2:Number = cy;
     var penSmoothTimer:int = 0; //펜 스무딩 할때 커서가 움직이지 않을때 나머지 그려지지않은 점들 이어주는 타이머임
-    var distLimit:Number = xSize/10;//penmove에서 distlimit이하이면 skip해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
+    var distLimit:Number = xSize/10;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
     var shortDistFlag:Boolean = false; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
     const subLayerFlag:Boolean = (penToolFlag) ? subLayerON : false;
 
@@ -2231,15 +2231,15 @@ private function setLassoTool():void
             }
         }
 
-         //skipFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
-        private function doDraw(skipCount:Number,skipFlag:uint):void
+         //jumpFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
+        private function doDraw(jumpCount:Number,jumpFlag:uint):void
         {
-            //skipflag 1번은 마우스 커서로 무작위 스킵, 2,3번은 스트로크 단위혹은 프레임 단위로 앞뒤로 탐색
-            if(replayStartON === false && !skipFlag) return;
+            //jumpflag 1번은 마우스 커서로 무작위 스킵, 2,3번은 스트로크 단위혹은 프레임 단위로 앞뒤로 탐색
+            if(replayStartON === false && !jumpFlag) return;
 
-            if(skipCount > REPLAY_SLOWDRAW_ACTIVE_SPEED)
+            if(jumpCount > REPLAY_SLOWDRAW_ACTIVE_SPEED)
             {
-                if(REPLAY_FASTEST_TOTAL_TIME > 60 && skipFlag === 0)
+                if(REPLAY_FASTEST_TOTAL_TIME > 60 && jumpFlag === 0)
                 {
                     doDrawSlowEventStart();
                     return;
@@ -2251,11 +2251,11 @@ private function setLassoTool():void
             const tcursor:SimpleButton = rCursor;
             const _rfs:FileStream = rFileStream;
             const CACHE_DIV_10:Number= Math.floor(IMG_CACHE_INTERVAL/10);
-            const drawLimit:Number = skipCount-1;
+            const drawLimit:Number = jumpCount-1;
             var rFrameLimit:Number = rFrameArr.length-1; //rframe 인덱스 0번 기준
             var obj:Array;
-            var prevSkipImageSaveCount:Number = 0;
-            var prevSkipImageSaveIndex:uint = 0;
+            var prevJumpImageSaveCount:Number = 0;
+            var prevJumpImageSaveIndex:uint = 0;
 
             if(drawLimit < 0)
             {
@@ -2266,7 +2266,7 @@ private function setLassoTool():void
             {
                 if(!rDataReadFlag)
                 {
-                    prevSkipImageSaveCount++;
+                    prevJumpImageSaveCount++;
                     if(rFrame > rFrameLimit)
                     {
                         if(_rfs.bytesAvailable > 0)
@@ -2280,17 +2280,17 @@ private function setLassoTool():void
                             rFrameSumLast = rFrameSum;
                             
                             //수동 탐색할때 속도를 위해서 썸네일 이미지를 더 잘게 쪼개줌
-                            if(skipFlag === 1 || skipFlag === 2)
+                            if(jumpFlag === 1 || jumpFlag === 2)
                             {
-                                if(prevSkipImageSaveCount >= CACHE_DIV_10)
+                                if(prevJumpImageSaveCount >= CACHE_DIV_10)
                                 {
-                                    prevSkipImageSaveCount = 0;
-                                    if(!rDataPreviewCacheImages[prevSkipImageSaveIndex])
+                                    prevJumpImageSaveCount = 0;
+                                    if(!rDataPreviewCacheImages[prevJumpImageSaveIndex])
                                     {
                                         const repBmpd:BitmapData = rcanvas1BitmapData;
-                                        rDataPreviewCacheImages[prevSkipImageSaveIndex] = [repBmpd.clone(),repBmpd.width,repBmpd.height,RCANVAS_BG_COLOR,rFileCutBytes,rFrameSum];
+                                        rDataPreviewCacheImages[prevJumpImageSaveIndex] = [repBmpd.clone(),repBmpd.width,repBmpd.height,RCANVAS_BG_COLOR,rFileCutBytes,rFrameSum];
                                     }
-                                    prevSkipImageSaveIndex++;
+                                    prevJumpImageSaveIndex++;
                                 }
                             }
 
@@ -2309,7 +2309,7 @@ private function setLassoTool():void
                                 TOTAL_FRAME = getTotalFrame();
                             }
 
-                            if(skipFlag === 0)
+                            if(jumpFlag === 0)
                             {
                                 _rfs.close();
                                 rLastBytes = 0;
@@ -2345,10 +2345,10 @@ private function setLassoTool():void
                             tcursor.visible = false;
                             replayAllEnd = true;
 
-                            if(skipFlag === 0 || doDrawSlowEventON === true)//1프레임 이상일때만 재시작 타이머 가동
+                            if(jumpFlag === 0 || doDrawSlowEventON === true)//1프레임 이상일때만 재시작 타이머 가동
                             {
                                 //reset replay time해주지 말고 그냥 end플래그만 올려줌
-                                //왜냐하면 리플레이 자연적으로 끝나고도 스킵프레임이나 oneframe skip을 해줄수가 있기 때문
+                                //왜냐하면 리플레이 자연적으로 끝나고도 스킵프레임이나 oneframe jump을 해줄수가 있기 때문
                                 replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width;
                                 replayTimeBox["frameInfo"].text = TOTAL_FRAME+" / " +TOTAL_FRAME;
                                 stopReplay();//플레이 아이콘 내주지 말기
@@ -2370,14 +2370,14 @@ private function setLassoTool():void
                     }
                 }
         
-                doTickDraw(cd2,(skipFlag >= 2) ? true : (i === drawLimit));
+                doTickDraw(cd2,(jumpFlag >= 2) ? true : (i === drawLimit));
                 
                 rFrameSum++; //resultFrameSum 으로 대체함
             }
             const nt:int = getTimer();
             var totalF:Number;
 
-            if(skipFlag === 0)
+            if(jumpFlag === 0)
             {
                 if(nt-rFrameCursorDelayTime >= 70)
                 {
@@ -2394,7 +2394,7 @@ private function setLassoTool():void
                 if(nt-rFrameTextDelayTime >= 1000) //갱신 느리게 해줌
                 {
                     totalF = TOTAL_FRAME;
-                    const getTimeStr:String = getReplayTime(skipCount,totalF-rFrameSum);
+                    const getTimeStr:String = getReplayTime(jumpCount,totalF-rFrameSum);
                     const timeStr:String = " ("+getTimeStr+")";
                     replayTimeBox["frameInfo"].text = rFrameSum+" / " + totalF + timeStr;
                     rFrameTextDelayTime = nt;
@@ -2405,7 +2405,7 @@ private function setLassoTool():void
                 totalF = TOTAL_FRAME;
                 replayTimeBox["frameInfo"].text = rFrameSum+" / " +totalF;
             }
-            if(!rSkipMouseON)
+            if(!rJumpMouseON)
             {
                 totalF = TOTAL_FRAME;
                 replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*rFrameSum/totalF;
@@ -2874,7 +2874,7 @@ private function setLassoTool():void
             var moveEventLastX2:Number;//픽셀거리 검출 변수
             var moveEventLastY2:Number;
             var penSmoothTimer:int; //펜 스무딩 할때 커서가 움직이지 않을때 나머지 그려지지않은 점들 이어주는 타이머임
-            var distLimit:Number;//penmove에서 distlimit이하이면 skip해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
+            var distLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var shortDistFlag:Boolean; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
             var subLayerFlag:Boolean;
             var sqPenCursorLastX:Number;
@@ -3359,7 +3359,7 @@ private function setLassoTool():void
                 sqPenCursorLastY = cy;
 
                 penSmoothTimer = 0; //펜 스무딩 할때 커서가 움직이지 않을때 나머지 그려지지않은 점들 이어주는 타이머임
-                distLimit = xSize/10;//penmove에서 distlimit이하이면 skip해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
+                distLimit = xSize/10;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
                 shortDistFlag = false; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
 
                 checkUndoReady();
