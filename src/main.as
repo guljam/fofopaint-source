@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.67;
+        private const APP_VERSION:Number = 14.68;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -7467,7 +7467,6 @@
             {
                 if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
                 if(replayStartON) stopReplay();
-                topBar["reRecordingButton"].visible = true;
             }
         }
 
