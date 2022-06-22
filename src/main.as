@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.73;
+        private const APP_VERSION:Number = 14.74;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -603,7 +603,6 @@
             checkVersion();
             setIMEDisabled();
             selectPenTool();
-
         }
         
         //functions
@@ -983,7 +982,6 @@
         private function closureStageMouseMoveEvent():Object
         {
             const arr:Vector.<Function> = new Vector.<Function>();
-            const rand:Function = Math.random;
             var lastTime:int = 0;
             var sumTime:int = 0;
             var nowTime:int = 0;
@@ -1005,18 +1003,17 @@
 
             function add(func:Function):void
             {
-                if(arr.lastIndexOf(func) === -1)
-                    arr.push(func);
+                const _arr:Vector.<Function> = arr;
+                if(_arr.lastIndexOf(func) === -1) _arr.push(func);
             }
 
             function remove(func:Function):void
             {
-                var len:int = arr.length-1;
+                const _arr:Vector.<Function> = arr;
 
-                for(var i:int=len; i>=0; i--)
+                for(var i:int= _arr.length-1; i>=0; i--)
                 {
-                    if((arr[i] as Function) === func)
-                        arr.removeAt(i);
+                    if((_arr[i] as Function) === func) _arr.removeAt(i);
                 }
             }
 
@@ -1024,9 +1021,11 @@
             {
                 if(moveEventLimit() === true) return;
 
-                for(var i:int = arr.length-1; i>=0; i--)
+                const _arr:Vector.<Function> = arr;
+
+                for(var i:int = _arr.length-1; i>=0; i--)
                 {
-                    (arr[i] as Function)(e);
+                    (_arr[i] as Function)(e);
                 }
             }
 
