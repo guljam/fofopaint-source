@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.68;
+        private const APP_VERSION:Number = 14.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -10051,14 +10051,8 @@
                     pg.drawRect(sqStart1,sqStart1,sqWidth1,sqWidth1);
                 }
 
-                if(zSize < 8)
-                {
-                    _penSizeCursor.visible = false;
-                    return;
-                }
-
-                _penSizeCursor.x = mouseX;
-                _penSizeCursor.y = mouseY;
+                // _penSizeCursor.x = mouseX;
+                // _penSizeCursor.y = mouseY;
             };
         }
 
