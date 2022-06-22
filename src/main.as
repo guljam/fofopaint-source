@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.71;
+        private const APP_VERSION:Number = 14.72;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -13929,6 +13929,7 @@
             if(flag)
             {
                 replayTimeBox.setTimeBarOnly(true);
+                updateReplayBarPos(stage.stageWidth);
             
                 if(makeJumpImageFlag === 1)
                 {
@@ -13943,7 +13944,6 @@
                     toolBox.deepUndoIconON();
                     toolBox.bgBoxVisible(true);
                     toolBox2.deepUndoIconON();
-                    updateReplayBarPos(stage.stageWidth);
                     sideBarScrollBar.visible = false;
                     updateRCursorScale(zoomed);
                     removeInputEventDrawMode();
