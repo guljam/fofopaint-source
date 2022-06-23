@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.75;
+        private const APP_VERSION:Number = 14.76;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -490,7 +490,7 @@
                     ,rotateTool:Function = closureRotateTool()
                     ,zoomTool:Function = closureZoomTool()
                     ,moveTool:Function = closureMoveTool()
-                    ,setSpuitTool:Function = closureSpuitTool()
+                    ,spuitTool:Function = closureSpuitTool()
                     ,fillPenTool:Object = closureFillPenTool()
                     ,tickDraw:Object = closureTickDraw()
                     ,doDraw:Function = closureDoDraw()
@@ -1273,7 +1273,7 @@
                     y = _data[i+1];
                     _dottedLine.draw(g,x,y);
                 }
-                _dottedLine.draw(g,data[0] as Number,data[1] as Number);
+                _dottedLine.draw(g,data[0],data[1]);
             }
 
             function cancelFillPen():void
@@ -4859,7 +4859,7 @@
                     updatePenSizeCursor();
                 break;
 
-                case TOOL_SPUIT:setSpuitTool(); break;
+                case TOOL_SPUIT:spuitTool(); break;
                 case TOOL_LASSO:selectLassoTool(); break;
                 case TOOL_MOVE:selectMoveTool(); break;
                 case TOOL_ROTATE:selectRotateTool(); break;
@@ -6405,16 +6405,16 @@
 
             function lineStyle(data:Array):void
             {
-                const shape:Boolean = data[1] as Boolean;
-                const size:uint = data[2] as uint;
-                const color:uint = data[3] as uint;
-                const alpha:Number = data[4] as Number;
-                const startX:Number = data[5] as Number;
-                const startY:Number = data[6] as Number;
-                const blendMode:String = data[7] as String;
-                const fillpen:Boolean = data[8] as Boolean;
-                const subLayer:Boolean = data[9] as Boolean;
-                const airBrush:Boolean = data[10] as Boolean;
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const startX:Number = data[5];
+                const startY:Number = data[6];
+                const blendMode:String = data[7];
+                const fillpen:Boolean = data[8];
+                const subLayer:Boolean = data[9];
+                const airBrush:Boolean = data[10];
 
                 updateLineStyleBackup([alpha,blendMode]);
 
@@ -6443,8 +6443,8 @@
 
             function lineTo(data:Array):void
             {
-                const x:Number = data[1] as Number;
-                const y:Number = data[2] as Number;
+                const x:Number = data[1];
+                const y:Number = data[2];
                 
                 cd2.lineTo(x,y);
                 setRCursorPos(x,y);
@@ -6452,12 +6452,12 @@
 
             function sqline(data:Array):void
             {
-                const size:Number = data[1] as Number;
-                const color:Number = data[2] as Number;
-                const alpha:Number = data[3] as Number;
-                const blendMode:String = data[4] as String;
-                const command:Vector.<int> = data[5] as Vector.<int>;
-                const xyData:Vector.<Number> = data[6] as Vector.<Number>;
+                const size:Number = data[1];
+                const color:Number = data[2];
+                const alpha:Number = data[3];
+                const blendMode:String = data[4];
+                const command:Vector.<int> = data[5];
+                const xyData:Vector.<Number> = data[6];
 
                 rcanvas2Bitmap.bitmapData = null;
                 rcanvas2BitmapData.dispose();
@@ -6472,11 +6472,11 @@
 
             function fill(data:Array):void
             {
-                const color:Number = data[1] as uint;
-                const alpha:Number = data[2] as Number;
-                const blendMode:String = data[3] as String;
-                const command:Vector.<int> = data[4] as Vector.<int>;
-                const xyData:Vector.<Number> = data[5] as Vector.<Number>;
+                const color:Number = data[1];
+                const alpha:Number = data[2];
+                const blendMode:String = data[3];
+                const command:Vector.<int> = data[4];
+                const xyData:Vector.<Number> = data[5];
 
                 rcanvas2Draw.filters = [];
                 updateLineStyleBackup([alpha,blendMode]);
@@ -6490,10 +6490,10 @@
 
             function fill2(data:Array):void
             {
-                const color:Number = data[1] as uint;
-                const alpha:Number = data[2] as Number;
-                const blendMode:String = data[3] as String;
-                const arr:Vector.<Number> = data[4] as Vector.<Number>;
+                const color:Number = data[1];
+                const alpha:Number = data[2];
+                const blendMode:String = data[3];
+                const arr:Vector.<Number> = data[4];
                 const len:uint = arr.length;
 
                 rcanvas2Draw.filters = [];
@@ -6517,15 +6517,15 @@
 
             function dot(data:Array):void
             {
-                const shape:Boolean = data[1] as Boolean;
-                const size:uint = data[2] as uint;
-                const color:uint = data[3] as uint;
-                const alpha:Number = data[4] as Number;
-                const startX:Number = data[5] as Number;
-                const startY:Number = data[6] as Number;
-                const blendMode:String = data[7] as String;
-                const subLayer:Boolean = data[8] as Boolean;
-                const airBrush:Boolean = data[9] as Boolean;
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const startX:Number = data[5];
+                const startY:Number = data[6];
+                const blendMode:String = data[7];
+                const subLayer:Boolean = data[8];
+                const airBrush:Boolean = data[9];
 
                 if((replayStartON && subLayer) !== null)
                 {
@@ -6551,17 +6551,17 @@
 
             function line(data:Array):void
             {
-                const shape:Boolean = data[1] as Boolean;
-                const size:uint = data[2] as uint;
-                const color:uint = data[3] as uint;
-                const alpha:Number = data[4] as Number;
-                const startX:Number = data[5] as Number;
-                const startY:Number = data[6] as Number;
-                const endX:Number = data[7] as Number;
-                const endY:Number = data[8] as Number;
-                const blendMode:String = data[9] as String;
-                const subLayer:Boolean = data[10] as Boolean;
-                const airBrush:Boolean = data[11] as Boolean;
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const startX:Number = data[5];
+                const startY:Number = data[6];
+                const endX:Number = data[7];
+                const endY:Number = data[8];
+                const blendMode:String = data[9];
+                const subLayer:Boolean = data[10];
+                const airBrush:Boolean = data[11];
 
                 rcanvasPanel.setChildIndex(rcanvas2,1);
                 updateLineStyleBackup([alpha,blendMode]);
@@ -6583,8 +6583,8 @@
 
             function move(data:Array):void
             {
-                const moveX:Number = data[1] as Number;
-                const moveY:Number = data[2] as Number;
+                const moveX:Number = data[1];
+                const moveY:Number = data[2];
 
                 replayMoveImage(moveX,moveY);
             }
@@ -6592,20 +6592,20 @@
             function lasso(data:Array):void
             {
                 const lsbox:Sprite = lassoBox;
-                const point1:Vector.<Number> = data[1] as Vector.<Number>;
-                const point2:Array = data[2] as Array;
+                const point1:Vector.<Number> = data[1];
+                const point2:Array = data[2];
 
                 if(point1.length === 0 || point2.length === 0) return;
 
-                const lassoInfo:Array = data[3] as Array;
-                const copyFlag:Boolean = data[4] as Boolean;
-                const bmpScaleX:Number = lassoInfo[0] as Number;
-                const bmpScaleY:Number = lassoInfo[1] as Number;
-                const bmpWidth:Number = lassoInfo[2] as Number;
-                const bmpHeight:Number = lassoInfo[3] as Number;
-                const bmpAngle:Number = lassoInfo[4] as Number;
-                const boxX:Number = lassoInfo[5] as Number;
-                const boxY:Number = lassoInfo[6] as Number;
+                const lassoInfo:Array = data[3];
+                const copyFlag:Boolean = data[4];
+                const bmpScaleX:Number = lassoInfo[0];
+                const bmpScaleY:Number = lassoInfo[1];
+                const bmpWidth:Number = lassoInfo[2];
+                const bmpHeight:Number = lassoInfo[3];
+                const bmpAngle:Number = lassoInfo[4];
+                const boxX:Number = lassoInfo[5];
+                const boxY:Number = lassoInfo[6];
 
                 function resetLassoBox2():void
                 {
@@ -6655,7 +6655,7 @@
 
             function bgColor(data:Array):void
             {
-                const color:uint = data[1] as uint;
+                const color:uint = data[1];
 
                 rBGColorSave = color;
                 setBackgroundColorReplayMode(color);
@@ -6663,11 +6663,11 @@
 
             function canvasSize(data:Array):void
             {
-                const width:Number = data[1] as Number;
-                const height:Number = data[2] as Number;
-                const moveX:Number = data[3] as Number;
-                const moveY:Number = data[4] as Number;
-                const movedFlag:Boolean = data[5] as Boolean;
+                const width:Number = data[1];
+                const height:Number = data[2];
+                const moveX:Number = data[3];
+                const moveY:Number = data[4];
+                const movedFlag:Boolean = data[5];
 
                 changeCanvasSizeReplayMode(width,height,moveX,moveY,movedFlag);
             }
@@ -6683,8 +6683,8 @@
             {
                 const lineStyleData:Array = getrLineStyleSave();
                 // if(!lineStyleData) return;
-                const subLayer:Boolean = data[1] as Boolean;
-                const canvasAlpha:ColorTransform = new ColorTransform(1,1,1,lineStyleData[0] as Number);
+                const subLayer:Boolean = data[1];
+                const canvasAlpha:ColorTransform = new ColorTransform(1,1,1,lineStyleData[0]);
 
                 rcanvas2BitmapData.draw(rcanvas2Draw);
                 rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
@@ -6700,7 +6700,7 @@
                 }
                 else
                 {
-                    rcanvas1BitmapData.draw(rcanvas2Bitmap,null,canvasAlpha,lineStyleData[1] as String);
+                    rcanvas1BitmapData.draw(rcanvas2Bitmap,null,canvasAlpha,lineStyleData[1]);
                     rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
                 }
 
@@ -7480,8 +7480,6 @@
             else if(frame > TOTAL_FRAME) frame = TOTAL_FRAME;
             if(checkExitDeepUndo(flag)) return;
 
-            var t:int = getTimer();
-
             const nowFrame:Number = rNowFrame;
             const prevjumpFlag:Boolean = frame < nowFrame;
             const index:Number = getJumpImageIndex(frame);
@@ -7569,8 +7567,6 @@
             }
             if(checkExitDeepUndo(flag)) return;
             if(!isDeepUndoON) checkAutoScroll.check();
-
-            trace('jump frame time',getTimer()-t);
         }
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
@@ -7830,7 +7826,7 @@
                     if(!isNowTool(TOOL_SPUIT))
                     {
                         updateOldTool();
-                        setSpuitTool();
+                        spuitTool();
                     }
                 }
                 break;
@@ -9871,10 +9867,10 @@
                     setPenSize(d["penSizeIndex"]);
                     toolBoxLastClickPos.x = d["toolBoxLastClickPos.x"];
                     toolBoxLastClickPos.y = d["toolBoxLastClickPos.y"];
-                    undoData.setRFileTotalFrame(d["rFileTotalFrame"] as Number);
+                    undoData.setRFileTotalFrame(d["rFileTotalFrame"]);
                     saveFileName = d["saveFileName"];
                     saveFilePath = d["saveFileName"];
-                    colorHistoryList = d["colorHistoryList"] as Array;
+                    colorHistoryList = d["colorHistoryList"];
                     APP_RUNNING_TIME = d["APP_RUNNING_TIME"];
                     updateWorkingTime();
                     CANVAS_TRACE_ALPHA = d["CANVAS_TRACE_ALPHA"]
@@ -11036,8 +11032,8 @@
             //bitmap1canvas에서 그려준 영역을 지워줌
             if(!copyFlag)
             {   
-                x = lassoP0[0] as Number;
-                y = lassoP0[1] as Number;
+                x = lassoP0[0];
+                y = lassoP0[1];
                 cdg.clear();
                 cdg.beginFill(CANVAS_BG_COLOR);
                 cdg.moveTo(x,y);
@@ -11046,8 +11042,8 @@
                 for(i=1;i<lassoPointsLen;i++)
                 {
                     nowPoint = points[i] as Array;
-                    x = nowPoint[0] as Number;
-                    y = nowPoint[1] as Number;
+                    x = nowPoint[0];
+                    y = nowPoint[1];
                     cdg.lineTo(x,y);
                 }
                 cdg.endFill();
@@ -11067,9 +11063,9 @@
             //rectLeft를 빼줘서 canvasdraw2의 0,0영역에 그려줌
             for(i=1;i<lassoPointsLen;i++)
             {
-                nowPoint = points[i] as Array;
-                xx = (nowPoint[0]-rectLeft) as Number;
-                yy = (nowPoint[1]-rectTop) as Number;
+                nowPoint = points[i];
+                xx = (nowPoint[0]-rectLeft);
+                yy = (nowPoint[1]-rectTop);
                 cdg.lineTo(xx,yy);
             }
 
@@ -11111,8 +11107,8 @@
                 const _lassoPoints:Array = lassoPoints;
                 const g:Graphics = lassog;
                 const len:int = _lassoPoints.length;
-                var x:Number = _lassoPoints[0][0] as Number;
-                var y:Number = _lassoPoints[0][1] as Number;
+                var x:Number = _lassoPoints[0][0];
+                var y:Number = _lassoPoints[0][1];
 
                 g.clear();
                 if(_lassoPoints.length < 2) return;
@@ -11125,7 +11121,7 @@
                     y = _lassoPoints[i][1];
                     _dottedLine.draw(g,x,y);
                 }
-                _dottedLine.draw(g,_lassoPoints[0][0] as Number,_lassoPoints[0][1] as Number);
+                _dottedLine.draw(g,_lassoPoints[0][0],_lassoPoints[0][1]);
             }
 
             function lassoDrawMouseUp():void
@@ -11290,7 +11286,12 @@
 
             function colorPickerOKMouseEvent(e:MouseEvent):void
             {
-                colorPickerOFF(true);
+                const targetName:String = e.target.name;
+                
+                if(spuitCursor.visible)
+                    colorPickerOFF(true);
+                else
+                    colorPickerOFF(false);
             }
 
             function colorPickerOFF(okFlag:Boolean):void
@@ -13182,8 +13183,6 @@
 
         private function closureKeyDownDrawMode():Function
         {
-            var subKey:int;
-
             return function(e:KeyboardEvent):void
             {
                 if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted)
@@ -13225,8 +13224,7 @@
                 //지우개키 조합 따로 체크
                 if(isNowKey(KEY.d) || isNowKey(KEY.j))
                 {
-                    subKey = (keyBuffer.length >= 2) ? keyBuffer[1] : keyCode;
-                    if(checkOpaSizeKeyDown(subKey)) return;
+                    if(checkOpaSizeKeyDown((keyBuffer.length >= 2) ? keyBuffer[1] : keyCode)) return;
                 }
 
                 if(isNowKey(keyCode)) return;
@@ -13235,7 +13233,7 @@
                 if(checkOpaSizeKeyDown(keyCode)) return;
                 
                 //etc키 먼저 체크하고 false반환하면 툴키 체크
-                if(checkEtcKeyDown(keyCode)) return
+                if(checkEtcKeyDown(keyCode)) return;
                 checkToolKeyDown(keyCode);
             }
         }
@@ -13362,7 +13360,7 @@
                         if(!isNowTool(TOOL_SPUIT))
                         {
                             updateOldTool();
-                            setSpuitTool();
+                            spuitTool();
                         }
                     }
                     break;
@@ -13682,7 +13680,7 @@
                     {
                         oldTool = nowTool;
                     }
-                    setSpuitTool();
+                    spuitTool();
                 }
                 break;
                 case "toolUndo":
