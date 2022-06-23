@@ -57,13 +57,13 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.74;
+        private const APP_VERSION:Number = 14.75;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
         //단축키 keycode 리스트
         private const STAGE_FRAME:int = stage.frameRate;
-        private const gKey:Object = {
+        private const KEY:Object = {
                                         a:65,
                                         b:66,
                                         c:67,
@@ -840,24 +840,23 @@
 
         private function checkOpaSizeKeyDown(keyCode:int):Boolean
         {
-            const key:Object = gKey;
             switch(keyCode)
             {
-                case key.f:
-                case key.h:
+                case KEY.f:
+                case KEY.h:
                     setHoldKeyRepeat(shortCutPenSize,true);
                 return true;
 
-                case key.v:
-                case key.n:
+                case KEY.v:
+                case KEY.n:
                     setHoldKeyRepeat(shortCutPenSize,false);
                 return true;
 
-                case key.g:
+                case KEY.g:
                     setHoldKeyRepeat(shortCutPenAlpha,true);
                 return true;
 
-                case key.b:
+                case KEY.b:
                     setHoldKeyRepeat(shortCutPenAlpha,false);
                 return true;
             }
@@ -883,14 +882,13 @@
         private function getCommandKey():int
         {
             const arr:Array = keyBuffer;
-            const key:Object = gKey;
             const first:int = arr[0];
             const second:int = arr[1];
 
-            if((second === key.shift && (first === key.ctrl || first === key.rightCtrl))
-            || (first === key.shift && (second === key.ctrl || second === key.rightCtrl))) return COMMAND_CTRL_SHIFT;
-            if(first === key.shift) return COMMAND_SHIFT;
-            if(first === key.ctrl || first === key.rightCtrl) return COMMAND_CTRL;
+            if((second === KEY.shift && (first === KEY.ctrl || first === KEY.rightCtrl))
+            || (first === KEY.shift && (second === KEY.ctrl || second === KEY.rightCtrl))) return COMMAND_CTRL_SHIFT;
+            if(first === KEY.shift) return COMMAND_SHIFT;
+            if(first === KEY.ctrl || first === KEY.rightCtrl) return COMMAND_CTRL;
 
             return 0;
         }
@@ -1332,27 +1330,26 @@
             function keyUpFillPen(e:KeyboardEvent):void
             {
                 const keyCode:int = e.keyCode;
-                const key:Object = gKey
                 if(mouseClickON)
                 {
-                    if(keyCode === key.q || keyCode === key.o || keyCode === key.enter)
+                    if(keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter)
                     {
                         afterKeyUpOK = true;
                     }
                     return;
                 }
 
-                if(keyCode === key.w || keyCode === key.i
-                || keyCode === key.z || keyCode === key.dot)
+                if(keyCode === KEY.w || keyCode === KEY.i
+                || keyCode === KEY.z || keyCode === KEY.dot)
                 {
                     undoData();
                 }
-                else if(keyCode === key.q || keyCode === key.o
-                || keyCode === key.enter)
+                else if(keyCode === KEY.q || keyCode === KEY.o
+                || keyCode === KEY.enter)
                 {
                     endFillPenOK();
                 }
-                else if(keyCode === key.esc || keyCode === key.backspace)
+                else if(keyCode === KEY.esc || keyCode === KEY.backspace)
                 {
                     cancelFillPen();
                 }
@@ -2301,15 +2298,12 @@
         {
             const keyCode:int = keyBuffer[0];
 
-            if(isNowKey(keyCode)) return;
-
-            const key:Object = gKey;
-            
+            if(isNowKey(keyCode)) return;            
             setNowKey(keyCode);
 
             switch(keyCode)
             {
-                case key.space:
+                case KEY.space:
                 {
                     setNowKey(keyCode);
                     setNowTool(TOOL_HAND);
@@ -2317,8 +2311,8 @@
                 }
                 break;
 
-                case key.w:
-                case key.i:
+                case KEY.w:
+                case KEY.i:
                 {
                     setNowKey(keyCode);
                     setNowTool(TOOL_ZOOM);
@@ -2326,8 +2320,8 @@
                 }
                 break;
 
-                case key.s:
-                case key.k:
+                case KEY.s:
+                case KEY.k:
                 {
                     setNowKey(keyCode);
                     setNowTool(TOOL_ROTATE);
@@ -2335,12 +2329,12 @@
                 }
                 break;
 
-                case key.enter:
+                case KEY.enter:
                     setLassoOKButton();
                 break;
 
-                case key.esc:
-                case key.backspace:
+                case KEY.esc:
+                case KEY.backspace:
                     setLassoCancelButton();
                 break;
             }
@@ -3951,13 +3945,12 @@
         private function stageKeyDownEvent(e:KeyboardEvent):void
         {
             const keyCode:int = e.keyCode;
-            const key:Object = gKey;
 
-            if(fileDragSelectBox.visible || keyCode === key.window) return;
+            if(fileDragSelectBox.visible || keyCode === KEY.window) return;
 
             const index:int = keyBuffer.lastIndexOf(keyCode);
 
-            if(keyCode === key.tab || keyCode === key.alt) e.preventDefault();
+            if(keyCode === KEY.tab || keyCode === KEY.alt) e.preventDefault();
             if(index === -1) keyBuffer.push(keyCode);
         }
 
@@ -7487,6 +7480,8 @@
             else if(frame > TOTAL_FRAME) frame = TOTAL_FRAME;
             if(checkExitDeepUndo(flag)) return;
 
+            var t:int = getTimer();
+
             const nowFrame:Number = rNowFrame;
             const prevjumpFlag:Boolean = frame < nowFrame;
             const index:Number = getJumpImageIndex(frame);
@@ -7574,6 +7569,8 @@
             }
             if(checkExitDeepUndo(flag)) return;
             if(!isDeepUndoON) checkAutoScroll.check();
+
+            trace('jump frame time',getTimer()-t);
         }
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
@@ -8965,34 +8962,33 @@
         {
             const keyCode:uint = keyBuffer[0];
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
-            const key:Object = gKey;
 
            setNowKey(keyCode);
 
             switch(keyCode)
             {
-                case key.c:
-                case key.m:
+                case KEY.c:
+                case KEY.m:
                     setFullCaptrueButton();
                 break;
 
-                case key.s:
-                case key.k:
+                case KEY.s:
+                case KEY.k:
                     setCaptureRotateButton();
                 break;
 
-                case key.a:
-                case key.l:
+                case KEY.a:
+                case KEY.l:
                     setCaptrueFlipButton();
                 break;
 
-                case key.d:
-                case key.j:
+                case KEY.d:
+                case KEY.j:
                     setCaptureTransButton();
                 break;
 
-                case key.esc:
-                case key.backspace:
+                case KEY.esc:
+                case KEY.backspace:
                     setCaptureOFFButton(true);
                 break;
             }
@@ -11271,8 +11267,7 @@
             //픽커 도중에 오른쪽 클릭하면 캔슬해줌
             function colorPickerCancelKeyUpEvent(e:KeyboardEvent):void
             {
-                const key:Object = gKey;
-                if(e.keyCode === key.c || e.keyCode === key.m)
+                if(e.keyCode === KEY.c || e.keyCode === KEY.m)
                 {
                     colorPickerOFF(true);
                 }
@@ -11280,8 +11275,7 @@
 
             function colorPickerCancelKeyDownEvent(e:KeyboardEvent):void
             {
-                const key:Object = gKey;
-                if(e.keyCode === key.c || e.keyCode === key.m)
+                if(e.keyCode === KEY.c || e.keyCode === KEY.m)
                 {
                     return;
                 }
@@ -11435,7 +11429,7 @@
                         }
                         checkLassoMenuPos();
                     } //tool box에서 클릭해서 핸드툴 들어갈때 필요함
-                    else if(!isNowKey(gKey.space)) setOldTool();
+                    else if(!isNowKey(KEY.space)) setOldTool();
                     
                     if(!isDeepUndoON) toolBox.setCursorVisible(true);
                     updatePreviewBoxRectPos();
@@ -12023,7 +12017,7 @@
             var rJumpImageCount:uint = 0;//데이터로 저장할때  rDataFrame 카운터 누적
             var rFileTotalFrame:Number = 0; //file에저장된 프레임수 누적해서 저장
             //undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
-            var UndoRefImage:Array = [rFirstImage.clone(),CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR];
+            var undoRefImage:Array = [rFirstImage.clone(),CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR];
 
             function setUndoRefImageByReplayMode():void
             {
@@ -12039,7 +12033,7 @@
 
             function updateUndoDataFirst():void
             {
-                const d:Array = UndoRefImage;
+                const d:Array = undoRefImage;
                 const data:BitmapData = d[0];
                 const w:uint = d[1];
                 const h:uint = d[2];
@@ -12055,17 +12049,17 @@
                 tickDraw.ready(rData[0]);
                 tickDraw.drawAll();
 
-                UndoRefImage = [rcanvas1BitmapData.clone(),RCANVAS_WIDTH,RCANVAS_HEIGHT,RCANVAS_BG_COLOR];
+                undoRefImage = [rcanvas1BitmapData.clone(),RCANVAS_WIDTH,RCANVAS_HEIGHT,RCANVAS_BG_COLOR];
             }
 
             function getUndoRefImage():Array
             {
-                return UndoRefImage;
+                return undoRefImage;
             }
 
             function setUndoRefImage(arr:Array):void
             {
-                UndoRefImage = arr.concat();
+                undoRefImage = arr.concat();
             }
 
             function getRFileTotalFrame():Number
@@ -12161,7 +12155,7 @@
                         {
                             if(rJumpImageCount > IMG_CACHE_INTERVAL)
                             {
-                                const data:Array = UndoRefImage;
+                                const data:Array = undoRefImage;
                                 const bmpd:BitmapData = data[0];
                                 const w:int = data[1];
                                 const h:int = data[2]
@@ -13042,16 +13036,14 @@
 
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
 
-            const key:Object = gKey;
             var subKey:int;
 
             if(isPressingControlShift())
             {
                 checkCommandSubKey(3,false,function(input:int):void
                 {
-                    const key:Object = gKey;
-                    if(input === key.s) saveFile(true);
-                    else if(input === key.o) loadFile(true);
+                    if(input === KEY.s) saveFile(true);
+                    else if(input === KEY.o) loadFile(true);
                 });
                 return;
             }
@@ -13059,18 +13051,17 @@
             {
                 checkCommandSubKey(2,false,function(input:int):void
                 {
-                    const key:Object = gKey;
                     switch(input)
                     {
-                        case key.left:
-                        case key.z:
-                        case key.dot:
+                        case KEY.left:
+                        case KEY.z:
+                        case KEY.dot:
                             setJumpOneFrame(true,true);
                         break;
 
-                        case key.right:
-                        case key.x:
-                        case key.comma:
+                        case KEY.right:
+                        case KEY.x:
+                        case KEY.comma:
                             setJumpOneFrame(false,true);
                         break;
                     }
@@ -13081,10 +13072,9 @@
             {
                 checkCommandSubKey(2,false,function(input:int):void
                 {
-                    const key:Object = gKey;
-                    if(input === key.s) saveFile(false);
-                    else if(input === key.o) loadFile();
-                    else if(input === key.c || input === key.m) setCaptureReady();
+                    if(input === KEY.s) saveFile(false);
+                    else if(input === KEY.o) loadFile();
+                    else if(input === KEY.c || input === KEY.m) setCaptureReady();
                 });
                 return;
             }
@@ -13093,60 +13083,60 @@
 
             switch(keyCode)
             {
-                case key.left:
-                case key.z:
-                case key.dot:
+                case KEY.left:
+                case KEY.z:
+                case KEY.dot:
                     setJumpOneFrame(true,false);
                 break;
 
-                case key.right:
-                case key.x:
-                case key.comma:
+                case KEY.right:
+                case KEY.x:
+                case KEY.comma:
                     setJumpOneFrame(false,false);
                 break;
 
-                case key.up:
-                case key.f:
-                case key.h:
+                case KEY.up:
+                case KEY.f:
+                case KEY.h:
                     setReplaySpeedByKeyButton(true);
                 break;
 
-                case key.down:
-                case key.v:
-                case key.n:
+                case KEY.down:
+                case KEY.v:
+                case KEY.n:
                     setReplaySpeedByKeyButton(false);
                 break;
 
-                case key.backspace:
-                case key.esc:
+                case KEY.backspace:
+                case KEY.esc:
                 {
                     if(cutFrameClickedButton !== CUT_FRAME_NONE) resetCutFrameClickCounter();
                     else setReplayUI(false);
                 }
                 break;
 
-                case key.f1:
-                case key.f6:
+                case KEY.f1:
+                case KEY.f6:
                     setCutFrameButton(CUT_FRAME_RE_RECORD,true);
                 break;
 
-                case key.f2:
-                case key.f7:
+                case KEY.f2:
+                case KEY.f7:
                     setCutFrameButton(CUT_FRAME_SUPER_UNDO,true);
                 break;
 
-                case key.f3:
-                case key.f8:
+                case KEY.f3:
+                case KEY.f8:
                     setCutFrameButton(CUT_FRAME_DELETE_FRONT,true);
                 break;
 
-                case key.n1:
-                case key.n7:
+                case KEY.n1:
+                case KEY.n7:
                     setReplayUI(false);
                 break;
 
-                case key.enter:
-                case key.space:
+                case KEY.enter:
+                case KEY.space:
                 {
                     if(replayStartON === false)
                         startReplay();
@@ -13192,7 +13182,6 @@
 
         private function closureKeyDownDrawMode():Function
         {
-            const key:Object = gKey;
             var subKey:int;
 
             return function(e:KeyboardEvent):void
@@ -13212,9 +13201,8 @@
 
                     checkCommandSubKey(3,true,function(input:int):void
                     {
-                        const key:Object = gKey;
-                        if(input === key.s) saveFile(true);
-                        else if(input === key.o) loadFile(true);
+                        if(input === KEY.s) saveFile(true);
+                        else if(input === KEY.o) loadFile(true);
                     })
                     return;
                 }
@@ -13222,11 +13210,10 @@
                 {
                     if(checkCommandSubKey(2,true,function(input:int):void
                     {
-                        const key:Object = gKey;
-                        if(input === key.s) saveFile(false);
-                        else if(input === key.o) loadFile();
-                        else if(input === key.c || input === key.m) setCaptureReady();
-                        else if(input === key.v || input === key.n)
+                        if(input === KEY.s) saveFile(false);
+                        else if(input === KEY.o) loadFile();
+                        else if(input === KEY.c || input === KEY.m) setCaptureReady();
+                        else if(input === KEY.v || input === KEY.n)
                         {
                             if(clipImageON) setClipButton();
                         }
@@ -13236,7 +13223,7 @@
                 }
 
                 //지우개키 조합 따로 체크
-                if(isNowKey(key.d) || isNowKey(key.j))
+                if(isNowKey(KEY.d) || isNowKey(KEY.j))
                 {
                     subKey = (keyBuffer.length >= 2) ? keyBuffer[1] : keyCode;
                     if(checkOpaSizeKeyDown(subKey)) return;
@@ -13255,13 +13242,12 @@
 
         private function closureCheckEtcKeyDown():Function
         {
-            const key:Object = gKey;
             return function(keyCode:int):Boolean
             {
                 switch(keyCode)
                 {
-                    case key.f1:
-                    case key.f6:
+                    case KEY.f1:
+                    case KEY.f6:
                     {
                         nowKeyNotKeyUp = keyCode;
                         setGridButton();
@@ -13269,16 +13255,16 @@
                     }
                     return true;
 
-                    case key.f2:
-                    case key.f7:
+                    case KEY.f2:
+                    case KEY.f7:
                     {
                         nowKeyNotKeyUp = keyCode;
                         setSideBarPositionButton();
                     }
                     return true;
 
-                    case key.f3:
-                    case key.f8:
+                    case KEY.f3:
+                    case KEY.f8:
                     {
                         nowKeyNotKeyUp = keyCode;
                         setUIColorButton();
@@ -13286,16 +13272,16 @@
                     }
                     return true;
                     
-                    case key.n2:
-                    case key.n8:
+                    case KEY.n2:
+                    case KEY.n8:
                     {
                         nowKeyNotKeyUp = keyCode;
                         setReplayUI(true);
                     }
                     return true;
 
-                    case key.n3:
-                    case key.n9:
+                    case KEY.n3:
+                    case KEY.n9:
                     {
                         nowKeyNotKeyUp = keyCode;
                         if(controlBox.pixelSnapButtonWrapper.alpha === 1.0)
@@ -13303,8 +13289,8 @@
                     }
                     return true;
 
-                    case key.n4:
-                    case key.n0:
+                    case KEY.n4:
+                    case KEY.n0:
                     {
                         nowKeyNotKeyUp = keyCode;
                         airBrushON = !airBrushON;
@@ -13312,8 +13298,8 @@
                     }
                     return true;
 
-                    case key.n5:
-                    case key.minus:
+                    case KEY.n5:
+                    case KEY.minus:
                     {
                         nowKeyNotKeyUp = keyCode;
                         if(controlBox.subLayerButtonWrapper.alpha === 1.0)
@@ -13321,20 +13307,20 @@
                     }
                     return true;
 
-                    case key.x:
-                    case key.comma:
+                    case KEY.x:
+                    case KEY.comma:
                         nowKeyNotKeyUp = keyCode;
                         setRedoButton(true);
                     return true;
 
-                    case key.z:
-                    case key.dot:
+                    case KEY.z:
+                    case KEY.dot:
                         nowKeyNotKeyUp = keyCode;
                         setUndoButton(true);
                     return true;
 
-                    case key.tab:
-                    case key.backslash:
+                    case KEY.tab:
+                    case KEY.backslash:
                         nowKeyNotKeyUp = keyCode;
                         setSidebarVisible(!isSidebarVisible,false);
                     return true;
@@ -13345,13 +13331,12 @@
 
         private function closureCheckToolKeyDown():Function
         {
-            const key:Object = gKey;
             return function(keyCode:int):void
             {
                 switch (keyCode)
                 {
-                    case key.q:
-                    case key.o:
+                    case KEY.q:
+                    case KEY.o:
                     {
                         setNowTool(TOOL_PEN); //q키가 올라가면 펜툴로 바꿔지게
                         updateOldTool();
@@ -13359,20 +13344,20 @@
                     }
                     break;
 
-                    case key.t:
+                    case KEY.t:
                     {
                         if(!traceMenuON) openTraceWindow();
                         else if(traceMenuON) closeTraceMenu();
                     }
                     break;
 
-                    case key.a:
-                    case key.l:
+                    case KEY.a:
+                    case KEY.l:
                         mirrorCanvas();
                     break;
 
-                    case key.c:
-                    case key.m:
+                    case KEY.c:
+                    case KEY.m:
                     {
                         if(!isNowTool(TOOL_SPUIT))
                         {
@@ -13382,8 +13367,8 @@
                     }
                     break;
 
-                    case key.r:
-                    case key.y:
+                    case KEY.r:
+                    case KEY.y:
                     {
                         if(!isNowTool(TOOL_LASSO))
                         {
@@ -13393,7 +13378,7 @@
                     }
                     break;
 
-                    case key.space:
+                    case KEY.space:
                     {
                         if(!isNowTool(TOOL_HAND))
                         {
@@ -13403,8 +13388,8 @@
                     }
                     break;
 
-                    case key.d:
-                    case key.j:
+                    case KEY.d:
+                    case KEY.j:
                     {
                         if(!isNowTool(TOOL_ERASE))
                         {
@@ -13415,8 +13400,8 @@
                     }
                     break;
 
-                    case key.s:
-                    case key.k:
+                    case KEY.s:
+                    case KEY.k:
                     {
                         if(!isNowTool(TOOL_ROTATE))
                         {
@@ -13426,8 +13411,8 @@
                     }
                     break;
 
-                    case key.e:
-                    case key.u:
+                    case KEY.e:
+                    case KEY.u:
                     {
                         if(!isNowTool(TOOL_MOVE))
                         {
@@ -13437,8 +13422,8 @@
                     }
                     break;
 
-                    case key.w:
-                    case key.i:
+                    case KEY.w:
+                    case KEY.i:
                     {
                         if(!isNowTool(TOOL_ZOOM))
                         {
@@ -13448,7 +13433,7 @@
                     }
                     break;
 
-                    case key.shift:
+                    case KEY.shift:
                     {
                         if(!isNowTool(TOOL_LINE))
                         {
@@ -13459,9 +13444,9 @@
                     }
                     break;
 
-                    case key.esc:
-                    case key.del:
-                    case key.backspace:
+                    case KEY.esc:
+                    case KEY.del:
+                    case KEY.backspace:
                     {
                         setClearData(true);
                     }
@@ -14185,14 +14170,12 @@
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
 
             var subKey:int;
-            const key:Object = gKey;
             if(isPressingControl())
             {
                 checkCommandSubKey(2,false,function(input:int):void
                 {
-                    const key:Object = gKey;
-                    if(input === key.z || input === key.dot) superUndo();
-                    else if(input === key.c || input === key.m)
+                    if(input === KEY.z || input === KEY.dot) superUndo();
+                    else if(input === KEY.c || input === KEY.m)
                     {
                         exitDeepUndoMode();
                         setCaptureReady();
@@ -14205,28 +14188,28 @@
 
             switch(keyCode)
             {
-                case key.enter:
+                case KEY.enter:
                     superUndo();
                 break;
 
-                case key.z:
-                case key.dot:
+                case KEY.z:
+                case KEY.dot:
                     setJumpOneFrame(true,false);
                 break;
 
-                case key.x:
-                case key.comma:
+                case KEY.x:
+                case KEY.comma:
                     setJumpOneFrame(false,false);
                 break;
 
-                case key.esc:
-                case key.backspace:
-                case key.n1:
-                case key.n7:
+                case KEY.esc:
+                case KEY.backspace:
+                case KEY.n1:
+                case KEY.n7:
                     exitDeepUndoMode();
                 break;
-                case key.n2:
-                case key.n8:
+                case KEY.n2:
+                case KEY.n8:
                     exitDeepUndoMode();
                     setReplayUI(true);
                 break;
