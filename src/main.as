@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.77;
+        private const APP_VERSION:Number = 14.78;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -607,7 +607,7 @@
             const maskg:Graphics = canvasPanelMask.graphics;
             maskg.clear();
             maskg.beginFill(0xFF00FF);
-            maskg.drawRect(0, 0, w, h);
+            maskg.drawRect(0,0,w,h);
             maskg.endFill();
         }
 
@@ -6282,17 +6282,13 @@
 
         private function cTickDraw():Object
         {
-            var cd2:Graphics = rcanvas2Draw.graphics;
-            var bmp1:Bitmap = rcanvas1Bitmap;
-            var bmpd1:BitmapData = rcanvas1BitmapData;
-            var bmp2:Bitmap = rcanvas2Bitmap;
-            var bmpd2:BitmapData = rcanvas2BitmapData;
+            const cd2:Graphics = rcanvas2Draw.graphics;
+            const rTinyCursorPos:Point = new Point(0,0);
 
             var lineStyleBackup:Array; //tempdone에서 쓰는 플래그임
             var index:uint;
             var data:Array; //데이터 뭉치
             var d:Array; // 데이터 뭉치안에 데이터 뭉치
-            var rTinyCursorPos:Point = new Point(0,0);
             
             function updateLineStyleBackup(arr:Array):void
             {
@@ -6307,12 +6303,12 @@
 
             function resetgetRCursorPos():void
             {
-                rTinyCursorPos = new Point(0,0);
+                rTinyCursorPos.setTo(0,0);
             }
 
             function setRCursorPos(x:Number,y:Number):void
             {
-                rTinyCursorPos = new Point(x,y);
+                rTinyCursorPos.setTo(x,y);
             }
 
             function getRCursorPos():Point
