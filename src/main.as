@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.80;
+        private const APP_VERSION:Number = 14.82;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -346,7 +346,7 @@
                     ,lastWindowSize:Point = new Point() //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
         //save load 관련 변수
                     ,saveOneTime:Boolean = false //세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
-                    ,saveFileName:String = getTimeStampSimple()+" "+getRandomString()//세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
+                    ,saveFileName:String = getTimeStampTailHead()+" "+getRandomString()+".png"//세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
                     ,saveFilePath:String = saveFileName//파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
                     ,saveContinue:Boolean = false//한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
                     ,clearDataButtonCount:uint = 0 //리플레이 취소 카운터
@@ -364,13 +364,13 @@
                     ,toolTipBoxTimer:uint = 0
 
         //리플레이 관련 변수
-        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1466.301")
-                    ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata1.301")
-                    ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata.301")
-                    ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("temp_repdata.301") //파일을 저장하거나 불러올때 씀
-                    ,rJumpImageFolder:File = File.applicationStorageDirectory.resolvePath("jumpImages")
-                    ,rJumpImageFrameDataFile:File = File.applicationStorageDirectory.resolvePath("jumpframedata.301")
-                    ,rFirstImageFile:File = rJumpImageFolder.resolvePath("0.img")
+        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1481")
+                    ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata1481")
+                    ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata")
+                    ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("repdatatmp") //파일을 저장하거나 불러올때 씀
+                    ,rJumpImageFolder:File = File.applicationStorageDirectory.resolvePath("imagecache")
+                    ,rJumpImageFrameDataFile:File = File.applicationStorageDirectory.resolvePath("jumpframedata")
+                    ,rFirstImageFile:File = rJumpImageFolder.resolvePath("0")
                     ,rFileStream:FileStream = new FileStream()//함수들을 왔다갔다 해야해서 전역으로 하나 ,
                     ,rregPoint:Sprite = new Sprite()//회전 스프라이트 부모
                     ,rcanvasPanel:Sprite = new Sprite()
@@ -466,7 +466,7 @@
                     ,canvasTraceBitmapDataRaw:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)//원본 참고레이어 데이터
                     ,canvasTraceBitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0) //리사이즈등 수정된 데이터
                     ,canvasTraceBitmap:Bitmap = new Bitmap()
-                    ,traceImageFile:File = File.applicationStorageDirectory.resolvePath("traceImg.301")
+                    ,traceImageFile:File = File.applicationStorageDirectory.resolvePath("traceImg")
                     ,traceMenuBox:traceButtons = new traceButtons()
                     ,traceReizeMoveSum:Number = 0 //전역으로 돌려서 다시 클릭하거나 이미지를 불러와도 원래 스케일을 저장하도록함
                     ,tracePosInfo:Array = [0,0,0,1.0,1.0,false] // width, height, rotation,scale 미러 플래그
@@ -558,6 +558,7 @@
                     ,isDeepUndoON:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ,sideBarONMouseLeaveTimer:int = 0 //마우스 클릭후 바깥으로 나갔을때 사이드바 잠깐 안켜주는 플래그
+                    ,isNewFOFOSaveForamat:Boolean = false
                     ;
         //vars
         public function main():void
@@ -1066,12 +1067,9 @@
         private function resetApp():void
         {
             appResetFlag = true;
-            if(appDataFile.exists) appDataFile.deleteFile(); //파일이 있으면 지워줌
-            if(repFile.exists) repFile.deleteFile();
-            if(rJumpImageFolder.exists) rJumpImageFolder.deleteDirectory(true);
-            if(rJumpImageFrameDataFile.exists) rJumpImageFrameDataFile.deleteFile();
-            if(undoDataFile.exists) undoDataFile.deleteFile();
-            if(traceImageFile.exists) traceImageFile.deleteFile();
+            
+            const files:File = File.applicationStorageDirectory;
+            files.deleteDirectory(true);
         }
 
         private function setSidebarVisible(flag:Boolean,tempFlag:Boolean):void
@@ -1172,8 +1170,17 @@
         private function isTrue2020File(file:File):Boolean
         {
             const fs:FileStream = new FileStream();
-            const ba:ByteArray = new ByteArray;
+            isNewFOFOSaveForamat = false;
+            fs.open(file,FileMode.READ);
 
+            const header:String = fs.readUTFBytes(9);
+            if(header === "FOFOPAINT")
+            {
+                isNewFOFOSaveForamat = true;
+                fs.close();
+                return true;
+            }
+            fs.close();
             fs.open(file,FileMode.READ);
             try
             {
@@ -3269,7 +3276,7 @@
             const newRectangle:Rectangle = new Rectangle(0,0,w,h);
            
             bmpd.copyPixelsToByteArray(newRectangle,ba);
-            
+            ba.compress();
             fs.open(traceImageFile,FileMode.WRITE);
             fs.writeObject([ba,w,h]);
             fs.close();
@@ -5136,7 +5143,7 @@
             resetUndo();
             addUndoData();
 
-            const fileName:String = getTimeStampSimple()+" "+getRandomString()+".png";
+            const fileName:String = getTimeStampTailHead()+" "+getRandomString()+".png";
             const name:String = saveFileName;
             const path:String = saveFilePath;
             const newName:String = name.substr(0,name.lastIndexOf(name))+fileName;
@@ -5973,13 +5980,14 @@
         private function resetJumpImage():void
         {
             const fs:FileStream = new FileStream();
-            const file:File = rJumpImageFolder.resolvePath("0.img");
+            const file:File = rJumpImageFolder.resolvePath("0");
             fs.open(file,FileMode.READ);
             const data:Array = fs.readObject() as Array;
             fs.close();
-
+            data[0].uncompress();
             const bmpd:BitmapData = new BitmapData(data[1],data[2],true,0);
             const newRectangle:Rectangle = new Rectangle(0,0,data[1],data[2]);
+            
             bmpd.lock();
             bmpd.setPixels(newRectangle,data[0]);
             bmpd.unlock();
@@ -6002,6 +6010,7 @@
             rJumpImageFrameData = [0];
 
             bmpd.copyPixelsToByteArray(newRectangle,ba);
+            ba.compress();
             rFirstImage = bmpd.clone();
             rFirstBGColor = bgColor;
 
@@ -6364,13 +6373,13 @@
 
             function getLineStyleAlpha():Number
             {
-                if(!lineStyleBackup) return 1.0;
-
                 return lineStyleBackup[0];
             }
 
             function getrLineStyleSave():Array
             {
+                if(lineStyleBackup.length !== 2) return [1.0,]
+                
                 return lineStyleBackup;
             }
 
@@ -7476,14 +7485,20 @@
                 if(prevJumpImageIndex > 0)//prevjumpFlag && false)
                 {
                     jumpImageData = rDataPreviewCacheImages[prevJumpImageIndex];
+                    tempBmpd = jumpImageData[0];
                 }
                 else
                 {
-                    const file:File = rJumpImageFolder.resolvePath(index+".img");
+                    const file:File = rJumpImageFolder.resolvePath(index+"");
                     const fs:FileStream = new FileStream();
                     fs.open(file,FileMode.READ);
                     jumpImageData = fs.readObject() as Array;
                     fs.close();
+                    jumpImageData[0].uncompress();
+                    tempBmpd = new BitmapData(jumpImageData[1],jumpImageData[2],true,0);
+                    tempBmpd.lock();
+                    tempBmpd.setPixels(new Rectangle(0,0,jumpImageData[1],jumpImageData[2]),jumpImageData[0]);
+                    tempBmpd.unlock();
                 }
 
                 rJumpImageIndexSave = index;
@@ -7497,19 +7512,6 @@
                 tickDraw.reset();
                 clearCanvasReplayMode();
                 rMirrorON = false;
-
-                if(prevJumpImageIndex > 0)
-                {
-                    tempBmpd = jumpImageData[0];
-                }
-                else
-                {
-                    tempBmpd = new BitmapData(jumpImageData[1],jumpImageData[2],true,0);
-                    const newRectangle:Rectangle = new Rectangle(0,0,jumpImageData[1],jumpImageData[2]);
-                    tempBmpd.lock();
-                    tempBmpd.setPixels(newRectangle,jumpImageData[0]);
-                    tempBmpd.unlock();
-                }
 
                 rcanvas1BitmapData.dispose();
                 rcanvas1BitmapData = tempBmpd.clone();
@@ -7976,7 +7978,6 @@
         private function setDragDropSelectBoxReady(filename:String=""):void
         {
             resetKeyBuffer();
-
             if(fileDragSelectBox.visible === false)
             {
                 if(lassoToolON === true)
@@ -8380,7 +8381,7 @@
 
                         const perc:Number = Math.floor(((totalSize-namojiBytes)/totalSize)*100);
                         const fs3:FileStream = new FileStream();
-                        const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+".img");
+                        const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+"");
                         const lastBytePos:Number = fs.position;
                         const imgData:ByteArray = new ByteArray();
                         const w:Number = rcanvas1BitmapData.width;
@@ -8388,6 +8389,7 @@
                         const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
                         rcanvas1BitmapData.copyPixelsToByteArray(newRectangle,imgData);
+                        imgData.compress();
                         fs3.open(jumpimg,FileMode.WRITE);
                         fs3.writeObject([imgData,w,h,rBGColorSave,lastBytePos,_frameSum])//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
                         fs3.close();
@@ -8435,8 +8437,23 @@
                     traceImgData.compress();
                 }
 
-                repFile.copyTo(repFileTemp,true);//일단 임시파일에다가 써줌
-                fs.open(repFileTemp,FileMode.APPEND);
+                repFile.copyTo(repFileTemp,true);//일단 임시파일로 복사
+
+                //임시파일전체를 바이트배열로 읽어서 압축해줌
+                const tmpBytes:ByteArray = new ByteArray();
+                fs.open(repFileTemp,FileMode.READ);
+                fs.position = 0;
+                fs.readBytes(tmpBytes,0,fs.bytesAvailable);
+                tmpBytes.compress();
+                fs.close();
+
+                //실제 저장할 파일을 다시 써줌
+                fs.open(repFileTemp,FileMode.WRITE);
+                fs.position = 0;
+                fs.writeUTFBytes("FOFOPAINT"); //파일 헤더
+                fs.writeUnsignedInt(tmpBytes.length); //뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
+                fs.writeBytes(tmpBytes);
+                tmpBytes.clear();
 
                 var _readUndoArray:Array;
                 for(var i:int=0,len:int=undoIndex;i<=len;i++)//리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
@@ -8456,17 +8473,17 @@
                 fs.writeObject(["rFinalImage",lastImgData,CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR]);
                 if(_traceBmpd)
                 {
-                    fs.writeObject(["traceImage",traceImgData,
-                                                traceImgWidth, // 2
-                                                traceImgHeight,// 3
-                                                traceImgInfo[0],// 4
+                    fs.writeObject(["traceImage",traceImgData, // 1
+                                                traceImgWidth,
+                                                traceImgHeight,
+                                                traceImgInfo[0],
                                                 traceImgInfo[1],// 5
-                                                traceImgInfo[2],// 6
-                                                traceImgInfo[3],// 7
-                                                traceImgInfo[4],// 8
-                                                traceImgInfo[5],// 9
+                                                traceImgInfo[2],
+                                                traceImgInfo[3],
+                                                traceImgInfo[4],
+                                                traceImgInfo[5],
                                                 traceReizeMoveSum,//10
-                                                CANVAS_TRACE_ALPHA] );// 11
+                                                CANVAS_TRACE_ALPHA]);// 11
                 }
                 fs.close();
                 rImgData.clear();
@@ -8506,21 +8523,36 @@
 
             fs.open(repFileTemp,FileMode.READ);
             rJumpImageFrameData = [0];
+            
+            var d:Array;
+            var ba:ByteArray;
+            const _isNewFOFOSaveForamat:Boolean = isNewFOFOSaveForamat;
+
+            if(_isNewFOFOSaveForamat)
+            {
+                isNewFOFOSaveForamat = false;
+                const replayData:ByteArray = new ByteArray();
+                fs.readUTFBytes(9); //FOFOPAINT헤더 읽어줌
+                const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
+                if(compBytes > 0)
+                {
+                    //압축된 데이터 써주고 압축 풀어줌
+                    fs.readBytes(replayData,0,compBytes);
+                    replayData.uncompress();
+                }
+            }
 
             while(1)
             {
-                if(fs.bytesAvailable === 0)
-                {
-                    break;
-                }
-                const d:Array = fs.readObject() as Array;
+                if(fs.bytesAvailable === 0) break;
+                d = fs.readObject() as Array;
 
                 if(d[0] === "rFirstImage") //리플레이 첫 이미지 파일
                 {
-                    const ba:ByteArray = d[1] as ByteArray;
+                    ba = d[1] as ByteArray;
                     newRectangle = new Rectangle(0,0,d[2],d[3]);
                     ba.uncompress();
-                    rFirstImage = new BitmapData(d[2], d[3], true, 0);
+                    rFirstImage = new BitmapData(d[2],d[3],true,0);
                     rFirstImage.lock();
                     rFirstImage.setPixels(newRectangle,ba);
                     rFirstImage.unlock();
@@ -8528,20 +8560,20 @@
                     const bgc:uint = d[4];
 
                     //r first img 업데이트 해줌
-                    updateFirstImage(rFirstImage,bgc); //0.img 파일 갱신
+                    updateFirstImage(rFirstImage,bgc); //0.cache 파일 갱신
                     rBGColorSave = bgc;
                 }
                 else if(d[0] === "rFinalImage")//최종 이미지
                 {
-                    const ba2:ByteArray = d[1] as ByteArray;
+                    ba = d[1] as ByteArray;
                     newRectangle = new Rectangle(0,0,d[2],d[3]);
-                    ba2.uncompress();
+                    ba.uncompress();
                     errorFlag = false;
                     finalIMGBMPD = new BitmapData(d[2],d[3],true,0);
                     finalIMGBMPD.lock();
-                    finalIMGBMPD.setPixels(newRectangle,ba2);
+                    finalIMGBMPD.setPixels(newRectangle,ba);
                     finalIMGBMPD.unlock();
-                    ba2.clear();
+                    ba.clear();
 
                     imgW = d[2];
                     imgH = d[3];
@@ -8549,32 +8581,51 @@
                 }
                 else if(d[0] === "traceImage")
                 {
-                    const ba3:ByteArray = d[1] as ByteArray;
+                    ba = d[1] as ByteArray;
                     newRectangle = new Rectangle(0,0,d[2],d[3]);
-                    ba3.uncompress();
-                    traceRawBMPD = new BitmapData(d[2], d[3], true, 0);
+                    ba.uncompress();
+                    traceRawBMPD = new BitmapData(d[2], d[3],true,0);
                     traceRawBMPD.lock();
-                    traceRawBMPD.setPixels(newRectangle,ba3);
+                    traceRawBMPD.setPixels(newRectangle,ba);
                     traceRawBMPD.unlock();
+                    ba.clear();
                     d[0] = null;
                     d[1] = null;
                     traceRawArr = d.concat();
+                }
+                else if(_isNewFOFOSaveForamat)
+                {
+                    replayData.position = replayData.length;
+                    replayData.writeObject(d);
                 }
                 else
                 {
                     imgStartByte = fs.position;
                 }
             }
-
             fs.close();
 
-            //이미지직전까지 바이트를 기준으로 짤라줌, 즉 뒤에 붙은 첫 이미지 + 마지막 이미지를 지워줌
-            fs.open(repFileTemp,FileMode.UPDATE);
-            fs.position = imgStartByte;
-            fs.truncate();
-            fs.close();
+            if(_isNewFOFOSaveForamat)
+            {
+                fs.open(repFile,FileMode.WRITE);
+                fs.position = 0;
+                fs.writeBytes(replayData);
+                fs.close();
+            }
+            else
+            {
+                //이미지직전까지 바이트를 기준으로 짤라줌, 즉 뒤에 붙은 첫 이미지 + 마지막 이미지를 지워줌
+                fs.open(repFileTemp,FileMode.UPDATE);
+                fs.position = imgStartByte;
+                fs.truncate();
+                fs.close();
+                repFileTemp.moveTo(repFile,true);
+            }
+            if(repFileTemp.exists)
+            {
+                repFileTemp.deleteFile();
+            }
 
-            repFileTemp.moveTo(repFile,true);
             makeJumpImageFlag = 1;
             loadFileAfter(fileName,filePath,imgW,imgH,finalIMGBMPD,false,bg);
             addInputEventDrawMode();
@@ -8591,15 +8642,20 @@
             const fs:FileStream = new FileStream();
             var errorFlag:Boolean = true;
             fs.open(file,FileMode.READ);
-
             var finalIMGBMPD:BitmapData = new BitmapData(1,1,true,0);
+            
+            const _isNewFOFOSaveForamat:Boolean = isNewFOFOSaveForamat;
+            if(_isNewFOFOSaveForamat)
+            {
+                isNewFOFOSaveForamat = false;
+                fs.readUTFBytes(9); //FOFOPAINT헤더 읽어줌
+                const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
+                fs.position += compBytes;
+            }
 
             while(1)
             {
-                if(fs.bytesAvailable === 0)
-                {
-                    break;
-                }
+                if(fs.bytesAvailable === 0) break;
                 const d:Array = fs.readObject() as Array;
 
                 if(d[0] === "rFinalImage")//최종 이미지
@@ -8738,6 +8794,7 @@
             setWindowTitleStar();
             setSubLayer(false);
             setReplaySubLayer(false);
+            updateResizeButtonPos();
             cancelAutoKeyEvent({});
         }
 
@@ -9259,7 +9316,7 @@
             return cutStr;
         }
 
-        private function getTimeStampSimple():String
+        private function getTimeStampTailHead():String
         {
             const date:Date = new Date();
             const y:Number = date.getFullYear();
@@ -9272,7 +9329,7 @@
             return timeStr;
         }
 
-        private function getTimeStamp():String
+        private function getTimeStampTail():String
         {
             const date:Date = new Date();
             const hour:Number = date.getHours();
@@ -9300,7 +9357,7 @@
             browseWindowON = true;
 
             name = cutTimeStamp(name);
-            name = name.substr(0,name.lastIndexOf(".png"))+"_"+getTimeStamp()+".png";//뒤에 프레임 번호 붙여줌
+            name = name.substr(0,name.lastIndexOf(".png"))+"_"+getTimeStampTail()+".png";//뒤에 프레임 번호 붙여줌
             path = path.substr(0,path.lastIndexOf(saveFileName))+name;
 
             var file1:File = (firstSaveFlag) ? new File(path): File.desktopDirectory.resolvePath(name);
@@ -9418,8 +9475,6 @@
 
         private function checkSaveFileName(saveFailed:Boolean):File
         {
-            const timeStamp:String = getTimeStampSimple();
-            const timeStampPettern:RegExp = /\[\d\d\d\d-\d\d\d\d\]/g;
             var _path:String = saveFilePath;
             var _name:String = saveFileName;
 
@@ -9428,8 +9483,7 @@
             const pathonly:String = _path.substr(0,nameStatIndex);
             
             //파일 이름에 시간이 찍혀있으면 이름 그대로 반환하고 없으면 앞에 붙여줌
-            const findTimeStamp:String = timeStampPettern.exec(_name);
-            var fileName:String = (findTimeStamp === null) ? timeStamp+" "+_name : _name;
+            var fileName:String = _name;
             var filePath:String = pathonly+fileName;
             
             if(saveFailed)
@@ -9612,12 +9666,12 @@
             fs.open(undoDataFile,FileMode.READ);
             const lastUndoIndex:int = fs.readInt();
             const arr:Array = fs.readObject() as Array; //undodata first
-            const len:uint = arr.length;
+            arr[0].uncompress();
             const newRectangle:Rectangle = new Rectangle(0,0,arr[1],arr[2]);
             const bmpd:BitmapData = new BitmapData(arr[1],arr[2],true,0);
             const arr1:Array = fs.readObject() as Array;
             const arr2:Array = fs.readObject() as Array;
-
+            
             rData = arr1.concat();
             rDataFrame = arr2.concat();
             fs.close();
@@ -9645,6 +9699,7 @@
             var newRectangle:Rectangle = new Rectangle(0,0,arr[1],arr[2]);
 
             bmpd.copyPixelsToByteArray(newRectangle,ba);
+            ba.compress();
             var newArr:Array = [ba,arr[1],arr[2],arr[3],arr[4]];
 
             fs.open(undoDataFile,FileMode.WRITE);
@@ -9741,13 +9796,14 @@
             var newRectangle:Rectangle;
             //앱 경로에 마지막 저장 파일이 있으면 끄기전의 상태로 세팅해줌
 
-            if(rFirstImageFile.exists === true)
+            if(rFirstImageFile.exists)
             {
                 fs.open(rFirstImageFile, FileMode.READ);
                 arr = fs.readObject() as Array;
                 fs.close();
+                arr[0].uncompress();
                 newRectangle = new Rectangle(0,0,arr[1],arr[2]);
-                rFirstImage = new BitmapData(arr[1], arr[2], true, 0);
+                rFirstImage = new BitmapData(arr[1],arr[2],true,0);
                 rFirstImage.lock();
                 rFirstImage.setPixels(newRectangle,arr[0]);
                 rFirstImage.unlock();
@@ -9758,18 +9814,18 @@
                 rFirstImage = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
             }
 
-            if(traceImageFile.exists === true) //저장한 trace 이미지 복원
+            if(traceImageFile.exists) //저장한 trace 이미지 복원
             {
                 fs.open(traceImageFile, FileMode.READ);
                 arr = fs.readObject() as Array;
                 fs.close();
+                arr[0].uncompress();
                 newRectangle = new Rectangle(0,0,arr[1],arr[2]);
 
                 var bmpd:BitmapData = new BitmapData(arr[1], arr[2], true, 0);
                 bmpd.lock();
                 bmpd.setPixels(newRectangle,arr[0]);
                 bmpd.unlock();
-
                 canvasTraceBitmapData = bmpd.clone();
                 canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
                 canvasTraceBitmap.smoothing = true;
@@ -9778,7 +9834,7 @@
                 bmpd = null;
             }
 
-            if(rJumpImageFrameDataFile.exists === true)
+            if(rJumpImageFrameDataFile.exists)
             {
                 fs.open(rJumpImageFrameDataFile,FileMode.READ);
                 arr = fs.readObject() as Array;
@@ -9786,7 +9842,7 @@
                 rJumpImageFrameData = arr.concat();
             }
 
-            if(appDataFile.exists === true)
+            if(appDataFile.exists)
             {
                 fs.open(appDataFile, FileMode.READ);
                 const d:Object = fs.readObject();
@@ -12142,11 +12198,12 @@
                                 //위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
                                 rJumpImageFrameData.push(_rFileTotalFrame);
 
-                                const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+".img");
+                                const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+"");
                                 const imgData:ByteArray = new ByteArray();
                                 const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
                                 bmpd.copyPixelsToByteArray(newRectangle,imgData);
+                                imgData.compress();
                                 fs.open(jumpimg,FileMode.WRITE);
                                 fs.writeObject([imgData,w,h,bgColor,rf.size,_rFileTotalFrame]);//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
                                 fs.close();
@@ -14069,6 +14126,7 @@
                         rDataReadFlag = false;
                         replayTimeBox["frameInfo"].text = totalFrame+" / " + totalFrame;
                         replayTimeBox["replayNowBar"].width = (totalFrame === 0) ? 0 : replayTimeBox["replayTotalBar"].width;
+                        topBar["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
                         clearCanvasReplayMode();
                         resetReplayTime();
                         rNowFrame = totalFrame;
