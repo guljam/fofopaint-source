@@ -54,10 +54,11 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
+    import flash.trace.Trace;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.85;
+        private const APP_VERSION:Number = 14.86;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -149,8 +150,8 @@
 
                     ,JUMP_FRAME_PLAY:int = (1 << 0)
                     ,JUMP_FRAME_ONCE:int = (1 << 1)
-                    ,JUMP_FRAME_BACK:int = (1 << 2)
-                    ,JUMP_FRAME_FRONT:int = (1 << 3)
+                    ,JUMP_FRAME_BEFORE:int = (1 << 2)
+                    ,JUMP_FRAME_AFTER:int = (1 << 3)
 
                     ,CANVAS_MIN_SIZE:int = 100
                     ,CANVAS_MAX_SIZE:int = 2000
@@ -5776,7 +5777,7 @@
                     //데이터 전부 읽고 짤라줘야함
                     if(tickDraw.getIndex() < tickDraw.getDataLength()) 
                     {
-                        drawRemainReplayData(JUMP_FRAME_FRONT);
+                        drawRemainReplayData();
                         checkCutFrameButtons();
                     }
                 }
@@ -6906,8 +6907,8 @@
             const _tickDraw:Object = tickDraw;
             const _JUMP_FRAME_PLAY:int = JUMP_FRAME_PLAY;
             const _JUMP_FRAME_ONCE:int = JUMP_FRAME_ONCE;
-            const _JUMP_FRAME_BACK:int = JUMP_FRAME_BACK;
-            const _JUMP_FRAME_FRONT:int = JUMP_FRAME_FRONT;
+            const _JUMP_FRAME_BEFORE:int = JUMP_FRAME_BEFORE;
+            const _JUMP_FRAME_AFTER:int = JUMP_FRAME_AFTER;
             
             var rDataLen:uint;
             var prevJumpImageSaveCount:Number;
@@ -6923,7 +6924,7 @@
 
             function checkMakeCacheImage(jumpFlag:int):void
             {
-                if(jumpFlag === _JUMP_FRAME_ONCE || jumpFlag === _JUMP_FRAME_BACK)
+                if(jumpFlag === _JUMP_FRAME_ONCE || jumpFlag === _JUMP_FRAME_BEFORE)
                 {
                     if(prevJumpImageSaveCount >= _CACHE_DIV_10)
                     {
@@ -7090,9 +7091,9 @@
                 if(jumpCount > 0)
                 {
                     //REPLAY_SLOWDRAW_ACTIVE_SPEED 이상으로 전체 재생 시간이 60초 이하일경우 작동
-                    if(jumpCount > _REPLAY_SLOWDRAW_ACTIVE_SPEED)
+                    if(jumpFlag === _JUMP_FRAME_PLAY && jumpCount > _REPLAY_SLOWDRAW_ACTIVE_SPEED)
                     {
-                        if(REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME && jumpFlag === _JUMP_FRAME_PLAY)
+                        if(REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME)
                         {
                             setSlowDraw();
                             return;
@@ -7470,20 +7471,20 @@
                 {
                     //rPrevFrame이 rNowFrame이 같게되면 jumpframe에서 0프레임을 이동하므로
                     //-1을 해줘서 tickdarw에서 이전 데이터를 가지게 해줘야함
-                    if(rPrevFrame === rNowFrame) _jumpFrame(rNowFrame-1,JUMP_FRAME_BACK);
-                    _jumpFrame(rPrevFrame,JUMP_FRAME_BACK);
+                    if(rPrevFrame === rNowFrame) _jumpFrame(rNowFrame-1,JUMP_FRAME_BEFORE);
+                    _jumpFrame(rPrevFrame,JUMP_FRAME_BEFORE);
                 }
                 else if(!toback && rNowFrame <= TOTAL_FRAME)
                 {
                     if(tickDraw.getRestDataCount() === 0)
                     {
                         //+1해줘서 다음 데이터 갱신해주고 나머지 끝까지 그려줌
-                        _jumpFrame(rNowFrame+1,JUMP_FRAME_FRONT);
-                        _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_FRONT);
+                        _jumpFrame(rNowFrame+1,JUMP_FRAME_AFTER);
+                        _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_AFTER);
                     }
                     else
                     {
-                        _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_FRONT);
+                        _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_AFTER);
                     }
                 }
             }
@@ -7526,7 +7527,7 @@
 
         private function checkExitDeepUndo(flag:int):Boolean
         {
-            if(isDeepUndoON && flag === JUMP_FRAME_FRONT && rNowFrame === TOTAL_FRAME)
+            if(isDeepUndoON && flag === JUMP_FRAME_AFTER && rNowFrame === TOTAL_FRAME)
             {
                 exitDeepUndoMode();
                 return true;
@@ -7623,9 +7624,9 @@
         }
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
-        private function drawRemainReplayData(flag:int):void
+        private function drawRemainReplayData():void
         {
-            _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),flag);
+            _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_ONCE);
             rOnejumpFlagSave = false;
         }
 
@@ -7636,7 +7637,6 @@
 
             //리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
             var replayStartONSave:Boolean = false;
-
             if(replayStartON)
             {
                 replayStartONSave = true;
@@ -7681,7 +7681,7 @@
                 {
                     if(tickDraw.isIndexSmallerData()) 
                     {
-                        drawRemainReplayData(1);
+                        drawRemainReplayData();
                     }
                 }
 
@@ -7695,7 +7695,11 @@
                     if(!replayStartONSave) checkCutFrameButtons();
 
                     //재생중에 스킵하고 있었으면 다시 시작
-                    if(replayStartONSave && !replayAllEnd) startReplay();
+                    
+                    if(replayStartONSave && !replayAllEnd)
+                    {
+                        startReplay();
+                    }
                     else if(replayAllEnd) stopReplay();
                 }
 
