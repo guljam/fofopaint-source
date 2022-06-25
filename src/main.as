@@ -54,7 +54,6 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
-    import flash.trace.Trace;
 
     public class main extends Sprite
     {   
