@@ -1796,7 +1796,7 @@ private function setLassoTool():void
 
                     if(d[10] === true)
                     {
-                        setBlurCanvas2DrawBySize(size,true);
+                        setBlurCanvasBySize(size,true);
                     }
                     else if(rcanvas2Draw.filters.length > 0)
                     {
@@ -1921,7 +1921,7 @@ private function setLassoTool():void
 
                     if(d[9] === true)
                     {
-                        setBlurCanvas2DrawBySize(size,true);
+                        setBlurCanvasBySize(size,true);
                     }
                     else if(rcanvas2Draw.filters.length > 0)
                     {
@@ -1965,7 +1965,7 @@ private function setLassoTool():void
 
                     if(d[11] === true)
                     {
-                        setBlurCanvas2DrawBySize(size,true);
+                        setBlurCanvasBySize(size,true);
                     }
                     else if(rcanvas2Draw.filters.length > 0)
                     {
@@ -2455,7 +2455,7 @@ private function setLassoTool():void
 
                     if(d[10] === true)
                     {
-                        setBlurCanvas2DrawBySize(size,true);
+                        setBlurCanvasBySize(size,true);
                     }
                     else if(rcanvas2Draw.filters.length > 0)
                     {
@@ -2578,7 +2578,7 @@ private function setLassoTool():void
 
                     if(d[9] === true)
                     {
-                        setBlurCanvas2DrawBySize(size,true);
+                        setBlurCanvasBySize(size,true);
                     }
                     else if(rcanvas2Draw.filters.length > 0)
                     {
@@ -2622,7 +2622,7 @@ private function setLassoTool():void
 
                     if(d[11] === true)
                     {
-                        setBlurCanvas2DrawBySize(size,true);
+                        setBlurCanvasBySize(size,true);
                     }
                     else if(rcanvas2Draw.filters.length > 0)
                     {

@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.83;
+        private const APP_VERSION:Number = 14.84;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -303,6 +303,8 @@
                     ,fillPenON:Boolean = false //채우기 펜 플래그
                     ,subLayerON:Boolean = false
                     ,airBrushON:Boolean = false
+                    ,airBrushSizeDrawMode:Number = 0
+                    ,airBrushSizeReplayMode:Number = 0
                     ,fillPenStarted:Boolean = false //채우기 펜 시작됨
                     ,eraseOddOffset:Number = 0//지우개 변수
                     ,eraseSize:uint = 12
@@ -1718,10 +1720,20 @@
                  //이 카운터 마다 다시 캔버스 2에 그려줌 길게 그을수록 cpu처리가 많아짐
                 if(mouseMoveCount++ >= 100)
                 {
-                    canvas2BitmapData.draw(cd,null,null,"layer");
-                    canvas2Bitmap.bitmapData = canvas2BitmapData;
-                    cdg.clear();
-
+                    if(_airBrushON && zoomed !== 1.0)
+                    {
+                        setBlurCanvasBySizeNoZoomDrawMode();
+                        canvas2BitmapData.draw(cd,null,null,"layer");
+                        canvas2Bitmap.bitmapData = canvas2BitmapData;
+                        cdg.clear();
+                        setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
+                    }
+                    else
+                    {
+                        canvas2BitmapData.draw(cd,null,null,"layer");
+                        canvas2Bitmap.bitmapData = canvas2BitmapData;
+                        cdg.clear();
+                    }
                     penCommand.length = 0;
                     penPoints.length = 0;
                     lineStyleReady(xShape,xSize,xColor,xAlpha);
@@ -2276,7 +2288,7 @@
         private function keyUpLassoTool(e:KeyboardEvent):void
         {
             const keyCode:uint = e.keyCode;
-            if(lassoMenuTempOFF) lassoMenuTempOFF = false;
+            if(lassoMenuTempOFF && !mouseClickON) lassoMenuTempOFF = false;
 
             if(isNowKey(keyCode))
             {
@@ -2535,7 +2547,7 @@
             if(lassoW > stw) lassoW = stw;
 
             _lassoMenu.x = floor(g.x-lassoW/2);
-            _lassoMenu.y = floor(g.y+lassoBox.height/2+15);
+            _lassoMenu.y = floor(g.y+(lassoBox.height*zoomed)/2+15);
 
             checkBoxPosition(_lassoMenu);
         }
@@ -2575,8 +2587,8 @@
 
             switch(targetName)
             {
-                case "lassoOK":str = "OK"; break;
-                case "lassoCancel":str = "Cancel"; break;
+                case "lassoOK":str = "OK (enter, richt-click)"; break;
+                case "lassoCancel":str = "Cancel (esc, backspace)"; break;
                 case "lassoCopy":str = "Copy image"; break;
                 case "lassoMove":str = "Move image"; break;
                 case "lassoRotate":str = "Rotate image"; break;
@@ -3014,10 +3026,7 @@
 
                 _canvasTrace.rotation = deg;
                 _rotateCursorBox["rotateArrow"].rotation = deg;
-                setToolTipString(abs(_canvasTrace.rotation)+"°");
             }
-
-            setToolTipString(abs(_canvasTrace.rotation)+"°");
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceRotateButtonUpEvent);
             stageMouseMoveEvent.add(traceRotateButtonMoveEvent);
@@ -3398,17 +3407,52 @@
             saveOneTime = false;
         }
 
-        private function setBlurCanvas2DrawBySize(size:Number,replayMode:Boolean):void
+        private function getBlurSize(size:Number,z:Number):Number
         {
             var blurSize:Number = size/2;
 
             if(blurSize <= 2) blurSize = 2;
             else if(blurSize > 30) blurSize = 30;
 
+            return blurSize*z;
+        }
+
+        private function setBlurCanvasBySizeNoZoomDrawMode():void
+        {
+            const blurSize:Number = getBlurSize(airBrushSizeDrawMode,1.0);
             const blurf:BlurFilter = new BlurFilter(blurSize,blurSize,3);
 
-            if(replayMode) rcanvas2Draw.filters = [blurf];
-            else canvas2Draw.filters = [blurf];
+            canvas2Draw.filters = [blurf];
+        }
+
+        private function setBlurCanvasBySizeNoZoomReplayMode():void
+        {
+            const blurSize:Number = getBlurSize(airBrushSizeReplayMode,1.0);
+            const blurf:BlurFilter = new BlurFilter(blurSize,blurSize,3);
+
+            rcanvas2Draw.filters = [blurf];
+        }
+
+        private function resetCanvasBlurReplaymode():void
+        {
+            airBrushSizeReplayMode = 0;
+            rcanvas2Draw.filters = [];
+        }
+
+        private function setBlurCanvasBySizeReplayMode(size:Number):void
+        {
+            const blurSize:Number = getBlurSize(size,rzoomed);
+            const blurf:BlurFilter = new BlurFilter(blurSize,blurSize,3);
+            airBrushSizeReplayMode = size;
+            rcanvas2Draw.filters = [blurf];
+        }
+
+        private function setBlurCanvasBySizeDrawMode(size:Number):void
+        {
+            const blurSize:Number = getBlurSize(size,zoomed);
+            const blurf:BlurFilter = new BlurFilter(blurSize,blurSize,3);
+            airBrushSizeDrawMode = size;
+            canvas2Draw.filters = [blurf];
         }
 
         private function setAirBrushCheckBox(flag:Boolean,penFlag:Boolean):void
@@ -3419,15 +3463,22 @@
 
             if(flag)
             {
-                var size:uint;
-                if(penFlag) size = penSize;
-                else size = eraseSize;
+                var size:uint = (penFlag) ? penSize:eraseSize;
 
-                setBlurCanvas2DrawBySize(size,false);
-                _controlBox.blurShapeSetON();
+                if((penFlag && size === airBrushSizeDrawMode)
+                || (size === airBrushSizeDrawMode))
+                {
+                    _controlBox.blurShapeSetON();
+                }
+                else
+                {
+                    setBlurCanvasBySizeDrawMode(size);
+                    _controlBox.blurShapeSetON();
+                }
             }
-            else
+            else if(airBrushSizeDrawMode !== 0)
             {
+                airBrushSizeDrawMode = 0;
                 canvas2Draw.filters = [];
                 _controlBox.blurShapeSetOFF();
             }
@@ -3914,12 +3965,12 @@
             if(isPenOrLineTool())
             {
                 setSize(penSizeIndex,penAlpha);
-                if(airBrushON) setBlurCanvas2DrawBySize(penSize,false);
+                if(airBrushON && penSize !== airBrushSizeDrawMode) setBlurCanvasBySizeDrawMode(penSize);
             }
             else if(isEraseTool())
             {
                 setSize(eraseSizeIndex,eraseAlpha);
-                if(eraseAirBrushON) setBlurCanvas2DrawBySize(eraseSize,false);
+                if(eraseAirBrushON && eraseSize !== airBrushSizeDrawMode) setBlurCanvasBySizeDrawMode(eraseSize);
             }
         }
 
@@ -3974,8 +4025,14 @@
             updatePenSizeCursor();
             penSizePrev.visible = true;
 
-            if(isPenOrLineTool() && airBrushON) setBlurCanvas2DrawBySize(penSize,false);
-            if(isEraseTool() && eraseAirBrushON) setBlurCanvas2DrawBySize(eraseSize,false);
+            if(isPenOrLineTool())
+            {
+                if(airBrushON && penSize !== airBrushSizeDrawMode) setBlurCanvasBySizeDrawMode(penSize);
+            }
+            else if(isEraseTool())
+            {
+                if(eraseAirBrushON && eraseSize !== airBrushSizeDrawMode)setBlurCanvasBySizeDrawMode(eraseSize);
+            }
 
             clearTimeout(penSizePrevOFFTimer);
             penSizePrevOFFTimer = setTimeout(function():void
@@ -6407,13 +6464,13 @@
 
                 updateLineStyleBackup([alpha,blendMode]);
 
-                if((replayStartON && subLayer) !== null)
-                    setReplaySubLayer(subLayer);
+                if((replayStartON && subLayer) !== null) setReplaySubLayer(subLayer);
 
                 if(airBrush === true)
-                    setBlurCanvas2DrawBySize(size,true);
-                else if(rcanvas2Draw.filters.length > 0)
-                    rcanvas2Draw.filters = [];
+                {
+                    if(airBrushSizeReplayMode !== size) setBlurCanvasBySizeReplayMode(size);
+                }
+                else if(airBrushSizeReplayMode > 0) resetCanvasBlurReplaymode();
 
                 if(!fillpen)
                 {
@@ -6467,7 +6524,7 @@
                 const command:Vector.<int> = data[4];
                 const xyData:Vector.<Number> = data[5];
 
-                rcanvas2Draw.filters = [];
+                resetCanvasBlurReplaymode();
                 updateLineStyleBackup([alpha,blendMode]);
                 rcanvas2.alpha = alpha;
                 cd2.clear();
@@ -6485,7 +6542,7 @@
                 const arr:Vector.<Number> = data[4];
                 const len:uint = arr.length;
 
-                rcanvas2Draw.filters = [];
+                resetCanvasBlurReplaymode();
                 updateLineStyleBackup([alpha,blendMode]);
                 rcanvas2.alpha = alpha;
                 cd2.clear();
@@ -6522,9 +6579,10 @@
                 }
 
                 if(airBrush === true)
-                    setBlurCanvas2DrawBySize(size,true);
-                else if(rcanvas2Draw.filters.length > 0)
-                    rcanvas2Draw.filters = [];
+                {
+                    if(airBrushSizeReplayMode !== size) setBlurCanvasBySizeReplayMode(size);
+                }
+                else if(airBrushSizeReplayMode > 0) resetCanvasBlurReplaymode();
 
                 updateLineStyleBackup([alpha,blendMode]);
                 rcanvas2.alpha = alpha;
@@ -6556,11 +6614,13 @@
                 updateLineStyleBackup([alpha,blendMode]);
                 rcanvas2.alpha = alpha;
 
-                if((replayStartON && subLayer) !== null)
-                    setReplaySubLayer(subLayer);
+                if((replayStartON && subLayer) !== null) setReplaySubLayer(subLayer);
 
-                if(airBrush) setBlurCanvas2DrawBySize(size,true);
-                else if(rcanvas2Draw.filters.length > 0) rcanvas2Draw.filters = [];
+                if(airBrush)
+                {
+                    if(airBrushSizeReplayMode !== size) setBlurCanvasBySizeReplayMode(size);
+                }
+                else if(airBrushSizeReplayMode > 0) resetCanvasBlurReplaymode();
 
                 if(shape) cd2.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
                 else cd2.lineStyle(size,color);
@@ -6663,9 +6723,20 @@
 
             function tempDone(data:Array):void
             {
-                rcanvas2BitmapData.draw(rcanvas2Draw);
-                rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
-                cd2.clear();
+                if(airBrushSizeReplayMode > 0 && rzoomed !== 1.0)
+                {
+                    setBlurCanvasBySizeNoZoomReplayMode();
+                    rcanvas2BitmapData.draw(rcanvas2Draw);
+                    rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+                    cd2.clear();
+                    setBlurCanvasBySizeReplayMode(airBrushSizeReplayMode);
+                }
+                else
+                {
+                    rcanvas2BitmapData.draw(rcanvas2Draw);
+                    rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+                    cd2.clear();
+                }
             }
 
             function drawDone(data:Array):void
@@ -6675,8 +6746,18 @@
                 const subLayer:Boolean = data[1];
                 const canvasAlpha:ColorTransform = new ColorTransform(1,1,1,lineStyleData[0]);
 
-                rcanvas2BitmapData.draw(rcanvas2Draw);
-                rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+                if(airBrushSizeReplayMode > 0 && rzoomed !== 1.0)
+                {
+                    setBlurCanvasBySizeNoZoomReplayMode();
+                    rcanvas2BitmapData.draw(rcanvas2Draw);
+                    rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+                    setBlurCanvasBySizeReplayMode(airBrushSizeReplayMode);
+                }
+                else
+                {
+                    rcanvas2BitmapData.draw(rcanvas2Draw);
+                    rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+                }
 
                 if(subLayer)
                 {
@@ -7112,10 +7193,10 @@
             var rg:Point; //캔버스 회전된 글로벌 좌표
             var z:Number;
             //rcanvas1 글로벌 좌표에 회전된 캔버스에서 커서 위치를 더해줌. 즉 윈도우 기준에서 커서 커서 위치를 구하는거임
-            var checkOverWidth:Boolean; //캔버스 가로 새로 길이가 스테이지 길이보다 클때 체크
-            var checkOverHeight:Boolean;
-            var isFocusX:Boolean; //캔버스 중점위치, 창 중점위치 사이 거리
-            var isFocusY:Boolean;
+            var isCanvasWidthSmallerStage:Boolean; //캔버스 가로 새로 길이가 스테이지 길이보다 클때 체크
+            var isCanvasHeightSmallerStage:Boolean;
+            var isNotCenterX:Boolean; //캔버스 중점위치, 창 중점위치 사이 거리
+            var isNotCenterY:Boolean;
             var rightLimit:Number;
             var bottomLimit:Number;
 
@@ -7130,12 +7211,12 @@
                 sth = stage.stageHeight-offsetY;
                 z = rzoomed;
 
-                checkOverWidth = right-left > stw;
-                checkOverHeight = bottom-top > sth;
+                isCanvasWidthSmallerStage = right-left > stw;
+                isCanvasHeightSmallerStage = bottom-top > sth;
                 //캔버스 중점위치, 창 중점위치 사이 거리
                 windowCenterPos.setTo(floor(stw/2-(right+left)/2),floor((sth/2-(bottom+top)/2)+offsetY));
-                isFocusX = abs(windowCenterPos.x) > 0; //캔버스 중점위치, 창 중점위치 사이 거리
-                isFocusY = abs(windowCenterPos.y) > 0;
+                isNotCenterX = abs(windowCenterPos.x) > 0; //캔버스 중점위치, 창 중점위치 사이 거리
+                isNotCenterY = abs(windowCenterPos.y) > 0;
 
                 rightLimit = stw-padding;
                 bottomLimit = sth+offsetY-padding;
@@ -7147,9 +7228,9 @@
 
                 globalChecked = false;
 
-                if(!checkOverWidth)
+                if(!isCanvasWidthSmallerStage)
                 {
-                    if(isFocusX)
+                    if(isNotCenterX)
                     {
                         _rregPoint.x += windowCenterPos.x;
                         updateRCanvasBounds();
@@ -7164,19 +7245,19 @@
 
                     if(cursorPos.x < leftLimit)
                     {
-                        _rregPoint.x += floor(abs((cursorPos.x-stw/2)/5));
+                        _rregPoint.x += floor(abs((cursorPos.x-stw/2)/4));
                         updateReplayCanvasBounds(); 
                     }
                     else if(cursorPos.x > rightLimit)
                     {
-                        _rregPoint.x -= floor(abs((cursorPos.x-stw/2)/5));
+                        _rregPoint.x -= floor(abs((cursorPos.x-stw/2)/4));
                         updateReplayCanvasBounds();
                     }
                 }
 
-                if(!checkOverHeight)
+                if(!isCanvasHeightSmallerStage)
                 {
-                    if(isFocusY)
+                    if(isNotCenterY)
                     {
                         _rregPoint.y += windowCenterPos.y;
                         updateRCanvasBounds();
@@ -7194,12 +7275,12 @@
 
                     if(cursorPos.y < topLimit)
                     {
-                        _rregPoint.y += floor(abs((cursorPos.y-sth/2)/5));
+                        _rregPoint.y += floor(abs((cursorPos.y-sth/2)/4));
                         updateReplayCanvasBounds();
                     }
                     else if(cursorPos.y > bottomLimit)
                     {
-                        _rregPoint.y -= floor(abs((cursorPos.y-sth/2)/5));
+                        _rregPoint.y -= floor(abs((cursorPos.y-sth/2)/4));
                         updateReplayCanvasBounds();
                     }
                 }
@@ -7698,7 +7779,7 @@
             if(replayEndWithcanvasFitWindow === true)
             {
                 replayEndWithcanvasFitWindow = false;
-                setZoomCanvas(1.0,true);
+                setZoomCanvas(rzoomed,true);
             }
 
             if(!rDataReadFlag)
@@ -7904,8 +7985,9 @@
             const tb:toolTipBoxSet = toolTipBox;
         }
 
-        private function setToolTipString(str:String):void
+        private function setToolTipString(str:String,x:Number=0,y:Number=0):void
         {
+            const floor:Function = Math.floor;
             const _toolTipBox:toolTipBoxSet = toolTipBox;
             const toolTipText:TextField = _toolTipBox["toolTipInfoText"];
             if(str !== "")
@@ -7914,8 +7996,8 @@
                 toolTipText.width = toolTipText.textWidth+20;
             }
 
-            const mx:Number = mouseX;
-            const my:Number = mouseY;
+            const mx:Number = (x > 0) ? x : mouseX;
+            const my:Number = (y > 0) ? y : mouseY;
             const tbHeight:Number = _toolTipBox.height+3;
             const cw:int = toolTipText.textWidth+6;
             const right:int = mx+cw/2;
@@ -7927,22 +8009,22 @@
             const ylim:Number = sth-tbHeight;
 
             if(mx+offsetX < 0) _toolTipBox.x = 0;
-            else if(right > stw) _toolTipBox.x = stw-cw;
-            else _toolTipBox.x = mx-cw/2;
+            else if(right > stw) _toolTipBox.x = floor(stw-cw);
+            else _toolTipBox.x = floor(mx-cw/2);
 
             if(my-offsetY < 0) _toolTipBox.y = 0;
-            else if(bottom >= sth) _toolTipBox.y = ylim;
-            else _toolTipBox.y = my-offsetY;
+            else if(bottom >= sth) _toolTipBox.y = floor(ylim);
+            else _toolTipBox.y = floor(my-offsetY);
 
             if(my >= _toolTipBox.y-1) //맨 아래에서 커서가 힌트를 넘어갈때 다시 위로 올려줌
             {
                 var ycheck:Number = my+offsetY-25;
-                _toolTipBox.y = (ycheck < ylim) ? ycheck : ylim;
+                _toolTipBox.y = (ycheck < ylim) ? floor(ycheck) : floor(ylim);
             }
 
             if(str !== "")
             {
-                _toolTipBox["toolTipBoxBG"].width = cw+4;
+                _toolTipBox["toolTipBoxBG"].width = floor(cw+2);
             }
 
             setTopChildIndex(_toolTipBox);
@@ -10095,8 +10177,18 @@
             var canvas2Alpha:ColorTransform;
 
             readyAddUndo = false;
-            canvas2BitmapData.draw(canvas2Draw);
-            canvas2Bitmap.bitmapData = canvas2BitmapData;
+            if(airBrushSizeDrawMode > 0 && zoomed !== 1.0)
+            {
+                setBlurCanvasBySizeNoZoomDrawMode();
+                canvas2BitmapData.draw(canvas2Draw);
+                canvas2Bitmap.bitmapData = canvas2BitmapData;
+                setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
+            }
+            else
+            {
+                canvas2BitmapData.draw(canvas2Draw);
+                canvas2Bitmap.bitmapData = canvas2BitmapData;
+            }
 
             if(isPenOrLineTool() || isNowTool(TOOL_FILL_PEN))
             {
@@ -10518,6 +10610,7 @@
             const zoomMax:Number = _zoomArr[_zoomArrLen-1];
             const mouseMoveStep:int = 37; //이 픽셀이상움직일때만 zoomcanvas를 실행
             const zoomUnit:Number = 1.0;// 0.25;//한 스탭당 얼마나 줌할것인지
+            const clickPos:Point = new Point(0,0);
 
             var xZoomed:Number;
             var zoomSum:Number;
@@ -10551,7 +10644,7 @@
                 zoomToolHintON = false;
                 mouseDragON = false;
                 penCursorOFFFlag = false;
-                // toolTipBox.visible = false;
+                toolTipBox.visible = false;
 
                 updatePenSizeCursor();
                 setOptimizeCanvasMove(false);
@@ -10571,9 +10664,10 @@
             function zoomGoArray(index:uint):void
             {
                 const newZoom:Number = _zoomArr[index];
-                const textZoom:uint = Math.ceil(newZoom*100);
+                const textZoom:uint = Math.floor(newZoom*100);
 
                 setZoomCanvas(newZoom,false);
+                setToolTipString(textZoom+"%",clickPos.x,clickPos.y);
             }
 
             function zoomToolMouseMoveEvent2(dist:Number):void
@@ -10652,6 +10746,7 @@
                 zoomClickX = xCanvas.mouseX*xZoomed;
                 zoomClickY = xCanvas.mouseY*xZoomed;
 
+
                 if(zoomClickX < 0)  zoomClickX = 0;
                 else if(zoomClickX > maxWidth)  zoomClickX = maxWidth;
 
@@ -10674,6 +10769,10 @@
                 {
                     setRegPoint(panelLimitedX,panelLimitedY,false);
                 }
+
+                clickPos.setTo(mouseX,mouseY);
+                setToolTipString(zoomed*100+"%",clickPos.x,clickPos.y);
+                toolTipBox.visible = true;
 
                 stageMouseMoveEvent.add(zoomToolMouseMoveEvent);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,zoomToolMouseUpEvent);
@@ -11828,9 +11927,13 @@
         //panel은 그대로 있고 regpoint만 이동
         private function setRegPoint(tx:Number,ty:Number,replayMode:Boolean=false):void
         {
-            var xReg:Sprite = regPoint;
-            var xCanvas:Sprite = canvasPanel;
-            var xZoomed:Number = zoomed;
+            const round:Function = Math.round;
+            tx = round(tx);
+            ty = round(ty);
+
+            var xReg:Sprite;
+            var xCanvas:Sprite;
+            var xZoomed:Number;
 
             if(replayMode)
             {
@@ -11838,19 +11941,25 @@
                 xCanvas = rcanvasPanel;
                 xZoomed = rzoomed;
             }
+            else
+            {
+                xReg = regPoint;
+                xCanvas = canvasPanel;
+                xZoomed = zoomed;
+            }
+            if(xReg.x === tx && xReg.y === ty) return;
 
             //round하면 정확도가 약간 줄어드는데, 안하면 그릴때 픽셀 어긋남
-            const floor:Function = Math.floor;
             //캔버스 회전됐을때 점 위치를 구해줌
             //zoom된값을 나눠줘야 제대로된 이동거리가 나옴
             const z:Number = zoomed;
             const rotateToolMoveEvent:Point = rotatePoint((xReg.x-tx)/xZoomed,
                                                  (xReg.y-ty)/xZoomed,
                                                  xReg.rotation);
-            xReg.x = floor(tx+0.5);//이동시키고
-            xReg.y = floor(ty+0.5);
-            xCanvas.x += floor(rotateToolMoveEvent.x+0.5);//이동한 만큼 거꾸로 움직여줌
-            xCanvas.y += floor(rotateToolMoveEvent.y+0.5);//rotate값 포함해서 움직여야함
+            xReg.x = tx;
+            xReg.y = ty;
+            xCanvas.x += round(rotateToolMoveEvent.x);//이동한 만큼 거꾸로 움직여줌
+            xCanvas.y += round(rotateToolMoveEvent.y);//rotate값 포함해서 움직여야함
         }
 
         //0,0을 기준으로 점tx,ty를 rad만큼 회전함,
@@ -12813,18 +12922,21 @@
         private function setZoomCanvas(z:Number,replayMode:Boolean = false):void
         {
             const fz:Number = Math.floor(z*100+0.5)/100;
-            var xReg:Sprite = regPoint;
-
+            var xReg:Sprite;
+            
             if(!replayMode)
             {
+                xReg = regPoint;
                 zoomed = fz;
                 if(!captureModeON) penCursorPosition.updateZoom(fz);
+                if(airBrushSizeDrawMode > 0) setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
             }
             else
             {
                 updateRCursorScale(fz)
                 rzoomed = fz;
                 xReg = rregPoint;
+                if(airBrushSizeReplayMode > 0) setBlurCanvasBySizeReplayMode(airBrushSizeReplayMode);
             }
 
             if(z < 0.1) z = 0.1;
