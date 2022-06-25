@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.84;
+        private const APP_VERSION:Number = 14.85;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -147,7 +147,7 @@
                     ,TOOL_ROTATE:int = (1 << 8)
                     ,TOOL_MOVE:int = (1 << 9)
 
-                    ,JUMP_FRAME_NONE:int = (1 << 0)
+                    ,JUMP_FRAME_PLAY:int = (1 << 0)
                     ,JUMP_FRAME_ONCE:int = (1 << 1)
                     ,JUMP_FRAME_BACK:int = (1 << 2)
                     ,JUMP_FRAME_FRONT:int = (1 << 3)
@@ -6835,14 +6835,15 @@
             }
         }
 
-        private function getAutoJumpFrame(oldspeed:Number):Number
+        //slow dodraw가 실행되면 일정 시간동안 얼마나 프레임을 스킵해줘야 그 시간이 되는지 계산
+        private function getAutoJumpFrame(speed:Number):Number
         {
             const biasSpeed:Number = REPLAY_SLOWDRAW_ACTIVE_SPEED;
             const minTime:Number = TOTAL_FRAME/(biasSpeed*STAGE_FRAME);
             const subTime:Number = minTime-40;
             const subSpeed:Number = REPLAY_MAX_SPEED-biasSpeed;
             const unitTime:Number = subTime/subSpeed;
-            const nowSpeed:Number = oldspeed-biasSpeed;
+            const nowSpeed:Number = speed-biasSpeed;
             const newTime:Number = (subTime-unitTime*nowSpeed)+40;
             const newJumpFrame:Number = Math.floor(TOTAL_FRAME/newTime);
 
@@ -6879,7 +6880,7 @@
                 const finalFrame:Number = rNowFrame+Math.floor(nextFrame/2);
                 const totalF:Number = TOTAL_FRAME;
                 const _rFrameSum:Number = rNowFrame;
-                const getTimeStr:String = getReplayTime(nextFrame,totalF-_rFrameSum,true);
+                const getTimeStr:String = getReplayRemainTime(nextFrame,totalF-_rFrameSum,true);
                 const timeStr:String = getTimeStr;
 
                 _jumpFrame(finalFrame,JUMP_FRAME_ONCE); 
@@ -6890,7 +6891,7 @@
 
         private function doDrawEvent(e:Event):void
         {
-            doDraw(rSpeed,JUMP_FRAME_NONE,false);
+            doDraw(rSpeed,JUMP_FRAME_PLAY);
             checkHideCursorCount();
         }
 
@@ -6903,7 +6904,7 @@
             const _rfs:FileStream = rFileStream;
             const _CACHE_DIV_10:Number= Math.floor(IMG_CACHE_INTERVAL/10);
             const _tickDraw:Object = tickDraw;
-            const _JUMP_FRAME_NONE:int = JUMP_FRAME_NONE;
+            const _JUMP_FRAME_PLAY:int = JUMP_FRAME_PLAY;
             const _JUMP_FRAME_ONCE:int = JUMP_FRAME_ONCE;
             const _JUMP_FRAME_BACK:int = JUMP_FRAME_BACK;
             const _JUMP_FRAME_FRONT:int = JUMP_FRAME_FRONT;
@@ -6956,7 +6957,7 @@
                     TOTAL_FRAME = getTotalFrame();
                 }
 
-                if(jumpFlag === _JUMP_FRAME_NONE)
+                if(jumpFlag === _JUMP_FRAME_PLAY)
                 {
                     _rfs.close();
                     rLastBytes = 0;
@@ -6996,7 +6997,7 @@
                     tcursor.visible = false;
                     replayAllEnd = true;
 
-                    if(jumpFlag === _JUMP_FRAME_NONE || doDrawSlowEventON === true)//1프레임 이상일때만 재시작 타이머 가동
+                    if(jumpFlag === _JUMP_FRAME_PLAY || doDrawSlowEventON === true)//1프레임 이상일때만 재시작 타이머 가동
                     {
                         //reset replay time해주지 말고 그냥 end플래그만 올려줌
                         //왜냐하면 리플레이 자연적으로 끝나고도 스킵프레임이나 oneframe jump을 해줄수가 있기 때문
@@ -7013,7 +7014,7 @@
 
             function updateCursorPosAndInfoText(jumpFlag:int):void
             {
-                if(jumpFlag === _JUMP_FRAME_NONE)
+                if(jumpFlag === _JUMP_FRAME_PLAY)
                 {
                     savedTime = getTimer();
 
@@ -7084,22 +7085,14 @@
                 }
             }
 
-            return function(jumpCount:Number,jumpFlag:int,undoFlag:Boolean):void
+            return function(jumpCount:Number,jumpFlag:int):void
             {
-                if(undoFlag)
-                {
-                    drawRData(jumpCount,jumpFlag);
-                    return;
-                }
-
-                if(replayStartON === false && !jumpFlag) return;
-
                 if(jumpCount > 0)
                 {
                     //REPLAY_SLOWDRAW_ACTIVE_SPEED 이상으로 전체 재생 시간이 60초 이하일경우 작동
                     if(jumpCount > _REPLAY_SLOWDRAW_ACTIVE_SPEED)
                     {
-                        if(REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME && jumpFlag === 0)
+                        if(REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME && jumpFlag === _JUMP_FRAME_PLAY)
                         {
                             setSlowDraw();
                             return;
@@ -7110,27 +7103,14 @@
                     prevJumpImageSaveIndex = 0;
                     readCount = jumpCount;
 
-                    //jumpone에서 뒤로 돌아갈때 setjumpFrame을 호출하고
-                    //jumpframe이 점점 줄면서 이전프레임과 똑같이 되면 jumpcount가 0이됨
-                    //이때 0이하가 되면 rTailFrame를 -1해줘서 계속 뒤로 넘어가게 해야함
-                    // if(jumpCount === 0)
-                    // {
-                    //     rPrevFrame = rNowFrame-1;
-                    // }
                     if(!rDataReadFlag) drawFileData(jumpCount,jumpFlag);
                     drawRData(readCount,jumpFlag);
                 }
-                // else
-                // {
-                //     //버그 날까봐 일단 냅둠 이거 지워줘야  deepundo에서 total-1프레임일때
-                //     //데이터가 어긋나는거 해결됨
-                //     // rPrevFrame = rNowFrame-1;
-                // }
                 updateCursorPosAndInfoText(jumpFlag);
             };
         }
 
-        private function getReplayTime(speed:Number,totalFrame:Number,slowFrame:Boolean=false):String
+        private function getReplayRemainTime(speed:Number,totalFrame:Number,slowFrame:Boolean=false):String
         {
             const fps:Number = (slowFrame === true) ? 1 : STAGE_FRAME;
             const floor:Function = Math.floor;
@@ -7292,12 +7272,39 @@
             };
         }
 
+        private function isSlowDrawTime(speed:Number):Boolean
+        {
+            return speed > REPLAY_SLOWDRAW_ACTIVE_SPEED
+                                 && REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME;
+        }
+
         private function updateReplayRemainTime():void
         {
+            var _rSpeed:Number = (isSlowDrawTime(rSpeed))
+                                 ? getAutoJumpFrame(rSpeed)/STAGE_FRAME : rSpeed;
+                                //오토스킵은 1초마다 넘어가야할 프레임이니까 시간 구하려면 스테이지 프레임을 나누어줌
+
             const totalF:Number = TOTAL_FRAME;
             const _rFrameSum:Number = rNowFrame;
-            const namojiTime:String = (isDeepUndoON) ? "" : getReplayTime(rSpeed,totalF-_rFrameSum);
+            const namojiTime:String = (isDeepUndoON)
+                                       ? "" : getReplayRemainTime(_rSpeed,totalF-_rFrameSum);
             replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + namojiTime;
+        }
+        
+        private function getReplayTotalTime(_speed:uint):String
+        {
+            var timeStr:String;
+            if(isSlowDrawTime(_speed))
+            {
+                _speed = getAutoJumpFrame(_speed);
+                timeStr = getReplayRemainTime(_speed,TOTAL_FRAME,true);
+            }
+            else
+            {
+                timeStr = getReplayRemainTime(_speed,TOTAL_FRAME);
+            }
+
+            return timeStr;
         }
 
         private function setReplaySpeedButton():void
@@ -7322,22 +7329,6 @@
             var timeStr:String = getReplayTotalTime(rSpeed);
 
             penCursorOFFFlag = true;
-
-            function getReplayTotalTime(_speed:uint):String
-            {
-                if(_speed > REPLAY_SLOWDRAW_ACTIVE_SPEED
-                && REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME)
-                {
-                    _speed = getAutoJumpFrame(_speed);
-                    timeStr = getReplayTime(_speed,totalF,true);
-                }
-                else
-                {
-                    timeStr = getReplayTime(_speed,totalF);
-                }
-
-                return timeStr;
-            }
 
             function setSpeed(mx:Number):void
             {
@@ -7368,7 +7359,7 @@
             {
                 mouseDragON = false;
                 // topBar.hintOFF()
-                updateReplayRemainTime();
+                if(replayAllEnd === false) updateReplayRemainTime();
                 stageMouseMoveEvent.remove(replaySpeedButtomMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,replaySpeedButtomUpEvent);
             }
@@ -7543,11 +7534,11 @@
             return false;
         }
 
-        private function _jumpFrame(frame:Number,flag:int):void //jumpp 
+        private function _jumpFrame(frame:Number,jumpflag:int):void //jumpp 
         {
             if(frame < 0) frame = 0;
             else if(frame > TOTAL_FRAME) frame = TOTAL_FRAME;
-            if(checkExitDeepUndo(flag)) return;
+            if(checkExitDeepUndo(jumpflag)) return;
 
             const nowFrame:Number = rNowFrame;
             const prevjumpFlag:Boolean = frame < nowFrame;
@@ -7606,7 +7597,7 @@
                 frame = frame - nowFrame;
             }
 
-            doDraw(frame,flag,false);
+            doDraw(frame,jumpflag);
             rFileStream.close();
             
             //dodraw밑이기 때문에 rFrameSum이 갱신되서 위에 nowFrame은 쓸수가 없음
@@ -7627,7 +7618,7 @@
                 tickDraw.updateRCursorPos();
                 rCursor.visible = true;
             }
-            if(checkExitDeepUndo(flag)) return;
+            if(checkExitDeepUndo(jumpflag)) return;
             if(!isDeepUndoON) checkAutoScroll.check();
         }
 
@@ -7926,7 +7917,7 @@
         private function setBackgroundColorReplayMode(color:uint):void
         {
             if(RCANVAS_BG_COLOR === color) return;
-
+            RCANVAS_BG_COLOR = color;
             _setBackgroundColor(rcanvasPanel,RCANVAS_WIDTH,RCANVAS_HEIGHT,color);
         }
 
@@ -13141,26 +13132,27 @@
             if(clacMax <= 0) return;
 
             const maxSpeed:Number = REPLAY_MAX_SPEED;
-            var oldSpeed:Number = rSpeed;
+            var _rSpeed:Number = rSpeed;
             var max:Number = (clacMax > maxSpeed) ? maxSpeed : clacMax;
 
             if(upFlag)
             {
-                oldSpeed += 1;
-                if(oldSpeed > max) oldSpeed = max;
+                _rSpeed += 1;
+                if(_rSpeed > max) _rSpeed = max;
             }
             else
             {
-                oldSpeed -= 1;
-                if(oldSpeed < 1) oldSpeed = 1;
+                _rSpeed -= 1;
+                if(_rSpeed < 1) _rSpeed = 1;
             }
 
-            const timeStr:String = getReplayTime(oldSpeed,TOTAL_FRAME);
-            const finalStr:String = "Playback speed x "+oldSpeed+timeStr;
+            const timeStr:String = getReplayTotalTime(_rSpeed);
+            const finalStr:String = "Playback speed x "+_rSpeed+timeStr;
             topBar.hintTime(finalStr,topBar.replaySpeedSet);
 
-            rSpeed = oldSpeed;
-            topBar.setSpeedButtonPosByValue(oldSpeed,max);
+            rSpeed = _rSpeed;
+            topBar.setSpeedButtonPosByValue(_rSpeed,max);
+            if(replayAllEnd === false) updateReplayRemainTime();
         }
 
         private function setReplaySpeedByKeyButton(upFlag:Boolean):void
