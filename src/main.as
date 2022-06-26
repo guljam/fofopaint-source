@@ -30,6 +30,9 @@
     import flash.system.Capabilities;
     import flash.system.System;
     import flash.system.IME;
+    import flash.system.Worker;
+    import flash.system.WorkerDomain;
+    import flash.system.MessageChannel;
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.ColorTransform;
@@ -54,13 +57,10 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
-    import flash.system.Worker;
-    import flash.system.WorkerDomain;
-    import flash.system.MessageChannel;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.01;
+        private const APP_VERSION:Number = 15.02;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -207,7 +207,7 @@
                     ,CUT_FRAME_SUPER_UNDO:int = (1 << 1)
                     ,CUT_FRAME_RE_RECORD:int = (1 << 2)
                     ,CUT_FRAME_DELETE_FRONT:int = (1 << 3)
-                    ,WORKER_WAIT_REPLAYDATA:int = (1 << 0)
+                    ,WORKER_WAIT_INTERVAL:int = 500
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -545,8 +545,12 @@
         protected var worker:Worker
                     ,mainToBack:MessageChannel
                     ,backToMain:MessageChannel
-                    ,workerWaitFlag:int
-                    ,isSavingFile:int
+                    ,isInSaveProgress:Boolean = false
+                    ,workerPNGData:ByteArray
+                    ,workerPNGTimer:int = 0
+                    ,workerReplayData:Array
+                    ,workerReplayTimer:int = 0
+
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
@@ -618,19 +622,27 @@
         //functions
         private function onFromWorker(e:Event):void
         {
-            var msg:* = backToMain.receive() as Array;
+            var msg:* = backToMain.receive();
             if(msg as Array)
             {
                 if(msg[0] === "compress_ReplayDataDone")
                 {
-                    writeReplayFile(msg[1],msg[2],msg[3],msg[4]);
-
-                    if(isSavingFile === 2)
-                    {
-                        isSavingFile = 0;
-                        stage.nativeWindow.close();
-                    }
-                    isSavingFile = 0;
+                    workerReplayData = [msg[1],msg[2],msg[3],msg[4]];
+                }
+                else if(msg[0] === "encodePNGDone")
+                {
+                    workerPNGData = msg[1];
+                }
+            }
+            else if(msg as String)
+            {
+                if(msg === "start")
+                {
+                    isInSaveProgress = true;
+                }
+                else if(msg === "end")
+                {
+                    isInSaveProgress = false;
                 }
             }
         }
@@ -1244,7 +1256,7 @@
             catch(err:Error)
             {
                 fs.close();
-                topBar.hintTimeError();
+                topBar.hintLoadError();
                 return false;
             }
 
@@ -3874,6 +3886,7 @@
 
         private function setClipButton():void
         {
+            if(isInSaveProgress) return;
             rFileStream.close();
             restartTimerCancel();
 
@@ -5065,7 +5078,6 @@
                     {
                         const floor:Function = Math.floor;
                         const oldVersion:Array = parseVersion(String(APP_VERSION));
-                        trace('newVersion[0]',oldVersion,newVersion);
                         const isNewVersion:Boolean = (newVersion[0] > oldVersion[0]) || (newVersion[0] === oldVersion[0] && (newVersion[1] > oldVersion[1]));
                         var tryCount:uint = 0;
 
@@ -5300,6 +5312,7 @@
 
         private function setClearData(keyFlag:Boolean=false):void
         {
+            if(isInSaveProgress) return;
             if(clearButtonClicked === false)
             {
                 if(clearDataButtonCount === 0)
@@ -5792,6 +5805,7 @@
 
         private function setCutFrameButton(flag:int,shortcutKey:Boolean):void
         {
+            if(isInSaveProgress) return;
             setCutFrameActiveButton(flag);
 
             if(cutFrameActiveButton.alpha < 1.0)
@@ -8190,7 +8204,7 @@
                 //실제적으로 loader가 읽어서 캔버스에 그림
                 function loaderIOErrorHandlerEvent(e:Event):void
                 {
-                    topBar.hintTimeError();
+                    topBar.hintLoadError();
                     tempDragDropFile = null;
                     loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderIOErrorHandlerEvent);
                     loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, startDrawImgEvent);
@@ -8536,13 +8550,29 @@
             stage.addEventListener(Event.ENTER_FRAME,onFrameEnter);
         }
 
+        private function workerEncodePNG(bmpd:BitmapData,w:Number,h:Number,bg:uint):void
+        {
+            const ba:ByteArray = new ByteArray();
+            bmpd.copyPixelsToByteArray(new Rectangle(0,0,bmpd.width,bmpd.height),ba);
+            mainToBack.send(["encodePNG",ba,bmpd.width,bmpd.height,bg]);
+            ba.clear();
+        }
+
         private function workerCompressReplayData(dataA:ByteArray,dataB:ByteArray,dataC:ByteArray,dataD:ByteArray):void
         {
             mainToBack.send(["compress_ReplayData",dataA,dataB,dataC,dataD]);
+            dataA.clear();
+            dataB.clear();
+            dataC.clear();
+            dataD.clear();
         }
 
-        private function writeReplayFile(dataA:ByteArray,dataB:ByteArray,dataC:ByteArray,dataD:ByteArray):void
+        private function writeReplayFile(dataArr:Array):void
         {
+            const dataA:ByteArray = dataArr[0];
+            const dataB:ByteArray = dataArr[1];
+            const dataC:ByteArray = dataArr[2];
+            const dataD:ByteArray = dataArr[3];
             const fs:FileStream = new FileStream();
             const _rData:Array = rData;
             const rImgDataW:int = rFirstImage.width;
@@ -8594,8 +8624,12 @@
                                             CANVAS_TRACE_ALPHA]);// 11
             }
             fs.close();
+            dataA.clear();
+            dataB.clear();
+            dataC.clear();
+            dataD.clear();
             repFileTemp.moveTo(copyFile,true);
-            topBar.hintTimeOK();
+            topBar.hintSavedOK();
         }
 
         private function saveReplayFile():void
@@ -8636,10 +8670,19 @@
                 fs.close();
                 //여기까지가 바이트 어레이에 넣어줌
 
-                isSavingFile = 1;
-                topBar.hintWait();
                 //쓰레드로 압축 해줌
+                workerReplayData = null;
                 workerCompressReplayData(rImgData,lastImgData,traceImgData,replayDataBytes);
+
+                clearInterval(workerReplayTimer)
+                workerReplayTimer = setInterval(function():void
+                {
+                   if(workerReplayData !== null)
+                   {
+                        writeReplayFile(workerReplayData);
+                        workerReplayData = null;
+                   }
+                },WORKER_WAIT_INTERVAL);
             }
         }
 
@@ -8785,7 +8828,7 @@
         {
             if(isTrue2020File(file) === false)
             {
-                topBar.hintTimeError();
+                topBar.hintLoadError();
                 return;
             }
 
@@ -8848,7 +8891,7 @@
         {
             if(!imageData)
             {
-                topBar.hintTimeError();
+                topBar.hintLoadError();
                 return;
             }
             
@@ -8951,7 +8994,7 @@
         private function loadFile(subLayer:Boolean=false):void
         {
             if(replayStartON) stopReplay();
-            if(lassoToolON || browseWindowON || fillPenStarted || isSavingFile) return;
+            if(lassoToolON || browseWindowON || fillPenStarted || isInSaveProgress) return;
             const allowedExt:String = "*.2020;*.png;*.jpg;*.gif";
             var newFileFilter:FileFilter = new FileFilter("Image or 2020 file",allowedExt);
             var windowTitle:String = "Open file";
@@ -8987,7 +9030,7 @@
 
             function loadErrorEvent(e:Event):void
             {
-                topBar.hintTimeError();
+                topBar.hintLoadError();
                 browseWindowON = false;
                 //에러나면 아무것도 안해줌
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
@@ -9178,13 +9221,12 @@
 
         private function captureMouseMoveHintEvent(e:MouseEvent):void
         {
-            if(!captureModeON)
-                stageMouseMoveEvent.remove(captureMouseMoveHintEvent);
+            if(!captureModeON) stageMouseMoveEvent.remove(captureMouseMoveHintEvent);
         }
 
         private function setCaptureReady():void
         {
-            if(captureModeON) return;
+            if(captureModeON || isInSaveProgress) return;
             if(replayStartON)stopReplay();
 
             captureModeON = true;
@@ -9531,9 +9573,9 @@
 
             function onSelectEvent(e:Event):void
             {
+                topBar.hintCaptureWait();
                 browseWindowON = false;
                 var newRectangle:Rectangle = new Rectangle(cx,cy,rectW,rectH);
-                const finalData:ByteArray = new ByteArray();
                 const bmpd:BitmapData = mergeCanvas(replayMode,captureTransBGON);
                 var cropData:ByteArray = bmpd.getPixels(newRectangle);
                 cropData.position = 0; //이거 꼭 해줘야함 안그러면 setpixel에서 에러뜸
@@ -9544,6 +9586,7 @@
 
                 newRectangle = new Rectangle(0,0,cropbmpd.width,cropbmpd.height);
                 cropbmpd.setPixels(newRectangle,cropData);
+                cropbmpd.unlock();
 
                 const mat:Matrix = new Matrix;
                 const deg:Number = 90*captureRotated;
@@ -9579,47 +9622,52 @@
                         mat.translate(cropbmpd.width,0);
                     }
                 }
-
+               
                 if(swapWH) tmpbmpd = new BitmapData(cropbmpd.height,cropbmpd.width,true,0);
                 tmpbmpd.draw(cropbmpd,mat);
                 
                 if(!swapWH)
                 {
-                    newRectangle = new Rectangle(0,0,cropbmpd.width,cropbmpd.height);
-                    tmpbmpd.encode(newRectangle, pngOption, finalData);
+                    workerPNGData = null;
+                    workerEncodePNG(tmpbmpd,cropbmpd.width,cropbmpd.height,0);
                 }
                 else
                 {
-                    newRectangle = new Rectangle(0,0,cropbmpd.height,cropbmpd.width);
-                    tmpbmpd.encode(newRectangle, pngOption, finalData);
+                    workerPNGData = null;
+                    workerEncodePNG(tmpbmpd,cropbmpd.height,cropbmpd.width,0);
                 }
 
-                cropbmpd.unlock();
-
-                var fName:String = file1.name;
-                var fPath:String = e.target.nativePath;
-
-                //마지막 경로 업데이트
-                saveFilePath = fPath.substr(0,fPath.lastIndexOf(fName))+saveFileName;
-
-                if(fName.lastIndexOf(".png") === -1)//png를 안붙여 줬을때
+                clearInterval(workerPNGTimer)
+                workerPNGTimer = setInterval(function():void
                 {
-                    const fixedPath:String = fPath.replace(fName,""); //이름짜르고 경로만 저장
-                    const reFile:File = new File(fixedPath);
-                    const dotPNG:String = fName+".png";
-                    file1 = reFile.resolvePath(dotPNG);
-                }
+                    if(workerPNGData !== null)
+                    {
+                        var fName:String = file1.name;
+                        var fPath:String = e.target.nativePath;
 
-                fs.open(file1,FileMode.WRITE);
-                fs.writeBytes(finalData);
-                fs.close();
-                finalData.clear();
-                file1.cancel();
-                file1.removeEventListener(IOErrorEvent.IO_ERROR, onCancelEvent);
-                file1.removeEventListener(Event.CANCEL, onCancelEvent);
-                file1.removeEventListener(Event.SELECT, onSelectEvent);
+                        //마지막 경로 업데이트
+                        saveFilePath = fPath.substr(0,fPath.lastIndexOf(fName))+saveFileName;
 
-                // buttonEffect(topBar["capFull"]);
+                        if(fName.lastIndexOf(".png") === -1)//png를 안붙여 줬을때
+                        {
+                            const fixedPath:String = fPath.replace(fName,""); //이름짜르고 경로만 저장
+                            const reFile:File = new File(fixedPath);
+                            const dotPNG:String = fName+".png";
+                            file1 = reFile.resolvePath(dotPNG);
+                        }
+
+                        fs.open(file1,FileMode.WRITE);
+                        fs.writeBytes(workerPNGData);
+                        fs.close();
+                        workerPNGData.clear();
+                        workerPNGData = null;
+                        file1.cancel();
+                        file1.removeEventListener(IOErrorEvent.IO_ERROR, onCancelEvent);
+                        file1.removeEventListener(Event.CANCEL, onCancelEvent);
+                        file1.removeEventListener(Event.SELECT, onSelectEvent);
+                        topBar.hintCaptureOK();
+                    }
+                },WORKER_WAIT_INTERVAL);
             }
         }
 
@@ -9651,18 +9699,19 @@
             //계속 저장하는거 방지 다른 이름으로 저장은 예외
             if(replayStartON) stopReplay();
             const continueFlag:Boolean = saveContinue === true && asFlag === false;
-            if((saveOneTime === true && continueFlag) || lassoToolON || fillPenStarted || isSavingFile)
+            if((saveOneTime === true && continueFlag) || lassoToolON || fillPenStarted || isInSaveProgress)
             {
                 return;
             }
-            
+
             const fs:FileStream = new FileStream();
             if(continueFlag)
             {
                 const normalFile:File = new File(saveFilePath);
-
+            
                 if(normalFile.exists === true)
                 {
+                    topBar.hintSaving();
                     function saveContinueErrorEvent(e:Event):void
                     {
                         fs.close();
@@ -9671,22 +9720,26 @@
                         saveFile(true,true);
                     }
 
-                    const bmpd:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,false,CANVAS_BG_COLOR);
-                    var byteArray:ByteArray = new ByteArray();
-                    const newRectangle:Rectangle = new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
-                    const pngOption:PNGEncoderOptions = new PNGEncoderOptions();
+                    workerPNGData = null;
+                    workerEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR);
 
-                    bmpd.draw(canvas1BitmapData);
-                    bmpd.encode(newRectangle,pngOption,byteArray);
+                    clearInterval(workerPNGTimer);
+                    workerPNGTimer = setInterval(function():void
+                    {
+                        if(workerPNGData !== null)
+                        {
+                            clearInterval(workerPNGTimer);
+                            fs.addEventListener(IOErrorEvent.IO_ERROR, saveContinueErrorEvent);
+                            fs.openAsync(normalFile,FileMode.WRITE);
+                            fs.writeBytes(workerPNGData);
+                            fs.close();
 
-                    fs.addEventListener(IOErrorEvent.IO_ERROR, saveContinueErrorEvent);
-                    fs.openAsync(normalFile,FileMode.WRITE);
-                    fs.writeBytes(byteArray);
-                    fs.close();
-
-                    byteArray.clear();
-                    saveReplayFile();
-                    updateWindowTitle();
+                            workerPNGData.clear();
+                            workerPNGData = null;
+                            saveReplayFile();
+                            updateWindowTitle();
+                        }
+                    },WORKER_WAIT_INTERVAL);
                     saveOneTime = true;
                 }
                 else //파일을 못찾으면 새로 저장
@@ -9733,22 +9786,15 @@
                 function onSelectEvent(e:Event):void
                 {
                     browseWindowON = false;
+
+                    topBar.hintSaving();
                     removeEvent();
 
                     saveOneTime = true;
                     saveContinue = true;
 
-                    const saveFileName_old:String = saveFileName;
                     const fName:String = file.name;
                     const fPath:String = e.target.nativePath;
-                    const bmpd:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,false,CANVAS_BG_COLOR);
-                    const byteArray:ByteArray = new ByteArray();
-                    const newRectangle:Rectangle = new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
-                    const pngOption:PNGEncoderOptions = new PNGEncoderOptions();
-
-                    bmpd.draw(canvas1BitmapData);
-                    bmpd.encode(newRectangle,pngOption,byteArray);
-
                     var f1:File = new File(fPath);
 
                     saveFileName = fName;
@@ -9778,13 +9824,26 @@
                         saveFilePath = f1.nativePath;
                         saveFileName = dotPNG;
                     }
-                    fs.openAsync(f1,FileMode.WRITE);
-                    fs.writeBytes(byteArray);
-                    fs.close();
-
-                    byteArray.clear();
                     updateWindowTitle();
-                    saveReplayFile();
+
+                    workerPNGData = null;
+                    workerEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR);
+
+                    clearInterval(workerPNGTimer);
+                    workerPNGTimer = setInterval(function():void
+                    {
+                        if(workerPNGData !== null)
+                        {
+                            clearInterval(workerPNGTimer);
+                            fs.openAsync(f1,FileMode.WRITE);
+                            fs.writeBytes(workerPNGData);
+                            fs.close();
+
+                            workerPNGData.clear();
+                            workerPNGData = null;
+                            saveReplayFile();
+                        }
+                    },WORKER_WAIT_INTERVAL);
                 }
             }
         }
@@ -9924,7 +9983,7 @@
                             "hueCursor.x":pickerBox["hueCursor"].x,
                             "svBaseColor":pickerBox["svBaseColor"],
                             "HUECOLOR[0]":HUECOLOR[0],
-                            "makeJumpImageFlag":makeJumpImageFlag,
+                            "makeJumpImageFlag":(makeJumpImageFlag === 2) ? 1:makeJumpImageFlag,
                             "rBGColorSave":rBGColorSave,
                             "isRightSidebar":isRightSidebar,
                             "saveFilePath":saveFilePath,
@@ -13022,14 +13081,8 @@
 
         private function windowClosingEvent(e:Event):void
         {
-            if(makeJumpImageFlag === 2)
+            if(makeJumpImageFlag === 2 || isInSaveProgress)
             {
-                e.preventDefault();
-                return;
-            }
-            else if(isSavingFile === 1)
-            {
-                isSavingFile = 2;
                 e.preventDefault();
                 return;
             }
@@ -14224,6 +14277,7 @@
 
         private function setReplayUI(flag:Boolean):void
         {
+            if(isInSaveProgress) return;
             const iFlag:Boolean = !flag;
 
             replayModeON = flag;
@@ -14294,7 +14348,6 @@
                 topBar.resetHintColor();
 
                 if(traceMenuON === true) traceMenuBox.visible = false;
-
                 if(makeJumpImageFlag === 1)
                 {
                     replayTimeBox["frameInfo"].text = "Loading...";

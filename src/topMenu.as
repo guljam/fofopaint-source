@@ -222,7 +222,31 @@
 			},500);
 		}
 
-		public function hintWait():void
+		public function hintCaptureWait():void
+		{
+			clearTimeout(hintTimer);
+			clearTimeout(hintTimer2);
+			isHintLocked = false;
+			const savingStr:String = "Saving image";
+			hint(savingStr,replayModeButton);
+			setHintColor("yellow");
+			hintWaitAnim(savingStr);
+			isHintLocked = true;
+		}
+
+		public function hintCaptureOK():void
+		{
+			clearTimeout(hintTimer);
+			clearTimeout(hintTimer2);
+			clearInterval(hintWaitAnimTimer);
+			isHintLocked = false;
+			hint("Image saved successfully",replayModeButton,true);
+			setHintColor("green");
+			isHintLocked = true;
+			hintTimeOFFWithColor();
+		}
+
+		public function hintSaving():void
 		{
 			clearTimeout(hintTimer);
 			clearTimeout(hintTimer2);
@@ -234,8 +258,10 @@
 			isHintLocked = true;
 		}
 
-		public function hintTimeOK():void
+		public function hintSavedOK():void
 		{
+			clearTimeout(hintTimer);
+			clearTimeout(hintTimer2);
 			clearInterval(hintWaitAnimTimer);
 			isHintLocked = false;
 			hint("File saved successfully",replayModeButton,true);
@@ -244,8 +270,10 @@
 			hintTimeOFFWithColor();
 		}
 
-		public function hintTimeError():void
+		public function hintLoadError():void
 		{
+			clearTimeout(hintTimer);
+			clearTimeout(hintTimer2);
 			clearInterval(hintWaitAnimTimer);
 			isHintLocked = false;
 			hint("Failed to load file",replayModeButton,true);
