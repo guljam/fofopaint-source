@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.02;
+        private const APP_VERSION:Number = 15.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -8461,7 +8461,7 @@
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
             var _rJumpImageCount:uint = 0;
-            
+
             makeJumpImageFlag = 2;
             clearCanvasReplayMode();//일단 리플레이 캔버스 먼저 깨끗하게
             rcanvas1BitmapData = rFirstImage.clone(); 
@@ -8542,6 +8542,7 @@
                         fs3.close();
                         imgData.clear();
                         _rJumpImageCount = 0;
+                        if(replayTimeBox["replayNowBar"].width > 0) replayTimeBox["replayNowBar"].width = 0;
                         replayInfoText.text = "Loading... "+perc+"%";
                         return;
                     }
