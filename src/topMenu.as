@@ -10,6 +10,8 @@
 	import flash.utils.setTimeout;
 	import flash.utils.clearTimeout;
 	import flash.display.DisplayObjectContainer;
+	import flash.utils.clearInterval;
+	import flash.utils.setInterval;
 
 	public class topMenu extends Sprite {
 
@@ -68,6 +70,10 @@
 		public var replaySpeedBar:SimpleButton = replaySpeedBar;
 		public var replaySpeedSet:Sprite = new Sprite();
 
+		private var isHintLocked:Boolean = false;
+		private var hintWaitAnimTimer:int = 0;
+		private var hintWaitAnimCount:int = 0;
+
 		public function updateButtonVisible(flag:Boolean):void
 		{
 			updateButton.visible = flag;
@@ -96,7 +102,6 @@
 			hintFontColor = op;
 
 			topbarBG.transform.colorTransform = b;
-			topbarInfoBG.transform.colorTransform = b;
 			captureButton.transform.colorTransform = o;
 			repCaptureButton.transform.colorTransform = o;
 			capRotate.transform.colorTransform = o;
@@ -134,7 +139,11 @@
 			replaySpeedMoveButton.transform.colorTransform = o;
             replaySpeedBar.transform.colorTransform = o;
 			
-			topMenuInfo.textColor = op;
+			if(isHintLocked === false)
+			{
+				topbarInfoBG.transform.colorTransform = b;
+				topMenuInfo.textColor = op;
+			}
 			timer.textColor = op;
 		}
 
@@ -153,6 +162,7 @@
 
 		public function hintOFF():void
 		{	
+			if(isHintLocked) return;
 			topMenuInfo.visible = false;
             topbarInfoBG.visible = false;
 		}
@@ -171,10 +181,10 @@
 			topMenuInfo.textColor = hintFontColor;
 		}
 
-		public function hintColorTimeOff():void
+		public function hintTimeOFFWithColor():void
 		{
-			hintTimeOff();
-
+			isHintLocked = false;
+			hintTimeOFF();
 			clearTimeout(hintTimer2);
 			hintTimer2 = setTimeout(function():void
 			{
@@ -182,7 +192,7 @@
 			},3000);
 		}
 
-		public function hintTimeOff():void
+		public function hintTimeOFF():void
 		{
 			clearTimeout(hintTimer);
 			hintTimer = setTimeout(function():void
@@ -191,44 +201,96 @@
 			},3000);
 		}
 
-		public function hintTimeOK(str:String):void
+		public function hintWaitAnim(savingStr:String):void
 		{
-			hint(str,replayModeButton,true,1);
-			hintColorTimeOff();
+			clearInterval(hintWaitAnimTimer);
+			hintWaitAnimCount = 0;
+			hintWaitAnimTimer = setInterval(function():void
+			{
+				var dotStr:String = "";
+				hintWaitAnimCount++;
+				if(hintWaitAnimCount === 1) dotStr = ".";
+				else if(hintWaitAnimCount === 2) dotStr = "..";
+				else if(hintWaitAnimCount === 3) dotStr = "...";
+				else if(hintWaitAnimCount === 4)
+				{	
+					dotStr = "";
+					hintWaitAnimCount = 0;
+				}
+				topMenuInfo.text = savingStr+dotStr;
+				topMenuInfo.width = topMenuInfo.textWidth+4;
+			},500);
 		}
 
-		public function hintTimeError(str:String):void
+		public function hintWait():void
 		{
-			hint(str,replayModeButton,true,2);
-			hintColorTimeOff();
+			clearTimeout(hintTimer);
+			clearTimeout(hintTimer2);
+			isHintLocked = false;
+			const savingStr:String = "Saving file";
+			hint(savingStr,replayModeButton);
+			setHintColor("yellow");
+			hintWaitAnim(savingStr);
+			isHintLocked = true;
+		}
+
+		public function hintTimeOK():void
+		{
+			clearInterval(hintWaitAnimTimer);
+			isHintLocked = false;
+			hint("File saved successfully",replayModeButton,true);
+			setHintColor("green");
+			isHintLocked = true;
+			hintTimeOFFWithColor();
+		}
+
+		public function hintTimeError():void
+		{
+			clearInterval(hintWaitAnimTimer);
+			isHintLocked = false;
+			hint("Failed to load file",replayModeButton,true);
+			setHintColor("red");
+			isHintLocked = true;
+			hintTimeOFFWithColor();
+		}
+
+		public function setHintColor(colorStr:String):void
+		{
+			const c:ColorTransform = new ColorTransform()
+
+			if(colorStr === "green")
+			{
+				c.color = hintOKBGColor;
+				topbarInfoBG.transform.colorTransform = c;
+				topMenuInfo.textColor = 0;
+			}
+			else if(colorStr === "red")
+			{
+				c.color = 0xE03B35;
+				topbarInfoBG.transform.colorTransform = c;
+				topMenuInfo.textColor = 0;
+			}
+			else if(colorStr === "yellow")
+			{
+				c.color = 0xF1C14B;
+				topbarInfoBG.transform.colorTransform = c;
+				topMenuInfo.textColor = 0;
+			}
 		}
 
 		public function hintTime(str:String,target:DisplayObject):void
 		{
 			hint(str,target,true);
-			hintTimeOff();
+			hintTimeOFF();
 		}
 
-		public function hint(str:String,target:DisplayObject,timed:Boolean=false,colorFlag:int=0):void
+		public function hint(str:String,target:DisplayObject,timed:Boolean=false):void
 		{
+			if(isHintLocked) return;
+
 			if(target)
 			{
 				if(!timed) clearTimeout(hintTimer);
-
-				const c:ColorTransform = new ColorTransform()
-
-				if(colorFlag === 1)
-				{
-					c.color = hintOKBGColor;
-					topbarInfoBG.transform.colorTransform = c;
-					topMenuInfo.textColor = 0;
-				}
-				else if(colorFlag === 2)
-				{
-					c.color = 0xFD7A80;
-					topbarInfoBG.transform.colorTransform = c;
-					topMenuInfo.textColor = 0;
-				}
 
 				topMenuInfo.text = str;
 				topMenuInfo.width = topMenuInfo.textWidth+4;

@@ -54,10 +54,13 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
+    import flash.system.Worker;
+    import flash.system.WorkerDomain;
+    import flash.system.MessageChannel;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.87;
+        private const APP_VERSION:Number = 15.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -204,6 +207,7 @@
                     ,CUT_FRAME_SUPER_UNDO:int = (1 << 1)
                     ,CUT_FRAME_RE_RECORD:int = (1 << 2)
                     ,CUT_FRAME_DELETE_FRONT:int = (1 << 3)
+                    ,WORKER_WAIT_REPLAYDATA:int = (1 << 0)
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -537,8 +541,14 @@
                                                                         [0x313768,0xD5E9F3],
                                                                         [0xA80515,0xF1D0D0]
                                                                     ]
+        //워커 변수
+        protected var worker:Worker
+                    ,mainToBack:MessageChannel
+                    ,backToMain:MessageChannel
+                    ,workerWaitFlag:int
+                    ,isSavingFile:int
         //기타
-                    ,windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
+        private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
                     ,penCursorOFFFlag:Boolean = false //펜커서 이게 on되면 안보여줌
                     ,tempDragDropFile:Object = []
@@ -585,6 +595,7 @@
             makeMenuFamlity();
             makeResizeButtonFamily();
             makeTransBG();
+            makeWorker();
             updateWindowSizeInfo();
             updateColorHistoryList();
             loadAppData(); //이전 세팅 복원
@@ -605,6 +616,46 @@
         }
         
         //functions
+        private function onFromWorker(e:Event):void
+        {
+            var msg:* = backToMain.receive() as Array;
+            if(msg as Array)
+            {
+                if(msg[0] === "compress_ReplayDataDone")
+                {
+                    writeReplayFile(msg[1],msg[2],msg[3],msg[4]);
+
+                    if(isSavingFile === 2)
+                    {
+                        isSavingFile = 0;
+                        stage.nativeWindow.close();
+                    }
+                    isSavingFile = 0;
+                }
+            }
+        }
+        
+        private function makeWorker():void
+        {
+            var workerLoader:URLLoader = new URLLoader();
+            workerLoader.dataFormat = URLLoaderDataFormat.BINARY;
+            workerLoader.addEventListener(Event.COMPLETE, loadComplete);
+            workerLoader.load(new URLRequest("worker.swf"));
+
+            function loadComplete(e:Event):void
+            {
+                var workerBytes:ByteArray = e.target.data as ByteArray;
+                worker = WorkerDomain.current.createWorker(workerBytes,true);
+                
+                mainToBack = Worker.current.createMessageChannel(worker);
+                backToMain = worker.createMessageChannel(Worker.current);
+                backToMain.addEventListener(Event.CHANNEL_MESSAGE,onFromWorker)
+                worker.setSharedProperty("backToMain", backToMain);
+			    worker.setSharedProperty("mainToBack", mainToBack);
+                worker.start();
+            }
+        }
+
         private function updateCanvasPanelMask(w:Number,h:Number):void
         {
             const maskg:Graphics = canvasPanelMask.graphics;
@@ -1193,7 +1244,7 @@
             catch(err:Error)
             {
                 fs.close();
-                topBar.hintTimeError("Failed to load file");
+                topBar.hintTimeError();
                 return false;
             }
 
@@ -2162,7 +2213,6 @@
                 if(gcONCount === GC_TIME_OUT)
                 {
                     gcONCount = 0;
-                    System.pauseForGCIfCollectionImminent(0.75);
                     System.gc();
                 }
                 else gcONCount++;
@@ -4960,7 +5010,7 @@
             var tail:String = str.slice(dotIndex+1,str.length);
             var tailLen:uint = tail.length;
             const ver1:Number = parseInt(head);
-            const ver2:Number = parseInt(tail)/Math.pow(10,tailLen-1);
+            const ver2:Number = parseInt(tail);///Math.pow(10,tailLen-1);
 
             return [ver1,ver2];
         }
@@ -5015,7 +5065,8 @@
                     {
                         const floor:Function = Math.floor;
                         const oldVersion:Array = parseVersion(String(APP_VERSION));
-                        const isNewVersion:Boolean = (newVersion[0] > oldVersion[0]) || (newVersion[1] > oldVersion[1]);
+                        trace('newVersion[0]',oldVersion,newVersion);
+                        const isNewVersion:Boolean = (newVersion[0] > oldVersion[0]) || (newVersion[0] === oldVersion[0] && (newVersion[1] > oldVersion[1]));
                         var tryCount:uint = 0;
 
                         url = new URLRequest("https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air");
@@ -8139,7 +8190,7 @@
                 //실제적으로 loader가 읽어서 캔버스에 그림
                 function loaderIOErrorHandlerEvent(e:Event):void
                 {
-                    topBar.hintTimeError("Failed to load file");
+                    topBar.hintTimeError();
                     tempDragDropFile = null;
                     loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderIOErrorHandlerEvent);
                     loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, startDrawImgEvent);
@@ -8396,7 +8447,7 @@
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
             var _rJumpImageCount:uint = 0;
-
+            
             makeJumpImageFlag = 2;
             clearCanvasReplayMode();//일단 리플레이 캔버스 먼저 깨끗하게
             rcanvas1BitmapData = rFirstImage.clone(); 
@@ -8408,12 +8459,14 @@
             rregPoint.visible = false;
 
             const _tickDraw:Object = tickDraw;
+            var data:Array;
+            var namojiBytes:Number;
             
             function onFrameEnter(e:Event):void
             {
                 while(1)
                 {
-                    const namojiBytes:Number = fs.bytesAvailable;
+                    namojiBytes = fs.bytesAvailable;
 
                     if(namojiBytes === 0)
                     {
@@ -8446,10 +8499,10 @@
                         return;
                     }
 
-                    const d:Array = fs.readObject() as Array;
-                    const dlen:Number = d.length;
+                    data = fs.readObject() as Array;
+                    const dlen:Number = data.length;
 
-                    _tickDraw.ready(d);
+                    _tickDraw.ready(data);
                     _frameSumLast = _frameSum;
                     _frameSum += dlen;
                     _rJumpImageCount += dlen;
@@ -8483,29 +8536,86 @@
             stage.addEventListener(Event.ENTER_FRAME,onFrameEnter);
         }
 
+        private function workerCompressReplayData(dataA:ByteArray,dataB:ByteArray,dataC:ByteArray,dataD:ByteArray):void
+        {
+            mainToBack.send(["compress_ReplayData",dataA,dataB,dataC,dataD]);
+        }
+
+        private function writeReplayFile(dataA:ByteArray,dataB:ByteArray,dataC:ByteArray,dataD:ByteArray):void
+        {
+            const fs:FileStream = new FileStream();
+            const _rData:Array = rData;
+            const rImgDataW:int = rFirstImage.width;
+            const rImgDataH:int = rFirstImage.height;
+            const _traceBmpd:BitmapData = canvasTraceBitmapData;
+            const traceImgWidth:Number = _traceBmpd.width;
+            const traceImgHeight:Number = _traceBmpd.height;
+            const _tracePosInfo:Array = tracePosInfo;
+
+            const pathStr:String = saveFilePath;
+            const newPath:String = pathStr.substr(0,pathStr.lastIndexOf(".png"))+".2020";
+            const copyFile:File = new File(newPath);
+
+            //실제 저장할 파일을 다시 써줌
+            fs.open(repFileTemp,FileMode.WRITE);
+            fs.position = 0;
+            fs.writeUTFBytes("FOFOPAINT"); //파일 헤더
+            fs.writeUnsignedInt(dataD.length); //뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
+            fs.writeBytes(dataD);
+
+            var _readUndoArray:Array;
+            for(var i:int=0,len:int=undoIndex;i<=len;i++)//리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
+            {
+                _readUndoArray = _rData[i] as Array;
+                if(_readUndoArray.length === 0) continue;
+                fs.writeObject(_readUndoArray);
+            }
+
+            if(mirrorPushReady) //임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
+            {
+                const tempMirrorData:Array = [["mirror"]];
+                fs.writeObject(tempMirrorData);
+            }
+
+            fs.writeObject(["rFirstImage",dataA,rImgDataW,rImgDataH,rFirstBGColor]);
+            fs.writeObject(["rFinalImage",dataB,CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR]);
+            if(_traceBmpd)
+            {
+                fs.writeObject(["traceImage",dataC, // 1
+                                            traceImgWidth,
+                                            traceImgHeight,
+                                            _tracePosInfo[0],
+                                            _tracePosInfo[1],// 5
+                                            _tracePosInfo[2],
+                                            _tracePosInfo[3],
+                                            _tracePosInfo[4],
+                                            _tracePosInfo[5],
+                                            traceReizeMoveSum,//10
+                                            CANVAS_TRACE_ALPHA]);// 11
+            }
+            fs.close();
+            repFileTemp.moveTo(copyFile,true);
+            topBar.hintTimeOK();
+        }
+
         private function saveReplayFile():void
         {
             if(repFile.exists)
             {
-                const pathStr:String = saveFilePath;
-                const newPath:String = pathStr.substr(0,pathStr.lastIndexOf(".png"))+".2020";
                 const fs:FileStream = new FileStream();
-                const copyFile:File = new File(newPath);
                 const rImgData:ByteArray = new ByteArray();
                 const rImgDataW:int = rFirstImage.width;
                 const rImgDataH:int = rFirstImage.height;
                 const lastImgData:ByteArray = new ByteArray();
                 const traceImgData:ByteArray = new ByteArray();
-                const _rData:Array = rData;
+  
                 const _traceBmpd:BitmapData = canvasTraceBitmapData;
                 var newRectangle:Rectangle = new Rectangle(0,0,rImgDataW,rImgDataH);
 
                 rFirstImage.copyPixelsToByteArray(newRectangle,rImgData);
-                rImgData.compress();
 
                 newRectangle = new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
                 canvas1BitmapData.copyPixelsToByteArray(newRectangle,lastImgData);
-                lastImgData.compress();
 
                 if(_traceBmpd)
                 {
@@ -8514,62 +8624,22 @@
                     const traceImgHeight:Number = _traceBmpd.height;
                     newRectangle = new Rectangle(0,0,traceImgWidth,traceImgHeight);
                     _traceBmpd.copyPixelsToByteArray(newRectangle,traceImgData);
-                    traceImgData.compress();
                 }
 
                 repFile.copyTo(repFileTemp,true);//일단 임시파일로 복사
 
                 //임시파일전체를 바이트배열로 읽어서 압축해줌
-                const tmpBytes:ByteArray = new ByteArray();
+                const replayDataBytes:ByteArray = new ByteArray();
                 fs.open(repFileTemp,FileMode.READ);
                 fs.position = 0;
-                fs.readBytes(tmpBytes,0,fs.bytesAvailable);
-                tmpBytes.compress();
+                fs.readBytes(replayDataBytes,0,fs.bytesAvailable);
                 fs.close();
+                //여기까지가 바이트 어레이에 넣어줌
 
-                //실제 저장할 파일을 다시 써줌
-                fs.open(repFileTemp,FileMode.WRITE);
-                fs.position = 0;
-                fs.writeUTFBytes("FOFOPAINT"); //파일 헤더
-                fs.writeUnsignedInt(tmpBytes.length); //뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
-                fs.writeBytes(tmpBytes);
-                tmpBytes.clear();
-
-                var _readUndoArray:Array;
-                for(var i:int=0,len:int=undoIndex;i<=len;i++)//리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
-                {
-                    _readUndoArray = _rData[i] as Array;
-                    if(_readUndoArray.length === 0) continue;
-                    fs.writeObject(_readUndoArray);
-                }
-
-                if(mirrorPushReady) //임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
-                {
-                    const tempMirrorData:Array = [["mirror"]];
-                    fs.writeObject(tempMirrorData);
-                }
-
-                fs.writeObject(["rFirstImage",rImgData,rImgDataW,rImgDataH,rFirstBGColor]);
-                fs.writeObject(["rFinalImage",lastImgData,CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR]);
-                if(_traceBmpd)
-                {
-                    fs.writeObject(["traceImage",traceImgData, // 1
-                                                traceImgWidth,
-                                                traceImgHeight,
-                                                traceImgInfo[0],
-                                                traceImgInfo[1],// 5
-                                                traceImgInfo[2],
-                                                traceImgInfo[3],
-                                                traceImgInfo[4],
-                                                traceImgInfo[5],
-                                                traceReizeMoveSum,//10
-                                                CANVAS_TRACE_ALPHA]);// 11
-                }
-                fs.close();
-                rImgData.clear();
-                lastImgData.clear();
-                repFileTemp.moveTo(copyFile,true);
-                topBar.hintTimeOK("File saved successfully");
+                isSavingFile = 1;
+                topBar.hintWait();
+                //쓰레드로 압축 해줌
+                workerCompressReplayData(rImgData,lastImgData,traceImgData,replayDataBytes);
             }
         }
 
@@ -8715,7 +8785,7 @@
         {
             if(isTrue2020File(file) === false)
             {
-                topBar.hintTimeError("Failed to load file");
+                topBar.hintTimeError();
                 return;
             }
 
@@ -8778,7 +8848,7 @@
         {
             if(!imageData)
             {
-                topBar.hintTimeError("Failed to load file");
+                topBar.hintTimeError();
                 return;
             }
             
@@ -8876,13 +8946,12 @@
             setReplaySubLayer(false);
             updateResizeButtonPos();
             cancelAutoKeyEvent({});
-            System.gc();
         }
 
         private function loadFile(subLayer:Boolean=false):void
         {
             if(replayStartON) stopReplay();
-            if(lassoToolON || browseWindowON || fillPenStarted) return;
+            if(lassoToolON || browseWindowON || fillPenStarted || isSavingFile) return;
             const allowedExt:String = "*.2020;*.png;*.jpg;*.gif";
             var newFileFilter:FileFilter = new FileFilter("Image or 2020 file",allowedExt);
             var windowTitle:String = "Open file";
@@ -8918,7 +8987,7 @@
 
             function loadErrorEvent(e:Event):void
             {
-                topBar.hintTimeError("Failed to load file");
+                topBar.hintTimeError();
                 browseWindowON = false;
                 //에러나면 아무것도 안해줌
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
@@ -9580,14 +9649,9 @@
         private function saveFile(asFlag:Boolean,saveFailed:Boolean=false):void
         {
             //계속 저장하는거 방지 다른 이름으로 저장은 예외
-            if(replayStartON)
-            {
-                stopReplay();
-            }
-
+            if(replayStartON) stopReplay();
             const continueFlag:Boolean = saveContinue === true && asFlag === false;
-
-            if((saveOneTime === true && continueFlag) || lassoToolON || fillPenStarted)
+            if((saveOneTime === true && continueFlag) || lassoToolON || fillPenStarted || isSavingFile)
             {
                 return;
             }
@@ -12963,6 +13027,13 @@
                 e.preventDefault();
                 return;
             }
+            else if(isSavingFile === 1)
+            {
+                isSavingFile = 2;
+                e.preventDefault();
+                return;
+            }
+
             windowClosingFlag = true;
 
             if(replayStartON === true) stopReplay();
@@ -13300,7 +13371,6 @@
         private function keyUpDrawMode(e:KeyboardEvent):void //keyup1
         {
             const keyCode:int = e.keyCode;
-
             if(keyCode === nowKeyNotKeyUp)
             {
                 nowKeyNotKeyUp = 0;
@@ -13312,6 +13382,7 @@
                 if(mouseClickON === true) keyWaitMouseUp = true;
                 else checkNextKeyDown();
             }
+
             if(!isPressingControl() && resizeButtonR.visible)
             {
                 setResizeButtonVisible(false);
@@ -13393,7 +13464,7 @@
                 {
                     nowKeyNotKeyUp = keyCode;
                     setGridButton();
-                    topBar.hintTimeOff();
+                    topBar.hintTimeOFF();
                 }
                 return true;
 
@@ -13410,7 +13481,7 @@
                 {
                     nowKeyNotKeyUp = keyCode;
                     setUIColorButton();
-                    topBar.hintTimeOff();
+                    topBar.hintTimeOFF();
                 }
                 return true;
                 
@@ -13669,7 +13740,6 @@
                     {
                         windowDeactivateTime = nt;
                         saveAllData();
-                        System.gc();
                     }
                 }
             }

@@ -5,8 +5,6 @@
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
 	import flash.system.System;
-	import flash.events.TextEvent;
-	import flash.events.Event;
 
 	public class aboutBox extends Sprite {
 
