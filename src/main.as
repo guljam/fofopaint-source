@@ -57,7 +57,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 14.86;
+        private const APP_VERSION:Number = 14.87;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -3341,8 +3341,6 @@
                 w = CANVAS_WIDTH;
                 h = CANVAS_HEIGHT
             }
-
-            const _canvasTraceBitmap:Bitmap = canvasTraceBitmap;
         
             if(bmpd) //로드한 이미지를 붙여넣을때
             {
@@ -3359,8 +3357,9 @@
                 var tmpBMPD:BitmapData = new BitmapData(w,h,true,0);
 
                 tmpBMPD.draw(bmpd,scaleMat,null,null,null,true);
+                canvasTraceBitmapData.dispose();
                 canvasTraceBitmapData = tmpBMPD.clone();
-                _canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
+                canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
 
                 tmpBMPD.dispose();
                 tmpBMPD = null;
@@ -3368,8 +3367,9 @@
             else //캔버스 자체 이미지를 붙여넣을때
             {
                 rDataBuffer = [["clear"]];
+                canvasTraceBitmapData.dispose();
                 canvasTraceBitmapData = canvas1BitmapData.clone();
-                _canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
+                canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
                 canvas1BitmapData = new BitmapData(w,h,true,0); //캔버스를 지워줌
                 canvas1Bitmap.bitmapData = canvas1BitmapData;
                 addUndoData(4);
@@ -3393,7 +3393,6 @@
                     _canvasTrace.scaleY = autoScale;
                     tracePosInfo[3] = autoScale;
                     tracePosInfo[4] = autoScale;
-                    _canvasTraceBitmap.smoothing = true;
                 }
             }
 
@@ -3402,8 +3401,7 @@
             CANVAS_TRACE_ALPHA = 0.5;
             canvasTraceLayer.visible = true;
             canvasTraceLayer.alpha = 0.5;
-
-            _canvasTraceBitmap.smoothing = true;
+            canvasTraceBitmap.smoothing = true;
             saveOneTime = false;
         }
 
@@ -5231,7 +5229,8 @@
             rcanvas2BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
 
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-            canvas1Bitmap.bitmapData = rcanvas1BitmapData.clone();
+            canvas1BitmapData = rcanvas1BitmapData.clone();
+            canvas1Bitmap.bitmapData = canvas1BitmapData;
 
             changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height);
             setBackgroundColorDrawMode(RCANVAS_BG_COLOR);
@@ -5619,7 +5618,7 @@
                 repFileTemp.copyTo(repFile,true);
                 repFileTemp.deleteFile();
 
-                makeJumpImage();
+                _makeJumpImage();
                 rCursor.visible = false;
                 replayNowBar.width = 0;
                 saveOneTime = false;
@@ -6042,16 +6041,19 @@
             const data:Array = fs.readObject() as Array;
             fs.close();
             data[0].uncompress();
-            const bmpd:BitmapData = new BitmapData(data[1],data[2],true,0);
+            var bmpd:BitmapData = new BitmapData(data[1],data[2],true,0);
             const newRectangle:Rectangle = new Rectangle(0,0,data[1],data[2]);
             
             bmpd.lock();
             bmpd.setPixels(newRectangle,data[0]);
             bmpd.unlock();
+
             rcanvas1BitmapData.dispose();
             rcanvas1BitmapData = bmpd.clone();
-
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+            bmpd.dispose();
+            bmpd = null;
+
             changeCanvasSizeReplayMode(rcanvas1Bitmap.width,rcanvas1Bitmap.height);
             setBackgroundColorReplayMode(data[3]);
         }
@@ -8383,7 +8385,7 @@
             regPoint.addChild(resizeButtonR);
         }
 
-        private function makeJumpImage():void //loadrep
+        private function _makeJumpImage():void //loadrep
         {
             const fs:FileStream = new FileStream();
             const cd2:Graphics = rcanvas2Draw.graphics;
@@ -8435,7 +8437,9 @@
                         }
                         else
                         {
-                            _jumpFrame(TOTAL_FRAME+1,JUMP_FRAME_ONCE);
+                            // _jumpFrame(TOTAL_FRAME+1,JUMP_FRAME_ONCE);
+                            // rDataPreviewCacheImages = [];
+                            // rJumpImageIndexSave = -2;
                             removeInputEventDrawMode();
                             addInputEventReplayMode();
                         }
@@ -8872,6 +8876,7 @@
             setReplaySubLayer(false);
             updateResizeButtonPos();
             cancelAutoKeyEvent({});
+            System.gc();
         }
 
         private function loadFile(subLayer:Boolean=false):void
@@ -11495,7 +11500,6 @@
 
                 oldTool = nowTool;
                 spuitbmpd = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,false,CANVAS_BG_COLOR);
-                
                 spuitbmpd.draw(canvas1BitmapData);
                 penColorBackup = penColor;
                 setNowTool(TOOL_SPUIT);
@@ -12011,7 +12015,7 @@
         private function drawUndoData(redoFlag:Boolean=false):void
         {
             const d:Array = undoData.getUndoRefImage();
-            const data:BitmapData = d[0];
+            const image:BitmapData = d[0];
             const w:uint = d[1];
             const h:uint = d[2];
             const bg:uint = d[3];
@@ -12023,7 +12027,7 @@
             if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
             if(bg !== RCANVAS_BG_COLOR) setBackgroundColorReplayMode(bg);
 
-            rcanvas1BitmapData = data.clone();
+            rcanvas1BitmapData = image.clone();
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
 
             if(rData.length > 0)
@@ -12158,20 +12162,24 @@
 
             function setUndoRefImageByReplayMode():void
             {
-                const bmpd:BitmapData = rcanvas1BitmapData;
-                undoData.setUndoRefImage([bmpd.clone(),bmpd.width,bmpd.height,RCANVAS_BG_COLOR]);
+                undoData.setUndoRefImage([rcanvas1BitmapData.clone()
+                                            ,rcanvas1BitmapData.width
+                                            ,rcanvas1BitmapData.height
+                                            ,RCANVAS_BG_COLOR]);
             }
 
             function setUndoRefImageByDrawMode():void
             {
-                const bmpd:BitmapData = canvas1BitmapData;
-                undoData.setUndoRefImage([bmpd.clone(),bmpd.width,bmpd.height,CANVAS_BG_COLOR]);
+                undoData.setUndoRefImage([canvas1BitmapData.clone()
+                                            ,canvas1BitmapData.width
+                                            ,canvas1BitmapData.height
+                                            ,CANVAS_BG_COLOR]);
             }
 
             function updateUndoDataFirst():void
             {
                 const d:Array = undoRefImage;
-                const data:BitmapData = d[0];
+                const image:BitmapData = d[0];
                 const w:uint = d[1];
                 const h:uint = d[2];
                 const bg:uint = d[3];
@@ -12180,7 +12188,7 @@
                 if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
                 if(bg !== RCANVAS_BG_COLOR) setBackgroundColorReplayMode(bg);
 
-                rcanvas1BitmapData = data.clone();
+                rcanvas1BitmapData = image.clone();
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
 
                 tickDraw.ready(rData[0]);
@@ -13661,6 +13669,7 @@
                     {
                         windowDeactivateTime = nt;
                         saveAllData();
+                        System.gc();
                     }
                 }
             }
@@ -14102,7 +14111,7 @@
                 makeSKipImageWaitTimer = setTimeout(function():void
                 {
                     makeSKipImageWaitTimer = 0;
-                    makeJumpImage();
+                    _makeJumpImage();
                 },60);
             }
         }
@@ -14184,8 +14193,6 @@
             else if(flag) //리플레이 켜줄때
             {
                 removeInputEventDrawMode();
-                addInputEventReplayMode();
-
                 rCursor.visible = false;
                 setTopChildIndex(rCursor);
             
@@ -14249,6 +14256,8 @@
                     checkCanvasPanelPos(flag);
                     sideBar.visible = false;
                     changeTopBarIcons("replay");
+                    removeInputEventDrawMode();
+                    addInputEventReplayMode();
                 }
             }
         }
