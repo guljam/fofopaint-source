@@ -8,8 +8,6 @@
 	import flash.display.BitmapData;
 	import flash.display.PNGEncoderOptions;
 	import flash.geom.Rectangle;
-	import flash.system.System;
-	import flash.utils.setTimeout;
 
 	public class worker extends Sprite
 	{

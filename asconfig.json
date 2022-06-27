@@ -5,7 +5,7 @@
 			"src"
 		],
 		"external-library-path": [
-			"src/lib"
+
 		],
 		"output": "fofoPaint.swf"
 	},

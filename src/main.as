@@ -28,7 +28,6 @@
     import flash.filesystem.FileStream;
     import flash.filesystem.FileMode;
     import flash.system.Capabilities;
-    import flash.system.System;
     import flash.system.IME;
     import flash.system.Worker;
     import flash.system.WorkerDomain;
@@ -60,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.12;
+        private const APP_VERSION:Number = 15.13;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
