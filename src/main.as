@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.06;
+        private const APP_VERSION:Number = 15.07;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -9412,10 +9412,12 @@
             var rectY:Number;
             var rectW:Number;
             var rectH:Number;
+            var drawedcx:Number; //한번 영역을 그려줬으면 원점을 여기다가 저장
+            var drawedcy:Number; //다음번에 클릭해서 저장하면 이 원점으로 그려줌
 
             function updateCaptureAreaLineSize():void
             {
-                if(rectW > 10 && rectH > 10) drawArea(cx,cy,rectW,rectH);
+                if(rectW > 10 && rectH > 10) drawArea(drawedcx,drawedcy,rectW,rectH);
             }
 
             function drawArea(x:Number,y:Number,w:Number,h:Number):void
@@ -9504,9 +9506,15 @@
 
                     rectX = cx;
                     rectY = cy;
+                    drawedcx = cx;
+                    drawedcy = cy;
                     topBar.hint(getRotatedRectSizeString()+" (Click canvas to save)",topBar.capOff);
                 }
-                else if(abs(rectW) > 10 && abs(rectH) > 10) saveCaptureImage(rectX,rectY,rectW,rectH);
+                else if(abs(rectW) > 10 && abs(rectH) > 10)
+                {
+                    trace('영역확인',rectX,rectY,rectW,rectH)
+                    saveCaptureImage(rectX,rectY,rectW,rectH);
+                }
 
                 mouseMoved = false;
             }
