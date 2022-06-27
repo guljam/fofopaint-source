@@ -88,6 +88,10 @@
 			reRecordingButton.alpha = 1.0;
 			superUndoButton.alpha = 1.0;
 			cutPrevDataButton.alpha = 1.0;
+			capRotate.alpha = 1.0;
+			capFull.alpha = 1.0;
+			capTrans.alpha = 1.0;
+			capFlip.alpha = 1.0;
 			if(clipFlag) clipButton.alpha = 1.0;
 		}
 
@@ -106,6 +110,10 @@
 			reRecordingButton.alpha = offAlpha;
 			superUndoButton.alpha = offAlpha;
 			cutPrevDataButton.alpha = offAlpha;
+			capRotate.alpha = offAlpha;
+			capFull.alpha = offAlpha;
+			capTrans.alpha = offAlpha;
+			capFlip.alpha = offAlpha;
 		}
 
 		public function updateButtonVisible(flag:Boolean):void

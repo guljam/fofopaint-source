@@ -4,6 +4,9 @@
 		"source-path": [
 			"src"
 		],
+		"external-library-path": [
+			"src/lib"
+		],
 		"output": "fofoPaint.swf"
 	},
 	"application": "fofoPaint-app.xml",

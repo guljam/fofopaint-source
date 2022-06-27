@@ -8,12 +8,36 @@
 	import flash.display.BitmapData;
 	import flash.display.PNGEncoderOptions;
 	import flash.geom.Rectangle;
+	import flash.system.System;
+	import flash.utils.setTimeout;
 
 	public class worker extends Sprite
 	{
 		private var bgWorker:Worker;
 		private var mainToBack:MessageChannel;
 		private var backToMain:MessageChannel;
+
+		// private var gcCount:int;
+		// private function doGC(evt:Event):void
+		// {
+		// 	System.gc();
+		// 	if(++gcCount > 1)
+		// 	{
+		// 		removeEventListener(Event.ENTER_FRAME, doGC);
+		// 		setTimeout(lastGC,40);
+		// 	}
+		// }
+
+		// private function lastGC():void
+		// {
+		// 	System.gc();
+		// }
+
+		// private function startGC():void
+		// {
+		// 	gcCount = 0;
+		// 	addEventListener(Event.ENTER_FRAME, doGC);
+		// }
 		
 		public function worker()
 		{
@@ -23,13 +47,12 @@
 			backToMain = bgWorker.getSharedProperty("backToMain");
 		}
 
-		private function encodePNG(msg:Array):void
+		private function encodePNG(msg:Object):void
 		{
-			backToMain.send("start");
-			var ba:ByteArray = msg[1];
-			var w:Number = msg[2];
-			var h:Number = msg[3];
-			var bg:uint = ((0xFF000000 | msg[4]) & 0xFFFFFFFF);
+			var ba:ByteArray = msg.bytes;
+			var w:Number = msg.width;
+			var h:Number = msg.height;
+			var bg:uint = ((0xFF000000 | msg.bg) & 0xFFFFFFFF);
 			var bmpd:BitmapData = new BitmapData(w,h,true,bg);
 			var bmpd2:BitmapData = new BitmapData(w,h,true,0);
 			ba.position = 0;
@@ -39,66 +62,63 @@
 			bmpd.draw(bmpd2);
 			ba.clear();
 			bmpd.encode(new Rectangle(0,0,w,h),new PNGEncoderOptions(),ba);
-			var arr:Array = ["encodePNGDone",ba];
-			backToMain.send(arr);
-			backToMain.send("end");
-			ba.length = 0;
+			var obj:Object = {command:"encodePNGDone",bytes:ba};
+			backToMain.send(obj);
 			bmpd.dispose();
 			bmpd2.dispose();
-			arr = null;
+			ba = null;
+			obj = null;
 		}
 
-		private function compressUndoData(msg:Array):void
+		private function compressUndoData(msg:Object):void
 		{
-			var ba:ByteArray = msg[1];
+			var ba:ByteArray = msg.data;
 			ba.compress();
-			var arr:Array = ["compress_UndoDataDone",ba];
-			backToMain.send(arr);
+			var obj:Object = {command:"compress_UndoDataDone",data:ba};
+			backToMain.send(obj);
 			ba.length = 0;
 			ba = null;
-			arr = null;
+			obj = null;
 		}
 
-		private function compressReplayData(msg:Array):void
+		private function compressReplayData(msg:Object):void
 		{
-			backToMain.send("start");
-			var ba1:ByteArray = msg[1];
-			var ba2:ByteArray = msg[2];
-			var ba3:ByteArray = msg[3];
-			var ba4:ByteArray = msg[4];
+			var ba1:ByteArray = msg.dataA;
+			var ba2:ByteArray = msg.dataB;
+			var ba3:ByteArray = msg.dataC;
+			var ba4:ByteArray = msg.dataD;
 			ba1.compress();
 			ba2.compress();
 			ba3.compress();
 			ba4.compress();
-			var arr:Array = ["compress_ReplayDataDone",ba1,ba2,ba3,ba4];
-			backToMain.send(arr);
-			backToMain.send("end");
-			ba1.length = 0;
-			ba2.length = 0;
-			ba3.length = 0;
-			ba4.length = 0;
+			var obj:Object = {command:"compress_ReplayDataDone"
+							,dataA:ba1
+							,dataB:ba2
+							,dataC:ba3
+							,dataD:ba4};
+			backToMain.send(obj);
 			ba1 = null;
 			ba2 = null;
 			ba3 = null;
 			ba4 = null;
-			arr = null;
+			obj = null;
 		}
 
 		private function onFromMain(event:Event):void
 		{
 			var msg:* = mainToBack.receive();
-
-			if(msg as Array)
+			if(msg as Object)
 			{
-				if(msg[0] === "compress_ReplayData")
+				const command:String = msg.command;
+				if(command === "compress_ReplayData")
 				{
 					compressReplayData(msg);
 				}
-				else if(msg[0] === "compress_UndoData")
+				else if(command === "compress_UndoData")
 				{
 					compressUndoData(msg);
 				}
-				else if(msg[0] === "encodePNG")
+				else if(command === "encodePNG")
 				{
 					encodePNG(msg);
 				}
