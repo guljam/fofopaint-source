@@ -8,6 +8,9 @@
 	import flash.display.BitmapData;
 	import flash.display.PNGEncoderOptions;
 	import flash.geom.Rectangle;
+	import flash.display.Graphics;
+	import flash.display.Bitmap;
+	import flash.display.Shape;
 
 	public class worker extends Sprite
 	{
@@ -105,21 +108,13 @@
 		private function onFromMain(event:Event):void
 		{
 			var msg:* = mainToBack.receive();
+			
 			if(msg as Object)
 			{
 				const command:String = msg.command;
-				if(command === "compress_ReplayData")
-				{
-					compressReplayData(msg);
-				}
-				else if(command === "compress_UndoData")
-				{
-					compressUndoData(msg);
-				}
-				else if(command === "encodePNG")
-				{
-					encodePNG(msg);
-				}
+				if(command === "compress_ReplayData") compressReplayData(msg);
+				else if(command === "compress_UndoData") compressUndoData(msg);
+				else if(command === "encodePNG") encodePNG(msg);
 			}
 			msg = null;
 		}

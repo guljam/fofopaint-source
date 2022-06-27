@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.13;
+        private const APP_VERSION:Number = 15.14;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -545,7 +545,7 @@
         protected var worker:Worker
                     ,mainToBack:MessageChannel
                     ,backToMain:MessageChannel
-                    ,isInSaveProgress:Boolean = false
+                    ,isInSaveProgress:int = 0
                     ,isInSaveProgressOFFDelayTimer:int = 0
                     ,workerPNGData:ByteArray
                     ,workerPNGTimer:int = 0
@@ -628,6 +628,11 @@
         private function onFromWorker(e:Event):void
         {
             var msg:* = backToMain.receive();
+            // if(msg as String)
+            // {
+            //     trace('온 메세지 :',msg);
+            // }
+            // else
             if(msg as Object)
             {
                 const command:String = msg.command;
@@ -3351,7 +3356,7 @@
             const w:int = canvasTraceBitmap.width;
             const h:int = canvasTraceBitmap.height;
             const fs:FileStream = new FileStream();
-            const ba:ByteArray = new ByteArray;
+            var ba:ByteArray = new ByteArray;
             const newRectangle:Rectangle = new Rectangle(0,0,w,h);
            
             bmpd.copyPixelsToByteArray(newRectangle,ba);
@@ -3360,6 +3365,7 @@
             fs.writeObject([ba,w,h]);
             fs.close();
             ba.clear();
+            ba = null;
         }
 
         private function clearTraceImage():void
@@ -4457,7 +4463,8 @@
             if(!target) return;
             const targetName:String = target.name;
 
-            if(lassoToolON || fillPenStarted || target.alpha < 1.0) return;
+            if(lassoToolON || fillPenStarted || target.alpha < 1.0
+            || makeJumpImageFlag === 2) return;
 
             switch (targetName)
             {
@@ -6126,7 +6133,7 @@
         private function updateFirstImage(bmpd:BitmapData=null,bgColor:uint=0):void //리플레이 처음 이미지 만들어줌
         {
             const fs:FileStream = new FileStream();
-            const ba:ByteArray = new ByteArray;
+            var ba:ByteArray = new ByteArray;
             const w:int = bmpd.width;
             const h:int = bmpd.height;
             const newRectangle:Rectangle = new Rectangle(0,0,w,h);
@@ -6142,6 +6149,7 @@
             fs.writeObject([ba,w,h,bgColor,0,0]); //첫번째 이미지가 bytearray임
             fs.close();
             ba.clear();
+            ba = null;
         }
 
         private function resetUndo():void
@@ -7516,22 +7524,25 @@
         //프레임에 따라서 프레임 조작 버튼 활성화 해줌
         private function checkCutFrameButtons():void
         {
-            const tb:Sprite = topBar;
-            const rSum:Number = rNowFrame;
-
-            if(rSum > 0 && rSum < TOTAL_FRAME)
+            if(makeJumpImageFlag === 2)
             {
-                tb["superUndoButton"].alpha = 1.0;
-                tb["cutPrevDataButton"].alpha = 1.0;
+                topBar["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
+                topBar["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
+                topBar["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
+            }
+            else if(rNowFrame > 0 && rNowFrame < TOTAL_FRAME)
+            {
+                topBar["superUndoButton"].alpha = 1.0;
+                topBar["cutPrevDataButton"].alpha = 1.0;
             }
             else
             {
-                tb["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
-                tb["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
+                topBar["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
+                topBar["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
             }
 
-            if(rSum === TOTAL_FRAME) tb["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
-            else tb["reRecordingButton"].alpha = 1.0;
+            if(rNowFrame === TOTAL_FRAME) topBar["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
+            else topBar["reRecordingButton"].alpha = 1.0;
         }
 
         private function _jumpOneFrame(toback:Boolean,trueOneFrame:Boolean):void
@@ -8297,6 +8308,7 @@
                         loader.contentLoaderInfo.addEventListener(Event.COMPLETE, startDrawImgEvent);
                         loader.loadBytes(data2Byte);
                         data2Byte.clear();
+                        data2Byte = null;
                     }
                 }
 
@@ -8468,6 +8480,7 @@
         private function _makeJumpImage():void //loadrep
         {
             const fs:FileStream = new FileStream();
+            const fs2:FileStream = new FileStream();
             const cd2:Graphics = rcanvas2Draw.graphics;
             const rf:File = repFile;
             const totalSize:Number = rf.size;
@@ -8487,7 +8500,7 @@
             fs.position = 0;
 
             rregPoint.visible = false;
-
+        
             const _tickDraw:Object = tickDraw;
             var data:Array;
             var namojiBytes:Number;
@@ -8526,6 +8539,13 @@
                             removeInputEventDrawMode();
                             addInputEventReplayMode();
                         }
+
+                        if(isInSaveProgress === 2)
+                        {
+                            windowClosingFlag = true;
+                            isInSaveProgress = 0;
+                            stage.nativeWindow.close();
+                        }
                         return;
                     }
 
@@ -8540,26 +8560,24 @@
 
                     if(_rJumpImageCount > _IMG_CACHE_INTERVAL)
                     {
+                        _rJumpImageCount = 0;
                         rJumpImageFrameData.push(_frameSum); // jumpimg:File변수보다 먼저 와야함
 
-                        const perc:Number = Math.floor(((totalSize-namojiBytes)/totalSize)*100);
-                        const fs3:FileStream = new FileStream();
                         const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+"");
-                        const lastBytePos:Number = fs.position;
-                        const imgData:ByteArray = new ByteArray();
+                        var imgData:ByteArray = new ByteArray();
                         const w:Number = rcanvas1BitmapData.width;
                         const h:Number = rcanvas1BitmapData.height;
-                        const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
-                        rcanvas1BitmapData.copyPixelsToByteArray(newRectangle,imgData);
+                        rcanvas1BitmapData.copyPixelsToByteArray(new Rectangle(0,0,w,h),imgData);
                         imgData.compress();
-                        fs3.open(jumpimg,FileMode.WRITE);
-                        fs3.writeObject([imgData,w,h,rBGColorSave,lastBytePos,_frameSum])//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
-                        fs3.close();
+                        fs2.open(jumpimg,FileMode.WRITE);
+                        fs2.writeObject([imgData,w,h,rBGColorSave,fs.position,_frameSum])//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
+                        fs2.close();
                         imgData.clear();
-                        _rJumpImageCount = 0;
+                        imgData = null;
+
                         if(replayTimeBox["replayNowBar"].width > 0) replayTimeBox["replayNowBar"].width = 0;
-                        replayInfoText.text = "Loading... "+perc+"%";
+                        replayInfoText.text = "Loading... "+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%";
                         return;
                     }
                 }
@@ -8571,13 +8589,23 @@
         {
             if(flag)
             {
-                isInSaveProgress = true;
+                isInSaveProgress = 1;
                 topBar.setButtonAlphaOFFSaving(BUTTON_OFF_ALPHA);
             }
             else
             {
-                isInSaveProgress = false;
-                topBar.setButtonAlphaONSaving(clipImageON);
+                if(isInSaveProgress === 2)
+                {
+                    windowClosingFlag = true;
+                    isInSaveProgress = 0;
+                    stage.nativeWindow.close();
+                }
+                else
+                {
+                    isInSaveProgress = 0;
+                    topBar.setButtonAlphaONSaving(clipImageON);
+                    if(replayModeON) checkCutFrameButtons();
+                }
             }
         }
 
@@ -8586,21 +8614,21 @@
             startWorker();
             var count:int = 0;
 
-            function waitON(e:Event):void
+            function waitWorkerReady(e:Event):void
             {
                 if(worker.state === "running")
                 {
                     count++;
-                    if(count >= 2)
+                    if(count >= 3)
                     {
-                        stage.removeEventListener(Event.ENTER_FRAME,waitON);
+                        stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
                         var ba:ByteArray = new ByteArray();
                         bmpd.copyPixelsToByteArray(new Rectangle(0,0,bmpd.width,bmpd.height),ba);
                         var obj:Object = {command:"encodePNG"
-                                        ,bytes  :ba
-                                        ,width  :bmpd.width
-                                        ,height :bmpd.height
-                                        ,bg     :bg};
+                                         ,bytes:ba
+                                         ,width:bmpd.width
+                                         ,height:bmpd.height
+                                         ,bg:bg};
                         setSaveProgress(true);
                         mainToBack.send(obj);
                         ba.clear();
@@ -8609,7 +8637,7 @@
                     }
                 }
             }
-            stage.addEventListener(Event.ENTER_FRAME,waitON);
+            stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
 
         }
 
@@ -8619,10 +8647,10 @@
             function go():void
             {
                 var obj:Object = {command:"compress_ReplayData"
-                                        ,dataA  :dataA
-                                        ,dataB  :dataB
-                                        ,dataC  :dataC
-                                        ,dataD  :dataD};
+                                 ,dataA:dataA
+                                 ,dataB:dataB
+                                 ,dataC:dataC
+                                 ,dataD:dataD};
                 setSaveProgress(true);
                 mainToBack.send(obj);
                 dataA.clear();
@@ -8636,40 +8664,40 @@
                 obj = null;
             }
 
-            if(worker.state == "running")
+            if(worker && worker.state == "running")
             {
                 go();
             }
             else
             {
                 startWorker();
-                function waitON(e:Event):void
+                function waitWorkerReady(e:Event):void
                 {
                     if(worker.state === "running")
                     {
                         count++;
-                        if(count >= 2)
+                        if(count >= 3)
                         {
-                            stage.removeEventListener(Event.ENTER_FRAME,waitON);
+                            stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
                             go();
                         }
                     }
                 }
-                stage.addEventListener(Event.ENTER_FRAME,waitON);
+                stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
             }
         }
         private function workerCompressUndo(data:ByteArray):void
         {
             startWorker();
             var count:int = 0;
-            function waitON(e:Event):void
+            function waitWorkerReady(e:Event):void
             {
                 if(worker.state === "running")
                 {
                     count++;
-                    if(count >= 2)
+                    if(count >= 3)
                     {
-                        stage.removeEventListener(Event.ENTER_FRAME,waitON);
+                        stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
                         var obj:Object = {command:"compress_UndoData",data:data};
                         mainToBack.send(obj);
                         data.clear();
@@ -8678,7 +8706,7 @@
                     }
                 }
             }
-            stage.addEventListener(Event.ENTER_FRAME,waitON);
+            stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
         }
 
         private function writeReplayFile(obj:Object):void
@@ -8847,12 +8875,12 @@
             
             var d:Array;
             var ba:ByteArray;
+            var replayData:ByteArray = new ByteArray();
             const _isNewFOFOSaveForamat:Boolean = isNewFOFOSaveForamat;
 
             if(_isNewFOFOSaveForamat)
             {
                 isNewFOFOSaveForamat = false;
-                const replayData:ByteArray = new ByteArray();
                 fs.readUTFBytes(9); //FOFOPAINT헤더 읽어줌
                 const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
                 if(compBytes > 0)
@@ -8878,6 +8906,8 @@
                     rFirstImage.setPixels(newRectangle,ba);
                     rFirstImage.unlock();
                     ba.clear();
+                    ba = null;
+                    
                     const bgc:uint = d[4];
 
                     //r first img 업데이트 해줌
@@ -8895,6 +8925,7 @@
                     finalIMGBMPD.setPixels(newRectangle,ba);
                     finalIMGBMPD.unlock();
                     ba.clear();
+                    ba = null;
 
                     imgW = d[2];
                     imgH = d[3];
@@ -8910,6 +8941,7 @@
                     traceRawBMPD.setPixels(newRectangle,ba);
                     traceRawBMPD.unlock();
                     ba.clear();
+                    ba = null;
                     d[0] = null;
                     d[1] = null;
                     traceRawArr = d.concat();
@@ -8963,7 +8995,7 @@
             const fs:FileStream = new FileStream();
             var errorFlag:Boolean = true;
             fs.open(file,FileMode.READ);
-            var finalIMGBMPD:BitmapData = new BitmapData(1,1,true,0);
+            var finalIMGBMPD:BitmapData;
             
             const _isNewFOFOSaveForamat:Boolean = isNewFOFOSaveForamat;
             if(_isNewFOFOSaveForamat)
@@ -8981,7 +9013,7 @@
 
                 if(d[0] === "rFinalImage")//최종 이미지
                 {
-                    const ba2:ByteArray = d[1] as ByteArray;
+                    var ba2:ByteArray = d[1] as ByteArray;
                     const newRectangle:Rectangle = new Rectangle(0,0,d[2],d[3]);
 
                     ba2.uncompress();
@@ -8990,6 +9022,7 @@
                     finalIMGBMPD.setPixels(newRectangle,ba2);
                     finalIMGBMPD.unlock();
                     ba2.clear();
+                    ba2 = null;
                     errorFlag = false;
                 }
             }
@@ -9721,11 +9754,12 @@
                 const cropbmpd:BitmapData = new BitmapData(rectW,rectH,true,0);
                 const pngOption:PNGEncoderOptions = new PNGEncoderOptions();
 
-                cropbmpd.lock();
-
                 newRectangle = new Rectangle(0,0,cropbmpd.width,cropbmpd.height);
+                cropbmpd.lock();
                 cropbmpd.setPixels(newRectangle,cropData);
                 cropbmpd.unlock();
+                cropData.clear();
+                cropData = null;
 
                 const mat:Matrix = new Matrix;
                 const deg:Number = 90*captureRotated;
@@ -10043,7 +10077,7 @@
             const fs:FileStream = new FileStream();
             const arr:Array = undoData.getUndoRefImage();
             const bmpd:BitmapData = arr[0];
-            const ba:ByteArray = new ByteArray();
+            var ba:ByteArray = new ByteArray();
             var newRectangle:Rectangle = new Rectangle(0,0,arr[1],arr[2]);
 
             bmpd.copyPixelsToByteArray(newRectangle,ba);
@@ -10056,6 +10090,9 @@
             fs.writeObject(rData);
             fs.writeObject(rDataFrame);
             fs.close();
+
+            ba.clear();
+            ba = null;
         }
 
         private function updateWindowSizeInfo():void
@@ -12606,7 +12643,6 @@
                                             fs.close();
                                             workerUndoData.shift();
                                             workerUndoData2.shift();
-                                            imgData = null;
                                         }
                                         else
                                         {
@@ -13255,8 +13291,18 @@
 
         private function windowClosingEvent(e:Event):void
         {
+            if(isInSaveProgress)
+            {
+                stage.nativeWindow.title = "Close the app after processing done";
+                isInSaveProgress = 2;
+                e.preventDefault();
+                return;
+            }
+
             if(makeJumpImageFlag === 2)
             {
+                isInSaveProgress = 2;
+                stage.nativeWindow.title = "Close the app after processing done";
                 e.preventDefault();
                 return;
             }
@@ -14452,7 +14498,6 @@
 
         private function setReplayUI(flag:Boolean):void
         {
-            if(isInSaveProgress) return;
             const iFlag:Boolean = !flag;
 
             replayModeON = flag;
@@ -14525,6 +14570,7 @@
                 if(traceMenuON === true) traceMenuBox.visible = false;
                 if(makeJumpImageFlag === 1)
                 {
+                    removeInputEventReplayMode();
                     replayTimeBox["frameInfo"].text = "Loading...";
                     sideBar.visible = false;
                     changeTopBarIcons("replay");
@@ -14554,7 +14600,6 @@
                     checkCanvasPanelPos(flag);
                     sideBar.visible = false;
                     changeTopBarIcons("replay");
-                    removeInputEventDrawMode();
                     addInputEventReplayMode();
                 }
             }

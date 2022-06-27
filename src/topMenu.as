@@ -76,8 +76,6 @@
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
 		{
-			replayModeButton.alpha = 1.0;
-			drawModeButton.alpha = 1.0;
 			captureButton.alpha = 1.0;
 			repCaptureButton.alpha = 1.0;
 			saveButton.alpha = 1.0;
@@ -97,8 +95,6 @@
 
 		public function setButtonAlphaOFFSaving(offAlpha:Number):void
 		{
-			replayModeButton.alpha = offAlpha;
-			drawModeButton.alpha = offAlpha;
 			captureButton.alpha = offAlpha;
 			repCaptureButton.alpha = offAlpha;
 			saveButton.alpha = offAlpha;
