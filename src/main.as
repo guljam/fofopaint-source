@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.07;
+        private const APP_VERSION:Number = 15.08;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -679,6 +679,7 @@
                     {
                         isInSaveProgress = false;
                         topBar.setButtonAlphaONSaving(clipImageON);
+                        if(replayModeON) checkCutFrameButtons();
                     },WORKER_WAIT_INTERVAL);
                 }
             }
