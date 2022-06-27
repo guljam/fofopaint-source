@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.05;
+        private const APP_VERSION:Number = 15.06;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -207,7 +207,7 @@
                     ,CUT_FRAME_SUPER_UNDO:int = (1 << 1)
                     ,CUT_FRAME_RE_RECORD:int = (1 << 2)
                     ,CUT_FRAME_DELETE_FRONT:int = (1 << 3)
-                    ,WORKER_WAIT_INTERVAL:int = 500
+                    ,WORKER_WAIT_INTERVAL:int = 1000
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
