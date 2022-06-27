@@ -74,6 +74,40 @@
 		private var hintWaitAnimTimer:int = 0;
 		private var hintWaitAnimCount:int = 0;
 
+		public function setButtonAlphaONSaving(clipFlag:Boolean):void
+		{
+			replayModeButton.alpha = 1.0;
+			drawModeButton.alpha = 1.0;
+			captureButton.alpha = 1.0;
+			repCaptureButton.alpha = 1.0;
+			saveButton.alpha = 1.0;
+			repSaveButton.alpha = 1.0;
+			loadButton.alpha = 1.0;
+			repLoadButton.alpha = 1.0;
+			clearButton.alpha = 1.0;
+			reRecordingButton.alpha = 1.0;
+			superUndoButton.alpha = 1.0;
+			cutPrevDataButton.alpha = 1.0;
+			if(clipFlag) clipButton.alpha = 1.0;
+		}
+
+		public function setButtonAlphaOFFSaving(offAlpha:Number):void
+		{
+			replayModeButton.alpha = offAlpha;
+			drawModeButton.alpha = offAlpha;
+			captureButton.alpha = offAlpha;
+			repCaptureButton.alpha = offAlpha;
+			saveButton.alpha = offAlpha;
+			repSaveButton.alpha = offAlpha;
+			loadButton.alpha = offAlpha;
+			repLoadButton.alpha = offAlpha;
+			clipButton.alpha = offAlpha;
+			clearButton.alpha = offAlpha;
+			reRecordingButton.alpha = offAlpha;
+			superUndoButton.alpha = offAlpha;
+			cutPrevDataButton.alpha = offAlpha;
+		}
+
 		public function updateButtonVisible(flag:Boolean):void
 		{
 			updateButton.visible = flag;
@@ -300,7 +334,7 @@
 			}
 			else if(colorStr === "yellow")
 			{
-				c.color = 0xF1C14B;
+				c.color = 0xF4CD6C;
 				topbarInfoBG.transform.colorTransform = c;
 				topMenuInfo.textColor = 0;
 			}

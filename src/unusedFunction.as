@@ -3399,5 +3399,48 @@ private function setLassoTool():void
             --printdeepLevel;
         }
     }
-       
+
+          private var gcCount:int;
+        private function startGCCycle():void{
+            gcCount = 0;
+            trace('gc 시작');
+            addEventListener(Event.ENTER_FRAME, doGC);
+        }
+        private function doGC(evt:Event):void{
+            System.gc();
+            trace('한번하고');
+            if(++gcCount > 1){
+                trace('두번하고');
+                removeEventListener(Event.ENTER_FRAME, doGC);
+                setTimeout(lastGC, 40);
+            }
+        }
+        private function lastGC():void{
+            trace('세번하고')
+            System.gc();
+        }
+
+        private function printMemory(str:String):void
+        {
+            const a:Number = (System.privateMemory/1048576);
+            const b:Number = (System.totalMemory/1048576);
+            trace(str,' : memory = ',a,"/",b);
+        }
+        private function testSend():void
+        {
+            printMemory('보내기전 메모리')
+            var ba:ByteArray = new ByteArray();
+            canvas1BitmapData.copyPixelsToByteArray(
+                new Rectangle(0,0,canvas1BitmapData.width,canvas1BitmapData.height),ba);
+            trace('바이트 사이즈',ba.length/1048576);
+            mainToBack.send(ba);
+            // ba.clear();
+            ba = null;
+            printMemory('보낸 후 메모리')
+            printMemory('gc한 메모리')
+
+            startGCCycle();
+        }
+
+     
 } */

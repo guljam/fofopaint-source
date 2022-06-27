@@ -22,7 +22,7 @@
 
 		public function updateMemoryInfo():void
 		{
-			memoryInfo.text = "memory usage: "+Math.floor(System.privateMemory/1048576)+"MB";
+			memoryInfo.text = "memory usage: "+Math.floor(System.totalMemory/1048576)+"MB";
 		}
 		
 		public function randomLogo():void

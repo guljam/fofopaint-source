@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.03;
+        private const APP_VERSION:Number = 15.05;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -513,6 +513,7 @@
                     ,checkHideCursorCount:Function = replayHideCursor.check
                     ,resizeCanvas:Object = cSetCanvasSize()
                     ,setCanvasSize:Function = resizeCanvas.start
+                    // ,forceGC:Function = closureForceGC()
 
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
@@ -546,10 +547,14 @@
                     ,mainToBack:MessageChannel
                     ,backToMain:MessageChannel
                     ,isInSaveProgress:Boolean = false
+                    ,isInSaveProgressOFFDelayTimer:int = 0
                     ,workerPNGData:ByteArray
                     ,workerPNGTimer:int = 0
-                    ,workerReplayData:Array
+                    ,workerReplayData:Array = []
                     ,workerReplayTimer:int = 0
+                    ,workerUndoData:Array = []
+                    ,workerUndoData2:Array = []
+                    ,workerUndoDataTimer:int = 0
 
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
@@ -569,7 +574,7 @@
                     ,windowMoveDelayTimer:int = 0
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
                     ,afkONCount:int = 0
-                    ,gcONCount:int = 0
+                    // ,gcONCount:int = 0
                     ,workingTimer:int = 0
                     ,isDeepUndoON:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
@@ -620,12 +625,37 @@
         }
         
         //functions
+        // private function closureForceGC():Function
+        // {
+        //     var gcCount:int;
+
+        //     function doGC(evt:Event):void{
+        //         System.gc();
+        //         if(++gcCount > 1){
+        //             removeEventListener(Event.ENTER_FRAME, doGC);
+        //             setTimeout(lastGC, 40);
+        //         }
+        //     }
+
+        //     function lastGC():void{
+        //         System.gc();
+        //     }
+        //     return function():void{
+        //         gcCount = 0;
+        //         addEventListener(Event.ENTER_FRAME, doGC);
+        //     }
+        // }
+
         private function onFromWorker(e:Event):void
         {
             var msg:* = backToMain.receive();
             if(msg as Array)
             {
-                if(msg[0] === "compress_ReplayDataDone")
+                if(msg[0] === "compress_UndoDataDone")
+                {
+                    workerUndoData.push(msg[1]);
+                }
+                else if(msg[0] === "compress_ReplayDataDone")
                 {
                     workerReplayData = [msg[1],msg[2],msg[3],msg[4]];
                 }
@@ -639,10 +669,17 @@
                 if(msg === "start")
                 {
                     isInSaveProgress = true;
+                    topBar.setButtonAlphaOFFSaving(BUTTON_OFF_ALPHA);
+                    clearTimeout(isInSaveProgressOFFDelayTimer);
                 }
                 else if(msg === "end")
                 {
-                    isInSaveProgress = false;
+                    clearTimeout(isInSaveProgressOFFDelayTimer);
+                    isInSaveProgressOFFDelayTimer = setTimeout(function():void
+                    {
+                        isInSaveProgress = false;
+                        topBar.setButtonAlphaONSaving(clipImageON);
+                    },WORKER_WAIT_INTERVAL);
                 }
             }
         }
@@ -2222,12 +2259,12 @@
 
             workingTimer = setInterval(function():void //수동 gc실행
             {
-                if(gcONCount === GC_TIME_OUT)
-                {
-                    gcONCount = 0;
-                    System.gc();
-                }
-                else gcONCount++;
+                // if(gcONCount === GC_TIME_OUT)
+                // {
+                //     gcONCount = 0;
+                //     System.gc();
+                // }
+                // else gcONCount++;
 
                 if(afkONCount === 2) afkONCount = 3;
                 else if(afkONCount < 2)
@@ -3160,7 +3197,6 @@
                             _canvasTrace.scaleY += dy;
                             traceReizeMoveSum += subY;
                         }
-                        
                     }
                     smoothLast.setTo(mx,my);
                 }
@@ -5692,6 +5728,7 @@
 
         private function setReRecord():void
         {
+            undoData.resetRJumpImageCount();
             setReRecordCopyCanvas();
             setCanvasSameReplayCanvas();
             setReplayUI(false);
@@ -6149,6 +6186,7 @@
             undoIndex = -1;
             addUndoMode = 0;
             undoData.setUndoRefImageByDrawMode();
+            undoData.resetRJumpImageCount();
             rData = [];
             rDataFrame = [];
             rDataBuffer = [];
@@ -6284,7 +6322,7 @@
                     startReplay();
                     return;
                 }
-                const str:String = "Playback restarts in " + rRestartTimerCount +" sec";
+                const str:String = "Play again in " + rRestartTimerCount +" sec";
                 replayTimeBox["frameInfo"].text = str;
                 --rRestartTimerCount;
             },1000);
@@ -6953,6 +6991,15 @@
                 _jumpFrame(finalFrame,JUMP_FRAME_ONCE); 
                 replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + timeStr;
                 rFrameTextDelayTime = nt;
+                
+                if(rNowFrame >= totalF)
+                {
+                    replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width;
+                    replayTimeBox["frameInfo"].text = TOTAL_FRAME+" / " +TOTAL_FRAME;
+                    stopReplay();
+                    replayCompleteEffect();
+                    setRestartTimer();
+                }
             }
         }
 
@@ -7766,7 +7813,12 @@
                     {
                         startReplay();
                     }
-                    else if(replayAllEnd) stopReplay();
+                    else if(replayAllEnd)
+                    {
+                        replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width;
+                        replayTimeBox["frameInfo"].text = TOTAL_FRAME+" / " +TOTAL_FRAME;
+                        stopReplay();
+                    }
                 }
 
                 stageMouseMoveEvent.remove(replayTimeMouseMoveEvent);
@@ -8461,6 +8513,7 @@
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
             var _rJumpImageCount:uint = 0;
+            undoData.resetRJumpImageCount();
 
             makeJumpImageFlag = 2;
             clearCanvasReplayMode();//일단 리플레이 캔버스 먼저 깨끗하게
@@ -8553,27 +8606,36 @@
 
         private function workerEncodePNG(bmpd:BitmapData,w:Number,h:Number,bg:uint):void
         {
-            const ba:ByteArray = new ByteArray();
+            var ba:ByteArray = new ByteArray();
             bmpd.copyPixelsToByteArray(new Rectangle(0,0,bmpd.width,bmpd.height),ba);
             mainToBack.send(["encodePNG",ba,bmpd.width,bmpd.height,bg]);
             ba.clear();
+            ba = null;
         }
 
         private function workerCompressReplayData(dataA:ByteArray,dataB:ByteArray,dataC:ByteArray,dataD:ByteArray):void
         {
             mainToBack.send(["compress_ReplayData",dataA,dataB,dataC,dataD]);
-            dataA.clear();
-            dataB.clear();
-            dataC.clear();
-            dataD.clear();
+            dataA.length = 0;
+            dataB.length = 0;
+            dataC.length = 0;
+            dataD.length = 0;
+            dataA = null;
+            dataB = null;
+            dataC = null;
+            dataD = null;
+        }
+        private function workerCompressUndo(data:ByteArray):void
+        {
+            mainToBack.send(["compress_UndoData",data]);
         }
 
         private function writeReplayFile(dataArr:Array):void
         {
-            const dataA:ByteArray = dataArr[0];
-            const dataB:ByteArray = dataArr[1];
-            const dataC:ByteArray = dataArr[2];
-            const dataD:ByteArray = dataArr[3];
+            var dataA:ByteArray = dataArr[0];
+            var dataB:ByteArray = dataArr[1];
+            var dataC:ByteArray = dataArr[2];
+            var dataD:ByteArray = dataArr[3];
             const fs:FileStream = new FileStream();
             const _rData:Array = rData;
             const rImgDataW:int = rFirstImage.width;
@@ -8625,12 +8687,24 @@
                                             CANVAS_TRACE_ALPHA]);// 11
             }
             fs.close();
-            dataA.clear();
-            dataB.clear();
-            dataC.clear();
-            dataD.clear();
-            repFileTemp.moveTo(copyFile,true);
+            dataA.length = 0;
+            dataB.length = 0;
+            dataC.length = 0;
+            dataD.length = 0;
+            dataA = null;
+            dataB = null;
+            dataC = null;
+            dataD = null;
             topBar.hintSavedOK();
+            try
+            {
+                repFileTemp.moveTo(copyFile,true);
+            }
+            catch(err:Error)
+            {
+                if(repFileTemp.exists) repFileTemp.deleteFile();
+                saveFile(true,true);
+            }
         }
 
         private function saveReplayFile():void
@@ -9712,15 +9786,16 @@
             
                 if(normalFile.exists === true)
                 {
-                    topBar.hintSaving();
                     function saveContinueErrorEvent(e:Event):void
                     {
+                        topBar.hintTimeOFFWithColor();
                         fs.close();
-                        fs.removeEventListener(IOErrorEvent.IO_ERROR, saveContinueErrorEvent);
+                        fs.removeEventListener(IOErrorEvent.IO_ERROR,saveContinueErrorEvent);
                         saveOneTime = false;
                         saveFile(true,true);
                     }
 
+                    topBar.hintSaving();
                     workerPNGData = null;
                     workerEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR);
 
@@ -9730,7 +9805,7 @@
                         if(workerPNGData !== null)
                         {
                             clearInterval(workerPNGTimer);
-                            fs.addEventListener(IOErrorEvent.IO_ERROR, saveContinueErrorEvent);
+                            fs.addEventListener(IOErrorEvent.IO_ERROR,saveContinueErrorEvent);
                             fs.openAsync(normalFile,FileMode.WRITE);
                             fs.writeBytes(workerPNGData);
                             fs.close();
@@ -12284,6 +12359,11 @@
             //undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
             var undoRefImage:Array = [rFirstImage.clone(),CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR];
 
+            function resetRJumpImageCount():void
+            {
+                rJumpImageCount = 0;
+            }
+
             function setUndoRefImageByReplayMode():void
             {
                 undoData.setUndoRefImage([rcanvas1BitmapData.clone()
@@ -12424,26 +12504,49 @@
                         {
                             if(rJumpImageCount > IMG_CACHE_INTERVAL)
                             {
+                                rJumpImageCount = 0;
                                 const data:Array = undoRefImage;
                                 const bmpd:BitmapData = data[0];
                                 const w:int = data[1];
                                 const h:int = data[2]
                                 const bgColor:uint = data[3];
-                                const _rFileTotalFrame:Number = rFileTotalFrame;
-                                //위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
-                                rJumpImageFrameData.push(_rFileTotalFrame);
-
-                                const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+"");
-                                const imgData:ByteArray = new ByteArray();
+                                var imgData:ByteArray = new ByteArray();
                                 const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
                                 bmpd.copyPixelsToByteArray(newRectangle,imgData);
-                                imgData.compress();
-                                fs.open(jumpimg,FileMode.WRITE);
-                                fs.writeObject([imgData,w,h,bgColor,rf.size,_rFileTotalFrame]);//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
-                                fs.close();
-                                imgData.clear();
-                                rJumpImageCount = 0;
+
+                                //위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
+                                workerUndoData2.push([w,h,bgColor,rf.size,rFileTotalFrame]);
+                                workerCompressUndo(imgData);
+
+                                if(workerUndoDataTimer === 0)
+                                {
+                                    workerUndoDataTimer = setInterval(function():void
+                                    {
+                                        if(workerUndoData.length > 0)
+                                        {
+                                            const undo2FirstData:Array = workerUndoData2[0];
+                                            rJumpImageFrameData.push(undo2FirstData[4]);
+                                            const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+"");
+                                            fs.open(jumpimg,FileMode.WRITE);
+                                            fs.writeObject([workerUndoData[0]
+                                                        ,undo2FirstData[0]
+                                                        ,undo2FirstData[1]
+                                                        ,undo2FirstData[2]
+                                                        ,undo2FirstData[3]
+                                                        ,undo2FirstData[4]]);//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
+                                            fs.close();
+                                            workerUndoData.shift();
+                                            workerUndoData2.shift();
+                                            imgData = null;
+                                        }
+                                        else
+                                        {
+                                            clearInterval(workerUndoDataTimer);
+                                            workerUndoDataTimer = 0;
+                                        }
+                                    },WORKER_WAIT_INTERVAL);
+                                }
                             }
                         }
                     }
@@ -12480,7 +12583,8 @@
                 getUndoRefImage:getUndoRefImage,
                 setUndoRefImage:setUndoRefImage,
                 setUndoRefImageByReplayMode:setUndoRefImageByReplayMode,
-                setUndoRefImageByDrawMode:setUndoRefImageByDrawMode
+                setUndoRefImageByDrawMode:setUndoRefImageByDrawMode,
+                resetRJumpImageCount:resetRJumpImageCount
             }
         }
 
