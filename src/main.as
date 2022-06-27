@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.11;
+        private const APP_VERSION:Number = 15.12;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -650,14 +650,11 @@
         
         private function stopWorker():void
         {
-            trace('[[[워커 멈춤]]]');
             worker.terminate();
-            setSaveProgress(false);
         }
 
         private function startWorker():void
         {
-            trace('[[[[워커 시작]]]');
             worker = WorkerDomain.current.createWorker(workerSWF,true);
             mainToBack = Worker.current.createMessageChannel(worker);
             backToMain = worker.createMessageChannel(Worker.current);
@@ -665,7 +662,6 @@
             worker.setSharedProperty("backToMain", backToMain);
             worker.setSharedProperty("mainToBack", mainToBack);
             worker.start();
-            setSaveProgress(true);
         }
 
         private function makeWorker():void
@@ -5083,7 +5079,6 @@
                         const oldVersion:Number = APP_VERSION;
 
                         const isNewVersion:Boolean = newVersion > oldVersion;
-                        trace('newVersion',newVersion,'oldVersion',oldVersion,'isNewVersion',isNewVersion);
                         var tryCount:uint = 0;
 
                         url = new URLRequest("https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air");
@@ -8596,7 +8591,7 @@
             {
                 if(worker.state === "running")
                 {
-                    count++
+                    count++;
                     if(count >= 2)
                     {
                         stage.removeEventListener(Event.ENTER_FRAME,waitON);
@@ -8607,6 +8602,7 @@
                                         ,width  :bmpd.width
                                         ,height :bmpd.height
                                         ,bg     :bg};
+                        setSaveProgress(true);
                         mainToBack.send(obj);
                         ba.clear();
                         ba = null;
@@ -8628,6 +8624,7 @@
                                         ,dataB  :dataB
                                         ,dataC  :dataC
                                         ,dataD  :dataD};
+                setSaveProgress(true);
                 mainToBack.send(obj);
                 dataA.clear();
                 dataB.clear();
@@ -8639,6 +8636,7 @@
                 dataD = null;
                 obj = null;
             }
+
             if(worker.state == "running")
             {
                 go();
@@ -8663,13 +8661,13 @@
         }
         private function workerCompressUndo(data:ByteArray):void
         {
-            var count:int = 0;
             startWorker();
+            var count:int = 0;
             function waitON(e:Event):void
             {
                 if(worker.state === "running")
                 {
-                    count++
+                    count++;
                     if(count >= 2)
                     {
                         stage.removeEventListener(Event.ENTER_FRAME,waitON);
@@ -8809,6 +8807,7 @@
                    if(workerReplayData !== null)
                    {
                         stopWorker();
+                        setSaveProgress(false);
                         writeReplayFile(workerReplayData);
                         workerReplayData = null;
                    }
@@ -9680,11 +9679,7 @@
 
         private function saveCaptureImage(cx:Number,cy:Number,rectW:Number,rectH:Number):void
         {
-            trace('풀 캡쳐?');
-            if(browseWindowON)
-            {
-                return;
-            }
+            if(browseWindowON) return;
 
             const replayMode:Boolean = replayModeON;
             var name:String = saveFileName;
@@ -9788,6 +9783,7 @@
                     if(workerPNGData !== null)
                     {
                         stopWorker();
+                        setSaveProgress(false);
 
                         clearInterval(workerPNGTimer);
                         var fName:String = file1.name;
