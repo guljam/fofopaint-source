@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.27;
+        private const APP_VERSION:Number = 15.28;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -8623,7 +8623,7 @@
                 if(worker.state === "running")
                 {
                     count++;
-                    if(count >= 3)
+                    if(count >= 30)
                     {
                         stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
                         var ba:ByteArray = new ByteArray();
@@ -8680,7 +8680,7 @@
                     if(worker.state === "running")
                     {
                         count++;
-                        if(count >= 3)
+                        if(count >= 30)
                         {
                             stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
                             go();
@@ -8699,7 +8699,7 @@
                 if(worker.state === "running")
                 {
                     count++;
-                    if(count >= 3)
+                    if(count >= 30)
                     {
                         stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
                         var obj:Object = {command:"compress_UndoData",data:data};
