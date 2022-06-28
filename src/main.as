@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.18;
+        private const APP_VERSION:Number = 15.20;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -8475,15 +8475,15 @@
 
         private function makeResizeButtonFamily():void
         {
-            resizeButtonR.name = "resizeButtonR";
-            resizeButtonD.name = "resizeButtonD";
-            resizeButtonL.name = "resizeButtonL";
             resizeButtonU.name = "resizeButtonU";
+            resizeButtonD.name = "resizeButtonD";
+            resizeButtonR.name = "resizeButtonR";
+            resizeButtonL.name = "resizeButtonL";
 
             regPoint.addChild(resizeButtonU);
             regPoint.addChild(resizeButtonD);
-            regPoint.addChild(resizeButtonL);
             regPoint.addChild(resizeButtonR);
+            regPoint.addChild(resizeButtonL);
         }
 
         private function makeJumpImage():void //loadrep
@@ -8581,13 +8581,13 @@
                         rcanvas1BitmapData.copyPixelsToByteArray(new Rectangle(0,0,w,h),imgData);
                         imgData.compress();
                         fs2.open(jumpimg,FileMode.WRITE);
-                        fs2.writeObject([imgData,w,h,rBGColorSave,fs.position,_frameSum])//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
+                        fs2.writeObject([imgData,w,h,rBGColorSave,fs.position,_frameSum]);//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
                         fs2.close();
                         imgData.clear();
                         imgData = null;
 
                         if(replayTimeBox["replayNowBar"].width > 0) replayTimeBox["replayNowBar"].width = 0;
-                        replayInfoText.text = "Reaing replay data.. "+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%";
+                        replayInfoText.text = "Reading replay data.. "+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%";
                         return;
                     }
                 }
@@ -13346,7 +13346,7 @@
 
             if(replayStartON === true) stopReplay();
             if(captureModeON === true) captureOFF();
-            if(isNowTool(TOOL_LASSO)) setLassoCancelButton();
+            if(lassoToolON) setLassoCancelButton();
 
             if(stage.nativeWindow.displayState === "maximized") //최대화이면 복원해주고 닫아줌
             {
