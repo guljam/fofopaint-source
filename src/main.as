@@ -56,11 +56,10 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
-    import flash.display.MovieClip;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.20;
+        private const APP_VERSION:Number = 15.21;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
