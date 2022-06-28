@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.14;
+        private const APP_VERSION:Number = 15.15;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -575,7 +575,7 @@
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
                     ,afkONCount:int = 0
                     // ,gcONCount:int = 0
-                    ,workingTimer:int = 0
+                    ,realWorkingTimer:int = 0
                     ,isDeepUndoON:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ,sideBarONMouseLeaveTimer:int = 0 //마우스 클릭후 바깥으로 나갔을때 사이드바 잠깐 안켜주는 플래그
@@ -617,7 +617,7 @@
             setCenvasCenterPos();
             setCenvasCenterPos(true);
             previewBox.updateImage(canvas1BitmapData,CANVAS_BG_COLOR);
-            startWorkingTimer();
+            startRealWorkingTimer();
             stageMouseMoveEvent.start();
             checkVersion();
             setIMEDisabled();
@@ -2230,11 +2230,11 @@
             };
         }
 
-        private function startWorkingTimer():void
+        private function startRealWorkingTimer():void
         {
-            clearInterval(workingTimer);
+            clearInterval(realWorkingTimer);
 
-            workingTimer = setInterval(function():void //수동 gc실행
+            realWorkingTimer = setInterval(function():void //수동 gc실행
             {
                 // if(gcONCount === GC_TIME_OUT)
                 // {
@@ -13970,7 +13970,7 @@
         private function windowActiveEvent(e:Event):void
         {
             //알탭해주고 창 활성화 해줄때 한번은 안하게끔함
-            startWorkingTimer();
+            startRealWorkingTimer();
             checkClipBoardImage();
             if(aboutPanelON)
             {
@@ -13985,7 +13985,7 @@
         private function windowDeactiveEvent(e:Event):void
         {
             clickBlockFlag = true;
-            clearInterval(workingTimer);
+            clearInterval(realWorkingTimer);
             resetKeyBuffer();
 
             if(toolBox2ON)
