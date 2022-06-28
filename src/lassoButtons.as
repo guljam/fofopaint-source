@@ -124,8 +124,8 @@
 			// filters = [shadow];
 
 			// alpha = 0.9;
-			scaleX = 0.85;
-			scaleY = 0.85;
+			scaleX = 0.875;
+			scaleY = 0.875;
 
 			lassoMenuMoveButton.useHandCursor = false;
 			lassoMenuBG.useHandCursor = false;

@@ -109,8 +109,8 @@
 		public function traceButtons() {
 			// constructor code
 			// alpha = 0.9;
-			scaleX = 0.85;
-			scaleY = 0.85;
+			scaleX = 0.875;
+			scaleY = 0.875;
 
 			const offsetX:Number = traceOpaButton.width/2;
 			const barWidth:Number = traceOpaBar.width*0.5;
