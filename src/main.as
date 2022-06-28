@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.16;
+        private const APP_VERSION:Number = 15.17;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -13690,6 +13690,7 @@
 
         private function keyUpDrawMode(e:KeyboardEvent):void //keyup1
         {
+            topBar.hint("asfasd = ⠛",topBar.drawModeButton)
             const keyCode:int = e.keyCode;
 
             if(keyCode === nowKeyNotKeyUp)
