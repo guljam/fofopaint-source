@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.23;
+        private const APP_VERSION:Number = 15.24;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -4036,10 +4036,17 @@
 
                 const sizeValue:Number = sizeArr[index];
                 const sizeStr:String =  sizeValue+"px, "+(penAlpha*100)+"%";
+                const sizeValueZoomed:Number = sizeValue*zoomed;
 
                 setToolTipStringTime(sizeStr);
                 setPenSize(index);
                 updatePenSizeCursor();
+
+                if(penSizeCursor.visible === true)
+                {
+                    if(sizeValueZoomed <= 4) penSizeCursor.visible = false;
+                }
+                else if(sizeValueZoomed > 4) penSizeCursor.visible = true;
             }
 
             if(isPenOrLineTool())
@@ -13731,9 +13738,6 @@
 
         private function keyDownDrawMode(e:KeyboardEvent):void
         {
-            trace('picker y',pickerBox.y);
-            pickerBox.y += 0.1
-            trace('picker ====',pickerBox.y);
             if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted)
             {
                 return;
@@ -14168,7 +14172,7 @@
 
             const target:SimpleButton = e.target as SimpleButton;
 
-            if(!target || target.alpha < 1.0)
+            if(!target || target.alpha < 1.0 || !isCursorInDrawArea())
             {
                 closeToolBox2();
                 return;
