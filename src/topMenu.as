@@ -52,6 +52,7 @@
 		public var replayRotateButton:SimpleButton = replayRotateButton;
 		public var topMenuInfo:TextField = topMenuInfo;
 		public var timer:TextField = timer;
+
 		private var buttonOrder:Array = [];
 		private var drawModeButtons:Array = [];
 		private var replayModeButtons:Array = [];

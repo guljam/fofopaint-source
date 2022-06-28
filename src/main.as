@@ -56,6 +56,7 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
+    import flash.display.MovieClip;
 
     public class main extends Sprite
     {   
@@ -206,7 +207,7 @@
                     ,CUT_FRAME_SUPER_UNDO:int = (1 << 1)
                     ,CUT_FRAME_RE_RECORD:int = (1 << 2)
                     ,CUT_FRAME_DELETE_FRONT:int = (1 << 3)
-                    ,WORKER_WAIT_INTERVAL:int = 200
+                    ,WORKER_WAIT_INTERVAL:int = 500
                     ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
                     ,STRING_PLAYBACK_SPEED:String = "Play speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
@@ -269,6 +270,7 @@
                     ,sideBarScrollBar:Sprite = new Sprite()
                     ,sideBarScrollSet:Sprite = new Sprite()
                     ,transBGBMPD:BitmapData = new BitmapData(16,16,false,0xFFFFFF)
+                    ;
 
         private var  canvas1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,canvas2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
