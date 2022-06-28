@@ -11,7 +11,6 @@
 	import flash.utils.clearTimeout;
 	import flash.display.DisplayObjectContainer;
 	import flash.utils.clearInterval;
-	import flash.utils.setInterval;
 
 	public class topMenu extends Sprite {
 
@@ -76,8 +75,8 @@
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
 		{
-			captureButton.alpha = 1.0;
-			repCaptureButton.alpha = 1.0;
+			// captureButton.alpha = 1.0;
+			// repCaptureButton.alpha = 1.0;
 			saveButton.alpha = 1.0;
 			repSaveButton.alpha = 1.0;
 			loadButton.alpha = 1.0;
@@ -95,8 +94,8 @@
 
 		public function setButtonAlphaOFFSaving(offAlpha:Number):void
 		{
-			captureButton.alpha = offAlpha;
-			repCaptureButton.alpha = offAlpha;
+			// captureButton.alpha = offAlpha;
+			// repCaptureButton.alpha = offAlpha;
 			saveButton.alpha = offAlpha;
 			repSaveButton.alpha = offAlpha;
 			loadButton.alpha = offAlpha;
@@ -239,36 +238,14 @@
 			},3000);
 		}
 
-		public function hintWaitAnim(savingStr:String):void
-		{
-			clearInterval(hintWaitAnimTimer);
-			hintWaitAnimCount = 0;
-			hintWaitAnimTimer = setInterval(function():void
-			{
-				var dotStr:String = "";
-				hintWaitAnimCount++;
-				if(hintWaitAnimCount === 1) dotStr = ".";
-				else if(hintWaitAnimCount === 2) dotStr = "..";
-				else if(hintWaitAnimCount === 3) dotStr = "...";
-				else if(hintWaitAnimCount === 4)
-				{	
-					dotStr = "";
-					hintWaitAnimCount = 0;
-				}
-				topMenuInfo.text = savingStr+dotStr;
-				topMenuInfo.width = topMenuInfo.textWidth+4;
-			},500);
-		}
-
 		public function hintCaptureWait():void
 		{
 			clearTimeout(hintTimer);
 			clearTimeout(hintTimer2);
 			isHintLocked = false;
-			const savingStr:String = "Saving image";
+			const savingStr:String = "Saving image..";
 			hint(savingStr,replayModeButton);
 			setHintColor("yellow");
-			hintWaitAnim(savingStr);
 			isHintLocked = true;
 		}
 
@@ -289,14 +266,13 @@
 			clearTimeout(hintTimer);
 			clearTimeout(hintTimer2);
 			isHintLocked = false;
-			const savingStr:String = "Saving file";
+			const savingStr:String = "Saving image and replay file..";
 			hint(savingStr,replayModeButton);
 			setHintColor("yellow");
-			hintWaitAnim(savingStr);
 			isHintLocked = true;
 		}
 
-		public function hintSavedOK():void
+		public function hintSaveOK():void
 		{
 			clearTimeout(hintTimer);
 			clearTimeout(hintTimer2);

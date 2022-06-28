@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.15;
+        private const APP_VERSION:Number = 15.16;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -207,6 +207,9 @@
                     ,CUT_FRAME_RE_RECORD:int = (1 << 2)
                     ,CUT_FRAME_DELETE_FRONT:int = (1 << 3)
                     ,WORKER_WAIT_INTERVAL:int = 200
+                    ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
+                    ,STRING_PLAYBACK_SPEED:String = "Play speed x"
+                    ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -287,7 +290,7 @@
                     ,oldTool:int = TOOL_NONE //툴백업
                     ,keyBuffer:Array = [] //정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
                     ,nowKey:uint = 0 //단축키 누른거 여기다가 저장
-                    ,nowKeyNotKeyUp:int = 0 //keyup에서 체크 안하는 단축키는 여기다가 저장
+                    ,nowKeyNotKeyUp:int = 0 //keyup에서 체크 안하는 단축키는 여기다가 저장 이키 올렸을때 이전툴로 되돌아가지 말라고
                     ,keyWaitMouseUp:Boolean = false //키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
                     ,penAlpha:Number = 1.0 //펜 변수
                     ,penColor:uint = 0x000000
@@ -449,7 +452,8 @@
         //스크린샷 관련 변수
                     ,captureModeON:Boolean = false //스크린샷 켜지면 올려줌
                     ,browseWindowON:Boolean = false //캡쳐 저장키 빠르게 누를때 에러 떠서 중복안되게 플래그 세워줌
-                    ,capturePanelData:Object = {}
+                    ,canvasBackupData:Object = {}
+                    ,canvasBackupDataDrawCanvas:Object = {} //save appdata에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
                     ,captureZoomed:Number = 1 // 사각형 그려줄때 선 두깨를 이 배율에 맞추어서 해줌
                     ,captureWindowMove:Point = new Point(0,0) //스크린샷이 켜져있는 상태에서 창을 조절했을때, 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
                     ,captureRotated:uint = 0 //캡쳐 회전한 변수 저장
@@ -2368,7 +2372,7 @@
 
             if(isNowKey(keyCode))
             {
-                if(keyBuffer.length > 0) setNowKey(keyBuffer[0]);
+                if(keyBuffer.length > 0) keyDownLassoTool({} as KeyboardEvent);
                 else resetNowKey();
             }
         }
@@ -2377,7 +2381,7 @@
         {
             const keyCode:int = keyBuffer[0];
 
-            if(isNowKey(keyCode)) return;            
+            if(isNowKey(keyCode)) return;
             setNowKey(keyCode);
 
             switch(keyCode)
@@ -2569,7 +2573,7 @@
 
             if(traceImageCount === 1)
             {
-                traceMenuBox.traceInfo.text = "One more click to OK";
+                traceMenuBox.traceInfo.text = STRING_ONEMORE_CLICK_TO_OK;
                 btn.addEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
             }
             else if(traceImageCount === 2)
@@ -2975,7 +2979,7 @@
 
             if(traceImageCount === 1)
             {
-                traceMenuBox.traceInfo.text = "One more click to OK";
+                traceMenuBox.traceInfo.text = STRING_ONEMORE_CLICK_TO_OK;
                 btn.addEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
             }
             else if(traceImageCount === 2)
@@ -3259,7 +3263,7 @@
 
             if(traceImageCount === 1)
             {
-                traceMenuBox.traceInfo.text = "One more click to OK";
+                traceMenuBox.traceInfo.text = STRING_ONEMORE_CLICK_TO_OK;
                 btn.addEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
             }
             else if(traceImageCount === 2)
@@ -4284,6 +4288,12 @@
             captureOFF();
         }
 
+        private function setCaptrueAreaButton():void
+        {
+            if(replayModeON) saveCaptureImage(0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height);
+            else saveCaptureImage(0,0,canvas1BitmapData.width,canvas1BitmapData.height);
+        }
+
         private function setFullCaptrueButton():void
         {
             if(replayModeON) saveCaptureImage(0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height);
@@ -4438,6 +4448,7 @@
 
         private function addInputEventCaptrueMode():void
         {
+            resetKeyBuffer();
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpCaptureMode,false,-1);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownCaptureMode,false,-1);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownCaptureMode,false,-1);
@@ -5355,14 +5366,8 @@
                 }
                 else if(clearDataButtonCount <= 1)
                 {
-                    if(keyFlag)
-                    {
-                        topBar.hintTime("One more press to OK",topBar.clearButton);
-                    }
-                    else
-                    {
-                        topBar.hint("One more click to OK",topBar.clearButton);
-                    }
+                    if(keyFlag) topBar.hintTime("One more press to OK",topBar.clearButton);
+                    else topBar.hint(STRING_ONEMORE_CLICK_TO_OK,topBar.clearButton);
                 }
             }
             else
@@ -5688,7 +5693,7 @@
                 repFileTemp.copyTo(repFile,true);
                 repFileTemp.deleteFile();
 
-                _makeJumpImage();
+                setMakeJumpImage();
                 rCursor.visible = false;
                 replayNowBar.width = 0;
                 saveOneTime = false;
@@ -5758,7 +5763,7 @@
 
         private function getCutFrameOKString():String
         {
-            return "One more click to OK (Red data will be deleted)";
+            return STRING_ONEMORE_CLICK_TO_OK+" (Red data will be deleted)";
         }
 
         private function setCutFrameRedBar(flag:int):void
@@ -5877,13 +5882,15 @@
             clearDataButtonCount = 0;
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,topBarHintOFFEvent);
             topBarHintClickEventON = false;
+
             if(captureModeON)
             {
                 const hint:String = drawCaptureArea.getRotatedRectSizeString();
-                if(hint === "")
-                    topBar.hintOFF();
+                if(hint === "") topBar.hintOFF();
                 else
+                {
                     topBar.hint(hint+" (Click canvas to save)",topBar.capOff);
+                }
             }
             else topBar.hintOFF();
         }
@@ -5910,7 +5917,6 @@
             if(!target || mouseDragON || mouseClickON || toolBox2ON || lassoToolON) return;
 
             const targetName:String = e.target.name;
-            
             if(topBarHintClickEventON === false)
             {
                 topBarHintClickEventON = true;
@@ -6959,7 +6965,7 @@
                 const getTimeStr:String = getReplayRemainTime(nextFrame,totalF-_rFrameSum,true);
                 const timeStr:String = getTimeStr;
 
-                _jumpFrame(finalFrame,JUMP_FRAME_ONCE); 
+                jumpFrame(finalFrame,JUMP_FRAME_ONCE); 
                 replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + timeStr;
                 rFrameTextDelayTime = nt;
                 
@@ -7425,7 +7431,7 @@
                 if(nowSpeed > max) nowSpeed = max;
 
                 timeStr = getReplayTotalTime(nowSpeed);
-                const finalStr:String = "Playback speed x"+rSpeed+" "+ timeStr;
+                const finalStr:String = STRING_PLAYBACK_SPEED+" "+rSpeed+" "+ timeStr;
                 topBar.hint(finalStr,topBar.replaySpeedSet);
                 rSpeedLastStr = finalStr;
                 rSpeed = nowSpeed;
@@ -7524,33 +7530,36 @@
         //프레임에 따라서 프레임 조작 버튼 활성화 해줌
         private function checkCutFrameButtons():void
         {
-            if(makeJumpImageFlag === 2)
+            if(makeJumpImageFlag === 2 || isInSaveProgress)
             {
                 topBar["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
                 topBar["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
                 topBar["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
             }
-            else if(rNowFrame > 0 && rNowFrame < TOTAL_FRAME)
-            {
-                topBar["superUndoButton"].alpha = 1.0;
-                topBar["cutPrevDataButton"].alpha = 1.0;
-            }
             else
             {
-                topBar["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
-                topBar["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
-            }
+                if(rNowFrame > 0 && rNowFrame < TOTAL_FRAME)
+                {
+                    topBar["superUndoButton"].alpha = 1.0;
+                    topBar["cutPrevDataButton"].alpha = 1.0;
+                }
+                else
+                {
+                    topBar["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
+                    topBar["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
+                }
 
-            if(rNowFrame === TOTAL_FRAME) topBar["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
-            else topBar["reRecordingButton"].alpha = 1.0;
+                if(rNowFrame === TOTAL_FRAME) topBar["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
+                else topBar["reRecordingButton"].alpha = 1.0;
+            }
         }
 
         private function _jumpOneFrame(toback:Boolean,trueOneFrame:Boolean):void
         {
             if(trueOneFrame)
             {
-                if(toback && rNowFrame > 0) _jumpFrame(rNowFrame-1,JUMP_FRAME_ONCE);
-                else if(!toback && rNowFrame < TOTAL_FRAME) _jumpFrame(rNowFrame+1,JUMP_FRAME_ONCE);
+                if(toback && rNowFrame > 0) jumpFrame(rNowFrame-1,JUMP_FRAME_ONCE);
+                else if(!toback && rNowFrame < TOTAL_FRAME) jumpFrame(rNowFrame+1,JUMP_FRAME_ONCE);
             }
             else
             {
@@ -7558,20 +7567,20 @@
                 {
                     //rPrevFrame이 rNowFrame이 같게되면 jumpframe에서 0프레임을 이동하므로
                     //-1을 해줘서 tickdarw에서 이전 데이터를 가지게 해줘야함
-                    if(rPrevFrame === rNowFrame) _jumpFrame(rNowFrame-1,JUMP_FRAME_BEFORE);
-                    _jumpFrame(rPrevFrame,JUMP_FRAME_BEFORE);
+                    if(rPrevFrame === rNowFrame) jumpFrame(rNowFrame-1,JUMP_FRAME_BEFORE);
+                    jumpFrame(rPrevFrame,JUMP_FRAME_BEFORE);
                 }
                 else if(!toback && rNowFrame <= TOTAL_FRAME)
                 {
                     if(tickDraw.getRestDataCount() === 0)
                     {
                         //+1해줘서 다음 데이터 갱신해주고 나머지 끝까지 그려줌
-                        _jumpFrame(rNowFrame+1,JUMP_FRAME_AFTER);
-                        _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_AFTER);
+                        jumpFrame(rNowFrame+1,JUMP_FRAME_AFTER);
+                        jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_AFTER);
                     }
                     else
                     {
-                        _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_AFTER);
+                        jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_AFTER);
                     }
                 }
             }
@@ -7622,7 +7631,7 @@
             return false;
         }
 
-        private function _jumpFrame(frame:Number,jumpflag:int):void //jumpp 
+        private function jumpFrame(frame:Number,jumpflag:int):void //jumpp 
         {
             if(frame < 0) frame = 0;
             else if(frame > TOTAL_FRAME) frame = TOTAL_FRAME;
@@ -7713,7 +7722,7 @@
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
         private function drawRemainReplayData():void
         {
-            _jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_ONCE);
+            jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_ONCE);
             rOnejumpFlagSave = false;
         }
 
@@ -7763,7 +7772,7 @@
             {
                 rJumpMouseON = false;
                 clearTimeout(jumpUpdateTimer);
-                _jumpFrame(finalFrame,JUMP_FRAME_ONCE);
+                jumpFrame(finalFrame,JUMP_FRAME_ONCE);
                 if(isDeepUndoON)
                 {
                     if(tickDraw.isIndexSmallerData()) 
@@ -7810,7 +7819,7 @@
                     {
                         jumpUpdateTimer = 0;
                         oldFrame = finalFrame;
-                        _jumpFrame(finalFrame,JUMP_FRAME_ONCE);
+                        jumpFrame(finalFrame,JUMP_FRAME_ONCE);
                     },200);
                 }
             }
@@ -8477,7 +8486,7 @@
             regPoint.addChild(resizeButtonR);
         }
 
-        private function _makeJumpImage():void //loadrep
+        private function makeJumpImage():void //loadrep
         {
             const fs:FileStream = new FileStream();
             const fs2:FileStream = new FileStream();
@@ -8489,9 +8498,8 @@
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
             var _rJumpImageCount:uint = 0;
-            undoData.resetRJumpImageCount();
 
-            makeJumpImageFlag = 2;
+            undoData.resetRJumpImageCount();
             clearCanvasReplayMode();//일단 리플레이 캔버스 먼저 깨끗하게
             rcanvas1BitmapData = rFirstImage.clone(); 
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
@@ -8533,12 +8541,14 @@
                         }
                         else
                         {
-                            // _jumpFrame(TOTAL_FRAME+1,JUMP_FRAME_ONCE);
-                            // rDataPreviewCacheImages = [];
-                            // rJumpImageIndexSave = -2;
+                            // jumpFrame(TOTAL_FRAME+1,JUMP_FRAME_ONCE);
+                            rDataPreviewCacheImages = [];
+                            rJumpImageIndexSave = -2;
                             removeInputEventDrawMode();
                             addInputEventReplayMode();
                         }
+
+                        saveAllData();
 
                         if(isInSaveProgress === 2)
                         {
@@ -8577,7 +8587,7 @@
                         imgData = null;
 
                         if(replayTimeBox["replayNowBar"].width > 0) replayTimeBox["replayNowBar"].width = 0;
-                        replayInfoText.text = "Loading... "+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%";
+                        replayInfoText.text = "Reaing replay data.. "+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%";
                         return;
                     }
                 }
@@ -8774,7 +8784,7 @@
             dataB = null;
             dataC = null;
             dataD = null;
-            topBar.hintSavedOK();
+            topBar.hintSaveOK();
             try
             {
                 repFileTemp.moveTo(copyFile,true);
@@ -9306,8 +9316,8 @@
         private function mouseDownCaptureMode(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(!isNowKey(0) || !target) return;
-            else if(target.alpha < 1.0) return;
+            if(!target) return;
+            if(target.alpha < 1.0) return;
 
             const targetName:String = target.name;
 
@@ -9342,7 +9352,7 @@
 
             if(e.keyCode === nowKey)
             {
-                if(keyBuffer.length > 0)setNowKey(keyBuffer[0]);
+                if(keyBuffer.length > 0) keyDownCaptureMode({} as KeyboardEvent);
                 else resetNowKey();
             }
         }
@@ -9350,10 +9360,23 @@
         private function keyDownCaptureMode(e:KeyboardEvent):void
         {
             const keyCode:uint = keyBuffer[0];
+
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode) || isInSaveProgress) return;
 
-           setNowKey(keyCode);
+            if(isPressingControl())
+            {
+                if(keyBuffer.length > 1)
+                {
+                    const subKey:int = keyBuffer[1];
+                    if(subKey === KEY.c || subKey === KEY.m)
+                    {
+                        setFullCaptrueButton();
+                    }
+                }
+                return;
+            }
 
+            setNowKey(keyCode);
             switch(keyCode)
             {
                 case KEY.c:
@@ -9390,8 +9413,9 @@
 
         private function setCaptureReady():void
         {
-            if(captureModeON || isInSaveProgress) return;
-            if(replayStartON)stopReplay();
+            // if(captureModeON || isInSaveProgress) return;
+            // if(replayStartON)stopReplay();
+            if(captureModeON || replayStartON) return;
 
             captureModeON = true;
             penCursorOFFFlag = true;
@@ -9426,7 +9450,16 @@
             setTopChildIndex(captureAreaRect);
             captureAreaRect.visible = true;
 
-            capturePanelData = {
+            canvasBackupDataDrawCanvas = {
+                                    "z" : zoomed,
+                                    "x" : floor(regPoint.x), //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
+                                    "y" : floor(regPoint.y),
+                                    "r" : regPoint.rotation,
+                                    "px" : floor(canvasPanel.x),
+                                    "py" : floor(canvasPanel.y)
+            }
+
+            canvasBackupData = {
                                     "z" : xZoomed,
                                     "x" : floor(xReg.x), //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
                                     "y" : floor(xReg.y),
@@ -9443,7 +9476,7 @@
 
         private function setCaptureModeOFF(replayMode:Boolean,xReg:Sprite,xPanel:Sprite):void
         {
-            const data:Object = capturePanelData;
+            const _canvasBackupData:Object = canvasBackupData;
             const xBitmap:Bitmap = (replayMode) ? rcanvas1Bitmap : canvas1Bitmap;
 
             xBitmap.smoothing = false;
@@ -9455,13 +9488,13 @@
             setCaptureUI(false);
 
             //캔버스 이전 모양 위치로 복원
-            xReg.rotation = data.r;
-            xReg.x = data.x+captureWindowMove.x;
-            xReg.y = data.y+captureWindowMove.y;
-            xPanel.x = data.px;
-            xPanel.y = data.py;
+            xReg.rotation = _canvasBackupData.r;
+            xReg.x = _canvasBackupData.x+captureWindowMove.x;
+            xReg.y = _canvasBackupData.y+captureWindowMove.y;
+            xPanel.x = _canvasBackupData.px;
+            xPanel.y = _canvasBackupData.py;
 
-            setZoomCanvas(data.z,replayMode);
+            setZoomCanvas(_canvasBackupData.z,replayMode);
             toolTipBox.visible = false;
             captureWindowMove = new Point(0,0);
 
@@ -9610,6 +9643,7 @@
             function start(replayMode:Boolean):void
             {
                 if(isInSaveProgress) return;
+
                 if(replayMode) //리플레이 변수로 변경
                 {
                     canvasWidth = RCANVAS_WIDTH;
@@ -9876,7 +9910,14 @@
             //계속 저장하는거 방지 다른 이름으로 저장은 예외
             if(replayStartON) stopReplay();
             const continueFlag:Boolean = saveContinue === true && asFlag === false;
-            if((saveOneTime === true && continueFlag) || lassoToolON || fillPenStarted || isInSaveProgress)
+
+            if(saveOneTime === true && continueFlag)
+            {
+                topBar.hintTime("Already saved",topBar.replayModeButton);
+                return;
+            }
+
+            if(lassoToolON || fillPenStarted || isInSaveProgress)
             {
                 return;
             }
@@ -10114,13 +10155,13 @@
             fs.open(appDataFile, FileMode.WRITE);
             fs.writeObject({"CANVAS_WIDTH":CANVAS_WIDTH,
                             "CANVAS_HEIGHT":CANVAS_HEIGHT,
-                            "zoomed":zoomed,
+                            "zoomed":(captureModeON) ? canvasBackupDataDrawCanvas.z:zoomed,
                             "zoomedIndex":zoomedIndex,
-                            "canvasPanel.x":canvasPanel.x,
-                            "canvasPanel.y":canvasPanel.y,
-                            "regPoint.x":regPoint.x,
-                            "regPoint.y": regPoint.y,
-                            "regPoint.rotation":regPoint.rotation,
+                            "canvasPanel.x":(captureModeON) ? canvasBackupDataDrawCanvas.px:canvasPanel.x,
+                            "canvasPanel.y":(captureModeON) ? canvasBackupDataDrawCanvas.py:canvasPanel.y,
+                            "regPoint.x":(captureModeON) ? canvasBackupDataDrawCanvas.x:regPoint.x,
+                            "regPoint.y":(captureModeON) ? canvasBackupDataDrawCanvas.y:regPoint.y,
+                            "regPoint.rotation":(captureModeON) ? canvasBackupDataDrawCanvas.r:regPoint.rotation,
                             "penSmoothValue":penSmoothValue,
                             "penSmoothSlideValue":penSmoothSlideValue,
                             "penSmoothButtonX":controlBox.penSmoothSliderSet["penSmoothButton"].x,
@@ -10246,10 +10287,7 @@
                     lastWindowSize.y = d["stage.nativeWindow.height"];
 
                     //캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
-                    if(d["lastWindowState"] === 1)
-                    {
-                        stage.nativeWindow.maximize();
-                    }
+                    if(d["lastWindowState"] === 1) stage.nativeWindow.maximize();
 
                     zoomedIndex = d["zoomedIndex"];
                     setZoomCanvas(d["zoomed"]);
@@ -10322,10 +10360,7 @@
                                       d["tracePosInfo[4]"],
                                       d["tracePosInfo[5]"]);
 
-                    if(mirrorON !== d["mirrorON"])
-                    {
-                        mirrorCanvas(true);
-                    }
+                    if(mirrorON !== d["mirrorON"]) mirrorCanvas(true);
                     
                     gridFlag = d["gridFlag"];
                     drawGrid();
@@ -13502,7 +13537,7 @@
             }
 
             const timeStr:String = getReplayTotalTime(_rSpeed);
-            const finalStr:String = "Playback speed x "+_rSpeed+timeStr;
+            const finalStr:String = STRING_PLAYBACK_SPEED+" "+_rSpeed+timeStr;
             topBar.hintTime(finalStr,topBar.replaySpeedSet);
 
             rSpeed = _rSpeed;
@@ -13519,7 +13554,7 @@
         {
             if(isNowKey(e.keyCode))
             {
-                if(keyBuffer.length > 0) setNowKey(keyBuffer[0]);
+                if(keyBuffer.length > 0) keyDownReplayMode({} as KeyboardEvent);
                 else resetNowKey();
             }
         }
@@ -13571,6 +13606,18 @@
                     else if(input === KEY.c || input === KEY.m) setCaptureReady();
                 });
                 return;
+            }
+
+            if(isNowKey(KEY.n2) || isNowKey(KEY.n8))
+            {
+                if(keyBuffer.length >= 2)
+                {
+                    if(keyBuffer[1] === KEY.n1 || keyBuffer[1] === KEY.n7)
+                    {
+                        setReplayUI(false);
+                        return;
+                    }
+                }
             }
 
             setNowKey(keyCode);
@@ -13654,7 +13701,13 @@
             if(isNowKey(keyCode))
             {
                 if(mouseClickON === true) keyWaitMouseUp = true;
-                else checkNextKeyDown();
+                else if(keyBuffer.length > 0) keyDownDrawMode({} as KeyboardEvent);
+                else
+                {
+                    resetNowKey();
+                    if(oldTool > TOOL_NONE) setOldTool();
+                    updatePenCursorPosition();
+                }
             }
 
             if(!isPressingControl() && resizeButtonR.visible)
@@ -13718,12 +13771,22 @@
             {
                 if(checkOpaSizeKeyDown((keyBuffer.length >= 2) ? keyBuffer[1] : keyCode)) return;
             }
+            else if(isNowKey(KEY.n1) || isNowKey(KEY.n7))
+            {
+                if(keyBuffer.length >= 2)
+                {
+                    if(keyBuffer[1] === KEY.n2 || keyBuffer[1] === KEY.n8)
+                    {
+                        setReplayUI(true)
+                        return;
+                    }
+                }
+            }
 
             if(isNowKey(keyCode)) return;
 
             setNowKey(keyCode);
             if(checkOpaSizeKeyDown(keyCode)) return;
-            
             //etc키 먼저 체크하고 false반환하면 툴키 체크
             if(checkEtcKeyDown(keyCode)) return;
             checkToolKeyDown(keyCode);
@@ -14005,16 +14068,13 @@
 
             if(appResetFlag === false)
             {
-                if(replayStartON === false)
-                {
-                    const nt:int = getTimer();
-                    const subTime:int = nt-windowDeactivateTime;
+                const nt:int = getTimer();
+                const subTime:int = nt-windowDeactivateTime;
 
-                    if(subTime > 3000 || windowClosingFlag)
-                    {
-                        windowDeactivateTime = nt;
-                        saveAllData();
-                    }
+                if(subTime >= 2000 && windowClosingFlag)
+                {
+                    windowDeactivateTime = nt;
+                    saveAllData();
                 }
             }
         }
@@ -14402,7 +14462,7 @@
             
                 if(makeJumpImageFlag === 1)
                 {
-                    replayTimeBox["frameInfo"].text = "Loading...";
+                    replayTimeBox["frameInfo"].text = STRING_PREPARE_REPLAY_DATA;
                     setMakeJumpImage();
                 }
                 else
@@ -14421,8 +14481,8 @@
                     updateRCursorScale(rzoomed);
                     topBar.resetHintColor();
                     if(traceMenuON === true) traceMenuBox.visible = false;
-                    _jumpFrame(undoData.getRFileTotalFrame()-1,JUMP_FRAME_ONCE);
-                    _jumpFrame(rPrevFrame,JUMP_FRAME_ONCE);
+                    jumpFrame(undoData.getRFileTotalFrame()-1,JUMP_FRAME_ONCE);
+                    jumpFrame(rPrevFrame,JUMP_FRAME_ONCE);
                     rOnejumpFlagSave = true;
                 }
             }
@@ -14450,12 +14510,14 @@
 
         private function setMakeJumpImage():void
         {
+            makeJumpImageFlag = 2;
+            saveAllData(); //만드는 도중에 앱이 종료될수 있어서 미리 저장해줌
             if(makeSKipImageWaitTimer === 0)
             {
                 makeSKipImageWaitTimer = setTimeout(function():void
                 {
                     makeSKipImageWaitTimer = 0;
-                    _makeJumpImage();
+                    makeJumpImage();
                 },60);
             }
         }
@@ -14571,7 +14633,7 @@
                 if(makeJumpImageFlag === 1)
                 {
                     removeInputEventReplayMode();
-                    replayTimeBox["frameInfo"].text = "Loading...";
+                    replayTimeBox["frameInfo"].text = STRING_PREPARE_REPLAY_DATA;
                     sideBar.visible = false;
                     changeTopBarIcons("replay");
                     setMakeJumpImage();
@@ -14642,7 +14704,7 @@
         {
             if(isNowKey(e.keyCode))
             {
-                if(keyBuffer.length > 0) setNowKey(keyBuffer[0]);
+                if(keyBuffer.length > 0) keyDownDeepUndo({} as KeyboardEvent);
                 else resetNowKey();
             }
         }
@@ -14780,28 +14842,18 @@
         }
 
         //키를 2개 이상 누르고 있을때 먼저 누른키를 떼면 다음키로 설정함
-        private function checkNextKeyDown():void
-        {
-            if(keyBuffer.length > 0)
-            {
-                const nextKey:int = keyBuffer[0];
-                setNowKey(nextKey);
-                checkToolKeyDown(nextKey);
-            }
-            else
-            {
-                resetNowKey();
-                if(oldTool > TOOL_NONE) setOldTool();
-                updatePenCursorPosition();
-            }
-        }
-
         private function mouseUpDrawMode(e:MouseEvent):void //mouseup1
         {
             if(keyWaitMouseUp)//단축키 떼고 마우스 땠을때 원래대로 돌림
             {
                 keyWaitMouseUp = false;
-                checkNextKeyDown();
+                if(keyBuffer.length > 0) keyDownDrawMode({} as KeyboardEvent);
+                else
+                {
+                    resetNowKey();
+                    if(oldTool > TOOL_NONE) setOldTool();
+                    updatePenCursorPosition();
+                }
             }
         }
 
