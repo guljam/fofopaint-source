@@ -57,9 +57,10 @@
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
 
+
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.24;
+        private const APP_VERSION:Number = 15.26;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -162,7 +163,6 @@
                     ,COLOR_MID_BRIGHT:uint = 0xB8B8B8//중간 밝은색
                     ,COLOR_BRIGHT:uint = 0xF0F0F0//0xECEAE7//밝은색
 
-                    ,GC_TIME_OUT:int = 30
                     ,BUTTON_OFF_ALPHA:Number = 0.15
 
                     ,REPLAY_FASTEST_LIMIT_TIME:Number = 60
@@ -210,6 +210,7 @@
                     ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
                     ,STRING_PLAYBACK_SPEED:String = "Play speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
+                    ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -579,7 +580,6 @@
                     ,windowMoveDelayTimer:int = 0
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
                     ,afkONCount:int = 0
-                    // ,gcONCount:int = 0
                     ,realWorkingTimer:int = 0
                     ,isDeepUndoON:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
@@ -629,7 +629,7 @@
             selectPenTool();
         }
         
-        //functions
+        //functions 
         private function onFromWorker(e:Event):void
         {
             var msg:* = backToMain.receive();
@@ -2241,13 +2241,6 @@
 
             realWorkingTimer = setInterval(function():void //수동 gc실행
             {
-                // if(gcONCount === GC_TIME_OUT)
-                // {
-                //     gcONCount = 0;
-                //     System.gc();
-                // }
-                // else gcONCount++;
-
                 if(afkONCount === 2) afkONCount = 3;
                 else if(afkONCount < 2)
                 {
@@ -5245,12 +5238,7 @@
             removeInputEventDrawMode();
 
             aboutPanel.appResetButton.visible = true;
-            if(welcome === false)
-            {
-                checkVersion();
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
-            }
-            else if(welcome === true)
+            if(welcome === true)
             {
                 aboutPanel.appResetButton.visible = false;
                 setTimeout(function():void
@@ -5258,7 +5246,12 @@
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
                 },1000);
             }
-
+            else
+            {
+                checkVersion();
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
+            }
+            
             aboutPanel.randomLogo();
             setAboutPanelCenterPos();
         }
@@ -7201,7 +7194,6 @@
                     prevJumpImageSaveCount = 0;
                     prevJumpImageSaveIndex = 0;
                     readCount = jumpCount;
-
                     if(!rDataReadFlag) drawFileData(jumpCount,jumpFlag);
                     drawRData(readCount,jumpFlag);
                 }
@@ -8607,8 +8599,8 @@
         {
             if(flag)
             {
-                isInSaveProgress = 1;
-                topBar.setButtonAlphaOFFSaving(BUTTON_OFF_ALPHA);
+                if(isInSaveProgress === 0 ) isInSaveProgress = 1;
+                if(topBar.saveButton.alpha === 1.0) topBar.setButtonAlphaOFFSaving(BUTTON_OFF_ALPHA);
             }
             else
             {
@@ -9387,6 +9379,18 @@
             setNowKey(keyCode);
             switch(keyCode)
             {
+                case KEY.n1:
+                case KEY.n7:
+                    setCaptureOFFButton(true);
+                    if(replayModeON)setReplayUI(false);
+                break;
+
+                case KEY.n2:
+                case KEY.n8:
+                    setCaptureOFFButton(true);
+                    if(replayModeON)setReplayUI(true);
+                break;
+
                 case KEY.c:
                 case KEY.m:
                     setFullCaptrueButton();
@@ -12665,6 +12669,8 @@
 
                                 //위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
                                 workerUndoData2.push([w,h,bgColor,rf.size,rFileTotalFrame]);
+
+                                if(isInSaveProgress === 0) isInSaveProgress = 1;
                                 workerCompressUndo(imgData);
 
                                 if(workerUndoDataTimer === 0)
@@ -12689,8 +12695,9 @@
                                         }
                                         else
                                         {
-                                            clearInterval(workerUndoDataTimer);
+                                            isInSaveProgress = 0;
                                             workerUndoDataTimer = 0;
+                                            clearInterval(workerUndoDataTimer);
                                             stopWorker();
                                         }
                                     },WORKER_WAIT_INTERVAL);
@@ -13336,7 +13343,7 @@
         {
             if(isInSaveProgress)
             {
-                stage.nativeWindow.title = "Close the app after processing done";
+                stage.nativeWindow.title = STRING_WAIT_PROCESSING_DONE;
                 isInSaveProgress = 2;
                 e.preventDefault();
                 return;
@@ -13345,7 +13352,7 @@
             if(makeJumpImageFlag === 2)
             {
                 isInSaveProgress = 2;
-                stage.nativeWindow.title = "Close the app after processing done";
+                stage.nativeWindow.title = STRING_WAIT_PROCESSING_DONE;
                 e.preventDefault();
                 return;
             }
@@ -13616,18 +13623,6 @@
                 return;
             }
 
-            if(isNowKey(KEY.n2) || isNowKey(KEY.n8))
-            {
-                if(keyBuffer.length >= 2)
-                {
-                    if(keyBuffer[1] === KEY.n1 || keyBuffer[1] === KEY.n7)
-                    {
-                        setReplayUI(false);
-                        return;
-                    }
-                }
-            }
-
             setNowKey(keyCode);
 
             switch(keyCode)
@@ -13778,17 +13773,6 @@
             if(isNowKey(KEY.d) || isNowKey(KEY.j))
             {
                 if(checkOpaSizeKeyDown((keyBuffer.length >= 2) ? keyBuffer[1] : keyCode)) return;
-            }
-            else if(isNowKey(KEY.n1) || isNowKey(KEY.n7))
-            {
-                if(keyBuffer.length >= 2)
-                {
-                    if(keyBuffer[1] === KEY.n2 || keyBuffer[1] === KEY.n8)
-                    {
-                        setReplayUI(true)
-                        return;
-                    }
-                }
             }
 
             if(isNowKey(keyCode)) return;
@@ -14079,7 +14063,7 @@
                 const nt:int = getTimer();
                 const subTime:int = nt-windowDeactivateTime;
 
-                if(subTime >= 2000 && windowClosingFlag)
+                if(subTime >= 1000 || windowClosingFlag)
                 {
                     windowDeactivateTime = nt;
                     saveAllData();

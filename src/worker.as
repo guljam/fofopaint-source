@@ -8,15 +8,19 @@
 	import flash.display.BitmapData;
 	import flash.display.PNGEncoderOptions;
 	import flash.geom.Rectangle;
-	import flash.display.Graphics;
-	import flash.display.Bitmap;
-	import flash.display.Shape;
 
 	public class worker extends Sprite
 	{
 		private var bgWorker:Worker;
 		private var mainToBack:MessageChannel;
 		private var backToMain:MessageChannel;
+		public function worker()
+		{
+			bgWorker = Worker.current;
+			mainToBack = bgWorker.getSharedProperty("mainToBack");
+			mainToBack.addEventListener(Event.CHANNEL_MESSAGE, onFromMain);
+			backToMain = bgWorker.getSharedProperty("backToMain");
+		}
 
 		// private var gcCount:int;
 		// private function doGC(evt:Event):void
@@ -39,14 +43,7 @@
 		// 	gcCount = 0;
 		// 	addEventListener(Event.ENTER_FRAME, doGC);
 		// }
-		
-		public function worker()
-		{
-			bgWorker = Worker.current;
-			mainToBack = bgWorker.getSharedProperty("mainToBack");
-			mainToBack.addEventListener(Event.CHANNEL_MESSAGE, onFromMain);
-			backToMain = bgWorker.getSharedProperty("backToMain");
-		}
+
 
 		private function encodePNG(msg:Object):void
 		{
