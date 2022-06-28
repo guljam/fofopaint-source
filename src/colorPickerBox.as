@@ -9,6 +9,7 @@
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.display.Shape;
+	import flash.geom.Point;
 
 	public class colorPickerBox extends Sprite {
 		public var mainColorPickerBox:Sprite = new Sprite();
@@ -176,7 +177,7 @@
 			tegakiText.y = floor(drawrPresetBox.y+drawrPresetBox.height+1);
 			tegakiPresetBox.x = colorHistoryBox.x;
 			tegakiPresetBox.y = floor(tegakiText.y+tegakiText.height);
-			
+
 			mainPresetBox.addChild(colorHistoryText);
 			mainPresetBox.addChild(colorHistoryBox);
 			mainPresetBox.addChild(drawrText);

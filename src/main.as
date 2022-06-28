@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.22;
+        private const APP_VERSION:Number = 15.23;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -12931,13 +12931,13 @@
             previewBox.x = 0;
             previewBox.y = 0;
             appInfoBox.x = -2;
-            appInfoBox.y = previewBox.y+previewBox.BOX_HEIGHT+3;
+            appInfoBox.y = floor(previewBox.y+previewBox.BOX_HEIGHT+3);
             controlBox.x = 39;
-            controlBox.y = appInfoBox.y+appInfoBox.height;
+            controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 39;
-            pickerBox.y = controlBox.y+controlBox.height+5;
+            pickerBox.y = floor(controlBox.y+controlBox.height+5);
             toolBox.x = 0;
-            toolBox.y = controlBox.y+2;
+            toolBox.y = floor(controlBox.y+2);
 
             sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width;
             sideBarScrollBar.y = scrollBarMovedY;
@@ -12968,13 +12968,13 @@
             previewBox.x = 0;
             previewBox.y = 0;
             appInfoBox.x = -2;
-            appInfoBox.y = previewBox.y+previewBox.BOX_HEIGHT+3;
+            appInfoBox.y = floor(previewBox.y+previewBox.BOX_HEIGHT+3);
             controlBox.x = 0;
-            controlBox.y = appInfoBox.y+appInfoBox.height;
+            controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 0;
-            pickerBox.y = controlBox.y+controlBox.height+5;
+            pickerBox.y = floor(controlBox.y+controlBox.height+5);
             toolBox.x = controlBox.x+controlBox.width;
-            toolBox.y = controlBox.y+2;
+            toolBox.y = floor(controlBox.y+2);
 
             if(toolBox.getDeafultY() === 0)
                 toolBox.setDeafultY(toolBox.y);
@@ -13731,6 +13731,9 @@
 
         private function keyDownDrawMode(e:KeyboardEvent):void
         {
+            trace('picker y',pickerBox.y);
+            pickerBox.y += 0.1
+            trace('picker ====',pickerBox.y);
             if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted)
             {
                 return;
