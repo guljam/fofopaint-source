@@ -57,10 +57,9 @@
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
 
-
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.26;
+        private const APP_VERSION:Number = 15.27;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -7116,10 +7115,10 @@
                         
                         tickDraw.updateRCursorPos();
 
-                        if(!mouseClickON && isDeepUndoON === false)
-                        {
-                            checkAutoScroll.check();
-                        }
+                        if(!mouseClickON && isDeepUndoON === false) checkAutoScroll.check();
+
+                        if(!rJumpMouseON)
+                            replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*rNowFrame/TOTAL_FRAME;
                     }
 
                     if(savedTime-_rFrameTextDelayTime >= 1000) //갱신 느리게 해줌
@@ -7131,11 +7130,6 @@
                 else if(doDrawSlowEventON === false)
                 {
                     updateReplayRemainTime();
-                }
-
-                if(!rJumpMouseON)
-                {
-                    replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*rNowFrame/TOTAL_FRAME;
                 }
             }
             
@@ -7820,7 +7814,7 @@
                         jumpUpdateTimer = 0;
                         oldFrame = finalFrame;
                         jumpFrame(finalFrame,JUMP_FRAME_ONCE);
-                    },200);
+                    },250);
                 }
             }
 
