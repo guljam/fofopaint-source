@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.32;
+        private const APP_VERSION:Number = 15.33;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -351,6 +351,7 @@
                     ,lassoPointSave:Array = []
                     ,lassoCopyON:Boolean = false //lasso 복사 누르면 올려줌
                     ,lassoBitmapdataSave:BitmapData //copy나 취소했을때 원래대로 돌려주는 이미지
+                    ,lassoMenuMovedPos:Point = new Point() //라소 움직임 포인트
         //window resize 관련 변수
                     ,lastWindowSize:Point = new Point() //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
         //save load 관련 변수
@@ -2658,10 +2659,10 @@
             var lassoH:Number = _lassoMenu.height;
 
             if(lassoW > stw) lassoW = stw;
-
-            _lassoMenu.x = floor(g.x-lassoW/2);
-            _lassoMenu.y = floor(g.y+(lassoBox.height*zoomed)/2+15);
-
+            
+            _lassoMenu.x = floor(g.x-lassoW/2)+lassoMenuMovedPos.x;
+            _lassoMenu.y = floor(g.y+(lassoBox.height*zoomed)/2+15)+lassoMenuMovedPos.y;
+            
             checkBoxPosition(_lassoMenu);
         }
 
@@ -7931,10 +7932,18 @@
             else if(type === 2) xBox = traceMenuBox;
 
             const click:Point = new Point(mouseX,mouseY);
+            const moved:Point = new Point(0,0);
             setTopChildIndex(xBox);
 
             function toolBoxMoveMouseUpEvent(e:MouseEvent):void
             {
+                if(type === 1)
+                {
+                    const x:Number = lassoMenuMovedPos.x+moved.x;
+                    const y:Number = lassoMenuMovedPos.y+moved.y;
+                    lassoMenuMovedPos.setTo(x,y);
+                }
+
                 checkBoxPosition(xBox);
                 stageMouseMoveEvent.remove(toolBoxMoveMouseMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, toolBoxMoveMouseUpEvent);
@@ -7942,8 +7951,13 @@
 
             function toolBoxMoveMouseMoveEvent(e:MouseEvent):void
             {
-                xBox.x += mouseX-click.x;
-                xBox.y += mouseY-click.y;
+                const subX:Number = mouseX-click.x;
+                const subY:Number = mouseY-click.y;
+
+                xBox.x += subX;
+                xBox.y += subY;
+                moved.x += subX;
+                moved.y += subY;
 
                 click.x = mouseX;
                 click.y = mouseY;
@@ -12295,6 +12309,7 @@
             lassoPointSave = [];
             lassoBMP.filters = [];
             lassoMenu.visible = false;
+            lassoMenuMovedPos.setTo(0,0);
             lassoDraw.x = 0;
             lassoDraw.y = 0;
             lassoBox.x = 0;
