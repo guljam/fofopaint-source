@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.30;
+        private const APP_VERSION:Number = 15.31;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -13362,11 +13362,13 @@
 
                 updateStageBG(uiColorSet[uiColorIndex][2]);
                 topBar.updateTopbarBG(stw);
-                topBar.updateTimerPos(stage.stageWidth);
+                topBar.updateTimerPos(stw);
+                topBar.updateHintBGWidth(stw);
 
                 sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
                 updateScrollBarHeight(sth);
-                if(isRightSidebar) sideBar.x = stage.stageWidth-sideBar.w;
+
+                if(isRightSidebar) sideBar.x = stw-sideBar.w;
                 if(isDeepUndoON) toolBox.checkDeepUndoIconBottom();
                 else if(fillPenStarted) toolBox.checkFillPenIconBottom();
 

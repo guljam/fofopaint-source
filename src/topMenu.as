@@ -333,11 +333,16 @@
 			}
 		}
 
+		public function updateHintBGWidth(stw:Number):void
+		{
+			topbarInfoBG.width = stw;
+		}
+
 		public function hintTime(str:String,target:DisplayObject):void
 		{
 			hint(str,target,true);
 			hintTimeOFF();
-		}
+		}	
 
 		public function hint(str:String,target:DisplayObject,timed:Boolean=false):void
 		{
