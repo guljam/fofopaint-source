@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.38;
+        private const APP_VERSION:Number = 15.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -351,7 +351,7 @@
                     ,lassoPointSave:Array = []
                     ,lassoCopyON:Boolean = false //lasso 복사 누르면 올려줌
                     ,lassoBitmapdataSave:BitmapData //copy나 취소했을때 원래대로 돌려주는 이미지
-                    ,lassoMenuMovedPos:Point = new Point() //라소 움직임 포인트
+
         //window resize 관련 변수
                     ,lastWindowSize:Point = new Point() //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
         //save load 관련 변수
@@ -2661,21 +2661,7 @@
 
         private function checkLassoMenuPos():void
         {
-            const _lassoMenu:lassoButtons = lassoMenu;
-            const _lassoBox:Sprite = lassoBox;
-            const g:Point = _lassoBox.localToGlobal(new Point(0,0));
-            const floor:Function = Math.floor;
-            const stw:Number = stage.stageWidth;
-            const sth:Number = stage.stageHeight;
-            var lassoW:Number = _lassoMenu.width;
-            var lassoH:Number = _lassoMenu.height;
-
-            if(lassoW > stw) lassoW = stw;
-            
-            _lassoMenu.x = floor(g.x-lassoW/2)+lassoMenuMovedPos.x;
-            _lassoMenu.y = floor(g.y+(lassoBox.height*zoomed)/2+15)+lassoMenuMovedPos.y;
-            
-            checkBoxPosition(_lassoMenu);
+            checkBoxPosition(lassoMenu);
         }
 
         private function traceMenuHintONEvent(e:MouseEvent):void
@@ -7948,18 +7934,10 @@
             else if(type === 2) xBox = traceMenuBox;
 
             const click:Point = new Point(mouseX,mouseY);
-            const moved:Point = new Point(0,0);
             setTopChildIndex(xBox);
 
             function toolBoxMoveMouseUpEvent(e:MouseEvent):void
             {
-                if(type === 1)
-                {
-                    const x:Number = lassoMenuMovedPos.x+moved.x;
-                    const y:Number = lassoMenuMovedPos.y+moved.y;
-                    lassoMenuMovedPos.setTo(x,y);
-                }
-
                 checkBoxPosition(xBox);
                 stageMouseMoveEvent.remove(toolBoxMoveMouseMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, toolBoxMoveMouseUpEvent);
@@ -7967,13 +7945,8 @@
 
             function toolBoxMoveMouseMoveEvent(e:MouseEvent):void
             {
-                const subX:Number = mouseX-click.x;
-                const subY:Number = mouseY-click.y;
-
-                xBox.x += subX;
-                xBox.y += subY;
-                moved.x += subX;
-                moved.y += subY;
+                xBox.x += mouseX-click.x;
+                xBox.y += mouseY-click.y;
 
                 click.x = mouseX;
                 click.y = mouseY;
@@ -11704,6 +11677,17 @@
                 _dottedLine.draw(g,_lassoPoints[0][0],_lassoPoints[0][1]);
             }
 
+            function setDeafultLassoMenuPos(lassoMenu:lassoButtons):void
+            {
+                const floor:Function = Math.floor;
+                const g:Point = lassoBox.localToGlobal(new Point(0,0));
+                const lassoW:Number = (lassoMenu.width > stage.stageWidth)
+                                      ? stage.stageWidth : lassoMenu.width;
+
+                lassoMenu.x = floor(g.x-lassoW/2);
+                lassoMenu.y = floor(g.y+((lassoBox.height)/2+15));
+            }
+
             function lassoDrawMouseUp():void
             {
                 stageMouseMoveEvent.remove(lassoDrawMouseMove);
@@ -11728,10 +11712,10 @@
 
                 //라소 메뉴 마우스 커서에보이기
                 const _lassoMenu:lassoButtons = lassoMenu;
-                const floor:Function = Math.floor;
 
                 lassoStartData = [lassoBox.x,lassoBox.y,lassoBox.scaleX,lassoBox.scaleY,lassoBox.rotation];
                 lassoToolON = true;
+                setDeafultLassoMenuPos(_lassoMenu);
                 checkLassoMenuPos();
                 _lassoMenu.visible = true;
                 setTopChildIndex(_lassoMenu);
@@ -12327,7 +12311,6 @@
             lassoPointSave = [];
             lassoBMP.filters = [];
             lassoMenu.visible = false;
-            lassoMenuMovedPos.setTo(0,0);
             lassoDraw.x = 0;
             lassoDraw.y = 0;
             lassoBox.x = 0;

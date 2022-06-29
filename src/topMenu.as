@@ -458,6 +458,7 @@
 												sideBarONButton,
 												sideBarONButton2,
 												aboutButton,
+												updateButton,
 
 												cutPrevDataButton,
 												superUndoButton,
@@ -475,6 +476,7 @@
 				btnDown.y = 2;
 			}
 		}
+
 		public function initModeButtons():void //버튼위치 설정
 		{
 			const floor:Function = Math.floor;
