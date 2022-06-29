@@ -86,10 +86,10 @@
 			reRecordingButton.alpha = 1.0;
 			superUndoButton.alpha = 1.0;
 			cutPrevDataButton.alpha = 1.0;
-			capRotate.alpha = 1.0;
-			capFull.alpha = 1.0;
-			capTrans.alpha = 1.0;
-			capFlip.alpha = 1.0;
+			// capRotate.alpha = 1.0;
+			// capFull.alpha = 1.0;
+			// capTrans.alpha = 1.0;
+			// capFlip.alpha = 1.0;
 			if(clipFlag) clipButton.alpha = 1.0;
 		}
 
@@ -106,10 +106,10 @@
 			reRecordingButton.alpha = offAlpha;
 			superUndoButton.alpha = offAlpha;
 			cutPrevDataButton.alpha = offAlpha;
-			capRotate.alpha = offAlpha;
-			capFull.alpha = offAlpha;
-			capTrans.alpha = offAlpha;
-			capFlip.alpha = offAlpha;
+			// capRotate.alpha = offAlpha;
+			// capFull.alpha = offAlpha;
+			// capTrans.alpha = offAlpha;
+			// capFlip.alpha = offAlpha;
 		}
 
 		public function updateButtonVisible(flag:Boolean):void
@@ -219,7 +219,7 @@
 			topMenuInfo.textColor = hintFontColor;
 		}
 
-		public function hintTimeOFFWithColor():void
+		public function hintTimeOFFWithColor(time:Number=3000):void
 		{
 			isHintLocked = false;
 			hintTimeOFF();
@@ -227,7 +227,7 @@
 			hintTimer2 = setTimeout(function():void
 			{
 				resetHintColor();
-			},3000);
+			},time);
 		}
 
 		public function hintTimeOFF():void
@@ -295,6 +295,18 @@
 			setHintColor("red");
 			isHintLocked = true;
 			hintTimeOFFWithColor();
+		}
+
+		public function hintSaveError():void
+		{
+			clearTimeout(hintTimer);
+			clearTimeout(hintTimer2);
+			clearInterval(hintWaitAnimTimer);
+			isHintLocked = false;
+			hint("Failed to save file",replayModeButton,true);
+			setHintColor("red");
+			isHintLocked = true;
+			hintTimeOFFWithColor(7000);
 		}
 
 		public function setHintColor(colorStr:String):void

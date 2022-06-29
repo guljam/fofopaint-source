@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.28;
+        private const APP_VERSION:Number = 15.30;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -205,7 +205,7 @@
                     ,CUT_FRAME_SUPER_UNDO:int = (1 << 1)
                     ,CUT_FRAME_RE_RECORD:int = (1 << 2)
                     ,CUT_FRAME_DELETE_FRONT:int = (1 << 3)
-                    ,WORKER_WAIT_INTERVAL:int = 500
+                    ,WORKER_WAIT_INTERVAL:int = 100
                     ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
                     ,STRING_PLAYBACK_SPEED:String = "Play speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
@@ -552,14 +552,21 @@
                     ,backToMain:MessageChannel
                     ,isInSaveProgress:int = 0
                     ,isInSaveProgressOFFDelayTimer:int = 0
-                    ,workerPNGData:ByteArray
-                    ,workerPNGTimer:int = 0
-                    ,workerReplayData:Object = {}
+                    ,workerPNGSaveData:ByteArray = null
+                    ,workerPNGSaveTimer:int = 0
+                    ,workerPNGCaptureFileData:Array = null
+                    ,workerPNGCaptureData:Array = null
+                    ,workerPNGCaptureTimer:int = 0
+                    ,workerReplayData:Array = null
                     ,workerReplayTimer:int = 0
-                    ,workerUndoData:Array = []
-                    ,workerUndoData2:Array = []
+                    ,workerUndoData:Array = null
+                    ,workerUndoData2:Array = null
                     ,workerUndoDataTimer:int = 0
                     ,workerSWF:ByteArray
+                    ,workerStopTimer:int = 0
+                    ,workerDataSendCount:int = 0
+                    ,workerDataReceiveCount:int = 0
+                    ,workerStarted:Boolean = false
 
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
@@ -629,47 +636,80 @@
         }
         
         //functions 
+        private function closeAppForce():void
+        {
+            isInSaveProgress = 0;
+            makeJumpImageFlag = 0;
+            stage.nativeWindow.close();
+        }
+
         private function onFromWorker(e:Event):void
         {
             var msg:* = backToMain.receive();
             // if(msg as String)
             // {
-            //     trace('온 메세지 :',msg);
+            //     trace('워커에게 온 메세지 :',msg);
             // }
             // else
             if(msg as Object)
             {
-                const command:String = msg.command;
-                if(command === "compress_UndoDataDone")
-                {
-                    workerUndoData.push(msg.data);
-                }
-                else if(command === "compress_ReplayDataDone")
-                {
-                    delete msg["command"];
-                    workerReplayData = msg;
-                }
-                else if(command === "encodePNGDone")
-                {
-                    workerPNGData = msg.bytes;
-                }
+                workerDataReceiveCount++;
+
+                const command:String = msg[0];
+
+                if(command === "compress_UndoDataDone") workerUndoData.push(msg[1]);
+                else if(command === "compress_ReplayDataDone") workerReplayData = msg;
+                else if(command === "encodePNGCaptureDone") workerPNGCaptureData.push(msg[1]);
+                else if(command === "encodePNGSaveDone") workerPNGSaveData = msg[1];
+
+                if(workerStopTimer === 0) checkCanStopWorker();
             }
         }
         
-        private function stopWorker():void
+        private function checkCanStopWorker():void
         {
-            worker.terminate();
+            if(workerStopTimer === 0)
+            {
+                workerStopTimer = setInterval(function():void
+                {   
+                    if(workerDataSendCount === workerDataReceiveCount
+                    && workerPNGCaptureFileData === null
+                    && workerPNGSaveData === null
+                    && workerReplayData === null
+                    && workerUndoData2 === null)
+                    {
+                        clearInterval(workerStopTimer);
+                        workerStopTimer = 0;
+                        
+                        workerStarted = false;
+                        workerDataSendCount = 0;
+                        workerDataReceiveCount = 0;
+                        worker.terminate();
+
+                        if(isInSaveProgress === 2)
+                        {
+                            windowClosingFlag = true;
+                            isInSaveProgress = 0;
+                            stage.nativeWindow.close();
+                        }
+                    }
+                },WORKER_WAIT_INTERVAL);
+            }
         }
 
         private function startWorker():void
         {
-            worker = WorkerDomain.current.createWorker(workerSWF,true);
-            mainToBack = Worker.current.createMessageChannel(worker);
-            backToMain = worker.createMessageChannel(Worker.current);
-            backToMain.addEventListener(Event.CHANNEL_MESSAGE,onFromWorker);
-            worker.setSharedProperty("backToMain", backToMain);
-            worker.setSharedProperty("mainToBack", mainToBack);
-            worker.start();
+            if(workerStarted === false)
+            {
+                workerStarted = true;
+                worker = WorkerDomain.current.createWorker(workerSWF,true);
+                mainToBack = Worker.current.createMessageChannel(worker);
+                backToMain = worker.createMessageChannel(Worker.current);
+                backToMain.addEventListener(Event.CHANNEL_MESSAGE,onFromWorker);
+                worker.setSharedProperty("backToMain", backToMain);
+                worker.setSharedProperty("mainToBack", mainToBack);
+                worker.start();
+            }
         }
 
         private function makeWorker():void
@@ -8505,13 +8545,12 @@
         
             const _tickDraw:Object = tickDraw;
             var data:Array;
-            var namojiBytes:Number;
             
             function onFrameEnter(e:Event):void
             {
                 while(1)
                 {
-                    namojiBytes = fs.bytesAvailable;
+                    const namojiBytes:Number = fs.bytesAvailable;
 
                     if(namojiBytes === 0)
                     {
@@ -8589,60 +8628,58 @@
             stage.addEventListener(Event.ENTER_FRAME,onFrameEnter);
         }
 
-        private function setSaveProgress(flag:Boolean):void
+        private function setSaveProgressOFF():void
         {
-            if(flag)
+            topBar.setButtonAlphaONSaving(clipImageON);
+            if(replayModeON) checkCutFrameButtons();
+        }
+        private function setSaveProgressON():void
+        {
+            if(isInSaveProgress === 0 ) isInSaveProgress = 1;
+            if(topBar.saveButton.alpha === 1.0) topBar.setButtonAlphaOFFSaving(BUTTON_OFF_ALPHA);
+        }
+
+        private function workerEncodePNG(bmpd:BitmapData,w:Number,h:Number,bg:uint,isCaptureImage:Boolean):void
+        {
+            function go():void
             {
-                if(isInSaveProgress === 0 ) isInSaveProgress = 1;
-                if(topBar.saveButton.alpha === 1.0) topBar.setButtonAlphaOFFSaving(BUTTON_OFF_ALPHA);
+                workerDataSendCount++;
+                var ba:ByteArray = new ByteArray();
+                bmpd.copyPixelsToByteArray(new Rectangle(0,0,bmpd.width,bmpd.height),ba);
+                var arr:Array = [(isCaptureImage) ? "encodePNGCapture" : "encodePNGSave"
+                                ,ba
+                                ,bmpd.width
+                                ,bmpd.height
+                                ,bg];
+                mainToBack.send(arr);
+                ba.clear();
+                ba = null;
+                arr = null;
+            }
+
+            if(workerStopTimer > 0)
+            {
+                go();
             }
             else
             {
-                if(isInSaveProgress === 2)
-                {
-                    windowClosingFlag = true;
-                    isInSaveProgress = 0;
-                    stage.nativeWindow.close();
-                }
-                else
-                {
-                    isInSaveProgress = 0;
-                    topBar.setButtonAlphaONSaving(clipImageON);
-                    if(replayModeON) checkCutFrameButtons();
-                }
-            }
-        }
+                startWorker();
+                var count:int = 0;
 
-        private function workerEncodePNG(bmpd:BitmapData,w:Number,h:Number,bg:uint):void
-        {
-            startWorker();
-            var count:int = 0;
-
-            function waitWorkerReady(e:Event):void
-            {
-                if(worker.state === "running")
+                function waitWorkerReady(e:Event):void
                 {
-                    count++;
-                    if(count >= 30)
+                    if(worker.state === "running")
                     {
-                        stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
-                        var ba:ByteArray = new ByteArray();
-                        bmpd.copyPixelsToByteArray(new Rectangle(0,0,bmpd.width,bmpd.height),ba);
-                        var obj:Object = {command:"encodePNG"
-                                         ,bytes:ba
-                                         ,width:bmpd.width
-                                         ,height:bmpd.height
-                                         ,bg:bg};
-                        setSaveProgress(true);
-                        mainToBack.send(obj);
-                        ba.clear();
-                        ba = null;
-                        obj = null;
+                        count++;
+                        if(count >= 30)
+                        {
+                            stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
+                            go();
+                        }
                     }
                 }
+                stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
             }
-            stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
-
         }
 
         private function workerCompressReplayData(dataA:ByteArray,dataB:ByteArray,dataC:ByteArray,dataD:ByteArray):void
@@ -8650,13 +8687,13 @@
             var count:int = 0;
             function go():void
             {
-                var obj:Object = {command:"compress_ReplayData"
-                                 ,dataA:dataA
-                                 ,dataB:dataB
-                                 ,dataC:dataC
-                                 ,dataD:dataD};
-                setSaveProgress(true);
-                mainToBack.send(obj);
+                workerDataSendCount++;
+                var arr:Array = ["compress_ReplayData"
+                                 ,dataA
+                                 ,dataB
+                                 ,dataC
+                                 ,dataD];
+                mainToBack.send(arr);
                 dataA.clear();
                 dataB.clear();
                 dataC.clear();
@@ -8665,10 +8702,10 @@
                 dataB = null;
                 dataC = null;
                 dataD = null;
-                obj = null;
+                arr = null;
             }
 
-            if(worker && worker.state == "running")
+            if(workerStopTimer > 0)
             {
                 go();
             }
@@ -8692,33 +8729,46 @@
         }
         private function workerCompressUndo(data:ByteArray):void
         {
-            startWorker();
-            var count:int = 0;
-            function waitWorkerReady(e:Event):void
+            function go():void
             {
-                if(worker.state === "running")
+                workerDataSendCount++;
+                var arr:Array = ["compress_UndoData",data];
+                mainToBack.send(arr);
+                data.clear();
+                data = null;
+                arr = null;
+            }
+
+            if(workerStopTimer > 0)
+            {
+                go();
+            }
+            else
+            {
+                startWorker();
+                var count:int = 0;
+                function waitWorkerReady(e:Event):void
                 {
-                    count++;
-                    if(count >= 30)
+                    if(worker.state === "running")
                     {
-                        stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
-                        var obj:Object = {command:"compress_UndoData",data:data};
-                        mainToBack.send(obj);
-                        data.clear();
-                        data = null;
-                        obj = null;
+                        count++;
+                        if(count >= 30)
+                        {
+                            stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
+                            go();
+                        }
                     }
                 }
+                stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
             }
-            stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
         }
 
-        private function writeReplayFile(obj:Object):void
+        private function writeReplayFile(arr:Array):void
         {
-            var dataA:ByteArray = obj.dataA;
-            var dataB:ByteArray = obj.dataB;
-            var dataC:ByteArray = obj.dataC;
-            var dataD:ByteArray = obj.dataD;
+            var dataA:ByteArray = arr[1];
+            var dataB:ByteArray = arr[2];
+            var dataC:ByteArray = arr[3];
+            var dataD:ByteArray = arr[4];
             const fs:FileStream = new FileStream();
             const _rData:Array = rData;
             const rImgDataW:int = rFirstImage.width;
@@ -8785,9 +8835,14 @@
             }
             catch(err:Error)
             {
+                topBar.hintSaveError();
                 if(repFileTemp.exists) repFileTemp.deleteFile();
+                setSaveProgressOFF();
                 saveFile(true,true);
             }
+
+            if(isInSaveProgress === 1) isInSaveProgress = 0;
+            setSaveProgressOFF();
         }
 
         private function saveReplayFile():void
@@ -8829,19 +8884,22 @@
                 //여기까지가 바이트 어레이에 넣어줌
 
                 //쓰레드로 압축 해줌
-                workerReplayData = null;
+                workerReplayData = [];
                 workerCompressReplayData(rImgData,lastImgData,traceImgData,replayDataBytes);
 
-                clearInterval(workerReplayTimer)
+                clearInterval(workerReplayTimer);
                 workerReplayTimer = setInterval(function():void
                 {
-                   if(workerReplayData !== null)
-                   {
-                        stopWorker();
-                        setSaveProgress(false);
+                    if(workerReplayData === null)
+                    {
+                        clearInterval(workerReplayTimer);
+                    }
+                    else if(workerReplayData.length > 0)
+                    {
+                        clearInterval(workerReplayTimer);
                         writeReplayFile(workerReplayData);
                         workerReplayData = null;
-                   }
+                    }
                 },WORKER_WAIT_INTERVAL);
             }
         }
@@ -8978,6 +9036,7 @@
                 fs.close();
                 repFileTemp.moveTo(repFile,true);
             }
+
             if(repFileTemp.exists)
             {
                 repFileTemp.deleteFile();
@@ -9333,7 +9392,7 @@
 
                 default:
                 {
-                    if(clickBlockFlag || isInSaveProgress) return;
+                    if(clickBlockFlag) return;
                     drawCaptureArea.start(replayModeON);
                 }
                 return;
@@ -9342,8 +9401,6 @@
 
         private function keyUpCaptureMode(e:KeyboardEvent):void
         {
-            if(isInSaveProgress) return;
-
             if(e.keyCode === nowKey)
             {
                 if(keyBuffer.length > 0) keyDownCaptureMode({} as KeyboardEvent);
@@ -9355,7 +9412,7 @@
         {
             const keyCode:uint = keyBuffer[0];
 
-            if(mouseClickON || rightMouseClickON || isNowKey(keyCode) || isInSaveProgress) return;
+            if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
 
             if(isPressingControl())
             {
@@ -9749,6 +9806,49 @@
             return timeStr;
         }
 
+        private function saveCapturePNGByOrder(saveName:String,savePath:String):void
+        {
+            workerPNGCaptureFileData.push([saveName,savePath]);
+            if(workerPNGCaptureTimer === 0)
+            {
+                topBar.hintCaptureWait();
+                workerPNGCaptureTimer = setInterval(function():void
+                {
+                    if(workerPNGCaptureData.length > 0)
+                    {
+                        const fileName:String = workerPNGCaptureFileData[0][0];
+                        const filePath:String = workerPNGCaptureFileData[0][1];
+
+                        //마지막 경로 업데이트
+                        saveFilePath = filePath.substr(0,filePath.lastIndexOf(fileName))+saveFileName;
+
+                        const fs:FileStream = new FileStream();
+                        var file:File = new File(filePath);
+                        if(fileName.lastIndexOf(".png") === -1)//png를 안붙여 줬을때
+                        {
+                            const fixedPath:String = filePath.replace(fileName,""); //이름짜르고 경로만 저장
+                            const dotPNG:String = fileName+".png";
+                            file = new File(fixedPath+dotPNG);
+                        }
+
+                        fs.open(file,FileMode.WRITE);
+                        fs.writeBytes(workerPNGCaptureData[0]);
+                        fs.close();
+                        workerPNGCaptureData.shift();
+                        workerPNGCaptureFileData.shift();
+                    }
+                    else if(workerPNGCaptureData.length === 0 && workerPNGCaptureFileData.length === 0)
+                    {
+                        clearInterval(workerPNGCaptureTimer);
+                        workerPNGCaptureTimer = 0;
+                        workerPNGCaptureFileData = null;
+                        workerPNGCaptureData = null;
+                        topBar.hintCaptureOK();
+                    }
+                },WORKER_WAIT_INTERVAL);
+            }
+        }
+
         private function saveCaptureImage(cx:Number,cy:Number,rectW:Number,rectH:Number):void
         {
             if(browseWindowON) return;
@@ -9785,8 +9885,12 @@
 
             function onSelectEvent(e:Event):void
             {
-                topBar.hintCaptureWait();
                 browseWindowON = false;
+                file1.cancel();
+                file1.removeEventListener(IOErrorEvent.IO_ERROR,onCancelEvent);
+                file1.removeEventListener(Event.CANCEL,onCancelEvent);
+                file1.removeEventListener(Event.SELECT,onSelectEvent);
+
                 var newRectangle:Rectangle = new Rectangle(cx,cy,rectW,rectH);
                 const bmpd:BitmapData = mergeCanvas(replayMode,captureTransBGON);
                 var cropData:ByteArray = bmpd.getPixels(newRectangle);
@@ -9841,54 +9945,24 @@
                 
                 if(!swapWH)
                 {
-                    workerPNGData = null;
-                    workerEncodePNG(tmpbmpd,cropbmpd.width,cropbmpd.height,0);
+                    workerPNGCaptureData = [];
+                    workerEncodePNG(tmpbmpd,cropbmpd.width,cropbmpd.height,0,true);
                 }
                 else
                 {
-                    workerPNGData = null;
-                    workerEncodePNG(tmpbmpd,cropbmpd.height,cropbmpd.width,0);
+                    workerPNGCaptureData = [];
+                    workerEncodePNG(tmpbmpd,cropbmpd.height,cropbmpd.width,0,true);
                 }
 
-                clearInterval(workerPNGTimer);
-                workerPNGTimer = setInterval(function():void
-                {
-                    if(workerPNGData !== null)
-                    {
-                        stopWorker();
-                        setSaveProgress(false);
-
-                        clearInterval(workerPNGTimer);
-                        var fName:String = file1.name;
-                        var fPath:String = e.target.nativePath;
-
-                        //마지막 경로 업데이트
-                        saveFilePath = fPath.substr(0,fPath.lastIndexOf(fName))+saveFileName;
-
-                        if(fName.lastIndexOf(".png") === -1)//png를 안붙여 줬을때
-                        {
-                            const fixedPath:String = fPath.replace(fName,""); //이름짜르고 경로만 저장
-                            const reFile:File = new File(fixedPath);
-                            const dotPNG:String = fName+".png";
-                            file1 = reFile.resolvePath(dotPNG);
-                        }
-
-                        fs.open(file1,FileMode.WRITE);
-                        fs.writeBytes(workerPNGData);
-                        fs.close();
-                        workerPNGData.clear();
-                        workerPNGData = null;
-                        file1.cancel();
-                        file1.removeEventListener(IOErrorEvent.IO_ERROR, onCancelEvent);
-                        file1.removeEventListener(Event.CANCEL, onCancelEvent);
-                        file1.removeEventListener(Event.SELECT, onSelectEvent);
-                        topBar.hintCaptureOK();
-                    }
-                },WORKER_WAIT_INTERVAL);
+                var fName:String = file1.name;
+                var fPath:String = e.target.nativePath;
+                if(workerPNGCaptureData === null) workerPNGCaptureData = [];
+                if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
+                saveCapturePNGByOrder(fName,fPath);
             }
         }
 
-        private function checkSaveFileName(saveFailed:Boolean):File
+        private function checkSaveFailedFileName(saveFailed:Boolean):File
         {
             var _path:String = saveFilePath;
             var _name:String = saveFileName;
@@ -9911,6 +9985,32 @@
             return (_name !== _path) ? new File(filePath) : File.desktopDirectory.resolvePath(fileName);
         }
 
+        private function checkNotPNGExtension(name:String,path:String):Array
+        {
+            const extArr:Array = [".2020",".jpg",".gif"];
+            var fixedPath:String;
+            var dotPNG:String;
+
+            for(var i:int=0; i<3; i++)
+            {
+                if(name.lastIndexOf(extArr[i]) !== -1)
+                {
+                    fixedPath = path.replace(name,"");
+                    dotPNG = name.substr(0,name.lastIndexOf(extArr[i]))+".png";
+                    return [fixedPath+dotPNG,dotPNG];
+                } 
+            }
+            
+            if(name.lastIndexOf(".png") === -1)
+            {
+                fixedPath = path.replace(name,"");
+                dotPNG = name+".png";
+                return [fixedPath+dotPNG,dotPNG];
+            }
+
+            return [path,name];
+        }
+
         private function saveFile(asFlag:Boolean,saveFailed:Boolean=false):void
         {
             //계속 저장하는거 방지 다른 이름으로 저장은 예외
@@ -9929,6 +10029,7 @@
             }
 
             const fs:FileStream = new FileStream();
+
             if(continueFlag)
             {
                 const normalFile:File = new File(saveFilePath);
@@ -9943,26 +10044,29 @@
                         saveOneTime = false;
                         saveFile(true,true);
                     }
+                    fs.addEventListener(IOErrorEvent.IO_ERROR,saveContinueErrorEvent);
 
+                    setSaveProgressON();
                     topBar.hintSaving();
-                    workerPNGData = null;
-                    workerEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR);
+                    workerPNGSaveData = null;
+                    workerEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR,false);
+                    saveReplayFile();
+                    updateWindowTitle();
+                    resetKeyBuffer();
 
-                    clearInterval(workerPNGTimer);
-                    workerPNGTimer = setInterval(function():void
+                    clearInterval(workerPNGSaveTimer);
+                    workerPNGSaveTimer = setInterval(function():void
                     {
-                        if(workerPNGData !== null)
+                        if(workerPNGSaveData !== null)
                         {
-                            clearInterval(workerPNGTimer);
-                            fs.addEventListener(IOErrorEvent.IO_ERROR,saveContinueErrorEvent);
+                            clearInterval(workerPNGSaveTimer);
                             fs.openAsync(normalFile,FileMode.WRITE);
-                            fs.writeBytes(workerPNGData);
+                            fs.writeBytes(workerPNGSaveData);
                             fs.close();
+                            fs.removeEventListener(IOErrorEvent.IO_ERROR,saveContinueErrorEvent);
 
-                            workerPNGData.clear();
-                            workerPNGData = null;
-                            saveReplayFile();
-                            updateWindowTitle();
+                            workerPNGSaveData.clear();
+                            workerPNGSaveData = null;
                         }
                     },WORKER_WAIT_INTERVAL);
                     saveOneTime = true;
@@ -9977,7 +10081,7 @@
             {
                 if(browseWindowON) return;
 
-                const file:File = checkSaveFileName(saveFailed);
+                const file:File = checkSaveFailedFileName(saveFailed);
                 const saveWindowTitle:String = (asFlag === true) ? "Save file As..":"Save file";
 
                 file.addEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
@@ -10012,6 +10116,7 @@
                 {
                     browseWindowON = false;
 
+                    setSaveProgressON();
                     topBar.hintSaving();
                     removeEvent();
 
@@ -10020,53 +10125,30 @@
 
                     const fName:String = file.name;
                     const fPath:String = e.target.nativePath;
-                    var f1:File = new File(fPath);
-
-                    saveFileName = fName;
-                    saveFilePath = fPath;
-
                     //확장자가 2020이거나 png일경우 무시하고 원래 이름대로 저장  img.2020.png이렇게 중복되게 저장되는거 막음
-                    if(fName.lastIndexOf(".2020") !== -1)
-                    {
-                        const fixedPath2:String = fPath.replace(fName,""); //이름짜르고 경로만 저장
-                        const newName:String = fName.substr(0,fName.lastIndexOf(".2020"));
-                        const reFile2:File = new File(fixedPath2);
-                        const dotPNG2:String = newName+".png";
+                    var newFileData:Array = checkNotPNGExtension(fName,fPath);
 
-                        f1 = reFile2.resolvePath(dotPNG2);
+                    saveFilePath = newFileData[0];
+                    saveFileName = newFileData[1];
+                    var f1:File = new File(newFileData[0]);
 
-                        saveFilePath = f1.nativePath;
-                        saveFileName = dotPNG2;
-                    }
-                    else if(fName.lastIndexOf(".png") === -1)//png를 안붙여 줬을때
-                    {
-                        const fixedPath:String = fPath.replace(fName,""); //이름짜르고 경로만 저장
-                        const reFile:File = new File(fixedPath);
-                        const dotPNG:String = fName+".png";
-
-                        f1 = reFile.resolvePath(dotPNG);
-
-                        saveFilePath = f1.nativePath;
-                        saveFileName = dotPNG;
-                    }
+                    workerPNGSaveData = null;
+                    workerEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR,false);
+                    saveReplayFile();
                     updateWindowTitle();
 
-                    workerPNGData = null;
-                    workerEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR);
-
-                    clearInterval(workerPNGTimer);
-                    workerPNGTimer = setInterval(function():void
+                    clearInterval(workerPNGSaveTimer);
+                    workerPNGSaveTimer = setInterval(function():void
                     {
-                        if(workerPNGData !== null)
+                        if(workerPNGSaveData !== null)
                         {
-                            clearInterval(workerPNGTimer);
+                            clearInterval(workerPNGSaveTimer);
                             fs.openAsync(f1,FileMode.WRITE);
-                            fs.writeBytes(workerPNGData);
+                            fs.writeBytes(workerPNGSaveData);
                             fs.close();
 
-                            workerPNGData.clear();
-                            workerPNGData = null;
-                            saveReplayFile();
+                            workerPNGSaveData.clear();
+                            workerPNGSaveData = null;
                         }
                     },WORKER_WAIT_INTERVAL);
                 }
@@ -12662,11 +12744,11 @@
                                 bmpd.copyPixelsToByteArray(newRectangle,imgData);
 
                                 //위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
+                                if(workerUndoData === null) workerUndoData = [];
+                                if(workerUndoData2 === null) workerUndoData2 = [];
                                 workerUndoData2.push([w,h,bgColor,rf.size,rFileTotalFrame]);
 
-                                if(isInSaveProgress === 0) isInSaveProgress = 1;
                                 workerCompressUndo(imgData);
-
                                 if(workerUndoDataTimer === 0)
                                 {
                                     workerUndoDataTimer = setInterval(function():void
@@ -12687,12 +12769,12 @@
                                             workerUndoData.shift();
                                             workerUndoData2.shift();
                                         }
-                                        else
+                                        else if(workerUndoData2.length === 0 && workerUndoData.length === 0)
                                         {
-                                            isInSaveProgress = 0;
-                                            workerUndoDataTimer = 0;
+                                            workerUndoData2 = null;
+                                            workerUndoData = null;
                                             clearInterval(workerUndoDataTimer);
-                                            stopWorker();
+                                            workerUndoDataTimer = 0;
                                         }
                                     },WORKER_WAIT_INTERVAL);
                                 }
@@ -13224,7 +13306,7 @@
 
         private function windowResizedBeforeClosingEvent(e:Event):void
         {
-            lastWindowState = 1
+            lastWindowState = 1;
             // saveAllData();
             stage.nativeWindow.close();
         }
