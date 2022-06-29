@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.31;
+        private const APP_VERSION:Number = 15.32;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -205,7 +205,7 @@
                     ,CUT_FRAME_SUPER_UNDO:int = (1 << 1)
                     ,CUT_FRAME_RE_RECORD:int = (1 << 2)
                     ,CUT_FRAME_DELETE_FRONT:int = (1 << 3)
-                    ,WORKER_WAIT_INTERVAL:int = 100
+                    ,WORKER_WAIT_INTERVAL:int = 500
                     ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
                     ,STRING_PLAYBACK_SPEED:String = "Play speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
@@ -8582,13 +8582,6 @@
                         }
 
                         saveAllData();
-
-                        if(isInSaveProgress === 2)
-                        {
-                            windowClosingFlag = true;
-                            isInSaveProgress = 0;
-                            stage.nativeWindow.close();
-                        }
                         return;
                     }
 
@@ -8633,6 +8626,7 @@
             topBar.setButtonAlphaONSaving(clipImageON);
             if(replayModeON) checkCutFrameButtons();
         }
+
         private function setSaveProgressON():void
         {
             if(isInSaveProgress === 0 ) isInSaveProgress = 1;
@@ -9705,8 +9699,6 @@
 
             function start(replayMode:Boolean):void
             {
-                if(isInSaveProgress) return;
-
                 if(replayMode) //리플레이 변수로 변경
                 {
                     canvasWidth = RCANVAS_WIDTH;
@@ -13419,22 +13411,6 @@
 
         private function windowClosingEvent(e:Event):void
         {
-            if(isInSaveProgress)
-            {
-                stage.nativeWindow.title = STRING_WAIT_PROCESSING_DONE;
-                isInSaveProgress = 2;
-                e.preventDefault();
-                return;
-            }
-
-            if(makeJumpImageFlag === 2)
-            {
-                isInSaveProgress = 2;
-                stage.nativeWindow.title = STRING_WAIT_PROCESSING_DONE;
-                e.preventDefault();
-                return;
-            }
-
             windowClosingFlag = true;
 
             if(replayStartON === true) stopReplay();
