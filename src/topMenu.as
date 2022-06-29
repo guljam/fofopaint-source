@@ -74,6 +74,22 @@
 		private var hintWaitAnimTimer:int = 0;
 		private var hintWaitAnimCount:int = 0;
 
+		// public function setButtonAlphaONCapture(offAlpha:Number):void
+		// {
+		// 	capRotate.alpha = 1.0;
+		// 	capFull.alpha = 1.0;
+		// 	capTrans.alpha = 1.0;
+		// 	capFlip.alpha = 1.0;
+		// }
+
+		// public function setButtonAlphaOFFCapture(offAlpha:Number):void
+		// {
+		// 	capRotate.alpha = offAlpha;
+		// 	capFull.alpha = offAlpha;
+		// 	capTrans.alpha = offAlpha;
+		// 	capFlip.alpha = offAlpha;
+		// }
+
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
 		{
 			// captureButton.alpha = 1.0;
@@ -86,10 +102,7 @@
 			reRecordingButton.alpha = 1.0;
 			superUndoButton.alpha = 1.0;
 			cutPrevDataButton.alpha = 1.0;
-			// capRotate.alpha = 1.0;
-			// capFull.alpha = 1.0;
-			// capTrans.alpha = 1.0;
-			// capFlip.alpha = 1.0;
+			
 			if(clipFlag) clipButton.alpha = 1.0;
 		}
 

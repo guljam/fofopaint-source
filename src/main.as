@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.34;
+        private const APP_VERSION:Number = 15.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -667,12 +667,18 @@
             }
         }
         
+        private function getDataState(data:*):String
+        {
+            if(data === null) return "null";
+            else return data.length+"";
+        }
+
         private function checkCanStopWorker():void
         {
             if(workerStopTimer === 0)
             {
                 workerStopTimer = setInterval(function():void
-                {   
+                {
                     if(workerDataSendCount === workerDataReceiveCount
                     && workerPNGCaptureFileData === null
                     && workerPNGSaveData === null
@@ -8658,7 +8664,7 @@
             if(topBar.saveButton.alpha === 1.0) topBar.setButtonAlphaOFFSaving(BUTTON_OFF_ALPHA);
         }
 
-        private function workerEncodePNG(bmpd:BitmapData,w:Number,h:Number,bg:uint,isCaptureImage:Boolean):void
+        private function requestEncodePNG(bmpd:BitmapData,w:Number,h:Number,bg:uint,isCaptureImage:Boolean):void
         {
             function go():void
             {
@@ -8701,7 +8707,7 @@
             }
         }
 
-        private function workerCompressReplayData(dataA:ByteArray,dataB:ByteArray,dataC:ByteArray,dataD:ByteArray):void
+        private function requestCompressReplayData(dataA:ByteArray,dataB:ByteArray,dataC:ByteArray,dataD:ByteArray):void
         {
             var count:int = 0;
             function go():void
@@ -8746,7 +8752,7 @@
                 stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
             }
         }
-        private function workerCompressUndo(data:ByteArray):void
+        private function requestCompressUndoJumpImage(data:ByteArray):void
         {
             function go():void
             {
@@ -8904,7 +8910,7 @@
 
                 //쓰레드로 압축 해줌
                 workerReplayData = [];
-                workerCompressReplayData(rImgData,lastImgData,traceImgData,replayDataBytes);
+                requestCompressReplayData(rImgData,lastImgData,traceImgData,replayDataBytes);
 
                 clearInterval(workerReplayTimer);
                 workerReplayTimer = setInterval(function():void
@@ -9833,26 +9839,32 @@
                 {
                     if(workerPNGCaptureData.length > 0)
                     {
-                        const fileName:String = workerPNGCaptureFileData[0][0];
-                        const filePath:String = workerPNGCaptureFileData[0][1];
-
-                        //마지막 경로 업데이트
-                        saveFilePath = filePath.substr(0,filePath.lastIndexOf(fileName))+saveFileName;
-
-                        const fs:FileStream = new FileStream();
-                        var file:File = new File(filePath);
-                        if(fileName.lastIndexOf(".png") === -1)//png를 안붙여 줬을때
+                        var len:int = workerPNGCaptureData.length;
+                        for(var i:int=0; i<len; i++)
                         {
-                            const fixedPath:String = filePath.replace(fileName,""); //이름짜르고 경로만 저장
-                            const dotPNG:String = fileName+".png";
-                            file = new File(fixedPath+dotPNG);
-                        }
+                            const fileName:String = workerPNGCaptureFileData[i][0];
+                            const filePath:String = workerPNGCaptureFileData[i][1];
 
-                        fs.open(file,FileMode.WRITE);
-                        fs.writeBytes(workerPNGCaptureData[0]);
-                        fs.close();
-                        workerPNGCaptureData.shift();
-                        workerPNGCaptureFileData.shift();
+                            //마지막 경로 업데이트
+                            saveFilePath = filePath.substr(0,filePath.lastIndexOf(fileName))+saveFileName;
+
+                            const fs:FileStream = new FileStream();
+                            var file:File = new File(filePath);
+                            if(fileName.lastIndexOf(".png") === -1)//png를 안붙여 줬을때
+                            {
+                                const fixedPath:String = filePath.replace(fileName,""); //이름짜르고 경로만 저장
+                                const dotPNG:String = fileName+".png";
+                                file = new File(fixedPath+dotPNG);
+                            }
+
+                            fs.open(file,FileMode.WRITE);
+                            fs.writeBytes(workerPNGCaptureData[i]);
+                            fs.close();
+                            workerPNGCaptureData.shift();
+                            workerPNGCaptureFileData.shift();
+                            --i;
+                            --len;
+                        }
                     }
                     else if(workerPNGCaptureData.length === 0 && workerPNGCaptureFileData.length === 0)
                     {
@@ -9960,21 +9972,15 @@
                 if(swapWH) tmpbmpd = new BitmapData(cropbmpd.height,cropbmpd.width,true,0);
                 tmpbmpd.draw(cropbmpd,mat);
                 
-                if(!swapWH)
-                {
-                    workerPNGCaptureData = [];
-                    workerEncodePNG(tmpbmpd,cropbmpd.width,cropbmpd.height,0,true);
-                }
-                else
-                {
-                    workerPNGCaptureData = [];
-                    workerEncodePNG(tmpbmpd,cropbmpd.height,cropbmpd.width,0,true);
-                }
+                if(workerPNGCaptureData === null) workerPNGCaptureData = [];
+                if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
+
+                if(!swapWH) requestEncodePNG(tmpbmpd,cropbmpd.width,cropbmpd.height,0,true);
+                else requestEncodePNG(tmpbmpd,cropbmpd.height,cropbmpd.width,0,true);
 
                 var fName:String = file1.name;
                 var fPath:String = e.target.nativePath;
-                if(workerPNGCaptureData === null) workerPNGCaptureData = [];
-                if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
+
                 saveCapturePNGByOrder(fName,fPath);
             }
         }
@@ -10066,7 +10072,7 @@
                     setSaveProgressON();
                     topBar.hintSaving();
                     workerPNGSaveData = null;
-                    workerEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR,false);
+                    requestEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR,false);
                     saveReplayFile();
                     updateWindowTitle();
                     resetKeyBuffer();
@@ -10150,7 +10156,7 @@
                     var f1:File = new File(newFileData[0]);
 
                     workerPNGSaveData = null;
-                    workerEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR,false);
+                    requestEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR,false);
                     saveReplayFile();
                     updateWindowTitle();
 
@@ -12766,7 +12772,7 @@
                                 if(workerUndoData2 === null) workerUndoData2 = [];
                                 workerUndoData2.push([w,h,bgColor,rf.size,rFileTotalFrame]);
 
-                                workerCompressUndo(imgData);
+                                requestCompressUndoJumpImage(imgData);
                                 if(workerUndoDataTimer === 0)
                                 {
                                     workerUndoDataTimer = setInterval(function():void
