@@ -374,8 +374,8 @@
                     ,toolTipBoxTimer:uint = 0
 
         //리플레이 관련 변수
-        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1481")
-                    ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata1481")
+        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1540")
+                    ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata1540")
                     ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata")
                     ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("repdatatmp") //파일을 저장하거나 불러올때 씀
                     ,rJumpImageFolder:File = File.applicationStorageDirectory.resolvePath("imagecache")
@@ -631,11 +631,35 @@
             startRealWorkingTimer();
             stageMouseMoveEvent.start();
             checkVersion();
+            deleteOldAppData();
             setIMEDisabled();
             selectPenTool();
         }
         
         //functions 
+
+        //앱파일이나 undo파일이 업데이트 될때 이전버전파일을 지워줌
+        private function deleteOldAppData():void
+        {
+            const list:Array = File.applicationStorageDirectory.getDirectoryListing();
+            const len:int = list.length;
+            const version:String = String(APP_VERSION*100);
+            var filename:String;
+
+            for (var i:int=0; i<len; i++)
+            {
+                filename = list[i].name;
+                if(filename.indexOf("appdata") !== -1 && filename !== "appdata"+version)
+                {
+                    list[i].deleteFile();
+                }
+                else if(filename.indexOf("undodata") !== -1 && filename !== "undodata"+version)
+                {
+                    list[i].deleteFile();
+                }
+            }
+        }
+
         private function closeAppForce():void
         {
             isInSaveProgress = 0;
@@ -8583,8 +8607,6 @@
                             removeInputEventDrawMode();
                             addInputEventReplayMode();
                         }
-
-                        saveAllData();
                         return;
                     }
 
@@ -13315,7 +13337,6 @@
         private function windowResizedBeforeClosingEvent(e:Event):void
         {
             lastWindowState = 1;
-            // saveAllData();
             stage.nativeWindow.close();
         }
 
@@ -14573,7 +14594,6 @@
         private function setMakeJumpImage():void
         {
             makeJumpImageFlag = 2;
-            saveAllData(); //만드는 도중에 앱이 종료될수 있어서 미리 저장해줌
             if(makeSKipImageWaitTimer === 0)
             {
                 makeSKipImageWaitTimer = setTimeout(function():void
