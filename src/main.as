@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.35;
+        private const APP_VERSION:Number = 15.36;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -8664,7 +8664,7 @@
             if(topBar.saveButton.alpha === 1.0) topBar.setButtonAlphaOFFSaving(BUTTON_OFF_ALPHA);
         }
 
-        private function requestEncodePNG(bmpd:BitmapData,w:Number,h:Number,bg:uint,isCaptureImage:Boolean):void
+        private function requestEncodePNG(bmpd:BitmapData,bg:uint,isCaptureImage:Boolean):void
         {
             function go():void
             {
@@ -8677,9 +8677,11 @@
                                 ,bmpd.height
                                 ,bg];
                 mainToBack.send(arr);
+                bmpd.dispose();
                 ba.clear();
                 ba = null;
                 arr = null;
+                bmpd = null;
             }
 
             if(workerStopTimer > 0)
@@ -9975,8 +9977,8 @@
                 if(workerPNGCaptureData === null) workerPNGCaptureData = [];
                 if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
 
-                if(!swapWH) requestEncodePNG(tmpbmpd,cropbmpd.width,cropbmpd.height,0,true);
-                else requestEncodePNG(tmpbmpd,cropbmpd.height,cropbmpd.width,0,true);
+                if(!swapWH) requestEncodePNG(tmpbmpd,0,true);
+                else requestEncodePNG(tmpbmpd,0,true);
 
                 var fName:String = file1.name;
                 var fPath:String = e.target.nativePath;
@@ -10072,7 +10074,7 @@
                     setSaveProgressON();
                     topBar.hintSaving();
                     workerPNGSaveData = null;
-                    requestEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR,false);
+                    requestEncodePNG(canvas1BitmapData.clone(),CANVAS_BG_COLOR,false);
                     saveReplayFile();
                     updateWindowTitle();
                     resetKeyBuffer();
@@ -10156,7 +10158,7 @@
                     var f1:File = new File(newFileData[0]);
 
                     workerPNGSaveData = null;
-                    requestEncodePNG(canvas1BitmapData,canvas1BitmapData.width,canvas1BitmapData.height,CANVAS_BG_COLOR,false);
+                    requestEncodePNG(canvas1BitmapData.clone(),CANVAS_BG_COLOR,false);
                     saveReplayFile();
                     updateWindowTitle();
 
