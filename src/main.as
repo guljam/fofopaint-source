@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.33;
+        private const APP_VERSION:Number = 15.34;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -1339,6 +1339,7 @@
             const floor:Function = Math.floor;
             const cd:Shape = canvas2Draw;
             const cdg:Graphics = cd.graphics;
+            const lastMousePos:Point = new Point(0,0);
             
             var clickedButton:String;
             var command:Vector.<int>;
@@ -1414,7 +1415,7 @@
                 setFillpenUI(false);
                 command.length = 0;
                 data.length = 0;
-                commandUndoIndexArr.length = 0;
+                commandUndoIndexArr = [];
                 cd.graphics.clear();
 
                 if(traceMenuON) traceMenuBox.visible = true;
@@ -1483,6 +1484,42 @@
                 }
             }
 
+            function mouseupFillPen(e:MouseEvent):void
+            {
+                clearTimeout(timer);
+                timer = 0;
+                mouseDragON = false;
+                mouseClickON = false;
+                stageMouseMoveEvent.remove(fillPenMouseMoveEvent);
+
+                const targetName:String = e.target.name;
+
+                if(clickedButton === targetName)
+                {
+                    if(targetName === "fillPenOK")endFillPenOK();
+                    else if(targetName === "fillPenCancel")cancelFillPen();
+                    else if(targetName === "fillPenUndo")undoData();
+                }
+                else
+                {
+                    const now:Point = new Point(mouseX,mouseY);
+                    const dist:Number = floor(Point.distance(now,lastMousePos));
+                    mouseMoveCount += dist;
+                    if(mouseMoveCount >= 30)
+                    {
+                        mouseMoveCount = 0;
+                        commandUndoIndexArr.push(command.length-1);
+                    }
+                    lastMousePos.setTo(now.x,now.y);
+
+                    if(afterKeyUpOK) endFillPenOK();
+                    else if(mouseMoved) drawPreviewLine();
+                }
+
+                afterKeyUpOK = false;
+                mouseMoved = false;
+            }
+
             function fillPenMouseMoveEvent(e:MouseEvent):void
             {
                 if(readyAddUndo === false) _checkUndoReady();
@@ -1514,12 +1551,14 @@
                     data.push(cdx);
                     data.push(cdy);
                 }
+
                 mouseMoveCount++;
-                if(mouseMoveCount > 50)
+                if(mouseMoveCount >= 30)
                 {
                     mouseMoveCount = 0;
                     commandUndoIndexArr.push(command.length-1);
                 }
+                lastMousePos.setTo(mouseX,mouseY);
 
                 if(timer === 0)
                 {
@@ -1583,36 +1622,6 @@
                 }
             }
 
-            function mouseupFillPen(e:MouseEvent):void
-            {
-                clearTimeout(timer);
-                timer = 0;
-                mouseMoveCount = 0;
-                mouseDragON = false;
-                mouseClickON = false;
-                stageMouseMoveEvent.remove(fillPenMouseMoveEvent);
-
-                const targetName:String = e.target.name;
-
-                if(clickedButton === targetName)
-                {
-                    if(targetName === "fillPenOK")endFillPenOK();
-                    else if(targetName === "fillPenCancel")cancelFillPen();
-                    else if(targetName === "fillPenUndo")undoData();
-                }
-                else
-                {
-                    commandUndoIndexArr.push(command.length-1);
-
-                    if(afterKeyUpOK) endFillPenOK();
-                    else if(mouseMoved) drawPreviewLine();
-                }
-
-                afterKeyUpOK = false;
-                mouseMoved = false;
-            }
-
-            
             function removeEvents():void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownFillPen);
@@ -1660,6 +1669,8 @@
                 setFillpenUI(true);
                 if(readyAddUndo === false) _checkUndoReady();
                 canvas2.alpha = 1.0;
+
+                lastMousePos.setTo(mouseX,mouseY);
 
                 addEvents();
             }
