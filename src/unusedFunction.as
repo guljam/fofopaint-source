@@ -3442,5 +3442,37 @@ private function setLassoTool():void
             startGCCycle();
         }
 
-     
+             // private function drawArcDashedLine(g:Graphics,radius:Number):void
+        // {
+        //     const div:Number = radius*2;
+        //     const divAngle:Number = 360/div;
+        //     const len:Number = div;
+
+        //     for(var i:Number=0; i<len; i+=2)
+        //         drawArc(g,0,0,0,radius,divAngle*i,divAngle*(i+1),1);
+
+        //     for(i=1; i<=len; i+=2)
+        //         drawArc(g,0xFFFFFF,0,0,radius,divAngle*i,divAngle*(i+1),1);
+        // }
+
+        // private function drawArc(g:Graphics,color:uint,
+        // cx:Number,cy:Number,radius:Number
+        // ,angleFrom:Number,angleTo:Number,precision:Number):void
+        // {
+		// 	var angle_diff:Number = angleTo-angleFrom;
+		// 	var steps:Number = Math.round(angle_diff*precision);
+		// 	var angle:Number = angleFrom;
+		// 	var px:Number = cx+radius*Math.cos(angle*0.0174532925);
+		// 	var py:Number = cy+radius*Math.sin(angle*0.0174532925);
+            
+        //     g.lineStyle(1,color);
+		// 	g.moveTo(px,py);
+
+		// 	for (var i:int=1; i<=steps; i++)
+        //     {
+		// 		angle=angleFrom+angle_diff/steps*i;
+		// 		g.lineTo(cx+radius*Math.cos(angle*0.0174532925),cy+radius*Math.sin(angle*0.0174532925));
+		// 	}
+		// }
+
 } */

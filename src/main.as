@@ -637,8 +637,6 @@
         }
         
         //functions 
-
-        //앱파일이나 undo파일이 업데이트 될때 이전버전파일을 지워줌
         private function deleteOldAppData():void
         {
             const list:Array = File.applicationStorageDirectory.getDirectoryListing();
@@ -10602,9 +10600,6 @@
                     pg.lineStyle(1,0);
                     pg.drawRect(sqStart1,sqStart1,sqWidth1,sqWidth1);
                 }
-
-                // _penSizeCursor.x = mouseX;
-                // _penSizeCursor.y = mouseY;
             };
         }
 
