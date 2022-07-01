@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.41;
+        private const APP_VERSION:Number = 15.42;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -3411,8 +3411,8 @@
             if(!canvasTraceBitmap.bitmapData) return;
             
             const bmpd:BitmapData = canvasTraceBitmap.bitmapData;//실제 보여주는 데이터를 저장해줌
-            const w:int = canvasTraceBitmap.width;
-            const h:int = canvasTraceBitmap.height;
+            const w:Number = canvasTraceBitmap.width;
+            const h:Number = canvasTraceBitmap.height;
             const fs:FileStream = new FileStream();
             var ba:ByteArray = new ByteArray;
             const newRectangle:Rectangle = new Rectangle(0,0,w,h);
@@ -6201,8 +6201,8 @@
         {
             const fs:FileStream = new FileStream();
             var ba:ByteArray = new ByteArray;
-            const w:int = bmpd.width;
-            const h:int = bmpd.height;
+            const w:Number = bmpd.width;
+            const h:Number = bmpd.height;
             const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
             rJumpImageFrameData = [0];
@@ -8548,28 +8548,25 @@
         private function makeJumpImage():void //loadrep
         {
             const fs:FileStream = new FileStream();
-            const fs2:FileStream = new FileStream();
             const cd2:Graphics = rcanvas2Draw.graphics;
-            const rf:File = repFile;
-            const totalSize:Number = rf.size;
+            const totalSize:Number = repFile.size;
             const _IMG_CACHE_INTERVAL:uint = IMG_CACHE_INTERVAL;
             const replayInfoText:TextField = replayTimeBox["frameInfo"];
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
             var _rJumpImageCount:uint = 0;
+            var _tickDraw:Object = tickDraw;
+            var data:Array;
 
+            rregPoint.visible = false;
             undoData.resetRJumpImageCount();
             clearCanvasReplayMode();//일단 리플레이 캔버스 먼저 깨끗하게
             rcanvas1BitmapData = rFirstImage.clone(); 
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
             changeCanvasSizeReplayMode(rcanvas1BitmapData.width,rcanvas1BitmapData.height); //크기도 바꿔주고
-            fs.open(rf,FileMode.READ);
-            fs.position = 0;
 
-            rregPoint.visible = false;
-        
-            const _tickDraw:Object = tickDraw;
-            var data:Array;
+            fs.open(repFile,FileMode.READ);
+            fs.position = 0;
             
             function onFrameEnter(e:Event):void
             {
@@ -8579,9 +8576,11 @@
 
                     if(namojiBytes === 0)
                     {
-                        _tickDraw.reset();
                         stage.removeEventListener(Event.ENTER_FRAME,onFrameEnter);
+                        _tickDraw.reset();
                         fs.close();
+                        data = [];
+                        _tickDraw = [];
                         undoData.setRFileTotalFrame(_frameSum);
                         makeJumpImageFlag = 0;
                         rregPoint.visible = true;
@@ -8609,12 +8608,10 @@
                     }
 
                     data = fs.readObject() as Array;
-                    const dlen:Number = data.length;
-
                     _tickDraw.ready(data);
                     _frameSumLast = _frameSum;
-                    _frameSum += dlen;
-                    _rJumpImageCount += dlen;
+                    _frameSum += data.length;
+                    _rJumpImageCount += data.length;
                     _tickDraw.drawAll();
 
                     if(_rJumpImageCount > _IMG_CACHE_INTERVAL)
@@ -8629,6 +8626,7 @@
 
                         rcanvas1BitmapData.copyPixelsToByteArray(new Rectangle(0,0,w,h),imgData);
                         imgData.compress();
+                        const fs2:FileStream = new FileStream();
                         fs2.open(jumpimg,FileMode.WRITE);
                         fs2.writeObject([imgData,w,h,rBGColorSave,fs.position,_frameSum]);//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
                         fs2.close();
@@ -8690,7 +8688,7 @@
                     if(worker.state === "running")
                     {
                         count++;
-                        if(count >= 30)
+                        if(count >= 10)
                         {
                             stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
                             go();
@@ -8736,7 +8734,7 @@
                     if(worker.state === "running")
                     {
                         count++;
-                        if(count >= 30)
+                        if(count >= 10)
                         {
                             stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
                             go();
@@ -8771,7 +8769,7 @@
                     if(worker.state === "running")
                     {
                         count++;
-                        if(count >= 30)
+                        if(count >= 10)
                         {
                             stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
                             go();
@@ -8870,8 +8868,8 @@
             {
                 const fs:FileStream = new FileStream();
                 const rImgData:ByteArray = new ByteArray();
-                const rImgDataW:int = rFirstImage.width;
-                const rImgDataH:int = rFirstImage.height;
+                const rImgDataW:Number = rFirstImage.width;
+                const rImgDataH:Number = rFirstImage.height;
                 const lastImgData:ByteArray = new ByteArray();
                 const traceImgData:ByteArray = new ByteArray();
   
@@ -12785,11 +12783,11 @@
                                             const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+"");
                                             fs.open(jumpimg,FileMode.WRITE);
                                             fs.writeObject([workerUndoData[0]
-                                                        ,undo2FirstData[0]
-                                                        ,undo2FirstData[1]
-                                                        ,undo2FirstData[2]
-                                                        ,undo2FirstData[3]
-                                                        ,undo2FirstData[4]]);//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
+                                                           ,undo2FirstData[0]
+                                                           ,undo2FirstData[1]
+                                                           ,undo2FirstData[2]
+                                                           ,undo2FirstData[3]
+                                                           ,undo2FirstData[4]]);//이미지 데이터,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
                                             fs.close();
                                             workerUndoData.shift();
                                             workerUndoData2.shift();
