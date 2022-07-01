@@ -228,52 +228,6 @@
 			},3000);
 		}
 
-		public function hintCaptureWait():void
-		{
-			clearTimeout(hintTimer);
-			clearTimeout(hintTimer2);
-			isHintLocked = false;
-			const savingStr:String = "Saving image..";
-			hint(savingStr,replayModeButton);
-			setHintColor("yellow");
-			isHintLocked = true;
-		}
-
-		public function hintCaptureOK():void
-		{
-			clearTimeout(hintTimer);
-			clearTimeout(hintTimer2);
-			clearInterval(hintWaitAnimTimer);
-			isHintLocked = false;
-			hint("Image saved successfully",replayModeButton,true);
-			setHintColor("green");
-			isHintLocked = true;
-			hintTimeOFFWithColor();
-		}
-
-		public function hintSaving():void
-		{
-			clearTimeout(hintTimer);
-			clearTimeout(hintTimer2);
-			isHintLocked = false;
-			const savingStr:String = "Saving image and replay file..";
-			hint(savingStr,replayModeButton);
-			setHintColor("yellow");
-			isHintLocked = true;
-		}
-
-		public function hintSaveOK():void
-		{
-			clearTimeout(hintTimer);
-			clearTimeout(hintTimer2);
-			clearInterval(hintWaitAnimTimer);
-			isHintLocked = false;
-			hint("File saved successfully",replayModeButton,true);
-			setHintColor("green");
-			isHintLocked = true;
-			hintTimeOFFWithColor();
-		}
-
 		public function hintLoadError():void
 		{
 			clearTimeout(hintTimer);

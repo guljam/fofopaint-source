@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.42;
+        private const APP_VERSION:Number = 15.43;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -192,24 +192,27 @@
                             ,0,-1,0
                         ],3]
                     ]
+                    ,KEY_REPEAT_DELAY:Number = 300
+                    ,KEY_REPEAT_INTERVAL:Number = 60
                     ,COMMAND_CTRL:int = (1 << 0)
                     ,COMMAND_SHIFT:int = (1 << 1)
                     ,COMMAND_CTRL_SHIFT:int = (1 << 2)
-                    ,KEY_REPEAT_DELAY:Number = 300
-                    ,KEY_REPEAT_INTERVAL:Number = 60
                     ,LASSO_1PX_MOVE_UP:int= (1 << 0)
                     ,LASSO_1PX_MOVE_DOWN:int = (1 << 1)
                     ,LASSO_1PX_MOVE_LEFT:int = (1 << 2)
                     ,LASSO_1PX_MOVE_RIGHT:int = (1 << 3)
-                    ,CUT_FRAME_NONE:int = (1 << 0)
-                    ,CUT_FRAME_SUPER_UNDO:int = (1 << 1)
-                    ,CUT_FRAME_RE_RECORD:int = (1 << 2)
-                    ,CUT_FRAME_DELETE_FRONT:int = (1 << 3)
+                    ,CUT_FRAME_NONE:int = 0
+                    ,CUT_FRAME_SUPER_UNDO:int = (1 << 0)
+                    ,CUT_FRAME_RE_RECORD:int = (1 << 1)
+                    ,CUT_FRAME_DELETE_FRONT:int = (1 << 2)
                     ,WORKER_WAIT_INTERVAL:int = 500
                     ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
                     ,STRING_PLAYBACK_SPEED:String = "Play speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
+                    ,WORKER_STATE_STOPPED:int = 0
+                    ,WORKER_STATE_INIT:int = (1 << 0)
+                    ,WORKER_STATE_RUNNING:int = (1 << 1)
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -566,7 +569,7 @@
                     ,workerStopTimer:int = 0
                     ,workerDataSendCount:int = 0
                     ,workerDataReceiveCount:int = 0
-                    ,workerStarted:Boolean = false
+                    ,workerState:int = WORKER_STATE_STOPPED
 
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
@@ -692,40 +695,37 @@
 
         private function checkCanStopWorker():void
         {
-            if(workerStopTimer === 0)
+            workerStopTimer = setInterval(function():void
             {
-                workerStopTimer = setInterval(function():void
+                if(workerDataSendCount === workerDataReceiveCount
+                && workerPNGCaptureFileData === null
+                && workerPNGSaveData === null
+                && workerReplayData === null
+                && workerUndoData2 === null)
                 {
-                    if(workerDataSendCount === workerDataReceiveCount
-                    && workerPNGCaptureFileData === null
-                    && workerPNGSaveData === null
-                    && workerReplayData === null
-                    && workerUndoData2 === null)
-                    {
-                        clearInterval(workerStopTimer);
-                        workerStopTimer = 0;
-                        
-                        workerStarted = false;
-                        workerDataSendCount = 0;
-                        workerDataReceiveCount = 0;
-                        worker.terminate();
+                    clearInterval(workerStopTimer);
+                    workerStopTimer = 0;
+                    
+                    workerState = WORKER_STATE_STOPPED;
+                    workerDataSendCount = 0;
+                    workerDataReceiveCount = 0;
+                    worker.terminate();
 
-                        if(isInSaveProgress === 2)
-                        {
-                            windowClosingFlag = true;
-                            isInSaveProgress = 0;
-                            stage.nativeWindow.close();
-                        }
+                    if(isInSaveProgress === 2)
+                    {
+                        windowClosingFlag = true;
+                        isInSaveProgress = 0;
+                        stage.nativeWindow.close();
                     }
-                },WORKER_WAIT_INTERVAL);
-            }
+                }
+            },WORKER_WAIT_INTERVAL);
         }
 
         private function startWorker():void
         {
-            if(workerStarted === false)
+            if(workerState === WORKER_STATE_STOPPED)
             {
-                workerStarted = true;
+                workerState = WORKER_STATE_INIT;
                 worker = WorkerDomain.current.createWorker(workerSWF,true);
                 mainToBack = Worker.current.createMessageChannel(worker);
                 backToMain = worker.createMessageChannel(Worker.current);
@@ -8654,9 +8654,37 @@
             if(topBar.saveButton.alpha === 1.0) topBar.setButtonAlphaOFFSaving(BUTTON_OFF_ALPHA);
         }
 
-        private function requestEncodePNG(bmpd:BitmapData,bg:uint,isCaptureImage:Boolean):void
+        private function setStartWoker(func:Function):void
         {
-            function go():void
+            if(workerState === WORKER_STATE_RUNNING)
+            {
+                func();
+            }
+            else
+            {
+                startWorker();
+                var count:int = 0;
+
+                function waitWorkerReady(e:Event):void
+                {
+                    if(worker.state === "running")
+                    {
+                        count++;
+                        if(count >= 10)
+                        {
+                            workerState = WORKER_STATE_RUNNING;
+                            stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
+                            func();
+                        }
+                    }
+                }
+                stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
+            }
+        }
+
+        private function callWorkerEncodePNG(bmpd:BitmapData,bg:uint,isCaptureImage:Boolean):void
+        {
+            setStartWoker(function():void
             {
                 workerDataSendCount++;
                 var ba:ByteArray = new ByteArray();
@@ -8672,37 +8700,12 @@
                 ba = null;
                 arr = null;
                 bmpd = null;
-            }
-
-            if(workerStopTimer > 0)
-            {
-                go();
-            }
-            else
-            {
-                startWorker();
-                var count:int = 0;
-
-                function waitWorkerReady(e:Event):void
-                {
-                    if(worker.state === "running")
-                    {
-                        count++;
-                        if(count >= 10)
-                        {
-                            stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
-                            go();
-                        }
-                    }
-                }
-                stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
-            }
+            });
         }
 
-        private function requestCompressReplayData(dataA:ByteArray,dataB:ByteArray,dataC:ByteArray,dataD:ByteArray):void
+        private function callWorkerCompressReplayData(dataA:ByteArray,dataB:ByteArray,dataC:ByteArray,dataD:ByteArray):void
         {
-            var count:int = 0;
-            function go():void
+            setStartWoker(function():void
             {
                 workerDataSendCount++;
                 var arr:Array = ["compress_ReplayData"
@@ -8720,33 +8723,11 @@
                 dataC = null;
                 dataD = null;
                 arr = null;
-            }
-
-            if(workerStopTimer > 0)
-            {
-                go();
-            }
-            else
-            {
-                startWorker();
-                function waitWorkerReady(e:Event):void
-                {
-                    if(worker.state === "running")
-                    {
-                        count++;
-                        if(count >= 10)
-                        {
-                            stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
-                            go();
-                        }
-                    }
-                }
-                stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
-            }
+            });
         }
-        private function requestCompressUndoJumpImage(data:ByteArray):void
+        private function callWorkerCompressUndoJumpImage(data:ByteArray):void
         {
-            function go():void
+            setStartWoker(function():void
             {
                 workerDataSendCount++;
                 var arr:Array = ["compress_UndoData",data];
@@ -8754,30 +8735,7 @@
                 data.clear();
                 data = null;
                 arr = null;
-            }
-
-            if(workerStopTimer > 0)
-            {
-                go();
-            }
-            else
-            {
-                startWorker();
-                var count:int = 0;
-                function waitWorkerReady(e:Event):void
-                {
-                    if(worker.state === "running")
-                    {
-                        count++;
-                        if(count >= 10)
-                        {
-                            stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
-                            go();
-                        }
-                    }
-                }
-                stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
-            }
+            });
         }
 
         private function writeReplayFile(arr:Array):void
@@ -8845,7 +8803,6 @@
             dataB = null;
             dataC = null;
             dataD = null;
-            topBar.hintSaveOK();
             try
             {
                 repFileTemp.moveTo(copyFile,true);
@@ -8902,7 +8859,7 @@
 
                 //쓰레드로 압축 해줌
                 workerReplayData = [];
-                requestCompressReplayData(rImgData,lastImgData,traceImgData,replayDataBytes);
+                callWorkerCompressReplayData(rImgData,lastImgData,traceImgData,replayDataBytes);
 
                 clearInterval(workerReplayTimer);
                 workerReplayTimer = setInterval(function():void
@@ -9826,7 +9783,6 @@
             workerPNGCaptureFileData.push([saveName,savePath]);
             if(workerPNGCaptureTimer === 0)
             {
-                topBar.hintCaptureWait();
                 workerPNGCaptureTimer = setInterval(function():void
                 {
                     if(workerPNGCaptureData.length > 0)
@@ -9864,7 +9820,6 @@
                         workerPNGCaptureTimer = 0;
                         workerPNGCaptureFileData = null;
                         workerPNGCaptureData = null;
-                        topBar.hintCaptureOK();
                     }
                 },WORKER_WAIT_INTERVAL);
             }
@@ -9967,8 +9922,8 @@
                 if(workerPNGCaptureData === null) workerPNGCaptureData = [];
                 if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
 
-                if(!swapWH) requestEncodePNG(tmpbmpd,0,true);
-                else requestEncodePNG(tmpbmpd,0,true);
+                if(!swapWH) callWorkerEncodePNG(tmpbmpd,0,true);
+                else callWorkerEncodePNG(tmpbmpd,0,true);
 
                 var fName:String = file1.name;
                 var fPath:String = e.target.nativePath;
@@ -10062,9 +10017,8 @@
                     fs.addEventListener(IOErrorEvent.IO_ERROR,saveContinueErrorEvent);
 
                     setSaveProgressON();
-                    topBar.hintSaving();
                     workerPNGSaveData = null;
-                    requestEncodePNG(canvas1BitmapData.clone(),CANVAS_BG_COLOR,false);
+                    callWorkerEncodePNG(canvas1BitmapData.clone(),CANVAS_BG_COLOR,false);
                     saveReplayFile();
                     updateWindowTitle();
                     resetKeyBuffer();
@@ -10132,7 +10086,6 @@
                     browseWindowON = false;
 
                     setSaveProgressON();
-                    topBar.hintSaving();
                     removeEvent();
 
                     saveOneTime = true;
@@ -10148,7 +10101,7 @@
                     var f1:File = new File(newFileData[0]);
 
                     workerPNGSaveData = null;
-                    requestEncodePNG(canvas1BitmapData.clone(),CANVAS_BG_COLOR,false);
+                    callWorkerEncodePNG(canvas1BitmapData.clone(),CANVAS_BG_COLOR,false);
                     saveReplayFile();
                     updateWindowTitle();
 
@@ -12771,7 +12724,7 @@
                                 if(workerUndoData2 === null) workerUndoData2 = [];
                                 workerUndoData2.push([w,h,bgColor,rf.size,rFileTotalFrame]);
 
-                                requestCompressUndoJumpImage(imgData);
+                                callWorkerCompressUndoJumpImage(imgData);
                                 if(workerUndoDataTimer === 0)
                                 {
                                     workerUndoDataTimer = setInterval(function():void
