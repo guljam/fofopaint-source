@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.43;
+        private const APP_VERSION:Number = 15.44;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -661,13 +661,6 @@
             }
         }
 
-        private function closeAppForce():void
-        {
-            isInSaveProgress = 0;
-            makeJumpImageFlag = 0;
-            stage.nativeWindow.close();
-        }
-
         private function onFromWorker(e:Event):void
         {
             var msg:* = backToMain.receive();
@@ -685,12 +678,6 @@
 
                 if(workerStopTimer === 0) checkCanStopWorker();
             }
-        }
-        
-        private function getDataState(data:*):String
-        {
-            if(data === null) return "null";
-            else return data.length+"";
         }
 
         private function checkCanStopWorker():void
@@ -1234,9 +1221,15 @@
                 }
 
                 if(isRightSidebar)
+                {
                     STAGE_RIGHT_OFFSET = sideBar.w;
+                    STAGE_LEFT_OFFSET = 0;
+                }
                 else
+                {
+                    STAGE_RIGHT_OFFSET = 0;
                     STAGE_LEFT_OFFSET = sideBar.w;
+                }
 
                 sideBar.visible = true;
             }
@@ -1245,8 +1238,8 @@
                 // sideBar.visible = false;
                 sideBar.setTempVisibleOFF(isRightSidebar);
 
-                STAGE_RIGHT_OFFSET = 0;
-                STAGE_LEFT_OFFSET = 0;
+                if(isRightSidebar) STAGE_RIGHT_OFFSET = 0;
+                else STAGE_LEFT_OFFSET = 0;
 
                 tb.sideBarPositionButton.alpha = BUTTON_OFF_ALPHA;
                 tb.sideBarPositionButton2.alpha = BUTTON_OFF_ALPHA;
