@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.44;
+        private const APP_VERSION:Number = 15.45;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -5909,6 +5909,11 @@
                         drawRemainReplayData();
                         checkCutFrameButtons();
                     }
+                    if(rNowFrame >= TOTAL_FRAME)
+                    {
+                        resetCutFrameClickCounter();
+                        return;
+                    }
                 }
 
                 setCutFrameRedBar(flag);
@@ -11712,6 +11717,7 @@
             return function():void
             {
                 if(lassoToolON === true) return;
+                lassoMenu.lassoInfo.text = "Lasso tool";
 
                 timer = 0;
                 canvas2FilterBackUp = canvas2Draw.filters.concat();
@@ -11744,6 +11750,7 @@
         private function RGBAtoRGB(bgColor:uint,a:Number,color:uint):uint
         {
             var c:Vector.<uint> = HEXtoRGB(color);
+
             const _bg:Vector.<uint> = HEXtoRGB(bgColor);
             const r:uint = c[0];
             const g:uint = c[1];

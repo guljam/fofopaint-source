@@ -30,14 +30,16 @@
 
 		public function changeUIColor(arr:Array):void
 		{
-			const leftButtonArr:Array =
-				[
-					lassoOK,
-					lassoCancel
-				];
+			// const leftButtonArr:Array =
+			// 	[
+			// 		lassoOK,
+			// 		lassoCancel
+			// 	];
 
 			const leftButtonArr2:Array =
 				[
+					lassoOK,
+					lassoCancel,
 					lassoCHand,
 					lassoCZoom,
 					lassoCRotate,
@@ -68,20 +70,21 @@
 			activeIconColor.color = arr[5];
 
 			var i:uint = 0;
-			var len:uint = leftButtonArr.length;
+			var len:uint = leftButtonArr2.length;
 			var btn:SimpleButton;
 			var btnUp:DisplayObject;
 			var btnOver:DisplayObjectContainer;
 
-			for (i = 0; i < len; i++)
-			{
-				btn = leftButtonArr[i];
-				btnOver = btn.overState as DisplayObjectContainer;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
-				btn.downState = btn.overState;
-			}
+			// for (i = 0; i < len; i++)
+			// {
+			// 	btn = leftButtonArr[i];
+			// 	btnOver = btn.overState as DisplayObjectContainer;
+			// 	btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
+			// 	btnOver.getChildAt(1).transform.colorTransform = activeIconColor;
+			// 	btn.downState = btn.overState;
+			// }
 
-			len = leftButtonArr2.length;
+			// len = leftButtonArr2.length;
 
 			for (i = 0; i < len; i++)
 			{
