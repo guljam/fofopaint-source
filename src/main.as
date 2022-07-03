@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.47;
+        private const APP_VERSION:Number = 15.48;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -9718,7 +9718,7 @@
 
         private function getRandomString():String
         {
-            var count:int = 6+Math.random()*10;
+            var count:int = 6;
             const chars:String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             const charsLen:uint = chars.length;
             var randomString:String = "";
