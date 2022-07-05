@@ -1,1 +1,0 @@
-D:\AIRSDK_Windows_33.1.1.889\AIRSDK_Windows\bin\adt.bat -package -target native bin\fofoPaint.exe bin\fofoPaint.air

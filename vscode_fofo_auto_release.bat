@@ -1,7 +1,6 @@
 notepad E:\2020FlashPaint\versionInfo.txt
 
 Powershell.exe -noprofile -executionpolicy bypass -file "_make_air_file.ps1"
-Powershell.exe -noprofile -executionpolicy bypass -file "_make_exe_file.ps1"
 
 git add .
 git commit --file=E:\2020FlashPaint\versionInfo.txt
