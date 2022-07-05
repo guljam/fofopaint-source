@@ -5,7 +5,7 @@
 		}
 	],
 	"settings": {
-		"as3mxml.sdk.framework": "e:\\AIRSDK_Windows_33.1.1.889\\AIRSDK_Windows",
+		"as3mxml.sdk.framework": "d:\\AIRSDK_Windows_33.1.1.889\\AIRSDK_Windows",
 		"as3mxml.problems.realTime": false
 	}
 }

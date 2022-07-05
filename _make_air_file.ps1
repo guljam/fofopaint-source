@@ -1,1 +1,1 @@
-adt -package -storetype pkcs12 -keystore D:\fofopaintKey\secretKey.p12 -storepass 123 bin\fofoPaint.air fofoPaint-app.xml fofoPaint.swf worker.swf resource\icon
+adt -package -storetype pkcs12 -keystore E:\fofopaintKey\secretKey.p12 -storepass 123 bin\fofoPaint.air fofoPaint-app.xml fofoPaint.swf worker.swf resource\icon

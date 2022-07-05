@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.48;
+        private const APP_VERSION:Number = 15.50;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -14132,8 +14132,8 @@
         private function setToolBox2ClickTool(target:SimpleButton,func:Function):void
         {
             updateToolBoxMousePos(target);
-            func();
             closeToolBox2();
+            func();
         }
 
         private function mouseDownToolBox2(e:MouseEvent):void

@@ -4,13 +4,16 @@
 		{
 			"label": "FOFO FINAL RELEASE",
 			"type": "shell",
-			"command": "D:/fofopaint-source/vscode_fofo_auto_release.bat",
+			"command": "E:/fofopaint-source/vscode_fofo_auto_release.bat",
 			"problemMatcher": [],
-			"group": "build"
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			}
 		},
 		{
 			"type": "shell",
-			"command":"taskkill /im fofopaint.exe /t /f \n D:/fofopaint-source/fofoPaint.fla \n D:/fofopaint-source/worker.fla",
+			"command": "taskkill /im fofopaint.exe /t /f \n E:/fofopaint-source/fofoPaint.fla \n E:/fofopaint-source/worker.fla",
 			"group": {
 				"kind": "build",
 				"isDefault": true
