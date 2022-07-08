@@ -13,7 +13,7 @@
 		},
 		{
 			"type": "shell",
-			"command": "taskkill /im fofopaint.exe /t /f \n E:/fofopaint-source/fofoPaint.fla \n E:/fofopaint-source/worker.fla",
+			"command": "taskkill /im fofopaint.exe /t /f\n E:/fofopaint-source/worker.fla\n E:/fofopaint-source/fofoPaint.fla",
 			"group": {
 				"kind": "build",
 				"isDefault": true

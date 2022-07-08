@@ -59,7 +59,8 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.50;
+        private const APP_VERSION:Number = 15.51;
+        private const APP_DATA_VERSION:Number = 15.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -377,8 +378,8 @@
                     ,toolTipBoxTimer:uint = 0
 
         //리플레이 관련 변수
-        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata1540")
-                    ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata1540")
+        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata"+(APP_DATA_VERSION*100))
+                    ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata"+(APP_DATA_VERSION*100))
                     ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata")
                     ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("repdatatmp") //파일을 저장하거나 불러올때 씀
                     ,rJumpImageFolder:File = File.applicationStorageDirectory.resolvePath("imagecache")
@@ -644,7 +645,7 @@
         {
             const list:Array = File.applicationStorageDirectory.getDirectoryListing();
             const len:int = list.length;
-            const version:String = String(APP_VERSION*100);
+            const version:String = String(APP_DATA_VERSION*100);
             var filename:String;
 
             for (var i:int=0; i<len; i++)
@@ -2426,16 +2427,18 @@
             }
         }
 
+        private function checkKeyUp(keyCode:uint):void
+        {
+            if(keyBuffer.length === 0) resetNowKey();
+            else if(isNowKey(keyCode)) keyDownLassoTool({} as KeyboardEvent);
+        }
+
         private function keyUpLassoTool(e:KeyboardEvent):void
         {
             const keyCode:uint = e.keyCode;
             if(lassoMenuTempOFF && !mouseClickON) lassoMenuTempOFF = false;
 
-            if(isNowKey(keyCode))
-            {
-                if(keyBuffer.length > 0) keyDownLassoTool({} as KeyboardEvent);
-                else resetNowKey();
-            }
+            checkKeyUp(keyCode);
         }
 
         private function keyDownLassoTool(e:KeyboardEvent):void
@@ -9373,11 +9376,7 @@
 
         private function keyUpCaptureMode(e:KeyboardEvent):void
         {
-            if(e.keyCode === nowKey)
-            {
-                if(keyBuffer.length > 0) keyDownCaptureMode({} as KeyboardEvent);
-                else resetNowKey();
-            }
+            checkKeyUp(e.keyCode);
         }
 
         private function keyDownCaptureMode(e:KeyboardEvent):void
@@ -13604,11 +13603,7 @@
 
         private function keyUpReplayMode(e:KeyboardEvent):void
         {
-            if(isNowKey(e.keyCode))
-            {
-                if(keyBuffer.length > 0) keyDownReplayMode({} as KeyboardEvent);
-                else resetNowKey();
-            }
+            checkKeyUp(e.keyCode);
         }
 
         private function keyDownReplayMode(e:KeyboardEvent):void//keydown2
@@ -13735,7 +13730,6 @@
             if(keyCode === nowKeyNotKeyUp)
             {
                 nowKeyNotKeyUp = 0;
-                if(keyBuffer.length === 0) resetNowKey();
             }
 
             if(isNowKey(keyCode))
@@ -13744,16 +13738,13 @@
                 else if(keyBuffer.length > 0) keyDownDrawMode({} as KeyboardEvent);
                 else
                 {
-                    resetNowKey();
                     if(oldTool > TOOL_NONE) setOldTool();
                     updatePenCursorPosition();
                 }
             }
+            if(keyBuffer.length === 0) resetNowKey();
 
-            if(!isPressingControl() && resizeButtonR.visible)
-            {
-                setResizeButtonVisible(false);
-            }
+            if(!isPressingControl() && resizeButtonR.visible) setResizeButtonVisible(false);
         }
 
         private function checkCommandSubKey(length:uint,saveFlag:Boolean,func:Function):Boolean
@@ -14730,11 +14721,7 @@
 
         private function keyUpDeepUndo(e:KeyboardEvent):void
         {
-            if(isNowKey(e.keyCode))
-            {
-                if(keyBuffer.length > 0) keyDownDeepUndo({} as KeyboardEvent);
-                else resetNowKey();
-            }
+            checkKeyUp(e.keyCode);
         }
 
         private function keyDownDeepUndo(e:KeyboardEvent):void
@@ -14922,6 +14909,7 @@
 
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
+            trace('keyBuffer =',keyBuffer);
             if(mouseClickON || !isNowKey(0) || isPressingControl()) return;
 
             const targetName:String = e.target.name;
