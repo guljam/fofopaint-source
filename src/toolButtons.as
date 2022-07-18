@@ -235,10 +235,10 @@
 
 		public function hint(str:String,target:SimpleButton,rightPosition:Boolean):void
 		{
-			const index:uint  = str.lastIndexOf("(");
-			const firstLine:String = str.substr(0,index);
-			const secondLine:String = str.substr(index);
-			str = firstLine +"\n"+secondLine;
+			// const index:uint  = str.lastIndexOf("(");
+			// const firstLine:String = str.substr(0,index);
+			// const secondLine:String = str.substr(index);
+			// str = firstLine +"\n"+secondLine;
 
 			toolInfo.text = str;
 			toolInfo.width = toolInfo.textWidth+5;

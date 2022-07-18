@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.51;
+        private const APP_VERSION:Number = 15.52;
         private const APP_DATA_VERSION:Number = 15.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2385,6 +2385,19 @@
 		}
 
 
+        private function resetZoom():void
+        {
+            if(zoomed === 1.0) return;
+            const center:Point = getStageCenterPos(false,false);
+
+            zoomedIndex = zoomArr.indexOf(1.0);
+            setOptimizeCanvasMove(false);
+            setRegPoint(center.x,center.y,false);
+            setZoomCanvas(1.0,false);
+            updatePenSizeCursor();
+            updatePreviewBoxRectPos();
+        }
+
         private function setZoomInButton(flag:Boolean,replayMode:Boolean):void
         {
             const xReg:Sprite = (replayMode) ? rregPoint : regPoint;
@@ -2419,9 +2432,9 @@
             else
             {
                 zoomedIndex = lastZoomIndex;
+                setOptimizeCanvasMove(false);
                 setRegPoint(center.x,center.y,false);
                 setZoomCanvas(newZoom,replayMode);
-                setOptimizeCanvasMove(false);
                 updatePenSizeCursor();
                 updatePreviewBoxRectPos();
             }
@@ -2756,32 +2769,32 @@
 
             switch(targetName)
             {
-                case "fillPenOK": str = "OK (q, o, enter, right-click)"; break;
-                case "fillPenCancel": str = "cancel (esc, backspace)"; break;
-                case "fillPenUndo": str = "undo (w, z / i, .)"; break;
+                case "fillPenOK": str = "OK\n(q, o, enter, right-click)"; break;
+                case "fillPenCancel": str = "cancel\n(esc, backspace)"; break;
+                case "fillPenUndo": str = "undo\n(w, z / i, .)"; break;
                 case "toolBoxCloseButton": str = "Close"; break;
-                case "toolPen": str = "Pen (q, o key up) "; break;
-                case "toolFillPen": str = "Fill pen (q, o)"; break;
-                case "toolErase": str = "Eraser (d, j)"; break;
-                case "toolLasso": str = "Lasso (r, y)"; break;
-                case "toolSpuit": str = "Eye dropper (c, m)"; break;
-                case "deepUndoOK": str = "OK (enter, ctrl+z, ctrl+.)"; break;
-                case "deepUndoCancel": str = "Cancel (esc, backspace)"; break;
-                case "toolUndo": str = "Undo (z, .)"; break;
-                case "toolRedo": str = "Redo (x, ,)"; break;
-                case "toolMirror": str = "Flip canvas(a, l)"; break;
-                case "toolLine": str = "Line (shift)"; break;
-                case "toolMove": str = "Move image (e, u)"; break;
-                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)"; break;
-                case "toolRotate": str = "Rotate (s, k)"; break;
-                case "toolTrace": str = "Reference layer (t)"; break;
-                case "toolMask": str = "Mask (sift+x, shift+,)"; break;
-                case "maskOK": str = "OK (enter, shift+x, shift+,)"; break;
-                case "maskCancel": str = "Cancel (esc, backspace)"; break;
-                case "maskApply": str = "Apply to mask (right-click, a, l)"; break;
-                case "maskUndo": str = "Undo (z, .)"; break;
-                case "maskErase": str = "Eraser (d, j)"; break;
-                case "maskDelete": str = "Delete all mask (del, shift+d, shift+j)"; break;
+                case "toolPen": str = "Pen\n(q, o key up) "; break;
+                case "toolFillPen": str = "Fill pen\n(q, o)"; break;
+                case "toolErase": str = "Eraser\n(d, j)"; break;
+                case "toolLasso": str = "Lasso\n(r, y)"; break;
+                case "toolSpuit": str = "Eye dropper\n(c, m)"; break;
+                case "deepUndoOK": str = "OK\n(enter, ctrl+z, ctrl+.)"; break;
+                case "deepUndoCancel": str = "Cancel\n(esc, backspace)"; break;
+                case "toolUndo": str = "Undo\n(z, .)"; break;
+                case "toolRedo": str = "Redo\n(x, ,)"; break;
+                case "toolMirror": str = "Flip canvas\n(a, l)"; break;
+                case "toolLine": str = "Line\n(shift)"; break;
+                case "toolMove": str = "Move image\n(e, u)"; break;
+                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)\nReset (shift+w, shift+i)"; break;
+                case "toolRotate": str = "Rotate\n(s, k)"; break;
+                case "toolTrace": str = "Reference layer\n(t)"; break;
+                case "toolMask": str = "Mask\n(sift+x, shift+,)"; break;
+                case "maskOK": str = "OK\n(enter, shift+x, shift+,)"; break;
+                case "maskCancel": str = "Cancel\n(esc, backspace)"; break;
+                case "maskApply": str = "Apply to mask\n(right-click, a, l)"; break;
+                case "maskUndo": str = "Undo\n(z, .)"; break;
+                case "maskErase": str = "Eraser\n(d, j)"; break;
+                case "maskDelete": str = "Delete all mask\n(del, shift+d, shift+j)"; break;
             }
             return str;
         }
@@ -13796,6 +13809,17 @@
 
                 return;
             }
+            else if(isPressingShift())
+            {
+                checkCommandSubKey(2,true,function(input:int):void
+                {
+                    if(input === KEY.w || input == KEY.i)
+                    {
+                        resetZoom();
+                        return;
+                    }
+                });       
+            }
 
             //지우개키 조합 따로 체크
             if(isNowKey(KEY.d) || isNowKey(KEY.j))
@@ -13804,10 +13828,8 @@
             }
 
             if(isNowKey(keyCode)) return;
-
             setNowKey(keyCode);
             if(checkOpaSizeKeyDown(keyCode)) return;
-            //etc키 먼저 체크하고 false반환하면 툴키 체크
             if(checkEtcKeyDown(keyCode)) return;
             checkToolKeyDown(keyCode);
         }
