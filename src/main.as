@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.52;
+        private const APP_VERSION:Number = 15.53;
         private const APP_DATA_VERSION:Number = 15.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2391,7 +2391,6 @@
             const center:Point = getStageCenterPos(false,false);
 
             zoomedIndex = zoomArr.indexOf(1.0);
-            setOptimizeCanvasMove(false);
             setRegPoint(center.x,center.y,false);
             setZoomCanvas(1.0,false);
             updatePenSizeCursor();
@@ -2786,7 +2785,7 @@
                 case "toolLine": str = "Line\n(shift)"; break;
                 case "toolMove": str = "Move image\n(e, u)"; break;
                 case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)\nReset (shift+w, shift+i)"; break;
-                case "toolRotate": str = "Rotate\n(s, k)"; break;
+                case "toolRotate": str = "Rotate (s, k)\nReset (shift+s, shift+k)"; break;
                 case "toolTrace": str = "Reference layer\n(t)"; break;
                 case "toolMask": str = "Mask\n(sift+x, shift+,)"; break;
                 case "maskOK": str = "OK\n(enter, shift+x, shift+,)"; break;
@@ -10782,6 +10781,16 @@
             };
         }
 
+        private function resetRotation():void
+        {
+            const center:Point = getStageCenterPos(false,false);
+
+            updatePenSizeCursor();
+            setRegPoint(center.x,center.y,false);
+            regPoint.rotation = 0;
+            appInfoBox.setRotate(0);
+        }
+
         private function cRotateTool():Function
         {
             const _rotateCursorBox:rotateCursor = rotateCursorBox;
@@ -10798,8 +10807,6 @@
             //움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
             var sumAng:Number;
             var center:Point;
-            var rotateCenterX:Number;
-            var rotateCenterY:Number;
 
             function rotateToolUpEvent(e:MouseEvent):void
             {
@@ -10885,9 +10892,6 @@
                 //움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
                 sumAng = xReg.rotation*PI/180;
                 center = getStageCenterPos(false,replayMode);
-                rotateCenterX = center.x;
-                rotateCenterY = center.y;
-
                 penCursorOFFFlag = true;
 
                 if(!replayMode)
@@ -10895,7 +10899,7 @@
                     setOptimizeCanvasMove(true);
                 }
                 
-                setRegPoint(rotateCenterX,rotateCenterY,replayMode);
+                setRegPoint(center.x,center.y,replayMode);
 
                 setTopChildIndex(_rotateCursorBox);
                 _rotateCursorBox.visible = true;
@@ -13813,7 +13817,12 @@
             {
                 checkCommandSubKey(2,true,function(input:int):void
                 {
-                    if(input === KEY.w || input == KEY.i)
+                    if(input === KEY.s || input == KEY.k)
+                    {
+                        resetRotation();
+                        return;
+                    }
+                    else if(input === KEY.w || input == KEY.i)
                     {
                         resetZoom();
                         return;
@@ -14931,7 +14940,6 @@
 
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
-            trace('keyBuffer =',keyBuffer);
             if(mouseClickON || !isNowKey(0) || isPressingControl()) return;
 
             const targetName:String = e.target.name;
