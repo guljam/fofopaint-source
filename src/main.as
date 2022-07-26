@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.54;
+        private const APP_VERSION:Number = 15.55;
         private const APP_DATA_VERSION:Number = 15.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5871,7 +5871,7 @@
 
         private function getCutFrameHint(flag:int):String
         {
-            return (flag === CUT_FRAME_SUPER_UNDO) ?  "Super-undo : "
+            return (flag === CUT_FRAME_SUPER_UNDO) ?  "Delete back data : "
                   :(flag === CUT_FRAME_RE_RECORD) ? "Re-recording : "
                   :(flag === CUT_FRAME_DELETE_FRONT) ? "Delete front data : "
                   : "";
@@ -6098,7 +6098,7 @@
                         && cutFrameClickedButton === CUT_FRAME_SUPER_UNDO)
                             str = getCutFrameOKString();
                         else
-                            str = "Super-undo (f2, f7)";
+                            str = "Delete back data (f3, f8)";
                     }
                     break;
 
@@ -6108,7 +6108,7 @@
                         && cutFrameClickedButton === CUT_FRAME_DELETE_FRONT)
                             str = getCutFrameOKString();
                         else
-                            str = "Delete front data (f3, f8)";   
+                            str = "Delete front data (f2, f7)";
                     }
                     break;
 
@@ -13715,12 +13715,12 @@
 
                 case KEY.f2:
                 case KEY.f7:
-                    setCutFrameButton(CUT_FRAME_SUPER_UNDO,true);
+                    setCutFrameButton(CUT_FRAME_DELETE_FRONT,true);
                 break;
 
                 case KEY.f3:
                 case KEY.f8:
-                    setCutFrameButton(CUT_FRAME_DELETE_FRONT,true);
+                    setCutFrameButton(CUT_FRAME_SUPER_UNDO,true);
                 break;
 
                 case KEY.n1:
