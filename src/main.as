@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.55;
+        private const APP_VERSION:Number = 15.56;
         private const APP_DATA_VERSION:Number = 15.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -439,7 +439,7 @@
                     ,rCanvasBounds:Object = null
                     
                     ,doDrawSlowEventON:Boolean = false //doDrawSlowEvent가 켜지면 올려줌
-                    ,rDataPreviewCacheImages:Array = [] //이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
+                    ,rFrameCacheImages:Array = [] //이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
                     ,rSpeedLastStr:String = ""
 
         //about 관련 변수
@@ -640,7 +640,7 @@
             selectPenTool();
         }
         
-        //functions 
+        //functions
         private function deleteOldAppData():void
         {
             const list:Array = File.applicationStorageDirectory.getDirectoryListing();
@@ -7093,9 +7093,9 @@
                     if(prevJumpImageSaveCount >= _CACHE_DIV_10)
                     {
                         prevJumpImageSaveCount = 0;
-                        if(!rDataPreviewCacheImages[prevJumpImageSaveIndex])
+                        if(!rFrameCacheImages[prevJumpImageSaveIndex])
                         {
-                            rDataPreviewCacheImages[prevJumpImageSaveIndex] = [rcanvas1BitmapData.clone()
+                            rFrameCacheImages[prevJumpImageSaveIndex] = [rcanvas1BitmapData.clone()
                                                                               ,rcanvas1BitmapData.width
                                                                               ,rcanvas1BitmapData.height
                                                                               ,RCANVAS_BG_COLOR,rFileCutBytes,rNowFrame];
@@ -7553,13 +7553,13 @@
             return sum;
         }
 
-        //targetFrame이 rDataPreviewCacheImages데이터에 몆 번 인덱스에 있나 구해줌
+        //targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
         private function getCacheImageIndex(targetFrame:Number):Number
         {
-            const arr:Array = rDataPreviewCacheImages;
+            const arr:Array = rFrameCacheImages;
             var low:Number = 0;
             var high:Number = arr.length-1;
-            if(high === 0)  return 0;
+            if(high === 0) return 0;
             var index:Number = Math.floor((low + high)/2);
 
             while(low <= high)//2진 탐색
@@ -7572,7 +7572,6 @@
 
                 index = Math.floor((low + high)/2);
             }
-
             return index;
         }
 
@@ -7716,14 +7715,14 @@
             var tempBmpd:BitmapData = new BitmapData(1,1,true,0);
 
             rFileStream.open(repFile,FileMode.READ);
-            if(index !== rJumpImageIndexSave) rDataPreviewCacheImages = [];
-            else if(rDataPreviewCacheImages.length > 0) prevJumpImageIndex = getCacheImageIndex(frame);
+            if(index !== rJumpImageIndexSave) rFrameCacheImages = [];
+            else if(rFrameCacheImages.length > 0) prevJumpImageIndex = getCacheImageIndex(frame);
 
             if(index !== rJumpImageIndexSave || prevjumpFlag)
             {
                 if(prevJumpImageIndex >= 0)//prevjumpFlag && false)
                 {
-                    jumpImageData = rDataPreviewCacheImages[prevJumpImageIndex];
+                    jumpImageData = rFrameCacheImages[prevJumpImageIndex];
                     tempBmpd = jumpImageData[0];
                 }
                 else
@@ -8612,7 +8611,7 @@
                         else
                         {
                             // jumpFrame(TOTAL_FRAME+1,JUMP_FRAME_ONCE);
-                            rDataPreviewCacheImages = [];
+                            rFrameCacheImages = [];
                             rJumpImageIndexSave = -2;
                             removeInputEventDrawMode();
                             addInputEventReplayMode();
@@ -14551,7 +14550,7 @@
                 removeDeepUndoEvent();
                 if(traceMenuON === true) traceMenuBox.visible = true;
                 if(isSidebarVisible === true) sideBar.visible = true;
-                rDataPreviewCacheImages = [];
+                rFrameCacheImages = [];
                 changePickerModeToNormal();
                 updatePenSizeCursor();
                 updatePenCursorPosition();
@@ -14635,7 +14634,7 @@
 
                 resetOldTool();
                 selectPenTool();
-                rDataPreviewCacheImages = [];
+                rFrameCacheImages = [];
                 updatePreviewBoxRectPos();
                 changePickerModeToNormal();
                 updatePenSizeCursor();
