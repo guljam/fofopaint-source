@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.56;
+        private const APP_VERSION:Number = 15.57;
         private const APP_DATA_VERSION:Number = 15.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -11792,20 +11792,46 @@
             const pickerBox:colorPickerBox = pickerBox;
             const colorHistoryItemWidth:Number = colorHistoryColorWidth;
             const colorMatchMidX:Number = colorHistoryItemWidth/2;
-
+            
+            var canvasBGColor:uint;
             var canvas1bmp:Bitmap;
             var canvas1bmpd:BitmapData;
-            var spuitbmpd:BitmapData;
             var penColorBackup:uint;
-            var _colorHistoryList:Array;
-            var colorHistoryLen:int;
-            var colorHistoryFindIndex:int;
 
             function pickColor():uint
             {
-                return (isHitTestPoint(canvas1Bitmap)) ?
-                  spuitbmpd.getPixel(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY)
-                : penColorBackup;
+                if(isHitTestPoint(canvas1Bitmap))
+                {
+                    //뽑기색
+                    const c:uint = canvas1bmpd.getPixel32(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY);
+                    const a1:Number = ((c & 0xFF000000) >>> 24)/255;
+                    const r1:uint = (c & 0x00FF0000) >>> 16;
+                    const g1:uint = (c & 0x0000FF00) >>> 8;
+                    const b1:uint = (c & 0x000000FF);
+
+                    //배경색
+                    const r2:uint = (canvasBGColor & 0xFF0000) >> 16;
+                    const g2:uint = (canvasBGColor & 0x00FF00) >> 8;
+                    const b2:uint = (canvasBGColor & 0x0000FF);
+
+                    // source over
+                    // aR : the union alpha (as + ab * (1 - as)) //알파 혼합
+                    // r: ((S.r * S.a) + (B.r * B.a) * (1 - S.a)) / aR,
+                    // g: ((S.g * S.a) + (B.g * B.a) * (1 - S.a)) / aR,
+                    // b: ((S.b * S.a) + (B.b * B.a) * (1 - S.a)) / aR,
+
+                    const a2:Number = 1.0-a1;
+                    const round:Function = Math.round;
+                    const r:uint = round(r1*a1)+round(r2*a2);
+                    const g:uint = round(g1*a1)+round(g2*a2);
+                    const b:uint = round(b1*a1)+round(b2*a2);
+
+                    return RGBtoHex(r,g,b);
+                }
+                else
+                {
+                    return penColorBackup;
+                }
             }
 
             //픽커 도중에 오른쪽 클릭하면 캔슬해줌
@@ -11855,6 +11881,7 @@
                     penColor = pickedColor;
                     updatePickerCurrentColor(pickedColor);
                     setHSVCursorPosByColor(pickedColor);
+                    
                     if(findColor !== -1)
                     {
                         setColorHistoryLastColorByIndex(findColor);
@@ -11865,7 +11892,6 @@
                     else if(oldTool === TOOL_FILL_PEN) oldTool = TOOL_FILL_PEN;
                     else oldTool = TOOL_PEN;
                 }
-                spuitbmpd.dispose();
                 spuitCursor.visible = false;
                 setOldTool();
                 //move에서 spuitBitmapData를 쓰고 있기 때문에 이벤트를 먼저 해제해주고 데이터 비워줌
@@ -11909,16 +11935,12 @@
 
             return function ():void
             {
+                canvasBGColor = CANVAS_BG_COLOR;
                 canvas1bmp = canvas1Bitmap;
                 canvas1bmpd = canvas1BitmapData;
-                _colorHistoryList = colorHistoryList;
-                colorHistoryLen = colorHistoryList.length;
-                colorHistoryFindIndex = -1;
                 toolBox.moveToolCursor("toolSpuit");
 
                 oldTool = nowTool;
-                spuitbmpd = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,false,CANVAS_BG_COLOR);
-                spuitbmpd.draw(canvas1BitmapData);
                 penColorBackup = penColor;
                 setNowTool(TOOL_SPUIT);
                 _setColorTransform(spuitCursor["spuitOldColor"],penColor);
@@ -12872,9 +12894,7 @@
         //rgb값을 16진수로 hex값으로 만들어줌
         private function RGBtoHex(r:uint, g:uint, b:uint):uint
         {
-            const rgb:uint = (r << 16 | g << 8 | b);
-
-            return rgb;
+            return (r << 16 | g << 8 | b);
         }
 
         //h는 0에서 360, s v는 0~1.0 사이값 넣어줘야함
