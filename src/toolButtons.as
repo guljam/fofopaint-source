@@ -235,11 +235,6 @@
 
 		public function hint(str:String,target:SimpleButton,rightPosition:Boolean):void
 		{
-			// const index:uint  = str.lastIndexOf("(");
-			// const firstLine:String = str.substr(0,index);
-			// const secondLine:String = str.substr(index);
-			// str = firstLine +"\n"+secondLine;
-
 			toolInfo.text = str;
 			toolInfo.width = toolInfo.textWidth+5;
 			toolInfo.height = toolInfo.textWidth+3;
@@ -247,7 +242,7 @@
 			toolInfo.y = target.y-1;
 			toolInfoBG.x = toolInfo.x-3;
 			toolInfoBG.y = target.y;
-			toolInfoBG.width = Math.floor(toolInfo.textWidth+10);
+			toolInfoBG.width = Math.floor(toolInfo.textWidth+14);
 			toolInfoBG.height = Math.floor(toolInfo.textHeight+3);
 
 			toolInfo.visible = true;

@@ -1,43 +1,33 @@
 ﻿package
 {
-
 	import flash.display.Sprite;
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
-	import flash.system.System;
 
 	public class aboutBox extends Sprite {
 
 		public var versionInfo:TextField = versionInfo;
 		public var appResetButton:TextField = appResetButton;
-		public var memoryInfo:TextField = memoryInfo;
 		public var aboutTwitterLink:SimpleButton = aboutTwitterLink;
 		public var logo1:SimpleButton = logo1;
 		public var logo2:SimpleButton = logo2;
 		public var logo3:SimpleButton = logo3;
 		public var logo4:SimpleButton = logo4;
 		public var logo5:SimpleButton = logo5;
+		private var imageIndex:int = 0;
 
-		private var nowIndex:int = 0;
-
-		public function updateMemoryInfo():void
-		{
-			memoryInfo.text = "memory usage: "+Math.floor(System.privateMemory/1048576)+"MB";
-		}
-		
 		public function randomLogo():void
 		{
 			const arr:Array = [logo1,logo2,logo3,logo4,logo5];
-			var index:int = nowIndex+1;
+			var index:int = imageIndex+1;
 			if(index === arr.length) index = 0;
 	
-			arr[nowIndex].visible = false;
+			arr[imageIndex].visible = false;
 			arr[index].visible = true;
 
-			nowIndex = index;
-
-			updateMemoryInfo();
+			imageIndex = index;
 		}
+
 		public function setVersionInfo(str:String):void
 		{
 			versionInfo.text = "version " + str;
@@ -45,8 +35,9 @@
 		
 		public function aboutBox() {
 			// constructor codef
-			nowIndex = Math.floor(Math.random()*4);
+			imageIndex = Math.floor(Math.random()*4);
 			visible = false;
+
 			logo2.visible = false;
 			logo3.visible = false;
 			logo4.visible = false;

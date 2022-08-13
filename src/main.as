@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.57;
+        private const APP_VERSION:Number = 15.58;
         private const APP_DATA_VERSION:Number = 15.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2805,7 +2805,6 @@
 
             const hintStr:String = checkToolBoxHint(target.name);
             toolBox2.toolInfo.text = (hintStr === "") ? "Tools" : hintStr;
-
         }
 
         private function toolBoxHintONEvent(e:MouseEvent):void
@@ -4628,10 +4627,10 @@
 
             _rotateCursorBox.x = mouseX;
             _rotateCursorBox.y = mouseY+50;
-            angleCursor.rotation = _lassoBox.rotation;
             _rotateCursorBox.visible = true;
             setTopChildIndex(_rotateCursorBox);
             lastAng = Math.atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
+            angleCursor.rotation = _lassoBox.rotation;
             _lassoMenu.visible = false;
             stageMouseMoveEvent.add(lassoRotateButtonMoveEvent);
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoRotateButtonUpEvent);
@@ -7624,7 +7623,7 @@
             }
         }
 
-        private function _jumpOneFrame(toback:Boolean,trueOneFrame:Boolean):void
+        private function jumpOneFrame(toback:Boolean,trueOneFrame:Boolean):void
         {
             if(trueOneFrame)
             {
@@ -7684,7 +7683,7 @@
 
         private function setJumpOneFrame(prev:Boolean,oneFrame:Boolean=false):void
         {
-            if(setHoldKeyRepeat(_jumpOneFrame,prev,oneFrame) === true)
+            if(setHoldKeyRepeat(jumpOneFrame,prev,oneFrame) === true)
             {
                 if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
                 if(replayStartON) stopReplay();
@@ -8075,8 +8074,6 @@
                         traceMenuBox.y = mouseY-60;
                     }
                 }
-
-
                 break;
             }
         }
@@ -14302,7 +14299,7 @@
                 {
                     if(isDeepUndoON)
                     {
-                        _jumpOneFrame(true,false);
+                        jumpOneFrame(true,false);
                     }
                     else setUndoButton(false);
                 }
@@ -14311,7 +14308,7 @@
                 {
                     if(isDeepUndoON)
                     {
-                        _jumpOneFrame(false,false);
+                        jumpOneFrame(false,false);
                     }
                     else setRedoButton(false);
                 }
@@ -14414,6 +14411,17 @@
                 }
                 break;
 
+                case "toolUndo":
+                {
+                    setUndoButton(true);
+                }
+                break;
+
+                case "toolRedo":
+                {
+                    setRedoButton(true);
+                }
+                break;
 
                 case "zoomInButton":
                 case "zoomOutButton":
