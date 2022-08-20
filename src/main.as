@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.60;
+        private const APP_VERSION:Number = 15.61;
         private const APP_DATA_VERSION:Number = 15.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13836,19 +13836,26 @@
             }
             else if(isPressingShift())
             {
-                checkCommandSubKey(2,true,function(input:int):void
+                if(checkOpaSizeKeyDown((keyBuffer.length >= 2) ? keyBuffer[1] : keyCode))
                 {
-                    if(input === KEY.s || input == KEY.k)
+                    return;
+                }
+                else
+                {
+                    checkCommandSubKey(2,true,function(input:int):void
                     {
-                        resetRotation();
-                        return;
-                    }
-                    else if(input === KEY.w || input == KEY.i)
-                    {
-                        resetZoom();
-                        return;
-                    }
-                });       
+                        if(input === KEY.s || input == KEY.k)
+                        {
+                            resetRotation();
+                            return;
+                        }
+                        else if(input === KEY.w || input == KEY.i)
+                        {
+                            resetZoom();
+                            return;
+                        }
+                    });
+                }
             }
 
             //지우개키 조합 따로 체크
