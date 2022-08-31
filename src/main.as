@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 15.61;
+        private const APP_VERSION:Number = 15.62;
         private const APP_DATA_VERSION:Number = 15.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8696,7 +8696,7 @@
             }
         }
 
-        private function callWorkerEncodePNG(bmpd:BitmapData,bg:uint,isCaptureImage:Boolean):void
+        private function callWorkerEncodePNG(bmpd:BitmapData,bg:uint,isCaptureImage:Boolean,isTransBG:Boolean):void
         {
             setStartWoker(function():void
             {
@@ -8707,7 +8707,8 @@
                                 ,ba
                                 ,bmpd.width
                                 ,bmpd.height
-                                ,bg];
+                                ,bg
+                                ,isTransBG];
                 mainToBack.send(arr);
                 bmpd.dispose();
                 ba.clear();
@@ -9882,7 +9883,6 @@
                 var cropData:ByteArray = bmpd.getPixels(newRectangle);
                 cropData.position = 0; //이거 꼭 해줘야함 안그러면 setpixel에서 에러뜸
                 const cropbmpd:BitmapData = new BitmapData(rectW,rectH,true,0);
-                const pngOption:PNGEncoderOptions = new PNGEncoderOptions();
 
                 newRectangle = new Rectangle(0,0,cropbmpd.width,cropbmpd.height);
                 cropbmpd.lock();
@@ -9932,8 +9932,8 @@
                 if(workerPNGCaptureData === null) workerPNGCaptureData = [];
                 if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
 
-                if(!swapWH) callWorkerEncodePNG(tmpbmpd,0,true);
-                else callWorkerEncodePNG(tmpbmpd,0,true);
+                if(!swapWH) callWorkerEncodePNG(tmpbmpd,0,true,captureTransBGON);
+                else callWorkerEncodePNG(tmpbmpd,0,true,captureTransBGON);
 
                 var fName:String = file1.name;
                 var fPath:String = e.target.nativePath;
@@ -10028,7 +10028,7 @@
 
                     setSaveProgressON();
                     workerPNGSaveData = null;
-                    callWorkerEncodePNG(canvas1BitmapData.clone(),CANVAS_BG_COLOR,false);
+                    callWorkerEncodePNG(canvas1BitmapData.clone(),CANVAS_BG_COLOR,false,false);
                     saveReplayFile();
                     updateWindowTitle();
                     resetKeyBuffer();
@@ -10111,7 +10111,7 @@
                     var f1:File = new File(newFileData[0]);
 
                     workerPNGSaveData = null;
-                    callWorkerEncodePNG(canvas1BitmapData.clone(),CANVAS_BG_COLOR,false);
+                    callWorkerEncodePNG(canvas1BitmapData.clone(),CANVAS_BG_COLOR,false,false);
                     saveReplayFile();
                     updateWindowTitle();
 

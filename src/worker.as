@@ -22,37 +22,14 @@
 			backToMain = bgWorker.getSharedProperty("backToMain");
 		}
 
-		// private var gcCount:int;
-		// private function doGC(evt:Event):void
-		// {
-		// 	System.gc();
-		// 	if(++gcCount > 1)
-		// 	{
-		// 		removeEventListener(Event.ENTER_FRAME, doGC);
-		// 		setTimeout(lastGC,40);
-		// 	}
-		// }
-
-		// private function lastGC():void
-		// {
-		// 	System.gc();
-		// }
-
-		// private function startGC():void
-		// {
-		// 	gcCount = 0;
-		// 	addEventListener(Event.ENTER_FRAME, doGC);
-		// }
-
-
 		private function encodePNG(msg:Array,isCaptureImage:Boolean):void
 		{
 			var ba:ByteArray = msg[1];
 			var w:Number = msg[2];
 			var h:Number = msg[3];
-			// var bg:uint = ((0xFF000000 | msg[4]) & 0xFFFFFFFF);
 			var bg:uint = msg[4];
-			var bmpd:BitmapData = new BitmapData(w,h,false,bg);
+			var transBGFlag:uint = msg[5];
+			var bmpd:BitmapData = new BitmapData(w,h,true,(transBGFlag)?0:bg);
 			var bmpd2:BitmapData = new BitmapData(w,h,true,0);
 			ba.position = 0;
 			bmpd2.lock();
