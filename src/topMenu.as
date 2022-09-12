@@ -36,6 +36,7 @@
 		public var replayModeButton:SimpleButton = replayModeButton;
 		public var drawModeButton:SimpleButton = drawModeButton;
 		public var topBarColorButton:SimpleButton = topBarColorButton;
+		public var dpiButton:SimpleButton = dpiButton;
 		public var sideBarPositionButton:SimpleButton = sideBarPositionButton;
 		public var sideBarPositionButton2:SimpleButton = sideBarPositionButton2;
 		public var sideBarOFFButton:SimpleButton = sideBarOFFButton;
@@ -109,11 +110,10 @@
 		
 		public function updateTimerPos(stw:Number):void
 		{
-			const limitX:Number = replaySpeedSet.x+replaySpeedSet.width-10;
-			var newX:Number = stw-timer.textWidth-15;
-			if(newX < limitX) newX = limitX;
-			
-			timer.x = newX;
+			const limitX:Number = (replaySpeedSet.x+replaySpeedSet.width-10)*scaleX;
+			var newX:Number = stw-(timer.textWidth+15)*scaleX;
+			if(newX < limitX) newX = limitX;			
+			timer.x = newX/scaleX;
 		}
 
 		public function changeUIColor(base:uint,op:uint,hintOKColor:uint):void
@@ -146,6 +146,7 @@
 			replayModeButton.transform.colorTransform = o;
 			drawModeButton.transform.colorTransform = o;
 			topBarColorButton.transform.colorTransform = o;
+			dpiButton.transform.colorTransform = o;
 			alphaBackup = sideBarPositionButton.alpha;
 			sideBarPositionButton.transform.colorTransform = o;
 			sideBarPositionButton.alpha = alphaBackup;
@@ -278,7 +279,7 @@
 
 		public function updateHintBGWidth(stw:Number):void
 		{
-			topbarInfoBG.width = stw;
+			topbarInfoBG.width = stw/scaleX;
 		}
 
 		public function hintTime(str:String,target:DisplayObject):void
@@ -310,7 +311,7 @@
 
 		public function updateTopbarBG(stw:int):void
 		{
-			topbarBG.width = stw;
+			topbarBG.width = stw/scaleX;
 		}
 		
 		public function makeTopbarBG(color:uint):void
@@ -405,6 +406,7 @@
 												replayModeButton,
 												drawModeButton,
 												topBarColorButton,
+												dpiButton,
 												sideBarPositionButton,
 												sideBarPositionButton2,
 												sideBarOFFButton,
@@ -519,6 +521,7 @@
 			replayModeButton.useHandCursor = false;
 			drawModeButton.useHandCursor = false;
 			topBarColorButton.useHandCursor = false;
+			dpiButton.useHandCursor = false;
 			sideBarOFFButton.useHandCursor = false;
 			sideBarOFFButton2.useHandCursor = false;
 			sideBarONButton.useHandCursor = false;
@@ -549,7 +552,8 @@
 								[sideBarPositionButton,replayZoomInButton],
 								[sideBarOFFButton,replayZoomOutButton],
 								[topBarColorButton,replayRotateButton],
-								[aboutButton,replaySpeedSet]
+								[dpiButton,replaySpeedSet],
+								[aboutButton]
 							];
 
 			drawModeButtons = [
@@ -561,6 +565,7 @@
 									clearButton,
 									gridButton,
 									topBarColorButton,
+									dpiButton,
 									sideBarPositionButton,
 									sideBarPositionButton2,
 									sideBarOFFButton,

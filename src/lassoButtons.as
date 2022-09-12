@@ -27,6 +27,7 @@
 		public var lasso1pxRight:SimpleButton = lasso1pxRight;
 		public var lasso1pxDown:SimpleButton = lasso1pxDown;
 		public var lasso1pxUp:SimpleButton = lasso1pxUp;
+		public const fixedScale:Number = 0.875;
 
 		public function changeUIColor(arr:Array):void
 		{
@@ -117,18 +118,8 @@
 
 		public function lassoButtons()
 		{
-			// const shadow:DropShadowFilter = new DropShadowFilter();
-			// shadow.blurX = 7;
-			// shadow.blurY = 7;
-			// shadow.alpha = 0.2;
-			// shadow.distance = 7;
-			// shadow.strength	= 1;
-			// shadow.angle = 30;
-			// filters = [shadow];
-
-			// alpha = 0.9;
-			scaleX = 0.875;
-			scaleY = 0.875;
+			scaleX = fixedScale;
+			scaleY = fixedScale;
 
 			lassoMenuMoveButton.useHandCursor = false;
 			lassoMenuBG.useHandCursor = false;

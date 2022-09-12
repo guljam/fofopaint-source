@@ -1,17 +1,15 @@
 ﻿package
 {
-
 	import flash.display.Sprite;
-	// import flash.display.Shape;
 	import flash.display.Graphics;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.filters.BlurFilter;
+	import flash.display.Shape;
 
 	public class controlMenu extends Sprite
 	{
-
 		public const penSizeTransButtonBox:penSizeTransButtonSet = new penSizeTransButtonSet();
 		public const opaBox:opaButtons = new opaButtons();
 		public const pixelSnapButtonWrapper:Sprite = new Sprite();
@@ -160,13 +158,13 @@
 
 		public function movePenSizeCursor(index:uint):void
 		{
-			const btn:SimpleButton = penSizeTransButtonBox.getChildByName("nSizeButton" + index) as SimpleButton;
+			const btn:SimpleButton = penSizeTransButtonBox.getChildByName("nSizeButton"+index) as SimpleButton;
 			if (btn)
 			{
 				const _sizeSelectCursor:SimpleButton = sizeSelectCursor;
 
-				_sizeSelectCursor.x = penSizeTransButtonBox.x + btn.x;
-				_sizeSelectCursor.y = penSizeTransButtonBox.y + btn.y;
+				_sizeSelectCursor.x = penSizeTransButtonBox.x+btn.x;
+				_sizeSelectCursor.y = penSizeTransButtonBox.y+btn.y;
 				btn.useHandCursor = false;
 			}
 		}
@@ -174,8 +172,8 @@
 		public function initAirBrushButtonWrapper():void
 		{
 			const g:Graphics = airBrushButtonWrapper.graphics;
-			const w:Number = airBrushOFFButton.width + pixelSnapText.width;
-			const h:Number = airBrushOFFButton.height + 2;
+			const w:Number = airBrushOFFButton.width+pixelSnapText.width;
+			const h:Number = airBrushOFFButton.height+2;
 
 			g.beginFill(0xFF0000, 0);
 			g.drawRect(0, 0, w, h);
@@ -191,7 +189,7 @@
 			airBrushOFFButton.y = airBrushONButton.y;
 			airBrushOFFButton.visible = false;
 
-			airBrushText.x = airBrushOFFButton.x + airBrushOFFButton.width + 4;
+			airBrushText.x = airBrushOFFButton.x+airBrushOFFButton.width+4;
 			airBrushText.y = airBrushOFFButton.y;
 
 			airBrushONButton.useHandCursor = false;
@@ -203,8 +201,8 @@
 		public function initSubLayerButtonWrapper():void
 		{
 			const g:Graphics = subLayerButtonWrapper.graphics;
-			const w:Number = subLayerOFFButton.width + pixelSnapText.width;
-			const h:Number = subLayerOFFButton.height + 2;
+			const w:Number = subLayerOFFButton.width+pixelSnapText.width;
+			const h:Number = subLayerOFFButton.height+2;
 
 			g.beginFill(0xFF0000, 0);
 			g.drawRect(0, 0, w, h);
@@ -220,7 +218,7 @@
 			subLayerOFFButton.y = subLayerONButton.y;
 			subLayerOFFButton.visible = false;
 
-			subLayerText.x = subLayerOFFButton.x + subLayerOFFButton.width + 4;
+			subLayerText.x = subLayerOFFButton.x+subLayerOFFButton.width+4;
 			subLayerText.y = subLayerOFFButton.y;
 
 			subLayerONButton.useHandCursor = false;
@@ -232,8 +230,8 @@
 		public function initPixelSnapButtonWrapper():void
 		{
 			const g:Graphics = pixelSnapButtonWrapper.graphics;
-			const w:Number = pixelSnapOFFButton.width + pixelSnapText.width + 4;
-			const h:Number = pixelSnapOFFButton.height + 2;
+			const w:Number = pixelSnapOFFButton.width+pixelSnapText.width+4;
+			const h:Number = pixelSnapOFFButton.height+2;
 
 			g.beginFill(0xFF0000, 0);
 			g.drawRect(0, 0, w, h);
@@ -249,7 +247,7 @@
 			pixelSnapOFFButton.y = pixelSnapONButton.y;
 			pixelSnapOFFButton.visible = false;
 
-			pixelSnapText.x = pixelSnapOFFButton.x + pixelSnapOFFButton.width + 2;
+			pixelSnapText.x = pixelSnapOFFButton.x+pixelSnapOFFButton.width+2;
 			pixelSnapText.y = pixelSnapOFFButton.y;
 
 			pixelSnapOFFButton.useHandCursor = false;
@@ -263,7 +261,7 @@
 			var btn:SimpleButton;
 			for (var i:int = 1; i <= 12; i++)
 			{
-				btn = _penSizeTransButtonBox.getChildByName("nSizeButton" + i) as SimpleButton;
+				btn = _penSizeTransButtonBox.getChildByName("nSizeButton"+i) as SimpleButton;
 				if (btn)
 				{
 					btn.useHandCursor = false;
@@ -280,7 +278,7 @@
 
 			const floor:Function = Math.floor;
 			const offsetX:Number = 0;
-			const infoBottom:Number = floor(controlInfo.y + controlInfo.height+1);
+			const infoBottom:Number = floor(controlInfo.y+controlInfo.height+1);
 
 			controlInfo.width = BOX_WIDTH - 5;
 			controlInfo.x = -3;
@@ -289,49 +287,49 @@
 			shapeCircle.x = offsetX;
 			shapeCircle.y = infoBottom;
 			shapeCircle.useHandCursor = false;
-			shapeRect.x = offsetX + shapeCircle.x + shapeCircle.width + 5;
+			shapeRect.x = offsetX+shapeCircle.x+shapeCircle.width+5;
 			shapeRect.y = infoBottom;
 			shapeRect.useHandCursor = false;
 
-			penSmoothSliderSet.x = floor(shapeRect.x + shapeRect.width + 11);
-			penSmoothSliderSet.y = floor(shapeRect.y) + 5;
+			penSmoothSliderSet.x = floor(shapeRect.x+shapeRect.width+11);
+			penSmoothSliderSet.y = floor(shapeRect.y)+5;
 
 			penSmoothSliderSet["penSmoothBar"].useHandCursor = false;
 			penSmoothSliderSet["penSmoothButton"].useHandCursor = false;
 			penSmoothSliderSet["penSmoothSlider"].useHandCursor = false;
-
+			
 			penSizeGrid.x = offsetX;
-			penSizeGrid.y = floor(penSmoothSliderSet.y + penSmoothSliderSet.height)-10;
-			penSizeTransButtonBox.x = penSizeGrid.x + 2;
-			penSizeTransButtonBox.y = penSizeGrid.y + 2;
+			penSizeGrid.y = floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-10;
+			penSizeTransButtonBox.x = penSizeGrid.x+2;
+			penSizeTransButtonBox.y = penSizeGrid.y+2;
 			// penSizeTransButtonBox.addChild(sizeSelectCursor);
 			sizeSelectCursor.useHandCursor = false;
 
-			rectSizeSet.x = floor(penSizeGrid.x) + 9;
-			rectSizeSet.y = floor(penSizeGrid.y) + 10;
+			rectSizeSet.x = floor(penSizeGrid.x)+9;
+			rectSizeSet.y = floor(penSizeGrid.y)+10;
 			circleSizeSet.x = rectSizeSet.x;
-			circleSizeSet.y = rectSizeSet.y + 1;
+			circleSizeSet.y = rectSizeSet.y+1;
 
 			initPixelSnapButtonWrapper();
 			initSubLayerButtonWrapper();
 			initAirBrushButtonWrapper();
 
+			subLayerText.useHandCursor = false;
+			subLayerButtonWrapper.x = penSizeGrid.x;
+			subLayerButtonWrapper.y = penSizeGrid.y+penSizeGrid.height+5;
+
 			pixelSnapText.useHandCursor = false;
-			pixelSnapButtonWrapper.x = penSizeGrid.x;
-			pixelSnapButtonWrapper.y = penSizeGrid.y + penSizeGrid.height + 8;
+			pixelSnapButtonWrapper.x = subLayerButtonWrapper.x+pixelSnapButtonWrapper.width+8;
+			pixelSnapButtonWrapper.y = penSizeGrid.y+penSizeGrid.height+5;
 
 			airBrushText.useHandCursor = false;
-			airBrushButtonWrapper.x = floor(pixelSnapButtonWrapper.x + pixelSnapButtonWrapper.width + 11);
-			airBrushButtonWrapper.y = floor(penSizeGrid.y + penSizeGrid.height + 8);
-
-			subLayerText.useHandCursor = false;
-			subLayerButtonWrapper.x = airBrushButtonWrapper.x;
-			subLayerButtonWrapper.y = airBrushButtonWrapper.y + airBrushButtonWrapper.height + 5;
+			airBrushButtonWrapper.x = floor(pixelSnapButtonWrapper.x+0.5);
+			airBrushButtonWrapper.y = floor(pixelSnapButtonWrapper.y+pixelSnapButtonWrapper.height+5);
 
 			opaBox.x = offsetX;
-			opaBox.y = floor(pixelSnapButtonWrapper.y + pixelSnapButtonWrapper.height + 2) + 2;
+			opaBox.y = floor(pixelSnapButtonWrapper.y+pixelSnapButtonWrapper.height+2)+2;
 
-			BOX_HEIGHT = opaBox.y + opaBox.height + 7;
+			BOX_HEIGHT = opaBox.y+opaBox.height+7;
 
 			addChild(penSizeGrid);
 			addChild(opaBox);

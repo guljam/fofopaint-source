@@ -53,12 +53,10 @@
 
 		public function update():void
 		{
-			const str:String = canvasWidth +" x "+ canvasHeight +"  "
+			canvasInfo.text = canvasWidth +" x "+ canvasHeight +"  "
 							 + canvasZoom+"%  "
 							 + canvasRotate+"°  "
 							 + getMirorrString();
-
-			canvasInfo.text = str;
 			canvasInfo.width = canvasInfo.textWidth+10;
 		}
 

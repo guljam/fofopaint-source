@@ -9,6 +9,7 @@
 		private const sideBG:Shape = new Shape();
 		public const w:Number = 220;
 		public var h:Number = 220;
+		private const sepLine:Shape = new Shape();
 
 		public function setTempVisibleOFF(rightSide:Boolean):void
 		{
@@ -20,8 +21,8 @@
 
 		public function setTempVisibleON(toolBarWidth:Number,rightSide:Boolean):void
 		{
-			if(rightSide) x = x+w-toolBarWidth;
-			else x = -w+toolBarWidth;
+			if(rightSide) x = x+(w-toolBarWidth)*scaleX;
+			else x = (-w+toolBarWidth)*scaleX;
 
 			visible = true;
 		}

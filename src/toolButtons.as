@@ -236,8 +236,8 @@
 		public function hint(str:String,target:SimpleButton,rightPosition:Boolean):void
 		{
 			toolInfo.text = str;
-			toolInfo.width = toolInfo.textWidth+5;
-			toolInfo.height = toolInfo.textWidth+3;
+			toolInfo.width = toolInfo.textWidth+10;
+			toolInfo.height = toolInfo.textHeight+10;
 			toolInfo.x = (rightPosition === false) ? target.x+target.width+7 : target.x-toolInfo.textWidth-10;
 			toolInfo.y = target.y-1;
 			toolInfoBG.x = toolInfo.x-3;

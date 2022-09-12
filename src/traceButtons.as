@@ -31,7 +31,7 @@
 		public var traceVisibleONButton:SimpleButton = traceVisibleONButton;
 		public var traceDeleteButton:SimpleButton = traceDeleteButton;
 		public var traceInfo:TextField = traceInfo;
-		
+		public const fixedScale:Number = 0.875;
 
 		public function changeUIColor(arr:Array,brightBarFlag:Boolean):void
 		{
@@ -106,19 +106,15 @@
 			traceInfo.textColor = arr[2];
 		}
 
-		public function traceButtons() {
-			// constructor code
-			// alpha = 0.9;
-			scaleX = 0.875;
-			scaleY = 0.875;
+		public function traceButtons()
+		{
+			visible = false;
+			scaleX = fixedScale;
+			scaleY = fixedScale;
 
 			const offsetX:Number = traceOpaButton.width/2;
-			const barWidth:Number = traceOpaBar.width*0.5;
-			const buttonMin:Number = traceOpaBar.x+offsetX;
-			traceOpaButton.x = buttonMin+barWidth-offsetX;
-
-			visible = false;
-
+			
+			traceOpaButton.x = traceOpaBar.x+offsetX+traceOpaBar.width*0.5-offsetX;
 			traceOpaButton.useHandCursor = false;
 			traceOpaBar.useHandCursor = false;
 			traceButtonWrapper.useHandCursor = false;

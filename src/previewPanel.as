@@ -61,12 +61,13 @@
 			prevCursor.y = floor(y*f1+_prevBitmap.y);
 		}
 
-		public function updateImage(bmpd:BitmapData,bg:uint):void
+		public function updateImage(bmpd:BitmapData,bmpd1:BitmapData,bg:uint):void
 		{
 			const _bitmap:Bitmap = prevBitmap;
 			const w:Number = bmpd.width;
 			const h:Number = bmpd.height;
-			_bitmap.bitmapData = bmpd;
+			_bitmap.bitmapData = bmpd1.clone();
+			_bitmap.bitmapData.draw(bmpd);
 			_bitmap.smoothing = true;
 			if(prevBitmapLastWidth === w && prevBitmapLastHeight === h)
 			{

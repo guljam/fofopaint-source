@@ -26,7 +26,9 @@
 		public var toolBoxBG2:SimpleButton = toolBoxBG2;
 		public var deepUndoOK:SimpleButton = deepUndoOK;
 		public var deepUndoCancel:SimpleButton = deepUndoCancel;
+		public var toolSidebar:SimpleButton = toolSidebar;
 		public var toolInfo:TextField = toolInfo;
+		public const fixedScale:Number = 0.85;
 		
 		public function deepUndoEtcIconAlpha(alpha:Number):void
 		{
@@ -39,6 +41,7 @@
 			toolLine.alpha = alpha;
 			toolMove.alpha = alpha;
 			toolTrace.alpha = alpha;
+			toolSidebar.alpha = alpha;
 		}
 
 		public function deepUndoIconON():void
@@ -82,7 +85,7 @@
 				toolMirror,
 				toolLasso,
 				toolLine,
-				// toolBoxResize
+				toolSidebar
 			];
 
 			const base:ColorTransform = new ColorTransform();
@@ -134,11 +137,10 @@
 			toolInfo.textColor = arr[2];
 		}
 
-		public function toolButtons2() {
-			// constructor code
-
-			scaleX = 0.85;
-			scaleY = 0.85;
+		public function toolButtons2()
+		{
+			scaleX = fixedScale;
+			scaleY = fixedScale;
 
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
@@ -155,6 +157,7 @@
 			toolZoom.useHandCursor = false;
 			toolBoxBG.useHandCursor = false;
 			toolBoxBG2.useHandCursor = false;
+			toolSidebar.useHandCursor = false;
 			deepUndoOK.useHandCursor = false;
 			deepUndoCancel.useHandCursor = false;
 

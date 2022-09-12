@@ -9,7 +9,6 @@
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.display.Shape;
-	import flash.geom.Point;
 
 	public class colorPickerBox extends Sprite {
 		public var mainColorPickerBox:Sprite = new Sprite();
@@ -36,6 +35,7 @@
 
 		public var offsetX:Number = 0; //customcolor 박스 떨어진 위치
 
+		public var currentColorBG:Shape = new Shape();
 		public var currentColor:Sprite = new Sprite();
 		public var currentColorColor:uint = 0;
 		public var currentColorWidth:Number = 28;
