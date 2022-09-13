@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.00;
+        private const APP_VERSION:Number = 16.01;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -767,7 +767,8 @@
         private function keyUpQuickSidebarOFF(e:KeyboardEvent):void
         {
             const keyCode:uint = e.keyCode;
-            if(keyCode === KEY.d || keyCode === KEY.j || keyCode === KEY.shift)
+            if(keyCode === KEY.s || keyCode === KEY.d
+            || keyCode === KEY.j || keyCode === KEY.k)
             {
                 setQuickSidebarOFF();
             }
@@ -8825,7 +8826,6 @@
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
             }
         }
-
 
         private function addColorToHistoryManual():void
         {
