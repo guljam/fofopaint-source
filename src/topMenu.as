@@ -26,6 +26,7 @@
 		public var capFull:SimpleButton = capFull;
 		public var capOff:SimpleButton = capOff;
 		public var capTrans:SimpleButton = capTrans;
+		public var capClipBoard:SimpleButton = capClipBoard;
 		public var saveButton:SimpleButton = saveButton;
 		public var repSaveButton:SimpleButton = repSaveButton;
 		public var loadButton:SimpleButton = loadButton;
@@ -136,6 +137,7 @@
 			capFull.transform.colorTransform = o;
 			capOff.transform.colorTransform = o;
 			capTrans.transform.colorTransform = o;
+			capClipBoard.transform.colorTransform = o;
 			saveButton.transform.colorTransform = o;
 			repSaveButton.transform.colorTransform = o;
 			loadButton.transform.colorTransform = o;
@@ -395,6 +397,7 @@
 												capFull,
 												capOff,
 												capTrans,
+												capClipBoard,
 
 												saveButton,
 												repSaveButton,
@@ -491,6 +494,7 @@
 			capFull.visible = false;
 			capOff.visible = false;
 			capTrans.visible = false;
+			capClipBoard.visible = false;
 			drawModeButton.visible = false;
 			cutPrevDataButton.alpha = 0.15;
 			superUndoButton.alpha = 0.15;
@@ -511,6 +515,7 @@
 			capFull.useHandCursor = false;
 			capOff.useHandCursor = false;
 			capTrans.useHandCursor = false;
+			capClipBoard.useHandCursor = false;
 			saveButton.useHandCursor = false;
 			repSaveButton.useHandCursor = false;
 			loadButton.useHandCursor = false;
@@ -544,10 +549,10 @@
 			buttonOrder =   [ 
 								[replayModeButton,drawModeButton,capOff],
 								[captureButton,capFull,repCaptureButton],
-								[saveButton,repSaveButton,capRotate],
-								[loadButton,repLoadButton,capFlip],
-								[clipButton,reRecordingButton,capTrans],
-								[clearButton,cutPrevDataButton],
+								[saveButton,repSaveButton,capClipBoard],
+								[loadButton,repLoadButton,capRotate],
+								[clipButton,reRecordingButton,capFlip],
+								[clearButton,cutPrevDataButton,capTrans],
 								[gridButton,superUndoButton],
 								[sideBarPositionButton,replayZoomInButton],
 								[sideBarOFFButton,replayZoomOutButton],
@@ -594,7 +599,8 @@
 									capFull,
 									capRotate,
 									capFlip,
-									capTrans
+									capTrans,
+									capClipBoard
 								 ];
 			initModeButtons();
 			initMouseDownState();

@@ -56,10 +56,11 @@
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;//import end
     import flash.system.System;
+    import flash.events.BrowserInvokeEvent;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.01;
+        private const APP_VERSION:Number = 16.02;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -211,6 +212,7 @@
                     ,STRING_PLAYBACK_SPEED:String = "Play speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
+                    ,STRING_CAPTURE_OK:String = " (Click canvas to save)"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -469,6 +471,7 @@
                     ,captureRotated:uint = 0 //캡쳐 회전한 변수 저장
                     ,captureFlipped:Boolean = false //캡쳐 대칭한 변수 저장
                     ,captureTransBGON:Boolean = false //배경 제외하고 저장하는 플래그
+                    ,captureCilpBoardImageInfo:Array = [] //클립보드 중복 저장 방지하기 위해서 이 정보로 비교해줌
                     ,fullCaptureReady:Boolean = false
 
         //윈도우 크기변수
@@ -650,6 +653,92 @@
         }
         
         //functions
+        private function getProcessedCaptureImage(isFullImageCapture:Boolean):BitmapData
+        {
+            const isReplayMode:Boolean = replayModeON;
+            var info:Array;
+
+            if(isFullImageCapture || drawCaptureArea.isFullImageCapture())
+            {
+                if(isReplayMode) info = [0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height];
+                else info = [0,0,canvas1BitmapData.width,canvas1BitmapData.height];
+            }
+            else
+            {
+                info = drawCaptureArea.getCaptureArea();
+            }
+
+            var newRectangle:Rectangle = new Rectangle(info[0],info[1],info[2],info[3]);
+            const bmpd:BitmapData = mergeCanvas(isReplayMode,(captureModeON && captureTransBGON && !isFullImageCapture) ? true:false);
+            var cropData:ByteArray = bmpd.getPixels(newRectangle);
+            cropData.position = 0; //이거 꼭 해줘야함 안그러면 setpixel에서 에러뜸
+            const cropbmpd:BitmapData = new BitmapData(info[2],info[3],true,0);
+
+            newRectangle = new Rectangle(0,0,cropbmpd.width,cropbmpd.height);
+            cropbmpd.lock();
+            cropbmpd.setPixels(newRectangle,cropData);
+            cropbmpd.unlock();
+            cropData.clear();
+            cropData = null;
+
+            const mat:Matrix = new Matrix;
+            const deg:Number = 90*captureRotated;
+            var tmpbmpd:BitmapData = new BitmapData(cropbmpd.width,cropbmpd.height,true,0);
+            var swapWH:Boolean = false;
+            mat.rotate(deg*Math.PI/180);
+
+            if(deg === 90)
+            {
+                mat.translate(cropbmpd.height,0);
+                swapWH = true;
+            }
+            else if (deg === -90 || deg == 270)
+            {
+                mat.translate(0,cropbmpd.width);
+                swapWH = true;
+            }
+            else if (deg === 180)
+            {
+                mat.translate(cropbmpd.width, cropbmpd.height);
+            }
+
+            if(captureFlipped)
+            {
+                if(swapWH)
+                {
+                    mat.scale(1,-1);
+                    mat.translate(0,cropbmpd.width);
+                }
+                else
+                {
+                    mat.scale(-1,1);
+                    mat.translate(cropbmpd.width,0);
+                }
+            }
+            
+            if(swapWH) tmpbmpd = new BitmapData(cropbmpd.height,cropbmpd.width,true,0);
+
+            tmpbmpd.draw(cropbmpd,mat);
+            cropbmpd.dispose();
+
+            return tmpbmpd;
+        }
+
+        private function copyCaptureImageToCilpBoard():void
+        {
+            if(captureCilpBoardImageInfo[0] !== captureRotated
+            ||captureCilpBoardImageInfo[1] !== captureFlipped)
+            {
+                captureCilpBoardImageInfo = [captureRotated,captureFlipped];
+                Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT,getProcessedCaptureImage(true),false);
+                topBar.hintTime("Image copied to clipboard successfully",topBar.capClipBoard as DisplayObject);
+            }
+            else
+            {
+                topBar.hintTime("Image has already been copied to the clipboard",topBar.capClipBoard as DisplayObject);
+            }
+        }
+
         private function getUIScaleString(index:int):String
         {
             if(index === 0)
@@ -1485,12 +1574,8 @@
                 fs.close();
                 return true;
             }
-            else
-            {
-                fs.close();
-                return false;
-            }
-            
+
+            fs.close();
             fs.open(file,FileMode.READ);
             try
             {
@@ -2697,7 +2782,6 @@
         {
             const gp:Point = canvas1Bitmap.globalToLocal(new Point(STAGE_LEFT_OFFSET,STAGE_TOP_OFFSET));
             const z:Number = zoomed;
-
             previewBox.updateCursor(gp.x*z,gp.y*z
                                     ,stage.stageWidth-STAGE_LEFT_OFFSET-STAGE_RIGHT_OFFSET
                                     ,stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET
@@ -4573,16 +4657,9 @@
             captureOFF();
         }
 
-        private function setCaptrueAreaButton():void
-        {
-            if(replayModeON) saveCaptureImage(0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height);
-            else saveCaptureImage(0,0,canvas1BitmapData.width,canvas1BitmapData.height);
-        }
-
         private function setFullCaptrueButton():void
         {
-            if(replayModeON) saveCaptureImage(0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height);
-            else saveCaptureImage(0,0,canvas1BitmapData.width,canvas1BitmapData.height);
+            saveCaptureImage();
         }
 
         private function setCaptureTransButton():void
@@ -5733,29 +5810,41 @@
                         case "repSaveButton":
                             saveFile(false);
                         break;
+
                         case "loadButton":
                         case "repLoadButton":
                             loadFile();
                         break;
+
                         case "clipButton":
                             setClipButton();
-                        break
+                        break;
+
                         case "repCaptureButton":
                         case "captureButton":
                              setCaptureReady();
                         break;
+
                         case "capRotate":
                             setCaptureRotateButton();
                         break;
+
                         case "capTrans":
                             setCaptureTransButton();
                         break;
+
+                        case "capClipBoard":
+                            copyCaptureImageToCilpBoard();
+                        break;
+
                         case "capFull":
                             setFullCaptrueButton();
                         break;
+
                         case "capOff":
                             setCaptureOFFButton(false);
                         break;
+
                         case "capFlip":
                             setCaptrueFlipButton();
                         break;
@@ -6196,7 +6285,7 @@
                 if(hint === "") topBar.hintOFF();
                 else
                 {
-                    topBar.hint(hint+" (Click canvas to save)",topBar.capOff);
+                    topBar.hint(hint+STRING_CAPTURE_OK,topBar.capOff);
                 }
             }
             else topBar.hintOFF();
@@ -6301,6 +6390,10 @@
 
                     case "capFull":
                         str = "Save full image (c, m)";
+                    break;
+
+                    case "capClipBoard":
+                        str = "Copy image to clipboard (v, n)";
                     break;
 
                     case "capTrans":
@@ -9295,7 +9388,7 @@
 
         private function loadReplayFile(oldFile:File,fileName:String,filePath:String):void //loadrep
         {
-            if(isTrue2020File(oldFile) === false) return;
+            if(isTrue2020File(oldFile) === false)return;
             if(replayModeON)  setReplayUIOFF();
 
             removeInputEventDrawMode();
@@ -9796,6 +9889,7 @@
             const tb:Sprite = topBar;
             const replayMode:Boolean = replayModeON;
 
+            drawCaptureArea.reset();
             canvasGrid.visible = iFlag;
             setResizeButtonVisible(false);
 
@@ -9861,6 +9955,7 @@
                 case "capFull":
                 case "capOff":
                 case "capTrans":
+                case "capClipBoard":
                     checkButtonUp(targetName);
                 break;
 
@@ -9916,6 +10011,11 @@
                 case KEY.n8:
                     setCaptureOFFButton(true);
                     if(replayModeON)setReplayUION();
+                break;
+
+                case KEY.v:
+                case KEY.n:
+                    copyCaptureImageToCilpBoard();
                 break;
 
                 case KEY.c:
@@ -10036,6 +10136,7 @@
             setZoomCanvas(_canvasBackupData.z,replayMode);
             toolTipBox.visible = false;
             captureWindowMove = new Point(0,0);
+            captureCilpBoardImageInfo = [];
 
             updatePenSizeCursor();
 
@@ -10049,7 +10150,6 @@
                 resetTransBG(false);
             }
 
-            drawCaptureArea.reset();
             checkCanvasPanelPos(replayMode);
         }
 
@@ -10169,14 +10269,23 @@
                     rectY = cy;
                     drawedcx = cx;
                     drawedcy = cy;
-                    topBar.hint(getRotatedRectSizeString()+" (Click canvas to save)",topBar.capOff);
+                    topBar.hint(getRotatedRectSizeString()+STRING_CAPTURE_OK,topBar.capOff);
                 }
-                else if(abs(rectW) > 10 && abs(rectH) > 10)
+                else
                 {
-                    saveCaptureImage(rectX,rectY,rectW,rectH);
+                    saveCaptureImage();
                 }
-
                 mouseMoved = false;
+            }
+
+            function isFullImageCapture():Boolean
+            {
+                return rectW === 0 || rectH === 0;
+            }
+
+            function getCaptureArea():Array
+            {
+                return [rectX,rectY,rectW,rectH];
             }
 
             function start(replayMode:Boolean):void
@@ -10215,6 +10324,8 @@
             return {
                 start:start,
                 reset:reset,
+                getCaptureArea:getCaptureArea,
+                isFullImageCapture:isFullImageCapture,
                 getRotatedRectSizeString:getRotatedRectSizeString,
                 updateCaptureAreaLineSize:updateCaptureAreaLineSize
             };
@@ -10327,7 +10438,7 @@
             }
         }
 
-        private function saveCaptureImage(cx:Number,cy:Number,rectW:Number,rectH:Number):void
+        private function saveCaptureImage():void
         {
             if(browseWindowON) return;
 
@@ -10369,67 +10480,12 @@
                 file1.removeEventListener(Event.CANCEL,onCancelEvent);
                 file1.removeEventListener(Event.SELECT,onSelectEvent);
 
-                var newRectangle:Rectangle = new Rectangle(cx,cy,rectW,rectH);
-                const bmpd:BitmapData = mergeCanvas(replayMode,captureTransBGON);
-                var cropData:ByteArray = bmpd.getPixels(newRectangle);
-                cropData.position = 0; //이거 꼭 해줘야함 안그러면 setpixel에서 에러뜸
-                const cropbmpd:BitmapData = new BitmapData(rectW,rectH,true,0);
-
-                newRectangle = new Rectangle(0,0,cropbmpd.width,cropbmpd.height);
-                cropbmpd.lock();
-                cropbmpd.setPixels(newRectangle,cropData);
-                cropbmpd.unlock();
-                cropData.clear();
-                cropData = null;
-
-                const mat:Matrix = new Matrix;
-                const deg:Number = 90*captureRotated;
-                var tmpbmpd:BitmapData = new BitmapData(cropbmpd.width,cropbmpd.height,true,0);
-                var swapWH:Boolean = false;
-                mat.rotate(deg*Math.PI/180);
-
-                if(deg === 90)
-                {
-                    mat.translate(cropbmpd.height,0);
-                    swapWH = true;
-                }
-                else if (deg === -90 || deg == 270)
-                {
-                    mat.translate(0,cropbmpd.width);
-                    swapWH = true;
-                }
-                else if (deg === 180)
-                {
-                    mat.translate(cropbmpd.width, cropbmpd.height);
-                }
-
-                if(captureFlipped)
-                {
-                    if(swapWH)
-                    {
-                        mat.scale(1,-1);
-                        mat.translate(0,cropbmpd.width);
-                    }
-                    else
-                    {
-                        mat.scale(-1,1);
-                        mat.translate(cropbmpd.width,0);
-                    }
-                }
-               
-                if(swapWH) tmpbmpd = new BitmapData(cropbmpd.height,cropbmpd.width,true,0);
-                tmpbmpd.draw(cropbmpd,mat);
-                
                 if(workerPNGCaptureData === null) workerPNGCaptureData = [];
                 if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
 
-                if(!swapWH) callWorkerEncodePNG(tmpbmpd,0,true,captureTransBGON);
-                else callWorkerEncodePNG(tmpbmpd,0,true,captureTransBGON);
+                callWorkerEncodePNG(getProcessedCaptureImage(false),0,true,captureTransBGON);
 
-                var fName:String = file1.name;
-                var fPath:String = e.target.nativePath;
-
-                saveCapturePNGByOrder(fName,fPath);
+                saveCapturePNGByOrder(file1.name,e.target.nativePath);
             }
         }
 
@@ -10892,7 +10948,6 @@
 
                     //캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
                     if(d["lastWindowState"] === 1) stage.nativeWindow.maximize();
-
                     zoomedIndex = d["zoomedIndex"];
                     setZoomCanvas(d["zoomed"]);
                     canvasPanel.x = d["canvasPanel.x"];
@@ -15406,7 +15461,6 @@
 
         private function setReplayUIOFF():void
         {
-            trace('rep off');
             replayModeON = false;
             penCursorOFFFlag = false;
             rregPoint.visible = false;
@@ -15418,7 +15472,6 @@
             setTopChildIndex(replayTimeBox);
             resetCutFrameClickCounter();
             topBar.hintOFF();
-            trace('off');
 
             removeInputEventReplayMode();
             addInputEventDrawMode();
@@ -15434,7 +15487,6 @@
             changePickerModeToNormal();
             updatePenSizeCursor();
             updatePenCursorPosition();
-            trace('off1');
 
             if(traceMenuON === true) traceMenuBox.visible = true;
 
@@ -15676,6 +15728,7 @@
                 case "captureButton":
                 case "capOff":
                 case "capFull":
+                case "capClipBoard":
                 case "capTrans":
                 case "capFlip":
                 case "capRotate":
