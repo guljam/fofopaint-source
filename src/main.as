@@ -54,9 +54,8 @@
     import flash.text.TextField;
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
-    import flash.filters.ConvolutionFilter;//import end
     import flash.system.System;
-    import flash.events.BrowserInvokeEvent;
+    import flash.filters.ConvolutionFilter;//import end
 
     public class main extends Sprite
     {   
