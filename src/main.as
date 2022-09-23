@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.02;
+        private const APP_VERSION:Number = 16.03;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2518,7 +2518,8 @@
                              pos.y >= STAGE_TOP_OFFSET &&
                              pos.y <= stage.stageHeight-STAGE_BOTTOM_OFFSET;
 
-                if(nt > useCursorTool || penCursorOFFFlag || !posInStage || quickSidebarON)//1 2 3 4 펜 지우개 라인툴 라인-지우개툴
+                if(nt > useCursorTool || penCursorOFFFlag || !posInStage || quickSidebarON
+                || resizeCanvas.isCanvasSizeChanging())//1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                 {
                     _penSizeCursor.visible = false;
                 }
@@ -4679,6 +4680,7 @@
         //rotate hand zoom에서 쓰임
         private function _setResizeButtonVisible(flag:Boolean):void
         {
+            penCursorOFFFlag = flag;
             resizeButtonR.visible = flag;
             resizeButtonL.visible = flag;
             resizeButtonD.visible = flag;
@@ -12038,7 +12040,6 @@
 
                 canvasSizeChanging = false;
                 toolTipBox.visible = false;
-                penCursorOFFFlag = false;
                 setResizeButtonVisible((forceExit || (startByShortCut && !isPressingControl())) ? false:true);
                 reiszePreviewRect.graphics.clear();
                 reiszePreviewRect.visible = false;
@@ -15796,6 +15797,7 @@
                 toolBoxLastClickPos.x = -_toolBox2.width/2;
                 toolBoxLastClickPos.y = -_toolBox2.height/2;
             }
+
             _toolBox2.x = floor(mx+toolBoxLastClickPos.x);//원점에서 마지막으로 클릭한 위치로 옮겨줌
             _toolBox2.y = floor(my+toolBoxLastClickPos.y);
             _toolBox2.visible = true;
