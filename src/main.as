@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.03;
+        private const APP_VERSION:Number = 16.04;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1629,13 +1629,10 @@
 
             function _checkUndoReady():void
             {
-                if(readyAddUndo === false)
+                if(canvas1Bitmap.hitTestObject(cd))
                 {
-                    if(isHitTestPoint(canvas1Bitmap))
-                    {
-                        clearButtonClicked = false;
-                        readyAddUndo = true;
-                    }
+                    clearButtonClicked = false;
+                    readyAddUndo = true;
                 }
             }
 
@@ -1938,7 +1935,6 @@
                 data.push(cd.mouseY);
 
                 setFillpenUI(true);
-                if(readyAddUndo === false) _checkUndoReady();
                 canvas2.alpha = 1.0;
 
                 lastMousePos.setTo(mouseX,mouseY);
@@ -2518,7 +2514,7 @@
                              pos.y >= STAGE_TOP_OFFSET &&
                              pos.y <= stage.stageHeight-STAGE_BOTTOM_OFFSET;
 
-                if(nt > useCursorTool || penCursorOFFFlag || !posInStage || quickSidebarON
+                if(penCursorOFFFlag || nt > useCursorTool || !posInStage || quickSidebarON
                 || resizeCanvas.isCanvasSizeChanging())//1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                 {
                     _penSizeCursor.visible = false;
