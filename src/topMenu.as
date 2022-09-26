@@ -38,6 +38,9 @@
 		public var drawModeButton:SimpleButton = drawModeButton;
 		public var topBarColorButton:SimpleButton = topBarColorButton;
 		public var dpiButton:SimpleButton = dpiButton;
+		public var layerOptionButton:SimpleButton = layerOptionButton;
+		public var layerSwapButton:SimpleButton = layerSwapButton;
+		public var layerMergeButton:SimpleButton = layerMergeButton;
 		public var sideBarPositionButton:SimpleButton = sideBarPositionButton;
 		public var sideBarPositionButton2:SimpleButton = sideBarPositionButton2;
 		public var sideBarOFFButton:SimpleButton = sideBarOFFButton;
@@ -75,6 +78,22 @@
 		private var isHintLocked:Boolean = false;
 		private var hintWaitAnimTimer:int = 0;
 		private var hintWaitAnimCount:int = 0;
+
+		public function setLayerButtonOFF():void
+		{
+			layerOptionButton.visible = true;
+			aboutButton.visible = true;
+			layerSwapButton.visible = false;
+			layerMergeButton.visible = false;
+		}
+
+		public function setLayerButtonON():void
+		{
+			layerOptionButton.visible = false;
+			aboutButton.visible = false;
+			layerSwapButton.visible = true;
+			layerMergeButton.visible = true;
+		}
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
 		{
@@ -149,6 +168,9 @@
 			drawModeButton.transform.colorTransform = o;
 			topBarColorButton.transform.colorTransform = o;
 			dpiButton.transform.colorTransform = o;
+			layerOptionButton.transform.colorTransform = o;
+			layerSwapButton.transform.colorTransform = o;
+			layerMergeButton.transform.colorTransform = o;
 			alphaBackup = sideBarPositionButton.alpha;
 			sideBarPositionButton.transform.colorTransform = o;
 			sideBarPositionButton.alpha = alphaBackup;
@@ -410,6 +432,10 @@
 												drawModeButton,
 												topBarColorButton,
 												dpiButton,
+												layerOptionButton,
+												layerSwapButton,
+												layerMergeButton,
+
 												sideBarPositionButton,
 												sideBarPositionButton2,
 												sideBarOFFButton,
@@ -527,6 +553,9 @@
 			drawModeButton.useHandCursor = false;
 			topBarColorButton.useHandCursor = false;
 			dpiButton.useHandCursor = false;
+			layerOptionButton.useHandCursor = false;
+			layerSwapButton.useHandCursor = false;
+			layerMergeButton.useHandCursor = false;
 			sideBarOFFButton.useHandCursor = false;
 			sideBarOFFButton2.useHandCursor = false;
 			sideBarONButton.useHandCursor = false;
@@ -545,6 +574,8 @@
 			sideBarOFFButton2.visible = false;
 			sideBarONButton.visible = false;
 			sideBarONButton2.visible = false;
+			layerSwapButton.visible = false;
+			layerMergeButton.visible = false;
 
 			buttonOrder =   [ 
 								[replayModeButton,drawModeButton,capOff],
@@ -558,7 +589,8 @@
 								[sideBarOFFButton,replayZoomOutButton],
 								[topBarColorButton,replayRotateButton],
 								[dpiButton,replaySpeedSet],
-								[aboutButton]
+								[layerOptionButton,layerSwapButton],
+								[aboutButton,layerMergeButton]
 							];
 
 			drawModeButtons = [
@@ -571,13 +603,14 @@
 									gridButton,
 									topBarColorButton,
 									dpiButton,
+									layerOptionButton,
 									sideBarPositionButton,
 									sideBarPositionButton2,
 									sideBarOFFButton,
 									sideBarOFFButton2,
 									sideBarONButton,
 									sideBarONButton2,
-									aboutButton
+									aboutButton,
 							  ];
 
 			replayModeButtons = [
