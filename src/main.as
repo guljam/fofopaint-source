@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.10;
+        private const APP_VERSION:Number = 16.11;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -16035,8 +16035,11 @@
                 }
                 else if(!isSidebarVisible && sideBar.visible)
                 {
-                    penCursorPosition.setSideBarOFF();
-                    penCursorPosition.setSidebarONDelay();
+                    if(!(targetName === "colorHistoryBox" || targetName === "colorHistoryBoxBG"))
+                    {
+                        penCursorPosition.setSideBarOFF();
+                        penCursorPosition.setSidebarONDelay();
+                    }
                 }
                 else if(isCursorInDrawArea())
                 {
