@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.11;
+        private const APP_VERSION:Number = 16.12;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -316,6 +316,7 @@
                     ,pixelSnapON:Boolean = false //0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
                     ,fillPenON:Boolean = false //채우기 펜 플래그
                     ,subLayerON:Boolean = false
+                    ,subLayerONSave:Boolean = false //레이어 visible toggle에서 씀
                     ,airBrushON:Boolean = false
                     ,airBrushSizeDrawMode:Number = 0
                     ,airBrushSizeReplayMode:Number = 0
@@ -654,15 +655,35 @@
         }
         
         //functions
+        private function setLayer2VisibleToggle():void
+        {
+            if(canvas11Bitmap.visible)
+                canvas11Bitmap.visible = false;            
+            else
+                canvas11Bitmap.visible = true;
+        }
+
+        private function setLayer1VisibleToggle():void
+        {
+            if(canvas1Bitmap.visible)
+                canvas1Bitmap.visible = false;
+            else
+                canvas1Bitmap.visible = true;
+        }
+
         private function addUndoBGColor(color:uint):void
         {
             rDataBuffer.push(["bgColor",color]);
+
             if(hasLastRDataCommand("bgColor"))
             {
                 updateLastRDataCommand("bgColor");
                 addUndoDataContinue();
             }
-            else addUndoData();
+            else
+            {
+                addUndoData();
+            }
         }
         
         private function updateLastRDataCommand(command:String):void
@@ -793,8 +814,7 @@
 
         private function checkLayerOptionOFFMouseMove(e:MouseEvent):void
         {
-            if(topBar.mouseX <= topBar.layerSwapButton.x
-            || topBar.hitTestPoint(mouseX,mouseY) === false)
+            if(topBar.hitTestPoint(mouseX,mouseY) === false)
             {
                 checkLayerOptionOFF();
             }
@@ -1427,6 +1447,31 @@
             if(first === KEY.ctrl || first === KEY.rightCtrl) return COMMAND_CTRL;
 
             return 0;
+        }
+
+        private function checkLayerVisible():Boolean
+        {
+            if(subLayerON === false)
+            {
+                if(canvas1Bitmap.visible === true)
+                    return true;
+                else
+                {
+                    if(isCursorInDrawArea()) setToolTipStringTime("Layer 1 locked");
+                    return false;
+                }
+            }
+            else if(subLayerON === true)
+            {
+                if(canvas11Bitmap.visible === true)
+                    return true;
+                else
+                {
+                    if(isCursorInDrawArea()) setToolTipStringTime("Layer 2 locked");
+                    return false;
+                }
+            }
+            return false;
         }
 
         private function isCursorInDrawArea():Boolean
@@ -5916,6 +5961,14 @@
                 {
                     switch(upTargetName)
                     {
+                        case "layer1VisibleButton":
+                            setLayer1VisibleToggle();
+                        break;
+
+                        case "layer2VisibleButton":
+                            setLayer2VisibleToggle();
+                        break;
+
                         case "layerMergeButton":
                             setLayerMergeButton();
                         break;
@@ -6633,6 +6686,14 @@
                         str = "Change UI scale (f4, f9), current "+getUIScaleString(uiScaleIndex);
                     break;
 
+                    case "layer1VisibleButton":
+                        str = "Layer 1 visible ON/OFF (shift+1, shift+0)";
+                    break;
+
+                    case "layer2VisibleButton":
+                        str = "Layer 2 visible ON/OFF (shift+2, shift+-)";
+                    break;
+
                     case "layerOptionButton":
                         str = "Layer options";
                     break;
@@ -6642,7 +6703,7 @@
                     break;
 
                     case "layerMergeButton":
-                        str = "Merge layer (shift+e, shift+u)";
+                        str = "Merge layer (shift+e, shift+o)";
                     break;
 
                     case "aboutButton":
@@ -14803,25 +14864,36 @@
                 {
                     const keyused:Boolean = checkCommandSubKey(2,true,function(input:int):void
                     {
-                        if(input === KEY.s || input == KEY.k)
+                        switch(input)
                         {
-                            resetRotation();
+                            case KEY.s:
+                            case KEY.k:
+                                resetRotation();
                             return;
-                        }
-                        else if(input === KEY.w || input == KEY.i)
-                        {
-                            resetZoom();
+
+                            case KEY.w:
+                            case KEY.i:
+                                resetZoom();
                             return;
-                        }
-                        else if(input === KEY.n3 || input == KEY.n9)
-                        {
-                            setLayerSwapButton();
-                            
+
+                            case KEY.n3:
+                            case KEY.n9:
+                                setLayerSwapButton();
                             return;
-                        }
-                        else if(input === KEY.e || input == KEY.u)
-                        {
-                            setLayerMergeButton();
+
+                            case KEY.e:
+                            case KEY.o:
+                                setLayerMergeButton();
+                            return;
+
+                            case KEY.n1:
+                            case KEY.n0:
+                                setLayer1VisibleToggle();
+                            return;
+
+                            case KEY.n2:
+                            case KEY.minus:
+                                setLayer2VisibleToggle();
                             return;
                         }
                     });
@@ -16399,6 +16471,8 @@
                 case "layerOptionButton":
                 case "layerSwapButton":
                 case "layerMergeButton":
+                case "layer1VisibleButton":
+                case "layer2VisibleButton":
                 {
                     if(toolBox2ON || !isNowKey(0) || e.target.alpha < 1.0)
                         return;
@@ -16468,20 +16542,21 @@
 
                 return;
             }
+
             //캔버스 영역 밖에서는 해주지 않음
-            if(isCursorInDrawArea() && clickBlockFlag === false)
+            if(isCursorInDrawArea() && checkLayerVisible() && !clickBlockFlag)
             {
                 switch (nowTool)
                 {
-                    case TOOL_FILL_PEN:fillPenTool.start();break;
-                    case TOOL_PEN:penTool(true);break;
-                    case TOOL_ERASE:penTool(false);break;
-                    case TOOL_LINE:lineTool(true);break;
-                    case TOOL_HAND:handTool();break;
-                    case TOOL_LASSO:lassoTool();break;
-                    case TOOL_ROTATE:rotateTool();break;
-                    case TOOL_ZOOM:zoomTool();break;
-                    case TOOL_MOVE:moveTool();break;
+                    case TOOL_FILL_PEN: fillPenTool.start(); break;
+                    case TOOL_PEN: penTool(true); break;
+                    case TOOL_ERASE: penTool(false); break;
+                    case TOOL_LINE: lineTool(true); break;
+                    case TOOL_HAND: handTool(); break;
+                    case TOOL_LASSO: lassoTool(); break;
+                    case TOOL_ROTATE: rotateTool(); break;
+                    case TOOL_ZOOM: zoomTool(); break;
+                    case TOOL_MOVE: moveTool(); break;
                 }
             }
         }

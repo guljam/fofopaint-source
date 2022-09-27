@@ -38,6 +38,8 @@
 		public var drawModeButton:SimpleButton = drawModeButton;
 		public var topBarColorButton:SimpleButton = topBarColorButton;
 		public var dpiButton:SimpleButton = dpiButton;
+		public var layer1VisibleButton:SimpleButton = layer1VisibleButton;
+		public var layer2VisibleButton:SimpleButton = layer2VisibleButton;
 		public var layerOptionButton:SimpleButton = layerOptionButton;
 		public var layerSwapButton:SimpleButton = layerSwapButton;
 		public var layerMergeButton:SimpleButton = layerMergeButton;
@@ -83,6 +85,10 @@
 		{
 			layerOptionButton.visible = true;
 			aboutButton.visible = true;
+			dpiButton.visible = true;
+			topBarColorButton.visible = true;
+			layer1VisibleButton.visible = false;
+			layer2VisibleButton.visible = false;
 			layerSwapButton.visible = false;
 			layerMergeButton.visible = false;
 		}
@@ -91,6 +97,10 @@
 		{
 			layerOptionButton.visible = false;
 			aboutButton.visible = false;
+			dpiButton.visible = false;
+			topBarColorButton.visible = false;
+			layer1VisibleButton.visible = true;
+			layer2VisibleButton.visible = true;
 			layerSwapButton.visible = true;
 			layerMergeButton.visible = true;
 		}
@@ -168,6 +178,8 @@
 			drawModeButton.transform.colorTransform = o;
 			topBarColorButton.transform.colorTransform = o;
 			dpiButton.transform.colorTransform = o;
+			layer1VisibleButton.transform.colorTransform = o;
+			layer2VisibleButton.transform.colorTransform = o;
 			layerOptionButton.transform.colorTransform = o;
 			layerSwapButton.transform.colorTransform = o;
 			layerMergeButton.transform.colorTransform = o;
@@ -432,6 +444,8 @@
 												drawModeButton,
 												topBarColorButton,
 												dpiButton,
+												layer1VisibleButton,
+												layer2VisibleButton,
 												layerOptionButton,
 												layerSwapButton,
 												layerMergeButton,
@@ -553,6 +567,8 @@
 			drawModeButton.useHandCursor = false;
 			topBarColorButton.useHandCursor = false;
 			dpiButton.useHandCursor = false;
+			layer1VisibleButton.useHandCursor = false;
+			layer2VisibleButton.useHandCursor = false;
 			layerOptionButton.useHandCursor = false;
 			layerSwapButton.useHandCursor = false;
 			layerMergeButton.useHandCursor = false;
@@ -574,6 +590,9 @@
 			sideBarOFFButton2.visible = false;
 			sideBarONButton.visible = false;
 			sideBarONButton2.visible = false;
+
+			layer1VisibleButton.visible = false;
+			layer2VisibleButton.visible = false;
 			layerSwapButton.visible = false;
 			layerMergeButton.visible = false;
 
@@ -587,8 +606,8 @@
 								[gridButton,superUndoButton],
 								[sideBarPositionButton,replayZoomInButton],
 								[sideBarOFFButton,replayZoomOutButton],
-								[topBarColorButton,replayRotateButton],
-								[dpiButton,replaySpeedSet],
+								[topBarColorButton,layer1VisibleButton,replayRotateButton],
+								[dpiButton,layer2VisibleButton,replaySpeedSet],
 								[layerOptionButton,layerSwapButton],
 								[aboutButton,layerMergeButton]
 							];
