@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.12;
+        private const APP_VERSION:Number = 16.13;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -211,7 +211,7 @@
                     ,STRING_PLAYBACK_SPEED:String = "Play speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
-                    ,STRING_CAPTURE_OK:String = " (Click canvas to save)"
+                    ,STRING_CAPTURE_OK:String = " (Click canvas to save image, Right-click to reset capture area)"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -470,7 +470,6 @@
                     ,captureRotated:uint = 0 //캡쳐 회전한 변수 저장
                     ,captureFlipped:Boolean = false //캡쳐 대칭한 변수 저장
                     ,captureTransBGON:Boolean = false //배경 제외하고 저장하는 플래그
-                    ,captureCilpBoardImageInfo:Array = [] //클립보드 중복 저장 방지하기 위해서 이 정보로 비교해줌
                     ,fullCaptureReady:Boolean = false
 
         //윈도우 크기변수
@@ -820,12 +819,12 @@
             }
         }
 
-        private function getProcessedCaptureImage(isFullImageCapture:Boolean):BitmapData
+        private function getProcessedCaptureImage(clipBoardCopyFlag:Boolean):BitmapData
         {
             const isReplayMode:Boolean = replayModeON;
             var info:Array;
 
-            if(isFullImageCapture || drawCaptureArea.isFullImageCapture())
+            if(drawCaptureArea.isFullImageCapture())
             {
                 if(isReplayMode) info = [0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height];
                 else info = [0,0,canvas1BitmapData.width,canvas1BitmapData.height];
@@ -836,7 +835,7 @@
             }
 
             var newRectangle:Rectangle = new Rectangle(info[0],info[1],info[2],info[3]);
-            const bmpd:BitmapData = mergeCanvas(isReplayMode,(captureModeON && captureTransBGON && !isFullImageCapture) ? true:false);
+            const bmpd:BitmapData = mergeCanvas(isReplayMode,(captureModeON && captureTransBGON && !clipBoardCopyFlag) ? true : false);
             var cropData:ByteArray = bmpd.getPixels(newRectangle);
             cropData.position = 0; //이거 꼭 해줘야함 안그러면 setpixel에서 에러뜸
             const cropbmpd:BitmapData = new BitmapData(info[2],info[3],true,0);
@@ -893,17 +892,9 @@
 
         private function copyCaptureImageToCilpBoard():void
         {
-            if(captureCilpBoardImageInfo[0] !== captureRotated
-            ||captureCilpBoardImageInfo[1] !== captureFlipped)
-            {
-                captureCilpBoardImageInfo = [captureRotated,captureFlipped];
-                Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT,getProcessedCaptureImage(true),false);
-                topBar.hintTime("Image copied to clipboard successfully",topBar.capClipBoard as DisplayObject);
-            }
-            else
-            {
-                topBar.hintTime("Image has already been copied to the clipboard",topBar.capClipBoard as DisplayObject);
-            }
+            Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT,getProcessedCaptureImage(true),false);
+            topBar.hintTime("Image copied to clipboard successfully",topBar.capClipBoard as DisplayObject);
+            topBar.capClipBoard.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function getUIScaleString(index:int):String
@@ -4837,6 +4828,8 @@
                 captureRotated = 1
                 xReg.rotation = 90;
             }
+
+            topBar.capClipBoard.alpha = 1.0;
         }
 
         private function captureOFF():void
@@ -4870,6 +4863,7 @@
             captureRotated++;
             if(captureRotated >= 4) captureRotated = 0;
             canvasFitWindow(true);
+            topBar.capClipBoard.alpha = 1.0;
         }
 
         //rotate hand zoom에서 쓰임
@@ -5004,6 +4998,8 @@
             stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpCaptureMode);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownCaptureMode);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownCaptureMode);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownCaptureMode);
+            stage.removeEventListener(MouseEvent.MOUSE_OVER,mouseOverCaptureMode);
         }
 
         private function addInputEventCaptrueMode():void
@@ -5012,6 +5008,8 @@
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpCaptureMode,false,-1);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownCaptureMode,false,-1);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownCaptureMode,false,-1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownCaptureMode,false,-1);
+            stage.addEventListener(MouseEvent.MOUSE_OVER,mouseOverCaptureMode,false,-1);
         }
 
         private function removeInputEventToolBox2():void
@@ -6611,7 +6609,10 @@
                     break;
 
                     case "capClipBoard":
-                        str = "Copy image to clipboard (v, n)";
+                            str = "Copy "+((drawCaptureArea.isFullImageCapture()) ?
+                                          "full image"
+                                          :"selected area image")
+                                + " to clipboard (v, n)";
                     break;
 
                     case "capTrans":
@@ -10175,6 +10176,7 @@
                 if(replayModeON) removeInputEventReplayMode();
                 else removeInputEventDrawMode();
 
+                setDefaultHintCaptureMode();
             }
             else 
             {
@@ -10199,6 +10201,30 @@
                 }
 
                 changePickerModeToNormal();
+            }
+        }
+
+        private function setDefaultHintCaptureMode():void
+        {
+            topBar.hint("Drag canvas to draw capture area (Click canvas to save full image)",topBar.capOff);
+        }
+
+        private function mouseOverCaptureMode(e:MouseEvent):void
+        {
+            if(topBar.hitTestPoint(mouseX,mouseY) === false && drawCaptureArea.isFullImageCapture())
+            {
+                setDefaultHintCaptureMode();
+            }
+        }
+
+        private function rightMouseDownCaptureMode(e:MouseEvent):void
+        {
+            if(topBar.hitTestPoint(mouseX,mouseY) === false)
+            {
+                if(!drawCaptureArea.isFullImageCapture())
+                {
+                    drawCaptureArea.resetCaptureArea();
+                }
             }
         }
 
@@ -10398,7 +10424,6 @@
             setZoomCanvas(_canvasBackupData.z,replayMode);
             toolTipBox.visible = false;
             captureWindowMove = new Point(0,0);
-            captureCilpBoardImageInfo = [];
 
             updatePenSizeCursor();
 
@@ -10491,6 +10516,17 @@
                                                                           : abs(rectH)+" x "+abs(rectW);
             }
 
+            function resetCaptureArea():void
+            {
+                rectX = 0;
+                rectY = 0;
+                rectW = 0;
+                rectH = 0;
+                captureAreaRect.graphics.clear();
+                topBar.capClipBoard.alpha = 1.0;
+                setDefaultHintCaptureMode();
+            }
+
             function reset():void
             {
                 cx = 0;
@@ -10505,6 +10541,7 @@
                 xReg = null;
                 xPanel = null;
                 mouseMoved = false;
+                topBar.capClipBoard.alpha = 1.0;
             }
 
             function captureMouseUp(e:MouseEvent):void
@@ -10532,6 +10569,7 @@
                     drawedcx = cx;
                     drawedcy = cy;
                     topBar.hint(getRotatedRectSizeString()+STRING_CAPTURE_OK,topBar.capOff);
+                    topBar.capClipBoard.alpha = 1.0;
                 }
                 else
                 {
@@ -10586,6 +10624,7 @@
             return {
                 start:start,
                 reset:reset,
+                resetCaptureArea:resetCaptureArea,
                 getCaptureArea:getCaptureArea,
                 isFullImageCapture:isFullImageCapture,
                 getRotatedRectSizeString:getRotatedRectSizeString,
