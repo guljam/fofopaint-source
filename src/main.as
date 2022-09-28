@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.13;
+        private const APP_VERSION:Number = 16.14;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15489,7 +15489,7 @@
             const sth:Number = stage.stageHeight;
             const canMoveHeight:Number = (sth-STAGE_TOP_OFFSET)-scrollBarHeight*scale;
             const diffHeight:Number = sideBarSetHeight*scale-(sth-STAGE_TOP_OFFSET);
-            const factor:Number = (diffHeight/canMoveHeight)*scale;
+            const factor:Number = (diffHeight/canMoveHeight);
             var scrollStarted:Boolean = false;
             var my1:Number = sideBarScrollBar.y;
             var my2:Number = sideBarScrollSet.y;
@@ -15508,10 +15508,10 @@
 
             function sideBarMouseMoveEvent(e:MouseEvent):void
             {
-                const subY:Number = clickY-mouseY;
+                const subY:Number = (clickY-mouseY)/scale;
 
                 my1 = my1-subY;
-                my2 = my2+subY*(factor/scale);
+                my2 = my2+subY*factor;
 
                 if(my1 < 0)
                 {
