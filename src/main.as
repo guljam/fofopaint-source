@@ -59,7 +59,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.14;
+        private const APP_VERSION:Number = 16.15;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -893,7 +893,7 @@
         private function copyCaptureImageToCilpBoard():void
         {
             Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT,getProcessedCaptureImage(true),false);
-            topBar.hintTime("Image copied to clipboard successfully",topBar.capClipBoard as DisplayObject);
+            topBar.hint("The image copied to clipboard successfully",topBar.capClipBoard as DisplayObject);
             topBar.capClipBoard.alpha = BUTTON_OFF_ALPHA;
         }
 
@@ -4772,8 +4772,7 @@
         {
             var xbitmap1:BitmapData;
             var xbitmap11:BitmapData;
-            var xbitmap2:BitmapData;
-            var xCanvas2Draw:Shape;
+            var xcanvas2:Sprite;
             var xBGCOLOR:uint;
             var alpha:Number;
 
@@ -4781,8 +4780,7 @@
             {
                 xbitmap1 = rcanvas1BitmapData;
                 xbitmap11 = rcanvas11BitmapData;
-                xbitmap2 = rcanvas2BitmapData;
-                xCanvas2Draw = rcanvas2Draw;
+                xcanvas2 = rcanvas2;
                 xBGCOLOR = RCANVAS_BG_COLOR;
                 alpha = tickDraw.getLineStyleAlpha();
             }
@@ -4790,23 +4788,25 @@
             {
                 xbitmap1 = canvas1BitmapData;
                 xbitmap11 = canvas11BitmapData;
-                xbitmap2 = canvas2BitmapData;
-                xCanvas2Draw = canvas2Draw;
+                xcanvas2 = canvas2;
                 xBGCOLOR = CANVAS_BG_COLOR;
                 alpha = 1.0;
             }
 
-            const w:Number = xbitmap1.width;
-            const h:Number = xbitmap1.height;
-            const bmpd:BitmapData = new BitmapData(w,h,true,(captureTransparentBG) ? 0 : 0xFF000000|xBGCOLOR);
-            const bmpd2:BitmapData = new BitmapData(w,h,true,0);
-            const newColorTransForm:ColorTransform = new ColorTransform(1,1,1,alpha);
+            const bmpd:BitmapData = new BitmapData(xbitmap1.width,xbitmap1.height,true
+                                                  ,(captureTransparentBG) ? 0 : 0xFF000000|xBGCOLOR);
 
-            bmpd2.draw(xbitmap2);
-            bmpd2.draw(xCanvas2Draw);//캔버스 2번부터 눌러주고
             bmpd.draw(xbitmap11); //레이어 쌓기
-            bmpd.draw(xbitmap1);
-            bmpd.draw(bmpd2,null,newColorTransForm);
+            if(rcanvasPanel.getChildIndex(rcanvas2) === 1) //레이어 2번을 그리고 있을때
+            {
+                bmpd.draw(xcanvas2,null,new ColorTransform(1,1,1,alpha));
+                bmpd.draw(xbitmap1);
+            }
+            else //레이어 1번 그리고 있을때
+            {
+                bmpd.draw(xbitmap1);
+                bmpd.draw(xcanvas2,null,new ColorTransform(1,1,1,alpha));
+            }
 
             return bmpd;
         }
@@ -6907,10 +6907,10 @@
             if(captureMode)
             {
                 drawCaptureArea.updateCaptureAreaLineSize();
-                if(topBar.topMenuInfo.visible)
-                {
-                    topBar.hint(topBar.topMenuInfo.text,topBar.capOff);
-                }
+                // if(topBar.topMenuInfo.visible)
+                // {
+                //     topBar.hint(topBar.topMenuInfo.text,topBar.capOff);
+                // }
             }
         }
 
@@ -10232,7 +10232,11 @@
         {
             const target:DisplayObject = e.target as DisplayObject;
             if(!target) return;
-            if(target.alpha < 1.0) return;
+            //캔버스 2번이 알파가 1.0 이하일수도 있기 때문에 topbar만 체크함
+            if(target.alpha < 1.0 && topBar.hitTestPoint(mouseX,mouseY))
+            {
+                return;
+            }
 
             const targetName:String = target.name;
 
@@ -10511,9 +10515,18 @@
 
             function getRotatedRectSizeString():String
             {
-                if(!rectW || !rectH || (rectW < 10 && rectW < 10)) return "";
-                else return (captureRotated === 0 || captureRotated === 2) ? abs(rectW)+" x "+abs(rectH)
-                                                                          : abs(rectH)+" x "+abs(rectW);
+                const w:Number = abs(rectW);
+                const h:Number = abs(rectH);
+
+                if(!rectW || !rectH || (w < 10 && h < 10))
+                {
+                    return "";
+                }
+                else 
+                {
+                    return (captureRotated === 0 || captureRotated === 2) ? w+" x "+h
+                                                                          : h+" x "+w;
+                }
             }
 
             function resetCaptureArea():void
@@ -12759,11 +12772,31 @@
             const pickerBox:colorPickerBox = pickerBox;
             const colorHistoryItemWidth:Number = colorHistoryColorWidth;
             const colorMatchMidX:Number = colorHistoryItemWidth/2;
-            
+            const _spuitZoomBitmap:Bitmap = spuitZoomCursor.spuitZoomBitmap;
+            const magSize:Number = spuitCursor.magSize;
+            const _canvasPanel:Sprite = canvasPanel;
+            const lastPickedColor:uint = 0;
+            const _canvas1Bitmap:Bitmap = canvas1Bitmap;
+
+            var spuitDefaultZoom:Number = 2.0; // zoomed에 따라서 가변됨 초기값 1 x 2.0 
             var canvasBGColor:uint;
             var canvas1bmpd:BitmapData;
             var canvas11bmpd:BitmapData;
             var penColorBackup:uint;
+
+            function setSpuitMag():void
+            {
+                const mid:Number = magSize/(4*zoomed); //기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
+                const bmpd:BitmapData = new BitmapData(magSize,magSize,true,0xFF000000|uiColorSet[uiColorIndex][2]);
+                const tx:Number = -_canvas1Bitmap.mouseX+mid;
+                const ty:Number = -_canvas1Bitmap.mouseY+mid;
+                const mat:Matrix = new Matrix();
+
+                mat.translate(tx,ty);
+                mat.scale(spuitDefaultZoom,spuitDefaultZoom);
+                bmpd.draw(_canvasPanel,mat);
+                _spuitZoomBitmap.bitmapData = bmpd;
+            }
 
             function pickColor():uint
             {
@@ -12771,8 +12804,8 @@
                 {
                     //뽑기색
                     const round:Function = Math.round;
-                    const c1:uint = canvas1bmpd.getPixel32(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY);
-                    const c2:uint = canvas11bmpd.getPixel32(canvas1Bitmap.mouseX,canvas1Bitmap.mouseY);
+                    const c1:uint = canvas1bmpd.getPixel32(_canvas1Bitmap.mouseX,_canvas1Bitmap.mouseY);
+                    const c2:uint = canvas11bmpd.getPixel32(_canvas1Bitmap.mouseX,_canvas1Bitmap.mouseY);
 
                     //위 레이어
                     const a1:Number = ((c1 & 0xFF000000) >>> 24)/255;
@@ -12877,6 +12910,11 @@
                 }
                 spuitCursor.visible = false;
                 setOldTool();
+                if(_spuitZoomBitmap.bitmapData !== null)
+                {
+                    _spuitZoomBitmap.bitmapData.dispose();
+                    _spuitZoomBitmap.bitmapData = null;
+                }
                 //move에서 spuitBitmapData를 쓰고 있기 때문에 이벤트를 먼저 해제해주고 데이터 비워줌
             }
 
@@ -12887,10 +12925,12 @@
                 spuitCursor.x = mouseX;
                 spuitCursor.y = mouseY;
 
-                if(targetName && targetName.indexOf("canvas") !== -1 || targetName === "canvasGrid")
+                // if(targetName && targetName.indexOf("canvas") !== -1 || targetName === "canvasGrid")
+                if(isCursorInDrawArea())
                 {
                     spuitCursor.visible = true;
-                    _setColorTransform(spuitCursor["spuitNowColor"],pickColor()); 
+                    _setColorTransform(spuitCursor["spuitNowColor"],pickColor());
+                    if(zoomed < 12.0) setSpuitMag();
                 }
                 else
                 {
@@ -12922,21 +12962,30 @@
                 canvas1bmpd = canvas1BitmapData;
                 canvas11bmpd = canvas11BitmapData;
                 toolBox.moveToolCursor("toolSpuit");
-
+                spuitDefaultZoom = zoomed*2.0;
                 oldTool = nowTool;
                 penColorBackup = penColor;
                 setNowTool(TOOL_SPUIT);
                 _setColorTransform(spuitCursor["spuitOldColor"],penColor);
                 moveEraseButton("toolSpuit");
-                
-                if(isHitTestPoint(canvas1Bitmap) === true
-                && mouseX > STAGE_LEFT_OFFSET && mouseX < stage.stageWidth-STAGE_RIGHT_OFFSET //캔버스 영역안에서만
-                && mouseY > STAGE_TOP_OFFSET && mouseY < stage.stageHeight-STAGE_BOTTOM_OFFSET)
+                spuitCursor.rotateBitmap(regPoint.rotation);
+
+                if(isCursorInDrawArea())
                 {
                     spuitCursor.x = mouseX;
                     spuitCursor.y = mouseY;
                     _setColorTransform(spuitCursor["spuitNowColor"],pickColor());
                     setTopChildIndex(spuitCursor);
+                    
+                    if(zoomed < 12.0)
+                    {
+                        spuitCursor.spuitZoomBitmapBox.visible = true;
+                        setSpuitMag();
+                    }
+                    else
+                    {
+                        spuitCursor.spuitZoomBitmapBox.visible = false;
+                    }
                     spuitCursor.visible = true;
                 }
 
@@ -13009,8 +13058,8 @@
                 xReg = (isDrawMode) ? regPoint : rregPoint;
                 xBitmap = (isDrawMode) ? canvas1Bitmap : rcanvas1Bitmap;
                 old.setTo(mouseX,mouseY);
-
                 penCursorOFFFlag = true;
+                
                 if(isDrawMode)
                 {
                     toolBox.setCursorVisible(false);
@@ -14151,7 +14200,7 @@
             g.lineStyle(1,color1,1.0,true);
             // g.lineStyle(1,0,0);
             g.beginFill(color2);
-            g.drawRect(0,0,9,height);
+            g.drawRect(0,0,12,height);
             g.endFill();
 
             scrollBarHeight = height;

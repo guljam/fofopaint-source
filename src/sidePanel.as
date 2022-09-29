@@ -30,7 +30,7 @@
 		public function updateSideBGSize(sth:Number):void
 		{
 			sideBG.width = w;
-			sideBG.height = sth;
+			sideBG.height = sth+2; //공백 보정으로 길이를 약간 늘려줌
 			h = sth;
 		}
 
@@ -54,6 +54,7 @@
             g.beginFill(0xCCCCCC);
             g.drawRect(0,0,10,10);
             g.endFill();
+			sideBG.y = -1; //스케일 조절하면 윗 메뉴 사이에 흰 공백이 보여서 약간 위로 올려줌
 			addChild(sideBG);
             cacheAsBitmap = true;
 		}

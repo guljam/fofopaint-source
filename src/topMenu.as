@@ -347,7 +347,7 @@
 
 		public function updateTopbarBG(stw:int):void
 		{
-			topbarBG.width = stw/scaleX;
+			topbarBG.width = Math.ceil(stw/scaleX);
 		}
 		
 		public function makeTopbarBG(color:uint):void
