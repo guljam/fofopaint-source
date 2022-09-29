@@ -13066,7 +13066,7 @@
 
         private function cHandTool():Function
         {
-            const old:Point = new Point(0,0);;
+            const old:Point = new Point(0,0);
 
             var _replayMode:Boolean;
             var isDrawMode:Boolean;
