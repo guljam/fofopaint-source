@@ -23,11 +23,14 @@
 		public var lassoCHand:SimpleButton = lassoCHand;
 		public var lassoCZoom:SimpleButton = lassoCZoom;
 		public var lassoCRotate:SimpleButton = lassoCRotate;
+		public var lassoTrace:SimpleButton = lassoTrace;
 		public var lasso1pxLeft:SimpleButton = lasso1pxLeft;
 		public var lasso1pxRight:SimpleButton = lasso1pxRight;
 		public var lasso1pxDown:SimpleButton = lasso1pxDown;
 		public var lasso1pxUp:SimpleButton = lasso1pxUp;
 		public const fixedScale:Number = 0.875;
+
+		private var lassoInfoBackup:Array = [];
 
 		public function changeUIColor(arr:Array):void
 		{
@@ -44,6 +47,7 @@
 					lassoCHand,
 					lassoCZoom,
 					lassoCRotate,
+					lassoTrace,
 				];
 			const rightButtonArr:Array =
 				[
@@ -116,6 +120,35 @@
 			lassoInfo.textColor = arr[2];
 		}
 
+		public function hint(str:String):void
+		{
+			if(str.indexOf("\n") !== -1 && lassoInfoBackup.length === 0)
+			{
+				lassoInfoBackup[0] = lassoInfo.y;
+				lassoInfoBackup[1] = lassoInfo.height;
+				lassoInfoBackup[2] = lassoMenuMoveButton.y;
+				lassoInfoBackup[3] = lassoMenuMoveButton.height;
+
+				lassoInfo.y -= 18;
+				lassoInfo.height += 18;
+				lassoMenuMoveButton.y -= 18;
+				lassoMenuMoveButton.height += 18;
+				lassoInfo.text = str;
+			}
+			else
+			{
+				if(lassoInfoBackup.length !== 0)
+				{
+					lassoInfo.y = lassoInfoBackup[0];
+					lassoInfo.height = lassoInfoBackup[1];
+					lassoMenuMoveButton.y = lassoInfoBackup[2];
+					lassoMenuMoveButton.height = 27;
+					lassoInfoBackup = [];
+				}
+				lassoInfo.text = str;
+			}
+		}
+
 		public function lassoButtons()
 		{
 			scaleX = fixedScale;
@@ -133,6 +166,7 @@
 			lassoCHand.useHandCursor = false;
 			lassoCZoom.useHandCursor = false;
 			lassoCRotate.useHandCursor = false;
+			lassoTrace.useHandCursor = false;
 			lasso1pxLeft.useHandCursor = false;
 			lasso1pxRight.useHandCursor = false;
 			lasso1pxDown.useHandCursor = false;
