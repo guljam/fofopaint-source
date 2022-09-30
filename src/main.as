@@ -56,10 +56,11 @@
     import flash.filters.BlurFilter;
     import flash.system.System;
     import flash.filters.ConvolutionFilter;//import end
+    import flash.trace.Trace;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.17;
+        private const APP_VERSION:Number = 16.20;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -212,6 +213,8 @@
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
                     ,STRING_CAPTURE_OK:String = " (Click canvas to save image, Right-click to reset capture area)"
+                    ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
+                    ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -347,7 +350,6 @@
                     ,undoIndex:int = 0 //undo redo할때 무슨 이미지인지 알려주는 undoImageData의 포인터 인덱스임
                     ,undoDelFlag:Boolean = false //undo하고 나서 addundo가 되었을때 뒷부분 데이터 전부 날려주는 플래그
                     ,readyAddUndo:Boolean = false //선을 그어줄대 선전체가 캔버스 바깥쪽에 있을수도 있으니까 이걸 판단해줌
-                    ,clearButtonClicked:Boolean = false//clear button 여러번 누르기 금지 플래그
         //lasso 관련 변수
                     ,lassoToolON:Boolean = false //라소툴로 영역 선택하면 올려줌
                     ,lassoStartData:Array = [] //이 값이랑 비교해서 달라진게 있으면 ok할때 적용해줌
@@ -463,8 +465,8 @@
         //스크린샷 관련 변수
                     ,captureModeON:Boolean = false //스크린샷 켜지면 올려줌
                     ,browseWindowON:Boolean = false //캡쳐 저장키 빠르게 누를때 에러 떠서 중복안되게 플래그 세워줌
-                    ,canvasBackupData:Object = {}
-                    ,canvasBackupDataDrawCanvas:Object = {} //save appdata에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
+                    ,canvasBackupData:Object = {} //캡쳐 키면 캔버스 이전 상태 저장함
+                    ,canvasBackupDataOnSave:Object = {} //save appdata에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
                     ,captureZoomed:Number = 1 // 사각형 그려줄때 선 두깨를 이 배율에 맞추어서 해줌
                     ,captureWindowMove:Point = new Point(0,0) //스크린샷이 켜져있는 상태에서 창을 조절했을때, 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
                     ,captureRotated:uint = 0 //캡쳐 회전한 변수 저장
@@ -653,28 +655,72 @@
         }
         
         //functions
+        private function setLayerVisibleHint(layer:int):void
+        {
+            const layer1Str:String = "Layer 1 visible = "+((canvas1Bitmap.visible)?"ON":"OFF");
+            const layer2Str:String = "Layer 2 visible = "+((canvas11Bitmap.visible)?"ON":"OFF");
+
+            if(layer === 1)
+            {
+                setToolTipStringTime("[ "+layer1Str+" ]\n"+layer2Str);
+            }
+            else if(layer === 2)
+            {
+                setToolTipStringTime(layer1Str+"\n[ "+layer2Str+" ]");
+            }
+        }
+
+        private function isSubLayerONReplayMode():Boolean
+        {
+            return rcanvasPanel.getChildIndex(rcanvas2) === 1;
+        }
+
+        private function setClearButtonActive():void
+        {
+            topBar.layerMergeButton.alpha = 1.0;
+            topBar.clearButton.alpha = 1.0;
+            setWindowTitleStar();
+        }
+
+        private function isAllLayerInvisible():Boolean
+        {
+            if(!canvas1Bitmap.visible && !canvas11Bitmap.visible)
+            {
+                setToolTipStringTime("All layer locked");
+                return true;
+            }
+            return false;
+        }
+
         private function mergeLassoImageToTraceLayer():void
         {
             if(lassoCopyON)
             {
-                drawLassoBoxImageToBitmapData(true)
+                drawLassoBoxImageToBitmapData(true);
                 disposeLassoBMP();
                 resetLassoBox();
             }
             else
             {
-                clearButtonClicked = false;
-
                 const lassoInfo:Array = drawLassoBoxImageToBitmapData(true);
                 const point1:Vector.<Number> = lassoPointSave[0].concat();
                 const point2:Array = lassoPointSave[1].concat();
 
-                rDataBuffer.push(["lassodel",point1,point2,lassoInfo,lassoCopyON]);
+                rDataBuffer.push(["lassodel",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible]);
                 addUndoData();
 
                 disposeLassoBMP();
                 resetLassoBox();
             }
+
+            if(CANVAS_TRACE_ALPHA === 0.0)
+            {
+                updateTraceOpaButtonPosByAlpha(0.5);
+                CANVAS_TRACE_ALPHA = 0.5;
+                canvasTraceLayer.visible = true;
+                canvasTraceLayer.alpha = 0.5;
+            }
+            canvasTraceBitmap.smoothing = true;
         }
 
         private function mergeImageToTraceLayer(layer1:IBitmapDrawable,layer2:IBitmapDrawable):void
@@ -687,8 +733,8 @@
             mat.translate(CANVAS_WIDTH/2,CANVAS_HEIGHT/2);
 
             tracebmpd.draw(canvasTraceLayer,mat);
-            tracebmpd.draw(layer2);
-            tracebmpd.draw(layer1);
+            if(layer2 !== null) tracebmpd.draw(layer2);
+            if(layer1 !== null) tracebmpd.draw(layer1);
 
             canvasTraceBitmapData = tracebmpd.clone();
             canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
@@ -697,20 +743,186 @@
             tracebmpd = null;
         }
 
+        private function checkCaptureButtonActiveCaptureMode():void
+        {
+            topBar.capClipBoard.alpha = 1.0;
+            if(replayModeON)
+            {
+                if(!rcanvas1Bitmap.visible && !rcanvas11Bitmap.visible)
+                {
+                    topBar.capFull.alpha = BUTTON_OFF_ALPHA;
+                    topBar.capClipBoard.alpha = BUTTON_OFF_ALPHA;
+                    topBar.capRotate.alpha = BUTTON_OFF_ALPHA;
+                    topBar.capFlip.alpha = BUTTON_OFF_ALPHA;
+                }
+                else if(topBar.capFull.alpha < 1.0)
+                {
+                    topBar.capFull.alpha = 1.0;
+                    topBar.capClipBoard.alpha = 1.0;
+                    topBar.capRotate.alpha = 1.0;
+                    topBar.capFlip.alpha = 1.0;
+                }
+            }
+            else
+            {
+                if(!canvas1Bitmap.visible && !canvas11Bitmap.visible)
+                {
+                    topBar.capFull.alpha = BUTTON_OFF_ALPHA;
+                    topBar.capClipBoard.alpha = BUTTON_OFF_ALPHA;
+                    topBar.capRotate.alpha = BUTTON_OFF_ALPHA;
+                    topBar.capFlip.alpha = BUTTON_OFF_ALPHA;
+                }
+                else if(topBar.capFull.alpha < 1.0)
+                {
+                    topBar.capFull.alpha = 1.0;
+                    topBar.capClipBoard.alpha = 1.0;
+                    topBar.capRotate.alpha = 1.0;
+                    topBar.capFlip.alpha = 1.0;
+                }
+            }
+        }
+
+        private function checkCaptureButtonActive():Boolean
+        {
+            if(!canvas1Bitmap.visible && !canvas11Bitmap.visible)
+            {
+                topBar.captureButton.alpha = BUTTON_OFF_ALPHA;
+                return false;
+            }
+
+            if(topBar.captureButton.alpha < 1.0)
+            {
+                topBar.captureButton.alpha = 1.0
+            }
+            return true;
+        }
+
         private function setLayer2VisibleToggle():void
         {
             if(canvas11Bitmap.visible)
+            {
                 canvas11Bitmap.visible = false;            
+                if(layerOptionON)
+                {
+                    topBar.layer2VisibleButton.visible = false;
+                    topBar.layer2InvisibleButton.visible = true;
+                }
+            }
             else
+            {
                 canvas11Bitmap.visible = true;
+                if(layerOptionON)
+                {
+                    topBar.layer2VisibleButton.visible = true;
+                    topBar.layer2InvisibleButton.visible = false;
+                }
+            }
+
+            checkCaptureButtonActive();
+        }
+
+        private function setLayer2VisibleToggleCaptureMode():void
+        {
+            if(replayModeON)
+            {
+                if(rcanvas11Bitmap.visible)
+                {
+                    rcanvas11Bitmap.visible = false;
+                    if(isSubLayerONReplayMode()) rcanvas2.visible = false;
+
+                    topBar.capLayer2VisibleButton.visible = false;
+                    topBar.capLayer2InvisibleButton.visible = true;
+                }
+                else
+                {
+                    rcanvas11Bitmap.visible = true;
+                    if(isSubLayerONReplayMode()) rcanvas2.visible = true;
+
+                    topBar.capLayer2VisibleButton.visible = true;
+                    topBar.capLayer2InvisibleButton.visible = false;
+                }
+            }
+            else
+            {
+                if(canvas11Bitmap.visible)
+                {
+                    canvas11Bitmap.visible = false;
+                    
+                    topBar.capLayer2VisibleButton.visible = false;
+                    topBar.capLayer2InvisibleButton.visible = true;
+                }
+                else
+                {
+                    canvas11Bitmap.visible = true;
+                    topBar.capLayer2VisibleButton.visible = true;
+                    topBar.capLayer2InvisibleButton.visible = false;
+                }
+            }
+            checkCaptureButtonActiveCaptureMode();
+        }
+
+        private function setLayer1VisibleToggleCaptureMode():void
+        {
+            if(replayModeON)
+            {
+                if(rcanvas1Bitmap.visible)
+                {
+                    rcanvas1Bitmap.visible = false;
+                    if(!isSubLayerONReplayMode()) rcanvas2.visible = false;
+
+                    topBar.capLayer1VisibleButton.visible = false;
+                    topBar.capLayer1InvisibleButton.visible = true;
+                }
+                else
+                {
+                    rcanvas1Bitmap.visible = true;
+                    if(!isSubLayerONReplayMode()) rcanvas2.visible = true;
+
+                    topBar.capLayer1VisibleButton.visible = true;
+                    topBar.capLayer1InvisibleButton.visible = false;
+                }
+            }
+            else
+            {
+                if(canvas1Bitmap.visible)
+                {
+                    canvas1Bitmap.visible = false;
+                    topBar.capLayer1VisibleButton.visible = false;
+                    topBar.capLayer1InvisibleButton.visible = true;
+                }
+                else
+                {
+                    canvas1Bitmap.visible = true;
+                    topBar.capLayer1VisibleButton.visible = true;
+                    topBar.capLayer1InvisibleButton.visible = false;
+                }
+            }
+
+            checkCaptureButtonActiveCaptureMode();
         }
 
         private function setLayer1VisibleToggle():void
         {
             if(canvas1Bitmap.visible)
+            {
                 canvas1Bitmap.visible = false;
+                if(layerOptionON)
+                {
+                    topBar.layer1VisibleButton.visible = false;
+                    topBar.layer1InvisibleButton.visible = true;
+                }
+            }
             else
+            {
                 canvas1Bitmap.visible = true;
+                if(layerOptionON)
+                {
+                    topBar.layer1VisibleButton.visible = true;
+                    topBar.layer1InvisibleButton.visible = false;
+                }
+            }
+
+            checkCaptureButtonActive();
         }
 
         private function addUndoBGColor(color:uint):void
@@ -814,6 +1026,7 @@
                 addUndoData();
             }
             topBar.hintTime("Layers has been merged to layer 1",topBar.layerMergeButton);
+            topBar.layerMergeButton.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function setLayerSwapButton():void
@@ -844,7 +1057,11 @@
                 rDataBuffer.push(["swap"]);
                 addUndoData();
             }
-            topBar.hintTime("Layers has been swapped",topBar.layerSwapButton);
+
+            if(topBar.layerSwapButton.rotation === 0)
+                topBar.layerSwapButton.rotation = 180;
+            else
+                topBar.layerSwapButton.rotation = 0;
         }
 
         private function checkLayerOptionOFF():void
@@ -866,6 +1083,8 @@
         {
             const isReplayMode:Boolean = replayModeON;
             var info:Array;
+            var layer1:Boolean;
+            var layer2:Boolean;
 
             if(drawCaptureArea.isFullImageCapture())
             {
@@ -876,9 +1095,20 @@
             {
                 info = drawCaptureArea.getCaptureArea();
             }
+            
+            if(isReplayMode)
+            {
+                layer1 = rcanvas1Bitmap.visible;
+                layer2 = rcanvas11Bitmap.visible;
+            }
+            else
+            {
+                layer1 = canvas1Bitmap.visible;
+                layer2 = canvas11Bitmap.visible;
+            }
 
+            const bmpd:BitmapData = mergeCanvas(isReplayMode,(captureModeON && captureTransBGON && !clipBoardCopyFlag) ? true : false,layer1,layer2);
             var newRectangle:Rectangle = new Rectangle(info[0],info[1],info[2],info[3]);
-            const bmpd:BitmapData = mergeCanvas(isReplayMode,(captureModeON && captureTransBGON && !clipBoardCopyFlag) ? true : false);
             var cropData:ByteArray = bmpd.getPixels(newRectangle);
             cropData.position = 0; //이거 꼭 해줘야함 안그러면 setpixel에서 에러뜸
             const cropbmpd:BitmapData = new BitmapData(info[2],info[3],true,0);
@@ -1861,7 +2091,6 @@
             {
                 if(canvas1Bitmap.hitTestObject(cd))
                 {
-                    clearButtonClicked = false;
                     readyAddUndo = true;
                 }
             }
@@ -2459,7 +2688,7 @@
                 const mx:Number = xx+xOffset;
                 const my:Number = yy+xOffset;
 
-                if(penToolFlag && _traceMemoryTraining) canvasTraceLayer.visible = true;
+                if(penToolFlag && _traceMemoryTraining && CANVAS_TRACE_ALPHA > 0.0) canvasTraceLayer.visible = true;
                 
                 if(_penSmoothSlideValue > 1)
                 {
@@ -2537,6 +2766,7 @@
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
                 _traceMemoryTraining = traceMemoryTraining;
                 xOffset = (sizeOffsetFlag) ? 0.5 : 0;
+
                 if(penFlag && _traceMemoryTraining) canvasTraceLayer.visible = false;
 
                 _penSmoothValue = penSmoothValue;//펜 스무딩 플래그
@@ -3139,7 +3369,7 @@
             {
                 traceImageCount = 0;
                 btn.removeEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
-                traceMenuBox.hint("Transfer lasso image\nto reference layer");
+                traceMenuBox.hint(STRING_MERGE_LASSO_IMAGE_TO_TRACE);
                 mergeLassoImageToTraceLayer();
             }
         }
@@ -3165,7 +3395,7 @@
             {
                 traceImageCount = 0;
                 btn.removeEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
-                traceMenuBox.hint("Transfer canvas image\nto reference layer");
+                traceMenuBox.hint(STRING_MERGE_CANVAS_IMAGE_TO_TRACE);
                 pasteTraceImage();
             }
         }
@@ -3209,7 +3439,7 @@
             switch(targetName)
             {
                 case "traceCancelButton":str = "Close"; break;
-                case "traceImageButton":str = "Transfer canvas image\nto reference layer"; break;
+                case "traceImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_TRACE; break;
                 case "traceLoadButton":str = "Paste image from file"; break;
                 case "traceClipButton":str = "Paste image from clipboard"; break;
                 case "traceButtonWrapper":str = "Adjust opacity"; break;
@@ -3246,7 +3476,7 @@
                 case "lassoCHand":str = "Move canvas"; break;
                 case "lassoMirror":str = "Flip image"; break;
                 case "lassoResize":str = "Resize image"; break;
-                case "lassoTrace":str = "Transfer lasso image\nto reference layer"; break;
+                case "lassoTrace":str = STRING_MERGE_LASSO_IMAGE_TO_TRACE; break;
                 case "lasso1pxLeft":
                 case "lasso1pxRight":
                 case "lasso1pxUp":
@@ -3361,24 +3591,24 @@
                 return;
             }
 
-            const _tb:topMenu = topBar;
-            _tb.hintOFF();
-            setTopChildIndex(_tb);
+            const tb:topMenu = topBar;
+            tb.hintOFF();
+            setTopChildIndex(tb);
 
-            const buttonSetVisible:Function = _tb.buttonSetVisible;
+            const buttonSetVisible:Function = tb.buttonSetVisible;
 
             buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);  
-            _tb.updateButtonVisible(false);
+            tb.updateButtonVisible(false);
 
             if(mode === "draw")
             {
                 buttonSetVisible("replay",false);
                 buttonSetVisible("capture",false);
-                _tb.changeHintYPos(_tb.BARSIZE);
+                tb.changeHintYPos(tb.BARSIZE);
                 updatePenSizeCursor();
                 if(needUpdate)
                 {
-                    _tb.updateButtonVisible(true);
+                    tb.updateButtonVisible(true);
                 }
             }
             else if(mode === "replay")
@@ -3397,13 +3627,35 @@
                     _replayTimeBox["playButton"].visible = true;
                     _replayTimeBox["pauseButton"].visible = false;
                 }
-                _tb.changeHintYPos(_tb.BARSIZE+_replayTimeBox.BARSIZE);
+                tb.changeHintYPos(tb.BARSIZE+_replayTimeBox.BARSIZE);
             }
             else if(mode === "capture")
             {
                 buttonSetVisible("replay",false);
                 buttonSetVisible("draw",false,isRightSidebar);
-                _tb.changeHintYPos(_tb.BARSIZE);
+                tb.changeHintYPos(tb.BARSIZE);
+
+                if(canvas1Bitmap.visible)
+                {
+                    tb.capLayer1InvisibleButton.visible = false;
+                    tb.capLayer1VisibleButton.visible = true;
+                }
+                else
+                {
+                    tb.capLayer1InvisibleButton.visible = true;
+                    tb.capLayer1VisibleButton.visible = false;
+                }
+
+                if(canvas11Bitmap.visible)
+                {
+                    tb.capLayer2InvisibleButton.visible = false;
+                    tb.capLayer2VisibleButton.visible = true;
+                }
+                else
+                {
+                    tb.capLayer2InvisibleButton.visible = true;
+                    tb.capLayer2VisibleButton.visible = false;
+                }
             }
         }
 
@@ -3547,7 +3799,7 @@
             const _traceMenuBox:traceButtons = traceMenuBox;
             _traceMenuBox.hint("Reference layer");
             _traceMenuBox.x = mouseX-_traceMenuBox.width/2;
-            _traceMenuBox.y = mouseY-3;
+            _traceMenuBox.y = mouseY-8;
             _traceMenuBox.visible = true;
 
             traceMenuON = true;
@@ -3972,6 +4224,7 @@
             if(traceImageFile.exists) traceImageFile.deleteFile();
 
             resetTraceImageInfo();
+            canvasTraceLayer.visible = false;
         }
         
         private function resetTraceImageInfo():void
@@ -4038,24 +4291,39 @@
             }
             else //캔버스 자체 이미지를 붙여넣을때
             {
-                mergeImageToTraceLayer(canvas1BitmapData,canvas11BitmapData);
+                var command:String = "clear";
+                mergeImageToTraceLayer((canvas1Bitmap.visible)  ? canvas1BitmapData :null
+                                      ,(canvas11Bitmap.visible) ? canvas11BitmapData:null);
 
-                canvas1BitmapData.dispose();
-                canvas11BitmapData.dispose();
-                
-                canvas1BitmapData = new BitmapData(w,h,true,0);
-                canvas1Bitmap.bitmapData = canvas1BitmapData;
+                if(canvas1Bitmap.visible)
+                {
+                    canvas1BitmapData.dispose();
+                    canvas1BitmapData = new BitmapData(w,h,true,0);
+                    canvas1Bitmap.bitmapData = canvas1BitmapData;
+                }
+                if(canvas11Bitmap.visible)
+                {
+                    canvas11BitmapData.dispose();
+                    canvas11BitmapData = new BitmapData(w,h,true,0)
+                    canvas11Bitmap.bitmapData = canvas11BitmapData;
+                }
 
-                canvas11BitmapData = new BitmapData(w,h,true,0)
-                canvas11Bitmap.bitmapData = canvas11BitmapData;
+                if(!canvas11Bitmap.visible)
+                {
+                    command = "clear1";
+                }
+                else if(!canvas1Bitmap.visible)
+                {
+                    command = "clear2";
+                }
 
-                if(hasLastRDataCommand("clear"))
+                if(hasLastRDataCommand(command))
                 {
                     addUndoDataContinue();
                 }
                 else 
                 {
-                    rDataBuffer = [["clear"]];
+                    rDataBuffer = [[command]];
                     addUndoData();
                 }
             }
@@ -4085,9 +4353,9 @@
             {
                 updateTraceOpaButtonPosByAlpha(0.5);
                 CANVAS_TRACE_ALPHA = 0.5;
+                canvasTraceLayer.visible = true;
+                canvasTraceLayer.alpha = 0.5;
             }
-            canvasTraceLayer.visible = true;
-            canvasTraceLayer.alpha = 0.5;
             canvasTraceBitmap.smoothing = true;
             saveOneTime = false;
         }
@@ -4838,7 +5106,7 @@
             stageMouseMoveEvent.add(penSmoothButtonMoveEvent);
         }
 
-        private function mergeCanvas(replayMode:Boolean,captureTransparentBG:Boolean):BitmapData
+        private function mergeCanvas(replayMode:Boolean,captureTransparentBG:Boolean,layer1:Boolean,layer2:Boolean):BitmapData
         {
             var xbitmap1:BitmapData;
             var xbitmap11:BitmapData;
@@ -4866,16 +5134,20 @@
             const bmpd:BitmapData = new BitmapData(xbitmap1.width,xbitmap1.height,true
                                                   ,(captureTransparentBG) ? 0 : 0xFF000000|xBGCOLOR);
 
-            bmpd.draw(xbitmap11); //레이어 쌓기
-            if(rcanvasPanel.getChildIndex(rcanvas2) === 1) //레이어 2번을 그리고 있을때
+            if(layer2) bmpd.draw(xbitmap11); //레이어 쌓기
+
+            if(isSubLayerONReplayMode()) //레이어 2번을 그리고 있을때
             {
-                bmpd.draw(xcanvas2,null,new ColorTransform(1,1,1,alpha));
-                bmpd.draw(xbitmap1);
+                if(layer2) bmpd.draw(xcanvas2,null,new ColorTransform(1,1,1,alpha));
+                if(layer1) bmpd.draw(xbitmap1);
             }
             else //레이어 1번 그리고 있을때
             {
-                bmpd.draw(xbitmap1);
-                bmpd.draw(xcanvas2,null,new ColorTransform(1,1,1,alpha));
+                if(layer1)
+                {
+                    bmpd.draw(xbitmap1);
+                    bmpd.draw(xcanvas2,null,new ColorTransform(1,1,1,alpha));
+                }
             }
 
             return bmpd;
@@ -5110,6 +5382,7 @@
                 case "clearButton":
                 {
                     if(toolBox2ON || !isNowKey(0)) return;
+
                     setClearData();
                 }
                 break;
@@ -5117,6 +5390,7 @@
                 case "replayModeButton":
                 {
                     if(toolBox2ON || !isNowKey(0)) return;
+
                     setReplayUION();
 
                     mouseClickON = false; //리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
@@ -5915,7 +6189,6 @@
             
             appInfoBox.setMirror(false);
             updateWindowTitle();
-            setWindowTitleStar();
             cancelAutoKeyEvent({});
         }
 
@@ -5945,64 +6218,60 @@
             changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height);
             setBackgroundColorDrawMode(RCANVAS_BG_COLOR);
 
-            clearButtonClicked = false;
             clearDataResetVars();
         }
 
         private function clearData():void
         {
-            clearButtonClicked = true;
             clearCanvas();
             clearCanvasReplayMode();
             clearDataResetVars();
+            //reset vars보다 뒤에 와야함
+            //addundo에서 활성화 해주고 있기 때문에
+            topBar.clearButton.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function setClearData(keyFlag:Boolean=false):void
         {
             if(isInSaveProgress) return;
-            if(clearButtonClicked === false)
+
+            if(clearDataButtonCount === 0)
             {
-                if(clearDataButtonCount === 0)
+                if(keyFlag)
                 {
-                    if(keyFlag)
+                    function clearDataButtonCountResetEvent(e:MouseEvent):void
                     {
-                        function clearDataButtonCountResetEvent(e:MouseEvent):void
+                        //클리어 버튼이 아닐때만
+                        if(e.target.name !== "clearButton")
                         {
-                            //클리어 버튼이 아닐때만
-                            if(e.target.name !== "clearButton")
-                            {
-                                setTopBarHintOFF();
-                            }
-                            stage.removeEventListener(MouseEvent.MOUSE_DOWN,clearDataButtonCountResetEvent);
+                            setTopBarHintOFF();
                         }
-
-                        stage.addEventListener(MouseEvent.MOUSE_DOWN,clearDataButtonCountResetEvent);
+                        stage.removeEventListener(MouseEvent.MOUSE_DOWN,clearDataButtonCountResetEvent);
                     }
 
-                    function clearDataButtonCountResetEventOver(e:MouseEvent):void
-                    {
-                        clearDataButtonCount = 0;
-                        stage.removeEventListener(MouseEvent.MOUSE_OVER,clearDataButtonCountResetEventOver);   
-                    }
-                    stage.addEventListener(MouseEvent.MOUSE_OVER,clearDataButtonCountResetEventOver);
+                    stage.addEventListener(MouseEvent.MOUSE_DOWN,clearDataButtonCountResetEvent);
                 }
 
-                clearDataButtonCount++;
-
-                if(clearDataButtonCount >= 2)
+                function clearDataButtonCountResetEventOver(e:MouseEvent):void
                 {
-                    topBar.hintOFF();
-                    clearData();
+                    clearDataButtonCount = 0;
+                    stage.removeEventListener(MouseEvent.MOUSE_OVER,clearDataButtonCountResetEventOver);   
                 }
-                else if(clearDataButtonCount <= 1)
-                {
-                    if(keyFlag) topBar.hintTime("One more press to OK",topBar.clearButton);
-                    else topBar.hint(STRING_ONEMORE_CLICK_TO_OK,topBar.clearButton);
-                }
+                stage.addEventListener(MouseEvent.MOUSE_OVER,clearDataButtonCountResetEventOver);
             }
-            else
+
+            clearDataButtonCount++;
+
+            if(clearDataButtonCount >= 2)
             {
                 clearDataButtonCount = 0;
+                topBar.hintOFF();
+                clearData();
+            }
+            else if(clearDataButtonCount === 1)
+            {
+                if(keyFlag) topBar.hintTime("One more press to OK",topBar.clearButton);
+                else topBar.hint(STRING_ONEMORE_CLICK_TO_OK,topBar.clearButton);
             }
         }
 
@@ -6029,11 +6298,23 @@
                 {
                     switch(upTargetName)
                     {
+                        case "capLayer1VisibleButton":
+                        case "capLayer1InvisibleButton":
+                            setLayer1VisibleToggleCaptureMode();
+                        break;
+
+                        case "capLayer2VisibleButton":
+                        case "capLayer2InvisibleButton":
+                            setLayer2VisibleToggleCaptureMode();
+                        break;
+
                         case "layer1VisibleButton":
+                        case "layer1InvisibleButton":
                             setLayer1VisibleToggle();
                         break;
 
                         case "layer2VisibleButton":
+                        case "layer2InvisibleButton":
                             setLayer2VisibleToggle();
                         break;
 
@@ -6048,7 +6329,7 @@
                         case "layerOptionButton":
                         {
                             layerOptionON = true;
-                            topBar.setLayerButtonON();
+                            topBar.setLayerButtonON(canvas1Bitmap.visible,canvas11Bitmap.visible);
                             stage.addEventListener(MouseEvent.MOUSE_MOVE,checkLayerOptionOFFMouseMove);
                         }
                         break;
@@ -6681,10 +6962,12 @@
                     break;
 
                     case "capClipBoard":
-                            str = "Copy "+((drawCaptureArea.isFullImageCapture()) ?
-                                          "full image"
-                                          :"selected area image")
-                                + " to clipboard (v, n)";
+                            str = (e.target.alpha === 1.0) ?
+                                                            "Copy "+((drawCaptureArea.isFullImageCapture()) ?
+                                                                    "full image"
+                                                                    :"selected area image")
+                                                            + " to clipboard (v, n)"
+                                                            :"Already copied to clipboard";
                     break;
 
                     case "capTrans":
@@ -6697,6 +6980,16 @@
 
                     case "capFlip":
                         str = "Flip image (a, l)";
+                    break;
+
+                    case "capLayer1VisibleButton":
+                    case "capLayer1InvisibleButton":
+                        str = str = "Layer 1 visible ON/OFF (shift+1, shift+0)";
+                    break;
+
+                    case "capLayer2VisibleButton":
+                    case "capLayer2InvisibleButton":
+                        str = str = "Layer 2 visible ON/OFF (shift+2, shift+-)";
                     break;
 
                     case "reRecordingButton":
@@ -6760,10 +7053,12 @@
                     break;
 
                     case "layer1VisibleButton":
+                    case "layer1InvisibleButton":
                         str = "Layer 1 visible ON/OFF (shift+1, shift+0)";
                     break;
 
                     case "layer2VisibleButton":
+                    case "layer2InvisibleButton":
                         str = "Layer 2 visible ON/OFF (shift+2, shift+-)";
                     break;
 
@@ -6923,7 +7218,8 @@
             const offsetY:Number = (captureMode) ? (topBar.BARSIZE+40)*getUIScale() : (topBar.BARSIZE+replayTimeBox.BARSIZE+40)*getUIScale();
             const stw:int = stage.stageWidth-offsetX;
             const sth:int = stage.stageHeight-offsetY;
-            var xBitmap:Bitmap;
+            var xBitmap1:Bitmap;
+            var xBitmap11:Bitmap;
             var xReg:Sprite;
             var w:Number;
             var h:Number;
@@ -6931,14 +7227,16 @@
 
             if(replayMode)
             {
-                xBitmap = rcanvas1Bitmap;
+                xBitmap1 = rcanvas1Bitmap;
+                xBitmap11 = rcanvas11Bitmap;
                 xReg = rregPoint;
                 w = RCANVAS_WIDTH;
                 h = RCANVAS_HEIGHT;
             }
             else
             {
-                xBitmap = canvas1Bitmap;
+                xBitmap1 = canvas1Bitmap;
+                xBitmap11 = canvas11Bitmap;
                 xReg = regPoint;
                 w = CANVAS_WIDTH;
                 h = CANVAS_HEIGHT;
@@ -6974,15 +7272,13 @@
             
             setZoomCanvas(z,replayMode);
             setCenvasCenterPos(replayMode,captureMode);
-            xBitmap.smoothing = true;
+
+            xBitmap1.smoothing = true;
+            xBitmap11.smoothing = true;
 
             if(captureMode)
             {
                 drawCaptureArea.updateCaptureAreaLineSize();
-                // if(topBar.topMenuInfo.visible)
-                // {
-                //     topBar.hint(topBar.topMenuInfo.text,topBar.capOff);
-                // }
             }
         }
 
@@ -7136,26 +7432,32 @@
             checkCanvasPanelPos(true);
         }
 
-        private function replayMoveImage(x:Number,y:Number):void
+        private function replayMoveImage(x:Number,y:Number,layer1:Boolean,layer2:Boolean):void
         {
-            var tempBitData:BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
+            var tempBitData:BitmapData;
             var movedMat:Matrix = new Matrix();
 
             movedMat.translate(x,y);
 
-            //최종적으로 움직인 거리를 실제로 비트맵 데이터 조작
-            tempBitData.draw(rcanvas1BitmapData,movedMat);
-            rcanvas1BitmapData = tempBitData.clone();
-            rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-            tempBitData.dispose();
-            tempBitData = null;
+            if(layer1)
+            {
+                tempBitData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
+                tempBitData.draw(rcanvas1BitmapData,movedMat);
+                rcanvas1BitmapData = tempBitData.clone();
+                rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+                tempBitData.dispose();
+                tempBitData = null;
+            }
 
-            tempBitData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
-            tempBitData.draw(rcanvas11BitmapData,movedMat);
-            rcanvas11BitmapData = tempBitData.clone();
-            rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
-            tempBitData.dispose();
-            tempBitData = null;
+            if(layer2)
+            {
+                tempBitData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
+                tempBitData.draw(rcanvas11BitmapData,movedMat);
+                rcanvas11BitmapData = tempBitData.clone();
+                rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
+                tempBitData.dispose();
+                tempBitData = null;
+            }
         }
 
         private function replayLineStyleReady(shape:Boolean,size:uint,color:uint,alpha:Number):void
@@ -7481,12 +7783,19 @@
                 setRCursorPos(endX,endY);
             }
 
+            function move1(data:Array):void
+            {
+                replayMoveImage(data[1],data[2],true,false);
+            }
+
+            function move2(data:Array):void
+            {
+                replayMoveImage(data[1],data[2],false,true);
+            }
+
             function move(data:Array):void
             {
-                const moveX:Number = data[1];
-                const moveY:Number = data[2];
-
-                replayMoveImage(moveX,moveY);
+                replayMoveImage(data[1],data[2],true,true);
             }
 
             function resetLassoVars():void
@@ -7519,7 +7828,8 @@
             {
                 if(data[1].length === 0 || data[2].length === 0) return;
 
-                if(doLassoDraw(true,data[1],data[2],data[4]) && clearOnly === false)
+                //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible]);
+                if(doLassoDraw(true,data[1],data[2],data[4],data[5],data[6]) && clearOnly === false)
                 {
                     const lassoInfo:Array = data[3];
                     const bmpScaleX:Number = lassoInfo[0];
@@ -7674,15 +7984,21 @@
                 cd2.clear();
             }
 
-            function clear():void
+            function clear(layer1:Boolean,layer2:Boolean):void
             {
-                rcanvas1BitmapData.dispose();
-                rcanvas1BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
-                rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+                if(layer1)
+                {
+                    rcanvas1BitmapData.dispose();
+                    rcanvas1BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
+                    rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+                }
 
-                rcanvas11BitmapData.dispose();
-                rcanvas11BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
-                rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
+                if(layer2)
+                {
+                    rcanvas11BitmapData.dispose();
+                    rcanvas11BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
+                    rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
+                }
             }
 
             function swapLayer():void
@@ -7731,6 +8047,8 @@
                     case "dot": dot(d); break;
                     case "line": line(d); break;
                     case "move": move(d); break;
+                    case "move1": move1(d); break;
+                    case "move2": move2(d); break;
                     case "lasso": lasso(d,false); break;
                     case "lassodel": lasso(d,true); break;
                     case "mirror": mirror(); break;
@@ -7739,7 +8057,9 @@
                     case "tempDone": tempDone(d); break;
                     case "drawDone": drawDone(d); break;
                     case "drawDone2": drawDone2(d); break;
-                    case "clear": clear(); break;
+                    case "clear": clear(true,true); break;
+                    case "clear1": clear(true,false); break;
+                    case "clear2": clear(false,true); break;
                     case "swap": swapLayer(); break;
                     case "merge": mergeLayer(); break;
                     default: break;
@@ -8899,7 +9219,7 @@
         private function setBackgroundColorDrawMode(color:uint):void
         {
             if(CANVAS_BG_COLOR === color) return;
-            clearButtonClicked = false;
+
             saveOneTime = false;
             CANVAS_BG_COLOR = color;
             previewBox.changeprevBitmapBGColor(color);
@@ -8956,10 +9276,12 @@
             const floor:Function = Math.floor;
             const _toolTipBox:toolTipBoxSet = toolTipBox;
             const toolTipText:TextField = _toolTipBox["toolTipInfoText"];
+
             if(str !== "")
             {
                 toolTipText.text = str;
-                toolTipText.width = toolTipText.textWidth+20;
+                toolTipText.width = _toolTipBox["toolTipInfoText"].textWidth+60;
+                toolTipText.height = toolTipText.textHeight+20;
             }
 
             const mx:Number = (x > 0) ? x : mouseX;
@@ -8991,6 +9313,7 @@
             if(str !== "")
             {
                 _toolTipBox["toolTipBoxBG"].width = floor(cw+2);
+                _toolTipBox["toolTipBoxBG"].height = floor(toolTipText.textHeight+((str.lastIndexOf("\n") === -1)?2:5));
             }
 
             setTopChildIndex(_toolTipBox);
@@ -10048,7 +10371,6 @@
             mirrorON = false;
             mirrorCommandReady = false;
             appInfoBox.setMirror(false);
-            clearButtonClicked = false;
 
             if(lassoToolON === true)
             {
@@ -10111,7 +10433,6 @@
             setCenvasCenterPos();
             addUndoData();
             updateWindowTitle();
-            setWindowTitleStar();
             setSubLayer(false);
             setReplaySubLayer(false);
             updateResizeButtonPos();
@@ -10314,6 +10635,10 @@
                 case "capOff":
                 case "capTrans":
                 case "capClipBoard":
+                case "capLayer1VisibleButton":
+                case "capLayer1InvisibleButton":
+                case "capLayer2VisibleButton":
+                case "capLayer2InvisibleButton":
                     checkButtonUp(targetName);
                 break;
 
@@ -10373,22 +10698,34 @@
 
                 case KEY.v:
                 case KEY.n:
-                    copyCaptureImageToCilpBoard();
+                    if(topBar.capClipBoard.alpha === 1.0)
+                    {
+                        copyCaptureImageToCilpBoard();
+                    }
                 break;
 
                 case KEY.c:
                 case KEY.m:
-                    setFullCaptrueButton();
+                    if(topBar.capFull.alpha === 1.0)
+                    {
+                        setFullCaptrueButton();
+                    }
                 break;
 
                 case KEY.s:
                 case KEY.k:
-                    setCaptureRotateButton();
+                    if(topBar.capRotate.alpha === 1.0)
+                    {
+                        setCaptureRotateButton();
+                    }
                 break;
 
                 case KEY.a:
                 case KEY.l:
-                    setCaptrueFlipButton();
+                    if(topBar.capFlip.alpha === 1.0)
+                    {
+                        setCaptrueFlipButton();
+                    }
                 break;
 
                 case KEY.d:
@@ -10427,6 +10764,8 @@
             var xReg:Sprite;
             var xPanel:Sprite;
             var xZoomed:Number;
+            var layer1:Boolean;
+            var layer2:Boolean;
 
             if(replayModeON)
             {
@@ -10435,6 +10774,8 @@
                 xZoomed = rzoomed;
                 rCursor.visible = false;
                 rcanvasPanel.addChild(captureAreaRect);
+                layer1 = true;
+                layer2 = true;
             }
             else
             {
@@ -10442,12 +10783,14 @@
                 xPanel = canvasPanel;
                 xZoomed = zoomed;
                 canvasPanel.addChild(captureAreaRect);
+                if(canvas1Bitmap.visible) layer1 = true;
+                if(canvas11Bitmap.visible) layer2 = true;
             }
 
             setTopChildIndex(captureAreaRect);
             captureAreaRect.visible = true;
 
-            canvasBackupDataDrawCanvas = {
+            canvasBackupDataOnSave = {
                                     "z" : zoomed,
                                     "x" : floor(regPoint.x), //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
                                     "y" : floor(regPoint.y),
@@ -10462,7 +10805,9 @@
                                     "y" : floor(xReg.y),
                                     "r" : xReg.rotation,
                                     "px" : floor(xPanel.x),
-                                    "py" : floor(xPanel.y)
+                                    "py" : floor(xPanel.y),
+                                    "layer1" : layer1,
+                                    "layer2" : layer2
                                 }
 
             canvasFitWindow(true);
@@ -10473,10 +10818,12 @@
 
         private function setCaptureModeOFF(replayMode:Boolean,xReg:Sprite,xPanel:Sprite):void
         {
-            const _canvasBackupData:Object = canvasBackupData;
-            const xBitmap:Bitmap = (replayMode) ? rcanvas1Bitmap : canvas1Bitmap;
+            const data:Object = canvasBackupData;
+            const xBitmap1:Bitmap = (replayMode) ? rcanvas1Bitmap : canvas1Bitmap;
+            const xBitmap11:Bitmap = (replayMode) ? rcanvas1Bitmap : canvas1Bitmap;
 
-            xBitmap.smoothing = false;
+            xBitmap1.smoothing = false;
+            xBitmap11.smoothing = false;
 
             captureModeON = false;
             penCursorOFFFlag = false;
@@ -10485,13 +10832,25 @@
             setCaptureUI(false);
 
             //캔버스 이전 모양 위치로 복원
-            xReg.rotation = _canvasBackupData.r;
-            xReg.x = _canvasBackupData.x+captureWindowMove.x;
-            xReg.y = _canvasBackupData.y+captureWindowMove.y;
-            xPanel.x = _canvasBackupData.px;
-            xPanel.y = _canvasBackupData.py;
+            xReg.rotation = data.r;
+            xReg.x = data.x+captureWindowMove.x;
+            xReg.y = data.y+captureWindowMove.y;
+            xPanel.x = data.px;
+            xPanel.y = data.py;
 
-            setZoomCanvas(_canvasBackupData.z,replayMode);
+            if(replayMode)
+            {
+                rcanvas1Bitmap.visible = true;
+                rcanvas11Bitmap.visible = true;
+                rcanvas2.visible = true;
+            }
+            else
+            {
+                canvas1Bitmap.visible = data.layer1;
+                canvas11Bitmap.visible = data.layer2;
+            }
+
+            setZoomCanvas(data.z,replayMode);
             toolTipBox.visible = false;
             captureWindowMove = new Point(0,0);
 
@@ -10506,8 +10865,8 @@
             {
                 resetTransBG(false);
             }
-
             checkCanvasPanelPos(replayMode);
+            canvasBackupData = {};
         }
 
         //마우스 클릭하면 캡쳐 영역그리는 함수
@@ -10695,9 +11054,11 @@
 
                 cx = floor(cx);
                 cy = floor(cy);
-
-                stageMouseMoveEvent.add(captureMouseMove);
-                stage.addEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
+                if(topBar.hitTestPoint(mouseX,mouseY) === false)
+                {
+                    stageMouseMoveEvent.add(captureMouseMove);
+                    stage.addEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
+                }
             };
 
             return {
@@ -10864,7 +11225,6 @@
                 if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
 
                 callWorkerEncodePNG(getProcessedCaptureImage(false),0,true,captureTransBGON);
-
                 saveCapturePNGByOrder(file1.name,e.target.nativePath);
             }
         }
@@ -10936,7 +11296,7 @@
             }
 
             const fs:FileStream = new FileStream();
-            const mergedImage:BitmapData = mergeCanvas(false,false);
+            const mergedImage:BitmapData = mergeCanvas(false,false,true,true);
 
             if(continueFlag)
             {
@@ -11165,13 +11525,13 @@
             fs.open(appDataFile, FileMode.WRITE);
             fs.writeObject({"CANVAS_WIDTH":CANVAS_WIDTH,
                             "CANVAS_HEIGHT":CANVAS_HEIGHT,
-                            "zoomed":(captureModeON) ? canvasBackupDataDrawCanvas.z:zoomed,
+                            "zoomed":(captureModeON) ? canvasBackupDataOnSave.z:zoomed,
                             "zoomedIndex":zoomedIndex,
-                            "canvasPanel.x":(captureModeON) ? canvasBackupDataDrawCanvas.px:canvasPanel.x,
-                            "canvasPanel.y":(captureModeON) ? canvasBackupDataDrawCanvas.py:canvasPanel.y,
-                            "regPoint.x":(captureModeON) ? canvasBackupDataDrawCanvas.x:regPoint.x,
-                            "regPoint.y":(captureModeON) ? canvasBackupDataDrawCanvas.y:regPoint.y,
-                            "regPoint.rotation":(captureModeON) ? canvasBackupDataDrawCanvas.r:regPoint.rotation,
+                            "canvasPanel.x":(captureModeON) ? canvasBackupDataOnSave.px:canvasPanel.x,
+                            "canvasPanel.y":(captureModeON) ? canvasBackupDataOnSave.py:canvasPanel.y,
+                            "regPoint.x":(captureModeON) ? canvasBackupDataOnSave.x:regPoint.x,
+                            "regPoint.y":(captureModeON) ? canvasBackupDataOnSave.y:regPoint.y,
+                            "regPoint.rotation":(captureModeON) ? canvasBackupDataOnSave.r:regPoint.rotation,
                             "penSmoothValue":penSmoothValue,
                             "penSmoothSlideValue":penSmoothSlideValue,
                             "penSmoothButtonX":controlBox.penSmoothSliderSet["penSmoothButton"].x,
@@ -11413,7 +11773,6 @@
                     updatePreviewBoxRectPos();
                     updatePenSizeCursor();
                     updateWindowTitle();
-                    setWindowTitleStar();
                 },150);
             }
             else //복원파일이 없을때
@@ -11442,10 +11801,10 @@
         {
             if(penSizeCursor.hitTestObject(canvas1Bitmap))
             {
-                if(!readyAddUndo) setWindowTitleStar();
-
-                clearButtonClicked = false; //undo추가 예약되어있으면 그때 꺼줌
-                readyAddUndo = true;
+                if(!readyAddUndo)
+                {
+                    readyAddUndo = true;
+                }
             }
         }
 
@@ -11919,29 +12278,38 @@
 
                 mouseDragON = false;
                 penCursorOFFFlag = false;
+                var tempBitData:BitmapData;
 
                 const floor:Function = Math.floor;
                 const movex:Number = floor(canvas1Bitmap.x);
                 const movey:Number = floor(canvas1Bitmap.y);
-
-                var tempBitData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
+                const movex1:Number = floor(canvas11Bitmap.x);
+                const movey1:Number = floor(canvas11Bitmap.y);
                 var movedMat:Matrix = new Matrix();
 
-                movedMat.translate(movex,movey);
 
                 //최종적으로 움직인 거리를 실제로 비트맵 데이터 조작
-                tempBitData.draw(canvas1BitmapData,movedMat);
-                canvas1BitmapData = tempBitData.clone();
-                canvas1Bitmap.bitmapData = canvas1BitmapData;
-                tempBitData.dispose();
+                if(canvas1Bitmap.visible)
+                {
+                    movedMat.translate(movex,movey);
+                    tempBitData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
+                    tempBitData.draw(canvas1BitmapData,movedMat);
+                    canvas1BitmapData = tempBitData.clone();
+                    canvas1Bitmap.bitmapData = canvas1BitmapData;
+                    tempBitData.dispose();
+                }
 
-                tempBitData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
-                tempBitData.draw(canvas11BitmapData,movedMat);
-                canvas11BitmapData = tempBitData.clone();
-                canvas11Bitmap.bitmapData = canvas11BitmapData;
-                tempBitData.dispose();
+                if(canvas11Bitmap.visible)
+                {
+                    movedMat = new Matrix();
+                    movedMat.translate(movex1,movey1);
+                    tempBitData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
+                    tempBitData.draw(canvas11BitmapData,movedMat);
+                    canvas11BitmapData = tempBitData.clone();
+                    canvas11Bitmap.bitmapData = canvas11BitmapData;
+                    tempBitData.dispose();
+                }
 
-                //좌표를 원점으로 돌림
                 canvas1Bitmap.x = 0;
                 canvas1Bitmap.y = 0;
                 canvas11Bitmap.x = 0;
@@ -11949,11 +12317,24 @@
 
                 if(lassoToolON === false)
                 {
-                    clearButtonClicked = false;
+                    var command:String = "move";
 
-                    rDataBuffer.push(["move",movex,movey]);
+                    if(!canvas11Bitmap.visible)
+                    {
+                        command = "move1";
+                        rDataBuffer.push([command,movex,movey]);
+                    }
+                    else if(!canvas1Bitmap.visible)
+                    {
+                        command = "move2";
+                        rDataBuffer.push([command,movex1,movey1]);
+                    }
+                    else
+                    {
+                        rDataBuffer.push([command,movex,movey]);
+                    }
 
-                    if(hasLastRDataCommand("move")) addUndoDataContinue();
+                    if(hasLastRDataCommand(command)) addUndoDataContinue();
                     else addUndoData();
                 }
             }
@@ -11966,14 +12347,23 @@
                 const mx:Number = rPos.x/z;
                 const my:Number = rPos.y/z;
 
-                canvas1Bitmap.x = mx; //캔버스만 옮겨줘서 미리보기해줌
-                canvas1Bitmap.y = my;
-                canvas11Bitmap.x = mx;
-                canvas11Bitmap.y = my;
+                if(canvas1Bitmap.visible)
+                {
+                    canvas1Bitmap.x = mx; //캔버스만 옮겨줘서 미리보기해줌
+                    canvas1Bitmap.y = my;
+                }
+
+                if(canvas11Bitmap.visible)
+                {
+                    canvas11Bitmap.x = mx;
+                    canvas11Bitmap.y = my;
+                }
             }
 
             return function ():void
             {
+                if(isAllLayerInvisible()) return;
+                
                 old.setTo(mouseX,mouseY);
                 z = zoomed;
                 penCursorOFFFlag = true;
@@ -12432,7 +12822,6 @@
                 
                 changeCanvasSize(finalWidth,finalHeight,moved.x,moved.y,centerMoved);
                 updateResizeButtonPos();
-                clearButtonClicked = false;
 
                 rDataBuffer.push(["canvasSize",CANVAS_WIDTH,CANVAS_HEIGHT,moved.x,moved.y,centerMoved]);
 
@@ -12533,7 +12922,7 @@
             }
         }
 
-        private function doLassoDraw(replayMode:Boolean,rectArr:Vector.<Number>,points:Array,copyFlag:Boolean=false):Boolean
+        private function doLassoDraw(replayMode:Boolean,rectArr:Vector.<Number>,points:Array,copyFlag:Boolean,layer1:Boolean,layer2:Boolean):Boolean
         {
             //라소 경계 사각형 좌표와 크기
             const floor:Function = Math.floor;
@@ -12559,11 +12948,17 @@
                 rcanvas2Draw.filters = [];
                 drawEnt = rcanvas2Draw
 
-                canvasBitmapData = rcanvas1BitmapData;
-                canvasBitmap = rcanvas1Bitmap;
+                if(layer1)
+                {
+                    canvasBitmapData = rcanvas1BitmapData;
+                    canvasBitmap = rcanvas1Bitmap;
+                }
 
-                canvasBitmapDataSub = rcanvas11BitmapData;
-                canvasBitmapSub = rcanvas11Bitmap;
+                if(layer2)
+                {
+                    canvasBitmapDataSub = rcanvas11BitmapData;
+                    canvasBitmapSub = rcanvas11Bitmap;
+                }
             }
             else
             {
@@ -12571,11 +12966,17 @@
                 canvas2Draw.filters = [];
                 drawEnt = canvas2Draw;
 
-                canvasBitmapData = canvas1BitmapData;
-                canvasBitmap = canvas1Bitmap;
+                if(layer1)
+                {
+                    canvasBitmapData = canvas1BitmapData;
+                    canvasBitmap = canvas1Bitmap;
+                }
 
-                canvasBitmapDataSub = canvas11BitmapData;
-                canvasBitmapSub = canvas11Bitmap;
+                if(layer2)
+                {
+                    canvasBitmapDataSub = canvas11BitmapData;
+                    canvasBitmapSub = canvas11Bitmap;
+                }
             }
 
             const cd:Shape = drawEnt;
@@ -12596,8 +12997,8 @@
             var yy:Number;
 
             //지우기 전에 사각형 모양으로 그려준 부분을 copypixel 함.
-            lassoBMPD.copyPixels(canvasBitmapData,newRectangle,zerop,null,null,true);
-            lassoBMPDsub.copyPixels(canvasBitmapDataSub,newRectangle,zerop,null,null,true);
+            if(layer1) lassoBMPD.copyPixels(canvasBitmapData,newRectangle,zerop,null,null,true);
+            if(layer2) lassoBMPDsub.copyPixels(canvasBitmapDataSub,newRectangle,zerop,null,null,true);
 
             //bitmap1canvas에서 그려준 영역을 지워줌
             if(!copyFlag)
@@ -12617,11 +13018,17 @@
                     cdg.lineTo(x,y);
                 }
                 cdg.endFill();
-                canvasBitmapData.draw(cd,null,null,"erase");
-                canvasBitmap.bitmapData = canvasBitmapData;
+                if(layer1)
+                {
+                    canvasBitmapData.draw(cd,null,null,"erase");
+                    canvasBitmap.bitmapData = canvasBitmapData;
+                }
 
-                canvasBitmapDataSub.draw(cd,null,null,"erase");
-                canvasBitmapSub.bitmapData = canvasBitmapDataSub;
+                if(layer2)
+                {
+                    canvasBitmapDataSub.draw(cd,null,null,"erase");
+                    canvasBitmapSub.bitmapData = canvasBitmapDataSub;
+                }
             }
 
             //-------------------------
@@ -12644,23 +13051,39 @@
 
             //마지막으로 시작점을 이어줌
             cdg.endFill();
-            lassoBMP.bitmapData = lassoBMPD;
-            lassoBMP.bitmapData.draw(cd,null,null,"erase");
-            lassoBMPsub.bitmapData = lassoBMPDsub;
-            lassoBMPsub.bitmapData.draw(cd,null,null,"erase");
+            if(layer1)
+            {
+                lassoBMP.bitmapData = lassoBMPD;
+                lassoBMP.bitmapData.draw(cd,null,null,"erase");
+            }
+
+            if(layer2)
+            {
+                lassoBMPsub.bitmapData = lassoBMPDsub;
+                lassoBMPsub.bitmapData.draw(cd,null,null,"erase");
+            }
             cdg.clear(); //꼭 해줘야함
 
             //회전 확대를 bmp사각형의 중심으로 맞추어줌
-            lassoBMP.x = -halfWidth;
-            lassoBMP.y = -halfHeight;
-            lassoBMPsub.x = -halfWidth;
-            lassoBMPsub.y = -halfHeight;
+
+            if(layer1)
+            {
+            }
+                lassoBMP.x = -halfWidth;
+                lassoBMP.y = -halfHeight;
+                lassoBMP.smoothing = true;
+
+            if(layer2)
+            {
+            }
+                lassoBMPsub.x = -halfWidth;
+                lassoBMPsub.y = -halfHeight;
+                lassoBMPsub.smoothing = true;
+
             lassoBox.x = rectLeft+halfWidth;
             lassoBox.y = rectTop+halfHeight;
             lassoDraw.x = -lassoBox.x;
             lassoDraw.y = -lassoBox.y;
-            lassoBMP.smoothing = true;
-            lassoBMPsub.smoothing = true;
 
             if(replayMode) rcanvas2Draw.filters = canvas2FilterBackUp.concat();
             else canvas2Draw.filters = canvas2FilterBackUp.concat();
@@ -12727,7 +13150,7 @@
                 lassoPointSave.push(lassoRect);
                 lassoPointSave.push(lassoPoints);
 
-                const lassoDone:Boolean = doLassoDraw(false,lassoRect,lassoPoints);
+                const lassoDone:Boolean = doLassoDraw(false,lassoRect,lassoPoints,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible);
                 if(!lassoDone)
                 {
                     resetLassoBox();
@@ -12776,7 +13199,8 @@
 
             return function():void
             {
-                if(lassoToolON === true) return;
+                if(lassoToolON === true || isAllLayerInvisible()) return;
+
                 lassoMenu.hint("Lasso tool");
 
                 timer = 0;
@@ -12801,8 +13225,8 @@
                 lassoPoints.push([clickPos.x,clickPos.y]);
 
                 _dottedLine.updateScale(zoomed);
-                lassoBitmapdataSave = canvas1BitmapData.clone();
-                lassoBitmapdataSubSave = canvas11BitmapData.clone();
+                if(canvas1Bitmap.visible) lassoBitmapdataSave = canvas1BitmapData.clone();
+                if(canvas11Bitmap.visible) lassoBitmapdataSubSave = canvas11BitmapData.clone();
                 stageMouseMoveEvent.add(lassoDrawMouseMove);
                 stage.addEventListener(MouseEvent.MOUSE_UP,lassoDrawMouseUp);
             };
@@ -12842,10 +13266,12 @@
             const magSize:Number = spuitCursor.magSize;
             const _canvasPanel:Sprite = canvasPanel;
             const lastPickedColor:uint = 0;
+            const canvasBGShape:Shape = new Shape();
             const _canvas1Bitmap:Bitmap = canvas1Bitmap;
+            const _canvas11Bitmap:Bitmap = canvas11Bitmap;
 
             var spuitDefaultZoom:Number = 2.0; // zoomed에 따라서 가변됨 초기값 1 x 2.0 
-            var canvasBGColor:uint;
+            var canvasBGColor:uint = CANVAS_BG_COLOR;
             var canvas1bmpd:BitmapData;
             var canvas11bmpd:BitmapData;
             var penColorBackup:uint;
@@ -12860,7 +13286,9 @@
 
                 mat.translate(tx,ty);
                 mat.scale(spuitDefaultZoom,spuitDefaultZoom);
-                bmpd.draw(_canvasPanel,mat);
+
+                bmpd.draw(canvasPanel,mat);
+
                 _spuitZoomBitmap.bitmapData = bmpd;
             }
 
@@ -12870,25 +13298,44 @@
                 {
                     //뽑기색
                     const round:Function = Math.round;
-                    const c1:uint = canvas1bmpd.getPixel32(_canvas1Bitmap.mouseX,_canvas1Bitmap.mouseY);
-                    const c2:uint = canvas11bmpd.getPixel32(_canvas1Bitmap.mouseX,_canvas1Bitmap.mouseY);
-
-                    //위 레이어
-                    const a1:Number = ((c1 & 0xFF000000) >>> 24)/255;
-                    const r1:uint = (c1 & 0x00FF0000) >>> 16;
-                    const g1:uint = (c1 & 0x0000FF00) >>> 8;
-                    const b1:uint = (c1 & 0x000000FF);
-
-                    //밑 레이어
-                    const a2:Number = ((c2 & 0xFF000000) >>> 24)/255;
-                    const r2:uint = (c2 & 0x00FF0000) >>> 16;
-                    const g2:uint = (c2 & 0x0000FF00) >>> 8;
-                    const b2:uint = (c2 & 0x000000FF);
 
                     //배경색
                     const r3:uint = (canvasBGColor & 0xFF0000) >> 16;
                     const g3:uint = (canvasBGColor & 0x00FF00) >> 8;
                     const b3:uint = (canvasBGColor & 0x0000FF);
+
+                    var aa:Number = 0;
+                    var rr:uint = 0;
+                    var gg:uint = 0;
+                    var bb:uint = 0;
+                    var a1:Number = 0;
+                    var r1:uint = 0;
+                    var g1:uint = 0;
+                    var b1:uint = 0;
+                    var a2:Number = 0;
+                    var r2:uint = 0;
+                    var g2:uint = 0;
+                    var b2:uint = 0;
+
+                    //위 레이어
+                    if(_canvas1Bitmap.visible)
+                    {
+                        const c1:uint = canvas1bmpd.getPixel32(_canvas1Bitmap.mouseX,_canvas1Bitmap.mouseY);
+                        a1 = ((c1 & 0xFF000000) >>> 24)/255;
+                        r1 = (c1 & 0x00FF0000) >>> 16;
+                        g1 = (c1 & 0x0000FF00) >>> 8;
+                        b1 = (c1 & 0x000000FF);
+                    }
+
+                    //밑 레이어
+                    if(_canvas11Bitmap.visible)
+                    {
+                        const c2:uint = canvas11bmpd.getPixel32(_canvas1Bitmap.mouseX,_canvas1Bitmap.mouseY);
+                        a2 = ((c2 & 0xFF000000) >>> 24)/255;
+                        r2 = (c2 & 0x00FF0000) >>> 16;
+                        g2 = (c2 & 0x0000FF00) >>> 8;
+                        b2 = (c2 & 0x000000FF);
+                    }
 
                     // source over S 새로그린거 B는 원래 그려져 있던거
                     // aR : the union alpha (as + ab * (1 - as)) //알파 혼합
@@ -12897,10 +13344,10 @@
                     // b: ((S.b * S.a) + (B.b * B.a) * (1 - S.a)) / aR,
 
                     //아래 레이어 부터
-                    const aa:Number = 1.0-a2;
-                    const rr:uint = round(r2*a2)+round(r3*aa);
-                    const gg:uint = round(g2*a2)+round(g3*aa);
-                    const bb:uint = round(b2*a2)+round(b3*aa);
+                    aa = 1.0-a2;
+                    rr = round(r2*a2)+round(r3*aa);
+                    gg = round(g2*a2)+round(g3*aa);
+                    bb = round(b2*a2)+round(b3*aa);
                     
                     //그 위에 위 레이어 
                     const aa1:Number = 1.0-a1;
@@ -13024,6 +13471,8 @@
 
             return function ():void
             {
+                if(isAllLayerInvisible()) return;
+
                 canvasBGColor = CANVAS_BG_COLOR;
                 canvas1bmpd = canvas1BitmapData;
                 canvas11bmpd = canvas11BitmapData;
@@ -13174,8 +13623,14 @@
         {
             const lassoBMPScaleX:Number = lassoBox.scaleX;
             const lassoBMPScaleY:Number = lassoBox.scaleY;
-            const lassoBMPWidth:Number = lassoBMP.width*lassoBMPScaleX;
-            const lassoBMPHeight:Number = lassoBMP.height*lassoBMPScaleY;
+            var lassoBMPWidth:Number = lassoBMP.width*lassoBMPScaleX;
+            var lassoBMPHeight:Number = lassoBMP.height*lassoBMPScaleY;
+            if(canvas1Bitmap.visible === false)
+            {
+                lassoBMPWidth = lassoBMPsub.width*lassoBMPScaleX;
+                lassoBMPHeight = lassoBMPsub.height*lassoBMPScaleY;
+            }
+
             const boxX:Number = lassoBox.x;
             const boxY:Number = lassoBox.y;
             const ang:Number = lassoBox.rotation*Math.PI/180;
@@ -13197,25 +13652,48 @@
             
             if(toTraceLayer === false)
             {
-                canvas1BitmapData.draw(lassoBMP,posMatrix);
-                canvas1Bitmap.bitmapData = canvas1BitmapData;
-                canvas11BitmapData.draw(lassoBMPsub,posMatrix);
-                canvas11Bitmap.bitmapData = canvas11BitmapData;
+                if(canvas1Bitmap.visible)
+                {
+                    canvas1BitmapData.draw(lassoBMP,posMatrix);
+                    canvas1Bitmap.bitmapData = canvas1BitmapData;
+                }
+                if(canvas11Bitmap.visible)
+                {
+                    canvas11BitmapData.draw(lassoBMPsub,posMatrix);
+                    canvas11Bitmap.bitmapData = canvas11BitmapData;
+                }
             }
             else
             {
-                var layer1Bmpd:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
-                var layer2Bmpd:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
+                var layer1Bmpd:BitmapData;
+                var layer2Bmpd:BitmapData;
 
-                layer1Bmpd.draw(lassoBMP,posMatrix);
-                layer2Bmpd.draw(lassoBMPsub,posMatrix);
+                if(canvas1Bitmap.visible)
+                {
+                    layer1Bmpd = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
+                    layer1Bmpd.draw(lassoBMP,posMatrix);
+                }
+
+                if(canvas11Bitmap.visible)
+                {
+                    layer2Bmpd = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
+                    layer2Bmpd.draw(lassoBMPsub,posMatrix);
+                }
 
                 mergeImageToTraceLayer(layer1Bmpd,layer2Bmpd);
 
-                layer1Bmpd.dispose();
-                layer2Bmpd.dispose();
-                layer1Bmpd = null;
-                layer2Bmpd = null;
+                if(layer1Bmpd)
+                {
+                    layer1Bmpd.dispose();
+                    layer1Bmpd = null;
+                }
+
+                if(layer2Bmpd)
+                {
+                    layer2Bmpd.dispose();
+                    layer2Bmpd = null;
+                }
+
                 resetTraceImageInfo();
             }
 
@@ -13242,12 +13720,11 @@
             {
                 if(isLassoUsed()  === true) //사용후에 ok하면 처리해줌
                 {
-                    clearButtonClicked = false;
                     const lassoInfo:Array = drawLassoBoxImageToBitmapData(false);
                     const point1:Vector.<Number> = lassoPointSave[0].concat();
                     const point2:Array = lassoPointSave[1].concat();
 
-                    rDataBuffer.push(["lasso",point1,point2,lassoInfo,lassoCopyON]);
+                    rDataBuffer.push(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible]);
                     addUndoData();
                 }
                 else
@@ -13277,10 +13754,18 @@
 
         private function lassoCancelBmpd():void
         {
-            canvas1BitmapData = lassoBitmapdataSave.clone();
-            canvas1Bitmap.bitmapData = canvas1BitmapData;
-            canvas11BitmapData = lassoBitmapdataSubSave.clone();
-            canvas11Bitmap.bitmapData = canvas11BitmapData;
+            if(lassoBitmapdataSave)
+            {
+                canvas1BitmapData = lassoBitmapdataSave.clone();
+                canvas1Bitmap.bitmapData = canvas1BitmapData;
+            }
+
+            if(lassoBitmapdataSubSave)
+            {
+                canvas11BitmapData = lassoBitmapdataSubSave.clone();
+                canvas11Bitmap.bitmapData = canvas11BitmapData;
+            }
+
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
         }
 
@@ -13673,6 +14158,7 @@
             checkCanvasPanelPos(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
             updatePreviewBoxRectPos();
             tickDraw.updateRCursorPos();
+            setClearButtonActive();
             rCursor.visible = true;
         }
 
@@ -13712,7 +14198,6 @@
             }
             else
             {
-                clearButtonClicked = false;
                 undoDelFlag = true;
                 replayONUndoUpdate = true;
                 drawUndoData();
@@ -13739,7 +14224,7 @@
             rDataFrame.splice(0,endIndex);
             undoIndex = rData.length-1;
             saveOneTime = false;
-            clearButtonClicked = false;
+            setClearButtonActive();
             replayONUndoUpdate = true;
         }
 
@@ -13747,7 +14232,7 @@
         {
             undoIndex = index;
             saveOneTime = false;
-            clearButtonClicked = false;
+            setClearButtonActive();
             replayONUndoUpdate = true;
             drawUndoData();
 
@@ -13992,8 +14477,11 @@
                     rDataBuffer = [];
                     saveOneTime = false;
                 }
+
                 undoIndex = rData.length-1;
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+                
+                setClearButtonActive();
             };
 
             return {
@@ -15022,7 +15510,10 @@
                 {
                     if(input === KEY.s) saveFile(false);
                     else if(input === KEY.o) loadFile();
-                    else if(input === KEY.c || input === KEY.m) setCaptureReady();
+                    else if(input === KEY.c || input === KEY.m)
+                    {
+                        if(checkCaptureButtonActive()) setCaptureReady();
+                    }
                     else if(input === KEY.v || input === KEY.n)
                     {
                         if(clipImageON) setClipButton();
@@ -15056,21 +15547,27 @@
                             case KEY.n3:
                             case KEY.n9:
                                 setLayerSwapButton();
+                                setToolTipStringTime("Layer swapped "+((topBar.layerSwapButton.rotation === 0)?"L1, L2":"L2, L1"));
                             return;
 
                             case KEY.e:
                             case KEY.o:
-                                setLayerMergeButton();
+                                if(topBar.layerMergeButton.alpha === 1.0)
+                                {
+                                    setLayerMergeButton();
+                                }
                             return;
 
                             case KEY.n1:
                             case KEY.n0:
                                 setLayer1VisibleToggle();
+                                setLayerVisibleHint(1);
                             return;
 
                             case KEY.n2:
                             case KEY.minus:
                                 setLayer2VisibleToggle();
+                                setLayerVisibleHint(2);
                             return;
                         }
                     });
@@ -15330,7 +15827,10 @@
                 case KEY.del:
                 case KEY.backspace:
                 {
-                    setClearData(true);
+                    if(topBar.clearButton.alpha === 1.0)
+                    {
+                        setClearData(true);
+                    }
                 }
                 break;
             }
@@ -16654,6 +17154,8 @@
                 case "layerMergeButton":
                 case "layer1VisibleButton":
                 case "layer2VisibleButton":
+                case "layer1InvisibleButton":
+                case "layer2InvisibleButton":
                 {
                     if(toolBox2ON || !isNowKey(0) || e.target.alpha < 1.0)
                         return;
@@ -16725,14 +17227,14 @@
             }
 
             //캔버스 영역 밖에서는 해주지 않음
-            if(isCursorInDrawArea() && checkLayerVisible() && !clickBlockFlag)
+            if(isCursorInDrawArea() && !clickBlockFlag)
             {
                 switch (nowTool)
                 {
-                    case TOOL_FILL_PEN: fillPenTool.start(); break;
-                    case TOOL_PEN: penTool(true); break;
-                    case TOOL_ERASE: penTool(false); break;
-                    case TOOL_LINE: lineTool(true); break;
+                    case TOOL_FILL_PEN: if(checkLayerVisible()) fillPenTool.start(); break;
+                    case TOOL_PEN: if(checkLayerVisible()) penTool(true); break;
+                    case TOOL_ERASE: if(checkLayerVisible()) penTool(false); break;
+                    case TOOL_LINE: if(checkLayerVisible()) lineTool(true); break;
                     case TOOL_HAND: handTool(); break;
                     case TOOL_LASSO: lassoTool(); break;
                     case TOOL_ROTATE: rotateTool(); break;

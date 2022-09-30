@@ -38,8 +38,14 @@
 		public var drawModeButton:SimpleButton = drawModeButton;
 		public var topBarColorButton:SimpleButton = topBarColorButton;
 		public var dpiButton:SimpleButton = dpiButton;
+		public var layer1InvisibleButton:SimpleButton = layer1InvisibleButton;
+		public var layer2InvisibleButton:SimpleButton = layer2InvisibleButton;
 		public var layer1VisibleButton:SimpleButton = layer1VisibleButton;
 		public var layer2VisibleButton:SimpleButton = layer2VisibleButton;
+		public var capLayer1InvisibleButton:SimpleButton =  capLayer1InvisibleButton;
+		public var capLayer2InvisibleButton:SimpleButton =  capLayer2InvisibleButton;
+		public var capLayer1VisibleButton:SimpleButton = capLayer1VisibleButton;
+		public var capLayer2VisibleButton:SimpleButton = capLayer2VisibleButton;
 		public var layerOptionButton:SimpleButton = layerOptionButton;
 		public var layerSwapButton:SimpleButton = layerSwapButton;
 		public var layerMergeButton:SimpleButton = layerMergeButton;
@@ -89,19 +95,42 @@
 			topBarColorButton.visible = true;
 			layer1VisibleButton.visible = false;
 			layer2VisibleButton.visible = false;
+			layer1InvisibleButton.visible = false;
+			layer2InvisibleButton.visible = false;
 			layerSwapButton.visible = false;
 			layerMergeButton.visible = false;
 		}
 
-		public function setLayerButtonON():void
+		public function setLayerButtonON(layer1:Boolean,layer2:Boolean):void
 		{
 			layerOptionButton.visible = false;
 			aboutButton.visible = false;
 			dpiButton.visible = false;
 			topBarColorButton.visible = false;
-			layer1VisibleButton.visible = true;
-			layer2VisibleButton.visible = true;
-			layerSwapButton.visible = true;
+
+			if(layer1)
+			{
+				layer1VisibleButton.visible = true;
+				layer1InvisibleButton.visible = false;
+			}
+			else
+			{
+				layer1VisibleButton.visible = false;
+				layer1InvisibleButton.visible = true;
+			}
+
+			if(layer2)
+			{
+				layer2VisibleButton.visible = true;
+				layer2InvisibleButton.visible = false;
+			}
+			else
+			{
+				layer2VisibleButton.visible = false;
+				layer2InvisibleButton.visible = true;
+			}
+
+			layerSwapButton.visible =  true;
 			layerMergeButton.visible = true;
 		}
 
@@ -178,8 +207,14 @@
 			drawModeButton.transform.colorTransform = o;
 			topBarColorButton.transform.colorTransform = o;
 			dpiButton.transform.colorTransform = o;
+			layer1InvisibleButton.transform.colorTransform = o;
+			layer2InvisibleButton.transform.colorTransform = o;
 			layer1VisibleButton.transform.colorTransform = o;
 			layer2VisibleButton.transform.colorTransform = o;
+			capLayer1InvisibleButton.transform.colorTransform = o;
+			capLayer2InvisibleButton.transform.colorTransform = o;
+			capLayer1VisibleButton.transform.colorTransform = o;
+			capLayer2VisibleButton.transform.colorTransform = o;
 			layerOptionButton.transform.colorTransform = o;
 			layerSwapButton.transform.colorTransform = o;
 			layerMergeButton.transform.colorTransform = o;
@@ -432,6 +467,10 @@
 												capOff,
 												capTrans,
 												capClipBoard,
+												capLayer1InvisibleButton,
+												capLayer2InvisibleButton,
+												capLayer1VisibleButton,
+												capLayer2VisibleButton,
 
 												saveButton,
 												repSaveButton,
@@ -444,6 +483,8 @@
 												drawModeButton,
 												topBarColorButton,
 												dpiButton,
+												layer1InvisibleButton,
+												layer2InvisibleButton,
 												layer1VisibleButton,
 												layer2VisibleButton,
 												layerOptionButton,
@@ -508,6 +549,8 @@
 			sideBarONButton.y = sideBarOFFButton.y;
 			sideBarONButton2.x = sideBarOFFButton.x;
 			sideBarONButton2.y = sideBarOFFButton.y;
+			layerSwapButton.x += layerSwapButton.width/2;
+			layerSwapButton.y += layerSwapButton.height/2;
 
 			updateButton.x = aboutButton.x;
 			updateButton.y = aboutButton.y;
@@ -567,6 +610,8 @@
 			drawModeButton.useHandCursor = false;
 			topBarColorButton.useHandCursor = false;
 			dpiButton.useHandCursor = false;
+			layer1InvisibleButton.useHandCursor = false;
+			layer2InvisibleButton.useHandCursor = false;
 			layer1VisibleButton.useHandCursor = false;
 			layer2VisibleButton.useHandCursor = false;
 			layerOptionButton.useHandCursor = false;
@@ -591,6 +636,8 @@
 			sideBarONButton.visible = false;
 			sideBarONButton2.visible = false;
 
+			layer1InvisibleButton.visible = false;
+			layer2InvisibleButton.visible = false;
 			layer1VisibleButton.visible = false;
 			layer2VisibleButton.visible = false;
 			layerSwapButton.visible = false;
@@ -603,11 +650,11 @@
 								[loadButton,repLoadButton,capRotate],
 								[clipButton,reRecordingButton,capFlip],
 								[clearButton,cutPrevDataButton,capTrans],
-								[gridButton,superUndoButton],
-								[sideBarPositionButton,replayZoomInButton],
+								[gridButton,superUndoButton,capLayer1VisibleButton,capLayer1InvisibleButton],
+								[sideBarPositionButton,replayZoomInButton,capLayer2VisibleButton,capLayer2InvisibleButton],
 								[sideBarOFFButton,replayZoomOutButton],
-								[topBarColorButton,layer1VisibleButton,replayRotateButton],
-								[dpiButton,layer2VisibleButton,replaySpeedSet],
+								[topBarColorButton,layer1VisibleButton,layer1InvisibleButton,replayRotateButton],
+								[dpiButton,layer2VisibleButton,layer2InvisibleButton,replaySpeedSet],
 								[layerOptionButton,layerSwapButton],
 								[aboutButton,layerMergeButton]
 							];
@@ -652,7 +699,11 @@
 									capRotate,
 									capFlip,
 									capTrans,
-									capClipBoard
+									capClipBoard,
+									capLayer1InvisibleButton,
+									capLayer2InvisibleButton,
+									capLayer1VisibleButton,
+									capLayer2VisibleButton,
 								 ];
 			initModeButtons();
 			initMouseDownState();

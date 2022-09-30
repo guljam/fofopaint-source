@@ -1584,7 +1584,7 @@ private function setLassoTool():void
                 if(lassoToolON === false)
                 {
                     consoleBox.print("Image move");
-                    clearButtonClicked = false;
+                    setClearButtonActive();
                     rDataBuffer.push(["move",movex,movey]);
                     addUndoData(1);
                 }
