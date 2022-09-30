@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.31;
+        private const APP_VERSION:Number = 16.32;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6156,12 +6156,6 @@
             return verStr;
         }
 
-        //문자열을 소수 2번째 자리까지만 변환
-        private function parseVersion(str:String):Number
-        {
-            return parseFloat(str);
-        }
-
         private function setIMEDisabled():void
         {
             if(Capabilities.hasIME && IME.enabled) //다른 언어로 하면 자판 안먹어서 그냥 ime자체를안씀
@@ -6170,18 +6164,25 @@
             }
         }
 
+        //문자열을 소수 2번째 자리까지만 변환
+        private function parseVersion(str:String):Number
+        {
+            return parseFloat(str);
+        }
+
         private function isNewVersion(newVer:Array):Boolean
         {
-            const ver:Number = APP_VERSION;
-            const oldVer1:Number = Math.floor(ver);
-            const oldVer2:Number = Math.floor((ver-oldVer1)*100);
+            const oldVer:Array = (APP_VERSION.toFixed(2)).split(".");
 
             //앞 버전이 크면 참
-            if(parseFloat(newVer[0]) > oldVer1
+            if(parseFloat(newVer[0]) > parseFloat(oldVer[0])
             || 
-            (parseFloat(newVer[0]) === oldVer1
-            && parseFloat(newVer[1]) > oldVer2)) return true;
-
+            (parseFloat(newVer[0]) === parseFloat(oldVer[0])
+            && parseFloat(newVer[1]) > parseFloat(oldVer[1])))
+            {
+                return true;
+            }
+            
             return false;
         }
 
@@ -6217,7 +6218,7 @@
 
             function urlLoadCompleteEvent(e:Event):void
             {
-                const versionStr:String = "16.28"//loader.data;
+                const versionStr:String = loader.data;
                 if(!versionStr) return;
 
                 const getVersionArr:Array = versionStr.split(".");
