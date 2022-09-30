@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.23;
+        private const APP_VERSION:Number = 16.24;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6307,6 +6307,9 @@
 
                 case "eng":
                     navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-manual"));
+                break;
+                case "aboutHomePageLink":
+                    navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/"));
                 break;
                 case "aboutTwitterLink":
                     navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));

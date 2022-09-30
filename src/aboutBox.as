@@ -9,6 +9,7 @@
 		public var versionInfo:TextField = versionInfo;
 		public var appResetButton:TextField = appResetButton;
 		public var aboutTwitterLink:SimpleButton = aboutTwitterLink;
+		public var aboutHomePageLink:SimpleButton = aboutHomePageLink;
 		public var logo1:SimpleButton = logo1;
 		public var logo2:SimpleButton = logo2;
 		public var logo3:SimpleButton = logo3;
