@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.26;
+        private const APP_VERSION:Number = 16.27;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -682,7 +682,8 @@
         private function canvasWindowActivatedEvent(e:Event):void
         {
             canvasWindowON = true;
-            topBar.newWindowButton.alpha = BUTTON_OFF_ALPHA;
+            topBar.newWindowButton.visible = false;
+            topBar.newWindowCloseButton.visible = true;
             if(canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null)
             {
                 canvasWindow.stage.addChild(canvasWindowCanvasPanel);
@@ -735,25 +736,21 @@
 
         private function canvasWindowResizedEvent(e:Event):void
         {
-            if(!canvasWindowIgnoreResizeEventFlag)
-            {
-               updateCanvasWindowData();
-            }
-            else
-            {
-                canvasWindowIgnoreResizeEventFlag = false;
-            }
+            if(!canvasWindowIgnoreResizeEventFlag) updateCanvasWindowData();
+            else canvasWindowIgnoreResizeEventFlag = false;
+        }
+
+        private function closeCanvasWindowTemp():void
+        {
+            canvasWindow.visible = false;
+            canvasWindowON = false;
+            topBar.newWindowButton.visible = true;
+            topBar.newWindowCloseButton.visible = false;
         }
 
         private function canvasWindowCloseKeyDown(e:KeyboardEvent):void
         {
-            if(e.keyCode === KEY.esc)
-            {
-                canvasWindow.visible = false;
-                canvasWindowON = false;
-                topBar.newWindowButton.alpha = 1.0;
-                stage.nativeWindow.activate();
-            }
+            if(e.keyCode === KEY.esc) closeCanvasWindowTemp();
         }
 
         private function canvasWindowClosedEvent(e:Event):void
@@ -761,9 +758,7 @@
             if(windowClosingFlag == false)
             {
                 e.preventDefault();
-                canvasWindow.visible = false;
-                canvasWindowON = false;
-                topBar.newWindowButton.alpha = 1.0;
+                closeCanvasWindowTemp();
             }
         }
 
@@ -3821,10 +3816,10 @@
                 buttonSetVisible("capture",false);
                 tb.changeHintYPos(tb.BARSIZE);
                 updatePenSizeCursor();
-                if(needUpdate)
-                {
-                    tb.updateButtonVisible(true);
-                }
+                if(needUpdate) tb.updateButtonVisible(true);
+
+                if(canvasWindowON) topBar.newWindowButton.visible = false;
+                else topBar.newWindowCloseButton.visible = false;
             }
             else if(mode === "replay")
             {
@@ -6665,6 +6660,11 @@
                         case "aboutButton":
                             openAboutPanel(false);
                         break;
+
+                        case "newWindowCloseButton":
+                            closeCanvasWindowTemp()
+                        break;
+
                         case "newWindowButton":
                             openImageViewWindow();
                         break;
@@ -7319,10 +7319,12 @@
                         str = "About";
                     break;
 
+                    case "newWindowCloseButton":
+                        str = "Close image view window (esc on new window)";
+                    break;
+
                     case "newWindowButton":
-                    {
                         str = "Open image view window (f5, f10)";
-                    }
                     break;
 
                     case "updateButton":
@@ -17465,6 +17467,7 @@
                 case "layer1InvisibleButton":
                 case "layer2InvisibleButton":
                 case "newWindowButton":
+                case "newWindowCloseButton":
                 {
                     if(toolBox2ON || !isNowKey(0) || e.target.alpha < 1.0)
                         return;

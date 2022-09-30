@@ -61,6 +61,7 @@
 		public var superUndoButton:SimpleButton = superUndoButton;
 		public var reRecordingButton:SimpleButton = reRecordingButton;
 		public var newWindowButton:SimpleButton = newWindowButton;
+		public var newWindowCloseButton:SimpleButton = newWindowCloseButton;
 		public var aboutButton:SimpleButton = aboutButton;
 		public var updateButton:SimpleButton = updateButton;
 		public var replayZoomInButton:SimpleButton = replayZoomInButton;
@@ -90,10 +91,14 @@
 		private var hintWaitAnimTimer:int = 0;
 		private var hintWaitAnimCount:int = 0;
 
+		private var newWindowIconStateSaveLayerButton:Boolean = false // 뉴윈도우인지 끄기 버튼인지 구분
+		private var newWindowIconStateDrawModeIcon:Boolean = false // 뉴윈도우인지 끄기 버튼인지 구분
+
 		public function setLayerButtonOFF():void
 		{
 			layerOptionButton.visible = true;
-			newWindowButton.visible = true;
+			if(newWindowIconStateSaveLayerButton) newWindowCloseButton.visible = true;
+			else newWindowButton.visible = true;
 			dpiButton.visible = true;
 			topBarColorButton.visible = true;
 			layer1VisibleButton.visible = false;
@@ -107,7 +112,12 @@
 		public function setLayerButtonON(layer1:Boolean,layer2:Boolean):void
 		{
 			layerOptionButton.visible = false;
+
+			if(newWindowCloseButton.visible) newWindowIconStateSaveLayerButton = true;
+			else newWindowIconStateSaveLayerButton = false;
+
 			newWindowButton.visible = false;
+			newWindowCloseButton.visible = false;
 			dpiButton.visible = false;
 			topBarColorButton.visible = false;
 
@@ -236,6 +246,7 @@
 			reRecordingButton.transform.colorTransform = o;
 			aboutButton.transform.colorTransform = o;
 			newWindowButton.transform.colorTransform = o;
+			newWindowCloseButton.transform.colorTransform = o;
 			replayZoomInButton.transform.colorTransform = o;
 			replayZoomOutButton.transform.colorTransform = o;
 			replayRotateButton.transform.colorTransform = o;
@@ -504,6 +515,7 @@
 												aboutButton,
 												updateButton,
 												newWindowButton,
+												newWindowCloseButton,
 
 												cutPrevDataButton,
 												superUndoButton,
@@ -615,6 +627,10 @@
 			drawModeButton.useHandCursor = false;
 			topBarColorButton.useHandCursor = false;
 			dpiButton.useHandCursor = false;
+			capLayer1InvisibleButton.useHandCursor = false;
+			capLayer2InvisibleButton.useHandCursor = false;
+			capLayer1VisibleButton.useHandCursor = false;
+			capLayer2VisibleButton.useHandCursor = false;
 			layer1InvisibleButton.useHandCursor = false;
 			layer2InvisibleButton.useHandCursor = false;
 			layer1VisibleButton.useHandCursor = false;
@@ -634,9 +650,12 @@
 			aboutButton.useHandCursor = false;
 			updateButton.useHandCursor = false;
 			newWindowButton.useHandCursor = false;
+			newWindowCloseButton.useHandCursor = false;
 			replayZoomInButton.useHandCursor = false;
 			replayZoomOutButton.useHandCursor = false;
 			replayRotateButton.useHandCursor = false;
+
+			newWindowCloseButton.visible = false;
 
 			sideBarOFFButton2.visible = false;
 			sideBarONButton.visible = false;
@@ -662,7 +681,7 @@
 								[topBarColorButton,layer1VisibleButton,layer1InvisibleButton,replayRotateButton],
 								[dpiButton,layer2VisibleButton,layer2InvisibleButton,replaySpeedSet],
 								[layerOptionButton,layerSwapButton],
-								[newWindowButton,layerMergeButton],
+								[newWindowButton,newWindowCloseButton,layerMergeButton],
 								[aboutButton]
 							];
 
@@ -684,7 +703,8 @@
 									sideBarONButton,
 									sideBarONButton2,
 									newWindowButton,
-									aboutButton,
+									newWindowCloseButton,
+									aboutButton
 							  ];
 
 			replayModeButtons = [
