@@ -6,13 +6,15 @@
 	import flash.display.Bitmap;
 	import flash.display.Graphics;
 	import flash.text.TextField;
+	import flash.geom.Rectangle;
 
 	public class previewPanel extends Sprite {		
 		public var prevCursor:Sprite = new Sprite();
 		private var prevInfo:TextField = prevInfo;
 		private var prevStageBG:Sprite = new Sprite();
 		public var prevBitmapBG:Sprite = new Sprite();
-		public var prevBitmap:Bitmap = new Bitmap(new BitmapData(1,1));
+		public var prevBitmap:Bitmap = new Bitmap();
+		public var prevBitmapSub:Bitmap = new Bitmap();
 		public var prevBitmapLastWidth:Number = 0;
 		public var prevBitmapLastHeight:Number = 0;
 		public const BOX_WIDTH:Number = 210;
@@ -61,25 +63,9 @@
 			prevCursor.y = floor(y*f1+_prevBitmap.y);
 		}
 
-		public function updateImage(bmpd:BitmapData,bmpd1:BitmapData,bg:uint):void
+		public function setFitBitmapforBox(w:Number,h:Number,bw:Number,bh:Number):Rectangle
 		{
-			const _bitmap:Bitmap = prevBitmap;
-			const w:Number = bmpd.width;
-			const h:Number = bmpd.height;
-			_bitmap.bitmapData = bmpd1.clone();
-			_bitmap.bitmapData.draw(bmpd);
-			_bitmap.smoothing = true;
-			if(prevBitmapLastWidth === w && prevBitmapLastHeight === h)
-			{
-				return;
-			}
-
-			prevBitmapLastWidth = w;
-			prevBitmapLastHeight = h;
-
-			const bw:Number = BOX_WIDTH;
-			const bh:Number = BOX_HEIGHT;
-			const floor:Function = Math.floor;
+			const round:Function = Math.round;
 			var ratio:Number = bw/w;
 			var fw:Number = w*ratio;
 			var fh:Number = h*ratio;
@@ -92,19 +78,44 @@
 				fw = fw*ratio;
 				fh = fh*ratio;
 			}
-			_bitmap.width = fw;
-			_bitmap.height = fh;
 
 			if(alignWidthFlag)
 			{
-				_bitmap.x = 0;
-				_bitmap.y = floor(bh/2-_bitmap.height/2);
+				return new Rectangle(0,round(bh/2-fh/2),round(fw),round(fh));
 			}
-			else
+
+			return new Rectangle(round(bw/2-fw/2),0,round(fw),round(fh));
+		}
+
+		public function updateImage(bmpd:BitmapData,bmpd1:BitmapData,bg:uint):void
+		{
+			const _bitmap:Bitmap = prevBitmap;
+			const _bitmapSub:Bitmap = prevBitmapSub;
+			const w:Number = bmpd.width;
+			const h:Number = bmpd.height;
+
+			_bitmap.bitmapData = bmpd;
+			_bitmap.smoothing = true;
+			_bitmapSub.bitmapData = bmpd1;
+			_bitmapSub.smoothing = true;
+
+			if(prevBitmapLastWidth === w && prevBitmapLastHeight === h)
 			{
-				_bitmap.x = floor(bw/2-_bitmap.width/2);
-				_bitmap.y = 0;
+				return;
 			}
+
+			prevBitmapLastWidth = w;
+			prevBitmapLastHeight = h;
+
+			const bounds:Rectangle = setFitBitmapforBox(_bitmap.width,_bitmap.height,BOX_WIDTH,BOX_HEIGHT);
+			_bitmap.x = bounds.x;
+			_bitmap.y = bounds.y;
+			_bitmap.width = bounds.width;
+			_bitmap.height = bounds.height;
+			_bitmapSub.x = bounds.x;
+			_bitmapSub.y = bounds.y;
+			_bitmapSub.width = bounds.width;
+			_bitmapSub.height = bounds.height;
 
 			const _bitmapBG:Sprite = prevBitmapBG;
 			_bitmapBG.width = _bitmap.width;
@@ -148,6 +159,7 @@
 			prevCursor.name = "prevCursor";
 			addChild(prevStageBG);
 			addChild(prevBitmapBG);
+			addChild(prevBitmapSub);
 			addChild(prevBitmap);
 			// addChild(consoleBG);
 			addChild(prevCursor);

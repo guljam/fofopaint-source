@@ -19,6 +19,8 @@
 		private const gap:Number = 36;
 		public const BARSIZE:Number = 38;
 
+		//버튼 추가시 해야할거
+		//change uicolor, mouse down state 추가, handcursor false로 하기 button order추가, 모드에 속하는거 에 추가
 		public var captureButton:SimpleButton = captureButton;
 		public var repCaptureButton:SimpleButton = repCaptureButton;
 		public var capRotate:SimpleButton = capRotate;
@@ -58,6 +60,7 @@
 		public var cutPrevDataButton:SimpleButton = cutPrevDataButton;
 		public var superUndoButton:SimpleButton = superUndoButton;
 		public var reRecordingButton:SimpleButton = reRecordingButton;
+		public var newWindowButton:SimpleButton = newWindowButton;
 		public var aboutButton:SimpleButton = aboutButton;
 		public var updateButton:SimpleButton = updateButton;
 		public var replayZoomInButton:SimpleButton = replayZoomInButton;
@@ -90,7 +93,7 @@
 		public function setLayerButtonOFF():void
 		{
 			layerOptionButton.visible = true;
-			aboutButton.visible = true;
+			newWindowButton.visible = true;
 			dpiButton.visible = true;
 			topBarColorButton.visible = true;
 			layer1VisibleButton.visible = false;
@@ -104,7 +107,7 @@
 		public function setLayerButtonON(layer1:Boolean,layer2:Boolean):void
 		{
 			layerOptionButton.visible = false;
-			aboutButton.visible = false;
+			newWindowButton.visible = false;
 			dpiButton.visible = false;
 			topBarColorButton.visible = false;
 
@@ -232,6 +235,7 @@
 			superUndoButton.transform.colorTransform = o;
 			reRecordingButton.transform.colorTransform = o;
 			aboutButton.transform.colorTransform = o;
+			newWindowButton.transform.colorTransform = o;
 			replayZoomInButton.transform.colorTransform = o;
 			replayZoomOutButton.transform.colorTransform = o;
 			replayRotateButton.transform.colorTransform = o;
@@ -499,6 +503,7 @@
 												sideBarONButton2,
 												aboutButton,
 												updateButton,
+												newWindowButton,
 
 												cutPrevDataButton,
 												superUndoButton,
@@ -628,6 +633,7 @@
 			reRecordingButton.useHandCursor = false;
 			aboutButton.useHandCursor = false;
 			updateButton.useHandCursor = false;
+			newWindowButton.useHandCursor = false;
 			replayZoomInButton.useHandCursor = false;
 			replayZoomOutButton.useHandCursor = false;
 			replayRotateButton.useHandCursor = false;
@@ -645,7 +651,7 @@
 
 			buttonOrder =   [ 
 								[replayModeButton,drawModeButton,capOff],
-								[captureButton,capFull,repCaptureButton],
+								[captureButton,repCaptureButton,capFull],
 								[saveButton,repSaveButton,capClipBoard],
 								[loadButton,repLoadButton,capRotate],
 								[clipButton,reRecordingButton,capFlip],
@@ -656,7 +662,8 @@
 								[topBarColorButton,layer1VisibleButton,layer1InvisibleButton,replayRotateButton],
 								[dpiButton,layer2VisibleButton,layer2InvisibleButton,replaySpeedSet],
 								[layerOptionButton,layerSwapButton],
-								[aboutButton,layerMergeButton]
+								[newWindowButton,layerMergeButton],
+								[aboutButton]
 							];
 
 			drawModeButtons = [
@@ -676,6 +683,7 @@
 									sideBarOFFButton2,
 									sideBarONButton,
 									sideBarONButton2,
+									newWindowButton,
 									aboutButton,
 							  ];
 

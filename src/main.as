@@ -23,6 +23,9 @@
     import flash.display.NativeWindow;
     import flash.display.Loader;
     import flash.display.LoaderInfo;
+    import flash.display.NativeWindowInitOptions;
+    import flash.display.NativeWindowSystemChrome;
+    import flash.display.NativeWindowType;
     import flash.filesystem.File;
     import flash.filesystem.FileStream;
     import flash.filesystem.FileMode;
@@ -40,6 +43,8 @@
     import flash.events.MouseEvent;
     import flash.events.KeyboardEvent;
     import flash.events.NativeDragEvent;
+    import flash.events.NativeWindowBoundsEvent;
+    import flash.events.NativeWindowDisplayStateEvent;
     import flash.utils.clearTimeout;
     import flash.utils.setTimeout;
     import flash.utils.ByteArray;
@@ -56,12 +61,11 @@
     import flash.filters.BlurFilter;
     import flash.system.System;
     import flash.filters.ConvolutionFilter;//import end
-    import flash.trace.Trace;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.21;
-        private const APP_DATA_VERSION:Number = 16.00;
+        private const APP_VERSION:Number = 16.22;
+        private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -133,7 +137,7 @@
                                         f7:118,
                                         f8:119,
                                         f9:120,
-                                        // f10:121,
+                                        f10:121,
                                         // f11:122,
                                         // f12:123
                                         window:91
@@ -581,6 +585,15 @@
                     ,workerDataSendCount:int = 0
                     ,workerDataReceiveCount:int = 0
                     ,workerState:int = WORKER_STATE_STOPPED
+        //새창 관련 변수
+                    ,canvasWindowInfo:Array = [null,null,400,400] //x y 너비 높이
+                    ,canvasWindowON:Boolean = false //캔버스 새창 켜졌을때
+                    ,canvasWindow:NativeWindow //참조된 새 창
+                    ,canvasWindowBitmap:Bitmap //새창안에 들어갈 레이어 1 2번
+                    ,canvasWindowBitmapSub:Bitmap
+                    ,canvasWindowCanvasPanel:Sprite //캔버스 배경색
+                    ,canvasWindowUpdateDelayTimer:int = 0
+                    ,canvasWindowIgnoreResizeEventFlag:Boolean = false //창이랑 비트맵크기 맞춰줄때 이벤트 연속으로 발생하지 않게 걸어줌
 
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
@@ -608,7 +621,6 @@
                     ,sideBarONMouseLeaveTimer:int = 0 //마우스 클릭후 바깥으로 나갔을때 사이드바 잠깐 안켜주는 플래그
                     ,isNewFOFOSaveForamat:Boolean = false
                     ,layerOptionON:Boolean = false //레이어 옵션 켜졌을때 올려줌
-                    ,layerMerged:Boolean = false
                     ;
         //vars
         public function main():void
@@ -637,7 +649,7 @@
             updateWindowSizeInfo();
             updateColorHistoryList();
             loadAppData(); //이전 세팅 복원
-            resetReplayDataFile();
+            initReplayDataFile();
             initPickerBoxInfo(penColor);
             addStageInputEvent();
             addInputEventStageChild();
@@ -655,6 +667,167 @@
         }
         
         //functions
+        private function updateCanvasWindowCanvasPanel(color:uint,bmpd:BitmapData):void
+        {
+            canvasWindowCanvasPanel.graphics.clear();
+            canvasWindowCanvasPanel.graphics.beginFill(color,1.0);
+            canvasWindowCanvasPanel.graphics.drawRect(0,0,bmpd.width,bmpd.height);
+            canvasWindowCanvasPanel.graphics.endFill();
+        }
+
+        private function setCanvasWindowVisible(flag:Boolean):void
+        {
+            canvasWindow.visible = flag;
+        }
+        
+        private function canvasWindowActivatedEvent(e:Event):void
+        {
+            canvasWindowON = true;
+            topBar.newWindowButton.alpha = BUTTON_OFF_ALPHA;
+            if(canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null)
+            {
+                canvasWindow.stage.addChild(canvasWindowCanvasPanel);
+            }
+            updateCanvasWindowCanvasPanel(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+            canvasWindow.stage.color = uiColorSet[uiColorIndex][2];
+        }
+
+        private function updateCanvasWindowBitmapSize():void
+        {
+            const bounds:Rectangle = previewBox.setFitBitmapforBox(canvasWindowBitmap.bitmapData.width,canvasWindowBitmap.bitmapData.height
+                                                                  ,canvasWindow.stage.stageWidth,canvasWindow.stage.stageHeight);
+
+            updateCanvasWindowCanvasPanel(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+            canvasWindowCanvasPanel.x = bounds.x;
+            canvasWindowCanvasPanel.y = bounds.y;
+            canvasWindowCanvasPanel.width = bounds.width;
+            canvasWindowCanvasPanel.height = bounds.height;
+        }
+
+        private function updateCanvasWindowData(windowResizeFlag:Boolean):void
+        {
+            clearTimeout(canvasWindowUpdateDelayTimer)
+            canvasWindowUpdateDelayTimer = setTimeout(function():void
+            {
+                canvasWindowInfo[0] = canvasWindow.x;
+                canvasWindowInfo[1] = canvasWindow.y;
+                canvasWindowInfo[2] = canvasWindow.width;
+                canvasWindowInfo[3] = canvasWindow.height;
+
+                if(windowResizeFlag) updateCanvasWindowBitmapSize();
+            },200);
+        }
+
+        private function canvasWindowMovedEvent(e:Event):void
+        {
+            updateCanvasWindowData(false);
+        }
+
+        private function canvasWindowResizedEvent(e:Event):void
+        {
+            if(!canvasWindowIgnoreResizeEventFlag)
+            {
+               updateCanvasWindowData(true);
+            }
+            else
+            {
+                canvasWindowIgnoreResizeEventFlag = false;
+            }
+        }
+
+        private function canvasWindowClosedEvent(e:Event):void
+        {
+            if(windowClosingFlag == false)
+            {
+                e.preventDefault();
+                canvasWindow.visible = false;
+                canvasWindowON = false;
+                topBar.newWindowButton.alpha = 1.0;
+            }
+        }
+
+        private function updateCanvasWindowBitmap():void
+        {
+            canvasWindowBitmap.bitmapData = previewBox.prevBitmap.bitmapData;
+            canvasWindowBitmapSub.bitmapData = previewBox.prevBitmapSub.bitmapData;
+            canvasWindowBitmap.smoothing = true;
+            canvasWindowBitmapSub.smoothing = true;
+        }
+
+        private function setSyncWindowTitle():void
+        {
+            canvasWindow.title = stage.nativeWindow.title;
+        }
+
+        private function fitCanvasWindowSizeToCanvas():void
+        {
+            canvasWindowIgnoreResizeEventFlag = true;
+            canvasWindowCanvasPanel.x = 0;
+            canvasWindowCanvasPanel.y = 0
+            canvasWindow.bounds = new Rectangle(canvasWindow.bounds.x,canvasWindow.bounds.y
+                                                ,canvasWindowCanvasPanel.width,canvasWindowCanvasPanel.height);
+        }
+        
+        private function moveCanvasWindowMouseDown(e:MouseEvent):void
+        {
+            canvasWindow.startMove();
+        }
+
+        private function fitCanvasWindowSizeToCanvasRightMouseUp(e:MouseEvent):void
+        {
+            if(canvasWindowCanvasPanel.width === canvasWindow.width
+            && canvasWindowCanvasPanel.height === canvasWindow.height)
+            {
+                return;
+            }
+            fitCanvasWindowSizeToCanvas();
+        }
+
+        private function initCanvasWindow():void
+        {
+            var windowOptions:NativeWindowInitOptions = new NativeWindowInitOptions();
+            windowOptions.systemChrome = NativeWindowSystemChrome.STANDARD;
+            windowOptions.type = NativeWindowType.NORMAL;
+            windowOptions.owner = stage.nativeWindow;
+            
+            canvasWindow = new NativeWindow(windowOptions);
+
+            setSyncWindowTitle();
+            canvasWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
+            canvasWindow.stage.align = StageAlign.TOP_LEFT;
+            canvasWindow.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,fitCanvasWindowSizeToCanvasRightMouseUp)
+            canvasWindow.stage.addEventListener(MouseEvent.MOUSE_DOWN,moveCanvasWindowMouseDown)
+            canvasWindow.addEventListener(Event.CLOSING,canvasWindowClosedEvent);
+            canvasWindow.addEventListener(Event.RESIZE,canvasWindowResizedEvent);
+            canvasWindow.addEventListener(NativeWindowBoundsEvent.MOVE,canvasWindowMovedEvent);
+            canvasWindow.addEventListener("activate",canvasWindowActivatedEvent);
+
+            canvasWindowCanvasPanel = new Sprite();
+            canvasWindowCanvasPanel.name = "canvasWindowCanvasPanel";
+            canvasWindowBitmap = new Bitmap();
+            canvasWindowBitmapSub = new Bitmap();
+            updateCanvasWindowBitmap();
+
+            canvasWindowCanvasPanel.addChild(canvasWindowBitmapSub);
+            canvasWindowCanvasPanel.addChild(canvasWindowBitmap);
+        }
+
+        private function openImageViewWindow():void
+        {
+            if(canvasWindow === null)
+            {
+                initCanvasWindow();
+                if(canvasWindowInfo[0] === null)
+                {
+                    canvasWindowInfo[0]= stage.nativeWindow.x+topBar.newWindowButton.x-canvasWindowInfo[2]/2;
+                    canvasWindowInfo[1]= stage.nativeWindow.y;
+                }
+                canvasWindow.bounds = new Rectangle(canvasWindowInfo[0],canvasWindowInfo[1],canvasWindowInfo[2],canvasWindowInfo[3]);
+            }
+
+            canvasWindow.activate();
+        }
+
         private function setLayerVisibleHint(layer:int):void
         {
             const layer1Str:String = "Layer 1 visible = "+((canvas1Bitmap.visible)?"ON":"OFF");
@@ -1713,25 +1886,35 @@
             return 0;
         }
 
-        private function checkLayerVisible():Boolean
+        private function isCurrentLayerActive():Boolean
         {
+            if(!canvas1Bitmap.visible && !canvas11Bitmap.visible)
+            {
+                setToolTipStringTime("All layer locked");
+                return false;
+            }
+
             if(subLayerON === false)
             {
-                if(canvas1Bitmap.visible === true)
+                if(canvas1Bitmap.visible)
+                {
                     return true;
+                }
                 else
                 {
-                    if(isCursorInDrawArea()) setToolTipStringTime("Layer 1 locked");
+                    setToolTipStringTime("Layer 1 locked");
                     return false;
                 }
             }
             else if(subLayerON === true)
             {
-                if(canvas11Bitmap.visible === true)
+                if(canvas11Bitmap.visible)
+                {
                     return true;
+                }
                 else
                 {
-                    if(isCursorInDrawArea()) setToolTipStringTime("Layer 2 locked");
+                    setToolTipStringTime("Layer 2 locked");
                     return false;
                 }
             }
@@ -1909,6 +2092,8 @@
             if(stage.nativeWindow.title.lastIndexOf("*") === -1)
             {
                 stage.nativeWindow.title = stage.nativeWindow.title+"*";
+
+                if(canvasWindowON) setSyncWindowTitle();
             }
         }
 
@@ -4574,6 +4759,7 @@
         private function updateWindowTitle():void
         {
             stage.nativeWindow.title = saveFileName;
+            if(canvasWindowON) setSyncWindowTitle();
         }
 
         private function setUIColorButton():void
@@ -4613,7 +4799,7 @@
             toolBox2.changeUIColor(_arr2);
             traceMenuBox.changeUIColor(_arr2,index === 0);
             lassoMenu.changeUIColor(_arr2);
-            topBar.changeUIColor(base,op,uiColorSet[index][4]);
+            topBar.changeUIColor(base,op,_arr[index][4]);
             rotateCursorBox.changeUIColor(base,op);
             fileDragSelectBox.changeUIColor(_arr2);
             replayTimeBox.changeUIColor(base,op,_arr2[4],index);
@@ -4627,6 +4813,11 @@
             pickerBox.setPickerMode(pickerMode);
             updateScrollBarColorHeight(scrollBarHeight);
             setResizeButtonColor(nowColorSet[3]);
+
+            if(canvasWindowON)
+            {
+                canvasWindow.stage.color = _arr[index][2];
+            }
         }
 
         private function addStageInputEvent():void
@@ -5954,6 +6145,19 @@
             }
         }
 
+        private function isNewVersion(newVer:Array):Boolean
+        {
+            const oldVer:Array = (APP_VERSION+"").split(".");
+
+            //앞 버전이 크면 참
+            if(parseFloat(newVer[0]) > parseFloat(oldVer[0])
+            || 
+            (parseFloat(newVer[0]) === parseFloat(oldVer[0])
+            && parseFloat(newVer[1]) > parseFloat(oldVer[1]))) return true;
+
+            return false;
+        }
+
         private function checkVersion():void
         {
             if(isCheckingUpdate)
@@ -5987,22 +6191,21 @@
             function urlLoadCompleteEvent(e:Event):void
             {
                 const versionStr:String = loader.data;
-                const findVersionStr:int = versionStr.lastIndexOf(".");
+                if(!versionStr) return;
 
-                if(findVersionStr !== -1)
+                const getVersionArr:Array = versionStr.split(".");
+
+                if(getVersionArr.length >= 2)
                 {
-                    var newVersion:Number = parseVersion(versionStr);
-                    if(newVersion)
+                    if(parseVersion(getVersionArr[0]) || parseVersion(getVersionArr[1]))
                     {
                         const floor:Function = Math.floor;
                         const oldVersion:Number = APP_VERSION;
-
-                        const isNewVersion:Boolean = newVersion > oldVersion;
                         var tryCount:uint = 0;
 
                         url = new URLRequest("https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air");
 
-                        if(isNewVersion)
+                        if(isNewVersion(getVersionArr))
                         {
                             NEW_VERSION = versionStr;
                             var fileLoader:URLLoader = e.target as URLLoader;
@@ -6175,7 +6378,7 @@
             resetTraceImageInfo();
             resetTraceOpa();
             makeFirstReplayImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
-            resetReplayDataFile(true);
+            initReplayDataFile(true);
             resetReplayTime();
             resetUndo();
             addUndoData();
@@ -6428,6 +6631,9 @@
 
                         case "aboutButton":
                             openAboutPanel(false);
+                        break;
+                        case "newWindowButton":
+                            openImageViewWindow();
                         break;
                         
                         case "replayZoomInButton":
@@ -7080,6 +7286,13 @@
                         str = "About";
                     break;
 
+                    case "newWindowButton":
+                    {
+                        if(canvasWindowON) str = "Fit the window size to the canvas (Right-click on window)";
+                        else str = "Open image view window (f5, f10)";
+                    }
+                    break;
+
                     case "updateButton":
                         str = "Version " + NEW_VERSION + " released!";
                     break;
@@ -7104,11 +7317,9 @@
             }
         }
 
-        private function resetReplayDataFile(overWrite:Boolean = false):void //기본 리플레이 파일 만들어줌
+        private function initReplayDataFile(overWrite:Boolean = false):void //기본 리플레이 파일 만들어줌
         {
-            const hey:Boolean = repFile.exists;
-
-            if(hey === false || overWrite === true)
+            if(repFile.exists === false || overWrite === true)
             {
                 const fs:FileStream = new FileStream();
                 fs.open(repFile,FileMode.WRITE);
@@ -10060,7 +10271,7 @@
             var traceImgInfo:Array = null;
             var newRectangle:Rectangle;
 
-            resetReplayDataFile(true); //일단 썸네일 이미지랑 리플레이 데이터 청소
+            initReplayDataFile(true); //일단 썸네일 이미지랑 리플레이 데이터 청소
             oldFile.copyTo(repFileTemp,true);//repdata.c3p를 복사 덮어씌우기
 
             if(traceRawArr)
@@ -10325,7 +10536,7 @@
             traceRawBMPD = null;
             traceRawArr = null;
             loadFileAfter(fileName,filePath,width,height,imageData,imageData1,true);
-            resetReplayDataFile(true); //일단 썸네일 이미지랑 리플레이 데이터 청소
+            initReplayDataFile(true); //일단 썸네일 이미지랑 리플레이 데이터 청소
         }
 
         private function loadFileAfter(fileName:String,filePath:String, width:uint,height:uint,imageData:IBitmapDrawable,imageData1:IBitmapDrawable,imageOnlyFlag:Boolean,newBG:uint=0xFFFFFF):void
@@ -10439,6 +10650,8 @@
             setReplaySubLayer(false);
             updateResizeButtonPos();
             cancelAutoKeyEvent({});
+
+            if(canvasWindowON) updateCanvasWindowBitmapSize();
         }
 
         private function loadFile(traceLayer:Boolean=false):void
@@ -11582,7 +11795,12 @@
                             "isRightSidebar":isRightSidebar,
                             "saveFilePath":saveFilePath,
                             "isSidebarVisible":isSidebarVisible,
-                            "uiScaleIndex":uiScaleIndex
+                            "uiScaleIndex":uiScaleIndex,
+                            "canvasWindowON":canvasWindowON,
+                            "canvasWindowInfo[0]":canvasWindowInfo[0],
+                            "canvasWindowInfo[1]":canvasWindowInfo[1],
+                            "canvasWindowInfo[2]":canvasWindowInfo[2],
+                            "canvasWindowInfo[3]":canvasWindowInfo[3]
                             });
             fs.close();
         }
@@ -11765,7 +11983,17 @@
                     gridFlag = d["gridFlag"];
                     drawGrid();
                     setUIScaleButton(d["uiScaleIndex"]);
-
+                    if(d["canvasWindowON"])
+                    {
+                        canvasWindowInfo = [
+                                                d["canvasWindowInfo[0]"],
+                                                d["canvasWindowInfo[1]"],
+                                                d["canvasWindowInfo[2]"],
+                                                d["canvasWindowInfo[3]"]
+                                            ];
+                        openImageViewWindow();
+                        stage.nativeWindow.activate();
+                    }
                     //혹시 몰라서 위치 체크 해줌
                     appInfoBox.setRotate(regPoint.rotation);
                     setCenvasCenterPos(true);
@@ -12601,6 +12829,7 @@
             tempBitData = null;
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+            if(canvasWindowON) updateCanvasWindowBitmap();
         }
 
         //캔버스의 중심좌표를 구함 컨트롤 박스 옵션 박스 포함
@@ -12829,6 +13058,8 @@
 
                 if(hasLastRDataCommand("canvasSize")) addUndoDataContinue();
                 else addUndoData(2);
+
+                if(canvasWindowON) updateCanvasWindowBitmapSize();
             }
 
             function resizeButtonMouseUpEvent(e:MouseEvent):void
@@ -13769,6 +14000,7 @@
             }
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+            if(canvasWindowON) updateCanvasWindowBitmap();
         }
 
         private function setLassoCancelButton():void
@@ -14157,6 +14389,7 @@
             }
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+            if(canvasWindowON) updateCanvasWindowBitmap();
             checkCanvasPanelPos(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
             updatePreviewBoxRectPos();
             tickDraw.updateRCursorPos();
@@ -14374,7 +14607,10 @@
                 }
 
                 replayONUndoUpdate = true;
+
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+                if(canvasWindowON) updateCanvasWindowBitmap();
+
                 rDataFrame[rDataFrame.length-1] = rData[rData.length-1].length;
                 rDataBuffer = [];
             }
@@ -14482,6 +14718,7 @@
 
                 undoIndex = rData.length-1;
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+                if(canvasWindowON) updateCanvasWindowBitmap();
                 
                 setClearButtonActive();
             };
@@ -15644,6 +15881,16 @@
                     setUIScaleButton(++uiScaleIndex);
                     topBar.hint("UI Scale "+getUIScaleString(uiScaleIndex),topBar.dpiButton);
                     topBar.hintTimeOFF();
+                }
+                return true;
+
+                case KEY.f5:
+                case KEY.f10:
+                {
+                   if(canvasWindowON === false)
+                   {
+                        openImageViewWindow();
+                   }
                 }
                 return true;
                 
@@ -17016,6 +17263,16 @@
                     case "lassoResize": setLassoResizeButton(); break;
                     case "lassoRotate": setLassoRotateButton(); break;
 
+                    case "prevStageBG":
+                    case "prevBitmapBG":
+                    case "prevBitmap":
+                        setHandToolPreviewBox(false);
+                    break;
+
+                    case "prevCursor":
+                        setHandToolPreviewBox(true);
+                    break;
+
                     case "lassoInfo":
                     case "lassoMenuMoveButton":
                     {
@@ -17160,6 +17417,7 @@
                 case "layer2VisibleButton":
                 case "layer1InvisibleButton":
                 case "layer2InvisibleButton":
+                case "newWindowButton":
                 {
                     if(toolBox2ON || !isNowKey(0) || e.target.alpha < 1.0)
                         return;
@@ -17235,10 +17493,10 @@
             {
                 switch (nowTool)
                 {
-                    case TOOL_FILL_PEN: if(checkLayerVisible()) fillPenTool.start(); break;
-                    case TOOL_PEN: if(checkLayerVisible()) penTool(true); break;
-                    case TOOL_ERASE: if(checkLayerVisible()) penTool(false); break;
-                    case TOOL_LINE: if(checkLayerVisible()) lineTool(true); break;
+                    case TOOL_FILL_PEN: if(isCurrentLayerActive()) fillPenTool.start(); break;
+                    case TOOL_PEN: if(isCurrentLayerActive()) penTool(true); break;
+                    case TOOL_ERASE: if(isCurrentLayerActive()) penTool(false); break;
+                    case TOOL_LINE: if(isCurrentLayerActive()) lineTool(true); break;
                     case TOOL_HAND: handTool(); break;
                     case TOOL_LASSO: lassoTool(); break;
                     case TOOL_ROTATE: rotateTool(); break;
