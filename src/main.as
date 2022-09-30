@@ -44,7 +44,6 @@
     import flash.events.KeyboardEvent;
     import flash.events.NativeDragEvent;
     import flash.events.NativeWindowBoundsEvent;
-    import flash.events.NativeWindowDisplayStateEvent;
     import flash.utils.clearTimeout;
     import flash.utils.setTimeout;
     import flash.utils.ByteArray;
@@ -64,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.22;
+        private const APP_VERSION:Number = 16.23;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -667,7 +666,7 @@
         }
         
         //functions
-        private function updateCanvasWindowCanvasPanel(color:uint,bmpd:BitmapData):void
+        private function updateCanvasWindowCanvasPanelBGColor(color:uint,bmpd:BitmapData):void
         {
             canvasWindowCanvasPanel.graphics.clear();
             canvasWindowCanvasPanel.graphics.beginFill(color,1.0);
@@ -679,7 +678,7 @@
         {
             canvasWindow.visible = flag;
         }
-        
+
         private function canvasWindowActivatedEvent(e:Event):void
         {
             canvasWindowON = true;
@@ -688,7 +687,7 @@
             {
                 canvasWindow.stage.addChild(canvasWindowCanvasPanel);
             }
-            updateCanvasWindowCanvasPanel(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+            updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
             canvasWindow.stage.color = uiColorSet[uiColorIndex][2];
         }
 
@@ -697,37 +696,37 @@
             const bounds:Rectangle = previewBox.setFitBitmapforBox(canvasWindowBitmap.bitmapData.width,canvasWindowBitmap.bitmapData.height
                                                                   ,canvasWindow.stage.stageWidth,canvasWindow.stage.stageHeight);
 
-            updateCanvasWindowCanvasPanel(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+            updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
             canvasWindowCanvasPanel.x = bounds.x;
             canvasWindowCanvasPanel.y = bounds.y;
             canvasWindowCanvasPanel.width = bounds.width;
             canvasWindowCanvasPanel.height = bounds.height;
         }
 
-        private function updateCanvasWindowData(windowResizeFlag:Boolean):void
+        private function updateCanvasWindowData():void
         {
-            clearTimeout(canvasWindowUpdateDelayTimer)
+            clearTimeout(canvasWindowUpdateDelayTimer);
             canvasWindowUpdateDelayTimer = setTimeout(function():void
             {
+
                 canvasWindowInfo[0] = canvasWindow.x;
                 canvasWindowInfo[1] = canvasWindow.y;
                 canvasWindowInfo[2] = canvasWindow.width;
                 canvasWindowInfo[3] = canvasWindow.height;
-
-                if(windowResizeFlag) updateCanvasWindowBitmapSize();
+                updateCanvasWindowBitmapSize();
             },200);
         }
 
         private function canvasWindowMovedEvent(e:Event):void
         {
-            updateCanvasWindowData(false);
+            updateCanvasWindowData();
         }
 
         private function canvasWindowResizedEvent(e:Event):void
         {
             if(!canvasWindowIgnoreResizeEventFlag)
             {
-               updateCanvasWindowData(true);
+               updateCanvasWindowData();
             }
             else
             {
@@ -800,7 +799,7 @@
             canvasWindow.addEventListener(Event.CLOSING,canvasWindowClosedEvent);
             canvasWindow.addEventListener(Event.RESIZE,canvasWindowResizedEvent);
             canvasWindow.addEventListener(NativeWindowBoundsEvent.MOVE,canvasWindowMovedEvent);
-            canvasWindow.addEventListener("activate",canvasWindowActivatedEvent);
+            canvasWindow.addEventListener(Event.ACTIVATE,canvasWindowActivatedEvent);
 
             canvasWindowCanvasPanel = new Sprite();
             canvasWindowCanvasPanel.name = "canvasWindowCanvasPanel";
