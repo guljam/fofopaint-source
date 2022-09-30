@@ -7287,8 +7287,7 @@
 
                     case "newWindowButton":
                     {
-                        if(canvasWindowON) str = "Fit the window size to the canvas (Right-click on window)";
-                        else str = "Open image view window (f5, f10)";
+                        str = "Open image view window (f5, f10)";
                     }
                     break;
 
