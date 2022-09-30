@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.20;
+        private const APP_VERSION:Number = 16.21;
         private const APP_DATA_VERSION:Number = 16.00;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4507,6 +4507,8 @@
         {
             subLayerON = flag;
 
+            controlBox["layer2Button"].visible = flag;
+            controlBox["layer1Button"].visible = !flag;
             controlBox["subLayerOFFButton"].visible = flag;
             controlBox["subLayerONButton"].visible = !flag;
 
@@ -4738,7 +4740,7 @@
                 case "nSizeButton11":
                 case "nSizeButton12":
                 {
-                    str = penSizeHint(targetName)+" (f, v / h, n)";
+                    str = "Size : "+penSizeHint(targetName)+" (f, v / h, n)";
                 }
                 break;
 
@@ -4752,7 +4754,7 @@
                 case "alphaButton7":
                 case "alphaButton8":
                 case "alphaButton9":
-                    str = getAlphaHint(targetName)+" (g, b)";
+                    str = "Opacity : "+getAlphaHint(targetName)+" (g, b)";
                 break;
 
                 case "pixelSnapButtonWrapper":
@@ -4773,7 +4775,7 @@
                 case "subLayerOFFButton":
                 case "subLayerONButton":
                 case "subLayerText":
-                    str = "Sub layer (3, 9)";
+                    str = "Select layer (3, 9)";
                 break;
             }
 
@@ -15658,8 +15660,8 @@
                 {
                     nowKeyNotKeyUp = keyCode;
                     setSubLayer(!subLayerON);
-                    if(subLayerON) setToolTipStringTime("Sub layer ON");
-                    else setToolTipStringTime("Sub layer OFF");
+                    if(subLayerON) setToolTipStringTime("Layer 2 selected");
+                    else setToolTipStringTime("Layer 1 selected");
 
                 }
                 return true;
@@ -16866,6 +16868,8 @@
                 case "subLayerButtonWrapper":
                 case "subLayerOFFButton":
                 case "subLayerONButton":
+                case "layer1Button":
+                case "layer2Button":
                 case "subLayerText":
                 {
                     setSubLayer(!subLayerON);

@@ -27,7 +27,8 @@
 		public var pixelSnapText:SimpleButton = pixelSnapText;
 		public var subLayerONButton:SimpleButton = subLayerONButton;
 		public var subLayerOFFButton:SimpleButton = subLayerOFFButton;
-		public var subLayerText:SimpleButton = subLayerText;
+		public var layer1Button:SimpleButton = layer1Button;
+		public var layer2Button:SimpleButton = layer2Button;
 		public var airBrushONButton:SimpleButton = airBrushONButton;
 		public var airBrushOFFButton:SimpleButton = airBrushOFFButton;
 		public var airBrushText:SimpleButton = airBrushText;
@@ -105,7 +106,8 @@
 
 			controlInfo.textColor = op;
 			pixelSnapText.transform.colorTransform = o;
-			subLayerText.transform.colorTransform = o;
+			layer1Button.transform.colorTransform = o;
+			layer2Button.transform.colorTransform = o;
 			airBrushText.transform.colorTransform = o;
 			shapeRect.transform.colorTransform = o;
 			shapeCircle.transform.colorTransform = o;
@@ -201,8 +203,8 @@
 		public function initSubLayerButtonWrapper():void
 		{
 			const g:Graphics = subLayerButtonWrapper.graphics;
-			const w:Number = subLayerOFFButton.width+pixelSnapText.width;
-			const h:Number = subLayerOFFButton.height+2;
+			const w:Number = subLayerOFFButton.width+layer1Button.width+10;
+			const h:Number = layer1Button.height+4;
 
 			g.beginFill(0xFF0000, 0);
 			g.drawRect(0, 0, w, h);
@@ -210,7 +212,8 @@
 
 			subLayerButtonWrapper.addChild(subLayerOFFButton);
 			subLayerButtonWrapper.addChild(subLayerONButton);
-			subLayerButtonWrapper.addChild(subLayerText);
+			subLayerButtonWrapper.addChild(layer1Button);
+			subLayerButtonWrapper.addChild(layer2Button);
 
 			subLayerONButton.x = 0;
 			subLayerONButton.y = 0;
@@ -218,8 +221,10 @@
 			subLayerOFFButton.y = subLayerONButton.y;
 			subLayerOFFButton.visible = false;
 
-			subLayerText.x = subLayerOFFButton.x+subLayerOFFButton.width+4;
-			subLayerText.y = subLayerOFFButton.y;
+			layer1Button.x = subLayerOFFButton.x+subLayerOFFButton.width+6;
+			layer1Button.y = subLayerOFFButton.y+2;
+			layer2Button.x = layer1Button.x;
+			layer2Button.y = layer1Button.y;
 
 			subLayerONButton.useHandCursor = false;
 			subLayerOFFButton.useHandCursor = false;
@@ -314,7 +319,9 @@
 			initSubLayerButtonWrapper();
 			initAirBrushButtonWrapper();
 
-			subLayerText.useHandCursor = false;
+			layer1Button.useHandCursor = false;
+			layer2Button.useHandCursor = false;
+			layer2Button.visible = false;
 			subLayerButtonWrapper.x = penSizeGrid.x;
 			subLayerButtonWrapper.y = penSizeGrid.y+penSizeGrid.height+5;
 
