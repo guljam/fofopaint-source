@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.27;
+        private const APP_VERSION:Number = 16.28;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -690,6 +690,7 @@
                 updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 canvasWindow.stage.color = uiColorSet[uiColorIndex][2];
             }
+            updateCanvasWindowImage();
         }
 
         private function updateCanvasWindowBitmapSize():void
@@ -762,7 +763,7 @@
             }
         }
 
-        private function updateCanvasWindowBitmap():void
+        private function updateCanvasWindowImage():void
         {
             canvasWindowBitmap.bitmapData = previewBox.prevBitmap.bitmapData;
             canvasWindowBitmapSub.bitmapData = previewBox.prevBitmapSub.bitmapData;
@@ -831,7 +832,7 @@
             canvasWindowCanvasPanel.name = "canvasWindowCanvasPanel";
             canvasWindowBitmap = new Bitmap();
             canvasWindowBitmapSub = new Bitmap();
-            updateCanvasWindowBitmap();
+            updateCanvasWindowImage();
 
             canvasWindowCanvasPanel.addChild(canvasWindowBitmapSub);
             canvasWindowCanvasPanel.addChild(canvasWindowBitmap);
@@ -1214,16 +1215,15 @@
             else
             {
                 canvas11BitmapData.draw(canvas1BitmapData);
-                canvas1BitmapData = canvas11BitmapData.clone();
-                canvas1Bitmap.bitmapData = canvas1BitmapData;
 
-                canvas11BitmapData.dispose();
-                canvas11BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
+                canvas1BitmapData.dispose();
+                canvas1BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
+                canvas1Bitmap.bitmapData = canvas1BitmapData;
                 
                 rDataBuffer.push(["merge"]);
                 addUndoData();
             }
-            topBar.hintTime("Layers has been merged to layer 1",topBar.layerMergeButton);
+            topBar.hintTime("Layers has been merged to layer 2",topBar.layerMergeButton);
             topBar.layerMergeButton.alpha = BUTTON_OFF_ALPHA;
         }
 
@@ -8270,11 +8270,9 @@
             function mergeLayer():void
             {
                 rcanvas11BitmapData.draw(rcanvas1BitmapData);
-                rcanvas1BitmapData = rcanvas11BitmapData.clone();
+                rcanvas1BitmapData.dispose();
+                rcanvas1BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-
-                rcanvas11BitmapData.dispose();
-                rcanvas11BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
             }
 
             function next():void
@@ -12872,7 +12870,7 @@
             tempBitData = null;
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
-            if(canvasWindowON) updateCanvasWindowBitmap();
+            if(canvasWindowON) updateCanvasWindowImage();
         }
 
         //캔버스의 중심좌표를 구함 컨트롤 박스 옵션 박스 포함
@@ -14043,7 +14041,7 @@
             }
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
-            if(canvasWindowON) updateCanvasWindowBitmap();
+            if(canvasWindowON) updateCanvasWindowImage();
         }
 
         private function setLassoCancelButton():void
@@ -14432,7 +14430,7 @@
             }
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
-            if(canvasWindowON) updateCanvasWindowBitmap();
+            if(canvasWindowON) updateCanvasWindowImage();
             checkCanvasPanelPos(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
             updatePreviewBoxRectPos();
             tickDraw.updateRCursorPos();
@@ -14652,7 +14650,7 @@
                 replayONUndoUpdate = true;
 
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
-                if(canvasWindowON) updateCanvasWindowBitmap();
+                if(canvasWindowON) updateCanvasWindowImage();
 
                 rDataFrame[rDataFrame.length-1] = rData[rData.length-1].length;
                 rDataBuffer = [];
@@ -14761,7 +14759,7 @@
 
                 undoIndex = rData.length-1;
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
-                if(canvasWindowON) updateCanvasWindowBitmap();
+                if(canvasWindowON) updateCanvasWindowImage();
                 
                 setClearButtonActive();
             };
