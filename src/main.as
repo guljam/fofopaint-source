@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.30;
+        private const APP_VERSION:Number = 16.31;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6172,13 +6172,15 @@
 
         private function isNewVersion(newVer:Array):Boolean
         {
-            const oldVer:Array = (APP_VERSION+"").split(".");
+            const ver:Number = APP_VERSION;
+            const oldVer1:Number = Math.floor(ver);
+            const oldVer2:Number = Math.floor((ver-oldVer1)*100);
 
             //앞 버전이 크면 참
-            if(parseFloat(newVer[0]) > parseFloat(oldVer[0])
+            if(parseFloat(newVer[0]) > oldVer1
             || 
-            (parseFloat(newVer[0]) === parseFloat(oldVer[0])
-            && parseFloat(newVer[1]) > parseFloat(oldVer[1]))) return true;
+            (parseFloat(newVer[0]) === oldVer1
+            && parseFloat(newVer[1]) > oldVer2)) return true;
 
             return false;
         }
@@ -6215,7 +6217,7 @@
 
             function urlLoadCompleteEvent(e:Event):void
             {
-                const versionStr:String = loader.data;
+                const versionStr:String = "16.28"//loader.data;
                 if(!versionStr) return;
 
                 const getVersionArr:Array = versionStr.split(".");
