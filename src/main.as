@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.24;
+        private const APP_VERSION:Number = 16.26;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -686,13 +686,18 @@
             if(canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null)
             {
                 canvasWindow.stage.addChild(canvasWindowCanvasPanel);
+                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+                canvasWindow.stage.color = uiColorSet[uiColorIndex][2];
             }
-            updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-            canvasWindow.stage.color = uiColorSet[uiColorIndex][2];
         }
 
         private function updateCanvasWindowBitmapSize():void
         {
+            if(canvasWindowCanvasPanel.width === canvasWindow.stage.stageWidth
+            && canvasWindowCanvasPanel.height === canvasWindow.stage.stageHeight)
+            {
+                return;
+            }
             const bounds:Rectangle = previewBox.setFitBitmapforBox(canvasWindowBitmap.bitmapData.width,canvasWindowBitmap.bitmapData.height
                                                                   ,canvasWindow.stage.stageWidth,canvasWindow.stage.stageHeight);
 
@@ -708,12 +713,18 @@
             clearTimeout(canvasWindowUpdateDelayTimer);
             canvasWindowUpdateDelayTimer = setTimeout(function():void
             {
-
-                canvasWindowInfo[0] = canvasWindow.x;
-                canvasWindowInfo[1] = canvasWindow.y;
-                canvasWindowInfo[2] = canvasWindow.width;
-                canvasWindowInfo[3] = canvasWindow.height;
-                updateCanvasWindowBitmapSize();
+                if(canvasWindow.width < 300 && canvasWindow.height < 300)
+                {
+                    canvasWindow.bounds = new Rectangle(canvasWindow.x,canvasWindow.y,300,300);
+                }
+                else
+                {
+                    canvasWindowInfo[0] = canvasWindow.x;
+                    canvasWindowInfo[1] = canvasWindow.y;
+                    canvasWindowInfo[2] = canvasWindow.width;
+                    canvasWindowInfo[3] = canvasWindow.height;
+                    updateCanvasWindowBitmapSize();
+                }
             },200);
         }
 
@@ -731,6 +742,17 @@
             else
             {
                 canvasWindowIgnoreResizeEventFlag = false;
+            }
+        }
+
+        private function canvasWindowCloseKeyDown(e:KeyboardEvent):void
+        {
+            if(e.keyCode === KEY.esc)
+            {
+                canvasWindow.visible = false;
+                canvasWindowON = false;
+                topBar.newWindowButton.alpha = 1.0;
+                stage.nativeWindow.activate();
             }
         }
 
@@ -760,16 +782,25 @@
 
         private function fitCanvasWindowSizeToCanvas():void
         {
+            if(canvasWindowCanvasPanel.width === canvasWindow.stage.stageWidth
+            && canvasWindowCanvasPanel.height === canvasWindow.stage.stageHeight)
+            {
+                return;
+            }
+
             canvasWindowIgnoreResizeEventFlag = true;
-            canvasWindowCanvasPanel.x = 0;
-            canvasWindowCanvasPanel.y = 0
+
             canvasWindow.bounds = new Rectangle(canvasWindow.bounds.x,canvasWindow.bounds.y
                                                 ,canvasWindowCanvasPanel.width,canvasWindowCanvasPanel.height);
-        }
-        
-        private function moveCanvasWindowMouseDown(e:MouseEvent):void
-        {
-            canvasWindow.startMove();
+            //한번 더해줘야 정확함
+            canvasWindowIgnoreResizeEventFlag = true;
+            canvasWindow.bounds = new Rectangle(canvasWindow.bounds.x,canvasWindow.bounds.y
+                                                ,canvasWindow.bounds.width+(canvasWindowCanvasPanel.width-canvasWindow.stage.stageWidth)
+                                                ,canvasWindow.bounds.height+(canvasWindowCanvasPanel.height-canvasWindow.stage.stageHeight));
+
+
+            canvasWindowCanvasPanel.x = 0;
+            canvasWindowCanvasPanel.y = 0;
         }
 
         private function fitCanvasWindowSizeToCanvasRightMouseUp(e:MouseEvent):void
@@ -795,7 +826,7 @@
             canvasWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
             canvasWindow.stage.align = StageAlign.TOP_LEFT;
             canvasWindow.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,fitCanvasWindowSizeToCanvasRightMouseUp)
-            canvasWindow.stage.addEventListener(MouseEvent.MOUSE_DOWN,moveCanvasWindowMouseDown)
+            canvasWindow.stage.addEventListener(KeyboardEvent.KEY_DOWN,canvasWindowCloseKeyDown);
             canvasWindow.addEventListener(Event.CLOSING,canvasWindowClosedEvent);
             canvasWindow.addEventListener(Event.RESIZE,canvasWindowResizedEvent);
             canvasWindow.addEventListener(NativeWindowBoundsEvent.MOVE,canvasWindowMovedEvent);
@@ -818,8 +849,8 @@
                 initCanvasWindow();
                 if(canvasWindowInfo[0] === null)
                 {
-                    canvasWindowInfo[0]= stage.nativeWindow.x+topBar.newWindowButton.x-canvasWindowInfo[2]/2;
-                    canvasWindowInfo[1]= stage.nativeWindow.y;
+                    canvasWindowInfo[0] = stage.nativeWindow.x+topBar.newWindowButton.x-canvasWindowInfo[2]/2;
+                    canvasWindowInfo[1] = stage.nativeWindow.y;
                 }
                 canvasWindow.bounds = new Rectangle(canvasWindowInfo[0],canvasWindowInfo[1],canvasWindowInfo[2],canvasWindowInfo[3]);
             }
@@ -9439,6 +9470,7 @@
             previewBox.changeprevBitmapBGColor(color);
 
             _setBackgroundColor(canvasPanel,CANVAS_WIDTH,CANVAS_HEIGHT,color);
+            if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
         }
 
         private function changeToolTipString(str:String):void
@@ -10652,7 +10684,15 @@
             updateResizeButtonPos();
             cancelAutoKeyEvent({});
 
-            if(canvasWindowON) updateCanvasWindowBitmapSize();
+            if(canvasWindowON)
+            {
+                const size:Number = (canvasWindow.bounds.width > canvasWindow.bounds.height) ?canvasWindow.bounds.width : canvasWindow.bounds.height;
+                updateCanvasWindowBitmapSize();
+                canvasWindowIgnoreResizeEventFlag = true;
+                canvasWindow.bounds = new Rectangle(canvasWindow.bounds.x,canvasWindow.bounds.y,size,size);
+                updateCanvasWindowBitmapSize();
+                fitCanvasWindowSizeToCanvas();
+            }
         }
 
         private function loadFile(traceLayer:Boolean=false):void
@@ -15891,6 +15931,12 @@
                    if(canvasWindowON === false)
                    {
                         openImageViewWindow();
+                   }
+                   else if(canvasWindowON === true)
+                   {
+                        canvasWindow.visible = false;
+                        canvasWindowON = false;
+                        topBar.newWindowButton.alpha = 1.0;
                    }
                 }
                 return true;
