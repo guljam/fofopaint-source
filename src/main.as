@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.37;
+        private const APP_VERSION:Number = 16.38;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -714,8 +714,11 @@
         private function canvasWindowActivatedEvent(e:Event):void
         {
             canvasWindowON = true;
-            topBar.newWindowButton.visible = false;
-            topBar.newWindowCloseButton.visible = true;
+            if(!replayModeON && !captureModeON)
+            {
+                topBar.newWindowButton.visible = false;
+                topBar.newWindowCloseButton.visible = true;
+            }
             if(canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null)
             {
                 canvasWindow.stage.addChild(canvasWindowCanvasPanel);
@@ -777,8 +780,11 @@
         {
             canvasWindow.visible = false;
             canvasWindowON = false;
-            topBar.newWindowButton.visible = true;
-            topBar.newWindowCloseButton.visible = false;
+            if(!replayModeON && !captureModeON)
+            {
+                topBar.newWindowButton.visible = true;
+                topBar.newWindowCloseButton.visible = false;
+            }
         }
 
         private function canvasWindowCloseKeyDown(e:KeyboardEvent):void
