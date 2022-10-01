@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.36;
+        private const APP_VERSION:Number = 16.37;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15617,7 +15617,7 @@
         {
             const floor:Function = Math.floor;
             const scale:Number = getUIScale();
-            var topBarOffset:Number;
+            var topBarOffset:Number = topBar.BARSIZE*scale;
             const center:Point = new Point(stage.stageWidth/2,stage.stageHeight/2);
 
             if(captureMode)
@@ -15637,6 +15637,8 @@
                                               : floor(STAGE_LEFT_OFFSET+(stage.stageWidth-STAGE_LEFT_OFFSET)/2)
                             ,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
+
+            trace('center',center);
 
             return center;
         }
