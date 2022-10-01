@@ -15,7 +15,7 @@
 		{
 			visible = false;
 
-			if(rightSide) x = stage.stageWidth-w;
+			if(rightSide) x = stage.stageWidth-w*scaleX;
 			else x = 0;
 		}
 

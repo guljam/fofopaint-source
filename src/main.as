@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.32;
+        private const APP_VERSION:Number = 16.33;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -277,6 +277,7 @@
                     ,previewBox:previewPanel = new previewPanel()
                     ,appInfoBox:appInfoBar = new appInfoBar()
                     ,sideBar:sidePanel = new sidePanel()
+                    ,fofo:fofoBottomBox = new fofoBottomBox()
                     ,sideBarScrollBar:Sprite = new Sprite()
                     ,sideBarScrollSet:Sprite = new Sprite()
                     ,transBGBMPD:BitmapData = new BitmapData(16,16,false,0xFFFFFF)
@@ -617,7 +618,6 @@
                     ,realWorkingTimer:int = 0
                     ,isDeepUndoON:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
-                    ,sideBarONMouseLeaveTimer:int = 0 //마우스 클릭후 바깥으로 나갔을때 사이드바 잠깐 안켜주는 플래그
                     ,isNewFOFOSaveForamat:Boolean = false
                     ,layerOptionON:Boolean = false //레이어 옵션 켜졌을때 올려줌
                     ;
@@ -663,9 +663,49 @@
             deleteOldAppData();
             setIMEDisabled();
             selectPenTool();
+
+            stage.addChild(fofo);
+            checkfofoZIndex();
         }
         
         //functions
+
+        //포포 이미지 체크를 위해서 위아래 순수 좌표를 구해줌
+        // private function getPureSidebarBounds():Rectangle
+        // {
+        //     const startP:Point = previewBox.localToGlobal(new Point(0,0));
+        //     const endP:Point = 
+        //     const x
+            
+        // }
+
+        private function checkfofoZIndex():void
+        {
+            if(isSidebarVisible)
+                stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
+            else
+                stage.setChildIndex(fofo,stage.getChildIndex(stageBG)+1);
+        }
+
+        private function checkfofoPos():void 
+        {
+            if(isRightSidebar)
+            {
+                fofo.flipImage(false);
+                fofo.x = stage.stageWidth-fofo.width;
+            }
+            else
+            {
+                fofo.flipImage(true);
+                fofo.x = 0;
+            }
+
+            fofo.setY(stage.stageHeight);
+
+            if(isSidebarVisible && sideBar.visible && sideBarScrollSet.hitTestObject(fofo)) fofo.visible = false;
+            else fofo.visible = true; 
+        }
+
         private function updateCanvasWindowCanvasPanelBGColor(color:uint,bmpd:BitmapData):void
         {
             canvasWindowCanvasPanel.graphics.clear();
@@ -1394,7 +1434,10 @@
 
             sideBar.scaleX = scale;
             sideBar.scaleY = scale;
-            if(isRightSidebar) sideBar.x = round(stage.stageWidth-sideBarWidth);
+            if(isRightSidebar) updateSidebarDefaultRightPos();
+            else sideBar.x = 0;
+
+            // sideBarPosSave = sideBar.x;
 
             topBar.scaleX = scale;
             topBar.scaleY = scale;
@@ -1420,6 +1463,7 @@
 
             sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
             sideBar.y = Math.round(STAGE_TOP_OFFSET);
+            checkfofoPos();
             updateScrollBarHeight(sth);
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
@@ -1460,10 +1504,11 @@
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownQuickSidebarOFF);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownQuickSidebarOFF);
 
-            sideBar.x = sideBarPosSave;
             if(isSidebarVisible === false) sideBar.visible = false;
+            sideBar.x = sideBarPosSave;
             toolBox.alpha = 1.0;
             quickSidebarON = false;
+            checkfofoPos();
         }
 
         private function rightMouseDownQuickSidebarOFF(e:MouseEvent):void
@@ -1511,11 +1556,13 @@
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownQuickSidebarOFF,false,-2);
             }
 
+            const sclaedSidebarWidth:Number = sideBar.w*sideBar.scaleX;
+
             sideBarPosSave = sideBar.x;
-            sideBar.x = mouseX-(sideBar.w*sideBar.scaleX)/2+35;
+            sideBar.x = mouseX-(sclaedSidebarWidth)/2+35;
 
             if(sideBar.x < 0) sideBar.x = 0;
-            else if(sideBar.x+sideBar.w > stage.stageWidth) sideBar.x = stage.stageWidth-sideBar.w;
+            else if(sideBar.x+sclaedSidebarWidth > stage.stageWidth) updateSidebarDefaultRightPos();
 
             if(sideBar.visible === true && isSidebarVisible === false)
             {
@@ -1523,6 +1570,8 @@
             }
             toolBox.alpha = BUTTON_OFF_ALPHA;
             sideBar.visible = true;
+
+            checkfofoPos();
         }
 
         private function deleteOldAppData():void
@@ -2095,7 +2144,7 @@
 
         private function mouseLeaveSideBarON():void
         {
-            if(replayModeON || captureModeON || sideBarONMouseLeaveTimer > 0)
+            if(replayModeON || captureModeON)
             {
                 return;
             }
@@ -2174,6 +2223,8 @@
                 tb.checkSideBarONOFFButton(flag,isRightSidebar);
             }
             updatePreviewBoxRectPos();
+            checkfofoPos();
+            checkfofoZIndex();
         }
 
         private function setCurrentColor(mode:uint):void
@@ -4838,6 +4889,7 @@
             pickerBox.setPickerMode(pickerMode);
             updateScrollBarColorHeight(scrollBarHeight);
             setResizeButtonColor(nowColorSet[3]);
+            fofo.changeColor(op);
 
             if(canvasWindowON)
             {
@@ -9194,7 +9246,7 @@
 
             nowBar.width = clickedX;
             checkBarLimit();
-            oldFrame = finalFrame;;
+            oldFrame = finalFrame;
 
             function checkBarLimit():void
             {
@@ -14968,12 +15020,17 @@
             cdg.endFill();
         }
 
+        private function updateSidebarDefaultRightPos():void
+        {
+            sideBar.x = Math.round(stage.stageWidth-sideBar.w*sideBar.scaleX);
+        }
+
         private function setSideBarRightPosition(ignoreCanvasMove:Boolean):void
         {
             const _sideBar:sidePanel = sideBar;
             const floor:Function = Math.floor;
 
-            _sideBar.x = stage.stageWidth-(_sideBar.w*_sideBar.scaleX);
+            updateSidebarDefaultRightPos();
 
             sideBarScrollSet.x = 5;
             sideBarScrollSet.y = scrollSetMovedY;
@@ -14984,7 +15041,7 @@
             controlBox.x = 39;
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 39;
-            pickerBox.y = floor(controlBox.y+controlBox.height+5);
+            pickerBox.y = floor(controlBox.y+controlBox.height+10);
             toolBox.x = 0;
             toolBox.y = floor(controlBox.y+2);
 
@@ -15003,6 +15060,8 @@
             topBar.sideBarPositionButton2.visible = true;
             topBar.sideBarOFFButton.visible = true;
             topBar.sideBarOFFButton2.visible = false;
+
+            checkfofoPos();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenuBox);
@@ -15024,7 +15083,7 @@
             controlBox.x = 0;
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 0;
-            pickerBox.y = floor(controlBox.y+controlBox.height+5);
+            pickerBox.y = floor(controlBox.y+controlBox.height+10);
             toolBox.x = controlBox.x+controlBox.width;
             toolBox.y = floor(controlBox.y+2);
 
@@ -15045,6 +15104,8 @@
             topBar.sideBarPositionButton2.visible = false;
             topBar.sideBarOFFButton.visible = false;
             topBar.sideBarOFFButton2.visible = true;
+            
+            checkfofoPos();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenuBox);
@@ -15085,6 +15146,7 @@
             sideBarScrollBar.name = "sideBarScrollBar";
             topBar.makeTopbarBG(COLOR_MID_DARK);
             changeTopBarIcons("draw");
+
 
             sideBarScrollSet.addChild(previewBox);
             sideBarScrollSet.addChild(appInfoBox);
@@ -15337,10 +15399,10 @@
                 topBar.updateTimerPos(stw);
                 topBar.updateHintBGWidth(stw);
 
-                sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
+                sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
                 updateScrollBarHeight(sth);
 
-                if(isRightSidebar) sideBar.x = stw-sideBar.w*sideBar.scaleX;
+                if(isRightSidebar) updateSidebarDefaultRightPos();
                 if(isDeepUndoON) toolBox.checkDeepUndoIconBottom();
                 else if(fillPenStarted) toolBox.checkFillPenIconBottom();
 
@@ -15348,7 +15410,9 @@
 
                 if(fileDragSelectBox.visible === true)
                     setDragDropSelectBoxCenterPos();
-    
+
+                checkfofoPos();
+
                 _lastWindowSize.x = windowW;
                 _lastWindowSize.y = windowH;
             },200);
