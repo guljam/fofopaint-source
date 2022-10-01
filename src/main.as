@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.35;
+        private const APP_VERSION:Number = 16.36;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -219,6 +219,7 @@
                     ,STRING_CAPTURE_OK:String = " (Click canvas to save image, Right-click to reset capture area)"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
+                    ,STRING_RIGHT_CLICK_TO_RESET:String = "\n(Right-click to reset)"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -2013,7 +2014,7 @@
             stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpLassoTool);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownLassoTool);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
+            lassoMenu.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
             addInputEventDrawMode();
         }
 
@@ -2022,7 +2023,7 @@
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpLassoTool);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownLassoTool);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
+            lassoMenu.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
             removeInputEventDrawMode();   
         }
 
@@ -3412,10 +3413,38 @@
 
             switch(keyCode)
             {
-                case KEY.up: setLasso1PxMoveButton(LASSO_1PX_MOVE_UP); break;
-                case KEY.down: setLasso1PxMoveButton(LASSO_1PX_MOVE_DOWN); break;
-                case KEY.left: setLasso1PxMoveButton(LASSO_1PX_MOVE_LEFT); break;
-                case KEY.right: setLasso1PxMoveButton(LASSO_1PX_MOVE_RIGHT); break;
+                case KEY.w:
+                case KEY.i:
+                case KEY.up:
+                {
+                    setLasso1PxMoveButton(LASSO_1PX_MOVE_UP);
+                }
+                break;
+
+                case KEY.s:
+                case KEY.k:
+                case KEY.down:
+                {
+                    setLasso1PxMoveButton(LASSO_1PX_MOVE_DOWN);
+                }
+                break;
+
+                case KEY.a:
+                case KEY.j:
+                case KEY.left:
+                {
+                    setLasso1PxMoveButton(LASSO_1PX_MOVE_LEFT);
+                }
+                break;
+
+                case KEY.d:
+                case KEY.l:
+                case KEY.right:
+                {
+                    setLasso1PxMoveButton(LASSO_1PX_MOVE_RIGHT);
+                }
+                break;
+
 
                 case KEY.space:
                 {
@@ -3680,9 +3709,9 @@
                 case "traceLoadButton":str = "Paste image from file"; break;
                 case "traceClipButton":str = "Paste image from clipboard"; break;
                 case "traceButtonWrapper":str = "Adjust opacity"; break;
-                case "traceRotateButton":str = "Rotate image"; break;
-                case "traceMoveButton":str = "Move image"; break;
-                case "traceResizeButton":str = "Resize image"; break;
+                case "traceRotateButton":str = "Rotate image"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "traceMoveButton":str = "Move image"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "traceResizeButton":str = "Resize image"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "traceCancelButton":str = "Close"; break;
                 case "traceMirrorButton":str = "Flip image"; break;
                 case "traceVisibleONButton":
@@ -3706,19 +3735,19 @@
                 case "lassoOK":str = "OK (enter, richt-click)"; break;
                 case "lassoCancel":str = "Cancel (esc, backspace)"; break;
                 case "lassoCopy":str = "Copy image"; break;
-                case "lassoMove":str = "Move image"; break;
-                case "lassoRotate":str = "Rotate image"; break;
+                case "lassoMove":str = "Move image"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "lassoRotate":str = "Rotate image"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "lassoCZoom":str = "Zoom canvas"; break;
                 case "lassoCRotate":str = "Rotate Canvas"; break;
                 case "lassoCHand":str = "Move canvas"; break;
                 case "lassoMirror":str = "Flip image"; break;
-                case "lassoResize":str = "Resize image"; break;
+                case "lassoResize":str = "Resize image"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "lassoTrace":str = STRING_MERGE_LASSO_IMAGE_TO_TRACE; break;
                 case "lasso1pxLeft":
                 case "lasso1pxRight":
                 case "lasso1pxUp":
                 case "lasso1pxDown":
-                    str = "Move image 1px (arrow key)"
+                    str = "Move image 1px\n(wasd, ijkl, arrow key)"
                 break;
 
                 default: lassoMenu.hint("Lasso tool");
@@ -3861,7 +3890,7 @@
                     _replayTimeBox["playButton"].visible = true;
                     _replayTimeBox["pauseButton"].visible = false;
                 }
-                tb.changeHintYPos(tb.BARSIZE+_replayTimeBox.BARSIZE);
+                tb.changeHintYPos(tb.BARSIZE+_replayTimeBox.BARSIZE-4);
             }
             else if(mode === "capture")
             {
@@ -4020,8 +4049,71 @@
         {
             traceMenuON = false;
             traceMenuBox.visible = false;
+            traceMenuBox.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpTraceWindow);
         }
 
+        private function rightMouseUpTraceWindow(e:MouseEvent):void
+        {
+            if(!traceMenuON) return;
+
+            const target:DisplayObject = e.target as DisplayObject;
+            const targetName:String = target.name;
+
+            switch(targetName)
+            {
+
+                case "traceRotateButton":
+                {
+                    if(canvasTraceLayer.rotation !== 0)
+                    {
+                        saveOneTime = false;
+
+                        canvasTraceLayer.rotation = 0;
+
+                        tracePosInfo[2] = 0;
+                    }
+                }
+                break;
+
+                case "traceResizeButton":
+                {
+                    if(canvasTraceLayer.scaleY !== 1.0)
+                    {
+                        saveOneTime = false;
+
+                        canvasTraceLayer.scaleX = (tracePosInfo[5])? -1.0 : 1.0;
+                        canvasTraceLayer.scaleY = 1.0;
+
+                        tracePosInfo[3] = canvasTraceLayer.scaleX;
+                        tracePosInfo[4] = canvasTraceLayer.scaleY;
+                    }
+                }
+                break;
+
+                case "traceMoveButton":
+                {
+                    if(canvasTraceBitmap.x !== -canvasTraceBitmap.width/2
+                    && canvasTraceBitmap.y !== -canvasTraceBitmap.height/2)
+                    {
+                        saveOneTime = false;
+
+                        canvasTraceLayer.x = CANVAS_WIDTH/2;
+                        canvasTraceLayer.y = CANVAS_HEIGHT/2;
+
+                        canvasTraceBitmap.x = -canvasTraceBitmap.bitmapData.width/2;
+                        canvasTraceBitmap.y = -canvasTraceBitmap.bitmapData.height/2;
+
+                        tracePosInfo[0] = canvasTraceBitmap.x;
+                        tracePosInfo[1] = canvasTraceBitmap.y;
+                    }
+                }
+                break;
+
+                default:
+                break;
+            }
+        }
+        
         private function openTraceWindow():void //load clip버튼에서 눌러줬을때 틀여줌
         {
             if(traceMenuON === true)
@@ -4029,14 +4121,14 @@
                 setTopChildIndex(traceMenuBox);
                 return;
             }
+            traceMenuON = true;
 
             const _traceMenuBox:traceButtons = traceMenuBox;
+            _traceMenuBox.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpTraceWindow);
             _traceMenuBox.hint("Reference layer");
             _traceMenuBox.x = mouseX-_traceMenuBox.width/2;
             _traceMenuBox.y = mouseY-8;
             _traceMenuBox.visible = true;
-
-            traceMenuON = true;
 
             setTopChildIndex(_traceMenuBox);
             checkBoxPosition(_traceMenuBox);
@@ -4467,7 +4559,6 @@
             const _canvasTraceBitmap:Bitmap = canvasTraceBitmap;
             const ww:Number = -_canvasTraceBitmap.width/2;
             const hh:Number = -_canvasTraceBitmap.height/2;
-            const xx:Number = (mirrorON) ? -1 : 1;
 
             _canvasTraceBitmap.x = ww;
             _canvasTraceBitmap.y = hh; //중점 셋팅
@@ -5721,7 +5812,6 @@
             const _lassoMenu:lassoButtons = lassoMenu;
             const floor:Function = Math.floor;
             const abs:Function = Math.abs;
-            const moveOffset:Number = 7;
             const _lassoBMP:Bitmap = lassoBMP;
             var lassoFirstX:Number = mouseX;
             var lassoFirstY:Number = mouseY;
@@ -5772,16 +5862,14 @@
                             lassoResizeMoveSum += subY;
                         }
                     }
-                    //10픽셀 이하움직임에서는 원래 크기 스냅걸리게함
-                    if(abs(lassoResizeMoveSum) <= moveOffset) sc = 1.0;
                 }
                 else if(moveFlag === 0)
                 {
-                    if(abs(mx-lassoFirstX) > moveOffset) moveFlag = 1;
-                    else if(abs(my-lassoFirstY) > moveOffset) moveFlag = 2;
+                    if(abs(mx-lassoFirstX) > 3) moveFlag = 1;
+                    else if(abs(my-lassoFirstY) > 3) moveFlag = 2;
                 }
 
-                _lassoBox.scaleX = (mirrorFlag === true) ? -sc : sc;
+                _lassoBox.scaleX = (mirrorFlag) ? -sc : sc;
                 _lassoBox.scaleY = sc;
                 lassoMovedX = mx;
                 lassoMovedY = my;
@@ -10830,7 +10918,7 @@
 
             if(flag === true)
             {
-                sideBar.visible = false;
+                if(isSidebarVisible) setSidebarVisible(false,true);
                 topBar.resetHintColor();
                 penSizeCursor.visible = false;
                 canvasTraceLayer.visible = false;
@@ -10857,8 +10945,7 @@
                 }
                 else
                 {
-                    if(isSidebarVisible === true)
-                        sideBar.visible = true;
+                    if(isSidebarVisible) setSidebarVisible(true,true);
 
                     if(traceMenuON === true)
                         traceMenuBox.visible = true;
@@ -11577,6 +11664,8 @@
 
             const fs:FileStream = new FileStream();
             const mergedImage:BitmapData = mergeCanvas(false,false,true,true);
+
+            topBar.hintOFF();
 
             if(continueFlag)
             {
@@ -15527,20 +15616,23 @@
         private function getStageCenterPos(captureMode:Boolean,replayMode:Boolean):Point
         {
             const floor:Function = Math.floor;
-            const topBarOffset:Number = topBar.BARSIZE;
-            const center:Point = new Point(0,0);
+            const scale:Number = getUIScale();
+            var topBarOffset:Number;
+            const center:Point = new Point(stage.stageWidth/2,stage.stageHeight/2);
 
             if(captureMode)
             {
+                topBarOffset = topBarOffset+16*scale;
                 center.setTo(stage.stageWidth/2,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else if(replayMode)
             {
-                const repTopOffset:Number = topBarOffset+replayTimeBox.BARSIZE;
-                center.setTo(stage.stageWidth/2,floor(repTopOffset+(stage.stageHeight-repTopOffset)/2));
+                topBarOffset = topBarOffset+replayTimeBox.BARSIZE*scale-8;
+                center.setTo(stage.stageWidth/2,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else
             {
+                topBarOffset = topBar.BARSIZE*scale;
                 center.setTo((isRightSidebar) ? floor((stage.stageWidth-STAGE_RIGHT_OFFSET)/2)
                                               : floor(STAGE_LEFT_OFFSET+(stage.stageWidth-STAGE_LEFT_OFFSET)/2)
                             ,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
@@ -16785,7 +16877,7 @@
             addInputEventDrawMode();
             clearDataButtonCount = 0;
             
-            if(isSidebarVisible === true) sideBar.visible = true;
+            if(isSidebarVisible === true) setSidebarVisible(true,true);
             if(replayStartON === true) stopReplay();
 
             resetOldTool();
@@ -16810,12 +16902,11 @@
             regPoint.visible = false;
             penSizeCursor.visible = false;
             replayTimeBox.visible = true;
-            rCursor.visible = true;
             replayTimeBox["pauseButton"].visible = false;
+            replayTimeBox.y = Math.floor(topBar.BARSIZE*getUIScale()-4);
             setTopChildIndex(replayTimeBox);
             resetCutFrameClickCounter();
             topBar.hintOFF();
-            replayTimeBox.y = Math.floor(topBar.BARSIZE*getUIScale());
             removeInputEventDrawMode();
             rCursor.visible = false;
             setTopChildIndex(rCursor);
@@ -16855,7 +16946,7 @@
             {
                 removeInputEventReplayMode();
                 replayTimeBox["frameInfo"].text = STRING_PREPARE_REPLAY_DATA;
-                sideBar.visible = false;
+                setSidebarVisible(false,true);
                 changeTopBarIcons("replay");
                 setMakeJumpImage();
             }
@@ -16886,7 +16977,7 @@
                 }
                 
                 checkCanvasPanelPos(true);
-                sideBar.visible = false;
+                setSidebarVisible(false,true);
                 changeTopBarIcons("replay");
                 addInputEventReplayMode();
             }
@@ -17117,7 +17208,8 @@
 
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
-            if(mouseClickON || !isNowKey(0) || isPressingControl() || quickSidebarON) return;
+            if(mouseClickON || !isNowKey(0) || isPressingControl() || quickSidebarON
+            || traceMenuBox.hitTestPoint(mouseX,mouseY)) return;
 
             const targetName:String = e.target.name;
 
@@ -17331,7 +17423,32 @@
 
         private function rightMouseUpLassoTool(e:MouseEvent):void
         {
-            if(lassoToolON) setLassoOKButton();
+            if(!lassoToolON) return;
+
+            const target:DisplayObject = e.target as DisplayObject;
+            const targetName:String = target.name;
+
+            switch(targetName)
+            {
+                case "lassoRotate":
+                {
+                    if(lassoBox.rotation !== 0) lassoBox.rotation = 0;
+                }
+                break;
+
+                case "lassoResize":
+                {
+                    if(lassoBox.scaleY !== 1.0)
+                    {
+                        lassoBox.scaleX = (lassoMirrorON) ? -1.0 : 1.0;
+                        lassoBox.scaleY = 1.0;
+                    }
+                }
+                break;
+
+                default:
+                break;
+            }
         }
 
         private function mouseDownLassoTool(e:MouseEvent):void

@@ -110,31 +110,29 @@
 
 		public function hint(str:String):void
 		{
-			if(str.indexOf("\n") !== -1 && traceInfoBackup.length === 0)
+			if(str.indexOf("\n") !== -1)
 			{
-				traceInfoBackup[0] = traceInfo.y;
-				traceInfoBackup[1] = traceInfo.height;
-				traceInfoBackup[2] = traceMenuMoveButton.y;
-				traceInfoBackup[3] = traceMenuMoveButton.height;
-
-				traceInfo.y -= 18;
-				traceInfo.height += 18;
-				traceMenuMoveButton.y -= 18;
-				traceMenuMoveButton.height += 18;
-				traceInfo.text = str;
-			}
-			else
-			{
-				if(traceInfoBackup.length !== 0)
+				if(traceInfoBackup.length === 0)
 				{
-					traceInfo.y = traceInfoBackup[0];
-					traceInfo.height = traceInfoBackup[1];
-					traceMenuMoveButton.y = traceInfoBackup[2];
-					traceMenuMoveButton.height = 27;
-					traceInfoBackup = [];
+					traceInfoBackup[0] = traceInfo.y;
+					traceInfoBackup[1] = traceInfo.height;
+					traceInfoBackup[2] = traceMenuMoveButton.y;
+					traceInfoBackup[3] = traceMenuMoveButton.height;
+					traceInfo.y -= 18;
+					traceInfo.height += 18;
+					traceMenuMoveButton.y -= 18;
+					traceMenuMoveButton.height += 18;
 				}
-				traceInfo.text = str;
 			}
+			else if(traceInfoBackup.length !== 0)
+			{
+				traceInfo.y = traceInfoBackup[0];
+				traceInfo.height = traceInfoBackup[1];
+				traceMenuMoveButton.y = traceInfoBackup[2];
+				traceMenuMoveButton.height = 27;
+				traceInfoBackup = [];
+			}
+			traceInfo.text = str;
 		}
 
 		public function traceButtons()

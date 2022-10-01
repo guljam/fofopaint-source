@@ -124,7 +124,7 @@
 			g = replayBGBar.graphics;
 			g.lineStyle(0,0,0);
 			g.beginFill(0xFFFFFF);
-			g.drawRect(0,0,35,35);
+			g.drawRect(0,0,31,31);
 			g.endFill();
 			replayBGBar.name = "replayBGBar";
 
@@ -177,7 +177,7 @@
 			replayPrev.useHandCursor = false;
 			replayNext.useHandCursor = false;
 
-			playButton.x = 3;
+			playButton.x = 4;
 			playButton.y = replayTotalBar.y-5;
 			pauseButton.x = playButton.x;
 			pauseButton.y = playButton.y;
