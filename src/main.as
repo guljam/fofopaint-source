@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.34;
+        private const APP_VERSION:Number = 16.35;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -387,6 +387,7 @@
         //툴팁 관련 변수
                     ,toolTipHint:String = "" //topbar관련 힌트 여기 저장
                     ,toolTipBoxTimer:uint = 0
+                    ,toolTipBoxOpenTime:int = 0 //타입 툴팁 쓸때 너무 빨리 클릭하면 사라져서 이 시간안에 클릭하면 1초후레 사라지도록함
 
         //리플레이 관련 변수
         private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata"+(APP_DATA_VERSION*100))
@@ -666,35 +667,34 @@
             selectPenTool();
 
             stage.addChild(fofo);
-            checkfofoZIndex();
+            stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
         }
         
         //functions
-        private function checkfofoZIndex():void
-        {
-            if(isSidebarVisible)
-                stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
-            else
-                stage.setChildIndex(fofo,stage.getChildIndex(stageBG)+1);
-        }
-
         private function checkfofoPos():void 
         {
             if(isRightSidebar)
             {
                 fofo.flipImage(false);
-                fofo.x = stage.stageWidth-fofo.width;
+                fofo.x = sideBar.x+sideBar.w-fofo.width;
             }
             else
             {
                 fofo.flipImage(true);
-                fofo.x = 0;
+                fofo.x = sideBar.x;
             }
 
             fofo.setY(stage.stageHeight);
 
-            if(isSidebarVisible && sideBar.visible && sideBarScrollSet.hitTestObject(fofo)) fofo.visible = false;
-            else fofo.visible = true; 
+            if(sideBar.visible)
+            {
+                if(sideBarScrollSet.hitTestObject(fofo)) fofo.visible = false;
+                else fofo.visible = true; 
+            }
+            else
+            {
+                fofo.visible = false; 
+            }
         }
 
         private function updateCanvasWindowCanvasPanelBGColor(color:uint,bmpd:BitmapData):void
@@ -1254,7 +1254,6 @@
                 rDataBuffer.push(["merge"]);
                 addUndoData();
             }
-            topBar.hintTime("Layers has been merged to layer 2",topBar.layerMergeButton);
             topBar.layerMergeButton.alpha = BUTTON_OFF_ALPHA;
         }
 
@@ -1452,10 +1451,10 @@
             if(STAGE_RIGHT_OFFSET > 0) STAGE_RIGHT_OFFSET = sideBarWidth;
             if(STAGE_LEFT_OFFSET > 0) STAGE_LEFT_OFFSET = sideBarWidth;
 
-            sideBar.updateSideBGSize(sth-STAGE_TOP_OFFSET);
-            sideBar.y = Math.round(STAGE_TOP_OFFSET);
             checkfofoPos();
             updateScrollBarHeight(sth);
+            sideBar.y = Math.round(STAGE_TOP_OFFSET);
+            sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenuBox);
@@ -2178,12 +2177,6 @@
 
             if(flag)
             {
-                if(tempFlag === false)
-                {
-                    tb.sideBarPositionButton.alpha = 1.0;
-                    tb.sideBarPositionButton2.alpha = 1.0;
-                }
-
                 if(isRightSidebar)
                 {
                     STAGE_RIGHT_OFFSET = sideBar.w*getUIScale();
@@ -2196,17 +2189,16 @@
                 }
 
                 sideBar.visible = true;
+                checkfofoPos();
             }
             else
             {
-                // sideBar.visible = false;
                 sideBar.setTempVisibleOFF(isRightSidebar);
 
                 if(isRightSidebar) STAGE_RIGHT_OFFSET = 0;
                 else STAGE_LEFT_OFFSET = 0;
 
-                tb.sideBarPositionButton.alpha = BUTTON_OFF_ALPHA;
-                tb.sideBarPositionButton2.alpha = BUTTON_OFF_ALPHA;
+                fofo.visible = false;
             }
 
             if(tempFlag === false)
@@ -2214,8 +2206,6 @@
                 tb.checkSideBarONOFFButton(flag,isRightSidebar);
             }
             updatePreviewBoxRectPos();
-            checkfofoPos();
-            checkfofoZIndex();
         }
 
         private function setCurrentColor(mode:uint):void
@@ -3466,11 +3456,6 @@
 
         private function setSideBarPositionButton():void
         {   
-            if(isSidebarVisible === false)
-            {
-                return;
-            }
-            
             const _sideBar:sidePanel = sideBar;
 
             if(isRightSidebar === false)
@@ -3745,11 +3730,8 @@
 
         private function toolBoxHintOFFEvent(e:MouseEvent):void
         {
-            if(toolBox.toolInfo.visible)// && mouseX >= sideBar.w-5)
-                toolBox.hintOFF();
-
-            if(zoomToolHintON) zoomToolHintON = false;
-            else toolTipBox.visible = false;
+            if(toolBox.toolInfo.visible) toolBox.hintOFF();
+            if(zoomToolHintON)zoomToolHintON = false;
         }
 
         private function getToolBox2Hint(targetName:String):String
@@ -4880,6 +4862,7 @@
             pickerBox.setPickerMode(pickerMode);
             updateScrollBarColorHeight(scrollBarHeight);
             setResizeButtonColor(nowColorSet[3]);
+
             fofo.changeColor(op);
 
             if(canvasWindowON)
@@ -7360,7 +7343,7 @@
                     break;
 
                     case "layerMergeButton":
-                        str = "Merge layer (shift+e, shift+o)";
+                        str = "Merge image to layer 2 (shift+e, shift+o)";
                     break;
 
                     case "aboutButton":
@@ -9524,10 +9507,10 @@
         private function changeToolTipString(str:String):void
         {
             const _toolTipBox:toolTipBoxSet = toolTipBox;
-            const textfe:TextField = _toolTipBox["toolTipInfoText"];
-            textfe.text = str;
-            textfe.width = textfe.textWidth+20;
-            _toolTipBox["toolTipBoxBG"].width = textfe.textWidth+6;
+            const info:TextField = _toolTipBox["toolTipInfoText"];
+            info.text = str;
+            info.width = info.textWidth+20;
+            _toolTipBox["toolTipBoxBG"].width = info.textWidth+6;
         }
 
         private function setToolTipStringTime(str:String,time:Number=2000):void
@@ -9574,42 +9557,35 @@
             if(str !== "")
             {
                 toolTipText.text = str;
-                toolTipText.width = _toolTipBox["toolTipInfoText"].textWidth+60;
-                toolTipText.height = toolTipText.textHeight+20;
+                _toolTipBox["toolTipBoxBG"].width = floor(toolTipText.textWidth+8);
+                _toolTipBox["toolTipBoxBG"].height = floor(toolTipText.textHeight+((str.lastIndexOf("\n") === -1)?2:5));
             }
 
             const mx:Number = (x > 0) ? x : mouseX;
             const my:Number = (y > 0) ? y : mouseY;
-            const tbHeight:Number = _toolTipBox.height+3;
-            const cw:int = toolTipText.textWidth+6;
-            const right:int = mx+cw/2;
-            const offsetX:int = -cw/2;
-            const offsetY:int = -34;
-            const bottom:int = my-offsetY+tbHeight;
-            const stw:uint = stage.stageWidth;
-            const sth:uint = stage.stageHeight+3;
-            const ylim:Number = sth-tbHeight;
+            const width:int =_toolTipBox["toolTipBoxBG"].width;
+            const height:Number =  _toolTipBox["toolTipBoxBG"].height;
+            const stw:uint = stage.stageWidth+1;
+            const sth:uint = stage.stageHeight+1;
+            const rightLimit:Number = stw-STAGE_RIGHT_OFFSET;
+            const bottomLimit:Number = sth-STAGE_BOTTOM_OFFSET;            
+            var tooltipX:Number = floor(mx-width/2)+5;
+            var tooltipY:Number = floor(my+34);
+            const right:int = tooltipX+width;
+            const bottom:int = tooltipY+height;
 
-            if(mx+offsetX < 0) _toolTipBox.x = 0;
-            else if(right > stw) _toolTipBox.x = floor(stw-cw);
-            else _toolTipBox.x = floor(mx-cw/2);
+            if(tooltipX < STAGE_LEFT_OFFSET) tooltipX = STAGE_LEFT_OFFSET;
+            else if(right > rightLimit) tooltipX = rightLimit-width;
 
-            if(my-offsetY < 0) _toolTipBox.y = 0;
-            else if(bottom >= sth) _toolTipBox.y = floor(ylim);
-            else _toolTipBox.y = floor(my-offsetY);
+            if(tooltipY < STAGE_TOP_OFFSET) tooltipY = STAGE_TOP_OFFSET;
+            else if(bottom >= bottomLimit) tooltipY = bottomLimit-height;
 
-            if(my >= _toolTipBox.y-1) //맨 아래에서 커서가 힌트를 넘어갈때 다시 위로 올려줌
+            if(my >= tooltipY-1) //맨 아래에서 커서가 힌트를 넘어갈때 다시 위로 올려줌
             {
-                var ycheck:Number = my+offsetY-25;
-                _toolTipBox.y = (ycheck < ylim) ? floor(ycheck) : floor(ylim);
+                tooltipY = (my-59 < sth-height) ? floor(my-59) : floor(sth-height);
             }
-
-            if(str !== "")
-            {
-                _toolTipBox["toolTipBoxBG"].width = floor(cw+2);
-                _toolTipBox["toolTipBoxBG"].height = floor(toolTipText.textHeight+((str.lastIndexOf("\n") === -1)?2:5));
-            }
-
+            _toolTipBox.x = tooltipX;
+            _toolTipBox.y = tooltipY;
             setTopChildIndex(_toolTipBox);
         }
 
@@ -15041,18 +15017,26 @@
             sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width;
             sideBarScrollBar.y = scrollBarMovedY;
 
-            _sideBar.y = topBar.BARSIZE;
+            _sideBar.y = topBar.BARSIZE*topBar.scaleX;
 
             STAGE_RIGHT_OFFSET = _sideBar.w*getUIScale();
             STAGE_LEFT_OFFSET = 0;
 
-            if(ignoreCanvasMove === false)
-                regPoint.x -= STAGE_RIGHT_OFFSET;
+            if(sideBar.visible)
+            {
+                if(ignoreCanvasMove === false) regPoint.x -= STAGE_RIGHT_OFFSET;
+                topBar.sideBarOFFButton.visible = true;
+                topBar.sideBarOFFButton2.visible = false;
+
+            }
+            else
+            {
+                topBar.sideBarONButton.visible = true;
+                topBar.sideBarONButton2.visible = false;
+            }
 
             topBar.sideBarPositionButton.visible = false;
             topBar.sideBarPositionButton2.visible = true;
-            topBar.sideBarOFFButton.visible = true;
-            topBar.sideBarOFFButton2.visible = false;
 
             checkfofoPos();
 
@@ -15086,17 +15070,23 @@
             sideBarScrollBar.x = _sideBar.w;
             sideBarScrollBar.y = scrollBarMovedY;
 
-            _sideBar.y = topBar.BARSIZE;
+            _sideBar.y = topBar.BARSIZE*topBar.scaleX;
 
             STAGE_LEFT_OFFSET = _sideBar.w*getUIScale();
             STAGE_RIGHT_OFFSET = 0;
-
-            regPoint.x += STAGE_LEFT_OFFSET;
-
+            if(sideBar.visible)
+            {
+                regPoint.x += STAGE_LEFT_OFFSET;
+                topBar.sideBarOFFButton.visible = false;
+                topBar.sideBarOFFButton2.visible = true;
+            }
+            else
+            {
+                topBar.sideBarONButton.visible = false;
+                topBar.sideBarONButton2.visible = true;
+            }
             topBar.sideBarPositionButton.visible = true;
             topBar.sideBarPositionButton2.visible = false;
-            topBar.sideBarOFFButton.visible = false;
-            topBar.sideBarOFFButton2.visible = true;
             
             checkfofoPos();
 
@@ -15895,6 +15885,7 @@
                                 if(topBar.layerMergeButton.alpha === 1.0)
                                 {
                                     setLayerMergeButton();
+                                    setToolTipStringTime("Layers has been merged to layer 2");
                                 }
                             return;
 
@@ -16512,9 +16503,9 @@
                     my1 = 0;
                     my2 = 0;
                 }
-                else if(my1 > (sideBar.h-sideBarScrollBar.height*scale)/scale)
+                else if(my1 > Math.ceil(sideBar.h-sideBarScrollBar.height))
                 {
-                    my1 = (sideBar.h-sideBarScrollBar.height*scale)/scale;
+                    my1 = Math.ceil(sideBar.h-sideBarScrollBar.height);
                     my2 = -diffHeight/scale;
                 }
 

@@ -21,9 +21,9 @@
 			}
 		}
 
-		public function setY(stageHeight:Number):void
+		public function setY(sideBarHeight:Number):void
 		{
-			y = stageHeight-height+2;
+			y = sideBarHeight-height+2;
 		}
 
 		public function changeColor(color:uint):void
@@ -37,6 +37,9 @@
 			fofoBottom.useHandCursor = false;
 			alpha = 0.5;
 			visible = false;
+
+			scaleX = 0.65;
+			scaleY = 0.65;
 		}
 	}
 	

@@ -221,8 +221,8 @@
 
 		public function hintOFF():void
 		{
+			toolInfo.text = "";
 			toolInfo.visible = false;
-			toolInfoBG.visible = false;
 			toolInfo.x = 0;
 			toolInfo.y = 0;
 			toolInfo.width = 0;
