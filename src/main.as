@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.33;
+        private const APP_VERSION:Number = 16.34;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -214,6 +214,7 @@
                     ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
                     ,STRING_PLAYBACK_SPEED:String = "Play speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
+                    ,STRING_ONEMORE_PRESS_TO_OK:String = "One more Press key to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
                     ,STRING_CAPTURE_OK:String = " (Click canvas to save image, Right-click to reset capture area)"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
@@ -669,16 +670,6 @@
         }
         
         //functions
-
-        //포포 이미지 체크를 위해서 위아래 순수 좌표를 구해줌
-        // private function getPureSidebarBounds():Rectangle
-        // {
-        //     const startP:Point = previewBox.localToGlobal(new Point(0,0));
-        //     const endP:Point = 
-        //     const x
-            
-        // }
-
         private function checkfofoZIndex():void
         {
             if(isSidebarVisible)
@@ -6866,6 +6857,7 @@
             cutFrameClickedButton = CUT_FRAME_NONE;
             topBar.hintOFF();
             replayTimeBox["replayDeleteBar"].visible = false;
+            replayTimeBox["replayNowBar"].visible = true;
         }
 
         private function resetCutFrameClickCounterMouseDownEvent(e:MouseEvent):void
@@ -7019,7 +7011,7 @@
 
         private function getCutFrameOKString():String
         {
-            return STRING_ONEMORE_CLICK_TO_OK+" (Red data will be deleted)";
+            return STRING_ONEMORE_PRESS_TO_OK+" (Red data will be deleted)";
         }
 
         private function setCutFrameRedBar(flag:int):void
@@ -7046,6 +7038,7 @@
                 deleteBar.width = replayNowBar.width;
             }
 
+            replayNowBar.visible = false;
             deleteBar.visible = true;
         }
         
@@ -7059,7 +7052,7 @@
         private function getCutFrameHint(flag:int):String
         {
             return (flag === CUT_FRAME_SUPER_UNDO) ?  "Delete back data : "
-                  :(flag === CUT_FRAME_RE_RECORD) ? "Re-recording : "
+                  :(flag === CUT_FRAME_RE_RECORD) ? "New file from this image : "
                   :(flag === CUT_FRAME_DELETE_FRONT) ? "Delete front data : "
                   : "";
         }
@@ -7294,7 +7287,7 @@
                         && cutFrameClickedButton === CUT_FRAME_RE_RECORD)
                             str = getCutFrameOKString();
                         else
-                            str = "Re-recording from this image (f1, f6)";
+                            str = "New file from this image (f1, f6)";
                     }
 
                     break;
