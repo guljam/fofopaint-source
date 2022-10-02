@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.40;
+        private const APP_VERSION:Number = 16.41;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -17213,7 +17213,7 @@
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
             if(mouseClickON || !isNowKey(0) || isPressingControl() || quickSidebarON
-            || traceMenuBox.hitTestPoint(mouseX,mouseY)) return;
+            || (traceMenuON && traceMenuBox.hitTestPoint(mouseX,mouseY))) return;
 
             const targetName:String = e.target.name;
 
