@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.38;
+        private const APP_VERSION:Number = 16.40;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -711,23 +711,6 @@
             canvasWindow.visible = flag;
         }
 
-        private function canvasWindowActivatedEvent(e:Event):void
-        {
-            canvasWindowON = true;
-            if(!replayModeON && !captureModeON)
-            {
-                topBar.newWindowButton.visible = false;
-                topBar.newWindowCloseButton.visible = true;
-            }
-            if(canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null)
-            {
-                canvasWindow.stage.addChild(canvasWindowCanvasPanel);
-                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-                canvasWindow.stage.color = uiColorSet[uiColorIndex][2];
-            }
-            updateCanvasWindowImage();
-        }
-
         private function updateCanvasWindowBitmapSize():void
         {
             if(canvasWindowCanvasPanel.width === canvasWindow.stage.stageWidth
@@ -776,31 +759,6 @@
             else canvasWindowIgnoreResizeEventFlag = false;
         }
 
-        private function closeCanvasWindowTemp():void
-        {
-            canvasWindow.visible = false;
-            canvasWindowON = false;
-            if(!replayModeON && !captureModeON)
-            {
-                topBar.newWindowButton.visible = true;
-                topBar.newWindowCloseButton.visible = false;
-            }
-        }
-
-        private function canvasWindowCloseKeyDown(e:KeyboardEvent):void
-        {
-            if(e.keyCode === KEY.esc) closeCanvasWindowTemp();
-        }
-
-        private function canvasWindowClosedEvent(e:Event):void
-        {
-            if(windowClosingFlag == false)
-            {
-                e.preventDefault();
-                closeCanvasWindowTemp();
-            }
-        }
-
         private function updateCanvasWindowImage():void
         {
             canvasWindowBitmap.bitmapData = previewBox.prevBitmap.bitmapData;
@@ -847,6 +805,31 @@
             fitCanvasWindowSizeToCanvas();
         }
 
+        private function closeCanvasWindowTemp():void
+        {
+            canvasWindow.visible = false;
+            canvasWindowON = false;
+            if(!replayModeON && !captureModeON)
+            {
+                topBar.newWindowButton.visible = true;
+                topBar.newWindowCloseButton.visible = false;
+            }
+        }
+
+        private function canvasWindowCloseKeyDown(e:KeyboardEvent):void
+        {
+            if(e.keyCode === KEY.esc) closeCanvasWindowTemp();
+        }
+
+        private function canvasWindowClosedEvent(e:Event):void
+        {
+            if(windowClosingFlag == false)
+            {
+                e.preventDefault();
+                closeCanvasWindowTemp();
+            }
+        }
+        
         private function initCanvasWindow():void
         {
             var windowOptions:NativeWindowInitOptions = new NativeWindowInitOptions();
@@ -874,6 +857,23 @@
 
             canvasWindowCanvasPanel.addChild(canvasWindowBitmapSub);
             canvasWindowCanvasPanel.addChild(canvasWindowBitmap);
+        }
+
+        private function canvasWindowActivatedEvent(e:Event):void
+        {
+            canvasWindowON = true;
+            if(!replayModeON && !captureModeON)
+            {
+                topBar.newWindowButton.visible = false;
+                topBar.newWindowCloseButton.visible = true;
+            }
+            if(canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null)
+            {
+                canvasWindow.stage.addChild(canvasWindowCanvasPanel);
+                canvasWindow.stage.color = uiColorSet[uiColorIndex][2];
+            }
+            updateCanvasWindowImage();
+            updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
         }
 
         private function openImageViewWindow():void
@@ -15623,8 +15623,8 @@
         {
             const floor:Function = Math.floor;
             const scale:Number = getUIScale();
-            var topBarOffset:Number = topBar.BARSIZE*scale;
             const center:Point = new Point(stage.stageWidth/2,stage.stageHeight/2);
+            var topBarOffset:Number = topBar.BARSIZE*scale;
 
             if(captureMode)
             {
@@ -15638,14 +15638,10 @@
             }
             else
             {
-                topBarOffset = topBar.BARSIZE*scale;
                 center.setTo((isRightSidebar) ? floor((stage.stageWidth-STAGE_RIGHT_OFFSET)/2)
                                               : floor(STAGE_LEFT_OFFSET+(stage.stageWidth-STAGE_LEFT_OFFSET)/2)
                             ,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
-
-            trace('center',center);
-
             return center;
         }
         
