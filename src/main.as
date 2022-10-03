@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.41;
+        private const APP_VERSION:Number = 16.42;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -950,7 +950,7 @@
                 resetLassoBox();
             }
 
-            if(CANVAS_TRACE_ALPHA === 0.0)
+            if(canvasTraceLayer === false || CANVAS_TRACE_ALPHA === 0.0)
             {
                 updateTraceOpaButtonPosByAlpha(0.5);
                 CANVAS_TRACE_ALPHA = 0.5;
