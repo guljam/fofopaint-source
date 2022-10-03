@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.48;
+        private const APP_VERSION:Number = 16.50;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7811,10 +7811,11 @@
         {
             var tempBitData:BitmapData;
             var movedMat:Matrix = new Matrix();
+            const allLayer:Boolean = !layer1 && !layer2;
 
             movedMat.translate(x,y);
 
-            if(layer1)
+            if(layer1 || allLayer)
             {
                 tempBitData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
                 tempBitData.draw(rcanvas1BitmapData,movedMat);
@@ -7824,7 +7825,7 @@
                 tempBitData = null;
             }
 
-            if(layer2)
+            if(layer2 || allLayer)
             {
                 tempBitData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
                 tempBitData.draw(rcanvas11BitmapData,movedMat);
@@ -8361,14 +8362,16 @@
 
             function clear(layer1:Boolean,layer2:Boolean):void
             {
-                if(layer1)
+                const allLayer:Boolean = !layer1 && !layer2;
+
+                if(layer1 || allLayer)
                 {
                     rcanvas1BitmapData.dispose();
                     rcanvas1BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
                     rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
                 }
 
-                if(layer2)
+                if(layer2 || allLayer)
                 {
                     rcanvas11BitmapData.dispose();
                     rcanvas11BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
