@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.50;
+        private const APP_VERSION:Number = 16.51;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -10818,7 +10818,10 @@
         private function loadFile(traceLayer:Boolean=false):void
         {
             if(replayStartON) stopReplay();
-            if(lassoToolON || browseWindowON || fillPenStarted || isInSaveProgress) return;
+            if(lassoToolON || browseWindowON || fillPenStarted || isInSaveProgress)
+            {
+                return;
+            }
 
             var windowTitle:String = "Open file";
             var imgExt:Array = [new FileFilter("All supported formats","*.2020;*.png;*.jpg;*.gif")];
@@ -10916,6 +10919,7 @@
             drawCaptureArea.reset();
             canvasGrid.visible = iFlag;
             setResizeButtonVisible(false);
+            resetNowKey();
 
             if(replayMode)
             {
@@ -16778,6 +16782,7 @@
             penSizeCursor.visible = true;
             replayTimeBox.visible = false;
             rCursor.visible = false;
+            resetNowKey();
 
             if(isSidebarVisible === false) sideBar.setTempVisibleOFF(isRightSidebar);
             replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
@@ -16809,6 +16814,7 @@
             penSizeCursor.visible = false;
             replayTimeBox.visible = true;
             rCursor.visible = true;
+            resetNowKey();
 
             setTopChildIndex(replayTimeBox);
             replayTimeBox.setTimeBarOnly(true);
@@ -16906,6 +16912,7 @@
 
             removeInputEventReplayMode();
             addInputEventDrawMode();
+            resetNowKey();
             clearDataButtonCount = 0;
             
             if(isSidebarVisible === true) setSidebarVisible(true,true);
@@ -16944,6 +16951,7 @@
             TOTAL_FRAME = getTotalFrame();
             checkReplaySpeedState();
             if(layerOptionON) checkLayerOptionOFF();
+            resetNowKey();
             //frame sum이 재계산된 maxframe을 넘어가면 리플레이 프레임이 넘어가기 때문에 끝난거임
             //그래서 캔버스 복사해주고 리플레이를 리셋해줌
             if(makeJumpImageFlag === 0)
@@ -17115,7 +17123,10 @@
                 return;
             }
 
-            if(target.alpha < 1.0) return;
+            if(target.alpha < 1.0)
+            {
+                return;
+            }
 
             switch(targetName)
             {
@@ -17178,7 +17189,10 @@
                 case "replayNext":
                 case "timer":
                 {
-                    if(!isNowKey(0)) return;
+                    if(!isNowKey(0))
+                    {
+                        return;
+                    }
                     checkButtonUp(targetName);
                 }
                 break;
