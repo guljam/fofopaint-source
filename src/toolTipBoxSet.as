@@ -21,8 +21,8 @@
 		public function toolTipBoxSet() {
 			// constructor code
 			visible = false;
-			toolTipBoxBG.y = -1;
 			toolTipBoxBG.x = -1;
+			toolTipBoxBG.y = -1;
 			toolTipBoxBG.useHandCursor = false;
 			toolTipInfoText.width = 350;
 			toolTipInfoText.height = 60;

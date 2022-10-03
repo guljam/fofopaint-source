@@ -60,10 +60,11 @@
     import flash.filters.BlurFilter;
     import flash.system.System;
     import flash.filters.ConvolutionFilter;//import end
+    import flash.text.TextRenderer;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.42;
+        private const APP_VERSION:Number = 16.43;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -159,8 +160,8 @@
                     ,JUMP_FRAME_BEFORE:int = (1 << 2)
                     ,JUMP_FRAME_AFTER:int = (1 << 3)
 
-                    ,CANVAS_MIN_SIZE:int = 100
-                    ,CANVAS_MAX_SIZE:int = 2000
+                    ,CANVAS_MIN_SIZE:Number = 100
+                    ,CANVAS_MAX_SIZE:Number = 2000
 
                     ,COLOR_DARK:uint = 0x323232//어두운색
                     ,COLOR_MID_DARK:uint = 0x535353//0x5B5B5B//중간 어두운색
@@ -543,6 +544,7 @@
                     ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
                     ,sideBarSetHeight:Number = 730
+
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
                     ,uiScaleSet:Array = [1.0,1.25,1.5,1.75]
@@ -588,6 +590,7 @@
                     ,workerDataSendCount:int = 0
                     ,workerDataReceiveCount:int = 0
                     ,workerState:int = WORKER_STATE_STOPPED
+
         //새창 관련 변수
                     ,canvasWindowInfo:Array = [null,null,400,400] //x y 너비 높이
                     ,canvasWindowON:Boolean = false //캔버스 새창 켜졌을때
@@ -609,7 +612,6 @@
                     
                     ,zoomToolHintON:Boolean = false //툴박스에서 마우스 클릭해서 줌툴써줄때 mouse out이벤트가 가장 늦게 되서 줌 배율 힌트가 처음에 보이지 않는거 해결
                     ,controlBoxHintTimer:uint = 0 //컨트롤 박스 힌트 타이머 스무딩 힌트 일시적으로 보여줄때 사용
-                    ,updateManualTimer:int = 0
                     ,isRightSidebar:Boolean = false // 사이드바 위치 0이 왼쩾 1이 오른쪽
                     ,isSidebarVisible:Boolean = true
                     ,sideBarPosSave:Number //사이드 바 단축키 사용하고나서 원래 위치로 옮겨줄때 씀
@@ -621,7 +623,7 @@
                     ,realWorkingTimer:int = 0
                     ,isDeepUndoON:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
-                    ,isNewFOFOSaveForamat:Boolean = false
+                    ,isNewFOFOSaveFormat:Boolean = false
                     ,layerOptionON:Boolean = false //레이어 옵션 켜졌을때 올려줌
                     ;
         //vars
@@ -1425,16 +1427,13 @@
 
             const stw:Number = stage.stageWidth;
             const sth:Number = stage.stageHeight;
-            const round:Function = Math.round;
             const scale:Number = uiScaleSet[index];
-            const sideBarWidth:Number = round(sideBar.w*scale);
 
             sideBar.scaleX = scale;
             sideBar.scaleY = scale;
+
             if(isRightSidebar) updateSidebarDefaultRightPos();
             else sideBar.x = 0;
-
-            // sideBarPosSave = sideBar.x;
 
             topBar.scaleX = scale;
             topBar.scaleY = scale;
@@ -1453,10 +1452,13 @@
 
             toolBox2.scaleX = scale*toolBox2.fixedScale;
             toolBox2.scaleY = scale*toolBox2.fixedScale;
-            
-            STAGE_TOP_OFFSET = round(topBar.BARSIZE*scale);
-            if(STAGE_RIGHT_OFFSET > 0) STAGE_RIGHT_OFFSET = sideBarWidth;
-            if(STAGE_LEFT_OFFSET > 0) STAGE_LEFT_OFFSET = sideBarWidth;
+
+            toolTipBox.scaleX = scale;
+            toolTipBox.scaleY = scale;
+        
+            STAGE_TOP_OFFSET = Math.round(topBar.BARSIZE*scale);
+            if(STAGE_RIGHT_OFFSET > 0) STAGE_RIGHT_OFFSET = Math.round(sideBar.w*scale);
+            if(STAGE_LEFT_OFFSET > 0) STAGE_LEFT_OFFSET = Math.round(sideBar.w*scale);
 
             checkfofoPos();
             updateScrollBarHeight(sth);
@@ -2272,13 +2274,13 @@
         private function isTrue2020File(file:File):Boolean
         {
             const fs:FileStream = new FileStream();
-            isNewFOFOSaveForamat = false;
+            isNewFOFOSaveFormat = false;
             fs.open(file,FileMode.READ);
 
             const header:String = fs.readUTFBytes(9);
             if(header === "FOFOPAINT")
             {
-                isNewFOFOSaveForamat = true;
+                isNewFOFOSaveFormat = true;
                 fs.close();
                 return true;
             }
@@ -5497,7 +5499,7 @@
         private function setCaptrueFlipButton():void
         {
             captureFlipped = !captureFlipped;
-            canvasFitWindow(true);
+            fitCanvasToWindow(true);
             const xReg:Sprite = (replayModeON) ? rregPoint : regPoint;
             const _captureRotated:uint = captureRotated;
 
@@ -5545,7 +5547,7 @@
         {
             captureRotated++;
             if(captureRotated >= 4) captureRotated = 0;
-            canvasFitWindow(true);
+            fitCanvasToWindow(true);
             topBar.capClipBoard.alpha = 1.0;
         }
 
@@ -7583,7 +7585,7 @@
         }
 
         //창크기에 맞추어서 캔버스를 축소해줌
-        private function canvasFitWindow(captureMode:Boolean=false):void
+        private function fitCanvasToWindow(captureMode:Boolean=false):void
         {
             const replayMode:Boolean = replayModeON;
             const offsetX:Number = 40;
@@ -7665,7 +7667,7 @@
             //재생이 끝나면 전체화면을 보여줌
             if(!mouseClickON)
             {
-                canvasFitWindow();
+                fitCanvasToWindow();
                 rzoomedIndex = zoomArr.indexOf(1.0);
             }
         }
@@ -8656,11 +8658,8 @@
                     if(savedTime-rFrameCursorDelayTime >= 100)
                     {
                         rFrameCursorDelayTime = savedTime;
-                        
                         tickDraw.updateRCursorPos();
-
                         if(!mouseClickON && isDeepUndoON === false) checkAutoScroll.check();
-
                         replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*(rNowFrame/TOTAL_FRAME);
                     }
 
@@ -8735,7 +8734,7 @@
                     if(!rDataReadFlag) drawFileData(jumpCount,jumpFlag);
                     drawRData(readCount,jumpFlag);
                 }
-                updateCursorPosAndInfoText(jumpFlag);
+                if(replayAllEnd === false) updateCursorPosAndInfoText(jumpFlag);
             };
         }
 
@@ -9657,8 +9656,8 @@
 
             const mx:Number = (x > 0) ? x : mouseX;
             const my:Number = (y > 0) ? y : mouseY;
-            const width:int =_toolTipBox["toolTipBoxBG"].width;
-            const height:Number =  _toolTipBox["toolTipBoxBG"].height;
+            const width:int =_toolTipBox["toolTipBoxBG"].width*_toolTipBox.scaleX;
+            const height:Number =  _toolTipBox["toolTipBoxBG"].height*_toolTipBox.scaleX;
             const stw:uint = stage.stageWidth+1;
             const sth:uint = stage.stageHeight+1;
             const rightLimit:Number = stw-STAGE_RIGHT_OFFSET;
@@ -9678,8 +9677,8 @@
             {
                 tooltipY = (my-59 < sth-height) ? floor(my-59) : floor(sth-height);
             }
-            _toolTipBox.x = tooltipX;
-            _toolTipBox.y = tooltipY;
+            _toolTipBox.x = floor(tooltipX);
+            _toolTipBox.y = floor(tooltipY);
             setTopChildIndex(_toolTipBox);
         }
 
@@ -10438,11 +10437,11 @@
             var d:Array;
             var ba:ByteArray;
             var replayData:ByteArray = new ByteArray();
-            const _isNewFOFOSaveForamat:Boolean = isNewFOFOSaveForamat;
+            const _isNewFOFOSaveFormat:Boolean = isNewFOFOSaveFormat;
 
-            if(_isNewFOFOSaveForamat)
+            if(_isNewFOFOSaveFormat)
             {
-                isNewFOFOSaveForamat = false;
+                isNewFOFOSaveFormat = false;
                 fs.readUTFBytes(9); //FOFOPAINT헤더 읽어줌
                 const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
                 if(compBytes > 0)
@@ -10559,7 +10558,7 @@
                     d[1] = null;
                     traceRawArr = d.concat();
                 }
-                else if(_isNewFOFOSaveForamat)
+                else if(_isNewFOFOSaveFormat)
                 {
                     replayData.position = replayData.length;
                     replayData.writeObject(d);
@@ -10571,7 +10570,7 @@
             }
             fs.close();
 
-            if(_isNewFOFOSaveForamat)
+            if(_isNewFOFOSaveFormat)
             {
                 fs.open(repFile,FileMode.WRITE);
                 fs.position = 0;
@@ -10611,10 +10610,10 @@
             var finalIMGBMPD:BitmapData;
             var finalIMGBMPD1:BitmapData;
             
-            const _isNewFOFOSaveForamat:Boolean = isNewFOFOSaveForamat;
-            if(_isNewFOFOSaveForamat)
+            const _isNewFOFOSaveFormat:Boolean = isNewFOFOSaveFormat;
+            if(_isNewFOFOSaveFormat)
             {
-                isNewFOFOSaveForamat = false;
+                isNewFOFOSaveFormat = false;
                 fs.readUTFBytes(9); //FOFOPAINT헤더 읽어줌
                 const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
                 fs.position += compBytes;
@@ -11183,7 +11182,7 @@
                                     "layer2" : layer2
                                 }
 
-            canvasFitWindow(true);
+            fitCanvasToWindow(true);
             captureTransBGON = true;
             setCaptureTransButton();
             resetTransBG(false);
@@ -13176,18 +13175,19 @@
             const resizeg:Graphics = reiszePreviewRect.graphics;
             const resizeClickPos:Point = new Point(0,0);
             const moved:Point = new Point(0,0);
+            const min:Number = CANVAS_MIN_SIZE;
+            const max:Number = CANVAS_MAX_SIZE;
 
             var targetName:String;
             var w:Number;
             var h:Number;
-            var minL:int;
-            var maxL:int;
             var bgColor:uint;
             var stageColor:uint;
             var finalWidth:uint;
             var finalHeight:uint;
             var startByShortCut:Boolean;
             var canvasSizeChanging:Boolean;
+            var hasUsedClearButton:Boolean;
             
             function isCanvasSizeChanging():Boolean
             {
@@ -13198,13 +13198,17 @@
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonMouseUpEvent);
-                stageMouseMoveEvent.remove(resizeButtonMouseMoveEvent);
+
+                if(targetName === "resizeButtonL") stageMouseMoveEvent.remove(resizeMouseMoveL);
+                else if(targetName === "resizeButtonR") stageMouseMoveEvent.remove(resizeMouseMoveR);
+                else if(targetName === "resizeButtonU") stageMouseMoveEvent.remove(resizeMouseMoveU);
+                else if(targetName === "resizeButtonD") stageMouseMoveEvent.remove(resizeMouseMoveD);
 
                 canvasSizeChanging = false;
                 toolTipBox.visible = false;
                 setResizeButtonVisible((forceExit || (startByShortCut && !isPressingControl())) ? false:true);
-                reiszePreviewRect.graphics.clear();
                 reiszePreviewRect.visible = false;
+                reiszePreviewRect.graphics.clear();
                 regPoint.removeChild(reiszePreviewRect);
 
                 if(moved.x === 0 && moved.y === 0) return;
@@ -13227,55 +13231,68 @@
                 exitCanvasResize(false);
             }
 
-            function resizeButtonMouseMoveEvent(e:MouseEvent):void
+            function drawResizePreviewRect(size:Number,x:Number,y:Number,w:Number,h:Number):void
             {
-                const sub:Point = new Point((targetName === "resizeButtonR")  ? canvasPanel.mouseX-resizeClickPos.x:
-                               (targetName === "resizeButtonL") ? resizeClickPos.x-canvasPanel.mouseX: 0
-                               ,(targetName === "resizeButtonD")  ? canvasPanel.mouseY-resizeClickPos.y:
-                               (targetName === "resizeButtonU") ? resizeClickPos.y-canvasPanel.mouseY: 0);
-                
-                finalWidth = (w+sub.x < minL) ? minL:
-                           (w+sub.x > maxL) ? maxL:w+sub.x;
-                finalHeight = (h+sub.y < minL) ? minL:
-                           (h+sub.y > maxL) ? maxL:h+sub.y;
-
-                sub.setTo((finalWidth === maxL) ? maxL-w:
-                        (finalWidth === minL) ? minL-w : sub.x
-                        ,(finalHeight === maxL) ? maxL-h:
-                        (finalHeight === minL) ? minL-h : sub.y)
-
-                moved.setTo(sub.x,sub.y);
-
-                //미리보기 사각형 그려주기
                 resizeg.clear();
+                if(size > 0) resizeg.beginFill(bgColor);
+                else resizeg.beginFill(stageColor);
+                resizeg.drawRect(x,y,w,h);
+            }
 
-                if(targetName === "resizeButtonR")
-                {
-                    if(sub.x > 0) resizeg.beginFill(bgColor);
-                    else resizeg.beginFill(stageColor);
-                    resizeg.drawRect(w,0,sub.x,h);
-                    //미리보기 사각형이 화면을 넘어가면 자동 스크롤
-                }
-                else if(targetName === "resizeButtonL")
-                {
-                    if(sub.x > 0) resizeg.beginFill(bgColor);
-                    else resizeg.beginFill(stageColor);
-                    resizeg.drawRect(-sub.x,0,sub.x,h);
-                }
-                else if(targetName === "resizeButtonD")
-                {
-                    if(sub.y > 0) resizeg.beginFill(bgColor);
-                    else resizeg.beginFill(stageColor);
-                    resizeg.drawRect(0,h,w,sub.y);
-                }
-                else if(targetName === "resizeButtonU")
-                {
-                    if(sub.y > 0) resizeg.beginFill(bgColor);
-                    else resizeg.beginFill(stageColor);
-                    resizeg.drawRect(0,-sub.y,w,sub.y);
-                }
+                        function changeHeight(subY:Number):Number
+            {
+                var height:Number = (h+subY < min) ? min:
+                                    (h+subY > max) ? max:
+                                                     h+subY;
+                subY = (height === max) ? max-h:
+                       (height === min) ? min-h:
+                                          subY
 
-                setToolTipString(finalWidth+" x "+finalHeight);
+                finalHeight = height;
+                moved.setTo(0,subY);
+                setToolTipString(w+" x "+height);
+
+                return subY;
+            }
+
+            function changeWidth(subX:Number):Number
+            {
+                var width:Number = (w+subX < min) ? min:
+                                   (w+subX > max) ? max:
+                                                    w+subX;
+                subX = (width === max) ? max-w:
+                       (width === min) ? min-w:
+                                         subX;
+
+                finalWidth = width;
+                moved.setTo(subX,0);
+                setToolTipString(width+" x "+h);
+
+                return subX;
+            }
+
+            function resizeMouseMoveD(e:MouseEvent):void
+            {
+                var subY:Number = changeHeight(canvasPanel.mouseY-resizeClickPos.y);
+                drawResizePreviewRect(subY,0,h,w,subY);
+            }
+
+            function resizeMouseMoveU(e:MouseEvent):void
+            {
+                var subY:Number = changeHeight(resizeClickPos.y-canvasPanel.mouseY);
+                drawResizePreviewRect(subY,0,-subY,w,subY);
+            }
+
+            function resizeMouseMoveR(e:MouseEvent):void
+            {
+                var subX:Number = changeWidth(canvasPanel.mouseX-resizeClickPos.x);
+                drawResizePreviewRect(subX,w,0,subX,h);
+            }
+
+            function resizeMouseMoveL(e:MouseEvent):void
+            {
+                var subX:Number = changeWidth(resizeClickPos.x-canvasPanel.mouseX);
+                drawResizePreviewRect(subX,-subX,0,subX,h);
             }
 
             function start(_targetName:String,shortcut:Boolean):void
@@ -13284,16 +13301,15 @@
                 targetName = _targetName;
                 w = CANVAS_WIDTH;
                 h = CANVAS_HEIGHT;
-                minL = CANVAS_MIN_SIZE;
-                maxL = CANVAS_MAX_SIZE;
+                finalWidth = w;
+                finalHeight = h;
                 bgColor = CANVAS_BG_COLOR;
                 stageColor = STAGE_BG_COLOR;
                 resizeClickPos.setTo(canvasPanel.mouseX,canvasPanel.mouseY);
-                finalWidth = 0;
-                finalHeight = 0;
                 moved.setTo(0,0);
 
                 canvasSizeChanging = true;
+
                 //canvaspanel로 마우스 좌표 해주는 이유는
                 //회전 되었을때도 panel좌표가 0도기준으로 유지 되기 때문
                 reiszePreviewRect.x = canvasPanel.x;
@@ -13301,11 +13317,16 @@
                 regPoint.addChild(reiszePreviewRect);
                 setTopChildIndex(reiszePreviewRect);
                 reiszePreviewRect.visible = true;
+
                 if(toolBox2ON) toolBox2.visible = false;
                 setResizeButtonVisible(false);
 
                 stage.addEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
-                stageMouseMoveEvent.add(resizeButtonMouseMoveEvent);
+
+                if(targetName === "resizeButtonL") stageMouseMoveEvent.add(resizeMouseMoveL);
+                else if(targetName === "resizeButtonR") stageMouseMoveEvent.add(resizeMouseMoveR);
+                else if(targetName === "resizeButtonU") stageMouseMoveEvent.add(resizeMouseMoveU);
+                else if(targetName === "resizeButtonD") stageMouseMoveEvent.add(resizeMouseMoveD);
             }
             
             return {
@@ -15436,7 +15457,7 @@
                 if(captureModeON)
                 {
                     captureWindowMove = new Point(dx,dy);
-                    canvasFitWindow(true);
+                    fitCanvasToWindow(true);
                 }
                 else
                 {
@@ -15642,6 +15663,7 @@
                                               : floor(STAGE_LEFT_OFFSET+(stage.stageWidth-STAGE_LEFT_OFFSET)/2)
                             ,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
+            
             return center;
         }
         
@@ -15807,6 +15829,7 @@
             }
 
             setNowKey(keyCode);
+
             switch(keyCode)
             {
                 case KEY.left:
@@ -16927,7 +16950,7 @@
                 }
                 else
                 {
-                    canvasFitWindow();
+                    fitCanvasToWindow();
                     rzoomed = 1;
                     rregPoint.scaleX = 1;
                     rregPoint.scaleY = 1;
