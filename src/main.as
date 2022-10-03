@@ -60,11 +60,10 @@
     import flash.filters.BlurFilter;
     import flash.system.System;
     import flash.filters.ConvolutionFilter;//import end
-    import flash.text.TextRenderer;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.46;
+        private const APP_VERSION:Number = 16.47;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8205,35 +8204,38 @@
                 if(data[1].length === 0 || data[2].length === 0) return;
 
                 //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible]);
-                if(doLassoDraw(true,data[1],data[2],data[4],data[5],data[6]) && clearOnly === false)
+                if(doLassoDraw(true,data[1],data[2],data[4],data[5],data[6]))
                 {
-                    const lassoInfo:Array = data[3];
-                    const bmpScaleX:Number = lassoInfo[0];
-                    const bmpScaleY:Number = lassoInfo[1];
-                    const bmpWidth:Number = lassoInfo[2];
-                    const bmpHeight:Number = lassoInfo[3];
-                    const bmpAngle:Number = lassoInfo[4];
-                    const boxX:Number = lassoInfo[5];
-                    const boxY:Number = lassoInfo[6];
-                    const posMatrix:Matrix = new Matrix();
-
-                    posMatrix.scale(bmpScaleX,bmpScaleY);
-                    posMatrix.translate(-bmpWidth/2,-bmpHeight/2);
-                    posMatrix.rotate(bmpAngle);
-                    posMatrix.translate(boxX,boxY);
-
-                    lassoBMP.smoothing = true;
-                    lassoBMPsub.smoothing = true;
-
-                    if(bmpScaleX !== 1 || bmpAngle !== 0)
+                    if(clearOnly === false)
                     {
-                        applyLassoShapen(bmpScaleX);
-                    }
+                        const lassoInfo:Array = data[3];
+                        const bmpScaleX:Number = lassoInfo[0];
+                        const bmpScaleY:Number = lassoInfo[1];
+                        const bmpWidth:Number = lassoInfo[2];
+                        const bmpHeight:Number = lassoInfo[3];
+                        const bmpAngle:Number = lassoInfo[4];
+                        const boxX:Number = lassoInfo[5];
+                        const boxY:Number = lassoInfo[6];
+                        const posMatrix:Matrix = new Matrix();
 
-                    rcanvas1BitmapData.draw(lassoBMP,posMatrix);
-                    rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-                    rcanvas11BitmapData.draw(lassoBMPsub,posMatrix);
-                    rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
+                        posMatrix.scale(bmpScaleX,bmpScaleY);
+                        posMatrix.translate(-bmpWidth/2,-bmpHeight/2);
+                        posMatrix.rotate(bmpAngle);
+                        posMatrix.translate(boxX,boxY);
+
+                        lassoBMP.smoothing = true;
+                        lassoBMPsub.smoothing = true;
+
+                        if(bmpScaleX !== 1 || bmpAngle !== 0)
+                        {
+                            applyLassoShapen(bmpScaleX);
+                        }
+
+                        rcanvas1BitmapData.draw(lassoBMP,posMatrix);
+                        rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+                        rcanvas11BitmapData.draw(lassoBMPsub,posMatrix);
+                        rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
+                    }
                 }
 
                 resetLassoVars();
@@ -8410,7 +8412,6 @@
 
                 d = data[index];
                 index++;
-
                 switch(d[0])
                 {
                     case "lineStyle": lineStyle(d); break;
@@ -13347,7 +13348,8 @@
             const rectWidth:Number = rectArr[2] - rectLeft;
             const rectHeight:Number = rectArr[3] - rectTop;
             const lassoPointsLen:uint = points.length;
-
+            const allLayer:Boolean = !layer1 && !layer2; //구버전은 layer 1 2 가 없으니까 예전처럼 전부 해줌
+            
             //가로세로 길이가 0 이하이면 실행하지 않음
             if(floor(rectWidth) <= 0 || floor(rectHeight) <= 0) return false;
 
@@ -13364,13 +13366,13 @@
                 rcanvas2Draw.filters = [];
                 drawEnt = rcanvas2Draw
 
-                if(layer1)
+                if(layer1 || allLayer)
                 {
                     canvasBitmapData = rcanvas1BitmapData;
                     canvasBitmap = rcanvas1Bitmap;
                 }
 
-                if(layer2)
+                if(layer2 || allLayer)
                 {
                     canvasBitmapDataSub = rcanvas11BitmapData;
                     canvasBitmapSub = rcanvas11Bitmap;
@@ -13382,13 +13384,13 @@
                 canvas2Draw.filters = [];
                 drawEnt = canvas2Draw;
 
-                if(layer1)
+                if(layer1 || allLayer)
                 {
                     canvasBitmapData = canvas1BitmapData;
                     canvasBitmap = canvas1Bitmap;
                 }
 
-                if(layer2)
+                if(layer2 || allLayer)
                 {
                     canvasBitmapDataSub = canvas11BitmapData;
                     canvasBitmapSub = canvas11Bitmap;
@@ -13413,8 +13415,8 @@
             var yy:Number;
 
             //지우기 전에 사각형 모양으로 그려준 부분을 copypixel 함.
-            if(layer1) lassoBMPD.copyPixels(canvasBitmapData,newRectangle,zerop,null,null,true);
-            if(layer2) lassoBMPDsub.copyPixels(canvasBitmapDataSub,newRectangle,zerop,null,null,true);
+            if(layer1 || allLayer) lassoBMPD.copyPixels(canvasBitmapData,newRectangle,zerop,null,null,true);
+            if(layer2 || allLayer) lassoBMPDsub.copyPixels(canvasBitmapDataSub,newRectangle,zerop,null,null,true);
 
             //bitmap1canvas에서 그려준 영역을 지워줌
             if(!copyFlag)
@@ -13434,13 +13436,13 @@
                     cdg.lineTo(x,y);
                 }
                 cdg.endFill();
-                if(layer1)
+                if(layer1 || allLayer)
                 {
                     canvasBitmapData.draw(cd,null,null,"erase");
                     canvasBitmap.bitmapData = canvasBitmapData;
                 }
 
-                if(layer2)
+                if(layer2 || allLayer)
                 {
                     canvasBitmapDataSub.draw(cd,null,null,"erase");
                     canvasBitmapSub.bitmapData = canvasBitmapDataSub;
@@ -13467,13 +13469,13 @@
 
             //마지막으로 시작점을 이어줌
             cdg.endFill();
-            if(layer1)
+            if(layer1 || allLayer)
             {
                 lassoBMP.bitmapData = lassoBMPD;
                 lassoBMP.bitmapData.draw(cd,null,null,"erase");
             }
 
-            if(layer2)
+            if(layer2 || allLayer)
             {
                 lassoBMPsub.bitmapData = lassoBMPDsub;
                 lassoBMPsub.bitmapData.draw(cd,null,null,"erase");
@@ -13482,19 +13484,19 @@
 
             //회전 확대를 bmp사각형의 중심으로 맞추어줌
 
-            if(layer1)
+            if(layer1 || allLayer)
             {
-            }
                 lassoBMP.x = -halfWidth;
                 lassoBMP.y = -halfHeight;
                 lassoBMP.smoothing = true;
-
-            if(layer2)
-            {
             }
+
+            if(layer2 || allLayer)
+            {
                 lassoBMPsub.x = -halfWidth;
                 lassoBMPsub.y = -halfHeight;
                 lassoBMPsub.smoothing = true;
+            }
 
             lassoBox.x = rectLeft+halfWidth;
             lassoBox.y = rectTop+halfHeight;
