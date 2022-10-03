@@ -64,7 +64,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.43;
+        private const APP_VERSION:Number = 16.44;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -679,7 +679,7 @@
             if(isRightSidebar)
             {
                 fofo.flipImage(false);
-                fofo.x = sideBar.x+sideBar.w-fofo.width;
+                fofo.x = sideBar.x+sideBar.w*sideBar.scaleX-fofo.width;
             }
             else
             {
@@ -1460,10 +1460,10 @@
             if(STAGE_RIGHT_OFFSET > 0) STAGE_RIGHT_OFFSET = Math.round(sideBar.w*scale);
             if(STAGE_LEFT_OFFSET > 0) STAGE_LEFT_OFFSET = Math.round(sideBar.w*scale);
 
-            checkfofoPos();
             updateScrollBarHeight(sth);
             sideBar.y = Math.round(STAGE_TOP_OFFSET);
             sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
+            checkfofoPos();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenuBox);
