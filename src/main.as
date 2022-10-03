@@ -64,7 +64,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.45;
+        private const APP_VERSION:Number = 16.46;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1560,7 +1560,7 @@
             const sclaedSidebarWidth:Number = sideBar.w*sideBar.scaleX;
 
             sideBarPosSave = sideBar.x;
-            sideBar.x = mouseX-(sclaedSidebarWidth)/2+35;
+            sideBar.x = mouseX-(sclaedSidebarWidth)/2+((isRightSidebar)? -18:22);
 
             if(sideBar.x < 0) sideBar.x = 0;
             else if(sideBar.x+sclaedSidebarWidth > stage.stageWidth) updateSidebarDefaultRightPos();
