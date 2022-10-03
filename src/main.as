@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.47;
+        private const APP_VERSION:Number = 16.48;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8204,38 +8204,35 @@
                 if(data[1].length === 0 || data[2].length === 0) return;
 
                 //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible]);
-                if(doLassoDraw(true,data[1],data[2],data[4],data[5],data[6]))
+                if(doLassoDraw(true,data[1],data[2],data[4],data[5],data[6]) && !clearOnly)
                 {
-                    if(clearOnly === false)
+                    const lassoInfo:Array = data[3];
+                    const bmpScaleX:Number = lassoInfo[0];
+                    const bmpScaleY:Number = lassoInfo[1];
+                    const bmpWidth:Number = lassoInfo[2];
+                    const bmpHeight:Number = lassoInfo[3];
+                    const bmpAngle:Number = lassoInfo[4];
+                    const boxX:Number = lassoInfo[5];
+                    const boxY:Number = lassoInfo[6];
+                    const posMatrix:Matrix = new Matrix();
+
+                    posMatrix.scale(bmpScaleX,bmpScaleY);
+                    posMatrix.translate(-bmpWidth/2,-bmpHeight/2);
+                    posMatrix.rotate(bmpAngle);
+                    posMatrix.translate(boxX,boxY);
+
+                    lassoBMP.smoothing = true;
+                    lassoBMPsub.smoothing = true;
+
+                    if(bmpScaleX !== 1 || bmpAngle !== 0)
                     {
-                        const lassoInfo:Array = data[3];
-                        const bmpScaleX:Number = lassoInfo[0];
-                        const bmpScaleY:Number = lassoInfo[1];
-                        const bmpWidth:Number = lassoInfo[2];
-                        const bmpHeight:Number = lassoInfo[3];
-                        const bmpAngle:Number = lassoInfo[4];
-                        const boxX:Number = lassoInfo[5];
-                        const boxY:Number = lassoInfo[6];
-                        const posMatrix:Matrix = new Matrix();
-
-                        posMatrix.scale(bmpScaleX,bmpScaleY);
-                        posMatrix.translate(-bmpWidth/2,-bmpHeight/2);
-                        posMatrix.rotate(bmpAngle);
-                        posMatrix.translate(boxX,boxY);
-
-                        lassoBMP.smoothing = true;
-                        lassoBMPsub.smoothing = true;
-
-                        if(bmpScaleX !== 1 || bmpAngle !== 0)
-                        {
-                            applyLassoShapen(bmpScaleX);
-                        }
-
-                        rcanvas1BitmapData.draw(lassoBMP,posMatrix);
-                        rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-                        rcanvas11BitmapData.draw(lassoBMPsub,posMatrix);
-                        rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
+                        applyLassoShapen(bmpScaleX);
                     }
+
+                    rcanvas1BitmapData.draw(lassoBMP,posMatrix);
+                    rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+                    rcanvas11BitmapData.draw(lassoBMPsub,posMatrix);
+                    rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
                 }
 
                 resetLassoVars();
