@@ -950,7 +950,7 @@
                 resetLassoBox();
             }
 
-            if(canvasTraceLayer === false || CANVAS_TRACE_ALPHA === 0.0)
+            if(canvasTraceLayer.visible === false || CANVAS_TRACE_ALPHA === 0.0)
             {
                 updateTraceOpaButtonPosByAlpha(0.5);
                 CANVAS_TRACE_ALPHA = 0.5;
