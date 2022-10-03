@@ -6,6 +6,7 @@
 	
 	public class fofoBottomBox extends Sprite {
 		public var fofoBottom:SimpleButton = fofoBottom;
+		public var fixedScale:Number = 0.65;
 
 		public function flipImage(flag:Boolean):void
 		{
@@ -38,8 +39,8 @@
 			alpha = 0.5;
 			visible = false;
 
-			scaleX = 0.65;
-			scaleY = 0.65;
+			scaleX = fixedScale;
+			scaleY = fixedScale;
 		}
 	}
 	

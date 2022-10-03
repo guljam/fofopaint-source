@@ -64,7 +64,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.44;
+        private const APP_VERSION:Number = 16.45;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1463,6 +1463,8 @@
             updateScrollBarHeight(sth);
             sideBar.y = Math.round(STAGE_TOP_OFFSET);
             sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
+            fofo.scaleX = scale*fofo.fixedScale;
+            fofo.scaleY = scale*fofo.fixedScale;
             checkfofoPos();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
