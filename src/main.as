@@ -5201,7 +5201,8 @@
             const maxWidth:Number = stw-(_replayTimeBox["replayTotalBar"].x+5)*scale;
             const totalFrame:Number = TOTAL_FRAME;
 
-            _replayTimeBox["replayBGBar"].width = floor(stw/scale);
+            _replayTimeBox["replayBGBar"].width = floor(stw/scale)+1;
+            trace('_replayTimeBox["replayBGBar"].width',_replayTimeBox["replayBGBar"].width,'stw',stw);
             replayTotalBar.width = floor(maxWidth/scale);
             _replayTimeBox["frameInfo"].x = replayTotalBar.x;
             _replayTimeBox["frameInfo"].width = floor(maxWidth/scale);
