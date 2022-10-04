@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.61;
+        private const APP_VERSION:Number = 16.62;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -14606,28 +14606,28 @@
             }
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+
             if(canvasWindowON) updateCanvasWindowImage();
+
             checkCanvasPanelPos(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
             updatePreviewBoxRectPos();
-            tickDraw.updateRCursorPos();
             setClearButtonActive();
-            rCursor.visible = true;
         }
 
         private function redo():void
         {
-            const len:int = rData.length-1;
+            saveOneTime = false;
+
             undoIndex++;
-            if(undoIndex > len)
+            if(undoIndex > rData.length-1)
             {
                 undoDelFlag = false;
                 replayONUndoUpdate = false;
-                undoIndex = len;
+                undoIndex = rData.length-1;
                 // if(undoPreviewCursorON) setUndoPreviewCursorOFF();
             }
             else
             {
-                saveOneTime = false;
                 drawUndoData(true);
             }
             
@@ -14635,6 +14635,8 @@
 
         private function undo():void
         {
+            saveOneTime = false;
+
             undoIndex--;
             if(undoIndex < -1)
             {
