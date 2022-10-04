@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.57;
+        private const APP_VERSION:Number = 16.58;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2666,7 +2666,8 @@
         private function cPenTool():Function
         {
             const cd:Shape = canvas2Draw;
-            const floor:Function = Math.floor; 
+            const floor:Function = Math.floor;
+            const ceil:Function = Math.ceil;
             const cdg:Graphics = cd.graphics;
             const click:Point = new Point(0,0); //점찍어 줄 때 판단하는 클릭한 자리 저장
             const smoothPos:Point = new Point(0,0);
@@ -2809,6 +2810,30 @@
                     cdg.moveTo(smoothPos.x,smoothPos.y);
                 }
 
+                ++mouseMoveCount;
+
+                if(xShape)
+                {
+                    if(mouseMoveCount <= 1)
+                    {
+                        return;
+                    }
+
+                    if(mouseMoveCount === 2)
+                    {
+                        rDataBuffer.length = 0;
+                        penCommand.length = 0;
+                        penPoints.length = 0;
+
+                        lineStyleReady(xShape,xSize,xColor,xAlpha);
+                        rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]);
+                        penCommand.push(1);
+                        penPoints.push(smoothPos.x);
+                        penPoints.push(smoothPos.y);
+                        cdg.moveTo(smoothPos.x,smoothPos.y);
+                    }
+                }
+
                 if(x === pixelSnapLast.x &&  y === pixelSnapLast.y)
                 {
                     return;
@@ -2817,7 +2842,7 @@
                 {
                     pixelSnapLast.x = x;
                     pixelSnapLast.y = y;
-                } 
+                }
 
                 cdg.lineTo(x,y);
                 rDataBuffer.push(["lineTo",x,y]);
@@ -2825,14 +2850,14 @@
                 penPoints.push(x);
                 penPoints.push(y);
 
-                
                 if(pixelSnapON === true && _penSmoothSlideValue === 0 && rotateFlag == false)
                 {
                     checkPixelPerfect();
                 }
 
-                if(mouseMoveCount++ >= 100)
+                if(mouseMoveCount >= 100)
                 {
+                    mouseMoveCount = 0;
                     if(_airBrushON && zoomed !== 1.0)
                     {
                         setBlurCanvasBySizeNoZoomDrawMode();
@@ -2859,13 +2884,13 @@
                     penPoints.push(y);
 
                     cdg.moveTo(x,y);
-                    mouseMoveCount = 0;
                 }
                 
                 if(xShape === true)
                 {
                     const rad:Number = Math.atan2(x-sqPenCursorLast.x,y-sqPenCursorLast.y);
                     const deg:Number = -rad*(180/Math.PI)+regPoint.rotation;
+
                     penSizeCursor.rotation = deg;
                     sqPenCursorLast.x = x;
                     sqPenCursorLast.y = y;
@@ -2930,7 +2955,10 @@
                     clearTimeout(penSmoothTimer);
                     penSmoothTimer = setTimeout(penMoveSmooth,20);
                 }
-                else penMove2(move.x,move.y);
+                else
+                {
+                    penMove2(move.x,move.y);
+                }
             }
 
             function mouseUpPenTool(e:MouseEvent):void
@@ -2953,7 +2981,20 @@
 
                 if(xShape === true) penSizeCursor.rotation = regPoint.rotation;
 
-                if(_penSmoothSlideValue > 1 && penToolFlag)
+                if(xShape && mouseMoveCount <= 1)
+                {
+                    if(mouseMovedFlag === false && ((click.x === xx && click.y === yy) || shortDistFlag))
+                    {
+                        rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,_airBrushON]);
+                        drawDot(xShape,xSize,xColor,mx,my);
+                    }
+                    else
+                    {
+                        cdg.lineTo(mx,my);
+                        rDataBuffer.push(["lineTo",mx,my]);
+                    }
+                }
+                else if(_penSmoothSlideValue > 1 && penToolFlag)
                 {
                     const sx:Number = ((click.x+xOffset)-smoothPos.x);
                     const sy:Number = ((click.y+xOffset)-smoothPos.y);
