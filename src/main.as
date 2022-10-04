@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.51;
+        private const APP_VERSION:Number = 16.52;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -137,8 +137,8 @@
                                         f8:119,
                                         f9:120,
                                         f10:121,
-                                        // f11:122,
-                                        // f12:123
+                                        f11:122,
+                                        f12:123,
                                         window:91
                                     }
         //툴 번호 미리 지정
@@ -815,6 +815,7 @@
                 topBar.newWindowButton.visible = true;
                 topBar.newWindowCloseButton.visible = false;
             }
+            stage.nativeWindow.activate();
         }
 
         private function canvasWindowCloseKeyDown(e:KeyboardEvent):void
@@ -1922,6 +1923,7 @@
                 case KEY.g:
                     setHoldKeyRepeat(shortCutPenAlpha,true);
                 return true;
+
 
                 case KEY.b:
                     setHoldKeyRepeat(shortCutPenAlpha,false);
@@ -5103,21 +5105,21 @@
                 case "pixelSnapOFFButton":
                 case "pixelSnapONButton":
                 case "pixelSnapText":
-                    str = "Sharp line (4, 0)";
+                    str = "Sharp line (3, 8)";
                 break;
 
                 case "airBrushWrapper":
                 case "airBrushOFFButton":
                 case "airBrushONButton":
                 case "airBrushText":
-                    str = "Air brush (5, -)";
+                    str = "Air brush (4, 7)";
                 break;
 
                 case "subLayerButtonWrapper":
                 case "subLayerOFFButton":
                 case "subLayerONButton":
                 case "subLayerText":
-                    str = "Select layer (3, 9)";
+                    str = "Select layer (1, 2 / 9, 0)";
                 break;
             }
 
@@ -5306,7 +5308,7 @@
 
             const index:int = keyBuffer.lastIndexOf(keyCode);
 
-            if(keyCode === KEY.tab || keyCode === KEY.alt) e.preventDefault();
+            if(keyCode === KEY.tab || keyCode === KEY.alt ) e.preventDefault();
             if(index === -1) keyBuffer.push(keyCode);
         }
 
@@ -5629,6 +5631,7 @@
         private function addInputEventReplayMode():void
         {
             if(isDeepUndoON) return;
+            resetKeyBuffer();
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownReplayMode,false,-1);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownReplayMode,false,-1);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownReplayMode,false,-1);
@@ -7353,12 +7356,12 @@
 
                     case "capLayer1VisibleButton":
                     case "capLayer1InvisibleButton":
-                        str = str = "Layer 1 visible ON/OFF (shift+1, shift+0)";
+                        str = str = "Layer 1 visible ON/OFF (1, 9)";
                     break;
 
                     case "capLayer2VisibleButton":
                     case "capLayer2InvisibleButton":
-                        str = str = "Layer 2 visible ON/OFF (shift+2, shift+-)";
+                        str = str = "Layer 2 visible ON/OFF (2, 0)";
                     break;
 
                     case "reRecordingButton":
@@ -7367,18 +7370,9 @@
                         && cutFrameClickedButton === CUT_FRAME_RE_RECORD)
                             str = getCutFrameOKString();
                         else
-                            str = "New file from this image (f1, f6)";
+                            str = "New file from this image (f2, f8)";
                     }
 
-                    break;
-                    case "superUndoButton":
-                    {
-                        if(cutFrameClickCounter === 1
-                        && cutFrameClickedButton === CUT_FRAME_SUPER_UNDO)
-                            str = getCutFrameOKString();
-                        else
-                            str = "Delete back data (f3, f8)";
-                    }
                     break;
 
                     case "cutPrevDataButton":
@@ -7387,12 +7381,23 @@
                         && cutFrameClickedButton === CUT_FRAME_DELETE_FRONT)
                             str = getCutFrameOKString();
                         else
-                            str = "Delete front data (f2, f7)";
+                            str = "Delete front data (f3, f9)";
                     }
                     break;
 
+                    case "superUndoButton":
+                    {
+                        if(cutFrameClickCounter === 1
+                        && cutFrameClickedButton === CUT_FRAME_SUPER_UNDO)
+                            str = getCutFrameOKString();
+                        else
+                            str = "Delete back data (f4, f10)";
+                    }
+                    break;
+
+
                     case "gridButton":
-                        str = "Grid (f1, f6)";
+                        str = "Grid (f2, f7)";
                     break;
 
                     case "sideBarOFFButton":
@@ -7406,29 +7411,29 @@
                     break;
 
                     case "sideBarPositionButton":
-                        str = "Right sidebar (f2, f7)";
+                        str = "Right sidebar (f3, f9)";
                     break;
 
                     case "sideBarPositionButton2":
-                        str = "Left sidebar (f2, f7)";
+                        str = "Left sidebar (f3, f9)";
                     break;
 
                     case "topBarColorButton":
-                        str = "Change UI color (f3, f8)";
+                        str = "Change UI color (f4, f10)";
                     break;
 
                     case "dpiButton":
-                        str = "Change UI scale (f4, f9), current "+getUIScaleString(uiScaleIndex);
+                        str = "Change UI scale (f5, f11), current "+getUIScaleString(uiScaleIndex);
                     break;
 
                     case "layer1VisibleButton":
                     case "layer1InvisibleButton":
-                        str = "Layer 1 visible ON/OFF (shift+1, shift+0)";
+                        str = "Layer 1 visible ON/OFF (shift+1, shift+9)";
                     break;
 
                     case "layer2VisibleButton":
                     case "layer2InvisibleButton":
-                        str = "Layer 2 visible ON/OFF (shift+2, shift+-)";
+                        str = "Layer 2 visible ON/OFF (shift+2, shift+0)";
                     break;
 
                     case "layerOptionButton":
@@ -7436,7 +7441,7 @@
                     break;
 
                     case "layerSwapButton":
-                        str = "Swap layer (shift+3, shift+9)";
+                        str = "Swap layer (shift+3, shift+8)";
                     break;
 
                     case "layerMergeButton":
@@ -7452,15 +7457,15 @@
                     break;
 
                     case "newWindowButton":
-                        str = "Open image view window (f5, f10)";
+                        str = "Open image view window (f6, f12)";
                     break;
 
                     case "updateButton":
                         str = "Version " + NEW_VERSION + " released!";
                     break;
 
-                    case "drawModeButton":str = "Draw mode (1, 7)"; break;
-                    case "replayModeButton":str = "Replay mode (2, 8)"; break;
+                    case "drawModeButton": str = "Draw mode (f1, f7)"; break;
+                    case "replayModeButton":str = "Replay mode (f1, f7)"; break;
                     case "toolBoxONButton":str = "Tool-box ON/OFF"; break;
                     case "replayZoomInButton":str = "Zoom in"; break;
                     case "replayZoomOutButton":str = "Zoom out"; break;
@@ -7849,7 +7854,7 @@
             }
         }
 
-        private function replayMirrorCanvas():void
+        private function MirrorCanvasReplayMode():void
         {
             var mirrorBMPD:BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
             var flipMat:Matrix = new Matrix(-1,0,0,1,RCANVAS_WIDTH);
@@ -8241,7 +8246,7 @@
 
             function mirror():void
             {
-                replayMirrorCanvas();
+                MirrorCanvasReplayMode();
             }
 
             function bgColor(data:Array):void
@@ -8632,7 +8637,7 @@
             {
                 if(rIndex > undoIndex || rDataLen === 0) //자연적 으로 끝났을때
                 {
-                    if(mirrorON !== rMirrorON) replayMirrorCanvas();
+                    syncMirrorFinishReplayMode();
 
                     tcursor.visible = false;
                     replayAllEnd = true;
@@ -9271,7 +9276,7 @@
             {
                 replayAllEnd = true;
                 rCursor.visible = false;
-                if(mirrorON !== rMirrorON) replayMirrorCanvas();
+                syncMirrorFinishReplayMode();
             }
             else
             {
@@ -9281,7 +9286,7 @@
             }
             if(checkExitDeepUndo(jumpflag)) return;
             if(!isDeepUndoON) checkAutoScroll.check();
-        }
+        } 
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
         private function drawRemainReplayData():void
@@ -10919,7 +10924,6 @@
             drawCaptureArea.reset();
             canvasGrid.visible = iFlag;
             setResizeButtonVisible(false);
-            resetNowKey();
 
             if(replayMode)
             {
@@ -11063,16 +11067,11 @@
             setNowKey(keyCode);
             switch(keyCode)
             {
-                case KEY.n1:
-                case KEY.n7:
+                case KEY.esc:
+                case KEY.backspace:
+                case KEY.f1:
+                case KEY.f7:
                     setCaptureOFFButton(true);
-                    if(replayModeON)setReplayUIOFF();
-                break;
-
-                case KEY.n2:
-                case KEY.n8:
-                    setCaptureOFFButton(true);
-                    if(replayModeON)setReplayUION();
                 break;
 
                 case KEY.v:
@@ -11112,9 +11111,17 @@
                     setCaptureTransButton();
                 break;
 
-                case KEY.esc:
-                case KEY.backspace:
-                    setCaptureOFFButton(true);
+                case KEY.n1:
+                case KEY.n9:
+                    setLayer1VisibleToggleCaptureMode();
+                break;
+
+                case KEY.n2:
+                case KEY.n0:
+                    setLayer2VisibleToggleCaptureMode();
+                break;
+               
+                default:
                 break;
             }
         }
@@ -13014,6 +13021,11 @@
             const p:Point = new Point(visualMidX,visualMidY);
 
             return p;
+        }
+
+        private function syncMirrorFinishReplayMode():void
+        {
+            if(mirrorCommandReady) MirrorCanvasReplayMode();
         }
 
         private function mirrorCanvas(canvasOnly:Boolean=false):void
@@ -15872,23 +15884,23 @@
                 }
                 break;
 
-                case KEY.f1:
-                case KEY.f6:
+                case KEY.f2:
+                case KEY.f8:
                     setCutFrameButton(CUT_FRAME_RE_RECORD,true);
                 break;
 
-                case KEY.f2:
-                case KEY.f7:
+                case KEY.f3:
+                case KEY.f9:
                     setCutFrameButton(CUT_FRAME_DELETE_FRONT,true);
                 break;
 
-                case KEY.f3:
-                case KEY.f8:
+                case KEY.f4:
+                case KEY.f10:
                     setCutFrameButton(CUT_FRAME_SUPER_UNDO,true);
                 break;
 
-                case KEY.n1:
-                case KEY.n7:
+                case KEY.f1:
+                case KEY.f7:
                     setReplayUIOFF();
                 break;
 
@@ -16002,7 +16014,7 @@
                             return;
 
                             case KEY.n3:
-                            case KEY.n9:
+                            case KEY.n8:
                                 setLayerSwapButton();
                                 setToolTipStringTime("Layer swapped "+((topBar.layerSwapButton.rotation === 0)?"L1, L2":"L2, L1"));
                             return;
@@ -16017,13 +16029,13 @@
                             return;
 
                             case KEY.n1:
-                            case KEY.n0:
+                            case KEY.n9:
                                 setLayer1VisibleToggle();
                                 setLayerVisibleHint(1);
                             return;
 
                             case KEY.n2:
-                            case KEY.minus:
+                            case KEY.n0:
                                 setLayer2VisibleToggle();
                                 setLayerVisibleHint(2);
                             return;
@@ -16069,7 +16081,15 @@
             switch(keyCode)
             {
                 case KEY.f1:
-                case KEY.f6:
+                case KEY.f7:
+                {
+                    nowKeyNotKeyUp = keyCode;
+                    setReplayUION();
+                }
+                return true;
+
+                case KEY.f2:
+                case KEY.f8:
                 {
                     nowKeyNotKeyUp = keyCode;
                     setGridButton();
@@ -16077,16 +16097,16 @@
                 }
                 return true;
 
-                case KEY.f2:
-                case KEY.f7:
+                case KEY.f3:
+                case KEY.f9:
                 {
                     nowKeyNotKeyUp = keyCode;
                     setSideBarPositionButton();
                 }
                 return true;
 
-                case KEY.f3:
-                case KEY.f8:
+                case KEY.f4:
+                case KEY.f10:
                 {
                     nowKeyNotKeyUp = keyCode;
                     setUIColorButton();
@@ -16094,8 +16114,8 @@
                 }
                 return true;
 
-                case KEY.f4:
-                case KEY.f9:
+                case KEY.f5:
+                case KEY.f11:
                 {
                     setUIScaleButton(++uiScaleIndex);
                     topBar.hint("UI Scale "+getUIScaleString(uiScaleIndex),topBar.dpiButton);
@@ -16103,8 +16123,8 @@
                 }
                 return true;
 
-                case KEY.f5:
-                case KEY.f10:
+                case KEY.f6:
+                case KEY.f12:
                 {
                    if(canvasWindowON === false)
                    {
@@ -16119,27 +16139,29 @@
                 }
                 return true;
                 
-                case KEY.n2:
-                case KEY.n8:
+                case KEY.n1:
+                case KEY.n9:
                 {
                     nowKeyNotKeyUp = keyCode;
-                    setReplayUION();
+                    if(subLayerON) setSubLayer(false);
+                    setToolTipStringTime("Layer 1 selected");
+                }
+                return true;
+
+                case KEY.n2:
+                case KEY.n0:
+                {
+                    nowKeyNotKeyUp = keyCode;
+                    if(!subLayerON)
+                    {
+                        setSubLayer(true);
+                    }
+                    setToolTipStringTime("Layer 2 selected");
                 }
                 return true;
 
                 case KEY.n3:
-                case KEY.n9:
-                {
-                    nowKeyNotKeyUp = keyCode;
-                    setSubLayer(!subLayerON);
-                    if(subLayerON) setToolTipStringTime("Layer 2 selected");
-                    else setToolTipStringTime("Layer 1 selected");
-
-                }
-                return true;
-
-                case KEY.n4:
-                case KEY.n0:
+                case KEY.n8:
                 {
                     nowKeyNotKeyUp = keyCode;
                     if(controlBox.pixelSnapButtonWrapper.alpha === 1.0)
@@ -16152,8 +16174,8 @@
                 }
                 return true;
 
-                case KEY.n5:
-                case KEY.minus:
+                case KEY.n4:
+                case KEY.n7:
                 {
                     nowKeyNotKeyUp = keyCode;
                     airBrushON = !airBrushON;
@@ -16568,6 +16590,7 @@
                 case "toolMirror":
                     mirrorCanvas();
                 break;
+
                 case "toolTrace":
                     openTraceWindow();
                 break;
@@ -16782,7 +16805,6 @@
             penSizeCursor.visible = true;
             replayTimeBox.visible = false;
             rCursor.visible = false;
-            resetNowKey();
 
             if(isSidebarVisible === false) sideBar.setTempVisibleOFF(isRightSidebar);
             replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
@@ -16814,7 +16836,6 @@
             penSizeCursor.visible = false;
             replayTimeBox.visible = true;
             rCursor.visible = true;
-            resetNowKey();
 
             setTopChildIndex(replayTimeBox);
             replayTimeBox.setTimeBarOnly(true);
@@ -16912,7 +16933,6 @@
 
             removeInputEventReplayMode();
             addInputEventDrawMode();
-            resetNowKey();
             clearDataButtonCount = 0;
             
             if(isSidebarVisible === true) setSidebarVisible(true,true);
@@ -16951,7 +16971,7 @@
             TOTAL_FRAME = getTotalFrame();
             checkReplaySpeedState();
             if(layerOptionON) checkLayerOptionOFF();
-            resetNowKey();
+
             //frame sum이 재계산된 maxframe을 넘어가면 리플레이 프레임이 넘어가기 때문에 끝난거임
             //그래서 캔버스 복사해주고 리플레이를 리셋해줌
             if(makeJumpImageFlag === 0)
@@ -17100,12 +17120,11 @@
 
                 case KEY.esc:
                 case KEY.backspace:
-                case KEY.n1:
-                case KEY.n7:
                     exitDeepUndoMode();
                 break;
-                case KEY.n2:
-                case KEY.n8:
+                
+                case KEY.f1:
+                case KEY.f7:
                     exitDeepUndoMode();
                     setReplayUION();
                 break;
