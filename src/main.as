@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.58;
+        private const APP_VERSION:Number = 16.60;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2694,6 +2694,7 @@
             var _penSmoothSlideValue:int;
             var mouseMoveCount:uint; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
             var mouseMovedFlag:Boolean;
+            var tempDoneFlag:Boolean;
             var penSmoothTimer:int; //펜 스무딩 할때 커서가 움직이지 않을때 나머지 그려지지않은 점들 이어주는 타이머임
             var distLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var shortDistFlag:Boolean; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
@@ -2782,6 +2783,16 @@
                 }
             }
 
+            function startPenMove():void
+            {
+                lineStyleReady(xShape,xSize,xColor,xAlpha);
+                rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]);
+                penCommand.push(1);
+                penPoints.push(smoothPos.x);
+                penPoints.push(smoothPos.y);
+                cdg.moveTo(smoothPos.x,smoothPos.y);
+            }
+
             function penMove2(x:Number,y:Number):void
             {
                 if(readyAddUndo === false) checkUndoReady();
@@ -2800,37 +2811,26 @@
                 if(!mouseMovedFlag) //움직이기 시작할때 linestyle이랑 moveto넣어줌
                 {
                     mouseMovedFlag = true;
-
-                    lineStyleReady(xShape,xSize,xColor,xAlpha);
-                    rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]); //cx cy 처음 클릭한 지점으로 지정해줘야함
-                    penCommand.push(1);
-                    penPoints.push(smoothPos.x);
-                    penPoints.push(smoothPos.y);
-
-                    cdg.moveTo(smoothPos.x,smoothPos.y);
+                    startPenMove();
                 }
 
                 ++mouseMoveCount;
 
                 if(xShape)
                 {
-                    if(mouseMoveCount <= 1)
+                    if(mouseMoveCount <= 2)
                     {
                         return;
                     }
 
-                    if(mouseMoveCount === 2)
+                    if(!tempDoneFlag && mouseMoveCount === 2)
                     {
                         rDataBuffer.length = 0;
                         penCommand.length = 0;
                         penPoints.length = 0;
-
-                        lineStyleReady(xShape,xSize,xColor,xAlpha);
-                        rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]);
-                        penCommand.push(1);
-                        penPoints.push(smoothPos.x);
-                        penPoints.push(smoothPos.y);
-                        cdg.moveTo(smoothPos.x,smoothPos.y);
+    
+                        cdg.clear();
+                        startPenMove();
                     }
                 }
 
@@ -2858,6 +2858,7 @@
                 if(mouseMoveCount >= 100)
                 {
                     mouseMoveCount = 0;
+                    tempDoneFlag = true;
                     if(_airBrushON && zoomed !== 1.0)
                     {
                         setBlurCanvasBySizeNoZoomDrawMode();
@@ -2981,7 +2982,7 @@
 
                 if(xShape === true) penSizeCursor.rotation = regPoint.rotation;
 
-                if(xShape && mouseMoveCount <= 1)
+                if(xShape && mouseMoveCount <= 2)
                 {
                     if(mouseMovedFlag === false && ((click.x === xx && click.y === yy) || shortDistFlag))
                     {
@@ -3070,6 +3071,7 @@
 
                 mouseMoveCount = 0; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
                 mouseMovedFlag = false;
+                tempDoneFlag = false;
 
                 click.setTo(cd.mouseX,cd.mouseY); //점찍어 줄 때 판단하는 클릭한 자리 저장
                 smoothPos.setTo(click.x+xOffset,click.y+xOffset);
