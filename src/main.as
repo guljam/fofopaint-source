@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.52;
+        private const APP_VERSION:Number = 16.53;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5308,7 +5308,8 @@
 
             const index:int = keyBuffer.lastIndexOf(keyCode);
 
-            if(keyCode === KEY.tab || keyCode === KEY.alt ) e.preventDefault();
+            if(keyCode === KEY.tab || keyCode === KEY.alt) e.preventDefault();
+
             if(index === -1) keyBuffer.push(keyCode);
         }
 
@@ -7370,7 +7371,7 @@
                         && cutFrameClickedButton === CUT_FRAME_RE_RECORD)
                             str = getCutFrameOKString();
                         else
-                            str = "New file from this image (f2, f8)";
+                            str = "New file from this image (f2)";
                     }
 
                     break;
@@ -7381,7 +7382,7 @@
                         && cutFrameClickedButton === CUT_FRAME_DELETE_FRONT)
                             str = getCutFrameOKString();
                         else
-                            str = "Delete front data (f3, f9)";
+                            str = "Delete front data (f3)";
                     }
                     break;
 
@@ -7391,13 +7392,13 @@
                         && cutFrameClickedButton === CUT_FRAME_SUPER_UNDO)
                             str = getCutFrameOKString();
                         else
-                            str = "Delete back data (f4, f10)";
+                            str = "Delete back data (f4)";
                     }
                     break;
 
 
                     case "gridButton":
-                        str = "Grid (f2, f7)";
+                        str = "Grid (f2, f8)";
                     break;
 
                     case "sideBarOFFButton":
@@ -7411,19 +7412,19 @@
                     break;
 
                     case "sideBarPositionButton":
-                        str = "Right sidebar (f3, f9)";
+                        str = "Right sidebar (f3)";
                     break;
 
                     case "sideBarPositionButton2":
-                        str = "Left sidebar (f3, f9)";
+                        str = "Left sidebar (f3)";
                     break;
 
                     case "topBarColorButton":
-                        str = "Change UI color (f4, f10)";
+                        str = "Change UI color (f4)";
                     break;
 
                     case "dpiButton":
-                        str = "Change UI scale (f5, f11), current "+getUIScaleString(uiScaleIndex);
+                        str = "Change UI scale (f5), current "+getUIScaleString(uiScaleIndex);
                     break;
 
                     case "layer1VisibleButton":
@@ -7457,7 +7458,7 @@
                     break;
 
                     case "newWindowButton":
-                        str = "Open image view window (f6, f12)";
+                        str = "Open image view window (f6)";
                     break;
 
                     case "updateButton":
@@ -7466,9 +7467,8 @@
 
                     case "drawModeButton": str = "Draw mode (f1, f7)"; break;
                     case "replayModeButton":str = "Replay mode (f1, f7)"; break;
-                    case "toolBoxONButton":str = "Tool-box ON/OFF"; break;
-                    case "replayZoomInButton":str = "Zoom in"; break;
-                    case "replayZoomOutButton":str = "Zoom out"; break;
+                    case "replayZoomInButton":str = "Zoom in (f5)"; break;
+                    case "replayZoomOutButton":str = "Zoom out (f6)"; break;
                     case "replayRotateButton":str = "Rotate"; break;
 
                     default:
@@ -9668,17 +9668,17 @@
             const height:Number =  _toolTipBox["toolTipBoxBG"].height*_toolTipBox.scaleX;
             const stw:uint = stage.stageWidth+1;
             const sth:uint = stage.stageHeight+1;
-            const rightLimit:Number = stw-STAGE_RIGHT_OFFSET;
-            const bottomLimit:Number = sth-STAGE_BOTTOM_OFFSET;            
+            const rightLimit:Number = stw;
+            const bottomLimit:Number = sth;            
             var tooltipX:Number = floor(mx-width/2)+5;
             var tooltipY:Number = floor(my+34);
             const right:int = tooltipX+width;
             const bottom:int = tooltipY+height;
 
-            if(tooltipX < STAGE_LEFT_OFFSET) tooltipX = STAGE_LEFT_OFFSET;
+            if(tooltipX < 0) tooltipX = 0;
             else if(right > rightLimit) tooltipX = rightLimit-width;
 
-            if(tooltipY < STAGE_TOP_OFFSET) tooltipY = STAGE_TOP_OFFSET;
+            if(tooltipY < 0) tooltipY = 0;
             else if(bottom >= bottomLimit) tooltipY = bottomLimit-height;
 
             if(my >= tooltipY-1) //맨 아래에서 커서가 힌트를 넘어갈때 다시 위로 올려줌
@@ -15885,18 +15885,23 @@
                 break;
 
                 case KEY.f2:
-                case KEY.f8:
                     setCutFrameButton(CUT_FRAME_RE_RECORD,true);
                 break;
 
                 case KEY.f3:
-                case KEY.f9:
                     setCutFrameButton(CUT_FRAME_DELETE_FRONT,true);
                 break;
 
                 case KEY.f4:
-                case KEY.f10:
                     setCutFrameButton(CUT_FRAME_SUPER_UNDO,true);
+                break;
+
+                case KEY.f5:
+                    setZoomInButton(true,true);
+                break;
+                
+                case KEY.f6:
+                    setZoomInButton(false,true);
                 break;
 
                 case KEY.f1:
@@ -16098,7 +16103,6 @@
                 return true;
 
                 case KEY.f3:
-                case KEY.f9:
                 {
                     nowKeyNotKeyUp = keyCode;
                     setSideBarPositionButton();
@@ -16106,7 +16110,6 @@
                 return true;
 
                 case KEY.f4:
-                case KEY.f10:
                 {
                     nowKeyNotKeyUp = keyCode;
                     setUIColorButton();
@@ -16115,7 +16118,6 @@
                 return true;
 
                 case KEY.f5:
-                case KEY.f11:
                 {
                     setUIScaleButton(++uiScaleIndex);
                     topBar.hint("UI Scale "+getUIScaleString(uiScaleIndex),topBar.dpiButton);
@@ -16124,7 +16126,6 @@
                 return true;
 
                 case KEY.f6:
-                case KEY.f12:
                 {
                    if(canvasWindowON === false)
                    {
