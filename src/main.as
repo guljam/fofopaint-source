@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.56;
+        private const APP_VERSION:Number = 16.57;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2970,21 +2970,21 @@
                     rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,_airBrushON]);
                     drawDot(xShape,xSize,xColor,mx,my);
                 }
-                else if((penToolFlag && _penSmoothSlideValue <= 1) || !penToolFlag)
-                {
-                    if(!mouseMovedFlag)
-                    {
-                        lineStyleReady(xShape,xSize,xColor,xAlpha);
-                        cdg.moveTo(smoothPos.x,smoothPos.y);
-                        rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]); //cx cy 처음 클릭한 지점으로 지정해줘야함
-                        rDataBuffer.push(["moveTo",mx,my]);
-                    }
-                    else
-                    {
-                        cdg.lineTo(mx,my);
-                        rDataBuffer.push(["lineTo",mx,my]);
-                    }
-                }
+                // else if((penToolFlag && _penSmoothSlideValue <= 1) || !penToolFlag)
+                // {
+                //     if(!mouseMovedFlag)
+                //     {
+                //         lineStyleReady(xShape,xSize,xColor,xAlpha);
+                //         cdg.moveTo(smoothPos.x,smoothPos.y);
+                //         rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]); //cx cy 처음 클릭한 지점으로 지정해줘야함
+                //         rDataBuffer.push(["moveTo",mx,my]);
+                //     }
+                //     else
+                //     {
+                //         cdg.lineTo(mx,my);
+                //         rDataBuffer.push(["lineTo",mx,my]);
+                //     }
+                // }
 
                 drawDone();
 
