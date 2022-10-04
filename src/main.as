@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.62;
+        private const APP_VERSION:Number = 16.63;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -917,7 +917,7 @@
         private function setClearButtonActive():void
         {
             topBar.layerMergeButton.alpha = 1.0;
-            topBar.clearButton.alpha = 1.0;
+            if(!isInSaveProgress) topBar.clearButton.alpha = 1.0;
             setWindowTitleStar();
         }
 
