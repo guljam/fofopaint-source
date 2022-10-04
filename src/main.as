@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.53;
+        private const APP_VERSION:Number = 16.54;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1455,6 +1455,7 @@
 
             toolTipBox.scaleX = scale;
             toolTipBox.scaleY = scale;
+            toolTipBox.updateBGPosition((uiScaleIndex === 0) ? false:true)
         
             STAGE_TOP_OFFSET = Math.round(topBar.BARSIZE*scale);
             if(STAGE_RIGHT_OFFSET > 0) STAGE_RIGHT_OFFSET = Math.round(sideBar.w*scale);
@@ -13258,7 +13259,7 @@
                 resizeg.drawRect(x,y,w,h);
             }
 
-                        function changeHeight(subY:Number):Number
+            function changeHeight(subY:Number):Number
             {
                 var height:Number = (h+subY < min) ? min:
                                     (h+subY > max) ? max:
@@ -13267,9 +13268,9 @@
                        (height === min) ? min-h:
                                           subY
 
-                finalHeight = height;
+                finalHeight = Math.floor(height);
                 moved.setTo(0,subY);
-                setToolTipString(w+" x "+height);
+                setToolTipString(w+" x "+finalHeight);
 
                 return subY;
             }
@@ -13283,9 +13284,9 @@
                        (width === min) ? min-w:
                                          subX;
 
-                finalWidth = width;
+                finalWidth = Math.floor(width);
                 moved.setTo(subX,0);
-                setToolTipString(width+" x "+h);
+                setToolTipString(finalWidth+" x "+h);
 
                 return subX;
             }

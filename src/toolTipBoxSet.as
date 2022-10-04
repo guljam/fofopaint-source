@@ -9,6 +9,12 @@
 		public var toolTipBoxBG:SimpleButton = toolTipBoxBG;
 		public var toolTipInfoText:TextField = toolTipInfoText;
 	
+		public function updateBGPosition(scaled:Boolean):void
+		{
+			if(scaled) toolTipBoxBG.y = 0;
+			else toolTipBoxBG.y = -1;
+		}
+
 		public function changeUIColor(base:uint,op:uint):void
 		{
 			const b:ColorTransform = new ColorTransform();
