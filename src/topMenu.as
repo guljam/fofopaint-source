@@ -11,6 +11,7 @@
 	import flash.utils.clearTimeout;
 	import flash.display.DisplayObjectContainer;
 	import flash.utils.clearInterval;
+	import flash.geom.Rectangle;
 
 	public class topMenu extends Sprite {
 
@@ -283,7 +284,7 @@
 
 		public function changeHintYPos(offset:Number):void
 		{
-			topMenuInfo.y = offset-3;
+			topMenuInfo.y = offset-4.5*scaleX;
 			topbarInfoBG.y = offset-4;
 		}
 
@@ -384,10 +385,14 @@
 
 				topMenuInfo.text = str;
 				topMenuInfo.width = topMenuInfo.textWidth+4;
-				topMenuInfo.x = (target.x+target.width/2-topMenuInfo.textWidth/2 < 5) ? 5
+				topMenuInfo.x = (target.x+target.width/2-topMenuInfo.textWidth/2 < 5) ? 6
 																					  : target.x+target.width/2-topMenuInfo.width/2; //17은 아이콘 크기의 절반임;
-				if(topMenuInfo.x+topMenuInfo.width > stage.stageWidth-3)
-					topMenuInfo.x -= (topMenuInfo.x+topMenuInfo.width)-(stage.stageWidth-3);
+
+				if((topMenuInfo.x+topMenuInfo.textWidth)*scaleX > stage.stageWidth-3)
+				{
+					const b:Rectangle = topMenuInfo.getBounds(stage);
+					topMenuInfo.x = topMenuInfo.x-(b.right-(stage.stageWidth-3))/scaleX;
+				}
 
 				topbarInfoBG.width = stage.stageWidth;
 				topbarInfoBG.visible = true;
