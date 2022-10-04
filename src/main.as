@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.54;
+        private const APP_VERSION:Number = 16.55;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4026,6 +4026,7 @@
 
             cmd.length = 0;
             data.length = 0;
+            checkGridMirror(mirrorON);
             canvasGrid.visible = true;
         }
 
@@ -13029,6 +13030,20 @@
             if(mirrorCommandReady) MirrorCanvasReplayMode();
         }
 
+        private function checkGridMirror(mirrorON:Boolean):void
+        {
+            if(mirrorON)
+            {
+                canvasGrid.scaleX = -1.0;
+                canvasGrid.x = CANVAS_WIDTH;
+            }
+            else
+            {
+                canvasGrid.scaleX = 1;
+                canvasGrid.x = 0;
+            }
+        }
+
         private function mirrorCanvas(canvasOnly:Boolean=false):void
         {
             //canvaspanel로 하면 중점이 안맞아서 canvas1로함
@@ -13052,16 +13067,7 @@
                 _traceInfo[5] = !_traceInfo[5];
             }
 
-            if(mirrorON)
-            {
-                canvasGrid.scaleX = -canvasGrid.scaleX;
-                canvasGrid.x += CANVAS_WIDTH;
-            }
-            else
-            {
-                canvasGrid.scaleX = 1;
-                canvasGrid.x = 0;
-            }
+            checkGridMirror(mirrorON);
 
             const halfCanvas:Number = (stage.stageWidth-sideBar.w)/2;
             var stageHalf:Number = (sideBar.visible === false) ? stage.stageWidth/2
