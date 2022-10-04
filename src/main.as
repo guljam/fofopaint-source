@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.60;
+        private const APP_VERSION:Number = 16.61;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3044,7 +3044,7 @@
                     xColor = penColor;
                     xAlpha = penAlpha;
                     xShape = penShape;
-                    xBlendMode = (xColor === CANVAS_BG_COLOR) ? "erase" : null;
+                    xBlendMode = null;
                     _airBrushON = airBrushON;
                 }
                 else
@@ -12375,54 +12375,20 @@
             if(isPenOrLineTool() || isNowTool(TOOL_FILL_PEN))
             {
                 canvas2Alpha = new ColorTransform(1,1,1,penAlpha);
-
-                if(penColor === CANVAS_BG_COLOR)//배경색이랑 같으면 earse모드로 바꿔줌
-                {
-                    if(subLayerON)
-                    {
-                        canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
-                        rDataBuffer.push(["drawDone2",true]);
-                    }
-                    else
-                    {
-                        canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
-                        rDataBuffer.push(["drawDone2",false]);
-                    }
-
-                }
-                else
-                {
-                    if(subLayerON)
-                    {
-                        canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha);
-                        rDataBuffer.push(["drawDone2",true]);
-                    }
-                    else
-                    {
-                        canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha);
-                        rDataBuffer.push(["drawDone2",false]);
-                    }
-                }
+                if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha);
+                else canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha);
             }
             else if(isEraseTool())
             {
                 canvas2Alpha = new ColorTransform(1,1,1,eraseAlpha);
-                if(subLayerON)
-                {
-                    canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
-                    rDataBuffer.push(["drawDone2",true]);
-                }
-                else
-                {
-                    canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
-                    rDataBuffer.push(["drawDone2",false]);
-                }
-
+                if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
+                else canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
             }
-            if(subLayerON)
-                canvas11Bitmap.bitmapData = canvas11BitmapData;
-            else
-                canvas1Bitmap.bitmapData = canvas1BitmapData;
+
+            rDataBuffer.push(["drawDone2",subLayerON]);
+            
+            if(subLayerON) canvas11Bitmap.bitmapData = canvas11BitmapData;
+            else canvas1Bitmap.bitmapData = canvas1BitmapData;
                 
             canvas2Bitmap.bitmapData = null;
             canvas2BitmapData.dispose();
