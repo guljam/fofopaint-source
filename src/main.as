@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.70;
+        private const APP_VERSION:Number = 16.71;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7113,6 +7113,8 @@
 
             if(isDeepUndoON) setDeepUndoUIOFF();
             else if(replayModeON) setReplayUIOFF();
+
+            if(canvasWindowON) updateCanvasWindowBitmapSize();
 
             saveContinue = false;
         }
@@ -14603,7 +14605,11 @@
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
 
-            if(canvasWindowON) updateCanvasWindowImage();
+            if(canvasWindowON)
+            {
+                updateCanvasWindowImage();
+                updateCanvasWindowBitmapSize();
+            }
 
             checkCanvasPanelPos(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
             updatePreviewBoxRectPos();
@@ -14933,6 +14939,7 @@
 
                 undoIndex = rData.length-1;
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+
                 if(canvasWindowON) updateCanvasWindowImage();
                 
                 setClearButtonActive();
