@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.65;
+        private const APP_VERSION:Number = 16.67;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2659,7 +2659,6 @@
         {
             const cd:Shape = canvas2Draw;
             const floor:Function = Math.floor;
-            const ceil:Function = Math.ceil;
             const cdg:Graphics = cd.graphics;
             const click:Point = new Point(0,0); //점찍어 줄 때 판단하는 클릭한 자리 저장
             const smoothPos:Point = new Point(0,0);
@@ -2692,6 +2691,28 @@
             var shortDistFlag:Boolean; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
             var subLayerFlag:Boolean;
             
+            // function deleteEndPointSquarePen():void
+            // {
+            //     const len:uint = penPoints.length;
+
+            //     if(Point.distance(new Point(penPoints[len-4],penPoints[len-3])
+            //                      ,new Point(penPoints[len-2],penPoints[len-1])) <= 2)
+            //     {
+            //         penCommand.splice(penCommand.length-2,2);
+            //         penPoints.splice(penPoints.length-4,4);
+            //         rDataBuffer.splice(rDataBuffer.length-2,2);
+            //         cdg.clear();
+            //         lineStyleReady(xShape,xSize,xColor,xAlpha);
+            //         cdg.moveTo(penPoints[0],penPoints[1]);
+
+            //         const len2:uint = penPoints.length-2;
+            //         for(var i:int = 2; i<=len2; i+=2)
+            //         {
+            //             cdg.lineTo(penPoints[i],penPoints[i+1]);
+            //         }
+            //     }
+            // }
+
             function checkPixelPerfect():void
             {
                 const command:Vector.<int> = penCommand;
@@ -2749,10 +2770,9 @@
                 }
                 else
                 {
-                    cdg.lineStyle(size, color, 1, false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
+                    cdg.lineStyle(size, color, 1, false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.BEVEL);
                 }
             }
-
 
             function penMoveSmooth():void
             {
@@ -2766,23 +2786,13 @@
 
                 penMove2(ox,oy);
 
-                if(floor(abs(smoothLast.x-ox)*100) > 0 || floor(abs(smoothLast.y-oy)*100) > 0)
+                if(smoothLast.x-ox >= 1 || smoothLast.y-oy >= 1)
                 {
                     smoothPos.setTo(ox,oy);
 
                     clearTimeout(penSmoothTimer);
-                    penSmoothTimer = setTimeout(penMoveSmooth, 10);
+                    penSmoothTimer = setTimeout(penMoveSmooth,10);
                 }
-            }
-
-            function startPenMove():void
-            {
-                lineStyleReady(xShape,xSize,xColor,xAlpha);
-                rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]);
-                penCommand.push(1);
-                penPoints.push(smoothPos.x);
-                penPoints.push(smoothPos.y);
-                cdg.moveTo(smoothPos.x,smoothPos.y);
             }
 
             function penMove2(x:Number,y:Number):void
@@ -2791,42 +2801,29 @@
 
                 if(!_pixelSnap && (_penSmoothSlideValue > 0 || rotateFlag))
                 {
-                    x = floor(x*100)/100;
-                    y = floor(y*100)/100;
+                    x = ~~(x*100)/100;
+                    y = ~~(y*100)/100;
                 }
                 else
                 {
-                    x = floor(x-xOffset)+xOffset;
-                    y = floor(y-xOffset)+xOffset;
+                    x = ~~(x-xOffset)+xOffset;
+                    y = ~~(y-xOffset)+xOffset;
                 }
 
                 if(!mouseMovedFlag) //움직이기 시작할때 linestyle이랑 moveto넣어줌
                 {
                     mouseMovedFlag = true;
-                    startPenMove();
+                    lineStyleReady(xShape,xSize,xColor,xAlpha);
+                    rDataBuffer.push(["lineStyle2",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]);
+                    penCommand.push(1);
+                    penPoints.push(smoothPos.x);
+                    penPoints.push(smoothPos.y);
+                    cdg.moveTo(smoothPos.x,smoothPos.y);
                 }
 
                 ++mouseMoveCount;
 
-                if(xShape)
-                {
-                    if(mouseMoveCount <= 2)
-                    {
-                        return;
-                    }
-
-                    if(!tempDoneFlag && mouseMoveCount === 2)
-                    {
-                        rDataBuffer.length = 0;
-                        penCommand.length = 0;
-                        penPoints.length = 0;
-    
-                        cdg.clear();
-                        startPenMove();
-                    }
-                }
-
-                if(x === pixelSnapLast.x &&  y === pixelSnapLast.y)
+                if(xShape && mouseMoveCount <= 2 || x === pixelSnapLast.x &&  y === pixelSnapLast.y)
                 {
                     return;
                 }
@@ -2865,12 +2862,13 @@
                         canvas2Bitmap.bitmapData = canvas2BitmapData;
                         cdg.clear();
                     }
+
                     penCommand.length = 0;
                     penPoints.length = 0;
                     lineStyleReady(xShape,xSize,xColor,xAlpha);
 
                     rDataBuffer.push(["tempDone"]);
-                    rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,x,y,xBlendMode,false,subLayerFlag,_airBrushON]);
+                    rDataBuffer.push(["lineStyle2",xShape,xSize,xColor,xAlpha,x,y,xBlendMode,false,subLayerFlag,_airBrushON]);
 
                     penCommand.push(1);
                     penPoints.push(x);
@@ -2933,13 +2931,14 @@
                         ox += (smoothLast.x-smoothPos.x)*_penSmoothValue;
                         oy += (smoothLast.y-smoothPos.y)*_penSmoothValue;
                     }
-                    else
-                    {
-                        //처음에 적당한 거리 움직여줌
-                        const mm:Point = movePointAngleDist(smoothPos.x,smoothPos.y,move.x,move.y,1);
-                        ox = mm.x;
-                        oy = mm.y;
-                    }
+                    // else
+                    // {
+                    //     //처음에 적당한 거리 움직여줌
+                    //     const mm:Point = movePointAngleDist(smoothPos.x,smoothPos.y,move.x,move.y,0.5);
+                    //     ox = mm.x;
+                    //     oy = mm.y;
+                    // }
+
 
                     penMove2(ox,oy);
                     smoothPos.setTo(ox,oy);
@@ -2974,18 +2973,25 @@
 
                 if(xShape === true) penSizeCursor.rotation = regPoint.rotation;
 
-                if(xShape && mouseMoveCount <= 2)
+                if(xShape)
                 {
-                    if(mouseMovedFlag === false && ((click.x === xx && click.y === yy) || shortDistFlag))
+                    if(mouseMoveCount <= 2)
                     {
-                        rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,_airBrushON]);
-                        drawDot(xShape,xSize,xColor,mx,my);
+                        if(mouseMovedFlag === false && ((click.x === xx && click.y === yy) || shortDistFlag))
+                        {
+                            rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,_airBrushON]);
+                            drawDot(xShape,xSize,xColor,mx,my);
+                        }
+                        else
+                        {
+                            cdg.lineTo(mx,my);
+                            rDataBuffer.push(["lineTo",mx,my]);
+                        }
                     }
-                    else
-                    {
-                        cdg.lineTo(mx,my);
-                        rDataBuffer.push(["lineTo",mx,my]);
-                    }
+                    // else if(penCommand.length >= 4)
+                    // {
+                    //     deleteEndPointSquarePen();
+                    // }
                 }
                 else if(_penSmoothSlideValue > 1 && penToolFlag)
                 {
@@ -3004,21 +3010,6 @@
                     rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,_airBrushON]);
                     drawDot(xShape,xSize,xColor,mx,my);
                 }
-                // else if((penToolFlag && _penSmoothSlideValue <= 1) || !penToolFlag)
-                // {
-                //     if(!mouseMovedFlag)
-                //     {
-                //         lineStyleReady(xShape,xSize,xColor,xAlpha);
-                //         cdg.moveTo(smoothPos.x,smoothPos.y);
-                //         rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]); //cx cy 처음 클릭한 지점으로 지정해줘야함
-                //         rDataBuffer.push(["moveTo",mx,my]);
-                //     }
-                //     else
-                //     {
-                //         cdg.lineTo(mx,my);
-                //         rDataBuffer.push(["lineTo",mx,my]);
-                //     }
-                // }
 
                 drawDone();
 
@@ -3066,10 +3057,9 @@
                 tempDoneFlag = false;
 
                 click.setTo(cd.mouseX,cd.mouseY); //점찍어 줄 때 판단하는 클릭한 자리 저장
+                
                 smoothPos.setTo(click.x+xOffset,click.y+xOffset);
-
-                if(_penSmoothSlideValue === 0)
-                    smoothPos.setTo(floor(smoothPos.x-xOffset)+xOffset,floor(smoothPos.y-xOffset)+xOffset)
+                if(_penSmoothSlideValue === 0) smoothPos.setTo(floor(smoothPos.x-xOffset)+xOffset,floor(smoothPos.y-xOffset)+xOffset)
                 
                 smoothLast.setTo(smoothPos.x,smoothPos.y); //penmove할때 마지막x y저장
                 pixelSnapLast.setTo(smoothPos.x,smoothPos.y);
@@ -3623,14 +3613,13 @@
             stageMouseMoveEvent.add(consolBoxHandToolMoveEvent)
             stage.addEventListener(MouseEvent.MOUSE_UP,consolBoxHandToolUpEvent)
         }
-                //원점 penSmoothX oy로부터 dx쪽으로 dist 만큼 떨어진 거리 점을 리턴함
-
+        //원점 penSmoothX oy로부터 dx쪽으로 dist 만큼 떨어진 거리 점을 리턴함
         private function movePointAngleDist(ox:Number,oy:Number,dx:Number,dy:Number,dist:Number):Point
         {
             const rad:Number = Math.atan2(dx-ox,dy-oy);
 
-            return new Point(ox + dist*Math.sin(rad)
-                            ,oy + dist*Math.cos(rad));
+            return new Point(ox+dist*Math.sin(rad)
+                            ,oy+dist*Math.cos(rad));
         }
 
         private function forceSetMainDrawTool():void
@@ -7874,6 +7863,19 @@
             tempBitData = null;
         }
 
+        private function replayLineStyleReady2(shape:Boolean,size:uint,color:uint,alpha:Number):void
+        {
+            rcanvas2.alpha = alpha;
+            if(shape)
+            {
+                rcanvas2Draw.graphics.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.BEVEL);
+            }
+            else
+            {
+                rcanvas2Draw.graphics.lineStyle(size,color);
+            }
+        }
+
         private function replayLineStyleReady(shape:Boolean,size:uint,color:uint,alpha:Number):void
         {
             rcanvas2.alpha = alpha;
@@ -8036,6 +8038,38 @@
                 else if(rSubLayerSave)
                 {
                     setReplaySubLayer(false);
+                }
+            }
+
+            function lineStyle2(data:Array):void
+            {
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const startX:Number = data[5];
+                const startY:Number = data[6];
+                const blendMode:String = data[7];
+                const fillpen:Boolean = data[8];
+                const subLayer:Boolean = data[9];
+                const airBrush:Boolean = data[10];
+
+                updateLineStyleBackup([alpha,blendMode]);
+                checkSubLayer(subLayer);
+                checkAirBrush(airBrush,size);
+
+                if(!fillpen)
+                {
+                    replayLineStyleReady2(shape,size,color,alpha);
+                    cd2.moveTo(startX,startY);
+                }
+                else
+                {
+                    cd2.clear();
+                    replayLineStyleReady2(false,1,color,1.0);
+                    cd2.beginFill(color);
+                    cd2.moveTo(startX,startY);
+                    rcanvas2.alpha = alpha;
                 }
             }
 
@@ -8454,6 +8488,7 @@
                 switch(d[0])
                 {
                     case "lineStyle": lineStyle(d); break;
+                    case "lineStyle2": lineStyle2(d); break;
                     case "lineTo": lineTo(d); break;
                     case "sqline": sqline(d); break;
                     case "fill": fill(d); break;
@@ -17801,7 +17836,7 @@
         //     {
         //         const count:int = printdeepLevel;
         //         for(var b:int=0; b<count; b++)
-        //         {lassoInfo
+        //         {
         //             blank += "   ";
         //         }
         //         trace(blank+'> index['+deepKey+']');
