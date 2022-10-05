@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.68;
+        private const APP_VERSION:Number = 16.70;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2018,7 +2018,7 @@
             stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpLassoTool);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownLassoTool);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
-            lassoMenu.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
             addInputEventDrawMode();
         }
 
@@ -2027,7 +2027,7 @@
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpLassoTool);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownLassoTool);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
-            lassoMenu.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
             removeInputEventDrawMode();   
         }
 
@@ -3768,7 +3768,7 @@
 
             switch(targetName)
             {
-                case "lassoOK":str = "OK (enter, richt-click)"; break;
+                case "lassoOK":str = "OK (enter, right-click)"; break;
                 case "lassoCancel":str = "Cancel (esc, backspace)"; break;
                 case "lassoCopy":str = "Copy image"; break;
                 case "lassoMove":str = "Move image"+STRING_RIGHT_CLICK_TO_RESET; break;
@@ -17486,6 +17486,13 @@
 
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
+
+            if(lassoMenu.hitTestPoint(mouseX,mouseY) === false
+            || targetName === "lassoOK")
+            {
+                setLassoOKButton();
+                return;
+            }
 
             switch(targetName)
             {
