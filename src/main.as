@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.71;
+        private const APP_VERSION:Number = 16.72;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -714,11 +714,6 @@
 
         private function updateCanvasWindowBitmapSize():void
         {
-            if(canvasWindowCanvasPanel.width === canvasWindow.stage.stageWidth
-            && canvasWindowCanvasPanel.height === canvasWindow.stage.stageHeight)
-            {
-                return;
-            }
             const bounds:Rectangle = previewBox.setFitBitmapforBox(canvasWindowBitmap.bitmapData.width,canvasWindowBitmap.bitmapData.height
                                                                   ,canvasWindow.stage.stageWidth,canvasWindow.stage.stageHeight);
 
@@ -744,7 +739,12 @@
                     canvasWindowInfo[1] = canvasWindow.y;
                     canvasWindowInfo[2] = canvasWindow.width;
                     canvasWindowInfo[3] = canvasWindow.height;
-                    updateCanvasWindowBitmapSize();
+                    if(canvasWindowCanvasPanel.width !== canvasWindow.stage.stageWidth
+                    || canvasWindowCanvasPanel.height !== canvasWindow.stage.stageHeight)
+                    {
+                        updateCanvasWindowBitmapSize();
+                        return;
+                    }
                 }
             },200);
         }
@@ -6604,6 +6604,12 @@
             setBackgroundColorDrawMode(RCANVAS_BG_COLOR);
 
             clearDataResetVars();
+
+            if(canvasWindowON)
+            {
+                updateCanvasWindowImage();
+                updateCanvasWindowBitmapSize();
+            }
         }
 
         private function clearData():void
