@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.72;
+        private const APP_VERSION:Number = 16.73;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13598,6 +13598,11 @@
             {
                 stageMouseMoveEvent.remove(lassoDrawMouseMove);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,lassoDrawMouseUp);
+                if(Math.abs(lassoRect[0]-lassoRect[2]) < 5 || Math.abs(lassoRect[1]-lassoRect[3]) < 5)
+                {
+                    resetLassoBox();
+                    return;
+                }
 
                 if(lassoRect[0] < 0) lassoRect[0] = 0;
                 if(lassoRect[1] < 0) lassoRect[1] = 0;
@@ -13607,8 +13612,7 @@
                 lassoPointSave.push(lassoRect);
                 lassoPointSave.push(lassoPoints);
 
-                const lassoDone:Boolean = moveSelectedAreaToLassoBox(false,lassoRect,lassoPoints,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible);
-                if(!lassoDone)
+                if(moveSelectedAreaToLassoBox(false,lassoRect,lassoPoints,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible) === false)
                 {
                     resetLassoBox();
                     return;
@@ -13617,14 +13621,12 @@
                 drawPreviewLine();
 
                 //라소 메뉴 마우스 커서에보이기
-                const _lassoMenu:lassoButtons = lassoMenu;
-
                 lassoStartData = [lassoBox.x,lassoBox.y,lassoBox.scaleX,lassoBox.scaleY,lassoBox.rotation];
                 lassoToolON = true;
-                setDeafultLassoMenuPos(_lassoMenu);
+                setDeafultLassoMenuPos(lassoMenu);
                 checkLassoMenuPos();
-                _lassoMenu.visible = true;
-                setTopChildIndex(_lassoMenu);
+                lassoMenu.visible = true;
+                setTopChildIndex(lassoMenu);
 
                 if(traceMenuON === true) traceMenuBox.visible = false;
                 toolBox.alpha = BUTTON_OFF_ALPHA;
@@ -14421,16 +14423,9 @@
                 lassoBitmapdataSubSave = null;
             }
 
-            controlBox.visible = true;
-            pickerBox.visible = true;
-
-            if(traceMenuON === true)
-            {
-                traceMenuBox.visible = true;
-            }
+            if(traceMenuON === true) traceMenuBox.visible = true;
 
             toolBox.alpha = 1.0;
-
             setOldTool();
         }
 
@@ -17281,7 +17276,10 @@
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
             if(mouseClickON || !isNowKey(0) || isPressingControl() || quickSidebarON
-            || (traceMenuON && traceMenuBox.hitTestPoint(mouseX,mouseY))) return;
+            || (traceMenuON && traceMenuBox.hitTestPoint(mouseX,mouseY)))
+            {
+                return;
+            }
 
             const targetName:String = e.target.name;
 
@@ -17500,8 +17498,7 @@
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
 
-            if(lassoMenu.hitTestPoint(mouseX,mouseY) === false
-            || targetName === "lassoOK")
+            if(lassoMenu.hitTestPoint(mouseX,mouseY) === false || targetName === "lassoOK")
             {
                 setLassoOKButton();
                 return;
