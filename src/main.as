@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.67;
+        private const APP_VERSION:Number = 16.68;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2770,7 +2770,7 @@
                 }
                 else
                 {
-                    cdg.lineStyle(size, color, 1, false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.BEVEL);
+                    cdg.lineStyle(size, color, 1, false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
                 }
             }
 
@@ -2814,7 +2814,7 @@
                 {
                     mouseMovedFlag = true;
                     lineStyleReady(xShape,xSize,xColor,xAlpha);
-                    rDataBuffer.push(["lineStyle2",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]);
+                    rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]);
                     penCommand.push(1);
                     penPoints.push(smoothPos.x);
                     penPoints.push(smoothPos.y);
@@ -2868,7 +2868,7 @@
                     lineStyleReady(xShape,xSize,xColor,xAlpha);
 
                     rDataBuffer.push(["tempDone"]);
-                    rDataBuffer.push(["lineStyle2",xShape,xSize,xColor,xAlpha,x,y,xBlendMode,false,subLayerFlag,_airBrushON]);
+                    rDataBuffer.push(["lineStyle",xShape,xSize,xColor,xAlpha,x,y,xBlendMode,false,subLayerFlag,_airBrushON]);
 
                     penCommand.push(1);
                     penPoints.push(x);
@@ -7863,19 +7863,6 @@
             tempBitData = null;
         }
 
-        private function replayLineStyleReady2(shape:Boolean,size:uint,color:uint,alpha:Number):void
-        {
-            rcanvas2.alpha = alpha;
-            if(shape)
-            {
-                rcanvas2Draw.graphics.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.BEVEL);
-            }
-            else
-            {
-                rcanvas2Draw.graphics.lineStyle(size,color);
-            }
-        }
-
         private function replayLineStyleReady(shape:Boolean,size:uint,color:uint,alpha:Number):void
         {
             rcanvas2.alpha = alpha;
@@ -8000,7 +7987,7 @@
 
             function getrLineStyleSave():Array
             {
-                if(lineStyleBackup.length !== 2) return [1.0,]
+                if(lineStyleBackup.length !== 2) return [1.0,];
                 
                 return lineStyleBackup;
             }
@@ -8038,38 +8025,6 @@
                 else if(rSubLayerSave)
                 {
                     setReplaySubLayer(false);
-                }
-            }
-
-            function lineStyle2(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const blendMode:String = data[7];
-                const fillpen:Boolean = data[8];
-                const subLayer:Boolean = data[9];
-                const airBrush:Boolean = data[10];
-
-                updateLineStyleBackup([alpha,blendMode]);
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush,size);
-
-                if(!fillpen)
-                {
-                    replayLineStyleReady2(shape,size,color,alpha);
-                    cd2.moveTo(startX,startY);
-                }
-                else
-                {
-                    cd2.clear();
-                    replayLineStyleReady2(false,1,color,1.0);
-                    cd2.beginFill(color);
-                    cd2.moveTo(startX,startY);
-                    rcanvas2.alpha = alpha;
                 }
             }
 
@@ -8488,7 +8443,6 @@
                 switch(d[0])
                 {
                     case "lineStyle": lineStyle(d); break;
-                    case "lineStyle2": lineStyle2(d); break;
                     case "lineTo": lineTo(d); break;
                     case "sqline": sqline(d); break;
                     case "fill": fill(d); break;
