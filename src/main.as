@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.75;
+        private const APP_VERSION:Number = 16.76;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -674,7 +674,7 @@
         }
         
         //functions
-        private function layerPreviewBlurEffectOFFEvent(e:MouseEvent):void 
+        private function layerPreviewBlurEffectOFF():void 
         {
             if(subLayerSave.length > 0)
             {
@@ -684,19 +684,37 @@
                 if(!subLayerON) canvas1Bitmap.visible = true;
                 else canvas1Bitmap.visible = subLayerSave[0];
 
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,layerPreviewBlurEffectOFFEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,layerPreviewBlurEffectOFFMouseEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,layerPreviewBlurEffectOFFMouseEvent);
+                stage.removeEventListener(KeyboardEvent.KEY_DOWN,layerPreviewBlurEffectOFFKeyEvent);
                 subLayerSave = [];
             }
+        }
+
+        private function layerPreviewBlurEffectOFFKeyEvent(e:KeyboardEvent):void 
+        {
+            if(!(e.keyCode === KEY.n1 || e.keyCode === KEY.n2
+            || e.keyCode === KEY.n9 || e.keyCode === KEY.n0))
+            {
+                layerPreviewBlurEffectOFF();
+            }
+        }
+
+        private function layerPreviewBlurEffectOFFMouseEvent(e:MouseEvent):void 
+        {
+            layerPreviewBlurEffectOFF();
         }
 
         private function setLayerPreviewBlurEffect(layer:int):void 
         {
             if(subLayerSave.length === 0)
             {
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,layerPreviewBlurEffectOFFEvent,false,5);
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,layerPreviewBlurEffectOFFMouseEvent,false,5);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,layerPreviewBlurEffectOFFMouseEvent,false,5);
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,layerPreviewBlurEffectOFFKeyEvent,false,5);
+                subLayerSave[0] = canvas1Bitmap.visible;
+                subLayerSave[1] = canvas11Bitmap.visible;
             }
-            subLayerSave[0] = canvas1Bitmap.visible;
-            subLayerSave[1] = canvas11Bitmap.visible;
 
             if(layer === 1)
             {
@@ -4916,8 +4934,6 @@
 
             if(subLayerON) canvasPanel.setChildIndex(canvas2,2);
             else canvasPanel.setChildIndex(canvas1Bitmap,2);
-
-            setLayerPreviewBlurEffect((flag)?2:1)
         }   
 
         private function setPixelSnap(flag:Boolean):void
@@ -16208,6 +16224,8 @@
                 {
                     nowKeyNotKeyUp = keyCode;
                     if(subLayerON) setSubLayer(false);
+                    
+                    setLayerPreviewBlurEffect(1);
                     setToolTipStringTime("Layer 1 selected");
                 }
                 return true;
@@ -16216,10 +16234,8 @@
                 case KEY.n0:
                 {
                     nowKeyNotKeyUp = keyCode;
-                    if(!subLayerON)
-                    {
-                        setSubLayer(true);
-                    }
+                    if(!subLayerON) setSubLayer(true);
+                    setLayerPreviewBlurEffect(2);
                     setToolTipStringTime("Layer 2 selected");
                 }
                 return true;
@@ -17440,7 +17456,9 @@
                 case "layer2Button":
                 case "subLayerText":
                 {
-                    setSubLayer(!subLayerON);
+                    subLayerON = !subLayerON;
+                    setSubLayer(subLayerON);
+                    setLayerPreviewBlurEffect((subLayerON)?2:1);
                 }
                 return true;
 
