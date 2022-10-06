@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.77;
+        private const APP_VERSION:Number = 16.78;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -676,42 +676,39 @@
         //functions
         private function layerPreviewBlurEffectOFF():void 
         {
-            if(subLayerSave.length > 0)
+            if(subLayerON) canvas11Bitmap.visible = true;
+            else canvas11Bitmap.visible = subLayerSave[1];
+
+            if(!subLayerON) canvas1Bitmap.visible = true;
+            else canvas1Bitmap.visible = subLayerSave[0];
+
+            stage.removeEventListener(KeyboardEvent.KEY_UP,layerPreviewBlurEffectOFFKeyUpEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_MOVE,layerPreviewBlurEffectOFFMouseOutEvent);
+            subLayerSave = [];
+        }
+
+        private function layerPreviewBlurEffectOFFKeyUpEvent(e:KeyboardEvent):void 
+        {
+            if(e.keyCode === KEY.n1 || e.keyCode === KEY.n2
+            || e.keyCode === KEY.n9 || e.keyCode === KEY.n0)
             {
-                if(subLayerON) canvas11Bitmap.visible = true;
-                else canvas11Bitmap.visible = subLayerSave[1];
-
-                if(!subLayerON) canvas1Bitmap.visible = true;
-                else canvas1Bitmap.visible = subLayerSave[0];
-
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,layerPreviewBlurEffectOFFMouseEvent);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,layerPreviewBlurEffectOFFMouseEvent);
-                stage.removeEventListener(KeyboardEvent.KEY_DOWN,layerPreviewBlurEffectOFFKeyEvent);
-                subLayerSave = [];
+                if(subLayerSave.length > 0) layerPreviewBlurEffectOFF();
             }
         }
 
-        private function layerPreviewBlurEffectOFFKeyEvent(e:KeyboardEvent):void 
+        private function layerPreviewBlurEffectOFFMouseOutEvent(e:MouseEvent):void 
         {
-            if(!(e.keyCode === KEY.n1 || e.keyCode === KEY.n2
-            || e.keyCode === KEY.n9 || e.keyCode === KEY.n0))
-            {
-                layerPreviewBlurEffectOFF();
-            }
+           if(controlBox.subLayerButtonWrapper.hitTestPoint(mouseX,mouseY) === false
+           && subLayerSave.length > 0) layerPreviewBlurEffectOFF();
         }
 
-        private function layerPreviewBlurEffectOFFMouseEvent(e:MouseEvent):void 
-        {
-            layerPreviewBlurEffectOFF();
-        }
-
-        private function setLayerPreviewBlurEffect(layer:int):void 
+        private function setLayerPreviewBlurEffect(layer:int,shortcut:Boolean):void 
         {
             if(subLayerSave.length === 0)
             {
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,layerPreviewBlurEffectOFFMouseEvent,false,5);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,layerPreviewBlurEffectOFFMouseEvent,false,5);
-                stage.addEventListener(KeyboardEvent.KEY_DOWN,layerPreviewBlurEffectOFFKeyEvent,false,5);
+                if(shortcut) stage.addEventListener(KeyboardEvent.KEY_UP,layerPreviewBlurEffectOFFKeyUpEvent,false,5);
+                else stage.addEventListener(MouseEvent.MOUSE_MOVE,layerPreviewBlurEffectOFFMouseOutEvent,false,5);
+
                 subLayerSave[0] = canvas1Bitmap.visible;
                 subLayerSave[1] = canvas11Bitmap.visible;
             }
@@ -16219,7 +16216,7 @@
                     nowKeyNotKeyUp = keyCode;
                     if(subLayerON) setSubLayer(false);
                     
-                    setLayerPreviewBlurEffect(1);
+                    setLayerPreviewBlurEffect(1,true);
                     setToolTipStringTime("Layer 1 selected");
                 }
                 return true;
@@ -16229,7 +16226,7 @@
                 {
                     nowKeyNotKeyUp = keyCode;
                     if(!subLayerON) setSubLayer(true);
-                    setLayerPreviewBlurEffect(2);
+                    setLayerPreviewBlurEffect(2,true);
                     setToolTipStringTime("Layer 2 selected");
                 }
                 return true;
@@ -16484,6 +16481,7 @@
             }
             if(quickSidebarON) setQuickSidebarOFF();
             if(layerOptionON) checkLayerOptionOFF();
+            if(subLayerSave.length > 0) layerPreviewBlurEffectOFF();
 
             setOldTool();
         }
@@ -17452,7 +17450,7 @@
                 {
                     subLayerON = !subLayerON;
                     setSubLayer(subLayerON);
-                    setLayerPreviewBlurEffect((subLayerON)?2:1);
+                    setLayerPreviewBlurEffect((subLayerON)?2:1,false);
                 }
                 return true;
 
