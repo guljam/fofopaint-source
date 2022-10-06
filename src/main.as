@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.78;
+        private const APP_VERSION:Number = 16.80;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4760,7 +4760,7 @@
                 }
             }
 
-            if(CANVAS_TRACE_ALPHA === 0.0)
+            if(canvasTraceLayer.visible === false || CANVAS_TRACE_ALPHA === 0.0)
             {
                 updateTraceOpaButtonPosByAlpha(0.5);
                 CANVAS_TRACE_ALPHA = 0.5;
