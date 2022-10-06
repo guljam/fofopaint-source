@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.80;
+        private const APP_VERSION:Number = 16.81;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -17487,9 +17487,11 @@
         {
             const nt:int = nowTool;
 
-            if(toolBox2ON || (!isNowKey(0) && nt !== TOOL_FILL_PEN
-                                           && nt !== TOOL_LINE
-                                           && nt !== TOOL_PEN))
+            if(toolBox2ON || (!isNowKey(0) 
+                             && nt !== TOOL_FILL_PEN
+                             && nt !== TOOL_LINE
+                             && nt !== TOOL_PEN
+                             && nt !== TOOL_ERASE))
             {
                 return;
             }
