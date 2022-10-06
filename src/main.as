@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.76;
+        private const APP_VERSION:Number = 16.77;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2753,27 +2753,21 @@
             var shortDistFlag:Boolean; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
             var subLayerFlag:Boolean;
             
-            // function deleteEndPointSquarePen():void
-            // {
-            //     const len:uint = penPoints.length;
+            function deleteEndPointSquarePen():void
+            {
+                penCommand.splice(penCommand.length-2,1);
+                penPoints.splice(penPoints.length-4,2);
+                rDataBuffer.splice(rDataBuffer.length-2,1);
+                cdg.clear();
+                lineStyleReady(xShape,xSize,xColor,xAlpha);
+                cdg.moveTo(penPoints[0],penPoints[1]);
 
-            //     if(Point.distance(new Point(penPoints[len-4],penPoints[len-3])
-            //                      ,new Point(penPoints[len-2],penPoints[len-1])) <= 2)
-            //     {
-            //         penCommand.splice(penCommand.length-2,2);
-            //         penPoints.splice(penPoints.length-4,4);
-            //         rDataBuffer.splice(rDataBuffer.length-2,2);
-            //         cdg.clear();
-            //         lineStyleReady(xShape,xSize,xColor,xAlpha);
-            //         cdg.moveTo(penPoints[0],penPoints[1]);
-
-            //         const len2:uint = penPoints.length-2;
-            //         for(var i:int = 2; i<=len2; i+=2)
-            //         {
-            //             cdg.lineTo(penPoints[i],penPoints[i+1]);
-            //         }
-            //     }
-            // }
+                const len:uint = penPoints.length-2;
+                for(var i:int = 2; i<=len; i+=2)
+                {
+                    cdg.lineTo(penPoints[i],penPoints[i+1]);
+                }
+            }
 
             function checkPixelPerfect():void
             {
@@ -3037,7 +3031,7 @@
 
                 if(xShape)
                 {
-                    if(mouseMoveCount <= 2)
+                    if(tempDoneFlag === false && mouseMoveCount <= 2)
                     {
                         if(mouseMovedFlag === false && ((click.x === xx && click.y === yy) || shortDistFlag))
                         {
@@ -3050,10 +3044,10 @@
                             rDataBuffer.push(["lineTo",mx,my]);
                         }
                     }
-                    // else if(penCommand.length >= 4)
-                    // {
-                    //     deleteEndPointSquarePen();
-                    // }
+                    else if(penCommand.length >= 4)
+                    {
+                        deleteEndPointSquarePen();
+                    }
                 }
                 else if(_penSmoothSlideValue > 1 && penToolFlag)
                 {
