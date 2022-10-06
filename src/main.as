@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.73;
+        private const APP_VERSION:Number = 16.75;
         private const APP_DATA_VERSION:Number = 16.22;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -325,6 +325,7 @@
                     ,pixelSnapON:Boolean = false //0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
                     ,fillPenON:Boolean = false //채우기 펜 플래그
                     ,subLayerON:Boolean = false
+                    ,subLayerSave:Array = [] //레이어 미리 보기 할때 레이어 꺼졌는지 켜졌는지 저장해주고 복원할때 이걸로함
                     ,subLayerONSave:Boolean = false //레이어 visible toggle에서 씀
                     ,airBrushON:Boolean = false
                     ,airBrushSizeDrawMode:Number = 0
@@ -673,6 +674,42 @@
         }
         
         //functions
+        private function layerPreviewBlurEffectOFFEvent(e:MouseEvent):void 
+        {
+            if(subLayerSave.length > 0)
+            {
+                if(subLayerON) canvas11Bitmap.visible = true;
+                else canvas11Bitmap.visible = subLayerSave[1];
+
+                if(!subLayerON) canvas1Bitmap.visible = true;
+                else canvas1Bitmap.visible = subLayerSave[0];
+
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,layerPreviewBlurEffectOFFEvent);
+                subLayerSave = [];
+            }
+        }
+
+        private function setLayerPreviewBlurEffect(layer:int):void 
+        {
+            if(subLayerSave.length === 0)
+            {
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,layerPreviewBlurEffectOFFEvent,false,5);
+            }
+            subLayerSave[0] = canvas1Bitmap.visible;
+            subLayerSave[1] = canvas11Bitmap.visible;
+
+            if(layer === 1)
+            {
+                canvas1Bitmap.visible = true;
+                canvas11Bitmap.visible = false;
+            }
+            else if(layer === 2)
+            {
+                canvas1Bitmap.visible = false;
+                canvas11Bitmap.visible = true;
+            }
+        }
+
         private function checkfofoPos():void 
         {
             if(isRightSidebar)
@@ -1535,13 +1572,20 @@
             }
         }
         
-        private function setQuickSidebarON(shortcut:Boolean):void
+        private function setQuickSidebarON(shortcut:Boolean,eraseTool:Boolean):void
         {
             quickSidebarON = true;
 
             if(shortcut)
             {
-                setOldTool();
+                if(eraseTool)
+                {
+                    selectEraseTool();
+                }
+                else
+                {
+                    setOldTool();
+                }
                 stage.addEventListener(KeyboardEvent.KEY_UP,keyUpQuickSidebarOFF);
             }
             else
@@ -4582,12 +4626,12 @@
         private function clearTraceImage():void
         {
             canvasTraceBitmapData.dispose();
+            if(canvasTraceBitmap.bitmapData) canvasTraceBitmap.bitmapData.dispose();
             canvasTraceBitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
             canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
-            if(traceImageFile.exists) traceImageFile.deleteFile();
-
             resetTraceImageInfo();
             canvasTraceLayer.visible = false;
+            saveTraceImage();
         }
         
         private function resetTraceImageInfo():void
@@ -4872,6 +4916,8 @@
 
             if(subLayerON) canvasPanel.setChildIndex(canvas2,2);
             else canvasPanel.setChildIndex(canvas1Bitmap,2);
+
+            setLayerPreviewBlurEffect((flag)?2:1)
         }   
 
         private function setPixelSnap(flag:Boolean):void
@@ -6542,7 +6588,7 @@
 
         private function clearDataResetVars():void
         {
-            tickDraw.resetgetRCursorPos();
+            tickDraw.resetRCursorPos();
             rBGColorSave = CANVAS_BG_COLOR;
             saveContinue = false;
             rMirrorON = false;
@@ -7927,7 +7973,7 @@
                 rCursor.y = rTinyCursorPos.y;
             }
 
-            function resetgetRCursorPos():void
+            function resetRCursorPos():void
             {
                 rTinyCursorPos.setTo(0,0);
             }
@@ -8492,7 +8538,7 @@
                 getLineStyleAlpha:getLineStyleAlpha,
                 getRCursorPos:getRCursorPos,
                 setRCursorPos:setRCursorPos,
-                resetgetRCursorPos:resetgetRCursorPos,
+                resetRCursorPos:resetRCursorPos,
                 updateRCursorPos:updateRCursorPos,
                 updateLineStyleBackup:updateLineStyleBackup
             }
@@ -10786,19 +10832,34 @@
 
             if(fillPenStarted) fillPenTool.cancel();
 
-            tickDraw.resetgetRCursorPos();
+            tickDraw.resetRCursorPos();
             tmpBMPD.draw(imageData,scaleMat,null,null,null,true);
+
+            if(canvas1Bitmap.bitmapData) canvas1Bitmap.bitmapData.dispose();
             canvas1BitmapData = tmpBMPD.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
+            
             if(imageOnlyFlag) rFirstImage = tmpBMPD.clone(); //이미지만 불러와주면 첫 이미지를 갱신해줌
 
+            if(canvas11Bitmap.bitmapData) canvas11Bitmap.bitmapData.dispose();
+            
             if(imageData1 !== null)
             {
                 tmpBMPD.fillRect(new Rectangle(0,0,scaledwidth,scaledheight),0);
                 tmpBMPD.draw(imageData1,scaleMat,null,null,null,true);
+
                 canvas11BitmapData = tmpBMPD.clone();
                 canvas11Bitmap.bitmapData = canvas11BitmapData;
-                if(imageOnlyFlag) rFirstImage1 = tmpBMPD.clone();
+
+                if(imageOnlyFlag)
+                {
+                    rFirstImage1 = tmpBMPD.clone();
+                }
+            }
+            else
+            {
+                canvas11BitmapData = new BitmapData(canvas1BitmapData.width,canvas1BitmapData.height,true,0);
+                canvas11Bitmap.bitmapData = canvas11BitmapData;
             }
 
             changeCanvasSize(scaledwidth,scaledheight,0,0,false);
@@ -16059,7 +16120,7 @@
                 {
                     if(quickSidebarON === false)
                     {
-                        setQuickSidebarON(true);
+                        setQuickSidebarON(true,true);
                     }
                     return;
                 }
@@ -16070,7 +16131,7 @@
                 {
                     if(quickSidebarON === false)
                     {
-                        setQuickSidebarON(true);
+                        setQuickSidebarON(true,false);
                     }
                     return;
                 }
@@ -16530,7 +16591,7 @@
 
                 case "toolSidebar":
                 {
-                    setQuickSidebarON(false);
+                    setQuickSidebarON(false,false);
                 }
                 break;
 
