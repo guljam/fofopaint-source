@@ -63,8 +63,8 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.82;
-        private const APP_DATA_VERSION:Number = 16.22;
+        private const APP_VERSION:Number = 16.83;
+        private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -392,8 +392,8 @@
                     ,toolTipBoxOpenTime:int = 0 //타입 툴팁 쓸때 너무 빨리 클릭하면 사라져서 이 시간안에 클릭하면 1초후레 사라지도록함
 
         //리플레이 관련 변수
-        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata"+(APP_DATA_VERSION*100))
-                    ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata"+(APP_DATA_VERSION*100))
+        private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata"+Math.ceil(APP_DATA_VERSION*100))
+                    ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata"+Math.ceil(APP_DATA_VERSION*100))
                     ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata")
                     ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("repdatatmp") //파일을 저장하거나 불러올때 씀
                     ,rJumpImageFolder:File = File.applicationStorageDirectory.resolvePath("imagecache")
@@ -625,6 +625,7 @@
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,layerOptionON:Boolean = false //레이어 옵션 켜졌을때 올려줌
+                    // ,testbmp:Bitmap = new Bitmap()
                     ;
         //vars
         public function main():void
@@ -674,6 +675,18 @@
         }
         
         //functions
+        // private function drawTestBmp():void 
+        // {
+        //     const data:Array = undoData.getUndoRefImage();
+        //     const bmpd:BitmapData = new BitmapData(data[0].width,data[0].height,true,0);
+        //     bmpd.draw(data[1]);
+        //     bmpd.draw(data[0]);
+        //     testbmp.bitmapData = bmpd;
+        //     testbmp.y = 50;
+        //     testbmp.width = 200;
+        //     testbmp.height = 200;
+        // }
+
         private function layerPreviewBlurEffectOFF():void 
         {
             if(subLayerON) canvas11Bitmap.visible = true;
@@ -1631,7 +1644,7 @@
         {
             const list:Array = File.applicationStorageDirectory.getDirectoryListing();
             const len:int = list.length;
-            const version:String = String(APP_DATA_VERSION*100);
+            const version:String = String(Math.ceil(APP_DATA_VERSION*100));
             var filename:String;
 
             for (var i:int=0; i<len; i++)
@@ -7160,6 +7173,11 @@
                 canvas11BitmapData = rcanvas11BitmapData.clone();
                 canvas11Bitmap.bitmapData = canvas11BitmapData;
 
+                if(isDeepUndoON)
+                {
+                    undoData.setUndoRefImageByReplayMode();
+                }
+
                 changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height,0,0,false);
                 resetReplayTime();
                 setBackgroundColorDrawMode(RCANVAS_BG_COLOR);
@@ -7957,6 +7975,7 @@
             mirrorBMPD = null;
 
             rMirrorON = !rMirrorON;
+
         }
 
         private function cTickDraw():Object
@@ -10829,6 +10848,7 @@
             mirrorON = false;
             mirrorCommandReady = false;
             appInfoBox.setMirror(false);
+            checkGridMirror(false);
 
             if(lassoToolON === true)
             {
@@ -11957,7 +11977,7 @@
             bmpd1.lock();
             bmpd1.setPixels(newRectangle,arr[1]);
             bmpd1.unlock();
-            undoData.setUndoRefImage([bmpd.clone(),bmpd1.clone(),arr[2],arr[3],arr[4]]);
+            undoData.setUndoRefImage([bmpd.clone(),bmpd1.clone(),arr[2],arr[3],arr[4],arr[5]]);
             drawUndoData();
             bmpd.dispose();
             bmpd1.dispose();
@@ -11984,7 +12004,7 @@
             ba.compress();
             ba1.compress();
             //레이어 1,레이어2,가로,세로,배경색
-            var newArr:Array = [ba,ba1,arr[2],arr[3],arr[4]];
+            var newArr:Array = [ba,ba1,arr[2],arr[3],arr[4],arr[5]];
 
             fs.open(undoDataFile,FileMode.WRITE);
             fs.writeInt(undoIndex);
@@ -13111,11 +13131,22 @@
             }
         }
 
+        private function mirrorTraceLayerImage():void
+        {
+            const _canvasTraceLayer:Sprite = canvasTraceLayer;
+            const _traceInfo:Array = tracePosInfo;
+
+            canvasTraceLayer.scaleX = -canvasTraceLayer.scaleX;
+            canvasTraceLayer.rotation = -canvasTraceLayer.rotation;
+            _traceInfo[2] = canvasTraceLayer.rotation;
+            _traceInfo[3] = canvasTraceLayer.scaleX;
+            _traceInfo[5] = !_traceInfo[5];
+        }
+
         private function mirrorCanvas(canvasOnly:Boolean=false):void
         {
             //canvaspanel로 하면 중점이 안맞아서 canvas1로함
             const p:Point = getCanvasPanelMidPos();
-            const _traceInfo:Array = tracePosInfo;
 
             mirrorON = !mirrorON;
             mirrorCommandReady = !mirrorCommandReady;
@@ -13127,11 +13158,7 @@
             if(canvasOnly === false) //보통 미러할때, canvasonly가 true일때는 appdata에서 바꿔줄때 밖에 없음
             {
                 regPoint.rotation = -regPoint.rotation;//반대각으로 세팅
-                canvasTraceLayer.scaleX = -canvasTraceLayer.scaleX;
-                canvasTraceLayer.rotation = -canvasTraceLayer.rotation;
-                _traceInfo[2] = canvasTraceLayer.rotation;
-                _traceInfo[3] = canvasTraceLayer.scaleX;
-                _traceInfo[5] = !_traceInfo[5];
+                mirrorTraceLayerImage();
             }
 
             checkGridMirror(mirrorON);
@@ -14619,7 +14646,7 @@
             const _tickDraw:Object = tickDraw;1
             const _zoomed:Number = zoomed;
 
-            rMirrorON = false; //미러가 안된 상태의 undoimage를 깔아주기 때문에 처음에는 false로 설정해야함
+            rMirrorON = d[5];
             if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
             if(bg !== RCANVAS_BG_COLOR) setBackgroundColorReplayMode(bg);
 
@@ -14665,6 +14692,7 @@
             {
                 mirrorCommandReady = true;
                 mirrorDraw();
+                checkGridMirror(mirrorON);
             }
             else
             {
@@ -14694,7 +14722,6 @@
                 undoDelFlag = false;
                 replayONUndoUpdate = false;
                 undoIndex = rData.length-1;
-                // if(undoPreviewCursorON) setUndoPreviewCursorOFF();
             }
             else
             {
@@ -14776,7 +14803,8 @@
                                     ,rFirstImage1.clone()
                                     ,CANVAS_WIDTH
                                     ,CANVAS_HEIGHT
-                                    ,CANVAS_BG_COLOR];
+                                    ,CANVAS_BG_COLOR
+                                    ,mirrorON];
 
             function resetRJumpImageCount():void
             {
@@ -14789,7 +14817,8 @@
                                         ,rcanvas11BitmapData.clone()
                                         ,rcanvas1BitmapData.width
                                         ,rcanvas1BitmapData.height
-                                        ,RCANVAS_BG_COLOR]);
+                                        ,RCANVAS_BG_COLOR
+                                        ,rMirrorON]);
             }
 
             function setUndoRefImageByDrawMode():void
@@ -14798,10 +14827,11 @@
                                         ,canvas11BitmapData.clone()
                                         ,canvas1BitmapData.width
                                         ,canvas1BitmapData.height
-                                        ,CANVAS_BG_COLOR]);
+                                        ,CANVAS_BG_COLOR
+                                        ,mirrorON]);
             }
 
-            function updateUndoDataFirst():void
+            function updateUndoRefImage():void
             {
                 const d:Array = undoRefImage;
                 const image:BitmapData = d[0];
@@ -14810,10 +14840,13 @@
                 const h:uint = d[3];
                 const bg:uint = d[4];
                 const len:int = undoIndex;
-
+                var rMirrorSave:Boolean = rMirrorON;
+                
                 if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
                 if(bg !== RCANVAS_BG_COLOR) setBackgroundColorReplayMode(bg);
 
+                if(rcanvas1Bitmap.bitmapData) rcanvas1Bitmap.bitmapData.dispose();
+                if(rcanvas11Bitmap.bitmapData) rcanvas11Bitmap.bitmapData.dispose();
                 rcanvas1BitmapData = image.clone();
                 rcanvas11BitmapData = image1.clone();
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
@@ -14822,7 +14855,18 @@
                 tickDraw.ready(rData[0]);
                 tickDraw.drawAll();
 
-                undoRefImage = [rcanvas1BitmapData.clone(),rcanvas11BitmapData.clone(),RCANVAS_WIDTH,RCANVAS_HEIGHT,RCANVAS_BG_COLOR];
+                undoRefImage[0].dispose();
+                undoRefImage[1].dispose();
+                undoRefImage[0] = rcanvas1BitmapData.clone();
+                undoRefImage[1] = rcanvas11BitmapData.clone();
+                undoRefImage[2] = RCANVAS_WIDTH;
+                undoRefImage[3] = RCANVAS_HEIGHT;
+                undoRefImage[4] = RCANVAS_BG_COLOR;
+
+                if(rMirrorON !== rMirrorSave)
+                {
+                    undoRefImage[5] = !undoRefImage[5];
+                }
             }
 
             function getUndoRefImage():Array
@@ -14835,7 +14879,7 @@
                 undoRefImage[0].dispose();
                 undoRefImage[1].dispose();
                 undoRefImage = arr.concat();
-                arr = [];
+                arr = null;
             }
 
             function getRFileTotalFrame():Number
@@ -14902,12 +14946,12 @@
 
                 rDataFrame[rDataFrame.length-1] = rData[rData.length-1].length;
                 rDataBuffer = [];
+
+                // drawTestBmp()
             }
 
             function add():void
             {
-                replayONUndoUpdate = true;
-
                 if(undoDelFlag === true)
                 {
                     undoDelFlag = false;
@@ -14932,7 +14976,7 @@
 
                         rFileTotalFrame += c;
                         rJumpImageCount += c;
-                        updateUndoDataFirst();
+                        updateUndoRefImage();
 
                         if(makeJumpImageFlag === 0)
                         {
@@ -15011,6 +15055,8 @@
                 if(canvasWindowON) updateCanvasWindowImage();
                 
                 setClearButtonActive();
+
+                // drawTestBmp();
             };
 
             return {
@@ -15493,6 +15539,8 @@
             stage.addChild(penSizeCursor);
             stage.setChildIndex(regPoint,0);
             stage.setChildIndex(stageBG,0);
+
+            // stage.addChild(testbmp);
         }
 
         private function saveAllData():void
