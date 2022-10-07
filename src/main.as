@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.83;
+        private const APP_VERSION:Number = 16.84;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -675,18 +675,6 @@
         }
         
         //functions
-        // private function drawTestBmp():void 
-        // {
-        //     const data:Array = undoData.getUndoRefImage();
-        //     const bmpd:BitmapData = new BitmapData(data[0].width,data[0].height,true,0);
-        //     bmpd.draw(data[1]);
-        //     bmpd.draw(data[0]);
-        //     testbmp.bitmapData = bmpd;
-        //     testbmp.y = 50;
-        //     testbmp.width = 200;
-        //     testbmp.height = 200;
-        // }
-
         private function layerPreviewBlurEffectOFF():void 
         {
             if(subLayerON) canvas11Bitmap.visible = true;
@@ -4648,7 +4636,6 @@
         private function clearTraceImage():void
         {
             canvasTraceBitmapData.dispose();
-            if(canvasTraceBitmap.bitmapData) canvasTraceBitmap.bitmapData.dispose();
             canvasTraceBitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
             canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
             resetTraceImageInfo();
@@ -6658,11 +6645,9 @@
             rcanvas2Draw.graphics.clear();
             rcanvas2BitmapData.fillRect(new Rectangle(0,0,rcanvas2BitmapData.width,rcanvas2BitmapData.height),0);
 
-            if(canvas1Bitmap.bitmapData) canvas1Bitmap.bitmapData.dispose();
             canvas1BitmapData = rcanvas1BitmapData.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
 
-            if(canvas11Bitmap.bitmapData) canvas11Bitmap.bitmapData.dispose();
             canvas11BitmapData = rcanvas11BitmapData.clone();
             canvas11Bitmap.bitmapData = canvas11BitmapData;
 
@@ -7390,11 +7375,11 @@
                     break;
 
                     case "replayPrev":
-                        str = "Prev (left, z, .), 1 frame (right-click, shift + [click, left, z, .])";
+                        str = "Prev (left, z, .) 1 frame (right-click, shift+[click, left, z, .])";
                     break;
 
                     case "replayNext":
-                        str = "Next (right, x, ,), 1 frame (right-click, shift + [click, right, x, ,])";
+                        str = "Next (right, x, ,) 1 frame (right-click, shift+[click, right, x, ,])";
                     break;
 
                     case "replaySpeedBarWrapper":
@@ -7961,13 +7946,11 @@
             var flipMat:Matrix = new Matrix(-1,0,0,1,RCANVAS_WIDTH);
 
             mirrorBMPD.draw(rcanvas1BitmapData,flipMat);
-            if(rcanvas1Bitmap.bitmapData) rcanvas1Bitmap.bitmapData.dispose();
             rcanvas1BitmapData = mirrorBMPD.clone();
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
 
             mirrorBMPD.fillRect(new Rectangle(0,0,RCANVAS_WIDTH,RCANVAS_HEIGHT),0);
             mirrorBMPD.draw(rcanvas11BitmapData,flipMat);
-            if(rcanvas11Bitmap.bitmapData) rcanvas11Bitmap.bitmapData.dispose();
             rcanvas11BitmapData = mirrorBMPD.clone();
             rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
 
@@ -8286,17 +8269,8 @@
                 lassoBMP.filters = [];
                 lassoBMPsub.filters = [];
 
-                if(lassoBMP.bitmapData)
-                {
-                    lassoBMP.bitmapData.dispose();
-                    lassoBMP.bitmapData = null;
-                }
-
-                if(lassoBMPsub.bitmapData)
-                {
-                    lassoBMPsub.bitmapData.dispose();
-                    lassoBMPsub.bitmapData = null;
-                }
+                if(lassoBMP.bitmapData) lassoBMP.bitmapData.dispose();
+                if(lassoBMPsub.bitmapData) lassoBMPsub.bitmapData.dispose();
                 
                 const lsbox:Sprite = lassoBox;
                 lsbox.x = 0;
@@ -10167,9 +10141,6 @@
             undoData.resetRJumpImageCount();
             clearCanvasReplayMode();//일단 리플레이 캔버스 먼저 깨끗하게
             //첫 이미지 그려줌
-            if(rcanvas1Bitmap.bitmapData) rcanvas1Bitmap.bitmapData.dispose();
-            if(rcanvas11Bitmap.bitmapData) rcanvas11Bitmap.bitmapData.dispose();
-
             rcanvas1BitmapData = rFirstImage.clone(); 
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
             rcanvas11BitmapData = rFirstImage1.clone(); 
@@ -10861,14 +10832,11 @@
             tickDraw.resetRCursorPos();
             tmpBMPD.draw(imageData,scaleMat,null,null,null,true);
 
-            if(canvas1Bitmap.bitmapData) canvas1Bitmap.bitmapData.dispose();
             canvas1BitmapData = tmpBMPD.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
             
             if(imageOnlyFlag) rFirstImage = tmpBMPD.clone(); //이미지만 불러와주면 첫 이미지를 갱신해줌
 
-            if(canvas11Bitmap.bitmapData) canvas11Bitmap.bitmapData.dispose();
-            
             if(imageData1 !== null)
             {
                 tmpBMPD.fillRect(new Rectangle(0,0,scaledwidth,scaledheight),0);
@@ -12244,7 +12212,8 @@
                     undoData.setRFileTotalFrame(d["rFileTotalFrame"]);
                     saveFileName = d["saveFileName"];
                     saveFilePath = d["saveFileName"];
-                    colorHistoryList = d["colorHistoryList"];
+                    colorHistoryList = d["colorHistoryList"].concat();
+                    d["colorHistoryList"] = [];
                     APP_RUNNING_TIME = d["APP_RUNNING_TIME"];
                     updateWorkingTime();
                     CANVAS_TRACE_ALPHA = d["CANVAS_TRACE_ALPHA"]
@@ -13077,13 +13046,11 @@
             var flipMat:Matrix = new Matrix(-1,0,0,1,CANVAS_WIDTH);
 
             tempBitData.draw(canvas1BitmapData,flipMat);
-            if(canvas1Bitmap.bitmapData) canvas1Bitmap.bitmapData.dispose();
             canvas1BitmapData = tempBitData.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
 
             tempBitData.fillRect(new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT),0);
             tempBitData.draw(canvas11BitmapData,flipMat);
-            if(canvas11Bitmap.bitmapData) canvas11Bitmap.bitmapData.dispose();
             canvas11BitmapData = tempBitData.clone();
             canvas11Bitmap.bitmapData = canvas11BitmapData;
 
@@ -13212,9 +13179,6 @@
                 rcanvas11BitmapData.draw(rcanvas11Bitmap);
             }
 
-            if(rcanvas1Bitmap.bitmapData) rcanvas1Bitmap.bitmapData.dispose();
-            if(rcanvas1Bitmap.bitmapData) rcanvas11Bitmap.bitmapData.dispose();
-
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
             rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
             updateReplayCanvasBounds();
@@ -13286,9 +13250,6 @@
                 canvas1BitmapData.draw(canvas1Bitmap);
                 canvas11BitmapData.draw(canvas11Bitmap);
             }
-
-            if(canvas1Bitmap.bitmapData) canvas1Bitmap.bitmapData.dispose();
-            if(canvas1Bitmap.bitmapData) canvas11Bitmap.bitmapData.dispose();
 
             canvas1Bitmap.bitmapData = canvas1BitmapData;
             canvas11Bitmap.bitmapData = canvas11BitmapData;
@@ -13976,11 +13937,7 @@
                 }
                 spuitCursor.visible = false;
                 setOldTool();
-                if(_spuitZoomBitmap.bitmapData !== null)
-                {
-                    _spuitZoomBitmap.bitmapData.dispose();
-                    _spuitZoomBitmap.bitmapData = null;
-                }
+                if(_spuitZoomBitmap.bitmapData) _spuitZoomBitmap.bitmapData.dispose();
                 //move에서 spuitBitmapData를 쓰고 있기 때문에 이벤트를 먼저 해제해주고 데이터 비워줌
             }
 
@@ -14283,17 +14240,8 @@
 
         private function disposeLassoBMP():void
         {
-            if(lassoBMP.bitmapData !== null)
-            {
-                lassoBMP.bitmapData.dispose();
-                lassoBMP.bitmapData = null;
-            }
-
-            if(lassoBMPsub.bitmapData !== null)
-            {
-                lassoBMPsub.bitmapData.dispose();
-                lassoBMPsub.bitmapData = null;
-            }
+            if(lassoBMP.bitmapData !== null) lassoBMP.bitmapData.dispose();
+            if(lassoBMPsub.bitmapData !== null) lassoBMPsub.bitmapData.dispose();
         }
 
         private function lassoCancelBmpd():void
@@ -14650,9 +14598,6 @@
             if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
             if(bg !== RCANVAS_BG_COLOR) setBackgroundColorReplayMode(bg);
 
-            if(rcanvas1Bitmap.bitmapData) rcanvas1Bitmap.bitmapData.dispose();
-            if(rcanvas11Bitmap.bitmapData) rcanvas11Bitmap.bitmapData.dispose();
-
             rcanvas1BitmapData = image.clone();
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
             rcanvas11BitmapData = image1.clone();
@@ -14679,9 +14624,6 @@
                 regPoint.y += movedRegPos.y*_zoomed;
                 setTraceBitmapPosUndo(movedRegPos);
             }
-
-            if(canvas1Bitmap.bitmapData) canvas1Bitmap.bitmapData.dispose();
-            if(canvas11Bitmap.bitmapData) canvas11Bitmap.bitmapData.dispose();
 
             canvas1BitmapData = rcanvas1BitmapData.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
@@ -14845,8 +14787,6 @@
                 if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
                 if(bg !== RCANVAS_BG_COLOR) setBackgroundColorReplayMode(bg);
 
-                if(rcanvas1Bitmap.bitmapData) rcanvas1Bitmap.bitmapData.dispose();
-                if(rcanvas11Bitmap.bitmapData) rcanvas11Bitmap.bitmapData.dispose();
                 rcanvas1BitmapData = image.clone();
                 rcanvas11BitmapData = image1.clone();
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
@@ -16029,10 +15969,8 @@
                 case KEY.enter:
                 case KEY.space:
                 {
-                    if(replayStartON === false)
-                        startReplay();
-                    else
-                        stopReplay();
+                    if(replayStartON === false) startReplay();
+                    else stopReplay();
                 }
                 break;
             }
