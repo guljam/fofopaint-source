@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.86;
+        private const APP_VERSION:Number = 16.87;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -625,7 +625,6 @@
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,layerOptionON:Boolean = false //레이어 옵션 켜졌을때 올려줌
-                    // ,testbmp:Bitmap = new Bitmap()
                     ;
         //vars
         public function main():void
@@ -14928,8 +14927,6 @@
 
                 rDataFrame[rDataFrame.length-1] = rData[rData.length-1].length;
                 rDataBuffer = [];
-
-                // drawTestBmp()
             }
 
             function add():void
@@ -15037,8 +15034,6 @@
                 if(canvasWindowON) updateCanvasWindowImage();
                 
                 setClearButtonActive();
-
-                // drawTestBmp();
             };
 
             return {
@@ -15521,8 +15516,6 @@
             stage.addChild(penSizeCursor);
             stage.setChildIndex(regPoint,0);
             stage.setChildIndex(stageBG,0);
-
-            // stage.addChild(testbmp);
         }
 
         private function saveAllData():void
