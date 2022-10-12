@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.88;
+        private const APP_VERSION:Number = 16.90;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -10168,15 +10168,19 @@
         private function makeJumpImage():void //loadrep
         {
             const fs:FileStream = new FileStream();
+            const fs2:FileStream = new FileStream();
             const cd2:Graphics = rcanvas2Draw.graphics;
             const totalSize:Number = repFile.size;
             const _IMG_CACHE_INTERVAL:uint = IMG_CACHE_INTERVAL;
             const replayInfoText:TextField = replayTimeBox["frameInfo"];
+            var rect:Rectangle;
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
             var _rJumpImageCount:uint = 0;
             var _tickDraw:Object = tickDraw;
             var data:Array;
+            var imgData:ByteArray = new ByteArray();
+            var imgData1:ByteArray = new ByteArray();
 
             rregPoint.visible = false;
             undoData.resetRJumpImageCount();
@@ -10202,6 +10206,8 @@
                         stage.removeEventListener(Event.ENTER_FRAME,onFrameEnter);
                         _tickDraw.reset();
                         fs.close();
+                        imgData.clear();
+                        imgData1.clear();
                         data = [];
                         _tickDraw = [];
                         undoData.setRFileTotalFrame(_frameSum);
@@ -10241,24 +10247,23 @@
                     {
                         _rJumpImageCount = 0;
                         rJumpImageFrameData.push(_frameSum); // jumpimg:File변수보다 먼저 와야함
-
-                        const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+"");
-                        var imgData:ByteArray = new ByteArray();
-                        var imgData1:ByteArray = new ByteArray();
-                        const w:Number = rcanvas1BitmapData.width;
-                        const h:Number = rcanvas1BitmapData.height;
-
-                        rcanvas1BitmapData.copyPixelsToByteArray(new Rectangle(0,0,w,h),imgData);
-                        rcanvas11BitmapData.copyPixelsToByteArray(new Rectangle(0,0,w,h),imgData1);
+                        rect = new Rectangle(0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height);
+                        imgData.clear();
+                        imgData1.clear();
+                        rcanvas1BitmapData.copyPixelsToByteArray(rect,imgData);
+                        rcanvas11BitmapData.copyPixelsToByteArray(rect,imgData1);
                         imgData.compress();
                         imgData1.compress();
-                        const fs2:FileStream = new FileStream();
-                        fs2.open(jumpimg,FileMode.WRITE);
+                        
+                        fs2.open(rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+""),FileMode.WRITE);
                         //레이어1,레이어2,가로 세로, 배경색, 마지막 바이트 위치, 마지막 프레임 합
-                        fs2.writeObject([imgData,imgData1,w,h,rBGColorSave,fs.position,_frameSum]);
+                        fs2.writeObject([imgData
+                                        ,imgData1
+                                        ,rcanvas1BitmapData.width
+                                        ,rcanvas1BitmapData.height
+                                        ,rBGColorSave,fs.position
+                                        ,_frameSum]);
                         fs2.close();
-                        imgData.clear();
-                        imgData = null;
 
                         if(replayTimeBox["replayNowBar"].width > 0) replayTimeBox["replayNowBar"].width = 0;
                         replayInfoText.text = "Reading replay data.. "+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%";
@@ -14978,9 +14983,10 @@
                                 //위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
                                 if(workerUndoData === null) workerUndoData = [];
                                 if(workerUndoData2 === null) workerUndoData2 = [];
-                                workerUndoData2.push([w,h,bgColor,rf.size,rFileTotalFrame]);
 
+                                workerUndoData2.push([w,h,bgColor,rf.size,rFileTotalFrame]);
                                 callWorkerCompressUndoJumpImage(imgData,imgData1);
+
                                 if(workerUndoDataTimer === 0)
                                 {
                                     workerUndoDataTimer = setInterval(function():void
@@ -14989,8 +14995,7 @@
                                         {
                                             const undo2FirstData:Array = workerUndoData2[0];
                                             rJumpImageFrameData.push(undo2FirstData[4]);
-                                            const jumpimg:File = rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+"");
-                                            fs.open(jumpimg,FileMode.WRITE);
+                                            fs.open(rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+""),FileMode.WRITE);
                                             fs.writeObject([workerUndoData[0][0]//레이어1
                                                            ,workerUndoData[0][1]//레이어2
                                                            ,undo2FirstData[0] //가로
