@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.87;
+        private const APP_VERSION:Number = 16.88;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7370,11 +7370,11 @@
                     break;
 
                     case "replayPrev":
-                        str = "Prev (left, z, .) 1 frame (right-click, shift+[click, left, z, .])";
+                        str = "Prev (left, z, .) 1 frame (right-click, shift+shortcuts)";
                     break;
 
                     case "replayNext":
-                        str = "Next (right, x, ,) 1 frame (right-click, shift+[click, right, x, ,])";
+                        str = "Next (right, x, ,) 1 frame (right-click, shift+shortcuts)";
                     break;
 
                     case "replaySpeedBarWrapper":
