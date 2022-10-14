@@ -11,6 +11,11 @@
 		public var h:Number = 220;
 		private const sepLine:Shape = new Shape();
 
+		public function getWidth():Number
+		{
+			return Math.round(w*scaleX);
+		}
+
 		public function setTempVisibleOFF(rightSide:Boolean):void
 		{
 			visible = false;

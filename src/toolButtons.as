@@ -340,6 +340,11 @@
 			updateBGBoxColor(arr[0]);
 		}
 
+		public function getLastTool():String
+		{
+			return lastTool;
+		}
+
 		public function moveToolCursorInit():void
 		{
 			moveToolCursor(lastTool);

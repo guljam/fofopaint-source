@@ -220,7 +220,7 @@
 			subLayerOFFButton.y = subLayerONButton.y;
 			subLayerOFFButton.visible = false;
 
-			layer1Button.x = subLayerOFFButton.x+subLayerOFFButton.width+6;
+			layer1Button.x = subLayerOFFButton.x+subLayerOFFButton.width+7;
 			layer1Button.y = subLayerOFFButton.y+2;
 			layer2Button.x = layer1Button.x;
 			layer2Button.y = layer1Button.y;
@@ -330,7 +330,7 @@
 
 			airBrushText.useHandCursor = false;
 			airBrushButtonWrapper.x = floor(pixelSnapButtonWrapper.x+0.5);
-			airBrushButtonWrapper.y = floor(pixelSnapButtonWrapper.y+pixelSnapButtonWrapper.height+5);
+			airBrushButtonWrapper.y = floor(pixelSnapButtonWrapper.y+pixelSnapButtonWrapper.height+6);
 
 			opaBox.x = offsetX;
 			opaBox.y = floor(pixelSnapButtonWrapper.y+pixelSnapButtonWrapper.height+2)+2;

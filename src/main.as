@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.92;
+        private const APP_VERSION:Number = 16.94;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -730,7 +730,7 @@
             if(isRightSidebar)
             {
                 fofo.flipImage(false);
-                fofo.x = sideBar.x+sideBar.w*sideBar.scaleX-fofo.width;
+                fofo.x = sideBar.x+sideBar.getWidth()-fofo.width;
             }
             else
             {
@@ -1556,7 +1556,7 @@
             quickSidebarON = false;
             checkfofoPos();
 
-            if(isNowTool(TOOL_SPUIT)) spuitTool();
+            if(toolBox.getLastTool() === "toolSpuit") spuitTool();
             if(traceMenuON) traceMenuBox.visible = true;
         }
 
@@ -1575,7 +1575,7 @@
             if(e.target && e.target.name === "sideBarScrollBar"
             || isDeepUndoON) return;
 
-            if(mouseX < sideBar.x || mouseX > sideBar.x+sideBar.w
+            if(mouseX < sideBar.x || mouseX > sideBar.x+sideBar.getWidth()
             || mouseY < sideBar.y)
             {
                 setQuickSidebarOFF();
@@ -1615,13 +1615,13 @@
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownQuickSidebarOFF,false,-2);
             }
 
-            const sclaedSidebarWidth:Number = sideBar.w*sideBar.scaleX;
+            const sideBarWidth:Number = sideBar.getWidth();
 
             sideBarPosSave = sideBar.x;
-            sideBar.x = mouseX-(sclaedSidebarWidth)/2+((isRightSidebar)? -18:22);
+            sideBar.x = mouseX-(sideBarWidth)/2+((isRightSidebar)? -18:22);
 
             if(sideBar.x < 0) sideBar.x = 0;
-            else if(sideBar.x+sclaedSidebarWidth > stage.stageWidth) updateSidebarDefaultRightPos();
+            else if(sideBar.x+sideBarWidth > stage.stageWidth) updateSidebarDefaultRightPos();
 
             if(sideBar.visible === true && isSidebarVisible === false)
             {
@@ -2214,9 +2214,10 @@
             if(!isSidebarVisible && !sideBar.visible)
             {
                 const mx:Number = mouseX;
+                const sideBarWidth:Number = sideBar.getWidth();
 
-                if((isRightSidebar && mx > stage.stageWidth-sideBar.w)
-                || (!isRightSidebar && mx < sideBar.w))
+                if((isRightSidebar && mx > stage.stageWidth-sideBarWidth)
+                || (!isRightSidebar && mx < sideBarWidth))
                 {
                     penCursorPosition.checkSideBarON();
                 }
@@ -2251,13 +2252,13 @@
             {
                 if(isRightSidebar)
                 {
-                    STAGE_RIGHT_OFFSET = sideBar.w*getUIScale();
+                    STAGE_RIGHT_OFFSET = sideBar.getWidth();
                     STAGE_LEFT_OFFSET = 0;
                 }
                 else
                 {
                     STAGE_RIGHT_OFFSET = 0;
-                    STAGE_LEFT_OFFSET = sideBar.w*getUIScale();
+                    STAGE_LEFT_OFFSET = sideBar.getWidth();
                 }
 
                 sideBar.visible = true;
@@ -9685,10 +9686,8 @@
                 {
                     if(quickSidebarON)
                     {
-                        oldTool = nowTool;
-                        setNowTool(TOOL_SPUIT);
+                        resetOldTool();
                         toolBox.moveToolCursor("toolSpuit");
-                        return;
                     }
                     else if(!isNowTool(TOOL_SPUIT))
                     {
@@ -13202,7 +13201,7 @@
 
             checkGridMirror(mirrorON);
 
-            const halfCanvas:Number = (stage.stageWidth-sideBar.w)/2;
+            const halfCanvas:Number = (stage.stageWidth-sideBar.getWidth())/2;
             var stageHalf:Number = (sideBar.visible === false) ? stage.stageWidth/2
                                             : (isRightSidebar) ? halfCanvas
                                             :                    STAGE_LEFT_OFFSET+halfCanvas;
@@ -13862,6 +13861,16 @@
             var canvas11bmpd:BitmapData;
             var penColorBackup:uint;
 
+            function isButtonSkipOldTool(targetName:String):Boolean
+            {
+                return !(targetName === "toolZoom"
+                || targetName === "toolRotate"
+                || targetName === "toolMirror"
+                || targetName === "toolUndo"
+                || targetName === "toolRedo"
+                || targetName === "toolTrace")
+            }
+
             function setSpuitMag():void
             {
                 const mid:Number = magSize/(4*zoomed); //기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
@@ -13954,7 +13963,7 @@
             {
                 if(e.keyCode === KEY.c || e.keyCode === KEY.m)
                 {
-                    colorPickerOFF(true);
+                    colorPickerOFF(true,false);
                 }
             }
 
@@ -13965,21 +13974,26 @@
                     return;
                 }
 
-                colorPickerOFF(false);
+                colorPickerOFF(false,false);
             }
 
             function colorPickerCancelMouseEvent(e:MouseEvent):void
             {
-                colorPickerOFF(false);
+                const skipOldToolFlag:Boolean = (e.target && e.target.name) ? isButtonSkipOldTool(e.target.name) : false;
+                colorPickerOFF(false,skipOldToolFlag);
             }
 
             function colorPickerOKMouseEvent(e:MouseEvent):void
             {
-                if(spuitCursor.visible) colorPickerOFF(true);
-                else colorPickerOFF(false);
+                if(spuitCursor.visible) colorPickerOFF(true,false);
+                else
+                {
+                    const skipOldToolFlag:Boolean = (e.target && e.target.name) ? isButtonSkipOldTool(e.target.name) : false;
+                    colorPickerOFF(false,skipOldToolFlag);
+                }
             }
 
-            function colorPickerOFF(okFlag:Boolean):void
+            function colorPickerOFF(okFlag:Boolean,skipOldTool:Boolean):void
             {
                 removeSpuitEvent();
 
@@ -14003,8 +14017,10 @@
                     else if(oldTool === TOOL_FILL_PEN) oldTool = TOOL_FILL_PEN;
                     else oldTool = TOOL_PEN;
                 }
+
                 spuitCursor.visible = false;
-                setOldTool();
+
+                if(!skipOldTool) setOldTool();
                 if(_spuitZoomBitmap.bitmapData) _spuitZoomBitmap.bitmapData.dispose();
             }
 
@@ -15264,7 +15280,7 @@
 
         private function updateSidebarDefaultRightPos():void
         {
-            sideBar.x = Math.round(stage.stageWidth-sideBar.w*sideBar.scaleX);
+            sideBar.x = Math.round(stage.stageWidth-sideBar.getWidth());
         }
 
         private function setSideBarRightPosition(ignoreCanvasMove:Boolean):void
@@ -15292,7 +15308,7 @@
 
             _sideBar.y = topBar.BARSIZE*topBar.scaleX;
 
-            STAGE_RIGHT_OFFSET = _sideBar.w*getUIScale();
+            STAGE_RIGHT_OFFSET = _sideBar.getWidth();
             STAGE_LEFT_OFFSET = 0;
 
             if(sideBar.visible)
@@ -15345,7 +15361,7 @@
 
             _sideBar.y = topBar.BARSIZE*topBar.scaleX;
 
-            STAGE_LEFT_OFFSET = _sideBar.w*getUIScale();
+            STAGE_LEFT_OFFSET = sideBar.getWidth();
             STAGE_RIGHT_OFFSET = 0;
             if(sideBar.visible)
             {
@@ -16845,10 +16861,8 @@
                 {
                     setTopChildIndex(toolBox);
                     toolBoxClickedTarget = targetName;
-                    return true;
                 }
-
-                return false;
+                return true;
             }
             return false;
         }
