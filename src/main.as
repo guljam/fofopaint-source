@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.91;
+        private const APP_VERSION:Number = 16.92;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3432,7 +3432,6 @@
 
         private function resetZoom():void
         {
-            if(zoomed === 1.0) return;
             const center:Point = getStageCenterPos(false,false);
 
             zoomedIndex = zoomArr.indexOf(1.0);
@@ -3905,10 +3904,10 @@
                 case "toolMirror": str = "Flip canvas\n(a, l)"; break;
                 case "toolLine": str = "Line\n(shift)"; break;
                 case "toolMove": str = "Move image\n(e, u)"; break;
-                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom(w, i)\nReset (shift+w, shift+i)"; break;
-                case "zoomInButton": str ="Zoom in\n "; break;
-                case "zoomOutButton": str ="Zoom out\n "; break;
-                case "toolRotate": str = "Rotate (s, k)\nReset (shift+s, shift+k)"; break;
+                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom(w, i)\nReset (right-click, shift+w, shift+i)"; break;
+                case "zoomInButton": str ="Zoom in\nReset (right-click)"; break;
+                case "zoomOutButton": str ="Zoom out\nReset (right-click)"; break;
+                case "toolRotate": str = "Rotate (s, k)\nReset (right-click, shift+s, shift+k)"; break;
                 case "toolTrace": str = "Reference layer\n(t)"; break;
             }
             return str;
@@ -12671,6 +12670,7 @@
             setRegPoint(center.x,center.y,false);
             regPoint.rotation = 0;
             appInfoBox.setRotate(0);
+            updatePreviewBoxRectPos();
         }
 
         private function cRotateTool():Function
@@ -16125,12 +16125,12 @@
                         {
                             case KEY.s:
                             case KEY.k:
-                                resetRotation();
+                                if(regPoint.rotation !== 0.0) resetRotation();
                             return;
 
                             case KEY.w:
                             case KEY.i:
-                                resetZoom();
+                                if(zoomed !== 1.0) resetZoom();
                             return;
 
                             case KEY.q:
@@ -17403,27 +17403,46 @@
 
             const targetName:String = e.target.name;
 
-            if(targetName === "saveButton") saveFile(true);
-            else if(targetName === "loadButton") loadFile(true);
-            else
+            switch(targetName)
             {
-                if(fillPenStarted)
+                case "saveButton": saveFile(true); break;
+                case "loadButton": loadFile(true); break;
+
+                case "toolZoom":
+                case "zoomInButton":
+                case "zoomOutButton":
                 {
-                    fillPenTool.ok();
+                    if(zoomed !== 1.0) resetZoom();
                 }
-                else if(!isSidebarVisible && sideBar.visible)
+                break;
+
+                case "toolRotate":
                 {
-                    if(!(targetName === "colorHistoryBox" || targetName === "colorHistoryBoxBG"))
+                    if(regPoint.rotation !== 0.0) resetRotation();
+                }
+                break;
+
+                default:
+                {
+                    if(fillPenStarted)
                     {
-                        penCursorPosition.setSideBarOFF();
-                        penCursorPosition.setSidebarONDelay();
+                        fillPenTool.ok();
+                    }
+                    else if(!isSidebarVisible && sideBar.visible)
+                    {
+                        if(!(targetName === "colorHistoryBox" || targetName === "colorHistoryBoxBG"))
+                        {
+                            penCursorPosition.setSideBarOFF();
+                            penCursorPosition.setSidebarONDelay();
+                        }
+                    }
+                    else if(isCursorInDrawArea())
+                    {
+                        if(toolBox2ON && !isDeepUndoON) closeToolBox2();
+                        else openToolBox2();
                     }
                 }
-                else if(isCursorInDrawArea())
-                {
-                    if(toolBox2ON && !isDeepUndoON) closeToolBox2();
-                    else openToolBox2();
-                }
+                break;
             }
         }
 
