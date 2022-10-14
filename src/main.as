@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.90;
+        private const APP_VERSION:Number = 16.91;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1551,14 +1551,18 @@
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownQuickSidebarOFF);
 
             if(isSidebarVisible === false) sideBar.visible = false;
+
             sideBar.x = sideBarPosSave;
-            toolBox.alpha = 1.0;
             quickSidebarON = false;
             checkfofoPos();
+
+            if(isNowTool(TOOL_SPUIT)) spuitTool();
+            if(traceMenuON) traceMenuBox.visible = true;
         }
 
         private function rightMouseDownQuickSidebarOFF(e:MouseEvent):void
         {
+            if(isDeepUndoON) return;
             const targetName:String = e.target.name;
             if(!(targetName === "colorHistoryBox" || targetName === "colorHistoryBoxBG"))
             {
@@ -1568,7 +1572,8 @@
 
         private function mouseDownQuickSidebarOFF(e:MouseEvent):void
         {
-            if(e.target && e.target.name === "sideBarScrollBar") return;
+            if(e.target && e.target.name === "sideBarScrollBar"
+            || isDeepUndoON) return;
 
             if(mouseX < sideBar.x || mouseX > sideBar.x+sideBar.w
             || mouseY < sideBar.y)
@@ -1579,6 +1584,7 @@
 
         private function keyUpQuickSidebarOFF(e:KeyboardEvent):void
         {
+            if(isDeepUndoON) return;
             const keyCode:uint = e.keyCode;
             if(keyCode === KEY.s || keyCode === KEY.d
             || keyCode === KEY.j || keyCode === KEY.k)
@@ -1621,8 +1627,10 @@
             {
                 penCursorPosition.removeSideBarClickEvents();
             }
-            toolBox.alpha = BUTTON_OFF_ALPHA;
+
             sideBar.visible = true;
+
+            if(traceMenuON) traceMenuBox.visible = false;
 
             checkfofoPos();
         }
@@ -4207,6 +4215,7 @@
                 setTopChildIndex(traceMenuBox);
                 return;
             }
+
             traceMenuON = true;
 
             const _traceMenuBox:traceButtons = traceMenuBox;
@@ -7173,6 +7182,8 @@
 
             if(canvasWindowON) updateCanvasWindowBitmapSize();
 
+            if(quickSidebarON) setQuickSidebarOFF();
+
             saveContinue = false;
         }
 
@@ -9631,6 +9642,7 @@
                     }
                 }
                 break;
+
                 case "toolFillPen":
                 {
                     if(!isNowTool(TOOL_FILL_PEN))
@@ -9640,6 +9652,7 @@
                     }
                 }
                 break;
+
                 case "toolErase":
                 {
                     if(!isNowTool(TOOL_ERASE))
@@ -9649,6 +9662,7 @@
                     }
                 }
                 break;
+
                 case "toolLine":
                 {
                     if(!isNowTool(TOOL_LINE))
@@ -9658,6 +9672,7 @@
                     }
                 }
                 break;
+
                 case "toolLasso":
                 {
                     if(!isNowTool(TOOL_LASSO))
@@ -9666,15 +9681,24 @@
                     }
                 }
                 break;
+
                 case "toolSpuit":
                 {
-                    if(!isNowTool(TOOL_SPUIT))
+                    if(quickSidebarON)
+                    {
+                        oldTool = nowTool;
+                        setNowTool(TOOL_SPUIT);
+                        toolBox.moveToolCursor("toolSpuit");
+                        return;
+                    }
+                    else if(!isNowTool(TOOL_SPUIT))
                     {
                         updateOldTool();
                         spuitTool();
                     }
                 }
                 break;
+                
                 case "toolUndo": setUndoButton(false); break;
                 case "toolRedo": setRedoButton(false); break;
                 case "toolMirror": mirrorCanvas(); break;
@@ -9685,6 +9709,8 @@
 
                 case "toolTrace":
                 {
+                    if(quickSidebarON) setQuickSidebarOFF();
+
                     if(traceMenuON === false)
                     {
                         openTraceWindow();
@@ -13949,12 +13975,8 @@
 
             function colorPickerOKMouseEvent(e:MouseEvent):void
             {
-                const targetName:String = e.target.name;
-                
-                if(spuitCursor.visible)
-                    colorPickerOFF(true);
-                else
-                    colorPickerOFF(false);
+                if(spuitCursor.visible) colorPickerOFF(true);
+                else colorPickerOFF(false);
             }
 
             function colorPickerOFF(okFlag:Boolean):void
@@ -13984,7 +14006,6 @@
                 spuitCursor.visible = false;
                 setOldTool();
                 if(_spuitZoomBitmap.bitmapData) _spuitZoomBitmap.bitmapData.dispose();
-                //move에서 spuitBitmapData를 쓰고 있기 때문에 이벤트를 먼저 해제해주고 데이터 비워줌
             }
 
             function colorPickerMoveEvent(e:MouseEvent):void
@@ -13994,12 +14015,11 @@
                 spuitCursor.x = mouseX;
                 spuitCursor.y = mouseY;
 
-                // if(targetName && targetName.indexOf("canvas") !== -1 || targetName === "canvasGrid")
                 if(isCursorInDrawArea())
                 {
-                    spuitCursor.visible = true;
                     _setColorTransform(spuitCursor["spuitNowColor"],pickColor());
                     if(zoomed < 12.0) setSpuitMag();
+                    spuitCursor.visible = true;
                 }
                 else
                 {
@@ -14011,9 +14031,9 @@
             {
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,colorPickerOKMouseEvent);
                 stageMouseMoveEvent.remove(colorPickerMoveEvent);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, colorPickerCancelMouseEvent);
-                stage.removeEventListener(KeyboardEvent.KEY_DOWN, colorPickerCancelKeyDownEvent);
-                stage.removeEventListener(KeyboardEvent.KEY_UP, colorPickerCancelKeyUpEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,colorPickerCancelMouseEvent);
+                stage.removeEventListener(KeyboardEvent.KEY_DOWN,colorPickerCancelKeyDownEvent);
+                stage.removeEventListener(KeyboardEvent.KEY_UP,colorPickerCancelKeyUpEvent);
             }
 
             function addSpuitEvent():void
@@ -14034,9 +14054,9 @@
                 canvas11bmpd = canvas11BitmapData;
                 toolBox.moveToolCursor("toolSpuit");
                 spuitDefaultZoom = zoomed*2.0;
-                oldTool = nowTool;
-                penColorBackup = penColor;
+                if(!isNowTool(TOOL_SPUIT)) oldTool = nowTool;
                 setNowTool(TOOL_SPUIT);
+                penColorBackup = penColor;
                 _setColorTransform(spuitCursor["spuitOldColor"],penColor);
                 moveEraseButton("toolSpuit");
                 spuitCursor.rotateBitmap(regPoint.rotation);
@@ -16317,7 +16337,10 @@
 
                 case KEY.t:
                 {
-                    if(!traceMenuON) openTraceWindow();
+                    if(!traceMenuON)
+                    {
+                        openTraceWindow();
+                    }
                     else if(traceMenuON) closeTraceMenu();
                 }
                 break;
@@ -16504,7 +16527,7 @@
                     saveAllData();
                 }
             }
-            if(quickSidebarON) setQuickSidebarOFF();
+            if(quickSidebarON && !isDeepUndoON) setQuickSidebarOFF();
             if(layerOptionON) checkLayerOptionOFF();
             if(subLayerSave.length > 0) layerPreviewBlurEffectOFF();
 
@@ -16769,7 +16792,7 @@
 
         private function checkToolBoxButtons(targetName:String):Boolean
         {
-            if(!isNowKey(0)) return true;
+            if(!isNowKey(0) && !quickSidebarON) return true;
 
             if(lassoToolON === false)
             {
@@ -16919,6 +16942,8 @@
             changePickerModeToNormal();
             updatePenSizeCursor();
             updatePenCursorPosition();
+
+            if(quickSidebarON) setQuickSidebarOFF();
         }
 
         private function setDeepUndoUION():void
@@ -17370,7 +17395,8 @@
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
             if(mouseClickON || !isNowKey(0) || isPressingControl() || quickSidebarON
-            || (traceMenuON && traceMenuBox.hitTestPoint(mouseX,mouseY)))
+            || (traceMenuON && traceMenuBox.hitTestPoint(mouseX,mouseY))
+            || isDeepUndoON)
             {
                 return;
             }

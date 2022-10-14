@@ -39,8 +39,6 @@
 			spuitZoomBitmap.x = z1;
 			spuitZoomBitmap.y = z1;
 			spuitZoomBitmapBox.addChild(spuitZoomBitmap);
-			spuitZoomBitmapBox.graphics.beginFill(0xFF0000);
-			spuitZoomBitmapBox.graphics.drawRect(0,0,10,10)
 			spuitZoomBitmap.mask = circleMask;
 
 			addChild(spuitZoomBitmapBox);
