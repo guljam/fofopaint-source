@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.94;
+        private const APP_VERSION:Number = 16.95;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1593,20 +1593,13 @@
             }
         }
         
-        private function setQuickSidebarON(shortcut:Boolean,eraseTool:Boolean):void
+        private function setQuickSidebarON(shortcut:Boolean):void
         {
             quickSidebarON = true;
 
             if(shortcut)
             {
-                if(eraseTool)
-                {
-                    selectEraseTool();
-                }
-                else
-                {
-                    setOldTool();
-                }
+                setOldTool();
                 stage.addEventListener(KeyboardEvent.KEY_UP,keyUpQuickSidebarOFF);
             }
             else
@@ -16186,10 +16179,7 @@
                 if(checkOpaSizeKeyDown((keyBuffer.length >= 2) ? keyBuffer[1] : keyCode)) return;
                 else if(keyBuffer.length >= 2 && (keyBuffer[1] === KEY.s || keyBuffer[1] === KEY.k))
                 {
-                    if(quickSidebarON === false)
-                    {
-                        setQuickSidebarON(true,true);
-                    }
+                    if(quickSidebarON === false) setQuickSidebarON(true);
                     return;
                 }
             }
@@ -16197,10 +16187,7 @@
             {
                 if(keyBuffer.length >= 2 && (keyBuffer[1] === KEY.d || keyBuffer[1] === KEY.j))
                 {
-                    if(quickSidebarON === false)
-                    {
-                        setQuickSidebarON(true,false);
-                    }
+                    if(quickSidebarON === false) setQuickSidebarON(true);
                     return;
                 }
             }
@@ -16663,7 +16650,7 @@
 
                 case "toolSidebar":
                 {
-                    setQuickSidebarON(false,false);
+                    setQuickSidebarON(false);
                 }
                 break;
 
