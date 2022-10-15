@@ -284,7 +284,7 @@
 
 		public function changeHintYPos(offset:Number):void
 		{
-			topMenuInfo.y = offset-4.5*scaleX;
+			topMenuInfo.y = offset-4*scaleX;
 			topbarInfoBG.y = offset-4;
 		}
 
