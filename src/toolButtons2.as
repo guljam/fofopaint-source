@@ -41,7 +41,6 @@
 			toolLine.alpha = alpha;
 			toolMove.alpha = alpha;
 			toolTrace.alpha = alpha;
-			toolSidebar.alpha = alpha;
 		}
 
 		public function deepUndoIconON():void

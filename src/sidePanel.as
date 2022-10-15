@@ -10,6 +10,7 @@
 		public const w:Number = 220;
 		public var h:Number = 220;
 		private const sepLine:Shape = new Shape();
+		public var tempVisibleON:Boolean = false;
 
 		public function getWidth():Number
 		{
@@ -18,6 +19,7 @@
 
 		public function setTempVisibleOFF(rightSide:Boolean):void
 		{
+			tempVisibleON = false;
 			visible = false;
 
 			if(rightSide) x = stage.stageWidth-w*scaleX;
@@ -26,9 +28,10 @@
 
 		public function setTempVisibleON(toolBarWidth:Number,rightSide:Boolean):void
 		{
-			if(rightSide) x = x+(w-toolBarWidth)*scaleX;
+			if(rightSide) x = stage.stageWidth-(toolBarWidth-1)*scaleX;
 			else x = (-w+toolBarWidth)*scaleX;
 
+			tempVisibleON = true;
 			visible = true;
 		}
 

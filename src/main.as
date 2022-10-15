@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 16.96;
+        private const APP_VERSION:Number = 16.97;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1551,8 +1551,10 @@
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownQuickSidebarOFF);
 
             if(isSidebarVisible === false) sideBar.visible = false;
+            
+            if(isDeepUndoON) sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
+            else  sideBar.x = sideBarPosSave;
 
-            sideBar.x = sideBarPosSave;
             quickSidebarON = false;
             checkfofoPos();
 
@@ -1562,7 +1564,6 @@
 
         private function rightMouseDownQuickSidebarOFF(e:MouseEvent):void
         {
-            if(isDeepUndoON) return;
             const targetName:String = e.target.name;
             if(!(targetName === "colorHistoryBox" || targetName === "colorHistoryBoxBG"))
             {
@@ -1572,8 +1573,7 @@
 
         private function mouseDownQuickSidebarOFF(e:MouseEvent):void
         {
-            if(e.target && e.target.name === "sideBarScrollBar"
-            || isDeepUndoON) return;
+            if(e.target && e.target.name === "sideBarScrollBar") return;
 
             if(mouseX < sideBar.x || mouseX > sideBar.x+sideBar.getWidth()
             || mouseY < sideBar.y)
@@ -1584,7 +1584,6 @@
 
         private function keyUpQuickSidebarOFF(e:KeyboardEvent):void
         {
-            if(isDeepUndoON) return;
             const keyCode:uint = e.keyCode;
             if(keyCode === KEY.s || keyCode === KEY.d
             || keyCode === KEY.j || keyCode === KEY.k)
@@ -7339,7 +7338,8 @@
         private function topBarHintONEvent(e:MouseEvent):void //topbarhint
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(!target || mouseDragON || mouseClickON || toolBox2ON || lassoToolON) return;
+            if(!target || mouseDragON || mouseClickON
+            || toolBox2ON || lassoToolON || isDeepUndoON) return;
 
             const targetName:String = e.target.name;
             if(topBarHintClickEventON === false)
@@ -15667,7 +15667,12 @@
                 sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
                 updateScrollBarHeight(sth);
 
-                if(isRightSidebar) updateSidebarDefaultRightPos();
+                if(isRightSidebar)
+                {
+                    if(sideBar.tempVisibleON) sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
+                    else updateSidebarDefaultRightPos();
+                }
+
                 if(isDeepUndoON) toolBox.checkDeepUndoIconBottom();
                 else if(fillPenStarted) toolBox.checkFillPenIconBottom();
 
@@ -16935,16 +16940,16 @@
             toolBox2.deepUndoIconOFF();
             updateScrollBarHeight(stage.stageHeight);
             syncDrawCanvasWithReplayMode();
-            addInputEventDrawMode();
-            removeDeepUndoEvent();
             if(traceMenuON === true) traceMenuBox.visible = true;
             if(isSidebarVisible === true) sideBar.visible = true;
             rFrameCacheImages = [];
             changePickerModeToNormal();
             updatePenSizeCursor();
             updatePenCursorPosition();
-
             if(quickSidebarON) setQuickSidebarOFF();
+
+            removeDeepUndoEvent();
+            addInputEventDrawMode();
         }
 
         private function setDeepUndoUION():void
@@ -17206,6 +17211,24 @@
         private function keyDownDeepUndo(e:KeyboardEvent):void
         {
             const keyCode:uint = keyBuffer[0];
+
+            if(isNowKey(KEY.d) || isNowKey(KEY.j))
+            {
+                if(keyBuffer.length >= 2 && (keyBuffer[1] === KEY.s || keyBuffer[1] === KEY.k))
+                {
+                    if(quickSidebarON === false) setQuickSidebarON(true);
+                    return;
+                }
+            }
+            else if(isNowKey(KEY.s) || isNowKey(KEY.k))
+            {
+                if(keyBuffer.length >= 2 && (keyBuffer[1] === KEY.d || keyBuffer[1] === KEY.j))
+                {
+                    if(quickSidebarON === false) setQuickSidebarON(true);
+                    return;
+                }
+            }
+
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
 
             var subKey:int;
@@ -17222,7 +17245,6 @@
                 })
                 return;
             }
-
             setNowKey(keyCode);
 
             switch(keyCode)
