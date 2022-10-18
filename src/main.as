@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.00;
+        private const APP_VERSION:Number = 17.01;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -928,6 +928,7 @@
             }
             updateCanvasWindowImage();
             updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+            updateCanvasWindowData();
         }
 
         private function openImageViewWindow():void
