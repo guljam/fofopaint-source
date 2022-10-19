@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.01;
+        private const APP_VERSION:Number = 17.02;
         private const APP_DATA_VERSION:Number = 16.83;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1565,11 +1565,30 @@
 
         private function rightMouseDownQuickSidebarOFF(e:MouseEvent):void
         {
-            const targetName:String = e.target.name;
-            if(!(targetName === "colorHistoryBox" || targetName === "colorHistoryBoxBG"))
+            if(!e.target) return;
+            
+            switch(e.target.name)
             {
-                setQuickSidebarOFF();
+                case "toolZoom":
+                case "zoomInButton":
+                case "zoomOutButton":
+                {
+                    if(zoomed !== 1.0) resetZoom();
+                }
+                return;
+
+                case "toolRotate":
+                {
+                    if(regPoint.rotation !== 0.0) resetRotation();
+                }
+                return;
+
+                case "colorHistoryBox":
+                case "colorHistoryBoxBG":
+                return;
             }
+
+            setQuickSidebarOFF();
         }
 
         private function mouseDownQuickSidebarOFF(e:MouseEvent):void
@@ -4352,15 +4371,6 @@
                 lastAng = nowAng;
                 sumAng += subAng;
                 var deg:Number = floor(sumAng*toDeg);
-                const snap90:Number = abs(deg%90);//90도 스냅 변수
-                const snap90N:Number = 90-snap90;
-                const snapAng:Number = (snap90 > snap90N) ? snap90 : snap90N;
-
-                //90도에 가까우면 90도 스냅이 걸리게함
-                if(snapAng > 85)
-                {
-                    deg = floor(deg/90+0.5)*90;
-                }
 
                 _canvasTrace.rotation = deg;
                 _rotateCursorBox["rotateArrow"].rotation = deg;
