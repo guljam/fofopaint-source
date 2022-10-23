@@ -63,8 +63,8 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.02;
-        private const APP_DATA_VERSION:Number = 16.83;
+        private const APP_VERSION:Number = 17.03;
+        private const APP_DATA_VERSION:Number = 17.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -219,7 +219,7 @@
                     ,STRING_CAPTURE_OK:String = " (Click canvas to save image, Right-click to reset capture area)"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
-                    ,STRING_RIGHT_CLICK_TO_RESET:String = "\n(Right-click to reset)"
+                    ,STRING_RIGHT_CLICK_TO_RESET:String = "Right-click to reset"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -294,7 +294,7 @@
                     ,rMirrorON:Boolean = false //대칭 켜지면 올려줌
                     ,mirrorON:Boolean = false
                     ,mirrorCommandReady:Boolean = false //미러 커맨드를 넣어줄지 말지 결정
-                    ,zoomArr:Array = [0.25,0.5,0.75,1.0,2.0,3.0,4.0,6.0,8.0,12.0,16.0,24.0,32.0]
+                    ,zoomArr:Array = [0.125,0.25,0.5,0.75,1.0,2.0,3.0,4.0,6.0,8.0,12.0,16.0,24.0,32.0]
                     ,zoomed:Number = 1.0
                     ,zoomedIndex:int = 3
                     ,rzoomedIndex:int = 3
@@ -440,6 +440,8 @@
                     ,rFirstImage1:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rFirstBGColor:uint = CANVAS_BG_COLOR
                     ,rzoomed:Number = 1.0 //리플레이 줌
+                    ,rFitZoomedON:Boolean = false // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
+                    ,rFitZoomedDelayTimer:int = 0 // 캔버스 창 맞춰주는거 단시간에 너무 많이 실행되는거 방지
                     ,rJumpImageIndexSave:int = -2 //썸네일 인덱스 바뀌면 여기다 저장
                     ,rJumpImageFrameData:Array = [0] //스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
                     ,makeJumpImageFlag:int = 0 //0이상이면 make jump image함수를 실행함. jumpframe함수에서 체크
@@ -625,6 +627,7 @@
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,layerOptionON:Boolean = false //레이어 옵션 켜졌을때 올려줌
+                    ,sideBarReCacheAsBitmapTimer:int = 0 //리플레이 모드에서 창을 작게 해줬다가 크게 하고 나서 드로우 모드로 가면 사이드바가 짤려서 타이머로 딜레이 시켜줌
                     ;
         //vars
         public function main():void
@@ -1573,13 +1576,13 @@
                 case "zoomInButton":
                 case "zoomOutButton":
                 {
-                    if(zoomed !== 1.0) resetZoom();
+                    if(zoomed !== 1.0) resetZoomDrawMode();
                 }
                 return;
 
                 case "toolRotate":
                 {
-                    if(regPoint.rotation !== 0.0) resetRotation();
+                    if(regPoint.rotation !== 0.0) resetRotationDrawMode();
                 }
                 return;
 
@@ -2097,6 +2100,7 @@
             stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpLassoTool);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownLassoTool);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
+            stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpLassoTool);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
             addInputEventDrawMode();
         }
@@ -2106,6 +2110,7 @@
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpLassoTool);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownLassoTool);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
+            stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpLassoTool,false,-1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
             removeInputEventDrawMode();   
         }
@@ -2259,7 +2264,6 @@
             if(tempFlag === false) isSidebarVisible = flag;
 
             const tb:topMenu = topBar;
-
             if(flag)
             {
                 if(isRightSidebar)
@@ -2275,6 +2279,14 @@
 
                 sideBar.visible = true;
                 checkfofoPos();
+                
+                //사이드바가 짤려 나오는 현상이 있어서 다시 캐쉬 풀었다가 다시 해줌
+                sideBar.cacheAsBitmap = false;
+                clearTimeout(sideBarReCacheAsBitmapTimer);
+                sideBarReCacheAsBitmapTimer = setTimeout(function():void
+                {
+                    sideBar.cacheAsBitmap = true;
+                },200);
             }
             else
             {
@@ -3443,9 +3455,20 @@
 		}
 
 
-        private function resetZoom():void
+        private function resetZoomReplayMode():void
         {
             const center:Point = getStageCenterPos(false,false);
+
+            rzoomedIndex = zoomArr.indexOf(1.0);
+            setRegPoint(center.x,center.y,true);
+            updateReplayCanvasBounds();
+            setZoomCanvas(1.0,true);
+            setFitZoomedOFF();
+        }
+
+        private function resetZoomDrawMode(center:Point=null):void
+        {
+            if(!center) center = getStageCenterPos(false,false);
 
             zoomedIndex = zoomArr.indexOf(1.0);
             setRegPoint(center.x,center.y,false);
@@ -3454,7 +3477,7 @@
             updatePreviewBoxRectPos();
         }
 
-        private function setZoomInButton(flag:Boolean,replayMode:Boolean):void
+        private function setZoomInButton(zoomInFlag:Boolean,replayMode:Boolean):void
         {
             const xReg:Sprite = (replayMode) ? rregPoint : regPoint;
             const _zoomArr:Array = zoomArr;
@@ -3463,7 +3486,7 @@
             const center:Point = getStageCenterPos(false,replayMode);
             var lastZoomIndex:int = (replayMode) ? rzoomedIndex : zoomedIndex;
 
-            if(flag) //줌인 
+            if(zoomInFlag)
             {
                 lastZoomIndex++;
                 if(lastZoomIndex > zoomMax) 
@@ -3480,6 +3503,7 @@
 
             if(replayMode)
             {
+                setFitZoomedOFF();
                 rzoomedIndex = lastZoomIndex;
                 setRegPoint(center.x,center.y,true);
                 updateReplayCanvasBounds();
@@ -3505,7 +3529,10 @@
         private function keyUpLassoTool(e:KeyboardEvent):void
         {
             const keyCode:uint = e.keyCode;
-            if(lassoMenuTempOFF && !mouseClickON) lassoMenuTempOFF = false;
+            if(lassoMenuTempOFF && !mouseClickON)
+            {
+                lassoMenuTempOFF = false;
+            }
 
             checkKeyUp(keyCode);
         }
@@ -3513,6 +3540,53 @@
         private function keyDownLassoTool(e:KeyboardEvent):void
         {
             const keyCode:int = keyBuffer[0];
+            var keyUsed:Boolean;
+
+            if(keyCode === KEY.space)
+            {
+                keyUsed = checkCommandSubKey(2,true,function(input:int):void
+                {
+                    switch(input)
+                    {
+                        case KEY.w: 
+                        case KEY.i: setLasso1PxMoveButton(LASSO_1PX_MOVE_UP); break;
+
+                        case KEY.a:
+                        case KEY.j: setLasso1PxMoveButton(LASSO_1PX_MOVE_LEFT); break;
+
+                        case KEY.s:
+                        case KEY.k: setLasso1PxMoveButton(LASSO_1PX_MOVE_DOWN); break;
+
+                        case KEY.d: 
+                        case KEY.l: setLasso1PxMoveButton(LASSO_1PX_MOVE_RIGHT); break;
+                    }
+                });
+
+                if(keyUsed || isNowKey(keyCode)) return;
+
+                lassoMenuTempOFF = true;
+                setNowKey(keyCode);
+                setNowTool(TOOL_HAND);
+            }
+            else if(isPressingShift())
+            {
+                keyUsed = checkCommandSubKey(2,true,function(input:int):void
+                {
+                    switch(input)
+                    {
+                        case KEY.s:
+                        case KEY.k:
+                            if(regPoint.rotation !== 0.0) resetRotationDrawMode();
+                        return;
+
+                        case KEY.w:
+                        case KEY.i:
+                            if(zoomed !== 1.0) resetZoomDrawMode(lassoBox.localToGlobal(new Point(0,0)));
+                        return;
+                    }
+                });
+                if(keyUsed) return;
+            }
 
             if(isNowKey(keyCode)) return;
             setNowKey(keyCode);
@@ -3521,60 +3595,19 @@
             {
                 case KEY.w:
                 case KEY.i:
-                case KEY.up:
                 {
-                    setLasso1PxMoveButton(LASSO_1PX_MOVE_UP);
-                }
-                break;
-
-                case KEY.s:
-                case KEY.k:
-                case KEY.down:
-                {
-                    setLasso1PxMoveButton(LASSO_1PX_MOVE_DOWN);
-                }
-                break;
-
-                case KEY.a:
-                case KEY.j:
-                case KEY.left:
-                {
-                    setLasso1PxMoveButton(LASSO_1PX_MOVE_LEFT);
-                }
-                break;
-
-                case KEY.d:
-                case KEY.l:
-                case KEY.right:
-                {
-                    setLasso1PxMoveButton(LASSO_1PX_MOVE_RIGHT);
-                }
-                break;
-
-
-                case KEY.space:
-                {
-                    setNowKey(keyCode);
-                    setNowTool(TOOL_HAND);
                     lassoMenuTempOFF = true;
-                }
-                break;
-
-                case KEY.w:
-                case KEY.i:
-                {
                     setNowKey(keyCode);
                     setNowTool(TOOL_ZOOM);
-                    lassoMenuTempOFF = true;
                 }
                 break;
 
                 case KEY.s:
                 case KEY.k:
                 {
+                    lassoMenuTempOFF = true;
                     setNowKey(keyCode);
                     setNowTool(TOOL_ROTATE);
-                    lassoMenuTempOFF = true;
                 }
                 break;
 
@@ -3814,9 +3847,9 @@
                 case "traceLoadButton":str = "Paste image from file"; break;
                 case "traceClipButton":str = "Paste image from clipboard"; break;
                 case "traceButtonWrapper":str = "Adjust opacity"; break;
-                case "traceRotateButton":str = "Rotate image"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "traceMoveButton":str = "Move image"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "traceResizeButton":str = "Resize image"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "traceRotateButton":str = "Rotate image\n("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
+                case "traceMoveButton":str = "Move image\n("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
+                case "traceResizeButton":str = "Resize image\n("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
                 case "traceCancelButton":str = "Close"; break;
                 case "traceMirrorButton":str = "Flip image"; break;
                 case "traceVisibleONButton":
@@ -3840,19 +3873,18 @@
                 case "lassoOK":str = "OK (enter, right-click)"; break;
                 case "lassoCancel":str = "Cancel (esc, backspace)"; break;
                 case "lassoCopy":str = "Copy image"; break;
-                case "lassoMove":str = "Move image"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "lassoRotate":str = "Rotate image"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "lassoCZoom":str = "Zoom canvas"; break;
-                case "lassoCRotate":str = "Rotate Canvas"; break;
+                case "lassoCZoom":str = "Zoom canvas\nReset (Right-click, shift+w/i)"; break;
+                case "lassoCRotate":str = "Rotate Canvas\nReset (Right-click, shift+s/k)"; break;
                 case "lassoCHand":str = "Move canvas"; break;
+                case "lassoRotate":str = "Rotate image\n("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
                 case "lassoMirror":str = "Flip image"; break;
-                case "lassoResize":str = "Resize image"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "lassoResize":str = "Resize image\n("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
                 case "lassoTrace":str = STRING_MERGE_LASSO_IMAGE_TO_TRACE; break;
                 case "lasso1pxLeft":
                 case "lasso1pxRight":
                 case "lasso1pxUp":
                 case "lasso1pxDown":
-                    str = "Move image 1px\n(wasd, ijkl, arrow key)"
+                    str = "Move image 1px\n(space+wasd / ijkl)"
                 break;
 
                 default: lassoMenu.hint("Lasso tool");
@@ -3917,10 +3949,10 @@
                 case "toolMirror": str = "Flip canvas\n(a, l)"; break;
                 case "toolLine": str = "Line\n(shift)"; break;
                 case "toolMove": str = "Move image\n(e, u)"; break;
-                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom(w, i)\nReset (right-click, shift+w, shift+i)"; break;
+                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)\nReset (right-click, shift+w/i)"; break;
                 case "zoomInButton": str ="Zoom in\nReset (right-click)"; break;
                 case "zoomOutButton": str ="Zoom out\nReset (right-click)"; break;
-                case "toolRotate": str = "Rotate (s, k)\nReset (right-click, shift+s, shift+k)"; break;
+                case "toolRotate": str = "Rotate (s, k)\nReset (right-click, shift+s/k)"; break;
                 case "toolTrace": str = "Reference layer\n(t)"; break;
             }
             return str;
@@ -6995,6 +7027,12 @@
                             }
                         }
                         break;
+
+                        case "replayFitToWindowButton":
+                        {
+                            if(!rFitZoomedON) setReplayFitToWindowButton();
+                        }
+                        break;
                     }
                 }
             }
@@ -7385,11 +7423,11 @@
                     break;
 
                     case "replayPrev":
-                        str = "Prev (left, z, .) 1 frame (right-click, shift+shortcuts)";
+                        str = "Prev (left, z, .) 1 frame (right-click, shift+left/z/.)";
                     break;
 
                     case "replayNext":
-                        str = "Next (right, x, ,) 1 frame (right-click, shift+shortcuts)";
+                        str = "Next (right, x, ,) 1 frame (right-click, shift+right/x/,)";
                     break;
 
                     case "replaySpeedBarWrapper":
@@ -7401,11 +7439,11 @@
 
                     case "saveButton":
                     case "repSaveButton":
-                        str = "Save (ctrl+s), Save as.. (right-click, shift+ctrl+s)";
+                        str = "Save (ctrl+s) Save as.. (right-click, shift+ctrl+s)";
                     break;
 
                     case "loadButton":
-                        str = "Load (ctrl+o), Load to Reference layer (right-click, ctrl+shift+o)";
+                        str = "Load (ctrl+o) Load to Reference layer (right-click, ctrl+shift+o)";
                     break;
                     case "repLoadButton":
                         str = "Load (ctrl+o)";
@@ -7433,8 +7471,7 @@
                     break;
 
                     case "capClipBoard":
-                            str = (e.target.alpha === 1.0) ?
-                                                            "Copy "+((drawCaptureArea.isFullImageCapture()) ?
+                            str = (e.target.alpha === 1.0) ? "Copy "+((drawCaptureArea.isFullImageCapture()) ?
                                                                     "full image"
                                                                     :"selected area image")
                                                             + " to clipboard (v, n)"
@@ -7455,12 +7492,12 @@
 
                     case "capLayer1VisibleButton":
                     case "capLayer1InvisibleButton":
-                        str = str = "Layer 1 visible ON/OFF (1, 9)";
+                        str = "Layer 1 visible ON/OFF (1, 9)";
                     break;
 
                     case "capLayer2VisibleButton":
                     case "capLayer2InvisibleButton":
-                        str = str = "Layer 2 visible ON/OFF (2, 0)";
+                        str = "Layer 2 visible ON/OFF (2, 0)";
                     break;
 
                     case "reRecordingButton":
@@ -7501,12 +7538,12 @@
 
                     case "sideBarOFFButton":
                     case "sideBarOFFButton2":
-                        str = "Turn sidebar OFF (tab, \\ ), Quick sidebar(s+d, j+k)";
+                        str = "Turn sidebar OFF (tab, \\ ) Quick sidebar(s+d, j+k)";
                     break;
 
                     case "sideBarONButton":
                     case "sideBarONButton2":
-                        str = "Turn sidebar ON (tab, \\ ), Quick sidebar(s+d, j+k)";
+                        str = "Turn sidebar ON (tab, \\ ) Quick sidebar(s+d, j+k)";
                     break;
 
                     case "sideBarPositionButton":
@@ -7564,10 +7601,11 @@
                     break;
 
                     case "drawModeButton": str = "Draw mode (f1, f7)"; break;
-                    case "replayModeButton":str = "Replay mode (f1, f7)"; break;
-                    case "replayZoomInButton":str = "Zoom in (f5)"; break;
-                    case "replayZoomOutButton":str = "Zoom out (f6)"; break;
-                    case "replayRotateButton":str = "Rotate"; break;
+                    case "replayModeButton": str = "Replay mode (f1, f7)"; break;
+                    case "replayZoomInButton": str = "Zoom in (f5) Reset (right-click)"; break;
+                    case "replayZoomOutButton": str = "Zoom out (f6) Reset (right-click)"; break;
+                    case "replayFitToWindowButton": str = "Fit canvas to window (right-click on canvas)"; break;
+                    case "replayRotateButton": str = "Rotate ("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
 
                     default:
                     return;
@@ -7689,7 +7727,7 @@
         }
 
         //창크기에 맞추어서 캔버스를 축소해줌
-        private function fitCanvasToWindow(captureMode:Boolean=false):void
+        private function fitCanvasToWindow(captureMode:Boolean=false,manualFlag:Boolean=false):void
         {
             const replayMode:Boolean = replayModeON;
             const offsetX:Number = 40;
@@ -7708,8 +7746,20 @@
                 xBitmap1 = rcanvas1Bitmap;
                 xBitmap11 = rcanvas11Bitmap;
                 xReg = rregPoint;
-                w = RCANVAS_WIDTH;
-                h = RCANVAS_HEIGHT;
+
+                if(manualFlag)
+                {
+                    xReg.scaleX = 1.0;
+                    xReg.scaleY = 1.0; //크기를 원래대로 해놓고 해야 길이 측정이 됨
+                    const b:Rectangle = rcanvas1Bitmap.getBounds(stage);
+                    w = b.right-b.left;
+                    h = b.bottom-b.top;
+                }
+                else
+                {
+                    w = RCANVAS_WIDTH;
+                    h = RCANVAS_HEIGHT;
+                }
             }
             else
             {
@@ -7743,16 +7793,25 @@
                 captureZoomed = 1/z;
                 xReg.rotation = 90*_captureRotated;
             }
-            else xReg.rotation = 0;
+
+            if(!manualFlag)
+            {
+                if(xReg.rotation !== 0) xReg.rotation = 0;
+            }
 
             if(replayMode === true && z < 1.0)
+            {
                 replayEndWithcanvasFitWindow = true;
+            }
             
             setZoomCanvas(z,replayMode);
             setCenvasCenterPos(replayMode,captureMode);
 
-            xBitmap1.smoothing = true;
-            xBitmap11.smoothing = true;
+            if(!manualFlag || replayAllEnd)
+            {
+                xBitmap1.smoothing = true;
+                xBitmap11.smoothing = true;
+            }
 
             if(captureMode)
             {
@@ -7982,6 +8041,7 @@
 
             rMirrorON = !rMirrorON;
 
+            if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
         }
 
         private function cTickDraw():Object
@@ -8800,7 +8860,10 @@
                     {
                         rFrameCursorDelayTime = savedTime;
                         tickDraw.updateRCursorPos();
-                        if(!mouseClickON && isDeepUndoON === false) checkAutoScroll.check();
+                        if(!mouseClickON && isDeepUndoON === false)
+                        {
+                            checkAutoScroll.check();
+                        }
                         replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*(rNowFrame/TOTAL_FRAME);
                     }
 
@@ -9160,6 +9223,37 @@
             return totalF+rDataSum;
         }
 
+        private function getNearZoomIndex(nowZoom:Number):uint
+        {
+            const arr:Array = zoomArr;
+            const len:uint = arr.length-1;
+            var low:Number = 0;
+            var high:Number = len;
+            if(high === 0) return 0;
+            var index:Number = Math.floor((low+high)/2);
+            var zoom:Number;
+
+            while(low <= high)//2진 탐색
+            {
+                zoom = arr[index];
+                if(zoom === nowZoom) break;
+                else if(zoom > nowZoom) high = index-1;
+                else low = index+1;
+
+                index = Math.floor((low + high)/2);
+            }
+
+            //가장 가까운값 검출
+            if(index >= len) return len;
+            else if(index <= 0) return 0;
+            else if(arr[index+1]-nowZoom < nowZoom-arr[index-1]) 
+            {
+                //현재줌이 상위 줌이랑 더 가까우면 인덱스를 올려줌
+                return index+1;
+            }
+            return index;
+        }
+
         //targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
         private function getCacheImageIndex(targetFrame:Number):Number
         {
@@ -9168,10 +9262,11 @@
             var high:Number = arr.length-1;
             if(high === 0) return 0;
             var index:Number = Math.floor((low+high)/2);
+            var indexFrame:Number;
 
             while(low <= high)//2진 탐색
             {
-                const indexFrame:Number = arr[index][6];
+                indexFrame = arr[index][6];
                 if(indexFrame === targetFrame) break;
                 else if(indexFrame > targetFrame) high = index-1;
                 else low = index+1;
@@ -9189,10 +9284,11 @@
             var high:Number = arr.length-1;
             if(high === 0) return 0;
             var index:Number = Math.floor((low + high)/2);
+            var indexFrame:Number;
 
             while(low <= high)//2진 탐색
             {
-                const indexFrame:Number = arr[index];
+                indexFrame = arr[index];
 
                 if(indexFrame === targetFrame) break;
                 else if(indexFrame > targetFrame) high = index-1;
@@ -9417,7 +9513,7 @@
                 rCursor.visible = true;
             }
             if(checkExitDeepUndo(jumpflag)) return;
-            if(!isDeepUndoON) checkAutoScroll.check();
+            if(!rFitZoomedON && !isDeepUndoON) checkAutoScroll.check();
         } 
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
@@ -9570,7 +9666,7 @@
                 resetJumpImage();
                 rDataReadFlag = false;
                 replayAllEnd = false;//resetReplayTime함수 에서 이걸 true로 해주기 때문에 아래쪽에서 변경
-                setZoomCanvas(1.0,true);
+                if(!rFitZoomedON) setZoomCanvas(1.0,true);
                 setReplaySubLayer(false);
             }
 
@@ -11403,7 +11499,7 @@
                 canvas11Bitmap.visible = data.layer2;
             }
 
-            setZoomCanvas(data.z,replayMode);
+            if(!rFitZoomedON) setZoomCanvas(data.z,replayMode);
             toolTipBox.visible = false;
             captureWindowMove = new Point(0,0);
 
@@ -12299,15 +12395,7 @@
                     isRightSidebar = d["isRightSidebar"];
                     isSidebarVisible = d["isSidebarVisible"];
                     if(d["isRightSidebar"]) setSideBarRightPosition(true);
-                    if(!d["isSidebarVisible"])
-                    {
-                        sideBar.cacheAsBitmap = false;
-                        setSidebarVisible(d["isSidebarVisible"],false);
-                        setTimeout(function():void //비트맵 캐싱을 하면 처음에 그래픽이 깨져서 일단 일캐해줌
-                        {
-                            sideBar.cacheAsBitmap = true;
-                        },1000);
-                    }
+                    if(!d["isSidebarVisible"]) setSidebarVisible(d["isSidebarVisible"],false);
                     makeJumpImageFlag = d["makeJumpImageFlag"];
                     rBGColorSave = d["rBGColorSave"];
                     saveFilePath = d["saveFilePath"];
@@ -12665,7 +12753,14 @@
             };
         }
 
-        private function resetRotation():void
+        private function resetRotationReplayMode():void
+        {
+            const center:Point = getStageCenterPos(false,true);
+            setRegPoint(center.x,center.y,true);
+            rregPoint.rotation = 0;
+        }
+        
+        private function resetRotationDrawMode():void
         {
             const center:Point = getStageCenterPos(false,false);
 
@@ -12719,6 +12814,8 @@
                 }
                 else
                 {
+                    if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
+
                     resetNowKey();
                     updateReplayCanvasBounds();
                 }
@@ -12736,8 +12833,8 @@
                 if(subAng === 0) return;
 
                 lastAng = nowAng;
-
                 sumAng += subAng;
+
                 var deg:Number = sumAng*toDeg;
                 const snap90:Number = abs(deg%90);//90도 스냅 변수
                 const snap90N:Number = 90-snap90;
@@ -12771,7 +12868,6 @@
                     xBitmap = canvas1Bitmap;
                 }
 
-                // var PI2:Number = PI*2;
                 //각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값 
                 lastAng = 0;
                 //움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
@@ -13258,6 +13354,8 @@
             rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
             updateReplayCanvasBounds();
             checkCanvasPanelPos(true);
+
+            if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
         }
 
         private function updateCanvasTracePos(w:Number,h:Number,movedFlag:Boolean):void
@@ -14677,7 +14775,7 @@
             const h:uint = d[3];
             const bg:uint = d[4];
             const index:int = undoIndex;
-            const _tickDraw:Object = tickDraw;1
+            const _tickDraw:Object = tickDraw;
             const _zoomed:Number = zoomed;
 
             rMirrorON = d[5];
@@ -14823,7 +14921,7 @@
 
         private function cAddUndoData():Object
         {
-            const UNDO_LIMIT:int = 20;
+            const UNDO_LIMIT:int = 10;
             var rJumpImageCount:uint = 0;//데이터로 저장할때  rDataFrame 카운터 누적
             var rFileTotalFrame:Number = 0; //file에저장된 프레임수 누적해서 저장
             //undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
@@ -15668,6 +15766,8 @@
                 {
                     updateReplayBarPos(stw);
                     updateReplayCanvasBounds();
+
+                    if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
                 }
 
                 updateStageBG(uiColorSet[uiColorIndex][2]);
@@ -16154,12 +16254,12 @@
                         {
                             case KEY.s:
                             case KEY.k:
-                                if(regPoint.rotation !== 0.0) resetRotation();
+                                if(regPoint.rotation !== 0.0) resetRotationDrawMode();
                             return;
 
                             case KEY.w:
                             case KEY.i:
-                                if(zoomed !== 1.0) resetZoom();
+                                if(zoomed !== 1.0) resetZoomDrawMode();
                             return;
 
                             case KEY.q:
@@ -16578,11 +16678,14 @@
         }
 
         //툴메뉴에서 클릭했을때
-        private function setToolBox2ClickTool(target:SimpleButton,func:Function):void
+        private function setToolBox2ClickTool(target:SimpleButton,func:Function,...args):void
         {
             updateToolBoxMousePos(target);
             closeToolBox2();
-            func();
+            const len:int = args.length;
+            if(len === 0) func();
+            else if(len === 1) func(args[0]);
+            else if(len === 2) func(args[0],args[1]);
         }
 
         private function mouseDownToolBox2(e:MouseEvent):void
@@ -16606,7 +16709,7 @@
                 break;
 
                 case "toolRotate":
-                    setToolBox2ClickTool(target as SimpleButton,rotateTool);
+                    setToolBox2ClickTool(target as SimpleButton,rotateTool,false,true);
                 break;
                 
                 case "resizeButtonR":
@@ -17073,12 +17176,11 @@
             setTopChildIndex(replayTimeBox);
             resetCutFrameClickCounter();
             topBar.hintOFF();
-
+            setFitZoomedOFF();
+            clearDataButtonCount = 0;
             removeInputEventReplayMode();
             addInputEventDrawMode();
-            clearDataButtonCount = 0;
             
-            if(isSidebarVisible === true) setSidebarVisible(true,true);
             if(replayStartON === true) stopReplay();
 
             resetOldTool();
@@ -17089,10 +17191,13 @@
             updatePenSizeCursor();
             updatePenCursorPosition();
 
-            if(traceMenuON === true) traceMenuBox.visible = true;
 
             changeTopBarIcons("draw");
             appInfoBox.setZoom(zoomed);
+
+            
+            if(traceMenuON === true) traceMenuBox.visible = true;
+            if(isSidebarVisible === true) setSidebarVisible(true,true);
         }
 
         private function setReplayUION():void
@@ -17359,6 +17464,7 @@
                 case "pauseButton":
                 case "replayZoomInButton":
                 case "replayZoomOutButton":
+                case "replayFitToWindowButton":
                 case "dragDropFileButton":
                 case "dragDropRefButton":
                 case "dragDropCancelButton":
@@ -17394,15 +17500,52 @@
             }
         }
 
+        private function setFitZoomedOFF():void
+        {
+            rFitZoomedON = false;
+            topBar.replayFitToWindowButton.alpha = 1.0;
+        }
+
+        private function setReplayFitToWindowButton():void
+        {
+            rFitZoomedON = true;
+            topBar.replayFitToWindowButton.alpha = BUTTON_OFF_ALPHA;
+            fitCanvasToWindowManualReplayMode();
+        }
+
+        private function fitCanvasToWindowManualReplayMode():void
+        {
+            clearTimeout(rFitZoomedDelayTimer);
+            rFitZoomedDelayTimer = setTimeout(function():void
+            {
+                fitCanvasToWindow(false,true);
+                rzoomedIndex = getNearZoomIndex(rzoomed);
+                rzoomed = zoomArr[rzoomedIndex];
+            },150);
+        }
+
         private function rightMouseDownReplayMode(e:MouseEvent):void
         {
-            if(mouseClickON || !isNowKey(0)) return;
+            if(mouseClickON || !isNowKey(0) || !e.target) return;
 
             const targetName:String = e.target.name;
 
-            if(targetName === "repSaveButton") saveFile(true);
-            else if(targetName === "replayPrev") setJumpOneFrame(true,true);
-            else if(targetName === "replayNext") setJumpOneFrame(false,true);
+            if(targetName.indexOf("canvas") !== -1 || targetName === "stageBG")
+            {
+                if(!rFitZoomedON) setReplayFitToWindowButton();
+                return;
+            }
+
+            switch(targetName)
+            {
+                case "repSaveButton": saveFile(true); break;
+                case "replayPrev": setJumpOneFrame(true,true); break;
+                case "replayNext": setJumpOneFrame(false,true); break;
+                case "replayRotateButton" : resetRotationReplayMode(); break;
+
+                case "replayZoomInButton" :
+                case "replayZoomOutButton" : resetZoomReplayMode(); break;
+            }
         }
 
         private function openToolBox2():void
@@ -17450,13 +17593,13 @@
                 case "zoomInButton":
                 case "zoomOutButton":
                 {
-                    if(zoomed !== 1.0) resetZoom();
+                    if(zoomed !== 1.0) resetZoomDrawMode();
                 }
                 break;
 
                 case "toolRotate":
                 {
-                    if(regPoint.rotation !== 0.0) resetRotation();
+                    if(regPoint.rotation !== 0.0) resetRotationDrawMode();
                 }
                 break;
 
@@ -17687,6 +17830,18 @@
 
             switch(targetName)
             {
+                case "lassoCZoom":
+                {
+                    if(zoomed !== 1.0) resetZoomDrawMode(lassoBox.localToGlobal(new Point(0,0)));
+                }
+                break;
+
+                case "lassoCRotate":
+                {
+                    if(regPoint.rotation !== 0) resetRotationDrawMode();
+                }
+                break;
+
                 case "lassoRotate":
                 {
                     if(lassoBox.rotation !== 0) lassoBox.rotation = 0;
@@ -17708,6 +17863,16 @@
             }
         }
 
+        private function mouseUpLassoTool(e:MouseEvent):void
+        {
+            if(keyBuffer.length === 1 && keyBuffer[0] === KEY.space)
+            {
+                setNowKey(KEY.space);
+                lassoMenuTempOFF = true;
+                setNowTool(TOOL_HAND);
+            }
+        }
+
         private function mouseDownLassoTool(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
@@ -17720,7 +17885,7 @@
                     lassoMenu.visible = false;
                     if(isNowTool(TOOL_HAND)) handTool();
                     else if(isNowTool(TOOL_ZOOM)) zoomTool();
-                    else if(isNowTool(TOOL_ROTATE)) rotateTool();
+                    else if(isNowTool(TOOL_ROTATE)) rotateTool(false);
                 }
                 else
                 {
@@ -17757,7 +17922,7 @@
                     {
                         lassoMenu.visible = false;
                         lassoMenuTempOFF = true;
-                        rotateTool();
+                        rotateTool(false);
                     }
                     break;
 
@@ -17972,7 +18137,7 @@
                     case TOOL_LINE: if(isCurrentLayerActive()) lineTool(true); break;
                     case TOOL_HAND: handTool(); break;
                     case TOOL_LASSO: lassoTool(); break;
-                    case TOOL_ROTATE: rotateTool(); break;
+                    case TOOL_ROTATE: rotateTool(false); break;
                     case TOOL_ZOOM: zoomTool(); break;
                     case TOOL_MOVE: moveTool(); break;
                 }

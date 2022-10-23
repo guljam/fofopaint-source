@@ -67,6 +67,7 @@
 		public var updateButton:SimpleButton = updateButton;
 		public var replayZoomInButton:SimpleButton = replayZoomInButton;
 		public var replayZoomOutButton:SimpleButton = replayZoomOutButton;
+		public var replayFitToWindowButton:SimpleButton = replayFitToWindowButton;
 		public var replayRotateButton:SimpleButton = replayRotateButton;
 		public var topMenuInfo:TextField = topMenuInfo;
 		public var timer:TextField = timer;
@@ -250,6 +251,7 @@
 			newWindowCloseButton.transform.colorTransform = o;
 			replayZoomInButton.transform.colorTransform = o;
 			replayZoomOutButton.transform.colorTransform = o;
+			replayFitToWindowButton.transform.colorTransform = o;
 			replayRotateButton.transform.colorTransform = o;
 			replaySpeedMoveButton.transform.colorTransform = o;
             replaySpeedBar.transform.colorTransform = o;
@@ -527,6 +529,7 @@
 												reRecordingButton,
 												replayZoomInButton,
 												replayZoomOutButton,
+												replayFitToWindowButton,
 												];
 			const len:int = arr.length;
 			var btnDown:DisplayObjectContainer;
@@ -658,6 +661,7 @@
 			newWindowCloseButton.useHandCursor = false;
 			replayZoomInButton.useHandCursor = false;
 			replayZoomOutButton.useHandCursor = false;
+			replayFitToWindowButton.useHandCursor = false;
 			replayRotateButton.useHandCursor = false;
 
 			newWindowCloseButton.visible = false;
@@ -683,9 +687,9 @@
 								[gridButton,superUndoButton,capLayer1VisibleButton,capLayer1InvisibleButton],
 								[sideBarPositionButton,replayZoomInButton,capLayer2VisibleButton,capLayer2InvisibleButton],
 								[sideBarOFFButton,replayZoomOutButton],
-								[topBarColorButton,layer1VisibleButton,layer1InvisibleButton,replayRotateButton],
-								[dpiButton,layer2VisibleButton,layer2InvisibleButton,replaySpeedSet],
-								[layerOptionButton,layerSwapButton],
+								[topBarColorButton,layer1VisibleButton,layer1InvisibleButton,replayFitToWindowButton],
+								[dpiButton,layer2VisibleButton,layer2InvisibleButton,replayRotateButton],
+								[layerOptionButton,layerSwapButton,replaySpeedSet],
 								[newWindowButton,newWindowCloseButton,layerMergeButton],
 								[aboutButton]
 							];
@@ -722,6 +726,7 @@
 									repLoadButton,
 									replayZoomInButton,
 									replayZoomOutButton,
+									replayFitToWindowButton,
 									replayRotateButton,
 									replaySpeedSet
 								];
