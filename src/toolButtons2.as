@@ -29,6 +29,36 @@
 		public var toolSidebar:SimpleButton = toolSidebar;
 		public var toolInfo:TextField = toolInfo;
 		public const fixedScale:Number = 0.85;
+		private var infoDataBackup:Array = [];
+
+		public function hint(str:String):void
+		{
+			if(str.indexOf("\n") !== -1)
+			{
+				if(infoDataBackup.length === 0)
+				{
+					infoDataBackup[0] = toolInfo.y;
+					infoDataBackup[1] = toolInfo.height;
+					infoDataBackup[2] = toolBoxBG.y;
+					infoDataBackup[3] = toolBoxBG.height;
+
+					toolInfo.y -= 20;
+					toolInfo.height += 20;
+					toolBoxBG.y -= 20;
+					toolBoxBG.height += 20;
+				}
+			}
+			else if(infoDataBackup.length !== 0)
+			{
+				toolInfo.y = infoDataBackup[0];
+				toolInfo.height = infoDataBackup[1];
+				toolBoxBG.y = infoDataBackup[2];
+				toolBoxBG.height = 60;
+				infoDataBackup = [];
+			}
+
+			toolInfo.text = str;
+		}
 		
 		public function deepUndoEtcIconAlpha(alpha:Number):void
 		{

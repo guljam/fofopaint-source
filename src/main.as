@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.04;
+        private const APP_VERSION:Number = 17.06;
         private const APP_DATA_VERSION:Number = 17.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -211,6 +211,7 @@
                     ,CUT_FRAME_RE_RECORD:int = (1 << 1)
                     ,CUT_FRAME_DELETE_FRONT:int = (1 << 2)
                     ,WORKER_WAIT_INTERVAL:int = 500
+                    ,STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT"
                     ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
                     ,STRING_PLAYBACK_SPEED:String = "Play speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
@@ -592,6 +593,7 @@
                     ,workerDataSendCount:int = 0
                     ,workerDataReceiveCount:int = 0
                     ,workerState:int = WORKER_STATE_STOPPED
+                    ,workerWaitCount:int = 0 //워커 시작하고나서 약간 대기 시켜줘야함
 
         //새창 관련 변수
                     ,canvasWindowInfo:Array = [null,null,400,400] //x y 너비 높이
@@ -677,7 +679,24 @@
         }
         
         //functions
-        private function layerPreviewBlurEffectOFF():void 
+        private function getUndoCountStr(redoFlag:Boolean,newLineFlag:Boolean):String
+        {
+            var str:String;
+            const newLineStr:String = (newLineFlag) ? "\n" : " ";
+            if(redoFlag)
+            {
+                if(isDeepUndoON) str = "Redo"+newLineStr+"(x, ,)";
+                else str = "Redo "+((undoIndex+1) +" / "+rData.length)+newLineStr+"(x, ,)";
+            }
+            else
+            {
+                if(isDeepUndoON) str = "Undo"+newLineStr+"(z, .)";
+                else str = "Undo "+((undoIndex+1) +" / "+rData.length)+newLineStr+"(z, .)";
+            }
+            return str;
+        }
+
+        private function layerPreviewBlurEffectOFF():void
         {
             if(subLayerON) canvas11Bitmap.visible = true;
             else canvas11Bitmap.visible = subLayerSave[1];
@@ -690,7 +709,7 @@
             subLayerSave = [];
         }
 
-        private function layerPreviewBlurEffectOFFKeyUpEvent(e:KeyboardEvent):void 
+        private function layerPreviewBlurEffectOFFKeyUpEvent(e:KeyboardEvent):void
         {
             if(e.keyCode === KEY.n1 || e.keyCode === KEY.n2
             || e.keyCode === KEY.n9 || e.keyCode === KEY.n0)
@@ -699,13 +718,13 @@
             }
         }
 
-        private function layerPreviewBlurEffectOFFMouseOutEvent(e:MouseEvent):void 
+        private function layerPreviewBlurEffectOFFMouseOutEvent(e:MouseEvent):void
         {
            if(controlBox.subLayerButtonWrapper.hitTestPoint(mouseX,mouseY) === false
            && subLayerSave.length > 0) layerPreviewBlurEffectOFF();
         }
 
-        private function setLayerPreviewBlurEffect(layer:int,shortcut:Boolean):void 
+        private function setLayerPreviewBlurEffect(layer:int,shortcut:Boolean):void
         {
             if(subLayerSave.length === 0)
             {
@@ -728,7 +747,7 @@
             }
         }
 
-        private function checkfofoPos():void 
+        private function checkfofoPos():void
         {
             if(isRightSidebar)
             {
@@ -970,8 +989,8 @@
 
         private function setClearButtonActive():void
         {
-            topBar.layerMergeButton.alpha = 1.0;
-            if(!isInSaveProgress) topBar.clearButton.alpha = 1.0;
+            if(!isInSaveProgress && topBar.clearButton.alpha < 1.0) topBar.clearButton.alpha = 1.0;
+            if(topBar.layerMergeButton.alpha < 1.0) topBar.layerMergeButton.alpha = 1.0;
             setWindowTitleStar();
         }
 
@@ -1648,6 +1667,7 @@
             if(traceMenuON) traceMenuBox.visible = false;
 
             checkfofoPos();
+            setSidebarReCacheBitmap();
         }
 
         private function deleteOldAppData():void
@@ -1692,6 +1712,7 @@
 
         private function checkCanStopWorker():void
         {
+            clearInterval(workerStopTimer);
             workerStopTimer = setInterval(function():void
             {
                 if(workerDataSendCount === workerDataReceiveCount
@@ -1702,7 +1723,6 @@
                 {
                     clearInterval(workerStopTimer);
                     workerStopTimer = 0;
-                    
                     workerState = WORKER_STATE_STOPPED;
                     workerDataSendCount = 0;
                     workerDataReceiveCount = 0;
@@ -1717,20 +1737,18 @@
                 }
             },WORKER_WAIT_INTERVAL);
         }
-
+ 
         private function startWorker():void
         {
-            if(workerState === WORKER_STATE_STOPPED)
-            {
-                workerState = WORKER_STATE_INIT;
-                worker = WorkerDomain.current.createWorker(workerSWF,true);
-                mainToBack = Worker.current.createMessageChannel(worker);
-                backToMain = worker.createMessageChannel(Worker.current);
-                backToMain.addEventListener(Event.CHANNEL_MESSAGE,onFromWorker);
-                worker.setSharedProperty("backToMain", backToMain);
-                worker.setSharedProperty("mainToBack", mainToBack);
-                worker.start();
-            }
+            workerState = WORKER_STATE_INIT;
+            worker = null;
+            worker = WorkerDomain.current.createWorker(workerSWF,true);
+            mainToBack = Worker.current.createMessageChannel(worker);
+            backToMain = worker.createMessageChannel(Worker.current);
+            backToMain.addEventListener(Event.CHANNEL_MESSAGE,onFromWorker);
+            worker.setSharedProperty("backToMain", backToMain);
+            worker.setSharedProperty("mainToBack", mainToBack);
+            worker.start();
         }
 
         private function makeWorker():void
@@ -2153,11 +2171,6 @@
             }
         }
 
-        private function exitDeepUndoMode():void
-        {
-            setDeepUndoUIOFF();
-        }
-
         private function cStageMouseMoveEvent():Object
         {
             const arr:Vector.<Function> = new Vector.<Function>();
@@ -2243,9 +2256,12 @@
 
         private function setWindowTitleStar():void
         {
-            if(stage.nativeWindow.title.lastIndexOf("*") === -1)
+            const titleEndStr:int = stage.nativeWindow.title.lastIndexOf(STRING_TITLE_FOFOPAINT);
+            
+            if(titleEndStr > 0 && stage.nativeWindow.title.charAt(titleEndStr-1) !== "*")
             {
-                stage.nativeWindow.title = stage.nativeWindow.title+"*";
+                const starFileName:String = stage.nativeWindow.title.slice(0,titleEndStr)+"*";
+                stage.nativeWindow.title = starFileName+STRING_TITLE_FOFOPAINT;
 
                 if(canvasWindowON) setSyncWindowTitle();
             }
@@ -2257,6 +2273,16 @@
             
             const files:File = File.applicationStorageDirectory;
             files.deleteDirectory(true);
+        }
+
+        private function setSidebarReCacheBitmap():void
+        {
+            sideBar.cacheAsBitmap = false;
+            clearTimeout(sideBarReCacheAsBitmapTimer);
+            sideBarReCacheAsBitmapTimer = setTimeout(function():void
+            {
+                sideBar.cacheAsBitmap = true;
+            },200);
         }
 
         private function setSidebarVisible(flag:Boolean,tempFlag:Boolean):void
@@ -2279,14 +2305,9 @@
 
                 sideBar.visible = true;
                 checkfofoPos();
-                
+
                 //사이드바가 짤려 나오는 현상이 있어서 다시 캐쉬 풀었다가 다시 해줌
-                sideBar.cacheAsBitmap = false;
-                clearTimeout(sideBarReCacheAsBitmapTimer);
-                sideBarReCacheAsBitmapTimer = setTimeout(function():void
-                {
-                    sideBar.cacheAsBitmap = true;
-                },200);
+                setSidebarReCacheBitmap();
             }
             else
             {
@@ -3217,7 +3238,7 @@
                 cursorSize = size*zoomed;
             }
 
-            function updateZoom(z:Number):void 
+            function updateZoom(z:Number):void
             {
                 zoomed = z;
 
@@ -3912,10 +3933,10 @@
                 case "toolErase": str = "Eraser (d, j)"; break;
                 case "toolLasso": str = "Lasso (r, y)"; break;
                 case "toolSpuit": str = "Eye dropper (c, m)"; break;
-                case "deepUndoOK": str = "OK (enter, ctrl+z, ctrl+.)"; break;
-                case "deepUndoCancel": str = "Cancel (esc, backspace)"; break;
-                case "toolUndo": str = "Undo (z, .)"; break;
-                case "toolRedo": str = "Redo (x, ,)"; break;
+                case "deepUndoOK": str = "OK\n(enter, ctrl+z/.)"; break;
+                case "deepUndoCancel": str = "Cancel\n(esc, backspace)"; break;
+                case "toolUndo": str = getUndoCountStr(false,false); break;
+                case "toolRedo": str = getUndoCountStr(true,false); break;
                 case "toolMirror": str = "Flip canvas (a, l)"; break;
                 case "toolLine": str = "Line (shift)"; break;
                 case "toolMove": str = "Move image (e, u)"; break;
@@ -3944,8 +3965,8 @@
                 case "toolSpuit": str = "Eye dropper\n(c, m)"; break;
                 case "deepUndoOK": str = "OK\n(enter, ctrl+z, ctrl+.)"; break;
                 case "deepUndoCancel": str = "Cancel\n(esc, backspace)"; break;
-                case "toolUndo": str = "Undo\n(z, .)"; break;
-                case "toolRedo": str = "Redo\n(x, ,)"; break;
+                case "toolUndo": str = getUndoCountStr(false,true); break;
+                case "toolRedo": str = getUndoCountStr(true,true); break;
                 case "toolMirror": str = "Flip canvas\n(a, l)"; break;
                 case "toolLine": str = "Line\n(shift)"; break;
                 case "toolMove": str = "Move image\n(e, u)"; break;
@@ -3964,7 +3985,7 @@
             if(!target || target.alpha < 1.0) return;
 
             const hintStr:String = getToolBox2Hint(target.name);
-            toolBox2.toolInfo.text = (hintStr === "") ? "Tools" : hintStr;
+            toolBox2.hint((hintStr === "") ? "Tools" : hintStr);
         }
 
         private function toolBoxHintONEvent(e:MouseEvent):void
@@ -5023,7 +5044,7 @@
 
         private function updateWindowTitle():void
         {
-            stage.nativeWindow.title = saveFileName;
+            stage.nativeWindow.title = saveFileName + STRING_TITLE_FOFOPAINT;
             if(canvasWindowON) setSyncWindowTitle();
         }
 
@@ -6707,6 +6728,7 @@
             clearCanvas();
             clearCanvasReplayMode();
             clearDataResetVars();
+            setWindowTitleStar();
             //reset vars보다 뒤에 와야함
             //addundo에서 활성화 해주고 있기 때문에
             topBar.clearButton.alpha = BUTTON_OFF_ALPHA;
@@ -9396,7 +9418,7 @@
         {
             if(isDeepUndoON && flag === JUMP_FRAME_AFTER && rNowFrame === TOTAL_FRAME)
             {
-                exitDeepUndoMode();
+                setDeepUndoUIOFF();
                 return true;
             }
             return false;
@@ -9856,22 +9878,29 @@
             _toolTipBox["toolTipBoxBG"].width = info.textWidth+6;
         }
 
-        private function setToolTipStringTime(str:String,time:Number=2000):void
+        private function toolTipBoxTimerOFF():void
         {
-            function toolTipBoxTimerOFFEvent(e:MouseEvent):void
-            {
-                clearTimeout(toolTipBoxTimer);
-                toolTipBoxTimer = 0;
-                toolTipBox.visible = false;
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,toolTipBoxTimerOFFEvent);
-            }
+            clearTimeout(toolTipBoxTimer);
+            toolTipBoxTimer = 0;
+            toolTipBox.visible = false;
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,toolTipBoxTimerOFFEvent);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,toolTipBoxTimerOFFEvent);
+        }
 
+        private function toolTipBoxTimerOFFEvent(e:MouseEvent):void
+        {
+            toolTipBoxTimerOFF();
+        }
+
+        private function setToolTipStringTime(str:String,customX:Number=0,customY:Number=0,time:Number=2000):void
+        {
             if(toolTipBoxTimer === 0)
             {
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,toolTipBoxTimerOFFEvent);
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,toolTipBoxTimerOFFEvent);
             }
 
-            setToolTipString(str);
+            setToolTipString(str,customX,customY);
             toolTipBox.visible = true;
 
             clearTimeout(toolTipBoxTimer);
@@ -9891,10 +9920,10 @@
             const tb:toolTipBoxSet = toolTipBox;
         }
 
-        private function setToolTipString(str:String,x:Number=0,y:Number=0):void
+        private function setToolTipString(str:String,customX:Number=0,customY:Number=0):void
         {
-            const floor:Function = Math.floor;
             const _toolTipBox:toolTipBoxSet = toolTipBox;
+            const floor:Function = Math.floor;
             const toolTipText:TextField = _toolTipBox["toolTipInfoText"];
 
             if(str !== "")
@@ -9904,8 +9933,8 @@
                 _toolTipBox["toolTipBoxBG"].height = floor(toolTipText.textHeight+((str.lastIndexOf("\n") === -1)?2:5));
             }
 
-            const mx:Number = (x > 0) ? x : mouseX;
-            const my:Number = (y > 0) ? y : mouseY;
+            const mx:Number = (customX > 0) ? customX : mouseX;
+            const my:Number = (customY > 0) ? customY : mouseY;
             const width:int =_toolTipBox["toolTipBoxBG"].width*_toolTipBox.scaleX;
             const height:Number =  _toolTipBox["toolTipBoxBG"].height*_toolTipBox.scaleX;
             const stw:uint = stage.stageWidth+1;
@@ -9917,11 +9946,11 @@
             const right:int = tooltipX+width;
             const bottom:int = tooltipY+height;
 
-            if(tooltipX < 0) tooltipX = 0;
-            else if(right > rightLimit) tooltipX = rightLimit-width;
+            if(tooltipX < STAGE_LEFT_OFFSET) tooltipX = STAGE_LEFT_OFFSET;
+            else if(right > rightLimit-STAGE_RIGHT_OFFSET) tooltipX = rightLimit-STAGE_RIGHT_OFFSET-width;
 
-            if(tooltipY < 0) tooltipY = 0;
-            else if(bottom >= bottomLimit) tooltipY = bottomLimit-height;
+            if(tooltipY < STAGE_TOP_OFFSET) tooltipY = STAGE_TOP_OFFSET;
+            else if(bottom >= bottomLimit-STAGE_BOTTOM_OFFSET) tooltipY = bottomLimit-STAGE_BOTTOM_OFFSET-height;
 
             if(my >= tooltipY-1) //맨 아래에서 커서가 힌트를 넘어갈때 다시 위로 올려줌
             {
@@ -9984,7 +10013,7 @@
         {
             rFileStream.close();
             restartTimerCancel();
-            if(isDeepUndoON) exitDeepUndoMode();
+            if(isDeepUndoON) setDeepUndoUIOFF();
 
             tempDragDropFile = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
 
@@ -10418,23 +10447,26 @@
             }
             else
             {
-                startWorker();
-                var count:int = 0;
-
                 function waitWorkerReady(e:Event):void
                 {
                     if(worker.state === "running")
                     {
-                        count++;
-                        if(count >= 10)
+                        workerWaitCount++;
+                        if(workerWaitCount > 10)
                         {
+                            workerWaitCount = 0;
                             workerState = WORKER_STATE_RUNNING;
                             stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
                             func();
                         }
                     }
+                    else
+                    {
+                        workerWaitCount = 0;
+                    }
                 }
                 stage.addEventListener(Event.ENTER_FRAME,waitWorkerReady);
+                if(workerState === WORKER_STATE_STOPPED) startWorker();
             }
         }
 
@@ -14837,7 +14869,12 @@
             setClearButtonActive();
         }
 
-        private function redo():void
+        private function setDisplayToolTipUndoCount(undoredoStr:String):void
+        {
+            setToolTipStringTime(undoredoStr+" "+((undoIndex+1) +" / "+rData.length));
+        }
+
+        private function redo(keyFlag:Boolean):void
         {
             saveOneTime = false;
 
@@ -14851,11 +14888,11 @@
             else
             {
                 drawUndoData(true);
+                if(keyFlag) setDisplayToolTipUndoCount("Redo");
             }
-            
         }
 
-        private function undo():void
+        private function undo(keyFlag:Boolean):void
         {
             saveOneTime = false;
 
@@ -14877,19 +14914,20 @@
                 undoDelFlag = true;
                 replayONUndoUpdate = true;
                 drawUndoData();
+                if(keyFlag) setDisplayToolTipUndoCount("Undo");
             }
         }
 
-        private function setRedoButton(useAutoKey:Boolean):void
+        private function setRedoButton(useAutoKey:Boolean,shortcutFlag:Boolean=false):void
         {
-            if(useAutoKey) setHoldKeyRepeat(redo);
-            else redo();
+            if(useAutoKey) setHoldKeyRepeat(redo,shortcutFlag);
+            else redo(shortcutFlag);
         }
 
-        private function setUndoButton(useAutoKey:Boolean):void
+        private function setUndoButton(useAutoKey:Boolean,shortcutFlag:Boolean=false):void
         {
-            if(useAutoKey) setHoldKeyRepeat(undo);
-            else undo();
+            if(useAutoKey) setHoldKeyRepeat(undo,shortcutFlag);
+            else undo(shortcutFlag);
         }
 
         private function forceUndoAndDeleteFrontData(index:int):void
@@ -15174,7 +15212,6 @@
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
 
                 if(canvasWindowON) updateCanvasWindowImage();
-                
                 setClearButtonActive();
             };
 
@@ -15861,8 +15898,11 @@
         private function setTopChildIndex(ent:DisplayObject):void
         {
             const parent:DisplayObjectContainer = ent.parent as DisplayObjectContainer;
+
             if(parent === null) return;
-            parent.setChildIndex(ent, parent.numChildren-1);
+            if(parent.getChildIndex(ent) === parent.numChildren-1) return;
+
+            parent.setChildIndex(ent,parent.numChildren-1);
         }
 
         //check box position함수는 요소 전체가 창에서 넘어가만 않게 하는거고
@@ -16426,13 +16466,13 @@
                 case KEY.x:
                 case KEY.comma:
                     nowKeyNotKeyUp = keyCode;
-                    setRedoButton(true);
+                    setRedoButton(true,true);
                 return true;
 
                 case KEY.z:
                 case KEY.dot:
                     nowKeyNotKeyUp = keyCode;
-                    setUndoButton(true);
+                    setUndoButton(true,true);
                 return true;
 
                 case KEY.tab:
@@ -16766,7 +16806,7 @@
 
                 case "deepUndoCancel":
                 {
-                    exitDeepUndoMode();
+                    setDeepUndoUIOFF();
                 }
                 break;
 
@@ -16915,14 +16955,16 @@
             stage.addEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
         }
 
-        private function checkToolBoxButtons(targetName:String):Boolean
+        private function checkToolBoxButtons(target:DisplayObject):Boolean
         {
-            if(!isNowKey(0) && !quickSidebarON) return true;
+            if(!isNowKey(0) && !quickSidebarON || !target) return true;
 
             if(lassoToolON === false)
             {
                 stage.addEventListener(MouseEvent.MOUSE_UP,checkToolBoxButtonUpEvent);
             }
+
+            const targetName:String = target.name;
 
             switch(targetName)
             {
@@ -16935,12 +16977,14 @@
                 case "toolUndo":
                 {
                     setUndoButton(true);
+                    toolBox.hint(getUndoCountStr(false,true),target as SimpleButton,isRightSidebar)
                 }
                 break;
 
                 case "toolRedo":
                 {
                     setRedoButton(true);
+                    toolBox.hint(getUndoCountStr(true,true),target as SimpleButton,isRightSidebar);
                 }
                 break;
 
@@ -17058,11 +17102,16 @@
             updateScrollBarHeight(stage.stageHeight);
             syncDrawCanvasWithReplayMode();
             if(traceMenuON === true) traceMenuBox.visible = true;
-            if(isSidebarVisible === true) sideBar.visible = true;
+            if(isSidebarVisible === true)
+            {
+                sideBar.visible = true;
+                setSidebarReCacheBitmap();
+            }
             rFrameCacheImages = [];
             changePickerModeToNormal();
             updatePenSizeCursor();
             updatePenCursorPosition();
+
             if(quickSidebarON) setQuickSidebarOFF();
 
             removeDeepUndoEvent();
@@ -17085,7 +17134,9 @@
             setTopChildIndex(replayTimeBox);
             replayTimeBox.setTimeBarOnly(true);
             updateReplayBarPos(stage.stageWidth);
+
             if(layerOptionON) checkLayerOptionOFF();
+            if(toolTipBox.visible) toolTipBoxTimerOFF();
         
             if(makeJumpImageFlag === 1)
             {
@@ -17189,8 +17240,6 @@
             changePickerModeToNormal();
             updatePenSizeCursor();
             updatePenCursorPosition();
-
-
             changeTopBarIcons("draw");
             appInfoBox.setZoom(zoomed);
 
@@ -17317,7 +17366,7 @@
                     case "toolUndo":setJumpOneFrame(true,false); break;
                     case "toolRedo":setJumpOneFrame(false,false); break;
                     case "deepUndoOK":superUndo(); break;
-                    case "deepUndoCancel":exitDeepUndoMode(); break;
+                    case "deepUndoCancel":setDeepUndoUIOFF(); break;
                 }
             }
         }
@@ -17358,7 +17407,7 @@
                     if(input === KEY.z || input === KEY.dot) superUndo();
                     else if(input === KEY.c || input === KEY.m)
                     {
-                        exitDeepUndoMode();
+                        setDeepUndoUIOFF();
                         setCaptureReady();
                     }
                 })
@@ -17384,12 +17433,12 @@
 
                 case KEY.esc:
                 case KEY.backspace:
-                    exitDeepUndoMode();
+                    setDeepUndoUIOFF();
                 break;
                 
                 case KEY.f1:
                 case KEY.f7:
-                    exitDeepUndoMode();
+                    setDeepUndoUIOFF();
                     setReplayUION();
                 break;
             }
@@ -17997,7 +18046,7 @@
                 {
                     return;
                 }
-                else if(toolBox.alpha === 1.0 && target.alpha === 1.0 && checkToolBoxButtons(targetName)) 
+                else if(toolBox.alpha === 1.0 && target.alpha === 1.0 && checkToolBoxButtons(target)) 
                 {
                     return;
                 }
