@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.03;
+        private const APP_VERSION:Number = 17.04;
         private const APP_DATA_VERSION:Number = 17.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4887,7 +4887,7 @@
             }
         }
 
-        private function setAirBrush(flag:Boolean):void
+        private function setAirBrushButton(flag:Boolean):void
         {
             const penFlag:Boolean = isPenOrLineTool();
 
@@ -4966,7 +4966,7 @@
             else canvasPanel.setChildIndex(canvas1Bitmap,2);
         }   
 
-        private function setPixelSnap(flag:Boolean):void
+        private function setPixelSnapButton(flag:Boolean):void
         {
             pixelSnapON = flag;
 
@@ -5000,7 +5000,7 @@
                 controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
 
                 const airBrushFlagBackup:Boolean = airBrushON;
-                setAirBrush(false);
+                setAirBrushButton(false);
                 airBrushON = airBrushFlagBackup;
 
                 canvasPanel.setChildIndex(canvas1Bitmap,2);
@@ -12826,7 +12826,6 @@
 
             function rotateToolMoveEvent(e:MouseEvent):void
             {
-                const abs:Function = Math.abs;
                 const nowAng:Number = Math.atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
                 const subAng:Number = lastAng-nowAng;
 
@@ -12836,7 +12835,7 @@
                 sumAng += subAng;
 
                 var deg:Number = sumAng*toDeg;
-                const snap90:Number = abs(deg%90);//90도 스냅 변수
+                const snap90:Number = Math.abs(deg%90);//90도 스냅 변수
                 const snap90N:Number = 90-snap90;
                 const snapAng:Number = (snap90 > snap90N) ? snap90 : snap90N;
 
@@ -12850,7 +12849,7 @@
 
                 angleCursor.rotation = deg;
                 xReg.rotation = deg;
-                appInfoBox.setRotate(xReg.rotation);
+                appInfoBox.setRotate(Math.abs(xReg.rotation));
             }
 
             return function (replayMode:Boolean=false):void
@@ -16405,7 +16404,7 @@
                     nowKeyNotKeyUp = keyCode;
                     if(controlBox.pixelSnapButtonWrapper.alpha === 1.0)
                     {
-                        setPixelSnap(!pixelSnapON);
+                        setPixelSnapButton(!pixelSnapON);
                         if(pixelSnapON) setToolTipStringTime("Sharp line ON");
                         else setToolTipStringTime("Sharp line OFF");
 
@@ -17710,7 +17709,7 @@
                 case "pixelSnapONButton":
                 case "pixelSnapText":
                 {
-                    setPixelSnap(!pixelSnapON);
+                    setPixelSnapButton(!pixelSnapON);
                 }
                 return true;
 
@@ -17721,11 +17720,11 @@
                 {
                     if(isPenOrLineTool())
                     {
-                        setAirBrush(!airBrushON);
+                        setAirBrushButton(!airBrushON);
                     }
                     else if(isEraseTool())
                     {
-                        setAirBrush(!eraseAirBrushON);
+                        setAirBrushButton(!eraseAirBrushON);
                     }
                 }
                 return true;
