@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.07;
+        private const APP_VERSION:Number = 17.08;
         private const APP_DATA_VERSION:Number = 17.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -470,6 +470,7 @@
         //cut Frame 관련 변수
                     ,cutFrameActiveButton:SimpleButton
                     ,cutFrameClickCounter:uint = 0 //1번 누르면 미리 보기, 2번 누르면 실행
+                    ,cutFrameWithShortcut:Boolean = false // cutframe할때 단축키를 썼는지 저장
                     ,cutFrameClickedButton:int = CUT_FRAME_NONE //무슨 버튼 눌렀는지 저장
                     ,rCutDataSaveFrame:Number = 0//슈퍼언도나 앞짜르기 할때 마우스 왔다갔다 하면서 반복해서 눌러줄때 jumponeframe이 계속작동되는거 방지해줌 
 
@@ -6773,7 +6774,7 @@
             }
             else if(clearDataButtonCount === 1)
             {
-                if(keyFlag) topBar.hintTime("One more press to OK",topBar.clearButton);
+                if(keyFlag) topBar.hintTime(STRING_ONEMORE_PRESS_TO_OK,topBar.clearButton);
                 else topBar.hint(STRING_ONEMORE_CLICK_TO_OK,topBar.clearButton);
             }
         }
@@ -7085,6 +7086,7 @@
             }
 
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
+            cutFrameWithShortcut = false;
             cutFrameClickCounter = 0;
             cutFrameClickedButton = CUT_FRAME_NONE;
             topBar.hintOFF();
@@ -7252,7 +7254,9 @@
 
         private function getCutFrameOKString():String
         {
-            return STRING_ONEMORE_PRESS_TO_OK+" (Red data will be deleted)";
+            return ((cutFrameWithShortcut) ? STRING_ONEMORE_PRESS_TO_OK
+                                                 : STRING_ONEMORE_CLICK_TO_OK)
+                                                 +" (Red data will be deleted)";
         }
 
         private function setCutFrameRedBar(flag:int):void
@@ -7305,7 +7309,7 @@
             else if(flag === CUT_FRAME_DELETE_FRONT) cutFrameActiveButton = topBar["cutPrevDataButton"];
         }
 
-        private function setCutFrameButton(flag:int,shortcutKey:Boolean):void
+        private function setCutFrameButton(flag:int,shortcutKeyFlag:Boolean):void
         {
             if(isInSaveProgress) return;
             setCutFrameActiveButton(flag);
@@ -7354,14 +7358,16 @@
 
                 setCutFrameRedBar(flag);
 
-                if(shortcutKey === false)
+                if(shortcutKeyFlag)
                 {
-                    topBar.hint(getCutFrameOKString(),cutFrameActiveButton);
-                }
-                else if(shortcutKey === true)
-                {
+                    cutFrameWithShortcut = true;
                     topBar.hint(getCutFrameHint(flag)+getCutFrameOKString(),cutFrameActiveButton);
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
+                }
+                else
+                {
+                    cutFrameWithShortcut = false;
+                    topBar.hint(getCutFrameOKString(),cutFrameActiveButton);
                 }
             }
             else if(cutFrameClickCounter >= 2)
