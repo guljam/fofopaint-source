@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.10;
+        private const APP_VERSION:Number = 17.11;
         private const APP_DATA_VERSION:Number = 17.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -261,7 +261,6 @@
                     ,penSizePrev:Shape = new Shape() //캔버스 마스크
                     ,penSizePrevCenter:Shape = new Shape() //캔버스 마스크
                     ,penSizeCursor:Shape = new Shape() //펜사이즈 미리 보기
-                    ,reiszePreviewRect:Sprite = new Sprite()//캔버스 크기조절 미리보기 그려줌
                     ,captureAreaRect:Shape = new Shape()//스크린샷 박스 미리보기 그려줌
                     ,toolBox:toolButtons = new toolButtons()
                     ,toolBox2:toolButtons2 = new toolButtons2()
@@ -680,6 +679,28 @@
         }
         
         //functions
+
+        //두 숫자의 비율을 구함
+        private function getSizeRatio(a:int,b:int):String
+        {
+            const A:int = a;
+            const B:int = b;
+            var tmp:int;
+            while(b != 0)
+            {
+                tmp = a % b;
+                a = b;
+                b = tmp;
+            }
+
+            if(a != 1)
+            {
+                return A/a+" : "+B/a;
+            }
+
+            return "none";
+        }
+
         private function getUndoCountStr(redoFlag:Boolean,newLineFlag:Boolean):String
         {
             var str:String;
@@ -9273,8 +9294,8 @@
             }
 
             //가장 가까운값 검출
-            if(index >= len) return len;
-            else if(index <= 0) return 0;
+            if(index <= 0) return 0;
+            else if(index >= len) return len;
             else if(arr[index+1]-nowZoom < nowZoom-arr[index-1]) 
             {
                 //현재줌이 상위 줌이랑 더 가까우면 인덱스를 올려줌
@@ -13475,12 +13496,30 @@
 
         private function cSetCanvasSize():Object
         {
+            const reiszePreviewRect:Shape = new Shape();
+            const reiszePreviewRatioRect:Shape = new Shape();
             const resizeg:Graphics = reiszePreviewRect.graphics;
             const resizeClickPos:Point = new Point(0,0);
             const moved:Point = new Point(0,0);
             const min:Number = CANVAS_MIN_SIZE;
             const max:Number = CANVAS_MAX_SIZE;
+            const ratioSizeArr:Array = [];
+            const ratioArr:Array = [
+                                        "1:2",0.5,
+                                        "9:16",0.5625,
+                                        "10:16",0.625,
+                                        "3:4",0.75,
 
+                                        "1:1",1.0,
+
+                                        "4:3",1.333,
+                                        "16:10",1.6,
+                                        "16:9",1.777,
+                                        "2:1",2.0
+                                    ];
+            var guideLineWidth:Number = 0;
+            var ratioGuidePosBackUp:Point = new Point(0,0);
+            var widthFlag:Boolean = false; //가로인지 새로인지 결정
             var targetName:String;
             var w:Number;
             var h:Number;
@@ -13492,6 +13531,134 @@
             var canvasSizeChanging:Boolean;
             var hasUsedClearButton:Boolean;
             
+            function checkRatioSnapGuidePos():void
+            {
+                if(widthFlag)
+                {
+                    const my:Number = canvasPanel.mouseY;
+                    if(my > h*0.7)
+                    {
+                        if(reiszePreviewRatioRect.y === ratioGuidePosBackUp.y)
+                        {
+                            reiszePreviewRatioRect.y = ratioGuidePosBackUp.y+h+guideLineWidth;
+                        }
+                    }
+                    else if(my < h*0.3)
+                    {
+                        if(reiszePreviewRatioRect.y !== ratioGuidePosBackUp.y)
+                        {
+                                reiszePreviewRatioRect.y = ratioGuidePosBackUp.y;
+                        }
+                    }
+                }
+                else
+                {
+                    const mx:Number = canvasPanel.mouseX;
+                    if(mx > w*0.7)
+                    {
+                        if(reiszePreviewRatioRect.x === ratioGuidePosBackUp.x)
+                        {
+                            reiszePreviewRatioRect.x = ratioGuidePosBackUp.x+w+guideLineWidth;
+                        }
+                    }
+                    else if(mx < w*0.3)
+                    {
+                        if(reiszePreviewRatioRect.x !== ratioGuidePosBackUp.x)
+                        {
+                            reiszePreviewRatioRect.x = ratioGuidePosBackUp.x;
+                        }
+                    }
+                }
+            }
+
+            function checkRatioSnap(width:Number):Array
+            {
+                const arr:Array = ratioSizeArr;
+                const len:uint = arr.length-1;
+                const floor:Function = Math.floor;
+                var low:Number = 0;
+                var high:Number = arr.length-1;                
+                var index:Number = floor((low+high)/2);
+                var snapWidth:Number;
+
+                while(low <= high)//2진 탐색
+                {
+                    snapWidth = arr[index][0];
+
+                    if(snapWidth === width) break;
+                    else if(snapWidth > width) high = index-1;
+                    else low = index+1;
+
+                    index = floor((low + high)/2);
+                }
+
+                ++index;
+
+                if(index < 0) index = 0;
+                else if(index > len) index = len;
+
+                return ratioSizeArr[index];
+            }
+
+            function drawRatioSnapGuide(w:Number,h:Number,targetName:String):void
+            {
+                widthFlag = (targetName === "resizeButtonL" || targetName === "resizeButtonR") ? true : false;
+                const flipFlag:Boolean = (targetName === "resizeButtonU" || targetName === "resizeButtonL") ? true : false;
+                const g:Graphics = reiszePreviewRatioRect.graphics;
+                const lineSize:Number = 3/zoomed;
+                const lineWidth:Number = guideLineWidth;
+      
+                function _drawRatioLine(referenceSize:Number,offset:Number):void
+                {
+                    const round:Function = Math.round;
+                    const len:uint = ratioArr.length;
+                    const color:uint = uiColorSet[uiColorIndex][1];
+                    var i:uint;
+                    var prevSize:Number; //스냅 격자 그려주는 위치
+                    var realSize:Number; //스냅 걸릴때 실제 사이즈
+
+                    ratioSizeArr.length = 0;
+
+                    //hittestpoint를 위해서 배경을 그려줌
+                    g.beginFill(0xFFFF00,0.0);
+                    if(widthFlag) g.drawRect(-max/2,-lineWidth,max*2,lineWidth);
+                    else g.drawRect(-lineWidth,-max/2,lineWidth,max*2);
+                    g.endFill();
+
+                    for(i=0;i<len;i+=2)
+                    {
+                        realSize = round(referenceSize*ratioArr[i+1]);
+                        prevSize = realSize;
+                        if(realSize > max || realSize < min) continue;
+
+                        g.lineStyle(lineSize,color,1.0,true,"normal","none");
+
+                        if(flipFlag) prevSize = -prevSize+offset;
+
+                        if(widthFlag)
+                        {
+                            g.moveTo(prevSize,0);
+                            g.lineTo(prevSize,-lineWidth);
+                        }
+                        else
+                        {
+                            g.moveTo(0,prevSize);
+                            g.lineTo(-lineWidth,prevSize);
+                        }
+                        ratioSizeArr.push([realSize,ratioArr[i]]);
+                    }
+                }
+
+                if(widthFlag) //가로 조절
+                {
+                    _drawRatioLine(h,w);
+                }
+                else
+                {
+                    _drawRatioLine(w,h);
+                }
+            }
+
             function isCanvasSizeChanging():Boolean
             {
                 return canvasSizeChanging;
@@ -13510,9 +13677,10 @@
                 canvasSizeChanging = false;
                 toolTipBox.visible = false;
                 setResizeButtonVisible((forceExit || (startByShortCut && !isPressingControl())) ? false:true);
-                reiszePreviewRect.visible = false;
-                reiszePreviewRect.graphics.clear();
                 regPoint.removeChild(reiszePreviewRect);
+                regPoint.removeChild(reiszePreviewRatioRect);
+                reiszePreviewRect.graphics.clear();
+                reiszePreviewRatioRect.graphics.clear();
 
                 if(moved.x === 0 && moved.y === 0) return;
 
@@ -13540,34 +13708,69 @@
                 if(size > 0) resizeg.beginFill(bgColor);
                 else resizeg.beginFill(stageColor);
                 resizeg.drawRect(x,y,w,h);
+
+                checkRatioSnapGuidePos();
             }
 
-            function changeHeight(subY:Number):Number
+            function changeHeight(flipFlag:Boolean):Number
             {
+                var subY:Number = (flipFlag) ? resizeClickPos.y-canvasPanel.mouseY
+                                             : canvasPanel.mouseY-resizeClickPos.y;
                 var height:Number = (h+subY < min) ? min:
                                     (h+subY > max) ? max:
-                                                     h+subY;
-                subY = (height === max) ? max-h:
-                       (height === min) ? min-h:
-                                          subY
+                                                    Math.floor(h+subY);
+                if(height === max) max-h;
+                else if(height === min) min-h;
+                else subY;
 
-                finalHeight = Math.floor(height);
+                if(reiszePreviewRatioRect.hitTestPoint(mouseX,mouseY,true))
+                {
+                    const snap:Array = checkRatioSnap(height);
+                    if(snap)
+                    {
+                        subY = snap[0]-h;
+                        finalHeight = snap[0];
+                        moved.setTo(0,subY);
+                        setToolTipString(w+" x "+finalHeight+" ("+snap[1]+")");
+
+                        return subY;
+                    }
+                }
+
+                finalHeight = height;
                 moved.setTo(0,subY);
                 setToolTipString(w+" x "+finalHeight);
 
                 return subY;
             }
 
-            function changeWidth(subX:Number):Number
+            function changeWidth(flipFlag:Boolean):Number
             {
+                var subX:Number = (flipFlag) ? resizeClickPos.x-canvasPanel.mouseX
+                                             : canvasPanel.mouseX-resizeClickPos.x;
                 var width:Number = (w+subX < min) ? min:
                                    (w+subX > max) ? max:
-                                                    w+subX;
-                subX = (width === max) ? max-w:
-                       (width === min) ? min-w:
-                                         subX;
+                                                    Math.floor(w+subX);
 
-                finalWidth = Math.floor(width);
+                if(width === max) max-w;
+                else if(width === min) min-w;
+                else subX;
+
+                if(reiszePreviewRatioRect.hitTestPoint(mouseX,mouseY,true))
+                {
+                    const snap:Array = checkRatioSnap(width);
+                    if(snap)
+                    {
+                        subX = snap[0]-w;
+                        finalWidth = snap[0];
+                        moved.setTo(subX,0);
+                        setToolTipString(finalWidth+" x "+h+" ("+snap[1]+")");
+                        
+                        return subX;
+                    }
+                }
+
+                finalWidth = width;
                 moved.setTo(subX,0);
                 setToolTipString(finalWidth+" x "+h);
 
@@ -13576,25 +13779,25 @@
 
             function resizeMouseMoveD(e:MouseEvent):void
             {
-                var subY:Number = changeHeight(canvasPanel.mouseY-resizeClickPos.y);
+                var subY:Number = changeHeight(false);
                 drawResizePreviewRect(subY,0,h,w,subY);
             }
 
             function resizeMouseMoveU(e:MouseEvent):void
             {
-                var subY:Number = changeHeight(resizeClickPos.y-canvasPanel.mouseY);
+                var subY:Number = changeHeight(true);
                 drawResizePreviewRect(subY,0,-subY,w,subY);
             }
 
             function resizeMouseMoveR(e:MouseEvent):void
             {
-                var subX:Number = changeWidth(canvasPanel.mouseX-resizeClickPos.x);
+                var subX:Number = changeWidth(false);
                 drawResizePreviewRect(subX,w,0,subX,h);
             }
 
             function resizeMouseMoveL(e:MouseEvent):void
             {
-                var subX:Number = changeWidth(resizeClickPos.x-canvasPanel.mouseX);
+                var subX:Number = changeWidth(true);
                 drawResizePreviewRect(subX,-subX,0,subX,h);
             }
 
@@ -13617,9 +13820,17 @@
                 //회전 되었을때도 panel좌표가 0도기준으로 유지 되기 때문
                 reiszePreviewRect.x = canvasPanel.x;
                 reiszePreviewRect.y = canvasPanel.y;
+                reiszePreviewRatioRect.x = reiszePreviewRect.x;
+                reiszePreviewRatioRect.y = reiszePreviewRect.y;
+                ratioGuidePosBackUp.setTo(reiszePreviewRatioRect.x,reiszePreviewRatioRect.y);
+                guideLineWidth = 30/zoomed;
                 regPoint.addChild(reiszePreviewRect);
+                regPoint.addChild(reiszePreviewRatioRect);
                 setTopChildIndex(reiszePreviewRect);
-                reiszePreviewRect.visible = true;
+                setTopChildIndex(reiszePreviewRatioRect);
+
+                drawRatioSnapGuide(w,h,targetName);
+                checkRatioSnapGuidePos();
 
                 if(toolBox2ON) toolBox2.visible = false;
                 setResizeButtonVisible(false);
@@ -15665,7 +15876,6 @@
             lassoBox.addChild(lassoDraw);
             lassoBox.visible = false;
 
-            reiszePreviewRect.visible = false;
             captureAreaRect.visible = false;
             captureAreaRect.blendMode = "difference";
 
