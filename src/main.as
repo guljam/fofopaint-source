@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.11;
+        private const APP_VERSION:Number = 17.12;
         private const APP_DATA_VERSION:Number = 17.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13719,8 +13719,8 @@
                 var height:Number = (h+subY < min) ? min:
                                     (h+subY > max) ? max:
                                                     Math.floor(h+subY);
-                if(height === max) max-h;
-                else if(height === min) min-h;
+                if(height === max) subY = max-h;
+                else if(height === min) subY = min-h;
                 else subY;
 
                 if(reiszePreviewRatioRect.hitTestPoint(mouseX,mouseY,true))
@@ -13752,9 +13752,12 @@
                                    (w+subX > max) ? max:
                                                     Math.floor(w+subX);
 
-                if(width === max) max-w;
-                else if(width === min) min-w;
+                trace('width',width,"max",max,min);
+                if(width === max) subX =max-w;
+                else if(width === min) subX = min-w;
                 else subX;
+
+                trace('subX',subX);
 
                 if(reiszePreviewRatioRect.hitTestPoint(mouseX,mouseY,true))
                 {
@@ -16965,7 +16968,7 @@
                 break;
 
                 case "toolRotate":
-                    setToolBox2ClickTool(target as SimpleButton,rotateTool,false,true);
+                    setToolBox2ClickTool(target as SimpleButton,rotateTool);
                 break;
                 
                 case "resizeButtonR":
