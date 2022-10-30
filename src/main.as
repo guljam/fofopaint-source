@@ -63,8 +63,8 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.12;
-        private const APP_DATA_VERSION:Number = 17.03;
+        private const APP_VERSION:Number = 17.13;
+        private const APP_DATA_VERSION:Number = 17.03; 
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -13667,7 +13667,7 @@
             function exitCanvasResize(forceExit:Boolean):void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonMouseUpEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonRightMouseUpEvent);
 
                 if(targetName === "resizeButtonL") stageMouseMoveEvent.remove(resizeMouseMoveL);
                 else if(targetName === "resizeButtonR") stageMouseMoveEvent.remove(resizeMouseMoveR);
@@ -13676,6 +13676,7 @@
 
                 canvasSizeChanging = false;
                 toolTipBox.visible = false;
+
                 setResizeButtonVisible((forceExit || (startByShortCut && !isPressingControl())) ? false:true);
                 regPoint.removeChild(reiszePreviewRect);
                 regPoint.removeChild(reiszePreviewRatioRect);
@@ -13695,6 +13696,11 @@
                 else addUndoData(2);
 
                 if(canvasWindowON) updateCanvasWindowBitmapSize();
+            }
+
+            function resizeButtonRightMouseUpEvent(e:MouseEvent):void
+            {
+                exitCanvasResize(true);
             }
 
             function resizeButtonMouseUpEvent(e:MouseEvent):void
@@ -13752,12 +13758,9 @@
                                    (w+subX > max) ? max:
                                                     Math.floor(w+subX);
 
-                trace('width',width,"max",max,min);
                 if(width === max) subX =max-w;
                 else if(width === min) subX = min-w;
                 else subX;
-
-                trace('subX',subX);
 
                 if(reiszePreviewRatioRect.hitTestPoint(mouseX,mouseY,true))
                 {
@@ -13839,6 +13842,7 @@
                 setResizeButtonVisible(false);
 
                 stage.addEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonRightMouseUpEvent);
 
                 if(targetName === "resizeButtonL") stageMouseMoveEvent.add(resizeMouseMoveL);
                 else if(targetName === "resizeButtonR") stageMouseMoveEvent.add(resizeMouseMoveR);
