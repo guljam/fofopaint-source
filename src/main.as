@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.08;
+        private const APP_VERSION:Number = 17.10;
         private const APP_DATA_VERSION:Number = 17.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1668,6 +1668,7 @@
             if(traceMenuON) traceMenuBox.visible = false;
 
             checkfofoPos();
+            toolTipBoxTimerOFF();
             setSidebarReCacheBitmap();
         }
 
