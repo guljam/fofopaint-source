@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.16;
+        private const APP_VERSION:Number = 17.17;
         private const APP_DATA_VERSION:Number = 17.03; 
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -234,7 +234,6 @@
                     ,CANVAS_HEIGHT:Number = 390
                     ,RCANVAS_WIDTH:Number = 600
                     ,RCANVAS_HEIGHT:Number = 390
-                    ,APP_RUNNING_TIME:Number = 0 //앱 실행시간
                     ,STAGE_TOP_OFFSET:Number = 0 //창 상하좌우 여백
                     ,STAGE_LEFT_OFFSET:Number = 0
                     ,STAGE_BOTTOM_OFFSET:Number = 0
@@ -514,6 +513,7 @@
                     ,gridFlag:uint = 0
 
         //closure
+                    ,realWorkingTimer:Object = cRealWorkingTimer()
                     ,dottedLine:Object = cDottedLine()//순서 먼저 와야함
                     ,penTool:Function = cPenTool()
                     ,lineTool:Function = cLineTool()
@@ -623,8 +623,6 @@
                     ,windowResizeDelayTimer:int = 0
                     ,windowMoveDelayTimer:int = 0
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
-                    ,afkONCount:int = 0
-                    ,realWorkingTimer:int = 0
                     ,isDeepUndoON:Boolean = false
                     ,isDeepUndoONDelayTime:int = 0 //오른쪽 컨트롤키가 계속 눌리는 증상 있어서 타이머로 일정시간 동안 동작 안하게 락걸기
                     ,isNewFOFOSaveFormat:Boolean = false
@@ -667,7 +665,7 @@
             setCenvasCenterPos();
             setCenvasCenterPos(true);
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
-            startRealWorkingTimer();
+            realWorkingTimer.start();
             stageMouseMoveEvent.start();
             checkVersion();
             deleteOldAppData();
@@ -3234,7 +3232,7 @@
 
         private function updatePenCursorPositionEvent(e:MouseEvent):void
         {
-            afkONCount = 0;
+            realWorkingTimer.resetAFKCount();
             if(replayModeON || captureModeON) return;
             updatePenCursorPosition();
         }
@@ -3421,20 +3419,104 @@
             };
         }
 
-        private function startRealWorkingTimer():void
+        private function cRealWorkingTimer():Object
         {
-            clearInterval(realWorkingTimer);
+            const _topBar:topMenu = topBar;
+            const floor:Function = Math.floor;
+            var started:Boolean = false;
+            var appRunningTime:int = 0;
+            var afkCount:int = 0; //마우스 멈춰있으면 올라가는 시간
+            var lastTime:int = 0; //마지막 시간 저장해줌
+            //시간 표시 관련 변수
+            var tt:int;
+            var hh:int;
+            var mm:int;
+            var ss:int;
 
-            realWorkingTimer = setInterval(function():void //수동 gc실행
+            function resetAFKCount():void
             {
-                if(afkONCount === 2) afkONCount = 3;
-                else if(afkONCount < 2)
+                afkCount = 0;
+            }
+
+            function reset():void
+            {
+                lastTime = getTimer();
+                appRunningTime = 0;
+                _topBar.timer.text = "00:00:00";
+                _topBar.timer.width = _topBar.timer.textWidth+10;
+                _topBar.updateTimerPos(stage.stageWidth);
+            }
+
+            function setRunningTime(newTime:int):void
+            {
+                appRunningTime = newTime;
+            }
+
+            function getRunningTime():int
+            {
+                return appRunningTime;
+            }
+
+            function update():void
+            {
+                tt = appRunningTime/1000;
+                hh = floor(tt/3600);
+                mm = floor((tt-hh*3600)/60);
+                ss = floor(tt%60);
+
+                _topBar.timer.text = ((hh < 10) ? "0"+hh:""+hh) + ":"
+                                    +((mm < 10) ? "0"+mm:""+mm) + ":"
+                                    +((ss < 10) ? "0"+ss:""+ss);
+                _topBar.timer.width = _topBar.timer.textWidth+10;
+                _topBar.updateTimerPos(stage.stageWidth);
+            }
+
+            function check(e:Event):void
+            {
+                const nowTime:int = getTimer();
+                const subTime:int = nowTime-lastTime;
+
+                if(subTime >= 1000)
                 {
-                    afkONCount++;
-                    APP_RUNNING_TIME += 1000;
-                    updateWorkingTime();
+                    if(afkCount >= 2000)
+                    {
+                        afkCount = 2000;
+                    }
+                    else
+                    {
+                        appRunningTime += subTime;
+                        update();
+                    }
+
+                    afkCount += subTime;
+                    lastTime = nowTime;
                 }
-            },1000);
+            }
+
+            function stop():void
+            {
+                started = false;
+                afkCount = 0;
+                stage.removeEventListener(Event.ENTER_FRAME,check);
+            }
+
+            function start():void
+            {
+                if(started) return;
+                lastTime = getTimer();
+                started = true;
+                stage.addEventListener(Event.ENTER_FRAME,check);
+            }
+
+            return {
+                start:start,
+                stop:stop,
+                reset:reset,
+                update:update,
+                resetAFKCount:resetAFKCount,
+                getRunningTime:getRunningTime,
+                setRunningTime:setRunningTime
+            }
         }
 
 		private function makeTransBG():void
@@ -6412,29 +6494,6 @@
             resetOldTool();
         }
 
-        private function resetTimer():void
-        {
-            APP_RUNNING_TIME = 0;
-            updateWorkingTime();
-        }
-
-        private function updateWorkingTime():void
-        {
-            const floor:Function = Math.floor;
-            const nowTime:Number = APP_RUNNING_TIME/1000;
-            const hh:Number = floor(nowTime/3600);
-            const mm:Number = floor((nowTime-hh*3600)/60);
-            const ss:Number = floor(nowTime%60);
-            const h:String = (hh < 10)?"0"+hh:""+hh;
-            const m:String = (mm < 10)? "0"+mm:""+mm;
-            const s:String = (ss < 10)?"0"+ss:""+ss;
-            const time:String = h+":"+m+":"+s;
-
-            topBar.timer.text = time;
-			topBar.timer.width = topBar.timer.textWidth+10;
-            topBar.updateTimerPos(stage.stageWidth);
-        }
-
         //VERSION변수를 문자열로 변환, 변환할때 뒤에 .0이 붙었는지 까지 체크
         private function convertVersionString(version:Number):String
         {
@@ -6999,7 +7058,7 @@
 
                         case "timer":
                         {
-                            resetTimer();
+                            realWorkingTimer.reset();
                         }
                         break;
 
@@ -11355,7 +11414,7 @@
 
                 case "timer":
                 {
-                    resetTimer();
+                    realWorkingTimer.reset();
                 }
                 return;
 
@@ -12274,7 +12333,7 @@
                             "toolBox.scaleX":toolBox.scaleX,
                             "lastWindowState":lastWindowState,
                             "uiColorIndex":uiColorIndex,
-                            "APP_RUNNING_TIME":APP_RUNNING_TIME,
+                            "APP_RUNNING_TIME":realWorkingTimer.getRunningTime(),
                             "CANVAS_TRACE_ALPHA":CANVAS_TRACE_ALPHA,
                             "traceOpaButtonX":traceMenuBox["traceOpaButton"].x,
                             "traceReizeMoveSum":traceReizeMoveSum,
@@ -12449,8 +12508,8 @@
                     saveFilePath = d["saveFileName"];
                     colorHistoryList = d["colorHistoryList"].concat();
                     d["colorHistoryList"] = [];
-                    APP_RUNNING_TIME = d["APP_RUNNING_TIME"];
-                    updateWorkingTime();
+                    realWorkingTimer.setRunningTime(d["APP_RUNNING_TIME"]);
+                    realWorkingTimer.update();
                     CANVAS_TRACE_ALPHA = d["CANVAS_TRACE_ALPHA"]
                     canvasTraceLayer.alpha = d["CANVAS_TRACE_ALPHA"];
                     traceMenuBox["traceOpaButton"].x = d["traceOpaButtonX"];
@@ -15800,9 +15859,7 @@
 
             STAGE_TOP_OFFSET = topBar.BARSIZE;
 
-            updateWorkingTime();
             topBar.updateTimerPos(stage.stageWidth);
-
             stage.addChild(fileDragSelectBox);
             stage.addChild(traceMenuBox);
             stage.addChild(penSizePrev);
@@ -16873,7 +16930,7 @@
         private function windowActiveEvent(e:Event):void
         {
             //알탭해주고 창 활성화 해줄때 한번은 안하게끔함
-            startRealWorkingTimer();
+            realWorkingTimer.start();
             checkClipBoardImage();
             if(aboutPanelON)
             {
@@ -16888,7 +16945,7 @@
         private function windowDeactiveEvent(e:Event):void
         {
             clickBlockFlag = true;
-            clearInterval(realWorkingTimer);
+            realWorkingTimer.stop();
             resetKeyBuffer();
 
             if(toolBox2ON)
