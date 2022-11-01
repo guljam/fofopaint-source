@@ -130,7 +130,7 @@
 				traceInfo.height = traceInfoBackup[1];
 				traceMenuMoveButton.y = traceInfoBackup[2];
 				traceMenuMoveButton.height = 27;
-				traceInfoBackup = [];
+				traceInfoBackup.length = 0;
 			}
 			traceInfo.text = str;
 		}

@@ -54,7 +54,7 @@
 				toolInfo.height = infoDataBackup[1];
 				toolBoxBG.y = infoDataBackup[2];
 				toolBoxBG.height = 60;
-				infoDataBackup = [];
+				infoDataBackup.length = 0;
 			}
 
 			toolInfo.text = str;

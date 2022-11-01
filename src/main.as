@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.13;
+        private const APP_VERSION:Number = 17.15;
         private const APP_DATA_VERSION:Number = 17.03; 
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1326,17 +1326,21 @@
 
         private function hasLastRDataCommand(command:String):Boolean
         {
-            if(rData.length === 0) return false;
+            const index:int = undoIndex;
 
-            const len:uint = rData[rData.length-1].length;
-
-            for(var i:uint=0; i<len; i++)
+            if(rData.length > 0 && index >= 0)
             {
-                if(command === rData[rData.length-1][i][0])
+                const len:uint = rData[index].length;
+
+                for(var i:uint=0; i<len; i++)
                 {
-                    return true;
+                    if(command === rData[index][i][0])
+                    {
+                        return true;
+                    }
                 }
             }
+
             return false;
         }
 
@@ -8072,7 +8076,7 @@
             }
         }
 
-        private function MirrorCanvasReplayMode():void
+        private function mirrorCanvasReplayMode():void
         {
             var mirrorBMPD:BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
             var flipMat:Matrix = new Matrix(-1,0,0,1,RCANVAS_WIDTH);
@@ -8501,7 +8505,7 @@
 
             function mirror():void
             {
-                MirrorCanvasReplayMode();
+                mirrorCanvasReplayMode();
             }
 
             function bgColor(data:Array):void
@@ -8659,6 +8663,7 @@
 
                 d = data[index];
                 index++;
+
                 switch(d[0])
                 {
                     case "lineStyle": lineStyle(d); break;
@@ -13311,7 +13316,7 @@
 
         private function syncMirrorFinishReplayMode():void
         {
-            if(mirrorCommandReady) MirrorCanvasReplayMode();
+            if(mirrorCommandReady) mirrorCanvasReplayMode();
         }
 
         private function checkGridMirror(mirrorON:Boolean):void
@@ -15316,6 +15321,13 @@
             function addContinue():void
             {
                 if(rData.length === 0) return;
+
+                if(undoDelFlag === true)
+                {
+                    undoDelFlag = false;
+                    rData.splice(undoIndex+1);
+                    rDataFrame.splice(undoIndex+1);
+                }
 
                 updateLastRDataMirror();
                 const len:uint = rDataBuffer.length;

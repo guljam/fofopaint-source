@@ -143,7 +143,7 @@
 				lassoInfo.height = lassoInfoBackup[1];
 				lassoMenuMoveButton.y = lassoInfoBackup[2];
 				lassoMenuMoveButton.height = 27;
-				lassoInfoBackup = [];
+				lassoInfoBackup.length = 0;
 			}
 			lassoInfo.text = str;
 		}
