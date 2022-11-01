@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.15;
+        private const APP_VERSION:Number = 17.16;
         private const APP_DATA_VERSION:Number = 17.03; 
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7486,7 +7486,7 @@
 
                     case "replaySpeedBarWrapper":
                     {
-                        if(rSpeedLastStr === "") str = "Change playback speed(up, down / f, v / h, n)";
+                        if(rSpeedLastStr === "") str = "Change playback speed (up, down / f, v / h, n)";
                         else str = rSpeedLastStr;
                     }
                     break;
@@ -9198,7 +9198,7 @@
         {
             const totalF:Number = TOTAL_FRAME;
 
-            if(totalF <= STAGE_FRAME*3)
+            if(totalF <= STAGE_FRAME*3) // 3초 이내면 안함
             {
                 return;
             }
@@ -13540,38 +13540,30 @@
             {
                 if(widthFlag)
                 {
-                    const my:Number = canvasPanel.mouseY;
-                    if(my > h*0.7)
+                    if(canvasPanel.mouseY > h/2)
                     {
                         if(reiszePreviewRatioRect.y === ratioGuidePosBackUp.y)
                         {
                             reiszePreviewRatioRect.y = ratioGuidePosBackUp.y+h+guideLineWidth;
                         }
                     }
-                    else if(my < h*0.3)
+                    else if(reiszePreviewRatioRect.y !== ratioGuidePosBackUp.y)
                     {
-                        if(reiszePreviewRatioRect.y !== ratioGuidePosBackUp.y)
-                        {
-                                reiszePreviewRatioRect.y = ratioGuidePosBackUp.y;
-                        }
+                        reiszePreviewRatioRect.y = ratioGuidePosBackUp.y;
                     }
                 }
                 else
                 {
-                    const mx:Number = canvasPanel.mouseX;
-                    if(mx > w*0.7)
+                    if(canvasPanel.mouseX > w/2)
                     {
                         if(reiszePreviewRatioRect.x === ratioGuidePosBackUp.x)
                         {
                             reiszePreviewRatioRect.x = ratioGuidePosBackUp.x+w+guideLineWidth;
                         }
                     }
-                    else if(mx < w*0.3)
+                    else if(reiszePreviewRatioRect.x !== ratioGuidePosBackUp.x)
                     {
-                        if(reiszePreviewRatioRect.x !== ratioGuidePosBackUp.x)
-                        {
-                            reiszePreviewRatioRect.x = ratioGuidePosBackUp.x;
-                        }
+                        reiszePreviewRatioRect.x = ratioGuidePosBackUp.x;
                     }
                 }
             }
