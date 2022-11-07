@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.22;
+        private const APP_VERSION:Number = 17.23;
         private const APP_DATA_VERSION:Number = 17.03; 
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2028,7 +2028,6 @@
                 case KEY.g:
                     setHoldKeyRepeat(shortCutPenAlpha,true);
                 return true;
-
 
                 case KEY.b:
                     setHoldKeyRepeat(shortCutPenAlpha,false);
@@ -7309,7 +7308,8 @@
                 replayNowBar.width = bw;
                 setCanvasSameReplayCanvas();
                 resetUndo();
-                addUndoData();
+                mirrorCommandReady = false;
+                appInfoBox.setMirror(rMirrorON);
             }
             isDeepUndoONDelayTime = getTimer();
 
@@ -11171,7 +11171,6 @@
                 canvasTraceBitmap.smoothing = true;
             }
             setCenvasCenterPos();
-            addUndoData();
             updateWindowTitle();
             setSubLayer(false);
             setReplaySubLayer(false);
@@ -15201,9 +15200,9 @@
         {
             const endIndex:uint = index;
 
-            rData.splice(0,endIndex);
-            rDataFrame.splice(0,endIndex);
-            undoIndex = rData.length-1;
+            rData.length = 0;
+            rDataFrame.length = 0;
+            undoIndex = -1;
             saveOneTime = false;
             setClearButtonActive();
             replayONUndoUpdate = true;
@@ -15363,7 +15362,6 @@
 
                 if(undoDelFlag === true)
                 {
-                    trace('addContinue에서 앞부분 지워주기');
                     undoDelFlag = false;
                     rData.splice(undoIndex+1);
                     rDataFrame.splice(undoIndex+1);
@@ -15490,8 +15488,6 @@
 
                 if(canvasWindowON) updateCanvasWindowImage();
                 setClearButtonActive();
-
-                trace('보통 언도 더하기 ');
             };
 
             return {
@@ -18469,37 +18465,37 @@
             }
         }
         
-    //     private var printdeepLevel:int = 0;
-    //     private function printArray(obj:Object,deepKey:String=""):void
-    //     {
-    //         var blank:String="";
-    //         if(printdeepLevel === 0) trace('--- PRINT START --- ');
-    //         else
-    //         {
-    //             const count:int = printdeepLevel;
-    //             for(var b:int=0; b<count; b++)
-    //             {
-    //                 blank += "   ";
-    //             }
-    //             trace(blank+'> index['+deepKey+']');
-    //         }
+        // private var printdeepLevel:int = 0;
+        // private function printArray(obj:Object,deepKey:String=""):void
+        // {
+        //     var blank:String="";
+        //     if(printdeepLevel === 0) trace('--- PRINT START --- ');
+        //     else
+        //     {
+        //         const count:int = printdeepLevel;
+        //         for(var b:int=0; b<count; b++)
+        //         {
+        //             blank += "   ";
+        //         }
+        //         trace(blank+'> index['+deepKey+']');
+        //     }
 
-    //         trace(blank+'{');
-    //         for(var i:String in obj)
-    //         {
-    //             if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
-    //             {
-    //                 ++printdeepLevel;
-    //                 printArray(obj[i],i);
-    //             }
-    //             else
-    //             {
-    //                 trace(blank+'| '+i+' : ' + obj[i]);
-    //             }
-    //         }
-    //         trace(blank+'}');
-    //         --printdeepLevel;
-    //         if(printdeepLevel < 0) printdeepLevel = 0;
-    //     }
+        //     trace(blank+'{');
+        //     for(var i:String in obj)
+        //     {
+        //         if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
+        //         {
+        //             ++printdeepLevel;
+        //             printArray(obj[i],i);
+        //         }
+        //         else
+        //         {
+        //             trace(blank+'| '+i+' : ' + obj[i]);
+        //         }
+        //     }
+        //     trace(blank+'}');
+        //     --printdeepLevel;
+        //     if(printdeepLevel < 0) printdeepLevel = 0;
+        // }
     }
  }
