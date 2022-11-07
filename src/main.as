@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.23;
+        private const APP_VERSION:Number = 17.24;
         private const APP_DATA_VERSION:Number = 17.03; 
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -678,6 +678,45 @@
         
         //functions
         //두 숫자의 비율을 구함
+
+        private function setRCursorMirrorPos():void
+        {
+            const p:Point = tickDraw.getRCursorPos();
+            const half:Number = CANVAS_WIDTH/2;
+            const curcorX:Number = rCursor.x+(half-p.x)*2;
+
+            rCursor.x = curcorX;
+            tickDraw.setRCursorPos(curcorX,p.y);
+        }
+
+        private function setRCursorVisibleOFFUndoMouseDownEvent(e:MouseEvent):void
+        {
+            setRCursorVisibleOFFUndo();
+        }
+
+        private function setRCursorVisibleOFFUndo():void
+        {
+            rCursor.visible = false;
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,setRCursorVisibleOFFUndoMouseDownEvent);
+        }
+
+        private function setRCursorVisibleONUndo(undoIndex:int):void
+        {
+            if(rCursor.visible === false)
+            {
+                rCursor.visible = true;
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,setRCursorVisibleOFFUndoMouseDownEvent);
+            }
+            if(undoIndex < 0)
+            {
+                tickDraw.updateRCursorPosToFirst();
+            }
+            else
+            {
+                tickDraw.updateRCursorPos();
+            }
+        }
+
         private function getUndoCountStr(redoFlag:Boolean,newLineFlag:Boolean):String
         {
             var str:String;
@@ -6727,7 +6766,6 @@
 
         private function clearDataResetVars():void
         {
-            tickDraw.resetRCursorPos();
             rBGColorSave = CANVAS_BG_COLOR;
             saveContinue = false;
             rMirrorON = false;
@@ -7823,6 +7861,7 @@
             readyAddUndo = false;
             replayONUndoUpdate = false;
             undoDelFlag = false;
+            setRCursorVisibleOFFUndo();
         }
 
         //창크기에 맞추어서 캔버스를 축소해줌
@@ -8147,6 +8186,9 @@
         {
             const cd2:Graphics = rcanvas2Draw.graphics;
             const rTinyCursorPos:Point = new Point(0,0);
+            //undo인덱스가 처음일때 tickdraw가 아무것도 안해주니까 위치 갱신이 안되서 
+            //undorefimage갱신 될때마다 위치 업데이트 해줌
+            const rTinyCursorPosFirst:Point = new Point(0,0);
 
             var lineStyleBackup:Array; //tempdone에서 쓰는 플래그임
             var index:uint;
@@ -8158,15 +8200,21 @@
                 lineStyleBackup = arr;
             }
 
+            function setFirstRCursorPos():void
+            {
+                rTinyCursorPosFirst.setTo(rTinyCursorPos.x,rTinyCursorPos.y);
+            }
+
+            function updateRCursorPosToFirst():void
+            {
+                rCursor.x = rTinyCursorPosFirst.x;
+                rCursor.y = rTinyCursorPosFirst.y;
+            }
+
             function updateRCursorPos():void
             {
                 rCursor.x = rTinyCursorPos.x;
                 rCursor.y = rTinyCursorPos.y;
-            }
-
-            function resetRCursorPos():void
-            {
-                rTinyCursorPos.setTo(0,0);
             }
 
             function setRCursorPos(x:Number,y:Number):void
@@ -8754,7 +8802,8 @@
                 getLineStyleAlpha:getLineStyleAlpha,
                 getRCursorPos:getRCursorPos,
                 setRCursorPos:setRCursorPos,
-                resetRCursorPos:resetRCursorPos,
+                updateRCursorPosToFirst:updateRCursorPosToFirst,
+                setFirstRCursorPos:setFirstRCursorPos,
                 updateRCursorPos:updateRCursorPos,
                 updateLineStyleBackup:updateLineStyleBackup
             }
@@ -11109,7 +11158,6 @@
 
             if(fillPenStarted) fillPenTool.cancel();
 
-            tickDraw.resetRCursorPos();
             tmpBMPD.draw(imageData,scaleMat,null,null,null,true);
 
             canvas1BitmapData = tmpBMPD.clone();
@@ -11304,7 +11352,7 @@
                 replayTimeBox.visible = iFlag;
             }
 
-            if(flag === true)
+            if(flag)
             {
                 if(isSidebarVisible) setSidebarVisible(false,true);
                 topBar.resetHintColor();
@@ -11320,6 +11368,7 @@
                 else removeInputEventDrawMode();
 
                 setDefaultHintCaptureMode();
+                setRCursorVisibleOFFUndo();
             }
             else 
             {
@@ -13197,6 +13246,7 @@
                 }
 
                 updatePreviewBoxRectPos();
+                updateRCursorScale(zoomed);
             }
 
             function zoomGoArray(index:uint):void
@@ -13338,6 +13388,10 @@
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
             if(canvasWindowON) updateCanvasWindowImage();
+            if(rCursor.visible)
+            {
+                setRCursorMirrorPos();
+            }
         }
 
         //캔버스의 중심좌표를 구함 컨트롤 박스 옵션 박스 포함
@@ -15111,6 +15165,7 @@
             canvas11BitmapData = rcanvas11BitmapData.clone();
             canvas11Bitmap.bitmapData = canvas11BitmapData;
 
+            setRCursorVisibleONUndo(undoIndex);
             if(mirrorON !== rMirrorON)
             {
                 mirrorCommandReady = true;
@@ -15294,6 +15349,7 @@
                 {
                     undoRefImage[5] = !undoRefImage[5];
                 }
+                tickDraw.setFirstRCursorPos();
             }
 
             function getUndoRefImage():Array
@@ -15894,7 +15950,7 @@
             _rcanvasPanel.addChild(rcanvas1Bitmap);//판넬에 canvas1추가
             _rcanvasPanel.addChild(rcanvas2);//판넬에 canvas2추가
             _rcanvasPanel.addChild(rcanvasPanelMask);//판넬에  마스크 추가
-            _rcanvasPanel.addChild(rCursor);
+            // _rcanvasPanel.addChild(rCursor);
             _rcanvasPanel.mask = rcanvasPanelMask;//마스크 해줘서 판 밖으로 선나타나지 않도록함
 
             _rcanvasPanel.x = Math.floor(-_rcanvasPanel.width/2);
@@ -15952,6 +16008,8 @@
             _canvasPanel.addChild(canvas2);
             _canvasPanel.addChild(lassoBox);
             _canvasPanel.addChild(canvasGrid);
+            rCursor.visible = false;
+            _canvasPanel.addChild(rCursor);
             _canvasPanel.addChild(canvasPanelMask);
             _canvasPanel.mask = canvasPanelMask;
 
@@ -17364,7 +17422,9 @@
             regPoint.visible = true;
             penSizeCursor.visible = true;
             replayTimeBox.visible = false;
+            canvasPanel.addChild(rCursor);
             rCursor.visible = false;
+            setRCursorVisibleONUndo(-1);
 
             if(isSidebarVisible === false) sideBar.setTempVisibleOFF(isRightSidebar);
             replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
@@ -17402,7 +17462,8 @@
             regPoint.visible = false;
             penSizeCursor.visible = false;
             replayTimeBox.visible = true;
-            rCursor.visible = true;
+            rcanvasPanel.addChild(rCursor);
+            setRCursorVisibleOFFUndo();
 
             setTopChildIndex(replayTimeBox);
             replayTimeBox.setTimeBarOnly(true);
@@ -17494,6 +17555,7 @@
             regPoint.visible = true;
             penSizeCursor.visible = true;
             replayTimeBox.visible = false;
+            canvasPanel.addChild(rCursor);
             rCursor.visible = false;
             replayTimeBox["pauseButton"].visible = false;
             setTopChildIndex(replayTimeBox);
@@ -17516,7 +17578,6 @@
             changeTopBarIcons("draw");
             appInfoBox.setZoom(zoomed);
 
-            
             if(traceMenuON === true) traceMenuBox.visible = true;
             if(isSidebarVisible === true) setSidebarVisible(true,true);
         }
@@ -17535,7 +17596,8 @@
             resetCutFrameClickCounter();
             topBar.hintOFF();
             removeInputEventDrawMode();
-            rCursor.visible = false;
+            rcanvasPanel.addChild(rCursor);
+            setRCursorVisibleOFFUndo();
             setTopChildIndex(rCursor);
             TOTAL_FRAME = getTotalFrame();
             checkReplaySpeedState();
