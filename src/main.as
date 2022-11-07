@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.21;
+        private const APP_VERSION:Number = 17.22;
         private const APP_DATA_VERSION:Number = 17.03; 
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -677,28 +677,7 @@
         }
         
         //functions
-
         //두 숫자의 비율을 구함
-        private function getSizeRatio(a:int,b:int):String
-        {
-            const A:int = a;
-            const B:int = b;
-            var tmp:int;
-            while(b != 0)
-            {
-                tmp = a % b;
-                a = b;
-                b = tmp;
-            }
-
-            if(a != 1)
-            {
-                return A/a+" : "+B/a;
-            }
-
-            return "none";
-        }
-
         private function getUndoCountStr(redoFlag:Boolean,newLineFlag:Boolean):String
         {
             var str:String;
@@ -1303,23 +1282,34 @@
         {
             if(rData.length === 0) return;
 
-            const arr:Array = rData[rData.length-1];
+            const index:int = undoIndex;
+            const arr:Array = rData[index];
+            
             if(arr.length === 1)
             {
-                rData.pop();
-                rDataFrame.pop();
+                rData.splice(index);
+                rDataFrame.splice(index);
             }
             else
             {
+                var commandIndex:int = -1;
+                var len:uint = arr.length;
                 for(var i:uint=0; i<arr.length; i++)
                 {
                     if(command === arr[i][0])
                     {
-                        arr.splice(i,1);
-                        i--;
+                        arr.splice(i,1)
+                        --i;
+                        --len;
                     }
                 }
+                rData.splice(index+1);
+                rDataFrame.splice(index+1);
             }
+
+            undoDelFlag = false;
+            undoData.updateLastRDataMirror();
+            undoIndex = rData.length-1;
         }
 
         private function hasLastRDataCommand(command:String):Boolean
@@ -1347,13 +1337,11 @@
             if(hasLastRDataCommand("merge"))
             {
                 deleteLastRDataCommand("merge");
-                addUndoDataContinue();
             }
             else
             {
                 canvas11BitmapData.draw(canvas1BitmapData);
                 canvas1BitmapData.fillRect(new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT),0);
-                
                 rDataBuffer.push(["merge"]);
                 addUndoData();
             }
@@ -1380,7 +1368,6 @@
             if(hasLastRDataCommand("swap"))
             {
                 deleteLastRDataCommand("swap");
-                addUndoDataContinue();
             }
             else
             {
@@ -6760,7 +6747,6 @@
             initReplayDataFile(true);
             resetReplayTime();
             resetUndo();
-            addUndoData();
 
             const fileName:String = getTimeStampTailHead()+" "+getRandomString()+".png";
             const name:String = saveFileName;
@@ -15334,6 +15320,8 @@
                 rFileTotalFrame = frame;
             }
 
+            //미러가 되어있는지 확인해서 mirror커맨드를 무조건 앞으로 보냄
+            //그게 아니면 미러 커맨드 지워줌
             function updateLastRDataMirror():void
             {
                 if(mirrorCommandReady)
@@ -15375,6 +15363,7 @@
 
                 if(undoDelFlag === true)
                 {
+                    trace('addContinue에서 앞부분 지워주기');
                     undoDelFlag = false;
                     rData.splice(undoIndex+1);
                     rDataFrame.splice(undoIndex+1);
@@ -15501,6 +15490,8 @@
 
                 if(canvasWindowON) updateCanvasWindowImage();
                 setClearButtonActive();
+
+                trace('보통 언도 더하기 ');
             };
 
             return {
@@ -15512,7 +15503,8 @@
                 setUndoRefImage:setUndoRefImage,
                 setUndoRefImageByReplayMode:setUndoRefImageByReplayMode,
                 setUndoRefImageByDrawMode:setUndoRefImageByDrawMode,
-                resetRJumpImageCount:resetRJumpImageCount
+                resetRJumpImageCount:resetRJumpImageCount,
+                updateLastRDataMirror:updateLastRDataMirror
             }
         }
 
@@ -18477,37 +18469,37 @@
             }
         }
         
-        // private var printdeepLevel:int = 0;
-        // private function printArray(obj:Object,deepKey:String=""):void
-        // {
-        //     var blank:String="";
-        //     if(printdeepLevel === 0) trace('--- PRINT START --- ');
-        //     else
-        //     {
-        //         const count:int = printdeepLevel;
-        //         for(var b:int=0; b<count; b++)
-        //         {
-        //             blank += "   ";
-        //         }
-        //         trace(blank+'> index['+deepKey+']');
-        //     }
+    //     private var printdeepLevel:int = 0;
+    //     private function printArray(obj:Object,deepKey:String=""):void
+    //     {
+    //         var blank:String="";
+    //         if(printdeepLevel === 0) trace('--- PRINT START --- ');
+    //         else
+    //         {
+    //             const count:int = printdeepLevel;
+    //             for(var b:int=0; b<count; b++)
+    //             {
+    //                 blank += "   ";
+    //             }
+    //             trace(blank+'> index['+deepKey+']');
+    //         }
 
-        //     trace(blank+'{');
-        //     for(var i:String in obj)
-        //     {
-        //         if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
-        //         {
-        //             ++printdeepLevel;
-        //             printArray(obj[i],i);
-        //         }
-        //         else
-        //         {
-        //             trace(blank+'| '+i+' : ' + obj[i]);
-        //         }
-        //     }
-        //     trace(blank+'}');
-        //     --printdeepLevel;
-        //     if(printdeepLevel < 0) printdeepLevel = 0;
-        // }
+    //         trace(blank+'{');
+    //         for(var i:String in obj)
+    //         {
+    //             if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
+    //             {
+    //                 ++printdeepLevel;
+    //                 printArray(obj[i],i);
+    //             }
+    //             else
+    //             {
+    //                 trace(blank+'| '+i+' : ' + obj[i]);
+    //             }
+    //         }
+    //         trace(blank+'}');
+    //         --printdeepLevel;
+    //         if(printdeepLevel < 0) printdeepLevel = 0;
+    //     }
     }
  }
