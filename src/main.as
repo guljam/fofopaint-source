@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.32;
+        private const APP_VERSION:Number = 17.33;
         private const APP_DATA_VERSION:Number = 17.26;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -723,71 +723,6 @@
         {
             rCursor.visible = false;
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,setRCursorVisibleOFFUndoMouseDownEvent);
-        }
-
-        //rcursor가 화면바깥을 넘어갈 경우 자동으로 스크롤해줌
-        private function checkCanvaPosToRCursorCenter(flag:int):void
-        {
-            const gp:Point = rCursor.localToGlobal(new Point(0,0));
-            const gx:Number = gp.x;
-            const gy:Number = gp.y;
-            const scale:Number = getUIScale();
-            const xReg:Sprite = (isDeepUndoON) ? rregPoint : regPoint;
-            var left:Number;
-            var right:Number;
-            var top:Number = (isDeepUndoON) ? replayTimeBox.BARSIZE*scale : topBar.BARSIZE*scale;
-            var bottom:Number = stage.stageHeight;
-
-            if(isDeepUndoON)
-            {
-                if(!isSidebarVisible)
-                {
-                    if(isRightSidebar)
-                    {
-                        left = 0;
-                        right = stage.stageWidth-(toolBox.BOX_WIDTH+10)*scale;
-                    }
-                    else
-                    {
-                        left = (toolBox.BOX_WIDTH+10)*scale;
-                        right = stage.stageWidth;
-                    }
-                }
-                else if(isRightSidebar)
-                {
-                    left = 0;
-                    right = stage.stageWidth-STAGE_RIGHT_OFFSET;
-                }
-                else
-                {
-                    left = STAGE_LEFT_OFFSET;
-                    right = stage.stageWidth;
-                }
-            }
-            else
-            {
-                if(!isSidebarVisible)
-                {
-                    left = 0;
-                    right = stage.stageWidth;
-                }
-                else if(isRightSidebar)
-                {
-                    left = 0;
-                    right = stage.stageWidth-STAGE_RIGHT_OFFSET;
-                }
-                else
-                {
-                    left = STAGE_LEFT_OFFSET;
-                    right = stage.stageWidth;
-                }
-            }
-
-            if(gx < left) xReg.x += (left-gx)+100;
-            else if(gx > right) xReg.x -= (gx-right)+100;
-
-            if(gy < top) xReg.y += (top-gy)+100;
-            else if(gy > bottom) xReg.y -= (gy-bottom)+100;
         }
 
         private function setUndoToolTipON(redoFlag:Boolean):void
@@ -9841,7 +9776,6 @@
             }
             if(checkExitDeepUndo(jumpflag)) return;
             if(!rFitZoomedON && !isDeepUndoON) checkAutoScroll.check();
-            if(isDeepUndoON) checkCanvaPosToRCursorCenter(CENTERPOS_DEEPUNDO);
         } 
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
@@ -14320,6 +14254,8 @@
             const lassog:Graphics = lassoDraw.graphics;
             const _dottedLine:Object = dottedLine;
             const clickPos:Point = new Point(0,0);
+            var maxWidth:Number;
+            var maxHeight:Number;
 
             var canvas2FilterBackUp:Array;
             var lassoRect:Vector.<Number>;
@@ -14400,10 +14336,17 @@
 
             function lassoDrawMouseMove(MouseEvent:Event):void
             {
-                const x:Number = cd.mouseX;
-                const y:Number = cd.mouseY;
+                var x:Number = cd.mouseX;
+                var y:Number = cd.mouseY;
+
+                if(x < 0) x = 0;
+                else if(x > maxWidth) x = maxWidth;
+
+                if(y < 0) y = 0;
+                else if(y > maxHeight) y = maxHeight;
                 
                 lassoPoints.push([x,y]);
+
                 if(timer === 0)
                 {
                     timer = setTimeout(function():void
@@ -14431,8 +14374,17 @@
                 canvas2FilterBackUp = canvas2Draw.filters.concat();
                 canvas2Draw.filters = [];
 
+                maxWidth = CANVAS_WIDTH;
+                maxHeight = CANVAS_HEIGHT;
                 clickPos.x = cd.mouseX;
                 clickPos.y = cd.mouseY;
+
+                if(clickPos.x < 0) clickPos.x = 0;
+                else if(clickPos.x > maxWidth) clickPos.x = maxWidth;
+
+                if(clickPos.y < 0) clickPos.y = 0;
+                else if(clickPos.y > maxHeight) clickPos.y = maxHeight;
+
                 lassoDraw.x = 0;
                 lassoDraw.y = 0;
 
@@ -14446,6 +14398,7 @@
 
                 lassog.clear();
                 lassoBox.visible = true;
+
                 lassoPoints.push([clickPos.x,clickPos.y]);
 
                 _dottedLine.updateScale(zoomed);
@@ -15361,7 +15314,6 @@
                 mirrorCommandReady = false;
             }
 
-            checkCanvaPosToRCursorCenter(CENTERPOS_DRAW);
             if(rCursorON) setUndoToolTipON(redoFlag);
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
