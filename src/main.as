@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.30;
+        private const APP_VERSION:Number = 17.32;
         private const APP_DATA_VERSION:Number = 17.26;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -807,10 +807,8 @@
             }
         }
 
-        private function setRCursorVisibleONUndo(undoIndex:int,redoFlag:Boolean):void
+        private function setRCursorVisibleONUndo(undoIndex:int,redoFlag:Boolean):Boolean
         {
-            if(rData.length === 0) return;
-
             if(rCursor.visible === false)
             {
                 rCursor.visible = true;
@@ -825,18 +823,21 @@
                     const p:Point = _tickDraw.getFirstRCursorPos();
                     _tickDraw.setRCursorPos(p.x,p.y); //커서 위치도 업에이트 해줘야함 대칭해줄띠 getRcursor로 하기 때문에
                     _tickDraw.updateRCursorPosToFirst();
-                    
+                    return true;
                 }
                 else
                 {
                     setRCursorVisibleOFFUndo();
                     toolTipBoxTimerOFF();
+                    return false;
                 }
             }
             else
             {
                 tickDraw.updateRCursorPos();
+                return true;
             }
+            return false;
         }
 
         private function layerPreviewBlurEffectOFF():void
@@ -7419,7 +7420,6 @@
 
         private function superUndo():void
         {
-            tickDraw.setFirstRCursorPosCurrent();
 
             if(rDataReadFlag === true)
             {
@@ -7430,6 +7430,7 @@
             }
             else if(rDataReadFlag === false)
             {
+                tickDraw.setFirstRCursorPosCurrent();
                 const replayTotalBar:Sprite = replayTimeBox["replayTotalBar"] as Sprite;
                 const replayNowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
                 const fs:FileStream = new FileStream();
@@ -7474,12 +7475,12 @@
                 mirrorCommandReady = false;
                 appInfoBox.setMirror(rMirrorON);
             }
+
             isDeepUndoONDelayTime = getTimer();
-            if(isDeepUndoON) setDeepUndoUIOFF();
+            if(isDeepUndoON) setDeepUndoUIOFF(false);
             else if(replayModeON) setReplayUIOFF();
 
             if(canvasWindowON) updateCanvasWindowBitmapSize();
-
             if(quickSidebarON) setQuickSidebarOFF();
 
             saveContinue = false;
@@ -9722,7 +9723,7 @@
         {
             if(isDeepUndoON && flag === JUMP_FRAME_AFTER && rNowFrame === TOTAL_FRAME)
             {
-                setDeepUndoUIOFF();
+                setDeepUndoUIOFF(true);
                 return true;
             }
             return false;
@@ -10321,7 +10322,7 @@
         {
             rFileStream.close();
             restartTimerCancel();
-            if(isDeepUndoON) setDeepUndoUIOFF();
+            if(isDeepUndoON) setDeepUndoUIOFF(false);
 
             tempDragDropFile = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
 
@@ -15346,7 +15347,7 @@
             canvas11BitmapData = rcanvas11BitmapData.clone();
             canvas11Bitmap.bitmapData = canvas11BitmapData;
 
-           setRCursorVisibleONUndo(undoIndex,redoFlag);
+            const rCursorON:Boolean = setRCursorVisibleONUndo(undoIndex,redoFlag);
 
             if(mirrorON !== rMirrorON)
             {
@@ -15359,8 +15360,9 @@
             {
                 mirrorCommandReady = false;
             }
+
             checkCanvaPosToRCursorCenter(CENTERPOS_DRAW);
-            setUndoToolTipON(redoFlag);
+            if(rCursorON) setUndoToolTipON(redoFlag);
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
 
@@ -17333,7 +17335,7 @@
 
                 case "deepUndoCancel":
                 {
-                    setDeepUndoUIOFF();
+                    setDeepUndoUIOFF(true);
                 }
                 break;
 
@@ -17605,7 +17607,7 @@
             }
         }
 
-        private function setDeepUndoUIOFF():void
+        private function setDeepUndoUIOFF(cancelFlag:Boolean):void
         {
             isDeepUndoON = false;
             cancelAutoKeyEvent({});
@@ -17618,8 +17620,13 @@
             replayTimeBox.visible = false;
             canvasPanel.addChild(rCursor);
             rCursor.visible = false;
-            setRCursorVisibleONUndo(-1,true);
-            setUndoToolTipON(true);
+            if(cancelFlag)
+            {
+                if(setRCursorVisibleONUndo(-1,true))
+                {
+                    setUndoToolTipON(true);
+                }
+            }
 
             if(isSidebarVisible === false) sideBar.setTempVisibleOFF(isRightSidebar);
             replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
@@ -17751,6 +17758,7 @@
             replayTimeBox.visible = false;
             canvasPanel.addChild(rCursor);
             rCursor.visible = false;
+            if(toolTipBox.visible) toolTipBoxTimerOFF();
             replayTimeBox["pauseButton"].visible = false;
             setTopChildIndex(replayTimeBox);
             resetCutFrameClickCounter();
@@ -17896,7 +17904,7 @@
                     case "toolUndo":setJumpOneFrame(true,false); break;
                     case "toolRedo":setJumpOneFrame(false,false); break;
                     case "deepUndoOK":superUndo(); break;
-                    case "deepUndoCancel":setDeepUndoUIOFF(); break;
+                    case "deepUndoCancel":setDeepUndoUIOFF(true); break;
                 }
             }
         }
@@ -17937,7 +17945,7 @@
                     if(input === KEY.z || input === KEY.dot) superUndo();
                     else if(input === KEY.c || input === KEY.m)
                     {
-                        setDeepUndoUIOFF();
+                        setDeepUndoUIOFF(false);
                         setCaptureReady();
                     }
                 })
@@ -17963,12 +17971,12 @@
 
                 case KEY.esc:
                 case KEY.backspace:
-                    setDeepUndoUIOFF();
+                    setDeepUndoUIOFF(true);
                 break;
                 
                 case KEY.f1:
                 case KEY.f7:
-                    setDeepUndoUIOFF();
+                    setDeepUndoUIOFF(false);
                     setReplayUION();
                 break;
             }
