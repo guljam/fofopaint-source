@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.28;
+        private const APP_VERSION:Number = 17.30;
         private const APP_DATA_VERSION:Number = 17.26;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -633,6 +633,7 @@
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,layerOptionON:Boolean = false //레이어 옵션 켜졌을때 올려줌
                     ,sideBarReCacheAsBitmapTimer:int = 0 //리플레이 모드에서 창을 작게 해줬다가 크게 하고 나서 드로우 모드로 가면 사이드바가 짤려서 타이머로 딜레이 시켜줌
+                    ,updateAfterSave:Boolean = false; //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
                     ;
         //vars
         public function main():void
@@ -1888,6 +1889,11 @@
                         windowClosingFlag = true;
                         isInSaveProgress = 0;
                         stage.nativeWindow.close();
+                    }
+
+                    if(updateAfterSave)
+                    {
+                        startUpdate();
                     }
                 }
             },WORKER_WAIT_INTERVAL);
@@ -5579,6 +5585,28 @@
             _replayTimeBox["replayNowBar"].width = (replayTotalBar.width)*(rNowFrame/totalFrame);
         }
 
+        private function setUpdateButton():void
+        {
+            updateAfterSave = true;
+            saveFile(false);
+        }
+
+        private function startUpdate():void
+        {
+            updateAfterSave = false;
+            if(needUpdate === 1)
+            {
+                setTimeout(function():void
+                {
+                    installNewVersion();
+                },500);
+            }
+            else if(needUpdate === 2)
+            {
+                navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint"));
+            }
+        }
+
         private function installNewVersion():void
         {
             if(UPDATE_FILE.exists)
@@ -7060,17 +7088,7 @@
 
                         case "updateButton":
                         {
-                            if(needUpdate === 1)
-                            {
-                                setTimeout(function():void
-                                {
-                                    installNewVersion();
-                                },500);
-                            }
-                            else if(needUpdate === 2)
-                            {
-                                navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint"));
-                            }
+                            setUpdateButton();
                         }
                         break;
 
@@ -12256,9 +12274,16 @@
             if(replayStartON) stopReplay();
             const continueFlag:Boolean = saveContinue === true && asFlag === false;
 
-            if(saveOneTime === true && continueFlag)
+            if(saveOneTime && continueFlag)
             {
-                topBar.hintTime("Already saved",topBar.replayModeButton);
+                if(updateAfterSave)
+                {
+                    startUpdate();
+                }
+                else
+                {
+                    topBar.hintTime("Already saved",topBar.replayModeButton);
+                }
                 return;
             }
 
@@ -12323,10 +12348,11 @@
                 if(browseWindowON) return;
 
                 const file:File = checkSaveFailedFileName(saveFailed);
-                const saveWindowTitle:String = (asFlag === true) ? "Save file As..":"Save file";
+                const saveWindowTitle:String = (asFlag === true) ? "Save file As.."
+                                                :(updateAfterSave) ? "Save file before update":"Save file";
 
                 file.addEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
-                file.addEventListener(Event.CANCEL, onCancelEvent);
+                file.addEventListener(Event.CANCEL, onErrorEvent);
                 file.addEventListener(Event.SELECT, onSelectEvent);
                 file.browseForSave(saveWindowTitle);
 
@@ -12335,7 +12361,7 @@
                 function removeEvent():void
                 {
                     file.removeEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
-                    file.removeEventListener(Event.CANCEL, onCancelEvent);
+                    file.removeEventListener(Event.CANCEL, onErrorEvent);
                     file.removeEventListener(Event.SELECT, onSelectEvent);
                 }
 
@@ -12344,13 +12370,10 @@
                     browseWindowON = false;
                     file.cancel();
                     removeEvent();
-                }
-
-                function onCancelEvent(e:Event):void
-                {
-                    browseWindowON = false;
-                    file.cancel();
-                    removeEvent();
+                    if(updateAfterSave)
+                    {
+                        startUpdate();
+                    }
                 }
 
                 function onSelectEvent(e:Event):void
