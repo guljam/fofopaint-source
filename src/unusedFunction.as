@@ -1008,7 +1008,7 @@ private function setPenTool(penToolFlag:Boolean):void
                 }
 
                 var degstr:String = abs(deg%90).toFixed(1)+"°";
-                setToolTipString(degstr);
+                setToolTipON(degstr);
                 toolTipBox.visible = true;
 
                 const rad:Number = Math.atan2(oldX+xOffset-mx,oldY+xOffset-my);
@@ -1533,7 +1533,7 @@ private function setLassoTool():void
                 setRegPoint(panelLimitedX,panelLimitedY,replayMode);
             }
 
-            setToolTipString(strZoom);
+            setToolTipON(strZoom);
             toolTipBox.visible = true;
 
             stage.addEventListener(MouseEvent.MOUSE_MOVE,zoomToolMoveEvent);
