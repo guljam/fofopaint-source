@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.27;
+        private const APP_VERSION:Number = 17.28;
         private const APP_DATA_VERSION:Number = 17.26;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8343,6 +8343,11 @@
                 rCursor.y = rTinyCursorPos.y;
             }
 
+            function setRCursorPosMoveTool(x:Number,y:Number):void
+            {
+                setRCursorPos(rTinyCursorPos.x+x,rTinyCursorPos.y+y)
+            }
+
             function setRCursorPosToCenter():void
             {
                 setRCursorPos(RCANVAS_WIDTH/2,RCANVAS_HEIGHT/2);
@@ -8350,6 +8355,12 @@
 
             function setRCursorPos(x:Number,y:Number):void
             {
+                if(x < 0) x = 0;
+                else if(x > RCANVAS_WIDTH) x = RCANVAS_WIDTH;
+
+                if(y < 0) y = 0;
+                else if(y > RCANVAS_HEIGHT) y = RCANVAS_HEIGHT;
+
                 rTinyCursorPos.setTo(x,y);
             }
 
@@ -8647,19 +8658,19 @@
             function move1(data:Array):void
             {
                 replayMoveImage(data[1],data[2],true,false);
-                setRCursorPosToCenter();
+                setRCursorPosMoveTool(data[1],data[2]);
             }
 
             function move2(data:Array):void
             {
                 replayMoveImage(data[1],data[2],false,true);
-                setRCursorPosToCenter();
+                setRCursorPosMoveTool(data[1],data[2]);
             }
 
             function move(data:Array):void
             {
                 replayMoveImage(data[1],data[2],true,true);
-                setRCursorPosToCenter();
+                setRCursorPosMoveTool(data[1],data[2]);
             }
 
             function resetLassoVars():void
