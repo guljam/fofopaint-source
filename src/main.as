@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.33;
+        private const APP_VERSION:Number = 17.34;
         private const APP_DATA_VERSION:Number = 17.26;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2527,7 +2527,10 @@
             const cd:Shape = canvas2Draw;
             const cdg:Graphics = cd.graphics;
             const lastMousePos:Point = new Point(0,0);
-            
+
+            var maxWidth:Number;
+            var maxHeight:Number;
+
             var clickedButton:String;
             var command:Vector.<int>;
             var data:Vector.<Number>;
@@ -2708,31 +2711,37 @@
                 if(readyAddUndo === false) _checkUndoReady();
                 mouseMoved = true;
 
-                var cdx:Number = cd.mouseX;
-                var cdy:Number = cd.mouseY;
+                var mx:Number = cd.mouseX;
+                var my:Number = cd.mouseY;
+
+                if(mx < 0) mx = 0;
+                else if(mx > maxWidth) mx = maxWidth;
+
+                if(my < 0) my = 0;
+                else if(my > maxHeight) my = maxHeight;
 
                 if(_pixelSnap && rotateFlag === false)
                 {
-                    cdx = floor(cdx-xOffset)+xOffset;
-                    cdy = floor(cdy-xOffset)+xOffset;
+                    mx = floor(mx-xOffset)+xOffset;
+                    my = floor(my-xOffset)+xOffset;
                 }
                 else
                 {
-                    cdx = floor(cdx*1000)/1000;
-                    cdy = floor(cdy*1000)/1000;
+                    mx = floor(mx*1000)/1000;
+                    my = floor(my*1000)/1000;
                 }
 
                 if(command.length === 0)
                 {
                     command.push(1);
-                    data.push(cdx);
-                    data.push(cdy);
+                    data.push(mx);
+                    data.push(my);
                 }
                 else
                 {
                     command.push(2);
-                    data.push(cdx);
-                    data.push(cdy);
+                    data.push(mx);
+                    data.push(my);
                 }
 
                 mouseMoveCount++;
@@ -2756,8 +2765,6 @@
             function mouseDownFillPen(e:MouseEvent):void
             {
                 const targetName:String = e.target.name;
-                const mx:Number = mouseX;
-                const my:Number = mouseY;
 
                 if(targetName === "fillPenOK"
                 || targetName === "fillPenUndo"
@@ -2770,31 +2777,37 @@
                     stageMouseMoveEvent.add(fillPenMouseMoveEvent);
                     clickedButton = null;
 
-                    var cdx:Number = cd.mouseX;
-                    var cdy:Number = cd.mouseY;
+                    var mx:Number = cd.mouseX;
+                    var my:Number = cd.mouseY;
+
+                    if(mx < 0) mx = 0;
+                    else if(mx > maxWidth) mx = maxWidth;
+
+                    if(my < 0) my = 0;
+                    else if(my > maxHeight) my = maxHeight;
 
                     if(_pixelSnap && rotateFlag === false)
                     {
-                        cdx = floor(cdx-xOffset)+xOffset;
-                        cdy = floor(cdy-xOffset)+xOffset;
+                        mx = floor(mx-xOffset)+xOffset;
+                        my = floor(my-xOffset)+xOffset;
                     }
                     else
                     {
-                        cdx = floor(cdx*100)/100;
-                        cdy = floor(cdy*100)/100;
+                        mx = floor(mx*100)/100;
+                        my = floor(my*100)/100;
                     }
 
                     if(command.length === 0)
                     {
                         command.push(1);
-                        data.push(cdx);
-                        data.push(cdy);
+                        data.push(mx);
+                        data.push(my);
                     }
                     else
                     {
                         command.push(2);
-                        data.push(cdx);
-                        data.push(cdy);
+                        data.push(mx);
+                        data.push(my);
                     }
 
                     clearTimeout(timer);
@@ -2825,6 +2838,17 @@
             {
                 fillPenStarted = true;
 
+                maxWidth = CANVAS_WIDTH;
+                maxHeight = CANVAS_HEIGHT;
+                var mx:Number = cd.mouseX;
+                var my:Number = cd.mouseY;
+
+                if(mx < 0) mx = 0;
+                else if(mx > maxWidth) mx = maxWidth;
+
+                if(my < 0) my = 0;
+                else if(my > maxHeight) my = maxHeight;
+
                 command = new Vector.<int>();
                 data = new Vector.<Number>();
 
@@ -2846,13 +2870,13 @@
                 _dottedLine.updateScale(zoomed);
 
                 command.push(1);
-                data.push(cd.mouseX);
-                data.push(cd.mouseY);
+                data.push(mx);
+                data.push(my);
 
                 setFillpenUI(true);
                 canvas2.alpha = 1.0;
 
-                lastMousePos.setTo(mouseX,mouseY);
+                lastMousePos.setTo(mx,my);
 
                 addEvents();
             }
