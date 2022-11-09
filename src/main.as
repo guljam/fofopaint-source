@@ -6762,6 +6762,7 @@
             addInputEventDrawMode();
             aboutPanelON = false;
             aboutPanel.visible = false;
+            clearTimeout(clickBlockTimer);
             clickBlockTimer = setTimeout(function():void
             {
                 clickBlockFlag = false;
