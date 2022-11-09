@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.34;
+        private const APP_VERSION:Number = 17.35;
         private const APP_DATA_VERSION:Number = 17.26;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -392,7 +392,8 @@
 
         //툴팁 관련 변수
                     ,toolTipHint:String = "" //topbar관련 힌트 여기 저장
-                    ,toolTipBoxTimer:uint = 0
+                    ,toolTipBoxTimeCount:uint = 0
+                    ,toolTipBoxTimeCountLimit:uint = 0
                     ,toolTipBoxOpenTime:int = 0 //타입 툴팁 쓸때 너무 빨리 클릭하면 사라져서 이 시간안에 클릭하면 1초후레 사라지도록함
 
         //리플레이 관련 변수
@@ -709,7 +710,7 @@
                 if(toolTipText.indexOf("Undo") !== -1 || toolTipText.indexOf("Redo") !== -1)   
                 {
                     const gp:Point = rCursor.localToGlobal(new Point(0,0));
-                    setToolTipTempON("",gp.x,gp.y,30000);
+                    setToolTipTempON("",gp.x,gp.y,30);
                 }
             }
         }
@@ -727,19 +728,9 @@
 
         private function setUndoToolTipON(redoFlag:Boolean):void
         {
-            var gp:Point;
-            var undoredoStr:String = (redoFlag) ? "Redo":"Undo";
+            var gp:Point = rCursor.localToGlobal(new Point(0,0));
 
-            if(undoIndex < 0)
-            {
-                gp = rCursor.localToGlobal(new Point(0,0));
-                setToolTipTempON(undoredoStr+" "+((undoIndex+1) +" / "+rData.length),gp.x,gp.y,30000);
-            }
-            else
-            {
-                gp = rCursor.localToGlobal(new Point(0,0));
-                setToolTipTempON(undoredoStr+" "+((undoIndex+1) +" / "+rData.length),gp.x,gp.y,30000);
-            }
+            setToolTipTempON(((redoFlag) ? "Redo ":"Undo ")+((undoIndex+1) +" / "+rData.length),gp.x,gp.y,1);
         }
 
         private function setRCursorVisibleONUndo(undoIndex:int,redoFlag:Boolean):Boolean
@@ -10144,9 +10135,9 @@
 
         private function toolTipBoxTimerOFF():void
         {
-            clearTimeout(toolTipBoxTimer);
-            toolTipBoxTimer = 0;
+            toolTipBoxTimeCount = 0;
             toolTipBox.visible = false;
+            stage.removeEventListener(Event.ENTER_FRAME,toolTipBoxCountFrameEvent);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,toolTipBoxTimerOFFEvent);
         }
 
@@ -10155,26 +10146,26 @@
             toolTipBoxTimerOFF();
         }
 
-        private function setToolTipTempON(str:String,customX:Number=NaN,customY:Number=NaN,time:Number=2000):void
+        private function toolTipBoxCountFrameEvent(e:Event):void
         {
-            if(toolTipBoxTimer === 0)
+            if(++toolTipBoxTimeCount >= toolTipBoxTimeCountLimit)
+            {
+                toolTipBoxTimerOFF();
+            }
+        }
+
+        private function setToolTipTempON(str:String,customX:Number=NaN,customY:Number=NaN,time:uint=1):void
+        {
+            if(toolTipBoxTimeCount === 0)
             {
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,toolTipBoxTimerOFFEvent);
+                stage.addEventListener(Event.ENTER_FRAME,toolTipBoxCountFrameEvent);
             }
+            toolTipBoxTimeCount = 1;
+            toolTipBoxTimeCountLimit = stage.frameRate*time;
 
             setToolTipON(str,customX,customY);
             toolTipBox.visible = true;
-
-            clearTimeout(toolTipBoxTimer);
-            toolTipBoxTimer = setTimeout(function():void
-            {
-                stageMouseMoveEvent.remove(toolTipBoxTimerOFFEvent);
-                if(toolTipBox["toolTipInfoText"].text === str)
-                {
-                    toolTipBoxTimer = 0;
-                    toolTipBox.visible = false;
-                }
-            },time);
         }
 
         private function moveToolTipString():void
