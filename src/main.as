@@ -699,20 +699,6 @@
 
             rCursor.x = curcorX;
             tickDraw.setRCursorPos(curcorX,p.y);
-            setUndoToolTipMirrorPos();
-        }
-
-        private function setUndoToolTipMirrorPos():void
-        {
-            if(toolTipBox.visible)
-            {
-                const toolTipText:String = toolTipBox["toolTipInfoText"].text;
-                if(toolTipText.indexOf("Undo") !== -1 || toolTipText.indexOf("Redo") !== -1)   
-                {
-                    const gp:Point = rCursor.localToGlobal(new Point(0,0));
-                    setToolTipTempON("",gp.x,gp.y,30);
-                }
-            }
         }
 
         private function setRCursorVisibleOFFUndoMouseDownEvent(e:MouseEvent):void
@@ -726,14 +712,7 @@
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,setRCursorVisibleOFFUndoMouseDownEvent);
         }
 
-        private function setUndoToolTipON(redoFlag:Boolean):void
-        {
-            var gp:Point = rCursor.localToGlobal(new Point(0,0));
-
-            setToolTipTempON(((redoFlag) ? "Redo ":"Undo ")+((undoIndex+1) +" / "+rData.length),gp.x,gp.y,1);
-        }
-
-        private function setRCursorVisibleONUndo(undoIndex:int,redoFlag:Boolean):Boolean
+        private function setRCursorVisibleONUndo(undoIndex:int,redoFlag:Boolean):void
         {
             if(rCursor.visible === false)
             {
@@ -749,21 +728,17 @@
                     const p:Point = _tickDraw.getFirstRCursorPos();
                     _tickDraw.setRCursorPos(p.x,p.y); //커서 위치도 업에이트 해줘야함 대칭해줄띠 getRcursor로 하기 때문에
                     _tickDraw.updateRCursorPosToFirst();
-                    return true;
                 }
                 else
                 {
                     setRCursorVisibleOFFUndo();
                     toolTipBoxTimerOFF();
-                    return false;
                 }
             }
             else
             {
                 tickDraw.updateRCursorPos();
-                return true;
             }
-            return false;
         }
 
         private function layerPreviewBlurEffectOFF():void
@@ -15316,7 +15291,7 @@
             canvas11BitmapData = rcanvas11BitmapData.clone();
             canvas11Bitmap.bitmapData = canvas11BitmapData;
 
-            const rCursorON:Boolean = setRCursorVisibleONUndo(undoIndex,redoFlag);
+           setRCursorVisibleONUndo(undoIndex,redoFlag);
 
             if(mirrorON !== rMirrorON)
             {
@@ -15329,8 +15304,6 @@
             {
                 mirrorCommandReady = false;
             }
-
-            if(rCursorON) setUndoToolTipON(redoFlag);
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
 
@@ -17588,13 +17561,7 @@
             replayTimeBox.visible = false;
             canvasPanel.addChild(rCursor);
             rCursor.visible = false;
-            if(cancelFlag)
-            {
-                if(setRCursorVisibleONUndo(-1,true))
-                {
-                    setUndoToolTipON(true);
-                }
-            }
+            if(cancelFlag) setRCursorVisibleONUndo(-1,true);
 
             if(isSidebarVisible === false) sideBar.setTempVisibleOFF(isRightSidebar);
             replayTimeBox.setTimeBarOnly(false,topBar.BARSIZE);
