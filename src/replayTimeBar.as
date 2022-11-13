@@ -19,28 +19,7 @@
 		public var frameInfo:TextField = frameInfo;
 		public var BARSIZE:Number = 35;
 		private var nowBarColorSave:uint = 0;
-
-		public function setTimeBarOnly(flag:Boolean,topbarSize:Number=0):void
-		{
-			if(flag)
-			{
-				this.x = 0;
-				this.y = 0;
-				tempTotalBarX();
-			}
-			else
-			{
-				this.x = 0;
-				this.y = topbarSize;
-				initTotalBarX();
-			}
-			visible = flag;
-			playButton.visible = !flag;
-			pauseButton.visible = !flag;
-			replayPrev.visible = !flag;
-			replayNext.visible = !flag;
-		}
-
+		
 		public function tempTotalBarX():void
 		{
 			replayTotalBar.x = 5;

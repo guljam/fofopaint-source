@@ -19,6 +19,7 @@
 		private const startY:Number = 2;
 		private const gap:Number = 36;
 		public const BARSIZE:Number = 38;
+		private var miniTimer:fofoTimer;
 
 		//버튼 추가시 해야할거
 		//change uicolor, mouse down state 추가, handcursor false로 하기 button order추가, 모드에 속하는거 에 추가
@@ -79,8 +80,6 @@
 		private var topbarInfoBG:Shape = new Shape();
 		private var topbarBG:Shape = new Shape();
 		private var topbarBGColor:uint = 0;
-		private var hintTimer:int = 0;
-		private var hintTimer2:int = 0;
 		private var hintOKBGColor:uint = 0;
 		private var hintFontColor:uint = 0;
 
@@ -298,30 +297,22 @@
 			topMenuInfo.textColor = hintFontColor;
 		}
 
-		public function hintTimeOFFWithColor(time:Number=3000):void
+		public function hintTimeOFFWithColor(time:Number=3.0):void
 		{
 			isHintLocked = false;
 			hintTimeOFF();
-			clearTimeout(hintTimer2);
-			hintTimer2 = setTimeout(function():void
-			{
-				resetHintColor();
-			},time);
+			miniTimer.addByName("topBarHintColorOFFTimer",time,false,resetHintColor);
 		}
 
 		public function hintTimeOFF():void
 		{
-			clearTimeout(hintTimer);
-			hintTimer = setTimeout(function():void
-			{
-				hintOFF();
-			},3000);
+			miniTimer.addByName("topBarHintOFFTimer",3.0,false,hintOFF);
 		}
 
 		public function hintLoadError():void
 		{
-			clearTimeout(hintTimer);
-			clearTimeout(hintTimer2);
+			miniTimer.remove("topBarHintColorOFFTimer");
+			miniTimer.remove("topBarHintOFFTimer");
 			clearInterval(hintWaitAnimTimer);
 			isHintLocked = false;
 			hint("Failed to load file",replayModeButton,true);
@@ -332,8 +323,8 @@
 
 		public function hintSaveError():void
 		{
-			clearTimeout(hintTimer);
-			clearTimeout(hintTimer2);
+			miniTimer.remove("topBarHintColorOFFTimer");
+			miniTimer.remove("topBarHintOFFTimer");
 			clearInterval(hintWaitAnimTimer);
 			isHintLocked = false;
 			hint("Failed to save file",replayModeButton,true);
@@ -383,7 +374,7 @@
 
 			if(target)
 			{
-				if(!timed) clearTimeout(hintTimer);
+				if(!timed) miniTimer.remove("topBarHintOFFTimer");
 
 				topMenuInfo.text = str;
 				topMenuInfo.width = topMenuInfo.textWidth+4;
@@ -768,6 +759,8 @@
 			setChildIndex(topbarBG,0);
 			setChildIndex(topMenuInfo,numChildren-1);
 			cacheAsBitmap = true;
+
+			miniTimer = new fofoTimer(stage);
 		}
 	}
 }

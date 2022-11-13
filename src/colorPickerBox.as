@@ -162,14 +162,17 @@
 			colorHistoryBox.y = floor(colorHistoryText.y+colorHistoryText.height);
 
 			colorHistoryBox.name = "colorHistoryBox";
+			colorHistoryBoxBG.name = "colorHistoryBoxBG";
+			
 			g = colorHistoryBoxBG.graphics;
-			g.lineStyle(0,0,0);
-			g.beginFill(0xFFFFFF,0);
-			g.drawRect(0,0,170,20); //17픽셀 10개임
+			g.clear()
+			g.beginFill(0xFF0000,0.0);
+			g.drawRect(0,0,170,19); //17픽셀 10개임
 			g.endFill();
+			colorHistoryBox.addChild(colorHistoryBoxBG);
 
 			drawrText.x = colorHistoryText.x;
-			drawrText.y = floor(colorHistoryBox.y+colorHistoryBox.height+21);
+			drawrText.y = floor(colorHistoryBox.y+colorHistoryBox.height+1);
 			drawrPresetBox.x = colorHistoryBox.x;
 			drawrPresetBox.y =floor(drawrText.y+drawrText.height-1);
 

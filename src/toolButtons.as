@@ -27,8 +27,6 @@
 		public var toolZoom:SimpleButton = toolZoom;
 		public var zoomInButton:SimpleButton = zoomInButton;
 		public var zoomOutButton:SimpleButton = zoomOutButton;
-		public var deepUndoOK:SimpleButton = deepUndoOK;
-		public var deepUndoCancel:SimpleButton = deepUndoCancel;
 		public var fillPenOK:SimpleButton = fillPenOK;
 		public var fillPenUndo:SimpleButton = fillPenUndo;
 		public var fillPenCancel:SimpleButton = fillPenCancel;
@@ -138,21 +136,6 @@
 			toolRedo.alpha = alpha;
 		}
 
-		public function deepUndoEtcIconAlpha(alpha:Number):void
-		{
-			toolPen.alpha = alpha;
-			toolFillPen.alpha = alpha;
-			toolErase.alpha = alpha;
-			toolSpuit.alpha = alpha;
-			toolMirror.alpha = alpha;
-			toolLasso.alpha = alpha;
-			toolMove.alpha = alpha;
-			toolRotate.alpha = alpha;
-			toolLine.alpha = alpha;
-			toolTrace.alpha = alpha;
-			toolZoom.alpha = alpha;
-		}
-
 		public function _checkBottomPos(bottom:Number):void
 		{
 			if(bottom > stage.stageHeight)
@@ -170,35 +153,9 @@
 			y = deafultY;
 		}
 
-		public function checkDeepUndoIconBottom():void
-		{
-			_checkBottomPos((deepUndoCancel.localToGlobal(new Point(0,0)) as Point).y + deepUndoCancel.height);
-		}
-
 		public function checkFillPenIconBottom():void
 		{
 			_checkBottomPos((fillPenCancel.localToGlobal(new Point(0,0)) as Point).y + fillPenCancel.height);
-		}
-
-		public function deepUndoIconON():void
-		{
-			deepUndoOK.visible = true;
-			deepUndoCancel.visible = true;
-			toolMove.visible = false;
-			toolPen.visible = false;
-			toolSelectCursor.visible = false;
-			deepUndoEtcIconAlpha(0.15);
-		}
-
-		public function deepUndoIconOFF():void
-		{
-			deepUndoOK.visible = false;
-			deepUndoCancel.visible = false;
-			toolMove.visible = true;
-			toolPen.visible = true;
-			toolSelectCursor.visible = true;
-
-			deepUndoEtcIconAlpha(1.0);
 		}
 
 		public function zoomIconON():void
@@ -253,8 +210,6 @@
 		{	
 			const buttonArr:Array =
 			[
-				deepUndoOK,
-				deepUndoCancel,
 				zoomInButton,
 				zoomOutButton,
 				toolZoom,
@@ -317,10 +272,6 @@
 			zoomInButton.y = toolZoom.y;
 			zoomOutButton.x = toolRotate.x;
 			zoomOutButton.y = toolRotate.y;
-			deepUndoOK.x = toolMove.x;
-			deepUndoOK.y = toolMove.y;
-			deepUndoCancel.x = toolPen.x;
-			deepUndoCancel.y = toolPen.y;
 			fillPenOK.x = toolErase.x;
 			fillPenOK.y = toolErase.y;
 			fillPenCancel.x = toolSpuit.x;
@@ -380,8 +331,6 @@
 			
 			zoomInButton.visible = false;
 			zoomOutButton.visible = false;
-			deepUndoOK.visible = false;
-			deepUndoCancel.visible = false;
 			fillPenOK.visible = false;
 			fillPenCancel.visible = false;
 			fillPenUndo.visible = false;

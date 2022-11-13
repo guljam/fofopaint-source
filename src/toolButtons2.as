@@ -24,8 +24,6 @@
 		public var toolZoom:SimpleButton = toolZoom;
 		public var toolBoxBG:SimpleButton = toolBoxBG;
 		public var toolBoxBG2:SimpleButton = toolBoxBG2;
-		public var deepUndoOK:SimpleButton = deepUndoOK;
-		public var deepUndoCancel:SimpleButton = deepUndoCancel;
 		public var toolSidebar:SimpleButton = toolSidebar;
 		public var toolInfo:TextField = toolInfo;
 		public const fixedScale:Number = 0.85;
@@ -73,24 +71,6 @@
 			toolTrace.alpha = alpha;
 		}
 
-		public function deepUndoIconON():void
-		{
-			deepUndoOK.visible = true;
-			deepUndoCancel.visible = true;
-			toolZoom.visible = false;
-			toolRotate.visible = false;
-			deepUndoEtcIconAlpha(0.15);
-		}
-
-		public function deepUndoIconOFF():void
-		{
-			deepUndoOK.visible = false;
-			deepUndoCancel.visible = false;
-			toolZoom.visible = true;
-			toolRotate.visible = true;
-			deepUndoEtcIconAlpha(1.0);
-		}
-
 		public function changeUIColor(arr:Array):void
 		{	
 			const leftButtonArr:Array =
@@ -99,8 +79,6 @@
 				toolMove,
 				toolRotate,
 				toolTrace,
-				deepUndoOK,
-				deepUndoCancel
 			];
 
 			const rightButtonArr:Array =
@@ -187,18 +165,9 @@
 			toolBoxBG.useHandCursor = false;
 			toolBoxBG2.useHandCursor = false;
 			toolSidebar.useHandCursor = false;
-			deepUndoOK.useHandCursor = false;
-			deepUndoCancel.useHandCursor = false;
-
+			
 			toolPen.visible = false;
 			toolErase.visible = true;
-			deepUndoOK.visible = false;
-			deepUndoCancel.visible = false;
-
-			deepUndoOK.x = toolZoom.x;
-			deepUndoOK.y = toolZoom.y;
-			deepUndoCancel.x = toolRotate.x;
-			deepUndoCancel.y = toolRotate.y;
 
 			visible = false;
 		}
