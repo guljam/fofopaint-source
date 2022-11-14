@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.46;
+        private const APP_VERSION:Number = 17.47;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -546,11 +546,11 @@
                     ,uiScaleIndex:int = 0
                     ,uiScaleSet:Array = [1.0,1.25,1.5,1.75]
                     ,uiColorIndex:int = 1
-                    ,uiColorSet:Array = [       //주 컬러,        주컬러 반대색, stage배경색, 캔버스 조절 막대 색, 리플레이 완료 막대 색
-                                                [COLOR_DARK,      0xE5E5E5,      0x4B4B4B,    0x676767,            0x74AC74], 
-                                                [COLOR_MID_DARK,  COLOR_BRIGHT,  0x888888,    RESIZE_BUTTON_COLOR, 0xA1CE9D],
-                                                [COLOR_MID_BRIGHT,0x505050,      0xC9C9C9,    0xB0B0B0,            0xB6DAAF],
-                                                [COLOR_BRIGHT,    0x505050,      0xE1E1E1,    0xCBCBCB,            0xCEE5C5],
+                    ,uiColorSet:Array = [       //주 컬러,        주컬러 반대색,    stage배경색,  캔버스 조절 막대 색,   리플레이 완료 막대 색, 리플레이 재 시작 막대색
+                                                [COLOR_DARK,      0xE5E5E5,      0x4B4B4B,    0x676767,            0x74AC74,           0xE8BE71], 
+                                                [COLOR_MID_DARK,  COLOR_BRIGHT,  0x888888,    RESIZE_BUTTON_COLOR, 0xA1CE9D,           0xF7DA83],
+                                                [COLOR_MID_BRIGHT,0x505050,      0xC9C9C9,    0xB0B0B0,            0xB6DAAF,           0xF7EA8D],
+                                                [COLOR_BRIGHT,    0x505050,      0xE1E1E1,    0xCBCBCB,            0xCEE5C5,           0xF7F2A0],
                                         ]
                     ,uiToolBoxColorSet:Array =
                     [ //컬러 셋 이름,       윗부분 막대색, 전체 배경색, upstate왼쪽아이콘색,  overstate 버튼배경색  overstate 아이콘색
@@ -7951,7 +7951,7 @@
             _replayTimeBox["playButton"].visible = true;
             _replayTimeBox["pauseButton"].visible = false;
 
-            setColorTransform(_replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
+            setColorTransform(_replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][5]);
             
             //재생이 끝나면 전체화면을 보여줌
             if(!mouseClickON)
@@ -7973,6 +7973,7 @@
                 info.text = "Playback finished";
             }
             rRestartTimerCount = 10;
+            setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
         }
 
         private function setRestartTimer():void
@@ -10523,6 +10524,7 @@
                         resetReplayTime();
                         TOTAL_FRAME = getTotalFrame();
                         rNowFrame = TOTAL_FRAME;
+                        deepUndoFrameSave = TOTAL_FRAME;
                         rPrevFrame = _frameSumLast;
                         playbackFinished = true;
 
@@ -17642,6 +17644,31 @@
             _rcanvasPanel.y = _canvasPanel.y;
         }
 
+        private function setSameReplayModeImageByDrawMode():void
+        {
+            rcanvas2Draw.graphics.clear();
+            
+            rcanvas1BitmapData.dispose();
+            rcanvas1BitmapData = canvas1BitmapData.clone();
+            rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+
+            rcanvas11BitmapData.dispose();
+            rcanvas11BitmapData = canvas11BitmapData.clone();
+            rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
+
+            changeCanvasSizeReplayMode(canvas1Bitmap.width,canvas1Bitmap.height);
+            setBackgroundColorReplayMode(CANVAS_BG_COLOR);
+        }
+
+        private function updateNowTimeBarByDrawMode():void
+        {
+            const totalFrame:Number = TOTAL_FRAME;
+
+            replayTimeBox["frameInfo"].text = rNowFrame+" / " + totalFrame;
+            replayTimeBox["replayNowBar"].width = (totalFrame === 0) ? 0 : replayTimeBox["replayTotalBar"].width*(rNowFrame/totalFrame);
+            setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
+        }
+
         private function setReplayUIOFF():void
         {
             if(makeJumpImageFlag === 2) return;
@@ -17753,23 +17780,9 @@
             }
             else if(makeJumpImageFlag === 0)
             {
-                const totalFrame:Number = TOTAL_FRAME;
                 rDataReadFlag = false;
-                replayTimeBox["frameInfo"].text = rNowFrame+" / " + totalFrame;
-                replayTimeBox["replayNowBar"].width = (totalFrame === 0) ? 0 : replayTimeBox["replayTotalBar"].width*(rNowFrame/totalFrame);
-                setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
-
-                clearCanvasReplayMode();
-                rcanvas1BitmapData.dispose();
-                rcanvas1BitmapData = canvas1BitmapData.clone();
-                rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-
-                rcanvas11BitmapData.dispose();
-                rcanvas11BitmapData = canvas11BitmapData.clone();
-                rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
-
-                changeCanvasSizeReplayMode(canvas1Bitmap.width,canvas1Bitmap.height);
-                setBackgroundColorReplayMode(CANVAS_BG_COLOR);
+                updateNowTimeBarByDrawMode();
+                setSameReplayModeImageByDrawMode();
 
                 //이거 안해주고 리플레이틀고 프레임 조작 안하고 재생하면 중간부터 되서 데이터가 꼬임
                 playbackFinished = true;
