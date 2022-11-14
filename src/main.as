@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.43;
+        private const APP_VERSION:Number = 17.45;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7338,8 +7338,9 @@
                 appInfoBox.setMirror(rMirrorON);
             }
 
-            setReplayUIOFF();
-            deepUndoON = false; //어차피 데이터 뒷 부분이 다 짤렸기 때문에 딥언도 켜져있는거 꺼줘도 됨
+            // setReplayUIOFF();
+            setDeepUndoOFF();
+            // deepUndoON = false; //어차피 데이터 뒷 부분이 다 짤렸기 때문에 딥언도 켜져있는거 꺼줘도 됨
             if(canvasWindowON) updateCanvasWindowBitmapSize();
             if(quickSidebarON) setQuickSidebarOFF();
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
@@ -9714,7 +9715,7 @@
         {
             const totalF:Number = TOTAL_FRAME;
             if(totalF === 0 || makeJumpImageFlag > 0) return;
-1
+
             //리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
             var replayStartONSave:Boolean = false;
             if(replayStartON)
