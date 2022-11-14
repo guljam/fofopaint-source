@@ -111,7 +111,7 @@
 
 			remove(name);
 
-			list.push([name,                   //이름
+			list.push([name,                //이름
 					getTimer()+(time*1000), //실행할 시간
 					time*1000,              //루프힐때 더해줄 시간
 					loopFlag,               //루프 인지아닌지?
