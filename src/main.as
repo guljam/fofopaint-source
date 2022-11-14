@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.40;
+        private const APP_VERSION:Number = 17.41;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2654,12 +2654,6 @@
                 var mx:Number = cd.mouseX;
                 var my:Number = cd.mouseY;
 
-                if(mx < 0) mx = 0;
-                else if(mx > maxWidth) mx = maxWidth;
-
-                if(my < 0) my = 0;
-                else if(my > maxHeight) my = maxHeight;
-
                 if(_pixelSnap && rotateFlag === false)
                 {
                     mx = floor(mx-xOffset)+xOffset;
@@ -2715,12 +2709,6 @@
 
                     var mx:Number = cd.mouseX;
                     var my:Number = cd.mouseY;
-
-                    if(mx < 0) mx = 0;
-                    else if(mx > maxWidth) mx = maxWidth;
-
-                    if(my < 0) my = 0;
-                    else if(my > maxHeight) my = maxHeight;
 
                     if(_pixelSnap && rotateFlag === false)
                     {
@@ -2778,12 +2766,6 @@
                 maxHeight = CANVAS_HEIGHT;
                 var mx:Number = cd.mouseX;
                 var my:Number = cd.mouseY;
-
-                if(mx < 0) mx = 0;
-                else if(mx > maxWidth) mx = maxWidth;
-
-                if(my < 0) my = 0;
-                else if(my > maxHeight) my = maxHeight;
 
                 command = new Vector.<int>();
                 data = new Vector.<Number>();
@@ -10904,7 +10886,7 @@
                     {
                         writeReplayFile(workerReplayData);
                         workerReplayData = null;
-                        return false;
+                        return false;  
                     }
                     return true;
                 });
@@ -12958,7 +12940,10 @@
 
                 drawingLine();
 
-                if(readyAddUndo === false) checkUndoReady();
+                if(readyAddUndo === false)
+                {
+                    checkUndoReady();
+                }
             }
 
             function lineUpEvent(e:MouseEvent):void
@@ -14292,7 +14277,8 @@
                                       ? stage.stageWidth : lassoMenu.width;
 
                 lassoMenu.x = floor(g.x-lassoW/2);
-                lassoMenu.y = floor(g.y+((lassoBox.height)/2+15));
+                lassoMenu.y = floor(g.y+(((lassoBox.height)/2)*zoomed+20));
+                // lassoMenu.y = floor(g.y+(((lassoBox.height)/2)/zoomed+15));
             }
 
             function lassoDrawMouseUp():void
@@ -14309,17 +14295,6 @@
                 if(lassoRect[1] < 0) lassoRect[1] = 0;
                 if(lassoRect[2] > CANVAS_WIDTH) lassoRect[2] = CANVAS_WIDTH;
                 if(lassoRect[3] > CANVAS_HEIGHT) lassoRect[3] = CANVAS_HEIGHT;
-                
-                const arr:Array = lassoPoints;
-                const len:uint = arr.length;
-                for(var i:uint=0;i<len;i++)
-                {
-                    if(arr[i][0] < 0) arr[i][0] = 0;
-                    else if(arr[i][0] > maxWidth) arr[i][0] = maxWidth;
-
-                    if(arr[i][1] < 0) arr[i][1] = 0;
-                    else if(arr[i][1] > maxHeight) arr[i][1] = maxHeight;
-                }
 
                 lassoPointSave.push(lassoRect);
                 lassoPointSave.push(lassoPoints);
