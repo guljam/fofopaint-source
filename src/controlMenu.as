@@ -46,8 +46,10 @@
 
 		public function blurShapeSetOFF():void
 		{
-			rectSizeSet.filters.length = 0;
-			circleSizeSet.filters.length = 0;
+			rectSizeSet.filters = null;
+			circleSizeSet.filters = null;
+
+			trace('rectSizeSet.filters.',rectSizeSet.filters);
 		}
 
 		// public function initShapeSet():void

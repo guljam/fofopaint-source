@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.48;
+        private const APP_VERSION:Number = 17.50;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4983,6 +4983,7 @@
             const _controlBox:controlMenu = controlBox;
             _controlBox["airBrushOFFButton"].visible = flag;
             _controlBox["airBrushONButton"].visible = !flag;
+            trace('airBrushSizeDrawMode',airBrushSizeDrawMode);
 
             if(flag)
             {
@@ -5001,6 +5002,7 @@
             }
             else if(airBrushSizeDrawMode !== 0)
             {
+                trace('리셋함');
                 airBrushSizeDrawMode = 0;
                 canvas2Draw.filters = [];
                 _controlBox.blurShapeSetOFF();
@@ -5009,6 +5011,7 @@
 
         private function setAirBrushButton(flag:Boolean):void
         {
+            trace('flag',flag);
             const penFlag:Boolean = isPenOrLineTool();
 
             if(penFlag) airBrushON = flag;
