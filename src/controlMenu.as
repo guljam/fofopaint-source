@@ -48,8 +48,6 @@
 		{
 			rectSizeSet.filters = null;
 			circleSizeSet.filters = null;
-
-			trace('rectSizeSet.filters.',rectSizeSet.filters);
 		}
 
 		// public function initShapeSet():void

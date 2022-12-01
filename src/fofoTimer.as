@@ -15,13 +15,8 @@
 		{
 			if(!stage)
 			{
-				// trace('스테이지 추가');
 				framerate = initStage.frameRate;
 				stage = initStage;
-			}
-			else
-			{
-				// trace('이미 추가되어있음');
 			}
 		}
 
@@ -49,13 +44,11 @@
 						}
 						else
 						{
-							// // trace('반복 시작 ',list[i][0],'오차',getTimer()-list[i][1]);
-							list[i][1] += list[i][2];
+							list[i][1] = getTimer()+list[i][2];
 						}
 					}
 					else
 					{
-						// // trace('타임아웃',list[i][0],'오차',getTimer()-list[i][1]);
 						_func = list.splice(i,1)[0];
 						_func[4].apply(main,_func[5]);
 						i--;
@@ -72,11 +65,9 @@
 			{
 				if(name === list[i][0])
 				{
-					// trace('타이머가 존재함',name);
 					return true;
 				}
 			}
-			// trace('타이머가 존재하지 않음',name);
 			return false;
 		}
 
@@ -87,7 +78,6 @@
 			{
 				if(name === list[i][0])
 				{
-					// trace('타이머 삭제',name);
 					list.splice(i,1);
 					break;
 				}
@@ -102,7 +92,6 @@
 
 		public function addByName(name:String,time:Number,loopFlag:Boolean,func:Function,args:Array=null):void
 		{
-			// trace('[타이머 추가] ',name);
 			if(!started)
 			{
 				started = true;
@@ -111,12 +100,12 @@
 
 			remove(name);
 
-			list.push([name,                //이름
-					getTimer()+(time*1000), //실행할 시간
-					time*1000,              //루프힐때 더해줄 시간
-					loopFlag,               //루프 인지아닌지?
-					func,                   //타이머 다되면 실행할 함수
-					args]);                 //실행할 함수의 매개변수
+			list.push([name,                   //이름
+					   getTimer()+(time*1000), //실행할 시간
+					   time*1000,              //루프힐때 더해줄 시간
+					   loopFlag,               //루프 인지아닌지?
+					   func,                   //타이머 다되면 실행할 함수
+					   args]);                 //실행할 함수의 매개변수
 		}
 	}
 }

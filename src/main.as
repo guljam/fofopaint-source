@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.52;
+        private const APP_VERSION:Number = 17.53;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2031,6 +2031,7 @@
             addTimerByName("keyHoldWaitTimer",KEY_REPEAT_DELAY,false,
             function():void
             {
+                func.apply(main,args);
                 addTimerByName("keyHoldRepeatTimer",KEY_REPEAT_INTERVAL,true,func,args);
             });
 
