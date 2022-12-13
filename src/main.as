@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.53;
+        private const APP_VERSION:Number = 17.54;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15321,6 +15321,7 @@
             {
                 jumpOneFrame(false,false);
                 drawReplayImageToDrawModeCanvas();
+
                 if(rNowFrame >= undoData.getRFileTotalFrame())
                 {
                     setDeepUndoOFF();
@@ -15352,6 +15353,7 @@
                 {
                     if(keyFlag) setJumpOneFrame(true,false);
                     else jumpOneFrame(true,false);
+
                     drawReplayImageToDrawModeCanvas();
                 }
                 if(rNowFrame <= 0)
@@ -15366,6 +15368,7 @@
                 {
                     saveOneTime = false;
                     undoIndex = -1;
+                    
                     if(makeJumpImageFlag === 1 || (makeJumpImageFlag === 0 && undoData.getRFileTotalFrame() > 0))
                     {
                         setDeepUndoON();
@@ -15376,7 +15379,6 @@
                     saveOneTime = false;
                     undoDelFlag = true;
                     drawUndoData();
-                    if(undoIndex < 0) setRCursorVisibleOFFUndo();
                 }
             }
         }
@@ -17581,7 +17583,7 @@
                 setTopChildIndex(replayTimeBox);
                 updateReplayBarPos(stage.stageWidth);
                 topBar.hint(STRING_PREPARE_REPLAY_DATA,topBar.saveButton);
-                setMakeJumpImage();3
+                setMakeJumpImage();
             }
             else
             {
