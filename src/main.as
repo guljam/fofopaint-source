@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.54;
+        private const APP_VERSION:Number = 17.55;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5368,7 +5368,7 @@
         {
             if(isInSaveProgress) return;
             rFileStream.close();
-            restartTimerCancel();
+            cancelRestartTimer();
 
             tempCopiedImage = Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT) as BitmapData;
 
@@ -7961,7 +7961,7 @@
             }
         }
 
-        private function restartTimerCancel():void
+        private function cancelRestartTimer():void
         {
             const info:TextField = replayTimeBox["frameInfo"];
             removeTimer("rRestartTimer");
@@ -7974,32 +7974,34 @@
             }
             rRestartTimerCount = 10;
             setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
+
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,cancelRestartTimerEvent);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,cancelRestartTimerEvent);
+            stage.removeEventListener(KeyboardEvent.KEY_DOWN,cancelRestartTimerEvent);
+        }
+
+        private function cancelRestartTimerEvent(e:Object):void
+        {
+            cancelRestartTimer();
         }
 
         private function setRestartTimer():void
         {
             rRestartTimerCount = 10;
             
-            function restartTimerCancelEvent(e:Object):void
-            {
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,restartTimerCancelEvent);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,restartTimerCancelEvent);
-                stage.removeEventListener(KeyboardEvent.KEY_DOWN,restartTimerCancelEvent);
-                restartTimerCancel();
-            }
-
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,restartTimerCancelEvent);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,restartTimerCancelEvent);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,restartTimerCancelEvent);
-
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,cancelRestartTimerEvent);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,cancelRestartTimerEvent);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,cancelRestartTimerEvent);
+            
             addTimerByName("rRestartTimer",1.0,true,function():Boolean
             {
                 if(rRestartTimerCount === 0)
                 {
-                    restartTimerCancel();
+                    cancelRestartTimer();
                     startReplay();
                     return false;
                 }
+
                 const str:String = "Play again in " + rRestartTimerCount +" sec";
                 replayTimeBox["frameInfo"].text = str;
                 --rRestartTimerCount;
@@ -10162,7 +10164,7 @@
         private function onDragDropEvent(e:NativeDragEvent):void
         {
             rFileStream.close();
-            restartTimerCancel();
+            cancelRestartTimer();
 
             tempDragDropFile = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
 
