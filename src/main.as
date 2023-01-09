@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.55;
+        private const APP_VERSION:Number = 17.56;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7662,12 +7662,12 @@
 
                     case "sideBarOFFButton":
                     case "sideBarOFFButton2":
-                        str = "Turn sidebar OFF (tab, \\ ) Quick sidebar(s+d, j+k)";
+                        str = "Turn sidebar OFF (tab, \\ ), Quick sidebar (s+d, j+k)";
                     break;
 
                     case "sideBarONButton":
                     case "sideBarONButton2":
-                        str = "Turn sidebar ON (tab, \\ ) Quick sidebar(s+d, j+k)";
+                        str = "Turn sidebar ON (tab, \\ ), Quick sidebar (s+d, j+k)";
                     break;
 
                     case "sideBarPositionButton":
