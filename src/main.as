@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.56;
+        private const APP_VERSION:Number = 17.60;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -215,7 +215,7 @@
                     ,WORKER_WAIT_INTERVAL:Number = 0.5
                     ,STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT"
                     ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
-                    ,STRING_PLAYBACK_SPEED:String = "Play speed x"
+                    ,STRING_PLAYBACK_SPEED:String = "Playback speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_ONEMORE_PRESS_TO_OK:String = "One more Press key to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
@@ -9358,7 +9358,7 @@
                 if(nowSpeed > max) nowSpeed = max;
 
                 timeStr = getReplayTotalTime(nowSpeed);
-                const finalStr:String = STRING_PLAYBACK_SPEED+" "+rSpeed+" "+ timeStr;
+                const finalStr:String = STRING_PLAYBACK_SPEED+rSpeed+timeStr;
                 topBar.hint(finalStr,topBar.replaySpeedSet);
                 rSpeedLastStr = finalStr;
                 rSpeed = nowSpeed;
@@ -16575,7 +16575,7 @@
             }
 
             const timeStr:String = getReplayTotalTime(_rSpeed);
-            const finalStr:String = STRING_PLAYBACK_SPEED+" "+_rSpeed+timeStr;
+            const finalStr:String = STRING_PLAYBACK_SPEED+_rSpeed+timeStr;
             topBar.hintTime(finalStr,topBar.replaySpeedSet);
 
             rSpeed = _rSpeed;
