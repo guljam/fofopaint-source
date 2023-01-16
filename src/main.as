@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.60;
+        private const APP_VERSION:Number = 17.61;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4055,7 +4055,7 @@
 
             switch(targetName)
             {
-                case "toolSidebar": str = "Quick side bar\n(s+d, j+k)"; break;
+                case "toolSidebar": str = "Quick sidebar\n(s+d, j+k)"; break;
                 case "fillPenOK": str = "OK\n(q, o, enter, right-click)"; break;
                 case "fillPenCancel": str = "cancel\n(esc, backspace)"; break;
                 case "fillPenUndo": str = "undo\n(w, z / i, .)"; break;
