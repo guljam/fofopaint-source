@@ -60,10 +60,10 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.61;
+        private const APP_VERSION:Number = 17.62;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
-        private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
+        private var UPDATE_FILE:File = File.applicationStoreplaySpeedBarrageDirectory.resolvePath("updateTmpFile.air");
 
         //단축키 keycode 리스트
         private const STAGE_FRAME:int = stage.frameRate;
@@ -2479,7 +2479,6 @@
             var data:Vector.<Number>;
             var xColor:uint;
             var xAlpha:Number;
-            var xBlendMode:String;
             var commandUndoIndexArr:Array;
             var mouseMoved:Boolean;
             var mouseMoveCount:int;
@@ -2556,7 +2555,7 @@
                     data.push(data[0]);
                     data.push(data[1]); //마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
                     canvas2.alpha = xAlpha;
-                    rDataBuffer.push(["fill",xColor,xAlpha,xBlendMode,command.concat(),data.concat()]);
+                    rDataBuffer.push(["fill",xColor,xAlpha,null,command.concat(),data.concat()]);
                     drawFillPenData();
                     drawDone();
                 }
@@ -2780,7 +2779,6 @@
 
                 xColor = penColor;
                 xAlpha = penAlpha;
-                xBlendMode = (xColor === CANVAS_BG_COLOR) ? "erase" : null;
                 commandUndoIndexArr = [0];
 
                 if(traceMenuON) traceMenuBox.visible = false;
@@ -18560,37 +18558,37 @@
             }
         }
         
-        // private var printdeepLevel:int = 0;
-        // private function printArray(obj:Object,deepKey:String=""):void
-        // {
-        //     var blank:String="";
-        //     if(printdeepLevel === 0) trace('--- PRINT START --- ');
-        //     else
-        //     {
-        //         const count:int = printdeepLevel;
-        //         for(var b:int=0; b<count; b++)
-        //         {
-        //             blank += "   ";
-        //         }
-        //         trace(blank+'> index['+deepKey+']');
-        //     }
+        private var printdeepLevel:int = 0;
+        private function printArray(obj:Object,deepKey:String=""):void
+        {
+            var blank:String="";
+            if(printdeepLevel === 0) trace('--- PRINT START --- ');
+            else
+            {
+                const count:int = printdeepLevel;
+                for(var b:int=0; b<count; b++)
+                {
+                    blank += "   ";
+                }
+                trace(blank+'> index['+deepKey+']');
+            }
 
-        //     trace(blank+'{');
-        //     for(var i:String in obj)
-        //     {
-        //         if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
-        //         {
-        //             ++printdeepLevel;
-        //             printArray(obj[i],i);
-        //         }
-        //         else
-        //         {
-        //             trace(blank+'| '+i+' : ' + obj[i]);
-        //         }
-        //     }
-        //     trace(blank+'}');
-        //     --printdeepLevel;
-        //     if(printdeepLevel < 0) printdeepLevel = 0;
-        // }
+            trace(blank+'{');
+            for(var i:String in obj)
+            {
+                if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
+                {
+                    ++printdeepLevel;
+                    printArray(obj[i],i);
+                }
+                else
+                {
+                    trace(blank+'| '+i+' : ' + obj[i]);
+                }
+            }
+            trace(blank+'}');
+            --printdeepLevel;
+            if(printdeepLevel < 0) printdeepLevel = 0;
+        }
     }
  }
