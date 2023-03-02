@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.62;
+        private const APP_VERSION:Number = 17.63;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2171,6 +2171,7 @@
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLassoTool);
             stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpLassoTool,false,-1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
+            stage.addEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
             removeInputEventDrawMode();   
         }
 
@@ -3959,9 +3960,30 @@
 
         private function traceMenuHintONEvent(e:MouseEvent):void
         {
-            if(mouseDragON === true) return;
+            if(!traceMenuON)
+            {
+                stage.removeEventListener(MouseEvent.MOUSE_OVER,traceMenuHintONEvent);
+                return;
+            }
+
+            if(traceMenuBox.hitTestPoint(mouseX,mouseY) === false)
+            {
+                if(traceMenuBox.getHintStr() !== "Reference layer")
+                {
+                    traceMenuBox.hint("Reference layer");
+                }
+
+                return;
+            }
+
+            if(mouseDragON === true)
+            {
+                return;
+            }
+
             const targetName:String = e.target.name;
             var str:String = "";
+
             switch(targetName)
             {
                 case "traceCancelButton":str = "Close"; break;
@@ -3984,9 +4006,29 @@
 
             traceMenuBox.hint(str);
         }
+
         private function lassoMenuHintONEvent(e:MouseEvent):void
         {
-            if(mouseDragON === true) return;
+            if(!lassoToolON)
+            {
+                stage.removeEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
+                return;
+            }
+
+            if(lassoMenu.hitTestPoint(mouseX,mouseY) === false)
+            {
+                if(lassoMenu.getHintStr() !== "Lasso tool")
+                {
+                    lassoMenu.hint("Lasso tool");
+                }
+                return;
+            }
+
+            if(mouseDragON === true)
+            {
+                return;
+            }
+
             const targetName:String = e.target.name;
             var str:String = "";
 
@@ -4389,6 +4431,8 @@
 
             setTopChildIndex(_traceMenuBox);
             checkBoxPosition(_traceMenuBox);
+
+            stage.addEventListener(MouseEvent.MOUSE_OVER,traceMenuHintONEvent);
         }
 
         private function setTraceDeleteButton():void
@@ -5241,10 +5285,6 @@
             toolBox.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHintONEvent);
             toolBox.addEventListener(MouseEvent.MOUSE_OUT,toolBoxHintOFFEvent);
             toolBox2.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHint2ONEvent);
-            toolBox2.addEventListener(MouseEvent.MOUSE_OUT,toolBoxHintOFFEvent);
-            // toolBox2.addEventListener(MouseEvent.MOUSE_OUT,toolBox2HintOFF);
-            lassoMenu.addEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
-            traceMenuBox.addEventListener(MouseEvent.MOUSE_OVER,traceMenuHintONEvent);
 
             replayTimeBox.addEventListener(MouseEvent.MOUSE_OVER,topBarHintONEvent);
             replayTimeBox.addEventListener(MouseEvent.MOUSE_OUT,topBarHintOFFEvent);
@@ -5884,6 +5924,7 @@
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode);
             stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpDrawMode,false);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDrawMode);
+            // stage.removeEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
         }
 
         private function addInputEventDrawMode():void
@@ -18558,37 +18599,37 @@
             }
         }
         
-        private var printdeepLevel:int = 0;
-        private function printArray(obj:Object,deepKey:String=""):void
-        {
-            var blank:String="";
-            if(printdeepLevel === 0) trace('--- PRINT START --- ');
-            else
-            {
-                const count:int = printdeepLevel;
-                for(var b:int=0; b<count; b++)
-                {
-                    blank += "   ";
-                }
-                trace(blank+'> index['+deepKey+']');
-            }
+        // private var printdeepLevel:int = 0;
+        // private function printArray(obj:Object,deepKey:String=""):void
+        // {
+        //     var blank:String="";
+        //     if(printdeepLevel === 0) trace('--- PRINT START --- ');
+        //     else
+        //     {
+        //         const count:int = printdeepLevel;
+        //         for(var b:int=0; b<count; b++)
+        //         {
+        //             blank += "   ";
+        //         }
+        //         trace(blank+'> index['+deepKey+']');
+        //     }
 
-            trace(blank+'{');
-            for(var i:String in obj)
-            {
-                if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
-                {
-                    ++printdeepLevel;
-                    printArray(obj[i],i);
-                }
-                else
-                {
-                    trace(blank+'| '+i+' : ' + obj[i]);
-                }
-            }
-            trace(blank+'}');
-            --printdeepLevel;
-            if(printdeepLevel < 0) printdeepLevel = 0;
-        }
+        //     trace(blank+'{');
+        //     for(var i:String in obj)
+        //     {
+        //         if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
+        //         {
+        //             ++printdeepLevel;
+        //             printArray(obj[i],i);
+        //         }
+        //         else
+        //         {
+        //             trace(blank+'| '+i+' : ' + obj[i]);
+        //         }
+        //     }
+        //     trace(blank+'}');
+        //     --printdeepLevel;
+        //     if(printdeepLevel < 0) printdeepLevel = 0;
+        // }
     }
  }

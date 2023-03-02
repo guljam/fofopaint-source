@@ -120,6 +120,11 @@
 			lassoInfo.textColor = arr[2];
 		}
 
+		public function getHintStr():String
+		{
+			return lassoInfo.text;
+		}
+
 		public function hint(str:String):void
 		{
 			if(str.indexOf("\n") !== -1)

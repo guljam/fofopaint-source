@@ -108,6 +108,11 @@
 			traceInfo.textColor = arr[2];
 		}
 
+		public function getHintStr():String
+		{
+			return traceInfo.text;
+		}
+
 		public function hint(str:String):void
 		{
 			if(str.indexOf("\n") !== -1)
