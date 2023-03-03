@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.63;
+        private const APP_VERSION:Number = 17.64;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1581,6 +1581,9 @@
             toolTipBox.scaleX = scale;
             toolTipBox.scaleY = scale;
             toolTipBox.updateBGPosition((uiScaleIndex === 0) ? false:true)
+
+            aboutPanel.scaleX = scale;
+            aboutPanel.scaleY = scale;
         
             STAGE_TOP_OFFSET = Math.round(topBar.BARSIZE*scale);
             if(STAGE_RIGHT_OFFSET > 0) STAGE_RIGHT_OFFSET = Math.round(sideBar.w*scale);
