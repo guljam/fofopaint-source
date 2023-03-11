@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.64;
+        private const APP_VERSION:Number = 17.65;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -18272,7 +18272,10 @@
 
         private function rightMouseUpLassoTool(e:MouseEvent):void
         {
-            if(!lassoToolON) return;
+            if(!lassoToolON || mouseClickON)
+            {
+                return;
+            }
 
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
@@ -18330,6 +18333,11 @@
 
         private function mouseDownLassoTool(e:MouseEvent):void
         {
+            if(rightMouseClickON)
+            {
+                return;
+            }
+
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
 
