@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.65;
+        private const APP_VERSION:Number = 17.66;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1628,8 +1628,14 @@
             return startGCCycle;
         }
 
-        private function setQuickSidebarOFF():void
+        private function setQuickSidebarOFFWaitMouseUp(e:MouseEvent):void
         {
+            _quickSidebarOFF();
+        }
+
+        private function _quickSidebarOFF():void
+        {
+            stage.removeEventListener(MouseEvent.MOUSE_UP,setQuickSidebarOFFWaitMouseUp);
             stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpQuickSidebarOFF);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownQuickSidebarOFF);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownQuickSidebarOFF);
@@ -1642,6 +1648,16 @@
 
             if(toolBox.getLastTool() === "toolSpuit") spuitTool();
             if(traceMenuON) traceMenuBox.visible = true;
+        }
+
+        private function setQuickSidebarOFF():void
+        {
+            if(mouseClickON && sideBar.hitTestPoint(mouseX,mouseY))
+            {
+                stage.addEventListener(MouseEvent.MOUSE_UP,setQuickSidebarOFFWaitMouseUp);
+                return;
+            }
+            _quickSidebarOFF();
         }
 
         private function rightMouseDownQuickSidebarOFF(e:MouseEvent):void
@@ -7384,7 +7400,7 @@
             setDeepUndoOFF();
             // deepUndoON = false; //어차피 데이터 뒷 부분이 다 짤렸기 때문에 딥언도 켜져있는거 꺼줘도 됨
             if(canvasWindowON) updateCanvasWindowBitmapSize();
-            if(quickSidebarON) setQuickSidebarOFF();
+            if(quickSidebarON) _quickSidebarOFF();
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
 
             saveContinue = false;
@@ -10027,7 +10043,7 @@
 
                 case "toolTrace":
                 {
-                    if(quickSidebarON) setQuickSidebarOFF();
+                    if(quickSidebarON) _quickSidebarOFF();
 
                     if(traceMenuON === false)
                     {
@@ -17239,7 +17255,7 @@
                     saveAllData();
                 }
             }
-            if(quickSidebarON && !deepUndoON) setQuickSidebarOFF();
+            if(quickSidebarON && !deepUndoON) _quickSidebarOFF();
             if(layerOptionON) checkLayerOptionOFF();
             if(subLayerSave.length > 0) layerPreviewBlurEffectOFF();
 
