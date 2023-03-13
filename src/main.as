@@ -5697,6 +5697,8 @@
             const airBrushFlag:Boolean = isPenOrLineTool() && airBrushON;
             const eraseAirBrushFlag:Boolean = isEraseTool() && eraseAirBrushON;
             var oldValue:int = penSmoothSlideValue;
+
+            mouseDragON = true;
   
             function penSmoothButtonUpEvent(e:MouseEvent):void
             {
@@ -6325,6 +6327,7 @@
             var pickedColor:uint = 0;
  
             setTopChildIndex(hueCursor);
+            mouseDragON = true;
             penCursorOFFFlag = true;
 
             function hueMoveStart(mx:Number):void
@@ -6416,6 +6419,7 @@
             var pickedColor:uint = 0;
 
             setTopChildIndex(svCursor);
+            mouseDragON = true;
             penCursorOFFFlag = true;
 
             function setSVBoxMouseMoveEvent(mx:Number,my:Number):void
