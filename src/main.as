@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.66;
+        private const APP_VERSION:Number = 17.67;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -613,7 +613,7 @@
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,layerOptionON:Boolean = false //레이어 옵션 켜졌을때 올려줌
-                    ,updateAfterSave:Boolean = false; //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
+                    ,updateAfterSave:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
                     ;
 
         public function main():void
@@ -3917,6 +3917,7 @@
                 btn.removeEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
                 traceMenuBox.hint(STRING_MERGE_LASSO_IMAGE_TO_TRACE);
                 mergeLassoImageToTraceLayer();
+                openTraceWindow();
             }
         }
 
@@ -4433,16 +4434,9 @@
         
         private function openTraceWindow():void //load clip버튼에서 눌러줬을때 틀여줌
         {
-            if(traceMenuON === true)
-            {
-                setTopChildIndex(traceMenuBox);
-                return;
-            }
-
             traceMenuON = true;
 
             const _traceMenuBox:traceButtons = traceMenuBox;
-            _traceMenuBox.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpTraceWindow);
             _traceMenuBox.hint("Reference layer");
             _traceMenuBox.x = mouseX-_traceMenuBox.width/2;
             _traceMenuBox.y = mouseY-8;
@@ -4451,7 +4445,13 @@
             setTopChildIndex(_traceMenuBox);
             checkBoxPosition(_traceMenuBox);
 
-            stage.addEventListener(MouseEvent.MOUSE_OVER,traceMenuHintONEvent);
+            if(traceMenuON === false)
+            {
+                _traceMenuBox.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpTraceWindow);
+                stage.addEventListener(MouseEvent.MOUSE_OVER,traceMenuHintONEvent);
+            }
+
+            setTopChildIndex(traceMenuBox);
         }
 
         private function setTraceDeleteButton():void
@@ -17070,11 +17070,14 @@
 
                 case KEY.t:
                 {
-                    if(!traceMenuON)
+                    if(traceMenuON)
+                    {
+                        closeTraceMenu();
+                    }
+                    else
                     {
                         openTraceWindow();
                     }
-                    else if(traceMenuON) closeTraceMenu();
                 }
                 break;
 
@@ -17175,7 +17178,11 @@
                 case KEY.del:
                 case KEY.backspace:
                 {
-                    if(topBar.clearButton.alpha === 1.0)
+                    if(traceMenuON)
+                    {
+                        closeTraceMenu();
+                    }
+                    else if(topBar.clearButton.alpha === 1.0)
                     {
                         setClearData(true);
                     }
