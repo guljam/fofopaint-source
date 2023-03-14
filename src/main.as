@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.67;
+        private const APP_VERSION:Number = 17.68;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5642,11 +5642,17 @@
 
             if(isPenOrLineTool())
             {
-                if(airBrushON && penSize !== airBrushSizeDrawMode) setBlurCanvasBySizeDrawMode(penSize);
+                if(airBrushON && penSize !== airBrushSizeDrawMode)
+                {
+                    setBlurCanvasBySizeDrawMode(penSize);
+                }
             }
             else if(isEraseTool())
             {
-                if(eraseAirBrushON && eraseSize !== airBrushSizeDrawMode)setBlurCanvasBySizeDrawMode(eraseSize);
+                if(eraseAirBrushON && eraseSize !== airBrushSizeDrawMode)
+                {
+                    setBlurCanvasBySizeDrawMode(eraseSize);
+                }
             }
         }
 
@@ -14145,12 +14151,12 @@
             //가로세로 길이가 0 이하이면 실행하지 않음
             if(floor(rectWidth) <= 0 || floor(rectHeight) <= 0) return false;
 
-            var canvas2FilterBackUp:Array;
             var drawEnt:Shape;
             var canvasBitmapData:BitmapData;
             var canvasBitmapDataSub:BitmapData;
             var canvasBitmap:Bitmap;
             var canvasBitmapSub:Bitmap;
+            var canvas2FilterBackUp:Array = null //에어브러시 켜줄때 필터 백업함
 
             if(replayMode)
             {
@@ -14297,8 +14303,14 @@
             lassoDraw.x = -lassoBox.x;
             lassoDraw.y = -lassoBox.y;
 
-            if(replayMode) rcanvas2Draw.filters = canvas2FilterBackUp.concat();
-            else canvas2Draw.filters = canvas2FilterBackUp.concat();
+            if(replayMode)
+            {
+                rcanvas2Draw.filters = canvas2FilterBackUp.concat();
+            }
+            else
+            {
+                canvas2Draw.filters = canvas2FilterBackUp.concat();
+            }
 
             return true;
         }
@@ -14313,7 +14325,6 @@
             var maxWidth:Number;
             var maxHeight:Number;
 
-            var canvas2FilterBackUp:Array;
             var lassoRect:Vector.<Number>;
             var lassoPoints:Array;
 
@@ -14429,10 +14440,6 @@
                 if(lassoToolON === true || isAllLayerInvisible()) return;
 
                 lassoMenu.hint("Lasso tool");
-
-                canvas2FilterBackUp = canvas2Draw.filters.concat();
-                canvas2Draw.filters = [];
-
                 maxWidth = CANVAS_WIDTH;
                 maxHeight = CANVAS_HEIGHT;
                 clickPos.x = cd.mouseX;
