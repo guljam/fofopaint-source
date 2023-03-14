@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.68;
+        private const APP_VERSION:Number = 17.70;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4434,8 +4434,6 @@
         
         private function openTraceWindow():void //load clip버튼에서 눌러줬을때 틀여줌
         {
-            traceMenuON = true;
-
             const _traceMenuBox:traceButtons = traceMenuBox;
             _traceMenuBox.hint("Reference layer");
             _traceMenuBox.x = mouseX-_traceMenuBox.width/2;
@@ -4451,6 +4449,7 @@
                 stage.addEventListener(MouseEvent.MOUSE_OVER,traceMenuHintONEvent);
             }
 
+            traceMenuON = true;
             setTopChildIndex(traceMenuBox);
         }
 
