@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.70;
+        private const APP_VERSION:Number = 17.72;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2251,6 +2251,7 @@
                 else sumTime = 0;
 
                 lastTime = nowTime;
+
                 return false;
             }
 
@@ -3236,13 +3237,6 @@
             {
                 resizeCanvas.exitCanvasResize(true);
             }
-            else if(toolBox2ON)
-            {
-                if(toolBox2.visible === false && isCursorInDrawArea() === false)
-                {
-                    closeToolBox2();
-                }
-            }
 
             mouseLeaveSideBarON();
         }
@@ -3370,6 +3364,8 @@
 
             function checkSideBarON():void
             {
+                if(resizeButtonR.visible) return;
+
                 if(!mouseClickON && !rightMouseClickON)
                 {
                     if(!sidebarTempOFF)
@@ -5891,6 +5887,7 @@
         private function updateColorHistoryBGEvent(e:MouseEvent):void
         {
             const targetName:String =  e.target.name;
+
             if(targetName
             && (targetName.indexOf("canvas") !== -1 || targetName === "stageBG" || targetName === "canvasGrid"))
             {
@@ -9310,12 +9307,12 @@
 
                     if(cursorPos.x < leftLimit)
                     {
-                        _rregPoint.x += floor(abs((cursorPos.x-stw/2)/4));
+                        _rregPoint.x += floor(abs((cursorPos.x-stw/2)/3));
                         updateReplayCanvasBounds(); 
                     }
                     else if(cursorPos.x > rightLimit)
                     {
-                        _rregPoint.x -= floor(abs((cursorPos.x-stw/2)/4));
+                        _rregPoint.x -= floor(abs((cursorPos.x-stw/2)/3));
                         updateReplayCanvasBounds();
                     }
                 }
@@ -9340,12 +9337,12 @@
 
                     if(cursorPos.y < topLimit)
                     {
-                        _rregPoint.y += floor(abs((cursorPos.y-sth/2)/4));
+                        _rregPoint.y += floor(abs((cursorPos.y-sth/2)/3));
                         updateReplayCanvasBounds();
                     }
                     else if(cursorPos.y > bottomLimit)
                     {
-                        _rregPoint.y -= floor(abs((cursorPos.y-sth/2)/4));
+                        _rregPoint.y -= floor(abs((cursorPos.y-sth/2)/3));
                         updateReplayCanvasBounds();
                     }
                 }
