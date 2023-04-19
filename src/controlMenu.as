@@ -12,7 +12,6 @@
 		public const penSizeTransButtonBox:penSizeTransButtonSet = new penSizeTransButtonSet();
 		public const opaBox:opaButtons = new opaButtons();
 		public const pixelSnapButtonWrapper:Sprite = new Sprite();
-		public const subLayerButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();
 
 		public var sizeSelectCursor:SimpleButton = sizeSelectCursor;
@@ -24,8 +23,8 @@
 		public var pixelSnapONButton:SimpleButton = pixelSnapONButton;
 		public var pixelSnapOFFButton:SimpleButton = pixelSnapOFFButton;
 		public var pixelSnapText:SimpleButton = pixelSnapText;
-		public var subLayerONButton:SimpleButton = subLayerONButton;
-		public var subLayerOFFButton:SimpleButton = subLayerOFFButton;
+		public var layer1SelectButton:SimpleButton = layer1SelectButton;
+		public var layer2SelectButton:SimpleButton = layer2SelectButton;
 		public var layer1Button:SimpleButton = layer1Button;
 		public var layer2Button:SimpleButton = layer2Button;
 		public var airBrushONButton:SimpleButton = airBrushONButton;
@@ -35,7 +34,9 @@
 		public var penSmoothSliderSet:Sprite = penSmoothSliderSet;
 
 		public var layer1VisibleButton:SimpleButton = layer1VisibleButton;
-		public var layer2VisibleButton:SimpleButton = layer2VisibleButton;
+		public var layer1InvisibleButton:SimpleButton = layer1InvisibleButton;
+		public var layer2VisibleButton:SimpleButton = layer1VisibleButton;
+		public var layer2InvisibleButton:SimpleButton = layer2InvisibleButton;
 		public var layerSwapButton:SimpleButton = layerSwapButton;
 		public var layerMergeButton:SimpleButton = layerMergeButton;
 
@@ -111,8 +112,14 @@
 
 			controlInfo.textColor = op;
 			pixelSnapText.transform.colorTransform = o;
-			layer1Button.transform.colorTransform = o;
-			layer2Button.transform.colorTransform = o;
+
+			layer1SelectButton.transform.colorTransform = o;
+			layer1InvisibleButton.transform.colorTransform = o;
+			layer1VisibleButton.transform.colorTransform = o;
+			layer2SelectButton.transform.colorTransform = o;
+			layer2InvisibleButton.transform.colorTransform = o;
+			layer2VisibleButton.transform.colorTransform = o;
+
 			airBrushText.transform.colorTransform = o;
 			shapeRect.transform.colorTransform = o;
 			shapeCircle.transform.colorTransform = o;
@@ -128,9 +135,9 @@
 			pixelSnapONButton.transform.colorTransform = o;
 			pixelSnapOFFButton.transform.colorTransform = o;
 			airBrushOFFButton.transform.colorTransform = o;
+			layer1SelectButton.transform.colorTransform = o;
 			airBrushONButton.transform.colorTransform = o;
-			subLayerOFFButton.transform.colorTransform = o;
-			subLayerONButton.transform.colorTransform = o;
+			layer2SelectButton.transform.colorTransform = o;
 
 			opaBox.alphaBG.transform.colorTransform = o;
 
@@ -213,45 +220,13 @@
 			airBrushOFFButton.y = airBrushONButton.y;
 			airBrushOFFButton.visible = false;
 
-			airBrushText.x = airBrushOFFButton.x+airBrushOFFButton.width+4;
+			airBrushText.x = airBrushOFFButton.x+airBrushOFFButton.width+2;
 			airBrushText.y = airBrushOFFButton.y;
 
 			airBrushONButton.useHandCursor = false;
 			airBrushOFFButton.useHandCursor = false;
 
 			airBrushButtonWrapper.name = "airBrushButtonWrapper";
-		}
-
-		public function initSubLayerButtonWrapper():void
-		{
-			const g:Graphics = subLayerButtonWrapper.graphics;
-			const w:Number = subLayerOFFButton.width+layer1Button.width+10;
-			const h:Number = layer1Button.height+4;
-
-			g.beginFill(0xFF0000,0);
-			g.drawRect(0,0,w,h);
-			g.endFill();
-
-			subLayerButtonWrapper.addChild(subLayerOFFButton);
-			subLayerButtonWrapper.addChild(subLayerONButton);
-			subLayerButtonWrapper.addChild(layer1Button);
-			subLayerButtonWrapper.addChild(layer2Button);
-
-			subLayerONButton.x = 0;
-			subLayerONButton.y = 0;
-			subLayerOFFButton.x = subLayerONButton.x;
-			subLayerOFFButton.y = subLayerONButton.y;
-			subLayerOFFButton.visible = false;
-
-			layer1Button.x = subLayerOFFButton.x+subLayerOFFButton.width+7;
-			layer1Button.y = subLayerOFFButton.y+2;
-			layer2Button.x = layer1Button.x;
-			layer2Button.y = layer1Button.y;
-
-			subLayerONButton.useHandCursor = false;
-			subLayerOFFButton.useHandCursor = false;
-
-			subLayerButtonWrapper.name = "subLayerButtonWrapper";
 		}
 
 		public function initPixelSnapButtonWrapper():void
@@ -274,7 +249,7 @@
 			pixelSnapOFFButton.y = pixelSnapONButton.y;
 			pixelSnapOFFButton.visible = false;
 
-			pixelSnapText.x = pixelSnapOFFButton.x+pixelSnapOFFButton.width+2;
+			pixelSnapText.x = pixelSnapOFFButton.x+pixelSnapOFFButton.width;
 			pixelSnapText.y = pixelSnapOFFButton.y;
 
 			pixelSnapOFFButton.useHandCursor = false;
@@ -330,7 +305,6 @@
 			penSizeGrid.y = floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-10;
 			penSizeTransButtonBox.x = penSizeGrid.x+2;
 			penSizeTransButtonBox.y = penSizeGrid.y+2;
-			
 
 			sizeSelectCursor.useHandCursor = false;
 
@@ -340,39 +314,51 @@
 			circleSizeSet.y = rectSizeSet.y+1;
 
 			opaBox.x = offsetX;
-			opaBox.y = floor(penSizeGrid.y+penSizeGrid.height+5);
+			opaBox.y = floor(penSizeGrid.y+penSizeGrid.height+3);
 
 			initPixelSnapButtonWrapper();
-			initSubLayerButtonWrapper();
 			initAirBrushButtonWrapper();
 
-			layer1Button.useHandCursor = false;
-			layer2Button.useHandCursor = false;
-			layer2Button.visible = false;
-			subLayerButtonWrapper.x = opaBox.x;
-			subLayerButtonWrapper.y = opaBox.y+opaBox.height+2;
-
+			layer1InvisibleButton.visible = false;
+			layer2InvisibleButton.visible = false;
+			layer1SelectButton.useHandCursor = false;
+			layer2SelectButton.useHandCursor = false;
 			layer1VisibleButton.useHandCursor = false;
+			layer1InvisibleButton.useHandCursor = false;
 			layer2VisibleButton.useHandCursor = false;
+			layer2InvisibleButton.useHandCursor = false;
 			layerSwapButton.useHandCursor = false;
 			layerMergeButton.useHandCursor = false;
 
-			layer1VisibleButton.x = subLayerButtonWrapper.x;
-			layer1VisibleButton.y = subLayerButtonWrapper.y+(pixelSnapOFFButton.height+2)+4;
-			layer2VisibleButton.x = layer1VisibleButton.x+layer1VisibleButton.width+1.5;
-			layer2VisibleButton.y = layer1VisibleButton.y;
-			layerSwapButton.x = layer2VisibleButton.x+layer2VisibleButton.width+1.5;
-			layerSwapButton.y = layer2VisibleButton.y;
-			layerMergeButton.x = layerSwapButton.x+layerSwapButton.width+1.5;
-			layerMergeButton.y = layerSwapButton.y;
+			layer1VisibleButton.x = opaBox.x-1;
+			layer1VisibleButton.y = opaBox.y+opaBox.height+4;
+			layer1InvisibleButton.x = layer1VisibleButton.x;
+			layer1InvisibleButton.y = layer1VisibleButton.y;
+			
+			layer1SelectButton.x = layer1VisibleButton.x+layer1VisibleButton.width;
+			layer1SelectButton.y = layer1VisibleButton.y-2;
 
+			layerSwapButton.x = layer1SelectButton.x+layer1SelectButton.width-3;
+			layerSwapButton.y = layer1SelectButton.y+2;
+
+			pixelSnapButtonWrapper.x = layerSwapButton.x+layerSwapButton.width+6;
+			pixelSnapButtonWrapper.y = layer1VisibleButton.y;
 			pixelSnapText.useHandCursor = false;
-			pixelSnapButtonWrapper.x = subLayerButtonWrapper.x+pixelSnapButtonWrapper.width+8;
-			pixelSnapButtonWrapper.y = opaBox.y+opaBox.height+2;
 
+			layer2VisibleButton.x = layer1VisibleButton.x;
+			layer2VisibleButton.y = layer1VisibleButton.y+layer1VisibleButton.height+5;
+			layer2InvisibleButton.x = layer2VisibleButton.x;
+			layer2InvisibleButton.y = layer2VisibleButton.y;
+
+			layer2SelectButton.x = layer2VisibleButton.x+layer2VisibleButton.width;
+			layer2SelectButton.y = layer2VisibleButton.y-2;
+
+			layerMergeButton.x = layer2SelectButton.x+layer2SelectButton.width-3;
+			layerMergeButton.y = layer2SelectButton.y+2;
+			
 			airBrushText.useHandCursor = false;
-			airBrushButtonWrapper.x = floor(pixelSnapButtonWrapper.x+0.5);
-			airBrushButtonWrapper.y = floor(pixelSnapButtonWrapper.y+pixelSnapButtonWrapper.height+5);
+			airBrushButtonWrapper.x = layerMergeButton.x+layerMergeButton.width+7;
+			airBrushButtonWrapper.y = layer2VisibleButton.y;
 
 			BOX_HEIGHT = opaBox.y+opaBox.height+7;
 
@@ -380,7 +366,6 @@
 			addChild(opaBox);
 			addChild(penSizeTransButtonBox);
 			addChild(pixelSnapButtonWrapper);
-			addChild(subLayerButtonWrapper);
 			addChild(airBrushButtonWrapper);
 			setChildIndex(controlInfo, this.numChildren - 1);
 			setChildIndex(sizeSelectCursor, this.numChildren - 1);

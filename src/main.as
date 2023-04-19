@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.73;
+        private const APP_VERSION:Number = 17.74;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -737,7 +737,7 @@
             }
         }
 
-        private function layerPreviewBlurEffectOFF():void
+        private function setSingleLayerPreviewOFF():void
         {
             if(subLayerON) canvas11Bitmap.visible = true;
             else canvas11Bitmap.visible = subLayerSave[1];
@@ -745,32 +745,36 @@
             if(!subLayerON) canvas1Bitmap.visible = true;
             else canvas1Bitmap.visible = subLayerSave[0];
 
-            stage.removeEventListener(KeyboardEvent.KEY_UP,layerPreviewBlurEffectOFFKeyUpEvent);
-            stage.removeEventListener(MouseEvent.MOUSE_MOVE,layerPreviewBlurEffectOFFMouseOutEvent);
+            stage.removeEventListener(KeyboardEvent.KEY_UP,setSingleLayerPreviewOFFKeyUpEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_MOVE,layerSinglePreviewOFFMouseOutEvent);
             subLayerSave = [];
         }
 
-        private function layerPreviewBlurEffectOFFKeyUpEvent(e:KeyboardEvent):void
+        private function setSingleLayerPreviewOFFKeyUpEvent(e:KeyboardEvent):void
         {
             if(e.keyCode === KEY.n1 || e.keyCode === KEY.n2
             || e.keyCode === KEY.n9 || e.keyCode === KEY.n0)
             {
-                if(subLayerSave.length > 0) layerPreviewBlurEffectOFF();
+                if(subLayerSave.length > 0) setSingleLayerPreviewOFF();
             }
         }
 
-        private function layerPreviewBlurEffectOFFMouseOutEvent(e:MouseEvent):void
+        private function layerSinglePreviewOFFMouseOutEvent(e:MouseEvent):void
         {
-           if(controlBox.subLayerButtonWrapper.hitTestPoint(mouseX,mouseY) === false
-           && subLayerSave.length > 0) layerPreviewBlurEffectOFF();
+           if((subLayerON === false && controlBox.layer1SelectButton.hitTestPoint(mouseX,mouseY) === false
+           || subLayerON === true && controlBox.layer2SelectButton.hitTestPoint(mouseX,mouseY) === false)
+           && subLayerSave.length > 0)
+           {
+                setSingleLayerPreviewOFF();
+           }
         }
 
-        private function setLayerPreviewBlurEffect(layer:int,shortcut:Boolean):void
+        private function setSingleLayerPreview(layer:int,shortcut:Boolean):void
         {
             if(subLayerSave.length === 0)
             {
-                if(shortcut) stage.addEventListener(KeyboardEvent.KEY_UP,layerPreviewBlurEffectOFFKeyUpEvent,false,5);
-                else stage.addEventListener(MouseEvent.MOUSE_MOVE,layerPreviewBlurEffectOFFMouseOutEvent,false,5);
+                if(shortcut) stage.addEventListener(KeyboardEvent.KEY_UP,setSingleLayerPreviewOFFKeyUpEvent,false,5);
+                else stage.addEventListener(MouseEvent.MOUSE_MOVE,layerSinglePreviewOFFMouseOutEvent,false,5);
 
                 subLayerSave[0] = canvas1Bitmap.visible;
                 subLayerSave[1] = canvas11Bitmap.visible;
@@ -1156,12 +1160,14 @@
             if(canvas11Bitmap.visible)
             {
                 canvas11Bitmap.visible = false;
-                controlBox.layer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                controlBox.layer2VisibleButton.visible = false;
+                controlBox.layer2InvisibleButton.visible = true;
             }
             else
             {
                 canvas11Bitmap.visible = true;
-                controlBox.layer2VisibleButton.alpha = 1.0;
+                controlBox.layer2VisibleButton.visible = true;
+                controlBox.layer2InvisibleButton.visible = false;
             }
 
             checkCaptureButtonActive();
@@ -1244,12 +1250,14 @@
             if(canvas1Bitmap.visible)
             {
                 canvas1Bitmap.visible = false;
-                controlBox.layer1VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                controlBox.layer1VisibleButton.visible = false;
+                controlBox.layer1InvisibleButton.visible = true;
             }
             else
             {
                 canvas1Bitmap.visible = true;
-                controlBox.layer1VisibleButton.alpha = 1.0;
+                controlBox.layer1VisibleButton.visible = true;
+                controlBox.layer1InvisibleButton.visible = false;
             }
 
             checkCaptureButtonActive();
@@ -5089,13 +5097,20 @@
         {
             subLayerON = flag;
 
-            controlBox["layer2Button"].visible = flag;
-            controlBox["layer1Button"].visible = !flag;
-            controlBox["subLayerOFFButton"].visible = flag;
-            controlBox["subLayerONButton"].visible = !flag;
-
-            if(subLayerON) canvasPanel.setChildIndex(canvas2,2);
-            else canvasPanel.setChildIndex(canvas1Bitmap,2);
+            if(subLayerON)
+            {
+                controlBox.layer1SelectButton.alpha = BUTTON_OFF_ALPHA;
+                controlBox.layer2SelectButton.alpha = 1.0;
+                canvasPanel.setChildIndex(canvas2,2);
+                if(!canvas11Bitmap.visible) setLayer2VisibleToggle();
+            }
+            else
+            {
+                controlBox.layer1SelectButton.alpha = 1.0;
+                controlBox.layer2SelectButton.alpha = BUTTON_OFF_ALPHA;
+                canvasPanel.setChildIndex(canvas1Bitmap,2);
+                if(!canvas1Bitmap.visible) setLayer1VisibleToggle();
+            }
         }   
 
         private function setPixelSnapButton(flag:Boolean):void
@@ -5356,18 +5371,21 @@
                     str = "Air brush (4, 7)";
                 break;
 
-                case "subLayerButtonWrapper":
-                case "subLayerOFFButton":
-                case "subLayerONButton":
-                case "subLayerText":
-                    str = "Select layer (1, 2 / 9, 0)";
+                case "layer1SelectButton":
+                    str = "Layer 1 (1, 9)";
+                break;
+
+                 case "layer2SelectButton":
+                    str = "Layer 2 (2, 0)";
                 break;
 
                 case "layer1VisibleButton":
+                case "layer1InvisibleButton":
                     str = "Layer 1 visible ON/OFF\n(shift+1, shift+9)";
                 break;
 
                 case "layer2VisibleButton":
+                case "layer2InvsibleButton":
                     str = "Layer 2 visible ON/OFF\n(shift+2, shift+0)";
                 break;
 
@@ -12703,6 +12721,8 @@
                     updatePreviewBoxRectPos();
                     updatePenSizeCursor();
                     updateWindowTitle();
+
+                    setSubLayer(false);
                 });
             }
             else //복원파일이 없을때
@@ -12720,6 +12740,8 @@
                 updateWindowSizeInfo();
 
                 appInfoBox.init(CANVAS_WIDTH,CANVAS_HEIGHT,Math.floor(zoomed*100),regPoint.rotation,false);
+
+                setSubLayer(false);
             }
         }
 
@@ -14649,6 +14671,9 @@
             {
                 if(isAllLayerInvisible()) return;
 
+                controlBox.pixelSnapButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+
                 canvasBGColor = CANVAS_BG_COLOR;
                 canvas1bmpd = canvas1BitmapData;
                 canvas11bmpd = canvas11BitmapData;
@@ -14941,6 +14966,8 @@
         {
             setNowTool(TOOL_MOVE);
             toolBox.moveToolCursor("toolMove");
+            controlBox.pixelSnapButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectZoomTool():void
@@ -14960,6 +14987,8 @@
             setNowTool(TOOL_LASSO);
             moveEraseButton("toolLasso");
             toolBox.moveToolCursor("toolLasso");
+            controlBox.pixelSnapButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectFillPenTool():void
@@ -15033,6 +15062,8 @@
 
                     setAirBrushCheckBox(eraseAirBrushON,false);
                 }
+
+                controlBox.pixelSnapButtonWrapper.alpha = 1.0;
                 _controlBox.airBrushButtonWrapper.alpha = 1.0;
 
                 setPenSize(sizeIndex);
@@ -15942,7 +15973,7 @@
             controlBox.x = 39;
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 39;
-            pickerBox.y = floor(controlBox.y+controlBox.height+5);
+            pickerBox.y = floor(controlBox.y+controlBox.height+6);
             toolBox.x = 0;
             toolBox.y = floor(controlBox.y+2);
 
@@ -15992,7 +16023,7 @@
             controlBox.x = 0;
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 0;
-            pickerBox.y = floor(controlBox.y+controlBox.height+5);
+            pickerBox.y = floor(controlBox.y+controlBox.height+6);
             toolBox.x = controlBox.x+controlBox.width;
             toolBox.y = floor(controlBox.y+2);
 
@@ -16935,7 +16966,7 @@
                     nowKeyNotKeyUp = keyCode;
                     if(subLayerON) setSubLayer(false);
                     
-                    setLayerPreviewBlurEffect(1,true);
+                    setSingleLayerPreview(1,true);
                     setToolTipTempON("Layer 1 selected");
                 }
                 return true;
@@ -16945,7 +16976,7 @@
                 {
                     nowKeyNotKeyUp = keyCode;
                     if(!subLayerON) setSubLayer(true);
-                    setLayerPreviewBlurEffect(2,true);
+                    setSingleLayerPreview(2,true);
                     setToolTipTempON("Layer 2 selected");
                 }
                 return true;
@@ -17215,7 +17246,7 @@
 
             if(subLayerSave.length > 0)
             {
-                layerPreviewBlurEffectOFF();
+                setSingleLayerPreviewOFF();
             }
 
             setOldTool();
@@ -18121,16 +18152,19 @@
                 }
                 return true;
 
-                case "subLayerButtonWrapper":
-                case "subLayerOFFButton":
-                case "subLayerONButton":
-                case "layer1Button":
-                case "layer2Button":
-                case "subLayerText":
+                case "layer1SelectButton":
                 {
-                    subLayerON = !subLayerON;
-                    setSubLayer(subLayerON);
-                    setLayerPreviewBlurEffect((subLayerON)?2:1,false);
+                    subLayerON = false;
+                    setSubLayer(false);
+                    setSingleLayerPreview(1,false);
+                }
+                return true;
+
+                case "layer2SelectButton":
+                {
+                    subLayerON = true;
+                    setSubLayer(true);
+                    setSingleLayerPreview(2,false);
                 }
                 return true;
 
