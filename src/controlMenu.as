@@ -107,18 +107,28 @@
 		{
 			const b:ColorTransform = new ColorTransform();
 			const o:ColorTransform = new ColorTransform();
+			var alphaBackup:Number; //레이어 버튼이 색깔 바꾸면 알파가 초기화 되는 버그있어서 수동으로 만들어줌
+
 			b.color = base;
 			o.color = op;
 
 			controlInfo.textColor = op;
 			pixelSnapText.transform.colorTransform = o;
 
+			alphaBackup = layer1SelectButton.alpha;
 			layer1SelectButton.transform.colorTransform = o;
+			layer1SelectButton.alpha = alphaBackup;
 			layer1InvisibleButton.transform.colorTransform = o;
 			layer1VisibleButton.transform.colorTransform = o;
+
+			alphaBackup = layer2SelectButton.alpha;
 			layer2SelectButton.transform.colorTransform = o;
+			layer2SelectButton.alpha = alphaBackup;
 			layer2InvisibleButton.transform.colorTransform = o;
 			layer2VisibleButton.transform.colorTransform = o;
+
+			layerSwapButton.transform.colorTransform = o;
+			layerMergeButton.transform.colorTransform = o;
 
 			airBrushText.transform.colorTransform = o;
 			shapeRect.transform.colorTransform = o;
@@ -127,17 +137,10 @@
 			circleSizeSet.transform.colorTransform = o;
 			penSizeGrid.transform.colorTransform = o;
 
-			layer1VisibleButton.transform.colorTransform = o;
-			layer2VisibleButton.transform.colorTransform = o;
-			layerSwapButton.transform.colorTransform = o;
-			layerMergeButton.transform.colorTransform = o;
-
 			pixelSnapONButton.transform.colorTransform = o;
 			pixelSnapOFFButton.transform.colorTransform = o;
 			airBrushOFFButton.transform.colorTransform = o;
-			layer1SelectButton.transform.colorTransform = o;
 			airBrushONButton.transform.colorTransform = o;
-			layer2SelectButton.transform.colorTransform = o;
 
 			opaBox.alphaBG.transform.colorTransform = o;
 
@@ -176,16 +179,6 @@
 
 			controlInfo.text = str;
 		}
-
-		// public function initPenSizeCursor():void
-		// {
-		// const g:Graphics = sizeSelectCursor.graphics;
-		// const btn:SimpleButton = penSizeTransButtonBox.getChildByName("nSizeButton1") as SimpleButton;
-
-		// g.clear();
-		// g.lineStyle(1,0xFF6600,1.0,true);
-		// g.drawRect(0,0,btn.width,btn.height);
-		// }
 
 		public function movePenSizeCursor(index:uint):void
 		{

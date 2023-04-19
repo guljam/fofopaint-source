@@ -5102,6 +5102,7 @@
                 controlBox.layer1SelectButton.alpha = BUTTON_OFF_ALPHA;
                 controlBox.layer2SelectButton.alpha = 1.0;
                 canvasPanel.setChildIndex(canvas2,2);
+
                 if(!canvas11Bitmap.visible) setLayer2VisibleToggle();
             }
             else
@@ -5109,6 +5110,7 @@
                 controlBox.layer1SelectButton.alpha = 1.0;
                 controlBox.layer2SelectButton.alpha = BUTTON_OFF_ALPHA;
                 canvasPanel.setChildIndex(canvas1Bitmap,2);
+                
                 if(!canvas1Bitmap.visible) setLayer1VisibleToggle();
             }
         }   
