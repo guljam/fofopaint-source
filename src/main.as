@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.74;
+        private const APP_VERSION:Number = 17.75;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -14974,12 +14974,16 @@
         {
             setNowTool(TOOL_ZOOM);
             toolBox.moveToolCursor("toolZoom");
+            controlBox.pixelSnapButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectRotateTool():void
         {
             setNowTool(TOOL_ROTATE);
             toolBox.moveToolCursor("toolRotate");
+            controlBox.pixelSnapButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectLassoTool():void
@@ -16999,10 +17003,13 @@
                 case KEY.n7:
                 {
                     nowKeyNotKeyUp = keyCode;
-                    airBrushON = !airBrushON;
-                    setAirBrushCheckBox(airBrushON,true);
-                    if(airBrushON) setToolTipTempON("Air brush ON");
-                    else setToolTipTempON("Air brush OFF");
+                    if(controlBox.airBrushButtonWrapper.alpha === 1.0)
+                    {
+                        airBrushON = !airBrushON;
+                        setAirBrushCheckBox(airBrushON,true);
+                        if(airBrushON) setToolTipTempON("Air brush ON");
+                        else setToolTipTempON("Air brush OFF");
+                    }
                 }
                 return true;
 
@@ -18201,7 +18208,10 @@
                 case "pixelSnapONButton":
                 case "pixelSnapText":
                 {
-                    setPixelSnapButton(!pixelSnapON);
+                    if(controlBox.pixelSnapButtonWrapper.alpha === 1.0)
+                    {
+                       setPixelSnapButton(!pixelSnapON);
+                    }
                 }
                 return true;
 
@@ -18210,13 +18220,16 @@
                 case "airBrushONButton":
                 case "airBrushText":
                 {
-                    if(isPenOrLineTool())
+                    if(controlBox.airBrushButtonWrapper.alpha === 1.0)
                     {
-                        setAirBrushButton(!airBrushON);
-                    }
-                    else if(isEraseTool())
-                    {
-                        setAirBrushButton(!eraseAirBrushON);
+                        if(isPenOrLineTool())
+                        {
+                            setAirBrushButton(!airBrushON);
+                        }
+                        else if(isEraseTool())
+                        {
+                            setAirBrushButton(!eraseAirBrushON);
+                        }
                     }
                 }
                 return true;
