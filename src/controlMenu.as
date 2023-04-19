@@ -33,6 +33,12 @@
 		public var airBrushText:SimpleButton = airBrushText;
 		public var controlInfo:TextField = controlInfo;
 		public var penSmoothSliderSet:Sprite = penSmoothSliderSet;
+
+		public var layer1VisibleButton:SimpleButton = layer1VisibleButton;
+		public var layer2VisibleButton:SimpleButton = layer2VisibleButton;
+		public var layerSwapButton:SimpleButton = layerSwapButton;
+		public var layerMergeButton:SimpleButton = layerMergeButton;
+
 		private const blurFilter:BlurFilter = new BlurFilter(3, 3, 2);
 
 		private const BOX_WIDTH:Number = 180;
@@ -113,7 +119,11 @@
 			rectSizeSet.transform.colorTransform = o;
 			circleSizeSet.transform.colorTransform = o;
 			penSizeGrid.transform.colorTransform = o;
-			// sizeSelectCursor.transform.colorTransform = o;
+
+			layer1VisibleButton.transform.colorTransform = o;
+			layer2VisibleButton.transform.colorTransform = o;
+			layerSwapButton.transform.colorTransform = o;
+			layerMergeButton.transform.colorTransform = o;
 
 			pixelSnapONButton.transform.colorTransform = o;
 			pixelSnapOFFButton.transform.colorTransform = o;
@@ -144,6 +154,19 @@
 
 		public function hintText(str:String):void
 		{
+			if(str.lastIndexOf("\n") === -1)
+			{
+				shapeRect.visible = true;
+				shapeCircle.visible = true;
+				penSmoothSliderSet.visible = true;
+			}
+			else
+			{
+				shapeRect.visible = false;
+				shapeCircle.visible = false;
+				penSmoothSliderSet.visible = false;
+			}
+
 			controlInfo.text = str;
 		}
 
@@ -205,8 +228,8 @@
 			const w:Number = subLayerOFFButton.width+layer1Button.width+10;
 			const h:Number = layer1Button.height+4;
 
-			g.beginFill(0xFF0000, 0);
-			g.drawRect(0, 0, w, h);
+			g.beginFill(0xFF0000,0);
+			g.drawRect(0,0,w,h);
 			g.endFill();
 
 			subLayerButtonWrapper.addChild(subLayerOFFButton);
@@ -285,6 +308,7 @@
 			const infoBottom:Number = floor(controlInfo.y+controlInfo.height+1);
 
 			controlInfo.width = BOX_WIDTH - 5;
+			controlInfo.height = 50;
 			controlInfo.x = -3;
 			controlInfo.y = 0;
 
@@ -306,13 +330,17 @@
 			penSizeGrid.y = floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-10;
 			penSizeTransButtonBox.x = penSizeGrid.x+2;
 			penSizeTransButtonBox.y = penSizeGrid.y+2;
-			// penSizeTransButtonBox.addChild(sizeSelectCursor);
+			
+
 			sizeSelectCursor.useHandCursor = false;
 
 			rectSizeSet.x = floor(penSizeGrid.x)+9;
 			rectSizeSet.y = floor(penSizeGrid.y)+10;
 			circleSizeSet.x = rectSizeSet.x;
 			circleSizeSet.y = rectSizeSet.y+1;
+
+			opaBox.x = offsetX;
+			opaBox.y = floor(penSizeGrid.y+penSizeGrid.height+5);
 
 			initPixelSnapButtonWrapper();
 			initSubLayerButtonWrapper();
@@ -321,19 +349,30 @@
 			layer1Button.useHandCursor = false;
 			layer2Button.useHandCursor = false;
 			layer2Button.visible = false;
-			subLayerButtonWrapper.x = penSizeGrid.x;
-			subLayerButtonWrapper.y = penSizeGrid.y+penSizeGrid.height+5;
+			subLayerButtonWrapper.x = opaBox.x;
+			subLayerButtonWrapper.y = opaBox.y+opaBox.height+2;
+
+			layer1VisibleButton.useHandCursor = false;
+			layer2VisibleButton.useHandCursor = false;
+			layerSwapButton.useHandCursor = false;
+			layerMergeButton.useHandCursor = false;
+
+			layer1VisibleButton.x = subLayerButtonWrapper.x;
+			layer1VisibleButton.y = subLayerButtonWrapper.y+(pixelSnapOFFButton.height+2)+4;
+			layer2VisibleButton.x = layer1VisibleButton.x+layer1VisibleButton.width+1.5;
+			layer2VisibleButton.y = layer1VisibleButton.y;
+			layerSwapButton.x = layer2VisibleButton.x+layer2VisibleButton.width+1.5;
+			layerSwapButton.y = layer2VisibleButton.y;
+			layerMergeButton.x = layerSwapButton.x+layerSwapButton.width+1.5;
+			layerMergeButton.y = layerSwapButton.y;
 
 			pixelSnapText.useHandCursor = false;
 			pixelSnapButtonWrapper.x = subLayerButtonWrapper.x+pixelSnapButtonWrapper.width+8;
-			pixelSnapButtonWrapper.y = penSizeGrid.y+penSizeGrid.height+5;
+			pixelSnapButtonWrapper.y = opaBox.y+opaBox.height+2;
 
 			airBrushText.useHandCursor = false;
 			airBrushButtonWrapper.x = floor(pixelSnapButtonWrapper.x+0.5);
-			airBrushButtonWrapper.y = floor(pixelSnapButtonWrapper.y+pixelSnapButtonWrapper.height+6);
-
-			opaBox.x = offsetX;
-			opaBox.y = floor(pixelSnapButtonWrapper.y+pixelSnapButtonWrapper.height+2)+2;
+			airBrushButtonWrapper.y = floor(pixelSnapButtonWrapper.y+pixelSnapButtonWrapper.height+5);
 
 			BOX_HEIGHT = opaBox.y+opaBox.height+7;
 
@@ -347,6 +386,8 @@
 			setChildIndex(sizeSelectCursor, this.numChildren - 1);
 
 			penSizeGrid.useHandCursor = false;
+
+			setChildIndex(controlInfo,0);
 		}
 	}
 }

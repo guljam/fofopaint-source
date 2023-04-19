@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.72;
+        private const APP_VERSION:Number = 17.73;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -612,7 +612,6 @@
                     ,quickSidebarON:Boolean = false
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
                     ,isNewFOFOSaveFormat:Boolean = false
-                    ,layerOptionON:Boolean = false //레이어 옵션 켜졌을때 올려줌
                     ,updateAfterSave:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
                     ;
 
@@ -1032,7 +1031,7 @@
         private function setClearButtonActive():void
         {
             if(!isInSaveProgress && topBar.clearButton.alpha < 1.0) topBar.clearButton.alpha = 1.0;
-            if(topBar.layerMergeButton.alpha < 1.0) topBar.layerMergeButton.alpha = 1.0;
+            if(controlBox.layerMergeButton.alpha < 1.0) controlBox.layerMergeButton.alpha = 1.0;
             setWindowTitleStar();
         }
 
@@ -1156,21 +1155,13 @@
         {
             if(canvas11Bitmap.visible)
             {
-                canvas11Bitmap.visible = false;            
-                if(layerOptionON)
-                {
-                    topBar.layer2VisibleButton.visible = false;
-                    topBar.layer2InvisibleButton.visible = true;
-                }
+                canvas11Bitmap.visible = false;
+                controlBox.layer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
             }
             else
             {
                 canvas11Bitmap.visible = true;
-                if(layerOptionON)
-                {
-                    topBar.layer2VisibleButton.visible = true;
-                    topBar.layer2InvisibleButton.visible = false;
-                }
+                controlBox.layer2VisibleButton.alpha = 1.0;
             }
 
             checkCaptureButtonActive();
@@ -1185,16 +1176,14 @@
                     rcanvas11Bitmap.visible = false;
                     if(isSubLayerONReplayMode()) rcanvas2.visible = false;
 
-                    topBar.capLayer2VisibleButton.visible = false;
-                    topBar.capLayer2InvisibleButton.visible = true;
+                    topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
                 }
                 else
                 {
                     rcanvas11Bitmap.visible = true;
                     if(isSubLayerONReplayMode()) rcanvas2.visible = true;
 
-                    topBar.capLayer2VisibleButton.visible = true;
-                    topBar.capLayer2InvisibleButton.visible = false;
+                    topBar.capLayer2VisibleButton.alpha = 1.0;
                 }
             }
             else
@@ -1203,14 +1192,12 @@
                 {
                     canvas11Bitmap.visible = false;
                     
-                    topBar.capLayer2VisibleButton.visible = false;
-                    topBar.capLayer2InvisibleButton.visible = true;
+                    topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
                 }
                 else
                 {
                     canvas11Bitmap.visible = true;
-                    topBar.capLayer2VisibleButton.visible = true;
-                    topBar.capLayer2InvisibleButton.visible = false;
+                    topBar.capLayer2VisibleButton.alpha = 1.0;
                 }
             }
             checkCaptureButtonActiveCaptureMode();
@@ -1225,16 +1212,14 @@
                     rcanvas1Bitmap.visible = false;
                     if(!isSubLayerONReplayMode()) rcanvas2.visible = false;
 
-                    topBar.capLayer1VisibleButton.visible = false;
-                    topBar.capLayer1InvisibleButton.visible = true;
+                    topBar.capLayer1VisibleButton.alpha = BUTTON_OFF_ALPHA;
                 }
                 else
                 {
                     rcanvas1Bitmap.visible = true;
                     if(!isSubLayerONReplayMode()) rcanvas2.visible = true;
 
-                    topBar.capLayer1VisibleButton.visible = true;
-                    topBar.capLayer1InvisibleButton.visible = false;
+                    topBar.capLayer1VisibleButton.alpha = 1.0;
                 }
             }
             else
@@ -1242,14 +1227,12 @@
                 if(canvas1Bitmap.visible)
                 {
                     canvas1Bitmap.visible = false;
-                    topBar.capLayer1VisibleButton.visible = false;
-                    topBar.capLayer1InvisibleButton.visible = true;
+                    topBar.capLayer1VisibleButton.alpha = BUTTON_OFF_ALPHA;
                 }
                 else
                 {
                     canvas1Bitmap.visible = true;
-                    topBar.capLayer1VisibleButton.visible = true;
-                    topBar.capLayer1InvisibleButton.visible = false;
+                    topBar.capLayer1VisibleButton.alpha = 1.0;
                 }
             }
 
@@ -1261,20 +1244,12 @@
             if(canvas1Bitmap.visible)
             {
                 canvas1Bitmap.visible = false;
-                if(layerOptionON)
-                {
-                    topBar.layer1VisibleButton.visible = false;
-                    topBar.layer1InvisibleButton.visible = true;
-                }
+                controlBox.layer1VisibleButton.alpha = BUTTON_OFF_ALPHA;
             }
             else
             {
                 canvas1Bitmap.visible = true;
-                if(layerOptionON)
-                {
-                    topBar.layer1VisibleButton.visible = true;
-                    topBar.layer1InvisibleButton.visible = false;
-                }
+                controlBox.layer1VisibleButton.alpha = 1.0;
             }
 
             checkCaptureButtonActive();
@@ -1391,7 +1366,7 @@
                 rDataBuffer.push(["merge"]);
                 addUndoData();
             }
-            topBar.layerMergeButton.alpha = BUTTON_OFF_ALPHA;
+            controlBox.layerMergeButton.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function setLayerSwapButton():void
@@ -1420,24 +1395,6 @@
             {
                 rDataBuffer.push(["swap"]);
                 addUndoData();
-            }
-
-            if(topBar.layerSwapButton.rotation === 0) topBar.layerSwapButton.rotation = 180;
-            else topBar.layerSwapButton.rotation = 0;
-        }
-
-        private function checkLayerOptionOFF():void
-        {
-            layerOptionON = false;
-            topBar.setLayerButtonOFF();
-            stage.removeEventListener(MouseEvent.MOUSE_MOVE,checkLayerOptionOFFMouseMove);
-        }
-
-        private function checkLayerOptionOFFMouseMove(e:MouseEvent):void
-        {
-            if(topBar.hitTestPoint(mouseX,mouseY) === false)
-            {
-                checkLayerOptionOFF();
             }
         }
 
@@ -4213,24 +4170,20 @@
 
                 if(canvas1Bitmap.visible)
                 {
-                    tb.capLayer1InvisibleButton.visible = false;
-                    tb.capLayer1VisibleButton.visible = true;
+                    tb.capLayer1VisibleButton.alpha = 1.0;
                 }
                 else
                 {
-                    tb.capLayer1InvisibleButton.visible = true;
-                    tb.capLayer1VisibleButton.visible = false;
+                    tb.capLayer1VisibleButton.alpha = BUTTON_OFF_ALPHA;
                 }
 
                 if(canvas11Bitmap.visible)
                 {
-                    tb.capLayer2InvisibleButton.visible = false;
-                    tb.capLayer2VisibleButton.visible = true;
+                    tb.capLayer2VisibleButton.alpha = 1.0;
                 }
                 else
                 {
-                    tb.capLayer2InvisibleButton.visible = true;
-                    tb.capLayer2VisibleButton.visible = false;
+                    tb.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
                 }
             }
         }
@@ -4634,7 +4587,8 @@
                         
                         if(subX !== 0) //차이가 0이 될때가 있어서 이건 스킵
                         {
-                            var dx:Number = subX*0.02;
+                            var dx:Number = subX*0.005;
+
                             if(mirrorFlag) _canvasTrace.scaleX -= dx;
                             else  _canvasTrace.scaleX += dx;
 
@@ -4647,7 +4601,8 @@
                         const subY:Number = smoothLast.y-my;
                         if(subY !== 0)
                         {
-                            const dy:Number = subY*0.02;
+                            const dy:Number = subY*0.005;
+
                             if(mirrorFlag) _canvasTrace.scaleX -= dy;
                             else  _canvasTrace.scaleX += dy;
 
@@ -4659,7 +4614,7 @@
                 }
                 else if(moveFlag === 0)
                 {
-                    if(abs(mx-z) > moveOffset)
+                    if(abs(mx-cx) > moveOffset)
                     {
                         moveFlag = 1;
                     }
@@ -5407,6 +5362,22 @@
                 case "subLayerText":
                     str = "Select layer (1, 2 / 9, 0)";
                 break;
+
+                case "layer1VisibleButton":
+                    str = "Layer 1 visible ON/OFF\n(shift+1, shift+9)";
+                break;
+
+                case "layer2VisibleButton":
+                    str = "Layer 2 visible ON/OFF\n(shift+2, shift+0)";
+                break;
+
+                case "layerSwapButton":
+                    str = "Swap layer\n(shift+q, shift+p)";
+                break;
+
+                case "layerMergeButton":
+                    str = "Merge image to layer 2\n(shift+e, shift+o)";
+                break;
             }
 
             if(str === "")
@@ -6108,7 +6079,7 @@
             var lassoMovedX:Number = lassoFirstX;
             var lassoMovedY:Number = lassoFirstY;
             var lassoFirstScale:Number = _lassoBox.scaleY;
-            var sc:Number = lassoFirstScale;
+            var lassoImageScale:Number = lassoFirstScale;
             var moveFlag:uint = 0;
 
             _lassoBMP.smoothing = false;
@@ -6139,7 +6110,7 @@
                         const subX:Number = mx-lassoMovedX;
                         if(subX !== 0) //차이가 0이 될때가 있어서 이건 스킵
                         {
-                            sc += (subX)*0.02;
+                            lassoImageScale += (subX)*0.005;
                             lassoResizeMoveSum += subX;
                         }
                     }
@@ -6148,7 +6119,7 @@
                         const subY:Number = lassoMovedY-my;
                         if(subY !== 0)
                         {
-                            sc += (subY)*0.02;
+                            lassoImageScale += (subY)*0.005;
                             lassoResizeMoveSum += subY;
                         }
                     }
@@ -6159,15 +6130,15 @@
                     else if(abs(my-lassoFirstY) > 3) moveFlag = 2;
                 }
 
-                _lassoBox.scaleX = (mirrorFlag) ? -sc : sc;
-                _lassoBox.scaleY = sc;
+                _lassoBox.scaleX = (mirrorFlag) ? -lassoImageScale : lassoImageScale;
+                _lassoBox.scaleY = lassoImageScale;
                 lassoMovedX = mx;
                 lassoMovedY = my;
 
-                setToolTipON(floor(_lassoBox.width+0.5) +" x " +floor(_lassoBox.height+0.5) +" ["+sc.toFixed(2)+"]");
+                setToolTipON(floor(_lassoBox.width+0.5) +" x " +floor(_lassoBox.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
             }
 
-            setToolTipON(floor(_lassoBox.width+0.5)+" x "+floor(_lassoBox.height+0.5) +" ["+sc.toFixed(2)+"]");
+            setToolTipON(floor(_lassoBox.width+0.5)+" x "+floor(_lassoBox.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
             toolTipBox.visible = true;
             _lassoMenu.visible = false;
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoResizeButtonUpEvent);
@@ -6921,42 +6892,11 @@
                     switch(upTargetName)
                     {
                         case "capLayer1VisibleButton":
-                        case "capLayer1InvisibleButton":
                             setLayer1VisibleToggleCaptureMode();
                         break;
 
                         case "capLayer2VisibleButton":
-                        case "capLayer2InvisibleButton":
                             setLayer2VisibleToggleCaptureMode();
-                        break;
-
-                        case "layer1VisibleButton":
-                        case "layer1InvisibleButton":
-                            setLayer1VisibleToggle();
-                        break;
-
-                        case "layer2VisibleButton":
-                        case "layer2InvisibleButton":
-                            setLayer2VisibleToggle();
-                        break;
-
-                        case "layerMergeButton":
-                        {
-                            setLayerMergeButton();
-                            topBar.hintTime("Layers has been merged to layer 2",topBar.layerMergeButton);
-                        }
-                        break;
-                        
-                        case "layerSwapButton":
-                            setLayerSwapButton();
-                        break;
-
-                        case "layerOptionButton":
-                        {
-                            layerOptionON = true;
-                            topBar.setLayerButtonON(canvas1Bitmap.visible,canvas11Bitmap.visible);
-                            stage.addEventListener(MouseEvent.MOUSE_MOVE,checkLayerOptionOFFMouseMove);
-                        }
                         break;
 
                         case "dpiButton":
@@ -7679,12 +7619,10 @@
                     break;
 
                     case "capLayer1VisibleButton":
-                    case "capLayer1InvisibleButton":
                         str = "Layer 1 visible ON/OFF (1, 9)";
                     break;
 
                     case "capLayer2VisibleButton":
-                    case "capLayer2InvisibleButton":
                         str = "Layer 2 visible ON/OFF (2, 0)";
                     break;
 
@@ -7758,10 +7696,6 @@
                     case "layer2VisibleButton":
                     case "layer2InvisibleButton":
                         str = "Layer 2 visible ON/OFF (shift+2, shift+0)";
-                    break;
-
-                    case "layerOptionButton":
-                        str = "Layer options";
                     break;
 
                     case "layerSwapButton":
@@ -11519,7 +11453,6 @@
                 penSizeCursor.visible = false;
                 canvasTraceLayer.visible = false;
                 if(traceMenuON === true) traceMenuBox.visible = false;
-                if(layerOptionON) checkLayerOptionOFF();
 
                 changeTopBarIcons("capture");
 
@@ -11581,13 +11514,20 @@
         {
             const target:DisplayObject = e.target as DisplayObject;
             if(!target) return;
-            //캔버스 2번이 알파가 1.0 이하일수도 있기 때문에 topbar만 체크함
+
+            const targetName:String = target.name;
+
+            if(targetName === "capLayer1VisibleButton" || targetName === "capLayer2VisibleButton")
+            {
+                checkButtonUp(targetName);
+
+                return;
+            }
+
             if(target.alpha < 1.0 && topBar.hitTestPoint(mouseX,mouseY))
             {
                 return;
             }
-
-            const targetName:String = target.name;
 
             switch(targetName)
             {
@@ -11597,10 +11537,6 @@
                 case "capOff":
                 case "capTrans":
                 case "capClipBoard":
-                case "capLayer1VisibleButton":
-                case "capLayer1InvisibleButton":
-                case "capLayer2VisibleButton":
-                case "capLayer2InvisibleButton":
                     checkButtonUp(targetName);
                 break;
 
@@ -16006,7 +15942,7 @@
             controlBox.x = 39;
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 39;
-            pickerBox.y = floor(controlBox.y+controlBox.height+10);
+            pickerBox.y = floor(controlBox.y+controlBox.height+5);
             toolBox.x = 0;
             toolBox.y = floor(controlBox.y+2);
 
@@ -16056,7 +15992,7 @@
             controlBox.x = 0;
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 0;
-            pickerBox.y = floor(controlBox.y+controlBox.height+10);
+            pickerBox.y = floor(controlBox.y+controlBox.height+5);
             toolBox.x = controlBox.x+controlBox.width;
             toolBox.y = floor(controlBox.y+2);
 
@@ -16877,13 +16813,15 @@
 
                             case KEY.q:
                             case KEY.p:
+                            {
                                 setLayerSwapButton();
-                                setToolTipTempON("Layer swapped "+((topBar.layerSwapButton.rotation === 0)?"L1, L2":"L2, L1"));
+                                setToolTipTempON("Layers has been swapped");
+                            }
                             return;
 
                             case KEY.e:
                             case KEY.o:
-                                if(topBar.layerMergeButton.alpha === 1.0)
+                                if(controlBox.layerMergeButton.alpha === 1.0)
                                 {
                                     setLayerMergeButton();
                                     setToolTipTempON("Layers has been merged to layer 2");
@@ -17269,9 +17207,16 @@
                     saveAllData();
                 }
             }
-            if(quickSidebarON && !deepUndoON) _quickSidebarOFF();
-            if(layerOptionON) checkLayerOptionOFF();
-            if(subLayerSave.length > 0) layerPreviewBlurEffectOFF();
+
+            if(quickSidebarON && !deepUndoON)
+            {
+                _quickSidebarOFF();
+            }
+
+            if(subLayerSave.length > 0)
+            {
+                layerPreviewBlurEffectOFF();
+            }
 
             setOldTool();
         }
@@ -17816,7 +17761,6 @@
             TOTAL_FRAME = getTotalFrame();
 
             checkReplaySpeedState();
-            if(layerOptionON) checkLayerOptionOFF();
 
             //frame sum이 재계산된 maxframe을 넘어가면 리플레이 프레임이 넘어가기 때문에 끝난거임
             //그래서 캔버스 복사해주고 리플레이를 리셋해줌
@@ -18190,6 +18134,34 @@
                 }
                 return true;
 
+                case "layer1VisibleButton":
+                case "layer1InvisibleButton":
+                {
+                    setLayer1VisibleToggle();
+                }
+                return true;
+
+                case "layer2VisibleButton":
+                case "layer2InvisibleButton":
+                {
+                    setLayer2VisibleToggle();
+                }
+                return true;
+
+                case "layerMergeButton":
+                {
+                    setLayerMergeButton();
+                    topBar.hintTime("Layers has been merged to layer 2",topBar.replayModeButton);
+                }
+                return true;
+                
+                case "layerSwapButton":
+                {
+                    setLayerSwapButton();
+                    topBar.hintTime("Layers has been swapped",topBar.replayModeButton);
+                }
+                return true;
+
                 case "pixelSnapButtonWrapper":
                 case "pixelSnapOFFButton":
                 case "pixelSnapONButton":
@@ -18542,13 +18514,6 @@
                 case "traceVisibleOFFButton":
                 case "appResetButton":
                 case "dpiButton":
-                case "layerOptionButton":
-                case "layerSwapButton":
-                case "layerMergeButton":
-                case "layer1VisibleButton":
-                case "layer2VisibleButton":
-                case "layer1InvisibleButton":
-                case "layer2InvisibleButton":
                 case "newWindowButton":
                 case "newWindowCloseButton":
                 {
