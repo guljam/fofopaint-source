@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.82;
+        private const APP_VERSION:Number = 17.83;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -14766,6 +14766,10 @@
 
             return function ():void
             {
+                controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+
                 if(isAllLayerInvisible()) return;
 
                 canvasBGColor = CANVAS_BG_COLOR;
@@ -15060,12 +15064,20 @@
         {
             setNowTool(TOOL_MOVE);
             toolBox.moveToolCursor("toolMove");
+            
+            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectZoomTool():void
         {
             setNowTool(TOOL_ZOOM);
             toolBox.moveToolCursor("toolZoom");
+
+            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectRotateTool():void
@@ -15079,6 +15091,10 @@
             setNowTool(TOOL_LASSO);
             moveEraseButton("toolLasso");
             toolBox.moveToolCursor("toolLasso");
+
+            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectFillPenTool():void
