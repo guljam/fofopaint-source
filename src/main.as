@@ -5458,7 +5458,7 @@
                 case "laggyOFFButton":
                 case "laggyText":
                 {
-                    str = "Laggy line";
+                    str = "Emulate latency";
                 }
                 break;
 
