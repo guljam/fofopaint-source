@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.85;
+        private const APP_VERSION:Number = 17.86;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -72,7 +72,7 @@
                                         b:66,
                                         c:67,
                                         d:68,
-                                        e:69,
+                                        e:69,   
                                         f:70,
                                         g:71,
                                         h:72,
@@ -3046,7 +3046,7 @@
                 {
                     if(!hasTimer("penLagTimer"))
                     {
-                        addTimerByName("penLagTimer",Math.random()/8,false,drawLineLaggy);
+                        addTimerByName("penLagTimer",0.066,false,drawLineLaggy);
                     }
                 }
             }
