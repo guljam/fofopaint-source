@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.88;
+        private const APP_VERSION:Number = 17.90;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -663,6 +663,11 @@
         }
 
         //functions
+
+        public function getLaggyTime():Number
+        {
+            return Math.random()*0.066+0.066;
+        }
 		public function moreOptionsOFFMouseMoveEvent(e:MouseEvent):void
 		{
 			if(controlBox.moreOptionsBox.hitTestPoint(mouseX,mouseY) === false)
@@ -2685,7 +2690,7 @@
                 {
                     if(laggyPenON)
                     {
-                        addTimerByName("fillPenTimer",Math.random()/7,false,drawPreviewLine);
+                        addTimerByName("fillPenTimer",getLaggyTime(),false,drawPreviewLine);
                     }
                     else
                     {
@@ -3053,7 +3058,7 @@
                 {
                     if(!hasTimer("penLagTimer"))
                     {
-                        addTimerByName("penLagTimer",Math.random()/7,false,drawLineLaggy);
+                        addTimerByName("penLagTimer",getLaggyTime(),false,drawLineLaggy);
                     }
                 }
             }
@@ -13303,6 +13308,8 @@
         {
             const old:Point = new Point(0,0);
             var z:Number = zoomed;
+            var movedX:Number;
+            var movedY:Number;
 
             function moveToolOFFEvent(e:MouseEvent):void
             {
@@ -13313,6 +13320,7 @@
                 if(laggyPenON)
                 {
                     removeTimer("imageMoveLagTimer");
+                    _moveImage(movedX,movedY);
                 }
 
                 mouseDragON = false;
@@ -13400,11 +13408,14 @@
                 const mx:Number = rPos.x/z;
                 const my:Number = rPos.y/z;
 
+                movedX = mx;
+                movedY = my;
+
                 if(laggyPenON)
                 {
                     if(!hasTimer("imageMoveLagTimer"))
                     {
-                        addTimerByName("imageMoveLagTimer",Math.random()/7,false,_moveImage,[mx,my]);
+                        addTimerByName("imageMoveLagTimer",getLaggyTime(),false,_moveImage,[mx,my]);
                     }
                 }
                 else
@@ -14501,7 +14512,7 @@
                 {
                     if(laggyPenON)
                     {
-                        addTimerByName("LassoDrawDelayTimer",Math.random()/7,false,function():void
+                        addTimerByName("LassoDrawDelayTimer",getLaggyTime(),false,function():void
                         {
                             drawPreviewLine();
                         });
