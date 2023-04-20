@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.86;
+        private const APP_VERSION:Number = 17.88;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2683,7 +2683,14 @@
 
                 if(!hasTimer("fillPenTimer"))
                 {
-                    addTimerByName("fillPenTimer",KEY_REPEAT_INTERVAL,false,drawPreviewLine);
+                    if(laggyPenON)
+                    {
+                        addTimerByName("fillPenTimer",Math.random()/7,false,drawPreviewLine);
+                    }
+                    else
+                    {
+                        addTimerByName("fillPenTimer",KEY_REPEAT_INTERVAL,false,drawPreviewLine);
+                    }
                 }
             }
 
@@ -3046,7 +3053,7 @@
                 {
                     if(!hasTimer("penLagTimer"))
                     {
-                        addTimerByName("penLagTimer",0.066,false,drawLineLaggy);
+                        addTimerByName("penLagTimer",Math.random()/7,false,drawLineLaggy);
                     }
                 }
             }
@@ -13303,6 +13310,11 @@
                 stage.removeEventListener(MouseEvent.MOUSE_UP, moveToolOFFEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, moveToolOFFEvent);
 
+                if(laggyPenON)
+                {
+                    removeTimer("imageMoveLagTimer");
+                }
+
                 mouseDragON = false;
                 penCursorOFFFlag = false;
                 var tempBitData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
@@ -13365,14 +13377,8 @@
                 }
             }
 
-            function moveToolMoveEvent(e:MouseEvent):void
+            function _moveImage(mx:Number,my:Number):void
             {
-                const dx:Number = mouseX-old.x;
-                const dy:Number = mouseY-old.y;
-                const rPos:Point = rotatePoint(dx,dy,regPoint.rotation);
-                const mx:Number = rPos.x/z;
-                const my:Number = rPos.y/z;
-
                 if(canvas1Bitmap.visible)
                 {
                     canvas1Bitmap.x = mx; //캔버스만 옮겨줘서 미리보기해줌
@@ -13383,6 +13389,27 @@
                 {
                     canvas11Bitmap.x = mx;
                     canvas11Bitmap.y = my;
+                }
+            }
+
+            function moveToolMoveEvent(e:MouseEvent):void
+            {
+                const dx:Number = mouseX-old.x;
+                const dy:Number = mouseY-old.y;
+                const rPos:Point = rotatePoint(dx,dy,regPoint.rotation);
+                const mx:Number = rPos.x/z;
+                const my:Number = rPos.y/z;
+
+                if(laggyPenON)
+                {
+                    if(!hasTimer("imageMoveLagTimer"))
+                    {
+                        addTimerByName("imageMoveLagTimer",Math.random()/7,false,_moveImage,[mx,my]);
+                    }
+                }
+                else
+                {
+                    _moveImage(mx,my);
                 }
             }
 
@@ -14472,10 +14499,20 @@
 
                 if(!hasTimer("LassoDrawDelayTimer"))
                 {
-                    addTimerByName("LassoDrawDelayTimer",KEY_REPEAT_INTERVAL,false,function():void
+                    if(laggyPenON)
                     {
-                        drawPreviewLine();
-                    });
+                        addTimerByName("LassoDrawDelayTimer",Math.random()/7,false,function():void
+                        {
+                            drawPreviewLine();
+                        });
+                    }
+                    else
+                    {
+                        addTimerByName("LassoDrawDelayTimer",KEY_REPEAT_INTERVAL,false,function():void
+                        {
+                            drawPreviewLine();
+                        });
+                    }
                 }
 
                 //사각형 꼭지점 체크
