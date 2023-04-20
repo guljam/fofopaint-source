@@ -389,7 +389,7 @@
 			layerMergeButton.useHandCursor = false;
 
 			layerSwapButton.x = opaBox.x;
-			layerSwapButton.y = opaBox.y+opaBox.height;
+			layerSwapButton.y = opaBox.y+opaBox.height-3;
 			
 			layer1VisibleButton.x = layerSwapButton.x+layerSwapButton.width+3;
 			layer1VisibleButton.y = layerSwapButton.y+2;

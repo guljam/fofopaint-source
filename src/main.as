@@ -64,9 +64,9 @@
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
-
-        //단축키 keycode 리스트
         private const STAGE_FRAME:int = stage.frameRate;
+        
+        //단축키 keycode 리스트
         private const KEY:Object = {
                                         a:65,
                                         b:66,
@@ -5169,7 +5169,7 @@
 
         private function setLaggyPenButton(flag:Boolean):void
         {
-            if(!(isPenOrLineTool() || isEraseTool() || nowTool === TOOL_FILL_PEN)) return;
+            if(!(isPenOrLineTool() || isEraseTool())) return;
             
             laggyPenON = flag;
 
