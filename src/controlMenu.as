@@ -113,7 +113,6 @@
 			o.color = op;
 
 			controlInfo.textColor = op;
-			sharpLineText.transform.colorTransform = o;
 
 			alphaBackup = layer1SelectButton.alpha;
 			layer1SelectButton.transform.colorTransform = o;
@@ -130,17 +129,25 @@
 			layerSwapButton.transform.colorTransform = o;
 			layerMergeButton.transform.colorTransform = o;
 
-			airBrushText.transform.colorTransform = o;
 			shapeRect.transform.colorTransform = o;
 			shapeCircle.transform.colorTransform = o;
 			rectSizeSet.transform.colorTransform = o;
 			circleSizeSet.transform.colorTransform = o;
 			penSizeGrid.transform.colorTransform = o;
 
+			sharpLineText.transform.colorTransform = o;
 			sharpLineONButton.transform.colorTransform = o;
 			sharpLineOFFButton.transform.colorTransform = o;
+
+			airBrushText.transform.colorTransform = o;
 			airBrushOFFButton.transform.colorTransform = o;
 			airBrushONButton.transform.colorTransform = o;
+
+			laggyText.transform.colorTransform = o;
+			laggyOFFButton.transform.colorTransform = o;
+			laggyONButton.transform.colorTransform = o;
+
+			moreOptionsButton.transform.colorTransform = o;
 
 			opaBox.alphaBG.transform.colorTransform = o;
 
