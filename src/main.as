@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.81;
+        private const APP_VERSION:Number = 17.82;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5083,7 +5083,8 @@
             const penFlag:Boolean = isPenOrLineTool();
 
             if(penFlag) airBrushON = flag;
-            else eraseAirBrushON = flag;
+            else if(isEraseTool()) eraseAirBrushON = flag;
+            else return;
 
             setAirBrushCheckBox(flag,penFlag);
         }
@@ -5168,6 +5169,8 @@
 
         private function setLaggyPenButton(flag:Boolean):void
         {
+            if(!(isPenOrLineTool() || isEraseTool() || nowTool === TOOL_FILL_PEN)) return;
+            
             laggyPenON = flag;
 
             controlBox["laggyOFFButton"].visible = flag;
@@ -5176,10 +5179,13 @@
 
         private function setsharpLineButton(flag:Boolean):void
         {
+            if(!(isPenOrLineTool() || isEraseTool() || nowTool === TOOL_FILL_PEN)) return;
+
             sharpLineON = flag;
 
             controlBox["sharpLineOFFButton"].visible = flag;
             controlBox["sharpLineONButton"].visible = !flag;
+
 
             const isErase:Boolean = isEraseTool();
             const z:Number = zoomed;
@@ -5206,6 +5212,7 @@
 
                 controlBox.sharpLineButtonWrapper.alpha = 1.0;
                 controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
 
                 const airBrushFlagBackup:Boolean = airBrushON;
                 setAirBrushButton(false);
@@ -14761,9 +14768,6 @@
             {
                 if(isAllLayerInvisible()) return;
 
-                controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-
                 canvasBGColor = CANVAS_BG_COLOR;
                 canvas1bmpd = canvas1BitmapData;
                 canvas11bmpd = canvas11BitmapData;
@@ -15056,24 +15060,18 @@
         {
             setNowTool(TOOL_MOVE);
             toolBox.moveToolCursor("toolMove");
-            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectZoomTool():void
         {
             setNowTool(TOOL_ZOOM);
             toolBox.moveToolCursor("toolZoom");
-            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectRotateTool():void
         {
             setNowTool(TOOL_ROTATE);
             toolBox.moveToolCursor("toolRotate");
-            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectLassoTool():void
@@ -15081,8 +15079,6 @@
             setNowTool(TOOL_LASSO);
             moveEraseButton("toolLasso");
             toolBox.moveToolCursor("toolLasso");
-            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-            controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectFillPenTool():void
@@ -15157,8 +15153,9 @@
                     setAirBrushCheckBox(eraseAirBrushON,false);
                 }
 
-                controlBox.sharpLineButtonWrapper.alpha = 1.0;
+                _controlBox.sharpLineButtonWrapper.alpha = 1.0;
                 _controlBox.airBrushButtonWrapper.alpha = 1.0;
+                _controlBox.laggyButtonWrapper.alpha = 1.0;
 
                 setPenSize(sizeIndex);
                 setPenAlpha(alpha);
@@ -18286,10 +18283,7 @@
                 case "sharpLineONButton":
                 case "sharpLineText":
                 {
-                    if(controlBox.sharpLineButtonWrapper.alpha === 1.0)
-                    {
-                       setsharpLineButton(!sharpLineON);
-                    }
+                    setsharpLineButton(!sharpLineON);
                 }
                 return true;
 
