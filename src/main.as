@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.90;
+        private const APP_VERSION:Number = 17.91;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5181,7 +5181,9 @@
 
         private function setLaggyPenButton(flag:Boolean):void
         {
-            if(!(isPenOrLineTool() || isEraseTool())) return;
+            const nt:int = nowTool;
+            if(!(isPenOrLineTool() || isEraseTool() || nt === TOOL_FILL_PEN
+            || nt === TOOL_LASSO || nt === TOOL_MOVE)) return;
             
             laggyPenON = flag;
 
@@ -5224,7 +5226,6 @@
 
                 controlBox.sharpLineButtonWrapper.alpha = 1.0;
                 controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
 
                 const airBrushFlagBackup:Boolean = airBrushON;
                 setAirBrushButton(false);
@@ -15115,7 +15116,6 @@
             
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-            controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectZoomTool():void
@@ -15142,7 +15142,6 @@
 
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-            controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectFillPenTool():void
