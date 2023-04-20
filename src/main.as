@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.80;
+        private const APP_VERSION:Number = 17.81;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3119,6 +3119,7 @@
 
                 if(laggyPenFlag)
                 {
+                    removeTimer("penLagTimer");
                     drawLineLaggy();
                     laggyDrawIndex = 0;
                 }
@@ -13042,7 +13043,17 @@
                     mouseMovedFlag = true;
                 }
 
-                drawingLine();
+                if(laggyPenON)
+                {
+                    if(!hasTimer("lineLagTimer"))
+                    {
+                        addTimerByName("lineLagTimer",Math.random()/8,false,drawingLine);
+                    }
+                }
+                else
+                {
+                    drawingLine();
+                }
 
                 if(readyAddUndo === false)
                 {
@@ -13054,6 +13065,11 @@
             {
                 stageMouseMoveEvent.remove(lineMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, lineUpEvent);
+
+                if(laggyPenON)
+                {
+                    removeTimer("lineLagTimer");
+                }
 
                 if(_traceMemoryTraining)
                 {
