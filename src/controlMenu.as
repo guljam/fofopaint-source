@@ -11,8 +11,10 @@
 	{
 		public const penSizeTransButtonBox:penSizeTransButtonSet = new penSizeTransButtonSet();
 		public const opaBox:opaButtons = new opaButtons();
-		public const pixelSnapButtonWrapper:Sprite = new Sprite();
+		public const moreOptionsBox:Sprite = new Sprite();
+		public const sharpLineButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();
+		public const laggyButtonWrapper:Sprite = new Sprite();
 
 		public var sizeSelectCursor:SimpleButton = sizeSelectCursor;
 		public var rectSizeSet:SimpleButton = rectSizeSet;
@@ -20,16 +22,22 @@
 		public var shapeRect:SimpleButton = shapeRect;
 		public var shapeCircle:SimpleButton = shapeCircle;
 		public var penSizeGrid:SimpleButton = penSizeGrid;
-		public var pixelSnapONButton:SimpleButton = pixelSnapONButton;
-		public var pixelSnapOFFButton:SimpleButton = pixelSnapOFFButton;
-		public var pixelSnapText:SimpleButton = pixelSnapText;
+
+		public var moreOptionsButton:SimpleButton = moreOptionsButton;
+		public var sharpLineONButton:SimpleButton = sharpLineONButton;
+		public var sharpLineOFFButton:SimpleButton = sharpLineOFFButton;
+		public var sharpLineText:SimpleButton = sharpLineText;
+		public var airBrushONButton:SimpleButton = airBrushONButton;
+		public var airBrushOFFButton:SimpleButton = airBrushOFFButton;
+		public var airBrushText:SimpleButton = airBrushText;
+		public var laggyText:SimpleButton = laggyText;
+		public var laggyONButton:SimpleButton = laggyONButton;
+		public var laggyOFFButton:SimpleButton = laggyOFFButton;
+
 		public var layer1SelectButton:SimpleButton = layer1SelectButton;
 		public var layer2SelectButton:SimpleButton = layer2SelectButton;
 		public var layer1Button:SimpleButton = layer1Button;
 		public var layer2Button:SimpleButton = layer2Button;
-		public var airBrushONButton:SimpleButton = airBrushONButton;
-		public var airBrushOFFButton:SimpleButton = airBrushOFFButton;
-		public var airBrushText:SimpleButton = airBrushText;
 		public var controlInfo:TextField = controlInfo;
 		public var penSmoothSliderSet:Sprite = penSmoothSliderSet;
 
@@ -40,10 +48,48 @@
 		public var layerSwapButton:SimpleButton = layerSwapButton;
 		public var layerMergeButton:SimpleButton = layerMergeButton;
 
+		private var layerVisibleBackup:Array;
 		private const blurFilter:BlurFilter = new BlurFilter(3, 3, 2);
 
 		private const BOX_WIDTH:Number = 180;
 		private var BOX_HEIGHT:Number = 260;
+
+		public function moreOptionsOFF():void
+		{
+			moreOptionsBox.visible = false;
+
+			layer1VisibleButton.visible = layerVisibleBackup[0];
+			layer1InvisibleButton.visible = layerVisibleBackup[1];
+			layer2VisibleButton.visible = layerVisibleBackup[2];
+			layer2InvisibleButton.visible = layerVisibleBackup[3];
+
+			layer1SelectButton.visible = true;
+			layer2SelectButton.visible = true;
+
+			layerSwapButton.visible = true;
+			layerMergeButton.visible = true;
+			moreOptionsButton.visible = true;
+		}
+
+		public function moreOptionsON():void
+		{
+			layerVisibleBackup = [layer1VisibleButton.visible,layer1InvisibleButton.visible
+								 ,layer2VisibleButton.visible,layer2InvisibleButton.visible];
+
+			layer1VisibleButton.visible = false;
+			layer1InvisibleButton.visible = false;
+			layer2VisibleButton.visible = false;
+			layer2InvisibleButton.visible = false;
+
+			layer1SelectButton.visible = false;
+			layer2SelectButton.visible = false;
+
+			layerSwapButton.visible = false;
+			layerMergeButton.visible = false;
+			moreOptionsButton.visible = false;
+
+			moreOptionsBox.visible = true;
+		}
 
 		public function blurShapeSetON():void
 		{
@@ -57,52 +103,6 @@
 			circleSizeSet.filters = null;
 		}
 
-		// public function initShapeSet():void
-		// {
-		// const floor:Function = Math.floor;
-		// const ceil:Function = Math.ceil;
-		// const sizeArr:Array = [1,2,3,5,7,8,11,13,17,21,21,21]; //main이랑 맞춰야댐
-		// const offset:Number = 14;
-		// var g:Graphics = rectSizeSet.graphics;
-		// var x:Number = 0;
-		// var y:Number = 0;
-		// var size:Number = 2;
-		// var hsize:Number = 1;
-
-		// g.clear();
-		// for(var i:int=0;i<12;i++)
-		// {
-		// g.beginFill(0xCCCCCC);
-		// size = sizeArr[i];
-		// hsize = floor(size/2);
-		// g.drawRect(x*28-hsize+offset,y-hsize+offset,size,size); //28이 그리드 간격임
-		// x++;
-		// if(i===5)
-		// {
-		// x = 0;
-		// y = 28;
-		// }
-		// }
-		// g.endFill();
-
-		// g = circleSizeSet.graphics;
-		// x = 0;
-		// y = 0;
-		// for(i=0;i<12;i++)
-		// {
-		// g.beginFill(0xCCCCCC);
-		// size = floor(sizeArr[i]/2+0.5);
-		// g.drawCircle(x*28+offset,y+offset,size); //28이 그리드 간격임
-		// x++;
-		// if(i===5)
-		// {
-		// x = 0;
-		// y = 28;
-		// }
-		// g.endFill();
-		// }
-		// }
-
 		public function changeUIColor(base:uint, op:uint):void
 		{
 			const b:ColorTransform = new ColorTransform();
@@ -113,7 +113,7 @@
 			o.color = op;
 
 			controlInfo.textColor = op;
-			pixelSnapText.transform.colorTransform = o;
+			sharpLineText.transform.colorTransform = o;
 
 			alphaBackup = layer1SelectButton.alpha;
 			layer1SelectButton.transform.colorTransform = o;
@@ -137,8 +137,8 @@
 			circleSizeSet.transform.colorTransform = o;
 			penSizeGrid.transform.colorTransform = o;
 
-			pixelSnapONButton.transform.colorTransform = o;
-			pixelSnapOFFButton.transform.colorTransform = o;
+			sharpLineONButton.transform.colorTransform = o;
+			sharpLineOFFButton.transform.colorTransform = o;
 			airBrushOFFButton.transform.colorTransform = o;
 			airBrushONButton.transform.colorTransform = o;
 
@@ -196,11 +196,11 @@
 		public function initAirBrushButtonWrapper():void
 		{
 			const g:Graphics = airBrushButtonWrapper.graphics;
-			const w:Number = airBrushOFFButton.width+pixelSnapText.width;
+			const w:Number = airBrushOFFButton.width+sharpLineText.width;
 			const h:Number = airBrushOFFButton.height+2;
 
-			g.beginFill(0xFF0000, 0);
-			g.drawRect(0, 0, w, h);
+			g.beginFill(0xFF0000,0);
+			g.drawRect(0,0,w,h);
 			g.endFill();
 
 			airBrushButtonWrapper.addChild(airBrushOFFButton);
@@ -214,40 +214,95 @@
 			airBrushOFFButton.visible = false;
 
 			airBrushText.x = airBrushOFFButton.x+airBrushOFFButton.width+2;
-			airBrushText.y = airBrushOFFButton.y;
+			airBrushText.y = airBrushOFFButton.y+2;
 
 			airBrushONButton.useHandCursor = false;
 			airBrushOFFButton.useHandCursor = false;
+			airBrushText.useHandCursor = false;
 
 			airBrushButtonWrapper.name = "airBrushButtonWrapper";
 		}
 
-		public function initPixelSnapButtonWrapper():void
+		public function initSharpLineButtonWrapper():void
 		{
-			const g:Graphics = pixelSnapButtonWrapper.graphics;
-			const w:Number = pixelSnapOFFButton.width+pixelSnapText.width+4;
-			const h:Number = pixelSnapOFFButton.height+2;
+			const g:Graphics = sharpLineButtonWrapper.graphics;
+			const w:Number = sharpLineOFFButton.width+sharpLineText.width+4;
+			const h:Number = sharpLineOFFButton.height+2;
 
-			g.beginFill(0xFF0000, 0);
-			g.drawRect(0, 0, w, h);
+			g.beginFill(0xFF0000,0);
+			g.drawRect(0,0,w,h);
 			g.endFill();
 
-			pixelSnapButtonWrapper.addChild(pixelSnapOFFButton);
-			pixelSnapButtonWrapper.addChild(pixelSnapONButton);
-			pixelSnapButtonWrapper.addChild(pixelSnapText);
+			sharpLineButtonWrapper.addChild(sharpLineOFFButton);
+			sharpLineButtonWrapper.addChild(sharpLineONButton);
+			sharpLineButtonWrapper.addChild(sharpLineText);
 
-			pixelSnapONButton.x = 0;
-			pixelSnapONButton.y = 0;
-			pixelSnapOFFButton.x = pixelSnapONButton.x;
-			pixelSnapOFFButton.y = pixelSnapONButton.y;
-			pixelSnapOFFButton.visible = false;
+			sharpLineONButton.x = 0;
+			sharpLineONButton.y = 0;
+			sharpLineOFFButton.x = sharpLineONButton.x;
+			sharpLineOFFButton.y = sharpLineONButton.y;
+			sharpLineOFFButton.visible = false;
 
-			pixelSnapText.x = pixelSnapOFFButton.x+pixelSnapOFFButton.width;
-			pixelSnapText.y = pixelSnapOFFButton.y;
+			sharpLineText.x = sharpLineOFFButton.x+sharpLineOFFButton.width;
+			sharpLineText.y = sharpLineOFFButton.y+2;
 
-			pixelSnapOFFButton.useHandCursor = false;
-			pixelSnapONButton.useHandCursor = false;
-			pixelSnapButtonWrapper.name = "pixelSnapButtonWrapper";
+			sharpLineOFFButton.useHandCursor = false;
+			sharpLineONButton.useHandCursor = false;
+			sharpLineText.useHandCursor = false;
+
+			sharpLineButtonWrapper.name = "sharpLineButtonWrapper";
+		}
+
+		public function initLaggyButtonWrapper():void
+		{
+			const g:Graphics = laggyButtonWrapper.graphics;
+			const w:Number = laggyOFFButton.width+sharpLineText.width+4;
+			const h:Number = laggyOFFButton.height+2;
+
+			g.beginFill(0xFFFF00,0);
+			g.drawRect(0,0,w,h);
+			g.endFill();
+
+			laggyButtonWrapper.addChild(laggyOFFButton);
+			laggyButtonWrapper.addChild(laggyONButton);
+			laggyButtonWrapper.addChild(laggyText);
+
+			laggyONButton.x = 0;
+			laggyONButton.y = 0;
+			laggyOFFButton.x = laggyONButton.x;
+			laggyOFFButton.y = laggyONButton.y;
+			laggyOFFButton.visible = false;
+
+			laggyText.x = laggyOFFButton.x+laggyOFFButton.width+2;
+			laggyText.y = laggyOFFButton.y;
+
+			laggyOFFButton.useHandCursor = false;
+			laggyONButton.useHandCursor = false;
+			laggyText.useHandCursor = false;
+
+			laggyButtonWrapper.name = "laggyButtonWrapper";
+		}
+
+		public function initMoreOptionsBox():void
+		{
+			const g:Graphics = moreOptionsBox.graphics;
+
+			g.beginFill(0xFF0000,0);
+			g.drawRect(0,-2,170,43);
+			g.endFill();
+
+			moreOptionsBox.visible = false;
+			moreOptionsBox.addChild(sharpLineButtonWrapper);
+			moreOptionsBox.addChild(airBrushButtonWrapper);
+			moreOptionsBox.addChild(laggyButtonWrapper);
+
+			laggyButtonWrapper.x = sharpLineButtonWrapper.x+sharpLineButtonWrapper.width+8;
+			laggyButtonWrapper.y = sharpLineButtonWrapper.y;
+
+			airBrushButtonWrapper.x = sharpLineButtonWrapper.x;
+			airBrushButtonWrapper.y = sharpLineButtonWrapper.y+sharpLineButtonWrapper.height+2;
+			
+			moreOptionsButton.useHandCursor = false;
 		}
 
 		public function initPenSizeButton():void
@@ -257,6 +312,7 @@
 			for (var i:int = 1; i <= 12; i++)
 			{
 				btn = _penSizeTransButtonBox.getChildByName("nSizeButton"+i) as SimpleButton;
+				
 				if (btn)
 				{
 					btn.useHandCursor = false;
@@ -309,8 +365,10 @@
 			opaBox.x = offsetX;
 			opaBox.y = floor(penSizeGrid.y+penSizeGrid.height+3);
 
-			initPixelSnapButtonWrapper();
+			initSharpLineButtonWrapper();
 			initAirBrushButtonWrapper();
+			initLaggyButtonWrapper();
+			initMoreOptionsBox();
 
 			layer1InvisibleButton.visible = false;
 			layer2InvisibleButton.visible = false;
@@ -323,43 +381,41 @@
 			layerSwapButton.useHandCursor = false;
 			layerMergeButton.useHandCursor = false;
 
-			layer1VisibleButton.x = opaBox.x-1;
-			layer1VisibleButton.y = opaBox.y+opaBox.height+4;
+			layerSwapButton.x = opaBox.x;
+			layerSwapButton.y = opaBox.y+opaBox.height;
+			
+			layer1VisibleButton.x = layerSwapButton.x+layerSwapButton.width+3;
+			layer1VisibleButton.y = layerSwapButton.y+2;
 			layer1InvisibleButton.x = layer1VisibleButton.x;
 			layer1InvisibleButton.y = layer1VisibleButton.y;
 			
-			layer1SelectButton.x = layer1VisibleButton.x+layer1VisibleButton.width;
-			layer1SelectButton.y = layer1VisibleButton.y-2;
+			layer1SelectButton.x = layer1VisibleButton.x+layer1VisibleButton.width+2;
+			layer1SelectButton.y = layer1VisibleButton.y;
 
-			layerSwapButton.x = layer1SelectButton.x+layer1SelectButton.width-3;
-			layerSwapButton.y = layer1SelectButton.y+2;
-
-			pixelSnapButtonWrapper.x = layerSwapButton.x+layerSwapButton.width+6;
-			pixelSnapButtonWrapper.y = layer1VisibleButton.y;
-			pixelSnapText.useHandCursor = false;
+			layerMergeButton.x = layer1SelectButton.x+layer1SelectButton.width+3;
+			layerMergeButton.y = layer1SelectButton.y+7;
 
 			layer2VisibleButton.x = layer1VisibleButton.x;
 			layer2VisibleButton.y = layer1VisibleButton.y+layer1VisibleButton.height+5;
 			layer2InvisibleButton.x = layer2VisibleButton.x;
 			layer2InvisibleButton.y = layer2VisibleButton.y;
 
-			layer2SelectButton.x = layer2VisibleButton.x+layer2VisibleButton.width;
-			layer2SelectButton.y = layer2VisibleButton.y-2;
+			layer2SelectButton.x = layer2VisibleButton.x+layer2VisibleButton.width+2;
+			layer2SelectButton.y = layer2VisibleButton.y;
 
-			layerMergeButton.x = layer2SelectButton.x+layer2SelectButton.width-3;
-			layerMergeButton.y = layer2SelectButton.y+2;
-			
-			airBrushText.useHandCursor = false;
-			airBrushButtonWrapper.x = layerMergeButton.x+layerMergeButton.width+7;
-			airBrushButtonWrapper.y = layer2VisibleButton.y;
+			moreOptionsButton.x = layerMergeButton.x+layerMergeButton.width;
+			moreOptionsButton.y = layer2VisibleButton.y-12;
+
+			moreOptionsBox.x = opaBox.x;
+			moreOptionsBox.y = opaBox.y+opaBox.height;
 
 			BOX_HEIGHT = opaBox.y+opaBox.height+7;
 
 			addChild(penSizeGrid);
-			addChild(opaBox);
 			addChild(penSizeTransButtonBox);
-			addChild(pixelSnapButtonWrapper);
-			addChild(airBrushButtonWrapper);
+			addChild(opaBox);
+			addChild(moreOptionsButton);
+			addChild(moreOptionsBox);
 			setChildIndex(controlInfo, this.numChildren - 1);
 			setChildIndex(sizeSelectCursor, this.numChildren - 1);
 

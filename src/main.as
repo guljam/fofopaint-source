@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.76;
+        private const APP_VERSION:Number = 17.78;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -326,7 +326,7 @@
                     ,penSmoothSlideValue:int = 0 //펜 손떨방 플래그
                     ,penSmoothSlideTotal:Number = 20 //손떨방 총 단계
                     ,penSmoothButtonX:Number = 70 //손떨방 조절 버튼 초기 위치
-                    ,pixelSnapON:Boolean = false //0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
+                    ,sharpLineON:Boolean = false //0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
                     ,fillPenON:Boolean = false //채우기 펜 플래그
                     ,subLayerON:Boolean = false
                     ,subLayerSave:Array = [] //레이어 미리 보기 할때 레이어 꺼졌는지 켜졌는지 저장해주고 복원할때 이걸로함
@@ -334,6 +334,7 @@
                     ,airBrushON:Boolean = false
                     ,airBrushSizeDrawMode:Number = 0
                     ,airBrushSizeReplayMode:Number = 0
+                    ,laggyPenON:Boolean = false //펜 그릴때 약간 지연느낌 켜줌
                     ,fillPenStarted:Boolean = false //채우기 펜 시작됨
                     ,eraseOddOffset:Number = 0//지우개 변수
                     ,eraseSize:uint = 12
@@ -540,7 +541,7 @@
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarSetHeight:Number = 730
+                    ,sideBarSetHeight:Number = 747
 
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
@@ -662,6 +663,15 @@
         }
 
         //functions
+		public function moreOptionsOFFMouseMoveEvent(e:MouseEvent):void
+		{
+			if(controlBox.moreOptionsBox.hitTestPoint(mouseX,mouseY) === false)
+			{
+				controlBox.moreOptionsOFF();
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,moreOptionsOFFMouseMoveEvent);
+			}
+		}   
+
         private function checkMirrorCanvasReplayMirror():void
         {
             if(mirrorON !== rMirrorON)
@@ -2469,7 +2479,7 @@
             var mouseMoved:Boolean;
             var mouseMoveCount:int;
             var afterKeyUpOK:Boolean;
-            var _pixelSnap:Boolean;
+            var _sharpLine:Boolean;
             var rotateFlag:Boolean;
             var xOffset:Number;
 
@@ -2639,7 +2649,7 @@
                 var mx:Number = cd.mouseX;
                 var my:Number = cd.mouseY;
 
-                if(_pixelSnap && rotateFlag === false)
+                if(_sharpLine && rotateFlag === false)
                 {
                     mx = floor(mx-xOffset)+xOffset;
                     my = floor(my-xOffset)+xOffset;
@@ -2695,7 +2705,7 @@
                     var mx:Number = cd.mouseX;
                     var my:Number = cd.mouseY;
 
-                    if(_pixelSnap && rotateFlag === false)
+                    if(_sharpLine && rotateFlag === false)
                     {
                         mx = floor(mx-xOffset)+xOffset;
                         my = floor(my-xOffset)+xOffset;
@@ -2759,7 +2769,7 @@
                 mouseMoveCount = 0;
                 afterKeyUpOK = false;
                 clickedButton = null;
-                _pixelSnap = pixelSnapON;
+                _sharpLine = sharpLineON;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
                 xOffset = (sizeOffsetFlag) ? 0.5 : 0;
 
@@ -2797,7 +2807,7 @@
             const click:Point = new Point(0,0); //점찍어 줄 때 판단하는 클릭한 자리 저장
             const smoothPos:Point = new Point(0,0);
             const smoothLast:Point = new Point(0,0);
-            const pixelSnapLast:Point = new Point(0,0);
+            const sharpLineLast:Point = new Point(0,0);
             const moveEventLast:Point = new Point(0,0);
             const moveEventLast2:Point = new Point(0,0);
             const sqPenCursorLast:Point = new Point(0,0);
@@ -2805,7 +2815,7 @@
             const penPoints:Vector.<Number> = new Vector.<Number>(); //그냥펜 좌표
             const addTimerByName:Function = addTimerByName;
 
-            var _pixelSnap:Boolean;
+            var _sharpLine:Boolean;
             var penToolFlag:Boolean;
             var xSize:uint;
             var xColor:uint;
@@ -2824,6 +2834,8 @@
             var distLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var shortDistFlag:Boolean; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
             var subLayerFlag:Boolean;
+            var laggyPenFlag:Boolean;
+            var laggyDrawIndex:uint = 0;
 
             function deleteEndPointSquarePen():void
             {
@@ -2888,14 +2900,28 @@
 				}
             }
 
+            
+            function drawLineLaggy():void
+            {
+                const len:uint = penCommand.length;
+                for(;laggyDrawIndex < len;laggyDrawIndex++)
+                {
+                    cdg.lineTo(penPoints[laggyDrawIndex*2],penPoints[laggyDrawIndex*2+1]);
+                }
+            }
+
             function lineStyleReady(shape:Boolean,size:uint,color:uint,alpha:Number):void
             {
                 canvas2.alpha = alpha;
 
                 if(shape === false)
+                {
                     cdg.lineStyle(size,color);
+                }
                 else
+                {
                     cdg.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.BEVEL);
+                }
             }
 
             function penMoveSmooth():void
@@ -2921,7 +2947,7 @@
             {
                 if(readyAddUndo === false) checkUndoReady();
 
-                if(!_pixelSnap && (_penSmoothSlideValue > 0 || rotateFlag))
+                if(!_sharpLine && (_penSmoothSlideValue > 0 || rotateFlag))
                 {
                     x = ~~(x*100)/100;
                     y = ~~(y*100)/100;
@@ -2941,33 +2967,41 @@
                     penPoints.push(smoothPos.x);
                     penPoints.push(smoothPos.y);
                     cdg.moveTo(smoothPos.x,smoothPos.y);
+                    laggyDrawIndex = 1;
                 }
 
                 ++mouseMoveCount;
 
-                if(xShape && mouseMoveCount <= 2 || x === pixelSnapLast.x &&  y === pixelSnapLast.y)
+                if(xShape && mouseMoveCount <= 2 || x === sharpLineLast.x &&  y === sharpLineLast.y)
                 {
                     return;
                 }
                 else
                 {
-                    pixelSnapLast.x = x;
-                    pixelSnapLast.y = y;
+                    sharpLineLast.x = x;
+                    sharpLineLast.y = y;
                 }
 
-                cdg.lineTo(x,y);
+                if(!laggyPenFlag) cdg.lineTo(x,y);
+
                 rDataBuffer.push(["lineTo",x,y]);
                 penCommand.push(2);
                 penPoints.push(x);
                 penPoints.push(y);
 
-                if(pixelSnapON === true && _penSmoothSlideValue === 0 && rotateFlag == false)
+                if(sharpLineON === true && _penSmoothSlideValue === 0 && rotateFlag == false)
                 {
                     checkPixelPerfect();
                 }
 
                 if(mouseMoveCount >= 100)
                 {
+                    if(laggyPenFlag)
+                    {
+                        drawLineLaggy();
+                        laggyDrawIndex = 1; //move커맨드 인덱스가 앞에 있으니까 빼줘야함
+                    }
+
                     mouseMoveCount = 0;
                     tempDoneFlag = true;
                     if(_airBrushON && zoomed !== 1.0)
@@ -2995,7 +3029,6 @@
                     penCommand.push(1);
                     penPoints.push(x);
                     penPoints.push(y);
-
                     cdg.moveTo(x,y);
                 }
                 
@@ -3007,6 +3040,14 @@
                     penSizeCursor.rotation = deg;
                     sqPenCursorLast.x = x;
                     sqPenCursorLast.y = y;
+                }
+
+                if(laggyPenFlag)
+                {
+                    if(!hasTimer("penLagTimer"))
+                    {
+                        addTimerByName("penLagTimer",Math.random()/8,false,drawLineLaggy);
+                    }
                 }
             }
 
@@ -3075,6 +3116,12 @@
                 const yy:Number = cd.mouseY;
                 const mx:Number = xx+xOffset;
                 const my:Number = yy+xOffset;
+
+                if(laggyPenFlag)
+                {
+                    drawLineLaggy();
+                    laggyDrawIndex = 0;
+                }
 
                 if(penToolFlag && _traceMemoryTraining && CANVAS_TRACE_ALPHA > 0.0) canvasTraceLayer.visible = true;
                 
@@ -3154,7 +3201,7 @@
 
                 subLayerFlag = (penFlag) ? subLayerON : false;
 
-                _pixelSnap = pixelSnapON;
+                _sharpLine = sharpLineON;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
                 _traceMemoryTraining = traceMemoryTraining;
                 xOffset = (sizeOffsetFlag) ? 0.5 : 0;
@@ -3168,13 +3215,16 @@
                 mouseMovedFlag = false;
                 tempDoneFlag = false;
 
+                laggyPenFlag = laggyPenON;
+                laggyDrawIndex = 0;
+
                 click.setTo(cd.mouseX,cd.mouseY); //점찍어 줄 때 판단하는 클릭한 자리 저장
                 
                 smoothPos.setTo(click.x+xOffset,click.y+xOffset);
                 if(_penSmoothSlideValue === 0) smoothPos.setTo(floor(smoothPos.x-xOffset)+xOffset,floor(smoothPos.y-xOffset)+xOffset)
                 
                 smoothLast.setTo(smoothPos.x,smoothPos.y); //penmove할때 마지막x y저장
-                pixelSnapLast.setTo(smoothPos.x,smoothPos.y);
+                sharpLineLast.setTo(smoothPos.x,smoothPos.y);
                 moveEventLast.setTo(smoothPos.x,smoothPos.y);
                 moveEventLast2.setTo(smoothPos.x,smoothPos.y);
                 sqPenCursorLast.setTo(smoothPos.x,smoothPos.y);
@@ -5115,19 +5165,27 @@
             }
         }   
 
-        private function setPixelSnapButton(flag:Boolean):void
+        private function setLaggyPenButton(flag:Boolean):void
         {
-            pixelSnapON = flag;
+            laggyPenON = flag;
 
-            controlBox["pixelSnapOFFButton"].visible = flag;
-            controlBox["pixelSnapONButton"].visible = !flag;
+            controlBox["laggyOFFButton"].visible = flag;
+            controlBox["laggyONButton"].visible = !flag;
+        }
+
+        private function setsharpLineButton(flag:Boolean):void
+        {
+            sharpLineON = flag;
+
+            controlBox["sharpLineOFFButton"].visible = flag;
+            controlBox["sharpLineONButton"].visible = !flag;
 
             const isErase:Boolean = isEraseTool();
             const z:Number = zoomed;
             const size:uint = (isErase) ? eraseSize:penSize;
             const zSize:Number = size*z;
 
-            if(pixelSnapON)
+            if(sharpLineON)
             {
                 if(size % 2 === 1.0) sizeOffsetFlag = true; //홀수 사이즈 일때 켜줌
                 else sizeOffsetFlag = false;
@@ -5145,7 +5203,7 @@
             {
                 penSizeCursor.visible = false;
 
-                controlBox.pixelSnapButtonWrapper.alpha = 1.0;
+                controlBox.sharpLineButtonWrapper.alpha = 1.0;
                 controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
 
                 const airBrushFlagBackup:Boolean = airBrushON;
@@ -5359,18 +5417,32 @@
                     str = "Opacity : "+getAlphaHint(targetName)+" (g, b)";
                 break;
 
-                case "pixelSnapButtonWrapper":
-                case "pixelSnapOFFButton":
-                case "pixelSnapONButton":
-                case "pixelSnapText":
-                    str = "Sharp line (3, 8)";
+                case "sharpLineButtonWrapper":
+                case "sharpLineOFFButton":
+                case "sharpLineONButton":
+                case "sharpLineText":
+                    str = "Sharp line";
                 break;
 
-                case "airBrushWrapper":
+                case "airBrushButtonWrapper":
                 case "airBrushOFFButton":
                 case "airBrushONButton":
                 case "airBrushText":
-                    str = "Air brush (4, 7)";
+                    str = "Air brush";
+                break;
+
+                case "laggyButtonWrapper":
+                case "laggyOFFButton":
+                case "laggyONButton":
+                case "laggyOFFButton":
+                case "laggyText":
+                {
+                    str = "Laggy line";
+                }
+                break;
+
+                case "moreOptionsButton":
+                    str = "More options";
                 break;
 
                 case "layer1SelectButton":
@@ -12811,7 +12883,7 @@
                 z1 = 1/z;
                 z1z1 = z1*2;
 
-                if(pixelSnapON)
+                if(sharpLineON)
                 {
                     if(size % 2 === 1.0) sizeOffsetFlag = true; //홀수 사이즈 일때 켜줌
                     else sizeOffsetFlag = false;
@@ -14673,7 +14745,7 @@
             {
                 if(isAllLayerInvisible()) return;
 
-                controlBox.pixelSnapButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
                 controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
 
                 canvasBGColor = CANVAS_BG_COLOR;
@@ -14968,7 +15040,7 @@
         {
             setNowTool(TOOL_MOVE);
             toolBox.moveToolCursor("toolMove");
-            controlBox.pixelSnapButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
@@ -14976,7 +15048,7 @@
         {
             setNowTool(TOOL_ZOOM);
             toolBox.moveToolCursor("toolZoom");
-            controlBox.pixelSnapButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
@@ -14984,7 +15056,7 @@
         {
             setNowTool(TOOL_ROTATE);
             toolBox.moveToolCursor("toolRotate");
-            controlBox.pixelSnapButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
@@ -14993,7 +15065,7 @@
             setNowTool(TOOL_LASSO);
             moveEraseButton("toolLasso");
             toolBox.moveToolCursor("toolLasso");
-            controlBox.pixelSnapButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
@@ -15069,7 +15141,7 @@
                     setAirBrushCheckBox(eraseAirBrushON,false);
                 }
 
-                controlBox.pixelSnapButtonWrapper.alpha = 1.0;
+                controlBox.sharpLineButtonWrapper.alpha = 1.0;
                 _controlBox.airBrushButtonWrapper.alpha = 1.0;
 
                 setPenSize(sizeIndex);
@@ -16030,7 +16102,7 @@
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 0;
             pickerBox.y = floor(controlBox.y+controlBox.height+6);
-            toolBox.x = controlBox.x+controlBox.width;
+            toolBox.x = pickerBox.x+pickerBox.width+3;
             toolBox.y = floor(controlBox.y+2);
 
             if(toolBox.getDeafultY() === 0)
@@ -16984,34 +17056,6 @@
                     if(!subLayerON) setSubLayer(true);
                     setSingleLayerPreview(2,true);
                     setToolTipTempON("Layer 2 selected");
-                }
-                return true;
-
-                case KEY.n3:
-                case KEY.n8:
-                {
-                    nowKeyNotKeyUp = keyCode;
-                    if(controlBox.pixelSnapButtonWrapper.alpha === 1.0)
-                    {
-                        setPixelSnapButton(!pixelSnapON);
-                        if(pixelSnapON) setToolTipTempON("Sharp line ON");
-                        else setToolTipTempON("Sharp line OFF");
-
-                    }
-                }
-                return true;
-
-                case KEY.n4:
-                case KEY.n7:
-                {
-                    nowKeyNotKeyUp = keyCode;
-                    if(controlBox.airBrushButtonWrapper.alpha === 1.0)
-                    {
-                        airBrushON = !airBrushON;
-                        setAirBrushCheckBox(airBrushON,true);
-                        if(airBrushON) setToolTipTempON("Air brush ON");
-                        else setToolTipTempON("Air brush OFF");
-                    }
                 }
                 return true;
 
@@ -18205,14 +18249,30 @@
                 }
                 return true;
 
-                case "pixelSnapButtonWrapper":
-                case "pixelSnapOFFButton":
-                case "pixelSnapONButton":
-                case "pixelSnapText":
+                case "moreOptionsButton":
                 {
-                    if(controlBox.pixelSnapButtonWrapper.alpha === 1.0)
+                    controlBox.moreOptionsON();
+                    stage.addEventListener(MouseEvent.MOUSE_MOVE,moreOptionsOFFMouseMoveEvent);
+                }
+                return true;
+
+                case "laggyButtonWrapper":
+                case "laggyONButton":
+                case "laggyOFFButton":
+                case "laggyText":
+                {
+                    setLaggyPenButton(!laggyPenON);
+                }
+                return true;
+
+                case "sharpLineButtonWrapper":
+                case "sharpLineOFFButton":
+                case "sharpLineONButton":
+                case "sharpLineText":
+                {
+                    if(controlBox.sharpLineButtonWrapper.alpha === 1.0)
                     {
-                       setPixelSnapButton(!pixelSnapON);
+                       setsharpLineButton(!sharpLineON);
                     }
                 }
                 return true;

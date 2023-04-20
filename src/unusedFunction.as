@@ -579,7 +579,7 @@ private function setPenTool(penToolFlag:Boolean):void
     // const mouseMoveCountLimit:uint = 800; //zoom에 따라서 100카운터 선 길이가 차이나서 비례해서 해줌
     const floor:Function = Math.floor; 
     const cdg:Graphics = cd.graphics;
-    const _pixelSnap:Boolean = pixelSnapON;
+    const _sharpLine:Boolean = sharpLineON;
     const rotateFlag:Boolean = (regPoint.rotation % 90 === 0) ? false : true;
     const _traceVisibleFlag:Boolean = traceVisibleFlag;
     var xOffset:Number = (sizeOffsetFlag) ? 0.5 : 0;
@@ -587,7 +587,7 @@ private function setPenTool(penToolFlag:Boolean):void
     if(fillPenON)
     {
         _airBrushON = false;
-        xOffset = (_pixelSnap) ? 0.5 : 0;
+        xOffset = (_sharpLine) ? 0.5 : 0;
         xSize = 1;
         var fillPenCommand:Vector.<int> = new Vector.<int>(); //필펜 커맨드
         var fillPenPoints:Vector.<Number> = new Vector.<Number>(); //필펜 좌표
@@ -612,8 +612,8 @@ private function setPenTool(penToolFlag:Boolean):void
 
     var smoothLastX:Number = cx; //penmove할때 마지막x y저장
     var smoothLastY:Number = cy; //penmove가 없을때 penmoveSMoothin함수는 이점을 목표로 이동함
-    var pixelSnapLastX:Number = cx;
-    var pixelSnapLastY:Number = cy;
+    var sharpLineLastX:Number = cx;
+    var sharpLineLastY:Number = cy;
     var moveEventLastX:Number = cx;//픽셀거리 검출 변수
     var moveEventLastY:Number = cy;
     var moveEventLastX2:Number = cx;//픽셀거리 검출 변수
@@ -657,7 +657,7 @@ private function setPenTool(penToolFlag:Boolean):void
     {
         if(readyAddUndo === false) checkUndoReady();
 
-        if(!_pixelSnap && (_penSmoothSlideValue > 0 || rotateFlag))
+        if(!_sharpLine && (_penSmoothSlideValue > 0 || rotateFlag))
         {
             x = floor(x*1000)/1000;
             y = floor(y*1000)/1000;
@@ -709,14 +709,14 @@ private function setPenTool(penToolFlag:Boolean):void
             cdg.moveTo(cx,cy);
         }
 
-        if(x === pixelSnapLastX &&  y === pixelSnapLastY)
+        if(x === sharpLineLastX &&  y === sharpLineLastY)
         {
             return;
         }
         else
         {
-            pixelSnapLastX = x;
-            pixelSnapLastY = y;
+            sharpLineLastX = x;
+            sharpLineLastY = y;
         } 
 
         cdg.lineTo(x,y);
@@ -2846,7 +2846,7 @@ private function setLassoTool():void
             const cdg:Graphics = cd.graphics;
             const circleGraphic:Graphics = capturePreviewCursor.graphics;
 
-            var _pixelSnap:Boolean;
+            var _sharpLine:Boolean;
             var penToolFlag:Boolean;
             var xSize:uint;
             var xColor:uint;
@@ -2867,8 +2867,8 @@ private function setLassoTool():void
             var cy:Number;
             var smoothLastX:Number; //penmove할때 마지막x y저장
             var smoothLastY:Number; //penmove가 없을때 penmoveSMoothin함수는 이점을 목표로 이동함
-            var pixelSnapLastX:Number;
-            var pixelSnapLastY:Number;
+            var sharpLineLastX:Number;
+            var sharpLineLastY:Number;
             var moveEventLastX:Number;//픽셀거리 검출 변수
             var moveEventLastY:Number;
             var moveEventLastX2:Number;//픽셀거리 검출 변수
@@ -2980,7 +2980,7 @@ private function setLassoTool():void
                     checkUndoReady();
                 }
 
-                if(!_pixelSnap && (_penSmoothSlideValue > 0 || rotateFlag))
+                if(!_sharpLine && (_penSmoothSlideValue > 0 || rotateFlag))
                 {
                     x = floor(x*1000)/1000;
                     y = floor(y*1000)/1000;
@@ -3029,14 +3029,14 @@ private function setLassoTool():void
                     cdg.moveTo(cx,cy);
                 }
 
-                if(x === pixelSnapLastX &&  y === pixelSnapLastY)
+                if(x === sharpLineLastX &&  y === sharpLineLastY)
                 {
                     return;
                 }
                 else
                 {
-                    pixelSnapLastX = x;
-                    pixelSnapLastY = y;
+                    sharpLineLastX = x;
+                    sharpLineLastY = y;
                 } 
 
                 cdg.lineTo(x,y);
@@ -3055,7 +3055,7 @@ private function setLassoTool():void
                     fillPenPoints.push(y);
                 }
                 
-                if(pixelSnapON === true && _fillPenON === false
+                if(sharpLineON === true && _fillPenON === false
                 && _penSmoothSlideValue === 0 && rotateFlag == false)
                 {
                     checkPixelPerfect();
@@ -3311,7 +3311,7 @@ private function setLassoTool():void
                     return;
                 }
 
-                _pixelSnap = pixelSnapON;
+                _sharpLine = sharpLineON;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
                 _traceMemoryTraining = traceMemoryTraining
                 xOffset = (sizeOffsetFlag) ? 0.5 : 0;
@@ -3319,7 +3319,7 @@ private function setLassoTool():void
                 if(_fillPenON)
                 {
                     _airBrushON = false;
-                    xOffset = (_pixelSnap) ? 0.5 : 0;
+                    xOffset = (_sharpLine) ? 0.5 : 0;
                     xSize = 1;
                     fillPenCommand.length = 0; //필펜 커맨드
                     fillPenPoints.length = 0; //필펜 좌표
@@ -3349,8 +3349,8 @@ private function setLassoTool():void
 
                 smoothLastX = cx; //penmove할때 마지막x y저장
                 smoothLastY = cy; //penmove가 없을때 penmoveSMoothin함수는 이점을 목표로 이동함
-                pixelSnapLastX = cx;
-                pixelSnapLastY = cy;
+                sharpLineLastX = cx;
+                sharpLineLastY = cy;
                 moveEventLastX = cx;//픽셀거리 검출 변수
                 moveEventLastY = cy;
                 moveEventLastX2 = cx;//픽셀거리 검출 변수
@@ -3475,4 +3475,438 @@ private function setLassoTool():void
 		// 	}
 		// }
 
+
+
+//딜레이 펜 함수
+ private function cPenTool():Function
+        {
+            const cd:Shape = canvas2Draw;
+            const floor:Function = Math.floor;
+            const cdg:Graphics = cd.graphics;
+            const click:Point = new Point(0,0); //점찍어 줄 때 판단하는 클릭한 자리 저장
+            const smoothPos:Point = new Point(0,0);
+            const smoothLast:Point = new Point(0,0);
+            const sharpLineLast:Point = new Point(0,0);
+            const moveEventLast:Point = new Point(0,0);
+            const moveEventLast2:Point = new Point(0,0);
+            const sqPenCursorLast:Point = new Point(0,0);
+            const penCommand:Vector.<int> = new Vector.<int>(); //그냥펜
+            const penPoints:Vector.<Number> = new Vector.<Number>(); //그냥펜 좌표
+            const addTimerByName:Function = addTimerByName;
+
+            var _sharpLine:Boolean;
+            var penToolFlag:Boolean;
+            var xSize:uint;
+            var xColor:uint;
+            var xAlpha:Number;
+            var xShape:Boolean;
+            var xBlendMode:String;
+            var _airBrushON:Boolean;
+            var rotateFlag:Boolean;
+            var _traceMemoryTraining:Boolean;
+            var xOffset:Number;
+            var _penSmoothValue:Number;//펜 스무딩 플래그
+            var _penSmoothSlideValue:int;
+            var mouseMoveCount:uint; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
+            var mouseMovedFlag:Boolean;
+            var tempDoneFlag:Boolean;
+            var distLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
+            var shortDistFlag:Boolean; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
+            var subLayerFlag:Boolean;
+            var laggyDrawIndex:uint = 0;
+
+            function deleteEndPointSquarePen():void
+            {
+                penCommand.splice(penCommand.length-2,1);
+                penPoints.splice(penPoints.length-4,2);
+                rDataBuffer.splice(rDataBuffer.length-2,1);
+                cdg.clear();
+                lineStyleReady(xShape,xSize,xColor,xAlpha);
+                cdg.moveTo(penPoints[0],penPoints[1]);
+
+                const len:uint = penPoints.length-2;
+                for(var i:int = 2; i<=len; i+=2)
+                {
+                    cdg.lineTo(penPoints[i],penPoints[i+1]);
+                }
+            }
+
+            function checkPixelPerfect():void
+            {
+                const command:Vector.<int> = penCommand;
+
+                if(command.length > 2)
+				{
+                    const data:Vector.<Number> = penPoints;
+					var len:uint = command.length;
+					
+					var i_:int = (len-3)*2;//뒤에 있는값
+					var x_:Number = data[i_];
+					var y_:Number = data[i_+1];
+
+					const midIndex:int = (len-2);
+					var i:int = midIndex*2; //중간값
+					var x:Number = data[i];
+					var y:Number = data[i+1];
+
+					var _i:int = (len-1)*2; //앞에있는값
+					var _x:Number = data[_i];
+					var _y:Number = data[_i+1];
+
+                    //L모양이 나오면 중간값을 없애줌
+					if((x_ == x || y_ == y)
+					&& (_x == x || _y == y)
+					&& _x != x_
+					&& _y != y_)
+					{
+						command.splice(midIndex,1);
+						data.splice(i,2);
+
+                        //이게 정확할런지 모르겠다
+                        rDataBuffer.splice(rDataBuffer.length-2,1);
+                        
+						cdg.clear();
+                        lineStyleReady(xShape,xSize,xColor,xAlpha);
+                        cdg.moveTo(data[0],data[1]);
+
+                        len = command.length;
+                        for(var j:int=1; j<len; j++)
+                        {
+                            cdg.lineTo(data[j*2],data[j*2+1]);
+                        }
+					}
+				}
+            }
+
+            
+            function drawLineLaggy():void
+            {
+                trace('call lag draw',getTimer(),penCommand.length);
+                const len:uint = penCommand.length;
+                for(;laggyDrawIndex < len;laggyDrawIndex++)
+                {
+                    if(penCommand[laggyDrawIndex] === 1)
+                    {
+                        trace('moveto',penPoints[laggyDrawIndex*2],penPoints[laggyDrawIndex*2+1]);
+                        cdg.moveTo(penPoints[laggyDrawIndex*2],penPoints[laggyDrawIndex*2+1]);
+                    }
+                    else if(penCommand[laggyDrawIndex] === 2)
+                    {
+                        trace('line To',penPoints[laggyDrawIndex*2],penPoints[laggyDrawIndex*2+1]);
+                        cdg.lineTo(penPoints[laggyDrawIndex*2],penPoints[laggyDrawIndex*2+1]);
+                    }
+                }
+            }
+
+            function lineStyleReady(shape:Boolean,size:uint,color:uint,alpha:Number):void
+            {
+                canvas2.alpha = alpha;
+
+                if(shape === false)
+                    cdg.lineStyle(size,color);
+                else
+                    cdg.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.BEVEL);
+            }
+
+            function penMoveSmooth():void
+            {
+                var ox:Number = smoothPos.x;
+                var oy:Number = smoothPos.y;
+                const abs:Function = Math.abs;
+                const smoothing:Number = _penSmoothValue;
+
+                ox += (smoothLast.x-ox)*smoothing;
+                oy += (smoothLast.y-oy)*smoothing;
+
+                penMove2(ox,oy);
+
+                if(abs(smoothLast.x-ox) >= 1 || abs(smoothLast.y-oy) >= 1)
+                {
+                    smoothPos.setTo(ox,oy);
+                    addTimerByName("penSmoothTimer",0.01,false,penMoveSmooth);
+                }
+            }
+
+            function penMove2(x:Number,y:Number):void
+            {
+                if(readyAddUndo === false) checkUndoReady();
+
+                if(!_sharpLine && (_penSmoothSlideValue > 0 || rotateFlag))
+                {
+                    x = ~~(x*100)/100;
+                    y = ~~(y*100)/100;
+                }
+                else
+                {
+                    x = ~~(x-xOffset)+xOffset;
+                    y = ~~(y-xOffset)+xOffset;
+                }
+
+                if(!mouseMovedFlag) //움직이기 시작할때 linestyle이랑 moveto넣어줌
+                {
+                    mouseMovedFlag = true;
+                    lineStyleReady(xShape,xSize,xColor,xAlpha);
+                    rDataBuffer.push(["lineStyle2",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,_airBrushON]);
+                    penCommand.push(1);
+                    penPoints.push(smoothPos.x);
+                    penPoints.push(smoothPos.y);
+                    cdg.moveTo(smoothPos.x,smoothPos.y);
+                }
+
+                ++mouseMoveCount;
+
+                if(xShape && mouseMoveCount <= 2 || x === sharpLineLast.x &&  y === sharpLineLast.y)
+                {
+                    return;
+                }
+                else
+                {
+                    sharpLineLast.x = x;
+                    sharpLineLast.y = y;
+                }
+
+                // cdg.lineTo(x,y);
+
+                if(!hasTimer("penLagTimer"))
+                {
+                    addTimerByName("penLagTimer",Math.random()/8,false,drawLineLaggy);
+                }
+
+                rDataBuffer.push(["lineTo",x,y]);
+                penCommand.push(2);
+                penPoints.push(x);
+                penPoints.push(y);
+
+                if(sharpLineON === true && _penSmoothSlideValue === 0 && rotateFlag == false)
+                {
+                    checkPixelPerfect();
+                }
+
+                if(mouseMoveCount >= 100)
+                {
+                    drawLineLaggy();
+                    mouseMoveCount = 0;
+                    tempDoneFlag = true;
+                    if(_airBrushON && zoomed !== 1.0)
+                    {
+                        setBlurCanvasBySizeNoZoomDrawMode();
+                        canvas2BitmapData.draw(cd,null,null,"layer");
+                        canvas2Bitmap.bitmapData = canvas2BitmapData;
+                        cdg.clear();
+                        setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
+                    }
+                    else
+                    {
+                        canvas2BitmapData.draw(cd,null,null,"layer");
+                        canvas2Bitmap.bitmapData = canvas2BitmapData;
+                        cdg.clear();
+                    }
+
+                    penCommand.length = 0;
+                    penPoints.length = 0;
+                    laggyDrawIndex = 0;
+                    lineStyleReady(xShape,xSize,xColor,xAlpha);
+
+                    rDataBuffer.push(["tempDone"]);
+                    rDataBuffer.push(["lineStyle2",xShape,xSize,xColor,xAlpha,x,y,xBlendMode,false,subLayerFlag,_airBrushON]);
+
+                    penCommand.push(1);
+                    penPoints.push(x);
+                    penPoints.push(y);
+
+                    // cdg.moveTo(x,y);
+                }
+                
+                if(xShape === true)
+                {
+                    const rad:Number = Math.atan2(x-sqPenCursorLast.x,y-sqPenCursorLast.y);
+                    const deg:Number = -rad*(180/Math.PI)+regPoint.rotation;
+
+                    penSizeCursor.rotation = deg;
+                    sqPenCursorLast.x = x;
+                    sqPenCursorLast.y = y;
+                }
+            }
+
+            function mouseMovePenTool(e:MouseEvent):void
+            {
+                const move:Point = new Point(cd.mouseX+xOffset,cd.mouseY+xOffset);
+                const fx:Number = floor(move.x-xOffset)+xOffset;
+                const fy:Number = floor(move.y-xOffset)+xOffset;
+
+                // fx fy 반올림한 값이 브러시 크기 이하로 움직였을경우 플래그 올려줘서
+                // mouse up에서 처리함
+                if(fx === moveEventLast2.x && fy === moveEventLast2.y)
+                {
+                    shortDistFlag = true;
+                    return;
+                }
+
+                moveEventLast2.setTo(fx,fy);
+
+                const dist:Number = Point.distance(move,moveEventLast);
+
+                //브러쉬 크기 제한보다 작게 움직였을때 무시함
+                if(dist < distLimit)
+                {
+                    shortDistFlag = true;
+                    distLimit = distLimit-dist;
+
+                    if(distLimit <= 0) distLimit = xSize/5;
+                    return;
+                }
+
+                distLimit = distLimit-dist;
+                if(distLimit <= 0) distLimit = xSize/5;
+
+                moveEventLast.setTo(move.x,move.y);
+
+                if(penToolFlag && _penSmoothSlideValue > 1)
+                {
+                    var ox:Number = smoothPos.x;
+                    var oy:Number = smoothPos.y;
+                    
+                    if(hasTimer("penSmoothTimer"))
+                    {
+                        ox += (smoothLast.x-smoothPos.x)*_penSmoothValue;
+                        oy += (smoothLast.y-smoothPos.y)*_penSmoothValue;
+                    }
+
+                    penMove2(ox,oy);
+                    smoothPos.setTo(ox,oy);
+                    smoothLast.setTo(move.x,move.y);
+
+                    addTimerByName("penSmoothTimer",0.02,false,penMoveSmooth);
+                }
+                else
+                {
+                    penMove2(move.x,move.y);
+                }
+            }
+
+            function mouseUpPenTool(e:MouseEvent):void
+            {
+                stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpPenTool);
+                stageMouseMoveEvent.remove(mouseMovePenTool);
+
+                const xx:Number = cd.mouseX;
+                const yy:Number = cd.mouseY;
+                const mx:Number = xx+xOffset;
+                const my:Number = yy+xOffset;
+
+                drawLineLaggy();
+                laggyDrawIndex = 0;
+
+                if(penToolFlag && _traceMemoryTraining && CANVAS_TRACE_ALPHA > 0.0) canvasTraceLayer.visible = true;
+                
+                if(_penSmoothSlideValue > 1)
+                {
+                    removeTimer("penSmoothTimer");
+                }
+
+                if(xShape === true) penSizeCursor.rotation = regPoint.rotation;
+
+                if(xShape)
+                {
+                    if(tempDoneFlag === false && mouseMoveCount <= 2)
+                    {
+                        if(mouseMovedFlag === false && ((click.x === xx && click.y === yy) || shortDistFlag))
+                        {
+                            rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,_airBrushON]);
+                            drawDot(xShape,xSize,xColor,mx,my);
+                        }
+                        else
+                        {
+                            cdg.lineTo(mx,my);
+                            rDataBuffer.push(["lineTo",mx,my]);
+                        }
+                    }
+                    else if(penCommand.length >= 4)
+                    {
+                        deleteEndPointSquarePen();
+                    }
+                }
+                else if(_penSmoothSlideValue > 1 && penToolFlag)
+                {
+                    const sx:Number = ((click.x+xOffset)-smoothPos.x);
+                    const sy:Number = ((click.y+xOffset)-smoothPos.y);
+                    const dist:Number = Math.sqrt(sx*sx+sy*sy);
+
+                    if(dist < 0.2)
+                    {
+                        rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,subLayerFlag,_airBrushON]);
+                        drawDot(xShape,xSize,xColor,smoothPos.x,smoothPos.y);
+                    }
+                }
+                else if(mouseMovedFlag === false && ((click.x === xx && click.y === yy) || shortDistFlag))
+                {
+                    rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,_airBrushON]);
+                    drawDot(xShape,xSize,xColor,mx,my);
+                }
+
+                drawDone();
+
+                penCommand.length = 0;
+                penPoints.length = 0;
+            }
+
+            return function (penFlag:Boolean):void
+            {
+                penToolFlag = penFlag;
+                
+                if(penFlag)
+                {
+                    xSize = penSize;
+                    xColor = penColor;
+                    xAlpha = penAlpha;
+                    xShape = penShape;
+                    xBlendMode = null;
+                    _airBrushON = airBrushON;
+                }
+                else
+                {
+                    xSize = eraseSize;
+                    xColor = CANVAS_BG_COLOR;
+                    xAlpha = eraseAlpha;
+                    xShape = eraseShape;
+                    xBlendMode = "erase";
+                    _airBrushON = eraseAirBrushON;
+                }
+
+                subLayerFlag = (penFlag) ? subLayerON : false;
+
+                _sharpLine = sharpLineON;
+                rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
+                _traceMemoryTraining = traceMemoryTraining;
+                xOffset = (sizeOffsetFlag) ? 0.5 : 0;
+
+                if(penFlag && _traceMemoryTraining) canvasTraceLayer.visible = false;
+
+                _penSmoothValue = penSmoothValue;//펜 스무딩 플래그
+                _penSmoothSlideValue = penSmoothSlideValue;
+
+                mouseMoveCount = 0; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
+                mouseMovedFlag = false;
+                tempDoneFlag = false;
+
+                click.setTo(cd.mouseX,cd.mouseY); //점찍어 줄 때 판단하는 클릭한 자리 저장
+                
+                smoothPos.setTo(click.x+xOffset,click.y+xOffset);
+                if(_penSmoothSlideValue === 0) smoothPos.setTo(floor(smoothPos.x-xOffset)+xOffset,floor(smoothPos.y-xOffset)+xOffset)
+                
+                smoothLast.setTo(smoothPos.x,smoothPos.y); //penmove할때 마지막x y저장
+                sharpLineLast.setTo(smoothPos.x,smoothPos.y);
+                moveEventLast.setTo(smoothPos.x,smoothPos.y);
+                moveEventLast2.setTo(smoothPos.x,smoothPos.y);
+                sqPenCursorLast.setTo(smoothPos.x,smoothPos.y);
+
+                distLimit = xSize/10;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
+                shortDistFlag = false; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
+
+                if(readyAddUndo === false) checkUndoReady();
+
+                stageMouseMoveEvent.add(mouseMovePenTool);
+                stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpPenTool);
+            };
+        }
 } */
