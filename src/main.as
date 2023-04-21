@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.93;
+        private const APP_VERSION:Number = 17.94;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2690,7 +2690,7 @@
                 {
                     if(laggyPenON)
                     {
-                        addTimerByName("fillPenTimer",getLaggyTime(),false,drawPreviewLine);
+                        addTimerByName("fillPenTimer",0.083,false,drawPreviewLine);
                     }
                     else
                     {
@@ -3058,7 +3058,7 @@
                 {
                     if(!hasTimer("penLagTimer"))
                     {
-                        addTimerByName("penLagTimer",getLaggyTime(),false,drawLineLaggy);
+                        addTimerByName("penLagTimer",0.083,false,drawLineLaggy);
                     }
                 }
             }
@@ -13416,7 +13416,7 @@
                 {
                     if(!hasTimer("imageMoveLagTimer"))
                     {
-                        addTimerByName("imageMoveLagTimer",getLaggyTime(),false,_moveImage,[mx,my]);
+                        addTimerByName("imageMoveLagTimer",0.083,false,_moveImage,[mx,my]);
                     }
                 }
                 else
@@ -14513,7 +14513,7 @@
                 {
                     if(laggyPenON)
                     {
-                        addTimerByName("LassoDrawDelayTimer",getLaggyTime(),false,function():void
+                        addTimerByName("LassoDrawDelayTimer",0.083,false,function():void
                         {
                             drawPreviewLine();
                         });
