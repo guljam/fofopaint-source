@@ -263,7 +263,7 @@
 		public function initLaggyButtonWrapper():void
 		{
 			const g:Graphics = laggyButtonWrapper.graphics;
-			const w:Number = laggyOFFButton.width+sharpLineText.width+4;
+			const w:Number = laggyOFFButton.width+sharpLineText.width-20;
 			const h:Number = laggyOFFButton.height+2;
 
 			g.beginFill(0xFFFF00,0);
@@ -403,7 +403,7 @@
 			layerMergeButton.y = layer1SelectButton.y+7;
 
 			layer2VisibleButton.x = layer1VisibleButton.x;
-			layer2VisibleButton.y = layer1VisibleButton.y+layer1VisibleButton.height+5;
+			layer2VisibleButton.y = layer1VisibleButton.y+layer1VisibleButton.height+4;
 			layer2InvisibleButton.x = layer2VisibleButton.x;
 			layer2InvisibleButton.y = layer2VisibleButton.y;
 

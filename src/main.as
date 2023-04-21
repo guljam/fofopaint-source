@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.91;
+        private const APP_VERSION:Number = 17.92;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -72,7 +72,7 @@
                                         b:66,
                                         c:67,
                                         d:68,
-                                        e:69,   
+                                        e:69,
                                         f:70,
                                         g:71,
                                         h:72,
@@ -663,11 +663,11 @@
         }
 
         //functions
-
         public function getLaggyTime():Number
         {
             return Math.random()*0.066+0.066;
         }
+
 		public function moreOptionsOFFMouseMoveEvent(e:MouseEvent):void
 		{
 			if(controlBox.moreOptionsBox.hitTestPoint(mouseX,mouseY) === false)
@@ -1170,6 +1170,24 @@
             return true;
         }
 
+        private function setLayer1VisibleToggle():void
+        {
+            if(canvas1Bitmap.visible)
+            {
+                canvas1Bitmap.visible = false;
+                controlBox.layer1VisibleButton.visible = false;
+                controlBox.layer1InvisibleButton.visible = true;
+            }
+            else
+            {
+                canvas1Bitmap.visible = true;
+                controlBox.layer1VisibleButton.visible = true;
+                controlBox.layer1InvisibleButton.visible = false;
+            }
+
+            checkCaptureButtonActive();
+        }
+
         private function setLayer2VisibleToggle():void
         {
             if(canvas11Bitmap.visible)
@@ -1186,42 +1204,6 @@
             }
 
             checkCaptureButtonActive();
-        }
-
-        private function setLayer2VisibleToggleCaptureMode():void
-        {
-            if(replayModeON)
-            {
-                if(rcanvas11Bitmap.visible)
-                {
-                    rcanvas11Bitmap.visible = false;
-                    if(isSubLayerONReplayMode()) rcanvas2.visible = false;
-
-                    topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
-                }
-                else
-                {
-                    rcanvas11Bitmap.visible = true;
-                    if(isSubLayerONReplayMode()) rcanvas2.visible = true;
-
-                    topBar.capLayer2VisibleButton.alpha = 1.0;
-                }
-            }
-            else
-            {
-                if(canvas11Bitmap.visible)
-                {
-                    canvas11Bitmap.visible = false;
-                    
-                    topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
-                }
-                else
-                {
-                    canvas11Bitmap.visible = true;
-                    topBar.capLayer2VisibleButton.alpha = 1.0;
-                }
-            }
-            checkCaptureButtonActiveCaptureMode();
         }
 
         private function setLayer1VisibleToggleCaptureMode():void
@@ -1259,23 +1241,41 @@
 
             checkCaptureButtonActiveCaptureMode();
         }
-
-        private function setLayer1VisibleToggle():void
+        
+        private function setLayer2VisibleToggleCaptureMode():void
         {
-            if(canvas1Bitmap.visible)
+            if(replayModeON)
             {
-                canvas1Bitmap.visible = false;
-                controlBox.layer1VisibleButton.visible = false;
-                controlBox.layer1InvisibleButton.visible = true;
+                if(rcanvas11Bitmap.visible)
+                {
+                    rcanvas11Bitmap.visible = false;
+                    if(isSubLayerONReplayMode()) rcanvas2.visible = false;
+
+                    topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                }
+                else
+                {
+                    rcanvas11Bitmap.visible = true;
+                    if(isSubLayerONReplayMode()) rcanvas2.visible = true;
+
+                    topBar.capLayer2VisibleButton.alpha = 1.0;
+                }
             }
             else
             {
-                canvas1Bitmap.visible = true;
-                controlBox.layer1VisibleButton.visible = true;
-                controlBox.layer1InvisibleButton.visible = false;
+                if(canvas11Bitmap.visible)
+                {
+                    canvas11Bitmap.visible = false;
+                    
+                    topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                }
+                else
+                {
+                    canvas11Bitmap.visible = true;
+                    topBar.capLayer2VisibleButton.alpha = 1.0;
+                }
             }
-
-            checkCaptureButtonActive();
+            checkCaptureButtonActiveCaptureMode();
         }
 
         private function addUndoBGColor(color:uint):void
@@ -5341,7 +5341,7 @@
             _nativeWindow.addEventListener(Event.DEACTIVATE,windowDeactiveEvent);
             _nativeWindow.addEventListener(Event.ACTIVATE,windowActiveEvent);
             _nativeWindow.addEventListener(Event.CLOSING, windowClosingEvent);
-
+          
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,onDragEnterEvent);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP,onDragDropEvent);
             pickerBox.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,colorHistoryAddEvent);
@@ -5772,7 +5772,7 @@
             const _controlBox:controlMenu = controlBox;
             const sliderSet:Sprite = _controlBox.penSmoothSliderSet;
             const button:SimpleButton = sliderSet["penSmoothButton"];
-            const leftOffset:Number = sliderSet["penSmoothBar"].x+2; //펜 리스트에 흰색 선 시작과 끝 x좌표임
+            const leftOffset:Number = sliderSet["penSmoothBar"].x+3; //펜 리스트에 흰색 선 시작과 끝 x좌표임
             const rightOffset:Number = leftOffset+sliderSet["penSmoothBar"].width-2;
             const step:Number = penSmoothSlideTotal;
             const div:Number = (rightOffset-leftOffset)/step;
@@ -6871,7 +6871,7 @@
             undoData.setRFileTotalFrame(0);
             TOTAL_FRAME = 0;
             makeJumpImageFlag = 0;
-            topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x;
+            topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x+3;
 
             resetTraceImageInfo();
             resetTraceOpa();
@@ -7777,12 +7777,12 @@
 
                     case "sideBarOFFButton":
                     case "sideBarOFFButton2":
-                        str = "Turn sidebar OFF (tab, \\ ), Quick sidebar (s+d, j+k)";
+                        str = "Turn sidebar OFF (tab, \\ )";
                     break;
 
                     case "sideBarONButton":
                     case "sideBarONButton2":
-                        str = "Turn sidebar ON (tab, \\ ), Quick sidebar (s+d, j+k)";
+                        str = "Turn sidebar ON (tab, \\ )";
                     break;
 
                     case "sideBarPositionButton":
@@ -9449,7 +9449,7 @@
             const abs:Function = Math.abs;
             const floor:Function = Math.floor;
             const set:Sprite = topBar.replaySpeedSet;
-            const minDist:Number = topBar["replaySpeedBar"].x+2;
+            const minDist:Number = topBar["replaySpeedBar"].x+3;
             const maxDist:Number = minDist+topBar["replaySpeedBar"].width-2;
             const button:SimpleButton = topBar.replaySpeedMoveButton;
             const maxSpeed:Number = REPLAY_MAX_SPEED;
@@ -11322,7 +11322,7 @@
             }
 
             rSpeed = 1; //속도 리셋
-            topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x;
+            topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x+3;
             resetReplayTime();
             clearCanvasReplayMode();
             replayTimeBox["frameInfo"].text = "0 / " + getTotalFrame()+" frame";
