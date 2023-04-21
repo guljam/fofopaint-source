@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.92;
+        private const APP_VERSION:Number = 17.93;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -16166,6 +16166,7 @@
             const _sideBar:sidePanel = sideBar;
             const floor:Function = Math.floor;
 
+
             _sideBar.x = 0;
 
             sideBarScrollSet.x = 5;
@@ -16178,8 +16179,9 @@
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 0;
             pickerBox.y = floor(controlBox.y+controlBox.height+6);
-            toolBox.x = pickerBox.x+pickerBox.width+3;
+            toolBox.x = 175;
             toolBox.y = floor(controlBox.y+2);
+            trace('set left side bar',toolBox.x);
 
             if(toolBox.getDeafultY() === 0)
                 toolBox.setDeafultY(toolBox.y);
