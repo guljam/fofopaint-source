@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.95;
+        private const APP_VERSION:Number = 17.96;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -310,7 +310,7 @@
                     ,nowTool:int = 1 //현재 툴 번호
                     ,oldTool:int = TOOL_NONE //툴백업
                     ,keyBuffer:Array = [] //정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
-                    ,nowKey:uint = 0 //단축키 누른거 여기다가 저장
+                    ,nowKey:uint = 0//단축키 누른거 여기다가 저장
                     ,nowKeyNotKeyUp:int = 0 //keyup에서 체크 안하는 단축키는 여기다가 저장 이키 올렸을때 이전툴로 되돌아가지 말라고
                     ,keyWaitMouseUp:Boolean = false //키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
                     ,penAlpha:Number = 1.0 //펜 변수
@@ -1995,7 +1995,7 @@
             nowKey = 0;
         }
 
-        private function isNowKey(key:int):Boolean
+        private function isNowKey(key:uint):Boolean
         {
             return nowKey === key;
         }
@@ -5380,7 +5380,6 @@
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
             var str:String = "";
-            trace('targetName',targetName);
 
             switch(targetName)
             {      
@@ -5456,25 +5455,25 @@
                 break;
 
                 case "layer1SelectButton":
-                    str = "Layer 1 (1, 9)";
+                    str = "Select Layer 1 (1, 9)";
                 break;
 
                  case "layer2SelectButton":
-                    str = "Layer 2 (2, 0)";
+                    str = "Select Layer 2 (2, 0)";
                 break;
 
                 case "layer1VisibleButton":
                 case "layer1InvisibleButton":
-                    str = "Layer 1 visible ON/OFF\n(1+w, 9+i)";
+                    str = "Check Layer 1\n(1+w, 9+i)";
                 break;
 
                 case "layer2VisibleButton":
                 case "layer2InvisibleButton":
-                    str = "Layer 2 visible ON/OFF\n(2+w, 0+i)";
+                    str = "Check Layer 2\n(2+w, 0+i)";
                 break;
 
                 case "layerSwapButton":
-                    str = "Swap layer\n(shift+d, shift+j)";
+                    str = "Swap layer 1 <-> 2\n(shift+d, shift+j)";
                 break;
 
                 case "layerMergeButton":
@@ -16974,31 +16973,35 @@
                     if(keyused) return;
                 }
             }
-            //지우개키 조합 따로 체크
-            if(isNowKey(KEY.d) || isNowKey(KEY.j))
-            {
-                if(checkOpaSizeKeyDown((keyBuffer.length >= 2) ? keyBuffer[1] : keyCode)) return;
-                else if(keyBuffer.length >= 2 && (keyBuffer[1] === KEY.s || keyBuffer[1] === KEY.k))
-                {
-                    if(quickSidebarON === false) setQuickSidebarON(true);
-                    return;
-                }
-            }
-            else if(isNowKey(KEY.s) || isNowKey(KEY.k))
-            {
-                if(keyBuffer.length >= 2 && (keyBuffer[1] === KEY.d || keyBuffer[1] === KEY.j))
-                {
-                    if(quickSidebarON === false) setQuickSidebarON(true);
-                    return;
-                }
-            }
 
-            //레이어 따로 보기 조합 체크
-            if(isNowKey(KEY.w) || isNowKey(KEY.i))
+            if(keyBuffer.length >= 2)
             {
-                if(keyBuffer.length >= 2)
+                //지우개키 조합 따로 체크
+                if(keyCode === KEY.d || keyCode === KEY.j)
                 {
-                    if(layerVisibleKeyFuncCalled === false)
+                    if(checkOpaSizeKeyDown(keyBuffer[1]))
+                    {
+                        return;
+                    }
+                    else if(keyBuffer[1] === KEY.s || keyBuffer[1] === KEY.k)
+                    {
+                        if(quickSidebarON === false) setQuickSidebarON(true);
+                        return;
+                    }
+                }
+                else if(keyCode === KEY.s || keyCode === KEY.k)
+                {
+                    if(keyBuffer[1] === KEY.d || keyBuffer[1] === KEY.j)
+                    {
+                        if(quickSidebarON === false) setQuickSidebarON(true);
+                        return;
+                    }
+                }
+
+                //레이어 따로 보기 조합 체크
+                if(layerVisibleKeyFuncCalled === false)
+                {
+                    if(keyCode === KEY.w || keyCode === KEY.i)
                     {
                         if(keyBuffer[1] === KEY.n1 || keyBuffer[1] === KEY.n9)
                         {
@@ -17014,40 +17017,39 @@
 
                             if(oldTool > TOOL_NONE) setOldTool();
                         }
+                        return;
                     }
-                    return;
+                    else if(keyCode === KEY.n1 || keyCode === KEY.n9)
+                    {
+                        if(keyBuffer[1] === KEY.w || keyBuffer[1] === KEY.i)
+                        {
+                            layerVisibleKeyFuncCalled = true;
+                            setLayer1VisibleToggle();
+                        }
+                        return;
+                    }
+                    else if(keyCode === KEY.n2 || keyCode === KEY.n0)
+                    {
+                        if(keyBuffer[1] === KEY.w || keyBuffer[1] === KEY.i)
+                        {
+                            layerVisibleKeyFuncCalled = true;
+                            setLayer2VisibleToggle();
+                        }
+                        return;
+                    }
                 }
             }
-            else if(isNowKey(KEY.n1) || isNowKey(KEY.n9))
+            else
             {
-                if(keyBuffer.length >= 2)
-                {
-                    if(keyBuffer[1] === KEY.w && !isNowKey(KEY.w) || keyBuffer[1] === KEY.i && !isNowKey(KEY.i))
-                    {
-                        setNowKey(keyBuffer[1]);
-                        setLayer1VisibleToggle();
-                    }
-                    return;
-                }
-            }
-            else if(isNowKey(KEY.n2) || isNowKey(KEY.n0))
-            {
-                if(keyBuffer.length >= 2)
-                {
-                    if(keyBuffer[1] === KEY.w && !isNowKey(KEY.w) || keyBuffer[1] === KEY.i  && !isNowKey(KEY.i))
-                    {
-                        setNowKey(keyBuffer[1]);
-                        setLayer2VisibleToggle();
-                    }
-                    return;
-                }
+                checkOpaSizeKeyDown(keyCode);
+                if(isNowKey(keyCode)) return;
+                setNowKey(keyCode);
+
+                if(checkOpaSizeKeyDown(keyCode)) return;
+                if(checkEtcKeyDown(keyCode)) return;
+                checkToolKeyDown(keyCode);
             }
 
-            if(isNowKey(keyCode)) return;
-            setNowKey(keyCode);
-            if(checkOpaSizeKeyDown(keyCode)) return;
-            if(checkEtcKeyDown(keyCode)) return;
-            checkToolKeyDown(keyCode);
         }
 
         private function checkEtcKeyDown(keyCode:int):Boolean
