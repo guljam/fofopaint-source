@@ -377,8 +377,8 @@
 			initLaggyButtonWrapper();
 			initMoreOptionsBox();
 
-			layer1InvisibleButton.visible = false;
-			layer2InvisibleButton.visible = false;
+			layer1VisibleButton.visible = false;
+			layer2VisibleButton.visible = false;
 			layer1SelectButton.useHandCursor = false;
 			layer2SelectButton.useHandCursor = false;
 			layer1VisibleButton.useHandCursor = false;

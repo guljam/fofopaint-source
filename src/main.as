@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.94;
+        private const APP_VERSION:Number = 17.95;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -329,7 +329,7 @@
                     ,sharpLineON:Boolean = false //0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
                     ,fillPenON:Boolean = false //채우기 펜 플래그
                     ,subLayerON:Boolean = false
-                    ,subLayerSave:Array = [] //레이어 미리 보기 할때 레이어 꺼졌는지 켜졌는지 저장해주고 복원할때 이걸로함
+                    ,subLayerPreviewON:Boolean = false
                     ,subLayerONSave:Boolean = false //레이어 visible toggle에서 씀
                     ,airBrushON:Boolean = false
                     ,airBrushSizeDrawMode:Number = 0
@@ -614,6 +614,7 @@
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,updateAfterSave:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
+                    ,layerVisibleKeyFuncCalled:Boolean = false //w키 1키 계속 누르고 있을때 함수 호출 안하게 해주려고 플래그 올려줌
                     ;
 
         public function main():void
@@ -663,6 +664,11 @@
         }
 
         //functions
+        public function isLayerOnlyViewSelected():Boolean
+        {
+            return controlBox.layer1VisibleButton.visible || controlBox.layer2VisibleButton.visible;
+        }
+
         public function getLaggyTime():Number
         {
             return Math.random()*0.066+0.066;
@@ -754,31 +760,32 @@
 
         private function setSingleLayerPreviewOFF():void
         {
-            if(subLayerON) canvas11Bitmap.visible = true;
-            else canvas11Bitmap.visible = subLayerSave[1];
-
-            if(!subLayerON) canvas1Bitmap.visible = true;
-            else canvas1Bitmap.visible = subLayerSave[0];
+            subLayerPreviewON = false;
+            canvas11Bitmap.visible = true;
+            canvas1Bitmap.visible = true;
 
             stage.removeEventListener(KeyboardEvent.KEY_UP,setSingleLayerPreviewOFFKeyUpEvent);
             stage.removeEventListener(MouseEvent.MOUSE_MOVE,layerSinglePreviewOFFMouseOutEvent);
-            subLayerSave = [];
         }
 
         private function setSingleLayerPreviewOFFKeyUpEvent(e:KeyboardEvent):void
         {
+            if(isLayerOnlyViewSelected())
+            {
+                return;
+            }
+            
             if(e.keyCode === KEY.n1 || e.keyCode === KEY.n2
             || e.keyCode === KEY.n9 || e.keyCode === KEY.n0)
             {
-                if(subLayerSave.length > 0) setSingleLayerPreviewOFF();
+                setSingleLayerPreviewOFF();
             }
         }
 
         private function layerSinglePreviewOFFMouseOutEvent(e:MouseEvent):void
         {
-           if((subLayerON === false && controlBox.layer1SelectButton.hitTestPoint(mouseX,mouseY) === false
+           if(subLayerON === false && controlBox.layer1SelectButton.hitTestPoint(mouseX,mouseY) === false
            || subLayerON === true && controlBox.layer2SelectButton.hitTestPoint(mouseX,mouseY) === false)
-           && subLayerSave.length > 0)
            {
                 setSingleLayerPreviewOFF();
            }
@@ -786,13 +793,11 @@
 
         private function setSingleLayerPreview(layer:int,shortcut:Boolean):void
         {
-            if(subLayerSave.length === 0)
+            if(subLayerPreviewON === false)
             {
+                subLayerPreviewON = true;
                 if(shortcut) stage.addEventListener(KeyboardEvent.KEY_UP,setSingleLayerPreviewOFFKeyUpEvent,false,5);
                 else stage.addEventListener(MouseEvent.MOUSE_MOVE,layerSinglePreviewOFFMouseOutEvent,false,5);
-
-                subLayerSave[0] = canvas1Bitmap.visible;
-                subLayerSave[1] = canvas11Bitmap.visible;
             }
 
             if(layer === 1)
@@ -1155,55 +1160,48 @@
             }
         }
 
-        private function checkCaptureButtonActive():Boolean
-        {
-            if(!canvas1Bitmap.visible && !canvas11Bitmap.visible)
-            {
-                topBar.captureButton.alpha = BUTTON_OFF_ALPHA;
-                return false;
-            }
-
-            if(topBar.captureButton.alpha < 1.0)
-            {
-                topBar.captureButton.alpha = 1.0;
-            }
-            return true;
-        }
-
         private function setLayer1VisibleToggle():void
         {
-            if(canvas1Bitmap.visible)
-            {
-                canvas1Bitmap.visible = false;
-                controlBox.layer1VisibleButton.visible = false;
-                controlBox.layer1InvisibleButton.visible = true;
-            }
-            else
-            {
-                canvas1Bitmap.visible = true;
-                controlBox.layer1VisibleButton.visible = true;
-                controlBox.layer1InvisibleButton.visible = false;
-            }
+            canvas1Bitmap.visible = true;
 
-            checkCaptureButtonActive();
-        }
-
-        private function setLayer2VisibleToggle():void
-        {
-            if(canvas11Bitmap.visible)
+            if(controlBox.layer1VisibleButton.visible === false)
             {
                 canvas11Bitmap.visible = false;
+                controlBox.layer1VisibleButton.visible = true;
+                controlBox.layer1InvisibleButton.visible = false;
                 controlBox.layer2VisibleButton.visible = false;
                 controlBox.layer2InvisibleButton.visible = true;
             }
             else
             {
                 canvas11Bitmap.visible = true;
-                controlBox.layer2VisibleButton.visible = true;
-                controlBox.layer2InvisibleButton.visible = false;
+                controlBox.layer1VisibleButton.visible = false;
+                controlBox.layer1InvisibleButton.visible = true;
             }
 
-            checkCaptureButtonActive();
+            setSubLayer(false);
+        }
+
+        private function setLayer2VisibleToggle():void
+        {
+            canvas11Bitmap.visible = true;
+
+            if(controlBox.layer2VisibleButton.visible === false)
+            {
+                canvas1Bitmap.visible = false;
+                controlBox.layer2VisibleButton.visible = true;
+                controlBox.layer2InvisibleButton.visible = false;
+                controlBox.layer1VisibleButton.visible = false;
+                controlBox.layer1InvisibleButton.visible = true;
+            }
+            else
+            {
+                canvas1Bitmap.visible = true;
+                controlBox.layer2VisibleButton.visible = false;
+                controlBox.layer2InvisibleButton.visible = true;
+            }
+
+            setSubLayer(true);
         }
 
         private function setLayer1VisibleToggleCaptureMode():void
@@ -2688,14 +2686,7 @@
 
                 if(!hasTimer("fillPenTimer"))
                 {
-                    if(laggyPenON)
-                    {
-                        addTimerByName("fillPenTimer",0.083,false,drawPreviewLine);
-                    }
-                    else
-                    {
-                        addTimerByName("fillPenTimer",KEY_REPEAT_INTERVAL,false,drawPreviewLine);
-                    }
+                    addTimerByName("fillPenTimer",0.083,false,drawPreviewLine);
                 }
             }
 
@@ -5166,16 +5157,12 @@
                 controlBox.layer1SelectButton.alpha = BUTTON_OFF_ALPHA;
                 controlBox.layer2SelectButton.alpha = 1.0;
                 canvasPanel.setChildIndex(canvas2,2);
-
-                if(!canvas11Bitmap.visible) setLayer2VisibleToggle();
             }
             else
             {
                 controlBox.layer1SelectButton.alpha = 1.0;
                 controlBox.layer2SelectButton.alpha = BUTTON_OFF_ALPHA;
                 canvasPanel.setChildIndex(canvas1Bitmap,2);
-                
-                if(!canvas1Bitmap.visible) setLayer1VisibleToggle();
             }
         }   
 
@@ -5226,6 +5213,7 @@
 
                 controlBox.sharpLineButtonWrapper.alpha = 1.0;
                 controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
 
                 const airBrushFlagBackup:Boolean = airBrushON;
                 setAirBrushButton(false);
@@ -5392,6 +5380,7 @@
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
             var str:String = "";
+            trace('targetName',targetName);
 
             switch(targetName)
             {      
@@ -5476,16 +5465,16 @@
 
                 case "layer1VisibleButton":
                 case "layer1InvisibleButton":
-                    str = "Layer 1 visible ON/OFF\n(shift+1, shift+9)";
+                    str = "Layer 1 visible ON/OFF\n(1+w, 9+i)";
                 break;
 
                 case "layer2VisibleButton":
-                case "layer2InvsibleButton":
-                    str = "Layer 2 visible ON/OFF\n(shift+2, shift+0)";
+                case "layer2InvisibleButton":
+                    str = "Layer 2 visible ON/OFF\n(2+w, 0+i)";
                 break;
 
                 case "layerSwapButton":
-                    str = "Swap layer\n(shift+q, shift+p)";
+                    str = "Swap layer\n(shift+d, shift+j)";
                 break;
 
                 case "layerMergeButton":
@@ -13063,17 +13052,7 @@
                     mouseMovedFlag = true;
                 }
 
-                if(laggyPenON)
-                {
-                    if(!hasTimer("lineLagTimer"))
-                    {
-                        addTimerByName("lineLagTimer",Math.random()/8,false,drawingLine);
-                    }
-                }
-                else
-                {
-                    drawingLine();
-                }
+                drawingLine();
 
                 if(readyAddUndo === false)
                 {
@@ -13309,20 +13288,12 @@
         {
             const old:Point = new Point(0,0);
             var z:Number = zoomed;
-            var movedX:Number;
-            var movedY:Number;
 
             function moveToolOFFEvent(e:MouseEvent):void
             {
                 stageMouseMoveEvent.remove(moveToolMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, moveToolOFFEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, moveToolOFFEvent);
-
-                if(laggyPenON)
-                {
-                    removeTimer("imageMoveLagTimer");
-                    _moveImage(movedX,movedY);
-                }
 
                 mouseDragON = false;
                 penCursorOFFFlag = false;
@@ -13386,8 +13357,14 @@
                 }
             }
 
-            function _moveImage(mx:Number,my:Number):void
+            function moveToolMoveEvent(e:MouseEvent):void
             {
+                const dx:Number = mouseX-old.x;
+                const dy:Number = mouseY-old.y;
+                const rPos:Point = rotatePoint(dx,dy,regPoint.rotation);
+                const mx:Number = rPos.x/z;
+                const my:Number = rPos.y/z;
+
                 if(canvas1Bitmap.visible)
                 {
                     canvas1Bitmap.x = mx; //캔버스만 옮겨줘서 미리보기해줌
@@ -13398,30 +13375,6 @@
                 {
                     canvas11Bitmap.x = mx;
                     canvas11Bitmap.y = my;
-                }
-            }
-
-            function moveToolMoveEvent(e:MouseEvent):void
-            {
-                const dx:Number = mouseX-old.x;
-                const dy:Number = mouseY-old.y;
-                const rPos:Point = rotatePoint(dx,dy,regPoint.rotation);
-                const mx:Number = rPos.x/z;
-                const my:Number = rPos.y/z;
-
-                movedX = mx;
-                movedY = my;
-
-                if(laggyPenON)
-                {
-                    if(!hasTimer("imageMoveLagTimer"))
-                    {
-                        addTimerByName("imageMoveLagTimer",0.083,false,_moveImage,[mx,my]);
-                    }
-                }
-                else
-                {
-                    _moveImage(mx,my);
                 }
             }
 
@@ -14511,20 +14464,10 @@
 
                 if(!hasTimer("LassoDrawDelayTimer"))
                 {
-                    if(laggyPenON)
+                    addTimerByName("LassoDrawDelayTimer",0.083,false,function():void
                     {
-                        addTimerByName("LassoDrawDelayTimer",0.083,false,function():void
-                        {
-                            drawPreviewLine();
-                        });
-                    }
-                    else
-                    {
-                        addTimerByName("LassoDrawDelayTimer",KEY_REPEAT_INTERVAL,false,function():void
-                        {
-                            drawPreviewLine();
-                        });
-                    }
+                        drawPreviewLine();
+                    });
                 }
 
                 //사각형 꼭지점 체크
@@ -15116,6 +15059,7 @@
             
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectZoomTool():void
@@ -15142,6 +15086,7 @@
 
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectFillPenTool():void
@@ -16181,7 +16126,6 @@
             pickerBox.y = floor(controlBox.y+controlBox.height+6);
             toolBox.x = 175;
             toolBox.y = floor(controlBox.y+2);
-            trace('set left side bar',toolBox.x);
 
             if(toolBox.getDeafultY() === 0)
                 toolBox.setDeafultY(toolBox.y);
@@ -16912,15 +16856,26 @@
 
             if(isNowKey(keyCode))
             {
-                if(mouseClickON === true) keyWaitMouseUp = true;
-                else if(keyBuffer.length > 0) keyDownDrawMode({} as KeyboardEvent);
+                if(mouseClickON === true)
+                {
+                    keyWaitMouseUp = true;
+                }
+                else if(keyBuffer.length > 0)
+                {
+                    keyDownDrawMode({} as KeyboardEvent);
+                }
                 else
                 {
+                    if(layerVisibleKeyFuncCalled) layerVisibleKeyFuncCalled = false;
+
                     if(oldTool > TOOL_NONE) setOldTool();
+
                     updatePenCursorPosition();
                 }
             }
+
             if(keyBuffer.length === 0) resetNowKey();
+
             if(!isPressingControl() && resizeButtonR.visible) setResizeButtonVisible(false);
         }
 
@@ -16966,7 +16921,7 @@
                     else if(input === KEY.o) loadFile();
                     else if(input === KEY.c || input === KEY.m)
                     {
-                        if(checkCaptureButtonActive()) setCaptureReady();
+                        setCaptureReady();
                     }
                     else if(input === KEY.v || input === KEY.n)
                     {
@@ -16998,8 +16953,8 @@
                                 if(zoomed !== 1.0) resetZoomDrawMode();
                             return;
 
-                            case KEY.q:
-                            case KEY.p:
+                            case KEY.d:
+                            case KEY.j:
                             {
                                 setLayerSwapButton();
                                 setToolTipTempON("Layers has been swapped");
@@ -17013,18 +16968,6 @@
                                     setLayerMergeButton();
                                     setToolTipTempON("Layers has been merged to layer 2");
                                 }
-                            return;
-
-                            case KEY.n1:
-                            case KEY.n9:
-                                setLayer1VisibleToggle();
-                                setLayerVisibleHint(1);
-                            return;
-
-                            case KEY.n2:
-                            case KEY.n0:
-                                setLayer2VisibleToggle();
-                                setLayerVisibleHint(2);
                             return;
                         }
                     });
@@ -17046,6 +16989,56 @@
                 if(keyBuffer.length >= 2 && (keyBuffer[1] === KEY.d || keyBuffer[1] === KEY.j))
                 {
                     if(quickSidebarON === false) setQuickSidebarON(true);
+                    return;
+                }
+            }
+
+            //레이어 따로 보기 조합 체크
+            if(isNowKey(KEY.w) || isNowKey(KEY.i))
+            {
+                if(keyBuffer.length >= 2)
+                {
+                    if(layerVisibleKeyFuncCalled === false)
+                    {
+                        if(keyBuffer[1] === KEY.n1 || keyBuffer[1] === KEY.n9)
+                        {
+                            layerVisibleKeyFuncCalled = true;
+                            setLayer1VisibleToggle();
+                            
+                            if(oldTool > TOOL_NONE) setOldTool();
+                        }
+                        else if(keyBuffer[1] === KEY.n2 || keyBuffer[1] === KEY.n0)
+                        {
+                            layerVisibleKeyFuncCalled = true;
+                            setLayer2VisibleToggle();
+
+                            if(oldTool > TOOL_NONE) setOldTool();
+                        }
+                    }
+                    return;
+                }
+            }
+            else if(isNowKey(KEY.n1) || isNowKey(KEY.n9))
+            {
+                if(keyBuffer.length >= 2)
+                {
+                    if(keyBuffer[1] === KEY.w && !isNowKey(KEY.w) || keyBuffer[1] === KEY.i && !isNowKey(KEY.i))
+                    {
+                        setNowKey(keyBuffer[1]);
+                        setLayer1VisibleToggle();
+                    }
+                    return;
+                }
+            }
+            else if(isNowKey(KEY.n2) || isNowKey(KEY.n0))
+            {
+                if(keyBuffer.length >= 2)
+                {
+                    if(keyBuffer[1] === KEY.w && !isNowKey(KEY.w) || keyBuffer[1] === KEY.i  && !isNowKey(KEY.i))
+                    {
+                        setNowKey(keyBuffer[1]);
+                        setLayer2VisibleToggle();
+                    }
                     return;
                 }
             }
@@ -17120,7 +17113,7 @@
                 case KEY.n9:
                 {
                     nowKeyNotKeyUp = keyCode;
-                    if(subLayerON) setSubLayer(false);
+                    if(subLayerON || isLayerOnlyViewSelected()) setSubLayer(false);
                     
                     setSingleLayerPreview(1,true);
                     setToolTipTempON("Layer 1 selected");
@@ -17131,7 +17124,8 @@
                 case KEY.n0:
                 {
                     nowKeyNotKeyUp = keyCode;
-                    if(!subLayerON) setSubLayer(true);
+                    if(!subLayerON || isLayerOnlyViewSelected()) setSubLayer(true);
+
                     setSingleLayerPreview(2,true);
                     setToolTipTempON("Layer 2 selected");
                 }
@@ -17375,7 +17369,7 @@
                 _quickSidebarOFF();
             }
 
-            if(subLayerSave.length > 0)
+            if(subLayerPreviewON)
             {
                 setSingleLayerPreviewOFF();
             }
@@ -18285,16 +18279,28 @@
 
                 case "layer1SelectButton":
                 {
-                    subLayerON = false;
                     setSubLayer(false);
+                    if(isLayerOnlyViewSelected())
+                    {
+                        controlBox.layer1VisibleButton.visible = false;
+                        controlBox.layer1InvisibleButton.visible = true;
+                        controlBox.layer2VisibleButton.visible = false;
+                        controlBox.layer2InvisibleButton.visible = true;
+                    }
                     setSingleLayerPreview(1,false);
                 }
                 return true;
 
                 case "layer2SelectButton":
                 {
-                    subLayerON = true;
                     setSubLayer(true);
+                    if(isLayerOnlyViewSelected())
+                    {
+                        controlBox.layer1VisibleButton.visible = false;
+                        controlBox.layer1InvisibleButton.visible = true;
+                        controlBox.layer2VisibleButton.visible = false;
+                        controlBox.layer2InvisibleButton.visible = true;
+                    }
                     setSingleLayerPreview(2,false);
                 }
                 return true;
