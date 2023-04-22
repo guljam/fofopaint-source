@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.96;
+        private const APP_VERSION:Number = 17.97;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -12207,6 +12207,8 @@
             file1.addEventListener(Event.SELECT, onSelectEvent);
             file1.browseForSave(saveWindowTitle);
 
+            resetKeyBuffer();
+
             function onCancelEvent(e:Event):void
             {
                 browseWindowON = false;
@@ -12368,7 +12370,8 @@
                 file.addEventListener(Event.CANCEL, onErrorEvent);
                 file.addEventListener(Event.SELECT, onSelectEvent);
                 file.browseForSave(saveWindowTitle);
-
+                
+                resetKeyBuffer(); //ctrl + 조합키로 브라우저 창열었을때 ctrl키가 계속 눌려있어서 키가 안먹음 그래서 리셋해줌
                 browseWindowON = true;
                 
                 function removeEvent():void
@@ -17323,6 +17326,7 @@
             //알탭해주고 창 활성화 해줄때 한번은 안하게끔함
             realWorkingTimer.start();
             checkClipBoardImage();
+
             if(aboutPanelON)
             {
                 clickBlockFlag = true;
