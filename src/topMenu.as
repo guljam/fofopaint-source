@@ -502,7 +502,7 @@
 			replaySpeedBar.x = 5;
 			replaySpeedBar.y = Math.floor(replaySpeedBarWrapper.height/2-11);
 			replaySpeedMoveButton.x = replaySpeedBar.x+3;
-			replaySpeedMoveButton.y = Math.floor(replaySpeedBar.y+replaySpeedBar.height)+2;
+			replaySpeedMoveButton.y = Math.floor(replaySpeedBar.y+replaySpeedBar.height)+3;
 
 			replaySpeedBarWrapper.useHandCursor = false;
 			replaySpeedBar.useHandCursor = false;
