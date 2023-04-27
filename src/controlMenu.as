@@ -14,7 +14,6 @@
 		public const moreOptionsBox:Sprite = new Sprite();
 		public const sharpLineButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();
-		public const laggyButtonWrapper:Sprite = new Sprite();
 
 		public var sizeSelectCursor:SimpleButton = sizeSelectCursor;
 		public var rectSizeSet:SimpleButton = rectSizeSet;
@@ -30,9 +29,6 @@
 		public var airBrushONButton:SimpleButton = airBrushONButton;
 		public var airBrushOFFButton:SimpleButton = airBrushOFFButton;
 		public var airBrushText:SimpleButton = airBrushText;
-		public var laggyText:SimpleButton = laggyText;
-		public var laggyONButton:SimpleButton = laggyONButton;
-		public var laggyOFFButton:SimpleButton = laggyOFFButton;
 
 		public var layer1SelectButton:SimpleButton = layer1SelectButton;
 		public var layer2SelectButton:SimpleButton = layer2SelectButton;
@@ -142,10 +138,6 @@
 			airBrushText.transform.colorTransform = o;
 			airBrushOFFButton.transform.colorTransform = o;
 			airBrushONButton.transform.colorTransform = o;
-
-			laggyText.transform.colorTransform = o;
-			laggyOFFButton.transform.colorTransform = o;
-			laggyONButton.transform.colorTransform = o;
 
 			moreOptionsButton.transform.colorTransform = o;
 
@@ -260,36 +252,6 @@
 			sharpLineButtonWrapper.name = "sharpLineButtonWrapper";
 		}
 
-		public function initLaggyButtonWrapper():void
-		{
-			const g:Graphics = laggyButtonWrapper.graphics;
-			const w:Number = laggyOFFButton.width+sharpLineText.width-20;
-			const h:Number = laggyOFFButton.height+2;
-
-			g.beginFill(0xFFFF00,0);
-			g.drawRect(0,0,w,h);
-			g.endFill();
-
-			laggyButtonWrapper.addChild(laggyOFFButton);
-			laggyButtonWrapper.addChild(laggyONButton);
-			laggyButtonWrapper.addChild(laggyText);
-
-			laggyONButton.x = 0;
-			laggyONButton.y = 0;
-			laggyOFFButton.x = laggyONButton.x;
-			laggyOFFButton.y = laggyONButton.y;
-			laggyOFFButton.visible = false;
-
-			laggyText.x = laggyOFFButton.x+laggyOFFButton.width+2;
-			laggyText.y = laggyOFFButton.y;
-
-			laggyOFFButton.useHandCursor = false;
-			laggyONButton.useHandCursor = false;
-			laggyText.useHandCursor = false;
-
-			laggyButtonWrapper.name = "laggyButtonWrapper";
-		}
-
 		public function initMoreOptionsBox():void
 		{
 			const g:Graphics = moreOptionsBox.graphics;
@@ -301,14 +263,10 @@
 			moreOptionsBox.visible = false;
 			moreOptionsBox.addChild(sharpLineButtonWrapper);
 			moreOptionsBox.addChild(airBrushButtonWrapper);
-			moreOptionsBox.addChild(laggyButtonWrapper);
 
-			laggyButtonWrapper.x = sharpLineButtonWrapper.x+sharpLineButtonWrapper.width+8;
-			laggyButtonWrapper.y = sharpLineButtonWrapper.y;
+			airBrushButtonWrapper.x = sharpLineButtonWrapper.x+sharpLineButtonWrapper.width+8;
+			airBrushButtonWrapper.y = sharpLineButtonWrapper.y;
 
-			airBrushButtonWrapper.x = sharpLineButtonWrapper.x;
-			airBrushButtonWrapper.y = sharpLineButtonWrapper.y+sharpLineButtonWrapper.height+2;
-			
 			moreOptionsButton.useHandCursor = false;
 		}
 
@@ -374,7 +332,6 @@
 
 			initSharpLineButtonWrapper();
 			initAirBrushButtonWrapper();
-			initLaggyButtonWrapper();
 			initMoreOptionsBox();
 
 			layer1VisibleButton.visible = false;

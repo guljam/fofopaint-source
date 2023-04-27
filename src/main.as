@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 17.97;
+        private const APP_VERSION:Number = 17.98;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -334,7 +334,6 @@
                     ,airBrushON:Boolean = false
                     ,airBrushSizeDrawMode:Number = 0
                     ,airBrushSizeReplayMode:Number = 0
-                    ,laggyPenON:Boolean = false //펜 그릴때 약간 지연느낌 켜줌
                     ,fillPenStarted:Boolean = false //채우기 펜 시작됨
                     ,eraseOddOffset:Number = 0//지우개 변수
                     ,eraseSize:uint = 12
@@ -667,11 +666,6 @@
         public function isLayerOnlyViewSelected():Boolean
         {
             return controlBox.layer1VisibleButton.visible || controlBox.layer2VisibleButton.visible;
-        }
-
-        public function getLaggyTime():Number
-        {
-            return Math.random()*0.066+0.066;
         }
 
 		public function moreOptionsOFFMouseMoveEvent(e:MouseEvent):void
@@ -2837,8 +2831,6 @@
             var distLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var shortDistFlag:Boolean; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
             var subLayerFlag:Boolean;
-            var laggyPenFlag:Boolean;
-            var laggyDrawIndex:uint = 0;
 
             function deleteEndPointSquarePen():void
             {
@@ -2903,16 +2895,6 @@
 				}
             }
 
-            
-            function drawLineLaggy():void
-            {
-                const len:uint = penCommand.length;
-                for(;laggyDrawIndex < len;laggyDrawIndex++)
-                {
-                    cdg.lineTo(penPoints[laggyDrawIndex*2],penPoints[laggyDrawIndex*2+1]);
-                }
-            }
-
             function lineStyleReady(shape:Boolean,size:uint,color:uint,alpha:Number):void
             {
                 canvas2.alpha = alpha;
@@ -2970,7 +2952,6 @@
                     penPoints.push(smoothPos.x);
                     penPoints.push(smoothPos.y);
                     cdg.moveTo(smoothPos.x,smoothPos.y);
-                    laggyDrawIndex = 1;
                 }
 
                 ++mouseMoveCount;
@@ -2985,12 +2966,11 @@
                     sharpLineLast.y = y;
                 }
 
-                if(!laggyPenFlag) cdg.lineTo(x,y);
-
                 rDataBuffer.push(["lineTo",x,y]);
                 penCommand.push(2);
                 penPoints.push(x);
                 penPoints.push(y);
+                cdg.lineTo(x,y);
 
                 if(sharpLineON === true && _penSmoothSlideValue === 0 && rotateFlag == false)
                 {
@@ -2999,12 +2979,6 @@
 
                 if(mouseMoveCount >= 100)
                 {
-                    if(laggyPenFlag)
-                    {
-                        drawLineLaggy();
-                        laggyDrawIndex = 1; //move커맨드 인덱스가 앞에 있으니까 빼줘야함
-                    }
-
                     mouseMoveCount = 0;
                     tempDoneFlag = true;
                     if(_airBrushON && zoomed !== 1.0)
@@ -3043,14 +3017,6 @@
                     penSizeCursor.rotation = deg;
                     sqPenCursorLast.x = x;
                     sqPenCursorLast.y = y;
-                }
-
-                if(laggyPenFlag)
-                {
-                    if(!hasTimer("penLagTimer"))
-                    {
-                        addTimerByName("penLagTimer",0.083,false,drawLineLaggy);
-                    }
                 }
             }
 
@@ -3119,13 +3085,6 @@
                 const yy:Number = cd.mouseY;
                 const mx:Number = xx+xOffset;
                 const my:Number = yy+xOffset;
-
-                if(laggyPenFlag)
-                {
-                    removeTimer("penLagTimer");
-                    drawLineLaggy();
-                    laggyDrawIndex = 0;
-                }
 
                 if(penToolFlag && _traceMemoryTraining && CANVAS_TRACE_ALPHA > 0.0) canvasTraceLayer.visible = true;
                 
@@ -3218,9 +3177,6 @@
                 mouseMoveCount = 0; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
                 mouseMovedFlag = false;
                 tempDoneFlag = false;
-
-                laggyPenFlag = laggyPenON;
-                laggyDrawIndex = 0;
 
                 click.setTo(cd.mouseX,cd.mouseY); //점찍어 줄 때 판단하는 클릭한 자리 저장
                 
@@ -5166,18 +5122,6 @@
             }
         }   
 
-        private function setLaggyPenButton(flag:Boolean):void
-        {
-            const nt:int = nowTool;
-            if(!(isPenOrLineTool() || isEraseTool() || nt === TOOL_FILL_PEN
-            || nt === TOOL_LASSO || nt === TOOL_MOVE)) return;
-            
-            laggyPenON = flag;
-
-            controlBox["laggyOFFButton"].visible = flag;
-            controlBox["laggyONButton"].visible = !flag;
-        }
-
         private function setsharpLineButton(flag:Boolean):void
         {
             if(!(isPenOrLineTool() || isEraseTool() || nowTool === TOOL_FILL_PEN)) return;
@@ -5213,7 +5157,6 @@
 
                 controlBox.sharpLineButtonWrapper.alpha = 1.0;
                 controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
 
                 const airBrushFlagBackup:Boolean = airBrushON;
                 setAirBrushButton(false);
@@ -5438,16 +5381,6 @@
                 case "airBrushONButton":
                 case "airBrushText":
                     str = "Air brush";
-                break;
-
-                case "laggyButtonWrapper":
-                case "laggyOFFButton":
-                case "laggyONButton":
-                case "laggyOFFButton":
-                case "laggyText":
-                {
-                    str = "Emulate latency";
-                }
                 break;
 
                 case "moreOptionsButton":
@@ -13067,11 +13000,6 @@
                 stageMouseMoveEvent.remove(lineMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, lineUpEvent);
 
-                if(laggyPenON)
-                {
-                    removeTimer("lineLagTimer");
-                }
-
                 if(_traceMemoryTraining)
                 {
                     canvasTraceLayer.visible = true;
@@ -14762,7 +14690,6 @@
             {
                 controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
                 controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
 
                 if(isAllLayerInvisible()) return;
 
@@ -15061,7 +14988,6 @@
             
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-            controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectZoomTool():void
@@ -15071,7 +14997,6 @@
 
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-            controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectRotateTool():void
@@ -15088,7 +15013,6 @@
 
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-            controlBox.laggyButtonWrapper.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function selectFillPenTool():void
@@ -15165,7 +15089,6 @@
 
                 _controlBox.sharpLineButtonWrapper.alpha = 1.0;
                 _controlBox.airBrushButtonWrapper.alpha = 1.0;
-                _controlBox.laggyButtonWrapper.alpha = 1.0;
 
                 setPenSize(sizeIndex);
                 setPenAlpha(alpha);
@@ -18343,15 +18266,6 @@
                 {
                     controlBox.moreOptionsON();
                     stage.addEventListener(MouseEvent.MOUSE_MOVE,moreOptionsOFFMouseMoveEvent);
-                }
-                return true;
-
-                case "laggyButtonWrapper":
-                case "laggyONButton":
-                case "laggyOFFButton":
-                case "laggyText":
-                {
-                    setLaggyPenButton(!laggyPenON);
                 }
                 return true;
 
