@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.00;
+        private const APP_VERSION:Number = 18.01;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2208,19 +2208,17 @@
         {
             const arr:Vector.<Function> = new Vector.<Function>();
             var lastTime:int = 0;
-            var sumTime:int = 0;
             var nowTime:int = 0;
-            var subTime:int = 0;
 
             //mosue move 이벤트 일정 시간 이내는 무시함
             function moveEventLimit():Boolean
             {
                 nowTime = getTimer();
-                subTime = nowTime-lastTime;
-                sumTime += subTime;
 
-                if(sumTime === 0) return true;
-                else sumTime = 0;
+                if(nowTime === lastTime)
+                {
+                    return true;
+                }
 
                 lastTime = nowTime;
 
@@ -2230,7 +2228,11 @@
             function add(func:Function):void
             {
                 const _arr:Vector.<Function> = arr;
-                if(_arr.lastIndexOf(func) === -1) _arr.push(func);
+
+                if(_arr.lastIndexOf(func) === -1)
+                {
+                    _arr.push(func);
+                }
             }
 
             function remove(func:Function):void
@@ -2239,7 +2241,10 @@
 
                 for(var i:int= _arr.length-1; i>=0; i--)
                 {
-                    if((_arr[i] as Function) === func) _arr.removeAt(i);
+                    if((_arr[i] as Function) === func)
+                    {
+                        _arr.removeAt(i);
+                    }
                 }
             }
 
@@ -5388,21 +5393,21 @@
                 break;
 
                 case "layer1SelectButton":
-                    str = "Select Layer 1 (1, 9)";
+                    str = "Select layer 1 (1, 9)";
                 break;
 
                  case "layer2SelectButton":
-                    str = "Select Layer 2 (2, 0)";
+                    str = "Select layer 2 (2, 0)";
                 break;
 
                 case "layer1VisibleButton":
                 case "layer1InvisibleButton":
-                    str = "Check Layer 1\n(1+w, 9+i)";
+                    str = "Check layer 1\n(1+w, 9+i)";
                 break;
 
                 case "layer2VisibleButton":
                 case "layer2InvisibleButton":
-                    str = "Check Layer 2\n(2+w, 0+i)";
+                    str = "Check layer 2\n(2+w, 0+i)";
                 break;
 
                 case "layerSwapButton":
@@ -15021,7 +15026,7 @@
             setFillPen(true);
             moveEraseButton("toolFillPen");
             toolBox.moveToolCursor("toolFillPen");
-            controlBox.controlInfo.text = "Fill-pen Options";
+            controlBox.controlInfo.text = "Fill-pen options";
         }
 
         private function moveEraseButton(toolName:String):void
@@ -15102,7 +15107,7 @@
                     {
                         moveEraseButton("toolPen");
                         toolBox.moveToolCursor("toolPen");
-                        _controlBox.controlInfo.text = "Pen Options";
+                        _controlBox.controlInfo.text = "Pen options";
                     }
                     else
                     {
@@ -15112,7 +15117,7 @@
 
                         eraseButton2.visible = false;
                         toolBox.moveToolCursor("toolErase");
-                        _controlBox.controlInfo.text = "Eraser Options";
+                        _controlBox.controlInfo.text = "Eraser options";
                     }
                 }
                 else //선툴을 선택했을때
@@ -15121,7 +15126,7 @@
                     {
                         moveEraseButton("toolLine");
                         toolBox.moveToolCursor("toolLine");
-                        _controlBox.controlInfo.text = "Line Options";
+                        _controlBox.controlInfo.text = "Line options";
                     }
                     eraseButton2.visible = true;
                     penButton2.visible = true;
