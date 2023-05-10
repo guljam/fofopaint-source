@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.01;
+        private const APP_VERSION:Number = 18.02;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2836,6 +2836,7 @@
             var distLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var shortDistFlag:Boolean; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
             var subLayerFlag:Boolean;
+            var penSmoothTimer:int;
 
             function deleteEndPointSquarePen():void
             {
@@ -2926,7 +2927,7 @@
 
                 penMove2(ox,oy);
 
-                if(abs(smoothLast.x-ox) >= 1 || abs(smoothLast.y-oy) >= 1)
+                if(abs(smoothLast.x-ox) >= 0 || abs(smoothLast.y-oy) >= 0)
                 {
                     smoothPos.setTo(ox,oy);
                     addTimerByName("penSmoothTimer",0.01,false,penMoveSmooth);
