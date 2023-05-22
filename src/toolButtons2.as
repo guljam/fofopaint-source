@@ -7,7 +7,6 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	
-	
 	public class toolButtons2 extends Sprite {
 		public var toolPen:SimpleButton = toolPen;
 		public var toolFillPen:SimpleButton = toolFillPen;
@@ -57,7 +56,7 @@
 
 			toolInfo.text = str;
 		}
-		
+
 		public function deepUndoEtcIconAlpha(alpha:Number):void
 		{
 			toolPen.alpha = alpha;
@@ -165,7 +164,7 @@
 			toolBoxBG.useHandCursor = false;
 			toolBoxBG2.useHandCursor = false;
 			toolSidebar.useHandCursor = false;
-			
+
 			toolPen.visible = false;
 			toolErase.visible = true;
 

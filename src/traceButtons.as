@@ -7,7 +7,6 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 
-	
 	public class traceButtons extends Sprite {
 		public var traceOpaButton:SimpleButton = traceOpaButton;
 		public var traceOpaBar:SimpleButton = traceOpaBar;
@@ -33,7 +32,6 @@
 		public var traceInfo:TextField = traceInfo;
 		private var traceInfoBackup:Array = [];
 		public const fixedScale:Number = 0.875;
-
 
 		public function changeUIColor(arr:Array,brightBarFlag:Boolean):void
 		{
@@ -147,7 +145,7 @@
 			scaleY = fixedScale;
 
 			const offsetX:Number = traceOpaButton.width/2;
-			
+
 			traceOpaButton.x = traceOpaBar.x+offsetX+traceOpaBar.width*0.5-offsetX;
 			traceOpaButton.useHandCursor = false;
 			traceOpaBar.useHandCursor = false;

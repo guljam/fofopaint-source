@@ -19,7 +19,7 @@
 		public var frameInfo:TextField = frameInfo;
 		public var BARSIZE:Number = 35;
 		private var nowBarColorSave:uint = 0;
-		
+
 		public function tempTotalBarX():void
 		{
 			replayTotalBar.x = 5;
@@ -64,7 +64,7 @@
 			const o:ColorTransform = new ColorTransform();
 			const c1:ColorTransform = new ColorTransform();
 			const c2:ColorTransform = new ColorTransform();
-			
+
 			b.color = base;
 			o.color = op;
 			c1.color = color1;
@@ -99,7 +99,7 @@
 		public function initReplayBox():void
 		{
 			var g:Graphics;
-			
+
 			g = replayBGBar.graphics;
 			g.lineStyle(0,0,0);
 			g.beginFill(0xFFFFFF);
@@ -164,7 +164,7 @@
 			replayPrev.y = playButton.y;
 			replayNext.x = replayPrev.x+replayPrev.width+8;
 			replayNext.y = playButton.y;
-			
+
 			replayDeleteBar.visible = false;
 
 			initTotalBarX();

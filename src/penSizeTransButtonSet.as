@@ -2,8 +2,7 @@
 {
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
-	
-	
+
 	public class penSizeTransButtonSet extends Sprite {
 
 		public var nSizeButton1:SimpleButton = nSizeButton1;
@@ -18,7 +17,7 @@
 		public var nSizeButton10:SimpleButton = nSizeButton10;
 		public var nSizeButton11:SimpleButton = nSizeButton11;
 		public var nSizeButton12:SimpleButton = nSizeButton12;
-		
+
 		public function penSizeTransButtonSet() {
 			// constructor code
 		}

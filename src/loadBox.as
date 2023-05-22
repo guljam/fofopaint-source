@@ -72,10 +72,10 @@
 			dragDropFileBG.graphics.beginFill(0,0.5);
 			dragDropFileBG.graphics.drawRect(0,0,50,50);
 			dragDropFileBG.graphics.endFill();
-			
+
 			addChild(dragDropFileBG);
 			setChildIndex(dragDropFileBG,0);
-			
+
 			visible = false;
 			dragDropFileButton.useHandCursor = false;
 			dragDropRefButton.useHandCursor = false;

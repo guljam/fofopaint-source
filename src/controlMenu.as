@@ -277,7 +277,7 @@
 			for (var i:int = 1; i <= 12; i++)
 			{
 				btn = _penSizeTransButtonBox.getChildByName("nSizeButton"+i) as SimpleButton;
-				
+
 				if (btn)
 				{
 					btn.useHandCursor = false;
@@ -314,7 +314,7 @@
 			penSmoothSliderSet["penSmoothBar"].useHandCursor = false;
 			penSmoothSliderSet["penSmoothButton"].useHandCursor = false;
 			penSmoothSliderSet["penSmoothSlider"].useHandCursor = false;
-			
+
 			penSizeGrid.x = offsetX;
 			penSizeGrid.y = floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-10;
 			penSizeTransButtonBox.x = penSizeGrid.x+2;
@@ -347,12 +347,12 @@
 
 			layerSwapButton.x = opaBox.x;
 			layerSwapButton.y = opaBox.y+opaBox.height-3;
-			
+
 			layer1VisibleButton.x = layerSwapButton.x+layerSwapButton.width+3;
 			layer1VisibleButton.y = layerSwapButton.y+2;
 			layer1InvisibleButton.x = layer1VisibleButton.x;
 			layer1InvisibleButton.y = layer1VisibleButton.y;
-			
+
 			layer1SelectButton.x = layer1VisibleButton.x+layer1VisibleButton.width+2;
 			layer1SelectButton.y = layer1VisibleButton.y;
 
@@ -389,5 +389,3 @@
 		}
 	}
 }
-
-

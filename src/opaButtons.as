@@ -4,7 +4,7 @@
 	import flash.display.SimpleButton;
 	
 	public class opaButtons extends Sprite{
-		
+
 		public var alphaCursor:SimpleButton;
 		public var alphaButton0:SimpleButton = alphaButton0;
 		public var alphaButton1:SimpleButton = alphaButton1;

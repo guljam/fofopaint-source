@@ -43,7 +43,7 @@
 		public var hueCursor:SimpleButton = hueCursor;
 		public var svCursor:SimpleButton = svCursor;
 		// public var preset17:SimpleButton = preset17;
-		
+
 		public const svBoxWidth:uint = 170; //sv가로 세로 사이즈
 		public const svBoxHeight:uint = 170;
 		private const hueHeight:uint = 13; //hue 새로 세이즈
@@ -132,7 +132,7 @@
 			hueCursor.x = 0;
 			hueCursor.y = -floor((hueCursor.height-hueHeight)/2);
 			hueCursor.mask = hueColorMask;
-			
+
 			hueColor.x = 0;
 			hueColor.y = floor(rgbInfoBG.y+rgbInfoBG.height+4);
 			hueColor.addChild(hueCursor);
@@ -163,7 +163,7 @@
 
 			colorHistoryBox.name = "colorHistoryBox";
 			colorHistoryBoxBG.name = "colorHistoryBoxBG";
-			
+
 			g = colorHistoryBoxBG.graphics;
 			g.clear()
 			g.beginFill(0xFF0000,0.0);
@@ -228,7 +228,7 @@
 			colorHistoryText.textColor = color;
 			drawrText.textColor = color;
 			tegakiText.textColor = color;
-			
+
 			penColorButton.transform.colorTransform = c;
 			paperColorButton.transform.colorTransform = c;
 		}

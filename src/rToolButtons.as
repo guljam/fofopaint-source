@@ -15,7 +15,7 @@
 		public var replayRotate:SimpleButton = replayRotate;
 		public var replayAutoScrollOFF:SimpleButton = replayAutoScrollOFF;
 		public var replayAutoScrollON:SimpleButton = replayAutoScrollON;
-		
+
 		public function changeUIColor(arr:Array):void
 		{	
 			const buttonArr:Array =

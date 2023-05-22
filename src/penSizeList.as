@@ -13,7 +13,6 @@
 
 		public var opaBorder:SimpleButton = opaBorder;
 
-
 		public function penSizeList() {
 			// constructor code
 			penListPanel.useHandCursor = false;

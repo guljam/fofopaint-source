@@ -114,7 +114,7 @@
 		private function onFromMain(event:Event):void
 		{
 			var msg:* = mainToBack.receive();
-			
+
 			if(msg as Array)
 			{
 				const command:String = msg[0];

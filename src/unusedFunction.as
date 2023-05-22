@@ -60,7 +60,7 @@ package
                     // const r1:uint = (color & 0xFF0000) >> 16;
                     // const g1:uint = (color & 0x00FF00) >> 8;
                     // const b1:uint = (color & 0x0000FF);
-                    
+
                     // //desination over R = S*(1 - Da) + D;
                     // var r:uint = (r1*(1-getAlpha)+r2)<<16;
                     // var g:uint = (g1*(1-getAlpha)+g2)<<8;
@@ -262,7 +262,6 @@ function floodFillScanline(x, y, width, height, diagonal, test, paint) {
     }
 }
 
-
 private var printdeepLevel:int = 0;
 private function printa(obj:Object,deepKey:String=""):void
 {
@@ -297,7 +296,7 @@ import flash.ui.MouseCursorData;
         import flash.ui.Mouse;    
         private function mouseHelperON():void
         {
-            
+
             function mouseHelperMove(e:MouseEvent):void
             {
                 const stw:Number = stage.stageHeight;
@@ -342,7 +341,7 @@ import flash.ui.MouseCursorData;
             mouseCursorData.data = cursorBmpd;
             mouseCursorData.frameRate = 1;
             mouseCursorData.hotSpot = cursorSpot;
-            
+
             Mouse.registerCursor(cursorName,mouseCursorData);
             Mouse.cursor = cursorName;
             trace('call change cursor',_customCursorData);
@@ -404,7 +403,7 @@ import flash.ui.MouseCursorData;
             const height:int = CANVAS_HEIGHT;
             const tmpBmpd:BitmapData = new BitmapData(width,height,true,0);
             const edges:Array = [];
-            
+
             // xMin, xMax, y, down[true] / up[false], extendLeft, extendRight
             var ranges:Array = [[x, x, y, null, true, true]];
 
@@ -431,7 +430,7 @@ import flash.ui.MouseCursorData;
                 const convColor:uint = alpint|colorint;
                 trace('alpint',alpint,"colorint",colorint,"convColor",convColor);
                 bmpd.setPixel32(x,y,convColor);
-                
+
                 // trace('halfAlpha|newColor',halfAlpha|newColor);
                 tmpBmpd.setPixel32(x,y,newColor32);
                 // // const alpha:uint = (getColor >>> 24)
@@ -495,7 +494,7 @@ import flash.ui.MouseCursorData;
                 // extend range ignored from previous line
                 r[0]--;
                 r[1]++;
-            
+
                 function addNextLine(newY:int, isNext:Boolean, downwards:Boolean):void
                 {
                     var rMinX:int = minX;
@@ -534,7 +533,7 @@ import flash.ui.MouseCursorData;
                 if(y>yMinLimit)
                     addNextLine(y-1, !down, false);
             }
-            
+
             tmpBmpd.draw(bmpd,null,null,"multiply");
             canvas1BitmapData = tmpBmpd.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
@@ -542,8 +541,6 @@ import flash.ui.MouseCursorData;
             addUndo();
             trace('걸린 시간 : ',getTimer()-time1,"ms");
         }
-
-
 
 private function setPenTool(penToolFlag:Boolean):void
 {
@@ -625,7 +622,7 @@ private function setPenTool(penToolFlag:Boolean):void
 
     var sqPenCursorLastX:Number = cx;
     var sqPenCursorLastY:Number = cy;
-    
+
     if(penToolFlag && _traceVisibleFlag)
     {
         canvasTrace.visible = false;
@@ -652,7 +649,7 @@ private function setPenTool(penToolFlag:Boolean):void
             penSmoothTimer = setTimeout(penMoveSmooth, 10);
         }
     }
-    
+
     function penMove2(x:Number,y:Number):void
     {
         if(readyAddUndo === false) checkUndoReady();
@@ -758,7 +755,7 @@ private function setPenTool(penToolFlag:Boolean):void
             cdg.moveTo(x,y);
             mouseMoveCount = 0;
         }
-        
+
         if(xShape === true)
         {
             const rad:Number = Math.atan2(x-sqPenCursorLastX,y-sqPenCursorLastY);
@@ -820,7 +817,7 @@ private function setPenTool(penToolFlag:Boolean):void
         {
             var ox:Number = cx;
             var oy:Number = cy;
-            
+
             if(penSmoothTimer > 0)
             {
                 ox += (smoothLastX-cx)*_penSmoothValue;
@@ -860,7 +857,7 @@ private function setPenTool(penToolFlag:Boolean):void
         {
             canvasTrace.visible = true;
         }
-        
+
         if(_penSmoothSlideValue > 1)
         {
             clearTimeout(penSmoothTimer);
@@ -1132,7 +1129,7 @@ private function setPenTool(penToolFlag:Boolean):void
                 {
                     updateReplayCanvasBounds();
                 }
-                
+
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, handToolMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, handToolUpEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, handToolUpEvent);
@@ -1155,7 +1152,6 @@ private function setPenTool(penToolFlag:Boolean):void
             //윈도우 바깥에서 up을 하면 hand가 안꺼져서 오른쪽 마우스 뗄떼도 꺼주게함
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, handToolUpEvent);
         }
-
 
 private function setLassoTool():void
         {
@@ -1241,7 +1237,6 @@ private function setLassoTool():void
             stage.addEventListener(MouseEvent.MOUSE_MOVE,lassoDrawMouseMove);
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoDrawMouseUp);
         }
-
 
          private function CRotateTool(replayMode:Boolean = false):void
         {
@@ -1615,7 +1610,6 @@ private function setLassoTool():void
             stage.addEventListener(MouseEvent.MOUSE_UP, moveToolOFFEvent);
         }
 
-
            private function setSpuitTool():void
         {
             //일단 흰색으로 배경 깔아줌
@@ -1623,7 +1617,7 @@ private function setLassoTool():void
             const oldTool:int = nowTool;
             const _setColorTransform:Function = setColorTransform;
             const spuitbmpd:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,false,CANVAS_BG_COLOR);
-            
+
             spuitbmpd.draw(canvas1BitmapData);
             penColorBackup = penColor;
             nowTool = TOOL_SPUIT;
@@ -1752,7 +1746,6 @@ private function setLassoTool():void
             stage.addEventListener(KeyboardEvent.KEY_DOWN, colorPickerCancelKeyDownEvent,false,2);
             stage.addEventListener(KeyboardEvent.KEY_UP, colorPickerCancelKeyUpEvent,false,2);
         }
-
 
         private function doTickDraw(cd2:Graphics,lastFlag:Boolean=false):void
         {
@@ -2170,7 +2163,6 @@ private function setLassoTool():void
             checkCanvasPanelPos(true);
         }
 
-
         private function checkAutoScroll(x:Number,y:Number,rzoomed:Number):void
         {
             const abs:Function = Math.abs;
@@ -2278,7 +2270,7 @@ private function setLassoTool():void
                             rFileCutBytes = rLastBytes;
                             rLastBytes = _rfs.position;
                             rFrameSumLast = rFrameSum;
-                            
+
                             //수동 탐색할때 속도를 위해서 썸네일 이미지를 더 잘게 쪼개줌
                             if(jumpFlag === 1 || jumpFlag === 2)
                             {
@@ -2369,9 +2361,9 @@ private function setLassoTool():void
                         continue;
                     }
                 }
-        
+
                 doTickDraw(cd2,(jumpFlag >= 2) ? true : (i === drawLimit));
-                
+
                 rFrameSum++; //resultFrameSum 으로 대체함
             }
             const nt:int = getTimer();
@@ -2384,7 +2376,7 @@ private function setLassoTool():void
                     tcursor.x = rTinyCursorPos[0];
                     tcursor.y = rTinyCursorPos[1];
                     rFrameCursorDelayTime = nt;
-                    
+
                     if(!mouseClickON)
                     {
                         checkAutoScroll.check(rTinyCursorPos[0],rTinyCursorPos[1]);
@@ -2411,7 +2403,6 @@ private function setLassoTool():void
                 replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*rFrameSum/totalF;
             }
         }
-
 
         private function doTickDraw(cd2:Graphics,lastFlag:Boolean=false):void
         {
@@ -2785,8 +2776,6 @@ private function setLassoTool():void
             rFrame++;
         }
 
-
-
         // private function setDefaultTinyCursor():void
         // {
         //     var bitmapDatas:Vector.<BitmapData> = new Vector.<BitmapData>(1, true);
@@ -2802,7 +2791,7 @@ private function setLassoTool():void
         //     // ■■■--■-
         //     // ---■-■-
         //     // ----■■-
-            
+
         //     bitmapData.setPixel32(0,0,0xFF000000);
         //     bitmapData.setPixel32(0,1,0xFF000000);
         //     bitmapData.setPixel32(0,2,0xFF000000);
@@ -2885,7 +2874,7 @@ private function setLassoTool():void
             const fillPenPoints:Vector.<Number> = new Vector.<Number>(); //필펜 좌표
             const penCommand:Vector.<int> = new Vector.<int>(); //그냥펜
             const penPoints:Vector.<Number> = new Vector.<Number>(); //그냥펜 좌표
-            
+
             function checkPixelPerfect():void
             {
                 const command:Vector.<int> = penCommand;
@@ -2894,7 +2883,7 @@ private function setLassoTool():void
 				{
                     const data:Vector.<Number> = penPoints;
 					var len:uint = command.length;
-					
+
 					var i_:int = (len-3)*2;//뒤에 있는값
 					var x_:Number = data[i_];
 					var y_:Number = data[i_+1];
@@ -2922,7 +2911,7 @@ private function setLassoTool():void
                             //이게 정확할런지 모르겠다
                             rDataBuffer.splice(rDataBuffer.length-2,1);
                         }
-                    
+
 						cdg.clear();
                         lineStyleReady(xShape,xSize,xColor,xAlpha);
                         cdg.moveTo(data[0],data[1]);
@@ -2949,7 +2938,6 @@ private function setLassoTool():void
                     cdg.lineStyle(size, color, 1, false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
                 }
             }
-
 
             function penMoveSmooth():void
             {
@@ -3001,7 +2989,6 @@ private function setLassoTool():void
                         const borderColor:uint = (bgContrast >= 137) ? 0 : 0xFFFFFF;
                         const _zoomed:Number = zoomed;
 
-                        
                         canvas2.alpha = 1.0;
                         capturePreviewCursor.x = 0;
                         capturePreviewCursor.y = 0;
@@ -3054,7 +3041,7 @@ private function setLassoTool():void
                     fillPenPoints.push(x);
                     fillPenPoints.push(y);
                 }
-                
+
                 if(sharpLineON === true && _fillPenON === false
                 && _penSmoothSlideValue === 0 && rotateFlag == false)
                 {
@@ -3088,7 +3075,7 @@ private function setLassoTool():void
                     cdg.moveTo(x,y);
                     mouseMoveCount = 0;
                 }
-                
+
                 if(xShape === true)
                 {
                     const rad:Number = Math.atan2(x-sqPenCursorLastX,y-sqPenCursorLastY);
@@ -3154,7 +3141,7 @@ private function setLassoTool():void
                 {
                     var ox:Number = cx;
                     var oy:Number = cy;
-                    
+
                     if(penSmoothTimer > 0)
                     {
                         ox += (smoothLastX-cx)*_penSmoothValue;
@@ -3200,7 +3187,7 @@ private function setLassoTool():void
                 {
                     canvasTrace.visible = true;
                 }
-                
+
                 if(_penSmoothSlideValue > 1)
                 {
                     clearTimeout(penSmoothTimer);
@@ -3281,7 +3268,7 @@ private function setLassoTool():void
             return function (penFlag:Boolean):void
             {
                 penToolFlag = penFlag;
-                
+
                 if(penFlag)
                 {
                     _fillPenON = (nowTool === TOOL_FILL_PEN);
@@ -3368,7 +3355,7 @@ private function setLassoTool():void
                 stage.addEventListener(MouseEvent.MOUSE_UP,penToolUpEvent);
             };
         }
-        
+
         private var printdeepLevel:int = 0;
         private function printArray(obj:Object,deepKey:String=""):void
         {
@@ -3464,7 +3451,7 @@ private function setLassoTool():void
 		// 	var angle:Number = angleFrom;
 		// 	var px:Number = cx+radius*Math.cos(angle*0.0174532925);
 		// 	var py:Number = cy+radius*Math.sin(angle*0.0174532925);
-            
+
         //     g.lineStyle(1,color);
 		// 	g.moveTo(px,py);
 
@@ -3474,8 +3461,6 @@ private function setLassoTool():void
 		// 		g.lineTo(cx+radius*Math.cos(angle*0.0174532925),cy+radius*Math.sin(angle*0.0174532925));
 		// 	}
 		// }
-
-
 
 //딜레이 펜 함수
  private function cPenTool():Function
@@ -3539,7 +3524,7 @@ private function setLassoTool():void
 				{
                     const data:Vector.<Number> = penPoints;
 					var len:uint = command.length;
-					
+
 					var i_:int = (len-3)*2;//뒤에 있는값
 					var x_:Number = data[i_];
 					var y_:Number = data[i_+1];
@@ -3564,7 +3549,7 @@ private function setLassoTool():void
 
                         //이게 정확할런지 모르겠다
                         rDataBuffer.splice(rDataBuffer.length-2,1);
-                        
+
 						cdg.clear();
                         lineStyleReady(xShape,xSize,xColor,xAlpha);
                         cdg.moveTo(data[0],data[1]);
@@ -3578,7 +3563,6 @@ private function setLassoTool():void
 				}
             }
 
-            
             function drawLineLaggy():void
             {
                 trace('call lag draw',getTimer(),penCommand.length);
@@ -3716,7 +3700,7 @@ private function setLassoTool():void
 
                     // cdg.moveTo(x,y);
                 }
-                
+
                 if(xShape === true)
                 {
                     const rad:Number = Math.atan2(x-sqPenCursorLast.x,y-sqPenCursorLast.y);
@@ -3765,7 +3749,7 @@ private function setLassoTool():void
                 {
                     var ox:Number = smoothPos.x;
                     var oy:Number = smoothPos.y;
-                    
+
                     if(hasTimer("penSmoothTimer"))
                     {
                         ox += (smoothLast.x-smoothPos.x)*_penSmoothValue;
@@ -3798,7 +3782,7 @@ private function setLassoTool():void
                 laggyDrawIndex = 0;
 
                 if(penToolFlag && _traceMemoryTraining && CANVAS_TRACE_ALPHA > 0.0) canvasTraceLayer.visible = true;
-                
+
                 if(_penSmoothSlideValue > 1)
                 {
                     removeTimer("penSmoothTimer");
@@ -3853,7 +3837,7 @@ private function setLassoTool():void
             return function (penFlag:Boolean):void
             {
                 penToolFlag = penFlag;
-                
+
                 if(penFlag)
                 {
                     xSize = penSize;
@@ -3890,10 +3874,10 @@ private function setLassoTool():void
                 tempDoneFlag = false;
 
                 click.setTo(cd.mouseX,cd.mouseY); //점찍어 줄 때 판단하는 클릭한 자리 저장
-                
+
                 smoothPos.setTo(click.x+xOffset,click.y+xOffset);
                 if(_penSmoothSlideValue === 0) smoothPos.setTo(floor(smoothPos.x-xOffset)+xOffset,floor(smoothPos.y-xOffset)+xOffset)
-                
+
                 smoothLast.setTo(smoothPos.x,smoothPos.y); //penmove할때 마지막x y저장
                 sharpLineLast.setTo(smoothPos.x,smoothPos.y);
                 moveEventLast.setTo(smoothPos.x,smoothPos.y);

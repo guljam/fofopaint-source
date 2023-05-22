@@ -21,7 +21,11 @@
 		{
 			const arr:Array = [logo1,logo2,logo3,logo4,logo5];
 			var index:int = imageIndex+1;
-			if(index === arr.length) index = 0;
+
+			if(index === arr.length)
+			{
+				index = 0;
+			}
 	
 			arr[imageIndex].visible = false;
 			arr[index].visible = true;
@@ -33,7 +37,7 @@
 		{
 			versionInfo.text = "version " + str;
 		}
-		
+
 		public function aboutBox() {
 			// constructor codef
 			imageIndex = Math.floor(Math.random()*4);

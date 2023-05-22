@@ -32,7 +32,7 @@
 		public var fillPenCancel:SimpleButton = fillPenCancel;
 		public var toolSelectCursor:SimpleButton = toolSelectCursor;
 		private var lastTool:String = "toolPen";
-		
+
 		public const BOX_WIDTH:Number = 34;
 		public const BOX_HEIGHT:Number = 476;
 
@@ -41,7 +41,7 @@
 		public var toolInfo:TextField = toolInfo;
 		public var toolInfoBG:Shape = new Shape();
 		private var deafultY:Number = 0;
-		
+
 		public function bgBoxVisible(flag:Boolean):void
 		{
 			if(flag)
@@ -285,7 +285,7 @@
 			const rotateButton:DisplayObjectContainer = toolRotate.downState as DisplayObjectContainer;
 			rotateButton.x = 0;
 			rotateButton.y = 0;
-			
+
 			//텍스트
 			toolInfo.textColor = arr[2];
 			updateBGBoxColor(arr[0]);
@@ -315,7 +315,7 @@
 		}
 
 		public function toolButtons() {
-			
+
 			moveToolCursorInit();
 			toolInfoBG.visible = false;
 			const g:Graphics = toolInfoBG.graphics;
@@ -328,7 +328,7 @@
 
 			addChild(toolInfoBG);
 			setChildIndex(toolInfoBG,0);
-			
+
 			zoomInButton.visible = false;
 			zoomOutButton.visible = false;
 			fillPenOK.visible = false;

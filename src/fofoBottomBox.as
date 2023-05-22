@@ -33,7 +33,7 @@
 			c.color = color;
 			fofoBottom.transform.colorTransform = c;
 		}
-		
+
 		public function fofoBottomBox() {
 			fofoBottom.useHandCursor = false;
 			alpha = 0.5;

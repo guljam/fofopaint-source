@@ -96,7 +96,7 @@
 			reRecordingButton.alpha = 1.0;
 			superUndoButton.alpha = 1.0;
 			cutPrevDataButton.alpha = 1.0;
-			
+
 			if(clipFlag) clipButton.alpha = 1.0;
 		}
 
@@ -118,7 +118,7 @@
 			updateButton.visible = flag;
 			aboutButton.visible = !flag;
 		}
-		
+
 		public function updateTimerPos(stw:Number):void
 		{
 			const limitX:Number = (replaySpeedSet.x+replaySpeedSet.width-10)*scaleX;
@@ -185,7 +185,7 @@
 			replayRotateButton.transform.colorTransform = o;
 			replaySpeedMoveButton.transform.colorTransform = o;
             replaySpeedBar.transform.colorTransform = o;
-			
+
 			if(isHintLocked === false)
 			{
 				topbarInfoBG.transform.colorTransform = b;
@@ -197,7 +197,7 @@
 		public function setSpeedButtonPosByValue(rSpeed:Number, maxSpeed:Number):void
 		{
 			if(maxSpeed <= 1) return;
-			
+
 			const unitX:Number = replaySpeedBar.width/maxSpeed;
 			const log:Function = Math.log;
 			//속도가 지수 형식으로 가서 log로 다시 역계산 해줘야함
@@ -328,7 +328,7 @@
 		{
 			topbarBG.width = Math.ceil(stw/scaleX);
 		}
-		
+
 		public function makeTopbarBG(color:uint):void
         {
             const g:Graphics = topbarBG.graphics;
@@ -395,7 +395,7 @@
 			{
 				if(rightSidebar) sideBarPositionButton.visible = false;
 				else sideBarPositionButton2.visible = false;
-				
+
 				checkSideBarONOFFButton(sidebarVisible,rightSidebar);
 			}
 		}
@@ -642,7 +642,7 @@
 			topMenuInfo.x = startX;
 
 			timer.y = 6;
-			
+
 			topbarInfoBG.graphics.clear();
 			topbarInfoBG.graphics.lineStyle(0,0,0);
 			topbarInfoBG.graphics.beginFill(0xCCCCCC);
