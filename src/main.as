@@ -667,15 +667,14 @@
         }
 
         //function
-
         private function setReleaseNoteBoxBG(color:uint):void
         {
             if(releaseNoteBG)
             {
                 const g:Graphics = releaseNoteBG.graphics;
                 g.clear();
-                g.beginFill(color);
-                g.drawRect(0,0,410,210);
+                g.beginFill(color,0.5);
+                g.drawRect(0,0,400,200);
                 g.endFill();
             }
         }
@@ -693,8 +692,6 @@
 
             var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt");
             releaseNoteHTMLLoader.load(request);
-            releaseNoteHTMLLoader.x = 5;
-            releaseNoteHTMLLoader.y = 5;
             stage.addChild(releaseNoteBG);
 
             topBar.updateButton.addEventListener(MouseEvent.MOUSE_OVER,openReleaseNoteBox);
@@ -712,12 +709,12 @@
 
         private function openReleaseNoteBox(e:MouseEvent):void
         {
-            releaseNoteBG.addChild(releaseNoteHTMLLoader);
-            releaseNoteBG.x = topBar.updateButton.x-releaseNoteBG.width/2+20;
-            releaseNoteBG.y = topBar.updateButton.y+topBar.updateButton.height+topBar.getHintBGHeight();
+            releaseNoteBG.x = (topBar.updateButton.x*uiScaleSet[uiScaleIndex]-releaseNoteBG.width*uiScaleSet[uiScaleIndex]/2+20*uiScaleSet[uiScaleIndex])
+            releaseNoteBG.y = (topBar.updateButton.y*uiScaleSet[uiScaleIndex]+topBar.updateButton.height*uiScaleSet[uiScaleIndex]+topBar.getHintBGHeight()*uiScaleSet[uiScaleIndex]);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,closeReleaseNoteBox);
 
             releaseNoteBG.visible = true;
+            releaseNoteBG.addChild(releaseNoteHTMLLoader);
         }
 
         private function isLayerOnlyViewSelected():Boolean
@@ -5298,7 +5295,6 @@
             pickerBox.setPickerMode(pickerMode);
             updateScrollBarColorHeight(scrollBarHeight);
             setResizeButtonColor(nowColorSet[3]);
-            setReleaseNoteBoxBG(base);
             fofo.changeColor(op);
 
             if(canvasWindowON)
@@ -6680,7 +6676,6 @@
                         var tryCount:uint = 0;
 
                         const updateFile:URLRequest = new URLRequest("https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air");
-
                         if(isNewVersion(getVersionArr))
                         {
                             NEW_VERSION = versionStr;
