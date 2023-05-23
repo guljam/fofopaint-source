@@ -7,8 +7,6 @@
 	import flash.display.Shape;
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
-	import flash.utils.setTimeout;
-	import flash.utils.clearTimeout;
 	import flash.display.DisplayObjectContainer;
 	import flash.utils.clearInterval;
 	import flash.geom.Rectangle;
@@ -85,6 +83,11 @@
 
 		private var newWindowIconStateSaveLayerButton:Boolean = false // 뉴윈도우인지 끄기 버튼인지 구분
 		private var newWindowIconStateDrawModeIcon:Boolean = false // 뉴윈도우인지 끄기 버튼인지 구분
+
+		public function getHintBGHeight():Number
+		{
+			return topbarInfoBG.height;
+		}
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
 		{

@@ -56,11 +56,12 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.system.System;
+    import flash.html.HTMLLoader;
     import flash.filters.ConvolutionFilter;//import end
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.04;
+        private const APP_VERSION:Number = 18.05;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -597,6 +598,9 @@
                     ,deepUndoON:Boolean = false
                     ,deepUndoONSave:Boolean = false //리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
                     ,deepUndoFrameSave:Number = -1 //리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
+        //릴리즈 노트 관련 변수
+                    ,releaseNoteHTMLLoader:HTMLLoader //업데이트 내역 html로더로 보여주기
+                    ,releaseNoteBG:Sprite
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
@@ -662,14 +666,66 @@
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
         }
 
-        //functions
+        //function
 
-        public function isLayerOnlyViewSelected():Boolean
+        private function setReleaseNoteBoxBG(color:uint):void
+        {
+            if(releaseNoteBG)
+            {
+                const g:Graphics = releaseNoteBG.graphics;
+                g.clear();
+                g.beginFill(color);
+                g.drawRect(0,0,410,210);
+                g.endFill();
+            }
+        }
+
+        private function initReleaseNoteBox():void
+        {
+            releaseNoteBG = new Sprite();
+            releaseNoteBG.visible = false;
+            setReleaseNoteBoxBG(uiColorSet[uiColorIndex][0]);
+
+            releaseNoteHTMLLoader = new HTMLLoader();
+            releaseNoteHTMLLoader.visible = false;
+            releaseNoteHTMLLoader.width = 400;
+            releaseNoteHTMLLoader.height = 200;
+
+            var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt");
+            releaseNoteHTMLLoader.load(request);
+            releaseNoteHTMLLoader.x = 5;
+            releaseNoteHTMLLoader.y = 5;
+            stage.addChild(releaseNoteBG);
+
+            topBar.updateButton.addEventListener(MouseEvent.MOUSE_OVER,openReleaseNoteBox);
+        }
+
+        private function closeReleaseNoteBox(e:MouseEvent):void
+        {
+            if(releaseNoteBG.hitTestPoint(mouseX,mouseY) === false)
+            {
+                releaseNoteBG.removeChild(releaseNoteHTMLLoader);
+                releaseNoteBG.visible = false;
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,closeReleaseNoteBox);
+            }
+        }
+
+        private function openReleaseNoteBox(e:MouseEvent):void
+        {
+            releaseNoteBG.addChild(releaseNoteHTMLLoader);
+            releaseNoteBG.x = topBar.updateButton.x-releaseNoteBG.width/2+20;
+            releaseNoteBG.y = topBar.updateButton.y+topBar.updateButton.height+topBar.getHintBGHeight();
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,closeReleaseNoteBox);
+
+            releaseNoteBG.visible = true;
+        }
+
+        private function isLayerOnlyViewSelected():Boolean
         {
             return controlBox.layer1VisibleButton.visible || controlBox.layer2VisibleButton.visible;
         }
 
-		public function moreOptionsOFFMouseMoveEvent(e:MouseEvent):void
+		private function moreOptionsOFFMouseMoveEvent(e:MouseEvent):void
 		{
 			if(controlBox.moreOptionsBox.hitTestPoint(mouseX,mouseY) === false)
 			{
@@ -2047,6 +2103,7 @@
                 return true;
 
                 case KEY.g:
+                releaseNoteHTMLLoader.visible = false;
                     setHoldKeyRepeat(shortCutPenAlpha,true);
                 return true;
 
@@ -2619,20 +2676,22 @@
 
                 if(clickedButton === targetName)
                 {
-                    if(targetName === "fillPenOK")endFillPenOK();
-                    else if(targetName === "fillPenCancel")cancelFillPen();
-                    else if(targetName === "fillPenUndo")undoData();
+                    if(targetName === "fillPenOK") endFillPenOK();
+                    else if(targetName === "fillPenCancel") cancelFillPen();
+                    else if(targetName === "fillPenUndo") undoData();
                 }
                 else
                 {
                     const now:Point = new Point(mouseX,mouseY);
                     const dist:Number = floor(Point.distance(now,lastMousePos));
+
                     mouseMoveCount += dist;
                     if(mouseMoveCount >= 30)
                     {
                         mouseMoveCount = 0;
                         commandUndoIndexArr.push(command.length-1);
                     }
+
                     lastMousePos.setTo(now.x,now.y);
 
                     if(afterKeyUpOK) endFillPenOK();
@@ -2761,8 +2820,6 @@
 
                 maxWidth = CANVAS_WIDTH;
                 maxHeight = CANVAS_HEIGHT;
-                var mx:Number = cd.mouseX;
-                var my:Number = cd.mouseY;
 
                 command = new Vector.<int>();
                 data = new Vector.<Number>();
@@ -2782,15 +2839,16 @@
                 if(traceMenuON) traceMenuBox.visible = false;
                 _dottedLine.updateScale(zoomed);
 
+                var mx:Number = cd.mouseX;
+                var my:Number = cd.mouseY;
+
                 command.push(1);
                 data.push(mx);
                 data.push(my);
+                lastMousePos.setTo(mx,my);
 
                 setFillpenUI(true);
                 canvas2.alpha = 1.0;
-
-                lastMousePos.setTo(mx,my);
-
                 addEvents();
             }
 
@@ -5241,7 +5299,7 @@
             pickerBox.setPickerMode(pickerMode);
             updateScrollBarColorHeight(scrollBarHeight);
             setResizeButtonColor(nowColorSet[3]);
-
+            setReleaseNoteBoxBG(base);
             fofo.changeColor(op);
 
             if(canvasWindowON)
@@ -6587,27 +6645,27 @@
 
             isCheckingUpdate = true;
 
-            var url:URLRequest = new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/versionInfo.txt");
+            var versionInfo:URLRequest = new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/versionInfo.txt");
             var loader:URLLoader = new URLLoader();
 
-            if(url.useCache)
+            if(versionInfo.useCache)
             {
-                url.useCache = false;
+                versionInfo.useCache = false;
             }
 
-            loader.addEventListener(Event.COMPLETE, urlLoadCompleteEvent);
-            loader.addEventListener(IOErrorEvent.IO_ERROR, urlLoadFailEvent);
-            loader.load(url);
+            loader.addEventListener(Event.COMPLETE,getCurrentVersionComplete);
+            loader.addEventListener(IOErrorEvent.IO_ERROR, getCurrentVersionFail);
+            loader.load(versionInfo);
 
-            function urlLoadFailEvent(e:IOErrorEvent):void
+            function getCurrentVersionFail(e:IOErrorEvent):void
             {
                 isCheckingUpdate = false;
-                loader.removeEventListener(Event.COMPLETE, urlLoadCompleteEvent);
-                loader.removeEventListener(IOErrorEvent.IO_ERROR, urlLoadFailEvent);
+                loader.removeEventListener(Event.COMPLETE,getCurrentVersionComplete);
+                loader.removeEventListener(IOErrorEvent.IO_ERROR, getCurrentVersionFail);
                 loader = null;
             }
 
-            function urlLoadCompleteEvent(e:Event):void
+            function getCurrentVersionComplete(e:Event):void
             {
                 const versionStr:String = loader.data;
                 if(!versionStr) return;
@@ -6616,13 +6674,13 @@
 
                 if(getVersionArr.length >= 2)
                 {
-                    if( parseVersion(getVersionArr[0]) || parseVersion(getVersionArr[1]))
+                    if(parseVersion(getVersionArr[0]) || parseVersion(getVersionArr[1]))
                     {
                         const floor:Function = Math.floor;
                         const oldVersion:Number = APP_VERSION;
                         var tryCount:uint = 0;
 
-                        url = new URLRequest("https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air");
+                        const updateFile:URLRequest = new URLRequest("https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air");
 
                         if(isNewVersion(getVersionArr))
                         {
@@ -6641,6 +6699,7 @@
                                 needUpdate = updateFlag;
                                 topBar.updateButtonVisible(true);
                                 isCheckingUpdate = false;
+                                initReleaseNoteBox();
                             }
 
                             function downloadFailedEvent(e:Event):void
@@ -6650,7 +6709,7 @@
                                     addTimerByName("updateRryTimer",1.0,false,function():void
                                     {
                                         tryCount++;
-                                        fileLoader.load(url);
+                                        fileLoader.load(updateFile);
                                     });
                                 }
                                 else setDownloadText(2);
@@ -6666,7 +6725,7 @@
                             }
 
                             if(Updater.isSupported)
-                                fileLoader.load(url); //다운로드를 시작함
+                                fileLoader.load(updateFile); //다운로드를 시작함
                             else
                                 setDownloadText(2);
                         }
@@ -6683,8 +6742,8 @@
                 {
                     isCheckingUpdate = false;
                 }
-                loader.removeEventListener(Event.COMPLETE, urlLoadCompleteEvent);
-                loader.removeEventListener(IOErrorEvent.IO_ERROR, urlLoadFailEvent);
+                loader.removeEventListener(Event.COMPLETE,getCurrentVersionComplete);
+                loader.removeEventListener(IOErrorEvent.IO_ERROR, getCurrentVersionFail);
                 loader = null;
             }
         }
@@ -7531,7 +7590,10 @@
                     topBar.hint(hint+STRING_CAPTURE_OK,topBar.capOff);
                 }
             }
-            else topBar.hintOFF();
+            else
+            {
+                topBar.hintOFF();
+            }
         }
 
         private function topBarHintOFFEvent(e:MouseEvent):void
@@ -14297,7 +14359,7 @@
             const lassoDottedLineLimit:int = 3;
             const lassog:Graphics = lassoDraw.graphics;
             const _dottedLine:Object = dottedLine;
-            const clickPos:Point = new Point(0,0);
+            var clickPos:Point = new Point(0,0);
             var maxWidth:Number;
             var maxHeight:Number;
 
@@ -14353,17 +14415,6 @@
                 if(lassoRect[2] > CANVAS_WIDTH) lassoRect[2] = CANVAS_WIDTH;
                 if(lassoRect[3] > CANVAS_HEIGHT) lassoRect[3] = CANVAS_HEIGHT;
 
-                const arr:Array = lassoPoints;
-                const len:uint = arr.length;
-                for(var i:uint=0;i<len;i++)
-                {
-                    if(arr[i][0] < 0) arr[i][0] = 0;
-                    else if(arr[i][0] > maxWidth) arr[i][0] = maxWidth;
-
-                    if(arr[i][1] < 0) arr[i][1] = 0;
-                    else if(arr[i][1] > maxHeight) arr[i][1] = maxHeight;
-                }
-
                 lassoPointSave.push(lassoRect);
                 lassoPointSave.push(lassoPoints);
 
@@ -14384,16 +14435,17 @@
                 setTopChildIndex(lassoMenu);
 
                 if(traceMenuON === true) traceMenuBox.visible = false;
+
                 toolBox.alpha = BUTTON_OFF_ALPHA;
                 addMouseKeyEventLassoTool();
             }
 
             function lassoDrawMouseMove(MouseEvent:Event):void
             {
-                var x:Number = cd.mouseX;
-                var y:Number = cd.mouseY;
+                var mx:Number = cd.mouseX;
+                var my:Number = cd.mouseY;
 
-                lassoPoints.push([x,y]);
+                lassoPoints.push([mx,my]);
 
                 if(!hasTimer("LassoDrawDelayTimer"))
                 {
@@ -14404,11 +14456,11 @@
                 }
 
                 //사각형 꼭지점 체크
-                if(x < lassoRect[0]) lassoRect[0] = x;
-                else if(x > lassoRect[2]) lassoRect[2] = x;
+                if(mx < lassoRect[0]) lassoRect[0] = mx;
+                else if(mx > lassoRect[2]) lassoRect[2] = mx;
 
-                if(y < lassoRect[1]) lassoRect[1] = y;
-                else if(y > lassoRect[3]) lassoRect[3] = y;
+                if(my < lassoRect[1]) lassoRect[1] = my;
+                else if(my > lassoRect[3]) lassoRect[3] = my;
             }
 
             return function():void
@@ -14418,8 +14470,8 @@
                 lassoMenu.hint("Lasso tool");
                 maxWidth = CANVAS_WIDTH;
                 maxHeight = CANVAS_HEIGHT;
-                clickPos.x = cd.mouseX;
-                clickPos.y = cd.mouseY;
+
+                clickPos.setTo(cd.mouseX,cd.mouseY);
 
                 lassoDraw.x = 0;
                 lassoDraw.y = 0;
