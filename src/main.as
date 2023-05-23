@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.05;
+        private const APP_VERSION:Number = 18.06;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2103,7 +2103,6 @@
                 return true;
 
                 case KEY.g:
-                releaseNoteHTMLLoader.visible = false;
                     setHoldKeyRepeat(shortCutPenAlpha,true);
                 return true;
 
