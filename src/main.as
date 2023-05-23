@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.06;
+        private const APP_VERSION:Number = 18.07;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1641,7 +1641,7 @@
                 if(++gcCount > 1)
                 {
                     stage.removeEventListener(Event.ENTER_FRAME,doGC);
-                    setTimeout(lastGC, 40);
+                    setTimeout(lastGC,40);
                 }
             }
 
@@ -2320,6 +2320,7 @@
             }
 
             return {
+                event:event,
                 start:start,
                 remove:remove,
                 add:add
