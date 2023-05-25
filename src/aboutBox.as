@@ -8,6 +8,7 @@
 
 		public var versionInfo:TextField;
 		public var appResetButton:TextField;
+		public var releaseNote:TextField;
 		public var aboutTwitterLink:SimpleButton;
 		public var aboutHomePageLink:SimpleButton;
 		public var logo1:SimpleButton;

@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.08;
+        private const APP_VERSION:Number = 18.10;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6709,6 +6709,11 @@
 
             switch(targetName)
             {
+                case "versionInfo":
+                case "releaseNote":
+                    navigateToURL(new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt"));
+                break;
+
                 case "appResetButton":
                     checkButtonUp(targetName);
                 break;
