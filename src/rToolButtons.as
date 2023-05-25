@@ -6,15 +6,13 @@
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.display.Graphics;
-	import flash.display.Shape;
-	
+
 	public class rToolButtons extends Sprite {
-		public var rToolInfo:TextField = rToolInfo;
-		public var replayZoom:SimpleButton = replayZoom;
-		public var replayRotate:SimpleButton = replayRotate;
-		public var replayAutoScrollOFF:SimpleButton = replayAutoScrollOFF;
-		public var replayAutoScrollON:SimpleButton = replayAutoScrollON;
+		public var rToolInfo:TextField;
+		public var replayZoom:SimpleButton;
+		public var replayRotate:SimpleButton;
+		public var replayAutoScrollOFF:SimpleButton;
+		public var replayAutoScrollON:SimpleButton;
 
 		public function changeUIColor(arr:Array):void
 		{	

@@ -9,9 +9,9 @@
 
 	public class fillPenButtons extends Sprite
 	{
-		public var fillPenOK:SimpleButton = fillPenOK;
-		public var fillPenCancel:SimpleButton = fillPenCancel;
-		public var fillPenUndo:SimpleButton = fillPenUndo;
+		public var fillPenOK:SimpleButton;
+		public var fillPenCancel:SimpleButton;
+		public var fillPenUndo:SimpleButton;
 		public const fillPenBoxBG:Shape = new Shape();
 
 		public function changeBGColor(arr:Array):void

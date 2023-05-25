@@ -12,25 +12,25 @@
 	import flash.geom.Point;
 
 	public class toolButtons extends Sprite {
-		public var toolPen:SimpleButton = toolPen;
-		public var toolFillPen:SimpleButton = toolFillPen;
-		public var toolErase:SimpleButton = toolErase;
-		public var toolUndo:SimpleButton = toolUndo;
-		public var toolRedo:SimpleButton = toolRedo;
-		public var toolSpuit:SimpleButton = toolSpuit;
-		public var toolMirror:SimpleButton = toolMirror;
-		public var toolLasso:SimpleButton = toolLasso;
-		public var toolMove:SimpleButton = toolMove;
-		public var toolRotate:SimpleButton = toolRotate;
-		public var toolLine:SimpleButton = toolLine;
-		public var toolTrace:SimpleButton = toolTrace;
-		public var toolZoom:SimpleButton = toolZoom;
-		public var zoomInButton:SimpleButton = zoomInButton;
-		public var zoomOutButton:SimpleButton = zoomOutButton;
-		public var fillPenOK:SimpleButton = fillPenOK;
-		public var fillPenUndo:SimpleButton = fillPenUndo;
-		public var fillPenCancel:SimpleButton = fillPenCancel;
-		public var toolSelectCursor:SimpleButton = toolSelectCursor;
+		public var toolPen:SimpleButton;
+		public var toolFillPen:SimpleButton;
+		public var toolErase:SimpleButton;
+		public var toolUndo:SimpleButton;
+		public var toolRedo:SimpleButton;
+		public var toolSpuit:SimpleButton;
+		public var toolMirror:SimpleButton;
+		public var toolLasso:SimpleButton;
+		public var toolMove:SimpleButton;
+		public var toolRotate:SimpleButton;
+		public var toolLine:SimpleButton;
+		public var toolTrace:SimpleButton;
+		public var toolZoom:SimpleButton;
+		public var zoomInButton:SimpleButton;
+		public var zoomOutButton:SimpleButton;
+		public var fillPenOK:SimpleButton;
+		public var fillPenUndo:SimpleButton;
+		public var fillPenCancel:SimpleButton;
+		public var toolSelectCursor:SimpleButton;
 		private var lastTool:String = "toolPen";
 
 		public const BOX_WIDTH:Number = 34;

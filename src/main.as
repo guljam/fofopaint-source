@@ -56,12 +56,11 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.system.System;
-    import flash.html.HTMLLoader;
     import flash.filters.ConvolutionFilter;//import end
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.07;
+        private const APP_VERSION:Number = 18.08;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -598,9 +597,6 @@
                     ,deepUndoON:Boolean = false
                     ,deepUndoONSave:Boolean = false //리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
                     ,deepUndoFrameSave:Number = -1 //리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
-        //릴리즈 노트 관련 변수
-                    ,releaseNoteHTMLLoader:HTMLLoader //업데이트 내역 html로더로 보여주기
-                    ,releaseNoteBG:Sprite
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
@@ -667,56 +663,6 @@
         }
 
         //function
-        private function setReleaseNoteBoxBG(color:uint):void
-        {
-            if(releaseNoteBG)
-            {
-                const g:Graphics = releaseNoteBG.graphics;
-                g.clear();
-                g.beginFill(color,0.5);
-                g.drawRect(0,0,400,200);
-                g.endFill();
-            }
-        }
-
-        private function initReleaseNoteBox():void
-        {
-            releaseNoteBG = new Sprite();
-            releaseNoteBG.visible = false;
-            setReleaseNoteBoxBG(uiColorSet[uiColorIndex][0]);
-
-            releaseNoteHTMLLoader = new HTMLLoader();
-            releaseNoteHTMLLoader.visible = false;
-            releaseNoteHTMLLoader.width = 400;
-            releaseNoteHTMLLoader.height = 200;
-
-            var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt");
-            releaseNoteHTMLLoader.load(request);
-            stage.addChild(releaseNoteBG);
-
-            topBar.updateButton.addEventListener(MouseEvent.MOUSE_OVER,openReleaseNoteBox);
-        }
-
-        private function closeReleaseNoteBox(e:MouseEvent):void
-        {
-            if(releaseNoteBG.hitTestPoint(mouseX,mouseY) === false)
-            {
-                releaseNoteBG.removeChild(releaseNoteHTMLLoader);
-                releaseNoteBG.visible = false;
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,closeReleaseNoteBox);
-            }
-        }
-
-        private function openReleaseNoteBox(e:MouseEvent):void
-        {
-            releaseNoteBG.x = (topBar.updateButton.x*uiScaleSet[uiScaleIndex]-releaseNoteBG.width*uiScaleSet[uiScaleIndex]/2+20*uiScaleSet[uiScaleIndex])
-            releaseNoteBG.y = (topBar.updateButton.y*uiScaleSet[uiScaleIndex]+topBar.updateButton.height*uiScaleSet[uiScaleIndex]+topBar.getHintBGHeight()*uiScaleSet[uiScaleIndex]);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,closeReleaseNoteBox);
-
-            releaseNoteBG.visible = true;
-            releaseNoteBG.addChild(releaseNoteHTMLLoader);
-        }
-
         private function isLayerOnlyViewSelected():Boolean
         {
             return controlBox.layer1VisibleButton.visible || controlBox.layer2VisibleButton.visible;
@@ -2373,7 +2319,7 @@
             sideBar.cacheAsBitmap = false;
             addTimerByName("sideBarReCacheAsBitmapTimer",0.2,false,function():void
             {
-                sideBar.cacheAsBitmap = true;
+                sideBar.cacheAsBitmap = false;
             });
         }
 
@@ -5575,6 +5521,7 @@
             {
                 navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint"));
             }
+            navigateToURL(new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt"));
         }
 
         private function installNewVersion():void
@@ -6694,7 +6641,6 @@
                                 needUpdate = updateFlag;
                                 topBar.updateButtonVisible(true);
                                 isCheckingUpdate = false;
-                                initReleaseNoteBox();
                             }
 
                             function downloadFailedEvent(e:Event):void

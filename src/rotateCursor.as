@@ -6,9 +6,9 @@
 	import flash.geom.ColorTransform;
 
 	public class rotateCursor extends Sprite {
-		public var rotateBG:SimpleButton = rotateBG;
-		public var rotateArrow:SimpleButton = rotateArrow;
-		public var rotateCircle:SimpleButton = rotateCircle;
+		public var rotateBG:SimpleButton;
+		public var rotateArrow:SimpleButton;
+		public var rotateCircle:SimpleButton;
 
 		public function changeUIColor(base:uint,op:uint):void
 		{

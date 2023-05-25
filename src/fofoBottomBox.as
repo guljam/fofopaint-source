@@ -5,7 +5,7 @@
 	import flash.geom.ColorTransform;
 	
 	public class fofoBottomBox extends Sprite {
-		public var fofoBottom:SimpleButton = fofoBottom;
+		public var fofoBottom:SimpleButton;
 		public var fixedScale:Number = 0.65;
 
 		public function flipImage(flag:Boolean):void

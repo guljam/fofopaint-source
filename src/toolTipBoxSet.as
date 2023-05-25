@@ -6,8 +6,8 @@
 	import flash.geom.ColorTransform;
 
 	public class toolTipBoxSet extends Sprite {
-		public var toolTipBoxBG:SimpleButton = toolTipBoxBG;
-		public var toolTipInfoText:TextField = toolTipInfoText;
+		public var toolTipBoxBG:SimpleButton;
+		public var toolTipInfoText:TextField;
 	
 		public function updateBGPosition(scaled:Boolean):void
 		{

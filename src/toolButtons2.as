@@ -8,23 +8,23 @@
 	import flash.display.DisplayObjectContainer;
 	
 	public class toolButtons2 extends Sprite {
-		public var toolPen:SimpleButton = toolPen;
-		public var toolFillPen:SimpleButton = toolFillPen;
-		public var toolErase:SimpleButton = toolErase;
-		public var toolUndo:SimpleButton = toolUndo;
-		public var toolRedo:SimpleButton = toolRedo;
-		public var toolSpuit:SimpleButton = toolSpuit;
-		public var toolMirror:SimpleButton = toolMirror;
-		public var toolLasso:SimpleButton = toolLasso;
-		public var toolMove:SimpleButton = toolMove;
-		public var toolRotate:SimpleButton = toolRotate;
-		public var toolLine:SimpleButton = toolLine;
-		public var toolTrace:SimpleButton = toolTrace;
-		public var toolZoom:SimpleButton = toolZoom;
-		public var toolBoxBG:SimpleButton = toolBoxBG;
-		public var toolBoxBG2:SimpleButton = toolBoxBG2;
-		public var toolSidebar:SimpleButton = toolSidebar;
-		public var toolInfo:TextField = toolInfo;
+		public var toolPen:SimpleButton;
+		public var toolFillPen:SimpleButton;
+		public var toolErase:SimpleButton;
+		public var toolUndo:SimpleButton;
+		public var toolRedo:SimpleButton;
+		public var toolSpuit:SimpleButton;
+		public var toolMirror:SimpleButton;
+		public var toolLasso:SimpleButton;
+		public var toolMove:SimpleButton;
+		public var toolRotate:SimpleButton;
+		public var toolLine:SimpleButton;
+		public var toolTrace:SimpleButton;
+		public var toolZoom:SimpleButton;
+		public var toolBoxBG:SimpleButton;
+		public var toolBoxBG2:SimpleButton;
+		public var toolSidebar:SimpleButton;
+		public var toolInfo:TextField;
 		public const fixedScale:Number = 0.85;
 		private var infoDataBackup:Array = [];
 

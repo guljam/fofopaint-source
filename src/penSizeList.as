@@ -5,13 +5,13 @@
 	import flash.display.SimpleButton;
 
 	public class penSizeList extends Sprite {
-		public var penListResizeButton:SimpleButton = penListResizeButton;
-		public var penListPanel:SimpleButton = penListPanel;
+		public var penListResizeButton:SimpleButton;
+		public var penListPanel:SimpleButton;
 
-		public var shapeCircle:SimpleButton = shapeCircle;
-		public var shapeRect:SimpleButton = shapeRect;
+		public var shapeCircle:SimpleButton;
+		public var shapeRect:SimpleButton;
 
-		public var opaBorder:SimpleButton = opaBorder;
+		public var opaBorder:SimpleButton;
 
 		public function penSizeList() {
 			// constructor code

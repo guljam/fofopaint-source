@@ -15,34 +15,34 @@
 		public const sharpLineButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();
 
-		public var sizeSelectCursor:SimpleButton = sizeSelectCursor;
-		public var rectSizeSet:SimpleButton = rectSizeSet;
-		public var circleSizeSet:SimpleButton = circleSizeSet;
-		public var shapeRect:SimpleButton = shapeRect;
-		public var shapeCircle:SimpleButton = shapeCircle;
-		public var penSizeGrid:SimpleButton = penSizeGrid;
+		public var sizeSelectCursor:SimpleButton;
+		public var rectSizeSet:SimpleButton;
+		public var circleSizeSet:SimpleButton;
+		public var shapeRect:SimpleButton;
+		public var shapeCircle:SimpleButton;
+		public var penSizeGrid:SimpleButton;
 
-		public var moreOptionsButton:SimpleButton = moreOptionsButton;
-		public var sharpLineONButton:SimpleButton = sharpLineONButton;
-		public var sharpLineOFFButton:SimpleButton = sharpLineOFFButton;
-		public var sharpLineText:SimpleButton = sharpLineText;
-		public var airBrushONButton:SimpleButton = airBrushONButton;
-		public var airBrushOFFButton:SimpleButton = airBrushOFFButton;
-		public var airBrushText:SimpleButton = airBrushText;
+		public var moreOptionsButton:SimpleButton;
+		public var sharpLineONButton:SimpleButton;
+		public var sharpLineOFFButton:SimpleButton;
+		public var sharpLineText:SimpleButton;
+		public var airBrushONButton:SimpleButton;
+		public var airBrushOFFButton:SimpleButton;
+		public var airBrushText:SimpleButton;
 
-		public var layer1SelectButton:SimpleButton = layer1SelectButton;
-		public var layer2SelectButton:SimpleButton = layer2SelectButton;
-		public var layer1Button:SimpleButton = layer1Button;
-		public var layer2Button:SimpleButton = layer2Button;
-		public var controlInfo:TextField = controlInfo;
-		public var penSmoothSliderSet:Sprite = penSmoothSliderSet;
+		public var layer1SelectButton:SimpleButton;
+		public var layer2SelectButton:SimpleButton;
+		public var layer1Button:SimpleButton;
+		public var layer2Button:SimpleButton;
+		public var controlInfo:TextField;
+		public var penSmoothSliderSet:Sprite;
 
-		public var layer1VisibleButton:SimpleButton = layer1VisibleButton;
-		public var layer1InvisibleButton:SimpleButton = layer1InvisibleButton;
-		public var layer2VisibleButton:SimpleButton = layer1VisibleButton;
-		public var layer2InvisibleButton:SimpleButton = layer2InvisibleButton;
-		public var layerSwapButton:SimpleButton = layerSwapButton;
-		public var layerMergeButton:SimpleButton = layerMergeButton;
+		public var layer1VisibleButton:SimpleButton;
+		public var layer1InvisibleButton:SimpleButton;
+		public var layer2VisibleButton:SimpleButton;
+		public var layer2InvisibleButton:SimpleButton;
+		public var layerSwapButton:SimpleButton;
+		public var layerMergeButton:SimpleButton;
 
 		private var layerVisibleBackup:Array;
 		private const blurFilter:BlurFilter = new BlurFilter(3, 3, 2);

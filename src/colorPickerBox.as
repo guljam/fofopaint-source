@@ -21,16 +21,16 @@
 		public var drawrPresetBox:Sprite = new Sprite();
 		public var tegakiPresetBox:Sprite = new Sprite();
 		public var mainPresetBox:Sprite = new Sprite();
-		public var colorPickerInfo:TextField = colorPickerInfo;
-		public var rgbInfo:TextField = rgbInfo;
-		public var drawrText:TextField = drawrText;
-		public var tegakiText:TextField = tegakiText;
-		public var colorHistoryText:TextField = colorHistoryText;
+		public var colorPickerInfo:TextField;
+		public var rgbInfo:TextField;
+		public var drawrText:TextField;
+		public var tegakiText:TextField;
+		public var colorHistoryText:TextField;
 		private const rgbInfoBG:Shape = new Shape();
 		public var rgbInfoBGColor:uint = 0;
 		public const colorHistoryBox:Sprite = new Sprite()//컬러 히스토리
-		public var penColorButton:SimpleButton = penColorButton;
-		public var paperColorButton:SimpleButton = paperColorButton;
+		public var penColorButton:SimpleButton;
+		public var paperColorButton:SimpleButton;
 		public var colorHistoryBoxBG:Sprite = new Sprite();
 
 		public var offsetX:Number = 0; //customcolor 박스 떨어진 위치
@@ -40,8 +40,8 @@
 		public var currentColorColor:uint = 0;
 		public var currentColorWidth:Number = 28;
 		private var lastCurrentShape:int = 0;
-		public var hueCursor:SimpleButton = hueCursor;
-		public var svCursor:SimpleButton = svCursor;
+		public var hueCursor:SimpleButton;
+		public var svCursor:SimpleButton;
 		// public var preset17:SimpleButton = preset17;
 
 		public const svBoxWidth:uint = 170; //sv가로 세로 사이즈

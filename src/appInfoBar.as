@@ -4,7 +4,7 @@
 	import flash.text.TextField;
 	
 	public class appInfoBar extends Sprite {
-		public var canvasInfo:TextField = canvasInfo;
+		public var canvasInfo:TextField;
 		private var canvasWidth:Number = 0;
 		private var canvasHeight:Number = 0;
 		private var canvasZoom:Number = 0;

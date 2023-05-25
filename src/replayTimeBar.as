@@ -12,11 +12,11 @@
 		public var replayDeleteBar:Sprite = new Sprite();
 		public var replayTotalBar:Sprite = new Sprite();
 		public var replayNowBar:Sprite = new Sprite();
-		public var playButton:SimpleButton = playButton;
-		public var pauseButton:SimpleButton = pauseButton;
-		public var replayPrev:SimpleButton = replayPrev;
-		public var replayNext:SimpleButton = replayNext;
-		public var frameInfo:TextField = frameInfo;
+		public var playButton:SimpleButton;
+		public var pauseButton:SimpleButton;
+		public var replayPrev:SimpleButton;
+		public var replayNext:SimpleButton;
+		public var frameInfo:TextField;
 		public var BARSIZE:Number = 35;
 		private var nowBarColorSave:uint = 0;
 
@@ -143,8 +143,6 @@
 			// constructor code
 			visible = false;
 
-			const floor:Function = Math.floor;
-
 			initReplayBox();
 
 			replayTotalBar.y = 5;
@@ -168,7 +166,7 @@
 			replayDeleteBar.visible = false;
 
 			initTotalBarX();
-			cacheAsBitmap = true;
+			cacheAsBitmap = false;
 		}
 	}
 }

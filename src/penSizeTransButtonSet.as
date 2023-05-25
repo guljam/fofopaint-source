@@ -5,18 +5,18 @@
 
 	public class penSizeTransButtonSet extends Sprite {
 
-		public var nSizeButton1:SimpleButton = nSizeButton1;
-		public var nSizeButton2:SimpleButton = nSizeButton2;
-		public var nSizeButton3:SimpleButton = nSizeButton3;
-		public var nSizeButton4:SimpleButton = nSizeButton4;
-		public var nSizeButton5:SimpleButton = nSizeButton5;
-		public var nSizeButton6:SimpleButton = nSizeButton6;
-		public var nSizeButton7:SimpleButton = nSizeButton7;
-		public var nSizeButton8:SimpleButton = nSizeButton8;
-		public var nSizeButton9:SimpleButton = nSizeButton9;
-		public var nSizeButton10:SimpleButton = nSizeButton10;
-		public var nSizeButton11:SimpleButton = nSizeButton11;
-		public var nSizeButton12:SimpleButton = nSizeButton12;
+		public var nSizeButton1:SimpleButton;
+		public var nSizeButton2:SimpleButton;
+		public var nSizeButton3:SimpleButton;
+		public var nSizeButton4:SimpleButton;
+		public var nSizeButton5:SimpleButton;
+		public var nSizeButton6:SimpleButton;
+		public var nSizeButton7:SimpleButton;
+		public var nSizeButton8:SimpleButton;
+		public var nSizeButton9:SimpleButton;
+		public var nSizeButton10:SimpleButton;
+		public var nSizeButton11:SimpleButton;
+		public var nSizeButton12:SimpleButton;
 
 		public function penSizeTransButtonSet() {
 			// constructor code

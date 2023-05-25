@@ -6,17 +6,17 @@
 	public class opaButtons extends Sprite{
 
 		public var alphaCursor:SimpleButton;
-		public var alphaButton0:SimpleButton = alphaButton0;
-		public var alphaButton1:SimpleButton = alphaButton1;
-		public var alphaButton2:SimpleButton = alphaButton2;
-		public var alphaButton3:SimpleButton = alphaButton3;
-		public var alphaButton4:SimpleButton = alphaButton4;
-		public var alphaButton5:SimpleButton = alphaButton5;
-		public var alphaButton6:SimpleButton = alphaButton6;
-		public var alphaButton7:SimpleButton = alphaButton7;
-		public var alphaButton8:SimpleButton = alphaButton8;
-		public var alphaButton9:SimpleButton = alphaButton9;
-		public var alphaBG:SimpleButton = alphaBG;
+		public var alphaButton0:SimpleButton;
+		public var alphaButton1:SimpleButton;
+		public var alphaButton2:SimpleButton;
+		public var alphaButton3:SimpleButton;
+		public var alphaButton4:SimpleButton;
+		public var alphaButton5:SimpleButton;
+		public var alphaButton6:SimpleButton;
+		public var alphaButton7:SimpleButton;
+		public var alphaButton8:SimpleButton;
+		public var alphaButton9:SimpleButton;
+		public var alphaBG:SimpleButton;
 
 		public function opaButtons() {
 			// constructor code

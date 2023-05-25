@@ -10,7 +10,7 @@
 
 	public class previewPanel extends Sprite {		
 		public var prevCursor:Sprite = new Sprite();
-		private var prevInfo:TextField = prevInfo;
+		private var prevInfo:TextField;
 		private var prevStageBG:Sprite = new Sprite();
 		public var prevBitmapBG:Sprite = new Sprite();
 		public var prevBitmap:Bitmap = new Bitmap();

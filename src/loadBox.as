@@ -6,12 +6,11 @@
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObjectContainer;
-	import flash.display.Shape;
 	
 	public class loadBox extends Sprite {
-		public var dragDropFileButton:SimpleButton = dragDropFileButton;
-		public var dragDropRefButton:SimpleButton = dragDropRefButton;
-		public var dragDropCancelButton:SimpleButton = dragDropCancelButton;
+		public var dragDropFileButton:SimpleButton;
+		public var dragDropRefButton:SimpleButton;
+		public var dragDropCancelButton:SimpleButton;
 		public var dragDropFileBG:Sprite = new Sprite();
 
 		public function changeUIColor(arr:Array):void

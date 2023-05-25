@@ -21,46 +21,46 @@
 
 		//버튼 추가시 해야할거
 		//change uicolor, mouse down state 추가, handcursor false로 하기 button order추가, 모드에 속하는거 에 추가
-		public var captureButton:SimpleButton = captureButton;
-		public var repCaptureButton:SimpleButton = repCaptureButton;
-		public var capRotate:SimpleButton = capRotate;
-		public var capFlip:SimpleButton = capFlip;
-		public var capFull:SimpleButton = capFull;
-		public var capOff:SimpleButton = capOff;
-		public var capTrans:SimpleButton = capTrans;
-		public var capClipBoard:SimpleButton = capClipBoard;
-		public var saveButton:SimpleButton = saveButton;
-		public var repSaveButton:SimpleButton = repSaveButton;
-		public var loadButton:SimpleButton = loadButton;
-		public var repLoadButton:SimpleButton = repLoadButton;
-		public var clipButton:SimpleButton = clipButton;
-		public var clearButton:SimpleButton = clearButton;
-		public var gridButton:SimpleButton = gridButton;
-		public var replayModeButton:SimpleButton = replayModeButton;
-		public var drawModeButton:SimpleButton = drawModeButton;
-		public var topBarColorButton:SimpleButton = topBarColorButton;
-		public var dpiButton:SimpleButton = dpiButton;
-		public var capLayer1VisibleButton:SimpleButton = capLayer1VisibleButton;
-		public var capLayer2VisibleButton:SimpleButton = capLayer2VisibleButton;
-		public var sideBarPositionButton:SimpleButton = sideBarPositionButton;
-		public var sideBarPositionButton2:SimpleButton = sideBarPositionButton2;
-		public var sideBarOFFButton:SimpleButton = sideBarOFFButton;
-		public var sideBarOFFButton2:SimpleButton = sideBarOFFButton2;
-		public var sideBarONButton:SimpleButton = sideBarONButton;
-		public var sideBarONButton2:SimpleButton = sideBarONButton2;
-		public var cutPrevDataButton:SimpleButton = cutPrevDataButton;
-		public var superUndoButton:SimpleButton = superUndoButton;
-		public var reRecordingButton:SimpleButton = reRecordingButton;
-		public var newWindowButton:SimpleButton = newWindowButton;
-		public var newWindowCloseButton:SimpleButton = newWindowCloseButton;
-		public var aboutButton:SimpleButton = aboutButton;
-		public var updateButton:SimpleButton = updateButton;
-		public var replayZoomInButton:SimpleButton = replayZoomInButton;
-		public var replayZoomOutButton:SimpleButton = replayZoomOutButton;
-		public var replayFitToWindowButton:SimpleButton = replayFitToWindowButton;
-		public var replayRotateButton:SimpleButton = replayRotateButton;
-		public var topMenuInfo:TextField = topMenuInfo;
-		public var timer:TextField = timer;
+		public var captureButton:SimpleButton;
+		public var repCaptureButton:SimpleButton;
+		public var capRotate:SimpleButton;
+		public var capFlip:SimpleButton;
+		public var capFull:SimpleButton;
+		public var capOff:SimpleButton;
+		public var capTrans:SimpleButton;
+		public var capClipBoard:SimpleButton;
+		public var saveButton:SimpleButton;
+		public var repSaveButton:SimpleButton;
+		public var loadButton:SimpleButton;
+		public var repLoadButton:SimpleButton;
+		public var clipButton:SimpleButton;
+		public var clearButton:SimpleButton;
+		public var gridButton:SimpleButton;
+		public var replayModeButton:SimpleButton;
+		public var drawModeButton:SimpleButton;
+		public var topBarColorButton:SimpleButton;
+		public var dpiButton:SimpleButton;
+		public var capLayer1VisibleButton:SimpleButton;
+		public var capLayer2VisibleButton:SimpleButton;
+		public var sideBarPositionButton:SimpleButton;
+		public var sideBarPositionButton2:SimpleButton;
+		public var sideBarOFFButton:SimpleButton;
+		public var sideBarOFFButton2:SimpleButton;
+		public var sideBarONButton:SimpleButton;
+		public var sideBarONButton2:SimpleButton;
+		public var cutPrevDataButton:SimpleButton;
+		public var superUndoButton:SimpleButton;
+		public var reRecordingButton:SimpleButton;
+		public var newWindowButton:SimpleButton;
+		public var newWindowCloseButton:SimpleButton;
+		public var aboutButton:SimpleButton;
+		public var updateButton:SimpleButton;
+		public var replayZoomInButton:SimpleButton;
+		public var replayZoomOutButton:SimpleButton;
+		public var replayFitToWindowButton:SimpleButton;
+		public var replayRotateButton:SimpleButton;
+		public var topMenuInfo:TextField;
+		public var timer:TextField;
 
 		private var buttonOrder:Array = [];
 		private var drawModeButtons:Array = [];
@@ -72,9 +72,9 @@
 		private var hintOKBGColor:uint = 0;
 		private var hintFontColor:uint = 0;
 
-		public var replaySpeedBarWrapper:SimpleButton = replaySpeedBarWrapper;
-		public var replaySpeedMoveButton:SimpleButton = replaySpeedMoveButton;
-		public var replaySpeedBar:SimpleButton = replaySpeedBar;
+		public var replaySpeedBarWrapper:SimpleButton;
+		public var replaySpeedMoveButton:SimpleButton;
+		public var replaySpeedBar:SimpleButton;
 		public var replaySpeedSet:Sprite = new Sprite();
 
 		private var isHintLocked:Boolean = false;
@@ -86,7 +86,7 @@
 
 		public function getHintBGHeight():Number
 		{
-			return topbarInfoBG.height;
+			return topbarInfoBG.height*scaleX;
 		}
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
@@ -661,7 +661,7 @@
 			addChild(topbarInfoBG);
 			setChildIndex(topbarBG,0);
 			setChildIndex(topMenuInfo,numChildren-1);
-			cacheAsBitmap = true;
+			cacheAsBitmap = false;
 
 			miniTimer = new fofoTimer(stage);
 		}

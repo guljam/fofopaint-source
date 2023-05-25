@@ -6,15 +6,15 @@
 
 	public class aboutBox extends Sprite {
 
-		public var versionInfo:TextField = versionInfo;
-		public var appResetButton:TextField = appResetButton;
-		public var aboutTwitterLink:SimpleButton = aboutTwitterLink;
-		public var aboutHomePageLink:SimpleButton = aboutHomePageLink;
-		public var logo1:SimpleButton = logo1;
-		public var logo2:SimpleButton = logo2;
-		public var logo3:SimpleButton = logo3;
-		public var logo4:SimpleButton = logo4;
-		public var logo5:SimpleButton = logo5;
+		public var versionInfo:TextField;
+		public var appResetButton:TextField;
+		public var aboutTwitterLink:SimpleButton;
+		public var aboutHomePageLink:SimpleButton;
+		public var logo1:SimpleButton;
+		public var logo2:SimpleButton;
+		public var logo3:SimpleButton;
+		public var logo4:SimpleButton;
+		public var logo5:SimpleButton;
 		private var imageIndex:int = 0;
 
 		public function randomLogo():void

@@ -8,28 +8,28 @@
 	import flash.display.DisplayObjectContainer;
 
 	public class traceButtons extends Sprite {
-		public var traceOpaButton:SimpleButton = traceOpaButton;
-		public var traceOpaBar:SimpleButton = traceOpaBar;
+		public var traceOpaButton:SimpleButton;
+		public var traceOpaBar:SimpleButton;
 
-		public var traceButtonWrapper:SimpleButton = traceButtonWrapper;
+		public var traceButtonWrapper:SimpleButton;
 
-		public var traceMenuMoveButton:SimpleButton = traceMenuMoveButton;
-		public var traceMenuBG:SimpleButton = traceMenuBG;
-		public var traceMenuBG2:SimpleButton = traceMenuBG2;
+		public var traceMenuMoveButton:SimpleButton;
+		public var traceMenuBG:SimpleButton;
+		public var traceMenuBG2:SimpleButton;
 
-		public var traceImageButton:SimpleButton = traceImageButton;
-		public var traceClipButton:SimpleButton = traceClipButton;
-		public var traceLoadButton:SimpleButton = traceLoadButton;
+		public var traceImageButton:SimpleButton;
+		public var traceClipButton:SimpleButton;
+		public var traceLoadButton:SimpleButton;
 
-		public var traceMoveButton:SimpleButton = traceMoveButton;
-		public var traceMirrorButton:SimpleButton = traceMirrorButton;
-		public var traceResizeButton:SimpleButton = traceResizeButton;
-		public var traceRotateButton:SimpleButton = traceRotateButton;
-		public var traceCancelButton:SimpleButton = traceCancelButton;
-		public var traceVisibleOFFButton:SimpleButton = traceVisibleOFFButton;
-		public var traceVisibleONButton:SimpleButton = traceVisibleONButton;
-		public var traceDeleteButton:SimpleButton = traceDeleteButton;
-		public var traceInfo:TextField = traceInfo;
+		public var traceMoveButton:SimpleButton;
+		public var traceMirrorButton:SimpleButton;
+		public var traceResizeButton:SimpleButton;
+		public var traceRotateButton:SimpleButton;
+		public var traceCancelButton:SimpleButton;
+		public var traceVisibleOFFButton:SimpleButton;
+		public var traceVisibleONButton:SimpleButton;
+		public var traceDeleteButton:SimpleButton;
+		public var traceInfo:TextField;
 		private var traceInfoBackup:Array = [];
 		public const fixedScale:Number = 0.875;
 

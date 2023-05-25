@@ -10,24 +10,24 @@
 
 	public class lassoButtons extends Sprite
 	{
-		public var lassoMenuMoveButton:SimpleButton = lassoMenuBG;
-		public var lassoMenuBG:SimpleButton = lassoMenuBG;
-		public var lassoMenuBG2:SimpleButton = lassoMenuBG2;
-		public var lassoRotate:SimpleButton = lassoRotate;
-		public var lassoResize:SimpleButton = lassoResize;
-		public var lassoMirror:SimpleButton = lassoMirror;
-		public var lassoOK:SimpleButton = lassoOK;
-		public var lassoCancel:SimpleButton = lassoCancel;
-		public var lassoCopy:SimpleButton = lassoCopy;
-		public var lassoInfo:TextField = lassoInfo;
-		public var lassoCHand:SimpleButton = lassoCHand;
-		public var lassoCZoom:SimpleButton = lassoCZoom;
-		public var lassoCRotate:SimpleButton = lassoCRotate;
-		public var lassoTrace:SimpleButton = lassoTrace;
-		public var lasso1pxLeft:SimpleButton = lasso1pxLeft;
-		public var lasso1pxRight:SimpleButton = lasso1pxRight;
-		public var lasso1pxDown:SimpleButton = lasso1pxDown;
-		public var lasso1pxUp:SimpleButton = lasso1pxUp;
+		public var lassoMenuMoveButton:SimpleButton;
+		public var lassoMenuBG:SimpleButton;
+		public var lassoMenuBG2:SimpleButton;
+		public var lassoRotate:SimpleButton;
+		public var lassoResize:SimpleButton;
+		public var lassoMirror:SimpleButton;
+		public var lassoOK:SimpleButton;
+		public var lassoCancel:SimpleButton;
+		public var lassoCopy:SimpleButton;
+		public var lassoInfo:TextField;
+		public var lassoCHand:SimpleButton;
+		public var lassoCZoom:SimpleButton;
+		public var lassoCRotate:SimpleButton;
+		public var lassoTrace:SimpleButton;
+		public var lasso1pxLeft:SimpleButton;
+		public var lasso1pxRight:SimpleButton;
+		public var lasso1pxDown:SimpleButton;
+		public var lasso1pxUp:SimpleButton;
 		public const fixedScale:Number = 0.875;
 
 		private var lassoInfoBackup:Array = [];
