@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.11;
+        private const APP_VERSION:Number = 18.12;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -17087,6 +17087,8 @@
                     {
                         setMoreOptionsButton(false);
                         setsharpLineButton(!sharpLineON);
+                        if(sharpLineON) setToolTipTempON("Sharp line ON");
+                        else setToolTipTempON("Sharp line OFF");
                     }
                 }
                 return true;
@@ -17098,6 +17100,8 @@
                     airBrushON = !airBrushON;
                     setMoreOptionsButton(false);
                     setAirBrushCheckBox(airBrushON,true);
+                    if(airBrushON) setToolTipTempON("Air brush ON");
+                    else setToolTipTempON("Air brush OFF");
                 }
                 return true;
 
