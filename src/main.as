@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.10;
+        private const APP_VERSION:Number = 18.11;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -674,6 +674,7 @@
 			{
 				controlBox.moreOptionsOFF();
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,moreOptionsOFFMouseMoveEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,moreOptionsOFFMouseMoveEvent);
 			}
 		}   
 
@@ -1409,6 +1410,24 @@
             {
                 rDataBuffer.push(["swap"]);
                 addUndoData();
+            }
+        }
+
+        private function setMoreOptionsButton(mouseMoveEventFlag:Boolean):void
+        {
+            trace('controlBox.isMoreOptionsON()',controlBox.isMoreOptionsON());
+            if(controlBox.isMoreOptionsON() === false)
+            {
+                controlBox.moreOptionsON();
+
+                if(mouseMoveEventFlag)
+                {
+                    stage.addEventListener(MouseEvent.MOUSE_MOVE,moreOptionsOFFMouseMoveEvent);
+                }
+                else
+                {
+                    stage.addEventListener(MouseEvent.MOUSE_DOWN,moreOptionsOFFMouseMoveEvent);
+                }
             }
         }
 
@@ -5377,14 +5396,14 @@
                 case "sharpLineOFFButton":
                 case "sharpLineONButton":
                 case "sharpLineText":
-                    str = "Sharp line";
+                    str = "Sharp line (3, 8)";
                 break;
 
                 case "airBrushButtonWrapper":
                 case "airBrushOFFButton":
                 case "airBrushONButton":
                 case "airBrushText":
-                    str = "Air brush";
+                    str = "Air brush (4, 7)";
                 break;
 
                 case "moreOptionsButton":
@@ -17060,6 +17079,28 @@
                 }
                 return true;
 
+                case KEY.n3:
+                case KEY.n8:
+                {
+                    nowKeyNotKeyUp = keyCode;
+                    if(controlBox.sharpLineButtonWrapper.alpha === 1.0)
+                    {
+                        setMoreOptionsButton(false);
+                        setsharpLineButton(!sharpLineON);
+                    }
+                }
+                return true;
+
+                case KEY.n4:
+                case KEY.n7:
+                {
+                    nowKeyNotKeyUp = keyCode;
+                    airBrushON = !airBrushON;
+                    setMoreOptionsButton(false);
+                    setAirBrushCheckBox(airBrushON,true);
+                }
+                return true;
+
                 case KEY.x:
                 case KEY.comma:
                     nowKeyNotKeyUp = keyCode;
@@ -18269,8 +18310,7 @@
 
                 case "moreOptionsButton":
                 {
-                    controlBox.moreOptionsON();
-                    stage.addEventListener(MouseEvent.MOUSE_MOVE,moreOptionsOFFMouseMoveEvent);
+                    setMoreOptionsButton(true);
                 }
                 return true;
 

@@ -87,6 +87,11 @@
 			moreOptionsBox.visible = true;
 		}
 
+		public function isMoreOptionsON():Boolean
+		{
+			return moreOptionsBox.visible;
+		}
+
 		public function blurShapeSetON():void
 		{
 			rectSizeSet.filters = [blurFilter];
