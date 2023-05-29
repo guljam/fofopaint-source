@@ -12,6 +12,6 @@ cd E:\2020FlashPaint
 git add versionInfo.txt
 git commit --file=versionInfo.txt
 git add releasenote.txt
-git commit --file=releasenote.txt
+git commit --file=versionInfo.txt
 git push
 gh release upload update2 E:\fofopaint-source\bin\fofoPaint.air --clobber
