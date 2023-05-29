@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.13;
+        private const APP_VERSION:Number = 18.14;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8051,9 +8051,10 @@
             {
                 captureZoomed = 1/z;
                 xReg.rotation = 90*_captureRotated;
+                trace('xReg.rotation',xReg.rotation);
             }
 
-            if(!manualFlag)
+            if(manualFlag)
             {
                 if(xReg.rotation !== 0) xReg.rotation = 0;
             }
