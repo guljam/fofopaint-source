@@ -5,12 +5,10 @@ Powershell.exe -noprofile -executionpolicy bypass -file "_make_air_file.ps1"
 
 git add .
 git commit --file=E:\2020FlashPaint\versionInfo.txt
-git commit --file=E:\2020FlashPaint\releasenote.txt
 git push
 
 cd E:\2020FlashPaint
 git add versionInfo.txt
-git commit --file=versionInfo.txt
 git add releasenote.txt
 git commit --file=versionInfo.txt
 git push
