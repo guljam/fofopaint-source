@@ -46,8 +46,11 @@
 			var arr:Array = [(isCaptureImage) ? "encodePNGCaptureDone" : "encodePNGSaveDone",ba];
 
 			backToMain.send(arr);
+			ba.length = 0;
 			bmpd.dispose();
 			bmpd2.dispose();
+			arr.length = 0;
+			arr = null;
 		}
 
 		private function compressUndoData(msg:Array):void
@@ -82,13 +85,18 @@
 		{
 			var msg:* = mainToBack.receive();
 
-			if(msg as Array)
+			if(msg as ByteArray)
 			{
-				const command:String = msg[0];
-				if(command === "compress_ReplayData") compressReplayData(msg);
-				else if(command === "compress_UndoData") compressUndoData(msg);
-				else if(command === "encodePNGCapture") encodePNG(msg,true);
-				else if(command === "encodePNGSave") encodePNG(msg,false);
+				const arr:Array = msg.readObject();
+				const command:String = arr[0];
+
+				if(command === "compress_ReplayData") compressReplayData(arr);
+				else if(command === "compress_UndoData") compressUndoData(arr);
+				else if(command === "encodePNGCapture") encodePNG(arr,true);
+				else if(command === "encodePNGSave") encodePNG(arr,false);
+
+				msg.length = 0;
+				msg.position = 0;
 			}
 		}
 	}

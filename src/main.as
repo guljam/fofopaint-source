@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.15;
+        private const APP_VERSION:Number = 18.16;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1758,7 +1758,7 @@
         {
             var msg:* = backToMain.receive();
 
-            if(msg as Object)
+            if(msg as Array)
             {
                 workerDataReceiveCount++;
 
@@ -1815,7 +1815,6 @@
                             workerWaitCount = 0;
                             workerState = WORKER_STATE_RUNNING;
                             stage.removeEventListener(Event.ENTER_FRAME,waitWorkerReady);
-
                             while(workerFunctionsBeforeStart.length)
                             {
                                 workerFunctionsBeforeStart[0]();
@@ -2136,6 +2135,7 @@
                 return true;
 
                 case KEY.g:
+                startGC();
                     setHoldKeyRepeat(shortCutPenAlpha,true);
                 return true;
 
@@ -7234,7 +7234,8 @@
 
                         case "replayFitToWindowButton":
                         {
-                            if(!rFitZoomedON) setReplayFitToWindowButton();
+                            if(rFitZoomedON) resetZoomReplayMode();
+                            else setReplayFitToWindowButton();
                         }
                         break;
                     }
@@ -7859,9 +7860,9 @@
 
                     case "drawModeButton": str = "Draw mode (f1, f7)"; break;
                     case "replayModeButton": str = "Replay mode (f1, f7)"; break;
-                    case "replayZoomInButton": str = "Zoom in (f5) Reset (right-click)"; break;
-                    case "replayZoomOutButton": str = "Zoom out (f6) Reset (right-click)"; break;
-                    case "replayFitToWindowButton": str = "Fit canvas to window (right-click on canvas)"; break;
+                    case "replayZoomInButton": str = "Zoom in (f5), Reset (right-click)"; break;
+                    case "replayZoomOutButton": str = "Zoom out (f6), Reset (right-click)"; break;
+                    case "replayFitToWindowButton": str = "Fit canvas to window ON/OFF (right-click on canvas)"; break;
                     case "replayRotateButton": str = "Rotate ("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
 
                     default:
@@ -8051,7 +8052,6 @@
             {
                 captureZoomed = 1/z;
                 xReg.rotation = 90*_captureRotated;
-                trace('xReg.rotation',xReg.rotation);
             }
 
             if(manualFlag)
@@ -10780,6 +10780,7 @@
             setStartWorker(function():void
             {
                 workerDataSendCount++;
+                const sendBA:ByteArray = new ByteArray();
                 var ba:ByteArray = new ByteArray();
                 bmpd.copyPixelsToByteArray(new Rectangle(0,0,bmpd.width,bmpd.height),ba);
                 var arr:Array = [(isCaptureImage) ? "encodePNGCapture" : "encodePNGSave"
@@ -10788,8 +10789,12 @@
                                 ,bmpd.height
                                 ,bg
                                 ,isTransBG];
-                mainToBack.send(arr);
-                ba.clear();
+                sendBA.shareable = true;
+                sendBA.writeObject(arr);
+                mainToBack.send(sendBA);
+
+                ba.length = 0;
+                ba = null;
                 bmpd.dispose();
                 bmpd.dispose();
                 arr = null;
@@ -10802,8 +10807,13 @@
             {
                 workerDataSendCount++;
                 var arr:Array = ["compress_ReplayData",data];
-                mainToBack.send(arr);
-                data.clear();
+                var sendBA:ByteArray = new ByteArray();
+
+                sendBA.shareable = true;
+                sendBA.writeObject(arr);
+                mainToBack.send(sendBA);
+                data.length = 0;
+                arr.length = 0;
                 arr = null;
             });
         }
@@ -10814,9 +10824,14 @@
             {
                 workerDataSendCount++;
                 var arr:Array = ["compress_UndoData",data,data1];
-                mainToBack.send(arr);
-                data.clear();
-                data1.clear();
+                var sendBA:ByteArray = new ByteArray();
+
+                sendBA.shareable = true;
+                sendBA.writeObject(arr);
+                mainToBack.send(sendBA);
+                data.length = 0;
+                data1.length = 0;
+                arr.length = 0;
                 arr = null;
             });
         }
@@ -10838,7 +10853,9 @@
 
                 filePath = new File(newPath);
                 fs = new FileStream();
-               
+
+                sendData = new ByteArray();
+                sendData.shareable = true;
                 receiveCount = 0;
             }
 
@@ -10908,8 +10925,6 @@
                         }
                         fs.close();
 
-                        sendData = new ByteArray();
-                        sendData.shareable = true;
                         imageRect = new Rectangle(0,0,rFirstImage.width,rFirstImage.height);
                         rFirstImage.copyPixelsToByteArray(imageRect,sendData);
 
@@ -15840,8 +15855,10 @@
                                         }
                                         else if(workerUndoData2.length === 0 && workerUndoData.length === 0)
                                         {
-                                            workerUndoData2 = null;
+                                            workerUndoData.length = 0;
+                                            workerUndoData2.length = 0;
                                             workerUndoData = null;
+                                            workerUndoData2 = null;
                                             return false;
                                         }
                                         return true;
@@ -18148,13 +18165,11 @@
         private function setFitZoomedOFF():void
         {
             rFitZoomedON = false;
-            topBar.replayFitToWindowButton.alpha = 1.0;
         }
 
         private function setReplayFitToWindowButton():void
         {
             rFitZoomedON = true;
-            topBar.replayFitToWindowButton.alpha = BUTTON_OFF_ALPHA;
             fitCanvasToWindowManualReplayMode();
         }
 
@@ -18176,7 +18191,8 @@
 
             if(targetName.indexOf("canvas") !== -1 || targetName === "stageBG")
             {
-                if(!rFitZoomedON) setReplayFitToWindowButton();
+                if(rFitZoomedON) resetZoomReplayMode();
+                else setReplayFitToWindowButton();
                 return;
             }
 
