@@ -1780,6 +1780,10 @@
                 {
                     workerPNGSaveData = msg[1];
                 }
+                else if(command === "testDone")
+                {
+                    trace('완료됨',msg[1].length);
+                }
 
                 if(!hasTimer("workerStopTimer"))
                 {

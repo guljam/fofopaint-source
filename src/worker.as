@@ -14,7 +14,8 @@
 		private var bgWorker:Worker;
 		private var mainToBack:MessageChannel;
 		private var backToMain:MessageChannel;
-		private var nowCommand:String;
+		private var command:String;
+		private var args:Array;
 
 		public function worker()
 		{
