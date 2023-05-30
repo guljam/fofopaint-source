@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.14;
+        private const APP_VERSION:Number = 18.15;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -10792,6 +10792,7 @@
                 ba.clear();
                 bmpd.dispose();
                 bmpd.dispose();
+                arr = null;
             });
         }
 
@@ -10803,6 +10804,7 @@
                 var arr:Array = ["compress_ReplayData",data];
                 mainToBack.send(arr);
                 data.clear();
+                arr = null;
             });
         }
 
@@ -10811,10 +10813,11 @@
             setStartWorker(function():void
             {
                 workerDataSendCount++;
-                var arr:Array = ["aaa",data,data1];
+                var arr:Array = ["compress_UndoData",data,data1];
                 mainToBack.send(arr);
                 data.clear();
                 data1.clear();
+                arr = null;
             });
         }
 

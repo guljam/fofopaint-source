@@ -14,6 +14,7 @@
 		private var bgWorker:Worker;
 		private var mainToBack:MessageChannel;
 		private var backToMain:MessageChannel;
+		private var nowCommand:String;
 
 		public function worker()
 		{
@@ -44,10 +45,8 @@
 			var arr:Array = [(isCaptureImage) ? "encodePNGCaptureDone" : "encodePNGSaveDone",ba];
 
 			backToMain.send(arr);
-			// bmpd.dispose();
-			// bmpd2.dispose();
-			// ba = null;
-			// arr = null;
+			bmpd.dispose();
+			bmpd2.dispose();
 		}
 
 		private function compressUndoData(msg:Array):void
@@ -62,11 +61,8 @@
 
 			backToMain.send(arr);
 
-			// ba.clear();
-			// ba1.clear();
-			// ba = null;
-			// ba1 = null;
-			// arr = null;
+			ba.clear();
+			ba1.clear();
 		}
 
 		private function compressReplayData(msg:Array):void
@@ -78,8 +74,7 @@
 			var arr:Array = ["compress_ReplayDataDone",ba];
 			backToMain.send(arr);
 
-			// ba.clear();
-			// ba = null;
+			ba.clear();
 		}
 
 		private function onFromMain(event:Event):void
@@ -94,7 +89,6 @@
 				else if(command === "encodePNGCapture") encodePNG(msg,true);
 				else if(command === "encodePNGSave") encodePNG(msg,false);
 			}
-			msg = null;
 		}
 	}
 }
