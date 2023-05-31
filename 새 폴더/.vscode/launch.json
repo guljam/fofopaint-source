@@ -1,0 +1,15 @@
+{
+	// Use IntelliSense to learn about possible SWF debug attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.1",
+	"configurations": [
+		{
+			"name": "fofo paint debugging",
+			"type" : "swf",
+			"request": "launch",
+			"runtimeExecutable":"D:\\AIRSDK_Windows_33.1.1.935\\AIRSDK_Windows\\bin\\adl.exe",
+			"args": ["fofoPaint-app.xml -nodebug"],
+		}
+	]
+}

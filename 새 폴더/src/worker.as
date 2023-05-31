@@ -8,27 +8,21 @@
 	import flash.display.BitmapData;
 	import flash.display.PNGEncoderOptions;
 	import flash.geom.Rectangle;
-	import flash.filesystem.File;
-	import flash.filesystem.FileStream;
-	import flash.filesystem.FileMode;
 
-	public class worker2 extends Sprite
+	public class worker extends Sprite
 	{
 		private var bgWorker:Worker;
 		private var mainToBack:MessageChannel;
 		private var backToMain:MessageChannel;
-		private var workerSharedBA:ByteArray;
-		private var file:File = File.applicationStorageDirectory.resolvePath("test");
-		private var fs:FileStream = new FileStream();
+		private var command:String;
+		private var args:Array;
 
-		public function worker2()
+		public function worker()
 		{
 			bgWorker = Worker.current;
 			mainToBack = bgWorker.getSharedProperty("mainToBack");
 			mainToBack.addEventListener(Event.CHANNEL_MESSAGE, onFromMain);
 			backToMain = bgWorker.getSharedProperty("backToMain");
-			workerSharedBA = Worker.current.getSharedProperty("workerSharedBA");
-			trace('hello workder2');
 		}
 
 		private function encodePNG(msg:Array,isCaptureImage:Boolean):void
@@ -52,9 +46,10 @@
 			var arr:Array = [(isCaptureImage) ? "encodePNGCaptureDone" : "encodePNGSaveDone",ba];
 
 			backToMain.send(arr);
+			ba.length = 0;
 			bmpd.dispose();
 			bmpd2.dispose();
-			ba = null;
+			arr.length = 0;
 			arr = null;
 		}
 
@@ -72,43 +67,37 @@
 
 			ba.clear();
 			ba1.clear();
-			ba = null;
-			ba1 = null;
-			arr = null;
 		}
 
 		private function compressReplayData(msg:Array):void
 		{
 			var ba:ByteArray = msg[1];
-			workerSharedBA.writeUTFBytes("hello");
-			Worker.current.setSharedProperty("workerSharedBA", workerSharedBA);
+
 			ba.compress();
 
 			var arr:Array = ["compress_ReplayDataDone",ba];
 			backToMain.send(arr);
 
 			ba.clear();
-			ba = null;
-
-			fs.open(file,FileMode.WRITE);
-			fs.writeByte(77);
-			fs.writeByte(55);
-			fs.close();
 		}
 
 		private function onFromMain(event:Event):void
 		{
 			var msg:* = mainToBack.receive();
 
-			if(msg as Array)
+			if(msg as ByteArray)
 			{
-				const command:String = msg[0];
-				if(command === "compress_ReplayData") compressReplayData(msg);
-				else if(command === "compress_UndoData") compressUndoData(msg);
-				else if(command === "encodePNGCapture") encodePNG(msg,true);
-				else if(command === "encodePNGSave") encodePNG(msg,false);
+				const arr:Array = msg.readObject();
+				const command:String = arr[0];
+
+				if(command === "compress_ReplayData") compressReplayData(arr);
+				else if(command === "compress_UndoData") compressUndoData(arr);
+				else if(command === "encodePNGCapture") encodePNG(arr,true);
+				else if(command === "encodePNGSave") encodePNG(arr,false);
+
+				msg.length = 0;
+				msg.position = 0;
 			}
-			msg = null;
 		}
 	}
 }

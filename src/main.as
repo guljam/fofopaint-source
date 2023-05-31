@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.17;
+        private const APP_VERSION:Number = 18.20;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -172,7 +172,7 @@
                     ,BUTTON_OFF_ALPHA:Number = 0.15
 
                     ,REPLAY_FASTEST_LIMIT_TIME:Number = 60
-                    ,IMG_CACHE_INTERVAL:uint = 10000
+                    ,REPLAY_MAKE_JUMPIMAGE_COUNT:uint = 10000
                     ,REPLAY_MAX_SPEED:Number = 200
 
                     ,GRID_GAP:uint = 30
@@ -380,6 +380,12 @@
                     ,saveFilePath:String = saveFileName//파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
                     ,saveContinue:Boolean = false//한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
                     ,clearDataButtonCount:uint = 0 //리플레이 취소 카운터
+                    ,rImgData:ByteArray = new ByteArray()
+                    ,rImgData1:ByteArray = new ByteArray()
+                    ,lastImgData:ByteArray = new ByteArray()
+                    ,lastImgData1:ByteArray = new ByteArray()
+                    ,traceImgData:ByteArray = new ByteArray()
+                    ,replayDataBytes:ByteArray = new ByteArray()
 
         //컬러 히스토리 관련 변수
                     ,colorHistoryList:Array = [0xFFFFFF,0x000000]
@@ -535,7 +541,7 @@
                     ,resizeCanvas:Object = cSetCanvasSize()
                     ,setCanvasSize:Function = resizeCanvas.start
                     ,startGC:Function = cStartGC()
-                    ,writeReplayFile:Object = cWriteReplayFile()
+                    // ,writeReplayFile:Object = cWriteReplayFile()
 
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
@@ -575,7 +581,7 @@
                     ,isInSaveProgressOFFDelayTimer:int = 0
                     ,workerPNGSaveData:ByteArray = null
                     ,workerPNGCaptureFileData:Array = null
-                    ,workerPNGCaptureData:Array = null
+                    ,workerPNGCaptureData:Vector.<ByteArray>
                     ,workerUndoData:Array = null
                     ,workerUndoData2:Array = null
                     ,workerSWF:ByteArray = null
@@ -584,6 +590,8 @@
                     ,workerState:int = WORKER_STATE_STOPPED
                     ,workerWaitCount:int = 0 //워커 시작하고나서 약간 대기 시켜줘야함
                     ,workerFunctionsBeforeStart:Array = []
+                    ,workerReplaySendBA:ByteArray = new ByteArray()
+                    ,workerReplaySendBATemp:ByteArray = new ByteArray()
 
         //새창 관련 변수
                     ,canvasWindowInfo:Array = [null,null,400,400] //x y 너비 높이
@@ -1757,34 +1765,42 @@
         private function onFromWorker(e:Event):void
         {
             var msg:* = backToMain.receive();
+            const command:String = msg as String;
 
-            if(msg as Array)
+            if(command === "encodePNGCaptureDone")
             {
                 workerDataReceiveCount++;
+                var ba:ByteArray = backToMain.receive(true);
+                workerPNGCaptureData.push(ba);
+            }
+            else if(command === "encodePNGSaveDone")
+            {
+                workerDataReceiveCount++;
+                var ba1:ByteArray = backToMain.receive(true);
+                workerPNGSaveData = ba1;
+            }
+            else if(command === "compress_ReplayDataDone")
+            {
+                workerDataReceiveCount++;
+                writeReplayFile(backToMain.receive(true)
+                                ,backToMain.receive(true)
+                                ,backToMain.receive(true)
+                                ,backToMain.receive(true)
+                                ,backToMain.receive(true)
+                                ,backToMain.receive(true)
+                                );
+            }
+            else if(command === "compress_UndoDataDone")
+            {
+                workerDataReceiveCount++;
+                const ba2:ByteArray = backToMain.receive(true);
+                const ba3:ByteArray = backToMain.receive(true);
+                workerUndoData.push([ba2,ba3]);
+            }
 
-                const command:String = msg[0];
-
-                if(command === "compress_UndoDataDone")
-                {
-                    workerUndoData.push([msg[1],msg[2]]);
-                }
-                else if(command === "compress_ReplayDataDone")
-                {
-                    writeReplayFile.write(msg[1]);
-                }
-                else if(command === "encodePNGCaptureDone")
-                {
-                    workerPNGCaptureData.push(msg[1]);
-                }
-                else if(command === "encodePNGSaveDone")
-                {
-                    workerPNGSaveData = msg[1];
-                }
-
-                if(!hasTimer("workerStopTimer"))
-                {
-                    addTimerByName("workerStopTimer",WORKER_WAIT_INTERVAL,true,stopWorker);
-                }
+            if(!hasTimer("workerStopTimer"))
+            {
+                addTimerByName("workerStopTimer",WORKER_WAIT_INTERVAL,true,stopWorker);
             }
         }
 
@@ -1818,6 +1834,7 @@
                             while(workerFunctionsBeforeStart.length)
                             {
                                 workerFunctionsBeforeStart[0]();
+                                workerFunctionsBeforeStart[0] = null;
                                 workerFunctionsBeforeStart.shift();
                             }
                         }
@@ -1841,7 +1858,6 @@
             if((workerDataSendCount === workerDataReceiveCount
                 && workerPNGCaptureFileData === null
                 && workerPNGSaveData === null
-                && writeReplayFile.isWorking() === false
                 && workerUndoData2 === null)
                 || (forceFlag === true))
                 {
@@ -1860,6 +1876,8 @@
                         isInSaveProgress = 0;
                         stage.nativeWindow.close();
                     }
+
+                    startGC();
 
                     if(updateAfterSave)
                     {
@@ -1891,6 +1909,9 @@
             workerLoader.dataFormat = URLLoaderDataFormat.BINARY;
             workerLoader.addEventListener(Event.COMPLETE, loadComplete);
             workerLoader.load(new URLRequest("worker.swf"));
+
+            workerReplaySendBA.shareable = true;
+            workerReplaySendBATemp.shareable = true;
 
             function loadComplete(e:Event):void
             {
@@ -4904,7 +4925,7 @@
             const w:Number = canvasTraceBitmap.width;
             const h:Number = canvasTraceBitmap.height;
             const fs:FileStream = new FileStream();
-            var ba:ByteArray = new ByteArray;
+            var ba:ByteArray = new ByteArray();
             const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
             bmpd.copyPixelsToByteArray(newRectangle,ba);
@@ -9066,7 +9087,7 @@
             const _REPLAY_SLOWDRAW_ACTIVE_SPEED:Number = REPLAY_SLOWDRAW_ACTIVE_SPEED;
             const tcursor:SimpleButton = rCursor;
             const _rfs:FileStream = rFileStream;
-            const _CACHE_DIV_10:Number= Math.floor(IMG_CACHE_INTERVAL/10);
+            const _CACHE_DIV_10:Number= Math.floor(REPLAY_MAKE_JUMPIMAGE_COUNT/10);
             const _tickDraw:Object = tickDraw;
             const _JUMP_FRAME_PLAY:int = JUMP_FRAME_PLAY;
             const _JUMP_FRAME_ONCE:int = JUMP_FRAME_ONCE;
@@ -10608,7 +10629,7 @@
             const fs2:FileStream = new FileStream();
             const cd2:Graphics = rcanvas2Draw.graphics;
             const totalSize:Number = repFile.size;
-            const _IMG_CACHE_INTERVAL:uint = IMG_CACHE_INTERVAL;
+            const _REPLAY_MAKE_JUMPIMAGE_COUNT:uint = REPLAY_MAKE_JUMPIMAGE_COUNT;
             const replayInfoText:TextField = replayTimeBox["frameInfo"];
             const topBarHint:Function = topBar.hint;
             const topBarSaveButton:SimpleButton = topBar.saveButton;
@@ -10726,7 +10747,7 @@
                     _rJumpImageCount += data.length;
                     _tickDraw.drawAll();
 
-                    if(_rJumpImageCount > _IMG_CACHE_INTERVAL)
+                    if(_rJumpImageCount > _REPLAY_MAKE_JUMPIMAGE_COUNT)
                     {
                         _rJumpImageCount = 0;
                         rJumpImageFrameData.push(_frameSum); // jumpimg:File변수보다 먼저 와야함
@@ -10779,41 +10800,21 @@
             setStartWorker(function():void
             {
                 workerDataSendCount++;
-                const sendBA:ByteArray = new ByteArray();
                 var ba:ByteArray = new ByteArray();
                 bmpd.copyPixelsToByteArray(new Rectangle(0,0,bmpd.width,bmpd.height),ba);
-                var arr:Array = [(isCaptureImage) ? "encodePNGCapture" : "encodePNGSave"
-                                ,ba
-                                ,bmpd.width
-                                ,bmpd.height
-                                ,bg
-                                ,isTransBG];
-                sendBA.shareable = true;
-                sendBA.writeObject(arr);
-                mainToBack.send(sendBA);
 
-                ba.length = 0;
+                mainToBack.send("encodePNG");
+                mainToBack.send(ba);
+                mainToBack.send(bmpd.width);
+                mainToBack.send(bmpd.height);
+                mainToBack.send(bg);
+                mainToBack.send(isTransBG);
+                mainToBack.send(isCaptureImage);
+
+                ba.clear()
                 ba = null;
                 bmpd.dispose();
-                bmpd.dispose();
-                arr = null;
-            });
-        }
-
-        private function callWorkerCompressReplayData(data:ByteArray):void
-        {
-            setStartWorker(function():void
-            {
-                workerDataSendCount++;
-                var arr:Array = ["compress_ReplayData",data];
-                var sendBA:ByteArray = new ByteArray();
-
-                sendBA.shareable = true;
-                sendBA.writeObject(arr);
-                mainToBack.send(sendBA);
-                data.length = 0;
-                arr.length = 0;
-                arr = null;
+                bmpd = null;
             });
         }
 
@@ -10822,211 +10823,66 @@
             setStartWorker(function():void
             {
                 workerDataSendCount++;
-                var arr:Array = ["compress_UndoData",data,data1];
-                var sendBA:ByteArray = new ByteArray();
+                mainToBack.send("compress_UndoData");
+                mainToBack.send(data);
+                mainToBack.send(data1);
 
-                sendBA.shareable = true;
-                sendBA.writeObject(arr);
-                mainToBack.send(sendBA);
-                data.length = 0;
-                data1.length = 0;
-                arr.length = 0;
-                arr = null;
+                data.clear();
+                data1.clear();
+                data = null;
+                data1 = null;
             });
-        }
-
-        private function cWriteReplayFile():Object
-        {
-            var filePath:File;
-            var receiveCount:int = 0;
-            var fs:FileStream;
-            var tmpData:ByteArray;
-            var sendData:ByteArray;
-            var imageRect:Rectangle;
-            var working:Boolean = false;
-
-            function init():void
-            {
-                const pathStr:String = saveFilePath;
-                const newPath:String = pathStr.substr(0,pathStr.lastIndexOf(".png"))+".2020";
-
-                filePath = new File(newPath);
-                fs = new FileStream();
-
-                sendData = new ByteArray();
-                sendData.shareable = true;
-                receiveCount = 0;
-            }
-
-            function isWorking():Boolean
-            {
-                return working;
-            }
-
-            function end():void
-            {
-                try
-                {
-                    repFileTemp.moveTo(filePath,true);
-                }
-                catch(err:Error)
-                {
-                    topBar.hintSaveError();
-                    if(repFileTemp.exists) repFileTemp.deleteFile();
-                    setSaveProgressOFF();
-                    saveFile(true,true);
-                }
-
-                if(tmpData)
-                {
-                    tmpData.clear();
-                    tmpData = null;
-                }
-
-                if(sendData)
-                {
-                    sendData.clear();
-                    sendData = null;
-                }
-
-                if(isInSaveProgress === 1)
-                {
-                    isInSaveProgress = 0;
-                }
-
-                filePath = null;
-                fs = null;
-                receiveCount = 0;
-                working = false;
-                setSaveProgressOFF();
-            }
-
-            function write(data:ByteArray):void
-            {
-                ++receiveCount;
-
-                switch(receiveCount)
-                {
-                    //가장 처음 이미지 레이어 1번
-                    case 1:
-                    {
-                        working = true;
-                        fs.open(repFileTemp,FileMode.WRITE);
-                        fs.position = 0;
-                        fs.writeUTFBytes("FOFOPAINT"); //파일 헤더
-                        fs.writeUnsignedInt(data.length); //뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장    
-                        fs.writeBytes(data);
-
-                        if(mirrorCommandReady) //임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
-                        {
-                            const tempMirrorData:Array = [["mirror"]];
-                            fs.writeObject(tempMirrorData);
-                        }
-                        fs.close();
-
-                        imageRect = new Rectangle(0,0,rFirstImage.width,rFirstImage.height);
-                        rFirstImage.copyPixelsToByteArray(imageRect,sendData);
-
-                        callWorkerCompressReplayData(sendData); 
-                    }
-                    break;
-
-                    //rFirstimage 레이어 2
-                    case 2:
-                    {
-                        tmpData = data;
-                        imageRect.setTo(0,0,rFirstImage1.width,rFirstImage1.height);
-                        rFirstImage1.copyPixelsToByteArray(imageRect,sendData);
-                        callWorkerCompressReplayData(sendData); 
-                    }
-                    break;
-
-                    //마지막 이미지 레이어1 
-                    case 3:
-                    {
-                        fs.open(repFileTemp,FileMode.APPEND);
-                        fs.writeObject(["rFirstImage",tmpData,data,rFirstImage.width,rFirstImage.height,rFirstBGColor]);
-                        fs.close();
-                        tmpData.clear();
-                        imageRect.setTo(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
-                        canvas1BitmapData.copyPixelsToByteArray(imageRect,sendData);
-                        callWorkerCompressReplayData(sendData); 
-                    }
-                    break;
-
-                    //마지막 이미지 레이어 2
-                    case 4:
-                    {
-                        tmpData = data;
-
-                        imageRect.setTo(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
-                        canvas11BitmapData.copyPixelsToByteArray(imageRect,sendData);
-                        callWorkerCompressReplayData(sendData);
-                    }
-                    break;
-
-                    //참조 레이어 이미지
-                    case 5:
-                    {
-                        fs.open(repFileTemp,FileMode.APPEND);
-                        fs.writeObject(["rFinalImage",tmpData,data,CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR]);
-                        tmpData.clear();
-                        imageRect.setTo(0,0,canvasTraceBitmapData.width,canvasTraceBitmapData.height);
-                        canvasTraceBitmapData.copyPixelsToByteArray(imageRect,sendData);
-                        callWorkerCompressReplayData(sendData);
-                    }
-                    break;
-
-                    case 6:
-                    {
-                        if(canvasTraceBitmapData)
-                        {
-                            const _tracePosInfo:Array = tracePosInfo;
-                            fs.open(repFileTemp,FileMode.APPEND);
-                            fs.writeObject(["traceImage",data, // 1
-                                                        canvasTraceBitmapData.width,
-                                                        canvasTraceBitmapData.height,
-                                                        _tracePosInfo[0],
-                                                        _tracePosInfo[1],// 5
-                                                        _tracePosInfo[2],
-                                                        _tracePosInfo[3],
-                                                        _tracePosInfo[4],
-                                                        _tracePosInfo[5],
-                                                        traceReizeMoveSum,//10
-                                                        CANVAS_TRACE_ALPHA]);//11
-                            fs.close();
-                        }
-                    }
-                    break;
-                }
-
-                if(receiveCount === 6)
-                {
-                    end();
-                    return;
-                }
-            }
-
-            return{
-                isWorking:isWorking,
-                init:init,
-                write:write
-            };
         }
 
         private function saveReplayFile():void
         {
             if(repFile.exists)
             {
+                rImgData.position = 0;
+                rImgData1.position = 0;
+                lastImgData.position = 0;
+                lastImgData1.position = 0;
+                traceImgData.position = 0;
+                replayDataBytes.position = 0;
+                rImgData.length = 0;
+                rImgData1.length = 0;
+                lastImgData.length = 0;
+                lastImgData1.length = 0;
+                traceImgData.length = 0;
+                replayDataBytes.length = 0;
+
+                //첫번째 이미지 레이어 1 2 저장
                 const fs:FileStream = new FileStream();
-                repFile.copyTo(repFileTemp,true);//일단 임시파일로 복사
+                const rImgDataW:Number = rFirstImage.width;
+                const rImgDataH:Number = rFirstImage.height;
+                var newRectangle:Rectangle = new Rectangle(0,0,rImgDataW,rImgDataH);
+
+                rFirstImage.copyPixelsToByteArray(newRectangle,rImgData);
+                rFirstImage1.copyPixelsToByteArray(newRectangle,rImgData1);
+
+                //현재 캔버스 이미지 레이어 1 2 저장
+                newRectangle = new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                canvas1BitmapData.copyPixelsToByteArray(newRectangle,lastImgData);
+                canvas11BitmapData.copyPixelsToByteArray(newRectangle,lastImgData1);
+
+                //참고 레이어 이미지 저장
+                if(canvasTraceBitmapData)
+                {
+                    const traceImgInfo:Array = tracePosInfo;
+                    const traceImgWidth:Number = canvasTraceBitmapData.width;
+                    const traceImgHeight:Number = canvasTraceBitmapData.height;
+                    newRectangle = new Rectangle(0,0,traceImgWidth,traceImgHeight);
+                    canvasTraceBitmapData.copyPixelsToByteArray(newRectangle,traceImgData);
+                }
+
+                //리플레이 파일을 임시파일로 복사
+                repFile.copyTo(repFileTemp,true);
 
                 //임시파일전체를 바이트배열로 읽어서 압축해줌
-                const replayDataBytes:ByteArray = new ByteArray();
                 fs.open(repFileTemp,FileMode.READ);
                 fs.position = 0;
-
-                //언도에서 읽어본 바이트 만큼 해줌
+                
+                //딥 언도일때는 읽은 바이트 까지만 읽어줌
                 if(deepUndoON)
                 {
                     fs.readBytes(replayDataBytes,0,rLastBytePosition);
@@ -11034,6 +10890,8 @@
                 }
                 else
                 {
+                    //그게 아니면 전체 리플레이 데이터 끝까지 읽고 undo데이터까지 넣어줌
+
                     fs.readBytes(replayDataBytes,0,fs.bytesAvailable);
                     fs.close();
                     replayDataBytes.position = replayDataBytes.length;
@@ -11047,9 +10905,118 @@
                     }
                 }
 
-                writeReplayFile.init();
-                callWorkerCompressReplayData(replayDataBytes); //리플레이 데이터
+                callWorkerCompressReplayData(rImgData,rImgData1,lastImgData,lastImgData1,traceImgData,replayDataBytes);
             }
+        }
+
+        private function callWorkerCompressReplayData(dataA:ByteArray,dataA1:ByteArray,dataB:ByteArray,dataB1:ByteArray,dataC:ByteArray,dataD:ByteArray):void
+        {
+            setStartWorker(function():void
+            {
+                workerDataSendCount++;
+                mainToBack.send("compress_ReplayData");
+                mainToBack.send(dataA);
+                mainToBack.send(dataA1);
+                mainToBack.send(dataB);
+                mainToBack.send(dataB1);
+                mainToBack.send(dataC);
+                mainToBack.send(dataD);
+                dataA.clear();
+                dataA1.clear();
+                dataB.clear();
+                dataB1.clear();
+                dataC.clear();
+                dataD.clear();
+                dataA = null;
+                dataA1 = null;
+                dataB = null;
+                dataB1 = null;
+                dataC = null;
+                dataD = null;
+            });
+        }
+
+        private function writeReplayFile(dataA:ByteArray
+                                        ,dataA1:ByteArray
+                                        ,dataB:ByteArray
+                                        ,dataB1:ByteArray
+                                        ,dataC:ByteArray
+                                        ,dataD:ByteArray):void
+        {
+            
+
+            const fs:FileStream = new FileStream();
+            const rImgDataW:int = rFirstImage.width;
+            const rImgDataH:int = rFirstImage.height;
+            const _traceBmpd:BitmapData = canvasTraceBitmapData;
+            const traceImgWidth:Number = _traceBmpd.width;
+            const traceImgHeight:Number = _traceBmpd.height;
+            const _tracePosInfo:Array = tracePosInfo;
+
+            const pathStr:String = saveFilePath;
+            const newPath:String = pathStr.substr(0,pathStr.lastIndexOf(".png"))+".2020";
+            const copyFile:File = new File(newPath);
+
+            //실제 저장할 파일을 다시 써줌
+            fs.open(repFileTemp,FileMode.WRITE);
+            fs.position = 0;
+            fs.writeUTFBytes("FOFOPAINT"); //파일 헤더
+            fs.writeUnsignedInt(dataD.length); //뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
+            fs.writeBytes(dataD);
+
+            if(mirrorCommandReady) //임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
+            {
+                const tempMirrorData:Array = [["mirror"]];
+                fs.writeObject(tempMirrorData);
+            }
+
+            fs.writeObject(["rFirstImage",dataA,dataA1,rImgDataW,rImgDataH,rFirstBGColor]);
+            fs.writeObject(["rFinalImage",dataB,dataB1,CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR]);
+
+            if(_traceBmpd)
+            {
+                fs.writeObject(["traceImage",dataC, // 1
+                                            traceImgWidth,
+                                            traceImgHeight,
+                                            _tracePosInfo[0],
+                                            _tracePosInfo[1],// 5
+                                            _tracePosInfo[2],
+                                            _tracePosInfo[3],
+                                            _tracePosInfo[4],
+                                            _tracePosInfo[5],
+                                            traceReizeMoveSum,//10
+                                            CANVAS_TRACE_ALPHA]);//11
+            }
+
+            fs.close();
+            dataA.clear();
+            dataA1.clear();
+            dataB.clear();
+            dataB1.clear();
+            dataC.clear();
+            dataD.clear();
+            dataA = null;
+            dataA1 = null;
+            dataB = null;
+            dataB1 = null;
+            dataC = null;
+            dataD = null;
+
+            try
+            {
+                repFileTemp.moveTo(copyFile,true);
+            }
+            catch(err:Error)
+            {
+                topBar.hintSaveError();
+                if(repFileTemp.exists) repFileTemp.deleteFile();
+                setSaveProgressOFF();
+                saveFile(true,true);
+            }
+
+            if(isInSaveProgress === 1) isInSaveProgress = 0;
+
+            setSaveProgressOFF();
         }
 
         private function loadReplayFile(oldFile:File,fileName:String,filePath:String):void //loadrep
@@ -11950,6 +11917,7 @@
             var rectH:Number;
             var drawedcx:Number; //한번 영역을 그려줬으면 원점을 여기다가 저장
             var drawedcy:Number; //다음번에 클릭해서 저장하면 이 원점으로 그려줌
+            var finalRect:Array = [0,0,0,0];
 
             function updateCaptureAreaLineSize():void
             {
@@ -12051,13 +12019,13 @@
                     //rect길이가 음수인경우 cx cy를 양수로 다시 맞추어줌
                     if(rectW < 0)
                     {
-                        rectW = -rectW;
+                        rectW = (-rectW);
                         cx = cx-rectW;
                     }
 
                     if(rectH < 0)
                     {
-                        rectH = -rectH;
+                        rectH = (-rectH);
                         cy = cy-rectH;
                     }
 
@@ -12065,6 +12033,12 @@
                     rectY = cy;
                     drawedcx = cx;
                     drawedcy = cy;
+
+                    finalRect[0] = rectX;
+                    finalRect[1] = rectY;
+                    finalRect[2] = rectW;
+                    finalRect[3] = rectH;
+
                     topBar.hint(getRotatedRectSizeString()+STRING_CAPTURE_OK,topBar.capOff);
                     topBar.capClipBoard.alpha = 1.0;
                 }
@@ -12082,7 +12056,7 @@
 
             function getCaptureArea():Array
             {
-                return [rectX,rectY,rectW,rectH];
+                return finalRect;
             }
 
             function start(replayMode:Boolean):void
@@ -12200,11 +12174,10 @@
                 {
                     if(workerPNGCaptureData.length > 0)
                     {
-                        var len:int = workerPNGCaptureData.length;
-                        for(var i:int=0; i<len; i++)
+                        while(workerPNGCaptureData.length > 0)
                         {
-                            const fileName:String = workerPNGCaptureFileData[i][0];
-                            const filePath:String = workerPNGCaptureFileData[i][1];
+                            const fileName:String = workerPNGCaptureFileData[0][0];
+                            const filePath:String = workerPNGCaptureFileData[0][1];
 
                             //마지막 경로 업데이트
                             saveFilePath = filePath.substr(0,filePath.lastIndexOf(fileName))+saveFileName;
@@ -12219,12 +12192,12 @@
                             }
 
                             fs.open(file,FileMode.WRITE);
-                            fs.writeBytes(workerPNGCaptureData[i]);
+                            fs.writeBytes(workerPNGCaptureData[0]);
                             fs.close();
+                            workerPNGCaptureData[0].clear();
+                            workerPNGCaptureData[0] = null;
                             workerPNGCaptureData.shift();
                             workerPNGCaptureFileData.shift();
-                            --i;
-                            --len;
                         }
                     }
                     else if(workerPNGCaptureData.length === 0 && workerPNGCaptureFileData.length === 0)
@@ -12282,7 +12255,7 @@
                 file1.removeEventListener(Event.CANCEL,onCancelEvent);
                 file1.removeEventListener(Event.SELECT,onSelectEvent);
 
-                if(workerPNGCaptureData === null) workerPNGCaptureData = [];
+                if(workerPNGCaptureData === null) workerPNGCaptureData = new Vector.<ByteArray>()
                 if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
 
                 callWorkerEncodePNG(getProcessedCaptureImage(false),0,true,captureTransBGON);
@@ -15808,7 +15781,7 @@
 
                         if(makeJumpImageFlag === 0)
                         {
-                            if(rJumpImageCount > IMG_CACHE_INTERVAL)
+                            if(rJumpImageCount > REPLAY_MAKE_JUMPIMAGE_COUNT)
                             {
                                 rJumpImageCount = 0;
                                 const data:Array = undoRefImage;
@@ -15849,6 +15822,11 @@
                                                             ,undo2FirstData[4] //마지막 프레임 합
                                                             ,mirrorON]);//미러 플래그
                                             fs.close();
+                                            workerUndoData[0][0].clear();
+                                            workerUndoData[0][1].clear();
+                                            workerUndoData[0][0] = null;
+                                            workerUndoData[0][1] = null;
+
                                             workerUndoData.shift();
                                             workerUndoData2.shift();
                                         }
