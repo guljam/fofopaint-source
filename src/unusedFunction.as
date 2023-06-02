@@ -3771,7 +3771,7 @@ private function setLassoTool():void
             function mouseUpPenTool(e:MouseEvent):void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpPenTool);
-                stageMouseMoveEvent.remove(mouseMovePenTool);
+                stageMouseMoveEvent.remove("mouseMovePenTool");
 
                 const xx:Number = cd.mouseX;
                 const yy:Number = cd.mouseY;
@@ -3889,7 +3889,7 @@ private function setLassoTool():void
 
                 if(readyAddUndo === false) checkUndoReady();
 
-                stageMouseMoveEvent.add(mouseMovePenTool);
+                stageMouseMoveEvent.add("mouseMovePenTool",mouseMovePenTool);
                 stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpPenTool);
             };
         }

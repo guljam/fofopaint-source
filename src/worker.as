@@ -42,6 +42,9 @@
 			else backToMain.send("encodePNGSaveDone");
 
 			backToMain.send(ba);
+
+			ba.clear();
+			ba = null;
 		}
 
 		private function compressUndoData(ba:ByteArray,ba1:ByteArray):void
@@ -98,48 +101,33 @@
 
 		private function onFromMain(event:Event):void
 		{
-			try
-			{
-				var msg:* = mainToBack.receive();
-				var command:String = msg as String;
+			var msg:* = mainToBack.receive();
+			var command:String = msg as String;
 
-				if(command === "encodePNG")
-				{
-					encodePNG(mainToBack.receive(true)
-							,mainToBack.receive(true)
-							,mainToBack.receive(true)
-							,mainToBack.receive(true)
-							,mainToBack.receive(true)
-							,mainToBack.receive(true));
-				}
-				else if(command === "compress_ReplayData")
-				{
-					compressReplayData(mainToBack.receive(true)
-										,mainToBack.receive(true)
-										,mainToBack.receive(true)
-										,mainToBack.receive(true)
-										,mainToBack.receive(true)
-										,mainToBack.receive(true));
-				}
-				else if(command === "compress_UndoData")
-				{
-					try
-					{
-						const ba3:ByteArray = mainToBack.receive(true);
-						const ba4:ByteArray = mainToBack.receive(true);
-						compressUndoData(ba3,ba4);
-					}
-					catch(err:Error)
-					{
-						backToMain.send("err : "+err)
-					}
-				}
-			}
-			catch(err:Error)
+			if(command === "encodePNG")
 			{
-				backToMain.send("err : "+err)
+				encodePNG(mainToBack.receive(true)
+						,mainToBack.receive(true)
+						,mainToBack.receive(true)
+						,mainToBack.receive(true)
+						,mainToBack.receive(true)
+						,mainToBack.receive(true));
 			}
+			else if(command === "compress_ReplayData")
+			{
+				compressReplayData(mainToBack.receive(true)
+									,mainToBack.receive(true)
+									,mainToBack.receive(true)
+									,mainToBack.receive(true)
+									,mainToBack.receive(true)
+									,mainToBack.receive(true));
+			}
+			else if(command === "compress_UndoData")
+			{
+				compressUndoData(mainToBack.receive(true)
+								,mainToBack.receive(true));
 
+			}
 		}
 	}
 }
