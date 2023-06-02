@@ -57,10 +57,11 @@
     import flash.filters.BlurFilter;
     import flash.system.System;
     import flash.filters.ConvolutionFilter;//import end
+    import flash.ui.Keyboard;
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.23;
+        private const APP_VERSION:Number = 18.24;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5978,7 +5979,16 @@
         {
             if(resizeButtonR.visible === flag) return;
 
-            if(flag) updateResizeButtonPos();
+            if(flag)
+            {
+                updateResizeButtonPos();
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownEventChangeCanvasSizeOnePixel);
+            }
+            else
+            {
+                stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownEventChangeCanvasSizeOnePixel);
+            }
+
             resizeButtonVisible(flag);
         }
 
@@ -13790,6 +13800,28 @@
 
             tracePosInfo[0] = _canvasTraceBitmap.x;
             tracePosInfo[1] = _canvasTraceBitmap.y;
+        }
+        
+        private function keyDownEventChangeCanvasSizeOnePixel(e:KeyboardEvent):void
+        {
+            const keyCode:int = e.keyCode;
+            if(keyCode === KEY.up || keyCode === KEY.down
+            || keyCode === KEY.right || keyCode === KEY.left)
+            {
+                changeCanvasSizeOnePixel(keyCode);
+            }
+        }
+
+        private function changeCanvasSizeOnePixel(directionKey:int):void
+        {
+            if(directionKey === KEY.up) changeCanvasSize(CANVAS_WIDTH,CANVAS_HEIGHT-1,0,0,false);
+            else if(directionKey === KEY.down) changeCanvasSize(CANVAS_WIDTH,CANVAS_HEIGHT+1,0,0,false);
+            else if(directionKey === KEY.right) changeCanvasSize(CANVAS_WIDTH+1,CANVAS_HEIGHT,0,0,false);
+            else if(directionKey === KEY.left)changeCanvasSize(CANVAS_WIDTH-1,CANVAS_HEIGHT,0,0,false);
+            
+            setToolTipTempON(CANVAS_WIDTH+" x "+CANVAS_HEIGHT);
+            toolTipBox.visible = true;
+            updateResizeButtonPos();
         }
 
         private function changeCanvasSize(w:Number,h:Number,moveX:Number=0,moveY:Number=0,movedFlag:Boolean=false):void
