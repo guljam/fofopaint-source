@@ -57,7 +57,6 @@
     import flash.filters.BlurFilter;
     import flash.system.System;
     import flash.filters.ConvolutionFilter;//import end
-    import flash.ui.Keyboard;
 
     public class main extends Sprite
     {   
@@ -13818,7 +13817,7 @@
             else if(directionKey === KEY.down) changeCanvasSize(CANVAS_WIDTH,CANVAS_HEIGHT+1,0,0,false);
             else if(directionKey === KEY.right) changeCanvasSize(CANVAS_WIDTH+1,CANVAS_HEIGHT,0,0,false);
             else if(directionKey === KEY.left)changeCanvasSize(CANVAS_WIDTH-1,CANVAS_HEIGHT,0,0,false);
-            
+
             setToolTipTempON(CANVAS_WIDTH+" x "+CANVAS_HEIGHT);
             toolTipBox.visible = true;
             updateResizeButtonPos();
