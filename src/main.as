@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.30;
+        private const APP_VERSION:Number = 18.31;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9222,7 +9222,8 @@
 
             function updateCursorPosAndInfoText(jumpFlag:int):void
             {
-                if(jumpFlag === _JUMP_FRAME_PLAY)
+                trace('jumpFlag',jumpFlag,'doDrawSlowEventON',doDrawSlowEventON);
+                if(jumpFlag === _JUMP_FRAME_PLAY || (doDrawSlowEventON && jumpFlag === _JUMP_FRAME_ONCE))
                 {
                     savedTime = getTimer();
 
@@ -9312,6 +9313,7 @@
                     if(!rDataReadFlag) drawFileData(jumpCount,jumpFlag); //여기서 readcount 깍아주고
                     if(readCount > 0) drawRData(readCount,jumpFlag); //나머지 readcount를 여기서해줌
                 }
+                trace('playbackFinished',playbackFinished,'jumpCount',jumpCount);
                 //playbackFinished 해주는 이유는 drawRdta에서 이미 checkfinish해줬는데
                 //여기 밑까지 계속 함수를 읽어줘서 캔버스가 이동되어버리는 현상이 있어서 체크해줘야함
                 if(!playbackFinished) updateCursorPosAndInfoText(jumpFlag);
