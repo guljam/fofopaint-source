@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.28;
+        private const APP_VERSION:Number = 18.30;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -217,7 +217,7 @@
                     ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
                     ,STRING_PLAYBACK_SPEED:String = "Playback speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
-                    ,STRING_ONEMORE_PRESS_TO_OK:String = "One more Press key to OK"
+                    ,STRING_ONEMORE_PRESS_TO_OK:String = "One more press key to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
                     ,STRING_CAPTURE_OK:String = " (Click canvas to save image, Right-click to reset capture area)"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
@@ -6964,7 +6964,7 @@
 
             appInfoBox.setMirror(false);
             updateWindowTitle();
-            cancelAutoKeyEvent({});
+            cancelAutoKeyEvent(null);
         }
 
         private function setReRecordCopyCanvas():void
@@ -7543,7 +7543,7 @@
         {
             return ((cutFrameWithShortcut) ? STRING_ONEMORE_PRESS_TO_OK
                                                  : STRING_ONEMORE_CLICK_TO_OK)
-                                                 +" (Red data will be deleted)";
+                                                 +" (!! Data in the red area will be deleted !!)";
         }
 
         private function setCutFrameRedBar(flag:int):void
@@ -11467,7 +11467,7 @@
             setSubLayer(false);
             setReplaySubLayer(false);
             updateResizeButtonPos();
-            cancelAutoKeyEvent({});
+            cancelAutoKeyEvent(null);
 
             canvas1Bitmap.visible = true;
             canvas11Bitmap.visible = true;
@@ -17454,6 +17454,7 @@
             clickBlockFlag = true;
             realWorkingTimer.stop();
             resetKeyBuffer();
+            cancelAutoKeyEvent(null)
 
             if(toolBox2ON)
             {
@@ -18021,6 +18022,7 @@
             rcanvasPanel.addChild(rCursor);
             setRCursorVisibleOFFUndo();
             setTopChildIndex(rCursor);
+            removeTimer("setRCursorVisibleOFFUndoTimer");
 
             deepUndoONSave = deepUndoON;
             if(deepUndoON) deepUndoON = false;

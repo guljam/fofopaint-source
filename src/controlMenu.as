@@ -6,8 +6,6 @@
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.filters.BlurFilter;
-	import flash.utils.setTimeout;
-	import flash.utils.clearTimeout;
 
 	public class controlMenu extends Sprite
 	{
