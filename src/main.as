@@ -5437,7 +5437,7 @@
             else if(nt === TOOL_LINE) toolName = "Line";
             else if(nt === TOOL_FILL_PEN) toolName = "Fill-pen";
 
-            controlBox.hintText(toolName+" Options");
+            controlBox.hintText(toolName+" options");
         }
 
         private function controlBoxHintOFFEvent(e:MouseEvent):void
@@ -15162,7 +15162,7 @@
             setFillPen(true);
             moveEraseButton("toolFillPen");
             toolBox.moveToolCursor("toolFillPen");
-            controlBox.controlInfo.text = "Fill-pen options";
+            setControlBoxInfoOFF();
         }
 
         private function moveEraseButton(toolName:String):void
@@ -15243,7 +15243,7 @@
                     {
                         moveEraseButton("toolPen");
                         toolBox.moveToolCursor("toolPen");
-                        _controlBox.controlInfo.text = "Pen options";
+                        setControlBoxInfoOFF();
                     }
                     else
                     {
@@ -15253,7 +15253,7 @@
 
                         eraseButton2.visible = false;
                         toolBox.moveToolCursor("toolErase");
-                        _controlBox.controlInfo.text = "Eraser options";
+                        setControlBoxInfoOFF();
                     }
                 }
                 else //선툴을 선택했을때
@@ -15262,7 +15262,7 @@
                     {
                         moveEraseButton("toolLine");
                         toolBox.moveToolCursor("toolLine");
-                        _controlBox.controlInfo.text = "Line options";
+                        setControlBoxInfoOFF();
                     }
                     eraseButton2.visible = true;
                     penButton2.visible = true;

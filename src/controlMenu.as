@@ -171,6 +171,7 @@
 
 		public function hintText(str:String):void
 		{
+			trace('hintText',str,"str.lastIndexOf(",str.lastIndexOf("\n"));
 			if(str.lastIndexOf("\n") === -1)
 			{
 				shapeRect.visible = true;
