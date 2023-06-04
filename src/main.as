@@ -2377,6 +2377,7 @@
                     {
                         funcNameList.removeAt(i);
                         funcList.removeAt(i);
+                        break;
                     }
                 }
             }
