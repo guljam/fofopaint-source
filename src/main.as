@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.27;
+        private const APP_VERSION:Number = 18.28;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -824,7 +824,10 @@
             {
                 subLayerPreviewON = true;
                 stage.addEventListener(KeyboardEvent.KEY_UP,setSingleLayerPreviewOFFKeyUpEvent,false,5);
-                stage.addEventListener(MouseEvent.MOUSE_MOVE,layerSinglePreviewOFFMouseOutEvent,false,5);
+                if(!shortcut)
+                {
+                    stage.addEventListener(MouseEvent.MOUSE_MOVE,layerSinglePreviewOFFMouseOutEvent,false,5);
+                }
             }
 
             if(layer === 1)
