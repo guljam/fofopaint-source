@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.25;
+        private const APP_VERSION:Number = 18.26;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5234,7 +5234,7 @@
             }
         }   
 
-        private function setsharpLineButton(flag:Boolean):void
+        private function setSharpLineButton(flag:Boolean):void
         {
             if(!(isPenOrLineTool() || isEraseTool() || nowTool === TOOL_FILL_PEN)) return;
 
@@ -9283,7 +9283,7 @@
                     if(!rDataReadFlag) drawFileData(jumpCount,jumpFlag); //여기서 readcount 깍아주고
                     if(readCount > 0) drawRData(readCount,jumpFlag); //나머지 readcount를 여기서해줌
                 }
-                //playbackFinished 해주는 이유는
+                //playbackFinished 해주는 이유는 drawRdta에서 이미 checkfinish해줬는데
                 //여기 밑까지 계속 함수를 읽어줘서 캔버스가 이동되어버리는 현상이 있어서 체크해줘야함
                 if(!playbackFinished) updateCursorPosAndInfoText(jumpFlag);
             };
@@ -17185,7 +17185,7 @@
                     if(controlBox.sharpLineButtonWrapper.alpha === 1.0)
                     {
                         setMoreOptionsButton(false);
-                        setsharpLineButton(!sharpLineON);
+                        setSharpLineButton(!sharpLineON);
                         if(sharpLineON) setToolTipTempON("Sharp line ON");
                         else setToolTipTempON("Sharp line OFF");
                     }
@@ -18356,28 +18356,24 @@
 
                 case "layer1SelectButton":
                 {
-                    setSubLayer(false);
                     if(isLayerOnlyViewSelected())
                     {
-                        controlBox.layer1VisibleButton.visible = false;
-                        controlBox.layer1InvisibleButton.visible = true;
-                        controlBox.layer2VisibleButton.visible = false;
-                        controlBox.layer2InvisibleButton.visible = true;
+                        controlBox.layer2VisibleButton.visible = true;
+                        setLayer2VisibleToggle();
                     }
+                    setSubLayer(false);
                     setSingleLayerPreview(1,false);
                 }
                 return true;
 
                 case "layer2SelectButton":
                 {
-                    setSubLayer(true);
                     if(isLayerOnlyViewSelected())
                     {
-                        controlBox.layer1VisibleButton.visible = false;
-                        controlBox.layer1InvisibleButton.visible = true;
-                        controlBox.layer2VisibleButton.visible = false;
-                        controlBox.layer2InvisibleButton.visible = true;
+                        controlBox.layer1VisibleButton.visible = true;
+                        setLayer1VisibleToggle();
                     }
+                    setSubLayer(true);
                     setSingleLayerPreview(2,false);
                 }
                 return true;
@@ -18421,7 +18417,7 @@
                 case "sharpLineONButton":
                 case "sharpLineText":
                 {
-                    setsharpLineButton(!sharpLineON);
+                    setSharpLineButton(!sharpLineON);
                 }
                 return true;
 
