@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.24;
+        private const APP_VERSION:Number = 18.25;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -499,7 +499,7 @@
                     ,canvasTraceBitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0) //리사이즈등 수정된 데이터
                     ,canvasTraceBitmap:Bitmap = new Bitmap()
                     ,traceImageFile:File = File.applicationStorageDirectory.resolvePath("traceImg")
-                    ,traceMenuBox:traceButtons = new traceButtons()
+                    ,traceMenu:traceButtons = new traceButtons()
                     ,traceReizeMoveSum:Number = 0 //전역으로 돌려서 다시 클릭하거나 이미지를 불러와도 원래 스케일을 저장하도록함
                     ,tracePosInfo:Array = [0,0,0,1.0,1.0,false] // width, height, rotation,scale 미러 플래그
                     ,traceMenuON:Boolean = false //trace메뉴 켜졌을때 올려줌
@@ -1570,8 +1570,8 @@
             lassoMenu.scaleX = scale*lassoMenu.fixedScale;
             lassoMenu.scaleY = scale*lassoMenu.fixedScale;
 
-            traceMenuBox.scaleX = scale*traceMenuBox.fixedScale;
-            traceMenuBox.scaleY = scale*traceMenuBox.fixedScale;
+            traceMenu.scaleX = scale*traceMenu.fixedScale;
+            traceMenu.scaleY = scale*traceMenu.fixedScale;
 
             toolBox2.scaleX = scale*toolBox2.fixedScale;
             toolBox2.scaleY = scale*toolBox2.fixedScale;
@@ -1595,7 +1595,7 @@
             checkfofoPos();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
-            if(traceMenuON) checkBoxPosition(traceMenuBox);
+            if(traceMenuON) checkBoxPosition(traceMenu);
         }
 
         private function cStartGC():Function
@@ -1645,7 +1645,7 @@
             checkfofoPos();
 
             if(toolBox.getLastTool() === "toolSpuit") spuitTool();
-            if(traceMenuON) traceMenuBox.visible = true;
+            if(traceMenuON) traceMenu.visible = true;
         }
 
         private function setQuickSidebarOFF():void
@@ -1737,7 +1737,7 @@
 
             sideBar.visible = true;
 
-            if(traceMenuON) traceMenuBox.visible = false;
+            if(traceMenuON) traceMenu.visible = false;
 
             checkfofoPos();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
@@ -2648,7 +2648,7 @@
                 commandUndoIndexArr = [];
                 cd.graphics.clear();
 
-                if(traceMenuON) traceMenuBox.visible = true;
+                if(traceMenuON) traceMenu.visible = true;
             }
 
             function endFillPenOK():void
@@ -2885,7 +2885,7 @@
                 xAlpha = penAlpha;
                 commandUndoIndexArr = [0];
 
-                if(traceMenuON) traceMenuBox.visible = false;
+                if(traceMenuON) traceMenu.visible = false;
                 _dottedLine.updateScale(zoomed);
 
                 var mx:Number = cd.mouseX;
@@ -3998,7 +3998,7 @@
             {
                 traceImageCount = 0;
                 btn.removeEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
-                traceMenuBox.hint(STRING_MERGE_LASSO_IMAGE_TO_TRACE);
+                traceMenu.hint(STRING_MERGE_LASSO_IMAGE_TO_TRACE);
                 mergeLassoImageToTraceLayer();
                 openTraceWindow();
             }
@@ -4006,8 +4006,8 @@
 
         private function setTraceImageButton():void
         {
-            const btn:SimpleButton = traceMenuBox.traceImageButton;
-            setTopChildIndex(traceMenuBox);
+            const btn:SimpleButton = traceMenu.traceImageButton;
+            setTopChildIndex(traceMenu);
             traceImageCount++;
 
             function setTraceImageButtonCountResetEvent(e:MouseEvent):void
@@ -4018,14 +4018,14 @@
 
             if(traceImageCount === 1)
             {
-                traceMenuBox.hint(STRING_ONEMORE_CLICK_TO_OK);
+                traceMenu.hint(STRING_ONEMORE_CLICK_TO_OK);
                 btn.addEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
             }
             else if(traceImageCount === 2)
             {
                 traceImageCount = 0;
                 btn.removeEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
-                traceMenuBox.hint(STRING_MERGE_CANVAS_IMAGE_TO_TRACE);
+                traceMenu.hint(STRING_MERGE_CANVAS_IMAGE_TO_TRACE);
                 pasteTraceImage();
             }
         }
@@ -4069,11 +4069,11 @@
                 return;
             }
 
-            if(traceMenuBox.hitTestPoint(mouseX,mouseY) === false)
+            if(traceMenu.hitTestPoint(mouseX,mouseY) === false)
             {
-                if(traceMenuBox.getHintStr() !== "Reference layer")
+                if(traceMenu.getHintStr() !== "Reference layer")
                 {
-                    traceMenuBox.hint("Reference layer");
+                    traceMenu.hint("Reference layer");
                 }
 
                 return;
@@ -4103,11 +4103,11 @@
                 case "traceVisibleOFFButton":str = "Memory training ON/OFF"; break;
                 case "traceDeleteButton":str = "Erase reference image"; break;
                 default:
-                    traceMenuBox.hint("Reference layer");
+                    traceMenu.hint("Reference layer");
                 return;
             }
 
-            traceMenuBox.hint(str);
+            traceMenu.hint(str);
         }
 
         private function lassoMenuHintONEvent(e:MouseEvent):void
@@ -4434,19 +4434,19 @@
 
         private function updateTraceOpaButtonPosByAlpha(alpha:Number):void
         {
-            const _traceMenuBox:traceButtons = traceMenuBox;
+            const _traceMenuBox:traceButtons = traceMenu;
             const button:SimpleButton = _traceMenuBox["traceOpaButton"];
             const bar:SimpleButton = _traceMenuBox["traceOpaBar"];
             const barWidth:Number = bar.width*alpha;
             const buttonMin:Number = bar.x;
-            traceMenuBox["traceOpaButton"].x = buttonMin+barWidth;
+            traceMenu["traceOpaButton"].x = buttonMin+barWidth;
         }
 
         private function closeTraceMenu():void
         {
             traceMenuON = false;
-            traceMenuBox.visible = false;
-            traceMenuBox.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpTraceWindow);
+            traceMenu.visible = false;
+            traceMenu.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpTraceWindow);
         }
 
         private function rightMouseUpTraceWindow(e:MouseEvent):void
@@ -4513,7 +4513,7 @@
 
         private function openTraceWindow():void //load clip버튼에서 눌러줬을때 틀여줌
         {
-            const _traceMenuBox:traceButtons = traceMenuBox;
+            const _traceMenuBox:traceButtons = traceMenu;
             _traceMenuBox.hint("Reference layer");
             _traceMenuBox.x = mouseX-_traceMenuBox.width/2;
             _traceMenuBox.y = mouseY-8;
@@ -4529,14 +4529,14 @@
             }
 
             traceMenuON = true;
-            setTopChildIndex(traceMenuBox);
+            setTopChildIndex(traceMenu);
         }
 
         private function setTraceDeleteButton():void
         {
-            const btn:SimpleButton = traceMenuBox.traceDeleteButton;
+            const btn:SimpleButton = traceMenu.traceDeleteButton;
 
-            setTopChildIndex(traceMenuBox);
+            setTopChildIndex(traceMenu);
             traceImageCount++;
 
             function traceDeleteButtonCountResetEvent(e:MouseEvent):void
@@ -4547,13 +4547,13 @@
 
             if(traceImageCount === 1)
             {
-                traceMenuBox.hint(STRING_ONEMORE_CLICK_TO_OK);
+                traceMenu.hint(STRING_ONEMORE_CLICK_TO_OK);
                 btn.addEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
             }
             else if(traceImageCount === 2)
             {
                 traceImageCount = 0;
-                traceMenuBox.hint("Erase reference image");
+                traceMenu.hint("Erase reference image");
                 btn.removeEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
 
                 clearTraceImage();
@@ -4569,14 +4569,14 @@
             if(traceMemoryTraining === false)
             {
                 traceMemoryTraining = true;
-                traceMenuBox.traceVisibleOFFButton.visible = false;
-                traceMenuBox.traceVisibleONButton.visible = true;
+                traceMenu.traceVisibleOFFButton.visible = false;
+                traceMenu.traceVisibleONButton.visible = true;
             }
             else if(traceMemoryTraining === true)
             {
                 traceMemoryTraining = false;
-                traceMenuBox.traceVisibleOFFButton.visible = true;
-                traceMenuBox.traceVisibleONButton.visible = false;
+                traceMenu.traceVisibleOFFButton.visible = true;
+                traceMenu.traceVisibleONButton.visible = false;
             }
         }
 
@@ -4619,7 +4619,7 @@
             const floor:Function = Math.floor;
             const abs:Function = Math.abs;
             const PI:Number = Math.PI;
-            // const traceMenuClickPos:Array = [traceMenuBox.mouseX,traceMenuBox.mouseY];
+            // const traceMenuClickPos:Array = [traceMenu.mouseX,traceMenu.mouseY];
 
             // const PI2:Number = PI*2;
             const toDeg:Number = 180/PI;
@@ -4627,7 +4627,7 @@
             var oldAng:Number = _canvasTrace.rotation;
             var sumAng:Number = oldAng*PI/180;
 
-            traceMenuBox.visible = false;
+            traceMenu.visible = false;
             canvasTraceBitmap.smoothing = false;
 
             setTopChildIndex(_rotateCursorBox);
@@ -4641,7 +4641,7 @@
 
             function traceRotateButtonUpEvent(e:MouseEvent):void
             {
-                traceMenuBox.visible = true;
+                traceMenu.visible = true;
                 _rotateCursorBox.rotation = 0;
                 saveOneTime = false;
                 mouseDragON = false;
@@ -4686,7 +4686,7 @@
             const smoothLast:Point = new Point(0,0);
             var moveFlag:int = 0;
 
-            traceMenuBox.visible = false;
+            traceMenu.visible = false;
             canvasTraceBitmap.smoothing = false;
             setToolTipON(w+ " x "+ h +" ["+_canvasTrace.scaleX.toFixed(2)+"]");
             toolTipBox.visible = true;
@@ -4697,7 +4697,7 @@
                 mouseDragON = false;
                 tracePosInfo[3] = _canvasTrace.scaleX;
                 tracePosInfo[4] = _canvasTrace.scaleY;
-                traceMenuBox.visible = true;
+                traceMenu.visible = true;
                 canvasTraceBitmap.smoothing = true;
                 toolTipBox.visible = false;
                 stage.removeEventListener(MouseEvent.MOUSE_UP,traceResizeButtonUpEvent);
@@ -4778,7 +4778,7 @@
             const scX:Number = tracePosInfo[3];
             const scY:Number = tracePosInfo[4];
 
-            traceMenuBox.visible = false;
+            traceMenu.visible = false;
             canvasTraceBitmap.smoothing = false;
 
             function traceMoveButtonUpEvent(e:MouseEvent):void
@@ -4787,7 +4787,7 @@
                 stageMouseMoveEvent.remove("traceMoveButtonMoveEvent");
                 saveOneTime = false;
                 mouseDragON = false;
-                traceMenuBox.visible = true;
+                traceMenu.visible = true;
                 tracePosInfo[0] = _canvasTraceBitmap.x;
                 tracePosInfo[1] = _canvasTraceBitmap.y;
                 canvasTraceBitmap.smoothing = true;
@@ -4809,11 +4809,11 @@
 
         private function setTraceClipButton():void
         {
-            const btn:SimpleButton = traceMenuBox.traceClipButton;
+            const btn:SimpleButton = traceMenu.traceClipButton;
 
             if(btn.alpha !== 1.0) return;
 
-            setTopChildIndex(traceMenuBox);
+            setTopChildIndex(traceMenu);
             traceImageCount++;
 
             function traceClipButtonCountResetEvent(e:MouseEvent):void
@@ -4824,13 +4824,13 @@
 
             if(traceImageCount === 1)
             {
-                traceMenuBox.hint(STRING_ONEMORE_CLICK_TO_OK);
+                traceMenu.hint(STRING_ONEMORE_CLICK_TO_OK);
                 btn.addEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
             }
             else if(traceImageCount === 2)
             {
                 traceImageCount = 0;
-                traceMenuBox.hint("Paste image from clipboard");
+                traceMenu.hint("Paste image from clipboard");
                 btn.removeEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
 
                 const bmpd:Object = Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT);
@@ -4849,13 +4849,13 @@
             CANVAS_TRACE_ALPHA = deafultAlpha;
             canvasTraceLayer.alpha = deafultAlpha;
             updateTraceOpaButtonPosByAlpha(deafultAlpha);
-            traceMenuBox.hint("Opacity "+Math.floor(deafultAlpha*100)+"%");
+            traceMenu.hint("Opacity "+Math.floor(deafultAlpha*100)+"%");
             canvasTraceLayer.visible = true;
         }
 
         private function setTraceOpaButton():void
         {
-            const _traceMenuBox:traceButtons = traceMenuBox;
+            const _traceMenuBox:traceButtons = traceMenu;
             const button:SimpleButton = _traceMenuBox["traceOpaButton"];
             const bar:SimpleButton = _traceMenuBox["traceOpaBar"];
             const barWidth:Number = bar.width;
@@ -5332,7 +5332,7 @@
             previewBox.chanegStageColor(bg);
             toolBox.changeUIColor(_arr2);
             toolBox2.changeUIColor(_arr2);
-            traceMenuBox.changeUIColor(_arr2,index === 0);
+            traceMenu.changeUIColor(_arr2,index === 0);
             lassoMenu.changeUIColor(_arr2);
             topBar.changeUIColor(base,op,_arr[index][4]);
             rotateCursorBox.changeUIColor(base,op);
@@ -7185,7 +7185,7 @@
 
                         case "traceCancelButton":
                         {
-                            setTopChildIndex(traceMenuBox);
+                            setTopChildIndex(traceMenu);
                             closeTraceMenu();
                         }
                         break;
@@ -7198,28 +7198,28 @@
 
                         case "traceLoadButton":
                         {
-                            setTopChildIndex(traceMenuBox);
+                            setTopChildIndex(traceMenu);
                             checkButtonUp(targetName);
                         }
                         break;
 
                         case "traceClipButton":
                         {
-                            setTopChildIndex(traceMenuBox);
+                            setTopChildIndex(traceMenu);
                             setTraceClipButton();
                         }
                         break;
 
                         case "traceMirrorButton":
                         {
-                            setTopChildIndex(traceMenuBox);
+                            setTopChildIndex(traceMenu);
                             setTraceMirrorButton();
                         }
                         break;
 
                         case "traceDeleteButton":
                         {
-                            setTopChildIndex(traceMenuBox);
+                            setTopChildIndex(traceMenu);
                             setTraceDeleteButton();
                         }
                         break;
@@ -7227,7 +7227,7 @@
                         case "traceVisibleONButton":
                         case "traceVisibleOFFButton":
                         {
-                            setTopChildIndex(traceMenuBox);
+                            setTopChildIndex(traceMenu);
                             setTraceVisibleButton();
                         }
                         break;
@@ -9283,7 +9283,9 @@
                     if(!rDataReadFlag) drawFileData(jumpCount,jumpFlag); //여기서 readcount 깍아주고
                     if(readCount > 0) drawRData(readCount,jumpFlag); //나머지 readcount를 여기서해줌
                 }
-                updateCursorPosAndInfoText(jumpFlag);
+                //playbackFinished 해주는 이유는
+                //여기 밑까지 계속 함수를 읽어줘서 캔버스가 이동되어버리는 현상이 있어서 체크해줘야함
+                if(!playbackFinished) updateCursorPosAndInfoText(jumpFlag);
             };
         }
 
@@ -10029,7 +10031,7 @@
             var xBox:Sprite = null;
 
             if(type === 1) xBox = lassoMenu;
-            else if(type === 2) xBox = traceMenuBox;
+            else if(type === 2) xBox = traceMenu;
 
             const click:Point = new Point(mouseX,mouseY);
             setTopChildIndex(xBox);
@@ -10149,7 +10151,7 @@
                     if(traceMenuON === false)
                     {
                         openTraceWindow();
-                        traceMenuBox.y = mouseY-60;
+                        traceMenu.y = mouseY-60;
                     }
                 }
                 break;
@@ -11581,7 +11583,7 @@
                 topBar.resetHintColor();
                 penSizeCursor.visible = false;
                 canvasTraceLayer.visible = false;
-                if(traceMenuON === true) traceMenuBox.visible = false;
+                if(traceMenuON === true) traceMenu.visible = false;
 
                 changeTopBarIcons("capture");
 
@@ -11606,7 +11608,7 @@
                     if(isSidebarVisible) setSidebarVisible(true,true);
 
                     if(traceMenuON === true)
-                        traceMenuBox.visible = true;
+                        traceMenu.visible = true;
 
                     changeTopBarIcons("draw");
                     addInputEventDrawMode();
@@ -12611,7 +12613,7 @@
                             "uiColorIndex":uiColorIndex,
                             "APP_RUNNING_TIME":realWorkingTimer.getRunningTime(),
                             "CANVAS_TRACE_ALPHA":CANVAS_TRACE_ALPHA,
-                            "traceOpaButtonX":traceMenuBox["traceOpaButton"].x,
+                            "traceOpaButtonX":traceMenu["traceOpaButton"].x,
                             "traceReizeMoveSum":traceReizeMoveSum,
                             "tracePosInfo[0]":tracePosInfo[0],
                             "tracePosInfo[1]":tracePosInfo[1],
@@ -12619,8 +12621,8 @@
                             "tracePosInfo[3]":tracePosInfo[3],
                             "tracePosInfo[4]":tracePosInfo[4],
                             "tracePosInfo[5]":tracePosInfo[5],
-                            "traceMenuPos[0]":traceMenuBox.x,
-                            "traceMenuPos[1]":traceMenuBox.y,
+                            "traceMenuPos[0]":traceMenu.x,
+                            "traceMenuPos[1]":traceMenu.y,
                             "mirrorON":mirrorON,
                             "gridFlag":gridFlag,
                             "hueCursor.x":pickerBox["hueCursor"].x,
@@ -12791,9 +12793,9 @@
                     realWorkingTimer.update();
                     CANVAS_TRACE_ALPHA = d["CANVAS_TRACE_ALPHA"]
                     canvasTraceLayer.alpha = d["CANVAS_TRACE_ALPHA"];
-                    traceMenuBox["traceOpaButton"].x = d["traceOpaButtonX"];
-                    traceMenuBox.x = d["traceMenuPos[0]"];
-                    traceMenuBox.y = d["traceMenuPos[1]"];
+                    traceMenu["traceOpaButton"].x = d["traceOpaButtonX"];
+                    traceMenu.x = d["traceMenuPos[0]"];
+                    traceMenu.y = d["traceMenuPos[1]"];
                     traceReizeMoveSum = d["traceReizeMoveSum"];
                     isRightSidebar = d["isRightSidebar"];
                     isSidebarVisible = d["isSidebarVisible"];
@@ -14492,7 +14494,7 @@
                 lassoMenu.visible = true;
                 setTopChildIndex(lassoMenu);
 
-                if(traceMenuON === true) traceMenuBox.visible = false;
+                if(traceMenuON === true) traceMenu.visible = false;
 
                 toolBox.alpha = BUTTON_OFF_ALPHA;
                 addMouseKeyEventLassoTool();
@@ -15300,7 +15302,7 @@
                 lassoBitmapdataSubSave = null;
             }
 
-            if(traceMenuON === true) traceMenuBox.visible = true;
+            if(traceMenuON === true) traceMenu.visible = true;
 
             toolBox.alpha = 1.0;
             restoreFirstUsedTool();
@@ -16104,7 +16106,6 @@
 
         private function setSideBarRightPosition(ignoreCanvasMove:Boolean):void
         {
-            const _sideBar:sidePanel = sideBar;
             const floor:Function = Math.floor;
 
             updateSidebarDefaultRightPos();
@@ -16125,9 +16126,9 @@
             sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width;
             sideBarScrollBar.y = scrollBarMovedY;
 
-            _sideBar.y = topBar.BARSIZE*topBar.scaleX;
+            sideBar.y = topBar.BARSIZE*topBar.scaleX;
 
-            STAGE_RIGHT_OFFSET = _sideBar.getWidth();
+            STAGE_RIGHT_OFFSET = sideBar.getWidth();
             STAGE_LEFT_OFFSET = 0;
 
             if(sideBar.visible)
@@ -16149,15 +16150,13 @@
             checkfofoPos();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
-            if(traceMenuON) checkBoxPosition(traceMenuBox);
+            if(traceMenuON) checkBoxPosition(traceMenu);
         }
 
         private function setSideBarLeftPosition():void
         {
-            const _sideBar:sidePanel = sideBar;
             const floor:Function = Math.floor;
-
-            _sideBar.x = 0;
+            sideBar.x = 0;
 
             sideBarScrollSet.x = 5;
             sideBarScrollSet.y = scrollSetMovedY;
@@ -16172,16 +16171,16 @@
             toolBox.x = 175;
             toolBox.y = floor(controlBox.y+2);
 
-            if(toolBox.getDeafultY() === 0)
-                toolBox.setDeafultY(toolBox.y);
+            if(toolBox.getDeafultY() === 0) toolBox.setDeafultY(toolBox.y);
 
-            sideBarScrollBar.x = _sideBar.w;
+            sideBarScrollBar.x = sideBar.w;
             sideBarScrollBar.y = scrollBarMovedY;
 
-            _sideBar.y = topBar.BARSIZE*topBar.scaleX;
+            sideBar.y = topBar.BARSIZE*topBar.scaleX;
 
             STAGE_LEFT_OFFSET = sideBar.getWidth();
             STAGE_RIGHT_OFFSET = 0;
+            
             if(sideBar.visible)
             {
                 regPoint.x += STAGE_LEFT_OFFSET;
@@ -16199,7 +16198,7 @@
             checkfofoPos();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
-            if(traceMenuON) checkBoxPosition(traceMenuBox);
+            if(traceMenuON) checkBoxPosition(traceMenu);
         }
 
         private function updateScrollBarColorHeight(height:Number):void
@@ -16248,7 +16247,7 @@
 
             topBar.updateTimerPos(stage.stageWidth);
             stage.addChild(fileDragSelectBox);
-            stage.addChild(traceMenuBox);
+            stage.addChild(traceMenu);
             stage.addChild(aboutPanel);
             stage.addChild(topBar);
             stage.addChild(sideBar);
@@ -16460,9 +16459,9 @@
 
                 if(traceMenuON)
                 {
-                    traceMenuBox.x += dx;
-                    traceMenuBox.y += dy;
-                    checkBoxPosition(traceMenuBox);
+                    traceMenu.x += dx;
+                    traceMenu.y += dy;
+                    checkBoxPosition(traceMenu);
                 }
 
                 if(aboutPanelON) setAboutPanelCenterPos();
@@ -17370,14 +17369,14 @@
             if(bmpd as BitmapData)
             {
                 topBar["clipButton"].alpha = 1.0;
-                traceMenuBox["traceClipButton"].alpha = 1.0;
+                traceMenu["traceClipButton"].alpha = 1.0;
                 clipImageON = true;
             }
             else
             {
                 const offAlpha:Number = BUTTON_OFF_ALPHA;
                 topBar["clipButton"].alpha = offAlpha;
-                traceMenuBox["traceClipButton"].alpha = offAlpha;
+                traceMenu["traceClipButton"].alpha = offAlpha;
                 clipImageON = false;
             }
         }
@@ -17932,7 +17931,7 @@
             replayTimeBox.visible = false;
             regPoint.visible = true;
             penSizeCursor.visible = true;
-            if(traceMenuON === true) traceMenuBox.visible = true;
+            if(traceMenuON === true) traceMenu.visible = true;
             if(isSidebarVisible === true) setSidebarVisible(true,true);
             canvasPanel.addChild(rCursor);
             if(toolTipBox.visible) toolTipBoxTimerOFF();
@@ -18018,7 +18017,7 @@
 
             if(traceMenuON === true)
             {
-                traceMenuBox.visible = false;
+                traceMenu.visible = false;
             }
 
             if(makeJumpImageFlag === 1)
@@ -18240,7 +18239,7 @@
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
             if(mouseClickON || !isNowKey(0) || isPressingControl() || quickSidebarON
-            || (traceMenuON && traceMenuBox.hitTestPoint(mouseX,mouseY)))
+            || (traceMenuON && traceMenu.hitTestPoint(mouseX,mouseY)))
             {
                 return;
             }
@@ -18805,28 +18804,28 @@
 
                 case "traceRotateButton":
                 {
-                    setTopChildIndex(traceMenuBox);
+                    setTopChildIndex(traceMenu);
                     setTraceRotateButton();
                 }
                 return;
 
                 case "traceMoveButton":
                 {
-                    setTopChildIndex(traceMenuBox);
+                    setTopChildIndex(traceMenu);
                     setTraceMoveButton();
                 }
                 return;
 
                 case "traceResizeButton":
                 {
-                    setTopChildIndex(traceMenuBox);
+                    setTopChildIndex(traceMenu);
                     setTraceResizeButton();
                 }
                 return;
 
                 case "traceButtonWrapper":
                 {
-                    setTopChildIndex(traceMenuBox);
+                    setTopChildIndex(traceMenu);
                     setTraceOpaButton();
                 }
                 return;
