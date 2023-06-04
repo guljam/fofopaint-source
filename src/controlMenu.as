@@ -6,6 +6,8 @@
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.filters.BlurFilter;
+	import flash.utils.setTimeout;
+	import flash.utils.clearTimeout;
 
 	public class controlMenu extends Sprite
 	{
@@ -49,6 +51,7 @@
 
 		private const BOX_WIDTH:Number = 180;
 		private var BOX_HEIGHT:Number = 260;
+
 
 		public function moreOptionsOFF():void
 		{

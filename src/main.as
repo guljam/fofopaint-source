@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.26;
+        private const APP_VERSION:Number = 18.27;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -677,13 +677,35 @@
             return controlBox.layer1VisibleButton.visible || controlBox.layer2VisibleButton.visible;
         }
 
+		private function setMoreOptionsOFF():void
+        {
+            removeTimer("moreOptionsOFFDelay");
+			controlBox.moreOptionsOFF();
+            stage.removeEventListener(MouseEvent.MOUSE_MOVE,moreOptionsOFFMouseMoveEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,moreOptionsOFFMouseMoveEvent);
+            stage.removeEventListener(KeyboardEvent.KEY_DOWN,moreOptionsOFFKeyboardEvent);
+        }
+
+		private function moreOptionsOFFKeyboardEvent(e:KeyboardEvent):void
+        {
+            const keyCode:int = e.keyCode;
+
+            if(keyCode === KEY.n3 || keyCode === KEY.n4
+            || keyCode === KEY.n7 || keyCode === KEY.n8)
+            {
+
+            }
+            else
+            {
+                setMoreOptionsOFF();
+            }
+        }
+
 		private function moreOptionsOFFMouseMoveEvent(e:MouseEvent):void
 		{
 			if(controlBox.moreOptionsBox.hitTestPoint(mouseX,mouseY) === false)
 			{
-				controlBox.moreOptionsOFF();
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,moreOptionsOFFMouseMoveEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,moreOptionsOFFMouseMoveEvent);
+                setMoreOptionsOFF();
 			}
 		}   
 
@@ -739,6 +761,7 @@
             {
                 rCursor.visible = true;
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,setRCursorVisibleOFFUndoMouseDownEvent);
+                addTimerByName("setRCursorVisibleOFFUndoTimer",2.0,false,setRCursorVisibleOFFUndo,[false]);
             }
 
             if(undoIndex < 0)
@@ -800,8 +823,8 @@
             if(subLayerPreviewON === false)
             {
                 subLayerPreviewON = true;
-                if(shortcut) stage.addEventListener(KeyboardEvent.KEY_UP,setSingleLayerPreviewOFFKeyUpEvent,false,5);
-                else stage.addEventListener(MouseEvent.MOUSE_MOVE,layerSinglePreviewOFFMouseOutEvent,false,5);
+                stage.addEventListener(KeyboardEvent.KEY_UP,setSingleLayerPreviewOFFKeyUpEvent,false,5);
+                stage.addEventListener(MouseEvent.MOUSE_MOVE,layerSinglePreviewOFFMouseOutEvent,false,5);
             }
 
             if(layer === 1)
@@ -1434,6 +1457,8 @@
                 }
                 else
                 {
+                    addTimerByName("moreOptionsOFFDelay",2.0,false,setMoreOptionsOFF);
+                    stage.addEventListener(KeyboardEvent.KEY_DOWN,moreOptionsOFFKeyboardEvent);
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,moreOptionsOFFMouseMoveEvent);
                 }
             }
@@ -17160,7 +17185,15 @@
                 case KEY.n9:
                 {
                     nowKeyNotKeyUp = keyCode;
-                    if(subLayerON || isLayerOnlyViewSelected()) setSubLayer(false);
+                    if(subLayerON)
+                    {
+                        if(isLayerOnlyViewSelected())
+                        {
+                            controlBox.layer2VisibleButton.visible = true;
+                            setLayer2VisibleToggle();
+                        }
+                        setSubLayer(false);
+                    }
 
                     setSingleLayerPreview(1,true);
                     setToolTipTempON("Layer 1 selected");
@@ -17171,7 +17204,15 @@
                 case KEY.n0:
                 {
                     nowKeyNotKeyUp = keyCode;
-                    if(!subLayerON || isLayerOnlyViewSelected()) setSubLayer(true);
+                    if(!subLayerON)
+                    {
+                        if(isLayerOnlyViewSelected())
+                        {
+                            controlBox.layer1VisibleButton.visible = true;
+                            setLayer1VisibleToggle();
+                        }
+                        setSubLayer(true);
+                    }
 
                     setSingleLayerPreview(2,true);
                     setToolTipTempON("Layer 2 selected");
@@ -17438,15 +17479,9 @@
                 }
             }
 
-            if(quickSidebarON && !deepUndoON)
-            {
-                _quickSidebarOFF();
-            }
-
-            if(subLayerPreviewON)
-            {
-                setSingleLayerPreviewOFF();
-            }
+            if(quickSidebarON && !deepUndoON) _quickSidebarOFF();
+            if(subLayerPreviewON) setSingleLayerPreviewOFF();
+            if(controlBox.isMoreOptionsON()) setMoreOptionsOFF();
 
             restoreFirstUsedTool();
         }
