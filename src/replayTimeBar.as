@@ -166,7 +166,7 @@
 			replayDeleteBar.visible = false;
 
 			initTotalBarX();
-			cacheAsBitmap = false;
+			cacheAsBitmap = true;
 		}
 	}
 }

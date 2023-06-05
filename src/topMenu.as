@@ -661,7 +661,7 @@
 			addChild(topbarInfoBG);
 			setChildIndex(topbarBG,0);
 			setChildIndex(topMenuInfo,numChildren-1);
-			cacheAsBitmap = false;
+			cacheAsBitmap = true;
 
 			miniTimer = new fofoTimer(stage);
 		}
