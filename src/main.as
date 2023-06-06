@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.36;
+        private const APP_VERSION:Number = 18.37;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6981,16 +6981,15 @@
             mirrorON = false;
             mirrorCommandReady = false;
             rDataReadFlag = false;
-            rSpeed = 1;
             undoData.setRFileTotalFrame(0);
             TOTAL_FRAME = 0;
             makeJumpImageFlag = 0;
-            topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x+3;
 
             resetTraceImageInfo();
             resetTraceOpa();
             makeFirstReplayImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
             initReplayDataFile(true);
+            resetReplaySpeedBar();
             resetReplayTime();
             resetUndo();
 
@@ -7455,6 +7454,8 @@
                 setMakeJumpImage();
             }
 
+            resetReplaySpeedBar();
+
             playbackFinished = true;
             if(undoIndex > rData.length-1) undoIndex = rData.length-1;
             undoToIndex(undoIndex);
@@ -7582,8 +7583,10 @@
             }
 
             replayNowBar.width = bw;
-            TOTAL_FRAME
             replayTimeBox["frameInfo"].text = TOTAL_FRAME+" / " + TOTAL_FRAME;
+
+            rSpeed = 1; //속도 리셋
+            topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x+3;
 
             // setReplayUIOFF();
             setDeepUndoOFF();
@@ -8254,6 +8257,12 @@
                 --rRestartTimerCount;
                 return true;
             });
+        }
+
+        private function resetReplaySpeedBar():void
+        {
+            rSpeed = 1; //속도 리셋
+            topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x+3;
         }
 
         //total frame file max frame등등은 수동으로 초기화
@@ -10787,7 +10796,7 @@
             changeCanvasSizeReplayMode(rcanvas1BitmapData.width,rcanvas1BitmapData.height); //크기도 바꿔주고
 
             fs.open(repFile,FileMode.READ);
-            fs.position = 0;
+            fs.position = 0;    
 
             rMirrorON = false;
 
@@ -11462,8 +11471,7 @@
                 captureOFF();
             }
 
-            rSpeed = 1; //속도 리셋
-            topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x+3;
+            resetReplaySpeedBar();
             resetReplayTime();
             clearCanvasReplayMode();
             replayTimeBox["frameInfo"].text = "0 / " + getTotalFrame()+" frame";
