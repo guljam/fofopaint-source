@@ -336,6 +336,8 @@
 			fillPenUndo.visible = false;
 
 			// initPenSizeCursor();
+
+			toolSelectCursor.useHandCursor = false;
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
 			toolErase.useHandCursor = false;
