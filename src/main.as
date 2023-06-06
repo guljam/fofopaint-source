@@ -60,8 +60,8 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.34;
-        private const APP_DATA_VERSION:Number = 17.40;
+        private const APP_VERSION:Number = 18.35;
+        private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private const STAGE_FRAME:int = stage.frameRate;
@@ -7524,20 +7524,24 @@
 
         private function superUndo():void
         {
+            const replayTotalBar:Sprite = replayTimeBox["replayTotalBar"] as Sprite;
+            const replayNowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
+            const bw:Number = replayTotalBar.width;
+
             if(rDataReadFlag === true)
             {
                 //위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
                 //실제 undo해줘야할 인덱스는 -1해줘야하는거임
                 undoToIndex(rIndex);
+                rData.splice(rIndex+1);
+
+                TOTAL_FRAME = getTotalFrame();
                 resetReplayTime();
             }
             else if(rDataReadFlag === false)
             {
                 tickDraw.setFirstRCursorPosCurrent();
-                const replayTotalBar:Sprite = replayTimeBox["replayTotalBar"] as Sprite;
-                const replayNowBar:Sprite = replayTimeBox["replayNowBar"] as Sprite;
                 const fs:FileStream = new FileStream();
-                const bw:Number = replayTotalBar.width;
 
                 fs.open(repFile,FileMode.UPDATE);
                 fs.position = rLastBytePosition;
@@ -7572,12 +7576,15 @@
                 changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height,0,0,false);
                 setBackgroundColorDrawMode(RCANVAS_BG_COLOR);
                 resetReplayTime();
-                replayNowBar.width = bw;
                 setCanvasSameReplayCanvas();
                 resetUndo();
                 mirrorCommandReady = false;
                 appInfoBox.setMirror(rMirrorON);
             }
+
+            replayNowBar.width = bw;
+            TOTAL_FRAME
+            replayTimeBox["frameInfo"].text = TOTAL_FRAME+" / " + TOTAL_FRAME;
 
             // setReplayUIOFF();
             setDeepUndoOFF();
@@ -10286,15 +10293,12 @@
 
         private function setBackgroundColorReplayMode(color:uint):void
         {
-            if(RCANVAS_BG_COLOR === color) return;
             RCANVAS_BG_COLOR = color;
             _setBackgroundColor(rcanvasPanel,RCANVAS_WIDTH,RCANVAS_HEIGHT,color);
         }
 
         private function setBackgroundColorDrawMode(color:uint):void
         {
-            if(CANVAS_BG_COLOR === color) return;
-
             saveOneTime = false;
             CANVAS_BG_COLOR = color;
             previewBox.changeprevBitmapBGColor(color);
@@ -13875,6 +13879,7 @@
             {
                 return;
             }
+
             const cpg:Graphics = rcanvasPanel.graphics;
             const maskg:Graphics = rcanvasPanelMask.graphics;
             const bgColor:uint = RCANVAS_BG_COLOR;
@@ -13973,11 +13978,6 @@
 
         private function changeCanvasSize(w:Number,h:Number,moveX:Number=0,moveY:Number=0,movedFlag:Boolean=false):void
         {
-            if(w === CANVAS_WIDTH && h === CANVAS_HEIGHT)
-            {
-                return;
-            }
-
             const maxSize:uint = CANVAS_MAX_SIZE;
 
             if(w > maxSize)  w = maxSize;
