@@ -772,6 +772,7 @@
             {
                 rCursor.visible = false;
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,setRCursorVisibleOFFUndoMouseDownEvent);
+                removeTimer("setRCursorVisibleOFFUndoTimer");
             }
         }
 
