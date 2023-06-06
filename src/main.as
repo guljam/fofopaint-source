@@ -1350,7 +1350,7 @@
             if(arr.length === 1)
             {
                 rData[rData.length-1] = rDataBuffer.concat();
-                rDataBuffer = []
+                rDataBuffer = [];
             }
             else
             {
