@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.35;
+        private const APP_VERSION:Number = 18.36;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -781,7 +781,6 @@
             {
                 rCursor.visible = true;
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,setRCursorVisibleOFFUndoMouseDownEvent);
-                addTimerByName("setRCursorVisibleOFFUndoTimer",2.0,false,setRCursorVisibleOFFUndo,[false]);
             }
 
             if(undoIndex < 0)
@@ -15745,6 +15744,7 @@
                     drawUndoData();
                 }
             }
+            addTimerByName("setRCursorVisibleOFFUndoTimer",2.0,false,setRCursorVisibleOFFUndo,[false]);
         }
 
         private function drawReplayImageToDrawModeCanvas():void
