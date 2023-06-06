@@ -12331,6 +12331,8 @@
                             workerPNGCaptureData[0].clear();
                             workerPNGCaptureData[0] = null;
                             workerPNGCaptureData.shift();
+
+                            workerPNGCaptureFileData[0] = null;
                             workerPNGCaptureFileData.shift();
                         }
                     }
@@ -15918,6 +15920,7 @@
             //그게 아니면 미러 커맨드 지워줌
             function updateLastRDataMirror():void
             {
+                var popArr:Array
                 if(mirrorCommandReady)
                 {
                     //마지막 데이터에 1개만의 미러 커맨드가 있으먼 미러를 무효로함 mirror mirror니까 원래대로임
@@ -16056,6 +16059,9 @@
                                             workerUndoData[0][0] = null;
                                             workerUndoData[0][1] = null;
 
+                                            workerUndoData[0] = null;
+                                            workerUndoData2[0] = null;
+
                                             workerUndoData.shift();
                                             workerUndoData2.shift();
                                         }
@@ -16073,6 +16079,10 @@
                             }
                         }
                     }
+
+                    rData[0].length = 0;
+                    rData[0] = null;
+                    rDataFrame[0] = null;
                     rData.shift();
                     rDataFrame.shift();
                 }
