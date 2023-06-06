@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.38;
+        private const APP_VERSION:Number = 18.40;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9870,8 +9870,10 @@
 
         private function setJumpOneFrame(toBackFlag:Boolean,oneFrame:Boolean=false):void
         {
+            playbackFinished = false;
             if(setHoldKeyRepeat(jumpOneFrame,toBackFlag,oneFrame) === true)
             {
+                playbackFinished = false;
                 if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
                 if(replayStartON) stopReplay();
             }
