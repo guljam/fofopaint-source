@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.33;
+        private const APP_VERSION:Number = 18.34;
         private const APP_DATA_VERSION:Number = 17.40;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -672,6 +672,17 @@
         }
 
         //function
+        private function clearArrayElement(arr:Array):void
+        {
+            const len:uint = arr.length;
+            for (var i:uint = 0; i < len; i++)
+            {
+                arr[i] = null;
+            }
+            arr.length = 0;
+            arr = null;
+        }
+
         private function cloneBitmapData(targetBmpd:BitmapData,sourceBmpd:BitmapData):void
         {
             if(targetBmpd && targetBmpd !== sourceBmpd) targetBmpd.dispose();
@@ -2046,7 +2057,10 @@
                         g.moveTo(x,y);
                     }
                 }
-                else g.lineTo(x,y);
+                else
+                {
+                    g.lineTo(x,y);
+                }
 
                 oldPoint.setTo(x,y);
             }
@@ -2629,6 +2643,7 @@
             var _sharpLine:Boolean;
             var rotateFlag:Boolean;
             var xOffset:Number;
+            var canvasBlurSize:uint;
 
             function _checkUndoReady():void
             {
@@ -2662,7 +2677,7 @@
                 var y:Number = _data[1];
 
                 g.clear();
-                if(len < 6) return;
+                if(len <= 3) return;
 
                 _dottedLine.ready(g,x,y);
 
@@ -2698,7 +2713,12 @@
                     data.push(data[0]);
                     data.push(data[1]); //마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
                     canvas2.alpha = xAlpha;
-                    rDataBuffer.push(["fill",xColor,xAlpha,null,command.concat(),data.concat()]);
+                    rDataBuffer.push(["fill3",xColor,xAlpha,null,command.concat(),data.concat(),airBrushON,canvasBlurSize]);
+                    if(canvasBlurSize > 0)
+                    {
+                        setBlurCanvasBySizeDrawMode(canvasBlurSize);
+                        canvasBlurSize = 0;
+                    }
                     drawFillPenData();
                     drawDone();
                 }
@@ -2923,6 +2943,14 @@
                 xColor = penColor;
                 xAlpha = penAlpha;
                 commandUndoIndexArr = [0];
+
+                if(airBrushON)
+                {
+                    canvasBlurSize = penSize;
+                    clearArrayElement(canvas2Draw.filters);
+                    canvas2Draw.filters.length = 0;
+                    canvas2Draw.filters = null;
+                }
 
                 if(traceMenuON) traceMenu.visible = false;
                 _dottedLine.updateScale(zoomed);
@@ -5131,6 +5159,7 @@
             canvas2Draw.filters = [blurf];
         }
 
+        //drawdone에서 줌된 blur사이즈가 아니 1배율 블러를 적용해야 제대로 되기 때문에 이거해줌
         private function setBlurCanvasBySizeNoZoomReplayMode():void
         {
             const blurSize:Number = getBlurSize(airBrushSizeReplayMode,1.0);
@@ -8012,9 +8041,6 @@
             var ba1:ByteArray = new ByteArray();
             const w:Number = bmpd.width;
             const h:Number = bmpd.height;
-
-            trace('w ',w,h,'rFirstImage',rFirstImage.width);
-            trace('bmpd',bmpd,bmpd1,bgColor);
             const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
             rJumpImageFrameData = [0];
@@ -8688,7 +8714,8 @@
                 cd2.drawPath(command,xyData);
                 setRCursorPos(xyData[xyData.length-2],xyData[xyData.length-1]);
             }
-
+            
+            //이건아마 중간에 쓰다 말거임 그래도 오래된 리플레이 파일을 위해서 남겨둠
             function fill2(data:Array):void
             {
                 const color:Number = data[1];
@@ -8712,6 +8739,26 @@
 
                 cd2.endFill();
                 setRCursorPos(arr[len-2],arr[len-1]);
+            }
+
+            function fill3(data:Array):void
+            {
+                const color:Number = data[1];
+                const alpha:Number = data[2];
+                const blendMode:String = data[3];
+                const command:Vector.<int> = data[4];
+                const xyData:Vector.<Number> = data[5];
+                const airBrushFlag:Boolean = data[6];
+                const airBrushSize:uint = data[7];
+
+                checkAirBrush(airBrushFlag,airBrushSize);
+                updateLineStyleBackup([alpha,blendMode]);
+                rcanvas2.alpha = alpha;
+                cd2.clear();
+                cd2.lineStyle(1,color);
+                cd2.beginFill(color);
+                cd2.drawPath(command,xyData);
+                setRCursorPos(xyData[xyData.length-2],xyData[xyData.length-1]);
             }
 
             function dot(data:Array):void
@@ -9037,6 +9084,7 @@
                     case "sqline": sqline(d); break;
                     case "fill": fill(d); break;
                     case "fill2": fill2(d); break;
+                    case "fill3": fill3(d); break;
                     case "dot": dot(d); break;
                     case "line": line(d); break;
                     case "move": move(d); break;
