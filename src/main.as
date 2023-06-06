@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.37;
+        private const APP_VERSION:Number = 18.38;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7534,6 +7534,7 @@
                 //실제 undo해줘야할 인덱스는 -1해줘야하는거임
                 undoToIndex(rIndex);
                 rData.splice(rIndex+1);
+                rDataFrame.splice(rIndex+1);
 
                 TOTAL_FRAME = getTotalFrame();
                 resetReplayTime();
@@ -10035,6 +10036,7 @@
             nowBar.width = clickedX;
             checkBarLimit();
             oldFrame = finalFrame;
+            playbackFinished = false;
 
             function checkBarLimit():void
             {
