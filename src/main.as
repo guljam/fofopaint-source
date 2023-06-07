@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.41;
+        private const APP_VERSION:Number = 18.42;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -510,7 +510,7 @@
                     ,traceLastAlpha:Number = 0
 
         //그리드 레이어 변수 
-                    ,canvasGrid:Sprite = new Sprite()//트레이스 레이어임
+                    ,canvasGrid:Shape = new Shape()//트레이스 레이어임
                     ,gridFlag:uint = 0
         //closure
                     ,realWorkingTimer:Object = cRealWorkingTimer()
@@ -529,7 +529,7 @@
                     ,checkAutoScroll:Object = cAutoScroll()
                     ,updatePenSizeCursor:Function = cUpdatePenSizeCursor()
                     ,undoData:Object = cAddUndoData()
-                    ,addUndoData:Function = undoData.add
+                    ,addUndoData:Function = undoData.add 
                     ,addUndoDataContinue:Function = undoData.addContinue
                     ,penCursorPosition:Object = cUpdatePenCursorPosition()
                     ,updatePenCursorPosition:Function = penCursorPosition.check
@@ -4479,12 +4479,12 @@
             data.length = 0;
             checkGridMirror(mirrorON);
             canvasGrid.visible = true;
+            canvasGrid.cacheAsBitmap = true;
         }
 
         private function setGridButton():void
         {
             gridFlag++;
-            setTopChildIndex(canvasGrid);
 
             if(gridFlag > 5)
             {
@@ -4497,6 +4497,7 @@
             }
 
             drawGrid();
+            setTopChildIndex(canvasGrid);
         }
 
         private function updateTraceOpaButtonPosByAlpha(alpha:Number):void
@@ -15032,6 +15033,7 @@
         private function setOptimizeCanvasMove(flag:Boolean):void
         {
             if(canvasTraceLayer.alpha > 0.0) canvasTraceLayer.visible = !flag;
+            if(gridFlag > 0) canvasGrid.visible = !flag;
         }
 
         private function cHandTool():Function
