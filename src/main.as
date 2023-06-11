@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.43;
+        private const APP_VERSION:Number = 18.45;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2647,6 +2647,14 @@
             var xOffset:Number;
             var canvasBlurSize:uint;
 
+            function _checkUndoReady():void
+            {
+                if(canvas1Bitmap.hitTestObject(cd))
+                {
+                    readyAddUndo = true;
+                }
+            }
+
             function drawFillPenData():void
             {
                 const g:Graphics = cd.graphics;
@@ -2806,7 +2814,7 @@
 
             function fillPenMouseMoveEvent(e:MouseEvent):void
             {
-                if(readyAddUndo === false) checkUndoReady();
+                if(readyAddUndo === false) _checkUndoReady();
                 mouseMoved = true;
 
                 var mx:Number = cd.mouseX;
@@ -2896,7 +2904,7 @@
                     drawPreviewLine();
                     mouseDragON = true;
 
-                    if(readyAddUndo === false) checkUndoReady();
+                    if(readyAddUndo === false) _checkUndoReady();
                 }
             }
 
@@ -13016,6 +13024,7 @@
         {
             return function():void
             {
+                trace('penSizeCursor.hitTestObject(canvas1Bitmap)',penSizeCursor.hitTestObject(canvas1Bitmap));
                 if(penSizeCursor.hitTestObject(canvas1Bitmap))
                 {
                     if(!readyAddUndo)
@@ -13120,7 +13129,8 @@
         {
             var canvas2Alpha:ColorTransform = new ColorTransform();
             return function():void
-            {            
+            {
+                trace('readyAddUndo',readyAddUndo);
                 if(readyAddUndo === false)
                 {
                     rDataBuffer = [];
