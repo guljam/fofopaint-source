@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.42;
+        private const APP_VERSION:Number = 18.43;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -524,6 +524,8 @@
                     ,moveTool:Function = cMoveTool()
                     ,spuitTool:Function = cSpuitTool()
                     ,fillPenTool:Object = cFillPenTool()
+                    ,drawDone:Function = cDrawDone()
+                    ,checkUndoReady:Function = cCheckUndoReady()
                     ,tickDraw:Object = cTickDraw()
                     ,doDraw:Function = cDoDraw()
                     ,checkAutoScroll:Object = cAutoScroll()
@@ -2645,14 +2647,6 @@
             var xOffset:Number;
             var canvasBlurSize:uint;
 
-            function _checkUndoReady():void
-            {
-                if(canvas1Bitmap.hitTestObject(cd))
-                {
-                    readyAddUndo = true;
-                }
-            }
-
             function drawFillPenData():void
             {
                 const g:Graphics = cd.graphics;
@@ -2812,7 +2806,7 @@
 
             function fillPenMouseMoveEvent(e:MouseEvent):void
             {
-                if(readyAddUndo === false) _checkUndoReady();
+                if(readyAddUndo === false) checkUndoReady();
                 mouseMoved = true;
 
                 var mx:Number = cd.mouseX;
@@ -2902,7 +2896,7 @@
                     drawPreviewLine();
                     mouseDragON = true;
 
-                    if(readyAddUndo === false) _checkUndoReady();
+                    if(readyAddUndo === false) checkUndoReady();
                 }
             }
 
@@ -3431,7 +3425,7 @@
             function updateZoom(z:Number):void
             {
                 zoomed = z;
-
+                
                 if(_isPenTool) cursorSize = penSize*z;
                 else if(_isEraseTool) cursorSize = eraseSize*z;
                 else cursorSize = 0;
@@ -11548,6 +11542,7 @@
             regPoint.rotation = 0;
             zoomedIndex = 3;
             setZoomCanvas(1.0);
+            updatePenSizeCursor();
             //bitmapdata가 갱신된이후에 업데이트 해줘야함
             resetUndo();
             tickDraw.resetFirstRCursorPos();
@@ -13017,13 +13012,16 @@
 
         //빈 stage공백에 광클하면 쓸데없는 addundo가 되서
         //캔버스를 클릭했거나, 펜사이즈가 캔버스에 걸치면 addundo가 되게 예약해줌
-        private function checkUndoReady():void
+        private function cCheckUndoReady():Function
         {
-            if(penSizeCursor.hitTestObject(canvas1Bitmap))
+            return function():void
             {
-                if(!readyAddUndo)
+                if(penSizeCursor.hitTestObject(canvas1Bitmap))
                 {
-                    readyAddUndo = true;
+                    if(!readyAddUndo)
+                    {
+                        readyAddUndo = true;
+                    }
                 }
             }
         }
@@ -13118,60 +13116,65 @@
         }
 
         //canvas2번데이터를 canvas1에다가 최종적으로그려줌
-        private function drawDone():void
+        private function cDrawDone():Function
         {
-            if(readyAddUndo === false)
-            {
-                rDataBuffer = [];
+            var canvas2Alpha:ColorTransform = new ColorTransform();
+            return function():void
+            {            
+                if(readyAddUndo === false)
+                {
+                    rDataBuffer = [];
+                    canvas2Draw.graphics.clear();
+                    return;
+                }
+                if(deepUndoON)
+                {
+                    var rDataBufferBackup:Array = rDataBuffer.concat();
+                    setApplyDeepUndo();
+                    rDataBuffer = rDataBufferBackup.concat();
+                    rDataBufferBackup.length = 0;
+                }
+
+                readyAddUndo = false;
+
+                if(airBrushSizeDrawMode > 0 && zoomed !== 1.0)
+                {
+                    setBlurCanvasBySizeNoZoomDrawMode();
+                    canvas2BitmapData.draw(canvas2Draw);
+                    canvas2Bitmap.bitmapData = canvas2BitmapData;
+                    setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
+                }
+                else
+                {
+                    canvas2BitmapData.draw(canvas2Draw);
+                    canvas2Bitmap.bitmapData = canvas2BitmapData;
+                }
+
+                if(isPenOrLineTool() || isNowTool(TOOL_FILL_PEN))
+                {
+                    canvas2Alpha.alphaMultiplier = penAlpha;
+                    // canvas2Alpha = new ColorTransform(1,1,1,penAlpha);
+                    if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha);
+                    else canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha);
+                }
+                else if(isEraseTool())
+                {
+                    canvas2Alpha.alphaMultiplier = eraseAlpha;
+                    // canvas2Alpha = new ColorTransform(1,1,1,eraseAlpha);
+                    if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
+                    else canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
+                }
+
+                rDataBuffer.push(["drawDone2",subLayerON]);
+
+                if(subLayerON) canvas11Bitmap.bitmapData = canvas11BitmapData;
+                else canvas1Bitmap.bitmapData = canvas1BitmapData;
+
+                canvas2BitmapData.fillRect(new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT),0);
                 canvas2Draw.graphics.clear();
-                return;
+
+                addUndoData();
             }
-            if(deepUndoON)
-            {
-                var rDataBufferBackup:Array = rDataBuffer.concat();
-                setApplyDeepUndo();
-                rDataBuffer = rDataBufferBackup.concat();
-                rDataBufferBackup.length = 0;
-            }
-
-            var canvas2Alpha:ColorTransform;
-
-            readyAddUndo = false;
-            if(airBrushSizeDrawMode > 0 && zoomed !== 1.0)
-            {
-                setBlurCanvasBySizeNoZoomDrawMode();
-                canvas2BitmapData.draw(canvas2Draw);
-                canvas2Bitmap.bitmapData = canvas2BitmapData;
-                setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
-            }
-            else
-            {
-                canvas2BitmapData.draw(canvas2Draw);
-                canvas2Bitmap.bitmapData = canvas2BitmapData;
-            }
-
-            if(isPenOrLineTool() || isNowTool(TOOL_FILL_PEN))
-            {
-                canvas2Alpha = new ColorTransform(1,1,1,penAlpha);
-                if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha);
-                else canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha);
-            }
-            else if(isEraseTool())
-            {
-                canvas2Alpha = new ColorTransform(1,1,1,eraseAlpha);
-                if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
-                else canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
-            }
-
-            rDataBuffer.push(["drawDone2",subLayerON]);
-
-            if(subLayerON) canvas11Bitmap.bitmapData = canvas11BitmapData;
-            else canvas1Bitmap.bitmapData = canvas1BitmapData;
-
-            canvas2BitmapData.fillRect(new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT),0);
-            canvas2Draw.graphics.clear();
-
-            addUndoData();
         }
 
         private function cLineTool():Function
