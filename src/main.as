@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.45;
+        private const APP_VERSION:Number = 18.46;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13024,7 +13024,6 @@
         {
             return function():void
             {
-                trace('penSizeCursor.hitTestObject(canvas1Bitmap)',penSizeCursor.hitTestObject(canvas1Bitmap));
                 if(penSizeCursor.hitTestObject(canvas1Bitmap))
                 {
                     if(!readyAddUndo)
@@ -13130,7 +13129,6 @@
             var canvas2Alpha:ColorTransform = new ColorTransform();
             return function():void
             {
-                trace('readyAddUndo',readyAddUndo);
                 if(readyAddUndo === false)
                 {
                     rDataBuffer = [];
@@ -15734,6 +15732,7 @@
                     drawUndoData(true);
                 }
             }
+            addTimerByName("setRCursorVisibleOFFUndoTimer",2.0,false,setRCursorVisibleOFFUndo,[false]);
         }
 
         private function undo(keyFlag:Boolean):void
