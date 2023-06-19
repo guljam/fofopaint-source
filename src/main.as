@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.47;
+        private const APP_VERSION:Number = 18.50;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3417,11 +3417,10 @@
             var mouseDownEventON:Boolean;
             var sidebarTempOFF:Boolean;
             var visibleMouseUpEventON:Boolean;
-            var nt:int;
-            const pos:Point = new Point(0,0);
+            var mx:Number = 0;
+            var my:Number = 0;
             // var mx:Number;
             // var my:Number;
-            var posInStage:Boolean;
 
             function updateCursorSize(size:Number):void
             {
@@ -3544,23 +3543,24 @@
 
             function check():void
             {
-                nt = nowTool;
-                pos.setTo(mouseX,mouseY);
-                posInStage = pos.x >= STAGE_LEFT_OFFSET &&
-                             pos.x <= stage.stageWidth-STAGE_RIGHT_OFFSET &&
-                             pos.y >= STAGE_TOP_OFFSET &&
-                             pos.y <= stage.stageHeight-STAGE_BOTTOM_OFFSET;
+                mx = mouseX;
+                my = mouseY;
 
-                if(penCursorOFFFlag || nt > useCursorTool || !posInStage || quickSidebarON
-                || resizeCanvas.isCanvasSizeChanging())//1 2 3 4 펜 지우개 라인툴 라인-지우개툴
+                if(penCursorOFFFlag || nowTool > useCursorTool 
+                || !(mx >= STAGE_LEFT_OFFSET &&
+                    mx <= stage.stageWidth-STAGE_RIGHT_OFFSET &&
+                    my >= STAGE_TOP_OFFSET &&
+                    my <= stage.stageHeight-STAGE_BOTTOM_OFFSET)
+                || quickSidebarON
+                || resizeCanvas.isCanvasSizeChanging() || (traceMenu.visible && traceMenu.hitTestPoint(mouseX,mouseY)))//1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                 {
                     _penSizeCursor.visible = false;
                 }
                 else
                 {
                     //addundo플래그가 커서가 캔버스 안에 들어올때 해주기 때문에 위치를 계속 갱신해줘야함
-                    _penSizeCursor.x = pos.x;
-                    _penSizeCursor.y = pos.y;
+                    _penSizeCursor.x = mx;
+                    _penSizeCursor.y = my;
 
                     if((cursorSize <= cursorVisibleOFFSize) || isNowTool(TOOL_FILL_PEN)) _penSizeCursor.visible = false;
                     else _penSizeCursor.visible = true;
@@ -3568,8 +3568,8 @@
 
                 if(isSidebarVisible === false && clickBlockFlag === false)
                 {
-                    if((!isRightSidebar && pos.x <= sideBarVisibleOffset || isRightSidebar && pos.x >= stage.stageWidth-sideBarVisibleOffset)
-                    && pos.y > STAGE_TOP_OFFSET)
+                    if((!isRightSidebar && mx <= sideBarVisibleOffset || isRightSidebar && mx >= stage.stageWidth-sideBarVisibleOffset)
+                    && my > STAGE_TOP_OFFSET)
                     {
                         checkSideBarON();
                     }
