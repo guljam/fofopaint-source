@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.50;
+        private const APP_VERSION:Number = 18.51;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -823,7 +823,9 @@
 
         private function layerSinglePreviewOFFMouseOutEvent(e:MouseEvent):void
         {
-            if(controlBox.layerButtonWrapper.hitTestPoint(mouseX,mouseY) === false)
+            if(controlBox.layerButtonWrapper.hitTestPoint(mouseX,mouseY) === false
+            || controlBox.layerSwapButton.hitTestPoint(mouseX,mouseY) === true
+            || controlBox.layerMergeButton.hitTestPoint(mouseX,mouseY) === true)
             {
                 setSingleLayerPreviewOFF();
             }
@@ -16477,17 +16479,21 @@
 
             updateSidebarDefaultRightPos();
 
-            sideBarScrollSet.x = 5;
+            sideBarScrollSet.x = 9;
             sideBarScrollSet.y = scrollSetMovedY;
-            previewBox.x = 0;
+            previewBox.x = -4;
             previewBox.y = 0;
-            appInfoBox.x = -2;
+            appInfoBox.setAlignRight();
+            appInfoBox.setWidth(previewBox.BOX_WIDTH);
+            appInfoBox.canvasInfo.text = appInfoBox.canvasInfo.text;
+            appInfoBox.x = previewBox.x+previewBox.BOX_WIDTH-appInfoBox.width;
             appInfoBox.y = floor(previewBox.y+previewBox.BOX_HEIGHT+3);
+            appInfoBox.update();
             controlBox.x = 39;
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 39;
             pickerBox.y = floor(controlBox.y+controlBox.height+6);
-            toolBox.x = 0;
+            toolBox.x = -2;
             toolBox.y = floor(controlBox.y+2);
 
             sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width;
@@ -16529,13 +16535,17 @@
             sideBarScrollSet.y = scrollSetMovedY;
             previewBox.x = 0;
             previewBox.y = 0;
+            appInfoBox.setAlignLeft();
+            appInfoBox.setWidth(previewBox.BOX_WIDTH);
+            appInfoBox.canvasInfo.text = appInfoBox.canvasInfo.text;
             appInfoBox.x = -2;
             appInfoBox.y = floor(previewBox.y+previewBox.BOX_HEIGHT+3);
+            appInfoBox.update();
             controlBox.x = 0;
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 0;
             pickerBox.y = floor(controlBox.y+controlBox.height+6);
-            toolBox.x = 175;
+            toolBox.x = 177;
             toolBox.y = floor(controlBox.y+2);
 
             if(toolBox.getDeafultY() === 0) toolBox.setDeafultY(toolBox.y);

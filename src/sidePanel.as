@@ -7,7 +7,7 @@
 
 	public class sidePanel extends Sprite {
 		private const sideBG:Shape = new Shape();
-		public const w:Number = 220;
+		public const w:Number = 223;
 		public var h:Number = 220;
 		public var tempVisibleON:Boolean = false;
 		private const baseColor:ColorTransform = new ColorTransform();

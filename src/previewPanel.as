@@ -17,8 +17,8 @@
 		public var prevBitmapSub:Bitmap = new Bitmap();
 		public var prevBitmapLastWidth:Number = 0;
 		public var prevBitmapLastHeight:Number = 0;
-		public const BOX_WIDTH:Number = 210;
-		public const BOX_HEIGHT:Number = 170;
+		public const BOX_WIDTH:Number = 213;
+		public const BOX_HEIGHT:Number = 173;
 		private const maskShape:Sprite = new Sprite();
 		private const prevCursorOffsetX:Number = 0;
 		private const prevCursorOffsetY:Number = 0;

@@ -387,7 +387,7 @@
 			initMoreOptionsBox();
 			initLayerButton();
 
-			moreOptionsButton.x = layerButtonWrapper.x+layerButtonWrapper.width;
+			moreOptionsButton.x = layerButtonWrapper.x+layerButtonWrapper.width+2;
 			moreOptionsButton.y = layerButtonWrapper.y+layerButtonWrapper.height/2-moreOptionsButton.height/2;
 
 			moreOptionsBox.x = opaBox.x;
