@@ -42,6 +42,39 @@
 		public var toolInfoBG:Shape = new Shape();
 		private var deafultY:Number = 0;
 
+		private const base:ColorTransform = new ColorTransform();
+		private const iconLeft:ColorTransform = new ColorTransform();
+		private const activeColor:ColorTransform = new ColorTransform();
+		private const activeIconColor:ColorTransform = new ColorTransform();
+		private const defaultColor:ColorTransform = new ColorTransform();
+		private var btn:SimpleButton;
+		private var btnUp:DisplayObject;
+		private var btnOver:DisplayObjectContainer;
+		private var btnDown:DisplayObjectContainer;
+		private var buttonArr:Array;
+
+		public function setToolButtonsForCheckedLayerOFF():void
+		{
+			toolPen.alpha = 1.0;
+			toolErase.alpha = 1.0;
+			toolFillPen.alpha = 1.0;
+			toolSpuit.alpha = 1.0;
+			toolLine.alpha = 1.0;
+			toolSelectCursor.alpha = 1.0;
+		}
+
+		public function setToolButtonsForCheckedLayerON(alp:Number):void
+		{
+			toolPen.alpha = alp;
+			toolErase.alpha = alp;
+			toolFillPen.alpha = alp;
+			toolSpuit.alpha = alp;
+			toolLine.alpha = alp;
+
+			const btn:SimpleButton = getChildByName(lastTool) as SimpleButton;
+			if(btn) toolSelectCursor.alpha = btn.alpha;
+		}
+
 		public function bgBoxVisible(flag:Boolean):void
 		{
 			if(flag)
@@ -208,35 +241,6 @@
 
 		public function changeUIColor(arr:Array):void
 		{	
-			const buttonArr:Array =
-			[
-				zoomInButton,
-				zoomOutButton,
-				toolZoom,
-				toolMove,
-				toolRotate,
-				toolTrace,
-				toolPen,
-				toolFillPen,
-				toolErase,
-				toolUndo,
-				toolRedo,
-				toolSpuit,
-				toolMirror,
-				toolLasso,
-				toolLine,
-				fillPenOK,
-				fillPenCancel,
-				fillPenUndo,
-			];
-
-			const base:ColorTransform = new ColorTransform();
-			// const subBase:ColorTransform = new ColorTransfo1rm();
-			const iconLeft:ColorTransform = new ColorTransform();
-			// const iconRight:ColorTransform = new ColorTransform();
-			const activeColor:ColorTransform = new ColorTransform();
-			const activeIconColor:ColorTransform = new ColorTransform();
-			const defaultColor:ColorTransform = new ColorTransform();
            	base.color = arr[0];
            	// subBase.color = arr[1];
            	iconLeft.color = arr[2];
@@ -248,10 +252,6 @@
 			toolInfoBG.transform.colorTransform = base;
 
 			var len:uint = buttonArr.length;
-			var btn:SimpleButton;
-			var btnUp:DisplayObject;
-			var btnOver:DisplayObjectContainer;
-			var btnDown:DisplayObjectContainer;
 
 			for(var i:uint=0;i<len;i++)
 			{
@@ -289,6 +289,11 @@
 			//텍스트
 			toolInfo.textColor = arr[2];
 			updateBGBoxColor(arr[0]);
+
+			btn = null;
+			btnUp = null;
+			btnOver = null;
+			btnDown = null;
 		}
 
 		public function getLastTool():String
@@ -304,14 +309,14 @@
 		public function moveToolCursor(childName:String):void
 		{
 			const btn:SimpleButton = getChildByName(childName) as SimpleButton;
-			if(btn)
-			{
-				const _toolSelectCursor:SimpleButton = toolSelectCursor;
 
-				_toolSelectCursor.x = btn.x;
-				_toolSelectCursor.y = btn.y;
-				lastTool = childName;
-			}
+			if(!btn) return;
+
+			toolSelectCursor.x = btn.x;
+			toolSelectCursor.y = btn.y;
+			lastTool = childName;
+
+			toolSelectCursor.alpha = btn.alpha;
 		}
 
 		public function toolButtons() {
@@ -353,6 +358,27 @@
 			toolZoom.useHandCursor = false;
 			zoomInButton.useHandCursor = false;
 			zoomOutButton.useHandCursor = false;
+
+			buttonArr = [
+							zoomInButton,
+							zoomOutButton,
+							toolZoom,
+							toolMove,
+							toolRotate,
+							toolTrace,
+							toolPen,
+							toolFillPen,
+							toolErase,
+							toolUndo,
+							toolRedo,
+							toolSpuit,
+							toolMirror,
+							toolLasso,
+							toolLine,
+							fillPenOK,
+							fillPenCancel,
+							fillPenUndo,
+						];
 		}
 	}
 

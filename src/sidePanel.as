@@ -9,8 +9,9 @@
 		private const sideBG:Shape = new Shape();
 		public const w:Number = 220;
 		public var h:Number = 220;
-		private const sepLine:Shape = new Shape();
 		public var tempVisibleON:Boolean = false;
+		private const baseColor:ColorTransform = new ColorTransform();
+		private const opColor:ColorTransform = new ColorTransform();
 
 		public function getWidth():Number
 		{
@@ -42,14 +43,10 @@
 			h = sth;
 		}
 
-		public function changeUIColor(color:uint,op:uint):void
+		public function changeUIColor(color:uint):void
 		{
-			const b:ColorTransform = new ColorTransform();
-			const o:ColorTransform = new ColorTransform();
-			b.color = color;
-			o.color = op;
-			o.alphaMultiplier = 0.25;
-			sideBG.transform.colorTransform = b;
+			baseColor.color = color;
+			sideBG.transform.colorTransform = baseColor;
 		}
 
 		public function sidePanel()

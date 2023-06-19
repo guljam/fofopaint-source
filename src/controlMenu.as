@@ -14,6 +14,7 @@
 		public const moreOptionsBox:Sprite = new Sprite();
 		public const sharpLineButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();
+		public const layerButtonWrapper:Sprite = new Sprite();
 
 		public var sizeSelectCursor:SimpleButton;
 		public var rectSizeSet:SimpleButton;
@@ -37,10 +38,10 @@
 		public var controlInfo:TextField;
 		public var penSmoothSliderSet:Sprite;
 
-		public var layer1VisibleButton:SimpleButton;
-		public var layer1InvisibleButton:SimpleButton;
-		public var layer2VisibleButton:SimpleButton;
-		public var layer2InvisibleButton:SimpleButton;
+		public var layer1CheckButton:SimpleButton;
+		public var layer1UncheckButton:SimpleButton;
+		public var layer2CheckButton:SimpleButton;
+		public var layer2UncheckButton:SimpleButton;
 		public var layerSwapButton:SimpleButton;
 		public var layerMergeButton:SimpleButton;
 
@@ -50,15 +51,16 @@
 		private const BOX_WIDTH:Number = 180;
 		private var BOX_HEIGHT:Number = 260;
 
+		private const opColor:ColorTransform = new ColorTransform();
 
 		public function moreOptionsOFF():void
 		{
 			moreOptionsBox.visible = false;
 
-			layer1VisibleButton.visible = layerVisibleBackup[0];
-			layer1InvisibleButton.visible = layerVisibleBackup[1];
-			layer2VisibleButton.visible = layerVisibleBackup[2];
-			layer2InvisibleButton.visible = layerVisibleBackup[3];
+			layer1CheckButton.visible = layerVisibleBackup[0];
+			layer1UncheckButton.visible = layerVisibleBackup[1];
+			layer2CheckButton.visible = layerVisibleBackup[2];
+			layer2UncheckButton.visible = layerVisibleBackup[3];
 
 			layer1SelectButton.visible = true;
 			layer2SelectButton.visible = true;
@@ -70,13 +72,13 @@
 
 		public function moreOptionsON():void
 		{
-			layerVisibleBackup = [layer1VisibleButton.visible,layer1InvisibleButton.visible
-								 ,layer2VisibleButton.visible,layer2InvisibleButton.visible];
+			layerVisibleBackup = [layer1CheckButton.visible,layer1UncheckButton.visible
+								 ,layer2CheckButton.visible,layer2UncheckButton.visible];
 
-			layer1VisibleButton.visible = false;
-			layer1InvisibleButton.visible = false;
-			layer2VisibleButton.visible = false;
-			layer2InvisibleButton.visible = false;
+			layer1CheckButton.visible = false;
+			layer1UncheckButton.visible = false;
+			layer2CheckButton.visible = false;
+			layer2UncheckButton.visible = false;
 
 			layer1SelectButton.visible = false;
 			layer2SelectButton.visible = false;
@@ -105,52 +107,48 @@
 			circleSizeSet.filters = null;
 		}
 
-		public function changeUIColor(base:uint, op:uint):void
-		{
-			const b:ColorTransform = new ColorTransform();
-			const o:ColorTransform = new ColorTransform();
+		public function changeUIColor(op:uint):void
+		{			
 			var alphaBackup:Number; //레이어 버튼이 색깔 바꾸면 알파가 초기화 되는 버그있어서 수동으로 만들어줌
-
-			b.color = base;
-			o.color = op;
+			opColor.color = op;
 
 			controlInfo.textColor = op;
 
 			alphaBackup = layer1SelectButton.alpha;
-			layer1SelectButton.transform.colorTransform = o;
+			layer1SelectButton.transform.colorTransform = opColor;
 			layer1SelectButton.alpha = alphaBackup;
-			layer1InvisibleButton.transform.colorTransform = o;
-			layer1VisibleButton.transform.colorTransform = o;
+			layer1UncheckButton.transform.colorTransform = opColor;
+			layer1CheckButton.transform.colorTransform = opColor;
 
 			alphaBackup = layer2SelectButton.alpha;
-			layer2SelectButton.transform.colorTransform = o;
-			layer2SelectButton.alpha = alphaBackup;
-			layer2InvisibleButton.transform.colorTransform = o;
-			layer2VisibleButton.transform.colorTransform = o;
+			layer2SelectButton.transform.colorTransform = opColor;
+			layer2SelectButton.alpha = alphaBackup;	
+			layer2UncheckButton.transform.colorTransform = opColor;
+			layer2CheckButton.transform.colorTransform = opColor;
 
-			layerSwapButton.transform.colorTransform = o;
-			layerMergeButton.transform.colorTransform = o;
+			layerSwapButton.transform.colorTransform = opColor;
+			layerMergeButton.transform.colorTransform = opColor;
 
-			shapeRect.transform.colorTransform = o;
-			shapeCircle.transform.colorTransform = o;
-			rectSizeSet.transform.colorTransform = o;
-			circleSizeSet.transform.colorTransform = o;
-			penSizeGrid.transform.colorTransform = o;
+			shapeRect.transform.colorTransform = opColor;
+			shapeCircle.transform.colorTransform = opColor;
+			rectSizeSet.transform.colorTransform = opColor;
+			circleSizeSet.transform.colorTransform = opColor;
+			penSizeGrid.transform.colorTransform = opColor;
 
-			sharpLineText.transform.colorTransform = o;
-			sharpLineONButton.transform.colorTransform = o;
-			sharpLineOFFButton.transform.colorTransform = o;
+			sharpLineText.transform.colorTransform = opColor;
+			sharpLineONButton.transform.colorTransform = opColor;
+			sharpLineOFFButton.transform.colorTransform = opColor;
 
-			airBrushText.transform.colorTransform = o;
-			airBrushOFFButton.transform.colorTransform = o;
-			airBrushONButton.transform.colorTransform = o;
+			airBrushText.transform.colorTransform = opColor;
+			airBrushOFFButton.transform.colorTransform = opColor;
+			airBrushONButton.transform.colorTransform = opColor;
 
-			moreOptionsButton.transform.colorTransform = o;
+			moreOptionsButton.transform.colorTransform = opColor;
 
-			opaBox.alphaBG.transform.colorTransform = o;
+			opaBox.alphaBG.transform.colorTransform = opColor;
 
-			penSmoothSliderSet["penSmoothBar"].transform.colorTransform = o;
-			penSmoothSliderSet["penSmoothButton"].transform.colorTransform = o;
+			penSmoothSliderSet["penSmoothBar"].transform.colorTransform = opColor;
+			penSmoothSliderSet["penSmoothButton"].transform.colorTransform = opColor;
 		}
 
 		public function shapeFlag(flag:Boolean):void // true이면 rect임
@@ -276,6 +274,54 @@
 			moreOptionsButton.useHandCursor = false;
 		}
 
+		public function initLayerButton():void
+		{
+			layer1CheckButton.visible = false;
+			layer2CheckButton.visible = false;
+			layer1SelectButton.useHandCursor = false;
+			layer2SelectButton.useHandCursor = false;
+			layer1CheckButton.useHandCursor = false;
+			layer1UncheckButton.useHandCursor = false;
+			layer2CheckButton.useHandCursor = false;
+			layer2UncheckButton.useHandCursor = false;
+			layerSwapButton.useHandCursor = false;
+			layerMergeButton.useHandCursor = false;
+
+			layerButtonWrapper.addChild(layer1SelectButton);
+			layerButtonWrapper.addChild(layer2SelectButton);
+			layerButtonWrapper.addChild(layer1CheckButton);
+			layerButtonWrapper.addChild(layer1UncheckButton);
+			layerButtonWrapper.addChild(layer2CheckButton);
+			layerButtonWrapper.addChild(layer2UncheckButton);
+			layerButtonWrapper.addChild(layerSwapButton);
+			layerButtonWrapper.addChild(layerMergeButton);
+
+			layerButtonWrapper.x = opaBox.x;
+			layerButtonWrapper.y = opaBox.y+opaBox.height-3;
+
+			layerSwapButton.x = 0;
+			layerSwapButton.y = 0;
+
+			layer1CheckButton.x = layerSwapButton.x+layerSwapButton.width+3;
+			layer1CheckButton.y = layerSwapButton.y+2;
+			layer1UncheckButton.x = layer1CheckButton.x;
+			layer1UncheckButton.y = layer1CheckButton.y;
+
+			layer1SelectButton.x = layer1CheckButton.x+layer1CheckButton.width+2;
+			layer1SelectButton.y = layer1CheckButton.y;
+
+			layerMergeButton.x = layer1SelectButton.x+layer1SelectButton.width+3;
+			layerMergeButton.y = layer1SelectButton.y+7;
+
+			layer2CheckButton.x = layer1CheckButton.x;
+			layer2CheckButton.y = layer1CheckButton.y+layer1CheckButton.height+4;
+			layer2UncheckButton.x = layer2CheckButton.x;
+			layer2UncheckButton.y = layer2CheckButton.y;
+
+			layer2SelectButton.x = layer2CheckButton.x+layer2CheckButton.width+2;
+			layer2SelectButton.y = layer2CheckButton.y;
+		}
+
 		public function initPenSizeButton():void
 		{
 			const _penSizeTransButtonBox:penSizeTransButtonSet = penSizeTransButtonBox;
@@ -339,42 +385,10 @@
 			initSharpLineButtonWrapper();
 			initAirBrushButtonWrapper();
 			initMoreOptionsBox();
+			initLayerButton();
 
-			layer1VisibleButton.visible = false;
-			layer2VisibleButton.visible = false;
-			layer1SelectButton.useHandCursor = false;
-			layer2SelectButton.useHandCursor = false;
-			layer1VisibleButton.useHandCursor = false;
-			layer1InvisibleButton.useHandCursor = false;
-			layer2VisibleButton.useHandCursor = false;
-			layer2InvisibleButton.useHandCursor = false;
-			layerSwapButton.useHandCursor = false;
-			layerMergeButton.useHandCursor = false;
-
-			layerSwapButton.x = opaBox.x;
-			layerSwapButton.y = opaBox.y+opaBox.height-3;
-
-			layer1VisibleButton.x = layerSwapButton.x+layerSwapButton.width+3;
-			layer1VisibleButton.y = layerSwapButton.y+2;
-			layer1InvisibleButton.x = layer1VisibleButton.x;
-			layer1InvisibleButton.y = layer1VisibleButton.y;
-
-			layer1SelectButton.x = layer1VisibleButton.x+layer1VisibleButton.width+2;
-			layer1SelectButton.y = layer1VisibleButton.y;
-
-			layerMergeButton.x = layer1SelectButton.x+layer1SelectButton.width+3;
-			layerMergeButton.y = layer1SelectButton.y+7;
-
-			layer2VisibleButton.x = layer1VisibleButton.x;
-			layer2VisibleButton.y = layer1VisibleButton.y+layer1VisibleButton.height+4;
-			layer2InvisibleButton.x = layer2VisibleButton.x;
-			layer2InvisibleButton.y = layer2VisibleButton.y;
-
-			layer2SelectButton.x = layer2VisibleButton.x+layer2VisibleButton.width+2;
-			layer2SelectButton.y = layer2VisibleButton.y;
-
-			moreOptionsButton.x = layerMergeButton.x+layerMergeButton.width;
-			moreOptionsButton.y = layer2VisibleButton.y-12;
+			moreOptionsButton.x = layerButtonWrapper.x+layerButtonWrapper.width;
+			moreOptionsButton.y = layerButtonWrapper.y+layerButtonWrapper.height/2-moreOptionsButton.height/2;
 
 			moreOptionsBox.x = opaBox.x;
 			moreOptionsBox.y = opaBox.y+opaBox.height;
@@ -386,8 +400,9 @@
 			addChild(opaBox);
 			addChild(moreOptionsButton);
 			addChild(moreOptionsBox);
-			setChildIndex(controlInfo, this.numChildren - 1);
-			setChildIndex(sizeSelectCursor, this.numChildren - 1);
+			addChild(layerButtonWrapper);
+			setChildIndex(controlInfo, this.numChildren-1);
+			setChildIndex(sizeSelectCursor, this.numChildren-1);
 
 			penSizeGrid.useHandCursor = false;
 

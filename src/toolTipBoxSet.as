@@ -8,6 +8,7 @@
 	public class toolTipBoxSet extends Sprite {
 		public var toolTipBoxBG:SimpleButton;
 		public var toolTipInfoText:TextField;
+		private const baseColor:ColorTransform = new ColorTransform();
 	
 		public function updateBGPosition(scaled:Boolean):void
 		{
@@ -17,10 +18,9 @@
 
 		public function changeUIColor(base:uint,op:uint):void
 		{
-			const b:ColorTransform = new ColorTransform();
-			b.color = base;
+			baseColor.color = base;
 
-			toolTipBoxBG.transform.colorTransform = b;
+			toolTipBoxBG.transform.colorTransform = baseColor;
 			toolTipInfoText.textColor = op;
 		}
 

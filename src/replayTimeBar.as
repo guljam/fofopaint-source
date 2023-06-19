@@ -18,7 +18,11 @@
 		public var replayNext:SimpleButton;
 		public var frameInfo:TextField;
 		public var BARSIZE:Number = 35;
-		private var nowBarColorSave:uint = 0;
+		private var nowBarColorSave:ColorTransform = new ColorTransform();
+		private const baseColor:ColorTransform = new ColorTransform();
+		private const opColor:ColorTransform = new ColorTransform();
+		private const nowBarColor:ColorTransform = new ColorTransform();
+		private const totalBarColor:ColorTransform = new ColorTransform();
 
 		public function tempTotalBarX():void
 		{
@@ -48,50 +52,42 @@
 
 		public function resetNowbarColor():void
 		{
-			if(nowBarColorSave === 0)
+			if(nowBarColorSave.color === 0)
 			{
 				return;
 			}
 
-			const c1:ColorTransform = new ColorTransform();
-			c1.color = nowBarColorSave;
-			replayNowBar.transform.colorTransform = c1;
-
+			replayNowBar.transform.colorTransform = nowBarColorSave;
 		}
 		public function changeUIColor(base:uint,op:uint,color1:uint,index:uint):void
 		{
-			const b:ColorTransform = new ColorTransform();
-			const o:ColorTransform = new ColorTransform();
-			const c1:ColorTransform = new ColorTransform();
-			const c2:ColorTransform = new ColorTransform();
+			baseColor.color = base;
+			opColor.color = op;
+			nowBarColor.color = color1;
+			replayBGBar.transform.colorTransform = baseColor;
+            replayNowBar.transform.colorTransform = nowBarColor;
+            playButton.transform.colorTransform = opColor;
+            pauseButton.transform.colorTransform = opColor;
+            replayPrev.transform.colorTransform = opColor;
+            replayNext.transform.colorTransform = opColor;
 
-			b.color = base;
-			o.color = op;
-			c1.color = color1;
-			replayBGBar.transform.colorTransform = b;
-            replayNowBar.transform.colorTransform = c1;
-            playButton.transform.colorTransform = o;
-            pauseButton.transform.colorTransform = o;
-            replayPrev.transform.colorTransform = o;
-            replayNext.transform.colorTransform = o;
-
-			nowBarColorSave = color1;
+			nowBarColorSave.color = color1;
 
 			if(index === 2)
             {
-				c2.color = 0xE7E7E7;
-                replayTotalBar.transform.colorTransform = c2;
+				totalBarColor.color = 0xE7E7E7;
+                replayTotalBar.transform.colorTransform = totalBarColor;
                 frameInfo.textColor = op;
             }
             else if(index === 3)
 			{
-				c2.color = 0xFFFFFF;
-                replayTotalBar.transform.colorTransform = c2;
+				totalBarColor.color = 0xFFFFFF;
+                replayTotalBar.transform.colorTransform = totalBarColor;
 				frameInfo.textColor = op;
 			}
             else 
             {
-                replayTotalBar.transform.colorTransform = o;
+                replayTotalBar.transform.colorTransform = opColor;
                 frameInfo.textColor = base;
             }
 		}

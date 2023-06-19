@@ -24,6 +24,9 @@
 		private const prevCursorOffsetY:Number = 0;
 		public var prevCursorMultiply:Number = 0;
 
+		private const stageColor:ColorTransform = new ColorTransform();
+		private const prevBMPBGColor:ColorTransform = new ColorTransform();
+
 		public function setMask():void
 		{
 			const g:Graphics = maskShape.graphics;
@@ -127,17 +130,14 @@
 
 		public function changeprevBitmapBGColor(color:uint):void
 		{
-			const ct:ColorTransform = new ColorTransform();
-			ct.color = color;
-			prevBitmapBG.transform.colorTransform = ct;
+			prevBMPBGColor.color = color;
+			prevBitmapBG.transform.colorTransform = prevBMPBGColor;
 		}
 
 		public function chanegStageColor(consoleBGColor:uint):void
 		{
-			const ct:ColorTransform = new ColorTransform();
-			ct.color = consoleBGColor;
-
-			prevStageBG.transform.colorTransform = ct;
+			stageColor.color = consoleBGColor;
+			prevStageBG.transform.colorTransform = stageColor;
 		}
 
 		public function previewPanel() {
@@ -157,6 +157,7 @@
 			prevBitmapBG.name = "prevBitmapBG"
 			prevBitmap.name = "prevBitmap";
 			prevCursor.name = "prevCursor";
+
 			addChild(prevStageBG);
 			addChild(prevBitmapBG);
 			addChild(prevBitmapSub);

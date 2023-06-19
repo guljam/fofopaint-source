@@ -31,42 +31,17 @@
 		public const fixedScale:Number = 0.875;
 
 		private var lassoInfoBackup:Array = [];
+		private const base:ColorTransform = new ColorTransform();
+		private const subBase:ColorTransform = new ColorTransform();
+		private const iconLeft:ColorTransform = new ColorTransform();
+		private const iconRight:ColorTransform = new ColorTransform();
+		private const activeColor:ColorTransform = new ColorTransform();
+		private const activeIconColor:ColorTransform = new ColorTransform();
+		private var leftButtonArr2:Array;
+		private var rightButtonArr:Array;
 
 		public function changeUIColor(arr:Array):void
 		{
-			// const leftButtonArr:Array =
-			// 	[
-			// 		lassoOK,
-			// 		lassoCancel
-			// 	];
-
-			const leftButtonArr2:Array =
-				[
-					lassoOK,
-					lassoCancel,
-					lassoCHand,
-					lassoCZoom,
-					lassoCRotate,
-					lassoTrace,
-				];
-			const rightButtonArr:Array =
-				[
-					lassoCopy,
-					lassoRotate,
-					lassoResize,
-					lassoMirror,
-					lasso1pxLeft,
-					lasso1pxRight,
-					lasso1pxUp,
-					lasso1pxDown,
-				];
-
-			const base:ColorTransform = new ColorTransform();
-			const subBase:ColorTransform = new ColorTransform();
-			const iconLeft:ColorTransform = new ColorTransform();
-			const iconRight:ColorTransform = new ColorTransform();
-			const activeColor:ColorTransform = new ColorTransform();
-			const activeIconColor:ColorTransform = new ColorTransform();
 			base.color = arr[0];
 			subBase.color = arr[1];
 			iconLeft.color = arr[2];
@@ -79,17 +54,6 @@
 			var btn:SimpleButton;
 			var btnUp:DisplayObject;
 			var btnOver:DisplayObjectContainer;
-
-			// for (i = 0; i < len; i++)
-			// {
-			// 	btn = leftButtonArr[i];
-			// 	btnOver = btn.overState as DisplayObjectContainer;
-			// 	btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
-			// 	btnOver.getChildAt(1).transform.colorTransform = activeIconColor;
-			// 	btn.downState = btn.overState;
-			// }
-
-			// len = leftButtonArr2.length;
 
 			for (i = 0; i < len; i++)
 			{
@@ -178,6 +142,26 @@
 			visible = false;
 
 			lassoInfo.text = "LASSO TOOL";
+
+			leftButtonArr2 =[
+								lassoOK,
+								lassoCancel,
+								lassoCHand,
+								lassoCZoom,
+								lassoCRotate,
+								lassoTrace,
+							];
+							
+			rightButtonArr =[
+								lassoCopy,
+								lassoRotate,
+								lassoResize,
+								lassoMirror,
+								lasso1pxLeft,
+								lasso1pxRight,
+								lasso1pxUp,
+								lasso1pxDown,
+							];
 		}
 	}
 

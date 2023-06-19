@@ -33,32 +33,18 @@
 		private var traceInfoBackup:Array = [];
 		public const fixedScale:Number = 0.875;
 
+		private const base:ColorTransform = new ColorTransform();
+		private const subBase:ColorTransform = new ColorTransform();
+		private const iconLeft:ColorTransform = new ColorTransform();
+		private const iconRight:ColorTransform = new ColorTransform();
+		private const activeColor:ColorTransform = new ColorTransform();
+		private const activeIconColor:ColorTransform = new ColorTransform();
+
+		private var leftButtonArr:Array;
+		private var rightButtonArr:Array;
+
 		public function changeUIColor(arr:Array,brightBarFlag:Boolean):void
 		{
-			const leftButtonArr:Array =
-			[
-				traceImageButton,
-				traceClipButton,
-				traceLoadButton,
-			];
-
-			const rightButtonArr:Array =
-			[
-				traceMoveButton,
-				traceMirrorButton,
-				traceResizeButton,
-				traceRotateButton,
-				traceVisibleOFFButton,
-				traceVisibleONButton,
-				traceDeleteButton,
-			];
-
-			const base:ColorTransform = new ColorTransform();
-			const subBase:ColorTransform = new ColorTransform();
-			const iconLeft:ColorTransform = new ColorTransform();
-			const iconRight:ColorTransform = new ColorTransform();
-			const activeColor:ColorTransform = new ColorTransform();
-			const activeIconColor:ColorTransform = new ColorTransform();
            	base.color = arr[0];
            	subBase.color = arr[1];
            	iconLeft.color = arr[2];
@@ -165,6 +151,24 @@
 			traceVisibleONButton.useHandCursor = false;
 			traceDeleteButton.useHandCursor = false;
 			traceVisibleONButton.visible = false;
+
+			leftButtonArr =
+			[
+				traceImageButton,
+				traceClipButton,
+				traceLoadButton,
+			];
+
+			rightButtonArr =
+			[
+				traceMoveButton,
+				traceMirrorButton,
+				traceResizeButton,
+				traceRotateButton,
+				traceVisibleOFFButton,
+				traceVisibleONButton,
+				traceDeleteButton,
+			];
 		}
 	}
 }

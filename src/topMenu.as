@@ -84,6 +84,9 @@
 		private var newWindowIconStateSaveLayerButton:Boolean = false // 뉴윈도우인지 끄기 버튼인지 구분
 		private var newWindowIconStateDrawModeIcon:Boolean = false // 뉴윈도우인지 끄기 버튼인지 구분
 
+		private const baseColor:ColorTransform = new ColorTransform();
+		private const opColor:ColorTransform = new ColorTransform();
+
 		public function getHintBGHeight():Number
 		{
 			return topbarInfoBG.height*scaleX;
@@ -132,66 +135,65 @@
 
 		public function changeUIColor(base:uint,op:uint,hintOKColor:uint):void
 		{
-			const o:ColorTransform = new ColorTransform();
-			const b:ColorTransform = new ColorTransform();
+
 			var alphaBackup:Number = 0.0;
 
-			o.color = op;
-			b.color = base;
+			opColor.color = op;
+			baseColor.color = base;
 			topbarBGColor = base;
 			hintOKBGColor = hintOKColor;
 			hintFontColor = op;
 
-			topbarBG.transform.colorTransform = b;
-			captureButton.transform.colorTransform = o;
-			repCaptureButton.transform.colorTransform = o;
-			capRotate.transform.colorTransform = o;
-			capFlip.transform.colorTransform = o;
-			capFull.transform.colorTransform = o;
-			capOff.transform.colorTransform = o;
-			capTrans.transform.colorTransform = o;
-			capClipBoard.transform.colorTransform = o;
-			saveButton.transform.colorTransform = o;
-			repSaveButton.transform.colorTransform = o;
-			loadButton.transform.colorTransform = o;
-			repLoadButton.transform.colorTransform = o;
-			clipButton.transform.colorTransform = o;
-			clearButton.transform.colorTransform = o;
-			gridButton.transform.colorTransform = o;
-			replayModeButton.transform.colorTransform = o;
-			drawModeButton.transform.colorTransform = o;
-			topBarColorButton.transform.colorTransform = o;
-			dpiButton.transform.colorTransform = o;
+			topbarBG.transform.colorTransform = baseColor;
+			captureButton.transform.colorTransform = opColor;
+			repCaptureButton.transform.colorTransform = opColor;
+			capRotate.transform.colorTransform = opColor;
+			capFlip.transform.colorTransform = opColor;
+			capFull.transform.colorTransform = opColor;
+			capOff.transform.colorTransform = opColor;
+			capTrans.transform.colorTransform = opColor;
+			capClipBoard.transform.colorTransform = opColor;
+			saveButton.transform.colorTransform = opColor;
+			repSaveButton.transform.colorTransform = opColor;
+			loadButton.transform.colorTransform = opColor;
+			repLoadButton.transform.colorTransform = opColor;
+			clipButton.transform.colorTransform = opColor;
+			clearButton.transform.colorTransform = opColor;
+			gridButton.transform.colorTransform = opColor;
+			replayModeButton.transform.colorTransform = opColor;
+			drawModeButton.transform.colorTransform = opColor;
+			topBarColorButton.transform.colorTransform = opColor;
+			dpiButton.transform.colorTransform = opColor;
 
-			capLayer1VisibleButton.transform.colorTransform = o;
-			capLayer2VisibleButton.transform.colorTransform = o;
+			capLayer1VisibleButton.transform.colorTransform = opColor;
+			capLayer2VisibleButton.transform.colorTransform = opColor;
 
 			alphaBackup = sideBarPositionButton.alpha;
-			sideBarPositionButton.transform.colorTransform = o;
+			sideBarPositionButton.transform.colorTransform = opColor;
 			sideBarPositionButton.alpha = alphaBackup;
 			alphaBackup = sideBarPositionButton2.alpha;
-			sideBarPositionButton2.transform.colorTransform = o;
+			sideBarPositionButton2.transform.colorTransform = opColor;
 			sideBarPositionButton2.alpha = alphaBackup;
-			sideBarOFFButton.transform.colorTransform = o;
-			sideBarOFFButton2.transform.colorTransform = o;
-			sideBarONButton.transform.colorTransform = o;
-			sideBarONButton2.transform.colorTransform = o;
-			cutPrevDataButton.transform.colorTransform = o;
-			superUndoButton.transform.colorTransform = o;
-			reRecordingButton.transform.colorTransform = o;
-			aboutButton.transform.colorTransform = o;
-			newWindowButton.transform.colorTransform = o;
-			newWindowCloseButton.transform.colorTransform = o;
-			replayZoomInButton.transform.colorTransform = o;
-			replayZoomOutButton.transform.colorTransform = o;
-			replayFitToWindowButton.transform.colorTransform = o;
-			replayRotateButton.transform.colorTransform = o;
-			replaySpeedMoveButton.transform.colorTransform = o;
-            replaySpeedBar.transform.colorTransform = o;
+			sideBarOFFButton.transform.colorTransform = opColor;
+			sideBarOFFButton2.transform.colorTransform = opColor;
+			sideBarONButton.transform.colorTransform = opColor;
+			sideBarONButton2.transform.colorTransform = opColor;
+			cutPrevDataButton.transform.colorTransform = opColor;
+			superUndoButton.transform.colorTransform = opColor;
+			reRecordingButton.transform.colorTransform = opColor;
+			aboutButton.transform.colorTransform = opColor;
+			newWindowButton.transform.colorTransform = opColor;
+			newWindowCloseButton.transform.colorTransform = opColor;
+			replayZoomInButton.transform.colorTransform = opColor;
+			replayZoomOutButton.transform.colorTransform = opColor;
+			replayFitToWindowButton.transform.colorTransform = opColor;
+			replayRotateButton.transform.colorTransform = opColor;
+			replaySpeedMoveButton.transform.colorTransform = opColor;
+            replaySpeedBar.transform.colorTransform = opColor;
 
 			if(isHintLocked === false)
 			{
-				topbarInfoBG.transform.colorTransform = b;
+				topbarInfoBG.transform.colorTransform = baseColor;
 				topMenuInfo.textColor = op;
 			}
 			timer.textColor = op;

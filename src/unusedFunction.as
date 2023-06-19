@@ -1784,7 +1784,7 @@ private function setLassoTool():void
 
                     if(replayStartON && d[9] !== undefined)
                     {
-                        setReplaySubLayer(d[9]);
+                        selectReplaySubLayer(d[9]);
                     }
 
                     if(d[10] === true)
@@ -1909,7 +1909,7 @@ private function setLassoTool():void
 
                     if(replayStartON && d[8] !== undefined)
                     {
-                        setReplaySubLayer(d[8]);
+                        selectReplaySubLayer(d[8]);
                     }
 
                     if(d[9] === true)
@@ -1953,7 +1953,7 @@ private function setLassoTool():void
 
                     if(replayStartON && d[10] !== undefined)
                     {
-                        setReplaySubLayer(d[10]);
+                        selectReplaySubLayer(d[10]);
                     }
 
                     if(d[11] === true)
@@ -2441,7 +2441,7 @@ private function setLassoTool():void
 
                     if(replayStartON && d[9] !== undefined)
                     {
-                        setReplaySubLayer(d[9]);
+                        selectReplaySubLayer(d[9]);
                     }
 
                     if(d[10] === true)
@@ -2564,7 +2564,7 @@ private function setLassoTool():void
 
                     if(replayStartON && d[8] !== undefined)
                     {
-                        setReplaySubLayer(d[8]);
+                        selectReplaySubLayer(d[8]);
                     }
 
                     if(d[9] === true)
@@ -2608,7 +2608,7 @@ private function setLassoTool():void
 
                     if(replayStartON && d[10] !== undefined)
                     {
-                        setReplaySubLayer(d[10]);
+                        selectReplaySubLayer(d[10]);
                     }
 
                     if(d[11] === true)

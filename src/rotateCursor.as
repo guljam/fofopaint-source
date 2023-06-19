@@ -9,17 +9,17 @@
 		public var rotateBG:SimpleButton;
 		public var rotateArrow:SimpleButton;
 		public var rotateCircle:SimpleButton;
+		private const baseColor:ColorTransform = new ColorTransform();
+		private const opColor:ColorTransform = new ColorTransform();
 
 		public function changeUIColor(base:uint,op:uint):void
 		{
-			const ct1:ColorTransform = new ColorTransform();
-			const ct2:ColorTransform = new ColorTransform();
-			ct1.color = base;
-			ct2.color = op;
+			baseColor.color = base;
+			opColor.color = op;
 
-			rotateBG.transform.colorTransform = ct1;
-			rotateArrow.transform.colorTransform = ct2;
-			rotateCircle.transform.colorTransform = ct2;
+			rotateBG.transform.colorTransform = baseColor;
+			rotateArrow.transform.colorTransform = opColor;
+			rotateCircle.transform.colorTransform = opColor;
 		}
 
 		public function rotateCursor() {

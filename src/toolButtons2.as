@@ -28,6 +28,19 @@
 		public const fixedScale:Number = 0.85;
 		private var infoDataBackup:Array = [];
 
+		private const base:ColorTransform = new ColorTransform();
+		private const subBase:ColorTransform = new ColorTransform();
+		private const iconLeft:ColorTransform = new ColorTransform();
+		private const iconRight:ColorTransform = new ColorTransform();
+		private const activeColor:ColorTransform = new ColorTransform();
+		private const activeIconColor:ColorTransform = new ColorTransform();
+		private var btn:SimpleButton;
+		private var btnUp:DisplayObject;
+		private var btnOver:DisplayObjectContainer;
+
+		private var leftButtonArr:Array;
+		private var rightButtonArr:Array;
+
 		public function hint(str:String):void
 		{
 			if(str.indexOf("\n") !== -1)
@@ -57,6 +70,24 @@
 			toolInfo.text = str;
 		}
 
+		public function setToolButtonsForCheckedLayerON(alp:Number):void
+		{
+			toolPen.alpha = alp;
+			toolErase.alpha = alp;
+			toolFillPen.alpha = alp;
+			toolSpuit.alpha = alp;
+			toolLine.alpha = alp;
+		}
+
+		public function setToolButtonsForCheckedLayerOFF():void
+		{
+			toolPen.alpha = 1.0;
+			toolErase.alpha = 1.0;
+			toolFillPen.alpha = 1.0;
+			toolSpuit.alpha = 1.0;
+			toolLine.alpha = 1.0;
+		}
+
 		public function deepUndoEtcIconAlpha(alpha:Number):void
 		{
 			toolPen.alpha = alpha;
@@ -70,36 +101,9 @@
 			toolTrace.alpha = alpha;
 		}
 
+
 		public function changeUIColor(arr:Array):void
-		{	
-			const leftButtonArr:Array =
-			[
-				toolZoom,
-				toolMove,
-				toolRotate,
-				toolTrace,
-			];
-
-			const rightButtonArr:Array =
-			[
-				toolPen,
-				toolFillPen,
-				toolErase,
-				toolUndo,
-				toolRedo,
-				toolSpuit,
-				toolMirror,
-				toolLasso,
-				toolLine,
-				toolSidebar
-			];
-
-			const base:ColorTransform = new ColorTransform();
-			const subBase:ColorTransform = new ColorTransform();
-			const iconLeft:ColorTransform = new ColorTransform();
-			const iconRight:ColorTransform = new ColorTransform();
-			const activeColor:ColorTransform = new ColorTransform();
-			const activeIconColor:ColorTransform = new ColorTransform();
+		{
            	base.color = arr[0];
            	subBase.color = arr[1];
            	iconLeft.color = arr[2];
@@ -112,9 +116,6 @@
 			toolBoxBG2.transform.colorTransform = subBase;
 			var i:uint = 0;
 			var len:uint = leftButtonArr.length;
-			var btn:SimpleButton ;
-			var btnUp:DisplayObject;
-			var btnOver:DisplayObjectContainer;
 
 			for(i=0;i<len;i++)
 			{
@@ -138,9 +139,12 @@
 				btnOver.getChildAt(1).transform.colorTransform = iconRight;
 				btn.downState = btn.overState;
 			}
-
 			//텍스트
 			toolInfo.textColor = arr[2];
+
+			btn = null;
+			btnUp = null;
+			btnOver = null;
 		}
 
 		public function toolButtons2()
@@ -169,6 +173,28 @@
 			toolErase.visible = true;
 
 			visible = false;
+
+			leftButtonArr = [
+								toolZoom,
+								toolMove,
+								toolRotate,
+								toolTrace,
+							];
+
+			rightButtonArr = [
+								toolPen,
+								toolFillPen,
+								toolErase,
+								toolUndo,
+								toolRedo,
+								toolSpuit,
+								toolMirror,
+								toolLasso,
+								toolLine,
+								toolSidebar
+							];
+
+
 		}
 	}
 	

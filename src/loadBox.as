@@ -13,20 +13,16 @@
 		public var dragDropCancelButton:SimpleButton;
 		public var dragDropFileBG:Sprite = new Sprite();
 
+		private const base:ColorTransform = new ColorTransform();
+		private const subBase:ColorTransform = new ColorTransform();
+		private const activeColor:ColorTransform = new ColorTransform();
+		private const activeIconColor:ColorTransform = new ColorTransform();
+		private var buttonList:Array;
+
 		public function changeUIColor(arr:Array):void
 		{
-			const buttonList:Array = 
-			[
-				dragDropFileButton,
-				dragDropRefButton,
-				dragDropCancelButton,
-			]
-
 			const len:uint = buttonList.length;
-			const base:ColorTransform = new ColorTransform();
-			const subBase:ColorTransform = new ColorTransform();
-			const activeColor:ColorTransform = new ColorTransform();
-			const activeIconColor:ColorTransform = new ColorTransform();
+
 			var btn:SimpleButton;
 			var btnUp:DisplayObjectContainer;
 			var btnOver:DisplayObjectContainer;
@@ -79,6 +75,14 @@
 			dragDropFileButton.useHandCursor = false;
 			dragDropRefButton.useHandCursor = false;
 			dragDropCancelButton.useHandCursor = false;
+
+			buttonList = [
+							dragDropFileButton,
+							dragDropRefButton,
+							dragDropCancelButton,
+						];
+
+
 		}
 	}
 	

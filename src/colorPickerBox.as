@@ -60,6 +60,8 @@
 		private var rgbInfoWidth:int = 136;
 		private var rgbInfoHeight:int = 19;
 
+		private const baseColor:ColorTransform = new ColorTransform();
+
 		public function colorPickerBox() {
 			// visible = false;
 			name = "pickerBox";
@@ -219,9 +221,7 @@
 
 		public function changeUIColor(color:uint):void
 		{
-			const c:ColorTransform = new ColorTransform();
-			const def:ColorTransform = new ColorTransform();
-			c.color = color;
+			baseColor.color = color;
 
 			rgbInfo.textColor = color;
 			colorPickerInfo.textColor = color;
@@ -229,8 +229,8 @@
 			drawrText.textColor = color;
 			tegakiText.textColor = color;
 
-			penColorButton.transform.colorTransform = c;
-			paperColorButton.transform.colorTransform = c;
+			penColorButton.transform.colorTransform = baseColor;
+			paperColorButton.transform.colorTransform = baseColor;
 		}
 
 		private function initTegakiPreset():void
