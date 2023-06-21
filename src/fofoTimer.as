@@ -32,27 +32,30 @@
 			var _func:Array;
 			for(var i:uint=0;i<len;i++)
 			{
-				if(getTimer() >= list[i][1])
+				if(list[i])
 				{
-					if(list[i][3])
+					if(getTimer() >= list[i][1])
 					{
-						if(list[i][4].apply(main,list[i][5]) === false)
+						if(list[i][3])
 						{
-							list.splice(i,1)[0];
-							i--;
-							len--;
+							if(list[i][4].apply(main,list[i][5]) === false)
+							{
+								list.splice(i,1)[0];
+								i--;
+								len--;
+							}
+							else
+							{
+								list[i][1] = getTimer()+list[i][2];
+							}
 						}
 						else
 						{
-							list[i][1] = getTimer()+list[i][2];
+							_func = list.splice(i,1)[0];
+							_func[4].apply(main,_func[5]);
+							i--;
+							len--;
 						}
-					}
-					else
-					{
-						_func = list.splice(i,1)[0];
-						_func[4].apply(main,_func[5]);
-						i--;
-						len--;
 					}
 				}
 			}
