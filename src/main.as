@@ -14130,7 +14130,6 @@
             var resizeInitON:Boolean = false;
             const resizePreviewRect:Shape = new Shape();
             const resizePreviewRatioRect:Shape = new Shape();
-            const resizeg:Graphics = resizePreviewRect.graphics;
             const resizeClickPos:Point = new Point(0,0);
             var subX:Number = 0;
             var subY:Number = 0;
@@ -14353,6 +14352,8 @@
 
             function drawResizePreviewRect(size:Number,x:Number,y:Number,w:Number,h:Number):void
             {
+                const resizeg:Graphics = resizePreviewRect.graphics;
+                
                 resizeg.clear();
 
                 if(size > 0) resizeg.beginFill(bgColor);
