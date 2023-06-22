@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.52;
+        private const APP_VERSION:Number = 18.53;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -14134,8 +14134,6 @@
             const resizeClickPos:Point = new Point(0,0);
             var subX:Number = 0;
             var subY:Number = 0;
-            const zeroP:Point = new Point(0,0);
-            const resizePX:Vector.<Number> = new Vector.<Number>(4);
             const min:Number = CANVAS_MIN_SIZE;
             const max:Number = CANVAS_MAX_SIZE;
             const ratioSizeArr:Array = [];
@@ -14164,7 +14162,6 @@
             var finalHeight:uint;
             var startByShortCut:Boolean;
             var canvasSizeChanging:Boolean;
-            var isResizeOnePixelType:int; //가로 변경인지 세로 변경인지 확인
 
             function checkRatioSnapGuidePos():void
             {
@@ -14306,8 +14303,6 @@
                         else if(targetName === "resizeButtonU") stageMouseMoveEvent.remove("resizeMouseMoveU");
                         else if(targetName === "resizeButtonD") stageMouseMoveEvent.remove("resizeMouseMoveD");
                     }
-
-                    stage.removeEventListener(KeyboardEvent.KEY_DOWN,changeCanvasSizeOnePixelKeyDownEvent);
 
                     canvasSizeChanging = false;
                     toolTipBox.visible = false;
@@ -14461,84 +14456,16 @@
                 drawResizePreviewRect(subX,-subX,0,subX,oldHeight);
             }
 
-            function resizePXMoveIncD(inc:Number):void
-            {
-                if(isResizeOnePixelType === 1)
-                {
-                    exitResizeCanvas(true);
-                    initResizeVars(true);
-                }
-                isResizeOnePixelType = 2;
-                subY = subY+inc;
-                finalHeight = checkHeightLimit(subY);
-                drawResizePreviewRect(subY,0,oldHeight,oldWidth,subY);
-            }
-
-            function resizePXMoveIncR(inc:Number):void
-            {
-                if(isResizeOnePixelType === 2)
-                {
-                    exitResizeCanvas(true);
-                    initResizeVars(true);
-                }
-                isResizeOnePixelType = 1;
-                subX = subX+inc;
-                finalWidth = checkWidthLimit(subX);
-                drawResizePreviewRect(subX,oldWidth,0,subX,oldHeight);
-            }
-
-            function updateResizeButtonPosKeyDownEvent():void
-            {                
-                setToolTipTempON(finalWidth+" x "+finalHeight);
-                // checkBoxPosition(toolTipBox);
-                toolTipBox.visible = true;
-                setResizeButtonVisible(false);
-            }
-
-            function changeCanvasSizeOnePixelKeyDownEvent(e:KeyboardEvent):void
-            {
-                const keyCode:int = e.keyCode;
-
-                if(keyCode === KEY.enter)
-                {
-                    exitResizeCanvas(true);
-                }
-                else if(keyCode === KEY.up)
-                {
-                    canvasSizeChanging = true;
-                    resizePXMoveIncD(-1);
-                    updateResizeButtonPosKeyDownEvent();
-                }
-                else if(keyCode === KEY.down)
-                {
-                    canvasSizeChanging = true;
-                    resizePXMoveIncD(1);
-                    updateResizeButtonPosKeyDownEvent();
-                }
-                else if(keyCode === KEY.right)
-                {
-                    canvasSizeChanging = true;
-                    resizePXMoveIncR(1);
-                    updateResizeButtonPosKeyDownEvent();
-                }
-                else if(keyCode === KEY.left)
-                {
-                    canvasSizeChanging = true;
-                    resizePXMoveIncR(-1);
-                    updateResizeButtonPosKeyDownEvent();
-                }
-            }
 
             function getInitON():Boolean
             {
                 return resizeInitON;
             }
 
-            function initResizeVars(shortcut:Boolean):void
+            function initResizeVars():void
             {
                 if(resizeInitON === false)
                 {
-                    startByShortCut = shortcut;
                     resizeInitON = true;
                     oldWidth = CANVAS_WIDTH;
                     oldHeight = CANVAS_HEIGHT;
@@ -14548,7 +14475,6 @@
                     stageColor = STAGE_BG_COLOR;
                     subX = 0;
                     subY = 0;
-                    isResizeOnePixelType = 0;
                     canvasSizeChanging = false;
                     resizePreviewRect.x = canvasPanel.x;
                     resizePreviewRect.y = canvasPanel.y;
@@ -14560,17 +14486,12 @@
                     regPoint.addChild(resizePreviewRatioRect);
                     setTopChildIndex(resizePreviewRect);
                     setTopChildIndex(resizePreviewRatioRect);
-
-                    if(shortcut)
-                    {
-                        stage.addEventListener(KeyboardEvent.KEY_DOWN,changeCanvasSizeOnePixelKeyDownEvent);
-                    }
                 }
             }
 
             function startResizeCanvas(_targetName:String,shortcut:Boolean):void
             {
-                initResizeVars(shortcut);
+                initResizeVars();
                 startByShortCut = shortcut;
                 targetName = _targetName;   
                 resizeClickPos.setTo(canvasPanel.mouseX,canvasPanel.mouseY);
@@ -14592,7 +14513,6 @@
             }
 
             return {
-                init:initResizeVars,
                 start:startResizeCanvas,
                 exit:exitResizeCanvas,
                 isCanvasResizing:isCanvasResizing,
@@ -17444,7 +17364,6 @@
                 {
                     if(resizeCanvas.getInitON() === false)
                     {
-                        resizeCanvas.init(true);
                         setResizeButtonVisible(true);
                     }
                 }
@@ -18775,7 +18694,7 @@
                 break;
 
                 case "layer1SelectButton":
-                    selectSubLayer(false,true);
+                    selectSubLayer(false,canvas11Bitmap.visible);
                     if(controlBox.layer2CheckButton.visible)
                     {
                         setLayer2CheckToggle();
@@ -18783,7 +18702,7 @@
                 break;
 
                 case "layer2SelectButton":
-                    selectSubLayer(true,true);
+                    selectSubLayer(true,canvas1Bitmap.visible);
                     if(controlBox.layer1CheckButton.visible)
                     {
                         setLayer1CheckToggle();
