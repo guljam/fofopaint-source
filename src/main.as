@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.53;
+        private const APP_VERSION:Number = 18.54;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -18652,7 +18652,7 @@
 
             if(isNowKey(KEY.n1) || isNowKey(KEY.n9))
             {
-                selectSubLayer(false,true);
+                selectSubLayer(false,canvas11Bitmap.visible);
                 if(controlBox.layer2CheckButton.visible)
                 {
                     setLayer2CheckToggle();
@@ -18661,7 +18661,7 @@
             }
             else if(isNowKey(KEY.n2) || isNowKey(KEY.n0))
             {
-                selectSubLayer(true,true);
+                selectSubLayer(true,canvas1Bitmap.visible);
                 if(controlBox.layer1CheckButton.visible)
                 {
                     setLayer1CheckToggle();
