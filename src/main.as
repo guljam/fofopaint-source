@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.56;
+        private const APP_VERSION:Number = 18.57;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13438,11 +13438,30 @@
                 return [extendedX1, extendedY1, extendedX2, extendedY2];
             }
 
-            function drawingLine():void //지우개인가 펜인가 구분해서 lineto 실시
+            function syncPenCursorLineAngle(mx:Number,my:Number):void
+            {
+                const rad:Number = Math.atan2(oldX+xOffset-mx,oldY+xOffset-my);
+                const cursorDeg:Number = -rad*(180/Math.PI)+regPoint.rotation;
+                penSizeCursor.rotation = cursorDeg;
+            }
+
+            function setDegreeToolTipON():void
+            {
+                const ang:Number = atan2(oldX-cd.mouseX,oldY-cd.mouseY);
+                var deg:Number = ang*toDeg+90;
+                if(deg > 180)
+                {
+                    deg = deg-90;
+                }
+
+                var degstr:String = abs(deg % 90).toFixed(1)+"°";
+                setToolTipON(degstr);
+                toolTipBox.visible = true;
+            }
+
+            function drawingLine(mx:Number,my:Number):void //지우개인가 펜인가 구분해서 lineto 실시
             {
                 const cdg:Graphics = cd.graphics;
-                const mx:Number = cd.mouseX+xOffset;
-                const my:Number = cd.mouseY+xOffset;
                 cdg.clear();
 
                 canvas2.alpha = xAlpha;
@@ -13457,21 +13476,6 @@
 
                 cdg.moveTo(oldX+xOffset,oldY+xOffset);
                 cdg.lineTo(mx,my);
-
-                const ang:Number = atan2(oldX-cd.mouseX,oldY-cd.mouseY);
-                var deg:Number = ang*toDeg+90;
-                if(deg > 180)
-                {
-                    deg = deg-90;
-                }
-
-                var degstr:String = abs(deg % 90).toFixed(1)+"°";
-                setToolTipON(degstr);
-                toolTipBox.visible = true;
-
-                const rad:Number = Math.atan2(oldX+xOffset-mx,oldY+xOffset-my);
-                const cursorDeg:Number = -rad*(180/Math.PI)+regPoint.rotation;
-                penSizeCursor.rotation = cursorDeg;
             }
 
             function lineMoveEvent(e:MouseEvent):void
@@ -13480,8 +13484,15 @@
                 {
                     mouseMovedFlag = true;
                 }
+                const mx:Number = cd.mouseX+xOffset;
+                const my:Number = cd.mouseY+xOffset;
 
-                drawingLine();
+                drawingLine(mx,my);
+                setDegreeToolTipON();
+                if(xShape === true)
+                {
+                    syncPenCursorLineAngle(mx,my);
+                }
             }
 
             function lineUpEvent(e:MouseEvent):void
@@ -13517,7 +13528,7 @@
                     else
                     {
                         rDataBuffer.push(["line",xShape,xSize,xColor,xAlpha,cxOff,cyOff,xx,yy,xBlendMode,subLayerFlag,xAirBrushON]);
-                        drawingLine();
+                        drawingLine(xx,yy);
                     }
                 }
 
@@ -13525,6 +13536,7 @@
                 {
                     penSizeCursor.rotation = regPoint.rotation;
                 }
+
                 drawDone();
             }
 
