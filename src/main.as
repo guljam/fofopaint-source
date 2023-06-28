@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.63;
+        private const APP_VERSION:Number = 18.64;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3120,9 +3120,9 @@
                     const sx:Number = sqLinePosLast.x-mx;
                     const sy:Number = sqLinePosLast.y-my;
                     const dist:Number = Math.sqrt(sx*sx+sy*sy);
-                    const distLimit:Number = (xSize/5 < 3.0) ? 3.0:xSize/3;
+                    const distLimit:Number = (xSize/5 < 2.0) ? 2.0:xSize/3;
 
-                    if(dist <= distLimit)
+                    if(dist <= 2.5)
                     {
                         return;
                     }
@@ -3139,7 +3139,7 @@
                     
                     if(xShape)
                     {
-                        updateExtendEndPoint(mx,my,smoothPos.x,smoothPos.y,xSize/2);
+                        updateExtendEndPoint(mx,my,smoothPos.x,smoothPos.y,xSize/4);
                         rDataBuffer.push(["lineStyle3",xShape,xSize,xColor,xAlpha,extendedPos.x,extendedPos.y,xBlendMode,false,subLayerFlag,xAirBrushON]);
                         penPoints.push(extendedPos.x);
                         penPoints.push(extendedPos.y);
@@ -3317,14 +3317,14 @@
 
                     if(mouseMovedFlag === false)
                     {
-                        dotEndFlag = true;   
+                        dotEndFlag = true;
                     }
                     else 
                     {
                         const pointLen:uint = penPoints.length;
                         if(pointLen >= 4)
                         {
-                            updateExtendEndPoint(penPoints[pointLen-4],penPoints[pointLen-3],penPoints[pointLen-2],penPoints[pointLen-1],xSize/2);
+                            updateExtendEndPoint(penPoints[pointLen-4],penPoints[pointLen-3],penPoints[pointLen-2],penPoints[pointLen-1],xSize/4);
                             rDataBuffer.push(["lineTo",extendedPos.x,extendedPos.y]);
                             cdg.lineTo(extendedPos.x,extendedPos.y);
                         }
