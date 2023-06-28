@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.61;
+        private const APP_VERSION:Number = 18.62;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3073,7 +3073,7 @@
                 }
             }
 
-            function followCursorSmoothLine():Boolean
+            function followCursorSmoothLine():void
             {
                 var ox:Number = smoothPos.x;
                 var oy:Number = smoothPos.y;
@@ -3084,14 +3084,14 @@
                 penMove2(ox,oy);
 
                 if(Math.abs(smoothLast.x-ox) < 0.02 && Math.abs(smoothLast.y-oy) < 0.02)
-                {   
-                    return false;
+                {
+                    return;
                 }
                 else
                 {
                     smoothPos.setTo(ox,oy);
+                    addTimerByName("followCursorSmoothLine",0.02,false,followCursorSmoothLine);
                 }
-                return true;
             }
 
             function penMove2(mx:Number,my:Number):void
@@ -3261,10 +3261,7 @@
                     smoothPos.setTo(ox,oy);
                     smoothLast.setTo(mx,my);
 
-                    if(!hasTimer("followCursorSmoothLine"))
-                    {
-                        addTimerByName("followCursorSmoothLine",0.0,true,followCursorSmoothLine);
-                    }
+                    addTimerByName("followCursorSmoothLine",0.03,false,followCursorSmoothLine);
                 }
                 else
                 {
