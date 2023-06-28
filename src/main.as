@@ -59,8 +59,8 @@
     import flash.filters.ConvolutionFilter;//import end
 
     public class main extends Sprite
-    {   
-        private const APP_VERSION:Number = 18.62;
+    {
+        private const APP_VERSION:Number = 18.63;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2033,8 +2033,7 @@
             const pos:Point = new Point(0,0);
             function isMouseMoved():Boolean
             {
-                return pos.x !== mouseX || pos.y !== mouseY
-                    || mouseClickON || rightMouseClickON;
+                return pos.x !== mouseX || pos.y !== mouseY || mouseClickON || rightMouseClickON;
             }
 
             function updateMousePos():void
@@ -2057,6 +2056,7 @@
                 }
                 else
                 {
+                    trace("hide cound",count,"hideTime",hideTime)
                     if(count > hideTime)
                     {
                         Mouse.hide();
@@ -2064,7 +2064,10 @@
                         isMouseHide = true;
                         updateMousePos();
                     }
-                    else count++;
+                    else
+                    {
+                        count++;
+                    }
 
                     if(isMouseMoved()) count = 0;
 
@@ -9365,6 +9368,8 @@
                     setRestartTimer();
                 }
             }
+
+            checkHideCursorCount();
         }
 
         private function doDrawEvent(e:Event):void
@@ -9553,8 +9558,8 @@
             {
                 if(jumpCount > 0)
                 {
-                    //REPLAY_SLOWDRAW_ACTIVE_SPEED 이상으로 전체 재생 시간이 60초 이하일경우 작동
-                    if(jumpFlag === _JUMP_FRAME_PLAY && jumpCount > _REPLAY_SLOWDRAW_ACTIVE_SPEED)
+                    //REPLAY_SLOWDRAW_ACTIVE_SPEED 이상으로 전체 재생 시간이 60초 이상일경우 작동
+                    if(jumpFlag === _JUMP_FRAME_PLAY && jumpCount > REPLAY_SLOWDRAW_ACTIVE_SPEED)
                     {
                         if(REPLAY_FASTEST_TOTAL_TIME > REPLAY_FASTEST_LIMIT_TIME)
                         {
