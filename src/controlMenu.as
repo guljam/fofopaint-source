@@ -6,12 +6,14 @@
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.filters.BlurFilter;
+	import flash.display.Shape;
+	import flash.display.DisplayObject;
+	import flash.geom.Point;
 
 	public class controlMenu extends Sprite
 	{
 		public const penSizeTransButtonBox:penSizeTransButtonSet = new penSizeTransButtonSet();
 		public const opaBox:opaButtons = new opaButtons();
-		public const moreOptionsBox:Sprite = new Sprite();
 		public const sharpLineButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();
 		public const layerButtonWrapper:Sprite = new Sprite();
@@ -23,7 +25,6 @@
 		public var shapeCircle:SimpleButton;
 		public var penSizeGrid:SimpleButton;
 
-		public var moreOptionsButton:SimpleButton;
 		public var sharpLineONButton:SimpleButton;
 		public var sharpLineOFFButton:SimpleButton;
 		public var sharpLineText:SimpleButton;
@@ -44,6 +45,7 @@
 		public var layer2UncheckButton:SimpleButton;
 		public var layerSwapButton:SimpleButton;
 		public var layerMergeButton:SimpleButton;
+		public var saperateLine:SimpleButton;
 
 		private var layerVisibleBackup:Array;
 		private const blurFilter:BlurFilter = new BlurFilter(3, 3, 2);
@@ -52,48 +54,6 @@
 		private var BOX_HEIGHT:Number = 260;
 
 		private const opColor:ColorTransform = new ColorTransform();
-
-		public function moreOptionsOFF():void
-		{
-			moreOptionsBox.visible = false;
-
-			layer1CheckButton.visible = layerVisibleBackup[0];
-			layer1UncheckButton.visible = layerVisibleBackup[1];
-			layer2CheckButton.visible = layerVisibleBackup[2];
-			layer2UncheckButton.visible = layerVisibleBackup[3];
-
-			layer1SelectButton.visible = true;
-			layer2SelectButton.visible = true;
-
-			layerSwapButton.visible = true;
-			layerMergeButton.visible = true;
-			moreOptionsButton.visible = true;
-		}
-
-		public function moreOptionsON():void
-		{
-			layerVisibleBackup = [layer1CheckButton.visible,layer1UncheckButton.visible
-								 ,layer2CheckButton.visible,layer2UncheckButton.visible];
-
-			layer1CheckButton.visible = false;
-			layer1UncheckButton.visible = false;
-			layer2CheckButton.visible = false;
-			layer2UncheckButton.visible = false;
-
-			layer1SelectButton.visible = false;
-			layer2SelectButton.visible = false;
-
-			layerSwapButton.visible = false;
-			layerMergeButton.visible = false;
-			moreOptionsButton.visible = false;
-
-			moreOptionsBox.visible = true;
-		}
-
-		public function isMoreOptionsON():Boolean
-		{
-			return moreOptionsBox.visible;
-		}
 
 		public function blurShapeSetON():void
 		{
@@ -143,9 +103,8 @@
 			airBrushOFFButton.transform.colorTransform = opColor;
 			airBrushONButton.transform.colorTransform = opColor;
 
-			moreOptionsButton.transform.colorTransform = opColor;
-
 			opaBox.alphaBG.transform.colorTransform = opColor;
+			saperateLine.transform.colorTransform = opColor;
 
 			penSmoothSliderSet["penSmoothBar"].transform.colorTransform = opColor;
 			penSmoothSliderSet["penSmoothButton"].transform.colorTransform = opColor;
@@ -199,7 +158,7 @@
 		public function initAirBrushButtonWrapper():void
 		{
 			const g:Graphics = airBrushButtonWrapper.graphics;
-			const w:Number = airBrushOFFButton.width+sharpLineText.width;
+			const w:Number = airBrushOFFButton.width+sharpLineText.width+14;
 			const h:Number = airBrushOFFButton.height+2;
 
 			g.beginFill(0xFF0000,0);
@@ -216,7 +175,7 @@
 			airBrushOFFButton.y = airBrushONButton.y;
 			airBrushOFFButton.visible = false;
 
-			airBrushText.x = airBrushOFFButton.x+airBrushOFFButton.width+2;
+			airBrushText.x = airBrushOFFButton.x+airBrushOFFButton.width+3;
 			airBrushText.y = airBrushOFFButton.y+2;
 
 			airBrushONButton.useHandCursor = false;
@@ -229,7 +188,7 @@
 		public function initSharpLineButtonWrapper():void
 		{
 			const g:Graphics = sharpLineButtonWrapper.graphics;
-			const w:Number = sharpLineOFFButton.width+sharpLineText.width+4;
+			const w:Number = sharpLineOFFButton.width+sharpLineText.width+14;
 			const h:Number = sharpLineOFFButton.height+2;
 
 			g.beginFill(0xFF0000,0);
@@ -246,32 +205,14 @@
 			sharpLineOFFButton.y = sharpLineONButton.y;
 			sharpLineOFFButton.visible = false;
 
-			sharpLineText.x = sharpLineOFFButton.x+sharpLineOFFButton.width;
-			sharpLineText.y = sharpLineOFFButton.y+2;
+			sharpLineText.x = sharpLineOFFButton.x+sharpLineOFFButton.width+3;
+			sharpLineText.y = sharpLineOFFButton.y+1;
 
 			sharpLineOFFButton.useHandCursor = false;
 			sharpLineONButton.useHandCursor = false;
 			sharpLineText.useHandCursor = false;
 
 			sharpLineButtonWrapper.name = "sharpLineButtonWrapper";
-		}
-
-		public function initMoreOptionsBox():void
-		{
-			const g:Graphics = moreOptionsBox.graphics;
-
-			g.beginFill(0xFF0000,0);
-			g.drawRect(0,-2,170,43);
-			g.endFill();
-
-			moreOptionsBox.visible = false;
-			moreOptionsBox.addChild(sharpLineButtonWrapper);
-			moreOptionsBox.addChild(airBrushButtonWrapper);
-
-			airBrushButtonWrapper.x = sharpLineButtonWrapper.x+sharpLineButtonWrapper.width+8;
-			airBrushButtonWrapper.y = sharpLineButtonWrapper.y;
-
-			moreOptionsButton.useHandCursor = false;
 		}
 
 		public function initLayerButton():void
@@ -297,7 +238,7 @@
 			layerButtonWrapper.addChild(layerMergeButton);
 
 			layerButtonWrapper.x = opaBox.x;
-			layerButtonWrapper.y = opaBox.y+opaBox.height-3;
+			layerButtonWrapper.y = opaBox.y+opaBox.height-1;
 
 			layerSwapButton.x = 0;
 			layerSwapButton.y = 0;
@@ -384,23 +325,27 @@
 
 			initSharpLineButtonWrapper();
 			initAirBrushButtonWrapper();
-			initMoreOptionsBox();
 			initLayerButton();
 
-			moreOptionsButton.x = layerButtonWrapper.x+layerButtonWrapper.width+2;
-			moreOptionsButton.y = layerButtonWrapper.y+layerButtonWrapper.height/2-moreOptionsButton.height/2;
+			sharpLineButtonWrapper.x = layerButtonWrapper.x+layerButtonWrapper.width+13;
+			sharpLineButtonWrapper.y = layerButtonWrapper.y+2;
 
-			moreOptionsBox.x = opaBox.x;
-			moreOptionsBox.y = opaBox.y+opaBox.height;
+			airBrushButtonWrapper.x = sharpLineButtonWrapper.x;
+			airBrushButtonWrapper.y = sharpLineButtonWrapper.y+sharpLineButtonWrapper.height+2;
+
+			saperateLine.x = sharpLineButtonWrapper.x-10;
+			saperateLine.y = sharpLineButtonWrapper.y+2.5;
+			saperateLine.useHandCursor = false;
+			saperateLine.mouseEnabled = false;
 
 			BOX_HEIGHT = opaBox.y+opaBox.height+7;
 
 			addChild(penSizeGrid);
 			addChild(penSizeTransButtonBox);
 			addChild(opaBox);
-			addChild(moreOptionsButton);
-			addChild(moreOptionsBox);
 			addChild(layerButtonWrapper);
+			addChild(sharpLineButtonWrapper);
+			addChild(airBrushButtonWrapper);
 			setChildIndex(controlInfo, this.numChildren-1);
 			setChildIndex(sizeSelectCursor, this.numChildren-1);
 

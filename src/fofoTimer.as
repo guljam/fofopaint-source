@@ -34,22 +34,23 @@
 			{
 				if(list[i])
 				{
-					if(getTimer() >= list[i][1])
+					if(getTimer() >= list[i][1]) //time out
 					{
-						if(list[i][3])
+						if(list[i][3]) //check loop flag
 						{
-							if(list[i][4].apply(main,list[i][5]) === false)
+							//false를 반환하면 타이머제거하고 종료
+							if(list[i][4].apply(main,list[i][5]) === false || !list[i])
 							{
 								list.splice(i,1)[0];
 								i--;
 								len--;
 							}
-							else
+							else //아니면 다음 시간을 추가하고 연장
 							{
 								list[i][1] = getTimer()+list[i][2];
 							}
 						}
-						else
+						else //call func and remove timer
 						{
 							_func = list.splice(i,1)[0];
 							_func[4].apply(main,_func[5]);

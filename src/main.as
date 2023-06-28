@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {   
-        private const APP_VERSION:Number = 18.57;
+        private const APP_VERSION:Number = 18.60;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -693,38 +693,6 @@
             targetBmpd = null;
             sourceBmpd = null;
         }
-
-		private function setMoreOptionsOFF():void
-        {
-            removeTimer("moreOptionsOFFDelay");
-			controlBox.moreOptionsOFF();
-            stage.removeEventListener(MouseEvent.MOUSE_MOVE,moreOptionsOFFMouseMoveEvent);
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN,moreOptionsOFFMouseMoveEvent);
-            stage.removeEventListener(KeyboardEvent.KEY_DOWN,moreOptionsOFFKeyboardEvent);
-        }
-
-		private function moreOptionsOFFKeyboardEvent(e:KeyboardEvent):void
-        {
-            const keyCode:int = e.keyCode;
-
-            if(keyCode === KEY.n3 || keyCode === KEY.n4
-            || keyCode === KEY.n7 || keyCode === KEY.n8)
-            {
-
-            }
-            else
-            {
-                setMoreOptionsOFF();
-            }
-        }
-
-		private function moreOptionsOFFMouseMoveEvent(e:MouseEvent):void
-		{
-			if(controlBox.moreOptionsBox.hitTestPoint(mouseX,mouseY) === false)
-			{
-                setMoreOptionsOFF();
-			}
-		}   
 
         private function checkMirrorCanvasReplayMirror():void
         {
@@ -1459,29 +1427,6 @@
             {
                 rDataBuffer.push(["swap"]);
                 addUndoData();
-            }
-        }
-
-        private function setMoreOptionsButton(mouseMoveEventFlag:Boolean):void
-        {
-            if(controlBox.isMoreOptionsON() === false)
-            {
-                controlBox.moreOptionsON();
-
-                if(mouseMoveEventFlag)
-                {
-                    stage.addEventListener(MouseEvent.MOUSE_MOVE,moreOptionsOFFMouseMoveEvent);
-                }
-                else
-                {
-                    stage.addEventListener(KeyboardEvent.KEY_DOWN,moreOptionsOFFKeyboardEvent);
-                    stage.addEventListener(MouseEvent.MOUSE_DOWN,moreOptionsOFFMouseMoveEvent);
-                }
-            }
-
-            if(mouseMoveEventFlag === false)
-            {
-                addTimerByName("moreOptionsOFFDelay",2.0,false,setMoreOptionsOFF);
             }
         }
 
@@ -3008,12 +2953,14 @@
             const cd:Shape = canvas2Draw;
             const floor:Function = Math.floor;
             const cdg:Graphics = cd.graphics;
-            const clickPos:Point = new Point(0,0); //점찍어 줄 때 판단하는 클릭한 자리 저장
-            const smoothPos:Point = new Point(0,0);
-            const smoothLast:Point = new Point(0,0);
-            const moveEventLast:Point = new Point(0,0);
-            const moveEventLast2:Point = new Point(0,0);
-            const sqPenCursorLast:Point = new Point(0,0);
+            const clickPos:Point = new Point(); //점찍어 줄 때 판단하는 클릭한 자리 저장
+            const smoothPos:Point = new Point(); //펜 스무딩에서 커서 뒤에 따라가는 실제 선의 죄표를 저장
+            const smoothLast:Point = new Point(); //펜 스무딩에서 현재 마우스 커서 위치를 저장
+            const moveEventLast:Point = new Point();
+            const moveEventDistSave:Point = new Point();
+            const sqPenCursorLast:Point = new Point();
+            const sqLinePosLast:Point = new Point();
+            const extendedPos:Point = new Point();
             const penCommand:Vector.<int> = new Vector.<int>(); //그냥펜
             const penPoints:Vector.<Number> = new Vector.<Number>(); //그냥펜 좌표
             const canvasSizeRect:Rectangle = new Rectangle();
@@ -3033,8 +2980,7 @@
             var mouseMoveCount:uint; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
             var mouseMovedFlag:Boolean;
             var tempDoneFlag:Boolean;
-            var distLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
-            var shortDistFlag:Boolean; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
+            var moveEventDistLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var subLayerFlag:Boolean;
             var penSmoothTimer:int;
 
@@ -3063,22 +3009,6 @@
                 else if(circleRectangleCollision(canvasPanel.mouseX,canvasPanel.mouseY,penCursorSize,0,0,CANVAS_WIDTH,CANVAS_HEIGHT))
                 {
                     readyAddUndoFlag = true;
-                }
-            }
-
-            function deleteEndPointSquarePen():void
-            {
-                penCommand.splice(penCommand.length-2,1);
-                penPoints.splice(penPoints.length-4,2);
-                rDataBuffer.splice(rDataBuffer.length-2,1);
-                cdg.clear();
-                lineStyleReady(xShape,xSize,xColor,xAlpha);
-                cdg.moveTo(penPoints[0],penPoints[1]);
-
-                const len:uint = penPoints.length-2;
-                for(var i:int = 2; i<=len; i+=2)
-                {
-                    cdg.lineTo(penPoints[i],penPoints[i+1]);
                 }
             }
 
@@ -3139,11 +3069,11 @@
                 }
                 else
                 {
-                    cdg.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.BEVEL);
+                    cdg.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.BEVEL);
                 }
             }
 
-            function penMoveSmooth():void
+            function followCursorSmoothLine():Boolean
             {
                 var ox:Number = smoothPos.x;
                 var oy:Number = smoothPos.y;
@@ -3153,11 +3083,15 @@
 
                 penMove2(ox,oy);
 
-                if(Math.abs(smoothLast.x-ox) >= 0 || Math.abs(smoothLast.y-oy) >= 0)
+                if(Math.abs(smoothLast.x-ox) < 0.02 && Math.abs(smoothLast.y-oy) < 0.02)
+                {   
+                    return false;
+                }
+                else
                 {
                     smoothPos.setTo(ox,oy);
-                    addTimerByName("penSmoothTimer",0.01,false,penMoveSmooth);
                 }
+                return true;
             }
 
             function penMove2(mx:Number,my:Number):void
@@ -3178,23 +3112,46 @@
                     my = floor(my-xOffset)+xOffset;
                 }
 
+                if(xShape === true)
+                {
+                    const sx:Number = sqLinePosLast.x-mx;
+                    const sy:Number = sqLinePosLast.y-my;
+                    const dist:Number = Math.sqrt(sx*sx+sy*sy);
+                    const distLimit:Number = (xSize/5 < 3.0) ? 3.0:xSize/3;
+
+                    if(dist <= distLimit)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        sqLinePosLast.setTo(mx,my);
+                    }
+                }
+                
                 if(mouseMovedFlag === false) //움직이기 시작할때 linestyle이랑 moveto넣어줌
                 {
                     mouseMovedFlag = true;
                     lineStyleReady(xShape,xSize,xColor,xAlpha);
-                    rDataBuffer.push(["lineStyle2",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,xAirBrushON]);
-                    penCommand.push(1);
-                    penPoints.push(smoothPos.x);
-                    penPoints.push(smoothPos.y);
-                    cdg.moveTo(smoothPos.x,smoothPos.y);
+                    
+                    if(xShape)
+                    {
+                        updateExtendEndPoint(mx,my,smoothPos.x,smoothPos.y,xSize/2);
+                        rDataBuffer.push(["lineStyle3",xShape,xSize,xColor,xAlpha,extendedPos.x,extendedPos.y,xBlendMode,false,subLayerFlag,xAirBrushON]);
+                        penPoints.push(extendedPos.x);
+                        penPoints.push(extendedPos.y);
+                        cdg.moveTo(extendedPos.x,extendedPos.y);
+                    }
+                    else
+                    {
+                        rDataBuffer.push(["lineStyle3",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerFlag,xAirBrushON]);
+                        penPoints.push(smoothPos.x);
+                        penPoints.push(smoothPos.y);
+                        cdg.moveTo(smoothPos.x,smoothPos.y);
+                    }
                 }
 
                 ++mouseMoveCount;
-
-                if(xShape && xSize > 1 && mouseMoveCount <= 2)
-                {
-                    return;
-                }
 
                 rDataBuffer.push(["lineTo",mx,my]);
                 penCommand.push(2);
@@ -3211,6 +3168,7 @@
                 {
                     mouseMoveCount = 0;
                     tempDoneFlag = true;
+
                     if(xAirBrushON && zoomed !== 1.0)
                     {
                         setBlurCanvasBySizeNoZoomDrawMode();
@@ -3226,17 +3184,30 @@
                         cdg.clear();
                     }
 
+                    lineStyleReady(xShape,xSize,xColor,xAlpha);
+                    const prevX:Number = penPoints[penPoints.length-4];
+                    const prevY:Number = penPoints[penPoints.length-3];
+
                     penCommand.length = 0;
                     penPoints.length = 0;
-                    lineStyleReady(xShape,xSize,xColor,xAlpha);
-
                     rDataBuffer.push(["tempDone"]);
-                    rDataBuffer.push(["lineStyle2",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,false,subLayerFlag,xAirBrushON]);
 
-                    penCommand.push(1);
-                    penPoints.push(mx);
-                    penPoints.push(my);
-                    cdg.moveTo(mx,my);
+                    if(xShape === true)
+                    {
+                        rDataBuffer.push(["lineStyle3",xShape,xSize,xColor,xAlpha,prevX,prevY,xBlendMode,false,subLayerFlag,xAirBrushON]);
+                        penCommand.push(1);
+                        penPoints.push(prevX);
+                        penPoints.push(prevY);
+                        cdg.moveTo(prevX,prevY);
+                    }
+                    else
+                    {
+                        rDataBuffer.push(["lineStyle3",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,false,subLayerFlag,xAirBrushON]);
+                        penCommand.push(1);
+                        penPoints.push(mx);
+                        penPoints.push(my);
+                        cdg.moveTo(mx,my);
+                    }
                 }
 
                 if(xShape === true)
@@ -3250,64 +3221,72 @@
                 }
             }
 
+            function penToolMouseMoveLimit(mx:Number,my:Number):Boolean
+            {
+                moveEventDistSave.setTo(mx,my);
+                const dist:Number = Point.distance(moveEventDistSave,moveEventLast);
+
+                //브러쉬 크기 제한보다 작게 움직였을때 무시함
+                if(dist < moveEventDistLimit)
+                {
+                    moveEventDistLimit = moveEventDistLimit-dist;
+
+                    if(moveEventDistLimit <= 0) moveEventDistLimit = xSize/5;
+                    return true;
+                }
+
+                moveEventDistLimit = moveEventDistLimit-dist;
+                if(moveEventDistLimit <= 0) moveEventDistLimit = xSize/5;
+
+                moveEventLast.setTo(mx,my);
+                return false;
+            }
+
             function penToolMouseMoveEvent(e:MouseEvent):void
             {
                 const mx:Number = cd.mouseX+xOffset;
                 const my:Number = cd.mouseY+xOffset;
-                const fx:Number = floor(mx-xOffset)+xOffset;
-                const fy:Number = floor(mx-xOffset)+xOffset;
 
-                if(readyAddUndoFlag === true)
-                {
-                    // fx fy 반올림한 값이 브러시 크기 이하로 움직였을경우 플래그 올려줘서
-                    // mouse up에서 처리함
-                    if(fx === moveEventLast2.x && fy === moveEventLast2.y)
-                    {
-                        shortDistFlag = true;
-                        return;
-                    }
-
-                    moveEventLast2.setTo(fx,fy);
-
-                    const dist:Number = Point.distance(new Point(mx,my),moveEventLast);
-
-                    //브러쉬 크기 제한보다 작게 움직였을때 무시함
-                    if(dist < distLimit)
-                    {
-                        shortDistFlag = true;
-                        distLimit = distLimit-dist;
-
-                        if(distLimit <= 0) distLimit = xSize/5;
-                        return;
-                    }
-
-                    distLimit = distLimit-dist;
-                    if(distLimit <= 0) distLimit = xSize/5;
-                }
-
-                moveEventLast.setTo(mx,my);
+                if(penToolMouseMoveLimit(mx,my)) return;
 
                 if(penToolFlag && _penSmoothSlideValue > 1)
                 {
                     var ox:Number = smoothPos.x;
                     var oy:Number = smoothPos.y;
 
-                    if(hasTimer("penSmoothTimer"))
-                    {
-                        ox += (smoothLast.x-smoothPos.x)*_penSmoothValue;
-                        oy += (smoothLast.y-smoothPos.y)*_penSmoothValue;
-                    }
+                    ox += (smoothLast.x-smoothPos.x)*_penSmoothValue;
+                    oy += (smoothLast.y-smoothPos.y)*_penSmoothValue;
 
                     penMove2(ox,oy);
                     smoothPos.setTo(ox,oy);
                     smoothLast.setTo(mx,my);
 
-                    addTimerByName("penSmoothTimer",0.02,false,penMoveSmooth);
+                    if(!hasTimer("followCursorSmoothLine"))
+                    {
+                        addTimerByName("followCursorSmoothLine",0.0,true,followCursorSmoothLine);
+                    }
                 }
                 else
                 {
                     penMove2(mx,my);
                 }
+            }
+
+            //끝 부분점을 distance만큼 길게 늘임
+            function updateExtendEndPoint(x1:Number,y1:Number,x2:Number,y2:Number,distance:Number):void
+            {
+                // 선분 방향 벡터 계산
+                var directionX:Number = x2 - x1;
+                var directionY:Number = y2 - y1;
+
+                // 선분 길이 계산
+                var length:Number = Math.sqrt(directionX * directionX + directionY * directionY);
+
+                // 선분 방향 벡터 정규화
+                var normalizedDirectionX:Number = directionX / length;
+                var normalizedDirectionY:Number = directionY / length;
+
+                extendedPos.setTo(x2 + normalizedDirectionX * distance,y2 + normalizedDirectionY * distance)
             }
 
             function penToolMouseUpEvent(e:MouseEvent):void
@@ -3319,61 +3298,52 @@
                 const yy:Number = cd.mouseY;
                 const mx:Number = xx+xOffset;
                 const my:Number = yy+xOffset;
+                const moveDist:Number = Point.distance(smoothPos,clickPos);
+                var dotEndFlag:Boolean = false;
 
-                if(penToolFlag && traceMemoryTraining && CANVAS_TRACE_ALPHA > 0.0) canvasTraceLayer.visible = true;
+                if(penToolFlag && traceMemoryTraining && CANVAS_TRACE_ALPHA > 0.0)
+                {
+                    canvasTraceLayer.visible = true;
+                }
 
                 if(_penSmoothSlideValue > 1)
                 {
-                    removeTimer("penSmoothTimer");
+                    removeTimer("followCursorSmoothLine");
                 }
 
-                if(xShape === true) penSizeCursor.rotation = regPoint.rotation;
-
-                if(xShape)
+                if(xShape === true)
                 {
-                    if(tempDoneFlag === false && mouseMoveCount <= 2)
+                    penSizeCursor.rotation = regPoint.rotation;
+
+                    if(mouseMovedFlag === false)
                     {
-                        if(mouseMovedFlag === false && ((clickPos.x === xx && clickPos.y === yy) || shortDistFlag))
+                        dotEndFlag = true;   
+                    }
+                    else 
+                    {
+                        const pointLen:uint = penPoints.length;
+                        if(pointLen >= 4)
                         {
-                            rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,xAirBrushON]);
-                            drawDot(xShape,xSize,xColor,mx,my);
-                        }
-                        else
-                        {
-                            cdg.lineTo(mx,my);
-                            rDataBuffer.push(["lineTo",mx,my]);
+                            updateExtendEndPoint(penPoints[pointLen-4],penPoints[pointLen-3],penPoints[pointLen-2],penPoints[pointLen-1],xSize/2);
+                            rDataBuffer.push(["lineTo",extendedPos.x,extendedPos.y]);
+                            cdg.lineTo(extendedPos.x,extendedPos.y);
                         }
                     }
-                    else if(penCommand.length >= 4)
-                    {
-                        deleteEndPointSquarePen();
-                    }
                 }
-                else if(_penSmoothSlideValue > 1 && penToolFlag)
+
+                if(mouseMovedFlag === false || dotEndFlag)
                 {
-                    const sx:Number = ((clickPos.x+xOffset)-smoothPos.x);
-                    const sy:Number = ((clickPos.y+xOffset)-smoothPos.y);
-                    const dist:Number = Math.sqrt(sx*sx+sy*sy);
-
-                    if(dist < 0.2)
-                    {
-                        rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,subLayerFlag,xAirBrushON]);
-                        drawDot(xShape,xSize,xColor,smoothPos.x,smoothPos.y);
-                    }
+                    rDataBuffer.length = 0;
+                    rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,subLayerFlag,xAirBrushON]);
+                    drawDot(xShape,xSize,xColor,clickPos.x,clickPos.y);
                 }
-                else if(mouseMovedFlag === false && ((clickPos.x === xx && clickPos.y === yy) || shortDistFlag))
-                {
-                    rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,xAirBrushON]);
-                    drawDot(xShape,xSize,xColor,mx,my);
-                }
-
-                drawDone();
-
                 penCommand.length = 0;
                 penPoints.length = 0;
+
+                drawDone();
             }
 
-            return function (penFlag:Boolean):void
+            return function(penFlag:Boolean):void
             {
                 penToolFlag = penFlag;
                                 
@@ -3394,6 +3364,11 @@
                     xShape = eraseShape;
                     xBlendMode = "erase";
                     xAirBrushON = eraseAirBrushON;
+                }
+
+                if(xSize === 1)
+                {
+                    xShape = false;
                 }
 
                 if(penFlag && traceMemoryTraining)
@@ -3425,11 +3400,10 @@
 
                 smoothLast.copyFrom(smoothPos); //penmove할때 마지막x y저장
                 moveEventLast.copyFrom(smoothPos);
-                moveEventLast2.copyFrom(smoothPos);
                 sqPenCursorLast.copyFrom(smoothPos);
+                sqLinePosLast.copyFrom(smoothPos);
 
-                distLimit = xSize/10;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
-                shortDistFlag = false; //확대 많이 하고 살짝 움직였을때 penmove에서 아예 처리를 안하는데 이걸 dot으로 처리하게 해줌
+                moveEventDistLimit = xSize/5;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
 
                 if(readyAddUndoFlag === false)
                 {
@@ -4824,7 +4798,7 @@
             const w:Number = bmpd.width;
             const h:Number = bmpd.height;
             const mirrorFlag:Boolean = tracePosInfo[5];
-            const smoothLast:Point = new Point(0,0);
+            const mouseMoveLast:Point = new Point(0,0);
             var moveFlag:int = 0;
 
             traceMenu.visible = false;
@@ -4854,7 +4828,7 @@
                 {
                     if(moveFlag === 1)
                     {
-                        const subX:Number = mx-smoothLast.x;
+                        const subX:Number = mx-mouseMoveLast.x;
 
                         if(subX !== 0) //차이가 0이 될때가 있어서 이건 스킵
                         {
@@ -4869,7 +4843,7 @@
                     }
                     else if(moveFlag === 2)
                     {
-                        const subY:Number = smoothLast.y-my;
+                        const subY:Number = mouseMoveLast.y-my;
                         if(subY !== 0)
                         {
                             const dy:Number = subY*0.005;
@@ -4881,7 +4855,7 @@
                             traceReizeMoveSum += subY;
                         }
                     }
-                    smoothLast.setTo(mx,my);
+                    mouseMoveLast.setTo(mx,my);
                 }
                 else if(moveFlag === 0)
                 {
@@ -4893,7 +4867,7 @@
                     {
                         moveFlag = 2;
                     }
-                    smoothLast.setTo(mx,my);
+                    mouseMoveLast.setTo(mx,my);
                 }
 
                 const sc:Number = abs(_canvasTrace.scaleX);
@@ -5290,7 +5264,6 @@
         private function setEraseAirBrushButtonShortCut():void
         {
             eraseAirBrushON = !eraseAirBrushON;
-            setMoreOptionsButton(false);
             setAirBrushCheckBox(eraseAirBrushON,false);
 
             if(eraseAirBrushON) setToolTipTempON("Erase Air brush ON");
@@ -5306,7 +5279,6 @@
         private function setPenAirBrushButtonShortCut():void
         {
             airBrushON = !airBrushON;
-            setMoreOptionsButton(false);
             setAirBrushCheckBox(airBrushON,true);
 
             if(airBrushON) setToolTipTempON("Pen Air brush ON");
@@ -5416,7 +5388,6 @@
         {
             if(controlBox.sharpLineButtonWrapper.alpha === 1.0)
             {
-                setMoreOptionsButton(false);
                 setSharpLineButton(!sharpLineON);
 
                 if(sharpLineON) setToolTipTempON("Sharp line ON");
@@ -5659,10 +5630,6 @@
                 case "airBrushONButton":
                 case "airBrushText":
                     str = "Air brush (4, 7)";
-                break;
-
-                case "moreOptionsButton":
-                    str = "More options";
                 break;
 
                 case "layer1SelectButton":
@@ -8527,6 +8494,19 @@
             }
         }
 
+        private function replayLineStyleReady3(shape:Boolean,size:uint,color:uint,alpha:Number):void
+        {
+            rcanvas2.alpha = alpha;
+            if(shape)
+            {
+                rcanvas2Draw.graphics.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.BEVEL);
+            }
+            else
+            {
+                rcanvas2Draw.graphics.lineStyle(size,color);
+            }
+        }
+
         private function mirrorCanvasReplayMode():void
         {
             var mirrorBMPD:BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
@@ -8733,6 +8713,38 @@
                 }
             }
 
+            function lineStyle3(data:Array):void
+            {
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const startX:Number = data[5];
+                const startY:Number = data[6];
+                const blendMode:String = data[7];
+                const fillpen:Boolean = data[8];
+                const subLayer:Boolean = data[9];
+                const airBrush:Boolean = data[10];
+
+                updateLineStyleBackup([alpha,blendMode]);
+                checkSubLayer(subLayer);
+                checkAirBrush(airBrush,size);
+
+                if(!fillpen)
+                {
+                    replayLineStyleReady3(shape,size,color,alpha);
+                    cd2.moveTo(startX,startY);
+                }
+                else
+                {
+                    cd2.clear();
+                    replayLineStyleReady2(false,1,color,1.0);
+                    cd2.beginFill(color);
+                    cd2.moveTo(startX,startY);
+                    rcanvas2.alpha = alpha;
+                }
+            }
+
             function lineStyle2(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -8915,6 +8927,35 @@
                 cd2.endFill();
 
                 setRCursorPos(startX,startY);
+            }
+
+            function line1(data:Array):void
+            {
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const startX:Number = data[5];
+                const startY:Number = data[6];
+                const endX:Number = data[7];
+                const endY:Number = data[8];
+                const blendMode:String = data[9];
+                const subLayer:Boolean = data[10];
+                const airBrush:Boolean = data[11];
+
+                updateLineStyleBackup([alpha,blendMode]);
+                rcanvas2.alpha = alpha;
+
+                checkSubLayer(subLayer);
+                checkAirBrush(airBrush,size);
+
+                if(shape) cd2.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.ROUND);
+                else cd2.lineStyle(size,color);
+
+                cd2.moveTo(startX,startY);
+                cd2.lineTo(endX,endY);
+
+                setRCursorPos(endX,endY);
             }
 
             function line(data:Array):void
@@ -9210,6 +9251,7 @@
                 {
                     case "lineStyle": lineStyle(d); break;
                     case "lineStyle2": lineStyle2(d); break;
+                    case "lineStyle3": lineStyle3(d); break;
                     case "lineTo": lineTo(d); break;
                     case "sqline": sqline(d); break;
                     case "fill": fill(d); break;
@@ -9217,6 +9259,7 @@
                     case "fill3": fill3(d); break;
                     case "dot": dot(d); break;
                     case "line": line(d); break;
+                    case "line1": line1(d); break;
                     case "move": move(d); break;
                     case "move1": move1(d); break;
                     case "move2": move2(d); break;
@@ -13314,6 +13357,8 @@
             // const oldPoint:Point = new Point(0,0);
             var oldX:Number;
             var oldY:Number;
+            var startPoint:Point = new Point();
+            var endPoint:Point = new Point();
 
             var canvasSizeWidth:Number;
             var canvasSizeHeight:Number;
@@ -13360,12 +13405,10 @@
                 }
                 else
                 {
-                    const mx:Number = cd.mouseX+xOffset;
-                    const my:Number = cd.mouseY+xOffset;
-                    const sideLine1:Array = getSideLine(oldX,oldY,mx,my,xSize/2);
-                    const sideLine2:Array = getSideLine(oldX,oldY,mx,my,-xSize/2);
+                    const sideLine1:Array = getSideLine(startPoint.x,startPoint.y,endPoint.x,endPoint.y,xSize/2,xShape);
+                    const sideLine2:Array = getSideLine(startPoint.x,startPoint.y,endPoint.x,endPoint.y,-xSize/2,xShape);
 
-                    if(checkCollision(oldX,oldY,mx,my)
+                    if(checkCollision(startPoint.x,startPoint.y,endPoint.x,endPoint.y)
                     || checkCollision(sideLine1[0],sideLine1[1],sideLine1[2],sideLine1[3])
                     || checkCollision(sideLine2[0],sideLine2[1],sideLine2[2],sideLine2[3]))
                     {
@@ -13385,14 +13428,17 @@
                     || checkLineLineIntersection(x1,y1,x2,y2,canvasSizeWidth,0,canvasSizeWidth,canvasSizeHeight)
             }
 
-            function getSideLine(x1:Number,y1:Number,x2:Number,y2:Number,distance:Number):Array
+            function getSideLine(x1:Number,y1:Number,x2:Number,y2:Number,distance:Number,squareCapFlag:Boolean):Array
             {
                 //길이를 약간 늘려줌
-                const pointVec:Array = extendLineSegment(x1,y1,x2,y2,Math.abs(distance));
-                x1 = pointVec[0];
-                y1 = pointVec[1];
-                x2 = pointVec[2];
-                y2 = pointVec[3];
+                if(!squareCapFlag)
+                {
+                    const pointVec:Array = extendLineSegment(x1,y1,x2,y2,Math.abs(distance));
+                    x1 = pointVec[0];
+                    y1 = pointVec[1];
+                    x2 = pointVec[2];
+                    y2 = pointVec[3];
+                }
                 
                 // 선분의 방향 벡터
                 var directionX:Number = x2 - x1;
@@ -13459,7 +13505,7 @@
                 toolTipBox.visible = true;
             }
 
-            function drawingLine(mx:Number,my:Number):void //지우개인가 펜인가 구분해서 lineto 실시
+            function drawingLine():void //지우개인가 펜인가 구분해서 lineto 실시
             {
                 const cdg:Graphics = cd.graphics;
                 cdg.clear();
@@ -13467,15 +13513,15 @@
                 canvas2.alpha = xAlpha;
                 if(xShape)
                 {
-                    cdg.lineStyle(xSize, xColor, 1, false, LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
+                    cdg.lineStyle(xSize, xColor, 1, false, LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.ROUND);
                 }
                 else
                 {
                     cdg.lineStyle(xSize, xColor);
                 }
 
-                cdg.moveTo(oldX+xOffset,oldY+xOffset);
-                cdg.lineTo(mx,my);
+                cdg.moveTo(startPoint.x,startPoint.y);
+                cdg.lineTo(endPoint.x,endPoint.y);
             }
 
             function lineMoveEvent(e:MouseEvent):void
@@ -13487,7 +13533,19 @@
                 const mx:Number = cd.mouseX+xOffset;
                 const my:Number = cd.mouseY+xOffset;
 
-                drawingLine(mx,my);
+                if(xShape === true)
+                {
+                    const extPoints:Array = extendLineSegment(oldX+xOffset,oldY+xOffset,mx,my,xSize/2);
+                    startPoint.setTo(extPoints[0],extPoints[1]);
+                    endPoint.setTo(extPoints[2],extPoints[3])
+                }
+                else
+                {
+                    startPoint.setTo(oldX+xOffset,oldY+xOffset);
+                    endPoint.setTo(mx,my)
+                }
+
+                drawingLine();
                 setDegreeToolTipON();
                 if(xShape === true)
                 {
@@ -13510,25 +13568,36 @@
 
                 if(checkLineToolUndoReady() === true)
                 {
-                    readyAddUndoFlag = true;
-                    const x:Number = cd.mouseX;
-                    const y:Number = cd.mouseY;
+                    const mx:Number = cd.mouseX;
+                    const my:Number = cd.mouseY;
                     const cx:Number = oldX;
                     const cy:Number = oldY;
-                    const cxOff:Number = cx+xOffset;
-                    const cyOff:Number = cy+xOffset;
-                    const xx:Number = x+xOffset;
-                    const yy:Number = y+xOffset;
+                    
+                    readyAddUndoFlag = true;
 
-                    if(mouseMovedFlag === false && cx === x && cy === y)
+                    if(mouseMovedFlag === false && cx === mx && my === y)
                     {
+                        const xx:Number = mx+xOffset;
+                        const yy:Number = my+xOffset;
                         rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,xx,yy,xBlendMode,subLayerFlag,xAirBrushON]);
                         drawDot(xShape,xSize,xColor,xx,yy);
                     }
                     else
                     {
-                        rDataBuffer.push(["line",xShape,xSize,xColor,xAlpha,cxOff,cyOff,xx,yy,xBlendMode,subLayerFlag,xAirBrushON]);
-                        drawingLine(xx,yy);
+                        if(xShape === true)
+                        {
+                            const extPoints:Array = extendLineSegment(cx+xOffset,cy+xOffset,mx,my,xSize/2);
+                            startPoint.setTo(extPoints[0],extPoints[1]);
+                            endPoint.setTo(extPoints[2],extPoints[3])
+                        }
+                        else
+                        {
+                            startPoint.setTo(cx+xOffset,cy+xOffset);
+                            endPoint.setTo(mx,my)
+                        }
+                        
+                        rDataBuffer.push(["line1",xShape,xSize,xColor,xAlpha,startPoint.x,startPoint.y,endPoint.x,endPoint.y,xBlendMode,subLayerFlag,xAirBrushON]);
+                        drawingLine();
                     }
                 }
 
@@ -16888,7 +16957,6 @@
             _rcanvasPanel.addChild(rcanvas1Bitmap);//판넬에 canvas1추가
             _rcanvasPanel.addChild(rcanvas2);//판넬에 canvas2추가
             _rcanvasPanel.addChild(rcanvasPanelMask);//판넬에  마스크 추가
-            // _rcanvasPanel.addChild(rCursor);
             _rcanvasPanel.mask = rcanvasPanelMask;//마스크 해줘서 판 밖으로 선나타나지 않도록함
 
             _rcanvasPanel.x = Math.floor(-_rcanvasPanel.width/2);
@@ -16905,9 +16973,8 @@
         private function makeCanvasFamily():void
         {
             var g:Graphics;
-            const _canvasPanel:Sprite = canvasPanel;
 
-            _canvasPanel.name = "canvasPanel";
+            canvasPanel.name = "canvasPanel";
             regPoint.name = "regPoint";
             canvas1Bitmap.name = "canvas1Bitmap";
             canvas11Bitmap.name = "canvas11Bitmap";
@@ -16940,22 +17007,22 @@
             canvas2.addChild(canvas2Draw);
             canvas2.blendMode = "layer";//캔버스1이랑 알파 불투명도가 겹치지 않게 layer모드로 해줌
 
-            _canvasPanel.addChild(canvasTraceLayer);
-            _canvasPanel.addChild(canvas11Bitmap);  
-            _canvasPanel.addChild(canvas1Bitmap);
-            _canvasPanel.addChild(canvas2);
-            _canvasPanel.addChild(lassoBox);
-            _canvasPanel.addChild(canvasGrid);
+            canvasPanel.addChild(canvasTraceLayer);
+            canvasPanel.addChild(canvas11Bitmap);  
+            canvasPanel.addChild(canvas1Bitmap);
+            canvasPanel.addChild(canvas2);
+            canvasPanel.addChild(lassoBox);
+            canvasPanel.addChild(canvasGrid);
             rCursor.visible = false;
-            _canvasPanel.addChild(rCursor);
-            _canvasPanel.addChild(canvasPanelMask);
-            _canvasPanel.mask = canvasPanelMask;
+            canvasPanel.addChild(rCursor);
+            canvasPanel.addChild(canvasPanelMask);
+            canvasPanel.mask = canvasPanelMask;
 
             //canvasrotate가 중점으로 올수있게 위치를 절반으로세팅
-            _canvasPanel.x = Math.floor(-_canvasPanel.width/2);
-            _canvasPanel.y = Math.floor(-_canvasPanel.height/2);
+            canvasPanel.x = Math.floor(-canvasPanel.width/2);
+            canvasPanel.y = Math.floor(-canvasPanel.height/2);
 
-            regPoint.addChild(_canvasPanel);
+            regPoint.addChild(canvasPanel);
 
             stage.addChild(stageBG);
             stage.addChild(spuitZoomCursor);
@@ -18067,7 +18134,6 @@
 
             if(quickSidebarON && !deepUndoON) _quickSidebarOFF();
             if(subLayerPreviewON) setSingleLayerPreviewOFF();
-            if(controlBox.isMoreOptionsON()) setMoreOptionsOFF();
 
             restoreFirstUsedTool();
         }
@@ -19061,12 +19127,6 @@
                 {
                     setLayerSwapButton();
                     topBar.hintTime("Layers has been swapped",topBar.replayModeButton);
-                }
-                return true;
-
-                case "moreOptionsButton":
-                {
-                    setMoreOptionsButton(true);
                 }
                 return true;
 
