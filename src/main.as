@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.64;
+        private const APP_VERSION:Number = 18.65;
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3120,7 +3120,6 @@
                     const sx:Number = sqLinePosLast.x-mx;
                     const sy:Number = sqLinePosLast.y-my;
                     const dist:Number = Math.sqrt(sx*sx+sy*sy);
-                    const distLimit:Number = (xSize/5 < 2.0) ? 2.0:xSize/3;
 
                     if(dist <= 2.5)
                     {
