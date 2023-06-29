@@ -64,7 +64,7 @@
         private const APP_DATA_VERSION:Number = 18.35;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
-        private const STAGE_FRAME:int = stage.frameRate;
+        private const STAGE_FRAME:int = stage.frameRate;d
 
         //단축키 keycode 리스트
         private const KEY:Object = {
