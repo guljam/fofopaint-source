@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.72;
+        private const APP_VERSION:Number = 18.73;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -226,6 +226,7 @@
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
+                    ,WINDOW_BORDER_SIZE:Number = 5;
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -288,6 +289,9 @@
                     ,sideBarScrollBar:Sprite = new Sprite()
                     ,sideBarScrollSet:Sprite = new Sprite()
                     ,transBGBMPD:BitmapData = new BitmapData(16,16,false,0xFFFFFF)
+                    ,windowBorderD:Shape = new Shape()
+                    ,windowBorderR:Shape = new Shape()
+                    ,windowBorderL:Shape = new Shape()
                     ;
 
         private var  canvas1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
@@ -654,6 +658,7 @@
             makeMenuFamlity();
             makeResizeButtonFamily();
             makeTransBG();
+            makeWindowBorder();
             makeWorker();
             updateWindowSizeInfo();
             updateColorHistoryList();
@@ -678,6 +683,81 @@
         }
 
         //function
+        private function updateStageOffset():void
+        {
+            const scale:Number = getUIScale();
+            const borderSize:Number = Math.round(WINDOW_BORDER_SIZE*scale);
+
+            STAGE_TOP_OFFSET = Math.round(topBar.BARSIZE*scale);
+            STAGE_BOTTOM_OFFSET = borderSize;
+            STAGE_RIGHT_OFFSET = borderSize;
+            STAGE_LEFT_OFFSET = borderSize;
+
+            if(captureModeON || replayModeON)
+            {
+                return;
+            }
+
+            if(isSidebarVisible)
+            {
+                if(isRightSidebar)
+                {
+                    STAGE_RIGHT_OFFSET = Math.round(sideBar.getWidth());
+                }
+                else
+                {
+                    STAGE_LEFT_OFFSET = Math.round(sideBar.getWidth());
+                }
+            }
+        }
+
+        private function makeWindowBorder():void
+        {
+            windowBorderD.cacheAsBitmap = true;
+            windowBorderR.cacheAsBitmap = true;
+            windowBorderL.cacheAsBitmap = true;
+            stage.addChild(windowBorderD);
+            stage.addChild(windowBorderR);
+            stage.addChild(windowBorderL);
+            stage.setChildIndex(windowBorderL,stage.getChildIndex(rregPoint)+1);
+            stage.setChildIndex(windowBorderR,stage.getChildIndex(rregPoint)+1);
+            stage.setChildIndex(windowBorderD,stage.getChildIndex(rregPoint)+1);
+        }
+
+        private function setWindowBorderColor(base:uint):void
+        {
+            const ct:ColorTransform = new ColorTransform();
+            ct.color = base;
+            windowBorderD.transform.colorTransform = ct;
+            windowBorderR.transform.colorTransform = ct;
+            windowBorderL.transform.colorTransform = ct;
+        }
+
+        private function updateWindowBorder(stw:int,sth:int):void
+        {
+            const scale:Number = getUIScale();
+            const size:Number = WINDOW_BORDER_SIZE*scale;
+
+            windowBorderD.graphics.clear();
+            windowBorderD.graphics.beginFill(0xFF0000);
+            windowBorderD.graphics.drawRect(0,0,stw,size);
+            windowBorderD.graphics.endFill();
+
+            windowBorderL.graphics.clear();
+            windowBorderL.graphics.beginFill(0xFFFF00);
+            windowBorderL.graphics.drawRect(0,0,size,sth);
+            windowBorderL.graphics.endFill();
+
+            windowBorderR.graphics.clear();
+            windowBorderR.graphics.beginFill(0xFFFF00);
+            windowBorderR.graphics.drawRect(0,0,size,sth);
+            windowBorderR.graphics.endFill();
+
+            windowBorderD.x = 0;
+            windowBorderD.y = sth-size;
+            windowBorderL.x = stw-size;
+        }
+
         private function clearArrayElement(arr:Array):void
         {
             const len:uint = arr.length;
@@ -1578,16 +1658,14 @@
             aboutPanel.scaleX = scale;
             aboutPanel.scaleY = scale;
 
-            STAGE_TOP_OFFSET = Math.round(topBar.BARSIZE*scale);
-            if(STAGE_RIGHT_OFFSET > 0) STAGE_RIGHT_OFFSET = Math.round(sideBar.w*scale);
-            if(STAGE_LEFT_OFFSET > 0) STAGE_LEFT_OFFSET = Math.round(sideBar.w*scale);
-
+            updateStageOffset();
             updateScrollBarHeight(sth);
             sideBar.y = Math.round(STAGE_TOP_OFFSET);
             sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
             fofo.scaleX = scale*fofo.fixedScale;
             fofo.scaleY = scale*fofo.fixedScale;
             checkfofoPos();
+            updateWindowBorder(stw,sth);
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenu);
@@ -2469,17 +2547,6 @@
             const tb:topMenu = topBar;
             if(flag)
             {
-                if(isRightSidebar)
-                {
-                    STAGE_RIGHT_OFFSET = sideBar.getWidth();
-                    STAGE_LEFT_OFFSET = 0;
-                }
-                else
-                {
-                    STAGE_RIGHT_OFFSET = 0;
-                    STAGE_LEFT_OFFSET = sideBar.getWidth();
-                }
-
                 sideBar.visible = true;
                 checkfofoPos();
 
@@ -2489,10 +2556,6 @@
             else
             {
                 sideBar.setTempVisibleOFF(isRightSidebar);
-
-                if(isRightSidebar) STAGE_RIGHT_OFFSET = 0;
-                else STAGE_LEFT_OFFSET = 0;
-
                 fofo.visible = false;
             }
 
@@ -2500,6 +2563,8 @@
             {
                 tb.checkSideBarONOFFButton(flag,isRightSidebar);
             }
+
+            updateStageOffset();
             updatePreviewBoxRectPos();
         }
 
@@ -3437,7 +3502,9 @@
         private function updatePenCursorPositionEvent(e:MouseEvent):void
         {
             realWorkingTimer.resetAFKCount();
+
             if(replayModeON || captureModeON) return;
+
             updatePenCursorPosition();
         }
 
@@ -3601,7 +3668,10 @@
                     _penSizeCursor.y = my;
 
                     if((cursorSize <= cursorVisibleOFFSize) || isNowTool(TOOL_FILL_PEN)) _penSizeCursor.visible = false;
-                    else _penSizeCursor.visible = true;
+                    else
+                    {
+                        _penSizeCursor.visible = true;
+                    }
                 }
 
                 if(isSidebarVisible === false && clickBlockFlag === false)
@@ -5490,6 +5560,7 @@
             updateScrollBarColorHeight(scrollBarHeight);
             setResizeButtonColor(nowColorSet[3]);
             fofo.changeColor(op);
+            setWindowBorderColor(base);
 
             if(canvasWindowON)
             {
@@ -5845,9 +5916,15 @@
 
                 if(penSizeCursor.visible === true)
                 {
-                    if(sizeValueZoomed <= 4) penSizeCursor.visible = false;
+                    if(sizeValueZoomed <= 4)
+                    {
+                        penSizeCursor.visible = false;
+                    }
                 }
-                else if(sizeValueZoomed > 4) penSizeCursor.visible = true;
+                else if(sizeValueZoomed > 4)
+                {
+                    penSizeCursor.visible = true;
+                }
             }
 
             if(isPenOrLineTool() || isNowTool(TOOL_FILL_PEN))
@@ -7271,7 +7348,7 @@
 
                         case "repCaptureButton":
                         case "captureButton":
-                             setCaptureReady();
+                             setCaptureModeON();
                         break;
 
                         case "capRotate":
@@ -8204,10 +8281,10 @@
         private function fitCanvasToWindow(captureMode:Boolean=false,manualFlag:Boolean=false):void
         {
             const replayMode:Boolean = replayModeON;
-            const offsetX:Number = 40;
-            const offsetY:Number = (captureMode) ? (topBar.BARSIZE+40)*getUIScale() : (topBar.BARSIZE+replayTimeBox.BARSIZE+40)*getUIScale();
+            const offsetX:Number = 44+STAGE_LEFT_OFFSET+STAGE_RIGHT_OFFSET;
+            const offsetY:Number = (captureMode) ? (topBar.BARSIZE)*getUIScale()+45 : (topBar.BARSIZE+replayTimeBox.BARSIZE)*getUIScale()+45;
             const stw:int = stage.stageWidth-offsetX;
-            const sth:int = stage.stageHeight-offsetY;
+            const sth:int = stage.stageHeight-offsetY-STAGE_BOTTOM_OFFSET;
             var xBitmap1:Bitmap;
             var xBitmap11:Bitmap;
             var xReg:Sprite;
@@ -10610,7 +10687,7 @@
             const rightLimit:Number = stw;
             const bottomLimit:Number = sth;            
             var tooltipX:Number = floor(mx-width/2)+5;
-            var tooltipY:Number = floor(my-30);
+            var tooltipY:Number = floor(my-45);
             const right:int = tooltipX+width;
             const bottom:int = tooltipY+height;
 
@@ -11972,6 +12049,7 @@
 
                 if(isSidebarVisible) setSidebarVisible(false,true);
                 topBar.resetHintColor();
+                penCursorOFFFlag = true;
                 penSizeCursor.visible = false;
                 canvasTraceLayer.visible = false;
                 if(traceMenuON === true) traceMenu.visible = false;
@@ -11999,13 +12077,18 @@
                     if(isSidebarVisible) setSidebarVisible(true,true);
 
                     if(traceMenuON === true)
+                    {
                         traceMenu.visible = true;
+                    }
 
+                    penCursorOFFFlag = false;
                     changeTopBarIcons("draw");
                     addInputEventDrawMode();
                 }
                 changePickerModeToNormal();
             }
+
+            updateStageOffset();
         }
 
         private function setDefaultHintCaptureMode():void
@@ -12168,12 +12251,17 @@
             if(!captureModeON) stageMouseMoveEvent.remove("captureMouseMoveHintEvent");
         }
 
-        private function setCaptureReady():void
+        private function setCaptureModeON():void
         {
             if(makeJumpImageFlag === 2) return;
             // if(captureModeON || isInSaveProgress) return;
             // if(replayStartON)stopReplay();
-            if(captureModeON || replayStartON) return;
+            if(captureModeON) return;
+
+            if(replayStartON)
+            {
+                stopReplay();
+            }
 
             captureModeON = true;
             penCursorOFFFlag = true;
@@ -16859,7 +16947,7 @@
             previewBox.x = -4;
             previewBox.y = 0;
             appInfoBox.setWidth(previewBox.BOX_WIDTH);
-            appInfoBox.x = previewBox.x-3;
+            appInfoBox.x = previewBox.x-2;
             appInfoBox.y = floor(previewBox.y+previewBox.BOX_HEIGHT+3);
             controlBox.x = 39;
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
@@ -16872,9 +16960,6 @@
             sideBarScrollBar.y = scrollBarMovedY;
 
             sideBar.y = topBar.BARSIZE*topBar.scaleX;
-
-            STAGE_RIGHT_OFFSET = sideBar.getWidth();
-            STAGE_LEFT_OFFSET = 0;
 
             if(sideBar.visible)
             {
@@ -16893,6 +16978,7 @@
             topBar.sideBarPositionButton2.visible = true;
 
             checkfofoPos();
+            updateStageOffset();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenu);
@@ -16908,7 +16994,7 @@
             previewBox.x = 0;
             previewBox.y = 0;
             appInfoBox.setWidth(previewBox.BOX_WIDTH);
-            appInfoBox.x = previewBox.x-3;
+            appInfoBox.x = previewBox.x-2;
             appInfoBox.y = floor(previewBox.y+previewBox.BOX_HEIGHT+3);
             controlBox.x = 0;
             controlBox.y = floor(appInfoBox.y+appInfoBox.height);
@@ -16923,9 +17009,6 @@
             sideBarScrollBar.y = scrollBarMovedY;
 
             sideBar.y = topBar.BARSIZE*topBar.scaleX;
-
-            STAGE_LEFT_OFFSET = sideBar.getWidth();
-            STAGE_RIGHT_OFFSET = 0;
             
             if(sideBar.visible)
             {
@@ -16942,6 +17025,7 @@
             topBar.sideBarPositionButton2.visible = false;
 
             checkfofoPos();
+            updateStageOffset();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenu);
@@ -16957,7 +17041,7 @@
             g.lineStyle(1,color1,1.0,true);
             // g.lineStyle(1,0,0);
             g.beginFill(color2);
-            g.drawRect(0,0,12,height);
+            g.drawRect(0,0,16,height);
             g.endFill();
 
             scrollBarHeight = height;
@@ -16965,12 +17049,6 @@
 
         private function makeMenuFamlity():void
         {
-            const floor:Function = Math.floor;
-            const stw:int = stage.stageWidth;
-            const stH:int = stage.stageHeight;
-            const stw2:Number = floor(stw/2);
-            const stH2:Number = floor(stH/2);
-
             aboutPanel.name = "aboutPanel";
             aboutPanel.setVersionInfo(APP_VERSION.toFixed(2));
             topBar.name = "topBar";
@@ -16987,7 +17065,7 @@
             sideBar.addChild(sideBarScrollSet);
             sideBar.updateSideBGSize(stage.stageHeight);
             setSideBarLeftPosition();
-            sideBarScrollBar.alpha = 0.5;
+            sideBarScrollBar.alpha = 0.7;
 
             STAGE_TOP_OFFSET = topBar.BARSIZE;
 
@@ -17153,7 +17231,7 @@
 
             //스크롤바 위치 갱신
             const scrollSetY:Number = Math.abs(sideBarScrollSet.y*scale);
-            const factor:Number = (sth-scScrollBarHeight*scale)/(sideBarSetHeight-sth);
+            const factor:Number = (sth-STAGE_BOTTOM_OFFSET-scScrollBarHeight*scale)/(sideBarSetHeight-sth);
 
             sideBarScrollBar.y = floor(scrollSetY*factor)/scale;
             sideBarScrollBar.visible = true;
@@ -17245,6 +17323,7 @@
                 }
 
                 checkfofoPos();
+                updateWindowBorder(stw,sth);
 
                 _lastWindowSize.x = windowW;
                 _lastWindowSize.y = windowH;
@@ -17393,12 +17472,12 @@
             }
             else if(flag === CENTERPOS_CAPTURE)
             {
-                topBarOffset = topBarOffset+16*scale;
+                topBarOffset = topBarOffset+14*scale;
                 center.setTo(stage.stageWidth/2,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else if(flag === CENTERPOS_REPLAY)
             {
-                topBarOffset = topBarOffset+replayTimeBox.BARSIZE*scale-8;
+                topBarOffset = topBarOffset+replayTimeBox.BARSIZE*scale-12;
                 center.setTo(stage.stageWidth/2,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else if(flag === CENTERPOS_DEEPUNDO)
@@ -17556,7 +17635,7 @@
                 {
                     if(input === KEY.s) saveFile(false);
                     else if(input === KEY.o) loadFile();
-                    else if(input === KEY.c || input === KEY.m) setCaptureReady();
+                    else if(input === KEY.c || input === KEY.m) setCaptureModeON();
                 });
                 return;
             }
@@ -17710,7 +17789,7 @@
                     else if(input === KEY.o) loadFile();
                     else if(input === KEY.c || input === KEY.m)
                     {
-                        setCaptureReady();
+                        setCaptureModeON();
                     }
                     else if(input === KEY.v || input === KEY.n)
                     {
@@ -18413,6 +18492,7 @@
             var scrollStarted:Boolean = false;
             var my1:Number = sideBarScrollBar.y;
             var my2:Number = sideBarScrollSet.y;
+            const yLimit:Number = Math.ceil(sideBar.h-sideBarScrollBar.height-STAGE_BOTTOM_OFFSET/scale);
 
             mouseDragON = true;
 
@@ -18438,9 +18518,9 @@
                     my1 = 0;
                     my2 = 0;
                 }
-                else if(my1 > Math.ceil(sideBar.h-sideBarScrollBar.height))
+                else if(my1 > yLimit)
                 {
-                    my1 = Math.ceil(sideBar.h-sideBarScrollBar.height);
+                    my1 = yLimit;
                     my2 = -diffHeight/scale;
                 }
 
@@ -18712,6 +18792,7 @@
             setFitZoomedOFF();
             clearDataButtonCount = 0;
             clearRFrameCacheImages();
+            updateStageOffset();
 
             if(replayStartON === true) stopReplay();
 
@@ -18755,6 +18836,7 @@
             rcanvasPanel.addChild(rCursor);
             setRCursorVisibleOFFUndo();
             setTopChildIndex(rCursor);
+            updateStageOffset();
             removeTimer("setRCursorVisibleOFFUndoTimer");
 
             deepUndoONSave = deepUndoON;

@@ -39,7 +39,7 @@
 		public function updateSideBGSize(sth:Number):void
 		{
 			sideBG.width = w;
-			sideBG.height = sth+2; //공백 보정으로 길이를 약간 늘려줌
+			sideBG.height = sth+1; //공백 보정으로 길이를 약간 늘려줌
 			h = sth;
 		}
 
