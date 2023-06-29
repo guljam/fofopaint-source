@@ -60,8 +60,8 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.70;
-        private const APP_DATA_VERSION:Number = 18.70;
+        private const APP_VERSION:Number = 18.71;
+        private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private const STAGE_FRAME:int = stage.frameRate;
@@ -2060,7 +2060,6 @@
                 }
                 else
                 {
-                    trace("hide cound",count,"hideTime",hideTime)
                     if(count > hideTime)
                     {
                         Mouse.hide();
@@ -5865,10 +5864,6 @@
 
         private function stageKeyUpEvent(e:KeyboardEvent):void
         {
-                            for(var i:int=0;i<rFrameCacheImages.length;i++)
-                {
-                    trace(i," bytes",rFrameCacheImages[i][5]," now frame :",rFrameCacheImages[i][6])
-                }
             if(fileDragSelectBox.visible)
             {
                 return;
@@ -8565,7 +8560,6 @@
             var lineStyleBackup:Array; //tempdone에서 쓰는 플래그임
             var index:uint;
             var data:Array; //데이터 뭉치
-            var d:Array; // 데이터 뭉치안에 데이터 뭉치
 
             function updateLineStyleBackup(arr:Array):void
             {
@@ -8700,7 +8694,6 @@
 
             function drawAll():void
             {
-                const nt:int = getTimer()
                 var len:int = data.length;
                 for(var i:int = 0; i < len; i++)
                 {
@@ -9266,33 +9259,30 @@
             {
                 if(!data || data.length === 0) return;
 
-                d = data[index];
-                index++;
-
-                switch(d[0])
+                switch(data[index][0])
                 {
-                    case "lineStyle": lineStyle(d); break;
-                    case "lineStyle2": lineStyle2(d); break;
-                    case "lineStyle3": lineStyle3(d); break;
-                    case "lineTo": lineTo(d); break;
-                    case "sqline": sqline(d); break;
-                    case "fill": fill(d); break;
-                    case "fill2": fill2(d); break;
-                    case "fill3": fill3(d); break;
-                    case "dot": dot(d); break;
-                    case "line": line(d); break;
-                    case "line1": line1(d); break;
-                    case "move": move(d); break;
-                    case "move1": move1(d); break;
-                    case "move2": move2(d); break;
-                    case "lasso": lasso(d,false); break;
-                    case "lassodel": lasso(d,true); break;
+                    case "lineStyle": lineStyle(data[index]); break;
+                    case "lineStyle2": lineStyle2(data[index]); break;
+                    case "lineStyle3": lineStyle3(data[index]); break;
+                    case "lineTo": lineTo(data[index]); break;
+                    case "sqline": sqline(data[index]); break;
+                    case "fill": fill(data[index]); break;
+                    case "fill2": fill2(data[index]); break;
+                    case "fill3": fill3(data[index]); break;
+                    case "dot": dot(data[index]); break;
+                    case "line": line(data[index]); break;
+                    case "line1": line1(data[index]); break;
+                    case "move": move(data[index]); break;
+                    case "move1": move1(data[index]); break;
+                    case "move2": move2(data[index]); break;
+                    case "lasso": lasso(data[index],false); break;
+                    case "lassodel": lasso(data[index],true); break;
                     case "mirror": mirror(); break;
-                    case "bgColor": bgColor(d); break;
-                    case "canvasSize": canvasSize(d); break;
-                    case "tempDone": tempDone(d); break;
-                    case "drawDone": drawDone(d); break;
-                    case "drawDone2": drawDone2(d); break;
+                    case "bgColor": bgColor(data[index]); break;
+                    case "canvasSize": canvasSize(data[index]); break;
+                    case "tempDone": tempDone(data[index]); break;
+                    case "drawDone": drawDone(data[index]); break;
+                    case "drawDone2": drawDone2(data[index]); break;
                     case "clear": clear(true,true); break;
                     case "clear1": clear(true,false); break;
                     case "clear2": clear(false,true); break;
@@ -9300,6 +9290,8 @@
                     case "merge": mergeLayer(); break;
                     default: break;
                 }
+
+                index++;
             }
 
             return {
@@ -9366,9 +9358,9 @@
                 return;
             }
 
-            const nt:int = getTimer();
+            const nowTime:int = getTimer();
 
-            if(nt - rFrameTextDelayTime >= 500)
+            if(nowTime - rFrameTextDelayTime >= 500)
             {   
                 const nextFrame:Number = getAutoJumpFrame(rSpeed);
                 const finalFrame:Number = rNowFrame+Math.floor(nextFrame/2);
@@ -9379,7 +9371,7 @@
 
                 jumpFrame(finalFrame,JUMP_FRAME_ONCE); 
                 replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + timeStr;
-                rFrameTextDelayTime = nt;
+                rFrameTextDelayTime = nowTime;
 
                 if(rNowFrame >= totalF)
                 {
@@ -9583,7 +9575,7 @@
                             return;
                         }
                     }
-                    
+
                     readCount = jumpCount;
                     if(!rDataReadFlag) drawFileData(jumpCount,jumpFlag); //여기서 readcount 깍아주고
                     if(readCount > 0) drawRData(readCount,jumpFlag); //나머지 readcount를 여기서해줌
@@ -10082,11 +10074,8 @@
 
             rFileStream.open(repFile,FileMode.READ);
 
-            trace("[jump frame 시작] 점프할 프레임 목표 :",frame,"현재 프레임:",rNowFrame,"rFrameCacheImages.length",rFrameCacheImages.length)
-
             if(index !== rJumpImageIndexLast)
             {
-                trace("[jump frame] 인덱스가 완전 달라서 캐쉬 이미지 삭제")
                 clearRFrameCacheImages();
                 updateRCavanvasImageFlag = 1;
             }
@@ -10095,9 +10084,10 @@
                 if(frame >= rFrameCacheImages[0][6])
                 {
                     cachedJumpImageIndex = getCacheImageIndex(frame);
-                    updateRCavanvasImageFlag = 2;
-
-                     trace("[jump frame] 캐쉬 이미지 인덱스 설정",cachedJumpImageIndex)
+                    if(rCachedJumpImageIndexLast !== cachedJumpImageIndex || frame < rNowFrame)
+                    {
+                        updateRCavanvasImageFlag = 2;
+                    }
                 }
             }
 
@@ -10110,7 +10100,6 @@
 
                 if(updateRCavanvasImageFlag === 2)
                 {
-                    trace("[jump frame] 캐쉬된 이미지로 캔버스 갱신",cachedJumpImageIndex)
                     jumpImageData = rFrameCacheImages[cachedJumpImageIndex];
                     tempBmpd = jumpImageData[0].clone();
                     tempBmpd1 = jumpImageData[1].clone();
@@ -10118,7 +10107,6 @@
                 }
                 else
                 {
-                    trace("[jump frame] 압축된이미지 파일로 캔버스 갱신")
                     const file:File = rJumpImageFolder.resolvePath(index+"");
                     const fs:FileStream = new FileStream();
 
@@ -10187,17 +10175,13 @@
                 tempBmpd1.dispose();
                 tempBmpd = null;
                 tempBmpd1 = null;
-
-                trace("rFrameCacheImages 확인",rFrameCacheImages)
             }
             else
             {
                 if(!rDataReadFlag) rFileStream.position = rLastBytePosition;
-                trace("앞으로 탐색 프레임 깎아줌: ",frame,"rNowFrame",rNowFrame,"frame - rNowFrame",frame - rNowFrame)
                 frame = frame - rNowFrame;
             }
 
-trace("[jump frame]  그려줄 나머지 프레임",frame)
             doDraw(frame,jumpflag,replayModeON);
             rFileStream.close();
 
@@ -10613,7 +10597,7 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
             const rightLimit:Number = stw;
             const bottomLimit:Number = sth;            
             var tooltipX:Number = floor(mx-width/2)+5;
-            var tooltipY:Number = floor(my+34);
+            var tooltipY:Number = floor(my-30);
             const right:int = tooltipX+width;
             const bottom:int = tooltipY+height;
 
@@ -10622,11 +10606,6 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
 
             if(tooltipY < STAGE_TOP_OFFSET) tooltipY = STAGE_TOP_OFFSET;
             else if(bottom >= bottomLimit-STAGE_BOTTOM_OFFSET) tooltipY = bottomLimit-STAGE_BOTTOM_OFFSET-height;
-
-            if(my >= tooltipY-1) //맨 아래에서 커서가 힌트를 넘어갈때 다시 위로 올려줌
-            {
-                tooltipY = (my-59 < sth-height) ? floor(my-59) : floor(sth-height);
-            }
 
             _toolTipBox.x = floor(tooltipX);
             _toolTipBox.y = floor(tooltipY);
@@ -11340,7 +11319,6 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
                                         ,dataD:ByteArray):void
         {
             
-
             const fs:FileStream = new FileStream();
             const rImgDataW:int = rFirstImage.width;
             const rImgDataH:int = rFirstImage.height;
@@ -13271,8 +13249,6 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
             }
         }
 
-
-
         //size, size drag, zoom, rotate시 업데이트 해줌
         private function cUpdatePenSizeCursor():Function
         {
@@ -14814,7 +14790,6 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
                 drawResizePreviewRect(subX,-subX,0,subX,oldHeight);
             }
 
-
             function getInitON():Boolean
             {
                 return resizeInitON;
@@ -16223,7 +16198,6 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
 
         private function redo(keyFlag:Boolean):void
         {
-            const nt:int = getTimer()
             if(deepUndoON)
             {
                 jumpOneFrame(false,false);
@@ -16250,13 +16224,11 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
                     drawUndoData(true);
                 }
             }
-            trace("redo time = ",getTimer()-nt)
             addTimerByName("setRCursorVisibleOFFUndoTimer",2.0,false,setRCursorVisibleOFFUndo,[false]);
         }
 
         private function undo(keyFlag:Boolean):void
         {
-            const nt:int = getTimer()
             if(deepUndoON)
             {
                 if(rNowFrame > 0)
@@ -16292,13 +16264,11 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
                     drawUndoData();
                 }
             }
-            trace("undo time = ",getTimer()-nt)
             addTimerByName("setRCursorVisibleOFFUndoTimer",2.0,false,setRCursorVisibleOFFUndo,[false]);
         }
 
         private function drawReplayImageToDrawModeCanvas():void
         {
-            const nt:int = getTimer()
             if(canvas1BitmapData && rcanvas1BitmapData !== canvas1BitmapData) canvas1BitmapData.dispose();
             canvas1BitmapData = rcanvas1BitmapData.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
@@ -16315,7 +16285,6 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
 
             checkMirrorCanvasReplayMirror();
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,RCANVAS_BG_COLOR);
-            trace("drawReplayImageToDrawModeCanvas 완료 시간",getTimer()-nt)
         }
 
         private function setRedoButton(useAutoKey:Boolean,shortcutFlag:Boolean=false):void
@@ -16740,7 +16709,6 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
         //h는 0에서 360, s v는 0~1.0 사이값 넣어줘야함
         private function HSVtoRGB(h:Number, s:Number, v:Number):Vector.<uint>
         {
-            const nt:int = getTimer();
             const round:Function = Math.round;
             h = h/360;
             v = round(v * 255);
@@ -17836,7 +17804,6 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
                     }
                 }
 
-
                 //레이어 따로 보기 조합 체크
                 if(layerVisibleKeyFuncCalled === false)
                 {
@@ -18219,12 +18186,12 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
 
             if(appResetFlag === false)
             {
-                const nt:int = getTimer();
-                const subTime:int = nt-windowDeactivateTime;
+                const nowTime:int = getTimer();
+                const subTime:int = nowTime-windowDeactivateTime;
 
                 if(subTime >= 1000 || windowClosingFlag)
                 {
-                    windowDeactivateTime = nt;
+                    windowDeactivateTime = nowTime;
                     saveAllData();
                 }
             }
@@ -18744,10 +18711,9 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
             updateRCursorScale(zoomed);
 
             deepUndoON = deepUndoONSave;
-            
+
             if(rNowFrame !== deepUndoFrameSave)
             {
-                trace("undo deepUndoFrameSave 원상 복구 해줌",deepUndoFrameSave)
                 jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
             }
 
@@ -18779,8 +18745,6 @@ trace("[jump frame]  그려줄 나머지 프레임",frame)
             deepUndoONSave = deepUndoON;
             if(deepUndoON) deepUndoON = false;
             deepUndoFrameSave = rNowFrame;
-
-            trace("deepUndoFrameSave",deepUndoFrameSave)
 
             TOTAL_FRAME = getTotalFrame();
 
