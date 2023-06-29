@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.71;
+        private const APP_VERSION:Number = 18.72;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9421,13 +9421,13 @@
                 if(index > 0 && !rFrameCacheImages[index])
                 {
                     rFrameCacheImages[index] = [rcanvas1BitmapData.clone()
-                                                                ,rcanvas11BitmapData.clone()
-                                                                ,rcanvas1BitmapData.width
-                                                                ,rcanvas1BitmapData.height
-                                                                ,RCANVAS_BG_COLOR
-                                                                ,rFileCutBytes
-                                                                ,rNowFrame
-                                                                ,rMirrorON];
+                                                ,rcanvas11BitmapData.clone()
+                                                ,rcanvas1BitmapData.width
+                                                ,rcanvas1BitmapData.height
+                                                ,RCANVAS_BG_COLOR
+                                                ,rFileCutBytes
+                                                ,rNowFrame
+                                                ,rMirrorON];
                 }
             }
 
@@ -9559,6 +9559,21 @@
                     tickDraw.next();
                     rNowFrame++;
                     readCount--;
+                }
+                if(jumpFlag === _JUMP_FRAME_ONCE || jumpFlag === _JUMP_FRAME_BEFORE)
+                {
+                    i = 0;
+                    while(i < rFrameCacheImages.length)
+                    {
+                        if(!rFrameCacheImages[i])
+                        {
+                            rFrameCacheImages.splice(i,1);
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
                 }
             }
 
@@ -9908,6 +9923,7 @@
             while(low <= high)//2진 탐색
             {
                 indexFrame = arr[index][6];
+
                 if(indexFrame === targetFrame) break;
                 else if(indexFrame > targetFrame) high = index-1;
                 else low = index+1;
@@ -10156,17 +10172,14 @@
                 changeCanvasSizeReplayMode(rcanvas1Bitmap.width,rcanvas1Bitmap.height);
                 setBackgroundColorReplayMode(jumpImageData[4]);
 
-                if(rFrameCacheImages.length === 0)
-                {
-                    rFrameCacheImages[0] = [rcanvas1BitmapData.clone()
-                                            ,rcanvas11BitmapData.clone()
-                                            ,rcanvas1BitmapData.width
-                                            ,rcanvas1BitmapData.height
-                                            ,RCANVAS_BG_COLOR
-                                            ,rLastBytePosition
-                                            ,rNowFrame
-                                            ,rMirrorON];
-                }
+                rFrameCacheImages[0] = [rcanvas1BitmapData.clone()
+                                        ,rcanvas11BitmapData.clone()
+                                        ,rcanvas1BitmapData.width
+                                        ,rcanvas1BitmapData.height
+                                        ,RCANVAS_BG_COLOR
+                                        ,rLastBytePosition
+                                        ,rNowFrame
+                                        ,rMirrorON];
 
                 jumpImageData = null;
                 rDataReadFlag = false;
@@ -10909,7 +10922,9 @@
                 arr.push(color);
 
                 if(arr.length > colorHistoryLimit)
+                {
                     arr.splice(0,1);
+                }
             }
             else setColorHistoryLastColorByIndex(findIndex);
 
