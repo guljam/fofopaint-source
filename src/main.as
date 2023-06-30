@@ -12314,7 +12314,7 @@
 
             if(!rFitZoomedON) setZoomCanvas(data.z,replayMode);
             toolTipBox.visible = false;
-            captureWindowMove = new Point(0,0);
+            captureWindowMove.setTo(0,0);
 
             updatePenSizeCursor();
             
@@ -17217,7 +17217,7 @@
  
                 if(captureModeON)
                 {
-                    captureWindowMove = new Point(dx,dy);
+                    captureWindowMove.setTo(dx,dy);
                     fitCanvasToWindow(true);
                 }
                 else
