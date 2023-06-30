@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.74;
+        private const APP_VERSION:Number = 18.75;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -538,7 +538,7 @@
                     ,drawDone:Function = cDrawDone()
                     ,tickDraw:Object = cTickDraw()
                     ,doDraw:Function = cDoDraw()
-                    ,checkAutoScroll:Object = cAutoScroll()
+                    ,autoScroll:Object = cAutoScroll()
                     ,updatePenSizeCursor:Function = cUpdatePenSizeCursor()
                     ,undoData:Object = cAddUndoData()
                     ,addUndoData:Function = undoData.add 
@@ -1668,6 +1668,7 @@
             fofo.scaleY = scale*fofo.fixedScale;
             checkfofoPos();
             updateWindowBorder(stw,sth);
+            autoScroll.updateScale(scale);
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenu);
@@ -3870,7 +3871,7 @@
 
             rzoomedIndex = zoomArr.indexOf(1.0);
             setRegPoint(center.x,center.y,true);
-            updateReplayCanvasBounds();
+            autoScroll.updateRCanvasBounds();
             setZoomCanvas(1.0,true);
             setFitZoomedOFF();
         }
@@ -3915,7 +3916,7 @@
                 setFitZoomedOFF();
                 rzoomedIndex = lastZoomIndex;
                 setRegPoint(center.x,center.y,true);
-                updateReplayCanvasBounds();
+                autoScroll.updateRCanvasBounds();
                 setZoomCanvas(newZoom,replayMode);
             }
             else
@@ -4404,6 +4405,7 @@
                 case "toolRotate": str = "Rotate (s, k)\nReset (right-click, shift+s/k)"; break;
                 case "toolTrace": str = "Reference layer\n(t)"; break;
             }
+
             return str;
         }
 
@@ -8151,7 +8153,7 @@
                     case "replayModeButton": str = "Replay mode (f1, f7)"; break;
                     case "replayZoomInButton": str = "Zoom in (f5), Reset (right-click)"; break;
                     case "replayZoomOutButton": str = "Zoom out (f6), Reset (right-click)"; break;
-                    case "replayFitToWindowButton": str = "Fit canvas to window ON/OFF (right-click on canvas)"; break;
+                    case "replayFitToWindowButton": str = "Canvas center alignment ON/OFF (right-click on canvas)"; break;
                     case "replayRotateButton": str = "Rotate ("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
 
                     default:
@@ -8347,12 +8349,7 @@
                 xReg.rotation = 90*_captureRotated;
             }
 
-            // if(manualFlag)
-            // {
-            //     // if(xReg.rotation !== 0) xReg.rotation = 0;
-            // }
-
-            if(replayMode === true && z < 1.0)
+            if(replayMode === true && z < 1.0 && !rFitZoomedON)
             {
                 replayEndWithCanvasFitWindow = true;
             }
@@ -8527,7 +8524,7 @@
             if(rcanvas11Bitmap.bitmapData && rcanvas11Bitmap.bitmapData !== rcanvas11BitmapData) rcanvas11Bitmap.bitmapData.dispose();
             rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
 
-            updateReplayCanvasBounds();
+            autoScroll.updateRCanvasBounds();
             checkCanvasPanelPos(true);
         }
 
@@ -9584,9 +9581,9 @@
                     {
                         rFrameCursorDelayTime = savedTime;
                         tickDraw.updateRCursorPos();
-                        if(!mouseClickON && deepUndoON === false)
+                        if(!rFitZoomedON && !mouseClickON && deepUndoON === false)
                         {
-                            checkAutoScroll.check();
+                            autoScroll.check();
                         }
                         replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*(rNowFrame/TOTAL_FRAME);
                     }
@@ -9703,37 +9700,25 @@
             return " ("+timeStr+")";
         }
 
-        //autoscroll check에서 계속 갱신해주면 부하 걸릴거같아서 줌하거나 캔버스 사이즈 조절되거나
-        //할때 특정 조건에서만 업데이트 시키는거임
-        private function updateReplayCanvasBounds():void
-        {
-            checkAutoScroll.updateRCanvasBounds();
-        }
-
         private function cAutoScroll():Object
         {
             const abs:Function = Math.abs;
             const floor:Function = Math.floor;
-            const offsetY:Number = topBar.BARSIZE+replayTimeBox.BARSIZE;
+            var offsetY:Number = topBar.BARSIZE+replayTimeBox.BARSIZE;
             const _rregPoint:Sprite = rregPoint;
             const zerop:Point = new Point(0,0);
-            const padding:Number = 15;
+            const padding:Number = 20;
             const leftLimit:Number = padding;
             const topLimit:Number = padding+offsetY;
             const cursorPos:Point = new Point(0,0);
             const windowCenterPos:Point = new Point(0,0); //캔버스 중점위치, 창 중점위치 사이 거리
 
             var stw:Number;
-            var sth:Number; //프레임 탐색막대 길이 빼줌
-            var b:Object; //바운드 저장하는 객체
-            var left:Number; //바운드 상하좌우
-            var right:Number;
-            var top:Number;
-            var bottom:Number;
-            var globalChecked:Boolean;
-            var g:Point; //캔버스 글로벌 좌표
+            var sth:Number; //프레임 탐색막대 길이 빼줌]
+            var cp:Point;
+            var gp:Point; //캔버스 글로벌 좌표
             var rg:Point; //캔버스 회전된 글로벌 좌표
-            var z:Number;
+            var zoom:Number;
             //rcanvas1 글로벌 좌표에 회전된 캔버스에서 커서 위치를 더해줌. 즉 윈도우 기준에서 커서 커서 위치를 구하는거임
             var isCanvasWidthSmallerStage:Boolean; //캔버스 가로 새로 길이가 스테이지 길이보다 클때 체크
             var isCanvasHeightSmallerStage:Boolean;
@@ -9742,23 +9727,17 @@
             var rightLimit:Number;
             var bottomLimit:Number;
 
+            function updateScale(scale:Number):void
+            {
+                offsetY = topBar.BARSIZE+replayTimeBox.BARSIZE*scale;
+                updateRCanvasBounds();
+            }
+
             function updateRCanvasBounds():void
             {
-                b = getBoundRect(rcanvas1Bitmap);
-                left = b.left;
-                right = b.right;
-                top = b.top;
-                bottom = b.bottom;
                 stw = stage.stageWidth;
                 sth = stage.stageHeight-offsetY;
-                z = rzoomed;
-
-                isCanvasWidthSmallerStage = right-left > stw;
-                isCanvasHeightSmallerStage = bottom-top > sth;
-                //캔버스 중점위치, 창 중점위치 사이 거리
-                windowCenterPos.setTo(floor(stw/2-(right+left)/2),floor((sth/2-(bottom+top)/2)+offsetY));
-                isNotCenterX = abs(windowCenterPos.x) > 0; //캔버스 중점위치, 창 중점위치 사이 거리
-                isNotCenterY = abs(windowCenterPos.y) > 0;
+                zoom = rzoomed;
 
                 rightLimit = stw-padding;
                 bottomLimit = sth+offsetY-padding;
@@ -9766,71 +9745,38 @@
 
             function check():void
             {
-                const p:Point = tickDraw.getRCursorPos();
+                cp = tickDraw.getRCursorPos();
+                gp = rcanvas1Bitmap.localToGlobal(zerop);
+                rg = rotatePoint(cp.x,cp.y,-_rregPoint.rotation);
+                cursorPos.setTo(gp.x+(rg.x*zoom),gp.y+(rg.y*zoom));
 
-                globalChecked = false;
-
-                if(!isCanvasWidthSmallerStage)
+                if(cursorPos.x < leftLimit)
                 {
-                    if(isNotCenterX)
-                    {
-                        _rregPoint.x += windowCenterPos.x;
-                        updateRCanvasBounds();
-                    }
+                    _rregPoint.x += floor(abs((cursorPos.x-stw/2)/2));
+                    updateRCanvasBounds(); 
                 }
-                else
+                else if(cursorPos.x > rightLimit)
                 {
-                    globalChecked = true;
-                    g = rcanvas1Bitmap.localToGlobal(zerop);
-                    rg = rotatePoint(p.x,p.y,-_rregPoint.rotation);
-                    cursorPos.x = g.x+(rg.x*z);
-
-                    if(cursorPos.x < leftLimit)
-                    {
-                        _rregPoint.x += floor(abs((cursorPos.x-stw/2)/3));
-                        updateReplayCanvasBounds(); 
-                    }
-                    else if(cursorPos.x > rightLimit)
-                    {
-                        _rregPoint.x -= floor(abs((cursorPos.x-stw/2)/3));
-                        updateReplayCanvasBounds();
-                    }
+                    _rregPoint.x -= floor(abs((cursorPos.x-stw/2)/2));
+                    updateRCanvasBounds();
                 }
 
-                if(!isCanvasHeightSmallerStage)
+                if(cursorPos.y < topLimit)
                 {
-                    if(isNotCenterY)
-                    {
-                        _rregPoint.y += windowCenterPos.y;
-                        updateRCanvasBounds();
-                    }
+                    _rregPoint.y += floor(abs((cursorPos.y-sth/2)/2));
+                    updateRCanvasBounds();
                 }
-                else
+                else if(cursorPos.y > bottomLimit)
                 {
-                    if(globalChecked === false)
-                    {
-                        globalChecked = true;
-                        g = rcanvas1Bitmap.localToGlobal(zerop);
-                        rg = rotatePoint(p.x,p.y,-_rregPoint.rotation);
-                    }
-                    cursorPos.y = g.y+(rg.y*z);
-
-                    if(cursorPos.y < topLimit)
-                    {
-                        _rregPoint.y += floor(abs((cursorPos.y-sth/2)/3));
-                        updateReplayCanvasBounds();
-                    }
-                    else if(cursorPos.y > bottomLimit)
-                    {
-                        _rregPoint.y -= floor(abs((cursorPos.y-sth/2)/3));
-                        updateReplayCanvasBounds();
-                    }
+                    _rregPoint.y -= floor(abs((cursorPos.y-sth/2)/2));
+                    updateRCanvasBounds();
                 }
             }
 
             return {
                 check:check,
-                updateRCanvasBounds:updateRCanvasBounds
+                updateRCanvasBounds:updateRCanvasBounds,
+                updateScale:updateScale
             };
         }
 
@@ -10176,7 +10122,6 @@
                 }
             }
 
-
             //미리 찍어둔 이미지로 캔버스를 설정
             if(updateRCavanvasImageFlag > 0 || frame < rNowFrame)
             {
@@ -10292,6 +10237,11 @@
                 tickDraw.updateRCursorPos();
                 rCursor.visible = true;
             }
+
+            // if(replayModeON && rFitZoomedON)
+            // {
+            //     setReplayFitToWindowButton();
+            // }
         } 
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
@@ -10437,7 +10387,7 @@
                 playbackFinished = false;//resetReplayTime함수 에서 이걸 true로 해주기 때문에 아래쪽에서 변경
                 resetRotationReplayMode();
                 if(!rFitZoomedON) setZoomCanvas(1.0,true);
-                updateReplayCanvasBounds();
+                autoScroll.updateRCanvasBounds();
                 selectReplaySubLayer(false);
             }
 
@@ -10454,6 +10404,7 @@
             }
 
             if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
+            if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
 
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
@@ -13867,7 +13818,7 @@
                     if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
 
                     resetNowKey();
-                    updateReplayCanvasBounds();
+                    autoScroll.updateRCanvasBounds();
                 }
 
                 _rotateCursorBox.visible = false;
@@ -14464,7 +14415,7 @@
 
             if(rcanvas11Bitmap.bitmapData) rcanvas11Bitmap.bitmapData.dispose();
             rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
-            updateReplayCanvasBounds();
+            autoScroll.updateRCanvasBounds();
             checkCanvasPanelPos(true);
 
             if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
@@ -15646,7 +15597,11 @@
                 }
                 else
                 {
-                    updateReplayCanvasBounds();
+                    if(old.x !== xReg.x || old.y !== xReg.y)
+                    {
+                        setFitZoomedOFF();
+                    }
+                    autoScroll.updateRCanvasBounds();
                 }
             }
 
@@ -17290,7 +17245,7 @@
                 if(replayModeON)
                 {
                     updateReplayBarPos(stw);
-                    updateReplayCanvasBounds();
+                    autoScroll.updateRCanvasBounds();
 
                     if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
                 }
@@ -17476,7 +17431,7 @@
             }
             else if(flag === CENTERPOS_REPLAY)
             {
-                topBarOffset = topBarOffset+replayTimeBox.BARSIZE*scale-12;
+                topBarOffset = topBarOffset+replayTimeBox.BARSIZE*scale-13;
                 center.setTo(stage.stageWidth/2,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else if(flag === CENTERPOS_DEEPUNDO)
@@ -18865,7 +18820,7 @@
             }
 
             updateReplayBarPos(stage.stageWidth);
-            updateReplayCanvasBounds();
+            autoScroll.updateRCanvasBounds();
             updateRCursorScale(rzoomed);
             topBar.resetHintColor();
 
