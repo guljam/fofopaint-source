@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.75;
+        private const APP_VERSION:Number = 18.76;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4051,11 +4051,12 @@
         private function updatePreviewBoxRectPos():void
         {
             const gp:Point = canvas1Bitmap.globalToLocal(new Point(STAGE_LEFT_OFFSET,STAGE_TOP_OFFSET));
-            const z:Number = zoomed;
-            previewBox.updateCursor(gp.x*z,gp.y*z
+            const zoom:Number = zoomed;
+
+            previewBox.updateCursor(gp.x*zoom,gp.y*zoom
                                     ,stage.stageWidth-STAGE_LEFT_OFFSET-STAGE_RIGHT_OFFSET
                                     ,stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET
-                                    ,CANVAS_WIDTH*z,regPoint.rotation);
+                                    ,CANVAS_WIDTH*zoom,regPoint.rotation);
         }
 
         private function setHandToolPreviewBox(cursorClicked:Boolean):void
@@ -4086,18 +4087,18 @@
                 updatePreviewBoxRectPos();
             }
 
-            function consolBoxHandToolUpEvent(e:MouseEvent):void
+            function setHandToolMouveUpEvent(e:MouseEvent):void
             {
                 setOptimizeCanvasMove(false);
                 checkCanvasPanelPos();
                 updatePreviewBoxRectPos();
                 mouseClickON = false;
                 mouseDragON = false
-                stageMouseMoveEvent.remove("consolBoxHandToolMoveEvent");
-                stage.removeEventListener(MouseEvent.MOUSE_UP,consolBoxHandToolUpEvent);
+                stageMouseMoveEvent.remove("setHandToolMouseMoveEvent");
+                stage.removeEventListener(MouseEvent.MOUSE_UP,setHandToolMouveUpEvent);
             }
 
-            function consolBoxHandToolMoveEvent(e:MouseEvent):void
+            function setHandToolMouseMoveEvent(e:MouseEvent):void
             {
                 var mx:Number = previewBox.mouseX;
                 var my:Number = previewBox.mouseY;
@@ -4122,8 +4123,8 @@
                 setCenter(mouseX,mouseY);
             }
 
-            stageMouseMoveEvent.add("consolBoxHandToolMoveEvent",consolBoxHandToolMoveEvent)
-            stage.addEventListener(MouseEvent.MOUSE_UP,consolBoxHandToolUpEvent)
+            stageMouseMoveEvent.add("setHandToolMouseMoveEvent",setHandToolMouseMoveEvent)
+            stage.addEventListener(MouseEvent.MOUSE_UP,setHandToolMouveUpEvent)
         }
         //원점 penSmoothX oy로부터 dx쪽으로 dist 만큼 떨어진 거리 점을 리턴함
         private function movePointAngleDist(ox:Number,oy:Number,dx:Number,dy:Number,dist:Number):Point
@@ -12291,7 +12292,6 @@
             penCursorOFFFlag = false;
             captureAreaRect.visible = false;
             captureAreaRect.graphics.clear();
-            setCaptureUI(false);
 
             //캔버스 이전 모양 위치로 복원
             xReg.rotation = data.r;
@@ -12317,6 +12317,9 @@
             captureWindowMove = new Point(0,0);
 
             updatePenSizeCursor();
+            
+            //prev box 사각형 업데이트가 있기 때문에 xreg위치가 갱신된 다음에 해주어야함
+            setCaptureUI(false);
 
             if(replayMode)
             {
