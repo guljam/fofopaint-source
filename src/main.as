@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.73;
+        private const APP_VERSION:Number = 18.74;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -454,7 +454,9 @@
                     ,rFitZoomedON:Boolean = false // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
                     ,rJumpImageIndexLast:int = -2 //썸네일 인덱스 바뀌면 여기다 저장
                     ,rJumpImageNowFrameLast:Number = -1
-                    ,rCachedJumpImageIndexLast:int = -2
+                    ,rCachedJumpImageIndexLast:int = -2 //마지막에 그려준 캐쉬 이미지 번호를 저장
+                    ,rCachedJumpImageIndexPush:int = 1 //dodraw에서 캐시이미지 그려줄때 이 번호로 순차적으로 저장하게 함
+                    ,rCachedJumpImageIndexFrame:Number //dodraw에서 캐시이미지 가장 높은 프레임을 저장해줌
                     ,rJumpCacheImageIndexSave:int = -2 // 더 잘게 쪼개준 이미지 인덱스 바뀌면 여기다 저장
                     ,rJumpImageFrameData:Array = [0] //스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
                     ,rJumpImageLastBmpd1:BitmapData
@@ -9490,14 +9492,14 @@
             var timeStr:String;
             var readCount:Number = 0;
             var jumpImageGroupIndex:int;
+            var nowJumpFlag:Boolean;
 
             function checkMakeCacheImage():void
             {
-                var index:int = (rNowFrame-rJumpImageNowFrameLast)/_CACHE_DIV_10;
-
-                if(index > 0 && !rFrameCacheImages[index])
+                if((rNowFrame - rJumpImageNowFrameLast)/_CACHE_DIV_10 > rCachedJumpImageIndexPush
+                &&  rNowFrame > rCachedJumpImageIndexFrame)
                 {
-                    rFrameCacheImages[index] = [rcanvas1BitmapData.clone()
+                    rFrameCacheImages[rCachedJumpImageIndexPush] = [rcanvas1BitmapData.clone()
                                                 ,rcanvas11BitmapData.clone()
                                                 ,rcanvas1BitmapData.width
                                                 ,rcanvas1BitmapData.height
@@ -9505,6 +9507,9 @@
                                                 ,rFileCutBytes
                                                 ,rNowFrame
                                                 ,rMirrorON];
+
+                    rCachedJumpImageIndexPush++;
+                    rCachedJumpImageIndexFrame = rNowFrame;
                 }
             }
 
@@ -9617,6 +9622,7 @@
 
             function drawFileData(len:Number,jumpFlag:int):void
             {
+                const flag:Boolean = jumpFlag === _JUMP_FRAME_ONCE || jumpFlag === _JUMP_FRAME_BEFORE;
                 for(var i:Number=0;i<len;i++)
                 {
                     if(_tickDraw.isIndexBiggerData())
@@ -9628,7 +9634,7 @@
                             readyToReadRData(jumpFlag);
                             return;
                         }
-                        if(jumpFlag === _JUMP_FRAME_ONCE || jumpFlag === _JUMP_FRAME_BEFORE)
+                        if(flag)
                         {
                             checkMakeCacheImage();
                         }
@@ -9636,21 +9642,6 @@
                     tickDraw.next();
                     rNowFrame++;
                     readCount--;
-                }
-                if(jumpFlag === _JUMP_FRAME_ONCE || jumpFlag === _JUMP_FRAME_BEFORE)
-                {
-                    i = 0;
-                    while(i < rFrameCacheImages.length)
-                    {
-                        if(!rFrameCacheImages[i])
-                        {
-                            rFrameCacheImages.splice(i,1);
-                        }
-                        else
-                        {
-                            i++;
-                        }
-                    }
                 }
             }
 
@@ -9990,7 +9981,7 @@
         //targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
         private function getCacheImageIndex(targetFrame:Number):Number
         {
-            const arr:Array = rFrameCacheImages;
+            var arr:Array = rFrameCacheImages;
             var low:Number = 0;
             var high:Number = arr.length-1;
             if(high <= 0) return high;
@@ -10007,6 +9998,7 @@
 
                 index = Math.floor((low + high)/2);
             }
+
             return index;
         }
 
@@ -10249,14 +10241,17 @@
                 changeCanvasSizeReplayMode(rcanvas1Bitmap.width,rcanvas1Bitmap.height);
                 setBackgroundColorReplayMode(jumpImageData[4]);
 
-                rFrameCacheImages[0] = [rcanvas1BitmapData.clone()
-                                        ,rcanvas11BitmapData.clone()
-                                        ,rcanvas1BitmapData.width
-                                        ,rcanvas1BitmapData.height
-                                        ,RCANVAS_BG_COLOR
-                                        ,rLastBytePosition
-                                        ,rNowFrame
-                                        ,rMirrorON];
+                if(updateRCavanvasImageFlag === 1)
+                {
+                    rFrameCacheImages[0] = [rcanvas1BitmapData.clone()
+                                            ,rcanvas11BitmapData.clone()
+                                            ,rcanvas1BitmapData.width
+                                            ,rcanvas1BitmapData.height
+                                            ,RCANVAS_BG_COLOR
+                                            ,rLastBytePosition
+                                            ,rNowFrame
+                                            ,rMirrorON];
+                }
 
                 jumpImageData = null;
                 rDataReadFlag = false;
@@ -11083,6 +11078,8 @@
             rFrameCacheImages.length = 0;
             _rFrameCacheImages = null;
             rCachedJumpImageIndexLast = -2;
+            rCachedJumpImageIndexPush = 1;
+            rCachedJumpImageIndexFrame = 0;
         }
 
         private function makeJumpImage():void //loadrep
