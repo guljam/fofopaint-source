@@ -10176,6 +10176,7 @@
                 }
             }
 
+
             //미리 찍어둔 이미지로 캔버스를 설정
             if(updateRCavanvasImageFlag > 0 || frame < rNowFrame)
             {
@@ -11077,6 +11078,7 @@
             }
             rFrameCacheImages.length = 0;
             _rFrameCacheImages = null;
+            rJumpImageIndexLast = -2;
             rCachedJumpImageIndexLast = -2;
             rCachedJumpImageIndexPush = 1;
             rCachedJumpImageIndexFrame = 0;
