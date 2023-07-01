@@ -1430,15 +1430,12 @@
             }
             else
             {
-                var commandIndex:int = -1;
-                var len:uint = arr.length;
                 for(var i:uint=0; i<arr.length; i++)
                 {
                     if(command === arr[i][0])
                     {
                         arr.splice(i,1)
                         --i;
-                        --len;
                     }
                 }
                 rData.splice(index+1);
