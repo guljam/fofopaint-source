@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.76;
+        private const APP_VERSION:Number = 18.77;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1478,7 +1478,11 @@
             }
             else
             {
-                if(deepUndoON) setApplyDeepUndo();
+                if(deepUndoON)
+                {
+                    setApplyDeepUndo();
+                }
+
                 canvas11BitmapData.draw(canvas1BitmapData);
                 canvas1BitmapData.fillRect(new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT),0);
                 rDataBuffer.push(["merge"]);
@@ -2546,8 +2550,7 @@
         private function setSidebarVisible(flag:Boolean,tempFlag:Boolean):void
         {
             if(tempFlag === false) isSidebarVisible = flag;
-
-            const tb:topMenu = topBar;
+            
             if(flag)
             {
                 sideBar.visible = true;
@@ -2564,7 +2567,7 @@
 
             if(tempFlag === false)
             {
-                tb.checkSideBarONOFFButton(flag,isRightSidebar);
+                topBar.checkSideBarONOFFButton(flag,isRightSidebar);
             }
 
             updateStageOffset();
@@ -3497,6 +3500,10 @@
             if(resizeCanvas.isCanvasResizing())
             {
                 resizeCanvas.exit(true);
+            }
+            if(toolBox2ON)
+            {
+                closeToolBox2();
             }
 
             mouseLeaveSideBarON();
@@ -5634,13 +5641,18 @@
 
         private function controlBoxHintOFFEvent(e:MouseEvent):void
         {
-            addTimerByName("controlBoxHintTimer",0.1,false,function():void
+            if(!hasTimer("controlBoxHintTimer"))
             {
-                if(isHitTestPoint(controlBox) === false)
+                addTimerByName("controlBoxHintTimer",0.2,true,function():Boolean
                 {
-                    setControlBoxInfoOFF();
-                }
-            });
+                    if(isHitTestPoint(controlBox) === false)
+                    {
+                        setControlBoxInfoOFF();
+                        return false;
+                    }
+                    return true;
+                });
+            }
         }
 
         private function controlBoxHintONEvent(e:MouseEvent):void
@@ -7512,6 +7524,20 @@
                         {
                             if(rFitZoomedON) resetZoomReplayMode();
                             else setReplayFitToWindowButton();
+                        }
+                        break;
+
+                        case "layerMergeButton":
+                        {
+                            setLayerMergeButton();
+                            topBar.hintTime("Layers has been merged to layer 2",topBar.replayModeButton);
+                        }
+                        break;
+
+                        case "layerSwapButton":
+                        {
+                            setLayerSwapButton();
+                            topBar.hintTime("Layers has been swapped",topBar.replayModeButton);
                         }
                         break;
                     }
@@ -19205,6 +19231,23 @@
                 }
                 return true;
 
+
+                case "layer1CheckButton":
+                case "layer1UncheckButton":
+                {
+                    selectSubLayer(false,false);
+                    setLayer1CheckToggle();
+                }
+                return true;
+
+                case "layer2CheckButton":
+                case "layer2UncheckButton":
+                {
+                    selectSubLayer(true,false);
+                    setLayer2CheckToggle();
+                }
+                return true;
+
                 case "layer1SelectButton":
                 {
                     selectSubLayer(false,false);
@@ -19225,33 +19268,14 @@
                 }
                 return true;
 
-                case "layer1CheckButton":
-                case "layer1UncheckButton":
-                {
-                    selectSubLayer(false,false);
-                    setLayer1CheckToggle();
-                }
-                return true;
-
-                case "layer2CheckButton":
-                case "layer2UncheckButton":
-                {
-                    selectSubLayer(true,false);
-                    setLayer2CheckToggle();
-                }
-                return true;
-
                 case "layerMergeButton":
-                {
-                    setLayerMergeButton();
-                    topBar.hintTime("Layers has been merged to layer 2",topBar.replayModeButton);
-                }
-                return true;
-
                 case "layerSwapButton":
                 {
-                    setLayerSwapButton();
-                    topBar.hintTime("Layers has been swapped",topBar.replayModeButton);
+                    if(toolBox2ON || !isNowKey(0) || target.alpha < 1.0)
+                    {
+                        return true;
+                    }
+                    checkButtonUp(targetName);
                 }
                 return true;
 
