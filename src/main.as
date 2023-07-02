@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.77;
+        private const APP_VERSION:Number = 18.78;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -261,7 +261,7 @@
                     ,resizeButtonL:canvasResizeButton = new canvasResizeButton()
                     ,resizeButtonU:canvasResizeButton = new canvasResizeButton()
                     ,regPoint:Sprite = new Sprite()//회전 스프라이트 부모
-                    ,canvasPanel:Sprite = new Sprite()//회색 부분을 제외한 그리기 영역 추가       
+                    ,canvasPanel:Sprite = new Sprite()//회색 부분을 제외한 그리기 영역 추가
                     ,canvas2:Sprite = new Sprite() //캔버스 2번 임시로 그려주는 캔버스 버퍼?
                     ,canvas2Draw:Shape = new Shape() //실제로 선을 긋는 div
                     ,canvasPanelMask:Shape = new Shape() //캔버스 마스크
@@ -482,7 +482,7 @@
                     ,cutFrameClickCounter:uint = 0 //1번 누르면 미리 보기, 2번 누르면 실행
                     ,cutFrameWithShortcut:Boolean = false // cutframe할때 단축키를 썼는지 저장
                     ,cutFrameClickedButton:int = CUT_FRAME_NONE //무슨 버튼 눌렀는지 저장
-                    ,rCutDataSaveFrame:Number = 0//슈퍼언도나 앞짜르기 할때 마우스 왔다갔다 하면서 반복해서 눌러줄때 jumponeframe이 계속작동되는거 방지해줌 
+                    ,rCutDataSaveFrame:Number = 0//슈퍼언도나 앞짜르기 할때 마우스 왔다갔다 하면서 반복해서 눌러줄때 jumponeframe이 계속작동되는거 방지해줌
 
         //스크린샷 관련 변수
                     ,captureModeON:Boolean = false //스크린샷 켜지면 올려줌
@@ -520,7 +520,7 @@
                     ,traceMemoryTraining:Boolean = false // 이거 켜지면 캔버스 그릴때 임시적으로 안보이게함
                     ,traceLastAlpha:Number = 0
 
-        //그리드 레이어 변수 
+        //그리드 레이어 변수
                     ,canvasGrid:Shape = new Shape()//트레이스 레이어임
                     ,gridFlag:uint = 0
         //closure
@@ -541,7 +541,7 @@
                     ,autoScroll:Object = cAutoScroll()
                     ,updatePenSizeCursor:Function = cUpdatePenSizeCursor()
                     ,undoData:Object = cAddUndoData()
-                    ,addUndoData:Function = undoData.add 
+                    ,addUndoData:Function = undoData.add
                     ,addUndoDataContinue:Function = undoData.addContinue
                     ,penCursorPosition:Object = cUpdatePenCursorPosition()
                     ,updatePenCursorPosition:Function = penCursorPosition.check
@@ -566,7 +566,7 @@
                     ,uiScaleSet:Array = [1.0,1.25,1.5,1.75,2.0]
                     ,uiColorIndex:int = 1
                     ,uiColorSet:Array = [       //주 컬러,        주컬러 반대색,    stage배경색,  캔버스 조절 막대 색,   리플레이 완료 막대 색, 리플레이 재시작 막대색
-                                                [COLOR_DARK,      0xE5E5E5,      0x4B4B4B,    0x676767,            0x74AC74,           0xE8BE71], 
+                                                [COLOR_DARK,      0xE5E5E5,      0x4B4B4B,    0x676767,            0x74AC74,           0xE8BE71],
                                                 [COLOR_MID_DARK,  COLOR_BRIGHT,  0x888888,    RESIZE_BUTTON_COLOR, 0xA1CE9D,           0xF7DA83],
                                                 [COLOR_MID_BRIGHT,0x505050,      0xC9C9C9,    0xB0B0B0,            0xB6DAAF,           0xF7EA8D],
                                                 [COLOR_BRIGHT,    0x505050,      0xE1E1E1,    0xCBCBCB,            0xCEE5C5,           0xF7F2A0],
@@ -927,11 +927,11 @@
             if(sideBar.visible)
             {
                 if(sideBarScrollSet.hitTestObject(fofo)) fofo.visible = false;
-                else fofo.visible = true; 
+                else fofo.visible = true;
             }
             else
             {
-                fofo.visible = false; 
+                fofo.visible = false;
             }
         }
 
@@ -1673,6 +1673,8 @@
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenu);
+
+            updatePreviewBoxRectPos();
         }
 
         private function cStartGC():Function
@@ -2198,7 +2200,7 @@
 
         private function updateOldTool():void
         {
-            if(oldTool === TOOL_NONE) 
+            if(oldTool === TOOL_NONE)
                 oldTool = nowTool;
         }
 
@@ -2382,7 +2384,7 @@
             stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpLassoTool,false,-1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpLassoTool);
             stage.addEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
-            removeInputEventDrawMode();   
+            removeInputEventDrawMode();
         }
 
         private function stageMouseDownEvent(e:MouseEvent):void
@@ -2547,7 +2549,7 @@
         private function setSidebarVisible(flag:Boolean,tempFlag:Boolean):void
         {
             if(tempFlag === false) isSidebarVisible = flag;
-            
+
             if(flag)
             {
                 sideBar.visible = true;
@@ -3063,7 +3065,7 @@
                 const px:Number = Math.max(rx, Math.min(cx,rx+w));
                 const py:Number = Math.max(ry, Math.min(cy,ry+h));
                 const distance:Number = (Math.sqrt(Math.pow(px-cx,2)+Math.pow(py-cy,2)));
-                
+
                 return distance <= r/2;
             }
 
@@ -3201,12 +3203,12 @@
                         sqLinePosLast.setTo(mx,my);
                     }
                 }
-                
+
                 if(mouseMovedFlag === false) //움직이기 시작할때 linestyle이랑 moveto넣어줌
                 {
                     mouseMovedFlag = true;
                     lineStyleReady(xShape,xSize,xColor,xAlpha);
-                    
+
                     if(xShape)
                     {
                         updateExtendEndPoint(mx,my,smoothPos.x,smoothPos.y,xSize/4);
@@ -3389,7 +3391,7 @@
                     {
                         dotEndFlag = true;
                     }
-                    else 
+                    else
                     {
                         const pointLen:uint = penPoints.length;
                         if(pointLen >= 4)
@@ -3416,7 +3418,7 @@
             return function(penFlag:Boolean):void
             {
                 penToolFlag = penFlag;
-                                
+
                 if(penToolFlag)
                 {
                     xSize = penSize;
@@ -3518,21 +3520,16 @@
         private function cUpdatePenCursorPosition():Object
         {
             const _penSizeCursor:Shape = penSizeCursor;
-            const sideBarVisibleOffset:Number = 15;
             const useCursorTool:int = TOOL_LINE;
             const _isPenTool:Boolean = isPenOrLineTool();
             const _isEraseTool:Boolean = isEraseTool();
             var zoomed:Number = 1.0;
-            var cursorVisibleOFFSize:Number = 4;
             var cursorSize:Number = 3.0;
-
             var mouseDownEventON:Boolean;
             var sidebarTempOFF:Boolean;
             var visibleMouseUpEventON:Boolean;
             var mx:Number = 0;
             var my:Number = 0;
-            // var mx:Number;
-            // var my:Number;
 
             function updateCursorSize(size:Number):void
             {
@@ -3542,7 +3539,7 @@
             function updateZoom(z:Number):void
             {
                 zoomed = z;
-                
+
                 if(_isPenTool) cursorSize = penSize*z;
                 else if(_isEraseTool) cursorSize = eraseSize*z;
                 else cursorSize = 0;
@@ -3624,7 +3621,7 @@
             }
 
             function sidebarOFFMouseDownEvent(e:MouseEvent):void
-            {   
+            {
                 if(e.target && (e.target.name === "sideBarONButton" || e.target.name === "sideBarONButton2"))
                 {
 
@@ -3658,13 +3655,15 @@
                 mx = mouseX;
                 my = mouseY;
 
-                if(penCursorOFFFlag || nowTool > useCursorTool 
+                if(penCursorOFFFlag || nowTool > useCursorTool //1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                 || !(mx >= STAGE_LEFT_OFFSET &&
                     mx <= stage.stageWidth-STAGE_RIGHT_OFFSET &&
                     my >= STAGE_TOP_OFFSET &&
                     my <= stage.stageHeight-STAGE_BOTTOM_OFFSET)
                 || quickSidebarON
-                || resizeCanvas.isCanvasResizing() || (traceMenu.visible && traceMenu.hitTestPoint(mouseX,mouseY)))//1 2 3 4 펜 지우개 라인툴 라인-지우개툴
+                || resizeCanvas.isCanvasResizing()
+                || (traceMenu.visible && traceMenu.hitTestPoint(mouseX,mouseY))
+                || (sideBarScrollBar.visible && sideBarScrollBar.hitTestPoint(mouseX,mouseY)))
                 {
                     _penSizeCursor.visible = false;
                 }
@@ -3674,7 +3673,10 @@
                     _penSizeCursor.x = mx;
                     _penSizeCursor.y = my;
 
-                    if((cursorSize <= cursorVisibleOFFSize) || isNowTool(TOOL_FILL_PEN)) _penSizeCursor.visible = false;
+                    if(cursorSize <= 4 || isNowTool(TOOL_FILL_PEN))
+                    {
+                        _penSizeCursor.visible = false;
+                    }
                     else
                     {
                         _penSizeCursor.visible = true;
@@ -3683,7 +3685,7 @@
 
                 if(isSidebarVisible === false && clickBlockFlag === false)
                 {
-                    if((!isRightSidebar && mx <= sideBarVisibleOffset || isRightSidebar && mx >= stage.stageWidth-sideBarVisibleOffset)
+                    if((!isRightSidebar && mx <= 15 || isRightSidebar && mx >= stage.stageWidth-15)
                     && my > STAGE_TOP_OFFSET)
                     {
                         checkSideBarON();
@@ -3903,7 +3905,7 @@
             if(zoomInFlag)
             {
                 lastZoomIndex++;
-                if(lastZoomIndex > zoomMax) 
+                if(lastZoomIndex > zoomMax)
                     lastZoomIndex = zoomMax;
             }
             else
@@ -3962,7 +3964,7 @@
                 {
                     switch(input)
                     {
-                        case KEY.w: 
+                        case KEY.w:
                         case KEY.i: setLasso1PxMoveButton(LASSO_1PX_MOVE_UP); break;
 
                         case KEY.a:
@@ -3971,7 +3973,7 @@
                         case KEY.s:
                         case KEY.k: setLasso1PxMoveButton(LASSO_1PX_MOVE_DOWN); break;
 
-                        case KEY.d: 
+                        case KEY.d:
                         case KEY.l: setLasso1PxMoveButton(LASSO_1PX_MOVE_RIGHT); break;
                     }
                 });
@@ -4037,7 +4039,7 @@
         }
 
         private function setSideBarPositionButton():void
-        {   
+        {
             const _sideBar:sidePanel = sideBar;
 
             if(isRightSidebar === false)
@@ -4453,7 +4455,7 @@
 
             const buttonSetVisible:Function = tb.buttonSetVisible;
 
-            buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);  
+            buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);
             tb.updateButtonVisible(false);
 
             if(mode === "draw")
@@ -5077,7 +5079,7 @@
                 var mx:Number = _traceMenuBox.mouseX;
 
                 if(mx < buttonMin) mx = buttonMin;
-                else if(mx > buttonMax) mx = buttonMax; 
+                else if(mx > buttonMax) mx = buttonMax;
 
                 const value:Number = mx-buttonMin;
                 const valueMax:Number = buttonMax-buttonMin;
@@ -5229,7 +5231,7 @@
                 {
                     addUndoDataContinue();
                 }
-                else 
+                else
                 {
                     rDataBuffer = [[command]];
                     addUndoData();
@@ -5331,7 +5333,7 @@
                 {
                     setBlurCanvasBySizeDrawMode(size);
                 }
-                
+
                 _controlBox.blurShapeSetON();
             }
             else if(airBrushSizeDrawMode !== 0)
@@ -5350,7 +5352,7 @@
             if(eraseAirBrushON) setToolTipTempON("Erase Air brush ON");
             else setToolTipTempON("Erase Air brush OFF");
         }
-        
+
         private function setEraseAirBrushButton(flag:Boolean):void
         {
             eraseAirBrushON = flag;
@@ -5463,7 +5465,7 @@
                 controlBox.layer2SelectButton.alpha = BUTTON_OFF_ALPHA;
                 canvasPanel.setChildIndex(canvas1Bitmap,2);
             }
-        }   
+        }
 
         private function setSharpLineButtonShortcut():void
         {
@@ -5661,7 +5663,7 @@
             var str:String = "";
 
             switch(targetName)
-            {      
+            {
                 case "shapeCircle": str = "Circle";
                 break;
 
@@ -6334,7 +6336,7 @@
         {
             resetKeyBuffer();
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDrawMode,false,-1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false,-1); 
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false,-1);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode,false,-1);
             stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpDrawMode,false,-1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDrawMode,false,-1);
@@ -6559,7 +6561,7 @@
             const arr:Array = lassoStartData;
             const _lassobox:Sprite = lassoBox;
 
-            if(lassoCopyON 
+            if(lassoCopyON
             || arr[0] !== _lassobox.x
             || arr[1] !== _lassobox.y
             || arr[2] !== _lassobox.scaleX
@@ -6614,13 +6616,13 @@
         {
             const size:uint = sizeArr[index];
 
-            if(isPenOrLineTool() || isNowTool(TOOL_FILL_PEN)) 
+            if(isPenOrLineTool() || isNowTool(TOOL_FILL_PEN))
             {
                 penSize = size;
                 penSizeIndex = index;
                 penCursorPosition.updateCursorSize(penSize);
             }
-            else if(isEraseTool()) 
+            else if(isEraseTool())
             {
                 eraseSize = size;
                 eraseSizeIndex = index;
@@ -6710,7 +6712,7 @@
             const mode:uint = pickerMode;
             const max:Number = _hueBarWidth;
             var pickedColor:uint = 0;
- 
+
             setTopChildIndex(hueCursor);
             mouseDragON = true;
             penCursorOFFFlag = true;
@@ -6943,7 +6945,7 @@
 
             //앞 버전이 크면 참
             if(parseFloat(newVer[0]) > parseFloat(oldVer[0])
-            || 
+            ||
             (parseFloat(newVer[0]) === parseFloat(oldVer[0])
             && parseFloat(newVer[1]) > parseFloat(oldVer[1])))
             {
@@ -7211,7 +7213,7 @@
             //캔버스 2번 지워줘야함
             rcanvas2Draw.graphics.clear();
             rcanvas2BitmapData.fillRect(new Rectangle(0,0,rcanvas2BitmapData.width,rcanvas2BitmapData.height),0);
-            
+
             if(canvas1BitmapData && canvas1BitmapData !== rcanvas1BitmapData) canvas1BitmapData.dispose();
             canvas1BitmapData = rcanvas1BitmapData.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
@@ -7266,7 +7268,7 @@
                 function clearDataButtonCountResetEventOver(e:MouseEvent):void
                 {
                     clearDataButtonCount = 0;
-                    stage.removeEventListener(MouseEvent.MOUSE_OVER,clearDataButtonCountResetEventOver);   
+                    stage.removeEventListener(MouseEvent.MOUSE_OVER,clearDataButtonCountResetEventOver);
                 }
                 stage.addEventListener(MouseEvent.MOUSE_OVER,clearDataButtonCountResetEventOver);
             }
@@ -7893,7 +7895,7 @@
                 if(flag !== CUT_FRAME_RE_RECORD)
                 {
                     //데이터 전부 읽고 짤라줘야함
-                    if(tickDraw.getIndex() < tickDraw.getDataLength()) 
+                    if(tickDraw.getIndex() < tickDraw.getDataLength())
                     {
                         drawRemainReplayData();
                         checkCutFrameButtons();
@@ -8520,7 +8522,7 @@
             maskg.drawRect(0,0,w,h);
             maskg.endFill();
             rcanvasPanel.mask = rcanvasPanelMask;//마스크 다시 씌워줌
-    
+
             rcanvas1BitmapData = new BitmapData(w,h,true,0);
             rcanvas11BitmapData = new BitmapData(w,h,true,0);
             rcanvas2BitmapData = new BitmapData(w,h,true,0);
@@ -8653,7 +8655,7 @@
         {
             const cd2:Graphics = rcanvas2Draw.graphics;
             const rTinyCursorPos:Point = new Point(0,0);
-            //undo인덱스가 처음일때 tickdraw가 아무것도 안해주니까 위치 갱신이 안되서 
+            //undo인덱스가 처음일때 tickdraw가 아무것도 안해주니까 위치 갱신이 안되서
             //undorefimage갱신 될때 마다 마지막 포인터 위치 저장해주는거
             const rTinyCursorPosFirst:Point = new Point(-1,-1);
 
@@ -8971,7 +8973,7 @@
                 cd2.drawPath(command,xyData);
                 setRCursorPos(xyData[xyData.length-2],xyData[xyData.length-1]);
             }
-            
+
             //이건아마 중간에 쓰다 말거임 그래도 오래된 리플레이 파일을 위해서 남겨둠
             function fill2(data:Array):void
             {
@@ -9461,7 +9463,7 @@
             const nowTime:int = getTimer();
 
             if(nowTime - rFrameTextDelayTime >= 500)
-            {   
+            {
                 const nextFrame:Number = getAutoJumpFrame(rSpeed);
                 const finalFrame:Number = rNowFrame+Math.floor(nextFrame/2);
                 const totalF:Number = TOTAL_FRAME;
@@ -9469,7 +9471,7 @@
                 const getTimeStr:String = getReplayRemainTime(nextFrame,totalF-_rFrameSum,true);
                 const timeStr:String = getTimeStr;
 
-                jumpFrame(finalFrame,JUMP_FRAME_ONCE); 
+                jumpFrame(finalFrame,JUMP_FRAME_ONCE);
                 replayTimeBox["frameInfo"].text = _rFrameSum+" / " + totalF + timeStr;
                 rFrameTextDelayTime = nowTime;
 
@@ -9777,7 +9779,7 @@
                 if(cursorPos.x < leftLimit)
                 {
                     _rregPoint.x += floor(abs((cursorPos.x-stw/2)/2));
-                    updateRCanvasBounds(); 
+                    updateRCanvasBounds();
                 }
                 else if(cursorPos.x > rightLimit)
                 {
@@ -9940,7 +9942,7 @@
             //가장 가까운값 검출
             if(index <= 0) return 0;
             else if(index >= len) return len;
-            else if(arr[index+1]-nowZoom < nowZoom-arr[index-1]) 
+            else if(arr[index+1]-nowZoom < nowZoom-arr[index-1])
             {
                 //현재줌이 상위 줌이랑 더 가까우면 인덱스를 올려줌
                 return index+1;
@@ -10047,7 +10049,7 @@
                             jumpFrame(rNowFrame-1,JUMP_FRAME_BEFORE);
                         }
                         jumpFrame(rPrevFrame,JUMP_FRAME_BEFORE);
-                    }   
+                    }
                 }
                 else if(rNowFrame <= TOTAL_FRAME)
                 {
@@ -10066,7 +10068,7 @@
 
             rOnejumpFlagSave = toBackFlag;
             checkCutFrameButtons();
-            
+
             if(rNowFrame === TOTAL_FRAME)
             {
                 setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
@@ -10110,7 +10112,7 @@
             }
         }
 
-        private function jumpFrame(frame:Number,jumpflag:int):void //jumpp 
+        private function jumpFrame(frame:Number,jumpflag:int):void //jumpp
         {
             if(frame < 0) frame = 0;
             else if(frame > TOTAL_FRAME) frame = TOTAL_FRAME;
@@ -10122,7 +10124,7 @@
                     return;
                 }
             }
-                
+
             const index:Number = getJumpImageIndex(frame);
             var cachedJumpImageIndex:Number = -1; //자잘 썸네일 인덱스를 넣어줌
             var updateRCavanvasImageFlag:int = 0;
@@ -10194,7 +10196,7 @@
                 rFileStream.position = jumpImageData[5];
                 rNowFrame = jumpImageData[6]; //썸네일 이미지를 저장한 프레임
                 //원하는 프레임에서 썸네일 이미지 프레임을 빼줌 나머지 프레임만 그려주면 되니깐
-                frame = frame-jumpImageData[6]; 
+                frame = frame-jumpImageData[6];
                 rIndex = 0; //이거 먼저 초기화 시켜주어야함
                 tickDraw.reset();
                 clearCanvasReplayMode();
@@ -10266,7 +10268,7 @@
             // {
             //     setReplayFitToWindowButton();
             // }
-        } 
+        }
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
         private function drawRemainReplayData():void
@@ -10384,7 +10386,7 @@
 
         private function startReplay():void
         {
-            if(replayStartON || TOTAL_FRAME === 0) 
+            if(replayStartON || TOTAL_FRAME === 0)
             {
                 return; //혹시 몰라서 중복 클릭 제거 걸어줌
             }
@@ -10656,7 +10658,7 @@
             const stw:uint = stage.stageWidth+1;
             const sth:uint = stage.stageHeight+1;
             const rightLimit:Number = stw;
-            const bottomLimit:Number = sth;            
+            const bottomLimit:Number = sth;
             var tooltipX:Number = floor(mx-width/2)+5;
             var tooltipY:Number = floor(my-45);
             const right:int = tooltipX+width;
@@ -10714,7 +10716,7 @@
                 }
 
                 setDragDropSelectBoxCenterPos();
-                fileDragSelectBox.visible = true;  
+                fileDragSelectBox.visible = true;
                 setTopChildIndex(fileDragSelectBox);
             }
 
@@ -10953,7 +10955,7 @@
             }
         }
 
-        //최근에 쓴 컬러를 항상 마지막에 오게함   
+        //최근에 쓴 컬러를 항상 마지막에 오게함
         private function setColorHistoryLastColor(color:uint):void
         {
             const index:int = colorHistoryList.lastIndexOf(color);
@@ -11087,16 +11089,16 @@
             //첫 이미지 그려줌
 
             if(rcanvas1BitmapData && rFirstImage !== rcanvas1BitmapData) rcanvas1BitmapData.dispose();
-            rcanvas1BitmapData = rFirstImage.clone(); 
+            rcanvas1BitmapData = rFirstImage.clone();
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
 
             if(rcanvas11BitmapData && rFirstImage1 !== rcanvas11BitmapData) rcanvas11BitmapData.dispose();
-            rcanvas11BitmapData = rFirstImage1.clone(); 
+            rcanvas11BitmapData = rFirstImage1.clone();
             rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
             changeCanvasSizeReplayMode(rcanvas1BitmapData.width,rcanvas1BitmapData.height); //크기도 바꿔주고
 
             fs.open(repFile,FileMode.READ);
-            fs.position = 0;    
+            fs.position = 0;
 
             rMirrorON = false;
 
@@ -11122,7 +11124,7 @@
                             imgData1.clear();
                             imgData1 = null;
                         }
-                        
+
                         if(data)
                         {
                             data.length = 0;
@@ -11322,7 +11324,7 @@
                 //임시파일전체를 바이트배열로 읽어서 압축해줌
                 fs.open(repFileTemp,FileMode.READ);
                 fs.position = 0;
-                
+
                 //딥 언도일때는 읽은 바이트 까지만 읽어줌
                 if(deepUndoON)
                 {
@@ -11384,7 +11386,7 @@
                                         ,dataC:ByteArray
                                         ,dataD:ByteArray):void
         {
-            
+
             const fs:FileStream = new FileStream();
             const rImgDataW:int = rFirstImage.width;
             const rImgDataH:int = rFirstImage.height;
@@ -11881,7 +11883,7 @@
             if(controlBox.layer2CheckButton.visible) setLayer2CheckToggle();
             updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
             cancelAutoKeyEvent(null);
-            
+
             canvas1Bitmap.visible = true;
             canvas11Bitmap.visible = true;
             topBar.captureButton.alpha = 1.0;
@@ -12035,7 +12037,7 @@
                 if(toolTipBox.visible) toolTipBoxTimerOFF();
                 addInputEventCaptrueMode();
             }
-            else 
+            else
             {
                 removeInputEventCaptrueMode();
                 canvasTraceLayer.visible = true;
@@ -12340,7 +12342,7 @@
             captureWindowMove.setTo(0,0);
 
             updatePenSizeCursor();
-            
+
             //prev box 사각형 업데이트가 있기 때문에 xreg위치가 갱신된 다음에 해주어야함
             setCaptureUI(false);
 
@@ -12436,7 +12438,7 @@
                 {
                     return "";
                 }
-                else 
+                else
                 {
                     return (captureRotated === 0 || captureRotated === 2) ? w+" x "+h
                                                                           : h+" x "+w;
@@ -12763,7 +12765,7 @@
                     fixedPath = path.replace(name,"");
                     dotPNG = name.substr(0,name.lastIndexOf(extArr[i]))+".png";
                     return [fixedPath+dotPNG,dotPNG];
-                } 
+                }
             }
 
             if(name.lastIndexOf(".png") === -1)
@@ -12843,7 +12845,7 @@
                             return false;
                         }
                         return true;
-                    });                    
+                    });
                 }
                 else //파일을 못찾으면 새로 저장
                 {
@@ -13401,7 +13403,7 @@
                     pg.drawCircle(0,0,halfSize*z);
                     _penSizeCursor.rotation = 0;
                 }
-                else if(shape === true) 
+                else if(shape === true)
                 {
                     sqStart = (-halfSize+z1)*z;
                     sqWidth = (size-z1z1)*z;
@@ -13575,7 +13577,7 @@
                     x2 = pointVec[2];
                     y2 = pointVec[3];
                 }
-                
+
                 // 선분의 방향 벡터
                 var directionX:Number = x2 - x1;
                 var directionY:Number = y2 - y1;
@@ -13603,20 +13605,20 @@
                 // 선분의 방향 벡터 계산
                 var directionX:Number = x2 - x1;
                 var directionY:Number = y2 - y1;
-                
+
                 // 방향 벡터의 길이 계산
                 var length:Number = Math.sqrt(directionX * directionX + directionY * directionY);
-                
+
                 // 방향 벡터를 정규화
                 directionX /= length;
                 directionY /= length;
-                
+
                 // 양 끝점 좌표 이동
                 var extendedX1:Number = x1 - directionX * distance;
                 var extendedY1:Number = y1 - directionY * distance;
                 var extendedX2:Number = x2 + directionX * distance;
                 var extendedY2:Number = y2 + directionY * distance;
-                
+
                 return [extendedX1, extendedY1, extendedX2, extendedY2];
             }
 
@@ -13708,7 +13710,7 @@
                     const my:Number = cd.mouseY;
                     const cx:Number = oldX;
                     const cy:Number = oldY;
-                    
+
                     readyAddUndoFlag = true;
 
                     if(mouseMovedFlag === false && cx === mx && my === y)
@@ -13731,7 +13733,7 @@
                             startPoint.setTo(cx+xOffset,cy+xOffset);
                             endPoint.setTo(mx,my)
                         }
-                        
+
                         rDataBuffer.push(["line1",xShape,xSize,xColor,xAlpha,startPoint.x,startPoint.y,endPoint.x,endPoint.y,xBlendMode,subLayerFlag,xAirBrushON]);
                         drawingLine();
                     }
@@ -13810,7 +13812,7 @@
             var _replayMode:Boolean;
             var xReg:Sprite;
             var xBitmap:Bitmap;
-            //각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값 
+            //각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
             var lastAng:Number;
             //움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
             var sumAng:Number;
@@ -13894,7 +13896,7 @@
                     xBitmap = canvas1Bitmap;
                 }
 
-                //각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값 
+                //각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
                 lastAng = 0;
                 //움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
                 sumAng = xReg.rotation*PI/180;
@@ -14603,7 +14605,7 @@
                 const len:uint = arr.length-1;
                 const floor:Function = Math.floor;
                 var low:Number = 0;
-                var high:Number = arr.length-1;                
+                var high:Number = arr.length-1;
                 var index:Number = floor((low+high)/2);
                 var snapWidth:Number;
 
@@ -14756,7 +14758,7 @@
             function drawResizePreviewRect(size:Number,x:Number,y:Number,w:Number,h:Number):void
             {
                 const resizeg:Graphics = resizePreviewRect.graphics;
-                
+
                 resizeg.clear();
 
                 if(size > 0) resizeg.beginFill(bgColor);
@@ -14905,7 +14907,7 @@
             {
                 initResizeVars();
                 startByShortCut = shortcut;
-                targetName = _targetName;   
+                targetName = _targetName;
                 resizeClickPos.setTo(canvasPanel.mouseX,canvasPanel.mouseY);
                 canvasSizeChanging = true;
 
@@ -15012,7 +15014,7 @@
 
             //bitmap1canvas에서 그려준 영역을 지워줌
             if(!copyFlag)
-            {   
+            {
                 x = lassoP0[0];
                 y = lassoP0[1];
                 cdg.clear();
@@ -15326,7 +15328,7 @@
             const _canvas1Bitmap:Bitmap = canvas1Bitmap;
             const _canvas11Bitmap:Bitmap = canvas11Bitmap;
 
-            var spuitDefaultZoom:Number = 2.0; // zoomed에 따라서 가변됨 초기값 1 x 2.0 
+            var spuitDefaultZoom:Number = 2.0; // zoomed에 따라서 가변됨 초기값 1 x 2.0
             var canvasBGColor:uint = CANVAS_BG_COLOR;
             var canvas1bmpd:BitmapData;
             var canvas11bmpd:BitmapData;
@@ -15415,7 +15417,7 @@
                     gg = round(g2*a2)+round(g3*aa);
                     bb = round(b2*a2)+round(b3*aa);
 
-                    //그 위에 위 레이어 
+                    //그 위에 위 레이어
                     const aa1:Number = 1.0-a1;
                     const r:uint = round(r1*a1)+round(rr*aa1);
                     const g:uint = round(g1*a1)+round(gg*aa1);
@@ -15595,7 +15597,7 @@
             var xBitmap:Bitmap;
 
             function handToolUpEvent(e:MouseEvent):void
-            {   
+            {
                 stageMouseMoveEvent.remove("handToolMoveEvent");
                 stage.removeEventListener(MouseEvent.MOUSE_UP, handToolUpEvent);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, handToolUpEvent);
@@ -15934,7 +15936,7 @@
             eraseButton2.visible = true;
             eraseButton2.x = nowButton2.x;
             eraseButton2.y = nowButton2.y;
-            setTopChildIndex(eraseButton2);           
+            setTopChildIndex(eraseButton2);
         }
 
         //펜 지우개 직선 지우개-직선 통합
@@ -15956,9 +15958,9 @@
                     sizeIndex = penSizeIndex;
                     alphaIndex = penAlphaIndex;
 
-                    if(subLayerON) 
+                    if(subLayerON)
                         canvasPanel.setChildIndex(canvas2,2);
-                    else 
+                    else
                         canvasPanel.setChildIndex(canvas1Bitmap,2);
 
                     setAirBrushCheckBox(airBrushON,true);
@@ -15968,9 +15970,9 @@
                     sizeIndex = eraseSizeIndex;
                     alphaIndex = eraseAlphaIndex;
 
-                    if(subLayerON) 
+                    if(subLayerON)
                         canvasPanel.setChildIndex(canvas2,2);
-                    else 
+                    else
                         canvasPanel.setChildIndex(canvas1Bitmap,2);
 
                     setAirBrushCheckBox(eraseAirBrushON,false);
@@ -16096,8 +16098,8 @@
             const br:Point = b.bottomRight;
             const tlx:Number = tl.x;
             const tly:Number = tl.y;
-            const brx:Number = br.x; 
-            const bry:Number = br.y; 
+            const brx:Number = br.x;
+            const bry:Number = br.y;
 
             const o:Object = {
                                 left: tlx,
@@ -16131,7 +16133,7 @@
                 xCanvas = canvasPanel;
                 xZoomed = zoomed;
             }
-            
+
             if(xReg.x === tx && xReg.y === ty)
             {
                 return;
@@ -16257,7 +16259,7 @@
             if(canvas1BitmapData && rcanvas1BitmapData !== canvas1BitmapData) canvas1BitmapData.dispose();
             canvas1BitmapData = rcanvas1BitmapData.clone();
             canvas1Bitmap.bitmapData = canvas1BitmapData;
-            
+
             if(canvas11BitmapData && rcanvas11BitmapData !== canvas11BitmapData) canvas11BitmapData.dispose();
             canvas11BitmapData = rcanvas11BitmapData.clone();
             canvas11Bitmap.bitmapData = canvas11BitmapData;
@@ -16484,7 +16486,7 @@
             {
                 if(undoRefImage[0] && bmpd1 !== undoRefImage[0]) undoRefImage[0].dispose();
                 if(undoRefImage[1] && bmpd2 !== undoRefImage[1]) undoRefImage[1].dispose();
-                
+
                 undoRefImage[0] = bmpd1;
                 undoRefImage[1] = bmpd2;
                 undoRefImage[2] = width;
@@ -16989,7 +16991,7 @@
             sideBarScrollBar.y = scrollBarMovedY;
 
             sideBar.y = topBar.BARSIZE*topBar.scaleX;
-            
+
             if(sideBar.visible)
             {
                 regPoint.x += STAGE_LEFT_OFFSET;
@@ -17146,7 +17148,7 @@
             canvas2.blendMode = "layer";//캔버스1이랑 알파 불투명도가 겹치지 않게 layer모드로 해줌
 
             canvasPanel.addChild(canvasTraceLayer);
-            canvasPanel.addChild(canvas11Bitmap);  
+            canvasPanel.addChild(canvas11Bitmap);
             canvasPanel.addChild(canvas1Bitmap);
             canvasPanel.addChild(canvas2);
             canvasPanel.addChild(lassoBox);
@@ -17237,7 +17239,7 @@
                 const round:Function = Math.round;
                 const dx:Number = round((windowW-_lastWindowSize0)/1.75);
                 const dy:Number = round((windowH-_lastWindowSize1)/1.75);
- 
+
                 if(captureModeON)
                 {
                     captureWindowMove.setTo(dx,dy);
@@ -17855,7 +17857,7 @@
                     {
                         return;
                     }
-                    
+
                 }
                 else if(keyCode === KEY.s || keyCode === KEY.k)
                 {
@@ -17907,7 +17909,7 @@
                         if(keyBuffer[1] === KEY.w || keyBuffer[1] === KEY.i)
                         {
                             layerVisibleKeyFuncCalled = true;
-                            
+
                             selectSubLayer(false,false);
                             setLayer1CheckToggle();
                             return;
@@ -18579,7 +18581,7 @@
         }
 
         private function setCanvasResizeButton(targetName:String,shortcut:Boolean):void
-        {   
+        {
             penCursorOFFFlag = true;
             toolTipBox.visible = true;
             penSizeCursor.visible = false;
@@ -18613,7 +18615,7 @@
         {
             const z:Number = 1/zoom;
             rCursor.scaleX = z;
-            rCursor.scaleY = z;    
+            rCursor.scaleY = z;
         }
 
         private function setFillpenUI(flag:Boolean):void
@@ -19261,7 +19263,7 @@
                     if(controlBox.layer1CheckButton.visible)
                     {
                         setLayer1CheckToggle();
-                    }   
+                    }
                 }
                 return true;
 
@@ -19312,7 +19314,7 @@
         {
             const nt:int = nowTool;
 
-            if(toolBox2ON || (!isNowKey(0) 
+            if(toolBox2ON || (!isNowKey(0)
                              && nt !== TOOL_FILL_PEN
                              && nt !== TOOL_LINE
                              && nt !== TOOL_PEN
@@ -19471,7 +19473,7 @@
                 }
                 else
                 {
-                    setLassoMoveButton();   
+                    setLassoMoveButton();
                 }
             }
             else
@@ -19574,15 +19576,15 @@
                     setHandToolPreviewBox(true);
                     return;
                 }
-                else if(checkPickerBoxButtons(target) && isNowKey(0)) 
+                else if(checkPickerBoxButtons(target) && isNowKey(0))
                 {
                     return;
                 }
-                else if(checkControlBoxButtons(target) && (isPenOrLineTool() || isEraseTool())) 
+                else if(checkControlBoxButtons(target) && (isPenOrLineTool() || isEraseTool()))
                 {
                     return;
                 }
-                else if(toolBox.alpha === 1.0 && target.alpha === 1.0 && checkToolBoxButtons(target)) 
+                else if(toolBox.alpha === 1.0 && target.alpha === 1.0 && checkToolBoxButtons(target))
                 {
                     return;
                 }
