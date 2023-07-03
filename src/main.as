@@ -6783,7 +6783,6 @@
             const invColor:uint = getInvertColor(rgbHexColor,1.0
                                                 ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
                                                 ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]);
-            const _setColorTransform:Function = setColorTransform;
             const colorHint:String =  "RGB "+r+","+g+","+b;
 
             HUECOLOR[0] = h;
