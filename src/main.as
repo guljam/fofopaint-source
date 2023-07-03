@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.78;
+        private const APP_VERSION:Number = 18.80;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3655,7 +3655,8 @@
                 mx = mouseX;
                 my = mouseY;
 
-                if(penCursorOFFFlag || nowTool > useCursorTool //1 2 3 4 펜 지우개 라인툴 라인-지우개툴
+                if(penCursorOFFFlag 
+                || (nowTool > useCursorTool && nowTool !== TOOL_FILL_PEN) //1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                 || !(mx >= STAGE_LEFT_OFFSET &&
                     mx <= stage.stageWidth-STAGE_RIGHT_OFFSET &&
                     my >= STAGE_TOP_OFFSET &&
@@ -5349,8 +5350,8 @@
             eraseAirBrushON = !eraseAirBrushON;
             setAirBrushCheckBox(eraseAirBrushON,false);
 
-            if(eraseAirBrushON) setToolTipTempON("Erase Air brush ON");
-            else setToolTipTempON("Erase Air brush OFF");
+            if(eraseAirBrushON) setToolTipTempON("Eraser Air brush ON");
+            else setToolTipTempON("Eraser Air brush OFF");
         }
 
         private function setEraseAirBrushButton(flag:Boolean):void
