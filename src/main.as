@@ -6730,7 +6730,7 @@
                 const hueValue:Number = Math.floor((hueCursorX*360)/_hueBarWidth);
                 const baseColor:Vector.<uint> = HSVtoRGB(hueValue,1.0,1.0);
                 const baseHexColor:uint = RGBtoHex(baseColor[0],baseColor[1],baseColor[2]);
-                const color:uint = setPickerHSV(hueValue,HUECOLOR[1],HUECOLOR[2],mode);
+                const color:uint = updatePickerBoxInfoColor(hueValue,HUECOLOR[1],HUECOLOR[2]);
 
                 pickedColor = color;
                 pickerColorSelected = true;
@@ -6773,9 +6773,9 @@
             stageMouseMoveEvent.add("hueColorButtonMoveEvent",hueColorButtonMoveEvent);
         }
 
-        private function setPickerHSV(h:Number,s:Number,v:Number,mode:uint):uint
+        private function updatePickerBoxInfoColor(h:Number,s:Number,v:Number):uint
         {
-            const rgbColor:Vector.<uint> = HSVtoRGB(h,s,v); //
+            const rgbColor:Vector.<uint> = HSVtoRGB(h,s,v);
             const r:uint = rgbColor[0];
             const g:uint = rgbColor[1];
             const b:uint = rgbColor[2];
@@ -6827,7 +6827,7 @@
                 const hue0:Number = HUECOLOR[0];
                 const sValue:Number = svCursorX/_colorBarWidth;
                 const vValue:Number = 1-(svCursorY/_colorBarHeight);
-                const color:uint = setPickerHSV(hue0,sValue,vValue,mode);
+                const color:uint = updatePickerBoxInfoColor(hue0,sValue,vValue);
 
                 pickedColor = color;
                 _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
