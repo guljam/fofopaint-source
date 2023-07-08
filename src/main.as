@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.82;
+        private const APP_VERSION:Number = 18.83;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3397,7 +3397,7 @@
                     }
                 }
 
-                if(mouseMovedFlag === false || (mouseMovedFlag === true && Point.distance(smoothPos,clickPos) < 0.2))
+                if(mouseMovedFlag === false || (penToolFlag && mouseMovedFlag === true && Point.distance(smoothPos,clickPos) < 0.2))
                 {
                     rDataBuffer.length = 0;
                     rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,subLayerFlag,xAirBrushON]);
