@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.80;
+        private const APP_VERSION:Number = 18.82;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3211,7 +3211,7 @@
 
                     if(xShape)
                     {
-                        updateExtendEndPoint(mx,my,smoothPos.x,smoothPos.y,xSize/4);
+                        updateExtendEndPoint(mx,my,clickPos.x,clickPos.y,xSize/4);
                         rDataBuffer.push(["lineStyle3",xShape,xSize,xColor,xAlpha,extendedPos.x,extendedPos.y,xBlendMode,false,subLayerFlag,xAirBrushON]);
                         penPoints.push(extendedPos.x);
                         penPoints.push(extendedPos.y);
@@ -3370,8 +3370,6 @@
                 const yy:Number = cd.mouseY;
                 const mx:Number = xx+xOffset;
                 const my:Number = yy+xOffset;
-                const moveDist:Number = Point.distance(smoothPos,clickPos);
-                var dotEndFlag:Boolean = false;
 
                 if(penToolFlag && traceMemoryTraining && CANVAS_TRACE_ALPHA > 0.0)
                 {
@@ -3387,11 +3385,7 @@
                 {
                     penSizeCursor.rotation = regPoint.rotation;
 
-                    if(mouseMovedFlag === false)
-                    {
-                        dotEndFlag = true;
-                    }
-                    else
+                    if(mouseMovedFlag === true)
                     {
                         const pointLen:uint = penPoints.length;
                         if(pointLen >= 4)
@@ -3403,12 +3397,13 @@
                     }
                 }
 
-                if(mouseMovedFlag === false || dotEndFlag)
+                if(mouseMovedFlag === false || (mouseMovedFlag === true && Point.distance(smoothPos,clickPos) < 0.2))
                 {
                     rDataBuffer.length = 0;
                     rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,subLayerFlag,xAirBrushON]);
                     drawDot(xShape,xSize,xColor,clickPos.x,clickPos.y);
                 }
+                
                 penCommand.length = 0;
                 penPoints.length = 0;
 
