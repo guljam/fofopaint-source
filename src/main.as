@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.83;
+        private const APP_VERSION:Number = 18.85;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3341,6 +3341,7 @@
                 else
                 {
                     penMove2(mx,my);
+                    smoothPos.setTo(mx,my);
                 }
             }
 
@@ -3403,7 +3404,7 @@
                     rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,subLayerFlag,xAirBrushON]);
                     drawDot(xShape,xSize,xColor,clickPos.x,clickPos.y);
                 }
-                
+
                 penCommand.length = 0;
                 penPoints.length = 0;
 
@@ -3650,7 +3651,7 @@
                 mx = mouseX;
                 my = mouseY;
 
-                if(penCursorOFFFlag 
+                if(penCursorOFFFlag
                 || (nowTool > useCursorTool && nowTool !== TOOL_FILL_PEN) //1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                 || !(mx >= STAGE_LEFT_OFFSET &&
                     mx <= stage.stageWidth-STAGE_RIGHT_OFFSET &&
@@ -7893,7 +7894,7 @@
                     if(tickDraw.getIndex() < tickDraw.getDataLength())
                     {
                         drawRemainReplayData();
-                        checkCutFrameButtons();
+                        checkCutFrameButtonsActive();
                     }
                     if(rNowFrame >= TOTAL_FRAME)
                     {
@@ -9993,7 +9994,7 @@
         }
 
         //프레임에 따라서 프레임 조작 버튼 활성화 해줌
-        private function checkCutFrameButtons():void
+        private function checkCutFrameButtonsActive():void
         {
             if(makeJumpImageFlag === 2 || isInSaveProgress)
             {
@@ -10014,7 +10015,14 @@
                     topBar["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
                 }
 
-                topBar["reRecordingButton"].alpha = 1.0;
+                if(TOTAL_FRAME === 0)
+                {
+                    topBar["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
+                }
+                else
+                {
+                    topBar["reRecordingButton"].alpha = 1.0;
+                }
             }
         }
 
@@ -10062,7 +10070,7 @@
             }
 
             rOnejumpFlagSave = toBackFlag;
-            checkCutFrameButtons();
+            checkCutFrameButtonsActive();
 
             if(rNowFrame === TOTAL_FRAME)
             {
@@ -10322,7 +10330,7 @@
                 checkBarLimit();
 
                 //jumpframe함수 이후에 실행
-                if(!replayStartONSave) checkCutFrameButtons();
+                if(!replayStartONSave) checkCutFrameButtonsActive();
 
                 //재생중에 스킵하고 있었으면 다시 시작
                 if(replayStartONSave && !playbackFinished)
@@ -10375,7 +10383,7 @@
 
             replayStartON = false;
             doDrawSlowEventON = false;
-            checkCutFrameButtons();
+            checkCutFrameButtonsActive();
             replayHideCursor.reset();
         }
 
@@ -11161,7 +11169,7 @@
                         else if(replayModeON)
                         {
                             checkReplaySpeedState();
-                            checkCutFrameButtons();
+                            checkCutFrameButtonsActive();
                             clearRFrameCacheImages();
                             rJumpImageIndexLast = -2;
                             rJumpImageNowFrameLast = -1;
@@ -11224,7 +11232,7 @@
         private function setSaveProgressOFF():void
         {
             topBar.setButtonAlphaONSaving(clipImageON);
-            if(replayModeON) checkCutFrameButtons();
+            if(replayModeON) checkCutFrameButtonsActive();
         }
 
         private function setSaveProgressON():void
@@ -18880,7 +18888,7 @@
                     rDataReadFlag = false;
                 }
 
-                checkCutFrameButtons();
+                checkCutFrameButtonsActive();
                 doDrawSlowEventON = false;
                 checkCanvasPanelPos(true);
                 setSidebarVisible(false,true);
