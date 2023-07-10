@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.85;
+        private const APP_VERSION:Number = 18.86;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9603,10 +9603,12 @@
                     {
                         rFrameCursorDelayTime = savedTime;
                         tickDraw.updateRCursorPos();
+
                         if(!rFitZoomedON && !mouseClickON && deepUndoON === false)
                         {
                             autoScroll.check();
                         }
+
                         replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*(rNowFrame/TOTAL_FRAME);
                     }
 
@@ -9730,22 +9732,30 @@
             const _rregPoint:Sprite = rregPoint;
             const zerop:Point = new Point(0,0);
             const padding:Number = 20;
-            const leftLimit:Number = padding;
-            const topLimit:Number = padding+offsetY;
             const cursorPos:Point = new Point(0,0);
             const windowCenterPos:Point = new Point(0,0); //캔버스 중점위치, 창 중점위치 사이 거리
 
             var stw:Number;
             var sth:Number; //프레임 탐색막대 길이 빼줌]
-            var cp:Point;
+            var bounds:Object; //바운드 저장하는 객체
+            var left:Number; //바운드 상하좌우
+            var right:Number;
+            var top:Number;
+            var bottom:Number;
+            var globalChecked:Boolean;
+            var cp:Point; //커서 좌표
             var gp:Point; //캔버스 글로벌 좌표
             var rg:Point; //캔버스 회전된 글로벌 좌표
             var zoom:Number;
+
             //rcanvas1 글로벌 좌표에 회전된 캔버스에서 커서 위치를 더해줌. 즉 윈도우 기준에서 커서 커서 위치를 구하는거임
             var isCanvasWidthSmallerStage:Boolean; //캔버스 가로 새로 길이가 스테이지 길이보다 클때 체크
             var isCanvasHeightSmallerStage:Boolean;
             var isNotCenterX:Boolean; //캔버스 중점위치, 창 중점위치 사이 거리
             var isNotCenterY:Boolean;
+
+            const leftLimit:Number = padding;
+            const topLimit:Number = padding+offsetY;
             var rightLimit:Number;
             var bottomLimit:Number;
 
@@ -9757,9 +9767,21 @@
 
             function updateRCanvasBounds():void
             {
+                bounds = getBoundRect(rcanvas1Bitmap);
+                left = bounds.left;
+                right = bounds.right;
+                top = bounds.top;
+                bottom = bounds.bottom;
                 stw = stage.stageWidth;
                 sth = stage.stageHeight-offsetY;
                 zoom = rzoomed;
+
+                isCanvasWidthSmallerStage = right-left > stw;
+                isCanvasHeightSmallerStage = bottom-top > sth;
+                //캔버스 중점위치, 창 중점위치 사이 거리
+                windowCenterPos.setTo(floor(stw/2-(right+left)/2),floor((sth/2-(bottom+top)/2)+offsetY));
+                isNotCenterX = abs(windowCenterPos.x) > 0; //캔버스 중점위치, 창 중점위치 사이 거리
+                isNotCenterY = abs(windowCenterPos.y) > 0;
 
                 rightLimit = stw-padding;
                 bottomLimit = sth+offsetY-padding;
@@ -9768,30 +9790,64 @@
             function check():void
             {
                 cp = tickDraw.getRCursorPos();
-                gp = rcanvas1Bitmap.localToGlobal(zerop);
-                rg = rotatePoint(cp.x,cp.y,-_rregPoint.rotation);
-                cursorPos.setTo(gp.x+(rg.x*zoom),gp.y+(rg.y*zoom));
 
-                if(cursorPos.x < leftLimit)
+                globalChecked = false;
+
+                if(!isCanvasWidthSmallerStage)
                 {
-                    _rregPoint.x += floor(abs((cursorPos.x-stw/2)/2));
-                    updateRCanvasBounds();
+                    if(isNotCenterX)
+                    {
+                        _rregPoint.x += windowCenterPos.x;
+                        updateRCanvasBounds();
+                    }
                 }
-                else if(cursorPos.x > rightLimit)
+                else
                 {
-                    _rregPoint.x -= floor(abs((cursorPos.x-stw/2)/2));
-                    updateRCanvasBounds();
+                    globalChecked = true;
+                    gp = rcanvas1Bitmap.localToGlobal(zerop);
+                    rg = rotatePoint(cp.x,cp.y,-_rregPoint.rotation);
+                    cursorPos.x = gp.x+(rg.x*zoom);
+
+                    if(cursorPos.x < leftLimit)
+                    {
+                        _rregPoint.x += floor(abs((cursorPos.x-stw/2)/3));
+                        updateRCanvasBounds(); 
+                    }
+                    else if(cursorPos.x > rightLimit)
+                    {
+                        _rregPoint.x -= floor(abs((cursorPos.x-stw/2)/3));
+                        updateRCanvasBounds();
+                    }
                 }
 
-                if(cursorPos.y < topLimit)
+                if(!isCanvasHeightSmallerStage)
                 {
-                    _rregPoint.y += floor(abs((cursorPos.y-sth/2)/2));
-                    updateRCanvasBounds();
+                    if(isNotCenterY)
+                    {
+                        _rregPoint.y += windowCenterPos.y;
+                        updateRCanvasBounds();
+                    }
                 }
-                else if(cursorPos.y > bottomLimit)
+                else
                 {
-                    _rregPoint.y -= floor(abs((cursorPos.y-sth/2)/2));
-                    updateRCanvasBounds();
+                    if(globalChecked === false)
+                    {
+                        globalChecked = true;
+                        gp = rcanvas1Bitmap.localToGlobal(zerop);
+                        rg = rotatePoint(cp.x,cp.y,-_rregPoint.rotation);
+                    }
+                    cursorPos.y = gp.y+(rg.y*zoom);
+
+                    if(cursorPos.y < topLimit)
+                    {
+                        _rregPoint.y += floor(abs((cursorPos.y-sth/2)/3));
+                        updateRCanvasBounds();
+                    }
+                    else if(cursorPos.y > bottomLimit)
+                    {
+                        _rregPoint.y -= floor(abs((cursorPos.y-sth/2)/3));
+                        updateRCanvasBounds();
+                    }
                 }
             }
 
@@ -10265,6 +10321,11 @@
                 playbackFinished = false;
                 tickDraw.updateRCursorPos();
                 rCursor.visible = true;
+            }
+
+            if(!rFitZoomedON || !deepUndoON)
+            {
+                autoScroll.check();
             }
 
             // if(replayModeON && rFitZoomedON)
