@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.11;
+        private const APP_VERSION:Number = 20.12;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -612,6 +612,8 @@
                     ,canvasWindowBitmap:Bitmap //새창안에 들어갈 레이어 1 2번
                     ,canvasWindowBitmapSub:Bitmap
                     ,canvasWindowCanvasPanel:Sprite //캔버스 배경색
+                    ,canvasWindowCanvasPanelBgSize:Point = new Point(0,0)
+                    ,canvasWindowCanvasPanelBgColor:uint = 0
                     ,canvasWindowIgnoreResizeEventFlag:Boolean = false //창이랑 비트맵크기 맞춰줄때 이벤트 연속으로 발생하지 않게 걸어줌
 
         // 딥언도 관련 변수
@@ -937,10 +939,19 @@
 
         private function updateCanvasWindowCanvasPanelBGColor(color:uint,bmpd:BitmapData):void
         {
+            if(canvasWindowCanvasPanelBgSize.x === bmpd.width
+            && canvasWindowCanvasPanelBgSize.y === bmpd.height
+            && canvasWindowCanvasPanelBgColor === color)
+            {
+                return;
+            }
+
             canvasWindowCanvasPanel.graphics.clear();
             canvasWindowCanvasPanel.graphics.beginFill(color,1.0);
             canvasWindowCanvasPanel.graphics.drawRect(0,0,bmpd.width,bmpd.height);
             canvasWindowCanvasPanel.graphics.endFill();
+            canvasWindowCanvasPanelBgSize.setTo(bmpd.width,bmpd.height);
+            canvasWindowCanvasPanelBgColor = color;
         }
 
         private function setCanvasWindowVisible(flag:Boolean):void
@@ -952,7 +963,6 @@
         {
             const bounds:Rectangle = previewBox.setFitBitmapforBox(canvasWindowBitmap.bitmapData.width,canvasWindowBitmap.bitmapData.height
                                                                   ,canvasWindow.stage.stageWidth,canvasWindow.stage.stageHeight);
-
             updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
             canvasWindowCanvasPanel.x = bounds.x;
             canvasWindowCanvasPanel.y = bounds.y;
@@ -994,6 +1004,32 @@
         {
             if(!canvasWindowIgnoreResizeEventFlag) updateCanvasWindowData();
             else canvasWindowIgnoreResizeEventFlag = false;
+        }
+
+        private function updateCanvasWindowBitmapSizeCustom(bgColor:uint):void
+        {
+            const bounds:Rectangle = previewBox.setFitBitmapforBox(canvasWindowBitmap.bitmapData.width,canvasWindowBitmap.bitmapData.height
+                                                                  ,canvasWindow.stage.stageWidth,canvasWindow.stage.stageHeight);
+
+            updateCanvasWindowCanvasPanelBGColor(bgColor,canvasWindowBitmap.bitmapData);
+            canvasWindowCanvasPanel.x = bounds.x;
+            canvasWindowCanvasPanel.y = bounds.y;
+            canvasWindowCanvasPanel.width = bounds.width;
+            canvasWindowCanvasPanel.height = bounds.height;
+        }
+
+        private function updateCanvasWindowImageReplayMode():void
+        {
+            updateCanvasWindowImageCustom(rcanvas1BitmapData,rcanvas11BitmapData);
+            updateCanvasWindowBitmapSizeCustom(RCANVAS_BG_COLOR);
+        }
+
+        private function updateCanvasWindowImageCustom(bmpd:BitmapData,bmpd1:BitmapData):void
+        {
+            canvasWindowBitmap.bitmapData = bmpd;
+            canvasWindowBitmapSub.bitmapData = bmpd1;
+            canvasWindowBitmap.smoothing = true;
+            canvasWindowBitmapSub.smoothing = true;
         }
 
         private function updateCanvasWindowImage():void
@@ -1109,9 +1145,17 @@
                 canvasWindow.stage.addChild(canvasWindowCanvasPanel);
                 canvasWindow.stage.color = uiColorSet[uiColorIndex][2];
             }
-            updateCanvasWindowImage();
-            updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-            updateCanvasWindowData();
+
+            if(replayModeON)
+            {
+                updateCanvasWindowImageReplayMode();
+            }
+            else
+            {
+                updateCanvasWindowImage();
+                updateCanvasWindowBitmapSize();
+                updateCanvasWindowData();
+            }
         }
 
         private function openImageViewWindow():void
@@ -7230,7 +7274,6 @@
             {
                 updateCanvasWindowImage();
                 updateCanvasWindowBitmapSize();
-                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
             }
         }
 
@@ -7730,7 +7773,6 @@
             {
                 updateCanvasWindowImage();
                 updateCanvasWindowBitmapSize();
-                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
             }
             // saveContinue = false;
             setDeepUndoOFF();
@@ -7803,7 +7845,6 @@
                 {
                     updateCanvasWindowImage();
                     updateCanvasWindowBitmapSize();
-                    updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 }
             }
 
@@ -8600,6 +8641,11 @@
             }
             tempBitData.dispose();
             tempBitData = null;
+
+            if(replayModeON && canvasWindowON && makeJumpImageFlag === 0)
+            {
+                updateCanvasWindowImageReplayMode();
+            }
         }
 
         private function replayLineStyleReady(shape:Boolean,size:uint,color:uint,alpha:Number):void
@@ -9223,6 +9269,11 @@
                 rBGColorSave = color;
                 setBackgroundColorReplayMode(color);
                 setRCursorPosToCenter();
+
+                if(replayModeON && canvasWindowON && makeJumpImageFlag === 0)
+                {
+                    updateCanvasWindowImageReplayMode();
+                }
             }
 
             function canvasSize(data:Array):void
@@ -9235,6 +9286,11 @@
 
                 changeCanvasSizeReplayMode(width,height,moveX,moveY,movedFlag);
                 setRCursorPos(width/2,height/2);
+
+                if(replayModeON && canvasWindowON && makeJumpImageFlag === 0)
+                {
+                    updateCanvasWindowImageReplayMode();
+                }
             }
 
             function tempDone(data:Array):void
@@ -10348,6 +10404,11 @@
                 autoScroll.check();
             }
 
+            if(canvasWindowON && replayModeON)
+            {
+                updateCanvasWindowImageReplayMode();
+            }
+
             // if(replayModeON && rFitZoomedON)
             // {
             //     setReplayFitToWindowButton();
@@ -10515,6 +10576,11 @@
 
             if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
             if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
+
+            if(canvasWindowON && replayModeON)
+            {
+                updateCanvasWindowImageReplayMode();
+            }
 
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
@@ -11263,6 +11329,11 @@
                             removeInputEventDrawMode();
                             addInputEventReplayMode();
                             rregPoint.visible = true;
+
+                            if(canvasWindowON)
+                            {
+                                updateCanvasWindowImageReplayMode();
+                            }
                         }
                         return;
                     }
@@ -11981,9 +12052,9 @@
             {
                 updateCanvasWindowImage();
 
-                const size:Number = (canvasWindow.bounds.width > canvasWindow.bounds.height) ?canvasWindow.bounds.width : canvasWindow.bounds.height;
+                //updateCanvasWindowBitmapSize 2번 호출 해주는거 정상임
+                const size:Number = (canvasWindow.bounds.width > canvasWindow.bounds.height) ? canvasWindow.bounds.width : canvasWindow.bounds.height;
                 updateCanvasWindowBitmapSize();
-                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 canvasWindowIgnoreResizeEventFlag = true;
                 canvasWindow.bounds = new Rectangle(canvasWindow.bounds.x,canvasWindow.bounds.y,size,size);
                 updateCanvasWindowBitmapSize();
@@ -14828,9 +14899,11 @@
                         else
                         {
                             addUndoData();
+                            if(canvasWindowON)
+                            {
+                                updateCanvasWindowBitmapSize();
+                            }
                         }
-
-                        if(canvasWindowON) updateCanvasWindowBitmapSize();
                     }
 
                     targetName = null;
@@ -16371,7 +16444,6 @@
             {
                 updateCanvasWindowImage();
                 updateCanvasWindowBitmapSize();
-                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
             }
 
             checkCanvasPanelPos(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
@@ -16475,7 +16547,6 @@
             {
                 updateCanvasWindowImage();
                 updateCanvasWindowBitmapSize();
-                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
             }
         }
 
@@ -16685,20 +16756,19 @@
                     rData[rData.length-1].push(rDataBuffer[i]);//배열안에 배열이 들어있음
                 }
 
+                rDataFrame[rDataFrame.length-1] = rData[rData.length-1].length;
+                rDataBuffer = [];
+
+                rPrevFrame = rNowFrame;
+                rNowFrame = getTotalFrame();
+
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
 
                 if(canvasWindowON)
                 {
                     updateCanvasWindowImage();
                     updateCanvasWindowBitmapSize();
-                    updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 }
-
-                rDataFrame[rDataFrame.length-1] = rData[rData.length-1].length;
-                rDataBuffer = [];
-
-                rPrevFrame = rNowFrame;
-                rNowFrame = getTotalFrame();
             }
 
             function add():void
@@ -18913,6 +18983,12 @@
                 jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
             }
 
+            if(canvasWindowON)
+            {
+                updateCanvasWindowImageCustom(canvas1BitmapData,canvas11BitmapData);
+                updateCanvasWindowBitmapSizeCustom(CANVAS_BG_COLOR);
+            }
+
             rCursor.visible = false;
             addInputEventDrawMode();
         }
@@ -19001,6 +19077,11 @@
                 {
                     rIndexStart = 0;
                     rDataReadFlag = false;
+                }
+
+                if(canvasWindowON)
+                {
+                    updateCanvasWindowImageReplayMode();
                 }
 
                 checkCutFrameButtonsActive();
