@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.86;
+        private const APP_VERSION:Number = 18.87;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -19334,7 +19334,7 @@
                 case "layerMergeButton":
                 case "layerSwapButton":
                 {
-                    if(toolBox2ON || !isNowKey(0) || target.alpha < 1.0)
+                    if(toolBox2ON || target.alpha < 1.0)
                     {
                         return true;
                     }
