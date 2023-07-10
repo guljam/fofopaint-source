@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.10;
+        private const APP_VERSION:Number = 20.11;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7822,8 +7822,8 @@
         private function getCutFrameOKString():String
         {
             return ((cutFrameWithShortcut) ? STRING_ONEMORE_PRESS_TO_OK
-                                                 : STRING_ONEMORE_CLICK_TO_OK)
-                                                 +" (!! Data in the red area will be deleted !!)";
+                                                 : STRING_ONEMORE_CLICK_TO_OK);
+                                                //  +" (Data in the red area will be deleted)";
         }
 
         private function setCutFrameRedBar(flag:int):void
