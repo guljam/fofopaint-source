@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 18.87;
+        private const APP_VERSION:Number = 20.10;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2592,6 +2592,7 @@
             else if(mode === 2)
             {
                 setBackgroundColorDrawMode(hexColor);
+                if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 setHSVCursorPosByColor(hexColor);
                 updateColorHistoryList();
                 addUndoBGColor(hexColor);
@@ -2608,6 +2609,7 @@
 
             penColor = arr[0];
             setBackgroundColorDrawMode(arr[1]);
+            if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
             addUndoBGColor(arr[1]);
 
             if(!colorHistoryUpdateReady)
@@ -4068,7 +4070,6 @@
             const cursor:Sprite = previewBox.prevCursor;
             var sx:Number = previewBox.mouseX;
             var sy:Number = previewBox.mouseY;
-            const _consoleBitmap:Bitmap = previewBox.prevBitmap;
             const _regPoint:Sprite = regPoint;
             const prevToCanvasMultiply:Number = previewBox.prevCursorMultiply
 
@@ -4243,6 +4244,7 @@
             {
                 updateColorHistoryList();
                 setBackgroundColorDrawMode(hexColor);
+                if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 addUndoBGColor(hexColor);
             }
         }
@@ -6752,6 +6754,7 @@
                 else if(mode === 2)
                 {
                     setBackgroundColorDrawMode(pickedColor);
+                    if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                     updateColorHistoryList();
                     addUndoBGColor(pickedColor);
                 }
@@ -6847,6 +6850,7 @@
                 else if(mode === 2)
                 {
                     setBackgroundColorDrawMode(pickedColor);
+                    if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                     updateColorHistoryList();
                     addUndoBGColor(pickedColor);
                 }
@@ -7220,11 +7224,13 @@
 
             changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height);
             setBackgroundColorDrawMode(RCANVAS_BG_COLOR);
+            previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
 
             if(canvasWindowON)
             {
                 updateCanvasWindowImage();
                 updateCanvasWindowBitmapSize();
+                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
             }
         }
 
@@ -7718,7 +7724,14 @@
             tickDraw.setFirstRCursorPosCurrent();
             rCursor.visible = false;
 
-            if(canvasWindowON) updateCanvasWindowBitmapSize();
+            previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+
+            if(canvasWindowON)
+            {
+                updateCanvasWindowImage();
+                updateCanvasWindowBitmapSize();
+                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+            }
             // saveContinue = false;
             setDeepUndoOFF();
             setRCursorVisibleOFFUndo();
@@ -7783,6 +7796,15 @@
                 resetUndo();
                 mirrorCommandReady = false;
                 appInfoBox.setMirror(rMirrorON);
+
+                previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+
+                if(canvasWindowON)
+                {
+                    updateCanvasWindowImage();
+                    updateCanvasWindowBitmapSize();
+                    updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+                }
             }
 
             replayNowBar.width = bw;
@@ -7792,9 +7814,7 @@
             topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x+3;
 
             setDeepUndoOFF();
-            if(canvasWindowON) updateCanvasWindowBitmapSize();
             if(quickSidebarON) _quickSidebarOFF();
-            previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
 
             saveContinue = false;
         }
@@ -9811,7 +9831,7 @@
                     if(cursorPos.x < leftLimit)
                     {
                         _rregPoint.x += floor(abs((cursorPos.x-stw/2)/3));
-                        updateRCanvasBounds(); 
+                        updateRCanvasBounds();
                     }
                     else if(cursorPos.x > rightLimit)
                     {
@@ -10653,7 +10673,6 @@
             previewBox.changeprevBitmapBGColor(color);
 
             _setBackgroundColor(canvasPanel,CANVAS_WIDTH,CANVAS_HEIGHT,color);
-            if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
         }
 
         private function changeToolTipString(str:String):void
@@ -10971,6 +10990,7 @@
             {
                 updateColorHistoryList();
                 setBackgroundColorDrawMode(pickedColor);
+                if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 addUndoBGColor(pickedColor);
             }
             else if(_pickerMode === 1)
@@ -11845,6 +11865,7 @@
 
             setBackgroundColorDrawMode(newBG);
             setBackgroundColorReplayMode(newBG);
+            if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
 
             if(is2020Ext(fileName) === true)
             {
@@ -11958,8 +11979,11 @@
 
             if(canvasWindowON)
             {
+                updateCanvasWindowImage();
+
                 const size:Number = (canvasWindow.bounds.width > canvasWindow.bounds.height) ?canvasWindow.bounds.width : canvasWindow.bounds.height;
                 updateCanvasWindowBitmapSize();
+                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 canvasWindowIgnoreResizeEventFlag = true;
                 canvasWindow.bounds = new Rectangle(canvasWindow.bounds.x,canvasWindow.bounds.y,size,size);
                 updateCanvasWindowBitmapSize();
@@ -14375,7 +14399,11 @@
             tempBitData = null;
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
-            if(canvasWindowON) updateCanvasWindowImage();
+
+            if(canvasWindowON)
+            {
+                updateCanvasWindowImage();
+            }
         }
 
         //캔버스의 중심좌표를 구함 컨트롤 박스 옵션 박스 포함
@@ -15914,7 +15942,11 @@
             }
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
-            if(canvasWindowON) updateCanvasWindowImage();
+
+            if(canvasWindowON)
+            {
+                updateCanvasWindowImage();
+            }
         }
 
         private function setLassoCancelButton():void
@@ -16309,6 +16341,7 @@
                     _tickDraw.drawAll();
                 }
             }
+
             setBackgroundColorDrawMode(RCANVAS_BG_COLOR);
             changeCanvasSize(RCANVAS_WIDTH,RCANVAS_HEIGHT,0,0,false);
             //앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
@@ -16338,6 +16371,7 @@
             {
                 updateCanvasWindowImage();
                 updateCanvasWindowBitmapSize();
+                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
             }
 
             checkCanvasPanelPos(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
@@ -16427,13 +16461,22 @@
             canvas11Bitmap.bitmapData = canvas11BitmapData;
 
             changeCanvasSize(rcanvas1BitmapData.width,rcanvas1BitmapData.height,0,0,false);
+
             setBackgroundColorDrawMode(RCANVAS_BG_COLOR);
             checkCanvasPanelPos(false);
 
             saveOneTime = false;
 
             checkMirrorCanvasReplayMirror();
+
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,RCANVAS_BG_COLOR);
+
+            if(canvasWindowON)
+            {
+                updateCanvasWindowImage();
+                updateCanvasWindowBitmapSize();
+                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+            }
         }
 
         private function setRedoButton(useAutoKey:Boolean,shortcutFlag:Boolean=false):void
@@ -16643,7 +16686,13 @@
                 }
 
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
-                if(canvasWindowON) updateCanvasWindowImage();
+
+                if(canvasWindowON)
+                {
+                    updateCanvasWindowImage();
+                    updateCanvasWindowBitmapSize();
+                    updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+                }
 
                 rDataFrame[rDataFrame.length-1] = rData[rData.length-1].length;
                 rDataBuffer = [];
@@ -16768,9 +16817,14 @@
 
                 undoIndex = rData.length-1;
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+
+                if(canvasWindowON)
+                {
+                    updateCanvasWindowImage();
+                }
+
                 rPrevFrame = rNowFrame;
                 rNowFrame = getTotalFrame();
-                if(canvasWindowON) updateCanvasWindowImage();
                 setClearButtonActive();
             };
 
