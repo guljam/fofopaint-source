@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.14;
+        private const APP_VERSION:Number = 20.15;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1006,32 +1006,6 @@
             else canvasWindowIgnoreResizeEventFlag = false;
         }
 
-        private function updateCanvasWindowBitmapSizeCustom(bgColor:uint):void
-        {
-            const bounds:Rectangle = previewBox.setFitBitmapforBox(canvasWindowBitmap.bitmapData.width,canvasWindowBitmap.bitmapData.height
-                                                                  ,canvasWindow.stage.stageWidth,canvasWindow.stage.stageHeight);
-
-            updateCanvasWindowCanvasPanelBGColor(bgColor,canvasWindowBitmap.bitmapData);
-            canvasWindowCanvasPanel.x = bounds.x;
-            canvasWindowCanvasPanel.y = bounds.y;
-            canvasWindowCanvasPanel.width = bounds.width;
-            canvasWindowCanvasPanel.height = bounds.height;
-        }
-
-        private function updateCanvasWindowImageReplayMode():void
-        {
-            updateCanvasWindowImageCustom(rcanvas1BitmapData,rcanvas11BitmapData);
-            updateCanvasWindowBitmapSizeCustom(RCANVAS_BG_COLOR);
-        }
-
-        private function updateCanvasWindowImageCustom(bmpd:BitmapData,bmpd1:BitmapData):void
-        {
-            canvasWindowBitmap.bitmapData = bmpd;
-            canvasWindowBitmapSub.bitmapData = bmpd1;
-            canvasWindowBitmap.smoothing = true;
-            canvasWindowBitmapSub.smoothing = true;
-        }
-
         private function updateCanvasWindowImage():void
         {
             canvasWindowBitmap.bitmapData = previewBox.prevBitmap.bitmapData;
@@ -1153,16 +1127,9 @@
                 canvasWindow.stage.color = uiColorSet[uiColorIndex][2];
             }
 
-            if(replayModeON)
-            {
-                updateCanvasWindowImageReplayMode();
-            }
-            else
-            {
-                updateCanvasWindowImage();
-                updateCanvasWindowBitmapSize();
-                updateCanvasWindowData();
-            }
+            updateCanvasWindowImage();
+            updateCanvasWindowBitmapSize();
+            updateCanvasWindowData();
         }
 
         private function openImageViewWindow():void
@@ -8648,11 +8615,6 @@
             }
             tempBitData.dispose();
             tempBitData = null;
-
-            if(replayModeON && canvasWindowON && makeJumpImageFlag === 0)
-            {
-                updateCanvasWindowImageReplayMode();
-            }
         }
 
         private function replayLineStyleReady(shape:Boolean,size:uint,color:uint,alpha:Number):void
@@ -9276,11 +9238,6 @@
                 rBGColorSave = color;
                 setBackgroundColorReplayMode(color);
                 setRCursorPosToCenter();
-
-                if(replayModeON && canvasWindowON && makeJumpImageFlag === 0)
-                {
-                    updateCanvasWindowImageReplayMode();
-                }
             }
 
             function canvasSize(data:Array):void
@@ -9293,11 +9250,6 @@
 
                 changeCanvasSizeReplayMode(width,height,moveX,moveY,movedFlag);
                 setRCursorPos(width/2,height/2);
-
-                if(replayModeON && canvasWindowON && makeJumpImageFlag === 0)
-                {
-                    updateCanvasWindowImageReplayMode();
-                }
             }
 
             function tempDone(data:Array):void
@@ -10410,16 +10362,6 @@
             {
                 autoScroll.check();
             }
-
-            if(canvasWindowON && replayModeON)
-            {
-                updateCanvasWindowImageReplayMode();
-            }
-
-            // if(replayModeON && rFitZoomedON)
-            // {
-            //     setReplayFitToWindowButton();
-            // }
         }
 
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
@@ -10583,11 +10525,6 @@
 
             if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
             if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
-
-            if(canvasWindowON && replayModeON)
-            {
-                updateCanvasWindowImageReplayMode();
-            }
 
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
@@ -11336,11 +11273,6 @@
                             removeInputEventDrawMode();
                             addInputEventReplayMode();
                             rregPoint.visible = true;
-
-                            if(canvasWindowON)
-                            {
-                                updateCanvasWindowImageReplayMode();
-                            }
                         }
                         return;
                     }
@@ -18984,12 +18916,6 @@
                 jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
             }
 
-            if(canvasWindowON)
-            {
-                updateCanvasWindowImageCustom(canvas1BitmapData,canvas11BitmapData);
-                updateCanvasWindowBitmapSizeCustom(CANVAS_BG_COLOR);
-            }
-
             rCursor.visible = false;
             addInputEventDrawMode();
         }
@@ -19078,11 +19004,6 @@
                 {
                     rIndexStart = 0;
                     rDataReadFlag = false;
-                }
-
-                if(canvasWindowON)
-                {
-                    updateCanvasWindowImageReplayMode();
                 }
 
                 checkCutFrameButtonsActive();
