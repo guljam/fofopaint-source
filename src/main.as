@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.12;
+        private const APP_VERSION:Number = 20.13;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1054,7 +1054,6 @@
             }
 
             canvasWindowIgnoreResizeEventFlag = true;
-
             canvasWindow.bounds = new Rectangle(canvasWindow.bounds.x,canvasWindow.bounds.y
                                                 ,canvasWindowCanvasPanel.width,canvasWindowCanvasPanel.height);
             //한번 더해줘야 정확함
@@ -1067,6 +1066,11 @@
             canvasWindowCanvasPanel.y = 0;
         }
 
+        private function canvasWindowMoveStartEvent(e:MouseEvent):void
+        {
+            canvasWindow.startMove();
+        }
+
         private function fitCanvasWindowSizeToCanvasRightMouseUp(e:MouseEvent):void
         {
             if(canvasWindowCanvasPanel.width === canvasWindow.width
@@ -1074,6 +1078,7 @@
             {
                 return;
             }
+
             fitCanvasWindowSizeToCanvas();
         }
 
@@ -1115,7 +1120,8 @@
             setSyncWindowTitle();
             canvasWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
             canvasWindow.stage.align = StageAlign.TOP_LEFT;
-            canvasWindow.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,fitCanvasWindowSizeToCanvasRightMouseUp)
+            canvasWindow.stage.addEventListener(MouseEvent.MOUSE_DOWN,canvasWindowMoveStartEvent);
+            canvasWindow.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,fitCanvasWindowSizeToCanvasRightMouseUp);
             canvasWindow.stage.addEventListener(KeyboardEvent.KEY_DOWN,canvasWindowCloseKeyDown);
             canvasWindow.addEventListener(Event.CLOSING,canvasWindowClosedEvent);
             canvasWindow.addEventListener(Event.RESIZE,canvasWindowResizedEvent);
@@ -12051,14 +12057,8 @@
             if(canvasWindowON)
             {
                 updateCanvasWindowImage();
-
-                //updateCanvasWindowBitmapSize 2번 호출 해주는거 정상임
-                const size:Number = (canvasWindow.bounds.width > canvasWindow.bounds.height) ? canvasWindow.bounds.width : canvasWindow.bounds.height;
-                updateCanvasWindowBitmapSize();
                 canvasWindowIgnoreResizeEventFlag = true;
-                canvasWindow.bounds = new Rectangle(canvasWindow.bounds.x,canvasWindow.bounds.y,size,size);
                 updateCanvasWindowBitmapSize();
-                fitCanvasWindowSizeToCanvas();
             }
         }
 
