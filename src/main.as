@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.13;
+        private const APP_VERSION:Number = 20.14;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1114,6 +1114,7 @@
             windowOptions.systemChrome = NativeWindowSystemChrome.STANDARD;
             windowOptions.type = NativeWindowType.NORMAL;
             windowOptions.owner = stage.nativeWindow;
+            windowOptions.renderMode = "direct";
 
             canvasWindow = new NativeWindow(windowOptions);
 
