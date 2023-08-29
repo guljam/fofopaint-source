@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.16;
+        private const APP_VERSION:Number = 20.17;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -381,7 +381,7 @@
                     ,lastWindowSize:Point = new Point() //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
         //save load 관련 변수
                     ,saveOneTime:Boolean = false //세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
-                    ,saveFileName:String = getTimeStampTailHead()+" "+getRandomString()+".png"//세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
+                    ,saveFileName:String = getNewFileName() //세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
                     ,saveFilePath:String = saveFileName//파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
                     ,saveContinue:Boolean = false//한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
                     ,clearDataButtonCount:uint = 0 //리플레이 취소 카운터
@@ -503,7 +503,6 @@
         //이미지 붙여넣기 변수
                     ,clipImageON:Boolean = false //윈도우 active에서 붙여넣기 가능한 이미지가 있으면 올려줌
                     ,clipImageOKCount:int = 0 //2번 이상 클릭되야 작동되게함
-                    ,clipImageNameCount:int = 0 //붙여넣기 횟수만큼 파일이름뒤에 번호 붙여줌
 
         //트레이스 레이어 변수
                     ,canvasTraceLayer:Sprite = new Sprite()//트레이스 레이어임
@@ -687,6 +686,11 @@
         }
 
         //function
+        private function getNewFileName():String
+        {
+            return getTimeStampTailHead()+" "+getRandomString()+".png"
+        }
+
         private function updateStageOffset():void
         {
             const scale:Number = getUIScale();
@@ -5786,8 +5790,7 @@
 
             if(tempCopiedImage)
             {
-                setDragDropSelectBoxReady("Clipboard_image_"+clipImageNameCount+".png");
-                clipImageNameCount++;
+                setDragDropSelectBoxReady();
             }
         }
 
@@ -7203,7 +7206,7 @@
             resetReplayTime();
             resetUndo();
 
-            const fileName:String = getTimeStampTailHead()+" "+getRandomString()+".png";
+            const fileName:String = getNewFileName();
             const name:String = saveFileName;
             const path:String = saveFilePath;
             const newName:String = name.substr(0,name.lastIndexOf(name))+fileName;
@@ -10795,7 +10798,7 @@
             bg.height = sth;
         }
 
-        private function setDragDropSelectBoxReady(filename:String=""):void
+        private function setDragDropSelectBoxReady():void
         {
             resetKeyBuffer();
             if(fileDragSelectBox.visible === false)
@@ -10828,7 +10831,7 @@
             const ext:String = fileName.substr(fileName.lastIndexOf(".")+1,fileName.length);
             if(ext === "2020" || ext === "png" || ext === "jpg" || ext === "gif")
             {
-                setDragDropSelectBoxReady(file.name);
+                setDragDropSelectBoxReady();
             }
         }
 
@@ -10854,7 +10857,7 @@
             {
                 if(!isTraceLayer)
                 {
-                    const fileName:String = "Clipboard_image_"+clipImageNameCount+".png";
+                    const fileName:String = getNewFileName();
                     //두번째 변수에서 fileName를 같게 해줘야 저장할때 오류가 안남
                     loadImageFile(fileName,fileName,tempCopiedImage.width,tempCopiedImage.height,tempCopiedImage,null);
                 }
@@ -11986,6 +11989,7 @@
             traceMenu.traceImageButton.alpha = 1.0;
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
+            updatePreviewBoxRectPos();
 
             if(canvasWindowON)
             {
