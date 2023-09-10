@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.17;
+        private const APP_VERSION:Number = 20.18;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2141,6 +2141,7 @@
             var isMouseHide:Boolean = false;
             var count:int = 0;
             const pos:Point = new Point(0,0);
+
             function isMouseMoved():Boolean
             {
                 return pos.x !== mouseX || pos.y !== mouseY || mouseClickON || rightMouseClickON;
@@ -10404,6 +10405,7 @@
             oldFrame = finalFrame;
             playbackFinished = false;
             replayTimeBox.resetNowbarColor();
+            checkHideCursorCount();
 
             function checkBarLimit():void
             {
