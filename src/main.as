@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.18;
+        private const APP_VERSION:Number = 20.20;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3059,6 +3059,7 @@
             const smoothLast:Point = new Point(); //펜 스무딩에서 현재 마우스 커서 위치를 저장
             const moveEventLast:Point = new Point();
             const moveEventDistSave:Point = new Point();
+            const moveEvent2Last:Point = new Point();
             const sqPenCursorLast:Point = new Point();
             const sqLinePosLast:Point = new Point();
             const extendedPos:Point = new Point();
@@ -3084,6 +3085,7 @@
             var moveEventDistLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var subLayerFlag:Boolean;
             var penSmoothTimer:int;
+            var dotflag:Boolean;
 
             function circleRectangleCollision(cx:Number, cy:Number, r:Number, rx:Number, ry:Number, w:Number, h:Number):Boolean
             {
@@ -3257,6 +3259,7 @@
                 penCommand.push(2);
                 penPoints.push(mx);
                 penPoints.push(my);
+                moveEvent2Last.setTo(mx,my);
                 cdg.lineTo(mx,my);
 
                 if(sharpLineON === true && _penSmoothSlideValue === 0 && rotateFlag == false)
@@ -3318,6 +3321,11 @@
                     penSizeCursor.rotation = deg;
                     sqPenCursorLast.x = mx;
                     sqPenCursorLast.y = my;
+                }
+
+                if(Point.distance(clickPos,moveEvent2Last) >= 0.2)
+                {
+                    dotflag = false;
                 }
             }
 
@@ -3423,7 +3431,7 @@
                     }
                 }
 
-                if(mouseMovedFlag === false || (penToolFlag && mouseMovedFlag === true && Point.distance(smoothPos,clickPos) < 0.2))
+                if(mouseMovedFlag === false || (penToolFlag && mouseMovedFlag === true && dotflag))
                 {
                     rDataBuffer.length = 0;
                     rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,subLayerFlag,xAirBrushON]);
@@ -3448,6 +3456,7 @@
                     xShape = penShape;
                     xBlendMode = null;
                     xAirBrushON = airBrushON;
+                    dotflag = true;
                 }
                 else
                 {
