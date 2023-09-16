@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.20;
+        private const APP_VERSION:Number = 20.21;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7117,11 +7117,11 @@
             switch(targetName)
             {
                 case "versionInfo":
-                case "releaseNote":
+                case "releaseNoteButton":
                     navigateToURL(new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt"));
                 break;
 
-                case "appResetButton":
+                case "resetAppButton":
                     checkButtonUp(targetName);
                 break;
 
@@ -7177,10 +7177,10 @@
 
             removeInputEventDrawMode();
 
-            aboutPanel.appResetButton.visible = true;
+            aboutPanel.resetAppButton.visible = true;
             if(welcome === true)
             {
-                aboutPanel.appResetButton.visible = false;
+                aboutPanel.resetAppButton.visible = false;
                 addTimerByName("openAboutPanelOFFTimer",1.0,false,function():void
                 {
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
