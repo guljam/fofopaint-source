@@ -18583,8 +18583,6 @@
 
         private function setLasso1PxMoveButton(command:int):void
         {
-            const m:Number = 1/zoomed;
-            const rotate:Number = regPoint.rotation;
             var x:Number = 0;
             var y:Number = 0;
 
@@ -18593,10 +18591,10 @@
             else if(command === LASSO_1PX_MOVE_LEFT) x = -1;
             else if(command === LASSO_1PX_MOVE_RIGHT) x = 1;
 
-            const r:Point = rotatePoint(x,y,rotate);
+            const rotatedPoint:Point = rotatePoint(x,y,regPoint.rotation);
 
-            lassoBox.x += r.x;
-            lassoBox.y += r.y;
+            lassoBox.x += rotatedPoint.x;
+            lassoBox.y += rotatedPoint.y;
         }
 
         private function setSideBarScrollMove(clickY:Number):void
