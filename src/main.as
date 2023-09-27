@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.21;
+        private const APP_VERSION:Number = 20.22;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -17321,9 +17321,9 @@
         {
             const floor:Function = Math.floor;
             const scale:Number = getUIScale();
-            const topOffset:Number = STAGE_TOP_OFFSET;
+            const topOffset:Number = STAGE_TOP_OFFSET+STAGE_BOTTOM_OFFSET;
             const sideBarSetHeight:Number = sideBarSetHeight*scale;
-            sth = floor(sth-topOffset); //상단 메뉴 길이 빼줌 sth랑 sideBarSetHeight 같이 빼야함
+            sth = Math.floor(sth-topOffset); //상단 메뉴 길이 빼줌 sth랑 sideBarSetHeight 같이 빼야함
 
             //창이 늘어났을때 여유공간 있으면 아랫쪽으로 옮겨줌
             const nowScrollSetBottom:Number = sideBarSetHeight+sideBarScrollSet.y*scale;
@@ -18604,8 +18604,8 @@
             const floor:Function = Math.floor;
             const scale:Number = getUIScale();
             const sth:Number = stage.stageHeight;
-            const canMoveHeight:Number = (sth-STAGE_TOP_OFFSET)-scrollBarHeight*scale;
-            const diffHeight:Number = sideBarSetHeight*scale-(sth-STAGE_TOP_OFFSET);
+            const canMoveHeight:Number = (sth-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET)-scrollBarHeight*scale;
+            const diffHeight:Number = sideBarSetHeight*scale-(sth-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET);
             const factor:Number = (diffHeight/canMoveHeight);
             var scrollStarted:Boolean = false;
             var my1:Number = sideBarScrollBar.y;
