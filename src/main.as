@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.23;
+        private const APP_VERSION:Number = 20.24;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4095,11 +4095,23 @@
 
         private function updatePreviewBoxRectPos():void
         {
-            const gp:Point = canvas1Bitmap.globalToLocal(new Point(STAGE_LEFT_OFFSET,STAGE_TOP_OFFSET));
+            var newRightOffset:Number = STAGE_RIGHT_OFFSET;
+            var newLeftOffset:Number = STAGE_LEFT_OFFSET;
+
+            if(isRightSidebar)
+            {
+                newRightOffset = Math.round(sideBar.getWidth());
+            }
+            else
+            {
+                newLeftOffset = Math.round(sideBar.getWidth());
+            }
+
+            const gp:Point = canvas1Bitmap.globalToLocal(new Point(newLeftOffset,STAGE_TOP_OFFSET));
             const zoom:Number = zoomed;
 
             previewBox.updateCursor(gp.x*zoom,gp.y*zoom
-                                    ,stage.stageWidth-STAGE_LEFT_OFFSET-STAGE_RIGHT_OFFSET
+                                    ,stage.stageWidth-newRightOffset-newLeftOffset
                                     ,stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET
                                     ,CANVAS_WIDTH*zoom,regPoint.rotation);
         }
