@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.24;
+        private const APP_VERSION:Number = 20.25;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -17953,7 +17953,7 @@
             {
                 return;
             }
-
+            
             const keyCode:uint = keyBuffer[0];
 
             //자툴이 nowkey를 쓰기 때문에 nowkey 리턴 이전에서 체크해야함
