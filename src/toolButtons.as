@@ -240,7 +240,7 @@
 		}
 
 		public function changeUIColor(arr:Array):void
-		{	
+		{
            	base.color = arr[0];
            	// subBase.color = arr[1];
            	iconLeft.color = arr[2];
@@ -358,6 +358,10 @@
 			toolZoom.useHandCursor = false;
 			zoomInButton.useHandCursor = false;
 			zoomOutButton.useHandCursor = false;
+			fillPenOK.useHandCursor = false;
+			fillPenCancel.useHandCursor = false;
+			fillPenUndo.useHandCursor = false;
+
 
 			buttonArr = [
 							zoomInButton,

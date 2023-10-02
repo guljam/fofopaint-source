@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.22;
+        private const APP_VERSION:Number = 20.23;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -376,6 +376,7 @@
                     ,lassoCopyON:Boolean = false //lasso 복사 누르면 올려줌
                     ,lassoBitmapdataSave:BitmapData //copy나 취소했을때 원래대로 돌려주는 이미지
                     ,lassoBitmapdataSubSave:BitmapData
+                    ,lassoLayerSwappedFlag:Boolean //레이어가 바뀌면 올려줌
 
         //window resize 관련 변수
                     ,lastWindowSize:Point = new Point() //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
@@ -1513,6 +1514,7 @@
         private function setLayerSwapButton():void
         {
             if(deepUndoON) setApplyDeepUndo();
+
             var tempbmpd1:BitmapData = canvas1BitmapData.clone();
             var tempbmpd11:BitmapData = canvas11BitmapData.clone();
             const rect:Rectangle = new Rectangle(0,0,canvas1BitmapData.width,canvas1BitmapData.height);
@@ -2789,10 +2791,12 @@
                     data.push(data[1]); //마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
                     canvas2.alpha = xAlpha;
                     rDataBuffer.push(["fill3",xColor,xAlpha,null,command.concat(),data.concat(),airBrushON,airBrushSizeDrawMode]);
+
                     if(airBrushON)
                     {
                         setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
                     }
+
                     drawFillPenData();
                 }
 
@@ -2940,6 +2944,10 @@
                 || targetName === "fillPenCancel")
                 {
                     clickedButton = targetName;
+                }
+                else if(targetName === "sideBarScrollBar")
+                {
+                    setSideBarScrollMove(mouseY);
                 }
                 else if(isCursorInDrawArea())
                 {
@@ -4376,7 +4384,17 @@
                 case "lasso1pxRight":
                 case "lasso1pxUp":
                 case "lasso1pxDown":
-                    str = "Move image 1px\n(space+wasd / ijkl)"
+                    str = "Move image 1px\n(space+wasd / ijkl)";
+                break;
+                case "lassoLayerSwap":
+                    if(lassoLayerSwappedFlag)
+                    {
+                        str = "Swap layers 2 <-> 1";
+                    }
+                    else
+                    {
+                        str = "Swap layers 1 <-> 2";
+                    }
                 break;
 
                 default: lassoMenu.hint("Lasso tool");
@@ -5775,7 +5793,7 @@
                 break;
 
                 case "layerSwapButton":
-                    str = "Swap layer 1 <-> 2\n(shift+d, shift+j)";
+                    str = "Swap layers\n(shift+d, shift+j)";
                 break;
 
                 case "layerMergeButton":
@@ -6441,6 +6459,22 @@
             }
         }
 
+        private function setLassoLayerSwapButton():void
+        {
+            if(lassoLayerSwappedFlag)
+            {
+                lassoLayerSwappedFlag = false;
+                lassoBox.setChildIndex(lassoBMP,1);
+                lassoMenu.hint("Swap layers 1 <-> 2");
+            }
+            else
+            {
+                lassoLayerSwappedFlag = true;
+                lassoBox.setChildIndex(lassoBMPsub,1);
+                lassoMenu.hint("Swap layers 2 <-> 1");
+            }
+        }
+
         private function setLassoCopyButton():void
         {
             if(lassoCopyON) return;
@@ -6596,7 +6630,8 @@
             || arr[1] !== _lassobox.y
             || arr[2] !== _lassobox.scaleX
             || arr[3] !== _lassobox.scaleY
-            || arr[4] !== _lassobox.rotation)
+            || arr[4] !== _lassobox.rotation
+            || lassoLayerSwappedFlag)
             {
                 return true;
             }
@@ -9190,7 +9225,7 @@
                 const oldData:Boolean = typeof(data[4]) === "object";
                 //(["lasso",point1,point2,null,lassoInfo]); 원시 버전 데이터 이게 왜 4번에 있는지 모르겠음
                 //(["lasso",point1,point2,lassoInfo]); 구버전 데이터
-                //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible]); 신버전 데이터
+                //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터
                 const imageMovedToLasso:Boolean = (oldData)
                                                   ? moveSelectedAreaToLassoBox(true,data[1],data[2],false,false,false)
                                                   : moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],data[5],data[6]);
@@ -9205,6 +9240,7 @@
                     const bmpAngle:Number = lassoInfo[4];
                     const boxX:Number = lassoInfo[5];
                     const boxY:Number = lassoInfo[6];
+                    const layerSwapFlag:Boolean = data[7];
                     const mat:Matrix = new Matrix();
 
                     mat.scale(bmpScaleX,bmpScaleY);
@@ -9224,13 +9260,13 @@
 
                     if(data[5] || !data[5] && !data[6])
                     {
-                        rcanvas1BitmapData.draw(lassoBMP,mat);
+                        rcanvas1BitmapData.draw((layerSwapFlag) ? lassoBMPsub:lassoBMP,mat);
                         rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
                     }
 
                     if(data[6])
                     {
-                        rcanvas11BitmapData.draw(lassoBMPsub,mat);
+                        rcanvas11BitmapData.draw((layerSwapFlag) ? lassoBMP:lassoBMPsub,mat);
                         rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
                     }
                 }
@@ -15328,7 +15364,18 @@
                 lassoToolON = true;
                 setDeafultLassoMenuPos(lassoMenu);
                 checkLassoMenuPos();
+
+                if(checkedLayer || !checklayer1 || !checklayer2)
+                {
+                    lassoMenu.lassoLayerSwap.alpha = BUTTON_OFF_ALPHA;
+                }
+                else
+                {
+                    lassoMenu.lassoLayerSwap.alpha = 1.0;
+                }
+
                 lassoMenu.visible = true;
+                setTopChildIndex(lassoBox);
                 setTopChildIndex(lassoMenu);
 
                 if(traceMenuON === true) traceMenu.visible = false;
@@ -15838,8 +15885,16 @@
 
             if(toTraceLayer === false)
             {
-                if(canvas1Bitmap.visible) canvas1BitmapData.draw(lassoBMP,posMatrix);
-                if(canvas11Bitmap.visible) canvas11BitmapData.draw(lassoBMPsub,posMatrix);
+                if(lassoLayerSwappedFlag)
+                {
+                    if(canvas1Bitmap.visible) canvas1BitmapData.draw(lassoBMPsub,posMatrix);
+                    if(canvas11Bitmap.visible) canvas11BitmapData.draw(lassoBMP,posMatrix);
+                }
+                else
+                {
+                    if(canvas1Bitmap.visible) canvas1BitmapData.draw(lassoBMP,posMatrix);
+                    if(canvas11Bitmap.visible) canvas11BitmapData.draw(lassoBMPsub,posMatrix);
+                }
             }
             else
             {
@@ -15849,13 +15904,13 @@
                 if(canvas1Bitmap.visible)
                 {
                     layer1Bmpd = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
-                    layer1Bmpd.draw(lassoBMP,posMatrix);
+                    layer1Bmpd.draw((lassoLayerSwappedFlag) ? lassoBMPsub:lassoBMP,posMatrix);
                 }
 
                 if(canvas11Bitmap.visible)
                 {
                     layer2Bmpd = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
-                    layer2Bmpd.draw(lassoBMPsub,posMatrix);
+                    layer2Bmpd.draw((lassoLayerSwappedFlag) ? lassoBMP:lassoBMPsub,posMatrix);
                 }
 
                 mergeImageToTraceLayer(layer1Bmpd,layer2Bmpd);
@@ -15899,6 +15954,7 @@
                 if(isLassoUsed()  === true) //사용후에 ok하면 처리해줌
                 {
                     if(deepUndoON) setApplyDeepUndo();
+
                     const lassoInfo:Array = drawLassoBoxImageToBitmapData(false);
                     const point1:Vector.<Number> = lassoPointSave[0].concat();
                     const point2:Array = lassoPointSave[1].concat();
@@ -15917,7 +15973,7 @@
                         checklayer2 = true;
                     }
 
-                    rDataBuffer.push(["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2]);
+                    rDataBuffer.push(["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,lassoLayerSwappedFlag]);
                     addUndoData();
                 }
                 else
@@ -16166,6 +16222,7 @@
             lassoMirrorON = false;
             lassoCopyON = false;
             lassoMenuTempOFF = false;
+            lassoLayerSwappedFlag = false;
             lassoStartData = [];
             lassoPointSave = [];
             lassoBMP.filters = [];
@@ -16179,6 +16236,7 @@
             lassoBox.scaleX = 1.0;
             lassoBox.scaleY = 1.0;
             lassoBox.rotation = 0;
+            lassoBox.setChildIndex(lassoBMP,1);
             canvasPanel.setChildIndex(lassoBox,canvasPanel.getChildIndex(canvas2)+1);
             lassoResizeMoveSum = 0;
             lassoMenu["lassoCopy"].alpha = 1.0;
@@ -18759,7 +18817,6 @@
                 if(!sideBar.visible) sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
                 toolBox.fillPenIconON();
                 toolBox.bgBoxVisible(true);
-                sideBarScrollBar.visible = false;
                 toolBox.checkFillPenIconBottom();
             }
             else
@@ -19675,6 +19732,15 @@
                     case "lasso1pxLeft": setLasso1PxMoveButton(LASSO_1PX_MOVE_LEFT); break;
                     case "lasso1pxRight": setLasso1PxMoveButton(LASSO_1PX_MOVE_RIGHT); break;
                     case "lassoCopy": setLassoCopyButton(); break;
+
+                    case "lassoLayerSwap":
+                    {
+                        if(lassoMenu.lassoLayerSwap.alpha === 1.0)
+                        {
+                            setLassoLayerSwapButton();
+                        }
+                    }
+                    break;
 
                     case "lassoOK":
                     case "lassoCancel":

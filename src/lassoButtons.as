@@ -28,6 +28,7 @@
 		public var lasso1pxRight:SimpleButton;
 		public var lasso1pxDown:SimpleButton;
 		public var lasso1pxUp:SimpleButton;
+		public var lassoLayerSwap:SimpleButton;
 		public const fixedScale:Number = 0.875;
 
 		private var lassoInfoBackup:Array = [];
@@ -139,20 +140,21 @@
 			lasso1pxRight.useHandCursor = false;
 			lasso1pxDown.useHandCursor = false;
 			lasso1pxUp.useHandCursor = false;
+			lassoLayerSwap.useHandCursor = false;
 			visible = false;
 
 			lassoInfo.text = "LASSO TOOL";
 
-			leftButtonArr2 =[
+			leftButtonArr2 = [
 								lassoOK,
 								lassoCancel,
 								lassoCHand,
 								lassoCZoom,
 								lassoCRotate,
-								lassoTrace,
-							];
+								lassoTrace
+							 ];
 							
-			rightButtonArr =[
+			rightButtonArr = [
 								lassoCopy,
 								lassoRotate,
 								lassoResize,
@@ -161,7 +163,8 @@
 								lasso1pxRight,
 								lasso1pxUp,
 								lasso1pxDown,
-							];
+								lassoLayerSwap
+							 ];
 		}
 	}
 
