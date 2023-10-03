@@ -26,12 +26,13 @@
 		public var drawrText:TextField;
 		public var tegakiText:TextField;
 		public var colorHistoryText:TextField;
-		private const rgbInfoBG:Shape = new Shape();
+		public const rgbInfoBG:Shape = new Shape();
 		public var rgbInfoBGColor:uint = 0;
 		public const colorHistoryBox:Sprite = new Sprite()//컬러 히스토리
 		public var penColorButton:SimpleButton;
 		public var paperColorButton:SimpleButton;
 		public var colorHistoryBoxBG:Sprite = new Sprite();
+		public var transColorButton:SimpleButton;
 
 		public var offsetX:Number = 0; //customcolor 박스 떨어진 위치
 
@@ -39,7 +40,6 @@
 		public var currentColor:Sprite = new Sprite();
 		public var currentColorColor:uint = 0;
 		public var currentColorWidth:Number = 28;
-		private var lastCurrentShape:int = 0;
 		public var hueCursor:SimpleButton;
 		public var svCursor:SimpleButton;
 		// public var preset17:SimpleButton = preset17;
@@ -57,7 +57,7 @@
 		private var panelWidth:Number = 0;
 		private var panelHeight:Number = 0;
 
-		private var rgbInfoWidth:int = 136;
+		private var rgbInfoWidth:int = 107;
 		private var rgbInfoHeight:int = 19;
 
 		private const baseColor:ColorTransform = new ColorTransform();
@@ -118,12 +118,15 @@
 			penColorButton.useHandCursor = false;
 			paperColorButton.useHandCursor = false;
 
-			rgbInfo.x = 0
+			rgbInfo.x = 0;
 			rgbInfo.y = 0;
 			rgbInfoBG.x = 0;
 			rgbInfoBG.y = floor(rgbInfo.y-1);
-			currentColor.x = floor(rgbInfoBG.x+rgbInfoBG.width+4);
-			currentColor.y = floor(rgbInfoBG.y);
+			transColorButton.x = floor(rgbInfoBG.x+rgbInfoBG.width+4);
+			transColorButton.y = rgbInfoBG.y;
+			transColorButton.useHandCursor = false;
+			currentColor.x = floor(transColorButton.x+transColorButton.width);
+			currentColor.y = rgbInfoBG.y;
 			currentColor.name = "currentColor";
 
 			g = hueColorMask.graphics;
@@ -152,11 +155,12 @@
 
 			mainColorPickerBox.addChild(svBox); //mainColorPickerBox svBox안에 svColor안에 svCursor
 			mainColorPickerBox.addChild(hueColor);
+			mainColorPickerBox.addChild(transColorButton);
 			mainColorPickerBox.addChild(currentColor);
 			mainColorPickerBox.addChild(rgbInfoBG);
 			mainColorPickerBox.addChild(rgbInfo);
 			mainColorPickerBox.x = 0;
-			mainColorPickerBox.y = floor(penColorButton.y+penColorButton.height+5);
+			mainColorPickerBox.y = floor(penColorButton.y+penColorButton.height+6);
 
 			colorHistoryText.x = -1;
 			colorHistoryText.y = -5;
@@ -343,6 +347,11 @@
 			rgbInfo.text = str;
 		}
 
+		public function setRGBInfoVisible(flag:Boolean):void
+		{
+			rgbInfo.visible = flag;
+		}
+
 		public function updateRGBInfoBG(color:uint,borderColor:uint):void
 		{
 			const g:Graphics = rgbInfoBG.graphics;
@@ -364,7 +373,7 @@
 			g.clear();
 			g.lineStyle(1,(invColor === 0) ? color:invColor);
 			g.beginFill(color);
-			g.drawRoundRectComplex(0,0,currentColorWidth,19,0,lastCurrentShape,0,0);
+			g.drawRect(0,0,currentColorWidth,19);
 			g.endFill();
 		}
 

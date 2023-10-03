@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.26;
+        private const APP_VERSION:Number = 21.00;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -319,6 +319,7 @@
                     ,keyWaitMouseUp:Boolean = false //키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
                     ,penAlpha:Number = 1.0 //펜 변수
                     ,penColor:uint = 0x000000
+                    ,penColorTransparentFlag:Boolean = false // 펜 컬러 투명 켜졌을때 올려줌
                     ,sizeOffsetFlag:Boolean = false//0.5픽셀 이동이면 true임 pensizecursormove함수에서 써줌
                     ,sizeArr:Array = [0,1,2,3,4,5,7,10,13,18,30,45,80]
                     ,alphaArr:Array = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
@@ -688,6 +689,28 @@
         }
 
         //function
+        private function getRGBInfoString(...args):String
+        {
+            if(args.length === 1)
+            {
+                if(args[0] as Vector.<uint>)
+                {
+                    return "RGB "+args[0][0]+","+args[0][1]+","+args[0][2];
+                }
+                else if(args[0] as uint || args[0] === 0)
+                {
+                    const c:Vector.<uint> = HEXtoRGB(args[0]);
+                    return "RGB "+c[0]+","+c[1]+","+c[2];
+                }
+            }
+            else if(args.length === 3)
+            {
+                return "RGB "+args[0]+","+args[1]+","+args[2];
+            }
+
+            return "";
+        }
+
         private function getNewFileName():String
         {
             return getTimeStampTailHead()+" "+getRandomString()+".png"
@@ -2599,18 +2622,23 @@
             updatePreviewBoxRectPos();
         }
 
+        private function setTransparentColor():void
+        {
+            penColorTransparentFlag = true;
+            pickerBox.setRGBInfo("< Transparent >");
+        }
+
         private function setCurrentColor(mode:uint):void
         {
             const _pickerBox:colorPickerBox = pickerBox;
             const hexColor:uint = _pickerBox.currentColorColor;
-            const c:Vector.<uint> = HEXtoRGB(hexColor);
-            const colorHint:String = "RGB "+c[0]+","+c[1]+","+c[2];
 
             pickerColorSelected = true;
+            penColorTransparentFlag = false;
 
             if(mode === 1)
             {
-                penColor = hexColor;//색깔이 다를때만
+                penColor = hexColor;
                 updateOpaBoxColor(hexColor);
                 updateOpacityCursor(penAlphaIndex);
                 setHSVCursorPosByColor(hexColor);
@@ -2623,8 +2651,6 @@
                 updateColorHistoryList();
                 addUndoBGColor(hexColor);
             }
-
-            _pickerBox.setRGBInfo(colorHint);
         }
 
         private function setTegakiPresetColor(targetName:String):void
@@ -2720,6 +2746,7 @@
             var _sharpLine:Boolean;
             var rotateFlag:Boolean;
             var xOffset:Number;
+            var xBlendMode:String;
 
             function checkFillPenUndoReady():Boolean
             {
@@ -2791,7 +2818,7 @@
                     data.push(data[0]);
                     data.push(data[1]); //마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
                     canvas2.alpha = xAlpha;
-                    rDataBuffer.push(["fill3",xColor,xAlpha,null,command.concat(),data.concat(),airBrushON,airBrushSizeDrawMode]);
+                    rDataBuffer.push(["fill3",xColor,xAlpha,xBlendMode,command.concat(),data.concat(),airBrushON,airBrushSizeDrawMode]);
 
                     if(airBrushON)
                     {
@@ -3023,9 +3050,9 @@
                 _sharpLine = sharpLineON;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
                 xOffset = (sizeOffsetFlag) ? 0.5 : 0;
-
                 xColor = penColor;
                 xAlpha = penAlpha;
+                xBlendMode = (penColorTransparentFlag) ? "erase" : null;
                 commandUndoIndexArr = [0];
 
                 if(airBrushON || eraseAirBrushON)
@@ -3460,12 +3487,21 @@
                 if(penToolFlag)
                 {
                     xSize = penSize;
-                    xColor = penColor;
                     xAlpha = penAlpha;
                     xShape = penShape;
-                    xBlendMode = null;
                     xAirBrushON = airBrushON;
                     dotflag = true;
+
+                    if(penColorTransparentFlag)
+                    {
+                        xColor = CANVAS_BG_COLOR;
+                        xBlendMode = "erase";
+                    }
+                    else
+                    {
+                        xColor = penColor;
+                        xBlendMode = null;
+                    }
                 }
                 else
                 {
@@ -4202,20 +4238,19 @@
             }
         }
 
-        private function initPickerBoxInfo(color:uint):void
+        private function updateRGBInfoText(color:uint):void
         {
-            const _pickerBox:colorPickerBox = pickerBox;
-            const rgbColor:Vector.<uint> = HEXtoRGB(color);
-            const r:uint = rgbColor[0];
-            const g:uint = rgbColor[1];
-            const b:uint = rgbColor[2];
-            const colorHint:String =  "RGB "+r+","+g+","+b;
+            pickerBox.setRGBInfo(getRGBInfoString(color));
 
-            _pickerBox.setRGBInfo(colorHint);
-            _pickerBox.setRGBInfoColor(getInvertColor(color,1.0
+            pickerBox.setRGBInfoColor(getInvertColor(color,1.0
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]));
-            _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
+        }
+
+        private function initPickerBoxInfo(color:uint):void
+        {
+            updateRGBInfoText(color);
+            pickerBox.updateRGBInfoBG(color,setColorBorder(color));
             updatePickerCurrentColor(color);
         }
 
@@ -4281,8 +4316,6 @@
 
             const hexColor:uint = target.transform.colorTransform.color;
             const _setColorTransform:Function = setColorTransform;
-            const c:Vector.<uint> = HEXtoRGB(hexColor);
-            const colorHint:String = "RGB "+c[0]+","+c[1]+","+c[2];
 
             setHSVCursorPosByColor(hexColor);
 
@@ -6726,28 +6759,33 @@
         private function changePickerModeToBG():void
         {
             const color:uint = CANVAS_BG_COLOR;
+
             pickerMode = 2;
+
             setHSVCursorPosByColor(color);
             updatePickerCurrentColor(color);
             pickerBox.setPickerMode(2);
+            pickerBox.transColorButton.alpha = BUTTON_OFF_ALPHA;
+            penColorTransparentFlag = false;
+
             stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryBGEvent);
         }
 
         private function changePickerModeToNormal():void
         {
             const color:uint = penColor;
+
             pickerMode = 1;
+
             addColorToHistory(CANVAS_BG_COLOR);
-            addColorToHistory(penColor);
+            addColorToHistory(color);
             setHSVCursorPosByColor(color);
             updatePickerCurrentColor(color);
             pickerBox.setPickerMode(1);
+            pickerBox.transColorButton.alpha = 1.0;
+            penColorTransparentFlag = false;
+
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryBGEvent);
-            // if(colorHistoryUpdateReady === false)
-            // {
-            //     colorHistoryUpdateReady = true;
-            //     stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
-            // }
         }
 
         private function setPenShapeButton(shapeFlag:Boolean):void
@@ -6792,6 +6830,7 @@
             setTopChildIndex(hueCursor);
             mouseDragON = true;
             penCursorOFFFlag = true;
+            penColorTransparentFlag = false;
 
             function hueMoveStart(mx:Number):void
             {
@@ -6839,11 +6878,16 @@
                 mouseDragON = false;
                 penCursorOFFFlag = false;
 
+                updateRGBInfoText(pickedColor);
+                _pickerBox.setRGBInfoVisible(true);
+
                 forceSetMainDrawTool();
                 //timer로 동작하는 경우 마지막 커서위치에 안가있을수도 있기 때문에 up에서도 해줌
                 stage.removeEventListener(MouseEvent.MOUSE_UP,hueColorButtonUpEvent);
                 stageMouseMoveEvent.remove("hueColorButtonMoveEvent");
             }
+
+            _pickerBox.setRGBInfoVisible(false);
             hueMoveStart(hueColorBox.mouseX);
             stage.addEventListener(MouseEvent.MOUSE_UP,hueColorButtonUpEvent);
             stageMouseMoveEvent.add("hueColorButtonMoveEvent",hueColorButtonMoveEvent);
@@ -6859,14 +6903,9 @@
             const invColor:uint = getInvertColor(rgbHexColor,1.0
                                                 ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
                                                 ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]);
-            const colorHint:String =  "RGB "+r+","+g+","+b;
-
             HUECOLOR[0] = h;
             HUECOLOR[1] = s;
             HUECOLOR[2] = v;
-
-            pickerBox.setRGBInfo(colorHint);
-            pickerBox.setRGBInfoColor(invColor);
 
             return rgbHexColor;
         }
@@ -6884,6 +6923,7 @@
             setTopChildIndex(svCursor);
             mouseDragON = true;
             penCursorOFFFlag = true;
+            penColorTransparentFlag = false;
 
             function setSVBoxMouseMoveEvent(mx:Number,my:Number):void
             {
@@ -6906,6 +6946,7 @@
 
                 pickedColor = color;
                 _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
+                _pickerBox.setRGBInfoVisible(false);
             }
 
             function svColorButtonMoveEvent(e:MouseEvent):void
@@ -6935,12 +6976,15 @@
                 mouseDragON = false;
                 penCursorOFFFlag = false;
 
+                updateRGBInfoText(pickedColor);
+                _pickerBox.setRGBInfoVisible(true);
                 forceSetMainDrawTool();
 
                 stage.removeEventListener(MouseEvent.MOUSE_UP,svColorButtonUpEvent);
                 stageMouseMoveEvent.remove("svColorButtonMoveEvent");
             }
 
+            _pickerBox.setRGBInfoVisible(false);
             setSVBoxMouseMoveEvent(svColorBox.mouseX,svColorBox.mouseY);
 
             stage.addEventListener(MouseEvent.MOUSE_UP,svColorButtonUpEvent);
@@ -11057,9 +11101,7 @@
             if(index > arr.length-1) return;
 
             const pickedColor:uint = arr[index];
-            var c:Vector.<uint> = HEXtoRGB(pickedColor);
             var findIndex:uint = arr.lastIndexOf(pickedColor);
-            const colorHint:String = "RGB "+c[0]+","+c[1]+","+c[2];
 
             updateOpaBoxColor(pickedColor);
 
@@ -12051,6 +12093,8 @@
             topBar.captureButton.alpha = 1.0;
             topBar.clearButton.alpha = 1.0;
             traceMenu.traceImageButton.alpha = 1.0;
+
+            setCurrentColor(1);
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
             updatePreviewBoxRectPos();
@@ -13622,8 +13666,8 @@
                 {
                     canvas2Alpha.alphaMultiplier = penAlpha;
                     // canvas2Alpha = new ColorTransform(1,1,1,penAlpha);
-                    if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha);
-                    else canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha);
+                    if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,(penColorTransparentFlag) ? "erase":null);
+                    else canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,           (penColorTransparentFlag) ? "erase":null);
                 }
                 else if(isEraseTool())
                 {
@@ -13912,11 +13956,21 @@
                 _traceMemoryTraining = traceMemoryTraining;
 
                 xSize = penSize;
-                xColor = penColor;
                 xAlpha = penAlpha;
                 xShape = penShape;
-                xBlendMode = null;
                 xAirBrushON = airBrushON;
+
+                if(penColorTransparentFlag)
+                {
+                    xColor = CANVAS_BG_COLOR;
+                    xBlendMode = "erase";
+                }
+                else
+                {
+                    xColor = penColor;
+                    xBlendMode = null;
+                }
+
                 canvasSizeWidth = CANVAS_WIDTH;
                 canvasSizeHeight = CANVAS_HEIGHT;
 
@@ -16945,6 +16999,7 @@
         {
             if(color === penLastUpdateInfo[5] && !pickerColorSelected) return;
 
+            penColorTransparentFlag = false;
             penLastUpdateInfo[5] = color;
 
             const floor:Function = Math.floor;
@@ -16977,14 +17032,7 @@
                 _pickerBox.changeHueColor(baseHexColor);
             }
 
-            const c:Vector.<uint> = HEXtoRGB(color);
-            const colorHint:String =  "RGB "+c[0]+","+c[1]+","+c[2];
-            _pickerBox.setRGBInfo(colorHint);
-            _pickerBox.setRGBInfoColor(getInvertColor(color,1.0
-            ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
-            ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]));
-            const defColor:Number = getColorDifferenceForHuman(color,uiColorSet[uiColorIndex][0]);
-
+            updateRGBInfoText(color);
             _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
         }
 
@@ -19551,6 +19599,16 @@
 
             switch(targetName)
             {
+                case "rgbInfo":
+                case "rgbInfoBG":
+                {
+                    if(pickerMode === 1 && penColorTransparentFlag)
+                    {
+                        setHSVCursorPosByColor(pickerBox.rgbInfoBGColor);
+                    }
+                }
+                break;
+
                 case "penColorButton":
                 {
                     if(pickerMode !== 1)
@@ -19586,6 +19644,15 @@
                 case "colorHistoryBoxBG":
                 {
                     selectHistoryColor();
+                }
+                return;
+
+                case "transColorButton":
+                {
+                    if(pickerBox.transColorButton.alpha === 1.0 && !penColorTransparentFlag)
+                    {
+                        setTransparentColor();
+                    }
                 }
                 return;
 
