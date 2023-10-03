@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 20.25;
+        private const APP_VERSION:Number = 20.26;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -265,7 +265,8 @@
                     ,canvas2:Sprite = new Sprite() //캔버스 2번 임시로 그려주는 캔버스 버퍼?
                     ,canvas2Draw:Shape = new Shape() //실제로 선을 긋는 div
                     ,canvasPanelMask:Shape = new Shape() //캔버스 마스크
-                    ,lassoBox:Sprite = new Sprite()//선택한 이미지를 그려주고 확대 축소등 조작
+                    ,lassoBox1:Sprite = new Sprite()//선택한 이미지를 그려주고 확대 축소등 조작
+                    ,lassoBox2:Sprite = new Sprite()//선택한 이미지를 그려주고 확대 축소등 조작
                     ,penSizeCursor:Shape = new Shape() //펜사이즈 미리 보기
                     ,captureAreaRect:Shape = new Shape()//스크린샷 박스 미리보기 그려줌
                     ,toolBox:toolButtons = new toolButtons()
@@ -4036,7 +4037,7 @@
 
                         case KEY.w:
                         case KEY.i:
-                            if(zoomed !== 1.0) resetZoomDrawMode(lassoBox.localToGlobal(new Point(0,0)));
+                            if(zoomed !== 1.0) resetZoomDrawMode(lassoBox1.localToGlobal(new Point(0,0)));
                         return;
                     }
                 });
@@ -6476,13 +6477,15 @@
             if(lassoLayerSwappedFlag)
             {
                 lassoLayerSwappedFlag = false;
-                lassoBox.setChildIndex(lassoBMP,1);
+                canvasPanel.setChildIndex(lassoBox2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
+                canvasPanel.setChildIndex(lassoBox1,canvasPanel.getChildIndex(canvas1Bitmap)+1);
                 lassoMenu.hint("Swap layers 1 <-> 2");
             }
             else
             {
                 lassoLayerSwappedFlag = true;
-                lassoBox.setChildIndex(lassoBMPsub,1);
+                canvasPanel.setChildIndex(lassoBox1,canvasPanel.getChildIndex(canvas11Bitmap)+1);
+                canvasPanel.setChildIndex(lassoBox2,canvasPanel.getChildIndex(canvas1Bitmap)+1);
                 lassoMenu.hint("Swap layers 2 <-> 1");
             }
         }
@@ -6499,17 +6502,12 @@
         private function setLassoRotateButton():void
         {
             lassoResizeON = true;
-            const _lassoBox:Sprite = lassoBox;
-            const _lassoMenu:lassoButtons = lassoMenu;
-            const _canvasPanel:Sprite = canvasPanel;
             const floor:Function = Math.floor;
             const atan2:Function = Math.atan2;
             const abs:Function = Math.abs;
             const PI:Number = Math.PI;
-            const _rotateCursorBox:rotateCursor = rotateCursorBox;
-            const angleCursor:SimpleButton = _rotateCursorBox["rotateArrow"]
 
-            var sumAng:Number = lassoBox.rotation*PI/180;//rad로 바꿔줌
+            var sumAng:Number = lassoBox1.rotation*PI/180;//rad로 바꿔줌
             var lastAng:Number = 0;
             const toDeg:Number = 180/PI;
 
@@ -6519,8 +6517,8 @@
             {
                 lassoResizeON = false;
                 lassoBMP.smoothing = true;
-                _lassoMenu.visible = true;
-                _rotateCursorBox.visible = false;
+                lassoMenu.visible = true;
+                rotateCursorBox.visible = false;
 
                 stage.removeEventListener(MouseEvent.MOUSE_UP, lassoRotateButtonUpEvent);
                 stageMouseMoveEvent.remove("lassoRotateButtonMoveEvent");
@@ -6528,7 +6526,7 @@
 
             function lassoRotateButtonMoveEvent(e:MouseEvent):void
             {
-                const nowAng:Number = Math.atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
+                const nowAng:Number = Math.atan2(mouseX-rotateCursorBox.x,mouseY-rotateCursorBox.y);
                 const subAng:Number = lastAng-nowAng;
 
                 if(subAng === 0) return;
@@ -6538,17 +6536,18 @@
 
                 const deg:Number = floor(sumAng*toDeg+0.5);
 
-                _lassoBox.rotation = deg;
-                angleCursor.rotation = deg;
+                lassoBox1.rotation = deg;
+                lassoBox2.rotation = deg;
+                rotateCursorBox["rotateArrow"].rotation = deg;
             }
 
-            _rotateCursorBox.x = mouseX;
-            _rotateCursorBox.y = mouseY+50;
-            _rotateCursorBox.visible = true;
-            setTopChildIndex(_rotateCursorBox);
-            lastAng = Math.atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
-            angleCursor.rotation = _lassoBox.rotation;
-            _lassoMenu.visible = false;
+            rotateCursorBox.x = mouseX;
+            rotateCursorBox.y = mouseY+50;
+            rotateCursorBox.visible = true;
+            setTopChildIndex(rotateCursorBox);
+            lastAng = Math.atan2(mouseX-rotateCursorBox.x,mouseY-rotateCursorBox.y);
+            rotateCursorBox["rotateArrow"].rotation = lassoBox1.rotation;
+            lassoMenu.visible = false;
             stageMouseMoveEvent.add("lassoRotateButtonMoveEvent",lassoRotateButtonMoveEvent);
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoRotateButtonUpEvent);
         }
@@ -6556,28 +6555,25 @@
         private function setLassoResizeButton():void
         {
             lassoResizeON = true;
-            const _lassoBox:Sprite = lassoBox;
-            const _lassoMenu:lassoButtons = lassoMenu;
             const floor:Function = Math.floor;
             const abs:Function = Math.abs;
-            const _lassoBMP:Bitmap = lassoBMP;
             var lassoFirstX:Number = mouseX;
             var lassoFirstY:Number = mouseY;
             var lassoMovedX:Number = lassoFirstX;
             var lassoMovedY:Number = lassoFirstY;
-            var lassoFirstScale:Number = _lassoBox.scaleY;
+            var lassoFirstScale:Number = lassoBox1.scaleY;
             var lassoImageScale:Number = lassoFirstScale;
             var moveFlag:uint = 0;
 
-            _lassoBMP.smoothing = false;
+            lassoBMP.smoothing = false;
 
             function lassoResizeButtonUpEvent(e:MouseEvent):void
             {
                 lassoResizeON = false;
 
                 checkLassoMenuPos();
-                _lassoBMP.smoothing = true;
-                _lassoMenu.visible = true;
+                lassoBMP.smoothing = true;
+                lassoMenu.visible = true;
                 toolTipBox.visible = false;
 
                 stage.removeEventListener(MouseEvent.MOUSE_UP,lassoResizeButtonUpEvent);
@@ -6617,17 +6613,19 @@
                     else if(abs(my-lassoFirstY) > 3) moveFlag = 2;
                 }
 
-                _lassoBox.scaleX = (mirrorFlag) ? -lassoImageScale : lassoImageScale;
-                _lassoBox.scaleY = lassoImageScale;
+                lassoBox1.scaleX = (mirrorFlag) ? -lassoImageScale : lassoImageScale;
+                lassoBox1.scaleY = lassoImageScale;
+                lassoBox2.scaleX = lassoBox1.scaleX;
+                lassoBox2.scaleY = lassoBox1.scaleY;
                 lassoMovedX = mx;
                 lassoMovedY = my;
 
-                setToolTipON(floor(_lassoBox.width+0.5) +" x " +floor(_lassoBox.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
+                setToolTipON(floor(lassoBox1.width+0.5) +" x " +floor(lassoBox1.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
             }
 
-            setToolTipON(floor(_lassoBox.width+0.5)+" x "+floor(_lassoBox.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
+            setToolTipON(floor(lassoBox1.width+0.5)+" x "+floor(lassoBox1.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
             toolTipBox.visible = true;
-            _lassoMenu.visible = false;
+            lassoMenu.visible = false;
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoResizeButtonUpEvent);
             stageMouseMoveEvent.add("lassoResizeButtonMoveEvent",lassoResizeButtonMoveEvent);
         }
@@ -6635,7 +6633,7 @@
         private function isLassoUsed():Boolean
         {
             const arr:Array = lassoStartData;
-            const _lassobox:Sprite = lassoBox;
+            const _lassobox:Sprite = lassoBox1;
 
             if(lassoCopyON
             || arr[0] !== _lassobox.x
@@ -6653,16 +6651,15 @@
         private function setLassoMoveButton():void
         {
             var old:Point = new Point(mouseX,mouseY);
-            const _lassoMenu:lassoButtons = lassoMenu;
-            var sx:Number = lassoBox.x;
-            var sy:Number = lassoBox.y;
+            var sx:Number = lassoBox1.x;
+            var sy:Number = lassoBox1.y;
 
             lassoBMP.smoothing = false;
 
             function lassoMoveButtonUpEvent(e:MouseEvent):void
             {
                 lassoBMP.smoothing = true;
-                _lassoMenu.visible = true;
+                lassoMenu.visible = true;
                 checkLassoMenuPos();
                 stage.removeEventListener(MouseEvent.MOUSE_UP,lassoMoveButtonUpEvent);
                 stageMouseMoveEvent.remove("lassoMoveButtonMoveEvent");
@@ -6679,12 +6676,14 @@
                 sx += rotatedMove.x/z;
                 sy += rotatedMove.y/z;
 
-                lassoBox.x = round(sx);
-                lassoBox.y = round(sy);
+                lassoBox1.x = round(sx);
+                lassoBox1.y = round(sy);
+                lassoBox2.x = round(sx);
+                lassoBox2.y = round(sy);
 
                 old.setTo(mouseX,mouseY);
             }
-            _lassoMenu.visible = false;
+            lassoMenu.visible = false;
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoMoveButtonUpEvent);
             stageMouseMoveEvent.add("lassoMoveButtonMoveEvent",lassoMoveButtonMoveEvent);
         }
@@ -9221,13 +9220,19 @@
                 if(lassoBMP.bitmapData) lassoBMP.bitmapData.dispose();
                 if(lassoBMPsub.bitmapData) lassoBMPsub.bitmapData.dispose();
 
-                const lsbox:Sprite = lassoBox;
-                lsbox.x = 0;
-                lsbox.y = 0;
-                lsbox.scaleX = 1.0;
-                lsbox.scaleY = 1.0;
-                lsbox.rotation = 0;
-                lsbox.visible = false;
+                lassoBox1.x = 0;
+                lassoBox1.y = 0;
+                lassoBox1.scaleX = 1.0;
+                lassoBox1.scaleY = 1.0;
+                lassoBox1.rotation = 0;
+                lassoBox1.visible = false;
+
+                lassoBox2.x = 0;
+                lassoBox2.y = 0;
+                lassoBox2.scaleX = 1.0;
+                lassoBox2.scaleY = 1.0;
+                lassoBox2.rotation = 0;
+                lassoBox2.visible = false;
             }
 
             function lasso(data:Array,clearOnly:Boolean):void
@@ -14425,7 +14430,7 @@
                 //regpoint를 panelLimitedPos계산한 값으로 이동
                 if(lassoMenuTempOFF === true)
                 {
-                    gp = lassoBox.localToGlobal(zerop);
+                    gp = lassoBox1.localToGlobal(zerop);
                     setRegPoint(gp.x,gp.y,false);
                 }
                 else
@@ -15263,10 +15268,12 @@
                 lassoBMPsub.smoothing = true;
             }
 
-            lassoBox.x = rectLeft+halfWidth;
-            lassoBox.y = rectTop+halfHeight;
-            lassoDraw.x = -lassoBox.x;
-            lassoDraw.y = -lassoBox.y;
+            lassoBox1.x = rectLeft+halfWidth;
+            lassoBox1.y = rectTop+halfHeight;
+            lassoBox2.x = lassoBox1.x;
+            lassoBox2.y = lassoBox1.y;
+            lassoDraw.x = -lassoBox1.x;
+            lassoDraw.y = -lassoBox1.y;
 
             if(replayMode)
             {
@@ -15318,13 +15325,13 @@
             function setDeafultLassoMenuPos(lassoMenu:lassoButtons):void
             {
                 const floor:Function = Math.floor;
-                const g:Point = lassoBox.localToGlobal(new Point(0,0));
+                const g:Point = lassoBox1.localToGlobal(new Point(0,0));
                 const lassoW:Number = (lassoMenu.width > stage.stageWidth)
                                       ? stage.stageWidth : lassoMenu.width;
 
                 lassoMenu.x = floor(g.x-lassoW/2);
-                lassoMenu.y = floor(g.y+(((lassoBox.height)/2)*zoomed+20));
-                // lassoMenu.y = floor(g.y+(((lassoBox.height)/2)/zoomed+15));
+                lassoMenu.y = floor(g.y+(((lassoBox1.height)/2)*zoomed+20));
+                // lassoMenu.y = floor(g.y+(((lassoBox1.height)/2)/zoomed+15));
             }
 
             function lassoDrawMouseUp():void
@@ -15365,14 +15372,10 @@
                     return;
                 }
 
-                if(checklayer2)
-                {
-                    canvasPanel.setChildIndex(lassoBox,canvasPanel.getChildIndex(canvas1Bitmap)-1);
-                }
                 drawPreviewLine();
 
                 //라소 메뉴 마우스 커서에보이기
-                lassoStartData = [lassoBox.x,lassoBox.y,lassoBox.scaleX,lassoBox.scaleY,lassoBox.rotation];
+                lassoStartData = [lassoBox1.x,lassoBox1.y,lassoBox1.scaleX,lassoBox1.scaleY,lassoBox1.rotation];
                 lassoToolON = true;
                 setDeafultLassoMenuPos(lassoMenu);
                 checkLassoMenuPos();
@@ -15386,8 +15389,11 @@
                     lassoMenu.lassoLayerSwap.alpha = 1.0;
                 }
 
+                canvasPanel.setChildIndex(lassoBox2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
+                canvasPanel.setChildIndex(lassoBox1,canvasPanel.getChildIndex(canvas1Bitmap)+1);
+
+                lassoBox2.visible = true;
                 lassoMenu.visible = true;
-                setTopChildIndex(lassoBox);
                 setTopChildIndex(lassoMenu);
 
                 if(traceMenuON === true) traceMenu.visible = false;
@@ -15439,12 +15445,10 @@
                 lassoPointSave = [];
 
                 canvas2.alpha = 1.0; //알파값이 조정되어 있을 수도 있기 때문에 해줌
-                setTopChildIndex(lassoBox);
 
                 lassog.clear();
-                lassoBox.visible = true;
-
                 lassoPoints.push([clickPos.x,clickPos.y]);
+                lassoBox1.visible = true;
 
                 _dottedLine.updateScale(zoomed);
                 if(canvas1Bitmap.visible)
@@ -15865,8 +15869,8 @@
 
         private function drawLassoBoxImageToBitmapData(toTraceLayer:Boolean):Array
         {
-            const lassoBMPScaleX:Number = lassoBox.scaleX;
-            const lassoBMPScaleY:Number = lassoBox.scaleY;
+            const lassoBMPScaleX:Number = lassoBox1.scaleX;
+            const lassoBMPScaleY:Number = lassoBox1.scaleY;
             var lassoBMPWidth:Number = lassoBMP.width*lassoBMPScaleX;
             var lassoBMPHeight:Number = lassoBMP.height*lassoBMPScaleY;
 
@@ -15876,9 +15880,9 @@
                 lassoBMPHeight = lassoBMPsub.height*lassoBMPScaleY;
             }
 
-            const boxX:Number = lassoBox.x;
-            const boxY:Number = lassoBox.y;
-            const ang:Number = lassoBox.rotation*Math.PI/180;
+            const boxX:Number = lassoBox1.x;
+            const boxY:Number = lassoBox1.y;
+            const ang:Number = lassoBox1.rotation*Math.PI/180;
             var posMatrix:Matrix = new Matrix();
 
             posMatrix.scale(lassoBMPScaleX,lassoBMPScaleY);//스케일부터 조절해주고
@@ -15890,7 +15894,7 @@
             lassoBMPsub.smoothing = true;
             lassoBMP.smoothing = true;
 
-            if(lassoBMPScaleX !== 1 || lassoBox.rotation !== 0)
+            if(lassoBMPScaleX !== 1 || lassoBox1.rotation !== 0)
             {
                 applyLassoShapen(lassoBMPScaleX);
             }
@@ -16242,14 +16246,18 @@
             lassoMenu.visible = false;
             lassoDraw.x = 0;
             lassoDraw.y = 0;
-            lassoBox.visible = false;
-            lassoBox.x = 0;
-            lassoBox.y = 0;
-            lassoBox.scaleX = 1.0;
-            lassoBox.scaleY = 1.0;
-            lassoBox.rotation = 0;
-            lassoBox.setChildIndex(lassoBMP,1);
-            canvasPanel.setChildIndex(lassoBox,canvasPanel.getChildIndex(canvas2)+1);
+            lassoBox1.visible = false;
+            lassoBox1.x = 0;
+            lassoBox1.y = 0;
+            lassoBox1.scaleX = 1.0;
+            lassoBox1.scaleY = 1.0;
+            lassoBox1.rotation = 0;
+            lassoBox2.visible = false;
+            lassoBox2.x = 0;
+            lassoBox2.y = 0;
+            lassoBox2.scaleX = 1.0;
+            lassoBox2.scaleY = 1.0;
+            lassoBox2.rotation = 0;
             lassoResizeMoveSum = 0;
             lassoMenu["lassoCopy"].alpha = 1.0;
 
@@ -17333,11 +17341,13 @@
 
             penSizeCursor.visible = false;
 
-            lassoBox.name = "lassoBox";
-            lassoBox.addChild(lassoBMPsub);
-            lassoBox.addChild(lassoBMP);
-            lassoBox.addChild(lassoDraw);
-            lassoBox.visible = false;
+            lassoBox1.name = "lassoBox1";
+            lassoBox1.addChild(lassoBMP);
+            lassoBox1.addChild(lassoDraw);
+            lassoBox1.visible = false;
+            lassoBox2.name = "lassoBox2";
+            lassoBox2.addChild(lassoBMPsub);
+            lassoBox2.visible = false;
 
             captureAreaRect.visible = false;
             captureAreaRect.blendMode = "difference";
@@ -17355,9 +17365,10 @@
 
             canvasPanel.addChild(canvasTraceLayer);
             canvasPanel.addChild(canvas11Bitmap);
+            canvasPanel.addChild(lassoBox2);
             canvasPanel.addChild(canvas1Bitmap);
+            canvasPanel.addChild(lassoBox1);
             canvasPanel.addChild(canvas2);
-            canvasPanel.addChild(lassoBox);
             canvasPanel.addChild(canvasGrid);
             rCursor.visible = false;
             canvasPanel.addChild(rCursor);
@@ -17953,7 +17964,7 @@
             {
                 return;
             }
-            
+
             const keyCode:uint = keyBuffer[0];
 
             //자툴이 nowkey를 쓰기 때문에 nowkey 리턴 이전에서 체크해야함
@@ -18663,8 +18674,10 @@
 
             const rotatedPoint:Point = rotatePoint(x,y,regPoint.rotation);
 
-            lassoBox.x += rotatedPoint.x;
-            lassoBox.y += rotatedPoint.y;
+            lassoBox1.x += rotatedPoint.x;
+            lassoBox1.y += rotatedPoint.y;
+            lassoBox2.x = lassoBox1.x;
+            lassoBox2.y = lassoBox1.y;
         }
 
         private function setSideBarScrollMove(clickY:Number):void
@@ -19614,7 +19627,7 @@
             {
                 case "lassoCZoom":
                 {
-                    if(zoomed !== 1.0) resetZoomDrawMode(lassoBox.localToGlobal(new Point(0,0)));
+                    if(zoomed !== 1.0) resetZoomDrawMode(lassoBox1.localToGlobal(new Point(0,0)));
                 }
                 break;
 
@@ -19626,16 +19639,22 @@
 
                 case "lassoRotate":
                 {
-                    if(lassoBox.rotation !== 0) lassoBox.rotation = 0;
+                    if(lassoBox1.rotation !== 0)
+                    {
+                        lassoBox1.rotation = 0;
+                        lassoBox2.rotation = 0;
+                    }
                 }
                 break;
 
                 case "lassoResize":
                 {
-                    if(lassoBox.scaleY !== 1.0)
+                    if(lassoBox1.scaleY !== 1.0)
                     {
-                        lassoBox.scaleX = (lassoMirrorON) ? -1.0 : 1.0;
-                        lassoBox.scaleY = 1.0;
+                        lassoBox1.scaleX = (lassoMirrorON) ? -1.0 : 1.0;
+                        lassoBox1.scaleY = 1.0;
+                        lassoBox2.scaleX = lassoBox1.scaleX;
+                        lassoBox2.scaleY = lassoBox1.scaleY;
                     }
                 }
                 break;
@@ -19732,10 +19751,12 @@
                     case "lassoMirror":
                     {
                         lassoMirrorON = !lassoMirrorON;
-                        lassoBox.scaleX = -lassoBox.scaleX;
+                        lassoBox1.scaleX = -lassoBox1.scaleX;
+                        lassoBox2.scaleX = lassoBox1.scaleX;
 
                         //캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
-                        lassoBox.rotation = -lassoBox.rotation-(regPoint.rotation*2);
+                        lassoBox1.rotation = -lassoBox1.rotation-(regPoint.rotation*2);
+                        lassoBox2.rotation = lassoBox1.rotation;
                     }
                     break;
 
