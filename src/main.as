@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 21.01;
+        private const APP_VERSION:Number = 21.02;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15500,10 +15500,12 @@
                 if(checkedLayer || !checklayer1 || !checklayer2)
                 {
                     lassoMenu.lassoLayerSwap.alpha = BUTTON_OFF_ALPHA;
+                    lassoMenu.lassoLayerMerge.alpha = BUTTON_OFF_ALPHA;
                 }
                 else
                 {
                     lassoMenu.lassoLayerSwap.alpha = 1.0;
+                    lassoMenu.lassoLayerMerge.alpha = 1.0;
                 }
 
                 canvasPanel.setChildIndex(lassoBox2,canvasPanel.getChildIndex(canvas11Bitmap)+1);

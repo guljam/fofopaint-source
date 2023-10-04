@@ -6,9 +6,6 @@
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.filters.BlurFilter;
-	import flash.display.Shape;
-	import flash.display.DisplayObject;
-	import flash.geom.Point;
 
 	public class controlMenu extends Sprite
 	{
