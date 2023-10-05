@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 21.03;
+        private const APP_VERSION:Number = 21.04;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -17414,7 +17414,7 @@
             toolBox.x = -2;
             toolBox.y = floor(controlBox.y+2);
 
-            sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width+4;
+            resetScrollBarXPosition();
             sideBarScrollBar.y = scrollBarMovedY;
 
             sideBar.y = topBar.BARSIZE*topBar.scaleX;
@@ -17463,7 +17463,7 @@
 
             if(toolBox.getDeafultY() === 0) toolBox.setDeafultY(toolBox.y);
 
-            sideBarScrollBar.x = sideBar.w;
+            resetScrollBarXPosition();
             sideBarScrollBar.y = scrollBarMovedY;
 
             sideBar.y = topBar.BARSIZE*topBar.scaleX;
@@ -17660,6 +17660,23 @@
             saveTraceImage();
         }
 
+        private function resetScrollBarXPosition():void
+        {
+            if(sideBarScrollBar.visible === false)
+            {
+                sideBarScrollBar.x = 0;
+            }
+            else if(isRightSidebar)
+            {
+                sideBarScrollBar.x = previewBox.x-sideBarScrollBar.width+4;
+            }
+            else
+            {
+                sideBarScrollBar.x = sideBar.w;
+            }
+        }
+
+
         private function updateScrollBarHeight(sth:Number):void
         {
             const floor:Function = Math.floor;
@@ -17681,6 +17698,7 @@
 
             if(sideBarSetHeight < sth || fillPenStarted)
             {
+                sideBarScrollBar.x = 0;
                 sideBarScrollBar.visible = false;
                 return;
             }
@@ -17696,6 +17714,7 @@
 
             sideBarScrollBar.y = floor(scrollSetY*factor)/scale;
             sideBarScrollBar.visible = true;
+            resetScrollBarXPosition();
         }
 
         private function windowResizedBeforeClosingEvent(e:Event):void
