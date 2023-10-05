@@ -8,7 +8,7 @@
 	import flash.text.TextField;
 	import flash.geom.Rectangle;
 
-	public class previewPanel extends Sprite {		
+	public class previewPanel extends Sprite {
 		public var prevCursor:Sprite = new Sprite();
 		private var prevInfo:TextField;
 		private var prevStageBG:Sprite = new Sprite();
@@ -19,7 +19,7 @@
 		public var prevBitmapLastHeight:Number = 0;
 		public const BOX_WIDTH:Number = 213;
 		public const BOX_HEIGHT:Number = 173;
-		private const maskShape:Sprite = new Sprite();
+		public const maskShape:Sprite = new Sprite();
 		private const prevCursorOffsetX:Number = 0;
 		private const prevCursorOffsetY:Number = 0;
 		public var prevCursorMultiply:Number = 0;

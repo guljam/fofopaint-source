@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 21.02;
+        private const APP_VERSION:Number = 21.03;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -403,6 +403,11 @@
                     ,colorHistoryRectH:uint = 19
                     ,colorHistoryUpdateReady:Boolean = false //히스토리 업데이트 이벤트 추가되면 올려주는거
                     ,colorHistoryUpdateBGReady:Boolean = false //히스토리 업데이트 이벤트 추가되면 올려주는거
+                    ,colorHisotryClickPos:Point = new Point() //컬러 히스토리 클릭하면 위치 넣어줌
+                    ,colorHistoryMovePos:Point = new Point() //컬러 히스토리 드래그할때 움직이는 포인트 넣어줌
+                    ,colorHisotyrClickPresetColor:uint = 0 //클릭한 컬러 저장해줌
+                    ,colorHisotyrClickPresetIndex:int = 0 //클릭한 컬러 인덱스 저장해줌
+                    ,colorHistoryDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
 
         //툴팁 관련 변수
                     ,toolTipHint:String = "" //topbar관련 힌트 여기 저장
@@ -414,6 +419,7 @@
                     ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("repdatatmp") //파일을 저장하거나 불러올때 씀
                     ,rJumpImageFolder:File = File.applicationStorageDirectory.resolvePath("imagecache")
                     ,rJumpImageFrameDataFile:File = File.applicationStorageDirectory.resolvePath("jumpframedata")
+                    ,colorHistoryListFile:File = File.applicationStorageDirectory.resolvePath("colorhisdata")
                     ,rFirstImageFile:File = rJumpImageFolder.resolvePath("0")
                     ,rFileStream:FileStream = new FileStream()//함수들을 왔다갔다 해야해서 전역으로 하나 ,
                     ,rregPoint:Sprite = new Sprite()//회전 스프라이트 부모
@@ -4311,10 +4317,9 @@
             }
         }
 
-        private function setPresetColor(target:Sprite,bgFlag:Boolean):void
+        private function setPresetColor(targetName:String,bgFlag:Boolean):void
         {
-            if(!target) return;
-
+            const target:Sprite = pickerBox.drawrPresetBox.getChildByName(targetName) as Sprite;
             const hexColor:uint = target.transform.colorTransform.color;
             const _setColorTransform:Function = setColorTransform;
 
@@ -7247,37 +7252,17 @@
 
             switch(targetName)
             {
+                case "appResetButton":
                 case "versionInfo":
                 case "releaseNoteButton":
-                    navigateToURL(new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt"));
-                break;
-
                 case "resetAppButton":
-                    checkButtonUp(targetName);
-                break;
-
                 case "aboutButton":
-                    closeAboutPanel();
-                break;
-
                 case "kor":
-                    navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%EC%84%A4%EB%AA%85%EC%84%9C"));
-                break;
-
                 case "jp":
-                    navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB"));
-                break;
-
                 case "eng":
-                    navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-manual"));
-                break;
-
                 case "aboutHomePageLink":
-                    navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/"));
-                break;
-
                 case "aboutTwitterLink":
-                    navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));
+                    checkButtonUp(targetName);
                 break;
 
                 default:
@@ -7455,11 +7440,57 @@
         {
             if(aboutPanelON)
             {
-                if(targetName === "appResetButton")
+                function aboutButtonUpEvent(e:MouseEvent):void
                 {
-                    resetApp();
-                    stage.nativeWindow.close();
+                    stage.removeEventListener(MouseEvent.MOUSE_UP,aboutButtonUpEvent);
+                    const upTargetName:String = e.target.name;
+                    if(targetName === upTargetName)
+                    {
+                        switch(targetName)
+                        {
+                            case "resetAppButton":
+                            {
+                                resetApp();
+                                stage.nativeWindow.close();
+                            }
+                            break;
+
+                            case "versionInfo":
+                            case "releaseNoteButton":
+                                navigateToURL(new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt"));
+                            break;
+
+                            case "aboutButton":
+                                closeAboutPanel();
+                            break;
+
+                            case "kor":
+                                navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%EC%84%A4%EB%AA%85%EC%84%9C"));
+                            break;
+
+                            case "jp":
+                                navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB"));
+                            break;
+
+                            case "eng":
+                                navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-manual"));
+                            break;
+
+                            case "aboutHomePageLink":
+                                navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/"));
+                            break;
+
+                            case "aboutTwitterLink":
+                                navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));
+                            break;
+
+                            default:
+                                closeAboutPanel();
+                            break;
+                        }
+                    }
                 }
+                stage.addEventListener(MouseEvent.MOUSE_UP,aboutButtonUpEvent);
                 return;
             }
 
@@ -7468,10 +7499,10 @@
                 stage.removeEventListener(MouseEvent.MOUSE_UP, buttonUpEvent);
 
                 const upTargetName:String = e.target.name;
-                var url:URLRequest;
 
                 if(targetName === upTargetName)
                 {
+
                     switch(upTargetName)
                     {
                         case "capLayer1VisibleButton":
@@ -7700,6 +7731,66 @@
                         {
                             setLayerSwapButton();
                             topBar.hintTime("Layers has been swapped",topBar.replayModeButton);
+                        }
+                        break;
+
+                        case "currentColor":
+                        {
+                            setCurrentColor(pickerMode);
+                        }
+                        break;
+
+                        case "tegaki0":
+                        case "tegaki1":
+                        case "tegaki2":
+                        case "tegaki3":
+                        case "tegaki4":
+                        {
+                            setTegakiPresetColor(targetName);
+                        }
+                        break;
+
+                        case "rgbInfo":
+                        case "rgbInfoBG":
+                        {
+                            if(pickerMode === 1 && penColorTransparentFlag)
+                            {
+                                setHSVCursorPosByColor(pickerBox.rgbInfoBGColor);
+                            }
+                        }
+                        break;
+
+                        case "penColorButton":
+                        {
+                            if(pickerMode !== 1)
+                            {
+                                changePickerModeToNormal();
+                            }
+                        }
+                        break;
+
+                        case "paperColorButton":
+                        {
+                            if(pickerMode !== 2)
+                            {
+                                changePickerModeToBG();
+                            }
+                        }
+                        break;
+
+                        case "colorHistoryBox":
+                        case "colorHistoryBoxBG":
+                        {
+                            selectHistoryColor();
+                        }
+                        break;
+
+                        case "transColorButton":
+                        {
+                            if(pickerBox.transColorButton.alpha === 1.0 && !penColorTransparentFlag)
+                            {
+                                setTransparentColor();
+                            }
                         }
                         break;
                     }
@@ -11149,33 +11240,48 @@
             }
         }
 
-        private function selectHistoryColor():void
+        private function isHistoryColorIndexExist(index:uint):Boolean
         {
-            const _pickerMode:uint = pickerMode;
+            if(index > colorHistoryList.length-1)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private function getHistoryColorIndexByPos():uint
+        {
             const historyBox:Sprite = pickerBox.colorHistoryBox;
             const floor:Function = Math.floor;
-            const arr:Array = colorHistoryList;
             const mx:Number = historyBox.mouseX;
             const my:Number = historyBox.mouseY;
             const inX:int = floor(mx/colorHistoryColorWidth);
             const inY:int = floor(my/colorHistoryRectH);//히스토리 컬러 높이 나누고 몫을 구함
-            const index:int = inX+(inY*10); //10개씩 한줄이니까 10을 더해줌 이거 10개 정해주는건 updateColorHistoryList의 for문에서 %연산으로 해줌
 
-            if(index > arr.length-1) return;
+            return inX+(inY*10); //10개씩 한줄이니까 10을 더해줌 이거 10개 정해주는건 updateColorHistoryList의 for문에서 %연산으로 해줌
 
-            const pickedColor:uint = arr[index];
-            var findIndex:uint = arr.lastIndexOf(pickedColor);
+        }
+        private function selectHistoryColor():void
+        {
+            const index:uint = getHistoryColorIndexByPos();
+
+            if(isHistoryColorIndexExist(index) === false)
+            {
+                return;
+            }
+
+            const pickedColor:uint = colorHistoryList[index];
 
             updateOpaBoxColor(pickedColor);
 
-            if(_pickerMode === 2)
+            if(pickerMode === 2)
             {
                 updateColorHistoryList();
                 setBackgroundColorDrawMode(pickedColor);
                 if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 addUndoBGColor(pickedColor);
             }
-            else if(_pickerMode === 1)
+            else if(pickerMode === 1)
             {
                 // changedColor = pickedColor;
                 penColor = pickedColor;
@@ -11187,7 +11293,7 @@
 
             pickerColorSelected = true;
 
-            if(!colorHistoryUpdateReady && findIndex !== -1)
+            if(!colorHistoryUpdateReady && index !== -1)
             {
                 colorHistoryUpdateReady = true;
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
@@ -11269,7 +11375,7 @@
             return color; //밝은색일때 반전색 / 어두울때 반전색
         }
 
-        private function updateColorHistoryList():void
+        private function updateColorHistoryList(ignoreIndex:int = -1):void
         {
             const arr:Array = colorHistoryList;
             const cg:Graphics = pickerBox.colorHistoryBox.graphics;
@@ -11280,6 +11386,8 @@
             cg.clear();
             for(var i:int=0;i<len;i++)
             {
+                if(i === ignoreIndex) continue;
+
                 cg.beginFill(arr[i]);
                 cg.drawRect(i*w,0,w,h);
             }
@@ -13197,6 +13305,31 @@
             }
         }
 
+        // private function loadColorHistoryList():void
+        // {
+        //     if(colorHistoryListFile.exists === false)
+        //     {
+        //         return;
+        //     }
+
+        //     const fs:FileStream = new FileStream();
+        //     fs.open(colorHistoryListFile,FileMode.READ);
+        //     var list:Array = fs.readObject();
+        //     colorHistoryList.length = 0;
+        //     colorHistoryList = list.concat();
+        //     list.length = 0;
+        //     list = null;
+        //     updateColorHistoryList();
+        // }
+
+        // private function saveColorHistoryList():void
+        // {
+        //     const fs:FileStream = new FileStream();
+        //     fs.open(colorHistoryListFile,FileMode.WRITE);
+        //     fs.writeObject(colorHistoryList);
+        //     fs.close();
+        // }
+
         private function saveReplayFrameData():void
         {
             const fs:FileStream = new FileStream();
@@ -13453,6 +13586,17 @@
                 arr = fs.readObject() as Array;
                 fs.close();
                 rJumpImageFrameData = arr.concat();
+            }
+
+            if(colorHistoryListFile.exists)
+            {
+                fs.open(colorHistoryListFile,FileMode.READ);
+                var list:Array = fs.readObject();
+                colorHistoryList.length = 0;
+                colorHistoryList = list.concat();
+                list.length = 0;
+                list = null;
+                updateColorHistoryList();
             }
 
             if(appDataFile.exists)
@@ -19644,6 +19788,159 @@
             return false;
         }
 
+        private function colorHistoryDragMouseUpEvent(e:MouseEvent):void
+        {
+            colorHistoryDragStarted = false;
+
+            if(pickerBox.colorHistoryBoxBG.hitTestPoint(mouseX,mouseY) === false)
+            {
+                colorHistoryList.splice(colorHisotyrClickPresetIndex,1);
+            }
+            else
+            {
+                const index:uint = getHistoryColorIndexByPos();
+                const movingColor:uint = colorHistoryList.splice(colorHisotyrClickPresetIndex,1);
+
+                colorHistoryList.insertAt(index,movingColor);
+            }
+
+            updateColorHistoryList();
+            pickerBox.removeColorHistoryDragBox();
+            stage.removeEventListener(MouseEvent.MOUSE_UP,colorHistoryDragMouseUpEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_MOVE,colorHistoryDragMouseMoveEvent);
+        }
+
+        private function colorHistoryDragMouseMoveEvent(e:MouseEvent):void
+        {
+            if(Point.distance(colorHisotryClickPos,colorHistoryMovePos) >= 4)
+            {
+                if(colorHistoryDragStarted === false)
+                {
+                    colorHistoryDragStarted = true;
+                    pickerBox.setColorHistoryDragBoxColor(colorHisotyrClickPresetColor);
+                    updateColorHistoryList(colorHisotyrClickPresetIndex);
+                }
+
+                pickerBox.setColorHistoryDragBoxPos(pickerBox.mouseX,pickerBox.mouseY);
+
+                if(pickerBox.colorHistoryBoxBG.hitTestPoint(mouseX,mouseY) === false)
+                {
+                    if(pickerBox.colorHistoryDragBox.alpha !== 0.65)
+                        pickerBox.colorHistoryDragBox.alpha = 0.65;
+                }
+                else if(pickerBox.colorHistoryDragBox.alpha !== 1.0)
+                {
+                    pickerBox.colorHistoryDragBox.alpha = 1.0;
+                }
+            }
+            else
+            {
+                colorHistoryMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+            }
+        }
+
+        private function checkButtonUpColorPickerBox(targetName:String):void
+        {
+            function buttonUpColorPickerBoxEvent(e:MouseEvent):void
+            {
+                stage.removeEventListener(MouseEvent.MOUSE_UP, buttonUpColorPickerBoxEvent);
+
+                const upTargetName:String = e.target.name;
+
+                if(targetName === upTargetName)
+                {
+                    switch(upTargetName)
+                    {
+                        case "currentColor":
+                        {
+                            setCurrentColor(pickerMode);
+                        }
+                        break;
+
+                        case "tegaki0":
+                        case "tegaki1":
+                        case "tegaki2":
+                        case "tegaki3":
+                        case "tegaki4":
+                        {
+                            setTegakiPresetColor(targetName);
+                        }
+                        break;
+
+                        case "rgbInfo":
+                        case "rgbInfoBG":
+                        {
+                            if(pickerMode === 1 && penColorTransparentFlag)
+                            {
+                                setHSVCursorPosByColor(pickerBox.rgbInfoBGColor);
+                            }
+                        }
+                        break;
+
+                        case "penColorButton":
+                        {
+                            if(pickerMode !== 1)
+                            {
+                                changePickerModeToNormal();
+                            }
+                        }
+                        break;
+
+                        case "paperColorButton":
+                        {
+                            if(pickerMode !== 2)
+                            {
+                                changePickerModeToBG();
+                            }
+                        }
+                        break;
+
+                        case "colorHistoryBox":
+                        case "colorHistoryBoxBG":
+                        {
+                            if(colorHistoryDragStarted === false)
+                            {
+                                selectHistoryColor();
+                            }
+                        }
+                        break;
+
+                        case "transColorButton":
+                        {
+                            if(pickerBox.transColorButton.alpha === 1.0 && !penColorTransparentFlag)
+                            {
+                                setTransparentColor();
+                            }
+                        }
+                        break;
+
+                        case "drawr0":
+                        case "drawr1":
+                        case "drawr2":
+                        case "drawr3":
+                        case "drawr4":
+                        case "drawr5":
+                        case "drawr6":
+                        case "drawr7":
+                        case "drawr8":
+                        case "drawr9":
+                        case "drawr10":
+                        case "drawr11":
+                        case "drawr12":
+                        case "drawr13":
+                        case "drawr14":
+                        case "drawr15":
+                        case "drawr16":
+                        {
+                            setPresetColor(targetName,pickerMode === 2);
+                        }
+                        break;
+                    }
+                }
+            }
+            stage.addEventListener(MouseEvent.MOUSE_UP,buttonUpColorPickerBoxEvent);
+        }
+
         private function checkPickerBoxButtons(target:DisplayObject):void
         {
             const nt:int = nowTool;
@@ -19657,52 +19954,36 @@
                 return;
             }
 
+            colorHistoryUpdateReady = false;
             const targetName:String = target.name;
 
-            colorHistoryUpdateReady = false;
-
-            if(targetName && targetName.indexOf("drawr") !== -1)
+            if(targetName === "colorHistoryBoxBG")
             {
-                setPresetColor(target as Sprite,(pickerMode == 2) ? true : false);
-                return;
+                const index:uint = getHistoryColorIndexByPos();
+
+                colorHisotyrClickPresetIndex = index;
+                colorHisotyrClickPresetColor = colorHistoryList[index];
+
+                if(isHistoryColorIndexExist(index) === false)
+                {
+                    return;
+                }
+
+                colorHisotryClickPos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+                colorHistoryMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+                stage.addEventListener(MouseEvent.MOUSE_UP,colorHistoryDragMouseUpEvent,false,-1);
+                stage.addEventListener(MouseEvent.MOUSE_MOVE,colorHistoryDragMouseMoveEvent);
             }
 
             switch(targetName)
             {
-                case "rgbInfo":
-                case "rgbInfoBG":
-                {
-                    if(pickerMode === 1 && penColorTransparentFlag)
-                    {
-                        setHSVCursorPosByColor(pickerBox.rgbInfoBGColor);
-                    }
-                }
-                break;
-
-                case "penColorButton":
-                {
-                    if(pickerMode !== 1)
-                    {
-                        changePickerModeToNormal();
-                    }
-                }
-                return;
-
-                case "paperColorButton":
-                {
-                    if(pickerMode !== 2)
-                    {
-                        changePickerModeToBG();
-                    }
-                }
-                return;
-
                 case "svBox":
                 case "svCursor":
                 {
                     setSVcolorButton();
                 }
                 return;
+
                 case "hueColor":
                 case "hueCursor":
                 {
@@ -19710,35 +19991,38 @@
                 }
                 return;
 
+                case "rgbInfo":
+                case "rgbInfoBG":
+                case "penColorButton":
+                case "paperColorButton":
                 case "colorHistoryBox":
                 case "colorHistoryBoxBG":
-                {
-                    selectHistoryColor();
-                }
-                return;
-
                 case "transColorButton":
-                {
-                    if(pickerBox.transColorButton.alpha === 1.0 && !penColorTransparentFlag)
-                    {
-                        setTransparentColor();
-                    }
-                }
-                return;
-
                 case "currentColor":
-                {
-                    setCurrentColor(pickerMode);
-                }
-                return;
-
                 case "tegaki0":
                 case "tegaki1":
                 case "tegaki2":
                 case "tegaki3":
                 case "tegaki4":
+                case "drawr0":
+                case "drawr1":
+                case "drawr2":
+                case "drawr3":
+                case "drawr4":
+                case "drawr5":
+                case "drawr6":
+                case "drawr7":
+                case "drawr8":
+                case "drawr9":
+                case "drawr10":
+                case "drawr11":
+                case "drawr12":
+                case "drawr13":
+                case "drawr14":
+                case "drawr15":
+                case "drawr16":
                 {
-                    setTegakiPresetColor(targetName);
+                    checkButtonUpColorPickerBox(targetName);
                 }
                 return;
             }

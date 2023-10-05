@@ -28,7 +28,8 @@
 		public var colorHistoryText:TextField;
 		public const rgbInfoBG:Shape = new Shape();
 		public var rgbInfoBGColor:uint = 0;
-		public const colorHistoryBox:Sprite = new Sprite()//컬러 히스토리
+		public const colorHistoryBox:Sprite = new Sprite();//컬러 히스토리
+		public const colorHistoryDragBox:Shape = new Shape();
 		public var penColorButton:SimpleButton;
 		public var paperColorButton:SimpleButton;
 		public var colorHistoryBoxBG:Sprite = new Sprite();
@@ -62,153 +63,6 @@
 
 		private const baseColor:ColorTransform = new ColorTransform();
 
-		public function colorPickerBox() {
-			// visible = false;
-			name = "pickerBox";
-			initDrawrPreset();
-			initTegakiPreset();
-			updateRGBInfoBG(0,0);
-
-			const floor:Function = Math.floor;
-			var gradMatrix:Matrix = new Matrix();
-			var g:Graphics;
-
-			//sv기본 컬러
-			svBase.graphics.lineStyle(0,0,0);
-			svBase.graphics.beginFill(0xFF0000,1);
-			svBase.graphics.drawRect(0,0,svBoxWidth,svBoxHeight);
-			svBase.graphics.endFill();
-
-			//흰색 그라디언트
-			gradMatrix.createGradientBox(svBoxWidth, svBoxHeight, 0, 0, 0);
-			g = svGradient.graphics;
-			g.beginGradientFill(GradientType.LINEAR, [0xFFFFFF, 0xFFFFFF], [1,0], [0,255], gradMatrix);
-			g.drawRect(0, 0, svBoxWidth, svBoxHeight);
-			g.endFill();
-
-			//검은색 그라디언트
-			gradMatrix.createGradientBox(svBoxWidth, svBoxHeight, Math.PI / 2, 0, 0);
-			g.beginGradientFill(GradientType.LINEAR, [0x000000, 0x000000], [0,1], [0,255], gradMatrix);
-			g.drawRect(0, 0, svBoxWidth, svBoxHeight);
-			g.endFill();
-
-			//hue 그라디언트
-			gradMatrix.createGradientBox(svBoxWidth, hueHeight, 0, 0, 0); //
-			g = hueColor.graphics;
-			g.lineStyle(0,0,0);
-			g.beginGradientFill(GradientType.LINEAR, [0xFF0000,0xFFFF00,0x00FF00,0x00FFFF,0x0000FF,0xFF00FF,0xFF0000],
-															[1,1,1,1,1,1,1],//255/6 = 42.5 x n
-															[0,42.5,85,127.5,170,212.5,255], gradMatrix);
-			g.drawRect(0, 0, svBoxWidth, hueHeight);
-			g.endFill();
-
-			hueColor.name = "hueColor";
-			svBox.name = "svBox";
-
-			colorPickerInfo.x = -2;
-			colorPickerInfo.y = 0;
-			colorPickerInfo.text = "Color";
-			colorPickerInfo.width = svBoxWidth;
-
-			paperColorButton.x = floor(colorPickerInfo.x+colorPickerInfo.textWidth+62);
-			paperColorButton.y = floor(colorPickerInfo.y);
-			penColorButton.x = floor(paperColorButton.x+paperColorButton.width+5);
-			penColorButton.y = floor(paperColorButton.y);
-
-			penColorButton.useHandCursor = false;
-			paperColorButton.useHandCursor = false;
-
-			rgbInfo.x = 0;
-			rgbInfo.y = 0;
-			rgbInfoBG.x = 0;
-			rgbInfoBG.y = floor(rgbInfo.y-1);
-			transColorButton.x = floor(rgbInfoBG.x+rgbInfoBG.width+4);
-			transColorButton.y = rgbInfoBG.y;
-			transColorButton.useHandCursor = false;
-			currentColor.x = floor(transColorButton.x+transColorButton.width);
-			currentColor.y = rgbInfoBG.y;
-			currentColor.name = "currentColor";
-
-			g = hueColorMask.graphics;
-			g.beginFill(0xFFFF0000);
-			g.drawRect(0, 0, svBoxWidth, hueHeight);
-			g.endFill();
-
-			hueCursor.x = 0;
-			hueCursor.y = -floor((hueCursor.height-hueHeight)/2);
-			hueCursor.mask = hueColorMask;
-
-			hueColor.x = 0;
-			hueColor.y = floor(rgbInfoBG.y+rgbInfoBG.height+4);
-			hueColor.addChild(hueCursor);
-			hueColor.addChild(hueColorMask);
-
-			svBox.addChild(svBase);
-			svBox.addChild(svGradient);
-			svBox.addChild(svCursor);
-			svBox.y = floor(hueColor.y+hueColor.height+4);
-			g = hsvSetBoxMask.graphics;
-			g.beginFill(0xFFFF0000);
-			g.drawRect(0, 0, svBoxWidth, svBoxHeight);
-			g.endFill();
-			svBox.addChild(hsvSetBoxMask);
-
-			mainColorPickerBox.addChild(svBox); //mainColorPickerBox svBox안에 svColor안에 svCursor
-			mainColorPickerBox.addChild(hueColor);
-			mainColorPickerBox.addChild(transColorButton);
-			mainColorPickerBox.addChild(currentColor);
-			mainColorPickerBox.addChild(rgbInfoBG);
-			mainColorPickerBox.addChild(rgbInfo);
-			mainColorPickerBox.x = 0;
-			mainColorPickerBox.y = floor(penColorButton.y+penColorButton.height+6);
-
-			colorHistoryText.x = -1;
-			colorHistoryText.y = -5;
-			colorHistoryBox.x = 1;
-			colorHistoryBox.y = floor(colorHistoryText.y+colorHistoryText.height);
-
-			colorHistoryBox.name = "colorHistoryBox";
-			colorHistoryBoxBG.name = "colorHistoryBoxBG";
-
-			g = colorHistoryBoxBG.graphics;
-			g.clear()
-			g.beginFill(0xFF0000,0.0);
-			g.drawRect(0,0,170,19); //17픽셀 10개임
-			g.endFill();
-			colorHistoryBox.addChild(colorHistoryBoxBG);
-
-			drawrText.x = colorHistoryText.x;
-			drawrText.y = floor(colorHistoryBox.y+colorHistoryBox.height+1);
-			drawrPresetBox.x = colorHistoryBox.x;
-			drawrPresetBox.y =floor(drawrText.y+drawrText.height-1);
-
-			tegakiText.x = colorHistoryText.x;
-			tegakiText.y = floor(drawrPresetBox.y+drawrPresetBox.height+1);
-			tegakiPresetBox.x = colorHistoryBox.x;
-			tegakiPresetBox.y = floor(tegakiText.y+tegakiText.height);
-
-			mainPresetBox.addChild(colorHistoryText);
-			mainPresetBox.addChild(colorHistoryBox);
-			mainPresetBox.addChild(drawrText);
-			mainPresetBox.addChild(drawrPresetBox);
-			mainPresetBox.addChild(tegakiText);
-			mainPresetBox.addChild(tegakiPresetBox);
-			mainPresetBox.x = colorHistoryText.x;
-			mainPresetBox.y = floor(mainColorPickerBox.y+mainColorPickerBox.height+5);
-			addChild(mainColorPickerBox);
-			addChild(mainPresetBox);
-
-			panelWidth = 180;
-			panelHeight = mainPresetBox.y+mainPresetBox.height+3;
-
-			updateCurrentColor(0,0);
-			svCursor.mask = hsvSetBoxMask;
-			svCursor.useHandCursor = false;
-			hueCursor.useHandCursor = false;
-		}
-
-		//피커박스 구조
-		//custom color, colorhistoryBox, drawr프리셋 따로따로 전부가 첫번째 자식들임
 		public function setPickerMode(mode:int):void
 		{
 			if(mode === 1)
@@ -388,6 +242,180 @@
 			g.endFill();
 
 			svBaseColor = color;
+		}
+
+		public function removeColorHistoryDragBox():void
+		{
+			colorHistoryDragBox.visible = false;
+			colorHistoryDragBox.graphics.clear();
+		}
+
+		public function setColorHistoryDragBoxPos(mx:Number,my:Number):void
+		{
+			colorHistoryDragBox.x = mx-colorHistoryDragBox.width/2;
+			colorHistoryDragBox.y = my-colorHistoryDragBox.height/2;
+		}
+
+		public function setColorHistoryDragBoxColor(color:uint):void
+		{
+			colorHistoryDragBox.graphics.clear();
+			colorHistoryDragBox.graphics.beginFill(color);
+			colorHistoryDragBox.graphics.drawRect(0,0,17,19);
+			colorHistoryDragBox.graphics.endFill();
+
+			setChildIndex(colorHistoryDragBox,this.numChildren-1);
+			colorHistoryDragBox.visible = true;
+		}
+
+		//피커박스 구조
+		//custom color, colorhistoryBox, drawr프리셋 따로따로 전부가 첫번째 자식들임
+		public function colorPickerBox() {
+			// visible = false;
+			name = "pickerBox";
+			initDrawrPreset();
+			initTegakiPreset();
+			updateRGBInfoBG(0,0);
+
+			const floor:Function = Math.floor;
+			var gradMatrix:Matrix = new Matrix();
+			var g:Graphics;
+
+			//sv기본 컬러
+			svBase.graphics.lineStyle(0,0,0);
+			svBase.graphics.beginFill(0xFF0000,1);
+			svBase.graphics.drawRect(0,0,svBoxWidth,svBoxHeight);
+			svBase.graphics.endFill();
+
+			//흰색 그라디언트
+			gradMatrix.createGradientBox(svBoxWidth, svBoxHeight, 0, 0, 0);
+			g = svGradient.graphics;
+			g.beginGradientFill(GradientType.LINEAR, [0xFFFFFF, 0xFFFFFF], [1,0], [0,255], gradMatrix);
+			g.drawRect(0, 0, svBoxWidth, svBoxHeight);
+			g.endFill();
+
+			//검은색 그라디언트
+			gradMatrix.createGradientBox(svBoxWidth, svBoxHeight, Math.PI / 2, 0, 0);
+			g.beginGradientFill(GradientType.LINEAR, [0x000000, 0x000000], [0,1], [0,255], gradMatrix);
+			g.drawRect(0, 0, svBoxWidth, svBoxHeight);
+			g.endFill();
+
+			//hue 그라디언트
+			gradMatrix.createGradientBox(svBoxWidth, hueHeight, 0, 0, 0); //
+			g = hueColor.graphics;
+			g.lineStyle(0,0,0);
+			g.beginGradientFill(GradientType.LINEAR, [0xFF0000,0xFFFF00,0x00FF00,0x00FFFF,0x0000FF,0xFF00FF,0xFF0000],
+															[1,1,1,1,1,1,1],//255/6 = 42.5 x n
+															[0,42.5,85,127.5,170,212.5,255], gradMatrix);
+			g.drawRect(0, 0, svBoxWidth, hueHeight);
+			g.endFill();
+
+			hueColor.name = "hueColor";
+			svBox.name = "svBox";
+
+			colorPickerInfo.x = -2;
+			colorPickerInfo.y = 0;
+			colorPickerInfo.text = "Color";
+			colorPickerInfo.width = svBoxWidth;
+
+			paperColorButton.x = floor(colorPickerInfo.x+colorPickerInfo.textWidth+62);
+			paperColorButton.y = floor(colorPickerInfo.y);
+			penColorButton.x = floor(paperColorButton.x+paperColorButton.width+5);
+			penColorButton.y = floor(paperColorButton.y);
+
+			penColorButton.useHandCursor = false;
+			paperColorButton.useHandCursor = false;
+
+			rgbInfo.x = 0;
+			rgbInfo.y = 0;
+			rgbInfoBG.x = 0;
+			rgbInfoBG.y = floor(rgbInfo.y-1);
+			transColorButton.x = floor(rgbInfoBG.x+rgbInfoBG.width+4);
+			transColorButton.y = rgbInfoBG.y;
+			transColorButton.useHandCursor = false;
+			currentColor.x = floor(transColorButton.x+transColorButton.width);
+			currentColor.y = rgbInfoBG.y;
+			currentColor.name = "currentColor";
+
+			g = hueColorMask.graphics;
+			g.beginFill(0xFFFF0000);
+			g.drawRect(0, 0, svBoxWidth, hueHeight);
+			g.endFill();
+
+			hueCursor.x = 0;
+			hueCursor.y = -floor((hueCursor.height-hueHeight)/2);
+			hueCursor.mask = hueColorMask;
+
+			hueColor.x = 0;
+			hueColor.y = floor(rgbInfoBG.y+rgbInfoBG.height+4);
+			hueColor.addChild(hueCursor);
+			hueColor.addChild(hueColorMask);
+
+			svBox.addChild(svBase);
+			svBox.addChild(svGradient);
+			svBox.addChild(svCursor);
+			svBox.y = floor(hueColor.y+hueColor.height+4);
+			g = hsvSetBoxMask.graphics;
+			g.beginFill(0xFFFF0000);
+			g.drawRect(0, 0, svBoxWidth, svBoxHeight);
+			g.endFill();
+			svBox.addChild(hsvSetBoxMask);
+
+			mainColorPickerBox.addChild(svBox); //mainColorPickerBox svBox안에 svColor안에 svCursor
+			mainColorPickerBox.addChild(hueColor);
+			mainColorPickerBox.addChild(transColorButton);
+			mainColorPickerBox.addChild(currentColor);
+			mainColorPickerBox.addChild(rgbInfoBG);
+			mainColorPickerBox.addChild(rgbInfo);
+			mainColorPickerBox.x = 0;
+			mainColorPickerBox.y = floor(penColorButton.y+penColorButton.height+6);
+
+			colorHistoryText.x = -1;
+			colorHistoryText.y = -5;
+			colorHistoryBox.x = 1;
+			colorHistoryBox.y = floor(colorHistoryText.y+colorHistoryText.height);
+
+			colorHistoryBox.name = "colorHistoryBox";
+			colorHistoryBoxBG.name = "colorHistoryBoxBG";
+
+			g = colorHistoryBoxBG.graphics;
+			g.clear()
+			g.beginFill(0xFF0000,0);
+			g.drawRect(0,0,170,34); //17픽셀 10개임
+			g.endFill();
+			colorHistoryBoxBG.y = -14;
+			colorHistoryBox.addChild(colorHistoryBoxBG);
+
+			drawrText.x = colorHistoryText.x;
+			drawrText.y = floor(colorHistoryBox.y+colorHistoryBox.height+1-14);
+			drawrPresetBox.x = colorHistoryBox.x;
+			drawrPresetBox.y =floor(drawrText.y+drawrText.height-1);
+
+			tegakiText.x = colorHistoryText.x;
+			tegakiText.y = floor(drawrPresetBox.y+drawrPresetBox.height+1);
+			tegakiPresetBox.x = colorHistoryBox.x;
+			tegakiPresetBox.y = floor(tegakiText.y+tegakiText.height);
+
+			colorHistoryDragBox.visible = false;
+
+			mainPresetBox.addChild(colorHistoryText);
+			mainPresetBox.addChild(colorHistoryBox);
+			mainPresetBox.addChild(drawrText);
+			mainPresetBox.addChild(drawrPresetBox);
+			mainPresetBox.addChild(tegakiText);
+			mainPresetBox.addChild(tegakiPresetBox);
+			mainPresetBox.x = colorHistoryText.x;
+			mainPresetBox.y = floor(mainColorPickerBox.y+mainColorPickerBox.height+5);
+			addChild(mainColorPickerBox);
+			addChild(mainPresetBox);
+			addChild(colorHistoryDragBox);
+
+			panelWidth = 180;
+			panelHeight = mainPresetBox.y+mainPresetBox.height+3;
+
+			updateCurrentColor(0,0);
+			svCursor.mask = hsvSetBoxMask;
+			svCursor.useHandCursor = false;
+			hueCursor.useHandCursor = false;
 		}
 	}
 }
