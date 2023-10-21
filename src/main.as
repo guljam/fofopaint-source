@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 21.04;
+        private const APP_VERSION:Number = 21.05;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -11303,14 +11303,11 @@
         private function addColorToHistoryManual():void
         {
             const color:uint = (pickerMode === 2) ? CANVAS_BG_COLOR:penColor;
-            changedColor = color;
             const arr:Array = colorHistoryList;
             const c:Vector.<uint> = HEXtoRGB(color);
 
+            changedColor = color;
             addColorToHistory(color);
-
-            setToolTipTempON("Added RGB "+c[0]+","+c[1]+","+c[2]);
-            toolTipBox.visible = true;
         }
 
         //최근에 쓴 컬러를 항상 마지막에 오게함
@@ -19603,10 +19600,22 @@
 
             const targetName:String = e.target.name;
 
+            trace("targetName",targetName)
+
             switch(targetName)
             {
                 case "saveButton": saveFile(true); break;
                 case "loadButton": loadFile(true); break;
+
+                case "svBox":
+                case "hueColor":
+                case "hueCursor":
+                case "rgbInfo":
+                case "currentColor":
+                {
+                    addColorToHistoryManual()
+                }
+                break;
 
                 case "toolZoom":
                 case "zoomInButton":
