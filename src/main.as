@@ -60,7 +60,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 21.05;
+        private const APP_VERSION:Number = 21.06;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3158,53 +3158,6 @@
                 }
             }
 
-            function checkPixelPerfect():void
-            {
-                const command:Vector.<int> = penCommand;
-
-                if(command.length > 2)
-				{
-                    const data:Vector.<Number> = penPoints;
-					var len:uint = command.length;
-
-					var i_:int = (len-3)*2;//뒤에 있는값
-					var x_:Number = data[i_];
-					var y_:Number = data[i_+1];
-
-					const midIndex:int = (len-2);
-					var i:int = midIndex*2; //중간값
-					var x:Number = data[i];
-					var y:Number = data[i+1];
-
-					var _i:int = (len-1)*2; //앞에있는값
-					var _x:Number = data[_i];
-					var _y:Number = data[_i+1];
-
-                    //L모양이 나오면 중간값을 없애줌
-					if((x_ == x || y_ == y)
-					&& (_x == x || _y == y)
-					&& _x != x_
-					&& _y != y_)
-					{
-						command.splice(midIndex,1);
-						data.splice(i,2);
-
-                        //이게 정확할런지 모르겠다
-                        rDataBuffer.splice(rDataBuffer.length-2,1);
-
-						cdg.clear();
-                        lineStyleReady(xShape,xSize,xColor,xAlpha);
-                        cdg.moveTo(data[0],data[1]);
-
-                        len = command.length;
-                        for(var j:int=1; j<len; j++)
-                        {
-                            cdg.lineTo(data[j*2],data[j*2+1]);
-                        }
-					}
-				}
-            }
-
             function lineStyleReady(shape:Boolean,size:uint,color:uint,alpha:Number):void
             {
                 canvas2.alpha = alpha;
@@ -3304,11 +3257,6 @@
                 penPoints.push(my);
                 moveEvent2Last.setTo(mx,my);
                 cdg.lineTo(mx,my);
-
-                if(sharpLineON === true && _penSmoothSlideValue === 0 && rotateFlag == false)
-                {
-                    checkPixelPerfect();
-                }
 
                 if(mouseMoveCount >= 100)
                 {
@@ -19599,8 +19547,6 @@
             }
 
             const targetName:String = e.target.name;
-
-            trace("targetName",targetName)
 
             switch(targetName)
             {
