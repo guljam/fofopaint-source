@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 21.07;
+        private const APP_VERSION:Number = 21.08;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -634,6 +634,7 @@
                     ,selectedRGBInfoIndex:int = -1 //처음 클릭했을때 R G B중 어느 영역을 클릭했는지
                     ,rgbInfoChangedOKFlag:Boolean = false // enter치고 나서 input이 포커스가 나가면 취소가 호출되기 때문에 이거 먼저 올려줘서 캔슬 안되게함
                     ,rgbInfoTextFocusedONFlag:Boolean = false // 텍스트 입력이 켜지면 올려줌
+                    ,rgbInfoRightClickFocusIgnoreFlag:Boolean = false // RGB INFO 오를쪽 클릭은 힌트 안뜨고 기능못하게함
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
@@ -808,6 +809,29 @@
             }
         }
 
+        private function adjustRGBInfoColor(value:int):void
+        {
+            const index:int = getRGBInfoTextRGBPos();
+            const rgb:Array = getRGBColorTextFromRGBInfoText();
+            var num:int = int(rgb[index]);
+
+            num += value;
+            if(num < 0) num = 0;
+            else if(num > 255) num = 255;
+
+            rgb[index] = String(num);
+
+            pickerBox.setRGBInfo(getRGBInfoString(rgb[0],rgb[1],rgb[2]));
+            pickerBox.updateOldRGBInfoText();
+
+            if(isRGBInfoHasEmptyValue() === false)
+            {
+                setHSVCursorPosByColor(RGBtoHex(int(rgb[0]),int(rgb[1]),int(rgb[2])));
+            }
+            //커서가 숫자 맨 끝자리에 있고 자릿수가 적어지면 다음 채널로 넘어가기 때문에 해줘야함
+            selectRGBInfoTextByRGBPos(index);
+        }
+
         private function rgbInfoTextRightMouseUpEvent(e:MouseEvent):void
         {
             e.stopImmediatePropagation();
@@ -848,6 +872,14 @@
                 {
                     selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()+1);
                 }
+            }
+            else if(keyCode === KEY.up)
+            {
+                adjustRGBInfoColor(1);
+            }
+            else if(keyCode === KEY.down)
+            {
+                adjustRGBInfoColor(-1);
             }
         }
 
@@ -903,6 +935,12 @@
 
         private function rgbInfoTextFocusOutEvent(e:FocusEvent):void
         {
+            if(rgbInfoRightClickFocusIgnoreFlag)
+            {
+                rgbInfoRightClickFocusIgnoreFlag = false;
+                return;
+            }
+
             toolTipBox.visible = false;
             pickerBox.rgbInfo.background = false;
             pickerBox.rgbInfo.border  = false;
@@ -916,11 +954,21 @@
             }
 
             rgbInfoChangedOKFlag = false;
+            rgbInfoRightClickFocusIgnoreFlag = false;
             addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.1,false,addInputEventDrawMode);
         }
 
         private function rgbInfoTextFocusInEvent(e:FocusEvent):void
         {
+            if(rgbInfoRightClickFocusIgnoreFlag)
+            {
+                addTimerByName("textInputFocusIgnoreDelay",0.0,false,function():void
+                {
+                    stage.focus = null;
+                })
+                return;
+            }
+
             removeInputEventDrawMode();
 
             selectedRGBInfoIndex = -1;
@@ -940,7 +988,7 @@
             {
                 currnetTextCursorPos = pickerBox.rgbInfo.length;
             }
-            
+
             pickerBox.setfirstRGBInfoColor(getHexColorFromRGBInfoText());
             pickerBox.rgbInfo.setSelection(0,0);
 
@@ -19864,13 +19912,19 @@
                 case "saveButton": saveFile(true); break;
                 case "loadButton": loadFile(true); break;
 
+                case "rgbInfo":
+                {
+                    rgbInfoRightClickFocusIgnoreFlag = true;
+                    addColorToHistoryManual();
+                }
+                break;
+
                 case "svBox":
                 case "hueColor":
                 case "hueCursor":
-                case "rgbInfo":
                 case "currentColor":
                 {
-                    addColorToHistoryManual()
+                    addColorToHistoryManual();
                 }
                 break;
 
