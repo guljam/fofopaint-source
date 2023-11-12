@@ -935,7 +935,12 @@
             }
 
 
-            const currnetTextCursorPos:int = pickerBox.rgbInfo.getCharIndexAtPoint(pickerBox.rgbInfo.mouseX,pickerBox.rgbInfo.mouseY);
+            var currnetTextCursorPos:int = pickerBox.rgbInfo.getCharIndexAtPoint(pickerBox.rgbInfo.mouseX,pickerBox.rgbInfo.mouseY);
+            if(currnetTextCursorPos < 0)
+            {
+                currnetTextCursorPos = pickerBox.rgbInfo.length;
+            }
+            
             pickerBox.setfirstRGBInfoColor(getHexColorFromRGBInfoText());
             pickerBox.rgbInfo.setSelection(0,0);
 
