@@ -9,6 +9,7 @@
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.display.Shape;
+	import flash.ui.ContextMenu;
 
 	public class colorPickerBox extends Sprite {
 		public var mainColorPickerBox:Sprite = new Sprite();
@@ -62,6 +63,39 @@
 		private var rgbInfoHeight:int = 19;
 
 		private const baseColor:ColorTransform = new ColorTransform();
+
+		private var rgbInfoTextSave:String;
+		private var firstRGBInfoColor:uint;
+
+		public function getfirstRGBInfoColor():uint
+		{
+			return firstRGBInfoColor;
+		}
+
+		public function setfirstRGBInfoColor(color:int):void
+		{
+			firstRGBInfoColor = color;
+		}
+
+		public function resetOldRGBInfoText():void
+		{
+			rgbInfo.text = rgbInfoTextSave;
+		}
+
+		public function updateOldRGBInfoText():void
+		{
+			rgbInfoTextSave = rgbInfo.text;
+		}
+
+		public function setoldRGBInfoText(str:String):void
+		{
+			rgbInfoTextSave = str;
+		}
+
+		public function getOldRGBInfoText():String
+		{
+			return rgbInfoTextSave;
+		}
 
 		public function setPickerMode(mode:int):void
 		{
@@ -325,6 +359,12 @@
 			penColorButton.useHandCursor = false;
 			paperColorButton.useHandCursor = false;
 
+			var emptyContextMenu:ContextMenu = new ContextMenu();
+			emptyContextMenu.hideBuiltInItems();
+
+			rgbInfo.contextMenu = emptyContextMenu;
+			rgbInfo.restrict = "0-9";
+			rgbInfo.maxChars = 15;
 			rgbInfo.x = 0;
 			rgbInfo.y = 0;
 			rgbInfoBG.x = 0;
