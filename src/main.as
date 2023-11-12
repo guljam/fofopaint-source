@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.04;
+        private const APP_VERSION:Number = 22.05;
         private const APP_DATA_VERSION:Number = 22.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -19916,6 +19916,7 @@
             penSizeCursor.visible = false;
 
             var pos:Point = toolBox2.getLastUsedToolPos();
+            const scale:Number = getUIScale();
 
             if(pos.x === 0 && pos.y === y)
             {
@@ -19923,8 +19924,8 @@
                 pos = toolBox2.getLastUsedToolPos();
             }
 
-            toolBox2.x = Math.floor(mouseX-pos.x);
-            toolBox2.y = Math.floor(mouseY-pos.y);
+            toolBox2.x = Math.floor(mouseX-pos.x*scale);
+            toolBox2.y = Math.floor(mouseY-pos.y*scale);
             toolBox2.visible = true;
             toolBox2ON = true;
             setResizeButtonVisibleTimer(true);
