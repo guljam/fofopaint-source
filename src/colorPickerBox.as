@@ -28,7 +28,7 @@
 		public var tegakiText:TextField;
 		public var colorHistoryText:TextField;
 		public const rgbInfoBG:Shape = new Shape();
-		public var rgbInfoBGColor:uint = 0;
+		private var rgbInfoBGColor:uint = 0;
 		public const colorHistoryBox:Sprite = new Sprite();//컬러 히스토리
 		public const colorHistoryDragBox:Shape = new Shape();
 		public var penColorButton:SimpleButton;
@@ -64,8 +64,8 @@
 
 		private const baseColor:ColorTransform = new ColorTransform();
 
-		private var rgbInfoTextSave:String;
-		private var firstRGBInfoColor:uint;
+		private var rgbInfoTextSave:String = "";
+		private var firstRGBInfoColor:uint = 0;
 
 		public function getfirstRGBInfoColor():uint
 		{
@@ -251,6 +251,16 @@
 			g.endFill();
 
 			rgbInfoBGColor = color;
+		}
+
+		public function getRGBInfoBGColor():uint
+		{
+			return rgbInfoBGColor;
+		}
+
+		public function getCurrentColor():uint
+		{
+			return currentColorColor;
 		}
 
 		public function updateCurrentColor(color:uint,invColor:uint):void

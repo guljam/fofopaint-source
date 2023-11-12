@@ -6,7 +6,8 @@
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	
+	import flash.geom.Point;
+
 	public class toolButtons2 extends Sprite {
 		public var toolPen:SimpleButton;
 		public var toolFillPen:SimpleButton;
@@ -40,6 +41,20 @@
 
 		private var leftButtonArr:Array;
 		private var rightButtonArr:Array;
+
+		private var lastUsedToolPoint:Point = new Point(0,0);
+
+		public function getLastUsedToolPos():Point
+		{
+			return lastUsedToolPoint;
+		}
+
+		public function updateLastUsedToolPos(targetName:String):void
+		{
+			const btn:SimpleButton = this.getChildByName(targetName) as SimpleButton;
+			lastUsedToolPoint.setTo((btn.x+btn.width/2)*fixedScale,(btn.y+btn.height/2)*fixedScale);
+
+		}
 
 		public function hint(str:String):void
 		{
@@ -197,5 +212,5 @@
 
 		}
 	}
-	
+
 }
