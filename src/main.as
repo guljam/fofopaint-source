@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 21.08;
+        private const APP_VERSION:Number = 22.01;
         private const APP_DATA_VERSION:Number = 18.71;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -630,11 +630,14 @@
                     ,deepUndoON:Boolean = false
                     ,deepUndoONSave:Boolean = false //리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
                     ,deepUndoFrameSave:Number = -1 //리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
+
         //picker box RGB info관련 변수
+                    ,rgbInfoFocusedON:Boolean = false // rgb info입력이 활성화 되었을때 올려줌
                     ,selectedRGBInfoIndex:int = -1 //처음 클릭했을때 R G B중 어느 영역을 클릭했는지
                     ,rgbInfoChangedOKFlag:Boolean = false // enter치고 나서 input이 포커스가 나가면 취소가 호출되기 때문에 이거 먼저 올려줘서 캔슬 안되게함
                     ,rgbInfoTextFocusedONFlag:Boolean = false // 텍스트 입력이 켜지면 올려줌
                     ,rgbInfoRightClickFocusIgnoreFlag:Boolean = false // RGB INFO 오를쪽 클릭은 힌트 안뜨고 기능못하게함
+
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
@@ -935,6 +938,7 @@
 
         private function rgbInfoTextFocusOutEvent(e:FocusEvent):void
         {
+            trace("focus out")
             if(rgbInfoRightClickFocusIgnoreFlag)
             {
                 rgbInfoRightClickFocusIgnoreFlag = false;
@@ -955,7 +959,11 @@
 
             rgbInfoChangedOKFlag = false;
             rgbInfoRightClickFocusIgnoreFlag = false;
-            addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.1,false,addInputEventDrawMode);
+            addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.1,false,function():void
+            {
+                addInputEventDrawMode();
+                rgbInfoFocusedON = false;
+            });
         }
 
         private function rgbInfoTextFocusInEvent(e:FocusEvent):void
@@ -968,6 +976,8 @@
                 })
                 return;
             }
+            
+            rgbInfoFocusedON = true;
 
             removeInputEventDrawMode();
 
@@ -6676,7 +6686,7 @@
 
         private function updateColorHistoryEvent(e:MouseEvent):void
         {
-            if(quickSidebarON) return;
+            if(quickSidebarON || rgbInfoFocusedON) return;
 
             const targetName:String =  e.target.name;
 
