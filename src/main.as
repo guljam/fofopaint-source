@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.03;
+        private const APP_VERSION:Number = 22.04;
         private const APP_DATA_VERSION:Number = 22.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -958,7 +958,6 @@
             {
                 rgbInfoRightClickFocusIgnoreFlag = false;
                 pickerBox.rgbInfo.selectable = true;
-                // pickerBox.resetOldRGBInfoText();
                 return;
             }
             toolTipBox.visible = false;
@@ -973,6 +972,7 @@
             {
                 if(isRGBInfoValueChanged())
                 {
+                    pickerColorSelected = true;
                     setHSVCursorPosByColor(pickerBox.getfirstRGBInfoColor());
                 }
             }
@@ -1031,7 +1031,6 @@
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, rgbInfoTextRightMouseUpEvent);
             pickerBox.rgbInfo.addEventListener(Event.CHANGE, onRGBInfoTextChangeEvent);
 
-
             addTimerByName("rgbInfoTextFocusInEventDelayCheck",0.0,false,function():void
             {
                 pickerBox.rgbInfo.setSelection(currnetTextCursorPos,currnetTextCursorPos);
@@ -1041,7 +1040,6 @@
             const gp:Point = pickerBox.rgbInfoBG.localToGlobal(new Point(0,0));
             const scale:Number = getUIScale();
             setToolTipON(STRING_CUSTOM_COLOR_HINT,gp.x+(102*scale),gp.y-(42*scale));
-            toolTipBox.visible = true;
         }
 
         private function onRGBInfoTextChangeEvent(e:Event):void
@@ -1080,6 +1078,11 @@
             if(selectedRGBInfoIndex !== getRGBInfoTextRGBPos())
             {
                 selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos());
+            }
+            
+            if(toolTipBox.visible === false)
+            {
+                toolTipBox.visible = true;
             }
         }
 
@@ -4893,7 +4896,7 @@
         private function toolBoxHintONEvent(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(!target || mouseClickON || mouseDragON || toolBox.alpha < 1.0 || target.alpha < 1.0) return;
+            if(!target || mouseClickON || mouseDragON || rgbInfoFocusedON || toolBox.alpha < 1.0 || target.alpha < 1.0) return;
 
             const hintStr:String = getToolBoxHint(target.name);
 
@@ -6120,7 +6123,7 @@
 
         private function controlBoxHintONEvent(e:MouseEvent):void
         {
-            if(mouseDragON || mouseClickON || toolBox2ON || lassoToolON) return;
+            if(mouseDragON || mouseClickON || toolBox2ON || lassoToolON || rgbInfoFocusedON) return;
 
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
@@ -8611,7 +8614,7 @@
         {
             const target:DisplayObject = e.target as DisplayObject;
             if(!target || mouseDragON || mouseClickON
-            || toolBox2ON || lassoToolON) return;
+            || toolBox2ON || lassoToolON || rgbInfoFocusedON) return;
 
             const targetName:String = e.target.name;
             if(topBarHintClickEventON === false)
@@ -17570,7 +17573,10 @@
         // hsv커서가 color에 맞춰서 위치를 움직여줌
         private function setHSVCursorPosByColor(color:uint,initFlag:Boolean=false):void
         {
-            if(color === penLastUpdateInfo[5] && !pickerColorSelected) return;
+            if(color === penLastUpdateInfo[5] && !pickerColorSelected)
+            {
+                return;
+            }
 
             penColorTransparentFlag = false;
             penLastUpdateInfo[5] = color;
