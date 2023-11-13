@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.05;
+        private const APP_VERSION:Number = 22.06;
         private const APP_DATA_VERSION:Number = 22.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -224,7 +224,7 @@
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Right-click to reset"
-                    ,STRING_CUSTOM_COLOR_HINT:String = "Custom color : OK (enter, space, right-click)\nMove cursor (wasd, ijkl, tab, shift+tab)"
+                    ,STRING_CUSTOM_COLOR_HINT:String = "Custom color : OK (enter, space, right-click)\nMove cursor (wasd, ijkl, tab, shift+tab)\n"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -960,6 +960,7 @@
                 pickerBox.rgbInfo.selectable = true;
                 return;
             }
+
             toolTipBox.visible = false;
             pickerBox.rgbInfo.background = false;
             pickerBox.rgbInfo.border  = false;
@@ -1031,15 +1032,16 @@
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, rgbInfoTextRightMouseUpEvent);
             pickerBox.rgbInfo.addEventListener(Event.CHANGE, onRGBInfoTextChangeEvent);
 
+
             addTimerByName("rgbInfoTextFocusInEventDelayCheck",0.0,false,function():void
             {
                 pickerBox.rgbInfo.setSelection(currnetTextCursorPos,currnetTextCursorPos);
                 pickerBox.rgbInfo.addEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
+                const gp:Point = pickerBox.rgbInfoBG.localToGlobal(new Point(0,0));
+                const scale:Number = getUIScale();
+                setToolTipON(STRING_CUSTOM_COLOR_HINT,gp.x+(102*scale),gp.y-(42*scale));
+                toolTipBox.visible = true;
             });
-
-            const gp:Point = pickerBox.rgbInfoBG.localToGlobal(new Point(0,0));
-            const scale:Number = getUIScale();
-            setToolTipON(STRING_CUSTOM_COLOR_HINT,gp.x+(102*scale),gp.y-(42*scale));
         }
 
         private function onRGBInfoTextChangeEvent(e:Event):void
@@ -1078,11 +1080,6 @@
             if(selectedRGBInfoIndex !== getRGBInfoTextRGBPos())
             {
                 selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos());
-            }
-            
-            if(toolTipBox.visible === false)
-            {
-                toolTipBox.visible = true;
             }
         }
 
@@ -11368,11 +11365,18 @@
             const floor:Function = Math.floor;
             const toolTipText:TextField = _toolTipBox["toolTipInfoText"];
 
+            _toolTipBox["toolTipInfoText"].width = 1000;
+            _toolTipBox["toolTipInfoText"].height = 1000;
+
             if(str !== "")
             {
                 toolTipText.text = str;
+
                 _toolTipBox["toolTipBoxBG"].width = floor(toolTipText.textWidth+8);
                 _toolTipBox["toolTipBoxBG"].height = floor(toolTipText.textHeight+((str.lastIndexOf("\n") === -1)?2:5));
+
+                _toolTipBox["toolTipInfoText"].width = _toolTipBox["toolTipBoxBG"].width;
+                _toolTipBox["toolTipInfoText"].height = _toolTipBox["toolTipBoxBG"].height;
             }
 
             if(!mx) mx = mouseX;

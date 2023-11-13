@@ -9,7 +9,7 @@
 		public var toolTipBoxBG:SimpleButton;
 		public var toolTipInfoText:TextField;
 		private const baseColor:ColorTransform = new ColorTransform();
-	
+
 		public function updateBGPosition(scaled:Boolean):void
 		{
 			if(scaled) toolTipBoxBG.y = 0;
@@ -30,8 +30,8 @@
 			toolTipBoxBG.x = -1;
 			toolTipBoxBG.y = -1;
 			toolTipBoxBG.useHandCursor = false;
-			toolTipInfoText.width = 350;
-			toolTipInfoText.height = 60;
+			toolTipBoxBG.mouseEnabled = false;
+			toolTipInfoText.mouseEnabled = false;
 		}
 	}
 }
