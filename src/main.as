@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.06;
+        private const APP_VERSION:Number = 22.07;
         private const APP_DATA_VERSION:Number = 22.03;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2221,18 +2221,6 @@
                     if(isNewColorSelectedAddColorHistory(pickerBox.getCurrentColor()))
                     {
                         addCurrentColorToHistoryManual();
-                        return;
-                    }
-                }
-                break;
-
-                case "svBox":
-                case "hueColor":
-                case "hueCursor":
-                {
-                    if(isNewColorSelectedAddColorHistory(pickerBox.getRGBInfoBGColor()))
-                    {
-                        addColorToHistoryManual();
                         return;
                     }
                 }
@@ -19985,14 +19973,6 @@
                 case "currentColor":
                 {
                     addCurrentColorToHistoryManual();
-                }
-                break;
-
-                case "svBox":
-                case "hueColor":
-                case "hueCursor":
-                {
-                    addColorToHistoryManual();
                 }
                 break;
 
