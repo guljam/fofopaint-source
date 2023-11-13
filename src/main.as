@@ -2225,6 +2225,22 @@
                     }
                 }
                 break;
+
+                case "layer1SelectButton":
+                    selectSubLayer(false,canvas11Bitmap.visible);
+                    if(controlBox.layer2CheckButton.visible)
+                    {
+                        setLayer2CheckToggle();
+                    }
+                return;
+
+                case "layer2SelectButton":
+                    selectSubLayer(true,canvas1Bitmap.visible);
+                    if(controlBox.layer1CheckButton.visible)
+                    {
+                        setLayer1CheckToggle();
+                    }
+                return;
             }
 
             setQuickSidebarOFF();
