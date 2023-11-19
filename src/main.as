@@ -61,8 +61,8 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.07;
-        private const APP_DATA_VERSION:Number = 22.03;
+        private const APP_VERSION:Number = 22.10;
+        private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private const STAGE_FRAME:int = stage.frameRate;
@@ -121,6 +121,10 @@
                                         n8:56,
                                         n9:57,
                                         minus:189,
+                                        pgup:33,
+                                        pgdn:34,
+                                        home:36,
+                                        end:35,
                                         left:37,
                                         up:38,
                                         right:39,
@@ -176,7 +180,7 @@
                     ,REPLAY_MAKE_JUMPIMAGE_COUNT:uint = 10000
                     ,REPLAY_MAX_SPEED:Number = 200
 
-                    ,GRID_GAP:uint = 30
+                    ,GRID_GAP:uint = 10
                     ,GRID_NORMAL_COLOR:uint = 0xBABABA
                     ,GRID_5UNIT_COLOR:uint = 0x515151
 
@@ -200,7 +204,7 @@
                             ,0,-1,0
                         ],3]
                     ]
-                    ,KEY_REPEAT_DELAY:Number = 0.25
+                    ,KEY_REPEAT_DELAY:Number = 0.3
                     ,KEY_REPEAT_INTERVAL:Number = 0.06
                     ,COMMAND_CTRL:int = (1 << 0)
                     ,COMMAND_SHIFT:int = (1 << 1)
@@ -220,15 +224,16 @@
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_ONEMORE_PRESS_TO_OK:String = "One more press key to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
-                    ,STRING_CAPTURE_OK:String = " (Click canvas to save image, Right-click to reset capture area)"
+                    ,STRING_CAPTURE_OK:String = "\nSave image (click canvas)\nReset capture area (right-click)"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
-                    ,STRING_RIGHT_CLICK_TO_RESET:String = "Right-click to reset"
-                    ,STRING_CUSTOM_COLOR_HINT:String = "Custom color : OK (enter, space, right-click)\nMove cursor (wasd, ijkl, tab, shift+tab)\n"
+                    ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset (right-click)"
+                    ,STRING_CUSTOM_COLOR_HINT:String = "Move text cursor (a d, j l, arrow key, tab, shift+tab)\nAdjust value (w s, i k)"
+                    ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
-                    ,WINDOW_BORDER_SIZE:Number = 5;
+                    ,ZERO_POINT:Point = new Point(0,0)
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -273,12 +278,16 @@
                     ,captureAreaRect:Shape = new Shape()//스크린샷 박스 미리보기 그려줌
                     ,toolBox:toolButtons = new toolButtons()
                     ,toolBox2:toolButtons2 = new toolButtons2()
+                    ,fillPenBox:fillPenButtons = new fillPenButtons()
                     ,rotateCursorBox:rotateCursor = new rotateCursor()//회전이 얼마나 됐는지 표시
                     ,lassoMenu:lassoButtons = new lassoButtons()//라소툴 버튼
                     ,lassoDraw:Shape = new Shape() //라소 영역 선 그려주는 쉐이프
                     ,topBar:topMenu = new topMenu()
                     ,spuitZoomCursor:spuitMag = new spuitMag()
                     ,toolTipBox:toolTipBoxSet = new toolTipBoxSet()//도움말 버튼
+                    ,hintBox:toolTipBoxSet = new toolTipBoxSet()//도움말 버튼
+                    ,hintCursor:Shape = new Shape()//도움말 버튼 커서
+                    ,hint:Object = cHintFunction()
                     ,stageBG:Sprite = new Sprite() //드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
                     ,aboutPanel:aboutBox = new aboutBox()
 
@@ -292,9 +301,6 @@
                     ,sideBarScrollBar:Sprite = new Sprite()
                     ,sideBarScrollSet:Sprite = new Sprite()
                     ,transBGBMPD:BitmapData = new BitmapData(16,16,false,0xFFFFFF)
-                    ,windowBorderD:Shape = new Shape()
-                    ,windowBorderR:Shape = new Shape()
-                    ,windowBorderL:Shape = new Shape()
                     ;
 
         private var  canvas1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
@@ -323,8 +329,8 @@
                     ,penColor:uint = 0x000000
                     ,penColorTransparentFlag:Boolean = false // 펜 컬러 투명 켜졌을때 올려줌
                     ,sizeOffsetFlag:Boolean = false//0.5픽셀 이동이면 true임 pensizecursormove함수에서 써줌
-                    ,sizeArr:Array = [0,1,2,3,4,5,7,10,13,18,30,45,80]
-                    ,alphaArr:Array = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+                    ,sizeArr:Array = [,1,2,3,4,5,7,10,13,18,30,45,80]
+                    ,opaArr:Array = [,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
                     ,penCursorSize:Number = 3
                     ,penCursorShape:Boolean = false // true이면 사각형
                     ,penSize:uint = 3
@@ -354,12 +360,14 @@
                     ,penListShapeFlag:Boolean = false //펜 리스트에서 펜 모양 버튼 눌러줄때 툴이랑 상관없이 바꿔줌, 펜 미리보기 할때 필요
                     ,penLastUpdateInfo:Array = [null,null,null,null,null,null] //updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뙴
         //컬러픽커 관련 변수
-                    ,HUECOLOR:Vector.<Number> = new Vector.<Number> (3,true) //hue컬러 다른 함수들이랑 통신하기 위해서 전역으로 만들어줌
+                    ,hsvColorArr:Vector.<Number> = new Vector.<Number> (3,true) //hue컬러 다른 함수들이랑 통신하기 위해서 전역으로 만들어줌
                     ,pickerBoxColorBackup:uint = 0 //컬러 픽커 켜질때 원래 색깔 저장하는 곳
                     ,changedColor:int = -1 // 컬러 히스토리에서 고른 색깔을 여기다가 넣어줌
                     ,pickerMode:uint = 1 //1이면 펜컬러 2이면 배경색
                     ,pickerOpaClicked:Boolean = false //피커박스에서 투명도 조절했을때 올려줌 mouse out 이벤트 하나만 작동되게 할라고
                     ,pickerColorSelected:Boolean = false //피커박스에서 컬러를 한번이라도 조절했으면 올려줌
+                    ,pickerHSVButtonMousePoslast:Point = new Point()
+
         //툴메뉴 관련 변수
         //어디 클릭했는지 위치 저장해줘서 다음에 켰을때 그 위치에서 툴메뉴가 켜지게끔 해줌
                     ,toolBox2ON:Boolean = false //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
@@ -408,6 +416,7 @@
                     ,colorHisotyrClickPresetColor:uint = 0 //클릭한 컬러 저장해줌
                     ,colorHisotyrClickPresetIndex:int = 0 //클릭한 컬러 인덱스 저장해줌
                     ,colorHistoryDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
+                    ,colorHistoryHintMouseMoveEventFlag:Boolean = false //이벤트 한번만 등록하게 올려줌
 
         //툴팁 관련 변수
                     ,toolTipHint:String = "" //topbar관련 힌트 여기 저장
@@ -531,7 +540,7 @@
 
         //그리드 레이어 변수
                     ,canvasGrid:Shape = new Shape()//트레이스 레이어임
-                    ,gridFlag:uint = 0
+                    ,gridValue:uint = 0
         //closure
                     ,realWorkingTimer:Object = cRealWorkingTimer()
                     ,dottedLine:Object = cDottedLine()//순서 먼저 와야함
@@ -568,7 +577,7 @@
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarSetHeight:Number = 747
+                    ,sideBarSetHeight:Number = 747+10
 
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
@@ -633,9 +642,9 @@
         //picker box RGB info관련 변수
                     ,rgbInfoFocusedON:Boolean = false // rgb info입력이 활성화 되었을때 올려줌
                     ,selectedRGBInfoIndex:int = -1 //처음 클릭했을때 R G B중 어느 영역을 클릭했는지
-                    ,rgbInfoChangedOKFlag:Boolean = false // enter치고 나서 input이 포커스가 나가면 취소가 호출되기 때문에 이거 먼저 올려줘서 캔슬 안되게함
                     ,rgbInfoTextFocusedONFlag:Boolean = false // 텍스트 입력이 켜지면 올려줌
                     ,rgbInfoRightClickFocusIgnoreFlag:Boolean = false // RGB INFO 오를쪽 클릭은 힌트 안뜨고 기능못하게함
+                    ,rgbInfoColorTypeHSV:Boolean = false // true가 되면 hsv false이면 rgb
 
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
@@ -654,6 +663,7 @@
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,updateAfterSave:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
                     ,layerVisibleKeyFuncCalled:Boolean = false //w키 1키 계속 누르고 있을때 함수 호출 안하게 해주려고 플래그 올려줌
+                    ,hintBoxScrollDirectionFlag:Boolean = false //힌스 박스 스크롤할때 오른쪽인지 왼쪽인지 구분 false면 왼쪽으로 이동
                     ;
 
         public function main():void
@@ -679,7 +689,6 @@
             makeMenuFamlity();
             makeResizeButtonFamily();
             makeTransBG();
-            makeWindowBorder();
             makeWorker();
             updateWindowSizeInfo();
             updateColorHistoryList();
@@ -698,27 +707,367 @@
             checkVersion();
             setIMEDisabled();
             selectPenTool();
+            hint.updateScale(getUIScale());
 
             stage.addChild(fofo);
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
         }
 
+
         //function
-        private function isRGBInfoValueChanged():Boolean
+        private function getColorInfoStringOfHex(hexColor:uint,hsvFlag:Boolean):String
         {
-            return pickerBox.getOldRGBInfoText() !== getRGBInfoString(pickerBox.getfirstRGBInfoColor());
-        }
-
-        private function isRGBInfoHasEmptyValue():Boolean
-        {
-            const rgb:Array = getRGBColorTextFromRGBInfoText();
-
-            if(rgb[0] === "" || rgb[1] === "" || rgb[2] === "")
+            if(hsvFlag)
             {
-                return true;
+                const hsv:Vector.<Number> = HEXtoHSV(hexColor);
+                const h:Number = Math.round(hsv[0]*360);
+                const s:Number = Math.round(hsv[1]*100);
+                const v:Number = Math.round(hsv[2]*100);
+
+                return "HSV "+h+","+s+","+v;
             }
 
-            return false;
+            const rgb:Vector.<uint> = HEXtoRGB(hexColor);
+
+            return "RGB "+rgb[0]+","+rgb[1]+","+rgb[2];
+        }
+
+        private function getCurrentColorHint():String
+        {
+            const strColor:String = getColorInfoStringOfHex(pickerBox.getCurrentColor(),rgbInfoColorTypeHSV);
+
+            return "Current color : "+strColor;
+        }
+
+        private function isHintCantUse():Boolean
+        {
+            return mouseDragON || mouseClickON || toolBox2ON || fillPenStarted || lassoToolON || rgbInfoFocusedON || aboutPanelON;
+        }
+
+        private function setLayerSwapEffect(target:DisplayObject):void
+        {
+            target.alpha = BUTTON_OFF_ALPHA;
+
+            addTimerByName("layerSwapFlickEffect",0.5,false,function():void
+            {
+                target.alpha = 1.0;
+            })
+        }
+
+        private function colorHistoryHintMouseMoveEvent(e:MouseEvent):void
+        {
+            if(colorHistoryDragStarted) return;
+
+            const target:DisplayObject = e.target as DisplayObject
+
+            if(!target) return;
+
+            if(target.name === "colorHistoryBox")
+            {
+                if(hintBox.visible)
+                {
+                    hint.on(getHistoryColorStringByMousePos(),target,true);
+                }
+            }
+            else
+            {
+                colorHistoryHintMouseMoveEventFlag = false;
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,colorHistoryHintMouseMoveEvent);
+            }
+        }
+
+        private function pickerBoxHintONEvent(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+            if(!target || pickerBox.alpha < 1.0 || isHintCantUse()) return;
+
+            const targetName:String = target.name;
+            var str:String = "";
+
+            switch(targetName)
+            {
+                case "rgbInfo":
+                {
+                    if(quickSidebarON) return;
+
+                    str = "Change value (click)\nChange color type (right-click)";
+                }
+                break;
+
+                case "colorHistoryBox":
+                {
+                    hint.on(getHistoryColorStringByMousePos(),target);
+
+                    if(colorHistoryHintMouseMoveEventFlag === false)
+                    {
+                        colorHistoryHintMouseMoveEventFlag = true;
+                        stage.addEventListener(MouseEvent.MOUSE_MOVE,colorHistoryHintMouseMoveEvent);
+                    }
+                }
+                return;
+
+                case "currentColor": str = getCurrentColorHint(); break;
+                case "paperColorButton": str = "Change background color"; break;
+                case "penColorButton": str = "Change pen color"; break;
+                case "transColorButton": str = "Transparent color"; break;
+                default:
+                return;
+            }
+
+            if(str === "") return;
+
+            hint.on(str,target);
+        }
+
+        private function sethintOFFDelay():void
+        {
+            addTimerByName("hintOFFTimer",3.0,false,function():void
+            {
+                hint.off();
+            });
+        }
+
+        private function globalHintOFF(e:MouseEvent):void
+        {
+            if(controlBox.hitTestPoint(mouseX,mouseY))
+            {
+                return;
+            }
+            if(!rgbInfoFocusedON && !captureModeON && !mouseDragON)
+            {
+                hint.off();
+            }
+        }
+
+        private function setHintONTemp(str:String):void
+        {
+            hint.on(str,null);
+            sethintOFFDelay();
+        }
+
+        private function cHintFunction():Object
+        {
+            var gp:Point = new Point(0,0);
+            var scale:Number = 1.0;
+            var w:Number = 0;
+            var h:Number = 0;
+
+            function updateScale(newScale:Number):void
+            {
+                scale = newScale;
+            }
+
+            function cursorON(target:DisplayObject):void
+            {
+                gp = target.localToGlobal(ZERO_POINT);
+
+                w = target.width*scale;
+                h = target.height*scale;
+
+                hintCursor.graphics.clear();
+                hintCursor.graphics.lineStyle(2.0*scale,0x73B5E4);
+
+                if(target is TextField)
+                {
+                    hintCursor.x = gp.x-2*scale;
+                    hintCursor.y = gp.y-3*scale;
+                }
+                else if(target === controlBox.airBrushButtonWrapper || target === controlBox.sharpLineButtonWrapper)
+                {
+                    hintCursor.x = gp.x-scale;
+                    hintCursor.y = gp.y-scale;
+                }
+                else
+                {
+                    hintCursor.x = gp.x;
+                    hintCursor.y = gp.y;
+                }
+
+                hintCursor.graphics.drawRect(0,0,w,(target is TextField) ? h-scale:h);
+
+                setTopChildIndex(hintCursor);
+                hintCursor.visible = true;
+            }
+
+            function hintOFF():void
+            {
+                removeTimer("hintOFFTimer");
+                removeTimer("hintONDelayTimer");
+                removeTimer("hintONAlphaEffect");
+
+                if(hintBox.alpha < 1.0)
+                {
+                    hintOFFEffect();
+                }
+
+                hintCursor.visible = false;
+                addTimerByName("hintOFFDelayTimer",0.3,false,function():void
+                {
+                    hintOFFEffect();
+                });
+            }
+
+            function hintFullOFF():void
+            {
+                hintBox.visible = false;
+                hintBox.alpha = 0.0;
+                hintBox.setText("");
+                hintBox.x = -hintBox.width-3;
+                hintBox.y = -hintBox.height-3;
+            }
+
+            function hintOFFEffect():void
+            {
+                if(hintBox.visible === false) return;
+
+                if(hintBox.alpha < 1.0)
+                {
+                    hintFullOFF();
+                    return;
+                }
+
+                addTimerByName("hintOFFAlphaEffect",0.0,true,function():Boolean
+                {
+                    hintBox.alpha -= 0.2;
+                    if(hintBox.alpha < 0.0)
+                    {
+                        hintFullOFF();
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
+            function hintONEffect():void
+            {
+                if(hintBox.visible === false) hintBox.alpha = 0.0;
+
+                removeTimer("hintOFFAlphaEffect");
+                addTimerByName("hintONAlphaEffect",0.0,true,function():Boolean
+                {
+                    hintBox.alpha += 0.2;
+                    if(hintBox.alpha > 1.0)
+                    {
+                        hintBox.alpha = 1.0;
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
+            function hintON(str:String,target:DisplayObject):void
+            {
+                str = str.replace(/\n/g, " \n ");
+                str = " "+str+" ";
+
+                hintBox.setText(str);
+
+                hintBox.x = 0;
+                hintBox.y = stage.stageHeight-hintBox.height;
+
+                // if(hintBox.hitTestPoint(mouseX,mouseY))
+                // {
+                //     hintBox.y = (mouseY-hintBox.height*scale)-(20*scale);
+                // }
+                // else
+                if(target && hintBox.hitTestObject(target))
+                {
+                    gp = target.localToGlobal(ZERO_POINT);
+                    hintBox.y = (gp.y-hintBox.height*scale)-(20*scale);
+                }
+
+                hintONEffect();
+                setTopChildIndex(hintBox);
+                hintBox.visible = true;
+            }
+
+            function start(str:String,target:DisplayObject,fastHint:Boolean=false):void
+            {
+                removeTimer("hintOFFTimer");
+                removeTimer("hintOFFDelayTimer");
+                removeTimer("hintONDelayTimer");
+
+                if(target)
+                {
+                    cursorON(target);
+                }
+
+                if(!target || fastHint)
+                {
+                    hintON(str,target);
+                }
+                else
+                {
+                    hintOFFEffect();
+                    addTimerByName("hintONDelayTimer",0.3,false,hintON,[str,target]);
+                }
+            }
+
+            return {
+                on:start,
+                off:hintOFF,
+                cursorON:cursorON,
+                updateScale:updateScale
+            }
+        }
+
+        private function isRGBInfoValueChanged():Boolean
+        {
+            return pickerBox.getOldRGBInfoText() !== pickerBox.getFirstRGBInfoColorText();
+        }
+
+        private function checkRGBInfoHasEmptyValue():Boolean
+        {
+            const c:Array = getRGBColorTextFromRGBInfoText();
+            var emptyFlag:int = -1;
+
+            if(c[0] === "")
+            {
+                emptyFlag = 0;
+                c[0] = "0";
+            }
+
+            if(c[1] === "")
+            {
+                emptyFlag = 1;
+                c[1] = "0";
+            }
+
+            if(c[2] === "")
+            {
+                emptyFlag = 2;
+                c[2] = "0";
+            }
+
+            if(emptyFlag === -1) return false;
+
+
+            if(rgbInfoColorTypeHSV)
+            {
+                c[0] = Number(c[0])/360;
+                c[1] = Number(c[1])/100;
+                c[2] = Number(c[2])/100;
+                const hsv:Vector.<Number> = new <Number>[c[0],c[1],c[2]];
+                getHSVInfoString(hsv);
+                pickerColorSelected = true;
+                setHSVCursorPosByColor(getHSVColorFromRGBInfoText());
+            }
+            else
+            {
+                c[0] = int(c[0]);
+                c[1] = int(c[1]);
+                c[2] = int(c[2]);
+                getRGBInfoString(c[0],c[1],c[2]);
+                pickerColorSelected = true;
+                setHSVCursorPosByColor(getHexColorFromRGBInfoText());
+            }
+
+            //이전 항목으로 이동
+            --emptyFlag;
+            if(emptyFlag < 0) emptyFlag = 0;
+            selectRGBInfoTextByRGBPos(emptyFlag);
+
+            return true;
         }
 
         //123,123,123에서 커서가 어느 지점이 있는지 반환함 0은 R, 1은 G, 2는 B
@@ -757,20 +1106,32 @@
         //RGB 문자열 3개가 든 배열을 반환함
         private function getRGBColorTextFromRGBInfoText():Array
         {
-            var rgbText:String = pickerBox.rgbInfo.text.replace(/RGB|\s/g, ""); // "RGB"와 공백 제거
+            var rgbText:String = pickerBox.getRGBInfo().slice(4); // "RGB"와 공백 제거
             var rgb:Array = rgbText.split(","); // 쉼표로 숫자를 나눔
 
             return rgb;
         }
 
+        private function getHSVColorFromRGBInfoText():Vector.<Number>
+        {
+            const c:Array = getRGBColorTextFromRGBInfoText();
+            const h:Number = Number(c[0])/360;
+            const s:Number = Number(c[1])/100;
+            const v:Number = Number(c[2])/100;
+            const hsv:Vector.<Number> = new <Number> [h,s,v];
+
+            return hsv;
+        }
+
         private function getHexColorFromRGBInfoText():uint
         {
             const c:Array = getRGBColorTextFromRGBInfoText();
-            return RGBtoHex(int(c[0]),int(c[1]),int(c[2]));
+
+            return RGBtoHEX(int(c[0]),int(c[1]),int(c[2]));
         }
 
         //R G B 해당 영역의 값이 3자리 인지 아닌지 확인
-        private function isCurrentRGBInfoTextFullValue():Boolean
+        private function isCurrentRGBInfoTextLenBiggerThan3():Boolean
         {
             const rgb:Array = getRGBColorTextFromRGBInfoText();
             const cursorPos:int = getRGBInfoTextRGBPos();
@@ -801,13 +1162,21 @@
         {
             const rgb:Array = getRGBColorTextFromRGBInfoText();
 
-            for(var i:int=0;i<3;i++)
+            if(rgbInfoColorTypeHSV)
             {
-                if(int(rgb[i]) > 255)
-                {
-                    rgb[i] = "255";
-                    pickerBox.setRGBInfo("RGB "+rgb[0]+","+rgb[1]+","+rgb[2]);
-                }
+                if(int(rgb[0]) > 360) rgb[0] = "360";
+                if(int(rgb[1]) > 100) rgb[1] = "100";
+                if(int(rgb[2]) > 100) rgb[2] = "100";
+
+                pickerBox.setRGBInfo("HSV "+rgb[0]+","+rgb[1]+","+rgb[2]);
+            }
+            else
+            {
+                if(int(rgb[0]) > 255) rgb[0]= "255";
+                if(int(rgb[1]) > 255) rgb[1]= "255";
+                if(int(rgb[2]) > 255) rgb[2]= "255";
+
+                pickerBox.setRGBInfo("RGB "+rgb[0]+","+rgb[1]+","+rgb[2]);
             }
         }
 
@@ -824,6 +1193,36 @@
             }
         }
 
+        private function adjustHSVInfoColor(value:int):void
+        {
+            const index:int = getRGBInfoTextRGBPos();
+            const hsv:Array = getRGBColorTextFromRGBInfoText();
+            var num:int = int(hsv[index]);
+
+            num += value;
+
+            if(num < 0) num = 0;
+
+            if(index === 0)
+            {
+                if(num > 360) num = 360;
+            }
+            else
+            {
+                if(num > 100) num = 100;
+            }
+
+            hsv[index] = String(num);
+
+            pickerBox.setRGBInfo("HSV "+hsv);
+            pickerBox.updateOldRGBInfoText();
+
+            setHSVCursorPosByColor(getHSVColorFromRGBInfoText());
+
+            //커서가 숫자 맨 끝자리에 있고 자릿수가 적어지면 다음 채널로 넘어가기 때문에 해줘야함
+            selectRGBInfoTextByRGBPos(index);
+        }
+
         private function adjustRGBInfoColor(value:int):void
         {
             const index:int = getRGBInfoTextRGBPos();
@@ -836,110 +1235,181 @@
 
             rgb[index] = String(num);
 
-            pickerBox.setRGBInfo(getRGBInfoString(rgb[0],rgb[1],rgb[2]));
+            pickerBox.setRGBInfo("RGB "+rgb);
             pickerBox.updateOldRGBInfoText();
 
-            if(isRGBInfoHasEmptyValue() === false)
-            {
-                setHSVCursorPosByColor(RGBtoHex(int(rgb[0]),int(rgb[1]),int(rgb[2])));
-            }
+            setHSVCursorPosByColor(getHexColorFromRGBInfoText());
+
             //커서가 숫자 맨 끝자리에 있고 자릿수가 적어지면 다음 채널로 넘어가기 때문에 해줘야함
             selectRGBInfoTextByRGBPos(index);
         }
 
-        private function rgbInfoTextRightMouseUpEvent(e:MouseEvent):void
+        private function rgbInfoTextRightMouseDownEvent(e:MouseEvent):void
         {
-            e.stopImmediatePropagation();
-            e.preventDefault();
+            toggleRGBInfoTextColorType();
+        }
 
-            if(isRGBInfoValueChanged() && isRGBInfoHasEmptyValue() === false)
+        private function isNumberKeyCode(charCode:uint):Boolean
+        {
+            switch(String.fromCharCode(charCode))
             {
-                setRGBInfoTextInputOK();
+                case "0":
+                case "1":
+                case "2":
+                case "3":
+                case "4":
+                case "5":
+                case "6":
+                case "7":
+                case "8":
+                case "9":
+                return true;
             }
 
-            stage.focus = null;
+            return false;
         }
 
         private function rgbInfoTextKeyDownEvent(e:KeyboardEvent):void
         {
             const keyCode:int = e.keyCode;
 
-            if(keyCode === KEY.enter || keyCode === KEY.space)
+            switch(keyCode)
             {
-                if(isRGBInfoValueChanged() && isRGBInfoHasEmptyValue() === false)
+                case KEY.enter:
+                case KEY.esc:
                 {
-                    setRGBInfoTextInputOK();
+                    stage.focus = null;
                 }
+                break;
 
-                stage.focus = null;
-            }
-            else if(keyCode === KEY.esc)
-            {
-                stage.focus = null;
-            }
-            else if(keyCode === KEY.tab)
-            {
-                if(isPressingShift())
+                case KEY.pgup:
                 {
                     selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()-1);
                 }
-                else
+                break;
+
+                case KEY.pgdn:
                 {
                     selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()+1);
                 }
-            }
-            else if(keyCode === KEY.up || keyCode === KEY.w || keyCode === KEY.i)
-            {
-                adjustRGBInfoColor(1);
-                e.preventDefault();
-            }
-            else if(keyCode === KEY.down || keyCode === KEY.s || keyCode === KEY.k)
-            {
-                adjustRGBInfoColor(-1);
-                e.preventDefault();
-            }
-            else if(keyCode === KEY.d || keyCode === KEY.l)
-            {
-                moveRGBInfoTextCursor(1);
-                e.preventDefault();
-            }
-            else if(keyCode === KEY.a || keyCode === KEY.j)
-            {
-                moveRGBInfoTextCursor(-1);
-                e.preventDefault();
+                break;
+
+                case KEY.tab:
+                {
+                    if(isPressingShift())
+                    {
+                        selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()-1);
+                    }
+                    else
+                    {
+                        selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()+1);
+                    }
+                }
+                break;
+
+                case KEY.up:
+                case KEY.w:
+                case KEY.i:
+                {
+                    if(rgbInfoColorTypeHSV)
+                    {
+                        adjustHSVInfoColor(1);
+                    }
+                    else
+                    {
+                        adjustRGBInfoColor(1);
+                    }
+                    e.preventDefault();
+                }
+                break;
+
+                case KEY.down:
+                case KEY.s:
+                case KEY.k:
+                {
+                    if(rgbInfoColorTypeHSV)
+                    {
+                        adjustHSVInfoColor(-1);
+                    }
+                    else
+                    {
+                        adjustRGBInfoColor(-1);
+                    }
+                    e.preventDefault();
+                }
+                break;
+
+                case KEY.d:
+                case KEY.l:
+                {
+                    moveRGBInfoTextCursor(1);
+                    e.preventDefault();
+                }
+                break;
+
+                case KEY.a:
+                case KEY.j:
+                {
+                    moveRGBInfoTextCursor(-1);
+                    e.preventDefault();
+                }
+                break;
+
+                case KEY.home:
+                case KEY.end:
+                case KEY.backspace:
+                case KEY.right:
+                case KEY.left:
+                case KEY.down:
+                case KEY.up:
+                case KEY.shift:
+                case KEY.alt:
+                case KEY.ctrl:
+                {
+                    //pass
+                }
+                break;
+
+                default:
+                {
+                    if(!isNumberKeyCode(e.charCode))
+                    {
+                        e.preventDefault();
+                        stage.focus = null;
+                    }
+                }
+                break;
             }
         }
 
-        private function setRGBInfoTextInputOKEffect():void
+        //hsv rgb로 왔다갔다함
+        private function toggleRGBInfoTextColorType():void
         {
-            if(!hasTimer("setRGBInfoTextInputOKEffect"))
-            {
-                pickerBox.rgbInfo.x += 1.5;
-                pickerBox.rgbInfo.y += 1.5;
-                pickerBox.rgbInfoBG.x += 1.5;
-                pickerBox.rgbInfoBG.y += 1.5;
+            const oldCursorIndex:int = getRGBInfoTextRGBPos();
 
-                addTimerByName("setRGBInfoTextInputOKEffect",0.2,false,function():void
-                {
-                    pickerBox.rgbInfo.x -= 1.5;
-                    pickerBox.rgbInfo.y -= 1.5;
-                    pickerBox.rgbInfoBG.x -= 1.5;
-                    pickerBox.rgbInfoBG.y -= 1.5;
-                });
+            if(rgbInfoColorTypeHSV)
+            {
+                rgbInfoColorTypeHSV = false;
+                pickerBox.setRGBInfo(getRGBInfoString(pickerBox.getRGBInfoBGColor()));
             }
+            else
+            {
+                rgbInfoColorTypeHSV = true;
+                pickerBox.setRGBInfo(getHSVInfoString(HEXtoHSV(pickerBox.getRGBInfoBGColor())));
+            }
+
+            selectRGBInfoTextByRGBPos(oldCursorIndex);
         }
 
         private function setRGBInfoTextInputOK():void
         {
-            rgbInfoChangedOKFlag = true;
-
-            const color:uint = getHexColorFromRGBInfoText();
+            const color:uint = pickerBox.getRGBInfoBGColor();
 
             if(pickerMode === 1)
             {
                 penColor = color;
-                updateOpaBoxColor(color);
-                updateOpacityCursor(penAlphaIndex);
+                checkColorHistoryUpdateEventReady();
+                updateOpacityCursorPos(penAlphaIndex);
             }
             else if(pickerMode === 2)
             {
@@ -948,8 +1418,6 @@
                 if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 addUndoBGColor(color);
             }
-
-            setRGBInfoTextInputOKEffect();
         }
 
         private function rgbInfoTextFocusOutEvent(e:FocusEvent):void
@@ -961,30 +1429,32 @@
                 return;
             }
 
-            toolTipBox.visible = false;
+            stage.focus = null;
+            hint.off();
             pickerBox.rgbInfo.background = false;
             pickerBox.rgbInfo.border  = false;
             pickerBox.rgbInfo.removeEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN, rgbInfoTextKeyDownEvent);
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, rgbInfoTextRightMouseUpEvent);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rgbInfoTextRightMouseDownEvent);
             pickerBox.rgbInfo.removeEventListener(Event.CHANGE, onRGBInfoTextChangeEvent);
 
-            if(rgbInfoChangedOKFlag === false)
-            {
-                if(isRGBInfoValueChanged())
-                {
-                    pickerColorSelected = true;
-                    setHSVCursorPosByColor(pickerBox.getfirstRGBInfoColor());
-                }
-            }
+            setRGBInfoTextInputOK();
 
-            rgbInfoChangedOKFlag = false;
             rgbInfoRightClickFocusIgnoreFlag = false;
-            addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.1,false,function():void
+
+            if(pickerMode === 2)
             {
-                addInputEventDrawMode();
+                addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.1,false,function():void
+                {
+                    addInputEventDrawMode();
+                    rgbInfoFocusedON = false;
+                });
+            }
+            else
+            {
                 rgbInfoFocusedON = false;
-            });
+                addInputEventDrawMode();
+            }
         }
 
         private function rgbInfoTextFocusInEvent(e:FocusEvent):void
@@ -1004,69 +1474,75 @@
                 })
                 return;
             }
+
             removeInputEventDrawMode();
 
             rgbInfoFocusedON = true;
             penColorTransparentFlag = false;
             selectedRGBInfoIndex = -1;
 
-            if(pickerBox.rgbInfo.text.indexOf("RGB") !== -1)
+            const foundColorType:String = (rgbInfoColorTypeHSV) ? "HSV":"RGB";
+
+            if(pickerBox.getRGBInfo().indexOf(foundColorType) !== -1)
             {
                 pickerBox.updateOldRGBInfoText();
             }
-            else
+            else //투명색으로 transparent 텍스트가 되있을때 말하는거임
             {
                 pickerBox.setRGBInfo(pickerBox.getOldRGBInfoText());
             }
 
             var currnetTextCursorPos:int = pickerBox.rgbInfo.getCharIndexAtPoint(pickerBox.rgbInfo.mouseX,pickerBox.rgbInfo.mouseY);
-            if(currnetTextCursorPos < 0)
+            if(currnetTextCursorPos < 0) //텍스트 맨 끝에 클릭하면 -1이 되서 이때는 커서를 가장 뒤로 이동시킴
             {
                 currnetTextCursorPos = pickerBox.rgbInfo.length;
             }
 
-            pickerBox.setfirstRGBInfoColor(getHexColorFromRGBInfoText());
-            pickerBox.rgbInfo.setSelection(0,0);
+            pickerBox.updateFirstRGBInfoColorText();
+            // pickerBox.rgbInfo.setSelection(0,0);
 
-            stage.addEventListener(KeyboardEvent.KEY_DOWN, rgbInfoTextKeyDownEvent);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, rgbInfoTextRightMouseUpEvent);
-            pickerBox.rgbInfo.addEventListener(Event.CHANGE, onRGBInfoTextChangeEvent);
-
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,rgbInfoTextKeyDownEvent);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rgbInfoTextRightMouseDownEvent);
+            pickerBox.rgbInfo.addEventListener(Event.CHANGE,onRGBInfoTextChangeEvent);
 
             addTimerByName("rgbInfoTextFocusInEventDelayCheck",0.0,false,function():void
             {
                 pickerBox.rgbInfo.setSelection(currnetTextCursorPos,currnetTextCursorPos);
                 pickerBox.rgbInfo.addEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
-                const gp:Point = pickerBox.rgbInfoBG.localToGlobal(new Point(0,0));
+                const gp:Point = pickerBox.rgbInfoBG.localToGlobal(ZERO_POINT);
                 const scale:Number = getUIScale();
-                setToolTipON(STRING_CUSTOM_COLOR_HINT,gp.x+(102*scale),gp.y-(42*scale));
-                toolTipBox.visible = true;
+                hint.on(STRING_CUSTOM_COLOR_HINT,null);
             });
         }
 
         private function onRGBInfoTextChangeEvent(e:Event):void
         {
-            var pattern:RegExp = /RGB \d{0,3},\d{0,3},\d{0,3}/;
-            var isMatch:Boolean = pattern.test(pickerBox.rgbInfo.text);
+            var pattern:RegExp = /(RGB|HSV) \d{0,3},\d{0,3},\d{0,3}/;
+            var isMatch:Boolean = pattern.test(pickerBox.getRGBInfo());
 
-            if (isMatch)
+            var hasEmptyChecked:Boolean = checkRGBInfoHasEmptyValue();
+            if(isMatch)
             {
                 checkRGBInfoColorValueLimit();
                 pickerBox.updateOldRGBInfoText();
 
-                if(isRGBInfoHasEmptyValue() === false)
+                if(rgbInfoColorTypeHSV)
+                {
+                    setHSVCursorPosByColor(getHSVColorFromRGBInfoText());
+                }
+                else
                 {
                     setHSVCursorPosByColor(getHexColorFromRGBInfoText());
                 }
 
-                if(isCurrentRGBInfoTextFullValue())
+                if(isCurrentRGBInfoTextLenBiggerThan3() && hasEmptyChecked === false)
                 {
                     selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()+1);
                 }
             }
             else
             {
-                pickerBox.resetOldRGBInfoText();
+                pickerBox.resetToOldRGBInfoText();
             }
         }
 
@@ -1087,11 +1563,11 @@
         {
             if(args.length === 1)
             {
-                if(args[0] as Vector.<uint>)
+                if(args[0] is Vector.<uint>)
                 {
                     return "RGB "+args[0][0]+","+args[0][1]+","+args[0][2];
                 }
-                else if(args[0] as uint || args[0] === 0)
+                else if(args[0] is uint || args[0] === 0)
                 {
                     const c:Vector.<uint> = HEXtoRGB(args[0]);
                     return "RGB "+c[0]+","+c[1]+","+c[2];
@@ -1113,12 +1589,11 @@
         private function updateStageOffset():void
         {
             const scale:Number = getUIScale();
-            const borderSize:Number = Math.round(WINDOW_BORDER_SIZE*scale);
 
-            STAGE_TOP_OFFSET = Math.round(topBar.BARSIZE*scale);
-            STAGE_BOTTOM_OFFSET = borderSize;
-            STAGE_RIGHT_OFFSET = borderSize;
-            STAGE_LEFT_OFFSET = borderSize;
+            STAGE_TOP_OFFSET = (replayModeON) ? Math.round(topBar.BARSIZE*scale+replayTimeBox.BARSIZE*scale) : Math.round(topBar.BARSIZE*scale);
+            STAGE_BOTTOM_OFFSET = 0;
+            STAGE_RIGHT_OFFSET = 0;
+            STAGE_LEFT_OFFSET = 0;
 
             if(captureModeON || replayModeON)
             {
@@ -1136,53 +1611,6 @@
                     STAGE_LEFT_OFFSET = Math.round(sideBar.getWidth());
                 }
             }
-        }
-
-        private function makeWindowBorder():void
-        {
-            windowBorderD.cacheAsBitmap = true;
-            windowBorderR.cacheAsBitmap = true;
-            windowBorderL.cacheAsBitmap = true;
-            stage.addChild(windowBorderD);
-            stage.addChild(windowBorderR);
-            stage.addChild(windowBorderL);
-            stage.setChildIndex(windowBorderL,stage.getChildIndex(rregPoint)+1);
-            stage.setChildIndex(windowBorderR,stage.getChildIndex(rregPoint)+1);
-            stage.setChildIndex(windowBorderD,stage.getChildIndex(rregPoint)+1);
-        }
-
-        private function setWindowBorderColor(base:uint):void
-        {
-            const ct:ColorTransform = new ColorTransform();
-            ct.color = base;
-            windowBorderD.transform.colorTransform = ct;
-            windowBorderR.transform.colorTransform = ct;
-            windowBorderL.transform.colorTransform = ct;
-        }
-
-        private function updateWindowBorder(stw:int,sth:int):void
-        {
-            const scale:Number = getUIScale();
-            const size:Number = WINDOW_BORDER_SIZE*scale;
-
-            windowBorderD.graphics.clear();
-            windowBorderD.graphics.beginFill(0xFF0000);
-            windowBorderD.graphics.drawRect(0,0,stw,size);
-            windowBorderD.graphics.endFill();
-
-            windowBorderL.graphics.clear();
-            windowBorderL.graphics.beginFill(0xFFFF00);
-            windowBorderL.graphics.drawRect(0,0,size,sth);
-            windowBorderL.graphics.endFill();
-
-            windowBorderR.graphics.clear();
-            windowBorderR.graphics.beginFill(0xFFFF00);
-            windowBorderR.graphics.drawRect(0,0,size,sth);
-            windowBorderR.graphics.endFill();
-
-            windowBorderD.x = 0;
-            windowBorderD.y = sth-size;
-            windowBorderL.x = stw-size;
         }
 
         private function clearArrayElement(arr:Array):void
@@ -1931,6 +2359,8 @@
 
         private function setLayerSwapButton():void
         {
+            if(controlBox.layerSwapButton.alpha < 1.0) return;
+
             if(deepUndoON) setApplyDeepUndo();
 
             var tempbmpd1:BitmapData = canvas1BitmapData.clone();
@@ -1957,6 +2387,8 @@
                 rDataBuffer.push(["swap"]);
                 addUndoData();
             }
+
+            setLayerSwapEffect(controlBox.layerSwapButton);
         }
 
         private function getProcessedCaptureImage(clipBoardCopyFlag:Boolean):BitmapData
@@ -2046,21 +2478,30 @@
         private function copyCaptureImageToCilpBoard():void
         {
             Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT,getProcessedCaptureImage(true),false);
-            topBar.hint("The image copied to clipboard successfully",topBar.capClipBoard as DisplayObject);
+            setHintONTemp("The image copied to clipboard successfully");
             topBar.capClipBoard.alpha = BUTTON_OFF_ALPHA;
         }
 
         private function getUIScaleString(index:int):String
         {
             if(index === 0)
+            {
                 return "100%";
+            }
             else
+            {
                 return getUIScale()*100+"%";
+            }
         }
 
         private function getUIScale():Number
         {
             return uiScaleSet[uiScaleIndex];
+        }
+
+        private function resetUIScale():void
+        {
+            setUIScaleButton(uiScaleSet.length);
         }
 
         private function setUIScaleButton(index:int):void
@@ -2081,8 +2522,9 @@
             topBar.scaleX = scale;
             topBar.scaleY = scale;
             topBar.updateTopbarBG(stw);
-            topBar.updateTimerPos(stw);
-            topBar.updateHintBGWidth(stw);
+
+            hintBox.scaleX = scale;
+            hintBox.scaleY = scale;
 
             replayTimeBox.scaleX = scale;
             replayTimeBox.scaleY = scale;
@@ -2098,25 +2540,32 @@
 
             toolTipBox.scaleX = scale;
             toolTipBox.scaleY = scale;
-            toolTipBox.updateBGPosition((uiScaleIndex === 0) ? false:true)
+
+            fillPenBox.scaleX = scale;
+            fillPenBox.scaleY = scale;
 
             aboutPanel.scaleX = scale;
             aboutPanel.scaleY = scale;
 
             updateStageOffset();
             updateScrollBarHeight(sth);
+
             sideBar.y = Math.round(STAGE_TOP_OFFSET);
             sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
+
+            hint.updateScale(scale);
+
             fofo.scaleX = scale*fofo.fixedScale;
             fofo.scaleY = scale*fofo.fixedScale;
             checkfofoPos();
-            updateWindowBorder(stw,sth);
             autoScroll.updateScale(scale);
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenu);
 
             updatePreviewBoxRectPos();
+
+            hint.off();
         }
 
         private function cStartGC():Function
@@ -2201,30 +2650,17 @@
                 return;
 
                 case "colorHistoryBox":
-                case "colorHistoryBoxBG":
+                {
+                    // addCurrentColorToHistoryManual();
+                }
                 return;
 
                 case "rgbInfo":
                 {
                     rgbInfoRightClickFocusIgnoreFlag = true;
-
-                    if(isNewColorSelectedAddColorHistory(pickerBox.getRGBInfoBGColor()))
-                    {
-                        addColorToHistoryManual();
-                        return;
-                    }
+                    toggleRGBInfoTextColorType();
                 }
-                break;
-
-                case "currentColor":
-                {
-                    if(isNewColorSelectedAddColorHistory(pickerBox.getCurrentColor()))
-                    {
-                        addCurrentColorToHistoryManual();
-                        return;
-                    }
-                }
-                break;
+                return;
 
                 case "layer1SelectButton":
                     selectSubLayer(false,canvas11Bitmap.visible);
@@ -2241,6 +2677,9 @@
                         setLayer1CheckToggle();
                     }
                 return;
+
+                default:
+                break;
             }
 
             setQuickSidebarOFF();
@@ -2596,7 +3035,7 @@
 
         private function cCheckHideCursor():Object
         {
-            const hideTime:int = STAGE_FRAME;
+            const hideTime:int = STAGE_FRAME*2;
             var isMouseHide:Boolean = false;
             var count:int = 0;
             const pos:Point = new Point(0,0);
@@ -2629,7 +3068,7 @@
                     if(count > hideTime)
                     {
                         Mouse.hide();
-                        topBar.hintOFF();
+                        setTopBarHintOFF();
                         isMouseHide = true;
                         updateMousePos();
                     }
@@ -2683,10 +3122,12 @@
         private function updateOldTool():void
         {
             if(oldTool === TOOL_NONE)
+            {
                 oldTool = nowTool;
+            }
         }
 
-        private function setHoldKeyRepeat(func:Function,...args):Boolean
+        private function setHoldKeyRepeat(firstCall:Boolean,func:Function,...args):Boolean
         {
             if(hasTimer("keyHoldWaitTimer") || hasTimer("keyHoldRepeatTimer")) return false;
 
@@ -2698,7 +3139,7 @@
             });
 
             addCancelAutoKeyEvent();
-            func.apply(main,args);
+            if(firstCall) func.apply(main,args);
 
             return true;
         }
@@ -2732,20 +3173,20 @@
             {
                 case KEY.f:
                 case KEY.h:
-                    setHoldKeyRepeat(shortCutPenSize,true);
+                    setHoldKeyRepeat(true,shortCutPenSize,true);
                 return true;
 
                 case KEY.v:
                 case KEY.n:
-                    setHoldKeyRepeat(shortCutPenSize,false);
+                    setHoldKeyRepeat(true,shortCutPenSize,false);
                 return true;
 
                 case KEY.g:
-                    setHoldKeyRepeat(shortCutPenAlpha,true);
+                    setHoldKeyRepeat(true,shortCutPenAlpha,true);
                 return true;
 
                 case KEY.b:
-                    setHoldKeyRepeat(shortCutPenAlpha,false);
+                    setHoldKeyRepeat(true,shortCutPenAlpha,false);
                 return true;
             }
 
@@ -3073,15 +3514,15 @@
             if(mode === 1)
             {
                 penColor = hexColor;
-                updateOpaBoxColor(hexColor);
-                updateOpacityCursor(penAlphaIndex);
-                setHSVCursorPosByColor(hexColor);
+                checkColorHistoryUpdateEventReady();
+                updateOpacityCursorPos(penAlphaIndex);
+                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(hexColor) : hexColor);
             }
             else if(mode === 2)
             {
                 setBackgroundColorDrawMode(hexColor);
                 if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-                setHSVCursorPosByColor(hexColor);
+                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(hexColor) : hexColor);
                 updateColorHistoryList();
                 addUndoBGColor(hexColor);
             }
@@ -3106,11 +3547,11 @@
 
             if(pickerMode === 1)
             {
-                setHSVCursorPosByColor(arr[0]);
+                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(arr[0]) : arr[0]);
             }
             else if(pickerMode === 2)
             {
-                setHSVCursorPosByColor(arr[1]);
+                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(arr[1]) : arr[1]);
             }
         }
 
@@ -3140,7 +3581,7 @@
             catch(err:Error)
             {
                 fs.close();
-                topBar.hintLoadError();
+                setHintONTemp("Load error");
                 return false;
             }
 
@@ -3168,7 +3609,6 @@
 
             var canvasSizeRect:Rectangle = new Rectangle();
 
-            var clickedButton:String;
             var command:Vector.<int>;
             var data:Vector.<Number>;
             var xColor:uint;
@@ -3181,6 +3621,21 @@
             var rotateFlag:Boolean;
             var xOffset:Number;
             var xBlendMode:String;
+            var clickedButton:String;
+
+            var fillPenBoxUndoUsed:Boolean = false;
+
+            function fillPenHint(e:MouseEvent):void
+            {
+                const target:DisplayObject = e.target as DisplayObject;
+                if(!target) return;
+
+                const targetName:String = target.name;
+
+                if(targetName === "fillPenOK") fillPenBox.hint("OK");
+                else if(targetName === "fillPenCancel") fillPenBox.hint("Cancel");
+                else if(targetName === "fillPenUndo") fillPenBox.hint("Undo");
+            }
 
             function checkFillPenUndoReady():Boolean
             {
@@ -3234,13 +3689,16 @@
                 canvas2.alpha = 1.0;
                 mouseMoveCount = 0;
                 fillPenStarted = false;
-                setFillpenUI(false);
                 command.length = 0;
                 data.length = 0;
                 commandUndoIndexArr = [];
                 cd.graphics.clear();
 
                 if(traceMenuON) traceMenu.visible = true;
+
+                fillPenBox.visible = false;
+                fillPenBox.x = -fillPenBox.width-3;
+                fillPenBox.y = -fillPenBox.height-3;
             }
 
             function endFillPenOK():void
@@ -3283,7 +3741,10 @@
                     commandUndoIndexArr = [0];
                     cd.graphics.clear();
                 }
-                else drawPreviewLine();
+                else
+                {
+                    drawPreviewLine();
+                }
             }
 
             function fillPenKeyUpEvent(e:KeyboardEvent):void
@@ -3314,6 +3775,48 @@
                 }
             }
 
+            function fillPenRightMouseUpEvent(e:MouseEvent):void
+            {
+                if(!e.target as DisplayObject) return;
+
+                const targetName:String = e.target.name;
+
+                if(targetName === "fillPenOK")
+                {
+                    endFillPenOK();
+                }
+                else if(targetName === "fillPenCancel")
+                {
+                    cancelFillPen();
+                }
+                else if(targetName === "fillPenUndo")
+                {
+                    fillPenBoxUndoUsed = true;
+                    undoData();
+                }
+
+                fillPenBox.visible = false;
+            }
+
+            function fillPenRightMouseDownEvent(e:MouseEvent):void
+            {
+                const scale:Number = getUIScale();
+
+                fillPenBox.visible = true;
+                setTopChildIndex(fillPenBox);
+
+                if(fillPenBoxUndoUsed)
+                {
+                    fillPenBox.x = mouseX-fillPenBox.fillPenUndo.width/2*scale;
+                    fillPenBox.y = mouseY-(fillPenBox.fillPenUndo.y+fillPenBox.fillPenUndo.height/2)*scale;
+                }
+                else
+                {
+                    fillPenBox.x = mouseX-(fillPenBox.fillPenOK.x+fillPenBox.fillPenOK.width/2)*scale;
+                    fillPenBox.y = mouseY-(fillPenBox.fillPenOK.y+fillPenBox.fillPenOK.height/2)*scale;
+                }
+            }
+
             function fillPenMouseUpEvent(e:MouseEvent):void
             {
                 removeTimer("fillPenTimer");
@@ -3321,13 +3824,29 @@
                 mouseClickON = false;
                 stageMouseMoveEvent.remove("fillPenMouseMoveEvent");
 
-                const targetName:String = e.target.name;
-
-                if(clickedButton === targetName)
+                if(fillPenBox.visible)
                 {
-                    if(targetName === "fillPenOK") endFillPenOK();
-                    else if(targetName === "fillPenCancel") cancelFillPen();
-                    else if(targetName === "fillPenUndo") undoData();
+                    if(e.target as DisplayObject)
+                    {
+                        const targetName:String = e.target.name;
+
+                        if(clickedButton === targetName)
+                        {
+                            if(targetName === "fillPenOK")
+                            {
+                                endFillPenOK();
+                            }
+                            else if(targetName === "fillPenCancel")
+                            {
+                                cancelFillPen();
+                            }
+                            else if(targetName === "fillPenUndo")
+                            {
+                                fillPenBoxUndoUsed = true;
+                                undoData();
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -3399,22 +3918,24 @@
 
             function fillPenMouseDownEvent(e:MouseEvent):void
             {
+                if(!e.target as DisplayObject) return;
                 const targetName:String = e.target.name;
 
-                if(targetName === "fillPenOK"
-                || targetName === "fillPenUndo"
-                || targetName === "fillPenCancel")
+                clickedButton = targetName;
+
+                if(fillPenBox.visible)
                 {
-                    clickedButton = targetName;
+                    return;
                 }
-                else if(targetName === "sideBarScrollBar")
+
+                if(targetName === "sideBarScrollBar")
                 {
-                    setSideBarScrollMove(mouseY);
+                    setScrollBarMove(mouseY);
                 }
                 else if(isCursorInDrawArea())
                 {
+                    mouseDragON = true;
                     stageMouseMoveEvent.add("fillPenMouseMoveEvent",fillPenMouseMoveEvent);
-                    clickedButton = null;
 
                     var mx:Number = cd.mouseX;
                     var my:Number = cd.mouseY;
@@ -3445,24 +3966,27 @@
 
                     removeTimer("fillPenTimer");
                     drawPreviewLine();
-                    mouseDragON = true;
-
-                    // if(readyAddUndoFlag === false) checkFillPenUndoReady();
                 }
             }
 
             function removeEvents():void
             {
+                fillPenBox.removeEventListener(MouseEvent.MOUSE_OVER,fillPenHint);
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,fillPenRightMouseDownEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,fillPenRightMouseUpEvent);
                 stage.removeEventListener(KeyboardEvent.KEY_UP,fillPenKeyUpEvent);
                 stageMouseMoveEvent.remove("fillPenMouseMoveEvent");
             }
 
             function addEvents():void
             {
+                fillPenBox.addEventListener(MouseEvent.MOUSE_OVER,fillPenHint);
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
                 stage.addEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,fillPenRightMouseDownEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,fillPenRightMouseUpEvent);
                 stage.addEventListener(KeyboardEvent.KEY_UP,fillPenKeyUpEvent);
                 stageMouseMoveEvent.add("fillPenMouseMoveEvent",fillPenMouseMoveEvent);
             }
@@ -3480,7 +4004,6 @@
                 mouseMoved = false;
                 mouseMoveCount = 0;
                 afterKeyUpOK = false;
-                clickedButton = null;
                 _sharpLine = sharpLineON;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
                 xOffset = (sizeOffsetFlag) ? 0.5 : 0;
@@ -3488,6 +4011,8 @@
                 xAlpha = penAlpha;
                 xBlendMode = (penColorTransparentFlag) ? "erase" : null;
                 commandUndoIndexArr = [0];
+                clickedButton = null;
+                fillPenBoxUndoUsed = false;
 
                 if(airBrushON || eraseAirBrushON)
                 {
@@ -3507,14 +4032,14 @@
                 data.push(my);
                 lastMousePos.setTo(mx,my);
 
-                setFillpenUI(true);
+                stage.addChild(fillPenBox);
                 canvas2.alpha = 1.0;
+
                 addEvents();
             }
 
             return {
                 start:start,
-                ok:endFillPenOK,
                 cancel:cancelFillPen
             };
         }
@@ -3950,18 +4475,6 @@
             rightMouseClickON = false;
             mouseDragON = false;
 
-            setControlBoxInfoOFF();
-            setTopBarHintOFF();
-
-            if(resizeCanvas.isCanvasResizing())
-            {
-                resizeCanvas.exit(true);
-            }
-            if(toolBox2ON)
-            {
-                closeToolBox2();
-            }
-
             mouseLeaveSideBarON();
         }
 
@@ -4188,7 +4701,6 @@
                 lastTime = getTimer();
                 appRunningTime = 0;
                 _topBar.timer.text = "00:00:00";
-                _topBar.timer.width = _topBar.timer.textWidth+10;
                 _topBar.updateTimerPos(stage.stageWidth);
             }
 
@@ -4212,7 +4724,6 @@
                 _topBar.timer.text = ((hh < 10) ? "0"+hh:""+hh) + ":"
                                     +((mm < 10) ? "0"+mm:""+mm) + ":"
                                     +((ss < 10) ? "0"+ss:""+ss);
-                _topBar.timer.width = _topBar.timer.textWidth+10;
                 _topBar.updateTimerPos(stage.stageWidth);
             }
 
@@ -4230,6 +4741,7 @@
                     else
                     {
                         appRunningTime += subTime;
+                        if(appRunningTime < 0) appRunningTime = 0;
                         update();
                     }
 
@@ -4455,7 +4967,7 @@
 
                         case KEY.w:
                         case KEY.i:
-                            if(zoomed !== 1.0) resetZoomDrawMode(lassoBox1.localToGlobal(new Point(0,0)));
+                            if(zoomed !== 1.0) resetZoomDrawMode(lassoBox1.localToGlobal(ZERO_POINT));
                         return;
                     }
                 });
@@ -4620,19 +5132,32 @@
             }
         }
 
-        private function updateRGBInfoText(color:uint):void
+        private function updateRGBInfoTextByColor(color:*):void
         {
-            pickerBox.setRGBInfo(getRGBInfoString(color));
+            if(color is uint)
+            {
+                pickerBox.setRGBInfo(getRGBInfoString(color));
+            }
+            else if(color is Vector.<Number>)
+            {
+                pickerBox.setRGBInfo(getHSVInfoString(color));
+            }
+            else
+            {
+                return;
+            }
 
-            pickerBox.setRGBInfoColor(getInvertColor(color,1.0
+            const textColor:uint = (color is Vector.<Number>) ? HSVtoHEX(color[0],color[1],color[2]) : color;
+
+            pickerBox.setRGBInfoColor(getInvertColor(textColor,1.0
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]));
         }
 
         private function initPickerBoxInfo(color:uint):void
         {
-            updateRGBInfoText(color);
-            pickerBox.updateRGBInfoBG(color,setColorBorder(color));
+            updateRGBInfoTextByColor(color);
+            pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color));
             updatePickerCurrentColor(color);
         }
 
@@ -4698,13 +5223,13 @@
             const hexColor:uint = target.transform.colorTransform.color;
             const _setColorTransform:Function = setColorTransform;
 
-            setHSVCursorPosByColor(hexColor);
+            setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(hexColor) : hexColor);
 
             if(bgFlag === false)
             {
                 penColor = hexColor;
-                updateOpaBoxColor(hexColor);
-                updateOpacityCursor(penAlphaIndex);
+                checkColorHistoryUpdateEventReady();
+                updateOpacityCursorPos(penAlphaIndex);
                 forceSetMainDrawTool();
             }
             else if(bgFlag === true)
@@ -4753,10 +5278,10 @@
                 case "traceImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_TRACE; break;
                 case "traceLoadButton":str = "Paste image from file"; break;
                 case "traceClipButton":str = "Paste image from clipboard"; break;
-                case "traceButtonWrapper":str = "Adjust opacity"; break;
-                case "traceRotateButton":str = "Rotate image\n("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
-                case "traceMoveButton":str = "Move image\n("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
-                case "traceResizeButton":str = "Resize image\n("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
+                case "traceButtonWrapper":str = "Adjust image opacity"; break;
+                case "traceRotateButton":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "traceMoveButton":str = "Move image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "traceResizeButton":str = "Resize image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "traceCancelButton":str = "Close"; break;
                 case "traceMirrorButton":str = "Flip image"; break;
                 case "traceVisibleONButton":
@@ -4768,6 +5293,13 @@
             }
 
             traceMenu.hint(str);
+        }
+
+        private function getLassoMenuHintSwapLayer():String
+        {
+            if(lassoSwapButtonClicked) return "Swap layers 2 <-> 1";
+
+            return "Swap layers 1 <-> 2";
         }
 
         private function lassoMenuHintONEvent(e:MouseEvent):void
@@ -4800,24 +5332,19 @@
                 case "lassoOK":str = "OK (enter, right-click)"; break;
                 case "lassoCancel":str = "Cancel (esc, backspace)"; break;
                 case "lassoCopy":str = "Copy image"; break;
-                case "lassoCZoom":str = "Zoom canvas\nReset (Right-click, shift+w/i)"; break;
-                case "lassoCRotate":str = "Rotate Canvas\nReset (Right-click, shift+s/k)"; break;
+                case "lassoCZoom":str = "Zoom canvas\nReset (right-click, shift+w/i)"; break;
+                case "lassoCRotate":str = "Rotate Canvas\nReset (right-click, shift+s/k)"; break;
                 case "lassoCHand":str = "Move canvas"; break;
-                case "lassoRotate":str = "Rotate image\n("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
+                case "lassoRotate":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "lassoMirror":str = "Flip image"; break;
-                case "lassoResize":str = "Resize image\n("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
+                case "lassoResize":str = "Resize image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "lassoTrace":str = STRING_MERGE_LASSO_IMAGE_TO_TRACE; break;
                 case "lasso1pxLeft":
                 case "lasso1pxRight":
                 case "lasso1pxUp":
                 case "lasso1pxDown": str = "Move image 1px\n(space+wasd / ijkl)"; break;
                 case "lassoLayerMerge": str = "Merge image to layer 2"; break;
-                case "lassoLayerSwap":
-                {
-                    if(lassoSwapButtonClicked) str = "Swap layers 2 <-> 1";
-                    else str = "Swap layers 1 <-> 2";
-                }
-                break;
+                case "lassoLayerSwap": str = getLassoMenuHintSwapLayer(); break;
                 default: break;
             }
 
@@ -4826,7 +5353,7 @@
 
         private function toolBoxHintOFFEvent(e:MouseEvent):void
         {
-            if(toolBox.toolInfo.visible) toolBox.hintOFF();
+            if(rgbInfoFocusedON) return;
             if(zoomToolHintON) zoomToolHintON = false;
         }
 
@@ -4861,25 +5388,25 @@
 
             switch(targetName)
             {
-                case "toolSidebar": str = "Quick sidebar\n(s+d, j+k)"; break;
-                case "fillPenOK": str = "OK\n(q, o, enter, right-click)"; break;
-                case "fillPenCancel": str = "cancel\n(esc, backspace)"; break;
-                case "fillPenUndo": str = "undo\n(w, z / i, .)"; break;
-                case "toolPen": str = "Pen\n(q, o key up) "; break;
-                case "toolFillPen": str = "Fill pen\n(q, o)"; break;
-                case "toolErase": str = "Eraser\n(d, j)"; break;
-                case "toolLasso": str = "Lasso\n(r, y)"; break;
-                case "toolSpuit": str = "Eye dropper\n(c, m)"; break;
-                case "toolUndo": str = "Undo\n(z, .)"; break;
-                case "toolRedo": str = "Redo\n(x, ,)"; break;
-                case "toolMirror": str = "Flip canvas\n(a, l)"; break;
-                case "toolLine": str = "Line\n(shift)"; break;
-                case "toolMove": str = "Move image\n(e, u)"; break;
-                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)\nReset (right-click, shift+w/i)"; break;
+                case "toolSidebar": str = "Quick sidebar (s+d, j+k)"; break;
+                case "fillPenOK": str = "OK (q, o, enter, right-click)"; break;
+                case "fillPenCancel": str = "cancel (esc, backspace)"; break;
+                case "fillPenUndo": str = "undo (w, z / i, .)"; break;
+                case "toolPen": str = "Pen (q, o key up) "; break;
+                case "toolFillPen": str = "Fill pen (q, o)"; break;
+                case "toolErase": str = "Eraser (d, j)"; break;
+                case "toolLasso": str = "Lasso (r, y)"; break;
+                case "toolSpuit": str = "Eye dropper (c, m)"; break;
+                case "toolUndo": str = "Undo (z, .)\nRepeat (hold click)"; break;
+                case "toolRedo": str = "Redo (x, ,)\nRepeat (hold click)"; break;
+                case "toolMirror": str = "Flip canvas (a, l)"; break;
+                case "toolLine": str = "Line (shift)"; break;
+                case "toolMove": str = "Move image (e, u)"; break;
+                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)\nReset (right-click, shift+w, shift+i)"; break;
                 case "zoomInButton": str ="Zoom in\nReset (right-click)"; break;
                 case "zoomOutButton": str ="Zoom out\nReset (right-click)"; break;
-                case "toolRotate": str = "Rotate (s, k)\nReset (right-click, shift+s/k)"; break;
-                case "toolTrace": str = "Reference layer\n(t)"; break;
+                case "toolRotate": str = "Rotate (s, k)\nReset (right-click, shift+s , shift+k)"; break;
+                case "toolTrace": str = "Reference layer (t)"; break;
             }
 
             return str;
@@ -4897,7 +5424,7 @@
         private function toolBoxHintONEvent(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(!target || mouseClickON || mouseDragON || rgbInfoFocusedON || toolBox.alpha < 1.0 || target.alpha < 1.0) return;
+            if(!target || isHintCantUse()) return;
 
             const hintStr:String = getToolBoxHint(target.name);
 
@@ -4907,7 +5434,7 @@
             }
             else
             {
-                toolBox.hint(hintStr,(e.target as SimpleButton),isRightSidebar);
+                hint.on(hintStr,target);
             }
         }
 
@@ -4918,22 +5445,20 @@
                 return;
             }
 
-            const tb:topMenu = topBar;
-            tb.hintOFF();
-            setTopChildIndex(tb);
+            setTopBarHintOFF();
+            setTopChildIndex(topBar);
 
-            const buttonSetVisible:Function = tb.buttonSetVisible;
+            const buttonSetVisible:Function = topBar.buttonSetVisible;
 
             buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);
-            tb.updateButtonVisible(false);
+            topBar.updateButtonVisible(false);
 
             if(mode === "draw")
             {
                 buttonSetVisible("replay",false);
                 buttonSetVisible("capture",false);
-                tb.changeHintYPos(tb.BARSIZE);
                 updatePenSizeCursor();
-                if(needUpdate) tb.updateButtonVisible(true);
+                if(needUpdate) topBar.updateButtonVisible(true);
 
                 if(canvasWindowON) topBar.newWindowButton.visible = false;
                 else topBar.newWindowCloseButton.visible = false;
@@ -4954,30 +5479,28 @@
                     _replayTimeBox["playButton"].visible = true;
                     _replayTimeBox["pauseButton"].visible = false;
                 }
-                tb.changeHintYPos(tb.BARSIZE+_replayTimeBox.BARSIZE-4);
             }
             else if(mode === "capture")
             {
                 buttonSetVisible("replay",false);
                 buttonSetVisible("draw",false,isRightSidebar);
-                tb.changeHintYPos(tb.BARSIZE);
 
                 if(canvas1Bitmap.visible)
                 {
-                    tb.capLayer1VisibleButton.alpha = 1.0;
+                    topBar.capLayer1VisibleButton.alpha = 1.0;
                 }
                 else
                 {
-                    tb.capLayer1VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                    topBar.capLayer1VisibleButton.alpha = BUTTON_OFF_ALPHA;
                 }
 
                 if(canvas11Bitmap.visible)
                 {
-                    tb.capLayer2VisibleButton.alpha = 1.0;
+                    topBar.capLayer2VisibleButton.alpha = 1.0;
                 }
                 else
                 {
-                    tb.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                    topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
                 }
             }
         }
@@ -4999,7 +5522,8 @@
         private function drawGrid():void
         {
             const g:Graphics = canvasGrid.graphics;
-            const flag:uint = gridFlag;
+            const flag:uint = gridValue;
+
             if(flag === 0)
             {
                 canvasGrid.visible = false;
@@ -5079,18 +5603,25 @@
             canvasGrid.cacheAsBitmap = true;
         }
 
+        private function setGridOFF():void
+        {
+            gridValue = 0;
+            setHintONTemp("Grid OFF");
+            drawGrid();
+        }
+
         private function setGridButton():void
         {
-            gridFlag++;
+            gridValue++;
 
-            if(gridFlag > 5)
+            if(gridValue > 20)
             {
-                gridFlag = 0;
-                topBar.hint("Grid OFF",topBar.gridButton);
+                gridValue = 0;
+                setHintONTemp("Grid OFF");
             }
             else
             {
-                topBar.hint("Grid " + (gridFlag*GRID_GAP)+"px ("+gridFlag+"/5)",topBar.gridButton);
+                setHintONTemp("Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)\nReset (right-click, shift+f2)");
             }
 
             drawGrid();
@@ -5294,6 +5825,7 @@
             var oldAng:Number = _canvasTrace.rotation;
             var sumAng:Number = oldAng*PI/180;
 
+            mouseDragON = true;
             traceMenu.visible = false;
             canvasTraceBitmap.smoothing = false;
 
@@ -5308,6 +5840,7 @@
 
             function traceRotateButtonUpEvent(e:MouseEvent):void
             {
+                mouseDragON = false;
                 traceMenu.visible = true;
                 _rotateCursorBox.rotation = 0;
                 saveOneTime = false;
@@ -5357,6 +5890,7 @@
             canvasTraceBitmap.smoothing = false;
             setToolTipON(w+ " x "+ h +" ["+_canvasTrace.scaleX.toFixed(2)+"]");
             toolTipBox.visible = true;
+            mouseDragON = true;
 
             function traceResizeButtonUpEvent(e:MouseEvent):void
             {
@@ -5445,6 +5979,7 @@
             const scX:Number = tracePosInfo[3];
             const scY:Number = tracePosInfo[4];
 
+            mouseDragON = true;
             traceMenu.visible = false;
             canvasTraceBitmap.smoothing = false;
 
@@ -5502,7 +6037,7 @@
 
                 const bmpd:Object = Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT);
 
-                if(bmpd as BitmapData)
+                if(bmpd is BitmapData)
                 {
                     pasteTraceImage(bmpd as IBitmapDrawable, bmpd.width,bmpd.height);
                 }
@@ -5516,7 +6051,7 @@
             CANVAS_TRACE_ALPHA = deafultAlpha;
             canvasTraceLayer.alpha = deafultAlpha;
             updateTraceOpaButtonPosByAlpha(deafultAlpha);
-            traceMenu.hint("Opacity "+Math.floor(deafultAlpha*100)+"%");
+            traceMenu.hint(STRING_TRACE_IMAGE_OPACITY+Math.floor(deafultAlpha*100)+"%");
             canvasTraceLayer.visible = true;
         }
 
@@ -5530,6 +6065,8 @@
             const buttonMax:Number = buttonMin+barWidth-2;
             const floor:Function = Math.floor;
             const step:Number = 10;
+
+            mouseDragON = true;
 
             function traceOpaButtonUpEvent(e:MouseEvent):void
             {
@@ -5570,9 +6107,9 @@
                     }
                     canvasTraceLayer.alpha = alpha;
                 }
-                _traceMenuBox.hint("Opacity "+floor(alpha*100+0.5)+"%");
+                _traceMenuBox.hint(STRING_TRACE_IMAGE_OPACITY+floor(alpha*100+0.5)+"%");
             }
-            _traceMenuBox.hint("Opacity "+floor(CANVAS_TRACE_ALPHA*100+0.5)+"%");
+            _traceMenuBox.hint(STRING_TRACE_IMAGE_OPACITY+floor(CANVAS_TRACE_ALPHA*100+0.5)+"%");
 
             setTraceOpaValue();
 
@@ -6001,7 +6538,7 @@
                 :(uiColorIndex === 2) ?"Medium Gray"
                 :(uiColorIndex === 3) ?"Light Gray" : "";
 
-            topBar.hint(uiColorName,topBar.topBarColorButton);
+            setHintONTemp(uiColorName);
         }
 
         private function setUIColor(index:int):void
@@ -6016,12 +6553,12 @@
 
             updateStageBG(bg);
             controlBox.changeUIColor(op);
-            toolTipBox.changeUIColor(base,op);
             pickerBox.changeUIColor(op);
             sideBar.changeUIColor(base);
             previewBox.chanegStageColor(bg);
             toolBox.changeUIColor(_arr2);
             toolBox2.changeUIColor(_arr2);
+            fillPenBox.changeBGColor(_arr2);
             traceMenu.changeUIColor(_arr2,index === 0);
             lassoMenu.changeUIColor(_arr2);
             topBar.changeUIColor(base,op,_arr[index][4]);
@@ -6039,7 +6576,6 @@
             updateScrollBarColorHeight(scrollBarHeight);
             setResizeButtonColor(nowColorSet[3]);
             fofo.changeColor(op);
-            setWindowBorderColor(base);
 
             if(canvasWindowON)
             {
@@ -6084,20 +6620,28 @@
             toolBox2.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHint2ONEvent);
 
             replayTimeBox.addEventListener(MouseEvent.MOUSE_OVER,topBarHintONEvent);
-            replayTimeBox.addEventListener(MouseEvent.MOUSE_OUT,topBarHintOFFEvent);
             topBar.addEventListener(MouseEvent.MOUSE_OVER,topBarHintONEvent);
-            topBar.addEventListener(MouseEvent.MOUSE_OUT,topBarHintOFFEvent);
 
             controlBox.addEventListener(MouseEvent.MOUSE_OVER,controlBoxHintONEvent);
-            controlBox.addEventListener(MouseEvent.MOUSE_OUT,controlBoxHintOFFEvent);
+
+            pickerBox.addEventListener(MouseEvent.MOUSE_OVER,pickerBoxHintONEvent);
 
             topBar.addEventListener(MouseEvent.CLICK,topBarClickEvent);
+            stage.addEventListener(MouseEvent.MOUSE_OUT,globalHintOFF);
+        }
+
+        private function getNowToolStringForHint():String
+        {
+            const str:String = controlBox.controlInfo.text;
+            const part:Array = str.split(' ');
+
+            return (part[0] as String).toLocaleLowerCase();
         }
 
         private function setControlBoxInfoOFF():void
         {
-            const nt:uint = nowTool;
             var toolName:String = "Pen";
+            const nt:uint = nowTool;
 
             if(nt === TOOL_ERASE) toolName = "Eraser";
             else if(nt === TOOL_LINE) toolName = "Line";
@@ -6106,25 +6650,19 @@
             controlBox.hintText(toolName+" options");
         }
 
-        private function controlBoxHintOFFEvent(e:MouseEvent):void
+        private function getOpacityButtonHint(targetName:String):String
         {
-            if(!hasTimer("controlBoxHintTimer"))
-            {
-                addTimerByName("controlBoxHintTimer",0.2,true,function():Boolean
-                {
-                    if(isHitTestPoint(controlBox) === false)
-                    {
-                        setControlBoxInfoOFF();
-                        return false;
-                    }
-                    return true;
-                });
-            }
+            return getAlphaHint(targetName)+"\nAdjust "+getNowToolStringForHint()+" opacity (g, b)";
+        }
+
+        private function getSizeButtonHint(targetName:String):String
+        {
+            return penSizeHint(targetName)+"\nAdjust "+getNowToolStringForHint()+ " size (f, v / h, n)";
         }
 
         private function controlBoxHintONEvent(e:MouseEvent):void
         {
-            if(mouseDragON || mouseClickON || toolBox2ON || lassoToolON || rgbInfoFocusedON) return;
+            if(isHintCantUse()) return;
 
             const target:DisplayObject = e.target as DisplayObject;
             const targetName:String = target.name;
@@ -6158,11 +6696,10 @@
                 case "nSizeButton11":
                 case "nSizeButton12":
                 {
-                    str = "Size : "+penSizeHint(targetName)+" (f, v / h, n)";
+                    hint.on(getSizeButtonHint(targetName),target,true);
                 }
-                break;
+                return;
 
-                case "alphaButton0":
                 case "alphaButton1":
                 case "alphaButton2":
                 case "alphaButton3":
@@ -6172,8 +6709,11 @@
                 case "alphaButton7":
                 case "alphaButton8":
                 case "alphaButton9":
-                    str = "Opacity : "+getAlphaHint(targetName)+" (g, b)";
-                break;
+                case "alphaButton10":
+                {
+                    hint.on(getOpacityButtonHint(targetName),target,true);
+                }
+                return;
 
                 case "sharpLineButtonWrapper":
                 case "sharpLineOFFButton":
@@ -6190,41 +6730,45 @@
                 break;
 
                 case "layer1SelectButton":
-                    str = "Select layer 1 (1, 9)\nView only (right click)";
+                    str = "Select layer 1 (1, 9)\nShow only layer 1 (right click)";
                     setSingleLayerPreview(1,false);
                 break;
 
                  case "layer2SelectButton":
-                    str = "Select layer 2 (2, 0)\nView only (right click)";
+                    str = "Select layer 2 (2, 0)\nShow only layer 2 (right click)";
                     setSingleLayerPreview(2,false);
                 break;
 
                 case "layer1CheckButton":
                 case "layer1UncheckButton":
-                    str = "Check layer 1\n(1+w, 9+i)";
+                    str = "Check layer 1 (1+w, 9+i)";
                     setSingleLayerPreview(1,false);
                 break;
 
                 case "layer2CheckButton":
                 case "layer2UncheckButton":
-                    str = "Check layer 2\n(2+w, 0+i)";
+                    str = "Check layer 2 (2+w, 0+i)";
                     setSingleLayerPreview(2,false);
                 break;
 
                 case "layerSwapButton":
-                    str = "Swap layers\n(shift+d, shift+j)";
+                    str = "Swap layers (shift+d, shift+j)";
                 break;
 
                 case "layerMergeButton":
-                    str = "Merge image to layer 2\n(shift+e, shift+o)";
+                    str = "Merge image to layer 2 (shift+e, shift+o)";
                 break;
+
+                default:
+                return;
             }
 
             if(str === "")
             {
                 return;
             }
-            controlBox.hintText(str);
+
+            hint.on(str,target);
         }
 
         private function setClipButton():void
@@ -6257,7 +6801,7 @@
         private function colorHistoryAddEvent(e:MouseEvent):void
         {
             const targetName:String = e.target.name;
-            if(targetName === "colorHistoryBox" || targetName === "colorHistoryBoxBG")
+            if(targetName === "colorHistoryBox")
             {
                 addColorToHistoryManual();
             }
@@ -6335,16 +6879,17 @@
             }
         }
 
-        private function shortCutPenAlpha(flag:Boolean):void
+        private function shortCutPenAlpha(inc:Boolean):void
         {
             var alpha:Number = 0;
             var alphaStr:String = "";
 
             function setAlpha(alp:Number,size:uint):void
             {
-                var index:Number = alphaArr.indexOf(alp);
-                const len:uint = alphaArr.length-1;
-                if(flag)
+                var index:Number = opaArr.indexOf(alp);
+                const len:uint = opaArr.length-1;
+
+                if(inc)
                 {
                     index++;
                     if(index > len) index = len;
@@ -6352,10 +6897,10 @@
                 else
                 {
                     index--;
-                    if(index < 0) index = 0;
+                    if(index < 1) index = 1;
                 }
 
-                const alphaValue:Number = alphaArr[index];
+                const alphaValue:Number = opaArr[index];
                 alphaStr = size+"px, "+alphaValue*100+"%";
 
                 setToolTipTempON(alphaStr);
@@ -6458,12 +7003,12 @@
             }
         }
 
-        private function setAlphaButton(targetName:String):void
+        private function setOpaButton(targetName:String):void
         {
             const number:String = targetName.substr(11,targetName.length);
             const index:int = parseInt(number);
 
-            setPenAlpha(alphaArr[index]);
+            setPenAlpha(opaArr[index]);
         }
 
         private function setPenSizeButton(targetName:String):void
@@ -6498,14 +7043,8 @@
         }
 
         //opacolor의 색깔을 바꿈
-        private function updateOpaBoxColor(color:uint):void
+        private function checkColorHistoryUpdateEventReady():void
         {
-            if(color === penLastUpdateInfo[4])
-            {
-                return;
-            }
-            penLastUpdateInfo[4] = color;
-
             if(!colorHistoryUpdateReady)
             {
                 colorHistoryUpdateReady = true;
@@ -6517,7 +7056,7 @@
         {
             const lastNumber:String = targetName.substr(11,1);
             const alpIndex:int = parseInt(lastNumber);
-            const alpha:Number = alphaArr[alpIndex];
+            const alpha:Number = opaArr[alpIndex];
             const alpha100:String = alpha*100+"";
             const strlen:int = 3-(alpha100.length);
             var blank:String ="";
@@ -6533,7 +7072,7 @@
             const _controlBox:controlMenu = controlBox;
             const sliderSet:Sprite = _controlBox.penSmoothSliderSet;
             const button:SimpleButton = sliderSet["penSmoothButton"];
-            const leftOffset:Number = sliderSet["penSmoothBar"].x+3; //펜 리스트에 흰색 선 시작과 끝 x좌표임
+            const leftOffset:Number = sliderSet["penSmoothBar"].x+2; //펜 리스트에 흰색 선 시작과 끝 x좌표임
             const rightOffset:Number = leftOffset+sliderSet["penSmoothBar"].width-2;
             const step:Number = penSmoothSlideTotal;
             const div:Number = (rightOffset-leftOffset)/step;
@@ -6577,7 +7116,7 @@
                 if(oldValue !== value)
                 {
                     oldValue = value;
-                    controlBox.hintText("Pen smoothing "+value + "/"+step);
+                    hint.on("Pen smoothing "+value + "/"+step,null);
                 }
             }
 
@@ -6938,9 +7477,13 @@
 
         private function setLassoLayerSwapButton():void
         {
+            if(lassoMenu.lassoLayerSwap.alpha < 1.0) return;
+
             lassoSwapButtonClicked = !lassoSwapButtonClicked;
             swapLassoImage();
             addLassoLayerMergeCommand(0);
+            lassoMenu.hint(getLassoMenuHintSwapLayer());
+            setLayerSwapEffect(lassoMenu.lassoLayerSwap);
         }
 
         private function setLassoCopyButton():void
@@ -7019,9 +7562,11 @@
             var moveFlag:uint = 0;
 
             lassoBMP.smoothing = false;
+            mouseDragON = true;
 
             function lassoResizeButtonUpEvent(e:MouseEvent):void
             {
+                mouseDragON = false
                 lassoResizeON = false;
 
                 checkLassoMenuPos();
@@ -7108,9 +7653,11 @@
             var sy:Number = lassoBox1.y;
 
             lassoBMP.smoothing = false;
+            mouseDragON = true;
 
             function lassoMoveButtonUpEvent(e:MouseEvent):void
             {
+                mouseDragON = false;
                 lassoBMP.smoothing = true;
                 lassoMenu.visible = true;
                 checkLassoMenuPos();
@@ -7165,7 +7712,7 @@
             controlBox.movePenSizeCursor(index);
         }
 
-        private function setColorBorder(color:uint):uint
+        private function setRGBInfoBorderColor(color:uint):uint
         {
             const defColor:Number = getColorDifferenceForHuman(color,uiColorSet[uiColorIndex][0]);
             return (defColor <= 15) ? uiColorSet[uiColorIndex][1] : 0;
@@ -7173,7 +7720,7 @@
 
         private function updatePickerCurrentColor(color:uint):void
         {
-            pickerBox.updateCurrentColor(color,setColorBorder(color));
+            pickerBox.updateCurrentColor(color,setRGBInfoBorderColor(color));
         }
 
         private function changePickerModeToBG():void
@@ -7182,7 +7729,7 @@
 
             pickerMode = 2;
 
-            setHSVCursorPosByColor(color);
+            setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(color) : color);
             updatePickerCurrentColor(color);
             pickerBox.setPickerMode(2);
             pickerBox.transColorButton.visible = false;
@@ -7199,7 +7746,7 @@
 
             addColorToHistory(CANVAS_BG_COLOR);
             addColorToHistory(color);
-            setHSVCursorPosByColor(color);
+            setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(color) : color);
             updatePickerCurrentColor(color);
             pickerBox.setPickerMode(1);
             pickerBox.transColorButton.visible = true;
@@ -7239,19 +7786,17 @@
         private function updatePenColor(color:uint):void
         {
             penColor = color;
-            updateOpaBoxColor(color);
-            updateOpacityCursor(penAlphaIndex);
+            checkColorHistoryUpdateEventReady();
+            updateOpacityCursorPos(penAlphaIndex);
         }
 
         private function setHueColorButton():void
         {
             const _pickerBox:colorPickerBox = pickerBox;
-            const _hueBarWidth:Number = _pickerBox["svBoxWidth"];
             const offsetX:Number = _pickerBox["offsetX"];
             const hueColorBox:Sprite = _pickerBox["hueColor"];
             const hueCursor:SimpleButton = _pickerBox["hueCursor"];
-            const mode:uint = pickerMode;
-            const max:Number = _hueBarWidth;
+            const max:Number = _pickerBox["svBoxWidth"];
             var pickedColor:uint = 0;
 
             setTopChildIndex(hueCursor);
@@ -7268,15 +7813,15 @@
 
                 hueCursor.x = hueCursorX;
 
-                const hueValue:Number = Math.floor((hueCursorX*360)/_hueBarWidth);
+                const hueValue:Number = hueCursorX/max;
                 const baseColor:Vector.<uint> = HSVtoRGB(hueValue,1.0,1.0);
-                const baseHexColor:uint = RGBtoHex(baseColor[0],baseColor[1],baseColor[2]);
-                const color:uint = updatePickerBoxInfoColor(hueValue,HUECOLOR[1],HUECOLOR[2]);
+                const baseHexColor:uint = RGBtoHEX(baseColor[0],baseColor[1],baseColor[2]);
+                const color:uint = updatePickerBoxInfoColor(hueValue,hsvColorArr[1],hsvColorArr[2]);
 
                 pickedColor = color;
                 pickerColorSelected = true;
                 _pickerBox.changeHueColor(baseHexColor);
-                _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
+                _pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color));
             }
 
             function hueColorButtonMoveEvent(e:MouseEvent):void
@@ -7288,11 +7833,11 @@
             {
                 hueMoveStart(hueColorBox.mouseX);
 
-                if(mode === 1)
+                if(pickerMode === 1)
                 {
                     updatePenColor(pickedColor);
                 }
-                else if(mode === 2)
+                else if(pickerMode === 2)
                 {
                     setBackgroundColorDrawMode(pickedColor);
                     if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
@@ -7303,7 +7848,7 @@
                 mouseDragON = false;
                 penCursorOFFFlag = false;
 
-                updateRGBInfoText(pickedColor);
+                updateRGBInfoTextByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 _pickerBox.setRGBInfoVisible(true);
 
                 forceSetMainDrawTool();
@@ -7324,13 +7869,13 @@
             const r:uint = rgbColor[0];
             const g:uint = rgbColor[1];
             const b:uint = rgbColor[2];
-            const rgbHexColor:uint = RGBtoHex(r,g,b);
+            const rgbHexColor:uint = RGBtoHEX(r,g,b);
             const invColor:uint = getInvertColor(rgbHexColor,1.0
                                                 ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
                                                 ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]);
-            HUECOLOR[0] = h;
-            HUECOLOR[1] = s;
-            HUECOLOR[2] = v;
+            hsvColorArr[0] = h;
+            hsvColorArr[1] = s;
+            hsvColorArr[2] = v;
 
             return rgbHexColor;
         }
@@ -7342,7 +7887,6 @@
             const svCursor:SimpleButton = _pickerBox["svCursor"];
             const _colorBarWidth:Number = _pickerBox["svBoxWidth"];
             const _colorBarHeight:Number = _pickerBox["svBoxHeight"];
-            const mode:uint = pickerMode;
             var pickedColor:uint = 0;
 
             setTopChildIndex(svCursor);
@@ -7364,13 +7908,13 @@
                 svCursor.x = svCursorX;
                 svCursor.y = svCursorY;
 
-                const hue0:Number = HUECOLOR[0];
+                const hueValue:Number = hsvColorArr[0];
                 const sValue:Number = svCursorX/_colorBarWidth;
                 const vValue:Number = 1-(svCursorY/_colorBarHeight);
-                const color:uint = updatePickerBoxInfoColor(hue0,sValue,vValue);
+                const color:uint = updatePickerBoxInfoColor(hueValue,sValue,vValue);
 
                 pickedColor = color;
-                _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
+                _pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color));
                 _pickerBox.setRGBInfoVisible(false);
             }
 
@@ -7384,13 +7928,13 @@
             {
                 setSVBoxMouseMoveEvent(svColorBox.mouseX,svColorBox.mouseY);
 
-                if(mode === 1)
+                if(pickerMode === 1)
                 {
                     penColor = pickedColor;
-                    updateOpaBoxColor(pickedColor);
-                    updateOpacityCursor(penAlphaIndex);
+                    checkColorHistoryUpdateEventReady();
+                    updateOpacityCursorPos(penAlphaIndex);
                 }
-                else if(mode === 2)
+                else if(pickerMode === 2)
                 {
                     setBackgroundColorDrawMode(pickedColor);
                     if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
@@ -7401,7 +7945,7 @@
                 mouseDragON = false;
                 penCursorOFFFlag = false;
 
-                updateRGBInfoText(pickedColor);
+                updateRGBInfoTextByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 _pickerBox.setRGBInfoVisible(true);
                 forceSetMainDrawTool();
 
@@ -7669,6 +8213,7 @@
             setTopChildIndex(_aboutPanel);
             aboutPanelON = true;
             clickBlockFlag = true;
+            hint.off();
 
             removeInputEventDrawMode();
 
@@ -7805,13 +8350,13 @@
             if(clearDataButtonCount >= 2)
             {
                 clearDataButtonCount = 0;
-                topBar.hintOFF();
+                setTopBarHintOFF();
                 clearData();
             }
             else if(clearDataButtonCount === 1)
             {
-                if(keyFlag) topBar.hintTime(STRING_ONEMORE_PRESS_TO_OK,topBar.clearButton);
-                else topBar.hint(STRING_ONEMORE_CLICK_TO_OK,topBar.clearButton);
+                if(keyFlag) setHintONTemp(STRING_ONEMORE_PRESS_TO_OK);
+                else setHintONTemp(STRING_ONEMORE_CLICK_TO_OK);
             }
         }
 
@@ -8102,14 +8647,14 @@
                         case "layerMergeButton":
                         {
                             setLayerMergeButton();
-                            topBar.hintTime("Layers has been merged to layer 2",topBar.replayModeButton);
+                            setHintONTemp("Layers has been merged to layer 2");
                         }
                         break;
 
                         case "layerSwapButton":
                         {
                             setLayerSwapButton();
-                            topBar.hintTime("Layers has been swapped",topBar.replayModeButton);
+                            setHintONTemp("Layers has been swapped");
                         }
                         break;
 
@@ -8126,16 +8671,6 @@
                         case "tegaki4":
                         {
                             setTegakiPresetColor(targetName);
-                        }
-                        break;
-
-                        case "rgbInfo":
-                        case "rgbInfoBG":
-                        {
-                            if(pickerMode === 1 && penColorTransparentFlag)
-                            {
-                                setHSVCursorPosByColor(pickerBox.getRGBInfoBGColor());
-                            }
                         }
                         break;
 
@@ -8158,7 +8693,6 @@
                         break;
 
                         case "colorHistoryBox":
-                        case "colorHistoryBoxBG":
                         {
                             selectHistoryColor();
                         }
@@ -8205,7 +8739,7 @@
             cutFrameWithShortcut = false;
             cutFrameClickCounter = 0;
             cutFrameClickedButton = CUT_FRAME_NONE;
-            topBar.hintOFF();
+            setTopBarHintOFF();
             replayTimeBox["replayDeleteBar"].visible = false;
             replayTimeBox["replayNowBar"].visible = true;
         }
@@ -8557,13 +9091,13 @@
                 if(shortcutKeyFlag)
                 {
                     cutFrameWithShortcut = true;
-                    topBar.hint(getCutFrameHint(flag)+getCutFrameOKString(),cutFrameActiveButton);
+                    setHintONTemp(getCutFrameHint(flag)+getCutFrameOKString());
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
                 }
                 else
                 {
                     cutFrameWithShortcut = false;
-                    topBar.hint(getCutFrameOKString(),cutFrameActiveButton);
+                    setHintONTemp(getCutFrameOKString());
                 }
             }
             else if(cutFrameClickCounter >= 2)
@@ -8577,52 +9111,32 @@
         private function setTopBarHintOFF():void
         {
             clearDataButtonCount = 0;
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN,topBarHintOFFEvent);
             topBarHintClickEventON = false;
 
             if(captureModeON)
             {
-                const hint:String = drawCaptureArea.getRotatedRectSizeString();
-                if(hint === "") topBar.hintOFF();
+                const str:String = drawCaptureArea.getRotatedRectSizeString();
+                if(str === "")
+                {
+                    hint.off();
+                }
                 else
                 {
-                    topBar.hint(hint+STRING_CAPTURE_OK,topBar.capOff);
+                    hint.on(str+STRING_CAPTURE_OK,null);
                 }
             }
             else
             {
-                topBar.hintOFF();
-            }
-        }
-
-        private function topBarHintOFFEvent(e:MouseEvent):void
-        {
-            if(replayModeON)
-            {
-                const _replayTimeBox:replayTimeBar = replayTimeBox;
-                if(mouseY >= (_replayTimeBox.y+_replayTimeBox.BARSIZE-3)*getUIScale())
-                {
-                    setTopBarHintOFF();
-                }
-            }
-            else if(mouseY >= topBar.BARSIZE*getUIScale())
-            {
-                setTopBarHintOFF();
+                hint.off();
             }
         }
 
         private function topBarHintONEvent(e:MouseEvent):void //topbarhint
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(!target || mouseDragON || mouseClickON
-            || toolBox2ON || lassoToolON || rgbInfoFocusedON) return;
+            if(!target || isHintCantUse()) return;
 
             const targetName:String = e.target.name;
-            if(topBarHintClickEventON === false)
-            {
-                topBarHintClickEventON = true;
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,topBarHintOFFEvent);
-            }
 
             if(targetName !== null)
             {
@@ -8638,23 +9152,31 @@
                     }
                     return;
                     case "timer":
-                        str = "Actual working time (click to reset timer)";
+                        str = "Actual working time\nReset (click)";
                     break;
 
                     case "playButton":
+                    {
                         str = "Play (enter, space)";
+                    }
                     break;
 
                     case "pauseButton":
+                    {
                         str = "Pause (enter, space)";
+                    }
                     break;
 
                     case "replayPrev":
-                        str = "Prev (left, z, .) 1 frame (right-click, shift+left/z/.)";
+                    {
+                        str = "Prev (left, z, .)\nJump 1 frame (right-click, shift+left, shift+z, shift+.)";
+                    }
                     break;
 
                     case "replayNext":
-                        str = "Next (right, x, ,) 1 frame (right-click, shift+right/x/,)";
+                    {
+                        str = "Next (right, x, ,)\nJump 1 frame (right-click, shift+right, shift+x, shift+,)";
+                    }
                     break;
 
                     case "replaySpeedBarWrapper":
@@ -8666,18 +9188,19 @@
 
                     case "saveButton":
                     case "repSaveButton":
-                        str = "Save (ctrl+s) Save as.. (right-click, shift+ctrl+s)";
+                        str = "Save (ctrl+s)\nSave as.. (shift+ctrl+s, right-click)";
                     break;
 
                     case "loadButton":
-                        str = "Load (ctrl+o) Load to Reference layer (right-click, ctrl+shift+o)";
+                        str = "Load (ctrl+o)\nLoad to Reference layer (ctrl+shift+o, right-click)";
                     break;
+
                     case "repLoadButton":
                         str = "Load (ctrl+o)";
                     break;
 
                     case "clipButton":
-                        str = "Load clipboard image (ctrl+v, ctrl+n)";
+                        str = "Load clipboard image (ctrl+v, ctrl+n)"+((topBar["clipButton"].alpha < 1.0)?"\nThere are no copied images":"");
                     break;
 
                     case "clearButton":
@@ -8757,7 +9280,7 @@
                     break;
 
                     case "gridButton":
-                        str = "Grid (f2, f8)";
+                        str = "Grid (f2, f8)\nReset (right-click, shift+f2)";
                     break;
 
                     case "sideBarOFFButton":
@@ -8783,7 +9306,7 @@
                     break;
 
                     case "dpiButton":
-                        str = "Change UI scale (f5), current "+getUIScaleString(uiScaleIndex);
+                        str = "UI scale : "+getUIScaleString(uiScaleIndex)+"\nChange UI scale (f5)\nReset (shift+F5, right-click)";
                     break;
 
                     case "layer1CheckButton":
@@ -8805,15 +9328,15 @@
                     break;
 
                     case "aboutButton":
-                        str = "About";
+                        str = "About FOFO PAINT";
                     break;
 
                     case "newWindowCloseButton":
-                        str = "Close image view window (esc on new window)";
+                        str = "Close image view window (esc on window)";
                     break;
 
                     case "newWindowButton":
-                        str = "Open image view window (f6)";
+                        str = "Open image view window (f6)\nMove window (click+drag on window)\nAdjust the window size to fit the image size (right-click on window)";
                     break;
 
                     case "updateButton":
@@ -8822,21 +9345,16 @@
 
                     case "drawModeButton": str = "Draw mode (f1, f7)"; break;
                     case "replayModeButton": str = "Replay mode (f1, f7)"; break;
-                    case "replayZoomInButton": str = "Zoom in (f5), Reset (right-click)"; break;
-                    case "replayZoomOutButton": str = "Zoom out (f6), Reset (right-click)"; break;
+                    case "replayZoomInButton": str = "Zoom in (f5)\n"+STRING_RIGHT_CLICK_TO_RESET; break;
+                    case "replayZoomOutButton": str = "Zoom out (f6)\n"+STRING_RIGHT_CLICK_TO_RESET;break;
                     case "replayFitToWindowButton": str = "Canvas center alignment ON/OFF (right-click on canvas)"; break;
-                    case "replayRotateButton": str = "Rotate ("+STRING_RIGHT_CLICK_TO_RESET+")"; break;
+                    case "replayRotateButton": str = "Rotate \n"+STRING_RIGHT_CLICK_TO_RESET; break;
 
                     default:
                     return;
                 }
 
-                if(targetName === "replaySpeedBarWrapper")
-                    topBar.hint(str,topBar.replaySpeedSet);
-                else
-                    topBar.hint(str,e.target as DisplayObject);
-
-                setTopChildIndex(topBar);
+                hint.on(str,target);
             }
         }
 
@@ -9824,14 +10342,14 @@
                     lassoBMP.smoothing = true;
                     lassoBMPsub.smoothing = true;
 
-                    if(data[7] as Boolean)
+                    if(data[7] is Boolean)
                     {
                         if(data[7] === true)
                         {
                             swapLassoImage();
                         }
                     }
-                    else if(data[7] as Array)
+                    else if(data[7] is Array)
                     {
                         const len:uint = data[7].length;
                         for(var i:uint=0;i<len;i++)
@@ -10408,7 +10926,6 @@
             const floor:Function = Math.floor;
             var offsetY:Number = topBar.BARSIZE+replayTimeBox.BARSIZE;
             const _rregPoint:Sprite = rregPoint;
-            const zerop:Point = new Point(0,0);
             const padding:Number = 20;
             const cursorPos:Point = new Point(0,0);
             const windowCenterPos:Point = new Point(0,0); //캔버스 중점위치, 창 중점위치 사이 거리
@@ -10482,7 +10999,7 @@
                 else
                 {
                     globalChecked = true;
-                    gp = rcanvas1Bitmap.localToGlobal(zerop);
+                    gp = rcanvas1Bitmap.localToGlobal(ZERO_POINT);
                     rg = rotatePoint(cp.x,cp.y,-_rregPoint.rotation);
                     cursorPos.x = gp.x+(rg.x*zoom);
 
@@ -10511,7 +11028,7 @@
                     if(globalChecked === false)
                     {
                         globalChecked = true;
-                        gp = rcanvas1Bitmap.localToGlobal(zerop);
+                        gp = rcanvas1Bitmap.localToGlobal(ZERO_POINT);
                         rg = rotatePoint(cp.x,cp.y,-_rregPoint.rotation);
                     }
                     cursorPos.y = gp.y+(rg.y*zoom);
@@ -10593,6 +11110,7 @@
             var timeStr:String = getReplayTotalTime(rSpeed);
 
             penCursorOFFFlag = true;
+            mouseDragON = true;
 
             function setSpeed(mx:Number):void
             {
@@ -10605,7 +11123,7 @@
 
                 timeStr = getReplayTotalTime(nowSpeed);
                 const finalStr:String = STRING_PLAYBACK_SPEED+rSpeed+timeStr;
-                topBar.hint(finalStr,topBar.replaySpeedSet);
+                setHintONTemp(finalStr);
                 rSpeedLastStr = finalStr;
                 rSpeed = nowSpeed;
             }
@@ -10622,7 +11140,6 @@
             function replaySpeedButtomUpEvent(e:MouseEvent):void
             {
                 mouseDragON = false;
-                // topBar.hintOFF()
                 if(playbackFinished === false) updateReplayRemainTimeText();
                 stageMouseMoveEvent.remove("replaySpeedButtomMoveEvent");
                 stage.removeEventListener(MouseEvent.MOUSE_UP,replaySpeedButtomUpEvent);
@@ -10841,7 +11358,7 @@
         private function setJumpOneFrame(toBackFlag:Boolean,oneFrame:Boolean=false):void
         {
             playbackFinished = false;
-            if(setHoldKeyRepeat(jumpOneFrame,toBackFlag,oneFrame) === true)
+            if(setHoldKeyRepeat(true,jumpOneFrame,toBackFlag,oneFrame) === true)
             {
                 playbackFinished = false;
                 if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
@@ -11039,6 +11556,7 @@
             var oldFrame:Number = floor(totalF*clickedX/maxWidth);
             var finalFrame:Number = 0;
 
+            mouseDragON = true;
             nowBar.width = clickedX;
             checkBarLimit();
             oldFrame = finalFrame;
@@ -11059,6 +11577,7 @@
 
             function replayTimeMouseUpEvent(e:MouseEvent):void
             {
+                mouseDragON = false;
                 removeTimer("jumpFrameUpdateTimer");
                 jumpFrame(finalFrame,JUMP_FRAME_ONCE);
                 oldFrame = finalFrame;
@@ -11203,98 +11722,121 @@
             stage.addEventListener(MouseEvent.MOUSE_UP,toolBoxMoveMouseUpEvent);
         }
 
-        private function checkToolBoxButtonUpEvent(e:MouseEvent):void
+        private function checkToolBoxMouseUp(targetName:String):void
         {
-            stage.removeEventListener(MouseEvent.MOUSE_UP,checkToolBoxButtonUpEvent);
-
-            const targetName:String = e.target.name;
-
-            switch(targetName)
+            function checkToolBoxButtonUpEvent(e:MouseEvent):void
             {
-                case "toolPen":
+                stage.removeEventListener(MouseEvent.MOUSE_UP,checkToolBoxButtonUpEvent);
+
+                const upTargetName:String = e.target.name;
+
+                if(upTargetName !== targetName) return;
+
+                switch(upTargetName)
                 {
-                    if(!isNowTool(TOOL_PEN))
+                    case "toolPen":
                     {
-                        selectPenTool();
-                        updatePenSizeCursor();
+                        if(!isNowTool(TOOL_PEN))
+                        {
+                            selectPenTool();
+                            updatePenSizeCursor();
+                        }
                     }
+                    break;
+
+                    case "toolFillPen":
+                    {
+                        if(!isNowTool(TOOL_FILL_PEN))
+                        {
+                            selectFillPenTool();
+                            updatePenSizeCursor();
+                        }
+                    }
+                    break;
+
+                    case "toolErase":
+                    {
+                        if(!isNowTool(TOOL_ERASE))
+                        {
+                            selectEraseTool();
+                            updatePenSizeCursor();
+                        }
+                    }
+                    break;
+
+                    case "toolLine":
+                    {
+                        if(!isNowTool(TOOL_LINE))
+                        {
+                            selectLineTool();
+                            updatePenSizeCursor();
+                        }
+                    }
+                    break;
+
+                    case "toolLasso":
+                    {
+                        if(!isNowTool(TOOL_LASSO))
+                        {
+                            selectLassoTool();
+                        }
+                    }
+                    break;
+
+                    case "toolSpuit":
+                    {
+                        if(quickSidebarON)
+                        {
+                            resetOldTool();
+                            toolBox.moveToolCursor("toolSpuit");
+                        }
+                        else if(!isNowTool(TOOL_SPUIT))
+                        {
+                            updateOldTool();
+                            spuitTool();
+                        }
+                    }
+                    break;
+
+                    case "toolUndo":
+                    {
+                        if(!hasTimer("keyHoldRepeatTimer"))
+                        {
+                            undo();
+                        }
+                    }
+                    break;
+
+                    case "toolRedo":
+                    {
+                        if(!hasTimer("keyHoldRepeatTimer"))
+                        {
+                            redo();
+                        }
+                    }
+                    break;
+
+                    case "toolMirror": mirrorCanvas(); break;
+                    case "toolMove": selectMoveTool(); break;
+                    case "zoomInButton": setZoomInButton(true,false); break;
+                    case "zoomOutButton": setZoomInButton(false,false); break;
+                    case "toolZoom": toolBox.zoomIconON(); break;
+
+                    case "toolTrace":
+                    {
+                        if(quickSidebarON) _quickSidebarOFF();
+
+                        if(traceMenuON === false)
+                        {
+                            openTraceWindow();
+                            traceMenu.y = mouseY-60;
+                        }
+                    }
+                    break;
                 }
-                break;
-
-                case "toolFillPen":
-                {
-                    if(!isNowTool(TOOL_FILL_PEN))
-                    {
-                        selectFillPenTool();
-                        updatePenSizeCursor();
-                    }
-                }
-                break;
-
-                case "toolErase":
-                {
-                    if(!isNowTool(TOOL_ERASE))
-                    {
-                        selectEraseTool();
-                        updatePenSizeCursor();
-                    }
-                }
-                break;
-
-                case "toolLine":
-                {
-                    if(!isNowTool(TOOL_LINE))
-                    {
-                        selectLineTool();
-                        updatePenSizeCursor();
-                    }
-                }
-                break;
-
-                case "toolLasso":
-                {
-                    if(!isNowTool(TOOL_LASSO))
-                    {
-                        selectLassoTool();
-                    }
-                }
-                break;
-
-                case "toolSpuit":
-                {
-                    if(quickSidebarON)
-                    {
-                        resetOldTool();
-                        toolBox.moveToolCursor("toolSpuit");
-                    }
-                    else if(!isNowTool(TOOL_SPUIT))
-                    {
-                        updateOldTool();
-                        spuitTool();
-                    }
-                }
-                break;
-
-                case "toolUndo": setUndoButton(false); break;
-                case "toolRedo": setRedoButton(false); break;
-                case "toolMirror": mirrorCanvas(); break;
-                case "toolMove": selectMoveTool(); break;
-                case "zoomInButton": setZoomInButton(true,false); break;
-                case "zoomOutButton": setZoomInButton(false,false); break;
-                case "toolZoom": toolBox.zoomIconON(); break;
-
-                case "toolTrace":
-                {
-                    if(quickSidebarON) _quickSidebarOFF();
-
-                    if(traceMenuON === false)
-                    {
-                        openTraceWindow();
-                        traceMenu.y = mouseY-60;
-                    }
-                }
-                break;
             }
+            //undo키 반복이 있어서 우선순위 1로 약간 높여줌
+            stage.addEventListener(MouseEvent.MOUSE_UP,checkToolBoxButtonUpEvent,false,1);
         }
 
         private function _setBackgroundColor(xCanvas:Sprite,w:Number,h:Number,color:uint):void
@@ -11342,7 +11884,7 @@
             toolTipBoxTimerOFF();
         }
 
-        private function setToolTipTempON(str:String,customX:Number=NaN,customY:Number=NaN,time:Number=2.5):void
+        private function setToolTipTempON(str:String,time:Number=2.5):void
         {
             if(!hasTimer("toolTipTempONTimer"))
             {
@@ -11354,7 +11896,7 @@
                 toolTipBoxTimerOFF();
             });
 
-            setToolTipON(str,customX,customY);
+            setToolTipON(str);
             toolTipBox.visible = true;
         }
 
@@ -11363,50 +11905,34 @@
             const tb:toolTipBoxSet = toolTipBox;
         }
 
-        private function setToolTipON(str:String,mx:Number=NaN,my:Number=NaN):void
+        private function setToolTipON(str:String):void
         {
             const _toolTipBox:toolTipBoxSet = toolTipBox;
             const floor:Function = Math.floor;
             const toolTipText:TextField = _toolTipBox["toolTipInfoText"];
 
-            _toolTipBox["toolTipInfoText"].width = 1000;
-            _toolTipBox["toolTipInfoText"].height = 1000;
-
             if(str !== "")
             {
-                toolTipText.text = str;
-
-                _toolTipBox["toolTipBoxBG"].width = floor(toolTipText.textWidth+8);
-                _toolTipBox["toolTipBoxBG"].height = floor(toolTipText.textHeight+((str.lastIndexOf("\n") === -1)?2:5));
-
-                _toolTipBox["toolTipInfoText"].width = _toolTipBox["toolTipBoxBG"].width;
-                _toolTipBox["toolTipInfoText"].height = _toolTipBox["toolTipBoxBG"].height;
+                toolTipText.text = " "+str+" ";
             }
 
-            if(!mx) mx = mouseX;
-            if(!my) my = mouseY;
-
-            const width:int =_toolTipBox["toolTipBoxBG"].width*_toolTipBox.scaleX;
-            const height:Number =  _toolTipBox["toolTipBoxBG"].height*_toolTipBox.scaleX;
+            const scale:Number = getUIScale();
             const stw:uint = stage.stageWidth+1;
             const sth:uint = stage.stageHeight+1;
             const rightLimit:Number = stw;
             const bottomLimit:Number = sth;
-            var tooltipX:Number = floor(mx-width/2)+5;
-            var tooltipY:Number = floor(my-((!my)?45:0));
+            const width:Number =toolTipBox.toolTipInfoText.width*scale;
+            const height:Number =toolTipBox.toolTipInfoText.height*scale;
+            var tooltipX:Number = floor(mouseX-width/2)+5;
+            var tooltipY:Number = floor(mouseY-45);
             const right:int = tooltipX+width;
             const bottom:int = tooltipY+height;
 
-            if(tooltipX < STAGE_BOTTOM_OFFSET) tooltipX = STAGE_BOTTOM_OFFSET;
-            else if(right > rightLimit-STAGE_BOTTOM_OFFSET) tooltipX = rightLimit-STAGE_BOTTOM_OFFSET-width;
+            if(tooltipX < 0) tooltipX = 0;
+            else if(right > rightLimit) tooltipX = rightLimit-width;
 
-            if(tooltipY < STAGE_BOTTOM_OFFSET) tooltipY = STAGE_BOTTOM_OFFSET;
-            else if(bottom >= bottomLimit-STAGE_BOTTOM_OFFSET) tooltipY = bottomLimit-STAGE_BOTTOM_OFFSET-height;
-            // if(tooltipX < STAGE_LEFT_OFFSET) tooltipX = STAGE_LEFT_OFFSET;
-            // else if(right > rightLimit-STAGE_RIGHT_OFFSET) tooltipX = rightLimit-STAGE_RIGHT_OFFSET-width;
-
-            // if(tooltipY < STAGE_TOP_OFFSET) tooltipY = STAGE_TOP_OFFSET;
-            // else if(bottom >= bottomLimit-STAGE_BOTTOM_OFFSET) tooltipY = bottomLimit-STAGE_BOTTOM_OFFSET-height;
+            if(tooltipY < 0) tooltipY = 0;
+            else if(bottom >= bottomLimit) tooltipY = bottomLimit-height;
 
             _toolTipBox.x = floor(tooltipX);
             _toolTipBox.y = floor(tooltipY);
@@ -11524,7 +12050,7 @@
                 //실제적으로 loader가 읽어서 캔버스에 그림
                 function loaderIOErrorHandlerEvent(e:Event):void
                 {
-                    topBar.hintLoadError();
+                    setHintONTemp("Load error");
                     tempDragDropFile = null;
                     loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderIOErrorHandlerEvent);
                     loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, startDrawImgEvent);
@@ -11620,6 +12146,7 @@
             }
         }
 
+        //히스토리 커서에 닿은 색깔 인덱스가 리스트보다 크면 false반환
         private function isHistoryColorIndexExist(index:uint):Boolean
         {
             if(index > colorHistoryList.length-1)
@@ -11629,21 +12156,27 @@
             return true;
         }
 
-        private function getHistoryColorIndexByPos():uint
+        private function getHistoryColorStringByMousePos():String
         {
-            const historyBox:Sprite = pickerBox.colorHistoryBox;
-            const floor:Function = Math.floor;
-            const mx:Number = historyBox.mouseX;
-            const my:Number = historyBox.mouseY;
-            const inX:int = floor(mx/colorHistoryColorWidth);
-            const inY:int = floor(my/colorHistoryRectH);//히스토리 컬러 높이 나누고 몫을 구함
+            const index:uint = getHistoryColorIndexByMousePos();
+            const defaultHint:String = "Add current color (right-click)\nChange color position (click+drag)\nRemove color (click+drag out)";
 
-            return inX+(inY*10); //10개씩 한줄이니까 10을 더해줌 이거 10개 정해주는건 updateColorHistoryList의 for문에서 %연산으로 해줌
+            if(isHistoryColorIndexExist(index) === false)
+            {
+                return defaultHint;
+            }
 
+            return getColorInfoStringOfHex(colorHistoryList[index],rgbInfoColorTypeHSV)+"\n"+defaultHint;
         }
+
+        private function getHistoryColorIndexByMousePos():uint
+        {
+            return Math.floor(pickerBox.colorHistoryBox.mouseX/colorHistoryColorWidth);
+        }
+
         private function selectHistoryColor():void
         {
-            const index:uint = getHistoryColorIndexByPos();
+            const index:uint = getHistoryColorIndexByMousePos();
 
             if(isHistoryColorIndexExist(index) === false)
             {
@@ -11652,13 +12185,13 @@
 
             const pickedColor:uint = colorHistoryList[index];
 
-            updateOpaBoxColor(pickedColor);
+            checkColorHistoryUpdateEventReady();
 
             if(pickerMode === 1)
             {
                 // changedColor = pickedColor;
                 penColor = pickedColor;
-                setHSVCursorPosByColor(pickedColor);
+                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 forceSetMainDrawTool();
             }
             else if(pickerMode === 2)
@@ -11678,19 +12211,6 @@
                 colorHistoryUpdateReady = true;
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,updateColorHistoryEvent);
             }
-        }
-
-        private function isNewColorSelectedAddColorHistory(color:uint):Boolean
-        {
-            return colorHistoryList.length === 0 || color !== colorHistoryList[colorHistoryList.length-1];
-
-        }
-
-        private function addCurrentColorToHistoryManual():void
-        {
-            const color:uint = pickerBox.getCurrentColor();
-            changedColor = color;
-            addColorToHistory(color);
         }
 
         private function addColorToHistoryManual():void
@@ -11757,13 +12277,14 @@
             const h:Number = colorHistoryRectH;
             const len:int = arr.length;
 
-            cg.clear();
+            pickerBox.drawHistoryBoxBG();
+
             for(var i:int=0;i<len;i++)
             {
                 if(i === ignoreIndex) continue;
 
                 cg.beginFill(arr[i]);
-                cg.drawRect(i*w,0,w,h);
+                cg.drawRect(i*w,14,w,h);
             }
             cg.endFill();
         }
@@ -11817,7 +12338,6 @@
             const totalSize:Number = repFile.size;
             const _REPLAY_MAKE_JUMPIMAGE_COUNT:uint = REPLAY_MAKE_JUMPIMAGE_COUNT;
             const replayInfoText:TextField = replayTimeBox["frameInfo"];
-            const topBarHint:Function = topBar.hint;
             const topBarSaveButton:SimpleButton = topBar.saveButton;
             const deepUndoFlag:Boolean = deepUndoON;
             const loadingStr:String = "Reading replay data.. ";
@@ -11903,7 +12423,7 @@
                         if(!replayModeON && deepUndoON)
                         {
                             rDataReadFlag = false;
-                            topBar.hintOFF();
+                            setTopBarHintOFF();
                             addInputEventDrawMode();
                             // jumpFrame(undoData.getRFileTotalFrame()-1,JUMP_FRAME_ONCE);
                             jumpFrame(rPrevFrame,JUMP_FRAME_ONCE);
@@ -11964,7 +12484,7 @@
 
                         if(replayTimeBox["replayNowBar"].width > 0) replayTimeBox["replayNowBar"].width = 0;
 
-                        if(deepUndoFlag) topBarHint(loadingStr+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%",topBarSaveButton);
+                        if(deepUndoFlag) setHintONTemp(loadingStr+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%");
                         else replayInfoText.text = loadingStr+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%";
 
                         return;
@@ -12198,7 +12718,7 @@
             }
             catch(err:Error)
             {
-                topBar.hintSaveError();
+                setHintONTemp("Save failed");
                 if(repFileTemp.exists) repFileTemp.deleteFile();
                 setSaveProgressOFF();
                 saveFile(true,true);
@@ -12266,7 +12786,7 @@
 
                 if(d[0] === "rFirstImage") //리플레이 첫 이미지 파일
                 {
-                    if(d[2] as ByteArray === null)
+                    if(d[2] is ByteArray === false)
                     {
                         ba = d[1] as ByteArray;
                         newRectangle = new Rectangle(0,0,d[2],d[3]);
@@ -12307,7 +12827,7 @@
                 else if(d[0] === "rFinalImage")//최종 이미지
                 {
                     //레이어1일때 구버전
-                    if(d[2] as ByteArray === null)
+                    if(d[2] is ByteArray === false)
                     {
                         ba = d[1] as ByteArray;
                         newRectangle = new Rectangle(0,0,d[2],d[3]);
@@ -12411,7 +12931,7 @@
         {
             if(isTrue2020File(file) === false)
             {
-                topBar.hintLoadError();
+                setHintONTemp("Load error");
                 return;
             }
 
@@ -12439,7 +12959,7 @@
 
                 if(d[0] === "rFinalImage")
                 {
-                    if(d[2] as ByteArray === null)
+                    if(d[2] is ByteArray === false)
                     {
                         ba = d[1] as ByteArray;
                         newRectangle = new Rectangle(0,0,d[2],d[3]);
@@ -12503,7 +13023,7 @@
         {
             if(!imageData)
             {
-                topBar.hintLoadError();
+                setHintONTemp("Load error");
                 return;
             }
 
@@ -12691,7 +13211,7 @@
 
             function loadErrorEvent(e:Event):void
             {
-                topBar.hintLoadError();
+                setHintONTemp("Load error");
                 browseWindowON = false;
                 //에러나면 아무것도 안해줌
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
@@ -12759,7 +13279,7 @@
             if(replayMode)
             {
                 resetCutFrameClickCounter();
-                topBar.hintOFF();
+                setTopBarHintOFF();
                 replayTimeBox.visible = iFlag;
             }
             else
@@ -12773,7 +13293,6 @@
                 else removeInputEventDrawMode();
 
                 if(isSidebarVisible) setSidebarVisible(false,true);
-                topBar.resetHintColor();
                 penCursorOFFFlag = true;
                 penSizeCursor.visible = false;
                 canvasTraceLayer.visible = false;
@@ -12818,7 +13337,7 @@
 
         private function setDefaultHintCaptureMode():void
         {
-            topBar.hint("Drag canvas to draw capture area (Click canvas to save full image)",topBar.capOff);
+            hint.on("Drag canvas to draw capture area (Click canvas to save full image)",null);
         }
 
         private function mouseOverCaptureMode(e:MouseEvent):void
@@ -13173,7 +13692,7 @@
                     rectW = ww;
                     rectH = hh;
                     drawArea(cx,cy,ww,hh);
-                    topBar.hint(getRotatedRectSizeString(),topBar.capOff);
+                    hint.on(getRotatedRectSizeString(),null);
                     mouseMoved = true;
                 }
             }
@@ -13252,7 +13771,7 @@
                     finalRect[2] = rectW;
                     finalRect[3] = rectH;
 
-                    topBar.hint(getRotatedRectSizeString()+STRING_CAPTURE_OK,topBar.capOff);
+                    hint.on(getRotatedRectSizeString()+STRING_CAPTURE_OK,null);
                     topBar.capClipBoard.alpha = 1.0;
                 }
                 else
@@ -13541,7 +14060,7 @@
                 }
                 else
                 {
-                    topBar.hintTime("Already saved",topBar.replayModeButton);
+                    setHintONTemp("Already saved");
                 }
                 return;
             }
@@ -13554,7 +14073,7 @@
             const fs:FileStream = new FileStream();
             const mergedImage:BitmapData = mergeCanvas(false,false,true,true);
 
-            topBar.hintOFF();
+            setTopBarHintOFF();
 
             if(continueFlag)
             {
@@ -13564,7 +14083,7 @@
                 {
                     function saveContinueErrorEvent(e:Event):void
                     {
-                        topBar.hintTimeOFFWithColor();
+                        sethintOFFDelay();
                         fs.close();
                         fs.removeEventListener(IOErrorEvent.IO_ERROR,saveContinueErrorEvent);
                         saveOneTime = false;
@@ -13855,10 +14374,11 @@
                             "traceMenuPos[0]":traceMenu.x,
                             "traceMenuPos[1]":traceMenu.y,
                             "mirrorON":mirrorON,
-                            "gridFlag":gridFlag,
+                            "gridValue":gridValue,
                             "hueCursor.x":pickerBox["hueCursor"].x,
                             "svBaseColor":pickerBox["svBaseColor"],
-                            "HUECOLOR[0]":HUECOLOR[0],
+                            "hsvColorArr[0]":hsvColorArr[0],
+                            "rgbInfoColorTypeHSV":rgbInfoColorTypeHSV,
                             "makeJumpImageFlag":(makeJumpImageFlag === 2) ? 1:makeJumpImageFlag,
                             "rBGColorSave":rBGColorSave,
                             "isRightSidebar":isRightSidebar,
@@ -13890,7 +14410,7 @@
                 arr = fs.readObject() as Array;
                 fs.close();
 
-                if(arr[1] as ByteArray === null)
+                if(arr[1] is ByteArray === false)
                 {
                     arr[0].uncompress();
                     newRectangle = new Rectangle(0,0,arr[1],arr[2]);
@@ -14008,15 +14528,15 @@
                     controlBox.penSmoothSliderSet["penSmoothButton"].x = d["penSmoothButtonX"];
                     penSize = d["penSize"];
                     penColor = d["penColor"];
-                    updateOpaBoxColor(d["penColor"]);
                     initPickerBoxInfo(d["penColor"]);
-                    setHSVCursorPosByColor(d["penColor"]);
+                    if(d["rgbInfoColorTypeHSV"]) toggleRGBInfoTextColorType();
+                    setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(d["penColor"]) : d["penColor"]);
                     pickerBox.changeHueColor(d["svBaseColor"]);
-                    HUECOLOR[0] = d["HUECOLOR[0]"];
+                    hsvColorArr[0] = d["hsvColorArr[0]"];
                     pickerBox["hueCursor"].x = d["hueCursor.x"];
                     changedColor = d["changedColor"]
                     penAlpha = d["penAlpha"];
-                    penAlphaIndex = alphaArr.indexOf(d["eraseAlpha"]);
+                    penAlphaIndex = opaArr.indexOf(d["eraseAlpha"]);
                     setPenAlpha(d["penAlpha"]);
                     penShape = d["penShape"];
                     penListShapeFlag =  d["penShape"];
@@ -14024,14 +14544,14 @@
                     eraseSize = d["eraseSize"];
                     eraseShape = d["eraseShape"];
                     eraseAlpha = d["eraseAlpha"];
-                    eraseAlphaIndex = alphaArr.indexOf(d["eraseAlpha"]);
+                    eraseAlphaIndex = opaArr.indexOf(d["eraseAlpha"]);
                     eraseSizeIndex = d["eraseSizeIndex"];
                     setPenSize(d["penSizeIndex"]);
                     undoData.setRFileTotalFrame(d["rFileTotalFrame"]);
                     saveFileName = d["saveFileName"];
                     saveFilePath = d["saveFileName"];
                     colorHistoryList = d["colorHistoryList"].concat();
-                    d["colorHistoryList"] = [];
+                    d["colorHistoryList"] = null;
                     realWorkingTimer.setRunningTime(d["APP_RUNNING_TIME"]);
                     realWorkingTimer.update();
                     CANVAS_TRACE_ALPHA = d["CANVAS_TRACE_ALPHA"]
@@ -14058,7 +14578,7 @@
 
                     if(mirrorON !== d["mirrorON"]) mirrorCanvas(true);
 
-                    gridFlag = d["gridFlag"];
+                    gridValue = d["gridValue"];
                     drawGrid();
                     setUIScaleButton(d["uiScaleIndex"]);
                     if(d["canvasWindowON"])
@@ -14676,6 +15196,8 @@
             {
                 _replayMode = replayMode;
 
+                mouseDragON = true;
+
                 if(replayMode)
                 {
                     xReg = rregPoint;
@@ -14928,7 +15450,6 @@
             var xRotation:Number
             var maxWidth:Number;//줌 배율을 곱해줘야 정확한 값이 나옴. width나 canvasPanel.mouseX는 scale된 값이 아님
             var maxHeight:Number;
-            var zerop:Point;
             var gp:Point;
             var zoomClickX:Number;
             var zoomClickY:Number;
@@ -14961,13 +15482,20 @@
                 updateRCursorScale(zoomed);
             }
 
+            function setFixedToolTipPos():void
+            {
+                toolTipBox.x = clickPos.x-toolTipBox.width/2;
+                toolTipBox.y = clickPos.y-35*getUIScale();
+            }
+
             function zoomGoArray(index:uint):void
             {
                 const newZoom:Number = _zoomArr[index];
-                const textZoom:uint = Math.floor(newZoom*100);
 
                 setZoomCanvas(newZoom,false);
-                setToolTipON(textZoom+"%",clickPos.x,clickPos.y);
+
+                setToolTipON(Math.floor(newZoom*100)+"%");
+                setFixedToolTipPos();
             }
 
             function zoomToolMouseMoveEvent2(dist:Number):void
@@ -15030,19 +15558,18 @@
                 oldX = mouseX;
                 oldY = mouseY;
                 moveFlag = 0; //1이면 x축
-                oldZoom;
                 penCursorOFFFlag = true;
                 zoomToolHintON = true;
                 setOptimizeCanvasMove(true);
                 oldZoom = zoomed;
+                mouseDragON = true;
 
                 //클릭한 위치가 캔버스밖을 벗어날경우 줌 기준점을 캔버스 경계선에 닿도록 함
                 xCanvas = canvasPanel;
                 xRotation= -regPoint.rotation;
                 maxWidth = CANVAS_WIDTH*xZoomed;//줌 배율을 곱해줘야 정확한 값이 나옴. width나 canvasPanel.mouseX는 scale된 값이 아님
                 maxHeight = CANVAS_HEIGHT*xZoomed;
-                zerop = new Point(0,0);
-                gp = xCanvas.localToGlobal(zerop);
+                gp = xCanvas.localToGlobal(ZERO_POINT);
                 zoomClickX = xCanvas.mouseX*xZoomed;
                 zoomClickY = xCanvas.mouseY*xZoomed;
 
@@ -15061,7 +15588,7 @@
                 //regpoint를 panelLimitedPos계산한 값으로 이동
                 if(lassoMenuTempOFF === true)
                 {
-                    gp = lassoBox1.localToGlobal(zerop);
+                    gp = lassoBox1.localToGlobal(ZERO_POINT);
                     setRegPoint(gp.x,gp.y,false);
                 }
                 else
@@ -15070,8 +15597,9 @@
                 }
 
                 clickPos.setTo(mouseX,mouseY);
-                setToolTipON(zoomed*100+"%",clickPos.x,clickPos.y);
-                toolTipBox.visible = true;
+                setToolTipON(Math.floor(oldZoom*100)+"%");
+                setFixedToolTipPos();
+                toolTipBox.visible =  true;
 
                 stageMouseMoveEvent.add("zoomToolMouseMoveEvent",zoomToolMouseMoveEvent);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,zoomToolMouseUpEvent);
@@ -15793,7 +16321,6 @@
             const halfWidth:Number = rectWidth/2;
             const halfHeight:Number = rectHeight/2;
             const lassoP0:Array = points[0];
-            const zerop:Point = new Point(0,0);
             const newRectangle:Rectangle = new Rectangle(rectLeft,rectTop,rectWidth,rectHeight);
 
             var lassoBMPD:BitmapData = new BitmapData(rectWidth,rectHeight,true,0);
@@ -15806,8 +16333,8 @@
             var yy:Number;
 
             //지우기 전에 사각형 모양으로 그려준 부분을 copypixel 함.
-            if(layer1) lassoBMPD.copyPixels(canvasBitmapData,newRectangle,zerop,null,null,true);
-            if(layer2) lassoBMPDsub.copyPixels(canvasBitmapDataSub,newRectangle,zerop,null,null,true);
+            if(layer1) lassoBMPD.copyPixels(canvasBitmapData,newRectangle,ZERO_POINT,null,null,true);
+            if(layer2) lassoBMPDsub.copyPixels(canvasBitmapDataSub,newRectangle,ZERO_POINT,null,null,true);
 
             //bitmap1canvas에서 그려준 영역을 지워줌
             if(!copyFlag)
@@ -15956,7 +16483,7 @@
             function setDeafultLassoMenuPos(lassoMenu:lassoButtons):void
             {
                 const floor:Function = Math.floor;
-                const g:Point = lassoBox1.localToGlobal(new Point(0,0));
+                const g:Point = lassoBox1.localToGlobal(ZERO_POINT);
                 const lassoW:Number = (lassoMenu.width > stage.stageWidth)
                                       ? stage.stageWidth : lassoMenu.width;
 
@@ -15967,6 +16494,7 @@
 
             function lassoDrawMouseUp():void
             {
+                mouseDragON = false;
                 stageMouseMoveEvent.remove("lassoDrawMouseMove");
                 stage.removeEventListener(MouseEvent.MOUSE_UP,lassoDrawMouseUp);
                 if(Math.abs(lassoRect[0]-lassoRect[2]) < 5 || Math.abs(lassoRect[1]-lassoRect[3]) < 5)
@@ -16032,7 +16560,6 @@
                 if(traceMenuON === true) traceMenu.visible = false;
 
                 toolBox.setToolButtonsForCheckedLayerOFF();
-                toolBox.alpha = BUTTON_OFF_ALPHA;
                 addMouseKeyEventLassoTool();
             }
 
@@ -16062,6 +16589,8 @@
             return function():void
             {
                 if(lassoToolON === true || isAllLayerInvisible()) return;
+
+                mouseDragON = true;
 
                 lassoMenu.hint("Lasso tool");
                 maxWidth = CANVAS_WIDTH;
@@ -16232,7 +16761,7 @@
                     const g:uint = round(g1*a1)+round(gg*aa1);
                     const b:uint = round(b1*a1)+round(bb*aa1);
 
-                    return RGBtoHex(r,g,b);
+                    return RGBtoHEX(r,g,b);
                 }
                 else
                 {
@@ -16287,7 +16816,7 @@
                     changedColor = pickedColor; //이 변수는 컬러 히스토리를 선택했을때 선택할 색을 저장하는 변수인데 여기다가도 변경해줘서
                     penColor = pickedColor;
                     updatePickerCurrentColor(pickedColor);
-                    setHSVCursorPosByColor(pickedColor);
+                    setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
 
                     if(findColor !== -1)
                     {
@@ -16349,6 +16878,7 @@
             return function ():void
             {
                 toolBox.moveToolCursor("toolSpuit");
+
                 if(checkedLayer !== 0) return;
 
                 controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
@@ -16393,7 +16923,7 @@
         private function setOptimizeCanvasMove(flag:Boolean):void
         {
             if(canvasTraceLayer.alpha > 0.0) canvasTraceLayer.visible = !flag;
-            if(gridFlag > 0) canvasGrid.visible = !flag;
+            if(gridValue > 0) canvasGrid.visible = !flag;
         }
 
         private function cHandTool():Function
@@ -16452,6 +16982,7 @@
 
             return function (replayMode:Boolean=false):void
             {
+                mouseDragON = true;
                 _replayMode = replayMode;
                 isDrawMode = !replayMode;
                 xReg = (isDrawMode) ? regPoint : rregPoint;
@@ -16693,6 +17224,7 @@
 
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            setControlBoxInfoOFF();
         }
 
         private function selectZoomTool():void
@@ -16702,6 +17234,7 @@
 
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            setControlBoxInfoOFF();
         }
 
         private function selectRotateTool():void
@@ -16718,6 +17251,7 @@
 
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+            setControlBoxInfoOFF();
         }
 
         private function selectFillPenTool():void
@@ -16730,8 +17264,7 @@
             controlBox.airBrushButtonWrapper.alpha = 1.0;
 
             canvasPanel.setChildIndex(canvas1Bitmap,2);
-            updateOpaBoxColor(penColor);
-            updateOpacityCursor(penAlphaIndex);
+            updateOpacityCursorPos(penAlphaIndex);
             setAirBrushCheckBox(airBrushON,true);
             setPenSize(penSizeIndex);
 
@@ -16808,9 +17341,7 @@
 
                 setPenSize(sizeIndex);
                 setPenAlpha(alpha);
-
-                updateOpaBoxColor(color);
-                updateOpacityCursor(alphaIndex);
+                updateOpacityCursorPos(alphaIndex);
 
                 if(lineFlag === false)
                 {
@@ -16913,7 +17444,6 @@
 
             if(traceMenuON === true) traceMenu.visible = true;
 
-            toolBox.alpha = 1.0;
             restoreFirstUsedTool();
 
             if(controlBox.layer1CheckButton.visible || controlBox.layer2CheckButton.visible)
@@ -17115,7 +17645,7 @@
             setClearButtonActive();
         }
 
-        private function redo(keyFlag:Boolean):void
+        private function redo():void
         {
             if(deepUndoON)
             {
@@ -17146,14 +17676,15 @@
             addTimerByName("setRCursorVisibleOFFUndoTimer",2.0,false,setRCursorVisibleOFFUndo,[false]);
         }
 
-        private function undo(keyFlag:Boolean):void
+        private function undo():void
         {
             if(deepUndoON)
             {
                 if(rNowFrame > 0)
                 {
-                    if(keyFlag) setJumpOneFrame(true,false);
-                    else jumpOneFrame(true,false);
+                    // if(keyFlag) setJumpOneFrame(true,false);
+                    // else
+                    jumpOneFrame(true,false);
 
                     drawReplayImageToDrawModeCanvas();
                 }
@@ -17212,18 +17743,6 @@
                 updateCanvasWindowImage();
                 updateCanvasWindowBitmapSize();
             }
-        }
-
-        private function setRedoButton(useAutoKey:Boolean,shortcutFlag:Boolean=false):void
-        {
-            if(useAutoKey) setHoldKeyRepeat(redo,shortcutFlag);
-            else redo(shortcutFlag);
-        }
-
-        private function setUndoButton(useAutoKey:Boolean,shortcutFlag:Boolean=false):void
-        {
-            if(useAutoKey) setHoldKeyRepeat(undo,shortcutFlag);
-            else undo(shortcutFlag);
         }
 
         private function undoToIndex(index:int):void
@@ -17579,48 +18098,61 @@
         }
 
         // hsv커서가 color에 맞춰서 위치를 움직여줌
-        private function setHSVCursorPosByColor(color:uint,initFlag:Boolean=false):void
+        private function setHSVCursorPosByColor(color:*):void
         {
-            if(color === penLastUpdateInfo[5] && !pickerColorSelected)
+            var hexColor:uint;
+
+            if(color is uint)
+            {
+                hexColor = color;
+            }
+            else if(color is Vector.<Number>)
+            {
+                hexColor = HSVtoHEX(color[0],color[1],color[2]);
+            }
+            else
+            {
+                return;
+            }
+
+            if(hexColor === penLastUpdateInfo[5] && !pickerColorSelected)
             {
                 return;
             }
 
             penColorTransparentFlag = false;
-            penLastUpdateInfo[5] = color;
+            penLastUpdateInfo[5] = hexColor;
 
-            const floor:Function = Math.floor;
-            const round:Function = Math.round;
-            const _pickerBox:colorPickerBox = pickerBox;
-            const _colorBarWidth:Number = _pickerBox["svBoxWidth"];
-            const _colorBarHeight:Number = _pickerBox["svBoxHeight"];
-            const svCursor:SimpleButton = _pickerBox["svCursor"];
-            const hueCursor:SimpleButton = _pickerBox["hueCursor"];
-            const hsvColor:Vector.<Number> = HEXtoHSV(color);
-            const hpos:Number= round(hsvColor[0]*_colorBarWidth);
-            const spos:Number= round(hsvColor[1]*_colorBarWidth);
-            const vpos:Number= round(_colorBarHeight - hsvColor[2]*_colorBarHeight);
-            //s v값을 제외한 순수 hue 컬러
-            const baseColor:Vector.<uint> = HSVtoRGB(hsvColor[0]*360,1.0,1.0);
-            const baseHexColor:uint = RGBtoHex(baseColor[0],baseColor[1],baseColor[2]);
-            const alpha:Number = (pickerMode === 1) ? penAlpha : 1.0;
+            var hsvColor:Vector.<Number> = (color is uint) ? HEXtoHSV(hexColor) : color;
 
-            HUECOLOR[1] = hsvColor[1]; //round 해주면 안됨
-            HUECOLOR[2] = hsvColor[2];
+            hsvColorArr[1] = hsvColor[1];
+            hsvColorArr[2] = hsvColor[2];
 
-            svCursor.x = floor(spos+0.5);
-            svCursor.y = floor(vpos+0.5);
-
-            //채도가 0보다 클때에만  hue값을 업데이트해줌, 회색계열 선택할 때마다 hue가 0. 빨간색으로 돌아가는거 방지
-            if(spos > 0 || initFlag === true)
+            if(hsvColor[1] > 0)
             {
-                HUECOLOR[0] = Math.round(hsvColor[0]*360);
-                hueCursor.x = hpos;
-                _pickerBox.changeHueColor(baseHexColor);
+                hsvColorArr[0] = hsvColor[0];
+                pickerBox["hueCursor"].x = Math.round(hsvColor[0]*pickerBox["svBoxWidth"]);
             }
 
-            updateRGBInfoText(color);
-            _pickerBox.updateRGBInfoBG(color,setColorBorder(color));
+            pickerBox["svCursor"].x = Math.round(hsvColor[1]*pickerBox["svBoxWidth"]);
+            pickerBox["svCursor"].y = Math.round(pickerBox["svBoxHeight"] - hsvColor[2]*pickerBox["svBoxHeight"]);
+
+            //s v값을 제외한 순수 hue 컬러
+            const baseColor:Vector.<uint> = HSVtoRGB(hsvColor[0],1.0,1.0);
+            const baseHexColor:uint = RGBtoHEX(baseColor[0],baseColor[1],baseColor[2]);
+            pickerBox.changeHueColor(baseHexColor);
+
+            if(color is uint)
+            {
+                updateRGBInfoTextByColor(hexColor);
+            }
+            else
+            {
+                updateRGBInfoTextByColor(hsvColor);
+            }
+
+            pickerBox.updateRGBInfoBG(hexColor,setRGBInfoBorderColor(hexColor));
+
         }
 
         //hex에서 rgb vector 배열로 반환
@@ -17635,16 +18167,22 @@
         }
 
         //rgb값을 16진수로 hex값으로 만들어줌
-        private function RGBtoHex(r:uint, g:uint, b:uint):uint
+        private function RGBtoHEX(r:uint, g:uint, b:uint):uint
         {
             return (r << 16 | g << 8 | b);
+        }
+
+        private function HSVtoHEX(h:Number, s:Number, v:Number):uint
+        {
+            const rgb:Vector.<uint> = HSVtoRGB(h,s,v);
+
+            return RGBtoHEX(rgb[0],rgb[1],rgb[2]);
         }
 
         //h는 0에서 360, s v는 0~1.0 사이값 넣어줘야함
         private function HSVtoRGB(h:Number, s:Number, v:Number):Vector.<uint>
         {
             const round:Function = Math.round;
-            h = h/360;
             v = round(v * 255);
 
             const i:Number = Math.floor(h * 6);
@@ -17663,10 +18201,20 @@
                 case 4: return new <uint> [t,p,v];
                 case 5: return new <uint> [v,p,q];
             }
-            return new Vector.<uint> ([0,0,0]);
+
+            return new <uint> [0,0,0];
         }
 
         //eyedropper에서 뽑은 rgb 컬러를 hvs로 변환해줄때 사용
+        private function getHSVInfoString(hsvColor:Vector.<Number>):String
+        {
+            const h:Number = Math.round(hsvColor[0]*360);
+            const s:Number = Math.round(hsvColor[1]*100);
+            const v:Number = Math.round(hsvColor[2]*100);
+
+            return "HSV "+h+","+s+","+v;
+        }
+
         private function RGBtoHSV(r:Number, g:Number, b:Number):Vector.<Number>
         {
             r = r/255;
@@ -17695,17 +18243,19 @@
                 h = h/6;
             }
 
-            const hsv:Vector.<Number> = new <Number> [h, s, v];
+            const hsv:Vector.<Number> = new <Number> [h,s,v];
+            if(s === 0) hsv[0] = hsvColorArr[0];
+
             return hsv;
         }
 
         //opabox의 커서 위치와 색깔을 바꿈
-        private function updateOpacityCursor(index:int):void
+        private function updateOpacityCursorPos(index:int):void
         {
-            if(index < 0) return;
+            if(index <= 0) return;
 
             const _opabox:Sprite = controlBox.opaBox;
-            const curButton:SimpleButton = _opabox["alphaButton"+index];
+            const curButton:Sprite = controlBox.opaBox.getChildByName("alphaButton"+index) as Sprite;
 
             if(!curButton) return;
             if(penColor === penLastUpdateInfo[2] && index === penLastUpdateInfo[3]) return;
@@ -17713,20 +18263,20 @@
             penLastUpdateInfo[2] = penColor;
             penLastUpdateInfo[3] = index;
 
-            const alphaCursor:SimpleButton = _opabox["alphaCursor"];
+            const opaCursor:SimpleButton = controlBox.opaCursor;
 
-            alphaCursor.x = curButton.x;
-            alphaCursor.y = curButton.y;
+            opaCursor.x = curButton.x;
+            opaCursor.y = curButton.y;
         }
 
         private function setPenAlpha(alpha:Number=0):void
         {
             //toolType 이 true이면 지우개임
             //펜이나 보통 라인툴이 아니면 리턴
-            var index:int = alphaArr.indexOf(alpha);
+            var index:int = opaArr.indexOf(alpha);
             const eraseFlag:Boolean = isEraseTool();
 
-            updateOpacityCursor(index);
+            updateOpacityCursorPos(index);
 
             if(eraseFlag === false)
             {
@@ -17887,6 +18437,9 @@
             topBar.makeTopbarBG(COLOR_MID_DARK);
             changeTopBarIcons("draw");
 
+            fillPenBox.x = -fillPenBox.width-3;
+            fillPenBox.y = -fillPenBox.height-3;
+
             pickerBox.rgbInfo.addEventListener(FocusEvent.FOCUS_IN, rgbInfoTextFocusInEvent);
             pickerBox.rgbInfo.addEventListener(FocusEvent.FOCUS_OUT, rgbInfoTextFocusOutEvent);
 
@@ -17909,9 +18462,12 @@
             stage.addChild(aboutPanel);
             stage.addChild(topBar);
             stage.addChild(sideBar);
+            stage.addChild(fillPenBox);
             stage.addChild(toolBox2);
             stage.addChild(rotateCursorBox);
             stage.addChild(toolTipBox);
+            stage.addChild(hintBox);
+            stage.addChild(hintCursor);
             setTopChildIndex(topBar);
         }
 
@@ -18055,31 +18611,29 @@
 
         private function updateScrollBarHeight(sth:Number):void
         {
-            const floor:Function = Math.floor;
             const scale:Number = getUIScale();
-            const topOffset:Number = STAGE_TOP_OFFSET+STAGE_BOTTOM_OFFSET;
             const sideBarSetHeight:Number = sideBarSetHeight*scale;
-            sth = Math.floor(sth-topOffset); //상단 메뉴 길이 빼줌 sth랑 sideBarSetHeight 같이 빼야함
+            sth = Math.floor(sth-STAGE_TOP_OFFSET+STAGE_BOTTOM_OFFSET); //상단 메뉴 길이 빼줌 sth랑 sideBarSetHeight 같이 빼야함
 
             //창이 늘어났을때 여유공간 있으면 아랫쪽으로 옮겨줌
-            const nowScrollSetBottom:Number = sideBarSetHeight+sideBarScrollSet.y*scale;
+            const nowScrollSetBottom:Number = Math.floor(sideBarSetHeight-2*scale+sideBarScrollSet.y*scale);
             if(nowScrollSetBottom < sth)
             {
-                var newYPos:Number = floor(sideBarScrollSet.y*scale+(sth-nowScrollSetBottom))/scale;
+                var newYPos:Number = Math.floor(sideBarScrollSet.y*scale+(sth-nowScrollSetBottom))/scale;
                 if(newYPos > 0) newYPos = 0;
 
                 sideBarScrollSet.y = newYPos;
                 scrollSetMovedY = newYPos;
             }
 
-            if(sideBarSetHeight < sth || fillPenStarted)
+            if(sideBarSetHeight-10 < sth)
             {
                 sideBarScrollBar.x = 0;
                 sideBarScrollBar.visible = false;
                 return;
             }
 
-            var scScrollBarHeight:Number = floor(sth*(sth/sideBarSetHeight))/scale;
+            var scScrollBarHeight:Number = Math.floor(sth*(sth/sideBarSetHeight))/scale;
             if(scScrollBarHeight < 50) scScrollBarHeight = 50;
 
             updateScrollBarColorHeight(scScrollBarHeight);
@@ -18088,7 +18642,7 @@
             const scrollSetY:Number = Math.abs(sideBarScrollSet.y*scale);
             const factor:Number = (sth-STAGE_BOTTOM_OFFSET-scScrollBarHeight*scale)/(sideBarSetHeight-sth);
 
-            sideBarScrollBar.y = floor(scrollSetY*factor)/scale;
+            sideBarScrollBar.y = Math.floor(scrollSetY*factor)/scale;
             sideBarScrollBar.visible = true;
             resetScrollBarXPosition();
         }
@@ -18155,7 +18709,6 @@
                 updateStageBG(uiColorSet[uiColorIndex][2]);
                 topBar.updateTopbarBG(stw);
                 topBar.updateTimerPos(stw);
-                topBar.updateHintBGWidth(stw);
 
                 sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
                 updateScrollBarHeight(sth);
@@ -18166,11 +18719,6 @@
                     else updateSidebarDefaultRightPos();
                 }
 
-                if(fillPenStarted)
-                {
-                    toolBox.checkFillPenIconBottom();
-                }
-
                 updatePreviewBoxRectPos();
 
                 if(fileDragSelectBox.visible === true)
@@ -18179,7 +18727,6 @@
                 }
 
                 checkfofoPos();
-                updateWindowBorder(stw,sth);
 
                 _lastWindowSize.x = windowW;
                 _lastWindowSize.y = windowH;
@@ -18430,7 +18977,7 @@
 
             const timeStr:String = getReplayTotalTime(_rSpeed);
             const finalStr:String = STRING_PLAYBACK_SPEED+_rSpeed+timeStr;
-            topBar.hintTime(finalStr,topBar.replaySpeedSet);
+            setHintONTemp(finalStr);
 
             rSpeed = _rSpeed;
             topBar.setSpeedButtonPosByValue(_rSpeed,max);
@@ -18439,7 +18986,7 @@
 
         private function setReplaySpeedByKeyButton(upFlag:Boolean):void
         {
-            setHoldKeyRepeat(setReplaySpeedByKey,upFlag);
+            setHoldKeyRepeat(true,setReplaySpeedByKey,upFlag);
         }
 
         private function keyUpReplayMode(e:KeyboardEvent):void
@@ -18679,29 +19226,52 @@
                         {
                             case KEY.s:
                             case KEY.k:
+                            {
                                 if(regPoint.rotation !== 0.0) resetRotationDrawMode();
+                            }
                             return;
 
                             case KEY.w:
                             case KEY.i:
+                            {
                                 if(zoomed !== 1.0) resetZoomDrawMode();
+                            }
                             return;
 
                             case KEY.d:
                             case KEY.j:
                             {
                                 setLayerSwapButton();
-                                setToolTipTempON("Layers has been swapped");
+                                setHintONTemp("Layers has been swapped");
                             }
                             return;
 
                             case KEY.e:
                             case KEY.o:
+                            {
                                 if(controlBox.layerMergeButton.alpha === 1.0)
                                 {
                                     setLayerMergeButton();
-                                    setToolTipTempON("Layers has been merged to layer 2");
+                                    setHintONTemp("Layers has been merged to layer 2");
                                 }
+                            }
+                            return;
+
+                            case KEY.f2:
+                            {
+                                if(gridValue !== 0)
+                                {
+                                    setGridOFF();
+                                }
+                            }
+                            return;
+                            case KEY.f5:
+                            {
+                                if(uiScaleIndex !== 0)
+                                {
+                                    resetUIScale();
+                                }
+                            }
                             return;
                         }
                     });
@@ -18825,7 +19395,7 @@
                 case KEY.f8:
                 {
                     setGridButton();
-                    topBar.hintTimeOFF();
+                    sethintOFFDelay();
                 }
                 return true;
 
@@ -18838,15 +19408,15 @@
                 case KEY.f4:
                 {
                     setUIColorButton();
-                    topBar.hintTimeOFF();
+                    sethintOFFDelay();
                 }
                 return true;
 
                 case KEY.f5:
                 {
                     setUIScaleButton(++uiScaleIndex);
-                    topBar.hint("UI Scale "+getUIScaleString(uiScaleIndex),topBar.dpiButton);
-                    topBar.hintTimeOFF();
+                    setHintONTemp("UI Scale "+getUIScaleString(uiScaleIndex));
+                    sethintOFFDelay();
                 }
                 return true;
 
@@ -18915,12 +19485,12 @@
 
                 case KEY.x:
                 case KEY.comma:
-                    setRedoButton(true,false);
+                    setHoldKeyRepeat(true,redo);
                 return true;
 
                 case KEY.z:
                 case KEY.dot:
-                    setUndoButton(true,false);
+                    setHoldKeyRepeat(true,undo);
                 return true;
 
                 case KEY.tab:
@@ -19072,7 +19642,7 @@
         {
             const bmpd:Object = Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT);
 
-            if(bmpd as BitmapData)
+            if(bmpd is BitmapData)
             {
                 topBar["clipButton"].alpha = 1.0;
                 traceMenu["traceClipButton"].alpha = 1.0;
@@ -19129,9 +19699,8 @@
 
             if(topBarHintClickEventON)
             {
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,topBarHintOFFEvent);
                 topBarHintClickEventON = false;
-                topBar.hintOFF();
+                setTopBarHintOFF();
             }
 
             if(appResetFlag === false)
@@ -19156,7 +19725,8 @@
         {
             //아이콘 중앙으로 맞추어줌
             if(!target) return;
-            if(target.parent as Sprite === toolBox2)
+
+            if(target.parent === toolBox2)
             {
                 toolBox2.updateLastUsedToolPos(target.name);
             }
@@ -19264,29 +19834,34 @@
                     updatePenSizeCursor();
                 }
                 break;
+
                 case "toolFillPen":
                 {
                     selectFillPenTool();
                     updatePenSizeCursor();
                 }
                 break;
+
                 case "toolErase":
                 {
                     selectEraseTool();
                     updatePenSizeCursor();
                 }
                 break;
+
                 case "toolLine":
                 {
                     selectLineTool();
                     updatePenSizeCursor();
                 }
                 break;
+
                 case "toolLasso":
                 {
                     selectLassoTool();
                 }
                 break;
+
                 case "toolSpuit":
                 {
                     if(!isNowTool(TOOL_SPUIT))
@@ -19296,22 +19871,29 @@
                     spuitTool();
                 }
                 break;
+
                 case "toolUndo":
                 {
-                    setUndoButton(false);
+                    undo();
                 }
                 break;
+
                 case "toolRedo":
                 {
-                    setRedoButton(false);
+                    redo();
                 }
                 break;
+
                 case "toolMirror":
+                {
                     mirrorCanvas();
+                }
                 break;
 
                 case "toolTrace":
+                {
                     openTraceWindow();
+                }
                 break;
             }
 
@@ -19336,7 +19918,7 @@
             lassoBox2.y = lassoBox1.y;
         }
 
-        private function setSideBarScrollMove(clickY:Number):void
+        private function setScrollBarMove(clickY:Number):void
         {
             const floor:Function = Math.floor;
             const scale:Number = getUIScale();
@@ -19394,11 +19976,6 @@
         {
             if(!isNowKey(0) && !quickSidebarON || !target) return true;
 
-            if(lassoToolON === false)
-            {
-                stage.addEventListener(MouseEvent.MOUSE_UP,checkToolBoxButtonUpEvent);
-            }
-
             const targetName:String = target.name;
 
             switch(targetName)
@@ -19407,27 +19984,24 @@
                 {
                     rotateTool(false);
                 }
-                break;
+                return true;
 
                 case "toolUndo":
                 {
-                    setUndoButton(true);
-                }
-                break;
-
-                case "toolRedo":
-                {
-                    setRedoButton(true);
-                }
-                break;
-
-                case "zoomInButton":
-                case "zoomOutButton":
-                {
-                    setTopChildIndex(toolBox);
+                    setHoldKeyRepeat(false,undo);
+                    checkToolBoxMouseUp(targetName);
                 }
                 return true;
 
+                case "toolRedo":
+                {
+                    setHoldKeyRepeat(false,redo);
+                    checkToolBoxMouseUp(targetName);
+                }
+                return true;
+
+                case "zoomInButton":
+                case "zoomOutButton":
                 case "toolPen":
                 case "toolFillPen":
                 case "toolErase":
@@ -19444,7 +20018,8 @@
                 case "toolBoxBG":
                 case "toolMask":
                 {
-                    setTopChildIndex(toolBox);
+                    // setTopChildIndex(toolBox);
+                    checkToolBoxMouseUp(targetName);
                 }
                 return true;
             }
@@ -19489,26 +20064,6 @@
             rCursor.scaleY = z;
         }
 
-        private function setFillpenUI(flag:Boolean):void
-        {
-            if(flag)
-            {
-                if(!sideBar.visible) sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
-                toolBox.fillPenIconON();
-                toolBox.bgBoxVisible(true);
-                toolBox.checkFillPenIconBottom();
-            }
-            else
-            {
-                if(isSidebarVisible === false) sideBar.setTempVisibleOFF(isRightSidebar);
-
-                toolBox.fillPenIconOFF();
-                toolBox.checkBottomOFF();
-                toolBox.bgBoxVisible(false);
-                updateScrollBarHeight(stage.stageHeight);
-            }
-        }
-
         private function setDeepUndoOFFForce():void
         {
             setDeepUndoOFF();
@@ -19533,7 +20088,7 @@
                 removeInputEventDrawMode();
                 setTopChildIndex(replayTimeBox);
                 updateReplayBarPos(stage.stageWidth);
-                topBar.hint(STRING_PREPARE_REPLAY_DATA,topBar.saveButton);
+                setHintONTemp(STRING_PREPARE_REPLAY_DATA);
                 setMakeJumpImage();
             }
             else
@@ -19640,7 +20195,7 @@
             replayTimeBox["pauseButton"].visible = false;
             setTopChildIndex(replayTimeBox);
             resetCutFrameClickCounter();
-            topBar.hintOFF();
+            setTopBarHintOFF();
             setFitZoomedOFF();
             clearDataButtonCount = 0;
             clearRFrameCacheImages();
@@ -19683,7 +20238,7 @@
             replayTimeBox.y = Math.floor(topBar.BARSIZE*getUIScale()-4);
             setTopChildIndex(replayTimeBox);
             resetCutFrameClickCounter();
-            topBar.hintOFF();
+            setTopBarHintOFF();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             rcanvasPanel.addChild(rCursor);
             setRCursorVisibleOFFUndo();
@@ -19720,7 +20275,6 @@
             updateReplayBarPos(stage.stageWidth);
             autoScroll.updateRCanvasBounds();
             updateRCursorScale(rzoomed);
-            topBar.resetHintColor();
 
             if(traceMenuON === true)
             {
@@ -19944,7 +20498,7 @@
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
             if(mouseClickON || isPressingControl() || quickSidebarON
-            || (traceMenuON && traceMenu.hitTestPoint(mouseX,mouseY)))
+            || fillPenStarted || (traceMenuON && traceMenu.hitTestPoint(mouseX,mouseY)))
             {
                 return;
             }
@@ -19976,19 +20530,40 @@
 
             switch(targetName)
             {
-                case "saveButton": saveFile(true); break;
-                case "loadButton": loadFile(true); break;
+                case "saveButton":
+                {
+                    saveFile(true);
+                }
+                break;
+
+                case "loadButton":
+                {
+                    loadFile(true);
+                }
+                break;
+
+                case "gridButton":
+                {
+                    if(gridValue !== 0)
+                    {
+                        setGridOFF();
+                    }
+                }
+                break;
+
+                case "dpiButton":
+                {
+                    if(uiScaleIndex !== 0)
+                    {
+                        resetUIScale();
+                    }
+                }
+                break;
 
                 case "rgbInfo":
                 {
                     rgbInfoRightClickFocusIgnoreFlag = true;
-                    addColorToHistoryManual();
-                }
-                break;
-
-                case "currentColor":
-                {
-                    addCurrentColorToHistoryManual();
+                    toggleRGBInfoTextColorType();
                 }
                 break;
 
@@ -20024,13 +20599,9 @@
 
                 default:
                 {
-                    if(fillPenStarted)
+                    if(!isSidebarVisible && sideBar.visible)
                     {
-                        fillPenTool.ok();
-                    }
-                    else if(!isSidebarVisible && sideBar.visible)
-                    {
-                        if(!(targetName === "colorHistoryBox" || targetName === "colorHistoryBoxBG"))
+                        if(targetName !== "colorHistoryBox")
                         {
                             penCursorPosition.setSideBarOFF();
                             penCursorPosition.setSidebarONDelay();
@@ -20067,7 +20638,6 @@
                 }
                 return true;
 
-                case "alphaButton0":
                 case "alphaButton1":
                 case "alphaButton2":
                 case "alphaButton3":
@@ -20077,8 +20647,9 @@
                 case "alphaButton7":
                 case "alphaButton8":
                 case "alphaButton9":
+                case "alphaButton10":
                 {
-                    setAlphaButton(targetName);
+                    setOpaButton(targetName);
                 }
                 return true;
 
@@ -20194,14 +20765,15 @@
         private function colorHistoryDragMouseUpEvent(e:MouseEvent):void
         {
             colorHistoryDragStarted = false;
+            mouseDragON = false;
 
-            if(pickerBox.colorHistoryBoxBG.hitTestPoint(mouseX,mouseY) === false)
+            if(pickerBox.colorHistoryBox.hitTestPoint(mouseX,mouseY) === false)
             {
                 colorHistoryList.splice(colorHisotyrClickPresetIndex,1);
             }
             else
             {
-                const index:uint = getHistoryColorIndexByPos();
+                const index:uint = getHistoryColorIndexByMousePos();
                 const movingColor:uint = colorHistoryList.splice(colorHisotyrClickPresetIndex,1);
 
                 colorHistoryList.insertAt(index,movingColor);
@@ -20226,10 +20798,12 @@
 
                 pickerBox.setColorHistoryDragBoxPos(pickerBox.mouseX,pickerBox.mouseY);
 
-                if(pickerBox.colorHistoryBoxBG.hitTestPoint(mouseX,mouseY) === false)
+                if(pickerBox.colorHistoryBox.hitTestPoint(mouseX,mouseY) === false)
                 {
                     if(pickerBox.colorHistoryDragBox.alpha !== 0.65)
+                    {
                         pickerBox.colorHistoryDragBox.alpha = 0.65;
+                    }
                 }
                 else if(pickerBox.colorHistoryDragBox.alpha !== 1.0)
                 {
@@ -20270,16 +20844,6 @@
                         }
                         break;
 
-                        case "rgbInfo":
-                        case "rgbInfoBG":
-                        {
-                            if(pickerMode === 1 && penColorTransparentFlag)
-                            {
-                                setHSVCursorPosByColor(pickerBox.getRGBInfoBGColor());
-                            }
-                        }
-                        break;
-
                         case "penColorButton":
                         {
                             if(pickerMode !== 1)
@@ -20299,7 +20863,6 @@
                         break;
 
                         case "colorHistoryBox":
-                        case "colorHistoryBoxBG":
                         {
                             if(colorHistoryDragStarted === false)
                             {
@@ -20360,9 +20923,11 @@
             colorHistoryUpdateReady = false;
             const targetName:String = target.name;
 
-            if(targetName === "colorHistoryBoxBG")
+            if(targetName === "colorHistoryBox")
             {
-                const index:uint = getHistoryColorIndexByPos();
+                mouseDragON = true;
+
+                const index:uint = getHistoryColorIndexByMousePos();
 
                 colorHisotyrClickPresetIndex = index;
                 colorHisotyrClickPresetColor = colorHistoryList[index];
@@ -20399,7 +20964,6 @@
                 case "penColorButton":
                 case "paperColorButton":
                 case "colorHistoryBox":
-                case "colorHistoryBoxBG":
                 case "transColorButton":
                 case "currentColor":
                 case "tegaki0":
@@ -20451,7 +21015,7 @@
             {
                 case "lassoCZoom":
                 {
-                    if(zoomed !== 1.0) resetZoomDrawMode(lassoBox1.localToGlobal(new Point(0,0)));
+                    if(zoomed !== 1.0) resetZoomDrawMode(lassoBox1.localToGlobal(ZERO_POINT));
                 }
                 break;
 
@@ -20660,7 +21224,7 @@
             {
                 if(targetName === "sideBarScrollBar")
                 {
-                    setSideBarScrollMove(mouseY);
+                    setScrollBarMove(mouseY);
                 }
                 return;
             }
@@ -20727,7 +21291,7 @@
                 return;
 
                 case "sideBarScrollBar":
-                    setSideBarScrollMove(mouseY);
+                    setScrollBarMove(mouseY);
                 return;
 
                 case "traceRotateButton":

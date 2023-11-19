@@ -10,7 +10,6 @@
 	import flash.geom.ColorTransform;
 	import flash.display.Shape;
 	import flash.ui.ContextMenu;
-
 	public class colorPickerBox extends Sprite {
 		public var mainColorPickerBox:Sprite = new Sprite();
 		public var svBox:Sprite = new Sprite(); //hue랑 sv합친거
@@ -33,7 +32,6 @@
 		public const colorHistoryDragBox:Shape = new Shape();
 		public var penColorButton:SimpleButton;
 		public var paperColorButton:SimpleButton;
-		public var colorHistoryBoxBG:Sprite = new Sprite();
 		public var transColorButton:SimpleButton;
 
 		public var offsetX:Number = 0; //customcolor 박스 떨어진 위치
@@ -64,37 +62,45 @@
 
 		private const baseColor:ColorTransform = new ColorTransform();
 
-		private var rgbInfoTextSave:String = "";
-		private var firstRGBInfoColor:uint = 0;
+		private var lastRGBInfoText:String = "";
+		private var firstRGBInfoColorText:String = "";
 
-		public function getfirstRGBInfoColor():uint
+		public function drawHistoryBoxBG():void
 		{
-			return firstRGBInfoColor;
+			colorHistoryBox.graphics.clear();
+			colorHistoryBox.graphics.beginFill(0xFF0000,0.0);
+			colorHistoryBox.graphics.drawRect(0,0,170,34);
+			colorHistoryBox.graphics.endFill();
 		}
 
-		public function setfirstRGBInfoColor(color:int):void
+		public function getFirstRGBInfoColorText():String
 		{
-			firstRGBInfoColor = color;
+			return firstRGBInfoColorText;
 		}
 
-		public function resetOldRGBInfoText():void
+		public function updateFirstRGBInfoColorText():void
 		{
-			rgbInfo.text = rgbInfoTextSave;
+			firstRGBInfoColorText = rgbInfo.text;
+		}
+
+		public function resetToOldRGBInfoText():void
+		{
+			rgbInfo.text = lastRGBInfoText;
 		}
 
 		public function updateOldRGBInfoText():void
 		{
-			rgbInfoTextSave = rgbInfo.text;
+			lastRGBInfoText = rgbInfo.text;
 		}
 
 		public function setoldRGBInfoText(str:String):void
 		{
-			rgbInfoTextSave = str;
+			lastRGBInfoText = str;
 		}
 
 		public function getOldRGBInfoText():String
 		{
-			return rgbInfoTextSave;
+			return lastRGBInfoText;
 		}
 
 		public function setPickerMode(mode:int):void
@@ -138,7 +144,7 @@
 															0xD5E9F3,
 															0xA80515,
 															0xF1D0D0
-														];
+														 ];
 			const width:Number = 17;
 			const height:Number = 19;
 			var g:Graphics;
@@ -177,24 +183,24 @@
 			const offsetY:Number = 0;
 
 			const drawrColor:Vector.<uint> = new <uint> [
-														0xFFFFFF,
-														0xC0C0C0,
-														0xFF3B21,//빨간색
-														0xFFBD16,
-														0xF5F30F,
-														0xA5E975,
-														0x71DBFD,
-														0xFA80F9,
-														0x000000,
-														0x808080,
-														0x8E0000,//갈색
-														0xFFCC99,
-														0x877D30,
-														0x008F47,
-														0x313BCD,
-														0xC02E97,
-														0x3F037E
-													  ];
+															0xFFFFFF,
+															0xC0C0C0,
+															0xFF3B21,//빨간색
+															0xFFBD16,
+															0xF5F30F,
+															0xA5E975,
+															0x71DBFD,
+															0xFA80F9,
+															0x000000,
+															0x808080,
+															0x8E0000,//갈색
+															0xFFCC99,
+															0x877D30,
+															0x008F47,
+															0x313BCD,
+															0xC02E97,
+															0x3F037E
+														];
 			const len:int = drawrColor.length;
 			for(var i:uint=0;i<len;i++)
 			{
@@ -247,7 +253,7 @@
 			g.clear();
 			g.lineStyle(1,(borderColor === 0) ? color:borderColor);
 			g.beginFill(color);
-			g.drawRect(0,0 ,rgbInfoWidth ,rgbInfoHeight);
+			g.drawRect(0,0 ,rgbInfoWidth,rgbInfoHeight);
 			g.endFill();
 
 			rgbInfoBGColor = color;
@@ -359,7 +365,7 @@
 			colorPickerInfo.x = -2;
 			colorPickerInfo.y = 0;
 			colorPickerInfo.text = "Color";
-			colorPickerInfo.width = svBoxWidth;
+			colorPickerInfo.width = 80;
 
 			paperColorButton.x = floor(colorPickerInfo.x+colorPickerInfo.textWidth+62);
 			paperColorButton.y = floor(colorPickerInfo.y);
@@ -422,21 +428,12 @@
 			colorHistoryText.x = -1;
 			colorHistoryText.y = -5;
 			colorHistoryBox.x = 1;
-			colorHistoryBox.y = floor(colorHistoryText.y+colorHistoryText.height);
-
+			colorHistoryBox.y = floor(colorHistoryText.y+colorHistoryText.height)-14;
 			colorHistoryBox.name = "colorHistoryBox";
-			colorHistoryBoxBG.name = "colorHistoryBoxBG";
-
-			g = colorHistoryBoxBG.graphics;
-			g.clear()
-			g.beginFill(0xFF0000,0);
-			g.drawRect(0,0,170,34); //17픽셀 10개임
-			g.endFill();
-			colorHistoryBoxBG.y = -14;
-			colorHistoryBox.addChild(colorHistoryBoxBG);
+			drawHistoryBoxBG();
 
 			drawrText.x = colorHistoryText.x;
-			drawrText.y = floor(colorHistoryBox.y+colorHistoryBox.height+1-14);
+			drawrText.y = floor(colorHistoryBox.y+colorHistoryBox.height+1);
 			drawrPresetBox.x = colorHistoryBox.x;
 			drawrPresetBox.y =floor(drawrText.y+drawrText.height-1);
 
@@ -448,10 +445,10 @@
 			colorHistoryDragBox.visible = false;
 
 			mainPresetBox.addChild(colorHistoryText);
-			mainPresetBox.addChild(colorHistoryBox);
 			mainPresetBox.addChild(drawrText);
-			mainPresetBox.addChild(drawrPresetBox);
 			mainPresetBox.addChild(tegakiText);
+			mainPresetBox.addChild(colorHistoryBox);
+			mainPresetBox.addChild(drawrPresetBox);
 			mainPresetBox.addChild(tegakiPresetBox);
 			mainPresetBox.x = colorHistoryText.x;
 			mainPresetBox.y = floor(mainColorPickerBox.y+mainColorPickerBox.height+5);

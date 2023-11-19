@@ -166,6 +166,7 @@
 			addChild(prevCursor);
 			addChild(maskShape);
 			setMask();
+			mouseEnabled = false;
 		}
 	}
 

@@ -1,37 +1,36 @@
 ﻿package
 {
 	import flash.display.Sprite;
-	import flash.display.SimpleButton;
 	import flash.text.TextField;
-	import flash.geom.ColorTransform;
+	import flash.text.TextFieldAutoSize;
 
 	public class toolTipBoxSet extends Sprite {
-		public var toolTipBoxBG:SimpleButton;
 		public var toolTipInfoText:TextField;
-		private const baseColor:ColorTransform = new ColorTransform();
+		private const bgColor:uint = 0xFFA31F;
 
-		public function updateBGPosition(scaled:Boolean):void
+		public function setText(str:String):void
 		{
-			if(scaled) toolTipBoxBG.y = 0;
-			else toolTipBoxBG.y = -1;
+			toolTipInfoText.text = str;
 		}
 
 		public function changeUIColor(base:uint,op:uint):void
 		{
-			baseColor.color = base;
-
-			toolTipBoxBG.transform.colorTransform = baseColor;
+			toolTipInfoText.backgroundColor = base;
 			toolTipInfoText.textColor = op;
 		}
 
 		public function toolTipBoxSet() {
+
+			changeUIColor(bgColor,0);
 			// constructor code
 			visible = false;
-			toolTipBoxBG.x = -1;
-			toolTipBoxBG.y = -1;
-			toolTipBoxBG.useHandCursor = false;
-			toolTipBoxBG.mouseEnabled = false;
 			toolTipInfoText.mouseEnabled = false;
+			toolTipInfoText.border = true;
+			toolTipInfoText.borderColor = 0;
+			toolTipInfoText.background = true;
+			toolTipInfoText.borderColor = 0;
+			toolTipInfoText.autoSize = TextFieldAutoSize.LEFT;
+			mouseEnabled = false;
 		}
 	}
 }

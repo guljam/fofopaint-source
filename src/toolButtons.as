@@ -2,14 +2,12 @@
 {
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
-	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Shape;
 	import flash.display.Graphics;
 	import flash.events.MouseEvent;
-	import flash.geom.Point;
 
 	public class toolButtons extends Sprite {
 		public var toolPen:SimpleButton;
@@ -27,9 +25,6 @@
 		public var toolZoom:SimpleButton;
 		public var zoomInButton:SimpleButton;
 		public var zoomOutButton:SimpleButton;
-		public var fillPenOK:SimpleButton;
-		public var fillPenUndo:SimpleButton;
-		public var fillPenCancel:SimpleButton;
 		public var toolSelectCursor:SimpleButton;
 		private var lastTool:String = "toolPen";
 
@@ -38,8 +33,6 @@
 
 		// public var toolBoxBG2:SimpleButton = toolBoxBG2;
 		public var bgBox:Shape = new Shape();
-		public var toolInfo:TextField = toolInfo;
-		public var toolInfoBG:Shape = new Shape();
 		private var deafultY:Number = 0;
 
 		private const base:ColorTransform = new ColorTransform();
@@ -93,7 +86,7 @@
 			const g:Graphics = bgBox.graphics;
 			g.lineStyle(0,0,0);
 			g.beginFill(color);
-			g.drawRect(-1,-1,BOX_WIDTH+2,BOX_HEIGHT+2);
+			g.drawRect(-4,-1,BOX_WIDTH+8,BOX_HEIGHT+2);
 			g.endFill();
 		}
 
@@ -128,67 +121,9 @@
 			}
 		}
 
-		public function fillPenIconOFF():void
-		{
-			fillPenUndo.visible = false;
-			fillPenCancel.visible = false;
-			fillPenOK.visible = false;
-			toolSelectCursor.visible = false;
-			toolErase.visible = true;
-			toolFillPen.visible = true;
-			toolSpuit.visible = true;
-			toolSelectCursor.visible = true;
-			fillPenEtcIconAlpha(1.0);
-		}
-
-		public function fillPenIconON():void
-		{
-			fillPenUndo.visible = true;
-			fillPenCancel.visible = true;
-			fillPenOK.visible = true;
-			toolSelectCursor.visible = true;
-			toolErase.visible = false;
-			toolFillPen.visible = false;
-			toolSpuit.visible = false;
-			toolSelectCursor.visible = false;
-			fillPenEtcIconAlpha(0.15);
-		}
-
-		public function fillPenEtcIconAlpha(alpha:Number):void
-		{
-			toolPen.alpha = alpha;
-			toolFillPen.alpha = alpha;
-			toolMirror.alpha = alpha;
-			toolLasso.alpha = alpha;
-			toolMove.alpha = alpha;
-			toolRotate.alpha = alpha;
-			toolLine.alpha = alpha;
-			toolTrace.alpha = alpha;
-			toolZoom.alpha = alpha;
-			toolUndo.alpha = alpha;
-			toolRedo.alpha = alpha;
-		}
-
-		public function _checkBottomPos(bottom:Number):void
-		{
-			if(bottom > stage.stageHeight)
-			{
-				y = y-(bottom-stage.stageHeight);
-			}
-			else
-			{
-				y = y-(bottom-stage.stageHeight);
-				if(y > deafultY) checkBottomOFF();
-			}
-		}
 		public function checkBottomOFF():void
 		{
 			y = deafultY;
-		}
-
-		public function checkFillPenIconBottom():void
-		{
-			_checkBottomPos((fillPenCancel.localToGlobal(new Point(0,0)) as Point).y + fillPenCancel.height);
 		}
 
 		public function zoomIconON():void
@@ -197,7 +132,6 @@
 			toolRotate.visible = false;
 			zoomInButton.visible = true;
 			zoomOutButton.visible = true;
-			hintOFF();
 			stage.addEventListener(MouseEvent.MOUSE_MOVE,zoomIconOFFEvent);
 		}
 
@@ -209,36 +143,6 @@
 			zoomOutButton.visible = false;
 		}
 
-		public function hintOFF():void
-		{
-			toolInfo.text = "";
-			toolInfo.visible = false;
-			toolInfo.x = 0;
-			toolInfo.y = 0;
-			toolInfo.width = 0;
-			toolInfo.height = 0;
-			toolInfoBG.x = 0;
-			toolInfoBG.y = 0;
-			toolInfoBG.width = 0;
-			toolInfoBG.height = 0;
-		}
-
-		public function hint(str:String,target:SimpleButton,rightPosition:Boolean):void
-		{
-			toolInfo.text = str;
-			toolInfo.width = toolInfo.textWidth+10;
-			toolInfo.height = toolInfo.textHeight+10;
-			toolInfo.x = (rightPosition === false) ? target.x+target.width+7 : target.x-toolInfo.textWidth-10;
-			toolInfo.y = target.y-1;
-			toolInfoBG.x = toolInfo.x-3;
-			toolInfoBG.y = target.y;
-			toolInfoBG.width = Math.floor(toolInfo.textWidth+14);
-			toolInfoBG.height = Math.floor(toolInfo.textHeight+3);
-
-			toolInfo.visible = true;
-			toolInfoBG.visible = true;
-		}
-
 		public function changeUIColor(arr:Array):void
 		{
            	base.color = arr[0];
@@ -248,8 +152,6 @@
            	activeColor.color = arr[4];
 			activeColor.alphaMultiplier = 0.0;
            	activeIconColor.color = arr[5];
-
-			toolInfoBG.transform.colorTransform = base;
 
 			var len:uint = buttonArr.length;
 
@@ -272,12 +174,6 @@
 			zoomInButton.y = toolZoom.y;
 			zoomOutButton.x = toolRotate.x;
 			zoomOutButton.y = toolRotate.y;
-			fillPenOK.x = toolErase.x;
-			fillPenOK.y = toolErase.y;
-			fillPenCancel.x = toolSpuit.x;
-			fillPenCancel.y = toolSpuit.y;
-			fillPenUndo.x = toolFillPen.x;
-			fillPenUndo.y = toolFillPen.y;
 
 			setChildIndex(zoomInButton,numChildren-1);
 			setChildIndex(zoomOutButton,numChildren-1);
@@ -287,7 +183,6 @@
 			rotateButton.y = 0;
 
 			//텍스트
-			toolInfo.textColor = arr[2];
 			updateBGBoxColor(arr[0]);
 
 			btn = null;
@@ -322,27 +217,14 @@
 		public function toolButtons() {
 
 			moveToolCursorInit();
-			toolInfoBG.visible = false;
-			const g:Graphics = toolInfoBG.graphics;
-			g.lineStyle(0,0,0);
-			g.beginFill(0xCCCCCC);
-			g.drawRect(0,0,10,10);
-			g.endFill();
-
-			toolInfo.visible = false;
-
-			addChild(toolInfoBG);
-			setChildIndex(toolInfoBG,0);
 
 			zoomInButton.visible = false;
 			zoomOutButton.visible = false;
-			fillPenOK.visible = false;
-			fillPenCancel.visible = false;
-			fillPenUndo.visible = false;
 
 			// initPenSizeCursor();
 
 			toolSelectCursor.useHandCursor = false;
+			toolSelectCursor.mouseEnabled = false;
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
 			toolErase.useHandCursor = false;
@@ -358,10 +240,6 @@
 			toolZoom.useHandCursor = false;
 			zoomInButton.useHandCursor = false;
 			zoomOutButton.useHandCursor = false;
-			fillPenOK.useHandCursor = false;
-			fillPenCancel.useHandCursor = false;
-			fillPenUndo.useHandCursor = false;
-
 
 			buttonArr = [
 							zoomInButton,
@@ -379,9 +257,6 @@
 							toolMirror,
 							toolLasso,
 							toolLine,
-							fillPenOK,
-							fillPenCancel,
-							fillPenUndo,
 						];
 		}
 	}

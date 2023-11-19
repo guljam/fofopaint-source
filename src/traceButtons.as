@@ -6,6 +6,7 @@
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.text.TextFieldAutoSize;
 
 	public class traceButtons extends Sprite {
 		public var traceOpaButton:SimpleButton;
@@ -151,6 +152,8 @@
 			traceVisibleONButton.useHandCursor = false;
 			traceDeleteButton.useHandCursor = false;
 			traceVisibleONButton.visible = false;
+
+			traceInfo.autoSize = TextFieldAutoSize.LEFT;
 
 			leftButtonArr =
 			[

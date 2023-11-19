@@ -17,7 +17,7 @@
 		public var replayPrev:SimpleButton;
 		public var replayNext:SimpleButton;
 		public var frameInfo:TextField;
-		public var BARSIZE:Number = 35;
+		public var BARSIZE:Number = 27;
 		private var nowBarColorSave:ColorTransform = new ColorTransform();
 		private const baseColor:ColorTransform = new ColorTransform();
 		private const opColor:ColorTransform = new ColorTransform();
@@ -85,7 +85,7 @@
                 replayTotalBar.transform.colorTransform = totalBarColor;
 				frameInfo.textColor = op;
 			}
-            else 
+            else
             {
                 replayTotalBar.transform.colorTransform = opColor;
                 frameInfo.textColor = base;

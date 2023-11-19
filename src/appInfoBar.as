@@ -4,7 +4,7 @@
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	import flash.text.TextFormatAlign;
-	
+
 	public class appInfoBar extends Sprite {
 		private const canvasInfoFormat:TextFormat = new TextFormat();
 		public var canvasInfo:TextField;
@@ -75,7 +75,7 @@
 			{
 				finalstr+= " ";
 			}
-			
+
 			return finalstr+str;
 		}
 
@@ -105,6 +105,7 @@
 		}
 
 		public function appInfoBar() {
+			mouseEnabled = false;
 		}
 	}
 }

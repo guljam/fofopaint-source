@@ -7,6 +7,7 @@
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.text.TextFieldAutoSize;
 
 	public class lassoButtons extends Sprite
 	{
@@ -75,7 +76,7 @@
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
 				btnUp.transform.colorTransform = iconRight;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 
+				btnOver.getChildAt(0).transform.colorTransform = activeColor; //
 				btnOver.getChildAt(1).transform.colorTransform = iconRight;
 				btn.downState = btn.overState;
 			}
@@ -146,6 +147,7 @@
 			visible = false;
 
 			lassoInfo.text = "LASSO TOOL";
+			lassoInfo.autoSize = TextFieldAutoSize.LEFT;
 
 			leftButtonArr2 = [
 								lassoOK,
@@ -155,7 +157,7 @@
 								lassoCRotate,
 								lassoTrace
 							 ];
-							
+
 			rightButtonArr = [
 								lassoCopy,
 								lassoRotate,

@@ -8,9 +8,7 @@
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.utils.clearInterval;
-	import flash.geom.Rectangle;
-
+	import flash.text.TextFieldAutoSize;
 	public class topMenu extends Sprite {
 
 		private const startX:Number = 3;
@@ -59,14 +57,12 @@
 		public var replayZoomOutButton:SimpleButton;
 		public var replayFitToWindowButton:SimpleButton;
 		public var replayRotateButton:SimpleButton;
-		public var topMenuInfo:TextField;
 		public var timer:TextField;
 
 		private var buttonOrder:Array = [];
 		private var drawModeButtons:Array = [];
 		private var replayModeButtons:Array = [];
 		private var captureModeButtons:Array = [];
-		private var topbarInfoBG:Shape = new Shape();
 		private var topbarBG:Shape = new Shape();
 		private var topbarBGColor:uint = 0;
 		private var hintOKBGColor:uint = 0;
@@ -86,11 +82,6 @@
 
 		private const baseColor:ColorTransform = new ColorTransform();
 		private const opColor:ColorTransform = new ColorTransform();
-
-		public function getHintBGHeight():Number
-		{
-			return topbarInfoBG.height*scaleX;
-		}
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
 		{
@@ -129,7 +120,7 @@
 		{
 			const limitX:Number = (replaySpeedSet.x+replaySpeedSet.width-10)*scaleX;
 			var newX:Number = stw-(timer.textWidth+15)*scaleX;
-			if(newX < limitX) newX = limitX;			
+			if(newX < limitX) newX = limitX;
 			timer.x = newX/scaleX;
 		}
 
@@ -191,11 +182,6 @@
 			replaySpeedMoveButton.transform.colorTransform = opColor;
             replaySpeedBar.transform.colorTransform = opColor;
 
-			if(isHintLocked === false)
-			{
-				topbarInfoBG.transform.colorTransform = baseColor;
-				topMenuInfo.textColor = op;
-			}
 			timer.textColor = op;
 		}
 
@@ -210,123 +196,6 @@
 			const nowX:Number = exp*replaySpeedBar.width;
 
 			replaySpeedMoveButton.x = replaySpeedBar.x+nowX;
-		}
-
-		public function hintOFF():void
-		{	
-			if(isHintLocked) return;
-			topMenuInfo.visible = false;
-            topbarInfoBG.visible = false;
-		}
-
-		public function changeHintYPos(offset:Number):void
-		{
-			topMenuInfo.y = offset-4*scaleX;
-			topbarInfoBG.y = offset-4;
-		}
-
-		public function resetHintColor():void
-		{
-			const c:ColorTransform = new ColorTransform();
-			c.color = topbarBGColor;
-			topbarInfoBG.transform.colorTransform = c;
-			topMenuInfo.textColor = hintFontColor;
-		}
-
-		public function hintTimeOFFWithColor(time:Number=3.0):void
-		{
-			isHintLocked = false;
-			hintTimeOFF();
-			miniTimer.addByName("topBarHintColorOFFTimer",time,false,resetHintColor);
-		}
-
-		public function hintTimeOFF():void
-		{
-			miniTimer.addByName("topBarHintOFFTimer",3.0,false,hintOFF);
-		}
-
-		public function hintLoadError():void
-		{
-			miniTimer.remove("topBarHintColorOFFTimer");
-			miniTimer.remove("topBarHintOFFTimer");
-			clearInterval(hintWaitAnimTimer);
-			isHintLocked = false;
-			hint("Failed to load file",replayModeButton,true);
-			setHintColor("red");
-			isHintLocked = true;
-			hintTimeOFFWithColor();
-		}
-
-		public function hintSaveError():void
-		{
-			miniTimer.remove("topBarHintColorOFFTimer");
-			miniTimer.remove("topBarHintOFFTimer");
-			clearInterval(hintWaitAnimTimer);
-			isHintLocked = false;
-			hint("Failed to save file",replayModeButton,true);
-			setHintColor("red");
-			isHintLocked = true;
-			hintTimeOFFWithColor(7000);
-		}
-
-		public function setHintColor(colorStr:String):void
-		{
-			const c:ColorTransform = new ColorTransform()
-
-			if(colorStr === "green")
-			{
-				c.color = hintOKBGColor;
-				topbarInfoBG.transform.colorTransform = c;
-				topMenuInfo.textColor = 0;
-			}
-			else if(colorStr === "red")
-			{
-				c.color = 0xE03B35;
-				topbarInfoBG.transform.colorTransform = c;
-				topMenuInfo.textColor = 0;
-			}
-			else if(colorStr === "yellow")
-			{
-				c.color = 0xF4CD6C;
-				topbarInfoBG.transform.colorTransform = c;
-				topMenuInfo.textColor = 0;
-			}
-		}
-
-		public function updateHintBGWidth(stw:Number):void
-		{
-			topbarInfoBG.width = stw/scaleX;
-		}
-
-		public function hintTime(str:String,target:DisplayObject):void
-		{
-			hint(str,target,true);
-			hintTimeOFF();
-		}	
-
-		public function hint(str:String,target:DisplayObject,timed:Boolean=false):void
-		{
-			if(isHintLocked) return;
-
-			if(target)
-			{
-				if(!timed) miniTimer.remove("topBarHintOFFTimer");
-
-				topMenuInfo.text = str;
-				topMenuInfo.width = topMenuInfo.textWidth+4;
-				topMenuInfo.x = (target.x+target.width/2-topMenuInfo.textWidth/2 < 5) ? 6
-																					  : target.x+target.width/2-topMenuInfo.width/2; //17은 아이콘 크기의 절반임;
-
-				if((topMenuInfo.x+topMenuInfo.textWidth)*scaleX > stage.stageWidth-3)
-				{
-					const b:Rectangle = topMenuInfo.getBounds(stage);
-					topMenuInfo.x = topMenuInfo.x-(b.right-(stage.stageWidth-3))/scaleX;
-				}
-
-				topbarInfoBG.width = stage.stageWidth;
-				topbarInfoBG.visible = true;
-				topMenuInfo.visible = true;
-			}
 		}
 
 		public function updateTopbarBG(stw:int):void
@@ -447,7 +316,7 @@
 												reRecordingButton,
 												replayZoomInButton,
 												replayZoomOutButton,
-												replayFitToWindowButton,
+												replayFitToWindowButton
 												];
 			const len:int = arr.length;
 			var btnDown:DisplayObjectContainer;
@@ -495,15 +364,15 @@
 
 			updateButton.x = aboutButton.x;
 			updateButton.y = aboutButton.y;
-		}	
+		}
 
 		public function topMenu()
 		{
 			replaySpeedSet.addChild(replaySpeedBar);
 			replaySpeedSet.addChild(replaySpeedMoveButton);
 			replaySpeedSet.addChild(replaySpeedBarWrapper);
-			replaySpeedBarWrapper.x = 0;
-			replaySpeedBarWrapper.y = 2;
+			replaySpeedBarWrapper.x = -1;
+			replaySpeedBarWrapper.y = -2;
 			replaySpeedBar.x = 5;
 			replaySpeedBar.y = Math.floor(replaySpeedBarWrapper.height/2-11);
 			replaySpeedMoveButton.x = replaySpeedBar.x+3;
@@ -577,7 +446,7 @@
 			sideBarONButton.visible = false;
 			sideBarONButton2.visible = false;
 
-			buttonOrder =   [ 
+			buttonOrder =   [
 								[replayModeButton,drawModeButton,capOff],
 								[captureButton,repCaptureButton,capFull],
 								[saveButton,repSaveButton,capClipBoard],
@@ -643,26 +512,14 @@
 			initMouseDownState();
 
 			updateButton.visible = false;
-			topMenuInfo.width = 500;
-			topMenuInfo.x = startX;
+
 
 			timer.y = 6;
-
-			topbarInfoBG.graphics.clear();
-			topbarInfoBG.graphics.lineStyle(0,0,0);
-			topbarInfoBG.graphics.beginFill(0xCCCCCC);
-			topbarInfoBG.graphics.drawRect(0,0,10,10);
-			topbarInfoBG.graphics.endFill();
-			topbarInfoBG.x = 0;
-			topbarInfoBG.height = Math.floor(topMenuInfo.textHeight+3);
-
-			changeHintYPos(0);
+			timer.autoSize = TextFieldAutoSize.LEFT;
 
 			addChild(replaySpeedSet);
 			addChild(topbarBG);
-			addChild(topbarInfoBG);
 			setChildIndex(topbarBG,0);
-			setChildIndex(topMenuInfo,numChildren-1);
 			cacheAsBitmap = true;
 
 			miniTimer = new fofoTimer(stage);

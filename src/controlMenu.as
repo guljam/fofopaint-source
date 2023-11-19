@@ -9,18 +9,20 @@
 
 	public class controlMenu extends Sprite
 	{
-		public const penSizeTransButtonBox:penSizeTransButtonSet = new penSizeTransButtonSet();
-		public const opaBox:opaButtons = new opaButtons();
+		public const penSizeBox:Sprite = new Sprite();
+		public const opaBox:Sprite = new Sprite();
 		public const sharpLineButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();
 		public const layerButtonWrapper:Sprite = new Sprite();
 
-		public var sizeSelectCursor:SimpleButton;
 		public var rectSizeSet:SimpleButton;
 		public var circleSizeSet:SimpleButton;
 		public var shapeRect:SimpleButton;
 		public var shapeCircle:SimpleButton;
-		public var penSizeGrid:SimpleButton;
+		public var penSizeGuide:SimpleButton;
+		public var penSizeSelectCursor:SimpleButton;
+		public var opaGuide:SimpleButton;
+		public var opaCursor:SimpleButton;
 
 		public var sharpLineONButton:SimpleButton;
 		public var sharpLineOFFButton:SimpleButton;
@@ -65,7 +67,7 @@
 		}
 
 		public function changeUIColor(op:uint):void
-		{			
+		{
 			var alphaBackup:Number; //레이어 버튼이 색깔 바꾸면 알파가 초기화 되는 버그있어서 수동으로 만들어줌
 			opColor.color = op;
 
@@ -79,7 +81,7 @@
 
 			alphaBackup = layer2SelectButton.alpha;
 			layer2SelectButton.transform.colorTransform = opColor;
-			layer2SelectButton.alpha = alphaBackup;	
+			layer2SelectButton.alpha = alphaBackup;
 			layer2UncheckButton.transform.colorTransform = opColor;
 			layer2CheckButton.transform.colorTransform = opColor;
 
@@ -90,7 +92,7 @@
 			shapeCircle.transform.colorTransform = opColor;
 			rectSizeSet.transform.colorTransform = opColor;
 			circleSizeSet.transform.colorTransform = opColor;
-			penSizeGrid.transform.colorTransform = opColor;
+			penSizeGuide.transform.colorTransform = opColor;
 
 			sharpLineText.transform.colorTransform = opColor;
 			sharpLineONButton.transform.colorTransform = opColor;
@@ -100,7 +102,7 @@
 			airBrushOFFButton.transform.colorTransform = opColor;
 			airBrushONButton.transform.colorTransform = opColor;
 
-			opaBox.alphaBG.transform.colorTransform = opColor;
+			opaGuide.transform.colorTransform = opColor;
 			saperateLine.transform.colorTransform = opColor;
 
 			penSmoothSliderSet["penSmoothBar"].transform.colorTransform = opColor;
@@ -141,14 +143,12 @@
 
 		public function movePenSizeCursor(index:uint):void
 		{
-			const btn:SimpleButton = penSizeTransButtonBox.getChildByName("nSizeButton"+index) as SimpleButton;
+			const btn:Sprite = penSizeBox.getChildByName("nSizeButton"+index) as Sprite;
+
 			if (btn)
 			{
-				const _sizeSelectCursor:SimpleButton = sizeSelectCursor;
-
-				_sizeSelectCursor.x = penSizeTransButtonBox.x+btn.x;
-				_sizeSelectCursor.y = penSizeTransButtonBox.y+btn.y;
-				btn.useHandCursor = false;
+				penSizeSelectCursor.x = penSizeBox.x+btn.x;
+				penSizeSelectCursor.y = penSizeBox.y+btn.y;
 			}
 		}
 
@@ -161,6 +161,10 @@
 			g.beginFill(0xFF0000,0);
 			g.drawRect(0,0,w,h);
 			g.endFill();
+
+			airBrushOFFButton.mouseEnabled = false;
+			airBrushONButton.mouseEnabled = false;
+			airBrushText.mouseEnabled = false;
 
 			airBrushButtonWrapper.addChild(airBrushOFFButton);
 			airBrushButtonWrapper.addChild(airBrushONButton);
@@ -191,6 +195,10 @@
 			g.beginFill(0xFF0000,0);
 			g.drawRect(0,0,w,h);
 			g.endFill();
+
+			sharpLineOFFButton.mouseEnabled = false;
+			sharpLineONButton.mouseEnabled = false;
+			sharpLineText.mouseEnabled = false;
 
 			sharpLineButtonWrapper.addChild(sharpLineOFFButton);
 			sharpLineButtonWrapper.addChild(sharpLineONButton);
@@ -234,9 +242,6 @@
 			layerButtonWrapper.addChild(layerSwapButton);
 			layerButtonWrapper.addChild(layerMergeButton);
 
-			layerButtonWrapper.x = opaBox.x;
-			layerButtonWrapper.y = opaBox.y+opaBox.height-1;
-
 			layerSwapButton.x = 0;
 			layerSwapButton.y = 0;
 
@@ -249,7 +254,7 @@
 			layer1SelectButton.y = layer1CheckButton.y;
 
 			layerMergeButton.x = layer1SelectButton.x+layer1SelectButton.width+3;
-			layerMergeButton.y = layer1SelectButton.y+7;
+			layerMergeButton.y = layer1SelectButton.y-1;
 
 			layer2CheckButton.x = layer1CheckButton.x;
 			layer2CheckButton.y = layer1CheckButton.y+layer1CheckButton.height+4;
@@ -260,71 +265,112 @@
 			layer2SelectButton.y = layer2CheckButton.y;
 		}
 
+		public function initOpaButton():void
+		{
+			var offset:Number = 1.0;
+			for(var i:int = 1; i <= 10; i++)
+			{
+				const btn:Sprite = new Sprite();
+
+				btn.name = "alphaButton"+i;
+				btn.graphics.beginFill(0xFF00FF,0.0);
+				btn.graphics.drawRect(0,0,17,16);
+				btn.graphics.endFill();
+
+				if(i === 4)
+				{
+					offset = -1.0;
+				}
+
+				btn.x = 17*(i-1)+offset;
+				btn.y = 1;
+
+
+				opaBox.addChild(btn);
+			}
+
+			opaCursor.x = 0;
+			opaCursor.y = 0;
+			opaBox.addChild(opaCursor);
+		}
+
 		public function initPenSizeButton():void
 		{
-			const _penSizeTransButtonBox:penSizeTransButtonSet = penSizeTransButtonBox;
-			var btn:SimpleButton;
+			const offset:Number = 1.0;
 			for (var i:int = 1; i <= 12; i++)
 			{
-				btn = _penSizeTransButtonBox.getChildByName("nSizeButton"+i) as SimpleButton;
+				const btn:Sprite = new Sprite();
 
-				if (btn)
-				{
-					btn.useHandCursor = false;
-				}
+				btn.name = "nSizeButton"+i;
+				btn.graphics.beginFill(0xFFFF00,0.0);
+				btn.graphics.drawRect(0,0,28,28);
+				btn.graphics.endFill();
+				btn.x = (i >= 7) ? 28*(i-7):28*(i-1);
+				btn.y = (i >= 7) ? 28 : 0;
+				btn.x -= offset;
+				btn.y -= offset;
+
+				penSizeBox.addChild(btn);
 			}
 		}
 
 		public function controlMenu()
 		{
 			name = "controlBox";
-			// initPenSizeCursor();
-			// initShapeSet();
+
 			initPenSizeButton();
+			initOpaButton();
 
 			const floor:Function = Math.floor;
 			const offsetX:Number = 0;
 			const infoBottom:Number = floor(controlInfo.y+controlInfo.height+1);
 
-			controlInfo.width = BOX_WIDTH - 5;
+			controlInfo.width = BOX_WIDTH-5;
 			controlInfo.height = 50;
 			controlInfo.x = -3;
 			controlInfo.y = 0;
 
 			shapeCircle.x = offsetX;
-			shapeCircle.y = infoBottom;
+			shapeCircle.y = infoBottom-3;
 			shapeCircle.useHandCursor = false;
-			shapeRect.x = offsetX+shapeCircle.x+shapeCircle.width+5;
-			shapeRect.y = infoBottom;
+			shapeRect.x = offsetX+shapeCircle.x+shapeCircle.width+1;
+			shapeRect.y = shapeCircle.y;
 			shapeRect.useHandCursor = false;
 
 			penSmoothSliderSet.x = floor(shapeRect.x+shapeRect.width+11);
-			penSmoothSliderSet.y = floor(shapeRect.y)+5;
+			penSmoothSliderSet.y = floor(shapeRect.y)+8;
 
 			penSmoothSliderSet["penSmoothBar"].useHandCursor = false;
 			penSmoothSliderSet["penSmoothButton"].useHandCursor = false;
 			penSmoothSliderSet["penSmoothSlider"].useHandCursor = false;
 
-			penSizeGrid.x = offsetX;
-			penSizeGrid.y = floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-10;
-			penSizeTransButtonBox.x = penSizeGrid.x+2;
-			penSizeTransButtonBox.y = penSizeGrid.y+2;
+			penSizeGuide.x = offsetX;
+			penSizeGuide.y = floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-6;
+			penSizeBox.x = penSizeGuide.x+2;
+			penSizeBox.y = penSizeGuide.y+2;
+			penSizeSelectCursor.useHandCursor = false;
 
-			sizeSelectCursor.useHandCursor = false;
-
-			rectSizeSet.x = floor(penSizeGrid.x)+9;
-			rectSizeSet.y = floor(penSizeGrid.y)+10;
+			rectSizeSet.x = floor(penSizeGuide.x)+9;
+			rectSizeSet.y = floor(penSizeGuide.y)+10;
 			circleSizeSet.x = rectSizeSet.x;
 			circleSizeSet.y = rectSizeSet.y+1;
 
-			opaBox.x = offsetX;
-			opaBox.y = floor(penSizeGrid.y+penSizeGrid.height+3);
+			opaGuide.x = offsetX;
+			opaGuide.y = floor(penSizeGuide.y+penSizeGuide.height+3);
+			opaBox.x = opaGuide.x;
+			opaBox.y = opaGuide.y;
+
+			opaGuide.mouseEnabled = false;
+			opaCursor.mouseEnabled = false;
 
 			initSharpLineButtonWrapper();
 			initAirBrushButtonWrapper();
 			initLayerButton();
 
-			sharpLineButtonWrapper.x = layerButtonWrapper.x+layerButtonWrapper.width+13;
+			layerButtonWrapper.x = opaGuide.x;
+			layerButtonWrapper.y = opaGuide.y+opaGuide.height+3;
+
+			sharpLineButtonWrapper.x = layerButtonWrapper.x+layerButtonWrapper.width+16;
 			sharpLineButtonWrapper.y = layerButtonWrapper.y+2;
 
 			airBrushButtonWrapper.x = sharpLineButtonWrapper.x;
@@ -337,16 +383,18 @@
 
 			BOX_HEIGHT = opaBox.y+opaBox.height+7;
 
-			addChild(penSizeGrid);
-			addChild(penSizeTransButtonBox);
+			addChild(penSizeGuide);
+			addChild(penSizeBox);
 			addChild(opaBox);
 			addChild(layerButtonWrapper);
 			addChild(sharpLineButtonWrapper);
 			addChild(airBrushButtonWrapper);
 			setChildIndex(controlInfo, this.numChildren-1);
-			setChildIndex(sizeSelectCursor, this.numChildren-1);
+			setChildIndex(penSizeSelectCursor, this.numChildren-1);
 
-			penSizeGrid.useHandCursor = false;
+			penSizeGuide.useHandCursor = false;
+			penSizeGuide.mouseEnabled = false;
+			penSizeSelectCursor.mouseEnabled = false;
 
 			setChildIndex(controlInfo,0);
 		}
