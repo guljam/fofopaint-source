@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.10;
+        private const APP_VERSION:Number = 22.11;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -79,7 +79,7 @@
                                         h:72,
                                         i:73,
                                         j:74,
-                                        k:75,
+                                        k:75, 
                                         l:76,
                                         m:77,
                                         n:78,
@@ -963,17 +963,12 @@
                 hintBox.setText(str);
 
                 hintBox.x = 0;
-                hintBox.y = stage.stageHeight-hintBox.height;
+                hintBox.y = Math.floor(stage.stageHeight-hintBox.height);
 
-                // if(hintBox.hitTestPoint(mouseX,mouseY))
-                // {
-                //     hintBox.y = (mouseY-hintBox.height*scale)-(20*scale);
-                // }
-                // else
                 if(target && hintBox.hitTestObject(target))
                 {
                     gp = target.localToGlobal(ZERO_POINT);
-                    hintBox.y = (gp.y-hintBox.height*scale)-(20*scale);
+                    hintBox.y = Math.floor((gp.y-hintBox.height*scale)-(20*scale));
                 }
 
                 hintONEffect();
