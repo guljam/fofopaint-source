@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.12;
+        private const APP_VERSION:Number = 22.13;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3187,6 +3187,8 @@
                 return true;
 
                 case KEY.g:
+                topBar.updateButton.visible = !topBar.updateButton.visible;
+			    topBar.aboutButton.visible = !topBar.aboutButton.visible
                     setHoldKeyRepeat(true,shortCutPenAlpha,true);
                 return true;
 
@@ -6632,14 +6634,6 @@
             stage.addEventListener(MouseEvent.MOUSE_OUT,globalHintOFF);
         }
 
-        private function getNowToolStringForHint():String
-        {
-            const str:String = controlBox.controlInfo.text;
-            const part:Array = str.split(' ');
-
-            return (part[0] as String).toLocaleLowerCase();
-        }
-
         private function setControlBoxInfoOFF():void
         {
             var toolName:String = "Pen";
@@ -6654,12 +6648,12 @@
 
         private function getOpacityButtonHint(targetName:String):String
         {
-            return getOpacityHint(targetName)+"\nAdjust "+getNowToolStringForHint()+" opacity (g, b)";
+            return getOpacityHint(targetName)+"\nAdjust opacity (g, b)";
         }
 
         private function getSizeButtonHint(targetName:String):String
         {
-            return penSizeHint(targetName)+"\nAdjust "+getNowToolStringForHint()+ " size (f, v / h, n)";
+            return penSizeHint(targetName)+"\nAdjust size (f, v / h, n)";
         }
 
         private function controlBoxHintONEvent(e:MouseEvent):void
@@ -9330,7 +9324,7 @@
                     break;
 
                     case "aboutButton":
-                        str = "About FOFO PAINT";
+                        str = "About FOFO PAINT..";
                     break;
 
                     case "newWindowCloseButton":
@@ -9342,7 +9336,7 @@
                     break;
 
                     case "updateButton":
-                        str = "Version " + NEW_VERSION + " released!";
+                        str = "Version " + NEW_VERSION + " released!\nInstall update (click)";
                     break;
 
                     case "drawModeButton": str = "Draw mode (f1, f7)"; break;
