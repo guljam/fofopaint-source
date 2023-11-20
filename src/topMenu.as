@@ -371,8 +371,8 @@
 			replaySpeedSet.addChild(replaySpeedBar);
 			replaySpeedSet.addChild(replaySpeedMoveButton);
 			replaySpeedSet.addChild(replaySpeedBarWrapper);
-			replaySpeedBarWrapper.x = -1;
-			replaySpeedBarWrapper.y = -2;
+			replaySpeedBarWrapper.x = 2;
+			replaySpeedBarWrapper.y = 0;
 			replaySpeedBar.x = 5;
 			replaySpeedBar.y = Math.floor(replaySpeedBarWrapper.height/2-11);
 			replaySpeedMoveButton.x = replaySpeedBar.x+3;
