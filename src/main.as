@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.11;
+        private const APP_VERSION:Number = 22.12;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -79,7 +79,7 @@
                                         h:72,
                                         i:73,
                                         j:74,
-                                        k:75, 
+                                        k:75,
                                         l:76,
                                         m:77,
                                         n:78,
@@ -228,7 +228,7 @@
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset (right-click)"
-                    ,STRING_CUSTOM_COLOR_HINT:String = "Move text cursor (a d, j l, arrow key, tab, shift+tab)\nAdjust value (w s, i k)"
+                    ,STRING_CUSTOM_COLOR_HINT:String = "OK (enter, space, esc)\nMove text cursor (a d, j l, arrow key, tab, shift+tab)\nAdjust value (w s, i k)"
                     ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
@@ -287,7 +287,7 @@
                     ,toolTipBox:toolTipBoxSet = new toolTipBoxSet()//도움말 버튼
                     ,hintBox:toolTipBoxSet = new toolTipBoxSet()//도움말 버튼
                     ,hintCursor:Shape = new Shape()//도움말 버튼 커서
-                    ,hint:Object = cHintFunction()
+                    ,hint:Object = cHint()
                     ,stageBG:Sprite = new Sprite() //드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
                     ,aboutPanel:aboutBox = new aboutBox()
 
@@ -833,7 +833,8 @@
             {
                 return;
             }
-            if(!rgbInfoFocusedON && !captureModeON && !mouseDragON)
+
+            if(!rgbInfoFocusedON && !mouseDragON && !captureModeON)
             {
                 hint.off();
             }
@@ -845,12 +846,13 @@
             sethintOFFDelay();
         }
 
-        private function cHintFunction():Object
+        private function cHint():Object
         {
             var gp:Point = new Point(0,0);
             var scale:Number = 1.0;
             var w:Number = 0;
             var h:Number = 0;
+            var lastHint:String;
 
             function updateScale(newScale:Number):void
             {
@@ -891,6 +893,7 @@
 
             function hintOFF():void
             {
+                lastHint = null;
                 removeTimer("hintOFFTimer");
                 removeTimer("hintONDelayTimer");
                 removeTimer("hintONAlphaEffect");
@@ -978,9 +981,16 @@
 
             function start(str:String,target:DisplayObject,fastHint:Boolean=false):void
             {
+                if(hintBox.visible && lastHint === str)
+                {
+                    return;
+                }
+
                 removeTimer("hintOFFTimer");
                 removeTimer("hintOFFDelayTimer");
                 removeTimer("hintONDelayTimer");
+
+                lastHint = str;
 
                 if(target)
                 {
@@ -5502,14 +5512,11 @@
 
         private function penSizeHint(targetName:String):String
         {
-            const str:String = targetName.substr(11,2);
+            const str:String = targetName.substr(11);
             const index:int = parseInt(str);
             const size:int = sizeArr[index];
-            const strlen:int = 3-(size+"").length;
-            var blank:String ="";
-            if(strlen === 1) blank = " ";
-            else if(strlen === 2) blank = "  ";
-            const hint:String = size + "px"+blank;
+
+            const hint:String = size + "px";
 
             return hint;
         }
@@ -6647,7 +6654,7 @@
 
         private function getOpacityButtonHint(targetName:String):String
         {
-            return getAlphaHint(targetName)+"\nAdjust "+getNowToolStringForHint()+" opacity (g, b)";
+            return getOpacityHint(targetName)+"\nAdjust "+getNowToolStringForHint()+" opacity (g, b)";
         }
 
         private function getSizeButtonHint(targetName:String):String
@@ -7047,17 +7054,13 @@
             }
         }
 
-        private function getAlphaHint(targetName:String):String
+        private function getOpacityHint(targetName:String):String
         {
-            const lastNumber:String = targetName.substr(11,1);
+            const lastNumber:String = targetName.substr(11);
             const alpIndex:int = parseInt(lastNumber);
             const alpha:Number = opaArr[alpIndex];
             const alpha100:String = alpha*100+"";
-            const strlen:int = 3-(alpha100.length);
-            var blank:String ="";
-            if(strlen === 1) blank = " ";
-            else if(strlen === 2) blank = "  ";
-            const hint:String = alpha100 +"%"+blank;
+            const hint:String = alpha100 +"%";
 
             return hint;
         }
@@ -7226,6 +7229,10 @@
             if(captureRotated >= 4) captureRotated = 0;
             fitCanvasToWindow(true);
             topBar.capClipBoard.alpha = 1.0;
+            if(topBar.capRotate.hitTestPoint(mouseX,mouseY) === false)
+            {
+                setDefaultHintCaptureMode();
+            }
         }
 
         //rotate hand zoom에서 쓰임
@@ -13332,15 +13339,27 @@
 
         private function setDefaultHintCaptureMode():void
         {
-            hint.on("Drag canvas to draw capture area (Click canvas to save full image)",null);
+            if(drawCaptureArea.isFullImageCapture())
+            {
+                hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nDraw capture area (click+drag on canvas)\nSave full image (click)",null);
+            }
+            else
+            {
+                hint.on(drawCaptureArea.getRotatedRectSizeString()+STRING_CAPTURE_OK,null);
+            }
         }
 
         private function mouseOverCaptureMode(e:MouseEvent):void
         {
-            if(topBar.hitTestPoint(mouseX,mouseY) === false && drawCaptureArea.isFullImageCapture())
+            addTimerByName("checkCaptureHintDelay",0.1,false,function():void
             {
-                setDefaultHintCaptureMode();
-            }
+                if(mouseDragON) return;
+
+                if(topBar.hitTestPoint(mouseX,mouseY) === false)
+                {
+                    setDefaultHintCaptureMode();
+                }
+            });
         }
 
         private function rightMouseDownCaptureMode(e:MouseEvent):void
@@ -13699,13 +13718,25 @@
 
                 if(!rectW || !rectH || (w < 10 && h < 10))
                 {
-                    return "";
+                    var width:Number;
+                    var height:Number;
+                    if(replayModeON)
+                    {
+                        width = rcanvas1BitmapData.width;
+                        height = rcanvas1BitmapData.height;
+                    }
+                    else
+                    {
+                        width = canvas1BitmapData.width;
+                        height = canvas1BitmapData.height;
+                    }
+
+                    return (captureRotated === 0 || captureRotated === 2) ? width+" x "+height
+                                                                          : height+" x "+width;
                 }
-                else
-                {
-                    return (captureRotated === 0 || captureRotated === 2) ? w+" x "+h
-                                                                          : h+" x "+w;
-                }
+
+                return (captureRotated === 0 || captureRotated === 2) ? w+" x "+h
+                                                                        : h+" x "+w;
             }
 
             function resetCaptureArea():void
@@ -13738,6 +13769,7 @@
 
             function captureMouseUp(e:MouseEvent):void
             {
+                mouseDragON = false;
                 stageMouseMoveEvent.remove("captureMouseMove");
                 stage.removeEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
 
@@ -13814,8 +13846,10 @@
 
                 cx = floor(cx);
                 cy = floor(cy);
+
                 if(topBar.hitTestPoint(mouseX,mouseY) === false)
                 {
+                    mouseDragON = true;
                     stageMouseMoveEvent.add("captureMouseMove",captureMouseMove);
                     stage.addEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
                 }
