@@ -3187,8 +3187,6 @@
                 return true;
 
                 case KEY.g:
-                topBar.updateButton.visible = !topBar.updateButton.visible;
-			    topBar.aboutButton.visible = !topBar.aboutButton.visible
                     setHoldKeyRepeat(true,shortCutPenAlpha,true);
                 return true;
 
