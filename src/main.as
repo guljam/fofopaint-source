@@ -13334,7 +13334,7 @@
         {
             if(drawCaptureArea.isFullImageCapture())
             {
-                hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nDraw capture area (click+drag on canvas)\nSave full image (click)",null);
+                hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nSave full image (click, c, m)\nDraw capture area (click+drag on canvas)",null);
             }
             else
             {
