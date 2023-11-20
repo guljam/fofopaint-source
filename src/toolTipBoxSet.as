@@ -3,34 +3,38 @@
 	import flash.display.Sprite;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
+	import flash.display.Sprite;
 
 	public class toolTipBoxSet extends Sprite {
 		public var toolTipInfoText:TextField;
-		private const bgColor:uint = 0xFFA31F;
+		private const toolTipInfoBG:Sprite = new Sprite();
+		private const bgColor:uint = 0xFFA700;
+
+		public function getHeight():Number
+		{
+			return (toolTipInfoBG.height-1)*scaleX;
+		}
 
 		public function setText(str:String):void
 		{
 			toolTipInfoText.text = str;
-		}
-
-		public function changeUIColor(base:uint,op:uint):void
-		{
-			toolTipInfoText.backgroundColor = base;
-			toolTipInfoText.textColor = op;
+			toolTipInfoBG.graphics.clear();
+			toolTipInfoBG.graphics.beginFill(bgColor);
+			toolTipInfoBG.graphics.drawRect(0,0,toolTipInfoText.width,toolTipInfoText.height);
+			(0,0,toolTipInfoText.width,toolTipInfoText.height);
+			toolTipInfoBG.graphics.endFill();
 		}
 
 		public function toolTipBoxSet() {
-
-			changeUIColor(bgColor,0);
 			// constructor code
 			visible = false;
 			toolTipInfoText.mouseEnabled = false;
-			toolTipInfoText.border = true;
-			toolTipInfoText.borderColor = 0;
-			toolTipInfoText.background = true;
-			toolTipInfoText.borderColor = 0;
 			toolTipInfoText.autoSize = TextFieldAutoSize.LEFT;
 			mouseEnabled = false;
+
+			toolTipInfoBG.y = -1;
+			addChild(toolTipInfoBG);
+			setChildIndex(toolTipInfoBG,0);
 		}
 	}
 }

@@ -31,8 +31,8 @@
 		public var traceVisibleONButton:SimpleButton;
 		public var traceDeleteButton:SimpleButton;
 		public var traceInfo:TextField;
-		private var traceInfoBackup:Array = [];
-		public const fixedScale:Number = 0.875;
+		private var traceInfoPos:Array = [0,0];
+		private var fixedScale:Number = 1.0;
 
 		private const base:ColorTransform = new ColorTransform();
 		private const subBase:ColorTransform = new ColorTransform();
@@ -100,34 +100,33 @@
 
 		public function hint(str:String):void
 		{
+			traceInfo.text = str;
+
 			if(str.indexOf("\n") !== -1)
 			{
-				if(traceInfoBackup.length === 0)
-				{
-					traceInfoBackup[0] = traceInfo.y;
-					traceInfoBackup[1] = traceInfo.height;
-					traceInfoBackup[2] = traceMenuMoveButton.y;
-					traceInfoBackup[3] = traceMenuMoveButton.height;
-					traceInfo.y -= 18;
-					traceInfo.height += 18;
-					traceMenuMoveButton.y -= 18;
-					traceMenuMoveButton.height += 18;
-				}
+				traceInfo.y = traceInfoPos[0]-(traceInfo.height-traceInfoPos[1])-3;
+				traceMenuMoveButton.y = traceInfo.y;
 			}
-			else if(traceInfoBackup.length !== 0)
+			else if(traceInfoPos[0] !== traceInfo.y)
 			{
-				traceInfo.y = traceInfoBackup[0];
-				traceInfo.height = traceInfoBackup[1];
-				traceMenuMoveButton.y = traceInfoBackup[2];
-				traceMenuMoveButton.height = 27;
-				traceInfoBackup.length = 0;
+				traceInfo.y = traceInfoPos[0];
+				traceMenuMoveButton.y = 0;
 			}
-			traceInfo.text = str;
+
+			traceMenuMoveButton.height = traceInfo.height+5;
+		}
+
+		public function setScale(newScale:Number):void
+		{
+			scaleX = newScale*fixedScale;
+			scaleY = newScale*fixedScale;
 		}
 
 		public function traceButtons()
 		{
 			visible = false;
+
+			fixedScale = 34/traceImageButton.width;
 			scaleX = fixedScale;
 			scaleY = fixedScale;
 
@@ -154,6 +153,8 @@
 			traceVisibleONButton.visible = false;
 
 			traceInfo.autoSize = TextFieldAutoSize.LEFT;
+			traceInfoPos[0] = traceInfo.y;
+			traceInfoPos[1] = traceInfo.height;
 
 			leftButtonArr =
 			[

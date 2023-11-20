@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.17;
+        private const APP_VERSION:Number = 22.18;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -960,18 +960,14 @@
 
             function hintON(str:String,target:DisplayObject):void
             {
-                str = str.replace(/\n/g, " \n ");
-                str = " "+str+" ";
-
                 hintBox.setText(str);
-
                 hintBox.x = 0;
-                hintBox.y = Math.floor(stage.stageHeight-hintBox.height);
+                hintBox.y = Math.round(stage.stageHeight-hintBox.getHeight());
 
                 if(target && hintBox.hitTestObject(target))
                 {
                     gp = target.localToGlobal(ZERO_POINT);
-                    hintBox.y = Math.floor((gp.y-hintBox.height-30*scale));
+                    hintBox.y = Math.round((gp.y-hintBox.height-30*scale));
                 }
 
                 hintONEffect();
@@ -2534,20 +2530,13 @@
             replayTimeBox.scaleX = scale;
             replayTimeBox.scaleY = scale;
 
-            lassoMenu.scaleX = scale*lassoMenu.fixedScale;
-            lassoMenu.scaleY = scale*lassoMenu.fixedScale;
-
-            traceMenu.scaleX = scale*traceMenu.fixedScale;
-            traceMenu.scaleY = scale*traceMenu.fixedScale;
-
-            toolBox2.scaleX = scale*toolBox2.fixedScale;
-            toolBox2.scaleY = scale*toolBox2.fixedScale;
+            lassoMenu.setScale(scale);
+            traceMenu.setScale(scale);
+            fillPenBox.setScale(scale);
+            toolBox2.setScale(scale);
 
             toolTipBox.scaleX = scale;
             toolTipBox.scaleY = scale;
-
-            fillPenBox.scaleX = scale;
-            fillPenBox.scaleY = scale;
 
             aboutPanel.scaleX = scale;
             aboutPanel.scaleY = scale;
@@ -3637,9 +3626,9 @@
 
                 const targetName:String = target.name;
 
-                if(targetName === "fillPenOK") fillPenBox.hint("OK");
-                else if(targetName === "fillPenCancel") fillPenBox.hint("Cancel");
-                else if(targetName === "fillPenUndo") fillPenBox.hint("Undo");
+                if(targetName === "fillPenOK") fillPenBox.hint("OK (q, o key up)");
+                if(targetName === "fillPenCancel") fillPenBox.hint("Cancel\n(esc, backspace)");
+                else if(targetName === "fillPenUndo") fillPenBox.hint("Undo (w, i)");
             }
 
             function checkFillPenUndoReady():Boolean
@@ -3755,6 +3744,7 @@
             function fillPenKeyUpEvent(e:KeyboardEvent):void
             {
                 const keyCode:uint = e.keyCode;
+
                 if(mouseClickON)
                 {
                     if(keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter)
@@ -3764,13 +3754,11 @@
                     return;
                 }
 
-                if(keyCode === KEY.w || keyCode === KEY.i
-                || keyCode === KEY.z || keyCode === KEY.dot)
+                if(keyCode === KEY.w || keyCode === KEY.i)
                 {
                     undoData();
                 }
-                else if(keyCode === KEY.q || keyCode === KEY.o
-                || keyCode === KEY.enter)
+                else if(keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter)
                 {
                     endFillPenOK();
                 }
@@ -3840,10 +3828,6 @@
                             if(targetName === "fillPenOK")
                             {
                                 endFillPenOK();
-                            }
-                            else if(targetName === "fillPenCancel")
-                            {
-                                cancelFillPen();
                             }
                             else if(targetName === "fillPenUndo")
                             {
@@ -4036,16 +4020,13 @@
                 data.push(mx);
                 data.push(my);
                 lastMousePos.setTo(mx,my);
-
-                stage.addChild(fillPenBox);
                 canvas2.alpha = 1.0;
 
                 addEvents();
             }
 
             return {
-                start:start,
-                cancel:cancelFillPen
+                start:start
             };
         }
 
@@ -5279,7 +5260,7 @@
 
             switch(targetName)
             {
-                case "traceCancelButton":str = "Close"; break;
+                case "traceCancelButton":str = "Close (esc, backspace, t)"; break;
                 case "traceImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_TRACE; break;
                 case "traceLoadButton":str = "Paste image from file"; break;
                 case "traceClipButton":str = "Paste image from clipboard"; break;
@@ -5287,7 +5268,6 @@
                 case "traceRotateButton":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "traceMoveButton":str = "Move image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "traceResizeButton":str = "Resize image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "traceCancelButton":str = "Close"; break;
                 case "traceMirrorButton":str = "Flip image"; break;
                 case "traceVisibleONButton":
                 case "traceVisibleOFFButton":str = "Memory training ON/OFF"; break;
@@ -5347,7 +5327,7 @@
                 case "lasso1pxLeft":
                 case "lasso1pxRight":
                 case "lasso1pxUp":
-                case "lasso1pxDown": str = "Move image 1px\n(space+wasd / ijkl)"; break;
+                case "lasso1pxDown": str = "Move image 1px (space+wasd / ijkl)"; break;
                 case "lassoLayerMerge": str = "Merge image to layer 2"; break;
                 case "lassoLayerSwap": str = getLassoMenuHintSwapLayer(); break;
                 default: break;
@@ -5394,9 +5374,6 @@
             switch(targetName)
             {
                 case "toolSidebar": str = "Quick sidebar (s+d, j+k)"; break;
-                case "fillPenOK": str = "OK (q, o, enter, right-click)"; break;
-                case "fillPenCancel": str = "cancel (esc, backspace)"; break;
-                case "fillPenUndo": str = "undo (w, z / i, .)"; break;
                 case "toolPen": str = "Pen (q, o key up) "; break;
                 case "toolFillPen": str = "Fill pen (q, o)"; break;
                 case "toolErase": str = "Eraser (d, j)"; break;
@@ -11906,7 +11883,7 @@
 
             if(str !== "")
             {
-                toolTipText.text = " "+str+" ";
+                toolTipBox.setText(str);
             }
 
             const scale:Number = getUIScale();
@@ -19525,6 +19502,15 @@
 
         private function checkToolKeyDown(keyCode:int):void
         {
+            if(traceMenuON)
+            {
+                if(keyCode === KEY.esc || keyCode === KEY.backspace)
+                {
+                    closeTraceMenu();
+                    return;
+                }
+            }
+
             switch (keyCode)
             {
                 case KEY.q:
@@ -19646,11 +19632,7 @@
                 case KEY.del:
                 case KEY.backspace:
                 {
-                    if(traceMenuON)
-                    {
-                        closeTraceMenu();
-                    }
-                    else if(topBar.clearButton.alpha === 1.0)
+                    if(topBar.clearButton.alpha === 1.0)
                     {
                         setClearData(true);
                     }

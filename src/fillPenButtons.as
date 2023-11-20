@@ -2,11 +2,13 @@
 {
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
-	import flash.display.Shape;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.geom.ColorTransform;
 	import flash.text.TextField;
+	import flash.text.TextFieldAutoSize;
+	import flash.geom.ColorTransform;
+
 
 	public class fillPenButtons extends Sprite
 	{
@@ -14,29 +16,40 @@
 		public var fillPenOK:SimpleButton;
 		public var fillPenCancel:SimpleButton;
 		public var fillPenUndo:SimpleButton;
-		public const fillPenBoxBGTitle:Shape = new Shape();
-		public const fillPenBoxBG:Shape = new Shape();
+		public var fillPenBGTitle:SimpleButton;
+		public var fillPenBG:SimpleButton;
+		private const fillPenInfoPos:Array = [0,0];
+		private var fixedScale:Number = 1.0;
+		private const baseColor:ColorTransform = new ColorTransform();
+		private const opColor:ColorTransform = new ColorTransform();
 
 		public function hint(str:String):void
 		{
 			fillPenInfo.text = str;
+
+			if(str.indexOf("\n") !== -1)
+			{
+				fillPenInfo.y = fillPenInfoPos[0]-(fillPenInfo.height-fillPenInfoPos[1])-3;
+				fillPenBGTitle.y = fillPenInfo.y;
+			}
+			else if(fillPenInfoPos[0] !== fillPenInfo.y)
+			{
+				fillPenInfo.y = fillPenInfoPos[0];
+				fillPenBGTitle.y = 0;
+			}
+
+			fillPenBGTitle.height = fillPenInfo.height+5;
 		}
 
 		public function changeBGColor(arr:Array):void
 		{
-			const bgWidth:Number = fillPenOK.width*3;
+			const bgWidth:Number = fillPenOK.width*2+fillPenCancel.width;
 
-			fillPenBoxBG.graphics.clear();
-			fillPenBoxBG.graphics.lineStyle(0,0,0);
-			fillPenBoxBG.graphics.beginFill(arr[1]);
-			fillPenBoxBG.graphics.drawRect(0,0,bgWidth,fillPenOK.height+fillPenInfo.height);
-			fillPenBoxBG.graphics.endFill();
+			baseColor.color = arr[0];
+			opColor.color = arr[1];
 
-			fillPenBoxBGTitle.graphics.clear();
-			fillPenBoxBGTitle.graphics.lineStyle(0,0,0);
-			fillPenBoxBGTitle.graphics.beginFill(arr[0]);
-			fillPenBoxBGTitle.graphics.drawRect(0,0,bgWidth,fillPenInfo.height);
-			fillPenBoxBGTitle.graphics.endFill();
+			fillPenBGTitle.transform.colorTransform = baseColor;
+			fillPenBG.transform.colorTransform = opColor;
 
 			const buttonArr:Array =
 			[
@@ -70,17 +83,25 @@
 			fillPenInfo.textColor = arr[2];
 		}
 
+		public function setScale(newScale:Number):void
+		{
+			scaleX = newScale*fixedScale;
+			scaleY = newScale*fixedScale;
+		}
+
 		public function fillPenButtons()
 		{
+			fixedScale = 34/fillPenCancel.width;
+			scaleX = fixedScale;
+			scaleY = fixedScale;
+
 			visible = false;
 			fillPenOK.useHandCursor = false;
 			fillPenCancel.useHandCursor = false;
 			fillPenUndo.useHandCursor = false;
-
-			addChild(fillPenBoxBG);
-			addChild(fillPenBoxBGTitle);
-			setChildIndex(fillPenBoxBGTitle,0);
-			setChildIndex(fillPenBoxBG,0);
+			fillPenInfo.autoSize = TextFieldAutoSize.LEFT;
+			fillPenInfoPos[0] = fillPenInfo.y;
+			fillPenInfoPos[1] = fillPenInfo.height;
 		}
 	}
 

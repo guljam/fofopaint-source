@@ -31,9 +31,9 @@
 		public var lasso1pxUp:SimpleButton;
 		public var lassoLayerSwap:SimpleButton;
 		public var lassoLayerMerge:SimpleButton;
-		public const fixedScale:Number = 0.875;
+		private const fixedScale:Number = 0.875;
 
-		private var lassoInfoBackup:Array = [];
+		private var lassoInfoPos:Array = [0,0];
 		private const base:ColorTransform = new ColorTransform();
 		private const subBase:ColorTransform = new ColorTransform();
 		private const iconLeft:ColorTransform = new ColorTransform();
@@ -94,30 +94,26 @@
 
 		public function hint(str:String):void
 		{
+			lassoInfo.text = str;
+
 			if(str.indexOf("\n") !== -1)
 			{
-				if(lassoInfoBackup.length === 0)
-				{
-					lassoInfoBackup[0] = lassoInfo.y;
-					lassoInfoBackup[1] = lassoInfo.height;
-					lassoInfoBackup[2] = lassoMenuMoveButton.y;
-					lassoInfoBackup[3] = lassoMenuMoveButton.height;
-
-					lassoInfo.y -= 18;
-					lassoInfo.height += 18;
-					lassoMenuMoveButton.y -= 18;
-					lassoMenuMoveButton.height += 18;
-				}
+				lassoInfo.y = lassoInfoPos[0]-(lassoInfo.height-lassoInfoPos[1])-3;
+				lassoMenuMoveButton.y = lassoInfo.y;
 			}
-			else if(lassoInfoBackup.length !== 0)
+			else if(lassoInfoPos[0] !== lassoInfo.y)
 			{
-				lassoInfo.y = lassoInfoBackup[0];
-				lassoInfo.height = lassoInfoBackup[1];
-				lassoMenuMoveButton.y = lassoInfoBackup[2];
-				lassoMenuMoveButton.height = 27;
-				lassoInfoBackup.length = 0;
+				lassoInfo.y = lassoInfoPos[0];
+				lassoMenuMoveButton.y = 0;
 			}
-			lassoInfo.text = str;
+
+			lassoMenuMoveButton.height = lassoInfo.height+5;
+		}
+
+		public function setScale(newScale:Number):void
+		{
+			scaleX = newScale*fixedScale;
+			scaleY = newScale*fixedScale;
 		}
 
 		public function lassoButtons()
@@ -148,6 +144,8 @@
 
 			lassoInfo.text = "LASSO TOOL";
 			lassoInfo.autoSize = TextFieldAutoSize.LEFT;
+			lassoInfoPos[0] = lassoInfo.y;
+			lassoInfoPos[1] = lassoInfo.height;
 
 			leftButtonArr2 = [
 								lassoOK,

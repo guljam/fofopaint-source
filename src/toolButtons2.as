@@ -26,7 +26,7 @@
 		public var toolBoxBG2:SimpleButton;
 		public var toolSidebar:SimpleButton;
 		public var toolInfo:TextField;
-		public const fixedScale:Number = 0.85;
+		private var fixedScale:Number = 1.0;
 		private var infoDataBackup:Array = [];
 
 		private const base:ColorTransform = new ColorTransform();
@@ -162,11 +162,14 @@
 			btnOver = null;
 		}
 
+		public function setScale(newScale:Number):void
+		{
+			scaleX = newScale*fixedScale;
+			scaleY = newScale*fixedScale;
+		}
+
 		public function toolButtons2()
 		{
-			scaleX = fixedScale;
-			scaleY = fixedScale;
-
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
 			toolErase.useHandCursor = false;
@@ -186,8 +189,11 @@
 
 			toolPen.visible = false;
 			toolErase.visible = true;
-
 			visible = false;
+
+			fixedScale = 34/toolPen.width;
+			scaleX = fixedScale;
+			scaleY = fixedScale;
 
 			leftButtonArr = [
 								toolZoom,
