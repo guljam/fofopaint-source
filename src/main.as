@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.13;
+        private const APP_VERSION:Number = 22.15;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -971,7 +971,7 @@
                 if(target && hintBox.hitTestObject(target))
                 {
                     gp = target.localToGlobal(ZERO_POINT);
-                    hintBox.y = Math.floor((gp.y-hintBox.height*scale)-(20*scale));
+                    hintBox.y = Math.floor((gp.y-hintBox.height-30*scale));
                 }
 
                 hintONEffect();
@@ -1516,7 +1516,7 @@
                 pickerBox.rgbInfo.addEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
                 const gp:Point = pickerBox.rgbInfoBG.localToGlobal(ZERO_POINT);
                 const scale:Number = getUIScale();
-                hint.on(STRING_CUSTOM_COLOR_HINT,null);
+                hint.on(STRING_CUSTOM_COLOR_HINT,pickerBox.rgbInfo);
             });
         }
 
@@ -6671,7 +6671,6 @@
                 break;
 
                 case "penSmoothSlider":
-                case "penSmoothButton":
                 {
                     str = "Pen smoothing "+penSmoothSlideValue + "/" + penSmoothSlideTotal;
                 }
@@ -7106,7 +7105,7 @@
                 if(oldValue !== value)
                 {
                     oldValue = value;
-                    hint.on("Pen smoothing "+value + "/"+step,null);
+                    hint.on("Pen smoothing "+value + "/"+step,controlBox.penSmoothSliderSet["penSmoothSlider"],true);
                 }
             }
 
@@ -12152,7 +12151,7 @@
 
         private function getHistoryColorStringByMousePos():String
         {
-            const index:uint = getHistoryColorIndexByMousePos();
+            const index:int = getHistoryColorIndexByMousePos();
             const defaultHint:String = "Add current color (right-click)\nChange color position (click+drag)\nRemove color (click+drag out)";
 
             if(isHistoryColorIndexExist(index) === false)
@@ -12163,14 +12162,16 @@
             return getColorInfoStringOfHex(colorHistoryList[index],rgbInfoColorTypeHSV)+"\n"+defaultHint;
         }
 
-        private function getHistoryColorIndexByMousePos():uint
+        private function getHistoryColorIndexByMousePos():int
         {
+            if(pickerBox.colorHistoryBox.mouseY < 13) return -1;
+
             return Math.floor(pickerBox.colorHistoryBox.mouseX/colorHistoryColorWidth);
         }
 
         private function selectHistoryColor():void
         {
-            const index:uint = getHistoryColorIndexByMousePos();
+            const index:int = getHistoryColorIndexByMousePos();
 
             if(isHistoryColorIndexExist(index) === false)
             {
@@ -20647,8 +20648,6 @@
 
             const targetName:String = target.name;
 
-            setTopChildIndex(controlBox);
-
             switch(targetName)
             {
                 case "penSmoothSlider":
@@ -20794,7 +20793,7 @@
             }
             else
             {
-                const index:uint = getHistoryColorIndexByMousePos();
+                const index:int = getHistoryColorIndexByMousePos();
                 const movingColor:uint = colorHistoryList.splice(colorHisotyrClickPresetIndex,1);
 
                 colorHistoryList.insertAt(index,movingColor);
@@ -20948,7 +20947,7 @@
             {
                 mouseDragON = true;
 
-                const index:uint = getHistoryColorIndexByMousePos();
+                const index:int = getHistoryColorIndexByMousePos();
 
                 colorHisotyrClickPresetIndex = index;
                 colorHisotyrClickPresetColor = colorHistoryList[index];
@@ -20981,7 +20980,6 @@
                 return;
 
                 case "rgbInfo":
-                case "rgbInfoBG":
                 case "penColorButton":
                 case "paperColorButton":
                 case "colorHistoryBox":
