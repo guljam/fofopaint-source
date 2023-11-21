@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.23;
+        private const APP_VERSION:Number = 22.24;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -596,7 +596,7 @@
                         [COLOR_MID_BRIGHT,  0xD6D5D4,   0x505050,  0x505050,           0xBADAE5,           0x505050],
                         [COLOR_BRIGHT,      0xE7E7E7,   0x505050,  0x505050,           0xCEEBF2,           0x505050]
                     ]
-                    ,toolTipBoxBGColor:Array = [0xEF6743,0xFF8A2C,0xFFAF45,0xFFCF46]
+                    ,toolTipBoxBGColor:Array = [0xFF7943,0xFF8A2C,0xFFAF45,0xFFCF46]
                     ,hintCursorColor:Array = [0x73B5E4,0x7AC3F0,0x6C9CDB,0x609CFF]
                     ,tegaKiPresetColor:Vector.<Array> = new <Array>[
                                                                         [0x800000,0xF0E0D6],
@@ -771,7 +771,7 @@
                 {
                     if(quickSidebarON) return;
 
-                    str = "Change value (click)\nChange color type (right-click)";
+                    str = "Change value (click)\nChange color model (right-click)";
                 }
                 break;
 
