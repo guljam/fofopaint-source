@@ -581,7 +581,7 @@
 
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
-                    ,uiScaleSet:Array = [1.0,1.25,1.5,1.75,2.0]
+                    ,uiScaleSet:Array = [1.0,1.25,1.5,1.75,2.0,2.25]
                     ,uiColorIndex:int = 1
                     ,uiColorSet:Array = [       //주 컬러,        주컬러 반대색,    stage배경색,  캔버스 조절 막대 색,   리플레이 완료 막대 색, 리플레이 재시작 막대색
                                                 [COLOR_DARK,      0xE5E5E5,      0x4B4B4B,    0x676767,            0x74AC74,           0xE8BE71],
