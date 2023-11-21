@@ -7,6 +7,8 @@
 		public function tinyCursor() {
 			// constructor code
 			visible = false;
+			mouseEnabled = false;
+			useHandCursor = false;
 		}
 	}
 

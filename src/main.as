@@ -57,11 +57,12 @@
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
     import flash.system.System;
-    import flash.filters.ConvolutionFilter;//import end
+    import flash.filters.ConvolutionFilter;
+    //import end
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.22;
+        private const APP_VERSION:Number = 22.23;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -234,6 +235,7 @@
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
                     ,ZERO_POINT:Point = new Point(0,0)
+                    ,KEY_BUFFER:Array = [] //정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
                     ;
 
         private var  RESIZE_BUTTON_COLOR:uint = 0xA5A5A5
@@ -285,7 +287,7 @@
                     ,topBar:topMenu = new topMenu()
                     ,spuitZoomCursor:spuitMag = new spuitMag()
                     ,toolTipBox:toolTipBoxSet = new toolTipBoxSet()//도움말 버튼
-                    ,hintBox:toolTipBoxSet = new toolTipBoxSet()//도움말 버튼
+                    ,hintBox:toolTipBoxSet = new toolTipBoxSet()
                     ,hintCursor:Shape = new Shape()//도움말 버튼 커서
                     ,hint:Object = cHint()
                     ,stageBG:Sprite = new Sprite() //드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
@@ -322,7 +324,6 @@
                     ,mouseDragON:Boolean = false//툴을 계속 클릭한채로 움직이면 topmenu의 힌트가 안켜지도록 함
                     ,nowTool:int = 1 //현재 툴 번호
                     ,oldTool:int = TOOL_NONE //툴백업
-                    ,keyBuffer:Array = [] //정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
                     ,nowKey:uint = 0//단축키 누른거 여기다가 저장
                     ,keyWaitMouseUp:Boolean = false //키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
                     ,penAlpha:Number = 1.0 //펜 변수
@@ -664,7 +665,6 @@
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,updateAfterSave:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
                     ,layerVisibleKeyFuncCalled:Boolean = false //w키 1키 계속 누르고 있을때 함수 호출 안하게 해주려고 플래그 올려줌
-                    ,hintBoxScrollDirectionFlag:Boolean = false //힌스 박스 스크롤할때 오른쪽인지 왼쪽인지 구분 false면 왼쪽으로 이동
                     ;
 
         public function main():void
@@ -710,12 +710,12 @@
             selectPenTool();
             hint.updateScale(getUIScale());
             hint.setCursorColor(hintCursorColor[uiColorIndex]);
-            toolTipBoxSet.setBGColor(toolTipBoxBGColor[uiColorIndex]);
+            toolTipBox.setBGColor(toolTipBoxBGColor[uiColorIndex]);
+            hintBox.setBGColor(toolTipBoxBGColor[uiColorIndex]);
 
             stage.addChild(fofo);
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
         }
-
 
         //function
         private function getColorInfoStringOfHex(hexColor:uint,hsvFlag:Boolean):String
@@ -1649,29 +1649,34 @@
             tickDraw.setRCursorPos(curcorX,p.y);
         }
 
-        private function setRCursorVisibleOFFUndoMouseDownEvent(e:MouseEvent):void
+        private function setRCursorVisibleONFadeOFF():void
         {
-            setRCursorVisibleOFFUndo(true);
-        }
+            rCursor.alpha = 1.0;
+            rCursor.visible = true;
 
-        private function setRCursorVisibleOFFUndo(pureClickFlag:Boolean=false):void
-        {
-            if((pureClickFlag && isCursorInDrawArea()) || !pureClickFlag)
+            addTimerByName("rCursorOffAlphaAnimTimer",0.0,true,function():Boolean
             {
-                rCursor.visible = false;
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,setRCursorVisibleOFFUndoMouseDownEvent);
-                removeTimer("setRCursorVisibleOFFUndoTimer");
-            }
+                if(rCursor.visible === false)
+                {
+                    return false;
+                }
+
+                rCursor.alpha -= 0.04;
+
+                if(rCursor.alpha < 0.0)
+                {
+                    rCursor.visible = false;
+                    rCursor.alpha = 1.0;
+
+                    return false;
+                }
+
+                return true;
+            });
         }
 
         private function setRCursorVisibleONUndo(undoIndex:int):void
         {
-            if(rCursor.visible === false)
-            {
-                rCursor.visible = true;
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,setRCursorVisibleOFFUndoMouseDownEvent);
-            }
-
             if(undoIndex < 0)
             {
                 const _tickDraw:Object = tickDraw;
@@ -1683,7 +1688,7 @@
                 }
                 else
                 {
-                    setRCursorVisibleOFFUndo();
+                    rCursor.visible = false;
                     toolTipBoxTimerOFF();
                 }
             }
@@ -2510,6 +2515,8 @@
             hintBox.scaleX = scale;
             hintBox.scaleY = scale;
 
+            hint.updateScale(scale);
+
             replayTimeBox.scaleX = scale;
             replayTimeBox.scaleY = scale;
 
@@ -2529,8 +2536,6 @@
 
             sideBar.y = Math.round(STAGE_TOP_OFFSET);
             sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
-
-            hint.updateScale(scale);
 
             fofo.scaleX = scale*fofo.fixedScale;
             fofo.scaleY = scale*fofo.fixedScale;
@@ -3123,12 +3128,12 @@
 
         private function checkMoreOptionsKeyDown(keyCode:int):Boolean
         {
-            if(keyBuffer[1] === KEY.n3 || keyBuffer[1] === KEY.n8)
+            if(KEY_BUFFER[1] === KEY.n3 || KEY_BUFFER[1] === KEY.n8)
             {
                 setSharpLineButtonShortcut();
                 return true;
             }
-            else if(keyBuffer[1] === KEY.n4 || keyBuffer[1] === KEY.n7)
+            else if(KEY_BUFFER[1] === KEY.n4 || KEY_BUFFER[1] === KEY.n7)
             {
                 if(isPenOrLineTool() || isNowTool(TOOL_FILL_PEN))
                 {
@@ -3187,7 +3192,7 @@
 
         private function getCommandKey():int
         {
-            const arr:Array = keyBuffer;
+            const arr:Array = KEY_BUFFER;
             const first:int = arr[0];
             const second:int = arr[1];
 
@@ -4877,7 +4882,7 @@
 
         private function checkKeyUp(keyCode:uint):void
         {
-            if(keyBuffer.length === 0) resetNowKey();
+            if(KEY_BUFFER.length === 0) resetNowKey();
             else if(isNowKey(keyCode)) keyDownLassoTool(null);
         }
 
@@ -4894,7 +4899,7 @@
 
         private function keyDownLassoTool(e:KeyboardEvent):void
         {
-            const keyCode:int = keyBuffer[0];
+            const keyCode:int = KEY_BUFFER[0];
             var keyUsed:Boolean;
 
             if(keyCode === KEY.space)
@@ -6530,15 +6535,16 @@
             checkClipBoardImage();
             appInfoBox.canvasInfo.textColor = op;
             pickerBox.setRGBInfoColor(getInvertColor(pickerBox.getRGBInfoBGColor(),1.0
-                                                    ,(uiColorIndex >= 2) ? base:op
-                                                    ,(uiColorIndex >= 2) ? op:base));
+                                                    ,(index >= 2) ? base:op
+                                                    ,(index >= 2) ? op:base));
 
             if(pickerMode !== 1) changePickerModeToNormal();
             pickerBox.setPickerMode(pickerMode);
             updateScrollBarColorHeight(scrollBarHeight);
             setResizeButtonColor(nowColorSet[3]);
             fofo.changeColor(op);
-            toolTipBoxSet.setBGColor(toolTipBoxBGColor[index]);
+            toolTipBox.setBGColor(toolTipBoxBGColor[index]);
+            hintBox.setBGColor(toolTipBoxBGColor[index]);
             hint.setCursorColor(hintCursorColor[index]);
 
             if(canvasWindowON)
@@ -6930,11 +6936,11 @@
             }
 
             const keyCode:uint = e.keyCode;
-            const index:int = keyBuffer.lastIndexOf(keyCode);
+            const index:int = KEY_BUFFER.lastIndexOf(keyCode);
 
             if(index > -1)
             {
-                keyBuffer.splice(index,1);
+                KEY_BUFFER.splice(index,1);
             }
         }
 
@@ -6952,9 +6958,9 @@
                 e.preventDefault();
             }
 
-            if(keyBuffer.lastIndexOf(keyCode) === -1)
+            if(KEY_BUFFER.lastIndexOf(keyCode) === -1)
             {
-                keyBuffer.push(keyCode);
+                KEY_BUFFER.push(keyCode);
             }
         }
 
@@ -8853,7 +8859,7 @@
             }
             // saveContinue = false;
             setDeepUndoOFF();
-            setRCursorVisibleOFFUndo();
+            rCursor.visible = false;
         }
 
         private function superUndo():void
@@ -9421,7 +9427,7 @@
             rDataBuffer.length = 0;
             readyAddUndoFlag = false;
             undoDelFlag = false;
-            setRCursorVisibleOFFUndo();
+            rCursor.visible = false;
             deepUndoON = false;
         }
 
@@ -13245,7 +13251,7 @@
                 changeTopBarIcons("capture");
 
                 setDefaultHintCaptureMode();
-                setRCursorVisibleOFFUndo();
+                rCursor.visible = false;
                 if(toolTipBox.visible) toolTipBoxTimerOFF();
                 addInputEventCaptrueMode();
             }
@@ -13367,15 +13373,15 @@
 
         private function keyDownCaptureMode(e:KeyboardEvent):void
         {
-            const keyCode:uint = keyBuffer[0];
+            const keyCode:uint = KEY_BUFFER[0];
 
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
 
             if(isPressingControl())
             {
-                if(keyBuffer.length > 1)
+                if(KEY_BUFFER.length > 1)
                 {
-                    const subKey:int = keyBuffer[1];
+                    const subKey:int = KEY_BUFFER[1];
                     if(subKey === KEY.c || subKey === KEY.m)
                     {
                         setFullCaptrueButton();
@@ -14240,7 +14246,7 @@
             undoData.setUndoRefImage(bmpd.clone(),bmpd1.clone(),arr[2],arr[3],arr[4],arr[5]);
 
             drawUndoData();
-            setRCursorVisibleOFFUndo();
+            rCursor.visible = false;
             toolTipBoxTimerOFF();
             bmpd.dispose();
             bmpd1.dispose();
@@ -17622,6 +17628,7 @@
             {
                 jumpOneFrame(false,false);
                 drawReplayImageToDrawModeCanvas();
+                setRCursorVisibleONFadeOFF();
 
                 if(rNowFrame >= undoData.getRFileTotalFrame())
                 {
@@ -17642,9 +17649,9 @@
                 {
                     saveOneTime = false;
                     drawUndoData(true);
+                    setRCursorVisibleONFadeOFF();
                 }
             }
-            addTimerByName("setRCursorVisibleOFFUndoTimer",2.0,false,setRCursorVisibleOFFUndo,[false]);
         }
 
         private function undo():void
@@ -17656,13 +17663,13 @@
                     // if(keyFlag) setJumpOneFrame(true,false);
                     // else
                     jumpOneFrame(true,false);
-
                     drawReplayImageToDrawModeCanvas();
+                    setRCursorVisibleONFadeOFF();
                 }
 
                 if(rNowFrame <= 0)
                 {
-                    setRCursorVisibleOFFUndo();
+                    rCursor.visible = false;
                 }
             }
             else
@@ -17676,6 +17683,7 @@
                     if(makeJumpImageFlag === 1 || (makeJumpImageFlag === 0 && undoData.getRFileTotalFrame() > 0))
                     {
                         setDeepUndoON();
+                        setRCursorVisibleONFadeOFF();
                     }
                 }
                 else if(rData.length > 0)
@@ -17683,9 +17691,9 @@
                     saveOneTime = false;
                     undoDelFlag = true;
                     drawUndoData();
+                    setRCursorVisibleONFadeOFF();
                 }
             }
-            addTimerByName("setRCursorVisibleOFFUndoTimer",2.0,false,setRCursorVisibleOFFUndo,[false]);
         }
 
         private function drawReplayImageToDrawModeCanvas():void
@@ -18967,7 +18975,7 @@
 
         private function keyDownReplayMode(e:KeyboardEvent):void//keydown2
         {
-            const keyCode:uint = keyBuffer[0];
+            const keyCode:uint = KEY_BUFFER[0];
 
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
 
@@ -19095,7 +19103,7 @@
                 {
                     keyWaitMouseUp = true;
                 }
-                else if(keyBuffer.length > 0)
+                else if(KEY_BUFFER.length > 0)
                 {
                     keyDownDrawMode(null);
                 }
@@ -19109,7 +19117,7 @@
                 }
             }
 
-            if(keyBuffer.length === 0)
+            if(KEY_BUFFER.length === 0)
             {
                 resetNowKey();
             }
@@ -19123,9 +19131,9 @@
 
         private function checkCommandSubKey(length:uint,saveFlag:Boolean,func:Function):Boolean
         {
-            if(keyBuffer.length === length)
+            if(KEY_BUFFER.length === length)
             {
-                const subKey:int = keyBuffer[length-1];
+                const subKey:int = KEY_BUFFER[length-1];
                 if(saveFlag) setNowKey(subKey);
                 func(subKey);
                 return true;
@@ -19140,7 +19148,7 @@
                 return;
             }
 
-            const keyCode:uint = keyBuffer[0];
+            const keyCode:uint = KEY_BUFFER[0];
 
             //자툴이 nowkey를 쓰기 때문에 nowkey 리턴 이전에서 체크해야함
             if(isPressingControlShift())
@@ -19181,11 +19189,11 @@
             }
             else if(isPressingShift())
             {
-                if(checkOpaSizeKeyDown((keyBuffer.length >= 2) ? keyBuffer[1] : keyCode))
+                if(checkOpaSizeKeyDown((KEY_BUFFER.length >= 2) ? KEY_BUFFER[1] : keyCode))
                 {
                     return;
                 }
-                else if(checkMoreOptionsKeyDown(keyBuffer[1]))
+                else if(checkMoreOptionsKeyDown(KEY_BUFFER[1]))
                 {
                     return;
                 }
@@ -19254,21 +19262,21 @@
                 }
             }
 
-            if(keyBuffer.length >= 2)
+            if(KEY_BUFFER.length >= 2)
             {
                 //지우개키 조합 따로 체크
                 if(keyCode === KEY.d || keyCode === KEY.j)
                 {
-                    if(checkOpaSizeKeyDown(keyBuffer[1]))
+                    if(checkOpaSizeKeyDown(KEY_BUFFER[1]))
                     {
                         return;
                     }
-                    else if(keyBuffer[1] === KEY.s || keyBuffer[1] === KEY.k)
+                    else if(KEY_BUFFER[1] === KEY.s || KEY_BUFFER[1] === KEY.k)
                     {
                         if(quickSidebarON === false) setQuickSidebarON(true);
                         return;
                     }
-                    else if(checkMoreOptionsKeyDown(keyBuffer[1]))
+                    else if(checkMoreOptionsKeyDown(KEY_BUFFER[1]))
                     {
                         return;
                     }
@@ -19276,7 +19284,7 @@
                 }
                 else if(keyCode === KEY.s || keyCode === KEY.k)
                 {
-                    if(keyBuffer[1] === KEY.d || keyBuffer[1] === KEY.j)
+                    if(KEY_BUFFER[1] === KEY.d || KEY_BUFFER[1] === KEY.j)
                     {
                         if(quickSidebarON === false) setQuickSidebarON(true);
                         return;
@@ -19285,11 +19293,11 @@
                 //필펜 조합 체크
                 else if(keyCode === KEY.q || keyCode === KEY.o)
                 {
-                    if(checkOpaSizeKeyDown(keyBuffer[1]))
+                    if(checkOpaSizeKeyDown(KEY_BUFFER[1]))
                     {
                         return;
                     }
-                    else if(checkMoreOptionsKeyDown(keyBuffer[1]))
+                    else if(checkMoreOptionsKeyDown(KEY_BUFFER[1]))
                     {
                         return;
                     }
@@ -19300,7 +19308,7 @@
                 {
                     if(keyCode === KEY.w || keyCode === KEY.i)
                     {
-                        if(keyBuffer[1] === KEY.n1 || keyBuffer[1] === KEY.n9)
+                        if(KEY_BUFFER[1] === KEY.n1 || KEY_BUFFER[1] === KEY.n9)
                         {
                             layerVisibleKeyFuncCalled = true;
                             selectSubLayer(false,false);
@@ -19309,7 +19317,7 @@
                             if(oldTool > TOOL_NONE) restoreFirstUsedTool();
                             return;
                         }
-                        else if(keyBuffer[1] === KEY.n2 || keyBuffer[1] === KEY.n0)
+                        else if(KEY_BUFFER[1] === KEY.n2 || KEY_BUFFER[1] === KEY.n0)
                         {
                             layerVisibleKeyFuncCalled = true;
                             selectSubLayer(true,false);
@@ -19321,7 +19329,7 @@
                     }
                     else if(keyCode === KEY.n1 || keyCode === KEY.n9)
                     {
-                        if(keyBuffer[1] === KEY.w || keyBuffer[1] === KEY.i)
+                        if(KEY_BUFFER[1] === KEY.w || KEY_BUFFER[1] === KEY.i)
                         {
                             layerVisibleKeyFuncCalled = true;
 
@@ -19332,7 +19340,7 @@
                     }
                     else if(keyCode === KEY.n2 || keyCode === KEY.n0)
                     {
-                        if(keyBuffer[1] === KEY.w || keyBuffer[1] === KEY.i)
+                        if(KEY_BUFFER[1] === KEY.w || KEY_BUFFER[1] === KEY.i)
                         {
                             layerVisibleKeyFuncCalled = true;
                             selectSubLayer(true,false);
@@ -20029,7 +20037,7 @@
 
         private function resetKeyBuffer():void
         {
-            keyBuffer = [];
+            KEY_BUFFER.length = 0;
             resetNowKey();
         }
 
@@ -20216,11 +20224,12 @@
             resetCutFrameClickCounter();
             setTopBarHintOFF();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
+            rCursor.alpha = 1.0;
             rcanvasPanel.addChild(rCursor);
-            setRCursorVisibleOFFUndo();
+            rCursor.visible = false;
             setTopChildIndex(rCursor);
             updateStageOffset();
-            removeTimer("setRCursorVisibleOFFUndoTimer");
+            removeTimer("rCursorOffAlphaAnimTimer");
 
             deepUndoONSave = deepUndoON;
             if(deepUndoON) deepUndoON = false;
@@ -20389,7 +20398,7 @@
             {
                 keyWaitMouseUp = false;
 
-                if(keyBuffer.length > 0)
+                if(KEY_BUFFER.length > 0)
                 {
                     keyDownDrawMode(null);
                 }
@@ -21027,7 +21036,7 @@
 
         private function mouseUpLassoTool(e:MouseEvent):void
         {
-            if(keyBuffer.length === 1 && keyBuffer[0] === KEY.space)
+            if(KEY_BUFFER.length === 1 && KEY_BUFFER[0] === KEY.space)
             {
                 setNowKey(KEY.space);
                 lassoMenuTempOFF = true;

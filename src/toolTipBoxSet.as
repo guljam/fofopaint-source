@@ -8,8 +8,19 @@
 	public class toolTipBoxSet extends Sprite {
 		public var toolTipInfoText:TextField;
 		private const toolTipInfoBG:Sprite = new Sprite();
-		static private var bgColor:uint = 0xFFA700;
-		static public function setBGColor(color:uint):void
+		private var bgColor:uint = 0xFFA700;
+
+		public function getText():String
+		{
+			return toolTipInfoText.text;
+		}
+
+		public function setTextColor(color:uint):void
+		{
+			toolTipInfoText.textColor = color;
+		}
+
+		public function setBGColor(color:uint):void
 		{
 			bgColor = color;
 		}
@@ -39,6 +50,7 @@
 			toolTipInfoBG.y = -1;
 			addChild(toolTipInfoBG);
 			setChildIndex(toolTipInfoBG,0);
+			toolTipInfoBG.mouseEnabled = false;
 		}
 	}
 }
