@@ -2511,6 +2511,7 @@
             topBar.scaleX = scale;
             topBar.scaleY = scale;
             topBar.updateTopbarBG(stw);
+            topBar.updateTimerPos(stage.stageWidth);
 
             hintBox.scaleX = scale;
             hintBox.scaleY = scale;
