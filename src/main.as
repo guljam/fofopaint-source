@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.20;
+        private const APP_VERSION:Number = 22.21;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -416,7 +416,6 @@
                     ,colorHisotyrClickPresetColor:uint = 0 //클릭한 컬러 저장해줌
                     ,colorHisotyrClickPresetIndex:int = 0 //클릭한 컬러 인덱스 저장해줌
                     ,colorHistoryDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
-                    ,colorHistoryHintMouseMoveEventFlag:Boolean = false //이벤트 한번만 등록하게 올려줌
 
         //툴팁 관련 변수
                     ,toolTipHint:String = "" //topbar관련 힌트 여기 저장
@@ -596,6 +595,8 @@
                         [COLOR_MID_BRIGHT,  0xD6D5D4,   0x505050,  0x505050,           0xBADAE5,           0x505050],
                         [COLOR_BRIGHT,      0xE7E7E7,   0x505050,  0x505050,           0xCEEBF2,           0x505050]
                     ]
+                    ,toolTipBoxBGColor:Array = [0xEF6743,0xFF8A2C,0xFFAF45,0xFFCF46]
+                    ,hintCursorColor:Array = [0x73B5E4,0x7AC3F0,0x6C9CDB,0x609CFF]
                     ,tegaKiPresetColor:Vector.<Array> = new <Array>[
                                                                         [0x800000,0xF0E0D6],
                                                                         [0x4B3D38,0xEAE5D5],
@@ -708,6 +709,8 @@
             setIMEDisabled();
             selectPenTool();
             hint.updateScale(getUIScale());
+            hint.setCursorColor(hintCursorColor[uiColorIndex]);
+            toolTipBoxSet.setBGColor(toolTipBoxBGColor[uiColorIndex]);
 
             stage.addChild(fofo);
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
@@ -754,28 +757,6 @@
             })
         }
 
-        private function colorHistoryHintMouseMoveEvent(e:MouseEvent):void
-        {
-            if(colorHistoryDragStarted) return;
-
-            const target:DisplayObject = e.target as DisplayObject
-
-            if(!target) return;
-
-            if(target.name === "colorHistoryBox")
-            {
-                if(hintBox.visible)
-                {
-                    hint.on(getHistoryColorStringByMousePos(),target,true);
-                }
-            }
-            else
-            {
-                colorHistoryHintMouseMoveEventFlag = false;
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,colorHistoryHintMouseMoveEvent);
-            }
-        }
-
         private function pickerBoxHintONEvent(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
@@ -796,20 +777,15 @@
 
                 case "colorHistoryBox":
                 {
-                    hint.on(getHistoryColorStringByMousePos(),target);
-
-                    if(colorHistoryHintMouseMoveEventFlag === false)
-                    {
-                        colorHistoryHintMouseMoveEventFlag = true;
-                        stage.addEventListener(MouseEvent.MOUSE_MOVE,colorHistoryHintMouseMoveEvent);
-                    }
+                    str = "Add current color (right-click)\nChange color position (click+drag)\nRemove color (click+drag out)";
                 }
-                return;
+                break;
 
                 case "currentColor": str = getCurrentColorHint(); break;
                 case "paperColorButton": str = "Change background color"; break;
                 case "penColorButton": str = "Change pen color"; break;
                 case "transColorButton": str = "Transparent color"; break;
+
                 default:
                 return;
             }
@@ -836,7 +812,7 @@
 
             if(!rgbInfoFocusedON && !mouseDragON && !captureModeON)
             {
-                hint.off();
+                hint.off(true);
             }
         }
 
@@ -853,6 +829,12 @@
             var w:Number = 0;
             var h:Number = 0;
             var lastHint:String;
+            var cursorColor:uint = 0;
+
+            function setCursorColor(color:uint):void
+            {
+                cursorColor = color;
+            }
 
             function updateScale(newScale:Number):void
             {
@@ -867,7 +849,7 @@
                 h = target.height*scale;
 
                 hintCursor.graphics.clear();
-                hintCursor.graphics.lineStyle(2.0*scale,0x73B5E4);
+                hintCursor.graphics.lineStyle(2.0*scale,cursorColor);
 
                 if(target is TextField)
                 {
@@ -962,7 +944,7 @@
             {
                 hintBox.setText(str);
                 hintBox.x = 0;
-                hintBox.y = Math.round(stage.stageHeight-hintBox.getHeight());
+                hintBox.y = Math.round(stage.stageHeight-hintBox.getHeight()+1);
 
                 if(target && hintBox.hitTestObject(target))
                 {
@@ -1008,7 +990,8 @@
                 on:start,
                 off:hintOFF,
                 cursorON:cursorON,
-                updateScale:updateScale
+                updateScale:updateScale,
+                setCursorColor:setCursorColor
             }
         }
 
@@ -6555,6 +6538,8 @@
             updateScrollBarColorHeight(scrollBarHeight);
             setResizeButtonColor(nowColorSet[3]);
             fofo.changeColor(op);
+            toolTipBoxSet.setBGColor(toolTipBoxBGColor[index]);
+            hint.setCursorColor(hintCursorColor[index]);
 
             if(canvasWindowON)
             {
@@ -12124,19 +12109,6 @@
                 return false;
             }
             return true;
-        }
-
-        private function getHistoryColorStringByMousePos():String
-        {
-            const index:int = getHistoryColorIndexByMousePos();
-            const defaultHint:String = "Add current color (right-click)\nChange color position (click+drag)\nRemove color (click+drag out)";
-
-            if(isHistoryColorIndexExist(index) === false)
-            {
-                return defaultHint;
-            }
-
-            return getColorInfoStringOfHex(colorHistoryList[index],rgbInfoColorTypeHSV)+"\n"+defaultHint;
         }
 
         private function getHistoryColorIndexByMousePos():int
@@ -21358,8 +21330,9 @@
         // private var printdeepLevel:int = 0;
         // private function printArray(obj:Object,deepKey:String=""):void
         // {
+        //     var _print:Function = trace;
         //     var blank:String="";
-        //     if(printdeepLevel === 0) trace('--- PRINT START --- ');
+        //     if(printdeepLevel === 0) _print('--- PRINT START --- ');
         //     else
         //     {
         //         const count:int = printdeepLevel;
@@ -21367,10 +21340,10 @@
         //         {
         //             blank += "   ";
         //         }
-        //         trace(blank+'> index['+deepKey+']');
+        //         _print(blank+'> index['+deepKey+']');
         //     }
 
-        //     trace(blank+'{');
+        //     _print(blank+'{');
         //     for(var i:String in obj)
         //     {
         //         if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
@@ -21380,10 +21353,10 @@
         //         }
         //         else
         //         {
-        //             trace(blank+'| '+i+' : ' + obj[i]);
+        //             _print(blank+'| '+i+' : ' + obj[i]);
         //         }
         //     }
-        //     trace(blank+'}');
+        //     _print(blank+'}');
         //     --printdeepLevel;
         //     if(printdeepLevel < 0) printdeepLevel = 0;
         // }

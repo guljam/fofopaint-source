@@ -8,7 +8,11 @@
 	public class toolTipBoxSet extends Sprite {
 		public var toolTipInfoText:TextField;
 		private const toolTipInfoBG:Sprite = new Sprite();
-		private const bgColor:uint = 0xFFA700;
+		static private var bgColor:uint = 0xFFA700;
+		static public function setBGColor(color:uint):void
+		{
+			bgColor = color;
+		}
 
 		public function getHeight():Number
 		{
@@ -19,8 +23,8 @@
 		{
 			toolTipInfoText.text = str;
 			toolTipInfoBG.graphics.clear();
-			toolTipInfoBG.graphics.beginFill(bgColor);
-			toolTipInfoBG.graphics.drawRect(0,0,toolTipInfoText.width,toolTipInfoText.height);
+			toolTipInfoBG.graphics.beginFill(bgColor,0.87);
+			toolTipInfoBG.graphics.drawRect(-1,-1,toolTipInfoText.width+2,toolTipInfoText.height+2);
 			(0,0,toolTipInfoText.width,toolTipInfoText.height);
 			toolTipInfoBG.graphics.endFill();
 		}

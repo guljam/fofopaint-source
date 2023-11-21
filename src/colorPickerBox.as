@@ -433,12 +433,12 @@
 			drawHistoryBoxBG();
 
 			drawrText.x = colorHistoryText.x;
-			drawrText.y = floor(colorHistoryBox.y+colorHistoryBox.height+1);
+			drawrText.y = floor(colorHistoryBox.y+colorHistoryBox.height+3);
 			drawrPresetBox.x = colorHistoryBox.x;
 			drawrPresetBox.y =floor(drawrText.y+drawrText.height-1);
 
 			tegakiText.x = colorHistoryText.x;
-			tegakiText.y = floor(drawrPresetBox.y+drawrPresetBox.height+1);
+			tegakiText.y = floor(drawrPresetBox.y+drawrPresetBox.height+3);
 			tegakiPresetBox.x = colorHistoryBox.x;
 			tegakiPresetBox.y = floor(tegakiText.y+tegakiText.height);
 
