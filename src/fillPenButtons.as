@@ -78,6 +78,7 @@
 				btnOver = btn.overState as DisplayObjectContainer;
 				btnOver.getChildAt(1).transform.colorTransform = iconLeft; // 버튼 아이콘
 				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
+				btn.downState = btn.overState;
 			}
 
 			fillPenInfo.textColor = arr[2];
