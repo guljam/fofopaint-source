@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.24;
+        private const APP_VERSION:Number = 22.25;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3782,14 +3782,14 @@
 
             function fillPenRightMouseDownEvent(e:MouseEvent):void
             {
-                const scale:Number = getUIScale();
+                const scale:Number = fillPenBox.getScale();
 
                 fillPenBox.visible = true;
                 setTopChildIndex(fillPenBox);
 
                 if(fillPenBoxUndoUsed)
                 {
-                    fillPenBox.x = mouseX-fillPenBox.fillPenUndo.width/2*scale;
+                    fillPenBox.x = mouseX-(fillPenBox.fillPenUndo.width/2)*scale;
                     fillPenBox.y = mouseY-(fillPenBox.fillPenUndo.y+fillPenBox.fillPenUndo.height/2)*scale;
                 }
                 else

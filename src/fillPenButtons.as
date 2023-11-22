@@ -83,6 +83,11 @@
 			fillPenInfo.textColor = arr[2];
 		}
 
+		public function getScale():Number
+		{
+			return scaleX;
+		}
+
 		public function setScale(newScale:Number):void
 		{
 			scaleX = newScale*fixedScale;
