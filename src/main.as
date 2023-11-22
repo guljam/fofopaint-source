@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.25;
+        private const APP_VERSION:Number = 22.26;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13306,6 +13306,7 @@
 
                 if(topBar.hitTestPoint(mouseX,mouseY) === false)
                 {
+                    hintCursor.visible = false;
                     setDefaultHintCaptureMode();
                 }
             });
