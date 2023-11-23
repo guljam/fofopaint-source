@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.30;
+        private const APP_VERSION:Number = 22.31;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -449,6 +449,7 @@
                     ,playbackFinished:Boolean = true //리플레이가 자연히 끝났을때 올렽주는 플래그 가장 처음에 캔버스 싹쓸이 하기 위해서 넣어줌.
                     ,replayEndWithCanvasFitWindow:Boolean = false //리플레이가 follow cursor옵션으로 캔버스 작게 축소되서 끝났을때
                     ,replayModeON:Boolean = false //이건 모드 자체 껐다 켰다
+                    ,replayModeGettingOFF:Boolean = false // 리플레이 모드를 꺼주는 중일때 올려줌 이미지 캐쉬 만드는거 방지 하려고
 
                     ,rDataBuffer:Array = []
                     ,rData:Array = [] //rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
@@ -639,6 +640,7 @@
                     ,deepUndoON:Boolean = false
                     ,deepUndoONSave:Boolean = false //리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
                     ,deepUndoFrameSave:Number = -1 //리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
+                    ,deepUndoUpdateReplayCanvasFlag:Boolean = false // deepUndoFrameSave가 다를때 이 플래그를 올려줘서 deep undo를 해줄때 먼저 리플레이 이미지를 갱신해줌
 
         //picker box RGB info관련 변수
                     ,rgbInfoFocusedON:Boolean = false // rgb info입력이 활성화 되었을때 올려줌
@@ -10664,16 +10666,18 @@
             checkHideCursorCount();
         }
 
-        private function setCacheImageByIndex(index:uint):void
+        private function setCacheImageByIndex(index:uint,lastReadBytes:Number):void
         {
-            rFrameCacheImages[index] = [rcanvas1BitmapData.clone(),
-                                        rcanvas11BitmapData.clone(),
-                                        rcanvas1BitmapData.width,
-                                        rcanvas1BitmapData.height,
-                                        RCANVAS_BG_COLOR,
-                                        rFileCutBytes,
-                                        rNowFrame,
-                                        rMirrorON];
+            rFrameCacheImages[index] = [
+                                            rcanvas1BitmapData.clone()
+                                            ,rcanvas11BitmapData.clone()
+                                            ,rcanvas1BitmapData.width
+                                            ,rcanvas1BitmapData.height
+                                            ,RCANVAS_BG_COLOR
+                                            ,lastReadBytes
+                                            ,rNowFrame
+                                            ,rMirrorON
+                                        ];
         }
 
         //jumpFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
@@ -10702,12 +10706,10 @@
 
             function checkMakeCacheImage():void
             {
-                const nt:int = getTimer()
-
                 if((rNowFrame - rJumpImageNowFrameLast)/_CACHE_DIV_20 > rFrameCacheImages.length-1
                 &&  rNowFrame > rCachedJumpImageIndexFrame)
                 {
-                    setCacheImageByIndex(rFrameCacheImages.length);
+                    setCacheImageByIndex(rFrameCacheImages.length,rFileCutBytes);
                     rCachedJumpImageIndexFrame = rNowFrame;
                 }
             }
@@ -10718,6 +10720,7 @@
                 rIndex = rIndexStart;
                 rIndexStart = 0;
                 rDataLen = rData.length;
+
                 if(jumpFlag === _JUMP_FRAME_PLAY)
                 {
                     _rfs.close();
@@ -11397,10 +11400,9 @@
 
                 if(updateRCavanvasImageFlag === 2)
                 {
-
                     jumpImageData = rFrameCacheImages[cachedJumpImageIndex];
-                    tempBmpd = jumpImageData[0].clone();
-                    tempBmpd1 = jumpImageData[1].clone();
+                    tempBmpd = jumpImageData[0];
+                    tempBmpd1 = jumpImageData[1];
                     rCachedJumpImageIndexLast = cachedJumpImageIndex;
                 }
                 else
@@ -11456,16 +11458,19 @@
 
                 if(updateRCavanvasImageFlag === 1)
                 {
-                    setCacheImageByIndex(0);
+                    setCacheImageByIndex(0,rLastBytePosition);
                 }
 
                 jumpImageData = null;
                 rDataReadFlag = false;
                 rIndexStart = 0;
-                tempBmpd.dispose();
-                tempBmpd1.dispose();
-                tempBmpd = null;
-                tempBmpd1 = null;
+                if(updateRCavanvasImageFlag !== 2)
+                {
+                    tempBmpd.dispose();
+                    tempBmpd1.dispose();
+                    tempBmpd = null;
+                    tempBmpd1 = null;
+                }
             }
             else
             {
@@ -11985,6 +11990,8 @@
 
         private function onDragDropEvent(e:NativeDragEvent):void
         {
+            if(browseWindowON) return;
+
             rFileStream.close();
             cancelRestartTimer();
 
@@ -17679,6 +17686,12 @@
         {
             if(deepUndoON)
             {
+                if(deepUndoUpdateReplayCanvasFlag)
+                {
+                    deepUndoUpdateReplayCanvasFlag = false;
+                    jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
+                }
+
                 jumpOneFrame(false,false);
                 drawReplayImageToDrawModeCanvas();
                 setRCursorVisibleONFadeOFF();
@@ -17713,8 +17726,12 @@
             {
                 if(rNowFrame > 0)
                 {
-                    // if(keyFlag) setJumpOneFrame(true,false);
-                    // else
+                    if(deepUndoUpdateReplayCanvasFlag)
+                    {
+                        deepUndoUpdateReplayCanvasFlag = false;
+                        jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
+                    }
+
                     jumpOneFrame(true,false);
                     drawReplayImageToDrawModeCanvas();
                     setRCursorVisibleONFadeOFF();
@@ -20117,6 +20134,7 @@
         {
             deepUndoON = false;
             deepUndoONSave = false;
+            deepUndoUpdateReplayCanvasFlag = false;
             rDataReadFlag = true;
             setRCursorVisibleONUndo(-1);
             clearRFrameCacheImages();
@@ -20126,6 +20144,7 @@
         {
             deepUndoON = true;
             rDataReadFlag = false;
+            deepUndoUpdateReplayCanvasFlag = false;
 
             if(makeJumpImageFlag === 1)
             {
@@ -20258,12 +20277,10 @@
             updateRCursorScale(zoomed);
 
             deepUndoON = deepUndoONSave;
-
             if(rNowFrame !== deepUndoFrameSave)
             {
-                jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
+                deepUndoUpdateReplayCanvasFlag = true;
             }
-
             rCursor.visible = false;
             addInputEventDrawMode();
         }
