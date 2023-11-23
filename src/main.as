@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.26;
+        private const APP_VERSION:Number = 22.27;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5401,7 +5401,7 @@
 
             if(hintStr === "")
             {
-                // toolTipBox.visible = false;
+                // setToolTipOFF();
             }
             else
             {
@@ -5476,7 +5476,7 @@
             }
         }
 
-        private function penSizeHint(targetName:String):String
+        private function getPenSizeHint(targetName:String):String
         {
             const str:String = targetName.substr(11);
             const index:int = parseInt(str);
@@ -5856,8 +5856,8 @@
 
             traceMenu.visible = false;
             canvasTraceBitmap.smoothing = false;
-            setToolTipON(w+ " x "+ h +" ["+_canvasTrace.scaleX.toFixed(2)+"]");
-            toolTipBox.visible = true;
+            setToolTipString(w+ " x "+ h +" ["+_canvasTrace.scaleX.toFixed(2)+"]");
+            setToolTipON();
             mouseDragON = true;
 
             function traceResizeButtonUpEvent(e:MouseEvent):void
@@ -5868,7 +5868,7 @@
                 tracePosInfo[4] = _canvasTrace.scaleY;
                 traceMenu.visible = true;
                 canvasTraceBitmap.smoothing = true;
-                toolTipBox.visible = false;
+                setToolTipOFF();
                 stage.removeEventListener(MouseEvent.MOUSE_UP,traceResizeButtonUpEvent);
                 stageMouseMoveEvent.remove("traceResizeButtonMove");
             }
@@ -5928,8 +5928,8 @@
                 const ww:Number = floor(w*sc+0.5);
                 const hh:Number = floor(h*sc+0.5);
 
-                setToolTipON(ww+ " x "+ hh +" ["+sc.toFixed(2)+"]");
-                toolTipBox.visible = true;
+                setToolTipString(ww+ " x "+ hh +" ["+sc.toFixed(2)+"]");
+                setToolTipON();
             }
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceResizeButtonUpEvent);
@@ -6620,7 +6620,7 @@
 
         private function getSizeButtonHint(targetName:String):String
         {
-            return penSizeHint(targetName)+"\nAdjust size (f, v / h, n)";
+            return getPenSizeHint(targetName)+"\nAdjust size (f, v / h, n)";
         }
 
         private function controlBoxHintONEvent(e:MouseEvent):void
@@ -7534,7 +7534,7 @@
                 checkLassoMenuPos();
                 lassoBMP.smoothing = true;
                 lassoMenu.visible = true;
-                toolTipBox.visible = false;
+                setToolTipOFF();
 
                 stage.removeEventListener(MouseEvent.MOUSE_UP,lassoResizeButtonUpEvent);
                 stageMouseMoveEvent.remove("lassoResizeButtonMoveEvent");
@@ -7580,11 +7580,11 @@
                 lassoMovedX = mx;
                 lassoMovedY = my;
 
-                setToolTipON(floor(lassoBox1.width+0.5) +" x " +floor(lassoBox1.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
+                setToolTipString(floor(lassoBox1.width+0.5) +" x " +floor(lassoBox1.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
             }
 
-            setToolTipON(floor(lassoBox1.width+0.5)+" x "+floor(lassoBox1.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
-            toolTipBox.visible = true;
+            setToolTipString(floor(lassoBox1.width+0.5)+" x "+floor(lassoBox1.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
+            setToolTipON();
             lassoMenu.visible = false;
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoResizeButtonUpEvent);
             stageMouseMoveEvent.add("lassoResizeButtonMoveEvent",lassoResizeButtonMoveEvent);
@@ -9030,7 +9030,7 @@
 
             if(cutFrameClickCounter === 1)
             {
-                toolTipBox.visible = false;
+                setToolTipOFF();
                 cutFrameActiveButton.addEventListener(MouseEvent.MOUSE_OUT,resetCutFrameClickCounterEvent);
 
                 if(flag !== CUT_FRAME_RE_RECORD)
@@ -11837,7 +11837,7 @@
         private function toolTipBoxTimerOFF():void
         {
             removeTimer("toolTipTempONTimer");
-            toolTipBox.visible = false;
+            setToolTipOFF();
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,toolTipBoxTimerOFFEvent);
         }
 
@@ -11858,8 +11858,8 @@
                 toolTipBoxTimerOFF();
             });
 
-            setToolTipON(str);
-            toolTipBox.visible = true;
+            setToolTipString(str);
+            setToolTipON();
         }
 
         private function moveToolTipString():void
@@ -11867,7 +11867,23 @@
             const tb:toolTipBoxSet = toolTipBox;
         }
 
-        private function setToolTipON(str:String):void
+        private function setToolTipOFF():void
+        {
+            toolTipBox.visible = false;   
+        }
+
+        
+        private function setToolTipON():void
+        {
+            toolTipBox.visible = true;
+        }
+
+        private function setToolTipTempONFadeOFF():void
+        {
+
+        }
+
+        private function setToolTipString(str:String):void
         {
             const _toolTipBox:toolTipBoxSet = toolTipBox;
             const floor:Function = Math.floor;
@@ -13570,7 +13586,7 @@
             }
 
             if(!rFitZoomedON) setZoomCanvas(data.z,replayMode);
-            toolTipBox.visible = false;
+            setToolTipOFF();
             captureWindowMove.setTo(0,0);
 
             updatePenSizeCursor();
@@ -14919,8 +14935,8 @@
                 }
 
                 var degstr:String = abs(deg % 90).toFixed(1)+"°";
-                setToolTipON(degstr);
-                toolTipBox.visible = true;
+                setToolTipString(degstr);
+                setToolTipON();
             }
 
             function drawingLine():void //지우개인가 펜인가 구분해서 lineto 실시
@@ -14982,7 +14998,7 @@
                 }
 
                 mouseDragON = false;
-                toolTipBox.visible = false;
+                setToolTipOFF();
 
                 if(checkLineToolUndoReady() === true)
                 {
@@ -15447,7 +15463,7 @@
                 zoomToolHintON = false;
                 mouseDragON = false;
                 penCursorOFFFlag = false;
-                toolTipBox.visible = false;
+                setToolTipOFF();
 
                 updatePenSizeCursor();
                 setOptimizeCanvasMove(false);
@@ -15473,7 +15489,7 @@
 
                 setZoomCanvas(newZoom,false);
 
-                setToolTipON(Math.floor(newZoom*100)+"%");
+                setToolTipString(Math.floor(newZoom*100)+"%");
                 setFixedToolTipPos();
             }
 
@@ -15576,7 +15592,7 @@
                 }
 
                 clickPos.setTo(mouseX,mouseY);
-                setToolTipON(Math.floor(oldZoom*100)+"%");
+                setToolTipString(Math.floor(oldZoom*100)+"%");
                 setFixedToolTipPos();
                 toolTipBox.visible =  true;
 
@@ -16011,7 +16027,7 @@
                     }
 
                     canvasSizeChanging = false;
-                    toolTipBox.visible = false;
+                    setToolTipOFF();
                     setResizeButtonVisible((forceExit || (startByShortCut && !isPressingControl())) ? false:true);
                     regPoint.removeChild(resizePreviewRect);
                     regPoint.removeChild(resizePreviewRatioRect);
@@ -16100,14 +16116,14 @@
                     {
                         subY = snap[0]-oldHeight;
                         finalHeight = snap[0];
-                        setToolTipON(oldWidth+" x "+finalHeight+" ("+snap[1]+")");
+                        setToolTipString(oldWidth+" x "+finalHeight+" ("+snap[1]+")");
 
                         return subY;
                     }
                 }
 
                 finalHeight = height;
-                setToolTipON(oldWidth+" x "+finalHeight);
+                setToolTipString(oldWidth+" x "+finalHeight);
 
                 return subY;
             }
@@ -16139,14 +16155,14 @@
                     {
                         subX = snap[0]-oldWidth;
                         finalWidth = snap[0];
-                        setToolTipON(finalWidth+" x "+oldHeight+" ("+snap[1]+")");
+                        setToolTipString(finalWidth+" x "+oldHeight+" ("+snap[1]+")");
 
                         return subX;
                     }
                 }
 
                 finalWidth = width;
-                setToolTipON(finalWidth+" x "+oldHeight);
+                setToolTipString(finalWidth+" x "+oldHeight);
 
                 return subX;
             }
@@ -20015,9 +20031,9 @@
         private function setCanvasResizeButton(targetName:String,shortcut:Boolean):void
         {
             penCursorOFFFlag = true;
-            toolTipBox.visible = true;
+            setToolTipON();
             penSizeCursor.visible = false;
-            setToolTipON(CANVAS_WIDTH+" x "+CANVAS_HEIGHT);
+            setToolTipString(CANVAS_WIDTH+" x "+CANVAS_HEIGHT);
             setResizeCanvas(targetName,shortcut);
         }
 

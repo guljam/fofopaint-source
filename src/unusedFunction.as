@@ -1055,7 +1055,7 @@ private function setPenTool(penToolFlag:Boolean):void
                     rDataBuffer.push(["line",xShape,xSize,xColor,xAlpha,cxOff,cyOff,xx,yy,xBlendMode,subLayerFlag,_airBrushON]);
                     drawingLine();                    
                 }
-                toolTipBox.visible = false;
+                setToolTipOFF();
 
                 if(xShape === true)
                 {
@@ -1393,7 +1393,7 @@ private function setLassoTool():void
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, zoomToolUpEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, zoomToolMoveEvent);
 
-                toolTipBox.visible = false;
+                setToolTipOFF();
 
                 if(!replayMode)
                 {

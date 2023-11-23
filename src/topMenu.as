@@ -118,7 +118,7 @@
 
 		public function updateTimerPos(stw:Number):void
 		{
-			const limitX:Number = (replaySpeedSet.x+replaySpeedSet.width-10)*scaleX;
+			const limitX:Number = (replaySpeedSet.x+replaySpeedSet.width+3)*scaleX;
 			var newX:Number = stw-(timer.textWidth+15)*scaleX;
 			if(newX < limitX) newX = limitX;
 			timer.x = newX/scaleX;
