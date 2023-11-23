@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.31;
+        private const APP_VERSION:Number = 22.32;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8808,6 +8808,7 @@
             undoToIndex(undoIndex);
             setDeepUndoOFF();
             checkReplaySpeedState();
+            tickDraw.setFirstRCursorPosCurrent();
         }
 
         private function setReRecord():void
@@ -10288,17 +10289,15 @@
 
             function lasso(data:Array,clearOnly:Boolean):void
             {
-                if(data[1].length === 0 || data[2].length === 0)
-                {
-                    return;
-                }
+                if(data[1].length === 0 || data[2].length === 0) return;
 
+                const oldData:Boolean = typeof(data[4]) === "object";
                 //(["lasso",point1,point2,null,lassoInfo]); 원시 버전 데이터 이게 왜 4번에 있는지 모르겠음
                 //(["lasso",point1,point2,lassoInfo]); 구버전 데이터
-                //(["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,lassoLayerSwappedFlag]); 신버전 데이터
-                const oldData:Boolean = typeof(data[4]) === "object";
-                var imageMovedToLasso:Boolean = (oldData || data[5] === undefined) ? moveSelectedAreaToLassoBox(true,data[1],data[2],false,true,true)
-                                                                                   : moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],data[5],data[6]);
+                //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터
+                const imageMovedToLasso:Boolean = (oldData)
+                                                  ? moveSelectedAreaToLassoBox(true,data[1],data[2],false,false,false)
+                                                  : moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],data[5],data[6]);
 
                 if(imageMovedToLasso && !clearOnly)
                 {
@@ -10322,14 +10321,14 @@
                     lassoBMP.smoothing = true;
                     lassoBMPsub.smoothing = true;
 
-                    if(data[7] is Boolean)
+                    if(data[7] as Boolean)
                     {
                         if(data[7] === true)
                         {
                             swapLassoImage();
                         }
                     }
-                    else if(data[7] is Array)
+                    else if(data[7] as Array)
                     {
                         const len:uint = data[7].length;
                         for(var i:uint=0;i<len;i++)
@@ -17735,11 +17734,6 @@
                     jumpOneFrame(true,false);
                     drawReplayImageToDrawModeCanvas();
                     setRCursorVisibleONFadeOFF();
-                }
-
-                if(rNowFrame <= 0)
-                {
-                    rCursor.visible = false;
                 }
             }
             else
