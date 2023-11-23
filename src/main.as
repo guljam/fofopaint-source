@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.27;
+        private const APP_VERSION:Number = 22.28;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -474,7 +474,6 @@
                     ,rJumpImageIndexLast:int = -2 //썸네일 인덱스 바뀌면 여기다 저장
                     ,rJumpImageNowFrameLast:Number = -1
                     ,rCachedJumpImageIndexLast:int = -2 //마지막에 그려준 캐쉬 이미지 번호를 저장
-                    ,rCachedJumpImageIndexPush:int = 1 //dodraw에서 캐시이미지 그려줄때 이 번호로 순차적으로 저장하게 함
                     ,rCachedJumpImageIndexFrame:Number //dodraw에서 캐시이미지 가장 높은 프레임을 저장해줌
                     ,rJumpCacheImageIndexSave:int = -2 // 더 잘게 쪼개준 이미지 인덱스 바뀌면 여기다 저장
                     ,rJumpImageFrameData:Array = [0] //스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
@@ -7372,7 +7371,13 @@
                 }
                 break;
 
-                case "drawModeButton": setReplayUIOFF(); break;
+                case "drawModeButton":
+                {
+                    setReplayUIOFF();
+                    checkDeepUndoOnFlagAfterReplayOFF();
+                }
+                break;
+
                 case "superUndoButton": setCutFrameButton(CUT_FRAME_SUPER_UNDO,false); break;
                 case "reRecordingButton": setCutFrameButton(CUT_FRAME_RE_RECORD,false); break;
                 case "cutPrevDataButton": setCutFrameButton(CUT_FRAME_DELETE_FRONT,false); break;
@@ -10272,15 +10277,17 @@
 
             function lasso(data:Array,clearOnly:Boolean):void
             {
-                if(data[1].length === 0 || data[2].length === 0) return;
+                if(data[1].length === 0 || data[2].length === 0)
+                {
+                    return;
+                }
 
-                const oldData:Boolean = typeof(data[4]) === "object";
                 //(["lasso",point1,point2,null,lassoInfo]); 원시 버전 데이터 이게 왜 4번에 있는지 모르겠음
                 //(["lasso",point1,point2,lassoInfo]); 구버전 데이터
-                //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터
-                const imageMovedToLasso:Boolean = (oldData)
-                                                  ? moveSelectedAreaToLassoBox(true,data[1],data[2],false,false,false)
-                                                  : moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],data[5],data[6]);
+                //(["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,lassoLayerSwappedFlag]); 신버전 데이터
+                const oldData:Boolean = typeof(data[4]) === "object";
+                var imageMovedToLasso:Boolean = (oldData || data[5] === undefined) ? moveSelectedAreaToLassoBox(true,data[1],data[2],false,true,true)
+                                                                                   : moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],data[5],data[6]);
 
                 if(imageMovedToLasso && !clearOnly)
                 {
@@ -10647,6 +10654,19 @@
             doDraw(rSpeed,JUMP_FRAME_PLAY);
             checkHideCursorCount();
         }
+
+        private function setCacheImageByIndex(index:uint):void
+        {
+            rFrameCacheImages[index] = [rcanvas1BitmapData.clone(),
+                                        rcanvas11BitmapData.clone(),
+                                        rcanvas1BitmapData.width,
+                                        rcanvas1BitmapData.height,
+                                        RCANVAS_BG_COLOR,
+                                        rFileCutBytes,
+                                        rNowFrame,
+                                        rMirrorON];
+        }
+
         //jumpFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
         private function cDoDraw():Function
         {
@@ -10654,7 +10674,7 @@
             const _REPLAY_SLOWDRAW_ACTIVE_SPEED:Number = REPLAY_SLOWDRAW_ACTIVE_SPEED;
             const tcursor:SimpleButton = rCursor;
             const _rfs:FileStream = rFileStream;
-            const _CACHE_DIV_10:Number= Math.floor(REPLAY_MAKE_JUMPIMAGE_COUNT/10);
+            const _CACHE_DIV_20:Number= Math.floor(REPLAY_MAKE_JUMPIMAGE_COUNT/20);
             const _tickDraw:Object = tickDraw;
             const _JUMP_FRAME_PLAY:int = JUMP_FRAME_PLAY;
             const _JUMP_FRAME_ONCE:int = JUMP_FRAME_ONCE;
@@ -10673,19 +10693,12 @@
 
             function checkMakeCacheImage():void
             {
-                if((rNowFrame - rJumpImageNowFrameLast)/_CACHE_DIV_10 > rCachedJumpImageIndexPush
+                const nt:int = getTimer()
+
+                if((rNowFrame - rJumpImageNowFrameLast)/_CACHE_DIV_20 > rFrameCacheImages.length-1
                 &&  rNowFrame > rCachedJumpImageIndexFrame)
                 {
-                    rFrameCacheImages[rCachedJumpImageIndexPush] = [rcanvas1BitmapData.clone()
-                                                ,rcanvas11BitmapData.clone()
-                                                ,rcanvas1BitmapData.width
-                                                ,rcanvas1BitmapData.height
-                                                ,RCANVAS_BG_COLOR
-                                                ,rFileCutBytes
-                                                ,rNowFrame
-                                                ,rMirrorON];
-
-                    rCachedJumpImageIndexPush++;
+                    setCacheImageByIndex(rFrameCacheImages.length);
                     rCachedJumpImageIndexFrame = rNowFrame;
                 }
             }
@@ -11330,6 +11343,7 @@
 
         private function jumpFrame(frame:Number,jumpflag:int):void //jumpp
         {
+            const nt:int = getTimer()
             if(frame < 0) frame = 0;
             else if(frame > TOTAL_FRAME) frame = TOTAL_FRAME;
 
@@ -11370,9 +11384,11 @@
                 var jumpImageData:Array;
                 var tempBmpd:BitmapData;
                 var tempBmpd1:BitmapData;
+                var newrect:Rectangle;
 
                 if(updateRCavanvasImageFlag === 2)
                 {
+
                     jumpImageData = rFrameCacheImages[cachedJumpImageIndex];
                     tempBmpd = jumpImageData[0].clone();
                     tempBmpd1 = jumpImageData[1].clone();
@@ -11389,7 +11405,7 @@
                     jumpImageData[0].uncompress();
                     jumpImageData[1].uncompress();
 
-                    const newrect:Rectangle = new Rectangle(0,0,jumpImageData[2],jumpImageData[3]);
+                    newrect = new Rectangle(0,0,jumpImageData[2],jumpImageData[3]);
                     tempBmpd = new BitmapData(jumpImageData[2],jumpImageData[3],true,0);
                     tempBmpd.lock();
                     tempBmpd.setPixels(newrect,jumpImageData[0]);
@@ -11431,14 +11447,7 @@
 
                 if(updateRCavanvasImageFlag === 1)
                 {
-                    rFrameCacheImages[0] = [rcanvas1BitmapData.clone()
-                                            ,rcanvas11BitmapData.clone()
-                                            ,rcanvas1BitmapData.width
-                                            ,rcanvas1BitmapData.height
-                                            ,RCANVAS_BG_COLOR
-                                            ,rLastBytePosition
-                                            ,rNowFrame
-                                            ,rMirrorON];
+                    setCacheImageByIndex(0);
                 }
 
                 jumpImageData = null;
@@ -11869,10 +11878,10 @@
 
         private function setToolTipOFF():void
         {
-            toolTipBox.visible = false;   
+            toolTipBox.visible = false;
         }
 
-        
+
         private function setToolTipON():void
         {
             toolTipBox.visible = true;
@@ -12293,7 +12302,6 @@
             _rFrameCacheImages = null;
             rJumpImageIndexLast = -2;
             rCachedJumpImageIndexLast = -2;
-            rCachedJumpImageIndexPush = 1;
             rCachedJumpImageIndexFrame = 0;
         }
 
@@ -12699,7 +12707,7 @@
         private function loadReplayFile(oldFile:File,fileName:String,filePath:String):void //loadrep
         {
             if(isTrue2020File(oldFile) === false)return;
-            if(replayModeON)  setReplayUIOFF();
+            if(replayModeON) setReplayUIOFF();
 
             removeInputEventDrawMode();
 
@@ -19071,8 +19079,15 @@
                 case KEY.backspace:
                 case KEY.esc:
                 {
-                    if(cutFrameClickedButton !== CUT_FRAME_NONE) resetCutFrameClickCounter();
-                    else setReplayUIOFF();
+                    if(cutFrameClickedButton !== CUT_FRAME_NONE)
+                    {
+                        resetCutFrameClickCounter();
+                    }
+                    else
+                    {
+                        setReplayUIOFF();
+                        checkDeepUndoOnFlagAfterReplayOFF();
+                    }
                 }
                 break;
 
@@ -19098,7 +19113,10 @@
 
                 case KEY.f1:
                 case KEY.f7:
+                {
                     setReplayUIOFF();
+                    checkDeepUndoOnFlagAfterReplayOFF();
+                }
                 break;
 
                 case KEY.enter:
@@ -20179,6 +20197,16 @@
             setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
         }
 
+        private function checkDeepUndoOnFlagAfterReplayOFF():void
+        {
+            deepUndoON = deepUndoONSave;
+
+            if(deepUndoON && rNowFrame !== deepUndoFrameSave)
+            {
+                jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
+            }
+        }
+
         private function setReplayUIOFF():void
         {
             if(makeJumpImageFlag === 2) return;
@@ -20214,13 +20242,6 @@
             changeTopBarIcons("draw");
             appInfoBox.setZoom(zoomed);
             updateRCursorScale(zoomed);
-
-            deepUndoON = deepUndoONSave;
-
-            if(rNowFrame !== deepUndoFrameSave)
-            {
-                jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
-            }
 
             rCursor.visible = false;
             addInputEventDrawMode();
@@ -21354,38 +21375,38 @@
             }
         }
 
-        // private var printdeepLevel:int = 0;
-        // private function printArray(obj:Object,deepKey:String=""):void
-        // {
-        //     var _print:Function = trace;
-        //     var blank:String="";
-        //     if(printdeepLevel === 0) _print('--- PRINT START --- ');
-        //     else
-        //     {
-        //         const count:int = printdeepLevel;
-        //         for(var b:int=0; b<count; b++)
-        //         {
-        //             blank += "   ";
-        //         }
-        //         _print(blank+'> index['+deepKey+']');
-        //     }
+        private var printdeepLevel:int = 0;
+        private function printArray(obj:Object,deepKey:String=""):void
+        {
+            var _print:Function = trace;
+            var blank:String="";
+            if(printdeepLevel === 0) _print('--- PRINT START --- ');
+            else
+            {
+                const count:int = printdeepLevel;
+                for(var b:int=0; b<count; b++)
+                {
+                    blank += "   ";
+                }
+                _print(blank+'> index['+deepKey+']');
+            }
 
-        //     _print(blank+'{');
-        //     for(var i:String in obj)
-        //     {
-        //         if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
-        //         {
-        //             ++printdeepLevel;
-        //             printArray(obj[i],i);
-        //         }
-        //         else
-        //         {
-        //             _print(blank+'| '+i+' : ' + obj[i]);
-        //         }
-        //     }
-        //     _print(blank+'}');
-        //     --printdeepLevel;
-        //     if(printdeepLevel < 0) printdeepLevel = 0;
-        // }
+            _print(blank+'{');
+            for(var i:String in obj)
+            {
+                if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
+                {
+                    ++printdeepLevel;
+                    printArray(obj[i],i);
+                }
+                else
+                {
+                    _print(blank+'| '+i+' : ' + obj[i]);
+                }
+            }
+            _print(blank+'}');
+            --printdeepLevel;
+            if(printdeepLevel < 0) printdeepLevel = 0;
+        }
     }
  }
