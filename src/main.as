@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.28;
+        private const APP_VERSION:Number = 22.30;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -717,6 +717,11 @@
         }
 
         //function
+        private function setDeepUndoFrameSave(frame:Number):void
+        {
+            deepUndoFrameSave = frame;
+        }
+
         private function getColorInfoStringOfHex(hexColor:uint,hsvFlag:Boolean):String
         {
             if(hsvFlag)
@@ -7374,7 +7379,6 @@
                 case "drawModeButton":
                 {
                     setReplayUIOFF();
-                    checkDeepUndoOnFlagAfterReplayOFF();
                 }
                 break;
 
@@ -8278,6 +8282,7 @@
             clearDataResetVars();
             setWindowTitleStar();
             tickDraw.resetFirstRCursorPos();
+            clearRFrameCacheImages();
             //reset vars보다 뒤에 와야함
             //addundo에서 활성화 해주고 있기 때문에
             topBar.clearButton.alpha = BUTTON_OFF_ALPHA;
@@ -8808,7 +8813,11 @@
             setReRecordCopyCanvas();
             clearDataResetVars();
             setCanvasSameReplayCanvas();
-            if(replayModeON) setReplayUIOFF();
+            if(replayModeON)
+            {
+                setDeepUndoFrameSave(rNowFrame);
+                setReplayUIOFF();
+            }
             setDeepUndoOFF();
             resetReplayTime();
         }
@@ -12459,8 +12468,17 @@
 
                         if(replayTimeBox["replayNowBar"].width > 0) replayTimeBox["replayNowBar"].width = 0;
 
-                        if(deepUndoFlag) setHintONTemp(loadingStr+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%");
-                        else replayInfoText.text = loadingStr+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%";
+                        if(deepUndoFlag)
+                        {
+                            setHintONTemp(loadingStr+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%");
+                            removeTimer("hintONAlphaEffect");
+                            removeTimer("hintOFFAlphaEffect");
+                            hintBox.alpha = 1.0;
+                        }
+                        else
+                        {
+                            replayInfoText.text = loadingStr+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%";
+                        }
 
                         return;
                     }
@@ -12707,7 +12725,11 @@
         private function loadReplayFile(oldFile:File,fileName:String,filePath:String):void //loadrep
         {
             if(isTrue2020File(oldFile) === false)return;
-            if(replayModeON) setReplayUIOFF();
+            if(replayModeON)
+            {
+                setDeepUndoFrameSave(rNowFrame);
+                setReplayUIOFF();
+            }
 
             removeInputEventDrawMode();
 
@@ -12984,7 +13006,11 @@
 
         private function loadImageFile(fileName:String,filePath:String,width:Number,height:Number,imageData:IBitmapDrawable,imageData1:IBitmapDrawable):void
         {
-            if(replayModeON) setReplayUIOFF();
+            if(replayModeON)
+            {
+                setDeepUndoFrameSave(rNowFrame);
+                setReplayUIOFF();
+            }
             TOTAL_FRAME = 0;
             undoData.setRFileTotalFrame(0);
             makeJumpImageFlag = 0;
@@ -13082,6 +13108,7 @@
             }
 
             changeCanvasSize(scaledwidth,scaledheight,0,0,false);
+            setSameReplayModeImageByDrawMode();
 
             tmpBMPD.dispose();
             tmpBMPD = null;
@@ -17760,7 +17787,6 @@
 
         private function cAddUndoData():Object
         {
-            const UNDO_LIMIT:int = 10;
             var rJumpImageCount:uint = 0;//데이터로 저장할때  rDataFrame 카운터 누적
             var rFileTotalFrame:Number = 0; //file에저장된 프레임수 누적해서 저장
             //undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
@@ -17968,7 +17994,7 @@
                     rDataFrame.splice(undoIndex+1);
                 }
 
-                if(rData.length >= UNDO_LIMIT) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
+                if(rData.length >= 10) //첫번째 이미지는 빼야하니깐 -1로 계산해야함
                 {
                     var oldData:Array = rData[0];
 
@@ -19086,7 +19112,6 @@
                     else
                     {
                         setReplayUIOFF();
-                        checkDeepUndoOnFlagAfterReplayOFF();
                     }
                 }
                 break;
@@ -19115,7 +19140,6 @@
                 case KEY.f7:
                 {
                     setReplayUIOFF();
-                    checkDeepUndoOnFlagAfterReplayOFF();
                 }
                 break;
 
@@ -20197,16 +20221,6 @@
             setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
         }
 
-        private function checkDeepUndoOnFlagAfterReplayOFF():void
-        {
-            deepUndoON = deepUndoONSave;
-
-            if(deepUndoON && rNowFrame !== deepUndoFrameSave)
-            {
-                jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
-            }
-        }
-
         private function setReplayUIOFF():void
         {
             if(makeJumpImageFlag === 2) return;
@@ -20242,6 +20256,13 @@
             changeTopBarIcons("draw");
             appInfoBox.setZoom(zoomed);
             updateRCursorScale(zoomed);
+
+            deepUndoON = deepUndoONSave;
+
+            if(rNowFrame !== deepUndoFrameSave)
+            {
+                jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
+            }
 
             rCursor.visible = false;
             addInputEventDrawMode();
