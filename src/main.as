@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.33;
+        private const APP_VERSION:Number = 22.34;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -381,8 +381,6 @@
                     ,lassoStartData:Array = [] //이 값이랑 비교해서 달라진게 있으면 ok할때 적용해줌
                     ,lassoMirrorON:Boolean = false //라소 mirror클릭했을때 마다 반전해줌
                     ,lassoMenuTempOFF:Boolean = false//툴 고정되어서 라소 선택하고 줌툴 클릭했을때 메뉴 잠시 없애주는 플래그
-                    ,lassoResizeON:Boolean = false //라소 무브 클릭하면 켜줌 힌트 메세지 안없어지게
-                    ,lassoResizeMoveSum:Number = 0//라소 무브 클릭 움직이는 합저장 줌 1배 스냅걸리게 할때 쓰임
                     ,lassoPointSave:Array = []
                     ,lassoCopyON:Boolean = false //lasso 복사 누르면 올려줌
                     ,lassoBitmapdataSave:BitmapData //copy나 취소했을때 원래대로 돌려주는 이미지
@@ -719,6 +717,135 @@
         }
 
         //function
+        private function cImageMoveFunc(target:DisplayObject,targetAngle:Number=NaN,customScaleX:Number=1.0,customScaleY:Number=1.0):Function
+        {
+            var oldX:Number = target.x;
+            var oldY:Number = target.y;
+            var mx:Number = mouseX;
+            var my:Number = mouseY;
+            const zoom:Number = zoomed;
+            const angle:Number = (!targetAngle) ? target.rotation : targetAngle;
+
+            return function():Point
+            {
+                const dx:Number = mouseX-mx;
+                const dy:Number = mouseY-my;
+                const newPos:Point = rotatePoint(dx,dy,angle);
+
+                newPos.setTo(oldX+newPos.x/zoom/customScaleX,oldY+newPos.y/zoom/customScaleY);
+
+                return newPos;
+            }
+        }
+
+        private function setRotateCursorOFF():void
+        {
+            rotateCursorBox.visible = false;
+        }
+
+        private function cImageRotateFunc(target:DisplayObject):Function
+        {
+            rotateCursorBox.x = mouseX;
+            rotateCursorBox.y = mouseY+(65*getUIScale());
+            rotateCursorBox["rotateArrow"].rotation = target.rotation;
+            setTopChildIndex(rotateCursorBox);
+            rotateCursorBox.visible = true;
+
+            const toDeg:Number = 180.0/Math.PI;
+            //움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
+
+            var sumAng:Number = target.rotation;
+            //각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
+            var lastAng:Number = Math.atan2(mouseX-rotateCursorBox.x,mouseY-rotateCursorBox.y)*toDeg;
+
+            return function():Number
+            {
+                const nowAng:Number = Math.atan2(mouseX-rotateCursorBox.x,mouseY-rotateCursorBox.y)*toDeg;
+                const subAng:Number = lastAng-nowAng;
+
+                if(subAng === 0) return 0;
+
+                lastAng = nowAng;
+                sumAng += subAng;
+
+                var deg:Number = sumAng;
+                const snap90:Number = Math.abs(deg%90.0);//90도 스냅 변수
+                const snap90N:Number = 90.0-snap90;
+                const snapAng:Number = (snap90 > snap90N) ? snap90 : snap90N;
+
+                //90도에 가까우면 90도 스냅이 걸리게함
+                if(snapAng > 83)
+                {
+                    deg = Math.round(deg/90)*90;
+                }
+
+                rotateCursorBox["rotateArrow"].rotation = deg;
+
+                return Math.round(deg);
+            }
+        }
+
+        private function getImageScaleHint(width:Number,height:Number,scale:Number):String
+        {
+            return Math.round(width*scale)+ " x "+ Math.round(height*scale) +" (x"+scale.toFixed(2)+")";
+        }
+
+        private function cImageResizeFunc(sc:Number):Function
+        {
+            var clickX:Number = mouseX;
+            var clickY:Number = mouseY;
+            var scale:Number = Math.abs(sc);
+            var mxLastPos:Number;
+            var myLastPos:Number;
+            var moveFlag:int;
+
+            return function (mx:Number,my:Number):Number
+            {
+                if(moveFlag != 0)
+                {
+                    if(moveFlag === 1)
+                    {
+                        const subX:Number = mx-mxLastPos;
+
+                        if(subX !== 0) //차이가 0이 될때가 있어서 이건 스킵
+                        {
+                            scale *= Math.pow(2,subX*0.008);
+                            traceReizeMoveSum += subX;
+                        }
+                    }
+                    else if(moveFlag === 2)
+                    {
+                        const subY:Number = myLastPos-my;
+
+                        if(subY !== 0)
+                        {
+                            scale *= Math.pow(2,subY*0.008);
+                            traceReizeMoveSum += subY;
+                        }
+                    }
+                }
+                else if(moveFlag === 0)
+                {
+                    if(Math.abs(mx-clickX) > 5)
+                    {
+                        moveFlag = 1;
+                    }
+                    else if(Math.abs(my-clickY) > 5)
+                    {
+                        moveFlag = 2;
+                    }
+                }
+
+                mxLastPos = mx;
+                myLastPos = my;
+
+                if(scale > 100) scale = 100;
+                else if(scale < 0.1) scale = 0.1;
+
+                return scale;
+            }
+        }
+
         private function setDeepUndoFrameSave(frame:Number):void
         {
             deepUndoFrameSave = frame;
@@ -2514,10 +2641,11 @@
             if(isRightSidebar) updateSidebarDefaultRightPos();
             else sideBar.x = 0;
 
-            topBar.scaleX = scale;
-            topBar.scaleY = scale;
+            topBar.setScale(scale);
             topBar.updateTopbarBG(stw);
             topBar.updateTimerPos(stage.stageWidth);
+
+            rotateCursorBox.setScale(scale);
 
             hintBox.scaleX = scale;
             hintBox.scaleY = scale;
@@ -5370,7 +5498,7 @@
             {
                 case "toolSidebar": str = "Quick sidebar (s+d, j+k)"; break;
                 case "toolPen": str = "Pen (q, o key up) "; break;
-                case "toolFillPen": str = "Fill pen (q, o)"; break;
+                case "toolFillPen": str = "Fill pen (q, o)\nMenu (Right click after using the tool)"; break;
                 case "toolErase": str = "Eraser (d, j)"; break;
                 case "toolLasso": str = "Lasso (r, y)"; break;
                 case "toolSpuit": str = "Eye dropper (c, m)"; break;
@@ -5785,42 +5913,20 @@
 
         private function setTraceRotateButton():void
         {
-            const _canvasTrace:Sprite = canvasTraceLayer;
-            const _rotateCursorBox:rotateCursor = rotateCursorBox;
-            const atan2:Function = Math.atan2;
-            const floor:Function = Math.floor;
-            const abs:Function = Math.abs;
-            const PI:Number = Math.PI;
-            // const traceMenuClickPos:Array = [traceMenu.mouseX,traceMenu.mouseY];
-
-            // const PI2:Number = PI*2;
-            const toDeg:Number = 180/PI;
-            var regAng:Number = -regPoint.rotation%90;
-            var oldAng:Number = _canvasTrace.rotation;
-            var sumAng:Number = oldAng*PI/180;
+            var getAngle:Function = cImageRotateFunc(canvasTraceLayer);
 
             mouseDragON = true;
             traceMenu.visible = false;
             canvasTraceBitmap.smoothing = false;
 
-            setTopChildIndex(_rotateCursorBox);
-            // _rotateCursorBox.rotation = regAng;
-            _rotateCursorBox.visible = true;
-            _rotateCursorBox.x = mouseX;
-            _rotateCursorBox.y = mouseY+50;
-            _rotateCursorBox["rotateArrow"].rotation = oldAng;
-
-            var lastAng:Number = atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
-
             function traceRotateButtonUpEvent(e:MouseEvent):void
             {
                 mouseDragON = false;
-                traceMenu.visible = true;
-                _rotateCursorBox.rotation = 0;
                 saveOneTime = false;
-                mouseDragON = false;
+                traceMenu.visible = true;
+                getAngle = null;
                 tracePosInfo[2] = canvasTraceLayer.rotation; //deg로 저장
-                _rotateCursorBox.visible = false;
+                setRotateCursorOFF();
                 canvasTraceBitmap.smoothing = true;
                 stage.removeEventListener(MouseEvent.MOUSE_UP,traceRotateButtonUpEvent);
                 stageMouseMoveEvent.remove("traceRotateButtonMoveEvent");
@@ -5828,17 +5934,7 @@
 
             function traceRotateButtonMoveEvent(e:MouseEvent):void
             {
-                const nowAng:Number = atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
-                const subAng:Number = lastAng-nowAng;
-
-                if(subAng === 0) return;
-
-                lastAng = nowAng;
-                sumAng += subAng;
-                var deg:Number = floor(sumAng*toDeg);
-
-                _canvasTrace.rotation = deg;
-                _rotateCursorBox["rotateArrow"].rotation = deg;
+                canvasTraceLayer.rotation = getAngle();
             }
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceRotateButtonUpEvent);
@@ -5847,31 +5943,22 @@
 
         private function setTraceResizeButton():void
         {
-            const _canvasTrace:Sprite = canvasTraceLayer;
-            const moveOffset:Number = 5;
-            const cx:Number = mouseX;
-            const cy:Number = mouseY;
-            const abs:Function = Math.abs;
-            const floor:Function = Math.floor;
-            const bmpd:BitmapData = canvasTraceBitmapData;
-            const w:Number = bmpd.width;
-            const h:Number = bmpd.height;
             const mirrorFlag:Boolean = tracePosInfo[5];
-            const mouseMoveLast:Point = new Point(0,0);
-            var moveFlag:int = 0;
+            var getScale:Function = cImageResizeFunc(canvasTraceLayer.scaleX);
 
             traceMenu.visible = false;
             canvasTraceBitmap.smoothing = false;
-            setToolTipString(w+ " x "+ h +" ["+_canvasTrace.scaleX.toFixed(2)+"]");
-            setToolTipON();
+
             mouseDragON = true;
 
             function traceResizeButtonUpEvent(e:MouseEvent):void
             {
                 saveOneTime = false;
                 mouseDragON = false;
-                tracePosInfo[3] = _canvasTrace.scaleX;
-                tracePosInfo[4] = _canvasTrace.scaleY;
+                getScale = null;
+
+                tracePosInfo[3] = canvasTraceLayer.scaleX;
+                tracePosInfo[4] = canvasTraceLayer.scaleY;
                 traceMenu.visible = true;
                 canvasTraceBitmap.smoothing = true;
                 setToolTipOFF();
@@ -5881,62 +5968,15 @@
 
             function traceResizeButtonMove(e:MouseEvent):void
             {
-                const mx:Number = mouseX;
-                const my:Number = mouseY;
+                const scale:Number = getScale(mouseX,mouseY);
+                canvasTraceLayer.scaleX = (mirrorFlag) ? -scale:scale;
+                canvasTraceLayer.scaleY = scale;
 
-                if(moveFlag != 0)
-                {
-                    if(moveFlag === 1)
-                    {
-                        const subX:Number = mx-mouseMoveLast.x;
-
-                        if(subX !== 0) //차이가 0이 될때가 있어서 이건 스킵
-                        {
-                            var dx:Number = subX*0.005;
-
-                            if(mirrorFlag) _canvasTrace.scaleX -= dx;
-                            else  _canvasTrace.scaleX += dx;
-
-                            _canvasTrace.scaleY += dx;
-                            traceReizeMoveSum += subX;
-                        }
-                    }
-                    else if(moveFlag === 2)
-                    {
-                        const subY:Number = mouseMoveLast.y-my;
-                        if(subY !== 0)
-                        {
-                            const dy:Number = subY*0.005;
-
-                            if(mirrorFlag) _canvasTrace.scaleX -= dy;
-                            else  _canvasTrace.scaleX += dy;
-
-                            _canvasTrace.scaleY += dy;
-                            traceReizeMoveSum += subY;
-                        }
-                    }
-                    mouseMoveLast.setTo(mx,my);
-                }
-                else if(moveFlag === 0)
-                {
-                    if(abs(mx-cx) > moveOffset)
-                    {
-                        moveFlag = 1;
-                    }
-                    else if(abs(my-cy) > moveOffset)
-                    {
-                        moveFlag = 2;
-                    }
-                    mouseMoveLast.setTo(mx,my);
-                }
-
-                const sc:Number = abs(_canvasTrace.scaleX);
-                const ww:Number = floor(w*sc+0.5);
-                const hh:Number = floor(h*sc+0.5);
-
-                setToolTipString(ww+ " x "+ hh +" ["+sc.toFixed(2)+"]");
-                setToolTipON();
+                setToolTipString(getImageScaleHint(canvasTraceBitmapData.width,canvasTraceBitmapData.height,scale));
             }
+
+            setToolTipString(getImageScaleHint(canvasTraceBitmapData.width,canvasTraceBitmapData.height,Math.abs(canvasTraceLayer.scaleX)));
+            setToolTipON();
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceResizeButtonUpEvent);
             stageMouseMoveEvent.add("traceResizeButtonMove",traceResizeButtonMove);
@@ -5944,14 +5984,7 @@
 
         private function setTraceMoveButton():void
         {
-            const _canvasTraceBitmap:Bitmap = canvasTraceBitmap;
-            const cx:Number = mouseX;
-            const cy:Number = mouseY;
-            const oldX:Number = _canvasTraceBitmap.x;
-            const oldY:Number = _canvasTraceBitmap.y;
-            const rotation:Number = regPoint.rotation+canvasTraceLayer.rotation;
-            const scX:Number = tracePosInfo[3];
-            const scY:Number = tracePosInfo[4];
+            var getMovedPos:Function = cImageMoveFunc(canvasTraceBitmap,canvasTraceLayer.rotation+regPoint.rotation,tracePosInfo[3],tracePosInfo[4]);
 
             mouseDragON = true;
             traceMenu.visible = false;
@@ -5963,20 +5996,19 @@
                 stageMouseMoveEvent.remove("traceMoveButtonMoveEvent");
                 saveOneTime = false;
                 mouseDragON = false;
+                getMovedPos = null;
                 traceMenu.visible = true;
-                tracePosInfo[0] = _canvasTraceBitmap.x;
-                tracePosInfo[1] = _canvasTraceBitmap.y;
+                tracePosInfo[0] = canvasTraceBitmap.x;
+                tracePosInfo[1] = canvasTraceBitmap.y;
                 canvasTraceBitmap.smoothing = true;
             }
 
             function traceMoveButtonMoveEvent(e:MouseEvent):void
             {
-                const dx:Number = mouseX-cx;
-                const dy:Number = mouseY-cy;
-                const r:Point = rotatePoint(dx,dy,rotation);
+                const pos:Point = getMovedPos();
 
-                _canvasTraceBitmap.x = oldX+r.x/zoomed/scX; //캔버스만 옮겨줘서 미리보기해줌
-                _canvasTraceBitmap.y = oldY+r.y/zoomed/scY;
+                canvasTraceBitmap.x = pos.x;
+                canvasTraceBitmap.y = pos.y;
             }
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceMoveButtonUpEvent);
@@ -7470,24 +7502,18 @@
 
         private function setLassoRotateButton():void
         {
-            lassoResizeON = true;
-            const floor:Function = Math.floor;
-            const atan2:Function = Math.atan2;
-            const abs:Function = Math.abs;
-            const PI:Number = Math.PI;
-
-            var sumAng:Number = lassoBox1.rotation*PI/180;//rad로 바꿔줌
-            var lastAng:Number = 0;
-            const toDeg:Number = 180/PI;
+            var getAngle:Function = cImageRotateFunc(lassoBox1);
 
             lassoBMP.smoothing = false;
+            mouseDragON = true;
 
             function lassoRotateButtonUpEvent(e:MouseEvent):void
             {
-                lassoResizeON = false;
+                mouseDragON = false;
+                getAngle = null;
                 lassoBMP.smoothing = true;
                 lassoMenu.visible = true;
-                rotateCursorBox.visible = false;
+                setRotateCursorOFF();
 
                 stage.removeEventListener(MouseEvent.MOUSE_UP, lassoRotateButtonUpEvent);
                 stageMouseMoveEvent.remove("lassoRotateButtonMoveEvent");
@@ -7495,27 +7521,12 @@
 
             function lassoRotateButtonMoveEvent(e:MouseEvent):void
             {
-                const nowAng:Number = Math.atan2(mouseX-rotateCursorBox.x,mouseY-rotateCursorBox.y);
-                const subAng:Number = lastAng-nowAng;
+                const angle:Number = getAngle();
 
-                if(subAng === 0) return;
-
-                lastAng = nowAng;
-                sumAng += subAng;
-
-                const deg:Number = floor(sumAng*toDeg+0.5);
-
-                lassoBox1.rotation = deg;
-                lassoBox2.rotation = deg;
-                rotateCursorBox["rotateArrow"].rotation = deg;
+                lassoBox1.rotation = angle;
+                lassoBox2.rotation = angle;
             }
 
-            rotateCursorBox.x = mouseX;
-            rotateCursorBox.y = mouseY+50;
-            rotateCursorBox.visible = true;
-            setTopChildIndex(rotateCursorBox);
-            lastAng = Math.atan2(mouseX-rotateCursorBox.x,mouseY-rotateCursorBox.y);
-            rotateCursorBox["rotateArrow"].rotation = lassoBox1.rotation;
             lassoMenu.visible = false;
             stageMouseMoveEvent.add("lassoRotateButtonMoveEvent",lassoRotateButtonMoveEvent);
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoRotateButtonUpEvent);
@@ -7523,16 +7534,7 @@
 
         private function setLassoResizeButton():void
         {
-            lassoResizeON = true;
-            const floor:Function = Math.floor;
-            const abs:Function = Math.abs;
-            var lassoFirstX:Number = mouseX;
-            var lassoFirstY:Number = mouseY;
-            var lassoMovedX:Number = lassoFirstX;
-            var lassoMovedY:Number = lassoFirstY;
-            var lassoFirstScale:Number = lassoBox1.scaleY;
-            var lassoImageScale:Number = lassoFirstScale;
-            var moveFlag:uint = 0;
+            var getScale:Function = cImageResizeFunc(lassoBox1.scaleX);
 
             lassoBMP.smoothing = false;
             mouseDragON = true;
@@ -7540,7 +7542,7 @@
             function lassoResizeButtonUpEvent(e:MouseEvent):void
             {
                 mouseDragON = false
-                lassoResizeON = false;
+                getScale = null;
 
                 checkLassoMenuPos();
                 lassoBMP.smoothing = true;
@@ -7553,48 +7555,16 @@
 
             function lassoResizeButtonMoveEvent(e:MouseEvent):void
             {
-                const mx:Number = mouseX;
-                const my:Number = mouseY;
-                const mirrorFlag:Boolean = lassoMirrorON;//미러플래그 켜져 있으면 x축 부호 반대로 해줘야함
+                const scale:Number = getScale(mouseX,mouseY);
+                lassoBox1.scaleX = scale;
+                lassoBox1.scaleY = scale;
+                lassoBox2.scaleX = scale;
+                lassoBox2.scaleY = scale;
 
-                if(moveFlag != 0)
-                {
-                    if(moveFlag === 1)
-                    {
-                        const subX:Number = mx-lassoMovedX;
-                        if(subX !== 0) //차이가 0이 될때가 있어서 이건 스킵
-                        {
-                            lassoImageScale += (subX)*0.005;
-                            lassoResizeMoveSum += subX;
-                        }
-                    }
-                    else if(moveFlag === 2)
-                    {
-                        const subY:Number = lassoMovedY-my;
-                        if(subY !== 0)
-                        {
-                            lassoImageScale += (subY)*0.005;
-                            lassoResizeMoveSum += subY;
-                        }
-                    }
-                }
-                else if(moveFlag === 0)
-                {
-                    if(abs(mx-lassoFirstX) > 3) moveFlag = 1;
-                    else if(abs(my-lassoFirstY) > 3) moveFlag = 2;
-                }
-
-                lassoBox1.scaleX = (mirrorFlag) ? -lassoImageScale : lassoImageScale;
-                lassoBox1.scaleY = lassoImageScale;
-                lassoBox2.scaleX = lassoBox1.scaleX;
-                lassoBox2.scaleY = lassoBox1.scaleY;
-                lassoMovedX = mx;
-                lassoMovedY = my;
-
-                setToolTipString(floor(lassoBox1.width+0.5) +" x " +floor(lassoBox1.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
+                setToolTipString(getImageScaleHint(lassoBox1.width,lassoBox1.height,lassoBox1.scaleX));
             }
 
-            setToolTipString(floor(lassoBox1.width+0.5)+" x "+floor(lassoBox1.height+0.5) +" ["+lassoImageScale.toFixed(2)+"]");
+            setToolTipString(getImageScaleHint(lassoBox1.width,lassoBox1.height,lassoBox1.scaleX));
             setToolTipON();
             lassoMenu.visible = false;
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoResizeButtonUpEvent);
@@ -7621,10 +7591,7 @@
 
         private function setLassoMoveButton():void
         {
-            var old:Point = new Point(mouseX,mouseY);
-            var sx:Number = lassoBox1.x;
-            var sy:Number = lassoBox1.y;
-
+            var getMovedPos:Function = cImageMoveFunc(lassoBox1,regPoint.rotation);
             lassoBMP.smoothing = false;
             mouseDragON = true;
 
@@ -7640,22 +7607,14 @@
 
             function lassoMoveButtonMoveEvent(e:MouseEvent):void
             {
-                const round:Function = Math.round;
-                const moveX:Number = mouseX-old.x;
-                const moveY:Number = mouseY-old.y;
-                const rotatedMove:Point = rotatePoint(moveX,moveY,regPoint.rotation);
-                const z:Number = zoomed;
+                const pos:Point = getMovedPos();
 
-                sx += rotatedMove.x/z;
-                sy += rotatedMove.y/z;
-
-                lassoBox1.x = round(sx);
-                lassoBox1.y = round(sy);
-                lassoBox2.x = round(sx);
-                lassoBox2.y = round(sy);
-
-                old.setTo(mouseX,mouseY);
+                lassoBox1.x = Math.round(pos.x);
+                lassoBox1.y = Math.round(pos.y);
+                lassoBox2.x = lassoBox1.x;
+                lassoBox2.y = lassoBox1.y;
             }
+
             lassoMenu.visible = false;
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoMoveButtonUpEvent);
             stageMouseMoveEvent.add("lassoMoveButtonMoveEvent",lassoMoveButtonMoveEvent);
@@ -15144,20 +15103,9 @@
 
         private function cRotateTool():Function
         {
-            const _rotateCursorBox:rotateCursor = rotateCursorBox;
-            const floor:Function = Math.floor;
-            const angleCursor:SimpleButton = _rotateCursorBox["rotateArrow"];
-            const PI:Number = Math.PI;
-            const toDeg:Number = 180/PI; //rad를 deg로 변환하는 수식
-
-            var _replayMode:Boolean;
+            var getAngle:Function;
+            var isReplayMode:Boolean;
             var xReg:Sprite;
-            var xBitmap:Bitmap;
-            //각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
-            var lastAng:Number;
-            //움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
-            var sumAng:Number;
-            var center:Point;
 
             function rotateToolUpEvent(e:MouseEvent):void
             {
@@ -15167,8 +15115,9 @@
 
                 mouseDragON = false;
                 penCursorOFFFlag = false;
+                getAngle = null;
 
-                if(!_replayMode)
+                if(!isReplayMode)
                 {
                     if(lassoToolON)
                     {
@@ -15190,60 +15139,33 @@
                     autoScroll.updateRCanvasBounds();
                 }
 
-                _rotateCursorBox.visible = false;
-                checkCanvasPanelPos(_replayMode);
+                setRotateCursorOFF();
+                checkCanvasPanelPos(isReplayMode);
             }
 
             function rotateToolMoveEvent(e:MouseEvent):void
             {
-                const nowAng:Number = Math.atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
-                const subAng:Number = lastAng-nowAng;
+                const ang:Number = getAngle();
 
-                if(subAng === 0) return;
-
-                lastAng = nowAng;
-                sumAng += subAng;
-
-                var deg:Number = sumAng*toDeg;
-                const snap90:Number = Math.abs(deg%90);//90도 스냅 변수
-                const snap90N:Number = 90-snap90;
-                const snapAng:Number = (snap90 > snap90N) ? snap90 : snap90N;
-
-                //90도에 가까우면 90도 스냅이 걸리게함
-                if(snapAng > 85)
-                {
-                    deg = floor(deg/90+0.5)*90;
-                }
-
-                deg = Math.floor(deg);
-
-                angleCursor.rotation = deg;
-                xReg.rotation = deg;
+                xReg.rotation = ang;
                 appInfoBox.setRotate(Math.abs(xReg.rotation));
             }
 
             return function (replayMode:Boolean=false):void
             {
-                _replayMode = replayMode;
+                isReplayMode = replayMode;
 
                 mouseDragON = true;
 
                 if(replayMode)
                 {
                     xReg = rregPoint;
-                    xBitmap = rcanvas1Bitmap;
                 }
                 else
                 {
                     xReg = regPoint;
-                    xBitmap = canvas1Bitmap;
                 }
 
-                //각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
-                lastAng = 0;
-                //움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
-                sumAng = xReg.rotation*PI/180;
-                center = getStageCenterPos(CENTERPOS_REPLAY);
                 penCursorOFFFlag = true;
 
                 if(!replayMode)
@@ -15251,16 +15173,11 @@
                     setOptimizeCanvasMove(true);
                 }
 
+                const center:Point = getStageCenterPos(CENTERPOS_REPLAY);
                 setRegPoint(center.x,center.y,replayMode);
 
-                setTopChildIndex(_rotateCursorBox);
-                _rotateCursorBox.visible = true;
-                _rotateCursorBox.x = mouseX;
-                _rotateCursorBox.y = mouseY+65;
-                angleCursor.rotation = xReg.rotation;
-
-                //regpoint와 각도 가이드가 전부이동한 후에 lastAng을 갱신해줌
-                lastAng = Math.atan2(mouseX-_rotateCursorBox.x,mouseY-_rotateCursorBox.y);
+                //캔버스 이동이 완료된후 함수를 초기화 시켜줌
+                getAngle = cImageRotateFunc(xReg);
 
                 stageMouseMoveEvent.add("rotateToolMoveEvent",rotateToolMoveEvent);
                 stage.addEventListener(MouseEvent.MOUSE_UP,rotateToolUpEvent);
@@ -15270,8 +15187,7 @@
 
         private function cMoveTool():Function
         {
-            const old:Point = new Point(0,0);
-            var z:Number = zoomed;
+            var getMovedPos:Function;
 
             function moveToolOFFEvent(e:MouseEvent):void
             {
@@ -15281,6 +15197,7 @@
 
                 mouseDragON = false;
                 penCursorOFFFlag = false;
+                getMovedPos = null;
                 var tempBitData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
 
                 const floor:Function = Math.floor;
@@ -15384,35 +15301,31 @@
 
             function moveToolMoveEvent(e:MouseEvent):void
             {
-                const dx:Number = mouseX-old.x;
-                const dy:Number = mouseY-old.y;
-                const rPos:Point = rotatePoint(dx,dy,regPoint.rotation);
-                const mx:Number = rPos.x/z;
-                const my:Number = rPos.y/z;
+                const pos:Point = getMovedPos();
 
                 if(checkedLayer === 0)
                 {
                     if(canvas1Bitmap.visible)
                     {
-                        canvas1Bitmap.x = mx;
-                        canvas1Bitmap.y = my;
+                        canvas1Bitmap.x = pos.x;
+                        canvas1Bitmap.y = pos.y;
                     }
 
                     if(canvas11Bitmap.visible)
                     {
-                        canvas11Bitmap.x = mx;
-                        canvas11Bitmap.y = my;
+                        canvas11Bitmap.x = pos.x;
+                        canvas11Bitmap.y = pos.y;
                     }
                 }
                 else if(checkedLayer === 1)
                 {
-                    canvas1Bitmap.x = mx;
-                    canvas1Bitmap.y = my;
+                    canvas1Bitmap.x = pos.x;
+                    canvas1Bitmap.y = pos.y;
                 }
                 else if(checkedLayer === 2)
                 {
-                    canvas11Bitmap.x = mx;
-                    canvas11Bitmap.y = my;
+                    canvas11Bitmap.x = pos.x;
+                    canvas11Bitmap.y = pos.y;
                 }
             }
 
@@ -15420,8 +15333,8 @@
             {
                 if(isAllLayerInvisible()) return;
 
-                old.setTo(mouseX,mouseY);
-                z = zoomed;
+                getMovedPos = cImageMoveFunc(canvas1Bitmap,regPoint.rotation);
+
                 penCursorOFFFlag = true;
 
                 stageMouseMoveEvent.add("moveToolMoveEvent",moveToolMoveEvent);
@@ -15464,7 +15377,6 @@
             const zoomMin:Number = _zoomArr[0];
             const zoomMax:Number = _zoomArr[_zoomArrLen-1];
             const mouseMoveStep:int = 37; //이 픽셀이상움직일때만 zoomcanvas를 실행
-            const zoomUnit:Number = 1.0;// 0.25;//한 스탭당 얼마나 줌할것인지
             const clickPos:Point = new Point(0,0);
 
             var xZoomed:Number;
@@ -17456,7 +17368,6 @@
             lassoBox2.scaleX = 1.0;
             lassoBox2.scaleY = 1.0;
             lassoBox2.rotation = 0;
-            lassoResizeMoveSum = 0;
             lassoMenu.lassoCopy.alpha = 1.0;
             lassoMenu.lassoLayerMerge.alpha = 1.0;
 

@@ -83,6 +83,12 @@
 		private const baseColor:ColorTransform = new ColorTransform();
 		private const opColor:ColorTransform = new ColorTransform();
 
+		public function setScale(scale:Number):void
+		{
+			scaleX = scale;
+			scaleY = scale;
+		}
+
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
 		{
 			saveButton.alpha = 1.0;

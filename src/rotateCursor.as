@@ -11,6 +11,13 @@
 		public var rotateCircle:SimpleButton;
 		private const baseColor:ColorTransform = new ColorTransform();
 		private const opColor:ColorTransform = new ColorTransform();
+		private const fixedScale:Number = 0.7;
+
+		public function setScale(scale:Number):void
+		{
+			scaleX = scale*fixedScale;
+			scaleY = scale*fixedScale;
+		}
 
 		public function changeUIColor(base:uint,op:uint):void
 		{
@@ -24,8 +31,8 @@
 
 		public function rotateCursor() {
 			visible = false;
-			scaleX = 0.7;
-			scaleY = 0.7;
+			scaleX = fixedScale;
+			scaleY = fixedScale;
 		}
 	}
 }
