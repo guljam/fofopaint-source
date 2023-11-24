@@ -910,7 +910,7 @@
 
                 case "colorHistoryBox":
                 {
-                    str = "Add current color (right-click)\nChange color position (click+drag)\nRemove color (click+drag out)";
+                    str = "Add selected color (right-click)\nChange color position (click+drag)\nRemove color (click+drag out)";
                 }
                 break;
 
