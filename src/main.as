@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.32;
+        private const APP_VERSION:Number = 22.33;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9801,13 +9801,14 @@
             //undorefimage갱신 될때 마다 마지막 포인터 위치 저장해주는거
             const rTinyCursorPosFirst:Point = new Point(-1,-1);
 
-            var lineStyleBackup:Array; //tempdone에서 쓰는 플래그임
-            var index:uint;
-            var data:Array; //데이터 뭉치
+            var lineStyleBackup:Array = [1.0,null]//tempdone에서 쓰는 플래그임
+            var index:uint = 0;
+            var data:Array = [];//데이터 뭉치
 
-            function updateLineStyleBackup(arr:Array):void
+            function updateLineStyleBackup(alpha:Number,blendMode:String):void
             {
-                lineStyleBackup = arr;
+                lineStyleBackup[0] = alpha;
+                lineStyleBackup[1] = blendMode;
             }
 
             function getFirstRCursorPos():Point
@@ -9931,7 +9932,7 @@
 
             function getrLineStyleSave():Array
             {
-                if(lineStyleBackup.length !== 2) return [1.0,];
+                if(lineStyleBackup.length !== 2) return [1.0,null];
 
                 return lineStyleBackup;
             }
@@ -9985,7 +9986,7 @@
                 const subLayer:Boolean = data[9];
                 const airBrush:Boolean = data[10];
 
-                updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup(alpha,blendMode);
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush,size);
 
@@ -10017,7 +10018,7 @@
                 const subLayer:Boolean = data[9];
                 const airBrush:Boolean = data[10];
 
-                updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup(alpha,blendMode);
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush,size);
 
@@ -10049,7 +10050,7 @@
                 const subLayer:Boolean = data[9];
                 const airBrush:Boolean = data[10];
 
-                updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup(alpha,blendMode);
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush,size);
 
@@ -10091,7 +10092,7 @@
                 rcanvas2BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
                 cd2.clear();
 
-                updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
                 cd2.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
                 cd2.drawPath(command,xyData);
@@ -10107,7 +10108,7 @@
                 const xyData:Vector.<Number> = data[5];
 
                 resetCanvasBlurReplaymode();
-                updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
                 cd2.clear();
                 cd2.lineStyle(1,color);
@@ -10126,7 +10127,7 @@
                 const len:uint = arr.length;
 
                 resetCanvasBlurReplaymode();
-                updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
                 cd2.clear();
                 cd2.lineStyle(1,color);
@@ -10153,7 +10154,7 @@
                 const airBrushSize:uint = data[7];
 
                 checkAirBrush(airBrushFlag,airBrushSize);
-                updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
                 cd2.clear();
                 cd2.lineStyle(1,color);
@@ -10176,7 +10177,7 @@
 
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush,size);
-                updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
                 cd2.lineStyle(0,0,0);
                 cd2.beginFill(color);
@@ -10202,7 +10203,7 @@
                 const subLayer:Boolean = data[10];
                 const airBrush:Boolean = data[11];
 
-                updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
 
                 checkSubLayer(subLayer);
@@ -10231,7 +10232,7 @@
                 const subLayer:Boolean = data[10];
                 const airBrush:Boolean = data[11];
 
-                updateLineStyleBackup([alpha,blendMode]);
+                updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
 
                 checkSubLayer(subLayer);
@@ -11251,15 +11252,6 @@
                     topBar["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
                     topBar["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
                 }
-
-                if(TOTAL_FRAME === 0)
-                {
-                    topBar["reRecordingButton"].alpha = BUTTON_OFF_ALPHA;
-                }
-                else
-                {
-                    topBar["reRecordingButton"].alpha = 1.0;
-                }
             }
         }
 
@@ -11672,6 +11664,8 @@
 
             if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
             if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
+
+            clearRFrameCacheImages();
 
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
