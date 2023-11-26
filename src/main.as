@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.40;
+        private const APP_VERSION:Number = 22.41;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5725,7 +5725,7 @@
             }
             else
             {
-                setHintONTemp("Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)\nReset (right-click, shift+f2, shift+f8)");
+                setHintONTemp("Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)");
             }
 
             drawGrid();
@@ -9220,7 +9220,7 @@
                     break;
 
                     case "gridButton":
-                        str = "Grid (f2, f8)\nReset (right-click, shift+f2)";
+                        str = "Grid (f2, f8)\nReset (right-click, shift+f2. shift+f8)";
                     break;
 
                     case "sideBarOFFButton":
