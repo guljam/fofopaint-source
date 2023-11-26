@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.35;
+        private const APP_VERSION:Number = 22.36;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -396,7 +396,7 @@
                     ,saveFilePath:String = saveFileName//파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
                     ,saveContinue:Boolean = false//한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
                     ,clearDataButtonCount:uint = 0 //리플레이 취소 카운터
-                    ,rImgData:ByteArray = new ByteArray()
+                    ,rImgData:ByteArray = new ByteArray() //리플레이 데이터 저장해줄때 쓰는 바이트 배열 전역으로 돌려서 새로운 객체 하나만 생성하도록함
                     ,rImgData1:ByteArray = new ByteArray()
                     ,lastImgData:ByteArray = new ByteArray()
                     ,lastImgData1:ByteArray = new ByteArray()
@@ -3917,7 +3917,7 @@
             function fillPenRightMouseDownEvent(e:MouseEvent):void
             {
                 if(mouseClickON) return;
-                
+
                 const scale:Number = fillPenBox.getScale();
 
                 fillPenBox.visible = true;
@@ -5725,7 +5725,7 @@
             }
             else
             {
-                setHintONTemp("Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)\nReset (right-click, shift+f2)");
+                setHintONTemp("Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)\nReset (right-click, shift+f2, shift+f8)");
             }
 
             drawGrid();
@@ -12281,11 +12281,9 @@
             const fs2:FileStream = new FileStream();
             const cd2:Graphics = rcanvas2Draw.graphics;
             const totalSize:Number = repFile.size;
-            const _REPLAY_MAKE_JUMPIMAGE_COUNT:uint = REPLAY_MAKE_JUMPIMAGE_COUNT;
             const replayInfoText:TextField = replayTimeBox["frameInfo"];
             const topBarSaveButton:SimpleButton = topBar.saveButton;
             const deepUndoFlag:Boolean = deepUndoON;
-            const loadingStr:String = "Reading replay data.. ";
             var rect:Rectangle;
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
@@ -12294,6 +12292,8 @@
             var data:Array;
             var imgData:ByteArray = new ByteArray();
             var imgData1:ByteArray = new ByteArray();
+            var lastTime:int = getTimer();
+            var timeSum:int = 0;
 
             regPoint.visible = false;
             rregPoint.visible = false;
@@ -12315,8 +12315,26 @@
 
             rMirrorON = false;
 
+            function printPrograssHint(bytes:Number):void
+            {
+                const perc:Number =((totalSize-bytes)/totalSize)*100;
+                const str:String = "Reading replay data.. "+perc.toFixed(1)+"%";
+                if(deepUndoFlag)
+                {
+                    setHintONTemp(str);
+                    removeTimer("hintONAlphaEffect");
+                    removeTimer("hintOFFAlphaEffect");
+                    hintBox.alpha = 1.0;
+                }
+                else
+                {
+                    replayInfoText.text = str;
+                }
+            }
+
             function onFrameEnter(e:Event):void
             {
+
                 while(1)
                 {
                     const namojiBytes:Number = fs.bytesAvailable;
@@ -12403,7 +12421,17 @@
                     _rJumpImageCount += data.length;
                     _tickDraw.drawAll();
 
-                    if(_rJumpImageCount > _REPLAY_MAKE_JUMPIMAGE_COUNT)
+                    const nt:int = getTimer();
+                    timeSum += nt-lastTime;
+                    lastTime = nt;
+                    if(timeSum > 500)
+                    {
+                        timeSum = 0;
+                        printPrograssHint(namojiBytes);
+                        return;
+                    }
+
+                    if(_rJumpImageCount > REPLAY_MAKE_JUMPIMAGE_COUNT)
                     {
                         _rJumpImageCount = 0;
                         rJumpImageFrameData.push(_frameSum); // jumpimg:File변수보다 먼저 와야함
@@ -12429,17 +12457,7 @@
 
                         if(replayTimeBox["replayNowBar"].width > 0) replayTimeBox["replayNowBar"].width = 0;
 
-                        if(deepUndoFlag)
-                        {
-                            setHintONTemp(loadingStr+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%");
-                            removeTimer("hintONAlphaEffect");
-                            removeTimer("hintOFFAlphaEffect");
-                            hintBox.alpha = 1.0;
-                        }
-                        else
-                        {
-                            replayInfoText.text = loadingStr+Math.floor(((totalSize-namojiBytes)/totalSize)*100)+"%";
-                        }
+                        printPrograssHint(namojiBytes);
 
                         return;
                     }
@@ -14755,14 +14773,14 @@
                     canvas2Alpha.alphaMultiplier = penAlpha;
                     // canvas2Alpha = new ColorTransform(1,1,1,penAlpha);
                     if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,(penColorTransparentFlag) ? "erase":null);
-                    else canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,           (penColorTransparentFlag) ? "erase":null);
+                    else            canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,(penColorTransparentFlag) ? "erase":null);
                 }
                 else if(isEraseTool())
                 {
                     canvas2Alpha.alphaMultiplier = eraseAlpha;
                     // canvas2Alpha = new ColorTransform(1,1,1,eraseAlpha);
                     if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
-                    else canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase");
+                    else           canvas1BitmapData.draw( canvas2Bitmap,null,canvas2Alpha,"erase");
                 }
 
                 rDataBuffer.push(["drawDone2",subLayerON]);
@@ -19215,6 +19233,7 @@
                             return;
 
                             case KEY.f2:
+                            case KEY.f8:
                             {
                                 if(gridValue !== 0)
                                 {
@@ -19222,6 +19241,7 @@
                                 }
                             }
                             return;
+
                             case KEY.f5:
                             {
                                 if(uiScaleIndex !== 0)
