@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.41;
+        private const APP_VERSION:Number = 22.42;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5165,22 +5165,23 @@
             var sx:Number = previewBox.mouseX;
             var sy:Number = previewBox.mouseY;
             const _regPoint:Sprite = regPoint;
-            const prevToCanvasMultiply:Number = previewBox.prevCursorMultiply
+            const prevToCanvasMultiply:Number = previewBox.prevCursorMultiply;
 
             setOptimizeCanvasMove(true);
 
             function setCenter(x:Number,y:Number):void
             {
                 const b:Object = getBoundRect(cursor);
+                const scale:Number = getUIScale();
                 //prevToCanvasMultiply를 나눠 줘야 커서랑 같은 속도가 나옴
                 const rectCenterX:Number = b.left+(b.right-b.left)/2;
                 const rectCenterY:Number = b.top+(b.bottom-b.top)/2;
-                var moveX:Number = floor((rectCenterX-x)/prevToCanvasMultiply);
-                var moveY:Number = floor((rectCenterY-y)/prevToCanvasMultiply);
+                var moveX:Number = (rectCenterX-x)/prevToCanvasMultiply/scale;
+                var moveY:Number = (rectCenterY-y)/prevToCanvasMultiply/scale;
                 var p:Point = rotatePoint(moveX,moveY,-regPoint.rotation);
 
-                _regPoint.x += p.x;
-                _regPoint.y += p.y;
+                _regPoint.x += Math.round(p.x);
+                _regPoint.y += Math.round(p.y);
 
                 updatePreviewBoxRectPos();
             }
