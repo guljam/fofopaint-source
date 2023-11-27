@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.42;
+        private const APP_VERSION:Number = 22.43;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7071,7 +7071,7 @@
             const _controlBox:controlMenu = controlBox;
             const sliderSet:Sprite = _controlBox.penSmoothSliderSet;
             const button:SimpleButton = sliderSet["penSmoothButton"];
-            const leftOffset:Number = sliderSet["penSmoothBar"].x+2; //펜 리스트에 흰색 선 시작과 끝 x좌표임
+            const leftOffset:Number = sliderSet["penSmoothBar"].x+3; //펜 리스트에 흰색 선 시작과 끝 x좌표임
             const rightOffset:Number = leftOffset+sliderSet["penSmoothBar"].width-2;
             const step:Number = penSmoothSlideTotal;
             const div:Number = (rightOffset-leftOffset)/step;
