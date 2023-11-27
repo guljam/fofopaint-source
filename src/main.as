@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.45;
+        private const APP_VERSION:Number = 22.46;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -717,14 +717,14 @@
         }
 
         //function
-        private function cImageMoveFunc(target:DisplayObject,targetAngle:Number=NaN,customScaleX:Number=1.0,customScaleY:Number=1.0):Function
+        private function cImageMoveFunc(target:DisplayObject,targetAngle:Number,customScaleX:Number=1.0,customScaleY:Number=1.0):Function
         {
             var oldX:Number = target.x;
             var oldY:Number = target.y;
             var mx:Number = mouseX;
             var my:Number = mouseY;
             const zoom:Number = zoomed;
-            const angle:Number = (!targetAngle) ? target.rotation : targetAngle;
+            const angle:Number = targetAngle;
 
             return function():Point
             {
@@ -789,7 +789,7 @@
         {
             if(widthScaleFlag)
             {
-                return Math.round(width*scale)+ " x "+ Math.round(height*scale) +" (x"+scale.toFixed(2)+")";   
+                return Math.round(width*scale)+ " x "+ Math.round(height*scale) +" (x"+scale.toFixed(2)+")";
             }
             return Math.round(width)+ " x "+ Math.round(height) +" (x"+scale.toFixed(2)+")";
         }
