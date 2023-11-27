@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.43;
+        private const APP_VERSION:Number = 22.45;
         private const APP_DATA_VERSION:Number = 22.10;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -785,9 +785,13 @@
             }
         }
 
-        private function getImageScaleHint(width:Number,height:Number,scale:Number):String
+        private function getImageScaleHint(width:Number,height:Number,scale:Number,widthScaleFlag:Boolean):String
         {
-            return Math.round(width*scale)+ " x "+ Math.round(height*scale) +" (x"+scale.toFixed(2)+")";
+            if(widthScaleFlag)
+            {
+                return Math.round(width*scale)+ " x "+ Math.round(height*scale) +" (x"+scale.toFixed(2)+")";   
+            }
+            return Math.round(width)+ " x "+ Math.round(height) +" (x"+scale.toFixed(2)+")";
         }
 
         private function cImageResizeFunc(sc:Number):Function
@@ -5975,10 +5979,10 @@
                 canvasTraceLayer.scaleX = (mirrorFlag) ? -scale:scale;
                 canvasTraceLayer.scaleY = scale;
 
-                setToolTipString(getImageScaleHint(canvasTraceBitmapData.width,canvasTraceBitmapData.height,scale));
+                setToolTipString(getImageScaleHint(canvasTraceBitmapData.width,canvasTraceBitmapData.height,scale,true));
             }
 
-            setToolTipString(getImageScaleHint(canvasTraceBitmapData.width,canvasTraceBitmapData.height,Math.abs(canvasTraceLayer.scaleX)));
+            setToolTipString(getImageScaleHint(canvasTraceBitmapData.width,canvasTraceBitmapData.height,Math.abs(canvasTraceLayer.scaleX),true));
             setToolTipON();
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceResizeButtonUpEvent);
@@ -7564,10 +7568,10 @@
                 lassoBox2.scaleX = scale;
                 lassoBox2.scaleY = scale;
 
-                setToolTipString(getImageScaleHint(lassoBox1.width,lassoBox1.height,lassoBox1.scaleX));
+                setToolTipString(getImageScaleHint(lassoBox1.width,lassoBox1.height,lassoBox1.scaleX,false));
             }
 
-            setToolTipString(getImageScaleHint(lassoBox1.width,lassoBox1.height,lassoBox1.scaleX));
+            setToolTipString(getImageScaleHint(lassoBox1.width,lassoBox1.height,lassoBox1.scaleX,false));
             setToolTipON();
             lassoMenu.visible = false;
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoResizeButtonUpEvent);
