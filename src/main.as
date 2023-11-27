@@ -11050,8 +11050,8 @@
             const abs:Function = Math.abs;
             const floor:Function = Math.floor;
             const set:Sprite = topBar.replaySpeedSet;
-            const minDist:Number = topBar["replaySpeedBar"].x+3;
-            const maxDist:Number = minDist+topBar["replaySpeedBar"].width-2;
+            const minDist:Number = topBar["replaySpeedBar"].x+4;
+            const maxDist:Number = minDist+topBar["replaySpeedBar"].width-3;
             const button:SimpleButton = topBar.replaySpeedMoveButton;
             const maxSpeed:Number = REPLAY_MAX_SPEED;
             const clacMax:Number = floor(totalF/(STAGE_FRAME*3));//3초 x 30프레임
