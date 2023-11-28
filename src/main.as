@@ -5536,8 +5536,8 @@
                 case "toolMirror": str = "Flip canvas(a, l)"; break;
                 case "toolLine": str = "Line (shift)"; break;
                 case "toolMove": str = "Move image (e, u)"; break;
-                case "zoomInButton": str ="Zoom in (w, i+click+drag)\nReset (right-click ,shift+w, shift+i)"; break;
-                case "zoomOutButton": str ="Zoom out (w, i+click+drag)\nReset (right-click ,shift+w, shift+i)"; break;
+                case "zoomInButton": str ="Zoom in (w, i+click+drag on canvas)\nReset (right-click ,shift+w, shift+i)"; break;
+                case "zoomOutButton": str ="Zoom out (w, i+click+drag on canvas)\nReset (right-click ,shift+w, shift+i)"; break;
                 case "toolRotate": str = "Rotate (s, k)\nReset (right-click, shift+s , shift+k)"; break;
                 case "toolTrace": str = "Reference layer (t)"; break;
             }
