@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.51;
+        private const APP_VERSION:Number = 22.52;
         private const APP_DATA_VERSION:Number = 22.50;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3500,7 +3500,7 @@
             {
                 nowTime = getTimer();
 
-                if(nowTime-lastTime < 3)
+                if(nowTime-lastTime < 1)
                 {
                     return true;
                 }
