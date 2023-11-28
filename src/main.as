@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.54;
+        private const APP_VERSION:Number = 22.55;
         private const APP_DATA_VERSION:Number = 22.50;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5559,11 +5559,13 @@
             const target:DisplayObject = e.target as DisplayObject;
             if(!target) return;
 
+            const targetName:String = target.name;
+
             if(lassoToolON)
             {
-                if(target.name === "zoomInButton"
-                || target.name === "zoomOutButton"
-                || target.name === "toolRotate")
+                if(targetName === "zoomInButton"
+                || targetName === "zoomOutButton"
+                || targetName === "toolRotate")
                 {
                     if(mouseDragON)
                     {
@@ -5580,7 +5582,7 @@
                 return;
             }
 
-            const hintStr:String = getToolBoxHint(target.name);
+            const hintStr:String = getToolBoxHint(targetName);
 
             if(hintStr === "")
             {
@@ -9089,9 +9091,33 @@
         private function topBarHintONEvent(e:MouseEvent):void //topbarhint
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(!target || isHintCantUse()) return;
+            if(!target) return;
 
             const targetName:String = e.target.name;
+            
+            if(lassoToolON)
+            {
+                if(targetName === "sideBarOFFButton"
+                || targetName === "sideBarOFFButton2"
+                || targetName === "sideBarONButton"
+                || targetName === "sideBarONButton2"
+                || targetName === "sideBarPositionButton"
+                || targetName === "sideBarPositionButton2")
+                {
+                    if(mouseDragON)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else if(isHintCantUse())
+            {
+                return;
+            }
 
             if(targetName !== null)
             {
