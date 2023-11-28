@@ -7,7 +7,6 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Shape;
 	import flash.display.Graphics;
-	import flash.events.MouseEvent;
 
 	public class toolButtons extends Sprite {
 		public var toolPen:SimpleButton;

@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.53;
+        private const APP_VERSION:Number = 22.54;
         private const APP_DATA_VERSION:Number = 22.50;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9308,8 +9308,8 @@
 
                     case "drawModeButton": str = "Draw mode (f1, f7)"; break;
                     case "replayModeButton": str = "Replay mode (f1, f7)"; break;
-                    case "replayZoomInButton": str = "Zoom in (f5)\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                    case "replayZoomOutButton": str = "Zoom out (f6)\n"+STRING_RIGHT_CLICK_TO_RESET;break;
+                    case "replayZoomOutButton": str = "Zoom out (f5)\nReset (right-click, shift+f5, shift+f6)";break;
+                    case "replayZoomInButton": str = "Zoom in (f6)\nReset (right-click, shift+f5, shift+f6)"; break;
                     case "replayFitToWindowButton": str = "Canvas center alignment ON/OFF (right-click on canvas)"; break;
                     case "replayRotateButton": str = "Rotate \n"+STRING_RIGHT_CLICK_TO_RESET; break;
 
@@ -18851,6 +18851,11 @@
                         case KEY.comma:
                             setJumpOneFrame(false,true);
                         break;
+
+                        case KEY.f5:
+                        case KEY.f6:
+                            resetZoomReplayMode();
+                        break;
                     }
                 });
                 return;
@@ -18921,11 +18926,11 @@
                 break;
 
                 case KEY.f5:
-                    setZoomInButton(true,true);
+                    setZoomInButton(false,true);
                 break;
 
                 case KEY.f6:
-                    setZoomInButton(false,true);
+                    setZoomInButton(true,true);
                 break;
 
                 case KEY.f1:
