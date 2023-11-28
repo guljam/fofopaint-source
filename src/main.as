@@ -9004,7 +9004,7 @@
                     if(tickDraw.getIndex() < tickDraw.getDataLength())
                     {
                         drawRemainReplayData();
-                        checkCutFrameButtonsActive();
+                        checkCutFrameButtonsCanUse();
                     }
                     if(rNowFrame >= TOTAL_FRAME)
                     {
@@ -11189,8 +11189,9 @@
         }
 
         //프레임에 따라서 프레임 조작 버튼 활성화 해줌
-        private function checkCutFrameButtonsActive():void
+        private function checkCutFrameButtonsCanUse():void
         {
+            trace("call")
             if(makeJumpImageFlag === 2 || isInSaveProgress || replayStartON)
             {
                 topBar["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
@@ -11258,7 +11259,7 @@
             }
 
             rOnejumpFlagSave = toBackFlag;
-            checkCutFrameButtonsActive();
+            checkCutFrameButtonsCanUse();
 
             if(rNowFrame === TOTAL_FRAME)
             {
@@ -11515,7 +11516,7 @@
                 checkBarLimit();
 
                 //jumpframe함수 이후에 실행
-                if(!replayStartONSave) checkCutFrameButtonsActive();
+                checkCutFrameButtonsCanUse();
 
                 //재생중에 스킵하고 있었으면 다시 시작
                 if(replayStartONSave && !playbackFinished)
@@ -11568,7 +11569,7 @@
 
             replayStartON = false;
             doDrawSlowEventON = false;
-            checkCutFrameButtonsActive();
+            checkCutFrameButtonsCanUse();
             replayHideCursor.reset();
         }
 
@@ -11584,7 +11585,7 @@
             replayTimeBox.resetNowbarColor();
             replayTimeBox["playButton"].visible = false;
             replayTimeBox["pauseButton"].visible = true;
-            checkCutFrameButtonsActive();
+            checkCutFrameButtonsCanUse();
 
             rCursor.visible = true;
 
@@ -12368,7 +12369,7 @@
                         else if(replayModeON)
                         {
                             checkReplaySpeedState();
-                            checkCutFrameButtonsActive();
+                            checkCutFrameButtonsCanUse();
                             clearRFrameCacheImages();
                             rJumpImageIndexLast = -2;
                             rJumpImageNowFrameLast = -1;
@@ -12440,7 +12441,7 @@
         private function setSaveProgressOFF():void
         {
             topBar.setButtonAlphaONSaving(clipImageON);
-            if(replayModeON) checkCutFrameButtonsActive();
+            if(replayModeON) checkCutFrameButtonsCanUse();
         }
 
         private function setSaveProgressON():void
@@ -20139,7 +20140,7 @@
                     rDataReadFlag = false;
                 }
 
-                checkCutFrameButtonsActive();
+                checkCutFrameButtonsCanUse();
                 doDrawSlowEventON = false;
                 checkCanvasPanelPos(true);
                 setSidebarVisible(false,true);
