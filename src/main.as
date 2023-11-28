@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.55;
+        private const APP_VERSION:Number = 22.56;
         private const APP_DATA_VERSION:Number = 22.50;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -11629,7 +11629,12 @@
                 rDataReadFlag = false;
                 playbackFinished = false;//resetReplayTime함수 에서 이걸 true로 해주기 때문에 아래쪽에서 변경
                 resetRotationReplayMode();
-                if(!rFitZoomedON) setZoomCanvas(1.0,true);
+
+                if(!rFitZoomedON)
+                {
+                    resetZoomReplayMode();
+                }
+
                 autoScroll.updateRCanvasBounds();
                 selectReplaySubLayer(false);
             }
@@ -11637,6 +11642,7 @@
             if(replayEndWithCanvasFitWindow === true)
             {
                 replayEndWithCanvasFitWindow = false;
+                rzoomedIndex = getNearZoomIndex(rzoomed);
                 setZoomCanvas(rzoomed,true);
             }
 
@@ -20305,6 +20311,7 @@
                 fitCanvasToWindow(false,true);
                 rzoomedIndex = getNearZoomIndex(rzoomed);
                 rzoomed = zoomArr[rzoomedIndex];
+                trace("rzoomedIndex",rzoomedIndex)
             });
         }
 
