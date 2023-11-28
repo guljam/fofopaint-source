@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.63;
+        private const APP_VERSION:Number = 22.65;
         private const APP_DATA_VERSION:Number = 22.60;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -165,7 +165,6 @@
                     ,CENTERPOS_DRAW:int = 0
                     ,CENTERPOS_CAPTURE:int = (1 << 0)
                     ,CENTERPOS_REPLAY:int = (1 << 1)
-                    ,CENTERPOS_DEEPUNDO:int = (1 << 2)
 
                     ,CANVAS_MIN_SIZE:Number = 100
                     ,CANVAS_MAX_SIZE:Number = 2000
@@ -967,6 +966,7 @@
             var h:Number = 0;
             var lastHint:String;
             var cursorColor:uint = 0;
+            var targetSave:DisplayObject;
 
             function setCursorColor(color:uint):void
             {
@@ -1013,6 +1013,7 @@
             function hintOFF():void
             {
                 lastHint = null;
+                targetSave = null;
                 removeTimer("hintOFFTimer");
                 removeTimer("hintONDelayTimer");
                 removeTimer("hintONAlphaEffect");
@@ -1077,17 +1078,23 @@
                 });
             }
 
-            function hintON(str:String,target:DisplayObject):void
+            function updateHintPos():void
             {
-                hintBox.setText(str);
                 hintBox.x = 0;
                 hintBox.y = Math.round(stage.stageHeight-hintBox.getHeight()+1);
 
-                if(target && hintBox.hitTestObject(target))
+                if(targetSave && hintBox.hitTestObject(targetSave))
                 {
-                    gp = target.localToGlobal(ZERO_POINT);
+                    gp = targetSave.localToGlobal(ZERO_POINT);
                     hintBox.y = Math.round((gp.y-hintBox.height-30*scale));
                 }
+            }
+
+            function hintON(str:String,target:DisplayObject):void
+            {
+                hintBox.setText(str);
+                targetSave = target;
+                updateHintPos();
 
                 hintONEffect();
                 setTopChildIndex(hintBox);
@@ -1126,6 +1133,7 @@
             return {
                 on:start,
                 off:hintOFF,
+                updateHintPos:updateHintPos,
                 cursorON:cursorON,
                 updateScale:updateScale,
                 setCursorColor:setCursorColor
@@ -4944,9 +4952,9 @@
 
             rzoomedIndex = zoomArr.indexOf(1.0);
             setRegPoint(center.x,center.y,true);
-            autoScroll.updateRCanvasBounds();
             setZoomCanvas(1.0,true);
             setFitZoomedOFF();
+            autoScroll.updateRCanvasBounds();
         }
 
         private function resetZoomDrawMode(center:Point=null):void
@@ -4988,8 +4996,8 @@
                 setFitZoomedOFF();
                 rzoomedIndex = lastZoomIndex;
                 setRegPoint(center.x,center.y,true);
-                autoScroll.updateRCanvasBounds();
                 setZoomCanvas(newZoom,replayMode);
+                autoScroll.updateRCanvasBounds();
             }
             else
             {
@@ -9426,7 +9434,7 @@
         {
             const replayMode:Boolean = replayModeON;
             const offsetX:Number = 44+STAGE_LEFT_OFFSET+STAGE_RIGHT_OFFSET;
-            const offsetY:Number = (captureMode) ? (topBar.BARSIZE)*getUIScale()+45 : (topBar.BARSIZE+replayTimeBox.BARSIZE)*getUIScale()+45;
+            const offsetY:Number = (captureMode) ? (topBar.BARSIZE)*getUIScale()+45*getUIScale() : (topBar.BARSIZE+replayTimeBox.BARSIZE)*getUIScale()+45*getUIScale();
             const stw:int = stage.stageWidth-offsetX;
             const sth:int = stage.stageHeight-offsetY-STAGE_BOTTOM_OFFSET;
             var xBitmap1:Bitmap;
@@ -10263,16 +10271,28 @@
             {
                 if(data[1].length === 0 || data[2].length === 0) return;
 
-                //(["lasso",point1,point2,null,lassoInfo]); 원시 버전 데이터 구조 3번이 비어있음
-                //(["lasso",point1,point2,[],lassoInfo]);
-
-                //(["lasso",point1,point2,lassoInfo]); 2019년 판 구버전 데이터 길이가 4임
-
-                //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터 길이가 6이상임
-                // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
-                const imageMovedToLasso:Boolean = (data.length >= 6)
-                                                  ? moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],data[5],data[6]) //신버전
-                                                  : moveSelectedAreaToLassoBox(true,data[1],data[2],false,true,true) //구버전
+                var imageMovedToLasso:Boolean;
+                if(data.length <= 5)
+                {
+                    if(data[3] === null || (data[3] is Array && data[3].length === 0))
+                    {
+                        //(["lasso",point1,point2,null,lassoInfo]); 초기 버전 데이터 구조 3번이 비어있음
+                        //(["lasso",point1,point2,[],lassoInfo]);
+                        imageMovedToLasso = moveSelectedAreaToLassoBox(true,data[1],data[2],false,true,true);
+                    }
+                    else if(data[3].length === 7)
+                    {
+                        //(["lasso",point1,point2,lassoInfo]); 2019년판 구버전
+                        //(["lasso",point1,point2,lassoInfo,lassoCopyON])
+                        imageMovedToLasso = moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],true,true);
+                    }
+                }
+                else
+                {
+                    //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터 길이가 6이상임
+                    // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
+                    imageMovedToLasso = moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],data[5],data[6]);
+                }
 
                 if(imageMovedToLasso && !clearOnly)
                 {
@@ -10613,8 +10633,7 @@
                 const finalFrame:Number = rNowFrame+Math.floor(nextFrame/2);
                 const totalF:Number = TOTAL_FRAME;
                 const rNowFrameSave:Number = rNowFrame;
-                const getTimeStr:String = getReplayRemainTime(nextFrame,totalF-rNowFrame,true);
-                const timeStr:String = getTimeStr;
+                const timeStr:String = getReplayRemainTime(nextFrame,totalF-rNowFrame,true);
 
                 jumpFrame(finalFrame,JUMP_FRAME_ONCE);
                 replayTimeBox["frameInfo"].text = rNowFrame+" / " + totalF + timeStr;
@@ -10741,7 +10760,7 @@
 
             function updateCursorPosAndInfoText(jumpFlag:int):void
             {
-                if(jumpFlag === JUMP_FRAME_PLAY)
+                if(jumpFlag === JUMP_FRAME_PLAY || (doDrawSlowEventON && jumpFlag === JUMP_FRAME_ONCE))
                 {
                     savedTime = getTimer();
 
@@ -10752,7 +10771,7 @@
 
                         if(!rFitZoomedON && !mouseClickON && !deepUndoON)
                         {
-                            autoScroll.check(false);
+                            autoScroll.check(doDrawSlowEventON);
                         }
 
                         replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*(rNowFrame/TOTAL_FRAME);
@@ -10841,7 +10860,7 @@
 
         private function getReplayRemainTime(speed:Number,totalFrame:Number,slowFrame:Boolean=false):String
         {
-            const fps:Number = (slowFrame === true) ? 1 : STAGE_FRAME;
+            const fps:Number = (slowFrame === true) ? 1:STAGE_FRAME;
             const floor:Function = Math.floor;
             const totalSec:Number = totalFrame/(fps*speed);
             if(totalSec === 0) return "";
@@ -10888,6 +10907,7 @@
             var gp:Point; //캔버스 글로벌 좌표
             var rg:Point; //캔버스 회전된 글로벌 좌표
             var zoom:Number;
+            var scale:Number;
 
             //rcanvas1 글로벌 좌표에 회전된 캔버스에서 커서 위치를 더해줌. 즉 윈도우 기준에서 커서 커서 위치를 구하는거임
             var isCanvasWidthSmallerStage:Boolean; //캔버스 가로 새로 길이가 스테이지 길이보다 클때 체크
@@ -10900,9 +10920,9 @@
             var rightLimit:Number;
             var bottomLimit:Number;
 
-            function updateScale(scale:Number):void
+            function updateScale(newScale:Number):void
             {
-                updateRCanvasBounds();
+                scale = newScale;
             }
 
             function updateRCanvasBounds():void
@@ -10913,13 +10933,13 @@
                 top = bounds.top;
                 bottom = bounds.bottom;
                 stw = stage.stageWidth;
-                sth = stage.stageHeight-topBar.BARSIZE+replayTimeBox.BARSIZE;
+                sth = stage.stageHeight-(topBar.BARSIZE+replayTimeBox.BARSIZE)*scale;
                 zoom = rzoomed;
 
-                isCanvasWidthSmallerStage = right-left > stw;
-                isCanvasHeightSmallerStage = bottom-top > sth;
+                isCanvasWidthSmallerStage = right-left < stw;
+                isCanvasHeightSmallerStage = bottom-top < sth;
                 //캔버스 중점위치, 창 중점위치 사이 거리
-                windowCenterPos.setTo(Math.floor(stw/2-(right+left)/2),Math.floor((sth/2-(bottom+top)/2)+topBar.BARSIZE+replayTimeBox.BARSIZE));
+                windowCenterPos.setTo(Math.floor(stw/2-(right+left)/2),Math.floor((topBar.BARSIZE+replayTimeBox.BARSIZE)*scale+sth/2-(bottom+top)/2));
                 isNotCenterX = Math.abs(windowCenterPos.x) > 0; //캔버스 중점위치, 창 중점위치 사이 거리
                 isNotCenterY = Math.abs(windowCenterPos.y) > 0;
 
@@ -10934,7 +10954,7 @@
                 globalChecked = false;
                 const div:Number = (viewCenterFlag) ? 1:3;
 
-                if(!isCanvasWidthSmallerStage)
+                if(isCanvasWidthSmallerStage)
                 {
                     if(isNotCenterX)
                     {
@@ -10961,7 +10981,7 @@
                     }
                 }
 
-                if(!isCanvasHeightSmallerStage)
+                if(isCanvasHeightSmallerStage)
                 {
                     if(isNotCenterY)
                     {
@@ -11453,7 +11473,7 @@
                 rCursor.visible = true;
             }
 
-            if(jumpflag !== JUMP_FRAME_PLAY && !rFitZoomedON && !deepUndoON)
+            if(!doDrawSlowEventON && !rFitZoomedON && !deepUndoON)
             {
                 autoScroll.check(true);
             }
@@ -11491,6 +11511,7 @@
             replayTimeBox["replayNowBar"].width = clickedX;
             checkBarLimit();
             oldFrame = finalFrame;
+            doDrawSlowEventON = false;
             playbackFinished = false;
             replayTimeBox.resetNowbarColor();
             checkHideCursorCount();
@@ -18560,6 +18581,7 @@
                 }
 
                 checkfofoPos();
+                hint.updateHintPos();
 
                 lastWindowSize.setTo(stage.nativeWindow.width,stage.nativeWindow.height);
             });
@@ -18688,6 +18710,7 @@
 
             if(flag === CENTERPOS_DRAW)
             {
+
                 center.setTo((!isSidebarVisible) ? floor(stage.stageWidth/2)
                              :(isRightSidebar)   ? floor((stage.stageWidth-STAGE_RIGHT_OFFSET)/2)
                                                  : floor(STAGE_LEFT_OFFSET+(stage.stageWidth-STAGE_LEFT_OFFSET)/2)
@@ -18695,21 +18718,13 @@
             }
             else if(flag === CENTERPOS_CAPTURE)
             {
-                topBarOffset = topBarOffset+14*scale;
+                // topBarOffset = topBarOffset//+14*scale;
                 center.setTo(stage.stageWidth/2,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else if(flag === CENTERPOS_REPLAY)
             {
-                topBarOffset = topBarOffset+replayTimeBox.BARSIZE*scale-13;
+                topBarOffset = topBarOffset+replayTimeBox.BARSIZE*scale;
                 center.setTo(stage.stageWidth/2,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
-            }
-            else if(flag === CENTERPOS_DEEPUNDO)
-            {
-                center.setTo((isSidebarVisible) ? (isRightSidebar) ? floor((stage.stageWidth-STAGE_RIGHT_OFFSET)/2)
-                                                                   : floor(STAGE_LEFT_OFFSET+(stage.stageWidth-STAGE_LEFT_OFFSET)/2)
-                            :(isRightSidebar)   ? floor((stage.stageWidth-(toolBox.BOX_WIDTH+10)*scale)/2)
-                                                : floor((toolBox.BOX_WIDTH+10)*scale+(stage.stageWidth-(toolBox.BOX_WIDTH+10)*scale)/2)
-                            ,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else
             {
@@ -18743,8 +18758,8 @@
                 h = CANVAS_HEIGHT;
             }
 
-            if(replayMode) center = getStageCenterPos(CENTERPOS_REPLAY);
-            else if(captureMode) center = getStageCenterPos(CENTERPOS_CAPTURE);
+            if(captureMode) center = getStageCenterPos(CENTERPOS_CAPTURE);
+            else if(replayMode) center = getStageCenterPos(CENTERPOS_REPLAY);
             else center = getStageCenterPos(CENTERPOS_DRAW);
 
             xReg.x = floor(center.x);
