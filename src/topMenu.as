@@ -10,10 +10,6 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
 	public class topMenu extends Sprite {
-
-		private const startX:Number = 3;
-		private const startY:Number = 2;
-		private const gap:Number = 36;
 		public const BARSIZE:Number = 38;
 		private var miniTimer:fofoTimer;
 
@@ -51,6 +47,8 @@
 		public var reRecordingButton:SimpleButton;
 		public var newWindowButton:SimpleButton;
 		public var newWindowCloseButton:SimpleButton;
+		public var realTimeOFFButton:SimpleButton;
+		public var realTimeONButton:SimpleButton;
 		public var aboutButton:SimpleButton;
 		public var updateButton:SimpleButton;
 		public var replayZoomInButton:SimpleButton;
@@ -114,6 +112,12 @@
 			reRecordingButton.alpha = offAlpha;
 			superUndoButton.alpha = offAlpha;
 			cutPrevDataButton.alpha = offAlpha;
+		}
+
+		public function setRealTimeUpdateButtonVisible(flag:Boolean):void
+		{
+			realTimeONButton.visible = flag;
+			realTimeOFFButton.visible = !flag;
 		}
 
 		public function updateButtonVisible(flag:Boolean):void
@@ -181,6 +185,8 @@
 			aboutButton.transform.colorTransform = opColor;
 			newWindowButton.transform.colorTransform = opColor;
 			newWindowCloseButton.transform.colorTransform = opColor;
+			realTimeOFFButton.transform.colorTransform = opColor;
+			realTimeONButton.transform.colorTransform = opColor;
 			replayZoomInButton.transform.colorTransform = opColor;
 			replayZoomOutButton.transform.colorTransform = opColor;
 			replayFitToWindowButton.transform.colorTransform = opColor;
@@ -316,6 +322,8 @@
 												updateButton,
 												newWindowButton,
 												newWindowCloseButton,
+												realTimeOFFButton,
+												realTimeONButton,
 
 												cutPrevDataButton,
 												superUndoButton,
@@ -337,15 +345,14 @@
 
 		public function initModeButtons():void //버튼위치 설정
 		{
+			const startX:Number = 3;
+			const startY:Number = 2;
+			const gap:Number = 36;
 			const floor:Function = Math.floor;
-			const _buttonOrder:Array = buttonOrder;
-			const _startX:Number = startX;
-			const _startY:Number = 4;//topMenuInfo.height+1//startY;
-			const _gap:Number = gap;
 
-			for(var i:uint=0,len:uint=_buttonOrder.length;i<len;i++)
+			for(var i:uint=0,len:uint=buttonOrder.length;i<len;i++)
 			{
-				const set:Array = _buttonOrder[i];
+				const set:Array = buttonOrder[i];
 				const len2:uint= set.length;
 
 				for(var j:uint=0;j<len2;j++)
@@ -353,8 +360,8 @@
 					const ele:DisplayObject = set[j] as DisplayObject;
 					if(ele)
 					{
-						ele.x = floor(_startX)+_gap*i;
-						ele.y = _startY;
+						ele.x = floor(startX)+gap*i;
+						ele.y = 4;
 					}
 				}
 			}
@@ -441,6 +448,8 @@
 			updateButton.useHandCursor = false;
 			newWindowButton.useHandCursor = false;
 			newWindowCloseButton.useHandCursor = false;
+			realTimeOFFButton.useHandCursor = false;
+			realTimeONButton.useHandCursor = false;
 			replayZoomInButton.useHandCursor = false;
 			replayZoomOutButton.useHandCursor = false;
 			replayFitToWindowButton.useHandCursor = false;
@@ -465,6 +474,7 @@
 								[topBarColorButton,replayFitToWindowButton],
 								[dpiButton,replayRotateButton],
 								[replaySpeedSet,newWindowButton,newWindowCloseButton],
+								[realTimeOFFButton,realTimeONButton],
 								[aboutButton]
 							];
 
@@ -486,6 +496,8 @@
 									sideBarONButton2,
 									newWindowButton,
 									newWindowCloseButton,
+									realTimeOFFButton,
+									realTimeONButton,
 									aboutButton
 							  ];
 
@@ -518,7 +530,7 @@
 			initMouseDownState();
 
 			updateButton.visible = false;
-
+			realTimeOFFButton.visible = false;
 
 			timer.y = 6;
 			timer.autoSize = TextFieldAutoSize.LEFT;

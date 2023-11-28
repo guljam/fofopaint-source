@@ -46,8 +46,48 @@
 		private var btnDown:DisplayObjectContainer;
 		private var buttonArr:Array;
 
+		private var checkedLayerONFlag:Boolean = false;
+
+		public function setIconAlphaOnLassoToolON(alpha:Number):void
+		{
+			if(alpha < 1.0)
+			{
+				toolMirror.alpha = alpha;
+				toolMove.alpha = alpha;
+				toolUndo.alpha = alpha;
+				toolRedo.alpha = alpha;
+				toolPen.alpha = alpha;
+				toolErase.alpha = alpha;
+				toolFillPen.alpha = alpha;
+				toolSpuit.alpha = alpha;
+				toolLasso.alpha = alpha;
+				toolLine.alpha = alpha;
+				toolTrace.alpha = alpha;
+			}
+			else
+			{
+				toolMirror.alpha = alpha;
+				toolMove.alpha = alpha;
+				toolUndo.alpha = alpha;
+				toolRedo.alpha = alpha;
+				toolLasso.alpha = alpha;
+
+				if(checkedLayerONFlag === false)
+				{
+					toolPen.alpha = alpha;
+					toolErase.alpha = alpha;
+					toolFillPen.alpha = alpha;
+					toolSpuit.alpha = alpha;
+					toolLine.alpha = alpha;
+					toolTrace.alpha = alpha;
+				}
+
+			}
+		}
+
 		public function setToolButtonsForCheckedLayerOFF():void
 		{
+			checkedLayerONFlag = false;
 			toolPen.alpha = 1.0;
 			toolErase.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
@@ -58,6 +98,7 @@
 
 		public function setToolButtonsForCheckedLayerON(alp:Number):void
 		{
+			checkedLayerONFlag = true;
 			toolPen.alpha = alp;
 			toolErase.alpha = alp;
 			toolFillPen.alpha = alp;

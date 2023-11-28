@@ -21,9 +21,6 @@
 		public var lassoCancel:SimpleButton;
 		public var lassoCopy:SimpleButton;
 		public var lassoInfo:TextField;
-		public var lassoCHand:SimpleButton;
-		public var lassoCZoom:SimpleButton;
-		public var lassoCRotate:SimpleButton;
 		public var lassoTrace:SimpleButton;
 		public var lasso1pxLeft:SimpleButton;
 		public var lasso1pxRight:SimpleButton;
@@ -130,9 +127,6 @@
 			lassoOK.useHandCursor = false;
 			lassoCancel.useHandCursor = false;
 			lassoCopy.useHandCursor = false;
-			lassoCHand.useHandCursor = false;
-			lassoCZoom.useHandCursor = false;
-			lassoCRotate.useHandCursor = false;
 			lassoTrace.useHandCursor = false;
 			lasso1pxLeft.useHandCursor = false;
 			lasso1pxRight.useHandCursor = false;
@@ -150,9 +144,6 @@
 			leftButtonArr2 = [
 								lassoOK,
 								lassoCancel,
-								lassoCHand,
-								lassoCZoom,
-								lassoCRotate,
 								lassoTrace
 							 ];
 

@@ -1622,7 +1622,7 @@ private function setLassoTool():void
             penColorBackup = penColor;
             nowTool = TOOL_SPUIT;
             _setColorTransform(spuitCursor["spuitOldColor"],penColor);
-            moveEraseButton("toolSpuit");
+            setEraseButtonPosToOtherButtonPos("toolSpuit");
 
             function pickColor():uint
             {

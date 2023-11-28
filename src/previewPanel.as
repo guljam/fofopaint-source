@@ -44,8 +44,7 @@
 		public function updateCursor(x:Number,y:Number,w:Number,h:Number,canvasWidth:Number,rotation:Number):void
 		{
 			const floor:Function = Math.floor;
-			const _prevBitmap:Bitmap = prevBitmap;
-			const f1:Number = _prevBitmap.width/canvasWidth;
+			const f1:Number = prevBitmap.width/canvasWidth;
 			// const f2:Number = _prevBitmap.height/canvasHeight;
 			const g:Graphics = prevCursor.graphics;
 			var cursorWidth:Number = floor(w*f1);
@@ -59,12 +58,12 @@
 			g.drawRect(0,0,cursorWidth,cursorHeight)//썸네일 비트맵/실제 캔버스 길이 배율을 곱해주면 캔버스 부분이 작게 축소됨
 			g.endFill();
 			g.lineStyle(1,0xFF6600,0.6);
-			
+
 			prevCursor.rotation = -rotation;
 			//캔버스 원점 위치 음수값으로 넣어주고 당연 배율 적용하고,
 			//중앙정렬해준 x y 값이 있으니깐오프셋으로 더해줌
-			prevCursor.x = floor(x*f1+_prevBitmap.x);
-			prevCursor.y = floor(y*f1+_prevBitmap.y);
+			prevCursor.x = floor(x*f1+prevBitmap.x);
+			prevCursor.y = floor(y*f1+prevBitmap.y);
 		}
 
 		public function setFitBitmapforBox(w:Number,h:Number,bw:Number,bh:Number):Rectangle
@@ -93,15 +92,13 @@
 
 		public function updateImage(bmpd:BitmapData,bmpd1:BitmapData,bg:uint):void
 		{
-			const _bitmap:Bitmap = prevBitmap;
-			const _bitmapSub:Bitmap = prevBitmapSub;
 			const w:Number = bmpd.width;
 			const h:Number = bmpd.height;
 
-			_bitmap.bitmapData = bmpd;
-			_bitmap.smoothing = true;
-			_bitmapSub.bitmapData = bmpd1;
-			_bitmapSub.smoothing = true;
+			prevBitmap.bitmapData = bmpd;
+			prevBitmap.smoothing = true;
+			prevBitmapSub.bitmapData = bmpd1;
+			prevBitmapSub.smoothing = true;
 
 			if(prevBitmapLastWidth === w && prevBitmapLastHeight === h)
 			{
@@ -111,21 +108,20 @@
 			prevBitmapLastWidth = w;
 			prevBitmapLastHeight = h;
 
-			const bounds:Rectangle = setFitBitmapforBox(_bitmap.width,_bitmap.height,BOX_WIDTH,BOX_HEIGHT);
-			_bitmap.x = bounds.x;
-			_bitmap.y = bounds.y;
-			_bitmap.width = bounds.width;
-			_bitmap.height = bounds.height;
-			_bitmapSub.x = bounds.x;
-			_bitmapSub.y = bounds.y;
-			_bitmapSub.width = bounds.width;
-			_bitmapSub.height = bounds.height;
+			const bounds:Rectangle = setFitBitmapforBox(prevBitmap.width,prevBitmap.height,BOX_WIDTH,BOX_HEIGHT);
+			prevBitmap.x = bounds.x;
+			prevBitmap.y = bounds.y;
+			prevBitmap.width = bounds.width;
+			prevBitmap.height = bounds.height;
+			prevBitmapSub.x = bounds.x;
+			prevBitmapSub.y = bounds.y;
+			prevBitmapSub.width = bounds.width;
+			prevBitmapSub.height = bounds.height;
 
-			const _bitmapBG:Sprite = prevBitmapBG;
-			_bitmapBG.width = _bitmap.width;
-			_bitmapBG.height = _bitmap.height;
-			_bitmapBG.x = _bitmap.x;
-			_bitmapBG.y = _bitmap.y;
+			prevBitmapBG.width = prevBitmap.width;
+			prevBitmapBG.height = prevBitmap.height;
+			prevBitmapBG.x = prevBitmap.x;
+			prevBitmapBG.y = prevBitmap.y;
 			changeprevBitmapBGColor(bg);
 		}
 
