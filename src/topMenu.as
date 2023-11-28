@@ -47,8 +47,6 @@
 		public var reRecordingButton:SimpleButton;
 		public var newWindowButton:SimpleButton;
 		public var newWindowCloseButton:SimpleButton;
-		public var realTimeOFFButton:SimpleButton;
-		public var realTimeONButton:SimpleButton;
 		public var aboutButton:SimpleButton;
 		public var updateButton:SimpleButton;
 		public var replayZoomInButton:SimpleButton;
@@ -112,12 +110,6 @@
 			reRecordingButton.alpha = offAlpha;
 			superUndoButton.alpha = offAlpha;
 			cutPrevDataButton.alpha = offAlpha;
-		}
-
-		public function setRealTimeUpdateButtonVisible(flag:Boolean):void
-		{
-			realTimeONButton.visible = flag;
-			realTimeOFFButton.visible = !flag;
 		}
 
 		public function updateButtonVisible(flag:Boolean):void
@@ -185,8 +177,6 @@
 			aboutButton.transform.colorTransform = opColor;
 			newWindowButton.transform.colorTransform = opColor;
 			newWindowCloseButton.transform.colorTransform = opColor;
-			realTimeOFFButton.transform.colorTransform = opColor;
-			realTimeONButton.transform.colorTransform = opColor;
 			replayZoomInButton.transform.colorTransform = opColor;
 			replayZoomOutButton.transform.colorTransform = opColor;
 			replayFitToWindowButton.transform.colorTransform = opColor;
@@ -322,8 +312,6 @@
 												updateButton,
 												newWindowButton,
 												newWindowCloseButton,
-												realTimeOFFButton,
-												realTimeONButton,
 
 												cutPrevDataButton,
 												superUndoButton,
@@ -448,8 +436,6 @@
 			updateButton.useHandCursor = false;
 			newWindowButton.useHandCursor = false;
 			newWindowCloseButton.useHandCursor = false;
-			realTimeOFFButton.useHandCursor = false;
-			realTimeONButton.useHandCursor = false;
 			replayZoomInButton.useHandCursor = false;
 			replayZoomOutButton.useHandCursor = false;
 			replayFitToWindowButton.useHandCursor = false;
@@ -474,7 +460,6 @@
 								[topBarColorButton,replayFitToWindowButton],
 								[dpiButton,replayRotateButton],
 								[replaySpeedSet,newWindowButton,newWindowCloseButton],
-								[realTimeOFFButton,realTimeONButton],
 								[aboutButton]
 							];
 
@@ -496,8 +481,6 @@
 									sideBarONButton2,
 									newWindowButton,
 									newWindowCloseButton,
-									realTimeOFFButton,
-									realTimeONButton,
 									aboutButton
 							  ];
 
@@ -530,7 +513,6 @@
 			initMouseDownState();
 
 			updateButton.visible = false;
-			realTimeOFFButton.visible = false;
 
 			timer.y = 6;
 			timer.autoSize = TextFieldAutoSize.LEFT;

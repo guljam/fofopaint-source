@@ -62,11 +62,11 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.57;
-        private const APP_DATA_VERSION:Number = 22.50;
+        private const APP_VERSION:Number = 22.60;
+        private const APP_DATA_VERSION:Number = 22.60;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
-        private const STAGE_FRAME:int = stage.frameRate;
+        private var STAGE_FRAME:int = stage.frameRate;
 
         //단축키 keycode 리스트
         private const KEY:Object = {
@@ -254,7 +254,7 @@
                     ,CANVAS_TRACE_ALPHA:Number = 0.5
                     ,TOTAL_FRAME:Number = 0//rdata+file 프레임 전부 합친거
                     ,REPLAY_FASTEST_TOTAL_TIME:Number = 0 //최고 배속으로 돌렸는데도 총 재생시간이 60초 이상이면 올려줌
-                    ,REPLAY_SLOWDRAW_ACTIVE_SPEED:Number = 50 //이 배속 이상일경우 doDrawSlowEvent를 걸어줌
+                    ,REPLAY_SLOWDRAW_ACTIVE_SPEED:Number = 60 //이 배속 이상일경우 doDrawSlowEvent를 걸어줌
         //프레임 타이머 변수
         private const miniTimer:fofoTimer = new fofoTimer(stage)
                     ,addTimer:Function = miniTimer.add
@@ -664,7 +664,6 @@
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,updateAfterSave:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
                     ,layerVisibleKeyFuncCalled:Boolean = false //w키 1키 계속 누르고 있을때 함수 호출 안하게 해주려고 플래그 올려줌
-                    ,realTimeUpdateFlag:Boolean = false //화면 리얼타임 업데이트 켜지면 올려줌
                     ;
 
         public function main():void
@@ -718,18 +717,6 @@
         }
 
         //function
-        private function setRealTimeUpdateOFF():void
-        {
-            realTimeUpdateFlag = false;
-            topBar.setRealTimeUpdateButtonVisible(true);
-        }
-
-        private function setRealTimeUpdateON():void
-        {
-            realTimeUpdateFlag = true;
-            topBar.setRealTimeUpdateButtonVisible(false);
-        }
-
         private function cImageMoveFunc(target:DisplayObject,targetAngle:Number,customScaleX:Number=1.0,customScaleY:Number=1.0):Function
         {
             var oldX:Number = target.x;
@@ -3447,13 +3434,11 @@
         private function stageMouseDownEvent(e:MouseEvent):void
         {
             mouseClickON = true;
-            if(realTimeUpdateFlag) e.updateAfterEvent();
         }
 
         private function stageRightMouseDownEvent(e:MouseEvent):void
         {
             rightMouseClickON = true;
-            if(realTimeUpdateFlag) e.updateAfterEvent();
         }
 
         private function stageMouseUpEvent(e:MouseEvent):void
@@ -3468,7 +3453,6 @@
             {
                 if(sideBar.visible === false) penCursorPosition.setSideBarONWaitEvents();
             }
-            if(realTimeUpdateFlag) e.updateAfterEvent();
         }
 
         private function stageRightMouseUpEvent(e:MouseEvent):void
@@ -3483,8 +3467,6 @@
             {
                 if(sideBar.visible === false) penCursorPosition.setSideBarONWaitEvents();
             }
-
-            if(realTimeUpdateFlag) e.updateAfterEvent();
         }
 
         private function cStageMouseMoveEvent():Object
@@ -3495,19 +3477,19 @@
             var nowTime:int = 0;
 
             //mosue move 이벤트 일정 시간 이내는 무시함
-            // function moveEventLimit():Boolean
-            // {
-            //     nowTime = getTimer();
+            function moveEventLimit():Boolean
+            {
+                nowTime = getTimer();
 
-            //     if(nowTime-lastTime < 1)
-            //     {
-            //         return true;
-            //     }
+                if(nowTime-lastTime < 1)
+                {
+                    return true;
+                }
 
-            //     lastTime = nowTime;
+                lastTime = nowTime;
 
-            //     return false;
-            // }
+                return false;
+            }
 
             function add(name:String,func:Function):void
             {
@@ -3535,15 +3517,14 @@
 
             function event(e:MouseEvent):void
             {
-                // if(moveEventLimit() === true) return;
+                if(moveEventLimit() === true) return;
+
                 const len:uint = funcList.length;
 
                 for(var i:int=0;i<len;i++)
                 {
                     funcList[i](e);
                 }
-
-                if(realTimeUpdateFlag) e.updateAfterEvent();
             }
 
             function start():void
@@ -5617,8 +5598,6 @@
 
                 if(canvasWindowON) topBar.newWindowButton.visible = false;
                 else topBar.newWindowCloseButton.visible = false;
-
-                topBar.setRealTimeUpdateButtonVisible(!realTimeUpdateFlag);
             }
             else if(mode === "replay")
             {
@@ -8479,14 +8458,6 @@
                             openImageViewWindow();
                         break;
 
-                        case "realTimeOFFButton":
-                            setRealTimeUpdateOFF();
-                        break;
-
-                        case "realTimeONButton":
-                            setRealTimeUpdateON();
-                        break;
-
                         case "replayZoomInButton":
                             setZoomInButton(true,true);
                         break;
@@ -9317,14 +9288,6 @@
 
                     case "newWindowButton":
                         str = "Open image view window (f6)\nMove window (click+drag on window)\nAdjust the window size to fit the image size (right-click on window)";
-                    break;
-
-                    case "realTimeONButton":
-                        str = "Turn smooth screen ON\n30fps -> Real-time (more cpu usage)";
-                    break;
-
-                    case "realTimeOFFButton":
-                        str = "Turn smooth screen OFF\nReal-time -> 30fps (default frame rate)";
                     break;
 
                     case "updateButton":
@@ -14397,8 +14360,7 @@
                             "canvasWindowInfo[2]":canvasWindowInfo[2],
                             "canvasWindowInfo[3]":canvasWindowInfo[3],
                             "getFirstRCursorPos.x":tickDraw.getFirstRCursorPos().x,
-                            "getFirstRCursorPos.y":tickDraw.getFirstRCursorPos().y,
-                            "realTimeUpdateFlag":realTimeUpdateFlag
+                            "getFirstRCursorPos.y":tickDraw.getFirstRCursorPos().y
                             });
             fs.close();
         }
@@ -14597,11 +14559,6 @@
                                             ];
                         openImageViewWindow();
                         stage.nativeWindow.activate();
-                    }
-
-                    if(d["realTimeUpdateFlag"])
-                    {
-                        setRealTimeUpdateON();
                     }
 
                     rIndex = undoIndex;
@@ -21163,8 +21120,6 @@
                 case "dpiButton":
                 case "newWindowButton":
                 case "newWindowCloseButton":
-                case "realTimeONButton":
-                case "realTimeOFFButton":
                 {
                     if(toolBox2ON || !isNowKey(0) || e.target.alpha < 1.0)
                         return;
