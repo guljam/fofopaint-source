@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.62;
+        private const APP_VERSION:Number = 22.63;
         private const APP_DATA_VERSION:Number = 22.60;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -11191,7 +11191,7 @@
         //프레임에 따라서 프레임 조작 버튼 활성화 해줌
         private function checkCutFrameButtonsActive():void
         {
-            if(makeJumpImageFlag === 2 || isInSaveProgress)
+            if(makeJumpImageFlag === 2 || isInSaveProgress || replayStartON)
             {
                 topBar["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
                 topBar["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
@@ -11199,6 +11199,8 @@
             }
             else
             {
+                topBar["reRecordingButton"].alpha = 1.0;
+
                 if(rNowFrame > 0 && rNowFrame < TOTAL_FRAME)
                 {
                     topBar["superUndoButton"].alpha = 1.0;
@@ -11578,12 +11580,11 @@
             }
 
             replayStartON = true;
+
             replayTimeBox.resetNowbarColor();
             replayTimeBox["playButton"].visible = false;
             replayTimeBox["pauseButton"].visible = true;
-            topBar["reRecordingButton"].alpha = 1.0;
-            topBar["superUndoButton"].alpha = 1.0;
-            topBar["cutPrevDataButton"].alpha = 1.0;
+            checkCutFrameButtonsActive();
 
             rCursor.visible = true;
 
@@ -11623,6 +11624,7 @@
             if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
 
             clearRFrameCacheImages();
+
 
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
