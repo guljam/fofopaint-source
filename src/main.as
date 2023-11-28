@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.50;
+        private const APP_VERSION:Number = 22.51;
         private const APP_DATA_VERSION:Number = 22.50;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8364,7 +8364,6 @@
 
                 if(targetName === upTargetName)
                 {
-
                     switch(upTargetName)
                     {
                         case "capLayer1VisibleButton":
@@ -20905,7 +20904,8 @@
 
             const targetName:String = target.name;
 
-            if(isCursorInDrawArea() && isHitTestPoint(lassoMenu) === false)
+            if(!(sideBar.visible && (isHitTestPoint(sideBarScrollSet,true) || targetName === "sideBarScrollBar"))
+            && isCursorInDrawArea() && isHitTestPoint(lassoMenu) === false)
             {
                 if(lassoMenuTempOFF)
                 {
@@ -20945,6 +20945,12 @@
                     }
                     break;
 
+                    case "sideBarScrollBar":
+                    {
+                        setScrollBarMove(mouseY);
+                    }
+                    break;
+
                     case "zoomInButton":
                     {
                         setZoomInButton(true,false);
@@ -20965,9 +20971,10 @@
 
                     case "toolRotate":
                     {
-                        rotateTool(false);
+                        trace("rotae")
                         lassoMenu.visible = false;
                         lassoMenuTempOFF = true;
+                        rotateTool(false);
                     }
                     break;
 
