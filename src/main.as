@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.61;
+        private const APP_VERSION:Number = 22.62;
         private const APP_DATA_VERSION:Number = 22.60;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -10263,17 +10263,20 @@
             {
                 if(data[1].length === 0 || data[2].length === 0) return;
 
-                const oldData:Boolean = typeof(data[4]) === "object";
-                //(["lasso",point1,point2,null,lassoInfo]); 원시 버전 데이터 이게 왜 4번에 있는지 모르겠음
-                //(["lasso",point1,point2,lassoInfo]); 구버전 데이터
-                //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터
-                const imageMovedToLasso:Boolean = (oldData)
-                                                  ? moveSelectedAreaToLassoBox(true,data[1],data[2],false,false,false)
-                                                  : moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],data[5],data[6]);
+                //(["lasso",point1,point2,null,lassoInfo]); 원시 버전 데이터 구조 3번이 비어있음
+                //(["lasso",point1,point2,[],lassoInfo]);
+
+                //(["lasso",point1,point2,lassoInfo]); 2019년 판 구버전 데이터 길이가 4임
+
+                //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터 길이가 6이상임
+                // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
+                const imageMovedToLasso:Boolean = (data.length >= 6)
+                                                  ? moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],data[5],data[6]) //신버전
+                                                  : moveSelectedAreaToLassoBox(true,data[1],data[2],false,true,true) //구버전
 
                 if(imageMovedToLasso && !clearOnly)
                 {
-                    const lassoInfo:Array = (oldData) ? data[4]:data[3];
+                    var lassoInfo:Array = (data[3] is Array && data[3].length === 7) ? data[3]:data[4];
                     const bmpScaleX:Number = lassoInfo[0];
                     const bmpScaleY:Number = lassoInfo[1];
                     const bmpWidth:Number = lassoInfo[2];
@@ -10303,6 +10306,7 @@
                     else if(data[7] as Array)
                     {
                         const len:uint = data[7].length;
+
                         for(var i:uint=0;i<len;i++)
                         {
                             if(data[7][i] === 0)
@@ -16179,7 +16183,7 @@
             {
                 canvas2FilterBackUp = rcanvas2Draw.filters.concat();
                 rcanvas2Draw.filters = [];
-                xCanvas2Draw = rcanvas2Draw
+                xCanvas2Draw = rcanvas2Draw;
 
                 if(layer1)
                 {
@@ -16247,7 +16251,9 @@
                     y = nowPoint[1];
                     xCanvas2Draw.graphics.lineTo(x,y);
                 }
+
                 xCanvas2Draw.graphics.endFill();
+
                 if(layer1)
                 {
                     canvasBitmapData.draw(xCanvas2Draw,null,null,"erase");
