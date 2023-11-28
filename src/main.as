@@ -11191,7 +11191,6 @@
         //프레임에 따라서 프레임 조작 버튼 활성화 해줌
         private function checkCutFrameButtonsCanUse():void
         {
-            trace("call")
             if(makeJumpImageFlag === 2 || isInSaveProgress || replayStartON)
             {
                 topBar["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
