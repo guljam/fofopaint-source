@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.56;
+        private const APP_VERSION:Number = 22.57;
         private const APP_DATA_VERSION:Number = 22.50;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3495,19 +3495,19 @@
             var nowTime:int = 0;
 
             //mosue move 이벤트 일정 시간 이내는 무시함
-            function moveEventLimit():Boolean
-            {
-                nowTime = getTimer();
+            // function moveEventLimit():Boolean
+            // {
+            //     nowTime = getTimer();
 
-                if(nowTime-lastTime < 1)
-                {
-                    return true;
-                }
+            //     if(nowTime-lastTime < 1)
+            //     {
+            //         return true;
+            //     }
 
-                lastTime = nowTime;
+            //     lastTime = nowTime;
 
-                return false;
-            }
+            //     return false;
+            // }
 
             function add(name:String,func:Function):void
             {
@@ -3535,8 +3535,7 @@
 
             function event(e:MouseEvent):void
             {
-                if(moveEventLimit() === true) return;
-
+                // if(moveEventLimit() === true) return;
                 const len:uint = funcList.length;
 
                 for(var i:int=0;i<len;i++)
@@ -9094,7 +9093,7 @@
             if(!target) return;
 
             const targetName:String = e.target.name;
-            
+
             if(lassoToolON)
             {
                 if(targetName === "sideBarOFFButton"
@@ -9321,11 +9320,11 @@
                     break;
 
                     case "realTimeONButton":
-                        str = "Change screen update speed\n30fps -> Real-time";
+                        str = "Turn smooth screen ON\n30fps -> Real-time (more cpu usage)";
                     break;
 
                     case "realTimeOFFButton":
-                        str = "Change screen update speed\nReal-time -> 30fps";
+                        str = "Turn smooth screen OFF\nReal-time -> 30fps (default frame rate)";
                     break;
 
                     case "updateButton":
