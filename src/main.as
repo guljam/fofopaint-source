@@ -20003,7 +20003,7 @@
 
             replayTimeBox["frameInfo"].text = rNowFrame+" / " + totalFrame;
             replayTimeBox["replayNowBar"].width = (totalFrame === 0) ? 0 : replayTimeBox["replayTotalBar"].width*(rNowFrame/totalFrame);
-            setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
+            // setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
         }
 
         private function setReplayUIOFF():void
