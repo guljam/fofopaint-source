@@ -62,11 +62,11 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.60;
+        private const APP_VERSION:Number = 22.61;
         private const APP_DATA_VERSION:Number = 22.60;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
-        private var STAGE_FRAME:int = stage.frameRate;
+        private var STAGE_FRAME:int = stage.frameRate; //frame rate가 오르면 선을 빠르게 그렀을때 떨어저 그려지고 낮게 하면 부드럽게 이어져 그려짐
 
         //단축키 keycode 리스트
         private const KEY:Object = {
@@ -10737,7 +10737,7 @@
 
             function updateCursorPosAndInfoText(jumpFlag:int):void
             {
-                if(jumpFlag === JUMP_FRAME_PLAY || (doDrawSlowEventON && jumpFlag === JUMP_FRAME_ONCE))
+                if(jumpFlag === JUMP_FRAME_PLAY)
                 {
                     savedTime = getTimer();
 
@@ -10746,9 +10746,9 @@
                         rFrameCursorDelayTime = savedTime;
                         tickDraw.updateRCursorPos();
 
-                        if(!rFitZoomedON && !mouseClickON && deepUndoON === false)
+                        if(!rFitZoomedON && !mouseClickON && !deepUndoON)
                         {
-                            autoScroll.check();
+                            autoScroll.check(false);
                         }
 
                         replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width*(rNowFrame/TOTAL_FRAME);
@@ -10923,11 +10923,12 @@
                 bottomLimit = sth+topBar.BARSIZE+replayTimeBox.BARSIZE-padding;
             }
 
-            function check():void
+            function check(viewCenterFlag:Boolean):void
             {
                 cp = tickDraw.getRCursorPos();
 
                 globalChecked = false;
+                const div:Number = (viewCenterFlag) ? 1:3;
 
                 if(!isCanvasWidthSmallerStage)
                 {
@@ -10946,12 +10947,12 @@
 
                     if(cursorPos.x < leftLimit)
                     {
-                        rregPoint.x += Math.floor(Math.abs((cursorPos.x-stw/2)/3));
+                        rregPoint.x += Math.floor(Math.abs((cursorPos.x-stw/2)/div));
                         updateRCanvasBounds();
                     }
                     else if(cursorPos.x > rightLimit)
                     {
-                        rregPoint.x -= Math.floor(Math.abs((cursorPos.x-stw/2)/3));
+                        rregPoint.x -= Math.floor(Math.abs((cursorPos.x-stw/2)/div));
                         updateRCanvasBounds();
                     }
                 }
@@ -10976,12 +10977,12 @@
 
                     if(cursorPos.y < topLimit)
                     {
-                        rregPoint.y += Math.floor(Math.abs((cursorPos.y-sth/2)/3));
+                        rregPoint.y += Math.floor(Math.abs((cursorPos.y-sth/2)/div));
                         updateRCanvasBounds();
                     }
                     else if(cursorPos.y > bottomLimit)
                     {
-                        rregPoint.y -= Math.floor(Math.abs((cursorPos.y-sth/2)/3));
+                        rregPoint.y -= Math.floor(Math.abs((cursorPos.y-sth/2)/div));
                         updateRCanvasBounds();
                     }
                 }
@@ -11446,9 +11447,9 @@
                 rCursor.visible = true;
             }
 
-            if(!rFitZoomedON || !deepUndoON)
+            if(jumpflag !== JUMP_FRAME_PLAY && !rFitZoomedON && !deepUndoON)
             {
-                autoScroll.check();
+                autoScroll.check(true);
             }
         }
 
@@ -20267,7 +20268,6 @@
                 fitCanvasToWindow(false,true);
                 rzoomedIndex = getNearZoomIndex(rzoomed);
                 rzoomed = zoomArr[rzoomedIndex];
-                trace("rzoomedIndex",rzoomedIndex)
             });
         }
 
