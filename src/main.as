@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.52;
+        private const APP_VERSION:Number = 22.53;
         private const APP_DATA_VERSION:Number = 22.50;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2768,7 +2768,6 @@
 
             switch(e.target.name)
             {
-                case "toolZoom":
                 case "zoomInButton":
                 case "zoomOutButton":
                 {
@@ -5090,6 +5089,14 @@
                 });
                 if(keyUsed) return;
             }
+            else if(keyCode === KEY.tab || keyCode === KEY.backslash)
+            {
+                if(isNowKey(keyCode)) return;
+                setNowKey(keyCode);
+
+                setSidebarVisible(!isSidebarVisible,false);
+                return;
+            }
 
             if(isNowKey(keyCode)) return;
             setNowKey(keyCode);
@@ -5116,6 +5123,10 @@
 
                 case KEY.enter:
                     setLassoOKButton();
+                break;
+
+                case KEY.f3:
+                    setSideBarPositionButton();
                 break;
 
                 case KEY.esc:
@@ -5500,7 +5511,7 @@
                 case "toolMirror": str = "Flip canvas (a, l)"; break;
                 case "toolLine": str = "Line (shift)"; break;
                 case "toolMove": str = "Move image (e, u)"; break;
-                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)"; break;
+                case "toolZoom": str = "Zoom (w, i)"; break;
                 case "toolRotate": str = "Rotate (s, k)"; break;
                 case "toolTrace": str = "Reference layer (t)"; break;
             }
@@ -5525,9 +5536,8 @@
                 case "toolMirror": str = "Flip canvas(a, l)"; break;
                 case "toolLine": str = "Line (shift)"; break;
                 case "toolMove": str = "Move image (e, u)"; break;
-                case "toolZoom": if(!toolBox.isZoomIconON()) str = "Zoom (w, i)\nReset (right-click, shift+w, shift+i)"; break;
-                case "zoomInButton": str ="Zoom in\nReset (right-click)"; break;
-                case "zoomOutButton": str ="Zoom out\nReset (right-click)"; break;
+                case "zoomInButton": str ="Zoom in (w, i+click+drag)\nReset (right-click ,shift+w, shift+i)"; break;
+                case "zoomOutButton": str ="Zoom out (w, i+click+drag)\nReset (right-click ,shift+w, shift+i)"; break;
                 case "toolRotate": str = "Rotate (s, k)\nReset (right-click, shift+s , shift+k)"; break;
                 case "toolTrace": str = "Reference layer (t)"; break;
             }
@@ -5551,12 +5561,14 @@
 
             if(lassoToolON)
             {
-                if(target.name === "toolZoom"
-                || target.name === "zoomInButton"
+                if(target.name === "zoomInButton"
                 || target.name === "zoomOutButton"
                 || target.name === "toolRotate")
                 {
-
+                    if(mouseDragON)
+                    {
+                        return;
+                    }
                 }
                 else
                 {
@@ -11739,7 +11751,6 @@
                     case "toolMove": selectMoveTool(); break;
                     case "zoomInButton": setZoomInButton(true,false); break;
                     case "zoomOutButton": setZoomInButton(false,false); break;
-                    case "toolZoom": toolBox.zoomIconON(); break;
 
                     case "toolTrace":
                     {
@@ -15393,8 +15404,16 @@
 
             function zoomToolMouseMoveEvent2(dist:Number):void
             {
-                if(dist > mouseMoveStep)zoomedIndex--;
-                else zoomedIndex++;
+                if(dist > mouseMoveStep)
+                {
+                    zoomedIndex--;
+                    toolBox.moveToolCursor("zoomOutButton");
+                }
+                else
+                {
+                    zoomedIndex++;
+                    toolBox.moveToolCursor("zoomInButton");
+                }
 
                 if(zoomedIndex < 0) zoomedIndex = 0;
                 else if(zoomedIndex > zoomArr.length-1) zoomedIndex = zoomArr.length-1;
@@ -17072,7 +17091,7 @@
         private function selectZoomTool():void
         {
             setNowTool(TOOL_ZOOM);
-            toolBox.moveToolCursor("toolZoom");
+            toolBox.moveToolCursor("zoomInButton");
 
             controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
             controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
@@ -19831,7 +19850,6 @@
                 case "toolMirror":
                 case "toolLine":
                 case "toolMove":
-                case "toolZoom":
                 case "toolRotate":
                 case "toolTrace":
                 case "toolBoxBG":
@@ -20379,7 +20397,6 @@
                 }
                 break;
 
-                case "toolZoom":
                 case "zoomInButton":
                 case "zoomOutButton":
                 {
@@ -20963,15 +20980,8 @@
                     }
                     break;
 
-                    case "toolZoom":
-                    {
-                        toolBox.zoomIconON();
-                    }
-                    break;
-
                     case "toolRotate":
                     {
-                        trace("rotae")
                         lassoMenu.visible = false;
                         lassoMenuTempOFF = true;
                         rotateTool(false);
@@ -21017,7 +21027,16 @@
                     case "lassoOK":
                     case "lassoCancel":
                     case "lassoTrace":
+                    case "sideBarPositionButton":
+                    case "sideBarPositionButton2":
+                    case "sideBarOFFButton":
+                    case "sideBarOFFButton2":
+                    case "sideBarONButton":
+                    case "sideBarONButton2":
                         checkButtonUp(targetName);
+                    break;
+
+                    default:
                     break;
                 }
             }

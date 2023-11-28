@@ -22,7 +22,6 @@
 		public var toolRotate:SimpleButton;
 		public var toolLine:SimpleButton;
 		public var toolTrace:SimpleButton;
-		public var toolZoom:SimpleButton;
 		public var zoomInButton:SimpleButton;
 		public var zoomOutButton:SimpleButton;
 		public var toolSelectCursor:SimpleButton;
@@ -146,42 +145,9 @@
 			deafultY = y;
 		}
 
-		public function isZoomIconON():Boolean
-		{
-			return zoomInButton.visible;
-		}
-
-		private function zoomIconOFFEvent(e:MouseEvent):void
-		{
-            const targetName:String = e.target.name;
-
-			if(!(targetName === "zoomInButton" || targetName === "zoomOutButton"))
-			{
-			    stage.removeEventListener(MouseEvent.MOUSE_MOVE,zoomIconOFFEvent);
-				zoomIconOFF();
-			}
-		}
-
 		public function checkBottomOFF():void
 		{
 			y = deafultY;
-		}
-
-		public function zoomIconON():void
-		{
-			toolZoom.visible = false;
-			toolRotate.visible = false;
-			zoomInButton.visible = true;
-			zoomOutButton.visible = true;
-			stage.addEventListener(MouseEvent.MOUSE_MOVE,zoomIconOFFEvent);
-		}
-
-		public function zoomIconOFF():void
-		{
-			toolZoom.visible = true;
-			toolRotate.visible = true;
-			zoomInButton.visible = false;
-			zoomOutButton.visible = false;
 		}
 
 		public function changeUIColor(arr:Array):void
@@ -210,14 +176,6 @@
 				btnDown.x = 2;
 				btnDown.y = 2;
 			}
-
-			zoomInButton.x = toolZoom.x;
-			zoomInButton.y = toolZoom.y;
-			zoomOutButton.x = toolRotate.x;
-			zoomOutButton.y = toolRotate.y;
-
-			setChildIndex(zoomInButton,numChildren-1);
-			setChildIndex(zoomOutButton,numChildren-1);
 
 			const rotateButton:DisplayObjectContainer = toolRotate.downState as DisplayObjectContainer;
 			rotateButton.x = 0;
@@ -259,9 +217,6 @@
 
 			moveToolCursorInit();
 
-			zoomInButton.visible = false;
-			zoomOutButton.visible = false;
-
 			// initPenSizeCursor();
 
 			toolSelectCursor.useHandCursor = false;
@@ -278,14 +233,12 @@
 			toolRotate.useHandCursor = false;
 			toolLine.useHandCursor = false;
 			toolTrace.useHandCursor = false;
-			toolZoom.useHandCursor = false;
 			zoomInButton.useHandCursor = false;
 			zoomOutButton.useHandCursor = false;
 
 			buttonArr = [
 							zoomInButton,
 							zoomOutButton,
-							toolZoom,
 							toolMove,
 							toolRotate,
 							toolTrace,

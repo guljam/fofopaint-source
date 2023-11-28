@@ -144,7 +144,9 @@
 			leftButtonArr2 = [
 								lassoOK,
 								lassoCancel,
-								lassoTrace
+								lassoTrace,
+								lassoLayerSwap,
+								lassoLayerMerge
 							 ];
 
 			rightButtonArr = [
@@ -156,8 +158,6 @@
 								lasso1pxRight,
 								lasso1pxUp,
 								lasso1pxDown,
-								lassoLayerSwap,
-								lassoLayerMerge
 							 ];
 		}
 	}
