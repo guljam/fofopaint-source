@@ -178,7 +178,6 @@
 			rotateButton.x = 0;
 			rotateButton.y = 0;
 
-			//텍스트
 			updateBGBoxColor(arr[0]);
 
 			btn = null;
@@ -201,7 +200,10 @@
 		{
 			const btn:SimpleButton = getChildByName(childName) as SimpleButton;
 
-			if(!btn) return;
+			if(!btn)
+			{
+				return;
+			}
 
 			toolSelectCursor.x = btn.x;
 			toolSelectCursor.y = btn.y;
@@ -210,12 +212,23 @@
 			toolSelectCursor.alpha = btn.alpha;
 		}
 
+		public function initButtonsPos():void
+		{
+			const len:int = buttonArr.length;
+
+			for(var i:int=0;i<len;i++)
+			{
+				buttonArr[i].x = 0;
+				buttonArr[i].y = i*buttonArr[i].height;
+				buttonArr[i].useHandCursor = false;
+			}
+		}
+
 		public function toolButtons() {
 
 			moveToolCursorInit();
 
 			// initPenSizeCursor();
-
 			toolSelectCursor.useHandCursor = false;
 			toolSelectCursor.mouseEnabled = false;
 			toolPen.useHandCursor = false;
@@ -236,19 +249,21 @@
 			buttonArr = [
 							zoomInButton,
 							zoomOutButton,
-							toolMove,
 							toolRotate,
-							toolTrace,
-							toolPen,
-							toolFillPen,
-							toolErase,
+							toolMirror,
+							toolMove,
 							toolUndo,
 							toolRedo,
+							toolPen,
+							toolErase,
+							toolFillPen,
 							toolSpuit,
-							toolMirror,
 							toolLasso,
 							toolLine,
+							toolTrace
 						];
+
+			initButtonsPos();
 		}
 	}
 

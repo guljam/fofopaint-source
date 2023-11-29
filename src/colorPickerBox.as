@@ -23,11 +23,11 @@
 		public var drawrPresetBox:Sprite = new Sprite();
 		public var tegakiPresetBox:Sprite = new Sprite();
 		public var mainPresetBox:Sprite = new Sprite();
-		public var colorPickerInfo:TextField;
 		public var rgbInfo:TextField;
-		public var drawrText:TextField;
-		public var tegakiText:TextField;
-		public var colorHistoryText:TextField;
+		public var drawrText:SimpleButton;
+		public var tegakiText:SimpleButton;
+		public var colorHistoryText:SimpleButton;
+		public var infoColorPicker:SimpleButton;
 		public const rgbInfoBG:Shape = new Shape();
 		private var rgbInfoBGColor:uint = 0;
 		private var rgbInfoBGBorderColor:uint = 0;
@@ -125,11 +125,13 @@
 			baseColor.color = color;
 
 			rgbInfo.textColor = color;
-			colorPickerInfo.textColor = color;
-			colorHistoryText.textColor = color;
-			drawrText.textColor = color;
-			tegakiText.textColor = color;
 
+			colorHistoryText.transform.colorTransform = baseColor
+			drawrText.transform.colorTransform = baseColor
+			tegakiText.transform.colorTransform = baseColor
+
+			infoColorPicker.transform.colorTransform = baseColor;
+			penColorButton.transform.colorTransform = baseColor;
 			penColorButton.transform.colorTransform = baseColor;
 			paperColorButton.transform.colorTransform = baseColor;
 		}
@@ -383,13 +385,11 @@
 			hueColor.name = "hueColor";
 			svBox.name = "svBox";
 
-			colorPickerInfo.x = -2;
-			colorPickerInfo.y = 0;
-			colorPickerInfo.text = "Color";
-			colorPickerInfo.width = 80;
+			infoColorPicker.x = 0;
+			infoColorPicker.y = 0;
 
-			paperColorButton.x = Math.floor(colorPickerInfo.x+colorPickerInfo.textWidth+62);
-			paperColorButton.y = Math.floor(colorPickerInfo.y);
+			paperColorButton.x = Math.floor(infoColorPicker.x+infoColorPicker.width+11);
+			paperColorButton.y = Math.floor(infoColorPicker.y-7);
 			penColorButton.x = Math.floor(paperColorButton.x+paperColorButton.width+5);
 			penColorButton.y = Math.floor(paperColorButton.y);
 
@@ -406,7 +406,7 @@
 			rgbInfo.y = 0;
 			rgbInfoBG.x = 0;
 			rgbInfoBG.y = Math.floor(rgbInfo.y-1);
-			transColorButton.x = Math.floor(rgbInfoBG.x+rgbInfoBG.width+4);
+			transColorButton.x = Math.floor(rgbInfoBG.x+rgbInfoBG.width+5);
 			transColorButton.y = rgbInfoBG.y;
 			transColorButton.useHandCursor = false;
 			currentColor.x = Math.floor(transColorButton.x+transColorButton.width);
@@ -444,20 +444,20 @@
 			mainColorPickerBox.x = 0;
 			mainColorPickerBox.y = Math.floor(penColorButton.y+penColorButton.height+6);
 
-			colorHistoryText.x = -1;
-			colorHistoryText.y = -5;
+			colorHistoryText.x = 0;
+			colorHistoryText.y = 2;
 			colorHistoryBox.x = 1;
 			colorHistoryBox.y = Math.floor(colorHistoryText.y+colorHistoryText.height)-14;
 			colorHistoryBox.name = "colorHistoryBox";
 			drawHistoryBoxBG();
 
 			drawrText.x = colorHistoryText.x;
-			drawrText.y = Math.floor(colorHistoryBox.y+colorHistoryBox.height+3);
+			drawrText.y = Math.floor(colorHistoryBox.y+colorHistoryBox.height+10);
 			drawrPresetBox.x = colorHistoryBox.x;
-			drawrPresetBox.y =Math.floor(drawrText.y+drawrText.height-1);
+			drawrPresetBox.y =Math.floor(drawrText.y+drawrText.height);
 
 			tegakiText.x = colorHistoryText.x;
-			tegakiText.y = Math.floor(drawrPresetBox.y+drawrPresetBox.height+3);
+			tegakiText.y = Math.floor(drawrPresetBox.y+drawrPresetBox.height+10);
 			tegakiPresetBox.x = colorHistoryBox.x;
 			tegakiPresetBox.y = Math.floor(tegakiText.y+tegakiText.height);
 

@@ -2,7 +2,6 @@
 {
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
-	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.filters.BlurFilter;
 
@@ -13,6 +12,11 @@
 		public const sharpLineButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();
 		public const layerButtonWrapper:Sprite = new Sprite();
+
+		public var infoPenOptions:SimpleButton;
+		public var infoEraserOptions:SimpleButton;
+		public var infoFillPenOptions:SimpleButton;
+		public var infoLineOptions:SimpleButton;
 
 		public var rectSizeSet:SimpleButton;
 		public var circleSizeSet:SimpleButton;
@@ -34,7 +38,6 @@
 		public var layer2SelectButton:SimpleButton;
 		public var layer1Button:SimpleButton;
 		public var layer2Button:SimpleButton;
-		public var controlInfo:TextField;
 		public var penSmoothSliderSet:Sprite;
 
 		public var layer1CheckButton:SimpleButton;
@@ -70,7 +73,10 @@
 			var alphaBackup:Number; //레이어 버튼이 색깔 바꾸면 알파가 초기화 되는 버그있어서 수동으로 만들어줌
 			opColor.color = op;
 
-			controlInfo.textColor = op;
+			infoPenOptions.transform.colorTransform = opColor;
+			infoEraserOptions.transform.colorTransform = opColor;
+			infoFillPenOptions.transform.colorTransform = opColor;
+			infoLineOptions.transform.colorTransform = opColor;
 
 			alphaBackup = layer1SelectButton.alpha;
 			layer1SelectButton.transform.colorTransform = opColor;
@@ -122,22 +128,36 @@
 			}
 		}
 
-		public function hintText(str:String):void
+		public function hintText(toolStr:String):void
 		{
-			if(str.lastIndexOf("\n") === -1)
+			if(toolStr === "Pen")
 			{
-				shapeRect.visible = true;
-				shapeCircle.visible = true;
-				penSmoothSliderSet.visible = true;
+				infoPenOptions.visible = true;
+				infoEraserOptions.visible = false;
+				infoFillPenOptions.visible = false;
+				infoLineOptions.visible = false;
 			}
-			else
+			else if(toolStr === "Eraser")
 			{
-				shapeRect.visible = false;
-				shapeCircle.visible = false;
-				penSmoothSliderSet.visible = false;
+				infoPenOptions.visible = false;
+				infoEraserOptions.visible = true;
+				infoFillPenOptions.visible = false;
+				infoLineOptions.visible = false;
 			}
-
-			controlInfo.text = str;
+			else if(toolStr === "Fill-pen")
+			{
+				infoPenOptions.visible = false;
+				infoEraserOptions.visible = false;
+				infoFillPenOptions.visible = true;
+				infoLineOptions.visible = false;
+			}
+			else if(toolStr === "Line")
+			{
+				infoPenOptions.visible = false;
+				infoEraserOptions.visible = false;
+				infoFillPenOptions.visible = false;
+				infoLineOptions.visible = true;
+			}
 		}
 
 		public function movePenSizeCursor(index:uint):void
@@ -311,25 +331,37 @@
 			}
 		}
 
+		public function initInfoButton():void
+		{
+			infoPenOptions.mouseEnabled = false;
+			infoPenOptions.x = 0;
+			infoPenOptions.y = 0;
+
+			infoEraserOptions.mouseEnabled = false;
+			infoEraserOptions.x = 0;
+			infoEraserOptions.y = 0;
+
+			infoFillPenOptions.mouseEnabled = false;
+			infoFillPenOptions.x = 0;
+			infoFillPenOptions.y = 0;
+
+			infoLineOptions.mouseEnabled = false;
+			infoLineOptions.x = 0;
+			infoLineOptions.y = 0;
+		}
+
 		public function controlMenu()
 		{
 			name = "controlBox";
 
 			initPenSizeButton();
 			initOpaButton();
+			initInfoButton();
 
-			const offsetX:Number = 0;
-			const infoBottom:Number = Math.floor(controlInfo.y+controlInfo.height+1);
-
-			controlInfo.width = BOX_WIDTH-5;
-			controlInfo.height = 50;
-			controlInfo.x = -3;
-			controlInfo.y = 0;
-
-			shapeCircle.x = offsetX;
-			shapeCircle.y = infoBottom-3;
+			shapeCircle.x = 0;
+			shapeCircle.y = Math.floor(infoPenOptions.y+infoPenOptions.height);
 			shapeCircle.useHandCursor = false;
-			shapeRect.x = offsetX+shapeCircle.x+shapeCircle.width+1;
+			shapeRect.x = 0+shapeCircle.x+shapeCircle.width+1;
 			shapeRect.y = shapeCircle.y;
 			shapeRect.useHandCursor = false;
 
@@ -340,7 +372,7 @@
 			penSmoothSliderSet["penSmoothButton"].useHandCursor = false;
 			penSmoothSliderSet["penSmoothSlider"].useHandCursor = false;
 
-			penSizeGuide.x = offsetX;
+			penSizeGuide.x = 0;
 			penSizeGuide.y = Math.floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-6;
 			penSizeBox.x = penSizeGuide.x+2;
 			penSizeBox.y = penSizeGuide.y+2;
@@ -351,7 +383,7 @@
 			circleSizeSet.x = rectSizeSet.x;
 			circleSizeSet.y = rectSizeSet.y+1;
 
-			opaGuide.x = offsetX;
+			opaGuide.x = 0;
 			opaGuide.y = Math.floor(penSizeGuide.y+penSizeGuide.height+3);
 			opaBox.x = opaGuide.x;
 			opaBox.y = opaGuide.y;
@@ -385,14 +417,15 @@
 			addChild(layerButtonWrapper);
 			addChild(sharpLineButtonWrapper);
 			addChild(airBrushButtonWrapper);
-			setChildIndex(controlInfo, this.numChildren-1);
+			setChildIndex(infoPenOptions, this.numChildren-1);
 			setChildIndex(penSizeSelectCursor, this.numChildren-1);
 
 			penSizeGuide.useHandCursor = false;
 			penSizeGuide.mouseEnabled = false;
 			penSizeSelectCursor.mouseEnabled = false;
 
-			setChildIndex(controlInfo,0);
+			setChildIndex(infoPenOptions,0);
+			hintText("Pen");
 		}
 	}
 }

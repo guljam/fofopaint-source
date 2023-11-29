@@ -2,17 +2,19 @@
 {
 	import flash.display.Sprite;
 	import flash.text.TextField;
-	import flash.text.TextFormat;
-	import flash.text.TextFormatAlign;
+	import flash.display.SimpleButton;
+	import flash.text.TextFieldAutoSize;
+	import flash.geom.ColorTransform;
 
 	public class appInfoBar extends Sprite {
-		private const canvasInfoFormat:TextFormat = new TextFormat();
+		public var appInfoArrow:SimpleButton;
 		public var canvasInfo:TextField;
 		private var canvasWidth:Number = 0;
 		private var canvasHeight:Number = 0;
 		private var canvasZoom:Number = 0;
 		private var canvasRotate:Number = 0;
 		private var canvasMirror:Boolean = false;
+		private const appInfoArrowColor:ColorTransform = new ColorTransform();
 
 		public function init(w:Number,h:Number,z:Number,r:Number,flag:Boolean):void
 		{
@@ -27,18 +29,6 @@
 		public function setWidth(width:Number):void
 		{
 			canvasInfo.width = width;
-		}
-
-		public function setAlignRight():void
-		{
-			canvasInfoFormat.align = TextFormatAlign.RIGHT;
-			canvasInfo.defaultTextFormat = canvasInfoFormat;
-		}
-
-		public function setAlignLeft():void
-		{
-			canvasInfoFormat.align = TextFormatAlign.LEFT;
-			canvasInfo.defaultTextFormat = canvasInfoFormat;
 		}
 
 		public function setSize(w:Number,h:Number):void
@@ -56,13 +46,13 @@
 
 		public function setRotate(r:Number):void
 		{
-			canvasRotate = r;
+			canvasRotate = Math.abs(r);
 			update();
 		}
 
 		public function getMirorrString():String
 		{
-			return (canvasMirror) ? "flipped" : "";
+			return (canvasMirror) ? "m*" : "";
 		}
 
 		public function getStringFixedLength(str:String,fixedLength:int):String
@@ -87,25 +77,28 @@
 
 		public function update():void
 		{
-			if(canvasInfoFormat.align === TextFormatAlign.RIGHT)
-			{
-				canvasInfo.text = getMirorrString()+"  "+canvasWidth +" x "+ canvasHeight +"  "
-								+ getStringFixedLength(canvasZoom.toString(),3)+"%  "
-								+ getStringFixedLength(canvasRotate.toString(),3)+"° "
-			}
-			else
-			{
-				canvasInfo.text = canvasWidth +" x "+ canvasHeight +"  "
-								+ getStringFixedLength(canvasZoom.toString(),3)+"%  "
-								+ getStringFixedLength(canvasRotate.toString(),3)+"°  "
-								+ getMirorrString();
-			}
-			// canvasInfo.width = canvasInfo.textWidth+10;
-			canvasInfo.defaultTextFormat = canvasInfoFormat;
+			canvasInfo.text = canvasWidth +" x "+ canvasHeight +"  "
+							+ getStringFixedLength(canvasZoom.toString(),3)+"%  "
+							+ getStringFixedLength(canvasRotate.toString(),3)+"°  "
+							+ getMirorrString();
+		}
+
+		public function changeUIColor(color:uint):void
+		{
+			canvasInfo.textColor = color;
+			appInfoArrowColor.color = color;
+			appInfoArrow.transform.colorTransform = appInfoArrowColor
 		}
 
 		public function appInfoBar() {
 			mouseEnabled = false;
+			canvasInfo.mouseEnabled = false;
+			canvasInfo.autoSize = TextFieldAutoSize.LEFT;
+			appInfoArrow.mouseEnabled = false;
+			appInfoArrow.x = 10;
+			appInfoArrow.y = 0;
+			canvasInfo.x = appInfoArrow.x+appInfoArrow.width+3;
+			canvasInfo.y = 0;
 		}
 	}
 }

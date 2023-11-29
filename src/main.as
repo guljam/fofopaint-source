@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.71;
+        private const APP_VERSION:Number = 22.72;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -347,6 +347,7 @@
                     ,subLayerON:Boolean = false
                     ,subLayerPreviewON:Boolean = false
                     ,checkedLayer:int = 0 //레이어가 체크되면 저장해줌
+                    ,layerSwappedFlag:Boolean = false //1<->2 번호 바뀌는 힌트 써주려고 만듬
                     ,airBrushON:Boolean = false
                     ,airBrushSizeDrawMode:Number = 0
                     ,airBrushSizeReplayMode:Number = 0
@@ -716,6 +717,11 @@
         }
 
         //function
+        private function getLayerSwappedHint():String
+        {
+            return "Layers has been swapped "+((layerSwappedFlag) ? "1 <-> 2" : "2 <-> 1");
+        }
+
         private function cImageMoveFunc(target:DisplayObject,targetAngle:Number,customScaleX:Number=1.0,customScaleY:Number=1.0):Function
         {
             var oldX:Number = target.x;
@@ -2497,6 +2503,8 @@
             if(controlBox.layerSwapButton.alpha < 1.0) return;
 
             if(deepUndoON) setApplyDeepUndo();
+
+            layerSwappedFlag = !layerSwappedFlag;
 
             var tempbmpd1:BitmapData = canvas1BitmapData.clone();
             var tempbmpd11:BitmapData = canvas11BitmapData.clone();
@@ -5143,16 +5151,22 @@
 
         private function updatePreviewBoxRectPos():void
         {
-            var newRightOffset:Number = STAGE_RIGHT_OFFSET;
-            var newLeftOffset:Number = STAGE_LEFT_OFFSET;
+            var newRightOffset:Number = 0;
+            var newLeftOffset:Number = 0;
 
-            if(isRightSidebar)
+            if(isSidebarVisible === true)
             {
-                newRightOffset = Math.round(sideBar.getWidth());
-            }
-            else
-            {
-                newLeftOffset = Math.round(sideBar.getWidth());
+                newRightOffset = STAGE_RIGHT_OFFSET;
+                newLeftOffset = STAGE_LEFT_OFFSET;
+
+                if(isRightSidebar)
+                {
+                    newRightOffset = Math.round(sideBar.getWidth());
+                }
+                else
+                {
+                    newLeftOffset = Math.round(sideBar.getWidth());
+                }
             }
 
             const gp:Point = canvas1Bitmap.globalToLocal(new Point(newLeftOffset,STAGE_TOP_OFFSET));
@@ -5172,15 +5186,15 @@
 
             setOptimizeCanvasMove(true);
 
-            function setCenter(x:Number,y:Number):void
+            function setCenter(mx:Number,my:Number):void
             {
                 const b:Object = getBoundRect(previewBox.prevCursor);
                 const scale:Number = getUIScale();
                 //prevToCanvasMultiply를 나눠 줘야 커서랑 같은 속도가 나옴
                 const rectCenterX:Number = b.left+(b.right-b.left)/2;
                 const rectCenterY:Number = b.top+(b.bottom-b.top)/2;
-                var moveX:Number = (rectCenterX-x)/prevToCanvasMultiply/scale;
-                var moveY:Number = (rectCenterY-y)/prevToCanvasMultiply/scale;
+                var moveX:Number = (rectCenterX-mx)/prevToCanvasMultiply/scale;
+                var moveY:Number = (rectCenterY-my)/prevToCanvasMultiply/scale;
                 var p:Point = rotatePoint(moveX,moveY,-regPoint.rotation);
 
                 regPoint.x += Math.round(p.x);
@@ -6577,7 +6591,7 @@
             fileDragSelectBox.changeUIColor(uiToolBoxColorSet[index]);
             replayTimeBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],uiToolBoxColorSet[index][4],index);
             checkClipBoardImage();
-            appInfoBox.canvasInfo.textColor = uiColorSet[index][1];
+            appInfoBox.changeUIColor(uiColorSet[index][1]);
             setRGBInfoTextColorByColor(pickerBox.getRGBInfoBGColor());
 
             if(pickerMode !== 1)
@@ -6654,7 +6668,7 @@
             else if(nt === TOOL_LINE) toolName = "Line";
             else if(nt === TOOL_FILL_PEN) toolName = "Fill-pen";
 
-            controlBox.hintText(toolName+" options");
+            controlBox.hintText(toolName);
         }
 
         private function getOpacityButtonHint(targetName:String):String
@@ -8164,6 +8178,7 @@
             undoData.setRFileTotalFrame(0);
             TOTAL_FRAME = 0;
             makeJumpImageFlag = 0;
+            layerSwappedFlag = false;
 
             resetTraceImageInfo();
             resetTraceOpa();
@@ -8571,7 +8586,7 @@
                         case "layerSwapButton":
                         {
                             setLayerSwapButton();
-                            setHintONTemp("Layers has been swapped");
+                            setHintONTemp(getLayerSwappedHint());
                         }
                         break;
 
@@ -18069,14 +18084,14 @@
             previewBox.x = -4;
             previewBox.y = 0;
             appInfoBox.setWidth(previewBox.BOX_WIDTH);
-            appInfoBox.x = previewBox.x-2;
-            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+3);
+            appInfoBox.x = previewBox.x;
+            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+2);
             controlBox.x = 39;
-            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height);
+            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
             pickerBox.x = 39;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height+6);
-            toolBox.x = -2;
-            toolBox.y = Math.floor(controlBox.y+2);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height+9);
+            toolBox.x = -1;
+            toolBox.y = Math.floor(controlBox.y-5);
 
             resetScrollBarXPosition();
             sideBarScrollBar.y = scrollBarMovedY;
@@ -18116,13 +18131,13 @@
             previewBox.y = 0;
             appInfoBox.setWidth(previewBox.BOX_WIDTH);
             appInfoBox.x = previewBox.x-2;
-            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+3);
+            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+2);
             controlBox.x = 0;
-            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height);
+            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
             pickerBox.x = 0;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height+6);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height+9);
             toolBox.x = 177;
-            toolBox.y = Math.floor(controlBox.y+2);
+            toolBox.y = Math.floor(controlBox.y-5);
 
             if(toolBox.getDeafultY() === 0) toolBox.setDeafultY(toolBox.y);
 
@@ -18959,7 +18974,7 @@
                             case KEY.j:
                             {
                                 setLayerSwapButton();
-                                setHintONTemp("Layers has been swapped");
+                                setHintONTemp(getLayerSwappedHint());
                             }
                             return;
 
@@ -21099,38 +21114,63 @@
             }
         }
 
-        private var printdeepLevel:int = 0;
-        private function printArray(obj:Object,deepKey:String=""):void
-        {
-            var _print:Function = trace;
-            var blank:String="";
-            if(printdeepLevel === 0) _print('--- PRINT START --- ');
-            else
-            {
-                const count:int = printdeepLevel;
-                for(var b:int=0; b<count; b++)
-                {
-                    blank += "   ";
-                }
-                _print(blank+'> index['+deepKey+']');
-            }
+        // private function testFuncTime():void
+        // {
+        //     var _print:Function = trace;
+        //     var i:int=0;
+        //     var nt:int = getTimer();
 
-            _print(blank+'{');
-            for(var i:String in obj)
-            {
-                if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
-                {
-                    ++printdeepLevel;
-                    printArray(obj[i],i);
-                }
-                else
-                {
-                    _print(blank+'| '+i+' : ' + obj[i]);
-                }
-            }
-            _print(blank+'}');
-            --printdeepLevel;
-            if(printdeepLevel < 0) printdeepLevel = 0;
-        }
+        //     while(i < 10000000)
+        //     {
+        //         toolBox.moveToolCursor("toolZoom");
+        //         i++;
+        //     }
+
+        //     _print("time 1",getTimer()-nt);
+
+        //     i = 0;
+        //     nt = getTimer()
+        //     while(i < 10000000)
+        //     {
+        //         toolBox.moveToolCursor2("toolZoom");
+        //         i++;
+        //     }
+
+        //     _print("time 2",getTimer()-nt);
+        // }
+
+        // private var printdeepLevel:int = 0;
+        // private function printArray(obj:Object,deepKey:String=""):void
+        // {
+        //     var _print:Function = trace;
+        //     var blank:String="";
+        //     if(printdeepLevel === 0) _print('--- PRINT START --- ');
+        //     else
+        //     {
+        //         const count:int = printdeepLevel;
+        //         for(var b:int=0; b<count; b++)
+        //         {
+        //             blank += "   ";
+        //         }
+        //         _print(blank+'> index['+deepKey+']');
+        //     }
+
+        //     _print(blank+'{');
+        //     for(var i:String in obj)
+        //     {
+        //         if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
+        //         {
+        //             ++printdeepLevel;
+        //             printArray(obj[i],i);
+        //         }
+        //         else
+        //         {
+        //             _print(blank+'| '+i+' : ' + obj[i]);
+        //         }
+        //     }
+        //     _print(blank+'}');
+        //     --printdeepLevel;
+        //     if(printdeepLevel < 0) printdeepLevel = 0;
+        // }
     }
  }
