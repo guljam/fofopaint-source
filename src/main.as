@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.74;
+        private const APP_VERSION:Number = 22.75;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3765,6 +3765,7 @@
             var clickedButton:String;
 
             var fillPenBoxUndoUsed:Boolean = false;
+            var canvas2ZIndexDSave:int = 0;
 
             function fillPenHint(e:MouseEvent):void
             {
@@ -3799,6 +3800,8 @@
                 canvas2Draw.graphics.endFill();
                 canvas2Draw.graphics.moveTo(data[data.length-2],data[data.length-1]);
                 canvas2Draw.graphics.lineTo(data[0],data[1]);
+
+                canvas2.alpha = xAlpha;
             }
 
             function drawPreviewLine():void
@@ -3820,6 +3823,13 @@
                     dottedLine.draw(canvas2Draw.graphics,x,y);
                 }
                 dottedLine.draw(canvas2Draw.graphics,data[0],data[1]);
+
+                canvas2.alpha = 1.0;
+
+                if(subLayerON)
+                {
+                    canvasPanel.setChildIndex(canvas2,canvas2ZIndexDSave);
+                }
             }
 
             function cancelFillPen():void
@@ -3838,6 +3848,11 @@
                 fillPenBox.visible = false;
                 fillPenBox.x = -fillPenBox.width-3;
                 fillPenBox.y = -fillPenBox.height-3;
+
+                if(subLayerON)
+                {
+                    canvasPanel.setChildIndex(canvas2,canvas2ZIndexDSave);
+                }
             }
 
             function endFillPenOK():void
@@ -3989,7 +4004,7 @@
                     const dist:Number = Math.floor(Point.distance(now,lastMousePos));
 
                     mouseMoveCount += dist;
-                    if(mouseMoveCount >= 30)
+                    if(mouseMoveCount >= 10)
                     {
                         mouseMoveCount = 0;
                         commandUndoIndexArr.push(command.length-1);
@@ -3998,7 +4013,7 @@
                     lastMousePos.setTo(now.x,now.y);
 
                     if(afterKeyUpOK) endFillPenOK();
-                    else if(mouseMoved) drawPreviewLine();
+                    else drawPreviewLine();
                 }
 
                 afterKeyUpOK = false;
@@ -4047,7 +4062,7 @@
 
                 if(!hasTimer("fillPenTimer"))
                 {
-                    addTimerByName("fillPenTimer",0.083,false,drawPreviewLine);
+                    addTimerByName("fillPenTimer",0.083,false,drawFillPenData);
                 }
             }
 
@@ -4100,7 +4115,12 @@
                     }
 
                     removeTimer("fillPenTimer");
-                    drawPreviewLine();
+                    if(subLayerON)
+                    {
+                        canvas2ZIndexDSave = canvasPanel.getChildIndex(canvas2);
+                        canvasPanel.setChildIndex(canvas2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
+                    }
+                    drawFillPenData();
                 }
             }
 
@@ -4165,7 +4185,13 @@
                 data.push(mx);
                 data.push(my);
                 lastMousePos.setTo(mx,my);
-                canvas2.alpha = 1.0;
+                canvas2.alpha = xAlpha;
+
+                if(subLayerON)
+                {
+                    canvas2ZIndexDSave = canvasPanel.getChildIndex(canvas2);
+                    canvasPanel.setChildIndex(canvas2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
+                }
 
                 addEvents();
             }
@@ -17092,9 +17118,13 @@
                     alphaIndex = penAlphaIndex;
 
                     if(subLayerON)
+                    {
                         canvasPanel.setChildIndex(canvas2,2);
+                    }
                     else
+                    {
                         canvasPanel.setChildIndex(canvas1Bitmap,2);
+                    }
 
                     setAirBrushCheckBox(airBrushON,true);
                 }
@@ -17104,9 +17134,13 @@
                     alphaIndex = eraseAlphaIndex;
 
                     if(subLayerON)
+                    {
                         canvasPanel.setChildIndex(canvas2,2);
+                    }
                     else
+                    {
                         canvasPanel.setChildIndex(canvas1Bitmap,2);
+                    }
 
                     setAirBrushCheckBox(eraseAirBrushON,false);
                 }
@@ -18308,8 +18342,8 @@
             canvasPanel.addChild(canvas11Bitmap);
             canvasPanel.addChild(lassoBox2);
             canvasPanel.addChild(canvas1Bitmap);
-            canvasPanel.addChild(lassoBox1);
             canvasPanel.addChild(canvas2);
+            canvasPanel.addChild(lassoBox1);
             canvasPanel.addChild(canvasGrid);
             rCursor.visible = false;
             canvasPanel.addChild(rCursor);
