@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.75;
+        private const APP_VERSION:Number = 22.76;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15735,16 +15735,14 @@
             const max:Number = CANVAS_MAX_SIZE;
             const ratioSizeArr:Array = [];
             const ratioArr:Array = [
-                                        "1:2",0.5,
-                                        "9:16",0.5625,
-                                        "10:16",0.625,
-                                        "3:4",0.75,
-
+                                        "1:2",(1.0/2.0),
+                                        "9:16",(9.0/16.0),
+                                        "10:16",(10.0/16.0),
+                                        "3:4",(3.0/4.0),
                                         "1:1",1.0,
-
-                                        "4:3",1.333,
-                                        "16:10",1.6,
-                                        "16:9",1.777,
+                                        "4:3",(4.0/3.0),
+                                        "16:10",(16.0/10.0),
+                                        "16:9",(16.0/9.0),
                                         "2:1",2.0
                                     ];
             var guideLineWidth:Number = 0;
@@ -15841,7 +15839,7 @@
 
                     for(i=0;i<len;i+=2)
                     {
-                        realSize = Math.floor(referenceSize*ratioArr[i+1]);
+                        realSize = Math.round(referenceSize*ratioArr[i+1]);
                         prevSize = realSize;
                         if(realSize > max || realSize < min) continue;
 
