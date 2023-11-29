@@ -5530,7 +5530,6 @@
 
             switch(targetName)
             {
-                case "toolSidebar": str = "Quick sidebar (s+d, j+k)"; break;
                 case "toolPen": str = "Pen (q, o key up) "; break;
                 case "toolFillPen": str = "Fill pen (q, o)\nMenu (Right click after using the tool)"; break;
                 case "toolErase": str = "Eraser (d, j)"; break;
@@ -5541,9 +5540,9 @@
                 case "toolMirror": str = "Flip canvas(a, l)"; break;
                 case "toolLine": str = "Line (shift)"; break;
                 case "toolMove": str = "Move image (e, u)"; break;
-                case "zoomInButton": str ="Zoom in (w, i+click+drag on canvas)\nReset (right-click ,shift+w, shift+i)"; break;
-                case "zoomOutButton": str ="Zoom out (w, i+click+drag on canvas)\nReset (right-click ,shift+w, shift+i)"; break;
-                case "toolRotate": str = "Rotate (s, k)\nReset (right-click, shift+s , shift+k)"; break;
+                case "zoomInButton": str ="Zoom in canvas (w, i+click+drag on canvas)\nReset (right-click ,shift+w, shift+i)"; break;
+                case "zoomOutButton": str ="Zoom out canvas (w, i+click+drag on canvas)\nReset (right-click ,shift+w, shift+i)"; break;
+                case "toolRotate": str = "Rotate canvas (s, k)\nReset (right-click, shift+s , shift+k)"; break;
                 case "toolTrace": str = "Reference layer (t)"; break;
             }
 
@@ -18900,8 +18899,6 @@
             {
                 return;
             }
-
-            trace("KEY_BUFFER",KEY_BUFFER)
 
             const keyCode:uint = KEY_BUFFER[0];
 
