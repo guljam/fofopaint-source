@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.73;
+        private const APP_VERSION:Number = 22.74;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -19933,7 +19933,8 @@
             resetOldTool();
             selectPenTool();
             updatePreviewBoxRectPos();
-            changePickerModeToNormal();
+            if(penColorTransparentFlag) setTransparentColor();
+            else changePickerModeToNormal();
             updatePenSizeCursor();
             updatePenCursorPosition();
             changeTopBarIcons("draw");
