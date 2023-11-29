@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.72;
+        private const APP_VERSION:Number = 22.73;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13195,6 +13195,7 @@
                 file.removeEventListener(Event.CANCEL,onCancelEvent);
             }
 
+            resetKeyBuffer();
             browseWindowON = true;
 
             file.browseForOpen(windowTitle,imgExt);
@@ -13913,6 +13914,7 @@
             var path:String = saveFilePath;
             const firstSaveFlag:Boolean = (name !== path);
 
+            resetKeyBuffer();
             browseWindowON = true;
 
             name = cutTimeStamp(name);
@@ -13928,8 +13930,6 @@
             file1.addEventListener(Event.CANCEL, onCancelEvent);
             file1.addEventListener(Event.SELECT, onSelectEvent);
             file1.browseForSave(saveWindowTitle);
-
-            resetKeyBuffer();
 
             function onCancelEvent(e:Event):void
             {
@@ -18900,6 +18900,8 @@
             {
                 return;
             }
+
+            trace("KEY_BUFFER",KEY_BUFFER)
 
             const keyCode:uint = KEY_BUFFER[0];
 
