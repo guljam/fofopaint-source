@@ -1,7 +1,6 @@
 ﻿package
 {
 	import flash.display.Sprite;
-	import flash.display.Graphics;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
@@ -154,13 +153,12 @@
 
 		public function initAirBrushButtonWrapper():void
 		{
-			const g:Graphics = airBrushButtonWrapper.graphics;
 			const w:Number = airBrushOFFButton.width+sharpLineText.width+14;
 			const h:Number = airBrushOFFButton.height+2;
 
-			g.beginFill(0xFF0000,0);
-			g.drawRect(0,0,w,h);
-			g.endFill();
+			airBrushButtonWrapper.graphics.beginFill(0xFF0000,0);
+			airBrushButtonWrapper.graphics.drawRect(0,0,w,h);
+			airBrushButtonWrapper.graphics.endFill();
 
 			airBrushOFFButton.mouseEnabled = false;
 			airBrushONButton.mouseEnabled = false;
@@ -188,13 +186,12 @@
 
 		public function initSharpLineButtonWrapper():void
 		{
-			const g:Graphics = sharpLineButtonWrapper.graphics;
 			const w:Number = sharpLineOFFButton.width+sharpLineText.width+14;
 			const h:Number = sharpLineOFFButton.height+2;
 
-			g.beginFill(0xFF0000,0);
-			g.drawRect(0,0,w,h);
-			g.endFill();
+			sharpLineButtonWrapper.graphics.beginFill(0xFF0000,0);
+			sharpLineButtonWrapper.graphics.drawRect(0,0,w,h);
+			sharpLineButtonWrapper.graphics.endFill();
 
 			sharpLineOFFButton.mouseEnabled = false;
 			sharpLineONButton.mouseEnabled = false;
@@ -321,9 +318,8 @@
 			initPenSizeButton();
 			initOpaButton();
 
-			const floor:Function = Math.floor;
 			const offsetX:Number = 0;
-			const infoBottom:Number = floor(controlInfo.y+controlInfo.height+1);
+			const infoBottom:Number = Math.floor(controlInfo.y+controlInfo.height+1);
 
 			controlInfo.width = BOX_WIDTH-5;
 			controlInfo.height = 50;
@@ -337,26 +333,26 @@
 			shapeRect.y = shapeCircle.y;
 			shapeRect.useHandCursor = false;
 
-			penSmoothSliderSet.x = floor(shapeRect.x+shapeRect.width+11);
-			penSmoothSliderSet.y = floor(shapeRect.y)+8;
+			penSmoothSliderSet.x = Math.floor(shapeRect.x+shapeRect.width+11);
+			penSmoothSliderSet.y = Math.floor(shapeRect.y)+8;
 
 			penSmoothSliderSet["penSmoothBar"].useHandCursor = false;
 			penSmoothSliderSet["penSmoothButton"].useHandCursor = false;
 			penSmoothSliderSet["penSmoothSlider"].useHandCursor = false;
 
 			penSizeGuide.x = offsetX;
-			penSizeGuide.y = floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-6;
+			penSizeGuide.y = Math.floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-6;
 			penSizeBox.x = penSizeGuide.x+2;
 			penSizeBox.y = penSizeGuide.y+2;
 			penSizeSelectCursor.useHandCursor = false;
 
-			rectSizeSet.x = floor(penSizeGuide.x)+9;
-			rectSizeSet.y = floor(penSizeGuide.y)+10;
+			rectSizeSet.x = Math.floor(penSizeGuide.x)+9;
+			rectSizeSet.y = Math.floor(penSizeGuide.y)+10;
 			circleSizeSet.x = rectSizeSet.x;
 			circleSizeSet.y = rectSizeSet.y+1;
 
 			opaGuide.x = offsetX;
-			opaGuide.y = floor(penSizeGuide.y+penSizeGuide.height+3);
+			opaGuide.y = Math.floor(penSizeGuide.y+penSizeGuide.height+3);
 			opaBox.x = opaGuide.x;
 			opaBox.y = opaGuide.y;
 

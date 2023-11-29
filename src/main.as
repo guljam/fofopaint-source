@@ -62,8 +62,8 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.65;
-        private const APP_DATA_VERSION:Number = 22.60;
+        private const APP_VERSION:Number = 22.70;
+        private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private var STAGE_FRAME:int = stage.frameRate; //frame rate가 오르면 선을 빠르게 그렀을때 떨어저 그려지고 낮게 하면 부드럽게 이어져 그려짐
@@ -531,9 +531,9 @@
                     ,tracePosInfo:Array = [0,0,0,1.0,1.0,false] // width, height, rotation,scale 미러 플래그
                     ,traceMenuON:Boolean = false //trace메뉴 켜졌을때 올려줌
                     ,traceRawBMPD:BitmapData = null
-                    ,traceRawArr:Array = null
+                    ,traceRawData:Array = null
                     ,traceImageCount:int = 0 //2번이상 클릭하면 되게
-                    ,traceMemoryTraining:Boolean = false // 이거 켜지면 캔버스 그릴때 임시적으로 안보이게함
+                    ,traceMemoryTrainingON:Boolean = false // 이거 켜지면 캔버스 그릴때 임시적으로 안보이게함
                     ,traceLastAlpha:Number = 0
 
         //그리드 레이어 변수
@@ -1618,6 +1618,8 @@
             }
             else //투명색으로 transparent 텍스트가 되있을때 말하는거임
             {
+                setRGBInfoTextColorByColor(pickerBox.getRGBInfoBGColor());
+                pickerBox.setRGBInfoBGTransparentColorOFF();
                 pickerBox.setRGBInfo(pickerBox.getOldRGBInfoText());
             }
 
@@ -3044,11 +3046,10 @@
 
         private function updateCanvasPanelMask(w:Number,h:Number):void
         {
-            const maskg:Graphics = canvasPanelMask.graphics;
-            maskg.clear();
-            maskg.beginFill(0xFF00FF);
-            maskg.drawRect(0,0,w,h);
-            maskg.endFill();
+            canvasPanelMask.graphics.clear();
+            canvasPanelMask.graphics.beginFill(0xFF00FF);
+            canvasPanelMask.graphics.drawRect(0,0,w,h);
+            canvasPanelMask.graphics.endFill();
         }
 
         private function isHitTestPoint(obj:DisplayObject,checkShape:Boolean=false):Boolean
@@ -3337,9 +3338,8 @@
 
         private function getCommandKey():int
         {
-            const arr:Array = KEY_BUFFER;
-            const first:int = arr[0];
-            const second:int = arr[1];
+            const first:int = KEY_BUFFER[0];
+            const second:int = KEY_BUFFER[1];
 
             if((second === KEY.shift && (first === KEY.ctrl || first === KEY.rightCtrl))
             || (first === KEY.shift && (second === KEY.ctrl || second === KEY.rightCtrl))) return COMMAND_CTRL_SHIFT;
@@ -3630,6 +3630,7 @@
         {
             penColorTransparentFlag = true;
             pickerBox.updateOldRGBInfoText();
+            pickerBox.setRGBInfoBGTransparentColorON();
             pickerBox.setRGBInfo("Transparent");
         }
 
@@ -3661,12 +3662,11 @@
         {
             const lastNumber:String = targetName.substr(6,1);
             const index:int = parseInt(lastNumber);
-            const arr:Array = tegaKiPresetColor[index];
 
-            penColor = arr[0];
-            setBackgroundColorDrawMode(arr[1]);
+            penColor = tegaKiPresetColor[index][0];
+            setBackgroundColorDrawMode(tegaKiPresetColor[index][1]);
             if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-            addUndoBGColor(arr[1]);
+            addUndoBGColor(tegaKiPresetColor[index][1]);
 
             if(!colorHistoryUpdateReady)
             {
@@ -3676,11 +3676,11 @@
 
             if(pickerMode === 1)
             {
-                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(arr[0]) : arr[0]);
+                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(tegaKiPresetColor[index][0]) : tegaKiPresetColor[index][0]);
             }
             else if(pickerMode === 2)
             {
-                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(arr[1]) : arr[1]);
+                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(tegaKiPresetColor[index][1]) : tegaKiPresetColor[index][1]);
             }
         }
 
@@ -3738,11 +3738,11 @@
             var data:Vector.<Number>;
             var xColor:uint;
             var xAlpha:Number;
-            var commandUndoIndexArr:Array;
+            var commandUndoIndexArr:Array = [];
             var mouseMoved:Boolean;
             var mouseMoveCount:int;
             var afterKeyUpOK:Boolean;
-            var _sharpLine:Boolean;
+            // var _sharpLine:Boolean;
             var rotateFlag:Boolean;
             var xOffset:Number;
             var xBlendMode:String;
@@ -3814,7 +3814,7 @@
                 fillPenStarted = false;
                 command.length = 0;
                 data.length = 0;
-                commandUndoIndexArr = [];
+                commandUndoIndexArr.length = 0;
                 canvas2Draw.graphics.clear();
 
                 if(traceMenuON) traceMenu.visible = true;
@@ -3851,17 +3851,16 @@
             function undoData():void
             {
                 if(command.length === 0) return;
-                const commandIndex:int = commandUndoIndexArr[commandUndoIndexArr.length-1];
 
-                command.splice(commandIndex,command.length);
-                data.splice(commandIndex*2,data.length);
+                command.splice(commandUndoIndexArr[commandUndoIndexArr.length-1],command.length);
+                data.splice(commandUndoIndexArr[commandUndoIndexArr.length-1]*2,data.length);
                 commandUndoIndexArr.pop();
 
                 if(command.length <= 1)
                 {
                     command.length = 0;
                     data.length = 0;
-                    commandUndoIndexArr = [0];
+                    commandUndoIndexArr[0] = 0;
                     canvas2Draw.graphics.clear();
                 }
                 else
@@ -3998,7 +3997,7 @@
                 var mx:Number = canvas2Draw.mouseX;
                 var my:Number = canvas2Draw.mouseY;
 
-                if(_sharpLine && rotateFlag === false)
+                if(sharpLineON && rotateFlag === false)
                 {
                     mx = Math.floor(mx-xOffset)+xOffset;
                     my = Math.floor(my-xOffset)+xOffset;
@@ -4060,7 +4059,7 @@
                     var mx:Number = canvas2Draw.mouseX;
                     var my:Number = canvas2Draw.mouseY;
 
-                    if(_sharpLine && rotateFlag === false)
+                    if(sharpLineON && rotateFlag === false)
                     {
                         mx = Math.floor(mx-xOffset)+xOffset;
                         my = Math.floor(my-xOffset)+xOffset;
@@ -4124,13 +4123,12 @@
                 mouseMoved = false;
                 mouseMoveCount = 0;
                 afterKeyUpOK = false;
-                _sharpLine = sharpLineON;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
                 xOffset = (sizeOffsetFlag) ? 0.5 : 0;
                 xColor = penColor;
                 xAlpha = penAlpha;
                 xBlendMode = (penColorTransparentFlag) ? "erase" : null;
-                commandUndoIndexArr = [0];
+                commandUndoIndexArr[0] = 0;
                 clickedButton = null;
                 fillPenBoxUndoUsed = false;
 
@@ -4176,7 +4174,6 @@
             const penPoints:Vector.<Number> = new Vector.<Number>(); //그냥펜 좌표
             const canvasSizeRect:Rectangle = new Rectangle();
 
-            var initFlag:Boolean = false;
             var penToolFlag:Boolean;
             var xSize:uint;
             var xColor:uint;
@@ -4186,14 +4183,10 @@
             var xAirBrushON:Boolean;
             var rotateFlag:Boolean;
             var xOffset:Number;
-            var _penSmoothValue:Number;//펜 스무딩 플래그
-            var _penSmoothSlideValue:int;
             var mouseMoveCount:uint; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
             var mouseMovedFlag:Boolean;
-            var tempDoneFlag:Boolean;
             var moveEventDistLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var subLayerFlag:Boolean;
-            var penSmoothTimer:int;
             var dotflag:Boolean;
 
             function circleRectangleCollision(cx:Number, cy:Number, r:Number, rx:Number, ry:Number, w:Number, h:Number):Boolean
@@ -4243,8 +4236,8 @@
                 var ox:Number = smoothPos.x;
                 var oy:Number = smoothPos.y;
 
-                ox += (smoothLast.x-ox)*_penSmoothValue;
-                oy += (smoothLast.y-oy)*_penSmoothValue;
+                ox += (smoothLast.x-ox)*penSmoothValue;
+                oy += (smoothLast.y-oy)*penSmoothValue;
 
                 penMove2(ox,oy);
 
@@ -4266,7 +4259,7 @@
                     checkPenToolUndoReady();
                 }
 
-                if(!sharpLineON && (_penSmoothSlideValue > 0 || rotateFlag))
+                if(!sharpLineON && (penSmoothSlideValue > 0 || rotateFlag))
                 {
                     mx = Math.floor(mx*100)/100;
                     my = Math.floor(my*100)/100;
@@ -4327,7 +4320,6 @@
                 if(mouseMoveCount >= 100)
                 {
                     mouseMoveCount = 0;
-                    tempDoneFlag = true;
 
                     if(xAirBrushON && zoomed !== 1.0)
                     {
@@ -4414,13 +4406,13 @@
 
                 if(penToolMouseMoveLimit(mx,my)) return;
 
-                if(penToolFlag && _penSmoothSlideValue > 1)
+                if(penToolFlag && penSmoothSlideValue > 1)
                 {
                     var ox:Number = smoothPos.x;
                     var oy:Number = smoothPos.y;
 
-                    ox += (smoothLast.x-smoothPos.x)*_penSmoothValue;
-                    oy += (smoothLast.y-smoothPos.y)*_penSmoothValue;
+                    ox += (smoothLast.x-smoothPos.x)*penSmoothValue;
+                    oy += (smoothLast.y-smoothPos.y)*penSmoothValue;
 
                     penMove2(ox,oy);
                     smoothPos.setTo(ox,oy);
@@ -4462,12 +4454,12 @@
                 const mx:Number = xx+xOffset;
                 const my:Number = yy+xOffset;
 
-                if(penToolFlag && traceMemoryTraining && CANVAS_TRACE_ALPHA > 0.0)
+                if(penToolFlag && traceMemoryTrainingON && CANVAS_TRACE_ALPHA > 0.0)
                 {
                     canvasTraceLayer.visible = true;
                 }
 
-                if(_penSmoothSlideValue > 1)
+                if(penSmoothSlideValue > 1)
                 {
                     removeTimer("followCursorSmoothLine");
                 }
@@ -4490,7 +4482,7 @@
 
                 if(mouseMovedFlag === false || (penToolFlag && mouseMovedFlag === true && dotflag))
                 {
-                    rDataBuffer.length = 0;
+                    rDataBuffer = [];
                     rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,subLayerFlag,xAirBrushON]);
                     drawDot(xShape,xSize,xColor,clickPos.x,clickPos.y);
                 }
@@ -4539,7 +4531,7 @@
                     xShape = false;
                 }
 
-                if(penFlag && traceMemoryTraining)
+                if(penFlag && traceMemoryTrainingON)
                 {
                     canvasTraceLayer.visible = false;
                 }
@@ -4547,17 +4539,14 @@
                 subLayerFlag = (penFlag) ? subLayerON : false;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
                 xOffset = (sizeOffsetFlag) ? 0.5 : 0;
-                _penSmoothValue = penSmoothValue;//펜 스무딩 플래그
-                _penSmoothSlideValue = penSmoothSlideValue;
                 mouseMoveCount = 0; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
                 mouseMovedFlag = false;
-                tempDoneFlag = false;
                 canvasSizeRect.width = CANVAS_WIDTH;
                 canvasSizeRect.height = CANVAS_HEIGHT;
 
                 clickPos.setTo(canvas2Draw.mouseX,canvas2Draw.mouseY); //점찍어 줄 때 판단하는 클릭한 자리 저장
 
-                if(_penSmoothSlideValue === 0)
+                if(penSmoothSlideValue === 0)
                 {
                     smoothPos.setTo(Math.floor(canvas2Draw.mouseX-xOffset)+xOffset,Math.floor(canvas2Draw.mouseY-xOffset)+xOffset);
                 }
@@ -4590,6 +4579,7 @@
             mouseDragON = false;
 
             mouseLeaveSideBarON();
+            penSizeCursor.visible = false;
         }
 
         private function updatePenCursorPositionEvent(e:MouseEvent):void
@@ -4785,7 +4775,6 @@
 
         private function cRealWorkingTimer():Object
         {
-            const floor:Function = Math.floor;
             var started:Boolean = false;
             var appRunningTime:int = 0;
             var afkCount:int = 0; //마우스 멈춰있으면 올라가는 시간
@@ -4822,9 +4811,9 @@
             function update():void
             {
                 tt = appRunningTime/1000;
-                hh = floor(tt/3600);
-                mm = floor((tt-hh*3600)/60);
-                ss = floor(tt%60);
+                hh = Math.floor(tt/3600);
+                mm = Math.floor((tt-hh*3600)/60);
+                ss = Math.floor(tt%60);
 
                 topBar.timer.text = ((hh < 10) ? "0"+hh:""+hh) + ":"
                                     +((mm < 10) ? "0"+mm:""+mm) + ":"
@@ -4884,12 +4873,11 @@
 		private function makeTransBG():void
         {
             const checkShape:Shape = new Shape();
-            var g:Graphics = checkShape.graphics;
 
-            g.beginFill(0xCCCCCC);
-            g.drawRect(0,0,8,8);
-            g.drawRect(8,8,8,8);
-            g.endFill();
+            checkShape.graphics.beginFill(0xCCCCCC);
+            checkShape.graphics.drawRect(0,0,8,8);
+            checkShape.graphics.drawRect(8,8,8,8);
+            checkShape.graphics.endFill();
 
             transBGBMPD.draw(checkShape);
         }
@@ -4904,38 +4892,36 @@
 		{
 			function rgb2lab(rgb:uint):Vector.<Number>
 			{
-                const pow:Function = Math.pow;
 				var r:Number = ((rgb & 0xFF0000) >>> 16) / 255;
 				var g:Number = ((rgb & 0x00FF00) >>> 8) / 255;
 				var b:Number = ((rgb & 0x0000FF)) / 255;
 				var x:Number, y:Number, z:Number;
 
-				r = (r > 0.04045) ? pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
-				g = (g > 0.04045) ? pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
-				b = (b > 0.04045) ? pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+				r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+				g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+				b = (b > 0.04045) ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
 				x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
 				y = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 1.00000;
 				z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
-				x = (x > 0.008856) ? pow(x, 1/3) : (7.787 * x) + 16/116;
-				y = (y > 0.008856) ? pow(y, 1/3) : (7.787 * y) + 16/116;
-				z = (z > 0.008856) ? pow(z, 1/3) : (7.787 * z) + 16/116;
+				x = (x > 0.008856) ? Math.pow(x, 1/3) : (7.787 * x) + 16/116;
+				y = (y > 0.008856) ? Math.pow(y, 1/3) : (7.787 * y) + 16/116;
+				z = (z > 0.008856) ? Math.pow(z, 1/3) : (7.787 * z) + 16/116;
 
                 const result:Vector.<Number> = new <Number> [(116 * y) - 16, 500 * (x - y), 200 * (y - z)];
 
 				return result;
 			}
 
-            const sqrt:Function = Math.sqrt;
 			const labA:Vector.<Number> = rgb2lab(rgbA);
 			const labB:Vector.<Number> = rgb2lab(rgbB);
 			const deltaL:Number = labA[0] - labB[0];
 			const deltaA:Number = labA[1] - labB[1];
 			const deltaB:Number = labA[2] - labB[2];
-			const c1:Number = sqrt(labA[1] * labA[1] + labA[2] * labA[2]);
-			const c2:Number = sqrt(labB[1] * labB[1] + labB[2] * labB[2]);
+			const c1:Number = Math.sqrt(labA[1] * labA[1] + labA[2] * labA[2]);
+			const c2:Number = Math.sqrt(labB[1] * labB[1] + labB[2] * labB[2]);
 			const deltaC:Number = c1 - c2;
 			var deltaH:Number = deltaA * deltaA + deltaB * deltaB - deltaC * deltaC;
-			deltaH = deltaH < 0 ? 0 : sqrt(deltaH);
+			deltaH = deltaH < 0 ? 0 : Math.sqrt(deltaH);
 			const sc:Number= 1.0 + 0.045 * c1;
 			const sh:Number= 1.0 + 0.015 * c1;
 			const deltaLKlsl:Number = deltaL / (1.0);
@@ -4943,7 +4929,7 @@
 			const deltaHkhsh:Number = deltaH / (sh);
 			const i:Number = deltaLKlsl * deltaLKlsl + deltaCkcsc * deltaCkcsc + deltaHkhsh * deltaHkhsh;
 
-			return i < 0 ? 0 : sqrt(i);
+			return i < 0 ? 0 : Math.sqrt(i);
 		}
 
         private function resetZoomReplayMode():void
@@ -4972,7 +4958,6 @@
         {
             const xReg:Sprite = (replayMode) ? rregPoint : regPoint;
             const zoomMax:int = zoomArr.length-1;
-            const floor:Function = Math.floor;
             const center:Point = getStageCenterPos(CENTERPOS_REPLAY);
             var lastZoomIndex:int = (replayMode) ? rzoomedIndex : zoomedIndex;
 
@@ -5163,7 +5148,6 @@
 
         private function setHandToolPreviewBox(cursorClicked:Boolean):void
         {
-            const floor:Function = Math.floor;
             var sx:Number = previewBox.mouseX;
             var sy:Number = previewBox.mouseY;
             const prevToCanvasMultiply:Number = previewBox.prevCursorMultiply;
@@ -5212,8 +5196,8 @@
                 var mx:Number = previewBox.mouseX;
                 var my:Number = previewBox.mouseY;
                 //prevToCanvasMultiply를 곱해줘야 커서랑 같은 속도가 나옴
-                var moveX:Number = floor((sx-mx)/prevToCanvasMultiply);
-                var moveY:Number = floor((sy-my)/prevToCanvasMultiply);
+                var moveX:Number = Math.floor((sx-mx)/prevToCanvasMultiply);
+                var moveY:Number = Math.floor((sy-my)/prevToCanvasMultiply);
                 var p:Point = rotatePoint(moveX,moveY,-regPoint.rotation);
 
                 regPoint.x += p.x;
@@ -5276,8 +5260,12 @@
             }
 
             const textColor:uint = (color is Vector.<Number>) ? HSVtoHEX(color[0],color[1],color[2]) : color;
+            setRGBInfoTextColorByColor(textColor);
+        }
 
-            pickerBox.setRGBInfoColor(getInvertColor(textColor,1.0
+        private function setRGBInfoTextColorByColor(color:uint):void
+        {
+            pickerBox.setRGBInfoColor(getInvertColor(color,1.0
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
             ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]));
         }
@@ -5291,26 +5279,24 @@
 
         private function setLassoTraceImageButton():void
         {
-            const btn:SimpleButton = lassoMenu.lassoTrace;
-
             setTopChildIndex(lassoMenu);
             traceImageCount++;
 
             function setLassoTraceImageButtonCountResetEvent(e:MouseEvent):void
             {
                 traceImageCount = 0;
-                btn.removeEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
+                lassoMenu.lassoTrace.removeEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
             }
 
             if(traceImageCount === 1)
             {
                 lassoMenu.hint(STRING_ONEMORE_CLICK_TO_OK);
-                btn.addEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
+                lassoMenu.lassoTrace.addEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
             }
             else if(traceImageCount === 2)
             {
                 traceImageCount = 0;
-                btn.removeEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
+                lassoMenu.lassoTrace.removeEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
                 traceMenu.hint(STRING_MERGE_LASSO_IMAGE_TO_TRACE);
                 mergeLassoImageToTraceLayer();
                 openTraceWindow();
@@ -5319,8 +5305,7 @@
 
         private function setTraceImageButton():void
         {
-            const btn:SimpleButton = traceMenu.traceImageButton;
-            if(btn.alpha !== 1.0) return;
+            if(traceMenu.traceImageButton.alpha !== 1.0) return;
 
             setTopChildIndex(traceMenu);
             traceImageCount++;
@@ -5328,18 +5313,18 @@
             function setTraceImageButtonCountResetEvent(e:MouseEvent):void
             {
                 traceImageCount = 0;
-                btn.removeEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
+                traceMenu.traceImageButton.removeEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
             }
 
             if(traceImageCount === 1)
             {
                 traceMenu.hint(STRING_ONEMORE_CLICK_TO_OK);
-                btn.addEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
+                traceMenu.traceImageButton.addEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
             }
             else if(traceImageCount === 2)
             {
                 traceImageCount = 0;
-                btn.removeEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
+                traceMenu.traceImageButton.removeEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
                 traceMenu.hint(STRING_MERGE_CANVAS_IMAGE_TO_TRACE);
                 pasteTraceImage();
             }
@@ -5592,15 +5577,13 @@
             setTopBarHintOFF();
             setTopChildIndex(topBar);
 
-            const buttonSetVisible:Function = topBar.buttonSetVisible;
-
-            buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);
+            topBar.buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);
             topBar.updateButtonVisible(false);
 
             if(mode === "draw")
             {
-                buttonSetVisible("replay",false);
-                buttonSetVisible("capture",false);
+                topBar.buttonSetVisible("replay",false);
+                topBar.buttonSetVisible("capture",false);
                 updatePenSizeCursor();
                 if(needUpdate) topBar.updateButtonVisible(true);
 
@@ -5609,8 +5592,8 @@
             }
             else if(mode === "replay")
             {
-                buttonSetVisible("draw",false,isRightSidebar);
-                buttonSetVisible("capture",false);
+                topBar.buttonSetVisible("draw",false,isRightSidebar);
+                topBar.buttonSetVisible("capture",false);
 
                 if(replayStartON)
                 {
@@ -5625,8 +5608,8 @@
             }
             else if(mode === "capture")
             {
-                buttonSetVisible("replay",false);
-                buttonSetVisible("draw",false,isRightSidebar);
+                topBar.buttonSetVisible("replay",false);
+                topBar.buttonSetVisible("draw",false,isRightSidebar);
 
                 if(canvas1Bitmap.visible)
                 {
@@ -5661,30 +5644,28 @@
 
         private function drawGrid():void
         {
-            const g:Graphics = canvasGrid.graphics;
             const flag:uint = gridValue;
 
             if(flag === 0)
             {
                 canvasGrid.visible = false;
-                g.clear();
+                canvasGrid.graphics.clear();
                 return;
             }
 
             const w:Number = CANVAS_WIDTH;
             const h:Number = CANVAS_HEIGHT;
-            const floor:Function = Math.floor;
             const gridgap:Number = flag*GRID_GAP;
-            const len:Number = floor(h/gridgap+0.5);//가로선 횟수 w, h반대되는거 맞음
-            const len2:Number = floor(w/gridgap+0.5); //세로선 횟수
+            const len:Number = Math.floor(h/gridgap+0.5);//가로선 횟수 w, h반대되는거 맞음
+            const len2:Number = Math.floor(w/gridgap+0.5); //세로선 횟수
             const normalColor:uint = GRID_NORMAL_COLOR;
             const unitColor:uint = GRID_5UNIT_COLOR;
             var cmd:Vector.<int> = new Vector.<int>();
             var data:Vector.<Number> = new Vector.<Number>();
             var gridi:Number;
 
-            g.clear();
-            g.lineStyle(1,normalColor,0.5,true);
+            canvasGrid.graphics.clear();
+            canvasGrid.graphics.lineStyle(1,normalColor,0.5,true);
             for(var i:uint=1;i<=len;i++)
             {
                 gridi = gridgap*i;
@@ -5707,11 +5688,11 @@
                 data.push(h);
             }
 
-            g.drawPath(cmd,data);
+            canvasGrid.graphics.drawPath(cmd,data);
 
             cmd = new Vector.<int>();
             data = new Vector.<Number>();
-            g.lineStyle(1,unitColor,0.5,true); //5단위 강조선
+            canvasGrid.graphics.lineStyle(1,unitColor,0.5,true); //5단위 강조선
 
             for(i=1;i<len;i+=5)
             {
@@ -5734,7 +5715,7 @@
                 data.push(gridi);
                 data.push(h);
             }
-            g.drawPath(cmd,data);
+            canvasGrid.graphics.drawPath(cmd,data);
 
             cmd.length = 0;
             data.length = 0;
@@ -5770,11 +5751,7 @@
 
         private function updateTraceOpaButtonPosByAlpha(alpha:Number):void
         {
-            const button:SimpleButton = traceMenu["traceOpaButton"];
-            const bar:SimpleButton = traceMenu["traceOpaBar"];
-            const barWidth:Number = bar.width*alpha;
-            const buttonMin:Number = bar.x;
-            traceMenu["traceOpaButton"].x = buttonMin+barWidth;
+            traceMenu["traceOpaButton"].x = (traceMenu["traceOpaBar"].x+2)+(traceMenu["traceOpaBar"].width*alpha);
         }
 
         private function closeTraceMenu():void
@@ -5870,30 +5847,28 @@
 
         private function setTraceDeleteButton():void
         {
-            const btn:SimpleButton = traceMenu.traceDeleteButton;
-
             setTopChildIndex(traceMenu);
             traceImageCount++;
 
             function traceDeleteButtonCountResetEvent(e:MouseEvent):void
             {
                 traceImageCount = 0;
-                btn.removeEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
+                traceMenu.traceDeleteButton.removeEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
             }
 
             if(traceImageCount === 1)
             {
                 traceMenu.hint(STRING_ONEMORE_CLICK_TO_OK);
-                btn.addEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
+                traceMenu.traceDeleteButton.addEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
             }
             else if(traceImageCount === 2)
             {
                 traceImageCount = 0;
                 traceMenu.hint("Erase reference image");
-                btn.removeEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
+                traceMenu.traceDeleteButton.removeEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
 
                 clearTraceImage();
-                if(traceMemoryTraining === true)
+                if(traceMemoryTrainingON === true)
                 {
                     setTraceVisibleButton();
                 }
@@ -5902,15 +5877,15 @@
 
         private function setTraceVisibleButton():void
         {
-            if(traceMemoryTraining === false)
+            if(traceMemoryTrainingON === false)
             {
-                traceMemoryTraining = true;
+                traceMemoryTrainingON = true;
                 traceMenu.traceVisibleOFFButton.visible = false;
                 traceMenu.traceVisibleONButton.visible = true;
             }
-            else if(traceMemoryTraining === true)
+            else if(traceMemoryTrainingON === true)
             {
-                traceMemoryTraining = false;
+                traceMemoryTrainingON = false;
                 traceMenu.traceVisibleOFFButton.visible = true;
                 traceMenu.traceVisibleONButton.visible = false;
             }
@@ -6052,9 +6027,7 @@
 
         private function setTraceClipButton():void
         {
-            const btn:SimpleButton = traceMenu.traceClipButton;
-
-            if(btn.alpha !== 1.0) return;
+            if(traceMenu.traceClipButton.alpha !== 1.0) return;
 
             setTopChildIndex(traceMenu);
             traceImageCount++;
@@ -6062,19 +6035,19 @@
             function traceClipButtonCountResetEvent(e:MouseEvent):void
             {
                 traceImageCount = 0;
-                btn.removeEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
+                traceMenu.traceClipButton.removeEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
             }
 
             if(traceImageCount === 1)
             {
                 traceMenu.hint(STRING_ONEMORE_CLICK_TO_OK);
-                btn.addEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
+                traceMenu.traceClipButton.addEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
             }
             else if(traceImageCount === 2)
             {
                 traceImageCount = 0;
                 traceMenu.hint("Paste image from clipboard");
-                btn.removeEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
+                traceMenu.traceClipButton.removeEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
 
                 const bmpd:Object = Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT);
 
@@ -6098,12 +6071,9 @@
 
         private function setTraceOpaButton():void
         {
-            const button:SimpleButton = traceMenu["traceOpaButton"];
-            const bar:SimpleButton = traceMenu["traceOpaBar"];
-            const barWidth:Number = bar.width;
-            const buttonMin:Number = bar.x+2;
+            const barWidth:Number = traceMenu["traceOpaBar"].width;
+            const buttonMin:Number = traceMenu["traceOpaBar"].x+2;
             const buttonMax:Number = buttonMin+barWidth-2;
-            const floor:Function = Math.floor;
             const step:Number = 10;
 
             mouseDragON = true;
@@ -6129,9 +6099,9 @@
 
                 const value:Number = mx-buttonMin;
                 const valueMax:Number = buttonMax-buttonMin;
-                const alpha:Number = floor(((value/valueMax))*100)/100;
+                const alpha:Number = Math.floor(((value/valueMax))*100)/100;
 
-                button.x = mx;
+                traceMenu["traceOpaButton"].x = mx;
 
                 CANVAS_TRACE_ALPHA = alpha;
                 if(alpha < 0.0)
@@ -6147,9 +6117,9 @@
                     }
                     canvasTraceLayer.alpha = alpha;
                 }
-                traceMenu.hint(STRING_TRACE_IMAGE_OPACITY+floor(alpha*100+0.5)+"%");
+                traceMenu.hint(STRING_TRACE_IMAGE_OPACITY+Math.floor(alpha*100+0.5)+"%");
             }
-            traceMenu.hint(STRING_TRACE_IMAGE_OPACITY+floor(CANVAS_TRACE_ALPHA*100+0.5)+"%");
+            traceMenu.hint(STRING_TRACE_IMAGE_OPACITY+Math.floor(CANVAS_TRACE_ALPHA*100+0.5)+"%");
 
             setTraceOpaValue();
 
@@ -6169,7 +6139,7 @@
             const newRectangle:Rectangle = new Rectangle(0,0,w,h);
 
             bmpd.copyPixelsToByteArray(newRectangle,ba);
-            ba.compress();
+            // ba.compress();
             fs.open(traceImageFile,FileMode.WRITE);
             fs.writeObject([ba,w,h]);
             fs.close();
@@ -6224,12 +6194,11 @@
             if(bmpd) //로드한 이미지를 붙여넣을때
             {
                 const maxSize:Number = 1000;
-                const floor:Function = Math.floor;
                 var maxLength:Number = (w > h) ? w : h;
                 var scaleFix:Number = (maxLength > maxSize) ? maxSize/maxLength : 1.0;
 
-                w = floor(w*scaleFix);
-                h = floor(h*scaleFix); //maxSize 값을 넘으면 리사이즈 해줌
+                w = Math.floor(w*scaleFix);
+                h = Math.floor(h*scaleFix); //maxSize 값을 넘으면 리사이즈 해줌
                 var scaleMat:Matrix = new Matrix();
                 scaleMat.scale(scaleFix,scaleFix);
 
@@ -6435,11 +6404,10 @@
                 color = CANVAS_BG_COLOR;
             }
 
-            const cg:Graphics = xPanel.graphics;
-            cg.clear();
-            cg.beginFill(color);
-            cg.drawRect(0,0,w,h);
-            cg.endFill();
+            xPanel.graphics.clear();
+            xPanel.graphics.beginFill(color);
+            xPanel.graphics.drawRect(0,0,w,h);
+            xPanel.graphics.endFill();
         }
 
         private function setTransBG(replayMode:Boolean):void
@@ -6461,12 +6429,11 @@
                 h = CANVAS_HEIGHT;
             }
 
-            var g:Graphics = xPanel.graphics;
-            g.clear();
-            g.lineStyle(0,0,0);
-            g.beginBitmapFill(transBGBMPD);
-            g.drawRect(0,0,w,h);
-            g.endFill();
+            xPanel.graphics.clear();
+            xPanel.graphics.lineStyle(0,0,0);
+            xPanel.graphics.beginBitmapFill(transBGBMPD);
+            xPanel.graphics.drawRect(0,0,w,h);
+            xPanel.graphics.endFill();
         }
 
         private function selectSubLayer(flag:Boolean,onlyViewFlag:Boolean):void
@@ -6566,37 +6533,34 @@
                 uiColorIndex = 0;
 
             setUIColor(uiColorIndex);
-            const uiColorName:String = (uiColorIndex === 0 ) ? "Black"
-                :(uiColorIndex === 1) ?"Dark Gray"
-                :(uiColorIndex === 2) ?"Medium Gray"
-                :(uiColorIndex === 3) ?"Light Gray" : "";
+
+            const uiColorName:String = (uiColorIndex === 0) ? "Black"
+                                      :(uiColorIndex === 1) ? "Dark Gray"
+                                      :(uiColorIndex === 2) ? "Medium Gray"
+                                      :(uiColorIndex === 3) ? "Light Gray" : "";
 
             setHintONTemp(uiColorName);
         }
 
         private function setUIColor(index:int):void
         {
-            const nowColorSet:Array = uiColorSet[index];
-
-            updateStageBG(nowColorSet[2]);
-            controlBox.changeUIColor(nowColorSet[1]);
-            pickerBox.changeUIColor(nowColorSet[1]);
-            sideBar.changeUIColor(nowColorSet[0]);
-            previewBox.chanegStageColor(nowColorSet[2]);
+            updateStageBG(uiColorSet[index][2]);
+            controlBox.changeUIColor(uiColorSet[index][1]);
+            pickerBox.changeUIColor(uiColorSet[index][1]);
+            sideBar.changeUIColor(uiColorSet[index][0]);
+            previewBox.chanegStageColor(uiColorSet[index][2]);
             toolBox.changeUIColor(uiToolBoxColorSet[index]);
             toolBox2.changeUIColor(uiToolBoxColorSet[index]);
             fillPenBox.changeBGColor(uiToolBoxColorSet[index]);
             traceMenu.changeUIColor(uiToolBoxColorSet[index],index === 0);
             lassoMenu.changeUIColor(uiToolBoxColorSet[index]);
-            topBar.changeUIColor(nowColorSet[0],nowColorSet[1],nowColorSet[4]);
-            rotateCursorBox.changeUIColor(nowColorSet[0],nowColorSet[1]);
+            topBar.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],uiColorSet[index][4]);
+            rotateCursorBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1]);
             fileDragSelectBox.changeUIColor(uiToolBoxColorSet[index]);
-            replayTimeBox.changeUIColor(nowColorSet[0],nowColorSet[1],uiToolBoxColorSet[index][4],index);
+            replayTimeBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],uiToolBoxColorSet[index][4],index);
             checkClipBoardImage();
-            appInfoBox.canvasInfo.textColor = nowColorSet[1];
-            pickerBox.setRGBInfoColor(getInvertColor(pickerBox.getRGBInfoBGColor(),1.0
-                                                    ,(index >= 2) ? nowColorSet[0]:nowColorSet[1]
-                                                    ,(index >= 2) ? nowColorSet[1]:nowColorSet[0]));
+            appInfoBox.canvasInfo.textColor = uiColorSet[index][1];
+            setRGBInfoTextColorByColor(pickerBox.getRGBInfoBGColor());
 
             if(pickerMode !== 1)
             {
@@ -6605,15 +6569,15 @@
 
             pickerBox.setPickerMode(pickerMode);
             updateScrollBarColorHeight(scrollBarHeight);
-            setResizeButtonColor(nowColorSet[3]);
-            fofo.changeColor(nowColorSet[1]);
+            setResizeButtonColor(uiColorSet[index][3]);
+            fofo.changeColor(uiColorSet[index][1]);
             toolTipBox.setBGColor(toolTipBoxBGColor[index]);
             hintBox.setBGColor(toolTipBoxBGColor[index]);
             hint.setCursorColor(hintCursorColor[index]);
 
             if(canvasWindowON)
             {
-                canvasWindow.stage.color = nowColorSet[2];
+                canvasWindow.stage.color = uiColorSet[index][2];
             }
         }
 
@@ -8025,8 +7989,6 @@
                 {
                     if(parseVersion(getVersionArr[0]) || parseVersion(getVersionArr[1]))
                     {
-                        const floor:Function = Math.floor;
-                        const oldVersion:Number = APP_VERSION;
                         var tryCount:uint = 0;
 
                         const updateFile:URLRequest = new URLRequest("https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air");
@@ -8136,12 +8098,8 @@
 
         private function setAboutPanelCenterPos():void
         {
-            const w:Number = aboutPanel.width;
-            const h:Number = aboutPanel.height;
-            const floor:Function = Math.floor;
-
-            aboutPanel.x = floor(stage.stageWidth/2)+floor(-w/2);
-            aboutPanel.y = floor((stage.stageHeight-39)/2)+ floor(-h/2);
+            aboutPanel.x = Math.floor(stage.stageWidth/2)+Math.floor(-aboutPanel.width/2);
+            aboutPanel.y = Math.floor((stage.stageHeight-39)/2)+ Math.floor(-aboutPanel.height/2);
             aboutPanel.visible = true;
         }
 
@@ -8651,17 +8609,15 @@
 
         private function setCanvasSameReplayCanvas():void
         {
-            const floor:Function = Math.floor;
-
             zoomed = rzoomed;
             zoomedIndex = rzoomedIndex;
-            regPoint.x = floor(rregPoint.x); //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
-            regPoint.y = floor(rregPoint.y);
+            regPoint.x = Math.floor(rregPoint.x); //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
+            regPoint.y = Math.floor(rregPoint.y);
             regPoint.scaleX = rregPoint.scaleX;
             regPoint.scaleY = rregPoint.scaleY;
             regPoint.rotation = rregPoint.rotation;
-            canvasPanel.x = floor(rcanvasPanel.x);
-            canvasPanel.y = floor(rcanvasPanel.y);
+            canvasPanel.x = Math.floor(rcanvasPanel.x);
+            canvasPanel.y = Math.floor(rcanvasPanel.y);
         }
 
         private function resetCutFrameClickCounter():void
@@ -9420,9 +9376,9 @@
             if(replayRefImageFlag === false) undoData.setUndoRefImageByDrawMode();
             else undoData.setUndoRefImageByReplayMode();
             undoData.resetRJumpImageCount();
-            rData.length = 0;
-            rDataFrame.length = 0;
-            rDataBuffer.length = 0;
+            rData = [];
+            rDataFrame = [];
+            rDataBuffer = [];
             readyAddUndoFlag = false;
             undoDelFlag = false;
             rCursor.visible = false;
@@ -9608,11 +9564,10 @@
         {
             if(scale === 0.0) return;
 
-            const sharpData:Array = LASSO_SHARP_DATA;
             var index:uint = Math.abs(Math.floor(scale-1.0));
             if(index > 2) index = 2;
 
-            var sharpen:ConvolutionFilter = new ConvolutionFilter(3,3,sharpData[index][0],sharpData[index][1]);
+            var sharpen:ConvolutionFilter = new ConvolutionFilter(3,3,LASSO_SHARP_DATA[index][0],LASSO_SHARP_DATA[index][1]);
 
             lassoBMP.filters = [sharpen];
             lassoBMPsub.filters = [sharpen];
@@ -9628,20 +9583,15 @@
 
         private function setReplayPanelSize(w:Number,h:Number,moveX:Number=0,moveY:Number=0,movedFlag:Boolean=false):void
         {
-            const cpg:Graphics = rcanvasPanel.graphics;
-            const maskg:Graphics = rcanvasPanelMask.graphics;
-            const bgColor:uint = RCANVAS_BG_COLOR;
-            //캔버스가 회전되어있으면 회전된 방향으로 움직여줘야함
+            rcanvasPanel.graphics.clear();
+            rcanvasPanel.graphics.beginFill(RCANVAS_BG_COLOR);
+            rcanvasPanel.graphics.drawRect(0,0,w,h);
+            rcanvasPanel.graphics.endFill();
 
-            cpg.clear();
-            cpg.beginFill(bgColor);
-            cpg.drawRect(0,0,w,h);
-            cpg.endFill();
-
-            maskg.clear();
-            maskg.beginFill(bgColor);//paneldraw마스크 아무색이나 상관없음 어차피 마스크로 쓸거라
-            maskg.drawRect(0,0,w,h);
-            maskg.endFill();
+            rcanvasPanelMask.graphics.clear();
+            rcanvasPanelMask.graphics.beginFill(RCANVAS_BG_COLOR);//paneldraw마스크 아무색이나 상관없음 어차피 마스크로 쓸거라
+            rcanvasPanelMask.graphics.drawRect(0,0,w,h);
+            rcanvasPanelMask.graphics.endFill();
             rcanvasPanel.mask = rcanvasPanelMask;//마스크 다시 씌워줌
 
             rcanvas1BitmapData = new BitmapData(w,h,true,0);
@@ -9774,7 +9724,6 @@
 
         private function cTickDraw():Object
         {
-            const cd2:Graphics = rcanvas2Draw.graphics;
             const rTinyCursorPos:Point = new Point(0,0);
             //undo인덱스가 처음일때 tickdraw가 아무것도 안해주니까 위치 갱신이 안되서
             //undorefimage갱신 될때 마다 마지막 포인터 위치 저장해주는거
@@ -9972,14 +9921,14 @@
                 if(!fillpen)
                 {
                     replayLineStyleReady3(shape,size,color,alpha);
-                    cd2.moveTo(startX,startY);
+                    rcanvas2Draw.graphics.moveTo(startX,startY);
                 }
                 else
                 {
-                    cd2.clear();
+                    rcanvas2Draw.graphics.clear();
                     replayLineStyleReady2(false,1,color,1.0);
-                    cd2.beginFill(color);
-                    cd2.moveTo(startX,startY);
+                    rcanvas2Draw.graphics.beginFill(color);
+                    rcanvas2Draw.graphics.moveTo(startX,startY);
                     rcanvas2.alpha = alpha;
                 }
             }
@@ -10004,14 +9953,14 @@
                 if(!fillpen)
                 {
                     replayLineStyleReady2(shape,size,color,alpha);
-                    cd2.moveTo(startX,startY);
+                    rcanvas2Draw.graphics.moveTo(startX,startY);
                 }
                 else
                 {
-                    cd2.clear();
+                    rcanvas2Draw.graphics.clear();
                     replayLineStyleReady2(false,1,color,1.0);
-                    cd2.beginFill(color);
-                    cd2.moveTo(startX,startY);
+                    rcanvas2Draw.graphics.beginFill(color);
+                    rcanvas2Draw.graphics.moveTo(startX,startY);
                     rcanvas2.alpha = alpha;
                 }
             }
@@ -10036,14 +9985,14 @@
                 if(!fillpen)
                 {
                     replayLineStyleReady(shape,size,color,alpha);
-                    cd2.moveTo(startX,startY);
+                    rcanvas2Draw.graphics.moveTo(startX,startY);
                 }
                 else
                 {
-                    cd2.clear();
+                    rcanvas2Draw.graphics.clear();
                     replayLineStyleReady(false,1,color,1.0);
-                    cd2.beginFill(color);
-                    cd2.moveTo(startX,startY);
+                    rcanvas2Draw.graphics.beginFill(color);
+                    rcanvas2Draw.graphics.moveTo(startX,startY);
                     rcanvas2.alpha = alpha;
                 }
             }
@@ -10053,7 +10002,7 @@
                 const x:Number = data[1];
                 const y:Number = data[2];
 
-                cd2.lineTo(x,y);
+                rcanvas2Draw.graphics.lineTo(x,y);
                 setRCursorPos(x,y);
             }
 
@@ -10069,12 +10018,12 @@
                 rcanvas2Bitmap.bitmapData = null;
                 rcanvas2BitmapData.dispose();
                 rcanvas2BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
-                cd2.clear();
+                rcanvas2Draw.graphics.clear();
 
                 updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
-                cd2.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
-                cd2.drawPath(command,xyData);
+                rcanvas2Draw.graphics.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
+                rcanvas2Draw.graphics.drawPath(command,xyData);
                 setRCursorPos(xyData[xyData.length-2],xyData[xyData.length-1]);
             }
 
@@ -10089,10 +10038,10 @@
                 resetCanvasBlurReplaymode();
                 updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
-                cd2.clear();
-                cd2.lineStyle(1,color);
-                cd2.beginFill(color);
-                cd2.drawPath(command,xyData);
+                rcanvas2Draw.graphics.clear();
+                rcanvas2Draw.graphics.lineStyle(1,color);
+                rcanvas2Draw.graphics.beginFill(color);
+                rcanvas2Draw.graphics.drawPath(command,xyData);
                 setRCursorPos(xyData[xyData.length-2],xyData[xyData.length-1]);
             }
 
@@ -10108,17 +10057,17 @@
                 resetCanvasBlurReplaymode();
                 updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
-                cd2.clear();
-                cd2.lineStyle(1,color);
-                cd2.beginFill(color);
-                cd2.moveTo(arr[0],arr[1]);
+                rcanvas2Draw.graphics.clear();
+                rcanvas2Draw.graphics.lineStyle(1,color);
+                rcanvas2Draw.graphics.beginFill(color);
+                rcanvas2Draw.graphics.moveTo(arr[0],arr[1]);
 
                 for(var i:uint = 2;i<len;i+=2)
                 {
-                    cd2.lineTo(arr[i],arr[i+1]);
+                    rcanvas2Draw.graphics.lineTo(arr[i],arr[i+1]);
                 }
 
-                cd2.endFill();
+                rcanvas2Draw.graphics.endFill();
                 setRCursorPos(arr[len-2],arr[len-1]);
             }
 
@@ -10135,10 +10084,10 @@
                 checkAirBrush(airBrushFlag,airBrushSize);
                 updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
-                cd2.clear();
-                cd2.lineStyle(1,color);
-                cd2.beginFill(color);
-                cd2.drawPath(command,xyData);
+                rcanvas2Draw.graphics.clear();
+                rcanvas2Draw.graphics.lineStyle(1,color);
+                rcanvas2Draw.graphics.beginFill(color);
+                rcanvas2Draw.graphics.drawPath(command,xyData);
                 setRCursorPos(xyData[xyData.length-2],xyData[xyData.length-1]);
             }
 
@@ -10158,12 +10107,12 @@
                 checkAirBrush(airBrush,size);
                 updateLineStyleBackup(alpha,blendMode);
                 rcanvas2.alpha = alpha;
-                cd2.lineStyle(0,0,0);
-                cd2.beginFill(color);
+                rcanvas2Draw.graphics.lineStyle(0,0,0);
+                rcanvas2Draw.graphics.beginFill(color);
 
-                if(shape) cd2.drawRect(startX-size/2,startY-size/2,size,size);
-                else cd2.drawCircle(startX,startY,size/2);
-                cd2.endFill();
+                if(shape) rcanvas2Draw.graphics.drawRect(startX-size/2,startY-size/2,size,size);
+                else rcanvas2Draw.graphics.drawCircle(startX,startY,size/2);
+                rcanvas2Draw.graphics.endFill();
 
                 setRCursorPos(startX,startY);
             }
@@ -10188,11 +10137,11 @@
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush,size);
 
-                if(shape) cd2.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.ROUND);
-                else cd2.lineStyle(size,color);
+                if(shape) rcanvas2Draw.graphics.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.ROUND);
+                else rcanvas2Draw.graphics.lineStyle(size,color);
 
-                cd2.moveTo(startX,startY);
-                cd2.lineTo(endX,endY);
+                rcanvas2Draw.graphics.moveTo(startX,startY);
+                rcanvas2Draw.graphics.lineTo(endX,endY);
 
                 setRCursorPos(endX,endY);
             }
@@ -10217,11 +10166,11 @@
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush,size);
 
-                if(shape) cd2.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
-                else cd2.lineStyle(size,color);
+                if(shape) rcanvas2Draw.graphics.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.SQUARE,JointStyle.ROUND);
+                else rcanvas2Draw.graphics.lineStyle(size,color);
 
-                cd2.moveTo(startX,startY);
-                cd2.lineTo(endX,endY);
+                rcanvas2Draw.graphics.moveTo(startX,startY);
+                rcanvas2Draw.graphics.lineTo(endX,endY);
 
                 setRCursorPos(endX,endY);
             }
@@ -10395,14 +10344,14 @@
                     setBlurCanvasBySizeNoZoomReplayMode();
                     rcanvas2BitmapData.draw(rcanvas2Draw);
                     rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
-                    cd2.clear();
+                    rcanvas2Draw.graphics.clear();
                     setBlurCanvasBySizeReplayMode(airBrushSizeReplayMode);
                 }
                 else
                 {
                     rcanvas2BitmapData.draw(rcanvas2Draw);
                     rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
-                    cd2.clear();
+                    rcanvas2Draw.graphics.clear();
                 }
             }
 
@@ -10437,7 +10386,7 @@
                 }
 
                 rcanvas2BitmapData.fillRect(new Rectangle(0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height),0);
-                cd2.clear();
+                rcanvas2Draw.graphics.clear();
             }
 
             function drawDone(data:Array):void
@@ -10481,7 +10430,7 @@
                 rcanvas2Bitmap.bitmapData = null;
                 rcanvas2BitmapData.fillRect(new Rectangle(0,0,rcanvas2BitmapData.width,rcanvas2BitmapData.height),0);
 
-                cd2.clear();
+                rcanvas2Draw.graphics.clear();
             }
 
             function clear(layer1:Boolean,layer2:Boolean):void
@@ -10725,6 +10674,8 @@
                 if(rFileStream.bytesAvailable > 0)
                 {
                     const obj:Array = rFileStream.readObject() as Array;
+                    if(!obj) return true;
+
                     tickDraw.ready(obj);
                     rFileCutBytes = rLastBytePosition;
                     rLastBytePosition = rFileStream.position;
@@ -10861,7 +10812,6 @@
         private function getReplayRemainTime(speed:Number,totalFrame:Number,slowFrame:Boolean=false):String
         {
             const fps:Number = (slowFrame === true) ? 1:STAGE_FRAME;
-            const floor:Function = Math.floor;
             const totalSec:Number = totalFrame/(fps*speed);
             if(totalSec === 0) return "";
 
@@ -10880,7 +10830,7 @@
 
             if(hour === 0 && min === 0 && sec === 0)
             {
-                const milisec:Number = totalSec-floor(totalSec);
+                const milisec:Number = totalSec-Math.floor(totalSec);
                 const milisecStr:String = milisec.toFixed(1);
 
                 return " ("+milisecStr+")";
@@ -11064,7 +11014,6 @@
 
             const minDist:Number = topBar["replaySpeedBar"].x+4;
             const maxDist:Number = minDist+topBar["replaySpeedBar"].width-3;
-            const button:SimpleButton = topBar.replaySpeedMoveButton;
             const maxSpeed:Number = REPLAY_MAX_SPEED;
             const clacMax:Number = Math.floor(totalF/(STAGE_FRAME*3));//3초 x 30프레임
             var max:Number = (clacMax > maxSpeed) ? maxSpeed : clacMax;//최고 속도 3초 재생 이지만 REPLAY_MAX_SPEED배속은 넘기지 않음.
@@ -11096,7 +11045,7 @@
                 if(mx < minDist) mx = minDist;
                 else if(mx > maxDist) mx = maxDist;
 
-                button.x = mx;
+                topBar.replaySpeedMoveButton.x = mx;
                 setSpeed(mx);
             }
 
@@ -11132,17 +11081,15 @@
 
         private function getNearZoomIndex(nowZoom:Number):uint
         {
-            const arr:Array = zoomArr;
-            const len:uint = arr.length-1;
             var low:Number = 0;
-            var high:Number = len;
+            var high:Number = zoomArr.length-1;
             if(high <= 0) return high;
             var index:Number = Math.floor((low+high)/2);
             var zoom:Number;
 
             while(low <= high)//2진 탐색
             {
-                zoom = arr[index];
+                zoom = zoomArr[index];
                 if(zoom === nowZoom) break;
                 else if(zoom > nowZoom) high = index-1;
                 else low = index+1;
@@ -11152,8 +11099,8 @@
 
             //가장 가까운값 검출
             if(index <= 0) return 0;
-            else if(index >= len) return len;
-            else if(arr[index+1]-nowZoom < nowZoom-arr[index-1])
+            else if(index >= zoomArr.length-1) return zoomArr.length-1;
+            else if(zoomArr[index+1]-nowZoom < nowZoom-zoomArr[index-1])
             {
                 //현재줌이 상위 줌이랑 더 가까우면 인덱스를 올려줌
                 return index+1;
@@ -11164,16 +11111,15 @@
         //targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
         private function getCacheImageIndex(targetFrame:Number):Number
         {
-            var arr:Array = rFrameCacheImages;
             var low:Number = 0;
-            var high:Number = arr.length-1;
+            var high:Number = rFrameCacheImages.length-1;
             if(high <= 0) return high;
             var index:Number = Math.floor((low+high)/2);
             var indexFrame:Number;
 
             while(low <= high)//2진 탐색
             {
-                indexFrame = arr[index][6];
+                indexFrame = rFrameCacheImages[index][6];
 
                 if(indexFrame === targetFrame) break;
                 else if(indexFrame > targetFrame) high = index-1;
@@ -11188,16 +11134,15 @@
         //targetFrame이 rJumpImageFrameData데이터에 몆 번 인덱스에 있나 구해줌
         private function getJumpImageIndex(targetFrame:Number):Number
         {
-            const arr:Array = rJumpImageFrameData;
             var low:Number = 0;
-            var high:Number = arr.length-1;
+            var high:Number = rJumpImageFrameData.length-1;
             if(high <= 0) return high;
             var index:Number = Math.floor((low + high)/2);
             var indexFrame:Number;
 
             while(low <= high)//2진 탐색
             {
-                indexFrame = arr[index];
+                indexFrame = rJumpImageFrameData[index];
 
                 if(indexFrame === targetFrame) break;
                 else if(indexFrame > targetFrame) high = index-1;
@@ -11205,6 +11150,7 @@
 
                 index = Math.floor((low + high)/2);
             }
+
             return index;
         }
 
@@ -11793,11 +11739,10 @@
 
         private function _setBackgroundColor(xCanvas:Sprite,w:Number,h:Number,color:uint):void
         {
-            const cg:Graphics = xCanvas.graphics;
-            cg.clear();
-            cg.beginFill(color);
-            cg.drawRect(0,0,w,h);
-            cg.endFill();
+            xCanvas.graphics.clear();
+            xCanvas.graphics.beginFill(color);
+            xCanvas.graphics.drawRect(0,0,w,h);
+            xCanvas.graphics.endFill();
         }
 
         private function setBackgroundColorReplayMode(color:uint):void
@@ -12154,8 +12099,6 @@
         private function addColorToHistoryManual():void
         {
             const color:uint = (pickerMode === 2) ? CANVAS_BG_COLOR:penColor;
-            const arr:Array = colorHistoryList;
-            const c:Vector.<uint> = HEXtoRGB(color);
 
             changedColor = color;
             addColorToHistory(color);
@@ -12164,14 +12107,12 @@
         //최근에 쓴 컬러를 항상 마지막에 오게함
         private function setColorHistoryLastColorByIndex(index:int):void
         {
-            const arr:Array = colorHistoryList;
-            const arrlength:int = arr.length;
-            const lastIndex:int = arr.length-1;
+            const len:int = colorHistoryList.length;
 
-            if(arrlength > 0 && index !== lastIndex)
+            if(len > 0 && index !== len-1)
             {
-                arr.push(arr[index]);
-                arr.splice(index,1);
+                colorHistoryList.push(colorHistoryList[index]);
+                colorHistoryList.splice(index,1);
             }
         }
 
@@ -12184,16 +12125,15 @@
 
         private function addColorToHistory(color:uint):void
         {
-            const arr:Array = colorHistoryList;
-            const findIndex:int = arr.lastIndexOf(color);
+            const findIndex:int = colorHistoryList.lastIndexOf(color);
             //리스트 안에 컬러가 있으면 넣어주지 않음
             if(findIndex === -1)
             {
-                arr.push(color);
+                colorHistoryList.push(color);
 
-                if(arr.length > colorHistoryLimit)
+                if(colorHistoryList.length > colorHistoryLimit)
                 {
-                    arr.splice(0,1);
+                    colorHistoryList.splice(0,1);
                 }
             }
             else setColorHistoryLastColorByIndex(findIndex);
@@ -12209,11 +12149,7 @@
 
         private function updateColorHistoryList(ignoreIndex:int = -1):void
         {
-            const arr:Array = colorHistoryList;
-            const cg:Graphics = pickerBox.colorHistoryBox.graphics;
-            const w:Number = colorHistoryColorWidth;
-            const h:Number = colorHistoryRectH;
-            const len:int = arr.length;
+            const len:int = colorHistoryList.length;
 
             pickerBox.drawHistoryBoxBG();
 
@@ -12221,10 +12157,10 @@
             {
                 if(i === ignoreIndex) continue;
 
-                cg.beginFill(arr[i]);
-                cg.drawRect(i*w,14,w,h);
+                pickerBox.colorHistoryBox.graphics.beginFill(colorHistoryList[i]);
+                pickerBox.colorHistoryBox.graphics.drawRect(i*colorHistoryColorWidth,14,colorHistoryColorWidth,colorHistoryRectH);
             }
-            cg.endFill();
+            pickerBox.colorHistoryBox.graphics.endFill();
         }
 
         private function makeResizeButtonFamily():void
@@ -12271,10 +12207,7 @@
         {
             const fs:FileStream = new FileStream();
             const fs2:FileStream = new FileStream();
-            const cd2:Graphics = rcanvas2Draw.graphics;
             const totalSize:Number = repFile.size;
-            const replayInfoText:TextField = replayTimeBox["frameInfo"];
-            const topBarSaveButton:SimpleButton = topBar.saveButton;
             const deepUndoFlag:Boolean = deepUndoON;
             var rect:Rectangle;
             var _frameSum:Number = 0;
@@ -12290,9 +12223,9 @@
             regPoint.visible = false;
             rregPoint.visible = false;
             undoData.resetRJumpImageCount();
-            clearCanvasReplayMode();//일단 리플레이 캔버스 먼저 깨끗하게
-            //첫 이미지 그려줌
+            clearCanvasReplayMode();//리플레이 캔버스 먼저 깨끗하게
 
+            //첫 이미지 그려줌
             if(rcanvas1BitmapData && rFirstImage !== rcanvas1BitmapData) rcanvas1BitmapData.dispose();
             rcanvas1BitmapData = rFirstImage.clone();
             rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
@@ -12320,7 +12253,7 @@
                 }
                 else
                 {
-                    replayInfoText.text = str;
+                    replayTimeBox["frameInfo"].text = str;
                 }
             }
 
@@ -12543,7 +12476,6 @@
                 //참고 레이어 이미지 저장
                 if(canvasTraceBitmapData)
                 {
-                    const traceImgInfo:Array = tracePosInfo;
                     const traceImgWidth:Number = canvasTraceBitmapData.width;
                     const traceImgHeight:Number = canvasTraceBitmapData.height;
                     newRectangle = new Rectangle(0,0,traceImgWidth,traceImgHeight);
@@ -12717,11 +12649,11 @@
             initReplayDataFile(true); //일단 썸네일 이미지랑 리플레이 데이터 청소
             oldFile.copyTo(repFileTemp,true);//repdata.c3p를 복사 덮어씌우기
 
-            if(traceRawArr)
+            if(traceRawData)
             {
                 traceRawBMPD.dispose();
                 traceRawBMPD = null;
-                traceRawArr = null;
+                traceRawData = null;
             }
 
             fs.open(repFileTemp,FileMode.READ);
@@ -12849,7 +12781,7 @@
                     ba = null;
                     d[0] = null;
                     d[1] = null;
-                    traceRawArr = d.concat();
+                    traceRawData = d.concat();
                 }
                 else if(isNewFOFOSaveFormatSave) //신포멧인데 rData옛 버전에서rData압축안하고 넣어준거 읽어줌
                 {
@@ -12983,7 +12915,7 @@
             undoData.setRFileTotalFrame(0);
             makeJumpImageFlag = 0;
             traceRawBMPD = null;
-            traceRawArr = null;
+            traceRawData = null;
             loadFileAfter(fileName,filePath,width,height,imageData,imageData1,true,0xFFFFFF);
             initReplayDataFile(true); //일단 썸네일 이미지랑 리플레이 데이터 청소
         }
@@ -12996,11 +12928,10 @@
                 return;
             }
 
-            const floor:Function = Math.floor;
             var maxLength:Number = (width > height) ? width : height;
             var scaleFix:Number = (maxLength > CANVAS_MAX_SIZE) ? CANVAS_MAX_SIZE/maxLength : 1.0;
-            const scaledwidth:Number = floor(width*scaleFix);
-            const scaledheight:Number= floor(height*scaleFix); //CANVAS_MAX_SIZE 값을 넘으면 리사이즈 해줌
+            const scaledwidth:Number = Math.floor(width*scaleFix);
+            const scaledheight:Number= Math.floor(height*scaleFix); //CANVAS_MAX_SIZE 값을 넘으면 리사이즈 해줌
             var scaleMat:Matrix = new Matrix();
             scaleMat.scale(scaleFix,scaleFix);
             var tmpBMPD:BitmapData = new BitmapData(scaledwidth,scaledheight,true,0);
@@ -13088,29 +13019,28 @@
             resetUndo();
             tickDraw.resetFirstRCursorPos();
 
-            if(traceRawArr === null)
+            if(traceRawData === null)
             {
                 clearTraceImage();
             }
             else
             {
-                const tArr:Array = traceRawArr;
                 canvasTraceBitmapData = traceRawBMPD.clone();
                 canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
-                setTraceImageInfo(tArr[4],
-                                  tArr[5],
-                                  tArr[6],
-                                  tArr[7],
-                                  tArr[8],
-                                  tArr[9]);
-                traceReizeMoveSum = tArr[10];
-                CANVAS_TRACE_ALPHA = tArr[11];
+                setTraceImageInfo(traceRawData[4],
+                                  traceRawData[5],
+                                  traceRawData[6],
+                                  traceRawData[7],
+                                  traceRawData[8],
+                                  traceRawData[9]);
+                traceReizeMoveSum = traceRawData[10];
+                CANVAS_TRACE_ALPHA = traceRawData[11];
                 canvasTraceLayer.visible = true;
-                canvasTraceLayer.alpha = tArr[11];
-                updateTraceOpaButtonPosByAlpha(tArr[11]);
+                canvasTraceLayer.alpha = traceRawData[11];
+                updateTraceOpaButtonPosByAlpha(traceRawData[11]);
                 traceRawBMPD.dispose();
                 traceRawBMPD = null;
-                traceRawArr = null;
+                traceRawData = null;
                 canvasTraceBitmap.smoothing = true;
             }
 
@@ -13498,7 +13428,6 @@
             captureFlipped = false;
             // captureTransBGON = false;
 
-            const floor:Function = Math.floor;
             var xReg:Sprite;
             var xPanel:Sprite;
             var xZoomed:Number;
@@ -13530,20 +13459,20 @@
 
             canvasBackupDataOnSave = {
                                     "z" : zoomed,
-                                    "x" : floor(regPoint.x), //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
-                                    "y" : floor(regPoint.y),
+                                    "x" : Math.floor(regPoint.x), //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
+                                    "y" : Math.floor(regPoint.y),
                                     "r" : regPoint.rotation,
-                                    "px" : floor(canvasPanel.x),
-                                    "py" : floor(canvasPanel.y)
+                                    "px" : Math.floor(canvasPanel.x),
+                                    "py" : Math.floor(canvasPanel.y)
             }
 
             canvasBackupData = {
                                     "z" : xZoomed,
-                                    "x" : floor(xReg.x), //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
-                                    "y" : floor(xReg.y),
+                                    "x" : Math.floor(xReg.x), //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
+                                    "y" : Math.floor(xReg.y),
                                     "r" : xReg.rotation,
-                                    "px" : floor(xPanel.x),
-                                    "py" : floor(xPanel.y),
+                                    "px" : Math.floor(xPanel.x),
+                                    "py" : Math.floor(xPanel.y),
                                     "layer1" : layer1,
                                     "layer2" : layer2
                                 }
@@ -13612,8 +13541,6 @@
         //마우스 클릭하면 캡쳐 영역그리는 함수
         private function cDrawCaptureArea():Object
         {
-            const floor:Function = Math.floor;
-            const abs:Function = Math.abs;
             const replayMode:Boolean = replayModeON;
             const scZoomed:Number = captureZoomed;
 
@@ -13640,13 +13567,11 @@
 
             function drawArea(x:Number,y:Number,w:Number,h:Number):void
             {
-                const g:Graphics = captureAreaRect.graphics;
                 const zoomed:Number = (replayModeON) ? Math.abs(rregPoint.scaleX) : Math.abs(regPoint.scaleX);
-                var lineSize:Number = Math.ceil(2/zoomed);
 
-                g.clear();
-                g.lineStyle(lineSize,0x0099FF,1.0,true);
-                g.drawRect(x,y,w,h);
+                captureAreaRect.graphics.clear();
+                captureAreaRect.graphics.lineStyle(Math.ceil(2/zoomed),0x0099FF,1.0,true);
+                captureAreaRect.graphics.drawRect(x,y,w,h);
             }
 
             function captureMouseMove(e:MouseEvent):void
@@ -13666,10 +13591,10 @@
                 if(hh < -cy) hh = -cy;
                 else if(hh > canvasHeight-cy) hh = canvasHeight-cy;
 
-                ww = floor(ww+0.5);
-                hh = floor(hh+0.5);
+                ww = Math.floor(ww+0.5);
+                hh = Math.floor(hh+0.5);
 
-                if(abs(ww) > 10 && abs(hh) > 10)
+                if(Math.abs(ww) > 10 && Math.abs(hh) > 10)
                 {
                     rectW = ww;
                     rectH = hh;
@@ -13681,8 +13606,8 @@
 
             function getRotatedRectSizeString():String
             {
-                const w:Number = abs(rectW);
-                const h:Number = abs(rectH);
+                const w:Number = Math.abs(rectW);
+                const h:Number = Math.abs(rectH);
 
                 if(!rectW || !rectH || (w < 10 && h < 10))
                 {
@@ -13812,8 +13737,8 @@
                 if(cy < 0 ) cy = 0;
                 else if(cy > canvasHeight) cy = canvasHeight;
 
-                cx = floor(cx);
-                cy = floor(cy);
+                cx = Math.floor(cx);
+                cy = Math.floor(cy);
 
                 if(topBar.hitTestPoint(mouseX,mouseY) === false)
                 {
@@ -14238,30 +14163,26 @@
             rMirrorON = false;
             mirrorON = false;
             appInfoBox.setMirror(false);
+
             const fs:FileStream = new FileStream();
             fs.open(undoDataFile,FileMode.READ);
+
             const lastUndoIndex:int = fs.readInt();
-            const arr:Array = fs.readObject() as Array; //undodata first
-            arr[0].uncompress();
-            arr[1].uncompress();
-            const newRectangle:Rectangle = new Rectangle(0,0,arr[2],arr[3]);
+            var arr:Array = fs.readObject() as Array; //undodata first
+            const bmpdRect:Rectangle = new Rectangle(0,0,arr[2],arr[3]);
             var bmpd:BitmapData = new BitmapData(arr[2],arr[3],true,0);
             var bmpd1:BitmapData = new BitmapData(arr[2],arr[3],true,0);
-            var arr1:Array = fs.readObject() as Array;
-            var arr2:Array = fs.readObject() as Array;
 
-            rData = arr1.concat();
-            rDataFrame = arr2.concat();
-            arr1 = [];
-            arr2 = [];
+            rData = (fs.readObject() as Array).concat();
+            rDataFrame = (fs.readObject() as Array).concat();
             fs.close();
 
             undoIndex = lastUndoIndex;
             bmpd.lock();
-            bmpd.setPixels(newRectangle,arr[0]);
+            bmpd.setPixels(bmpdRect,arr[0]);
             bmpd.unlock();
             bmpd1.lock();
-            bmpd1.setPixels(newRectangle,arr[1]);
+            bmpd1.setPixels(bmpdRect,arr[1]);
             bmpd1.unlock();
             undoData.setUndoRefImage(bmpd.clone(),bmpd1.clone(),arr[2],arr[3],arr[4],arr[5]);
 
@@ -14272,6 +14193,8 @@
             bmpd1.dispose();
             bmpd = null;
             bmpd1 = null;
+            arr.length = 0;
+            arr = null;
 
             //undo index가 arr의 가장 마지막 부분이 아니면 undo를 하던 중이니까 undoDelFlag 켜줌
             if(lastUndoIndex < rData.length-1) undoDelFlag = true;
@@ -14290,8 +14213,8 @@
 
             bmpd.copyPixelsToByteArray(newRectangle,ba);
             bmpd1.copyPixelsToByteArray(newRectangle,ba1);
-            ba.compress();
-            ba1.compress();
+            // ba.compress();
+            // ba1.compress();
             //레이어 1,레이어2,가로,세로,배경색
             var newArr:Array = [ba,ba1,arr[2],arr[3],arr[4],arr[5]];
 
@@ -14451,7 +14374,7 @@
                 fs.open(traceImageFile, FileMode.READ);
                 arr = fs.readObject() as Array;
                 fs.close();
-                arr[0].uncompress();
+                // arr[0].uncompress();
                 newRectangle = new Rectangle(0,0,arr[1],arr[2]);
 
                 var bmpd:BitmapData = new BitmapData(arr[1], arr[2], true, 0);
@@ -14769,7 +14692,7 @@
 
             var canvasSizeWidth:Number;
             var canvasSizeHeight:Number;
-            var _traceMemoryTraining:Boolean;
+            // var _traceMemoryTraining:Boolean;
             var xSize:uint;
             var xColor:uint;
             var xAlpha:Number;
@@ -14964,7 +14887,7 @@
                 stageMouseMoveEvent.remove("lineMoveEvent");
                 stage.removeEventListener(MouseEvent.MOUSE_UP, lineUpEvent);
 
-                if(_traceMemoryTraining)
+                if(traceMemoryTrainingON)
                 {
                     canvasTraceLayer.visible = true;
                 }
@@ -15017,8 +14940,6 @@
 
             return function (lineToolFlag:Boolean):void
             {
-                _traceMemoryTraining = traceMemoryTraining;
-
                 xSize = penSize;
                 xAlpha = penAlpha;
                 xShape = penShape;
@@ -15045,7 +14966,7 @@
                 oldY = canvas2Draw.mouseY;
                 subLayerFlag = subLayerON
 
-                if(_traceMemoryTraining)
+                if(traceMemoryTrainingON)
                 {
                     canvasTraceLayer.visible = false;
                 }
@@ -15180,11 +15101,10 @@
                 getMovedPos = null;
                 var tempBitData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
 
-                const floor:Function = Math.floor;
-                const movex:Number = floor(canvas1Bitmap.x);
-                const movey:Number = floor(canvas1Bitmap.y);
-                const movex1:Number = floor(canvas11Bitmap.x);
-                const movey1:Number = floor(canvas11Bitmap.y);
+                const movex:Number = Math.floor(canvas1Bitmap.x);
+                const movey:Number = Math.floor(canvas1Bitmap.y);
+                const movex1:Number = Math.floor(canvas11Bitmap.x);
+                const movey1:Number = Math.floor(canvas11Bitmap.y);
                 var movedMat:Matrix = new Matrix();
 
                 if(deepUndoON) setApplyDeepUndo();
@@ -15323,33 +15243,6 @@
             };
         }
 
-        private function getNearestZoomValue(z:Number):Number
-        {
-            z = (z > 1.0) ? Math.round(z) : Math.round(z*10)/10;//반올림 해줌
-
-            const arr:Array = zoomArr;
-            const len:uint = arr.length-1;
-            var low:Number = 0;
-            var high:Number = arr.length-1;
-            var index:Number = 0;
-            for(var i:int=0; i<len; i++)
-            {
-                if(z <= arr[i])
-                {
-                    if(i === 0) index = i;
-                    if(i > 0 && arr[i]-z < z-arr[i-1]) index = i;
-                    else index = i-1;
-
-                    break;
-                }
-            }
-
-            zoomedIndex = index;
-
-            const final:Number = arr[index];
-            return final;
-        }
-
         private function cZoomTool():Function
         {
             const zoomMin:Number = zoomArr[0];
@@ -15370,14 +15263,7 @@
             var xRotation:Number
             var maxWidth:Number;//줌 배율을 곱해줘야 정확한 값이 나옴. width나 canvasPanel.mouseX는 scale된 값이 아님
             var maxHeight:Number;
-            var gp:Point;
-            var zoomClickX:Number;
-            var zoomClickY:Number;
-            //캔버스가 회전해있을경우 음수를 해줘야 정확한 값이 나옴
-            var panelLimitedPos:Point;
-            //캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
-            var panelLimitedX:Number;
-            var panelLimitedY:Number;
+            // var gp:Point;
 
             function zoomToolMouseUpEvent(clickZoomInFlag:Boolean):void
             {
@@ -15497,21 +15383,8 @@
                 xRotation= -regPoint.rotation;
                 maxWidth = CANVAS_WIDTH*xZoomed;//줌 배율을 곱해줘야 정확한 값이 나옴. width나 canvasPanel.mouseX는 scale된 값이 아님
                 maxHeight = CANVAS_HEIGHT*xZoomed;
-                gp = xCanvas.localToGlobal(ZERO_POINT);
-                zoomClickX = xCanvas.mouseX*xZoomed;
-                zoomClickY = xCanvas.mouseY*xZoomed;
 
-                if(zoomClickX < 0)  zoomClickX = 0;
-                else if(zoomClickX > maxWidth)  zoomClickX = maxWidth;
-
-                if(zoomClickY < 0) zoomClickY = 0;
-                else if(zoomClickY > maxHeight) zoomClickY = maxHeight;
-
-                //캔버스가 회전해있을경우 음수를 해줘야 정확한 값이 나옴
-                panelLimitedPos = rotatePoint(zoomClickX,zoomClickY, xRotation);
-                //캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
-                panelLimitedX = panelLimitedPos.x+gp.x;
-                panelLimitedY = panelLimitedPos.y+gp.y;
+                var gp:Point;
 
                 //regpoint를 panelLimitedPos계산한 값으로 이동
                 if(lassoMenuTempOFF === true)
@@ -15521,7 +15394,18 @@
                 }
                 else
                 {
-                    setRegPoint(panelLimitedX,panelLimitedY,false);
+                    gp = xCanvas.localToGlobal(ZERO_POINT);
+                    var zoomClickX:Number = xCanvas.mouseX*xZoomed;
+                    var zoomClickY:Number = xCanvas.mouseY*xZoomed;
+
+                    if(zoomClickX < 0)  zoomClickX = 0;
+                    else if(zoomClickX > maxWidth)  zoomClickX = maxWidth;
+
+                    if(zoomClickY < 0) zoomClickY = 0;
+                    else if(zoomClickY > maxHeight) zoomClickY = maxHeight;
+                    const panelLimitedPos:Point = rotatePoint(zoomClickX,zoomClickY, xRotation);
+                    //캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
+                    setRegPoint(panelLimitedPos.x+gp.x,panelLimitedPos.y+gp.y,false);
                 }
 
                 clickPos.setTo(mouseX,mouseY);
@@ -15568,7 +15452,6 @@
         //캔버스의 중심좌표를 구함 컨트롤 박스 옵션 박스 포함
         private function getCanvasPanelMidPos():Point
         {
-            const round:Function = Math.round;
             const boundRect:Object = getBoundRect(canvas1Bitmap);
             const left:Number = boundRect.left;
             const top:Number = boundRect.top;
@@ -15576,8 +15459,8 @@
             const bottom:Number = boundRect.bottom;
             const visualWidth:Number = right-left;//회전해있어도 상관없음
             const visualHeight:Number = bottom-top;//양끝 모서리들의 직선거리를 구함
-            const visualMidX:Number = round((left+right)/2);//회전한 캔버스의 중심점을 구함
-            const visualMidY:Number = round((top+bottom)/2); //floor안하면 1픽셀씩 내려감 0.5를 아래 setRegPoint 함수 에서 반올림 해줘서 그럼
+            const visualMidX:Number = Math.round((left+right)/2);//회전한 캔버스의 중심점을 구함
+            const visualMidY:Number = Math.round((top+bottom)/2); //floor안하면 1픽셀씩 내려감 0.5를 아래 setRegPoint 함수 에서 반올림 해줘서 그럼
             const p:Point = new Point(visualMidX,visualMidY);
 
             return p;
@@ -15651,20 +15534,22 @@
                 return;
             }
 
-            const cpg:Graphics = rcanvasPanel.graphics;
-            const maskg:Graphics = rcanvasPanelMask.graphics;
+
             const bgColor:uint = RCANVAS_BG_COLOR;
 
             //캔버스가 회전되어있으면 회전된 방향으로 움직여줘야함
-            cpg.clear();
-            cpg.beginFill(bgColor);
-            cpg.drawRect(0,0,w,h);
-            cpg.endFill();
-            maskg.clear();
-            maskg.beginFill(bgColor);//paneldraw마스크 아무색이나 상관없음 어차피 마스크로 쓸거라
-            maskg.drawRect(0,0,w,h);
-            maskg.endFill();
+            rcanvasPanel.graphics.clear();
+            rcanvasPanel.graphics.beginFill(bgColor);
+            rcanvasPanel.graphics.drawRect(0,0,w,h);
+            rcanvasPanel.graphics.endFill();
+
+            rcanvasPanelMask.graphics.clear();
+            rcanvasPanelMask.graphics.beginFill(bgColor);//paneldraw마스크 아무색이나 상관없음 어차피 마스크로 쓸거라
+            rcanvasPanelMask.graphics.drawRect(0,0,w,h);
+            rcanvasPanelMask.graphics.endFill();
+
             rcanvasPanel.mask = rcanvasPanelMask;//마스크 다시 씌워줌
+
             rcanvas1BitmapData = new BitmapData(w,h,true,0);
             rcanvas11BitmapData = new BitmapData(w,h,true,0);
             rcanvas2BitmapData = new BitmapData(w,h,true,0);
@@ -15847,29 +15732,26 @@
 
             function checkRatioSnap(width:Number):Array
             {
-                const arr:Array = ratioSizeArr;
-                const len:uint = arr.length-1;
-                const floor:Function = Math.floor;
                 var low:Number = 0;
-                var high:Number = arr.length-1;
-                var index:Number = floor((low+high)/2);
+                var high:Number = ratioSizeArr.length-1;
+                var index:Number = Math.floor((low+high)/2);
                 var snapWidth:Number;
 
                 while(low <= high)//2진 탐색
                 {
-                    snapWidth = arr[index][0];
+                    snapWidth = ratioSizeArr[index][0];
 
                     if(snapWidth === width) break;
                     else if(snapWidth > width) high = index-1;
                     else low = index+1;
 
-                    index = floor((low + high)/2);
+                    index = Math.floor((low + high)/2);
                 }
 
                 ++index;
 
                 if(index < 0) index = 0;
-                else if(index > len) index = len;
+                else if(index > ratioSizeArr.length-1) index = ratioSizeArr.length-1;
 
                 return ratioSizeArr[index];
             }
@@ -15878,13 +15760,9 @@
             {
                 widthFlag = (targetName === "resizeButtonL" || targetName === "resizeButtonR") ? true : false;
                 const flipFlag:Boolean = (targetName === "resizeButtonU" || targetName === "resizeButtonL") ? true : false;
-                const g:Graphics = resizePreviewRatioRect.graphics;
-                const lineSize:Number = 3/zoomed;
-                const lineWidth:Number = guideLineWidth;
 
                 function _drawRatioLine(referenceSize:Number,offset:Number):void
                 {
-                    const round:Function = Math.round;
                     const len:uint = ratioArr.length;
                     const color:uint = uiColorSet[uiColorIndex][1];
                     var i:uint;
@@ -15894,30 +15772,30 @@
                     ratioSizeArr.length = 0;
 
                     //hittestpoint를 위해서 배경을 그려줌
-                    g.beginFill(0xFFFF00,0.0);
-                    if(widthFlag) g.drawRect(-max/2,-lineWidth,max*2,lineWidth);
-                    else g.drawRect(-lineWidth,-max/2,lineWidth,max*2);
-                    g.endFill();
+                    resizePreviewRatioRect.graphics.beginFill(0xFFFF00,0.0);
+                    if(widthFlag) resizePreviewRatioRect.graphics.drawRect(-max/2,-guideLineWidth,max*2,guideLineWidth);
+                    else resizePreviewRatioRect.graphics.drawRect(-guideLineWidth,-max/2,guideLineWidth,max*2);
+                    resizePreviewRatioRect.graphics.endFill();
 
                     for(i=0;i<len;i+=2)
                     {
-                        realSize = round(referenceSize*ratioArr[i+1]);
+                        realSize = Math.floor(referenceSize*ratioArr[i+1]);
                         prevSize = realSize;
                         if(realSize > max || realSize < min) continue;
 
-                        g.lineStyle(lineSize,color,1.0,true,"normal","none");
+                        resizePreviewRatioRect.graphics.lineStyle(3/zoomed,color,1.0,true,"normal","none");
 
                         if(flipFlag) prevSize = -prevSize+offset;
 
                         if(widthFlag)
                         {
-                            g.moveTo(prevSize,0);
-                            g.lineTo(prevSize,-lineWidth);
+                            resizePreviewRatioRect.graphics.moveTo(prevSize,0);
+                            resizePreviewRatioRect.graphics.lineTo(prevSize,-guideLineWidth);
                         }
                         else
                         {
-                            g.moveTo(0,prevSize);
-                            g.lineTo(-lineWidth,prevSize);
+                            resizePreviewRatioRect.graphics.moveTo(0,prevSize);
+                            resizePreviewRatioRect.graphics.lineTo(-guideLineWidth,prevSize);
                         }
                         ratioSizeArr.push([realSize,ratioArr[i]]);
                     }
@@ -16005,14 +15883,12 @@
 
             function drawResizePreviewRect(size:Number,x:Number,y:Number,w:Number,h:Number):void
             {
-                const resizeg:Graphics = resizePreviewRect.graphics;
+                resizePreviewRect.graphics.clear();
 
-                resizeg.clear();
+                if(size > 0) resizePreviewRect.graphics.beginFill(bgColor);
+                else resizePreviewRect.graphics.beginFill(stageColor);
 
-                if(size > 0) resizeg.beginFill(bgColor);
-                else resizeg.beginFill(stageColor);
-
-                resizeg.drawRect(x,y,w,h);
+                resizePreviewRect.graphics.drawRect(x,y,w,h);
 
                 checkRatioSnapGuidePos();
             }
@@ -16185,7 +16061,6 @@
         private function moveSelectedAreaToLassoBox(replayMode:Boolean,rectArr:Vector.<Number>,points:Array,copyFlag:Boolean,layer1:Boolean,layer2:Boolean):Boolean
         {
             //라소 경계 사각형 좌표와 크기
-            const floor:Function = Math.floor;
             const rectLeft:Number = rectArr[0];
             const rectTop:Number = rectArr[1];
             const rectWidth:Number = rectArr[2] - rectLeft;
@@ -16193,7 +16068,7 @@
             const lassoPointsLen:uint = points.length;
 
             //가로세로 길이가 0 이하이면 실행하지 않음
-            if(floor(rectWidth) <= 0 || floor(rectHeight) <= 0) return false;
+            if(Math.floor(rectWidth) <= 0 || Math.floor(rectHeight) <= 0) return false;
 
             var xCanvas2Draw:Shape;
             var canvasBitmapData:BitmapData;
@@ -16239,9 +16114,6 @@
                 }
             }
 
-            const halfWidth:Number = rectWidth/2;
-            const halfHeight:Number = rectHeight/2;
-            const lassoP0:Array = points[0];
             const newRectangle:Rectangle = new Rectangle(rectLeft,rectTop,rectWidth,rectHeight);
 
             var lassoBMPD:BitmapData = new BitmapData(rectWidth,rectHeight,true,0);
@@ -16260,8 +16132,8 @@
             //bitmap1canvas에서 그려준 영역을 지워줌
             if(!copyFlag)
             {
-                x = lassoP0[0];
-                y = lassoP0[1];
+                x = points[0][0];
+                y = points[0][1];
                 xCanvas2Draw.graphics.clear();
                 xCanvas2Draw.graphics.beginFill(CANVAS_BG_COLOR);
                 xCanvas2Draw.graphics.moveTo(x,y);
@@ -16307,7 +16179,7 @@
             xCanvas2Draw.graphics.clear();
             xCanvas2Draw.graphics.beginFill(0x00FF00);
             xCanvas2Draw.graphics.drawRect(0,0,rectWidth,rectHeight);
-            xCanvas2Draw.graphics.moveTo(lassoP0[0]-rectLeft,lassoP0[1]-rectTop);
+            xCanvas2Draw.graphics.moveTo(points[0][0]-rectLeft,points[0][1]-rectTop);
 
             //rectLeft를 빼줘서 canvasdraw2의 0,0영역에 그려줌
             for(i=1;i<lassoPointsLen;i++)
@@ -16337,20 +16209,20 @@
 
             if(layer1)
             {
-                lassoBMP.x = -halfWidth;
-                lassoBMP.y = -halfHeight;
+                lassoBMP.x = -rectWidth/2;
+                lassoBMP.y = -rectHeight/2;
                 lassoBMP.smoothing = true;
             }
 
             if(layer2)
             {
-                lassoBMPsub.x = -halfWidth;
-                lassoBMPsub.y = -halfHeight;
+                lassoBMPsub.x = -rectWidth/2;
+                lassoBMPsub.y = -rectHeight/2;
                 lassoBMPsub.smoothing = true;
             }
 
-            lassoBox1.x = rectLeft+halfWidth;
-            lassoBox1.y = rectTop+halfHeight;
+            lassoBox1.x = rectLeft+rectWidth/2;
+            lassoBox1.y = rectTop+rectHeight/2;
             lassoBox2.x = lassoBox1.x;
             lassoBox2.y = lassoBox1.y;
             lassoDraw.x = -lassoBox1.x;
@@ -16399,13 +16271,12 @@
 
             function setDeafultLassoMenuPos(lassoMenu:lassoButtons):void
             {
-                const floor:Function = Math.floor;
                 const g:Point = lassoBox1.localToGlobal(ZERO_POINT);
                 const lassoW:Number = (lassoMenu.width > stage.stageWidth)
                                       ? stage.stageWidth : lassoMenu.width;
 
-                lassoMenu.x = floor(g.x-lassoW/2);
-                lassoMenu.y = floor(g.y+(((lassoBox1.height)/2)*zoomed+20));
+                lassoMenu.x = Math.floor(g.x-lassoW/2);
+                lassoMenu.y = Math.floor(g.y+(((lassoBox1.height)/2)*zoomed+20));
                 // lassoMenu.y = floor(g.y+(((lassoBox1.height)/2)/zoomed+15));
             }
 
@@ -16552,7 +16423,6 @@
             const magSize:Number = spuitZoomCursor.magSize;
             const spuitMagRect:Rectangle = new Rectangle(0,0,magSize,magSize);
             const spuitMagMat:Matrix = new Matrix();
-
             var penColorBackup:uint;
 
             function isButtonSkipOldTool(targetName:String):Boolean
@@ -16583,9 +16453,6 @@
             {
                 if(isHitTestPoint(canvas1Bitmap))
                 {
-                    //뽑기색
-                    const round:Function = Math.round;
-
                     //배경색
                     const r3:uint = (CANVAS_BG_COLOR & 0xFF0000) >> 16;
                     const g3:uint = (CANVAS_BG_COLOR & 0x00FF00) >> 8;
@@ -16632,15 +16499,15 @@
 
                     //아래 레이어 부터
                     aa = 1.0-a2;
-                    rr = round(r2*a2)+round(r3*aa);
-                    gg = round(g2*a2)+round(g3*aa);
-                    bb = round(b2*a2)+round(b3*aa);
+                    rr = Math.round(r2*a2)+Math.round(r3*aa);
+                    gg = Math.round(g2*a2)+Math.round(g3*aa);
+                    bb = Math.round(b2*a2)+Math.round(b3*aa);
 
                     //그 위에 위 레이어
                     const aa1:Number = 1.0-a1;
-                    const r:uint = round(r1*a1)+round(rr*aa1);
-                    const g:uint = round(g1*a1)+round(gg*aa1);
-                    const b:uint = round(b1*a1)+round(bb*aa1);
+                    const r:uint = Math.round(r1*a1)+Math.round(rr*aa1);
+                    const g:uint = Math.round(g1*a1)+Math.round(gg*aa1);
+                    const b:uint = Math.round(b1*a1)+Math.round(bb*aa1);
 
                     return RGBtoHEX(r,g,b);
                 }
@@ -17155,6 +17022,7 @@
         private function setEraseButtonPosToOtherButtonPos(toolName:String):void
         {
             const nowButton2:SimpleButton = toolBox2.getChildByName(toolName) as SimpleButton;
+            if(!nowButton2) return;
 
             if(eraseMovedButton)
             {
@@ -17177,9 +17045,6 @@
         //펜 지우개 직선 지우개-직선 통합
         private function cCheckMainDrawTool():Function
         {
-            const eraseButton2:SimpleButton = toolBox2["toolErase"];
-            const penButton2:SimpleButton = toolBox2["toolPen"];
-
             var sizeIndex:uint;
             var alphaIndex:uint;
 
@@ -17231,7 +17096,7 @@
 
                         eraseMovedButton = null;
 
-                        eraseButton2.visible = false;
+                        toolBox2["toolErase"].visible = false;
                         toolBox.moveToolCursor("toolErase");
                         setControlBoxInfoOFF();
                     }
@@ -17244,8 +17109,8 @@
                         toolBox.moveToolCursor("toolLine");
                         setControlBoxInfoOFF();
                     }
-                    eraseButton2.visible = true;
-                    penButton2.visible = true;
+                    toolBox2["toolErase"].visible = true;
+                    toolBox2["toolPen"].visible = true;
                 }
 
                 controlBox.shapeFlag(shape);
@@ -17351,9 +17216,8 @@
         //panel은 그대로 있고 regpoint만 이동
         private function setRegPoint(tx:Number,ty:Number,replayMode:Boolean=false):void
         {
-            const round:Function = Math.round;
-            tx = round(tx);
-            ty = round(ty);
+            tx = Math.round(tx);
+            ty = Math.round(ty);
 
             var xReg:Sprite;
             var xCanvas:Sprite;
@@ -17386,8 +17250,8 @@
                                                  xReg.rotation);
             xReg.x = tx;
             xReg.y = ty;
-            xCanvas.x += round(rotateToolMoveEvent.x);//이동한 만큼 거꾸로 움직여줌
-            xCanvas.y += round(rotateToolMoveEvent.y);//rotate값 포함해서 움직여야함
+            xCanvas.x += Math.round(rotateToolMoveEvent.x);//이동한 만큼 거꾸로 움직여줌
+            xCanvas.y += Math.round(rotateToolMoveEvent.y);//rotate값 포함해서 움직여야함
         }
 
         //0,0을 기준으로 점tx,ty를 rad만큼 회전함,
@@ -17669,23 +17533,16 @@
 
             function updateUndoRefImage():void
             {
-                const d:Array = undoRefImage;
-                const image:BitmapData = d[0];
-                const image1:BitmapData = d[1];
-                const w:uint = d[2];
-                const h:uint = d[3];
-                const bg:uint = d[4];
-                const len:int = undoIndex;
                 var rMirrorSave:Boolean = rMirrorON;
 
-                if(w !== RCANVAS_WIDTH || h !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(w,h,0,0,false);
-                if(bg !== RCANVAS_BG_COLOR) setBackgroundColorReplayMode(bg);
+                if(undoRefImage[2] !== RCANVAS_WIDTH || undoRefImage[3] !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(undoRefImage[2],undoRefImage[3],0,0,false);
+                if(undoRefImage[4] !== RCANVAS_BG_COLOR) setBackgroundColorReplayMode(undoRefImage[4]);
 
-                if(rcanvas1BitmapData && image !== rcanvas1BitmapData) rcanvas1BitmapData.dispose();
-                rcanvas1BitmapData = image.clone();
+                if(rcanvas1BitmapData && undoRefImage[0] !== rcanvas1BitmapData) rcanvas1BitmapData.dispose();
+                rcanvas1BitmapData = undoRefImage[0].clone();
 
-                if(rcanvas11BitmapData && image1 !== rcanvas11BitmapData) rcanvas11BitmapData.dispose();
-                rcanvas11BitmapData = image1.clone();
+                if(rcanvas11BitmapData && undoRefImage[1] !== rcanvas11BitmapData) rcanvas11BitmapData.dispose();
+                rcanvas11BitmapData = undoRefImage[1].clone();
 
                 rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
                 rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
@@ -17883,16 +17740,15 @@
                                     {
                                         if(workerUndoData.length > 0)
                                         {
-                                            const undo2FirstData:Array = workerUndoData2[0];
-                                            rJumpImageFrameData.push(undo2FirstData[4]);
+                                            rJumpImageFrameData.push(workerUndoData2[0][4]);
                                             fs.open(rJumpImageFolder.resolvePath((rJumpImageFrameData.length-1)+""),FileMode.WRITE);
                                             fs.writeObject([workerUndoData[0][0]//레이어1
                                                             ,workerUndoData[0][1]//레이어2
-                                                            ,undo2FirstData[0] //가로
-                                                            ,undo2FirstData[1] //새로
-                                                            ,undo2FirstData[2] //배경색
-                                                            ,undo2FirstData[3] //마지막 바이트
-                                                            ,undo2FirstData[4] //마지막 프레임 합
+                                                            ,workerUndoData2[0][0] //가로
+                                                            ,workerUndoData2[0][1] //새로
+                                                            ,workerUndoData2[0][2] //배경색
+                                                            ,workerUndoData2[0][3] //마지막 바이트
+                                                            ,workerUndoData2[0][4] //마지막 프레임 합
                                                             ,mirrorON]);//미러 플래그
                                             fs.close();
                                             workerUndoData[0][0].clear();
@@ -17912,6 +17768,7 @@
                                             workerUndoData2.length = 0;
                                             workerUndoData = null;
                                             workerUndoData2 = null;
+
                                             return false;
                                         }
                                         return true;
@@ -18052,14 +17909,13 @@
         //h는 0에서 360, s v는 0~1.0 사이값 넣어줘야함
         private function HSVtoRGB(h:Number, s:Number, v:Number):Vector.<uint>
         {
-            const round:Function = Math.round;
-            v = round(v * 255);
+            v = Math.round(v * 255);
 
             const i:Number = Math.floor(h * 6);
             const f:Number = h * 6 - i;
-            const p:Number = round(v * (1 - s));
-            const q:Number = round(v * (1 - f * s));
-            const t:Number = round(v * (1 - (1 - f) * s));
+            const p:Number = Math.round(v * (1 - s));
+            const q:Number = Math.round(v * (1 - f * s));
+            const t:Number = Math.round(v * (1 - (1 - f) * s));
 
             switch(i)
             {
@@ -18133,10 +17989,8 @@
             penLastUpdateInfo[2] = penColor;
             penLastUpdateInfo[3] = index;
 
-            const opaCursor:SimpleButton = controlBox.opaCursor;
-
-            opaCursor.x = curButton.x;
-            opaCursor.y = curButton.y;
+            controlBox.opaCursor.x = curButton.x;
+            controlBox.opaCursor.y = curButton.y;
         }
 
         private function setPenAlpha(alpha:Number=0):void
@@ -18186,8 +18040,6 @@
 
         private function setSideBarRightPosition(ignoreCanvasMove:Boolean):void
         {
-            const floor:Function = Math.floor;
-
             updateSidebarDefaultRightPos();
 
             sideBarScrollSet.x = 9;
@@ -18196,13 +18048,13 @@
             previewBox.y = 0;
             appInfoBox.setWidth(previewBox.BOX_WIDTH);
             appInfoBox.x = previewBox.x-2;
-            appInfoBox.y = floor(previewBox.y+previewBox.BOX_HEIGHT+3);
+            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+3);
             controlBox.x = 39;
-            controlBox.y = floor(appInfoBox.y+appInfoBox.height);
+            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 39;
-            pickerBox.y = floor(controlBox.y+controlBox.height+6);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height+6);
             toolBox.x = -2;
-            toolBox.y = floor(controlBox.y+2);
+            toolBox.y = Math.floor(controlBox.y+2);
 
             resetScrollBarXPosition();
             sideBarScrollBar.y = scrollBarMovedY;
@@ -18234,7 +18086,6 @@
 
         private function setSideBarLeftPosition():void
         {
-            const floor:Function = Math.floor;
             sideBar.x = 0;
 
             sideBarScrollSet.x = 5;
@@ -18243,13 +18094,13 @@
             previewBox.y = 0;
             appInfoBox.setWidth(previewBox.BOX_WIDTH);
             appInfoBox.x = previewBox.x-2;
-            appInfoBox.y = floor(previewBox.y+previewBox.BOX_HEIGHT+3);
+            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+3);
             controlBox.x = 0;
-            controlBox.y = floor(appInfoBox.y+appInfoBox.height);
+            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height);
             pickerBox.x = 0;
-            pickerBox.y = floor(controlBox.y+controlBox.height+6);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height+6);
             toolBox.x = 177;
-            toolBox.y = floor(controlBox.y+2);
+            toolBox.y = Math.floor(controlBox.y+2);
 
             if(toolBox.getDeafultY() === 0) toolBox.setDeafultY(toolBox.y);
 
@@ -18281,16 +18132,14 @@
 
         private function updateScrollBarColorHeight(height:Number):void
         {
-            var g:Graphics = sideBarScrollBar.graphics;
             const color1:uint = uiColorSet[uiColorIndex][1];
             const color2:uint = uiColorSet[uiColorIndex][0];
 
-            g.clear();
-            g.lineStyle(1,color1,1.0,true);
-            // g.lineStyle(1,0,0);
-            g.beginFill(color2);
-            g.drawRect(0,0,16,height);
-            g.endFill();
+            sideBarScrollBar.graphics.clear();
+            sideBarScrollBar.graphics.lineStyle(1,color1,1.0,true);
+            sideBarScrollBar.graphics.beginFill(color2);
+            sideBarScrollBar.graphics.drawRect(0,0,16,height);
+            sideBarScrollBar.graphics.endFill();
 
             scrollBarHeight = height;
         }
@@ -18703,7 +18552,6 @@
         //캔버스 정 가운데로
         private function getStageCenterPos(flag:int):Point
         {
-            const floor:Function = Math.floor;
             const scale:Number = getUIScale();
             const center:Point = new Point(0,0);
             var topBarOffset:Number = topBar.BARSIZE*scale;
@@ -18711,20 +18559,20 @@
             if(flag === CENTERPOS_DRAW)
             {
 
-                center.setTo((!isSidebarVisible) ? floor(stage.stageWidth/2)
-                             :(isRightSidebar)   ? floor((stage.stageWidth-STAGE_RIGHT_OFFSET)/2)
-                                                 : floor(STAGE_LEFT_OFFSET+(stage.stageWidth-STAGE_LEFT_OFFSET)/2)
-                            ,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
+                center.setTo((!isSidebarVisible) ? Math.floor(stage.stageWidth/2)
+                             :(isRightSidebar)   ? Math.floor((stage.stageWidth-STAGE_RIGHT_OFFSET)/2)
+                                                 : Math.floor(STAGE_LEFT_OFFSET+(stage.stageWidth-STAGE_LEFT_OFFSET)/2)
+                            ,Math.floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else if(flag === CENTERPOS_CAPTURE)
             {
                 // topBarOffset = topBarOffset//+14*scale;
-                center.setTo(stage.stageWidth/2,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
+                center.setTo(stage.stageWidth/2,Math.floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else if(flag === CENTERPOS_REPLAY)
             {
                 topBarOffset = topBarOffset+replayTimeBox.BARSIZE*scale;
-                center.setTo(stage.stageWidth/2,floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
+                center.setTo(stage.stageWidth/2,Math.floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else
             {
@@ -18736,7 +18584,6 @@
 
         private function setCenvasCenterPos(replayMode:Boolean=false,captureMode:Boolean=false):void
         {
-            const floor:Function = Math.floor;
             var xReg:Sprite;
             var xCanvas:Sprite;
             var w:Number;
@@ -18762,10 +18609,10 @@
             else if(replayMode) center = getStageCenterPos(CENTERPOS_REPLAY);
             else center = getStageCenterPos(CENTERPOS_DRAW);
 
-            xReg.x = floor(center.x);
-            xReg.y = floor(center.y);
-            xCanvas.x = floor(-w/2);
-            xCanvas.y = floor(-h/2);
+            xReg.x = Math.floor(center.x);
+            xReg.y = Math.floor(center.y);
+            xCanvas.x = Math.floor(-w/2);
+            xCanvas.y = Math.floor(-h/2);
         }
 
         private function clearCanvasReplayMode():void
@@ -19775,7 +19622,6 @@
 
         private function setScrollBarMove(clickY:Number):void
         {
-            const floor:Function = Math.floor;
             const scale:Number = getUIScale();
             const sth:Number = stage.stageHeight;
             const canMoveHeight:Number = (sth-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET)-scrollBarHeight*scale;
@@ -19816,8 +19662,8 @@
                     my2 = -diffHeight/scale;
                 }
 
-                sideBarScrollBar.y = floor(my1);
-                sideBarScrollSet.y = floor(my2);
+                sideBarScrollBar.y = Math.floor(my1);
+                sideBarScrollSet.y = Math.floor(my2);
 
                 clickY = mouseY;
             }
@@ -19891,7 +19737,6 @@
 
         private function checkReplaySpeedState():void
         {
-            const floor:Function = Math.floor;
             const totalFrame:Number = TOTAL_FRAME;
             const rf:Number = rNowFrame;
             const bw:Number = replayTimeBox["replayTotalBar"].width;
@@ -19899,7 +19744,7 @@
             if(totalFrame < STAGE_FRAME*3) topBar["replaySpeedSet"].alpha = BUTTON_OFF_ALPHA;
             else topBar["replaySpeedSet"].alpha = 1.0;
             //리플레이 속도를 최고 빠르게 했을때 시간 체크
-            REPLAY_FASTEST_TOTAL_TIME = floor(totalFrame/(REPLAY_MAX_SPEED*STAGE_FRAME));
+            REPLAY_FASTEST_TOTAL_TIME = Math.floor(totalFrame/(REPLAY_MAX_SPEED*STAGE_FRAME));
 
             replayTimeBox["frameInfo"].text = rf+" / "+totalFrame;
             replayTimeBox["replayNowBar"].width = (totalFrame === 0) ? 0 : bw*(rf/totalFrame);

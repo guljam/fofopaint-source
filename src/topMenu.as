@@ -3,7 +3,6 @@
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
-	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
@@ -192,9 +191,8 @@
 			if(maxSpeed <= 1) return;
 
 			const unitX:Number = replaySpeedBar.width/maxSpeed;
-			const log:Function = Math.log;
 			//속도가 지수 형식으로 가서 log로 다시 역계산 해줘야함
-			const exp:Number = log(rSpeed)/log(maxSpeed);
+			const exp:Number = Math.log(rSpeed)/Math.log(maxSpeed);
 			const nowX:Number = exp*replaySpeedBar.width;
 
 			replaySpeedMoveButton.x = replaySpeedBar.x+nowX;
@@ -207,11 +205,10 @@
 
 		public function makeTopbarBG(color:uint):void
         {
-            const g:Graphics = topbarBG.graphics;
-            g.clear();
-            g.beginFill(color);
-            g.drawRect(0,0,10,BARSIZE);
-			g.endFill();
+            topbarBG.graphics.clear();
+            topbarBG.graphics.beginFill(color);
+            topbarBG.graphics.drawRect(0,0,10,BARSIZE);
+			topbarBG.graphics.endFill();
 			topbarBGColor = color;
         }
 
@@ -336,7 +333,6 @@
 			const startX:Number = 3;
 			const startY:Number = 2;
 			const gap:Number = 36;
-			const floor:Function = Math.floor;
 
 			for(var i:uint=0,len:uint=buttonOrder.length;i<len;i++)
 			{
@@ -348,7 +344,7 @@
 					const ele:DisplayObject = set[j] as DisplayObject;
 					if(ele)
 					{
-						ele.x = floor(startX)+gap*i;
+						ele.x = Math.floor(startX)+gap*i;
 						ele.y = 4;
 					}
 				}

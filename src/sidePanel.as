@@ -1,7 +1,6 @@
 ﻿package
 {
 	import flash.display.Sprite;
-	import flash.display.Graphics;
 	import flash.geom.ColorTransform;
 	import flash.display.Shape;
 
@@ -53,12 +52,12 @@
 		{
 			name = "sideBar";
 
-			const g:Graphics = sideBG.graphics;
-            g.clear();
-            g.lineStyle(0,0,0);
-            g.beginFill(0xCCCCCC);
-            g.drawRect(0,0,10,10);
-            g.endFill();
+            sideBG.graphics.clear();
+            sideBG.graphics.lineStyle(0,0,0);
+            sideBG.graphics.beginFill(0xCCCCCC);
+            sideBG.graphics.drawRect(0,0,10,10);
+            sideBG.graphics.endFill();
+
 			sideBG.y = -1; //스케일 조절하면 윗 메뉴 사이에 흰 공백이 보여서 약간 위로 올려줌
 			addChild(sideBG);
             cacheAsBitmap = true;

@@ -4,7 +4,6 @@
 	import flash.geom.ColorTransform;
 	import flash.display.BitmapData;
 	import flash.display.Bitmap;
-	import flash.display.Graphics;
 	import flash.text.TextField;
 	import flash.geom.Rectangle;
 
@@ -29,12 +28,11 @@
 
 		public function setMask():void
 		{
-			const g:Graphics = maskShape.graphics;
-			g.clear();
-			g.lineStyle(0,0,0);
-			g.beginFill(0xFF0000);
-			g.drawRect(0,0,BOX_WIDTH,BOX_HEIGHT);
-			g.endFill();
+			maskShape.graphics.clear();
+			maskShape.graphics.lineStyle(0,0,0);
+			maskShape.graphics.beginFill(0xFF0000);
+			maskShape.graphics.drawRect(0,0,BOX_WIDTH,BOX_HEIGHT);
+			maskShape.graphics.endFill();
 			mask = maskShape;
 		}
 
@@ -43,32 +41,29 @@
 		//canvasWidth 줌배율을 적용한 캔버스 크기
 		public function updateCursor(x:Number,y:Number,w:Number,h:Number,canvasWidth:Number,rotation:Number):void
 		{
-			const floor:Function = Math.floor;
 			const f1:Number = prevBitmap.width/canvasWidth;
 			// const f2:Number = _prevBitmap.height/canvasHeight;
-			const g:Graphics = prevCursor.graphics;
-			var cursorWidth:Number = floor(w*f1);
-			var cursorHeight:Number = floor(h*f1);
+			var cursorWidth:Number = Math.floor(w*f1);
+			var cursorHeight:Number = Math.floor(h*f1);
 
 			prevCursorMultiply = f1;
 
-			g.clear();
-			g.lineStyle(2,0xFF6600);
-			g.beginFill(0xFF0000,0);
-			g.drawRect(0,0,cursorWidth,cursorHeight)//썸네일 비트맵/실제 캔버스 길이 배율을 곱해주면 캔버스 부분이 작게 축소됨
-			g.endFill();
-			g.lineStyle(1,0xFF6600,0.6);
+			prevCursor.graphics.clear();
+			prevCursor.graphics.lineStyle(2,0xFF6600);
+			prevCursor.graphics.beginFill(0xFF0000,0);
+			prevCursor.graphics.drawRect(0,0,cursorWidth,cursorHeight)//썸네일 비트맵/실제 캔버스 길이 배율을 곱해주면 캔버스 부분이 작게 축소됨
+			prevCursor.graphics.endFill();
+			prevCursor.graphics.lineStyle(1,0xFF6600,0.6);
 
 			prevCursor.rotation = -rotation;
 			//캔버스 원점 위치 음수값으로 넣어주고 당연 배율 적용하고,
 			//중앙정렬해준 x y 값이 있으니깐오프셋으로 더해줌
-			prevCursor.x = floor(x*f1+prevBitmap.x);
-			prevCursor.y = floor(y*f1+prevBitmap.y);
+			prevCursor.x = Math.floor(x*f1+prevBitmap.x);
+			prevCursor.y = Math.floor(y*f1+prevBitmap.y);
 		}
 
 		public function setFitBitmapforBox(w:Number,h:Number,bw:Number,bh:Number):Rectangle
 		{
-			const round:Function = Math.round;
 			var ratio:Number = bw/w;
 			var fw:Number = w*ratio;
 			var fh:Number = h*ratio;
@@ -84,10 +79,10 @@
 
 			if(alignWidthFlag)
 			{
-				return new Rectangle(0,round(bh/2-fh/2),round(fw),round(fh));
+				return new Rectangle(0,Math.round(bh/2-fh/2),Math.round(fw),Math.round(fh));
 			}
 
-			return new Rectangle(round(bw/2-fw/2),0,round(fw),round(fh));
+			return new Rectangle(Math.round(bw/2-fw/2),0,Math.round(fw),Math.round(fh));
 		}
 
 		public function updateImage(bmpd:BitmapData,bmpd1:BitmapData,bg:uint):void
@@ -140,15 +135,13 @@
 		public function previewPanel() {
 			// constructor code
 			name = "prevBox";
-			var g:Graphics = prevStageBG.graphics;
-			g.lineStyle(0,0,0);
-			g.beginFill(0xFFFFFF);
-			g.drawRect(0,0,BOX_WIDTH,BOX_HEIGHT);
+			prevStageBG.graphics.lineStyle(0,0,0);
+			prevStageBG.graphics.beginFill(0xFFFFFF);
+			prevStageBG.graphics.drawRect(0,0,BOX_WIDTH,BOX_HEIGHT);
 
-			g = prevBitmapBG.graphics;
-			g.lineStyle(0,0,0);
-			g.beginFill(0xFFFFFF);
-			g.drawRect(0,0,100,100);
+			prevBitmapBG.graphics.lineStyle(0,0,0);
+			prevBitmapBG.graphics.beginFill(0xFFFFFF);
+			prevBitmapBG.graphics.drawRect(0,0,100,100);
 
 			prevStageBG.name = "prevStageBG";
 			prevBitmapBG.name = "prevBitmapBG"

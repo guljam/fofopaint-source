@@ -6,7 +6,6 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Shape;
-	import flash.display.Graphics;
 
 	public class toolButtons extends Sprite {
 		public var toolPen:SimpleButton;
@@ -122,11 +121,10 @@
 
 		public function updateBGBoxColor(color:uint):void
 		{
-			const g:Graphics = bgBox.graphics;
-			g.lineStyle(0,0,0);
-			g.beginFill(color);
-			g.drawRect(-4,-1,BOX_WIDTH+8,BOX_HEIGHT+2);
-			g.endFill();
+			bgBox.graphics.lineStyle(0,0,0);
+			bgBox.graphics.beginFill(color);
+			bgBox.graphics.drawRect(-4,-1,BOX_WIDTH+8,BOX_HEIGHT+2);
+			bgBox.graphics.endFill();
 		}
 
 		public function setCursorVisible(flag:Boolean):void

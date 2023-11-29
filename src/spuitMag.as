@@ -4,7 +4,6 @@
 	import flash.display.SimpleButton;
 	import flash.display.Bitmap;
 	import flash.display.Shape;
-	import flash.display.Graphics;
 
 	public class spuitMag extends Sprite {
 		private const deafultZoom:Number = 2.0;
@@ -28,10 +27,10 @@
 			visible = false;
 
 			const halfMagSize:Number = magSize/2;
-			const g:Graphics = circleMask.graphics;
-			g.beginFill(0);
-			g.drawCircle(-1,0,halfMagSize+2);
-			g.endFill();
+
+			circleMask.graphics.beginFill(0);
+			circleMask.graphics.drawCircle(-1,0,halfMagSize+2);
+			circleMask.graphics.endFill();
 
 			circleMask.x = 0;
 			circleMask.y = 0;
