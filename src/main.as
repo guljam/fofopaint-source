@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.70;
+        private const APP_VERSION:Number = 22.71;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3442,11 +3442,13 @@
         private function stageMouseDownEvent(e:MouseEvent):void
         {
             mouseClickON = true;
+            realWorkingTimer.resetAFKCount();
         }
 
         private function stageRightMouseDownEvent(e:MouseEvent):void
         {
             rightMouseClickON = true;
+            realWorkingTimer.resetAFKCount();
         }
 
         private function stageMouseUpEvent(e:MouseEvent):void
@@ -3461,6 +3463,8 @@
             {
                 if(sideBar.visible === false) penCursorPosition.setSideBarONWaitEvents();
             }
+
+            realWorkingTimer.resetAFKCount();
         }
 
         private function stageRightMouseUpEvent(e:MouseEvent):void
@@ -3475,6 +3479,8 @@
             {
                 if(sideBar.visible === false) penCursorPosition.setSideBarONWaitEvents();
             }
+
+            realWorkingTimer.resetAFKCount();
         }
 
         private function cStageMouseMoveEvent():Object
@@ -3518,6 +3524,7 @@
                     {
                         funcNameList.removeAt(i);
                         funcList.removeAt(i);
+
                         break;
                     }
                 }
@@ -3526,13 +3533,14 @@
             function event(e:MouseEvent):void
             {
                 if(moveEventLimit() === true) return;
-
                 const len:uint = funcList.length;
 
                 for(var i:int=0;i<len;i++)
                 {
                     funcList[i](e);
                 }
+
+                realWorkingTimer.resetAFKCount();
             }
 
             function start():void
@@ -4584,8 +4592,6 @@
 
         private function updatePenCursorPositionEvent(e:MouseEvent):void
         {
-            realWorkingTimer.resetAFKCount();
-
             if(replayModeON || captureModeON) return;
 
             updatePenCursorPosition();
@@ -4775,7 +4781,6 @@
 
         private function cRealWorkingTimer():Object
         {
-            var started:Boolean = false;
             var appRunningTime:int = 0;
             var afkCount:int = 0; //마우스 멈춰있으면 올라가는 시간
             var lastTime:int = 0; //마지막 시간 저장해줌
@@ -4784,6 +4789,8 @@
             var hh:int;
             var mm:int;
             var ss:int;
+            var timerRunnerDotFlag:Boolean = false; //점을 보여줬다 안보여 줬다 하면서 작동하는것을 보여줌
+            var timerTextSave:String;
 
             function resetAFKCount():void
             {
@@ -4828,12 +4835,21 @@
 
                 if(subTime >= 1000)
                 {
-                    if(afkCount >= 5000)
+                    if(afkCount > 1000)
                     {
-                        afkCount = 5000;
+                        afkCount = 1001;
+                        timerRunnerDotFlag = !timerRunnerDotFlag;
+                        if(timerTextSave === null)
+                        {
+                            timerTextSave = topBar.timer.text;
+                        }
+
+                        topBar.timer.text = ((timerRunnerDotFlag) ? ".":"") + timerTextSave;
+                        topBar.updateTimerPos(stage.stageWidth);
                     }
                     else
                     {
+                        timerTextSave = null;
                         appRunningTime += subTime;
                         if(appRunningTime < 0) appRunningTime = 0;
                         update();
@@ -4844,24 +4860,26 @@
                 }
             }
 
-            function stop():void
+            function setAFKMode():void
             {
-                started = false;
-                afkCount = 0;
-                stage.removeEventListener(Event.ENTER_FRAME,check);
+                afkCount = 1001;
+            }
+
+            function resume():void
+            {
+                lastTime = getTimer();
             }
 
             function start():void
             {
-                if(started) return;
-                lastTime = getTimer();
-                started = true;
+                resume();
                 stage.addEventListener(Event.ENTER_FRAME,check);
             }
 
             return {
                 start:start,
-                stop:stop,
+                resume:resume,
+                setAFKMode:setAFKMode,
                 reset:reset,
                 update:update,
                 resetAFKCount:resetAFKCount,
@@ -6955,6 +6973,8 @@
 
         private function stageKeyUpEvent(e:KeyboardEvent):void
         {
+            realWorkingTimer.resetAFKCount();
+
             if(fileDragSelectBox.visible)
             {
                 return;
@@ -6971,6 +6991,8 @@
 
         private function stageKeyDownEvent(e:KeyboardEvent):void
         {
+            realWorkingTimer.resetAFKCount();
+
             const keyCode:uint = e.keyCode;
 
             if(fileDragSelectBox.visible || keyCode === KEY.window)
@@ -19370,7 +19392,7 @@
         private function windowActiveEvent(e:Event):void
         {
             //알탭해주고 창 활성화 해줄때 한번은 안하게끔함
-            realWorkingTimer.start();
+            realWorkingTimer.resume();
             checkClipBoardImage();
 
             if(aboutPanelON)
@@ -19387,8 +19409,8 @@
         {
             clickBlockFlag = true;
             resizeCanvas.exit(true);
-            realWorkingTimer.stop();
             resetKeyBuffer();
+            realWorkingTimer.setAFKMode();
             cancelAutoKeyEvent(null);
 
             if(toolBox2ON)
