@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.80;
+        private const APP_VERSION:Number = 22.81;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -313,7 +313,7 @@
                     ,rMirrorON:Boolean = false //대칭 켜지면 올려줌
                     ,mirrorON:Boolean = false
                     ,mirrorCommandReady:Boolean = false //미러 커맨드를 넣어줄지 말지 결정
-                    ,zoomArr:Array = [0.125,0.25,0.5,0.75,1.0,2.0,3.0,4.0,6.0,8.0,12.0,16.0,24.0,32.0]
+                    ,zoomList:Array = [0.125,0.25,0.5,0.75,1.0,1.50,2.0,3.0,4.0,6.0,8.0,12.0,16.0,24.0,32.0]
                     ,zoomed:Number = 1.0
                     ,zoomedIndex:int = 3
                     ,rzoomedIndex:int = 3
@@ -5010,7 +5010,7 @@
         {
             const center:Point = getStageCenterPos(CENTERPOS_DRAW);
 
-            rzoomedIndex = zoomArr.indexOf(1.0);
+            rzoomedIndex = zoomList.indexOf(1.0);
             setRegPoint(center.x,center.y,true);
             setZoomCanvas(1.0,true);
             setFitZoomedOFF();
@@ -5021,7 +5021,7 @@
         {
             if(!center) center = getStageCenterPos(CENTERPOS_DRAW);
 
-            zoomedIndex = zoomArr.indexOf(1.0);
+            zoomedIndex = zoomList.indexOf(1.0);
             setRegPoint(center.x,center.y,false);
             setZoomCanvas(1.0,false);
             updatePenSizeCursor();
@@ -5031,7 +5031,7 @@
         private function setZoomInButton(zoomInFlag:Boolean,replayMode:Boolean):void
         {
             const xReg:Sprite = (replayMode) ? rregPoint : regPoint;
-            const zoomMax:int = zoomArr.length-1;
+            const zoomMax:int = zoomList.length-1;
             const center:Point = getStageCenterPos(CENTERPOS_REPLAY);
             var lastZoomIndex:int = (replayMode) ? rzoomedIndex : zoomedIndex;
 
@@ -5048,7 +5048,7 @@
                     lastZoomIndex = 0;
             }
 
-            const newZoom:Number = zoomArr[lastZoomIndex];
+            const newZoom:Number = zoomList[lastZoomIndex];
 
             if(replayMode)
             {
@@ -9550,7 +9550,7 @@
             if(!mouseClickON)
             {
                 fitCanvasToWindow();
-                rzoomedIndex = zoomArr.indexOf(1.0);
+                rzoomedIndex = zoomList.indexOf(1.0);
             }
         }
 
@@ -10675,16 +10675,14 @@
 
         private function setCacheImageByIndex(index:uint,lastReadBytes:Number):void
         {
-            rFrameCacheImages[index] = [
-                                            rcanvas1BitmapData.clone()
-                                            ,rcanvas11BitmapData.clone()
-                                            ,rcanvas1BitmapData.width
-                                            ,rcanvas1BitmapData.height
-                                            ,RCANVAS_BG_COLOR
-                                            ,lastReadBytes
-                                            ,rNowFrame
-                                            ,rMirrorON
-                                        ];
+            rFrameCacheImages[index] = [rcanvas1BitmapData.clone()
+                                        ,rcanvas11BitmapData.clone()
+                                        ,rcanvas1BitmapData.width
+                                        ,rcanvas1BitmapData.height
+                                        ,RCANVAS_BG_COLOR
+                                        ,lastReadBytes
+                                        ,rNowFrame
+                                        ,rMirrorON];
         }
 
         //jumpFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
@@ -11148,14 +11146,14 @@
         private function getNearZoomIndex(nowZoom:Number):uint
         {
             var low:Number = 0;
-            var high:Number = zoomArr.length-1;
+            var high:Number = zoomList.length-1;
             if(high <= 0) return high;
             var index:Number = Math.floor((low+high)/2);
             var zoom:Number;
 
             while(low <= high)//2진 탐색
             {
-                zoom = zoomArr[index];
+                zoom = zoomList[index];
                 if(zoom === nowZoom) break;
                 else if(zoom > nowZoom) high = index-1;
                 else low = index+1;
@@ -11165,8 +11163,8 @@
 
             //가장 가까운값 검출
             if(index <= 0) return 0;
-            else if(index >= zoomArr.length-1) return zoomArr.length-1;
-            else if(zoomArr[index+1]-nowZoom < nowZoom-zoomArr[index-1])
+            else if(index >= zoomList.length-1) return zoomList.length-1;
+            else if(zoomList[index+1]-nowZoom < nowZoom-zoomList[index-1])
             {
                 //현재줌이 상위 줌이랑 더 가까우면 인덱스를 올려줌
                 return index+1;
@@ -15280,8 +15278,8 @@
 
         private function cZoomTool():Function
         {
-            const zoomMin:Number = zoomArr[0];
-            const zoomMax:Number = zoomArr[zoomArr.length-1];
+            const zoomMin:Number = zoomList[0];
+            const zoomMax:Number = zoomList[zoomList.length-1];
             const mouseMoveStep:int = 37; //이 픽셀이상움직일때만 zoomcanvas를 실행
             const clickPos:Point = new Point(0,0);
 
@@ -15331,7 +15329,7 @@
 
             function zoomGoArray(index:uint):void
             {
-                const newZoom:Number = zoomArr[index];
+                const newZoom:Number = zoomList[index];
 
                 setZoomCanvas(newZoom,false);
 
@@ -15353,7 +15351,7 @@
                 }
 
                 if(zoomedIndex < 0) zoomedIndex = 0;
-                else if(zoomedIndex > zoomArr.length-1) zoomedIndex = zoomArr.length-1;
+                else if(zoomedIndex > zoomList.length-1) zoomedIndex = zoomList.length-1;
 
                 zoomGoArray(zoomedIndex);
             }
@@ -16699,7 +16697,7 @@
 
             function checkSpuitCursorVisibleON():Boolean
             {
-                return isCursorInDrawArea() && canvasPanel.hitTestPoint(mouseX,mouseY,true) 
+                return isCursorInDrawArea() && canvasPanel.hitTestPoint(mouseX,mouseY,true)
                 && !(traceMenu.visible && traceMenu.hitTestPoint(mouseX,mouseY));
             }
 
@@ -18767,8 +18765,6 @@
 
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
 
-            var subKey:int;
-
             if(isPressingControlShift())
             {
                 checkCommandSubKey(3,false,function(input:int):void
@@ -20045,7 +20041,7 @@
                     rzoomed = 1;
                     rregPoint.scaleX = 1;
                     rregPoint.scaleY = 1;
-                    rzoomedIndex = zoomArr.indexOf(rzoomed);
+                    rzoomedIndex = zoomList.indexOf(rzoomed);
                 }
             }
 
@@ -20222,7 +20218,7 @@
             {
                 fitCanvasToWindow(false,true);
                 rzoomedIndex = getNearZoomIndex(rzoomed);
-                rzoomed = zoomArr[rzoomedIndex];
+                rzoomed = zoomList[rzoomedIndex];
             });
         }
 
