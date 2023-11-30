@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.86;
+        private const APP_VERSION:Number = 22.87;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -178,7 +178,7 @@
 
                     ,REPLAY_FASTEST_LIMIT_TIME:Number = 60
                     ,REPLAY_MAKE_JUMPIMAGE_COUNT:Number = 10000
-                    ,REPLAY_JUMPIMAGE_CACHE_INTERVAL:Number = 1000 // 10조각으로 나눠줌
+                    ,REPLAY_JUMPIMAGE_CACHE_INTERVAL:Number = 700
                     ,REPLAY_MAX_SPEED:Number = 200
 
                     ,GRID_GAP:uint = 10
