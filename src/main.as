@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.82;
+        private const APP_VERSION:Number = 22.83;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -11267,12 +11267,6 @@
                 {
                     if(rNowFrame > 0)
                     {
-                        //rPrevFrame이 rNowFrame이 같거나 크게 되면 jumpframe에서 0프레임을 이동하므로
-                        //-1을 해줘서 tickdarw에서 rPrevFrame를 고쳐주고 해줘야함
-                        if(rPrevFrame >= rNowFrame)
-                        {
-                            jumpFrame(rNowFrame-1,JUMP_FRAME_BEFORE);
-                        }
                         jumpFrame(rPrevFrame,JUMP_FRAME_BEFORE);
                     }
                 }
@@ -11374,6 +11368,7 @@
                 }
             }
 
+            var drawFrameCount:Number = 0.0;
             //미리 찍어둔 이미지로 캔버스를 설정
             if(updateRCavanvasImageFlag > 0 || frame < rNowFrame)
             {
@@ -11423,7 +11418,7 @@
                 rFileStream.position = jumpImageData[5];
                 rNowFrame = jumpImageData[6]; //썸네일 이미지를 저장한 프레임
                 //원하는 프레임에서 썸네일 이미지 프레임을 빼줌 나머지 프레임만 그려주면 되니깐
-                frame = frame-jumpImageData[6];
+                drawFrameCount = frame-jumpImageData[6];
                 rIndex = 0; //이거 먼저 초기화 시켜주어야함
                 tickDraw.reset();
                 clearCanvasReplayMode();
@@ -11459,10 +11454,16 @@
             else
             {
                 if(!rDataReadFlag) rFileStream.position = rLastBytePosition;
-                frame = frame - rNowFrame;
+                drawFrameCount = frame - rNowFrame;
             }
 
-            doDraw(frame,jumpflag,replayModeON);
+            //그려줘야할 프레임이 0이면 rPrevFrame갱신이 안되니까 여기서 해줌
+            if(drawFrameCount === 0.0)
+            {
+                rPrevFrame = frame-1;
+            }
+
+            doDraw(drawFrameCount,jumpflag,replayModeON);
             rFileStream.close();
 
             //dodraw밑이기 때문에 rFrameSum이 갱신되서 위에 nowFrame은 쓸수가 없음
