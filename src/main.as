@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.87;
+        private const APP_VERSION:Number = 22.88;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4225,7 +4225,7 @@
                 data.push(my);
                 lastMousePos.setTo(mx,my);
                 canvas2.alpha = xAlpha;
-                
+
                 if(!penColorTransparentFlag && subLayerON)
                 {
                     canvas2ZIndexDSave = canvasPanel.getChildIndex(canvas2);
@@ -7313,7 +7313,10 @@
 
         private function setResizeButtonVisible(flag:Boolean):void
         {
-            if(resizeButtonR.visible === flag) return;
+            if(resizeButtonR.visible === flag)
+            {
+                return;
+            }
 
             if(flag)
             {
@@ -15742,8 +15745,8 @@
             var stageColor:uint;
             var finalWidth:uint;
             var finalHeight:uint;
-            var startByShortCut:Boolean;
             var canvasSizeChanging:Boolean;
+            var rightMouseupEventON:Boolean = false;
 
             function checkRatioSnapGuidePos():void
             {
@@ -15863,7 +15866,7 @@
                 return canvasSizeChanging;
             }
 
-            function exitResizeCanvas(forceExit:Boolean):void
+            function exitResizeCanvas():void
             {
                 if(resizeInitON)
                 {
@@ -15871,7 +15874,11 @@
                     if(targetName !== null)
                     {
                         stage.removeEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
-                        stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonRightMouseUpEvent);
+                        if(!rightMouseClickON)
+                        {
+                            rightMouseupEventON = false;
+                            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonRightMouseUpEvent);
+                        }
 
                         if(targetName === "resizeButtonL") stageMouseMoveEvent.remove("resizeMouseMoveL");
                         else if(targetName === "resizeButtonR") stageMouseMoveEvent.remove("resizeMouseMoveR");
@@ -15881,7 +15888,7 @@
 
                     canvasSizeChanging = false;
                     setToolTipOFF();
-                    setResizeButtonVisible((forceExit || (startByShortCut && !isPressingControl())) ? false:true);
+                    setResizeButtonVisible((isMouseCursorInStage() && rightMouseClickON) || isPressingControl());
                     regPoint.removeChild(resizePreviewRect);
                     regPoint.removeChild(resizePreviewRatioRect);
                     resizePreviewRect.graphics.clear();
@@ -15916,16 +15923,27 @@
 
                     targetName = null;
                 }
+                else
+                {
+                    setResizeButtonVisible(false);
+                    rightMouseupEventON = false;
+                    stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonRightMouseUpEvent);
+                }
+            }
+
+            function isMouseCursorInStage():Boolean
+            {
+                return mouseX >= 0 && mouseY >= 0 && mouseX <= stage.stageWidth && mouseY <= stage.stageHeight;
             }
 
             function resizeButtonRightMouseUpEvent(e:MouseEvent):void
             {
-                exitResizeCanvas(true);
+                exitResizeCanvas();
             }
 
             function resizeButtonMouseUpEvent(e:MouseEvent):void
             {
-                exitResizeCanvas(false);
+                exitResizeCanvas();
             }
 
             function drawResizePreviewRect(size:Number,x:Number,y:Number,w:Number,h:Number):void
@@ -16074,10 +16092,9 @@
                 }
             }
 
-            function startResizeCanvas(_targetName:String,shortcut:Boolean):void
+            function startResizeCanvas(_targetName:String):void
             {
                 initResizeVars();
-                startByShortCut = shortcut;
                 targetName = _targetName;
                 resizeClickPos.setTo(canvasPanel.mouseX,canvasPanel.mouseY);
                 canvasSizeChanging = true;
@@ -16085,11 +16102,15 @@
                 drawRatioSnapGuide(oldWidth,oldHeight,targetName);
                 checkRatioSnapGuidePos();
 
-                if(toolBox2ON) toolBox2.visible = false;
+                if(toolBox2ON) closeToolBox2();
                 setResizeButtonVisible(false);
 
                 stage.addEventListener(MouseEvent.MOUSE_UP,resizeButtonMouseUpEvent);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonRightMouseUpEvent);
+                if(rightMouseupEventON === false)
+                {
+                    rightMouseupEventON = true;
+                    stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,resizeButtonRightMouseUpEvent);
+                }
 
                 if(targetName === "resizeButtonL") stageMouseMoveEvent.add("resizeMouseMoveL",resizeMouseMoveL);
                 else if(targetName === "resizeButtonR") stageMouseMoveEvent.add("resizeMouseMoveR",resizeMouseMoveR);
@@ -19574,7 +19595,7 @@
                 case "resizeButtonD":
                 case "resizeButtonL":
                 case "resizeButtonU":
-                    setCanvasResizeButton(targetName,false);
+                    setCanvasResizeButton(targetName);
                 break;
 
                 default:
@@ -19818,13 +19839,13 @@
             return false;
         }
 
-        private function setCanvasResizeButton(targetName:String,shortcut:Boolean):void
+        private function setCanvasResizeButton(targetName:String):void
         {
             penCursorOFFFlag = true;
             setToolTipON();
             penSizeCursor.visible = false;
             setToolTipString(CANVAS_WIDTH+" x "+CANVAS_HEIGHT);
-            setResizeCanvas(targetName,shortcut);
+            setResizeCanvas(targetName);
         }
 
         private function checkReplaySpeedState():void
@@ -21103,7 +21124,7 @@
                 case "resizeButtonL":
                 case "resizeButtonU":
                 {
-                    setCanvasResizeButton(targetName,true);
+                    setCanvasResizeButton(targetName);
                 }
                 return;
 
