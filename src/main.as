@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.78;
+        private const APP_VERSION:Number = 22.80;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6561,12 +6561,8 @@
 
         private function getSharpLineOffset(size:Number):Number
         {
-            var offset:Number = (sharpLineON) ? (size % 2.0 === 0) ? 0.0 : 0.5
-                                              : (size % 2.0 === 0) ? 0.5 : 0.0;
-
-            trace("offset",offset)
-
-            return offset;
+            return (sharpLineON) ? (size % 2.0 === 0) ? 0.0 : 0.5
+                                 : (size % 2.0 === 0) ? 0.5 : 0.0;
         }
 
         private function setSharpLineButton(flag:Boolean):void
@@ -14753,7 +14749,6 @@
             var xShape:Boolean;
             var xBlendMode:String;
             var xAirBrushON:Boolean;
-            var posOffset:Number;
             var mouseMovedFlag:Boolean;
             var subLayerFlag:Boolean;
 
@@ -14906,18 +14901,18 @@
                 {
                     mouseMovedFlag = true;
                 }
-                const mx:Number = canvas2Draw.mouseX+posOffset;
-                const my:Number = canvas2Draw.mouseY+posOffset;
+                const mx:Number = canvas2Draw.mouseX;
+                const my:Number = canvas2Draw.mouseY;
 
                 if(xShape === true)
                 {
-                    const extPoints:Array = extendLineSegment(oldX+posOffset,oldY+posOffset,mx,my,xSize/2);
+                    const extPoints:Array = extendLineSegment(oldX,oldY,mx,my,xSize/8);
                     startPoint.setTo(extPoints[0],extPoints[1]);
                     endPoint.setTo(extPoints[2],extPoints[3])
                 }
                 else
                 {
-                    startPoint.setTo(oldX+posOffset,oldY+posOffset);
+                    startPoint.setTo(oldX,oldY);
                     endPoint.setTo(mx,my)
                 }
 
@@ -14949,8 +14944,8 @@
 
                     if(mouseMovedFlag === false && cx === mx && my === y)
                     {
-                        const xx:Number = mx+posOffset;
-                        const yy:Number = my+posOffset;
+                        const xx:Number = mx;
+                        const yy:Number = my;
                         rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,xx,yy,xBlendMode,subLayerFlag,xAirBrushON]);
                         drawDot(xShape,xSize,xColor,xx,yy);
                     }
@@ -14958,13 +14953,13 @@
                     {
                         if(xShape === true)
                         {
-                            const extPoints:Array = extendLineSegment(cx+posOffset,cy+posOffset,mx,my,xSize/2);
+                            const extPoints:Array = extendLineSegment(cx,cy,mx,my,xSize/8);
                             startPoint.setTo(extPoints[0],extPoints[1]);
                             endPoint.setTo(extPoints[2],extPoints[3])
                         }
                         else
                         {
-                            startPoint.setTo(cx+posOffset,cy+posOffset);
+                            startPoint.setTo(cx,cy);
                             endPoint.setTo(mx,my)
                         }
 
@@ -14997,8 +14992,6 @@
 
                 canvasSizeWidth = CANVAS_WIDTH;
                 canvasSizeHeight = CANVAS_HEIGHT;
-
-                posOffset = getSharpLineOffset(xSize);
 
                 mouseMovedFlag = false;
                 oldX = canvas2Draw.mouseX;
@@ -15401,7 +15394,6 @@
 
             return function():void
             {
-                trace("call zoom")
                 //왼쪽 오른쪽 클릭 두번있기 때문에 중복 툴 사용은 피해줌
                 if(zoomToolHintON === true) return;
 
@@ -21040,8 +21032,6 @@
                 }
                 return;
             }
-
-            trace("mo")
 
             switch (targetName)
             {
