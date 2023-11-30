@@ -229,7 +229,6 @@
 			moveToolCursorInit();
 
 			// initPenSizeCursor();
-			toolSelectCursor.useHandCursor = false;
 			toolSelectCursor.mouseEnabled = false;
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;

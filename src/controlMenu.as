@@ -12,6 +12,7 @@
 		public const sharpLineButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();
 		public const layerButtonWrapper:Sprite = new Sprite();
+		public const opaSizeButtonWrapper:Sprite = new Sprite();
 
 		public var infoPenOptions:SimpleButton;
 		public var infoEraserOptions:SimpleButton;
@@ -209,7 +210,7 @@
 			const w:Number = sharpLineOFFButton.width+sharpLineText.width+14;
 			const h:Number = sharpLineOFFButton.height+2;
 
-			sharpLineButtonWrapper.graphics.beginFill(0xFF0000,0);
+			sharpLineButtonWrapper.graphics.beginFill(0xFF0000,0.0);
 			sharpLineButtonWrapper.graphics.drawRect(0,0,w,h);
 			sharpLineButtonWrapper.graphics.endFill();
 
@@ -258,6 +259,7 @@
 			layerButtonWrapper.addChild(layer2UncheckButton);
 			layerButtonWrapper.addChild(layerSwapButton);
 			layerButtonWrapper.addChild(layerMergeButton);
+			layerButtonWrapper.addChild(saperateLine);
 
 			layerSwapButton.x = 0;
 			layerSwapButton.y = 0;
@@ -280,6 +282,70 @@
 
 			layer2SelectButton.x = layer2CheckButton.x+layer2CheckButton.width+2;
 			layer2SelectButton.y = layer2CheckButton.y;
+
+			saperateLine.x = layerMergeButton.x+layerMergeButton.width+5;
+			saperateLine.y = 4;
+
+			saperateLine.mouseEnabled = false;
+		}
+
+		public function initOpaSizeButtonWapper():void
+		{
+			initInfoButton();
+			opaSizeButtonWrapper.addChild(infoPenOptions);
+			opaSizeButtonWrapper.addChild(infoEraserOptions);
+			opaSizeButtonWrapper.addChild(infoLineOptions);
+			opaSizeButtonWrapper.addChild(infoLineOptions);
+			opaSizeButtonWrapper.addChild(shapeCircle);
+			opaSizeButtonWrapper.addChild(shapeRect);
+			opaSizeButtonWrapper.addChild(penSmoothSliderSet);
+			opaSizeButtonWrapper.addChild(penSizeGuide);
+			opaSizeButtonWrapper.addChild(penSizeBox);
+			opaSizeButtonWrapper.addChild(rectSizeSet);
+			opaSizeButtonWrapper.addChild(circleSizeSet);
+			opaSizeButtonWrapper.addChild(opaGuide);
+			opaSizeButtonWrapper.addChild(opaBox);
+			opaSizeButtonWrapper.addChild(penSizeSelectCursor);
+
+			shapeCircle.x = 0;
+			shapeCircle.y = Math.floor(infoPenOptions.y+infoPenOptions.height);
+			shapeCircle.useHandCursor = false;
+			shapeRect.x = 0+shapeCircle.x+shapeCircle.width+1;
+			shapeRect.y = shapeCircle.y;
+			shapeRect.useHandCursor = false;
+
+			penSmoothSliderSet.x = Math.floor(shapeRect.x+shapeRect.width+11);
+			penSmoothSliderSet.y = Math.floor(shapeRect.y)+8;
+
+			penSmoothSliderSet["penSmoothBar"].useHandCursor = false;
+			penSmoothSliderSet["penSmoothButton"].useHandCursor = false;
+			penSmoothSliderSet["penSmoothSlider"].useHandCursor = false;
+
+			penSizeGuide.x = 0;
+			penSizeGuide.y = Math.floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-6;
+			penSizeBox.x = penSizeGuide.x+2;
+			penSizeBox.y = penSizeGuide.y+2;
+			penSizeSelectCursor.useHandCursor = false;
+
+			rectSizeSet.x = Math.floor(penSizeGuide.x)+9;
+			rectSizeSet.y = Math.floor(penSizeGuide.y)+10;
+			circleSizeSet.x = rectSizeSet.x;
+			circleSizeSet.y = rectSizeSet.y+1;
+
+			opaGuide.x = 0;
+			opaGuide.y = Math.floor(penSizeGuide.y+penSizeGuide.height+3);
+			opaBox.x = opaGuide.x;
+			opaBox.y = opaGuide.y;
+
+			circleSizeSet.mouseEnabled = false;
+			rectSizeSet.mouseEnabled = false;
+			opaGuide.mouseEnabled = false;
+			opaCursor.mouseEnabled = false;
+			penSizeGuide.useHandCursor = false;
+			penSizeGuide.mouseEnabled = false;
+			penSizeSelectCursor.mouseEnabled = false;
+
+			opaSizeButtonWrapper.name = "opaSizeButtonWrapper";
 		}
 
 		public function initOpaButton():void
@@ -356,75 +422,31 @@
 
 			initPenSizeButton();
 			initOpaButton();
-			initInfoButton();
-
-			shapeCircle.x = 0;
-			shapeCircle.y = Math.floor(infoPenOptions.y+infoPenOptions.height);
-			shapeCircle.useHandCursor = false;
-			shapeRect.x = 0+shapeCircle.x+shapeCircle.width+1;
-			shapeRect.y = shapeCircle.y;
-			shapeRect.useHandCursor = false;
-
-			penSmoothSliderSet.x = Math.floor(shapeRect.x+shapeRect.width+11);
-			penSmoothSliderSet.y = Math.floor(shapeRect.y)+8;
-
-			penSmoothSliderSet["penSmoothBar"].useHandCursor = false;
-			penSmoothSliderSet["penSmoothButton"].useHandCursor = false;
-			penSmoothSliderSet["penSmoothSlider"].useHandCursor = false;
-
-			penSizeGuide.x = 0;
-			penSizeGuide.y = Math.floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-6;
-			penSizeBox.x = penSizeGuide.x+2;
-			penSizeBox.y = penSizeGuide.y+2;
-			penSizeSelectCursor.useHandCursor = false;
-
-			rectSizeSet.x = Math.floor(penSizeGuide.x)+9;
-			rectSizeSet.y = Math.floor(penSizeGuide.y)+10;
-			circleSizeSet.x = rectSizeSet.x;
-			circleSizeSet.y = rectSizeSet.y+1;
-
-			opaGuide.x = 0;
-			opaGuide.y = Math.floor(penSizeGuide.y+penSizeGuide.height+3);
-			opaBox.x = opaGuide.x;
-			opaBox.y = opaGuide.y;
-
-			opaGuide.mouseEnabled = false;
-			opaCursor.mouseEnabled = false;
+			initOpaSizeButtonWapper();
 
 			initSharpLineButtonWrapper();
 			initAirBrushButtonWrapper();
 			initLayerButton();
 
-			layerButtonWrapper.x = opaGuide.x;
-			layerButtonWrapper.y = opaGuide.y+opaGuide.height+3;
+			opaSizeButtonWrapper.x = 0;
+			opaSizeButtonWrapper.y = 0;
 
-			sharpLineButtonWrapper.x = layerButtonWrapper.x+layerButtonWrapper.width+16;
+			layerButtonWrapper.x = opaSizeButtonWrapper.x;
+			layerButtonWrapper.y = opaSizeButtonWrapper.y+opaSizeButtonWrapper.height-2;
+
+			sharpLineButtonWrapper.x = layerButtonWrapper.x+layerButtonWrapper.width+8;
 			sharpLineButtonWrapper.y = layerButtonWrapper.y+2;
 
 			airBrushButtonWrapper.x = sharpLineButtonWrapper.x;
 			airBrushButtonWrapper.y = sharpLineButtonWrapper.y+sharpLineButtonWrapper.height+2;
 
-			saperateLine.x = sharpLineButtonWrapper.x-10;
-			saperateLine.y = sharpLineButtonWrapper.y+2.5;
-			saperateLine.useHandCursor = false;
-			saperateLine.mouseEnabled = false;
-
 			BOX_HEIGHT = opaBox.y+opaBox.height+7;
 
-			addChild(penSizeGuide);
-			addChild(penSizeBox);
-			addChild(opaBox);
+			addChild(opaSizeButtonWrapper);
 			addChild(layerButtonWrapper);
 			addChild(sharpLineButtonWrapper);
 			addChild(airBrushButtonWrapper);
-			setChildIndex(infoPenOptions, this.numChildren-1);
-			setChildIndex(penSizeSelectCursor, this.numChildren-1);
 
-			penSizeGuide.useHandCursor = false;
-			penSizeGuide.mouseEnabled = false;
-			penSizeSelectCursor.mouseEnabled = false;
-
-			setChildIndex(infoPenOptions,0);
 			hintText("Pen");
 		}
 	}

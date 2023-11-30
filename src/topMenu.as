@@ -386,9 +386,6 @@
 			capTrans.visible = false;
 			capClipBoard.visible = false;
 			drawModeButton.visible = false;
-			cutPrevDataButton.alpha = 0.15;
-			superUndoButton.alpha = 0.15;
-			reRecordingButton.alpha = 0.15;
 
 			repLoadButton.visible = false;
 			repSaveButton.visible = false;
