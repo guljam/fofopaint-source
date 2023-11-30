@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.81;
+        private const APP_VERSION:Number = 22.82;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -472,7 +472,6 @@
                     ,rJumpImageIndexLast:int = -2 //썸네일 인덱스 바뀌면 여기다 저장
                     ,rJumpImageNowFrameLast:Number = -1
                     ,rCachedJumpImageIndexLast:int = -2 //마지막에 그려준 캐쉬 이미지 번호를 저장
-                    ,rCachedJumpImageIndexFrame:Number //dodraw에서 캐시이미지 가장 높은 프레임을 저장해줌
                     ,rJumpCacheImageIndexSave:int = -2 // 더 잘게 쪼개준 이미지 인덱스 바뀌면 여기다 저장
                     ,rJumpImageFrameData:Array = [0] //스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
                     ,rJumpImageLastBmpd1:BitmapData
@@ -10541,7 +10540,10 @@
 
             function next():void
             {
-                if(!data || data.length === 0) return;
+                if(!data || data.length === 0)
+                {
+                    return;
+                }
 
                 switch(data[index][0])
                 {
@@ -10673,6 +10675,11 @@
             checkHideCursorCount();
         }
 
+        private function getCacheImageLastFrame():Number
+        {
+            return rFrameCacheImages[rFrameCacheImages.length-1][6];
+        }
+
         private function setCacheImageByIndex(index:uint,lastReadBytes:Number):void
         {
             rFrameCacheImages[index] = [rcanvas1BitmapData.clone()
@@ -10701,11 +10708,9 @@
 
             function checkMakeCacheImage():void
             {
-                if((rNowFrame - rJumpImageNowFrameLast)/REPLAY_JUMPIMAGE_CACHE_INTERVAL > rFrameCacheImages.length-1
-                &&  rNowFrame > rCachedJumpImageIndexFrame)
+                if(rNowFrame > getCacheImageLastFrame() + REPLAY_JUMPIMAGE_CACHE_INTERVAL)
                 {
                     setCacheImageByIndex(rFrameCacheImages.length,rFileCutBytes);
-                    rCachedJumpImageIndexFrame = rNowFrame;
                 }
             }
 
@@ -10823,7 +10828,6 @@
 
             function drawFileData(len:Number,jumpFlag:int):void
             {
-                const flag:Boolean = jumpFlag === JUMP_FRAME_ONCE || jumpFlag === JUMP_FRAME_BEFORE;
                 for(var i:Number=0;i<len;i++)
                 {
                     if(tickDraw.isIndexBiggerData())
@@ -10835,7 +10839,7 @@
                             readyToReadRData(jumpFlag);
                             return;
                         }
-                        if(flag)
+                        if(jumpFlag === JUMP_FRAME_ONCE || jumpFlag === JUMP_FRAME_BEFORE)
                         {
                             checkMakeCacheImage();
                         }
@@ -12259,7 +12263,6 @@
             _rFrameCacheImages = null;
             rJumpImageIndexLast = -2;
             rCachedJumpImageIndexLast = -2;
-            rCachedJumpImageIndexFrame = 0;
         }
 
         private function makeJumpImage():void //loadrep
