@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.77;
+        private const APP_VERSION:Number = 22.78;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -328,7 +328,6 @@
                     ,penAlpha:Number = 1.0 //펜 변수
                     ,penColor:uint = 0x000000
                     ,penColorTransparentFlag:Boolean = false // 펜 컬러 투명 켜졌을때 올려줌
-                    ,penSizeOffsetFlag:Boolean = false//0.5픽셀 이동이면 true임 pensizecursormove함수에서 써줌
                     ,penSizeList:Array = [,1,2,3,4,5,7,10,13,18,30,45,80]
                     ,penAlphaList:Array = [,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
                     ,penCursorSize:Number = 3
@@ -3782,9 +3781,9 @@
             var mouseMoved:Boolean;
             var mouseMoveCount:int;
             var afterKeyUpOK:Boolean;
+            var posOffset:Number;
             // var _sharpLine:Boolean;
             var rotateFlag:Boolean;
-            var xOffset:Number;
             var xBlendMode:String;
             var clickedButton:String;
 
@@ -4054,8 +4053,8 @@
 
                 if(sharpLineON && rotateFlag === false)
                 {
-                    mx = Math.floor(mx-xOffset)+xOffset;
-                    my = Math.floor(my-xOffset)+xOffset;
+                    mx = Math.floor(mx-posOffset)+posOffset;
+                    my = Math.floor(my-posOffset)+posOffset;
                 }
                 else
                 {
@@ -4116,8 +4115,8 @@
 
                     if(sharpLineON && rotateFlag === false)
                     {
-                        mx = Math.floor(mx-xOffset)+xOffset;
-                        my = Math.floor(my-xOffset)+xOffset;
+                        mx = Math.floor(mx-posOffset)+posOffset;
+                        my = Math.floor(my-posOffset)+posOffset;
                     }
                     else
                     {
@@ -4184,7 +4183,7 @@
                 mouseMoveCount = 0;
                 afterKeyUpOK = false;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
-                xOffset = (penSizeOffsetFlag) ? 0.5 : 0;
+                posOffset = getSharpLineOffset(1.0);
                 xColor = penColor;
                 xAlpha = penAlpha;
                 xBlendMode = (penColorTransparentFlag) ? "erase" : null;
@@ -4247,8 +4246,8 @@
             var xShape:Boolean;
             var xBlendMode:String;
             var xAirBrushON:Boolean;
+            var posOffset:Number;
             var rotateFlag:Boolean;
-            var xOffset:Number;
             var mouseMoveCount:uint; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
             var mouseMovedFlag:Boolean;
             var moveEventDistLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
@@ -4332,8 +4331,8 @@
                 }
                 else
                 {
-                    mx = Math.floor(mx-xOffset)+xOffset;
-                    my = Math.floor(my-xOffset)+xOffset;
+                    mx = Math.floor(mx-posOffset)+posOffset;
+                    my = Math.floor(my-posOffset)+posOffset;
                 }
 
                 if(xShape === true)
@@ -4467,8 +4466,8 @@
 
             function penToolMouseMoveEvent(e:MouseEvent):void
             {
-                const mx:Number = canvas2Draw.mouseX+xOffset;
-                const my:Number = canvas2Draw.mouseY+xOffset;
+                const mx:Number = canvas2Draw.mouseX+posOffset;
+                const my:Number = canvas2Draw.mouseY+posOffset;
 
                 if(penToolMouseMoveLimit(mx,my)) return;
 
@@ -4517,8 +4516,8 @@
 
                 const xx:Number = canvas2Draw.mouseX;
                 const yy:Number = canvas2Draw.mouseY;
-                const mx:Number = xx+xOffset;
-                const my:Number = yy+xOffset;
+                const mx:Number = xx+posOffset;
+                const my:Number = yy+posOffset;
 
                 if(penToolFlag && traceMemoryTrainingON && traceAlphaSave > 0.0)
                 {
@@ -4602,9 +4601,9 @@
                     canvasTraceLayer.visible = false;
                 }
 
+                posOffset = getSharpLineOffset(xSize);
                 subLayerFlag = (penFlag) ? subLayerON : false;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
-                xOffset = (penSizeOffsetFlag) ? 0.5 : 0;
                 mouseMoveCount = 0; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
                 mouseMovedFlag = false;
                 canvasSizeRect.width = CANVAS_WIDTH;
@@ -4614,11 +4613,11 @@
 
                 if(penSmoothSlideValue === 0)
                 {
-                    smoothPos.setTo(Math.floor(canvas2Draw.mouseX-xOffset)+xOffset,Math.floor(canvas2Draw.mouseY-xOffset)+xOffset);
+                    smoothPos.setTo(Math.floor(canvas2Draw.mouseX-posOffset)+posOffset,Math.floor(canvas2Draw.mouseY-posOffset)+posOffset);
                 }
                 else
                 {
-                    smoothPos.setTo(canvas2Draw.mouseX+xOffset,canvas2Draw.mouseY+xOffset);
+                    smoothPos.setTo(canvas2Draw.mouseX+posOffset,canvas2Draw.mouseY+posOffset);
                 }
 
                 smoothLast.copyFrom(smoothPos); //penmove할때 마지막x y저장
@@ -6558,6 +6557,16 @@
 
             if(sharpLineON) setToolTipTempON("Sharp line ON");
             else setToolTipTempON("Sharp line OFF");
+        }
+
+        private function getSharpLineOffset(size:Number):Number
+        {
+            var offset:Number = (sharpLineON) ? (size % 2.0 === 0) ? 0.0 : 0.5
+                                              : (size % 2.0 === 0) ? 0.5 : 0.0;
+
+            trace("offset",offset)
+
+            return offset;
         }
 
         private function setSharpLineButton(flag:Boolean):void
@@ -14629,17 +14638,6 @@
                     shape = eraseShape;
                 }
 
-                if(sharpLineON)
-                {
-                    if(size % 2.0 === 1.0) penSizeOffsetFlag = true; //홀수 사이즈 일때 켜줌
-                    else penSizeOffsetFlag = false;
-                }
-                else
-                {
-                    if(size === 1.0 || size % 2.0 !== 0) penSizeOffsetFlag = false;
-                    else penSizeOffsetFlag = true;
-                }
-
                 const z:Number = zoomed;
                 if(size*z === penLastUpdateInfo[0] && shape === penLastUpdateInfo[1])
                 {
@@ -14755,7 +14753,7 @@
             var xShape:Boolean;
             var xBlendMode:String;
             var xAirBrushON:Boolean;
-            var xOffset:Number;
+            var posOffset:Number;
             var mouseMovedFlag:Boolean;
             var subLayerFlag:Boolean;
 
@@ -14908,18 +14906,18 @@
                 {
                     mouseMovedFlag = true;
                 }
-                const mx:Number = canvas2Draw.mouseX+xOffset;
-                const my:Number = canvas2Draw.mouseY+xOffset;
+                const mx:Number = canvas2Draw.mouseX+posOffset;
+                const my:Number = canvas2Draw.mouseY+posOffset;
 
                 if(xShape === true)
                 {
-                    const extPoints:Array = extendLineSegment(oldX+xOffset,oldY+xOffset,mx,my,xSize/2);
+                    const extPoints:Array = extendLineSegment(oldX+posOffset,oldY+posOffset,mx,my,xSize/2);
                     startPoint.setTo(extPoints[0],extPoints[1]);
                     endPoint.setTo(extPoints[2],extPoints[3])
                 }
                 else
                 {
-                    startPoint.setTo(oldX+xOffset,oldY+xOffset);
+                    startPoint.setTo(oldX+posOffset,oldY+posOffset);
                     endPoint.setTo(mx,my)
                 }
 
@@ -14951,8 +14949,8 @@
 
                     if(mouseMovedFlag === false && cx === mx && my === y)
                     {
-                        const xx:Number = mx+xOffset;
-                        const yy:Number = my+xOffset;
+                        const xx:Number = mx+posOffset;
+                        const yy:Number = my+posOffset;
                         rDataBuffer.push(["dot",xShape,xSize,xColor,xAlpha,xx,yy,xBlendMode,subLayerFlag,xAirBrushON]);
                         drawDot(xShape,xSize,xColor,xx,yy);
                     }
@@ -14960,13 +14958,13 @@
                     {
                         if(xShape === true)
                         {
-                            const extPoints:Array = extendLineSegment(cx+xOffset,cy+xOffset,mx,my,xSize/2);
+                            const extPoints:Array = extendLineSegment(cx+posOffset,cy+posOffset,mx,my,xSize/2);
                             startPoint.setTo(extPoints[0],extPoints[1]);
                             endPoint.setTo(extPoints[2],extPoints[3])
                         }
                         else
                         {
-                            startPoint.setTo(cx+xOffset,cy+xOffset);
+                            startPoint.setTo(cx+posOffset,cy+posOffset);
                             endPoint.setTo(mx,my)
                         }
 
@@ -15000,7 +14998,7 @@
                 canvasSizeWidth = CANVAS_WIDTH;
                 canvasSizeHeight = CANVAS_HEIGHT;
 
-                xOffset = (penSizeOffsetFlag) ? 0.5 : 0;
+                posOffset = getSharpLineOffset(xSize);
 
                 mouseMovedFlag = false;
                 oldX = canvas2Draw.mouseX;
@@ -15403,6 +15401,7 @@
 
             return function():void
             {
+                trace("call zoom")
                 //왼쪽 오른쪽 클릭 두번있기 때문에 중복 툴 사용은 피해줌
                 if(zoomToolHintON === true) return;
 
@@ -18246,12 +18245,16 @@
             sideBarScrollSet.addChild(toolBox);
             sideBarScrollSet.addChild(controlBox);
             sideBarScrollSet.addChild(pickerBox);
+
             sideBar.addChild(sideBarScrollBar);
             sideBar.addChild(sideBarScrollSet);
             sideBar.updateSideBGSize(stage.stageHeight);
             setSideBarLeftPosition();
             sideBarScrollBar.alpha = 0.7;
             STAGE_TOP_OFFSET = topBar.BARSIZE;
+            sideBarScrollSet.graphics.beginFill(0,0.0);
+            sideBarScrollSet.graphics.drawRect(0,0,sideBarScrollSet.width,sideBarScrollSet.height);
+            sideBarScrollSet.graphics.endFill();
 
             topBar.updateTimerPos(stage.stageWidth);
             stage.addChild(fileDragSelectBox);
@@ -20869,7 +20872,7 @@
 
             const targetName:String = target.name;
 
-            if(!(sideBar.visible && (sideBarScrollSet.hitTestPoint(mouseX,mouseY) || targetName === "sideBarScrollBar"))
+            if(!(sideBar.visible && (sideBarScrollSet.hitTestPoint(mouseX,mouseY,true) || targetName === "sideBarScrollBar"))
             && isCursorInDrawArea() && lassoMenu.hitTestPoint(mouseX,mouseY) === false)
             {
                 if(lassoMenuTempOFF)
@@ -21001,7 +21004,7 @@
 
             const targetName:String = target.name;
 
-            if(sideBar.visible && sideBarScrollSet.hitTestPoint(mouseX,mouseY))
+            if(sideBar.visible && sideBarScrollSet.hitTestPoint(mouseX,mouseY,true))
             {
                 if(targetName === "prevStageBG"
                 || targetName === "prevBitmapBG"
@@ -21037,6 +21040,8 @@
                 }
                 return;
             }
+
+            trace("mo")
 
             switch (targetName)
             {
