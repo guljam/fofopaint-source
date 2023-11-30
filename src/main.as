@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.83;
+        private const APP_VERSION:Number = 22.84;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -146,16 +146,16 @@
                                     }
         //툴 번호 미리 지정
                     ,TOOL_NONE:int = 0
-                    ,TOOL_PEN:int = (1 << 0)
-                    ,TOOL_ERASE:int = (1 << 1)
-                    ,TOOL_LINE:int = (1 << 2)
-                    ,TOOL_FILL_PEN:int = (1 << 3)
-                    ,TOOL_HAND:int = (1 << 4)
-                    ,TOOL_LASSO:int = (1 << 5)
-                    ,TOOL_SPUIT:int = (1 << 6)
-                    ,TOOL_ZOOM:int = (1 << 7)
-                    ,TOOL_ROTATE:int = (1 << 8)
-                    ,TOOL_MOVE:int = (1 << 9)
+                    ,TOOL_PEN:int = (1 << 0) // 1
+                    ,TOOL_ERASE:int = (1 << 1) // 2
+                    ,TOOL_LINE:int = (1 << 2) // 4
+                    ,TOOL_FILL_PEN:int = (1 << 3) // 8
+                    ,TOOL_HAND:int = (1 << 4) // 16
+                    ,TOOL_LASSO:int = (1 << 5) // 32
+                    ,TOOL_SPUIT:int = (1 << 6) // 64
+                    ,TOOL_ZOOM:int = (1 << 7) // 128
+                    ,TOOL_ROTATE:int = (1 << 8) // 256
+                    ,TOOL_MOVE:int = (1 << 9) // 512
 
                     ,JUMP_FRAME_PLAY:int = (1 << 0)
                     ,JUMP_FRAME_ONCE:int = (1 << 1)
@@ -2856,7 +2856,7 @@
 
             if(shortcut)
             {
-                restoreFirstUsedTool();
+                setNowToolByOldTool();
                 stage.addEventListener(KeyboardEvent.KEY_UP,keyUpQuickSidebarOFF);
             }
             else
@@ -7929,7 +7929,7 @@
         }
 
         //단축키를  after tool mouse up에서 이전툴을 복구해줌
-        private function restoreFirstUsedTool():void
+        private function setNowToolByOldTool():void
         {
             const oldToolSave:int = oldTool;
 
@@ -11760,7 +11760,6 @@
                         }
                         else if(!isNowTool(TOOL_SPUIT))
                         {
-                            updateOldTool();
                             spuitTool();
                         }
                     }
@@ -16613,18 +16612,11 @@
                 spuitZoomCursor.visible = false;
                 canvasTraceLayer.visible = true;
 
-                if(okFlag)
+                if(okFlag && !(isOldTool(TOOL_PEN) || isOldTool(TOOL_FILL_PEN) || isOldTool(TOOL_LINE)))
                 {
-                    if(!(isOldTool(TOOL_PEN) || isOldTool(TOOL_FILL_PEN) || isOldTool(TOOL_LINE)))
-                    {
-                        setOldTool(TOOL_PEN);
-                        restoreFirstUsedTool();
-                    }
+                    setOldTool(TOOL_PEN);
                 }
-                else
-                {
-                    restoreFirstUsedTool();
-                }
+                setNowToolByOldTool();
 
                 if(spuitZoomCursor.spuitZoomBitmap.bitmapData)
                 {
@@ -16719,6 +16711,7 @@
                     return;
                 }
 
+                updateOldTool();
                 setOldTool(nowTool);
                 setNowTool(TOOL_SPUIT);
                 penColorBackup = penColor;
@@ -16788,7 +16781,7 @@
                             setlassoMenuTempOFF();
                         }
                     } //tool box에서 클릭해서 핸드툴 들어갈때 필요함
-                    else if(!isNowKey(KEY.space)) restoreFirstUsedTool();
+                    else if(!isNowKey(KEY.space)) setNowToolByOldTool();
 
                     toolBox.setCursorVisible(true);
                     updatePreviewBoxRectPos();
@@ -17273,7 +17266,7 @@
             controlBox.opaSizeButtonWrapper.alpha = 1.0;
             pickerBox.alpha = 1.0;
 
-            restoreFirstUsedTool();
+            setNowToolByOldTool();
         }
 
         //stage를 기준으로 사각형 꼭지점들 구하기
@@ -18912,7 +18905,7 @@
                 {
                     if(layerVisibleKeyFuncCalled) layerVisibleKeyFuncCalled = false;
 
-                    if(oldTool > TOOL_NONE) restoreFirstUsedTool();
+                    if(oldTool > TOOL_NONE) setNowToolByOldTool();
 
                     updatePenCursorPosition();
                 }
@@ -18955,7 +18948,7 @@
             if(isPressingControlShift())
             {
                 //shift 누르고 ctrl 순서로 누를때 이전툴로 복원
-                if(isNowTool(TOOL_LINE)) restoreFirstUsedTool();
+                if(isNowTool(TOOL_LINE)) setNowToolByOldTool();
 
                 checkCommandSubKey(3,true,function(input:int):void
                 {
@@ -19117,7 +19110,7 @@
                             selectSubLayer(false,false);
                             setLayer1CheckToggle();
 
-                            if(oldTool > TOOL_NONE) restoreFirstUsedTool();
+                            if(oldTool > TOOL_NONE) setNowToolByOldTool();
                             return;
                         }
                         else if(KEY_BUFFER[1] === KEY.n2 || KEY_BUFFER[1] === KEY.n0)
@@ -19126,7 +19119,7 @@
                             selectSubLayer(true,false);
                             setLayer2CheckToggle();
 
-                            if(oldTool > TOOL_NONE) restoreFirstUsedTool();
+                            if(oldTool > TOOL_NONE) setNowToolByOldTool();
                             return;
                         }
                     }
@@ -19331,7 +19324,6 @@
                 {
                     if(!isNowTool(TOOL_SPUIT))
                     {
-                        updateOldTool();
                         spuitTool();
                     }
                 }
@@ -19508,7 +19500,7 @@
             if(quickSidebarON && !deepUndoON) _quickSidebarOFF();
             if(subLayerPreviewON) setSingleLayerPreviewOFF();
 
-            restoreFirstUsedTool();
+            setNowToolByOldTool();
         }
 
         private function updateToolBoxMousePos(target:SimpleButton):void
@@ -19656,9 +19648,8 @@
                 {
                     if(!isNowTool(TOOL_SPUIT))
                     {
-                        oldTool = nowTool;
+                        spuitTool();
                     }
-                    spuitTool();
                 }
                 break;
 
@@ -20199,7 +20190,7 @@
                 else
                 {
                     resetNowKey();
-                    if(oldTool > TOOL_NONE) restoreFirstUsedTool();
+                    if(oldTool > TOOL_NONE) setNowToolByOldTool();
                     updatePenCursorPosition();
                 }
             }
