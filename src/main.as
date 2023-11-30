@@ -2692,6 +2692,9 @@
             aboutPanel.scaleX = scale;
             aboutPanel.scaleY = scale;
 
+            spuitZoomCursor.scaleX = scale;
+            spuitZoomCursor.scaleY = scale;
+
             updateStageOffset();
             updateScrollBarHeight(sth);
 
@@ -16661,7 +16664,7 @@
                 spuitZoomCursor.x = mouseX;
                 spuitZoomCursor.y = mouseY;
 
-                if(isCursorInDrawArea() && canvasPanel.hitTestPoint(mouseX,mouseY,true))
+                if(checkSpuitCursorVisibleON())
                 {
                     setColorTransform(spuitZoomCursor["spuitNowColor"],spuitPickedColor());
                     if(zoomed < 12.0)
@@ -16694,6 +16697,12 @@
                 stage.addEventListener(KeyboardEvent.KEY_DOWN,spuitToolKeyDownEvent,false,2);
             }
 
+            function checkSpuitCursorVisibleON():Boolean
+            {
+                return isCursorInDrawArea() && canvasPanel.hitTestPoint(mouseX,mouseY,true) 
+                && !(traceMenu.visible && traceMenu.hitTestPoint(mouseX,mouseY));
+            }
+
             return function ():void
             {
                 toolBox.moveToolCursor("toolSpuit");
@@ -16717,7 +16726,7 @@
                 spuitZoomCursor.spuitZoomBitmap.bitmapData = new BitmapData(magSize,magSize,false,0);
                 canvasTraceLayer.visible = false;
 
-                if(isCursorInDrawArea() && canvasPanel.hitTestPoint(mouseX,mouseY,true))
+                if(checkSpuitCursorVisibleON())
                 {
                     spuitZoomCursor.x = mouseX;
                     spuitZoomCursor.y = mouseY;
