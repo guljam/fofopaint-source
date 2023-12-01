@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.90;
+        private const APP_VERSION:Number = 22.91;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -12293,8 +12293,7 @@
             var data:Array;
             var imgData:ByteArray = new ByteArray();
             var imgData1:ByteArray = new ByteArray();
-            var lastTime:int = getTimer();
-            var timeSum:int = 0;
+            var hintPrintTimeSave:int = getTimer();
 
             regPoint.visible = false;
             rregPoint.visible = false;
@@ -12335,8 +12334,7 @@
 
             function onFrameEnter(e:Event):void
             {
-
-                while(1)
+                while(true)
                 {
                     const namojiBytes:Number = fs.bytesAvailable;
 
@@ -12422,12 +12420,9 @@
                     _rJumpImageCount += data.length;
                     _tickDraw.drawAll();
 
-                    const nt:int = getTimer();
-                    timeSum += nt-lastTime;
-                    lastTime = nt;
-                    if(timeSum > 500)
+                    if(getTimer()-hintPrintTimeSave > 250)
                     {
-                        timeSum = 0;
+                        hintPrintTimeSave = getTimer();
                         printPrograssHint(namojiBytes);
                         return;
                     }
@@ -12458,7 +12453,12 @@
 
                         if(replayTimeBox["replayNowBar"].width > 0) replayTimeBox["replayNowBar"].width = 0;
 
-                        printPrograssHint(namojiBytes);
+                        if(getTimer()-hintPrintTimeSave > 250)
+                        {
+                            hintPrintTimeSave = getTimer();
+                            printPrograssHint(namojiBytes);
+                            return;
+                        }
 
                         return;
                     }
