@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 22.88;
+        private const APP_VERSION:Number = 22.90;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -177,7 +177,7 @@
                     ,BUTTON_OFF_ALPHA:Number = Math.round(0.20*256)/256
 
                     ,REPLAY_FASTEST_LIMIT_TIME:Number = 60
-                    ,REPLAY_MAKE_JUMPIMAGE_COUNT:Number = 10000
+                    ,REPLAY_MAKE_JUMPIMAGE_INTERVAL:Number = 10000
                     ,REPLAY_JUMPIMAGE_CACHE_INTERVAL:Number = 700
                     ,REPLAY_MAX_SPEED:Number = 200
 
@@ -714,9 +714,9 @@
 
         //function
 
-        //객체의 alpha값이 8비트int로 변환된후 다시 Number로 변환되기 때문에 실제 소수점 비교를 할때도 같은 방식을 써주어야함
         private function getDiplayObjectAlpha(alp:Number):Number
         {
+            //객체의 alpha값이 8비트int로 변환된후 다시 Number로 변환되기 때문에 실제 소수점 비교를 할때도 같은 방식을 써주어야함
             return Math.round(alp*256)/256;
         }
 
@@ -4389,8 +4389,6 @@
                     }
                 }
 
-                ++mouseMoveCount;
-
                 rDataBuffer.push(["lineTo",mx,my]);
                 penCommand.push(2);
                 penPoints.push(mx);
@@ -4398,7 +4396,7 @@
                 moveEvent2Last.setTo(mx,my);
                 canvas2Draw.graphics.lineTo(mx,my);
 
-                if(mouseMoveCount >= 100)
+                if(++mouseMoveCount >= 100)
                 {
                     mouseMoveCount = 0;
 
@@ -12434,7 +12432,7 @@
                         return;
                     }
 
-                    if(_rJumpImageCount > REPLAY_MAKE_JUMPIMAGE_COUNT)
+                    if(_rJumpImageCount > REPLAY_MAKE_JUMPIMAGE_INTERVAL)
                     {
                         _rJumpImageCount = 0;
                         rJumpImageFrameData.push(_frameSum); // jumpimg:File변수보다 먼저 와야함
@@ -17822,7 +17820,7 @@
 
                         if(makeJumpImageFlag === 0)
                         {
-                            if(rJumpImageCount > REPLAY_MAKE_JUMPIMAGE_COUNT)
+                            if(rJumpImageCount > REPLAY_MAKE_JUMPIMAGE_INTERVAL)
                             {
                                 rJumpImageCount = 0;
                                 const data:Array = undoRefImage;
@@ -21194,23 +21192,32 @@
 
         // private function testFuncTime():void
         // {
+        //     var a:int = 0;
         //     var _print:Function = trace;
         //     var i:int=0;
         //     var nt:int = getTimer();
 
         //     while(i < 10000000)
         //     {
-        //         toolBox.moveToolCursor("toolZoom");
+        //         a++;
+        //         if( a=== 100)
+        //         {
+        //             a = 0
+        //         }
         //         i++;
         //     }
 
         //     _print("time 1",getTimer()-nt);
 
+        //     a = 0;
         //     i = 0;
         //     nt = getTimer()
         //     while(i < 10000000)
         //     {
-        //         toolBox.moveToolCursor2("toolZoom");
+        //         if(++a === 100)
+        //         {
+        //             a = 0;
+        //         }
         //         i++;
         //     }
 
