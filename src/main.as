@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.00;
+        private const APP_VERSION:Number = 23.01;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -14500,13 +14500,13 @@
             bmpd1.lock();
             bmpd1.setPixels(bmpdRect,arr[1]);
             bmpd1.unlock();
-            undoData.setUndoRefImage(bmpd,bmpd1,arr[2],arr[3],arr[4],arr[5]);
+            undoData.setUndoRefImage(bmpd.clone(),bmpd1.clone(),arr[2],arr[3],arr[4],arr[5]);
 
             drawUndoData();
             rCursor.visible = false;
             toolTipBoxTimerOFF();
-            // bmpd.dispose();
-            // bmpd1.dispose();
+            bmpd.dispose();
+            bmpd1.dispose();
             bmpd = null;
             bmpd1 = null;
             arr.length = 0;
@@ -19026,38 +19026,9 @@
             checkKeyUp(e.keyCode);
         }
 
-        // private function compareBitmapDataEqual(bmpData1:BitmapData, bmpData2:BitmapData):Boolean {
-        // // 너비와 높이가 같은지 확인
-        // if (bmpData1.width !== bmpData2.width || bmpData1.height !== bmpData2.height) {
-        //     return false;
-        // }
-
-        //     // 각 픽셀을 비교
-        //     for (var x:int = 0; x < bmpData1.width; x++) {
-        //         for (var y:int = 0; y < bmpData1.height; y++) {
-        //             var pixel1:uint = bmpData1.getPixel(x, y);
-        //             var pixel2:uint = bmpData2.getPixel(x, y);
-
-        //             // 픽셀 값이 다르면 두 이미지는 다름
-        //             if (pixel1 !== pixel2) {
-        //                 bmpData2.setPixel(x,y,0)
-        //             }
-        //         }
-        //     }
-
-        //     // 모든 픽셀이 같으면 두 이미지는 같음
-        //     return true;
-        // }
-
         private function keyDownReplayMode(e:KeyboardEvent):void//keydown2
         {
             const keyCode:uint = KEY_BUFFER[0];
-
-            // if(keyCode === KEY.g)
-            // {
-            //     trace("aa",compareBitmapDataEqual(canvas1Bitmap.bitmapData,rcanvas1Bitmap.bitmapData))
-            //     trace("aa",compareBitmapDataEqual(canvas11Bitmap.bitmapData,rcanvas11Bitmap.bitmapData))
-            // }
 
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
 
