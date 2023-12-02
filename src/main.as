@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.01;
+        private const APP_VERSION:Number = 23.02;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -11390,14 +11390,14 @@
             stage.addEventListener(MouseEvent.MOUSE_UP,replaySpeedButtomUpEvent);
         }
 
-        private function getTotalFrameUntilUndoIndex(index:int):Number
+        private function getNowFrameUntilUndoIndex(index:int):Number
         {
             return undoData.getRFileTotalFrame()+undoData.getRDataTotalFrame(index);
         }
 
         private function getTotalFrame():Number
         {
-            return getTotalFrameUntilUndoIndex(rDataFrame.length-1);
+            return getNowFrameUntilUndoIndex(rDataFrame.length-1);
         }
 
         private function getNearZoomIndex(nowZoom:Number):int
@@ -14829,8 +14829,8 @@
                     }
 
                     rIndex = undoIndex;
-                    rNowFrame = getTotalFrameUntilUndoIndex(undoIndex);
-                    rPrevFrame = getTotalFrameUntilUndoIndex(undoIndex-1);
+                    rNowFrame = getNowFrameUntilUndoIndex(undoIndex);
+                    rPrevFrame = getNowFrameUntilUndoIndex(undoIndex-1);
 
                     //혹시 몰라서 위치 체크 해줌
                     appInfoBox.setRotate(regPoint.rotation);
@@ -16423,11 +16423,6 @@
             var lassoBMPD:BitmapData = new BitmapData(rectWidth,rectHeight,true,0);
             var lassoBMPDsub:BitmapData = new BitmapData(rectWidth,rectHeight,true,0);
             var i:uint;
-            var x:Number;
-            var y:Number;
-            var nowPoint:Array;
-            var xx:Number;
-            var yy:Number;
 
             //지우기 전에 사각형 모양으로 그려준 부분을 copypixel 함.
             if(layer1) lassoBMPD.copyPixels(canvasBitmapData,newRectangle,ZERO_POINT,null,null,true);
@@ -16436,19 +16431,14 @@
             //bitmap1canvas에서 그려준 영역을 지워줌
             if(!copyFlag)
             {
-                x = points[0][0];
-                y = points[0][1];
                 xCanvas2Draw.graphics.clear();
                 xCanvas2Draw.graphics.beginFill(CANVAS_BG_COLOR);
-                xCanvas2Draw.graphics.moveTo(x,y);
+                xCanvas2Draw.graphics.moveTo(points[0][0],points[0][1]);
 
                 //rectLeft를 빼줘서 canvasdraw2의 0,0영역에 그려줌
                 for(i=1;i<lassoPointsLen;i++)
                 {
-                    nowPoint = points[i] as Array;
-                    x = nowPoint[0];
-                    y = nowPoint[1];
-                    xCanvas2Draw.graphics.lineTo(x,y);
+                    xCanvas2Draw.graphics.lineTo(points[i][0],points[i][1]);
                 }
 
                 xCanvas2Draw.graphics.endFill();
@@ -16488,10 +16478,7 @@
             //rectLeft를 빼줘서 canvasdraw2의 0,0영역에 그려줌
             for(i=1;i<lassoPointsLen;i++)
             {
-                nowPoint = points[i];
-                xx = (nowPoint[0]-rectLeft);
-                yy = (nowPoint[1]-rectTop);
-                xCanvas2Draw.graphics.lineTo(xx,yy);
+                xCanvas2Draw.graphics.lineTo(points[i][0]-rectLeft,points[i][1]-rectTop);
             }
 
             //마지막으로 시작점을 이어줌
@@ -17658,7 +17645,7 @@
             rDataReadFlag = true;
             rIndex = undoIndexSave;
             rPrevFrame = rNowFrame;
-            rNowFrame = getTotalFrameUntilUndoIndex(undoIndexSave);
+            rNowFrame = getNowFrameUntilUndoIndex(undoIndexSave);
 
             rMirrorON = undoRefData[5];
             if(undoRefData[2] !== RCANVAS_WIDTH || undoRefData[3] !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(undoRefData[2],undoRefData[3],0,0,false);
