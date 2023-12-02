@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.02;
+        private const APP_VERSION:Number = 23.03;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3871,8 +3871,17 @@
 
                 if(data.length === 0) return;
 
-                canvas2Draw.graphics.lineStyle(1,xColor);
-                canvas2Draw.graphics.beginFill(xColor);
+                if(penColorTransparentFlag)
+                {
+                    canvas2Draw.graphics.lineStyle(1,xColor);
+                    canvas2Draw.graphics.lineBitmapStyle(pickerBox.transColorButtonBmpd);
+                    canvas2Draw.graphics.beginBitmapFill(pickerBox.transColorButtonBmpd);
+                }
+                else
+                {
+                    canvas2Draw.graphics.lineStyle(1,xColor);
+                    canvas2Draw.graphics.beginFill(xColor);
+                }
                 canvas2Draw.graphics.drawPath(command,data);
                 canvas2Draw.graphics.endFill();
                 canvas2Draw.graphics.moveTo(data[data.length-2],data[data.length-1]);
@@ -3903,7 +3912,7 @@
 
                 canvas2.alpha = 1.0;
 
-                if(!penColorTransparentFlag && subLayerON)
+                if(subLayerON)
                 {
                     canvasPanel.setChildIndex(canvas2,canvas2ZIndexDSave);
                 }
@@ -4094,7 +4103,7 @@
                     {
                         endFillPenOK();
                     }
-                    else if(!penColorTransparentFlag)
+                    else
                     {
                         drawPreviewLine();
                     }
@@ -4146,7 +4155,7 @@
 
                 if(!hasTimer("fillPenTimer"))
                 {
-                    addTimerByName("fillPenTimer",0.083,false,(penColorTransparentFlag) ? drawPreviewLine:drawFillPenData);
+                    addTimerByName("fillPenTimer",0.083,false,drawFillPenData);
                 }
             }
 
@@ -4205,14 +4214,7 @@
                         canvasPanel.setChildIndex(canvas2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
                     }
 
-                    if(penColorTransparentFlag)
-                    {
-                        drawPreviewLine();
-                    }
-                    else
-                    {
-                        drawFillPenData();
-                    }
+                    drawFillPenData();
                 }
             }
 
@@ -4279,7 +4281,7 @@
                 lastMousePos.setTo(mx,my);
                 canvas2.alpha = xAlpha;
 
-                if(!penColorTransparentFlag && subLayerON)
+                if(subLayerON)
                 {
                     canvas2ZIndexDSave = canvasPanel.getChildIndex(canvas2);
                     canvasPanel.setChildIndex(canvas2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
@@ -4362,6 +4364,11 @@
                 else
                 {
                     canvas2Draw.graphics.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.BEVEL);
+                }
+
+                if(!penToolFlag || penColorTransparentFlag)
+                {
+                    canvas2Draw.graphics.lineBitmapStyle(pickerBox.transColorButtonBmpd);
                 }
             }
 
@@ -15148,6 +15155,11 @@
                 else
                 {
                     canvas2Draw.graphics.lineStyle(xSize, xColor);
+                }
+
+                if(penColorTransparentFlag)
+                {
+                    canvas2Draw.graphics.lineBitmapStyle(pickerBox.transColorButtonBmpd);
                 }
 
                 canvas2Draw.graphics.moveTo(startPoint.x,startPoint.y);

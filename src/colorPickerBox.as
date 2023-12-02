@@ -36,7 +36,7 @@
 		public var penColorButton:SimpleButton;
 		public var paperColorButton:SimpleButton;
 		public var transColorButton:SimpleButton;
-		private var tracColorButtonBmpd:BitmapData;
+		public var transColorButtonBmpd:BitmapData;
 
 		public var offsetX:Number = 0; //customcolor 박스 떨어진 위치
 
@@ -259,7 +259,7 @@
 		{
 			rgbInfoBG.graphics.clear();
             rgbInfoBG.graphics.lineStyle(0,0,0);
-            rgbInfoBG.graphics.beginBitmapFill(tracColorButtonBmpd);
+            rgbInfoBG.graphics.beginBitmapFill(transColorButtonBmpd);
             rgbInfoBG.graphics.drawRect(0,0,rgbInfoWidth,rgbInfoHeight);
             rgbInfoBG.graphics.endFill();
 			rgbInfo.textColor = 0xFF0000;
@@ -332,14 +332,14 @@
 			colorHistoryDragBox.visible = true;
 		}
 
-		private function inittracColorButtonBmpd():void
+		private function inittransColorButtonBmpd():void
 		{
 			const checkerPatternWidth:Number = transColorButton.width;
 			const checkerPatternHeight:Number = transColorButton.height;
 			const mat:Matrix = new Matrix()
 			mat.scale(transColorButton.scaleX,transColorButton.scaleY);
-			tracColorButtonBmpd = new BitmapData(checkerPatternWidth,checkerPatternHeight,false,0);
-			tracColorButtonBmpd.draw(transColorButton,mat);
+			transColorButtonBmpd = new BitmapData(checkerPatternWidth,checkerPatternHeight,false,0);
+			transColorButtonBmpd.draw(transColorButton,mat);
 		}
 
 		//피커박스 구조
@@ -349,7 +349,7 @@
 			name = "pickerBox";
 			initDrawrPreset();
 			initTegakiPreset();
-			inittracColorButtonBmpd();
+			inittransColorButtonBmpd();
 
 			updateRGBInfoBG(0,0);
 
