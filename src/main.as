@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.04;
+        private const APP_VERSION:Number = 23.05;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -414,7 +414,7 @@
                     ,colorHisotryClickPos:Point = new Point() //컬러 히스토리 클릭하면 위치 넣어줌
                     ,colorHistoryMovePos:Point = new Point() //컬러 히스토리 드래그할때 움직이는 포인트 넣어줌
                     ,colorHisotyrClickPresetColor:uint = 0 //클릭한 컬러 저장해줌
-                    ,colorHisotyrClickPresetIndex:int = 0 //클릭한 컬러 인덱스 저장해줌
+                    ,colorHisotyrClickPresetIndex:uint = 0 //클릭한 컬러 인덱스 저장해줌
                     ,colorHistoryDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
 
         //툴팁 관련 변수
@@ -718,8 +718,8 @@
         //function
         private function getClipRectOffsetAirBrush(size:int):Number
         {
-            const len:int = penSizeList.length;
-            for(var i:int=1;i<len;i++)
+            const len:uint = penSizeList.length;
+            for(var i:uint=1;i<len;i++)
             {
                 if(penSizeList[i] === size)
                 {
@@ -1347,9 +1347,9 @@
         private function getRGBInfoTextLimit():int
         {
             const rgb:Array = getRGBColorTextFromRGBInfoText();
-            var sum:int = 9;
+            var sum:uint = 9;
 
-            for(var i:int=0;i<2;i++)
+            for(var i:uint=0;i<2;i++)
             {
                 sum += rgb[i].length;
             }
@@ -2487,20 +2487,20 @@
             if(rData.length === 0) return;
 
             const index:int = undoIndex;
-            const arr:Array = rData[index];
 
-            if(arr.length === 1)
+            if(rData[index].length === 1)
             {
                 rData.splice(index);
                 rDataFrame.splice(index);
             }
             else
             {
-                for(var i:uint=0; i<arr.length; i++)
+                const len:uint = rData[index].length;
+                for(var i:uint=0;i<len;i++)
                 {
-                    if(command === arr[i][0])
+                    if(command === rData[index][i][0])
                     {
-                        arr.splice(i,1)
+                        rData[index].splice(i,1)
                         --i;
                     }
                 }
@@ -2942,10 +2942,10 @@
         private function deleteOldAppData():void
         {
             const list:Array = File.applicationStorageDirectory.getDirectoryListing();
-            const len:int = list.length;
+            const len:uint = list.length;
             var filename:String;
 
-            for (var i:int=0; i<len; i++)
+            for (var i:uint=0; i<len; i++)
             {
                 filename = list[i].name;
                 if(filename.indexOf("appdata") !== -1 && filename !== "appdata"+APP_DATA_VERSION.toString())
@@ -3183,7 +3183,7 @@
                         var pos:Point;
                         var divPoint:Point;
 
-                        for(var i:Number=div; i>=1; i--)
+                        for(var i:Number=div;i>=1;i--)
                         {
                             pos = Point.interpolate(oldPoint,endpos,minUnit*i);
                             g.lineTo(pos.x,pos.y);
@@ -3598,7 +3598,7 @@
             {
                 const len:uint = funcNameList.length;
 
-                for(var i:int=0;i<len;i++)
+                for(var i:uint=0;i<len;i++)
                 {
                     if(funcNameList[i] === name)
                     {
@@ -3615,7 +3615,7 @@
                 if(moveEventLimit() === true) return;
                 const len:uint = funcList.length;
 
-                for(var i:int=0;i<len;i++)
+                for(var i:uint=0;i<len;i++)
                 {
                     funcList[i](e);
                 }
@@ -3892,21 +3892,16 @@
 
             function drawPreviewLine():void
             {
-                const len:int = data.length;
-                var x:Number = data[0];
-                var y:Number = data[1];
-
                 canvas2Draw.graphics.clear();
 
+                const len:uint = data.length;
                 if(len <= 3) return;
 
-                dottedLine.ready(canvas2Draw.graphics,x,y);
+                dottedLine.ready(canvas2Draw.graphics,data[0],data[1]);
 
-                for(var i:int=2; i<len; i+=2)
+                for(var i:uint=2; i<len; i+=2)
                 {
-                    x = data[i];
-                    y = data[i+1];
-                    dottedLine.draw(canvas2Draw.graphics,x,y);
+                    dottedLine.draw(canvas2Draw.graphics,data[i],data[i+1]);
                 }
                 dottedLine.draw(canvas2Draw.graphics,data[0],data[1]);
 
@@ -5041,22 +5036,24 @@
 		{
 			function rgb2lab(rgb:uint):Vector.<Number>
 			{
-				var r:Number = ((rgb & 0xFF0000) >>> 16) / 255;
-				var g:Number = ((rgb & 0x00FF00) >>> 8) / 255;
-				var b:Number = ((rgb & 0x0000FF)) / 255;
-				var x:Number, y:Number, z:Number;
+				var _r:Number = ((rgb & 0xFF0000) >>> 16) / 255;
+				var _g:Number = ((rgb & 0x00FF00) >>> 8) / 255;
+				var _b:Number = ((rgb & 0x0000FF)) / 255;
+				var _x:Number;
+                var _y:Number;
+                var _z:Number;
 
-				r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
-				g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
-				b = (b > 0.04045) ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
-				x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
-				y = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 1.00000;
-				z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
-				x = (x > 0.008856) ? Math.pow(x, 1/3) : (7.787 * x) + 16/116;
-				y = (y > 0.008856) ? Math.pow(y, 1/3) : (7.787 * y) + 16/116;
-				z = (z > 0.008856) ? Math.pow(z, 1/3) : (7.787 * z) + 16/116;
+				_r = (_r > 0.04045) ? Math.pow((_r + 0.055) / 1.055, 2.4) : _r / 12.92;
+				_g = (_g > 0.04045) ? Math.pow((_g + 0.055) / 1.055, 2.4) : _g / 12.92;
+				_b = (_b > 0.04045) ? Math.pow((_b + 0.055) / 1.055, 2.4) : _b / 12.92;
+				_x = (_r * 0.4124 + _g * 0.3576 + _b * 0.1805) / 0.95047;
+				_y = (_r * 0.2126 + _g * 0.7152 + _b * 0.0722) / 1.00000;
+				_z = (_r * 0.0193 + _g * 0.1192 + _b * 0.9505) / 1.08883;
+				_x = (_x > 0.008856) ? Math.pow(_x, 1/3) : (7.787 * _x) + 16/116;
+				_y = (_y > 0.008856) ? Math.pow(_y, 1/3) : (7.787 * _y) + 16/116;
+				_z = (_z > 0.008856) ? Math.pow(_z, 1/3) : (7.787 * _z) + 16/116;
 
-                const result:Vector.<Number> = new <Number> [(116 * y) - 16, 500 * (x - y), 200 * (y - z)];
+                const result:Vector.<Number> = new <Number> [(116 * _y) - 16, 500 * (_x - _y), 200 * (_y - _z)];
 
 				return result;
 			}
@@ -8904,8 +8901,9 @@
             const rNowFrameSave:Number = rNowFrame;
             const list:Array = rJumpImageFolder.getDirectoryListing();
             const index:Number = getJumpImageIndex(rNowFrameSave);
+            const len:uint = list.length;
             //index번 이후 파일 삭제
-            for(var i:uint = 0,len:uint=list.length; i < len; i++)
+            for(var i:uint=0;i<len;i++)
             {
                 if(parseInt(list[i].name) > index)
                 {
@@ -10011,8 +10009,8 @@
 
             function drawAll():void
             {
-                var len:int = data.length;
-                for(var i:int = 0; i < len; i++)
+                var len:uint = data.length;
+                for(var i:uint = 0; i < len; i++)
                 {
                     next();
                 }
@@ -11413,13 +11411,11 @@
             var high:int = zoomList.length-1;
             if(high <= 0) return high;
             var index:int = Math.floor((low+high)/2);
-            var zoom:Number;
 
             while(low <= high)//2진 탐색
             {
-                zoom = zoomList[index];
-                if(zoom === nowZoom) break;
-                else if(zoom > nowZoom) high = index-1;
+                if(zoomList[index] === nowZoom) break;
+                else if(zoomList[index] > nowZoom) high = index-1;
                 else low = index+1;
 
                 index = Math.floor((low + high)/2);
@@ -11443,14 +11439,11 @@
             var high:Number = rFrameCacheImages.length-1;
             if(high <= 0) return high;
             var index:Number = Math.floor((low+high)/2);
-            var indexFrame:Number;
 
             while(low <= high)//2진 탐색
             {
-                indexFrame = rFrameCacheImages[index][6];
-
-                if(indexFrame === targetFrame) break;
-                else if(indexFrame > targetFrame) high = index-1;
+                if(rFrameCacheImages[index][6] === targetFrame) break;
+                else if(rFrameCacheImages[index][6] > targetFrame) high = index-1;
                 else low = index+1;
 
                 index = Math.floor((low + high)/2);
@@ -11466,14 +11459,11 @@
             var high:Number = rJumpImageFrameData.length-1;
             if(high <= 0) return high;
             var index:Number = Math.floor((low + high)/2);
-            var indexFrame:Number;
 
             while(low <= high)//2진 탐색
             {
-                indexFrame = rJumpImageFrameData[index];
-
-                if(indexFrame === targetFrame) break;
-                else if(indexFrame > targetFrame) high = index-1;
+                if(rJumpImageFrameData[index] === targetFrame) break;
+                else if(rJumpImageFrameData[index] > targetFrame) high = index-1;
                 else low = index+1;
 
                 index = Math.floor((low + high)/2);
@@ -12469,13 +12459,13 @@
             return (getColorDifferenceForHuman(color,bright) <= 30) ? dark : bright;
         }
 
-        private function updateColorHistoryList(ignoreIndex:int = -1):void
+        private function updateColorHistoryList(ignoreIndex:uint=uint.MAX_VALUE):void
         {
-            const len:int = colorHistoryList.length;
+            const len:uint = colorHistoryList.length;
 
             pickerBox.drawHistoryBoxBG();
 
-            for(var i:int=0;i<len;i++)
+            for(var i:uint=0;i<len;i++)
             {
                 if(i === ignoreIndex) continue;
 
@@ -12502,7 +12492,8 @@
         {
             var _rFrameCacheImages:Array = rFrameCacheImages;
             const len:uint = _rFrameCacheImages.length;
-            var i:int = 0;
+            var i:uint = 0;
+
             while(i<len)
             {
                 if(_rFrameCacheImages[i][0])
@@ -12518,6 +12509,7 @@
                 }
                 i++;
             }
+
             rFrameCacheImages.length = 0;
             _rFrameCacheImages = null;
             rJumpImageIndexLast = -2;
@@ -12998,7 +12990,7 @@
                 }
             }
 
-            while(1)
+            while(true)
             {
                 if(fs.bytesAvailable === 0) break;
                 d = fs.readObject()
@@ -13170,7 +13162,7 @@
             var ba:ByteArray;
             var newRectangle:Rectangle;
 
-            while(1)
+            while(true)
             {
                 if(fs.bytesAvailable === 0) break;
                 const d:Array = fs.readObject() as Array;
@@ -14270,7 +14262,7 @@
             var fixedPath:String;
             var dotPNG:String;
 
-            for(var i:int=0; i<3; i++)
+            for(var i:uint=0; i<3; i++)
             {
                 if(name.lastIndexOf(extArr[i]) !== -1)
                 {
@@ -16060,12 +16052,6 @@
 
                 function _drawRatioLine(referenceSize:Number,offset:Number):void
                 {
-                    const len:uint = ratioArr.length;
-                    const color:uint = uiColorSet[uiColorIndex][1];
-                    var i:uint;
-                    var prevSize:Number; //스냅 격자 그려주는 위치
-                    var realSize:Number; //스냅 걸릴때 실제 사이즈
-
                     ratioSizeArr.length = 0;
 
                     //hittestpoint를 위해서 배경을 그려줌
@@ -16074,15 +16060,27 @@
                     else resizePreviewRatioRect.graphics.drawRect(-guideLineWidth,-max/2,guideLineWidth,max*2);
                     resizePreviewRatioRect.graphics.endFill();
 
-                    for(i=0;i<len;i+=2)
+                    const color:uint = uiColorSet[uiColorIndex][1];
+                    var prevSize:Number; //스냅 격자 그려주는 위치
+                    var realSize:Number; //스냅 걸릴때 실제 사이즈
+                    const len:uint = ratioArr.length;
+
+                    for(var i:uint=0;i<len;i+=2)
                     {
                         realSize = Math.round(referenceSize*ratioArr[i+1]);
                         prevSize = realSize;
-                        if(realSize > max || realSize < min) continue;
+
+                        if(realSize > max || realSize < min)
+                        {
+                            continue;
+                        }
 
                         resizePreviewRatioRect.graphics.lineStyle(3/zoomed,color,1.0,true,"normal","none");
 
-                        if(flipFlag) prevSize = -prevSize+offset;
+                        if(flipFlag)
+                        {
+                            prevSize = -prevSize+offset;
+                        }
 
                         if(widthFlag)
                         {
@@ -16553,20 +16551,16 @@
 
             function drawPreviewLine():void
             {
-                const len:int = lassoPoints.length;
-                var x:Number = lassoPoints[0][0];
-                var y:Number = lassoPoints[0][1];
-
                 lassoDraw.graphics.clear();
+
+                const len:uint = lassoPoints.length;
                 if(lassoPoints.length < 2) return;
 
-                dottedLine.ready(lassoDraw.graphics,x,y);
+                dottedLine.ready(lassoDraw.graphics,lassoPoints[0][0],lassoPoints[0][1]);
 
-                for(var i:int=0; i<len; i++)
+                for(var i:uint=0; i<len; i++)
                 {
-                    x = lassoPoints[i][0];
-                    y = lassoPoints[i][1];
-                    dottedLine.draw(lassoDraw.graphics,x,y);
+                    dottedLine.draw(lassoDraw.graphics,lassoPoints[i][0],lassoPoints[i][1]);
                 }
                 dottedLine.draw(lassoDraw.graphics,lassoPoints[0][0],lassoPoints[0][1]);
             }
@@ -17627,24 +17621,23 @@
             const prevData:Array = (redoFlag) ? rData[index] : rData[index+1];
             if(!prevData) return null;
 
-            var len:int = prevData.length;
-            var arr:Array;
-            var x:Number = 0;
-            var y:Number = 0;
+            var len:uint = prevData.length;
+            var xSum:Number = 0;
+            var ySum:Number = 0;
 
-            for(var i:int=0; i<len; i++)
+            for(var i:uint=0; i<len; i++)
             {
-                arr = prevData[i] as Array;
-                if(arr[0] === "canvasSize" && arr[5] === true)
+                if(prevData[i][0] === "canvasSize" && prevData[i][5] === true)
                 {
-                    x += arr[3];
-                    y += arr[4];
+                    xSum += prevData[i][3];
+                    ySum += prevData[i][4];
                 }
             }
-            if(x === 0 && y === 0) return null;
 
-            const movedXY:Point = (redoFlag) ? new Point(-x,-y)
-                                             : new Point(x,y);
+            if(xSum === 0 && ySum === 0) return null;
+
+            const movedXY:Point = (redoFlag) ? new Point(-xSum,-ySum)
+                                             : new Point(xSum,ySum);
             return movedXY;
         }
 
@@ -18004,8 +17997,9 @@
                 }
 
                 updateLastRDataMirror();
-                const len:uint = rDataBuffer.length;
+
                 //버퍼에mirror가 있을수도 있기 때문에 요소를 하나씩 push해주어야함
+                const len:uint = rDataBuffer.length;
                 for(var i:uint=0; i<len; i++)
                 {
                     rData[rData.length-1].push(rDataBuffer[i]);//배열안에 배열이 들어있음
@@ -19951,15 +19945,15 @@
 
         private function setLasso1PxMoveButton(command:int):void
         {
-            var x:Number = 0;
-            var y:Number = 0;
+            var posX:Number = 0;
+            var posY:Number = 0;
 
-            if(command === LASSO_1PX_MOVE_UP) y = -1;
-            else if(command === LASSO_1PX_MOVE_DOWN) y = 1;
-            else if(command === LASSO_1PX_MOVE_LEFT) x = -1;
-            else if(command === LASSO_1PX_MOVE_RIGHT) x = 1;
+            if(command === LASSO_1PX_MOVE_UP) posY = -1;
+            else if(command === LASSO_1PX_MOVE_DOWN) posY = 1;
+            else if(command === LASSO_1PX_MOVE_LEFT) posX = -1;
+            else if(command === LASSO_1PX_MOVE_RIGHT) posX = 1;
 
-            const rotatedPoint:Point = rotatePoint(x,y,regPoint.rotation);
+            const rotatedPoint:Point = rotatePoint(posX,y,regPoint.rotation);
 
             lassoBox1.x += rotatedPoint.x;
             lassoBox1.y += rotatedPoint.y;

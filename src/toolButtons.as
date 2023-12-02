@@ -214,9 +214,9 @@
 
 		public function initButtonsPos():void
 		{
-			const len:int = buttonArr.length;
+			const len:uint = buttonArr.length;
 
-			for(var i:int=0;i<len;i++)
+			for(var i:uint=0;i<len;i++)
 			{
 				buttonArr[i].x = 0;
 				buttonArr[i].y = i*buttonArr[i].height;

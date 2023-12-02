@@ -57,11 +57,11 @@
 
 		public function getStringFixedLength(str:String,fixedLength:int):String
 		{
-			const strlen:int = str.length;
+			const strlen:uint = str.length;
 			const len:int = fixedLength-strlen;
 			var finalstr:String = "";
 
-			for(var i:int=0;i<len;i++)
+			for(var i:uint=0;i<len;i++)
 			{
 				finalstr+= " ";
 			}

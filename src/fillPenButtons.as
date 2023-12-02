@@ -70,7 +70,7 @@
 			activeColor.color = arr[4];
 			activeColor.alphaMultiplier = 0.7;
 
-			for (var i:int = 0; i < len; i++)
+			for (var i:uint = 0; i < len; i++)
 			{
 				btn = buttonArr[i];
 				btnUp = btn.upState as DisplayObject;

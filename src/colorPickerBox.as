@@ -156,7 +156,7 @@
 			var colorT:ColorTransform;
 			var btn:Sprite;
 
-			for(var i:int=0;i<10;i+=2)
+			for(var i:uint=0;i<10;i+=2)
 			{
 				btn = new Sprite();
 				btn.name = "tegaki"+(i/2);
@@ -176,16 +176,6 @@
 
 		private function initDrawrPreset():void
 		{
-			var colorT:ColorTransform;
-			var g:Graphics;
-			var btn:Sprite;
-			var x:Number = 0;
-			var y:Number = 0;
-			const width:Number = 17;
-			const height:Number = 19;
-			const offsetX:Number = 0;
-			const offsetY:Number = 0;
-
 			const drawrColor:Vector.<uint> = new <uint> [
 															0xFFFFFF,
 															0xC0C0C0,
@@ -205,27 +195,38 @@
 															0xC02E97,
 															0x3F037E
 														];
+
+			const width:Number = 17;
+			const height:Number = 19;
 			const len:int = drawrColor.length;
+
+			var posX:Number = 0;
+			var posY:Number = 0;
+			var btn:Sprite;
+			var colorT:ColorTransform;
+
 			for(var i:uint=0;i<len;i++)
 			{
 				btn = new Sprite();
 				btn.name = "drawr"+i;
-				g = btn.graphics;
-				g.lineStyle(0,0,0);
-				g.beginFill(0);
-				g.drawRect(0,0,width,height);
-				g.endFill();
+				btn.graphics.lineStyle(0,0,0);
+				btn.graphics.beginFill(0);
+				btn.graphics.drawRect(0,0,width,height);
+				btn.graphics.endFill();
+
 				colorT = new ColorTransform()
 				colorT.color = drawrColor[i];
+
 				btn.transform.colorTransform = colorT;
-				btn.x = (i*width)-x;
-				btn.y = y;
+				btn.x = (i*width)-posX;
+				btn.y = posY;
 
 				if(i == 7)
 				{
-					x = width*8;
-					y = height;
+					posX = width*8;
+					posY = height;
 				}
+
 				drawrPresetBox.addChild(btn);
 			}
 		}

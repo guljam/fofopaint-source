@@ -220,9 +220,9 @@
 									sideBarOFFButton,
 									sideBarONButton2,
 									sideBarOFFButton2];
-				const len:int = arr.length;
+				const len:uint = arr.length;
 
-				for(var i:int=0;i<len;i++)
+				for(var i:uint=0;i<len;i++)
 				{
 					if(i === index)
 					{
@@ -317,10 +317,10 @@
 												replayZoomOutButton,
 												replayFitToWindowButton
 												];
-			const len:int = arr.length;
+			const len:uint = arr.length;
 			var btnDown:DisplayObjectContainer;
 
-			for(var i:int=0;i<len;i++)
+			for(var i:uint=0;i<len;i++)
 			{
 				btnDown = arr[i].downState as DisplayObjectContainer;
 				btnDown.x = 2;

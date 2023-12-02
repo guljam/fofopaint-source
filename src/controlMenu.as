@@ -351,7 +351,7 @@
 		public function initOpaButton():void
 		{
 			var offset:Number = 1.0;
-			for(var i:int = 1; i <= 10; i++)
+			for(var i:uint = 1; i <= 10; i++)
 			{
 				const btn:Sprite = new Sprite();
 
@@ -380,7 +380,7 @@
 		public function initPenSizeButton():void
 		{
 			const offset:Number = 1.0;
-			for (var i:int = 1; i <= 12; i++)
+			for (var i:uint = 1; i <= 12; i++)
 			{
 				const btn:Sprite = new Sprite();
 
