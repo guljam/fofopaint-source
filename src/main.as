@@ -11777,7 +11777,6 @@
                 rFileStream.close();
             }
 
-
             var clickedX:Number = replayTimeBox["replayTotalBar"].mouseX*replayTimeBox["replayTotalBar"].scaleX;
             var oldFrame:Number = Math.floor(totalF*clickedX/replayTimeBox["replayTotalBar"].width);
             var finalFrame:Number = 0;
