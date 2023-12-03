@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.12;
+        private const APP_VERSION:Number = 23.13;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -846,7 +846,7 @@
             //각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
             var lastAng:Number = Math.atan2(mouseX-rotateCursorBox.x,mouseY-rotateCursorBox.y)*toDeg;
 
-            return function():Number
+            return function(snapFlag:Boolean):Number
             {
                 const nowAng:Number = Math.atan2(mouseX-rotateCursorBox.x,mouseY-rotateCursorBox.y)*toDeg;
                 const subAng:Number = lastAng-nowAng;
@@ -855,16 +855,19 @@
 
                 lastAng = nowAng;
                 sumAng += subAng;
-
                 var deg:Number = sumAng;
-                const snap90:Number = Math.abs(deg%90.0);//90도 스냅 변수
-                const snap90N:Number = 90.0-snap90;
-                const snapAng:Number = (snap90 > snap90N) ? snap90 : snap90N;
 
-                //90도에 가까우면 90도 스냅이 걸리게함
-                if(snapAng > 83)
+                if(snapFlag)
                 {
-                    deg = Math.round(deg/90)*90;
+                    const snap90:Number = Math.abs(deg%90.0);//90도 스냅 변수
+                    const snap90N:Number = 90.0-snap90;
+                    const snapAng:Number = (snap90 > snap90N) ? snap90 : snap90N;
+
+                    //90도에 가까우면 90도 스냅이 걸리게함
+                    if(snapAng > 83)
+                    {
+                        deg = Math.round(deg/90)*90;
+                    }
                 }
 
                 rotateCursorBox["rotateArrow"].rotation = deg;
@@ -6106,7 +6109,7 @@
 
             function traceRotateButtonMoveEvent(e:MouseEvent):void
             {
-                canvasTraceLayer.rotation = getAngle();
+                canvasTraceLayer.rotation = getAngle(false);
             }
 
             stage.addEventListener(MouseEvent.MOUSE_UP,traceRotateButtonUpEvent);
@@ -7632,7 +7635,7 @@
 
             function lassoRotateButtonMoveEvent(e:MouseEvent):void
             {
-                const angle:Number = getAngle();
+                const angle:Number = getAngle(false);
 
                 lassoBox1.rotation = angle;
                 lassoBox2.rotation = angle;
@@ -15343,7 +15346,7 @@
 
             function rotateToolMoveEvent(e:MouseEvent):void
             {
-                const ang:Number = getAngle();
+                const ang:Number = getAngle(true);
 
                 xReg.rotation = ang;
                 appInfoBox.setRotate(Math.abs(xReg.rotation));
