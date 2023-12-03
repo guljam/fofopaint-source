@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.05;
+        private const APP_VERSION:Number = 23.06;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -320,7 +320,7 @@
                     ,rzoomedIndex:int = 3
                     ,mouseClickON:Boolean = false //클릭하면 올려줌
                     ,rightMouseClickON:Boolean = false //클릭하면 올려줌
-                    ,clickBlockFlag:Boolean = false //알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
+                    ,clickBlockOnWindowActiveFlag:Boolean = false //알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
                     ,mouseDragON:Boolean = false//툴을 계속 클릭한채로 움직이면 topmenu의 힌트가 안켜지도록 함
                     ,nowTool:int = 1 //현재 툴 번호
                     ,oldTool:int = TOOL_NONE //툴백업
@@ -663,6 +663,9 @@
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,updateAfterSave:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
                     ,layerVisibleKeyFuncCalled:Boolean = false //w키 1키 계속 누르고 있을때 함수 호출 안하게 해주려고 플래그 올려줌
+                    ,isDrawModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
+                    ,isReplayModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
+                    ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ;
 
         public function main():void
@@ -716,6 +719,25 @@
         }
 
         //function
+        private function addInputEventCurrentModeLoadButton():void
+        {
+            if(replayModeON)
+            {
+                addInputEventReplayMode();
+            }
+            else
+            {
+                addInputEventDrawMode();
+            }
+        }
+
+        private function removeInputEventCurrentModeLoadButton():void
+        {
+            setResizeButtonVisibleTimer(false);
+            removeInputEventReplayMode();
+            removeInputEventDrawMode();
+        }
+
         private function getClipRectOffsetAirBrush(size:int):Number
         {
             const len:uint = penSizeList.length;
@@ -950,7 +972,7 @@
 
         private function isHintCantUse():Boolean
         {
-            return mouseDragON || mouseClickON || toolBox2ON || fillPenStarted || lassoToolON || rgbInfoFocusedON || aboutPanelON;
+            return mouseDragON || mouseClickON || toolBox2ON || fillPenStarted || lassoToolON || rgbInfoFocusedON || aboutPanelON || makeJumpImageFlag === 2;
         }
 
         private function setLayerSwapEffect(target:DisplayObject):void
@@ -2023,22 +2045,16 @@
             addTimerByName("canvasWindowUpdateDelayTimer",0.2,false,
             function ():void
             {
-                if(canvasWindow.width < 300 && canvasWindow.height < 300)
+                canvasWindowInfo[0] = canvasWindow.x;
+                canvasWindowInfo[1] = canvasWindow.y;
+                canvasWindowInfo[2] = canvasWindow.width;
+                canvasWindowInfo[3] = canvasWindow.height;
+
+                if(canvasWindowCanvasPanel.width !== canvasWindow.stage.stageWidth
+                || canvasWindowCanvasPanel.height !== canvasWindow.stage.stageHeight)
                 {
-                    canvasWindow.bounds = new Rectangle(canvasWindow.x,canvasWindow.y,300,300);
-                }
-                else
-                {
-                    canvasWindowInfo[0] = canvasWindow.x;
-                    canvasWindowInfo[1] = canvasWindow.y;
-                    canvasWindowInfo[2] = canvasWindow.width;
-                    canvasWindowInfo[3] = canvasWindow.height;
-                    if(canvasWindowCanvasPanel.width !== canvasWindow.stage.stageWidth
-                    || canvasWindowCanvasPanel.height !== canvasWindow.stage.stageHeight)
-                    {
-                        updateCanvasWindowBitmapSize();
-                        return;
-                    }
+                    updateCanvasWindowBitmapSize();
+                    return;
                 }
             });
         }
@@ -3803,7 +3819,7 @@
             catch(err:Error)
             {
                 fs.close();
-                setHintONTemp("Load error");
+                setHintONTemp("Load failed");
                 return false;
             }
 
@@ -4815,7 +4831,7 @@
 
             function sidebarOFFRightMouseDownEvent(e:MouseEvent):void
             {
-                clickBlockFlag = true;
+                clickBlockOnWindowActiveFlag = true;
                 setClickBlockFlagOFFDelay();
 
                 setSideBarOFF();
@@ -4882,7 +4898,7 @@
                     }
                 }
 
-                if(isSidebarVisible === false && clickBlockFlag === false)
+                if(isSidebarVisible === false && clickBlockOnWindowActiveFlag === false)
                 {
                     if((!isRightSidebar && mx <= 15 || isRightSidebar && mx >= stage.stageWidth-15)
                     && my > STAGE_TOP_OFFSET)
@@ -6764,7 +6780,6 @@
 
             pickerBox.addEventListener(MouseEvent.MOUSE_OVER,pickerBoxHintONEvent);
 
-            topBar.addEventListener(MouseEvent.CLICK,topBarClickEvent);
             stage.addEventListener(MouseEvent.MOUSE_OUT,globalHintOFF);
         }
 
@@ -7441,15 +7456,20 @@
 
         private function addInputEventReplayMode():void
         {
-            resetKeyBuffer();
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownReplayMode,false,-1);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownReplayMode,false,-1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownReplayMode,false,-1);
-            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpReplayMode,false,-1);
+            if(isReplayModeInputEventON === false)
+            {
+                isReplayModeInputEventON = true;
+                resetKeyBuffer();
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownReplayMode,false,-1);
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownReplayMode,false,-1);
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownReplayMode,false,-1);
+                stage.addEventListener(KeyboardEvent.KEY_UP,keyUpReplayMode,false,-1);
+            }
         }
 
         private function removeInputEventReplayMode():void
         {
+            isReplayModeInputEventON = false;
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownReplayMode);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownReplayMode);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownReplayMode);
@@ -7458,6 +7478,7 @@
 
         private function removeInputEventDrawMode():void
         {
+            isDrawModeInputEventON = false;
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode);
             stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpDrawMode);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode);
@@ -7468,16 +7489,21 @@
 
         private function addInputEventDrawMode():void
         {
-            resetKeyBuffer();
-            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDrawMode,false,-1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false,-1);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode,false,-1);
-            stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpDrawMode,false,-1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDrawMode,false,-1);
+            if(isDrawModeInputEventON === false)
+            {
+                isDrawModeInputEventON = true;
+                resetKeyBuffer();
+                stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDrawMode,false,-1);
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false,-1);
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode,false,-1);
+                stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpDrawMode,false,-1);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownDrawMode,false,-1);
+            }
         }
 
         private function removeInputEventCaptrueMode():void
         {
+            isCaptureModeInputEventON = false;
             stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpCaptureMode);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownCaptureMode);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownCaptureMode);
@@ -7487,12 +7513,16 @@
 
         private function addInputEventCaptrueMode():void
         {
-            resetKeyBuffer();
-            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpCaptureMode,false,-1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownCaptureMode,false,-1);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownCaptureMode,false,-1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownCaptureMode,false,-1);
-            stage.addEventListener(MouseEvent.MOUSE_OVER,mouseOverCaptureMode,false,-1);
+            if(isCaptureModeInputEventON === false)
+            {
+                isCaptureModeInputEventON = true;
+                resetKeyBuffer();
+                stage.addEventListener(KeyboardEvent.KEY_UP,keyUpCaptureMode,false,-1);
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownCaptureMode,false,-1);
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownCaptureMode,false,-1);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownCaptureMode,false,-1);
+                stage.addEventListener(MouseEvent.MOUSE_OVER,mouseOverCaptureMode,false,-1);
+            }
         }
 
         private function removeInputEventToolBox2():void
@@ -7507,47 +7537,6 @@
             removeInputEventDrawMode();
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpToolBox2,false,-2);
             stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownToolBox2,false,-2);
-        }
-
-        private function topBarClickEvent(e:MouseEvent):void
-        {
-            const target:DisplayObject = e.target as DisplayObject;
-            if(!target) return;
-            const targetName:String = target.name;
-
-            if(lassoToolON || fillPenStarted || target.alpha < 1.0
-            || makeJumpImageFlag === 2) return;
-
-            switch (targetName)
-            {
-                case "clearButton":
-                {
-                    if(toolBox2ON || !isNowKey(0)) return;
-
-                    setClearData();
-                }
-                break;
-
-                case "replayModeButton":
-                {
-                    if(toolBox2ON || !isNowKey(0)) return;
-
-                    setReplayUION();
-
-                    mouseClickON = false; //리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
-                }
-                break;
-
-                case "drawModeButton":
-                {
-                    setReplayUIOFF();
-                }
-                break;
-
-                case "superUndoButton": setCutFrameButton(CUT_FRAME_SUPER_UNDO,false); break;
-                case "reRecordingButton": setCutFrameButton(CUT_FRAME_RE_RECORD,false); break;
-                case "cutPrevDataButton": setCutFrameButton(CUT_FRAME_DELETE_FRONT,false); break;
-            }
         }
 
         private function isLassoLayerHasSwapped():Boolean
@@ -8207,7 +8196,7 @@
             aboutPanel.visible = false;
             addTimerByName("clickBlockTimer",0.15,false,function():void
             {
-                clickBlockFlag = false;
+                clickBlockOnWindowActiveFlag = false;
             });
         }
 
@@ -8247,7 +8236,7 @@
         {
             setTopChildIndex(aboutPanel);
             aboutPanelON = true;
-            clickBlockFlag = true;
+            clickBlockOnWindowActiveFlag = true;
             hint.off();
 
             removeInputEventDrawMode();
@@ -8465,6 +8454,35 @@
                 {
                     switch(upTargetName)
                     {
+                        case "drawModeButton":
+                        {
+                            setReplayModeOFF();
+                        }
+                        break;
+
+                        case "replayModeButton":
+                        {
+                            setReplayModeON();
+                            mouseClickON = false; //리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
+                        }
+                        break;
+
+                        case "clearButton":
+                            setClearData();
+                        break;
+
+                        case "superUndoButton":
+                            setCutFrameButton(CUT_FRAME_SUPER_UNDO,false);
+                        break;
+
+                        case "reRecordingButton":
+                            setCutFrameButton(CUT_FRAME_RE_RECORD,false);
+                        break;
+
+                        case "cutPrevDataButton":
+                            setCutFrameButton(CUT_FRAME_DELETE_FRONT,false);
+                        break;
+
                         case "capLayer1VisibleButton":
                             setLayer1CheckToggleCaptureMode();
                         break;
@@ -8881,7 +8899,7 @@
             if(replayModeON)
             {
                 setDeepUndoFrameSave(rNowFrame);
-                setReplayUIOFF();
+                setReplayModeOFF();
             }
             setDeepUndoOFF();
             resetReplayTime();
@@ -12256,7 +12274,7 @@
                 //실제적으로 loader가 읽어서 캔버스에 그림
                 function loaderIOErrorHandlerEvent(e:Event):void
                 {
-                    setHintONTemp("Load error");
+                    setHintONTemp("Load failed");
                     tempDragDropFile = null;
                     loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderIOErrorHandlerEvent);
                     loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, startDrawImgEvent);
@@ -12534,6 +12552,7 @@
 
             regPoint.visible = false;
             rregPoint.visible = false;
+            previewBox.visible = false;
             undoData.resetRJumpImageCount();
             clearCanvasReplayMode();//리플레이 캔버스 먼저 깨끗하게
 
@@ -12618,6 +12637,7 @@
                         rMirrorON = rMirrorON;
                         undoData.setUndoRefImageMirrorFlag(rMirrorON);
                         appInfoBox.setMirror(rMirrorON);
+                        previewBox.visible = true;
 
                         if(!replayModeON && deepUndoON)
                         {
@@ -12942,10 +12962,8 @@
             if(replayModeON)
             {
                 setDeepUndoFrameSave(rNowFrame);
-                setReplayUIOFF();
+                setReplayModeOFF();
             }
-
-            removeInputEventDrawMode();
 
             const fs:FileStream = new FileStream();
             var imgStartByte:uint = 0;
@@ -13135,14 +13153,13 @@
 
             makeJumpImageFlag = 1;
             loadFileAfter(fileName,filePath,imgW,imgH,finalIMGBMPD,finalIMGBMPD1,false,bg);
-            addInputEventDrawMode();
         }
 
         private function loadRawFileToReferenceLayer(file:File):void
         {
             if(isTrue2020File(file) === false)
             {
-                setHintONTemp("Load error");
+                setHintONTemp("Load failed");
                 return;
             }
 
@@ -13222,7 +13239,7 @@
             if(replayModeON)
             {
                 setDeepUndoFrameSave(rNowFrame);
-                setReplayUIOFF();
+                setReplayModeOFF();
             }
             TOTAL_FRAME = 0;
             undoData.setRFileTotalFrame(0);
@@ -13237,7 +13254,7 @@
         {
             if(!imageData)
             {
-                setHintONTemp("Load error");
+                setHintONTemp("Load failed");
                 return;
             }
 
@@ -13424,13 +13441,13 @@
 
             function loadErrorEvent(e:Event):void
             {
-                setHintONTemp("Load error");
+                setHintONTemp("Load failed");
                 browseWindowON = false;
-                //에러나면 아무것도 안해줌
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
                 loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,loadFileCompleteEvent);
                 loader.unload();
                 loader = null;
+                addInputEventCurrentModeLoadButton();
             }
 
             function onCancelEvent(e:Event):void
@@ -13439,6 +13456,7 @@
                 file.removeEventListener(Event.SELECT,fileSelectHandler);
                 file.removeEventListener(Event.COMPLETE,fileSelectCompleteHandler);
                 file.removeEventListener(Event.CANCEL,onCancelEvent);
+                addInputEventCurrentModeLoadButton();
             }
 
             function fileSelectHandler(e:Event):void
@@ -13463,16 +13481,33 @@
                 {
                     loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
                     loader.contentLoaderInfo.addEventListener(Event.COMPLETE,loadFileCompleteEvent);
-                    loader.loadBytes(file.data);
+                    try
+                    {
+                        loader.loadBytes(file.data);
+                    }
+                    catch(e:Error)
+                    {
+                        setHintONTemp("Load failed");
+                        browseWindowON = false;
+                        loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
+                        loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,loadFileCompleteEvent);
+                        loader.unload();
+                        loader = null;
+                        addInputEventCurrentModeLoadButton();
+                    }
                 }
 
                 file.removeEventListener(Event.SELECT,fileSelectHandler);
                 file.removeEventListener(Event.COMPLETE,fileSelectCompleteHandler);
                 file.removeEventListener(Event.CANCEL,onCancelEvent);
+
+                addInputEventCurrentModeLoadButton();
             }
 
             resetKeyBuffer();
-            browseWindowON = true;
+            browseWindowON = true
+
+            removeInputEventCurrentModeLoadButton();
 
             file.browseForOpen(windowTitle,imgExt);
             file.addEventListener(Event.SELECT,fileSelectHandler);
@@ -13624,7 +13659,7 @@
 
                 default:
                 {
-                    if(clickBlockFlag) return;
+                    if(clickBlockOnWindowActiveFlag) return;
                     drawCaptureArea.start(replayModeON);
                 }
                 return;
@@ -16888,7 +16923,7 @@
             }
             function isNotSpuitTool():Boolean
             {
-                return !isNowTool(TOOL_SPUIT) || replayModeON || captureModeON || browseWindowON || clickBlockFlag;
+                return !isNowTool(TOOL_SPUIT) || replayModeON || captureModeON || browseWindowON || clickBlockOnWindowActiveFlag;
             }
 
             function spuitToolOK():void
@@ -19029,7 +19064,6 @@
                 checkCommandSubKey(3,false,function(input:int):void
                 {
                     if(input === KEY.s) saveFile(true);
-                    else if(input === KEY.o) loadFile(true);
                 });
                 return;
             }
@@ -19107,7 +19141,7 @@
                     }
                     else
                     {
-                        setReplayUIOFF();
+                        setReplayModeOFF();
                     }
                 }
                 break;
@@ -19135,7 +19169,7 @@
                 case KEY.f1:
                 case KEY.f7:
                 {
-                    setReplayUIOFF();
+                    setReplayModeOFF();
                 }
                 break;
 
@@ -19424,7 +19458,7 @@
                 case KEY.f1:
                 case KEY.f7:
                 {
-                    setReplayUION();
+                    setReplayModeON();
                 }
                 return true;
 
@@ -19705,7 +19739,7 @@
         {
             addTimerByName("clickBlockTimer",0.15,false,function():void
             {
-                clickBlockFlag = false;
+                clickBlockOnWindowActiveFlag = false;
             });
         }
 
@@ -19717,7 +19751,7 @@
 
             if(aboutPanelON)
             {
-                clickBlockFlag = true;
+                clickBlockOnWindowActiveFlag = true;
             }
             else
             {
@@ -19727,7 +19761,7 @@
 
         private function windowDeactiveEvent(e:Event):void
         {
-            clickBlockFlag = true;
+            clickBlockOnWindowActiveFlag = true;
             resizeCanvas.exit(true);
             resetKeyBuffer();
             realWorkingTimer.setAFKMode();
@@ -19833,8 +19867,8 @@
                         updateToolBoxMousePos(toolBox2.toolPen);
                         updateOldTool();
                         handTool();
-                        closeToolBox2();
                     }
+                    closeToolBox2();
                 }
                 break;
             }
@@ -20209,7 +20243,7 @@
             // setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
         }
 
-        private function setReplayUIOFF():void
+        private function setReplayModeOFF():void
         {
             if(makeJumpImageFlag === 2) return;
             removeInputEventReplayMode();
@@ -20250,12 +20284,16 @@
                 deepUndoUpdateReplayCanvasFlag = true;
             }
             rCursor.visible = false;
+
             addInputEventDrawMode();
         }
 
-        private function setReplayUION():void
+        private function setReplayModeON():void
         {
-            if(makeJumpImageFlag === 2) return;
+            if(makeJumpImageFlag === 2)
+            {
+                return;
+            }
             removeInputEventDrawMode();
             replayModeON = true;
             penCursorOFFFlag = true;
@@ -20400,6 +20438,7 @@
                 }
                 break;
 
+                case "drawModeButton":
                 case "loadButton":
                 case "repLoadButton":
                 case "saveButton":
@@ -20427,6 +20466,9 @@
                 case "replayPrev":
                 case "replayNext":
                 case "timer":
+                case "superUndoButton":
+                case "reRecordingButton":
+                case "cutPrevDataButton":
                 {
                     if(!isNowKey(0))
                     {
@@ -21301,8 +21343,10 @@
                 case "repSaveButton":
                 case "loadButton":
                 case "repLoadButton":
+                case "replayModeButton":
                 case "captureButton":
                 case "repCaptureButton":
+                case "clearButton":
                 case "clipButton":
                 case "topBarColorButton":
                 case "gridButton":
@@ -21402,7 +21446,7 @@
             }
 
             //캔버스 영역 밖에서는 해주지 않음
-            if(isCursorInDrawArea() && !clickBlockFlag)
+            if(isCursorInDrawArea() && !clickBlockOnWindowActiveFlag)
             {
                 switch (nowTool)
                 {
