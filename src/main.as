@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.11;
+        private const APP_VERSION:Number = 23.12;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -566,10 +566,7 @@
                     ,drawCaptureArea:Object = cDrawCaptureArea()
                     ,stageMouseMoveEvent:Object = cStageMouseMoveEvent()
                     ,replayHideCursor:Object = cCheckHideCursor()
-                    ,checkHideCursorCount:Function = replayHideCursor.check
                     ,resizeCanvas:Object = cResizeCanvas()
-                    ,setResizeCanvas:Function = resizeCanvas.start
-                    ,startGC:Function = cStartGC()
 
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
@@ -3084,8 +3081,6 @@
                         stage.nativeWindow.close();
                     }
 
-                    startGC();
-
                     if(updateAfterSave)
                     {
                         startUpdate();
@@ -3241,7 +3236,6 @@
 
         private function cCheckHideCursor():Object
         {
-            const hideTime:int = STAGE_FRAME*2;
             var isMouseHide:Boolean = false;
             var count:int = 0;
             const pos:Point = new Point(0,0);
@@ -3271,7 +3265,7 @@
                 }
                 else
                 {
-                    if(count > hideTime)
+                    if(count > STAGE_FRAME*2)
                     {
                         Mouse.hide();
                         setTopBarHintOFF();
@@ -10942,13 +10936,20 @@
                 }
             }
 
-            checkHideCursorCount();
+            replayHideCursor.check();
         }
 
         private function doDrawEvent(e:Event):void
         {
             doDraw(rSpeed,JUMP_FRAME_PLAY);
-            checkHideCursorCount();
+            replayHideCursor.check();
+        }
+        
+        private function clearRFrameCacheImages():void
+        {
+            rFrameCacheImages = [];
+            rJumpImageIndexLast = -2;
+            rCachedJumpImageIndexLast = -2;
         }
 
         private function getCacheImageLastFrame():Number
@@ -11796,7 +11797,7 @@
             doDrawSlowEventON = false;
             playbackFinished = false;
             replayTimeBox.resetNowbarColor();
-            checkHideCursorCount();
+            replayHideCursor.check();
 
             function checkBarLimit():void
             {
@@ -12504,34 +12505,6 @@
             regPoint.addChild(resizeButtonD);
             regPoint.addChild(resizeButtonR);
             regPoint.addChild(resizeButtonL);
-        }
-
-        private function clearRFrameCacheImages():void
-        {
-            var _rFrameCacheImages:Array = rFrameCacheImages;
-            const len:uint = _rFrameCacheImages.length;
-            var i:uint = 0;
-
-            while(i<len)
-            {
-                if(_rFrameCacheImages[i][0])
-                {
-                    _rFrameCacheImages[i][0].dispose();
-                    _rFrameCacheImages[i][1].dispose();
-                    _rFrameCacheImages[i][2] = null;
-                    _rFrameCacheImages[i][3] = null;
-                    _rFrameCacheImages[i][4] = null;
-                    _rFrameCacheImages[i][5] = null;
-                    _rFrameCacheImages[i][6] = null;
-                    _rFrameCacheImages[i][7] = null;
-                }
-                i++;
-            }
-
-            rFrameCacheImages.length = 0;
-            _rFrameCacheImages = null;
-            rJumpImageIndexLast = -2;
-            rCachedJumpImageIndexLast = -2;
         }
 
         private function makeJumpImage():void //loadrep
@@ -19009,8 +18982,6 @@
             if(canvas1BitmapData) canvas1BitmapData.fillRect(rect,0);
             if(canvas11BitmapData) canvas11BitmapData.fillRect(rect,0);
             if(canvas2BitmapData) canvas2BitmapData.fillRect(rect,0);
-
-            startGC();
         }
 
         //keyfunc
@@ -20107,7 +20078,7 @@
             setToolTipON();
             penSizeCursor.visible = false;
             setToolTipString(CANVAS_WIDTH+" x "+CANVAS_HEIGHT);
-            setResizeCanvas(targetName);
+            resizeCanvas.start(targetName);
         }
 
         private function checkReplaySpeedState():void
