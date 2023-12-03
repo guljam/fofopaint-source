@@ -18,7 +18,7 @@
 -->
 <application xmlns="http://ns.adobe.com/air/application/50.2">
   <id>fofoPaint</id>
-  <versionNumber>23.07</versionNumber>
+  <versionNumber>23.08</versionNumber>
   <filename>fofoPaint</filename>
   <name>fofoPaint</name>
   <copyright>c301</copyright>
@@ -33,8 +33,8 @@
     <width>1000</width>
     <height>800</height>
     
-    <maximizable>false</maximizable>
-    <minimizable>false</minimizable>
+    <maximizable>true</maximizable>
+    <minimizable>true</minimizable>
     <resizable>true</resizable>
     </initialWindow>
   <icon>
