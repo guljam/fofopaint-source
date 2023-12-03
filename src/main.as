@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.06;
+        private const APP_VERSION:Number = 23.07;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -19987,7 +19987,7 @@
             else if(command === LASSO_1PX_MOVE_LEFT) posX = -1;
             else if(command === LASSO_1PX_MOVE_RIGHT) posX = 1;
 
-            const rotatedPoint:Point = rotatePoint(posX,y,regPoint.rotation);
+            const rotatedPoint:Point = rotatePoint(posX,posY,regPoint.rotation);
 
             lassoBox1.x += rotatedPoint.x;
             lassoBox1.y += rotatedPoint.y;
