@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.24;
+        private const APP_VERSION:Number = 23.25;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -560,8 +560,6 @@
                     ,autoScroll:Object = cAutoScroll()
                     ,updatePenSizeCursor:Function = cUpdatePenSizeCursor()
                     ,undoData:Object = cAddUndoData()
-                    ,addUndoData:Function = undoData.add
-                    ,addUndoDataContinue:Function = undoData.addContinue
                     ,penCursorPosition:Object = cUpdatePenCursorPosition()
                     ,updatePenCursorPosition:Function = penCursorPosition.check
                     ,checkMainDrawTool:Function = cCheckMainDrawTool()
@@ -2051,9 +2049,9 @@
 
         private function updateCanvasWindowBitmapSize():void
         {
-            const bounds:Rectangle = previewBox.setFitBitmapforBox(canvasWindowBitmap.bitmapData.width,canvasWindowBitmap.bitmapData.height
+            const bounds:Rectangle = previewBox.setFitBitmapforBox(canvas1BitmapData.width,canvas1BitmapData.height
                                                                   ,canvasWindow.stage.stageWidth,canvasWindow.stage.stageHeight);
-            updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+            updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvas1BitmapData);
             canvasWindowCanvasPanel.x = bounds.x;
             canvasWindowCanvasPanel.y = bounds.y;
             canvasWindowCanvasPanel.width = bounds.width;
@@ -2283,7 +2281,7 @@
                 const point2:Array = lassoPointSave[1].concat();
 
                 rDataBuffer.push(["lassodel2",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible]);
-                addUndoData();
+                undoData.addNew();
 
                 disposeLassoBMP();
                 resetLassoBox();
@@ -2481,13 +2479,13 @@
             {
                 rDataBuffer.push(["bgColor",color]);
                 updateLastRDataCommand("bgColor");
-                addUndoDataContinue();
+                undoData.addContinue();
             }
             else
             {
                 if(deepUndoON) setApplyDeepUndo();
                 rDataBuffer.push(["bgColor",color]);
-                addUndoData();
+                undoData.addNew();
             }
         }
 
@@ -2585,7 +2583,7 @@
                 canvas11BitmapData.draw(canvas1BitmapData);
                 canvas1BitmapData.fillRect(new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT),0);
                 rDataBuffer.push(["merge"]);
-                addUndoData();
+                undoData.addNew();
             }
             controlBox.layerMergeButton.alpha = BUTTON_OFF_ALPHA;
         }
@@ -2620,7 +2618,7 @@
             else
             {
                 rDataBuffer.push(["swap"]);
-                addUndoData();
+                undoData.addNew();
             }
 
             setLayerSwapEffect(controlBox.layerSwapButton);
@@ -6447,12 +6445,12 @@
 
                 if(hasLastRDataCommand(command))
                 {
-                    addUndoDataContinue();
+                    undoData.addContinue();
                 }
                 else
                 {
                     rDataBuffer = [[command]];
-                    addUndoData();
+                    undoData.addNew();
                 }
             }
             resetTraceImageInfo();
@@ -8322,7 +8320,6 @@
 
             resetTraceImageInfo();
             resetTraceOpa();
-            makeFirstReplayImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
             initReplayDataFile(true);
             resetReplaySpeedBar();
             resetReplayTime();
@@ -9489,7 +9486,9 @@
                 fs.close();
 
                 if(rJumpImageFolder.exists)
+                {
                     rJumpImageFolder.deleteDirectory(true);
+                }
 
                 rJumpImageFolder.createDirectory();
                 makeFirstReplayImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
@@ -9551,6 +9550,7 @@
             rFirstImage = bmpd.clone();
 
             if(bmpd1 === null) bmpd1 = new BitmapData(w,h,true,0);
+
             bmpd1.copyPixelsToByteArray(newRectangle,ba1);
             ba1.compress();
 
@@ -15229,7 +15229,7 @@
 
                 canvas2BitmapData.fillRect(canvas2ClipRect,0); //그려준 영역만
                 canvas2Draw.graphics.clear();
-                addUndoData();
+                undoData.addNew();
             }
         }
 
@@ -15740,8 +15740,8 @@
                         }
                     }
 
-                    if(hasLastRDataCommand(command)) addUndoDataContinue();
-                    else addUndoData();
+                    if(hasLastRDataCommand(command)) undoData.addContinue();
+                    else undoData.addNew();
                 }
             }
 
@@ -16080,7 +16080,6 @@
                 return;
             }
 
-
             const bgColor:uint = RCANVAS_BG_COLOR;
 
             //캔버스가 회전되어있으면 회전된 방향으로 움직여줘야함
@@ -16409,11 +16408,12 @@
 
                         if(hasLastRDataCommand("canvasSize"))
                         {
-                            addUndoDataContinue();
+                            undoData.addContinue();
                         }
                         else
                         {
-                            addUndoData();
+                            undoData.addNew();
+
                             if(canvasWindowON)
                             {
                                 updateCanvasWindowBitmapSize();
@@ -17531,7 +17531,7 @@
                                                     ,checklayer1
                                                     ,checklayer2
                                                     ,command]);
-                    addUndoData();
+                    undoData.addNew();
                 }
                 else
                 {
@@ -18309,7 +18309,7 @@
                 }
             }
 
-            function add():void
+            function addNew():void
             {
                 if(undoDelFlag === true)
                 {
@@ -18437,7 +18437,7 @@
             };
 
             return {
-                add:add,
+                addNew:addNew,
                 addContinue:addContinue,
                 setRFileTotalFrame:setRFileTotalFrame,
                 getRFileTotalFrame:getRFileTotalFrame,
