@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.17;
+        private const APP_VERSION:Number = 23.18;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -660,7 +660,8 @@
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,updateAfterSave:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
-                    ,layerVisibleKeyFuncCalled:Boolean = false //w키 1키 계속 누르고 있을때 함수 호출 안하게 해주려고 플래그 올려줌
+                    ,layerCheckKeyPressed:Boolean = false //w키 1키 계속 누르고 있을때 함수 호출 안하게 해주려고 플래그 올려줌
+                    ,selectTransparentcolorKeyPressed:Boolean = false
                     ,isDrawModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isReplayModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
@@ -4438,6 +4439,7 @@
 
                 if(mouseMovedFlag === false) //움직이기 시작할때 linestyle이랑 moveto넣어줌
                 {
+                    canvas2Draw.graphics.clear();
                     mouseMovedFlag = true;
                     lineStyleReady(xShape,xSize,xColor,xAlpha);
 
@@ -4510,7 +4512,6 @@
                         penPoints.push(my);
                         canvas2Draw.graphics.moveTo(mx,my);
                     }
-
                 }
 
                 if(xShape === true)
@@ -10358,9 +10359,6 @@
                     pos.push(startX+p3.x);
                     pos.push(startY+p3.y);
 
-                    rcanvas2Draw.graphics.endFill();
-                    rcanvas2Draw.graphics.lineStyle(0,0,0);
-                    rcanvas2Draw.graphics.beginFill(color);
                     rcanvas2Draw.graphics.drawPath(cmd,pos);
                 }
                 else
@@ -15339,7 +15337,7 @@
                 {
                     canvasTraceLayer.visible = false;
                 }
-
+                
                 //캔버스2번 지워주고, draw판넬 데이터도 지워줌
                 canvas2BitmapData.dispose();
                 canvas2Bitmap.bitmapData = null;
@@ -18488,9 +18486,6 @@
                     pos.push(posX+p3.x);
                     pos.push(posY+p3.y);
 
-                    canvas2Draw.graphics.endFill();
-                    canvas2Draw.graphics.lineStyle(0,0,0);
-                    canvas2Draw.graphics.beginFill(color);
                     canvas2Draw.graphics.drawPath(cmd,pos);
                 }
                 else
@@ -19291,7 +19286,8 @@
                 }
                 else
                 {
-                    if(layerVisibleKeyFuncCalled) layerVisibleKeyFuncCalled = false;
+                    layerCheckKeyPressed = false;
+                    selectTransparentcolorKeyPressed = false;
 
                     if(oldTool > TOOL_NONE) setNowToolByOldTool();
 
@@ -19486,15 +19482,33 @@
                         return;
                     }
                 }
+                else if(keyCode === KEY.space && selectTransparentcolorKeyPressed === false)
+                {
+                    if(KEY_BUFFER[1] === KEY.c || KEY_BUFFER[1] === KEY.m)
+                    {
+                        selectTransparentcolorKeyPressed = true;
+
+                        if(penColorTransparentFlag)
+                        {
+                            setCurrentColor(1);
+                        }
+                        else
+                        {
+                            setCurrentColor(1);
+                            setTransparentColor();
+                        }
+                        return;
+                    }
+                }
 
                 //레이어 따로 보기 조합 체크
-                if(layerVisibleKeyFuncCalled === false)
+                if(layerCheckKeyPressed === false)
                 {
                     if(keyCode === KEY.w || keyCode === KEY.i)
                     {
                         if(KEY_BUFFER[1] === KEY.n1 || KEY_BUFFER[1] === KEY.n9)
                         {
-                            layerVisibleKeyFuncCalled = true;
+                            layerCheckKeyPressed = true;
                             selectSubLayer(false,false);
                             setLayer1CheckToggle();
 
@@ -19503,7 +19517,7 @@
                         }
                         else if(KEY_BUFFER[1] === KEY.n2 || KEY_BUFFER[1] === KEY.n0)
                         {
-                            layerVisibleKeyFuncCalled = true;
+                            layerCheckKeyPressed = true;
                             selectSubLayer(true,false);
                             setLayer2CheckToggle();
 
@@ -19515,7 +19529,7 @@
                     {
                         if(KEY_BUFFER[1] === KEY.w || KEY_BUFFER[1] === KEY.i)
                         {
-                            layerVisibleKeyFuncCalled = true;
+                            layerCheckKeyPressed = true;
 
                             selectSubLayer(false,false);
                             setLayer1CheckToggle();
@@ -19526,7 +19540,7 @@
                     {
                         if(KEY_BUFFER[1] === KEY.w || KEY_BUFFER[1] === KEY.i)
                         {
-                            layerVisibleKeyFuncCalled = true;
+                            layerCheckKeyPressed = true;
                             selectSubLayer(true,false);
                             setLayer2CheckToggle();
                             return;
