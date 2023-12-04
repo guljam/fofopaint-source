@@ -290,13 +290,17 @@
 
 		public function updateCurrentColor(color:uint,invColor:uint):void
 		{
-			currentColorColor = color;
+			if(currentColorColor !== color)
+			{
+				currentColorColor = color;
 
-			currentColor.graphics.clear();
-			currentColor.graphics.lineStyle(1,(invColor === 0) ? color:invColor);
-			currentColor.graphics.beginFill(color);
-			currentColor.graphics.drawRect(0,0,currentColorWidth,19);
-			currentColor.graphics.endFill();
+				currentColor.graphics.clear();
+				currentColor.graphics.lineStyle(1,(invColor === 0) ? color:invColor);
+				currentColor.graphics.beginFill(color);
+				currentColor.graphics.drawRect(0,0,currentColorWidth,19);
+				currentColor.graphics.endFill();
+			}
+
 		}
 
 		public function changeHueColor(color:uint):void

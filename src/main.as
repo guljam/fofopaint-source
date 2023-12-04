@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.14;
+        private const APP_VERSION:Number = 23.15;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1013,7 +1013,7 @@
                 case "currentColor": str = getCurrentColorHint(); break;
                 case "paperColorButton": str = "Change background color"; break;
                 case "penColorButton": str = "Change pen color"; break;
-                case "transColorButton": str = "Transparent color"; break;
+                case "transColorButton": str = "Transparent color\nON/OFF (c+space, m+space)"; break;
 
                 default:
                 return;
@@ -5669,7 +5669,7 @@
                 case "toolFillPen": str = "Fill pen (q, o)\nMenu (Right click after using the tool)"; break;
                 case "toolErase": str = "Eraser (d, j)"; break;
                 case "toolLasso": str = "Lasso (r, y)"; break;
-                case "toolSpuit": str = "Eye dropper (c, m)"; break;
+                case "toolSpuit": str = "Eye dropper (c, m)\nPick transparent color ON/OFF (c+space, m+spcae)"; break;
                 case "toolUndo": str = "Undo (z, .)\nRepeat (hold click)"; break;
                 case "toolRedo": str = "Redo (x, ,)\nRepeat (hold click)"; break;
                 case "toolMirror": str = "Flip canvas(a, l)"; break;
@@ -16903,8 +16903,28 @@
 
             function spuitToolKeyDownEvent(e:KeyboardEvent):void
             {
-                if(isNotSpuitTool() || e.keyCode === KEY.c || e.keyCode === KEY.m)
+                if(isNotSpuitTool())
                 {
+                    cancelSpuitTool(false);
+                    return;
+                }
+
+                if(e.keyCode === KEY.c || e.keyCode === KEY.m)
+                {
+
+                }
+                else if(e.keyCode === KEY.space)
+                {
+                    if(penColorTransparentFlag)
+                    {
+                        setCurrentColor(1);
+                    }
+                    else
+                    {
+                        setCurrentColor(1);
+                        setTransparentColor();
+                    }
+                    cancelSpuitTool(false);
 
                 }
                 else
