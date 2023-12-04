@@ -3441,7 +3441,6 @@
                 return true;
 
                 case KEY.g:
-                getDriveUsageString();
                     setHoldKeyRepeat(true,shortCutPenAlpha,true);
                 return true;
 
@@ -21781,50 +21780,6 @@
             }
         }
 
-        // private function testFuncTime():void
-        // {
-        //     var _print:Function = trace;
-        //     var i:int=0;
-        //     var nt:int = getTimer();
-        //     const loop:int = 10;
-
-        //     while(i < loop)
-        //     {
-
-
-
-
-        //         i++;
-        //     }
-
-        //     _print("time 1",getTimer()-nt);
-
-        //     i = 0;
-        //     nt = getTimer();
-
-        //     while(i < loop)
-        //     {
-
-
-
-        //         i++;
-        //     }
-
-        //     _print("time 2",getTimer()-nt);
-
-        //     i = 0;
-        //     nt = getTimer();
-        //     while(i < loop)
-        //     {
-
-
-
-        //         i++;
-        //     }
-
-        //     _print("time 2",getTimer()-nt);
-        // }
-
         // private var printdeepLevel:int = 0;
         // private function printArray(obj:Object,deepKey:String=""):void
         // {
@@ -21858,5 +21813,59 @@
         //     --printdeepLevel;
         //     if(printdeepLevel < 0) printdeepLevel = 0;
         // }
+
+        // private function testFuncTime():void
+        // {
+        //     var _print:Function = trace;
+        //     var i:int=0;
+        //     var nt:int = getTimer();
+        //     const loop:int = 5000;
+
+        //     function func1():void
+        //     {
+
+        //     }
+
+        //     function func2():void
+        //     {
+
+        //     }
+
+        //     function func3():void
+        //     {
+
+        //     }
+
+        //     while(i < loop)
+        //     {
+        //         func1();
+
+        //         i++;
+        //     }
+
+        //     _print("time 1",getTimer()-nt);
+
+        //     i = 0;
+        //     nt = getTimer();
+        //     while(i < loop)
+        //     {
+        //         func2();
+        //         i++;
+        //     }
+
+        //     _print("time 2",getTimer()-nt);
+
+        //     i = 0;
+        //     nt = getTimer();
+        //     while(i < loop)
+        //     {
+        //         func3();
+        //         i++;
+        //     }
+
+        //     _print("time 2",getTimer()-nt);
+        // }
+
+
     }
  }
