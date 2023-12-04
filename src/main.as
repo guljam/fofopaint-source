@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.18;
+        private const APP_VERSION:Number = 23.20;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -307,6 +307,7 @@
         private var  canvas1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,canvas11BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,canvas2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
+                    ,canvas1BitmapEraseData:BitmapData //1변레이어에서 지우개 사용할때 2번 레이어가 가리니까, 2번레이어로 linebitmap으로 지우개를 사용해줌
                     ,canvas2ClipRect:Rectangle = new Rectangle() // 그려준 영역 만큼만 캔버스bitmap1에 그려주는 사각형
                     ,lassoBMPsub:Bitmap = new Bitmap()//아래레이어
                     ,lassoBMP:Bitmap = new Bitmap()
@@ -717,6 +718,24 @@
         }
 
         //function
+        private function dispoaseCanvas1BitmapEraseData():void
+        {
+            canvas1BitmapEraseData.dispose();
+            canvas1BitmapEraseData = null;
+        }
+
+        private function updateRCanvas1BitmapEraseData():void
+        {
+            canvas1BitmapEraseData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,false,RCANVAS_BG_COLOR);
+            canvas1BitmapEraseData.draw(rcanvas11BitmapData);
+        }
+
+        private function updateCanvas1BitmapEraseData():void
+        {
+            canvas1BitmapEraseData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,false,CANVAS_BG_COLOR);
+            canvas1BitmapEraseData.draw(canvas11BitmapData);
+        }
+
         private function addInputEventCurrentModeLoadButton():void
         {
             if(replayModeON)
@@ -3887,15 +3906,27 @@
 
                 if(penColorTransparentFlag)
                 {
-                    canvas2Draw.graphics.lineStyle(1,xColor);
-                    canvas2Draw.graphics.lineBitmapStyle(pickerBox.transColorButtonBmpd);
-                    canvas2Draw.graphics.beginBitmapFill(pickerBox.transColorButtonBmpd);
+                    if(subLayerON === false)
+                    {
+                        if(!canvas1BitmapEraseData)
+                        {
+                            updateCanvas1BitmapEraseData();
+                        }
+                        canvas2Draw.graphics.lineBitmapStyle(canvas1BitmapEraseData,null,false);
+                        canvas2Draw.graphics.beginBitmapFill(canvas1BitmapEraseData,null,false);
+                    }
+                    else
+                    {
+                        canvas2Draw.graphics.lineStyle(1,CANVAS_BG_COLOR);
+                        canvas2Draw.graphics.beginFill(CANVAS_BG_COLOR);
+                    }
                 }
                 else
                 {
                     canvas2Draw.graphics.lineStyle(1,xColor);
                     canvas2Draw.graphics.beginFill(xColor);
                 }
+
                 canvas2Draw.graphics.drawPath(command,data);
                 canvas2Draw.graphics.endFill();
                 canvas2Draw.graphics.moveTo(data[data.length-2],data[data.length-1]);
@@ -4375,9 +4406,13 @@
                     canvas2Draw.graphics.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.BEVEL);
                 }
 
-                if(!penToolFlag || penColorTransparentFlag)
+                if(subLayerON === false && (!penToolFlag || penColorTransparentFlag))
                 {
-                    canvas2Draw.graphics.lineBitmapStyle(pickerBox.transColorButtonBmpd);
+                    if(!canvas1BitmapEraseData)
+                    {
+                        updateCanvas1BitmapEraseData();
+                    }
+                    canvas2Draw.graphics.lineBitmapStyle(canvas1BitmapEraseData,null,false);
                 }
             }
 
@@ -4642,6 +4677,11 @@
                 penCommand.length = 0;
                 penPoints.length = 0;
                 drawDone();
+
+                if(canvas1BitmapEraseData)
+                {
+                    dispoaseCanvas1BitmapEraseData();
+                }
             }
 
             return function(penFlag:Boolean):void
@@ -4688,7 +4728,7 @@
                 }
 
                 posOffset = getSharpLineOffset(xSize);
-                subLayerFlag = (penFlag) ? subLayerON : false;
+                subLayerFlag = subLayerON;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
                 mouseMoveCount = 0; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
                 mouseMovedFlag = false;
@@ -9854,6 +9894,24 @@
             }
         }
 
+        private function replayLineStyleReady4(shape:Boolean,size:uint,color:uint,alpha:Number,subLayerFlag:Boolean,blendMode:String):void
+        {
+            rcanvas2.alpha = alpha;
+            if(shape)
+            {
+                rcanvas2Draw.graphics.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.BEVEL);
+            }
+            else
+            {
+                rcanvas2Draw.graphics.lineStyle(size,color);
+            }
+
+            if(!subLayerFlag && blendMode === "erase")
+            {
+                updateRCanvas1BitmapEraseData();
+            }
+        }
+
         private function mirrorCanvasReplayMode():void
         {
             var mirrorBMPD:BitmapData = new BitmapData(RCANVAS_WIDTH,RCANVAS_HEIGHT,true,0);
@@ -10079,18 +10137,24 @@
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush,size);
 
-                if(!fillpen)
-                {
-                    replayLineStyleReady3(shape,size,color,alpha);
-                    rcanvas2Draw.graphics.moveTo(startX,startY);
-                }
-                else
+                if(fillpen)
                 {
                     rcanvas2Draw.graphics.clear();
                     replayLineStyleReady2(false,1,color,1.0);
                     rcanvas2Draw.graphics.beginFill(color);
                     rcanvas2Draw.graphics.moveTo(startX,startY);
                     rcanvas2.alpha = alpha;
+                }
+                else
+                {
+                    replayLineStyleReady4(shape,size,color,alpha,subLayer,blendMode);
+
+                    if(!subLayer && blendMode === "erase")
+                    {
+                        rcanvas2Draw.graphics.lineBitmapStyle(canvas1BitmapEraseData,null,false);
+                    }
+
+                    rcanvas2Draw.graphics.moveTo(startX,startY);
                 }
 
                 if(index === 0)
@@ -10747,6 +10811,11 @@
 
                 rcanvas2BitmapData.fillRect(rcanvas2ClipRect,0);
                 rcanvas2Draw.graphics.clear();
+
+                if(canvas1BitmapEraseData)
+                {
+                    dispoaseCanvas1BitmapEraseData();
+                }
             }
 
             function drawDone2(data:Array):void
@@ -15222,9 +15291,14 @@
                     canvas2Draw.graphics.lineStyle(xSize, xColor);
                 }
 
-                if(penColorTransparentFlag)
+                if(subLayerON === false && penColorTransparentFlag)
                 {
-                    canvas2Draw.graphics.lineBitmapStyle(pickerBox.transColorButtonBmpd);
+                    if(!canvas1BitmapEraseData)
+                    {
+                        updateCanvas1BitmapEraseData();
+                    }
+
+                    canvas2Draw.graphics.lineBitmapStyle(canvas1BitmapEraseData,null,false);
                 }
 
                 canvas2Draw.graphics.moveTo(startPoint.x,startPoint.y);
@@ -15303,6 +15377,11 @@
 
                 resetCanvas2DrawCliprect();
                 drawDone();
+
+                if(canvas1BitmapEraseData)
+                {
+                    dispoaseCanvas1BitmapEraseData();
+                }
             }
 
             return function (lineToolFlag:Boolean):void
@@ -15336,7 +15415,7 @@
                 {
                     canvasTraceLayer.visible = false;
                 }
-                
+
                 //캔버스2번 지워주고, draw판넬 데이터도 지워줌
                 canvas2BitmapData.dispose();
                 canvas2Bitmap.bitmapData = null;
@@ -21554,8 +21633,9 @@
         //     var _print:Function = trace;
         //     var i:int=0;
         //     var nt:int = getTimer();
+        //     const loop:int = 10;
 
-        //     while(i < 1)
+        //     while(i < loop)
         //     {
 
 
@@ -21567,9 +21647,8 @@
         //     i = 0;
         //     var rect2:Rectangle;
         //     nt = getTimer()
-        //     while(i < 1)
+        //     while(i < loop)
         //     {
-
 
         //         i++;
         //     }
@@ -21578,7 +21657,7 @@
 
         //     i = 0;
         //     nt = getTimer()
-        //     while(i < 1)
+        //     while(i < loop)
         //     {
 
 
