@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.23;
+        private const APP_VERSION:Number = 23.24;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -11064,7 +11064,7 @@
                     case "move1": move1(data[index]); break;
                     case "move2": move2(data[index]); break;
                     case "lasso": lasso(data[index],false); break;
-                    case "lasso2": lasso(data[index],false); break;
+                    case "lasso2": lasso2(data[index],false); break;
                     case "lassodel": lasso(data[index],true); break;
                     case "lassodel2": lasso2(data[index],true); break;
                     case "mirror": mirror(); break;
