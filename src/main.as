@@ -661,7 +661,6 @@
                     ,isNewFOFOSaveFormat:Boolean = false
                     ,updateAfterSave:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
                     ,layerCheckKeyPressed:Boolean = false //w키 1키 계속 누르고 있을때 함수 호출 안하게 해주려고 플래그 올려줌
-                    ,selectTransparentcolorKeyPressed:Boolean = false
                     ,isDrawModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isReplayModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
@@ -19287,8 +19286,6 @@
                 else
                 {
                     layerCheckKeyPressed = false;
-                    selectTransparentcolorKeyPressed = false;
-
                     if(oldTool > TOOL_NONE) setNowToolByOldTool();
 
                     updatePenCursorPosition();
@@ -19479,24 +19476,6 @@
                     }
                     else if(checkMoreOptionsKeyDown(KEY_BUFFER[1]))
                     {
-                        return;
-                    }
-                }
-                else if(keyCode === KEY.space && selectTransparentcolorKeyPressed === false)
-                {
-                    if(KEY_BUFFER[1] === KEY.c || KEY_BUFFER[1] === KEY.m)
-                    {
-                        selectTransparentcolorKeyPressed = true;
-
-                        if(penColorTransparentFlag)
-                        {
-                            setCurrentColor(1);
-                        }
-                        else
-                        {
-                            setCurrentColor(1);
-                            setTransparentColor();
-                        }
                         return;
                     }
                 }
