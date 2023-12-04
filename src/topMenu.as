@@ -510,7 +510,7 @@
 
 			updateButton.visible = false;
 
-			timer.y = 6;
+			timer.y = 7;
 			timer.autoSize = TextFieldAutoSize.LEFT;
 			timerAFkDot.y = timer.y;
 			timerAFkDot.autoSize = TextFieldAutoSize.LEFT;
