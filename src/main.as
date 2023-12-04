@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.20;
+        private const APP_VERSION:Number = 23.21;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2282,7 +2282,7 @@
                 const point1:Vector.<Number> = lassoPointSave[0].concat();
                 const point2:Array = lassoPointSave[1].concat();
 
-                rDataBuffer.push(["lassodel",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible]);
+                rDataBuffer.push(["lassodel2",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible]);
                 addUndoData();
 
                 disposeLassoBMP();
@@ -3194,9 +3194,13 @@
             function toggleLineColor():uint
             {
                 if(dotLineColor === 0)
+                {
                     dotLineColor = 0xFFFFFF;
+                }
                 else
+                {
                     dotLineColor = 0;
+                }
 
                 return dotLineColor;
             }
@@ -4907,7 +4911,6 @@
 
             function check():void
             {
-                const nt:int = getTimer()
                 const mx:Number = mouseX;
                 const my:Number = mouseY;
 
@@ -10617,6 +10620,96 @@
                 lassoBox2.visible = false;
             }
 
+            //성능 문제로 샤픈 안해줌
+            function lasso2(data:Array,clearOnly:Boolean):void
+            {
+                if(data[1].length === 0 || data[2].length === 0) return;
+
+                var imageMovedToLasso:Boolean;
+                if(data.length <= 5)
+                {
+                    if(data[3] === null || (data[3] is Array && data[3].length === 0))
+                    {
+                        //(["lasso",point1,point2,null,lassoInfo]); 초기 버전 데이터 구조 3번이 비어있음
+                        //(["lasso",point1,point2,[],lassoInfo]);
+                        imageMovedToLasso = moveSelectedAreaToLassoBox(true,data[1],data[2],false,true,true);
+                    }
+                    else if(data[3].length === 7)
+                    {
+                        //(["lasso",point1,point2,lassoInfo]); 2019년판 구버전
+                        //(["lasso",point1,point2,lassoInfo,lassoCopyON])
+                        imageMovedToLasso = moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],true,true);
+                    }
+                }
+                else
+                {
+                    //(["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터 길이가 6이상임
+                    // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
+                    imageMovedToLasso = moveSelectedAreaToLassoBox(true,data[1],data[2],data[4],data[5],data[6]);
+                }
+
+                if(imageMovedToLasso && !clearOnly)
+                {
+                    var lassoInfo:Array = (data[3] is Array && data[3].length === 7) ? data[3]:data[4];
+                    const bmpScaleX:Number = lassoInfo[0];
+                    const bmpScaleY:Number = lassoInfo[1];
+                    const bmpWidth:Number = lassoInfo[2];
+                    const bmpHeight:Number = lassoInfo[3];
+                    const bmpAngle:Number = lassoInfo[4];
+                    const boxX:Number = lassoInfo[5];
+                    const boxY:Number = lassoInfo[6];
+                    const mat:Matrix = new Matrix();
+
+                    mat.scale(bmpScaleX,bmpScaleY);
+                    mat.translate(-bmpWidth/2,-bmpHeight/2);
+                    mat.rotate(bmpAngle);
+                    mat.translate(boxX,boxY);
+
+                    setRCursorPos(boxX,boxY);
+
+                    lassoBMP.smoothing = true;
+                    lassoBMPsub.smoothing = true;
+
+                    if(data[7] as Boolean)
+                    {
+                        if(data[7] === true)
+                        {
+                            swapLassoImage();
+                        }
+                    }
+                    else if(data[7] as Array)
+                    {
+                        const len:uint = data[7].length;
+
+                        for(var i:uint=0;i<len;i++)
+                        {
+                            if(data[7][i] === 0)
+                            {
+                                swapLassoImage();
+                            }
+                            else if(data[7][i] === 1)
+                            {
+                                mergeLassoImage();
+                            }
+                        }
+                    }
+
+                    if(data[5] || !data[5] && !data[6])
+                    {
+                        rcanvas1BitmapData.draw(lassoBMP,mat);
+                        rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+                    }
+
+                    if(data[6])
+                    {
+                        rcanvas11BitmapData.draw(lassoBMPsub,mat);
+                        rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
+                    }
+                }
+
+                resetLassoVars();
+            }
+
             function lasso(data:Array,clearOnly:Boolean):void
             {
                 if(data[1].length === 0 || data[2].length === 0) return;
@@ -10965,7 +11058,9 @@
                     case "move1": move1(data[index]); break;
                     case "move2": move2(data[index]); break;
                     case "lasso": lasso(data[index],false); break;
+                    case "lasso2": lasso2(data[index],false); break;
                     case "lassodel": lasso(data[index],true); break;
+                    case "lassodel2": lasso2(data[index],true); break;
                     case "mirror": mirror(); break;
                     case "bgColor": bgColor(data[index]); break;
                     case "canvasSize": canvasSize(data[index]); break;
@@ -11256,6 +11351,7 @@
                             checkMakeCacheImage();
                         }
                     }
+
                     tickDraw.next();
                     rNowFrame++;
                     readCount--;
@@ -11738,7 +11834,6 @@
 
         private function jumpFrame(frame:Number,jumpflag:int):void //jumpp
         {
-            const nt:int = getTimer()
             if(frame < 0) frame = 0;
             else if(frame > TOTAL_FRAME) frame = TOTAL_FRAME;
 
@@ -16705,6 +16800,8 @@
 
             function drawPreviewLine():void
             {
+                if(lassoPoints === null) return;
+
                 lassoDraw.graphics.clear();
 
                 const len:uint = lassoPoints.length;
@@ -16733,8 +16830,10 @@
             function lassoDrawMouseUp():void
             {
                 mouseDragON = false;
+                removeTimer("LassoDrawDelayTimer");
                 stageMouseMoveEvent.remove("lassoDrawMouseMove");
                 stage.removeEventListener(MouseEvent.MOUSE_UP,lassoDrawMouseUp);
+
                 if(Math.abs(lassoRect[0]-lassoRect[2]) < 5 || Math.abs(lassoRect[1]-lassoRect[3]) < 5)
                 {
                     resetLassoBox();
@@ -16766,44 +16865,48 @@
                 if(moveSelectedAreaToLassoBox(false,lassoRect,lassoPoints,lassoCopyON,checklayer1,checklayer2) === false)
                 {
                     resetLassoBox();
-                    return;
-                }
-
-                drawPreviewLine();
-                //라소 메뉴 마우스 커서에보이기
-                lassoStartData = [lassoBox1.x,lassoBox1.y,lassoBox1.scaleX,lassoBox1.scaleY,lassoBox1.rotation];
-                lassoToolON = true;
-                setDeafultLassoMenuPos(lassoMenu);
-                checkLassoMenuPos();
-
-                if(checkedLayer || !checklayer1 || !checklayer2)
-                {
-                    lassoMenu.lassoLayerSwap.alpha = BUTTON_OFF_ALPHA;
-                    lassoMenu.lassoLayerMerge.alpha = BUTTON_OFF_ALPHA;
                 }
                 else
                 {
-                    lassoMenu.lassoLayerSwap.alpha = 1.0;
-                    lassoMenu.lassoLayerMerge.alpha = 1.0;
+                    drawPreviewLine();
+                    //라소 메뉴 마우스 커서에보이기
+                    lassoStartData = [lassoBox1.x,lassoBox1.y,lassoBox1.scaleX,lassoBox1.scaleY,lassoBox1.rotation];
+                    lassoToolON = true;
+                    setDeafultLassoMenuPos(lassoMenu);
+                    checkLassoMenuPos();
+
+                    if(checkedLayer || !checklayer1 || !checklayer2)
+                    {
+                        lassoMenu.lassoLayerSwap.alpha = BUTTON_OFF_ALPHA;
+                        lassoMenu.lassoLayerMerge.alpha = BUTTON_OFF_ALPHA;
+                    }
+                    else
+                    {
+                        lassoMenu.lassoLayerSwap.alpha = 1.0;
+                        lassoMenu.lassoLayerMerge.alpha = 1.0;
+                    }
+
+                    canvasPanel.setChildIndex(lassoBox2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
+                    canvasPanel.setChildIndex(lassoBox1,canvasPanel.getChildIndex(canvas1Bitmap)+1);
+
+                    lassoBox2.visible = true;
+                    lassoMenu.visible = true;
+                    setTopChildIndex(lassoMenu);
+
+                    if(traceMenuON === true) traceMenu.visible = false;
+
+                    controlBox.layerButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                    controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                    controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                    controlBox.opaSizeButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                    pickerBox.alpha = BUTTON_OFF_ALPHA;
+                    toolBox.setIconAlphaOnLassoToolON(BUTTON_OFF_ALPHA);
+                    toolBox.moveToolCursor("toolLasso");
+                    addMouseKeyEventLassoTool();
                 }
 
-                canvasPanel.setChildIndex(lassoBox2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
-                canvasPanel.setChildIndex(lassoBox1,canvasPanel.getChildIndex(canvas1Bitmap)+1);
-
-                lassoBox2.visible = true;
-                lassoMenu.visible = true;
-                setTopChildIndex(lassoMenu);
-
-                if(traceMenuON === true) traceMenu.visible = false;
-
-                controlBox.layerButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                controlBox.opaSizeButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                pickerBox.alpha = BUTTON_OFF_ALPHA;
-                toolBox.setIconAlphaOnLassoToolON(BUTTON_OFF_ALPHA);
-                toolBox.moveToolCursor("toolLasso");
-                addMouseKeyEventLassoTool();
+                lassoRect = null;
+                lassoPoints = null;
             }
 
             function lassoDrawMouseMove(MouseEvent:Event):void
@@ -17318,11 +17421,6 @@
             lassoBMPsub.smoothing = true;
             lassoBMP.smoothing = true;
 
-            if(lassoBMPScaleX !== 1 || lassoBox1.rotation !== 0)
-            {
-                applyLassoShapen(lassoBMPScaleX);
-            }
-
             if(toTraceLayer === false)
             {
                 if(canvas1Bitmap.visible) canvas1BitmapData.draw(lassoBMP,posMatrix);
@@ -17411,7 +17509,7 @@
                         checklayer2 = true;
                     }
 
-                    rDataBuffer.push(["lasso",point1,point2
+                    rDataBuffer.push(["lasso2",point1,point2
                                                     ,lassoInfo
                                                     ,lassoCopyON
                                                     ,checklayer1
@@ -19947,12 +20045,9 @@
 
             if(appResetFlag === false)
             {
-                const nowTime:int = getTimer();
-                const subTime:int = nowTime-windowDeactivateTime;
-
-                if(subTime >= 1000 || windowClosingFlag)
+                if(getTimer()-windowDeactivateTime >= 1000 || windowClosingFlag)
                 {
-                    windowDeactivateTime = nowTime;
+                    windowDeactivateTime = getTimer();
                     saveAllData();
                 }
             }
@@ -21633,7 +21728,7 @@
         //     var _print:Function = trace;
         //     var i:int=0;
         //     var nt:int = getTimer();
-        //     const loop:int = 10;
+        //     const loop:int = 1;
 
         //     while(i < loop)
         //     {
@@ -21645,10 +21740,13 @@
         //     _print("time 1",getTimer()-nt);
 
         //     i = 0;
-        //     var rect2:Rectangle;
-        //     nt = getTimer()
+        //     nt = getTimer();
+
         //     while(i < loop)
         //     {
+
+
+
 
         //         i++;
         //     }
@@ -21656,7 +21754,7 @@
         //     _print("time 2",getTimer()-nt);
 
         //     i = 0;
-        //     nt = getTimer()
+        //     nt = getTimer();
         //     while(i < loop)
         //     {
 
