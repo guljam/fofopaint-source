@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.27;
+        private const APP_VERSION:Number = 23.28;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5716,8 +5716,8 @@
                 case "toolMirror": str = "Flip canvas(a, l)"; break;
                 case "toolLine": str = "Line (shift)"; break;
                 case "toolMove": str = "Move image (e, u)"; break;
-                case "zoomInButton": str ="Zoom in canvas (w, i+click+drag on canvas)\nReset (right-click ,shift+w, shift+i)"; break;
-                case "zoomOutButton": str ="Zoom out canvas (w, i+click+drag on canvas)\nReset (right-click ,shift+w, shift+i)"; break;
+                case "zoomInButton": str ="Zoom in canvas (w, i + drag canvas)\nReset (right-click ,shift+w, shift+i)"; break;
+                case "zoomOutButton": str ="Zoom out canvas (w, i + drag canvas)\nReset (right-click ,shift+w, shift+i)"; break;
                 case "toolRotate": str = "Rotate canvas (s, k)\nReset (right-click, shift+s , shift+k)"; break;
                 case "toolTrace": str = "Reference layer (t)"; break;
             }
