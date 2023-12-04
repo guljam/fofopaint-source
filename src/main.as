@@ -548,7 +548,7 @@
                     ,dotTool:Function = cDrawDot()
                     ,lineTool:Function = cLineTool()
                     ,handTool:Function = cHandTool()
-                    ,lassoTool:Function = cLassoTool()
+                    ,lassoToolFunction:Object = cLassoTool()
                     ,rotateTool:Function = cRotateTool()
                     ,zoomTool:Function = cZoomTool()
                     ,moveTool:Function = cMoveTool()
@@ -7662,14 +7662,16 @@
         {
             var getAngle:Function = cImageRotateFunc(lassoBox1);
 
-            lassoBMP.smoothing = false;
             mouseDragON = true;
+            lassoBMP.smoothing = false;
+            lassoBMPsub.smoothing = false;
 
             function lassoRotateButtonUpEvent(e:MouseEvent):void
             {
+                lassoBMP.smoothing = true;
+                lassoBMPsub.smoothing = true;
                 mouseDragON = false;
                 getAngle = null;
-                lassoBMP.smoothing = true;
                 lassoMenu.visible = true;
                 setRotateCursorOFF();
 
@@ -7694,16 +7696,18 @@
         {
             var getScale:Function = cImageResizeFunc(lassoBox1.scaleX);
 
-            lassoBMP.smoothing = false;
             mouseDragON = true;
+            lassoBMP.smoothing = false;
+            lassoBMPsub.smoothing = false;
 
             function lassoResizeButtonUpEvent(e:MouseEvent):void
             {
+                lassoBMP.smoothing = true;
+                lassoBMPsub.smoothing = true;
                 mouseDragON = false
                 getScale = null;
 
                 checkLassoMenuPos();
-                lassoBMP.smoothing = true;
                 lassoMenu.visible = true;
                 setToolTipOFF();
 
@@ -7747,13 +7751,15 @@
         private function setLassoMoveButton():void
         {
             var getMovedPos:Function = cImageMoveFunc(lassoBox1,regPoint.rotation);
-            lassoBMP.smoothing = false;
             mouseDragON = true;
+            lassoBMP.smoothing = false;
+            lassoBMPsub.smoothing = false;
 
             function lassoMoveButtonUpEvent(e:MouseEvent):void
             {
                 mouseDragON = false;
                 lassoBMP.smoothing = true;
+                lassoBMPsub.smoothing = true;
                 lassoMenu.visible = true;
                 checkLassoMenuPos();
                 stage.removeEventListener(MouseEvent.MOUSE_UP,lassoMoveButtonUpEvent);
@@ -11058,7 +11064,7 @@
                     case "move1": move1(data[index]); break;
                     case "move2": move2(data[index]); break;
                     case "lasso": lasso(data[index],false); break;
-                    case "lasso2": lasso2(data[index],false); break;
+                    case "lasso2": lasso(data[index],false); break;
                     case "lassodel": lasso(data[index],true); break;
                     case "lassodel2": lasso2(data[index],true); break;
                     case "mirror": mirror(); break;
@@ -16686,6 +16692,9 @@
             if(layer1) lassoBMPD.copyPixels(canvasBitmapData,newRectangle,ZERO_POINT,null,null,true);
             if(layer2) lassoBMPDsub.copyPixels(canvasBitmapDataSub,newRectangle,ZERO_POINT,null,null,true);
 
+            lassoBMP.smoothing = true;
+            lassoBMPsub.smoothing = true;
+
             //bitmap1canvas에서 그려준 영역을 지워줌
             if(!copyFlag)
             {
@@ -16760,14 +16769,12 @@
             {
                 lassoBMP.x = -rectWidth/2;
                 lassoBMP.y = -rectHeight/2;
-                lassoBMP.smoothing = true;
             }
 
             if(layer2)
             {
                 lassoBMPsub.x = -rectWidth/2;
                 lassoBMPsub.y = -rectHeight/2;
-                lassoBMPsub.smoothing = true;
             }
 
             lassoBox1.x = rectLeft+rectWidth/2;
@@ -16789,7 +16796,7 @@
             return true;
         }
 
-        private function cLassoTool():Function
+        private function cLassoTool():Object
         {
             var clickPos:Point = new Point(0,0);
             var maxWidth:Number;
@@ -16797,6 +16804,14 @@
 
             var lassoRect:Vector.<Number>;
             var lassoPoints:Array;
+
+            function resetPosData():void
+            {
+                lassoRect.length = 0;
+                lassoPoints.length = 0;
+                lassoRect = null;
+                lassoPoints = null;
+            }
 
             function drawPreviewLine():void
             {
@@ -16904,9 +16919,6 @@
                     toolBox.moveToolCursor("toolLasso");
                     addMouseKeyEventLassoTool();
                 }
-
-                lassoRect = null;
-                lassoPoints = null;
             }
 
             function lassoDrawMouseMove(MouseEvent:Event):void
@@ -16932,7 +16944,7 @@
                 else if(my > lassoRect[3]) lassoRect[3] = my;
             }
 
-            return function():void
+            function start ():void
             {
                 if(lassoToolON === true || isAllLayerInvisible()) return;
 
@@ -16973,6 +16985,11 @@
                 stageMouseMoveEvent.add("lassoDrawMouseMove",lassoDrawMouseMove);
                 stage.addEventListener(MouseEvent.MOUSE_UP,lassoDrawMouseUp);
             };
+
+            return {
+                start:start,
+                resetPosData:resetPosData
+            }
         }
 
         private function cSpuitTool():Function
@@ -17417,9 +17434,8 @@
             posMatrix.rotate(ang);//회전해줌
             posMatrix.translate(boxX,boxY);//라소박스 위치 그대로 붙여주면됨
 
-            //캔버스 1에 그려줌
-            lassoBMPsub.smoothing = true;
             lassoBMP.smoothing = true;
+            lassoBMPsub.smoothing = true;
 
             if(toTraceLayer === false)
             {
@@ -17772,6 +17788,7 @@
             lassoBox2.rotation = 0;
             lassoMenu.lassoCopy.alpha = 1.0;
             lassoMenu.lassoLayerMerge.alpha = 1.0;
+            lassoToolFunction.resetPosData();
 
             if(lassoBitmapdataSave)
             {
@@ -21713,7 +21730,7 @@
                     case TOOL_PEN: if(isCurrentLayerActive() && isToolActive()) penTool(true); break;
                     case TOOL_ERASE: if(isCurrentLayerActive() && isToolActive()) penTool(false); break;
                     case TOOL_LINE: if(isCurrentLayerActive() && isToolActive()) lineTool(true); break;
-                    case TOOL_LASSO: if(isCurrentLayerActive()) lassoTool(); break;
+                    case TOOL_LASSO: if(isCurrentLayerActive()) lassoToolFunction.start(); break;
                     case TOOL_MOVE: if(isCurrentLayerActive()) moveTool(); break;
                     //캔버스 조작
                     case TOOL_ZOOM: zoomTool(); break;
