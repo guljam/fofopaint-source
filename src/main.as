@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.13;
+        private const APP_VERSION:Number = 23.14;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -544,6 +544,7 @@
                     ,realWorkingTimer:Object = cRealWorkingTimer()
                     ,dottedLine:Object = cDottedLine()//순서 먼저 와야함
                     ,penTool:Function = cPenTool()
+                    ,dotTool:Function = cDrawDot()
                     ,lineTool:Function = cLineTool()
                     ,handTool:Function = cHandTool()
                     ,lassoTool:Function = cLassoTool()
@@ -4633,8 +4634,8 @@
                 if(mouseMovedFlag === false || (penToolFlag && mouseMovedFlag === true && dotflag))
                 {
                     rDataBuffer = [];
-                    rDataBuffer.push(["dot2",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,subLayerFlag,xAirBrushON]);
-                    drawDot(xShape,xSize,xColor,clickPos.x,clickPos.y);
+                    rDataBuffer.push(["dot3",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,subLayerFlag,xAirBrushON,regPoint.rotation]);
+                    dotTool(xShape,xSize,xColor,clickPos.x,clickPos.y,regPoint.rotation);
                     resetCanvas2DrawCliprect();
                 }
 
@@ -9890,6 +9891,9 @@
             var index:uint = 0;
             var data:Array = [];//데이터 뭉치
 
+            const cmd:Vector.<int> = new Vector.<int>();
+            const pos:Vector.<Number> = new Vector.<Number>();
+
             function updateLineStyleBackup(alpha:Number,blendMode:String):void
             {
                 lineStyleBackup[0] = alpha;
@@ -10307,6 +10311,67 @@
 
                 rcanvas2Draw.graphics.endFill();
                 setRCursorPos(arr[len-2],arr[len-1]);
+            }
+
+            function dot3(data:Array):void
+            {
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const startX:Number = data[5];
+                const startY:Number = data[6];
+                const blendMode:String = data[7];
+                const subLayer:Boolean = data[8];
+                const airBrush:Boolean = data[9];
+                const rotation:Number = data[10];
+
+                checkSubLayer(subLayer);
+                checkAirBrush(airBrush,size);
+                updateLineStyleBackup(alpha,blendMode);
+                rcanvas2.alpha = alpha;
+                rcanvas2Draw.graphics.lineStyle(0,0,0);
+                rcanvas2Draw.graphics.beginFill(color);
+
+                if(shape)
+                {
+                    cmd.length = 0;
+                    pos.length = 0;
+
+                    const p0:Point = rotatePoint(-size/2,-size/2,rotation);
+                    cmd.push(1);
+                    pos.push(startX+p0.x);
+                    pos.push(startY+p0.y);
+
+                    const p1:Point = rotatePoint(+size/2,-size/2,rotation);
+                    cmd.push(2);
+                    pos.push(startX+p1.x);
+                    pos.push(startY+p1.y);
+
+                    const p2:Point = rotatePoint(+size/2,+size/2,rotation);
+                    cmd.push(2);
+                    pos.push(startX+p2.x);
+                    pos.push(startY+p2.y);
+
+                    const p3:Point = rotatePoint(-size/2,+size/2,rotation);
+                    cmd.push(2);
+                    pos.push(startX+p3.x);
+                    pos.push(startY+p3.y);
+
+                    rcanvas2Draw.graphics.endFill();
+                    rcanvas2Draw.graphics.lineStyle(0,0,0);
+                    rcanvas2Draw.graphics.beginFill(color);
+                    rcanvas2Draw.graphics.drawPath(cmd,pos);
+                }
+                else
+                {
+                    rcanvas2Draw.graphics.drawCircle(startX,startY,size/2);
+                }
+
+                rcanvas2Draw.graphics.endFill();
+
+                resetRCanvas2DrawCliprect();
+                setRCursorPos(startX,startY);
             }
 
             function dot2(data:Array):void
@@ -10826,6 +10891,7 @@
                     case "fill4": fill4(data[index]); break;
                     case "dot": dot(data[index]); break;
                     case "dot2": dot2(data[index]); break;
+                    case "dot3": dot3(data[index]); break;
                     case "line": line(data[index]); break;
                     case "line1": line1(data[index]); break;
                     case "line2": line2(data[index]); break;
@@ -10947,7 +11013,7 @@
             doDraw(rSpeed,JUMP_FRAME_PLAY);
             replayHideCursor.check();
         }
-        
+
         private function clearRFrameCacheImages():void
         {
             rFrameCacheImages = [];
@@ -15215,8 +15281,9 @@
 
                     if(mouseMovedFlag === false && oldX === mx && oldY === my)
                     {
-                        rDataBuffer.push(["dot2",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,xAirBrushON]);
-                        drawDot(xShape,xSize,xColor,mx,my);
+                        rDataBuffer = [];
+                        rDataBuffer.push(["dot3",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,xAirBrushON,regPoint.rotation]);
+                        dotTool(xShape,xSize,xColor,mx,my,regPoint.rotation);
                     }
                     else
                     {
@@ -18365,22 +18432,53 @@
             setNowToolForDrawing(true);
         }
 
-        private function drawDot(shape:Boolean,size:uint,color:uint,x:Number,y:Number):void
+        private function cDrawDot():Function
         {
-            canvas2Draw.graphics.clear();
-            canvas2Draw.graphics.lineStyle(0,0,0);
-            canvas2Draw.graphics.beginFill(color);
+            const cmd:Vector.<int> = new Vector.<int>();
+            const pos:Vector.<Number> = new Vector.<Number>();
 
-            if(shape === false)
+            return function (shape:Boolean,size:uint,color:uint,posX:Number,posY:Number,rotation:Number):void
             {
-                canvas2Draw.graphics.drawCircle(x,y,size/2);
-            }
-            else if(shape === true)
-            {
-                canvas2Draw.graphics.drawRect(x-size/2,y-size/2,size,size);
-            }
+                canvas2Draw.graphics.clear();
+                canvas2Draw.graphics.lineStyle(0,0,0);
+                canvas2Draw.graphics.beginFill(color);
 
-            canvas2Draw.graphics.endFill();
+                if(shape === true)
+                {
+                    cmd.length = 0;
+                    pos.length = 0;
+
+                    const p0:Point = rotatePoint(-size/2,-size/2,rotation);
+                    cmd.push(1);
+                    pos.push(posX+p0.x);
+                    pos.push(posY+p0.y);
+
+                    const p1:Point = rotatePoint(+size/2,-size/2,rotation);
+                    cmd.push(2);
+                    pos.push(posX+p1.x);
+                    pos.push(posY+p1.y);
+
+                    const p2:Point = rotatePoint(+size/2,+size/2,rotation);
+                    cmd.push(2);
+                    pos.push(posX+p2.x);
+                    pos.push(posY+p2.y);
+
+                    const p3:Point = rotatePoint(-size/2,+size/2,rotation);
+                    cmd.push(2);
+                    pos.push(posX+p3.x);
+                    pos.push(posY+p3.y);
+
+                    canvas2Draw.graphics.endFill();
+                    canvas2Draw.graphics.lineStyle(0,0,0);
+                    canvas2Draw.graphics.beginFill(color);
+                    canvas2Draw.graphics.drawPath(cmd,pos);
+                }
+                else
+                {
+                    canvas2Draw.graphics.drawCircle(posX,posY,size/2);
+                }
+                canvas2Draw.graphics.endFill();
+            }
         }
 
         private function updateSidebarDefaultRightPos():void
