@@ -393,7 +393,7 @@
 			infoColorPicker.x = 0;
 			infoColorPicker.y = 0;
 
-			paperColorButton.x = Math.floor(infoColorPicker.x+infoColorPicker.width+11);
+			paperColorButton.x = Math.floor(infoColorPicker.x+infoColorPicker.width+12);
 			paperColorButton.y = Math.floor(infoColorPicker.y-7);
 			penColorButton.x = Math.floor(paperColorButton.x+paperColorButton.width+5);
 			penColorButton.y = Math.floor(paperColorButton.y);

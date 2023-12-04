@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.15;
+        private const APP_VERSION:Number = 23.16;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4929,8 +4929,6 @@
             var hh:int;
             var mm:int;
             var ss:int;
-            var timerRunnerDotFlag:Boolean = false; //점을 보여줬다 안보여 줬다 하면서 작동하는것을 보여줌
-            var timerTextSave:String;
 
             function resetAFKCount():void
             {
@@ -4957,18 +4955,25 @@
 
             function update():void
             {
+                if(appRunningTime < 0)
+                {
+                    appRunningTime = 0;
+                }
+
                 tt = appRunningTime/1000;
                 hh = Math.floor(tt/3600);
                 mm = Math.floor((tt-hh*3600)/60);
                 ss = Math.floor(tt%60);
 
-                topBar.timer.text = ((hh < 10) ? "0"+hh:""+hh) + ":"
-                                    +((mm < 10) ? "0"+mm:""+mm) + ":"
-                                    +((ss < 10) ? "0"+ss:""+ss);
+                topBar.timer.text =      ((hh < 10) ? "0"+hh:""+hh)
+                                    +":"+((mm < 10) ? "0"+mm:""+mm)
+                                    +":"+((ss < 10) ? "0"+ss:""+ss);
+
+                topBar.timerAFkDot.visible = false;
                 topBar.updateTimerPos(stage.stageWidth);
             }
 
-            function check(e:Event):void
+            function check():Boolean
             {
                 const nowTime:int = getTimer();
                 const subTime:int = nowTime-lastTime;
@@ -4978,26 +4983,21 @@
                     if(afkCount > 1000)
                     {
                         afkCount = 1001;
-                        timerRunnerDotFlag = !timerRunnerDotFlag;
-                        if(timerTextSave === null)
-                        {
-                            timerTextSave = topBar.timer.text;
-                        }
 
-                        topBar.timer.text = ((timerRunnerDotFlag) ? ".":"") + timerTextSave;
+                        topBar.timerAFkDot.visible = !topBar.timerAFkDot.visible;
                         topBar.updateTimerPos(stage.stageWidth);
                     }
                     else
                     {
-                        timerTextSave = null;
                         appRunningTime += subTime;
-                        if(appRunningTime < 0) appRunningTime = 0;
                         update();
                     }
 
                     afkCount += subTime;
                     lastTime = nowTime;
                 }
+
+                return true;
             }
 
             function setAFKMode():void
@@ -5013,7 +5013,7 @@
             function start():void
             {
                 resume();
-                stage.addEventListener(Event.ENTER_FRAME,check);
+                addTimerByName("workingTimer",1.0,true,check);
             }
 
             return {

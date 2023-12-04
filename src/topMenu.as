@@ -53,6 +53,7 @@
 		public var replayFitToWindowButton:SimpleButton;
 		public var replayRotateButton:SimpleButton;
 		public var timer:TextField;
+		public var timerAFkDot:TextField;
 
 		private var buttonOrder:Array = [];
 		private var drawModeButtons:Array = [];
@@ -120,9 +121,10 @@
 		public function updateTimerPos(stw:Number):void
 		{
 			const limitX:Number = (replaySpeedSet.x+replaySpeedSet.width+3)*scaleX;
-			var newX:Number = stw-(timer.textWidth+15)*scaleX;
+			var newX:Number = stw-(timer.textWidth+20)*scaleX;
 			if(newX < limitX) newX = limitX;
 			timer.x = newX/scaleX;
+			timerAFkDot.x = timer.x-5;
 		}
 
 		public function changeUIColor(base:uint,op:uint,hintOKColor:uint):void
@@ -184,6 +186,7 @@
             replaySpeedBar.transform.colorTransform = opColor;
 
 			timer.textColor = op;
+			timerAFkDot.textColor = op;
 		}
 
 		public function setSpeedButtonPosByValue(rSpeed:Number, maxSpeed:Number):void
@@ -509,6 +512,8 @@
 
 			timer.y = 6;
 			timer.autoSize = TextFieldAutoSize.LEFT;
+			timerAFkDot.y = timer.y;
+			timerAFkDot.autoSize = TextFieldAutoSize.LEFT;
 
 			addChild(replaySpeedSet);
 			addChild(topbarBG);

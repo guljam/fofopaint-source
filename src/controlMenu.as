@@ -269,19 +269,19 @@
 			layer1UncheckButton.x = layer1CheckButton.x;
 			layer1UncheckButton.y = layer1CheckButton.y;
 
-			layer1SelectButton.x = layer1CheckButton.x+layer1CheckButton.width+2;
-			layer1SelectButton.y = layer1CheckButton.y;
+			layer1SelectButton.x = layer1CheckButton.x+layer1CheckButton.width+3;
+			layer1SelectButton.y = layer1CheckButton.y-1;
 
-			layerMergeButton.x = layer1SelectButton.x+layer1SelectButton.width+3;
-			layerMergeButton.y = layer1SelectButton.y-1;
+			layerMergeButton.x = layer1SelectButton.x+layer1SelectButton.width+1;
+			layerMergeButton.y = layer1SelectButton.y+1;
 
 			layer2CheckButton.x = layer1CheckButton.x;
 			layer2CheckButton.y = layer1CheckButton.y+layer1CheckButton.height+4;
 			layer2UncheckButton.x = layer2CheckButton.x;
 			layer2UncheckButton.y = layer2CheckButton.y;
 
-			layer2SelectButton.x = layer2CheckButton.x+layer2CheckButton.width+2;
-			layer2SelectButton.y = layer2CheckButton.y;
+			layer2SelectButton.x = layer2CheckButton.x+layer2CheckButton.width+3;
+			layer2SelectButton.y = layer2CheckButton.y-1;
 
 			saperateLine.x = layerMergeButton.x+layerMergeButton.width+5;
 			saperateLine.y = 4;
@@ -434,7 +434,7 @@
 			layerButtonWrapper.x = opaSizeButtonWrapper.x;
 			layerButtonWrapper.y = opaSizeButtonWrapper.y+opaSizeButtonWrapper.height-2;
 
-			sharpLineButtonWrapper.x = layerButtonWrapper.x+layerButtonWrapper.width+8;
+			sharpLineButtonWrapper.x = layerButtonWrapper.x+layerButtonWrapper.width+9;
 			sharpLineButtonWrapper.y = layerButtonWrapper.y+2;
 
 			airBrushButtonWrapper.x = sharpLineButtonWrapper.x;
