@@ -3,10 +3,12 @@
 	import flash.display.Sprite;
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
+	import flash.text.TextFieldAutoSize;
 
 	public class aboutBox extends Sprite {
 
 		public var versionInfo:TextField;
+		public var memoryInfo:TextField;
 		public var resetAppButton:SimpleButton;
 		public var releaseNoteButton:SimpleButton;
 		public var aboutTwitterLink:SimpleButton;
@@ -18,6 +20,11 @@
 		public var logo5:SimpleButton;
 		private var imageIndex:int = 0;
 
+		public function updateMemoryInfo(memoryUsage:String,driveUseage:String):void
+		{
+			memoryInfo.text = "Memory usage : "+memoryUsage+" / Drive usage : "+driveUseage;
+		}
+
 		public function randomLogo():void
 		{
 			const arr:Array = [logo1,logo2,logo3,logo4,logo5];
@@ -27,7 +34,7 @@
 			{
 				index = 0;
 			}
-	
+
 			arr[imageIndex].visible = false;
 			arr[index].visible = true;
 
@@ -54,6 +61,8 @@
 			logo3.useHandCursor = false;
 			logo4.useHandCursor = false;
 			logo5.useHandCursor = false;
+
+			memoryInfo.autoSize = TextFieldAutoSize.RIGHT;
 		}
 	}
 }

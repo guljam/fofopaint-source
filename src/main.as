@@ -47,7 +47,6 @@
     import flash.events.FocusEvent;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
-    import flash.utils.setTimeout;
     import flash.net.URLRequest;
     import flash.net.FileFilter;
     import flash.net.URLLoader;
@@ -56,13 +55,13 @@
     import flash.text.TextField;
     import flash.ui.Mouse;
     import flash.filters.BlurFilter;
-    import flash.system.System;
     import flash.filters.ConvolutionFilter;
+    import flash.system.System;
     //import end
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.28;
+        private const APP_VERSION:Number = 23.31;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -716,6 +715,51 @@
         }
 
         //function
+        private function formatBytes(bytes:Number):String
+        {
+            var sizes:Array = ["Bytes", "KB", "MB", "GB", "TB"];
+
+            if (bytes == 0) return "0 Byte";
+
+            var i:int = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)).toString());
+
+            return Math.round(10 * bytes / Math.pow(1024, i)) / 10 + ' ' + sizes[i];
+        }
+
+        private function getMemoryUsageString():String
+        {
+            return formatBytes(System.privateMemory-System.freeMemory);
+        }
+
+        private function getDriveUsageString():String
+        {
+            function getDirectorySize(dir:File):Number
+            {
+                var size:Number = 0;
+
+                if (dir.isDirectory)
+                {
+                    var files:Array = dir.getDirectoryListing();
+
+                    for each (var file:File in files)
+                    {
+                        if (file.isDirectory)
+                        {
+                            size += getDirectorySize(file);
+                        }
+                        else
+                        {
+                            size += file.size;
+                        }
+                    }
+                }
+
+                return size;
+            }
+
+            return formatBytes(getDirectorySize(File.applicationStorageDirectory));
+        }
+
         private function dispoaseCanvas1BitmapEraseData():void
         {
             canvas1BitmapEraseData.dispose();
@@ -2799,34 +2843,6 @@
             hint.off();
         }
 
-        private function cStartGC():Function
-        {
-            var gcCount:int;
-
-            function startGCCycle():void
-            {
-                gcCount = 0;
-                stage.addEventListener(Event.ENTER_FRAME,doGC);
-            }
-
-            function doGC(evt:Event):void
-            {
-                System.gc();
-                if(++gcCount > 1)
-                {
-                    stage.removeEventListener(Event.ENTER_FRAME,doGC);
-                    setTimeout(lastGC,40);
-                }
-            }
-
-            function lastGC():void
-            {
-                System.gc();
-            }
-
-            return startGCCycle;
-        }
-
         private function setQuickSidebarOFFWaitMouseUp(e:MouseEvent):void
         {
             _quickSidebarOFF();
@@ -3425,6 +3441,7 @@
                 return true;
 
                 case KEY.g:
+                getDriveUsageString();
                     setHoldKeyRepeat(true,shortCutPenAlpha,true);
                 return true;
 
@@ -8277,7 +8294,6 @@
         {
             aboutPanel.x = Math.floor(stage.stageWidth/2)+Math.floor(-aboutPanel.width/2);
             aboutPanel.y = Math.floor((stage.stageHeight-39)/2)+Math.floor(-aboutPanel.height/2);
-            aboutPanel.visible = true;
         }
 
         private function openAboutPanel(welcome:Boolean):void
@@ -8289,7 +8305,6 @@
 
             removeInputEventDrawMode();
 
-            aboutPanel.resetAppButton.visible = true;
             if(welcome === true)
             {
                 aboutPanel.resetAppButton.visible = false;
@@ -8300,12 +8315,15 @@
             }
             else
             {
+                aboutPanel.resetAppButton.visible = true;
                 checkVersion();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
             }
 
             aboutPanel.randomLogo();
+            aboutPanel.updateMemoryInfo(getMemoryUsageString(),getDriveUsageString());
             setAboutPanelCenterPos();
+            aboutPanel.visible = true;
         }
 
         private function clearDataResetVars():void
@@ -8327,6 +8345,10 @@
             resetReplaySpeedBar();
             resetReplayTime();
             resetUndo();
+            if(canvas1BitmapEraseData)
+            {
+                dispoaseCanvas1BitmapEraseData();
+            }
 
             const fileName:String = getNewFileName();
             const name:String = saveFileName;
@@ -8936,6 +8958,11 @@
             setDeepUndoOFF();
             checkReplaySpeedState();
             tickDraw.setFirstRCursorPosCurrent();
+
+            if(canvas1BitmapEraseData)
+            {
+                dispoaseCanvas1BitmapEraseData();
+            }
         }
 
         private function setReRecord():void
@@ -8943,11 +8970,13 @@
             setReRecordCopyCanvas();
             clearDataResetVars();
             setCanvasSameReplayCanvas();
+
             if(replayModeON)
             {
                 setDeepUndoFrameSave(rNowFrame);
                 setReplayModeOFF();
             }
+
             setDeepUndoOFF();
             resetReplayTime();
         }
@@ -9080,7 +9109,16 @@
             topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x+3;
 
             setDeepUndoOFF();
-            if(quickSidebarON) _quickSidebarOFF();
+
+            if(quickSidebarON)
+            {
+                _quickSidebarOFF();
+            }
+
+            if(canvas1BitmapEraseData)
+            {
+                dispoaseCanvas1BitmapEraseData();
+            }
 
             saveContinue = false;
         }
@@ -21748,10 +21786,12 @@
         //     var _print:Function = trace;
         //     var i:int=0;
         //     var nt:int = getTimer();
-        //     const loop:int = 1;
+        //     const loop:int = 10;
 
         //     while(i < loop)
         //     {
+
+
 
 
         //         i++;
@@ -21764,7 +21804,6 @@
 
         //     while(i < loop)
         //     {
-
 
 
 
