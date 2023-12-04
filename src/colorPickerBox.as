@@ -300,7 +300,6 @@
 				currentColor.graphics.drawRect(0,0,currentColorWidth,19);
 				currentColor.graphics.endFill();
 			}
-
 		}
 
 		public function changeHueColor(color:uint):void
@@ -483,7 +482,7 @@
 			panelWidth = 180;
 			panelHeight = mainPresetBox.y+mainPresetBox.height+3;
 
-			updateCurrentColor(0,0);
+			updateCurrentColor(1,0);
 			svCursor.mask = hsvSetBoxMask;
 			svCursor.useHandCursor = false;
 			hueCursor.useHandCursor = false;
