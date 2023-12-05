@@ -487,9 +487,9 @@
 			panelHeight = mainPresetBox.y+mainPresetBox.height+3;
 
 			updateCurrentColor(1,0);
+			svCursor.mouseEnabled = false;
 			svCursor.mask = hsvSetBoxMask;
-			svCursor.useHandCursor = false;
-			hueCursor.useHandCursor = false;
+			hueCursor.mouseEnabled = false;
 		}
 	}
 }

@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.42;
+        private const APP_VERSION:Number = 23.43;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -20724,9 +20724,7 @@
                 }
                 break;
 
-                case "replayNowBar":
                 case "replayTotalBar":
-                case "frameInfo":
                 {
                     setJumpFrameButton();
                 }
@@ -21326,14 +21324,12 @@
             switch(targetName)
             {
                 case "svBox":
-                case "svCursor":
                 {
                     setSVcolorButton();
                 }
                 return;
 
                 case "hueColor":
-                case "hueCursor":
                 {
                     setHueColorButton();
                 }

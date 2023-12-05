@@ -102,6 +102,7 @@
 			g.drawRect(0,0,31,31);
 			g.endFill();
 			replayBGBar.name = "replayBGBar";
+			replayBGBar.mouseEnabled = false;
 
 			g = replayDeleteBar.graphics;
 			g.lineStyle(0,0,0);
@@ -110,6 +111,7 @@
 			g.drawRect(0,0,20,20);
 			g.endFill();
 			replayDeleteBar.name = "replayDeleteBar";
+			replayDeleteBar.mouseEnabled = false;
 
 			g = replayNowBar.graphics;
 			g.lineStyle(0,0,0);
@@ -117,6 +119,7 @@
 			g.drawRect(0,0,20,20);
 			g.endFill();
 			replayNowBar.name = "replayNowBar";
+			replayNowBar.mouseEnabled = false;
 
 			g = replayTotalBar.graphics;
 			g.lineStyle(0,0,0);
