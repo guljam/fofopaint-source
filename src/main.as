@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.32;
+        private const APP_VERSION:Number = 23.33;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -715,9 +715,14 @@
             stage.addChild(fofo);
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
         }
-
         //function
+        private function setRcursorRotation(newAngle:Number):void
+        {
+            rCursor.rotation = -newAngle;
+        }
+
         private function updateCanvasEraseCheckerBitmapData(scale:Number):void
+
         {
             if(canvasEraseCheckerScale === scale) return;
             canvasEraseCheckerScale = scale;
@@ -2835,6 +2840,8 @@
             sideBar.y = Math.round(STAGE_TOP_OFFSET);
             sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
 
+            rCursor.scaleX = scale;
+            rCursor.scaleY = scale;
             fofo.scaleX = scale*fofo.fixedScale;
             fofo.scaleY = scale*fofo.fixedScale;
             checkfofoPos();
@@ -8830,6 +8837,7 @@
             regPoint.rotation = rregPoint.rotation;
             canvasPanel.x = Math.floor(rcanvasPanel.x);
             canvasPanel.y = Math.floor(rcanvasPanel.y);
+            setRcursorRotation(rregPoint.rotation);
         }
 
         private function resetCutFrameClickCounter():void
@@ -9959,10 +9967,10 @@
 
         private function cTickDraw():Object
         {
-            const rTinyCursorPos:Point = new Point(0,0);
+            const rCursorPos:Point = new Point(0,0);
             //undo인덱스가 처음일때 tickdraw가 아무것도 안해주니까 위치 갱신이 안되서
             //undorefimage갱신 될때 마다 마지막 포인터 위치 저장해주는거
-            const rTinyCursorPosFirst:Point = new Point(-1,-1);
+            const rCursorPosFirst:Point = new Point(-1,-1);
 
             var lineStyleBackup:Array = [1.0,null]//tempdone에서 쓰는 플래그임
             var index:uint = 0;
@@ -9979,44 +9987,44 @@
 
             function getFirstRCursorPos():Point
             {
-                return rTinyCursorPosFirst;
+                return rCursorPosFirst;
             }
 
             function resetFirstRCursorPos():void
             {
-                rTinyCursorPosFirst.setTo(-1,-1);
+                rCursorPosFirst.setTo(-1,-1);
             }
 
             function setFirstRCursorPos(x:Number,y:Number):void
             {
-                rTinyCursorPosFirst.setTo(x,y);
+                rCursorPosFirst.setTo(x,y);
             }
 
             function setFirstRCursorPosCurrent():void
             {
-                rTinyCursorPosFirst.setTo(rTinyCursorPos.x,rTinyCursorPos.y);
+                rCursorPosFirst.setTo(rCursorPos.x,rCursorPos.y);
             }
 
             function hasRCursorFirstPos():Boolean
             {
-                return rTinyCursorPosFirst.x > 0 && rTinyCursorPosFirst.y > 0;
+                return rCursorPosFirst.x > 0 && rCursorPosFirst.y > 0;
             }
 
             function updateRCursorPosToFirst():void
             {
-                rCursor.x = rTinyCursorPosFirst.x;
-                rCursor.y = rTinyCursorPosFirst.y;
+                rCursor.x = rCursorPosFirst.x;
+                rCursor.y = rCursorPosFirst.y;
             }
 
             function updateRCursorPos():void
             {
-                rCursor.x = rTinyCursorPos.x;
-                rCursor.y = rTinyCursorPos.y;
+                rCursor.x = rCursorPos.x;
+                rCursor.y = rCursorPos.y;
             }
 
             function setRCursorPosMoveTool(x:Number,y:Number):void
             {
-                setRCursorPos(rTinyCursorPos.x+x,rTinyCursorPos.y+y)
+                setRCursorPos(rCursorPos.x+x,rCursorPos.y+y)
             }
 
             function setRCursorPosToCenter():void
@@ -10032,12 +10040,12 @@
                 if(y < 0) y = 0;
                 else if(y > RCANVAS_HEIGHT) y = RCANVAS_HEIGHT;
 
-                rTinyCursorPos.setTo(x,y);
+                rCursorPos.setTo(x,y);
             }
 
             function getRCursorPos():Point
             {
-                return rTinyCursorPos;
+                return rCursorPos;
             }
 
             function reset():void
@@ -13550,6 +13558,7 @@
             tmpBMPD.dispose();
             tmpBMPD = null;
             regPoint.rotation = 0;
+            setRcursorRotation(0);
             zoomedIndex = 3;
             setZoomCanvas(1.0);
             updatePenSizeCursor();
@@ -14995,6 +15004,7 @@
                     regPoint.x = d["regPoint.x"];
                     regPoint.y = d["regPoint.y"];
                     regPoint.rotation = d["regPoint.rotation"];
+                    setRcursorRotation(d["regPoint.rotation"]);
                     updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
                     rotateCursorBox["rotateArrow"].rotation = d["regPoint.rotation"];
                     uiColorIndex = d["uiColorIndex"];
@@ -15209,14 +15219,12 @@
                 if(isNowToolPenOrLine() || isNowTool(TOOL_FILL_PEN))
                 {
                     canvas2Alpha.alphaMultiplier = penAlpha;
-                    // canvas2Alpha = new ColorTransform(1,1,1,penAlpha);
                     if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,(penColorTransparentFlag) ? "erase":null,canvas2ClipRect);
                     else            canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,(penColorTransparentFlag) ? "erase":null,canvas2ClipRect);
                 }
                 else if(isNowTool(TOOL_ERASE))
                 {
                     canvas2Alpha.alphaMultiplier = eraseAlpha;
-                    // canvas2Alpha = new ColorTransform(1,1,1,eraseAlpha);
                     if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase",canvas2ClipRect);
                     else           canvas1BitmapData.draw( canvas2Bitmap,null,canvas2Alpha,"erase",canvas2ClipRect);
                 }
@@ -15293,7 +15301,6 @@
                     {
                         return true;
                     }
-
                 }
 
                 return false;
@@ -15522,6 +15529,7 @@
             const center:Point = getStageCenterPos(CENTERPOS_REPLAY);
             setRegPoint(center.x,center.y,true);
             rregPoint.rotation = 0;
+            setRcursorRotation(0);
         }
 
         private function resetRotationDrawMode():void
@@ -15531,6 +15539,7 @@
             updatePenSizeCursor();
             setRegPoint(center.x,center.y,false);
             regPoint.rotation = 0;
+            setRcursorRotation(0);
             appInfoBox.setRotate(0);
             updatePreviewBoxRectPos();
         }
@@ -15582,6 +15591,7 @@
                 const ang:Number = getAngle(true);
 
                 xReg.rotation = ang;
+                setRcursorRotation(xReg.rotation);
                 appInfoBox.setRotate(Math.abs(xReg.rotation));
             }
 
@@ -16044,6 +16054,7 @@
             if(canvasOnly === false) //보통 미러할때, canvasonly가 true일때는 appdata에서 바꿔줄때 밖에 없음
             {
                 regPoint.rotation = -regPoint.rotation;//반대각으로 세팅
+                setRcursorRotation(regPoint.rotation)
                 mirrorTraceLayerImage();
             }
 
@@ -20417,7 +20428,7 @@
 
         private function updateRCursorScale(zoom:Number):void
         {
-            const z:Number = 1/zoom;
+            const z:Number = getUIScale()/zoom;
             rCursor.scaleX = z;
             rCursor.scaleY = z;
         }
@@ -20487,6 +20498,7 @@
             regPoint.y = rregPoint.y;
             rcanvasPanel.x = rcanvasPanel.x;
             rcanvasPanel.y = rcanvasPanel.y;
+            setRcursorRotation(regPoint.rotation);
         }
 
         private function syncReplayCanvasWithDrawMode():void
@@ -20500,6 +20512,7 @@
             rregPoint.y = regPoint.y;
             rcanvasPanel.x = canvasPanel.x;
             rcanvasPanel.y = canvasPanel.y;
+            setRcursorRotation(rregPoint.rotation);
         }
 
         private function setSameReplayModeImageByDrawMode():void
@@ -20541,6 +20554,7 @@
             if(traceMenuON === true) traceMenu.visible = true;
             if(isSidebarVisible === true) setSidebarVisible(true,true);
             canvasPanel.addChild(rCursor);
+            setRcursorRotation(regPoint.rotation);
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             replayTimeBox["pauseButton"].visible = false;
             setTopChildIndex(replayTimeBox);
@@ -20593,6 +20607,7 @@
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             rCursor.alpha = 1.0;
             rcanvasPanel.addChild(rCursor);
+            setRcursorRotation(rregPoint.rotation);
             rCursor.visible = false;
             setTopChildIndex(rCursor);
             updateStageOffset();
@@ -21782,13 +21797,11 @@
         //     if(printdeepLevel < 0) printdeepLevel = 0;
         // }
 
+
+
+
         // private function testFuncTime():void
         // {
-        //     var _print:Function = trace;
-        //     var i:int=0;
-        //     var nt:int = getTimer();
-        //     const loop:int = 5000;
-
         //     function func1():void
         //     {
 
@@ -21804,6 +21817,13 @@
 
         //     }
 
+
+
+
+        //     var _print:Function = trace;
+        //     var i:int=0;
+        //     var nt:int = getTimer();
+        //     const loop:int = 1000000;
         //     while(i < loop)
         //     {
         //         func1();
@@ -21833,7 +21853,5 @@
 
         //     _print("time 2",getTimer()-nt);
         // }
-
-
     }
  }
