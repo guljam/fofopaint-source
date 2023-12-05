@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.41;
+        private const APP_VERSION:Number = 23.42;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -503,7 +503,7 @@
 
         //스크린샷 관련 변수
                     ,captureModeON:Boolean = false //스크린샷 켜지면 올려줌
-                    ,browseWindowON:Boolean = false //캡쳐 저장키 빠르게 누를때 에러 떠서 중복안되게 플래그 세워줌
+                    ,fileBrowserON:Boolean = false //캡쳐 저장키 빠르게 누를때 에러 떠서 중복안되게 플래그 세워줌
                     ,canvasBackupData:Object = {} //캡쳐 키면 캔버스 이전 상태 저장함
                     ,canvasBackupDataOnSave:Object = {} //save appdata에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
                     ,captureZoomed:Number = 1 // 사각형 그려줄때 선 두깨를 이 배율에 맞추어서 해줌
@@ -713,6 +713,12 @@
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
         }
         //function
+        private function setFileBrowserONFlag(flag:Boolean):void
+        {
+            fileBrowserON = flag;
+            resetKeyBuffer();
+        }
+
         private function setRcursorRotation(newAngle:Number):void
         {
             rCursor.rotation = -newAngle;
@@ -720,13 +726,13 @@
 
         private function formatBytes(bytes:Number):String
         {
-            var sizes:Array = ["Bytes", "KB", "MB", "GB", "TB"];
+            var sizes:Array = ["Bytes","KB","MB","GB","TB"];
 
             if (bytes == 0) return "0 Byte";
 
-            var i:int = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)).toString());
+            var i:int = Math.floor(Math.log(bytes)/Math.log(1024));
 
-            return Math.round(10 * bytes / Math.pow(1024, i)) / 10 + ' ' + sizes[i];
+            return Math.round(10*bytes/Math.pow(1024,i))/10+" "+sizes[i];
         }
 
         private function getMemoryUsageString():String
@@ -3408,7 +3414,7 @@
             return true;
         }
 
-        private function checkMoreOptionsKeyDown(keyCode:int):Boolean
+        private function checkMoreOptionsKeyDown(keyCode:uint):Boolean
         {
             if(KEY_BUFFER[1] === KEY.n3 || KEY_BUFFER[1] === KEY.n8)
             {
@@ -3434,7 +3440,7 @@
             return false;
         }
 
-        private function checkOpaSizeKeyDown(keyCode:int):Boolean
+        private function checkOpaSizeKeyDown(keyCode:uint):Boolean
         {
             switch(keyCode)
             {
@@ -3477,8 +3483,8 @@
 
         private function getCommandKey():int
         {
-            const first:int = KEY_BUFFER[0];
-            const second:int = KEY_BUFFER[1];
+            const first:uint = KEY_BUFFER[0];
+            const second:uint = KEY_BUFFER[1];
 
             if((second === KEY.shift && (first === KEY.ctrl || first === KEY.rightCtrl))
             || (first === KEY.shift && (second === KEY.ctrl || second === KEY.rightCtrl))) return COMMAND_CTRL_SHIFT;
@@ -5207,7 +5213,7 @@
 
         private function keyDownLassoTool(e:KeyboardEvent):void
         {
-            const keyCode:int = KEY_BUFFER[0];
+            const keyCode:uint = KEY_BUFFER[0];
             var keyUsed:Boolean;
 
             if(keyCode === KEY.space)
@@ -7378,22 +7384,12 @@
             topBar.capClipBoard.alpha = 1.0;
         }
 
-        private function captureOFF():void
+        private function setCaptureOFF():void
         {
-            browseWindowON = false;
+            setFileBrowserONFlag(false);
 
             if(replayModeON) setCaptureModeOFF(true,rregPoint,rcanvasPanel);
             else setCaptureModeOFF(false,regPoint,canvasPanel);
-        }
-
-        private function setCaptureOFFButton(shortcut:Boolean):void
-        {
-            captureOFF();
-        }
-
-        private function setFullCaptrueButton():void
-        {
-            saveCaptureImage();
         }
 
         private function setCaptureTransButton():void
@@ -7557,7 +7553,7 @@
             if(isCaptureModeInputEventON === false)
             {
                 isCaptureModeInputEventON = true;
-                resetKeyBuffer();
+                // resetKeyBuffer();
                 stage.addEventListener(KeyboardEvent.KEY_UP,keyUpCaptureMode,false,-1);
                 stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownCaptureMode,false,-1);
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownCaptureMode,false,-1);
@@ -8606,11 +8602,11 @@
                         break;
 
                         case "capFull":
-                            setFullCaptrueButton();
+                            saveCaptureImage();
                         break;
 
                         case "capOff":
-                            setCaptureOFFButton(false);
+                            setCaptureOFF();
                         break;
 
                         case "capFlip":
@@ -9349,7 +9345,7 @@
                     break;
 
                     case "capOff":
-                        str = "Exit capture mode (esc, backspace)";
+                        str = "Exit capture mode (esc, backspace, f1, f7)";
                     break;
 
                     case "capFull":
@@ -12437,7 +12433,7 @@
 
         private function onDragDropEvent(e:NativeDragEvent):void
         {
-            if(browseWindowON || captureModeON === true)
+            if(fileBrowserON || captureModeON === true)
             {
                 return;
             }
@@ -13474,7 +13470,7 @@
 
             if(captureModeON)
             {
-                captureOFF();
+                setCaptureOFF();
             }
 
             resetReplaySpeedBar();
@@ -13612,7 +13608,7 @@
         private function loadFile(traceLayer:Boolean=false):void
         {
             if(replayStartON) stopReplay();
-            if(lassoToolON || browseWindowON || fillPenStarted || isInSaveProgress)
+            if(lassoToolON || fileBrowserON || fillPenStarted || isInSaveProgress)
             {
                 return;
             }
@@ -13633,7 +13629,7 @@
             //browser에서 fr.data에서 넘겨준 바이트데이터를 실제적으로 처리함
             function loadFileCompleteEvent(e:Event):void //load1
             {
-                browseWindowON = false;
+                setFileBrowserONFlag(false);
                 var loaderInfo:LoaderInfo = LoaderInfo(e.target);
 
                 //2020이 아닌 보통 이미지 처리
@@ -13649,7 +13645,7 @@
             function loadErrorEvent(e:Event):void
             {
                 setHintONTemp("Load failed");
-                browseWindowON = false;
+                setFileBrowserONFlag(false);
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
                 loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,loadFileCompleteEvent);
                 loader.unload();
@@ -13659,7 +13655,7 @@
 
             function onCancelEvent(e:Event):void
             {
-                browseWindowON = false;
+                setFileBrowserONFlag(false);
                 file.removeEventListener(Event.SELECT,fileSelectHandler);
                 file.removeEventListener(Event.COMPLETE,fileSelectCompleteHandler);
                 file.removeEventListener(Event.CANCEL,onCancelEvent);
@@ -13668,7 +13664,7 @@
 
             function fileSelectHandler(e:Event):void
             {
-                browseWindowON = false;
+                setFileBrowserONFlag(false);
                 tempFileName = file.name;
 
                 file.removeEventListener(Event.SELECT,fileSelectHandler);
@@ -13677,7 +13673,7 @@
 
             function fileSelectCompleteHandler(e:Event):void
             {
-                browseWindowON = false;
+                setFileBrowserONFlag(false);
                 //2020파일 처리
                 if(is2020Ext(file.name) === true)
                 {
@@ -13695,7 +13691,8 @@
                     catch(e:Error)
                     {
                         setHintONTemp("Load failed");
-                        browseWindowON = false;
+                        resetKeyBuffer();
+                        setFileBrowserONFlag(false);
                         loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
                         loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,loadFileCompleteEvent);
                         loader.unload();
@@ -13711,8 +13708,7 @@
                 addInputEventCurrentModeLoadButton();
             }
 
-            resetKeyBuffer();
-            browseWindowON = true
+            setFileBrowserONFlag(true);
 
             removeInputEventCurrentModeLoadButton();
 
@@ -13881,62 +13877,73 @@
         private function keyDownCaptureMode(e:KeyboardEvent):void
         {
             const keyCode:uint = KEY_BUFFER[0];
-
-            if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
+            if(mouseClickON || rightMouseClickON || isNowKey(keyCode))
+            {
+                return;
+            }
 
             if(isPressingControl())
             {
                 if(KEY_BUFFER.length > 1)
                 {
-                    const subKey:int = KEY_BUFFER[1];
+                    const subKey:uint = KEY_BUFFER[1];
                     if(subKey === KEY.c || subKey === KEY.m)
                     {
-                        setFullCaptrueButton();
+                        saveCaptureImage();
                     }
                 }
                 return;
             }
 
             setNowKey(keyCode);
+
             switch(keyCode)
             {
                 case KEY.esc:
                 case KEY.backspace:
                 case KEY.f1:
                 case KEY.f7:
-                    setCaptureOFFButton(true);
+                    setCaptureOFF();
                 break;
 
                 case KEY.v:
                 case KEY.n:
+                {
                     if(topBar.capClipBoard.alpha === 1.0)
                     {
                         copyCaptureImageToCilpBoard();
                     }
+                }
                 break;
 
                 case KEY.c:
                 case KEY.m:
+                {
                     if(topBar.capFull.alpha === 1.0)
                     {
-                        setFullCaptrueButton();
+                        saveCaptureImage();
                     }
+                }
                 break;
 
                 case KEY.s:
                 case KEY.k:
+                {
                     if(topBar.capRotate.alpha === 1.0)
                     {
                         setCaptureRotateButton();
                     }
+                }
                 break;
 
                 case KEY.a:
                 case KEY.l:
+                {
                     if(topBar.capFlip.alpha === 1.0)
                     {
                         setCaptrueFlipButton();
                     }
+                }
                 break;
 
                 case KEY.d:
@@ -14426,15 +14433,14 @@
 
         private function saveCaptureImage():void
         {
-            if(browseWindowON) return;
+            if(fileBrowserON) return;
 
             const replayMode:Boolean = replayModeON;
             var name:String = saveFileName;
             var path:String = saveFilePath;
             const firstSaveFlag:Boolean = (name !== path);
 
-            resetKeyBuffer();
-            browseWindowON = true;
+            setFileBrowserONFlag(true);
 
             name = cutTimeStamp(name);
             name = name.substr(0,name.lastIndexOf(".png"))+"_"+getTimeStampTail()+".png";//뒤에 프레임 번호 붙여줌
@@ -14452,7 +14458,7 @@
 
             function onCancelEvent(e:Event):void
             {
-                browseWindowON = false;
+                setFileBrowserONFlag(false);
                 file1.cancel();
                 file1.removeEventListener(IOErrorEvent.IO_ERROR, onCancelEvent);
                 file1.removeEventListener(Event.CANCEL, onCancelEvent);
@@ -14461,7 +14467,7 @@
 
             function onSelectEvent(e:Event):void
             {
-                browseWindowON = false;
+                setFileBrowserONFlag(false);
                 file1.cancel();
                 file1.removeEventListener(IOErrorEvent.IO_ERROR,onCancelEvent);
                 file1.removeEventListener(Event.CANCEL,onCancelEvent);
@@ -14601,7 +14607,7 @@
             }
             else
             {
-                if(browseWindowON) return;
+                if(fileBrowserON) return;
 
                 const file:File = checkSaveFailedFileName(saveFailed);
                 const saveWindowTitle:String = (asFlag === true) ? "Save file As.."
@@ -14612,8 +14618,7 @@
                 file.addEventListener(Event.SELECT, onSelectEvent);
                 file.browseForSave(saveWindowTitle);
 
-                resetKeyBuffer(); //ctrl + 조합키로 브라우저 창열었을때 ctrl키가 계속 눌려있어서 키가 안먹음 그래서 리셋해줌
-                browseWindowON = true;
+                setFileBrowserONFlag(true);
 
                 function removeEvent():void
                 {
@@ -14624,7 +14629,7 @@
 
                 function onErrorEvent(e:Event):void
                 {
-                    browseWindowON = false;
+                    setFileBrowserONFlag(false);
                     file.cancel();
                     removeEvent();
                     if(updateAfterSave)
@@ -14635,8 +14640,7 @@
 
                 function onSelectEvent(e:Event):void
                 {
-                    browseWindowON = false;
-
+                    setFileBrowserONFlag(false);
                     setSaveProgressON();
                     removeEvent();
 
@@ -17177,7 +17181,7 @@
             }
             function isNotSpuitTool():Boolean
             {
-                return !isNowTool(TOOL_SPUIT) || replayModeON || captureModeON || browseWindowON || clickBlockOnWindowActiveFlag;
+                return !isNowTool(TOOL_SPUIT) || replayModeON || captureModeON || fileBrowserON || clickBlockOnWindowActiveFlag;
             }
 
             function spuitToolOK():void
@@ -19151,8 +19155,8 @@
         {
             windowClosingFlag = true;
 
+            if(captureModeON === true) setCaptureOFF();
             if(replayStartON === true) stopReplay();
-            if(captureModeON === true) captureOFF();
             if(lassoToolON) setLassoCancelButton();
 
             if(stage.nativeWindow.displayState === "maximized") //최대화이면 복원해주고 닫아줌
@@ -19519,7 +19523,7 @@
         {
             if(KEY_BUFFER.length === length)
             {
-                const subKey:int = KEY_BUFFER[length-1];
+                const subKey:uint = KEY_BUFFER[length-1];
                 if(saveFlag) setNowKey(subKey);
                 func(subKey);
                 return true;
