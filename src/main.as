@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.35;
+        private const APP_VERSION:Number = 23.36;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1044,8 +1044,6 @@
             {
                 case "rgbInfo":
                 {
-                    if(quickSidebarON) return;
-
                     str = "Change value (click)\nChange color model (right-click)";
                 }
                 break;
@@ -1087,7 +1085,10 @@
 
             if(!rgbInfoFocusedON && !mouseDragON && !captureModeON)
             {
-                hint.off(true);
+                if(hintBox.visible)
+                {
+                    hint.off();
+                }
             }
 
             if(stageBG.visible === true && stage.nativeWindow.active)
@@ -2854,8 +2855,20 @@
             checkfofoPos();
             pickerBox.rgbInfo.type = "input";
 
-            if(toolBox.getLastTool() === "toolSpuit") spuitTool();
-            if(traceMenuON) traceMenu.visible = true;
+            if(toolBox.getLastTool() === "toolSpuit")
+            {
+                spuitTool();
+            }
+
+            if(traceMenuON)
+            {
+                traceMenu.visible = true;
+            }
+
+            if(hintBox.visible || hintCursor.visible)
+            {
+                hint.off();
+            }
         }
 
         private function setQuickSidebarOFF():void
@@ -2901,19 +2914,23 @@
                 return;
 
                 case "layer1SelectButton":
+                {
                     selectSubLayer(false,canvas11Bitmap.visible);
                     if(controlBox.layer2CheckButton.visible)
                     {
                         setLayer2CheckToggle();
                     }
+                }
                 return;
 
                 case "layer2SelectButton":
+                {
                     selectSubLayer(true,canvas1Bitmap.visible);
                     if(controlBox.layer1CheckButton.visible)
                     {
                         setLayer1CheckToggle();
                     }
+                }
                 return;
 
                 default:
@@ -2972,13 +2989,12 @@
                 penCursorPosition.removeSideBarClickEvents();
             }
 
-            sideBar.visible = true;
-
             if(traceMenuON) traceMenu.visible = false;
 
             checkfofoPos();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             setSidebarReCacheBitmap();
+            sideBar.visible = true;
         }
 
         private function deleteOldAppData():void
