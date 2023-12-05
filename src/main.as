@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.40;
+        private const APP_VERSION:Number = 23.41;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7500,7 +7500,7 @@
             if(isReplayModeInputEventON === false)
             {
                 isReplayModeInputEventON = true;
-                resetKeyBuffer();
+                // resetKeyBuffer();
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownReplayMode,false,-1);
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownReplayMode,false,-1);
                 stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownReplayMode,false,-1);
@@ -7533,7 +7533,7 @@
             if(isDrawModeInputEventON === false)
             {
                 isDrawModeInputEventON = true;
-                resetKeyBuffer();
+                // resetKeyBuffer();
                 stage.addEventListener(KeyboardEvent.KEY_UP,keyUpDrawMode,false,-1);
                 stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownDrawMode,false,-1);
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownDrawMode,false,-1);
@@ -17109,7 +17109,7 @@
                     {
                         setCurrentColor(1);
                         setTransparentColor();
-                        
+
                         if(sideBar.visible === false)
                         {
                             setToolTipTempON("Transparent color selected");
@@ -19442,6 +19442,13 @@
                 }
                 break;
 
+                case KEY.f1:
+                case KEY.f7:
+                {
+                    setReplayModeOFF();
+                }
+                break;
+
                 case KEY.f2:
                     setCutFrameButton(CUT_FRAME_RE_RECORD,true);
                 break;
@@ -19462,12 +19469,6 @@
                     setZoomInButton(true,true);
                 break;
 
-                case KEY.f1:
-                case KEY.f7:
-                {
-                    setReplayModeOFF();
-                }
-                break;
 
                 case KEY.enter:
                 case KEY.space:
@@ -20539,7 +20540,11 @@
 
         private function setReplayModeOFF():void
         {
-            if(makeJumpImageFlag === 2) return;
+            if(makeJumpImageFlag === 2)
+            {
+                return;
+            }
+
             removeInputEventReplayMode();
             replayModeON = false;
             penCursorOFFFlag = false;
@@ -20589,6 +20594,7 @@
             {
                 return;
             }
+
             removeInputEventDrawMode();
             replayModeON = true;
             penCursorOFFFlag = true;
