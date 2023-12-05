@@ -11263,7 +11263,7 @@
                 {
                     savedTime = getTimer();
 
-                    if(savedTime-rFrameCursorDelayTime >= 100)
+                    if(savedTime-rFrameCursorDelayTime >= 66)
                     {
                         rFrameCursorDelayTime = savedTime;
                         tickDraw.updateRCursorPos();
