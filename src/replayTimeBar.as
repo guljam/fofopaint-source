@@ -137,6 +137,7 @@
 
 		public function replayTimeBar() {
 			// constructor code
+			frameInfo.mouseEnabled = false;
 			visible = false;
 
 			initReplayBox();
