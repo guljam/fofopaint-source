@@ -448,6 +448,7 @@
 			mainColorPickerBox.x = 0;
 			mainColorPickerBox.y = Math.floor(penColorButton.y+penColorButton.height+6);
 
+			colorHistoryText.mouseEnabled = false;
 			colorHistoryText.x = 0;
 			colorHistoryText.y = 2;
 			colorHistoryBox.x = 1;
@@ -455,11 +456,13 @@
 			colorHistoryBox.name = "colorHistoryBox";
 			drawHistoryBoxBG();
 
+			drawrText.mouseEnabled = false;
 			drawrText.x = colorHistoryText.x;
 			drawrText.y = Math.floor(colorHistoryBox.y+colorHistoryBox.height+10);
 			drawrPresetBox.x = colorHistoryBox.x;
 			drawrPresetBox.y =Math.floor(drawrText.y+drawrText.height);
 
+			tegakiText.mouseEnabled = false;
 			tegakiText.x = colorHistoryText.x;
 			tegakiText.y = Math.floor(drawrPresetBox.y+drawrPresetBox.height+10);
 			tegakiPresetBox.x = colorHistoryBox.x;
