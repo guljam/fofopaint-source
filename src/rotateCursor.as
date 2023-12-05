@@ -15,8 +15,8 @@
 
 		public function setScale(scale:Number):void
 		{
-			scaleX = scale*fixedScale;
-			scaleY = scale*fixedScale;
+			this.scaleX = scale*fixedScale;
+			this.scaleY = scale*fixedScale;
 		}
 
 		public function changeUIColor(base:uint,op:uint):void
@@ -31,8 +31,7 @@
 
 		public function rotateCursor() {
 			visible = false;
-			scaleX = fixedScale;
-			scaleY = fixedScale;
+			setScale(1.0);
 		}
 	}
 }

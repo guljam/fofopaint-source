@@ -81,8 +81,8 @@
 
 		public function setScale(scale:Number):void
 		{
-			scaleX = scale;
-			scaleY = scale;
+			this.scaleX = scale;
+			this.scaleY = scale;
 		}
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
@@ -120,10 +120,10 @@
 
 		public function updateTimerPos(stw:Number):void
 		{
-			const limitX:Number = (replaySpeedSet.x+replaySpeedSet.width+5)*scaleX;
-			var newX:Number = stw-(timer.textWidth+10)*scaleX;
+			const limitX:Number = (replaySpeedSet.x+replaySpeedSet.width+5)*this.scaleX;
+			var newX:Number = stw-(timer.textWidth+10)*this.scaleX;
 			if(newX < limitX) newX = limitX;
-			timer.x = newX/scaleX;
+			timer.x = newX/this.scaleX;
 			timerAFkDot.x = timer.x-5;
 		}
 
@@ -203,7 +203,7 @@
 
 		public function updateTopbarBG(stw:int):void
 		{
-			topbarBG.width = Math.ceil(stw/scaleX);
+			topbarBG.width = Math.ceil(stw/this.scaleX);
 		}
 
 		public function makeTopbarBG(color:uint):void
@@ -379,8 +379,8 @@
 			replaySpeedMoveButton.y = Math.floor(replaySpeedBar.y+replaySpeedBar.height)+3;
 
 			replaySpeedBarWrapper.useHandCursor = false;
-			replaySpeedBar.useHandCursor = false;
-			replaySpeedMoveButton.useHandCursor = false;
+			replaySpeedBar.mouseEnabled = false;
+			replaySpeedMoveButton.mouseEnabled = false;
 
 			capRotate.visible = false;
 			capFlip.visible = false;

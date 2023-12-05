@@ -10,6 +10,12 @@
 		private const toolTipInfoBG:Sprite = new Sprite();
 		private var bgColor:uint = 0xFFA700;
 
+		public function setScale(newScale:Number):void
+		{
+			this.scaleX = newScale;
+			this.scaleY = newScale;
+		}
+
 		public function getText():String
 		{
 			return toolTipInfoText.text;

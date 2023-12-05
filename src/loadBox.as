@@ -1,12 +1,12 @@
 ﻿package
 {
-	
+
 	import flash.display.Sprite;
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObjectContainer;
-	
+
 	public class loadBox extends Sprite {
 		public var dragDropFileButton:SimpleButton;
 		public var dragDropRefButton:SimpleButton;
@@ -45,14 +45,14 @@
 
 				 //배경 깔아줌
 				childButton = btnUp.getChildAt(0) as SimpleButton;
-				btnUp.getChildAt(0).transform.colorTransform = subBase; 
+				btnUp.getChildAt(0).transform.colorTransform = subBase;
 				childButton = btnOver.getChildAt(0) as SimpleButton;
 				btnOver.getChildAt(0).transform.colorTransform = activeColor;
 				btn.downState = btn.overState;
 
 				//폰트색깔
 				childText = btnUp.getChildAt(1) as TextField;
-				childText.textColor = textColorDeafult; 
+				childText.textColor = textColorDeafult;
 
 				childText = btnOver.getChildAt(1) as TextField;
 				childText.textColor = textColorOver;
@@ -72,9 +72,9 @@
 			setChildIndex(dragDropFileBG,0);
 
 			visible = false;
-			dragDropFileButton.useHandCursor = false;
-			dragDropRefButton.useHandCursor = false;
-			dragDropCancelButton.useHandCursor = false;
+			dragDropFileButton.useHandCursor = true;
+			dragDropRefButton.useHandCursor = true;
+			dragDropCancelButton.useHandCursor = true;
 
 			buttonList = [
 							dragDropFileButton,
@@ -85,5 +85,5 @@
 
 		}
 	}
-	
+
 }

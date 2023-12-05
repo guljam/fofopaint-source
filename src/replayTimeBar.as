@@ -24,6 +24,12 @@
 		private const nowBarColor:ColorTransform = new ColorTransform();
 		private const totalBarColor:ColorTransform = new ColorTransform();
 
+		public function setScale(newScale:Number):void
+		{
+			this.scaleX = newScale;
+			this.scaleY = newScale;
+		}
+
 		public function tempTotalBarX():void
 		{
 			replayTotalBar.x = 5;

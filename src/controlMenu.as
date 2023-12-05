@@ -198,9 +198,9 @@
 			airBrushText.x = airBrushOFFButton.x+airBrushOFFButton.width+3;
 			airBrushText.y = airBrushOFFButton.y+2;
 
-			airBrushONButton.useHandCursor = false;
-			airBrushOFFButton.useHandCursor = false;
-			airBrushText.useHandCursor = false;
+			airBrushONButton.mouseEnabled = false;
+			airBrushOFFButton.mouseEnabled = false;
+			airBrushText.mouseEnabled = false;
 
 			airBrushButtonWrapper.name = "airBrushButtonWrapper";
 		}
@@ -231,9 +231,9 @@
 			sharpLineText.x = sharpLineOFFButton.x+sharpLineOFFButton.width+3;
 			sharpLineText.y = sharpLineOFFButton.y+1;
 
-			sharpLineOFFButton.useHandCursor = false;
-			sharpLineONButton.useHandCursor = false;
-			sharpLineText.useHandCursor = false;
+			sharpLineOFFButton.mouseEnabled = false;
+			sharpLineONButton.mouseEnabled = false;
+			sharpLineText.mouseEnabled = false;
 
 			sharpLineButtonWrapper.name = "sharpLineButtonWrapper";
 		}
@@ -317,8 +317,8 @@
 			penSmoothSliderSet.x = Math.floor(shapeRect.x+shapeRect.width+11);
 			penSmoothSliderSet.y = Math.floor(shapeRect.y)+8;
 
-			penSmoothSliderSet["penSmoothBar"].useHandCursor = false;
-			penSmoothSliderSet["penSmoothButton"].useHandCursor = false;
+			penSmoothSliderSet["penSmoothBar"].mouseEnabled = false;
+			penSmoothSliderSet["penSmoothButton"].mouseEnabled = false;
 			penSmoothSliderSet["penSmoothSlider"].useHandCursor = false;
 
 			penSizeGuide.x = 0;
@@ -341,7 +341,6 @@
 			rectSizeSet.mouseEnabled = false;
 			opaGuide.mouseEnabled = false;
 			opaCursor.mouseEnabled = false;
-			penSizeGuide.useHandCursor = false;
 			penSizeGuide.mouseEnabled = false;
 			penSizeSelectCursor.mouseEnabled = false;
 

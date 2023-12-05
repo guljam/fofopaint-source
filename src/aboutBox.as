@@ -20,6 +20,12 @@
 		public var logo5:SimpleButton;
 		private var imageIndex:int = 0;
 
+		public function setScale(newScale:Number):void
+		{
+			this.scaleX = newScale;
+			this.scaleY = newScale;
+		}
+
 		public function updateMemoryInfo(memoryUsage:String,driveUseage:String):void
 		{
 			memoryInfo.text = "Memory usage : "+memoryUsage+" / Drive usage : "+driveUseage;
@@ -56,11 +62,11 @@
 			logo4.visible = false;
 			logo5.visible = false;
 
-			logo1.useHandCursor = false;
-			logo2.useHandCursor = false;
-			logo3.useHandCursor = false;
-			logo4.useHandCursor = false;
-			logo5.useHandCursor = false;
+			logo1.mouseEnabled = false;
+			logo2.mouseEnabled = false;
+			logo3.mouseEnabled = false;
+			logo4.mouseEnabled = false;
+			logo5.mouseEnabled = false;
 
 			memoryInfo.autoSize = TextFieldAutoSize.RIGHT;
 		}

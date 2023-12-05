@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.43;
+        private const APP_VERSION:Number = 23.45;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -438,7 +438,7 @@
                     ,rcanvas1Bitmap:Bitmap = new Bitmap(rcanvas1BitmapData,"auto",true)
                     ,rcanvas11Bitmap:Bitmap = new Bitmap(rcanvas11BitmapData,"auto",true)
                     ,rcanvas2Bitmap:Bitmap = new Bitmap(rcanvas2BitmapData,"auto",true)
-                    ,rCursor:SimpleButton = new tinyCursor(); //재생할때 틀어주는 작은 마우스
+                    ,rCursor:tinyCursor = new tinyCursor(); //재생할때 틀어주는 작은 마우스
 
         private var rcanvas1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rcanvas11BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
@@ -2787,58 +2787,39 @@
             const sth:Number = stage.stageHeight;
             const scale:Number = uiScaleSet[index];
 
-            sideBar.scaleX = scale;
-            sideBar.scaleY = scale;
-
+            sideBar.setScale(scale);
             if(isRightSidebar) updateSidebarDefaultRightPos();
             else sideBar.x = 0;
 
             topBar.setScale(scale);
             topBar.updateTopbarBG(stw);
             topBar.updateTimerPos(stage.stageWidth);
-
+            replayTimeBox.setScale(scale);
             rotateCursorBox.setScale(scale);
-
-            hintBox.scaleX = scale;
-            hintBox.scaleY = scale;
-
+            hintBox.setScale(scale);
+            toolTipBox.setScale(scale);
             hint.updateScale(scale);
-
-            replayTimeBox.scaleX = scale;
-            replayTimeBox.scaleY = scale;
-
             lassoMenu.setScale(scale);
             traceMenu.setScale(scale);
             fillPenBox.setScale(scale);
             toolBox2.setScale(scale);
-
-            toolTipBox.scaleX = scale;
-            toolTipBox.scaleY = scale;
-
-            aboutPanel.scaleX = scale;
-            aboutPanel.scaleY = scale;
-
-            spuitZoomCursor.scaleX = scale;
-            spuitZoomCursor.scaleY = scale;
-
+            aboutPanel.setScale(scale);
+            spuitZoomCursor.setScale(scale);
             updateStageOffset();
             updateScrollBarHeight(sth);
-
-            sideBar.y = Math.round(STAGE_TOP_OFFSET);
-            sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
-
-            rCursor.scaleX = scale;
-            rCursor.scaleY = scale;
-            fofo.scaleX = scale*fofo.fixedScale;
-            fofo.scaleY = scale*fofo.fixedScale;
+            rCursor.setScale(scale);
+            fofo.setScale(scale);
             checkfofoPos();
             autoScroll.updateScale(scale);
+
+            //이거 위에서 뭔가 해주고 난후에 여기서 해줘야함
+            sideBar.y = Math.round(STAGE_TOP_OFFSET);
+            sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenu);
 
             updatePreviewBoxRectPos();
-
             hint.off();
         }
 
@@ -4224,7 +4205,7 @@
 
                 if(targetName === "sideBarScrollBar")
                 {
-                    setScrollBarMove(mouseY);
+                    setScrollBarMoveButton();
                 }
                 else if(isCursorInDrawArea())
                 {
@@ -18855,7 +18836,7 @@
             rcanvas2Draw.name = "rcanvas2Draw";
             replayTimeBox.name = "replayTimeBox";
             rCursor.name = "rCursor";
-            rCursor.useHandCursor = false;
+            rCursor.mouseEnabled = false;
 
             rcanvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
             rcanvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
@@ -20292,7 +20273,7 @@
             lassoBox2.y = lassoBox1.y;
         }
 
-        private function setScrollBarMove(clickY:Number):void
+        private function setScrollBarMoveButton():void
         {
             const scale:Number = getUIScale();
             const sth:Number = stage.stageHeight;
@@ -20302,9 +20283,11 @@
             var scrollStarted:Boolean = false;
             var my1:Number = sideBarScrollBar.y;
             var my2:Number = sideBarScrollSet.y;
+            var clickY:Number = mouseY;
             const yLimit:Number = Math.ceil(sideBar.h-sideBarScrollBar.height-STAGE_BOTTOM_OFFSET/scale);
 
             mouseDragON = true;
+            hint.off();
 
             function sideBarMouseUpEvent(e:MouseEvent):void
             {
@@ -20340,7 +20323,6 @@
                 clickY = mouseY;
             }
 
-            clickY = clickY;
             stageMouseMoveEvent.add("sideBarMouseMoveEvent",sideBarMouseMoveEvent);
             stage.addEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
         }
@@ -21503,7 +21485,6 @@
                         setHandToolPreviewBox(true);
                     break;
 
-                    case "lassoInfo":
                     case "lassoMenuMoveButton":
                     {
                         setTopChildIndex(lassoMenu);
@@ -21513,7 +21494,7 @@
 
                     case "sideBarScrollBar":
                     {
-                        setScrollBarMove(mouseY);
+                        setScrollBarMoveButton();
                     }
                     break;
 
@@ -21634,7 +21615,7 @@
             {
                 if(targetName === "sideBarScrollBar")
                 {
-                    setScrollBarMove(mouseY);
+                    setScrollBarMoveButton();
                 }
                 return;
             }
@@ -21703,7 +21684,7 @@
                 return;
 
                 case "sideBarScrollBar":
-                    setScrollBarMove(mouseY);
+                    setScrollBarMoveButton();
                 return;
 
                 case "traceRotateButton":
@@ -21734,7 +21715,6 @@
                 }
                 return;
 
-                case "traceInfo":
                 case "traceMenuMoveButton":
                 {
                     setToolBoxPos(traceMenu);

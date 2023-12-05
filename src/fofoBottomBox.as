@@ -1,12 +1,18 @@
 ﻿package  {
-	
+
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
-	
+
 	public class fofoBottomBox extends Sprite {
 		public var fofoBottom:SimpleButton;
 		public var fixedScale:Number = 0.65;
+
+		public function setScale(newScale:Number):void
+		{
+			this.scaleX = newScale*fixedScale;
+			this.scaleY = newScale*fixedScale;
+		}
 
 		public function flipImage(flag:Boolean):void
 		{
@@ -35,13 +41,12 @@
 		}
 
 		public function fofoBottomBox() {
-			fofoBottom.useHandCursor = false;
+			fofoBottom.useHandCursor = true;
 			alpha = 0.5;
 			visible = false;
 
-			scaleX = fixedScale;
-			scaleY = fixedScale;
+			setScale(1.0);
 		}
 	}
-	
+
 }

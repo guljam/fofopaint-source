@@ -12,6 +12,12 @@
 		private const baseColor:ColorTransform = new ColorTransform();
 		private const opColor:ColorTransform = new ColorTransform();
 
+		public function setScale(newScale:Number):void
+		{
+			this.scaleX = newScale;
+			this.scaleY = newScale;
+		}
+
 		public function getWidth():Number
 		{
 			return Math.round(w*scaleX);

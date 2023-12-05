@@ -109,18 +109,17 @@
 
 		public function setScale(newScale:Number):void
 		{
-			scaleX = newScale*fixedScale;
-			scaleY = newScale*fixedScale;
+			this.scaleX = newScale*fixedScale;
+			this.scaleY = newScale*fixedScale;
 		}
 
 		public function lassoButtons()
 		{
-			scaleX = fixedScale;
-			scaleY = fixedScale;
+			setScale(1.0);
 
 			lassoMenuMoveButton.useHandCursor = false;
-			lassoMenuBG.useHandCursor = false;
-			lassoMenuBG2.useHandCursor = false;
+			lassoMenuBG.mouseEnabled = false;
+			lassoMenuBG2.mouseEnabled = false;
 			lassoRotate.useHandCursor = false;
 			lassoResize.useHandCursor = false;
 			lassoMirror.useHandCursor = false;
@@ -138,6 +137,7 @@
 
 			lassoInfo.text = "LASSO TOOL";
 			lassoInfo.autoSize = TextFieldAutoSize.LEFT;
+			lassoInfo.mouseEnabled = false;
 			lassoInfoPos[0] = lassoInfo.y;
 			lassoInfoPos[1] = lassoInfo.height;
 

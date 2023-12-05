@@ -118,8 +118,8 @@
 
 		public function setScale(newScale:Number):void
 		{
-			scaleX = newScale*fixedScale;
-			scaleY = newScale*fixedScale;
+			this.scaleX = newScale*fixedScale;
+			this.scaleY = newScale*fixedScale;
 		}
 
 		public function traceButtons()
@@ -127,8 +127,7 @@
 			visible = false;
 
 			fixedScale = 34/traceImageButton.width;
-			scaleX = fixedScale;
-			scaleY = fixedScale;
+			setScale(1.0);
 
 			const offsetX:Number = traceOpaButton.width/2;
 
@@ -137,8 +136,6 @@
 			traceOpaBar.useHandCursor = false;
 			traceButtonWrapper.useHandCursor = false;
 			traceMenuMoveButton.useHandCursor = false;
-			traceMenuBG.useHandCursor = false;
-			traceMenuBG2.useHandCursor = false;
 			traceImageButton.useHandCursor = false;
 			traceClipButton.useHandCursor = false;
 			traceLoadButton.useHandCursor = false;
@@ -151,7 +148,10 @@
 			traceVisibleONButton.useHandCursor = false;
 			traceDeleteButton.useHandCursor = false;
 			traceVisibleONButton.visible = false;
+			traceMenuBG.mouseEnabled = false;
+			traceMenuBG2.mouseEnabled = false;
 
+			traceInfo.mouseEnabled = false;
 			traceInfo.autoSize = TextFieldAutoSize.LEFT;
 			traceInfoPos[0] = traceInfo.y;
 			traceInfoPos[1] = traceInfo.height;

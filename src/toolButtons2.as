@@ -164,8 +164,8 @@
 
 		public function setScale(newScale:Number):void
 		{
-			scaleX = newScale*fixedScale;
-			scaleY = newScale*fixedScale;
+			this.scaleX = newScale*fixedScale;
+			this.scaleY = newScale*fixedScale;
 		}
 
 		public function toolButtons2()
@@ -183,17 +183,13 @@
 			toolLine.useHandCursor = false;
 			toolTrace.useHandCursor = false;
 			toolZoom.useHandCursor = false;
-			toolBoxBG.useHandCursor = false;
-			toolBoxBG2.useHandCursor = false;
 			toolSidebar.useHandCursor = false;
+			toolBoxBG2.mouseEnabled = false;
+			toolBoxBG.mouseEnabled = false;
 
 			toolPen.visible = false;
 			toolErase.visible = true;
 			visible = false;
-
-			fixedScale = 34/toolPen.width;
-			scaleX = fixedScale;
-			scaleY = fixedScale;
 
 			leftButtonArr = [
 								toolZoom,
@@ -215,7 +211,8 @@
 								toolSidebar
 							];
 
-
+			fixedScale = 34/toolPen.width;
+			setScale(1.0);
 		}
 	}
 

@@ -18,6 +18,12 @@
 		public var WIDTH:Number = width;
 		public var HEIGHT:Number = height;
 
+		public function setScale(newScale:Number):void
+		{
+			this.scaleX = newScale;
+			this.scaleY = newScale;
+		}
+
 		public function rotateBitmap(r:Number):void
 		{
 			spuitZoomBitmapBox.rotation = r;

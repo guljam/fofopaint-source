@@ -91,15 +91,14 @@
 
 		public function setScale(newScale:Number):void
 		{
-			scaleX = newScale*fixedScale;
-			scaleY = newScale*fixedScale;
+			this.scaleX = newScale*fixedScale;
+			this.scaleY = newScale*fixedScale;
 		}
 
 		public function fillPenButtons()
 		{
 			fixedScale = 34/fillPenCancel.width;
-			scaleX = fixedScale;
-			scaleY = fixedScale;
+			setScale(1.0);
 
 			visible = false;
 			fillPenOK.useHandCursor = false;
