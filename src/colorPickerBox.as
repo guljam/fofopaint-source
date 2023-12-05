@@ -389,6 +389,7 @@
 			hueColor.name = "hueColor";
 			svBox.name = "svBox";
 
+			infoColorPicker.mouseEnabled = false;
 			infoColorPicker.x = 0;
 			infoColorPicker.y = 0;
 
