@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.34;
+        private const APP_VERSION:Number = 23.35;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -328,8 +328,6 @@
                     ,penAlpha:Number = 1.0 //펜 변수
                     ,penColor:uint = 0x000000
                     ,penColorTransparentFlag:Boolean = false // 펜 컬러 투명 켜졌을때 올려줌
-                    ,canvasEraseCheckerBitmapData:BitmapData
-                    ,canvasEraseCheckerScale:Number = 0.5
                     ,airBrushClipRectOffectInc:Array = [0,4,2,2,0,0,0,-2,-5,-5,-10,-16,-43]
                     ,penSizeList:Array = [0,1,2,3,4,5,7,10,13,18,30,45,80]
                     ,penAlphaList:Array = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
@@ -679,7 +677,6 @@
 
         private function init():void
         {
-            updateCanvasEraseCheckerBitmapData(1.0);
             deleteOldAppData();
             updateWindowTitle();
             setWindowTitleStar();
@@ -719,28 +716,6 @@
         private function setRcursorRotation(newAngle:Number):void
         {
             rCursor.rotation = -newAngle;
-        }
-
-        private function updateCanvasEraseCheckerBitmapData(scale:Number):void
-
-        {
-            if(canvasEraseCheckerScale === scale) return;
-            canvasEraseCheckerScale = scale;
-
-            if(canvasEraseCheckerBitmapData)
-            {
-                canvasEraseCheckerBitmapData.dispose();
-                canvasEraseCheckerBitmapData = null;
-            }
-
-            var size:int = Math.floor(12/scale);
-            if(size < 2) size = 2;
-            else if(size % 2 !== 0) size = size+1;
-            else if(size > 24) size = 50;
-
-            canvasEraseCheckerBitmapData = new BitmapData(size,size,false,0xFFFFFF);
-            canvasEraseCheckerBitmapData.fillRect(new Rectangle(0,0,size/2,size/2),0xCFCFCF);
-            canvasEraseCheckerBitmapData.fillRect(new Rectangle(size/2,size/2,size/2,size/2),0xCFCFCF);
         }
 
         private function formatBytes(bytes:Number):String
@@ -3939,17 +3914,8 @@
 
                 if(data.length === 0) return;
 
-                if(penColorTransparentFlag)
-                {
-                    canvas2Draw.graphics.lineBitmapStyle(canvasEraseCheckerBitmapData);
-                    canvas2Draw.graphics.beginBitmapFill(canvasEraseCheckerBitmapData);
-                }
-                else
-                {
-                    canvas2Draw.graphics.lineStyle(1,xColor);
-                    canvas2Draw.graphics.beginFill(xColor);
-                }
-
+                canvas2Draw.graphics.lineStyle(1,xColor);
+                canvas2Draw.graphics.beginFill(xColor);
                 canvas2Draw.graphics.drawPath(command,data);
                 canvas2Draw.graphics.endFill();
                 canvas2Draw.graphics.moveTo(data[data.length-2],data[data.length-1]);
@@ -4318,7 +4284,7 @@
                 afterKeyUpOK = false;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
                 posOffset = getSharpLineOffset(1.0);
-                xColor = penColor;
+                xColor = (penColorTransparentFlag) ? CANVAS_BG_COLOR : penColor;
                 xAlpha = penAlpha;
                 xBlendMode = (penColorTransparentFlag) ? "erase" : null;
                 commandUndoIndexArr[0] = 0;
@@ -4426,11 +4392,6 @@
                 else
                 {
                     canvas2Draw.graphics.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.BEVEL);
-                }
-
-                if(!penToolFlag || penColorTransparentFlag)
-                {
-                    canvas2Draw.graphics.lineBitmapStyle(canvasEraseCheckerBitmapData);
                 }
             }
 
@@ -6545,6 +6506,7 @@
         {
             const blurSize:Number = getBlurSize(size,zoomed);
             const blurf:BlurFilter = new BlurFilter(blurSize,blurSize,3);
+
             airBrushSizeDrawMode = size;
             canvas2Draw.filters = [blurf];
         }
@@ -9934,7 +9896,7 @@
             rcanvas2.alpha = alpha;
             if(shape)
             {
-                rcanvas2Draw.graphics.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.BEVEL);
+                rcanvas2Draw.graphics.lineStyle(size,color,1,false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.BEVEL);
             }
             else
             {
@@ -9942,18 +9904,6 @@
             }
         }
 
-        private function replayLineStyleReady4(shape:Boolean,size:uint,color:uint,alpha:Number,subLayerFlag:Boolean,blendMode:String):void
-        {
-            rcanvas2.alpha = alpha;
-            if(shape)
-            {
-                rcanvas2Draw.graphics.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.BEVEL);
-            }
-            else
-            {
-                rcanvas2Draw.graphics.lineStyle(size,color);
-            }
-        }
 
         private function mirrorCanvasReplayMode():void
         {
@@ -10190,7 +10140,7 @@
                 }
                 else
                 {
-                    replayLineStyleReady4(shape,size,color,alpha,subLayer,blendMode);
+                    replayLineStyleReady3(shape,size,color,alpha);
                     rcanvas2Draw.graphics.moveTo(startX,startY);
                 }
 
@@ -15422,11 +15372,6 @@
                     canvas2Draw.graphics.lineStyle(xSize, xColor);
                 }
 
-                if(penColorTransparentFlag)
-                {
-                    canvas2Draw.graphics.lineBitmapStyle(canvasEraseCheckerBitmapData);
-                }
-
                 canvas2Draw.graphics.moveTo(startPoint.x,startPoint.y);
                 canvas2Draw.graphics.lineTo(endPoint.x,endPoint.y);
             }
@@ -17138,11 +17083,21 @@
                     if(penColorTransparentFlag)
                     {
                         setCurrentColor(1);
+
+                        if(sideBar.visible === false)
+                        {
+                            setToolTipTempON("Current color selected");
+                        }
                     }
                     else
                     {
                         setCurrentColor(1);
                         setTransparentColor();
+                        
+                        if(sideBar.visible === false)
+                        {
+                            setToolTipTempON("Transparent color selected");
+                        }
                     }
                     cancelSpuitTool(false);
 
@@ -19145,7 +19100,6 @@
                     setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
                 }
 
-                updateCanvasEraseCheckerBitmapData(newZoom);
             }
             else
             {
