@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.48;
+        private const APP_VERSION:Number = 23.50;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1091,7 +1091,7 @@
 
             if(!rgbInfoFocusedON && !mouseDragON && !captureModeON)
             {
-                if(hintBox.visible)
+                if(hintBox.visible || hintCursor.visible)
                 {
                     hint.off();
                 }
