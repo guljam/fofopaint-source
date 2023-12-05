@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.47;
+        private const APP_VERSION:Number = 23.48;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1894,17 +1894,6 @@
                     STAGE_LEFT_OFFSET = Math.round(sideBar.getWidth());
                 }
             }
-        }
-
-        private function clearArrayElement(arr:Array):void
-        {
-            const len:uint = arr.length;
-            for (var i:uint = 0; i < len; i++)
-            {
-                arr[i] = null;
-            }
-            arr.length = 0;
-            arr = null;
         }
 
         private function checkMirrorCanvasReplayMirror():void
@@ -4304,9 +4293,7 @@
 
                 if(airBrushON || eraseAirBrushON)
                 {
-                    clearArrayElement(canvas2Draw.filters);
-                    canvas2Draw.filters.length = 0;
-                    canvas2Draw.filters = null;
+                    canvas2Draw.filters = [];
                 }
 
                 if(traceMenuON) traceMenu.visible = false;
