@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.33;
+        private const APP_VERSION:Number = 23.34;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1113,6 +1113,11 @@
             if(!rgbInfoFocusedON && !mouseDragON && !captureModeON)
             {
                 hint.off(true);
+            }
+
+            if(stageBG.visible === true && stage.nativeWindow.active)
+            {
+                stageBG.visible = false;
             }
         }
 
@@ -4779,6 +4784,11 @@
 
             mouseLeaveSideBarON();
             penSizeCursor.visible = false;
+
+            if(stageBG.visible === false)
+            {
+                stageBG.visible  = true;
+            }
         }
 
         private function updatePenCursorPositionEvent(e:MouseEvent):void
@@ -6714,12 +6724,18 @@
             setNowToolForDrawing(true);
         }
 
-        private function updateStageBG(color:uint=0xCCCCCC):void
+        private function updateStageBGSize():void
         {
             stageBG.graphics.clear();
-            stageBG.graphics.beginFill(color);//paneldraw마스크 아무색이나 상관없음
+            stageBG.graphics.beginFill(0,0.0);
             stageBG.graphics.drawRect(0,0,stage.stageWidth,stage.stageHeight);
             stageBG.graphics.endFill();
+        }
+
+        private function updateStageBGColor(color:uint=0xCCCCCC):void
+        {
+            stage.color = color;
+
             STAGE_BG_COLOR = color;
         }
 
@@ -6748,7 +6764,7 @@
 
         private function setUIColor(index:int):void
         {
-            updateStageBG(uiColorSet[index][2]);
+            updateStageBGColor(uiColorSet[index][2]);
             controlBox.changeUIColor(uiColorSet[index][1]);
             pickerBox.changeUIColor(uiColorSet[index][1]);
             sideBar.changeUIColor(uiColorSet[index][0]);
@@ -12455,7 +12471,10 @@
 
         private function onDragDropEvent(e:NativeDragEvent):void
         {
-            if(browseWindowON) return;
+            if(browseWindowON || captureModeON === true)
+            {
+                return;
+            }
 
             rFileStream.close();
             cancelRestartTimer();
@@ -12465,6 +12484,7 @@
             var file:File = File(tempDragDropFile[0]);
             const fileName:String = file.name;
             const ext:String = fileName.substr(fileName.lastIndexOf(".")+1,fileName.length);
+
             if(ext === "2020" || ext === "png" || ext === "jpg" || ext === "gif")
             {
                 setDragDropSelectBoxReady();
@@ -12473,7 +12493,11 @@
 
         private function onDragEnterEvent(e:NativeDragEvent):void
         {
-            if(captureModeON === true) return;
+            if(captureModeON === true)
+            {
+                return;
+            }
+
             var c:Clipboard = e.clipboard;
             if(c.hasFormat("air:file list") === true)
             {
@@ -18903,6 +18927,8 @@
             canvasTraceLayer.name = "canvasTraceLayer";
             canvasGrid.name = "canvasGrid";
 
+            updateStageBGSize();
+
             penSizeCursor.visible = false;
 
             lassoBox1.name = "lassoBox1";
@@ -18919,7 +18945,7 @@
             setBackgroundColorDrawMode(CANVAS_BG_COLOR);
             updateCanvasPanelMask(CANVAS_WIDTH,CANVAS_HEIGHT);
 
-            updateStageBG(uiColorSet[uiColorIndex][2]);
+            updateStageBGColor(uiColorSet[uiColorIndex][2]);
 
             canvasTraceLayer.alpha = traceAlphaSave;
             canvasTraceLayer.addChild(canvasTraceBitmap);
@@ -19068,7 +19094,7 @@
                     if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
                 }
 
-                updateStageBG(uiColorSet[uiColorIndex][2]);
+                updateStageBGColor(uiColorSet[uiColorIndex][2]);
                 topBar.updateTopbarBG(stage.stageWidth);
                 topBar.updateTimerPos(stage.stageWidth);
 
@@ -19088,6 +19114,7 @@
                     setDragDropSelectBoxCenterPos();
                 }
 
+                updateStageBGSize();
                 checkfofoPos();
                 hint.updateHintPos();
 
@@ -20043,7 +20070,6 @@
 
         private function windowActiveEvent(e:Event):void
         {
-            //알탭해주고 창 활성화 해줄때 한번은 안하게끔함
             realWorkingTimer.resume();
             checkClipBoardImage();
 
@@ -20064,6 +20090,7 @@
             resetKeyBuffer();
             realWorkingTimer.setAFKMode();
             cancelAutoKeyEvent(null);
+            stageBG.visible= true;
 
             if(toolBox2ON)
             {
@@ -21797,11 +21824,9 @@
         //     if(printdeepLevel < 0) printdeepLevel = 0;
         // }
 
-
-
-
         // private function testFuncTime():void
         // {
+        //     const loop:int = 10;
         //     function func1():void
         //     {
 
@@ -21817,13 +21842,9 @@
 
         //     }
 
-
-
-
         //     var _print:Function = trace;
         //     var i:int=0;
         //     var nt:int = getTimer();
-        //     const loop:int = 1000000;
         //     while(i < loop)
         //     {
         //         func1();
