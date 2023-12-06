@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.50;
+        private const APP_VERSION:Number = 23.51;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1702,6 +1702,9 @@
 
         private function rgbInfoTextFocusOutEvent(e:FocusEvent):void
         {
+            setIMEDisabled();
+            checkKeyInvalidKey();
+
             if(rgbInfoRightClickFocusIgnoreFlag)
             {
                 rgbInfoRightClickFocusIgnoreFlag = false;
@@ -1754,6 +1757,7 @@
                 })
                 return;
             }
+            setIMEDisabled();
 
             removeInputEventDrawMode();
 
@@ -3556,18 +3560,28 @@
 
         private function stageMouseDownEvent(e:MouseEvent):void
         {
+            checkKeyInvalidKey();
             mouseClickON = true;
-            realWorkingTimer.resetAFKCount();
+
+            if(stage.nativeWindow.active)
+            {
+                realWorkingTimer.resetAFKCount();
+            }
         }
 
         private function stageRightMouseDownEvent(e:MouseEvent):void
         {
+            checkKeyInvalidKey();
             rightMouseClickON = true;
-            realWorkingTimer.resetAFKCount();
+            if(stage.nativeWindow.active)
+            {
+                realWorkingTimer.resetAFKCount();
+            }
         }
 
         private function stageMouseUpEvent(e:MouseEvent):void
         {
+            checkKeyInvalidKey();
             const mx:Number = mouseX;
             const my:Number = mouseY;
 
@@ -3579,11 +3593,15 @@
                 if(sideBar.visible === false) penCursorPosition.setSideBarONWaitEvents();
             }
 
-            realWorkingTimer.resetAFKCount();
+            if(stage.nativeWindow.active)
+            {
+                realWorkingTimer.resetAFKCount();
+            }
         }
 
         private function stageRightMouseUpEvent(e:MouseEvent):void
         {
+            checkKeyInvalidKey();
             const mx:Number = mouseX;
             const my:Number = mouseY;
 
@@ -3595,7 +3613,10 @@
                 if(sideBar.visible === false) penCursorPosition.setSideBarONWaitEvents();
             }
 
-            realWorkingTimer.resetAFKCount();
+            if(stage.nativeWindow.active)
+            {
+                realWorkingTimer.resetAFKCount();
+            }
         }
 
         private function cStageMouseMoveEvent():Object
@@ -3655,7 +3676,10 @@
                     funcList[i](e);
                 }
 
-                realWorkingTimer.resetAFKCount();
+                if(stage.nativeWindow.active)
+                {
+                    realWorkingTimer.resetAFKCount();
+                }
             }
 
             function start():void
@@ -7132,9 +7156,41 @@
             }
         }
 
+        //composing 키에대한 체크 잘모르겠음 한영 변환이 관련있는거 같음
+        private function checkKeyInvalidKey():void
+        {
+            var nt:int = getTimer()
+            const len:uint = KEY_BUFFER.length;
+            for(var i:int=0;i<len;i++)
+            {
+                if(KEY_BUFFER[i] === 229
+                || KEY_BUFFER[i] === 241
+                || KEY_BUFFER[i] === 242)
+                {
+                    resetKeyBuffer();
+                    return;
+                }
+            }
+
+            if(len >= 2)
+            {
+                if((KEY_BUFFER[0] === 18 && KEY_BUFFER[1] === 32)
+                || (KEY_BUFFER[0] === 32 && KEY_BUFFER[1] === 18))
+                {
+                    resetKeyBuffer();
+                }
+            }
+        }
+
         private function stageKeyUpEvent(e:KeyboardEvent):void
         {
-            realWorkingTimer.resetAFKCount();
+            setIMEDisabled();
+            checkKeyInvalidKey();
+
+            if(stage.nativeWindow.active)
+            {
+                realWorkingTimer.resetAFKCount();
+            }
 
             if(fileDragSelectBox.visible)
             {
@@ -7152,7 +7208,13 @@
 
         private function stageKeyDownEvent(e:KeyboardEvent):void
         {
-            realWorkingTimer.resetAFKCount();
+            setIMEDisabled();
+            checkKeyInvalidKey();
+
+            if(stage.nativeWindow.active)
+            {
+                realWorkingTimer.resetAFKCount();
+            }
 
             const keyCode:uint = e.keyCode;
 
@@ -20022,6 +20084,7 @@
 
         private function windowActiveEvent(e:Event):void
         {
+            setIMEDisabled();
             realWorkingTimer.resume();
             checkClipBoardImage();
 
