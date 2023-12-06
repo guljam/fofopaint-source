@@ -46,7 +46,6 @@
 			sideBG.width = w;
 			sideBG.height = sth+1; //공백 보정으로 길이를 약간 늘려줌
 			h = sth;
-			trace("update size",sideBG.height)
 		}
 
 		public function changeUIColor(color:uint):void

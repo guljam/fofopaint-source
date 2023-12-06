@@ -57,11 +57,12 @@
     import flash.filters.BlurFilter;
     import flash.filters.ConvolutionFilter;
     import flash.system.System;
+    import flash.events.IMEEvent;
     //import end
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.53;
+        private const APP_VERSION:Number = 23.54;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8134,6 +8135,7 @@
         {
             if(Capabilities.hasIME && IME.enabled) //다른 언어로 하면 자판 안먹어서 그냥 ime자체를안씀
             {
+                IME.compositionAbandoned();
                 IME.enabled = false;
             }
         }
