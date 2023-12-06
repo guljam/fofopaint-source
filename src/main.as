@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 23.52;
+        private const APP_VERSION:Number = 23.53;
         private const APP_DATA_VERSION:Number = 22.70;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2807,7 +2807,7 @@
 
             //이거 위에서 뭔가 해주고 난후에 여기서 해줘야함
             sideBar.y = Math.round(STAGE_TOP_OFFSET);
-            sideBar.updateSideBGSize((sth-STAGE_TOP_OFFSET)/getUIScale());
+            sideBar.updateSideBGSize(getSideBarBGHeight());
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenu);
@@ -18861,7 +18861,7 @@
 
             sideBar.addChild(sideBarScrollBar);
             sideBar.addChild(sideBarScrollSet);
-            sideBar.updateSideBGSize(stage.stageHeight);
+            sideBar.updateSideBGSize(getSideBarBGHeight());
             setSideBarLeftPosition();
             sideBarScrollBar.alpha = 0.7;
             STAGE_TOP_OFFSET = topBar.BARSIZE;
@@ -19063,6 +19063,11 @@
             stage.nativeWindow.close();
         }
 
+        private function getSideBarBGHeight():Number
+        {
+            return (stage.stageHeight-topBar.BARSIZE*getUIScale())/getUIScale();
+        }
+
         private function windowResizeEvent(e:Event):void
         {
             addTimerByName("windowResizeDelayTimer",0.2,false,function():void
@@ -19112,7 +19117,7 @@
                 topBar.updateTopbarBG(stage.stageWidth);
                 topBar.updateTimerPos(stage.stageWidth);
 
-                sideBar.updateSideBGSize((stage.stageHeight-STAGE_TOP_OFFSET)/getUIScale());
+                sideBar.updateSideBGSize(getSideBarBGHeight());
                 updateScrollBarHeight(stage.stageHeight);
 
                 if(isRightSidebar)
