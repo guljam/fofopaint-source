@@ -6,8 +6,8 @@
 
 	public class sidePanel extends Sprite {
 		private const sideBG:Shape = new Shape();
-		public const w:Number = 223;
-		public var h:Number = 220;
+		public const WIDTH:Number = 223;
+		public var HEIGHT:Number = 220;
 		public var tempVisibleON:Boolean = false;
 		private const baseColor:ColorTransform = new ColorTransform();
 		private const opColor:ColorTransform = new ColorTransform();
@@ -20,7 +20,7 @@
 
 		public function getWidth():Number
 		{
-			return Math.round(w*scaleX);
+			return Math.round(WIDTH*scaleX);
 		}
 
 		public function setTempVisibleOFF(rightSide:Boolean):void
@@ -28,14 +28,14 @@
 			tempVisibleON = false;
 			visible = false;
 
-			if(rightSide) x = stage.stageWidth-w*scaleX;
+			if(rightSide) x = stage.stageWidth-WIDTH*scaleX;
 			else x = 0;
 		}
 
 		public function setTempVisibleON(toolBarWidth:Number,rightSide:Boolean):void
 		{
 			if(rightSide) x = stage.stageWidth-(toolBarWidth-1)*scaleX;
-			else x = (-w+toolBarWidth)*scaleX;
+			else x = (-WIDTH+toolBarWidth)*scaleX;
 
 			tempVisibleON = true;
 			visible = true;
@@ -43,9 +43,9 @@
 
 		public function updateSideBGSize(sth:Number):void
 		{
-			sideBG.width = w;
+			sideBG.width = WIDTH;
 			sideBG.height = sth+1; //공백 보정으로 길이를 약간 늘려줌
-			h = sth;
+			HEIGHT = sth;
 		}
 
 		public function changeUIColor(color:uint):void

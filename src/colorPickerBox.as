@@ -3,7 +3,6 @@
 	import flash.display.Sprite;
 	import flash.display.GradientType;
 	import flash.display.Sprite;
-	import flash.display.Graphics;
 	import flash.geom.Matrix;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -20,19 +19,17 @@
 		public var svGradient:Shape = new Shape();//흰색 검은색 그라디언트 깔아주는 컬러 임
 		public var hueColor:Sprite = new Sprite();
 		public var hueColorMask:Shape = new Shape();
-		public var drawrPresetBox:Sprite = new Sprite();
-		public var tegakiPresetBox:Sprite = new Sprite();
 		public var mainPresetBox:Sprite = new Sprite();
 		public var rgbInfo:TextField;
-		public var drawrText:SimpleButton;
-		public var tegakiText:SimpleButton;
-		public var colorHistoryText:SimpleButton;
+		public var drawrPresetButton:SimpleButton;
+		public var tegakiPresetButton:SimpleButton;
+		public var myPaletteButton:SimpleButton;
 		public var infoColorPicker:SimpleButton;
 		public const rgbInfoBG:Shape = new Shape();
 		private var rgbInfoBGColor:uint = 0;
 		private var rgbInfoBGBorderColor:uint = 0;
-		public const colorHistoryBox:Sprite = new Sprite();//컬러 히스토리
-		public const colorHistoryDragBox:Shape = new Shape();
+		public const myPaletteBox:Sprite = new Sprite();//컬러 히스토리
+		public const myPaletteDragColor:Shape = new Shape();
 		public var penColorButton:SimpleButton;
 		public var paperColorButton:SimpleButton;
 		public var transColorButton:SimpleButton;
@@ -45,6 +42,7 @@
 		public var currentColorWidth:Number = 28;
 		public var hueCursor:SimpleButton;
 		public var svCursor:SimpleButton;
+		public var dragColorRemoveButton:SimpleButton;
 		// public var preset17:SimpleButton = preset17;
 
 		public const svBoxWidth:uint = 170; //sv가로 세로 사이즈
@@ -68,12 +66,26 @@
 		private var lastRGBInfoText:String = "";
 		private var firstRGBInfoColorText:String = "";
 
-		public function drawHistoryBoxBG():void
+		public function selectPresetButton(type:int,offAlpha:Number):void
 		{
-			colorHistoryBox.graphics.clear();
-			colorHistoryBox.graphics.beginFill(0xFF0000,0.0);
-			colorHistoryBox.graphics.drawRect(0,0,170,34);
-			colorHistoryBox.graphics.endFill();
+			if(type === 0)
+			{
+				myPaletteButton.alpha = 1.0;
+				drawrPresetButton.alpha = offAlpha;
+				tegakiPresetButton.alpha = offAlpha;
+			}
+			else if(type === 1)
+			{
+				myPaletteButton.alpha = offAlpha;
+				drawrPresetButton.alpha = 1.0;
+				tegakiPresetButton.alpha = offAlpha;
+			}
+			else if(type === 2)
+			{
+				myPaletteButton.alpha = offAlpha;
+				drawrPresetButton.alpha = offAlpha;
+				tegakiPresetButton.alpha = 1.0;
+			}
 		}
 
 		public function getFirstRGBInfoColorText():String
@@ -125,110 +137,23 @@
 			baseColor.color = color;
 
 			rgbInfo.textColor = color;
+			var alphaSave:Number = myPaletteButton.alpha;
 
-			colorHistoryText.transform.colorTransform = baseColor
-			drawrText.transform.colorTransform = baseColor
-			tegakiText.transform.colorTransform = baseColor
+			myPaletteButton.transform.colorTransform = baseColor;
+			myPaletteButton.alpha = alphaSave;
+
+			alphaSave = drawrPresetButton.alpha;
+			drawrPresetButton.transform.colorTransform = baseColor;
+			drawrPresetButton.alpha = alphaSave;
+
+			alphaSave = tegakiPresetButton.alpha;
+			tegakiPresetButton.transform.colorTransform = baseColor;
+			tegakiPresetButton.alpha = alphaSave;
 
 			infoColorPicker.transform.colorTransform = baseColor;
 			penColorButton.transform.colorTransform = baseColor;
 			penColorButton.transform.colorTransform = baseColor;
 			paperColorButton.transform.colorTransform = baseColor;
-		}
-
-		private function initTegakiPreset():void
-		{
-			const tegakiColor:Vector.<uint> = new <uint> [
-															0x800000,
-															0xF1E1D7,
-															0x4B3D38,
-															0xEAE5D5,
-															0x394C44,
-															0xD0EBDE,
-															0x313768,
-															0xD5E9F3,
-															0xA80515,
-															0xF1D0D0
-														 ];
-			const width:Number = 17;
-			const height:Number = 19;
-			var g:Graphics;
-			var colorT:ColorTransform;
-			var btn:Sprite;
-
-			for(var i:uint=0;i<10;i+=2)
-			{
-				btn = new Sprite();
-				btn.name = "tegaki"+(i/2);
-
-				g = btn.graphics;
-				g.lineStyle(0,0,0);
-				g.beginFill(tegakiColor[i]);
-				g.drawRect(0,0,width,height);
-				g.beginFill(tegakiColor[i+1]);
-				g.drawRect(width,0,width,height);
-				g.endFill();
-
-				btn.x = i*width;
-				tegakiPresetBox.addChild(btn);
-			}
-		}
-
-		private function initDrawrPreset():void
-		{
-			const drawrColor:Vector.<uint> = new <uint> [
-															0xFFFFFF,
-															0xC0C0C0,
-															0xFF3B21,//빨간색
-															0xFFBD16,
-															0xF5F30F,
-															0xA5E975,
-															0x71DBFD,
-															0xFA80F9,
-															0x000000,
-															0x808080,
-															0x8E0000,//갈색
-															0xFFCC99,
-															0x877D30,
-															0x008F47,
-															0x313BCD,
-															0xC02E97,
-															0x3F037E
-														];
-
-			const width:Number = 17;
-			const height:Number = 19;
-			const len:int = drawrColor.length;
-
-			var posX:Number = 0;
-			var posY:Number = 0;
-			var btn:Sprite;
-			var colorT:ColorTransform;
-
-			for(var i:uint=0;i<len;i++)
-			{
-				btn = new Sprite();
-				btn.name = "drawr"+i;
-				btn.graphics.lineStyle(0,0,0);
-				btn.graphics.beginFill(0);
-				btn.graphics.drawRect(0,0,width,height);
-				btn.graphics.endFill();
-
-				colorT = new ColorTransform()
-				colorT.color = drawrColor[i];
-
-				btn.transform.colorTransform = colorT;
-				btn.x = (i*width)-posX;
-				btn.y = posY;
-
-				if(i == 7)
-				{
-					posX = width*8;
-					posY = height;
-				}
-
-				drawrPresetBox.addChild(btn);
-			}
 		}
 
 		public function setRGBInfoColor(color:uint):void
@@ -315,28 +240,28 @@
 
 		public function removeColorHistoryDragBox():void
 		{
-			colorHistoryDragBox.visible = false;
-			colorHistoryDragBox.graphics.clear();
+			myPaletteDragColor.visible = false;
+			myPaletteDragColor.graphics.clear();
 		}
 
 		public function setColorHistoryDragBoxPos(mx:Number,my:Number):void
 		{
-			colorHistoryDragBox.x = mx-colorHistoryDragBox.width/2;
-			colorHistoryDragBox.y = my-colorHistoryDragBox.height/2;
+			myPaletteDragColor.x = mx-myPaletteDragColor.width/2;
+			myPaletteDragColor.y = my-myPaletteDragColor.height/2;
 		}
 
-		public function setColorHistoryDragBoxColor(color:uint):void
+		public function setColorHistoryDragBoxColor(color:uint,colorWidth:Number,colorHeight:Number):void
 		{
-			colorHistoryDragBox.graphics.clear();
-			colorHistoryDragBox.graphics.beginFill(color);
-			colorHistoryDragBox.graphics.drawRect(0,0,17,19);
-			colorHistoryDragBox.graphics.endFill();
+			myPaletteDragColor.graphics.clear();
+			myPaletteDragColor.graphics.beginFill(color);
+			myPaletteDragColor.graphics.drawRect(0,0,colorWidth,colorHeight);
+			myPaletteDragColor.graphics.endFill();
 
-			setChildIndex(colorHistoryDragBox,this.numChildren-1);
-			colorHistoryDragBox.visible = true;
+			setChildIndex(myPaletteDragColor,this.numChildren-1);
+			myPaletteDragColor.visible = true;
 		}
 
-		private function inittransColorButtonBmpd():void
+		private function initTransparentColorButtonBmpd():void
 		{
 			const checkerPatternWidth:Number = transColorButton.width;
 			const checkerPatternHeight:Number = transColorButton.height;
@@ -351,9 +276,7 @@
 		public function colorPickerBox() {
 			// visible = false;
 			name = "pickerBox";
-			initDrawrPreset();
-			initTegakiPreset();
-			inittransColorButtonBmpd();
+			initTransparentColorButtonBmpd();
 
 			updateRGBInfoBG(0,0);
 
@@ -430,7 +353,6 @@
 			hueColor.y = Math.floor(rgbInfoBG.y+rgbInfoBG.height+4);
 			hueColor.addChild(hueCursor);
 			hueColor.addChild(hueColorMask);
-
 			svBox.addChild(svBase);
 			svBox.addChild(svGradient);
 			svBox.addChild(svCursor);
@@ -449,42 +371,45 @@
 			mainColorPickerBox.x = 0;
 			mainColorPickerBox.y = Math.floor(penColorButton.y+penColorButton.height+6);
 
-			colorHistoryText.mouseEnabled = false;
-			colorHistoryText.x = 0;
-			colorHistoryText.y = 2;
-			colorHistoryBox.x = 1;
-			colorHistoryBox.y = Math.floor(colorHistoryText.y+colorHistoryText.height)-14;
-			colorHistoryBox.name = "colorHistoryBox";
-			drawHistoryBoxBG();
+			myPaletteBox.x = 0;
+			myPaletteBox.y = 0;
+			myPaletteBox.name = "myPaletteBox";
 
-			drawrText.mouseEnabled = false;
-			drawrText.x = colorHistoryText.x;
-			drawrText.y = Math.floor(colorHistoryBox.y+colorHistoryBox.height+10);
-			drawrPresetBox.x = colorHistoryBox.x;
-			drawrPresetBox.y =Math.floor(drawrText.y+drawrText.height);
+			myPaletteButton.useHandCursor = false;
+			myPaletteButton.x = -1;
+			myPaletteButton.y = myPaletteBox.y+myPaletteBox.height+42;
 
-			tegakiText.mouseEnabled = false;
-			tegakiText.x = colorHistoryText.x;
-			tegakiText.y = Math.floor(drawrPresetBox.y+drawrPresetBox.height+10);
-			tegakiPresetBox.x = colorHistoryBox.x;
-			tegakiPresetBox.y = Math.floor(tegakiText.y+tegakiText.height);
+			drawrPresetButton.useHandCursor = false;
+			drawrPresetButton.x = myPaletteButton.x+myPaletteButton.width+9;
+			drawrPresetButton.y = myPaletteButton.y;
 
-			colorHistoryDragBox.visible = false;
+			tegakiPresetButton.useHandCursor = false;
+			tegakiPresetButton.x = drawrPresetButton.x+drawrPresetButton.width+9;
+			tegakiPresetButton.y = myPaletteButton.y;
 
-			mainPresetBox.addChild(colorHistoryText);
-			mainPresetBox.addChild(drawrText);
-			mainPresetBox.addChild(tegakiText);
-			mainPresetBox.addChild(colorHistoryBox);
-			mainPresetBox.addChild(drawrPresetBox);
-			mainPresetBox.addChild(tegakiPresetBox);
-			mainPresetBox.x = colorHistoryText.x;
-			mainPresetBox.y = Math.floor(mainColorPickerBox.y+mainColorPickerBox.height+5);
+			myPaletteDragColor.visible = false;
+
+			mainPresetBox.addChild(myPaletteBox);
+			mainPresetBox.addChild(tegakiPresetButton);
+			mainPresetBox.addChild(drawrPresetButton);
+			mainPresetBox.addChild(myPaletteButton);
+			mainPresetBox.x = svBox.x;
+			mainPresetBox.y = Math.floor(svBox.y+svBox.height+22);
 			addChild(mainColorPickerBox);
 			addChild(mainPresetBox);
-			addChild(colorHistoryDragBox);
+			addChild(myPaletteDragColor);
 
 			panelWidth = 180;
 			panelHeight = mainPresetBox.y+mainPresetBox.height+3;
+
+			dragColorRemoveButton.alpha = 0.7;
+			dragColorRemoveButton.width = 80;
+			dragColorRemoveButton.height = 80;
+			dragColorRemoveButton.x = svBox.x+svBox.width/2-dragColorRemoveButton.width/2;
+			dragColorRemoveButton.y = svBox.y+svBox.height/2-dragColorRemoveButton.height/2+20;
+			dragColorRemoveButton.visible = false;
+			dragColorRemoveButton.mouseEnabled = false;
+			setChildIndex(dragColorRemoveButton,numChildren-1);
 
 			updateCurrentColor(1,0);
 			svCursor.mouseEnabled = false;
