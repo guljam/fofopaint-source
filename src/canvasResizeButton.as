@@ -1,8 +1,8 @@
 ﻿package  {
-	
+
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
-	
+
 	public class canvasResizeButton extends SimpleButton {
 
 		public function setColor(color:uint):void
@@ -18,5 +18,5 @@
 			useHandCursor = false;
 		}
 	}
-	
+
 }

@@ -225,7 +225,7 @@
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_ONEMORE_PRESS_TO_OK:String = "One more press key to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
-                    ,STRING_CAPTURE_OK:String = "\nSave image (click canvas)\nReset capture area (right-click)"
+                    ,STRING_CAPTURE_OK:String = "\nSave (click, c, m)\nReset (right-click)"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset (right-click)"
@@ -507,7 +507,6 @@
                     ,fileBrowserON:Boolean = false //캡쳐 저장키 빠르게 누를때 에러 떠서 중복안되게 플래그 세워줌
                     ,canvasBackupData:Object = {} //캡쳐 키면 캔버스 이전 상태 저장함
                     ,canvasBackupDataOnSave:Object = {} //save appdata에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
-                    ,captureZoomed:Number = 1 // 사각형 그려줄때 선 두깨를 이 배율에 맞추어서 해줌
                     ,captureWindowMove:Point = new Point(0,0) //스크린샷이 켜져있는 상태에서 창을 조절했을때, 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
                     ,captureRotated:uint = 0 //캡쳐 회전한 변수 저장
                     ,captureFlipped:Boolean = false //캡쳐 대칭한 변수 저장
@@ -2659,22 +2658,12 @@
             setLayerSwapEffect(controlBox.layerSwapButton);
         }
 
-        private function getProcessedCaptureImage(clipBoardCopyFlag:Boolean):BitmapData
+        private function getCaptrueImageBitmapdata(clipBoardCopyFlag:Boolean):BitmapData
         {
             const isReplayMode:Boolean = replayModeON;
-            var info:Array;
+            var rect:Rectangle = (!drawCaptureArea.isFullImageCapture()) ? drawCaptureArea.getCaptureArea() : null;
             var layer1:Boolean;
             var layer2:Boolean;
-
-            if(drawCaptureArea.isFullImageCapture())
-            {
-                if(isReplayMode) info = [0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height];
-                else info = [0,0,canvas1BitmapData.width,canvas1BitmapData.height];
-            }
-            else
-            {
-                info = drawCaptureArea.getCaptureArea();
-            }
 
             if(isReplayMode)
             {
@@ -2687,38 +2676,25 @@
                 layer2 = canvas11Bitmap.visible;
             }
 
-            const bmpd:BitmapData = mergeCanvas(isReplayMode,(captureModeON && captureTransBGON && !clipBoardCopyFlag) ? true : false,layer1,layer2);
-            var newRectangle:Rectangle = new Rectangle(info[0],info[1],info[2],info[3]);
-            var cropData:ByteArray = bmpd.getPixels(newRectangle);
-            cropData.position = 0; //이거 꼭 해줘야함 안그러면 setpixel에서 에러뜸
-            const cropbmpd:BitmapData = new BitmapData(info[2],info[3],true,0);
-
-            newRectangle = new Rectangle(0,0,cropbmpd.width,cropbmpd.height);
-            cropbmpd.lock();
-            cropbmpd.setPixels(newRectangle,cropData);
-            cropbmpd.unlock();
-            cropData.clear();
-            cropData = null;
-
-            const mat:Matrix = new Matrix;
+            const bmpd:BitmapData = getMergedBitmapdtata(isReplayMode,(captureModeON && captureTransBGON && !clipBoardCopyFlag) ? true : false,layer1,layer2,rect);
+            const mat:Matrix = new Matrix();
             const deg:Number = 90*captureRotated;
-            var tmpbmpd:BitmapData = new BitmapData(cropbmpd.width,cropbmpd.height,true,0);
             var swapWH:Boolean = false;
             mat.rotate(deg*Math.PI/180);
 
             if(deg === 90)
             {
-                mat.translate(cropbmpd.height,0);
+                mat.translate(bmpd.height,0);
                 swapWH = true;
             }
             else if (deg === -90 || deg == 270)
             {
-                mat.translate(0,cropbmpd.width);
+                mat.translate(0,bmpd.width);
                 swapWH = true;
             }
             else if (deg === 180)
             {
-                mat.translate(cropbmpd.width, cropbmpd.height);
+                mat.translate(bmpd.width, bmpd.height);
             }
 
             if(captureFlipped)
@@ -2726,26 +2702,26 @@
                 if(swapWH)
                 {
                     mat.scale(1,-1);
-                    mat.translate(0,cropbmpd.width);
+                    mat.translate(0,bmpd.width);
                 }
                 else
                 {
                     mat.scale(-1,1);
-                    mat.translate(cropbmpd.width,0);
+                    mat.translate(bmpd.width,0);
                 }
             }
+            const tmpbmpd:BitmapData = (swapWH) ? new BitmapData(bmpd.height,bmpd.width,true,0)
+                                                 :new BitmapData(bmpd.width,bmpd.height,true,0);
 
-            if(swapWH) tmpbmpd = new BitmapData(cropbmpd.height,cropbmpd.width,true,0);
-
-            tmpbmpd.draw(cropbmpd,mat);
-            cropbmpd.dispose();
+            tmpbmpd.draw(bmpd,mat);
+            bmpd.dispose();
 
             return tmpbmpd;
         }
 
         private function copyCaptureImageToCilpBoard():void
         {
-            Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT,getProcessedCaptureImage(true),false);
+            Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT,getCaptrueImageBitmapdata(true),false);
             setHintONTemp("The image copied to clipboard successfully");
             topBar.capClipBoard.alpha = BUTTON_OFF_ALPHA;
         }
@@ -5345,7 +5321,6 @@
 
             const gp:Point = canvas1Bitmap.globalToLocal(new Point(newLeftOffset,STAGE_TOP_OFFSET));
             const zoom:Number = zoomed;
-
             previewBox.updateCursor(gp.x*zoom,gp.y*zoom
                                     ,stage.stageWidth-newRightOffset-newLeftOffset
                                     ,stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET
@@ -7356,47 +7331,57 @@
             stageMouseMoveEvent.add("penSmoothButtonMoveEvent",penSmoothButtonMoveEvent);
         }
 
-        private function mergeCanvas(replayMode:Boolean,captureTransparentBG:Boolean,layer1:Boolean,layer2:Boolean):BitmapData
+        private function getMergedBitmapdtata(replayMode:Boolean,captureTransparentBG:Boolean,layer1:Boolean,layer2:Boolean,clipRect:Rectangle):BitmapData
         {
-            var xbitmap1:BitmapData;
-            var xbitmap11:BitmapData;
+            var xBitmapData1:BitmapData;
+            var xBitmapData11:BitmapData;
             var xcanvas2:Sprite;
             var xBGCOLOR:uint;
             var alpha:Number;
+            var mat:Matrix;
+            var bmpd:BitmapData;
 
             if(replayMode)
             {
-                xbitmap1 = rcanvas1BitmapData;
-                xbitmap11 = rcanvas11BitmapData;
+                xBitmapData1 = rcanvas1BitmapData;
+                xBitmapData11 = rcanvas11BitmapData;
                 xcanvas2 = rcanvas2;
                 xBGCOLOR = RCANVAS_BG_COLOR;
                 alpha = tickDraw.getLineStyleAlpha();
             }
             else
             {
-                xbitmap1 = canvas1BitmapData;
-                xbitmap11 = canvas11BitmapData;
+                xBitmapData1 = canvas1BitmapData;
+                xBitmapData11 = canvas11BitmapData;
                 xcanvas2 = canvas2;
                 xBGCOLOR = CANVAS_BG_COLOR;
                 alpha = 1.0;
             }
 
-            const bmpd:BitmapData = new BitmapData(xbitmap1.width,xbitmap1.height,true
-                                                  ,(captureTransparentBG) ? 0 : 0xFF000000|xBGCOLOR);
+            if(clipRect !== null)
+            {
+                bmpd = new BitmapData(clipRect.width,clipRect.height,true,(captureTransparentBG) ? 0 : 0xFF000000|xBGCOLOR);
+                mat = new Matrix();
+                mat.translate(-clipRect.x,-clipRect.y);
+            }
+            else
+            {
+                bmpd = new BitmapData(xBitmapData1.width,xBitmapData1.height,true,(captureTransparentBG) ? 0 : 0xFF000000|xBGCOLOR);
+            }
 
-            if(layer2) bmpd.draw(xbitmap11); //레이어 쌓기
+            if(layer2) bmpd.draw(xBitmapData11,mat); //레이어 쌓기
 
             if(isSubLayerONReplayMode()) //레이어 2번을 그리고 있을때
             {
-                if(layer2) bmpd.draw(xcanvas2,null,new ColorTransform(1,1,1,alpha));
-                if(layer1) bmpd.draw(xbitmap1);
+                if(layer2) bmpd.draw(xcanvas2,mat,new ColorTransform(1,1,1,alpha));
+                if(layer1) bmpd.draw(xBitmapData1,mat);
             }
             else //레이어 1번 그리고 있을때
             {
                 if(layer1)
                 {
-                    bmpd.draw(xbitmap1);
-                    bmpd.draw(xcanvas2,null,new ColorTransform(1,1,1,alpha));
+                    bmpd.draw(xBitmapData1,mat);
+                    bmpd.draw(xcanvas2,mat,new ColorTransform(1,1,1,alpha));
                 }
             }
 
@@ -7417,11 +7402,13 @@
             }
             else if(captureRotated === 3)
             {
-                captureRotated = 1
+                captureRotated = 1;
                 xReg.rotation = 90;
             }
 
             topBar.capClipBoard.alpha = 1.0;
+
+            drawCaptureArea.updateDrawArea();
         }
 
         private function setCaptureOFF():void
@@ -7438,18 +7425,26 @@
 
             if(captureTransBGON) setTransBG(replayModeON);
             else resetTransBG(replayModeON);
+
+            topBar.capClipBoard.alpha = 1.0;
         }
 
         private function setCaptureRotateButton():void
         {
+            //90도 시계 방향으로 회전
+            //1: 90도 2:180 3:270
             captureRotated++;
             if(captureRotated >= 4) captureRotated = 0;
+
             fitCanvasToWindow(true);
             topBar.capClipBoard.alpha = 1.0;
+
             if(topBar.capRotate.hitTestPoint(mouseX,mouseY) === false)
             {
                 setDefaultHintCaptureMode();
             }
+
+            drawCaptureArea.updateDrawArea();
         }
 
         //rotate hand zoom에서 쓰임
@@ -9390,7 +9385,7 @@
                     break;
 
                     case "capFull":
-                        str = "Save full image (c, m)";
+                        str = (drawCaptureArea.isFullImageCapture()) ? "Save full image (c, m)" : "Save selected area (c, m)";
                     break;
 
                     case "capClipBoard":
@@ -9710,7 +9705,6 @@
 
             if(captureMode)
             {
-                captureZoomed = 1/z;
                 xReg.rotation = 90*_captureRotated;
             }
 
@@ -9730,7 +9724,7 @@
 
             if(captureMode)
             {
-                drawCaptureArea.updateCaptureAreaLineSize();
+                drawCaptureArea.updateDrawArea();
             }
         }
 
@@ -13832,7 +13826,7 @@
         {
             if(drawCaptureArea.isFullImageCapture())
             {
-                hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nSave full image (click, c, m)\nDraw capture area (click+drag on canvas)",null);
+                hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nSave full image (click, c, m)\nDraw capture area (click+drag)",null);
             }
             else
             {
@@ -13892,21 +13886,25 @@
                 case "capOff":
                 case "capTrans":
                 case "capClipBoard":
+                {
                     checkButtonUp(targetName);
+                }
                 break;
 
                 case "timer":
                 {
                     realWorkingTimer.reset();
                 }
-                return;
+                break;
 
                 default:
                 {
-                    if(clickBlockOnWindowActiveFlag) return;
-                    drawCaptureArea.start(replayModeON);
+                    if(!clickBlockOnWindowActiveFlag)
+                    {
+                        drawCaptureArea.start();
+                    }
                 }
-                return;
+                break;
             }
         }
 
@@ -14010,6 +14008,23 @@
         private function captureMouseMoveHintEvent(e:MouseEvent):void
         {
             if(!captureModeON) stageMouseMoveEvent.remove("captureMouseMoveHintEvent");
+
+            if(mouseClickON || mouseDragON)
+            {
+                return;
+            }
+            if(drawCaptureArea.isCursorInResizeButton())
+            {
+                hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nResize (click+drag)"+STRING_CAPTURE_OK,null,true);
+            }
+            else if(drawCaptureArea.isCursorInCaptureDrea())
+            {
+                hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nMove (click+drag)"+STRING_CAPTURE_OK,null,true);
+            }
+            else if(!topBar.hitTestPoint(mouseX,mouseY))
+            {
+                setDefaultHintCaptureMode();
+            }
         }
 
         private function setCaptureModeON():void
@@ -14146,75 +14161,301 @@
         //마우스 클릭하면 캡쳐 영역그리는 함수
         private function cDrawCaptureArea():Object
         {
-            const replayMode:Boolean = replayModeON;
-            const scZoomed:Number = captureZoomed;
-
-            var mouseMoved:Boolean;
-            var xCaptureRect:Shape;
-            var xReg:Sprite;
             var xPanel:Sprite;
-            var canvasWidth:Number;
-            var canvasHeight:Number;
-            var cx:Number;
-            var cy:Number;
-            var rectX:Number;
-            var rectY:Number;
-            var rectW:Number;
-            var rectH:Number;
-            var drawedcx:Number; //한번 영역을 그려줬으면 원점을 여기다가 저장
-            var drawedcy:Number; //다음번에 클릭해서 저장하면 이 원점으로 그려줌
-            var finalRect:Array = [0,0,0,0];
+            var mouseMoved:Boolean = false;
+            var canvasWidth:Number = 0;
+            var canvasHeight:Number = 0;
+            var clickPos:Point = new Point(0,0);
+            var limitWidthSave:Number = 0;
+            var limitHeightSave:Number = 0;
+            const rectGhost:Rectangle = new Rectangle();
+            const rect:Rectangle = new Rectangle();
+            var resizeFlag:Boolean = false;
+            const resizeButtonSize:Number = 10.0;
+            const resizeButtonPos:Point = new Point(0,0);
+            const minSize:Number = 5.0;
 
-            function updateCaptureAreaLineSize():void
-            {
-                if(rectW > 10 && rectH > 10) drawArea(drawedcx,drawedcy,rectW,rectH);
-            }
-
-            function drawArea(x:Number,y:Number,w:Number,h:Number):void
-            {
-                const zoomed:Number = (replayModeON) ? Math.abs(rregPoint.scaleX) : Math.abs(regPoint.scaleX);
-
-                captureAreaRect.graphics.clear();
-                captureAreaRect.graphics.lineStyle(Math.ceil(2/zoomed),0x0099FF,1.0,true);
-                captureAreaRect.graphics.drawRect(x,y,w,h);
-            }
-
-            function captureMouseMove(e:MouseEvent):void
+            function captureMouseMoveEvent3(e:MouseEvent):void
             {
                 if(!captureModeON)
                 {
-                    stageMouseMoveEvent.remove("captureMouseMove");
-                    stage.removeEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
+                    removeEvent();
                 }
 
-                var ww:Number = xPanel.mouseX-cx;
-                var hh:Number = xPanel.mouseY-cy;
+                var subX:Number = Math.round(xPanel.mouseX-clickPos.x);
+                var subY:Number = Math.round(xPanel.mouseY-clickPos.y);
 
-                if(ww < -cx) ww = -cx;
-                else if(ww > canvasWidth-cx) ww = canvasWidth-cx;
+                rect.width += subX;
+                rect.height += subY;
 
-                if(hh < -cy) hh = -cy;
-                else if(hh > canvasHeight-cy) hh = canvasHeight-cy;
+                drawArea(false);
 
-                ww = Math.floor(ww+0.5);
-                hh = Math.floor(hh+0.5);
+                clickPos.setTo(xPanel.mouseX,xPanel.mouseY);
+            }
 
-                if(Math.abs(ww) > 10 && Math.abs(hh) > 10)
+            function captureMouseMoveEvent2(e:MouseEvent):void
+            {
+                if(!captureModeON)
                 {
-                    rectW = ww;
-                    rectH = hh;
-                    drawArea(cx,cy,ww,hh);
+                    removeEvent();
+                }
+
+                const mx:Number = xPanel.mouseX;
+                const my:Number = xPanel.mouseY;
+                var subX:Number = Math.round(mx-clickPos.x);
+                var subY:Number = Math.round(my-clickPos.y);
+
+                if(mouseMoved === true)
+                {
+                    if(resizeFlag)
+                    {
+                        if(!captureFlipped && captureRotated === 0 || captureFlipped && captureRotated === 3)
+                        {
+                            rectGhost.width += subX;
+                            rectGhost.height += subY;
+                            rect.width = rectGhost.width;
+                            rect.height = rectGhost.height;
+
+                            if(rect.width < minSize) rect.width = minSize;
+                            else if(rect.x+rect.width > canvasWidth) rect.width = canvasWidth-rect.x;
+
+                            if(rect.height < minSize) rect.height = minSize;
+                            else if(rect.y+rect.height > canvasHeight) rect.height = canvasHeight-rect.y;
+                        }
+                        else if(!captureFlipped && captureRotated === 1 || captureFlipped && captureRotated === 2)
+                        {
+                            rectGhost.width += subX;
+                            rectGhost.height -= subY;
+                            rectGhost.y += subY;
+                            rect.width = rectGhost.width;
+                            rect.height = rectGhost.height;
+                            rect.y = rectGhost.y;
+
+                            if(rect.y < 0.0)
+                            {
+                                rect.y = 0.0;
+                                rect.height = limitHeightSave;
+                            }
+                            if(rect.height < minSize)
+                            {
+                                rect.height = minSize;
+                                rect.y = limitHeightSave-rect.height;
+                            }
+
+                            if(rect.width < minSize) rect.width = minSize;
+                            else if(rect.x+rect.width > canvasWidth) rect.width = canvasWidth-rect.x;
+                        }
+                        else if(!captureFlipped && captureRotated === 2 || captureFlipped && captureRotated === 1)
+                        {
+                            rectGhost.width -= subX;
+                            rectGhost.height -= subY;
+                            rectGhost.x += subX;
+                            rectGhost.y += subY;
+                            rect.width = rectGhost.width;
+                            rect.height = rectGhost.height;
+                            rect.x = rectGhost.x;
+                            rect.y = rectGhost.y;
+
+                            if(rect.width < minSize)
+                            {
+                                rect.width = minSize;
+                                rect.x = limitWidthSave-rect.width;
+                            }
+
+                            if(rect.height < minSize)
+                            {
+                                rect.height = minSize;
+                                rect.y = limitHeightSave-rect.height;
+                            }
+
+                            if(rect.x < 0.0)
+                            {
+                                rect.x = 0.0;
+                                rect.width = limitWidthSave;
+                            }
+
+                            if(rect.y < 0.0)
+                            {
+                                rect.y = 0.0;
+                                rect.height = limitHeightSave;
+                            }
+                        }
+                        else if(!captureFlipped && captureRotated === 3 || captureFlipped && captureRotated === 0)
+                        {
+                            rectGhost.width -= subX;
+                            rectGhost.height += subY;
+                            rectGhost.x += subX;
+
+                            rect.width = rectGhost.width;
+                            rect.height = rectGhost.height;
+                            rect.x = rectGhost.x;
+
+                            if(rect.x < 0.0)
+                            {
+                                rect.x = 0.0;
+                                rect.width = limitWidthSave;
+                            }
+
+                            if(rect.width < minSize)
+                            {
+                                rect.width = minSize;
+                                rect.x = limitWidthSave-rect.width;
+                            }
+
+                            if(rect.height < minSize) rect.height = minSize;
+                            else if(rect.y+rect.height > canvasHeight) rect.height = canvasHeight-rect.y;
+                        }
+                    }
+                    else
+                    {
+                        rectGhost.x += subX;
+                        rectGhost.y += subY;
+                        rect.x = rectGhost.x;
+                        rect.y = rectGhost.y;
+
+                        if(rect.x < 0.0) rect.x = 0.0;
+                        else if(rect.x+rect.width > canvasWidth) rect.x = canvasWidth-rect.width;
+
+                        if(rect.y < 0.0) rect.y = 0.0;
+                        else if(rect.y+rect.height > canvasHeight) rect.y = canvasHeight-rect.height;
+                    }
+
+                    clickPos.setTo(xPanel.mouseX,xPanel.mouseY);
+                    drawArea(false);
+                }
+                else if(Math.abs(subX) > minSize || Math.abs(subY) > minSize)
+                {
+                    mouseMoved = true;
+                    clickPos.setTo(mx,my);
+                }
+            }
+
+            function captureMouseMoveEvent(e:MouseEvent):void
+            {
+                if(!captureModeON)
+                {
+                    removeEvent();
+                }
+
+                var subX:Number = xPanel.mouseX-rect.x;
+                var subY:Number = xPanel.mouseY-rect.y;
+
+                if(subX < -rect.x) subX = -rect.x;
+                else if(subX > canvasWidth-rect.x) subX = canvasWidth-rect.x;
+
+                if(subY < -rect.y) subY = -rect.y;
+                else if(subY > canvasHeight-rect.y) subY = canvasHeight-rect.y;
+
+                subX = Math.round(subX);
+                subY = Math.round(subY);
+
+                if(Math.abs(subX) > minSize && Math.abs(subY) > minSize)
+                {
+                    rect.width = subX;
+                    rect.height = subY;
+                    drawArea(false);
                     hint.on(getRotatedRectSizeString(),null);
                     mouseMoved = true;
                 }
             }
 
+            function captureMouseUp(e:MouseEvent):void
+            {
+                mouseDragON = false;
+                removeEvent();
+
+                if(mouseMoved === true)
+                {
+                    //rect길이가 음수인경우 cx cy를 양수로 다시 맞추어줌
+                    if(rect.width < 0)
+                    {
+                        rect.width = Math.abs(rect.width);
+                        rect.x = rect.x-rect.width;
+                    }
+
+                    if(rect.height < 0)
+                    {
+                        rect.height = Math.abs(rect.height);
+                        rect.y = rect.y-rect.height;
+                    }
+
+                    hint.on(getRotatedRectSizeString()+STRING_CAPTURE_OK,null);
+                    topBar.capClipBoard.alpha = 1.0;
+
+                    drawArea(true);
+                }
+                else
+                {
+                    saveCaptureImage();
+                }
+                mouseMoved = false;
+            }
+
+            function removeEvent():void
+            {
+                stageMouseMoveEvent.remove("captureMouseMoveEvent");
+                stageMouseMoveEvent.remove("captureMouseMoveEvent2");
+                stage.removeEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
+            }
+
+            function updateDrawArea():void
+            {
+                if(rect.width > minSize && rect.height > minSize) drawArea(true);
+            }
+
+            function getCanvasScale():Number
+            {
+                return (replayModeON) ? Math.abs(rregPoint.scaleX) : Math.abs(regPoint.scaleX);
+            }
+
+            function drawArea(resizeButtonON:Boolean):void
+            {
+                const zoomed:Number = getCanvasScale();
+
+                captureAreaRect.graphics.clear();
+                captureAreaRect.graphics.lineStyle(Math.ceil(1/zoomed),0xFFFFFF,1.0,true);
+                captureAreaRect.graphics.drawRect(rect.x,rect.y,rect.width,rect.height);
+                captureAreaRect.graphics.lineStyle(0,0,0);
+                captureAreaRect.graphics.beginFill(0,0.3);
+                captureAreaRect.graphics.drawRect(0,0,canvasWidth,rect.y);
+                captureAreaRect.graphics.drawRect(0,rect.y,rect.x,rect.height);
+                captureAreaRect.graphics.drawRect(rect.x+rect.width,rect.y,canvasWidth-(rect.x+rect.width),rect.height);
+                captureAreaRect.graphics.drawRect(0,rect.y+rect.height,canvasWidth,canvasHeight-(rect.y+rect.height));
+                captureAreaRect.graphics.endFill();
+
+                if(resizeButtonON)
+                {
+                    captureAreaRect.graphics.beginFill(0xFF6600);
+                    var posX:Number = rect.x;
+                    var posY:Number = rect.y;
+
+                    if(!captureFlipped && captureRotated === 0 || captureFlipped && captureRotated === 3)
+                    {
+                        posX += rect.width;
+                        posY += rect.height;
+                    }
+                    else if(!captureFlipped && captureRotated === 1 || captureFlipped && captureRotated === 2)
+                    {
+                        posX += rect.width;
+                    }
+                    else if(!captureFlipped && captureRotated === 3 || captureFlipped && captureRotated === 0)
+                    {
+                        posY += rect.height;
+                    }
+
+                    resizeButtonPos.setTo(posX,posY);
+
+                    captureAreaRect.graphics.drawCircle(posX,posY,resizeButtonSize/zoomed);
+                    captureAreaRect.graphics.endFill();
+                }
+            }
+
             function getRotatedRectSizeString():String
             {
-                const w:Number = Math.abs(rectW);
-                const h:Number = Math.abs(rectH);
+                const w:Number = Math.abs(rect.width);
+                const h:Number = Math.abs(rect.height);
 
-                if(!rectW || !rectH || (w < 10 && h < 10))
+                if(!rect.width || !rect.height || (w < minSize && h < minSize))
                 {
                     var width:Number;
                     var height:Number;
@@ -14229,20 +14470,27 @@
                         height = canvas1BitmapData.height;
                     }
 
-                    return (captureRotated === 0 || captureRotated === 2) ? width+" x "+height
-                                                                          : height+" x "+width;
+                    return (captureRotated === 0 || captureRotated === 2) ? width+" x "+height : height+" x "+width;
                 }
 
-                return (captureRotated === 0 || captureRotated === 2) ? w+" x "+h
-                                                                        : h+" x "+w;
+                return (captureRotated === 0 || captureRotated === 2) ? w+" x "+h : h+" x "+w;
             }
 
             function resetCaptureArea():void
             {
-                rectX = 0;
-                rectY = 0;
-                rectW = 0;
-                rectH = 0;
+                resizeButtonPos.setTo(0,0);
+                resizeFlag = false;
+                clickPos.setTo(0,0);
+                rect.x = 0;
+                rect.y = 0;
+                rect.width = 0;
+                rect.height = 0;
+                rectGhost.x = 0;
+                rectGhost.y = 0;
+                rectGhost.width = 0;
+                rectGhost.height = 0;
+                limitWidthSave = 0;
+                limitHeightSave = 0;
                 captureAreaRect.graphics.clear();
                 topBar.capClipBoard.alpha = 1.0;
                 setDefaultHintCaptureMode();
@@ -14250,106 +14498,117 @@
 
             function reset():void
             {
-                cx = 0;
-                cy = 0;
-                rectX = 0;
-                rectY = 0;
-                rectW = 0;
-                rectH = 0;
+                resizeButtonPos.setTo(0,0);
+                resizeFlag = false;
+                clickPos.setTo(0,0);
+                rect.x = 0;
+                rect.y = 0;
+                rect.width = 0;
+                rect.height = 0;
+                rectGhost.x = 0;
+                rectGhost.y = 0;
+                rectGhost.width = 0;
+                rectGhost.height = 0;
+                limitWidthSave = 0;
+                limitHeightSave = 0;
                 canvasWidth = 0;
                 canvasHeight = 0;
-                xCaptureRect = null;
-                xReg = null;
                 xPanel = null;
                 mouseMoved = false;
                 topBar.capClipBoard.alpha = 1.0;
             }
 
-            function captureMouseUp(e:MouseEvent):void
-            {
-                mouseDragON = false;
-                stageMouseMoveEvent.remove("captureMouseMove");
-                stage.removeEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
-
-                if(mouseMoved === true)
-                {
-                    //rect길이가 음수인경우 cx cy를 양수로 다시 맞추어줌
-                    if(rectW < 0)
-                    {
-                        rectW = (-rectW);
-                        cx = cx-rectW;
-                    }
-
-                    if(rectH < 0)
-                    {
-                        rectH = (-rectH);
-                        cy = cy-rectH;
-                    }
-
-                    rectX = cx;
-                    rectY = cy;
-                    drawedcx = cx;
-                    drawedcy = cy;
-
-                    finalRect[0] = rectX;
-                    finalRect[1] = rectY;
-                    finalRect[2] = rectW;
-                    finalRect[3] = rectH;
-
-                    hint.on(getRotatedRectSizeString()+STRING_CAPTURE_OK,null);
-                    topBar.capClipBoard.alpha = 1.0;
-                }
-                else
-                {
-                    saveCaptureImage();
-                }
-                mouseMoved = false;
-            }
-
             function isFullImageCapture():Boolean
             {
-                return rectW === 0 || rectH === 0;
+                return rect.width === 0.0 || rect.height === 0.0;
             }
 
-            function getCaptureArea():Array
+            function getCaptureArea():Rectangle
             {
-                return finalRect;
+                return rect;
             }
 
-            function start(replayMode:Boolean):void
+            function isCursorInCaptureDrea():Boolean
             {
-                if(replayMode) //리플레이 변수로 변경
+                if(!xPanel) return false;
+
+                return rect.contains(xPanel.mouseX,xPanel.mouseY);
+            }
+
+            function isCursorInResizeButton():Boolean
+            {
+                if(!xPanel) return false;
+                const p1:Point = new Point(xPanel.mouseX,xPanel.mouseY);
+
+                if(Point.distance(p1,resizeButtonPos)*getCanvasScale() < resizeButtonSize+2)
                 {
-                    canvasWidth = RCANVAS_WIDTH;
-                    canvasHeight = RCANVAS_HEIGHT;
-                    xReg = rregPoint;
-                    xPanel = rcanvasPanel;
-                }
-                else
-                {
-                    canvasWidth = CANVAS_WIDTH;
-                    canvasHeight = CANVAS_HEIGHT;
-                    xReg = regPoint;
-                    xPanel = canvasPanel;
+                    return true;
                 }
 
-                cx = xPanel.mouseX;
-                cy = xPanel.mouseY;
+                return false;
+            }
 
-                if(cx < 0) cx = 0;
-                else if(cx > canvasWidth) cx = canvasWidth;
+            function setMoveOrResizeAreaReady(mx:Number,my:Number,flag:Boolean):void
+            {
+                mouseDragON = true;
+                resizeFlag = flag;
+                rectGhost.x = rect.x;
+                rectGhost.y = rect.y;
+                rectGhost.width = rect.width;
+                rectGhost.height = rect.height;
+                limitWidthSave = rect.x+rect.width;
+                limitHeightSave = rect.y+rect.height;
 
-                if(cy < 0 ) cy = 0;
-                else if(cy > canvasHeight) cy = canvasHeight;
+                clickPos.setTo(mx,my);
+                stageMouseMoveEvent.add("captureMouseMoveEvent2",captureMouseMoveEvent2);
+                stage.addEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
+            }
 
-                cx = Math.floor(cx);
-                cy = Math.floor(cy);
-
+            function start():void
+            {
                 if(topBar.hitTestPoint(mouseX,mouseY) === false)
                 {
-                    mouseDragON = true;
-                    stageMouseMoveEvent.add("captureMouseMove",captureMouseMove);
-                    stage.addEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
+                    if(replayModeON) //리플레이 변수로 변경
+                    {
+                        canvasWidth = RCANVAS_WIDTH;
+                        canvasHeight = RCANVAS_HEIGHT;
+                        xPanel = rcanvasPanel;
+                    }
+                    else
+                    {
+                        canvasWidth = CANVAS_WIDTH;
+                        canvasHeight = CANVAS_HEIGHT;
+                        xPanel = canvasPanel;
+                    }
+
+                    var mx:Number = xPanel.mouseX;
+                    var my:Number = xPanel.mouseY;
+
+                    resizeFlag = false;
+
+                    if(isCursorInResizeButton())
+                    {
+                        setMoveOrResizeAreaReady(mx,my,true)
+                    }
+                    else if(isCursorInCaptureDrea())
+                    {
+                        setMoveOrResizeAreaReady(mx,my,false);
+                    }
+                    else
+                    {
+                        if(mx < 0) mx = 0;
+                        else if(mx > canvasWidth) mx = canvasWidth;
+
+                        if(my < 0 ) my = 0;
+                        else if(my > canvasHeight) my = canvasHeight;
+
+                        rect.x = Math.floor(mx);
+                        rect.y = Math.floor(my);
+
+                        mouseDragON = true;
+                        stageMouseMoveEvent.add("captureMouseMoveEvent",captureMouseMoveEvent);
+                        stage.addEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
+                    }
                 }
             };
 
@@ -14360,7 +14619,9 @@
                 getCaptureArea:getCaptureArea,
                 isFullImageCapture:isFullImageCapture,
                 getRotatedRectSizeString:getRotatedRectSizeString,
-                updateCaptureAreaLineSize:updateCaptureAreaLineSize
+                updateDrawArea:updateDrawArea,
+                isCursorInCaptureDrea:isCursorInCaptureDrea,
+                isCursorInResizeButton:isCursorInResizeButton
             };
         }
 
@@ -14516,8 +14777,7 @@
 
                 if(workerPNGCaptureData === null) workerPNGCaptureData = new Vector.<ByteArray>()
                 if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
-
-                callWorkerEncodePNG(getProcessedCaptureImage(false),0,true,captureTransBGON);
+                callWorkerEncodePNG(getCaptrueImageBitmapdata(false),0,true,captureTransBGON);
                 saveCapturePNGByOrder(file1.name,e.target.nativePath);
             }
         }
@@ -14596,7 +14856,7 @@
             }
 
             const fs:FileStream = new FileStream();
-            const mergedImage:BitmapData = mergeCanvas(false,false,true,true);
+            const mergedImage:BitmapData = getMergedBitmapdtata(false,false,true,true,null);
 
             setTopBarHintOFF();
 
@@ -14720,31 +14980,6 @@
                 }
             }
         }
-
-        // private function loadColorHistoryList():void
-        // {
-        //     if(colorHistoryListFile.exists === false)
-        //     {
-        //         return;
-        //     }
-
-        //     const fs:FileStream = new FileStream();
-        //     fs.open(colorHistoryListFile,FileMode.READ);
-        //     var list:Array = fs.readObject();
-        //     colorHistoryList.length = 0;
-        //     colorHistoryList = list.concat();
-        //     list.length = 0;
-        //     list = null;
-        //     updateColorHistoryList();
-        // }
-
-        // private function saveColorHistoryList():void
-        // {
-        //     const fs:FileStream = new FileStream();
-        //     fs.open(colorHistoryListFile,FileMode.WRITE);
-        //     fs.writeObject(colorHistoryList);
-        //     fs.close();
-        // }
 
         private function saveReplayFrameData():void
         {
@@ -18956,7 +19191,6 @@
             lassoBox2.visible = false;
 
             captureAreaRect.visible = false;
-            captureAreaRect.blendMode = "difference";
 
             setBackgroundColorDrawMode(CANVAS_BG_COLOR);
             updateCanvasPanelMask(CANVAS_WIDTH,CANVAS_HEIGHT);
@@ -19145,20 +19379,21 @@
 
         private function setZoomCanvas(newZoom:Number,replayMode:Boolean = false):void
         {
-            // const fz:Number = Math.floor(newZoom*100+0.5)/100;
-            const fz:Number = newZoom;
+            if(!newZoom) newZoom = 1.0;
+            if(newZoom < 0.0) newZoom = Math.abs(newZoom);
+
             var xReg:Sprite;
 
-            updateRCursorScale(fz);
+            updateRCursorScale(newZoom);
 
             if(!replayMode)
             {
                 xReg = regPoint;
-                zoomed = fz;
+                zoomed = newZoom;
 
                 if(!captureModeON)
                 {
-                    penCursorPosition.updateZoom(fz);
+                    penCursorPosition.updateZoom(newZoom);
                 }
 
                 if(airBrushSizeDrawMode > 0)
@@ -19169,7 +19404,7 @@
             }
             else
             {
-                rzoomed = fz;
+                rzoomed = newZoom;
                 xReg = rregPoint;
 
                 if(airBrushSizeReplayMode > 0)
