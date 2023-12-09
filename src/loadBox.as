@@ -23,17 +23,15 @@
 		private const activeColor:ColorTransform = new ColorTransform();
 		private const activeIconColor:ColorTransform = new ColorTransform();
 		private var buttonList:Array;
+		private var textBGColor:uint = 0xFFFFFF;
 
 		public function setFilePathString(str:String):void
 		{
 			if(filePathText)
 			{
-				var bgColor:uint = subBase.color;
-
 				filePathText.text = str;
-				filePathText.textColor = base.color;
 				filePathTextBG.graphics.clear();
-				filePathTextBG.graphics.beginFill(bgColor);
+				filePathTextBG.graphics.beginFill(textBGColor);
 				filePathTextBG.graphics.drawRect(0,0,filePathText.width,filePathText.height);
 				filePathTextBG.graphics.endFill();
 				filePathTextBG.x = dragDropLoadButton.x;
@@ -41,14 +39,14 @@
 			}
 		}
 
-		public function setButtonOnlyVisible(flag:Boolean):void
+		public function setPleaseWait(flag:Boolean):void
 		{
-			pleaseWaitText.visible = !flag;
-			filePathTextBG.visible = flag;
-			dragDropLoadButton.visible = flag;
-			dragDropLoadRefLayerButton.visible = flag;
-			dragDropSaveAndLoadButton.visible = flag;
-			dragDropCancelButton.visible = flag;
+			pleaseWaitText.visible = flag;
+			filePathTextBG.visible = !flag;
+			dragDropLoadButton.visible = !flag;
+			dragDropLoadRefLayerButton.visible = !flag;
+			dragDropSaveAndLoadButton.visible = !flag;
+			dragDropCancelButton.visible = !flag;
 		}
 
 		public function setScale(newScale:Number):void
@@ -96,7 +94,9 @@
 				childText.textColor = textColorOver;
 			}
 
-			pleaseWaitText.textColor = arr[1];
+			pleaseWaitText.textColor = 0xFFFFFF;
+			filePathText.textColor = arr[1];
+			textBGColor = arr[5];
 		}
 
 		public function loadBox() {
@@ -126,6 +126,7 @@
 
 			filePathTextBG.addChild(filePathText);
 			addChild(filePathTextBG);
+			setChildIndex(pleaseWaitText,numChildren-1);
 
 			buttonList = [
 							dragDropLoadButton,
@@ -135,5 +136,4 @@
 						];
 		}
 	}
-
 }

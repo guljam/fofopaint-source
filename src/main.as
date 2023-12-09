@@ -585,11 +585,11 @@
                                                 [COLOR_BRIGHT,    0x505050,      0xE1E1E1,    0xCBCBCB,            0xCEE5C5,           0xF7F2A0],
                                         ]
                     ,uiToolBoxColorSet:Array =
-                    [ //컬러 셋 이름,       윗부분 막대색, 전체 배경색, upstate왼쪽아이콘색,  overstate 버튼배경색  overstate 아이콘색
-                        [COLOR_DARK,        0x434343,   0xE5E5E5,  0xE5E5E5,           0x6E98B4,           0xE5E5E5],
-                        [COLOR_MID_DARK,    0xE3E3E1,   0xE3E3E1,  COLOR_MID_DARK,     0xB1DFEE,           COLOR_MID_DARK],
-                        [COLOR_MID_BRIGHT,  0xD6D5D4,   0x505050,  0x505050,           0xBADAE5,           0x505050],
-                        [COLOR_BRIGHT,      0xE7E7E7,   0x505050,  0x505050,           0xCEEBF2,           0x505050]
+                    [                            //컬러 셋 이름,     윗부분 막대색, 전체 배경색, upstate왼쪽아이콘색,  overstate 버튼배경색  overstate 아이콘색
+                                                [COLOR_DARK,        0x434343,   0xE5E5E5,  0xE5E5E5,           0x6E98B4,           0xE5E5E5],
+                                                [COLOR_MID_DARK,    0xE3E3E1,   0xE3E3E1,  COLOR_MID_DARK,     0xB1DFEE,           COLOR_MID_DARK],
+                                                [COLOR_MID_BRIGHT,  0xD6D5D4,   0x505050,  0x505050,           0xBADAE5,           0x505050],
+                                                [COLOR_BRIGHT,      0xE7E7E7,   0x505050,  0x505050,           0xCEEBF2,           0x505050]
                     ]
                     ,toolTipBoxBGColor:Array = [0xFF7943,0xFF8A2C,0xFFAF45,0xFFCF46]
                     ,hintCursorColor:Array = [0x73B5E4,0x7AC3F0,0x6C9CDB,0x609CFF]
@@ -628,7 +628,6 @@
                     ,deepUndoON:Boolean = false
                     ,deepUndoONSave:Boolean = false //리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
                     ,deepUndoFrameSave:Number = -1 //리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
-                    ,deepUndoUpdateReplayCanvasFlag:Boolean = false // deepUndoFrameSave가 다를때 이 플래그를 올려줘서 deep undo를 해줄때 먼저 리플레이 이미지를 갱신해줌
 
         //picker box RGB info관련 변수
                     ,rgbInfoFocusedON:Boolean = false // rgb info입력이 활성화 되었을때 올려줌
@@ -714,6 +713,18 @@
         }
 
         //function
+        private function setLoadBoxVisible(flag:Boolean):void
+        {
+            if(flag)
+            {
+                setDragDropSelectBoxCenterPos();
+            }
+
+            setTopChildIndex(loadMenuBox);
+
+            loadMenuBox.visible = flag;
+        }
+
         private function getJumpImageFolder():File
         {
             return File.applicationStorageDirectory.resolvePath("imagecache");
@@ -740,7 +751,7 @@
                         {
                             if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON)
                             {
-                                loadMenuBox.visible = false;
+                                setLoadBoxVisible(false);
                                 loadImageDragDrop(false);
                             }
                         }
@@ -751,7 +762,7 @@
                             if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON)
                             {
                                 saveThenLoadFlag = true;
-                                loadMenuBox.setButtonOnlyVisible(false);
+                                loadMenuBox.setPleaseWait(true);
                                 saveFile(false);
                             }
                         }
@@ -762,7 +773,7 @@
                             if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON)
                             {
                                 loadImageDragDrop(true);
-                                loadMenuBox.visible = false;
+                                setLoadBoxVisible(false);
                             }
                         }
                         break;
@@ -771,7 +782,7 @@
                         {
                             if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON)
                             {
-                                loadMenuBox.visible = false;
+                                setLoadBoxVisible(false);
                             }
                         }
                         break;
@@ -792,7 +803,7 @@
             setToolTipTempON("Load failed");
             toolTipBox.x = Math.floor(loadMenuBox.x);
             toolTipBox.y = Math.floor(loadMenuBox.y);
-            loadMenuBox.visible = false;
+            setLoadBoxVisible(false);
         }
 
         private function selectMyPaletteButton(type:int):void
@@ -1119,7 +1130,9 @@
 
         private function isHintCantUse():Boolean
         {
-            return mouseDragON || mouseClickON || toolBox2ON || fillPenStarted || lassoToolON || rgbInfoFocusedON || aboutPanelON || makeJumpImageFlag === 2;
+            return mouseClickON || mouseDragON || toolBox2ON || fillPenStarted
+            || lassoToolON || rgbInfoFocusedON || aboutPanelON || makeJumpImageFlag === 2
+            || loadMenuBox.visible;
         }
 
         private function setLayerSwapEffect(target:DisplayObject):void
@@ -1329,7 +1342,8 @@
                 if(targetSave && hintBox.hitTestObject(targetSave))
                 {
                     gp = targetSave.localToGlobal(ZERO_POINT);
-                    hintBox.y = Math.round((gp.y-hintBox.height-30*scale));
+                    // hintBox.y = Math.round((gp.y-hintBox.height-30*scale));
+                    hintBox.y = 0;
                 }
             }
 
@@ -3076,14 +3090,17 @@
                     }
                 }
 
-                const fs:FileStream = new FileStream();
-                fs.open(localFolder.resolvePath(newerFileName), FileMode.READ);
-                var d:Object = fs.readObject();
-                fs.close();
-
-                if(d["rFileTotalFrame"] && d["rFileTotalFrame"] > 0.0)
+                if(newerFileName !== "")
                 {
-                    oldAppdataRtotalFrame = d["rFileTotalFrame"];
+                    const fs:FileStream = new FileStream();
+                    fs.open(localFolder.resolvePath(newerFileName), FileMode.READ);
+                    var d:Object = fs.readObject();
+                    fs.close();
+
+                    if(d["rFileTotalFrame"] && d["rFileTotalFrame"] > 0.0)
+                    {
+                        oldAppdataRtotalFrame = d["rFileTotalFrame"];
+                    }
                 }
 
                 for (i=0; i<len; i++)
@@ -7081,14 +7098,14 @@
         private function setUpdateButton():void
         {
             setLoadBoxReady();
-            loadMenuBox.setButtonOnlyVisible(false);
+            loadMenuBox.setPleaseWait(true);
             updateAfterSaveFlag = true;
             saveFile(false);
         }
 
         private function startUpdate():void
         {
-            loadMenuBox.visible = false;
+            setLoadBoxVisible(false);
             updateAfterSaveFlag = false;
             topBar.updateButtonVisible(false);
             if(needUpdate === 1)
@@ -7512,6 +7529,7 @@
             topBar.capClipBoard.alpha = 1.0;
 
             drawCaptureArea.updateDrawArea();
+            setDefaultHintCaptureMode();
         }
 
         //rotate hand zoom에서 쓰임
@@ -9419,9 +9437,13 @@
                     {
                         if(cutFrameClickCounter === 1
                         && cutFrameClickedButton === CUT_FRAME_RE_RECORD)
+                        {
                             str = getCutFrameOKString();
+                        }
                         else
-                            str = "New file from this image [f2]";
+                        {
+                            str = "New file from this image";
+                        }
                     }
 
                     break;
@@ -9430,9 +9452,13 @@
                     {
                         if(cutFrameClickCounter === 1
                         && cutFrameClickedButton === CUT_FRAME_DELETE_FRONT)
+                        {
                             str = getCutFrameOKString();
+                        }
                         else
-                            str = "Delete front data [f3]";
+                        {
+                            str = "Delete front data";
+                        }
                     }
                     break;
 
@@ -9440,9 +9466,13 @@
                     {
                         if(cutFrameClickCounter === 1
                         && cutFrameClickedButton === CUT_FRAME_SUPER_UNDO)
+                        {
                             str = getCutFrameOKString();
+                        }
                         else
-                            str = "Delete back data [f4]";
+                        {
+                            str = "Delete back data";
+                        }
                     }
                     break;
 
@@ -11372,7 +11402,7 @@
                             readyToReadRData(jumpFlag);
                             return;
                         }
-                        if(jumpFlag === JUMP_FRAME_ONCE || jumpFlag === JUMP_FRAME_BEFORE)
+                        if(replayStartON === false && (jumpFlag === JUMP_FRAME_ONCE || jumpFlag === JUMP_FRAME_BEFORE))
                         {
                             checkMakeCacheImage();
                         }
@@ -11961,7 +11991,7 @@
                 changeCanvasSizeReplayMode(rcanvas1Bitmap.width,rcanvas1Bitmap.height);
                 setBackgroundColorReplayMode(jumpImageData[4]);
 
-                if(updateRCavanvasImageFlag === 1)
+                if(updateRCavanvasImageFlag === 1 && replayStartON === false)
                 {
                     setCacheImageByIndex(0,rLastBytePosition);
                 }
@@ -12456,9 +12486,8 @@
                     resetOldTool();
                     selectPenTool();
                 }
-                setDragDropSelectBoxCenterPos();
-                loadMenuBox.setButtonOnlyVisible(true);
-                loadMenuBox.visible = true;
+                loadMenuBox.setPleaseWait(false);
+                setLoadBoxVisible(true);
                 setTopChildIndex(loadMenuBox);
             }
 
@@ -12967,6 +12996,9 @@
                 }
             }
 
+            loadMenuBox.setPleaseWait(true);
+            setLoadBoxVisible(true);
+
             function onFrameEnter(e:Event):void
             {
                 while(true)
@@ -13046,6 +13078,10 @@
                             addInputEventReplayMode();
                             rregPoint.visible = true;
                         }
+
+                        setLoadBoxVisible(false);
+                        loadMenuBox.setPleaseWait(false);
+                        resetKeyBuffer();
                         return;
                     }
 
@@ -13545,7 +13581,7 @@
             if(isTrue2020File(file) === false)
             {
                 saveThenLoadFlag = false;
-                loadMenuBox.visible = false;
+                setLoadBoxVisible(false);
                 setLoadBoxOFFLoadFailed();
                 return;
             }
@@ -13789,7 +13825,7 @@
                 updateCanvasWindowBitmapSize();
             }
             saveThenLoadFlag = false;
-            loadMenuBox.visible = false;
+            setLoadBoxVisible(false);
         }
 
         private function loadFile(traceLayer:Boolean=false):void
@@ -14168,7 +14204,11 @@
 
         private function captureMouseMoveHintEvent(e:MouseEvent):void
         {
-            if(!captureModeON) stageMouseMoveEvent.remove("captureMouseMoveHintEvent");
+            if(!captureModeON)
+            {
+                stageMouseMoveEvent.remove("captureMouseMoveHintEvent");
+                return;
+            }
 
             if(mouseClickON || mouseDragON)
             {
@@ -14333,6 +14373,7 @@
                 if(!captureModeON)
                 {
                     removeEvent();
+                    return;
                 }
 
                 const mx:Number = xPanel.mouseX;
@@ -14457,6 +14498,11 @@
                         else if(rect.y+rect.height > canvasHeight) rect.y = canvasHeight-rect.height;
                     }
 
+                    rect.x = Math.round(rect.x);
+                    rect.y = Math.round(rect.y);
+                    rect.width = Math.round(rect.width);
+                    rect.height = Math.round(rect.height);
+
                     clickPos.setTo(xPanel.mouseX,xPanel.mouseY);
                     drawArea(false);
                 }
@@ -14472,6 +14518,7 @@
                 if(!captureModeON)
                 {
                     removeEvent();
+                    return;
                 }
 
                 var mx:Number = xPanel.mouseX;
@@ -14623,23 +14670,17 @@
                 const w:Number = Math.abs(rect.width);
                 const h:Number = Math.abs(rect.height);
 
-                // if(!rect.width || !rect.height || (w < minSize && h < minSize))
-                // {
-                //     var width:Number;
-                //     var height:Number;
-                //     if(replayModeON)
-                //     {
-                //         width = rcanvas1BitmapData.width;
-                //         height = rcanvas1BitmapData.height;
-                //     }
-                //     else
-                //     {
-                //         width = canvas1BitmapData.width;
-                //         height = canvas1BitmapData.height;
-                //     }
-
-                //     return (captureRotated === 0 || captureRotated === 2) ? width+" x "+height : height+" x "+width;
-                // }
+                if(rect.x === 0.0 && rect.y === 0.0 && rect.width === 0.0 && rect.height === 0.0)
+                {
+                    if(replayModeON)
+                    {
+                        return (captureRotated === 0 || captureRotated === 2) ? RCANVAS_WIDTH+" x "+RCANVAS_HEIGHT : RCANVAS_HEIGHT+" x "+RCANVAS_WIDTH;
+                    }
+                    else
+                    {
+                        return (captureRotated === 0 || captureRotated === 2) ? CANVAS_WIDTH+" x "+CANVAS_HEIGHT : CANVAS_HEIGHT+" x "+CANVAS_WIDTH;
+                    }
+                }
 
                 return (captureRotated === 0 || captureRotated === 2) ? w+" x "+h : h+" x "+w;
             }
@@ -14705,10 +14746,11 @@
 
             function isCursorInResizeButton():Boolean
             {
-                if(!xPanel) return false;
+                if(!xPanel) return false
+
                 const p1:Point = new Point(xPanel.mouseX,xPanel.mouseY);
 
-                if(Point.distance(p1,resizeButtonPos)*getCanvasScale() < resizeButtonSize+2)
+                if(Point.distance(p1,resizeButtonPos)*getCanvasScale() < resizeButtonSize+7)
                 {
                     return true;
                 }
@@ -15198,7 +15240,6 @@
 
             if(arr[6] is Number)
             {
-                trace("언도에서 프레임 합계 불러옴")
                 undoData.setRFileTotalFrame(arr[6]);
             }
             else if(oldAppdataRtotalFrame >= 0)
@@ -18477,12 +18518,6 @@
         {
             if(deepUndoON)
             {
-                if(deepUndoUpdateReplayCanvasFlag)
-                {
-                    deepUndoUpdateReplayCanvasFlag = false;
-                    jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
-                }
-
                 jumpOneFrame(false,false);
                 drawReplayImageToDrawModeCanvas();
                 setRCursorVisibleONFadeOFF();
@@ -18517,12 +18552,6 @@
             {
                 if(rNowFrame > 0)
                 {
-                    if(deepUndoUpdateReplayCanvasFlag)
-                    {
-                        deepUndoUpdateReplayCanvasFlag = false;
-                        jumpFrame(deepUndoFrameSave,JUMP_FRAME_ONCE);
-                    }
-
                     jumpOneFrame(true,false);
                     drawReplayImageToDrawModeCanvas();
                     setRCursorVisibleONFadeOFF();
@@ -19931,17 +19960,17 @@
                 }
                 break;
 
-                case KEY.f2:
-                    setCutFrameButton(CUT_FRAME_RE_RECORD,true);
-                break;
+                // case KEY.f2:
+                //     setCutFrameButton(CUT_FRAME_RE_RECORD,true);
+                // break;
 
-                case KEY.f3:
-                    setCutFrameButton(CUT_FRAME_DELETE_FRONT,true);
-                break;
+                // case KEY.f3:
+                //     setCutFrameButton(CUT_FRAME_DELETE_FRONT,true);
+                // break;
 
-                case KEY.f4:
-                    setCutFrameButton(CUT_FRAME_SUPER_UNDO,true);
-                break;
+                // case KEY.f4:
+                //     setCutFrameButton(CUT_FRAME_SUPER_UNDO,true);
+                // break;
 
                 case KEY.f5:
                     setZoomInButton(false,true);
@@ -20936,7 +20965,6 @@
         {
             deepUndoON = false;
             deepUndoONSave = false;
-            deepUndoUpdateReplayCanvasFlag = false;
             rDataReadFlag = true;
             setRCursorVisibleONUndo(-1);
             clearRFrameCacheImages();
@@ -20946,7 +20974,6 @@
         {
             deepUndoON = true;
             rDataReadFlag = false;
-            deepUndoUpdateReplayCanvasFlag = false;
 
             if(makeJumpImageFlag === 1)
             {
@@ -21060,7 +21087,6 @@
             setTopBarHintOFF();
             setFitZoomedOFF();
             clearDataButtonCount = 0;
-            clearRFrameCacheImages();
             updateStageOffset();
 
             if(replayStartON === true) stopReplay();
@@ -21077,10 +21103,11 @@
             deepUndoON = deepUndoONSave;
             if(rNowFrame !== deepUndoFrameSave)
             {
-                deepUndoUpdateReplayCanvasFlag = true;
+                 //after로 해주는 이유는 캐쉬 안만들어줄라고
+                jumpFrame(deepUndoFrameSave,JUMP_FRAME_AFTER);
             }
+            clearRFrameCacheImages();
             rCursor.visible = false;
-
             addInputEventDrawMode();
         }
 
@@ -22044,11 +22071,12 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted) return;
+            if(fillPenStarted || loadMenuBox.visible) return;
 
             const target:DisplayObject = e.target as DisplayObject;
 
             if(!target) return;
+
 
             const targetName:String = target.name;
 
@@ -22126,7 +22154,9 @@
                 case "newWindowCloseButton":
                 {
                     if(toolBox2ON || !isNowKey(0) || e.target.alpha < 1.0)
+                    {
                         return;
+                    }
 
                     checkButtonUp(targetName);
                 }

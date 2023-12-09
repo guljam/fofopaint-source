@@ -40,6 +40,7 @@
 		{
 			toolTipInfoText.text = str;
 			toolTipInfoBG.graphics.clear();
+			toolTipInfoBG.graphics.lineStyle(1,0,0.5);
 			toolTipInfoBG.graphics.beginFill(bgColor,0.75);
 			toolTipInfoBG.graphics.drawRect(-1,-1,toolTipInfoText.width+2,toolTipInfoText.height+2);
 			(0,0,toolTipInfoText.width,toolTipInfoText.height);
