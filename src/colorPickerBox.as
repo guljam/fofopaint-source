@@ -42,7 +42,6 @@
 		public var currentColorWidth:Number = 28;
 		public var hueCursor:SimpleButton;
 		public var svCursor:SimpleButton;
-		public var dragColorRemoveButton:SimpleButton;
 		// public var preset17:SimpleButton = preset17;
 
 		public const svBoxWidth:uint = 170; //sv가로 세로 사이즈
@@ -401,15 +400,6 @@
 
 			panelWidth = 180;
 			panelHeight = mainPresetBox.y+mainPresetBox.height+3;
-
-			dragColorRemoveButton.alpha = 0.7;
-			dragColorRemoveButton.width = 80;
-			dragColorRemoveButton.height = 80;
-			dragColorRemoveButton.x = svBox.x+svBox.width/2-dragColorRemoveButton.width/2;
-			dragColorRemoveButton.y = svBox.y+svBox.height/2-dragColorRemoveButton.height/2+20;
-			dragColorRemoveButton.visible = false;
-			dragColorRemoveButton.mouseEnabled = false;
-			setChildIndex(dragColorRemoveButton,numChildren-1);
 
 			updateCurrentColor(1,0);
 			svCursor.mouseEnabled = false;

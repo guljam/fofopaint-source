@@ -63,7 +63,7 @@
     public class main extends Sprite
     {
         private const APP_VERSION:Number = 24.00;
-        private const APP_DATA_VERSION:Number = 24.00;
+        private const APP_DATA_VERSION:Number = 2400;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private var STAGE_FRAME:int = stage.frameRate; //frame rate가 오르면 선을 빠르게 그렀을때 떨어저 그려지고 낮게 하면 부드럽게 이어져 그려짐
@@ -425,8 +425,8 @@
         private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata"+(APP_DATA_VERSION.toString()))
                     ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata")
                     ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata")
-                    ,repFileTemp:File = File.applicationStorageDirectory.resolvePath("repdatatmp") //파일을 저장하거나 불러올때 씀
                     ,rJumpImageFolder:File = File.applicationStorageDirectory.resolvePath("imagecache")
+        private var repFileTemp:File//파일을 저장하거나 불러올때 씀
                     ,rJumpImageFrameDataFile:File = File.applicationStorageDirectory.resolvePath("jumpframedata")
                     ,myPaletteListFile:File = File.applicationStorageDirectory.resolvePath("mypalettedata")
                     ,rFirstImageFile:File = rJumpImageFolder.resolvePath("0")
@@ -658,6 +658,7 @@
                     ,isReplayModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,invokeFilePath:String = ""
+                    ,oldAppdataRtotalFrame:Number = -1 //24.00버전 이후로 쓸일 없지만 이전버전 호환성을 위해서 백업해주고 복원해줌
                     ;
 
         public function main():void
@@ -713,6 +714,16 @@
         }
 
         //function
+        private function getJumpImageFolder():File
+        {
+            return File.applicationStorageDirectory.resolvePath("imagecache");
+        }
+
+        private function initRepTempFile():void
+        {
+            repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_"+getRandomString(32))
+        }
+
         private function checkButtonUpLoadBox(oldTargetName:String):void
         {
             loadMenuBox.addEventListener(MouseEvent.MOUSE_UP,mouseUpLoadBox);
@@ -741,7 +752,7 @@
                             {
                                 saveThenLoadFlag = true;
                                 loadMenuBox.setButtonOnlyVisible(false);
-                                saveFile(true);
+                                saveFile(false);
                             }
                         }
                         break;
@@ -765,10 +776,6 @@
                         }
                         break;
                     }
-                }
-                else
-                {
-                    trace("타겟이 다름")
                 }
             }
         }
@@ -1611,7 +1618,14 @@
 
         private function rgbInfoTextRightMouseDownEvent(e:MouseEvent):void
         {
-            toggleRGBInfoTextColorType();
+            if(pickerBox.rgbInfo.hitTestPoint(mouseX,mouseY))
+            {
+                toggleRGBInfoTextColorType();
+            }
+            // else
+            // {
+            //     stage.focus = null;
+            // }
         }
 
         private function isNumberKeyCode(charCode:uint):Boolean
@@ -2942,12 +2956,6 @@
                 }
                 return;
 
-                case "myPaletteBox":
-                {
-                    setColorToMyPalette(pickerBox.getRGBInfoBGColor(),getMyPaletteIndexByMousePos());
-                }
-                return;
-
                 case "rgbInfo":
                 {
                     rgbInfoRightClickFocusIgnoreFlag = true;
@@ -2962,6 +2970,12 @@
                     {
                         setLayer2CheckToggle();
                     }
+                }
+                return;
+
+                case "myPaletteBox":
+                {
+                    //이거 있어야됨
                 }
                 return;
 
@@ -3041,18 +3055,43 @@
 
         private function deleteOldAppData():void
         {
-            const list:Array = File.applicationStorageDirectory.getDirectoryListing();
-            const len:uint = list.length;
-            var filename:String;
-
-            for (var i:uint=0; i<len; i++)
+            if(appDataFile.exists === false)
             {
-                filename = list[i].name;
-                if(filename.indexOf("appdata") !== -1 && filename !== "appdata"+APP_DATA_VERSION.toString())
+                const localFolder:File = File.applicationStorageDirectory;
+                const list:Array = localFolder.getDirectoryListing();
+                const len:uint = list.length;
+
+                var newerVersion:Number = 0.0;
+                var newerFileName:String = ""
+
+                for (var i:uint=0; i<len; i++)
                 {
-                    const files:File = File.applicationStorageDirectory;
-                    files.deleteDirectory(true);
-                    return;
+                    if(list[i].name.indexOf("appdata") !== -1 && list[i].name !== "appdata"+APP_DATA_VERSION.toString())
+                    {
+                        if(newerVersion < parseFloat(list[i].name.substr(7)))
+                        {
+                            newerVersion = parseFloat(list[i].name.substr(7));
+                            newerFileName = list[i].name;
+                        }
+                    }
+                }
+
+                const fs:FileStream = new FileStream();
+                fs.open(localFolder.resolvePath(newerFileName), FileMode.READ);
+                var d:Object = fs.readObject();
+                fs.close();
+
+                if(d["rFileTotalFrame"] && d["rFileTotalFrame"] > 0.0)
+                {
+                    oldAppdataRtotalFrame = d["rFileTotalFrame"];
+                }
+
+                for (i=0; i<len; i++)
+                {
+                    if(list[i].name.indexOf("appdata") !== -1 && list[i].name !== "appdata"+APP_DATA_VERSION.toString())
+                    {
+                        list[i].deleteFile();
+                    }
                 }
             }
         }
@@ -3146,6 +3185,7 @@
 
         private function stopWorker(forceFlag:Boolean=false):Boolean
         {
+
             if((workerDataSendCount === workerDataReceiveCount
                 && workerPNGCaptureFileData === null
                 && workerPNGSaveData === null
@@ -3155,6 +3195,7 @@
                     workerState = WORKER_STATE_STOPPED;
                     workerDataSendCount = 0;
                     workerDataReceiveCount = 0;
+
                     if(worker)
                     {
                         worker.terminate();
@@ -3176,6 +3217,8 @@
                     {
                         startUpdate();
                     }
+
+                    setSaveProgressOFF();
                     return false;
                 }
                 return true;
@@ -6846,6 +6889,7 @@
             topBar.addEventListener(MouseEvent.MOUSE_OVER,topBarHintONEvent);
             controlBox.addEventListener(MouseEvent.MOUSE_OVER,controlBoxHintONEvent);
             pickerBox.addEventListener(MouseEvent.MOUSE_OVER,pickerBoxHintONEvent);
+            pickerBox.myPaletteBox.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownMyPalette);
             loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLoadBox);
         }
 
@@ -6993,6 +7037,7 @@
 
             if(tempCopiedImage)
             {
+                loadMenuBox.setFilePathString("Clipboard image");
                 setLoadBoxReady();
             }
         }
@@ -9482,6 +9527,7 @@
 
         private function initReplayDataFile(overWrite:Boolean = false):void //기본 리플레이 파일 만들어줌
         {
+            initRepTempFile();
             if(repFile.exists === false || overWrite === true)
             {
                 const fs:FileStream = new FileStream();
@@ -12422,22 +12468,36 @@
         //운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
         private function onInvokeEvent(event:InvokeEvent):void
         {
+            if(fileBrowserON || captureModeON || isInSaveProgress !== 0)
+            {
+                return;
+            }
             var arguments:Array = event.arguments;
 
             if (arguments && arguments.length > 0) {
-                const file:File = new File(arguments[0]);
-                if(isTrue2020File(file))
+                try
                 {
-                    tempDragDropFile = file;
-                    loadMenuBox.setFilePathString(file.nativePath);
-                    setLoadBoxReady();
+                    const file:File = new File(arguments[0] as String);
+                    if(!file) return;
+
+                    if(isTrue2020File(file))
+                    {
+                        if(replayStartON) stopReplay();
+                        tempDragDropFile = file;
+                        loadMenuBox.setFilePathString(file.nativePath);
+                        setLoadBoxReady();
+                    }
+                }
+                catch(err:Error)
+                {
+                    setLoadBoxOFFLoadFailed();
                 }
             }
         }
 
         private function onDragDropEvent(e:NativeDragEvent):void
         {
-            if(fileBrowserON || captureModeON === true)
+            if(fileBrowserON || captureModeON === true ||isInSaveProgress !== 0)
             {
                 return;
             }
@@ -12460,7 +12520,7 @@
 
         private function onDragEnterEvent(e:NativeDragEvent):void
         {
-            if(captureModeON === true)
+            if(fileBrowserON || captureModeON === true ||isInSaveProgress !== 0)
             {
                 return;
             }
@@ -12763,7 +12823,12 @@
             }
         }
 
-        private function setColorToMyPalette(color:uint,index:int):void
+        private function rightMouseDownMyPalette(e:MouseEvent):void
+        {
+            addColorToMyPalette(pickerBox.getRGBInfoBGColor(),getMyPaletteIndexByMousePos());
+        }
+
+        private function addColorToMyPalette(color:uint,index:int):void
         {
             if(index < 0) return;
 
@@ -12793,13 +12858,9 @@
             //색깔 쭉 그려주기
             for(var i:uint=0;i<len;i++)
             {
-                if(arr[i] === null)
+                if(arr[i] === null || i === ignoreIndex)
                 {
                     pickerBox.myPaletteBox.graphics.beginFill(0xFFFFFF);
-                }
-                else if(type === 0 && i === ignoreIndex)
-                {
-                    pickerBox.myPaletteBox.graphics.beginFill(0,0);
                 }
                 else
                 {
@@ -13208,12 +13269,12 @@
             const traceImgWidth:Number = canvasTraceBitmapData.width;
             const traceImgHeight:Number = canvasTraceBitmapData.height;
 
-            const pathStr:String = saveFilePath;
-            const newPath:String = pathStr.substr(0,pathStr.lastIndexOf(".png"))+".2020";
-            const copyFile:File = new File(newPath);
+            const newPath:String = saveFilePath.substr(0,saveFilePath.lastIndexOf(".png"))+".2020";
+            var copyFile:File = new File(newPath);
 
             //실제 저장할 파일을 다시 써줌
             fs.open(repFileTemp,FileMode.WRITE);
+
             fs.position = 0;
             fs.writeUTFBytes("FOFOPAINT"); //파일 헤더
             fs.writeUnsignedInt(dataD.length); //뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
@@ -13263,10 +13324,11 @@
             }
             catch(err:Error)
             {
-                setHintONTemp("Save failed");
-                if(repFileTemp.exists) repFileTemp.deleteFile();
+                //파일 엑세스가 불가하므로 새로운 파일로 저장해줌
+                if(isInSaveProgress === 1) isInSaveProgress = 0;
                 setSaveProgressOFF();
                 saveFile(true,true);
+                return;
             }
 
             if(isInSaveProgress === 1) isInSaveProgress = 0;
@@ -13726,7 +13788,6 @@
                 canvasWindowIgnoreResizeEventFlag = true;
                 updateCanvasWindowBitmapSize();
             }
-
             saveThenLoadFlag = false;
             loadMenuBox.visible = false;
         }
@@ -13750,7 +13811,6 @@
             var loader:Loader = new Loader();
             //초기값으로 파일 경로가 저장된 파일 이름이랑 같으면 그냥 파일인스턴스로 만들어줌
             const file:File = (saveFilePath === saveFileName) ? new File() : new File(saveFilePath);
-            var tempFileName:String = "";
 
             //browser에서 fr.data에서 넘겨준 바이트데이터를 실제적으로 처리함
             function loadFileCompleteEvent(e:Event):void //load1
@@ -13791,7 +13851,6 @@
             function fileSelectHandler(e:Event):void
             {
                 setFileBrowserONFlag(false);
-                tempFileName = file.name;
 
                 file.removeEventListener(Event.SELECT,fileSelectHandler);
                 file.load();
@@ -13800,8 +13859,9 @@
             function fileSelectCompleteHandler(e:Event):void
             {
                 setFileBrowserONFlag(false);
+
                 //2020파일 처리
-                if(isImageFile(file.name) === true)
+                if(isTrue2020File(file) || isImageFile(file.name))
                 {
                     if(traceLayer === true) loadRawFileToReferenceLayer(file);
                     else loadReplayFile(file,file.name,file.nativePath);
@@ -13817,7 +13877,6 @@
                     catch(e:Error)
                     {
                         setLoadBoxOFFLoadFailed();
-                        resetKeyBuffer();
                         setFileBrowserONFlag(false);
                         loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
                         loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,loadFileCompleteEvent);
@@ -14417,30 +14476,34 @@
 
                 var mx:Number = xPanel.mouseX;
                 var my:Number = xPanel.mouseY;
-                var subX:Number = mx-clickPos.x;
-                var subY:Number = my-clickPos.y;
+                var subX:Number = Math.round(mx-clickPos.x);
+                var subY:Number = Math.round(my-clickPos.y);
 
                 if(mouseMoved)
                 {
-                    rectGhost.width += subX;
-                    rectGhost.height += subY;
+                    rectGhost.width = subX;
+                    rectGhost.height = subY;
+                    // clickPos.setTo(xPanel.mouseX,xPanel.mouseY);
 
-                    clickPos.setTo(xPanel.mouseX,xPanel.mouseY);
-
-                    rect.x = rectGhost.x;
-                    rect.y = rectGhost.y;
                     rect.width = rectGhost.width;
                     rect.height = rectGhost.height;
 
-                    if(rect.x < 0) rect.x = 0;
-                    else if(rect.x > canvasWidth) rect.x = canvasWidth;
+                    if(rect.x+rect.width < 0) rect.width = -rect.x;
+                    else if(rect.x+rect.width > canvasWidth) rect.width = canvasWidth-rect.x;
 
-                    if(rect.y < 0) rect.y = 0;
-                    else if(rect.y > canvasHeight) rect.y = canvasHeight;
+                    if(rect.y+rect.height < 0) rect.height = -rect.y;
+                    else if(rect.y+rect.height > canvasHeight) rect.height = canvasHeight-rect.y;
 
-                    if(rect.width < minSize) rect.width = minSize;
-                    if(rect.height < minSize) rect.height = minSize;
+                    if(rect.width >= 0.0 && rect.width < minSize) rect.width = minSize;
+                    if(rect.width < 0.0 && rect.width > -minSize) rect.width = -minSize;
 
+                    if(rect.height >= 0.0 && rect.height < minSize) rect.height = minSize;
+                    if(rect.width < 0.0 && rect.height > -minSize) rectGhost.height = -minSize;
+
+                    rect.width = Math.round(rect.width);
+                    rect.height = Math.round(rect.height);
+
+                    hint.on(getRotatedRectSizeString(),null);
                     drawArea(false);
                 }
                 else if(Math.abs(subX) >= minSize || Math.abs(subY) >= minSize)
@@ -14560,23 +14623,23 @@
                 const w:Number = Math.abs(rect.width);
                 const h:Number = Math.abs(rect.height);
 
-                if(!rect.width || !rect.height || (w < minSize && h < minSize))
-                {
-                    var width:Number;
-                    var height:Number;
-                    if(replayModeON)
-                    {
-                        width = rcanvas1BitmapData.width;
-                        height = rcanvas1BitmapData.height;
-                    }
-                    else
-                    {
-                        width = canvas1BitmapData.width;
-                        height = canvas1BitmapData.height;
-                    }
+                // if(!rect.width || !rect.height || (w < minSize && h < minSize))
+                // {
+                //     var width:Number;
+                //     var height:Number;
+                //     if(replayModeON)
+                //     {
+                //         width = rcanvas1BitmapData.width;
+                //         height = rcanvas1BitmapData.height;
+                //     }
+                //     else
+                //     {
+                //         width = canvas1BitmapData.width;
+                //         height = canvas1BitmapData.height;
+                //     }
 
-                    return (captureRotated === 0 || captureRotated === 2) ? width+" x "+height : height+" x "+width;
-                }
+                //     return (captureRotated === 0 || captureRotated === 2) ? width+" x "+height : height+" x "+width;
+                // }
 
                 return (captureRotated === 0 || captureRotated === 2) ? w+" x "+h : h+" x "+w;
             }
@@ -14728,19 +14791,18 @@
             };
         }
 
-        private function getRandomString():String
+        private function getRandomString(charLength:int = 6):String
         {
-            var count:int = 6;
             const chars:String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             const charsLen:uint = chars.length;
             var randomString:String = "";
             var index:int;
 
-            while(count > 0)
+            while(charLength > 0)
             {
                 index = Math.floor(charsLen*Math.random());
                 randomString += chars.charAt(index);
-                count--;
+                charLength--;
             }
 
             return randomString;
@@ -14901,8 +14963,8 @@
             if(saveFailed)
             {
                 //파일 쓰기가 실패하면 뒤에 new 붙임
-                filePath = _path.substr(0,_path.lastIndexOf(".png"))+"_new.png";
-                fileName = _name.substr(0,_name.lastIndexOf(".png"))+"_new.png";
+                filePath = _path.substr(0,_path.lastIndexOf(".png"))+"_copy.png";
+                fileName = _name.substr(0,_name.lastIndexOf(".png"))+"_copy.png";
             }
 
             return (_name !== _path) ? new File(filePath) : File.desktopDirectory.resolvePath(fileName);
@@ -14948,7 +15010,14 @@
                 }
                 else
                 {
-                    setHintONTemp("Already saved");
+                    if(saveThenLoadFlag)
+                    {
+                        loadImageDragDrop(false);
+                    }
+                    else
+                    {
+                        setHintONTemp("Already saved");
+                    }
                 }
                 return;
             }
@@ -14975,8 +15044,16 @@
                         fs.close();
                         fs.removeEventListener(IOErrorEvent.IO_ERROR,saveContinueErrorEvent);
                         saveOneTime = false;
-                        saveFile(true,true);
+                        if(saveThenLoadFlag)
+                        {
+                            loadImageDragDrop(false);
+                        }
+                        else
+                        {
+                            saveFile(true,true);
+                        }
                     }
+
                     fs.addEventListener(IOErrorEvent.IO_ERROR,saveContinueErrorEvent);
 
                     setSaveProgressON();
@@ -15014,7 +15091,8 @@
                 if(fileBrowserON) return;
 
                 const file:File = checkSaveFailedFileName(saveFailed);
-                const saveWindowTitle:String = (asFlag === true) ? "Save file As.."
+                const saveWindowTitle:String = (saveFailed) ? "Failed to save file! save with new name"
+                                                :(asFlag === true) ? "Save file As.."
                                                 :(saveThenLoadFlag) ? "Save file before load file"
                                                 :(updateAfterSaveFlag) ? "Save file before update":"Save file";
 
@@ -15118,6 +15196,16 @@
             var bmpd:BitmapData = new BitmapData(arr[2],arr[3],true,0);
             var bmpd1:BitmapData = new BitmapData(arr[2],arr[3],true,0);
 
+            if(arr[6] is Number)
+            {
+                trace("언도에서 프레임 합계 불러옴")
+                undoData.setRFileTotalFrame(arr[6]);
+            }
+            else if(oldAppdataRtotalFrame >= 0)
+            {
+                undoData.setRFileTotalFrame(oldAppdataRtotalFrame);
+            }
+
             rData = (fs.readObject() as Array).concat();
             rDataFrame = (fs.readObject() as Array).concat();
             fs.close();
@@ -15160,8 +15248,8 @@
             bmpd1.copyPixelsToByteArray(newRectangle,ba1);
             // ba.compress();
             // ba1.compress();
-            //레이어 1,레이어2,가로,세로,배경색
-            var newArr:Array = [ba,ba1,arr[2],arr[3],arr[4],arr[5]];
+            //레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
+            var newArr:Array = [ba,ba1,arr[2],arr[3],arr[4],arr[5],undoData.getRFileTotalFrame()];
 
             fs.open(undoDataFile,FileMode.WRITE);
             fs.writeInt(undoIndex);
@@ -15219,8 +15307,6 @@
                             "stage.nativeWindow.width":lastWindowSizeInfo[2],
                             "stage.nativeWindow.height":lastWindowSizeInfo[3],
                             "saveFileName":saveFileName,
-                            "CANVAS_BG_COLOR":CANVAS_BG_COLOR,
-                            "rFileTotalFrame":undoData.getRFileTotalFrame(),
                             "toolBox.scaleX":toolBox.scaleX,
                             "lastWindowState":lastWindowState,
                             "uiColorIndex":uiColorIndex,
@@ -15254,7 +15340,8 @@
                             "canvasWindowInfo[2]":canvasWindowInfo[2],
                             "canvasWindowInfo[3]":canvasWindowInfo[3],
                             "getFirstRCursorPos.x":tickDraw.getFirstRCursorPos().x,
-                            "getFirstRCursorPos.y":tickDraw.getFirstRCursorPos().y
+                            "getFirstRCursorPos.y":tickDraw.getFirstRCursorPos().y,
+                            "saveContinue":saveContinue
                             });
             fs.close();
         }
@@ -15351,6 +15438,11 @@
                 list = null;
             }
 
+            if(undoDataFile.exists)
+            {
+                loadUndoData();//undo data 복구 먼저 해줌
+            }
+
             if(appDataFile.exists)
             {
                 fs.open(appDataFile, FileMode.READ);
@@ -15358,7 +15450,6 @@
                 fs.close();
 
                 //loadUndoData함수에서 canvaspanel이 호출되는데 이전에 trace이미지 정보값을 넣어두어야함
-                if(undoDataFile.exists) loadUndoData();//undo data 복구 먼저 해줌
 
                 //그냥 해주면 창크기 적용이 안되서 타이머 걸어줌
                 addTimerByName("loadAppDataDelayTimer",0.15,false,function():void
@@ -15407,7 +15498,6 @@
                     eraseAlphaIndex = penAlphaList.indexOf(d["eraseAlpha"]);
                     eraseSizeIndex = d["eraseSizeIndex"];
                     setPenSize(d["penSizeIndex"]);
-                    undoData.setRFileTotalFrame(d["rFileTotalFrame"]);
                     saveFileName = d["saveFileName"];
                     saveFilePath = d["saveFileName"];
                     realWorkingTimer.setRunningTime(d["APP_RUNNING_TIME"]);
@@ -15451,6 +15541,7 @@
                         stage.nativeWindow.activate();
                     }
 
+                    saveContinue = d["saveContinue"];
                     rIndex = undoIndex;
                     rNowFrame = getNowFrameUntilUndoIndex(undoIndex);
                     rPrevFrame = getNowFrameUntilUndoIndex(undoIndex-1);
@@ -20471,6 +20562,15 @@
 
             if(appResetFlag === false)
             {
+                if(windowClosingFlag)
+                {
+                    const file:File = File.applicationStorageDirectory.resolvePath("tmp");
+                    if(file.exists)
+                    {
+                        file.deleteDirectory(true);
+                    }
+                }
+
                 if(windowClosingFlag
                 ||
                 ((getTimer()-windowDeactivateTime >= 3000
@@ -21372,12 +21472,6 @@
                 }
                 break;
 
-                case "myPaletteBox":
-                {
-                    setColorToMyPalette(pickerBox.getRGBInfoBGColor(),getMyPaletteIndexByMousePos());
-                }
-                return;
-
                 default:
                 {
                     if(!isSidebarVisible && sideBar.visible)
@@ -21552,26 +21646,16 @@
             {
                 myPaletteDragStarted = false;
 
-                pickerBox.svBox.alpha = 1.0;
-                pickerBox.dragColorRemoveButton.visible = false;
-                pickerBox.svCursor.visible = true;
+                const index:int = getMyPaletteIndexByMousePos();
 
-                if(pickerBox.svBox.hitTestPoint(mouseX,mouseY))
+                if(index >= 0)
                 {
-                    myPalettePreset[myPaletteDragClickedIndex] = 0xFFFFFF;
-                }
-                else
-                {
-                    const index:int = getMyPaletteIndexByMousePos();
+                    const colorSave:uint = myPalettePreset[index];
 
-                    if(index >= 0)
-                    {
-                        const colorSave:uint = myPalettePreset[index];
-
-                        myPalettePreset[index] = myPaletteDragClickedColor;
-                        myPalettePreset[myPaletteDragClickedIndex] = colorSave;
-                    }
+                    myPalettePreset[index] = myPaletteDragClickedColor;
+                    myPalettePreset[myPaletteDragClickedIndex] = colorSave;
                 }
+
                 updateMyPaletteList();
             }
 
@@ -21588,10 +21672,6 @@
                 {
                     myPaletteDragStarted = true;
                     pickerBox.setColorHistoryDragBoxColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
-
-                    pickerBox.svBox.alpha = 0.5;
-                    pickerBox.dragColorRemoveButton.visible = true;
-                    pickerBox.svCursor.visible = false;
                     updateMyPaletteList(myPaletteDragClickedIndex);
                 }
 
@@ -21964,7 +22044,7 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted || loadMenuBox.visible) return;
+            if(fillPenStarted) return;
 
             const target:DisplayObject = e.target as DisplayObject;
 
