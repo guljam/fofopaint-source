@@ -62,8 +62,8 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.00;
-        private const APP_DATA_VERSION:Number = 2400;
+        private const APP_VERSION:Number = 24.01;
+        private const APP_DATA_VERSION:Number = 2401;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private var STAGE_FRAME:int = stage.frameRate; //frame rate가 오르면 선을 빠르게 그렀을때 떨어저 그려지고 낮게 하면 부드럽게 이어져 그려짐
@@ -472,6 +472,7 @@
                     ,rFirstImage1:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rFirstBGColor:uint = CANVAS_BG_COLOR
                     ,rzoomed:Number = 1.0 //리플레이 줌
+                    ,rzoomedSave:Number = 1.0 //리플레이에서 수동줌하면 여기다가 저장해줌 
                     ,rFitZoomedON:Boolean = false // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
                     ,rJumpImageIndexLast:int = -2 //썸네일 인덱스 바뀌면 여기다 저장
                     ,rJumpImageNowFrameLast:Number = -1
@@ -5242,10 +5243,21 @@
 			return i < 0 ? 0 : Math.sqrt(i);
 		}
 
+        private function restoreZoomReplayMode():void
+        {
+            const center:Point = getStageCenterPos(CENTERPOS_DRAW);
+
+            rzoomedIndex = getNearZoomIndex(rzoomedSave);
+            setRegPoint(center.x,center.y,true);
+            setZoomCanvas(zoomList[rzoomedIndex],true);
+            autoScroll.updateRCanvasBounds();
+        }
+
         private function resetZoomReplayMode():void
         {
             const center:Point = getStageCenterPos(CENTERPOS_DRAW);
 
+            rzoomedSave = 1.0;
             rzoomedIndex = zoomList.indexOf(1.0);
             setRegPoint(center.x,center.y,true);
             setZoomCanvas(1.0,true);
@@ -5288,6 +5300,7 @@
 
             if(replayMode)
             {
+                rzoomedSave = newZoom;
                 setFitZoomedOFF();
                 rzoomedIndex = lastZoomIndex;
                 setRegPoint(center.x,center.y,true);
@@ -12190,7 +12203,7 @@
 
                 if(!rFitZoomedON)
                 {
-                    resetZoomReplayMode();
+                    restoreZoomReplayMode();
                 }
 
                 autoScroll.updateRCanvasBounds();
@@ -15382,7 +15395,8 @@
                             "canvasWindowInfo[3]":canvasWindowInfo[3],
                             "getFirstRCursorPos.x":tickDraw.getFirstRCursorPos().x,
                             "getFirstRCursorPos.y":tickDraw.getFirstRCursorPos().y,
-                            "saveContinue":saveContinue
+                            "saveContinue":saveContinue,
+                            "myPalettePresetType":myPalettePresetType
                             });
             fs.close();
         }
@@ -15592,7 +15606,8 @@
                     setCenvasCenterPos(true);
                     checkCanvasPanelPos();
                     checkCanvasPanelPos(true);
-                    updateMyPaletteList();
+                    if(d["myPalettePresetType"] > 0) selectMyPaletteButton(d["myPalettePresetType"]);
+                    else updateMyPaletteList();
                     updatePreviewBoxRectPos();
                     updatePenSizeCursor();
                     updateWindowTitle();
