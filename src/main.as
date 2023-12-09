@@ -292,7 +292,7 @@
                     ,stageBG:Sprite = new Sprite() //드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
                     ,aboutPanel:aboutBox = new aboutBox()
 
-                    ,fileDragSelectBox:loadBox = new loadBox()
+                    ,loadMenuBox:loadBox = new loadBox()
                     ,controlBox:controlMenu = new controlMenu()
                     ,pickerBox:colorPickerBox = new colorPickerBox()
                     ,previewBox:previewPanel = new previewPanel()
@@ -651,11 +651,13 @@
                     ,quickSidebarON:Boolean = false
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
                     ,isNewFOFOSaveFormat:Boolean = false
-                    ,updateAfterSave:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
+                    ,updateAfterSaveFlag:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
+                    ,saveThenLoadFlag:Boolean = false //파일을 로드해주는데 파일 세이브 끝나고 로드 해주는 플래그
                     ,layerCheckKeyPressed:Boolean = false //w키 1키 계속 누르고 있을때 함수 호출 안하게 해주려고 플래그 올려줌
                     ,isDrawModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isReplayModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
+                    ,invokeFilePath:String = ""
                     ;
 
         public function main():void
@@ -663,7 +665,7 @@
             if(stage) init();
             else this.addEventListener(Event.ADDED_TO_STAGE,initEvent);
 
-            NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvoke);
+            NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent);
         }
 
         private function initEvent(e:Event):void
@@ -672,26 +674,6 @@
             init();
         }
 
-        private function onInvoke(event:InvokeEvent):void
-        {
-            var arguments:Array = event.arguments;
-
-            if(arguments.length >0)
-            {
-                var len:int = arguments.length;
-                var str:String = "";
-                for(var i:int = 0; i < len; i++)
-                {
-                    str = arguments[i] + "\n";
-                }
-                hint.on(str);
-            }
-            if (arguments && arguments.length > 0) {
-                var file:File = new File(arguments[0]);
-                // 처리 로직을 수행
-                trace("File Path:", file.nativePath);
-            }
-        }
         private function init():void
         {
             deleteOldAppData();
@@ -729,7 +711,83 @@
             stage.addChild(fofo);
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
         }
+
         //function
+        private function checkButtonUpLoadBox(oldTargetName:String):void
+        {
+            loadMenuBox.addEventListener(MouseEvent.MOUSE_UP,mouseUpLoadBox);
+
+            function mouseUpLoadBox(e:MouseEvent):void
+            {
+                loadMenuBox.removeEventListener(MouseEvent.MOUSE_UP,mouseUpLoadBox);
+                if(!e.target) return;
+                if(oldTargetName === e.target.name)
+                {
+                    switch(e.target.name)
+                    {
+                        case "dragDropLoadButton":
+                        {
+                            if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON)
+                            {
+                                loadMenuBox.visible = false;
+                                loadImageDragDrop(false);
+                            }
+                        }
+                        break;
+
+                        case "dragDropSaveAndLoadButton":
+                        {
+                            if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON)
+                            {
+                                saveThenLoadFlag = true;
+                                loadMenuBox.setButtonOnlyVisible(false);
+                                saveFile(true);
+                            }
+                        }
+                        break;
+
+                        case "dragDropLoadRefLayerButton":
+                        {
+                            if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON)
+                            {
+                                loadImageDragDrop(true);
+                                loadMenuBox.visible = false;
+                            }
+                        }
+                        break;
+
+                        case "dragDropCancelButton":
+                        {
+                            if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON)
+                            {
+                                loadMenuBox.visible = false;
+                            }
+                        }
+                        break;
+                    }
+                }
+                else
+                {
+                    trace("타겟이 다름")
+                }
+            }
+        }
+
+        private function mouseDownLoadBox(e:MouseEvent):void
+        {
+            if(!e.target) return;
+            checkButtonUpLoadBox(e.target.name);
+        }
+
+        private function setLoadBoxOFFLoadFailed():void
+        {
+            saveThenLoadFlag = false;
+            setToolTipTempON("Load failed");
+            toolTipBox.x = Math.floor(loadMenuBox.x);
+            toolTipBox.y = Math.floor(loadMenuBox.y);
+            loadMenuBox.visible = false;
+        }
+
         private function selectMyPaletteButton(type:int):void
         {
             if(myPalettePresetType === type)
@@ -1132,7 +1190,7 @@
 
         private function setHintONTemp(str:String):void
         {
-            hint.on(str,null);
+            hint.on(str,null,true);
             sethintOFFDelay();
         }
 
@@ -2800,6 +2858,7 @@
             toolBox2.setScale(scale);
             aboutPanel.setScale(scale);
             spuitZoomCursor.setScale(scale);
+            loadMenuBox.setScale(scale);
             updateStageOffset();
             updateScrollBarHeight(sth);
             rCursor.setScale(scale);
@@ -3109,7 +3168,11 @@
                         stage.nativeWindow.close();
                     }
 
-                    if(updateAfterSave)
+                    if(saveThenLoadFlag)
+                    {
+                        loadImageDragDrop(false);
+                    }
+                    else if(updateAfterSaveFlag)
                     {
                         startUpdate();
                     }
@@ -3843,15 +3906,15 @@
             catch(err:Error)
             {
                 fs.close();
-                setHintONTemp("Load failed");
                 return false;
             }
 
             return false;
         }
 
-        private function is2020Ext(path:String):Boolean
+        private function isImageFile(path:String):Boolean
         {
+            //가장 마지막 확장자만 따짐
             const gif:int = path.lastIndexOf(".gif");
             const jpg:int = path.lastIndexOf(".jpg");
             const png:int = path.lastIndexOf(".png");
@@ -4901,7 +4964,8 @@
                 || !isCursorInDrawArea()
                 || (sideBar.visible && sideBarScrollBar.hitTestPoint(mouseX,mouseY))
                 || resizeCanvas.isCanvasResizing()
-                || (traceMenu.visible && traceMenu.hitTestPoint(mouseX,mouseY)))
+                || (traceMenu.visible && traceMenu.hitTestPoint(mouseX,mouseY))
+                || loadMenuBox.visible)
                 {
                     penSizeCursor.visible = false;
                 }
@@ -6722,7 +6786,7 @@
             lassoMenu.changeUIColor(uiToolBoxColorSet[index]);
             topBar.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],uiColorSet[index][4]);
             rotateCursorBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1]);
-            fileDragSelectBox.changeUIColor(uiToolBoxColorSet[index]);
+            loadMenuBox.changeUIColor(uiToolBoxColorSet[index]);
             replayTimeBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],uiToolBoxColorSet[index][4],index);
             checkClipBoardImage();
             appInfoBox.changeUIColor(uiColorSet[index][1]);
@@ -6770,7 +6834,7 @@
             stage.nativeWindow.addEventListener(Event.DEACTIVATE,windowDeactiveEvent);
             stage.nativeWindow.addEventListener(Event.ACTIVATE,windowActiveEvent);
             stage.nativeWindow.addEventListener(Event.CLOSING, windowClosingEvent);
-
+            stage.addEventListener(MouseEvent.MOUSE_OUT,globalHintOFF);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,onDragEnterEvent);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP,onDragDropEvent);
 
@@ -6778,15 +6842,11 @@
             toolBox.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHintONEvent);
             toolBox.addEventListener(MouseEvent.MOUSE_OUT,toolBoxHintOFFEvent);
             toolBox2.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHint2ONEvent);
-
             replayTimeBox.addEventListener(MouseEvent.MOUSE_OVER,topBarHintONEvent);
             topBar.addEventListener(MouseEvent.MOUSE_OVER,topBarHintONEvent);
-
             controlBox.addEventListener(MouseEvent.MOUSE_OVER,controlBoxHintONEvent);
-
             pickerBox.addEventListener(MouseEvent.MOUSE_OVER,pickerBoxHintONEvent);
-
-            stage.addEventListener(MouseEvent.MOUSE_OUT,globalHintOFF);
+            loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLoadBox);
         }
 
         private function setControlBoxInfoOFF():void
@@ -6933,7 +6993,7 @@
 
             if(tempCopiedImage)
             {
-                setDragDropSelectBoxReady();
+                setLoadBoxReady();
             }
         }
 
@@ -6975,13 +7035,17 @@
 
         private function setUpdateButton():void
         {
-            updateAfterSave = true;
+            setLoadBoxReady();
+            loadMenuBox.setButtonOnlyVisible(false);
+            updateAfterSaveFlag = true;
             saveFile(false);
         }
 
         private function startUpdate():void
         {
-            updateAfterSave = false;
+            loadMenuBox.visible = false;
+            updateAfterSaveFlag = false;
+            topBar.updateButtonVisible(false);
             if(needUpdate === 1)
             {
                 addTimer(0.5,false,function():void
@@ -7141,7 +7205,7 @@
                 realWorkingTimer.resetAFKCount();
             }
 
-            if(fileDragSelectBox.visible)
+            if(loadMenuBox.visible)
             {
                 return;
             }
@@ -7157,7 +7221,6 @@
 
         private function stageKeyDownEvent(e:KeyboardEvent):void
         {
-            trace("drawCaptureArea.getCaptureArea();",drawCaptureArea.getCaptureArea())
             setIMEDisabled();
             checkKeyInvalidKey();
 
@@ -7168,7 +7231,7 @@
 
             const keyCode:uint = e.keyCode;
 
-            if(fileDragSelectBox.visible || keyCode === KEY.window)
+            if(loadMenuBox.visible || keyCode === KEY.window)
             {
                 return;
             }
@@ -8602,26 +8665,6 @@
 
                         case "replayZoomOutButton":
                             setZoomInButton(false,true);
-                        break;
-
-                        case "dragDropFileButton":
-                        {
-                            loadImageDragDrop(tempDragDropFile,false);
-                            fileDragSelectBox.visible = false;
-                        }
-                        break;
-
-                        case "dragDropRefButton":
-                        {
-                            loadImageDragDrop(tempDragDropFile,true);
-                            fileDragSelectBox.visible = false;
-                        }
-                        break;
-
-                        case "dragDropCancelButton":
-                        {
-                            fileDragSelectBox.visible = false;
-                        }
                         break;
 
                         case "timer":
@@ -12333,32 +12376,32 @@
         //drag load
         private function setDragDropSelectBoxCenterPos():void
         {
-            fileDragSelectBox["dragDropFileBG"].x = 0;
-            fileDragSelectBox["dragDropFileBG"].y = 0;
-            fileDragSelectBox["dragDropFileBG"].width = 1;
-            fileDragSelectBox["dragDropFileBG"].height = 1;
-            fileDragSelectBox.scaleX = 1.0;
-            fileDragSelectBox.scaleY = 1.0;
+            loadMenuBox["dragDropFileBG"].x = 0;
+            loadMenuBox["dragDropFileBG"].y = 0;
+            loadMenuBox["dragDropFileBG"].width = 1;
+            loadMenuBox["dragDropFileBG"].height = 1;
+            // loadMenuBox.scaleX = 1.0;
+            // loadMenuBox.scaleY = 1.0;
 
             const stw:Number = stage.stageWidth;
             const sth:Number = stage.stageHeight;
-            const f1:Number = stw/fileDragSelectBox.width; //가장 짧은 길이를 기준으로 비율을 삼음
-            const f2:Number = sth/fileDragSelectBox.height;
+            const f1:Number = stw/loadMenuBox.width; //가장 짧은 길이를 기준으로 비율을 삼음
+            const f2:Number = sth/loadMenuBox.height;
             const f:Number = (f1 <= f2) ? f1:f2;
-            fileDragSelectBox.scaleX = 1.0;
-            fileDragSelectBox.scaleY = 1.0;
-            fileDragSelectBox.x = stw/2 - fileDragSelectBox.width/2;
-            fileDragSelectBox.y = sth/2 - fileDragSelectBox.height/2;
-            fileDragSelectBox["dragDropFileBG"].x = -fileDragSelectBox.x;
-            fileDragSelectBox["dragDropFileBG"].y = -fileDragSelectBox.y;
-            fileDragSelectBox["dragDropFileBG"].width = stw;
-            fileDragSelectBox["dragDropFileBG"].height = sth;
+            // loadMenuBox.scaleX = 1.0;
+            // loadMenuBox.scaleY = 1.0;
+            loadMenuBox.x = stw/2 - loadMenuBox.width/2;
+            loadMenuBox.y = sth/2 - loadMenuBox.height/2;
+            loadMenuBox["dragDropFileBG"].x = -loadMenuBox.x;
+            loadMenuBox["dragDropFileBG"].y = -loadMenuBox.y;
+            loadMenuBox["dragDropFileBG"].width = stw;
+            loadMenuBox["dragDropFileBG"].height = sth;
         }
 
-        private function setDragDropSelectBoxReady():void
+        private function setLoadBoxReady():void
         {
             resetKeyBuffer();
-            if(fileDragSelectBox.visible === false)
+            if(loadMenuBox.visible === false)
             {
                 if(lassoToolON === true)
                 {
@@ -12367,13 +12410,29 @@
                     resetOldTool();
                     selectPenTool();
                 }
-
                 setDragDropSelectBoxCenterPos();
-                fileDragSelectBox.visible = true;
-                setTopChildIndex(fileDragSelectBox);
+                loadMenuBox.setButtonOnlyVisible(true);
+                loadMenuBox.visible = true;
+                setTopChildIndex(loadMenuBox);
             }
 
-            if(toolBox2ON) closeToolBox2();
+            closeToolBox2();
+        }
+
+        //운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
+        private function onInvokeEvent(event:InvokeEvent):void
+        {
+            var arguments:Array = event.arguments;
+
+            if (arguments && arguments.length > 0) {
+                const file:File = new File(arguments[0]);
+                if(isTrue2020File(file))
+                {
+                    tempDragDropFile = file;
+                    loadMenuBox.setFilePathString(file.nativePath);
+                    setLoadBoxReady();
+                }
+            }
         }
 
         private function onDragDropEvent(e:NativeDragEvent):void
@@ -12394,7 +12453,8 @@
 
             if(ext === "2020" || ext === "png" || ext === "jpg" || ext === "gif")
             {
-                setDragDropSelectBoxReady();
+                loadMenuBox.setFilePathString(file.nativePath);
+                setLoadBoxReady();
             }
         }
 
@@ -12418,7 +12478,7 @@
             }
         }
 
-        private function loadImageDragDrop(obj:Object,isTraceLayer:Boolean):void
+        private function loadImageDragDrop(isTraceLayer:Boolean):void
         {
             if(tempCopiedImage) //클립보드에 이미지가 있으면
             {
@@ -12428,77 +12488,88 @@
                     //두번째 변수에서 fileName를 같게 해줘야 저장할때 오류가 안남
                     loadImageFile(fileName,fileName,tempCopiedImage.width,tempCopiedImage.height,tempCopiedImage,null);
                 }
-                else if(isTraceLayer)
+                else
                 {
                     pasteTraceImage(tempCopiedImage,tempCopiedImage.width,tempCopiedImage.height);
                     if(!replayModeON) openTraceWindow();
                 }
                 tempCopiedImage = null;
+                return;
             }
-            else if(obj.length > 0) //파일 드래그로 직접 해줄때
+            var file:File;
+
+            if(tempDragDropFile is File)
             {
-                //grab the files file
-                var file:File = File(obj[0]);
-                var fs:FileStream = new FileStream();
-                var loader:Loader = new Loader();
-                var tmpFileName:String = "";
+                file = tempDragDropFile as File;
+            }
+            else if(tempDragDropFile is Object && tempDragDropFile.length > 0)
+            {
+                file = File(tempDragDropFile[0]);
+            }
 
-                fs.addEventListener(Event.COMPLETE, completeHandler);
-                fs.addEventListener(IOErrorEvent.IO_ERROR, errorHandler)
+            //grab the files file
+            var fs:FileStream = new FileStream();
+            var loader:Loader = new Loader();
+            var tmpFileName:String = "";
 
-                //실제적으로 loader가 읽어서 캔버스에 그림
-                function loaderIOErrorHandlerEvent(e:Event):void
+            fs.addEventListener(Event.COMPLETE, completeHandler);
+            fs.addEventListener(IOErrorEvent.IO_ERROR, errorHandler);
+
+            //실제적으로 loader가 읽어서 캔버스에 그림
+            function loaderIOErrorHandlerEvent(e:Event):void
+            {
+                setLoadBoxOFFLoadFailed();
+                tempDragDropFile = null;
+                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderIOErrorHandlerEvent);
+                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, startDrawImgEvent);
+                loader = null;
+            }
+
+            function startDrawImgEvent(e:Event):void //drag load1
+            {
+                var loaderInfo:LoaderInfo = LoaderInfo(e.target);
+
+                if(!isTraceLayer)
                 {
-                    setHintONTemp("Load failed");
-                    tempDragDropFile = null;
-                    loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderIOErrorHandlerEvent);
-                    loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, startDrawImgEvent);
-                    loader = null;
-                }
-
-                function startDrawImgEvent(e:Event):void //drag load1
-                {
-                    var loaderInfo:LoaderInfo = LoaderInfo(e.target);
-
-                    if(!isTraceLayer)
+                    if(tempCopiedImage)
                     {
-                        if(tempCopiedImage)
-                        {
-                            loadImageFile("Paste Image",saveFilePath,tempCopiedImage.width,tempCopiedImage.height,tempCopiedImage,null);
-                            tempCopiedImage = null;
-                        }
-                        else
-                        {
-                            loadImageFile(tmpFileName,file.nativePath,loaderInfo.width,loaderInfo.height,loaderInfo.loader,null);
-                        }
-
+                        loadImageFile("Paste Image",saveFilePath,tempCopiedImage.width,tempCopiedImage.height,tempCopiedImage,null);
+                        tempCopiedImage = null;
                     }
-                    else if(isTraceLayer)
+                    else
                     {
-                        if(tempCopiedImage)
-                        {
-                            pasteTraceImage(tempCopiedImage,tempCopiedImage.width,tempCopiedImage.height);
-                            tempCopiedImage = null;
-                        }
-                        else
-                        {
-                            pasteTraceImage(loaderInfo.loader,loaderInfo.width,loaderInfo.height);
-                        }
-
-                        if(!replayModeON) openTraceWindow();
+                        loadImageFile(tmpFileName,file.nativePath,loaderInfo.width,loaderInfo.height,loaderInfo.loader,null);
                     }
 
-                    tempDragDropFile = null;
-                    loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderIOErrorHandlerEvent);
-                    loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, startDrawImgEvent);
-                    loader.unload();
-                    loader = null;
+                }
+                else
+                {
+                    if(tempCopiedImage)
+                    {
+                        pasteTraceImage(tempCopiedImage,tempCopiedImage.width,tempCopiedImage.height);
+                        tempCopiedImage = null;
+                    }
+                    else
+                    {
+                        pasteTraceImage(loaderInfo.loader,loaderInfo.width,loaderInfo.height);
+                    }
+
+                    if(!replayModeON) openTraceWindow();
                 }
 
-                //file steram에서 바이트를 읽어서 다시 loader한테 보내줌
-                function completeHandler(e:Event):void
+                tempDragDropFile = null;
+                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderIOErrorHandlerEvent);
+                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, startDrawImgEvent);
+                loader.unload();
+                loader = null;
+            }
+
+            //file steram에서 바이트를 읽어서 다시 loader한테 보내줌
+            function completeHandler(e:Event):void
+            {
+                try
                 {
-                    if(is2020Ext(file.name) === true)
+                    if(isImageFile(file.name) === true)
                     {
                         if(!isTraceLayer)
                         {
@@ -12530,19 +12601,39 @@
                         data2Byte = null;
                     }
                 }
-
-                function errorHandler(e:Event):void
+                catch(err:Error)
                 {
-                    fs.close();
-                    fs.removeEventListener(Event.COMPLETE, completeHandler);
-                    fs.removeEventListener(IOErrorEvent.IO_ERROR, errorHandler);
-                    fs = null;
                     tempDragDropFile = null;
+                    if(data2Byte)
+                    {
+                        data2Byte.clear();
+                        data2Byte = null;
+                    }
+                    if(fs)
+                    {
+                        fs.close();
+                        fs.removeEventListener(Event.COMPLETE, completeHandler);
+                        fs.removeEventListener(IOErrorEvent.IO_ERROR, errorHandler);
+                        fs = null;
+                    }
+                    loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderIOErrorHandlerEvent);
+                    loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, startDrawImgEvent);
+                    setLoadBoxOFFLoadFailed();
                 }
-
-                tmpFileName = file.name;
-                fs.openAsync(file, FileMode.READ);
             }
+
+            function errorHandler(e:Event):void
+            {
+                setLoadBoxOFFLoadFailed();
+                fs.close();
+                fs.removeEventListener(Event.COMPLETE, completeHandler);
+                fs.removeEventListener(IOErrorEvent.IO_ERROR, errorHandler);
+                fs = null;
+                tempDragDropFile = null;
+            }
+
+            tmpFileName = file.name;
+            fs.openAsync(file, FileMode.READ);
         }
 
 
@@ -13185,7 +13276,12 @@
 
         private function loadReplayFile(oldFile:File,fileName:String,filePath:String):void //loadrep
         {
-            if(isTrue2020File(oldFile) === false)return;
+            if(isTrue2020File(oldFile) === false)
+            {
+                setLoadBoxOFFLoadFailed();
+                return;
+            }
+
             if(replayModeON)
             {
                 setDeepUndoFrameSave(rNowFrame);
@@ -13386,7 +13482,9 @@
         {
             if(isTrue2020File(file) === false)
             {
-                setHintONTemp("Load failed");
+                saveThenLoadFlag = false;
+                loadMenuBox.visible = false;
+                setLoadBoxOFFLoadFailed();
                 return;
             }
 
@@ -13481,7 +13579,7 @@
         {
             if(!imageData)
             {
-                setHintONTemp("Load failed");
+                setLoadBoxOFFLoadFailed();
                 return;
             }
 
@@ -13508,7 +13606,7 @@
             setBackgroundColorReplayMode(newBG);
             if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
 
-            if(is2020Ext(fileName) === true)
+            if(isImageFile(fileName) === true)
             {
                 fileName = fileName.substr(0,fileName.lastIndexOf(".2020"))+".png";
                 filePath = filePath.substr(0,filePath.lastIndexOf(".2020"))+".png";
@@ -13628,6 +13726,9 @@
                 canvasWindowIgnoreResizeEventFlag = true;
                 updateCanvasWindowBitmapSize();
             }
+
+            saveThenLoadFlag = false;
+            loadMenuBox.visible = false;
         }
 
         private function loadFile(traceLayer:Boolean=false):void
@@ -13669,7 +13770,7 @@
 
             function loadErrorEvent(e:Event):void
             {
-                setHintONTemp("Load failed");
+                setLoadBoxOFFLoadFailed();
                 setFileBrowserONFlag(false);
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
                 loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,loadFileCompleteEvent);
@@ -13700,7 +13801,7 @@
             {
                 setFileBrowserONFlag(false);
                 //2020파일 처리
-                if(is2020Ext(file.name) === true)
+                if(isImageFile(file.name) === true)
                 {
                     if(traceLayer === true) loadRawFileToReferenceLayer(file);
                     else loadReplayFile(file,file.name,file.nativePath);
@@ -13715,7 +13816,7 @@
                     }
                     catch(e:Error)
                     {
-                        setHintONTemp("Load failed");
+                        setLoadBoxOFFLoadFailed();
                         resetKeyBuffer();
                         setFileBrowserONFlag(false);
                         loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
@@ -14554,7 +14655,6 @@
 
             function setMoveOrResizeAreaReady(mx:Number,my:Number,flag:Boolean):void
             {
-                trace("drawCaptureArea.getCaptureArea()11 ;",drawCaptureArea.getCaptureArea())
                 mouseDragON = true;
                 resizeFlag = flag;
                 rectGhost.x = rect.x;
@@ -14565,7 +14665,6 @@
                 limitHeightSave = rect.y+rect.height;
 
                 clickPos.setTo(mx,my);
-                trace("drawCaptureArea.getCaptureArea()22 ;",drawCaptureArea.getCaptureArea())
                 stageMouseMoveEvent.add("captureMouseMoveEvent2",captureMouseMoveEvent2);
                 stage.addEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
             }
@@ -14843,7 +14942,7 @@
 
             if(saveOneTime && continueFlag)
             {
-                if(updateAfterSave)
+                if(updateAfterSaveFlag)
                 {
                     startUpdate();
                 }
@@ -14916,7 +15015,8 @@
 
                 const file:File = checkSaveFailedFileName(saveFailed);
                 const saveWindowTitle:String = (asFlag === true) ? "Save file As.."
-                                                :(updateAfterSave) ? "Save file before update":"Save file";
+                                                :(saveThenLoadFlag) ? "Save file before load file"
+                                                :(updateAfterSaveFlag) ? "Save file before update":"Save file";
 
                 file.addEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
                 file.addEventListener(Event.CANCEL, onErrorEvent);
@@ -14937,7 +15037,12 @@
                     setFileBrowserONFlag(false);
                     file.cancel();
                     removeEvent();
-                    if(updateAfterSave)
+
+                    if(saveThenLoadFlag)
+                    {
+                        loadImageDragDrop(false);
+                    }
+                    else if(updateAfterSaveFlag)
                     {
                         startUpdate();
                     }
@@ -19107,7 +19212,7 @@
             sideBarScrollSet.graphics.endFill();
 
             topBar.updateTimerPos(stage.stageWidth);
-            stage.addChild(fileDragSelectBox);
+            stage.addChild(loadMenuBox);
             stage.addChild(traceMenu);
             stage.addChild(aboutPanel);
             stage.addChild(topBar);
@@ -19365,7 +19470,7 @@
 
                 updatePreviewBoxRectPos();
 
-                if(fileDragSelectBox.visible === true)
+                if(loadMenuBox.visible === true)
                 {
                     setDragDropSelectBoxCenterPos();
                 }
@@ -19639,7 +19744,7 @@
         {
             const keyCode:uint = KEY_BUFFER[0];
 
-            if(mouseClickON || rightMouseClickON || isNowKey(keyCode)) return;
+            if(mouseClickON || rightMouseClickON || isNowKey(keyCode) || loadMenuBox.visible) return;
 
             if(isPressingControlShift())
             {
@@ -19815,7 +19920,7 @@
 
         private function keyDownDrawMode(e:KeyboardEvent):void
         {
-            if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted)
+            if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted || loadMenuBox.visible)
             {
                 return;
             }
@@ -20366,7 +20471,10 @@
 
             if(appResetFlag === false)
             {
-                if(getTimer()-windowDeactivateTime >= 1000 || windowClosingFlag)
+                if(windowClosingFlag
+                ||
+                ((getTimer()-windowDeactivateTime >= 3000
+                && !isInSaveProgress && !fileBrowserON && !saveThenLoadFlag && !updateAfterSaveFlag)))
                 {
                     windowDeactivateTime = getTimer();
                     saveAllData();
@@ -20979,7 +21087,7 @@
         private function mouseDownReplayMode(e:MouseEvent):void //repdown1
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(!target) return;
+            if(!target || loadMenuBox.visible) return;
 
             const targetName:String = target.name;
 
@@ -21046,9 +21154,6 @@
                 case "replayZoomInButton":
                 case "replayZoomOutButton":
                 case "replayFitToWindowButton":
-                case "dragDropFileButton":
-                case "dragDropRefButton":
-                case "dragDropCancelButton":
                 case "playButton":
                 case "pauseButton":
                 case "replayPrev":
@@ -21111,7 +21216,7 @@
 
         private function rightMouseDownReplayMode(e:MouseEvent):void
         {
-            if(mouseClickON || !isNowKey(0) || !e.target) return;
+            if(mouseClickON || !isNowKey(0) || !e.target || loadMenuBox.visible) return;
 
             const targetName:String = e.target.name;
 
@@ -21160,7 +21265,8 @@
         private function rightMouseDownDrawMode(e:MouseEvent):void //rdown1
         {
             if(mouseClickON || isPressingControl() || quickSidebarON
-            || fillPenStarted || (traceMenuON && traceMenu.hitTestPoint(mouseX,mouseY)))
+            || fillPenStarted || (traceMenuON && traceMenu.hitTestPoint(mouseX,mouseY))
+            || loadMenuBox.visible)
             {
                 return;
             }
@@ -21858,7 +21964,7 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted) return;
+            if(fillPenStarted || loadMenuBox.visible) return;
 
             const target:DisplayObject = e.target as DisplayObject;
 
@@ -21925,9 +22031,6 @@
                 case "sideBarOFFButton2":
                 case "sideBarONButton":
                 case "sideBarONButton2":
-                case "dragDropFileButton":
-                case "dragDropRefButton":
-                case "dragDropCancelButton":
                 case "timer":
                 case "traceCancelButton":
                 case "traceImageButton":

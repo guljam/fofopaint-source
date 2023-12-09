@@ -6,18 +6,56 @@
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObjectContainer;
+	import flash.text.TextFieldAutoSize;
 
 	public class loadBox extends Sprite {
-		public var dragDropFileButton:SimpleButton;
-		public var dragDropRefButton:SimpleButton;
+		public var dragDropLoadButton:SimpleButton;
+		public var dragDropLoadRefLayerButton:SimpleButton;
+		public var dragDropSaveAndLoadButton:SimpleButton;
 		public var dragDropCancelButton:SimpleButton;
+		public var pleaseWaitText:TextField;
 		public var dragDropFileBG:Sprite = new Sprite();
+		private var filePathText:TextField = new TextField();
+		private var filePathTextBG:Sprite = new Sprite();
 
 		private const base:ColorTransform = new ColorTransform();
 		private const subBase:ColorTransform = new ColorTransform();
 		private const activeColor:ColorTransform = new ColorTransform();
 		private const activeIconColor:ColorTransform = new ColorTransform();
 		private var buttonList:Array;
+
+		public function setFilePathString(str:String):void
+		{
+			if(filePathText)
+			{
+				var bgColor:uint = subBase.color;
+
+				filePathText.text = str;
+				filePathText.textColor = base.color;
+				filePathTextBG.graphics.clear();
+				filePathTextBG.graphics.beginFill(bgColor);
+				filePathTextBG.graphics.drawRect(0,0,filePathText.width,filePathText.height);
+				filePathTextBG.graphics.endFill();
+				filePathTextBG.x = dragDropLoadButton.x;
+				filePathTextBG.y = dragDropLoadButton.y-filePathTextBG.height;
+			}
+		}
+
+		public function setButtonOnlyVisible(flag:Boolean):void
+		{
+			pleaseWaitText.visible = !flag;
+			filePathTextBG.visible = flag;
+			dragDropLoadButton.visible = flag;
+			dragDropLoadRefLayerButton.visible = flag;
+			dragDropSaveAndLoadButton.visible = flag;
+			dragDropCancelButton.visible = flag;
+		}
+
+		public function setScale(newScale:Number):void
+		{
+			this.scaleX = newScale;
+			this.scaleY = newScale;
+		}
 
 		public function changeUIColor(arr:Array):void
 		{
@@ -57,6 +95,8 @@
 				childText = btnOver.getChildAt(1) as TextField;
 				childText.textColor = textColorOver;
 			}
+
+			pleaseWaitText.textColor = arr[1];
 		}
 
 		public function loadBox() {
@@ -72,17 +112,27 @@
 			setChildIndex(dragDropFileBG,0);
 
 			visible = false;
-			dragDropFileButton.useHandCursor = true;
-			dragDropRefButton.useHandCursor = true;
+			pleaseWaitText.visible = false;
+			dragDropLoadButton.useHandCursor = true;
+			dragDropLoadRefLayerButton.useHandCursor = true;
 			dragDropCancelButton.useHandCursor = true;
+			dragDropSaveAndLoadButton.useHandCursor = true;
+
+			filePathText.type = "input";
+			filePathText.wordWrap = true;
+			filePathText.width = this.width;
+			filePathText.autoSize = TextFieldAutoSize.LEFT;
+			filePathText.mouseEnabled = false;
+
+			filePathTextBG.addChild(filePathText);
+			addChild(filePathTextBG);
 
 			buttonList = [
-							dragDropFileButton,
-							dragDropRefButton,
+							dragDropLoadButton,
+							dragDropSaveAndLoadButton,
+							dragDropLoadRefLayerButton,
 							dragDropCancelButton,
 						];
-
-
 		}
 	}
 
