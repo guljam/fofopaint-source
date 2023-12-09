@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.02;
+        private const APP_VERSION:Number = 24.03;
         private const APP_DATA_VERSION:Number = 2401;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -223,7 +223,6 @@
                     ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
                     ,STRING_PLAYBACK_SPEED:String = "Playback speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
-                    ,STRING_ONEMORE_PRESS_TO_OK:String = "One more press key to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
                     ,STRING_CAPTURE_OK:String = "\nSave [click, c, m], Reset [right-click]"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
@@ -393,13 +392,16 @@
                     ,saveFileName:String = getNewFileName() //세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
                     ,saveFilePath:String = saveFileName//파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
                     ,saveContinue:Boolean = false//한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
-                    ,clearDataButtonCount:uint = 0 //리플레이 취소 카운터
                     ,rImgData:ByteArray = new ByteArray() //리플레이 데이터 저장해줄때 쓰는 바이트 배열 전역으로 돌려서 새로운 객체 하나만 생성하도록함
                     ,rImgData1:ByteArray = new ByteArray()
                     ,lastImgData:ByteArray = new ByteArray()
                     ,lastImgData1:ByteArray = new ByteArray()
                     ,traceImgData:ByteArray = new ByteArray()
                     ,replayDataBytes:ByteArray = new ByteArray()
+
+        //키 오래누름 관련 변수
+                    ,longKeyCountDown:Number = 0
+                    ,loneKeyFrameCount:int = 0
 
         //컬러 히스토리 관련 변수
                     ,myPaletteLimit:uint = 20
@@ -472,7 +474,7 @@
                     ,rFirstImage1:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rFirstBGColor:uint = CANVAS_BG_COLOR
                     ,rzoomed:Number = 1.0 //리플레이 줌
-                    ,rzoomedSave:Number = 1.0 //리플레이에서 수동줌하면 여기다가 저장해줌 
+                    ,rzoomedSave:Number = 1.0 //리플레이에서 수동줌하면 여기다가 저장해줌
                     ,rFitZoomedON:Boolean = false // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
                     ,rJumpImageIndexLast:int = -2 //썸네일 인덱스 바뀌면 여기다 저장
                     ,rJumpImageNowFrameLast:Number = -1
@@ -500,7 +502,6 @@
         //cut Frame 관련 변수
                     ,cutFrameActiveButton:SimpleButton
                     ,cutFrameClickCounter:uint = 0 //1번 누르면 미리 보기, 2번 누르면 실행
-                    ,cutFrameWithShortcut:Boolean = false // cutframe할때 단축키를 썼는지 저장
                     ,cutFrameClickedButton:int = CUT_FRAME_NONE //무슨 버튼 눌렀는지 저장
                     ,rCutDataSaveFrame:Number = 0//슈퍼언도나 앞짜르기 할때 마우스 왔다갔다 하면서 반복해서 눌러줄때 jumponeframe이 계속작동되는거 방지해줌
 
@@ -714,6 +715,72 @@
         }
 
         //function
+        private function setCountDownLongKey(button:DisplayObject,hintStr:String,readyFunc:Function,okFunc:Function,cancelFunc:Function):void
+        {
+            if(!hasTimer("longKeyTimer"))
+            {
+                var keyBufferLenSave:uint = KEY_BUFFER.length;
+                var mouseClickONSave:Boolean = mouseClickON;
+                var rightMouseClickONSave:Boolean = rightMouseClickON;
+
+                longKeyCountDown = 10;
+                loneKeyFrameCount = 0;
+
+                if(readyFunc !== null)
+                {
+                    if(readyFunc() === true)
+                    {
+                        return;
+                    }
+                }
+
+                function cancelLoneKey():void
+                {
+                    loneKeyFrameCount = 0;
+                    longKeyCountDown = 10;
+                    toolTipBoxTimerOFF();
+                }
+
+                setToolTipString(hintStr+longKeyCountDown);
+                setToolTipON();
+
+                addTimerByName("longKeyTimer",0.0,true,function():Boolean
+                {
+                    if(mouseClickON !== mouseClickONSave
+                    || rightMouseClickON !== rightMouseClickONSave
+                    || keyBufferLenSave !== KEY_BUFFER.length
+                    || (button && button.hitTestPoint(mouseX,mouseY) === false))
+                    {
+                        if(cancelFunc !== null)
+                        {
+                            cancelFunc();
+                        }
+                        cancelLoneKey();
+                        return false;
+                    }
+
+                    loneKeyFrameCount++;
+
+                    if(loneKeyFrameCount >= STAGE_FRAME/5)
+                    {
+                        loneKeyFrameCount = 0;
+                        longKeyCountDown--;
+                    }
+
+                    setToolTipString(hintStr+longKeyCountDown);
+
+                    if(longKeyCountDown <= 0)
+                    {
+                        cancelLoneKey();
+                        okFunc();
+                        return false;
+                    }
+
+                    return true;
+                });
+            }
+        }
+
         private function setLoadBoxVisible(flag:Boolean):void
         {
             if(flag)
@@ -743,6 +810,7 @@
             function mouseUpLoadBox(e:MouseEvent):void
             {
                 loadMenuBox.removeEventListener(MouseEvent.MOUSE_UP,mouseUpLoadBox);
+
                 if(!e.target) return;
                 if(oldTargetName === e.target.name)
                 {
@@ -8494,48 +8562,11 @@
             topBar.clearButton.alpha = BUTTON_OFF_ALPHA;
         }
 
-        private function setClearData(keyFlag:Boolean=false):void
+        private function setClearData(keyFlag:Boolean):void
         {
             if(isInSaveProgress) return;
 
-            if(clearDataButtonCount === 0)
-            {
-                if(keyFlag)
-                {
-                    function clearDataButtonCountResetEvent(e:MouseEvent):void
-                    {
-                        //클리어 버튼이 아닐때만
-                        if(e.target.name !== "clearButton")
-                        {
-                            setTopBarHintOFF();
-                        }
-                        stage.removeEventListener(MouseEvent.MOUSE_DOWN,clearDataButtonCountResetEvent);
-                    }
-
-                    stage.addEventListener(MouseEvent.MOUSE_DOWN,clearDataButtonCountResetEvent);
-                }
-
-                function clearDataButtonCountResetEventOver(e:MouseEvent):void
-                {
-                    clearDataButtonCount = 0;
-                    stage.removeEventListener(MouseEvent.MOUSE_OVER,clearDataButtonCountResetEventOver);
-                }
-                stage.addEventListener(MouseEvent.MOUSE_OVER,clearDataButtonCountResetEventOver);
-            }
-
-            clearDataButtonCount++;
-
-            if(clearDataButtonCount >= 2)
-            {
-                clearDataButtonCount = 0;
-                setTopBarHintOFF();
-                clearData();
-            }
-            else if(clearDataButtonCount === 1)
-            {
-                if(keyFlag) setHintONTemp(STRING_ONEMORE_PRESS_TO_OK);
-                else setHintONTemp(STRING_ONEMORE_CLICK_TO_OK);
-            }
+            setCountDownLongKey((!keyFlag)?topBar.clearButton:null,"Creating new file.. ",null,clearData,null);
         }
 
         private function checkButtonUp(targetName:String):void
@@ -8617,22 +8648,6 @@
                             setReplayModeON();
                             mouseClickON = false; //리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
                         }
-                        break;
-
-                        case "clearButton":
-                            setClearData();
-                        break;
-
-                        case "superUndoButton":
-                            setCutFrameButton(CUT_FRAME_SUPER_UNDO,false);
-                        break;
-
-                        case "reRecordingButton":
-                            setCutFrameButton(CUT_FRAME_RE_RECORD,false);
-                        break;
-
-                        case "cutPrevDataButton":
-                            setCutFrameButton(CUT_FRAME_DELETE_FRONT,false);
                         break;
 
                         case "capLayer1VisibleButton":
@@ -8896,43 +8911,15 @@
             setRcursorRotation(rregPoint.rotation);
         }
 
-        private function resetCutFrameClickCounter():void
+        private function setReplayDeleteBarVisibleOFF():void
         {
-            if(cutFrameActiveButton !== null)
-            {
-                cutFrameActiveButton.removeEventListener(MouseEvent.MOUSE_OUT,resetCutFrameClickCounterEvent);
-                cutFrameActiveButton = null;
-            }
-
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
-            cutFrameWithShortcut = false;
-            cutFrameClickCounter = 0;
-            cutFrameClickedButton = CUT_FRAME_NONE;
-            setTopBarHintOFF();
             replayTimeBox["replayDeleteBar"].visible = false;
             replayTimeBox["replayNowBar"].visible = true;
         }
 
-        private function resetCutFrameClickCounterMouseDownEvent(e:MouseEvent):void
-        {
-            if(e.target && cutFrameActiveButton === e.target)
-            {
-
-            }
-            else
-            {
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
-                resetCutFrameClickCounter();
-            }
-        }
-
-        private function resetCutFrameClickCounterEvent(e:MouseEvent):void
-        {
-            resetCutFrameClickCounter();
-        }
-
         private function deleteReplayFrontData():void
         {
+            setReplayDeleteBarVisibleOFF();
             //첫 이미지 새로 만들어줌
             if(rJumpImageFolder.exists)
             {
@@ -8995,13 +8982,22 @@
                 rCursor.visible = false;
                 replayTimeBox["replayNowBar"].width = 0;
                 saveOneTime = false;
+
+                // addTimerByName("dummytimer",0.1,false,function():void
+                // {
+
+                // });
                 setMakeJumpImage();
             }
 
             resetReplaySpeedBar();
-
             playbackFinished = true;
-            if(undoIndex > rData.length-1) undoIndex = rData.length-1;
+
+            if(undoIndex > rData.length-1)
+            {
+                undoIndex = rData.length-1;
+            }
+
             undoToIndex(undoIndex);
             setDeepUndoOFF();
             checkReplaySpeedState();
@@ -9010,6 +9006,7 @@
 
         private function setReRecord():void
         {
+            setReplayDeleteBarVisibleOFF();
             setReRecordCopyCanvas();
             clearDataResetVars();
             setCanvasSameReplayCanvas();
@@ -9082,6 +9079,7 @@
 
         private function superUndo():void
         {
+            setReplayDeleteBarVisibleOFF();
             if(rDataReadFlag === true)
             {
                 //위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
@@ -9163,128 +9161,64 @@
 
         private function getCutFrameOKString():String
         {
-            return ((cutFrameWithShortcut) ? STRING_ONEMORE_PRESS_TO_OK
-                                                 : STRING_ONEMORE_CLICK_TO_OK);
+            return STRING_ONEMORE_CLICK_TO_OK;
                                                 //  +" (Data in the red area will be deleted)";
         }
 
-        private function setCutFrameRedBar(flag:int):void
+        private function setDeleteBarDeleteFrontData():Boolean
         {
-            if(flag === CUT_FRAME_SUPER_UNDO)
+            replayTimeBox["replayDeleteBar"].x = replayTimeBox["replayTotalBar"].x;
+            replayTimeBox["replayDeleteBar"].width = replayTimeBox["replayNowBar"].width;
+            replayTimeBox["replayNowBar"].visible = false;
+            replayTimeBox["replayDeleteBar"].visible = true;
+
+            if(tickDraw.getIndex() < tickDraw.getDataLength())
             {
-                const width:Number = (replayTimeBox["replayTotalBar"].width*(rNowFrame/TOTAL_FRAME));
-                replayTimeBox["replayDeleteBar"].x = replayTimeBox["replayTotalBar"].x+width;
-                replayTimeBox["replayDeleteBar"].width = (replayTimeBox["replayTotalBar"].width-width);
+                drawRemainReplayData();
+                checkCutFrameButtonsCanUse();
             }
-            else if(flag === CUT_FRAME_RE_RECORD)
+            if(rNowFrame >= TOTAL_FRAME)
             {
-                replayTimeBox["replayDeleteBar"].x = replayTimeBox["replayTotalBar"].x;
-                replayTimeBox["replayDeleteBar"].width = replayTimeBox["replayTotalBar"].width;
-            }
-            else if(flag === CUT_FRAME_DELETE_FRONT)
-            {
-                replayTimeBox["replayDeleteBar"].x = replayTimeBox["replayTotalBar"].x;
-                replayTimeBox["replayDeleteBar"].width = replayTimeBox["replayNowBar"].width;
+                setReplayDeleteBarVisibleOFF();
+                return true;
             }
 
+            return false;
+        }
+
+        private function setDeleteBarSuperUndo():Boolean
+        {
+            const deleteBarWidth:Number = (replayTimeBox["replayTotalBar"].width*(rNowFrame/TOTAL_FRAME));
+
+            replayTimeBox["replayDeleteBar"].x = replayTimeBox["replayTotalBar"].x+deleteBarWidth;
+            replayTimeBox["replayDeleteBar"].width = (replayTimeBox["replayTotalBar"].width-deleteBarWidth);
+            replayTimeBox["replayNowBar"].visible = false;
+            replayTimeBox["replayDeleteBar"].visible = true;
+
+            if(tickDraw.getIndex() < tickDraw.getDataLength())
+            {
+                drawRemainReplayData();
+                checkCutFrameButtonsCanUse();
+            }
+            if(rNowFrame >= TOTAL_FRAME)
+            {
+                setReplayDeleteBarVisibleOFF();
+                return true;
+            }
+
+            return false;
+        }
+
+        private function setDeleteBarReRecord():void
+        {
+            replayTimeBox["replayDeleteBar"].x = replayTimeBox["replayTotalBar"].x;
+            replayTimeBox["replayDeleteBar"].width = replayTimeBox["replayTotalBar"].width;
             replayTimeBox["replayNowBar"].visible = false;
             replayTimeBox["replayDeleteBar"].visible = true;
         }
 
-        private function doCutFrame(flag:int):void
-        {
-            if(flag === CUT_FRAME_SUPER_UNDO) superUndo();
-            else if(flag === CUT_FRAME_RE_RECORD) setReRecord();
-            else if(flag === CUT_FRAME_DELETE_FRONT) deleteReplayFrontData();
-        }
-
-        private function getCutFrameHint(flag:int):String
-        {
-            return (flag === CUT_FRAME_SUPER_UNDO) ?  "Delete back data : "
-                  :(flag === CUT_FRAME_RE_RECORD) ? "New file from this image : "
-                  :(flag === CUT_FRAME_DELETE_FRONT) ? "Delete front data : "
-                  : "";
-        }
-
-        private function setCutFrameActiveButton(flag:int):void
-        {
-            if(flag === CUT_FRAME_SUPER_UNDO) cutFrameActiveButton = topBar["superUndoButton"];
-            else if(flag === CUT_FRAME_RE_RECORD) cutFrameActiveButton = topBar["reRecordingButton"];
-            else if(flag === CUT_FRAME_DELETE_FRONT) cutFrameActiveButton = topBar["cutPrevDataButton"];
-        }
-
-        private function setCutFrameButton(flag:int,shortcutKeyFlag:Boolean):void
-        {
-            if(isInSaveProgress) return;
-            setCutFrameActiveButton(flag);
-
-            if(cutFrameActiveButton.alpha < 1.0)
-            {
-                resetCutFrameClickCounter();
-                return;
-            }
-
-            if(replayStartON) stopReplay();
-
-            if(cutFrameClickedButton === CUT_FRAME_NONE)
-            {
-                cutFrameClickedButton = flag;
-                cutFrameClickCounter++;
-            }
-            else if(cutFrameClickedButton !== flag)
-            {
-                resetCutFrameClickCounter();
-                cutFrameClickedButton = flag;
-                cutFrameClickCounter = 1;
-                setCutFrameActiveButton(flag);
-            }
-            else cutFrameClickCounter++;
-
-            if(cutFrameClickCounter === 1)
-            {
-                setToolTipOFF();
-                cutFrameActiveButton.addEventListener(MouseEvent.MOUSE_OUT,resetCutFrameClickCounterEvent);
-
-                if(flag !== CUT_FRAME_RE_RECORD)
-                {
-                    //데이터 전부 읽고 짤라줘야함
-                    if(tickDraw.getIndex() < tickDraw.getDataLength())
-                    {
-                        drawRemainReplayData();
-                        checkCutFrameButtonsCanUse();
-                    }
-                    if(rNowFrame >= TOTAL_FRAME)
-                    {
-                        resetCutFrameClickCounter();
-                        return;
-                    }
-                }
-
-                setCutFrameRedBar(flag);
-
-                if(shortcutKeyFlag)
-                {
-                    cutFrameWithShortcut = true;
-                    setHintONTemp(getCutFrameHint(flag)+getCutFrameOKString());
-                    stage.addEventListener(MouseEvent.MOUSE_DOWN,resetCutFrameClickCounterMouseDownEvent);
-                }
-                else
-                {
-                    cutFrameWithShortcut = false;
-                    setHintONTemp(getCutFrameOKString());
-                }
-            }
-            else if(cutFrameClickCounter >= 2)
-            {
-                saveContinue = false;
-                resetCutFrameClickCounter();
-                doCutFrame(flag);
-            }
-        }
-
         private function setTopBarHintOFF():void
         {
-            clearDataButtonCount = 0;
             topBarHintClickEventON = false;
 
             if(captureModeON)
@@ -9402,7 +9336,7 @@
                     break;
 
                     case "clearButton":
-                        str = "New file [esc, backspace, delete]";
+                        str = "New file [click, esc, backspace, delete] <- hold 3 sec";
                     break;
 
                     case "captureButton":
@@ -9470,7 +9404,7 @@
                         }
                         else
                         {
-                            str = "Delete front data";
+                            str = "Delete front data [click, f3] <- hold 3 sec";
                         }
                     }
                     break;
@@ -9484,7 +9418,7 @@
                         }
                         else
                         {
-                            str = "Delete back data";
+                            str = "Delete back data [click, f4] <- hold 3 sec";
                         }
                     }
                     break;
@@ -11896,7 +11830,7 @@
             if(setHoldKeyRepeat(true,jumpOneFrame,toBackFlag,oneFrame) === true)
             {
                 playbackFinished = false;
-                if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
+                if(cutFrameClickCounter > 0) setReplayDeleteBarVisibleOFF();
                 if(replayStartON) stopReplay();
             }
         }
@@ -12072,7 +12006,11 @@
         private function setJumpFrameButton():void
         {
             const totalF:Number = TOTAL_FRAME;
-            if(totalF === 0 || makeJumpImageFlag > 0) return;
+
+            if(totalF === 0 || makeJumpImageFlag > 0)
+            {
+                return;
+            }
 
             //리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
             var replayStartONSave:Boolean = false;
@@ -12223,7 +12161,7 @@
                 rFileStream.position = rLastBytePosition;
             }
 
-            if(cutFrameClickCounter > 0) resetCutFrameClickCounter();
+            if(cutFrameClickCounter > 0) setReplayDeleteBarVisibleOFF();
             if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
 
             clearRFrameCacheImages();
@@ -12995,7 +12933,8 @@
             function printPrograssHint(bytes:Number):void
             {
                 const perc:Number =((totalSize-bytes)/totalSize)*100;
-                const str:String = "Reading replay data.. "+perc.toFixed(1)+"%";
+                const str:String = STRING_PREPARE_REPLAY_DATA+perc.toFixed(1)+"%";
+
                 if(deepUndoFlag)
                 {
                     setHintONTemp(str);
@@ -13964,7 +13903,7 @@
 
             if(replayMode)
             {
-                resetCutFrameClickCounter();
+                setReplayDeleteBarVisibleOFF();
                 setTopBarHintOFF();
                 replayTimeBox.visible = iFlag;
             }
@@ -19960,7 +19899,7 @@
                 {
                     if(cutFrameClickedButton !== CUT_FRAME_NONE)
                     {
-                        resetCutFrameClickCounter();
+                        setReplayDeleteBarVisibleOFF();
                     }
                     else
                     {
@@ -19976,17 +19915,29 @@
                 }
                 break;
 
-                // case KEY.f2:
-                //     setCutFrameButton(CUT_FRAME_RE_RECORD,true);
-                // break;
+                case KEY.f2:
+                {
+                    setCountDownLongKey(null,"Creating new file from this image..",setDeleteBarReRecord,setReRecord,setReplayDeleteBarVisibleOFF)
+                }
+                break;
 
-                // case KEY.f3:
-                //     setCutFrameButton(CUT_FRAME_DELETE_FRONT,true);
-                // break;
+                case KEY.f3:
+                {
+                    if(topBar.cutPrevDataButton.alpha === 1.0)
+                    {
+                        setCountDownLongKey(null,"Deleting front data..",setDeleteBarDeleteFrontData,deleteReplayFrontData,setReplayDeleteBarVisibleOFF);
+                    }
+                }
+                break;
 
-                // case KEY.f4:
-                //     setCutFrameButton(CUT_FRAME_SUPER_UNDO,true);
-                // break;
+                case KEY.f4:
+                {
+                    if(topBar.superUndoButton.alpha === 1.0)
+                    {
+                        setCountDownLongKey(null,"Deleting back data.. ",setDeleteBarSuperUndo,superUndo,setReplayDeleteBarVisibleOFF);
+                    }
+                }
+                break;
 
                 case KEY.f5:
                     setZoomInButton(false,true);
@@ -19995,7 +19946,6 @@
                 case KEY.f6:
                     setZoomInButton(true,true);
                 break;
-
 
                 case KEY.enter:
                 case KEY.space:
@@ -20589,7 +20539,8 @@
             resetKeyBuffer();
             realWorkingTimer.setAFKMode();
             cancelAutoKeyEvent(null);
-            stageBG.visible= true;
+            stageBG.visible = true;
+            removeTimer("longKeyTimer");
 
             if(toolBox2ON)
             {
@@ -21099,10 +21050,9 @@
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             replayTimeBox["pauseButton"].visible = false;
             setTopChildIndex(replayTimeBox);
-            resetCutFrameClickCounter();
+            setReplayDeleteBarVisibleOFF();
             setTopBarHintOFF();
             setFitZoomedOFF();
-            clearDataButtonCount = 0;
             updateStageOffset();
 
             if(replayStartON === true) stopReplay();
@@ -21144,7 +21094,7 @@
             replayTimeBox["pauseButton"].visible = false;
             replayTimeBox.y = Math.floor(topBar.BARSIZE*getUIScale()-4);
             setTopChildIndex(replayTimeBox);
-            resetCutFrameClickCounter();
+            setReplayDeleteBarVisibleOFF();
             setTopBarHintOFF();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             rCursor.alpha = 1.0;
@@ -21247,6 +21197,31 @@
 
             switch(targetName)
             {
+                case "reRecordingButton":
+                {
+                    setCountDownLongKey(topBar.reRecordingButton,"Creating new file from this image.. ",setDeleteBarReRecord,setReRecord,setReplayDeleteBarVisibleOFF);
+                }
+                break;
+
+                case "cutPrevDataButton":
+                {
+                    if(topBar.cutPrevDataButton.alpha === 1.0)
+                    {
+                        setCountDownLongKey(topBar.cutPrevDataButton,"Deleting front data.. ",setDeleteBarDeleteFrontData,deleteReplayFrontData,setReplayDeleteBarVisibleOFF);
+                    }
+                }
+                break;
+
+                case "superUndoButton":
+                {
+                    if(topBar.superUndoButton.alpha === 1.0)
+                    {
+                        setCountDownLongKey(topBar.superUndoButton,"Deleting back data.. ",setDeleteBarSuperUndo,superUndo,setReplayDeleteBarVisibleOFF);
+                    }
+                }
+                break;
+
+
                 case "replayRotateButton":
                 {
                     rotateTool(true);
@@ -21302,9 +21277,6 @@
                 case "replayPrev":
                 case "replayNext":
                 case "timer":
-                case "superUndoButton":
-                case "reRecordingButton":
-                case "cutPrevDataButton":
                 {
                     if(!isNowKey(0))
                     {
@@ -22142,7 +22114,6 @@
                 case "replayModeButton":
                 case "captureButton":
                 case "repCaptureButton":
-                case "clearButton":
                 case "clipButton":
                 case "topBarColorButton":
                 case "gridButton":
@@ -22175,6 +22146,12 @@
                     }
 
                     checkButtonUp(targetName);
+                }
+                return;
+
+                case "clearButton":
+                {
+                    setClearData(false);
                 }
                 return;
 
