@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.01;
+        private const APP_VERSION:Number = 24.02;
         private const APP_DATA_VERSION:Number = 2401;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4419,7 +4419,7 @@
 
                 if(!penColorTransparentFlag)
                 {
-                    if(myPalettePresetType === 0 && !isCurrentColorSamePickedColor())
+                    if(!isCurrentColorSamePickedColor())
                     {
                         updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
                     }
@@ -4807,7 +4807,7 @@
                         xColor = penColor;
                         xBlendMode = null;
 
-                        if(myPalettePresetType === 0 && !isCurrentColorSamePickedColor())
+                        if(!isCurrentColorSamePickedColor())
                         {
                             updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
                         }
@@ -16013,7 +16013,8 @@
                 {
                     xColor = penColor;
                     xBlendMode = null;
-                    if(myPalettePresetType === 0 && !isCurrentColorSamePickedColor())
+
+                    if(!isCurrentColorSamePickedColor())
                     {
                         updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
                     }
