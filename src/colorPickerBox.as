@@ -34,6 +34,8 @@
 		public var paperColorButton:SimpleButton;
 		public var transColorButton:SimpleButton;
 		public var transColorButtonBmpd:BitmapData;
+		public var myPaletteTransBG:SimpleButton;
+		public var myPaletteTransBGBmpd:BitmapData;
 
 		public var offsetX:Number = 0; //customcolor 박스 떨어진 위치
 
@@ -260,6 +262,17 @@
 			myPaletteDragColor.visible = true;
 		}
 
+		private function initMyPaletteTransBGBmpd():void
+		{
+			const checkerPatternWidth:Number = myPaletteTransBG.width;
+			const checkerPatternHeight:Number = myPaletteTransBG.height;
+			const mat:Matrix = new Matrix();
+			mat.scale(myPaletteTransBG.scaleX,myPaletteTransBG.scaleY);
+			myPaletteTransBGBmpd = new BitmapData(checkerPatternWidth,checkerPatternHeight,false,0);
+			myPaletteTransBGBmpd.draw(myPaletteTransBG,mat);
+			removeChild(myPaletteTransBG);
+		}
+
 		private function initTransparentColorButtonBmpd():void
 		{
 			const checkerPatternWidth:Number = transColorButton.width;
@@ -276,6 +289,7 @@
 			// visible = false;
 			name = "pickerBox";
 			initTransparentColorButtonBmpd();
+			initMyPaletteTransBGBmpd();
 
 			updateRGBInfoBG(0,0);
 
@@ -376,7 +390,7 @@
 
 			myPaletteButton.useHandCursor = false;
 			myPaletteButton.x = -1;
-			myPaletteButton.y = myPaletteBox.y+myPaletteBox.height+42;
+			myPaletteButton.y = myPaletteBox.y+myPaletteBox.height+39;
 
 			drawrPresetButton.useHandCursor = false;
 			drawrPresetButton.x = myPaletteButton.x+myPaletteButton.width+9;

@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.03;
+        private const APP_VERSION:Number = 24.05;
         private const APP_DATA_VERSION:Number = 2401;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -230,6 +230,7 @@
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
                     ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc]\nMove text cursor [a d, j l, arrow key, tab, shift+tab］\nAdjust value ［w s, i k］"
                     ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
+                    ,STRING_HOLD_3SEC:String = " <- hold 3 sec"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -404,21 +405,23 @@
                     ,loneKeyFrameCount:int = 0
 
         //컬러 히스토리 관련 변수
-                    ,myPaletteLimit:uint = 20
+                    ,myPaletteAddedColorSave:Array = [] //컬러 추가 해줄때 여기다가 하나 저장해주고 다시 똑같은 색 저장하면 색 없애줌
+                    ,myPaletteViewMode:Boolean = false //전체로 보면 올려줌
+                    ,myPaletteLimitCompact:int = 20
+                    ,myPaletteLimitTotal:int = 100
                     ,myPaletteColorWidth:Number = 17//Math.floor(pickerBox.svBoxWidth/myPaletteLimit)//히스토리 개별 색깔 가로 크기
-                    ,myPaletteColorHeight:Number = 19
+                    ,myPaletteColorHeight:Number = 17
                     ,myPaletteClickPos:Point = new Point() //컬러 히스토리 클릭하면 위치 넣어줌
                     ,myPaletteMovePos:Point = new Point() //컬러 히스토리 드래그할때 움직이는 포인트 넣어줌
                     ,myPaletteDragClickedColor:uint = 0 //드래그 쭌비 클릭한 컬러 저장해줌
                     ,myPaletteDragClickedIndex:int = 0 //드래그 준비 클릭한 컬러 인덱스 저장
                     ,myPaletteDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
                     ,myPalettePresetType:int = 0 //타입저정
-                    ,myPalettePreset:Array = [0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF
-                                           ,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF]
-                    ,myPaletteDrawrPreset:Array = [0xFFFFFF,0xC0C0C0,0xFF3B21,0xFFBD16,0xF5F30F,0xA5E975,0x71DBFD,0xFA80F9,null    ,null
-                                                  ,0x000000,0x808080,0x8E0000,0xFFCC99,0x877D30,0x008F47,0x313BCD,0xC02E97,0x3F037E,null]
-                    ,myPaletteTegakiPreset:Array = [0xA80515,0xA80515,0x800000,0x800000,0x4B3D38,0x4B3D38,0x394C44,0x394C44,0x313768,0x313768
-                                                   ,0xF1D0D0,0xF1D0D0,0xF1E1D7,0xF1E1D7,0xEAE5D5,0xEAE5D5,0xD0EBDE,0xD0EBDE,0xD5E9F3,0xD5E9F3]
+                    ,myPalettePreset:Array = []
+                    ,myPaletteDrawrPreset:Array = [0x000000,0x808080,0x8E0000,0xFFCC99,0x877D30,0x008F47,0x313BCD,0xC02E97,0x3F037E,null
+                                                  ,0xFFFFFF,0xC0C0C0,0xFF3B21,0xFFBD16,0xF5F30F,0xA5E975,0x71DBFD,0xFA80F9,null    ,null]
+                    ,myPaletteTegakiPreset:Array = [0xF1D0D0,0xF1D0D0,0xF1E1D7,0xF1E1D7,0xEAE5D5,0xEAE5D5,0xD0EBDE,0xD0EBDE,0xD5E9F3,0xD5E9F3
+                                                    ,0xA80515,0xA80515,0x800000,0x800000,0x4B3D38,0x4B3D38,0x394C44,0x394C44,0x313768,0x313768]
 
         //툴팁 관련 변수
                     ,toolTipHint:String = "" //topbar관련 힌트 여기 저장
@@ -498,12 +501,6 @@
                     ,aboutPanelON:Boolean = false //어바웃 창 떴을때 킴
                     ,needUpdate:int = 0 //새버전 나왔을때 올려주는 플래그
                     ,isCheckingUpdate:Boolean = false
-
-        //cut Frame 관련 변수
-                    ,cutFrameActiveButton:SimpleButton
-                    ,cutFrameClickCounter:uint = 0 //1번 누르면 미리 보기, 2번 누르면 실행
-                    ,cutFrameClickedButton:int = CUT_FRAME_NONE //무슨 버튼 눌렀는지 저장
-                    ,rCutDataSaveFrame:Number = 0//슈퍼언도나 앞짜르기 할때 마우스 왔다갔다 하면서 반복해서 눌러줄때 jumponeframe이 계속작동되는거 방지해줌
 
         //스크린샷 관련 변수
                     ,captureModeON:Boolean = false //스크린샷 켜지면 올려줌
@@ -1227,7 +1224,7 @@
                 case "myPaletteBox":
                 {
                     if(myPalettePresetType !== 0) return;
-                    str = "Add picked color [right-click]\nChange color position [click+drag]\nRemove color [drag to trash can]";
+                    str = "Add picked color [right-click], Remove color [right-click x 2]\nSwap color position [click+drag], Restore color [right-click x 3]";
                 }
                 break;
 
@@ -1237,7 +1234,7 @@
 
                 case "paperColorButton": str = "Change background color"; break;
                 case "penColorButton": str = "Change pen color"; break;
-                case "myPaletteButton": str = "Clear palette [right-click]"; break;
+                case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [right-click]"+STRING_HOLD_3SEC; break;
 
                 default:
                 return;
@@ -1922,6 +1919,8 @@
 
         private function rgbInfoTextFocusInEvent(e:FocusEvent):void
         {
+            if(myPaletteViewMode) setMypPaletteListCompact();
+
             if(nowKey !== 0)
             {
                 rgbInfoRightClickFocusIgnoreFlag = true;
@@ -3041,6 +3040,7 @@
 
                 case "rgbInfo":
                 {
+                    if(myPaletteViewMode) setMypPaletteListCompact();
                     rgbInfoRightClickFocusIgnoreFlag = true;
                     toggleRGBInfoTextColorType();
                 }
@@ -3978,11 +3978,14 @@
 
         private function setTransparentColor():void
         {
-            penColorTransparentFlag = true;
-            pickerBox.updateOldRGBInfoText();
-            pickerBox.setRGBInfoBGTransparentColorON();
-            pickerBox.setRGBInfo("Transparent");
-            setNowToolForDrawing(false);
+            if(penColorTransparentFlag === false)
+            {
+                penColorTransparentFlag = true;
+                pickerBox.updateOldRGBInfoText();
+                pickerBox.setRGBInfoBGTransparentColorON();
+                pickerBox.setRGBInfo("Transparent");
+                setNowToolForDrawing(false);
+            }
         }
 
         private function setCurrentColor(mode:uint):void
@@ -8564,8 +8567,6 @@
 
         private function setClearData(keyFlag:Boolean):void
         {
-            if(isInSaveProgress) return;
-
             setCountDownLongKey((!keyFlag)?topBar.clearButton:null,"Creating new file.. ",null,clearData,null);
         }
 
@@ -8756,12 +8757,6 @@
 
                         case "replayZoomOutButton":
                             setZoomInButton(false,true);
-                        break;
-
-                        case "timer":
-                        {
-                            realWorkingTimer.reset();
-                        }
                         break;
 
                         case "traceCancelButton":
@@ -9159,12 +9154,6 @@
             saveContinue = false;
         }
 
-        private function getCutFrameOKString():String
-        {
-            return STRING_ONEMORE_CLICK_TO_OK;
-                                                //  +" (Data in the red area will be deleted)";
-        }
-
         private function setDeleteBarDeleteFrontData():Boolean
         {
             replayTimeBox["replayDeleteBar"].x = replayTimeBox["replayTotalBar"].x;
@@ -9284,31 +9273,23 @@
                     }
                     return;
                     case "timer":
-                        str = "Actual working time\nReset [click]";
+                        str = "Actual working time\nReset [click]"+STRING_HOLD_3SEC;
                     break;
 
                     case "playButton":
-                    {
                         str = "Play [enter, space]";
-                    }
                     break;
 
                     case "pauseButton":
-                    {
                         str = "Pause [enter, space]";
-                    }
                     break;
 
                     case "replayPrev":
-                    {
                         str = "Prev [left, z, .]\nJump 1 frame [right-click, shift+left, shift+z, shift+.]";
-                    }
                     break;
 
                     case "replayNext":
-                    {
                         str = "Next [right, x, ,]\nJump 1 frame [right-click, shift+right, shift+x, shift+,]";
-                    }
                     break;
 
                     case "replaySpeedBarWrapper":
@@ -9336,7 +9317,7 @@
                     break;
 
                     case "clearButton":
-                        str = "New file [click, esc, backspace, delete] <- hold 3 sec";
+                        str = "New file [click, esc, backspace, delete]"+STRING_HOLD_3SEC;
                     break;
 
                     case "captureButton":
@@ -9353,11 +9334,13 @@
                     break;
 
                     case "capClipBoard":
-                            str = (e.target.alpha === 1.0) ? "Copy "+((drawCaptureArea.isFullImageCapture()) ?
-                                                                    "full image"
-                                                                    :"selected area image")
-                                                            + " to clipboard [v, n]"
-                                                            :"Already copied to clipboard";
+                    {
+                        str = (e.target.alpha === 1.0) ? "Copy "+((drawCaptureArea.isFullImageCapture()) ?
+                                                                "full image"
+                                                                :"selected area image")
+                                                                + " to clipboard [v, n]"
+                                                                :"Already copied to clipboard";
+                    }
                     break;
 
                     case "capTrans":
@@ -9381,46 +9364,15 @@
                     break;
 
                     case "reRecordingButton":
-                    {
-                        if(cutFrameClickCounter === 1
-                        && cutFrameClickedButton === CUT_FRAME_RE_RECORD)
-                        {
-                            str = getCutFrameOKString();
-                        }
-                        else
-                        {
-                            str = "New file from this image";
-                        }
-                    }
-
+                        str = "New file from this image [click, f2]"+STRING_HOLD_3SEC;
                     break;
 
                     case "cutPrevDataButton":
-                    {
-                        if(cutFrameClickCounter === 1
-                        && cutFrameClickedButton === CUT_FRAME_DELETE_FRONT)
-                        {
-                            str = getCutFrameOKString();
-                        }
-                        else
-                        {
-                            str = "Delete front data [click, f3] <- hold 3 sec";
-                        }
-                    }
+                        str = "Delete front data [click, f3]"+STRING_HOLD_3SEC;
                     break;
 
                     case "superUndoButton":
-                    {
-                        if(cutFrameClickCounter === 1
-                        && cutFrameClickedButton === CUT_FRAME_SUPER_UNDO)
-                        {
-                            str = getCutFrameOKString();
-                        }
-                        else
-                        {
-                            str = "Delete back data [click, f4] <- hold 3 sec";
-                        }
-                    }
+                        str = "Delete back data [click, f4]"+STRING_HOLD_3SEC;
                     break;
 
                     case "gridButton":
@@ -11830,7 +11782,6 @@
             if(setHoldKeyRepeat(true,jumpOneFrame,toBackFlag,oneFrame) === true)
             {
                 playbackFinished = false;
-                if(cutFrameClickCounter > 0) setReplayDeleteBarVisibleOFF();
                 if(replayStartON) stopReplay();
             }
         }
@@ -12161,7 +12112,6 @@
                 rFileStream.position = rLastBytePosition;
             }
 
-            if(cutFrameClickCounter > 0) setReplayDeleteBarVisibleOFF();
             if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
 
             clearRFrameCacheImages();
@@ -12679,14 +12629,16 @@
 
         private function getMyPaletteIndexByMousePos():int
         {
-            const firstLineIndex:uint = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
-            const secondLineIndex:uint = Math.floor(pickerBox.myPaletteBox.mouseY/myPaletteColorHeight)*10;
-            if(firstLineIndex+secondLineIndex < 0 || firstLineIndex+secondLineIndex > myPaletteLimit)
+            const compactLine:int = (myPalettePresetType === 0 && myPaletteViewMode) ? 9:1;
+            const xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
+            const yLineIndex:int = Math.abs(Math.floor(pickerBox.myPaletteBox.mouseY/myPaletteColorHeight)-compactLine)*10;
+
+            if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > ((myPaletteViewMode) ? myPaletteLimitTotal : myPaletteLimitCompact))
             {
                 return -1;
             }
 
-            return firstLineIndex+secondLineIndex;
+            return xLineIndex+yLineIndex;
         }
 
         private function getTegakiColorPresetIndex(index:int):int
@@ -12699,9 +12651,9 @@
         {
             index = getTegakiColorPresetIndex(index);
 
-            const bgColor:uint =  myPaletteTegakiPreset[index+10];
+            const bgColor:uint =  myPaletteTegakiPreset[index];
 
-            penColor = myPaletteTegakiPreset[index];
+            penColor = myPaletteTegakiPreset[index+10];
             setBackgroundColorDrawMode(bgColor);
 
             if(canvasWindowON)
@@ -12714,9 +12666,19 @@
             setNowToolForDrawing(false);
         }
 
+        private function isSelctedColorEmpty(index:int):Boolean
+        {
+            var list:Array = (myPalettePresetType === 1) ? myPaletteDrawrPreset
+                            :(myPalettePresetType === 2) ? myPaletteTegakiPreset
+                            :myPalettePreset;
+
+            return !(list[index] is uint);
+        }
+
         private function selectMyPaletteColor():void
         {
-            const index:uint = getMyPaletteIndexByMousePos();
+            const index:int = getMyPaletteIndexByMousePos();
+
             if(index < 0)
             {
                 return;
@@ -12724,21 +12686,30 @@
 
             if(index !== myPaletteDragClickedIndex)
             {
-                return;
+                if(myPalettePresetType === 0)
+                {
+                    return;
+                }
             }
-
 
             var pickedColor:uint;
 
             if(myPalettePresetType === 0)
             {
-                if(myPalettePreset[index] === null) return;
+                if(isSelctedColorEmpty(index))
+                {
+                    setTransparentColor();
+                    return;
+                }
 
                 pickedColor = myPalettePreset[index];
             }
             else if(myPalettePresetType === 1)
             {
-                if(myPaletteDrawrPreset[index] === null) return;
+                if(isSelctedColorEmpty(index))
+                {
+                    return;
+                }
 
                 pickedColor = myPaletteDrawrPreset[index];
             }
@@ -12763,7 +12734,6 @@
                 if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
                 addUndoBGColor(pickedColor);
             }
-            updateMyPaletteList();
 
             pickerColorSelected = true;
         }
@@ -12774,6 +12744,7 @@
             return (getColorDifferenceForHuman(color,bright) <= 30) ? dark : bright;
         }
 
+
         private function saveMypPaletteList():void
         {
             const fs:FileStream = new FileStream();
@@ -12781,16 +12752,6 @@
             fs.open(myPaletteListFile,FileMode.WRITE);
             fs.writeObject(myPalettePreset);
             fs.close();
-        }
-
-        private function clearMyPaletteList():void
-        {
-            const len:uint = myPaletteLimit;
-            for(var i:int = 0; i < len; i++)
-            {
-                myPalettePreset[i] = 0xFFFFFF;
-            }
-            updateMyPaletteList();
         }
 
         private function initMyPaletteList():void
@@ -12803,6 +12764,23 @@
             }
         }
 
+        // private function setMypPaletteListCompactMouseDownEvent():void
+        // {
+        //     setMypPaletteListCompact();
+        // }
+
+        private function setMypPaletteListCompact():void
+        {
+            myPaletteViewMode = false;
+            updateMyPaletteList();
+        }
+
+        private function setMypPaletteListAll():void
+        {
+            myPaletteViewMode = true;
+            updateMyPaletteList();
+        }
+
         private function rightMouseDownMyPalette(e:MouseEvent):void
         {
             addColorToMyPalette(pickerBox.getRGBInfoBGColor(),getMyPaletteIndexByMousePos());
@@ -12812,11 +12790,31 @@
         {
             if(index < 0) return;
 
-            myPalettePreset[index] = color;
-            updateMyPaletteList();
+            if(index !== myPaletteAddedColorSave[0] || color !== myPaletteAddedColorSave[1])
+            {
+                myPaletteAddedColorSave[0] = index;
+                myPaletteAddedColorSave[1] = color;
+                myPalettePreset[index] = color;
+                updateMyPaletteList();
+            }
+            else
+            {
+                myPaletteAddedColorSave[0] = index;
+                myPaletteAddedColorSave[1] = null;
+                myPalettePreset[index] = null;
+                updateMyPaletteList();
+            }
         }
 
-        private function updateMyPaletteList(ignoreIndex:uint=uint.MAX_VALUE):void
+        private function clearMyPaletteList():void
+        {
+            myPalettePreset.length = 0;
+            updateMyPaletteList();
+            myPalettePresetType = -1;
+            selectMyPaletteButton(0);
+        }
+
+        private function updateMyPaletteList(ignoreIndex:int=-1):void
         {
             const type:int = myPalettePresetType;
             const arr:Array = (type === 0) ? myPalettePreset
@@ -12825,9 +12823,9 @@
 
             if(arr === null) return;
 
-            var len:uint = myPaletteLimit;
-            var nextY:Number = 0.0;
+            var len:int = (type === 0 && myPaletteViewMode) ? myPaletteLimitTotal:myPaletteLimitCompact;
             var nextX:Number = 0.0;
+            var nextY:Number = Math.floor(len/10);
 
             pickerBox.myPaletteBox.graphics.clear();
             pickerBox.myPaletteBox.graphics.lineStyle(0,0,0);
@@ -12838,45 +12836,111 @@
             //색깔 쭉 그려주기
             for(var i:uint=0;i<len;i++)
             {
-                if(arr[i] === null || i === ignoreIndex)
+                if(i % 10 === 0)
+                {
+                    nextX = 0;
+                    nextY--;
+                }
+
+                px = myPaletteColorWidth*nextX;
+                py = myPaletteColorHeight*(nextY);
+                nextX += 1.0;
+
+                if(i === ignoreIndex)
                 {
                     pickerBox.myPaletteBox.graphics.beginFill(0xFFFFFF);
+                    pickerBox.myPaletteBox.graphics.drawRect(px,py,myPaletteColorWidth,myPaletteColorHeight);
+                    pickerBox.myPaletteBox.graphics.endFill();
+
+                    pickerBox.myPaletteBox.graphics.lineStyle(2,0xFF0000,0.5);
+                    pickerBox.myPaletteBox.graphics.moveTo(px+1,py+1);
+                    pickerBox.myPaletteBox.graphics.lineTo(px+myPaletteColorWidth-1,py+myPaletteColorHeight-1);
+                    pickerBox.myPaletteBox.graphics.lineStyle(0,0,0);
+                    continue;
+                }
+
+                if(!(arr[i] is uint))
+                {
+                    if(type === 1) pickerBox.myPaletteBox.graphics.beginFill(0,0.0);
+                    else pickerBox.myPaletteBox.graphics.beginBitmapFill(pickerBox.myPaletteTransBGBmpd);
                 }
                 else
                 {
                     pickerBox.myPaletteBox.graphics.beginFill(arr[i]);
                 }
 
-                if(i === 10)
-                {
-                    nextX = 0;
-                    nextY++;
-                }
-
-                px = myPaletteColorWidth*nextX;
-                py = myPaletteColorHeight*nextY;
 
                 pickerBox.myPaletteBox.graphics.drawRect(px,py,myPaletteColorWidth,myPaletteColorHeight);
 
-                nextX += 1.0;
+
             }
             pickerBox.myPaletteBox.graphics.endFill();
 
             //구분선 그려주기
-            pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2,true);
-            pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight);
-            pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*(myPaletteLimit/2),myPaletteColorHeight);
-
-            len = myPaletteLimit/2;
-
-            if(type === 2) i=2;
-            else i=1;
-
-            for(;i<len;i++)
+            if(type === 2)
             {
-                pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
-                pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
-                if(type === 2) i++;
+                len = myPaletteLimitCompact/2;
+                pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
+                pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight);
+                pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*len,myPaletteColorHeight);
+
+                for(i=2;i<len;i+=2)
+                {
+                    pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
+                    pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
+                }
+
+                pickerBox.myPaletteBox.y = 0;
+            }
+            else if(type === 1)
+            {
+                len = (myPaletteLimitCompact/2)-1;
+
+                pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
+                pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight);
+                pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*(len-1),myPaletteColorHeight);
+
+                for(i=1;i<len;i++)
+                {
+                    pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
+                    pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
+                }
+
+                pickerBox.myPaletteBox.y = 0;
+            }
+            else
+            {
+                len = (myPaletteLimitCompact/2);
+
+                if(myPaletteViewMode === false)
+                {
+                    pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
+                    pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight);
+                    pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*len,myPaletteColorHeight);
+
+                    for(i=1;i<len;i++)
+                    {
+                        pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
+                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
+                    }
+                }
+                else
+                {
+                    pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
+
+                    for(i=1;i<len;i++)
+                    {
+                        pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight*i);
+                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*len,myPaletteColorHeight*i);
+                    }
+
+                    for(i=1;i<len;i++)
+                    {
+                        pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
+                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*len);
+                    }
+                }
+                pickerBox.myPaletteBox.y = (myPaletteViewMode === false) ? 0:-myPaletteColorHeight*Math.floor((myPaletteLimitTotal-20)/10);
             }
         }
 
@@ -19897,14 +19961,7 @@
                 case KEY.backspace:
                 case KEY.esc:
                 {
-                    if(cutFrameClickedButton !== CUT_FRAME_NONE)
-                    {
-                        setReplayDeleteBarVisibleOFF();
-                    }
-                    else
-                    {
-                        setReplayModeOFF();
-                    }
+                    setReplayModeOFF();
                 }
                 break;
 
@@ -20479,7 +20536,7 @@
                 case KEY.del:
                 case KEY.backspace:
                 {
-                    if(topBar.clearButton.alpha === 1.0)
+                    if(topBar.clearButton.alpha === 1.0 && !isInSaveProgress)
                     {
                         setClearData(true);
                     }
@@ -21253,7 +21310,6 @@
                 break;
 
                 case "drawModeButton":
-                case "loadButton":
                 case "repLoadButton":
                 case "saveButton":
                 case "repSaveButton":
@@ -21445,6 +21501,7 @@
 
                 case "rgbInfo":
                 {
+                    if(myPaletteViewMode) setMypPaletteListCompact();
                     rgbInfoRightClickFocusIgnoreFlag = true;
                     toggleRGBInfoTextColorType();
                 }
@@ -21464,26 +21521,28 @@
                 break;
 
                 case "layer1SelectButton":
+                {
                     selectSubLayer(false,canvas11Bitmap.visible);
                     if(controlBox.layer2CheckButton.visible)
                     {
                         setLayer2CheckToggle();
                     }
+                }
                 break;
 
                 case "layer2SelectButton":
+                {
                     selectSubLayer(true,canvas1Bitmap.visible);
                     if(controlBox.layer1CheckButton.visible)
                     {
                         setLayer1CheckToggle();
                     }
+                }
                 break;
 
                 case "myPaletteButton":
                 {
-                    clearMyPaletteList();
-                    myPalettePresetType = -1;
-                    selectMyPaletteButton(0);
+                    setCountDownLongKey(pickerBox.myPaletteButton,"Clearing my palette.. ",null,clearMyPaletteList,null);
                 }
                 break;
 
@@ -21661,16 +21720,17 @@
             {
                 myPaletteDragStarted = false;
 
-                const index:int = getMyPaletteIndexByMousePos();
-
-                if(index >= 0)
+                if(pickerBox.myPaletteBox.hitTestPoint(mouseX,mouseY) === true)
                 {
-                    const colorSave:uint = myPalettePreset[index];
+                    const index:int = getMyPaletteIndexByMousePos();
 
-                    myPalettePreset[index] = myPaletteDragClickedColor;
-                    myPalettePreset[myPaletteDragClickedIndex] = colorSave;
+                    if(index >= 0)
+                    {
+                        const colorSave:* = myPalettePreset[index];
+                        myPalettePreset[index] = myPaletteDragClickedColor;
+                        myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
+                    }
                 }
-
                 updateMyPaletteList();
             }
 
@@ -21754,7 +21814,21 @@
 
                         case "myPaletteButton":
                         {
-                            selectMyPaletteButton(0);
+                            if(myPalettePresetType === 0)
+                            {
+                                if(myPaletteViewMode === false)
+                                {
+                                    setMypPaletteListAll();
+                                }
+                                else
+                                {
+                                    setMypPaletteListCompact();
+                                }
+                            }
+                            else
+                            {
+                                selectMyPaletteButton(0);
+                            }
                         }
                         break;
 
@@ -21789,14 +21863,14 @@
 
             if(targetName === "myPaletteBox")
             {
-                mouseDragON = true;
-
-                const index:uint = getMyPaletteIndexByMousePos();
-                if(index >= 0)
+                if(myPalettePresetType === 0)
                 {
+                    const index:int = getMyPaletteIndexByMousePos();
                     myPaletteDragClickedIndex = index;
-                    if(myPalettePresetType === 0)
+
+                    if(index >= 0 && !isSelctedColorEmpty(index))
                     {
+                        mouseDragON = true;
                         myPaletteDragClickedColor = myPalettePreset[index];
                         myPaletteClickPos.setTo(pickerBox.mouseX,pickerBox.mouseY);
                         myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
@@ -21810,17 +21884,18 @@
             {
                 case "svBox":
                 {
+                    if(myPaletteViewMode) setMypPaletteListCompact();
                     setSVcolorButton();
                 }
                 return;
 
                 case "hueColor":
                 {
+                    if(myPaletteViewMode) setMypPaletteListCompact();
                     setHueColorButton();
                 }
                 return;
 
-                case "rgbInfo":
                 case "penColorButton":
                 case "paperColorButton":
                 case "myPaletteBox":
@@ -21830,6 +21905,15 @@
                 case "drawrPresetButton":
                 case "tegakiPresetButton":
                 {
+                    if(myPaletteViewMode
+                    && targetName !== "myPaletteBox"
+                    && targetName !== "myPaletteButton"
+                    && targetName !== "transColorButton"
+                    && targetName !== "currentColor")
+                    {
+                        setMypPaletteListCompact();
+                    }
+
                     checkButtonUpColorPickerBox(targetName);
                 }
                 return;
@@ -22067,7 +22151,6 @@
 
 
             const targetName:String = target.name;
-
             if(sideBar.visible && sideBarScrollSet.hitTestPoint(mouseX,mouseY,true))
             {
                 if(targetName === "prevStageBG"
@@ -22110,7 +22193,6 @@
                 case "saveButton": //아래 3개는 topbar메뉴에 가면 안됨 mouseuphandler랑 같이 연동되서 여기서 해주어야함
                 case "repSaveButton":
                 case "loadButton":
-                case "repLoadButton":
                 case "replayModeButton":
                 case "captureButton":
                 case "repCaptureButton":
@@ -22126,7 +22208,6 @@
                 case "sideBarOFFButton2":
                 case "sideBarONButton":
                 case "sideBarONButton2":
-                case "timer":
                 case "traceCancelButton":
                 case "traceImageButton":
                 case "traceLoadButton":
@@ -22149,9 +22230,18 @@
                 }
                 return;
 
+                case "timer":
+                {
+                    setCountDownLongKey(topBar.timer,"Resetting the timer... ",null, realWorkingTimer.reset,null);
+                }
+                break;
+
                 case "clearButton":
                 {
-                    setClearData(false);
+                    if(topBar.clearButton.alpha === 1.0 && !isInSaveProgress)
+                    {
+                        setClearData(false);
+                    }
                 }
                 return;
 
@@ -22271,7 +22361,7 @@
 
         // private function testFuncTime():void
         // {
-        //     const loop:int = 10;
+        //     const loop:int = 1000000;
         //     function func1():void
         //     {
 
@@ -22317,7 +22407,7 @@
         //         i++;
         //     }
 
-        //     _print("time 2",getTimer()-nt);
+        //     _print("time 3",getTimer()-nt);
         // }
     }
  }

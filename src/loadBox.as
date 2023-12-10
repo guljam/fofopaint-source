@@ -23,7 +23,6 @@
 		private const activeColor:ColorTransform = new ColorTransform();
 		private const activeIconColor:ColorTransform = new ColorTransform();
 		private var buttonList:Array;
-		private var textBGColor:uint = 0xFFFFFF;
 
 		public function setFilePathString(str:String):void
 		{
@@ -31,7 +30,7 @@
 			{
 				filePathText.text = str;
 				filePathTextBG.graphics.clear();
-				filePathTextBG.graphics.beginFill(textBGColor);
+				filePathTextBG.graphics.beginFill(0xFFFFFF);
 				filePathTextBG.graphics.drawRect(0,0,filePathText.width,filePathText.height);
 				filePathTextBG.graphics.endFill();
 				filePathTextBG.x = dragDropLoadButton.x;
@@ -93,10 +92,6 @@
 				childText = btnOver.getChildAt(1) as TextField;
 				childText.textColor = textColorOver;
 			}
-
-			pleaseWaitText.textColor = 0xFFFFFF;
-			filePathText.textColor = arr[1];
-			textBGColor = arr[5];
 		}
 
 		public function loadBox() {
@@ -123,6 +118,9 @@
 			filePathText.width = this.width;
 			filePathText.autoSize = TextFieldAutoSize.LEFT;
 			filePathText.mouseEnabled = false;
+
+			pleaseWaitText.textColor = 0;
+			filePathText.textColor = 0;
 
 			filePathTextBG.addChild(filePathText);
 			addChild(filePathTextBG);
