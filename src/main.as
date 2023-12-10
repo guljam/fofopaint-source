@@ -722,6 +722,7 @@
 
                 longKeyCountDown = 10;
                 loneKeyFrameCount = 0;
+                hint.off();
 
                 if(readyFunc !== null)
                 {

@@ -514,6 +514,7 @@
 			timer.autoSize = TextFieldAutoSize.LEFT;
 			timerAFkDot.y = timer.y;
 			timerAFkDot.autoSize = TextFieldAutoSize.LEFT;
+			timerAFkDot.text =".";
 
 			addChild(replaySpeedSet);
 			addChild(topbarBG);
