@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<!-- 
+<!--
 	Usage:
 
 	To localize the description, use the following format for the description element.
@@ -18,7 +18,7 @@
 -->
 <application xmlns="http://ns.adobe.com/air/application/50.2">
   <id>fofoPaint</id>
-  <versionNumber>24.06</versionNumber>
+  <versionNumber>24.07</versionNumber>
   <filename>fofoPaint</filename>
   <name>fofoPaint</name>
   <copyright>c301</copyright>
@@ -32,7 +32,7 @@
     <renderMode>auto</renderMode>
     <width>1000</width>
     <height>800</height>
-    
+
     <maximizable>true</maximizable>
     <minimizable>true</minimizable>
     <resizable>true</resizable>

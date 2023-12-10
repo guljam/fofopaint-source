@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.06;
+        private const APP_VERSION:Number = 24.07;
         private const APP_DATA_VERSION:Number = 2401;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -12844,10 +12844,13 @@
                     pickerBox.myPaletteBox.graphics.drawRect(px,py,myPaletteColorWidth,myPaletteColorHeight);
                     pickerBox.myPaletteBox.graphics.endFill();
 
-                    pickerBox.myPaletteBox.graphics.lineStyle(2,0xFF0000,0.5);
-                    pickerBox.myPaletteBox.graphics.moveTo(px+1,py+1);
-                    pickerBox.myPaletteBox.graphics.lineTo(px+myPaletteColorWidth-1,py+myPaletteColorHeight-1);
+                    pickerBox.myPaletteBox.graphics.lineStyle(3,0xFF6600);
+                    pickerBox.myPaletteBox.graphics.moveTo(px+5,py+5);
+                    pickerBox.myPaletteBox.graphics.lineTo(px+myPaletteColorWidth-5,py+myPaletteColorHeight-5);
+                    pickerBox.myPaletteBox.graphics.moveTo(px+myPaletteColorWidth-5,py+5);
+                    pickerBox.myPaletteBox.graphics.lineTo(px+5,py+myPaletteColorHeight-5);
                     pickerBox.myPaletteBox.graphics.lineStyle(0,0,0);
+
                     continue;
                 }
 
@@ -21874,7 +21877,7 @@
             }
 
             switch(targetName)
-            {                               
+            {
                 case "myPaletteBox":
                 case "myPaletteButton":
                 case "transColorButton":
