@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.05;
+        private const APP_VERSION:Number = 24.06;
         private const APP_DATA_VERSION:Number = 2401;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -405,7 +405,6 @@
                     ,loneKeyFrameCount:int = 0
 
         //컬러 히스토리 관련 변수
-                    ,myPaletteAddedColorSave:Array = [] //컬러 추가 해줄때 여기다가 하나 저장해주고 다시 똑같은 색 저장하면 색 없애줌
                     ,myPaletteViewMode:Boolean = false //전체로 보면 올려줌
                     ,myPaletteLimitCompact:int = 20
                     ,myPaletteLimitTotal:int = 100
@@ -1920,7 +1919,7 @@
 
         private function rgbInfoTextFocusInEvent(e:FocusEvent):void
         {
-            if(myPaletteViewMode) setMypPaletteListCompact();
+            if(myPaletteViewMode && myPalettePresetType === 0) setMypPaletteListCompact();
 
             if(nowKey !== 0)
             {
@@ -3041,7 +3040,7 @@
 
                 case "rgbInfo":
                 {
-                    if(myPaletteViewMode) setMypPaletteListCompact();
+                    if(myPaletteViewMode && myPalettePresetType === 0) setMypPaletteListCompact();
                     rgbInfoRightClickFocusIgnoreFlag = true;
                     toggleRGBInfoTextColorType();
                 }
@@ -12765,10 +12764,6 @@
             }
         }
 
-        // private function setMypPaletteListCompactMouseDownEvent():void
-        // {
-        //     setMypPaletteListCompact();
-        // }
 
         private function setMypPaletteListCompact():void
         {
@@ -12791,17 +12786,13 @@
         {
             if(index < 0) return;
 
-            if(index !== myPaletteAddedColorSave[0] || color !== myPaletteAddedColorSave[1])
+            if(!penColorTransparentFlag && (isSelctedColorEmpty(index) || myPalettePreset[index] !== pickerBox.getRGBInfoBGColor()))
             {
-                myPaletteAddedColorSave[0] = index;
-                myPaletteAddedColorSave[1] = color;
                 myPalettePreset[index] = color;
                 updateMyPaletteList();
             }
             else
             {
-                myPaletteAddedColorSave[0] = index;
-                myPaletteAddedColorSave[1] = null;
                 myPalettePreset[index] = null;
                 updateMyPaletteList();
             }
@@ -21502,7 +21493,8 @@
 
                 case "rgbInfo":
                 {
-                    if(myPaletteViewMode) setMypPaletteListCompact();
+                    if(myPaletteViewMode && myPalettePresetType === 0) setMypPaletteListCompact();
+
                     rgbInfoRightClickFocusIgnoreFlag = true;
                     toggleRGBInfoTextColorType();
                 }
@@ -21882,17 +21874,48 @@
             }
 
             switch(targetName)
+            {                               
+                case "myPaletteBox":
+                case "myPaletteButton":
+                case "transColorButton":
+                case "currentColor":
+                case "drawrPresetButton":
+                case "tegakiPresetButton":
+
+                {
+                    break;
+                }
+
+                default:
+                {
+                    if(myPaletteViewMode && myPalettePresetType === 0)
+                    {
+                        setMypPaletteListCompact();
+                    }
+                }
+                break;
+            }
+
+            switch(targetName)
             {
                 case "svBox":
                 {
-                    if(myPaletteViewMode) setMypPaletteListCompact();
+                    if(myPaletteViewMode && myPalettePresetType === 0)
+                    {
+                        setMypPaletteListCompact();
+                    }
+
                     setSVcolorButton();
                 }
                 return;
 
                 case "hueColor":
                 {
-                    if(myPaletteViewMode) setMypPaletteListCompact();
+                    if(myPaletteViewMode && myPalettePresetType === 0)
+                    {
+                        setMypPaletteListCompact();
+                    }
+
                     setHueColorButton();
                 }
                 return;
@@ -21906,17 +21929,12 @@
                 case "drawrPresetButton":
                 case "tegakiPresetButton":
                 {
-                    if(myPaletteViewMode
-                    && targetName !== "myPaletteBox"
-                    && targetName !== "myPaletteButton"
-                    && targetName !== "transColorButton"
-                    && targetName !== "currentColor")
-                    {
-                        setMypPaletteListCompact();
-                    }
-
                     checkButtonUpColorPickerBox(targetName);
                 }
+                return;
+
+                default:
+
                 return;
             }
         }
