@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.13;
+        private const APP_VERSION:Number = 24.14;
         private const APP_DATA_VERSION:Number = 2410;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -653,7 +653,7 @@
                     ,isDrawModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isReplayModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
-                    ,invokeFilePath:String = ""
+                    ,invokeEventDelayTimeSave:int = 0 //invoke 이벤트에서 파일을 너무 빨리 불러오지 못하게함
                     ,oldAppdataRtotalFrame:Number = -1 //24.00버전 이후로 쓸일 없지만 이전버전 호환성을 위해서 백업해주고 복원해줌
                     ;
 
@@ -12487,6 +12487,12 @@
         //운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
         private function onInvokeEvent(event:InvokeEvent):void
         {
+            if(invokeEventDelayTimeSave > 0 && getTimer()-invokeEventDelayTimeSave < 1000)
+            {
+                return;
+            }
+
+            invokeEventDelayTimeSave = getTimer();
             if(fileBrowserON || captureModeON || isInSaveProgress !== 0)
             {
                 return;
