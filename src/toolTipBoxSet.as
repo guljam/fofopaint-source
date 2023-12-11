@@ -52,12 +52,13 @@
 			visible = false;
 			toolTipInfoText.mouseEnabled = false;
 			toolTipInfoText.autoSize = TextFieldAutoSize.LEFT;
-			mouseEnabled = false;
+			// mouseEnabled = false;
 
 			toolTipInfoBG.y = -1;
 			addChild(toolTipInfoBG);
 			setChildIndex(toolTipInfoBG,0);
 			toolTipInfoBG.mouseEnabled = false;
+			toolTipInfoText.mouseEnabled = false;
 		}
 	}
 }

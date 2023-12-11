@@ -1282,6 +1282,21 @@
             {
                 stageBG.visible = false;
             }
+
+            if(hintBox.visible)
+            {
+                if(hintBox.hitTestPoint(mouseX,mouseY))
+                {
+                    if(hintBox.y !== 0)
+                    {
+                        hintBox.y = 0;
+                    }
+                    else
+                    {
+                        hint.off();
+                    }
+                }
+            }
         }
 
         private function setHintONTemp(str:String):void
@@ -12829,7 +12844,7 @@
                 }
 
                 pickedColor = myPalettePreset[index];
-                
+
                 if(pickedColor === pickerBox.getRGBInfoBGColor())
                 {
                     return;
