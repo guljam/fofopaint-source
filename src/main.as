@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.10;
+        private const APP_VERSION:Number = 24.12;
         private const APP_DATA_VERSION:Number = 2410;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -230,7 +230,7 @@
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
                     ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc]\nMove text cursor [a d, j l, arrow key, tab, shift+tab］\nAdjust value ［w s, i k］"
                     ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
-                    ,STRING_HOLD_3SEC:String = " <- hold 3 sec"
+                    ,STRING_HOLD_2SEC:String = " <- hold 2 sec"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -863,7 +863,10 @@
 
         private function mouseDownLoadBox(e:MouseEvent):void
         {
-            if(!e.target) return;
+            if(!e.target || clickBlockOnWindowActiveFlag)
+            {
+                return;
+            }
             checkButtonUpLoadBox(e.target.name);
         }
 
@@ -1241,7 +1244,7 @@
 
                 case "paperColorButton": str = "Change background color"; break;
                 case "penColorButton": str = "Change pen color"; break;
-                case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [right-click]"+STRING_HOLD_3SEC; break;
+                case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [right-click]"+STRING_HOLD_2SEC; break;
 
                 default:
                 return;
@@ -3628,7 +3631,6 @@
                 return true;
 
                 case KEY.g:
-                setLoadBoxReady(true);
                     setHoldKeyRepeat(true,shortCutPenAlpha,true);
                 return true;
 
@@ -3983,14 +3985,11 @@
 
         private function setTransparentColor():void
         {
-            if(penColorTransparentFlag === false)
-            {
-                penColorTransparentFlag = true;
-                pickerBox.updateOldRGBInfoText();
-                pickerBox.setRGBInfoBGTransparentColorON();
-                pickerBox.setRGBInfo("Transparent");
-                setNowToolForDrawing(false);
-            }
+            penColorTransparentFlag = true;
+            pickerBox.updateOldRGBInfoText();
+            pickerBox.setRGBInfoBGTransparentColorON();
+            pickerBox.setRGBInfo("Transparent");
+            setNowToolForDrawing(false);
         }
 
         private function setCurrentColor(mode:uint):void
@@ -5883,7 +5882,7 @@
                 case "traceCancelButton":str = "Close [esc, backspace, t]"; break;
                 case "traceImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_TRACE; break;
                 case "traceLoadButton":str = "Load image"; break;
-                case "traceClipButton":str = "Load clipboard image\n[hold click 3 sec]"; break;
+                case "traceClipButton":str = "Load clipboard image\n[hold click 2 sec]"; break;
                 case "traceButtonWrapper":str = "Adjust image opacity"; break;
                 case "traceRotateButton":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "traceMoveButton":str = "Move image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
@@ -8970,7 +8969,7 @@
                         {
                             if(pickerBox.transColorButton.alpha === 1.0 && !penColorTransparentFlag)
                             {
-                                setTransparentColor();
+                                if(penColorTransparentFlag === false) setTransparentColor();
                             }
                         }
                         break;
@@ -9361,7 +9360,7 @@
                     }
                     return;
                     case "timer":
-                        str = "Actual working time\nReset [click]"+STRING_HOLD_3SEC;
+                        str = "Actual working time\nReset [click]"+STRING_HOLD_2SEC;
                     break;
 
                     case "playButton":
@@ -9405,7 +9404,7 @@
                     break;
 
                     case "clearButton":
-                        str = "New file [click, esc, backspace, delete]"+STRING_HOLD_3SEC;
+                        str = "New file [click, esc, backspace, delete]"+STRING_HOLD_2SEC;
                     break;
 
                     case "captureButton":
@@ -9452,15 +9451,15 @@
                     break;
 
                     case "reRecordingButton":
-                        str = "New file from this image [click, f2]"+STRING_HOLD_3SEC;
+                        str = "New file from this image [click, f2]"+STRING_HOLD_2SEC;
                     break;
 
                     case "cutPrevDataButton":
-                        str = "Delete front data [click, f3]"+STRING_HOLD_3SEC;
+                        str = "Delete front data [click, f3]"+STRING_HOLD_2SEC;
                     break;
 
                     case "superUndoButton":
-                        str = "Delete back data [click, f4]"+STRING_HOLD_3SEC;
+                        str = "Delete back data [click, f4]"+STRING_HOLD_2SEC;
                     break;
 
                     case "gridButton":
@@ -12764,9 +12763,14 @@
         {
             index = getTegakiColorPresetIndex(index);
 
-            const bgColor:uint =  myPaletteTegakiPreset[index];
+            if(myPaletteTegakiPreset[index] === pickerBox.getRGBInfoBGColor())
+            {
+                return;
+            }
 
-            penColor = myPaletteTegakiPreset[index+10];
+            const bgColor:uint = myPaletteTegakiPreset[index+10];
+
+            penColor = myPaletteTegakiPreset[index];
             setBackgroundColorDrawMode(bgColor);
 
             if(canvasWindowON)
@@ -12775,7 +12779,7 @@
             }
 
             addUndoBGColor(bgColor);
-            setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(bgColor):bgColor);
+            setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(penColor):penColor);
             setNowToolForDrawing(false);
         }
 
@@ -12811,11 +12815,19 @@
             {
                 if(isSelctedColorEmpty(index))
                 {
-                    setTransparentColor();
+                    if(penColorTransparentFlag === false)
+                    {
+                        setTransparentColor();
+                    }
                     return;
                 }
 
                 pickedColor = myPalettePreset[index];
+                
+                if(pickedColor === pickerBox.getRGBInfoBGColor())
+                {
+                    return;
+                }
             }
             else if(myPalettePresetType === 1)
             {
@@ -12825,6 +12837,11 @@
                 }
 
                 pickedColor = myPaletteDrawrPreset[index];
+
+                if(pickedColor === pickerBox.getRGBInfoBGColor())
+                {
+                    return;
+                }
             }
             else if(myPalettePresetType === 2)
             {
@@ -17667,7 +17684,7 @@
                     else
                     {
                         setCurrentColor(1);
-                        setTransparentColor();
+                        if(penColorTransparentFlag === false) setTransparentColor();
 
                         if(sideBar.visible === false)
                         {
@@ -22151,7 +22168,7 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted || loadMenuBox.visible) return;
+            if(fillPenStarted || loadMenuBox.visible || clickBlockOnWindowActiveFlag) return;
 
             const target:DisplayObject = e.target as DisplayObject;
 
