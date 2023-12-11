@@ -384,13 +384,10 @@
 			mainColorPickerBox.x = 0;
 			mainColorPickerBox.y = Math.floor(penColorButton.y+penColorButton.height+6);
 
-			myPaletteBox.x = 0;
-			myPaletteBox.y = 0;
-			myPaletteBox.name = "myPaletteBox";
 
 			myPaletteButton.useHandCursor = false;
 			myPaletteButton.x = -1;
-			myPaletteButton.y = myPaletteBox.y+myPaletteBox.height+39;
+			myPaletteButton.y = 0
 
 			drawrPresetButton.useHandCursor = false;
 			drawrPresetButton.x = myPaletteButton.x+myPaletteButton.width+9;
@@ -399,6 +396,10 @@
 			tegakiPresetButton.useHandCursor = false;
 			tegakiPresetButton.x = drawrPresetButton.x+drawrPresetButton.width+9;
 			tegakiPresetButton.y = myPaletteButton.y;
+
+			myPaletteBox.x = 0;
+			myPaletteBox.y = myPaletteButton.y+myPaletteButton.height+5;
+			myPaletteBox.name = "myPaletteBox";
 
 			myPaletteDragColor.visible = false;
 

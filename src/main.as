@@ -62,8 +62,8 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.07;
-        private const APP_DATA_VERSION:Number = 2401;
+        private const APP_VERSION:Number = 24.10;
+        private const APP_DATA_VERSION:Number = 2410;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private var STAGE_FRAME:int = stage.frameRate; //frame rate가 오르면 선을 빠르게 그렀을때 떨어저 그려지고 낮게 하면 부드럽게 이어져 그려짐
@@ -417,10 +417,10 @@
                     ,myPaletteDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
                     ,myPalettePresetType:int = 0 //타입저정
                     ,myPalettePreset:Array = []
-                    ,myPaletteDrawrPreset:Array = [0x000000,0x808080,0x8E0000,0xFFCC99,0x877D30,0x008F47,0x313BCD,0xC02E97,0x3F037E,null
-                                                  ,0xFFFFFF,0xC0C0C0,0xFF3B21,0xFFBD16,0xF5F30F,0xA5E975,0x71DBFD,0xFA80F9,null    ,null]
-                    ,myPaletteTegakiPreset:Array = [0xF1D0D0,0xF1D0D0,0xF1E1D7,0xF1E1D7,0xEAE5D5,0xEAE5D5,0xD0EBDE,0xD0EBDE,0xD5E9F3,0xD5E9F3
-                                                    ,0xA80515,0xA80515,0x800000,0x800000,0x4B3D38,0x4B3D38,0x394C44,0x394C44,0x313768,0x313768]
+                    ,myPaletteDrawrPreset:Array = [0xFFFFFF,0xC0C0C0,0xFF3B21,0xFFBD16,0xF5F30F,0xA5E975,0x71DBFD,0xFA80F9,null    ,null
+                                                  ,0x000000,0x808080,0x8E0000,0xFFCC99,0x877D30,0x008F47,0x313BCD,0xC02E97,0x3F037E,null]
+                    ,myPaletteTegakiPreset:Array = [0xA80515,0xA80515,0x800000,0x800000,0x4B3D38,0x4B3D38,0x394C44,0x394C44,0x313768,0x313768
+                                                    ,0xF1D0D0,0xF1D0D0,0xF1E1D7,0xF1E1D7,0xEAE5D5,0xEAE5D5,0xD0EBDE,0xD0EBDE,0xD5E9F3,0xD5E9F3]
 
         //툴팁 관련 변수
                     ,toolTipHint:String = "" //topbar관련 힌트 여기 저장
@@ -434,7 +434,7 @@
                     ,rJumpImageFrameDataFile:File = File.applicationStorageDirectory.resolvePath("jumpframedata")
                     ,myPaletteListFile:File = File.applicationStorageDirectory.resolvePath("mypalettedata")
                     ,rFirstImageFile:File = rJumpImageFolder.resolvePath("0")
-                    ,rFileStream:FileStream = new FileStream()//함수들을 왔다갔다 해야해서 전역으로 하나 ,
+                    ,rFileStream:FileStream = new FileStream()//함수들을 왔다갔다 해야해서 전역으로 하나,
                     ,rregPoint:Sprite = new Sprite()//회전 스프라이트 부모
                     ,rcanvasPanel:Sprite = new Sprite()
                     ,rcanvas2:Sprite = new Sprite()
@@ -638,7 +638,7 @@
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
                     ,windowDeactivateTime:int = 0 //윈도우 비활성화된 시간 저장, 너무 자주 알탭해서 save all data가 자주 호출되는걸 막음
                     ,penCursorOFFFlag:Boolean = false //펜커서 이게 on되면 안보여줌
-                    ,tempDragDropFile:Object = []
+                    ,tempDragDropFile:File
                     ,tempCopiedImage:BitmapData
                     ,eraseMovedButton:SimpleButton = null //툴 선택해줬을때 지우개툴이 이동한 툴을 저장해줌 다시원래대로 복원해주려고
                     ,zoomToolHintON:Boolean = false //툴박스에서 마우스 클릭해서 줌툴써줄때 mouse out이벤트가 가장 늦게 되서 줌 배율 힌트가 처음에 보이지 않는거 해결
@@ -647,7 +647,6 @@
                     ,sideBarPosSave:Number //사이드 바 단축키 사용하고나서 원래 위치로 옮겨줄때 씀
                     ,quickSidebarON:Boolean = false
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
-                    ,isNewFOFOSaveFormat:Boolean = false
                     ,updateAfterSaveFlag:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
                     ,saveThenLoadFlag:Boolean = false //파일을 로드해주는데 파일 세이브 끝나고 로드 해주는 플래그
                     ,layerCheckKeyPressed:Boolean = false //w키 1키 계속 누르고 있을때 함수 호출 안하게 해주려고 플래그 올려줌
@@ -711,6 +710,11 @@
         }
 
         //function
+        private function getSidebarConstHeight():Number
+        {
+            return (sideBarConstHeight + ((myPaletteViewMode && myPalettePresetType === 0) ? myPaletteColorHeight*8:0));
+        }
+
         private function setCountDownLongKey(button:DisplayObject,hintStr:String,readyFunc:Function,okFunc:Function,cancelFunc:Function):void
         {
             if(!hasTimer("longKeyTimer"))
@@ -758,7 +762,7 @@
 
                     loneKeyFrameCount++;
 
-                    if(loneKeyFrameCount >= STAGE_FRAME/5)
+                    if(loneKeyFrameCount >= STAGE_FRAME/10)
                     {
                         loneKeyFrameCount = 0;
                         longKeyCountDown--;
@@ -882,6 +886,9 @@
             myPalettePresetType = type;
             updateMyPaletteList();
             pickerBox.selectPresetButton(type,BUTTON_OFF_ALPHA);
+
+            updateScrollBarHeight();
+            checkFOFOPosition()
         }
 
         private function setFileBrowserONFlag(flag:Boolean):void
@@ -1919,8 +1926,6 @@
 
         private function rgbInfoTextFocusInEvent(e:FocusEvent):void
         {
-            if(myPaletteViewMode && myPalettePresetType === 0) setMypPaletteListCompact();
-
             if(nowKey !== 0)
             {
                 rgbInfoRightClickFocusIgnoreFlag = true;
@@ -2212,7 +2217,7 @@
             }
         }
 
-        private function checkfofoPos():void
+        private function checkFOFOPosition():void
         {
             if(isRightSidebar)
             {
@@ -2956,10 +2961,10 @@
             spuitZoomCursor.setScale(scale);
             loadMenuBox.setScale(scale);
             updateStageOffset();
-            updateScrollBarHeight(sth);
+            updateScrollBarHeight();
             rCursor.setScale(scale);
             fofo.setScale(scale);
-            checkfofoPos();
+            checkFOFOPosition();
             autoScroll.updateScale(scale);
             hint.updateHintPos();
 
@@ -2990,7 +2995,7 @@
 
             sideBar.x = sideBarPosSave;
             quickSidebarON = false;
-            checkfofoPos();
+            checkFOFOPosition();
             pickerBox.rgbInfo.type = "input";
 
             if(toolBox.getLastTool() === "toolSpuit")
@@ -3040,7 +3045,6 @@
 
                 case "rgbInfo":
                 {
-                    if(myPaletteViewMode && myPalettePresetType === 0) setMypPaletteListCompact();
                     rgbInfoRightClickFocusIgnoreFlag = true;
                     toggleRGBInfoTextColorType();
                 }
@@ -3130,7 +3134,7 @@
 
             if(traceMenuON) traceMenu.visible = false;
 
-            checkfofoPos();
+            checkFOFOPosition();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             setSidebarReCacheBitmap();
             sideBar.visible = true;
@@ -3624,6 +3628,7 @@
                 return true;
 
                 case KEY.g:
+                setLoadBoxReady(true);
                     setHoldKeyRepeat(true,shortCutPenAlpha,true);
                 return true;
 
@@ -3951,7 +3956,7 @@
             if(flag)
             {
                 sideBar.visible = true;
-                checkfofoPos();
+                checkFOFOPosition();
 
                 //사이드바가 짤려 나오는 현상이 있어서 다시 캐쉬 풀었다가 다시 해줌
                 setSidebarReCacheBitmap();
@@ -4012,22 +4017,117 @@
             setNowToolForDrawing(false);
         }
 
-        private function isTrue2020File(file:File):Boolean
+        private function getFinalImageFrom2020File(file:File,bgFlag:Boolean):BitmapData
         {
             const fs:FileStream = new FileStream();
-            isNewFOFOSaveFormat = false;
             fs.open(file,FileMode.READ);
+            var finalIMGBMPD:BitmapData;
+            var finalIMGBMPD1:BitmapData;
 
-            const header:String = fs.readUTFBytes(9);
-            if(header === "FOFOPAINT")
+            if(isNew2020File(file))
             {
-                isNewFOFOSaveFormat = true;
-                fs.close();
-                return true;
+                fs.readUTFBytes(9); //FOFOPAINT헤더 읽어줌
+                const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
+                fs.position += compBytes;
             }
 
+            var ba:ByteArray;
+            var newRectangle:Rectangle;
+            var bg:uint;
+
+            while(true)
+            {
+                if(fs.bytesAvailable === 0) break;
+                const d:Array = fs.readObject() as Array;
+
+                if(d[0] === "rFinalImage")
+                {
+                    //구버전 파일 레이어 없을때
+                    if(d[2] is ByteArray === false)
+                    {
+                        ba = d[1] as ByteArray;
+                        newRectangle = new Rectangle(0,0,d[2],d[3]);
+
+                        ba.uncompress();
+                        finalIMGBMPD = new BitmapData(d[2],d[3],true,0);
+                        finalIMGBMPD.lock();
+                        finalIMGBMPD.setPixels(newRectangle,ba);
+                        finalIMGBMPD.unlock();
+                        ba.clear();
+                        ba = null;
+                        bg = d[4];
+                    }
+                    else
+                    {
+                        ba = d[2] as ByteArray;
+                        newRectangle = new Rectangle(0,0,d[3],d[4]);
+                        ba.uncompress();
+                        finalIMGBMPD = new BitmapData(d[3],d[4],true,0);
+                        finalIMGBMPD.lock();
+                        finalIMGBMPD.setPixels(newRectangle,ba);
+                        finalIMGBMPD.unlock();
+                        ba.clear();
+
+                        ba = d[1] as ByteArray;
+                        ba.uncompress();
+                        finalIMGBMPD1 = new BitmapData(d[3],d[4],true,0);
+                        finalIMGBMPD1.lock();
+                        finalIMGBMPD1.setPixels(newRectangle,ba);
+                        finalIMGBMPD1.unlock();
+                        ba.clear();
+                        ba = null;
+                        bg = d[5];
+
+                        finalIMGBMPD.draw(finalIMGBMPD1);
+                        finalIMGBMPD1.dispose();
+                    }
+                }
+            }
             fs.close();
+
+            if(bgFlag)
+            {
+                const bgBmpd:BitmapData = new BitmapData(finalIMGBMPD.width,finalIMGBMPD.height,false,bg);
+                bgBmpd.draw(finalIMGBMPD);
+
+                return bgBmpd;
+            }
+
+            return finalIMGBMPD;
+        }
+
+        private function isNew2020File(file:File):Boolean
+        {
+            const fs:FileStream = new FileStream();
             fs.open(file,FileMode.READ);
+
+            try
+            {
+                const header:String = fs.readUTFBytes(9);
+
+                if(header === "FOFOPAINT")
+                {
+                    fs.close();
+                    return true;
+                }
+
+                fs.close();
+                fs.open(file,FileMode.READ);
+            }
+            catch(err:Error)
+            {
+                fs.close();
+                return false;
+            }
+
+            return false;
+        }
+
+        private function isOld2020File(file:File):Boolean
+        {
+            const fs:FileStream = new FileStream();
+            fs.open(file,FileMode.READ);
+
             try
             {
                 //구버전 파일 읽기 헤더가 없고 바로 배열임
@@ -4040,11 +4140,27 @@
                 fs.close();
                 return false;
             }
+            return false;
+        }
+
+        private function isTrue2020File(file:File):Boolean
+        {
+            if(!file) return false;
+
+            if(isNew2020File(file))
+            {
+                return true;
+            }
+
+            if(isOld2020File(file))
+            {
+                return true;
+            }
 
             return false;
         }
 
-        private function isImageFile(path:String):Boolean
+        private function isImageFileExt(path:String):Boolean
         {
             //가장 마지막 확장자만 따짐
             const gif:int = path.lastIndexOf(".gif");
@@ -5727,7 +5843,7 @@
                 traceImageCount = 0;
                 traceMenu.traceImageButton.removeEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
                 traceMenu.hint(STRING_MERGE_CANVAS_IMAGE_TO_TRACE);
-                pasteTraceImage();
+                pasteCanvasImageToTraceLayer();
             }
         }
 
@@ -5766,8 +5882,8 @@
             {
                 case "traceCancelButton":str = "Close [esc, backspace, t]"; break;
                 case "traceImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_TRACE; break;
-                case "traceLoadButton":str = "Paste image from file"; break;
-                case "traceClipButton":str = "Paste image from clipboard"; break;
+                case "traceLoadButton":str = "Load image"; break;
+                case "traceClipButton":str = "Load clipboard image\n[hold click 3 sec]"; break;
                 case "traceButtonWrapper":str = "Adjust image opacity"; break;
                 case "traceRotateButton":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "traceMoveButton":str = "Move image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
@@ -6220,33 +6336,24 @@
             setTopChildIndex(traceMenu);
         }
 
+        private function isTraceImageAlreadyDeleted():Boolean
+        {
+            return (canvasTraceBitmapData && canvasTraceBitmapData.width > 1 && canvasTraceBitmapData.height > 1)
+                   || !canvasTraceBitmapData;
+        }
+
         private function setTraceDeleteButton():void
         {
             setTopChildIndex(traceMenu);
-            traceImageCount++;
 
-            function traceDeleteButtonCountResetEvent(e:MouseEvent):void
+            if(isTraceImageAlreadyDeleted())
             {
-                traceImageCount = 0;
-                traceMenu.traceDeleteButton.removeEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
-            }
-
-            if(traceImageCount === 1)
-            {
-                traceMenu.hint(STRING_ONEMORE_CLICK_TO_OK);
-                traceMenu.traceDeleteButton.addEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
-            }
-            else if(traceImageCount === 2)
-            {
-                traceImageCount = 0;
-                traceMenu.hint("Erase reference image");
-                traceMenu.traceDeleteButton.removeEventListener(MouseEvent.MOUSE_OUT,traceDeleteButtonCountResetEvent);
-
                 clearTraceImage();
-                if(traceMemoryTrainingON === true)
-                {
-                    setTraceVisibleButton();
-                }
+            }
+
+            if(traceMemoryTrainingON === true)
+            {
+                setTraceVisibleButton();
             }
         }
 
@@ -6402,35 +6509,14 @@
 
         private function setTraceClipButton():void
         {
-            if(traceMenu.traceClipButton.alpha !== 1.0) return;
+            const bmpd:Object = Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT);
+
+            if(bmpd is BitmapData)
+            {
+                pasteTraceImage(bmpd as IBitmapDrawable,bmpd.width,bmpd.height);
+            }
 
             setTopChildIndex(traceMenu);
-            traceImageCount++;
-
-            function traceClipButtonCountResetEvent(e:MouseEvent):void
-            {
-                traceImageCount = 0;
-                traceMenu.traceClipButton.removeEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
-            }
-
-            if(traceImageCount === 1)
-            {
-                traceMenu.hint(STRING_ONEMORE_CLICK_TO_OK);
-                traceMenu.traceClipButton.addEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
-            }
-            else if(traceImageCount === 2)
-            {
-                traceImageCount = 0;
-                traceMenu.hint("Paste image from clipboard");
-                traceMenu.traceClipButton.removeEventListener(MouseEvent.MOUSE_OUT,traceClipButtonCountResetEvent);
-
-                const bmpd:Object = Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT);
-
-                if(bmpd is BitmapData)
-                {
-                    pasteTraceImage(bmpd as IBitmapDrawable, bmpd.width,bmpd.height);
-                }
-            }
         }
 
         private function resetTraceOpa():void
@@ -6557,91 +6643,8 @@
             tracePosInfo = [x,y,rotation,scaleX,scaleY,mirror];
         }
 
-        private function pasteTraceImage(bmpd:IBitmapDrawable=null,w:Number=1,h:Number=1):void
+        private function updateTraceInfoAfterPaste():void
         {
-            if(!bmpd)
-            {
-                w = CANVAS_WIDTH;
-                h = CANVAS_HEIGHT
-            }
-
-            if(bmpd) //로드한 이미지를 붙여넣을때
-            {
-                const maxSize:Number = 1000;
-                var maxLength:Number = (w > h) ? w : h;
-                var scaleFix:Number = (maxLength > maxSize) ? maxSize/maxLength : 1.0;
-
-                w = Math.floor(w*scaleFix);
-                h = Math.floor(h*scaleFix); //maxSize 값을 넘으면 리사이즈 해줌
-                var scaleMat:Matrix = new Matrix();
-                scaleMat.scale(scaleFix,scaleFix);
-
-                var tmpBMPD:BitmapData = new BitmapData(w,h,true,0);
-
-                tmpBMPD.draw(bmpd,scaleMat,null,null,null,true);
-                if(canvasTraceBitmapData && tmpBMPD !== canvasTraceBitmapData) canvasTraceBitmapData.dispose();
-                canvasTraceBitmapData = tmpBMPD.clone();
-                canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
-
-                tmpBMPD.dispose();
-                tmpBMPD = null;
-            }
-            else //캔버스 자체 이미지를 붙여넣을때
-            {
-                if(deepUndoON) setApplyDeepUndo();
-                var command:String = "clear";
-                mergeImageToTraceLayer((canvas1Bitmap.visible)  ? canvas1BitmapData :null
-                                      ,(canvas11Bitmap.visible) ? canvas11BitmapData:null);
-
-                if(canvas1Bitmap.visible)
-                {
-                    canvas1BitmapData.fillRect(new Rectangle(0,0,w,h),0);
-                }
-                if(canvas11Bitmap.visible)
-                {
-                    canvas11BitmapData.fillRect(new Rectangle(0,0,w,h),0);
-                }
-
-                if(!canvas11Bitmap.visible)
-                {
-                    command = "clear1";
-                }
-                else if(!canvas1Bitmap.visible)
-                {
-                    command = "clear2";
-                }
-
-                if(hasLastRDataCommand(command))
-                {
-                    undoData.addContinue();
-                }
-                else
-                {
-                    rDataBuffer = [[command]];
-                    undoData.addNew();
-                }
-            }
-            resetTraceImageInfo();
-
-            if(bmpd) // 이미지 붙여넣을때 이미지가 캔버스사이즈보다 크면 자동 리사이즈함
-            {
-                const gw:Number = CANVAS_WIDTH;
-                const gh:Number = CANVAS_HEIGHT;
-                const widthFlag:Boolean = (w >= h) ? true : false;
-                var autoScale:Number = 0;
-
-                if(w > gw && widthFlag === true) autoScale = gw/w;
-                else if (h > gh && widthFlag === false) autoScale = gh/h;
-
-                if(autoScale > 0)
-                {
-                    canvasTraceLayer.scaleX = autoScale;
-                    canvasTraceLayer.scaleY = autoScale;
-                    tracePosInfo[3] = autoScale;
-                    tracePosInfo[4] = autoScale;
-                }
-            }
-
             if(canvasTraceLayer.visible === false || traceAlphaSave === 0.0)
             {
                 updateTraceOpaButtonPosByAlpha(0.5);
@@ -6649,8 +6652,110 @@
                 canvasTraceLayer.visible = true;
                 canvasTraceLayer.alpha = 0.5;
             }
+
             canvasTraceBitmap.smoothing = true;
             saveOneTime = false;
+        }
+
+        private function paste2020FileImageToTraceLayer(file:File):void
+        {
+            if(isTrue2020File(file) === false)
+            {
+                saveThenLoadFlag = false;
+                setLoadBoxVisible(false);
+                setLoadBoxOFFLoadFailed();
+                return;
+            }
+
+            const bmpd:BitmapData = getFinalImageFrom2020File(file,true);
+            pasteTraceImage(bmpd,bmpd.width,bmpd.height);
+
+            if(!replayModeON)
+            {
+                openTraceWindow();
+            }
+        }
+
+        private function pasteCanvasImageToTraceLayer():void
+        {
+            if(deepUndoON) setApplyDeepUndo();
+            var command:String = "clear";
+            mergeImageToTraceLayer((canvas1Bitmap.visible)  ? canvas1BitmapData :null
+                                    ,(canvas11Bitmap.visible) ? canvas11BitmapData:null);
+            const rect:Rectangle = new Rectangle(0,0,canvas1BitmapData.width,canvas1BitmapData.height);
+
+            if(canvas1Bitmap.visible)
+            {
+                canvas1BitmapData.fillRect(rect,0);
+            }
+            if(canvas11Bitmap.visible)
+            {
+                canvas11BitmapData.fillRect(rect,0);
+            }
+
+            if(!canvas11Bitmap.visible)
+            {
+                command = "clear1";
+            }
+            else if(!canvas1Bitmap.visible)
+            {
+                command = "clear2";
+            }
+
+            if(hasLastRDataCommand(command))
+            {
+                undoData.addContinue();
+            }
+            else
+            {
+                rDataBuffer = [[command]];
+                undoData.addNew();
+            }
+
+            resetTraceImageInfo();
+            updateTraceInfoAfterPaste();
+        }
+
+        private function pasteTraceImage(bmpd:IBitmapDrawable,w:Number,h:Number):void
+        {
+            const maxSize:Number = 1000;
+            var maxLength:Number = (w > h) ? w : h;
+            var scaleFix:Number = (maxLength > maxSize) ? maxSize/maxLength : 1.0;
+
+            w = Math.floor(w*scaleFix);
+            h = Math.floor(h*scaleFix); //maxSize 값을 넘으면 리사이즈 해줌
+            var scaleMat:Matrix = new Matrix();
+            scaleMat.scale(scaleFix,scaleFix);
+
+            var tmpBMPD:BitmapData = new BitmapData(w,h,true,0);
+
+            tmpBMPD.draw(bmpd,scaleMat,null,null,null,true);
+            if(canvasTraceBitmapData && tmpBMPD !== canvasTraceBitmapData) canvasTraceBitmapData.dispose();
+            canvasTraceBitmapData = tmpBMPD.clone();
+            canvasTraceBitmap.bitmapData = canvasTraceBitmapData;
+
+            tmpBMPD.dispose();
+            tmpBMPD = null;
+
+            resetTraceImageInfo();
+
+            const gw:Number = CANVAS_WIDTH;
+            const gh:Number = CANVAS_HEIGHT;
+            const widthFlag:Boolean = (w >= h) ? true : false;
+            var autoScale:Number = 0;
+
+            if(w > gw && widthFlag === true) autoScale = gw/w;
+            else if (h > gh && widthFlag === false) autoScale = gh/h;
+
+            if(autoScale > 0)
+            {
+                canvasTraceLayer.scaleX = autoScale;
+                canvasTraceLayer.scaleY = autoScale;
+                tracePosInfo[3] = autoScale;
+                tracePosInfo[4] = autoScale;
+            }
+
+            updateTraceInfoAfterPaste();
         }
 
         private function getBlurSize(size:Number,z:Number):Number
@@ -6930,7 +7035,6 @@
             lassoMenu.changeUIColor(uiToolBoxColorSet[index]);
             topBar.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],uiColorSet[index][4]);
             rotateCursorBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1]);
-            loadMenuBox.changeUIColor(uiToolBoxColorSet[index]);
             replayTimeBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],uiToolBoxColorSet[index][4],index);
             checkClipBoardImage();
             appInfoBox.changeUIColor(uiColorSet[index][1]);
@@ -7138,8 +7242,7 @@
 
             if(tempCopiedImage)
             {
-                loadMenuBox.setFilePathString("Clipboard image");
-                setLoadBoxReady();
+                setLoadBoxReady(false);
             }
         }
 
@@ -7181,8 +7284,7 @@
 
         private function setUpdateButton():void
         {
-            setLoadBoxReady();
-            loadMenuBox.setPleaseWait(true);
+            setLoadBoxReady(true);
             updateAfterSaveFlag = true;
             saveFile(false);
         }
@@ -8779,24 +8881,10 @@
                         }
                         break;
 
-                        case "traceClipButton":
-                        {
-                            setTopChildIndex(traceMenu);
-                            setTraceClipButton();
-                        }
-                        break;
-
                         case "traceMirrorButton":
                         {
                             setTopChildIndex(traceMenu);
                             setTraceMirrorButton();
-                        }
-                        break;
-
-                        case "traceDeleteButton":
-                        {
-                            setTopChildIndex(traceMenu);
-                            setTraceDeleteButton();
                         }
                         break;
 
@@ -12375,9 +12463,10 @@
             loadMenuBox["dragDropFileBG"].height = sth;
         }
 
-        private function setLoadBoxReady():void
+        private function setLoadBoxReady(pleaseWaitFlag:Boolean):void
         {
             resetKeyBuffer();
+
             if(loadMenuBox.visible === false)
             {
                 if(lassoToolON === true)
@@ -12387,7 +12476,8 @@
                     resetOldTool();
                     selectPenTool();
                 }
-                loadMenuBox.setPleaseWait(false);
+                loadMenuBox.changeUIColor(uiToolBoxColorSet[uiColorIndex]);
+                loadMenuBox.setPleaseWait(pleaseWaitFlag);
                 setLoadBoxVisible(true);
                 setTopChildIndex(loadMenuBox);
             }
@@ -12404,24 +12494,11 @@
             }
             var arguments:Array = event.arguments;
 
-            if (arguments && arguments.length > 0) {
-                try
-                {
-                    const file:File = new File(arguments[0] as String);
-                    if(!file) return;
-
-                    if(isTrue2020File(file))
-                    {
-                        if(replayStartON) stopReplay();
-                        tempDragDropFile = file;
-                        loadMenuBox.setFilePathString(file.nativePath);
-                        setLoadBoxReady();
-                    }
-                }
-                catch(err:Error)
-                {
-                    setLoadBoxOFFLoadFailed();
-                }
+            if(arguments && arguments.length > 0)
+            {
+                rFileStream.close();
+                cancelRestartTimer();
+                setDragDropPreviewImageReady(new File(arguments[0] as String));
             }
         }
 
@@ -12434,17 +12511,52 @@
 
             rFileStream.close();
             cancelRestartTimer();
+            const data:Object = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
+            setDragDropPreviewImageReady(data[0] as File);
+        }
 
-            tempDragDropFile = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
+        private function setDragDropPreviewImageReady(file:File):void
+        {
+            if(!file) return;
 
-            var file:File = File(tempDragDropFile[0]);
-            const fileName:String = file.name;
-            const ext:String = fileName.substr(fileName.lastIndexOf(".")+1,fileName.length);
+            var loader:Loader = new Loader();
+            loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
+            loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onIOError);
 
-            if(ext === "2020" || ext === "png" || ext === "jpg" || ext === "gif")
+            // URLRequest를 생성하여 이미지 파일을 로드
+            loader.load(new URLRequest(file.url));
+
+            // Loader 이벤트: 이미지 로드 완료 시 호출
+            function onLoaderComplete(event:Event):void
             {
-                loadMenuBox.setFilePathString(file.nativePath);
-                setLoadBoxReady();
+                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onLoaderComplete);
+                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
+
+                tempDragDropFile = file;
+                const bmpd:BitmapData = new BitmapData(loader.content.width,loader.content.height,true,0);
+                bmpd.draw(loader);
+                loadMenuBox.setPreviewImage(bmpd);
+                setLoadBoxReady(false);
+                loader.unload();
+                loader = null;
+                // 여기서 디코딩 가능한 작업 수행
+            }
+
+            // IOErrorEvent: 이미지 로드 중 오류 발생 시 호출
+            function onIOError(event:IOErrorEvent):void
+            {
+                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onLoaderComplete);
+                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
+
+                if(isTrue2020File(file))
+                {
+                    tempDragDropFile = file;
+                    loadMenuBox.setPreviewImage(getFinalImageFrom2020File(file,true));
+                    setLoadBoxReady(false);
+                }
+
+                loader.unload();
+                loader = null;
             }
         }
 
@@ -12486,24 +12598,12 @@
                 tempCopiedImage = null;
                 return;
             }
-            var file:File;
 
-            if(tempDragDropFile is File)
-            {
-                file = tempDragDropFile as File;
-            }
-            else if(tempDragDropFile is Object && tempDragDropFile.length > 0)
-            {
-                file = File(tempDragDropFile[0]);
-            }
-
+            // var file:File = tempDragDropFile;
             //grab the files file
             var fs:FileStream = new FileStream();
             var loader:Loader = new Loader();
             var tmpFileName:String = "";
-
-            fs.addEventListener(Event.COMPLETE, completeHandler);
-            fs.addEventListener(IOErrorEvent.IO_ERROR, errorHandler);
 
             //실제적으로 loader가 읽어서 캔버스에 그림
             function loaderIOErrorHandlerEvent(e:Event):void
@@ -12517,8 +12617,6 @@
 
             function startDrawImgEvent(e:Event):void //drag load1
             {
-                var loaderInfo:LoaderInfo = LoaderInfo(e.target);
-
                 if(!isTraceLayer)
                 {
                     if(tempCopiedImage)
@@ -12528,7 +12626,7 @@
                     }
                     else
                     {
-                        loadImageFile(tmpFileName,file.nativePath,loaderInfo.width,loaderInfo.height,loaderInfo.loader,null);
+                        loadImageFile(tmpFileName,tempDragDropFile.nativePath,loader.content.width,loader.content.height,loader,null);
                     }
 
                 }
@@ -12541,7 +12639,7 @@
                     }
                     else
                     {
-                        pasteTraceImage(loaderInfo.loader,loaderInfo.width,loaderInfo.height);
+                        pasteTraceImage(loader,loader.content.width,loader.content.height);
                     }
 
                     if(!replayModeON) openTraceWindow();
@@ -12559,15 +12657,15 @@
             {
                 try
                 {
-                    if(isImageFile(file.name) === true)
+                    if(isImageFileExt(tempDragDropFile.name) === true)
                     {
                         if(!isTraceLayer)
                         {
-                            loadReplayFile(file,file.name,file.nativePath);
+                            loadReplayFile(tempDragDropFile,tempDragDropFile.name,tempDragDropFile.nativePath);
                         }
                         else
                         {
-                            loadRawFileToReferenceLayer(file);
+                            paste2020FileImageToTraceLayer(tempDragDropFile);
                         }
 
                         fs.close();
@@ -12622,16 +12720,31 @@
                 tempDragDropFile = null;
             }
 
-            tmpFileName = file.name;
-            fs.openAsync(file, FileMode.READ);
+            tmpFileName = tempDragDropFile.name;
+            fs.addEventListener(Event.COMPLETE, completeHandler);
+            fs.addEventListener(IOErrorEvent.IO_ERROR, errorHandler);
+            fs.openAsync(tempDragDropFile,FileMode.READ);
         }
 
+        private function getMyPaletteIndexByMousePosLimitBound():int
+        {
+            const compactLine:int = (myPalettePresetType === 0 && myPaletteViewMode) ? 9:1;
+            var xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
+            var yLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseY/(myPaletteColorHeight))
+
+            if(xLineIndex < 0) xLineIndex = 0;
+            else if(xLineIndex > 9) xLineIndex = 9;
+
+            if(yLineIndex < 0) yLineIndex = 0;
+            else if(yLineIndex > compactLine) yLineIndex = compactLine;
+
+            return xLineIndex+yLineIndex*10;
+        }
 
         private function getMyPaletteIndexByMousePos():int
         {
-            const compactLine:int = (myPalettePresetType === 0 && myPaletteViewMode) ? 9:1;
             const xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
-            const yLineIndex:int = Math.abs(Math.floor(pickerBox.myPaletteBox.mouseY/myPaletteColorHeight)-compactLine)*10;
+            const yLineIndex:int = 10*(Math.floor(pickerBox.myPaletteBox.mouseY/(myPaletteColorHeight)));
 
             if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > ((myPaletteViewMode) ? myPaletteLimitTotal : myPaletteLimitCompact))
             {
@@ -12764,17 +12877,20 @@
             }
         }
 
-
         private function setMypPaletteListCompact():void
         {
             myPaletteViewMode = false;
             updateMyPaletteList();
+            updateScrollBarHeight();
+            checkFOFOPosition();
         }
 
         private function setMypPaletteListAll():void
         {
             myPaletteViewMode = true;
             updateMyPaletteList();
+            updateScrollBarHeight();
+            checkFOFOPosition();
         }
 
         private function rightMouseDownMyPalette(e:MouseEvent):void
@@ -12817,7 +12933,7 @@
 
             var len:int = (type === 0 && myPaletteViewMode) ? myPaletteLimitTotal:myPaletteLimitCompact;
             var nextX:Number = 0.0;
-            var nextY:Number = Math.floor(len/10);
+            var nextY:Number = 0.0;
 
             pickerBox.myPaletteBox.graphics.clear();
             pickerBox.myPaletteBox.graphics.lineStyle(0,0,0);
@@ -12828,10 +12944,10 @@
             //색깔 쭉 그려주기
             for(var i:uint=0;i<len;i++)
             {
-                if(i % 10 === 0)
+                if(i > 0 && i % 10 === 0)
                 {
                     nextX = 0;
-                    nextY--;
+                    nextY++;
                 }
 
                 px = myPaletteColorWidth*nextX;
@@ -12885,7 +13001,7 @@
                     pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
                 }
 
-                pickerBox.myPaletteBox.y = 0;
+                // pickerBox.myPaletteBox.y = 0;
             }
             else if(type === 1)
             {
@@ -12901,7 +13017,7 @@
                     pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
                 }
 
-                pickerBox.myPaletteBox.y = 0;
+                // pickerBox.myPaletteBox.y = 0;
             }
             else
             {
@@ -12935,7 +13051,7 @@
                         pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*len);
                     }
                 }
-                pickerBox.myPaletteBox.y = (myPaletteViewMode === false) ? 0:-myPaletteColorHeight*Math.floor((myPaletteLimitTotal-20)/10);
+                // pickerBox.myPaletteBox.y = (myPaletteViewMode === false) ? 0:-myPaletteColorHeight*Math.floor((myPaletteLimitTotal-20)/10);
             }
         }
 
@@ -13425,11 +13541,11 @@
             var d:Array;
             var ba:ByteArray;
             var replayData:ByteArray = new ByteArray();
-            const isNewFOFOSaveFormatSave:Boolean = isNewFOFOSaveFormat;
+            const isNew2020FileFlag:Boolean = isNew2020File(oldFile);
 
-            if(isNewFOFOSaveFormatSave)
+
+            if(isNew2020FileFlag)
             {
-                isNewFOFOSaveFormat = false;
                 const a:String = fs.readUTFBytes(9); //FOFOPAINT헤더 읽어줌
                 const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
                 if(compBytes > 0)
@@ -13546,7 +13662,7 @@
                     d[1] = null;
                     traceRawData = d.concat();
                 }
-                else if(isNewFOFOSaveFormatSave) //신포멧인데 rData옛 버전에서rData압축안하고 넣어준거 읽어줌
+                else if(isNew2020FileFlag) //신포멧인데 rData옛 버전에서rData압축안하고 넣어준거 읽어줌
                 {
                     replayData.position = replayData.length;
                     replayData.writeObject(d);
@@ -13558,7 +13674,7 @@
             }
             fs.close();
 
-            if(isNewFOFOSaveFormatSave)
+            if(isNew2020FileFlag)
             {
                 fs.open(repFile,FileMode.WRITE);
                 fs.position = 0;
@@ -13585,87 +13701,6 @@
 
             makeJumpImageFlag = 1;
             loadFileAfter(fileName,filePath,imgW,imgH,finalIMGBMPD,finalIMGBMPD1,false,bg);
-        }
-
-        private function loadRawFileToReferenceLayer(file:File):void
-        {
-            if(isTrue2020File(file) === false)
-            {
-                saveThenLoadFlag = false;
-                setLoadBoxVisible(false);
-                setLoadBoxOFFLoadFailed();
-                return;
-            }
-
-            const fs:FileStream = new FileStream();
-            fs.open(file,FileMode.READ);
-            var finalIMGBMPD:BitmapData;
-            var finalIMGBMPD1:BitmapData;
-
-            if(isNewFOFOSaveFormat)
-            {
-                isNewFOFOSaveFormat = false;
-                fs.readUTFBytes(9); //FOFOPAINT헤더 읽어줌
-                const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
-                fs.position += compBytes;
-            }
-
-            var ba:ByteArray;
-            var newRectangle:Rectangle;
-
-            while(true)
-            {
-                if(fs.bytesAvailable === 0) break;
-                const d:Array = fs.readObject() as Array;
-
-                if(d[0] === "rFinalImage")
-                {
-                    if(d[2] is ByteArray === false)
-                    {
-                        ba = d[1] as ByteArray;
-                        newRectangle = new Rectangle(0,0,d[2],d[3]);
-
-                        ba.uncompress();
-                        finalIMGBMPD = new BitmapData(d[2],d[3],true,0);
-                        finalIMGBMPD.lock();
-                        finalIMGBMPD.setPixels(newRectangle,ba);
-                        finalIMGBMPD.unlock();
-                        ba.clear();
-                        ba = null;
-                    }
-                    else
-                    {
-                        ba = d[2] as ByteArray;
-                        newRectangle = new Rectangle(0,0,d[3],d[4]);
-                        ba.uncompress();
-                        finalIMGBMPD = new BitmapData(d[3],d[4],true,0);
-                        finalIMGBMPD.lock();
-                        finalIMGBMPD.setPixels(newRectangle,ba);
-                        finalIMGBMPD.unlock();
-                        ba.clear();
-
-                        ba = d[1] as ByteArray;
-                        ba.uncompress();
-                        finalIMGBMPD1 = new BitmapData(d[3],d[4],true,0);
-                        finalIMGBMPD1.lock();
-                        finalIMGBMPD1.setPixels(newRectangle,ba);
-                        finalIMGBMPD1.unlock();
-                        ba.clear();
-                        ba = null;
-
-                        finalIMGBMPD.draw(finalIMGBMPD1);
-                        finalIMGBMPD1.dispose();
-                    }
-                }
-            }
-            fs.close();
-
-            pasteTraceImage(finalIMGBMPD,finalIMGBMPD.width,finalIMGBMPD.height);
-
-            if(!replayModeON)
-            {
-                openTraceWindow();
-            }
         }
 
         private function loadImageFile(fileName:String,filePath:String,width:Number,height:Number,imageData:IBitmapDrawable,imageData1:IBitmapDrawable):void
@@ -13715,7 +13750,7 @@
             setBackgroundColorReplayMode(newBG);
             if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
 
-            if(isImageFile(fileName) === true)
+            if(isImageFileExt(fileName) === true)
             {
                 fileName = fileName.substr(0,fileName.lastIndexOf(".2020"))+".png";
                 filePath = filePath.substr(0,filePath.lastIndexOf(".2020"))+".png";
@@ -13855,22 +13890,21 @@
                 windowTitle = "Open reference layer image";
             }
 
-            var loader:Loader = new Loader();
             //초기값으로 파일 경로가 저장된 파일 이름이랑 같으면 그냥 파일인스턴스로 만들어줌
             const file:File = (saveFilePath === saveFileName) ? new File() : new File(saveFilePath);
+            var loader:Loader = new Loader();
 
             //browser에서 fr.data에서 넘겨준 바이트데이터를 실제적으로 처리함
-            function loadFileCompleteEvent(e:Event):void //load1
+            function imageLoadComplete(e:Event):void //load1
             {
+                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
+                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,imageLoadComplete);
                 setFileBrowserONFlag(false);
-                var loaderInfo:LoaderInfo = LoaderInfo(e.target);
 
                 //2020이 아닌 보통 이미지 처리
-                if(traceLayer === true) pasteTraceImage(loaderInfo.loader,loaderInfo.width,loaderInfo.height);
-                else loadImageFile(file.name,file.nativePath,loaderInfo.width,loaderInfo.height,loaderInfo.loader,null);
+                if(traceLayer === true) pasteTraceImage(loader,loader.content.width,loader.content.height);
+                else loadImageFile(file.name,file.nativePath,loader.content.width,loader.content.height,loader,null);
 
-                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
-                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,loadFileCompleteEvent);
                 loader.unload();
                 loader = null;
             }
@@ -13880,7 +13914,7 @@
                 setLoadBoxOFFLoadFailed();
                 setFileBrowserONFlag(false);
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
-                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,loadFileCompleteEvent);
+                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,imageLoadComplete);
                 loader.unload();
                 loader = null;
                 addInputEventCurrentModeLoadButton();
@@ -13905,37 +13939,23 @@
 
             function fileSelectCompleteHandler(e:Event):void
             {
+                file.removeEventListener(Event.SELECT,fileSelectHandler);
+                file.removeEventListener(Event.COMPLETE,fileSelectCompleteHandler);
+                file.removeEventListener(Event.CANCEL,onCancelEvent);
                 setFileBrowserONFlag(false);
 
                 //2020파일 처리
-                if(isTrue2020File(file) || isImageFile(file.name))
+                if(isTrue2020File(file))
                 {
-                    if(traceLayer === true) loadRawFileToReferenceLayer(file);
+                    if(traceLayer === true) paste2020FileImageToTraceLayer(file);
                     else loadReplayFile(file,file.name,file.nativePath);
                 }
                 else //일반 이미지 처리
                 {
                     loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
-                    loader.contentLoaderInfo.addEventListener(Event.COMPLETE,loadFileCompleteEvent);
-                    try
-                    {
-                        loader.loadBytes(file.data);
-                    }
-                    catch(e:Error)
-                    {
-                        setLoadBoxOFFLoadFailed();
-                        setFileBrowserONFlag(false);
-                        loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
-                        loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,loadFileCompleteEvent);
-                        loader.unload();
-                        loader = null;
-                        addInputEventCurrentModeLoadButton();
-                    }
+                    loader.contentLoaderInfo.addEventListener(Event.COMPLETE,imageLoadComplete);
+                    loader.load(new URLRequest(file.url));
                 }
-
-                file.removeEventListener(Event.SELECT,fileSelectHandler);
-                file.removeEventListener(Event.COMPLETE,fileSelectCompleteHandler);
-                file.removeEventListener(Event.CANCEL,onCancelEvent);
 
                 addInputEventCurrentModeLoadButton();
             }
@@ -15394,7 +15414,8 @@
                             "getFirstRCursorPos.x":tickDraw.getFirstRCursorPos().x,
                             "getFirstRCursorPos.y":tickDraw.getFirstRCursorPos().y,
                             "saveContinue":saveContinue,
-                            "myPalettePresetType":myPalettePresetType
+                            "myPalettePresetType":myPalettePresetType,
+                            "myPaletteViewMode":myPaletteViewMode
                             });
             fs.close();
         }
@@ -15605,6 +15626,11 @@
                     checkCanvasPanelPos();
                     checkCanvasPanelPos(true);
                     if(d["myPalettePresetType"] > 0) selectMyPaletteButton(d["myPalettePresetType"]);
+                    if(myPalettePresetType === 0 && d["myPaletteViewMode"])
+                    {
+                        setMypPaletteListAll();
+                    }
+
                     else updateMyPaletteList();
                     updatePreviewBoxRectPos();
                     updatePenSizeCursor();
@@ -19247,7 +19273,7 @@
             topBar.sideBarPositionButton.visible = false;
             topBar.sideBarPositionButton2.visible = true;
 
-            checkfofoPos();
+            checkFOFOPosition();
             updateStageOffset();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
@@ -19293,7 +19319,7 @@
             topBar.sideBarPositionButton.visible = true;
             topBar.sideBarPositionButton2.visible = false;
 
-            checkfofoPos();
+            checkFOFOPosition();
             updateStageOffset();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
@@ -19495,11 +19521,11 @@
         }
 
 
-        private function updateScrollBarHeight(sth:Number):void
+        private function updateScrollBarHeight():void
         {
+            const sth:Number = Math.floor(stage.stageHeight-STAGE_TOP_OFFSET+STAGE_BOTTOM_OFFSET);
             const scale:Number = getUIScale();
-            const sideBarScaledHeight:Number = sideBarConstHeight*scale;
-            sth = Math.floor(sth-STAGE_TOP_OFFSET+STAGE_BOTTOM_OFFSET); //상단 메뉴 길이 빼줌 sth랑 sideBarSetHeight 같이 빼야함
+            const sideBarScaledHeight:Number = getSidebarConstHeight()*scale;
 
             //창이 늘어났을때 여유공간 있으면 아랫쪽으로 옮겨줌
             const nowScrollSetBottom:Number = Math.floor(sideBarScaledHeight-2*scale+sideBarScrollSet.y*scale);
@@ -19594,7 +19620,7 @@
                 topBar.updateTimerPos(stage.stageWidth);
 
                 sideBar.updateSideBGSize(getSideBarBGHeight());
-                updateScrollBarHeight(stage.stageHeight);
+                updateScrollBarHeight();
 
                 if(isRightSidebar)
                 {
@@ -19610,7 +19636,7 @@
                 }
 
                 updateStageBGSize();
-                checkfofoPos();
+                checkFOFOPosition();
                 hint.updateHintPos();
 
                 lastWindowSize.setTo(stage.nativeWindow.width,stage.nativeWindow.height);
@@ -20836,7 +20862,7 @@
             const scale:Number = getUIScale();
             const sth:Number = stage.stageHeight;
             const canMoveHeight:Number = (sth-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET)-scrollBarHeight*scale;
-            const diffHeight:Number = sideBarConstHeight*scale-(sth-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET);
+            const diffHeight:Number = getSidebarConstHeight()*scale-(sth-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET);
             const factor:Number = (diffHeight/canMoveHeight);
             var scrollStarted:Boolean = false;
             var my1:Number = sideBarScrollBar.y;
@@ -21496,8 +21522,6 @@
 
                 case "rgbInfo":
                 {
-                    if(myPaletteViewMode && myPalettePresetType === 0) setMypPaletteListCompact();
-
                     rgbInfoRightClickFocusIgnoreFlag = true;
                     toggleRGBInfoTextColorType();
                 }
@@ -21716,17 +21740,12 @@
             {
                 myPaletteDragStarted = false;
 
-                if(pickerBox.myPaletteBox.hitTestPoint(mouseX,mouseY) === true)
-                {
-                    const index:int = getMyPaletteIndexByMousePos();
+                const index:int = getMyPaletteIndexByMousePosLimitBound();
+                const colorSave:* = myPalettePreset[index];
 
-                    if(index >= 0)
-                    {
-                        const colorSave:* = myPalettePreset[index];
-                        myPalettePreset[index] = myPaletteDragClickedColor;
-                        myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
-                    }
-                }
+                myPalettePreset[index] = myPaletteDragClickedColor;
+                myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
+
                 updateMyPaletteList();
             }
 
@@ -21878,47 +21897,14 @@
 
             switch(targetName)
             {
-                case "myPaletteBox":
-                case "myPaletteButton":
-                case "transColorButton":
-                case "currentColor":
-                case "drawrPresetButton":
-                case "tegakiPresetButton":
-
-                {
-                    break;
-                }
-
-                default:
-                {
-                    if(myPaletteViewMode && myPalettePresetType === 0)
-                    {
-                        setMypPaletteListCompact();
-                    }
-                }
-                break;
-            }
-
-            switch(targetName)
-            {
                 case "svBox":
                 {
-                    if(myPaletteViewMode && myPalettePresetType === 0)
-                    {
-                        setMypPaletteListCompact();
-                    }
-
                     setSVcolorButton();
                 }
                 return;
 
                 case "hueColor":
                 {
-                    if(myPaletteViewMode && myPalettePresetType === 0)
-                    {
-                        setMypPaletteListCompact();
-                    }
-
                     setHueColorButton();
                 }
                 return;
@@ -22233,9 +22219,7 @@
                 case "traceCancelButton":
                 case "traceImageButton":
                 case "traceLoadButton":
-                case "traceClipButton":
                 case "traceMirrorButton":
-                case "traceDeleteButton":
                 case "traceVisibleONButton":
                 case "traceVisibleOFFButton":
                 case "appResetButton":
@@ -22251,6 +22235,22 @@
                     checkButtonUp(targetName);
                 }
                 return;
+
+                case "traceDeleteButton":
+                {
+                    setCountDownLongKey(traceMenu.traceDeleteButton,"Deleting reference image... ",null,setTraceDeleteButton,null);
+                }
+                break;
+
+                case "traceClipButton":
+                {
+                    if(traceMenu.traceClipButton.alpha === 1.0)
+                    {
+                        setCountDownLongKey(traceMenu.traceClipButton,"Loading clipboard image... ",null,setTraceClipButton,null);
+                    }
+                }
+                break;
+
 
                 case "timer":
                 {

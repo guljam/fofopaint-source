@@ -6,7 +6,9 @@
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
 	import flash.display.DisplayObjectContainer;
-	import flash.text.TextFieldAutoSize;
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
+	import flash.geom.Matrix;
 
 	public class loadBox extends Sprite {
 		public var dragDropLoadButton:SimpleButton;
@@ -15,33 +17,40 @@
 		public var dragDropCancelButton:SimpleButton;
 		public var pleaseWaitText:TextField;
 		public var dragDropFileBG:Sprite = new Sprite();
-		private var filePathText:TextField = new TextField();
-		private var filePathTextBG:Sprite = new Sprite();
 
-		private const base:ColorTransform = new ColorTransform();
 		private const subBase:ColorTransform = new ColorTransform();
 		private const activeColor:ColorTransform = new ColorTransform();
 		private const activeIconColor:ColorTransform = new ColorTransform();
 		private var buttonList:Array;
+		private var previewBitmap:Bitmap = new Bitmap(new BitmapData(1,1,false,0));
+		private var previewBitmapBox:Sprite = new Sprite();
+		private var bitmapSize:Number = 150;
 
-		public function setFilePathString(str:String):void
-		{
-			if(filePathText)
-			{
-				filePathText.text = str;
-				filePathTextBG.graphics.clear();
-				filePathTextBG.graphics.beginFill(0xFFFFFF);
-				filePathTextBG.graphics.drawRect(0,0,filePathText.width,filePathText.height);
-				filePathTextBG.graphics.endFill();
-				filePathTextBG.x = dragDropLoadButton.x;
-				filePathTextBG.y = dragDropLoadButton.y-filePathTextBG.height;
-			}
-		}
+		public function setPreviewImage(newImage:BitmapData):void
+        {
+            const bmpd:BitmapData = new BitmapData(bitmapSize,bitmapSize,true,0);
+            var longWidth:Number = (newImage.width > newImage.height) ? newImage.width:newImage.height;
+            var f:Number = bitmapSize/longWidth;
+            var imageOffsetX:Number = 0.0;
+            var imageOffsetY:Number = 0.0;
+
+            if(newImage.width > newImage.height) imageOffsetY = (bitmapSize/2)-(newImage.height*f)/2;
+            else imageOffsetX = (bitmapSize/2)-(newImage.width*f)/2;
+
+            const mat:Matrix = new Matrix();
+            mat.scale(f,f);
+            mat.translate(imageOffsetX,imageOffsetY);
+            bmpd.draw(newImage,mat);
+
+			if(previewBitmap.bitmapData) previewBitmap.bitmapData.dispose();
+            previewBitmap.bitmapData = bmpd;
+        }
+
 
 		public function setPleaseWait(flag:Boolean):void
 		{
 			pleaseWaitText.visible = flag;
-			filePathTextBG.visible = !flag;
+			previewBitmapBox.visible = !flag;
 			dragDropLoadButton.visible = !flag;
 			dragDropLoadRefLayerButton.visible = !flag;
 			dragDropSaveAndLoadButton.visible = !flag;
@@ -66,7 +75,6 @@
 			var textColorDeafult:uint;
 			var textColorOver:uint;
 
-           	base.color = arr[0];
            	subBase.color = arr[1];
            	textColorOver = arr[3];
            	activeColor.color = arr[4];
@@ -92,6 +100,11 @@
 				childText = btnOver.getChildAt(1) as TextField;
 				childText.textColor = textColorOver;
 			}
+
+			previewBitmapBox.graphics.clear();
+			previewBitmapBox.graphics.beginFill(arr[1]);
+			previewBitmapBox.graphics.drawRect(0,0,bitmapSize,bitmapSize);
+			previewBitmapBox.graphics.endFill();
 		}
 
 		public function loadBox() {
@@ -108,22 +121,19 @@
 
 			visible = false;
 			pleaseWaitText.visible = false;
+			pleaseWaitText.x = this.width/2-pleaseWaitText.width/2;
+			pleaseWaitText.y = this.height/2-pleaseWaitText.height/2;
+
 			dragDropLoadButton.useHandCursor = true;
 			dragDropLoadRefLayerButton.useHandCursor = true;
 			dragDropCancelButton.useHandCursor = true;
 			dragDropSaveAndLoadButton.useHandCursor = true;
 
-			filePathText.type = "input";
-			filePathText.wordWrap = true;
-			filePathText.width = this.width;
-			filePathText.autoSize = TextFieldAutoSize.LEFT;
-			filePathText.mouseEnabled = false;
+			previewBitmapBox.addChild(previewBitmap);
+			addChild(previewBitmapBox);
 
-			pleaseWaitText.textColor = 0;
-			filePathText.textColor = 0;
+			pleaseWaitText.textColor = 0xFFFFFF;
 
-			filePathTextBG.addChild(filePathText);
-			addChild(filePathTextBG);
 			setChildIndex(pleaseWaitText,numChildren-1);
 
 			buttonList = [
