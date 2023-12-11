@@ -15649,6 +15649,8 @@
                     checkCanvasPanelPos();
                     checkCanvasPanelPos(true);
                     if(d["myPalettePresetType"] > 0) selectMyPaletteButton(d["myPalettePresetType"]);
+
+                    myPaletteViewMode = d["myPaletteViewMode"];
                     if(myPalettePresetType === 0 && d["myPaletteViewMode"])
                     {
                         setMypPaletteListAll();
