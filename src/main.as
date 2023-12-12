@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.17;
+        private const APP_VERSION:Number = 24.20;
         private const APP_DATA_VERSION:Number = 2415;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -865,7 +865,7 @@
 
         private function mouseDownLoadBox(e:MouseEvent):void
         {
-            if(!e.target || clickBlockOnWindowActiveFlag)
+            if(!e.target)
             {
                 return;
             }
