@@ -62,8 +62,8 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.15;
-        private const APP_DATA_VERSION:Number = 2410;
+        private const APP_VERSION:Number = 24.16;
+        private const APP_DATA_VERSION:Number = 2415;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private var STAGE_FRAME:int = stage.frameRate; //frame rate가 오르면 선을 빠르게 그렀을때 떨어저 그려지고 낮게 하면 부드럽게 이어져 그려짐
@@ -340,7 +340,6 @@
                     ,penSmoothValue:Number = 0 //펜 손떨방 플래그
                     ,penSmoothSlideValue:int = 0 //펜 손떨방 플래그
                     ,penSmoothSlideTotal:Number = 20 //손떨방 총 단계
-                    ,penSmoothButtonX:Number = 70 //손떨방 조절 버튼 초기 위치
                     ,sharpLineON:Boolean = false //0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
                     ,fillPenON:Boolean = false //채우기 펜 플래그
                     ,subLayerON:Boolean = false
@@ -350,6 +349,7 @@
                     ,airBrushON:Boolean = false
                     ,airBrushSizeDrawMode:int = 0
                     ,airBrushSizeReplayMode:int = 0
+                    ,airBrushSizeReplayMode2:int = 0
                     ,fillPenStarted:Boolean = false //채우기 펜 시작됨
                     ,eraseOddOffset:Number = 0//지우개 변수
                     ,eraseSize:uint = 12
@@ -450,6 +450,7 @@
                     ,rcanvas11BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rcanvas2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rcanvas2ClipRect:Rectangle = new Rectangle() //갱신된 부분만 그려주는 거
+                    ,rcanvas2ClipRect2:Rectangle = new Rectangle() //갱신된 부분만 그려주는 거
                     ,replayStartON:Boolean = false //리플레이 시작버튼 여러번 누르는거 방지
                     ,playbackFinished:Boolean = true //리플레이가 자연히 끝났을때 올렽주는 플래그 가장 처음에 캔버스 싹쓸이 하기 위해서 넣어줌.
                     ,replayEndWithCanvasFitWindow:Boolean = false //리플레이가 follow cursor옵션으로 캔버스 작게 축소되서 끝났을때
@@ -540,6 +541,7 @@
         //그리드 레이어 변수
                     ,canvasGrid:Shape = new Shape()//트레이스 레이어임
                     ,gridValue:uint = 0
+
         //closure
                     ,realWorkingTimer:Object = cRealWorkingTimer()
                     ,dottedLine:Object = cDottedLine()//순서 먼저 와야함
@@ -565,6 +567,7 @@
                     ,stageMouseMoveEvent:Object = cStageMouseMoveEvent()
                     ,replayHideCursor:Object = cCheckHideCursor()
                     ,resizeCanvas:Object = cResizeCanvas()
+                    ,gridButton:Object = cGridFunc()
 
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
@@ -982,12 +985,27 @@
             return 0;
         }
 
-        private function resetRCanvas2DrawCliprect():void
+        private function resetRCanvas2DrawCliprect2():void
         {
-            rcanvas2ClipRect.x = 0;
-            rcanvas2ClipRect.y = 0;
-            rcanvas2ClipRect.width = 0;
-            rcanvas2ClipRect.height = 0;
+            rcanvas2ClipRect2.x = 0;
+            rcanvas2ClipRect2.y = 0;
+            rcanvas2ClipRect2.width = 0;
+            rcanvas2ClipRect2.height = 0;
+        }
+
+        private function extandRCanvas2DrawCliprect2():void
+        {
+            var rairBrushOffset:Number = (airBrushSizeReplayMode2 > 0) ? getClipRectOffsetAirBrush(airBrushSizeReplayMode2) : 1;
+
+            rcanvas2ClipRect2.x -= rairBrushOffset;
+            rcanvas2ClipRect2.y -= rairBrushOffset;
+            rcanvas2ClipRect2.width += (rairBrushOffset*2);
+            rcanvas2ClipRect2.height += (rairBrushOffset*2);
+        }
+
+        private function updateRCanvas2DrawCliprect2():void
+        {
+            rcanvas2ClipRect2 = rcanvas2ClipRect2.union(rcanvas2Draw.getBounds(rcanvasPanel));
         }
 
         private function extandRCanvas2DrawCliprect():void
@@ -998,6 +1016,14 @@
             rcanvas2ClipRect.y -= rairBrushOffset;
             rcanvas2ClipRect.width += (rairBrushOffset*2);
             rcanvas2ClipRect.height += (rairBrushOffset*2);
+        }
+
+        private function resetRCanvas2DrawCliprect():void
+        {
+            rcanvas2ClipRect.x = 0;
+            rcanvas2ClipRect.y = 0;
+            rcanvas2ClipRect.width = 0;
+            rcanvas2ClipRect.height = 0;
         }
 
         private function updateRCanvas2DrawCliprect():void
@@ -1276,11 +1302,6 @@
                 {
                     hint.off();
                 }
-            }
-
-            if(stageBG.visible === true && stage.nativeWindow.active)
-            {
-                stageBG.visible = false;
             }
 
             if(hintBox.visible)
@@ -4301,12 +4322,7 @@
                     data.push(data[0]);
                     data.push(data[1]); //마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
                     canvas2.alpha = xAlpha;
-                    rDataBuffer.push(["fill4",xColor,xAlpha,xBlendMode,command.concat(),data.concat(),airBrushON,airBrushSizeDrawMode]);
-
-                    if(airBrushON)
-                    {
-                        setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
-                    }
+                    rDataBuffer.push(["fill5",xColor,xAlpha,xBlendMode,command.concat(),data.concat(),airBrushON,airBrushSizeDrawMode]);
 
                     drawFillPenData();
                 }
@@ -4787,14 +4803,14 @@
                     if(xShape)
                     {
                         updateExtendEndPoint(mx,my,clickPos.x,clickPos.y,xSize/8);
-                        rDataBuffer.push(["lineStyle4",xShape,xSize,xColor,xAlpha,extendedPos.x,extendedPos.y,xBlendMode,false,subLayerON,xAirBrushON]);
+                        rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,extendedPos.x,extendedPos.y,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
                         penPoints.push(extendedPos.x);
                         penPoints.push(extendedPos.y);
                         canvas2Draw.graphics.moveTo(extendedPos.x,extendedPos.y);
                     }
                     else
                     {
-                        rDataBuffer.push(["lineStyle4",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerON,xAirBrushON]);
+                        rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
                         penPoints.push(smoothPos.x);
                         penPoints.push(smoothPos.y);
                         canvas2Draw.graphics.moveTo(smoothPos.x,smoothPos.y);
@@ -4812,22 +4828,10 @@
                 {
                     mouseMoveCount = 0;
 
-                    if(xAirBrushON && zoomed !== 1.0)
-                    {
-                        setBlurCanvasBySizeNoZoomDrawMode();
-                        canvas2BitmapData.draw(canvas2Draw,null,null,"layer");
-                        canvas2Bitmap.bitmapData = canvas2BitmapData;
-                        updateCanvas2DrawCliprect();
-                        canvas2Draw.graphics.clear();
-                        setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
-                    }
-                    else
-                    {
-                        canvas2BitmapData.draw(canvas2Draw,null,null,"layer");
-                        canvas2Bitmap.bitmapData = canvas2BitmapData;
-                        updateCanvas2DrawCliprect();
-                        canvas2Draw.graphics.clear();
-                    }
+                    canvas2BitmapData.draw(canvas2Draw,null,null,"layer");
+                    canvas2Bitmap.bitmapData = canvas2BitmapData;
+                    updateCanvas2DrawCliprect();
+                    canvas2Draw.graphics.clear();
 
                     lineStyleReady(xShape,xSize,xColor,xAlpha);
                     const prevX:Number = penPoints[penPoints.length-4];
@@ -4835,11 +4839,11 @@
 
                     penCommand.length = 0;
                     penPoints.length = 0;
-                    rDataBuffer.push(["tempDone2"]);
+                    rDataBuffer.push(["tempDone3"]);
 
                     if(xShape === true)
                     {
-                        rDataBuffer.push(["lineStyle4",xShape,xSize,xColor,xAlpha,prevX,prevY,xBlendMode,false,subLayerON,xAirBrushON]);
+                        rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,prevX,prevY,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
                         penCommand.push(1);
                         penPoints.push(prevX);
                         penPoints.push(prevY);
@@ -4847,7 +4851,7 @@
                     }
                     else
                     {
-                        rDataBuffer.push(["lineStyle4",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,false,subLayerON,xAirBrushON]);
+                        rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
                         penCommand.push(1);
                         penPoints.push(mx);
                         penPoints.push(my);
@@ -4976,7 +4980,7 @@
                 if(mouseMovedFlag === false || (penToolFlag && mouseMovedFlag === true && dotflag))
                 {
                     rDataBuffer = [];
-                    rDataBuffer.push(["dot3",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,subLayerON,xAirBrushON,regPoint.rotation]);
+                    rDataBuffer.push(["dot4",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,subLayerON,airBrushSizeDrawMode,regPoint.rotation]);
                     dotTool(xShape,xSize,xColor,clickPos.x,clickPos.y,regPoint.rotation);
                     resetCanvas2DrawCliprect();
                 }
@@ -5064,6 +5068,7 @@
                 {
                     checkPenToolUndoReady();
                 }
+                canvas2Draw.filters = [];
 
                 stageMouseMoveEvent.add("penToolMouseMoveEvent",penToolMouseMoveEvent);
                 stage.addEventListener(MouseEvent.MOUSE_UP,penToolMouseUpEvent);
@@ -5078,11 +5083,6 @@
 
             mouseLeaveSideBarON();
             penSizeCursor.visible = false;
-
-            if(stageBG.visible === false)
-            {
-                stageBG.visible  = true;
-            }
         }
 
         private function updatePenCursorPositionEvent(e:MouseEvent):void
@@ -6149,9 +6149,7 @@
 
         private function drawGrid():void
         {
-            const flag:uint = gridValue;
-
-            if(flag === 0)
+            if(gridValue === 0)
             {
                 canvasGrid.visible = false;
                 canvasGrid.graphics.clear();
@@ -6160,7 +6158,7 @@
 
             const w:Number = CANVAS_WIDTH;
             const h:Number = CANVAS_HEIGHT;
-            const gridgap:Number = flag*GRID_GAP;
+            const gridgap:Number = gridValue*GRID_GAP;
             const len:Number = Math.floor(h/gridgap+0.5);//가로선 횟수 w, h반대되는거 맞음
             const len2:Number = Math.floor(w/gridgap+0.5); //세로선 횟수
             const normalColor:uint = GRID_NORMAL_COLOR;
@@ -6231,27 +6229,121 @@
 
         private function setGridOFF():void
         {
+            gridButton.off();
             gridValue = 0;
             setHintONTemp("Grid OFF");
             drawGrid();
         }
 
-        private function setGridButton():void
+        private function cGridFunc():Object
         {
-            gridValue++;
+            const minDist:Number = topBar.replaySpeedSlider.x+1.5;
+            const maxDist:Number = minDist+topBar.replaySpeedSlider.width-2.5;
+            const step:Number = 20;
+            const div:Number = (maxDist-minDist)/step;
+            var oldValue:Number;
 
-            if(gridValue > 20)
+            function setCursorPosByValue(value:Number):void
             {
-                gridValue = 0;
-                setHintONTemp("Grid OFF");
-            }
-            else
-            {
-                setHintONTemp("Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)");
+                topBar.replaySpeedSliderCursor.x = value*div+minDist;
             }
 
-            drawGrid();
-            setTopChildIndex(canvasGrid);
+            function drawDridByValue(mx:Number):void
+            {
+                if(mx < minDist) mx = minDist;
+                else if(mx > maxDist) mx = maxDist;
+
+                const value:Number = Math.floor((mx-minDist)/div);
+
+                if(oldValue !== value)
+                {
+                    setCursorPosByValue(value);
+                    oldValue = value;
+                    gridValue = value;
+                    setHintONTemp("Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)");
+                    drawGrid();
+                }
+
+                setTopChildIndex(canvasGrid);
+            }
+
+            function mouseUpGridButton(e:MouseEvent):void
+            {
+                mouseDragON = false;
+                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpGridButton);
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMoveGridButton);
+            }
+
+            function mouseMoveGridButton(e:MouseEvent):void
+            {
+                var mx:Number = topBar.replaySpeedSliderWrapper.mouseX;
+
+                if(mx < minDist) mx = minDist;
+                else if(mx > maxDist) mx = maxDist;
+
+                drawDridByValue(mx);
+            }
+
+            function mouseDownGridButton(e:MouseEvent):void
+            {
+                if(!e.target) return;
+                if(e.target.name === "gridButton") return;
+
+                if(topBar.replaySpeedSliderWrapper.hitTestPoint(mouseX,mouseY))
+                {
+                    drawDridByValue(topBar.replaySpeedSliderWrapper.mouseX);
+                    stage.addEventListener(MouseEvent.MOUSE_MOVE,mouseMoveGridButton);
+                    stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpGridButton);
+                }
+                else
+                {
+                    off();
+                }
+            }
+
+            function keyDownGridButton(e:KeyboardEvent):void
+            {
+                off();
+            }
+
+            function off():void
+            {
+                mouseDragON = false;
+                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpGridButton);
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownGridButton);
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMoveGridButton);
+                stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownGridButton);
+                topBar.setReplaySpeedBarToGridSliderOFF();
+            }
+
+            function start():void
+            {
+                if(topBar.isReplaySpeedSliderWrapperGridMode() === false)
+                {
+                    var minDist:Number = topBar.replaySpeedSlider.x+1.5;
+                    var maxDist:Number = minDist+topBar.replaySpeedSlider.width-2.5;
+                    var step:Number = 20;
+                    var div:Number = (maxDist-minDist)/step;
+                    var oldValue:Number;
+
+                    mouseDragON = true;
+
+                    topBar.setReplaySpeedBarToGridSliderON(uiColorSet[uiColorIndex][0]);
+                    setCursorPosByValue(gridValue);
+
+                    stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownGridButton);
+                    stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownGridButton);
+                }
+                else
+                {
+                    off();
+                }
+            }
+
+            return {
+                start:start,
+                off:off
+            };
         }
 
         private function updateTraceOpaButtonPosByAlpha(alpha:Number):void
@@ -6545,8 +6637,8 @@
         private function setTraceOpaButton():void
         {
             const barWidth:Number = traceMenu["traceOpaBar"].width;
-            const buttonMin:Number = traceMenu["traceOpaBar"].x+2;
-            const buttonMax:Number = buttonMin+barWidth-2;
+            const minDist:Number = traceMenu["traceOpaBar"].x+2;
+            const maxDist:Number = minDist+barWidth-2;
             const step:Number = 10;
 
             mouseDragON = true;
@@ -6567,11 +6659,11 @@
             {
                 var mx:Number = traceMenu.mouseX;
 
-                if(mx < buttonMin) mx = buttonMin;
-                else if(mx > buttonMax) mx = buttonMax;
+                if(mx < minDist) mx = minDist;
+                else if(mx > maxDist) mx = maxDist;
 
-                const value:Number = mx-buttonMin;
-                const valueMax:Number = buttonMax-buttonMin;
+                const value:Number = mx-minDist;
+                const valueMax:Number = maxDist-minDist;
                 const alpha:Number = getDiplayObjectAlpha(Math.floor(((value/valueMax))*100)/100);
 
                 traceMenu["traceOpaButton"].x = mx;
@@ -6782,14 +6874,6 @@
             return blurSize*z;
         }
 
-        private function setBlurCanvasBySizeNoZoomDrawMode():void
-        {
-            const blurSize:Number = getBlurSize(airBrushSizeDrawMode,1.0);
-            const blurf:BlurFilter = new BlurFilter(blurSize,blurSize,3);
-
-            canvas2Draw.filters = [blurf];
-        }
-
         //drawdone에서 줌된 blur사이즈가 아니 1배율 블러를 적용해야 제대로 되기 때문에 이거해줌
         private function setBlurCanvasBySizeNoZoomReplayMode():void
         {
@@ -6813,15 +6897,6 @@
             rcanvas2Draw.filters = [blurf];
         }
 
-        private function setBlurCanvasBySizeDrawMode(size:Number):void
-        {
-            const blurSize:Number = getBlurSize(size,zoomed);
-            const blurf:BlurFilter = new BlurFilter(blurSize,blurSize,3);
-
-            airBrushSizeDrawMode = size;
-            canvas2Draw.filters = [blurf];
-        }
-
         private function setAirBrushCheckBox(flag:Boolean,penFlag:Boolean):void
         {
             controlBox["airBrushOFFButton"].visible = flag;
@@ -6829,12 +6904,7 @@
 
             if(flag)
             {
-                var size:uint = (penFlag) ? penSize:eraseSize;
-
-                if(size !== airBrushSizeDrawMode)
-                {
-                    setBlurCanvasBySizeDrawMode(size);
-                }
+                airBrushSizeDrawMode = (penFlag) ? penSize:eraseSize;
 
                 controlBox.blurShapeSetON();
             }
@@ -7152,7 +7222,7 @@
                 case "shapeRect": str = "Square";
                 break;
 
-                case "penSmoothSlider":
+                case "penSmoothSliderWapper":
                 {
                     str = "Pen smoothing "+penSmoothSlideValue + "/" + penSmoothSlideTotal;
                 }
@@ -7417,7 +7487,7 @@
 
                 if(airBrushON && penSize !== airBrushSizeDrawMode)
                 {
-                    setBlurCanvasBySizeDrawMode(penSize);
+                    airBrushSizeDrawMode = penSize;
                 }
             }
             else if(isNowTool(TOOL_ERASE))
@@ -7426,7 +7496,7 @@
 
                 if(eraseAirBrushON && eraseSize !== airBrushSizeDrawMode)
                 {
-                    setBlurCanvasBySizeDrawMode(eraseSize);
+                    airBrushSizeDrawMode = eraseSize;
                 }
             }
         }
@@ -7529,21 +7599,21 @@
             {
                 if(airBrushON && penSize !== airBrushSizeDrawMode)
                 {
-                    setBlurCanvasBySizeDrawMode(penSize);
+                    airBrushSizeDrawMode = penSize;
                 }
             }
             else if(isNowToolPenOrLine())
             {
                 if(airBrushON && penSize !== airBrushSizeDrawMode)
                 {
-                    setBlurCanvasBySizeDrawMode(penSize);
+                    airBrushSizeDrawMode = penSize;
                 }
             }
             else if(isNowTool(TOOL_ERASE))
             {
                 if(eraseAirBrushON && eraseSize !== airBrushSizeDrawMode)
                 {
-                    setBlurCanvasBySizeDrawMode(eraseSize);
+                    airBrushSizeDrawMode = eraseSize;
                 }
             }
         }
@@ -7561,10 +7631,10 @@
 
         private function setPenSmoothButton():void
         {
-            const leftOffset:Number = controlBox.penSmoothSliderSet["penSmoothBar"].x+3; //펜 리스트에 흰색 선 시작과 끝 x좌표임
-            const rightOffset:Number = leftOffset+controlBox.penSmoothSliderSet["penSmoothBar"].width-2;
+            const minDist:Number = controlBox.penSmoothSlider.x+1; //펜 리스트에 흰색 선 시작과 끝 x좌표임
+            const maxDist:Number = minDist+controlBox.penSmoothSlider.width-1;
             const step:Number = penSmoothSlideTotal;
-            const div:Number = (rightOffset-leftOffset)/step;
+            const div:Number = (maxDist-minDist)/step;
             const maxValue:Number = 0.85;
             const minValue:Number = 0.02;
             const stepValue:Number = (maxValue-minValue)/step;
@@ -7583,29 +7653,28 @@
 
             function setpenSmoothSlideValue():void
             {
-                var mx:Number = controlBox.penSmoothSliderSet.mouseX;
+                var mx:Number = controlBox.penSmoothSliderWapper.mouseX+controlBox.penSmoothSlider.x;
 
-                if(mx < leftOffset) mx = leftOffset;
-                else if(mx > rightOffset) mx = rightOffset;
+                if(mx < minDist) mx = minDist;
+                else if(mx > maxDist) mx = maxDist;
 
                 //버튼을 기준으로 중간값으로
-                const value:Number = Math.floor((mx-leftOffset)/div);
-                const xpos:Number = value*div+leftOffset;
-
-                if(controlBox.penSmoothSliderSet["penSmoothButton"].x === xpos) return;
-
-                controlBox.penSmoothSliderSet["penSmoothButton"].x = xpos;
-                penSmoothButtonX = xpos;
-
-                if(value === 0) penSmoothValue = 0;
-                else penSmoothValue = maxValue-(value*stepValue);
-
-                penSmoothSlideValue = value;
+                const value:Number = Math.floor((mx-minDist)/div);
 
                 if(oldValue !== value)
                 {
+                    const xpos:Number = value*div+minDist;
+
+                    if(controlBox.penSmoothSliderCursor.x === xpos) return;
+
+                    controlBox.penSmoothSliderCursor.x = xpos;
+
+                    if(value === 0) penSmoothValue = 0;
+                    else penSmoothValue = maxValue-(value*stepValue);
+
+                    penSmoothSlideValue = value;
                     oldValue = value;
-                    hint.on("Pen smoothing "+value + "/"+step,controlBox.penSmoothSliderSet["penSmoothSlider"],true);
+                    hint.on("Pen smoothing "+value + "/"+step,controlBox.penSmoothSliderWapper,true);
                 }
             }
 
@@ -8852,7 +8921,7 @@
                         break;
 
                         case "gridButton":
-                            setGridButton();
+                            gridButton.start(false);
                         break;
 
                         case "aboutButton":
@@ -9244,7 +9313,7 @@
             replayTimeBox["frameInfo"].text = TOTAL_FRAME+" / " + TOTAL_FRAME;
 
             rSpeed = 1; //속도 리셋
-            topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x+3;
+            topBar.replaySpeedSliderCursor.x = topBar["replaySpeedSlider"].x+3;
 
             setDeepUndoOFF();
 
@@ -9394,10 +9463,17 @@
                         str = "Next [right, x, ,]\nJump 1 frame [right-click, shift+right, shift+x, shift+,]";
                     break;
 
-                    case "replaySpeedBarWrapper":
+                    case "replaySpeedSliderWrapper":
                     {
-                        if(rSpeedLastStr === "") str = "Change playback speed [up, down / f, v / h, n]";
-                        else str = rSpeedLastStr;
+                        if(topBar.isReplaySpeedSliderWrapperGridMode())
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            if(rSpeedLastStr === "") str = "Change playback speed [up, down / f, v / h, n]";
+                            else str = rSpeedLastStr;
+                        }
                     }
                     break;
 
@@ -9478,7 +9554,7 @@
                     break;
 
                     case "gridButton":
-                        str = "Grid [f2, f8]\nReset [right-click, shift+f2. shift+f8]";
+                        str = "Grid\nReset [right-click]";
                     break;
 
                     case "sideBarOFFButton":
@@ -9824,7 +9900,7 @@
         private function resetReplaySpeedBar():void
         {
             rSpeed = 1; //속도 리셋
-            topBar.replaySpeedMoveButton.x = topBar["replaySpeedBar"].x+3;
+            topBar.replaySpeedSliderCursor.x = topBar["replaySpeedSlider"].x+3;
         }
 
         //total frame file max frame등등은 수동으로 초기화
@@ -10191,6 +10267,48 @@
                 }
             }
 
+            function lineStyle5(data:Array):void
+            {
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const startX:Number = data[5];
+                const startY:Number = data[6];
+                const blendMode:String = data[7];
+                const fillpen:Boolean = data[8];
+                const subLayer:Boolean = data[9];
+                const airBrushSize:Number = data[10];
+
+                updateLineStyleBackup(alpha,blendMode);
+                checkSubLayer(subLayer);
+
+                airBrushSizeReplayMode2 = airBrushSize;
+
+                if(fillpen)
+                {
+                    rcanvas2Draw.graphics.clear();
+                    replayLineStyleReady2(false,1,color,1.0);
+                    rcanvas2Draw.graphics.beginFill(color);
+                    rcanvas2Draw.graphics.moveTo(startX,startY);
+                    rcanvas2.alpha = alpha;
+                }
+                else
+                {
+                    replayLineStyleReady3(shape,size,color,alpha);
+                    rcanvas2Draw.graphics.moveTo(startX,startY);
+                }
+
+                if(index === 0)
+                {
+                    resetRCanvas2DrawCliprect2();
+                }
+                else
+                {
+                    updateRCanvas2DrawCliprect2();
+                }
+            }
+
             function lineStyle4(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -10358,22 +10476,26 @@
                 setRCursorPos(xyData[xyData.length-2],xyData[xyData.length-1]);
             }
 
-            function fill(data:Array):void
+            function fill5(data:Array):void
             {
                 const color:Number = data[1];
                 const alpha:Number = data[2];
                 const blendMode:String = data[3];
                 const command:Vector.<int> = data[4];
                 const xyData:Vector.<Number> = data[5];
+                const airBrushFlag:Boolean = data[6];
+                const airBrushSize:uint = data[7];
 
-                resetCanvasBlurReplaymode();
+                airBrushSizeReplayMode2 = airBrushSize;
                 updateLineStyleBackup(alpha,blendMode);
+
                 rcanvas2.alpha = alpha;
                 rcanvas2Draw.graphics.clear();
                 rcanvas2Draw.graphics.lineStyle(1,color);
                 rcanvas2Draw.graphics.beginFill(color);
                 rcanvas2Draw.graphics.drawPath(command,xyData);
                 setRCursorPos(xyData[xyData.length-2],xyData[xyData.length-1]);
+                resetRCanvas2DrawCliprect2();
             }
 
             function fill4(data:Array):void
@@ -10440,6 +10562,85 @@
 
                 rcanvas2Draw.graphics.endFill();
                 setRCursorPos(arr[len-2],arr[len-1]);
+            }
+
+            function fill(data:Array):void
+            {
+                const color:Number = data[1];
+                const alpha:Number = data[2];
+                const blendMode:String = data[3];
+                const command:Vector.<int> = data[4];
+                const xyData:Vector.<Number> = data[5];
+
+                resetCanvasBlurReplaymode();
+                updateLineStyleBackup(alpha,blendMode);
+                rcanvas2.alpha = alpha;
+                rcanvas2Draw.graphics.clear();
+                rcanvas2Draw.graphics.lineStyle(1,color);
+                rcanvas2Draw.graphics.beginFill(color);
+                rcanvas2Draw.graphics.drawPath(command,xyData);
+                setRCursorPos(xyData[xyData.length-2],xyData[xyData.length-1]);
+            }
+
+
+            function dot4(data:Array):void
+            {
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const startX:Number = data[5];
+                const startY:Number = data[6];
+                const blendMode:String = data[7];
+                const subLayer:Boolean = data[8];
+                const airBrushSize:Number = data[9];
+                const rotation:Number = data[10];
+
+                checkSubLayer(subLayer);
+                airBrushSizeReplayMode2 = airBrushSize;
+                updateLineStyleBackup(alpha,blendMode);
+                rcanvas2.alpha = alpha;
+                rcanvas2Draw.graphics.lineStyle(0,0,0);
+                rcanvas2Draw.graphics.beginFill(color);
+
+                if(shape)
+                {
+                    cmd.length = 0;
+                    pos.length = 0;
+                    const halfSize:Number = size/2;
+                    var point:Point = rotatePoint(-halfSize,-halfSize,rotation);
+
+                    cmd.push(1);
+                    pos.push(startX+point.x);
+                    pos.push(startY+point.y);
+
+                    point = rotatePoint(halfSize,-halfSize,rotation);
+                    cmd.push(2);
+                    pos.push(startX+point.x);
+                    pos.push(startY+point.y);
+
+                    point = rotatePoint(halfSize,halfSize,rotation);
+                    cmd.push(2);
+                    pos.push(startX+point.x);
+                    pos.push(startY+point.y);
+
+                    point = rotatePoint(-halfSize,halfSize,rotation);
+                    cmd.push(2);
+                    pos.push(startX+point.x);
+                    pos.push(startY+point.y);
+
+                    rcanvas2Draw.graphics.drawPath(cmd,pos);
+
+                    point = null;
+                }
+                else
+                {
+                    rcanvas2Draw.graphics.drawCircle(startX,startY,size/2);
+                }
+
+                rcanvas2Draw.graphics.endFill();
+                resetRCanvas2DrawCliprect2();
+                setRCursorPos(startX,startY);
             }
 
             function dot3(data:Array):void
@@ -10551,6 +10752,36 @@
                 rcanvas2Draw.graphics.endFill();
 
                 setRCursorPos(startX,startY);
+            }
+
+            function line3(data:Array):void
+            {
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const startX:Number = data[5];
+                const startY:Number = data[6];
+                const endX:Number = data[7];
+                const endY:Number = data[8];
+                const blendMode:String = data[9];
+                const subLayer:Boolean = data[10];
+                const airBrushSize:Number = data[11];
+
+                updateLineStyleBackup(alpha,blendMode);
+                rcanvas2.alpha = alpha;
+
+                checkSubLayer(subLayer);
+                airBrushSizeReplayMode2 = airBrushSize;
+
+                if(shape) rcanvas2Draw.graphics.lineStyle(size,color,1, false,LineScaleMode.NORMAL,CapsStyle.NONE,JointStyle.ROUND);
+                else rcanvas2Draw.graphics.lineStyle(size,color);
+
+                rcanvas2Draw.graphics.moveTo(startX,startY);
+                rcanvas2Draw.graphics.lineTo(endX,endY);
+
+                resetRCanvas2DrawCliprect2();
+                setRCursorPos(endX,endY);
             }
 
             function line2(data:Array):void
@@ -10893,6 +11124,14 @@
                 setRCursorPos(width/2,height/2);
             }
 
+            function tempDone3(data:Array):void
+            {
+                rcanvas2BitmapData.draw(rcanvas2Draw);
+                rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+                updateRCanvas2DrawCliprect2();
+                rcanvas2Draw.graphics.clear();
+            }
+
             function tempDone2(data:Array):void
             {
                 if(airBrushSizeReplayMode > 0 && rzoomed !== 1.0)
@@ -10931,6 +11170,40 @@
                 }
             }
 
+            function drawDone4(data:Array):void
+            {
+                const lineStyleData:Array = getrLineStyleSave();
+                const subLayer:Boolean = data[1];
+                const canvasAlpha:ColorTransform = new ColorTransform(1,1,1,lineStyleData[0]);
+
+                rcanvas2BitmapData.draw(rcanvas2Draw);
+                rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+
+                updateRCanvas2DrawCliprect2();
+                extandRCanvas2DrawCliprect2();
+
+                if(airBrushSizeReplayMode2 > 0)
+                {
+                    const blurSize:Number = getBlurSize(airBrushSizeReplayMode2,1.0);
+                    rcanvas2BitmapData.applyFilter(rcanvas2BitmapData,rcanvas2ClipRect2,new Point(rcanvas2ClipRect2.x,rcanvas2ClipRect2.y),new BlurFilter(blurSize,blurSize,3));
+                    rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+                }
+
+                if(subLayer)
+                {
+                    rcanvas11BitmapData.draw(rcanvas2Bitmap,null,canvasAlpha,lineStyleData[1],rcanvas2ClipRect2);
+                    rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
+                }
+                else
+                {
+                    rcanvas1BitmapData.draw(rcanvas2Bitmap,null,canvasAlpha,lineStyleData[1],rcanvas2ClipRect2);
+                    rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+                }
+
+                rcanvas2BitmapData.fillRect(rcanvas2ClipRect2,0);
+                rcanvas2Draw.graphics.clear();
+            }
+
             function drawDone3(data:Array):void
             {
                 const lineStyleData:Array = getrLineStyleSave();
@@ -10966,6 +11239,11 @@
 
                 rcanvas2BitmapData.fillRect(rcanvas2ClipRect,0);
                 rcanvas2Draw.graphics.clear();
+
+                if(airBrushSizeReplayMode > 0)
+                {
+                    resetCanvasBlurReplaymode();
+                }
             }
 
             function drawDone2(data:Array):void
@@ -11000,6 +11278,11 @@
 
                 rcanvas2BitmapData.fillRect(new Rectangle(0,0,rcanvas1BitmapData.width,rcanvas1BitmapData.height),0);
                 rcanvas2Draw.graphics.clear();
+
+                if(airBrushSizeReplayMode > 0)
+                {
+                    resetCanvasBlurReplaymode();
+                }
             }
 
             function drawDone(data:Array):void
@@ -11044,6 +11327,11 @@
                 rcanvas2BitmapData.fillRect(new Rectangle(0,0,rcanvas2BitmapData.width,rcanvas2BitmapData.height),0);
 
                 rcanvas2Draw.graphics.clear();
+
+                if(airBrushSizeReplayMode > 0)
+                {
+                    resetCanvasBlurReplaymode();
+                }
             }
 
             function clear(layer1:Boolean,layer2:Boolean):void
@@ -11099,18 +11387,22 @@
                     case "lineStyle2": lineStyle2(data[index]); break;
                     case "lineStyle3": lineStyle3(data[index]); break;
                     case "lineStyle4": lineStyle4(data[index]); break;
+                    case "lineStyle5": lineStyle5(data[index]); break;
                     case "lineTo": lineTo(data[index]); break;
                     case "sqline": sqline(data[index]); break;
                     case "fill": fill(data[index]); break;
                     case "fill2": fill2(data[index]); break;
                     case "fill3": fill3(data[index]); break;
                     case "fill4": fill4(data[index]); break;
+                    case "fill5": fill5(data[index]); break;
                     case "dot": dot(data[index]); break;
                     case "dot2": dot2(data[index]); break;
                     case "dot3": dot3(data[index]); break;
+                    case "dot4": dot4(data[index]); break;
                     case "line": line(data[index]); break;
                     case "line1": line1(data[index]); break;
                     case "line2": line2(data[index]); break;
+                    case "line3": line3(data[index]); break;
                     case "move": move(data[index]); break;
                     case "move1": move1(data[index]); break;
                     case "move2": move2(data[index]); break;
@@ -11123,9 +11415,11 @@
                     case "canvasSize": canvasSize(data[index]); break;
                     case "tempDone": tempDone(data[index]); break;
                     case "tempDone2": tempDone2(data[index]); break;
+                    case "tempDone3": tempDone3(data[index]); break;
                     case "drawDone": drawDone(data[index]); break;
                     case "drawDone2": drawDone2(data[index]); break;
                     case "drawDone3": drawDone3(data[index]); break;
+                    case "drawDone4": drawDone4(data[index]); break;
                     case "clear": clear(true,true); break;
                     case "clear1": clear(true,false); break;
                     case "clear2": clear(false,true); break;
@@ -11645,12 +11939,13 @@
                 return;
             }
 
-            const minDist:Number = topBar["replaySpeedBar"].x+4;
-            const maxDist:Number = minDist+topBar["replaySpeedBar"].width-3;
+            const minDist:Number = topBar.replaySpeedSlider.x+1.5;
+            const maxDist:Number = minDist+topBar.replaySpeedSlider.width-2.5;
             const maxSpeed:Number = REPLAY_MAX_SPEED;
             const clacMax:Number = Math.floor(totalF/(STAGE_FRAME*3));//3초 x 30프레임
             var max:Number = (clacMax > maxSpeed) ? maxSpeed : clacMax;//최고 속도 3초 재생 이지만 REPLAY_MAX_SPEED배속은 넘기지 않음.
             var timeStr:String = getReplayTotalTime(rSpeed);
+            var oldSpeed:uint;
 
             penCursorOFFFlag = true;
             mouseDragON = true;
@@ -11662,15 +11957,18 @@
                 if(exp < 0) exp = 0;
                 else if(exp > 1) exp = 1;
                 var nowSpeed:uint = Math.floor(Math.pow(max,exp));
+                if(oldSpeed !== nowSpeed)
+                {
+                    oldSpeed = nowSpeed;
+                    if(nowSpeed > max) nowSpeed = max;
 
-                if(nowSpeed > max) nowSpeed = max;
+                    timeStr = getReplayTotalTime(nowSpeed);
+                    const finalStr:String = STRING_PLAYBACK_SPEED+rSpeed+timeStr;
 
-                timeStr = getReplayTotalTime(nowSpeed);
-                const finalStr:String = STRING_PLAYBACK_SPEED+rSpeed+timeStr;
-
-                setHintONTemp(finalStr);
-                rSpeedLastStr = finalStr;
-                rSpeed = nowSpeed;
+                    setHintONTemp(finalStr);
+                    rSpeedLastStr = finalStr;
+                    rSpeed = nowSpeed;
+                }
             }
 
             function moveButton(mx:Number):void
@@ -11678,7 +11976,7 @@
                 if(mx < minDist) mx = minDist;
                 else if(mx > maxDist) mx = maxDist;
 
-                topBar.replaySpeedMoveButton.x = mx;
+                topBar.replaySpeedSliderCursor.x = mx;
                 setSpeed(mx);
             }
 
@@ -11692,11 +11990,11 @@
 
             function replaySpeedButtomMoveEvent(e:MouseEvent):void
             {
-                moveButton(topBar.replaySpeedSet.mouseX);
+                moveButton(topBar.replaySpeedSliderWrapper.mouseX);
             }
 
-            moveButton(topBar.replaySpeedSet.mouseX);
-            setSpeed(topBar.replaySpeedSet.mouseX);
+            moveButton(topBar.replaySpeedSliderWrapper.mouseX);
+            setSpeed(topBar.replaySpeedSliderWrapper.mouseX);
 
             stageMouseMoveEvent.add("replaySpeedButtomMoveEvent",replaySpeedButtomMoveEvent);
             stage.addEventListener(MouseEvent.MOUSE_UP,replaySpeedButtomUpEvent);
@@ -12190,7 +12488,7 @@
                 drawFirstJumpImage();
                 rDataReadFlag = false;
                 playbackFinished = false;//resetReplayTime함수 에서 이걸 true로 해주기 때문에 아래쪽에서 변경
-                resetRotationReplayMode();
+                // resetRotationReplayMode();
 
                 if(!rFitZoomedON)
                 {
@@ -14303,6 +14601,7 @@
             penCursorOFFFlag = true;
             stageMouseMoveEvent.add("captureMouseMoveHintEvent",captureMouseMoveHintEvent);
             initCaptureTransParentBG();
+            gridButton.off();
 
             setCaptureUI(true);
             captureRotated = 0;
@@ -15402,7 +15701,7 @@
                             "regPoint.rotation":(captureModeON) ? canvasBackupDataOnSave.r:regPoint.rotation,
                             "penSmoothValue":penSmoothValue,
                             "penSmoothSlideValue":penSmoothSlideValue,
-                            "penSmoothButtonX":controlBox.penSmoothSliderSet["penSmoothButton"].x,
+                            "penSmoothButtonX":controlBox.penSmoothSliderCursor.x,
                             "penSize":penSize,
                             "penSizeIndex":penSizeIndex,
                             "penColor":penColor,
@@ -15589,7 +15888,7 @@
                     setUIColor(d["uiColorIndex"]);
                     penSmoothValue = d["penSmoothValue"];
                     penSmoothSlideValue = d["penSmoothSlideValue"];
-                    controlBox.penSmoothSliderSet["penSmoothButton"].x = d["penSmoothButtonX"];
+                    controlBox.penSmoothSliderCursor.x = d["penSmoothButtonX"];
                     penSize = d["penSize"];
                     penColor = d["penColor"];
                     initPickerBoxInfo(d["penColor"]);
@@ -15784,36 +16083,36 @@
 
                 readyAddUndoFlag = false;
 
-                if(airBrushSizeDrawMode > 0 && zoomed !== 1.0)
-                {
-                    setBlurCanvasBySizeNoZoomDrawMode();
-                    canvas2BitmapData.draw(canvas2Draw);
-                    canvas2Bitmap.bitmapData = canvas2BitmapData;
-                    setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
-                }
-                else
-                {
-                    canvas2BitmapData.draw(canvas2Draw);
-                    canvas2Bitmap.bitmapData = canvas2BitmapData;
-                }
+                canvas2BitmapData.draw(canvas2Draw);
+                canvas2Bitmap.bitmapData = canvas2BitmapData;
 
                 updateCanvas2DrawCliprect();
                 extandCanvas2DrawCliprect(); // 그린 영역을 100% 다 포함하지 않아서 약간 늘려줌
 
+                if(airBrushSizeDrawMode > 0)
+                {
+                    const blurSize:Number = getBlurSize(airBrushSizeDrawMode,1.0);
+                    canvas2BitmapData.applyFilter(canvas2BitmapData,canvas2ClipRect,new Point(canvas2ClipRect.x,canvas2ClipRect.y),new BlurFilter(blurSize,blurSize,3));
+                    canvas2Bitmap.bitmapData = canvas2BitmapData;
+                }
+
                 if(isNowToolPenOrLine() || isNowTool(TOOL_FILL_PEN))
                 {
                     canvas2Alpha.alphaMultiplier = penAlpha;
+
+
                     if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,(penColorTransparentFlag) ? "erase":null,canvas2ClipRect);
                     else            canvas1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,(penColorTransparentFlag) ? "erase":null,canvas2ClipRect);
                 }
                 else if(isNowTool(TOOL_ERASE))
                 {
                     canvas2Alpha.alphaMultiplier = eraseAlpha;
+
                     if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase",canvas2ClipRect);
                     else           canvas1BitmapData.draw( canvas2Bitmap,null,canvas2Alpha,"erase",canvas2ClipRect);
                 }
 
-                rDataBuffer.push(["drawDone3",subLayerON]);
+                rDataBuffer.push(["drawDone4",subLayerON]);
 
                 if(subLayerON) canvas11Bitmap.bitmapData = canvas11BitmapData;
                 else canvas1Bitmap.bitmapData = canvas1BitmapData;
@@ -16034,7 +16333,7 @@
                     if(mouseMovedFlag === false && oldX === mx && oldY === my)
                     {
                         rDataBuffer = [];
-                        rDataBuffer.push(["dot3",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,xAirBrushON,regPoint.rotation]);
+                        rDataBuffer.push(["dot4",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,subLayerFlag,xAirBrushON,regPoint.rotation]);
                         dotTool(xShape,xSize,xColor,mx,my,regPoint.rotation);
                     }
                     else
@@ -16051,7 +16350,7 @@
                             endPoint.setTo(mx,my)
                         }
 
-                        rDataBuffer.push(["line2",xShape,xSize,xColor,xAlpha,startPoint.x,startPoint.y,endPoint.x,endPoint.y,xBlendMode,subLayerFlag,xAirBrushON]);
+                        rDataBuffer.push(["line3",xShape,xSize,xColor,xAlpha,startPoint.x,startPoint.y,endPoint.x,endPoint.y,xBlendMode,subLayerFlag,airBrushSizeDrawMode]);
                         drawingLine();
                     }
                 }
@@ -19701,12 +20000,6 @@
                 {
                     penCursorPosition.updateZoom(newZoom);
                 }
-
-                if(airBrushSizeDrawMode > 0)
-                {
-                    setBlurCanvasBySizeDrawMode(airBrushSizeDrawMode);
-                }
-
             }
             else
             {
@@ -20217,16 +20510,6 @@
                             }
                             return;
 
-                            case KEY.f2:
-                            case KEY.f8:
-                            {
-                                if(gridValue !== 0)
-                                {
-                                    setGridOFF();
-                                }
-                            }
-                            return;
-
                             case KEY.f5:
                             {
                                 if(uiScaleIndex !== 0)
@@ -20350,14 +20633,6 @@
                 case KEY.f7:
                 {
                     setReplayModeON();
-                }
-                return true;
-
-                case KEY.f2:
-                case KEY.f8:
-                {
-                    setGridButton();
-                    sethintOFFDelay();
                 }
                 return true;
 
@@ -20657,7 +20932,6 @@
             resetKeyBuffer();
             realWorkingTimer.setAFKMode();
             cancelAutoKeyEvent(null);
-            stageBG.visible = true;
             removeTimer("longKeyTimer");
 
             if(toolBox2ON)
@@ -21019,8 +21293,8 @@
             const rf:Number = rNowFrame;
             const bw:Number = replayTimeBox["replayTotalBar"].width;
 
-            if(totalFrame < STAGE_FRAME*3) topBar["replaySpeedSet"].alpha = BUTTON_OFF_ALPHA;
-            else topBar["replaySpeedSet"].alpha = 1.0;
+            if(totalFrame < STAGE_FRAME*3) topBar["replaySpeedSliderWrapper"].alpha = BUTTON_OFF_ALPHA;
+            else topBar["replaySpeedSliderWrapper"].alpha = 1.0;
             //리플레이 속도를 최고 빠르게 했을때 시간 체크
             REPLAY_FASTEST_TOTAL_TIME = Math.floor(totalFrame/(REPLAY_MAX_SPEED*STAGE_FRAME));
 
@@ -21215,6 +21489,7 @@
             setReplayDeleteBarVisibleOFF();
             setTopBarHintOFF();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
+            if(topBar.isReplaySpeedSliderWrapperGridMode()) gridButton.off();
             rCursor.alpha = 1.0;
             rcanvasPanel.addChild(rCursor);
             setRcursorRotation(rregPoint.rotation);
@@ -21346,7 +21621,7 @@
                 }
                 break;
 
-                case "replaySpeedBarWrapper":
+                case "replaySpeedSliderWrapper":
                 {
                     setReplaySpeedButton();
                 }
@@ -21637,8 +21912,7 @@
 
             switch(targetName)
             {
-                case "penSmoothSlider":
-                case "penSmoothButton":
+                case "penSmoothSliderWapper":
                 {
                     if(nowTool > 4) return true;
                     setPenSmoothButton();
@@ -22276,6 +22550,12 @@
                 }
                 return;
 
+                case "replaySpeedSliderWrapper":
+                {
+                    //grid 에서 불러줬을때 캔버스에 안무것도 못하게
+                }
+                return;
+
                 case "traceDeleteButton":
                 {
                     setCountDownLongKey(traceMenu.traceDeleteButton,"Deleting reference image... ",null,setTraceDeleteButton,null);
@@ -22307,8 +22587,7 @@
                 }
                 return;
 
-                case "penSmoothSlider":
-                case "penSmoothButton":
+                case "penSmoothSliderWapper":
                 {
                     if(nowTool > 4) return;
                     setPenSmoothButton();

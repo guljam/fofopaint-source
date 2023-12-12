@@ -8,6 +8,7 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
+	import flash.geom.Point;
 	public class topMenu extends Sprite {
 		public const BARSIZE:Number = 38;
 		private var miniTimer:fofoTimer;
@@ -64,10 +65,13 @@
 		private var hintOKBGColor:uint = 0;
 		private var hintFontColor:uint = 0;
 
-		public var replaySpeedBarWrapper:SimpleButton;
-		public var replaySpeedMoveButton:SimpleButton;
-		public var replaySpeedBar:SimpleButton;
-		public var replaySpeedSet:Sprite = new Sprite();
+		public var replaySpeedSliderCursor:SimpleButton;
+		public var replaySpeedSlider:SimpleButton;
+		public var replaySpeedSliderWrapper:Sprite = new Sprite();
+		private var replaySpeedSliderWrapperGridMode:Boolean = false;
+		private var replaySpeedSliderWrapperPosSave:Point = new Point(0,0);
+		private var replaySpeedSliderCursorPosXSave:Number = 0;
+		private var replaySpeedSliderRightPosSave:Number = 0;
 
 		private var isHintLocked:Boolean = false;
 		private var hintWaitAnimTimer:int = 0;
@@ -83,6 +87,65 @@
 		{
 			this.scaleX = scale;
 			this.scaleY = scale;
+		}
+
+		//control menu initPenSmoothSliderWrapper와 같음
+		public function isReplaySpeedSliderWrapperGridMode():Boolean
+		{
+			return replaySpeedSliderWrapperGridMode;
+		}
+
+		public function drawReplaySpeedSliderWrapperRect(color:uint,alpha:Number):void
+		{
+			replaySpeedSliderWrapper.graphics.clear();
+			replaySpeedSliderWrapper.graphics.beginFill(color,alpha);
+			replaySpeedSliderWrapper.graphics.drawRect(0,0,replaySpeedSlider.x+replaySpeedSlider.width+replaySpeedSliderCursor.width/2+1.5
+														,replaySpeedSlider.y+replaySpeedSlider.height+replaySpeedSlider.y+replaySpeedSlider.height+3);
+			replaySpeedSliderWrapper.graphics.endFill();
+		}
+
+		public function initReplaySpeedSliderWrapper():void
+		{
+			replaySpeedSliderWrapper.name = "replaySpeedSliderWrapper";
+			replaySpeedSliderWrapper.addChild(replaySpeedSlider);
+			replaySpeedSliderWrapper.addChild(replaySpeedSliderCursor);
+
+			replaySpeedSlider.mouseEnabled = false;
+			replaySpeedSlider.x = 6;
+			replaySpeedSlider.y = 2;
+
+			replaySpeedSliderCursor.mouseEnabled = false;
+			replaySpeedSliderCursor.x = replaySpeedSlider.x;
+			replaySpeedSliderCursor.y = replaySpeedSlider.height+5;
+
+			drawReplaySpeedSliderWrapperRect(0,0.0);
+		}
+
+		public function setReplaySpeedBarToGridSliderON(color:uint):void
+		{
+			replaySpeedSliderWrapperGridMode = true;
+
+			drawReplaySpeedSliderWrapperRect(color,1.0);
+
+			replaySpeedSliderWrapper.x = gridButton.x;
+			replaySpeedSliderWrapper.y = BARSIZE;
+
+			replaySpeedSliderCursorPosXSave = replaySpeedSliderCursor.x;
+
+			replaySpeedSliderWrapper.visible = true;
+		}
+
+		public function setReplaySpeedBarToGridSliderOFF():void
+		{
+			replaySpeedSliderWrapperGridMode = false;
+
+			drawReplaySpeedSliderWrapperRect(0,0.0);
+
+			replaySpeedSliderWrapper.x = replaySpeedSliderWrapperPosSave.x;
+			replaySpeedSliderWrapper.y = replaySpeedSliderWrapperPosSave.y;
+			replaySpeedSliderCursor.x = replaySpeedSliderCursorPosXSave;
+
+			replaySpeedSliderWrapper.visible = false;
 		}
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
@@ -120,7 +183,7 @@
 
 		public function updateTimerPos(stw:Number):void
 		{
-			const limitX:Number = (replaySpeedSet.x+replaySpeedSet.width+5)*this.scaleX;
+			const limitX:Number = replaySpeedSliderRightPosSave*this.scaleX;
 			var newX:Number = stw-(timer.textWidth+10)*this.scaleX;
 			if(newX < limitX) newX = limitX;
 			timer.x = newX/this.scaleX;
@@ -182,8 +245,8 @@
 			replayZoomOutButton.transform.colorTransform = opColor;
 			replayFitToWindowButton.transform.colorTransform = opColor;
 			replayRotateButton.transform.colorTransform = opColor;
-			replaySpeedMoveButton.transform.colorTransform = opColor;
-            replaySpeedBar.transform.colorTransform = opColor;
+			replaySpeedSliderCursor.transform.colorTransform = opColor;
+            replaySpeedSlider.transform.colorTransform = opColor;
 
 			timer.textColor = op;
 			timerAFkDot.textColor = op;
@@ -193,12 +256,12 @@
 		{
 			if(maxSpeed <= 1) return;
 
-			const unitX:Number = replaySpeedBar.width/maxSpeed;
+			const unitX:Number = replaySpeedSlider.width/maxSpeed;
 			//속도가 지수 형식으로 가서 log로 다시 역계산 해줘야함
 			const exp:Number = Math.log(rSpeed)/Math.log(maxSpeed);
-			const nowX:Number = exp*replaySpeedBar.width;
+			const nowX:Number = exp*replaySpeedSlider.width;
 
-			replaySpeedMoveButton.x = replaySpeedBar.x+nowX;
+			replaySpeedSliderCursor.x = replaySpeedSlider.x+nowX;
 		}
 
 		public function updateTopbarBG(stw:int):void
@@ -364,23 +427,14 @@
 
 			updateButton.x = aboutButton.x;
 			updateButton.y = aboutButton.y;
+
+			replaySpeedSliderWrapperPosSave.setTo(replaySpeedSliderWrapper.x,replaySpeedSliderWrapper.y);
+			replaySpeedSliderRightPosSave = replaySpeedSliderWrapper.x+replaySpeedSliderWrapper.width+5;
 		}
 
 		public function topMenu()
 		{
-			replaySpeedSet.addChild(replaySpeedBar);
-			replaySpeedSet.addChild(replaySpeedMoveButton);
-			replaySpeedSet.addChild(replaySpeedBarWrapper);
-			replaySpeedBarWrapper.x = 2;
-			replaySpeedBarWrapper.y = 0;
-			replaySpeedBar.x = 5;
-			replaySpeedBar.y = Math.floor(replaySpeedBarWrapper.height/2-11);
-			replaySpeedMoveButton.x = replaySpeedBar.x+3;
-			replaySpeedMoveButton.y = Math.floor(replaySpeedBar.y+replaySpeedBar.height)+3;
-
-			replaySpeedBarWrapper.useHandCursor = false;
-			replaySpeedBar.mouseEnabled = false;
-			replaySpeedMoveButton.mouseEnabled = false;
+			initReplaySpeedSliderWrapper();
 
 			capRotate.visible = false;
 			capFlip.visible = false;
@@ -455,7 +509,7 @@
 								[sideBarOFFButton,replayZoomInButton],
 								[topBarColorButton,replayFitToWindowButton],
 								[dpiButton,replayRotateButton],
-								[replaySpeedSet,newWindowButton,newWindowCloseButton],
+								[replaySpeedSliderWrapper,newWindowButton,newWindowCloseButton],
 								[aboutButton]
 							];
 
@@ -492,7 +546,7 @@
 									replayZoomOutButton,
 									replayFitToWindowButton,
 									replayRotateButton,
-									replaySpeedSet
+									replaySpeedSliderWrapper
 								];
 
 			captureModeButtons = [
@@ -516,7 +570,7 @@
 			timerAFkDot.autoSize = TextFieldAutoSize.LEFT;
 			timerAFkDot.text =".";
 
-			addChild(replaySpeedSet);
+			addChild(replaySpeedSliderWrapper);
 			addChild(topbarBG);
 			setChildIndex(topbarBG,0);
 			cacheAsBitmap = true;

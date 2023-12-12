@@ -39,7 +39,10 @@
 		public var layer2SelectButton:SimpleButton;
 		public var layer1Button:SimpleButton;
 		public var layer2Button:SimpleButton;
-		public var penSmoothSliderSet:Sprite;
+
+		public const penSmoothSliderWapper:Sprite = new Sprite();
+		public var penSmoothSlider:SimpleButton;
+		public var penSmoothSliderCursor:SimpleButton;
 
 		public var layer1CheckButton:SimpleButton;
 		public var layer1UncheckButton:SimpleButton;
@@ -111,8 +114,8 @@
 			opaGuide.transform.colorTransform = opColor;
 			saperateLine.transform.colorTransform = opColor;
 
-			penSmoothSliderSet["penSmoothBar"].transform.colorTransform = opColor;
-			penSmoothSliderSet["penSmoothButton"].transform.colorTransform = opColor;
+			penSmoothSlider.transform.colorTransform = opColor;
+			penSmoothSliderCursor.transform.colorTransform = opColor;
 		}
 
 		public function shapeFlag(flag:Boolean):void // true이면 rect임
@@ -289,16 +292,39 @@
 			saperateLine.mouseEnabled = false;
 		}
 
+		public function initPenSmoothSliderWrapper():void
+		{
+			penSmoothSliderWapper.name = "penSmoothSliderWapper";
+			penSmoothSliderWapper.addChild(penSmoothSlider);
+			penSmoothSliderWapper.addChild(penSmoothSliderCursor);
+
+			penSmoothSlider.mouseEnabled = false;
+			penSmoothSlider.x = 6;
+			penSmoothSlider.y = 2;
+
+			penSmoothSliderCursor.mouseEnabled = false;
+			penSmoothSliderCursor.x = penSmoothSlider.x;
+			penSmoothSliderCursor.y = penSmoothSlider.height+5;
+
+			penSmoothSliderWapper.graphics.clear();
+			penSmoothSliderWapper.graphics.beginFill(0xFF0000,0.0);
+			penSmoothSliderWapper.graphics.drawRect(0,0,penSmoothSlider.x+penSmoothSlider.width+penSmoothSliderCursor.width/2+1.5
+														,penSmoothSlider.y+penSmoothSlider.height+penSmoothSlider.y+penSmoothSlider.height+3);
+			penSmoothSliderWapper.graphics.endFill();
+		}
+
 		public function initOpaSizeButtonWapper():void
 		{
 			initInfoButton();
+			initPenSmoothSliderWrapper();
+
 			opaSizeButtonWrapper.addChild(infoPenOptions);
 			opaSizeButtonWrapper.addChild(infoEraserOptions);
 			opaSizeButtonWrapper.addChild(infoLineOptions);
 			opaSizeButtonWrapper.addChild(infoLineOptions);
 			opaSizeButtonWrapper.addChild(shapeCircle);
 			opaSizeButtonWrapper.addChild(shapeRect);
-			opaSizeButtonWrapper.addChild(penSmoothSliderSet);
+			opaSizeButtonWrapper.addChild(penSmoothSliderWapper);
 			opaSizeButtonWrapper.addChild(penSizeGuide);
 			opaSizeButtonWrapper.addChild(penSizeBox);
 			opaSizeButtonWrapper.addChild(rectSizeSet);
@@ -314,15 +340,11 @@
 			shapeRect.y = shapeCircle.y;
 			shapeRect.useHandCursor = false;
 
-			penSmoothSliderSet.x = Math.floor(shapeRect.x+shapeRect.width+11);
-			penSmoothSliderSet.y = Math.floor(shapeRect.y)+8;
-
-			penSmoothSliderSet["penSmoothBar"].mouseEnabled = false;
-			penSmoothSliderSet["penSmoothButton"].mouseEnabled = false;
-			penSmoothSliderSet["penSmoothSlider"].useHandCursor = false;
+			penSmoothSliderWapper.x = Math.floor(shapeRect.x+shapeRect.width+5);
+			penSmoothSliderWapper.y = Math.floor(shapeRect.y);
 
 			penSizeGuide.x = 0;
-			penSizeGuide.y = Math.floor(penSmoothSliderSet.y+penSmoothSliderSet.height)-6;
+			penSizeGuide.y = Math.floor(penSmoothSliderWapper.y+penSmoothSliderWapper.height)+3;
 			penSizeBox.x = penSizeGuide.x+2;
 			penSizeBox.y = penSizeGuide.y+2;
 			penSizeSelectCursor.useHandCursor = false;
