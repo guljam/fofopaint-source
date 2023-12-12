@@ -22,7 +22,6 @@
     import flash.display.StageQuality;
     import flash.display.NativeWindow;
     import flash.display.Loader;
-    import flash.display.LoaderInfo;
     import flash.display.NativeWindowInitOptions;
     import flash.display.NativeWindowSystemChrome;
     import flash.display.NativeWindowType;
@@ -62,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.16;
+        private const APP_VERSION:Number = 24.17;
         private const APP_DATA_VERSION:Number = 2415;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -656,7 +655,7 @@
                     ,isDrawModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isReplayModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
-                    ,invokeEventDelayTimeSave:int = 0 //invoke 이벤트에서 파일을 너무 빨리 불러오지 못하게함
+                    ,dragDropFileSave:File //invoke 이벤트에서 파일을 너무 빨리 불러오지 못하게함
                     ,oldAppdataRtotalFrame:Number = -1 //24.00버전 이후로 쓸일 없지만 이전버전 호환성을 위해서 백업해주고 복원해줌
                     ;
 
@@ -12797,15 +12796,19 @@
             closeToolBox2();
         }
 
+        private function isSameFile(file1:File,file2:File):Boolean
+        {
+            if(!dragDropFileSave) return false;
+            
+            return  file1.nativePath === file2.nativePath
+            && file1.size === file2.size
+            && file1.modificationDate.getTime() === file2.modificationDate.getTime()
+            && file1.creationDate.getTime() === file2.creationDate.getTime();
+        }
+
         //운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
         private function onInvokeEvent(event:InvokeEvent):void
         {
-            if(invokeEventDelayTimeSave > 0 && getTimer()-invokeEventDelayTimeSave < 1000)
-            {
-                return;
-            }
-
-            invokeEventDelayTimeSave = getTimer();
             if(fileBrowserON || captureModeON || isInSaveProgress !== 0)
             {
                 return;
@@ -12814,6 +12817,16 @@
 
             if(arguments && arguments.length > 0)
             {
+                const file:File = new File(arguments[0] as String);
+
+                if(isSameFile(file,dragDropFileSave))
+                {
+                    return;
+                }
+
+                dragDropFileSave = file;
+
+                file.modificationDate
                 rFileStream.close();
                 cancelRestartTimer();
                 setDragDropPreviewImageReady(new File(arguments[0] as String));
@@ -12830,6 +12843,14 @@
             rFileStream.close();
             cancelRestartTimer();
             const data:Object = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
+            const file:File = data[0] as File;
+
+            if(isSameFile(file,dragDropFileSave))
+            {
+                return;
+            }
+                
+            dragDropFileSave = file;
             setDragDropPreviewImageReady(data[0] as File);
         }
 
@@ -12873,6 +12894,7 @@
                     setLoadBoxReady(false);
                 }
 
+                dragDropFileSave = null;
                 loader.unload();
                 loader = null;
             }
@@ -14206,6 +14228,8 @@
                 canvasWindowIgnoreResizeEventFlag = true;
                 updateCanvasWindowBitmapSize();
             }
+            
+            dragDropFileSave = null;
             saveThenLoadFlag = false;
             setLoadBoxVisible(false);
         }
