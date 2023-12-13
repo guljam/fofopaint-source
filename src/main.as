@@ -22688,6 +22688,10 @@
             }
             else if(topBar.gridButtonWrapper.visible)
             {
+                if(targetName === "gridButton")
+                {
+                    gridButton.off();
+                }
                 return;
             }
 
