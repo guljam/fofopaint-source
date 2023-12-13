@@ -59,8 +59,17 @@
 
 		public function setScale(newScale:Number):void
 		{
-			this.scaleX = newScale;
-			this.scaleY = newScale;
+			// 로지스틱 함수의 매개변수 설정
+			var L:Number = 2.0;   // 최대값
+			var k:Number = 1.2;     // 경사도
+			var x0:Number = 3;    // 중심 지점
+
+			// 로지스틱 함수 계산
+			var exponent:Number = -k * (newScale - x0);
+			const newScale2:Number = Math.floor((0.9+(L / (1 + Math.exp(exponent))))*100)/100;
+
+			this.scaleX = newScale2;
+			this.scaleY = newScale2;
 		}
 
 		public function changeUIColor(arr:Array):void
