@@ -8,7 +8,7 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
-	import flash.geom.Point;
+
 	public class topMenu extends Sprite {
 		public const BARSIZE:Number = 38;
 		private var miniTimer:fofoTimer;
@@ -30,6 +30,15 @@
 		public var clipButton:SimpleButton;
 		public var clearButton:SimpleButton;
 		public var gridButton:SimpleButton;
+		public var gridMoveLeftButton:SimpleButton;
+		public var gridMoveRightButton:SimpleButton;
+		public var gridMoveUpButton:SimpleButton;
+		public var gridMoveDownButton:SimpleButton;
+		public var gridSlider:SimpleButton;
+		public var gridSliderCursor:SimpleButton;
+		public const gridButtonWrapper:Sprite = new Sprite();
+		public const gridSliderWrapper:Sprite = new Sprite();
+		public const gridMoveButtonWrapper:Sprite = new Sprite();
 		public var replayModeButton:SimpleButton;
 		public var drawModeButton:SimpleButton;
 		public var topBarColorButton:SimpleButton;
@@ -68,10 +77,6 @@
 		public var replaySpeedSliderCursor:SimpleButton;
 		public var replaySpeedSlider:SimpleButton;
 		public var replaySpeedSliderWrapper:Sprite = new Sprite();
-		private var replaySpeedSliderWrapperGridMode:Boolean = false;
-		private var replaySpeedSliderWrapperPosSave:Point = new Point(0,0);
-		private var replaySpeedSliderCursorPosXSave:Number = 0;
-		private var replaySpeedSliderRightPosSave:Number = 0;
 
 		private var isHintLocked:Boolean = false;
 		private var hintWaitAnimTimer:int = 0;
@@ -89,19 +94,87 @@
 			this.scaleY = scale;
 		}
 
-		//control menu initPenSmoothSliderWrapper와 같음
-		public function isReplaySpeedSliderWrapperGridMode():Boolean
+		public function isGridMoveButtonOFFAlpha():Boolean
 		{
-			return replaySpeedSliderWrapperGridMode;
+			return gridMoveLeftButton.alpha < 1.0;
 		}
 
-		public function drawReplaySpeedSliderWrapperRect(color:uint,alpha:Number):void
+		public function setGridMoveButtonAlpha(alpha:Number):void
 		{
-			replaySpeedSliderWrapper.graphics.clear();
-			replaySpeedSliderWrapper.graphics.beginFill(color,alpha);
-			replaySpeedSliderWrapper.graphics.drawRect(0,0,replaySpeedSlider.x+replaySpeedSlider.width+replaySpeedSliderCursor.width/2+1.5
-														,replaySpeedSlider.y+replaySpeedSlider.height+replaySpeedSlider.y+replaySpeedSlider.height+3);
-			replaySpeedSliderWrapper.graphics.endFill();
+			gridMoveLeftButton.alpha = alpha;
+			gridMoveRightButton.alpha = alpha;
+			gridMoveUpButton.alpha = alpha;
+			gridMoveDownButton.alpha = alpha;
+		}
+
+		public function initGridButtonWrapper():void
+		{
+			gridButtonWrapper.name = "gridButtonWrapper";
+
+			initGridSliderWrapper();
+			initGridMoveButtonWrapper();
+
+			gridButtonWrapper.addChild(gridSliderWrapper);
+			gridButtonWrapper.addChild(gridMoveButtonWrapper);
+
+			gridSliderWrapper.x = 0;
+			gridSliderWrapper.y = 1.5;
+			gridMoveButtonWrapper.x = gridSliderWrapper.x+gridButtonWrapper.width+5;
+			gridMoveButtonWrapper.y = 0;
+			gridButtonWrapper.visible = false;
+		}
+
+		//control menu initPenSmoothSliderWrapper와 같음
+		public function initGridMoveButtonWrapper():void
+		{
+			gridMoveButtonWrapper.name = "gridMoveButtonWrapper";
+
+			gridMoveButtonWrapper.addChild(gridMoveLeftButton);
+			gridMoveButtonWrapper.addChild(gridMoveRightButton);
+			gridMoveButtonWrapper.addChild(gridMoveUpButton);
+			gridMoveButtonWrapper.addChild(gridMoveDownButton);
+
+			gridMoveLeftButton.useHandCursor = false;
+			gridMoveRightButton.useHandCursor = false;
+			gridMoveUpButton.useHandCursor = false;
+			gridMoveDownButton.useHandCursor = false;
+
+			gridMoveLeftButton.x = 0;
+			gridMoveLeftButton.y = 0;
+			gridMoveRightButton.x = gridMoveLeftButton.x+gridMoveLeftButton.width;
+			gridMoveRightButton.y = 0;
+			gridMoveUpButton.x = gridMoveRightButton.x+gridMoveRightButton.width;
+			gridMoveUpButton.y = 0;
+			gridMoveDownButton.x = gridMoveUpButton.x+gridMoveUpButton.width;
+			gridMoveDownButton.y= 0;
+
+			gridMoveButtonWrapper.graphics.clear();
+			gridMoveButtonWrapper.graphics.beginFill(0,0.0);
+			gridMoveButtonWrapper.graphics.drawRect(0,0,gridMoveButtonWrapper.width,gridMoveButtonWrapper.height);
+			gridMoveButtonWrapper.graphics.endFill();
+		}
+
+		public function initGridSliderWrapper():void
+		{
+			gridSliderWrapper.name = "gridSliderWrapper";
+			gridSliderWrapper.addChild(gridSlider);
+			gridSliderWrapper.addChild(gridSliderCursor);
+			gridSlider.useHandCursor = false;
+			gridSliderCursor.useHandCursor = false;
+
+			gridSlider.mouseEnabled = false;
+			gridSlider.x = 6;
+			gridSlider.y = 2;
+
+			gridSliderCursor.mouseEnabled = false;
+			gridSliderCursor.x = gridSlider.x;
+			gridSliderCursor.y = gridSlider.height+5;
+
+			gridSliderWrapper.graphics.clear();
+			gridSliderWrapper.graphics.beginFill(0,0.0);
+			gridSliderWrapper.graphics.drawRect(0,0,gridSlider.x+gridSlider.width+gridSliderCursor.width/2+1.5
+													,gridSlider.y+gridSlider.height+gridSlider.y+gridSlider.height+3);
+			gridSliderWrapper.graphics.endFill();
 		}
 
 		public function initReplaySpeedSliderWrapper():void
@@ -117,35 +190,32 @@
 			replaySpeedSliderCursor.mouseEnabled = false;
 			replaySpeedSliderCursor.x = replaySpeedSlider.x;
 			replaySpeedSliderCursor.y = replaySpeedSlider.height+5;
-
-			drawReplaySpeedSliderWrapperRect(0,0.0);
 		}
 
 		public function setReplaySpeedBarToGridSliderON(color:uint):void
 		{
-			replaySpeedSliderWrapperGridMode = true;
+			gridButtonWrapper.graphics.clear();
+			gridButtonWrapper.graphics.beginFill(color);
+			gridButtonWrapper.graphics.drawRect(-1,0,gridMoveButtonWrapper.x+gridMoveButtonWrapper.width+2,gridButtonWrapper.height+1);
+			gridButtonWrapper.graphics.endFill();
 
-			drawReplaySpeedSliderWrapperRect(color,1.0);
+			if(this.getChildByName("gridButtonWrapper") === null)
+			{
+				this.addChild(gridButtonWrapper);
+			}
 
-			replaySpeedSliderWrapper.x = gridButton.x;
-			replaySpeedSliderWrapper.y = BARSIZE;
-
-			replaySpeedSliderCursorPosXSave = replaySpeedSliderCursor.x;
-
-			replaySpeedSliderWrapper.visible = true;
+			gridButtonWrapper.x = gridButton.x;
+			gridButtonWrapper.y = BARSIZE;
+			gridButtonWrapper.visible = true;
 		}
 
 		public function setReplaySpeedBarToGridSliderOFF():void
 		{
-			replaySpeedSliderWrapperGridMode = false;
-
-			drawReplaySpeedSliderWrapperRect(0,0.0);
-
-			replaySpeedSliderWrapper.x = replaySpeedSliderWrapperPosSave.x;
-			replaySpeedSliderWrapper.y = replaySpeedSliderWrapperPosSave.y;
-			replaySpeedSliderCursor.x = replaySpeedSliderCursorPosXSave;
-
-			replaySpeedSliderWrapper.visible = false;
+			gridButtonWrapper.visible = false;
+			if(this.getChildByName("gridButtonWrapper") !== null)
+			{
+				this.removeChild(gridButtonWrapper);
+			}
 		}
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
@@ -183,7 +253,7 @@
 
 		public function updateTimerPos(stw:Number):void
 		{
-			const limitX:Number = replaySpeedSliderRightPosSave*this.scaleX;
+			const limitX:Number = (replaySpeedSliderWrapper.x+replaySpeedSliderWrapper.width+8)*this.scaleX;
 			var newX:Number = stw-(timer.textWidth+10)*this.scaleX;
 			if(newX < limitX) newX = limitX;
 			timer.x = newX/this.scaleX;
@@ -247,6 +317,13 @@
 			replayRotateButton.transform.colorTransform = opColor;
 			replaySpeedSliderCursor.transform.colorTransform = opColor;
             replaySpeedSlider.transform.colorTransform = opColor;
+
+			gridSlider.transform.colorTransform = opColor;
+			gridSliderCursor.transform.colorTransform = opColor;
+			gridMoveLeftButton.transform.colorTransform = opColor;
+			gridMoveRightButton.transform.colorTransform = opColor;
+			gridMoveUpButton.transform.colorTransform = opColor;
+			gridMoveDownButton.transform.colorTransform = opColor;
 
 			timer.textColor = op;
 			timerAFkDot.textColor = op;
@@ -339,7 +416,7 @@
 			}
 		}
 
-		public function initMouseDownState():void //버튼위치 설정
+		public function initMouseDownState():void
 		{
 			const arr:Vector.<SimpleButton> = new <SimpleButton>[
 												captureButton,
@@ -381,7 +458,12 @@
 												reRecordingButton,
 												replayZoomInButton,
 												replayZoomOutButton,
-												replayFitToWindowButton
+												replayFitToWindowButton,
+
+												gridMoveLeftButton,
+												gridMoveRightButton,
+												gridMoveUpButton,
+												gridMoveDownButton
 												];
 			const len:uint = arr.length;
 			var btnDown:DisplayObjectContainer;
@@ -427,14 +509,12 @@
 
 			updateButton.x = aboutButton.x;
 			updateButton.y = aboutButton.y;
-
-			replaySpeedSliderWrapperPosSave.setTo(replaySpeedSliderWrapper.x,replaySpeedSliderWrapper.y);
-			replaySpeedSliderRightPosSave = replaySpeedSliderWrapper.x+replaySpeedSliderWrapper.width+5;
 		}
 
 		public function topMenu()
 		{
 			initReplaySpeedSliderWrapper();
+			initGridButtonWrapper();
 
 			capRotate.visible = false;
 			capFlip.visible = false;

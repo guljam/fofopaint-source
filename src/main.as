@@ -61,8 +61,8 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.24;
-        private const APP_DATA_VERSION:Number = 2415;
+        private const APP_VERSION:Number = 24.25;
+        private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private var STAGE_FRAME:int = stage.frameRate; //frame rate가 오르면 선을 빠르게 그렀을때 떨어저 그려지고 낮게 하면 부드럽게 이어져 그려짐
@@ -181,8 +181,7 @@
                     ,REPLAY_MAX_SPEED:Number = 200
 
                     ,GRID_GAP:uint = 10
-                    ,GRID_NORMAL_COLOR:uint = 0xBABABA
-                    ,GRID_5UNIT_COLOR:uint = 0x515151
+                    ,GRID_NORMAL_COLOR:uint = 0x808080
 
                     ,LASSO_SHARP_DATA:Array =
                     [
@@ -540,6 +539,8 @@
         //그리드 레이어 변수
                     ,canvasGrid:Shape = new Shape()//트레이스 레이어임
                     ,gridValue:uint = 0
+                    ,gridDrawOffsetX:Number = 0.0
+                    ,gridDrawOffsetY:Number = 0.0
 
         //closure
                     ,realWorkingTimer:Object = cRealWorkingTimer()
@@ -657,6 +658,7 @@
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,dragDropFileSave:File //invoke 이벤트에서 파일을 너무 빨리 불러오지 못하게함
                     ,oldAppdataRtotalFrame:Number = -1 //24.00버전 이후로 쓸일 없지만 이전버전 호환성을 위해서 백업해주고 복원해줌
+                    ,stagedraw:Shape = new Shape()
                     ;
 
         public function main():void
@@ -4166,7 +4168,9 @@
             {
                 //구버전 파일 읽기 헤더가 없고 바로 배열임
                 const arr:Array = (fs.readObject() as Array);
-                if(!arr || !(arr[0] is String)) return false;
+
+                if(!arr) return false;
+                if(!(arr[0][0] is String)) return false;
 
                 fs.close();
                 return true;
@@ -5476,6 +5480,8 @@
             setZoomCanvas(1.0,false);
             updatePenSizeCursor();
             updatePreviewBoxRectPos();
+            if(gridValue > 0) drawGrid();
+            checkBoxPosition(canvasPanel);
         }
 
         private function setZoomInButton(zoomInFlag:Boolean,replayMode:Boolean):void
@@ -5898,7 +5904,7 @@
                 case "traceCancelButton":str = "Close [esc, backspace, t]"; break;
                 case "traceImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_TRACE; break;
                 case "traceLoadButton":str = "Load image"; break;
-                case "traceClipButton":str = "Load clipboard image\n[hold click 2 sec]"; break;
+                case "traceClipButton":str = "Load clipboard image\n[hold-click 2 sec]"; break;
                 case "traceButtonWrapper":str = "Adjust image opacity"; break;
                 case "traceRotateButton":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "traceMoveButton":str = "Move image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
@@ -6006,12 +6012,12 @@
             switch(targetName)
             {
                 case "toolPen": str = "Pen [q, o key up]"; break;
-                case "toolFillPen": str = "Fill pen [q, o]\nMenu [Right click after using the tool]"; break;
+                case "toolFillPen": str = "Fill pen [q, o]\nMenu [right-click after using the tool]"; break;
                 case "toolErase": str = "Eraser [d, j]"; break;
                 case "toolLasso": str = "Lasso [r, y]"; break;
                 case "toolSpuit": str = "Eye dropper [c, m]\nPick transparent color ON/OFF [c+space, m+spcae]"; break;
-                case "toolUndo": str = "Undo [z, .]\nRepeat [hold click]"; break;
-                case "toolRedo": str = "Redo [x, ,]\nRepeat [hold click]"; break;
+                case "toolUndo": str = "Undo [z, .]\nRepeat [hold-click]"; break;
+                case "toolRedo": str = "Redo [x, ,]\nRepeat [hold-click]"; break;
                 case "toolMirror": str = "Flip canvas [a, l]"; break;
                 case "toolLine": str = "Line [shift]"; break;
                 case "toolMove": str = "Move image [e, u]"; break;
@@ -6085,6 +6091,7 @@
 
             topBar.buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);
             topBar.updateButtonVisible(false);
+            gridButton.off();
 
             if(mode === "draw")
             {
@@ -6148,121 +6155,129 @@
             return hint;
         }
 
+        private function clearGrid():void
+        {
+            topBar.setGridMoveButtonAlpha(BUTTON_OFF_ALPHA);
+            canvasGrid.visible = false;
+            canvasGrid.graphics.clear();
+        }
+
         private function drawGrid():void
         {
             if(gridValue === 0)
             {
-                canvasGrid.visible = false;
-                canvasGrid.graphics.clear();
+                clearGrid();
                 return;
             }
 
             const w:Number = CANVAS_WIDTH;
             const h:Number = CANVAS_HEIGHT;
-            const gridgap:Number = gridValue*GRID_GAP;
-            const len:Number = Math.floor(h/gridgap+0.5);//가로선 횟수 w, h반대되는거 맞음
-            const len2:Number = Math.floor(w/gridgap+0.5); //세로선 횟수
+            var gridgap:Number = gridValue*GRID_GAP;
             const normalColor:uint = GRID_NORMAL_COLOR;
-            const unitColor:uint = GRID_5UNIT_COLOR;
             var cmd:Vector.<int> = new Vector.<int>();
             var data:Vector.<Number> = new Vector.<Number>();
-            var gridi:Number;
+            const offsetX:Number = gridDrawOffsetX;
+            const offsetY:Number = gridDrawOffsetY;
+
+            if(gridgap*zoomed < gridgap)
+            {
+                gridgap = gridgap*(gridgap/(gridgap*zoomed));
+            }
+
+            var i:uint = 1;
+            var len:Number = Math.floor(h/gridgap+0.5);//가로선 횟수 w, h반대되는거 맞음
+
+            if(offsetY < 0) len += 1;
+            else if(offsetY > 0) i = 0;
 
             canvasGrid.graphics.clear();
-            canvasGrid.graphics.lineStyle(1,normalColor,0.5,true);
-            for(var i:uint=1;i<=len;i++)
+            canvasGrid.graphics.lineStyle(1/zoomed,normalColor,0.5,false);
+
+            //가로선
+            for(;i<=len;i++)
             {
-                gridi = gridgap*i;
                 cmd.push(1);
                 cmd.push(2);
-                data.push(0)
-                data.push(gridi);
+                data.push(0);
+                data.push(gridgap*i+offsetY);
                 data.push(w);
-                data.push(gridi);
+                data.push(gridgap*i+offsetY);
             }
 
-            for(i=1;i<=len2;i++)
+            i = 1;
+            len = Math.floor(w/gridgap+0.5); //세로선 횟수
+
+            if(offsetX < 0) len += 1;
+            else if(offsetX > 0) i = 0;
+
+            //세로선
+            for(;i<=len;i++)
             {
-                gridi = gridgap*i;
                 cmd.push(1);
                 cmd.push(2);
-                data.push(gridi)
+                data.push(gridgap*i+offsetX)
                 data.push(0);
-                data.push(gridi);
+                data.push(gridgap*i+offsetX);
                 data.push(h);
             }
 
             canvasGrid.graphics.drawPath(cmd,data);
 
-            cmd = new Vector.<int>();
-            data = new Vector.<Number>();
-            canvasGrid.graphics.lineStyle(1,unitColor,0.5,true); //5단위 강조선
-
-            for(i=1;i<len;i+=5)
-            {
-                gridi = gridgap*i;
-                cmd.push(1);
-                cmd.push(2);
-                data.push(w)
-                data.push(gridi);
-                data.push(w);
-                data.push(gridi);
-            }
-
-            for(i=1;i<len2;i+=5)
-            {
-                gridi = gridgap*i;
-                cmd.push(1);
-                cmd.push(2);
-                data.push(gridi)
-                data.push(0);
-                data.push(gridi);
-                data.push(h);
-            }
-            canvasGrid.graphics.drawPath(cmd,data);
-
-            cmd.length = 0;
             data.length = 0;
+            cmd = null;
+            data = null;
             checkGridMirror(mirrorON);
             canvasGrid.cacheAsBitmap = true;
             canvasGrid.visible = true;
         }
 
-        private function setGridOFF():void
-        {
-            gridButton.off();
-            gridValue = 0;
-            setHintONTemp("Grid OFF");
-            drawGrid();
-        }
-
         private function cGridFunc():Object
         {
-            const minDist:Number = topBar.replaySpeedSlider.x+1.5;
-            const maxDist:Number = minDist+topBar.replaySpeedSlider.width-2.5;
+            const minDist:Number = topBar.gridSlider.x+1.5;
+            const maxDist:Number = minDist+topBar.gridSlider.width-2.5;
             const step:Number = 20;
             const div:Number = (maxDist-minDist)/step;
             var oldValue:Number;
 
             function setCursorPosByValue(value:Number):void
             {
-                topBar.replaySpeedSliderCursor.x = value*div+minDist;
+                topBar.gridSliderCursor.x = value*div+minDist;
             }
 
-            function drawDridByValue(mx:Number):void
+            function drawDridByValue(mx:Number,initFlag:Boolean):void
             {
                 if(mx < minDist) mx = minDist;
                 else if(mx > maxDist) mx = maxDist;
 
                 const value:Number = Math.floor((mx-minDist)/div);
 
-                if(oldValue !== value)
+                if(oldValue !== value || initFlag)
                 {
                     setCursorPosByValue(value);
-                    oldValue = value;
-                    gridValue = value;
-                    setHintONTemp("Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)");
-                    drawGrid();
+
+                    if(value === 0)
+                    {
+                        hint.off();
+                        clearGrid();
+                        return;
+                    }
+                    else
+                    {
+                        if(topBar.isGridMoveButtonOFFAlpha()) topBar.setGridMoveButtonAlpha(1.0);
+
+                        //변한 크기만큼 오프셋도 변화시켜줌
+                        if(oldValue > 0 && value > 0)
+                        {
+                            gridDrawOffsetX = gridDrawOffsetX*(value/oldValue);
+                            gridDrawOffsetY = gridDrawOffsetY*(value/oldValue);
+                        }
+
+                        gridValue = value;
+                        oldValue = value;
+                        setHintONTemp("Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)");
+
+                        drawGrid();
+                    }
                 }
 
                 setTopChildIndex(canvasGrid);
@@ -6277,70 +6292,142 @@
 
             function mouseMoveGridButton(e:MouseEvent):void
             {
-                var mx:Number = topBar.replaySpeedSliderWrapper.mouseX;
+                var mx:Number = topBar.gridSliderWrapper.mouseX;
 
                 if(mx < minDist) mx = minDist;
                 else if(mx > maxDist) mx = maxDist;
 
-                drawDridByValue(mx);
+                drawDridByValue(mx,false);
+            }
+
+            function setGridMoveButton(moveX:Number,moveY:Number):void
+            {
+                setHoldKeyRepeat(true,function():void
+                {
+                    gridDrawOffsetX += moveX*(mirrorON ? -1:1);
+                    gridDrawOffsetY += moveY;
+
+                    if(Math.abs(gridDrawOffsetX) >= gridValue*GRID_GAP) gridDrawOffsetX = 0.0;
+                    if(Math.abs(gridDrawOffsetY) >= gridValue*GRID_GAP) gridDrawOffsetY = 0.0;
+
+                    if(gridValue > 0) drawGrid();
+                });
             }
 
             function mouseDownGridButton(e:MouseEvent):void
             {
                 if(!e.target) return;
-                if(e.target.name === "gridButton") return;
+                const targetName:String = e.target.name;
 
-                if(topBar.replaySpeedSliderWrapper.hitTestPoint(mouseX,mouseY))
+                if(targetName === "gridButton" || e.target.alpha < 1.0)
                 {
-                    drawDridByValue(topBar.replaySpeedSliderWrapper.mouseX);
+                    return;
+                }
+
+                if(topBar.gridButtonWrapper.hitTestPoint(mouseX,mouseY) === false)
+                {
+                    off();
+                }
+
+                if(topBar.gridMoveButtonWrapper.hitTestPoint(mouseX,mouseY))
+                {
+                    var p:Point;
+
+                    if(targetName === "gridMoveLeftButton")
+                    {
+                        p = rotatePoint(-1,0,regPoint.rotation);
+                        setGridMoveButton(p.x,p.y);
+                    }
+                    else if(targetName === "gridMoveRightButton")
+                    {
+                        p = rotatePoint(1,0,regPoint.rotation);
+                        setGridMoveButton(p.x,p.y);
+                    }
+                    else if(targetName === "gridMoveUpButton")
+                    {
+                        p = rotatePoint(0,-1,regPoint.rotation);
+                        setGridMoveButton(p.x,p.y);
+                    }
+                    else if(targetName === "gridMoveDownButton")
+                    {
+                        p = rotatePoint(0,1,regPoint.rotation);
+                        setGridMoveButton(p.x,p.y);
+                    }
+                }
+                else if(topBar.gridSliderWrapper.hitTestPoint(mouseX,mouseY))
+                {
+                    mouseDragON = true;
+                    oldValue = gridValue;
+                    drawDridByValue(topBar.gridSliderWrapper.mouseX,true);
                     stage.addEventListener(MouseEvent.MOUSE_MOVE,mouseMoveGridButton);
                     stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpGridButton);
                 }
-                else
+
+            }
+
+            function rightMouseDownGridButton(e:MouseEvent):void
+            {
+                if(!e.target) return;
+
+                const targetName:String = e.target.name;
+
+                if(targetName === "gridMoveLeftButton"
+                || targetName === "gridMoveRightButton")
+                {
+                    if(gridValue > 0)
+                    {
+                        gridDrawOffsetX = 0;
+                        if(gridValue > 0) drawGrid();
+                    }
+                }
+                else if(targetName === "gridMoveUpButton"
+                     || targetName === "gridMoveDownButton")
+                {
+                    if(gridValue > 0)
+                    {
+                        gridDrawOffsetY = 0;
+                        if(gridValue > 0) drawGrid();
+                    }
+                }
+                else if(targetName !== "gridSliderWrapper")
                 {
                     off();
                 }
             }
 
-            function rightMouseDownGridButton(e:MouseEvent):void
-            {
-                off();
-            }
-
-            function keyDownGridButton(e:KeyboardEvent):void
-            {
-                off();
-            }
+            // function keyDownGridButton(e:KeyboardEvent):void
+            // {
+            //     if(!(mouseDragON || mouseClickON))
+            //     {
+            //         off();
+            //     }
+            // }
 
             function off():void
             {
+                hint.off();
                 mouseDragON = false;
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownGridButton);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpGridButton);
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownGridButton);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMoveGridButton);
-                stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownGridButton);
+                // stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownGridButton);
                 topBar.setReplaySpeedBarToGridSliderOFF();
             }
 
             function start():void
             {
-                if(topBar.isReplaySpeedSliderWrapperGridMode() === false)
+                if(topBar.gridButtonWrapper.visible === false)
                 {
-                    var minDist:Number = topBar.replaySpeedSlider.x+1.5;
-                    var maxDist:Number = minDist+topBar.replaySpeedSlider.width-2.5;
-                    var step:Number = 20;
-                    var div:Number = (maxDist-minDist)/step;
-                    var oldValue:Number;
-
-                    mouseDragON = true;
+                    if(gridValue > 0) topBar.setGridMoveButtonAlpha(1.0);
+                    else topBar.setGridMoveButtonAlpha(BUTTON_OFF_ALPHA);
 
                     topBar.setReplaySpeedBarToGridSliderON(uiColorSet[uiColorIndex][0]);
                     setCursorPosByValue(gridValue);
 
                     stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownGridButton);
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownGridButton);
-                    stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownGridButton);
+                    // stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownGridButton);
                 }
                 else
                 {
@@ -7283,12 +7370,12 @@
                 break;
 
                 case "layer1SelectButton":
-                    str = "Select layer 1 [1, 9]\nShow only layer 1 [right click]";
+                    str = "Select layer 1 [1, 9]\nShow only layer 1 [right-click]";
                     setSingleLayerPreview(1,false);
                 break;
 
                  case "layer2SelectButton":
-                    str = "Select layer 2 [2, 0]\nShow only layer 2 [right click]";
+                    str = "Select layer 2 [2, 0]\nShow only layer 2 [right-click]";
                     setSingleLayerPreview(2,false);
                 break;
 
@@ -7498,7 +7585,6 @@
         //composing 키에대한 체크 잘모르겠음 한영 변환이 관련있는거 같음
         private function checkKeyInvalidKey():void
         {
-            var nt:int = getTimer()
             const len:uint = KEY_BUFFER.length;
             for(var i:int=0;i<len;i++)
             {
@@ -8915,7 +9001,7 @@
                         break;
 
                         case "gridButton":
-                            gridButton.start(false);
+                            gridButton.start();
                         break;
 
                         case "aboutButton":
@@ -9424,206 +9510,208 @@
                 return;
             }
 
-            if(targetName !== null)
+            var str:String = "";
+
+            switch(targetName)
             {
-                var str:String = "";
-                switch(targetName)
+                case "frameInfo":
+                case "replayTotalBar":
+                case "replayNowBar":
+                case "replayDeleteBar":
                 {
-                    case "frameInfo":
-                    case "replayTotalBar":
-                    case "replayNowBar":
-                    case "replayDeleteBar":
-                    {
-                        setTopBarHintOFF();
-                    }
-                    return;
-                    case "timer":
-                        str = "Actual working time\nReset [click]"+STRING_HOLD_2SEC;
-                    break;
-
-                    case "playButton":
-                        str = "Play [enter, space]";
-                    break;
-
-                    case "pauseButton":
-                        str = "Pause [enter, space]";
-                    break;
-
-                    case "replayPrev":
-                        str = "Prev [left, z, .]\nJump 1 frame [right-click, shift+left, shift+z, shift+.]";
-                    break;
-
-                    case "replayNext":
-                        str = "Next [right, x, ,]\nJump 1 frame [right-click, shift+right, shift+x, shift+,]";
-                    break;
-
-                    case "replaySpeedSliderWrapper":
-                    {
-                        if(topBar.isReplaySpeedSliderWrapperGridMode())
-                        {
-                            return;
-                        }
-                        else
-                        {
-                            if(rSpeedLastStr === "") str = "Change playback speed [up, down / f, v / h, n]";
-                            else str = rSpeedLastStr;
-                        }
-                    }
-                    break;
-
-                    case "saveButton":
-                    case "repSaveButton":
-                        str = "Save [ctrl+s]\nSave as.. [shift+ctrl+s, right-click]";
-                    break;
-
-                    case "loadButton":
-                        str = "Load [ctrl+o]\nLoad to Reference layer [ctrl+shift+o, right-click]";
-                    break;
-
-                    case "repLoadButton":
-                        str = "Load [ctrl+o]";
-                    break;
-
-                    case "clipButton":
-                        str = "Load clipboard image [ctrl+v, ctrl+n]"+((topBar["clipButton"].alpha < 1.0)?"\nThere are no copied images":"");
-                    break;
-
-                    case "clearButton":
-                        str = "New file [click, esc, backspace, delete]"+STRING_HOLD_2SEC;
-                    break;
-
-                    case "captureButton":
-                    case "repCaptureButton":
-                        str = "Capture mode [ctrl+c, ctrl+m]";
-                    break;
-
-                    case "capOff":
-                        str = "Exit capture mode (esc, backspace, f1, f7]";
-                    break;
-
-                    case "capFull":
-                        str = (drawCaptureArea.isFullImageCapture()) ? "Save full image [c, m]" : "Save selected area [c, m]";
-                    break;
-
-                    case "capClipBoard":
-                    {
-                        str = (e.target.alpha === 1.0) ? "Copy "+((drawCaptureArea.isFullImageCapture()) ?
-                                                                "full image"
-                                                                :"selected area image")
-                                                                + " to clipboard [v, n]"
-                                                                :"Already copied to clipboard";
-                    }
-                    break;
-
-                    case "capTrans":
-                        str = "Background color ON/OFF [d, j]";
-                    break;
-
-                    case "capRotate":
-                        str = "Rotate image [s, k]";
-                    break;
-
-                    case "capFlip":
-                        str = "Flip image [a, l]";
-                    break;
-
-                    case "capLayer1VisibleButton":
-                        str = "Layer 1 visible ON/OFF [1, 9]";
-                    break;
-
-                    case "capLayer2VisibleButton":
-                        str = "Layer 2 visible ON/OFF [2, 0]";
-                    break;
-
-                    case "reRecordingButton":
-                        str = "New file from this image [click, f2]"+STRING_HOLD_2SEC;
-                    break;
-
-                    case "cutPrevDataButton":
-                        str = "Delete front data [click, f3]"+STRING_HOLD_2SEC;
-                    break;
-
-                    case "superUndoButton":
-                        str = "Delete back data [click, f4]"+STRING_HOLD_2SEC;
-                    break;
-
-                    case "gridButton":
-                        str = "Grid\nReset [right-click]";
-                    break;
-
-                    case "sideBarOFFButton":
-                    case "sideBarOFFButton2":
-                        str = "Turn sidebar OFF [tab, \\ ]";
-                    break;
-
-                    case "sideBarONButton":
-                    case "sideBarONButton2":
-                        str = "Turn sidebar ON [tab, \\ ]";
-                    break;
-
-                    case "sideBarPositionButton":
-                        str = "Right sidebar [f3]";
-                    break;
-
-                    case "sideBarPositionButton2":
-                        str = "Left sidebar [f3]";
-                    break;
-
-                    case "topBarColorButton":
-                        str = "Change UI color [f4]";
-                    break;
-
-                    case "dpiButton":
-                        str = "Current UI scale : "+getUIScaleString(uiScaleIndex)+"\nChange UI scale [f5]\nReset [shift+F5, right-click]";
-                    break;
-
-                    case "layer1CheckButton":
-                    case "layer1UncheckButton":
-                        str = "Layer 1 visible ON/OFF [shift+1, shift+9]";
-                    break;
-
-                    case "layer2CheckButton":
-                    case "layer2UncheckButton":
-                        str = "Layer 2 visible ON/OFF [shift+2, shift+0]";
-                    break;
-
-                    case "layerSwapButton":
-                        str = "Swap layer [shift+q, shift+p]";
-                    break;
-
-                    case "layerMergeButton":
-                        str = "Merge image to layer 2 [shift+e, shift+o]";
-                    break;
-
-                    case "aboutButton":
-                        str = "About FOFO PAINT..";
-                    break;
-
-                    case "newWindowCloseButton":
-                        str = "Close image view window [esc on window]";
-                    break;
-
-                    case "newWindowButton":
-                        str = "Open image view window [f6]\nMove window [click+drag on window]\nFit image size [right-click on window]";
-                    break;
-
-                    case "updateButton":
-                        str = "Version " + NEW_VERSION + " released!\nInstall update [click]";
-                    break;
-
-                    case "drawModeButton": str = "Draw mode [f1, f7]"; break;
-                    case "replayModeButton": str = "Replay mode [f1, f7]"; break;
-                    case "replayZoomOutButton": str = "Zoom out [f5]\nReset [right-click, shift+f5, shift+f6]";break;
-                    case "replayZoomInButton": str = "Zoom in [f6]\nReset [right-click, shift+f5, shift+f6]"; break;
-                    case "replayFitToWindowButton": str = "Canvas center alignment ON/OFF [right-click on canvas]"; break;
-                    case "replayRotateButton": str = "Rotate \n"+STRING_RIGHT_CLICK_TO_RESET; break;
-
-                    default:
-                    return;
+                    setTopBarHintOFF();
                 }
+                return;
+                case "timer":
+                    str = "Actual working time\nReset [click]"+STRING_HOLD_2SEC;
+                break;
 
-                hint.on(str,target);
+                case "playButton":
+                    str = "Play [enter, space]";
+                break;
+
+                case "pauseButton":
+                    str = "Pause [enter, space]";
+                break;
+
+                case "replayPrev":
+                    str = "Prev [left, z, .]\nJump 1 frame [right-click, shift+left, shift+z, shift+.]";
+                break;
+
+                case "replayNext":
+                    str = "Next [right, x, ,]\nJump 1 frame [right-click, shift+right, shift+x, shift+,]";
+                break;
+
+                case "replaySpeedSliderWrapper":
+                {
+                    if(rSpeedLastStr === "") str = "Change playback speed [up, down / f, v / h, n]";
+                    else str = rSpeedLastStr;
+                }
+                break;
+
+                case "saveButton":
+                case "repSaveButton":
+                    str = "Save [ctrl+s]\nSave as.. [shift+ctrl+s, right-click]";
+                break;
+
+                case "loadButton":
+                    str = "Load [ctrl+o]\nLoad to Reference layer [ctrl+shift+o, right-click]";
+                break;
+
+                case "repLoadButton":
+                    str = "Load [ctrl+o]";
+                break;
+
+                case "clipButton":
+                    str = "Load clipboard image [ctrl+v, ctrl+n]"+((topBar["clipButton"].alpha < 1.0)?"\nThere are no copied images":"");
+                break;
+
+                case "clearButton":
+                    str = "New file [click, esc, backspace, delete]"+STRING_HOLD_2SEC;
+                break;
+
+                case "captureButton":
+                case "repCaptureButton":
+                    str = "Capture mode [ctrl+c, ctrl+m]";
+                break;
+
+                case "capOff":
+                    str = "Exit capture mode (esc, backspace, f1, f7]";
+                break;
+
+                case "capFull":
+                    str = (drawCaptureArea.isFullImageCapture()) ? "Save full image [c, m]" : "Save selected area [c, m]";
+                break;
+
+                case "capClipBoard":
+                {
+                    str = (e.target.alpha === 1.0) ? "Copy "+((drawCaptureArea.isFullImageCapture()) ?
+                                                            "full image"
+                                                            :"selected area image")
+                                                            + " to clipboard [v, n]"
+                                                            :"Already copied to clipboard";
+                }
+                break;
+
+                case "capTrans":
+                    str = "Background color ON/OFF [d, j]";
+                break;
+
+                case "capRotate":
+                    str = "Rotate image [s, k]";
+                break;
+
+                case "capFlip":
+                    str = "Flip image [a, l]";
+                break;
+
+                case "capLayer1VisibleButton":
+                    str = "Layer 1 visible ON/OFF [1, 9]";
+                break;
+
+                case "capLayer2VisibleButton":
+                    str = "Layer 2 visible ON/OFF [2, 0]";
+                break;
+
+                case "reRecordingButton":
+                    str = "New file from this image [click, f2]"+STRING_HOLD_2SEC;
+                break;
+
+                case "cutPrevDataButton":
+                    str = "Delete front data [click, f3]"+STRING_HOLD_2SEC;
+                break;
+
+                case "superUndoButton":
+                    str = "Delete back data [click, f4]"+STRING_HOLD_2SEC;
+                break;
+
+                case "gridButton":
+                    str = "Grid";
+                break;
+
+                case "gridSliderWrapper":
+                    str = "Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)";
+                break;
+
+                case "gridMoveLeftButton":
+                case "gridMoveRightButton":
+                case "gridMoveUpButton":
+                case "gridMoveDownButton":
+                    str = "Move gird by 1 pixel \nRepeat [hold-click], Reset [right-click]";
+                break;
+
+                case "sideBarOFFButton":
+                case "sideBarOFFButton2":
+                    str = "Turn sidebar OFF [tab, \\ ]";
+                break;
+
+                case "sideBarONButton":
+                case "sideBarONButton2":
+                    str = "Turn sidebar ON [tab, \\ ]";
+                break;
+
+                case "sideBarPositionButton":
+                    str = "Right sidebar [f3]";
+                break;
+
+                case "sideBarPositionButton2":
+                    str = "Left sidebar [f3]";
+                break;
+
+                case "topBarColorButton":
+                    str = "Change UI color [f4]";
+                break;
+
+                case "dpiButton":
+                    str = "Current UI scale : "+getUIScaleString(uiScaleIndex)+"\nChange UI scale [f5]\nReset [shift+F5, right-click]";
+                break;
+
+                case "layer1CheckButton":
+                case "layer1UncheckButton":
+                    str = "Layer 1 visible ON/OFF [shift+1, shift+9]";
+                break;
+
+                case "layer2CheckButton":
+                case "layer2UncheckButton":
+                    str = "Layer 2 visible ON/OFF [shift+2, shift+0]";
+                break;
+
+                case "layerSwapButton":
+                    str = "Swap layer [shift+q, shift+p]";
+                break;
+
+                case "layerMergeButton":
+                    str = "Merge image to layer 2 [shift+e, shift+o]";
+                break;
+
+                case "aboutButton":
+                    str = "About FOFO PAINT..";
+                break;
+
+                case "newWindowCloseButton":
+                    str = "Close image view window [esc on window]";
+                break;
+
+                case "newWindowButton":
+                    str = "Open image view window [f6]\nMove window [click+drag on window]\nFit image size [right-click on window]";
+                break;
+
+                case "updateButton":
+                    str = "Version " + NEW_VERSION + " released!\nInstall update [click]";
+                break;
+
+                case "drawModeButton": str = "Draw mode [f1, f7]"; break;
+                case "replayModeButton": str = "Replay mode [f1, f7]"; break;
+                case "replayZoomOutButton": str = "Zoom out [f5]\nReset [right-click, shift+f5, shift+f6]";break;
+                case "replayZoomInButton": str = "Zoom in [f6]\nReset [right-click, shift+f5, shift+f6]"; break;
+                case "replayFitToWindowButton": str = "Canvas center alignment ON/OFF [right-click on canvas]"; break;
+                case "replayRotateButton": str = "Rotate \n"+STRING_RIGHT_CLICK_TO_RESET; break;
+
+                default:
+                return;
             }
+
+            hint.on(str,target);
         }
 
         private function initReplayDataFile(overWrite:Boolean = false):void //기본 리플레이 파일 만들어줌
@@ -12099,7 +12187,6 @@
 
         private function jumpOneFrame(toBackFlag:Boolean,trueOneFrame:Boolean):void
         {
-            const nt:int= getTimer();
             if(trueOneFrame)
             {
                 if(toBackFlag)
@@ -12965,7 +13052,6 @@
                 loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onLoaderComplete);
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
 
-                trace("isTrue2020File(file)",isTrue2020File(file))
                 if(isTrue2020File(file))
                 {
                     tempDragDropFile = file;
@@ -14252,6 +14338,7 @@
             zoomedIndex = 3;
             setZoomCanvas(1.0);
             updatePenSizeCursor();
+            if(gridValue > 0) drawGrid();
             //bitmapdata가 갱신된이후에 업데이트 해줘야함
             resetUndo();
             tickDraw.resetFirstRCursorPos();
@@ -15836,6 +15923,8 @@
                             "traceMenuPos[1]":traceMenu.y,
                             "mirrorON":mirrorON,
                             "gridValue":gridValue,
+                            "gridDrawOffsetX":gridDrawOffsetX,
+                            "gridDrawOffsetY":gridDrawOffsetY,
                             "hueCursor.x":pickerBox["hueCursor"].x,
                             "svBaseColor":pickerBox["svBaseColor"],
                             "hsvColorArr[0]":hsvColorArr[0],
@@ -16041,7 +16130,13 @@
                     if(mirrorON !== d["mirrorON"]) mirrorCanvas(true);
 
                     gridValue = d["gridValue"];
-                    drawGrid();
+                    gridDrawOffsetX = d["gridDrawOffsetX"];
+                    gridDrawOffsetY = d["gridDrawOffsetY"];
+                    if(!gridDrawOffsetX) gridDrawOffsetX = 0.0;
+                    if(!gridDrawOffsetY) gridDrawOffsetY = 0.0;
+
+                    if(d["gridValue"] > 0) drawGrid();
+
                     setUIScaleButton(d["uiScaleIndex"]);
                     if(d["canvasWindowON"])
                     {
@@ -16808,6 +16903,11 @@
                 setToolTipOFF();
 
                 updatePenSizeCursor();
+
+                if(gridValue > 0)
+                {
+                    drawGrid();
+                }
                 setOptimizeCanvasMoveON(false);
 
                 if(lassoMenuTempOFF === true)
@@ -17188,7 +17288,7 @@
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
             checkCanvasPanelPos();
-            drawGrid();
+            if(gridValue > 0) drawGrid();
             appInfoBox.setSize(w,h);
         }
 
@@ -18298,7 +18398,10 @@
         private function setOptimizeCanvasMoveON(flag:Boolean):void
         {
             if(canvasTraceLayer.alpha > 0.0) canvasTraceLayer.visible = !flag;
-            if(gridValue > 0) canvasGrid.visible = !flag;
+            if(gridValue > 0)
+            {
+                canvasGrid.visible = !flag;
+            }
         }
 
         private function cHandTool():Function
@@ -21573,7 +21676,6 @@
             setReplayDeleteBarVisibleOFF();
             setTopBarHintOFF();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
-            if(topBar.isReplaySpeedSliderWrapperGridMode()) gridButton.off();
             rCursor.alpha = 1.0;
             rcanvasPanel.addChild(rCursor);
             setRcursorRotation(rregPoint.rotation);
@@ -21857,7 +21959,7 @@
         {
             if(mouseClickON || isPressingControl() || quickSidebarON
             || fillPenStarted || (traceMenuON && traceMenu.hitTestPoint(mouseX,mouseY))
-            || loadMenuBox.visible)
+            || loadMenuBox.visible || topBar.gridButtonWrapper.visible)
             {
                 return;
             }
@@ -21898,15 +22000,6 @@
                 case "loadButton":
                 {
                     loadFile(true);
-                }
-                break;
-
-                case "gridButton":
-                {
-                    if(gridValue !== 0)
-                    {
-                        setGridOFF();
-                    }
                 }
                 break;
 
@@ -22555,8 +22648,8 @@
 
             if(!target) return;
 
-
             const targetName:String = target.name;
+
             if(sideBar.visible && sideBarScrollSet.hitTestPoint(mouseX,mouseY,true))
             {
                 if(targetName === "prevStageBG"
@@ -22591,6 +22684,10 @@
                 {
                     setScrollBarMoveButton();
                 }
+                return;
+            }
+            else if(topBar.gridButtonWrapper.visible)
+            {
                 return;
             }
 
