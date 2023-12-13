@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.20;
+        private const APP_VERSION:Number = 24.21;
         private const APP_DATA_VERSION:Number = 2415;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -519,7 +519,7 @@
                     ,lastWindowState:int = 0
 
         //이미지 붙여넣기 변수
-                    ,clipImageON:Boolean = false //윈도우 active에서 붙여넣기 가능한 이미지가 있으면 올려줌
+                    ,isClipBoardButtonAvailable:Boolean = false //윈도우 active에서 붙여넣기 가능한 이미지가 있으면 올려줌
                     ,clipImageOKCount:int = 0 //2번 이상 클릭되야 작동되게함
 
         //트레이스 레이어 변수
@@ -7315,20 +7315,6 @@
             hint.on(str,target);
         }
 
-        private function setClipButton():void
-        {
-            if(isInSaveProgress) return;
-            rFileStream.close();
-            cancelRestartTimer();
-
-            tempCopiedImage = Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT) as BitmapData;
-
-            if(tempCopiedImage)
-            {
-                setLoadBoxReady(false);
-            }
-        }
-
         private function HEXtoHSV(color:uint):Vector.<Number>
         {
             const r:uint = (color >> 16) & 0xFF;
@@ -8883,7 +8869,7 @@
                         break;
 
                         case "clipButton":
-                            setClipButton();
+                            setClipboardButton();
                         break;
 
                         case "repCaptureButton":
@@ -12796,10 +12782,101 @@
             closeToolBox2();
         }
 
+        private function setClipboardButton():void
+        {
+            if(isInSaveProgress) return;
+
+            rFileStream.close();
+            cancelRestartTimer();
+
+            const data:* = getSystemClipboardData();
+
+            if(data)
+            {
+                if(data is BitmapData)
+                {
+                    tempCopiedImage = data as BitmapData;
+                    loadMenuBox.setPreviewImage(tempCopiedImage);
+                    setLoadBoxReady(false);
+                }
+                else if(data is Array)
+                {
+                    setDragDropPreviewImageReady(data[0] as File);
+                }
+            }
+        }
+
+        private function getSystemClipboardData():*
+        {
+            return Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT)
+            || Clipboard.generalClipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
+        }
+
+        private function setClipboardButtonNotAvailable():void
+        {
+            topBar["clipButton"].alpha = BUTTON_OFF_ALPHA;
+            traceMenu["traceClipButton"].alpha = BUTTON_OFF_ALPHA;
+            isClipBoardButtonAvailable = false;
+        }
+
+        private function setClipboardButtonAvailable():void
+        {
+            topBar["clipButton"].alpha = 1.0;
+            traceMenu["traceClipButton"].alpha = 1.0;
+            isClipBoardButtonAvailable = true;
+        }
+
+        private function checkClipBoardImage():void
+        {
+            const data:* = getSystemClipboardData();
+
+            if(data is BitmapData)
+            {
+                setClipboardButtonAvailable();
+            }
+            else if(data is Array)
+            {
+                const file:File = data[0] as File;
+
+                var loader:Loader = new Loader();
+                loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
+                loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onIOError);
+
+                loader.load(new URLRequest(file.url));
+
+                function onLoaderComplete(e:Event):void
+                {
+                    if(isSameFile(file,dragDropFileSave)) return;
+                    dragDropFileSave = file;
+
+                    setClipboardButtonAvailable();
+                }
+
+                function onIOError(e:IOErrorEvent):void
+                {
+                    if(isTrue2020File(file))
+                    {
+                        if(isSameFile(file,dragDropFileSave)) return;
+                        dragDropFileSave = file;
+
+                        setClipboardButtonAvailable();
+                    }
+                    else
+                    {
+                        setClipboardButtonNotAvailable();
+                    }
+                }
+            }
+            else
+            {
+                setClipboardButtonNotAvailable();
+            }
+        }
+
         private function isSameFile(file1:File,file2:File):Boolean
         {
             if(!dragDropFileSave) return false;
-            
+
             return  file1.nativePath === file2.nativePath
             && file1.size === file2.size
             && file1.modificationDate.getTime() === file2.modificationDate.getTime()
@@ -12819,14 +12896,9 @@
             {
                 const file:File = new File(arguments[0] as String);
 
-                if(isSameFile(file,dragDropFileSave))
-                {
-                    return;
-                }
-
+                if(isSameFile(file,dragDropFileSave)) return;
                 dragDropFileSave = file;
 
-                file.modificationDate
                 rFileStream.close();
                 cancelRestartTimer();
                 setDragDropPreviewImageReady(new File(arguments[0] as String));
@@ -12845,12 +12917,9 @@
             const data:Object = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
             const file:File = data[0] as File;
 
-            if(isSameFile(file,dragDropFileSave))
-            {
-                return;
-            }
-                
+            if(isSameFile(file,dragDropFileSave)) return;
             dragDropFileSave = file;
+
             setDragDropPreviewImageReady(data[0] as File);
         }
 
@@ -13626,7 +13695,7 @@
 
         private function setSaveProgressOFF():void
         {
-            topBar.setButtonAlphaONSaving(clipImageON);
+            topBar.setButtonAlphaONSaving(isClipBoardButtonAvailable);
             if(replayModeON) checkCutFrameButtonsCanUse();
         }
 
@@ -14228,7 +14297,7 @@
                 canvasWindowIgnoreResizeEventFlag = true;
                 updateCanvasWindowBitmapSize();
             }
-            
+
             dragDropFileSave = null;
             saveThenLoadFlag = false;
             setLoadBoxVisible(false);
@@ -20473,7 +20542,7 @@
                     }
                     else if(input === KEY.v || input === KEY.n)
                     {
-                        if(clipImageON) setClipButton();
+                        if(isClipBoardButtonAvailable) setClipboardButton();
                     }
                 }) === false)
                 {
@@ -20904,25 +20973,6 @@
                 break;
             }
             penCursorPosition.check();
-        }
-
-        private function checkClipBoardImage():void
-        {
-            const bmpd:Object = Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT);
-
-            if(bmpd is BitmapData)
-            {
-                topBar["clipButton"].alpha = 1.0;
-                traceMenu["traceClipButton"].alpha = 1.0;
-                clipImageON = true;
-            }
-            else
-            {
-                const offAlpha:Number = BUTTON_OFF_ALPHA;
-                topBar["clipButton"].alpha = offAlpha;
-                traceMenu["traceClipButton"].alpha = offAlpha;
-                clipImageON = false;
-            }
         }
 
         private function setClickBlockFlagOFFDelay():void
@@ -22582,7 +22632,7 @@
 
                 case "traceDeleteButton":
                 {
-                    setCountDownLongKey(traceMenu.traceDeleteButton,"Deleting reference image... ",null,setTraceDeleteButton,null);
+                    setCountDownLongKey(traceMenu.traceDeleteButton,"Erasing reference image... ",null,setTraceDeleteButton,null);
                 }
                 break;
 
