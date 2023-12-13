@@ -190,6 +190,12 @@
 			replaySpeedSliderCursor.mouseEnabled = false;
 			replaySpeedSliderCursor.x = replaySpeedSlider.x;
 			replaySpeedSliderCursor.y = replaySpeedSlider.height+5;
+
+			replaySpeedSliderWrapper.graphics.clear();
+			replaySpeedSliderWrapper.graphics.beginFill(0xFF0000,0.0);
+			replaySpeedSliderWrapper.graphics.drawRect(0,0,replaySpeedSlider.x+replaySpeedSlider.width+replaySpeedSliderCursor.width/2+1.5
+														,replaySpeedSlider.y+replaySpeedSlider.height+replaySpeedSlider.y+replaySpeedSlider.height+3);
+			replaySpeedSliderWrapper.graphics.endFill();
 		}
 
 		public function setReplaySpeedBarToGridSliderON(color:uint):void
