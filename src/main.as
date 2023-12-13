@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.23;
+        private const APP_VERSION:Number = 24.24;
         private const APP_DATA_VERSION:Number = 2415;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6302,6 +6302,11 @@
                 }
             }
 
+            function rightMouseDownGridButton(e:MouseEvent):void
+            {
+                off();
+            }
+
             function keyDownGridButton(e:KeyboardEvent):void
             {
                 off();
@@ -6310,6 +6315,7 @@
             function off():void
             {
                 mouseDragON = false;
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownGridButton);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpGridButton);
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownGridButton);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMoveGridButton);
@@ -6332,6 +6338,7 @@
                     topBar.setReplaySpeedBarToGridSliderON(uiColorSet[uiColorIndex][0]);
                     setCursorPosByValue(gridValue);
 
+                    stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownGridButton);
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownGridButton);
                     stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownGridButton);
                 }
