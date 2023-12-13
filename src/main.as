@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.25;
+        private const APP_VERSION:Number = 24.26;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4134,6 +4134,8 @@
 
         private function isNew2020File(file:File):Boolean
         {
+            if(!file) return false;
+
             const fs:FileStream = new FileStream();
             fs.open(file,FileMode.READ);
 
@@ -6257,6 +6259,7 @@
 
                     if(value === 0)
                     {
+                        gridValue = 0;
                         hint.off();
                         clearGrid();
                         return;
@@ -16908,6 +16911,7 @@
                 {
                     drawGrid();
                 }
+
                 setOptimizeCanvasMoveON(false);
 
                 if(lassoMenuTempOFF === true)
