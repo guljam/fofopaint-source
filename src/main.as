@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.26;
+        private const APP_VERSION:Number = 24.27;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4187,7 +4187,7 @@
 
         private function isTrue2020File(file:File):Boolean
         {
-            if(!file) return false;
+            if(!file || !(file is File)) return false;
 
             if(isNew2020File(file))
             {
@@ -5496,14 +5496,12 @@
             if(zoomInFlag)
             {
                 lastZoomIndex++;
-                if(lastZoomIndex > zoomMax)
-                    lastZoomIndex = zoomMax;
+                if(lastZoomIndex > zoomMax) lastZoomIndex = zoomMax;
             }
             else
             {
                 lastZoomIndex--;
-                if(lastZoomIndex < 0)
-                    lastZoomIndex = 0;
+                if(lastZoomIndex < 0) lastZoomIndex = 0;
             }
 
             const newZoom:Number = zoomList[lastZoomIndex];
@@ -5525,6 +5523,7 @@
                 setZoomCanvas(newZoom,replayMode);
                 updatePenSizeCursor();
                 updatePreviewBoxRectPos();
+                if(gridValue > 0) drawGrid();
             }
         }
 
