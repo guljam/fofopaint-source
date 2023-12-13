@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.22;
+        private const APP_VERSION:Number = 24.23;
         private const APP_DATA_VERSION:Number = 2415;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4165,7 +4165,9 @@
             try
             {
                 //구버전 파일 읽기 헤더가 없고 바로 배열임
-                fs.readObject() as Array;
+                const arr:Array = (fs.readObject() as Array);
+                if(!arr || !(arr[0] is String)) return false;
+
                 fs.close();
                 return true;
             }
@@ -12846,7 +12848,7 @@
 
                 function onLoaderComplete(e:Event):void
                 {
-                    if(isSameFile(file,dragDropFileSave)) return;
+                    if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
                     dragDropFileSave = file;
 
                     setClipboardButtonAvailable();
@@ -12856,7 +12858,7 @@
                 {
                     if(isTrue2020File(file))
                     {
-                        if(isSameFile(file,dragDropFileSave)) return;
+                        if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
                         dragDropFileSave = file;
 
                         setClipboardButtonAvailable();
@@ -12877,7 +12879,7 @@
         {
             if(!dragDropFileSave) return false;
 
-            return  file1.nativePath === file2.nativePath
+            return file1.nativePath === file2.nativePath
             && file1.size === file2.size
             && file1.modificationDate.getTime() === file2.modificationDate.getTime()
             && file1.creationDate.getTime() === file2.creationDate.getTime();
@@ -12896,7 +12898,7 @@
             {
                 const file:File = new File(arguments[0] as String);
 
-                if(isSameFile(file,dragDropFileSave)) return;
+                if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
                 dragDropFileSave = file;
 
                 rFileStream.close();
@@ -12917,7 +12919,7 @@
             const data:Object = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
             const file:File = data[0] as File;
 
-            if(isSameFile(file,dragDropFileSave)) return;
+            if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
             dragDropFileSave = file;
 
             setDragDropPreviewImageReady(data[0] as File);
@@ -12956,6 +12958,7 @@
                 loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onLoaderComplete);
                 loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
 
+                trace("isTrue2020File(file)",isTrue2020File(file))
                 if(isTrue2020File(file))
                 {
                     tempDragDropFile = file;
