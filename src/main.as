@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.30;
+        private const APP_VERSION:Number = 24.31;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5460,22 +5460,28 @@
 
         private function resetZoomReplayMode():void
         {
-            const center:Point = getStageCenterPos(CENTERPOS_DRAW);
+            if(rzoomed !== 1.0)
+            {
+                const center:Point = getStageCenterPos(CENTERPOS_DRAW);
 
-            rzoomedSave = 1.0;
-            rzoomedIndex = zoomList.indexOf(1.0);
-            setRegPoint(center.x,center.y,true);
-            setZoomCanvas(1.0,true);
-            setFitZoomedOFF();
-            autoScroll.updateRCanvasBounds();
+                rzoomedSave = 1.0;
+                rzoomedIndex = zoomList.indexOf(1.0);
+                setRegPoint(center.x,center.y,true);
+                setZoomCanvas(1.0,true);
+                setFitZoomedOFF();
+                autoScroll.updateRCanvasBounds();
+            }
         }
 
         private function resetZoomDrawMode(center:Point=null):void
         {
-            zoomedIndex = zoomList.indexOf(1.0);
-            setZoomCanvas(1.0,false);
-            updatePenSizeCursor();
-            updatePreviewBoxRectPos();
+            if(zoomed !== 1.0)
+            {
+                zoomedIndex = zoomList.indexOf(1.0);
+                setZoomCanvas(1.0,false);
+                updatePenSizeCursor();
+                updatePreviewBoxRectPos();
+            }
         }
 
         private function setZoomInButton(zoomInFlag:Boolean,replayMode:Boolean):void
@@ -12943,14 +12949,24 @@
 
                 function onIOError(e:IOErrorEvent):void
                 {
-                    if(isTrue2020File(file))
+                    try
                     {
-                        if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
-                        dragDropFileSave = file;
+                        if(file.exists)
+                        {
+                            if(isTrue2020File(file))
+                            {
+                                if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
+                                dragDropFileSave = file;
 
-                        setClipboardButtonAvailable();
+                                setClipboardButtonAvailable();
+                            }
+                            else
+                            {
+                                setClipboardButtonNotAvailable();
+                            }
+                        }
                     }
-                    else
+                    catch(erro:Error)
                     {
                         setClipboardButtonNotAvailable();
                     }
