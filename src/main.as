@@ -6014,7 +6014,7 @@
                 case "toolFillPen": str = "Fill pen [q, o]\nMenu [right-click after using the tool]"; break;
                 case "toolErase": str = "Eraser [d, j]"; break;
                 case "toolLasso": str = "Lasso [r, y]"; break;
-                case "toolSpuit": str = "Eye dropper [c, m]\nPick transparent color ON/OFF [c+space, m+spcae]"; break;
+                case "toolSpuit": str = "Eye dropper [c, m]\nPick transparent color ON/OFF [c+space, m+space]"; break;
                 case "toolUndo": str = "Undo [z, .]\nRepeat [hold-click]"; break;
                 case "toolRedo": str = "Redo [x, ,]\nRepeat [hold-click]"; break;
                 case "toolMirror": str = "Flip canvas [a, l]"; break;
