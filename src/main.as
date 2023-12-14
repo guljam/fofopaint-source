@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.27;
+        private const APP_VERSION:Number = 24.28;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -11624,6 +11624,7 @@
 
         private function setCacheImageByIndex(index:uint,lastReadBytes:Number):void
         {
+            trace("index",index,"rNowFrame",rNowFrame)
             rFrameCacheImages[index] = [rcanvas1BitmapData.clone()
                                         ,rcanvas11BitmapData.clone()
                                         ,rcanvas1BitmapData.width
@@ -12262,11 +12263,9 @@
         private function setJumpOneFrame(toBackFlag:Boolean,oneFrame:Boolean=false):void
         {
             playbackFinished = false;
-            if(setHoldKeyRepeat(true,jumpOneFrame,toBackFlag,oneFrame) === true)
-            {
-                playbackFinished = false;
-                if(replayStartON) stopReplay();
-            }
+            if(replayStartON) stopReplay();
+
+            setHoldKeyRepeat(true,jumpOneFrame,toBackFlag,oneFrame);
         }
 
         private function jumpFrame(frame:Number,jumpflag:int):void //jumpp
