@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.31;
+        private const APP_VERSION:Number = 24.32;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8787,11 +8787,11 @@
 
             if(isSubLayerONReplayMode())
             {
-                rcanvas11BitmapData.draw(rcanvas2Bitmap,null,newColorTransform,"erase");
+                rcanvas11BitmapData.draw(rcanvas2Bitmap,null,newColorTransform,lineStyleSave[1]);
             }
             else
             {
-                rcanvas1BitmapData.draw(rcanvas2Bitmap,null,newColorTransform,"erase");
+                rcanvas1BitmapData.draw(rcanvas2Bitmap,null,newColorTransform,lineStyleSave[1]);
             }
 
             //캔버스 2번 지워줘야함
