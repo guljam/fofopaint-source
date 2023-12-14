@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.28;
+        private const APP_VERSION:Number = 24.30;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5453,10 +5453,7 @@
 
         private function restoreZoomReplayMode():void
         {
-            const center:Point = getStageCenterPos(CENTERPOS_DRAW);
-
             rzoomedIndex = getNearZoomIndex(rzoomedSave);
-            setRegPoint(center.x,center.y,true);
             setZoomCanvas(zoomList[rzoomedIndex],true);
             autoScroll.updateRCanvasBounds();
         }
@@ -5475,15 +5472,10 @@
 
         private function resetZoomDrawMode(center:Point=null):void
         {
-            if(!center) center = getStageCenterPos(CENTERPOS_DRAW);
-
             zoomedIndex = zoomList.indexOf(1.0);
-            setRegPoint(center.x,center.y,false);
             setZoomCanvas(1.0,false);
             updatePenSizeCursor();
             updatePreviewBoxRectPos();
-            if(gridValue > 0) drawGrid();
-            checkBoxPosition(canvasPanel);
         }
 
         private function setZoomInButton(zoomInFlag:Boolean,replayMode:Boolean):void
@@ -12991,14 +12983,24 @@
 
             if(arguments && arguments.length > 0)
             {
-                const file:File = new File(arguments[0] as String);
+                try
+                {
+                    var file:File = new File(arguments[0] as String);
 
-                if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
-                dragDropFileSave = file;
+                    if(file.exists)
+                    {
+                        if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
+                        dragDropFileSave = file;
 
-                rFileStream.close();
-                cancelRestartTimer();
-                setDragDropPreviewImageReady(new File(arguments[0] as String));
+                        rFileStream.close();
+                        cancelRestartTimer();
+                        setDragDropPreviewImageReady(file);
+                    }
+                }
+                catch(err:Error)
+                {
+
+                }
             }
         }
 
