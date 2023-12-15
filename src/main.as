@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.34;
+        private const APP_VERSION:Number = 24.35;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5912,7 +5912,7 @@
                 case "traceMirrorButton":str = "Flip image"; break;
                 case "traceVisibleONButton":
                 case "traceVisibleOFFButton":str = "Memory training ON/OFF"; break;
-                case "traceDeleteButton":str = "Erase reference image"; break;
+                case "traceDeleteButton":str = "Erase reference image\n[click]"+STRING_HOLD_2SEC; break;
                 default:
                     traceMenu.hint("Reference layer");
                 return;
@@ -6016,8 +6016,8 @@
                 case "toolErase": str = "Eraser [d, j]"; break;
                 case "toolLasso": str = "Lasso [r, y]"; break;
                 case "toolSpuit": str = "Eye dropper [c, m]\nPick transparent color ON/OFF [c+space, m+space]"; break;
-                case "toolUndo": str = "Undo [z, .]\nRepeat [hold-click]"; break;
-                case "toolRedo": str = "Redo [x, ,]\nRepeat [hold-click]"; break;
+                case "toolUndo": str = "Undo [z, .]\nRepeat [click hold]"; break;
+                case "toolRedo": str = "Redo [x, ,]\nRepeat [click hold]"; break;
                 case "toolMirror": str = "Flip canvas [a, l]"; break;
                 case "toolLine": str = "Line [shift]"; break;
                 case "toolMove": str = "Move image [e, u]"; break;
@@ -9635,7 +9635,7 @@
                 case "gridMoveRightButton":
                 case "gridMoveUpButton":
                 case "gridMoveDownButton":
-                    str = "Move gird by 1 pixel \nRepeat [hold-click], Reset [right-click]";
+                    str = "Move gird by 1 pixel \nRepeat [click hold 2], Reset [right-click]";
                 break;
 
                 case "sideBarOFFButton":
