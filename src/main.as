@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.33;
+        private const APP_VERSION:Number = 24.34;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -816,14 +816,15 @@
             {
                 loadMenuBox.removeEventListener(MouseEvent.MOUSE_UP,mouseUpLoadBox);
 
-                if(!e.target) return;
+                if(!e.target || e.target.alpha < 1.0) return;
+
                 if(oldTargetName === e.target.name)
                 {
                     switch(e.target.name)
                     {
                         case "dragDropLoadButton":
                         {
-                            if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON)
+                            if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON && !loadMenuBox.isRefLayerLoadMode())
                             {
                                 setLoadBoxVisible(false);
                                 loadImageDragDrop(false);
@@ -833,7 +834,7 @@
 
                         case "dragDropSaveAndLoadButton":
                         {
-                            if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON)
+                            if(saveThenLoadFlag === false && isInSaveProgress === 0 && !fileBrowserON && !loadMenuBox.isRefLayerLoadMode())
                             {
                                 saveThenLoadFlag = true;
                                 loadMenuBox.setPleaseWait(true);
@@ -5903,7 +5904,7 @@
                 case "traceCancelButton":str = "Close [esc, backspace, t]"; break;
                 case "traceImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_TRACE; break;
                 case "traceLoadButton":str = "Load image"; break;
-                case "traceClipButton":str = "Load clipboard image\n[hold-click 2 sec]"; break;
+                case "traceClipButton":str = "Load clipboard image"; break;
                 case "traceButtonWrapper":str = "Adjust image opacity"; break;
                 case "traceRotateButton":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "traceMoveButton":str = "Move image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
@@ -6708,18 +6709,6 @@
             stageMouseMoveEvent.add("traceMoveButtonMoveEvent",traceMoveButtonMoveEvent);
         }
 
-        private function setTraceClipButton():void
-        {
-            const bmpd:Object = Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT);
-
-            if(bmpd is BitmapData)
-            {
-                pasteTraceImage(bmpd as IBitmapDrawable,bmpd.width,bmpd.height);
-            }
-
-            setTopChildIndex(traceMenu);
-        }
-
         private function resetTraceOpa():void
         {
             traceAlphaSave = 0.5;
@@ -7449,7 +7438,7 @@
 
         private function setUpdateButton():void
         {
-            setLoadBoxReady(true);
+            setLoadBoxReady(true,false);
             updateAfterSaveFlag = true;
             saveFile(false);
         }
@@ -8964,7 +8953,7 @@
                         break;
 
                         case "clipButton":
-                            setClipboardButton();
+                            setClipboardButton(false);
                         break;
 
                         case "repCaptureButton":
@@ -9041,6 +9030,15 @@
                         {
                             setTopChildIndex(traceMenu);
                             checkButtonUp(targetName);
+                        }
+                        break;
+
+                        case "traceClipButton":
+                        {
+                            if(traceMenu.traceClipButton.alpha === 1.0)
+                            {
+                                setClipboardButton(true);
+                            }
                         }
                         break;
 
@@ -9555,7 +9553,7 @@
                 break;
 
                 case "loadButton":
-                    str = "Load [ctrl+o]\nLoad to Reference layer [ctrl+shift+o, right-click]";
+                    str = "Load [ctrl+o]";
                 break;
 
                 case "repLoadButton":
@@ -11622,7 +11620,6 @@
 
         private function setCacheImageByIndex(index:uint,lastReadBytes:Number):void
         {
-            trace("index",index,"rNowFrame",rNowFrame)
             rFrameCacheImages[index] = [rcanvas1BitmapData.clone()
                                         ,rcanvas11BitmapData.clone()
                                         ,rcanvas1BitmapData.width
@@ -12855,7 +12852,7 @@
             loadMenuBox["dragDropFileBG"].height = sth;
         }
 
-        private function setLoadBoxReady(pleaseWaitFlag:Boolean):void
+        private function setLoadBoxReady(pleaseWaitFlag:Boolean,traceLayer:Boolean):void
         {
             resetKeyBuffer();
 
@@ -12868,6 +12865,8 @@
                     resetOldTool();
                     selectPenTool();
                 }
+
+                loadMenuBox.setRefLayerLoadMode(traceLayer);
                 loadMenuBox.changeUIColor(uiToolBoxColorSet[uiColorIndex]);
                 loadMenuBox.setPleaseWait(pleaseWaitFlag);
                 setLoadBoxVisible(true);
@@ -12877,7 +12876,7 @@
             closeToolBox2();
         }
 
-        private function setClipboardButton():void
+        private function setClipboardButton(traceLayer:Boolean):void
         {
             if(isInSaveProgress) return;
 
@@ -12891,12 +12890,14 @@
                 if(data is BitmapData)
                 {
                     tempCopiedImage = data as BitmapData;
+                    loadMenuBox.setRefLayerLoadMode(false);
                     loadMenuBox.setPreviewImage(tempCopiedImage);
-                    setLoadBoxReady(false);
+                    setLoadBoxReady(false,traceLayer);
                 }
                 else if(data is Array)
                 {
-                    setDragDropPreviewImageReady(data[0] as File);
+                    loadMenuBox.setRefLayerLoadMode(false);
+                    setDragDropPreviewImageReady(data[0] as File,traceLayer);
                 }
             }
         }
@@ -13010,7 +13011,7 @@
 
                         rFileStream.close();
                         cancelRestartTimer();
-                        setDragDropPreviewImageReady(file);
+                        setDragDropPreviewImageReady(file,false);
                     }
                 }
                 catch(err:Error)
@@ -13035,10 +13036,10 @@
             if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
             dragDropFileSave = file;
 
-            setDragDropPreviewImageReady(data[0] as File);
+            setDragDropPreviewImageReady(data[0] as File,false);
         }
 
-        private function setDragDropPreviewImageReady(file:File):void
+        private function setDragDropPreviewImageReady(file:File,traceLayer:Boolean):void
         {
             if(!file) return;
 
@@ -13059,7 +13060,7 @@
                 const bmpd:BitmapData = new BitmapData(loader.content.width,loader.content.height,true,0);
                 bmpd.draw(loader);
                 loadMenuBox.setPreviewImage(bmpd);
-                setLoadBoxReady(false);
+                setLoadBoxReady(false,traceLayer);
                 loader.unload();
                 loader = null;
                 // 여기서 디코딩 가능한 작업 수행
@@ -13075,7 +13076,7 @@
                 {
                     tempDragDropFile = file;
                     loadMenuBox.setPreviewImage(getFinalImageFrom2020File(file,true));
-                    setLoadBoxReady(false);
+                    setLoadBoxReady(false,traceLayer);
                 }
 
                 dragDropFileSave = null;
@@ -14437,33 +14438,6 @@
 
             //초기값으로 파일 경로가 저장된 파일 이름이랑 같으면 그냥 파일인스턴스로 만들어줌
             const file:File = (saveFilePath === saveFileName) ? new File() : new File(saveFilePath);
-            var loader:Loader = new Loader();
-
-            //browser에서 fr.data에서 넘겨준 바이트데이터를 실제적으로 처리함
-            function imageLoadComplete(e:Event):void //load1
-            {
-                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
-                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,imageLoadComplete);
-                setFileBrowserONFlag(false);
-
-                //2020이 아닌 보통 이미지 처리
-                if(traceLayer === true) pasteTraceImage(loader,loader.content.width,loader.content.height);
-                else loadImageFile(file.name,file.nativePath,loader.content.width,loader.content.height,loader,null);
-
-                loader.unload();
-                loader = null;
-            }
-
-            function loadErrorEvent(e:Event):void
-            {
-                setLoadBoxOFFLoadFailed();
-                setFileBrowserONFlag(false);
-                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
-                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE,imageLoadComplete);
-                loader.unload();
-                loader = null;
-                addInputEventCurrentModeLoadButton();
-            }
 
             function onCancelEvent(e:Event):void
             {
@@ -14489,20 +14463,17 @@
                 file.removeEventListener(Event.CANCEL,onCancelEvent);
                 setFileBrowserONFlag(false);
 
-                //2020파일 처리
-                if(isTrue2020File(file))
+                if(traceLayer)
                 {
-                    if(traceLayer === true) paste2020FileImageToTraceLayer(file);
-                    else loadReplayFile(file,file.name,file.nativePath);
+                    addInputEventCurrentModeLoadButton();
+                    loadMenuBox.setRefLayerLoadMode(true);
                 }
-                else //일반 이미지 처리
+                else
                 {
-                    loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR,loadErrorEvent);
-                    loader.contentLoaderInfo.addEventListener(Event.COMPLETE,imageLoadComplete);
-                    loader.load(new URLRequest(file.url));
+                    loadMenuBox.setRefLayerLoadMode(false);
                 }
 
-                addInputEventCurrentModeLoadButton();
+                setDragDropPreviewImageReady(file,traceLayer);
             }
 
             setFileBrowserONFlag(true);
@@ -20659,7 +20630,6 @@
                 checkCommandSubKey(3,true,function(input:int):void
                 {
                     if(input === KEY.s) saveFile(true);
-                    else if(input === KEY.o) loadFile(true);
                 })
                 return;
             }
@@ -20675,7 +20645,7 @@
                     }
                     else if(input === KEY.v || input === KEY.n)
                     {
-                        if(isClipBoardButtonAvailable) setClipboardButton();
+                        if(isClipBoardButtonAvailable) setClipboardButton(false);
                     }
                 }) === false)
                 {
@@ -21168,8 +21138,8 @@
 
                 if(windowClosingFlag
                 ||
-                ((getTimer()-windowDeactivateTime >= 3000
-                && !isInSaveProgress && !fileBrowserON && !saveThenLoadFlag && !updateAfterSaveFlag)))
+                ((getTimer()-windowDeactivateTime >= 10000
+                && !isInSaveProgress && !fileBrowserON && !saveThenLoadFlag && !updateAfterSaveFlag && !loadMenuBox.visible)))
                 {
                     windowDeactivateTime = getTimer();
                     saveAllData();
@@ -22017,12 +21987,6 @@
                 }
                 break;
 
-                case "loadButton":
-                {
-                    loadFile(true);
-                }
-                break;
-
                 case "dpiButton":
                 {
                     if(uiScaleIndex !== 0)
@@ -22662,7 +22626,7 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted || loadMenuBox.visible || clickBlockOnWindowActiveFlag) return;
+            if(fillPenStarted || loadMenuBox.visible) return;
 
             const target:DisplayObject = e.target as DisplayObject;
 
@@ -22741,6 +22705,7 @@
                 case "traceMirrorButton":
                 case "traceVisibleONButton":
                 case "traceVisibleOFFButton":
+                case "traceClipButton":
                 case "appResetButton":
                 case "dpiButton":
                 case "newWindowButton":
@@ -22766,16 +22731,6 @@
                     setCountDownLongKey(traceMenu.traceDeleteButton,"Erasing reference image... ",null,setTraceDeleteButton,null);
                 }
                 break;
-
-                case "traceClipButton":
-                {
-                    if(traceMenu.traceClipButton.alpha === 1.0)
-                    {
-                        setCountDownLongKey(traceMenu.traceClipButton,"Loading clipboard image... ",null,setTraceClipButton,null);
-                    }
-                }
-                break;
-
 
                 case "timer":
                 {

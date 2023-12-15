@@ -24,7 +24,28 @@
 		private var buttonList:Array;
 		private var previewBitmap:Bitmap = new Bitmap(new BitmapData(1,1,false,0));
 		private var previewBitmapBox:Sprite = new Sprite();
-		private var bitmapSize:Number = 150;
+		private var bitmapSize:Number = 180;
+		private var refLayerLoadMode:Boolean = false;
+		private var refLayerModeBG:Sprite = new Sprite();
+
+		public function isRefLayerLoadMode():Boolean
+		{
+			return refLayerLoadMode;
+		}
+
+		public function setRefLayerLoadMode(flag:Boolean):void
+		{
+			refLayerLoadMode = flag;
+
+			if(flag)
+			{
+				refLayerModeBG.visible = true;
+			}
+			else
+			{
+				refLayerModeBG.visible = false;
+			}
+		}
 
 		public function setPreviewImage(newImage:BitmapData):void
         {
@@ -40,7 +61,7 @@
             const mat:Matrix = new Matrix();
             mat.scale(f,f);
             mat.translate(imageOffsetX,imageOffsetY);
-            bmpd.draw(newImage,mat);
+            bmpd.draw(newImage,mat,null,null,null,true);
 
 			if(previewBitmap.bitmapData) previewBitmap.bitmapData.dispose();
             previewBitmap.bitmapData = bmpd;
@@ -110,8 +131,9 @@
 				childText.textColor = textColorOver;
 			}
 
+			refLayerModeBG.transform.colorTransform = subBase;
 			previewBitmapBox.graphics.clear();
-			previewBitmapBox.graphics.beginFill(arr[1]);
+			previewBitmapBox.graphics.beginFill(arr[1],0.5);
 			previewBitmapBox.graphics.drawRect(0,0,bitmapSize,bitmapSize);
 			previewBitmapBox.graphics.endFill();
 		}
@@ -124,6 +146,7 @@
 			dragDropFileBG.graphics.beginFill(0,0.5);
 			dragDropFileBG.graphics.drawRect(0,0,50,50);
 			dragDropFileBG.graphics.endFill();
+
 
 			addChild(dragDropFileBG);
 			setChildIndex(dragDropFileBG,0);
@@ -140,6 +163,14 @@
 
 			previewBitmapBox.addChild(previewBitmap);
 			addChild(previewBitmapBox);
+
+			refLayerModeBG.name = "refLayerModeBG";
+			refLayerModeBG.graphics.clear();
+			refLayerModeBG.graphics.beginFill(0);
+			refLayerModeBG.graphics.drawRect(dragDropSaveAndLoadButton.x,dragDropSaveAndLoadButton.y
+											,dragDropSaveAndLoadButton.width,dragDropLoadButton.y+dragDropLoadButton.height);
+			refLayerModeBG.graphics.endFill();
+			addChild(refLayerModeBG);
 
 			pleaseWaitText.textColor = 0xFFFFFF;
 
