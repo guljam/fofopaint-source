@@ -76,6 +76,7 @@
 			dragDropLoadRefLayerButton.visible = !flag;
 			dragDropSaveAndLoadButton.visible = !flag;
 			dragDropCancelButton.visible = !flag;
+			refLayerModeBG.visible = !flag;
 		}
 
 		public function setScale(newScale:Number):void
