@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.36;
+        private const APP_VERSION:Number = 24.37;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -12866,9 +12866,9 @@
                     selectPenTool();
                 }
 
-                loadMenuBox.setRefLayerLoadMode(traceLayer);
                 loadMenuBox.changeUIColor(uiToolBoxColorSet[uiColorIndex]);
                 loadMenuBox.setPleaseWait(pleaseWaitFlag);
+                loadMenuBox.setRefLayerLoadMode(traceLayer);
                 setLoadBoxVisible(true);
                 setTopChildIndex(loadMenuBox);
             }
