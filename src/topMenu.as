@@ -198,30 +198,22 @@
 			replaySpeedSliderWrapper.graphics.endFill();
 		}
 
-		public function setReplaySpeedBarToGridSliderON(color:uint):void
+		public function setReplaySpeedBarToGridSliderON(color:uint,shortcutKey:Boolean):void
 		{
 			gridButtonWrapper.graphics.clear();
 			gridButtonWrapper.graphics.beginFill(color);
 			gridButtonWrapper.graphics.drawRect(-1,0,gridMoveButtonWrapper.x+gridMoveButtonWrapper.width+2,gridButtonWrapper.height+1);
 			gridButtonWrapper.graphics.endFill();
 
-			if(this.getChildByName("gridButtonWrapper") === null)
-			{
-				this.addChild(gridButtonWrapper);
-			}
-
 			gridButtonWrapper.x = gridButton.x;
 			gridButtonWrapper.y = BARSIZE;
+			setChildIndex(gridButtonWrapper,numChildren-1);
 			gridButtonWrapper.visible = true;
 		}
 
-		public function setReplaySpeedBarToGridSliderOFF():void
+		public function setReplaySpeedBarToGridSliderOFF(stage:DisplayObjectContainer):void
 		{
 			gridButtonWrapper.visible = false;
-			if(this.getChildByName("gridButtonWrapper") !== null)
-			{
-				this.removeChild(gridButtonWrapper);
-			}
 		}
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
@@ -658,6 +650,7 @@
 
 			addChild(replaySpeedSliderWrapper);
 			addChild(topbarBG);
+			addChild(gridButtonWrapper);
 			setChildIndex(topbarBG,0);
 			cacheAsBitmap = true;
 

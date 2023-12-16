@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.41;
+        private const APP_VERSION:Number = 24.42;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6156,6 +6156,13 @@
             return hint;
         }
 
+        private function resetGrid():void
+        {
+            gridValue = 0;
+            gridButton.setCursorPosByValue(0);
+            clearGrid();
+        }
+
         private function clearGrid():void
         {
             topBar.setGridMoveButtonAlpha(BUTTON_OFF_ALPHA);
@@ -6259,6 +6266,7 @@
                     if(value === 0)
                     {
                         gridValue = 0;
+                        oldValue = 0;
                         hint.off();
                         clearGrid();
                         return;
@@ -6321,39 +6329,38 @@
                 if(!e.target) return;
                 const targetName:String = e.target.name;
 
-                if(targetName === "gridButton" || e.target.alpha < 1.0)
-                {
-                    return;
-                }
-
-                if(topBar.gridButtonWrapper.hitTestPoint(mouseX,mouseY) === false)
+                if(targetName === "gridButton" || topBar.gridButtonWrapper.hitTestPoint(mouseX,mouseY) === false)
                 {
                     off();
+                    return;
                 }
 
                 if(topBar.gridMoveButtonWrapper.hitTestPoint(mouseX,mouseY))
                 {
-                    var p:Point;
+                    if(e.target.alpha === 1.0)
+                    {
+                        var p:Point;
 
-                    if(targetName === "gridMoveLeftButton")
-                    {
-                        p = rotatePoint(-1,0,regPoint.rotation);
-                        setGridMoveButton(p.x,p.y);
-                    }
-                    else if(targetName === "gridMoveRightButton")
-                    {
-                        p = rotatePoint(1,0,regPoint.rotation);
-                        setGridMoveButton(p.x,p.y);
-                    }
-                    else if(targetName === "gridMoveUpButton")
-                    {
-                        p = rotatePoint(0,-1,regPoint.rotation);
-                        setGridMoveButton(p.x,p.y);
-                    }
-                    else if(targetName === "gridMoveDownButton")
-                    {
-                        p = rotatePoint(0,1,regPoint.rotation);
-                        setGridMoveButton(p.x,p.y);
+                        if(targetName === "gridMoveLeftButton")
+                        {
+                            p = rotatePoint(-1,0,regPoint.rotation);
+                            setGridMoveButton(p.x,p.y);
+                        }
+                        else if(targetName === "gridMoveRightButton")
+                        {
+                            p = rotatePoint(1,0,regPoint.rotation);
+                            setGridMoveButton(p.x,p.y);
+                        }
+                        else if(targetName === "gridMoveUpButton")
+                        {
+                            p = rotatePoint(0,-1,regPoint.rotation);
+                            setGridMoveButton(p.x,p.y);
+                        }
+                        else if(targetName === "gridMoveDownButton")
+                        {
+                            p = rotatePoint(0,1,regPoint.rotation);
+                            setGridMoveButton(p.x,p.y);
+                        }
                     }
                 }
                 else if(topBar.gridSliderWrapper.hitTestPoint(mouseX,mouseY))
@@ -6365,6 +6372,29 @@
                     stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpGridButton);
                 }
 
+            }
+
+            function keyUpGridButton(e:KeyboardEvent):void
+            {
+                if(e.keyCode === KEY.f2 || e.keyCode === KEY.f8)
+                {
+                    if(!(mouseClickON || mouseDragON))
+                    {
+                        if(isPressingShift())
+                        {
+                            if(gridValue !== 0)
+                            {
+                                hint.off();
+                                oldValue = 0;
+                                resetGrid();
+                            }
+                        }
+                        else
+                        {
+                            off();
+                        }
+                    }
+                }
             }
 
             function rightMouseDownGridButton(e:MouseEvent):void
@@ -6397,39 +6427,48 @@
                 }
             }
 
-            // function keyDownGridButton(e:KeyboardEvent):void
-            // {
-            //     if(!(mouseDragON || mouseClickON))
-            //     {
-            //         off();
-            //     }
-            // }
-
             function off():void
             {
                 hint.off();
                 mouseDragON = false;
+                cancelAutoKeyEvent(null);
                 stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownGridButton);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpGridButton);
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDownGridButton);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMoveGridButton);
-                // stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownGridButton);
-                topBar.setReplaySpeedBarToGridSliderOFF();
+                stage.removeEventListener(KeyboardEvent.KEY_UP,keyUpGridButton);
+                topBar.setReplaySpeedBarToGridSliderOFF(stage);
+                resetKeyBuffer();
+                addInputEventDrawMode();
             }
 
-            function start():void
+            // 그리그 키관련 수정해야함
+            // 그리드 클릭으로 켜주고
+            // 단축키로 꺼주면 아무것도 작동안함
+
+            function start(shortcutKey:Boolean):void
             {
+                trace("start")
                 if(topBar.gridButtonWrapper.visible === false)
                 {
+                    removeInputEventDrawMode();
+                    
                     if(gridValue > 0) topBar.setGridMoveButtonAlpha(1.0);
                     else topBar.setGridMoveButtonAlpha(BUTTON_OFF_ALPHA);
 
-                    topBar.setReplaySpeedBarToGridSliderON(uiColorSet[uiColorIndex][0]);
+                    topBar.setReplaySpeedBarToGridSliderON(uiColorSet[uiColorIndex][0],shortcutKey);
                     setCursorPosByValue(gridValue);
+
+                    if(shortcutKey)
+                    {
+                        const p:Point = topBar.globalToLocal(new Point(mouseX,mouseY));
+                        topBar.gridButtonWrapper.x = p.x-topBar.gridSliderWrapper.x-topBar.gridSliderCursor.x;
+                        topBar.gridButtonWrapper.y = p.y-topBar.gridSliderWrapper.y-topBar.gridSliderCursor.y;
+                    }
 
                     stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownGridButton,false,-1);
                     stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownGridButton,false,-1);
-                    // stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownGridButton);
+                    stage.addEventListener(KeyboardEvent.KEY_UP,keyUpGridButton,false,-1);
                 }
                 else
                 {
@@ -6439,7 +6478,8 @@
 
             return {
                 start:start,
-                off:off
+                off:off,
+                setCursorPosByValue:setCursorPosByValue
             };
         }
 
@@ -8991,7 +9031,7 @@
                         break;
 
                         case "gridButton":
-                            gridButton.start();
+                            gridButton.start(false);
                         break;
 
                         case "aboutButton":
@@ -9625,7 +9665,7 @@
                 break;
 
                 case "gridButton":
-                    str = "Grid";
+                    str = "Grid [f2, f8]\nReset [right-click, shift+f2, shift+f8]";
                 break;
 
                 case "gridSliderWrapper":
@@ -20619,7 +20659,7 @@
 
         private function keyDownDrawMode(e:KeyboardEvent):void
         {
-            if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted || loadMenuBox.visible)
+            if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted || loadMenuBox.visible || topBar.gridButtonWrapper.visible)
             {
                 return;
             }
@@ -20707,6 +20747,16 @@
                                 {
                                     setLayerMergeButton();
                                     setHintONTemp("Layers has been merged to layer 2");
+                                }
+                            }
+                            return;
+
+                            case KEY.f2:
+                            case KEY.f8:
+                            {
+                                if(gridValue !== 0)
+                                {
+                                    resetGrid();
                                 }
                             }
                             return;
@@ -20834,6 +20884,13 @@
                 case KEY.f7:
                 {
                     setReplayModeON();
+                }
+                return true;
+
+                case KEY.f2:
+                case KEY.f8:
+                {
+                    gridButton.start(true);
                 }
                 return true;
 
@@ -22015,6 +22072,16 @@
                 }
                 break;
 
+                case "gridButton":
+                {
+                    if(gridValue !== 0)
+                    {
+                        hint.off();
+                        resetGrid();
+                    }
+                }
+                break;
+
                 case "toolRotate":
                 {
                     if(regPoint.rotation !== 0.0) resetRotationDrawMode();
@@ -22631,7 +22698,7 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted || loadMenuBox.visible) return;
+            if(fillPenStarted || loadMenuBox.visible || topBar.gridButtonWrapper.visible) return;
 
             const target:DisplayObject = e.target as DisplayObject;
 
@@ -22672,14 +22739,6 @@
                 if(targetName === "sideBarScrollBar")
                 {
                     setScrollBarMoveButton();
-                }
-                return;
-            }
-            else if(topBar.gridButtonWrapper.visible)
-            {
-                if(targetName === "gridButton")
-                {
-                    gridButton.off();
                 }
                 return;
             }
