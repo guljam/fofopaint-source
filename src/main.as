@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.42;
+        private const APP_VERSION:Number = 24.43;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6092,7 +6092,6 @@
 
             topBar.buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);
             topBar.updateButtonVisible(false);
-            gridButton.off();
 
             if(mode === "draw")
             {
@@ -6451,7 +6450,7 @@
                 if(topBar.gridButtonWrapper.visible === false)
                 {
                     removeInputEventDrawMode();
-                    
+
                     if(gridValue > 0) topBar.setGridMoveButtonAlpha(1.0);
                     else topBar.setGridMoveButtonAlpha(BUTTON_OFF_ALPHA);
 
@@ -6477,7 +6476,7 @@
 
             return {
                 start:start,
-                off:off,
+                // off:off,
                 setCursorPosByValue:setCursorPosByValue
             };
         }
@@ -14821,12 +14820,10 @@
             penCursorOFFFlag = true;
             stageMouseMoveEvent.add("captureMouseMoveHintEvent",captureMouseMoveHintEvent);
             initCaptureTransParentBG();
-            gridButton.off();
 
             setCaptureUI(true);
             captureRotated = 0;
             captureFlipped = false;
-            // captureTransBGON = false;
 
             var xReg:Sprite;
             var xPanel:Sprite;
