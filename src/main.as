@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.37;
+        private const APP_VERSION:Number = 24.38;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -22730,13 +22730,13 @@
                 {
                     setCountDownLongKey(traceMenu.traceDeleteButton,"Erasing reference image... ",null,setTraceDeleteButton,null);
                 }
-                break;
+                return;
 
                 case "timer":
                 {
                     setCountDownLongKey(topBar.timer,"Resetting the timer... ",null, realWorkingTimer.reset,null);
                 }
-                break;
+                return
 
                 case "clearButton":
                 {
