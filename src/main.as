@@ -6448,7 +6448,6 @@
 
             function start(shortcutKey:Boolean):void
             {
-                trace("start")
                 if(topBar.gridButtonWrapper.visible === false)
                 {
                     removeInputEventDrawMode();
