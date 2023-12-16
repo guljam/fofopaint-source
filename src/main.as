@@ -25,18 +25,6 @@
     import flash.display.NativeWindowInitOptions;
     import flash.display.NativeWindowSystemChrome;
     import flash.display.NativeWindowType;
-    import flash.filesystem.File;
-    import flash.filesystem.FileStream;
-    import flash.filesystem.FileMode;
-    import flash.system.Capabilities;
-    import flash.system.IME;
-    import flash.system.Worker;
-    import flash.system.WorkerDomain;
-    import flash.system.MessageChannel;
-    import flash.geom.Matrix;
-    import flash.geom.Point;
-    import flash.geom.ColorTransform;
-    import flash.geom.Rectangle;
     import flash.events.Event;
     import flash.events.IOErrorEvent;
     import flash.events.MouseEvent;
@@ -44,24 +32,36 @@
     import flash.events.NativeDragEvent;
     import flash.events.NativeWindowBoundsEvent;
     import flash.events.FocusEvent;
-    import flash.utils.ByteArray;
-    import flash.utils.getTimer;
+    import flash.events.InvokeEvent;
+    import flash.filesystem.File;
+    import flash.filesystem.FileStream;
+    import flash.filesystem.FileMode;
+    import flash.filters.BlurFilter;
+    import flash.filters.ConvolutionFilter;
+    import flash.geom.Matrix;
+    import flash.geom.Point;
+    import flash.geom.ColorTransform;
+    import flash.geom.Rectangle;
     import flash.net.URLRequest;
     import flash.net.FileFilter;
     import flash.net.URLLoader;
     import flash.net.navigateToURL;
     import flash.net.URLLoaderDataFormat;
-    import flash.text.TextField;
-    import flash.ui.Mouse;
-    import flash.filters.BlurFilter;
-    import flash.filters.ConvolutionFilter;
+    import flash.system.Capabilities;
+    import flash.system.IME;
+    import flash.system.Worker;
+    import flash.system.WorkerDomain;
+    import flash.system.MessageChannel;
     import flash.system.System;
-    import flash.events.InvokeEvent;
+    import flash.text.TextField;
+    import flash.utils.ByteArray;
+    import flash.utils.getTimer;
+    import flash.ui.Mouse;
     //import end
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.38;
+        private const APP_VERSION:Number = 24.40;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2566,6 +2566,7 @@
             mat.translate(CANVAS_WIDTH/2,CANVAS_HEIGHT/2);
 
             tracebmpd.draw(canvasTraceLayer,mat);
+
             if(layer2 !== null) tracebmpd.draw(layer2);
             if(layer1 !== null) tracebmpd.draw(layer1);
 
@@ -6016,8 +6017,8 @@
                 case "toolErase": str = "Eraser [d, j]"; break;
                 case "toolLasso": str = "Lasso [r, y]"; break;
                 case "toolSpuit": str = "Eye dropper [c, m]\nPick transparent color ON/OFF [c+space, m+space]"; break;
-                case "toolUndo": str = "Undo [z, .]\nRepeat [click hold]"; break;
-                case "toolRedo": str = "Redo [x, ,]\nRepeat [click hold]"; break;
+                case "toolUndo": str = "Undo [z, .]\nRepeat [hold-click]"; break;
+                case "toolRedo": str = "Redo [x, ,]\nRepeat [hold-click]"; break;
                 case "toolMirror": str = "Flip canvas [a, l]"; break;
                 case "toolLine": str = "Line [shift]"; break;
                 case "toolMove": str = "Move image [e, u]"; break;
@@ -9635,7 +9636,7 @@
                 case "gridMoveRightButton":
                 case "gridMoveUpButton":
                 case "gridMoveDownButton":
-                    str = "Move gird by 1 pixel \nRepeat [click hold 2], Reset [right-click]";
+                    str = "Move gird by 1 pixel \nRepeat [hold-click], Reset [right-click]";
                 break;
 
                 case "sideBarOFFButton":
@@ -18089,7 +18090,7 @@
 
             function setSpuitMag():void
             {
-                const mid:Number = magSize/(4*zoomed); //기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
+                const mid:Number = magSize/(4*zoomed); //4는 기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
                 const tx:Number = -canvas1Bitmap.mouseX+mid;
                 const ty:Number = -canvas1Bitmap.mouseY+mid;
 
@@ -18097,8 +18098,9 @@
                 spuitMagMat.translate(tx,ty);
                 spuitMagMat.scale(2.0*zoomed,2.0*zoomed);
 
-                spuitZoomCursor.spuitZoomBitmap.bitmapData.fillRect(spuitMagRect,STAGE_BG_COLOR);
-                spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvasPanel,spuitMagMat);
+                spuitZoomCursor.spuitZoomBitmap.bitmapData.fillRect(spuitMagRect,CANVAS_BG_COLOR);
+                spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvas11Bitmap.bitmapData,spuitMagMat,null,null,spuitMagRect);
+                spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvas1Bitmap.bitmapData,spuitMagMat,null,null,spuitMagRect);
             }
 
             function spuitPickedColor():uint

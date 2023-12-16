@@ -49,6 +49,7 @@
 			addChild(spuitZoomBitmapBox);
 			addChild(circleMask);
 			setChildIndex(spuitZoomBitmapBox,0);
+			cacheAsBitmap = true;
 		}
 	}
 }
