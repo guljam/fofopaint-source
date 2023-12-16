@@ -214,6 +214,8 @@
 		public function setReplaySpeedBarToGridSliderOFF(stage:DisplayObjectContainer):void
 		{
 			gridButtonWrapper.visible = false;
+			gridButtonWrapper.x = 0;
+			gridButtonWrapper.y = -gridButtonWrapper.height;
 		}
 
 		public function setButtonAlphaONSaving(clipFlag:Boolean):void
