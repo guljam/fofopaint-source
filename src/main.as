@@ -218,7 +218,7 @@
                     ,CUT_FRAME_DELETE_FRONT:int = (1 << 2)
                     ,WORKER_WAIT_INTERVAL:Number = 0.5
                     ,STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT"
-                    ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.."
+                    ,STRING_PREPARE_REPLAY_DATA:String = "Preparing replay data.. "
                     ,STRING_PLAYBACK_SPEED:String = "Playback speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
