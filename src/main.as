@@ -1262,7 +1262,7 @@
                 case "myPaletteBox":
                 {
                     if(myPalettePresetType !== 0) return;
-                    str = "Add picked color [right-click], Remove color [right-click x 2]\nSwap color position [click+drag], Restore color [right-click x 3]";
+                    str = "Add picked color [right-click]\nSwap color position [click+drag]\nRemove, Restore color [multiple right-click]";
                 }
                 break;
 
