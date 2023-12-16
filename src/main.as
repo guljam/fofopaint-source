@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.40;
+        private const APP_VERSION:Number = 24.41;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5530,7 +5530,7 @@
         private function checkKeyUp(keyCode:uint):void
         {
             if(KEY_BUFFER.length === 0) resetNowKey();
-            else if(isNowKey(keyCode)) keyDownLassoTool(null);
+            else if(!captureModeON && !replayModeON && isNowKey(keyCode)) keyDownLassoTool(null);
         }
 
         private function keyUpLassoTool(e:KeyboardEvent):void
@@ -20527,7 +20527,10 @@
 
                 case KEY.f2:
                 {
-                    setCountDownLongKey(null,"Creating new file from this image..",setDeleteBarReRecord,setReRecord,setReplayDeleteBarVisibleOFF)
+                    if(topBar.reRecordingButton.alpha === 1.0)
+                    {
+                        setCountDownLongKey(null,"Creating new file from this image..",setDeleteBarReRecord,setReRecord,setReplayDeleteBarVisibleOFF);
+                    }
                 }
                 break;
 
