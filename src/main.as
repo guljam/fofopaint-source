@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.46;
+        private const APP_VERSION:Number = 24.47;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -226,7 +226,7 @@
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
-                    ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc]\nMove text cursor [a d, j l, arrow key, tab, shift+tab］\nAdjust value ［w s, i k］"
+                    ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc]\nMove text cursor [a d, j l, arrow key, tab, shift+tab]\nAdjust value [w s, i k]"
                     ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
                     ,STRING_HOLD_2SEC:String = " <- hold 2 sec"
                     ,WORKER_STATE_STOPPED:int = 0
@@ -7319,7 +7319,7 @@
 
         private function getSizeButtonHint(targetName:String):String
         {
-            return getPenSizeHint(targetName)+"\nAdjust size [f, v / h, n]";
+            return getPenSizeHint(targetName)+"\nAdjust size [f, v, h, n]";
         }
 
         private function controlBoxHintONEvent(e:MouseEvent):void

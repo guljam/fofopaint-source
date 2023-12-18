@@ -304,12 +304,12 @@
 
 			penSmoothSliderCursor.mouseEnabled = false;
 			penSmoothSliderCursor.x = penSmoothSlider.x;
-			penSmoothSliderCursor.y = penSmoothSlider.height+5;
+			penSmoothSliderCursor.y = penSmoothSlider.y+penSmoothSlider.height+1;
 
 			penSmoothSliderWapper.graphics.clear();
 			penSmoothSliderWapper.graphics.beginFill(0xFF0000,0.0);
 			penSmoothSliderWapper.graphics.drawRect(0,0,penSmoothSlider.x+penSmoothSlider.width+penSmoothSliderCursor.width/2+1.5
-														,penSmoothSlider.y+penSmoothSlider.height+penSmoothSlider.y+penSmoothSlider.height+3);
+														,penSmoothSlider.y+penSmoothSlider.height+penSmoothSlider.y+penSmoothSlider.height);
 			penSmoothSliderWapper.graphics.endFill();
 		}
 
@@ -334,13 +334,13 @@
 			opaSizeButtonWrapper.addChild(penSizeSelectCursor);
 
 			shapeCircle.x = 0;
-			shapeCircle.y = Math.floor(infoPenOptions.y+infoPenOptions.height);
+			shapeCircle.y = Math.floor(infoPenOptions.y+infoPenOptions.height)-1;
 			shapeCircle.useHandCursor = false;
-			shapeRect.x = 0+shapeCircle.x+shapeCircle.width+1;
-			shapeRect.y = shapeCircle.y;
+			shapeRect.x = shapeCircle.x+shapeCircle.width+1;
+			shapeRect.y = Math.floor(infoPenOptions.y+infoPenOptions.height);
 			shapeRect.useHandCursor = false;
 
-			penSmoothSliderWapper.x = Math.floor(shapeRect.x+shapeRect.width+5);
+			penSmoothSliderWapper.x = Math.floor(shapeRect.x+shapeRect.width+4);
 			penSmoothSliderWapper.y = Math.floor(shapeRect.y);
 
 			penSizeGuide.x = 0;
