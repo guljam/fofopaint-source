@@ -11,12 +11,9 @@
 		public const spuitZoomBitmapBox:Sprite = new Sprite()
 		private const circleMask:Shape = new Shape();
 
-		public var magZoom:Number = 1.0;
 		public var spuitNowColor:SimpleButton;
 		public var spuitOldColor:SimpleButton;
 		public var spuitZoomBitmap:Bitmap = new Bitmap();
-		public var WIDTH:Number = width;
-		public var HEIGHT:Number = height;
 
 		public function setScale(newScale:Number):void
 		{

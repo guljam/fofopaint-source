@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.45;
+        private const APP_VERSION:Number = 24.46;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -658,7 +658,7 @@
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,dragDropFileSave:File //invoke 이벤트에서 파일을 너무 빨리 불러오지 못하게함
                     ,oldAppdataRtotalFrame:Number = -1 //24.00버전 이후로 쓸일 없지만 이전버전 호환성을 위해서 백업해주고 복원해줌
-                    ,stagedraw:Shape = new Shape()
+                    ,viewTransBGDelayTimerActivated:Boolean = false //setOptimizeCanvasMoveON 함수에서 오래 눌러줬을때 투명색 배경화면 보여주면 올려줌
                     ;
 
         public function main():void
@@ -685,7 +685,7 @@
             makeReplayCanvasFamily();
             makeMenuFamlity();
             makeResizeButtonFamily();
-            initCaptureTransParentBG();
+            updateCaptureTransParentBG();
             makeWorker();
             updateWindowSizeInfo();
             loadAppData(); //이전 세팅 복원
@@ -5388,14 +5388,9 @@
             }
         }
 
-		private function resetCaptureTransParentBG():void
+		private function updateCaptureTransParentBG():void
         {
-            if(capTransparentBGBMPD) capTransparentBGBMPD.dispose();
-        }
-
-		private function initCaptureTransParentBG():void
-        {
-            const halfSize:Number = capTransparentBGBMPDSize/2;
+            const halfSize:Number = Math.floor(capTransparentBGBMPDSize/2);
             capTransparentBGBMPD = new BitmapData(capTransparentBGBMPDSize,capTransparentBGBMPDSize,false,0xFFFFFF);
             capTransparentBGBMPD.fillRect(new Rectangle(0,0,halfSize,halfSize),0xC8C8C8);
             capTransparentBGBMPD.fillRect(new Rectangle(halfSize,halfSize,halfSize,halfSize),0xCCCCCC);
@@ -5518,7 +5513,7 @@
             else
             {
                 zoomedIndex = lastZoomIndex;
-                setOptimizeCanvasMoveON(false);
+                // setOptimizeCanvasMoveON(false);
                 setRegPoint(center.x,center.y,false);
                 setZoomCanvas(newZoom,replayMode);
                 updatePenSizeCursor();
@@ -6177,10 +6172,9 @@
                 return;
             }
 
-            const w:Number = CANVAS_WIDTH;
-            const h:Number = CANVAS_HEIGHT;
+            const gridWidth:Number = CANVAS_WIDTH;
+            const gridHeight:Number = CANVAS_HEIGHT;
             var gridgap:Number = gridValue*GRID_GAP;
-            const normalColor:uint = GRID_NORMAL_COLOR;
             var cmd:Vector.<int> = new Vector.<int>();
             var data:Vector.<Number> = new Vector.<Number>();
             const offsetX:Number = gridDrawOffsetX;
@@ -6192,13 +6186,13 @@
             }
 
             var i:uint = 1;
-            var len:Number = Math.floor(h/gridgap+0.5);//가로선 횟수 w, h반대되는거 맞음
+            var len:Number = Math.floor(gridHeight/gridgap+0.5);//가로선 횟수 w, h반대되는거 맞음
 
             if(offsetY < 0) len += 1;
             else if(offsetY > 0) i = 0;
 
             canvasGrid.graphics.clear();
-            canvasGrid.graphics.lineStyle(1/zoomed,normalColor,0.5,false);
+            canvasGrid.graphics.lineStyle(1/zoomed,GRID_NORMAL_COLOR,0.5,false);
 
             //가로선
             for(;i<=len;i++)
@@ -6207,12 +6201,12 @@
                 cmd.push(2);
                 data.push(0);
                 data.push(gridgap*i+offsetY);
-                data.push(w);
+                data.push(gridWidth);
                 data.push(gridgap*i+offsetY);
             }
 
             i = 1;
-            len = Math.floor(w/gridgap+0.5); //세로선 횟수
+            len = Math.floor(gridWidth/gridgap+0.5); //세로선 횟수
 
             if(offsetX < 0) len += 1;
             else if(offsetX > 0) i = 0;
@@ -6225,11 +6219,12 @@
                 data.push(gridgap*i+offsetX)
                 data.push(0);
                 data.push(gridgap*i+offsetX);
-                data.push(h);
+                data.push(gridHeight);
             }
 
             canvasGrid.graphics.drawPath(cmd,data);
 
+            cmd.length = 0;
             data.length = 0;
             cmd = null;
             data = null;
@@ -14819,7 +14814,6 @@
             captureModeON = true;
             penCursorOFFFlag = true;
             stageMouseMoveEvent.add("captureMouseMoveHintEvent",captureMouseMoveHintEvent);
-            initCaptureTransParentBG();
 
             setCaptureUI(true);
             captureRotated = 0;
@@ -14931,7 +14925,7 @@
             {
                 resetTransBG(false);
             }
-            resetCaptureTransParentBG();
+
             checkCanvasPanelPos(replayMode);
             canvasBackupData = {};
         }
@@ -16931,10 +16925,6 @@
 
                 updatePenSizeCursor();
 
-                if(gridValue > 0)
-                {
-                    drawGrid();
-                }
 
                 setOptimizeCanvasMoveON(false);
 
@@ -16945,6 +16935,10 @@
 
                 updatePreviewBoxRectPos();
                 updateRCursorScale(zoomed);
+                if(gridValue > 0 && oldZoom !== zoomed)
+                {
+                    drawGrid();
+                }
             }
 
             function setFixedToolTipPos():void
@@ -18113,6 +18107,7 @@
             const spuitMagRect:Rectangle = new Rectangle(0,0,magSize,magSize);
             const spuitMagMat:Matrix = new Matrix();
             var penColorBackup:uint;
+            var canvasBGShape:Shape = new Shape();
 
             function isButtonSkipOldTool(targetName:String):Boolean
             {
@@ -18134,7 +18129,8 @@
                 spuitMagMat.translate(tx,ty);
                 spuitMagMat.scale(2.0*zoomed,2.0*zoomed);
 
-                spuitZoomCursor.spuitZoomBitmap.bitmapData.fillRect(spuitMagRect,CANVAS_BG_COLOR);
+                spuitZoomCursor.spuitZoomBitmap.bitmapData.fillRect(spuitMagRect,STAGE_BG_COLOR);
+                spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvasBGShape,spuitMagMat,null,null,spuitMagRect);
                 spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvas11Bitmap.bitmapData,spuitMagMat,null,null,spuitMagRect);
                 spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvas1Bitmap.bitmapData,spuitMagMat,null,null,spuitMagRect);
             }
@@ -18292,6 +18288,7 @@
 
                 spuitZoomCursor.visible = false;
                 canvasTraceLayer.visible = true;
+                canvasBGShape.graphics.clear();
 
                 if(okFlag && !(isOldTool(TOOL_PEN) || isOldTool(TOOL_FILL_PEN) || isOldTool(TOOL_LINE)))
                 {
@@ -18373,7 +18370,7 @@
 
             function checkSpuitCursorVisibleON():Boolean
             {
-                return isCursorInDrawArea() && canvasPanel.hitTestPoint(mouseX,mouseY,true)
+                return isCursorInDrawArea() && canvas1Bitmap.hitTestPoint(mouseX,mouseY,true)
                 && !(traceMenu.visible && traceMenu.hitTestPoint(mouseX,mouseY));
             }
 
@@ -18400,6 +18397,9 @@
                 spuitZoomCursor.rotateBitmap(regPoint.rotation);
                 spuitZoomCursor.spuitZoomBitmap.bitmapData = new BitmapData(magSize,magSize,false,0);
                 canvasTraceLayer.visible = false;
+                canvasBGShape.graphics.clear();
+                canvasBGShape.graphics.beginFill(CANVAS_BG_COLOR);
+                canvasBGShape.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 
                 if(checkSpuitCursorVisibleON())
                 {
@@ -18427,9 +18427,28 @@
         private function setOptimizeCanvasMoveON(flag:Boolean):void
         {
             if(canvasTraceLayer.alpha > 0.0) canvasTraceLayer.visible = !flag;
-            if(gridValue > 0)
+            if(gridValue > 0)  canvasGrid.visible = !flag;
+
+            removeTimer("viewTransBGDelayTimer");
+
+            if(flag)
             {
-                canvasGrid.visible = !flag;
+                addTimerByName("viewTransBGDelayTimer",1.0,false,function():void
+                {
+                    canvasPanel.graphics.clear();
+                    canvasPanel.graphics.beginBitmapFill(capTransparentBGBMPD);
+                    canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                    canvasPanel.graphics.endFill();
+                    viewTransBGDelayTimerActivated = true;
+                });
+            }
+            else if(viewTransBGDelayTimerActivated)
+            {
+                viewTransBGDelayTimerActivated = false;
+                canvasPanel.graphics.clear();
+                canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
+                canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                canvasPanel.graphics.endFill();
             }
         }
 
@@ -22885,6 +22904,7 @@
                 }
             }
         }
+        // private const stagedraw:Shape = new Shape()
 
         // private var printdeepLevel:int = 0;
         // private function printArray(obj:Object,deepKey:String=""):void
@@ -22922,7 +22942,7 @@
 
         // private function testFuncTime():void
         // {
-        //     const loop:int = 1000000;
+        //     const loop:int = 100000;
         //     function func1():void
         //     {
 
