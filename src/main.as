@@ -18429,26 +18429,28 @@
             if(canvasTraceLayer.alpha > 0.0) canvasTraceLayer.visible = !flag;
             if(gridValue > 0)  canvasGrid.visible = !flag;
 
-            removeTimer("viewTransBGDelayTimer");
-
             if(flag)
             {
                 addTimerByName("viewTransBGDelayTimer",1.0,false,function():void
                 {
+                    viewTransBGDelayTimerActivated = true;
                     canvasPanel.graphics.clear();
                     canvasPanel.graphics.beginBitmapFill(capTransparentBGBMPD);
                     canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
                     canvasPanel.graphics.endFill();
-                    viewTransBGDelayTimerActivated = true;
                 });
             }
-            else if(viewTransBGDelayTimerActivated)
+            else
             {
-                viewTransBGDelayTimerActivated = false;
-                canvasPanel.graphics.clear();
-                canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
-                canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
-                canvasPanel.graphics.endFill();
+                removeTimer("viewTransBGDelayTimer");
+                if(viewTransBGDelayTimerActivated)
+                {
+                    viewTransBGDelayTimerActivated = false;
+                    canvasPanel.graphics.clear();
+                    canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
+                    canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                    canvasPanel.graphics.endFill();
+                }
             }
         }
 
