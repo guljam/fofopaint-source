@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.47;
+        private const APP_VERSION:Number = 24.48;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -539,8 +539,11 @@
         //그리드 레이어 변수
                     ,canvasGrid:Shape = new Shape()//트레이스 레이어임
                     ,gridValue:uint = 0
+                    ,gridSmallFlag:Boolean = false //줌 아웃해서 그리그 간격 넓게 했을때 올려줌
                     ,gridDrawOffsetX:Number = 0.0
                     ,gridDrawOffsetY:Number = 0.0
+                    ,gridGraphicsCommand:Vector.<int> = new Vector.<int>
+                    ,gridGraphicsData:Vector.<Number> = new Vector.<Number>
 
         //closure
                     ,realWorkingTimer:Object = cRealWorkingTimer()
@@ -5478,6 +5481,7 @@
                 setZoomCanvas(1.0,false);
                 updatePenSizeCursor();
                 updatePreviewBoxRectPos();
+                drawGrid(false);
             }
         }
 
@@ -5518,7 +5522,10 @@
                 setZoomCanvas(newZoom,replayMode);
                 updatePenSizeCursor();
                 updatePreviewBoxRectPos();
-                if(gridValue > 0) drawGrid();
+                if(gridValue > 0)
+                {
+                    drawGrid(false);
+                }
             }
         }
 
@@ -6164,7 +6171,7 @@
             canvasGrid.graphics.clear();
         }
 
-        private function drawGrid():void
+        private function drawGrid(updateFlag:Boolean):void
         {
             if(gridValue === 0)
             {
@@ -6172,62 +6179,67 @@
                 return;
             }
 
-            const gridWidth:Number = CANVAS_WIDTH;
-            const gridHeight:Number = CANVAS_HEIGHT;
             var gridgap:Number = gridValue*GRID_GAP;
-            var cmd:Vector.<int> = new Vector.<int>();
-            var data:Vector.<Number> = new Vector.<Number>();
-            const offsetX:Number = gridDrawOffsetX;
-            const offsetY:Number = gridDrawOffsetY;
 
-            if(gridgap*zoomed < gridgap)
+            if(updateFlag || gridSmallFlag || gridgap*zoomed < gridgap)
             {
-                gridgap = gridgap*(gridgap/(gridgap*zoomed));
+                const gridWidth:Number = CANVAS_WIDTH;
+                const gridHeight:Number = CANVAS_HEIGHT;
+                const offsetX:Number = gridDrawOffsetX;
+                const offsetY:Number = gridDrawOffsetY;
+
+                if(gridgap*zoomed < gridgap)
+                {
+                    gridgap = gridgap/zoomed;
+                    gridSmallFlag = true;
+                }
+                else
+                {
+                    gridSmallFlag = false;
+                }
+
+                var i:uint = 1;
+                var len:Number = Math.floor(gridHeight/gridgap+0.5);//가로선 횟수 w, h반대되는거 맞음
+
+                if(offsetY < 0) len += 1;
+                else if(offsetY > 0) i = 0;
+
+                gridGraphicsCommand.length = 0;
+                gridGraphicsData.length = 0;
+
+                //가로선
+                for(;i<=len;i++)
+                {
+                    gridGraphicsCommand.push(1);
+                    gridGraphicsCommand.push(2);
+                    gridGraphicsData.push(0);
+                    gridGraphicsData.push(gridgap*i+offsetY);
+                    gridGraphicsData.push(gridWidth);
+                    gridGraphicsData.push(gridgap*i+offsetY);
+                }
+
+                i = 1;
+                len = Math.floor(gridWidth/gridgap+0.5); //세로선 횟수
+
+                if(offsetX < 0) len += 1;
+                else if(offsetX > 0) i = 0;
+
+                //세로선
+                for(;i<=len;i++)
+                {
+                    gridGraphicsCommand.push(1);
+                    gridGraphicsCommand.push(2);
+                    gridGraphicsData.push(gridgap*i+offsetX)
+                    gridGraphicsData.push(0);
+                    gridGraphicsData.push(gridgap*i+offsetX);
+                    gridGraphicsData.push(gridHeight);
+                }
             }
-
-            var i:uint = 1;
-            var len:Number = Math.floor(gridHeight/gridgap+0.5);//가로선 횟수 w, h반대되는거 맞음
-
-            if(offsetY < 0) len += 1;
-            else if(offsetY > 0) i = 0;
 
             canvasGrid.graphics.clear();
             canvasGrid.graphics.lineStyle(1/zoomed,GRID_NORMAL_COLOR,0.5,false);
+            canvasGrid.graphics.drawPath(gridGraphicsCommand,gridGraphicsData);
 
-            //가로선
-            for(;i<=len;i++)
-            {
-                cmd.push(1);
-                cmd.push(2);
-                data.push(0);
-                data.push(gridgap*i+offsetY);
-                data.push(gridWidth);
-                data.push(gridgap*i+offsetY);
-            }
-
-            i = 1;
-            len = Math.floor(gridWidth/gridgap+0.5); //세로선 횟수
-
-            if(offsetX < 0) len += 1;
-            else if(offsetX > 0) i = 0;
-
-            //세로선
-            for(;i<=len;i++)
-            {
-                cmd.push(1);
-                cmd.push(2);
-                data.push(gridgap*i+offsetX)
-                data.push(0);
-                data.push(gridgap*i+offsetX);
-                data.push(gridHeight);
-            }
-
-            canvasGrid.graphics.drawPath(cmd,data);
-
-            cmd.length = 0;
-            data.length = 0;
-            cmd = null;
-            data = null;
             checkGridMirror(mirrorON);
             canvasGrid.cacheAsBitmap = true;
             canvasGrid.visible = true;
@@ -6280,7 +6292,7 @@
                         oldValue = value;
                         setHintONTemp("Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)");
 
-                        drawGrid();
+                        drawGrid(true);
                     }
                 }
 
@@ -6314,7 +6326,7 @@
                     if(Math.abs(gridDrawOffsetX) >= gridValue*GRID_GAP) gridDrawOffsetX = 0.0;
                     if(Math.abs(gridDrawOffsetY) >= gridValue*GRID_GAP) gridDrawOffsetY = 0.0;
 
-                    if(gridValue > 0) drawGrid();
+                    if(gridValue > 0) drawGrid(true);
                 });
             }
 
@@ -6403,7 +6415,7 @@
                     if(gridValue > 0)
                     {
                         gridDrawOffsetX = 0;
-                        if(gridValue > 0) drawGrid();
+                        if(gridValue > 0) drawGrid(true);
                     }
                 }
                 else if(targetName === "gridMoveUpButton"
@@ -6412,7 +6424,7 @@
                     if(gridValue > 0)
                     {
                         gridDrawOffsetY = 0;
-                        if(gridValue > 0) drawGrid();
+                        if(gridValue > 0) drawGrid(true);
                     }
                 }
                 else if(targetName !== "gridSliderWrapper")
@@ -14392,7 +14404,7 @@
             zoomedIndex = 3;
             setZoomCanvas(1.0);
             updatePenSizeCursor();
-            if(gridValue > 0) drawGrid();
+            if(gridValue > 0) drawGrid(true);
             //bitmapdata가 갱신된이후에 업데이트 해줘야함
             resetUndo();
             tickDraw.resetFirstRCursorPos();
@@ -16156,7 +16168,7 @@
                     if(!gridDrawOffsetX) gridDrawOffsetX = 0.0;
                     if(!gridDrawOffsetY) gridDrawOffsetY = 0.0;
 
-                    if(d["gridValue"] > 0) drawGrid();
+                    if(d["gridValue"] > 0) drawGrid(true);
 
                     setUIScaleButton(d["uiScaleIndex"]);
                     if(d["canvasWindowON"])
@@ -16935,9 +16947,10 @@
 
                 updatePreviewBoxRectPos();
                 updateRCursorScale(zoomed);
+
                 if(gridValue > 0 && oldZoom !== zoomed)
                 {
-                    drawGrid();
+                    drawGrid(false);
                 }
             }
 
@@ -17310,7 +17323,7 @@
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
             checkCanvasPanelPos();
-            if(gridValue > 0) drawGrid();
+            if(gridValue > 0) drawGrid(true);
             appInfoBox.setSize(w,h);
         }
 
