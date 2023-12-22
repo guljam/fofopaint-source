@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.48;
+        private const APP_VERSION:Number = 24.50;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -403,6 +403,7 @@
                     ,loneKeyFrameCount:int = 0
 
         //컬러 히스토리 관련 변수
+                    ,myPaletteSaveBeforeAddColor:Array = [-1,0]
                     ,myPaletteViewMode:Boolean = false //전체로 보면 올려줌
                     ,myPaletteLimitCompact:int = 20
                     ,myPaletteLimitTotal:int = 100
@@ -13491,15 +13492,41 @@
         {
             if(index < 0) return;
 
-            if(!penColorTransparentFlag && (isSelctedColorEmpty(index) || myPalettePreset[index] !== pickerBox.getRGBInfoBGColor()))
+            if(isSelctedColorEmpty(index))
             {
-                myPalettePreset[index] = color;
-                updateMyPaletteList();
+                if(myPaletteSaveBeforeAddColor[0] === index)
+                {
+                    myPalettePreset[index] = myPaletteSaveBeforeAddColor[1];
+                    updateMyPaletteList();
+                }
+                else
+                {
+                    myPalettePreset[index] = color;
+                    updateMyPaletteList();
+                }
+
+                // myPaletteSaveBeforeAddColor[0] = -1;
+                // myPaletteSaveBeforeAddColor[1] = 0;
             }
             else
             {
-                myPalettePreset[index] = null;
-                updateMyPaletteList();
+                if(myPalettePreset[index] !== pickerBox.getRGBInfoBGColor())
+                {
+                    myPaletteSaveBeforeAddColor[0] = index;
+                    myPaletteSaveBeforeAddColor[1] = myPalettePreset[index];
+                    myPalettePreset[index] = (penColorTransparentFlag) ? null:color;
+                    updateMyPaletteList();
+                }
+                else
+                {
+                    if(penColorTransparentFlag)
+                    {
+                        myPaletteSaveBeforeAddColor[0] = index;
+                        myPaletteSaveBeforeAddColor[1] = myPalettePreset[index];
+                    }
+                    myPalettePreset[index] = null;
+                    updateMyPaletteList();
+                }
             }
         }
 
