@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.51;
+        private const APP_VERSION:Number = 24.52;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7166,9 +7166,6 @@
                 controlBox.layer2SelectButton.alpha = BUTTON_OFF_ALPHA;
                 canvasPanel.setChildIndex(canvas1Bitmap,2);
             }
-
-            if(controlBox.layer1CheckButton.visible) setLayer1CheckToggle();
-            if(controlBox.layer2CheckButton.visible) setLayer2CheckToggle();
         }
 
         private function setSharpLineButtonShortcut():void

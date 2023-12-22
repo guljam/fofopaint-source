@@ -45,7 +45,6 @@
 			{
 				refLayerModeBG.visible = false;
 			}
-			trace("refLayerModeBG.visible",refLayerModeBG.visible)
 		}
 
 		public function setPreviewImage(newImage:BitmapData):void
