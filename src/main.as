@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.55;
+        private const APP_VERSION:Number = 24.56;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4032,7 +4032,6 @@
             pickerBox.updateOldRGBInfoText();
             pickerBox.setRGBInfoBGTransparentColorON();
             pickerBox.setRGBInfo("Transparent");
-            setNowToolForDrawing(false);
         }
 
         private function setCurrentColor(mode:uint):void
@@ -4055,8 +4054,6 @@
                 setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(hexColor) : hexColor);
                 addUndoBGColor(hexColor);
             }
-
-            setNowToolForDrawing(false);
         }
 
         private function getFinalImageFrom2020File(file:File,bgFlag:Boolean):BitmapData
@@ -7044,8 +7041,6 @@
                 canvas2Draw.filters = [];
                 controlBox.blurShapeSetOFF();
             }
-
-            setNowToolForDrawing(true);
         }
 
         private function setEraseAirBrushButtonShortCut():void
@@ -7191,7 +7186,6 @@
             controlBox["sharpLineONButton"].visible = !flag;
 
             updatePenSizeCursor();
-            setNowToolForDrawing(true);
         }
 
         private function updateStageBGSize():void
@@ -8258,8 +8252,6 @@
                 penCursorPosition.updateCursorSize(eraseSize);
             }
             controlBox.movePenSizeCursor(index);
-
-            setNowToolForDrawing(true);
         }
 
         private function setRGBInfoBorderColor(color:uint):uint
@@ -9149,6 +9141,7 @@
                         case "currentColor":
                         {
                             setCurrentColor(pickerMode);
+                            setNowToolForDrawing(false);
                         }
                         break;
 
@@ -9166,15 +9159,6 @@
                             if(pickerMode !== 2)
                             {
                                 changePickerModeToBG();
-                            }
-                        }
-                        break;
-
-                        case "transColorButton":
-                        {
-                            if(pickerBox.transColorButton.alpha === 1.0 && !penColorTransparentFlag)
-                            {
-                                if(penColorTransparentFlag === false) setTransparentColor();
                             }
                         }
                         break;
@@ -11950,7 +11934,6 @@
             function check(viewCenterFlag:Boolean):void
             {
                 cp = tickDraw.getRCursorPos();
-                trace("커서 위치 ",cp)
 
                 globalChecked = false;
                 const div:Number = (viewCenterFlag) ? 1:3;
@@ -12011,7 +11994,6 @@
                         updateRCanvasBounds();
                     }
                 }
-                trace("최종",rregPoint.x,rregPoint.y)
             }
 
             return {
@@ -14475,6 +14457,7 @@
             traceMenu.traceImageButton.alpha = 1.0;
 
             setCurrentColor(1);
+            setNowToolForDrawing(false);
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
             updatePreviewBoxRectPos();
@@ -18280,7 +18263,6 @@
                         }
                     }
                     cancelSpuitTool(false);
-
                 }
                 else
                 {
@@ -18328,7 +18310,7 @@
                 canvasTraceLayer.visible = true;
                 canvasBGShape.graphics.clear();
 
-                if(okFlag && !(isOldTool(TOOL_PEN) || isOldTool(TOOL_FILL_PEN) || isOldTool(TOOL_LINE)))
+                if(okFlag && !(isNowToolPenOrLine() || isOldTool(TOOL_FILL_PEN)))
                 {
                     setOldTool(TOOL_PEN);
                 }
@@ -19812,8 +19794,6 @@
                 eraseAlpha = alpha;
                 eraseAlphaIndex = index;
             }
-
-            setNowToolForDrawing(true);
         }
 
         private function cDrawDot():Function
@@ -22204,6 +22184,7 @@
                 {
                     if(nowTool > 4) return true;
                     setPenSmoothButton();
+                    setNowToolForDrawing(true);
                 }
                 return true;
 
@@ -22219,6 +22200,7 @@
                 case "alphaButton10":
                 {
                     setOpaButton(targetName);
+                    setNowToolForDrawing(true);
                 }
                 return true;
 
@@ -22236,18 +22218,21 @@
                 case "nSizeButton12":
                 {
                     setPenSizeButton(targetName);
+                    setNowToolForDrawing(true);
                 }
                 return true;
 
                 case "shapeRect":
                 {
                     setPenShapeButton(true);
+                    setNowToolForDrawing(true);
                 }
                 return true;
 
                 case "shapeCircle":
                 {
                     setPenShapeButton(false);
+                    setNowToolForDrawing(true);
                 }
                 return true;
 
@@ -22306,6 +22291,7 @@
                 {
                     if(controlBox.sharpLineButtonWrapper.alpha === 1.0)
                     {
+                        setNowToolForDrawing(true);
                         setSharpLineButton(!sharpLineON);
                     }
                 }
@@ -22318,6 +22304,7 @@
                 {
                     if(controlBox.airBrushButtonWrapper.alpha === 1.0)
                     {
+                        setNowToolForDrawing(true);
                         if(isNowToolPenOrLine() || isNowTool(TOOL_FILL_PEN))
                         {
                             setPenAirBrushButton(!airBrushON);
@@ -22390,6 +22377,7 @@
                         case "currentColor":
                         {
                             setCurrentColor(pickerMode);
+                            setNowToolForDrawing(false);
                         }
                         break;
 
@@ -22422,9 +22410,10 @@
 
                         case "transColorButton":
                         {
-                            if(pickerBox.transColorButton.alpha === 1.0 && !penColorTransparentFlag)
+                            if(pickerBox.transColorButton.alpha === 1.0)
                             {
                                 setTransparentColor();
+                                setNowToolForDrawing(false);
                             }
                         }
                         break;
