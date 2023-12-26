@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.53;
+        private const APP_VERSION:Number = 24.55;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5465,17 +5465,14 @@
 
         private function resetZoomReplayMode():void
         {
-            if(rzoomed !== 1.0)
-            {
-                const center:Point = getStageCenterPos(CENTERPOS_DRAW);
+            const center:Point = getStageCenterPos(CENTERPOS_DRAW);
 
-                rzoomedSave = 1.0;
-                rzoomedIndex = zoomList.indexOf(1.0);
-                setRegPoint(center.x,center.y,true);
-                setZoomCanvas(1.0,true);
-                setFitZoomedOFF();
-                autoScroll.updateRCanvasBounds();
-            }
+            rzoomedSave = 1.0;
+            rzoomedIndex = zoomList.indexOf(1.0);
+            setRegPoint(center.x,center.y,true);
+            setZoomCanvas(1.0,true);
+            setFitZoomedOFF();
+            autoScroll.updateRCanvasBounds();
         }
 
         private function resetZoomDrawMode(center:Point=null):void
@@ -11953,6 +11950,7 @@
             function check(viewCenterFlag:Boolean):void
             {
                 cp = tickDraw.getRCursorPos();
+                trace("커서 위치 ",cp)
 
                 globalChecked = false;
                 const div:Number = (viewCenterFlag) ? 1:3;
@@ -12013,6 +12011,7 @@
                         updateRCanvasBounds();
                     }
                 }
+                trace("최종",rregPoint.x,rregPoint.y)
             }
 
             return {
