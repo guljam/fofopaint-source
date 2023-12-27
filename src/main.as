@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.56;
+        private const APP_VERSION:Number = 24.57;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -404,8 +404,9 @@
 
         //컬러 히스토리 관련 변수
                     ,myPaletteSaveBeforeAddColor:Array = [-1,0]
-                    ,myPaletteViewMode:Boolean = false //전체로 보면 올려줌
-                    ,myPaletteLimitCompact:int = 20
+                    ,myPaletteViewAllMode:Boolean = false //전체로 보면 올려줌
+                    ,myPaletteCellCount:int = 10
+                    ,myPaletteLimitCompact:int = 30
                     ,myPaletteLimitTotal:int = 100
                     ,myPaletteColorWidth:Number = 17//Math.floor(pickerBox.svBoxWidth/myPaletteLimit)//히스토리 개별 색깔 가로 크기
                     ,myPaletteColorHeight:Number = 17
@@ -416,6 +417,7 @@
                     ,myPaletteDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
                     ,myPalettePresetType:int = 0 //타입저정
                     ,myPalettePreset:Array = []
+                    ,myPalettePresetCompact:Array = []
                     ,myPaletteDrawrPreset:Array = [0xFFFFFF,0xC0C0C0,0xFF3B21,0xFFBD16,0xF5F30F,0xA5E975,0x71DBFD,0xFA80F9,null    ,null
                                                   ,0x000000,0x808080,0x8E0000,0xFFCC99,0x877D30,0x008F47,0x313BCD,0xC02E97,0x3F037E,null]
                     ,myPaletteTegakiPreset:Array = [0xA80515,0xA80515,0x800000,0x800000,0x4B3D38,0x4B3D38,0x394C44,0x394C44,0x313768,0x313768
@@ -577,7 +579,7 @@
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarConstHeight:Number = 688
+                    ,sideBarConstHeight:Number = 705
 
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
@@ -720,7 +722,7 @@
         //function
         private function getSidebarConstHeight():Number
         {
-            return (sideBarConstHeight + ((myPaletteViewMode && myPalettePresetType === 0) ? myPaletteColorHeight*8:0));
+            return (sideBarConstHeight + ((myPaletteViewAllMode && myPalettePresetType === 0) ? myPaletteColorHeight*7:0));
         }
 
         private function setCountDownLongKey(button:DisplayObject,hintStr:String,readyFunc:Function,okFunc:Function,cancelFunc:Function):void
@@ -4654,6 +4656,7 @@
                     {
                         updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
                     }
+                    addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
                 }
 
                 if(traceMenuON) traceMenu.visible = false;
@@ -5030,6 +5033,7 @@
                         {
                             updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
                         }
+                        addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
                     }
                 }
                 else
@@ -13280,7 +13284,7 @@
 
         private function getMyPaletteIndexByMousePosLimitBound():int
         {
-            const compactLine:int = (myPalettePresetType === 0 && myPaletteViewMode) ? 9:1;
+            const compactLine:int = (myPalettePresetType === 0 && myPaletteViewAllMode) ? 9:2;
             var xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
             var yLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseY/(myPaletteColorHeight))
 
@@ -13298,7 +13302,7 @@
             const xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
             const yLineIndex:int = 10*(Math.floor(pickerBox.myPaletteBox.mouseY/(myPaletteColorHeight)));
 
-            if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > ((myPaletteViewMode) ? myPaletteLimitTotal : myPaletteLimitCompact))
+            if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > ((myPaletteViewAllMode) ? myPaletteLimitTotal : myPaletteLimitCompact))
             {
                 return -1;
             }
@@ -13340,7 +13344,7 @@
         {
             var list:Array = (myPalettePresetType === 1) ? myPaletteDrawrPreset
                             :(myPalettePresetType === 2) ? myPaletteTegakiPreset
-                            :myPalettePreset;
+                            :(myPaletteViewAllMode) ? myPalettePreset:myPalettePresetCompact;
 
             return !(list[index] is uint);
         }
@@ -13447,17 +13451,45 @@
             }
         }
 
-        private function setMypPaletteListCompact():void
+        private function updateMyPaletteColorFromNormalIndex(index:uint):void
         {
-            myPaletteViewMode = false;
+            if(index < 20)
+            {
+                myPalettePresetCompact[index] = myPalettePreset[index];
+            }
+            else if(index >= 90)
+            {
+                myPalettePresetCompact[(index-90)+20] = myPalettePreset[index];
+            }
+        }
+
+        private function updateMyPalettePresetCompactList(historyOnly:Boolean):void
+        {
+            if(historyOnly === false)
+            {
+                for(var i:uint=0;i<20;i++)
+                {
+                    myPalettePresetCompact[i] = myPalettePreset[i];
+                }
+            }
+
+            for(i=0;i<10;i++)
+            {
+                myPalettePresetCompact[i+20] = myPalettePreset[i+90];
+            }
+        }
+
+        private function setMypPaletteListViewCompact():void
+        {
+            myPaletteViewAllMode = false;
             updateMyPaletteList();
             updateScrollBarHeight();
             checkFOFOPosition();
         }
 
-        private function setMypPaletteListAll():void
+        private function setMypPaletteListViewAll():void
         {
-            myPaletteViewMode = true;
+            myPaletteViewAllMode = true;
             updateMyPaletteList();
             updateScrollBarHeight();
             checkFOFOPosition();
@@ -13472,29 +13504,45 @@
         {
             if(index < 0) return;
 
+            var arr:Array;
+            var updateFunc:Function;
+
+            if(myPaletteViewAllMode)
+            {
+                arr = myPalettePreset;
+                updateFunc = updateMyPaletteColorFromNormalIndex;
+                if(index >= 90) return;
+            }
+            else
+            {
+                arr = myPalettePresetCompact;
+                updateFunc = updateMyPaletteColorFromCompactIndex;
+                if(index >= 20) return;
+            }
+
             if(isSelctedColorEmpty(index))
             {
                 if(myPaletteSaveBeforeAddColor[0] === index)
                 {
-                    myPalettePreset[index] = myPaletteSaveBeforeAddColor[1];
+                    arr[index] = myPaletteSaveBeforeAddColor[1];
+                    updateFunc(index);
                     updateMyPaletteList();
                 }
                 else
                 {
-                    myPalettePreset[index] = color;
+                    arr[index] = color;
+                    updateFunc(index);
                     updateMyPaletteList();
                 }
-
-                // myPaletteSaveBeforeAddColor[0] = -1;
-                // myPaletteSaveBeforeAddColor[1] = 0;
             }
             else
             {
-                if(myPalettePreset[index] !== pickerBox.getRGBInfoBGColor())
+                if(arr[index] !== pickerBox.getRGBInfoBGColor())
                 {
                     myPaletteSaveBeforeAddColor[0] = index;
-                    myPaletteSaveBeforeAddColor[1] = myPalettePreset[index];
-                    myPalettePreset[index] = (penColorTransparentFlag) ? null:color;
+                    myPaletteSaveBeforeAddColor[1] = arr[index];
+                    arr[index] = (penColorTransparentFlag) ? null:color;
+                    updateFunc(index);
                     updateMyPaletteList();
                 }
                 else
@@ -13502,32 +13550,90 @@
                     if(penColorTransparentFlag)
                     {
                         myPaletteSaveBeforeAddColor[0] = index;
-                        myPaletteSaveBeforeAddColor[1] = myPalettePreset[index];
+                        myPaletteSaveBeforeAddColor[1] = arr[index];
                     }
-                    myPalettePreset[index] = null;
+                    arr[index] = null;
+                    updateFunc(index);
                     updateMyPaletteList();
                 }
             }
         }
 
+        private function updateMyPaletteColorFromCompactIndex(index:uint):void
+        {
+            if(index >= 20)
+            {
+                myPalettePreset[(index-20)+90] = myPalettePresetCompact[index];
+            }
+            else
+            {
+                myPalettePreset[index] = myPalettePresetCompact[index];
+            }
+        }
+
         private function clearMyPaletteList():void
         {
+            myPalettePresetCompact.length = 0;
             myPalettePreset.length = 0;
             updateMyPaletteList();
             myPalettePresetType = -1;
             selectMyPaletteButton(0);
         }
 
+        private function addColorMyPaletteHistory(color:uint):void
+        {
+            //색깔 같으면 체크안함
+            if(myPalettePreset[90] === color)
+            {
+                return;
+            }
+
+            //이미 있는 색깔이면 다시 최신으로 갱신
+            for(var i:uint=90;i<100;i++)
+            {
+                if(color === myPalettePreset[i])
+                {
+                    const tmpColor:uint = myPalettePreset.splice(i,1);
+                    myPalettePreset.splice(90,0,tmpColor);
+                    updateMyPaletteList();
+                    return;
+                }
+            }
+
+            //첫부분에 셕이 없으면 그대로 넣어줌
+            if(myPalettePreset[90] === null || myPalettePreset[90] === undefined)
+            {
+                myPalettePreset[90] = color;
+            }
+            else
+            {
+                //투명색 부분 있으면 지워줌
+                for(i=90;i<100;i++)
+                {
+                    if(null === myPalettePreset[i])
+                    {
+                        myPalettePreset.splice(i,1);
+                        break;
+                    }
+                }
+                myPalettePreset.insertAt(90,color);
+                myPalettePreset.removeAt(100);
+            }
+
+            updateMyPalettePresetCompactList(true);
+            updateMyPaletteList();
+        }
+
         private function updateMyPaletteList(ignoreIndex:int=-1):void
         {
             const type:int = myPalettePresetType;
-            const arr:Array = (type === 0) ? myPalettePreset
+            const arr:Array = (type === 0) ? (myPaletteViewAllMode) ? myPalettePreset : myPalettePresetCompact
                              :(type === 1) ? myPaletteDrawrPreset
                              :(type === 2) ? myPaletteTegakiPreset : null;
 
             if(arr === null) return;
 
-            var len:int = (type === 0 && myPaletteViewMode) ? myPaletteLimitTotal:myPaletteLimitCompact;
+            var len:int = (type === 0) ? (myPaletteViewAllMode) ? myPaletteLimitTotal:myPaletteLimitCompact:20;
             var nextX:Number = 0.0;
             var nextY:Number = 0.0;
 
@@ -13584,9 +13690,9 @@
             pickerBox.myPaletteBox.graphics.endFill();
 
             //구분선 그려주기
-            if(type === 2)
+            if(type === 2) //tegaki
             {
-                len = myPaletteLimitCompact/2;
+                len = 10;
                 pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
                 pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight);
                 pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*len,myPaletteColorHeight);
@@ -13596,12 +13702,10 @@
                     pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
                     pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
                 }
-
-                // pickerBox.myPaletteBox.y = 0;
             }
-            else if(type === 1)
+            else if(type === 1) // drawr
             {
-                len = (myPaletteLimitCompact/2)-1;
+                len = 9;
 
                 pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
                 pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight);
@@ -13612,23 +13716,23 @@
                     pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
                     pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
                 }
-
-                // pickerBox.myPaletteBox.y = 0;
             }
-            else
+            else //myh pal
             {
-                len = (myPaletteLimitCompact/2);
+                len = 10;
 
-                if(myPaletteViewMode === false)
+                if(myPaletteViewAllMode === false)
                 {
                     pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
                     pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight);
                     pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*len,myPaletteColorHeight);
+                    pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight*2);
+                    pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*len,myPaletteColorHeight*2);
 
                     for(i=1;i<len;i++)
                     {
                         pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
-                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
+                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*3);
                     }
                 }
                 else
@@ -13647,7 +13751,6 @@
                         pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*len);
                     }
                 }
-                // pickerBox.myPaletteBox.y = (myPaletteViewMode === false) ? 0:-myPaletteColorHeight*Math.floor((myPaletteLimitTotal-20)/10);
             }
         }
 
@@ -15985,7 +16088,7 @@
                             "getFirstRCursorPos.y":tickDraw.getFirstRCursorPos().y,
                             "saveContinue":saveContinue,
                             "myPalettePresetType":myPalettePresetType,
-                            "myPaletteViewMode":myPaletteViewMode
+                            "myPaletteViewAllMode":myPaletteViewAllMode
                             });
             fs.close();
         }
@@ -16078,6 +16181,7 @@
                 fs.open(myPaletteListFile,FileMode.READ);
                 var list:Array = fs.readObject();
                 myPalettePreset = list.concat();
+                updateMyPalettePresetCompactList(false);
                 list.length = 0;
                 list = null;
             }
@@ -16203,13 +16307,15 @@
                     checkCanvasPanelPos(true);
                     if(d["myPalettePresetType"] > 0) selectMyPaletteButton(d["myPalettePresetType"]);
 
-                    myPaletteViewMode = d["myPaletteViewMode"];
-                    if(myPalettePresetType === 0 && d["myPaletteViewMode"])
+                    myPaletteViewAllMode = d["myPaletteViewAllMode"];
+                    if(myPalettePresetType === 0 && d["myPaletteViewAllMode"])
                     {
-                        setMypPaletteListAll();
+                        setMypPaletteListViewAll();
                     }
-
-                    else updateMyPaletteList();
+                    else
+                    {
+                        updateMyPaletteList();
+                    }
                     updatePreviewBoxRectPos();
                     updatePenSizeCursor();
                     updateWindowTitle();
@@ -16620,6 +16726,7 @@
                     {
                         updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
                     }
+                    addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
                 }
 
                 canvasSizeWidth = CANVAS_WIDTH;
@@ -18339,6 +18446,7 @@
 
                     penColor = pickedColor;
                     setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
+                    addColorMyPaletteHistory(penColor);
                 }
 
                 cancelSpuitTool(okFlag);
@@ -22329,11 +22437,31 @@
             {
                 myPaletteDragStarted = false;
 
-                const index:int = getMyPaletteIndexByMousePosLimitBound();
-                const colorSave:* = myPalettePreset[index];
+                const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
+                const colorSave:* = (myPaletteViewAllMode) ? myPalettePreset[putIndex]:myPalettePresetCompact[putIndex];
 
-                myPalettePreset[index] = myPaletteDragClickedColor;
-                myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
+                if(myPaletteViewAllMode)
+                {
+                    if(putIndex < 90)
+                    {
+                        myPalettePreset[putIndex] = myPaletteDragClickedColor;
+                        myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
+
+                        updateMyPaletteColorFromNormalIndex(putIndex);
+                        updateMyPaletteColorFromNormalIndex(myPaletteDragClickedIndex);
+                    }
+                }
+                else
+                {
+                    if(putIndex < 20)
+                    {
+                        myPalettePresetCompact[putIndex] = myPaletteDragClickedColor;
+                        myPalettePresetCompact[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
+
+                        updateMyPaletteColorFromCompactIndex(putIndex);
+                        updateMyPaletteColorFromCompactIndex(myPaletteDragClickedIndex);
+                    }
+                }
 
                 updateMyPaletteList();
             }
@@ -22422,13 +22550,13 @@
                         {
                             if(myPalettePresetType === 0)
                             {
-                                if(myPaletteViewMode === false)
+                                if(myPaletteViewAllMode === false)
                                 {
-                                    setMypPaletteListAll();
+                                    setMypPaletteListViewAll();
                                 }
                                 else
                                 {
-                                    setMypPaletteListCompact();
+                                    setMypPaletteListViewCompact();
                                 }
                             }
                             else
@@ -22477,7 +22605,7 @@
                     if(index >= 0 && !isSelctedColorEmpty(index))
                     {
                         mouseDragON = true;
-                        myPaletteDragClickedColor = myPalettePreset[index];
+                        myPaletteDragClickedColor = (myPaletteViewAllMode) ? myPalettePreset[index] : myPalettePresetCompact[index];
                         myPaletteClickPos.setTo(pickerBox.mouseX,pickerBox.mouseY);
                         myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
                         stage.addEventListener(MouseEvent.MOUSE_UP,myPaletteDragMouseUpEvent,false,-1);
