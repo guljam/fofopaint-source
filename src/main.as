@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.57;
+        private const APP_VERSION:Number = 24.58;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1392,66 +1392,20 @@
                 targetSave = null;
                 removeTimer("hintOFFTimer");
                 removeTimer("hintONDelayTimer");
-                removeTimer("hintONAlphaEffect");
-
-                if(hintBox.alpha < 1.0)
-                {
-                    hintOFFEffect();
-                }
 
                 hintCursor.visible = false;
                 addTimerByName("hintOFFDelayTimer",0.3,false,function():void
                 {
-                    hintOFFEffect();
+                    hintFullOFF();
                 });
             }
 
             function hintFullOFF():void
             {
                 hintBox.visible = false;
-                hintBox.alpha = 0.0;
                 hintBox.setText("");
                 hintBox.x = -hintBox.width-3;
                 hintBox.y = -hintBox.height-3;
-            }
-
-            function hintOFFEffect():void
-            {
-                if(hintBox.visible === false) return;
-
-                if(hintBox.alpha < 1.0)
-                {
-                    hintFullOFF();
-                    return;
-                }
-
-                addTimerByName("hintOFFAlphaEffect",0.0,true,function():Boolean
-                {
-                    hintBox.alpha -= 0.2;
-                    if(hintBox.alpha < 0.0)
-                    {
-                        hintFullOFF();
-                        return false;
-                    }
-                    return true;
-                });
-            }
-
-            function hintONEffect():void
-            {
-                if(hintBox.visible === false) hintBox.alpha = 0.0;
-
-                removeTimer("hintOFFAlphaEffect");
-                addTimerByName("hintONAlphaEffect",0.0,true,function():Boolean
-                {
-                    hintBox.alpha += 0.2;
-                    if(hintBox.alpha > 1.0)
-                    {
-                        hintBox.alpha = 1.0;
-                        return false;
-                    }
-                    return true;
-                });
             }
 
             function updateHintPos():void
@@ -1473,7 +1427,7 @@
                 targetSave = target;
                 updateHintPos();
 
-                hintONEffect();
+                // hintONEffect();
                 setTopChildIndex(hintBox);
                 hintBox.visible = true;
             }
@@ -1502,8 +1456,8 @@
                 }
                 else
                 {
-                    hintOFFEffect();
-                    addTimerByName("hintONDelayTimer",0.3,false,hintON,[str,target]);
+                    hintFullOFF();
+                    addTimerByName("hintONDelayTimer",0.5,false,hintON,[str,target]);
                 }
             }
 
@@ -13812,9 +13766,6 @@
                 if(deepUndoFlag)
                 {
                     setHintONTemp(str);
-                    removeTimer("hintONAlphaEffect");
-                    removeTimer("hintOFFAlphaEffect");
-                    hintBox.alpha = 1.0;
                 }
                 else
                 {
