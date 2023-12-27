@@ -61,7 +61,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.58;
+        private const APP_VERSION:Number = 24.60;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13333,7 +13333,7 @@
                     return;
                 }
 
-                pickedColor = myPalettePreset[index];
+                pickedColor = (myPaletteViewAllMode) ? myPalettePreset[index] : myPalettePresetCompact[index];
 
                 if(pickedColor === pickerBox.getRGBInfoBGColor())
                 {
@@ -13548,7 +13548,15 @@
                 if(color === myPalettePreset[i])
                 {
                     const tmpColor:uint = myPalettePreset.splice(i,1);
-                    myPalettePreset.splice(90,0,tmpColor);
+                    if(myPalettePreset[90] === null || myPalettePreset[90] === undefined)
+                    {
+                        myPalettePreset[90] = tmpColor;
+                    }
+                    else
+                    {
+                        myPalettePreset.insertAt(90,tmpColor);
+                    }
+                    updateMyPalettePresetCompactList(true);
                     updateMyPaletteList();
                     return;
                 }
