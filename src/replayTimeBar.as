@@ -19,10 +19,6 @@
 		public var frameInfo:TextField;
 		public var BARSIZE:Number = 27;
 		private var nowBarColorSave:ColorTransform = new ColorTransform();
-		private const baseColor:ColorTransform = new ColorTransform();
-		private const opColor:ColorTransform = new ColorTransform();
-		private const nowBarColor:ColorTransform = new ColorTransform();
-		private const totalBarColor:ColorTransform = new ColorTransform();
 
 		public function setScale(newScale:Number):void
 		{
@@ -67,6 +63,11 @@
 		}
 		public function changeUIColor(base:uint,op:uint,color1:uint,index:uint):void
 		{
+			const baseColor:ColorTransform = new ColorTransform();
+			const opColor:ColorTransform = new ColorTransform();
+			const nowBarColor:ColorTransform = new ColorTransform();
+			const totalBarColor:ColorTransform = new ColorTransform();
+
 			baseColor.color = base;
 			opColor.color = op;
 			nowBarColor.color = color1;

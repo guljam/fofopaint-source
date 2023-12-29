@@ -85,9 +85,6 @@
 		private var newWindowIconStateSaveLayerButton:Boolean = false // 뉴윈도우인지 끄기 버튼인지 구분
 		private var newWindowIconStateDrawModeIcon:Boolean = false // 뉴윈도우인지 끄기 버튼인지 구분
 
-		private const baseColor:ColorTransform = new ColorTransform();
-		private const opColor:ColorTransform = new ColorTransform();
-
 		public function setScale(scale:Number):void
 		{
 			this.scaleX = scale;
@@ -262,6 +259,8 @@
 
 		public function changeUIColor(base:uint,op:uint,hintOKColor:uint):void
 		{
+			const baseColor:ColorTransform = new ColorTransform();
+			const opColor:ColorTransform = new ColorTransform();
 
 			var alphaBackup:Number = 0.0;
 

@@ -57,11 +57,12 @@
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import flash.ui.Mouse;
+    import flash.text.TextFieldType;
     //import end
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.60;
+        private const APP_VERSION:Number = 24.61;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -295,6 +296,7 @@
                     ,pickerBox:colorPickerBox = new colorPickerBox()
                     ,previewBox:previewPanel = new previewPanel()
                     ,appInfoBox:appInfoBar = new appInfoBar()
+                    ,numPadBox:numPadButtons = new numPadButtons()
                     ,sideBar:sidePanel = new sidePanel()
                     ,fofo:fofoBottomBox = new fofoBottomBox()
                     ,sideBarScrollBar:Sprite = new Sprite()
@@ -592,7 +594,7 @@
                                                 [COLOR_BRIGHT,    0x505050,      0xE1E1E1,    0xCBCBCB,            0xCEE5C5,           0xF7F2A0],
                                         ]
                     ,uiToolBoxColorSet:Array =
-                    [                            //컬러 셋 이름,     윗부분 막대색, 전체 배경색, upstate왼쪽아이콘색,  overstate 버튼배경색  overstate 아이콘색
+                    [                           //주 컬러,          윗부분 막대색, 전체 배경색, upstate왼쪽아이콘색,  overstate 버튼배경색  overstate 아이콘색
                                                 [COLOR_DARK,        0x434343,   0xE5E5E5,  0xE5E5E5,           0x6E98B4,           0xE5E5E5],
                                                 [COLOR_MID_DARK,    0xE3E3E1,   0xE3E3E1,  COLOR_MID_DARK,     0xB1DFEE,           COLOR_MID_DARK],
                                                 [COLOR_MID_BRIGHT,  0xD6D5D4,   0x505050,  0x505050,           0xBADAE5,           0x505050],
@@ -639,6 +641,7 @@
         //picker box RGB info관련 변수
                     ,rgbInfoFocusedON:Boolean = false // rgb info입력이 활성화 되었을때 올려줌
                     ,selectedRGBInfoIndex:int = -1 //처음 클릭했을때 R G B중 어느 영역을 클릭했는지
+                    ,rgbInfoCursorPosSave:int = -1 //포커스 아웃 될때 마지막 커서 위치가 어딘지 저장
                     ,rgbInfoTextFocusedONFlag:Boolean = false // 텍스트 입력이 켜지면 올려줌
                     ,rgbInfoRightClickFocusIgnoreFlag:Boolean = false // RGB INFO 오를쪽 클릭은 힌트 안뜨고 기능못하게함
                     ,rgbInfoColorTypeHSV:Boolean = false // true가 되면 hsv false이면 rgb
@@ -720,6 +723,52 @@
         }
 
         //function
+        private function rgbInfoNumPadIncKey(inc:int):void
+        {
+            selectRGBInfoTextByRGBPos(rgbInfoCursorPosSave);
+            if(rgbInfoColorTypeHSV)
+            {
+                adjustHSVInfoColor(inc,true);
+            }
+            else
+            {
+                adjustRGBInfoColor(inc,true);
+            }
+        }
+
+        private function rgbInfoNumPadInputKey(num:String):void
+        {
+            var startIndex:int = pickerBox.rgbInfo.selectionBeginIndex;
+            var endIndex:int = pickerBox.rgbInfo.selectionEndIndex;
+
+            var cursorIndex:int;
+            var currentValue:int;
+
+            // 00 이렇게 되는거 방지
+            if(rgbInfoColorTypeHSV)
+            {
+                if(num === "0" && int(getRGBColorTextFromRGBInfoText()[rgbInfoCursorPosSave]) === 0)
+                {
+                    return;
+                }
+            }
+            else if(num === "0" && int(getRGBColorTextFromRGBInfoText()[rgbInfoCursorPosSave]) === 0)
+            {
+                return;
+            }
+
+            if(startIndex != endIndex)
+            {
+                pickerBox.rgbInfo.replaceText(startIndex,endIndex,num);
+            }
+            else
+            {
+                pickerBox.rgbInfo.replaceText(startIndex,startIndex,num);
+            }
+
+            checkRGBInfoTextFormat(true);
+        }
+
         private function getSidebarConstHeight():Number
         {
             return (sideBarConstHeight + ((myPaletteViewAllMode && myPalettePresetType === 0) ? myPaletteColorHeight*7:0));
@@ -1242,7 +1291,7 @@
         {
             return mouseClickON || mouseDragON || toolBox2ON || fillPenStarted
             || lassoToolON || rgbInfoFocusedON || aboutPanelON || makeJumpImageFlag === 2
-            || loadMenuBox.visible;
+            || loadMenuBox.visible || numPadBox.visible;
         }
 
         private function setLayerSwapEffect(target:DisplayObject):void
@@ -1501,7 +1550,6 @@
 
             if(emptyFlag === -1) return false;
 
-
             if(rgbInfoColorTypeHSV)
             {
                 c[0] = Number(c[0])/360;
@@ -1531,7 +1579,7 @@
         }
 
         //123,123,123에서 커서가 어느 지점이 있는지 반환함 0은 R, 1은 G, 2는 B
-        private function getRGBInfoTextRGBPos():int
+        private function getRGBInfoTextCursorPos():int
         {
             const textBeforeCursor:String = pickerBox.getRGBInfo().substring(0,pickerBox.rgbInfo.caretIndex);
             const rgb:Array =  textBeforeCursor.split(",");
@@ -1594,7 +1642,7 @@
         private function isCurrentRGBInfoTextLenBiggerThan3():Boolean
         {
             const rgb:Array = getRGBColorTextFromRGBInfoText();
-            const cursorPos:int = getRGBInfoTextRGBPos();
+            const cursorPos:int = getRGBInfoTextCursorPos();
 
             if(rgb[cursorPos].length >= 3)
             {
@@ -1653,9 +1701,9 @@
             }
         }
 
-        private function adjustHSVInfoColor(value:int):void
+        private function adjustHSVInfoColor(value:int,fromNumPad:Boolean):void
         {
-            const index:int = getRGBInfoTextRGBPos();
+            const index:int = (fromNumPad) ? rgbInfoCursorPosSave:getRGBInfoTextCursorPos();
             const hsv:Array = getRGBColorTextFromRGBInfoText();
             var num:int = int(hsv[index]);
 
@@ -1683,9 +1731,9 @@
             selectRGBInfoTextByRGBPos(index);
         }
 
-        private function adjustRGBInfoColor(value:int):void
+        private function adjustRGBInfoColor(value:int,fromNumPad:Boolean):void
         {
-            const index:int = getRGBInfoTextRGBPos();
+            const index:int = (fromNumPad) ? rgbInfoCursorPosSave:getRGBInfoTextCursorPos();
             const rgb:Array = getRGBColorTextFromRGBInfoText();
             var num:int = int(rgb[index]);
 
@@ -1710,10 +1758,6 @@
             {
                 toggleRGBInfoTextColorType();
             }
-            // else
-            // {
-            //     stage.focus = null;
-            // }
         }
 
         private function isNumberKeyCode(charCode:uint):Boolean
@@ -1744,20 +1788,9 @@
             {
                 case KEY.enter:
                 case KEY.esc:
+                case KEY.space:
                 {
-                    stage.focus = null;
-                }
-                break;
-
-                case KEY.pgup:
-                {
-                    selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()-1);
-                }
-                break;
-
-                case KEY.pgdn:
-                {
-                    selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()+1);
+                    setStageFocusNull();
                 }
                 break;
 
@@ -1765,11 +1798,11 @@
                 {
                     if(isPressingShift())
                     {
-                        selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()-1);
+                        selectRGBInfoTextByRGBPos(getRGBInfoTextCursorPos()-1);
                     }
                     else
                     {
-                        selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()+1);
+                        selectRGBInfoTextByRGBPos(getRGBInfoTextCursorPos()+1);
                     }
                 }
                 break;
@@ -1780,11 +1813,11 @@
                 {
                     if(rgbInfoColorTypeHSV)
                     {
-                        adjustHSVInfoColor(1);
+                        adjustHSVInfoColor(1,false);
                     }
                     else
                     {
-                        adjustRGBInfoColor(1);
+                        adjustRGBInfoColor(1,false);
                     }
                     e.preventDefault();
                 }
@@ -1796,11 +1829,11 @@
                 {
                     if(rgbInfoColorTypeHSV)
                     {
-                        adjustHSVInfoColor(-1);
+                        adjustHSVInfoColor(-1,false);
                     }
                     else
                     {
-                        adjustRGBInfoColor(-1);
+                        adjustRGBInfoColor(-1,false);
                     }
                     e.preventDefault();
                 }
@@ -1842,17 +1875,94 @@
                     if(!isNumberKeyCode(e.charCode))
                     {
                         e.preventDefault();
-                        stage.focus = null;
+                        setStageFocusNull();
                     }
                 }
                 break;
             }
         }
 
+        private function setNumPadON():void
+        {
+            if(numPadBox.visible === false)
+            {
+                numPadBox.visible = true;
+                setTopChildIndex(numPadBox);
+                const gp:Point = pickerBox.svBox.localToGlobal(ZERO_POINT);
+                numPadBox.x = gp.x;
+                numPadBox.y = gp.y;
+                resetNowKey();
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,numPadMouseDownEvent);
+            }
+        }
+
+        private function setNumPadOFF():void
+        {
+            setRGBInfoTextInputOK();
+            numPadBox.off();
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,numPadMouseDownEvent);
+        }
+
+        private function checkNumPadMouseUp(oldTargetName:String):void
+        {
+            function numPadMouseUpEvent(e:MouseEvent):void
+            {
+                stage.removeEventListener(MouseEvent.MOUSE_UP,numPadMouseUpEvent);
+
+                if(oldTargetName === e.target.name)
+                {
+                    switch(e.target.name)
+                    {
+                        case "numInc": rgbInfoNumPadIncKey(1); break;
+                        case "numDec": rgbInfoNumPadIncKey(-1); break;
+                        case "num0":
+                        case "num1":
+                        case "num2":
+                        case "num3":
+                        case "num4":
+                        case "num5":
+                        case "num6":
+                        case "num7":
+                        case "num8":
+                        case "num9":
+                        {
+                            rgbInfoNumPadInputKey(e.target.name.charAt(3));
+                        }
+                        break;
+                    }
+                }
+            };
+
+            stage.addEventListener(MouseEvent.MOUSE_UP,numPadMouseUpEvent);
+        }
+
+        private function numPadMouseDownEvent(e:MouseEvent):void
+        {
+            if(!e.target) return;
+
+            const targetName:String = e.target.name;
+            if(!numPadBox.hitTestPoint(mouseX,mouseY) && !pickerBox.rgbInfo.hitTestPoint(mouseX,mouseY))
+            {
+                setNumPadOFF();
+                return;
+            }
+
+            if(targetName === "numInc")
+            {
+                setHoldKeyRepeat(false,rgbInfoNumPadIncKey,1);
+            }
+            else if(targetName === "numDec")
+            {
+                setHoldKeyRepeat(false,rgbInfoNumPadIncKey,-1);
+            }
+
+            checkNumPadMouseUp(targetName);
+        }
+
         //hsv rgb로 왔다갔다함
         private function toggleRGBInfoTextColorType():void
         {
-            const oldCursorIndex:int = getRGBInfoTextRGBPos();
+            const oldCursorIndex:int = getRGBInfoTextCursorPos();
 
             if(rgbInfoColorTypeHSV)
             {
@@ -1890,6 +2000,8 @@
             setIMEDisabled();
             checkKeyInvalidKey();
 
+            rgbInfoCursorPosSave = selectedRGBInfoIndex;
+
             if(rgbInfoRightClickFocusIgnoreFlag)
             {
                 rgbInfoRightClickFocusIgnoreFlag = false;
@@ -1897,7 +2009,7 @@
                 return;
             }
 
-            stage.focus = null;
+            // stagefo();
             hint.off();
             pickerBox.rgbInfo.background = false;
             pickerBox.rgbInfo.border  = false;
@@ -1905,45 +2017,37 @@
             stage.removeEventListener(KeyboardEvent.KEY_DOWN, rgbInfoTextKeyDownEvent);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rgbInfoTextRightMouseDownEvent);
             pickerBox.rgbInfo.removeEventListener(Event.CHANGE, onRGBInfoTextChangeEvent);
-
+            rgbInfoRightClickFocusIgnoreFlag = false;
             setRGBInfoTextInputOK();
 
-            rgbInfoRightClickFocusIgnoreFlag = false;
-
-            if(isBackgroundColorMode())
-            {
-                addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.1,false,function():void
-                {
-                    addInputEventDrawMode();
-                    rgbInfoFocusedON = false;
-                });
-            }
-            else
+            addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.2,false,function():void
             {
                 rgbInfoFocusedON = false;
                 addInputEventDrawMode();
-            }
+            });
+        }
+
+        private function setStageFocusNull():void
+        {
+            stage.focus = null;
+            setNumPadOFF();
         }
 
         private function rgbInfoTextFocusInEvent(e:FocusEvent):void
         {
-            if(nowKey !== 0)
-            {
-                rgbInfoRightClickFocusIgnoreFlag = true;
-            }
-
             if(rgbInfoRightClickFocusIgnoreFlag)
             {
                 pickerBox.rgbInfo.selectable = false;
                 pickerBox.updateOldRGBInfoText();
                 addTimerByName("textInputFocusIgnoreDelay",0.1,false,function():void
                 {
-                    stage.focus = null;
-                })
+                    setStageFocusNull();
+                });
+
                 return;
             }
-            setIMEDisabled();
 
+            setIMEDisabled();
             removeInputEventDrawMode();
 
             rgbInfoFocusedON = true;
@@ -1971,28 +2075,30 @@
 
             pickerBox.updateFirstRGBInfoColorText();
             // pickerBox.rgbInfo.setSelection(0,0);
-
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,rgbInfoTextKeyDownEvent);
+            if(quickSidebarON === false)
+            {
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,rgbInfoTextKeyDownEvent);
+            }
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rgbInfoTextRightMouseDownEvent);
             pickerBox.rgbInfo.addEventListener(Event.CHANGE,onRGBInfoTextChangeEvent);
             setNowToolForDrawing(false);
+            setNumPadON();
 
             addTimerByName("rgbInfoTextFocusInEventDelayCheck",0.0,false,function():void
             {
                 pickerBox.rgbInfo.setSelection(currnetTextCursorPos,currnetTextCursorPos);
                 pickerBox.rgbInfo.addEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
-                const gp:Point = pickerBox.rgbInfoBG.localToGlobal(ZERO_POINT);
-                const scale:Number = getUIScale();
                 hint.on(STRING_CUSTOM_COLOR_HINT,pickerBox.rgbInfo);
             });
         }
 
-        private function onRGBInfoTextChangeEvent(e:Event):void
+        private function checkRGBInfoTextFormat(fromNumPad:Boolean):void
         {
-            var pattern:RegExp = /(RGB|HSV) \d{0,3},\d{0,3},\d{0,3}/;
+            var pattern:RegExp = /\b(RGB|HSV) \d{0,3},\d{0,3},\d{0,3}/;
             var isMatch:Boolean = pattern.test(pickerBox.getRGBInfo());
 
             var hasEmptyChecked:Boolean = checkRGBInfoHasEmptyValue();
+
             if(isMatch)
             {
                 checkRGBInfoColorValueLimit();
@@ -2007,15 +2113,20 @@
                     setHSVCursorPosByColor(getHexColorFromRGBInfoText());
                 }
 
-                if(isCurrentRGBInfoTextLenBiggerThan3() && hasEmptyChecked === false)
+                if(!fromNumPad && isCurrentRGBInfoTextLenBiggerThan3() && hasEmptyChecked === false)
                 {
-                    selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos()+1);
+                    selectRGBInfoTextByRGBPos(getRGBInfoTextCursorPos()+1);
                 }
             }
             else
             {
                 pickerBox.resetToOldRGBInfoText();
             }
+        }
+
+        private function onRGBInfoTextChangeEvent(e:Event):void
+        {
+            checkRGBInfoTextFormat(false);
         }
 
         private function checkRGBInfoCursorPos(e:Event):void
@@ -2025,9 +2136,9 @@
                 pickerBox.rgbInfo.setSelection(4,4);
             }
 
-            if(selectedRGBInfoIndex !== getRGBInfoTextRGBPos())
+            if(selectedRGBInfoIndex !== getRGBInfoTextCursorPos())
             {
-                selectRGBInfoTextByRGBPos(getRGBInfoTextRGBPos());
+                selectRGBInfoTextByRGBPos(getRGBInfoTextCursorPos());
             }
         }
 
@@ -2962,6 +3073,7 @@
             aboutPanel.setScale(scale);
             spuitZoomCursor.setScale(scale);
             loadMenuBox.setScale(scale);
+            numPadBox.setScale(scale);
             updateStageOffset();
             updateScrollBarHeight();
             rCursor.setScale(scale);
@@ -2998,7 +3110,7 @@
             sideBar.x = sideBarPosSave;
             quickSidebarON = false;
             checkFOFOPosition();
-            pickerBox.rgbInfo.type = "input";
+            pickerBox.rgbInfo.type = TextFieldType.INPUT;
 
             if(toolBox.getLastTool() === "toolSpuit")
             {
@@ -3014,6 +3126,8 @@
             {
                 hint.off();
             }
+
+            setStageFocusNull();
         }
 
         private function setQuickSidebarOFF():void
@@ -3112,11 +3226,13 @@
 
             if(shortcut)
             {
+                pickerBox.rgbInfo.type = TextFieldType.DYNAMIC;
                 setNowToolByOldTool();
                 stage.addEventListener(KeyboardEvent.KEY_UP,keyUpQuickSidebarOFF);
             }
             else
             {
+                pickerBox.rgbInfo.type = TextFieldType.INPUT;
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownQuickSidebarOFF,false,-2);
             }
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownQuickSidebarOFF,false,-2);
@@ -3630,6 +3746,7 @@
                 return true;
 
                 case KEY.g:
+                selectRGBInfoTextByRGBPos(0);
                     setHoldKeyRepeat(true,shortCutPenAlpha,true);
                 return true;
 
@@ -7196,6 +7313,7 @@
             fillPenBox.changeBGColor(uiToolBoxColorSet[index]);
             traceMenu.changeUIColor(uiToolBoxColorSet[index],index === 0);
             lassoMenu.changeUIColor(uiToolBoxColorSet[index]);
+            numPadBox.changeUIColor(uiToolBoxColorSet[index]);
             topBar.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],uiColorSet[index][4]);
             rotateCursorBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1]);
             replayTimeBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],uiToolBoxColorSet[index][4],index);
@@ -9119,6 +9237,9 @@
                                 changePickerModeToBG();
                             }
                         }
+                        break;
+
+                        default:
                         break;
                     }
                 }
@@ -14895,6 +15016,7 @@
 
             captureModeON = true;
             penCursorOFFFlag = true;
+            setNumPadOFF();
             stageMouseMoveEvent.add("captureMouseMoveHintEvent",captureMouseMoveHintEvent);
 
             setCaptureUI(true);
@@ -20063,6 +20185,7 @@
             stage.addChild(toolTipBox);
             stage.addChild(hintBox);
             stage.addChild(hintCursor);
+            stage.addChild(numPadBox);
             setTopChildIndex(topBar);
         }
 
@@ -21310,8 +21433,20 @@
                 }
             }
 
-            if(quickSidebarON && !deepUndoON) _quickSidebarOFF();
-            if(subLayerPreviewON) setSingleLayerPreviewOFF();
+            if(quickSidebarON && !deepUndoON)
+            {
+                _quickSidebarOFF();
+            }
+
+            if(subLayerPreviewON)
+            {
+                setSingleLayerPreviewOFF();
+            }
+
+            if(numPadBox.visible)
+            {
+                setNumPadOFF();
+            }
 
             setNowToolByOldTool();
         }
@@ -21829,6 +21964,7 @@
             setTopChildIndex(replayTimeBox);
             setReplayDeleteBarVisibleOFF();
             setTopBarHintOFF();
+            setNumPadOFF();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             rCursor.alpha = 1.0;
             rcanvasPanel.addChild(rCursor);

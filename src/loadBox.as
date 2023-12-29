@@ -18,10 +18,6 @@
 		public var pleaseWaitText:TextField;
 		public var dragDropFileBG:Sprite = new Sprite();
 
-		private const subBase:ColorTransform = new ColorTransform();
-		private const activeColor:ColorTransform = new ColorTransform();
-		private const activeIconColor:ColorTransform = new ColorTransform();
-		private var buttonList:Array;
 		private var previewBitmap:Bitmap = new Bitmap(new BitmapData(1,1,false,0));
 		private var previewBitmapBox:Sprite = new Sprite();
 		private var bitmapSize:Number = 180;
@@ -96,6 +92,16 @@
 
 		public function changeUIColor(arr:Array):void
 		{
+			const subBase:ColorTransform = new ColorTransform();
+			const activeColor:ColorTransform = new ColorTransform();
+			const activeIconColor:ColorTransform = new ColorTransform();
+			const buttonList:Array = [
+										dragDropLoadButton,
+										dragDropSaveAndLoadButton,
+										dragDropLoadRefLayerButton,
+										dragDropCancelButton,
+									];
+
 			const len:uint = buttonList.length;
 
 			var btn:SimpleButton;
@@ -176,13 +182,6 @@
 			pleaseWaitText.textColor = 0xFFFFFF;
 
 			setChildIndex(pleaseWaitText,numChildren-1);
-
-			buttonList = [
-							dragDropLoadButton,
-							dragDropSaveAndLoadButton,
-							dragDropLoadRefLayerButton,
-							dragDropCancelButton,
-						];
 		}
 	}
 }

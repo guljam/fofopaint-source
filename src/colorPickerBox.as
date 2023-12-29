@@ -62,7 +62,7 @@
 		private var rgbInfoWidth:int = 107;
 		private var rgbInfoHeight:int = 19;
 
-		private const baseColor:ColorTransform = new ColorTransform();
+
 
 		private var lastRGBInfoText:String = "";
 		private var firstRGBInfoColorText:String = "";
@@ -135,6 +135,7 @@
 
 		public function changeUIColor(color:uint):void
 		{
+			const baseColor:ColorTransform = new ColorTransform();
 			baseColor.color = color;
 
 			rgbInfo.textColor = color;

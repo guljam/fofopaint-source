@@ -14,7 +14,6 @@
 		private var canvasZoom:Number = 0;
 		private var canvasRotate:Number = 0;
 		private var canvasMirror:Boolean = false;
-		private const appInfoArrowColor:ColorTransform = new ColorTransform();
 
 		public function init(w:Number,h:Number,z:Number,r:Number,flag:Boolean):void
 		{
@@ -85,6 +84,8 @@
 
 		public function changeUIColor(color:uint):void
 		{
+			const appInfoArrowColor:ColorTransform = new ColorTransform();
+
 			canvasInfo.textColor = color;
 			appInfoArrowColor.color = color;
 			appInfoArrow.transform.colorTransform = appInfoArrowColor

@@ -31,23 +31,41 @@
 		private const fixedScale:Number = 0.875;
 
 		private var lassoInfoPos:Array = [0,0];
-		private const base:ColorTransform = new ColorTransform();
-		private const subBase:ColorTransform = new ColorTransform();
-		private const iconLeft:ColorTransform = new ColorTransform();
-		private const iconRight:ColorTransform = new ColorTransform();
-		private const activeColor:ColorTransform = new ColorTransform();
-		private const activeIconColor:ColorTransform = new ColorTransform();
-		private var leftButtonArr2:Array;
-		private var rightButtonArr:Array;
 
 		public function changeUIColor(arr:Array):void
 		{
+			const base:ColorTransform = new ColorTransform();
+			const subBase:ColorTransform = new ColorTransform();
+			const iconLeft:ColorTransform = new ColorTransform();
+			const iconRight:ColorTransform = new ColorTransform();
+			const activeColor:ColorTransform = new ColorTransform();
+			const activeIconColor:ColorTransform = new ColorTransform();
+
 			base.color = arr[0];
 			subBase.color = arr[1];
 			iconLeft.color = arr[2];
 			iconRight.color = arr[3];
 			activeColor.color = arr[4];
 			activeIconColor.color = arr[5];
+
+			const leftButtonArr2:Array = [
+								lassoOK,
+								lassoCancel,
+								lassoTrace,
+								lassoLayerSwap,
+								lassoLayerMerge
+							 ];
+
+			const rightButtonArr:Array = [
+								lassoCopy,
+								lassoRotate,
+								lassoResize,
+								lassoMirror,
+								lasso1pxLeft,
+								lasso1pxRight,
+								lasso1pxUp,
+								lasso1pxDown,
+							 ];
 
 			var i:uint = 0;
 			var len:uint = leftButtonArr2.length;
@@ -140,26 +158,6 @@
 			lassoInfo.mouseEnabled = false;
 			lassoInfoPos[0] = lassoInfo.y;
 			lassoInfoPos[1] = lassoInfo.height;
-
-			leftButtonArr2 = [
-								lassoOK,
-								lassoCancel,
-								lassoTrace,
-								lassoLayerSwap,
-								lassoLayerMerge
-							 ];
-
-			rightButtonArr = [
-								lassoCopy,
-								lassoRotate,
-								lassoResize,
-								lassoMirror,
-								lasso1pxLeft,
-								lasso1pxRight,
-								lasso1pxUp,
-								lasso1pxDown,
-							 ];
 		}
 	}
-
 }

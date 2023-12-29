@@ -29,19 +29,6 @@
 		private var fixedScale:Number = 1.0;
 		private var infoDataBackup:Array = [];
 
-		private const base:ColorTransform = new ColorTransform();
-		private const subBase:ColorTransform = new ColorTransform();
-		private const iconLeft:ColorTransform = new ColorTransform();
-		private const iconRight:ColorTransform = new ColorTransform();
-		private const activeColor:ColorTransform = new ColorTransform();
-		private const activeIconColor:ColorTransform = new ColorTransform();
-		private var btn:SimpleButton;
-		private var btnUp:DisplayObject;
-		private var btnOver:DisplayObjectContainer;
-
-		private var leftButtonArr:Array;
-		private var rightButtonArr:Array;
-
 		private var lastUsedToolPoint:Point = new Point(0,0);
 
 		public function getLastUsedToolPos():Point
@@ -119,6 +106,36 @@
 
 		public function changeUIColor(arr:Array):void
 		{
+			const base:ColorTransform = new ColorTransform();
+			const subBase:ColorTransform = new ColorTransform();
+			const iconLeft:ColorTransform = new ColorTransform();
+			const iconRight:ColorTransform = new ColorTransform();
+			const activeColor:ColorTransform = new ColorTransform();
+			const activeIconColor:ColorTransform = new ColorTransform();
+			var btn:SimpleButton;
+			var btnUp:DisplayObject;
+			var btnOver:DisplayObjectContainer;
+
+			const leftButtonArr:Array = [
+											toolZoom,
+											toolMove,
+											toolRotate,
+											toolTrace,
+										];
+
+			const rightButtonArr:Array = [
+											toolPen,
+											toolFillPen,
+											toolErase,
+											toolUndo,
+											toolRedo,
+											toolSpuit,
+											toolMirror,
+											toolLasso,
+											toolLine,
+											toolSidebar
+										];
+
            	base.color = arr[0];
            	subBase.color = arr[1];
            	iconLeft.color = arr[2];
@@ -190,26 +207,6 @@
 			toolPen.visible = false;
 			toolErase.visible = true;
 			visible = false;
-
-			leftButtonArr = [
-								toolZoom,
-								toolMove,
-								toolRotate,
-								toolTrace,
-							];
-
-			rightButtonArr = [
-								toolPen,
-								toolFillPen,
-								toolErase,
-								toolUndo,
-								toolRedo,
-								toolSpuit,
-								toolMirror,
-								toolLasso,
-								toolLine,
-								toolSidebar
-							];
 
 			fixedScale = 34/toolPen.width;
 			setScale(1.0);

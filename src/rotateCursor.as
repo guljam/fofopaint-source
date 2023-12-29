@@ -9,8 +9,6 @@
 		public var rotateBG:SimpleButton;
 		public var rotateArrow:SimpleButton;
 		public var rotateCircle:SimpleButton;
-		private const baseColor:ColorTransform = new ColorTransform();
-		private const opColor:ColorTransform = new ColorTransform();
 		private const fixedScale:Number = 0.7;
 
 		public function setScale(scale:Number):void
@@ -21,6 +19,9 @@
 
 		public function changeUIColor(base:uint,op:uint):void
 		{
+			const baseColor:ColorTransform = new ColorTransform();
+			const opColor:ColorTransform = new ColorTransform();
+
 			baseColor.color = base;
 			opColor.color = op;
 
