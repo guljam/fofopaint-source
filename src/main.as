@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.62;
+        private const APP_VERSION:Number = 24.63;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4917,7 +4917,18 @@
                 {
                     mouseMoveCount = 0;
 
-                    canvas2BitmapData.draw(canvas2Draw,null,null,"layer");
+                    if(airBrushSizeDrawMode > 0)
+                    {
+                        const blurSize:Number = getBlurSize(airBrushSizeDrawMode,1.0);
+                        canvas2Draw.filters = [new BlurFilter(blurSize,blurSize,3)];
+                        canvas2BitmapData.draw(canvas2Draw,null,null,"layer");
+                        canvas2Draw.filters = [];
+                    }
+                    else
+                    {
+                        canvas2BitmapData.draw(canvas2Draw,null,null,"layer");
+                    }
+
                     canvas2Bitmap.bitmapData = canvas2BitmapData;
                     updateCanvas2DrawCliprect();
                     canvas2Draw.graphics.clear();
@@ -4928,7 +4939,7 @@
 
                     penCommand.length = 0;
                     penPoints.length = 0;
-                    rDataBuffer.push(["tempDone3"]);
+                    rDataBuffer.push(["tempDone4"]);
 
                     if(xShape === true)
                     {
@@ -11311,6 +11322,25 @@
                 setRCursorPos(width/2,height/2);
             }
 
+            function tempDone4(data:Array):void
+            {
+                if(airBrushSizeReplayMode2 > 0)
+                {
+                    const blurSize:Number = getBlurSize(airBrushSizeReplayMode2,1.0);
+                    rcanvas2Draw.filters = [new BlurFilter(blurSize,blurSize,3)];
+                    rcanvas2BitmapData.draw(rcanvas2Draw);
+                    canvas2Draw.filters = [];
+                }
+                else
+                {
+                    rcanvas2BitmapData.draw(rcanvas2Draw);
+                }
+
+                rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+                updateRCanvas2DrawCliprect2();
+                rcanvas2Draw.graphics.clear();
+            }
+
             function tempDone3(data:Array):void
             {
                 rcanvas2BitmapData.draw(rcanvas2Draw);
@@ -11355,6 +11385,44 @@
                     rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
                     rcanvas2Draw.graphics.clear();
                 }
+            }
+
+            function drawDone5(data:Array):void
+            {
+                const lineStyleData:Array = getrLineStyleSave();
+                const subLayer:Boolean = data[1];
+                const canvasAlpha:ColorTransform = new ColorTransform(1,1,1,lineStyleData[0]);
+
+                if(airBrushSizeReplayMode2 > 0)
+                {
+                    const blurSize:Number = getBlurSize(airBrushSizeReplayMode2,1.0);
+                    rcanvas2Draw.filters = [new BlurFilter(blurSize,blurSize,3)];
+                    rcanvas2BitmapData.draw(rcanvas2Draw);
+                    rcanvas2Draw.filters = [];
+                }
+                else
+                {
+                    rcanvas2BitmapData.draw(rcanvas2Draw);
+                }
+
+                rcanvas2Bitmap.bitmapData = rcanvas2BitmapData;
+
+                updateRCanvas2DrawCliprect2();
+                extandRCanvas2DrawCliprect2();
+
+                if(subLayer)
+                {
+                    rcanvas11BitmapData.draw(rcanvas2Bitmap,null,canvasAlpha,lineStyleData[1],rcanvas2ClipRect2);
+                    rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
+                }
+                else
+                {
+                    rcanvas1BitmapData.draw(rcanvas2Bitmap,null,canvasAlpha,lineStyleData[1],rcanvas2ClipRect2);
+                    rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
+                }
+
+                rcanvas2BitmapData.fillRect(rcanvas2ClipRect2,0);
+                rcanvas2Draw.graphics.clear();
             }
 
             function drawDone4(data:Array):void
@@ -11603,10 +11671,12 @@
                     case "tempDone": tempDone(data[index]); break;
                     case "tempDone2": tempDone2(data[index]); break;
                     case "tempDone3": tempDone3(data[index]); break;
+                    case "tempDone4": tempDone4(data[index]); break;
                     case "drawDone": drawDone(data[index]); break;
                     case "drawDone2": drawDone2(data[index]); break;
                     case "drawDone3": drawDone3(data[index]); break;
                     case "drawDone4": drawDone4(data[index]); break;
+                    case "drawDone5": drawDone5(data[index]); break;
                     case "clear": clear(true,true); break;
                     case "clear1": clear(true,false); break;
                     case "clear2": clear(false,true); break;
@@ -16510,18 +16580,22 @@
 
                 readyAddUndoFlag = false;
 
-                canvas2BitmapData.draw(canvas2Draw);
+                if(airBrushSizeDrawMode > 0)
+                {
+                    const blurSize:Number = getBlurSize(airBrushSizeDrawMode,1.0);
+                    canvas2Draw.filters = [new BlurFilter(blurSize,blurSize,3)];
+                    canvas2BitmapData.draw(canvas2Draw);
+                    canvas2Draw.filters = [];
+                }
+                else
+                {
+                    canvas2BitmapData.draw(canvas2Draw);
+                }
+
                 canvas2Bitmap.bitmapData = canvas2BitmapData;
 
                 updateCanvas2DrawCliprect();
                 extandCanvas2DrawCliprect(); // 그린 영역을 100% 다 포함하지 않아서 약간 늘려줌
-
-                if(airBrushSizeDrawMode > 0)
-                {
-                    const blurSize:Number = getBlurSize(airBrushSizeDrawMode,1.0);
-                    canvas2BitmapData.applyFilter(canvas2BitmapData,canvas2ClipRect,new Point(canvas2ClipRect.x,canvas2ClipRect.y),new BlurFilter(blurSize,blurSize,3));
-                    canvas2Bitmap.bitmapData = canvas2BitmapData;
-                }
 
                 if(isNowToolPenOrLine() || isNowTool(TOOL_FILL_PEN))
                 {
@@ -16539,7 +16613,7 @@
                     else           canvas1BitmapData.draw( canvas2Bitmap,null,canvas2Alpha,"erase",canvas2ClipRect);
                 }
 
-                rDataBuffer.push(["drawDone4",subLayerON]);
+                rDataBuffer.push(["drawDone5",subLayerON]);
 
                 if(subLayerON) canvas11Bitmap.bitmapData = canvas11BitmapData;
                 else canvas1Bitmap.bitmapData = canvas1BitmapData;
