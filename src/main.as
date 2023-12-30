@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.63;
+        private const APP_VERSION:Number = 24.64;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3747,7 +3747,6 @@
                 return true;
 
                 case KEY.g:
-                selectRGBInfoTextByRGBPos(0);
                     setHoldKeyRepeat(true,shortCutPenAlpha,true);
                 return true;
 
@@ -5775,7 +5774,9 @@
         {
             var sx:Number = previewBox.mouseX;
             var sy:Number = previewBox.mouseY;
-            const prevToCanvasMultiply:Number = previewBox.prevCursorMultiply;
+
+            const prevCursorScale:Number = previewBox.prevCursorMultiply;
+            const uiScale:Number = getUIScale();
 
             setOptimizeCanvasMoveON(true);
             hint.off();
@@ -5787,8 +5788,8 @@
                 //prevToCanvasMultiply를 나눠 줘야 커서랑 같은 속도가 나옴
                 const rectCenterX:Number = b.left+(b.right-b.left)/2;
                 const rectCenterY:Number = b.top+(b.bottom-b.top)/2;
-                var moveX:Number = (rectCenterX-mx)/prevToCanvasMultiply/scale;
-                var moveY:Number = (rectCenterY-my)/prevToCanvasMultiply/scale;
+                var moveX:Number = (rectCenterX-mx)/prevCursorScale/uiScale;
+                var moveY:Number = (rectCenterY-my)/prevCursorScale/uiScale;
                 var p:Point = rotatePoint(moveX,moveY,-regPoint.rotation);
 
                 regPoint.x += Math.round(p.x);
@@ -5819,15 +5820,16 @@
 
             function setHandToolMouseMoveEvent(e:MouseEvent):void
             {
+                const scale:Number = getUIScale();
                 var mx:Number = previewBox.mouseX;
                 var my:Number = previewBox.mouseY;
-                //prevToCanvasMultiply를 곱해줘야 커서랑 같은 속도가 나옴
-                var moveX:Number = Math.floor((sx-mx)/prevToCanvasMultiply);
-                var moveY:Number = Math.floor((sy-my)/prevToCanvasMultiply);
+                //previewBox.prevCursorMultiply를 곱해줘야 커서랑 같은 속도가 나옴
+                var moveX:Number = (sx-mx)/prevCursorScale/uiScale;
+                var moveY:Number = (sy-my)/prevCursorScale/uiScale;
                 var p:Point = rotatePoint(moveX,moveY,-regPoint.rotation);
 
-                regPoint.x += p.x;
-                regPoint.y += p.y;
+                regPoint.x += Math.round(p.x);
+                regPoint.y += Math.round(p.y);
 
                 sx = mx;
                 sy = my;
@@ -16363,6 +16365,8 @@
 
                     //캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
                     if(d["lastWindowState"] === 1) stage.nativeWindow.maximize();
+                    setUIScaleButton(d["uiScaleIndex"]);
+                    setUIColor(d["uiColorIndex"]);
                     zoomedIndex = d["zoomedIndex"];
                     setZoomCanvas(d["zoomed"]);
                     canvasPanel.x = d["canvasPanel.x"];
@@ -16374,7 +16378,6 @@
                     updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
                     rotateCursorBox["rotateArrow"].rotation = d["regPoint.rotation"];
                     uiColorIndex = d["uiColorIndex"];
-                    setUIColor(d["uiColorIndex"]);
                     penSmoothValue = d["penSmoothValue"];
                     penSmoothSlideValue = d["penSmoothSlideValue"];
                     controlBox.penSmoothSliderCursor.x = d["penSmoothButtonX"];
@@ -16433,8 +16436,6 @@
                     if(!gridDrawOffsetY) gridDrawOffsetY = 0.0;
 
                     if(d["gridValue"] > 0) drawGrid();
-
-                    setUIScaleButton(d["uiScaleIndex"]);
                     if(d["canvasWindowON"])
                     {
                         canvasWindowInfo = [
@@ -17217,7 +17218,6 @@
                 }
 
                 updatePreviewBoxRectPos();
-                updateRCursorScale(zoomed);
 
                 if(gridValue > 0 && oldZoom !== zoomed)
                 {
@@ -20528,8 +20528,6 @@
 
             var xReg:Sprite;
 
-            updateRCursorScale(newZoom);
-
             if(!replayMode)
             {
                 xReg = regPoint;
@@ -20551,11 +20549,6 @@
                 }
             }
 
-            if(newZoom < 0.1)
-            {
-                newZoom = 0.1;
-            }
-
             xReg.scaleX = newZoom;
             xReg.scaleY = newZoom;
 
@@ -20568,6 +20561,8 @@
             {
                 appInfoBox.setZoom(newZoom);
             }
+
+            updateRCursorScale(newZoom);
         }
 
         private function windowClosingEvent(e:Event):void
@@ -22042,10 +22037,10 @@
             setNumPadOFF();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             rCursor.alpha = 1.0;
-            rcanvasPanel.addChild(rCursor);
-            setRcursorRotation(rregPoint.rotation);
             rCursor.visible = false;
+            rcanvasPanel.addChild(rCursor);
             setTopChildIndex(rCursor);
+            setRcursorRotation(rregPoint.rotation);
             updateStageOffset();
             removeTimer("rCursorOffAlphaAnimTimer");
 
