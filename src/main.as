@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.65;
+        private const APP_VERSION:Number = 24.66;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -709,7 +709,7 @@
             checkVersion();
             setIMEDisabled();
             selectPenTool();
-            pickerBox.selectPresetButton(0,BUTTON_OFF_ALPHA);
+            pickerBox.selectPresetButton(0);
             hint.updateScale(getUIScale());
             hint.setCursorColor(hintCursorColor[uiColorIndex]);
             toolTipBox.setBGColor(toolTipBoxBGColor[uiColorIndex]);
@@ -945,7 +945,7 @@
 
             myPalettePresetType = type;
             updateMyPaletteList();
-            pickerBox.selectPresetButton(type,BUTTON_OFF_ALPHA);
+            pickerBox.selectPresetButton(type);
 
             updateScrollBarHeight();
             checkFOFOPosition()

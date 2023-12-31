@@ -66,24 +66,24 @@
 		private var lastRGBInfoText:String = "";
 		private var firstRGBInfoColorText:String = "";
 
-		public function selectPresetButton(type:int,offAlpha:Number):void
+		public function selectPresetButton(type:int):void
 		{
 			if(type === 0)
 			{
 				myPaletteButton.alpha = 1.0;
-				drawrPresetButton.alpha = offAlpha;
-				tegakiPresetButton.alpha = offAlpha;
+				drawrPresetButton.alpha = 0.6;
+				tegakiPresetButton.alpha = 0.6;
 			}
 			else if(type === 1)
 			{
-				myPaletteButton.alpha = offAlpha;
+				myPaletteButton.alpha = 0.6;
 				drawrPresetButton.alpha = 1.0;
-				tegakiPresetButton.alpha = offAlpha;
+				tegakiPresetButton.alpha = 0.6;
 			}
 			else if(type === 2)
 			{
-				myPaletteButton.alpha = offAlpha;
-				drawrPresetButton.alpha = offAlpha;
+				myPaletteButton.alpha = 0.6;
+				drawrPresetButton.alpha = 0.6;
 				tegakiPresetButton.alpha = 1.0;
 			}
 		}
