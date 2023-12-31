@@ -28,7 +28,8 @@
 		public const rgbInfoBG:Shape = new Shape();
 		private var rgbInfoBGColor:uint = 0;
 		private var rgbInfoBGBorderColor:uint = 0;
-		public const myPaletteBox:Sprite = new Sprite();//컬러 히스토리
+		public const myPaletteBox:Sprite = new Sprite();
+		public const historyBox:Sprite = new Sprite();
 		public const myPaletteDragColor:Shape = new Shape();
 		public var penColorButton:SimpleButton;
 		public var paperColorButton:SimpleButton;
@@ -61,8 +62,6 @@
 
 		private var rgbInfoWidth:int = 107;
 		private var rgbInfoHeight:int = 19;
-
-
 
 		private var lastRGBInfoText:String = "";
 		private var firstRGBInfoColorText:String = "";
@@ -402,9 +401,12 @@
 			myPaletteBox.y = myPaletteButton.y+myPaletteButton.height+5;
 			myPaletteBox.name = "myPaletteBox";
 
+			historyBox.name = "historyBox";
+
 			myPaletteDragColor.visible = false;
 
 			mainPresetBox.addChild(myPaletteBox);
+			mainPresetBox.addChild(historyBox);
 			mainPresetBox.addChild(tegakiPresetButton);
 			mainPresetBox.addChild(drawrPresetButton);
 			mainPresetBox.addChild(myPaletteButton);

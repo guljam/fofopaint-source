@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.64;
+        private const APP_VERSION:Number = 24.65;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -407,19 +407,16 @@
         //컬러 히스토리 관련 변수
                     ,myPaletteSaveBeforeAddColor:Array = [-1,0]
                     ,myPaletteViewAllMode:Boolean = false //전체로 보면 올려줌
-                    ,myPaletteCellCount:int = 10
-                    ,myPaletteLimitCompact:int = 30
                     ,myPaletteLimitTotal:int = 100
                     ,myPaletteColorWidth:Number = 17//Math.floor(pickerBox.svBoxWidth/myPaletteLimit)//히스토리 개별 색깔 가로 크기
                     ,myPaletteColorHeight:Number = 17
                     ,myPaletteClickPos:Point = new Point() //컬러 히스토리 클릭하면 위치 넣어줌
                     ,myPaletteMovePos:Point = new Point() //컬러 히스토리 드래그할때 움직이는 포인트 넣어줌
                     ,myPaletteDragClickedColor:uint = 0 //드래그 쭌비 클릭한 컬러 저장해줌
-                    ,myPaletteDragClickedIndex:int = 0 //드래그 준비 클릭한 컬러 인덱스 저장
+                    ,myPaletteDragClickedIndex:int = -1 //드래그 준비 클릭한 컬러 인덱스 저장
                     ,myPaletteDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
                     ,myPalettePresetType:int = 0 //타입저정
                     ,myPalettePreset:Array = []
-                    ,myPalettePresetCompact:Array = []
                     ,myPaletteDrawrPreset:Array = [0xFFFFFF,0xC0C0C0,0xFF3B21,0xFFBD16,0xF5F30F,0xA5E975,0x71DBFD,0xFA80F9,null    ,null
                                                   ,0x000000,0x808080,0x8E0000,0xFFCC99,0x877D30,0x008F47,0x313BCD,0xC02E97,0x3F037E,null]
                     ,myPaletteTegakiPreset:Array = [0xA80515,0xA80515,0x800000,0x800000,0x4B3D38,0x4B3D38,0x394C44,0x394C44,0x313768,0x313768
@@ -1317,7 +1314,7 @@
                 case "myPaletteBox":
                 {
                     if(myPalettePresetType !== 0) return;
-                    str = "Add picked color [right-click]\nSwap color position [click+drag]\nRemove, Restore color [multiple right-click]";
+                    str = "Add, remove, restore color [right-click]\nSwap color position [click+drag]";
                 }
                 break;
 
@@ -13432,7 +13429,7 @@
 
         private function getMyPaletteIndexByMousePosLimitBound():int
         {
-            const compactLine:int = (myPalettePresetType === 0 && myPaletteViewAllMode) ? 9:2;
+            const compactLine:int = (myPalettePresetType === 0 && myPaletteViewAllMode) ? 8:2;
             var xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
             var yLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseY/(myPaletteColorHeight))
 
@@ -13445,12 +13442,25 @@
             return xLineIndex+yLineIndex*10;
         }
 
+        private function getHistoryIndexByMousePos():int
+        {
+            const xLineIndex:int = Math.floor(pickerBox.historyBox.mouseX/myPaletteColorWidth);
+            const yLineIndex:int = 10*(Math.floor(pickerBox.historyBox.mouseY/(myPaletteColorHeight)));
+
+            if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > myPaletteLimitTotal)
+            {
+                return -1;
+            }
+
+            return xLineIndex+yLineIndex;
+        }
+
         private function getMyPaletteIndexByMousePos():int
         {
             const xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
             const yLineIndex:int = 10*(Math.floor(pickerBox.myPaletteBox.mouseY/(myPaletteColorHeight)));
 
-            if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > ((myPaletteViewAllMode) ? myPaletteLimitTotal : myPaletteLimitCompact))
+            if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > myPaletteLimitTotal)
             {
                 return -1;
             }
@@ -13492,9 +13502,55 @@
         {
             var list:Array = (myPalettePresetType === 1) ? myPaletteDrawrPreset
                             :(myPalettePresetType === 2) ? myPaletteTegakiPreset
-                            :(myPaletteViewAllMode) ? myPalettePreset:myPalettePresetCompact;
+                            :myPalettePreset;
 
             return !(list[index] is uint);
+        }
+
+        private function pickColor(pickedColor:uint):void
+        {
+            if(isPenColorMode())
+            {
+                penColor = pickedColor;
+                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
+                setNowToolForDrawing(false);
+            }
+            else if(isBackgroundColorMode())
+            {
+                setBackgroundColorDrawMode(pickedColor);
+                if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+                addUndoBGColor(pickedColor);
+            }
+
+            pickerColorSelected = true;
+        }
+
+        private function selectHistoryColor():void
+        {
+            const index:int = getHistoryIndexByMousePos();
+
+            if(index < 0 || index !== myPaletteDragClickedIndex)
+            {
+                return;
+            }
+
+            if(!(myPalettePreset[index+90] is uint))
+            {
+                if(penColorTransparentFlag === false)
+                {
+                    setTransparentColor();
+                }
+                return;
+            }
+
+            const pickedColor:uint = myPalettePreset[index+90];
+
+            if(pickedColor === pickerBox.getRGBInfoBGColor())
+            {
+                return;
+            }
+
+            pickColor(pickedColor);
         }
 
         private function selectMyPaletteColor():void
@@ -13520,14 +13576,14 @@
             {
                 if(isSelctedColorEmpty(index))
                 {
-                    if(penColorTransparentFlag === false)
+                    if(penColorTransparentFlag === false && pickerMode === 1)
                     {
                         setTransparentColor();
                     }
                     return;
                 }
 
-                pickedColor = (myPaletteViewAllMode) ? myPalettePreset[index] : myPalettePresetCompact[index];
+                pickedColor = myPalettePreset[index];
 
                 if(pickedColor === pickerBox.getRGBInfoBGColor())
                 {
@@ -13557,20 +13613,7 @@
                 return;
             }
 
-            if(isPenColorMode())
-            {
-                penColor = pickedColor;
-                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
-                setNowToolForDrawing(false);
-            }
-            else if(isBackgroundColorMode())
-            {
-                setBackgroundColorDrawMode(pickedColor);
-                if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-                addUndoBGColor(pickedColor);
-            }
-
-            pickerColorSelected = true;
+            pickColor(pickedColor);
         }
 
         //주어진 컬러 알파값을 기반으로 반전 컬러를 구함
@@ -13591,39 +13634,12 @@
 
         private function initMyPaletteList():void
         {
+            updateHistoryList();
             updateMyPaletteList();
 
             if(!myPaletteListFile.exists)
             {
                 saveMypPaletteList();
-            }
-        }
-
-        private function updateMyPaletteColorFromNormalIndex(index:uint):void
-        {
-            if(index < 20)
-            {
-                myPalettePresetCompact[index] = myPalettePreset[index];
-            }
-            else if(index >= 90)
-            {
-                myPalettePresetCompact[(index-90)+20] = myPalettePreset[index];
-            }
-        }
-
-        private function updateMyPalettePresetCompactList(historyOnly:Boolean):void
-        {
-            if(historyOnly === false)
-            {
-                for(var i:uint=0;i<20;i++)
-                {
-                    myPalettePresetCompact[i] = myPalettePreset[i];
-                }
-            }
-
-            for(i=0;i<10;i++)
-            {
-                myPalettePresetCompact[i+20] = myPalettePreset[i+90];
             }
         }
 
@@ -13652,45 +13668,26 @@
         {
             if(index < 0) return;
 
-            var arr:Array;
-            var updateFunc:Function;
-
-            if(myPaletteViewAllMode)
-            {
-                arr = myPalettePreset;
-                updateFunc = updateMyPaletteColorFromNormalIndex;
-                if(index >= 90) return;
-            }
-            else
-            {
-                arr = myPalettePresetCompact;
-                updateFunc = updateMyPaletteColorFromCompactIndex;
-                if(index >= 20) return;
-            }
-
             if(isSelctedColorEmpty(index))
             {
                 if(myPaletteSaveBeforeAddColor[0] === index)
                 {
-                    arr[index] = myPaletteSaveBeforeAddColor[1];
-                    updateFunc(index);
+                    myPalettePreset[index] = myPaletteSaveBeforeAddColor[1];
                     updateMyPaletteList();
                 }
                 else
                 {
-                    arr[index] = color;
-                    updateFunc(index);
+                    myPalettePreset[index] = color;
                     updateMyPaletteList();
                 }
             }
             else
             {
-                if(arr[index] !== pickerBox.getRGBInfoBGColor())
+                if(myPalettePreset[index] !== pickerBox.getRGBInfoBGColor())
                 {
                     myPaletteSaveBeforeAddColor[0] = index;
-                    myPaletteSaveBeforeAddColor[1] = arr[index];
-                    arr[index] = (penColorTransparentFlag) ? null:color;
-                    updateFunc(index);
+                    myPaletteSaveBeforeAddColor[1] = myPalettePreset[index];
+                    myPalettePreset[index] = (penColorTransparentFlag) ? null:color;
                     updateMyPaletteList();
                 }
                 else
@@ -13698,31 +13695,19 @@
                     if(penColorTransparentFlag)
                     {
                         myPaletteSaveBeforeAddColor[0] = index;
-                        myPaletteSaveBeforeAddColor[1] = arr[index];
+                        myPaletteSaveBeforeAddColor[1] = myPalettePreset[index];
                     }
-                    arr[index] = null;
-                    updateFunc(index);
+
+                    myPalettePreset[index] = null;
                     updateMyPaletteList();
                 }
             }
         }
 
-        private function updateMyPaletteColorFromCompactIndex(index:uint):void
-        {
-            if(index >= 20)
-            {
-                myPalettePreset[(index-20)+90] = myPalettePresetCompact[index];
-            }
-            else
-            {
-                myPalettePreset[index] = myPalettePresetCompact[index];
-            }
-        }
-
         private function clearMyPaletteList():void
         {
-            myPalettePresetCompact.length = 0;
             myPalettePreset.length = 0;
+            updateHistoryList();
             updateMyPaletteList();
             myPalettePresetType = -1;
             selectMyPaletteButton(0);
@@ -13750,8 +13735,7 @@
                     {
                         myPalettePreset.insertAt(90,tmpColor);
                     }
-                    updateMyPalettePresetCompactList(true);
-                    updateMyPaletteList();
+                    updateHistoryList();
                     return;
                 }
             }
@@ -13763,33 +13747,61 @@
             }
             else
             {
-                //투명색 부분 있으면 지워줌
-                for(i=90;i<100;i++)
-                {
-                    if(null === myPalettePreset[i])
-                    {
-                        myPalettePreset.splice(i,1);
-                        break;
-                    }
-                }
+                // //투명색 부분 있으면 지워줌
+                // for(i=90;i<100;i++)
+                // {
+                //     if(null === myPalettePreset[i])
+                //     {
+                //         myPalettePreset.splice(i,1);
+                //         break;
+                //     }
+                // }
                 myPalettePreset.insertAt(90,color);
                 myPalettePreset.removeAt(100);
             }
 
-            updateMyPalettePresetCompactList(true);
-            updateMyPaletteList();
+            updateHistoryList();
+        }
+
+        private function updateHistoryList():void
+        {
+            pickerBox.historyBox.graphics.clear();
+            for(var i:uint=0;i<10;i++)
+            {
+                if(!(myPalettePreset[i+90] is uint))
+                {
+                    pickerBox.historyBox.graphics.beginBitmapFill(pickerBox.myPaletteTransBGBmpd);
+                }
+                else
+                {
+                    pickerBox.historyBox.graphics.beginFill(myPalettePreset[i+90]);
+                }
+
+                pickerBox.historyBox.graphics.drawRect(myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
+            }
+            pickerBox.historyBox.graphics.endFill();
+
+            pickerBox.historyBox.graphics.lineStyle(1,0,0.2);
+            for(i=1;i<10;i++)
+            {
+                pickerBox.historyBox.graphics.moveTo(myPaletteColorWidth*i,0);
+                pickerBox.historyBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight);
+            }
         }
 
         private function updateMyPaletteList(ignoreIndex:int=-1):void
         {
             const type:int = myPalettePresetType;
-            const arr:Array = (type === 0) ? (myPaletteViewAllMode) ? myPalettePreset : myPalettePresetCompact
+            const arr:Array = (type === 0) ? myPalettePreset
                              :(type === 1) ? myPaletteDrawrPreset
                              :(type === 2) ? myPaletteTegakiPreset : null;
 
             if(arr === null) return;
 
-            var len:int = (type === 0) ? (myPaletteViewAllMode) ? myPaletteLimitTotal:myPaletteLimitCompact:20;
+            const ww:Number = myPaletteColorWidth;
+            const hh:Number = myPaletteColorHeight;
+
+            var len:int = (type === 0 && myPaletteViewAllMode) ? myPaletteLimitTotal-10:20;
             var nextX:Number = 0.0;
             var nextY:Number = 0.0;
 
@@ -13808,21 +13820,21 @@
                     nextY++;
                 }
 
-                px = myPaletteColorWidth*nextX;
-                py = myPaletteColorHeight*(nextY);
+                px = ww*nextX;
+                py = hh*(nextY);
                 nextX += 1.0;
 
                 if(i === ignoreIndex)
                 {
                     pickerBox.myPaletteBox.graphics.beginFill(0xFFFFFF);
-                    pickerBox.myPaletteBox.graphics.drawRect(px,py,myPaletteColorWidth,myPaletteColorHeight);
+                    pickerBox.myPaletteBox.graphics.drawRect(px,py,ww,hh);
                     pickerBox.myPaletteBox.graphics.endFill();
 
                     pickerBox.myPaletteBox.graphics.lineStyle(3,0xFF6600);
                     pickerBox.myPaletteBox.graphics.moveTo(px+5,py+5);
-                    pickerBox.myPaletteBox.graphics.lineTo(px+myPaletteColorWidth-5,py+myPaletteColorHeight-5);
-                    pickerBox.myPaletteBox.graphics.moveTo(px+myPaletteColorWidth-5,py+5);
-                    pickerBox.myPaletteBox.graphics.lineTo(px+5,py+myPaletteColorHeight-5);
+                    pickerBox.myPaletteBox.graphics.lineTo(px+ww-5,py+hh-5);
+                    pickerBox.myPaletteBox.graphics.moveTo(px+ww-5,py+5);
+                    pickerBox.myPaletteBox.graphics.lineTo(px+5,py+hh-5);
                     pickerBox.myPaletteBox.graphics.lineStyle(0,0,0);
 
                     continue;
@@ -13838,76 +13850,72 @@
                     pickerBox.myPaletteBox.graphics.beginFill(arr[i]);
                 }
 
-
-                pickerBox.myPaletteBox.graphics.drawRect(px,py,myPaletteColorWidth,myPaletteColorHeight);
-
-
+                pickerBox.myPaletteBox.graphics.drawRect(px,py,ww,hh);
             }
             pickerBox.myPaletteBox.graphics.endFill();
 
             //구분선 그려주기
             if(type === 2) //tegaki
             {
-                len = 10;
                 pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
-                pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight);
-                pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*len,myPaletteColorHeight);
+                pickerBox.myPaletteBox.graphics.moveTo(0,hh);
+                pickerBox.myPaletteBox.graphics.lineTo(ww*10,hh);
 
-                for(i=2;i<len;i+=2)
+                for(i=2;i<10;i+=2)
                 {
-                    pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
-                    pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
+                    pickerBox.myPaletteBox.graphics.moveTo(ww*i,0);
+                    pickerBox.myPaletteBox.graphics.lineTo(ww*i,hh*2);
                 }
             }
             else if(type === 1) // drawr
             {
-                len = 9;
-
                 pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
-                pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight);
-                pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*(len-1),myPaletteColorHeight);
+                pickerBox.myPaletteBox.graphics.moveTo(0,hh);
+                pickerBox.myPaletteBox.graphics.lineTo(ww*8,hh);
 
-                for(i=1;i<len;i++)
+                for(i=1;i<9;i++)
                 {
-                    pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
-                    pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*2);
+                    pickerBox.myPaletteBox.graphics.moveTo(ww*i,0);
+                    pickerBox.myPaletteBox.graphics.lineTo(ww*i,hh*2);
                 }
             }
             else //myh pal
             {
-                len = 10;
 
                 if(myPaletteViewAllMode === false)
                 {
+                    //가로선
                     pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
-                    pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight);
-                    pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*len,myPaletteColorHeight);
-                    pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight*2);
-                    pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*len,myPaletteColorHeight*2);
+                    pickerBox.myPaletteBox.graphics.moveTo(0,hh);
+                    pickerBox.myPaletteBox.graphics.lineTo(ww*10,hh);
 
-                    for(i=1;i<len;i++)
+                    //세로
+                    for(i=1;i<10;i++)
                     {
                         pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
-                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*3);
+                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,hh*2);
                     }
                 }
                 else
                 {
                     pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
 
-                    for(i=1;i<len;i++)
+                    //가로
+                    for(i=1;i<9;i++)
                     {
-                        pickerBox.myPaletteBox.graphics.moveTo(0,myPaletteColorHeight*i);
-                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*len,myPaletteColorHeight*i);
+                        pickerBox.myPaletteBox.graphics.moveTo(0,hh*i);
+                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*10,hh*i);
                     }
-
-                    for(i=1;i<len;i++)
+                    //세로
+                    for(i=1;i<10;i++)
                     {
                         pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
-                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight*len);
+                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,hh*9);
                     }
                 }
             }
+
+            pickerBox.historyBox.y = Math.round(pickerBox.myPaletteBox.y+pickerBox.myPaletteBox.height+4);
         }
 
         private function makeResizeButtonFamily():void
@@ -15481,17 +15489,18 @@
             {
                 const zoomed:Number = getCanvasScale();
 
+                const lineSize:Number = Math.ceil(1/zoomed);
                 captureAreaRect.graphics.clear();
-                captureAreaRect.graphics.lineStyle(Math.ceil(1/zoomed),0xFFFFFF,1.0,true);
+                captureAreaRect.graphics.lineStyle(lineSize,0xFFFFFF,1.0,true);
                 captureAreaRect.graphics.drawRect(rect.x,rect.y,rect.width,rect.height);
 
                 //배경색 약간 어둡게 해줌
                 captureAreaRect.graphics.lineStyle(0,0,0);
                 captureAreaRect.graphics.beginFill(0,0.3);
                 captureAreaRect.graphics.drawRect(0,0,canvasWidth,rect.y);
-                captureAreaRect.graphics.drawRect(0,rect.y,rect.x,rect.height);
-                captureAreaRect.graphics.drawRect(rect.x+rect.width,rect.y,canvasWidth-(rect.x+rect.width),rect.height);
-                captureAreaRect.graphics.drawRect(0,rect.y+rect.height,canvasWidth,canvasHeight-(rect.y+rect.height));
+                captureAreaRect.graphics.drawRect(0,rect.y,rect.x,rect.height+lineSize);
+                captureAreaRect.graphics.drawRect(rect.x+rect.width+lineSize,rect.y,canvasWidth-(rect.x+rect.width),rect.height+lineSize);
+                captureAreaRect.graphics.drawRect(0,rect.y+rect.height+lineSize,canvasWidth,canvasHeight-(rect.y+rect.height));
                 captureAreaRect.graphics.endFill();
 
                 if(resizeButtonON)
@@ -16335,7 +16344,6 @@
                 fs.open(myPaletteListFile,FileMode.READ);
                 var list:Array = fs.readObject();
                 myPalettePreset = list.concat();
-                updateMyPalettePresetCompactList(false);
                 list.length = 0;
                 list = null;
             }
@@ -16460,6 +16468,7 @@
                     checkCanvasPanelPos(true);
                     if(d["myPalettePresetType"] > 0) selectMyPaletteButton(d["myPalettePresetType"]);
 
+                    updateHistoryList();
                     myPaletteViewAllMode = d["myPaletteViewAllMode"];
                     if(myPalettePresetType === 0 && d["myPaletteViewAllMode"])
                     {
@@ -22603,30 +22612,10 @@
                 myPaletteDragStarted = false;
 
                 const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
-                const colorSave:* = (myPaletteViewAllMode) ? myPalettePreset[putIndex]:myPalettePresetCompact[putIndex];
+                const colorSave:* = myPalettePreset[putIndex];
 
-                if(myPaletteViewAllMode)
-                {
-                    if(putIndex < 90)
-                    {
-                        myPalettePreset[putIndex] = myPaletteDragClickedColor;
-                        myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
-
-                        updateMyPaletteColorFromNormalIndex(putIndex);
-                        updateMyPaletteColorFromNormalIndex(myPaletteDragClickedIndex);
-                    }
-                }
-                else
-                {
-                    if(putIndex < 20)
-                    {
-                        myPalettePresetCompact[putIndex] = myPaletteDragClickedColor;
-                        myPalettePresetCompact[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
-
-                        updateMyPaletteColorFromCompactIndex(putIndex);
-                        updateMyPaletteColorFromCompactIndex(myPaletteDragClickedIndex);
-                    }
-                }
+                myPalettePreset[putIndex] = myPaletteDragClickedColor;
+                myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
 
                 updateMyPaletteList();
             }
@@ -22689,6 +22678,12 @@
                             {
                                 changePickerModeToBG();
                             }
+                        }
+                        break;
+
+                        case "historyBox":
+                        {
+                            selectHistoryColor();
                         }
                         break;
 
@@ -22760,9 +22755,9 @@
 
             const targetName:String = target.name;
 
-            if(targetName === "myPaletteBox")
+            if(myPalettePresetType === 0)
             {
-                if(myPalettePresetType === 0)
+                if(targetName === "myPaletteBox")
                 {
                     const index:int = getMyPaletteIndexByMousePos();
                     myPaletteDragClickedIndex = index;
@@ -22770,13 +22765,18 @@
                     if(index >= 0 && !isSelctedColorEmpty(index))
                     {
                         mouseDragON = true;
-                        myPaletteDragClickedColor = (myPaletteViewAllMode) ? myPalettePreset[index] : myPalettePresetCompact[index];
+                        myPaletteDragClickedColor = myPalettePreset[index];
                         myPaletteClickPos.setTo(pickerBox.mouseX,pickerBox.mouseY);
                         myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
                         stage.addEventListener(MouseEvent.MOUSE_UP,myPaletteDragMouseUpEvent,false,-1);
                         stage.addEventListener(MouseEvent.MOUSE_MOVE,myPaletteDragMouseMoveEvent);
                     }
                 }
+            }
+
+            if(targetName === "historyBox")
+            {
+                myPaletteDragClickedIndex = getHistoryIndexByMousePos();
             }
 
             switch(targetName)
@@ -22795,6 +22795,7 @@
 
                 case "penColorButton":
                 case "paperColorButton":
+                case "historyBox":
                 case "myPaletteBox":
                 case "transColorButton":
                 case "currentColor":
