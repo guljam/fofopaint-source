@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.70;
+        private const APP_VERSION:Number = 24.71;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9410,14 +9410,6 @@
             undoData.setRFileTotalFrame(rNowFrameSave);
             TOTAL_FRAME = rNowFrameSave;
 
-            if(canvas1BitmapData && canvas1BitmapData !== rcanvas1BitmapData) canvas1BitmapData.dispose();
-            canvas1BitmapData = rcanvas1BitmapData.clone();
-            canvas1Bitmap.bitmapData = canvas1BitmapData;
-
-            if(canvas11BitmapData && canvas11BitmapData !== rcanvas11BitmapData) canvas11BitmapData.dispose();
-            canvas11BitmapData = rcanvas11BitmapData.clone();
-            canvas11Bitmap.bitmapData = canvas11BitmapData;
-
             resetReplayTime();
             resetUndo(true);
             rCursor.visible = true;//대칭된 커서 위치를 갱신해주려고 임시로 켜줌
@@ -9435,7 +9427,6 @@
             }
             // saveContinue = false;
             setDeepUndoOFF();
-            rCursor.visible = false;
         }
 
         private function superUndo():void
@@ -13559,7 +13550,6 @@
 
             if(index < 0)
             {
-                trace("re1")
                 return;
             }
 
@@ -18116,22 +18106,12 @@
                 {
                     canvasBitmapData.draw(xCanvas2Draw,null,null,"erase");
                     canvasBitmap.bitmapData = canvasBitmapData;
-                    if(deepUndoON)
-                    {
-                        if(rcanvas1BitmapData && canvasBitmapData !== rcanvas1BitmapData) rcanvas1BitmapData.dispose();
-                        rcanvas1BitmapData = canvasBitmapData.clone();
-                    }
                 }
 
                 if(layer2)
                 {
                     canvasBitmapDataSub.draw(xCanvas2Draw,null,null,"erase");
                     canvasBitmapSub.bitmapData = canvasBitmapDataSub;
-                    if(deepUndoON)
-                    {
-                        if(rcanvas11BitmapData && canvasBitmapDataSub !== rcanvas11BitmapData) rcanvas11BitmapData.dispose();
-                        rcanvas11BitmapData = canvasBitmapDataSub.clone();
-                    }
                 }
             }
 
@@ -18997,11 +18977,6 @@
                 if(canvas1BitmapData && lassoBitmapdataSave !== canvas1BitmapData) canvas1BitmapData.dispose();
                 canvas1BitmapData = lassoBitmapdataSave.clone();
                 canvas1Bitmap.bitmapData = canvas1BitmapData;
-                if(deepUndoON)
-                {
-                    if(rcanvas1BitmapData && lassoBitmapdataSave !== rcanvas1BitmapData) rcanvas1BitmapData.dispose();
-                    rcanvas1BitmapData = lassoBitmapdataSave.clone();
-                }
             }
 
             if(lassoBitmapdataSubSave)
@@ -19009,11 +18984,6 @@
                 if(canvas11BitmapData && lassoBitmapdataSubSave !== canvas11BitmapData) canvas11BitmapData.dispose();
                 canvas11BitmapData = lassoBitmapdataSubSave.clone();
                 canvas11Bitmap.bitmapData = canvas11BitmapData;
-                if(deepUndoON)
-                {
-                    if(rcanvas11BitmapData && lassoBitmapdataSave !== rcanvas11BitmapData) rcanvas11BitmapData.dispose();
-                    rcanvas11BitmapData = lassoBitmapdataSave.clone();
-                }
             }
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
