@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.68;
+        private const APP_VERSION:Number = 24.70;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13478,7 +13478,7 @@
         {
             index = getTegakiColorPresetIndex(index);
 
-            if(myPaletteTegakiPreset[index] === pickerBox.getRGBInfoBGColor())
+            if(myPaletteTegakiPreset[index] === pickerBox.getRGBInfoBGColor() && !penColorTransparentFlag)
             {
                 return;
             }
@@ -13545,7 +13545,7 @@
 
             const pickedColor:uint = myPalettePreset[index+90];
 
-            if(pickedColor === pickerBox.getRGBInfoBGColor())
+            if(pickedColor === pickerBox.getRGBInfoBGColor() && !penColorTransparentFlag)
             {
                 return;
             }
@@ -13559,6 +13559,7 @@
 
             if(index < 0)
             {
+                trace("re1")
                 return;
             }
 
@@ -13585,7 +13586,7 @@
 
                 pickedColor = myPalettePreset[index];
 
-                if(pickedColor === pickerBox.getRGBInfoBGColor())
+                if(pickedColor === pickerBox.getRGBInfoBGColor() && !penColorTransparentFlag)
                 {
                     return;
                 }
@@ -13599,7 +13600,7 @@
 
                 pickedColor = myPaletteDrawrPreset[index];
 
-                if(pickedColor === pickerBox.getRGBInfoBGColor())
+                if(pickedColor === pickerBox.getRGBInfoBGColor() && !penColorTransparentFlag)
                 {
                     return;
                 }
