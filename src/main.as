@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.66;
+        private const APP_VERSION:Number = 24.67;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5821,8 +5821,8 @@
                 var mx:Number = previewBox.mouseX;
                 var my:Number = previewBox.mouseY;
                 //previewBox.prevCursorMultiply를 곱해줘야 커서랑 같은 속도가 나옴
-                var moveX:Number = (sx-mx)/prevCursorScale/uiScale;
-                var moveY:Number = (sy-my)/prevCursorScale/uiScale;
+                var moveX:Number = (sx-mx)/prevCursorScale;
+                var moveY:Number = (sy-my)/prevCursorScale;
                 var p:Point = rotatePoint(moveX,moveY,-regPoint.rotation);
 
                 regPoint.x += Math.round(p.x);

@@ -53,8 +53,6 @@
 			prevCursor.graphics.beginFill(0xFF0000,0);
 			prevCursor.graphics.drawRect(0,0,cursorWidth,cursorHeight)//썸네일 비트맵/실제 캔버스 길이 배율을 곱해주면 캔버스 부분이 작게 축소됨
 			prevCursor.graphics.endFill();
-			prevCursor.graphics.moveTo(cursorWidth/2,0);
-			prevCursor.graphics.lineTo(cursorWidth/2,5);
 
 			prevCursor.rotation = -rotation;
 			//캔버스 원점 위치 음수값으로 넣어주고 당연 배율 적용하고,
