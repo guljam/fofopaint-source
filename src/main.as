@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.71;
+        private const APP_VERSION:Number = 24.72;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -161,10 +161,6 @@
                     ,JUMP_FRAME_ONCE:int = (1 << 1)
                     ,JUMP_FRAME_BEFORE:int = (1 << 2)
                     ,JUMP_FRAME_AFTER:int = (1 << 3)
-
-                    ,CENTERPOS_DRAW:int = 0
-                    ,CENTERPOS_CAPTURE:int = (1 << 0)
-                    ,CENTERPOS_REPLAY:int = (1 << 1)
 
                     ,CANVAS_MIN_SIZE:Number = 100
                     ,CANVAS_MAX_SIZE:Number = 2000
@@ -1895,7 +1891,10 @@
 
         private function setNumPadOFF():void
         {
-            setRGBInfoTextInputOK();
+            if(pickerBox.getRGBInfoBGColor() !== pickerBox.getCurrentColor())
+            {
+                setRGBInfoTextInputOK();
+            }
             numPadBox.off();
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,numPadMouseDownEvent);
         }
@@ -1940,7 +1939,10 @@
             const targetName:String = e.target.name;
             if(!numPadBox.hitTestPoint(mouseX,mouseY) && !pickerBox.rgbInfo.hitTestPoint(mouseX,mouseY))
             {
-                setNumPadOFF();
+                if(numPadBox.visible)
+                {
+                    setNumPadOFF();
+                }
                 return;
             }
 
@@ -2015,7 +2017,11 @@
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rgbInfoTextRightMouseDownEvent);
             pickerBox.rgbInfo.removeEventListener(Event.CHANGE, onRGBInfoTextChangeEvent);
             rgbInfoRightClickFocusIgnoreFlag = false;
-            setRGBInfoTextInputOK();
+
+            if(pickerBox.getRGBInfoBGColor() !== pickerBox.getCurrentColor())
+            {
+                setRGBInfoTextInputOK();
+            }
 
             addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.2,false,function():void
             {
@@ -2027,7 +2033,10 @@
         private function setStageFocusNull():void
         {
             stage.focus = null;
-            setNumPadOFF();
+            if(numPadBox.visible)
+            {
+                setNumPadOFF();
+            }
         }
 
         private function rgbInfoTextFocusInEvent(e:FocusEvent):void
@@ -5545,7 +5554,7 @@
 
         private function resetZoomReplayMode():void
         {
-            const center:Point = getStageCenterPos(CENTERPOS_DRAW);
+            const center:Point = getStageCenterPos(1);
 
             rzoomedSave = 1.0;
             rzoomedIndex = zoomList.indexOf(1.0);
@@ -5571,36 +5580,41 @@
         {
             const xReg:Sprite = (replayMode) ? rregPoint : regPoint;
             const zoomMax:int = zoomList.length-1;
-            const center:Point = getStageCenterPos(CENTERPOS_REPLAY);
-            var lastZoomIndex:int = (replayMode) ? rzoomedIndex : zoomedIndex;
+            var center:Point;
+            var newZoomIndex:int = (replayMode) ? rzoomedIndex : zoomedIndex;
 
             if(zoomInFlag)
             {
-                lastZoomIndex++;
-                if(lastZoomIndex > zoomMax) lastZoomIndex = zoomMax;
+                newZoomIndex++;
+                if(newZoomIndex > zoomMax) newZoomIndex = zoomMax;
             }
             else
             {
-                lastZoomIndex--;
-                if(lastZoomIndex < 0) lastZoomIndex = 0;
+                newZoomIndex--;
+                if(newZoomIndex < 0) newZoomIndex = 0;
             }
 
-            const newZoom:Number = zoomList[lastZoomIndex];
+            const newZoom:Number = zoomList[newZoomIndex];
 
             if(replayMode)
             {
+                center = getStageCenterPos(1);
                 rzoomedSave = newZoom;
                 setFitZoomedOFF();
-                rzoomedIndex = lastZoomIndex;
+                rzoomedIndex = newZoomIndex;
                 setRegPoint(center.x,center.y,true);
                 setZoomCanvas(newZoom,replayMode);
                 autoScroll.updateRCanvasBounds();
             }
             else
             {
-                zoomedIndex = lastZoomIndex;
-                // setOptimizeCanvasMoveON(false);
-                setRegPoint(center.x,center.y,false);
+                center = getStageCenterPos(0);
+                center = canvasPanel.globalToLocal(new Point(center.x,center.y));
+                const gp:Point = canvasPanel.localToGlobal(ZERO_POINT);
+                const panelLimitedPos:Point = getCanvasBoundLimitPoint(canvasPanel,center.x,center.y,CANVAS_WIDTH,CANVAS_HEIGHT,xReg.scaleX,xReg.rotation);
+
+                zoomedIndex = newZoomIndex;
+                setRegPoint(panelLimitedPos.x+gp.x,panelLimitedPos.y+gp.y,false);
                 setZoomCanvas(newZoom,replayMode);
                 updatePenSizeCursor();
                 updatePreviewBoxRectPos();
@@ -15088,7 +15102,10 @@
 
             captureModeON = true;
             penCursorOFFFlag = true;
-            setNumPadOFF();
+            if(numPadBox.visible)
+            {
+                setNumPadOFF();
+            }
             stageMouseMoveEvent.add("captureMouseMoveHintEvent",captureMouseMoveHintEvent);
 
             setCaptureUI(true);
@@ -16912,7 +16929,7 @@
 
         private function resetRotationReplayMode():void
         {
-            const center:Point = getStageCenterPos(CENTERPOS_REPLAY);
+            const center:Point = getStageCenterPos(1);
             setRegPoint(center.x,center.y,true);
             rregPoint.rotation = 0;
             setRcursorRotation(0);
@@ -16920,7 +16937,7 @@
 
         private function resetRotationDrawMode():void
         {
-            const center:Point = getStageCenterPos(CENTERPOS_DRAW);
+            const center:Point = getStageCenterPos(0);
 
             updatePenSizeCursor();
             setRegPoint(center.x,center.y,false);
@@ -17003,7 +17020,7 @@
                     setOptimizeCanvasMoveON(true);
                 }
 
-                const center:Point = getStageCenterPos(CENTERPOS_REPLAY);
+                const center:Point = getStageCenterPos(1);
                 setRegPoint(center.x,center.y,replayMode);
 
                 //캔버스 이동이 완료된후 함수를 초기화 시켜줌
@@ -17174,6 +17191,20 @@
             };
         }
 
+        private function getCanvasBoundLimitPoint(canvas:Sprite,px:Number,py:Number,width:Number,height:Number,zoom:Number,rotation:Number):Point
+        {
+            var zoomClickX:Number = px*zoom;
+            var zoomClickY:Number = py*zoom;
+
+            if(zoomClickX < 0)  zoomClickX = 0;
+            else if(zoomClickX > width*zoom)  zoomClickX = width*zoom;
+
+            if(zoomClickY < 0) zoomClickY = 0;
+            else if(zoomClickY > height*zoom) zoomClickY = height*zoom;
+
+            return rotatePoint(zoomClickX,zoomClickY,rotation);
+        }
+
         private function cZoomTool():Function
         {
             const zoomMin:Number = zoomList[0];
@@ -17332,15 +17363,8 @@
                 else
                 {
                     gp = xCanvas.localToGlobal(ZERO_POINT);
-                    var zoomClickX:Number = xCanvas.mouseX*xZoomed;
-                    var zoomClickY:Number = xCanvas.mouseY*xZoomed;
+                    const panelLimitedPos:Point = getCanvasBoundLimitPoint(xCanvas,xCanvas.mouseX,xCanvas.mouseY,CANVAS_WIDTH,CANVAS_HEIGHT,xZoomed,xRotation);
 
-                    if(zoomClickX < 0)  zoomClickX = 0;
-                    else if(zoomClickX > maxWidth)  zoomClickX = maxWidth;
-
-                    if(zoomClickY < 0) zoomClickY = 0;
-                    else if(zoomClickY > maxHeight) zoomClickY = maxHeight;
-                    const panelLimitedPos:Point = rotatePoint(zoomClickX,zoomClickY, xRotation);
                     //캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
                     setRegPoint(panelLimitedPos.x+gp.x,panelLimitedPos.y+gp.y,false);
                 }
@@ -20628,22 +20652,21 @@
             const center:Point = new Point(0,0);
             var topBarOffset:Number = topBar.BARSIZE*scale;
 
-            if(flag === CENTERPOS_DRAW)
+            if(flag === 0) //draw mode
             {
-
                 center.setTo((!isSidebarVisible) ? Math.floor(stage.stageWidth/2)
                              :(isRightSidebar)   ? Math.floor((stage.stageWidth-STAGE_RIGHT_OFFSET)/2)
                                                  : Math.floor(STAGE_LEFT_OFFSET+(stage.stageWidth-STAGE_LEFT_OFFSET)/2)
                             ,Math.floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
-            else if(flag === CENTERPOS_CAPTURE)
-            {
-                // topBarOffset = topBarOffset//+14*scale;
-                center.setTo(stage.stageWidth/2,Math.floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
-            }
-            else if(flag === CENTERPOS_REPLAY)
+            else if(flag === 1) //replay mode
             {
                 topBarOffset = topBarOffset+replayTimeBox.BARSIZE*scale;
+                center.setTo(stage.stageWidth/2,Math.floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
+            }
+            else if(flag === 2) //capture mode
+            {
+                // topBarOffset = topBarOffset//+14*scale;
                 center.setTo(stage.stageWidth/2,Math.floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else
@@ -20677,9 +20700,9 @@
                 h = CANVAS_HEIGHT;
             }
 
-            if(captureMode) center = getStageCenterPos(CENTERPOS_CAPTURE);
-            else if(replayMode) center = getStageCenterPos(CENTERPOS_REPLAY);
-            else center = getStageCenterPos(CENTERPOS_DRAW);
+            if(captureMode) center = getStageCenterPos(2);
+            else if(replayMode) center = getStageCenterPos(1);
+            else center = getStageCenterPos(0);
 
             xReg.x = Math.floor(center.x);
             xReg.y = Math.floor(center.y);
@@ -22013,7 +22036,7 @@
             setTopChildIndex(replayTimeBox);
             setReplayDeleteBarVisibleOFF();
             setTopBarHintOFF();
-            setNumPadOFF();
+            if(numPadBox.visible) setNumPadOFF();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             rCursor.alpha = 1.0;
             rCursor.visible = false;
