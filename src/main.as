@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.72;
+        private const APP_VERSION:Number = 24.73;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15499,17 +15499,17 @@
 
                 const lineSize:Number = Math.ceil(1/zoomed);
                 captureAreaRect.graphics.clear();
-                captureAreaRect.graphics.lineStyle(lineSize,0xFFFFFF,1.0,true);
-                captureAreaRect.graphics.drawRect(rect.x,rect.y,rect.width,rect.height);
 
                 //배경색 약간 어둡게 해줌
                 captureAreaRect.graphics.lineStyle(0,0,0);
                 captureAreaRect.graphics.beginFill(0,0.3);
-                captureAreaRect.graphics.drawRect(0,0,canvasWidth,rect.y);
-                captureAreaRect.graphics.drawRect(0,rect.y,rect.x,rect.height+lineSize);
-                captureAreaRect.graphics.drawRect(rect.x+rect.width+lineSize,rect.y,canvasWidth-(rect.x+rect.width),rect.height+lineSize);
-                captureAreaRect.graphics.drawRect(0,rect.y+rect.height+lineSize,canvasWidth,canvasHeight-(rect.y+rect.height));
+                captureAreaRect.graphics.drawRect(0,0,canvasWidth,rect.y); //위
+                captureAreaRect.graphics.drawRect(0,rect.y,rect.x,rect.height);//왼쪽
+                captureAreaRect.graphics.drawRect(rect.x+rect.width,rect.y,canvasWidth-(rect.x+rect.width),rect.height); //오른쪽
+                captureAreaRect.graphics.drawRect(0,rect.y+rect.height,canvasWidth,canvasHeight-(rect.y+rect.height)+lineSize); //아래
                 captureAreaRect.graphics.endFill();
+                captureAreaRect.graphics.lineStyle(lineSize,0xFFFFFF,1.0,true);
+                captureAreaRect.graphics.drawRect(rect.x,rect.y,rect.width,rect.height);
 
                 if(resizeButtonON)
                 {

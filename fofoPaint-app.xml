@@ -18,7 +18,7 @@
 -->
 <application xmlns="http://ns.adobe.com/air/application/50.2">
   <id>fofoPaint</id>
-  <versionNumber>24.72</versionNumber>
+  <versionNumber>24.73</versionNumber>
   <filename>fofoPaint</filename>
   <name>fofoPaint</name>
   <copyright>c301</copyright>
@@ -29,7 +29,7 @@
     <visible>true</visible>
     <fullScreen>false</fullScreen>
     <aspectRatio>portrait</aspectRatio>
-    <renderMode>auto</renderMode>
+    <renderMode>direct</renderMode>
     <width>1000</width>
     <height>800</height>
 
