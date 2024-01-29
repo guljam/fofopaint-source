@@ -18731,28 +18731,6 @@
             var clickedPosX:Number = 0;
             var clickedPosY:Number = 0;
 
-            function setCanvasBGToNormal():void
-            {
-                canvasPanel.graphics.clear();
-                canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
-                canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
-                canvasPanel.graphics.endFill();
-            }
-
-            function startTransparentBGONTimer():void
-            {
-                addTimerByName("viewTransBGDelayTimer",1.0,false,function():void
-                {
-                    timerActivated = true;
-                    canvasPanel.graphics.clear();
-                    canvasPanel.graphics.beginBitmapFill(capTransparentBGBMPD);
-                    canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
-                    canvasPanel.graphics.endFill();
-                    clickedPosX = mouseX;
-                    clickedPosY = mouseY;
-                });
-            }
-
             function setTransparentBGTempOFFEvent(e:MouseEvent):void
             {
                 const sx:Number = clickedPosX-mouseX;
@@ -18764,10 +18742,22 @@
                     if(timerActivated)
                     {
                         timerActivated = false;
-                        setCanvasBGToNormal();
+                        canvasPanel.graphics.clear();
+                        canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
+                        canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                        canvasPanel.graphics.endFill();
                     }
 
-                    startTransparentBGONTimer();
+                    addTimerByName("viewTransBGDelayTimer",1.0,false,function():void
+                    {
+                        timerActivated = true;
+                        canvasPanel.graphics.clear();
+                        canvasPanel.graphics.beginBitmapFill(capTransparentBGBMPD);
+                        canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                        canvasPanel.graphics.endFill();
+                        clickedPosX = mouseX;
+                        clickedPosY = mouseY;
+                    });
                 }
             }
 
@@ -18783,7 +18773,10 @@
                 if(timerActivated)
                 {
                     timerActivated = false;
-                    setCanvasBGToNormal();
+                    canvasPanel.graphics.clear();
+                    canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
+                    canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                    canvasPanel.graphics.endFill();
                 }
             }
 
@@ -18795,7 +18788,16 @@
                     stage.addEventListener(MouseEvent.MOUSE_MOVE,setTransparentBGTempOFFEvent);
                 }
 
-                startTransparentBGONTimer();
+                addTimerByName("viewTransBGDelayTimer",1.0,false,function():void
+                {
+                    timerActivated = true;
+                    canvasPanel.graphics.clear();
+                    canvasPanel.graphics.beginBitmapFill(capTransparentBGBMPD);
+                    canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                    canvasPanel.graphics.endFill();
+                    clickedPosX = mouseX;
+                    clickedPosY = mouseY;
+                });
             }
 
             return{
