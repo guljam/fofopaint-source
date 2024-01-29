@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.73;
+        private const APP_VERSION:Number = 24.75;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -569,6 +569,7 @@
                     ,replayHideCursor:Object = cCheckHideCursor()
                     ,resizeCanvas:Object = cResizeCanvas()
                     ,gridButton:Object = cGridFunc()
+                    ,transparentBG:Object = cTransparentBG()
 
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
@@ -660,7 +661,7 @@
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,dragDropFileSave:File //invoke 이벤트에서 파일을 너무 빨리 불러오지 못하게함
                     ,oldAppdataRtotalFrame:Number = -1 //24.00버전 이후로 쓸일 없지만 이전버전 호환성을 위해서 백업해주고 복원해줌
-                    ,viewTransBGDelayTimerActivated:Boolean = false //setOptimizeCanvasMoveON 함수에서 오래 눌러줬을때 투명색 배경화면 보여주면 올려줌
+                   
                     ;
 
         public function main():void
@@ -5790,6 +5791,7 @@
             const uiScale:Number = getUIScale();
 
             setOptimizeCanvasMoveON(true);
+            transparentBG.on();
             hint.off();
 
             function setCenter(mx:Number,my:Number):void
@@ -5812,6 +5814,7 @@
             function setHandToolMouseUpEvent(e:MouseEvent):void
             {
                 setOptimizeCanvasMoveON(false);
+                transparentBG.off();
                 checkCanvasPanelPos();
                 updatePreviewBoxRectPos();
                 mouseClickON = false;
@@ -18721,34 +18724,91 @@
             };
         }
 
-        private function setOptimizeCanvasMoveON(flag:Boolean):void
+        private function cTransparentBG():Object
         {
-            if(canvasTraceLayer.alpha > 0.0) canvasTraceLayer.visible = !flag;
-            if(gridValue > 0)  canvasGrid.visible = !flag;
+            var timerActivated:Boolean = false //hand tool 오래 눌러줬을때 투명색 배경화면 보여주면 올려줌
+            var isON:Boolean = false //투명 배경색 이벤트 한번만 켜주기
+            var clickedPosX:Number = 0;
+            var clickedPosY:Number = 0;
 
-            if(flag)
+            function setCanvasBGToNormal():void
+            {
+                canvasPanel.graphics.clear();
+                canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
+                canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                canvasPanel.graphics.endFill();
+            }
+
+            function startTransparentBGONTimer():void
             {
                 addTimerByName("viewTransBGDelayTimer",1.0,false,function():void
                 {
-                    viewTransBGDelayTimerActivated = true;
+                    timerActivated = true;
                     canvasPanel.graphics.clear();
                     canvasPanel.graphics.beginBitmapFill(capTransparentBGBMPD);
                     canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
                     canvasPanel.graphics.endFill();
+                    clickedPosX = mouseX;
+                    clickedPosY = mouseY;
                 });
             }
-            else
+
+            function setTransparentBGTempOFFEvent(e:MouseEvent):void
             {
-                removeTimer("viewTransBGDelayTimer");
-                if(viewTransBGDelayTimerActivated)
+                const sx:Number = clickedPosX-mouseX;
+                const sy:Number = clickedPosY-mouseY;
+                const dist:Number = Math.sqrt(sx*sx+sy*sy);
+
+                if(dist >= 10)
                 {
-                    viewTransBGDelayTimerActivated = false;
-                    canvasPanel.graphics.clear();
-                    canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
-                    canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
-                    canvasPanel.graphics.endFill();
+                    if(timerActivated)
+                    {
+                        timerActivated = false;
+                        setCanvasBGToNormal();
+                    }
+
+                    startTransparentBGONTimer();
                 }
             }
+
+            function off():void
+            {
+                if(isON)
+                {
+                    isON = false;
+                    stage.removeEventListener(MouseEvent.MOUSE_MOVE,setTransparentBGTempOFFEvent);
+                }
+
+                removeTimer("viewTransBGDelayTimer");
+                if(timerActivated)
+                {
+                    timerActivated = false;
+                    setCanvasBGToNormal();
+                }
+            }
+
+            function on():void
+            {
+                if(isON === false)
+                {
+                    isON = true;
+                    stage.addEventListener(MouseEvent.MOUSE_MOVE,setTransparentBGTempOFFEvent);
+                }
+
+                startTransparentBGONTimer();
+            }
+
+            return{
+                on:on,
+                off:off,
+                isON:isON
+            };
+        }
+        
+        private function setOptimizeCanvasMoveON(flag:Boolean):void
+        {
+            if(canvasTraceLayer.alpha > 0.0) canvasTraceLayer.visible = !flag;
+            if(gridValue > 0)  canvasGrid.visible = !flag;
         }
 
         private function cHandTool():Function
@@ -18774,6 +18834,7 @@
                 if(isDrawMode)
                 {
                     setOptimizeCanvasMoveON(false);
+                    transparentBG.off();
 
                     if(lassoToolON)
                     {
@@ -18819,6 +18880,7 @@
                 {
                     toolBox.setCursorVisible(false);
                     setOptimizeCanvasMoveON(true);
+                    transparentBG.on();
                 }
 
                 stageMouseMoveEvent.add("handToolMoveEvent",handToolMoveEvent);
@@ -21521,6 +21583,7 @@
             }
 
             setNowToolByOldTool();
+            if(transparentBG.isON) transparentBG.off();
         }
 
         private function updateToolBoxMousePos(target:SimpleButton):void
