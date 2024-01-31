@@ -106,6 +106,7 @@
 		public function updateOldRGBInfoText():void
 		{
 			lastRGBInfoText = rgbInfo.text;
+			trace("lastRGBInfoText",lastRGBInfoText)
 		}
 
 		public function setoldRGBInfoText(str:String):void

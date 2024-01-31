@@ -8,6 +8,7 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
+	import flash.events.Event;
 
 	public class topMenu extends Sprite {
 		public const BARSIZE:Number = 38;
@@ -69,7 +70,7 @@
 		private var drawModeButtons:Array = [];
 		private var replayModeButtons:Array = [];
 		private var captureModeButtons:Array = [];
-		private var topbarBG:Shape = new Shape();
+		public var topbarBG:Shape = new Shape();
 		private var topbarBGColor:uint = 0;
 		private var hintOKBGColor:uint = 0;
 		private var hintFontColor:uint = 0;
@@ -104,7 +105,7 @@
 			gridMoveDownButton.alpha = alpha;
 		}
 
-		public function initGridButtonWrapper():void
+		private function initGridButtonWrapper():void
 		{
 			gridButtonWrapper.name = "gridButtonWrapper";
 
@@ -122,7 +123,7 @@
 		}
 
 		//control menu initPenSmoothSliderWrapper와 같음
-		public function initGridMoveButtonWrapper():void
+		private function initGridMoveButtonWrapper():void
 		{
 			gridMoveButtonWrapper.name = "gridMoveButtonWrapper";
 
@@ -151,7 +152,7 @@
 			gridMoveButtonWrapper.graphics.endFill();
 		}
 
-		public function initGridSliderWrapper():void
+		private function initGridSliderWrapper():void
 		{
 			gridSliderWrapper.name = "gridSliderWrapper";
 			gridSliderWrapper.addChild(gridSlider);
@@ -174,7 +175,7 @@
 			gridSliderWrapper.graphics.endFill();
 		}
 
-		public function initReplaySpeedSliderWrapper():void
+		private function initReplaySpeedSliderWrapper():void
 		{
 			replaySpeedSliderWrapper.name = "replaySpeedSliderWrapper";
 			replaySpeedSliderWrapper.addChild(replaySpeedSlider);
@@ -398,12 +399,10 @@
 			if(!arr) return;
 
 			const len:uint = arr.length;
-			var ent:DisplayObject;
 
 			for(var i:uint=0;i<len;i++)
 			{
-				ent = arr[i] as DisplayObject;
-				if(ent) arr[i].visible = flag;
+				if(arr[i] as DisplayObject) arr[i].visible = flag;
 			}
 
 			if(mode === "draw" && flag === true)

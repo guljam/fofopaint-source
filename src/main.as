@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.76;
+        private const APP_VERSION:Number = 24.77;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -661,7 +661,6 @@
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,dragDropFileSave:File //invoke 이벤트에서 파일을 너무 빨리 불러오지 못하게함
                     ,oldAppdataRtotalFrame:Number = -1 //24.00버전 이후로 쓸일 없지만 이전버전 호환성을 위해서 백업해주고 복원해줌
-                   
                     ;
 
         public function main():void
@@ -1315,7 +1314,8 @@
                 }
                 break;
 
-                case "rgbInfo": str = "Change value [click]\nChange color model [right-click]"; break;
+                case "rgbInfo": str = "Change value [click]\nChange color model [click "+((rgbInfoColorTypeHSV) ? "'HSV'":"'RGB'")+" text]";break;
+
                 case "currentColor": str = getCurrentColorHint(); break;
                 case "transColorButton": str = "Transparent color\nON/OFF [c+space, m+space]"; break;
 
@@ -1662,23 +1662,23 @@
 
         private function checkRGBInfoColorValueLimit():void
         {
-            const rgb:Array = getRGBColorTextFromRGBInfoText();
+            const c:Array = getRGBColorTextFromRGBInfoText();
 
             if(rgbInfoColorTypeHSV)
             {
-                if(int(rgb[0]) > 360) rgb[0] = "360";
-                if(int(rgb[1]) > 100) rgb[1] = "100";
-                if(int(rgb[2]) > 100) rgb[2] = "100";
+                if(int(c[0]) > 360) c[0] = "360";
+                if(int(c[1]) > 100) c[1] = "100";
+                if(int(c[2]) > 100) c[2] = "100";
 
-                pickerBox.setRGBInfo("HSV "+rgb[0]+","+rgb[1]+","+rgb[2]);
+                pickerBox.setRGBInfo("HSV "+c[0]+","+c[1]+","+c[2]);
             }
             else
             {
-                if(int(rgb[0]) > 255) rgb[0]= "255";
-                if(int(rgb[1]) > 255) rgb[1]= "255";
-                if(int(rgb[2]) > 255) rgb[2]= "255";
+                if(int(c[0]) > 255) c[0]= "255";
+                if(int(c[1]) > 255) c[1]= "255";
+                if(int(c[2]) > 255) c[2]= "255";
 
-                pickerBox.setRGBInfo("RGB "+rgb[0]+","+rgb[1]+","+rgb[2]);
+                pickerBox.setRGBInfo("RGB "+c[0]+","+c[1]+","+c[2]);
             }
         }
 
@@ -1746,11 +1746,15 @@
             selectRGBInfoTextByRGBPos(index);
         }
 
-        private function rgbInfoTextRightMouseDownEvent(e:MouseEvent):void
+        private function rgbInfoTextMouseDownEvent(e:MouseEvent):void
         {
             if(pickerBox.rgbInfo.hitTestPoint(mouseX,mouseY))
             {
-                toggleRGBInfoTextColorType();
+                var clickedPos:int = pickerBox.rgbInfo.getCharIndexAtPoint(pickerBox.rgbInfo.mouseX,10);
+                if(clickedPos >= 0 && clickedPos <= 3)
+                {
+                    toggleRGBInfoTextColorType();
+                }
             }
         }
 
@@ -2015,7 +2019,7 @@
             pickerBox.rgbInfo.border  = false;
             pickerBox.rgbInfo.removeEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN, rgbInfoTextKeyDownEvent);
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rgbInfoTextRightMouseDownEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,rgbInfoTextMouseDownEvent);
             pickerBox.rgbInfo.removeEventListener(Event.CHANGE, onRGBInfoTextChangeEvent);
             rgbInfoRightClickFocusIgnoreFlag = false;
 
@@ -2087,7 +2091,7 @@
             {
                 stage.addEventListener(KeyboardEvent.KEY_DOWN,rgbInfoTextKeyDownEvent);
             }
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rgbInfoTextRightMouseDownEvent);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,rgbInfoTextMouseDownEvent);
             pickerBox.rgbInfo.addEventListener(Event.CHANGE,onRGBInfoTextChangeEvent);
             setNowToolForDrawing(false);
             setNumPadON();
@@ -2104,8 +2108,8 @@
         {
             var pattern:RegExp = /\b(RGB|HSV) \d{0,3},\d{0,3},\d{0,3}/;
             var isMatch:Boolean = pattern.test(pickerBox.getRGBInfo());
-
-            var hasEmptyChecked:Boolean = checkRGBInfoHasEmptyValue();
+            //여기서 빈값을 채워주기 때문에 미리 함수 실행해줘야 함
+            const hasEmptyChecked:Boolean = checkRGBInfoHasEmptyValue();
 
             if(isMatch)
             {
@@ -2144,7 +2148,11 @@
                 pickerBox.rgbInfo.setSelection(4,4);
             }
 
-            if(selectedRGBInfoIndex !== getRGBInfoTextCursorPos())
+            if(pickerBox.rgbInfo.caretIndex < 0)
+            {
+                selectRGBInfoTextByRGBPos(2);
+            }
+            else if(selectedRGBInfoIndex !== getRGBInfoTextCursorPos())
             {
                 selectRGBInfoTextByRGBPos(getRGBInfoTextCursorPos());
             }
@@ -3167,22 +3175,6 @@
                 }
                 return;
 
-                case "rgbInfo":
-                {
-                    rgbInfoRightClickFocusIgnoreFlag = true;
-                    toggleRGBInfoTextColorType();
-                }
-                return;
-
-                case "layer1SelectButton":
-                {
-                    selectSubLayer(false,canvas11Bitmap.visible);
-                    if(controlBox.layer2CheckButton.visible)
-                    {
-                        setLayer2CheckToggle();
-                    }
-                }
-                return;
 
                 case "myPaletteBox":
                 {
@@ -3190,15 +3182,11 @@
                 }
                 return;
 
-                case "layer2SelectButton":
+                case "rgbInfo":
                 {
-                    selectSubLayer(true,canvas1Bitmap.visible);
-                    if(controlBox.layer1CheckButton.visible)
-                    {
-                        setLayer1CheckToggle();
-                    }
+                    rgbInfoRightClickFocusIgnoreFlag = true;
                 }
-                return;
+                break;
 
                 default:
                 break;
@@ -7500,12 +7488,12 @@
                 break;
 
                 case "layer1SelectButton":
-                    str = "Select layer 1 [1, 9]\nShow only layer 1 [right-click]";
+                    str = "Select layer 1 [1, 9]\nShow only layer 1 ON/OFF [click]";
                     setSingleLayerPreview(1,false);
                 break;
 
                  case "layer2SelectButton":
-                    str = "Select layer 2 [2, 0]\nShow only layer 2 [right-click]";
+                    str = "Select layer 2 [2, 0]\nShow only layer 2 ON/OFF [click]";
                     setSingleLayerPreview(2,false);
                 break;
 
@@ -9634,6 +9622,7 @@
             }
 
             var str:String = "";
+            trace("targetName",targetName)
 
             switch(targetName)
             {
@@ -18806,7 +18795,7 @@
                 isON:isON
             };
         }
-        
+
         private function setOptimizeCanvasMoveON(flag:Boolean):void
         {
             if(canvasTraceLayer.alpha > 0.0) canvasTraceLayer.visible = !flag;
@@ -21189,6 +21178,7 @@
                         if(KEY_BUFFER[1] === KEY.n1 || KEY_BUFFER[1] === KEY.n9)
                         {
                             layerCheckKeyPressed = true;
+
                             selectSubLayer(false,false);
                             setLayer1CheckToggle();
 
@@ -21294,7 +21284,15 @@
                 case KEY.n1:
                 case KEY.n9:
                 {
-                    selectSubLayer(false,false);
+                    if(subLayerON)
+                    {
+                        selectSubLayer(false,false);
+                    }
+                    else
+                    {
+                        selectSubLayer(false,canvas11Bitmap.visible);
+                    }
+
                     if(controlBox.layer2CheckButton.visible)
                     {
                         setLayer2CheckToggle();
@@ -21308,7 +21306,14 @@
                 case KEY.n2:
                 case KEY.n0:
                 {
-                    selectSubLayer(true,false);
+                    if(!subLayerON)
+                    {
+                        selectSubLayer(true,false);
+                    }
+                    else
+                    {
+                        selectSubLayer(true,canvas1Bitmap.visible);
+                    }
                     if(controlBox.layer1CheckButton.visible)
                     {
                         setLayer1CheckToggle();
@@ -22436,7 +22441,6 @@
                 case "rgbInfo":
                 {
                     rgbInfoRightClickFocusIgnoreFlag = true;
-                    toggleRGBInfoTextColorType();
                 }
                 break;
 
@@ -22460,26 +22464,6 @@
                 case "toolRotate":
                 {
                     if(regPoint.rotation !== 0.0) resetRotationDrawMode();
-                }
-                break;
-
-                case "layer1SelectButton":
-                {
-                    selectSubLayer(false,canvas11Bitmap.visible);
-                    if(controlBox.layer2CheckButton.visible)
-                    {
-                        setLayer2CheckToggle();
-                    }
-                }
-                break;
-
-                case "layer2SelectButton":
-                {
-                    selectSubLayer(true,canvas1Bitmap.visible);
-                    if(controlBox.layer1CheckButton.visible)
-                    {
-                        setLayer1CheckToggle();
-                    }
                 }
                 break;
 
@@ -22595,7 +22579,15 @@
 
                 case "layer1SelectButton":
                 {
-                    selectSubLayer(false,false);
+                    if(subLayerON)
+                    {
+                        selectSubLayer(false,false);
+                    }
+                    else
+                    {
+                        selectSubLayer(false,canvas11Bitmap.visible);
+                    }
+
                     if(controlBox.layer2CheckButton.visible)
                     {
                         setLayer2CheckToggle();
@@ -22605,7 +22597,15 @@
 
                 case "layer2SelectButton":
                 {
-                    selectSubLayer(true,false);
+                    if(!subLayerON)
+                    {
+                        selectSubLayer(true,false);
+                    }
+                    else
+                    {
+                        selectSubLayer(true,canvas1Bitmap.visible);
+                    }
+
                     if(controlBox.layer1CheckButton.visible)
                     {
                         setLayer1CheckToggle();
@@ -23262,8 +23262,6 @@
                 return;
 
                 case "dragDropFileBG":
-                return;
-
                 return;
             }
 
