@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.77;
+        private const APP_VERSION:Number = 24.78;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2665,45 +2665,6 @@
             tracebmpd = null;
         }
 
-        private function checkCaptureButtonActiveCaptureMode():void
-        {
-            topBar.capClipBoard.alpha = 1.0;
-            if(replayModeON)
-            {
-                if(!rcanvas1Bitmap.visible && !rcanvas11Bitmap.visible)
-                {
-                    topBar.capFull.alpha = BUTTON_OFF_ALPHA;
-                    topBar.capClipBoard.alpha = BUTTON_OFF_ALPHA;
-                    topBar.capRotate.alpha = BUTTON_OFF_ALPHA;
-                    topBar.capFlip.alpha = BUTTON_OFF_ALPHA;
-                }
-                else if(topBar.capFull.alpha < 1.0)
-                {
-                    topBar.capFull.alpha = 1.0;
-                    topBar.capClipBoard.alpha = 1.0;
-                    topBar.capRotate.alpha = 1.0;
-                    topBar.capFlip.alpha = 1.0;
-                }
-            }
-            else
-            {
-                if(!canvas1Bitmap.visible && !canvas11Bitmap.visible)
-                {
-                    topBar.capFull.alpha = BUTTON_OFF_ALPHA;
-                    topBar.capClipBoard.alpha = BUTTON_OFF_ALPHA;
-                    topBar.capRotate.alpha = BUTTON_OFF_ALPHA;
-                    topBar.capFlip.alpha = BUTTON_OFF_ALPHA;
-                }
-                else if(topBar.capFull.alpha < 1.0)
-                {
-                    topBar.capFull.alpha = 1.0;
-                    topBar.capClipBoard.alpha = 1.0;
-                    topBar.capRotate.alpha = 1.0;
-                    topBar.capFlip.alpha = 1.0;
-                }
-            }
-        }
-
         private function setLayer1CheckToggle():void
         {
             if(controlBox.layer1CheckButton.visible === false)
@@ -2780,8 +2741,6 @@
                     topBar.capLayer1VisibleButton.alpha = 1.0;
                 }
             }
-
-            checkCaptureButtonActiveCaptureMode();
         }
 
         private function setLayer2CheckToggleCaptureMode():void
@@ -2817,7 +2776,6 @@
                     topBar.capLayer2VisibleButton.alpha = 1.0;
                 }
             }
-            checkCaptureButtonActiveCaptureMode();
         }
 
         private function addUndoBGColor(color:uint):void
@@ -9033,11 +8991,19 @@
                         break;
 
                         case "capLayer1VisibleButton":
-                            setLayer1CheckToggleCaptureMode();
+                        {
+                            if(topBar.capLayer2VisibleButton.alpha === 1.0)
+                            {
+                                setLayer1CheckToggleCaptureMode();
+                            }
+                        }
                         break;
 
                         case "capLayer2VisibleButton":
-                            setLayer2CheckToggleCaptureMode();
+                            if(topBar.capLayer1VisibleButton.alpha === 1.0)
+                            {
+                                setLayer2CheckToggleCaptureMode();
+                            }
                         break;
 
                         case "dpiButton":
@@ -9622,7 +9588,6 @@
             }
 
             var str:String = "";
-            trace("targetName",targetName)
 
             switch(targetName)
             {
@@ -15016,32 +14981,17 @@
 
                 case KEY.c:
                 case KEY.m:
-                {
-                    if(topBar.capFull.alpha === 1.0)
-                    {
-                        saveCaptureImage();
-                    }
-                }
+                    saveCaptureImage();
                 break;
 
                 case KEY.s:
                 case KEY.k:
-                {
-                    if(topBar.capRotate.alpha === 1.0)
-                    {
-                        setCaptureRotateButton();
-                    }
-                }
+                    setCaptureRotateButton();
                 break;
 
                 case KEY.a:
                 case KEY.l:
-                {
-                    if(topBar.capFlip.alpha === 1.0)
-                    {
-                        setCaptrueFlipButton();
-                    }
-                }
+                    setCaptrueFlipButton();
                 break;
 
                 case KEY.d:
@@ -15051,12 +15001,18 @@
 
                 case KEY.n1:
                 case KEY.n9:
-                    setLayer1CheckToggleCaptureMode();
+                    if(topBar.capLayer2VisibleButton.alpha === 1.0)
+                    {
+                        setLayer1CheckToggleCaptureMode();
+                    }
                 break;
 
                 case KEY.n2:
                 case KEY.n0:
-                    setLayer2CheckToggleCaptureMode();
+                    if(topBar.capLayer1VisibleButton.alpha === 1.0)
+                    {
+                        setLayer2CheckToggleCaptureMode();
+                    }
                 break;
 
                 default:
