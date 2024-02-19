@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.80;
+        private const APP_VERSION:Number = 24.81;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9123,13 +9123,6 @@
                         }
                         break;
 
-                        case "traceLoadButton":
-                        {
-                            setTopChildIndex(traceMenu);
-                            checkButtonUp(targetName);
-                        }
-                        break;
-
                         case "traceClipButton":
                         {
                             if(traceMenu.traceClipButton.alpha === 1.0)
@@ -9178,6 +9171,43 @@
                             }
                         }
                         break;
+
+                        case "lassoLayerMerge":
+                        {
+                            if(lassoMenu.lassoLayerMerge.alpha === 1.0)
+                            {
+                                setLassoLayerMergeButton();
+                            }
+                        }
+                        break;
+
+                        case "lassoLayerSwap":
+                        {
+                            if(lassoMenu.lassoLayerSwap.alpha === 1.0)
+                            {
+                                setLassoLayerSwapButton();
+                            }
+                        }
+                        break;
+
+                        case "lasso1pxUp": setLasso1PxMoveButton(LASSO_1PX_MOVE_UP); break;
+                        case "lasso1pxDown": setLasso1PxMoveButton(LASSO_1PX_MOVE_DOWN); break;
+                        case "lasso1pxLeft": setLasso1PxMoveButton(LASSO_1PX_MOVE_LEFT); break;
+                        case "lasso1pxRight": setLasso1PxMoveButton(LASSO_1PX_MOVE_RIGHT); break;
+                        case "lassoCopy": setLassoCopyButton(); break;
+
+                        case "lassoMirror":
+                        {
+                            lassoMirrorON = !lassoMirrorON;
+                            lassoBox1.scaleX = -lassoBox1.scaleX;
+                            lassoBox2.scaleX = lassoBox1.scaleX;
+
+                            //캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
+                            lassoBox1.rotation = -lassoBox1.rotation-(regPoint.rotation*2);
+                            lassoBox2.rotation = lassoBox1.rotation;
+                        }
+                        break;
+
 
                         case "replayFitToWindowButton":
                         {
@@ -22997,42 +23027,11 @@
                     }
                     break;
 
-                    case "lassoMirror":
-                    {
-                        lassoMirrorON = !lassoMirrorON;
-                        lassoBox1.scaleX = -lassoBox1.scaleX;
-                        lassoBox2.scaleX = lassoBox1.scaleX;
-
-                        //캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
-                        lassoBox1.rotation = -lassoBox1.rotation-(regPoint.rotation*2);
-                        lassoBox2.rotation = lassoBox1.rotation;
-                    }
-                    break;
-
-                    case "lasso1pxUp": setLasso1PxMoveButton(LASSO_1PX_MOVE_UP); break;
-                    case "lasso1pxDown": setLasso1PxMoveButton(LASSO_1PX_MOVE_DOWN); break;
-                    case "lasso1pxLeft": setLasso1PxMoveButton(LASSO_1PX_MOVE_LEFT); break;
-                    case "lasso1pxRight": setLasso1PxMoveButton(LASSO_1PX_MOVE_RIGHT); break;
-                    case "lassoCopy": setLassoCopyButton(); break;
-
-                    case "lassoLayerMerge":
-                    {
-                        if(lassoMenu.lassoLayerMerge.alpha === 1.0)
-                        {
-                            setLassoLayerMergeButton();
-                        }
-                    }
-                    break;
-
-                    case "lassoLayerSwap":
-                    {
-                        if(lassoMenu.lassoLayerSwap.alpha === 1.0)
-                        {
-                            setLassoLayerSwapButton();
-                        }
-                    }
-                    break;
-
+                    case "lasso1pxUp":
+                    case "lasso1pxDown":
+                    case "lasso1pxLeft":
+                    case "lasso1pxRight":
+                    case "lassoCopy":
                     case "lassoOK":
                     case "lassoCancel":
                     case "lassoTrace":
@@ -23042,6 +23041,9 @@
                     case "sideBarOFFButton2":
                     case "sideBarONButton":
                     case "sideBarONButton2":
+                    case "lassoLayerMerge":
+                    case "lassoLayerSwap":
+                    case "lassoMirror":
                         checkButtonUp(targetName);
                     break;
 
@@ -23135,7 +23137,7 @@
                     {
                         return;
                     }
-
+                    trace("mdown")
                     checkButtonUp(targetName);
                 }
                 return;
