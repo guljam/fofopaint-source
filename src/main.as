@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.81;
+        private const APP_VERSION:Number = 24.82;
         private const APP_DATA_VERSION:Number = 2425;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -839,6 +839,11 @@
             if(flag)
             {
                 setDragDropSelectBoxCenterPos();
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownLoadBox);
+            }
+            else
+            {
+                stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownLoadBox);
             }
 
             setTopChildIndex(loadMenuBox);
@@ -13024,6 +13029,14 @@
             loadMenuBox["dragDropFileBG"].height = sth;
         }
 
+        private function keyDownLoadBox(e:KeyboardEvent):void
+        {
+            if(e.keyCode === KEY.esc || e.keyCode === KEY.backspace)
+            {
+                setLoadBoxVisible(false);
+            }
+        }
+
         private function setLoadBoxReady(pleaseWaitFlag:Boolean,traceLayer:Boolean):void
         {
             resetKeyBuffer();
@@ -18195,8 +18208,8 @@
 
             function resetPosData():void
             {
-                lassoRect.length = 0;
-                lassoPoints.length = 0;
+                if(lassoRect) lassoRect.length = 0;
+                if(lassoPoints) lassoPoints.length = 0;
                 lassoRect = null;
                 lassoPoints = null;
             }
