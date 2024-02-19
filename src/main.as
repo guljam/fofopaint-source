@@ -23137,7 +23137,7 @@
                     {
                         return;
                     }
-                    trace("mdown")
+
                     checkButtonUp(targetName);
                 }
                 return;
