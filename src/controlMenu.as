@@ -13,6 +13,7 @@
 		public const airBrushButtonWrapper:Sprite = new Sprite();
 		public const layerButtonWrapper:Sprite = new Sprite();
 		public const opaSizeButtonWrapper:Sprite = new Sprite();
+		public const penShapeSmoothingWarpper:Sprite = new Sprite();
 
 		public var infoPenOptions:SimpleButton;
 		public var infoEraserOptions:SimpleButton;
@@ -177,7 +178,7 @@
 
 		public function initAirBrushButtonWrapper():void
 		{
-			const w:Number = airBrushOFFButton.width+sharpLineText.width+14;
+			const w:Number = airBrushOFFButton.width+sharpLineText.width+7;
 			const h:Number = airBrushOFFButton.height+2;
 
 			airBrushButtonWrapper.graphics.beginFill(0xFF0000,0);
@@ -210,7 +211,7 @@
 
 		public function initSharpLineButtonWrapper():void
 		{
-			const w:Number = sharpLineOFFButton.width+sharpLineText.width+14;
+			const w:Number = sharpLineOFFButton.width+sharpLineText.width+7;
 			const h:Number = sharpLineOFFButton.height+2;
 
 			sharpLineButtonWrapper.graphics.beginFill(0xFF0000,0.0);
@@ -286,7 +287,7 @@
 			layer2SelectButton.x = layer2CheckButton.x+layer2CheckButton.width+3;
 			layer2SelectButton.y = layer2CheckButton.y-1;
 
-			saperateLine.x = layerMergeButton.x+layerMergeButton.width+5;
+			saperateLine.x = layerMergeButton.x+layerMergeButton.width+9;
 			saperateLine.y = 4;
 
 			saperateLine.mouseEnabled = false;
@@ -313,18 +314,30 @@
 			penSmoothSliderWapper.graphics.endFill();
 		}
 
+		public function initPenShapeSmoothingWarpper():void
+		{
+			initPenSmoothSliderWrapper();
+			penShapeSmoothingWarpper.addChild(shapeCircle);
+			penShapeSmoothingWarpper.addChild(shapeRect);
+			penShapeSmoothingWarpper.addChild(penSmoothSliderWapper);
+
+			shapeCircle.x = 0;
+			shapeCircle.y = 0;
+			shapeCircle.useHandCursor = false;
+			shapeRect.x = shapeCircle.x+shapeCircle.width+1;
+			shapeRect.y = 0;
+			shapeRect.useHandCursor = false;
+
+			penSmoothSliderWapper.x = Math.floor(shapeRect.x+shapeRect.width+4);
+			penSmoothSliderWapper.y = Math.floor(shapeRect.y);
+
+		}
+
 		public function initOpaSizeButtonWapper():void
 		{
-			initInfoButton();
-			initPenSmoothSliderWrapper();
+			initPenSizeButton();
+			initOpaButton();
 
-			opaSizeButtonWrapper.addChild(infoPenOptions);
-			opaSizeButtonWrapper.addChild(infoEraserOptions);
-			opaSizeButtonWrapper.addChild(infoLineOptions);
-			opaSizeButtonWrapper.addChild(infoLineOptions);
-			opaSizeButtonWrapper.addChild(shapeCircle);
-			opaSizeButtonWrapper.addChild(shapeRect);
-			opaSizeButtonWrapper.addChild(penSmoothSliderWapper);
 			opaSizeButtonWrapper.addChild(penSizeGuide);
 			opaSizeButtonWrapper.addChild(penSizeBox);
 			opaSizeButtonWrapper.addChild(rectSizeSet);
@@ -333,18 +346,8 @@
 			opaSizeButtonWrapper.addChild(opaBox);
 			opaSizeButtonWrapper.addChild(penSizeSelectCursor);
 
-			shapeCircle.x = 0;
-			shapeCircle.y = Math.floor(infoPenOptions.y+infoPenOptions.height)-1;
-			shapeCircle.useHandCursor = false;
-			shapeRect.x = shapeCircle.x+shapeCircle.width+1;
-			shapeRect.y = Math.floor(infoPenOptions.y+infoPenOptions.height);
-			shapeRect.useHandCursor = false;
-
-			penSmoothSliderWapper.x = Math.floor(shapeRect.x+shapeRect.width+4);
-			penSmoothSliderWapper.y = Math.floor(shapeRect.y);
-
 			penSizeGuide.x = 0;
-			penSizeGuide.y = Math.floor(penSmoothSliderWapper.y+penSmoothSliderWapper.height)+3;
+			penSizeGuide.y = 0;
 			penSizeBox.x = penSizeGuide.x+2;
 			penSizeBox.y = penSizeGuide.y+2;
 			penSizeSelectCursor.useHandCursor = false;
@@ -441,30 +444,36 @@
 		{
 			name = "controlBox";
 
-			initPenSizeButton();
-			initOpaButton();
-			initOpaSizeButtonWapper();
-
+			initInfoButton();
+			initPenShapeSmoothingWarpper();
+			initLayerButton();
 			initSharpLineButtonWrapper();
 			initAirBrushButtonWrapper();
-			initLayerButton();
+			initOpaSizeButtonWapper();
 
-			opaSizeButtonWrapper.x = 0;
-			opaSizeButtonWrapper.y = 0;
+			infoPenOptions.x = 0;
+			infoPenOptions.x = 0;
 
-			layerButtonWrapper.x = opaSizeButtonWrapper.x;
-			layerButtonWrapper.y = opaSizeButtonWrapper.y+opaSizeButtonWrapper.height-2;
+			layerButtonWrapper.x = 0;
+			layerButtonWrapper.y = infoPenOptions.y+infoPenOptions.height;
 
-			sharpLineButtonWrapper.x = layerButtonWrapper.x+layerButtonWrapper.width+9;
+			sharpLineButtonWrapper.x = layerButtonWrapper.x+layerButtonWrapper.width+13;
 			sharpLineButtonWrapper.y = layerButtonWrapper.y+2;
-
 			airBrushButtonWrapper.x = sharpLineButtonWrapper.x;
 			airBrushButtonWrapper.y = sharpLineButtonWrapper.y+sharpLineButtonWrapper.height+2;
 
+			penShapeSmoothingWarpper.x = 0;
+			penShapeSmoothingWarpper.y = layerButtonWrapper.y+layerButtonWrapper.height+1;
+
+			opaSizeButtonWrapper.x = 0;
+			opaSizeButtonWrapper.y = penShapeSmoothingWarpper.y+penShapeSmoothingWarpper.height+2;
+
 			BOX_HEIGHT = opaBox.y+opaBox.height+7;
 
-			addChild(opaSizeButtonWrapper);
+			addChild(infoPenOptions);
+			addChild(penShapeSmoothingWarpper);
 			addChild(layerButtonWrapper);
+			addChild(opaSizeButtonWrapper);
 			addChild(sharpLineButtonWrapper);
 			addChild(airBrushButtonWrapper);
 

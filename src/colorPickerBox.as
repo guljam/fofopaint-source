@@ -13,18 +13,19 @@
 
 	public class colorPickerBox extends Sprite {
 		public var mainColorPickerBox:Sprite = new Sprite();
+		public var mainPresetButtonBox:Sprite = new Sprite();
+		public var mainPickerMenuBox:Sprite = new Sprite();
 		public var svBox:Sprite = new Sprite(); //hue랑 sv합친거
 		public var hsvSetBoxMask:Shape = new Shape(); //메인 컬러 박스임
 		public var svBase:Shape = new Shape(); //메인 컬러 박스에 뒤에 깔아주는 컬러
 		public var svGradient:Shape = new Shape();//흰색 검은색 그라디언트 깔아주는 컬러 임
 		public var hueColor:Sprite = new Sprite();
 		public var hueColorMask:Shape = new Shape();
-		public var mainPresetBox:Sprite = new Sprite();
 		public var rgbInfo:TextField;
 		public var drawrPresetButton:SimpleButton;
 		public var tegakiPresetButton:SimpleButton;
 		public var myPaletteButton:SimpleButton;
-		public var infoColorPicker:SimpleButton;
+		public var swapPositionButton:SimpleButton;
 		public const rgbInfoBG:Shape = new Shape();
 		private var rgbInfoBGColor:uint = 0;
 		private var rgbInfoBGBorderColor:uint = 0;
@@ -66,6 +67,39 @@
 		private var lastRGBInfoText:String = "";
 		private var firstRGBInfoColorText:String = "";
 
+		private var colorBoxPositionSave:Array = [0,0];
+
+		public function swapColorBoxPosition(flag:Boolean):void
+		{
+			if(flag)
+			{
+				mainColorPickerBox.y = 0;
+				myPaletteBox.y = mainColorPickerBox.y+mainColorPickerBox.height+4;
+			}
+			else
+			{
+				myPaletteBox.y = colorBoxPositionSave[0];
+				mainColorPickerBox.y = colorBoxPositionSave[1];
+			}
+
+			checkMainColorPickerBoxPosition(flag);
+		}
+
+		public function checkMainColorPickerBoxPosition(checkflag:Boolean):void
+		{
+			if(checkflag)
+			{
+				mainPresetButtonBox.y = myPaletteBox.y+myPaletteBox.height+3;
+				mainPickerMenuBox.y = mainPresetButtonBox.y+mainPresetButtonBox.height+3;
+			}
+			else
+			{
+				mainColorPickerBox.y = myPaletteBox.y+myPaletteBox.height+4;
+				mainPresetButtonBox.y = mainColorPickerBox.y+mainColorPickerBox.height+3;
+				mainPickerMenuBox.y = mainPresetButtonBox.y+mainPresetButtonBox.height+3;
+			}
+		}
+
 		public function selectPresetButton(type:int):void
 		{
 			if(type === 0)
@@ -106,7 +140,6 @@
 		public function updateOldRGBInfoText():void
 		{
 			lastRGBInfoText = rgbInfo.text;
-			trace("lastRGBInfoText",lastRGBInfoText)
 		}
 
 		public function setoldRGBInfoText(str:String):void
@@ -152,7 +185,7 @@
 			tegakiPresetButton.transform.colorTransform = baseColor;
 			tegakiPresetButton.alpha = alphaSave;
 
-			infoColorPicker.transform.colorTransform = baseColor;
+			swapPositionButton.transform.colorTransform = baseColor;
 			penColorButton.transform.colorTransform = baseColor;
 			penColorButton.transform.colorTransform = baseColor;
 			paperColorButton.transform.colorTransform = baseColor;
@@ -295,7 +328,6 @@
 			updateRGBInfoBG(0,0);
 
 			var gradMatrix:Matrix = new Matrix();
-
 			//sv기본 컬러
 			svBase.graphics.lineStyle(0,0,0);
 			svBase.graphics.beginFill(0xFF0000,1);
@@ -326,14 +358,18 @@
 			hueColor.name = "hueColor";
 			svBox.name = "svBox";
 
-			infoColorPicker.mouseEnabled = false;
-			infoColorPicker.x = 0;
-			infoColorPicker.y = 0;
+			mainPickerMenuBox.addChild(swapPositionButton);
+			mainPickerMenuBox.addChild(paperColorButton);
+			mainPickerMenuBox.addChild(penColorButton);
 
-			paperColorButton.x = Math.floor(infoColorPicker.x+infoColorPicker.width+12);
-			paperColorButton.y = Math.floor(infoColorPicker.y-7);
-			penColorButton.x = Math.floor(paperColorButton.x+paperColorButton.width+5);
-			penColorButton.y = Math.floor(paperColorButton.y);
+			swapPositionButton.useHandCursor = false;
+			swapPositionButton.x = 0;
+			swapPositionButton.y = 0;
+
+			penColorButton.x = Math.floor(swapPositionButton.x+swapPositionButton.width+8);
+			penColorButton.y = Math.floor(swapPositionButton.y);
+			paperColorButton.x = Math.floor(penColorButton.x+penColorButton.width+8);
+			paperColorButton.y = Math.floor(penColorButton.y);
 
 			penColorButton.useHandCursor = false;
 			paperColorButton.useHandCursor = false;
@@ -382,13 +418,19 @@
 			mainColorPickerBox.addChild(currentColor);
 			mainColorPickerBox.addChild(rgbInfoBG);
 			mainColorPickerBox.addChild(rgbInfo);
+			mainColorPickerBox.addChild(historyBox);
 			mainColorPickerBox.x = 0;
-			mainColorPickerBox.y = Math.floor(penColorButton.y+penColorButton.height+6);
+			mainColorPickerBox.y = 0;
+			historyBox.name = "historyBox";
+			historyBox.y = svBox.y+svBox.height+5;
 
+			mainPresetButtonBox.addChild(myPaletteButton);
+			mainPresetButtonBox.addChild(tegakiPresetButton);
+			mainPresetButtonBox.addChild(drawrPresetButton);
 
 			myPaletteButton.useHandCursor = false;
-			myPaletteButton.x = -1;
-			myPaletteButton.y = 0
+			myPaletteButton.x = 0;
+			myPaletteButton.y = 0;
 
 			drawrPresetButton.useHandCursor = false;
 			drawrPresetButton.x = myPaletteButton.x+myPaletteButton.width+9;
@@ -398,27 +440,20 @@
 			tegakiPresetButton.x = drawrPresetButton.x+drawrPresetButton.width+9;
 			tegakiPresetButton.y = myPaletteButton.y;
 
-			myPaletteBox.x = 0;
-			myPaletteBox.y = myPaletteButton.y+myPaletteButton.height+5;
 			myPaletteBox.name = "myPaletteBox";
 
-			historyBox.name = "historyBox";
-
+			addChild(myPaletteBox);
+			addChild(mainColorPickerBox);
+			addChild(mainPresetButtonBox);
+			addChild(mainPickerMenuBox);
+			addChild(myPaletteDragColor);
 			myPaletteDragColor.visible = false;
 
-			mainPresetBox.addChild(myPaletteBox);
-			mainPresetBox.addChild(historyBox);
-			mainPresetBox.addChild(tegakiPresetButton);
-			mainPresetBox.addChild(drawrPresetButton);
-			mainPresetBox.addChild(myPaletteButton);
-			mainPresetBox.x = svBox.x;
-			mainPresetBox.y = Math.floor(svBox.y+svBox.height+22);
-			addChild(mainColorPickerBox);
-			addChild(mainPresetBox);
-			addChild(myPaletteDragColor);
-
 			panelWidth = 180;
-			panelHeight = mainPresetBox.y+mainPresetBox.height+3;
+			panelHeight = mainPresetButtonBox.y+mainPresetButtonBox.height+3;
+
+			colorBoxPositionSave[0] = myPaletteBox.y;
+			colorBoxPositionSave[1] = mainColorPickerBox.y;
 
 			updateCurrentColor(1,0);
 			svCursor.mouseEnabled = false;

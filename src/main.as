@@ -62,8 +62,8 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.82;
-        private const APP_DATA_VERSION:Number = 2425;
+        private const APP_VERSION:Number = 24.83;
+        private const APP_DATA_VERSION:Number = 2483;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private var STAGE_FRAME:int = stage.frameRate; //frame rate가 오르면 선을 빠르게 그렀을때 떨어저 그려지고 낮게 하면 부드럽게 이어져 그려짐
@@ -362,6 +362,7 @@
                     ,pickerOpaClicked:Boolean = false //피커박스에서 투명도 조절했을때 올려줌 mouse out 이벤트 하나만 작동되게 할라고
                     ,pickerColorSelected:Boolean = false //피커박스에서 컬러를 한번이라도 조절했으면 올려줌
                     ,pickerHSVButtonMousePoslast:Point = new Point()
+                    ,pickerBoxSwapPositionFlag:Boolean = false //위치 바뀌면 올려줌
 
         //툴메뉴 관련 변수
         //어디 클릭했는지 위치 저장해줘서 다음에 켰을때 그 위치에서 툴메뉴가 켜지게끔 해줌
@@ -575,7 +576,7 @@
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarConstHeight:Number = 705
+                    ,sideBarConstHeight:Number = 715
 
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
@@ -947,7 +948,6 @@
             myPalettePresetType = type;
             updateMyPaletteList();
             pickerBox.selectPresetButton(type);
-
             updateScrollBarHeight();
             checkFOFOPosition()
         }
@@ -1312,6 +1312,12 @@
 
             switch(targetName)
             {
+                case "swapPositionButton":
+                {
+                    str = "Swap palette position [click]";
+                }
+                break;
+
                 case "myPaletteBox":
                 {
                     if(myPalettePresetType !== 0) return;
@@ -3146,8 +3152,12 @@
                 case "myPaletteBox":
                 {
                     //이거 있어야됨
+                    if(myPalettePresetType === 0)
+                    {
+                        return;
+                    }
                 }
-                return;
+                break;
 
                 case "rgbInfo":
                 {
@@ -9235,31 +9245,6 @@
                         }
                         break;
 
-                        case "currentColor":
-                        {
-                            setCurrentColor(pickerMode);
-                            setNowToolForDrawing(false);
-                        }
-                        break;
-
-                        case "penColorButton":
-                        {
-                            if(pickerMode !== 1)
-                            {
-                                changePickerModeToNormal();
-                            }
-                        }
-                        break;
-
-                        case "paperColorButton":
-                        {
-                            if(pickerMode !== 2)
-                            {
-                                changePickerModeToBG();
-                            }
-                        }
-                        break;
-
                         default:
                         break;
                     }
@@ -13616,7 +13601,7 @@
             else if(myPalettePresetType === 2)
             {
                 selectTegakiColorPreset(index);
-                updateMyPaletteList();
+                // updateMyPaletteList();
                 pickerColorSelected = true;
 
                 return;
@@ -13924,7 +13909,7 @@
                 }
             }
 
-            pickerBox.historyBox.y = Math.round(pickerBox.myPaletteBox.y+pickerBox.myPaletteBox.height+4);
+            pickerBox.checkMainColorPickerBoxPosition(pickerBoxSwapPositionFlag);
         }
 
         private function makeResizeButtonFamily():void
@@ -16254,7 +16239,8 @@
                             "getFirstRCursorPos.y":tickDraw.getFirstRCursorPos().y,
                             "saveContinue":saveContinue,
                             "myPalettePresetType":myPalettePresetType,
-                            "myPaletteViewAllMode":myPaletteViewAllMode
+                            "myPaletteViewAllMode":myPaletteViewAllMode,
+                            "pickerBoxSwapPositionFlag":pickerBoxSwapPositionFlag
                             });
             fs.close();
         }
@@ -16481,6 +16467,12 @@
                     {
                         updateMyPaletteList();
                     }
+
+                    if(d["pickerBoxSwapPositionFlag"])
+                    {
+                        pickerBox.swapColorBoxPosition(d["pickerBoxSwapPositionFlag"]);
+                    }
+
                     updatePreviewBoxRectPos();
                     updatePenSizeCursor();
                     updateWindowTitle();
@@ -20184,7 +20176,7 @@
             controlBox.x = 39;
             controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
             pickerBox.x = 39;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height+9);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height);
             toolBox.x = -1;
             toolBox.y = Math.floor(controlBox.y-5);
 
@@ -20230,7 +20222,7 @@
             controlBox.x = 0;
             controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
             pickerBox.x = 0;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height+9);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height-10);
             toolBox.x = 177;
             toolBox.y = Math.floor(controlBox.y-5);
 
@@ -22787,6 +22779,13 @@
                         }
                         break;
 
+                        case "swapPositionButton":
+                        {
+                            pickerBoxSwapPositionFlag = !pickerBoxSwapPositionFlag;
+                            pickerBox.swapColorBoxPosition(pickerBoxSwapPositionFlag);
+                        }
+                        break;
+
                         case "drawrPresetButton":
                         {
                             selectMyPaletteButton(1);
@@ -22863,6 +22862,7 @@
                 case "myPaletteButton":
                 case "drawrPresetButton":
                 case "tegakiPresetButton":
+                case "swapPositionButton":
                 {
                     checkButtonUpColorPickerBox(targetName);
                 }
