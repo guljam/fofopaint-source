@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.83;
+        private const APP_VERSION:Number = 24.85;
         private const APP_DATA_VERSION:Number = 2483;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13588,6 +13588,10 @@
             {
                 if(isSelctedColorEmpty(index))
                 {
+                    if(penColorTransparentFlag === false && pickerMode === 1)
+                    {
+                        setTransparentColor();
+                    }
                     return;
                 }
 
@@ -13643,6 +13647,7 @@
             updateMyPaletteList();
             updateScrollBarHeight();
             checkFOFOPosition();
+            hint.off();
         }
 
         private function setMypPaletteListViewAll():void
@@ -13651,6 +13656,7 @@
             updateMyPaletteList();
             updateScrollBarHeight();
             checkFOFOPosition();
+            hint.off();
         }
 
         private function rightMouseDownMyPalette(e:MouseEvent):void
@@ -13836,8 +13842,9 @@
 
                 if(!(arr[i] is uint))
                 {
-                    if(type === 1) pickerBox.myPaletteBox.graphics.beginFill(0,0.0);
-                    else pickerBox.myPaletteBox.graphics.beginBitmapFill(pickerBox.myPaletteTransBGBmpd);
+                    // if(type === 1) pickerBox.myPaletteBox.graphics.beginFill(0,0.0);
+                    // else
+                    pickerBox.myPaletteBox.graphics.beginBitmapFill(pickerBox.myPaletteTransBGBmpd);
                 }
                 else
                 {
@@ -13865,9 +13872,9 @@
             {
                 pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
                 pickerBox.myPaletteBox.graphics.moveTo(0,hh);
-                pickerBox.myPaletteBox.graphics.lineTo(ww*8,hh);
+                pickerBox.myPaletteBox.graphics.lineTo(ww*10,hh);
 
-                for(i=1;i<9;i++)
+                for(i=1;i<10;i++)
                 {
                     pickerBox.myPaletteBox.graphics.moveTo(ww*i,0);
                     pickerBox.myPaletteBox.graphics.lineTo(ww*i,hh*2);
@@ -13875,7 +13882,6 @@
             }
             else //myh pal
             {
-
                 if(myPaletteViewAllMode === false)
                 {
                     //가로선
@@ -16467,7 +16473,7 @@
                     {
                         updateMyPaletteList();
                     }
-
+                    pickerBoxSwapPositionFlag = d["pickerBoxSwapPositionFlag"];
                     if(d["pickerBoxSwapPositionFlag"])
                     {
                         pickerBox.swapColorBoxPosition(d["pickerBoxSwapPositionFlag"]);
