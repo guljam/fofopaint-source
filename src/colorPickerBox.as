@@ -362,14 +362,13 @@
 			mainPickerMenuBox.addChild(paperColorButton);
 			mainPickerMenuBox.addChild(penColorButton);
 
-			swapPositionButton.useHandCursor = false;
-			swapPositionButton.x = 0;
-			swapPositionButton.y = 0;
-
-			penColorButton.x = Math.floor(swapPositionButton.x+swapPositionButton.width+8);
-			penColorButton.y = Math.floor(swapPositionButton.y);
-			paperColorButton.x = Math.floor(penColorButton.x+penColorButton.width+8);
+			penColorButton.x = 0;
+			penColorButton.y = 0;
+			paperColorButton.x = Math.floor(penColorButton.x+penColorButton.width+7);
 			paperColorButton.y = Math.floor(penColorButton.y);
+			swapPositionButton.useHandCursor = false;
+			swapPositionButton.x = Math.floor(paperColorButton.x+paperColorButton.width+7);
+			swapPositionButton.y = Math.floor(paperColorButton.y);
 
 			penColorButton.useHandCursor = false;
 			paperColorButton.useHandCursor = false;

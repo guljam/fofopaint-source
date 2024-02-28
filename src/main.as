@@ -62,7 +62,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.85;
+        private const APP_VERSION:Number = 24.86;
         private const APP_DATA_VERSION:Number = 2483;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -711,6 +711,7 @@
             hint.setCursorColor(hintCursorColor[uiColorIndex]);
             toolTipBox.setBGColor(toolTipBoxBGColor[uiColorIndex]);
             hintBox.setBGColor(toolTipBoxBGColor[uiColorIndex]);
+            setSideBarLeftPosition(); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름
 
             stage.addChild(fofo);
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
@@ -13842,8 +13843,6 @@
 
                 if(!(arr[i] is uint))
                 {
-                    // if(type === 1) pickerBox.myPaletteBox.graphics.beginFill(0,0.0);
-                    // else
                     pickerBox.myPaletteBox.graphics.beginBitmapFill(pickerBox.myPaletteTransBGBmpd);
                 }
                 else
@@ -19187,7 +19186,6 @@
 
                     setAirBrushCheckBox(eraseAirBrushON,false);
                 }
-
                 setPenSize(sizeIndex);
                 setPenAlpha(alpha);
                 updateOpacityCursorPos(alphaIndex);
@@ -19238,6 +19236,7 @@
         {
             setNowTool(TOOL_PEN);
             checkMainDrawTool(penSize,penColor,penAlpha,penShape,true,false);
+
         }
 
         private function selectEraseTool():void
@@ -20228,7 +20227,7 @@
             controlBox.x = 0;
             controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
             pickerBox.x = 0;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height-10);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height);
             toolBox.x = 177;
             toolBox.y = Math.floor(controlBox.y-5);
 
@@ -20298,7 +20297,6 @@
             sideBar.addChild(sideBarScrollBar);
             sideBar.addChild(sideBarScrollSet);
             sideBar.updateSideBGSize(getSideBarBGHeight());
-            setSideBarLeftPosition();
             sideBarScrollBar.alpha = 0.7;
             STAGE_TOP_OFFSET = topBar.BARSIZE;
             sideBarScrollSet.graphics.beginFill(0,0.0);

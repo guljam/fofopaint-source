@@ -346,10 +346,13 @@
 			opaSizeButtonWrapper.addChild(opaBox);
 			opaSizeButtonWrapper.addChild(penSizeSelectCursor);
 
+
 			penSizeGuide.x = 0;
 			penSizeGuide.y = 0;
 			penSizeBox.x = penSizeGuide.x+2;
 			penSizeBox.y = penSizeGuide.y+2;
+			penSizeSelectCursor.x = 0;
+			penSizeSelectCursor.y = 0;
 			penSizeSelectCursor.useHandCursor = false;
 
 			rectSizeSet.x = Math.floor(penSizeGuide.x)+9;
