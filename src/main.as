@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.91;
+        private const APP_VERSION:Number = 24.92;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15531,6 +15531,17 @@
                 }
             }
 
+            function getColorBrightness(color:uint):Number {
+                var red:int = (color >> 16) & 0xFF;
+                var green:int = (color >> 8) & 0xFF;
+                var blue:int = color & 0xFF;
+
+                // 밝기 계산
+                var brightness:Number = 0.299 * red + 0.587 * green + 0.114 * blue;
+
+                return brightness;
+            }
+
             function update():void
             {
                 stampMainText = topBar.updateCaptureInputFinal();
@@ -15573,7 +15584,8 @@
 
                     captrueStampBMPD = new BitmapData(bmpdWidth,bgHeight,true,bgColor);
                     captureStampBitmap.bitmapData = captrueStampBMPD;
-                    if(getColorDifferenceForHuman(0xFFFFFF,imageDomiColor) < 43)
+
+                    if(getColorBrightness(imageDomiColor) >= 150)
                     {
                         topBar.captureInputFinal.textColor = 0x0;
                     }
