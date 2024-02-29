@@ -324,7 +324,7 @@
 			penShapeSmoothingWarpper.addChild(shapeRect);
 			penShapeSmoothingWarpper.addChild(penSmoothSliderWapper);
 
-			shapeCircle.x = 3;
+			shapeCircle.x = 5;
 			shapeCircle.y = 0;
 			shapeCircle.useHandCursor = false;
 			shapeRect.x = shapeCircle.x+shapeCircle.width+1;
@@ -484,7 +484,7 @@
 			airBrushButtonWrapper.y = sharpLineButtonWrapper.y+sharpLineButtonWrapper.height+2;
 
 			penShapeSmoothingWarpper.x = 0;
-			penShapeSmoothingWarpper.y = layerButtonWrapper.y+layerButtonWrapper.height+4;
+			penShapeSmoothingWarpper.y = layerButtonWrapper.y+layerButtonWrapper.height+2;
 		}
 
 		public function controlMenu()
