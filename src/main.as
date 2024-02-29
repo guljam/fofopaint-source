@@ -58,12 +58,13 @@
     import flash.utils.getTimer;
     import flash.ui.Mouse;
     import flash.text.TextFieldType;
+    import flash.text.TextFormat;
     //import end
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.86;
-        private const APP_DATA_VERSION:Number = 2483;
+        private const APP_VERSION:Number = 24.87;
+        private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
         private var STAGE_FRAME:int = stage.frameRate; //frame rate가 오르면 선을 빠르게 그렀을때 떨어저 그려지고 낮게 하면 부드럽게 이어져 그려짐
@@ -511,6 +512,8 @@
                     ,fullCaptureReady:Boolean = false
                     ,capTransparentBGBMPDSize:Number = 32
                     ,capTransparentBGBMPD:BitmapData
+                    ,capInputFocusFlag:Boolean = false //포커스 되면 올려줌
+                    ,capStampON:Boolean = true
 
         //윈도우 크기변수
                     ,lastWindowSizeInfo:Array = [0,0,680,768]
@@ -538,7 +541,7 @@
         //그리드 레이어 변수
                     ,canvasGrid:Shape = new Shape()//트레이스 레이어임
                     ,gridValue:uint = 0
-                    ,gridGapSave:Number = 0.0
+                    ,gridGapSave:Number = 0.0 //줌할때 다시 그려주는거 방지 갭이 다를때만 다시 그러줌
                     ,gridDrawOffsetX:Number = 0.0
                     ,gridDrawOffsetY:Number = 0.0
                     ,gridGraphicsCommand:Vector.<int> = new Vector.<int>
@@ -566,7 +569,8 @@
                     ,penCursorPosition:Object = cUpdatePenCursorPosition()
                     ,checkMainDrawTool:Function = cCheckMainDrawTool()
                     ,drawCaptureArea:Object = cDrawCaptureArea()
-                    ,stageMouseMoveEvent:Object = cStageMouseMoveEvent()
+                    ,drawCaptureStamp:Object = cDrawCaptureStamp()
+                    ,stageMouseMoveEvent:Object = cMouseMoveStage()
                     ,replayHideCursor:Object = cCheckHideCursor()
                     ,resizeCanvas:Object = cResizeCanvas()
                     ,gridButton:Object = cGridFunc()
@@ -576,7 +580,7 @@
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarConstHeight:Number = 715
+                    ,sideBarConstHeight:Number = 725
 
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
@@ -717,7 +721,7 @@
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
         }
 
-        //function
+    //function
         private function rgbInfoNumPadIncKey(inc:int):void
         {
             selectRGBInfoTextByRGBPos(rgbInfoCursorPosSave);
@@ -1399,6 +1403,11 @@
             var cursorColor:uint = 0;
             var targetSave:DisplayObject;
 
+            function isHintStarted():String
+            {
+                return lastHint;
+            }
+
             function setCursorColor(color:uint):void
             {
                 cursorColor = color;
@@ -1439,6 +1448,17 @@
 
                 setTopChildIndex(hintCursor);
                 hintCursor.visible = true;
+            }
+
+            function hintOFFImmediately():void
+            {
+                hintCursor.visible = false;
+                lastHint = null;
+                targetSave = null;
+                removeTimer("hintOFFTimer");
+                removeTimer("hintOFFDelayTimer");
+                removeTimer("hintONDelayTimer");
+                hintFullOFF();
             }
 
             function hintOFF():void
@@ -1512,7 +1532,7 @@
                 else
                 {
                     hintFullOFF();
-                    addTimerByName("hintONDelayTimer",0.5,false,hintON,[str,target]);
+                    addTimerByName("hintONDelayTimer",0.7,false,hintON,[str,target]);
                 }
             }
 
@@ -1522,7 +1542,9 @@
                 updateHintPos:updateHintPos,
                 cursorON:cursorON,
                 updateScale:updateScale,
-                setCursorColor:setCursorColor
+                setCursorColor:setCursorColor,
+                isHintStarted:isHintStarted,
+                hintOFFImmediately:hintOFFImmediately
             }
         }
 
@@ -2733,6 +2755,10 @@
                     if(!isSubLayerONReplayMode()) rcanvas2.visible = false;
 
                     topBar.capLayer1VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                    if(topBar.capLayer2VisibleButton.alpha < 1.0)
+                    {
+                        setLayer2CheckToggleCaptureMode();
+                    }
                 }
                 else
                 {
@@ -2748,6 +2774,10 @@
                 {
                     canvas1Bitmap.visible = false;
                     topBar.capLayer1VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                    if(topBar.capLayer2VisibleButton.alpha < 1.0)
+                    {
+                        setLayer2CheckToggleCaptureMode();
+                    }
                 }
                 else
                 {
@@ -2769,6 +2799,10 @@
                     if(isSubLayerONReplayMode()) rcanvas2.visible = false;
 
                     topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                    if(topBar.capLayer1VisibleButton.alpha < 1.0)
+                    {
+                        setLayer1CheckToggleCaptureMode();
+                    }
                 }
                 else
                 {
@@ -2783,8 +2817,11 @@
                 if(canvas11Bitmap.visible)
                 {
                     canvas11Bitmap.visible = false;
-
                     topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                    if(topBar.capLayer1VisibleButton.alpha < 1.0)
+                    {
+                        setLayer1CheckToggleCaptureMode();
+                    }
                 }
                 else
                 {
@@ -3001,6 +3038,7 @@
                                                  :new BitmapData(bmpd.width,bmpd.height,true,0);
 
             tmpbmpd.draw(bmpd,mat);
+            if(capStampON) drawCaptureStamp.kung(tmpbmpd);
             bmpd.dispose();
 
             return tmpbmpd;
@@ -3441,7 +3479,7 @@
         private function updateCanvasPanelMask(w:Number,h:Number):void
         {
             canvasPanelMask.graphics.clear();
-            canvasPanelMask.graphics.beginFill(0xFF00FF);
+            canvasPanelMask.graphics.beginFill(0xcccccc);
             canvasPanelMask.graphics.drawRect(0,0,w,h);
             canvasPanelMask.graphics.endFill();
         }
@@ -3849,7 +3887,7 @@
             removeInputEventDrawMode();
         }
 
-        private function stageMouseDownEvent(e:MouseEvent):void
+        private function mouseDownStage(e:MouseEvent):void
         {
             checkKeyInvalidKey();
             mouseClickON = true;
@@ -3858,9 +3896,14 @@
             {
                 realWorkingTimer.resetAFKCount();
             }
+
+            if(hint.isHintStarted() !== null)
+            {
+                hint.hintOFFImmediately()
+            }
         }
 
-        private function stageRightMouseDownEvent(e:MouseEvent):void
+        private function rightMouseDownStage(e:MouseEvent):void
         {
             checkKeyInvalidKey();
             rightMouseClickON = true;
@@ -3870,7 +3913,7 @@
             }
         }
 
-        private function stageMouseUpEvent(e:MouseEvent):void
+        private function mouseUpStage(e:MouseEvent):void
         {
             checkKeyInvalidKey();
             const mx:Number = mouseX;
@@ -3890,7 +3933,7 @@
             }
         }
 
-        private function stageRightMouseUpEvent(e:MouseEvent):void
+        private function rightMouseUpStage(e:MouseEvent):void
         {
             checkKeyInvalidKey();
             const mx:Number = mouseX;
@@ -3910,7 +3953,7 @@
             }
         }
 
-        private function cStageMouseMoveEvent():Object
+        private function cMouseMoveStage():Object
         {
             const funcNameList:Vector.<String> = new Vector.<String>();
             const funcList:Vector.<Function> = new Vector.<Function>();
@@ -6211,6 +6254,8 @@
                 {
                     topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
                 }
+
+                checkCaptureStampAlpha();
             }
         }
 
@@ -6392,6 +6437,7 @@
                     if(Math.abs(gridDrawOffsetX) >= gridValue*GRID_GAP) gridDrawOffsetX = 0.0;
                     if(Math.abs(gridDrawOffsetY) >= gridValue*GRID_GAP) gridDrawOffsetY = 0.0;
 
+                    gridGapSave = 0;
                     if(gridValue > 0) drawGrid();
                 });
             }
@@ -7336,11 +7382,11 @@
 
         private function addStageInputEvent():void
         {
-            //전역스테이지 이벤트 cStageMouseMoveEvent <- 스테이지 마우스 무브는 클로저로 하고있음
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,stageMouseDownEvent,false,1);
-            stage.addEventListener(MouseEvent.MOUSE_UP,stageMouseUpEvent,false,1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,stageRightMouseUpEvent,false,1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,stageRightMouseDownEvent,false,1);
+            //전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownStage,false,1);
+            stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpStage,false,1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpStage,false,1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownStage,false,1);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,stageKeyDownEvent,false,1);
             stage.addEventListener(KeyboardEvent.KEY_UP,stageKeyUpEvent,false,1);
             stageMouseMoveEvent.add("updatePenCursorPositionEvent",updatePenCursorPositionEvent);
@@ -7387,12 +7433,12 @@
 
         private function getOpacityButtonHint(targetName:String):String
         {
-            return getOpacityHint(targetName)+"\nAdjust opacity [g, b]";
+            return getOpacityHint(targetName)+"\nSelect opacity [g, b]";
         }
 
         private function getSizeButtonHint(targetName:String):String
         {
-            return getPenSizeHint(targetName)+"\nAdjust size [f, v, h, n]";
+            return getPenSizeHint(targetName)+"\nSelect size [f, v, h, n]";
         }
 
         private function controlBoxHintONEvent(e:MouseEvent):void
@@ -7407,7 +7453,7 @@
 
             switch(targetName)
             {
-                case "shapeCircle": str = "Circle";
+                case "shapeCircle": str = "circle";
                 break;
 
                 case "shapeRect": str = "Square";
@@ -7943,6 +7989,27 @@
             topBar.capClipBoard.alpha = 1.0;
 
             drawCaptureArea.updateDrawArea();
+        }
+
+        private function checkCaptureStampAlpha():void
+        {
+            if(capStampON)
+            {
+                topBar.capStamp.alpha = 1.0;
+                topBar.captureInputWarpper.visible = true;
+            }
+            else
+            {
+                topBar.capStamp.alpha = BUTTON_OFF_ALPHA;
+                topBar.captureInputWarpper.visible = false;
+            }
+        }
+
+        private function setCaptrueStampButton():void
+        {
+            capStampON = !capStampON;
+            checkCaptureStampAlpha();
+            drawCaptureStamp.update();
         }
 
         private function setCaptureOFF():void
@@ -9012,18 +9079,14 @@
 
                         case "capLayer1VisibleButton":
                         {
-                            if(topBar.capLayer2VisibleButton.alpha === 1.0)
-                            {
-                                setLayer1CheckToggleCaptureMode();
-                            }
+                            setLayer1CheckToggleCaptureMode();
                         }
                         break;
 
                         case "capLayer2VisibleButton":
-                            if(topBar.capLayer1VisibleButton.alpha === 1.0)
-                            {
-                                setLayer2CheckToggleCaptureMode();
-                            }
+                        {
+                            setLayer2CheckToggleCaptureMode();
+                        }
                         break;
 
                         case "dpiButton":
@@ -9096,6 +9159,12 @@
 
                         case "capFlip":
                             setCaptrueFlipButton();
+                        break;
+
+                        case "capStamp":
+                        {
+                            setCaptrueStampButton();
+                        }
                         break;
 
                         case "topBarColorButton":
@@ -9715,6 +9784,10 @@
                     str = "Layer 2 visible ON/OFF [2, 0]";
                 break;
 
+                case "capStamp":
+                    str = "Stamp ON/OFF [f, h]";
+                break;
+
                 case "reRecordingButton":
                     str = "New file from this image [click, f2]"+STRING_HOLD_2SEC;
                 break;
@@ -10013,10 +10086,10 @@
                 xBitmap11.smoothing = true;
             }
 
-            if(captureMode)
-            {
-                drawCaptureArea.updateDrawArea();
-            }
+            // if(captureMode)
+            // {
+            //     drawCaptureArea.updateDrawArea("fitCanvasToWindow");
+            // }
         }
 
         private function replayCompleteEffect():void
@@ -14923,11 +14996,15 @@
         private function mouseDownCaptureMode(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(!target) return;
+            if(!target)
+            {
+                return;
+            }
 
             const targetName:String = target.name;
 
-            if(targetName === "capLayer1VisibleButton" || targetName === "capLayer2VisibleButton")
+            if(targetName === "capLayer1VisibleButton" || targetName === "capLayer2VisibleButton"
+            || targetName === "capStamp")
             {
                 checkButtonUp(targetName);
 
@@ -14977,7 +15054,16 @@
         private function keyDownCaptureMode(e:KeyboardEvent):void
         {
             const keyCode:uint = KEY_BUFFER[0];
-            if(mouseClickON || rightMouseClickON || isNowKey(keyCode))
+            if(keyCode === KEY.esc)
+            {
+                if(stage.focus === topBar.captureInput)
+                {
+                    stage.focus = null;
+                    return;
+                }
+            }
+
+            if(stage.focus === topBar.captureInput || mouseClickON || rightMouseClickON || isNowKey(keyCode))
             {
                 return;
             }
@@ -15036,20 +15122,19 @@
                     setCaptureTransButton();
                 break;
 
+                case KEY.f:
+                case KEY.h:
+                    setCaptrueStampButton();
+                break;
+
                 case KEY.n1:
                 case KEY.n9:
-                    if(topBar.capLayer2VisibleButton.alpha === 1.0)
-                    {
-                        setLayer1CheckToggleCaptureMode();
-                    }
+                    setLayer1CheckToggleCaptureMode();
                 break;
 
                 case KEY.n2:
                 case KEY.n0:
-                    if(topBar.capLayer1VisibleButton.alpha === 1.0)
-                    {
-                        setLayer2CheckToggleCaptureMode();
-                    }
+                    setLayer2CheckToggleCaptureMode();
                 break;
 
                 default:
@@ -15075,10 +15160,7 @@
 
         private function setCaptureModeON():void
         {
-            if(makeJumpImageFlag === 2) return;
-            // if(captureModeON || isInSaveProgress) return;
-            // if(replayStartON)stopReplay();
-            if(captureModeON) return;
+            if(makeJumpImageFlag === 2 || captureModeON) return;
 
             if(replayStartON)
             {
@@ -15087,12 +15169,13 @@
 
             captureModeON = true;
             penCursorOFFFlag = true;
+
             if(numPadBox.visible)
             {
                 setNumPadOFF();
             }
-            stageMouseMoveEvent.add("captureMouseMoveHintEvent",captureMouseMoveHintEvent);
 
+            stageMouseMoveEvent.add("captureMouseMoveHintEvent",captureMouseMoveHintEvent);
             setCaptureUI(true);
             captureRotated = 0;
             captureFlipped = false;
@@ -15150,6 +15233,8 @@
             captureTransBGON = true;
             setCaptureTransButton();
             resetTransBG(false);
+            drawCaptureStamp.on();
+            drawCaptureStamp.update();
         }
 
         private function setCaptureModeOFF(replayMode:Boolean,xReg:Sprite,xPanel:Sprite):void
@@ -15165,6 +15250,7 @@
             penCursorOFFFlag = false;
             captureAreaRect.visible = false;
             captureAreaRect.graphics.clear();
+            drawCaptureStamp.off();
 
             //캔버스 이전 모양 위치로 복원
             xReg.rotation = data.r;
@@ -15206,6 +15292,378 @@
 
             checkCanvasPanelPos(replayMode);
             canvasBackupData = {};
+        }
+
+        private function cDrawCaptureStamp():Object
+        {
+            var captrueStampBMPD:BitmapData = new BitmapData(1,1,false,0);
+            var captureStampBitmap:Bitmap = new Bitmap(captrueStampBMPD);
+            const captureStampRect:Rectangle = new Rectangle();
+            const bmpdMat:Matrix = new Matrix();
+            const bmpdRect:Rectangle = new Rectangle();
+            const stampAPPNAME:String = "FOFO PAINT "+APP_VERSION;
+            var stampMainText:String = "";
+
+            captureStampBitmap.name = "captureStampBitmap";
+            captureStampBitmap.visible = false;
+            captureStampBitmap.alpha = 0.75;
+
+            function kung(inputBMPD:BitmapData):void
+            {
+                update(); //미자막 시간 찍어줘야함
+                const mat:Matrix = new Matrix();
+                const ct:ColorTransform = new ColorTransform();
+
+                ct.alphaMultiplier = captureStampBitmap.alpha;
+                mat.translate(0,inputBMPD.height-captrueStampBMPD.height);
+                inputBMPD.draw(captureStampBitmap,mat,ct);
+            }
+
+            function checkTextAutoSize(width:Number):Number
+            {
+                const textformat:TextFormat = new TextFormat();
+                var bgheight:Number = 15;
+                if(getTextWidth() < width)
+                {
+                    return bgheight;
+                }
+
+                for(var i:uint=0;i<10;i++)
+                {
+                    bgheight--;
+                    textformat.size = 15-i;
+                    topBar.captureInputFinal.defaultTextFormat = textformat;
+                    if(getTextWidth() < width || bgheight <= 10)
+                    {
+                        break;
+                    }
+                }
+
+                return bgheight;
+            }
+
+            function getTextWidth():Number
+            {
+                topBar.captureInputFinal.text = stampMainText;
+                const width1:Number = topBar.captureInputFinal.textWidth;
+                topBar.captureInputFinal.text = stampAPPNAME;
+                const width2:Number = topBar.captureInputFinal.textWidth;
+
+                return width1+width2+13;
+            }
+
+            function getDominantColor(bitmapData:BitmapData):uint
+            {
+                var pixels:Vector.<uint> = bitmapData.getVector(bitmapData.rect);
+                var totalPixels:int = pixels.length;
+
+                var sumR:uint = 0;
+                var sumG:uint = 0;
+                var sumB:uint = 0;
+
+                for each (var pixel:uint in pixels) {
+                    sumR += (pixel >> 16) & 0xFF;
+                    sumG += (pixel >> 8) & 0xFF;
+                    sumB += pixel & 0xFF;
+                }
+
+                var avgR:int = sumR / totalPixels;
+                var avgG:int = sumG / totalPixels;
+                var avgB:int = sumB / totalPixels;
+
+                return (avgR << 16) | (avgG << 8) | avgB;
+            }
+
+            function getSmallBmpd(clipRect:Rectangle):BitmapData
+            {
+                var longEdge:Number;
+                var areaWidth:Number;
+                var areaHeight:Number;
+                const fullImageFlag:Boolean = clipRect.width === 0 && clipRect.height === 0;
+
+                if(fullImageFlag)
+                {
+                    longEdge = CANVAS_HEIGHT > CANVAS_WIDTH ? CANVAS_HEIGHT : CANVAS_WIDTH;
+                    areaWidth = CANVAS_HEIGHT;
+                    areaHeight = CANVAS_HEIGHT;
+                }
+                else
+                {
+                    longEdge = clipRect.height > clipRect.width ? clipRect.height : clipRect.width;
+                    areaWidth = clipRect.width;
+                    areaHeight = clipRect.height;
+                }
+
+                var scale:Number = 1.0;
+                if(longEdge > 100)
+                {
+                    scale = 100/longEdge;
+                }
+                const width:Number = areaWidth*scale;
+                const height:Number = areaHeight*scale;
+                const mat:Matrix = new Matrix();
+                mat.scale(scale,scale);
+                const tmpbmpd:BitmapData = new BitmapData(width,height,true,0);
+                const rawbmpd:BitmapData = getMergedBitmapdtata(replayModeON,false,true,true,(fullImageFlag) ? null:clipRect);
+                tmpbmpd.draw(rawbmpd,mat);
+
+                return tmpbmpd;
+            }
+
+            function focusOutCaptureInput(e:FocusEvent):void
+            {
+                addTimer(0.2,false,function():void
+                {
+                    capInputFocusFlag = false;
+                });
+            }
+
+            function focusInCaptureInput(e:FocusEvent):void
+            {
+                capInputFocusFlag = true;
+                addTimer(0.1,false,function():void
+                {
+                    topBar.captureInput.setSelection(0,topBar.captureInput.text.length);
+                });
+            }
+
+            function inputCaptureInput(e:Event):void
+            {
+                update();
+            }
+
+            function visible(flag:Boolean):void
+            {
+                if(captureStampBitmap.visible !== flag)
+                {
+                    captureStampBitmap.visible = flag;
+                }
+            }
+
+            function checkPosition():void
+            {
+                const rect:Rectangle = drawCaptureArea.getCaptureArea();
+                const rotateFlag:uint = captureRotated;
+                var offsetX:Number;
+                var offsetY:Number;
+
+                if(drawCaptureArea.isFullImageCapture())
+                {
+                    offsetX = CANVAS_WIDTH;
+                    offsetY = CANVAS_HEIGHT;
+                }
+                else
+                {
+                    offsetX = rect.width;
+                    offsetY = rect.height;
+                }
+
+                if(captureFlipped)
+                {
+                    captureStampBitmap.scaleX = -1.0;
+                    if(rotateFlag === 0)
+                    {
+                        captureStampBitmap.rotation = 0;
+                        captureStampBitmap.x = rect.x+offsetX;
+                        captureStampBitmap.y = rect.y+offsetY-captrueStampBMPD.height;
+                    }
+                    else if(rotateFlag === 1)
+                    {
+                        captureStampBitmap.rotation = 90;
+                        captureStampBitmap.x = rect.x+captrueStampBMPD.height;
+                        captureStampBitmap.y = rect.y+offsetY;
+                    }
+                    else if(rotateFlag === 2)
+                    {
+                        captureStampBitmap.rotation = 180;
+                        captureStampBitmap.x = rect.x;
+                        captureStampBitmap.y = rect.y+captrueStampBMPD.height;
+                    }
+                    else if(rotateFlag === 3)
+                    {
+                        captureStampBitmap.rotation = -90;
+                        captureStampBitmap.x = rect.x+offsetX-captrueStampBMPD.height;
+                        captureStampBitmap.y = rect.y;
+                    }
+                }
+                else
+                {
+                    captureStampBitmap.scaleX = 1.0;
+                    if(rotateFlag === 0)
+                    {
+                        captureStampBitmap.rotation = 0;
+                        captureStampBitmap.x = rect.x;
+                        captureStampBitmap.y = rect.y+offsetY-captrueStampBMPD.height;
+                    }
+                    else if(rotateFlag === 1)
+                    {
+                        captureStampBitmap.rotation = -90;
+                        captureStampBitmap.x = rect.x+offsetX-captrueStampBMPD.height;
+                        captureStampBitmap.y = rect.y+offsetY;
+                    }
+                    else if(rotateFlag === 2)
+                    {
+                        captureStampBitmap.rotation = 180;
+                        captureStampBitmap.x = rect.x+offsetX;
+                        captureStampBitmap.y = rect.y+captrueStampBMPD.height;
+                    }
+                    else if(rotateFlag === 3)
+                    {
+                        captureStampBitmap.rotation = 90;
+                        captureStampBitmap.x = rect.x+captrueStampBMPD.height;
+                        captureStampBitmap.y = rect.y;
+                    }
+                }
+            }
+
+            function update():void
+            {
+                stampMainText = topBar.updateCaptureInputFinal();
+                if(capStampON)
+                {
+                    const rect:Rectangle = drawCaptureArea.getCaptureArea();
+                    const imageDomiColor:uint = getDominantColor(getSmallBmpd(rect));
+                    var bmpdWidth:Number;
+                    const notRotatedFlag:Boolean = captureRotated % 2 === 0;
+
+                    if(notRotatedFlag)
+                    {
+                        if(drawCaptureArea.isFullImageCapture())
+                        {
+                            bmpdWidth = CANVAS_WIDTH;
+                        }
+                        else
+                        {
+                            bmpdWidth = rect.width;
+                        }
+                    }
+                    else
+                    {
+                        if(drawCaptureArea.isFullImageCapture())
+                        {
+                            bmpdWidth = CANVAS_HEIGHT;
+                        }
+                        else
+                        {
+                            bmpdWidth = rect.height;
+                        }
+                    }
+
+                    const textformat:TextFormat = new TextFormat();
+                    textformat.size = 15;
+                    topBar.captureInputFinal.defaultTextFormat = textformat;
+
+                    const bgColor:uint = 0xFF000000 | imageDomiColor;
+                    const bgHeight:Number = checkTextAutoSize(bmpdWidth);
+
+                    captrueStampBMPD = new BitmapData(bmpdWidth,bgHeight,false,bgColor);
+                    captureStampBitmap.bitmapData = captrueStampBMPD;
+                    if(getColorDifferenceForHuman(0xFFFFFF,imageDomiColor) < 43)
+                    {
+                        topBar.captureInputFinal.textColor = 0x0;
+                    }
+                    else
+                    {
+                        topBar.captureInputFinal.textColor = 0xFFFFFF;
+                    }
+
+                    //draw main text
+                    topBar.captureInputFinal.text = stampMainText;
+                    captrueStampBMPD.draw(topBar.captureInputFinal);
+
+                    //draw appname + version text
+                    topBar.captureInputFinal.text = stampAPPNAME;
+                    bmpdRect.x = captrueStampBMPD.width-(topBar.captureInputFinal.textWidth+5);
+                    bmpdRect.y = 0;
+                    bmpdRect.width = topBar.captureInputFinal.textWidth+5;
+                    bmpdRect.height = bgHeight;
+                    captrueStampBMPD.fillRect(bmpdRect,bgColor);
+
+                    bmpdMat.identity();
+                    bmpdMat.translate(captrueStampBMPD.width-(topBar.captureInputFinal.textWidth+2),0);
+                    captrueStampBMPD.draw(topBar.captureInputFinal,bmpdMat);
+
+                    if(captureStampBitmap.visible === false)
+                    {
+                        captureStampBitmap.visible = true;
+                    }
+
+                    if(replayModeON)
+                    {
+                        if(rcanvasPanel.getChildByName("captureStampBitmap") === null)
+                        {
+                            rcanvasPanel.addChild(captureStampBitmap);
+                        }
+                    }
+                    else if(canvasPanel.getChildByName("captureStampBitmap") === null)
+                    {
+                        canvasPanel.addChild(captureStampBitmap);
+                    }
+
+                    checkPosition();
+                }
+                else if(captureStampBitmap.visible === true)
+                {
+                    if(replayModeON)
+                    {
+                        if(rcanvasPanel.getChildByName("captureStampBitmap") !== null)
+                        {
+                            rcanvasPanel.removeChild(captureStampBitmap);
+                        }
+                    }
+                    else if(canvasPanel.getChildByName("captureStampBitmap") !== null)
+                    {
+                        canvasPanel.removeChild(captureStampBitmap);
+                    }
+                    captureStampBitmap.visible = false;
+                }
+            }
+
+            function off():void
+            {
+                if(replayModeON)
+                {
+                    rcanvasPanel.mask = rcanvasPanelMask;
+                }
+                else
+                {
+                    canvasPanel.mask = canvasPanelMask;
+                }
+
+                topBar.captureInput.removeEventListener(Event.CHANGE,inputCaptureInput);
+                topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN,focusInCaptureInput);
+                topBar.captureInput.removeEventListener(FocusEvent.FOCUS_OUT,focusOutCaptureInput);
+
+                captureStampBitmap.visible = false;
+                if(canvasPanel.getChildByName("captureStampBitmap") !== null)
+                {
+                    canvasPanel.removeChild(captureStampBitmap);
+                }
+            }
+
+            function on():void
+            {
+                if(replayModeON)
+                {
+                    rcanvasPanel.mask = null;
+                }
+                else
+                {
+                    canvasPanel.mask = null;
+                }
+                topBar.captureInput.addEventListener(Event.CHANGE,inputCaptureInput);
+                topBar.captureInput.addEventListener(FocusEvent.FOCUS_IN,focusInCaptureInput);
+                topBar.captureInput.addEventListener(FocusEvent.FOCUS_OUT,focusOutCaptureInput);
+            }
+
+            return{
+                on:on,
+                off:off,
+                update:update,
+                visible:visible,
+                kung:kung
+            };
+
         }
 
         //마우스 클릭하면 캡쳐 영역그리는 함수
@@ -15367,6 +15825,7 @@
                 {
                     mouseMoved = true;
                     clickPos.setTo(mx,my);
+                    drawCaptureStamp.visible(false);
                 }
             }
 
@@ -15423,9 +15882,9 @@
                     rect.height = rectGhost.height;
 
                     clickPos.setTo(mx,my);
-
                     hint.on(getRotatedRectSizeString(),null);
                     mouseMoved = true;
+                    drawCaptureStamp.visible(false);
                 }
             }
 
@@ -15453,8 +15912,9 @@
                     topBar.capClipBoard.alpha = 1.0;
 
                     drawArea(true);
+                    drawCaptureStamp.update();
                 }
-                else
+                else if(!capInputFocusFlag)
                 {
                     saveCaptureImage();
                 }
@@ -15471,6 +15931,7 @@
             function updateDrawArea():void
             {
                 if(rect.width > minSize && rect.height > minSize) drawArea(true);
+                drawCaptureStamp.update();
             }
 
             function getCanvasScale():Number
@@ -15561,6 +16022,7 @@
                 captureAreaRect.graphics.clear();
                 topBar.capClipBoard.alpha = 1.0;
                 setDefaultHintCaptureMode();
+                drawCaptureStamp.update();
             }
 
             function reset():void
@@ -15656,7 +16118,7 @@
 
                     if(isCursorInResizeButton())
                     {
-                        setMoveOrResizeAreaReady(mx,my,true)
+                        setMoveOrResizeAreaReady(mx,my,true);
                     }
                     else if(isCursorInCaptureDrea())
                     {
@@ -15840,8 +16302,9 @@
                 file1.removeEventListener(Event.CANCEL,onCancelEvent);
                 file1.removeEventListener(Event.SELECT,onSelectEvent);
 
-                if(workerPNGCaptureData === null) workerPNGCaptureData = new Vector.<ByteArray>()
+                if(workerPNGCaptureData === null) workerPNGCaptureData = new Vector.<ByteArray>();
                 if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
+
                 callWorkerEncodePNG(getCaptrueImageBitmapdata(false),0,true,captureTransBGON);
                 saveCapturePNGByOrder(file1.name,e.target.nativePath);
             }
@@ -16245,7 +16708,9 @@
                             "saveContinue":saveContinue,
                             "myPalettePresetType":myPalettePresetType,
                             "myPaletteViewAllMode":myPaletteViewAllMode,
-                            "pickerBoxSwapPositionFlag":pickerBoxSwapPositionFlag
+                            "pickerBoxSwapPositionFlag":pickerBoxSwapPositionFlag,
+                            "topBar.captureInput.text":topBar.captureInput.text,
+                            "capStampON":capStampON
                             });
             fs.close();
         }
@@ -16472,11 +16937,15 @@
                     {
                         updateMyPaletteList();
                     }
+
                     pickerBoxSwapPositionFlag = d["pickerBoxSwapPositionFlag"];
                     if(d["pickerBoxSwapPositionFlag"])
                     {
                         pickerBox.swapColorBoxPosition(d["pickerBoxSwapPositionFlag"]);
                     }
+
+                    topBar.captureInput.text = d["topBar.captureInput.text"];
+                    capStampON = d["capStampON"];
 
                     updatePreviewBoxRectPos();
                     updatePenSizeCursor();
@@ -20181,7 +20650,7 @@
             controlBox.x = 39;
             controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
             pickerBox.x = 39;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height+4);
             toolBox.x = -1;
             toolBox.y = Math.floor(controlBox.y-5);
 
@@ -20227,7 +20696,7 @@
             controlBox.x = 0;
             controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
             pickerBox.x = 0;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height+4);
             toolBox.x = 177;
             toolBox.y = Math.floor(controlBox.y-5);
 
@@ -20339,6 +20808,7 @@
             rcanvasPanelMask.graphics.beginFill(CANVAS_BG_COLOR);//paneldraw마스크 아무색이나 상관없음 어차피 마스크로 쓸거라
             rcanvasPanelMask.graphics.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             rcanvasPanelMask.graphics.endFill();
+            rcanvasPanelMask.visible = false;
 
             rcanvas2.addChild(rcanvas2Bitmap);//
             rcanvas2.addChild(rcanvas2Draw);//canvas2에
@@ -20392,6 +20862,7 @@
 
             setBackgroundColorDrawMode(CANVAS_BG_COLOR);
             updateCanvasPanelMask(CANVAS_WIDTH,CANVAS_HEIGHT);
+            canvasPanelMask.visible = false;
 
             updateStageBGColor(uiColorSet[uiColorIndex][2]);
 

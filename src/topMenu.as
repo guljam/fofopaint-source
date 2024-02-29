@@ -8,7 +8,7 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
-	import flash.events.Event;
+	import flash.ui.ContextMenu;
 
 	public class topMenu extends Sprite {
 		public const BARSIZE:Number = 38;
@@ -24,6 +24,7 @@
 		public var capOff:SimpleButton;
 		public var capTrans:SimpleButton;
 		public var capClipBoard:SimpleButton;
+		public var capStamp:SimpleButton;
 		public var saveButton:SimpleButton;
 		public var repSaveButton:SimpleButton;
 		public var loadButton:SimpleButton;
@@ -85,6 +86,41 @@
 
 		private var newWindowIconStateSaveLayerButton:Boolean = false // 뉴윈도우인지 끄기 버튼인지 구분
 		private var newWindowIconStateDrawModeIcon:Boolean = false // 뉴윈도우인지 끄기 버튼인지 구분
+
+		public var captureInputWarpper:Sprite = new Sprite();
+		public var captureInput:TextField;
+		public var captureInputFinal:TextField;
+		public var captureInputBorder:SimpleButton;
+		private var cpatureInputStringSave:String = "";
+
+		private function getCaptureStampDate():String
+            {
+                const date:Date = new Date();
+                const y:Number = date.getFullYear();
+                const m:Number = date.getMonth()+1;
+                const d:Number = date.getDate();
+                const hour:Number = date.getHours();
+                const min:Number = date.getMinutes();
+                const sec:Number = date.getSeconds();
+                const monthstr:String = (m < 10) ? "0"+m : ""+m;
+                const daystr:String = (d < 10) ? "0"+d : ""+d;
+                const hourstr:String = (hour < 10) ? "0"+hour : ""+hour;
+                const minstr:String = (min < 10) ? "0"+min : ""+min;
+                const secstr:String = (sec < 10) ? "0"+sec : ""+sec;
+
+                return y+"-"+monthstr+"-"+daystr+" "+hourstr+":"+minstr+":"+secstr;
+            }
+
+		public function getCaptureInputString():String
+		{
+			return captureInput.text;
+		}
+
+		public function updateCaptureInputFinal():String
+		{
+			captureInputFinal.text = getCaptureStampDate()+" "+captureInput.text;
+			return captureInputFinal.text;
+		}
 
 		public function setScale(scale:Number):void
 		{
@@ -280,6 +316,8 @@
 			capOff.transform.colorTransform = opColor;
 			capTrans.transform.colorTransform = opColor;
 			capClipBoard.transform.colorTransform = opColor;
+			capStamp.transform.colorTransform = opColor;
+			captureInputBorder.transform.colorTransform = opColor;
 			saveButton.transform.colorTransform = opColor;
 			repSaveButton.transform.colorTransform = opColor;
 			loadButton.transform.colorTransform = opColor;
@@ -327,6 +365,7 @@
 
 			timer.textColor = op;
 			timerAFkDot.textColor = op;
+			captureInput.textColor = op;
 		}
 
 		public function setSpeedButtonPosByValue(rSpeed:Number, maxSpeed:Number):void
@@ -405,12 +444,19 @@
 				if(arr[i] as DisplayObject) arr[i].visible = flag;
 			}
 
-			if(mode === "draw" && flag === true)
+			if(flag === true)
 			{
-				if(rightSidebar) sideBarPositionButton.visible = false;
-				else sideBarPositionButton2.visible = false;
+				if(mode === "draw")
+				{
+					if(rightSidebar) sideBarPositionButton.visible = false;
+					else sideBarPositionButton2.visible = false;
 
-				checkSideBarONOFFButton(sidebarVisible,rightSidebar);
+					checkSideBarONOFFButton(sidebarVisible,rightSidebar);
+				}
+				else if(mode === "capture")
+				{
+					trace("hey")
+				}
 			}
 		}
 
@@ -427,6 +473,7 @@
 												capClipBoard,
 												capLayer1VisibleButton,
 												capLayer2VisibleButton,
+												capStamp,
 
 												saveButton,
 												repSaveButton,
@@ -540,6 +587,7 @@
 			capOff.useHandCursor = false;
 			capTrans.useHandCursor = false;
 			capClipBoard.useHandCursor = false;
+			capStamp.useHandCursor = false;
 			saveButton.useHandCursor = false;
 			repSaveButton.useHandCursor = false;
 			loadButton.useHandCursor = false;
@@ -586,8 +634,8 @@
 								[clearButton,cutPrevDataButton,capTrans],
 								[gridButton,superUndoButton,capLayer1VisibleButton],
 								[sideBarPositionButton,replayZoomOutButton,capLayer2VisibleButton],
-								[sideBarOFFButton,replayZoomInButton],
-								[topBarColorButton,replayFitToWindowButton],
+								[sideBarOFFButton,replayZoomInButton,capStamp],
+								[topBarColorButton,replayFitToWindowButton,captureInputWarpper],
 								[dpiButton,replayRotateButton],
 								[replaySpeedSliderWrapper,newWindowButton,newWindowCloseButton],
 								[aboutButton]
@@ -638,6 +686,8 @@
 									capClipBoard,
 									capLayer1VisibleButton,
 									capLayer2VisibleButton,
+									capStamp,
+									captureInputWarpper
 								 ];
 			initModeButtons();
 			initMouseDownState();
@@ -653,6 +703,27 @@
 			addChild(replaySpeedSliderWrapper);
 			addChild(topbarBG);
 			addChild(gridButtonWrapper);
+
+			captureInputWarpper.addChild(captureInput);
+			captureInputWarpper.addChild(captureInputBorder);
+			captureInputBorder.x = 0;
+			captureInputBorder.y = 0;
+			captureInputBorder.mouseEnabled = false;
+
+			var emptyContextMenu:ContextMenu = new ContextMenu();
+			captureInput.contextMenu = emptyContextMenu;
+			captureInput.x = 3;
+			captureInput.y = 3;
+			captureInput.width = 150;
+			captureInput.height = 30;
+
+			captureInputFinal.x = -100;
+			captureInputFinal.y = -100;
+			captureInputFinal.visible = false;
+			captureInputFinal.text = "";
+			captureInputFinal.autoSize = TextFieldAutoSize.LEFT;
+			addChild(captureInputWarpper);
+
 			setChildIndex(topbarBG,0);
 			cacheAsBitmap = true;
 

@@ -89,12 +89,12 @@
 		{
 			if(checkflag)
 			{
-				mainPresetButtonBox.y = myPaletteBox.y+myPaletteBox.height+3;
+				mainPresetButtonBox.y = myPaletteBox.y+myPaletteBox.height+4;
 				mainPickerMenuBox.y = mainPresetButtonBox.y+mainPresetButtonBox.height+3;
 			}
 			else
 			{
-				mainColorPickerBox.y = myPaletteBox.y+myPaletteBox.height+4;
+				mainColorPickerBox.y = myPaletteBox.y+myPaletteBox.height+5;
 				mainPresetButtonBox.y = mainColorPickerBox.y+mainColorPickerBox.height+3;
 				mainPickerMenuBox.y = mainPresetButtonBox.y+mainPresetButtonBox.height+3;
 			}
@@ -418,8 +418,6 @@
 			mainColorPickerBox.addChild(rgbInfoBG);
 			mainColorPickerBox.addChild(rgbInfo);
 			mainColorPickerBox.addChild(historyBox);
-			mainColorPickerBox.x = 0;
-			mainColorPickerBox.y = 0;
 			historyBox.name = "historyBox";
 			historyBox.y = svBox.y+svBox.height+5;
 
