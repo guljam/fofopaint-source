@@ -200,7 +200,6 @@
 			gridSlider.mouseEnabled = false;
 			gridSlider.x = gridSliderCursor.width/2;
 			gridSlider.y = gridSliderCursor.height/2+1;
-			trace("gridSliderCursor.height",gridSliderCursor.height)
 
 			gridSliderCursor.mouseEnabled = false;
 			gridSliderCursor.x = gridSlider.x;
@@ -452,10 +451,6 @@
 					else sideBarPositionButton2.visible = false;
 
 					checkSideBarONOFFButton(sidebarVisible,rightSidebar);
-				}
-				else if(mode === "capture")
-				{
-					trace("hey")
 				}
 			}
 		}

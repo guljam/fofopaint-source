@@ -89,13 +89,13 @@
 		{
 			if(checkflag)
 			{
-				mainPresetButtonBox.y = myPaletteBox.y+myPaletteBox.height+4;
+				mainPresetButtonBox.y = myPaletteBox.y+myPaletteBox.height+9;
 				mainPickerMenuBox.y = mainPresetButtonBox.y+mainPresetButtonBox.height+3;
 			}
 			else
 			{
 				mainColorPickerBox.y = myPaletteBox.y+myPaletteBox.height+5;
-				mainPresetButtonBox.y = mainColorPickerBox.y+mainColorPickerBox.height+3;
+				mainPresetButtonBox.y = mainColorPickerBox.y+mainColorPickerBox.height+8;
 				mainPickerMenuBox.y = mainPresetButtonBox.y+mainPresetButtonBox.height+3;
 			}
 		}

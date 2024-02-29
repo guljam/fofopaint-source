@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.94;
+        private const APP_VERSION:Number = 24.95;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7478,7 +7478,7 @@
                 case "nSizeButton11":
                 case "nSizeButton12":
                 {
-                    hint.on(getSizeButtonHint(targetName),target,true);
+                    hint.on(getSizeButtonHint(targetName),target);
                 }
                 return;
 
@@ -7493,7 +7493,7 @@
                 case "alphaButton9":
                 case "alphaButton10":
                 {
-                    hint.on(getOpacityButtonHint(targetName),target,true);
+                    hint.on(getOpacityButtonHint(targetName),target);
                 }
                 return;
 
@@ -13557,23 +13557,26 @@
         {
             index = getTegakiColorPresetIndex(index);
 
-            if(myPaletteTegakiPreset[index] === pickerBox.getRGBInfoBGColor() && !penColorTransparentFlag)
-            {
-                return;
-            }
-
+            const mainColor:uint = myPaletteTegakiPreset[index];
             const bgColor:uint = myPaletteTegakiPreset[index+10];
 
-            penColor = myPaletteTegakiPreset[index];
-            setBackgroundColorDrawMode(bgColor);
-
-            if(canvasWindowON)
+            if(mainColor !== pickerBox.getRGBInfoBGColor())
             {
-                updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+                penColor = myPaletteTegakiPreset[index];
+                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(penColor):penColor);
             }
 
-            addUndoBGColor(bgColor);
-            setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(penColor):penColor);
+            if(bgColor !== CANVAS_BG_COLOR)
+            {
+                setBackgroundColorDrawMode(bgColor);
+
+                if(canvasWindowON)
+                {
+                    updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+                }
+                addUndoBGColor(bgColor);
+            }
+
             setNowToolForDrawing(false);
         }
 
@@ -20688,11 +20691,11 @@
             appInfoBox.x = previewBox.x;
             appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+2);
             controlBox.x = 39;
-            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
+            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+2);
             pickerBox.x = 39;
             pickerBox.y = Math.floor(controlBox.y+controlBox.height+4);
             toolBox.x = -1;
-            toolBox.y = Math.floor(controlBox.y-5);
+            toolBox.y = Math.floor(controlBox.y+1);
 
             resetScrollBarXPosition();
             sideBarScrollBar.y = scrollBarMovedY;
@@ -20734,11 +20737,11 @@
             appInfoBox.x = previewBox.x-2;
             appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+2);
             controlBox.x = 0;
-            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
+            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+2);
             pickerBox.x = 0;
             pickerBox.y = Math.floor(controlBox.y+controlBox.height+4);
             toolBox.x = 177;
-            toolBox.y = Math.floor(controlBox.y-5);
+            toolBox.y = Math.floor(controlBox.y+1);
 
             if(toolBox.getDeafultY() === 0) toolBox.setDeafultY(toolBox.y);
 
