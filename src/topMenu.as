@@ -9,6 +9,7 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
 	import flash.ui.ContextMenu;
+	import flash.text.TextFormat;
 
 	public class topMenu extends Sprite {
 		public const BARSIZE:Number = 38;
@@ -711,12 +712,17 @@
 			captureInputBorder.mouseEnabled = false;
 
 			var emptyContextMenu:ContextMenu = new ContextMenu();
+			const textFormat:TextFormat = new TextFormat();
+			textFormat.font = null;
+			captureInput.defaultTextFormat = textFormat;
+			captureInput.embedFonts = false;
 			captureInput.contextMenu = emptyContextMenu;
 			captureInput.x = 3;
 			captureInput.y = 3;
 			captureInput.width = 150;
 			captureInput.height = 30;
 
+			captureInputFinal.embedFonts = false;
 			captureInputFinal.x = -100;
 			captureInputFinal.y = -100;
 			captureInputFinal.visible = false;

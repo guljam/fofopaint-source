@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.87;
+        private const APP_VERSION:Number = 24.88;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8689,8 +8689,19 @@
             return verStr;
         }
 
+        private function setIMEEnabled():void
+        {
+            IME.enabled = true;
+        }
+
         private function setIMEDisabled():void
         {
+            if(capInputFocusFlag)
+            {
+                IME.enabled = true;
+                return;
+            }
+
             if(Capabilities.hasIME && IME.enabled) //다른 언어로 하면 자판 안먹어서 그냥 ime자체를안씀
             {
                 IME.compositionAbandoned();
@@ -15298,15 +15309,17 @@
         {
             var captrueStampBMPD:BitmapData = new BitmapData(1,1,false,0);
             var captureStampBitmap:Bitmap = new Bitmap(captrueStampBMPD);
+            const textformat:TextFormat = new TextFormat();
             const captureStampRect:Rectangle = new Rectangle();
             const bmpdMat:Matrix = new Matrix();
             const bmpdRect:Rectangle = new Rectangle();
             const stampAPPNAME:String = "FOFO PAINT "+APP_VERSION;
+            const bmpdBGAlpha:Number = 0.75;
+            const defaultFontSize:int = 15;
             var stampMainText:String = "";
 
             captureStampBitmap.name = "captureStampBitmap";
             captureStampBitmap.visible = false;
-            captureStampBitmap.alpha = 0.75;
 
             function kung(inputBMPD:BitmapData):void
             {
@@ -15314,25 +15327,26 @@
                 const mat:Matrix = new Matrix();
                 const ct:ColorTransform = new ColorTransform();
 
-                ct.alphaMultiplier = captureStampBitmap.alpha;
+                ct.alphaMultiplier = bmpdBGAlpha;
                 mat.translate(0,inputBMPD.height-captrueStampBMPD.height);
                 inputBMPD.draw(captureStampBitmap,mat,ct);
             }
 
             function checkTextAutoSize(width:Number):Number
             {
-                const textformat:TextFormat = new TextFormat();
-                var bgheight:Number = 15;
+                var bgheight:Number = defaultFontSize;
                 if(getTextWidth() < width)
                 {
                     return bgheight;
                 }
 
-                for(var i:uint=0;i<10;i++)
+                textformat.font = null;
+                for(var i:uint=0;i<5;i++)
                 {
                     bgheight--;
-                    textformat.size = 15-i;
+                    textformat.size = bgheight;
                     topBar.captureInputFinal.defaultTextFormat = textformat;
+
                     if(getTextWidth() < width || bgheight <= 10)
                     {
                         break;
@@ -15414,6 +15428,7 @@
             {
                 addTimer(0.2,false,function():void
                 {
+                    setIMEDisabled();
                     capInputFocusFlag = false;
                 });
             }
@@ -15421,7 +15436,7 @@
             function focusInCaptureInput(e:FocusEvent):void
             {
                 capInputFocusFlag = true;
-                addTimer(0.1,false,function():void
+                addTimer(0.0,false,function():void
                 {
                     topBar.captureInput.setSelection(0,topBar.captureInput.text.length);
                 });
@@ -15549,14 +15564,14 @@
                         }
                     }
 
-                    const textformat:TextFormat = new TextFormat();
-                    textformat.size = 15;
+                    textformat.font = null;
+                    textformat.size = defaultFontSize;
                     topBar.captureInputFinal.defaultTextFormat = textformat;
 
-                    const bgColor:uint = 0xFF000000 | imageDomiColor;
+                    const bgColor:uint = 0xCC000000|getDominantColor(getSmallBmpd(rect));
                     const bgHeight:Number = checkTextAutoSize(bmpdWidth);
 
-                    captrueStampBMPD = new BitmapData(bmpdWidth,bgHeight,false,bgColor);
+                    captrueStampBMPD = new BitmapData(bmpdWidth,bgHeight,true,bgColor);
                     captureStampBitmap.bitmapData = captrueStampBMPD;
                     if(getColorDifferenceForHuman(0xFFFFFF,imageDomiColor) < 43)
                     {
@@ -15629,6 +15644,7 @@
                 {
                     canvasPanel.mask = canvasPanelMask;
                 }
+                captrueStampBMPD.dispose();
 
                 topBar.captureInput.removeEventListener(Event.CHANGE,inputCaptureInput);
                 topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN,focusInCaptureInput);
@@ -15859,9 +15875,8 @@
 
                     if(rect.width >= 0.0 && rect.width < minSize) rect.width = minSize;
                     if(rect.width < 0.0 && rect.width > -minSize) rect.width = -minSize;
-
                     if(rect.height >= 0.0 && rect.height < minSize) rect.height = minSize;
-                    if(rect.width < 0.0 && rect.height > -minSize) rectGhost.height = -minSize;
+                    if(rect.height < 0.0 && rect.height > -minSize) rect.height = -minSize;
 
                     rect.width = Math.round(rect.width);
                     rect.height = Math.round(rect.height);
