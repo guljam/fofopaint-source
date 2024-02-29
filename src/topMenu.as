@@ -717,7 +717,7 @@
 			captureInput.embedFonts = false;
 			captureInput.contextMenu = emptyContextMenu;
 			captureInput.x = 3;
-			captureInput.y = 3;
+			captureInput.y = 3.5;
 			captureInput.width = 150;
 			captureInput.height = 30;
 
