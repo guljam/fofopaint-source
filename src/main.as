@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.95;
+        private const APP_VERSION:Number = 24.96;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6255,7 +6255,7 @@
                     topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
                 }
 
-                checkCaptureStampAlpha();
+                checkCaptureStampButtonAlpha();
             }
         }
 
@@ -6602,7 +6602,7 @@
 
         private function updateTraceOpaButtonPosByAlpha(alpha:Number):void
         {
-            traceMenu["traceOpaButton"].x = (traceMenu["traceOpaBar"].x+2)+(traceMenu["traceOpaBar"].width*alpha);
+            traceMenu["traceOpaButton"].x = (traceMenu["traceOpaBar"].x+1)+(traceMenu["traceOpaBar"].width*alpha);
         }
 
         private function closeTraceMenu():void
@@ -7991,7 +7991,7 @@
             drawCaptureArea.updateDrawArea();
         }
 
-        private function checkCaptureStampAlpha():void
+        private function checkCaptureStampButtonAlpha():void
         {
             if(capStampON)
             {
@@ -8008,7 +8008,7 @@
         private function setCaptrueStampButton():void
         {
             capStampON = !capStampON;
-            checkCaptureStampAlpha();
+            checkCaptureStampButtonAlpha();
             drawCaptureStamp.update();
         }
 
@@ -15610,7 +15610,9 @@
 
                     //draw main text
                     topBar.captureInputFinal.text = stampMainText;
-                    captrueStampBMPD.draw(topBar.captureInputFinal);
+                    bmpdMat.identity();
+                    bmpdMat.translate(2,0);
+                    captrueStampBMPD.draw(topBar.captureInputFinal,bmpdMat);
 
                     //draw appname + version text
                     topBar.captureInputFinal.text = stampAPPNAME;
