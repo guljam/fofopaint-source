@@ -153,7 +153,7 @@
 			gridButtonWrapper.addChild(gridMoveButtonWrapper);
 
 			gridSliderWrapper.x = 0;
-			gridSliderWrapper.y = 1.5;
+			gridSliderWrapper.y = 3;
 			gridMoveButtonWrapper.x = gridSliderWrapper.x+gridButtonWrapper.width+5;
 			gridMoveButtonWrapper.y = 0;
 			gridButtonWrapper.visible = false;
@@ -198,17 +198,17 @@
 			gridSliderCursor.useHandCursor = false;
 
 			gridSlider.mouseEnabled = false;
-			gridSlider.x = 6;
-			gridSlider.y = 3;
+			gridSlider.x = gridSliderCursor.width/2;
+			gridSlider.y = gridSliderCursor.height/2+1;
+			trace("gridSliderCursor.height",gridSliderCursor.height)
 
 			gridSliderCursor.mouseEnabled = false;
 			gridSliderCursor.x = gridSlider.x;
-			gridSliderCursor.y = gridSlider.y+gridSlider.height+1;
+			gridSliderCursor.y = gridSlider.y;
 
 			gridSliderWrapper.graphics.clear();
-			gridSliderWrapper.graphics.beginFill(0,0.0);
-			gridSliderWrapper.graphics.drawRect(0,0,gridSlider.x+gridSlider.width+gridSliderCursor.width/2+1.5
-													,gridSlider.y+gridSlider.height+gridSlider.y+gridSlider.height+1);
+			gridSliderWrapper.graphics.beginFill(0xFF0000,0.0);
+			gridSliderWrapper.graphics.drawRect(0,0,gridSlider.x+gridSlider.width+gridSliderCursor.width/2,gridSliderCursor.height+1);
 			gridSliderWrapper.graphics.endFill();
 		}
 
@@ -219,17 +219,16 @@
 			replaySpeedSliderWrapper.addChild(replaySpeedSliderCursor);
 
 			replaySpeedSlider.mouseEnabled = false;
-			replaySpeedSlider.x = 6;
-			replaySpeedSlider.y = 3;
+			replaySpeedSlider.x = replaySpeedSliderCursor.width/2;
+			replaySpeedSlider.y = replaySpeedSliderCursor.height/2+1;
 
 			replaySpeedSliderCursor.mouseEnabled = false;
 			replaySpeedSliderCursor.x = replaySpeedSlider.x;
-			replaySpeedSliderCursor.y = replaySpeedSlider.y+replaySpeedSlider.height+1;
+			replaySpeedSliderCursor.y = replaySpeedSlider.y;
 
 			replaySpeedSliderWrapper.graphics.clear();
 			replaySpeedSliderWrapper.graphics.beginFill(0xFF0000,0.0);
-			replaySpeedSliderWrapper.graphics.drawRect(0,0,replaySpeedSlider.x+replaySpeedSlider.width+replaySpeedSliderCursor.width/2+1.5
-														,replaySpeedSlider.y+replaySpeedSlider.height+replaySpeedSlider.y+replaySpeedSlider.height+1);
+			replaySpeedSliderWrapper.graphics.drawRect(0,0,replaySpeedSlider.x+replaySpeedSlider.width+gridSliderCursor.width/2,replaySpeedSliderCursor.height+1);
 			replaySpeedSliderWrapper.graphics.endFill();
 		}
 
@@ -556,7 +555,7 @@
 			updateButton.x = aboutButton.x;
 			updateButton.y = aboutButton.y;
 
-			replaySpeedSliderWrapper.y = 5;
+			replaySpeedSliderWrapper.y = 7;
 		}
 
 		public function topMenu()

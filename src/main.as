@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.88;
+        private const APP_VERSION:Number = 24.90;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6879,7 +6879,7 @@
         private function setTraceOpaButton():void
         {
             const barWidth:Number = traceMenu["traceOpaBar"].width;
-            const minDist:Number = traceMenu["traceOpaBar"].x+2;
+            const minDist:Number = traceMenu["traceOpaBar"].x+1;
             const maxDist:Number = minDist+barWidth-2;
             const step:Number = 10;
 
