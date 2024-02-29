@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.92;
+        private const APP_VERSION:Number = 24.93;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15582,8 +15582,19 @@
                     const bgColor:uint = 0xCC000000|getDominantColor(getSmallBmpd(rect));
                     const bgHeight:Number = checkTextAutoSize(bmpdWidth);
 
-                    captrueStampBMPD = new BitmapData(bmpdWidth,bgHeight,true,bgColor);
-                    captureStampBitmap.bitmapData = captrueStampBMPD;
+                    if(!captrueStampBMPD || (captrueStampBMPD && captrueStampBMPD.width !== bmpdWidth))
+                    {
+                        captrueStampBMPD = new BitmapData(bmpdWidth,bgHeight,true,bgColor);
+                        captureStampBitmap.bitmapData = captrueStampBMPD;
+                    }
+                    else
+                    {
+                        captureStampRect.x = 0;
+                        captureStampRect.y = 0;
+                        captureStampRect.width = bmpdWidth;
+                        captureStampRect.height = bgHeight;
+                        captrueStampBMPD.fillRect(captureStampRect,bgColor);
+                    }
 
                     if(getColorBrightness(imageDomiColor) >= 150)
                     {
@@ -15657,6 +15668,7 @@
                     canvasPanel.mask = canvasPanelMask;
                 }
                 captrueStampBMPD.dispose();
+                captrueStampBMPD = null;
 
                 topBar.captureInput.removeEventListener(Event.CHANGE,inputCaptureInput);
                 topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN,focusInCaptureInput);
@@ -15679,6 +15691,7 @@
                 {
                     canvasPanel.mask = null;
                 }
+
                 topBar.captureInput.addEventListener(Event.CHANGE,inputCaptureInput);
                 topBar.captureInput.addEventListener(FocusEvent.FOCUS_IN,focusInCaptureInput);
                 topBar.captureInput.addEventListener(FocusEvent.FOCUS_OUT,focusOutCaptureInput);
