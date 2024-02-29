@@ -7387,8 +7387,8 @@
             stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpStage,false,1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpStage,false,1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownStage,false,1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,stageKeyDownEvent,false,1);
-            stage.addEventListener(KeyboardEvent.KEY_UP,stageKeyUpEvent,false,1);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownStage,false,1);
+            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpStage,false,1);
             stageMouseMoveEvent.add("updatePenCursorPositionEvent",updatePenCursorPositionEvent);
             stage.addEventListener(MouseEvent.MOUSE_UP,updatePenCursorPositionEvent,false,-1);
             stage.addEventListener(Event.MOUSE_LEAVE,stageMouseLeaveEvent,false);
@@ -7749,7 +7749,7 @@
             }
         }
 
-        private function stageKeyUpEvent(e:KeyboardEvent):void
+        private function keyUpStage(e:KeyboardEvent):void
         {
             setIMEDisabled();
             checkKeyInvalidKey();
@@ -7773,7 +7773,7 @@
             }
         }
 
-        private function stageKeyDownEvent(e:KeyboardEvent):void
+        private function keyDownStage(e:KeyboardEvent):void
         {
             setIMEDisabled();
             checkKeyInvalidKey();
