@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.96;
+        private const APP_VERSION:Number = 24.97;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15318,7 +15318,8 @@
             const bmpdRect:Rectangle = new Rectangle();
             const stampAPPNAME:String = "FOFO PAINT "+APP_VERSION;
             const bmpdBGAlpha:Number = 0.75;
-            const defaultFontSize:int = 15;
+            const defaultFontSize:int = 17;
+            var finalBmpdHeight:Number = defaultFontSize;
             var stampMainText:String = "";
 
             captureStampBitmap.name = "captureStampBitmap";
@@ -15344,13 +15345,13 @@
                 }
 
                 textformat.font = null;
-                for(var i:uint=0;i<5;i++)
+                for(var i:uint=0;;i++)
                 {
                     bgheight--;
                     textformat.size = bgheight;
                     topBar.captureInputFinal.defaultTextFormat = textformat;
 
-                    if(getTextWidth() < width || bgheight <= 10)
+                    if(getTextWidth() < width || bgheight <= 12)
                     {
                         break;
                     }
@@ -15458,7 +15459,7 @@
                 }
             }
 
-            function checkPosition():void
+            function checkPosition(bmpdHeight:Number):void
             {
                 const rect:Rectangle = drawCaptureArea.getCaptureArea();
                 const rotateFlag:uint = captureRotated;
@@ -15483,24 +15484,24 @@
                     {
                         captureStampBitmap.rotation = 0;
                         captureStampBitmap.x = rect.x+offsetX;
-                        captureStampBitmap.y = rect.y+offsetY-captrueStampBMPD.height;
+                        captureStampBitmap.y = rect.y+offsetY-bmpdHeight;
                     }
                     else if(rotateFlag === 1)
                     {
                         captureStampBitmap.rotation = 90;
-                        captureStampBitmap.x = rect.x+captrueStampBMPD.height;
+                        captureStampBitmap.x = rect.x+bmpdHeight;
                         captureStampBitmap.y = rect.y+offsetY;
                     }
                     else if(rotateFlag === 2)
                     {
                         captureStampBitmap.rotation = 180;
                         captureStampBitmap.x = rect.x;
-                        captureStampBitmap.y = rect.y+captrueStampBMPD.height;
+                        captureStampBitmap.y = rect.y+bmpdHeight;
                     }
                     else if(rotateFlag === 3)
                     {
                         captureStampBitmap.rotation = -90;
-                        captureStampBitmap.x = rect.x+offsetX-captrueStampBMPD.height;
+                        captureStampBitmap.x = rect.x+offsetX-bmpdHeight;
                         captureStampBitmap.y = rect.y;
                     }
                 }
@@ -15511,24 +15512,24 @@
                     {
                         captureStampBitmap.rotation = 0;
                         captureStampBitmap.x = rect.x;
-                        captureStampBitmap.y = rect.y+offsetY-captrueStampBMPD.height;
+                        captureStampBitmap.y = rect.y+offsetY-bmpdHeight;
                     }
                     else if(rotateFlag === 1)
                     {
                         captureStampBitmap.rotation = -90;
-                        captureStampBitmap.x = rect.x+offsetX-captrueStampBMPD.height;
+                        captureStampBitmap.x = rect.x+offsetX-bmpdHeight;
                         captureStampBitmap.y = rect.y+offsetY;
                     }
                     else if(rotateFlag === 2)
                     {
                         captureStampBitmap.rotation = 180;
                         captureStampBitmap.x = rect.x+offsetX;
-                        captureStampBitmap.y = rect.y+captrueStampBMPD.height;
+                        captureStampBitmap.y = rect.y+bmpdHeight;
                     }
                     else if(rotateFlag === 3)
                     {
                         captureStampBitmap.rotation = 90;
-                        captureStampBitmap.x = rect.x+captrueStampBMPD.height;
+                        captureStampBitmap.x = rect.x+bmpdHeight;
                         captureStampBitmap.y = rect.y;
                     }
                 }
@@ -15584,20 +15585,11 @@
 
                     const bgColor:uint = 0xCC000000|getDominantColor(getSmallBmpd(rect));
                     const bgHeight:Number = checkTextAutoSize(bmpdWidth);
+                    finalBmpdHeight = bgHeight;
 
-                    if(!captrueStampBMPD || (captrueStampBMPD && captrueStampBMPD.width !== bmpdWidth))
-                    {
-                        captrueStampBMPD = new BitmapData(bmpdWidth,bgHeight,true,bgColor);
-                        captureStampBitmap.bitmapData = captrueStampBMPD;
-                    }
-                    else
-                    {
-                        captureStampRect.x = 0;
-                        captureStampRect.y = 0;
-                        captureStampRect.width = bmpdWidth;
-                        captureStampRect.height = bgHeight;
-                        captrueStampBMPD.fillRect(captureStampRect,bgColor);
-                    }
+                    if(captrueStampBMPD) captrueStampBMPD.dispose();
+                    captrueStampBMPD = new BitmapData(bmpdWidth,bgHeight,true,bgColor);
+                    captureStampBitmap.bitmapData = captrueStampBMPD;
 
                     if(getColorBrightness(imageDomiColor) >= 150)
                     {
@@ -15643,7 +15635,7 @@
                         canvasPanel.addChild(captureStampBitmap);
                     }
 
-                    checkPosition();
+                    checkPosition(bgHeight);
                 }
                 else if(captureStampBitmap.visible === true)
                 {
