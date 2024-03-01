@@ -15317,7 +15317,7 @@
             const captureStampRect:Rectangle = new Rectangle();
             const bmpdMat:Matrix = new Matrix();
             const bmpdRect:Rectangle = new Rectangle();
-            const stampAPPNAME:String = "FOFO PAINT "+APP_VERSION;
+            const stampAPPNAME:String = "FOFO PAINT "+APP_VERSION.toFixed(2);
             const bmpdBGAlpha:Number = 0.75;
             const defaultFontSize:int = 17;
             var finalBmpdHeight:Number = defaultFontSize;
