@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 24.98;
+        private const APP_VERSION:Number = 25.00;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15470,8 +15470,8 @@
 
                 if(drawCaptureArea.isFullImageCapture())
                 {
-                    offsetX = CANVAS_WIDTH;
-                    offsetY = CANVAS_HEIGHT;
+                    offsetX = (replayModeON) ? RCANVAS_WIDTH:CANVAS_WIDTH;
+                    offsetY = (replayModeON) ? RCANVAS_HEIGHT:CANVAS_HEIGHT;
                 }
                 else
                 {
@@ -15562,7 +15562,7 @@
                     {
                         if(drawCaptureArea.isFullImageCapture())
                         {
-                            bmpdWidth = CANVAS_WIDTH;
+                            bmpdWidth = (replayModeON) ? RCANVAS_WIDTH:CANVAS_WIDTH;
                         }
                         else
                         {
@@ -15573,7 +15573,7 @@
                     {
                         if(drawCaptureArea.isFullImageCapture())
                         {
-                            bmpdWidth = CANVAS_HEIGHT;
+                            bmpdWidth = (replayModeON) ? RCANVAS_WIDTH:CANVAS_WIDTH;
                         }
                         else
                         {
