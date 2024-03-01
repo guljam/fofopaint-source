@@ -4796,7 +4796,7 @@
             var xAirBrushON:Boolean;
             var posOffset:Number;
             var rotateFlag:Boolean;
-            var mouseMoveCount:uint; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
+            var mouseMoveCount:int; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
             var mouseMovedFlag:Boolean;
             var moveEventDistLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var dotflag:Boolean;
@@ -4928,7 +4928,8 @@
                 moveEvent2Last.setTo(mx,my);
                 canvas2Draw.graphics.lineTo(mx,my);
 
-                if(++mouseMoveCount >= 100)
+                mouseMoveCount++;
+                if(mouseMoveCount >= 100)
                 {
                     mouseMoveCount = 0;
 
@@ -11706,7 +11707,6 @@
                 {
                     return;
                 }
-
                 switch(data[index][0])
                 {
                     case "lineStyle": lineStyle(data[index]); break;
@@ -18206,7 +18206,6 @@
 
                     index = Math.floor((low + high)/2);
                 }
-
                 ++index;
 
                 if(index < 0) index = 0;
