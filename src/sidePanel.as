@@ -66,7 +66,6 @@
 
 			sideBG.y = -1; //스케일 조절하면 윗 메뉴 사이에 흰 공백이 보여서 약간 위로 올려줌
 			addChild(sideBG);
-            cacheAsBitmap = true;
 		}
 	}
 }

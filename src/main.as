@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.02;
+        private const APP_VERSION:Number = 25.03;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -722,7 +722,52 @@
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
         }
 
-    //function
+        //function
+        private function isCursorInSideBar():Boolean
+        {
+            if(sideBar.visible === true)
+            {
+                const scale:Number = getUIScale();
+
+                if(mouseX >= sideBar.x && mouseX <= sideBar.x+sideBar.WIDTH*scale
+                && mouseY >= sideBar.y && mouseY <= stage.stageHeight)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private function mouseWheelStage(e:MouseEvent):void
+        {
+            if(isCursorInSideBar())
+            {
+                if(sideBarScrollBar.visible === true)
+                {
+                    if(e.delta > 0)
+                    {
+                        setScrollBarMoveButton(30);
+                    }
+                    else
+                    {
+                        setScrollBarMoveButton(-30);
+                    }
+                }
+            }
+            else if(isCursorInDrawArea())
+            {
+                if(e.delta > 0)
+                {
+                    setZoomInButton(true,replayModeON);
+                }
+                else
+                {
+                    setZoomInButton(false,replayModeON);
+                }
+            }
+        }
+
         private function rgbInfoNumPadIncKey(inc:int):void
         {
             selectRGBInfoTextByRGBPos(rgbInfoCursorPosSave);
@@ -7408,6 +7453,7 @@
             stage.addEventListener(MouseEvent.MOUSE_OUT,globalHintOFF);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,onDragEnterEvent);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP,onDragDropEvent);
+            stage.addEventListener(MouseEvent.MOUSE_WHEEL, mouseWheelStage);
 
             //힌트 보여주는 이벤트
             toolBox.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHintONEvent);
@@ -20952,6 +20998,11 @@
             sideBarScrollSet.addChild(toolBox);
             sideBarScrollSet.addChild(controlBox);
             sideBarScrollSet.addChild(pickerBox);
+            appInfoBox.cacheAsBitmap = true;
+            toolBox.cacheAsBitmap = true;
+            toolBox.cacheAsBitmap = true;
+            controlBox.cacheAsBitmap = true;
+            pickerBox.cacheAsBitmap = true;
 
             sideBar.addChild(sideBarScrollBar);
             sideBar.addChild(sideBarScrollSet);
@@ -22449,7 +22500,34 @@
             lassoBox2.y = lassoBox1.y;
         }
 
-        private function setScrollBarMoveButton():void
+        // private function _setScrollBarMove(inputSubY:Number):void
+        // {
+        //     const scale:Number= getUIScale();
+        //     const subY:Number = inputSubY/scale;
+        //     const yLimit:Number = Math.ceil(sideBar.HEIGHT-sideBarScrollBar.height-STAGE_BOTTOM_OFFSET/scale);
+        //     const diffHeight:Number = getSidebarConstHeight()*scale-(stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET);
+        //     const canMoveHeight:Number = getSidebarConstHeight()*scale-(stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET);
+        //     const factor:Number = (diffHeight/canMoveHeight);
+
+        //     var my1:Number = sideBarScrollBar.y-subY;
+        //     var my2:Number = sideBarScrollSet.y+subY*factor;
+
+        //     if(my1 < 0)
+        //     {
+        //         my1 = 0;
+        //         my2 = 0;
+        //     }
+        //     else if(my1 > yLimit)
+        //     {
+        //         my1 = yLimit;
+        //         my2 = -diffHeight/scale;
+        //     }
+
+        //     sideBarScrollBar.y = Math.floor(my1);
+        //     sideBarScrollSet.y = Math.floor(my2);
+        // }
+
+        private function setScrollBarMoveButton(deltaY:Number=0.0):void
         {
             const scale:Number = getUIScale();
             const sth:Number = stage.stageHeight;
@@ -22462,7 +22540,7 @@
             var clickY:Number = mouseY;
             const yLimit:Number = Math.ceil(sideBar.HEIGHT-sideBarScrollBar.height-STAGE_BOTTOM_OFFSET/scale);
 
-            mouseDragON = true;
+            if(deltaY === 0.0) mouseDragON = true;
             hint.off();
 
             function sideBarMouseUpEvent(e:MouseEvent):void
@@ -22475,10 +22553,8 @@
                 stage.removeEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
             }
 
-            function sideBarMouseMoveEvent(e:MouseEvent):void
+            function _moveScroll(subY:Number):void
             {
-                const subY:Number = (clickY-mouseY)/scale;
-
                 my1 = my1-subY;
                 my2 = my2+subY*factor;
 
@@ -22495,12 +22571,26 @@
 
                 sideBarScrollBar.y = Math.floor(my1);
                 sideBarScrollSet.y = Math.floor(my2);
+            }
+
+            function sideBarMouseMoveEvent(e:MouseEvent):void
+            {
+                const subY:Number = (clickY-mouseY)/scale;
+
+                _moveScroll(subY);
 
                 clickY = mouseY;
             }
 
-            stageMouseMoveEvent.add("sideBarMouseMoveEvent",sideBarMouseMoveEvent);
-            stage.addEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
+            if(deltaY === 0.0)
+            {
+                stageMouseMoveEvent.add("sideBarMouseMoveEvent",sideBarMouseMoveEvent);
+                stage.addEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
+            }
+            else
+            {
+                _moveScroll(deltaY);
+            }
         }
 
         private function checkToolBoxButtons(target:DisplayObject):Boolean
