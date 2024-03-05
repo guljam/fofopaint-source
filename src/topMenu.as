@@ -235,7 +235,7 @@
 			replaySpeedSlider.y = replaySpeedSliderCursor.height/2+1;
 
 			replaySpeedSliderCursor.mouseEnabled = false;
-			replaySpeedSliderCursor.x = replaySpeedSlider.x;
+			replaySpeedSliderCursor.x = replaySpeedSlider.x+1.5;
 			replaySpeedSliderCursor.y = replaySpeedSlider.y;
 
 			replaySpeedSliderWrapper.graphics.clear();

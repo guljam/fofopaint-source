@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.04;
+        private const APP_VERSION:Number = 25.05;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9629,9 +9629,7 @@
             replayTimeBox["replayNowBar"].width = replayTimeBox["replayTotalBar"].width;
             replayTimeBox["frameInfo"].text = TOTAL_FRAME+" / " + TOTAL_FRAME;
 
-            rSpeed = 1; //속도 리셋
-            topBar.replaySpeedSliderCursor.x = topBar["replaySpeedSlider"].x+3;
-
+            resetReplaySpeedBar();
             setDeepUndoOFF();
 
             if(quickSidebarON)
@@ -10232,7 +10230,7 @@
         private function resetReplaySpeedBar():void
         {
             rSpeed = 1; //속도 리셋
-            topBar.replaySpeedSliderCursor.x = topBar["replaySpeedSlider"].x+3;
+            topBar.replaySpeedSliderCursor.x = topBar["replaySpeedSlider"].x+1.5;
         }
 
         //total frame file max frame등등은 수동으로 초기화
@@ -11890,7 +11888,6 @@
                 const nextFrame:Number = getAutoJumpFrame(rSpeed);
                 const finalFrame:Number = rNowFrame+Math.floor(nextFrame/2);
                 const totalF:Number = TOTAL_FRAME;
-                const rNowFrameSave:Number = rNowFrame;
                 const timeStr:String = getReplayRemainTime(nextFrame,totalF-rNowFrame,true);
 
                 jumpFrame(finalFrame,JUMP_FRAME_ONCE);
@@ -12327,6 +12324,11 @@
             if(replayRepeatON)
             {
                 topBar.replayRepeatButton.alpha = 1.0;
+                if(rNowFrame >= TOTAL_FRAME)
+                {
+                    setColorTransform(replayTimeBox["replayNowBar"],uiColorSet[uiColorIndex][5]);
+                    setRestartTimer();
+                }
             }
             else
             {
