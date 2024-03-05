@@ -16207,7 +16207,6 @@
 
             function drawArea(resizeButtonON:Boolean):void
             {
-                trace("draw area",resizeButtonON)
                 const zoomed:Number = getCanvasScale();
 
                 const lineSize:Number = Math.ceil(1/zoomed);
