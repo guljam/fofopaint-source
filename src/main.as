@@ -59,12 +59,11 @@
     import flash.ui.Mouse;
     import flash.text.TextFieldType;
     import flash.text.TextFormat;
-    import flash.text.TextFieldAutoSize;
-    //import end
 
+    //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.01;
+        private const APP_VERSION:Number = 25.02;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -455,6 +454,7 @@
                     ,replayEndWithCanvasFitWindow:Boolean = false //리플레이가 follow cursor옵션으로 캔버스 작게 축소되서 끝났을때
                     ,replayModeON:Boolean = false //이건 모드 자체 껐다 켰다
                     ,replayModeGettingOFF:Boolean = false // 리플레이 모드를 꺼주는 중일때 올려줌 이미지 캐쉬 만드는거 방지 하려고
+                    ,replayRepeatON:Boolean = true //리플레이 반복 켜기 끄기
 
                     ,rDataBuffer:Array = []
                     ,rData:Array = [] //rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
@@ -9209,6 +9209,12 @@
                             setZoomInButton(false,true);
                         break;
 
+                        case "replayRepeatButton":
+                        {
+                            setReplayRepeatButton();
+                        }
+                        break;
+
                         case "traceCancelButton":
                         {
                             setTopChildIndex(traceMenu);
@@ -9895,6 +9901,7 @@
                 case "replayZoomInButton": str = "Zoom in [f6]\nReset [right-click, shift+f5, shift+f6]"; break;
                 case "replayFitToWindowButton": str = "Canvas center alignment ON/OFF [right-click on canvas]"; break;
                 case "replayRotateButton": str = "Rotate \n"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "replayRepeatButton": str = "Repeat ON/OFF"; break;
 
                 default:
                 return;
@@ -10146,26 +10153,34 @@
 
         private function setRestartTimer():void
         {
-            rRestartTimerCount = 10;
-
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,cancelRestartTimerEvent);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,cancelRestartTimerEvent);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,cancelRestartTimerEvent);
-
-            addTimerByName("rRestartTimer",1.0,true,function():Boolean
+            if(replayRepeatON)
             {
-                if(rRestartTimerCount === 0)
-                {
-                    cancelRestartTimer();
-                    startReplay();
-                    return false;
-                }
+                rRestartTimerCount = 10;
 
-                const str:String = "Play again in " + rRestartTimerCount +" sec";
-                replayTimeBox["frameInfo"].text = str;
-                --rRestartTimerCount;
-                return true;
-            });
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,cancelRestartTimerEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,cancelRestartTimerEvent);
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,cancelRestartTimerEvent);
+
+                addTimerByName("rRestartTimer",1.0,true,function():Boolean
+                {
+                    if(rRestartTimerCount === 0)
+                    {
+                        cancelRestartTimer();
+                        startReplay();
+                        return false;
+                    }
+
+                    const str:String = "Play again in " + rRestartTimerCount +" sec";
+                    replayTimeBox["frameInfo"].text = str;
+                    --rRestartTimerCount;
+                    return true;
+                });
+            }
+            else
+            {
+                rRestartTimerCount = 9;
+                cancelRestartTimer();
+            }
         }
 
         private function resetReplaySpeedBar():void
@@ -12257,6 +12272,20 @@
             }
 
             return timeStr;
+        }
+
+        private function setReplayRepeatButton():void
+        {
+            replayRepeatON = !replayRepeatON;
+            trace("replayRepeatON",replayRepeatON)
+            if(replayRepeatON)
+            {
+                topBar.replayRepeatButton.alpha = 1.0;
+            }
+            else
+            {
+                topBar.replayRepeatButton.alpha = BUTTON_OFF_ALPHA;
+            }
         }
 
         private function setReplaySpeedButton():void
@@ -22825,10 +22854,23 @@
 
             const targetName:String = target.name;
 
-            if(targetName && (targetName.indexOf("rcanvas") !== -1 || targetName === "stageBG"))
+            if(targetName)
             {
-                handTool(true);
-                return;
+                if(targetName.indexOf("rcanvas") !== -1 || targetName === "stageBG")
+                {
+                    handTool(true);
+                    return;
+                }
+                else if(targetName === "replayRepeatButton")
+                {
+                    if(!isNowKey(0))
+                    {
+                        return;
+                    }
+
+                    checkButtonUp(targetName);
+                    return;
+                }
             }
 
             if(target.alpha < 1.0)
@@ -22861,7 +22903,6 @@
                     }
                 }
                 break;
-
 
                 case "replayRotateButton":
                 {

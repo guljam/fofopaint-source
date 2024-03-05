@@ -65,6 +65,7 @@
 		public var replayZoomOutButton:SimpleButton;
 		public var replayFitToWindowButton:SimpleButton;
 		public var replayRotateButton:SimpleButton;
+		public var replayRepeatButton:SimpleButton;
 		public var timer:TextField;
 		public var timerAFkDot:TextField;
 
@@ -366,6 +367,7 @@
 			replayRotateButton.transform.colorTransform = opColor;
 			replaySpeedSliderCursor.transform.colorTransform = opColor;
             replaySpeedSlider.transform.colorTransform = opColor;
+            replayRepeatButton.transform.colorTransform = opColor;
 
 			gridSlider.transform.colorTransform = opColor;
 			gridSliderCursor.transform.colorTransform = opColor;
@@ -511,6 +513,7 @@
 												replayZoomInButton,
 												replayZoomOutButton,
 												replayFitToWindowButton,
+												replayRepeatButton,
 
 												gridMoveLeftButton,
 												gridMoveRightButton,
@@ -625,6 +628,7 @@
 			replayZoomOutButton.useHandCursor = false;
 			replayFitToWindowButton.useHandCursor = false;
 			replayRotateButton.useHandCursor = false;
+			replayRepeatButton.useHandCursor = false;
 
 			newWindowCloseButton.visible = false;
 
@@ -644,8 +648,8 @@
 								[sideBarOFFButton,replayZoomInButton,capStamp],
 								[topBarColorButton,replayFitToWindowButton,captureInputWarpper],
 								[dpiButton,replayRotateButton],
-								[replaySpeedSliderWrapper,newWindowButton,newWindowCloseButton],
-								[aboutButton]
+								[replayRepeatButton,newWindowButton,newWindowCloseButton],
+								[aboutButton,replaySpeedSliderWrapper]
 							];
 
 			drawModeButtons = [
@@ -681,7 +685,8 @@
 									replayZoomOutButton,
 									replayFitToWindowButton,
 									replayRotateButton,
-									replaySpeedSliderWrapper
+									replaySpeedSliderWrapper,
+									replayRepeatButton
 								];
 
 			captureModeButtons = [
