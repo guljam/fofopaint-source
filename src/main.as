@@ -514,7 +514,7 @@
                     ,capTransparentBGBMPDSize:Number = 32
                     ,capTransparentBGBMPD:BitmapData
                     ,capInputFocusFlag:Boolean = false //포커스 되면 올려줌
-                    ,capStampON:Boolean = true
+                    ,capStampON:Boolean = false
 
         //윈도우 크기변수
                     ,lastWindowSizeInfo:Array = [0,0,680,768]
