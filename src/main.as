@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.03;
+        private const APP_VERSION:Number = 25.04;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -16147,38 +16147,44 @@
                 return (replayModeON) ? Math.abs(rregPoint.scaleX) : Math.abs(regPoint.scaleX);
             }
 
-            function drawResizeButton():void
+            function drawResizeButton(scale:Number):void
             {
+                if(isFullImageCapture())
+                {
+                    return;
+                }
+
                 captureAreaRect.graphics.lineStyle(1,0xFFFFFF,1.0,true);
                 captureAreaRect.graphics.beginFill(0xFF6600);
                 var posX:Number = rect.x;
                 var posY:Number = rect.y;
+                const offset:Number = 5/scale;
 
                 if(!captureFlipped && captureRotated === 0|| captureFlipped && captureRotated === 3)
                 {
-                    posX += rect.width+5;
-                    posY += rect.height+5;
+                    posX += rect.width+offset;
+                    posY += rect.height+offset;
                 }
                 else if(!captureFlipped && captureRotated === 1 || captureFlipped && captureRotated === 2)
                 {
-                    posX += rect.width+5;
-                    posY += -5;
+                    posX += rect.width+offset;
+                    posY += -offset;
                 }
                 else if(!captureFlipped && captureRotated === 3 || captureFlipped && captureRotated === 0)
                 {
-                    posY += rect.height+5;
-                    posX += -5;
+                    posY += rect.height+offset;
+                    posX += -offset;
                 }
                 else
                 {
-                    posX += -5;
-                    posY += -5;
+                    posX += -offset;
+                    posY += -offset;
                 }
 
                 resizeButtonPos.setTo(posX,posY);
 
-                const longEdge:Number = resizeButtonSize/zoomed;
-                const shortEdge:Number = (resizeButtonSize/3)/zoomed;
+                const longEdge:Number = resizeButtonSize/scale;
+                const shortEdge:Number = (resizeButtonSize/3)/scale;
                 const cmd:Vector.<int> = new <int> [1,2,2,2,2,2,2];
                 const pos:Vector.<Number> = new <Number> [0,0
                                                         ,0,-longEdge
@@ -16201,6 +16207,7 @@
 
             function drawArea(resizeButtonON:Boolean):void
             {
+                trace("draw area",resizeButtonON)
                 const zoomed:Number = getCanvasScale();
 
                 const lineSize:Number = Math.ceil(1/zoomed);
@@ -16219,7 +16226,7 @@
 
                 if(resizeButtonON)
                 {
-                    drawResizeButton();
+                    drawResizeButton(zoomed);
                 }
             }
 
@@ -21226,6 +21233,7 @@
                 {
                     captureWindowMove.setTo(dx,dy);
                     fitCanvasToWindow(true);
+                    drawCaptureArea.updateDrawArea(true);
                 }
                 else
                 {
