@@ -12277,7 +12277,7 @@
         private function setReplayRepeatButton():void
         {
             replayRepeatON = !replayRepeatON;
-            trace("replayRepeatON",replayRepeatON)
+
             if(replayRepeatON)
             {
                 topBar.replayRepeatButton.alpha = 1.0;
@@ -12297,6 +12297,7 @@
                 return;
             }
 
+            //setSpeedButtonPosByValue도 오프셋 수정해주어야함
             const minDist:Number = topBar.replaySpeedSlider.x+1.5;
             const maxDist:Number = minDist+topBar.replaySpeedSlider.width-2.5;
             const maxSpeed:Number = REPLAY_MAX_SPEED;

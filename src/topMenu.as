@@ -390,7 +390,20 @@
 			const exp:Number = Math.log(rSpeed)/Math.log(maxSpeed);
 			const nowX:Number = exp*replaySpeedSlider.width;
 
+			//setReplaySpeedButton 함수의 오프셋과 같아야함
+			const minDist:Number = replaySpeedSlider.x+1.5;
+            const maxDist:Number = minDist+replaySpeedSlider.width-2.5;
+
 			replaySpeedSliderCursor.x = replaySpeedSlider.x+nowX;
+
+			if(replaySpeedSliderCursor.x < minDist)
+			{
+				replaySpeedSliderCursor.x = minDist;
+			}
+			else if(replaySpeedSliderCursor.x > maxDist)
+			{
+				replaySpeedSliderCursor.x = maxDist;
+			}
 		}
 
 		public function updateTopbarBG(stw:int):void
