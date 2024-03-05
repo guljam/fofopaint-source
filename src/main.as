@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.05;
+        private const APP_VERSION:Number = 25.06;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -364,6 +364,7 @@
                     ,pickerColorSelected:Boolean = false //피커박스에서 컬러를 한번이라도 조절했으면 올려줌
                     ,pickerHSVButtonMousePoslast:Point = new Point()
                     ,pickerBoxSwapPositionFlag:Boolean = false //위치 바뀌면 올려줌
+                    ,pickerIgnoreHistoryColor:* = null //히스토리 색 등록 할때 여기에 등록된 색은 등록 안하게함
 
         //툴메뉴 관련 변수
         //어디 클릭했는지 위치 저장해줘서 다음에 켰을때 그 위치에서 툴메뉴가 켜지게끔 해줌
@@ -4788,8 +4789,8 @@
                     if(!isCurrentColorSamePickedColor())
                     {
                         updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
+                        addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
                     }
-                    addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
                 }
 
                 if(traceMenuON) traceMenu.visible = false;
@@ -5177,8 +5178,8 @@
                         if(!isCurrentColorSamePickedColor())
                         {
                             updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
+                            addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
                         }
-                        addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
                     }
                 }
                 else
@@ -13889,6 +13890,12 @@
                 return;
             }
 
+            if((pickerIgnoreHistoryColor as uint) === color )
+            {
+                pickerIgnoreHistoryColor = null;
+                return;
+            }
+
             //이미 있는 색깔이면 다시 최신으로 갱신
             for(var i:uint=90;i<100;i++)
             {
@@ -13924,6 +13931,8 @@
                 //         break;
                 //     }
                 // }
+
+
                 myPalettePreset.insertAt(90,color);
                 myPalettePreset.removeAt(100);
             }
@@ -17607,8 +17616,8 @@
                     if(!isCurrentColorSamePickedColor())
                     {
                         updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
+                        addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
                     }
-                    addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
                 }
 
                 canvasSizeWidth = CANVAS_WIDTH;
@@ -19322,6 +19331,7 @@
                     const pickedColor:uint = spuitPickedColor();
 
                     penColor = pickedColor;
+                    pickerIgnoreHistoryColor = pickedColor;
                     setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 }
 
