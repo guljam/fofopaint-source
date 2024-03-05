@@ -59,11 +59,12 @@
     import flash.ui.Mouse;
     import flash.text.TextFieldType;
     import flash.text.TextFormat;
+    import flash.text.TextFieldAutoSize;
     //import end
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.00;
+        private const APP_VERSION:Number = 25.01;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3038,7 +3039,7 @@
                                                  :new BitmapData(bmpd.width,bmpd.height,true,0);
 
             tmpbmpd.draw(bmpd,mat);
-            if(capStampON) drawCaptureStamp.kung(tmpbmpd);
+            if(capStampON && tmpbmpd.width >= 300) drawCaptureStamp.kungFinal(tmpbmpd);
             bmpd.dispose();
 
             return tmpbmpd;
@@ -15316,59 +15317,103 @@
             const textformat:TextFormat = new TextFormat();
             const captureStampRect:Rectangle = new Rectangle();
             const bmpdMat:Matrix = new Matrix();
-            const bmpdRect:Rectangle = new Rectangle();
-            const stampAPPNAME:String = "FOFO PAINT "+APP_VERSION.toFixed(2);
-            const bmpdBGAlpha:Number = 0.75;
             const defaultFontSize:int = 17;
-            var finalBmpdHeight:Number = defaultFontSize;
-            var stampMainText:String = "";
+            var inputUpdateTimer:int = 0;
 
             captureStampBitmap.name = "captureStampBitmap";
             captureStampBitmap.visible = false;
 
-            function kung(inputBMPD:BitmapData):void
+            function getCaptureStampDate(newLine:Boolean):String
+            {
+                const date:Date = new Date();
+                const y:Number = date.getFullYear();
+                const m:Number = date.getMonth()+1;
+                const d:Number = date.getDate();
+                const hour:Number = date.getHours();
+                const min:Number = date.getMinutes();
+                const sec:Number = date.getSeconds();
+                const monthstr:String = (m < 10) ? "0"+m : ""+m;
+                const daystr:String = (d < 10) ? "0"+d : ""+d;
+                const hourstr:String = (hour < 10) ? "0"+hour : ""+hour;
+                const minstr:String = (min < 10) ? "0"+min : ""+min;
+                const secstr:String = (sec < 10) ? "0"+sec : ""+sec;
+
+                // return y+"-"+monthstr+"-"+daystr+" "+hourstr+":"+minstr+":"+secstr;
+                return y+"-"+monthstr+"-"+daystr
+                        + ((newLine)?"\n":" ")
+                        + hourstr+":"+minstr+":"+secstr;
+            }
+
+            function getAppNameString(newLine:Boolean):String
+            {
+                return "FOFO PAINT"
+                        +((newLine)?"\n":" ")
+                        +APP_VERSION.toFixed(2);
+            }
+
+            function getTextWidthText(text:String,offset:Number):Number
+            {
+                const backupStr:String = topBar.captureInputFinal.text;
+                const backupWidth:Number = topBar.getCaptureInputFinalWidth();
+                topBar.setCaptureInputFinalWidth(CANVAS_MAX_SIZE);
+                topBar.setCaptureInputFinalString(text);
+                const width:Number = topBar.captureInputFinal.textWidth+offset;
+                topBar.setCaptureInputFinalString(backupStr);
+                topBar.setCaptureInputFinalWidth(backupWidth);
+
+                return width;
+            }
+
+            function getTextWidthAppName(newLine:Boolean):Number
+            {
+                return getTextWidthText(getAppNameString(newLine),5);
+            }
+
+            function getTextWidthDate(newLine:Boolean):Number
+            {
+                return getTextWidthText(getCaptureStampDate(newLine),10);
+            }
+
+            function getTextWidthMain():Number
+            {
+                return getTextWidthText(topBar.getCaptureInputString(),2);
+            }
+
+            function _kung(textStr:String,textWidth:Number,align:String,posX:Number,offset:Number):void
+            {
+                textformat.align = align;
+                topBar.captureInputFinal.defaultTextFormat = textformat;
+                topBar.setCaptureInputFinalWidth(textWidth);
+                topBar.setCaptureInputFinalString(textStr);
+                bmpdMat.identity();
+                bmpdMat.translate(posX+offset,0);
+                captrueStampBMPD.draw(topBar.captureInputFinal,bmpdMat);
+            }
+
+            function kungAppnameStr(newLine:Boolean):void
+            {
+                const textWidth:Number = getTextWidthAppName(newLine);
+                _kung(getAppNameString(newLine),textWidth,"right",captrueStampBMPD.width-textWidth,2);
+            }
+
+            function kungMainStr(newLine:Boolean,textWidth:Number):void
+            {
+                _kung(topBar.getCaptureInputString(),textWidth,"left",getTextWidthDate(newLine),0);
+            }
+
+            function kungDateStr(newLine:Boolean):void
+            {
+                _kung(getCaptureStampDate(newLine),getTextWidthDate(newLine),"left",2,0);
+            }
+
+            function kungFinal(inputBMPD:BitmapData):void
             {
                 update(); //미자막 시간 찍어줘야함
                 const mat:Matrix = new Matrix();
                 const ct:ColorTransform = new ColorTransform();
 
-                ct.alphaMultiplier = bmpdBGAlpha;
                 mat.translate(0,inputBMPD.height-captrueStampBMPD.height);
                 inputBMPD.draw(captureStampBitmap,mat,ct);
-            }
-
-            function checkTextAutoSize(width:Number):Number
-            {
-                var bgheight:Number = defaultFontSize;
-                if(getTextWidth() < width)
-                {
-                    return bgheight;
-                }
-
-                textformat.font = null;
-                for(var i:uint=0;;i++)
-                {
-                    bgheight--;
-                    textformat.size = bgheight;
-                    topBar.captureInputFinal.defaultTextFormat = textformat;
-
-                    if(getTextWidth() < width || bgheight <= 12)
-                    {
-                        break;
-                    }
-                }
-
-                return bgheight;
-            }
-
-            function getTextWidth():Number
-            {
-                topBar.captureInputFinal.text = stampMainText;
-                const width1:Number = topBar.captureInputFinal.textWidth;
-                topBar.captureInputFinal.text = stampAPPNAME;
-                const width2:Number = topBar.captureInputFinal.textWidth;
-
-                return width1+width2+13;
             }
 
             function getDominantColor(bitmapData:BitmapData):uint
@@ -15403,7 +15448,7 @@
                 if(fullImageFlag)
                 {
                     longEdge = CANVAS_HEIGHT > CANVAS_WIDTH ? CANVAS_HEIGHT : CANVAS_WIDTH;
-                    areaWidth = CANVAS_HEIGHT;
+                    areaWidth = CANVAS_WIDTH;
                     areaHeight = CANVAS_HEIGHT;
                 }
                 else
@@ -15450,7 +15495,11 @@
             function inputCaptureInput(e:Event):void
             {
                 topBar.capClipBoard.alpha = 1.0;
-                update();
+
+                if(!hasTimer("inputUpdateTimer"))
+                {
+                    addTimerByName("inputUpdateTimer",0.2,false,update);
+                }
             }
 
             function visible(flag:Boolean):void
@@ -15537,7 +15586,38 @@
                 }
             }
 
-            function getColorBrightness(color:uint):Number {
+            function getCaptureAreaWidth(rect:Rectangle):Number
+            {
+                const notRotatedFlag:Boolean = captureRotated % 2 === 0;
+
+                if(notRotatedFlag)
+                {
+                    if(drawCaptureArea.isFullImageCapture())
+                    {
+                        return (replayModeON) ? RCANVAS_WIDTH:CANVAS_WIDTH;
+                    }
+                    else
+                    {
+                        return rect.width;
+                    }
+                }
+                else
+                {
+                    if(drawCaptureArea.isFullImageCapture())
+                    {
+                        return (replayModeON) ? RCANVAS_HEIGHT:CANVAS_HEIGHT;
+                    }
+                    else
+                    {
+                        return rect.height;
+                    }
+                }
+
+                return 0;
+            }
+
+            function getColorBrightness(color:uint):Number
+            {
                 var red:int = (color >> 16) & 0xFF;
                 var green:int = (color >> 8) & 0xFF;
                 var blue:int = color & 0xFF;
@@ -15550,47 +15630,67 @@
 
             function update():void
             {
-                stampMainText = topBar.updateCaptureInputFinal();
                 if(capStampON)
                 {
                     const rect:Rectangle = drawCaptureArea.getCaptureArea();
+                    const bmpdWidth:Number = getCaptureAreaWidth(rect);
+                    if(bmpdWidth < 300)
+                    {
+                        if(captureStampBitmap.visible === true)
+                        {
+                            captureStampBitmap.visible = false;
+                        }
+                        return;
+                    }
+
                     const imageDomiColor:uint = getDominantColor(getSmallBmpd(rect));
-                    var bmpdWidth:Number;
-                    const notRotatedFlag:Boolean = captureRotated % 2 === 0;
+                    var dateStrWidth:Number = getTextWidthDate(false);
+                    var appStrWidth:Number = getTextWidthAppName(false);
+                    var mainTextWidth:Number = bmpdWidth-(dateStrWidth+appStrWidth)-1;
 
-                    if(notRotatedFlag)
-                    {
-                        if(drawCaptureArea.isFullImageCapture())
-                        {
-                            bmpdWidth = (replayModeON) ? RCANVAS_WIDTH:CANVAS_WIDTH;
-                        }
-                        else
-                        {
-                            bmpdWidth = rect.width;
-                        }
-                    }
-                    else
-                    {
-                        if(drawCaptureArea.isFullImageCapture())
-                        {
-                            bmpdWidth = (replayModeON) ? RCANVAS_WIDTH:CANVAS_WIDTH;
-                        }
-                        else
-                        {
-                            bmpdWidth = rect.height;
-                        }
-                    }
-
-                    textformat.font = null;
                     textformat.size = defaultFontSize;
+                    topBar.captureInput.maxChars = 0;
                     topBar.captureInputFinal.defaultTextFormat = textformat;
+                    topBar.setCaptureInputFinalWidth(mainTextWidth);
+                    topBar.setCaptureInputFinalString(topBar.getCaptureInputString());
+                    var bmpdHeight:Number = defaultFontSize+2;
+                    var twolineFlag:Boolean = false;
 
-                    const bgColor:uint = 0xCC000000|getDominantColor(getSmallBmpd(rect));
-                    const bgHeight:Number = checkTextAutoSize(bmpdWidth);
-                    finalBmpdHeight = bgHeight;
+                    if(topBar.getCaptureInputFinalLines() >= 2)
+                    {
+                        twolineFlag = true;
+
+                        var loopcount:int = 0;
+
+                        do
+                        {
+                            textformat.size = defaultFontSize-loopcount;
+                            topBar.captureInputFinal.defaultTextFormat = textformat;
+                            dateStrWidth = getTextWidthDate(true);
+                            appStrWidth = getTextWidthAppName(true);
+                            mainTextWidth = bmpdWidth-(dateStrWidth+appStrWidth)-1;
+                            topBar.setCaptureInputFinalWidth(mainTextWidth);
+                            topBar.setCaptureInputFinalString(topBar.getCaptureInputString());
+                            loopcount++;
+                            bmpdHeight = (defaultFontSize-loopcount)*2+4;
+
+                            if(defaultFontSize-loopcount <= 13)
+                            {
+                                //글씨크기를 한계까지 줄이고 칸이 꽉차면 더이상 입력 못하게함
+                                if(topBar.captureInputFinal.numLines >= 3)
+                                {
+                                    topBar.captureInput.maxChars = 1
+                                    topBar.captureInput.text = topBar.captureInput.text.slice(0,-1);
+                                }
+
+                                break;
+                            }
+                        }
+                        while(topBar.getCaptureInputFinalLines() >= 3);
+                    }
 
                     if(captrueStampBMPD) captrueStampBMPD.dispose();
-                    captrueStampBMPD = new BitmapData(bmpdWidth,bgHeight,true,bgColor);
+                    captrueStampBMPD = new BitmapData(bmpdWidth,bmpdHeight,true,0xCC000000|imageDomiColor);
                     captureStampBitmap.bitmapData = captrueStampBMPD;
 
                     if(getColorBrightness(imageDomiColor) >= 150)
@@ -15602,23 +15702,9 @@
                         topBar.captureInputFinal.textColor = 0xFFFFFF;
                     }
 
-                    //draw main text
-                    topBar.captureInputFinal.text = stampMainText;
-                    bmpdMat.identity();
-                    bmpdMat.translate(2,0);
-                    captrueStampBMPD.draw(topBar.captureInputFinal,bmpdMat);
-
-                    //draw appname + version text
-                    topBar.captureInputFinal.text = stampAPPNAME;
-                    bmpdRect.x = captrueStampBMPD.width-(topBar.captureInputFinal.textWidth+5);
-                    bmpdRect.y = 0;
-                    bmpdRect.width = topBar.captureInputFinal.textWidth+5;
-                    bmpdRect.height = bgHeight;
-                    captrueStampBMPD.fillRect(bmpdRect,bgColor);
-
-                    bmpdMat.identity();
-                    bmpdMat.translate(captrueStampBMPD.width-(topBar.captureInputFinal.textWidth+2),0);
-                    captrueStampBMPD.draw(topBar.captureInputFinal,bmpdMat);
+                    kungDateStr(twolineFlag);
+                    kungMainStr(twolineFlag,mainTextWidth);
+                    kungAppnameStr(twolineFlag);
 
                     if(captureStampBitmap.visible === false)
                     {
@@ -15637,7 +15723,7 @@
                         canvasPanel.addChild(captureStampBitmap);
                     }
 
-                    checkPosition(bgHeight);
+                    checkPosition(bmpdHeight);
                 }
                 else if(captureStampBitmap.visible === true)
                 {
@@ -15666,7 +15752,11 @@
                 {
                     canvasPanel.mask = canvasPanelMask;
                 }
-                captrueStampBMPD.dispose();
+                if(captrueStampBMPD)
+                {
+                    captrueStampBMPD.dispose();
+                }
+
                 captrueStampBMPD = null;
 
                 topBar.captureInput.removeEventListener(Event.CHANGE,inputCaptureInput);
@@ -15691,6 +15781,8 @@
                     canvasPanel.mask = null;
                 }
 
+                textformat.font = null;
+
                 topBar.captureInput.addEventListener(Event.CHANGE,inputCaptureInput);
                 topBar.captureInput.addEventListener(FocusEvent.FOCUS_IN,focusInCaptureInput);
                 topBar.captureInput.addEventListener(FocusEvent.FOCUS_OUT,focusOutCaptureInput);
@@ -15701,7 +15793,7 @@
                 off:off,
                 update:update,
                 visible:visible,
-                kung:kung
+                kungFinal:kungFinal
             };
 
         }
@@ -15719,9 +15811,10 @@
             const rectGhost:Rectangle = new Rectangle();
             const rect:Rectangle = new Rectangle();
             var resizeFlag:Boolean = false;
-            const resizeButtonSize:Number = 10.0;
+            const resizeButtonSize:Number = 20.0;
             const resizeButtonPos:Point = new Point(0,0);
-            const minSize:Number = 10.0;
+            var minSize:Number = 10.0;
+            const mouseMoveOffset:Number = 5.0;
 
             function captureMouseMoveEvent2(e:MouseEvent):void
             {
@@ -15861,7 +15954,7 @@
                     clickPos.setTo(xPanel.mouseX,xPanel.mouseY);
                     drawArea(false);
                 }
-                else if(Math.abs(subX) >= minSize || Math.abs(subY) >= minSize)
+                else if(Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
                 {
                     mouseMoved = true;
                     clickPos.setTo(mx,my);
@@ -15908,7 +16001,7 @@
                     hint.on(getRotatedRectSizeString(),null);
                     drawArea(false);
                 }
-                else if(Math.abs(subX) >= minSize || Math.abs(subY) >= minSize)
+                else if(Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
                 {
                     rectGhost.x = clickPos.x;
                     rectGhost.y = clickPos.y;
@@ -15967,15 +16060,67 @@
                 stage.removeEventListener(MouseEvent.MOUSE_UP,captureMouseUp);
             }
 
-            function updateDrawArea():void
+            function updateDrawArea(forceFlag:Boolean=false):void
             {
-                if(rect.width > minSize && rect.height > minSize) drawArea(true);
+                if(rect.width > minSize && rect.height > minSize || forceFlag) drawArea(true);
                 drawCaptureStamp.update();
             }
 
             function getCanvasScale():Number
             {
                 return (replayModeON) ? Math.abs(rregPoint.scaleX) : Math.abs(regPoint.scaleX);
+            }
+
+            function drawResizeButton():void
+            {
+                captureAreaRect.graphics.lineStyle(1,0xFFFFFF,1.0,true);
+                captureAreaRect.graphics.beginFill(0xFF6600);
+                var posX:Number = rect.x;
+                var posY:Number = rect.y;
+
+                if(!captureFlipped && captureRotated === 0|| captureFlipped && captureRotated === 3)
+                {
+                    posX += rect.width+5;
+                    posY += rect.height+5;
+                }
+                else if(!captureFlipped && captureRotated === 1 || captureFlipped && captureRotated === 2)
+                {
+                    posX += rect.width+5;
+                    posY += -5;
+                }
+                else if(!captureFlipped && captureRotated === 3 || captureFlipped && captureRotated === 0)
+                {
+                    posY += rect.height+5;
+                    posX += -5;
+                }
+                else
+                {
+                    posX += -5;
+                    posY += -5;
+                }
+
+                resizeButtonPos.setTo(posX,posY);
+
+                const longEdge:Number = resizeButtonSize/zoomed;
+                const shortEdge:Number = (resizeButtonSize/3)/zoomed;
+                const cmd:Vector.<int> = new <int> [1,2,2,2,2,2,2];
+                const pos:Vector.<Number> = new <Number> [0,0
+                                                        ,0,-longEdge
+                                                        ,shortEdge,-longEdge
+                                                        ,shortEdge,shortEdge
+                                                        ,-longEdge,shortEdge
+                                                        ,-longEdge,0
+                                                        ,0,0];
+                const len:uint = pos.length;
+                var p:Point;
+                for(var i:uint=0;i<len;i+=2)
+                {
+                    p = rotatePoint(pos[i],pos[i+1],captureRotated*90.0);
+                    pos[i] = posX+p.x*((captureFlipped)?-1.0:1.0);
+                    pos[i+1] = posY+p.y;
+                }
+                captureAreaRect.graphics.drawPath(cmd,pos);
+                captureAreaRect.graphics.endFill();
             }
 
             function drawArea(resizeButtonON:Boolean):void
@@ -15998,28 +16143,7 @@
 
                 if(resizeButtonON)
                 {
-                    captureAreaRect.graphics.beginFill(0xFF6600);
-                    var posX:Number = rect.x;
-                    var posY:Number = rect.y;
-
-                    if(!captureFlipped && captureRotated === 0 || captureFlipped && captureRotated === 3)
-                    {
-                        posX += rect.width;
-                        posY += rect.height;
-                    }
-                    else if(!captureFlipped && captureRotated === 1 || captureFlipped && captureRotated === 2)
-                    {
-                        posX += rect.width;
-                    }
-                    else if(!captureFlipped && captureRotated === 3 || captureFlipped && captureRotated === 0)
-                    {
-                        posY += rect.height;
-                    }
-
-                    resizeButtonPos.setTo(posX,posY);
-
-                    captureAreaRect.graphics.drawCircle(posX,posY,resizeButtonSize/zoomed);
-                    captureAreaRect.graphics.endFill();
+                    drawResizeButton();
                 }
             }
 
@@ -16109,7 +16233,7 @@
 
                 const p1:Point = new Point(xPanel.mouseX,xPanel.mouseY);
 
-                if(Point.distance(p1,resizeButtonPos)*getCanvasScale() < resizeButtonSize+7)
+                if(Point.distance(p1,resizeButtonPos)*getCanvasScale() < resizeButtonSize)
                 {
                     return true;
                 }
@@ -19884,9 +20008,7 @@
             const rad:Number = -(deg/180)*Math.PI;
             const cosO:Number = Math.cos(rad);
             const sinO:Number = Math.sin(rad);
-            const x:Number = tx;
-            const y:Number = ty;
-            const rp:Point = new Point(x*cosO-y*sinO,x*sinO+y*cosO);
+            const rp:Point = new Point(tx*cosO-ty*sinO,tx*sinO+ty*cosO);
 
             return rp;
         }

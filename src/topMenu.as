@@ -94,33 +94,45 @@
 		public var captureInputBorder:SimpleButton;
 		private var cpatureInputStringSave:String = "";
 
-		private function getCaptureStampDate():String
-            {
-                const date:Date = new Date();
-                const y:Number = date.getFullYear();
-                const m:Number = date.getMonth()+1;
-                const d:Number = date.getDate();
-                const hour:Number = date.getHours();
-                const min:Number = date.getMinutes();
-                const sec:Number = date.getSeconds();
-                const monthstr:String = (m < 10) ? "0"+m : ""+m;
-                const daystr:String = (d < 10) ? "0"+d : ""+d;
-                const hourstr:String = (hour < 10) ? "0"+hour : ""+hour;
-                const minstr:String = (min < 10) ? "0"+min : ""+min;
-                const secstr:String = (sec < 10) ? "0"+sec : ""+sec;
+		public function getCaptureInputFinalWidth():Number
+		{
+			return captureInputFinal.width
+		}
 
-                return y+"-"+monthstr+"-"+daystr+" "+hourstr+":"+minstr+":"+secstr;
-            }
+		public function setCaptureInputFinalWidth(newWidth:Number):void
+		{
+			captureInputFinal.width = newWidth;
+		}
+
+		public function getCaptureInputFinalLines():int
+		{
+			return captureInputFinal.numLines;
+		}
+
+		public function getCaptureInputFinalHeight():Number
+		{
+			return captureInputFinal.height;
+		}
+
+		public function setCaptureInputFinalString(newText:String):void
+		{
+			captureInputFinal.text = newText;
+		}
+
+		public function setCaptureInputString(newText:String):void
+		{
+			captureInput.text = newText;
+		}
+
+		public function getCaptureInputFinalString():String
+		{
+			return captureInputFinal.text;
+		}
 
 		public function getCaptureInputString():String
 		{
-			return captureInput.text;
-		}
 
-		public function updateCaptureInputFinal():String
-		{
-			captureInputFinal.text = getCaptureStampDate()+" "+captureInput.text;
-			return captureInputFinal.text;
+			return captureInput.text;
 		}
 
 		public function setScale(scale:Number):void
@@ -722,8 +734,11 @@
 			captureInputFinal.visible = false;
 			captureInputFinal.text = "";
 			captureInputFinal.autoSize = TextFieldAutoSize.LEFT;
-			addChild(captureInputWarpper);
+			captureInputFinal.wordWrap = true;
+			captureInputFinal.multiline = true;
 
+			addChild(captureInputWarpper);
+			addChild(captureInputFinal);
 			setChildIndex(topbarBG,0);
 			cacheAsBitmap = true;
 
