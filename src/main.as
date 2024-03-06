@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.06;
+        private const APP_VERSION:Number = 25.07;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15401,6 +15401,7 @@
         {
             var captrueStampBMPD:BitmapData = new BitmapData(1,1,false,0);
             var captureStampBitmap:Bitmap = new Bitmap(captrueStampBMPD);
+            const stampAlpha:uint = 0x90000000;
             const textformat:TextFormat = new TextFormat();
             const captureStampRect:Rectangle = new Rectangle();
             const bmpdMat:Matrix = new Matrix();
@@ -15777,7 +15778,7 @@
                     }
 
                     if(captrueStampBMPD) captrueStampBMPD.dispose();
-                    captrueStampBMPD = new BitmapData(bmpdWidth,bmpdHeight,true,0xCC000000|imageDomiColor);
+                    captrueStampBMPD = new BitmapData(bmpdWidth,bmpdHeight,true,stampAlpha|imageDomiColor);
                     captureStampBitmap.bitmapData = captrueStampBMPD;
 
                     if(getColorBrightness(imageDomiColor) >= 150)
