@@ -75,7 +75,7 @@
                                         b:66,
                                         c:67,
                                         d:68,
-                                        e:69,\
+                                        e:69,
                                         f:70,
                                         g:71,
                                         h:72,
@@ -16222,7 +16222,7 @@
                 captureAreaRect.graphics.drawRect(0,0,canvasWidth,rect.y); //위
                 captureAreaRect.graphics.drawRect(0,rect.y,rect.x,rect.height);//왼쪽
                 captureAreaRect.graphics.drawRect(rect.x+rect.width,rect.y,canvasWidth-(rect.x+rect.width),rect.height); //오른쪽
-                captureAreaRect.graphics.drawRect(0,rect.y+rect.height,canvasWidth,canvasHeight-(rect.y+rect.height)+lineSize); //아래
+                captureAreaRect.graphics.drawRect(0,rect.y+rect.height,canvasWidth,canvasHeight-(rect.y+rect.height)); //아래
                 captureAreaRect.graphics.endFill();
                 captureAreaRect.graphics.lineStyle(lineSize,0xFFFFFF,1.0,true);
                 captureAreaRect.graphics.drawRect(rect.x,rect.y,rect.width,rect.height);
