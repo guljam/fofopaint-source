@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.08;
+        private const APP_VERSION:Number = 25.10;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15134,7 +15134,7 @@
 
                 case "timer":
                 {
-                    realWorkingTimer.reset();
+                    setCountDownLongKey(topBar.timer,"Resetting the timer... ",null, realWorkingTimer.reset,null);
                 }
                 break;
 
@@ -23037,6 +23037,12 @@
                 }
                 break;
 
+                case "timer":
+                {
+                    setCountDownLongKey(topBar.timer,"Resetting the timer... ",null, realWorkingTimer.reset,null);
+                }
+                break;
+                
                 case "drawModeButton":
                 case "repLoadButton":
                 case "saveButton":
@@ -23060,7 +23066,6 @@
                 case "pauseButton":
                 case "replayPrev":
                 case "replayNext":
-                case "timer":
                 {
                     if(!isNowKey(0))
                     {
