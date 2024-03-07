@@ -75,7 +75,7 @@
                                         b:66,
                                         c:67,
                                         d:68,
-                                        e:69,
+                                        e:69,\
                                         f:70,
                                         g:71,
                                         h:72,
@@ -220,7 +220,7 @@
                     ,STRING_PLAYBACK_SPEED:String = "Playback speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
-                    ,STRING_CAPTURE_OK:String = "\nSave [click, c, m], Reset [right-click]"
+                    ,STRING_CAPTURE_OK:String = "\nSave [click, ctrl+s, ctrl+m], Reset [right-click]"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
@@ -15062,7 +15062,7 @@
             {
                 if(drawCaptureArea.isFullImageCapture())
                 {
-                    hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nSave full image [click, c, m]\nDraw capture area [click+drag]",null);
+                    hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nSave full image [click, ctrl+s, ctrl+k]\nDraw capture area [click+drag]",null);
                 }
                 else
                 {
