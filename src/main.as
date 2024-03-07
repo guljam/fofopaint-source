@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.07;
+        private const APP_VERSION:Number = 25.08;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9816,7 +9816,7 @@
                 break;
 
                 case "capFull":
-                    str = (drawCaptureArea.isFullImageCapture()) ? "Save full image [c, m]" : "Save selected area [c, m]";
+                    str = (drawCaptureArea.isFullImageCapture()) ? "Save full image [ctrl+s, ctrl+k]" : "Save selected area [ctrl+s, ctrl+k]";
                 break;
 
                 case "capClipBoard":
@@ -9824,7 +9824,7 @@
                     str = (e.target.alpha === 1.0) ? "Copy "+((drawCaptureArea.isFullImageCapture()) ?
                                                             "full image"
                                                             :"selected area image")
-                                                            + " to clipboard [v, n]"
+                                                            + " to clipboard [ctrl+c, ctrl+m]"
                                                             :"Already copied to clipboard";
                 }
                 break;
@@ -15176,9 +15176,16 @@
                 if(KEY_BUFFER.length > 1)
                 {
                     const subKey:uint = KEY_BUFFER[1];
-                    if(subKey === KEY.c || subKey === KEY.m)
+                    if(subKey === KEY.s || subKey === KEY.k)
                     {
                         saveCaptureImage();
+                    }
+                    else if(subKey === KEY.c || subKey === KEY.m)
+                    {
+                        if(topBar.capClipBoard.alpha === 1.0)
+                        {
+                            copyCaptureImageToCilpBoard();
+                        }
                     }
                 }
                 return;
@@ -15193,21 +15200,6 @@
                 case KEY.f1:
                 case KEY.f7:
                     setCaptureOFF();
-                break;
-
-                case KEY.v:
-                case KEY.n:
-                {
-                    if(topBar.capClipBoard.alpha === 1.0)
-                    {
-                        copyCaptureImageToCilpBoard();
-                    }
-                }
-                break;
-
-                case KEY.c:
-                case KEY.m:
-                    saveCaptureImage();
                 break;
 
                 case KEY.s:
