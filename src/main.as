@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.12;
+        private const APP_VERSION:Number = 25.13;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -667,6 +667,7 @@
                     ,isCaptureModeInputEventON:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
                     ,dragDropFileSave:File //invoke 이벤트에서 파일을 너무 빨리 불러오지 못하게함
                     ,oldAppdataRtotalFrame:Number = -1 //24.00버전 이후로 쓸일 없지만 이전버전 호환성을 위해서 백업해주고 복원해줌
+                    ,wheelZoomDelayTimer:int = 0 //휠로 줌조정 할때 감도를 약간 낮춰주기 위해서 타이머 사용
                     ;
 
         public function main():void
@@ -741,30 +742,40 @@
 
         private function mouseWheelStage(e:MouseEvent):void
         {
-            if(isCursorInSideBar())
+            if(captureModeON) return;
+
+            if(!hasTimer("wheelZoomTimer"))
             {
-                if(sideBarScrollBar.visible === true)
+                addTimerByName("wheelZoomTimer",0.07,false,function():void
                 {
-                    if(e.delta > 0)
+                    if(isCursorInSideBar())
                     {
-                        setScrollBarMoveButton(30);
+                        if(sideBarScrollBar.visible === true)
+                        {
+                            if(e.delta > 0)
+                            {
+                                setScrollBarMoveButton(30);
+                            }
+                            else
+                            {
+                                setScrollBarMoveButton(-30);
+                            }
+                        }
                     }
-                    else
+                    else if(isCursorInDrawArea())
                     {
-                        setScrollBarMoveButton(-30);
+                        if(e.delta > 0)
+                        {
+                            setZoomInButton(true,replayModeON);
+                            setToolTipTempON(Math.floor(zoomed*100)+"%",1.5);
+                        }
+                        else
+                        {
+                            setZoomInButton(false,replayModeON);
+                            setToolTipTempON(Math.floor(zoomed*100)+"%",1.5);
+                        }
                     }
-                }
-            }
-            else if(isCursorInDrawArea())
-            {
-                if(e.delta > 0)
-                {
-                    setZoomInButton(true,replayModeON);
-                }
-                else
-                {
-                    setZoomInButton(false,replayModeON);
-                }
+                })
             }
         }
 
@@ -3904,6 +3915,13 @@
             {
                 realWorkingTimer.resetAFKCount();
             }
+        }
+
+        private function wheelDownStage(e:MouseEvent):void
+        {
+            if(captureModeON) return;
+
+            handTool(replayModeON,true);
         }
 
         private function mouseUpStage(e:MouseEvent):void
@@ -7381,6 +7399,7 @@
             stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpStage,false,1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpStage,false,1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownStage,false,1);
+            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN,wheelDownStage,false,1);
             stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownStage,false,1);
             stage.addEventListener(KeyboardEvent.KEY_UP,keyUpStage,false,1);
             stageMouseMoveEvent.add("updatePenCursorPositionEvent",updatePenCursorPositionEvent);
@@ -19474,8 +19493,9 @@
             function handToolUpEvent(e:MouseEvent):void
             {
                 stageMouseMoveEvent.remove("handToolMoveEvent");
-                stage.removeEventListener(MouseEvent.MOUSE_UP, handToolUpEvent);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, handToolUpEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,handToolUpEvent);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,handToolUpEvent);
+                stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP,handToolUpEvent);
 
                 mouseDragON = false;
                 penCursorOFFFlag = false;
@@ -19517,7 +19537,7 @@
                 old.setTo(mouseX,mouseY);
             }
 
-            return function (replayMode:Boolean=false):void
+            return function (replayMode:Boolean,fromWheelClick:Boolean):void
             {
                 mouseDragON = true;
                 _replayMode = replayMode;
@@ -19532,6 +19552,11 @@
                     toolBox.setCursorVisible(false);
                     setOptimizeCanvasMoveON(true);
                     transparentBG.on();
+                }
+
+                if(fromWheelClick)
+                {
+                    stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP,handToolUpEvent);
                 }
 
                 stageMouseMoveEvent.add("handToolMoveEvent",handToolMoveEvent);
@@ -22319,7 +22344,7 @@
                     {
                         updateToolBoxMousePos(toolBox2.toolPen);
                         updateOldTool();
-                        handTool();
+                        handTool(false,false);
                     }
                     closeToolBox2();
                 }
@@ -22897,7 +22922,7 @@
             {
                 if(targetName.indexOf("rcanvas") !== -1 || targetName === "stageBG")
                 {
-                    handTool(true);
+                    handTool(true,false);
                     return;
                 }
                 else if(targetName === "replayRepeatButton")
@@ -23700,7 +23725,7 @@
                 if(lassoMenuTempOFF)
                 {
                     lassoMenu.visible = false;
-                    if(isNowTool(TOOL_HAND)) handTool();
+                    if(isNowTool(TOOL_HAND)) handTool(false,false);
                     else if(isNowTool(TOOL_ZOOM)) zoomTool();
                     else if(isNowTool(TOOL_ROTATE)) rotateTool(false);
                 }
@@ -23973,7 +23998,7 @@
                     case TOOL_MOVE: if(isCurrentLayerActive()) moveTool(); break;
                     //캔버스 조작
                     case TOOL_ZOOM: zoomTool(); break;
-                    case TOOL_HAND: handTool(); break;
+                    case TOOL_HAND: handTool(false,false); break;
                     case TOOL_ROTATE: rotateTool(false); break;
                 }
             }
