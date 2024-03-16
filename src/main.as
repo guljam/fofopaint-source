@@ -3921,6 +3921,17 @@
         {
             if(captureModeON) return;
 
+            if(hasTimer("toolTipTempONTimer"))
+            {
+                toolTipBoxTimerOFF();
+            }
+
+            if(lassoToolON)
+            {
+                lassoMenu.visible = false;
+                lassoMenuTempOFF = true;
+            }
+
             handTool(replayModeON,true);
         }
 
@@ -13053,6 +13064,7 @@
             removeTimer("toolTipTempONTimer");
             setToolTipOFF();
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,toolTipBoxTimerOFFEvent);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,toolTipBoxTimerOFFEvent);
         }
 
         private function toolTipBoxTimerOFFEvent(e:MouseEvent):void
@@ -13065,6 +13077,7 @@
             if(!hasTimer("toolTipTempONTimer"))
             {
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,toolTipBoxTimerOFFEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,toolTipBoxTimerOFFEvent);
             }
 
             addTimerByName("toolTipTempONTimer",time,false,function():void
