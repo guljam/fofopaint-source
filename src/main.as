@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.11;
+        private const APP_VERSION:Number = 25.12;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -340,7 +340,6 @@
                     ,sharpLineON:Boolean = false //0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
                     ,fillPenON:Boolean = false //채우기 펜 플래그
                     ,subLayerON:Boolean = false
-                    ,subLayerPreviewON:Boolean = false
                     ,checkedLayer:int = 0 //레이어가 체크되면 저장해줌
                     ,layerSwappedFlag:Boolean = false //1<->2 번호 바뀌는 힌트 써주려고 만듬
                     ,airBrushON:Boolean = false
@@ -2370,59 +2369,6 @@
             else
             {
                 tickDraw.updateRCursorPos();
-            }
-        }
-
-        private function setSingleLayerPreviewOFF():void
-        {
-            subLayerPreviewON = false;
-            previewBox.prevBitmap.visible = true;
-            previewBox.prevBitmapSub.visible = true;
-
-            stage.removeEventListener(KeyboardEvent.KEY_UP,setSingleLayerPreviewOFFKeyUpEvent);
-            stage.removeEventListener(MouseEvent.MOUSE_MOVE,layerSinglePreviewOFFMouseOutEvent);
-        }
-
-        private function setSingleLayerPreviewOFFKeyUpEvent(e:KeyboardEvent):void
-        {
-            if(e.keyCode === KEY.n1 || e.keyCode === KEY.n2
-            || e.keyCode === KEY.n9 || e.keyCode === KEY.n0)
-            {
-                setSingleLayerPreviewOFF();
-            }
-        }
-
-        private function layerSinglePreviewOFFMouseOutEvent(e:MouseEvent):void
-        {
-            if(controlBox.layerButtonWrapper.hitTestPoint(mouseX,mouseY) === false
-            || controlBox.layerSwapButton.hitTestPoint(mouseX,mouseY) === true
-            || controlBox.layerMergeButton.hitTestPoint(mouseX,mouseY) === true)
-            {
-                setSingleLayerPreviewOFF();
-            }
-        }
-
-        private function setSingleLayerPreview(layer:int,shortcut:Boolean):void
-        {
-            if(subLayerPreviewON === false)
-            {
-                subLayerPreviewON = true;
-                stage.addEventListener(KeyboardEvent.KEY_UP,setSingleLayerPreviewOFFKeyUpEvent,false,5);
-                if(!shortcut)
-                {
-                    stage.addEventListener(MouseEvent.MOUSE_MOVE,layerSinglePreviewOFFMouseOutEvent,false,5);
-                }
-            }
-
-            if(layer === 1)
-            {
-                previewBox.prevBitmap.visible = true;
-                previewBox.prevBitmapSub.visible = false;
-            }
-            else if(layer === 2)
-            {
-                previewBox.prevBitmap.visible = false;
-                previewBox.prevBitmapSub.visible = true;
             }
         }
 
@@ -7562,24 +7508,20 @@
 
                 case "layer1SelectButton":
                     str = "Select layer 1 [1, 9]\nShow only layer 1 ON/OFF [click]";
-                    setSingleLayerPreview(1,false);
                 break;
 
                  case "layer2SelectButton":
                     str = "Select layer 2 [2, 0]\nShow only layer 2 ON/OFF [click]";
-                    setSingleLayerPreview(2,false);
                 break;
 
                 case "layer1CheckButton":
                 case "layer1UncheckButton":
                     str = "Check layer 1 [1+w, 9+i]\nfor move image tool & lasso tool";
-                    setSingleLayerPreview(1,false);
                 break;
 
                 case "layer2CheckButton":
                 case "layer2UncheckButton":
                     str = "Check layer 2 [2+w, 0+i]\nfor move image tool & lasso tool";
-                    setSingleLayerPreview(2,false);
                 break;
 
                 case "layerSwapButton":
@@ -22021,7 +21963,6 @@
                         setLayer2CheckToggle();
                     }
 
-                    setSingleLayerPreview(1,true);
                     setToolTipTempON("Layer 1 selected");
                 }
                 return true;
@@ -22041,7 +21982,7 @@
                     {
                         setLayer1CheckToggle();
                     }
-                    setSingleLayerPreview(2,true);
+
                     setToolTipTempON("Layer 2 selected");
                 }
                 return true;
@@ -22300,11 +22241,6 @@
             if(quickSidebarON && !deepUndoON)
             {
                 _quickSidebarOFF();
-            }
-
-            if(subLayerPreviewON)
-            {
-                setSingleLayerPreviewOFF();
             }
 
             if(numPadBox.visible)

@@ -331,7 +331,7 @@
 			shapeRect.y = 1;
 			shapeRect.useHandCursor = false;
 
-			penSmoothSliderWapper.x = Math.floor(shapeRect.x+shapeRect.width+3);
+			penSmoothSliderWapper.x = Math.floor(shapeRect.x+shapeRect.width+7);
 			penSmoothSliderWapper.y = Math.floor(shapeRect.y+1);
 		}
 
