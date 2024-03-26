@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.13;
+        private const APP_VERSION:Number = 25.15;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6549,7 +6549,8 @@
                 {
                     if(gridValue > 0)
                     {
-                        gridDrawOffsetX = 0;
+                        gridDrawOffsetX = 0.0;
+                        gridGapSave = 0.0
                         if(gridValue > 0) drawGrid();
                     }
                 }
@@ -6558,11 +6559,20 @@
                 {
                     if(gridValue > 0)
                     {
-                        gridDrawOffsetY = 0;
+                        gridDrawOffsetY = 0.0;
+                        gridGapSave = 0.0;
                         if(gridValue > 0) drawGrid();
                     }
                 }
-                else if(targetName !== "gridSliderWrapper")
+                else if(targetName === "gridSliderWrapper")
+                {
+                    if(gridValue !== 0)
+                    {
+                        hint.off();
+                        resetGrid();
+                    }
+                }
+                else
                 {
                     off();
                 }
@@ -9842,7 +9852,16 @@
                 break;
 
                 case "gridSliderWrapper":
-                    str = "Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20)";
+                {
+                    if(gridValue === 0)
+                    {
+                        str = "Grid off";
+                    }
+                    else
+                    {
+                        str = "Grid " + (gridValue*GRID_GAP)+"px ("+gridValue+"/20), "+STRING_RIGHT_CLICK_TO_RESET;
+                    }
+                }
                 break;
 
                 case "gridMoveLeftButton":
@@ -11740,6 +11759,7 @@
                 {
                     return;
                 }
+
                 switch(data[index][0])
                 {
                     case "lineStyle": lineStyle(data[index]); break;
