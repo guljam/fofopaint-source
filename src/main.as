@@ -59,11 +59,11 @@
     import flash.ui.Mouse;
     import flash.text.TextFieldType;
     import flash.text.TextFormat;
-
     //import end
+
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.15;
+        private const APP_VERSION:Number = 25.16;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -220,7 +220,7 @@
                     ,STRING_PLAYBACK_SPEED:String = "Playback speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
-                    ,STRING_CAPTURE_OK:String = "\nSave [click, ctrl+s, ctrl+m], Reset [right-click]"
+                    ,STRING_CAPTURE_OK:String = ", Save [click], Reset [right-click]"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
@@ -575,7 +575,6 @@
                     ,replayHideCursor:Object = cCheckHideCursor()
                     ,resizeCanvas:Object = cResizeCanvas()
                     ,gridButton:Object = cGridFunc()
-                    ,transparentBG:Object = cTransparentBG()
 
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
@@ -5823,7 +5822,6 @@
             const uiScale:Number = getUIScale();
 
             setOptimizeCanvasMoveON(true);
-            transparentBG.on();
             hint.off();
 
             function setCenter(mx:Number,my:Number):void
@@ -5846,7 +5844,6 @@
             function setHandToolMouseUpEvent(e:MouseEvent):void
             {
                 setOptimizeCanvasMoveON(false);
-                transparentBG.off();
                 checkCanvasPanelPos();
                 updatePreviewBoxRectPos();
                 mouseClickON = false;
@@ -7999,9 +7996,22 @@
             return bmpd;
         }
 
-        private function setCaptrueFlipButton():void
+        private function initCaptrueFlip():void
         {
-            captureFlipped = !captureFlipped;
+            const xReg:Sprite = (replayModeON) ? rregPoint : regPoint;
+            if(captureRotated === 1)
+            {
+                xReg.rotation = 90;
+            }
+            else if(captureRotated === 3)
+            {
+                xReg.rotation = 270;
+            }
+        }
+
+        private function setCaptrueFlipButton(flag:Boolean):void
+        {
+            captureFlipped = flag;
             fitCanvasToWindow(true);
 
             const xReg:Sprite = (replayModeON) ? rregPoint : regPoint;
@@ -8052,9 +8062,9 @@
             else setCaptureModeOFF(false,regPoint,canvasPanel);
         }
 
-        private function setCaptureTransButton():void
+        private function setCaptureTransButton(flag:Boolean):void
         {
-            captureTransBGON = !captureTransBGON;
+            captureTransBGON = flag;
 
             if(captureTransBGON) setTransBG(replayModeON);
             else resetTransBG(replayModeON);
@@ -8062,12 +8072,12 @@
             topBar.capClipBoard.alpha = 1.0;
         }
 
-        private function setCaptureRotateButton():void
+        private function setCaptureRotateButton(rotateValue:uint):void
         {
             //90도 시계 방향으로 회전
             //1: 90도 2:180 3:270
-            captureRotated++;
-            if(captureRotated >= 4) captureRotated = 0;
+            if(rotateValue >= 4) rotateValue = 0;
+            captureRotated = rotateValue;
 
             fitCanvasToWindow(true);
             topBar.capClipBoard.alpha = 1.0;
@@ -8965,6 +8975,7 @@
             resetReplaySpeedBar();
             resetReplayTime();
             resetUndo();
+            resetCaptureCanvasChangeValue();
 
             const fileName:String = getNewFileName();
             const name:String = saveFileName;
@@ -9181,11 +9192,11 @@
                         break;
 
                         case "capRotate":
-                            setCaptureRotateButton();
+                            setCaptureRotateButton(++captureRotated);
                         break;
 
                         case "capTrans":
-                            setCaptureTransButton();
+                            setCaptureTransButton(!captureTransBGON);
                         break;
 
                         case "capClipBoard":
@@ -9201,13 +9212,11 @@
                         break;
 
                         case "capFlip":
-                            setCaptrueFlipButton();
+                            setCaptrueFlipButton(!captureFlipped);
                         break;
 
                         case "capStamp":
-                        {
                             setCaptrueStampButton();
-                        }
                         break;
 
                         case "topBarColorButton":
@@ -9688,7 +9697,7 @@
                 }
                 else
                 {
-                    hint.on(str+STRING_CAPTURE_OK,null);
+                    setDefaultHintCaptureMode();
                 }
             }
             else
@@ -14902,6 +14911,8 @@
                 updateCanvasWindowBitmapSize();
             }
 
+            resetCaptureCanvasChangeValue();
+
             dragDropFileSave = null;
             saveThenLoadFlag = false;
             setLoadBoxVisible(false);
@@ -15044,23 +15055,26 @@
 
         private function setDefaultHintCaptureMode():void
         {
-            if(drawCaptureArea.isCursorInResizeButton())
-            {
-                hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nResize [click+drag]"+STRING_CAPTURE_OK,null,true);
-            }
-            else if(drawCaptureArea.isCursorInCaptureDrea())
-            {
-                hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nMove [click+drag]"+STRING_CAPTURE_OK,null,true);
-            }
-            else if(!topBar.hitTestPoint(mouseX,mouseY))
+            if(!topBar.hitTestPoint(mouseX,mouseY))
             {
                 if(drawCaptureArea.isFullImageCapture())
                 {
-                    hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nSave full image [click, ctrl+s, ctrl+k]\nDraw capture area [click+drag]",null);
+                    hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nDraw capture area [click+drag]"+STRING_CAPTURE_OK,null);
                 }
                 else
                 {
-                    hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nDraw capture area [click+drag]"+STRING_CAPTURE_OK,null);
+                    if(drawCaptureArea.isCursorInResizeButton())
+                    {
+                        hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nResize [click+drag]"+STRING_CAPTURE_OK,null,true);
+                    }
+                    else if(drawCaptureArea.isCursorInCaptureDrea())
+                    {
+                        hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nMove [click+drag]"+STRING_CAPTURE_OK,null,true);
+                    }
+                    else
+                    {
+                        hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nDraw capture area [click+drag]"+STRING_CAPTURE_OK,null);
+                    }
                 }
             }
 
@@ -15198,17 +15212,17 @@
 
                 case KEY.s:
                 case KEY.k:
-                    setCaptureRotateButton();
+                    setCaptureRotateButton(++captureRotated);
                 break;
 
                 case KEY.a:
                 case KEY.l:
-                    setCaptrueFlipButton();
+                    setCaptrueFlipButton(!captureFlipped);
                 break;
 
                 case KEY.d:
                 case KEY.j:
-                    setCaptureTransButton();
+                    setCaptureTransButton(!captureTransBGON);
                 break;
 
                 case KEY.f:
@@ -15266,8 +15280,6 @@
 
             stageMouseMoveEvent.add("captureMouseMoveHintEvent",captureMouseMoveHintEvent);
             setCaptureUI(true);
-            captureRotated = 0;
-            captureFlipped = false;
 
             var xReg:Sprite;
             var xPanel:Sprite;
@@ -15319,11 +15331,18 @@
                                 }
 
             fitCanvasToWindow(true);
-            captureTransBGON = true;
-            setCaptureTransButton();
-            resetTransBG(false);
+            setCaptureRotateButton(captureRotated);
+            initCaptrueFlip();
+            setCaptureTransButton(captureTransBGON);
             drawCaptureStamp.on();
             drawCaptureStamp.update();
+        }
+
+        private function resetCaptureCanvasChangeValue():void
+        {
+            captureRotated = 0;
+            captureFlipped = false;
+            captureTransBGON = false;
         }
 
         private function setCaptureModeOFF(replayMode:Boolean,xReg:Sprite,xPanel:Sprite):void
@@ -15882,6 +15901,7 @@
             var clickPos:Point = new Point(0,0);
             var limitWidthSave:Number = 0;
             var limitHeightSave:Number = 0;
+            const rectFull:Rectangle = new Rectangle();
             const rectGhost:Rectangle = new Rectangle();
             const rect:Rectangle = new Rectangle();
             var resizeFlag:Boolean = false;
@@ -16053,24 +16073,9 @@
                 {
                     rectGhost.width = subX;
                     rectGhost.height = subY;
-                    // clickPos.setTo(xPanel.mouseX,xPanel.mouseY);
 
-                    rect.width = rectGhost.width;
-                    rect.height = rectGhost.height;
-
-                    if(rect.x+rect.width < 0) rect.width = -rect.x;
-                    else if(rect.x+rect.width > canvasWidth) rect.width = canvasWidth-rect.x;
-
-                    if(rect.y+rect.height < 0) rect.height = -rect.y;
-                    else if(rect.y+rect.height > canvasHeight) rect.height = canvasHeight-rect.y;
-
-                    if(rect.width >= 0.0 && rect.width < minSize) rect.width = minSize;
-                    if(rect.width < 0.0 && rect.width > -minSize) rect.width = -minSize;
-                    if(rect.height >= 0.0 && rect.height < minSize) rect.height = minSize;
-                    if(rect.height < 0.0 && rect.height > -minSize) rect.height = -minSize;
-
-                    rect.width = Math.round(rect.width);
-                    rect.height = Math.round(rect.height);
+                    rect.width = Math.round(rectGhost.width);
+                    rect.height = Math.round(rectGhost.height);
 
                     hint.on(getRotatedRectSizeString(),null);
                     drawArea(false);
@@ -16114,7 +16119,24 @@
                         rect.y = rect.y-rect.height;
                     }
 
-                    hint.on(getRotatedRectSizeString()+STRING_CAPTURE_OK,null);
+                    var intersection:Rectangle = rectFull.intersection(rect);
+
+                    if(intersection.width >= minSize && intersection.height >= minSize)
+                    {
+                        rect.x = intersection.x;
+                        rect.y = intersection.y;
+                        rect.width = intersection.width;
+                        rect.height = intersection.height;
+                    }
+                    else
+                    {
+                        addTimer(0.0,false,function():void
+                        {
+                            resetCaptureArea();
+                        });
+                    }
+
+                    setDefaultHintCaptureMode();
                     topBar.capClipBoard.alpha = 1.0;
 
                     drawArea(true);
@@ -16260,6 +16282,10 @@
                 rectGhost.y = 0;
                 rectGhost.width = 0;
                 rectGhost.height = 0;
+                rectFull.x = 0;
+                rectFull.y = 0;
+                rectFull.width = 0;
+                rectFull.height = 0;
                 limitWidthSave = 0;
                 limitHeightSave = 0;
                 captureAreaRect.graphics.clear();
@@ -16281,6 +16307,10 @@
                 rectGhost.y = 0;
                 rectGhost.width = 0;
                 rectGhost.height = 0;
+                rectFull.x = 0;
+                rectFull.y = 0;
+                rectFull.width = 0;
+                rectFull.height = 0;
                 limitWidthSave = 0;
                 limitHeightSave = 0;
                 canvasWidth = 0;
@@ -16356,6 +16386,10 @@
 
                     var mx:Number = xPanel.mouseX;
                     var my:Number = xPanel.mouseY;
+                    rectFull.x = 0;
+                    rectFull.y = 0;
+                    rectFull.width = canvasWidth;
+                    rectFull.height = canvasHeight;
 
                     resizeFlag = false;
 
@@ -16369,12 +16403,6 @@
                     }
                     else
                     {
-                        if(mx < 0) mx = 0;
-                        else if(mx > canvasWidth) mx = canvasWidth;
-
-                        if(my < 0 ) my = 0;
-                        else if(my > canvasHeight) my = canvasHeight;
-
                         clickPos.setTo(mx,my);
                         mouseDragON = true;
                         stageMouseMoveEvent.add("captureMouseMoveEvent",captureMouseMoveEvent);
@@ -19538,7 +19566,6 @@
                 if(isDrawMode)
                 {
                     setOptimizeCanvasMoveON(false);
-                    transparentBG.off();
 
                     if(lassoToolON)
                     {
@@ -19584,7 +19611,6 @@
                 {
                     toolBox.setCursorVisible(false);
                     setOptimizeCanvasMoveON(true);
-                    transparentBG.on();
                 }
 
                 if(fromWheelClick)
@@ -22307,7 +22333,6 @@
             }
 
             setNowToolByOldTool();
-            if(transparentBG.isON) transparentBG.off();
         }
 
         private function updateToolBoxMousePos(target:SimpleButton):void
