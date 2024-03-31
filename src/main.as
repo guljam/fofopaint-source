@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.17;
+        private const APP_VERSION:Number = 25.18;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -75,7 +75,7 @@
                                         b:66,
                                         c:67,
                                         d:68,
-                                        e:69,
+                                        e:69,1
                                         f:70,
                                         g:71,
                                         h:72,
@@ -2140,12 +2140,29 @@
             {
                 pickerBox.rgbInfo.selectable = false;
                 pickerBox.updateOldRGBInfoText();
-                addTimerByName("textInputFocusIgnoreDelay",0.1,false,function():void
+                addTimerByName("textInputFocusIgnoreDelay",0.0,false,function():void
                 {
                     setStageFocusNull();
                 });
 
                 return;
+            }
+            //가장 자리를 클릭하면 Y값이 음수가 될때가 있어서 제대로된 값이 안나옴 그래서 녺이는 양수 고정으로 함
+            const foundColorType:String = (rgbInfoColorTypeHSV) ? "HSV":"RGB";
+            const isHSVRGBText:Boolean = (pickerBox.getRGBInfo().indexOf(foundColorType) !== -1)
+            var currnetTextCursorPos:int = pickerBox.rgbInfo.getCharIndexAtPoint(pickerBox.rgbInfo.mouseX,10);
+            if(rgbInfoFocusedON === false && isHSVRGBText && currnetTextCursorPos >= 0 && currnetTextCursorPos <= 3)
+            {
+                addTimerByName("textInputFocusIgnoreDelay",0.0,false,function():void
+                {
+                    setStageFocusNull();
+                });
+                toggleRGBInfoTextColorType();
+                return;
+            }
+            else if(currnetTextCursorPos < 0) //텍스트 맨 끝에 클릭하면 -1이 되서 이때는 커서를 가장 뒤로 이동시킴
+            {
+                currnetTextCursorPos = pickerBox.rgbInfo.length;
             }
 
             setIMEDisabled();
@@ -2155,9 +2172,7 @@
             penColorTransparentFlag = false;
             selectedRGBInfoIndex = -1;
 
-            const foundColorType:String = (rgbInfoColorTypeHSV) ? "HSV":"RGB";
-
-            if(pickerBox.getRGBInfo().indexOf(foundColorType) !== -1)
+            if(isHSVRGBText)
             {
                 pickerBox.updateOldRGBInfoText();
             }
@@ -2168,26 +2183,19 @@
                 pickerBox.setRGBInfo(pickerBox.getOldRGBInfoText());
             }
 
-            //가장 자리를 클릭하면 Y값이 음수가 될때가 있어서 제대로된 값이 안나옴 그래서 녺이는 양수 고정으로 함
-            var currnetTextCursorPos:int = pickerBox.rgbInfo.getCharIndexAtPoint(pickerBox.rgbInfo.mouseX,10);
-            if(currnetTextCursorPos < 0) //텍스트 맨 끝에 클릭하면 -1이 되서 이때는 커서를 가장 뒤로 이동시킴
-            {
-                currnetTextCursorPos = pickerBox.rgbInfo.length;
-            }
-
             pickerBox.updateFirstRGBInfoColorText();
             // pickerBox.rgbInfo.setSelection(0,0);
             if(quickSidebarON === false)
             {
                 stage.addEventListener(KeyboardEvent.KEY_DOWN,rgbInfoTextKeyDownEvent);
             }
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,rgbInfoTextMouseDownEvent);
             pickerBox.rgbInfo.addEventListener(Event.CHANGE,onRGBInfoTextChangeEvent);
             setNowToolForDrawing(false);
             setNumPadON();
 
             addTimerByName("rgbInfoTextFocusInEventDelayCheck",0.0,false,function():void
             {
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,rgbInfoTextMouseDownEvent);
                 pickerBox.rgbInfo.setSelection(currnetTextCursorPos,currnetTextCursorPos);
                 pickerBox.rgbInfo.addEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
                 hint.on(STRING_CUSTOM_COLOR_HINT,pickerBox.rgbInfo);
