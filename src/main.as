@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.16;
+        private const APP_VERSION:Number = 25.17;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15910,6 +15910,41 @@
             var minSize:Number = 10.0;
             const mouseMoveOffset:Number = 5.0;
 
+            function checkIntersectRect():void
+            {
+                var intersection:Rectangle = rectFull.intersection(rect);
+
+                if(intersection.width >= minSize && intersection.height >= minSize)
+                {
+                    rect.x = Math.round(intersection.x);
+                    rect.y = Math.round(intersection.y);
+                    rect.width = Math.round(intersection.width);
+                    rect.height = Math.round(intersection.height);
+                }
+                else
+                {
+                    addTimer(0.0,false,function():void
+                    {
+                        resetCaptureArea();
+                    });
+                }
+            }
+
+            function checkIsRectEdgeNegative():void
+            {
+                if(rect.width < 0)
+                {
+                    rect.width = Math.abs(rect.width);
+                    rect.x = rect.x-rect.width;
+                }
+
+                if(rect.height < 0)
+                {
+                    rect.height = Math.abs(rect.height);
+                    rect.y = rect.y-rect.height;
+                }
+            }
+
             function captureMouseMoveEvent2(e:MouseEvent):void
             {
                 if(!captureModeON)
@@ -16074,11 +16109,15 @@
                     rectGhost.width = subX;
                     rectGhost.height = subY;
 
-                    rect.width = Math.round(rectGhost.width);
-                    rect.height = Math.round(rectGhost.height);
+                    rect.x = rectGhost.x;
+                    rect.y = rectGhost.y;
+                    rect.width = rectGhost.width;
+                    rect.height = rectGhost.height;
+                    checkIsRectEdgeNegative();
 
                     hint.on(getRotatedRectSizeString(),null);
                     drawArea(false);
+
                 }
                 else if(Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
                 {
@@ -16107,35 +16146,8 @@
                 if(mouseMoved === true)
                 {
                     //rect길이가 음수인경우 cx cy를 양수로 다시 맞추어줌
-                    if(rect.width < 0)
-                    {
-                        rect.width = Math.abs(rect.width);
-                        rect.x = rect.x-rect.width;
-                    }
-
-                    if(rect.height < 0)
-                    {
-                        rect.height = Math.abs(rect.height);
-                        rect.y = rect.y-rect.height;
-                    }
-
-                    var intersection:Rectangle = rectFull.intersection(rect);
-
-                    if(intersection.width >= minSize && intersection.height >= minSize)
-                    {
-                        rect.x = intersection.x;
-                        rect.y = intersection.y;
-                        rect.width = intersection.width;
-                        rect.height = intersection.height;
-                    }
-                    else
-                    {
-                        addTimer(0.0,false,function():void
-                        {
-                            resetCaptureArea();
-                        });
-                    }
-
+                    checkIsRectEdgeNegative();
+                    checkIntersectRect();
                     setDefaultHintCaptureMode();
                     topBar.capClipBoard.alpha = 1.0;
 
