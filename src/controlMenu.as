@@ -14,7 +14,7 @@
 		public const layerButtonWrapper:Sprite = new Sprite();
 		public const opaSizeButtonWrapper:Sprite = new Sprite();
 		public const penShapeSmoothingWarpper:Sprite = new Sprite();
-		private const etcOptionWrapper:Sprite = new Sprite();
+		public const etcOptionWrapper:Sprite = new Sprite();
 
 		public var infoPenOptions:SimpleButton;
 		public var infoEraserOptions:SimpleButton;

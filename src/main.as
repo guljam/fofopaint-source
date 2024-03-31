@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.18;
+        private const APP_VERSION:Number = 25.20;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -224,7 +224,7 @@
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
-                    ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc]\nMove text cursor [a d, j l, arrow key, tab, shift+tab]\nAdjust value [w s, i k]"
+                    ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc, right-click]\nMove text cursor [a d, j l, arrow key, tab, shift+tab]\nAdjust value [w s, i k]"
                     ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
                     ,STRING_HOLD_2SEC:String = " <- hold 2 sec"
                     ,WORKER_STATE_STOPPED:int = 0
@@ -1981,6 +1981,7 @@
                 numPadBox.y = gp.y;
                 resetNowKey();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,numPadMouseDownEvent);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,numPadRightMouseDownEvent);
             }
         }
 
@@ -1992,6 +1993,7 @@
             }
             numPadBox.off();
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,numPadMouseDownEvent);
+            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,numPadRightMouseDownEvent);
         }
 
         private function checkNumPadMouseUp(oldTargetName:String):void
@@ -2025,6 +2027,13 @@
             };
 
             stage.addEventListener(MouseEvent.MOUSE_UP,numPadMouseUpEvent);
+        }
+
+        private function numPadRightMouseDownEvent(e:MouseEvent):void
+        {
+            if(!e.target) return;
+            setStageFocusNull();
+            rgbInfoRightClickFocusIgnoreFlag = true;
         }
 
         private function numPadMouseDownEvent(e:MouseEvent):void
@@ -2118,7 +2127,7 @@
                 setRGBInfoTextInputOK();
             }
 
-            addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.2,false,function():void
+            addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.0,false,function():void
             {
                 rgbInfoFocusedON = false;
                 addInputEventDrawMode();
@@ -2136,8 +2145,11 @@
 
         private function rgbInfoTextFocusInEvent(e:FocusEvent):void
         {
-            if(rgbInfoRightClickFocusIgnoreFlag)
+            if(rgbInfoRightClickFocusIgnoreFlag || lassoToolON)
             {
+                //라소툴때문에 강제로 올려줌
+                rgbInfoRightClickFocusIgnoreFlag = true;
+
                 pickerBox.rgbInfo.selectable = false;
                 pickerBox.updateOldRGBInfoText();
                 addTimerByName("textInputFocusIgnoreDelay",0.0,false,function():void
@@ -3181,7 +3193,10 @@
 
         private function rightMouseDownQuickSidebarOFF(e:MouseEvent):void
         {
-            if(!e.target || rgbInfoFocusedON) return;
+            if(!e.target || rgbInfoFocusedON || numPadBox.visible)
+            {
+                return;
+            }
 
             switch(e.target.name)
             {
@@ -3206,12 +3221,6 @@
                     {
                         return;
                     }
-                }
-                break;
-
-                case "rgbInfo":
-                {
-                    rgbInfoRightClickFocusIgnoreFlag = true;
                 }
                 break;
 
@@ -19067,13 +19076,11 @@
 
                     if(traceMenuON === true) traceMenu.visible = false;
 
-                    controlBox.layerButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                    controlBox.airBrushButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                    controlBox.sharpLineButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                    controlBox.opaSizeButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                    pickerBox.alpha = BUTTON_OFF_ALPHA;
-                    toolBox.setIconAlphaOnLassoToolON(BUTTON_OFF_ALPHA);
-                    toolBox.moveToolCursor("toolLasso");
+                    // controlBox.opaSizeButtonWrapper.alpha = BUTTON_OFF_ALPHA;
+                    // controlBox.etcOptionWrapper.alpha = BUTTON_OFF_ALPHA;
+                    // pickerBox.alpha = BUTTON_OFF_ALPHA;
+                    // toolBox.setIconAlphaOnLassoToolON(BUTTON_OFF_ALPHA);
+                    // toolBox.moveToolCursor("toolLasso");
                     addMouseKeyEventLassoTool();
                 }
             }
