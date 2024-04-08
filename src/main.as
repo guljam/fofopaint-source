@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.21;
+        private const APP_VERSION:Number = 25.22;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13863,11 +13863,13 @@
                 {
                     myPalettePreset[index] = myPaletteSaveBeforeAddColor[1];
                     updateMyPaletteList();
+                    addColorMyPaletteHistory(color);
                 }
                 else
                 {
                     myPalettePreset[index] = color;
                     updateMyPaletteList();
+                    addColorMyPaletteHistory(color);
                 }
             }
             else
@@ -13878,6 +13880,7 @@
                     myPaletteSaveBeforeAddColor[1] = myPalettePreset[index];
                     myPalettePreset[index] = (penColorTransparentFlag) ? null:color;
                     updateMyPaletteList();
+                    addColorMyPaletteHistory(color);
                 }
                 else
                 {
@@ -13889,6 +13892,7 @@
 
                     myPalettePreset[index] = null;
                     updateMyPaletteList();
+                    addColorMyPaletteHistory(color);
                 }
             }
         }
