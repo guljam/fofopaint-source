@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.22;
+        private const APP_VERSION:Number = 25.23;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -741,7 +741,7 @@
 
         private function mouseWheelStage(e:MouseEvent):void
         {
-            if(captureModeON) return;
+            if(captureModeON || !isNowKey(0) || getCommandKey() !== 0) return;
 
             if(!hasTimer("wheelZoomTimer"))
             {
@@ -15427,11 +15427,11 @@
         {
             var captrueStampBMPD:BitmapData = new BitmapData(1,1,false,0);
             var captureStampBitmap:Bitmap = new Bitmap(captrueStampBMPD);
-            const stampAlpha:uint = 0xB8000000;
+            const stampAlpha:uint = 0x7D000000;
             const textformat:TextFormat = new TextFormat();
             const captureStampRect:Rectangle = new Rectangle();
             const bmpdMat:Matrix = new Matrix();
-            const defaultFontSize:int = 17;
+            const defaultFontSize:int = 12;
             var inputUpdateTimer:int = 0;
 
             captureStampBitmap.name = "captureStampBitmap";
@@ -15494,7 +15494,7 @@
             }
 
             function _kung(textStr:String,textWidth:Number,align:String,posX:Number,offset:Number):void
-            {
+            {   
                 textformat.align = align;
                 topBar.captureInputFinal.defaultTextFormat = textformat;
                 topBar.setCaptureInputFinalWidth(textWidth);
