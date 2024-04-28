@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.24;
+        private const APP_VERSION:Number = 25.25;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -12873,6 +12873,7 @@
 
         private function stopReplay():void
         {
+            trace("stop replay")
             stage.removeEventListener(Event.ENTER_FRAME,doDrawEvent);
             stage.removeEventListener(Event.ENTER_FRAME,doDrawSlowEvent);
 
@@ -13365,8 +13366,16 @@
                         if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
                         dragDropFileSave = file;
 
-                        rFileStream.close();
-                        cancelRestartTimer();
+                        if(replayStartON)
+                        {
+                            stopReplay();
+                        }
+                        
+                        if(hasTimer("rRestartTimer"))
+                        {
+                            cancelRestartTimer();
+                        }
+
                         setDragDropPreviewImageReady(file,false);
                     }
                 }
@@ -13611,7 +13620,7 @@
         {
             const compactLine:int = (myPalettePresetType === 0 && myPaletteViewAllMode) ? 8:2;
             var xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
-            var yLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseY/(myPaletteColorHeight))
+            var yLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseY/myPaletteColorHeight)
 
             if(xLineIndex < 0) xLineIndex = 0;
             else if(xLineIndex > 9) xLineIndex = 9;
@@ -13625,7 +13634,7 @@
         private function getHistoryIndexByMousePos():int
         {
             const xLineIndex:int = Math.floor(pickerBox.historyBox.mouseX/myPaletteColorWidth);
-            const yLineIndex:int = 10*(Math.floor(pickerBox.historyBox.mouseY/(myPaletteColorHeight)));
+            const yLineIndex:int = 10*(Math.floor(pickerBox.historyBox.mouseY/myPaletteColorHeight));
 
             if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > myPaletteLimitTotal)
             {
@@ -13638,7 +13647,7 @@
         private function getMyPaletteIndexByMousePos():int
         {
             const xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
-            const yLineIndex:int = 10*(Math.floor(pickerBox.myPaletteBox.mouseY/(myPaletteColorHeight)));
+            const yLineIndex:int = 10*(Math.floor(pickerBox.myPaletteBox.mouseY/myPaletteColorHeight));
 
             if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > myPaletteLimitTotal)
             {
