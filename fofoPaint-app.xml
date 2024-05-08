@@ -29,7 +29,7 @@
     <visible>true</visible>
     <fullScreen>false</fullScreen>
     <aspectRatio>portrait</aspectRatio>
-    <renderMode>direct</renderMode>
+    <renderMode>auto</renderMode>
     <width>1000</width>
     <height>800</height>
 
