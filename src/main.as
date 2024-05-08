@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.25;
+        private const APP_VERSION:Number = 25.26;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -837,7 +837,10 @@
                 var mouseClickONSave:Boolean = mouseClickON;
                 var rightMouseClickONSave:Boolean = rightMouseClickON;
 
-                longKeyCountDown = 10;
+                const deafultCount:Number = 3;
+                const deafultDelay:Number = 1.0;
+
+                longKeyCountDown = deafultCount;
                 loneKeyFrameCount = 0;
                 hint.off();
 
@@ -852,7 +855,7 @@
                 function cancelLoneKey():void
                 {
                     loneKeyFrameCount = 0;
-                    longKeyCountDown = 10;
+                    longKeyCountDown = deafultCount;
                     toolTipBoxTimerOFF();
                 }
 
@@ -876,7 +879,7 @@
 
                     loneKeyFrameCount++;
 
-                    if(loneKeyFrameCount >= STAGE_FRAME/10)
+                    if(loneKeyFrameCount >= Math.ceil((STAGE_FRAME*1.1)/deafultCount))
                     {
                         loneKeyFrameCount = 0;
                         longKeyCountDown--;
