@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.28;
+        private const APP_VERSION:Number = 25.30;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4208,6 +4208,7 @@
             }
             else
             {
+                sideBar.visible = false;
                 fofo.visible = false;
 
                 if(hintBox.visible || hintCursor.visible)
@@ -21414,11 +21415,17 @@
                 updateStageBGColor(uiColorSet[uiColorIndex][2]);
                 topBar.updateTopbarBG(stage.stageWidth);
                 topBar.updateTimerPos(stage.stageWidth);
-
                 sideBar.updateSideBGSize(getSideBarBGHeight());
-                updateScrollBarHeight();
+
+                // if(isRightSidebar)
+                // {
+                //     if(sideBar.tempVisibleON) sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
+                //     else updateSidebarDefaultRightPos();
+                // }
                 if(quickSidebarON) _quickSidebarOFF();
                 else setDefaultXSidebarPos();
+                
+                updateScrollBarHeight();
                 updatePreviewBoxRectPos();
 
                 if(loadMenuBox.visible === true)

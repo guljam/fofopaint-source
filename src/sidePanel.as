@@ -10,6 +10,7 @@
 		public var HEIGHT:Number = 220;
 		private const baseColor:ColorTransform = new ColorTransform();
 		private const opColor:ColorTransform = new ColorTransform();
+		public var tempVisibleON:Boolean = false;
 
 		public function setScale(newScale:Number):void
 		{
@@ -27,6 +28,24 @@
 			sideBG.width = WIDTH;
 			sideBG.height = sth+1; //공백 보정으로 길이를 약간 늘려줌
 			HEIGHT = sth;
+		}
+
+		public function setTempVisibleOFF(rightSide:Boolean):void
+		{
+			tempVisibleON = false;
+			visible = false;
+
+			if(rightSide) x = stage.stageWidth-WIDTH*scaleX;
+			else x = 0;
+		}
+
+		public function setTempVisibleON(toolBarWidth:Number,rightSide:Boolean):void
+		{
+			if(rightSide) x = stage.stageWidth-(toolBarWidth-1)*scaleX;
+			else x = (-WIDTH+toolBarWidth)*scaleX;
+
+			tempVisibleON = true;
+			visible = true;
 		}
 
 		public function changeUIColor(color:uint):void
