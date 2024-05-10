@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.27;
+        private const APP_VERSION:Number = 25.28;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -655,7 +655,7 @@
                     ,zoomToolHintON:Boolean = false //툴박스에서 마우스 클릭해서 줌툴써줄때 mouse out이벤트가 가장 늦게 되서 줌 배율 힌트가 처음에 보이지 않는거 해결
                     ,isRightSidebar:Boolean = false // 사이드바 위치 0이 왼쩾 1이 오른쪽
                     ,isSidebarVisible:Boolean = true
-                    ,sideBarPosSave:Number //사이드 바 단축키 사용하고나서 원래 위치로 옮겨줄때 씀
+                    // ,sideBarPosSave:Number //사이드 바 단축키 사용하고나서 원래 위치로 옮겨줄때 씀
                     ,quickSidebarON:Boolean = false
                     ,topBarHintClickEventON:Boolean = false //톱바 힌트가 켜졌을때 클릭하면 지워주는 이벤트
                     ,updateAfterSaveFlag:Boolean = false //업데이트 버튼 눌렀을때 파일 저장 해주고 기다려주는 플래그
@@ -3231,7 +3231,7 @@
 
             if(isSidebarVisible === false) sideBar.visible = false;
 
-            sideBar.x = sideBarPosSave;
+            setDefaultXSidebarPos();
             quickSidebarON = false;
             checkFOFOPosition();
             pickerBox.rgbInfo.type = TextFieldType.INPUT;
@@ -3321,6 +3321,12 @@
             }
         }
 
+        private function setDefaultXSidebarPos():void
+        {
+            if(isRightSidebar) updateSidebarDefaultRightPos();
+            else sideBar.x = 0;
+        }
+
         private function setQuickSidebarON(shortcut:Boolean):void
         {
             quickSidebarON = true;
@@ -3339,8 +3345,6 @@
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownQuickSidebarOFF,false,-2);
 
             const sideBarWidth:Number = sideBar.getWidth();
-
-            sideBarPosSave = sideBar.x;
             sideBar.x = mouseX-(sideBarWidth)/2+((isRightSidebar)? -18:22);
 
             if(sideBar.x < 0) sideBar.x = 0;
@@ -4204,7 +4208,6 @@
             }
             else
             {
-                sideBar.setTempVisibleOFF(isRightSidebar);
                 fofo.visible = false;
 
                 if(hintBox.visible || hintCursor.visible)
@@ -21414,13 +21417,8 @@
 
                 sideBar.updateSideBGSize(getSideBarBGHeight());
                 updateScrollBarHeight();
-
-                if(isRightSidebar)
-                {
-                    if(sideBar.tempVisibleON) sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
-                    else updateSidebarDefaultRightPos();
-                }
-
+                if(quickSidebarON) _quickSidebarOFF();
+                else setDefaultXSidebarPos();
                 updatePreviewBoxRectPos();
 
                 if(loadMenuBox.visible === true)
