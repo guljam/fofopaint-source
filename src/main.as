@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.26;
+        private const APP_VERSION:Number = 25.27;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -226,7 +226,7 @@
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
                     ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc, right-click]\nMove text cursor [a d, j l, arrow key, tab, shift+tab]\nAdjust value [w s, i k]"
                     ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
-                    ,STRING_HOLD_2SEC:String = " <- hold 2 sec"
+                    ,STRING_HOLD_NSEC:String = " <- hold 1 sec"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -723,6 +723,72 @@
         }
 
         //function
+        private function checkSelectMyPaletteOrReset():void
+        {
+            function mouseUpCheckSelectMyPaletteOrReset(e:MouseEvent):void
+            {
+                removeTimer("selectMyPaletteDelayTimer");
+                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpCheckSelectMyPaletteOrReset);
+
+                if(e.target && e.target.name === "myPaletteButton")
+                {
+                    if(myPalettePresetType === 0)
+                    {
+                        if(myPaletteViewAllMode === false)
+                        {
+                            setMypPaletteListViewAll();
+                        }
+                        else
+                        {
+                            setMypPaletteListViewCompact();
+                        }
+                    }
+                    else
+                    {
+                        selectMyPaletteButton(0);
+                    }
+                }
+            }
+            stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpCheckSelectMyPaletteOrReset);
+
+            addTimerByName("selectMyPaletteDelayTimer",0.4,false,function():void
+            {
+                setCountDownLongKey(pickerBox.myPaletteButton,"Clearing my palette.. ",null,clearMyPaletteList,null);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpCheckSelectMyPaletteOrReset);
+            });
+        }
+
+        private function checkSelctOrAddColorMyPalette():void
+        {
+            const firstClickColorIndex:uint = getMyPaletteIndexByMousePos();
+            var colorAddedFlag:Boolean = false;
+
+            function mouseUpCheckSelctOrAddColorMyPalette(e:MouseEvent):void
+            {
+                removeTimer("addColorMyPaletteDelayTimer");
+                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpCheckSelctOrAddColorMyPalette);
+                if(colorAddedFlag === false)
+                {
+                    selectMyPaletteColor();
+                }
+            }
+            stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpCheckSelctOrAddColorMyPalette);
+
+            addTimerByName("addColorMyPaletteDelayTimer",0.4,true,function():Boolean
+            {
+                if(firstClickColorIndex === getMyPaletteIndexByMousePos())
+                {
+                    colorAddedFlag = true;
+                    addColorToMyPalette(pickerBox.getRGBInfoBGColor(),getMyPaletteIndexByMousePos());
+                }
+                else
+                {
+                    return false;
+                }
+                return true;
+            });
+        }
+
         private function isCursorInSideBar():Boolean
         {
             if(sideBar.visible === true)
@@ -839,6 +905,7 @@
 
                 const deafultCount:Number = 3;
                 const deafultDelay:Number = 1.0;
+                const countNowTime:Number = Math.ceil((STAGE_FRAME*1.1)/deafultCount);
 
                 longKeyCountDown = deafultCount;
                 loneKeyFrameCount = 0;
@@ -859,8 +926,11 @@
                     toolTipBoxTimerOFF();
                 }
 
-                setToolTipString(hintStr+longKeyCountDown);
-                setToolTipON();
+                if(hintStr !== "")
+                {
+                    setToolTipString(hintStr+longKeyCountDown);
+                    setToolTipON();
+                }
 
                 addTimerByName("longKeyTimer",0.0,true,function():Boolean
                 {
@@ -879,7 +949,7 @@
 
                     loneKeyFrameCount++;
 
-                    if(loneKeyFrameCount >= Math.ceil((STAGE_FRAME*1.1)/deafultCount))
+                    if(loneKeyFrameCount >= countNowTime)
                     {
                         loneKeyFrameCount = 0;
                         longKeyCountDown--;
@@ -1385,7 +1455,7 @@
                 case "myPaletteBox":
                 {
                     if(myPalettePresetType !== 0) return;
-                    str = "Add, remove, restore color [right-click]\nSwap color position [click+drag]";
+                    str = "Add, remove, restore color [hold click]\nSwap color position [click+drag]";
                 }
                 break;
 
@@ -1396,7 +1466,7 @@
 
                 case "paperColorButton": str = "Change background color"; break;
                 case "penColorButton": str = "Change pen color"; break;
-                case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [right-click]"+STRING_HOLD_2SEC; break;
+                case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [click]"+STRING_HOLD_NSEC; break;
 
                 default:
                 return;
@@ -3220,10 +3290,6 @@
                 case "myPaletteBox":
                 {
                     //이거 있어야됨
-                    if(myPalettePresetType === 0)
-                    {
-                        return;
-                    }
                 }
                 break;
 
@@ -6066,7 +6132,7 @@
                 case "traceMirrorButton":str = "Flip image"; break;
                 case "traceVisibleONButton":
                 case "traceVisibleOFFButton":str = "Memory training ON/OFF"; break;
-                case "traceDeleteButton":str = "Erase reference image\n[click]"+STRING_HOLD_2SEC; break;
+                case "traceDeleteButton":str = "Erase reference image\n[click]"+STRING_HOLD_NSEC; break;
                 default:
                     traceMenu.hint("Reference layer");
                 return;
@@ -7467,7 +7533,6 @@
             topBar.addEventListener(MouseEvent.MOUSE_OVER,topBarHintONEvent);
             controlBox.addEventListener(MouseEvent.MOUSE_OVER,controlBoxHintONEvent);
             pickerBox.addEventListener(MouseEvent.MOUSE_OVER,pickerBoxHintONEvent);
-            pickerBox.myPaletteBox.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownMyPalette);
             loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLoadBox);
         }
 
@@ -9770,7 +9835,7 @@
                 }
                 return;
                 case "timer":
-                    str = "Actual working time\nReset [click]"+STRING_HOLD_2SEC;
+                    str = "Actual working time\nReset [click]"+STRING_HOLD_NSEC;
                 break;
 
                 case "playButton":
@@ -9814,7 +9879,7 @@
                 break;
 
                 case "clearButton":
-                    str = "New file [click, esc, backspace, delete]"+STRING_HOLD_2SEC;
+                    str = "New file [click, esc, backspace, delete]"+STRING_HOLD_NSEC;
                 break;
 
                 case "captureButton":
@@ -9865,15 +9930,15 @@
                 break;
 
                 case "reRecordingButton":
-                    str = "New file from this image [click, f2]"+STRING_HOLD_2SEC;
+                    str = "New file from this image [click, f2]"+STRING_HOLD_NSEC;
                 break;
 
                 case "cutPrevDataButton":
-                    str = "Delete front data [click, f3]"+STRING_HOLD_2SEC;
+                    str = "Delete front data [click, f3]"+STRING_HOLD_NSEC;
                 break;
 
                 case "superUndoButton":
-                    str = "Delete back data [click, f4]"+STRING_HOLD_2SEC;
+                    str = "Delete back data [click, f4]"+STRING_HOLD_NSEC;
                 break;
 
                 case "gridButton":
@@ -12876,7 +12941,6 @@
 
         private function stopReplay():void
         {
-            trace("stop replay")
             stage.removeEventListener(Event.ENTER_FRAME,doDrawEvent);
             stage.removeEventListener(Event.ENTER_FRAME,doDrawSlowEvent);
 
@@ -13860,11 +13924,6 @@
             hint.off();
         }
 
-        private function rightMouseDownMyPalette(e:MouseEvent):void
-        {
-            addColorToMyPalette(pickerBox.getRGBInfoBGColor(),getMyPaletteIndexByMousePos());
-        }
-
         private function addColorToMyPalette(color:uint,index:int):void
         {
             if(index < 0) return;
@@ -13911,11 +13970,16 @@
 
         private function clearMyPaletteList():void
         {
-            myPalettePreset.length = 0;
-            updateHistoryList();
-            updateMyPaletteList();
-            myPalettePresetType = -1;
-            selectMyPaletteButton(0);
+            for (var i:int = 0; i < 90; i++)
+            {
+                myPalettePreset[i] = null;
+            }
+
+            if(myPalettePresetType === 0)
+            {
+                updateHistoryList();
+                updateMyPaletteList();
+            }
         }
 
         private function addColorMyPaletteHistory(color:uint):void
@@ -13926,7 +13990,7 @@
                 return;
             }
 
-            if((pickerIgnoreHistoryColor as uint) === color )
+            if((pickerIgnoreHistoryColor as uint) === color)
             {
                 pickerIgnoreHistoryColor = null;
                 return;
@@ -23311,12 +23375,6 @@
                 }
                 break;
 
-                case "myPaletteButton":
-                {
-                    setCountDownLongKey(pickerBox.myPaletteButton,"Clearing my palette.. ",null,clearMyPaletteList,null);
-                }
-                break;
-
                 default:
                 {
                     if(!isSidebarVisible && sideBar.visible)
@@ -23533,6 +23591,7 @@
             {
                 if(myPaletteDragStarted === false)
                 {
+                    removeTimer("addColorMyPaletteDelayTimer");
                     myPaletteDragStarted = true;
                     pickerBox.setColorHistoryDragBoxColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
                     updateMyPaletteList(myPaletteDragClickedIndex);
@@ -23604,26 +23663,6 @@
                             {
                                 setTransparentColor();
                                 setNowToolForDrawing(false);
-                            }
-                        }
-                        break;
-
-                        case "myPaletteButton":
-                        {
-                            if(myPalettePresetType === 0)
-                            {
-                                if(myPaletteViewAllMode === false)
-                                {
-                                    setMypPaletteListViewAll();
-                                }
-                                else
-                                {
-                                    setMypPaletteListViewCompact();
-                                }
-                            }
-                            else
-                            {
-                                selectMyPaletteButton(0);
                             }
                         }
                         break;
@@ -23702,13 +23741,30 @@
                 }
                 return;
 
+                case "myPaletteBox":
+                {
+                    if(myPalettePresetType === 0)
+                    {
+                        checkSelctOrAddColorMyPalette();
+                    }
+                    else
+                    {
+                        checkButtonUpColorPickerBox(targetName);
+                    }
+                }
+                break;
+
+                case "myPaletteButton":
+                {
+                    checkSelectMyPaletteOrReset();
+                }
+                break;
+
                 case "penColorButton":
                 case "paperColorButton":
                 case "historyBox":
-                case "myPaletteBox":
                 case "transColorButton":
                 case "currentColor":
-                case "myPaletteButton":
                 case "drawrPresetButton":
                 case "tegakiPresetButton":
                 case "swapPositionButton":
