@@ -246,19 +246,19 @@
 			zoomOutButton.useHandCursor = false;
 
 			buttonArr = [
+							toolUndo,
+							toolRedo,
+							toolLasso,
+							toolPen,
+							toolErase,
+							toolFillPen,
+							toolSpuit,
+							toolLine,
 							zoomInButton,
 							zoomOutButton,
 							toolRotate,
 							toolMirror,
 							toolMove,
-							toolUndo,
-							toolRedo,
-							toolPen,
-							toolErase,
-							toolFillPen,
-							toolSpuit,
-							toolLasso,
-							toolLine,
 							toolTrace
 						];
 
