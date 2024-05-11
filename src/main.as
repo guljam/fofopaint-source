@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.32;
+        private const APP_VERSION:Number = 25.33;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5731,15 +5731,16 @@
             else
             {
                 center = getStageCenterPos(0);
-                center = canvasPanel.globalToLocal(new Point(center.x,center.y));
+                const gcenter:Point = canvasPanel.globalToLocal(new Point(center.x,center.y));
                 const gp:Point = canvasPanel.localToGlobal(ZERO_POINT);
-                const panelLimitedPos:Point = getCanvasBoundLimitPoint(canvasPanel,center.x,center.y,CANVAS_WIDTH,CANVAS_HEIGHT,xReg.scaleX,xReg.rotation);
+                const panelLimitedPos:Point = getCanvasBoundLimitPoint(canvasPanel,gcenter.x,gcenter.y,CANVAS_WIDTH,CANVAS_HEIGHT,xReg.scaleY,-xReg.rotation);
 
                 zoomedIndex = newZoomIndex;
                 setRegPoint(panelLimitedPos.x+gp.x,panelLimitedPos.y+gp.y,false);
                 setZoomCanvas(newZoom,replayMode);
                 updatePenSizeCursor();
                 updatePreviewBoxRectPos();
+
                 if(gridValue > 0)
                 {
                     drawGrid();
@@ -18038,6 +18039,7 @@
 
         private function getCanvasBoundLimitPoint(canvas:Sprite,px:Number,py:Number,width:Number,height:Number,zoom:Number,rotation:Number):Point
         {
+            //매개변수 rotation은 음수값으로 넣어야 됨
             var zoomClickX:Number = px*zoom;
             var zoomClickY:Number = py*zoom;
 
@@ -18206,6 +18208,7 @@
                 else
                 {
                     gp = xCanvas.localToGlobal(ZERO_POINT);
+                    trace("xCanvas.mouseX,xCanvas.mouseY",xCanvas.mouseX,xCanvas.mouseY)
                     const panelLimitedPos:Point = getCanvasBoundLimitPoint(xCanvas,xCanvas.mouseX,xCanvas.mouseY,CANVAS_WIDTH,CANVAS_HEIGHT,xZoomed,xRotation);
 
                     //캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
