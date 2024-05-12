@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.33;
+        private const APP_VERSION:Number = 25.34;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5686,10 +5686,16 @@
             autoScroll.updateRCanvasBounds();
         }
 
-        private function resetZoomDrawMode(center:Point=null):void
+        private function resetZoomDrawMode():void
         {
             if(zoomed !== 1.0)
             {
+                const center:Point = getStageCenterPos(0);
+                const gcenter:Point = canvasPanel.globalToLocal(new Point(center.x,center.y));
+                const gp:Point = canvasPanel.localToGlobal(ZERO_POINT);
+                const panelLimitedPos:Point = getCanvasBoundLimitPoint(canvasPanel,gcenter.x,gcenter.y,CANVAS_WIDTH,CANVAS_HEIGHT,regPoint.scaleY,-regPoint.rotation);
+                setRegPoint(panelLimitedPos.x+gp.x,panelLimitedPos.y+gp.y,false);
+
                 zoomedIndex = zoomList.indexOf(1.0);
                 setZoomCanvas(1.0,false);
                 updatePenSizeCursor();
@@ -5809,7 +5815,7 @@
 
                         case KEY.w:
                         case KEY.i:
-                            if(zoomed !== 1.0) resetZoomDrawMode(lassoBox1.localToGlobal(ZERO_POINT));
+                            if(zoomed !== 1.0) resetZoomDrawMode();
                         return;
                     }
                 });
@@ -18208,7 +18214,6 @@
                 else
                 {
                     gp = xCanvas.localToGlobal(ZERO_POINT);
-                    trace("xCanvas.mouseX,xCanvas.mouseY",xCanvas.mouseX,xCanvas.mouseY)
                     const panelLimitedPos:Point = getCanvasBoundLimitPoint(xCanvas,xCanvas.mouseX,xCanvas.mouseY,CANVAS_WIDTH,CANVAS_HEIGHT,xZoomed,xRotation);
 
                     //캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
