@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.35;
+        private const APP_VERSION:Number = 25.36;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -723,6 +723,17 @@
         }
 
         //function
+        private function setPickerBoxTransBGBrightness(index:int):void
+        {
+            pickerBox.setBrightnessTransparentColorButtonBmpd(index);
+            updateMyPaletteList();
+            updateHistoryList();
+            if(penColorTransparentFlag)
+            {
+                pickerBox.setRGBInfoBGTransparentColorON();
+            }
+        }
+
         private function checkSelectMyPaletteOrReset():void
         {
             function mouseUpCheckSelectMyPaletteOrReset(e:MouseEvent):void
@@ -7505,6 +7516,8 @@
             {
                 canvasWindow.stage.color = uiColorSet[index][2];
             }
+
+            setPickerBoxTransBGBrightness(index);
         }
 
         private function addStageInputEvent():void

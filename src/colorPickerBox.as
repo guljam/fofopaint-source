@@ -10,6 +10,7 @@
 	import flash.display.Shape;
 	import flash.ui.ContextMenu;
 	import flash.display.BitmapData;
+	import flash.filters.ColorMatrixFilter;
 
 	public class colorPickerBox extends Sprite {
 		public var mainColorPickerBox:Sprite = new Sprite();
@@ -68,6 +69,8 @@
 		private var firstRGBInfoColorText:String = "";
 
 		private var colorBoxPositionSave:Array = [0,0];
+
+		private var transBGBrightnessList:Array = [0.8,0.85,0.88,0.98];
 
 		public function swapColorBoxPosition(flag:Boolean):void
 		{
@@ -304,14 +307,35 @@
 			mat.scale(myPaletteTransBG.scaleX,myPaletteTransBG.scaleY);
 			myPaletteTransBGBmpd = new BitmapData(checkerPatternWidth,checkerPatternHeight,false,0);
 			myPaletteTransBGBmpd.draw(myPaletteTransBG,mat);
-			removeChild(myPaletteTransBG);
+
+			if(this.contains(myPaletteTransBG))
+			{
+				removeChild(myPaletteTransBG);
+			}
+		}
+
+		public function setBrightnessTransparentColorButtonBmpd(uiColorIndex:int):void
+		{
+			const brightness:Number = transBGBrightnessList[uiColorIndex];
+			var colorMatrix:Array = [
+				brightness, 0, 0, 0, 0,
+				0, brightness, 0, 0, 0,
+				0, 0, brightness, 0, 0,
+				0, 0, 0, 1, 0
+			];
+			var colorMatrixFilter:ColorMatrixFilter = new ColorMatrixFilter(colorMatrix);
+			transColorButton.filters = [colorMatrixFilter];
+			myPaletteTransBG.filters = [colorMatrixFilter];
+
+			initTransparentColorButtonBmpd();
+			initMyPaletteTransBGBmpd();
 		}
 
 		private function initTransparentColorButtonBmpd():void
 		{
 			const checkerPatternWidth:Number = transColorButton.width;
 			const checkerPatternHeight:Number = transColorButton.height;
-			const mat:Matrix = new Matrix()
+			const mat:Matrix = new Matrix();
 			mat.scale(transColorButton.scaleX,transColorButton.scaleY);
 			transColorButtonBmpd = new BitmapData(checkerPatternWidth,checkerPatternHeight,false,0);
 			transColorButtonBmpd.draw(transColorButton,mat);
