@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.34;
+        private const APP_VERSION:Number = 25.35;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -13224,6 +13224,35 @@
             toolTipBox.visible = true;
         }
 
+        // private function setToolTipString(str:String):void
+        // {
+        //     if(str !== "")
+        //     {
+        //         toolTipBox.setText(str);
+        //     }
+
+        //     const scale:Number = getUIScale();
+        //     const stw:uint = stage.stageWidth+1;
+        //     const sth:uint = stage.stageHeight+1;
+        //     const rightLimit:Number = stw;
+        //     const bottomLimit:Number = sth;
+        //     const width:Number = toolTipBox.toolTipInfoText.width*scale;
+        //     const height:Number = toolTipBox.toolTipInfoText.height*scale;
+        //     var tooltipX:Number = Math.floor(mouseX-width/2)+5;
+        //     var tooltipY:Number = Math.floor(mouseY-45*scale);
+        //     const right:int = tooltipX+width;
+        //     const bottom:int = tooltipY+height;
+
+        //     if(tooltipX < 0) tooltipX = 0;
+        //     else if(right > rightLimit) tooltipX = rightLimit-width;
+
+        //     if(tooltipY < 0) tooltipY = 0;
+        //     else if(bottom >= bottomLimit) tooltipY = bottomLimit-height;
+
+        //     toolTipBox.x = Math.floor(tooltipX);
+        //     toolTipBox.y = Math.floor(tooltipY);
+        //     setTopChildIndex(toolTipBox);
+        // }
         private function setToolTipString(str:String):void
         {
             if(str !== "")
@@ -21041,7 +21070,7 @@
             controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+2);
             pickerBox.x = 39;
             pickerBox.y = Math.floor(controlBox.y+controlBox.height+4);
-            toolBox.x = -1;
+            toolBox.x = -2;
             toolBox.y = Math.floor(controlBox.y+1);
 
             resetScrollBarXPosition();
