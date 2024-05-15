@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.37;
+        private const APP_VERSION:Number = 25.38;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2065,8 +2065,8 @@
                 numPadBox.x = gp.x;
                 numPadBox.y = gp.y;
                 resetNowKey();
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,numPadMouseDownEvent);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,numPadRightMouseDownEvent);
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,numPadMouseDownEvent,false,-2);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,numPadRightMouseDownEvent,false,-2);
             }
         }
 
@@ -23353,7 +23353,7 @@
         {
             if(mouseClickON || isPressingControl() || quickSidebarON
             || fillPenStarted || isNowTool(TOOL_SPUIT) || (traceMenuON && traceMenu.hitTestPoint(mouseX,mouseY))
-            || loadMenuBox.visible || topBar.gridButtonWrapper.visible)
+            || loadMenuBox.visible || topBar.gridButtonWrapper.visible || numPadBox.visible)
             {
                 return;
             }
@@ -24028,7 +24028,7 @@
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted || loadMenuBox.visible || topBar.gridButtonWrapper.visible) return;
+            if(fillPenStarted || loadMenuBox.visible || topBar.gridButtonWrapper.visible || numPadBox.visible) return;
 
             const target:DisplayObject = e.target as DisplayObject;
 
