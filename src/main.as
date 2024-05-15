@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.36;
+        private const APP_VERSION:Number = 25.37;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -818,7 +818,8 @@
 
         private function mouseWheelStage(e:MouseEvent):void
         {
-            if(captureModeON || !isNowKey(0) || getCommandKey() !== 0) return;
+            if(mouseClickON || rightMouseClickON || mouseDragON
+            || captureModeON || !isNowKey(0) || getCommandKey() !== 0) return;
 
             if(!hasTimer("wheelZoomTimer"))
             {
