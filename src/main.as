@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.40;
+        private const APP_VERSION:Number = 25.41;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2415,7 +2415,7 @@
                 mirrorCommandReady = true;
                 mirrorDraw();
                 checkGridMirror(mirrorON);
-                if(rCursor.visible) setRCursorMirrorPos();
+                setRCursorMirrorPos();
             }
             else if(mirrorCommandReady)
             {
@@ -18381,7 +18381,7 @@
             updatePreviewBoxRectPos();
             saveOneTime = false; //미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
 
-            if(rCursor.visible) setRCursorMirrorPos();
+            setRCursorMirrorPos();
         }
 
         private function changeCanvasSizeReplayMode(w:Number,h:Number,moveX:Number=0,moveY:Number=0,movedFlag:Boolean=false):void
@@ -21737,6 +21737,11 @@
 
         private function keyDownReplayMode(e:KeyboardEvent):void//keydown2
         {
+            trace("key odwn")
+            rcanvas11BitmapData.unlock();
+            rcanvas1BitmapData.unlock();    
+            rcanvas11BitmapData.lock();
+            rcanvas1BitmapData.lock();
             const keyCode:uint = KEY_BUFFER[0];
 
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode) || loadMenuBox.visible) return;
