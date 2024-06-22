@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.38;
+        private const APP_VERSION:Number = 25.40;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2407,6 +2407,7 @@
             }
         }
 
+        //드로우 모드와 리플레이 모드 캔버스 미러가 다를경우 undo 적용 이후에 mirror커맨드 넣어주도록 함
         private function checkMirrorCanvasReplayMirror():void
         {
             if(mirrorON !== rMirrorON)
@@ -2416,7 +2417,7 @@
                 checkGridMirror(mirrorON);
                 if(rCursor.visible) setRCursorMirrorPos();
             }
-            else
+            else if(mirrorCommandReady)
             {
                 mirrorCommandReady = false;
             }
@@ -9646,7 +9647,7 @@
             resetReplayTime();
             resetUndo(true);
             rCursor.visible = true;//대칭된 커서 위치를 갱신해주려고 임시로 켜줌
-            checkMirrorCanvasReplayMirror();
+            // checkMirrorCanvasReplayMirror();
             appInfoBox.setMirror(mirrorON);
             tickDraw.setFirstRCursorPosCurrent();
             rCursor.visible = false;
@@ -20375,7 +20376,6 @@
             canvas11Bitmap.bitmapData = canvas11BitmapData;
 
             setRCursorVisibleONUndo(undoIndex);
-
             checkMirrorCanvasReplayMirror();
 
             previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
