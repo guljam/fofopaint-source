@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.41;
+        private const APP_VERSION:Number = 25.42;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -9512,8 +9512,21 @@
             replayTimeBox["replayNowBar"].visible = true;
         }
 
+        private function ensureReplayCanvasState():void
+        {
+            const rNowFrameBackup:Number = rNowFrame;
+            jumpFrame(0,JUMP_FRAME_ONCE);
+            jumpFrame(rNowFrameBackup,JUMP_FRAME_ONCE);
+            mirrorON = rMirrorON;
+            mirrorCommandReady = false;
+            appInfoBox.setMirror(rMirrorON);
+        }
+
         private function deleteReplayFrontData():void
         {
+            //미러 되어있을 수도 있기 때문에 워래 프레임 으로 점프해준뒤에 실행해줌
+            ensureReplayCanvasState();
+
             setReplayDeleteBarVisibleOFF();
             //첫 이미지 새로 만들어줌
             if(rJumpImageFolder.exists)
@@ -9577,11 +9590,6 @@
                 rCursor.visible = false;
                 replayTimeBox["replayNowBar"].width = 0;
                 saveOneTime = false;
-
-                // addTimerByName("dummytimer",0.1,false,function():void
-                // {
-
-                // });
                 setMakeJumpImage();
             }
 
@@ -9665,7 +9673,9 @@
 
         private function superUndo():void
         {
+            ensureReplayCanvasState();
             setReplayDeleteBarVisibleOFF();
+
             if(rDataReadFlag === true)
             {
                 //위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
@@ -9712,13 +9722,14 @@
                 canvas11BitmapData = rcanvas11BitmapData.clone();
                 canvas11Bitmap.bitmapData = canvas11BitmapData;
 
+                // mirrorON = rMirrorON;
+                // mirrorCommandReady = false;
+                // appInfoBox.setMirror(rMirrorON);
                 changeCanvasSize(canvas1Bitmap.width,canvas1Bitmap.height,0,0,false);
                 setBackgroundColorDrawMode(RCANVAS_BG_COLOR);
                 resetReplayTime();
                 setCanvasSameReplayCanvas();
                 resetUndo();
-                mirrorCommandReady = false;
-                appInfoBox.setMirror(rMirrorON);
 
                 previewBox.updateImage(canvas1BitmapData,canvas11BitmapData,CANVAS_BG_COLOR);
 
@@ -21737,11 +21748,6 @@
 
         private function keyDownReplayMode(e:KeyboardEvent):void//keydown2
         {
-            trace("key odwn")
-            rcanvas11BitmapData.unlock();
-            rcanvas1BitmapData.unlock();    
-            rcanvas11BitmapData.lock();
-            rcanvas1BitmapData.lock();
             const keyCode:uint = KEY_BUFFER[0];
 
             if(mouseClickON || rightMouseClickON || isNowKey(keyCode) || loadMenuBox.visible) return;
@@ -24222,7 +24228,6 @@
                 }
             }
         }
-        // private const stagedraw:Shape = new Shape()
 
         // private var printdeepLevel:int = 0;
         // private function printArray(obj:Object,deepKey:String=""):void
