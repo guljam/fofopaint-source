@@ -63,11 +63,10 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.42;
+        private const APP_VERSION:Number = 25.43;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
-        private var STAGE_FRAME:int = stage.frameRate; //frame rate가 오르면 선을 빠르게 그렀을때 떨어저 그려지고 낮게 하면 부드럽게 이어져 그려짐
 
         //단축키 keycode 리스트
         private const KEY:Object = {
@@ -917,7 +916,7 @@
 
                 const deafultCount:Number = 3;
                 const deafultDelay:Number = 1.0;
-                const countNowTime:Number = Math.ceil((STAGE_FRAME*1.1)/deafultCount);
+                const countNowTime:Number = Math.ceil((stage.frameRate*1.1)/deafultCount);
 
                 longKeyCountDown = deafultCount;
                 loneKeyFrameCount = 0;
@@ -3156,7 +3155,7 @@
         private function copyCaptureImageToCilpBoard():void
         {
             Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT,getCaptrueImageBitmapdata(true),false);
-            setHintONTemp("The image copied to clipboard successfully");
+            // setHintONTemp("The image copied to clipboard successfully");
             topBar.capClipBoard.alpha = BUTTON_OFF_ALPHA;
         }
 
@@ -3729,7 +3728,7 @@
                 }
                 else
                 {
-                    if(count > STAGE_FRAME*2)
+                    if(count > stage.frameRate*2)
                     {
                         Mouse.hide();
                         setTopBarHintOFF();
@@ -11974,7 +11973,7 @@
         private function getAutoJumpFrame(speed:Number):Number
         {
             const biasSpeed:Number = REPLAY_SLOWDRAW_ACTIVE_SPEED;
-            const minTime:Number = TOTAL_FRAME/(biasSpeed*STAGE_FRAME);
+            const minTime:Number = TOTAL_FRAME/(biasSpeed*stage.frameRate);
             const subTime:Number = minTime-40;
             const subSpeed:Number = REPLAY_MAX_SPEED-biasSpeed;
             const unitTime:Number = subTime/subSpeed;
@@ -12249,7 +12248,7 @@
 
         private function getReplayRemainTime(speed:Number,totalFrame:Number,slowFrame:Boolean=false):String
         {
-            const fps:Number = (slowFrame === true) ? 1:STAGE_FRAME;
+            const fps:Number = (slowFrame === true) ? 1:stage.frameRate;
             const totalSec:Number = totalFrame/(fps*speed);
             if(totalSec === 0) return "";
 
@@ -12416,7 +12415,7 @@
         private function updateReplayRemainTimeText():void
         {
             var xRSpeed:Number = (isSlowDrawTime(rSpeed))
-                                 ? getAutoJumpFrame(rSpeed)/STAGE_FRAME : rSpeed;
+                                 ? getAutoJumpFrame(rSpeed)/stage.frameRate : rSpeed;
                                 //오토스킵은 1초마다 넘어가야할 프레임이니까 시간 구하려면 스테이지 프레임을 나누어줌
 
             const rFrameSave:Number = rNowFrame;
@@ -12464,7 +12463,7 @@
         {
             const totalF:Number = TOTAL_FRAME;
 
-            if(totalF <= STAGE_FRAME*3) // 3초 이내면 안함
+            if(totalF <= stage.frameRate*3) // 3초 이내면 안함
             {
                 return;
             }
@@ -12473,7 +12472,7 @@
             const minDist:Number = topBar.replaySpeedSlider.x+1.5;
             const maxDist:Number = minDist+topBar.replaySpeedSlider.width-2.5;
             const maxSpeed:Number = REPLAY_MAX_SPEED;
-            const clacMax:Number = Math.floor(totalF/(STAGE_FRAME*3));//3초 x 30프레임
+            const clacMax:Number = Math.floor(totalF/(stage.frameRate*3));//3초 x 30프레임
             var max:Number = (clacMax > maxSpeed) ? maxSpeed : clacMax;//최고 속도 3초 재생 이지만 REPLAY_MAX_SPEED배속은 넘기지 않음.
             var timeStr:String = getReplayTotalTime(rSpeed);
             var oldSpeed:uint;
@@ -15569,11 +15568,11 @@
         {
             var captrueStampBMPD:BitmapData = new BitmapData(1,1,false,0);
             var captureStampBitmap:Bitmap = new Bitmap(captrueStampBMPD);
-            const stampAlpha:uint = 0x7D000000;
+            const stampAlpha:uint = 0xCB000000;
             const textformat:TextFormat = new TextFormat();
             const captureStampRect:Rectangle = new Rectangle();
             const bmpdMat:Matrix = new Matrix();
-            const defaultFontSize:int = 12;
+            const defaultFontSize:int = 13;
             var inputUpdateTimer:int = 0;
 
             captureStampBitmap.name = "captureStampBitmap";
@@ -15928,14 +15927,14 @@
                             topBar.setCaptureInputFinalWidth(mainTextWidth);
                             topBar.setCaptureInputFinalString(topBar.getCaptureInputString());
                             loopcount++;
-                            bmpdHeight = (defaultFontSize-loopcount)*2+4;
+                            bmpdHeight = (defaultFontSize-loopcount)*2+7;
 
                             if(defaultFontSize-loopcount <= 13)
                             {
                                 //글씨크기를 한계까지 줄이고 칸이 꽉차면 더이상 입력 못하게함
                                 if(topBar.captureInputFinal.numLines >= 3)
                                 {
-                                    topBar.captureInput.maxChars = 1
+                                    topBar.captureInput.maxChars = 1;
                                     topBar.captureInput.text = topBar.captureInput.text.slice(0,-1);
                                 }
 
@@ -21709,7 +21708,7 @@
         //keyfunc
         private function setReplaySpeedByKey(upFlag:Boolean):void
         {
-            const clacMax:Number = Math.floor(TOTAL_FRAME/(STAGE_FRAME*3));
+            const clacMax:Number = Math.floor(TOTAL_FRAME/(stage.frameRate*3));
             if(clacMax <= 0) return;
 
             const maxSpeed:Number = REPLAY_MAX_SPEED;
@@ -22867,10 +22866,10 @@
             const rf:Number = rNowFrame;
             const bw:Number = replayTimeBox["replayTotalBar"].width;
 
-            if(totalFrame < STAGE_FRAME*3) topBar["replaySpeedSliderWrapper"].alpha = BUTTON_OFF_ALPHA;
+            if(totalFrame < stage.frameRate*3) topBar["replaySpeedSliderWrapper"].alpha = BUTTON_OFF_ALPHA;
             else topBar["replaySpeedSliderWrapper"].alpha = 1.0;
             //리플레이 속도를 최고 빠르게 했을때 시간 체크
-            REPLAY_FASTEST_TOTAL_TIME = Math.floor(totalFrame/(REPLAY_MAX_SPEED*STAGE_FRAME));
+            REPLAY_FASTEST_TOTAL_TIME = Math.floor(totalFrame/(REPLAY_MAX_SPEED*stage.frameRate));
 
             replayTimeBox["frameInfo"].text = rf+" / "+totalFrame;
             replayTimeBox["replayNowBar"].width = (totalFrame === 0) ? 0 : bw*(rf/totalFrame);
