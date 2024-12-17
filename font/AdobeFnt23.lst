@@ -11,7 +11,7 @@ FullName:Si Kancil
 MenuName:Si Kancil
 StyleBits:0
 WritingScript:Roman
-OutlineFileName:F:\ssdbackup\fofopaint-source\Font\Si Kancil.ttf
+OutlineFileName:E:\fofopaint-source\Font\Si Kancil.ttf
 DataFormat:sfntData
 hasSVG:no
 hasCOLR:no
@@ -28,7 +28,7 @@ NameArray:0,Win,1,Si Kancil
 %BeginFont
 Handler:DirectoryHandler
 FontType:Invalid
-OutlineFileName:F:\ssdbackup\fofopaint-source\Font\캔버스 폰트 사용리스트.txt
+OutlineFileName:E:\fofopaint-source\Font\캔버스 폰트 사용리스트.txt
 FileModTime:1685686021
 %EndFont
 

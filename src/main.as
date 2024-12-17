@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.45;
+        private const APP_VERSION:Number = 25.46;
         private const APP_DATA_VERSION:Number = 2487;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -10708,7 +10708,7 @@
             {
                 if(subLayerFlag)
                 {
-                    if((replayStartON && subLayerFlag) !== null && rSubLayerSave !== subLayerFlag)
+                    if((replayStartON && subLayerFlag) !== false && rSubLayerSave !== subLayerFlag)
                     {
                         selectReplaySubLayer(subLayerFlag);
                     }
@@ -12486,18 +12486,20 @@
 
                 if(exp < 0) exp = 0;
                 else if(exp > 1) exp = 1;
+
                 var nowSpeed:uint = Math.floor(Math.pow(max,exp));
+
                 if(oldSpeed !== nowSpeed)
                 {
                     oldSpeed = nowSpeed;
                     if(nowSpeed > max) nowSpeed = max;
 
                     timeStr = getReplayTotalTime(nowSpeed);
-                    const finalStr:String = STRING_PLAYBACK_SPEED+rSpeed+timeStr;
+                    rSpeed = nowSpeed;
 
+                    const finalStr:String = STRING_PLAYBACK_SPEED+nowSpeed+timeStr;
                     setHintONTemp(finalStr);
                     rSpeedLastStr = finalStr;
-                    rSpeed = nowSpeed;
                 }
             }
 
