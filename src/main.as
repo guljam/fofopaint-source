@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.50;
+        private const APP_VERSION:Number = 25.51;
         private const APP_DATA_VERSION:Number = 2550;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2933,8 +2933,22 @@
                 const lassoInfo:Array = drawLassoBoxImageToBitmapData(true);
                 const point1:Vector.<Number> = lassoPointSave[0].concat();
                 const point2:Array = lassoPointSave[1].concat();
+                
+                var l1:Boolean = true;
+                var l2:Boolean = true;
 
-                rDataBuffer.push(["lassodel2",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible]);
+                if(checkedLayer === 1 || (canvas1Bitmap.visible && !canvas11Bitmap.visible))
+                {
+                    l1 = true;
+                    l2 = false;
+                }
+                else if(checkedLayer === 2 || (!canvas1Bitmap.visible && canvas11Bitmap.visible))
+                {
+                    l1 = false;
+                    l2 = true;
+                }
+
+                rDataBuffer.push(["lassodel2",point1,point2,lassoInfo,lassoCopyON,l1,l2]);
                 undoData.addNew();
 
                 disposeLassoBMP();
