@@ -5,8 +5,9 @@
 	import flash.geom.ColorTransform;
 
 	public class fofoBottomBox extends Sprite {
-		public var fofoBottom:SimpleButton;
+		public var fofo:SimpleButton;
 		public var fixedScale:Number = 0.65;
+		public var topPos:Boolean = false;
 
 		public function setScale(newScale:Number):void
 		{
@@ -14,22 +15,38 @@
 			this.scaleY = newScale*fixedScale;
 		}
 
-		public function flipImage(flag:Boolean):void
+		public function isTopPos():Boolean
+		{
+			return topPos;
+		}
+
+		public function setMirror(flag:Boolean):void
 		{
 			if(flag)
 			{
-				fofoBottom.scaleX = -1.0;
-				fofoBottom.x = fofoBottom.width;
+				fofo.scaleX = -1.0;
+				fofo.x = fofo.width;
 			}
 			else
 			{
-				fofoBottom.x = 0;
-				fofoBottom.scaleX = 1.0;
+				fofo.x = 0;
+				fofo.scaleX = 1.0;
 			}
 		}
 
-		public function setY(sideBarHeight:Number):void
+		public function setTop(topY:Number):void
 		{
+			topPos = true;
+			fofo.scaleY = -1.0;
+			fofo.y = fofo.height;
+			y = topY;
+		}
+
+		public function setBottom(sideBarHeight:Number):void
+		{
+			topPos = false;
+			fofo.scaleY = 1.0;
+			fofo.y = 0;
 			y = sideBarHeight-height+2;
 		}
 
@@ -37,16 +54,13 @@
 		{
 			const c:ColorTransform = new ColorTransform();
 			c.color = color;
-			fofoBottom.transform.colorTransform = c;
+			fofo.transform.colorTransform = c;
 		}
 
 		public function fofoBottomBox() {
-			fofoBottom.useHandCursor = true;
-			alpha = 0.5;
-			visible = false;
-
+			fofo.useHandCursor = false;
+			alpha = 1.0;
 			setScale(1.0);
 		}
 	}
-
 }

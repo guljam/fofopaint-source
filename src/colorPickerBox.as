@@ -11,6 +11,7 @@
 	import flash.ui.ContextMenu;
 	import flash.display.BitmapData;
 	import flash.filters.ColorMatrixFilter;
+	import flash.geom.Point;
 
 	public class colorPickerBox extends Sprite {
 		public var mainColorPickerBox:Sprite = new Sprite();
@@ -32,7 +33,7 @@
 		private var rgbInfoBGBorderColor:uint = 0;
 		public const myPaletteBox:Sprite = new Sprite();
 		public const historyBox:Sprite = new Sprite();
-		public const myPaletteDragColor:Shape = new Shape();
+		public const myPaletteDragColorBox:Shape = new Shape();
 		public var penColorButton:SimpleButton;
 		public var paperColorButton:SimpleButton;
 		public var transColorButton:SimpleButton;
@@ -278,25 +279,25 @@
 
 		public function removeColorHistoryDragBox():void
 		{
-			myPaletteDragColor.visible = false;
-			myPaletteDragColor.graphics.clear();
+			myPaletteDragColorBox.visible = false;
+			myPaletteDragColorBox.graphics.clear();
 		}
 
-		public function setColorHistoryDragBoxPos(mx:Number,my:Number):void
+		public function setColorHistoryDragBoxPos():void
 		{
-			myPaletteDragColor.x = mx-myPaletteDragColor.width/2;
-			myPaletteDragColor.y = my-myPaletteDragColor.height/2;
+			myPaletteDragColorBox.x = this.mouseX-myPaletteDragColorBox.width/2;
+			myPaletteDragColorBox.y = this.mouseY-myPaletteDragColorBox.height/2;
 		}
 
-		public function setColorHistoryDragBoxColor(color:uint,colorWidth:Number,colorHeight:Number):void
+		public function setColorDragBoxColor(color:uint,colorWidth:Number,colorHeight:Number):void
 		{
-			myPaletteDragColor.graphics.clear();
-			myPaletteDragColor.graphics.beginFill(color);
-			myPaletteDragColor.graphics.drawRect(0,0,colorWidth,colorHeight);
-			myPaletteDragColor.graphics.endFill();
+			myPaletteDragColorBox.graphics.clear();
+			myPaletteDragColorBox.graphics.beginFill(color);
+			myPaletteDragColorBox.graphics.drawRect(0,0,colorWidth,colorHeight);
+			myPaletteDragColorBox.graphics.endFill();
 
-			setChildIndex(myPaletteDragColor,this.numChildren-1);
-			myPaletteDragColor.visible = true;
+			setChildIndex(myPaletteDragColorBox,this.numChildren-1);
+			myPaletteDragColorBox.visible = true;
 		}
 
 		private function initMyPaletteTransBGBmpd():void
@@ -467,8 +468,8 @@
 			addChild(mainColorPickerBox);
 			addChild(mainPresetButtonBox);
 			addChild(mainPickerMenuBox);
-			addChild(myPaletteDragColor);
-			myPaletteDragColor.visible = false;
+			addChild(myPaletteDragColorBox);
+			myPaletteDragColorBox.visible = false;
 
 			panelWidth = 180;
 			panelHeight = mainPresetButtonBox.y+mainPresetButtonBox.height+3;

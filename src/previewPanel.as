@@ -18,7 +18,7 @@
 		public var prevBitmapLastHeight:Number = 0;
 		public const BOX_WIDTH:Number = 213;
 		public const BOX_HEIGHT:Number = 173;
-		public const maskShape:Sprite = new Sprite();
+		// public const maskShape:Sprite = new Sprite();
 		private const prevCursorOffsetX:Number = 0;
 		private const prevCursorOffsetY:Number = 0;
 		public var prevCursorMultiply:Number = 0;
@@ -26,15 +26,15 @@
 		private const stageColor:ColorTransform = new ColorTransform();
 		private const prevBMPBGColor:ColorTransform = new ColorTransform();
 
-		public function setMask():void
-		{
-			maskShape.graphics.clear();
-			maskShape.graphics.lineStyle(0,0,0);
-			maskShape.graphics.beginFill(0xFF0000);
-			maskShape.graphics.drawRect(0,0,BOX_WIDTH,BOX_HEIGHT);
-			maskShape.graphics.endFill();
-			mask = maskShape;
-		}
+		// public function setMask():void
+		// {
+		// 	maskShape.graphics.clear();
+		// 	maskShape.graphics.lineStyle(0,0,0);
+		// 	maskShape.graphics.beginFill(0xFF0000);
+		// 	maskShape.graphics.drawRect(0,0,BOX_WIDTH,BOX_HEIGHT);
+		// 	maskShape.graphics.endFill();
+		// 	mask = maskShape;
+		// }
 
 		//x, y canvas1bitmap을 기준으로 창 왼쪽 오른쪽 점의 좌표임, 회전을 하면 캔버스를 회전한 기준으로 잡힘
 		//w, h 캔버스 전체 영역가로 세로 길이 (캔버스 자체 길이가 아님 빈공백칸을 말하는거)
@@ -153,8 +153,8 @@
 			addChild(prevBitmap);
 			// addChild(consoleBG);
 			addChild(prevCursor);
-			addChild(maskShape);
-			setMask();
+			// addChild(maskShape);
+			// setMask();
 			mouseEnabled = false;
 		}
 	}

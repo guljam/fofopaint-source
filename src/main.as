@@ -63,8 +63,8 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.46;
-        private const APP_DATA_VERSION:Number = 2487;
+        private const APP_VERSION:Number = 25.50;
+        private const APP_DATA_VERSION:Number = 2550;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -297,6 +297,7 @@
                     ,fofo:fofoBottomBox = new fofoBottomBox()
                     ,sideBarScrollBar:Sprite = new Sprite()
                     ,sideBarScrollSet:Sprite = new Sprite()
+                    ,canvasFlash:Sprite = new Sprite()
                     ;
 
         private var  canvas1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
@@ -409,7 +410,7 @@
                     ,myPaletteColorHeight:Number = 17
                     ,myPaletteClickPos:Point = new Point() //컬러 히스토리 클릭하면 위치 넣어줌
                     ,myPaletteMovePos:Point = new Point() //컬러 히스토리 드래그할때 움직이는 포인트 넣어줌
-                    ,myPaletteDragClickedColor:uint = 0 //드래그 쭌비 클릭한 컬러 저장해줌
+                    ,myPaletteDragClickedColor:uint = 0 //드래그 준비 클릭한 컬러 저장해줌
                     ,myPaletteDragClickedIndex:int = -1 //드래그 준비 클릭한 컬러 인덱스 저장
                     ,myPaletteDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
                     ,myPalettePresetType:int = 0 //타입저정
@@ -577,9 +578,8 @@
 
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
-                    ,scrollBarMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarConstHeight:Number = 725
+                    ,sideBarConstHeight:Number = 715
 
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
@@ -722,6 +722,55 @@
         }
 
         //function
+        private function setCaptureFlashEffect():void
+        {
+            if(drawCaptureArea.isFullImageCapture())
+            {
+                if(replayModeON)
+                {
+                    setcanvasFlash(rcanvasPanel,0,0,RCANVAS_WIDTH,RCANVAS_HEIGHT);
+                }
+                else
+                {
+                    setcanvasFlash(canvasPanel,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                }
+            }
+            else
+            {
+                const nowCaptureArea:Rectangle = drawCaptureArea.getCaptureArea();
+                setcanvasFlash((replayModeON)?rcanvasPanel:canvasPanel,nowCaptureArea.x,nowCaptureArea.y,nowCaptureArea.width,nowCaptureArea.height);
+            }
+        }
+
+        private function setcanvasFlash(parent:DisplayObjectContainer,ox:Number,oy:Number,width:Number,height:Number):void
+        {
+            if(!parent.getChildByName("canvasFlash"))
+            {
+                parent.addChild(canvasFlash);
+            }
+
+            canvasFlash.visible = true;
+            canvasFlash.graphics.beginFill(0xFFFFFF);
+            canvasFlash.graphics.drawRect(ox,oy,width,height);
+            canvasFlash.alpha = 1.0;
+
+            addTimerByName("flashingTimer",0.0,true,function doFlash():Boolean
+            {
+                if(canvasFlash.alpha < 0.0)
+                {
+                    canvasFlash.visible = false;
+                    canvasFlash.graphics.clear();
+                    if(parent.getChildByName("canvasFlash"))
+                    {
+                        parent.removeChild(canvasFlash);
+                    }
+                    return false;
+                }
+                canvasFlash.alpha -= 0.13;
+                return true;
+            });
+        }
+
         private function setPickerBoxTransBGBrightness(index:int):void
         {
             pickerBox.setBrightnessTransparentColorButtonBmpd(index);
@@ -805,7 +854,13 @@
             {
                 const scale:Number = getUIScale();
 
-                if(mouseX >= sideBar.x && mouseX <= sideBar.x+sideBar.WIDTH*scale
+                if(isRightSidebar
+                && mouseX >= sideBar.x-sideBarScrollBar.width*scale && mouseX <= sideBar.x+sideBar.WIDTH*scale
+                && mouseY >= sideBar.y && mouseY <= stage.stageHeight)
+                {
+                    return true;
+                }
+                else if(mouseX >= sideBar.x && mouseX <= sideBar.x+sideBar.WIDTH*scale+sideBarScrollBar.width*scale
                 && mouseY >= sideBar.y && mouseY <= stage.stageHeight)
                 {
                     return true;
@@ -818,7 +873,7 @@
         private function mouseWheelStage(e:MouseEvent):void
         {
             if(mouseClickON || rightMouseClickON || mouseDragON
-            || captureModeON || !isNowKey(0) || getCommandKey() !== 0) return;
+            || captureModeON || !quickSidebarON && (!isNowKey(0) || getCommandKey() !== 0)) return;
 
             if(!hasTimer("wheelZoomTimer"))
             {
@@ -830,11 +885,11 @@
                         {
                             if(e.delta > 0)
                             {
-                                setScrollBarMoveButton(30);
+                                setScrollBarMoveButton(40);
                             }
                             else
                             {
-                                setScrollBarMoveButton(-30);
+                                setScrollBarMoveButton(-40);
                             }
                         }
                     }
@@ -1093,8 +1148,6 @@
             myPalettePresetType = type;
             updateMyPaletteList();
             pickerBox.selectPresetButton(type);
-            updateScrollBarHeight();
-            checkFOFOPosition()
         }
 
         private function setFileBrowserONFlag(flag:Boolean):void
@@ -1463,6 +1516,12 @@
                 }
                 break;
 
+                case "historyBox":
+                {
+                    str = "Swap color position [click+drag]";
+                }
+                break;
+
                 case "myPaletteBox":
                 {
                     if(myPalettePresetType !== 0) return;
@@ -1484,6 +1543,16 @@
             }
 
             if(str === "") return;
+
+            hint.on(str,target);
+        }
+
+        private function scrollBarHintONEvent(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+            if(!target || isHintCantUse()) return;
+
+            var str:String = "Scroll sidebar\n[click+drag, mouse wheel]";
 
             hint.on(str,target);
         }
@@ -1542,6 +1611,7 @@
             var lastHint:String;
             var cursorColor:uint = 0;
             var targetSave:DisplayObject;
+            var hintONTime:int = 0;
 
             function isHintStarted():String
             {
@@ -1606,8 +1676,6 @@
                 lastHint = null;
                 targetSave = null;
                 removeTimer("hintOFFTimer");
-                removeTimer("hintONDelayTimer");
-
                 hintCursor.visible = false;
                 addTimerByName("hintOFFDelayTimer",0.3,false,function():void
                 {
@@ -1617,6 +1685,7 @@
 
             function hintFullOFF():void
             {
+                hintONTime = 0;
                 hintBox.visible = false;
                 hintBox.setText("");
                 hintBox.x = -hintBox.width-3;
@@ -1630,14 +1699,24 @@
 
                 if(targetSave && hintBox.hitTestObject(targetSave))
                 {
-                    gp = targetSave.localToGlobal(ZERO_POINT);
                     // hintBox.y = Math.round((gp.y-hintBox.height-30*scale));
                     hintBox.y = 0;
                 }
             }
 
-            function hintON(str:String,target:DisplayObject):void
+            function hintON(str:String,target:DisplayObject,fastHint:Boolean=false):void
             {
+                if(!hintCursor.visible && !fastHint)
+                {
+                    return;
+                }
+
+                if(str === "" && target === null)
+                {
+                    str = lastHint;
+                    target = targetSave;
+                }
+
                 hintBox.setText(str);
                 targetSave = target;
                 updateHintPos();
@@ -1656,23 +1735,30 @@
 
                 removeTimer("hintOFFTimer");
                 removeTimer("hintOFFDelayTimer");
-                removeTimer("hintONDelayTimer");
 
                 lastHint = str;
+                targetSave = target;
 
                 if(target)
                 {
                     cursorON(target);
                 }
 
-                if(!target || fastHint)
+                if(!target || fastHint || getTimer()-hintONTime < 1000 || hintBox.visible)
                 {
-                    hintON(str,target);
+                    hintON(str,target,fastHint);
                 }
                 else
                 {
-                    hintFullOFF();
-                    addTimerByName("hintONDelayTimer",0.7,false,hintON,[str,target]);
+                    if(hintBox.visible)
+                    {
+                        hintFullOFF();
+                    }
+
+                    if(!hasTimer("hintONDelayTimer"))
+                    {
+                        addTimerByName("hintONDelayTimer",1.0,false,hintON,["",null]);
+                    }
                 }
             }
 
@@ -2487,29 +2573,109 @@
             }
         }
 
+        // private function checkFOFOPosition():void
+        // {
+        //     if(isRightSidebar)
+        //     {
+        //         fofo.flipImage(false);
+        //         if(sideBar.visible)
+        //         {
+        //             fofo.x = sideBar.x-fofo.width-sideBarScrollBar.width*getUIScale();
+        //         }
+        //         else
+        //         {
+        //             fofo.x = stage.stageWidth-fofo.width;
+        //         }
+        //     }
+        //     else
+        //     {
+        //         fofo.flipImage(true);
+        //         if(sideBar.visible)
+        //         {
+        //             fofo.x = sideBar.x+sideBar.getWidth()+sideBarScrollBar.width*getUIScale();
+        //         }
+        //         else
+        //         {
+        //             fofo.x = sideBar.x;
+        //         }
+        //     }
+
+        //     fofo.setY(stage.stageHeight);
+        //     fofo.visible = true;
+        // }
+
+        private function checkFOFOSideBarCollision():int
+        {
+            const sideBarWidth:Number = sideBar.getWidth();
+            const scale:Number = getUIScale();
+            const fofoHeight:Number = fofo.height-20*scale;
+            const fofoTopRect:Rectangle = new Rectangle(sideBar.x,STAGE_TOP_OFFSET,sideBarWidth,fofoHeight);
+            const fofoBottomRect:Rectangle = new Rectangle(sideBar.x,stage.stageHeight-STAGE_BOTTOM_OFFSET-fofoHeight,sideBarWidth,fofoHeight);
+            const gp:Point = sideBarScrollSet.localToGlobal(ZERO_POINT);
+            const sideBarRect:Rectangle = new Rectangle(gp.x-sideBarScrollSet.x*scale,gp.y,sideBar.getWidth(),getSidebarConstHeight()*scale);
+            const collisionTop:Boolean = sideBarRect.intersects(fofoTopRect);
+            const collisionBottom:Boolean = sideBarRect.intersects(fofoBottomRect);
+
+            return (collisionTop && collisionBottom) ? 0 : (collisionBottom) ? 1 : (collisionTop) ? 2 : 3;
+        }
+
         private function checkFOFOPosition():void
         {
-            if(isRightSidebar)
-            {
-                fofo.flipImage(false);
-                fofo.x = sideBar.x+sideBar.getWidth()-fofo.width;
-            }
-            else
-            {
-                fofo.flipImage(true);
-                fofo.x = sideBar.x;
-            }
-
-            fofo.setY(stage.stageHeight);
-
-            if(sideBar.visible)
-            {
-                if(sideBarScrollSet.hitTestObject(fofo)) fofo.visible = false;
-                else fofo.visible = true;
-            }
-            else
+            if(sideBar.visible === false)
             {
                 fofo.visible = false;
+                return;
+            }
+
+            const checkYPos:int = checkFOFOSideBarCollision();
+
+            if(checkYPos === 3)
+            {
+                return;
+            }
+            else if(checkYPos === 0)
+            {
+                fofo.visible = false;
+            }
+            else if(checkYPos === 1)
+            {
+                fofo.setTop(STAGE_TOP_OFFSET);
+
+                if(isRightSidebar)
+                {
+                    fofo.setMirror(false);
+                    fofo.x = sideBar.x+sideBar.getWidth()-fofo.width;
+                }
+                else
+                {
+                    fofo.setMirror(true);
+                    fofo.x = sideBar.x;
+                }
+
+                if(fofo.visible === false)
+                {
+                    fofo.visible = true;
+                }
+            }
+            else if(checkYPos === 2)
+            {
+                if(isRightSidebar)
+                {
+                    fofo.setMirror(false);
+                    fofo.x = sideBar.x+sideBar.getWidth()-fofo.width;
+                }
+                else
+                {
+                    fofo.setMirror(true);
+                    fofo.x = sideBar.x;
+                }
+
+                fofo.setBottom(stage.stageHeight-STAGE_BOTTOM_OFFSET);
+
+                if(fofo.visible === false)
+                {
+                    fofo.visible = true;
+                }
             }
         }
 
@@ -4088,7 +4254,7 @@
             {
                 nowTime = getTimer();
 
-                if(nowTime-lastTime < 1)
+                if(nowTime-lastTime === 0)
                 {
                     return true;
                 }
@@ -4213,7 +4379,6 @@
             if(flag)
             {
                 sideBar.visible = true;
-                checkFOFOPosition();
 
                 //사이드바가 짤려 나오는 현상이 있어서 다시 캐쉬 풀었다가 다시 해줌
                 setSidebarReCacheBitmap();
@@ -4221,7 +4386,6 @@
             else
             {
                 sideBar.visible = false;
-                fofo.visible = false;
 
                 if(hintBox.visible || hintCursor.visible)
                 {
@@ -4236,6 +4400,7 @@
 
             updateStageOffset();
             updatePreviewBoxRectPos();
+            checkFOFOPosition();
         }
 
         private function setTransparentColor():void
@@ -5354,6 +5519,7 @@
             function setSideBarOFF():void
             {
                 removeSideBarClickEvents();
+
                 if(isSidebarVisible === false)
                 {
                     setSidebarVisible(false,true);
@@ -5368,9 +5534,9 @@
             function setSideBarONWaitEvents():void
             {
                 visibleMouseUpEventON = true;
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarONMouseDownEvent);
                 stage.addEventListener(MouseEvent.MOUSE_UP,sidebarONMouseUpEvent);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,sidebarONMouseUpEvent);
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarONMouseDownEvent);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,sidebarONMouseDownEvent);
             }
 
@@ -5428,7 +5594,8 @@
 
             function sidebarOFFMouseDownEvent(e:MouseEvent):void
             {
-                if(e.target && (e.target.name === "sideBarONButton" || e.target.name === "sideBarONButton2"))
+                if(e.target && (e.target.name === "sideBarONButton" || e.target.name === "sideBarONButton2"
+                || e.target.name === "fofo"))
                 {
 
                 }
@@ -6264,7 +6431,7 @@
                 case "toolMirror": str = "Flip canvas [a, l]"; break;
                 case "toolLine": str = "Line [shift]"; break;
                 case "toolMove": str = "Move image [e, u]"; break;
-                case "zoomInButton": str ="Zoom in canvas [w, i + drag canvas]\nReset [right-click ,shift+w, shift+i]"; break;
+                case "zoomInButton": str ="Zoom in canvas [w, i + drag canvas, mouse wheel]\nReset [right-click ,shift+w, shift+i]"; break;
                 case "zoomOutButton": str ="Zoom out canvas [w, i + drag canvas]\nReset [right-click ,shift+w, shift+i]"; break;
                 case "toolRotate": str = "Rotate canvas [s, k]\nReset [right-click, shift+s , shift+k]"; break;
                 case "toolTrace": str = "Reference layer [t]"; break;
@@ -7506,12 +7673,13 @@
             }
 
             pickerBox.setPickerMode(pickerMode);
-            updateScrollBarColorHeight(scrollBarHeight);
+            updateScrollBarColorHeight();
             setResizeButtonColor(uiColorSet[index][3]);
-            fofo.changeColor(uiColorSet[index][1]);
+
             toolTipBox.setBGColor(toolTipBoxBGColor[index]);
             hintBox.setBGColor(toolTipBoxBGColor[index]);
             hint.setCursorColor(hintCursorColor[index]);
+            fofo.changeColor(uiColorSet[index][1]);
 
             if(canvasWindowON)
             {
@@ -7558,6 +7726,7 @@
             topBar.addEventListener(MouseEvent.MOUSE_OVER,topBarHintONEvent);
             controlBox.addEventListener(MouseEvent.MOUSE_OVER,controlBoxHintONEvent);
             pickerBox.addEventListener(MouseEvent.MOUSE_OVER,pickerBoxHintONEvent);
+            sideBarScrollBar.addEventListener(MouseEvent.MOUSE_OVER,scrollBarHintONEvent);
             loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLoadBox);
         }
 
@@ -10292,6 +10461,8 @@
                 fitCanvasToWindow();
                 rzoomedIndex = zoomList.indexOf(1.0);
             }
+
+            setcanvasFlash(rcanvasPanel,0,0,RCANVAS_WIDTH,RCANVAS_HEIGHT);
         }
 
         private function cancelRestartTimer():void
@@ -13752,7 +13923,8 @@
 
         private function getMyPaletteIndexByMousePosLimitBound():int
         {
-            const compactLine:int = (myPalettePresetType === 0 && myPaletteViewAllMode) ? 8:2;
+            const isAllViewMode:Boolean = (myPalettePresetType === 0 && myPaletteViewAllMode);
+            const paletteLines:int = (isAllViewMode) ? 8:2;
             var xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
             var yLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseY/myPaletteColorHeight)
 
@@ -13760,7 +13932,17 @@
             else if(xLineIndex > 9) xLineIndex = 9;
 
             if(yLineIndex < 0) yLineIndex = 0;
-            else if(yLineIndex > compactLine) yLineIndex = compactLine;
+            else if(yLineIndex >= paletteLines)
+            {
+                if(isAllViewMode)
+                {
+                    yLineIndex = paletteLines;
+                }
+                else
+                {
+                    yLineIndex = paletteLines-1;
+                }
+            }
 
             return xLineIndex+yLineIndex*10;
         }
@@ -13780,8 +13962,10 @@
 
         private function getMyPaletteIndexByMousePos():int
         {
-            const xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
-            const yLineIndex:int = 10*(Math.floor(pickerBox.myPaletteBox.mouseY/myPaletteColorHeight));
+            var xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
+            var yLineIndex:int = 10*(Math.floor(pickerBox.myPaletteBox.mouseY/myPaletteColorHeight));
+            if(xLineIndex > 9) xLineIndex = 9;
+            if(yLineIndex > 80) yLineIndex = 80;
 
             if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > myPaletteLimitTotal)
             {
@@ -13824,6 +14008,11 @@
             setNowToolForDrawing(false);
         }
 
+        private function isSelctedHistoryColorEmpty(index:int):Boolean
+        {
+             return !(myPalettePreset[index+90] is uint);
+        }
+
         private function isSelctedColorEmpty(index:int):Boolean
         {
             var list:Array = (myPalettePresetType === 1) ? myPaletteDrawrPreset
@@ -13855,7 +14044,7 @@
         {
             const index:int = getHistoryIndexByMousePos();
 
-            if(index < 0 || index !== myPaletteDragClickedIndex)
+            if(index < 0 || myPaletteDragStarted)// || index !== myPaletteDragClickedIndex)
             {
                 return;
             }
@@ -13977,8 +14166,6 @@
         {
             myPaletteViewAllMode = false;
             updateMyPaletteList();
-            updateScrollBarHeight();
-            checkFOFOPosition();
             hint.off();
         }
 
@@ -13986,8 +14173,6 @@
         {
             myPaletteViewAllMode = true;
             updateMyPaletteList();
-            updateScrollBarHeight();
-            checkFOFOPosition();
             hint.off();
         }
 
@@ -14107,11 +14292,18 @@
             updateHistoryList();
         }
 
-        private function updateHistoryList():void
+        private function updateHistoryList(ignoreIndex:int=-1):void
         {
             pickerBox.historyBox.graphics.clear();
+
+
             for(var i:uint=0;i<10;i++)
             {
+                if(i+90 === ignoreIndex)
+                {
+                    drawColorStartPos(pickerBox.historyBox.graphics,myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
+                    continue;
+                }
                 if(!(myPalettePreset[i+90] is uint))
                 {
                     pickerBox.historyBox.graphics.beginBitmapFill(pickerBox.myPaletteTransBGBmpd);
@@ -14123,6 +14315,7 @@
 
                 pickerBox.historyBox.graphics.drawRect(myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
             }
+
             pickerBox.historyBox.graphics.endFill();
 
             pickerBox.historyBox.graphics.lineStyle(1,0,0.2);
@@ -14131,6 +14324,19 @@
                 pickerBox.historyBox.graphics.moveTo(myPaletteColorWidth*i,0);
                 pickerBox.historyBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight);
             }
+        }
+
+        private function drawColorStartPos(g:Graphics,px:Number,py:Number,ww:Number,hh:Number):void
+        {
+            g.beginFill(0xFFFFFF);
+            g.drawRect(px,py,myPaletteColorWidth,myPaletteColorHeight);
+            g.endFill();
+            g.lineStyle(3,0xFF6600);
+            g.moveTo(px+5,py+5);
+            g.lineTo(px+ww-5,py+hh-5);
+            g.moveTo(px+ww-5,py+5);
+            g.lineTo(px+5,py+hh-5);
+            g.lineStyle(0,0,0);
         }
 
         private function updateMyPaletteList(ignoreIndex:int=-1):void
@@ -14170,17 +14376,7 @@
 
                 if(i === ignoreIndex)
                 {
-                    pickerBox.myPaletteBox.graphics.beginFill(0xFFFFFF);
-                    pickerBox.myPaletteBox.graphics.drawRect(px,py,ww,hh);
-                    pickerBox.myPaletteBox.graphics.endFill();
-
-                    pickerBox.myPaletteBox.graphics.lineStyle(3,0xFF6600);
-                    pickerBox.myPaletteBox.graphics.moveTo(px+5,py+5);
-                    pickerBox.myPaletteBox.graphics.lineTo(px+ww-5,py+hh-5);
-                    pickerBox.myPaletteBox.graphics.moveTo(px+ww-5,py+5);
-                    pickerBox.myPaletteBox.graphics.lineTo(px+5,py+hh-5);
-                    pickerBox.myPaletteBox.graphics.lineStyle(0,0,0);
-
+                    drawColorStartPos(pickerBox.myPaletteBox.graphics,px,py,ww,hh);
                     continue;
                 }
 
@@ -15223,7 +15419,7 @@
             {
                 if(drawCaptureArea.isFullImageCapture())
                 {
-                    hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nDraw capture area [click+drag]"+STRING_CAPTURE_OK,null);
+                    hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nDraw capture area [click+drag]"+STRING_CAPTURE_OK,null,true);
                 }
                 else
                 {
@@ -15237,7 +15433,7 @@
                     }
                     else
                     {
-                        hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nDraw capture area [click+drag]"+STRING_CAPTURE_OK,null);
+                        hint.on(drawCaptureArea.getRotatedRectSizeString()+"\nDraw capture area [click+drag]"+STRING_CAPTURE_OK,null,true);
                     }
                 }
             }
@@ -15286,6 +15482,16 @@
                 return;
             }
 
+            if(targetName === "capClipBoard")
+            {
+                setCaptureFlashEffect();
+                if(target.alpha < 1.0 && topBar.hitTestPoint(mouseX,mouseY))
+                {
+                    return;
+                }
+                checkButtonUp(targetName);
+            }
+
             if(target.alpha < 1.0 && topBar.hitTestPoint(mouseX,mouseY))
             {
                 return;
@@ -15298,7 +15504,6 @@
                 case "capFull":
                 case "capOff":
                 case "capTrans":
-                case "capClipBoard":
                 {
                     checkButtonUp(targetName);
                 }
@@ -15354,6 +15559,7 @@
                     }
                     else if(subKey === KEY.c || subKey === KEY.m)
                     {
+                        setCaptureFlashEffect();
                         if(topBar.capClipBoard.alpha === 1.0)
                         {
                             copyCaptureImageToCilpBoard();
@@ -16711,6 +16917,8 @@
         {
             if(fileBrowserON) return;
 
+            setCaptureFlashEffect();
+
             const replayMode:Boolean = replayModeON;
             var name:String = saveFileName;
             var path:String = saveFilePath;
@@ -17157,7 +17365,8 @@
                             "myPaletteViewAllMode":myPaletteViewAllMode,
                             "pickerBoxSwapPositionFlag":pickerBoxSwapPositionFlag,
                             "topBar.captureInput.text":topBar.captureInput.text,
-                            "capStampON":capStampON
+                            "capStampON":capStampON,
+                            "scrollSetMovedY":scrollSetMovedY
                             });
             fs.close();
         }
@@ -17391,6 +17600,7 @@
                         pickerBox.swapColorBoxPosition(d["pickerBoxSwapPositionFlag"]);
                     }
 
+                    sideBarScrollSet.y = d["scrollSetMovedY"];
                     topBar.captureInput.text = d["topBar.captureInput.text"];
                     capStampON = d["capStampON"];
 
@@ -21100,7 +21310,6 @@
             toolBox.y = Math.floor(controlBox.y+1);
 
             resetScrollBarXPosition();
-            sideBarScrollBar.y = scrollBarMovedY;
 
             sideBar.y = topBar.BARSIZE*topBar.scaleX;
 
@@ -21148,7 +21357,6 @@
             if(toolBox.getDeafultY() === 0) toolBox.setDeafultY(toolBox.y);
 
             resetScrollBarXPosition();
-            sideBarScrollBar.y = scrollBarMovedY;
 
             sideBar.y = topBar.BARSIZE*topBar.scaleX;
 
@@ -21166,15 +21374,17 @@
             topBar.sideBarPositionButton.visible = true;
             topBar.sideBarPositionButton2.visible = false;
 
-            checkFOFOPosition();
             updateStageOffset();
+            checkFOFOPosition();
 
             if(lassoToolON) checkBoxPosition(lassoMenu);
             if(traceMenuON) checkBoxPosition(traceMenu);
         }
 
-        private function updateScrollBarColorHeight(height:Number):void
+        private function updateScrollBarColorHeight():void
         {
+            const scale:Number = getUIScale();
+            const height:Number = Math.round((stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET)/scale);
             const color1:uint = uiColorSet[uiColorIndex][1];
             const color2:uint = uiColorSet[uiColorIndex][0];
 
@@ -21202,6 +21412,8 @@
             pickerBox.rgbInfo.addEventListener(FocusEvent.FOCUS_IN, rgbInfoTextFocusInEvent);
             pickerBox.rgbInfo.addEventListener(FocusEvent.FOCUS_OUT, rgbInfoTextFocusOutEvent);
 
+            previewBox.scrollRect = new Rectangle(0,0,previewBox.width,previewBox.height)
+
             sideBarScrollSet.addChild(previewBox);
             sideBarScrollSet.addChild(appInfoBox);
             sideBarScrollSet.addChild(toolBox);
@@ -21218,9 +21430,6 @@
             sideBar.updateSideBGSize(getSideBarBGHeight());
             sideBarScrollBar.alpha = 0.7;
             STAGE_TOP_OFFSET = topBar.BARSIZE;
-            sideBarScrollSet.graphics.beginFill(0,0.0);
-            sideBarScrollSet.graphics.drawRect(0,0,sideBarScrollSet.width,sideBarScrollSet.height);
-            sideBarScrollSet.graphics.endFill();
 
             topBar.updateTimerPos(stage.stageWidth);
             stage.addChild(loadMenuBox);
@@ -21295,6 +21504,7 @@
             stageBG.name = "stageBG";
             canvasTraceLayer.name = "canvasTraceLayer";
             canvasGrid.name = "canvasGrid";
+            canvasFlash.name = "canvasFlash";
 
             updateStageBGSize();
 
@@ -21377,40 +21587,9 @@
 
         private function updateScrollBarHeight():void
         {
-            const sth:Number = Math.floor(stage.stageHeight-STAGE_TOP_OFFSET+STAGE_BOTTOM_OFFSET);
-            const scale:Number = getUIScale();
-            const sideBarScaledHeight:Number = getSidebarConstHeight()*scale;
-
-            //창이 늘어났을때 여유공간 있으면 아랫쪽으로 옮겨줌
-            const nowScrollSetBottom:Number = Math.floor(sideBarScaledHeight-2*scale+sideBarScrollSet.y*scale);
-            if(nowScrollSetBottom < sth)
-            {
-                var newYPos:Number = Math.floor(sideBarScrollSet.y*scale+(sth-nowScrollSetBottom))/scale;
-                if(newYPos > 0) newYPos = 0;
-
-                sideBarScrollSet.y = newYPos;
-                scrollSetMovedY = newYPos;
-            }
-
-            if(sideBarScaledHeight-10 < sth)
-            {
-                sideBarScrollBar.x = 0;
-                sideBarScrollBar.visible = false;
-                return;
-            }
-
-            var scScrollBarHeight:Number = Math.floor(sth*(sth/sideBarScaledHeight))/scale;
-            if(scScrollBarHeight < 50) scScrollBarHeight = 50;
-
-            updateScrollBarColorHeight(scScrollBarHeight);
-
-            //스크롤바 위치 갱신
-            const scrollSetY:Number = Math.abs(sideBarScrollSet.y*scale);
-            const factor:Number = (sth-STAGE_BOTTOM_OFFSET-scScrollBarHeight*scale)/(sideBarScaledHeight-sth);
-
-            sideBarScrollBar.y = Math.floor(scrollSetY*factor)/scale;
-            sideBarScrollBar.visible = true;
+            updateScrollBarColorHeight();
             resetScrollBarXPosition();
+            checkScrollSetOutStage();
         }
 
         private function windowResizedBeforeClosingEvent(e:Event):void
@@ -22734,27 +22913,104 @@
         //     sideBarScrollSet.y = Math.floor(my2);
         // }
 
+        // private function setScrollBarMoveButton(deltaY:Number=0.0):void
+        // {
+        //     const scale:Number = getUIScale();
+        //     const sth:Number = stage.stageHeight;
+        //     const canMoveHeight:Number = (sth-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET)-scrollBarHeight*scale;
+        //     const diffHeight:Number = getSidebarConstHeight()*scale-(sth-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET);
+        //     const factor:Number = (diffHeight/canMoveHeight);
+        //     var scrollStarted:Boolean = false;
+        //     var my1:Number = sideBarScrollBar.y;
+        //     var my2:Number = sideBarScrollSet.y;
+        //     var clickY:Number = mouseY;
+        //     const yLimit:Number = Math.ceil(sideBar.HEIGHT-sideBarScrollBar.height-STAGE_BOTTOM_OFFSET/scale);
+
+        //     if(deltaY === 0.0) mouseDragON = true;
+        //     hint.off();
+
+        //     function sideBarMouseUpEvent(e:MouseEvent):void
+        //     {
+        //         mouseDragON = false;
+        //         scrollSetMovedY = sideBarScrollSet.y;
+        //         scrollBarMovedY = sideBarScrollBar.y;
+
+        //         stageMouseMoveEvent.remove("sideBarMouseMoveEvent");
+        //         stage.removeEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
+        //     }
+
+        //     function _moveScroll(subY:Number):void
+        //     {
+        //         my1 = my1-subY;
+        //         my2 = my2+subY*factor;
+
+        //         if(my1 < 0)
+        //         {
+        //             my1 = 0;
+        //             my2 = 0;
+        //         }
+        //         else if(my1 > yLimit)
+        //         {
+        //             my1 = yLimit;
+        //             my2 = -diffHeight/scale;
+        //         }
+
+        //         sideBarScrollBar.y = Math.floor(my1);
+        //         sideBarScrollSet.y = Math.floor(my2);
+        //     }
+
+        //     function sideBarMouseMoveEvent(e:MouseEvent):void
+        //     {
+        //         const subY:Number = (clickY-mouseY)/scale;
+
+        //         _moveScroll(subY);
+
+        //         clickY = mouseY;
+        //     }
+
+        //     if(deltaY === 0.0)
+        //     {
+        //         stageMouseMoveEvent.add("sideBarMouseMoveEvent",sideBarMouseMoveEvent);
+        //         stage.addEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
+        //     }
+        //     else
+        //     {
+        //         _moveScroll(deltaY);
+        //     }
+        // }
+        private function checkScrollSetOutStage():void
+        {
+            const scale:Number = getUIScale();
+            const limitTop:Number = Math.floor(-sideBarConstHeight+20.0);
+            const limitBottom:Number = Math.floor(stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET-20.0*scale);
+
+            if(sideBarScrollSet.y < limitTop)
+            {
+                sideBarScrollSet.y = limitTop;//*scale;
+            }
+            else if(sideBarScrollSet.y*scale > limitBottom)
+            {
+                sideBarScrollSet.y = limitBottom/scale;
+            }
+
+            scrollSetMovedY = sideBarScrollSet.y;
+        }
+
         private function setScrollBarMoveButton(deltaY:Number=0.0):void
         {
             const scale:Number = getUIScale();
-            const sth:Number = stage.stageHeight;
-            const canMoveHeight:Number = (sth-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET)-scrollBarHeight*scale;
-            const diffHeight:Number = getSidebarConstHeight()*scale-(sth-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET);
-            const factor:Number = (diffHeight/canMoveHeight);
-            var scrollStarted:Boolean = false;
-            var my1:Number = sideBarScrollBar.y;
-            var my2:Number = sideBarScrollSet.y;
             var clickY:Number = mouseY;
-            const yLimit:Number = Math.ceil(sideBar.HEIGHT-sideBarScrollBar.height-STAGE_BOTTOM_OFFSET/scale);
+            
+            deltaY = Math.floor(deltaY*scale);
 
             if(deltaY === 0.0) mouseDragON = true;
             hint.off();
 
             function sideBarMouseUpEvent(e:MouseEvent):void
             {
+                checkScrollSetOutStage();
                 mouseDragON = false;
                 scrollSetMovedY = sideBarScrollSet.y;
-                scrollBarMovedY = sideBarScrollBar.y;
 
                 stageMouseMoveEvent.remove("sideBarMouseMoveEvent");
                 stage.removeEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
@@ -22762,31 +23018,16 @@
 
             function _moveScroll(subY:Number):void
             {
-                my1 = my1-subY;
-                my2 = my2+subY*factor;
-
-                if(my1 < 0)
-                {
-                    my1 = 0;
-                    my2 = 0;
-                }
-                else if(my1 > yLimit)
-                {
-                    my1 = yLimit;
-                    my2 = -diffHeight/scale;
-                }
-
-                sideBarScrollBar.y = Math.floor(my1);
-                sideBarScrollSet.y = Math.floor(my2);
+                sideBarScrollSet.y += subY*1.5;
+                scrollSetMovedY = sideBarScrollSet.y;
             }
 
             function sideBarMouseMoveEvent(e:MouseEvent):void
             {
                 const subY:Number = (clickY-mouseY)/scale;
-
                 _moveScroll(subY);
-
                 clickY = mouseY;
+                checkFOFOPosition();
             }
 
             if(deltaY === 0.0)
@@ -23445,13 +23686,11 @@
                 {
                     if(!isSidebarVisible && sideBar.visible)
                     {
-                        if(targetName !== "myPaletteBox")
-                        {
-                            penCursorPosition.setSideBarOFF();
-                            penCursorPosition.setSidebarONDelay();
-                        }
+                        penCursorPosition.setSideBarOFF();
+                        penCursorPosition.setSidebarONDelay();
                     }
-                    else if(isCursorInDrawArea())
+
+                    if(isCursorInDrawArea())
                     {
                         if(toolBox2ON && !deepUndoON) closeToolBox2();
                         else openToolBox2();
@@ -23659,11 +23898,58 @@
                 {
                     removeTimer("addColorMyPaletteDelayTimer");
                     myPaletteDragStarted = true;
-                    pickerBox.setColorHistoryDragBoxColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
+                    pickerBox.setColorDragBoxColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
                     updateMyPaletteList(myPaletteDragClickedIndex);
                 }
 
-                pickerBox.setColorHistoryDragBoxPos(pickerBox.mouseX,pickerBox.mouseY);
+                pickerBox.setColorHistoryDragBoxPos();
+
+            }
+            else
+            {
+                myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+            }
+        }
+
+        private function historyDragMouseUpEvent(e:MouseEvent):void
+        {
+            mouseDragON = false;
+
+            if(myPaletteDragStarted === true)
+            {
+                myPaletteDragStarted = false;
+
+                if(pickerBox.myPaletteBox.hitTestPoint(mouseX,mouseY))
+                {
+                    const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
+                    const colorSave:* = myPalettePreset[putIndex];
+
+                    myPalettePreset[putIndex] = myPaletteDragClickedColor;
+                    myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
+
+                    updateMyPaletteList(myPaletteDragClickedIndex);
+                }
+            }
+
+            updateHistoryList();
+            pickerBox.removeColorHistoryDragBox();
+            stage.removeEventListener(MouseEvent.MOUSE_UP,historyDragMouseUpEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_MOVE,historyColorDragMouseMoveEvent);
+        }
+
+        private function historyColorDragMouseMoveEvent(e:MouseEvent):void
+        {
+            if(Point.distance(myPaletteClickPos,myPaletteMovePos) >= 4)
+            {
+                if(myPaletteDragStarted === false)
+                {
+                    myPaletteDragStarted = true;
+                    pickerBox.setColorDragBoxColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
+                    updateMyPaletteList(myPaletteDragClickedIndex);
+                    updateHistoryList(myPaletteDragClickedIndex);
+                }
+
+                pickerBox.setColorHistoryDragBoxPos();
             }
             else
             {
@@ -23768,14 +24054,14 @@
             }
 
             const targetName:String = target.name;
+            var index:int;
 
-            if(myPalettePresetType === 0)
+            if(targetName === "myPaletteBox")
             {
-                if(targetName === "myPaletteBox")
+                if(myPalettePresetType === 0)
                 {
-                    const index:int = getMyPaletteIndexByMousePos();
+                    index = getMyPaletteIndexByMousePos();
                     myPaletteDragClickedIndex = index;
-
                     if(index >= 0 && !isSelctedColorEmpty(index))
                     {
                         mouseDragON = true;
@@ -23787,10 +24073,20 @@
                     }
                 }
             }
-
-            if(targetName === "historyBox")
+            else if(targetName === "historyBox")
             {
-                myPaletteDragClickedIndex = getHistoryIndexByMousePos();
+                index = getHistoryIndexByMousePos();
+                myPaletteDragClickedIndex = index+90;
+
+                if(index >= 0 && !isSelctedHistoryColorEmpty(index))
+                {
+                    mouseDragON = true;
+                    myPaletteDragClickedColor = myPalettePreset[index+90];
+                    myPaletteClickPos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+                    myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+                    stage.addEventListener(MouseEvent.MOUSE_UP,historyDragMouseUpEvent,false,-1);
+                    stage.addEventListener(MouseEvent.MOUSE_MOVE,historyColorDragMouseMoveEvent);
+                }
             }
 
             switch(targetName)

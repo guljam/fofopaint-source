@@ -59,6 +59,7 @@
 			setChildIndex(toolTipInfoBG,0);
 			toolTipInfoBG.mouseEnabled = false;
 			toolTipInfoText.mouseEnabled = false;
+			mouseEnabled = false;
 		}
 	}
 }
