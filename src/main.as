@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.56;
+        private const APP_VERSION:Number = 25.57;
         private const APP_DATA_VERSION:Number = 2550;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -267,7 +267,6 @@
                     ,canvasPanel:Sprite = new Sprite()//회색 부분을 제외한 그리기 영역 추가
                     ,canvas2:Sprite = new Sprite() //캔버스 2번 임시로 그려주는 캔버스 버퍼?
                     ,canvas2Draw:Shape = new Shape() //실제로 선을 긋는 div
-                    ,canvasPanelMask:Shape = new Shape() //캔버스 마스크
                     ,lassoBox1:Sprite = new Sprite()//선택한 이미지를 그려주고 확대 축소등 조작
                     ,lassoBox2:Sprite = new Sprite()//선택한 이미지를 그려주고 확대 축소등 조작
                     ,penSizeCursor:Shape = new Shape() //펜사이즈 미리 보기
@@ -437,7 +436,6 @@
                     ,rcanvasPanel:Sprite = new Sprite()
                     ,rcanvas2:Sprite = new Sprite()
                     ,rcanvas2Draw:Shape = new Shape()
-                    ,rcanvasPanelMask:Shape = new Shape()
                     ,replayTimeBox:replayTimeBar = new replayTimeBar()
                     ,rcanvas1Bitmap:Bitmap = new Bitmap(rcanvas1BitmapData,"auto",true)
                     ,rcanvas11Bitmap:Bitmap = new Bitmap(rcanvas11BitmapData,"auto",true)
@@ -568,7 +566,7 @@
                     ,updatePenSizeCursor:Function = cUpdatePenSizeCursor()
                     ,undoData:Object = cAddUndoData()
                     ,penCursorPosition:Object = cUpdatePenCursorPosition()
-                    ,checkMainDrawTool:Function = cCheckMainDrawTool()
+                    ,checkSelectMainDrawTool:Function = cCheckSelectMainDrawTool()
                     ,drawCaptureArea:Object = cDrawCaptureArea()
                     ,drawCaptureStamp:Object = cDrawCaptureStamp()
                     ,stageMouseMoveEvent:Object = cMouseMoveStage()
@@ -718,7 +716,7 @@
             setSideBarLeftPosition(); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름
 
             stage.addChild(fofo);
-            stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+1);
+            stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+(stage.getChildIndex(fofo) < stage.getChildIndex(sideBar)?0:1));
         }
 
         //function
@@ -2958,7 +2956,7 @@
 
         private function isSubLayerONReplayMode():Boolean
         {
-            return rcanvasPanel.getChildIndex(rcanvas2) === 1;
+            return rcanvasPanel.getChildIndex(rcanvas2) < rcanvasPanel.getChildIndex(rcanvas1Bitmap);
         }
 
         private function setClearButtonActive():void
@@ -3822,10 +3820,7 @@
 
         private function updateCanvasPanelMask(w:Number,h:Number):void
         {
-            canvasPanelMask.graphics.clear();
-            canvasPanelMask.graphics.beginFill(0xcccccc);
-            canvasPanelMask.graphics.drawRect(0,0,w,h);
-            canvasPanelMask.graphics.endFill();
+            canvasPanel.scrollRect = new Rectangle(0,0,w,h);
         }
 
         private function cDottedLine():Object
@@ -4688,7 +4683,7 @@
             var clickedButton:String;
 
             var fillPenBoxUndoUsed:Boolean = false;
-            var canvas2ZIndexDSave:int = 0;
+            var canvasDrawZIndexSave:int = 0;
 
             function fillPenHint(e:MouseEvent):void
             {
@@ -4742,12 +4737,12 @@
                 }
                 dottedLine.draw(canvas2Draw.graphics,data[0],data[1]);
 
-                canvas2.alpha = 1.0;
-
                 if(subLayerON)
                 {
-                    canvasPanel.setChildIndex(canvas2,canvas2ZIndexDSave);
+                    setCanvas2IndexToLayer1();
                 }
+
+                canvas2.alpha = 1.0;
             }
 
             function cancelFillPen():void
@@ -4769,7 +4764,7 @@
 
                 if(subLayerON)
                 {
-                    canvasPanel.setChildIndex(canvas2,canvas2ZIndexDSave);
+                    setCanvas2IndexToLayer2();
                 }
             }
 
@@ -5038,13 +5033,12 @@
                         data.push(my);
                     }
 
-                    removeTimer("fillPenTimer");
                     if(subLayerON)
                     {
-                        canvas2ZIndexDSave = canvasPanel.getChildIndex(canvas2);
-                        canvasPanel.setChildIndex(canvas2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
+                        setCanvas2IndexToLayer2();
                     }
 
+                    removeTimer("fillPenTimer");
                     drawFillPenData();
                 }
             }
@@ -5118,12 +5112,6 @@
                 data.push(my);
                 lastMousePos.setTo(mx,my);
                 canvas2.alpha = xAlpha;
-
-                if(subLayerON)
-                {
-                    canvas2ZIndexDSave = canvasPanel.getChildIndex(canvas2);
-                    canvasPanel.setChildIndex(canvas2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
-                }
 
                 addEvents();
             }
@@ -7621,6 +7609,22 @@
             xPanel.graphics.endFill();
         }
 
+        private function setCanvas2IndexToLayer1():void
+        {
+            if(canvasPanel.getChildIndex(canvas2) < canvasPanel.getChildIndex(lassoBox1))
+            {
+                canvasPanel.setChildIndex(canvas2,canvasPanel.getChildIndex(lassoBox1));
+            }
+        }
+
+        private function setCanvas2IndexToLayer2():void
+        {
+            if(canvasPanel.getChildIndex(canvas2) > canvasPanel.getChildIndex(canvas1Bitmap))
+            {
+                canvasPanel.setChildIndex(canvas2,canvasPanel.getChildIndex(canvas1Bitmap));
+            }
+        }
+
         private function selectSubLayer(flag:Boolean,onlyViewFlag:Boolean):void
         {
             if(onlyViewFlag)
@@ -7648,13 +7652,13 @@
             {
                 controlBox.layer1SelectButton.alpha = BUTTON_OFF_ALPHA;
                 controlBox.layer2SelectButton.alpha = 1.0;
-                canvasPanel.setChildIndex(canvas2,2);
+                setCanvas2IndexToLayer2();
             }
             else
             {
                 controlBox.layer1SelectButton.alpha = 1.0;
                 controlBox.layer2SelectButton.alpha = BUTTON_OFF_ALPHA;
-                canvasPanel.setChildIndex(canvas1Bitmap,2);
+                setCanvas2IndexToLayer1();
             }
         }
 
@@ -8446,15 +8450,6 @@
             resizeButtonL.visible = flag;
             resizeButtonD.visible = flag;
             resizeButtonU.visible = flag;
-
-            if(flag)
-            {
-                setTransparentBGDrawModeON();
-            }
-            else
-            {
-                setTransparentBGDrawModeOFF();
-            }
         }
 
         private function setResizeButtonVisible(flag:Boolean):void
@@ -8477,15 +8472,17 @@
             if(flag)
             {
                 updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
-                addTimerByName("resizeButtonVisibleDelayTimer",0.7,false,function():void
+                addTimerByName("resizeButtonVisibleDelayTimer",0.9,false,function():void
                 {
                     resizeButtonVisible(true);
+                    setTransparentBGDrawModeON();
                 });
             }
             else
             {
                 removeTimer("resizeButtonVisibleDelayTimer");
                 resizeButtonVisible(false);
+                setTransparentBGDrawModeOFF();
             }
         }
 
@@ -10644,52 +10641,17 @@
         {
             rSubLayerSave = flag;
 
-            if(flag) rcanvasPanel.setChildIndex(rcanvas2,1);
-            else rcanvasPanel.setChildIndex(rcanvas1Bitmap,1);
-        }
-
-        private function setReplayPanelSize(w:Number,h:Number,moveX:Number=0,moveY:Number=0,movedFlag:Boolean=false):void
-        {
-            rcanvasPanel.graphics.clear();
-            rcanvasPanel.graphics.beginFill(RCANVAS_BG_COLOR);
-            rcanvasPanel.graphics.drawRect(0,0,w,h);
-            rcanvasPanel.graphics.endFill();
-
-            rcanvasPanelMask.graphics.clear();
-            rcanvasPanelMask.graphics.beginFill(RCANVAS_BG_COLOR);//paneldraw마스크 아무색이나 상관없음 어차피 마스크로 쓸거라
-            rcanvasPanelMask.graphics.drawRect(0,0,w,h);
-            rcanvasPanelMask.graphics.endFill();
-            rcanvasPanel.mask = rcanvasPanelMask;//마스크 다시 씌워줌
-
-            rcanvas1BitmapData = new BitmapData(w,h,true,0);
-            rcanvas11BitmapData = new BitmapData(w,h,true,0);
-            rcanvas2BitmapData = new BitmapData(w,h,true,0);
-
-            RCANVAS_WIDTH = w;
-            RCANVAS_HEIGHT = h;
-
-            if(movedFlag)
+            if(flag)
             {
-                //movex y는 캔버스 사이즈 조절에서 원점이 움직였을경우 그만큼 bitmapdata를 움직여줘야 원래 이미지대로 나옴
-                var mat:Matrix = new Matrix();
-                mat.translate(moveX,moveY);
-                rcanvas1BitmapData.draw(rcanvas1Bitmap,mat);
-                rcanvas11BitmapData.draw(rcanvas11Bitmap,mat);
+                if(rcanvasPanel.getChildIndex(rcanvas2) > rcanvasPanel.getChildIndex(rcanvas1Bitmap))
+                {
+                    rcanvasPanel.setChildIndex(rcanvas2,rcanvasPanel.getChildIndex(rcanvas1Bitmap));
+                }
             }
-            else
+            else if(rcanvasPanel.getChildIndex(rcanvas2) < rcanvasPanel.getChildIndex(rcanvas1Bitmap))
             {
-                rcanvas1BitmapData.draw(rcanvas1Bitmap);
-                rcanvas11BitmapData.draw(rcanvas11Bitmap);
+                rcanvasPanel.setChildIndex(rcanvas2,rcanvasPanel.getChildIndex(rcanvas1Bitmap));
             }
-
-            if(rcanvas1Bitmap.bitmapData && rcanvas1Bitmap.bitmapData !== rcanvas1BitmapData) rcanvas1Bitmap.bitmapData.dispose();
-            rcanvas1Bitmap.bitmapData = rcanvas1BitmapData;
-
-            if(rcanvas11Bitmap.bitmapData && rcanvas11Bitmap.bitmapData !== rcanvas11BitmapData) rcanvas11Bitmap.bitmapData.dispose();
-            rcanvas11Bitmap.bitmapData = rcanvas11BitmapData;
-
-            autoScroll.updateRCanvasBounds();
-            checkCanvasPanelPos(true);
         }
 
         private function moveImageReplayMode(x:Number,y:Number,layer1:Boolean,layer2:Boolean):void
@@ -10701,6 +10663,7 @@
                 layer1 = true;
                 layer2 = true;
             }
+
             movedMat.translate(x,y);
 
             if(layer1)
@@ -16292,12 +16255,13 @@
             {
                 if(replayModeON)
                 {
-                    rcanvasPanel.mask = rcanvasPanelMask;
+                    rcanvasPanel.scrollRect = new Rectangle(0,0,RCANVAS_WIDTH,RCANVAS_HEIGHT);
                 }
                 else
                 {
-                    canvasPanel.mask = canvasPanelMask;
+                    canvasPanel.scrollRect = new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
                 }
+
                 if(captrueStampBMPD)
                 {
                     captrueStampBMPD.dispose();
@@ -16320,11 +16284,11 @@
             {
                 if(replayModeON)
                 {
-                    rcanvasPanel.mask = null;
+                    rcanvasPanel.scrollRect = null;
                 }
                 else
                 {
-                    canvasPanel.mask = null;
+                    canvasPanel.scrollRect = null;
                 }
 
                 textformat.font = null;
@@ -18704,12 +18668,7 @@
             rcanvasPanel.graphics.drawRect(0,0,w,h);
             rcanvasPanel.graphics.endFill();
 
-            rcanvasPanelMask.graphics.clear();
-            rcanvasPanelMask.graphics.beginFill(bgColor);//paneldraw마스크 아무색이나 상관없음 어차피 마스크로 쓸거라
-            rcanvasPanelMask.graphics.drawRect(0,0,w,h);
-            rcanvasPanelMask.graphics.endFill();
-
-            rcanvasPanel.mask = rcanvasPanelMask;//마스크 다시 씌워줌
+            rcanvasPanel.scrollRect = new Rectangle(0,0,w,h);//마스크 다시 씌워줌
 
             rcanvas1BitmapData = new BitmapData(w,h,true,0);
             rcanvas11BitmapData = new BitmapData(w,h,true,0);
@@ -19506,20 +19465,12 @@
                         lassoMenu.lassoLayerMerge.alpha = 1.0;
                     }
 
-                    canvasPanel.setChildIndex(lassoBox2,canvasPanel.getChildIndex(canvas11Bitmap)+1);
-                    canvasPanel.setChildIndex(lassoBox1,canvasPanel.getChildIndex(canvas1Bitmap)+1);
-
                     lassoBox2.visible = true;
                     lassoMenu.visible = true;
                     setTopChildIndex(lassoMenu);
 
                     if(traceMenuON === true) traceMenu.visible = false;
 
-                    // controlBox.opaSizeButtonWrapper.alpha = BUTTON_OFF_ALPHA;
-                    // controlBox.etcOptionWrapper.alpha = BUTTON_OFF_ALPHA;
-                    // pickerBox.alpha = BUTTON_OFF_ALPHA;
-                    // toolBox.setIconAlphaOnLassoToolON(BUTTON_OFF_ALPHA);
-                    // toolBox.moveToolCursor("toolLasso");
                     addMouseKeyEventLassoTool();
                 }
             }
@@ -20323,7 +20274,6 @@
 
             penSizeCursor.visible = false;
 
-            canvasPanel.setChildIndex(canvas1Bitmap,2);
             updateOpacityCursorPos(penAlphaIndex);
             setAirBrushCheckBox(airBrushON,true);
             setPenSize(penSizeIndex);
@@ -20357,7 +20307,7 @@
         }
 
         //펜 지우개 직선 지우개-직선 통합
-        private function cCheckMainDrawTool():Function
+        private function cCheckSelectMainDrawTool():Function
         {
             var sizeIndex:uint;
             var alphaIndex:uint;
@@ -20368,32 +20318,12 @@
                 {
                     sizeIndex = penSizeIndex;
                     alphaIndex = penAlphaIndex;
-
-                    if(subLayerON)
-                    {
-                        canvasPanel.setChildIndex(canvas2,2);
-                    }
-                    else
-                    {
-                        canvasPanel.setChildIndex(canvas1Bitmap,2);
-                    }
-
                     setAirBrushCheckBox(airBrushON,true);
                 }
                 else
                 {
                     sizeIndex = eraseSizeIndex;
                     alphaIndex = eraseAlphaIndex;
-
-                    if(subLayerON)
-                    {
-                        canvasPanel.setChildIndex(canvas2,2);
-                    }
-                    else
-                    {
-                        canvasPanel.setChildIndex(canvas1Bitmap,2);
-                    }
-
                     setAirBrushCheckBox(eraseAirBrushON,false);
                 }
                 setPenSize(sizeIndex);
@@ -20439,20 +20369,19 @@
         private function selectLineTool():void
         {
             setNowTool(TOOL_LINE);
-            checkMainDrawTool(penSize,penColor,penAlpha,penShape,true,true);
+            checkSelectMainDrawTool(penSize,penColor,penAlpha,penShape,true,true);
         }
 
         private function selectPenTool():void
         {
             setNowTool(TOOL_PEN);
-            checkMainDrawTool(penSize,penColor,penAlpha,penShape,true,false);
-
+            checkSelectMainDrawTool(penSize,penColor,penAlpha,penShape,true,false);
         }
 
         private function selectEraseTool():void
         {
             setNowTool(TOOL_ERASE);
-            checkMainDrawTool(eraseSize,CANVAS_BG_COLOR,eraseAlpha,eraseShape,false,false);
+            checkSelectMainDrawTool(eraseSize,CANVAS_BG_COLOR,eraseAlpha,eraseShape,false,false);
         }
 
         //라소박스 변형이랑 플래그 초기화
@@ -21546,21 +21475,14 @@
             rcanvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
             rcanvasPanel.graphics.endFill();
 
-            //캔버스 박스에서 lineto가 아무데나 그려지면 안되서 mask로 가려줌
-            rcanvasPanelMask.graphics.beginFill(CANVAS_BG_COLOR);//paneldraw마스크 아무색이나 상관없음 어차피 마스크로 쓸거라
-            rcanvasPanelMask.graphics.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            rcanvasPanelMask.graphics.endFill();
-            rcanvasPanelMask.visible = false;
-
             rcanvas2.addChild(rcanvas2Bitmap);//
             rcanvas2.addChild(rcanvas2Draw);//canvas2에
             rcanvas2.blendMode = "layer";//캔버스1이랑 알파 불투명도가 겹치지 않게 layer모드로 해줌
 
-            rcanvasPanel.addChild(rcanvas11Bitmap);//판넬에 canvas1추가
+            rcanvasPanel.addChild(rcanvas11Bitmap);//판넬에 canvas11추가
             rcanvasPanel.addChild(rcanvas1Bitmap);//판넬에 canvas1추가
             rcanvasPanel.addChild(rcanvas2);//판넬에 canvas2추가
-            rcanvasPanel.addChild(rcanvasPanelMask);//판넬에  마스크 추가
-            rcanvasPanel.mask = rcanvasPanelMask;//마스크 해줘서 판 밖으로 선나타나지 않도록함
+            rcanvasPanel.scrollRect = new Rectangle(0,0,RCANVAS_HEIGHT,RCANVAS_HEIGHT);//마스크 해줘서 판 밖으로 선나타나지 않도록함
 
             rcanvasPanel.x = Math.floor(-rcanvasPanel.width/2);
             rcanvasPanel.y = Math.floor(-rcanvasPanel.height/2);
@@ -21605,7 +21527,6 @@
 
             setBackgroundColorDrawMode(CANVAS_BG_COLOR);
             updateCanvasPanelMask(CANVAS_WIDTH,CANVAS_HEIGHT);
-            canvasPanelMask.visible = false;
 
             updateStageBGColor(uiColorSet[uiColorIndex][2]);
 
@@ -21615,18 +21536,16 @@
             canvas2.addChild(canvas2Draw);
             canvas2.blendMode = "layer";//캔버스1이랑 알파 불투명도가 겹치지 않게 layer모드로 해줌
 
+            rCursor.visible = false;
+
             canvasPanel.addChild(canvasTraceLayer);
             canvasPanel.addChild(canvas11Bitmap);
             canvasPanel.addChild(lassoBox2);
             canvasPanel.addChild(canvas1Bitmap);
-            canvasPanel.addChild(canvas2);
             canvasPanel.addChild(lassoBox1);
+            canvasPanel.addChild(canvas2);
             canvasPanel.addChild(canvasGrid);
-            rCursor.visible = false;
             canvasPanel.addChild(rCursor);
-            canvasPanel.addChild(canvasPanelMask);
-            canvasPanel.mask = canvasPanelMask;
-
             //canvasrotate가 중점으로 올수있게 위치를 절반으로세팅
             canvasPanel.x = Math.floor(-canvasPanel.width/2);
             canvasPanel.y = Math.floor(-canvasPanel.height/2);
