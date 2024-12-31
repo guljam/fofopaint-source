@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.55;
+        private const APP_VERSION:Number = 25.56;
         private const APP_DATA_VERSION:Number = 2550;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -722,6 +722,63 @@
         }
 
         //function
+        private function setTransparentBGDrawModeOFF():void
+        {
+            if(!canvasPanel.getChildByName("canvasFlash"))
+            {
+                return;
+            }
+
+            addTimerByName("viewTransBGTimer",0.0,true,function doTransBG():Boolean
+            {
+                if(canvasFlash.alpha < 0.0)
+                {
+                    canvasFlash.alpha = 0.0;
+                    canvasFlash.visible = false;
+                    canvasFlash.graphics.clear();
+                    if(canvasPanel.getChildByName("canvasFlash"))
+                    {
+                        canvasPanel.removeChild(canvasFlash);
+                    }
+                    return false;
+                }
+
+                canvasFlash.alpha -= 0.1;
+                return true;
+            });
+        }
+
+        private function setTransparentBGDrawModeON():void
+        {
+            if(!canvasPanel.getChildByName("canvasFlash"))
+            {
+                canvasPanel.addChild(canvasFlash);
+                canvasPanel.setChildIndex(canvasFlash,0);
+                canvasFlash.visible = true;
+                canvasFlash.graphics.beginBitmapFill(capTransparentBGBMPD);
+                canvasFlash.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                canvasFlash.graphics.endFill();
+                canvasFlash.alpha = 0.0;
+            }
+
+            if(canvasFlash.alpha >= 1.0)
+            {
+                return;
+            }
+
+            addTimerByName("viewTransBGTimer",0.0,true,function doTransBG():Boolean
+            {
+                if(canvasFlash.alpha >= 1.0)
+                {
+                    canvasFlash.alpha = 1.0;
+                    return false;
+                }
+
+                canvasFlash.alpha += 0.1;
+                return true;
+            });
+        }
+
         private function setCaptureFlashEffect():void
         {
             if(drawCaptureArea.isFullImageCapture())
@@ -752,12 +809,14 @@
             canvasFlash.visible = true;
             canvasFlash.graphics.beginFill(0xFFFFFF);
             canvasFlash.graphics.drawRect(ox,oy,width,height);
+            canvasFlash.graphics.endFill();
             canvasFlash.alpha = 1.0;
 
             addTimerByName("flashingTimer",0.0,true,function doFlash():Boolean
             {
                 if(canvasFlash.alpha < 0.0)
                 {
+                    canvasFlash.alpha = 0.0;
                     canvasFlash.visible = false;
                     canvasFlash.graphics.clear();
                     if(parent.getChildByName("canvasFlash"))
@@ -8387,6 +8446,15 @@
             resizeButtonL.visible = flag;
             resizeButtonD.visible = flag;
             resizeButtonU.visible = flag;
+
+            if(flag)
+            {
+                setTransparentBGDrawModeON();
+            }
+            else
+            {
+                setTransparentBGDrawModeOFF();
+            }
         }
 
         private function setResizeButtonVisible(flag:Boolean):void
@@ -19975,7 +20043,7 @@
                     else if(!isNowKey(KEY.space)) setNowToolByOldTool();
 
                     toolBox.setCursorVisible(true);
-                    updatePreviewBoxRectPos();
+                    updatePreviewBoxRectPos();   
                 }
                 else
                 {
