@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.51;
+        private const APP_VERSION:Number = 25.52;
         private const APP_DATA_VERSION:Number = 2550;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -10893,7 +10893,8 @@
             {
                 if(subLayerFlag)
                 {
-                    if((replayStartON && subLayerFlag) !== false && rSubLayerSave !== subLayerFlag)
+                    // if((replayStartON && subLayerFlag) !== false && rSubLayerSave !== subLayerFlag)
+                    if(rSubLayerSave !== subLayerFlag)
                     {
                         selectReplaySubLayer(subLayerFlag);
                     }
