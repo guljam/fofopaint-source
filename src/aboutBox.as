@@ -11,7 +11,7 @@
 		public var memoryInfo:TextField;
 		public var resetAppButton:SimpleButton;
 		public var releaseNoteButton:SimpleButton;
-		public var aboutTwitterLink:SimpleButton;
+		public var aboutMeLink:SimpleButton;
 		public var aboutHomePageLink:SimpleButton;
 		public var logo1:SimpleButton;
 		public var logo2:SimpleButton;
@@ -67,6 +67,8 @@
 			logo3.mouseEnabled = false;
 			logo4.mouseEnabled = false;
 			logo5.mouseEnabled = false;
+
+			aboutMeLink.mouseEnabled = false;
 
 			memoryInfo.autoSize = TextFieldAutoSize.RIGHT;
 		}

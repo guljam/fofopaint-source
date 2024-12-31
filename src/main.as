@@ -9203,7 +9203,7 @@
                 case "jp":
                 case "eng":
                 case "aboutHomePageLink":
-                case "aboutTwitterLink":
+                // case "aboutMeLink":
                     checkButtonUp(targetName);
                 break;
 
@@ -9387,9 +9387,9 @@
                                 navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/"));
                             break;
 
-                            case "aboutTwitterLink":
-                                navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));
-                            break;
+                            // case "aboutMeLink":
+                            //     navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));
+                            // break;
 
                             default:
                                 closeAboutPanel();
