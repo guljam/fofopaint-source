@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.57;
+        private const APP_VERSION:Number = 25.58;
         private const APP_DATA_VERSION:Number = 2550;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3606,10 +3606,10 @@
 
             if(traceMenuON) traceMenu.visible = false;
 
-            checkFOFOPosition();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             setSidebarReCacheBitmap();
             sideBar.visible = true;
+            checkFOFOPosition();
         }
 
         private function deleteOldAppData():void
@@ -23016,13 +23016,13 @@
 
                 stageMouseMoveEvent.remove("sideBarMouseMoveEvent");
                 stage.removeEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
+                checkFOFOPosition();
             }
 
             function _moveScroll(subY:Number):void
             {
                 sideBarScrollSet.y += subY*1.5;
                 scrollSetMovedY = sideBarScrollSet.y;
-                checkFOFOPosition();
             }
 
             function sideBarMouseMoveEvent(e:MouseEvent):void
