@@ -2363,10 +2363,7 @@
 
         private function setStageFocusNull():void
         {
-            if(stage.focus !== null)
-            {
-                stage.focus = null;
-            }
+            stage.focus = null;
 
             if(numPadBox.visible)
             {
