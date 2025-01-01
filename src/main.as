@@ -2686,6 +2686,8 @@
 
             const checkYPos:int = checkFOFOSideBarCollision();
 
+            fofo.visible = sideBar.visible;
+
             if(checkYPos === 3)
             {
                 return;
