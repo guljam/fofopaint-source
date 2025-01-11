@@ -26,6 +26,7 @@
 		public var capTrans:SimpleButton;
 		public var capClipBoard:SimpleButton;
 		public var capStamp:SimpleButton;
+		public var capStampFont:SimpleButton;
 		public var saveButton:SimpleButton;
 		public var repSaveButton:SimpleButton;
 		public var loadButton:SimpleButton;
@@ -329,6 +330,7 @@
 			capTrans.transform.colorTransform = opColor;
 			capClipBoard.transform.colorTransform = opColor;
 			capStamp.transform.colorTransform = opColor;
+			capStampFont.transform.colorTransform = opColor;
 			captureInputBorder.transform.colorTransform = opColor;
 			saveButton.transform.colorTransform = opColor;
 			repSaveButton.transform.colorTransform = opColor;
@@ -496,6 +498,7 @@
 												capLayer1VisibleButton,
 												capLayer2VisibleButton,
 												capStamp,
+												capStampFont,
 
 												saveButton,
 												repSaveButton,
@@ -611,6 +614,7 @@
 			capTrans.useHandCursor = false;
 			capClipBoard.useHandCursor = false;
 			capStamp.useHandCursor = false;
+			capStampFont.useHandCursor = false;
 			saveButton.useHandCursor = false;
 			repSaveButton.useHandCursor = false;
 			loadButton.useHandCursor = false;
@@ -659,8 +663,8 @@
 								[gridButton,superUndoButton,capLayer1VisibleButton],
 								[sideBarPositionButton,replayZoomInButton,capLayer2VisibleButton],
 								[sideBarOFFButton,replayZoomOutButton,capStamp],
-								[topBarColorButton,replayFitToWindowButton,captureInputWarpper],
-								[dpiButton,replayRotateButton],
+								[topBarColorButton,replayFitToWindowButton,capStampFont],
+								[dpiButton,replayRotateButton,captureInputWarpper],
 								[replayRepeatButton,newWindowButton,newWindowCloseButton],
 								[aboutButton,replaySpeedSliderWrapper]
 							];
@@ -712,7 +716,8 @@
 									capLayer1VisibleButton,
 									capLayer2VisibleButton,
 									capStamp,
-									captureInputWarpper
+									captureInputWarpper,
+									capStampFont
 								 ];
 			initModeButtons();
 			initMouseDownState();

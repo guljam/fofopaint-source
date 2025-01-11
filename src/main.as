@@ -53,18 +53,19 @@
     import flash.system.WorkerDomain;
     import flash.system.MessageChannel;
     import flash.system.System;
-    import flash.text.TextField;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
-    import flash.ui.Mouse;
+    import flash.text.TextField;
     import flash.text.TextFieldType;
     import flash.text.TextFormat;
+    import flash.ui.Mouse;
+    import flash.text.TextLineMetrics;
     //import end
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.60;
-        private const APP_DATA_VERSION:Number = 2550;
+        private const APP_VERSION:Number = 25.61;
+        private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -219,7 +220,7 @@
                     ,STRING_PLAYBACK_SPEED:String = "Playback speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
-                    ,STRING_CAPTURE_OK:String = ", Save [click], Reset [right-click]"
+                    ,STRING_CAPTURE_OK:String = ", Reset [right-click]"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
@@ -281,7 +282,7 @@
                     ,spuitZoomCursor:spuitMag = new spuitMag()
                     ,toolTipBox:toolTipBoxSet = new toolTipBoxSet()//도움말 버튼
                     ,hintBox:toolTipBoxSet = new toolTipBoxSet()
-                    ,hintCursor:Shape = new Shape()//도움말 버튼 커서
+                    ,hintHorverCursor:Shape = new Shape()//도움말 버튼 커서
                     ,hint:Object = cHint()
                     ,stageBG:Sprite = new Sprite() //드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
                     ,aboutPanel:aboutBox = new aboutBox()
@@ -297,6 +298,7 @@
                     ,sideBarScrollBar:Sprite = new Sprite()
                     ,sideBarScrollSet:Sprite = new Sprite()
                     ,canvasFlash:Sprite = new Sprite()
+                    ,capStampFontListBox:capStampFontList = new capStampFontList()
                     ;
 
         private var  canvas1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
@@ -597,7 +599,7 @@
                                                 [COLOR_BRIGHT,      0xE7E7E7,   0x505050,  0x505050,           0xCEEBF2,           0x505050]
                     ]
                     ,toolTipBoxBGColor:Array = [0xFF7943,0xFF8A2C,0xFFAF45,0xFFCF46]
-                    ,hintCursorColor:Array = [0x73B5E4,0x7AC3F0,0x6C9CDB,0x609CFF]
+                    ,hintHorverCursorColor:Array = [0x73B5E4,0x7AC3F0,0x6C9CDB,0x609CFF]
         //워커 변수
         protected var worker:Worker
                     ,mainToBack:MessageChannel
@@ -710,7 +712,7 @@
             selectPenTool();
             pickerBox.selectPresetButton(0);
             hint.updateScale(getUIScale());
-            hint.setCursorColor(hintCursorColor[uiColorIndex]);
+            hint.setCursorColor(hintHorverCursorColor[uiColorIndex]);
             toolTipBox.setBGColor(toolTipBoxBGColor[uiColorIndex]);
             hintBox.setBGColor(toolTipBoxBGColor[uiColorIndex]);
             setSideBarLeftPosition(); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름
@@ -720,6 +722,61 @@
         }
 
         //function
+        private function setCaptureFontListVisibleOff():void
+        {
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN,checkCaptureStampFontListVisibleOFFMouseDownEvent);    
+            capStampFontListBox.visible = false;
+        }
+        private function checkCaptureStampFontListVisibleOFFMouseDownEvent(e:MouseEvent):void
+        {
+            if(!(capStampFontListBox.hitTestPoint(mouseX,mouseY) || topBar.capStampFont.hitTestPoint(mouseX,mouseY)))
+            {
+                setCaptureFontListVisibleOff();
+            }
+        }
+
+        private function setCaptureStampFontBoxVisbleON():void
+        {
+            if(!capStampFontListBox.visible)
+            {
+                const gp:Point = topBar.capStampFont.localToGlobal(ZERO_POINT);
+
+                capStampFontListBox.x = gp.x;
+                capStampFontListBox.y = topBar.BARSIZE*topBar.scaleX;
+                capStampFontListBox.updateSystemFontList();
+                setTopChildIndex(capStampFontListBox);
+                capStampFontListBox.setScale(getUIScale());
+                capStampFontListBox.visible = true;
+
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,checkCaptureStampFontListVisibleOFFMouseDownEvent,false,-1);
+            }
+        }
+
+        private function captureStampFontListHintONEvent(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+            if(!target) return;
+
+            const targetName:String = e.target.name;
+            var str:String = "";
+
+            switch(targetName)
+            {
+                 case "capFontListPrev":
+                    str = "Prev";
+                break;
+
+                case "capFontListNext":
+                    str = "Next";
+                break;
+
+                default:
+                return;
+            }
+
+            hint.on(str,target);
+        }
+
         private function setTransparentBGDrawModeOFF():void
         {
             if(!canvasPanel.getChildByName("canvasFlash"))
@@ -1631,7 +1688,7 @@
 
             if(!rgbInfoFocusedON && !mouseDragON && !captureModeON)
             {
-                if(hintBox.visible || hintCursor.visible)
+                if(hintBox.visible || hintHorverCursor.visible)
                 {
                     hint.off();
                 }
@@ -1669,6 +1726,63 @@
             var cursorColor:uint = 0;
             var targetSave:DisplayObject;
             var hintONTime:int = 0;
+            var hintMoveWaitCountFirst:int = 0;
+            var hintMoveWaitCountAfter:int = 0;
+            var hintMoveDirection:Boolean = true;
+            var hintMoveSpeed:Number = 2;
+            var timeSum:int = 1000/stage.frameRate;
+
+            function checkMoveingHint(e:Event):void
+            {
+                if(hintBox.width > stage.stageWidth)
+                {
+                    if(hintMoveWaitCountFirst >= 1000)
+                    {
+                        if(hintMoveDirection)
+                        {
+                            if(hintBox.x+hintBox.width > stage.stageWidth)
+                            {
+                                hintBox.x = hintBox.x-hintMoveSpeed*hintBox.scaleX;
+                            }
+                            else
+                            {
+                                hintMoveWaitCountAfter += timeSum;
+                                if(hintMoveWaitCountAfter >= 1000)
+                                {
+                                    hintMoveWaitCountAfter = 0;
+                                    hintMoveDirection = !hintMoveDirection;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if(hintBox.x < 0)
+                            {
+                                hintBox.x = hintBox.x+hintMoveSpeed*hintBox.scaleX
+                            }
+                            else
+                            {
+                                hintMoveWaitCountAfter += timeSum;
+                                if(hintMoveWaitCountAfter >= 1000)
+                                {
+                                    hintMoveWaitCountAfter = 0;
+                                    hintMoveDirection = !hintMoveDirection;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        hintMoveWaitCountFirst += timeSum;
+                    }
+                }
+                else
+                {
+                    hintMoveWaitCountFirst = 0;
+                    hintMoveWaitCountAfter = 0;
+                    hintMoveDirection = true;
+                }
+            }
 
             function isHintStarted():String
             {
@@ -1692,34 +1806,34 @@
                 w = target.width*scale;
                 h = target.height*scale;
 
-                hintCursor.graphics.clear();
-                hintCursor.graphics.lineStyle(2.0*scale,cursorColor);
+                hintHorverCursor.graphics.clear();
+                hintHorverCursor.graphics.lineStyle(2.0*scale,cursorColor);
 
                 if(target is TextField)
                 {
-                    hintCursor.x = gp.x-2*scale;
-                    hintCursor.y = gp.y-3*scale;
+                    hintHorverCursor.x = gp.x-2*scale;
+                    hintHorverCursor.y = gp.y-3*scale;
                 }
                 else if(target === controlBox.airBrushButtonWrapper || target === controlBox.sharpLineButtonWrapper)
                 {
-                    hintCursor.x = gp.x-scale;
-                    hintCursor.y = gp.y-scale;
+                    hintHorverCursor.x = gp.x-scale;
+                    hintHorverCursor.y = gp.y-scale;
                 }
                 else
                 {
-                    hintCursor.x = gp.x;
-                    hintCursor.y = gp.y;
+                    hintHorverCursor.x = gp.x;
+                    hintHorverCursor.y = gp.y;
                 }
 
-                hintCursor.graphics.drawRect(0,0,w,(target is TextField) ? h-scale:h);
+                hintHorverCursor.graphics.drawRect(0,0,w,(target is TextField) ? h-scale:h);
 
-                setTopChildIndex(hintCursor);
-                hintCursor.visible = true;
+                setTopChildIndex(hintHorverCursor);
+                hintHorverCursor.visible = true;
             }
 
             function hintOFFImmediately():void
             {
-                hintCursor.visible = false;
+                hintHorverCursor.visible = false;
                 lastHint = null;
                 targetSave = null;
                 removeTimer("hintOFFTimer");
@@ -1733,7 +1847,7 @@
                 lastHint = null;
                 targetSave = null;
                 removeTimer("hintOFFTimer");
-                hintCursor.visible = false;
+                hintHorverCursor.visible = false;
                 addTimerByName("hintOFFDelayTimer",0.3,false,function():void
                 {
                     hintFullOFF();
@@ -1742,6 +1856,9 @@
 
             function hintFullOFF():void
             {
+                stage.removeEventListener(Event.ENTER_FRAME,checkMoveingHint);
+                hintMoveWaitCountFirst = 0;
+                hintMoveWaitCountAfter = 0;
                 hintONTime = 0;
                 hintBox.visible = false;
                 hintBox.setText("");
@@ -1763,7 +1880,7 @@
 
             function hintON(str:String,target:DisplayObject,fastHint:Boolean=false):void
             {
-                if(!hintCursor.visible && !fastHint)
+                if(!hintHorverCursor.visible && !fastHint)
                 {
                     return;
                 }
@@ -1781,10 +1898,12 @@
                 // hintONEffect();
                 setTopChildIndex(hintBox);
                 hintBox.visible = true;
+                stage.addEventListener(Event.ENTER_FRAME,checkMoveingHint);
             }
 
             function start(str:String,target:DisplayObject,fastHint:Boolean=false):void
             {
+                str = "*"+str.replace(/\n/g, " *");
                 if(hintBox.visible && lastHint === str)
                 {
                     return;
@@ -3498,7 +3617,7 @@
                 traceMenu.visible = true;
             }
 
-            if(hintBox.visible || hintCursor.visible)
+            if(hintBox.visible || hintHorverCursor.visible)
             {
                 hint.off();
             }
@@ -4458,7 +4577,7 @@
             {
                 sideBar.visible = false;
 
-                if(hintBox.visible || hintCursor.visible)
+                if(hintBox.visible || hintHorverCursor.visible)
                 {
                     hint.off();
                 }
@@ -7758,8 +7877,9 @@
 
             toolTipBox.setBGColor(toolTipBoxBGColor[index]);
             hintBox.setBGColor(toolTipBoxBGColor[index]);
-            hint.setCursorColor(hintCursorColor[index]);
+            hint.setCursorColor(hintHorverCursorColor[index]);
             fofo.changeColor(uiColorSet[index][1]);
+            capStampFontListBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1]);
 
             if(canvasWindowON)
             {
@@ -7808,6 +7928,7 @@
             pickerBox.addEventListener(MouseEvent.MOUSE_OVER,pickerBoxHintONEvent);
             sideBarScrollBar.addEventListener(MouseEvent.MOUSE_OVER,scrollBarHintONEvent);
             loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLoadBox);
+            capStampFontListBox.addEventListener(MouseEvent.MOUSE_OVER,captureStampFontListHintONEvent);
         }
 
         private function setControlBoxInfoOFF():void
@@ -8397,11 +8518,13 @@
             {
                 topBar.capStamp.alpha = 1.0;
                 topBar.captureInputWarpper.visible = true;
+                topBar.capStampFont.visible = true;
             }
             else
             {
                 topBar.capStamp.alpha = BUTTON_OFF_ALPHA;
                 topBar.captureInputWarpper.visible = false;
+                topBar.capStampFont.visible = false;
             }
         }
 
@@ -9580,6 +9703,18 @@
                             setCaptrueStampButton();
                         break;
 
+                        case "capStampFont":
+                            setCaptureStampFontBoxVisbleON();
+                        break;
+
+                        case "capFontListPrev":
+                            capStampFontListBox.updateNextFontList(false);
+                        break;
+
+                        case "capFontListNext":
+                            capStampFontListBox.updateNextFontList(true);
+                        break;
+
                         case "topBarColorButton":
                             setUIColorButton();
                         break;
@@ -10216,6 +10351,10 @@
                     str = "Stamp ON/OFF [f, h]";
                 break;
 
+                case "capStampFont":
+                    str = "Change stamp font";
+                break;
+
                 case "reRecordingButton":
                     str = "New file from this image [click, f2]"+STRING_HOLD_NSEC;
                 break;
@@ -10450,7 +10589,7 @@
             const offsetX:Number = 44+STAGE_LEFT_OFFSET+STAGE_RIGHT_OFFSET;
             const offsetY:Number = (captureMode) ? (topBar.BARSIZE)*getUIScale()+45*getUIScale() : (topBar.BARSIZE+replayTimeBox.BARSIZE)*getUIScale()+45*getUIScale();
             const stw:int = stage.stageWidth-offsetX;
-            const sth:int = stage.stageHeight-offsetY-STAGE_BOTTOM_OFFSET;
+            const sth:int = stage.stageHeight-offsetY-STAGE_BOTTOM_OFFSET-hintBox.height;
             var xBitmap1:Bitmap;
             var xBitmap11:Bitmap;
             var xReg:Sprite;
@@ -15464,7 +15603,12 @@
 
         private function setDefaultHintCaptureMode():void
         {
-            if(!topBar.hitTestPoint(mouseX,mouseY))
+            if(capStampFontListBox.visible)
+            {
+                return;
+            }
+
+            if(!topBar.hitTestPoint(mouseX,mouseY) && !capStampFontListBox.hitTestPoint(mouseX,mouseY))
             {
                 if(drawCaptureArea.isFullImageCapture())
                 {
@@ -15495,9 +15639,9 @@
             {
                 if(mouseDragON) return;
 
-                if(topBar.hitTestPoint(mouseX,mouseY) === false)
+                if(!(topBar.hitTestPoint(mouseX,mouseY) || capStampFontListBox.hitTestPoint(mouseX,mouseY)))
                 {
-                    hintCursor.visible = false;
+                    hintHorverCursor.visible = false;
                 }
             });
         }
@@ -15516,6 +15660,7 @@
         private function mouseDownCaptureMode(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
+
             if(!target)
             {
                 return;
@@ -15524,7 +15669,7 @@
             const targetName:String = target.name;
 
             if(targetName === "capLayer1VisibleButton" || targetName === "capLayer2VisibleButton"
-            || targetName === "capStamp")
+            || targetName === "capStamp" || targetName === "capStampFont")
             {
                 checkButtonUp(targetName);
 
@@ -15543,6 +15688,27 @@
 
             if(target.alpha < 1.0 && topBar.hitTestPoint(mouseX,mouseY))
             {
+                return;
+            }
+
+            if(capStampFontListBox.visible)
+            {
+                if(targetName === "capFontListNext" || targetName === "capFontListPrev")
+                {
+                    checkButtonUp(targetName);
+                }
+                else if(targetName.indexOf(capStampFontListBox.getStampFontButtonName()) !== -1)
+                {
+                    drawCaptureStamp.changeFont(capStampFontListBox.getFontName(targetName),true);
+                }
+                else if(target.parent)
+                {
+                    if(target.parent.name && target.parent.name.indexOf(capStampFontListBox.getStampFontButtonName()) !== -1)
+                    {
+                        drawCaptureStamp.changeFont(capStampFontListBox.getFontName(target.parent.name),true);
+                    }
+                }
+
                 return;
             }
 
@@ -15583,6 +15749,16 @@
         private function keyDownCaptureMode(e:KeyboardEvent):void
         {
             const keyCode:uint = KEY_BUFFER[0];
+
+            if(capStampFontListBox.visible)
+            {
+                if(keyCode === KEY.esc)
+                {
+                    setCaptureFontListVisibleOff();
+                }
+                return;
+            }
+
             if(keyCode === KEY.esc)
             {
                 if(stage.focus === topBar.captureInput)
@@ -15778,6 +15954,7 @@
             captureAreaRect.visible = false;
             captureAreaRect.graphics.clear();
             drawCaptureStamp.off();
+            capStampFontListBox.visible = false;
 
             //캔버스 이전 모양 위치로 복원
             xReg.rotation = data.r;
@@ -15830,10 +16007,37 @@
             const captureStampRect:Rectangle = new Rectangle();
             const bmpdMat:Matrix = new Matrix();
             const defaultFontSize:int = 13;
+            var defaultBmpdHeight:int = defaultFontSize+2;
             var inputUpdateTimer:int = 0;
 
             captureStampBitmap.name = "captureStampBitmap";
             captureStampBitmap.visible = false;
+
+            function getFontName():String
+            {
+                return textformat.font;
+            }
+
+            function checkCaptrueStampBMPDHeight(twolineFlag:Boolean,mainTextWidth:Number):Number
+            {
+                var maxHeight:Number = kungDateStr(twolineFlag,true);
+                const lines1:int = topBar.getCaptureInputFinalLines();
+                if(lines1 === 2) return maxHeight;
+
+                const height2:Number = kungMainStr(twolineFlag,mainTextWidth,true);
+                const lines2:int = topBar.getCaptureInputFinalLines();
+                if(lines2 === 2) return height2;
+                else if(maxHeight < height2) maxHeight = height2;
+
+                return maxHeight;
+            }
+
+            function changeFont(newFont:String,updateFlag:Boolean):void
+            {
+                textformat.font = newFont;
+                topBar.captureInputFinal.setTextFormat(textformat);
+                if(updateFlag) update();
+            }
 
             function getCaptureStampDate(newLine:Boolean):String
             {
@@ -15891,31 +16095,38 @@
                 return getTextWidthText(topBar.getCaptureInputString(),2);
             }
 
-            function _kung(textStr:String,textWidth:Number,align:String,posX:Number,offset:Number):void
-            {   
+            function _kung(textStr:String,textWidth:Number,align:String,posX:Number,offsetX:Number,testHeightFlag:Boolean):Number
+            {
                 textformat.align = align;
                 topBar.captureInputFinal.defaultTextFormat = textformat;
                 topBar.setCaptureInputFinalWidth(textWidth);
                 topBar.setCaptureInputFinalString(textStr);
+
+                if(testHeightFlag)
+                {
+                    return topBar.captureInputFinal.textHeight;
+                }
+
                 bmpdMat.identity();
-                bmpdMat.translate(posX+offset,0);
+                bmpdMat.translate(posX+offsetX,0);
                 captrueStampBMPD.draw(topBar.captureInputFinal,bmpdMat);
+                return 0;
             }
 
-            function kungAppnameStr(newLine:Boolean):void
+            function kungAppnameStr(newLine:Boolean,testHeightFlag:Boolean):Number
             {
                 const textWidth:Number = getTextWidthAppName(newLine);
-                _kung(getAppNameString(newLine),textWidth,"right",captrueStampBMPD.width-textWidth,2);
+                return _kung(getAppNameString(newLine),textWidth,"right",captrueStampBMPD.width-textWidth,2,testHeightFlag);
             }
 
-            function kungMainStr(newLine:Boolean,textWidth:Number):void
+            function kungMainStr(newLine:Boolean,textWidth:Number,testHeightFlag:Boolean):Number
             {
-                _kung(topBar.getCaptureInputString(),textWidth,"left",getTextWidthDate(newLine),0);
+                return _kung(topBar.getCaptureInputString(),textWidth,"left",getTextWidthDate(newLine),0,testHeightFlag);
             }
 
-            function kungDateStr(newLine:Boolean):void
+            function kungDateStr(newLine:Boolean,testHeightFlag:Boolean):Number
             {
-                _kung(getCaptureStampDate(newLine),getTextWidthDate(newLine),"left",2,0);
+                return _kung(getCaptureStampDate(newLine),getTextWidthDate(newLine),"left",2,0,testHeightFlag);
             }
 
             function kungFinal(inputBMPD:BitmapData):void
@@ -15968,6 +16179,11 @@
                     longEdge = clipRect.height > clipRect.width ? clipRect.height : clipRect.width;
                     areaWidth = clipRect.width;
                     areaHeight = clipRect.height;
+                }
+
+                if(areaWidth === 0 || areaHeight === 0)
+                {
+                    return null;
                 }
 
                 var scale:Number = 1.0;
@@ -16154,8 +16370,9 @@
                         }
                         return;
                     }
-
-                    const imageDomiColor:uint = getDominantColor(getSmallBmpd(rect));
+                    const smallBmpd:BitmapData = getSmallBmpd(rect);
+                    if(!smallBmpd) return;
+                    const imageDomiColor:uint = getDominantColor(smallBmpd);
                     var dateStrWidth:Number = getTextWidthDate(false);
                     var appStrWidth:Number = getTextWidthAppName(false);
                     var mainTextWidth:Number = bmpdWidth-(dateStrWidth+appStrWidth)-1;
@@ -16165,7 +16382,7 @@
                     topBar.captureInputFinal.defaultTextFormat = textformat;
                     topBar.setCaptureInputFinalWidth(mainTextWidth);
                     topBar.setCaptureInputFinalString(topBar.getCaptureInputString());
-                    var bmpdHeight:Number = defaultFontSize+2;
+                    
                     var twolineFlag:Boolean = false;
 
                     if(topBar.getCaptureInputFinalLines() >= 2)
@@ -16184,7 +16401,7 @@
                             topBar.setCaptureInputFinalWidth(mainTextWidth);
                             topBar.setCaptureInputFinalString(topBar.getCaptureInputString());
                             loopcount++;
-                            bmpdHeight = (defaultFontSize-loopcount)*2+7;
+
 
                             if(defaultFontSize-loopcount <= 13)
                             {
@@ -16201,7 +16418,9 @@
                         while(topBar.getCaptureInputFinalLines() >= 3);
                     }
 
+
                     if(captrueStampBMPD) captrueStampBMPD.dispose();
+                    var bmpdHeight:Number = checkCaptrueStampBMPDHeight(twolineFlag,mainTextWidth);
                     captrueStampBMPD = new BitmapData(bmpdWidth,bmpdHeight,true,stampAlpha|imageDomiColor);
                     captureStampBitmap.bitmapData = captrueStampBMPD;
 
@@ -16214,9 +16433,9 @@
                         topBar.captureInputFinal.textColor = 0xFFFFFF;
                     }
 
-                    kungDateStr(twolineFlag);
-                    kungMainStr(twolineFlag,mainTextWidth);
-                    kungAppnameStr(twolineFlag);
+                    kungDateStr(twolineFlag,false);
+                    kungMainStr(twolineFlag,mainTextWidth,false);
+                    kungAppnameStr(twolineFlag,false);
 
                     if(captureStampBitmap.visible === false)
                     {
@@ -16306,7 +16525,9 @@
                 off:off,
                 update:update,
                 visible:visible,
-                kungFinal:kungFinal
+                kungFinal:kungFinal,
+                changeFont:changeFont,
+                getFontName:getFontName
             };
 
         }
@@ -16574,10 +16795,10 @@
                     drawArea(true);
                     drawCaptureStamp.update();
                 }
-                else if(!capInputFocusFlag)
-                {
-                    saveCaptureImage();
-                }
+                // else if(!capInputFocusFlag)
+                // {
+                //     saveCaptureImage();
+                // }
                 mouseMoved = false;
             }
 
@@ -16972,7 +17193,6 @@
             const replayMode:Boolean = replayModeON;
             var name:String = saveFileName;
             var path:String = saveFilePath;
-            const firstSaveFlag:Boolean = (name !== path);
 
             setFileBrowserONFlag(true);
 
@@ -16980,7 +17200,7 @@
             name = name.substr(0,name.lastIndexOf(".png"))+"_"+getTimeStampTail()+".png";//뒤에 프레임 번호 붙여줌
             path = path.substr(0,path.lastIndexOf(saveFileName))+name;
 
-            var file1:File = (firstSaveFlag) ? new File(path): File.desktopDirectory.resolvePath(name);
+            var file1:File = (name !== path) ? new File(path): File.desktopDirectory.resolvePath(name);
 
             const fs:FileStream = new FileStream();
             const saveWindowTitle:String = "Save image";
@@ -17416,6 +17636,7 @@
                             "pickerBoxSwapPositionFlag":pickerBoxSwapPositionFlag,
                             "topBar.captureInput.text":topBar.captureInput.text,
                             "capStampON":capStampON,
+                            "captureStampFont":drawCaptureStamp.getFontName(),
                             "scrollSetMovedY":scrollSetMovedY
                             });
             fs.close();
@@ -17653,6 +17874,10 @@
                     sideBarScrollSet.y = d["scrollSetMovedY"];
                     topBar.captureInput.text = d["topBar.captureInput.text"];
                     capStampON = d["capStampON"];
+                    if(d["captureStampFont"])
+                    {
+                        drawCaptureStamp.changeFont(d["captureStampFont"],false);
+                    }
 
                     updatePreviewBoxRectPos();
                     updatePenSizeCursor();
@@ -21446,7 +21671,10 @@
             sideBarScrollBar.alpha = 0.7;
             STAGE_TOP_OFFSET = topBar.BARSIZE;
 
+            capStampFontListBox.y = 100;
+
             topBar.updateTimerPos(stage.stageWidth);
+
             stage.addChild(loadMenuBox);
             stage.addChild(traceMenu);
             stage.addChild(aboutPanel);
@@ -21457,8 +21685,9 @@
             stage.addChild(rotateCursorBox);
             stage.addChild(toolTipBox);
             stage.addChild(hintBox);
-            stage.addChild(hintCursor);
+            stage.addChild(hintHorverCursor);
             stage.addChild(numPadBox);
+            stage.addChild(capStampFontListBox);
             setTopChildIndex(topBar);
         }
 
@@ -21662,11 +21891,6 @@
                 topBar.updateTimerPos(stage.stageWidth);
                 sideBar.updateSideBGSize(getSideBarBGHeight());
 
-                // if(isRightSidebar)
-                // {
-                //     if(sideBar.tempVisibleON) sideBar.setTempVisibleON(toolBox.BOX_WIDTH+10,isRightSidebar);
-                //     else updateSidebarDefaultRightPos();
-                // }
                 if(quickSidebarON) _quickSidebarOFF();
                 else setDefaultXSidebarPos();
                 
@@ -21828,7 +22052,6 @@
             }
             else if(flag === 2) //capture mode
             {
-                // topBarOffset = topBarOffset//+14*scale;
                 center.setTo(stage.stageWidth/2,Math.floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else
