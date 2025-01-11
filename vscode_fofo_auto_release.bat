@@ -8,7 +8,7 @@ git add .
 git commit --file=F:\2020FlashPaint\versionInfo.txt
 git push
 
-cd add F:\2020FlashPaint
+cd F:\2020FlashPaint
 git add .
 git commit --file=F:\2020FlashPaint\versionInfo.txt
 git push
