@@ -8,10 +8,10 @@ git add .
 git commit --file=F:\2020FlashPaint\versionInfo.txt
 git push
 
-cd F:\
-git add versionInfo.txt
-git add releasenote.txt
-git add README.md
+F:\
+git add 2020FlashPaint\versionInfo.txt
+git add 2020FlashPaint\releasenote.txt
+git add 2020FlashPaint\README.md
 git commit --file=F:\2020FlashPaint\versionInfo.txt
 git push
 gh release upload update2 E:\fofopaint-source\bin\fofoPaint.air --clobber
