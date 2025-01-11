@@ -10,6 +10,8 @@
 	public class toolButtons extends Sprite {
 		public var toolPen:SimpleButton;
 		public var toolFillPen:SimpleButton;
+		public var toolFillPenOK:SimpleButton;
+		public var toolFillPenCancel:SimpleButton;
 		public var toolErase:SimpleButton;
 		public var toolUndo:SimpleButton;
 		public var toolRedo:SimpleButton;
@@ -44,6 +46,39 @@
 		private var buttonArr:Array;
 
 		private var checkedLayerONFlag:Boolean = false;
+
+		public function setFillPenIconOFF():void
+		{
+			const len:uint = buttonArr.length;
+
+			for(var i:uint=0;i<len;i++)
+			{
+				buttonArr[i].alpha = 1.0;
+			}
+
+			toolSelectCursor.visible = true;
+			toolFillPen.visible = true;
+			toolSpuit.visible = true;
+			toolFillPenOK.visible = false;
+			toolFillPenCancel.visible = false;
+		}
+
+		public function setFillPenIconON(offAlpha:Number):void
+		{
+			const len:uint = buttonArr.length;
+
+			for(var i:uint=0;i<len;i++)
+			{
+				buttonArr[i].alpha = offAlpha;
+			}
+
+			toolSelectCursor.visible = false;
+			toolFillPen.visible = false;
+			toolSpuit.visible = false;
+			toolFillPenOK.visible = true;
+			toolFillPenCancel.visible = true;
+			toolUndo.alpha = 1.0;
+		}
 
 		public function setIconAlphaOnLassoToolON(alpha:Number):void
 		{
@@ -158,10 +193,27 @@
            	activeIconColor.color = arr[5];
 
 			var len:uint = buttonArr.length;
+			const fillPenButtons:Array = [toolFillPenOK,toolFillPenCancel];
 
 			for(var i:uint=0;i<len;i++)
 			{
 				btn = buttonArr[i];
+				btnUp = btn.upState as DisplayObject;
+				btnUp.transform.colorTransform = iconLeft;
+				btnOver = btn.overState as DisplayObjectContainer;
+				btnOver.getChildAt(0).transform.colorTransform = activeColor;//버튼 배경
+				btnOver.getChildAt(1).transform.colorTransform = iconLeft; //버튼 아이콘
+				btnDown = btn.downState as DisplayObjectContainer;
+				btnDown.getChildAt(0).transform.colorTransform = activeColor;//버튼 배경
+				btnDown.getChildAt(1).transform.colorTransform = iconLeft; //버튼 아이콘
+				btnDown.x = 2;
+				btnDown.y = 2;
+			}
+
+			len = fillPenButtons.length
+			for(i=0;i<len;i++)
+			{
+				btn = fillPenButtons[i];
 				btnUp = btn.upState as DisplayObject;
 				btnUp.transform.colorTransform = iconLeft;
 				btnOver = btn.overState as DisplayObjectContainer;
@@ -222,6 +274,11 @@
 				buttonArr[i].y = i*buttonArr[i].height;
 				buttonArr[i].useHandCursor = false;
 			}
+
+			toolFillPenOK.x = toolFillPen.x;
+			toolFillPenOK.y = toolFillPen.y;
+			toolFillPenCancel.x = toolSpuit.x;
+			toolFillPenCancel.y = toolSpuit.y;
 		}
 
 		public function toolButtons() {
@@ -232,6 +289,8 @@
 			toolSelectCursor.mouseEnabled = false;
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
+			toolFillPenOK.useHandCursor = false;
+			toolFillPenCancel.useHandCursor = false;
 			toolErase.useHandCursor = false;
 			toolUndo.useHandCursor = false;
 			toolRedo.useHandCursor = false;
@@ -244,6 +303,9 @@
 			toolTrace.useHandCursor = false;
 			zoomInButton.useHandCursor = false;
 			zoomOutButton.useHandCursor = false;
+
+			toolFillPenOK.visible = false;
+			toolFillPenCancel.visible = false;
 
 			buttonArr = [
 							zoomInButton,

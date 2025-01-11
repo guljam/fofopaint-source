@@ -13,6 +13,7 @@
 	import flash.events.MouseEvent;
 	import flash.display.DisplayObject;
 	import flash.text.engine.FontMetrics;
+	import flash.display.DisplayObjectContainer;
 	
 	public class capStampFontList extends Sprite {
 		
@@ -241,6 +242,19 @@
 			capFontListNext.y = capFontListPrev.y;
 			capFontListWapper.x = 0;
 			capFontListWapper.y = capFontListPrev.y+capFontListPrev.height;
+
+			const listMoveBttons:Array = [capFontListPrev,capFontListNext];
+			var btn:SimpleButton;
+			var btnDown:DisplayObjectContainer;
+
+			for(var i:uint=0;i<listMoveBttons.length;i++)
+			{
+				btn = listMoveBttons[i] as SimpleButton;
+				btnDown = btn.downState as DisplayObjectContainer;
+				btnDown.x = 2;
+				btnDown.y = 2;
+			}
+
 			addChild(capFontListWapper);
 
 			this.addEventListener(MouseEvent.MOUSE_OVER,mouseOverEvent)

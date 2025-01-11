@@ -64,7 +64,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.62;
+        private const APP_VERSION:Number = 25.63;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -220,11 +220,11 @@
                     ,STRING_PLAYBACK_SPEED:String = "Playback speed x"
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
-                    ,STRING_CAPTURE_OK:String = ", Reset [right-click]"
+                    ,STRING_CAPTURE_OK:String = " _ Reset [right-click]"
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
-                    ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc, right-click]\nMove text cursor [a d, j l, arrow key, tab, shift+tab]\nAdjust value [w s, i k]"
+                    ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc, right-click]\nMove text cursor [a-d, j-l, arrow key, tab, shift+tab]\nAdjust value [w-s, i-k]"
                     ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
                     ,STRING_HOLD_NSEC:String = " <- hold 1 sec"
                     ,WORKER_STATE_STOPPED:int = 0
@@ -750,31 +750,6 @@
 
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,checkCaptureStampFontListVisibleOFFMouseDownEvent,false,-1);
             }
-        }
-
-        private function captureStampFontListHintONEvent(e:MouseEvent):void
-        {
-            const target:DisplayObject = e.target as DisplayObject;
-            if(!target) return;
-
-            const targetName:String = e.target.name;
-            var str:String = "";
-
-            switch(targetName)
-            {
-                 case "capFontListPrev":
-                    str = "Prev";
-                break;
-
-                case "capFontListNext":
-                    str = "Next";
-                break;
-
-                default:
-                return;
-            }
-
-            hint.on(str,target);
         }
 
         private function setTransparentBGDrawModeOFF():void
@@ -1903,7 +1878,7 @@
 
             function start(str:String,target:DisplayObject,fastHint:Boolean=false):void
             {
-                str = "*"+str.replace(/\n/g, " *");
+                str = str.replace(/\n/g, " _ ");
                 if(hintBox.visible && lastHint === str)
                 {
                     return;
@@ -4795,7 +4770,6 @@
             var xColor:uint;
             var xAlpha:Number;
             var commandUndoIndexArr:Array = [];
-            var mouseMoved:Boolean;
             var mouseMoveCount:int;
             var afterKeyUpOK:Boolean;
             var posOffset:Number;
@@ -4888,6 +4862,8 @@
                 {
                     setCanvas2IndexToLayer2();
                 }
+
+                toolBox.setFillPenIconOFF();
             }
 
             function endFillPenOK():void
@@ -5008,28 +4984,53 @@
 
             function fillPenMouseUpEvent(e:MouseEvent):void
             {
+                const target:DisplayObject = e.target as DisplayObject;
+
+                if(!target) return;
+
+                const targetName:String = e.target.name;
+
                 removeTimer("fillPenTimer");
                 mouseDragON = false;
                 mouseClickON = false;
                 stageMouseMoveEvent.remove("fillPenMouseMoveEvent");
 
+                if(clickedButton === targetName)
+                {
+                    if(targetName === "toolFillPenOK")
+                    {
+                        endFillPenOK();
+                        return;
+                    }
+                    else if(targetName === "toolFillPenCancel")
+                    {
+                        cancelFillPen();
+                        return;
+                    }
+                    else if(targetName === "toolUndo")
+                    {
+                        fillPenBoxUndoUsed = true;
+                        undoData();
+                        return;
+                    }
+                }
+
                 if(fillPenBox.visible)
                 {
-                    if(e.target as DisplayObject)
+                    if(clickedButton === targetName)
                     {
-                        const targetName:String = e.target.name;
-
-                        if(clickedButton === targetName)
+                        if(targetName === "fillPenOK")
                         {
-                            if(targetName === "fillPenOK")
-                            {
-                                endFillPenOK();
-                            }
-                            else if(targetName === "fillPenUndo")
-                            {
-                                fillPenBoxUndoUsed = true;
-                                undoData();
-                            }
+                            endFillPenOK();
+                        }
+                        else if(targetName === "fillPenCancel")
+                        {
+                            cancelFillPen();
+                        }
+                        else if(targetName === "fillPenUndo")
+                        {
+                            fillPenBoxUndoUsed = true;
+                            undoData();
                         }
                     }
                 }
@@ -5058,13 +5059,11 @@
                 }
 
                 afterKeyUpOK = false;
-                mouseMoved = false;
             }
 
             function fillPenMouseMoveEvent(e:MouseEvent):void
             {
                 // if(readyAddUndoFlag === false) checkFillPenUndoReady();
-                mouseMoved = true;
 
                 var mx:Number = canvas2Draw.mouseX;
                 var my:Number = canvas2Draw.mouseY;
@@ -5197,7 +5196,6 @@
                 command = new Vector.<int>();
                 data = new Vector.<Number>();
 
-                mouseMoved = false;
                 mouseMoveCount = 0;
                 afterKeyUpOK = false;
                 rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
@@ -5234,6 +5232,7 @@
                 data.push(my);
                 lastMousePos.setTo(mx,my);
                 canvas2.alpha = xAlpha;
+                toolBox.setFillPenIconON(BUTTON_OFF_ALPHA);
 
                 addEvents();
             }
@@ -6606,10 +6605,16 @@
             {
                 case "toolPen": str = "Pen [q, o key up]"; break;
                 case "toolFillPen": str = "Fill pen [q, o]\nMenu [right-click after using the tool]"; break;
+                case "toolFillPenOK": str = "OK"; break;
+                case "toolFillPenCancel": str = "Cancel"; break;
+                case "toolFillPen": str = "Fill pen [q, o]\nMenu [right-click after using the tool]"; break;
                 case "toolErase": str = "Eraser [d, j]"; break;
                 case "toolLasso": str = "Lasso [r, y]"; break;
                 case "toolSpuit": str = "Eye dropper [c, m]\nPick transparent color ON/OFF [c+space, m+space]"; break;
-                case "toolUndo": str = "Undo [z, .]\nRepeat [hold-click]"; break;
+                case "toolUndo":
+                {
+                    str = (fillPenStarted) ? "Undo":"Undo [z, .]\nRepeat [hold-click]"; break;
+                }
                 case "toolRedo": str = "Redo [x, ,]\nRepeat [hold-click]"; break;
                 case "toolMirror": str = "Flip canvas [a, l]"; break;
                 case "toolLine": str = "Line [shift]"; break;
@@ -6654,6 +6659,10 @@
                 {
                     return;
                 }
+            }
+            else if(fillPenStarted && (targetName === "toolFillPenOK" || targetName === "toolFillPenCancel" || targetName === "toolUndo"))
+            {
+                
             }
             else if(isHintCantUse())
             {
@@ -7928,7 +7937,6 @@
             pickerBox.addEventListener(MouseEvent.MOUSE_OVER,pickerBoxHintONEvent);
             sideBarScrollBar.addEventListener(MouseEvent.MOUSE_OVER,scrollBarHintONEvent);
             loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLoadBox);
-            capStampFontListBox.addEventListener(MouseEvent.MOUSE_OVER,captureStampFontListHintONEvent);
         }
 
         private function setControlBoxInfoOFF():void
