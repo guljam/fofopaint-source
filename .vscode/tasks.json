@@ -2,6 +2,16 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "TEST FOFO PAINT",
+			"type": "shell",
+			"command": "E:/fofopaint-source/make_and_run.bat",
+			"problemMatcher": [],
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			}
+		},
+		{
 			"label": "FOFO FINAL RELEASE",
 			"type": "shell",
 			"command": "E:/fofopaint-source/vscode_fofo_auto_release.bat",
