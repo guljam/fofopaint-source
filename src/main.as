@@ -59,12 +59,11 @@
     import flash.text.TextFieldType;
     import flash.text.TextFormat;
     import flash.ui.Mouse;
-    import flash.text.TextLineMetrics;
     //import end
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.63;
+        private const APP_VERSION:Number = 25.65;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -695,12 +694,13 @@
             updateCaptureTransParentBG();
             makeWorker();
             updateWindowSizeInfo();
-            loadAppData(); //이전 세팅 복원
-            initReplayDataFile();
-            initPickerBoxInfo(penColor);
+            //입력 이벤트는 loadappdata보다느려야함
             addStageInputEvent();
             addInputEventStageChild();
             addInputEventDrawMode();
+            loadAppData(); //이전 세팅 복원
+            initReplayDataFile();
+            initPickerBoxInfo(penColor);
             lastWindowSize = new Point(stage.nativeWindow.width,stage.nativeWindow.height);
             setCenvasCenterPos();
             setCenvasCenterPos(true);
@@ -773,7 +773,7 @@
                     return false;
                 }
 
-                canvasFlash.alpha -= 0.1;
+                canvasFlash.alpha -= 0.15;
                 return true;
             });
         }
@@ -804,7 +804,7 @@
                     return false;
                 }
 
-                canvasFlash.alpha += 0.1;
+                canvasFlash.alpha += 0.15;
                 return true;
             });
         }
@@ -7888,7 +7888,7 @@
             hintBox.setBGColor(toolTipBoxBGColor[index]);
             hint.setCursorColor(hintHorverCursorColor[index]);
             fofo.changeColor(uiColorSet[index][1]);
-            capStampFontListBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1]);
+            capStampFontListBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],toolTipBoxBGColor[index]);
 
             if(canvasWindowON)
             {
@@ -9424,7 +9424,6 @@
             aboutPanelON = true;
             clickBlockOnWindowActiveFlag = true;
             hint.off();
-
             removeInputEventDrawMode();
 
             if(welcome === true)
@@ -9437,6 +9436,7 @@
             }
             else
             {
+                removeInputEventDrawMode();
                 aboutPanel.resetAppButton.visible = true;
                 checkVersion();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,aboutOFFMouseDownEvent);
@@ -16043,6 +16043,8 @@
             function changeFont(newFont:String,updateFlag:Boolean):void
             {
                 textformat.font = newFont;
+                capStampFontListBox.setSelectFont(newFont);
+                capStampFontListBox.updateFontListSelect(newFont);
                 topBar.captureInputFinal.setTextFormat(textformat);
                 if(updateFlag) update();
             }

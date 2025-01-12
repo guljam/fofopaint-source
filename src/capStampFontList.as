@@ -12,7 +12,6 @@
 	import flash.geom.ColorTransform;
 	import flash.events.MouseEvent;
 	import flash.display.DisplayObject;
-	import flash.text.engine.FontMetrics;
 	import flash.display.DisplayObjectContainer;
 	
 	public class capStampFontList extends Sprite {
@@ -35,18 +34,49 @@
 		private const listViewCount:int = fontBoxRow*fontBoxColumn;
 		private var listViewMaxCount:int = 0;
 		private var fontColor:uint = 0;
+		private var fontSelectedColor:uint = 0;
+		private var selectedFont:String = "";
+
+		public function setSelectFont(newFont:String):void
+		{
+			selectedFont = newFont;
+		}
+
+		public function setSelectFontBG(target:Sprite):void
+		{
+			target.graphics.clear();
+			target.graphics.lineStyle(0,0,0);
+			target.graphics.beginFill(fontSelectedColor);
+			target.graphics.drawRect(0,0,fontBoxWidth,fontBoxHeight);
+		}
 
 		public function childTextFieldBoxHoverOFF(target:Sprite):void
 		{
-			target.graphics.clear();
+			const textfield:TextField = target.getChildAt(0) as TextField;
+			if(textfield && textfield.getTextFormat().font=== selectedFont)
+			{
+
+			}
+			else
+			{
+				target.graphics.clear();
+			}
 		}
 
 		public function childTextFieldBoxHoverON(target:Sprite):void
 		{
-			target.graphics.clear();
-			target.graphics.lineStyle(0,0,0);
-			target.graphics.beginFill(fontColor,0.2);
-			target.graphics.drawRect(0,0,fontBoxWidth,fontBoxHeight);
+			const textfield:TextField = target.getChildAt(0) as TextField;
+			if(textfield && textfield.getTextFormat().font=== selectedFont)
+			{
+
+			}
+			else
+			{
+				target.graphics.clear();
+				target.graphics.lineStyle(0,0,0);
+				target.graphics.beginFill(fontColor,0.2);
+				target.graphics.drawRect(0,0,fontBoxWidth,fontBoxHeight);
+			}
 		}
 
 		public function getStampFontButtonName():String
@@ -116,17 +146,23 @@
 				listViewIndex = listViewMaxCount;
 			}
 
-			updateFontList(listViewIndex);
+			updateFontList(listViewIndex,selectedFont);
 		}
 
-		public function updateFontList(pageIndex:int):void
+		public function updateFontListSelect(newFont:String):void
 		{
-			if(pageIndex === listViewIndexSave)
+			updateFontList(listViewIndex,newFont);
+		}
+
+		public function updateFontList(pageIndex:int,customSelectFont:String):void
+		{
+			if(pageIndex === listViewIndexSave && customSelectFont !== selectedFont)
 			{
 				return;
 			}
 
 			listViewIndexSave = pageIndex;
+			selectedFont = customSelectFont;
 
 			const len:int = listViewCount;
 
@@ -152,9 +188,19 @@
 
 					var metrics:TextLineMetrics = textchild.getLineMetrics(0);
 					textchild.y = (textchild.height-metrics.height)/2;
+
+					if(fontList[index] === customSelectFont)
+					{
+						setSelectFontBG(textChildBox);
+					}
+					else
+					{
+						textChildBox.graphics.clear();
+					}
 				}
 				else
 				{
+					textChildBox.graphics.clear();
 					textchild.text = "";
 				}
 			}
@@ -164,17 +210,28 @@
 		{
 			const rawFontList:Array = Font.enumerateFonts(true);
 			const len:int = rawFontList.length;
+			var selectedFontIndex:int = -1;
 
 			fontList.length = 0;
 
 			for(var i:int=0;i<len;i++)
 			{
 				fontList.push(rawFontList[i].fontName);
+				if(selectedFont === rawFontList[i].fontName)
+				{
+					selectedFontIndex = i;
+				}
 			}
 
 			listViewMaxCount = int(fontList.length/listViewCount);
 
-			updateFontList(listViewIndex);
+			//선택된 폰트 페이지로 가기
+			if(selectedFontIndex >= 0)
+			{
+				listViewIndex= int(selectedFontIndex/listViewCount);
+			}
+
+			updateFontList(listViewIndex,selectedFont);
 		}
 
 		public function setScale(newScale:Number):void
@@ -183,7 +240,7 @@
 			this.scaleY = newScale;
 		}
 
-		public function changeUIColor(base:uint,op:uint):void
+		public function changeUIColor(base:uint,op:uint,selectColor:uint):void
 		{
 			capFontListBG.graphics.clear();
 			capFontListBG.graphics.lineStyle(0,0,0);
@@ -198,6 +255,7 @@
 			capFontListNext.transform.colorTransform = opColor;
 
 			fontColor = op;
+			fontSelectedColor = selectColor;
 		}
 
 		public function mouseOverEvent(e:MouseEvent):void
