@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.65;
+        private const APP_VERSION:Number = 25.66;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8568,7 +8568,6 @@
             //1: 90도 2:180 3:270
             if(rotateValue >= 4) rotateValue = 0;
             captureRotated = rotateValue;
-
             fitCanvasToWindow(true);
             topBar.capClipBoard.alpha = 1.0;
 
@@ -15932,8 +15931,9 @@
                                     "layer1" : layer1,
                                     "layer2" : layer2
                                 }
-
-            fitCanvasToWindow(true);
+            // fitCanvasToWindow(true);
+            //캔버스 회전에 fit canvas 함수가 들어있음
+            setDefaultHintCaptureMode();
             setCaptureRotateButton(captureRotated);
             initCaptrueFlip();
             setCaptureTransButton(captureTransBGON);
