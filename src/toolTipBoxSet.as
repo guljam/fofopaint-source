@@ -9,6 +9,7 @@
 		public var toolTipInfoText:TextField;
 		private const toolTipInfoBG:Sprite = new Sprite();
 		private var bgColor:uint = 0xFFA700;
+		private var HEIGHT:Number = 0;
 
 		public function setScale(newScale:Number):void
 		{
@@ -29,6 +30,11 @@
 		public function setBGColor(color:uint):void
 		{
 			bgColor = color;
+		}
+
+		public function getDefaultHeight():Number
+		{
+			return HEIGHT;
 		}
 
 		public function getHeight():Number
@@ -53,6 +59,10 @@
 			toolTipInfoText.mouseEnabled = false;
 			toolTipInfoText.autoSize = TextFieldAutoSize.LEFT;
 			// mouseEnabled = false;
+
+			setText("FOFO PAINT HINT");
+			HEIGHT = this.height;
+			setText("");
 
 			toolTipInfoBG.y = -1;
 			addChild(toolTipInfoBG);

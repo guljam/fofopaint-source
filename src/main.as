@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.66;
+        private const APP_VERSION:Number = 25.67;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1845,12 +1845,6 @@
             {
                 hintBox.x = 0;
                 hintBox.y = Math.round(stage.stageHeight-hintBox.getHeight()+1);
-
-                if(targetSave && hintBox.hitTestObject(targetSave))
-                {
-                    // hintBox.y = Math.round((gp.y-hintBox.height-30*scale));
-                    hintBox.y = 0;
-                }
             }
 
             function hintON(str:String,target:DisplayObject,fastHint:Boolean=false):void
@@ -4279,15 +4273,16 @@
 
         private function isCursorInDrawArea():Boolean
         {
-            const mx:Number = mouseX;
-            const my:Number = mouseY;
+            return !(topBar.hitTestPoint(mouseX,mouseY) || (sideBar.visible && sideBar.hitTestPoint(mouseX,mouseY)))
+            // const mx:Number = mouseX;
+            // const my:Number = mouseY;
 
-            if(mx <= STAGE_LEFT_OFFSET || mx >= stage.stageWidth -STAGE_RIGHT_OFFSET
-            || my <= STAGE_TOP_OFFSET  || my >= stage.stageHeight-STAGE_BOTTOM_OFFSET)
-            {
-                return false;
-            }
-            return true;
+            // if(mx <= STAGE_LEFT_OFFSET || mx >= stage.stageWidth -STAGE_RIGHT_OFFSET
+            // || my <= STAGE_TOP_OFFSET  || my >= stage.stageHeight-STAGE_BOTTOM_OFFSET)
+            // {
+            //     return false;
+            // }
+            // return true;
         }
 
         private function setStageProperties():void
@@ -5810,10 +5805,14 @@
                 const mx:Number = mouseX;
                 const my:Number = mouseY;
 
+                //아마 이거 preview커서 박스 커서가 커져서 sidebar 바운더리가 커졌을때
+                //제대로 확인못해서 썼던걸거임
+                // || (!quickSidebarON && !isCursorInDrawArea())
+                //(sideBar.visible && (sideBarScrollBar.hitTestPoint(mouseX,mouseY) || sideBar.hitTestPoint(mouseX,mouseY)))
+                
                 if(penCursorOFFFlag
                 || (nowTool > TOOL_LINE && nowTool !== TOOL_FILL_PEN) //1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                 || !isCursorInDrawArea()
-                || (sideBar.visible && sideBarScrollBar.hitTestPoint(mouseX,mouseY))
                 || resizeCanvas.isCanvasResizing()
                 || (traceMenu.visible && traceMenu.hitTestPoint(mouseX,mouseY))
                 || loadMenuBox.visible)
@@ -10593,10 +10592,11 @@
         private function fitCanvasToWindow(captureMode:Boolean=false,manualFlag:Boolean=false):void
         {
             const replayMode:Boolean = replayModeON;
+            const uiscale:Number = getUIScale();
             const offsetX:Number = 44+STAGE_LEFT_OFFSET+STAGE_RIGHT_OFFSET;
-            const offsetY:Number = (captureMode) ? (topBar.BARSIZE)*getUIScale()+45*getUIScale() : (topBar.BARSIZE+replayTimeBox.BARSIZE)*getUIScale()+45*getUIScale();
+            const offsetY:Number = (captureMode) ? (topBar.BARSIZE)*uiscale+45*uiscale : (topBar.BARSIZE+replayTimeBox.BARSIZE)*uiscale+45*uiscale;
             const stw:int = stage.stageWidth-offsetX;
-            const sth:int = stage.stageHeight-offsetY-STAGE_BOTTOM_OFFSET-hintBox.height;
+            const sth:int = stage.stageHeight-offsetY-STAGE_BOTTOM_OFFSET-hintBox.getDefaultHeight()*uiscale;
             var xBitmap1:Bitmap;
             var xBitmap11:Bitmap;
             var xReg:Sprite;
@@ -15931,9 +15931,9 @@
                                     "layer1" : layer1,
                                     "layer2" : layer2
                                 }
+
             // fitCanvasToWindow(true);
             //캔버스 회전에 fit canvas 함수가 들어있음
-            setDefaultHintCaptureMode();
             setCaptureRotateButton(captureRotated);
             initCaptrueFlip();
             setCaptureTransButton(captureTransBGON);
@@ -24479,8 +24479,9 @@
 
             const targetName:String = target.name;
 
-            if(!(sideBar.visible && (sideBarScrollSet.hitTestPoint(mouseX,mouseY,true) || targetName === "sideBarScrollBar"))
-            && isCursorInDrawArea() && lassoMenu.hitTestPoint(mouseX,mouseY) === false)
+            if(!(sideBar.visible 
+            // && (sideBarScrollSet.hitTestPoint(mouseX,mouseY,true) || targetName === "sideBarScrollBar"))
+            && isCursorInDrawArea() && lassoMenu.hitTestPoint(mouseX,mouseY) === false))
             {
                 if(lassoMenuTempOFF)
                 {
