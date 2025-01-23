@@ -14331,6 +14331,7 @@
             myPaletteViewAllMode = false;
             updateMyPaletteList();
             hint.off();
+            checkFOFOPosition();
         }
 
         private function setMypPaletteListViewAll():void
@@ -14338,6 +14339,7 @@
             myPaletteViewAllMode = true;
             updateMyPaletteList();
             hint.off();
+            checkFOFOPosition();
         }
 
         private function addColorToMyPalette(color:uint,index:int):void
