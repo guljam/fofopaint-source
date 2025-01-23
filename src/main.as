@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.67;
+        private const APP_VERSION:Number = 25.68;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2718,37 +2718,6 @@
                 tickDraw.updateRCursorPos();
             }
         }
-
-        // private function checkFOFOPosition():void
-        // {
-        //     if(isRightSidebar)
-        //     {
-        //         fofo.flipImage(false);
-        //         if(sideBar.visible)
-        //         {
-        //             fofo.x = sideBar.x-fofo.width-sideBarScrollBar.width*getUIScale();
-        //         }
-        //         else
-        //         {
-        //             fofo.x = stage.stageWidth-fofo.width;
-        //         }
-        //     }
-        //     else
-        //     {
-        //         fofo.flipImage(true);
-        //         if(sideBar.visible)
-        //         {
-        //             fofo.x = sideBar.x+sideBar.getWidth()+sideBarScrollBar.width*getUIScale();
-        //         }
-        //         else
-        //         {
-        //             fofo.x = sideBar.x;
-        //         }
-        //     }
-
-        //     fofo.setY(stage.stageHeight);
-        //     fofo.visible = true;
-        // }
 
         private function checkFOFOSideBarCollision():int
         {
@@ -24475,13 +24444,14 @@
             }
 
             const target:DisplayObject = e.target as DisplayObject;
-            if(!target) return;
+            if(!target)
+            {
+                return;
+            }
 
             const targetName:String = target.name;
 
-            if(!(sideBar.visible 
-            // && (sideBarScrollSet.hitTestPoint(mouseX,mouseY,true) || targetName === "sideBarScrollBar"))
-            && isCursorInDrawArea() && lassoMenu.hitTestPoint(mouseX,mouseY) === false))
+            if(isCursorInDrawArea() && lassoMenu.hitTestPoint(mouseX,mouseY) === false)
             {
                 if(lassoMenuTempOFF)
                 {
