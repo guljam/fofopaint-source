@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.70;
+        private const APP_VERSION:Number = 25.71;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1649,7 +1649,8 @@
                 case "paperColorButton": str = "Change background color"; break;
                 case "penColorButton": str = "Change pen color"; break;
                 case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [click]"+STRING_HOLD_NSEC; break;
-                case "drawrPresetButton": str = "Clear drawr scratch pad [click]";break;
+                case "drawrPresetButton":
+                case "tegakiPresetButton": str = "Clear scratch pad [click]";break;
                 case "scratchPad": str = "Pick color [right-click]"; break;
 
                 default:
@@ -24279,6 +24280,11 @@
 
                         case "tegakiPresetButton":
                         {
+                            if(myPalettePresetType === 2)
+                            {
+                                pickerBox.scratchPad.clearPad();
+                            }
+
                             changeMyPalettePreset(2);
                         }
                         break;

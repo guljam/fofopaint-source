@@ -19,7 +19,6 @@ package
         private const scratchPadBG:Shape = new Shape();
         private var scratchPadBGColor:uint = 0;
         private const scratchPadZoom:Number = 16;
-        private const pickedBmpd:BitmapData = new BitmapData(1, 1, true, 0);
 
         public function drawrScratchPad(bmpdWidth:Number, bmpdHeight:Number):void
         {
@@ -65,7 +64,6 @@ package
         {
             if (scratchPadBitmap)
             {
-                pickedBmpd.fillRect(pickedBmpd.rect, 0xFF000000 | bgColor);
                 scratchPadBGColor = bgColor;
                 scratchPadBG.graphics.clear();
                 scratchPadBG.graphics.beginFill(bgColor);
