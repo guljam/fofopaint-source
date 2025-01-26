@@ -10,6 +10,9 @@ package
     import flash.display.CapsStyle;
     import flash.display.JointStyle;
     import flash.geom.Rectangle;
+    import flash.utils.Timer;
+    import flash.utils.clearTimeout;
+    import flash.utils.setTimeout;
 
     public class drawrScratchPad extends Sprite
     {
@@ -19,6 +22,8 @@ package
         private const scratchPadBG:Shape = new Shape();
         private var scratchPadBGColor:uint = 0;
         private const scratchPadZoom:Number = 16;
+        private var isPadCleared:Boolean = false;
+        private var scratcthPadDrawClearTimer:int = 0;
 
         public function drawrScratchPad(bmpdWidth:Number, bmpdHeight:Number):void
         {
@@ -37,10 +42,10 @@ package
             // this.scaleY = scratchPadZoom;
             this.width = Math.floor(bmpdWidth * scratchPadZoom);
             this.height = Math.floor(bmpdHeight * scratchPadZoom);
-            scrollRect = new Rectangle(0, 0,bmpdWidth-1, bmpdHeight);
+            scrollRect = new Rectangle(0, 0, bmpdWidth - 1, bmpdHeight);
         }
 
-        public function pickerColor():uint
+        public function pickerColor(borderColorFunc:Function):uint
         {
             if (scratchPadBitmap.bitmapData)
             {
@@ -50,6 +55,19 @@ package
                 tmpBmpd.setPixel32(0, 0, color);
                 bgBmpd.draw(tmpBmpd);
                 color = bgBmpd.getPixel(0, 0);
+
+                const lineSize:Number = 1 / scratchPadZoom;
+                scratchPadDraw.graphics.clear();trace("borderColorFunc(color,0)",borderColorFunc(color,0))
+                scratchPadDraw.graphics.lineStyle(lineSize, borderColorFunc(color,0)<= 40?0xFFFFFF:0);
+                scratchPadDraw.graphics.drawRect(Math.floor(scratchPadBitmap.mouseX), Math.floor(scratchPadBitmap.mouseY), 1, 1);
+
+                clearTimeout(scratcthPadDrawClearTimer);
+                scratcthPadDrawClearTimer = setTimeout(function():void
+                {
+                    scratcthPadDrawClearTimer = -1;
+                    scratchPadDraw.graphics.clear();
+                }, 1000);
+
                 if (color === 0)
                 {
                     return color;
@@ -79,6 +97,11 @@ package
             {
                 linseSize = 1.0;
             }
+            if(scratcthPadDrawClearTimer !== 0)
+            {
+                clearTimeout(scratcthPadDrawClearTimer);
+            }
+            scratchPadDraw.graphics.clear();
             if (sqShape)
             {
                 scratchPadDraw.graphics.lineStyle(linseSize, lineColor, lineAlpha, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.BEVEL);
@@ -91,9 +114,13 @@ package
 
         public function clearPad():void
         {
-            if (scratchPadBitmap.bitmapData != null)
+            if (!isPadCleared)
             {
-                scratchPadBitmap.bitmapData.fillRect(scratchPadBitmap.bitmapData.rect, 0);
+                isPadCleared = true;
+                if (scratchPadBitmap.bitmapData != null)
+                {
+                    scratchPadBitmap.bitmapData.fillRect(scratchPadBitmap.bitmapData.rect, 0);
+                }
             }
         }
 
@@ -117,6 +144,7 @@ package
 
         private function stopDraw(e:MouseEvent):void
         {
+            isPadCleared = false;
             stage.removeEventListener(MouseEvent.MOUSE_MOVE, drawing);
             stage.removeEventListener(MouseEvent.MOUSE_UP, stopDraw);
             scratchPadBitmap.bitmapData.draw(scratchPadDraw);

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoFOpaint</title>
+    <script type="module" src="path/to/minbox.esm.js"></script>
+    <script>
+        const myCanvas = document.getElementById('myCanvas');
+        const ctx = myCanvas.getContext('2d');
+        let drawing = false;
+
+        myCanvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        myCanvas.addEventListener('mousemove', (e) => {
+            if (drawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
+
+        myCanvas.addEventListener('mouseup', () => {
+            drawing = false;
+        });
+
+        myCanvas.addEventListener('mouseout', () => {
+            drawing = false;
+        });
+    </script>
+</head>
+
+<body>
+    <canvas id="myCanvas" width="300" height="300" style="border:1px solid #000000;"></canvas>
+    <h1>FoFOpaint</h1>
+</body>
+
+</html>
