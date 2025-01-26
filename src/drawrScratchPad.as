@@ -122,5 +122,10 @@ package
             scratchPadBitmap.bitmapData.draw(scratchPadDraw);
             scratchPadDraw.graphics.clear();
         }
+
+        public function getBitmapData():BitmapData
+        {
+            return scratchPadBitmap.bitmapData;
+        }
     }
 }
