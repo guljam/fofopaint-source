@@ -12,13 +12,13 @@
 	import flash.display.BitmapData;
 	import flash.filters.ColorMatrixFilter;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 
 	public class colorPickerBox extends Sprite {
 		public var mainColorPickerBox:Sprite = new Sprite();
 		public var mainPresetButtonBox:Sprite = new Sprite();
 		public var mainPickerMenuBox:Sprite = new Sprite();
 		public var svBox:Sprite = new Sprite(); //hue랑 sv합친거
-		public var hsvSetBoxMask:Shape = new Shape(); //메인 컬러 박스임
 		public var svBase:Shape = new Shape(); //메인 컬러 박스에 뒤에 깔아주는 컬러
 		public var svGradient:Shape = new Shape();//흰색 검은색 그라디언트 깔아주는 컬러 임
 		public var hueColor:Sprite = new Sprite();
@@ -31,6 +31,7 @@
 		public const rgbInfoBG:Shape = new Shape();
 		private var rgbInfoBGColor:uint = 0;
 		private var rgbInfoBGBorderColor:uint = 0;
+		private var rgbInfoPaletteTypeSave:int = 0;
 		public const myPaletteBox:Sprite = new Sprite();
 		public const historyBox:Sprite = new Sprite();
 		public const myPaletteDragColorBox:Shape = new Shape();
@@ -68,10 +69,60 @@
 
 		private var lastRGBInfoText:String = "";
 		private var firstRGBInfoColorText:String = "";
-
 		private var colorBoxPositionSave:Array = [0,0];
-
 		private var transBGBrightnessList:Array = [0.8,0.85,0.88,0.98];
+
+		public var scratchPad:drawrScratchPad
+
+		private function initScratcPad():void
+		{
+			scratchPad = new drawrScratchPad(svBoxWidth,mainColorPickerBox.height);
+			scratchPad.x = 0
+			scratchPad.y = hueColor.y;
+			mainColorPickerBox.addChild(scratchPad);
+		}
+		private function setScratchPadOFF():void
+		{
+			if(!scratchPad)
+			{
+				return;
+			}
+
+			if(scratchPad.visible)
+			{
+				scratchPad.visible = false;
+			}
+
+			for(var i:int = 0; i < mainColorPickerBox.numChildren; i++) {
+				var child:* = mainColorPickerBox.getChildAt(i);
+				if(child != scratchPad) {
+					child.visible = true;
+				}
+			}
+		}
+
+		private function setScratchPadON():void
+		{
+			if(!scratchPad)
+			{
+				return;
+			}
+
+			if(!scratchPad.visible)
+			{
+				scratchPad.visible = true;
+			}
+
+			for(var i:int = 0; i < mainColorPickerBox.numChildren; i++) {
+				var child:* = mainColorPickerBox.getChildAt(i);
+				if(child === scratchPad
+				|| child === rgbInfoBG)
+				{
+					continue;
+				}
+				child.visible = false;
+			}
+		}
 
 		public function swapColorBoxPosition(flag:Boolean):void
 		{
@@ -111,18 +162,21 @@
 				myPaletteButton.alpha = 1.0;
 				drawrPresetButton.alpha = 0.6;
 				tegakiPresetButton.alpha = 0.6;
+				setScratchPadOFF();
 			}
 			else if(type === 1)
 			{
 				myPaletteButton.alpha = 0.6;
 				drawrPresetButton.alpha = 1.0;
 				tegakiPresetButton.alpha = 0.6;
+				setScratchPadON();
 			}
 			else if(type === 2)
 			{
 				myPaletteButton.alpha = 0.6;
 				drawrPresetButton.alpha = 0.6;
 				tegakiPresetButton.alpha = 1.0;
+				setScratchPadON();
 			}
 		}
 
@@ -217,7 +271,7 @@
 
 		public function setRGBInfoBGTransparentColorOFF():void
 		{
-			updateRGBInfoBG(rgbInfoBGColor,rgbInfoBGBorderColor);
+			updateRGBInfoBG(rgbInfoBGColor,rgbInfoBGBorderColor,rgbInfoPaletteTypeSave);
 		}
 
 		public function setRGBInfoBGTransparentColorON():void
@@ -230,16 +284,20 @@
 			rgbInfo.textColor = 0xFF0000;
 		}
 
-		public function updateRGBInfoBG(color:uint,borderColor:uint):void
+		public function updateRGBInfoBG(color:uint,borderColor:uint,paletteType:int):void
 		{
+			const rgbInfoBGwidth:Number = (paletteType !== 0)?svBoxWidth:rgbInfoWidth;
+
 			rgbInfoBG.graphics.clear();
-			rgbInfoBG.graphics.lineStyle(1,(borderColor === 0) ? color:borderColor);
 			rgbInfoBG.graphics.beginFill(color);
-			rgbInfoBG.graphics.drawRect(0,0,rgbInfoWidth,rgbInfoHeight);
+			rgbInfoBG.graphics.drawRect(0,0,rgbInfoBGwidth,rgbInfoHeight);
 			rgbInfoBG.graphics.endFill();
+			rgbInfoBG.graphics.lineStyle(1, (borderColor === 0) ? color:borderColor);
+			rgbInfoBG.graphics.drawRect(0,0, rgbInfoBGwidth,19);
 
 			rgbInfoBGColor = color;
 			rgbInfoBGBorderColor = borderColor;
+			rgbInfoPaletteTypeSave = paletteType
 		}
 
 		public function getRGBInfoBGColor():uint
@@ -257,12 +315,12 @@
 			if(currentColorColor !== color)
 			{
 				currentColorColor = color;
-
 				currentColor.graphics.clear();
-				currentColor.graphics.lineStyle(1,(invColor === 0) ? color:invColor);
 				currentColor.graphics.beginFill(color);
 				currentColor.graphics.drawRect(0,0,currentColorWidth,19);
 				currentColor.graphics.endFill();
+				currentColor.graphics.lineStyle(1, (invColor === 0) ? color:invColor);
+				currentColor.graphics.drawRect(0,0, currentColorWidth,19);
 			}
 		}
 
@@ -350,8 +408,6 @@
 			initTransparentColorButtonBmpd();
 			initMyPaletteTransBGBmpd();
 
-			updateRGBInfoBG(0,0);
-
 			var gradMatrix:Matrix = new Matrix();
 			//sv기본 컬러
 			svBase.graphics.lineStyle(0,0,0);
@@ -401,18 +457,19 @@
 			var emptyContextMenu:ContextMenu = new ContextMenu();
 			emptyContextMenu.hideBuiltInItems();
 
+			updateRGBInfoBG(0,0,0);
 			rgbInfo.contextMenu = emptyContextMenu;
 			rgbInfo.restrict = "0-9";
 			rgbInfo.maxChars = 15;
 			rgbInfo.x = 0;
 			rgbInfo.y = 0;
 			rgbInfoBG.x = 0;
-			rgbInfoBG.y = Math.floor(rgbInfo.y-1);
+			rgbInfoBG.y = Math.floor(rgbInfo.y);
 			transColorButton.x = Math.floor(rgbInfoBG.x+rgbInfoBG.width+5);
 			transColorButton.y = rgbInfoBG.y;
 			transColorButton.useHandCursor = false;
 			currentColor.x = Math.floor(transColorButton.x+transColorButton.width);
-			currentColor.y = rgbInfoBG.y;
+			currentColor.y = transColorButton.y;
 			currentColor.name = "currentColor";
 
 			hueColorMask.graphics.beginFill(0xFFFF0000);
@@ -431,10 +488,7 @@
 			svBox.addChild(svGradient);
 			svBox.addChild(svCursor);
 			svBox.y = Math.floor(hueColor.y+hueColor.height+4);
-			hsvSetBoxMask.graphics.beginFill(0xFFFF0000);
-			hsvSetBoxMask.graphics.drawRect(0, 0, svBoxWidth, svBoxHeight);
-			hsvSetBoxMask.graphics.endFill();
-			svBox.addChild(hsvSetBoxMask);
+			svBox.scrollRect = new Rectangle(0,0,svBoxWidth,svBoxHeight);
 
 			mainColorPickerBox.addChild(svBox); //mainColorPickerBox svBox안에 svColor안에 svCursor
 			mainColorPickerBox.addChild(hueColor);
@@ -443,6 +497,8 @@
 			mainColorPickerBox.addChild(rgbInfoBG);
 			mainColorPickerBox.addChild(rgbInfo);
 			mainColorPickerBox.addChild(historyBox);
+			initScratcPad();
+			
 			historyBox.name = "historyBox";
 			historyBox.y = svBox.y+svBox.height+5;
 
@@ -479,7 +535,6 @@
 
 			updateCurrentColor(1,0);
 			svCursor.mouseEnabled = false;
-			svCursor.mask = hsvSetBoxMask;
 			hueCursor.mouseEnabled = false;
 		}
 	}

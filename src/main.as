@@ -63,7 +63,7 @@
 
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.68;
+        private const APP_VERSION:Number = 25.70;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -355,7 +355,7 @@
                     ,eraseAlphaIndex:uint = 9
                     ,eraseAirBrushON:Boolean = false
                     ,penListShapeFlag:Boolean = false //펜 리스트에서 펜 모양 버튼 눌러줄때 툴이랑 상관없이 바꿔줌, 펜 미리보기 할때 필요
-                    ,penLastUpdateInfo:Array = [null,null,null,null,null,null] //updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뙴
+                    ,penLastUpdateInfo:Array = [null,null] //updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뙴
         //컬러픽커 관련 변수
                     ,hsvColorArr:Vector.<Number> = new Vector.<Number> (3,true) //hue컬러 다른 함수들이랑 통신하기 위해서 전역으로 만들어줌
                     ,pickerMode:uint = 1 //1이면 펜컬러 2이면 배경색
@@ -413,12 +413,13 @@
                     ,myPaletteDragClickedColor:uint = 0 //드래그 준비 클릭한 컬러 저장해줌
                     ,myPaletteDragClickedIndex:int = -1 //드래그 준비 클릭한 컬러 인덱스 저장
                     ,myPaletteDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
-                    ,myPalettePresetType:int = 0 //타입저정
+                    ,myPalettePresetType:int = 0 //타입저정 0 마이팔레트, 1 drawr, 2 tegaki
                     ,myPalettePreset:Array = []
                     ,myPaletteDrawrPreset:Array = [0xFFFFFF,0xC0C0C0,0xFF3B21,0xFFBD16,0xF5F30F,0xA5E975,0x71DBFD,0xFA80F9,null    ,null
                                                   ,0x000000,0x808080,0x8E0000,0xFFCC99,0x877D30,0x008F47,0x313BCD,0xC02E97,0x3F037E,null]
                     ,myPaletteTegakiPreset:Array = [0xA80515,0xA80515,0x800000,0x800000,0x4B3D38,0x4B3D38,0x313768,0x313768,0x394C44,0x394C44
                                                     ,0xF1D0D0,0xF1D0D0,0xF1E1D7,0xF1E1D7,0xEAE5D5,0xEAE5D5,0xD5E9F3,0xD5E9F3,0xD0EBDE,0xD0EBDE]
+                    ,myPaletteSaveColorBeforeOtherType:Array = [0,0,0xA80515]
 
         //툴팁 관련 변수
                     ,toolTipHint:String = "" //topbar관련 힌트 여기 저장
@@ -893,7 +894,7 @@
                     }
                     else
                     {
-                        selectMyPaletteButton(0);
+                        changeMyPalettePreset(0);
                     }
                 }
             }
@@ -1227,16 +1228,38 @@
             setLoadBoxVisible(false);
         }
 
-        private function selectMyPaletteButton(type:int):void
+        private function changeMyPalettePreset(type:int):void
         {
             if(myPalettePresetType === type)
             {
                 return;
             }
-
+            var myPalettePresetTypeSave:int = myPalettePresetType;
             myPalettePresetType = type;
             updateMyPaletteList();
             pickerBox.selectPresetButton(type);
+            if(pickerMode !== 1)
+            {
+                changePickerModeToNormal();
+            }
+            pickerColorSelected = true;
+            if(type === 1) // drawr
+            {
+                myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = pickerBox.getRGBInfoBGColor();
+                pickColor(myPaletteSaveColorBeforeOtherType[1]);
+            }
+            else if(type === 2)
+            {
+                myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = pickerBox.getRGBInfoBGColor();
+                pickColor(myPaletteSaveColorBeforeOtherType[2]);
+            }
+            else
+            {
+                myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = pickerBox.getRGBInfoBGColor();
+                pickColor(myPaletteSaveColorBeforeOtherType[0]);
+            }
+
+            checkFOFOPosition();
         }
 
         private function setFileBrowserONFlag(flag:Boolean):void
@@ -1626,6 +1649,8 @@
                 case "paperColorButton": str = "Change background color"; break;
                 case "penColorButton": str = "Change pen color"; break;
                 case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [click]"+STRING_HOLD_NSEC; break;
+                case "drawrPresetButton": str = "Clear drawr scratch pad [click]";break;
+                case "scratchPad": str = "Pick color [right-click]"; break;
 
                 default:
                 return;
@@ -3582,19 +3607,23 @@
 
             switch(e.target.name)
             {
+                case "scratchPad":
+                {
+                    pickColor(uint(pickerBox.scratchPad.pickerColor()));
+                }
+                break;
                 case "zoomInButton":
                 case "zoomOutButton":
                 {
                     if(zoomed !== 1.0) resetZoomDrawMode();
                 }
-                return;
+                break;
 
                 case "toolRotate":
                 {
                     if(regPoint.rotation !== 0.0) resetRotationDrawMode();
                 }
-                return;
-
+                break;
 
                 case "myPaletteBox":
                 {
@@ -6370,8 +6399,9 @@
 
         private function initPickerBoxInfo(color:uint):void
         {
+            return;
             updateRGBInfoTextByColor(color);
-            pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color));
+            pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color),myPalettePresetType);
             updatePickerCurrentColor(color);
         }
 
@@ -9002,7 +9032,7 @@
                 pickedColor = color;
                 pickerColorSelected = true;
                 pickerBox.changeHueColor(baseHexColor);
-                pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color));
+                pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color),myPalettePresetType);
             }
 
             function hueColorButtonMoveEvent(e:MouseEvent):void
@@ -9091,7 +9121,7 @@
                 const color:uint = updatePickerBoxInfoColor(hueValue,sValue,vValue);
 
                 pickedColor = color;
-                pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color));
+                pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color),myPalettePresetType);
                 pickerBox.setRGBInfoVisible(false);
             }
 
@@ -13544,6 +13574,10 @@
             CANVAS_BG_COLOR = color;
             previewBox.changeprevBitmapBGColor(color);
             _setBackgroundColor(canvasPanel,CANVAS_WIDTH,CANVAS_HEIGHT,color);
+            if( pickerBox.scratchPad)
+            {
+                pickerBox.scratchPad.updateBGColor(color);
+            }
         }
 
         private function toolTipBoxTimerOFF():void
@@ -14158,6 +14192,7 @@
                 setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(penColor):penColor);
             }
 
+
             if(bgColor !== CANVAS_BG_COLOR)
             {
                 setBackgroundColorDrawMode(bgColor);
@@ -14264,10 +14299,10 @@
 
                 pickedColor = myPalettePreset[index];
 
-                if(pickedColor === pickerBox.getRGBInfoBGColor() && !penColorTransparentFlag)
-                {
-                    return;
-                }
+                // if(pickedColor === pickerBox.getRGBInfoBGColor() && !penColorTransparentFlag)
+                // {
+                //     return;
+                // }
             }
             else if(myPalettePresetType === 1)
             {
@@ -14282,10 +14317,10 @@
 
                 pickedColor = myPaletteDrawrPreset[index];
 
-                if(pickedColor === pickerBox.getRGBInfoBGColor() && !penColorTransparentFlag)
-                {
-                    return;
-                }
+            //     if(pickedColor === CANVAS_BG_COLOR && !penColorTransparentFlag)
+            //     {
+            //         return;
+            //     }
             }
             else if(myPalettePresetType === 2)
             {
@@ -14584,7 +14619,7 @@
                     pickerBox.myPaletteBox.graphics.lineTo(ww*i,hh*2);
                 }
             }
-            else //myh pal
+            else //my palette
             {
                 if(myPaletteViewAllMode === false)
                 {
@@ -17833,7 +17868,8 @@
                     setCenvasCenterPos(true);
                     checkCanvasPanelPos();
                     checkCanvasPanelPos(true);
-                    if(d["myPalettePresetType"] > 0) selectMyPaletteButton(d["myPalettePresetType"]);
+                    myPaletteSaveColorBeforeOtherType[0] = penColor;
+                    if(d["myPalettePresetType"] > 0) changeMyPalettePreset(d["myPalettePresetType"]);
 
                     updateHistoryList();
                     myPaletteViewAllMode = d["myPaletteViewAllMode"];
@@ -21291,13 +21327,7 @@
                 return;
             }
 
-            if(hexColor === penLastUpdateInfo[5] && !pickerColorSelected)
-            {
-                return;
-            }
-
             penColorTransparentFlag = false;
-            penLastUpdateInfo[5] = hexColor;
 
             var hsvColor:Vector.<Number> = (color is uint) ? HEXtoHSV(hexColor) : color;
 
@@ -21326,9 +21356,7 @@
             {
                 updateRGBInfoTextByColor(hsvColor);
             }
-
-            pickerBox.updateRGBInfoBG(hexColor,setRGBInfoBorderColor(hexColor));
-
+            pickerBox.updateRGBInfoBG(hexColor,setRGBInfoBorderColor(hexColor),myPalettePresetType);
         }
 
         //hex에서 rgb vector 배열로 반환
@@ -21432,11 +21460,6 @@
             const curButton:Sprite = controlBox.opaBox.getChildByName("alphaButton"+index) as Sprite;
 
             if(!curButton) return;
-
-            if(penColor === penLastUpdateInfo[2] && index === penLastUpdateInfo[3]) return;
-
-            penLastUpdateInfo[2] = penColor;
-            penLastUpdateInfo[3] = index;
 
             controlBox.opaCursor.x = curButton.x;
             controlBox.opaCursor.y = curButton.y;
@@ -21655,7 +21678,7 @@
             capStampFontListBox.y = 100;
 
             topBar.updateTimerPos(stage.stageWidth);
-
+            
             stage.addChild(loadMenuBox);
             stage.addChild(traceMenu);
             stage.addChild(aboutPanel);
@@ -23247,6 +23270,7 @@
             else
             {
                 _moveScroll(deltaY);
+                checkFOFOPosition();
             }
         }
 
@@ -23847,6 +23871,12 @@
 
             switch(targetName)
             {
+                case "scratchPad":
+                {
+                    pickColor(uint(pickerBox.scratchPad.pickerColor()));
+                }
+                break;
+
                 case "saveButton":
                 {
                     saveFile(true);
@@ -24237,13 +24267,19 @@
 
                         case "drawrPresetButton":
                         {
-                            selectMyPaletteButton(1);
+                            if(myPalettePresetType === 1)
+                            {
+                                pickerBox.scratchPad.clearPad();
+                            }
+
+                            changeMyPalettePreset(1);
+
                         }
                         break;
 
                         case "tegakiPresetButton":
                         {
-                            selectMyPaletteButton(2);
+                            changeMyPalettePreset(2);
                         }
                         break;
                     }
@@ -24297,18 +24333,33 @@
                     stage.addEventListener(MouseEvent.MOUSE_MOVE,historyColorDragMouseMoveEvent);
                 }
             }
+            else if(pickerBox.scratchPad)
+            {
+                if(targetName === "scratchPad")
+                {
+                    pickerBox.scratchPad.setLineStyle(penSize,penColor,penAlpha,penShape);
+                    pickerBox.scratchPad.startDraw();
+                    return;
+                }
+            }
 
             switch(targetName)
             {
                 case "svBox":
                 {
-                    setSVcolorButton();
+                    if(pickerBox.scratchPad && !pickerBox.scratchPad.visible)
+                    {
+                        setSVcolorButton();
+                    }
                 }
                 return;
 
                 case "hueColor":
                 {
-                    setHueColorButton();
+                    if(pickerBox.scratchPad && !pickerBox.scratchPad.visible)
+                    {
+                        setHueColorButton();
+                    }
                 }
                 return;
 

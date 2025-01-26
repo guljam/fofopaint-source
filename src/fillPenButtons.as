@@ -9,7 +9,6 @@
 	import flash.text.TextFieldAutoSize;
 	import flash.geom.ColorTransform;
 
-
 	public class fillPenButtons extends Sprite
 	{
 		public var fillPenInfo:TextField;
@@ -18,7 +17,7 @@
 		public var fillPenUndo:SimpleButton;
 		public var fillPenBGTitle:SimpleButton;
 		public var fillPenBG:SimpleButton;
-		private const fillPenInfoPos:Array = [0,0];
+		private const fillPenInfoPos:Array = [0, 0];
 		private var fixedScale:Number = 1.0;
 		private const baseColor:ColorTransform = new ColorTransform();
 		private const opColor:ColorTransform = new ColorTransform();
@@ -27,23 +26,23 @@
 		{
 			fillPenInfo.text = str;
 
-			if(str.indexOf("\n") !== -1)
+			if (str.indexOf("\n") !== -1)
 			{
-				fillPenInfo.y = fillPenInfoPos[0]-(fillPenInfo.height-fillPenInfoPos[1])-3;
+				fillPenInfo.y = fillPenInfoPos[0] - (fillPenInfo.height - fillPenInfoPos[1]) - 3;
 				fillPenBGTitle.y = fillPenInfo.y;
 			}
-			else if(fillPenInfoPos[0] !== fillPenInfo.y)
+			else if (fillPenInfoPos[0] !== fillPenInfo.y)
 			{
 				fillPenInfo.y = fillPenInfoPos[0];
 				fillPenBGTitle.y = 0;
 			}
 
-			fillPenBGTitle.height = fillPenInfo.height+5;
+			fillPenBGTitle.height = fillPenInfo.height + 5;
 		}
 
 		public function changeBGColor(arr:Array):void
 		{
-			const bgWidth:Number = fillPenOK.width*2+fillPenCancel.width;
+			const bgWidth:Number = fillPenOK.width * 2 + fillPenCancel.width;
 
 			baseColor.color = arr[0];
 			opColor.color = arr[1];
@@ -52,11 +51,11 @@
 			fillPenBG.transform.colorTransform = opColor;
 
 			const buttonArr:Array =
-			[
-				fillPenUndo,
-				fillPenOK,
-				fillPenCancel
-			];
+				[
+					fillPenUndo,
+					fillPenOK,
+					fillPenCancel
+				];
 
 			var len:int = buttonArr.length;
 			var btn:SimpleButton;
@@ -91,13 +90,13 @@
 
 		public function setScale(newScale:Number):void
 		{
-			this.scaleX = newScale*fixedScale;
-			this.scaleY = newScale*fixedScale;
+			this.scaleX = newScale * fixedScale;
+			this.scaleY = newScale * fixedScale;
 		}
 
 		public function fillPenButtons()
 		{
-			fixedScale = 34/fillPenCancel.width;
+			fixedScale = 34 / fillPenCancel.width;
 			setScale(1.0);
 
 			visible = false;
@@ -111,4 +110,3 @@
 	}
 
 }
-

@@ -1,4 +1,5 @@
-﻿package  {
+﻿package
+{
 
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
@@ -6,8 +7,8 @@
 	import flash.display.DisplayObject;
 	import flash.text.TextField;
 
-
-	public class numPadButtons extends Sprite {
+	public class numPadButtons extends Sprite
+	{
 		public var numInc:SimpleButton = numInc;
 		public var numDec:SimpleButton = numDec;
 		public var num0:SimpleButton = num0;
@@ -37,8 +38,8 @@
 
 		public function setScale(newScale:Number):void
 		{
-			scaleX = newScale*fixedScale;
-			scaleY = newScale*fixedScale;
+			scaleX = newScale * fixedScale;
+			scaleY = newScale * fixedScale;
 		}
 
 		public function changeUIColor(arr:Array):void
@@ -50,33 +51,33 @@
 			over.color = arr[4];
 
 			const texts:Array = [
-										numIncText,
-										numDecText,
-										num0Text,
-										num1Text,
-										num2Text,
-										num3Text,
-										num4Text,
-										num5Text,
-										num6Text,
-										num7Text,
-										num8Text,
-										num9Text
-									]
+					numIncText,
+					numDecText,
+					num0Text,
+					num1Text,
+					num2Text,
+					num3Text,
+					num4Text,
+					num5Text,
+					num6Text,
+					num7Text,
+					num8Text,
+					num9Text
+				];
 			const buttons:Array = [
-										numInc,
-										numDec,
-										num0,
-										num1,
-										num2,
-										num3,
-										num4,
-										num5,
-										num6,
-										num7,
-										num8,
-										num9
-									];
+					numInc,
+					numDec,
+					num0,
+					num1,
+					num2,
+					num3,
+					num4,
+					num5,
+					num6,
+					num7,
+					num8,
+					num9
+				];
 
 			var i:uint = 0;
 			var len:uint = buttons.length;
@@ -84,7 +85,7 @@
 			var btnUp:DisplayObject;
 			var btnOver:DisplayObject;
 
-			for (i = 0;i<len;i++)
+			for (i = 0; i < len; i++)
 			{
 				btn = buttons[i];
 				btnUp = btn.upState as DisplayObject;
@@ -94,7 +95,7 @@
 				btn.downState = btnOver;
 			}
 
-			for (i = 0;i<len;i++)
+			for (i = 0; i < len; i++)
 			{
 				texts[i].textColor = arr[2];
 			}
@@ -123,7 +124,7 @@
 			num8Text.mouseEnabled = false;
 			num9Text.mouseEnabled = false;
 
-			fixedScale = 34/num0.width;
+			fixedScale = 34 / num0.width;
 
 			scaleX = fixedScale;
 			scaleY = fixedScale;
