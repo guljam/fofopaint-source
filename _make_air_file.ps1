@@ -1,1 +1,1 @@
-E:\AIRSDK_Windows_51.1.3\AIRSDK_Windows\bin\adt.bat -package -storetype pkcs12 -keystore E:\fofopaintKey\secrekey2.p12 -storepass 123 bin\fofoPaint.air fofoPaint-app.xml fofoPaint.swf worker.swf resource\icon
+E:\AIRSDK_Windows_51.1.3.6\AIRSDK_Windows\bin\adt.bat -package -storetype pkcs12 -keystore E:\fofopaintKey\secrekey2.p12 -storepass 123 bin\fofoPaint.air fofoPaint-app.xml fofoPaint.swf worker.swf resource\icon
