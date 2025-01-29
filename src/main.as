@@ -64,7 +64,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.72;
+        private const APP_VERSION:Number = 25.73;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3614,7 +3614,7 @@
             {
                 case "scratchPad":
                 {
-                    // pickColor(uint(pickerBox.scratchPad.pickerColor(getColorDifferenceForHuman(color,0))));
+                    setPickColorScratchPad();
                 }
                 break;
                 case "zoomInButton":
@@ -7877,12 +7877,12 @@
 
         private function getOpacityButtonHint(targetName:String):String
         {
-            return getOpacityHint(targetName)+"\nSelect opacity [g, b]";
+            return "Opacity "+getOpacityHint(targetName)+" [g, b]";
         }
 
         private function getSizeButtonHint(targetName:String):String
         {
-            return getPenSizeHint(targetName)+"\nSelect size [f, v, h, n]";
+            return "Size "+getPenSizeHint(targetName)+ " [f, v, h, n]";
         }
 
         private function controlBoxHintONEvent(e:MouseEvent):void
@@ -23790,7 +23790,6 @@
             }
 
             const targetName:String = e.target.name;
-
             switch(targetName)
             {
                 case "scratchPad":

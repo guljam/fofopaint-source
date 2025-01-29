@@ -1,6 +1,6 @@
 ﻿package
 {
-	public class KeycodeCharMap {
+	public class keycodeCharMap {
 		private const map:Object =
 		{
 			"8":"backspace",
@@ -112,7 +112,7 @@
 			return map[key];
 		}
 
-		public function KeycodeCharMap()
+		public function keycodeCharMap()
 		{
 
 		}
