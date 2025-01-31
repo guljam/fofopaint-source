@@ -23,7 +23,7 @@ package
         private var scratchPadBGColor:uint = 0;
         private const scratchPadZoom:Number = 16;
         private var isPadCleared:Boolean = false;
-        private var scratcthPadDrawClearTimer:int = 0;
+        // private var scratcthPadDrawClearTimer:int = 0;
 
         public function drawrScratchPad(bmpdWidth:Number, bmpdHeight:Number):void
         {
@@ -38,11 +38,9 @@ package
 
             name = "scratchPad";
 
-            // this.scaleX = scratchPadZoom;
-            // this.scaleY = scratchPadZoom;
             this.width = Math.floor(bmpdWidth * scratchPadZoom);
             this.height = Math.floor(bmpdHeight * scratchPadZoom);
-            scrollRect = new Rectangle(0, 0, bmpdWidth - 1, bmpdHeight);
+            scrollRect = new Rectangle(0, 0, bmpdWidth - 1, bmpdHeight - 1);
         }
 
         public function pickerColor(borderColorFunc:Function):uint
@@ -57,16 +55,16 @@ package
                 color = bgBmpd.getPixel(0, 0);
 
                 const lineSize:Number = 1 / scratchPadZoom;
-                scratchPadDraw.graphics.clear();trace("borderColorFunc(color,0)",borderColorFunc(color,0))
-                scratchPadDraw.graphics.lineStyle(lineSize, borderColorFunc(color,0)<= 40?0xFFFFFF:0);
+                scratchPadDraw.graphics.clear();
+                scratchPadDraw.graphics.lineStyle(lineSize, borderColorFunc(color, 0) <= 40 ? 0xFFFFFF : 0);
                 scratchPadDraw.graphics.drawRect(Math.floor(scratchPadBitmap.mouseX), Math.floor(scratchPadBitmap.mouseY), 1, 1);
 
-                clearTimeout(scratcthPadDrawClearTimer);
-                scratcthPadDrawClearTimer = setTimeout(function():void
-                {
-                    scratcthPadDrawClearTimer = -1;
-                    scratchPadDraw.graphics.clear();
-                }, 1000);
+                // clearTimeout(scratcthPadDrawClearTimer);
+                // scratcthPadDrawClearTimer = setTimeout(function():void
+                // {
+                // scratcthPadDrawClearTimer = -1;
+                // scratchPadDraw.graphics.clear();
+                // }, 1000);
 
                 if (color === 0)
                 {
@@ -97,11 +95,13 @@ package
             {
                 linseSize = 1.0;
             }
-            if(scratcthPadDrawClearTimer !== 0)
-            {
-                clearTimeout(scratcthPadDrawClearTimer);
-            }
+            // if (scratcthPadDrawClearTimer !== 0)
+            // {
+            //     clearTimeout(scratcthPadDrawClearTimer);
+            // }
+
             scratchPadDraw.graphics.clear();
+
             if (sqShape)
             {
                 scratchPadDraw.graphics.lineStyle(linseSize, lineColor, lineAlpha, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.BEVEL);

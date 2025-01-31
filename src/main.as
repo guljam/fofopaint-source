@@ -64,7 +64,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.73;
+        private const APP_VERSION:Number = 25.75;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -616,8 +616,6 @@
                     ,workerState:int = WORKER_STATE_STOPPED
                     ,workerWaitCount:int = 0 //워커 시작하고나서 약간 대기 시켜줘야함
                     ,workerFunctionsBeforeStart:Array = []
-                    ,workerReplaySendBA:ByteArray = new ByteArray()
-                    ,workerReplaySendBATemp:ByteArray = new ByteArray()
 
         //새창 관련 변수
                     ,canvasWindowInfo:Array = [null,null,400,400] //x y 너비 높이
@@ -3901,9 +3899,6 @@
             workerLoader.dataFormat = URLLoaderDataFormat.BINARY;
             workerLoader.addEventListener(Event.COMPLETE, loadComplete);
             workerLoader.load(new URLRequest("worker.swf"));
-
-            workerReplaySendBA.shareable = true;
-            workerReplaySendBATemp.shareable = true;
 
             function loadComplete(e:Event):void
             {
@@ -20008,7 +20003,10 @@
                 setEraseButtonPosToOtherButtonPos("toolSpuit");
                 spuitZoomCursor.rotateBitmap(regPoint.rotation);
                 spuitZoomCursor.spuitZoomBitmap.bitmapData = new BitmapData(magSize,magSize,false,0);
-                spuitZoomCursor.visibleONAnimation();
+                if(checkSpuitCursorVisibleON())
+                {
+                    spuitZoomCursor.visibleONAnimation();
+                }
                 canvasTraceLayer.visible = false;
                 canvasBGShape.graphics.clear();
                 canvasBGShape.graphics.beginFill(CANVAS_BG_COLOR);

@@ -76,11 +76,12 @@
 
 		private function initScratcPad():void
 		{
-			scratchPad = new drawrScratchPad(svBoxWidth,mainColorPickerBox.height);
+			scratchPad = new drawrScratchPad(svBoxWidth,mainColorPickerBox.height-24);
 			scratchPad.x = 0
 			scratchPad.y = hueColor.y;
 			mainColorPickerBox.addChild(scratchPad);
 		}
+		
 		private function setScratchPadOFF():void
 		{
 			if(!scratchPad)
@@ -116,7 +117,8 @@
 			for(var i:int = 0; i < mainColorPickerBox.numChildren; i++) {
 				var child:* = mainColorPickerBox.getChildAt(i);
 				if(child === scratchPad
-				|| child === rgbInfoBG)
+				|| child === rgbInfoBG
+				|| child === historyBox)
 				{
 					continue;
 				}
