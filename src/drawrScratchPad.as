@@ -16,7 +16,6 @@ package
 
     public class drawrScratchPad extends Sprite
     {
-
         private const scratchPadDraw:Shape = new Shape();
         private var scratchPadBitmap:Bitmap;
         private const scratchPadBG:Shape = new Shape();
@@ -58,13 +57,6 @@ package
                 scratchPadDraw.graphics.clear();
                 scratchPadDraw.graphics.lineStyle(lineSize, borderColorFunc(color, 0) <= 40 ? 0xFFFFFF : 0);
                 scratchPadDraw.graphics.drawRect(Math.floor(scratchPadBitmap.mouseX), Math.floor(scratchPadBitmap.mouseY), 1, 1);
-
-                // clearTimeout(scratcthPadDrawClearTimer);
-                // scratcthPadDrawClearTimer = setTimeout(function():void
-                // {
-                // scratcthPadDrawClearTimer = -1;
-                // scratchPadDraw.graphics.clear();
-                // }, 1000);
 
                 if (color === 0)
                 {

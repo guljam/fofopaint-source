@@ -385,7 +385,7 @@
 
 				btn.name = "alphaButton"+i;
 				btn.graphics.beginFill(0xFF00FF,0.0);
-				btn.graphics.drawRect(0,0,17,16);
+				btn.graphics.drawRect(0,0,17,24);
 				btn.graphics.endFill();
 
 				if(i === 4)
@@ -494,7 +494,7 @@
 			initETCOptionsWrapper();
 
 			opaSizeButtonWrapper.x = 0;
-			opaSizeButtonWrapper.y = etcOptionWrapper.y+etcOptionWrapper.height+3;
+			opaSizeButtonWrapper.y = etcOptionWrapper.y+etcOptionWrapper.height+7;
 
 			BOX_HEIGHT = opaBox.y+opaBox.height+7;
 

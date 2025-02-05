@@ -64,7 +64,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.75;
+        private const APP_VERSION:Number = 25.76;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -578,7 +578,7 @@
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarConstHeight:Number = 715
+                    ,sideBarConstHeight:Number = 730
 
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
@@ -1655,7 +1655,7 @@
                 case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [click]"+STRING_HOLD_NSEC; break;
                 case "drawrPresetButton":
                 case "tegakiPresetButton": str = "Clear scratch pad [click]";break;
-                case "scratchPad": str = "Scratch pad\nPick color [right-click]"; break;
+                case "scratchPad": str = "Scratch pad\nPick color [c, m, right-click]"; break;
 
                 default:
                 return;
@@ -7921,7 +7921,7 @@
                 }
                 return;
 
-                case "alphaButton1":
+                case "alphaButton":
                 case "alphaButton2":
                 case "alphaButton3":
                 case "alphaButton4":
@@ -19899,11 +19899,11 @@
 
                 setNowToolByOldTool();
 
-                if(spuitZoomCursor.spuitZoomBitmap.bitmapData)
-                {
-                    spuitZoomCursor.spuitZoomBitmap.bitmapData.dispose();
-                    spuitZoomCursor.spuitZoomBitmap.bitmapData = null;
-                }
+                // if(spuitZoomCursor.spuitZoomBitmap.bitmapData)
+                // {
+                //     spuitZoomCursor.spuitZoomBitmap.bitmapData.dispose();
+                //     spuitZoomCursor.spuitZoomBitmap.bitmapData = null;
+                // }
             }
             function isNotSpuitTool():Boolean
             {
@@ -20002,11 +20002,6 @@
                 setColorTransform(spuitZoomCursor["spuitOldColor"],penColor);
                 setEraseButtonPosToOtherButtonPos("toolSpuit");
                 spuitZoomCursor.rotateBitmap(regPoint.rotation);
-                spuitZoomCursor.spuitZoomBitmap.bitmapData = new BitmapData(magSize,magSize,false,0);
-                if(checkSpuitCursorVisibleON())
-                {
-                    spuitZoomCursor.visibleONAnimation();
-                }
                 canvasTraceLayer.visible = false;
                 canvasBGShape.graphics.clear();
                 canvasBGShape.graphics.beginFill(CANVAS_BG_COLOR);
@@ -21469,7 +21464,7 @@
             controlBox.x = 39;
             controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+2);
             pickerBox.x = 39;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height+4);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height+8);
             toolBox.x = -2;
             toolBox.y = Math.floor(controlBox.y+1);
 
@@ -21514,7 +21509,7 @@
             controlBox.x = 0;
             controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+2);
             pickerBox.x = 0;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height+4);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height+8);
             toolBox.x = 177;
             toolBox.y = Math.floor(controlBox.y+1);
 
@@ -22663,7 +22658,14 @@
                 case KEY.c:
                 case KEY.m:
                 {
-                    if(!isNowTool(TOOL_SPUIT))
+                    if(pickerBox.scratchPad.hitTestPoint(stage.mouseX,stage.mouseY))
+                    {
+                        if(pickerBox.scratchPad.visible)
+                        {
+                            setPickColorScratchPad();
+                        }
+                    }
+                    else if(!isNowTool(TOOL_SPUIT))
                     {
                         spuitTool();
                     }
@@ -24244,17 +24246,20 @@
             }
             else if(targetName === "historyBox")
             {
-                index = getHistoryIndexByMousePos();
-                myPaletteDragClickedIndex = index+90;
-
-                if(index >= 0 && !isSelctedHistoryColorEmpty(index))
+                if(myPalettePresetType === 0)
                 {
-                    mouseDragON = true;
-                    myPaletteDragClickedColor = myPalettePreset[index+90];
-                    myPaletteClickPos.setTo(pickerBox.mouseX,pickerBox.mouseY);
-                    myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
-                    stage.addEventListener(MouseEvent.MOUSE_UP,historyDragMouseUpEvent,false,-1);
-                    stage.addEventListener(MouseEvent.MOUSE_MOVE,historyColorDragMouseMoveEvent);
+                    index = getHistoryIndexByMousePos();
+                    myPaletteDragClickedIndex = index+90;
+
+                    if(index >= 0 && !isSelctedHistoryColorEmpty(index))
+                    {
+                        mouseDragON = true;
+                        myPaletteDragClickedColor = myPalettePreset[index+90];
+                        myPaletteClickPos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+                        myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+                        stage.addEventListener(MouseEvent.MOUSE_UP,historyDragMouseUpEvent,false,-1);
+                        stage.addEventListener(MouseEvent.MOUSE_MOVE,historyColorDragMouseMoveEvent);
+                    }
                 }
             }
             else if(pickerBox.scratchPad)
