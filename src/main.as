@@ -64,7 +64,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.76;
+        private const APP_VERSION:Number = 25.77;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -578,7 +578,7 @@
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarConstHeight:Number = 730
+                    ,sideBarConstHeight:Number = 740
 
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
@@ -1262,7 +1262,6 @@
                 pickColor(myPaletteSaveColorBeforeOtherType[0]);
             }
 
-            pickerBox.scratchPad.clearPad();
             checkFOFOPosition();
         }
 
@@ -3638,7 +3637,10 @@
                 break;
             }
 
-            setQuickSidebarOFF();
+            if(pickerBox.rgbInfo.type === TextFieldType.INPUT)
+            {
+                setQuickSidebarOFF();
+            }
         }
 
         private function mouseDownQuickSidebarOFF(e:MouseEvent):void
@@ -20659,7 +20661,6 @@
             //round하면 정확도가 약간 줄어드는데, 안하면 그릴때 픽셀 어긋남
             //캔버스 회전됐을때 점 위치를 구해줌
             //zoom된값을 나눠줘야 제대로된 이동거리가 나옴
-            const z:Number = zoomed;
             const rotateToolMoveEvent:Point = rotatePoint((xReg.x-tx)/xZoomed,
                                                  (xReg.y-ty)/xZoomed,
                                                  xReg.rotation);
