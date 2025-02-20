@@ -59,12 +59,11 @@
     import flash.text.TextFieldType;
     import flash.text.TextFormat;
     import flash.ui.Mouse;
-    import flash.html.HTMLLoader;
 
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.78;
+        private const APP_VERSION:Number = 25.79;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -19740,7 +19739,7 @@
                 spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvas1Bitmap.bitmapData,spuitMagMat,null,null,spuitMagRect);
             }
 
-            function spuitPickedColor():uint
+            function spuitPickColor():uint
             {
                 if(canvas1Bitmap.hitTestPoint(mouseX,mouseY))
                 {
@@ -19893,20 +19892,18 @@
                 spuitZoomCursor.visible = false;
                 canvasTraceLayer.visible = true;
                 canvasBGShape.graphics.clear();
-
-                if(okFlag && !(isNowToolPenOrLine() || isOldTool(TOOL_FILL_PEN)))
-                {
-                    setOldTool(TOOL_PEN);
-                }
-
-                setNowToolByOldTool();
-
-                // if(spuitZoomCursor.spuitZoomBitmap.bitmapData)
+                // if(okFlag)
                 // {
-                //     spuitZoomCursor.spuitZoomBitmap.bitmapData.dispose();
-                //     spuitZoomCursor.spuitZoomBitmap.bitmapData = null;
+                //     if(!(isOldTool(TOOL_FILL_PEN)
+                //     || isOldTool(TOOL_LINE)
+                //     || isOldTool(TOOL_PEN)))
+                //     {
+                //         setOldTool(TOOL_PEN);
+                //     }
                 // }
+                setNowToolByOldTool();
             }
+
             function isNotSpuitTool():Boolean
             {
                 return !isNowTool(TOOL_SPUIT) || replayModeON || captureModeON || fileBrowserON || clickBlockOnWindowActiveFlag;
@@ -19919,7 +19916,7 @@
                 if(spuitZoomCursor.visible === true)
                 {
                     okFlag = true;
-                    const pickedColor:uint = spuitPickedColor();
+                    const pickedColor:uint = spuitPickColor();
 
                     penColor = pickedColor;
                     pickerIgnoreHistoryColor = pickedColor;
@@ -19942,7 +19939,7 @@
 
                 if(checkSpuitCursorVisibleON())
                 {
-                    setColorTransform(spuitZoomCursor["spuitNowColor"],spuitPickedColor());
+                    setColorTransform(spuitZoomCursor["spuitNowColor"],spuitPickColor());
                     if(zoomed < 12.0)
                     {
                         setSpuitMag();
@@ -20013,7 +20010,7 @@
                 {
                     spuitZoomCursor.x = mouseX;
                     spuitZoomCursor.y = mouseY;
-                    setColorTransform(spuitZoomCursor["spuitNowColor"],spuitPickedColor());
+                    setColorTransform(spuitZoomCursor["spuitNowColor"],spuitPickColor());
                     setTopChildIndex(spuitZoomCursor);
 
                     if(zoomed < 12.0)
