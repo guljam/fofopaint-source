@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.79;
+        private const APP_VERSION:Number = 25.80;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -870,7 +870,7 @@
             updateHistoryList();
             if(penColorTransparentFlag)
             {
-                pickerBox.setRGBInfoBGTransparentColorON();
+                pickerBox.setRGBInfoBGTransparentColorON(myPalettePresetType);
             }
         }
 
@@ -1250,7 +1250,7 @@
                 myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = pickerBox.getRGBInfoBGColor();
                 pickColor(myPaletteSaveColorBeforeOtherType[1]);
             }
-            else if(type === 2)
+            else if(type === 2) //tegaki
             {
                 myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = pickerBox.getRGBInfoBGColor();
                 pickColor(myPaletteSaveColorBeforeOtherType[2]);
@@ -4485,11 +4485,11 @@
             checkFOFOPosition();
         }
 
-        private function setTransparentColor():void
+        private function selectTransparentColor():void
         {
             penColorTransparentFlag = true;
             pickerBox.updateOldRGBInfoText();
-            pickerBox.setRGBInfoBGTransparentColorON();
+            pickerBox.setRGBInfoBGTransparentColorON(myPalettePresetType);
             pickerBox.setRGBInfo("Transparent");
         }
 
@@ -14166,7 +14166,7 @@
             {
                 if(penColorTransparentFlag === false)
                 {
-                    setTransparentColor();
+                    selectTransparentColor();
                 }
                 return;
             }
@@ -14206,7 +14206,7 @@
                 {
                     if(penColorTransparentFlag === false && pickerMode === 1)
                     {
-                        setTransparentColor();
+                        selectTransparentColor();
                     }
                     return;
                 }
@@ -14224,7 +14224,7 @@
                 {
                     if(penColorTransparentFlag === false && pickerMode === 1)
                     {
-                        setTransparentColor();
+                        selectTransparentColor();
                     }
                     return;
                 }
@@ -19838,7 +19838,7 @@
                     else
                     {
                         setCurrentColor(1);
-                        if(penColorTransparentFlag === false) setTransparentColor();
+                        if(penColorTransparentFlag === false) selectTransparentColor();
 
                         if(sideBar.visible === false)
                         {
@@ -23419,7 +23419,7 @@
             if(replayStartON === true) stopReplay();
 
             updatePreviewBoxRectPos();
-            if(penColorTransparentFlag) setTransparentColor();
+            if(penColorTransparentFlag) selectTransparentColor();
             else changePickerModeToNormal();
             updatePenSizeCursor();
             penCursorPosition.check();
@@ -24171,7 +24171,7 @@
                         {
                             if(pickerBox.transColorButton.alpha === 1.0)
                             {
-                                setTransparentColor();
+                                selectTransparentColor();
                                 setNowToolForDrawing(false);
                             }
                         }

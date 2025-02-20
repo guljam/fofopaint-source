@@ -276,12 +276,13 @@
 			updateRGBInfoBG(rgbInfoBGColor,rgbInfoBGBorderColor,rgbInfoPaletteTypeSave);
 		}
 
-		public function setRGBInfoBGTransparentColorON():void
+		public function setRGBInfoBGTransparentColorON(paletteType:int):void
 		{
+			const rgbInfoBGwidth:Number = (paletteType !== 0)?svBoxWidth:rgbInfoWidth;
 			rgbInfoBG.graphics.clear();
             rgbInfoBG.graphics.lineStyle(0,0,0);
             rgbInfoBG.graphics.beginBitmapFill(transColorButtonBmpd);
-            rgbInfoBG.graphics.drawRect(0,0,rgbInfoWidth,rgbInfoHeight);
+            rgbInfoBG.graphics.drawRect(0,0,rgbInfoBGwidth,rgbInfoHeight);
             rgbInfoBG.graphics.endFill();
 			rgbInfo.textColor = 0xFF0000;
 		}
