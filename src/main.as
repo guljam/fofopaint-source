@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.80;
+        private const APP_VERSION:Number = 25.81;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -8734,6 +8734,7 @@
 
         private function setLassoResizeButton():void
         {
+            const mirrorScale:Number = (lassoBox1.scaleX < 0) ? -1.0 : 1.0;
             var getScale:Function = cImageResizeFunc(lassoBox1.scaleX);
 
             mouseDragON = true;
@@ -8758,15 +8759,15 @@
             function lassoResizeButtonMoveEvent(e:MouseEvent):void
             {
                 const scale:Number = getScale(mouseX,mouseY);
-                lassoBox1.scaleX = scale;
+                lassoBox1.scaleX = scale*mirrorScale;
                 lassoBox1.scaleY = scale;
-                lassoBox2.scaleX = scale;
-                lassoBox2.scaleY = scale;
+                lassoBox2.scaleX = lassoBox1.scaleX;
+                lassoBox2.scaleY = lassoBox1.scaleY;
 
-                setToolTipString(getImageScaleHint(lassoBox1.width,lassoBox1.height,lassoBox1.scaleX,false));
+                setToolTipString(getImageScaleHint(lassoBox1.width,lassoBox1.height,Math.abs(lassoBox1.scaleX),false));
             }
 
-            setToolTipString(getImageScaleHint(lassoBox1.width,lassoBox1.height,lassoBox1.scaleX,false));
+            setToolTipString(getImageScaleHint(lassoBox1.width,lassoBox1.height,Math.abs(lassoBox1.scaleX),false));
             setToolTipON();
             lassoMenu.visible = false;
             stage.addEventListener(MouseEvent.MOUSE_UP,lassoResizeButtonUpEvent);
