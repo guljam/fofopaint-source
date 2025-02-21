@@ -5,14 +5,11 @@ package
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.events.MouseEvent;
-    import flash.geom.Point;
     import flash.display.LineScaleMode;
     import flash.display.CapsStyle;
     import flash.display.JointStyle;
     import flash.geom.Rectangle;
-    import flash.utils.Timer;
-    import flash.utils.clearTimeout;
-    import flash.utils.setTimeout;
+    import flash.geom.Point;
 
     public class drawrScratchPad extends Sprite
     {
@@ -20,9 +17,14 @@ package
         private var scratchPadBitmap:Bitmap;
         private const scratchPadBG:Shape = new Shape();
         private var scratchPadBGColor:uint = 0;
-        private const scratchPadZoom:Number = 16;
+        private const scratchPadZoom:Number = 18;
         private var isPadCleared:Boolean = false;
-        // private var scratcthPadDrawClearTimer:int = 0;
+        private const startPos:Point = new Point();
+        private const nowPos:Point = new Point();
+        public var isScratchStarted:Boolean = false;
+        private var lineStyleData:Array = [];
+        public var mainPickColorFunc:Function;
+        public var pickColorBorderFunc:Function;
 
         public function drawrScratchPad(bmpdWidth:Number, bmpdHeight:Number):void
         {
@@ -33,16 +35,14 @@ package
             addChild(scratchPadBG);
             addChild(scratchPadBitmap);
             addChild(scratchPadDraw);
-            addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, pickColor);
-
-            name = "scratchPad";
-
             this.width = Math.floor(bmpdWidth * scratchPadZoom);
             this.height = Math.floor(bmpdHeight * scratchPadZoom);
-            scrollRect = new Rectangle(0, 0, bmpdWidth - 1, bmpdHeight - 1);
+            scrollRect = new Rectangle(0, 0, bmpdWidth, bmpdHeight);
+
+            this.name = "scratchPad";
         }
 
-        public function pickerColor(borderColorFunc:Function):uint
+        public function pickColor():uint
         {
             if (scratchPadBitmap.bitmapData)
             {
@@ -53,15 +53,10 @@ package
                 bgBmpd.draw(tmpBmpd);
                 color = bgBmpd.getPixel(0, 0);
 
-                const lineSize:Number = 1 / scratchPadZoom;
                 scratchPadDraw.graphics.clear();
-                scratchPadDraw.graphics.lineStyle(lineSize, borderColorFunc(color, 0) <= 40 ? 0xFFFFFF : 0);
+                scratchPadDraw.graphics.lineStyle(1 / scratchPadZoom,pickColorBorderFunc(color, 0) <= 40 ? 0xFFFFFF : 0);
                 scratchPadDraw.graphics.drawRect(Math.floor(scratchPadBitmap.mouseX), Math.floor(scratchPadBitmap.mouseY), 1, 1);
 
-                if (color === 0)
-                {
-                    return color;
-                }
                 return color;
             }
 
@@ -89,18 +84,18 @@ package
             }
             // if (scratcthPadDrawClearTimer !== 0)
             // {
-            //     clearTimeout(scratcthPadDrawClearTimer);
+            // clearTimeout(scratcthPadDrawClearTimer);
             // }
 
             scratchPadDraw.graphics.clear();
 
             if (sqShape)
             {
-                scratchPadDraw.graphics.lineStyle(linseSize, lineColor, lineAlpha, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.BEVEL);
+                scratchPadDraw.graphics.lineStyle(1.0, lineColor, lineAlpha, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.BEVEL);
             }
             else
             {
-                scratchPadDraw.graphics.lineStyle(linseSize, lineColor, lineAlpha);
+                scratchPadDraw.graphics.lineStyle(1.0, lineColor, lineAlpha);
             }
         }
 
@@ -116,14 +111,68 @@ package
             }
         }
 
-        public function pickColor(e:MouseEvent):void
+        public function removeCheckMouseDistEvent():void
         {
-            var color:uint = scratchPadBitmap.bitmapData.getPixel(scratchPadBitmap.mouseX, scratchPadBitmap.mouseY);
+            stopDraw(null);
+            stage.removeEventListener(MouseEvent.MOUSE_MOVE, checkMouseDistMouseMove);
+            stage.removeEventListener(MouseEvent.MOUSE_UP, checkMouseDistMouseUp);
+        }
+
+        public function checkMouseDistMouseUp(e:MouseEvent):void
+        {
+            if (Math.floor(scratchPadBitmap.mouseX) === Math.floor(startPos.x) && Math.floor(scratchPadBitmap.mouseY) === Math.floor(startPos.y))
+            {
+                if(mainPickColorFunc !== null)
+                {
+                    mainPickColorFunc(pickColor());
+                }
+            }
+
+            isScratchStarted = false;
+            stage.removeEventListener(MouseEvent.MOUSE_MOVE, checkMouseDistMouseMove);
+            stage.removeEventListener(MouseEvent.MOUSE_UP, checkMouseDistMouseUp);
+        }
+
+        public function checkMouseDistMouseMove(e:MouseEvent):void
+        {
+            nowPos.setTo(scratchPadBitmap.mouseX, scratchPadBitmap.mouseY);
+            if (Point.distance(startPos, nowPos) >= 1.0)
+            {
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE, checkMouseDistMouseMove);
+                stage.removeEventListener(MouseEvent.MOUSE_UP, checkMouseDistMouseUp);
+                setLineStyle(lineStyleData[0], lineStyleData[1], lineStyleData[2], lineStyleData[3]);
+                startDraw();
+            }
+        }
+
+        public function drawReady(lineSize:Number, lineColor:uint, lineAlpha:Number, sqShape:Boolean,pickColorFunc:Function,rectColorFunc:Function):void
+        {
+            if(mainPickColorFunc === null)
+            {
+                mainPickColorFunc = pickColorFunc;
+            }
+
+            if(pickColorBorderFunc === null)
+            {
+                pickColorBorderFunc = rectColorFunc;
+            }
+
+            if (isScratchStarted === false)
+            {
+                isScratchStarted = true;
+                lineStyleData[0] = lineSize;
+                lineStyleData[1] = lineColor;
+                lineStyleData[2] = lineAlpha;
+                lineStyleData[3] = sqShape;
+                startPos.setTo(scratchPadBitmap.mouseX, scratchPadBitmap.mouseY);
+                stage.addEventListener(MouseEvent.MOUSE_MOVE, checkMouseDistMouseMove);
+                stage.addEventListener(MouseEvent.MOUSE_UP, checkMouseDistMouseUp);
+            }
         }
 
         public function startDraw():void
         {
-            scratchPadDraw.graphics.moveTo(scratchPadBitmap.mouseX, scratchPadBitmap.mouseY);
+            scratchPadDraw.graphics.moveTo(startPos.x, startPos.y);
 
             stage.addEventListener(MouseEvent.MOUSE_MOVE, drawing);
             stage.addEventListener(MouseEvent.MOUSE_UP, stopDraw);
@@ -136,6 +185,7 @@ package
 
         private function stopDraw(e:MouseEvent):void
         {
+            isScratchStarted = false;
             isPadCleared = false;
             stage.removeEventListener(MouseEvent.MOUSE_MOVE, drawing);
             stage.removeEventListener(MouseEvent.MOUSE_UP, stopDraw);

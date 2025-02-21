@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.81;
+        private const APP_VERSION:Number = 25.82;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -720,9 +720,7 @@
         //function
         private function setPickColorScratchPad():void
         {
-            const color:uint = uint(pickerBox.scratchPad.pickerColor(getColorDifferenceForHuman));
-
-            pickColor(color);
+            pickColor(pickerBox.scratchPad.pickColor());
         }
 
         private function setCaptureFontListVisibleOff():void
@@ -1653,7 +1651,7 @@
                 case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [click]"+STRING_HOLD_NSEC; break;
                 case "drawrPresetButton":
                 case "tegakiPresetButton": str = "Clear scratch pad [click]";break;
-                case "scratchPad": str = "Scratch pad\nPick color [c, m, right-click]"; break;
+                case "scratchPad": str = "Scratch pad\nDraw [click+drag]\nSelect color [c, m, click]"; break;
 
                 default:
                 return;
@@ -3608,11 +3606,6 @@
 
             switch(e.target.name)
             {
-                case "scratchPad":
-                {
-                    setPickColorScratchPad();
-                }
-                return;
                 case "zoomInButton":
                 case "zoomOutButton":
                 {
@@ -19893,15 +19886,15 @@
                 spuitZoomCursor.visible = false;
                 canvasTraceLayer.visible = true;
                 canvasBGShape.graphics.clear();
-                // if(okFlag)
-                // {
-                //     if(!(isOldTool(TOOL_FILL_PEN)
-                //     || isOldTool(TOOL_LINE)
-                //     || isOldTool(TOOL_PEN)))
-                //     {
-                //         setOldTool(TOOL_PEN);
-                //     }
-                // }
+                if(okFlag)
+                {
+                    if(!(isOldTool(TOOL_FILL_PEN)
+                    || isOldTool(TOOL_LINE)
+                    || isOldTool(TOOL_PEN)))
+                    {
+                        setOldTool(TOOL_PEN);
+                    }
+                }
                 setNowToolByOldTool();
             }
 
@@ -22840,6 +22833,11 @@
                 setNumPadOFF();
             }
 
+            if(pickerBox.scratchPad.isScratchStarted)
+            {
+                pickerBox.scratchPad.removeCheckMouseDistEvent();
+            }
+
             setNowToolByOldTool();
         }
 
@@ -23791,12 +23789,6 @@
             const targetName:String = e.target.name;
             switch(targetName)
             {
-                case "scratchPad":
-                {
-                    setPickColorScratchPad();
-                }
-                break;
-
                 case "saveButton":
                 {
                     saveFile(true);
@@ -24223,6 +24215,7 @@
                 return;
             }
 
+
             const targetName:String = target.name;
             var index:int;
 
@@ -24261,18 +24254,15 @@
                     }
                 }
             }
-            else if(pickerBox.scratchPad)
-            {
-                if(targetName === "scratchPad")
-                {
-                    pickerBox.scratchPad.setLineStyle(penSize,penColor,penAlpha,penShape);
-                    pickerBox.scratchPad.startDraw();
-                    return;
-                }
-            }
 
             switch(targetName)
             {
+                case "scratchPad":
+                {
+                    pickerBox.scratchPad.drawReady(penSize,penColor,penAlpha,penShape,pickColor,getColorDifferenceForHuman);
+                }
+                return;
+
                 case "svBox":
                 {
                     if(pickerBox.scratchPad && !pickerBox.scratchPad.visible)

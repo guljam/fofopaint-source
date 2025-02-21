@@ -11,7 +11,6 @@
 	import flash.ui.ContextMenu;
 	import flash.display.BitmapData;
 	import flash.filters.ColorMatrixFilter;
-	import flash.geom.Point;
 	import flash.geom.Rectangle;
 
 	public class colorPickerBox extends Sprite {
