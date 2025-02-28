@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.82;
+        private const APP_VERSION:Number = 25.83;
         private const APP_DATA_VERSION:Number = 2561;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -15791,6 +15791,14 @@
             if(numPadBox.visible)
             {
                 setNumPadOFF();
+            }
+
+            if(!isSidebarVisible)
+            {
+                if(sideBar.visible)
+                {
+                    setSidebarVisible(false,true)
+                }
             }
 
             stage.addEventListener(MouseEvent.MOUSE_MOVE, captureMouseMoveHintEvent);
