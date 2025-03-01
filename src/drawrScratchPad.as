@@ -89,14 +89,14 @@ package
 
             scratchPadDraw.graphics.clear();
 
-            if (sqShape)
-            {
-                scratchPadDraw.graphics.lineStyle(1.0, lineColor, lineAlpha, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.BEVEL);
-            }
-            else
-            {
-                scratchPadDraw.graphics.lineStyle(1.0, lineColor, lineAlpha);
-            }
+            // if (sqShape)
+            // {
+            //     scratchPadDraw.graphics.lineStyle(1.0, lineColor, lineAlpha, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.BEVEL);
+            // }
+            // else
+            // {
+            // }
+            scratchPadDraw.graphics.lineStyle(1.0, lineColor, lineAlpha);
         }
 
         public function clearPad():void

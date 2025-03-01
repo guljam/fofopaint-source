@@ -63,8 +63,8 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.83;
-        private const APP_DATA_VERSION:Number = 2561;
+        private const APP_VERSION:Number = 25.85;
+        private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -225,7 +225,7 @@
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
                     ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc, right-click]\nMove text cursor [a-d, j-l, arrow key, tab, shift+tab]\nAdjust value [w-s, i-k]"
                     ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
-                    ,STRING_HOLD_NSEC:String = " <- hold 1 sec"
+                    ,STRING_HOLD_NSEC:String = " <- hold 2 sec"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -425,6 +425,7 @@
 
         //리플레이 관련 변수
         private const appDataFile:File = File.applicationStorageDirectory.resolvePath("appdata"+(APP_DATA_VERSION.toString()))
+                    ,scratchDataFile:File = File.applicationStorageDirectory.resolvePath("scratchdata")
                     ,undoDataFile:File = File.applicationStorageDirectory.resolvePath("undodata")
                     ,repFile:File = File.applicationStorageDirectory.resolvePath("repdata")
                     ,rJumpImageFolder:File = File.applicationStorageDirectory.resolvePath("imagecache")
@@ -718,6 +719,25 @@
         }
 
         //function
+        private function getFilteredPos(mx:Number,my:Number):Point
+        {
+            mx = Math.round(mx*100)/100;
+            my = Math.round(my*100)/100;
+
+            if(sharpLineON)
+            {
+                my = Math.floor(my);
+                mx = Math.floor(mx);
+            }
+            else if(penSmoothSlideValue === 0 && (regPoint.rotation % 90 === 0))
+            {
+                my = Math.round(my);
+                mx = Math.round(mx);
+            }
+
+            return new Point(mx,my);
+        }
+            
         private function setPickColorScratchPad():void
         {
             pickColor(pickerBox.scratchPad.pickColor());
@@ -870,6 +890,14 @@
             {
                 pickerBox.setRGBInfoBGTransparentColorON(myPalettePresetType);
             }
+        }
+
+        private function startScratchPadResetTimer(target:DisplayObject):void
+        {
+            addTimerByName("clearScratchPadTimer",0.4,false,function():void
+            {
+                setCountDownLongKey(target,"Clearing scratch pad.. ",null,pickerBox.scratchPad.clearPad,null);
+            });
         }
 
         private function checkSelectMyPaletteOrReset():void
@@ -1060,8 +1088,7 @@
                 var rightMouseClickONSave:Boolean = rightMouseClickON;
 
                 const deafultCount:Number = 3;
-                const deafultDelay:Number = 1.0;
-                const countNowTime:Number = Math.ceil((stage.frameRate*1.1)/deafultCount);
+                const countNowTime:Number = Math.ceil((stage.frameRate*2)/deafultCount);
 
                 longKeyCountDown = deafultCount;
                 loneKeyFrameCount = 0;
@@ -1650,7 +1677,7 @@
                 case "penColorButton": str = "Change pen color"; break;
                 case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [click]"+STRING_HOLD_NSEC; break;
                 case "drawrPresetButton":
-                case "tegakiPresetButton": str = "Clear scratch pad [click]";break;
+                case "tegakiPresetButton": str = "Clear scratch pad [click]"+STRING_HOLD_NSEC;break;
                 case "scratchPad": str = "Scratch pad\nDraw [click+drag]\nSelect color [c, m, click]"; break;
 
                 default:
@@ -4681,9 +4708,8 @@
             var commandUndoIndexArr:Array = [];
             var mouseMoveCount:int;
             var afterKeyUpOK:Boolean;
-            var posOffset:Number;
+            var pos05Offset:Number;
             // var _sharpLine:Boolean;
-            var rotateFlag:Boolean;
             var xBlendMode:String;
             var clickedButton:String;
 
@@ -4974,19 +5000,9 @@
             {
                 // if(readyAddUndoFlag === false) checkFillPenUndoReady();
 
-                var mx:Number = canvas2Draw.mouseX;
-                var my:Number = canvas2Draw.mouseY;
-
-                if(sharpLineON && rotateFlag === false)
-                {
-                    mx = Math.floor(mx-posOffset)+posOffset;
-                    my = Math.floor(my-posOffset)+posOffset;
-                }
-                else
-                {
-                    mx = Math.floor(mx*100)/100;
-                    my = Math.floor(my*100)/100;
-                }
+                const filteredPos:Point = getFilteredPos(canvas2Draw.mouseX,canvas2Draw.mouseY);
+                const mx:Number = filteredPos.x+pos05Offset;
+                const my:Number = filteredPos.y+pos05Offset;
 
                 if(command.length === 0)
                 {
@@ -5036,19 +5052,9 @@
                     mouseDragON = true;
                     stage.addEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
 
-                    var mx:Number = canvas2Draw.mouseX;
-                    var my:Number = canvas2Draw.mouseY;
-
-                    if(sharpLineON && rotateFlag === false)
-                    {
-                        mx = Math.floor(mx-posOffset)+posOffset;
-                        my = Math.floor(my-posOffset)+posOffset;
-                    }
-                    else
-                    {
-                        mx = Math.floor(mx*100)/100;
-                        my = Math.floor(my*100)/100;
-                    }
+                    const filteredPos:Point = getFilteredPos(canvas2Draw.mouseX,canvas2Draw.mouseY);
+                    const mx:Number = filteredPos.x+pos05Offset;
+                    const my:Number = filteredPos.y+pos05Offset;
 
                     if(command.length === 0)
                     {
@@ -5107,8 +5113,7 @@
 
                 mouseMoveCount = 0;
                 afterKeyUpOK = false;
-                rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
-                posOffset = getSharpLineOffset(1.0);
+                pos05Offset = getSharpLineOffset(1.0);
                 xColor = (penColorTransparentFlag) ? CANVAS_BG_COLOR : penColor;
                 xAlpha = penAlpha;
                 xBlendMode = (penColorTransparentFlag) ? "erase" : null;
@@ -5133,8 +5138,9 @@
                 if(traceMenuON) traceMenu.visible = false;
                 dottedLine.updateScale(zoomed);
 
-                var mx:Number = canvas2Draw.mouseX;
-                var my:Number = canvas2Draw.mouseY;
+                const filteredPos:Point = getFilteredPos(canvas2Draw.mouseX,canvas2Draw.mouseY);
+                var mx:Number = filteredPos.x+pos05Offset;
+                var my:Number = filteredPos.y+pos05Offset;
 
                 command.push(1);
                 data.push(mx);
@@ -5156,12 +5162,12 @@
             const clickPos:Point = new Point(); //점찍어 줄 때 판단하는 클릭한 자리 저장
             const smoothPos:Point = new Point(); //펜 스무딩에서 커서 뒤에 따라가는 실제 선의 죄표를 저장
             const smoothLast:Point = new Point(); //펜 스무딩에서 현재 마우스 커서 위치를 저장
-            const moveEventLast:Point = new Point();
-            const moveEventDistSave:Point = new Point();
-            const moveEvent2Last:Point = new Point();
-            const sqPenCursorLast:Point = new Point();
-            const sqLinePosLast:Point = new Point();
-            const extendedPos:Point = new Point();
+            const moveEventLast:Point = new Point(); //마우스 move이벤트에서 브러시 크기 필터 해주기 위해 현재 위치 저장
+            const moveEventDistSave:Point = new Point(); //마우스 move이벤트에서 브러시 크기 필터 해주기 위해 마지막 위치 저장
+            const moveEvent2Last:Point = new Point(); //penMove2함수에서 smooth pos를 저장해서 같은 위치면 안그려주기 위해서 마지막 위치를 저장
+            const sqPenCursorLast:Point = new Point(); //사각형 커서 각도를 위한 위치저장
+            const sqLinePosLast:Point = new Point(); //사각형라인일 때 일정 길이이상 일때만 그려주기 위한 위치
+            const extendedPos:Point = new Point(); //사각형라인일 때 양끝점을 약간 확장해주기 위한 위치
             const penCommand:Vector.<int> = new Vector.<int>(); //그냥펜
             const penPoints:Vector.<Number> = new Vector.<Number>(); //그냥펜 좌표
             const canvasSizeRect:Rectangle = new Rectangle();
@@ -5173,12 +5179,12 @@
             var xShape:Boolean;
             var xBlendMode:String;
             var xAirBrushON:Boolean;
-            var posOffset:Number;
-            var rotateFlag:Boolean;
+            var pos05Offset:Number; //경계선 0.5를 조절해서 번지게 보이느냐 샤프하게 보이느냐
             var mouseMoveCount:int; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
             var mouseMovedFlag:Boolean;
             var moveEventDistLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
-            var dotflag:Boolean;
+            var dotflag:Boolean; //펜스무딩이 강하게 들어갔을때 아주 작은 위치만 그려주면 표현이 제대로 안되기 때문에 너무 작게 선이 그려졌을때 올려주는 플래그
+            var sq1PXCursor:Boolean = false; //1픽셀 사각형 커서인경우 올려주고 커서 미리보기 회전적용되게 함
 
             function circleRectangleCollision(cx:Number, cy:Number, r:Number, rx:Number, ry:Number, w:Number, h:Number):Boolean
             {
@@ -5243,6 +5249,24 @@
                 }
             }
 
+            //끝 부분점을 distance만큼 길게 늘임
+            function updateExtendEndPoint(x1:Number,y1:Number,x2:Number,y2:Number,distance:Number):void
+            {
+                // 선분 방향 벡터 계산
+                const directionX:Number = x2 - x1;
+                const directionY:Number = y2 - y1;
+
+                // 선분 길이 계산
+                const length:Number = Math.sqrt(directionX * directionX + directionY * directionY);
+
+                // 선분 방향 벡터 정규화
+                const normalizedDirectionX:Number = directionX / length;
+                const normalizedDirectionY:Number = directionY / length;
+
+                extendedPos.setTo(x2 + normalizedDirectionX * distance,y2 + normalizedDirectionY * distance);
+            }
+
+
             function penMove2(mx:Number,my:Number):void
             {
                 if(readyAddUndoFlag === false)
@@ -5250,16 +5274,10 @@
                     checkPenToolUndoReady();
                 }
 
-                if(!sharpLineON && (penSmoothSlideValue > 0 || rotateFlag))
-                {
-                    mx = Math.floor(mx*100)/100;
-                    my = Math.floor(my*100)/100;
-                }
-                else
-                {
-                    mx = Math.floor(mx-posOffset)+posOffset;
-                    my = Math.floor(my-posOffset)+posOffset;
-                }
+                const filteredPos:Point = getFilteredPos(mx,my);
+
+                mx = filteredPos.x+pos05Offset;
+                my = filteredPos.y+pos05Offset;
 
                 if(xShape === true)
                 {
@@ -5279,13 +5297,17 @@
 
                 if(mouseMovedFlag === false) //움직이기 시작할때 linestyle이랑 moveto넣어줌
                 {
-                    canvas2Draw.graphics.clear();
                     mouseMovedFlag = true;
+
+                    canvas2Draw.graphics.clear();
                     lineStyleReady(xShape,xSize,xColor,xAlpha);
 
                     if(xShape)
                     {
-                        updateExtendEndPoint(mx,my,clickPos.x,clickPos.y,xSize/8);
+                        const filteredStartPos:Point = getFilteredPos(clickPos.x,clickPos.y);
+                        filteredStartPos.x = filteredStartPos.x+pos05Offset;
+                        filteredStartPos.y = filteredStartPos.y+pos05Offset;
+                        updateExtendEndPoint(mx,my,filteredStartPos.x,filteredStartPos.y,xSize/8);
                         rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,extendedPos.x,extendedPos.y,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
                         penPoints.push(extendedPos.x);
                         penPoints.push(extendedPos.y);
@@ -5293,80 +5315,87 @@
                     }
                     else
                     {
-                        rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,smoothPos.x,smoothPos.y,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
-                        penPoints.push(smoothPos.x);
-                        penPoints.push(smoothPos.y);
-                        canvas2Draw.graphics.moveTo(smoothPos.x,smoothPos.y);
+                        rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,smoothPos.x+pos05Offset,smoothPos.y+pos05Offset,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
+                        penPoints.push(smoothPos.x+pos05Offset);
+                        penPoints.push(smoothPos.y+pos05Offset);
+                        canvas2Draw.graphics.moveTo(smoothPos.x+pos05Offset,smoothPos.y+pos05Offset);
                     }
                 }
 
-                rDataBuffer.push(["lineTo",mx,my]);
-                penCommand.push(2);
-                penPoints.push(mx);
-                penPoints.push(my);
-                moveEvent2Last.setTo(mx,my);
-                canvas2Draw.graphics.lineTo(mx,my);
-
-                mouseMoveCount++;
-                if(mouseMoveCount >= 100)
+                if(mouseMovedFlag)
                 {
-                    mouseMoveCount = 0;
-
-                    if(airBrushSizeDrawMode > 0)
+                    if(moveEvent2Last.x === mx && moveEvent2Last.y === my)
                     {
-                        const blurSize:Number = getBlurSize(airBrushSizeDrawMode,1.0);
-                        canvas2Draw.filters = [new BlurFilter(blurSize,blurSize,3)];
-                        canvas2BitmapData.draw(canvas2Draw,null,null,"layer");
-                        canvas2Draw.filters = [];
+                        return;
                     }
-                    else
+                    rDataBuffer.push(["lineTo",mx,my]);
+                    penCommand.push(2);
+                    penPoints.push(mx);
+                    penPoints.push(my);
+                    moveEvent2Last.setTo(mx,my);
+                    canvas2Draw.graphics.lineTo(mx,my);
+
+                    mouseMoveCount++;
+                    if(mouseMoveCount >= 100)
                     {
-                        canvas2BitmapData.draw(canvas2Draw,null,null,"layer");
+                        mouseMoveCount = 0;
+
+                        if(airBrushSizeDrawMode > 0)
+                        {
+                            const blurSize:Number = getBlurSize(airBrushSizeDrawMode,1.0);
+                            canvas2Draw.filters = [new BlurFilter(blurSize,blurSize,3)];
+                            canvas2BitmapData.draw(canvas2Draw,null,null,"layer");
+                            canvas2Draw.filters = [];
+                        }
+                        else
+                        {
+                            canvas2BitmapData.draw(canvas2Draw,null,null,"layer");
+                        }
+
+                        canvas2Bitmap.bitmapData = canvas2BitmapData;
+                        updateCanvas2DrawCliprect();
+                        canvas2Draw.graphics.clear();
+
+                        lineStyleReady(xShape,xSize,xColor,xAlpha);
+
+                        const prevX:Number = penPoints[penPoints.length-4];
+                        const prevY:Number = penPoints[penPoints.length-3];
+                        penCommand.length = 0;
+                        penPoints.length = 0;
+                        rDataBuffer.push(["tempDone4"]);
+
+                        if(xShape === true)
+                        {
+                            rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,prevX,prevY,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
+                            penCommand.push(1);
+                            penPoints.push(prevX);
+                            penPoints.push(prevY);
+                            canvas2Draw.graphics.moveTo(prevX,prevY);
+                        }
+                        else
+                        {
+                            rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
+                            penCommand.push(1);
+                            penPoints.push(mx);
+                            penPoints.push(my);
+                            canvas2Draw.graphics.moveTo(mx,my);
+                        }
                     }
 
-                    canvas2Bitmap.bitmapData = canvas2BitmapData;
-                    updateCanvas2DrawCliprect();
-                    canvas2Draw.graphics.clear();
-
-                    lineStyleReady(xShape,xSize,xColor,xAlpha);
-                    const prevX:Number = penPoints[penPoints.length-4];
-                    const prevY:Number = penPoints[penPoints.length-3];
-
-                    penCommand.length = 0;
-                    penPoints.length = 0;
-                    rDataBuffer.push(["tempDone4"]);
-
-                    if(xShape === true)
+                    if(xShape === true || sq1PXCursor === true)
                     {
-                        rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,prevX,prevY,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
-                        penCommand.push(1);
-                        penPoints.push(prevX);
-                        penPoints.push(prevY);
-                        canvas2Draw.graphics.moveTo(prevX,prevY);
+                        const rad:Number = Math.atan2(mx-sqPenCursorLast.x,my-sqPenCursorLast.y);
+                        const deg:Number = -rad*(180/Math.PI)+regPoint.rotation;
+
+                        penSizeCursor.rotation = deg;
+                        sqPenCursorLast.x = mx;
+                        sqPenCursorLast.y = my;
                     }
-                    else
+
+                    if(Point.distance(clickPos,moveEvent2Last) >= 0.2)
                     {
-                        rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,mx,my,xBlendMode,false,subLayerON,airBrushSizeDrawMode]);
-                        penCommand.push(1);
-                        penPoints.push(mx);
-                        penPoints.push(my);
-                        canvas2Draw.graphics.moveTo(mx,my);
+                        dotflag = false;
                     }
-                }
-
-                if(xShape === true)
-                {
-                    const rad:Number = Math.atan2(mx-sqPenCursorLast.x,my-sqPenCursorLast.y);
-                    const deg:Number = -rad*(180/Math.PI)+regPoint.rotation;
-
-                    penSizeCursor.rotation = deg;
-                    sqPenCursorLast.x = mx;
-                    sqPenCursorLast.y = my;
-                }
-
-                if(Point.distance(clickPos,moveEvent2Last) >= 0.2)
-                {
-                    dotflag = false;
                 }
             }
 
@@ -5393,10 +5422,14 @@
 
             function penToolMouseMoveEvent(e:MouseEvent):void
             {
-                const mx:Number = canvas2Draw.mouseX+posOffset;
-                const my:Number = canvas2Draw.mouseY+posOffset;
+                var filteredPos:Point = getFilteredPos(canvas2Draw.mouseX,canvas2Draw.mouseY);
+                const mx:Number = filteredPos.x;
+                const my:Number = filteredPos.y;
 
-                if(penToolMouseMoveLimit(mx,my)) return;
+                if(penToolMouseMoveLimit(mx,my))
+                {
+                    return;
+                } 
 
                 if(penToolFlag && penSmoothSlideValue > 1)
                 {
@@ -5419,32 +5452,10 @@
                 }
             }
 
-            //끝 부분점을 distance만큼 길게 늘임
-            function updateExtendEndPoint(x1:Number,y1:Number,x2:Number,y2:Number,distance:Number):void
-            {
-                // 선분 방향 벡터 계산
-                var directionX:Number = x2 - x1;
-                var directionY:Number = y2 - y1;
-
-                // 선분 길이 계산
-                var length:Number = Math.sqrt(directionX * directionX + directionY * directionY);
-
-                // 선분 방향 벡터 정규화
-                var normalizedDirectionX:Number = directionX / length;
-                var normalizedDirectionY:Number = directionY / length;
-
-                extendedPos.setTo(x2 + normalizedDirectionX * distance,y2 + normalizedDirectionY * distance);
-            }
-
             function penToolMouseUpEvent(e:MouseEvent):void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, penToolMouseUpEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, penToolMouseMoveEvent);
-
-                const xx:Number = canvas2Draw.mouseX;
-                const yy:Number = canvas2Draw.mouseY;
-                const mx:Number = xx+posOffset;
-                const my:Number = yy+posOffset;
 
                 if(penToolFlag && traceMemoryTrainingON && traceAlphaSave > 0.0)
                 {
@@ -5526,7 +5537,12 @@
 
                 if(xSize === 1)
                 {
+                    sq1PXCursor = true;
                     xShape = false;
+                }
+                else
+                {
+                    sq1PXCursor = false;
                 }
 
                 if(penFlag && traceMemoryTrainingON)
@@ -5534,29 +5550,24 @@
                     canvasTraceLayer.visible = false;
                 }
 
-                posOffset = getSharpLineOffset(xSize);
-                rotateFlag = (regPoint.rotation % 90 === 0) ? false : true;
+                pos05Offset = getSharpLineOffset(xSize);
                 mouseMoveCount = 0; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
                 mouseMovedFlag = false;
                 canvasSizeRect.width = CANVAS_WIDTH;
                 canvasSizeRect.height = CANVAS_HEIGHT;
                 resetCanvas2DrawCliprect();
+                const filteredPos:Point = getFilteredPos(canvas2Draw.mouseX,canvas2Draw.mouseY);
 
-                clickPos.setTo(canvas2Draw.mouseX,canvas2Draw.mouseY); //점찍어 줄 때 판단하는 클릭한 자리 저장
+                clickPos.copyFrom(filteredPos); //점찍어 줄 때 판단하는 클릭한 자리 저장
+                smoothPos.copyFrom(filteredPos);
+                smoothLast.copyFrom(filteredPos); //penmove할때 마지막x y저장
+                moveEventLast.copyFrom(filteredPos);
 
-                if(penSmoothSlideValue === 0)
+                if(xShape === true)
                 {
-                    smoothPos.setTo(Math.floor(canvas2Draw.mouseX-posOffset)+posOffset,Math.floor(canvas2Draw.mouseY-posOffset)+posOffset);
+                    sqPenCursorLast.copyFrom(smoothPos);
+                    sqLinePosLast.copyFrom(smoothPos);
                 }
-                else
-                {
-                    smoothPos.setTo(canvas2Draw.mouseX+posOffset,canvas2Draw.mouseY+posOffset);
-                }
-
-                smoothLast.copyFrom(smoothPos); //penmove할때 마지막x y저장
-                moveEventLast.copyFrom(smoothPos);
-                sqPenCursorLast.copyFrom(smoothPos);
-                sqLinePosLast.copyFrom(smoothPos);
 
                 moveEventDistLimit = xSize/5;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
 
@@ -17452,6 +17463,34 @@
             else undoDelFlag = false;
         }
 
+        private function loadScratchPadImage():void
+        {
+            const fs:FileStream = new FileStream();
+            const ba:ByteArray = new ByteArray();
+            const bmpd:BitmapData = pickerBox.scratchPad.getBitmapData();
+
+            fs.open(scratchDataFile,FileMode.READ);
+            var arr:Array = fs.readObject() as Array;
+            fs.close();
+
+            bmpd.lock();
+            bmpd.setPixels(new Rectangle(0,0,arr[1],arr[2]),arr[0]);
+            bmpd.unlock();
+        }
+
+        private function saveScratchPadImage():void
+        {
+            const fs:FileStream = new FileStream();
+            const ba:ByteArray = new ByteArray();
+            const bmpd:BitmapData = pickerBox.scratchPad.getBitmapData();
+            const newRectangle:Rectangle = new Rectangle(0,0,bmpd.width,bmpd.height);
+            bmpd.copyPixelsToByteArray(pickerBox.scratchPad.getBitmapData().rect,ba);
+
+            fs.open(scratchDataFile,FileMode.WRITE);
+            fs.writeObject([ba,newRectangle.width,newRectangle.height]);
+            fs.close();
+        }
+
         private function saveUndoData():void
         {
             const fs:FileStream = new FileStream();
@@ -17667,7 +17706,12 @@
 
             if(undoDataFile.exists)
             {
-                loadUndoData();//undo data 복구 먼저 해줌
+                loadUndoData();//undo data 복구 먼저 해줘야함
+            }
+
+            if(scratchDataFile.exists)
+            {
+                loadScratchPadImage();
             }
 
             if(appDataFile.exists)
@@ -21719,6 +21763,7 @@
             saveReplayFrameData();
             saveTraceImage();
             saveMypPaletteList();
+            saveScratchPadImage();
         }
 
         private function resetScrollBarXPosition():void
@@ -24187,23 +24232,15 @@
 
                         case "drawrPresetButton":
                         {
-                            if(myPalettePresetType === 1)
-                            {
-                                pickerBox.scratchPad.clearPad();
-                            }
-
+                            removeTimer("clearScratchPadTimer");
                             changeMyPalettePreset(1);
-
                         }
                         break;
 
                         case "tegakiPresetButton":
                         {
-                            if(myPalettePresetType === 2)
-                            {
-                                pickerBox.scratchPad.clearPad();
-                            }
 
+                            removeTimer("clearScratchPadTimer");
                             changeMyPalettePreset(2);
                         }
                         break;
@@ -24308,13 +24345,19 @@
                 }
                 break;
 
+                case "drawrPresetButton":
+                case "tegakiPresetButton":
+                {
+                    startScratchPadResetTimer(target);
+                    checkButtonUpColorPickerBox(targetName);
+                }
+                break;
+
                 case "penColorButton":
                 case "paperColorButton":
                 case "historyBox":
                 case "transColorButton":
                 case "currentColor":
-                case "drawrPresetButton":
-                case "tegakiPresetButton":
                 case "swapPositionButton":
                 {
                     checkButtonUpColorPickerBox(targetName);
