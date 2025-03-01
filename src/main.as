@@ -4430,11 +4430,11 @@
 
             if(!isSidebarVisible && !sideBar.visible)
             {
-                const mx:Number = mouseX;
                 const sideBarWidth:Number = sideBar.getWidth();
 
-                if((isRightSidebar && mx > stage.stageWidth-sideBarWidth)
-                || (!isRightSidebar && mx < sideBarWidth))
+                if(((isRightSidebar && mouseX > stage.stageWidth-sideBarWidth)
+                || (!isRightSidebar && mouseX < sideBarWidth))
+                        && mouseY > STAGE_TOP_OFFSET)
                 {
                     penCursorPosition.checkSideBarON();
                 }
@@ -5709,7 +5709,10 @@
 
             function checkSideBarON():void
             {
-                if(resizeButtonR.visible) return;
+                if(resizeButtonR.visible)
+                {
+                    return;
+                }
 
                 if(!mouseClickON && !rightMouseClickON)
                 {
@@ -5762,10 +5765,14 @@
 
                 if(isSidebarVisible === false && clickBlockOnWindowActiveFlag === false)
                 {
-                    if((!isRightSidebar && mx <= 15 || isRightSidebar && mx >= stage.stageWidth-15)
-                    && my > STAGE_TOP_OFFSET)
+                    if(sideBar.visible === false)
                     {
-                        checkSideBarON();
+                        if((!isRightSidebar && mx <= 15
+                        || isRightSidebar && mx >= stage.stageWidth-15)
+                        && my > STAGE_TOP_OFFSET)
+                        {
+                            checkSideBarON();
+                        }
                     }
                 }
             }
@@ -23888,7 +23895,7 @@
 
                 default:
                 {
-                    if(!isSidebarVisible && sideBar.visible)
+                    if(!isSidebarVisible && sideBar.visible && isCursorInDrawArea())
                     {
                         penCursorPosition.setSideBarOFF();
                         penCursorPosition.setSidebarONDelay();
@@ -24605,7 +24612,10 @@
                 }
                 else if(isSidebarVisible === false && !sideBar.hitTestPoint(mouseX,mouseY))
                 {
-                    return;
+                    if(isCursorInDrawArea())
+                    {
+                        return;
+                    }
                 }
             }
 
