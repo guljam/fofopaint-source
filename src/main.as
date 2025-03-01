@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.87;
+        private const APP_VERSION:Number = 25.88;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4712,9 +4712,9 @@
             // var _sharpLine:Boolean;
             var xBlendMode:String;
             var clickedButton:String;
-
             var fillPenBoxUndoUsed:Boolean = false;
             var canvasDrawZIndexSave:int = 0;
+            const posSave:Point = new Point();
 
             function fillPenHint(e:MouseEvent):void
             {
@@ -5003,6 +5003,13 @@
                 const mx:Number = filteredPos.x+pos05Offset;
                 const my:Number = filteredPos.y+pos05Offset;
 
+                if(posSave.x === mx && posSave.y === my)
+                {
+                    return;
+                }
+
+                posSave.setTo(mx,my);
+
                 if(command.length === 0)
                 {
                     command.push(1);
@@ -5054,6 +5061,15 @@
                     const filteredPos:Point = getFilteredPos(canvas2Draw.mouseX,canvas2Draw.mouseY);
                     const mx:Number = filteredPos.x+pos05Offset;
                     const my:Number = filteredPos.y+pos05Offset;
+
+                     if(posSave.x === mx && posSave.y === my)
+                    {
+                        removeTimer("fillPenTimer");
+                        drawFillPenData();
+                        return;
+                    }
+                    
+                    posSave.setTo(mx,my);
 
                     if(command.length === 0)
                     {
@@ -5140,6 +5156,7 @@
                 const filteredPos:Point = getFilteredPos(canvas2Draw.mouseX,canvas2Draw.mouseY);
                 var mx:Number = filteredPos.x+pos05Offset;
                 var my:Number = filteredPos.y+pos05Offset;
+                posSave.setTo(mx,my);
 
                 command.push(1);
                 data.push(mx);

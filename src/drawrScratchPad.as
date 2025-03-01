@@ -5,9 +5,6 @@ package
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.events.MouseEvent;
-    import flash.display.LineScaleMode;
-    import flash.display.CapsStyle;
-    import flash.display.JointStyle;
     import flash.geom.Rectangle;
     import flash.geom.Point;
 
@@ -25,6 +22,8 @@ package
         private var lineStyleData:Array = [];
         public var mainPickColorFunc:Function;
         public var pickColorBorderFunc:Function;
+        private var scratchStartCount:int = 0;
+        private const scratchStartNow:int = 20;
 
         public function drawrScratchPad(bmpdWidth:Number, bmpdHeight:Number):void
         {
@@ -120,6 +119,7 @@ package
 
         public function checkMouseDistMouseUp(e:MouseEvent):void
         {
+            scratchStartCount = 0;
             if (Math.floor(scratchPadBitmap.mouseX) === Math.floor(startPos.x) && Math.floor(scratchPadBitmap.mouseY) === Math.floor(startPos.y))
             {
                 if(mainPickColorFunc !== null)
@@ -135,9 +135,11 @@ package
 
         public function checkMouseDistMouseMove(e:MouseEvent):void
         {
+            scratchStartCount++;
             nowPos.setTo(scratchPadBitmap.mouseX, scratchPadBitmap.mouseY);
-            if (Point.distance(startPos, nowPos) >= 1.0)
+            if (Point.distance(startPos, nowPos) >= 1.0 || scratchStartCount >= scratchStartNow)
             {
+                scratchStartCount = 0;
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, checkMouseDistMouseMove);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, checkMouseDistMouseUp);
                 setLineStyle(lineStyleData[0], lineStyleData[1], lineStyleData[2], lineStyleData[3]);
