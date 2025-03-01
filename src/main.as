@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.85;
+        private const APP_VERSION:Number = 25.86;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -316,8 +316,8 @@
                     ,rzoomedIndex:int = 3
                     ,mouseClickON:Boolean = false //클릭하면 올려줌
                     ,rightMouseClickON:Boolean = false //클릭하면 올려줌
-                    ,clickBlockOnWindowActiveFlag:Boolean = false //알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
                     ,mouseDragON:Boolean = false//툴을 계속 클릭한채로 움직이면 topmenu의 힌트가 안켜지도록 함
+                    ,clickBlockOnWindowActiveFlag:Boolean = false //알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
                     ,nowTool:int = 1 //현재 툴 번호
                     ,oldTool:int = TOOL_NONE //툴백업
                     ,nowKey:uint = 0//단축키 누른거 여기다가 저장
@@ -5645,7 +5645,7 @@
             function setSideBarClickEvents():void
             {
                 mouseDownEventON = true;
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarOFFMouseDownEvent,false,1);
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,sidebarOFFMouseDownEvent,false,-1);
             }
 
             function removeSideBarClickEvents():void
@@ -15808,7 +15808,7 @@
             {
                 if(sideBar.visible)
                 {
-                    setSidebarVisible(false,true)
+                    penCursorPosition.setSideBarOFF();
                 }
             }
 
@@ -23893,8 +23893,7 @@
                         penCursorPosition.setSideBarOFF();
                         penCursorPosition.setSidebarONDelay();
                     }
-
-                    if(isCursorInDrawArea())
+                    else if(isCursorInDrawArea())
                     {
                         if(toolBox2ON && !deepUndoON) closeToolBox2();
                         else openToolBox2();
@@ -24575,29 +24574,36 @@
 
             const targetName:String = target.name;
 
-            if(sideBar.visible && sideBarScrollSet.hitTestPoint(mouseX,mouseY,true))
+            if(sideBar.visible)
             {
-                if(targetName === "prevStageBG"
-                || targetName === "prevBitmapBG"
-                || targetName === "prevBitmap")
+                if(sideBarScrollSet.hitTestPoint(mouseX,mouseY))
                 {
-                    setHandToolPreviewBox(false);
-                    return;
+                    if(targetName === "prevStageBG"
+                    || targetName === "prevBitmapBG"
+                    || targetName === "prevBitmap")
+                    {
+                        setHandToolPreviewBox(false);
+                        return;
+                    }
+                    else if(targetName === "prevCursor")
+                    {
+                        setHandToolPreviewBox(true);
+                        return;
+                    }
+                    else if(checkPickerBoxButtons(target) && isNowKey(0))
+                    {
+                        return;
+                    }
+                    else if(checkControlBoxButtons(target) && (isNowToolPenOrLine() || isNowTool(TOOL_ERASE)))
+                    {
+                        return;
+                    }
+                    else if(toolBox.alpha === 1.0 && target.alpha === 1.0 && checkToolBoxButtons(target))
+                    {
+                        return;
+                    }
                 }
-                else if(targetName === "prevCursor")
-                {
-                    setHandToolPreviewBox(true);
-                    return;
-                }
-                else if(checkPickerBoxButtons(target) && isNowKey(0))
-                {
-                    return;
-                }
-                else if(checkControlBoxButtons(target) && (isNowToolPenOrLine() || isNowTool(TOOL_ERASE)))
-                {
-                    return;
-                }
-                else if(toolBox.alpha === 1.0 && target.alpha === 1.0 && checkToolBoxButtons(target))
+                else if(isSidebarVisible === false && !sideBar.hitTestPoint(mouseX,mouseY))
                 {
                     return;
                 }
