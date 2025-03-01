@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.86;
+        private const APP_VERSION:Number = 25.87;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -4423,7 +4423,7 @@
 
         private function mouseLeaveSideBarON():void
         {
-            if(replayModeON || captureModeON)
+            if(replayModeON || captureModeON || toolBox2.visible)
             {
                 return;
             }
@@ -4434,7 +4434,7 @@
 
                 if(((isRightSidebar && mouseX > stage.stageWidth-sideBarWidth)
                 || (!isRightSidebar && mouseX < sideBarWidth))
-                        && mouseY > STAGE_TOP_OFFSET)
+                && mouseY > STAGE_TOP_OFFSET)
                 {
                     penCursorPosition.checkSideBarON();
                 }
@@ -4927,7 +4927,6 @@
 
                 removeTimer("fillPenTimer");
                 mouseDragON = false;
-                mouseClickON = false;
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
 
                 if(clickedButton === targetName)
@@ -5669,7 +5668,7 @@
                 }
             }
 
-            //클릭한 상태로 sidebar on틀어줬을때 1초정도 켜지지 않게함
+            //1초정도 켜지지 않게함
             function setSidebarONDelay():void
             {
                 sidebarTempOFF = true;
@@ -5677,13 +5676,17 @@
                 {
                     visibleMouseUpEventON = false;
                     sidebarTempOFF = false;
+
                     removeSideBarClickEvents();
                 });
             }
 
             function sidebarONMouseUpEvent(e:MouseEvent):void
             {
-                setSidebarONDelay();
+                if(!(rightMouseClickON && mouseClickON))
+                {
+                    setSidebarONDelay();
+                }
             }
 
             function sidebarOFFRightMouseDownEvent(e:MouseEvent):void
@@ -5714,7 +5717,7 @@
                     return;
                 }
 
-                if(!mouseClickON && !rightMouseClickON)
+                if(!(mouseClickON || rightMouseClickON || mouseDragON))
                 {
                     if(!sidebarTempOFF)
                     {
@@ -5765,7 +5768,7 @@
 
                 if(isSidebarVisible === false && clickBlockOnWindowActiveFlag === false)
                 {
-                    if(sideBar.visible === false)
+                    if(sideBar.visible === false && toolBox2.visible === false)
                     {
                         if((!isRightSidebar && mx <= 15
                         || isRightSidebar && mx >= stage.stageWidth-15)
@@ -6235,7 +6238,6 @@
                 setOptimizeCanvasMoveON(false);
                 checkCanvasPanelPos();
                 updatePreviewBoxRectPos();
-                mouseClickON = false;
                 mouseDragON = false;
 
                 if(lassoToolON)
@@ -23895,7 +23897,7 @@
 
                 default:
                 {
-                    if(!isSidebarVisible && sideBar.visible && isCursorInDrawArea())
+                    if(!isSidebarVisible && sideBar.visible)
                     {
                         penCursorPosition.setSideBarOFF();
                         penCursorPosition.setSidebarONDelay();
@@ -24610,10 +24612,11 @@
                         return;
                     }
                 }
-                else if(isSidebarVisible === false && !sideBar.hitTestPoint(mouseX,mouseY))
+                else if(isSidebarVisible === false)
                 {
-                    if(isCursorInDrawArea())
+                    if(sideBar.visible && !sideBar.hitTestPoint(mouseX,mouseY) && isCursorInDrawArea())
                     {
+                        penCursorPosition.setSideBarOFF();
                         return;
                     }
                 }
