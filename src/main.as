@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.88;
+        private const APP_VERSION:Number = 25.89;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -5062,7 +5062,12 @@
                     const mx:Number = filteredPos.x+pos05Offset;
                     const my:Number = filteredPos.y+pos05Offset;
 
-                     if(posSave.x === mx && posSave.y === my)
+                    if(subLayerON)
+                    {
+                        setCanvas2IndexToLayer2();
+                    }
+
+                    if(posSave.x === mx && posSave.y === my)
                     {
                         removeTimer("fillPenTimer");
                         drawFillPenData();
@@ -5082,11 +5087,6 @@
                         command.push(2);
                         data.push(mx);
                         data.push(my);
-                    }
-
-                    if(subLayerON)
-                    {
-                        setCanvas2IndexToLayer2();
                     }
 
                     removeTimer("fillPenTimer");
