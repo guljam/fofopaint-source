@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.89;
+        private const APP_VERSION:Number = 25.90;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3677,7 +3677,8 @@
         {
             const keyCode:uint = e.keyCode;
             if(keyCode === KEY.s || keyCode === KEY.d
-            || keyCode === KEY.j || keyCode === KEY.k)
+            || keyCode === KEY.j || keyCode === KEY.k
+            || keyCode === KEY.n6)
             {
                 setQuickSidebarOFF();
             }
@@ -6529,7 +6530,7 @@
 
             switch(targetName)
             {
-                case "toolSidebar": str = "[s+d, j+k]"; break;
+                case "toolSidebar": str = "[6, s+d, j+k]"; break;
                 case "toolPen": str = "Pen [q, o key up] "; break;
                 case "toolFillPen": str = "Fill pen [q, o]"; break;
                 case "toolErase": str = "Eraser [d, j]"; break;
@@ -22666,6 +22667,12 @@
                         setEraseAirBrushButtonShortCut();
                     }
                 }
+                case KEY.n6:
+                {
+                    setQuickSidebarON(true);
+                }
+                break;
+
                 return true;
 
                 case KEY.x:
