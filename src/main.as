@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.90;
+        private const APP_VERSION:Number = 25.91;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -150,12 +150,13 @@
                     ,TOOL_ERASE:int = (1 << 1) // 2
                     ,TOOL_LINE:int = (1 << 2) // 4
                     ,TOOL_FILL_PEN:int = (1 << 3) // 8
-                    ,TOOL_HAND:int = (1 << 4) // 16
-                    ,TOOL_LASSO:int = (1 << 5) // 32
-                    ,TOOL_SPUIT:int = (1 << 6) // 64
-                    ,TOOL_ZOOM:int = (1 << 7) // 128
-                    ,TOOL_ROTATE:int = (1 << 8) // 256
-                    ,TOOL_MOVE:int = (1 << 9) // 512
+                    // ,TOOL_SCAN_FILL:int = (1 << 4) // 16
+                    ,TOOL_HAND:int = (1 << 5) // 32
+                    ,TOOL_LASSO:int = (1 << 6) // 64
+                    ,TOOL_SPUIT:int = (1 << 7) // 128
+                    ,TOOL_ZOOM:int = (1 << 8) // 256
+                    ,TOOL_ROTATE:int = (1 << 9) // 512
+                    ,TOOL_MOVE:int = (1 << 10) // 1024
 
                     ,JUMP_FRAME_PLAY:int = (1 << 0)
                     ,JUMP_FRAME_ONCE:int = (1 << 1)
@@ -561,6 +562,7 @@
                     ,moveTool:Function = cMoveTool()
                     ,spuitTool:Function = cSpuitTool()
                     ,fillPenTool:Object = cFillPenTool()
+                    // ,scanFillTool:Object = cScanFillTool()
                     ,drawDone:Function = cDrawDone()
                     ,tickDraw:Object = cTickDraw()
                     ,doDraw:Function = cDoDraw()
@@ -578,7 +580,7 @@
         //스크롤바 변수
                     ,scrollSetMovedY:Number = 0
                     ,scrollBarHeight:Number = 0
-                    ,sideBarConstHeight:Number = 740
+                    ,sideBarConstHeight:Number = 780
 
         //ui 색깔 변수
                     ,uiScaleIndex:int = 0
@@ -1483,7 +1485,7 @@
             rotateCursorBox.visible = false;
         }
 
-        private function cImageRotateFunc(target:DisplayObject):Function
+        private function cGetCanvasRotationAngle(target:DisplayObject):Function
         {
             rotateCursorBox.x = mouseX;
             rotateCursorBox.y = mouseY+(65*getUIScale());
@@ -1694,7 +1696,7 @@
             const target:DisplayObject = e.target as DisplayObject;
             if(!target || isHintCantUse()) return;
 
-            var str:String = "Scroll sidebar\n[click+drag, mouse wheel]";
+            var str:String = "Scroll sidebar\n[click+drag, mouse wheel on sidebar]";
 
             hint.on(str,target);
         }
@@ -4696,6 +4698,47 @@
             return maxIndex === find2020;
         }
 
+        // private function cScanFillTool():Object
+        // {
+        //     const rect:Rectangle = new Rectangle();
+        //     const bmpd:BitmapData = new BitmapData(canvas2Draw.width,canvas2Draw.height,true,0);
+        //     var baseColor:uint;
+        //     var fillColor:uint;
+
+
+        //     function initScanFill():void
+        //     {
+        //         const x:Number = Math.floor(canvas1Bitmap.mouseX);
+        //         const y:Number = Math.floor(canvas1Bitmap.mouseY);
+
+        //         baseColor = bmpd.getPixel32(x,y);
+        //         fillColor = 0xFF000000|penColor;
+        //         canvas2Bitmap.bitmapData = canvas2bitampData;
+        //     }
+
+        //     function updateMergedBmpd():void
+        //     {
+        //         bmpd.lock();
+        //         bmpd.fillRect(rect,0xFF000000|CANVAS_BG_COLOR);
+        //         if(canvas11Bitmap.visible) bmpd.draw(canvas11BitmapData);
+        //         if(canvas1Bitmap.visible) bmpd.draw(canvas1BitmapData);
+        //         bmpd.unlock();
+        //     }
+
+        //     function start():void
+        //     {
+        //         rect.x = 0;
+        //         rect.y = 0;
+        //         rect.width = CANVAS_WIDTH;
+        //         rect.height = CANVAS_HEIGHT;
+        //         updateMergedBmpd();
+        //     }
+
+        //     return {
+        //         start:start
+        //     };
+        // }
+
         private function cFillPenTool():Object
         {
             const lastMousePos:Point = new Point(0,0);
@@ -6533,6 +6576,7 @@
                 case "toolSidebar": str = "[6, s+d, j+k]"; break;
                 case "toolPen": str = "Pen [q, o key up] "; break;
                 case "toolFillPen": str = "Fill pen [q, o]"; break;
+                // case "toolScanFill": str = "Scan fill [q+w, o+i]"; break;
                 case "toolErase": str = "Eraser [d, j]"; break;
                 case "toolLasso": str = "Lasso [r, y]"; break;
                 case "toolSpuit": str = "Eye dropper [c, m]"; break;
@@ -6559,7 +6603,7 @@
                 case "toolFillPen": str = "Fill pen [q, o]\nMenu [right-click after using the tool]"; break;
                 case "toolFillPenOK": str = "OK"; break;
                 case "toolFillPenCancel": str = "Cancel"; break;
-                case "toolFillPen": str = "Fill pen [q, o]\nMenu [right-click after using the tool]"; break;
+                // case "toolScanFill": str = "Scan fill [q+w, o+i]\n Draw [Drag on canvas]"; break;
                 case "toolErase": str = "Eraser [d, j]"; break;
                 case "toolLasso": str = "Lasso [r, y]"; break;
                 case "toolSpuit": str = "Eye dropper [c, m]\nPick transparent color ON/OFF [c+space, m+space]"; break;
@@ -6571,8 +6615,8 @@
                 case "toolMirror": str = "Flip canvas [a, l]"; break;
                 case "toolLine": str = "Line [shift]"; break;
                 case "toolMove": str = "Move image [e, u]"; break;
-                case "zoomInButton": str ="Zoom in canvas [w, i + drag canvas, mouse wheel]\nReset [right-click ,shift+w, shift+i]"; break;
-                case "zoomOutButton": str ="Zoom out canvas [w, i + drag canvas]\nReset [right-click ,shift+w, shift+i]"; break;
+                case "zoomInButton": str ="Zoom in canvas [w, i + drag canvas, mouse wheel on canvas]\nReset [right-click ,shift+w, shift+i]"; break;
+                case "zoomOutButton": str ="Zoom out canvas [w, i + drag canvas, mouse wheel on canvas]\nReset [right-click ,shift+w, shift+i]"; break;
                 case "toolRotate": str = "Rotate canvas [s, k]\nReset [right-click, shift+s , shift+k]"; break;
                 case "toolTrace": str = "Reference layer [t]"; break;
             }
@@ -7215,7 +7259,7 @@
 
         private function setTraceRotateButton():void
         {
-            var getAngle:Function = cImageRotateFunc(canvasTraceLayer);
+            var getAngle:Function = cGetCanvasRotationAngle(canvasTraceLayer);
 
             mouseDragON = true;
             traceMenu.visible = false;
@@ -7879,6 +7923,7 @@
             stage.addEventListener(MouseEvent.MOUSE_WHEEL, mouseWheelStage);
 
             //힌트 보여주는 이벤트
+            appInfoBox.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHintONEvent);
             toolBox.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHintONEvent);
             toolBox.addEventListener(MouseEvent.MOUSE_OUT,toolBoxHintOFFEvent);
             toolBox2.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHint2ONEvent);
@@ -7898,6 +7943,7 @@
             if(isNowTool(TOOL_ERASE)) toolName = "Eraser";
             else if(isNowTool(TOOL_LINE)) toolName = "Line";
             else if(isNowTool(TOOL_FILL_PEN)) toolName = "Fill-pen";
+            // else if(isNowTool(TOOL_SCAN_FILL)) toolName = "Scan-fill";
 
             controlBox.hintText(toolName);
         }
@@ -8731,7 +8777,7 @@
 
         private function setLassoRotateButton():void
         {
-            var getAngle:Function = cImageRotateFunc(lassoBox1);
+            var getAngle:Function = cGetCanvasRotationAngle(lassoBox1);
 
             mouseDragON = true;
             lassoBMP.smoothing = false;
@@ -9127,13 +9173,17 @@
 
             switch (oldToolSave)
             {
-                case TOOL_FILL_PEN:
-                    selectFillPenTool();
-                break;
-
                 case TOOL_PEN:
                     selectPenTool();
                     updatePenSizeCursor();
+                break;
+
+                // case TOOL_SCAN_FILL:
+                //     selectScanFillTool();
+                // break;
+
+                case TOOL_FILL_PEN:
+                    selectFillPenTool();
                 break;
 
                 case TOOL_ERASE:
@@ -13419,6 +13469,16 @@
                     }
                     break;
 
+                    // case "toolScanFill":
+                    // {
+                    //     if(!isNowTool(TOOL_SCAN_FILL))
+                    //     {
+                    //         selectScanFillTool();
+                    //         updatePenSizeCursor();
+                    //     }
+                    // }
+                    // break;
+
                     case "toolErase":
                     {
                         if(!isNowTool(TOOL_ERASE))
@@ -17120,7 +17180,7 @@
                             const filePath:String = workerPNGCaptureFileData[0][1];
 
                             //마지막 경로 업데이트
-                            saveFilePath = filePath.substr(0,filePath.lastIndexOf(fileName))+saveFileName;
+                            // saveFilePath = filePath.substr(0,filePath.lastIndexOf(fileName))+saveFileName;
 
                             const fs:FileStream = new FileStream();
                             var file:File = new File(filePath);
@@ -17160,8 +17220,15 @@
             setCaptureFlashEffect();
 
             const replayMode:Boolean = replayModeON;
+            checkExistingParentDirectory(saveFilePath);
             var name:String = saveFileName;
             var path:String = saveFilePath;
+            const nextPath:String = checkExistingParentDirectory(path);
+
+            if(path !== nextPath)
+            {
+                path = nextPath;
+            }
 
             setFileBrowserONFlag(true);
 
@@ -17169,38 +17236,38 @@
             name = name.substr(0,name.lastIndexOf(".png"))+"_"+getTimeStampTail()+".png";//뒤에 프레임 번호 붙여줌
             path = path.substr(0,path.lastIndexOf(saveFileName))+name;
 
-            var file1:File = (name !== path) ? new File(path): File.desktopDirectory.resolvePath(name);
+            var file:File = (name !== path ) ? new File(path): File.desktopDirectory.resolvePath(name);
 
             const fs:FileStream = new FileStream();
             const saveWindowTitle:String = "Save image";
 
-            file1.addEventListener(IOErrorEvent.IO_ERROR, onCancelEvent);
-            file1.addEventListener(Event.CANCEL, onCancelEvent);
-            file1.addEventListener(Event.SELECT, onSelectEvent);
-            file1.browseForSave(saveWindowTitle);
+            file.addEventListener(IOErrorEvent.IO_ERROR, onCancelEvent);
+            file.addEventListener(Event.CANCEL, onCancelEvent);
+            file.addEventListener(Event.SELECT, onSelectEvent);
+            file.browseForSave(saveWindowTitle);
 
             function onCancelEvent(e:Event):void
             {
                 setFileBrowserONFlag(false);
-                file1.cancel();
-                file1.removeEventListener(IOErrorEvent.IO_ERROR, onCancelEvent);
-                file1.removeEventListener(Event.CANCEL, onCancelEvent);
-                file1.removeEventListener(Event.SELECT, onSelectEvent);
+                file.cancel();
+                file.removeEventListener(IOErrorEvent.IO_ERROR, onCancelEvent);
+                file.removeEventListener(Event.CANCEL, onCancelEvent);
+                file.removeEventListener(Event.SELECT, onSelectEvent);
             }
 
             function onSelectEvent(e:Event):void
             {
                 setFileBrowserONFlag(false);
-                file1.cancel();
-                file1.removeEventListener(IOErrorEvent.IO_ERROR,onCancelEvent);
-                file1.removeEventListener(Event.CANCEL,onCancelEvent);
-                file1.removeEventListener(Event.SELECT,onSelectEvent);
+                file.cancel();
+                file.removeEventListener(IOErrorEvent.IO_ERROR,onCancelEvent);
+                file.removeEventListener(Event.CANCEL,onCancelEvent);
+                file.removeEventListener(Event.SELECT,onSelectEvent);
 
                 if(workerPNGCaptureData === null) workerPNGCaptureData = new Vector.<ByteArray>();
                 if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
 
                 callWorkerEncodePNG(getCaptrueImageBitmapdata(false),0,true,captureTransBGON);
-                saveCapturePNGByOrder(file1.name,e.target.nativePath);
+                saveCapturePNGByOrder(file.name,e.target.nativePath);
             }
         }
 
@@ -17253,13 +17320,57 @@
             return [path,name];
         }
 
+        //해당 디렉토리가 없으면 그 상위 디렉토리로 위치를 바꾸어줌
+        private function checkExistingParentDirectory(path:String):String
+        {
+            var cleanPath:String = path;
+            // 끝의 separator 제거
+            if (cleanPath.charAt(cleanPath.length - 1) === File.separator)
+            {
+                cleanPath = cleanPath.substring(0, cleanPath.length - 1);
+            }
+
+            var testPath:String = cleanPath;
+            var file:File = new File(testPath);
+            var lastSep:int;
+
+            if(!file.isDirectory)
+            {
+                lastSep = testPath.lastIndexOf(File.separator);
+                testPath = testPath.substring(0, lastSep);
+                cleanPath = testPath;
+            }
+            
+            while (true)
+            {
+                file = new File(testPath);
+
+                if (file.exists && file.isDirectory)
+                {
+                    return testPath + File.separator + saveFileName;
+                }
+
+                // 마지막 separator 위치 찾기
+                lastSep = testPath.lastIndexOf(File.separator);
+                if (lastSep === -1)
+                    break;
+
+                // 상위 경로로 이동
+                testPath = testPath.substring(0, lastSep);
+            }
+
+            // 유효한 디렉토리를 찾지 못하면 데스크톱 반환
+            return File.desktopDirectory.nativePath + File.separator + saveFileName;
+        }
+
         private function saveFile(asFlag:Boolean,saveFailed:Boolean=false):void
         {
             //계속 저장하는거 방지 다른 이름으로 저장은 예외
             if(replayStartON) stopReplay();
-            const continueFlag:Boolean = saveContinue === true && asFlag === false;
+            const continueFlag:Boolean = (saveContinue === true && asFlag === false);
+            const nextPath:String = checkExistingParentDirectory(saveFilePath);
 
-            if(saveOneTime && continueFlag)
+            if(nextPath === saveFilePath  && saveOneTime && continueFlag)
             {
                 if(updateAfterSaveFlag)
                 {
@@ -17288,6 +17399,10 @@
             const mergedImage:BitmapData = getMergedBitmapdtata(false,false,true,true,null);
 
             setTopBarHintOFF();
+            if(nextPath !== saveFilePath)
+            {
+                saveFilePath = nextPath;
+            }
 
             if(continueFlag)
             {
@@ -18420,7 +18535,7 @@
                 setRegPoint(center.x,center.y,replayMode);
 
                 //캔버스 이동이 완료된후 함수를 초기화 시켜줌
-                getAngle = cImageRotateFunc(xReg);
+                getAngle = cGetCanvasRotationAngle(xReg);
 
                 hint.off();
 
@@ -20500,6 +20615,19 @@
             setControlBoxInfoOFF();
         }
 
+        // private function selectScanFillTool():void
+        // {
+        //     setNowTool(TOOL_SCAN_FILL);
+
+        //     penSizeCursor.visible = false;
+        //     updateOpacityCursorPos(penAlphaIndex);
+        //     setPenSize(penSizeIndex);
+
+        //     setEraseButtonPosToOtherButtonPos("toolScanFill");
+        //     toolBox.moveToolCursor("toolScanFill");
+        //     setControlBoxInfoOFF();
+        // }
+
         private function selectFillPenTool():void
         {
             setNowTool(TOOL_FILL_PEN);
@@ -21530,12 +21658,12 @@
             previewBox.x = -4;
             previewBox.y = 0;
             appInfoBox.setWidth(previewBox.BOX_WIDTH);
-            appInfoBox.x = previewBox.x;
-            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+2);
+            appInfoBox.x = previewBox.x-2;
+            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+6);
             controlBox.x = 39;
-            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+2);
+            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
             pickerBox.x = 39;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height+8);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height+10);
             toolBox.x = -2;
             toolBox.y = Math.floor(controlBox.y+1);
 
@@ -21576,11 +21704,11 @@
             previewBox.y = 0;
             appInfoBox.setWidth(previewBox.BOX_WIDTH);
             appInfoBox.x = previewBox.x-2;
-            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+2);
+            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+6);
             controlBox.x = 0;
-            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+2);
+            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
             pickerBox.x = 0;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height+8);
+            pickerBox.y = Math.floor(controlBox.y+controlBox.height+10);
             toolBox.x = 177;
             toolBox.y = Math.floor(controlBox.y+1);
 
@@ -21641,11 +21769,11 @@
 
             pickerBox.rgbInfo.addEventListener(FocusEvent.FOCUS_IN, rgbInfoTextFocusInEvent);
             pickerBox.rgbInfo.addEventListener(FocusEvent.FOCUS_OUT, rgbInfoTextFocusOutEvent);
-
-            previewBox.scrollRect = new Rectangle(0,0,previewBox.width,previewBox.height)
+            previewBox.scrollRect = new Rectangle(0,0,previewBox.width,previewBox.height);
 
             sideBarScrollSet.addChild(previewBox);
             sideBarScrollSet.addChild(appInfoBox);
+            toolBox.initCanvasControlButtons(appInfoBox);
             sideBarScrollSet.addChild(toolBox);
             sideBarScrollSet.addChild(controlBox);
             sideBarScrollSet.addChild(pickerBox);
@@ -22483,6 +22611,16 @@
                 //필펜 조합 체크
                 else if(keyCode === KEY.q || keyCode === KEY.o)
                 {
+                    // if(KEY_BUFFER[1] === KEY.w || KEY_BUFFER[1] === KEY.i)
+                    // {
+                    //     if(!isNowTool(TOOL_SCAN_FILL))
+                    //     {
+                    //         // selectScanFillTool();
+                    //         updatePenSizeCursor();
+                    //     }
+                    //     return;
+                    // }
+                    // else 
                     if(checkOpaSizeKeyDown(KEY_BUFFER[1]))
                     {
                         return;
@@ -23048,6 +23186,13 @@
                 }
                 break;
 
+                // case "toolScanFill":
+                // {
+                //     selectScanFillTool();
+                //     updatePenSizeCursor();
+                // }
+                // break;
+
                 case "toolErase":
                 {
                     selectEraseTool();
@@ -23311,6 +23456,7 @@
                 case "zoomOutButton":
                 case "toolPen":
                 case "toolFillPen":
+                case "toolScanFill":
                 case "toolErase":
                 case "toolLasso":
                 case "toolSpuit":
@@ -24786,8 +24932,9 @@
             {
                 switch (nowTool)
                 {
-                    case TOOL_FILL_PEN: if(isCurrentLayerActive() && isToolActive()) fillPenTool.start(); break;
                     case TOOL_PEN: if(isCurrentLayerActive() && isToolActive()) penTool(true); break;
+                    case TOOL_FILL_PEN: if(isCurrentLayerActive() && isToolActive()) fillPenTool.start(); break;
+                    // case TOOL_SCAN_FILL: if(isCurrentLayerActive() && isToolActive()) scanFillTool.start(); break;
                     case TOOL_ERASE: if(isCurrentLayerActive() && isToolActive()) penTool(false); break;
                     case TOOL_LINE: if(isCurrentLayerActive() && isToolActive()) lineTool(true); break;
                     case TOOL_LASSO: if(isCurrentLayerActive()) lassoToolFunction.start(); break;

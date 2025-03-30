@@ -7,8 +7,8 @@
 	import flash.geom.ColorTransform;
 
 	public class appInfoBar extends Sprite {
-		public var appInfoArrow:SimpleButton;
 		public var canvasInfo:TextField;
+		public var appInfoBorder:SimpleButton;
 		private var canvasWidth:Number = 0;
 		private var canvasHeight:Number = 0;
 		private var canvasZoom:Number = 0;
@@ -84,22 +84,20 @@
 
 		public function changeUIColor(color:uint):void
 		{
-			const appInfoArrowColor:ColorTransform = new ColorTransform();
+			const colort:ColorTransform = new ColorTransform();
+			colort.color = color;
 
 			canvasInfo.textColor = color;
-			appInfoArrowColor.color = color;
-			appInfoArrow.transform.colorTransform = appInfoArrowColor
+			appInfoBorder.transform.colorTransform = colort;
 		}
 
 		public function appInfoBar() {
 			mouseEnabled = false;
 			canvasInfo.mouseEnabled = false;
 			canvasInfo.autoSize = TextFieldAutoSize.LEFT;
-			appInfoArrow.mouseEnabled = false;
-			appInfoArrow.x = 10;
-			appInfoArrow.y = 0;
-			canvasInfo.x = appInfoArrow.x+appInfoArrow.width+3;
-			canvasInfo.y = 0;
+			canvasInfo.x = 20;
+			canvasInfo.y = 4;
+			appInfoBorder.mouseEnabled = false;
 		}
 	}
 }

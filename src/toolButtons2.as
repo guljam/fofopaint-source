@@ -11,6 +11,7 @@
 	public class toolButtons2 extends Sprite {
 		public var toolPen:SimpleButton;
 		public var toolFillPen:SimpleButton;
+		public var toolScanFill:SimpleButton;
 		public var toolErase:SimpleButton;
 		public var toolUndo:SimpleButton;
 		public var toolRedo:SimpleButton;
@@ -77,6 +78,7 @@
 			toolPen.alpha = alp;
 			toolErase.alpha = alp;
 			toolFillPen.alpha = alp;
+			// toolScanFill.alpha = alp;
 			toolSpuit.alpha = alp;
 			toolLine.alpha = alp;
 		}
@@ -86,23 +88,10 @@
 			toolPen.alpha = 1.0;
 			toolErase.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
+			// toolScanFill.alpha = 1.0;
 			toolSpuit.alpha = 1.0;
 			toolLine.alpha = 1.0;
 		}
-
-		public function deepUndoEtcIconAlpha(alpha:Number):void
-		{
-			toolPen.alpha = alpha;
-			toolFillPen.alpha = alpha;
-			toolErase.alpha = alpha;
-			toolSpuit.alpha = alpha;
-			toolMirror.alpha = alpha;
-			toolLasso.alpha = alpha;
-			toolLine.alpha = alpha;
-			toolMove.alpha = alpha;
-			toolTrace.alpha = alpha;
-		}
-
 
 		public function changeUIColor(arr:Array):void
 		{
@@ -126,6 +115,7 @@
 			const rightButtonArr:Array = [
 											toolPen,
 											toolFillPen,
+											// toolScanFill,
 											toolErase,
 											toolUndo,
 											toolRedo,
@@ -189,6 +179,7 @@
 		{
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
+			// toolScanFill.useHandCursor = false;
 			toolErase.useHandCursor = false;
 			toolUndo.useHandCursor = false;
 			toolRedo.useHandCursor = false;

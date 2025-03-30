@@ -7,11 +7,13 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Shape;
 
-	public class toolButtons extends Sprite {
+	public class toolButtons extends Sprite
+	{
 		public var toolPen:SimpleButton;
 		public var toolFillPen:SimpleButton;
 		public var toolFillPenOK:SimpleButton;
 		public var toolFillPenCancel:SimpleButton;
+		public var toolScanFill:SimpleButton;
 		public var toolErase:SimpleButton;
 		public var toolUndo:SimpleButton;
 		public var toolRedo:SimpleButton;
@@ -51,14 +53,14 @@
 		{
 			const len:uint = buttonArr.length;
 
-			for(var i:uint=0;i<len;i++)
+			for (var i:uint = 0; i < len; i++)
 			{
 				buttonArr[i].alpha = 1.0;
 			}
 
 			toolSelectCursor.visible = true;
-			toolFillPen.visible = true;
-			toolSpuit.visible = true;
+			toolRedo.visible = true;
+			toolPen.visible = true;
 			toolFillPenOK.visible = false;
 			toolFillPenCancel.visible = false;
 		}
@@ -67,14 +69,14 @@
 		{
 			const len:uint = buttonArr.length;
 
-			for(var i:uint=0;i<len;i++)
+			for (var i:uint = 0; i < len; i++)
 			{
 				buttonArr[i].alpha = offAlpha;
 			}
 
 			toolSelectCursor.visible = false;
-			toolFillPen.visible = false;
-			toolSpuit.visible = false;
+			toolRedo.visible = false;
+			toolPen.visible = false;
 			toolFillPenOK.visible = true;
 			toolFillPenCancel.visible = true;
 			toolUndo.alpha = 1.0;
@@ -82,7 +84,7 @@
 
 		public function setIconAlphaOnLassoToolON(alpha:Number):void
 		{
-			if(alpha < 1.0)
+			if (alpha < 1.0)
 			{
 				toolMirror.alpha = alpha;
 				toolMove.alpha = alpha;
@@ -91,6 +93,7 @@
 				toolPen.alpha = alpha;
 				toolErase.alpha = alpha;
 				toolFillPen.alpha = alpha;
+				// toolScanFill.alpha = alpha;
 				toolSpuit.alpha = alpha;
 				toolLasso.alpha = alpha;
 				toolLine.alpha = alpha;
@@ -104,11 +107,12 @@
 				toolRedo.alpha = alpha;
 				toolLasso.alpha = alpha;
 
-				if(checkedLayerONFlag === false)
+				if (checkedLayerONFlag === false)
 				{
 					toolPen.alpha = alpha;
 					toolErase.alpha = alpha;
 					toolFillPen.alpha = alpha;
+					// toolScanFill.alpha = alpha;
 					toolSpuit.alpha = alpha;
 					toolLine.alpha = alpha;
 					toolTrace.alpha = alpha;
@@ -123,6 +127,7 @@
 			toolPen.alpha = 1.0;
 			toolErase.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
+			// toolScanFill.alpha = 1.0;
 			toolSpuit.alpha = 1.0;
 			toolLine.alpha = 1.0;
 			toolSelectCursor.alpha = 1.0;
@@ -134,19 +139,21 @@
 			toolPen.alpha = alp;
 			toolErase.alpha = alp;
 			toolFillPen.alpha = alp;
+			// toolScanFill.alpha = alp;
 			toolSpuit.alpha = alp;
 			toolLine.alpha = alp;
 
 			const btn:SimpleButton = getChildByName(lastTool) as SimpleButton;
-			if(btn) toolSelectCursor.alpha = btn.alpha;
+			if (btn)
+				toolSelectCursor.alpha = btn.alpha;
 		}
 
 		public function bgBoxVisible(flag:Boolean):void
 		{
-			if(flag)
+			if (flag)
 			{
 				addChild(bgBox);
-				setChildIndex(bgBox,0);
+				setChildIndex(bgBox, 0);
 			}
 			else
 			{
@@ -156,9 +163,9 @@
 
 		public function updateBGBoxColor(color:uint):void
 		{
-			bgBox.graphics.lineStyle(0,0,0);
+			bgBox.graphics.lineStyle(0, 0, 0);
 			bgBox.graphics.beginFill(color);
-			bgBox.graphics.drawRect(-4,-1,BOX_WIDTH+8,BOX_HEIGHT+2);
+			bgBox.graphics.drawRect(-4, -1, BOX_WIDTH + 8, BOX_HEIGHT + 2);
 			bgBox.graphics.endFill();
 		}
 
@@ -182,46 +189,63 @@
 			y = deafultY;
 		}
 
+		public function initCanvasControlButtons(newParent:DisplayObjectContainer):void
+		{
+			newParent.addChild(zoomInButton);
+			newParent.addChild(zoomOutButton);
+			newParent.addChild(toolRotate);
+			newParent.addChild(toolMirror);
+
+			zoomInButton.x = 26;
+			zoomInButton.y = 23;
+			zoomOutButton.x = zoomInButton.x + zoomInButton.width + 7;
+			zoomOutButton.y = zoomInButton.y;
+			toolRotate.x = zoomOutButton.x + zoomOutButton.width + 8;
+			toolRotate.y = zoomInButton.y;
+			toolMirror.x = toolRotate.x + toolRotate.width + 7;
+			toolMirror.y = zoomInButton.y;
+		}
+
 		public function changeUIColor(arr:Array):void
 		{
-           	base.color = arr[0];
-           	// subBase.color = arr[1];
-           	iconLeft.color = arr[2];
-           	// iconRight.color = arr[3];
-           	activeColor.color = arr[4];
+			base.color = arr[0];
+			// subBase.color = arr[1];
+			iconLeft.color = arr[2];
+			// iconRight.color = arr[3];
+			activeColor.color = arr[4];
 			activeColor.alphaMultiplier = 0.0;
-           	activeIconColor.color = arr[5];
+			activeIconColor.color = arr[5];
 
 			var len:uint = buttonArr.length;
-			const fillPenButtons:Array = [toolFillPenOK,toolFillPenCancel];
+			const fillPenButtons:Array = [toolFillPenOK, toolFillPenCancel];
 
-			for(var i:uint=0;i<len;i++)
+			for (var i:uint = 0; i < len; i++)
 			{
 				btn = buttonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnUp.transform.colorTransform = iconLeft;
 				btnOver = btn.overState as DisplayObjectContainer;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor;//버튼 배경
-				btnOver.getChildAt(1).transform.colorTransform = iconLeft; //버튼 아이콘
+				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
+				btnOver.getChildAt(1).transform.colorTransform = iconLeft; // 버튼 아이콘
 				btnDown = btn.downState as DisplayObjectContainer;
-				btnDown.getChildAt(0).transform.colorTransform = activeColor;//버튼 배경
-				btnDown.getChildAt(1).transform.colorTransform = iconLeft; //버튼 아이콘
+				btnDown.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
+				btnDown.getChildAt(1).transform.colorTransform = iconLeft; // 버튼 아이콘
 				btnDown.x = 2;
 				btnDown.y = 2;
 			}
 
-			len = fillPenButtons.length
-			for(i=0;i<len;i++)
+			len = fillPenButtons.length;
+			for (i = 0; i < len; i++)
 			{
 				btn = fillPenButtons[i];
 				btnUp = btn.upState as DisplayObject;
 				btnUp.transform.colorTransform = iconLeft;
 				btnOver = btn.overState as DisplayObjectContainer;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor;//버튼 배경
-				btnOver.getChildAt(1).transform.colorTransform = iconLeft; //버튼 아이콘
+				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
+				btnOver.getChildAt(1).transform.colorTransform = iconLeft; // 버튼 아이콘
 				btnDown = btn.downState as DisplayObjectContainer;
-				btnDown.getChildAt(0).transform.colorTransform = activeColor;//버튼 배경
-				btnDown.getChildAt(1).transform.colorTransform = iconLeft; //버튼 아이콘
+				btnDown.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
+				btnDown.getChildAt(1).transform.colorTransform = iconLeft; // 버튼 아이콘
 				btnDown.x = 2;
 				btnDown.y = 2;
 			}
@@ -252,7 +276,7 @@
 		{
 			const btn:SimpleButton = getChildByName(childName) as SimpleButton;
 
-			if(!btn)
+			if (!btn)
 			{
 				return;
 			}
@@ -268,21 +292,25 @@
 		{
 			const len:uint = buttonArr.length;
 
-			for(var i:uint=0;i<len;i++)
+			buttonArr[0].x = 0;
+			buttonArr[0].y = 0;
+			buttonArr[0].useHandCursor = false;
+
+			for (var i:uint = 1; i < len; i++)
 			{
-				buttonArr[i].x = 0;
-				buttonArr[i].y = i*buttonArr[i].height;
+				buttonArr[i].x = buttonArr[i - 1].x;
+				buttonArr[i].y = buttonArr[i - 1].y + buttonArr[i - 1].height + 2;
 				buttonArr[i].useHandCursor = false;
 			}
 
-			toolFillPenOK.x = toolFillPen.x;
-			toolFillPenOK.y = toolFillPen.y;
-			toolFillPenCancel.x = toolSpuit.x;
-			toolFillPenCancel.y = toolSpuit.y;
+			toolFillPenOK.x = toolRedo.x;
+			toolFillPenOK.y = toolRedo.y;
+			toolFillPenCancel.x = toolPen.x;
+			toolFillPenCancel.y = toolPen.y;
 		}
 
-		public function toolButtons() {
-
+		public function toolButtons()
+		{
 			moveToolCursorInit();
 
 			// initPenSizeCursor();
@@ -291,6 +319,7 @@
 			toolFillPen.useHandCursor = false;
 			toolFillPenOK.useHandCursor = false;
 			toolFillPenCancel.useHandCursor = false;
+			// toolScanFill.useHandCursor = false;
 			toolErase.useHandCursor = false;
 			toolUndo.useHandCursor = false;
 			toolRedo.useHandCursor = false;
@@ -308,24 +337,24 @@
 			toolFillPenCancel.visible = false;
 
 			buttonArr = [
-							zoomInButton,
-							zoomOutButton,
-							toolRotate,
-							toolPen,
-							toolErase,
-							toolFillPen,
-							toolSpuit,
-							toolLine,
-							toolUndo,
-							toolRedo,
-							toolMirror,
-							toolLasso,
-							toolMove,
-							toolTrace
-						];
+					toolUndo,
+					toolRedo,
+					toolPen,
+					toolErase,
+					toolFillPen,
+					// toolScanFill,
+					toolSpuit,
+					toolLine,
+					toolLasso,
+					toolMove,
+					toolTrace,
+					zoomInButton,
+					zoomOutButton,
+					toolRotate,
+					toolMirror
+				];
 
 			initButtonsPos();
 		}
 	}
-
 }
