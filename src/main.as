@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.92;
+        private const APP_VERSION:Number = 25.93;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -3742,7 +3742,7 @@
             if(traceMenuON) traceMenu.visible = false;
 
             if(toolTipBox.visible) toolTipBoxTimerOFF();
-            setSidebarReCacheBitmap();
+            // setSidebarReCacheBitmap();
             sideBar.visible = true;
             checkFOFOPosition();
         }
@@ -4484,14 +4484,14 @@
             files.deleteDirectory(true);
         }
 
-        private function setSidebarReCacheBitmap():void
-        {
-            sideBar.cacheAsBitmap = false;
-            addTimerByName("sideBarReCacheAsBitmapTimer",0.2,false,function():void
-            {
-                sideBar.cacheAsBitmap = true;
-            });
-        }
+        // private function setSidebarReCacheBitmap():void
+        // {
+        //     // sideBar.cacheAsBitmap = false;
+        //     // addTimerByName("sideBarReCacheAsBitmapTimer",0.0,false,function():void
+        //     // {
+        //     // });
+        //         sideBar.cacheAsBitmap = true;
+        // }
 
         private function setSidebarVisible(flag:Boolean,tempFlag:Boolean):void
         {
@@ -4505,7 +4505,7 @@
                 sideBar.visible = true;
 
                 //사이드바가 짤려 나오는 현상이 있어서 다시 캐쉬 풀었다가 다시 해줌
-                setSidebarReCacheBitmap();
+                // setSidebarReCacheBitmap();
             }
             else
             {
@@ -20618,14 +20618,14 @@
         private function selectZoomTool():void
         {
             setNowTool(TOOL_ZOOM);
-            toolBox.moveToolCursor("zoomInButton");
+            toolBox.moveToolCursor("zoomInButton",appInfoBox);
             setControlBoxInfoOFF();
         }
 
         private function selectRotateTool():void
         {
             setNowTool(TOOL_ROTATE);
-            toolBox.moveToolCursor("toolRotate");
+            toolBox.moveToolCursor("toolRotate",appInfoBox);
         }
 
         private function selectLassoTool():void
@@ -21798,11 +21798,11 @@
             sideBarScrollSet.addChild(toolBox);
             sideBarScrollSet.addChild(controlBox);
             sideBarScrollSet.addChild(pickerBox);
-            appInfoBox.cacheAsBitmap = true;
-            toolBox.cacheAsBitmap = true;
-            toolBox.cacheAsBitmap = true;
-            controlBox.cacheAsBitmap = true;
-            pickerBox.cacheAsBitmap = true;
+            // appInfoBox.cacheAsBitmap = true;
+            // toolBox.cacheAsBitmap = true;
+            // toolBox.cacheAsBitmap = true;
+            // controlBox.cacheAsBitmap = true;
+            // pickerBox.cacheAsBitmap = true;
 
             sideBar.addChild(sideBarScrollBar);
             sideBar.addChild(sideBarScrollSet);

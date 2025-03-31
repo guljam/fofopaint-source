@@ -272,9 +272,25 @@
 			moveToolCursor(lastTool);
 		}
 
-		public function moveToolCursor(childName:String):void
+		public function moveToolCursor(childName:String, newParent:DisplayObjectContainer = null):void
 		{
-			const btn:SimpleButton = getChildByName(childName) as SimpleButton;
+			var btn:SimpleButton;
+			if (newParent !== null)
+			{
+				if (!newParent.contains(toolSelectCursor))
+				{
+					newParent.addChild(toolSelectCursor);
+				}
+				btn = newParent.getChildByName(childName) as SimpleButton;
+			}
+			else
+			{
+				if (!this.contains(toolSelectCursor))
+				{
+					this.addChild(toolSelectCursor);
+				}
+				btn = this.getChildByName(childName) as SimpleButton;
+			}
 
 			if (!btn)
 			{
