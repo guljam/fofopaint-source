@@ -63,7 +63,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.91;
+        private const APP_VERSION:Number = 25.92;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1487,6 +1487,7 @@
 
         private function cGetCanvasRotationAngle(target:DisplayObject):Function
         {
+            const snapThreshold:Number = 82;
             rotateCursorBox.x = mouseX;
             rotateCursorBox.y = mouseY+(65*getUIScale());
             rotateCursorBox["rotateArrow"].rotation = target.rotation;
@@ -1499,13 +1500,14 @@
             var sumAng:Number = target.rotation;
             //각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
             var lastAng:Number = Math.atan2(mouseX-rotateCursorBox.x,mouseY-rotateCursorBox.y)*toDeg;
+            var activateSnapFlag:Boolean = false;
+            var ignoreSnapFlag:Boolean = true;
+            var snappedAng:Number = 0;
 
             return function(snapFlag:Boolean):Number
             {
                 const nowAng:Number = Math.atan2(mouseX-rotateCursorBox.x,mouseY-rotateCursorBox.y)*toDeg;
                 const subAng:Number = lastAng-nowAng;
-
-                if(subAng === 0) return 0;
 
                 lastAng = nowAng;
                 sumAng += subAng;
@@ -1513,19 +1515,36 @@
 
                 if(snapFlag)
                 {
-                    const snap90:Number = Math.abs(deg%90.0);//90도 스냅 변수
+                    const snap90:Number = Math.abs(deg % 90.0);//90도 스냅 변수
                     const snap90N:Number = 90.0-snap90;
-                    const snapAng:Number = (snap90 > snap90N) ? snap90 : snap90N;
+                    const snapAng:Number =  (snap90 > snap90N) ? snap90 : snap90N;
 
-                    //90도에 가까우면 90도 스냅이 걸리게함
-                    if(snapAng > 83)
+                    if(snapAng > snapThreshold && ignoreSnapFlag === false)
                     {
+                        activateSnapFlag = true;
                         deg = Math.round(deg/90)*90;
+                        if(snappedAng !== deg)
+                        {
+                            snappedAng = deg;
+                        }
+                    }
+                    else if(activateSnapFlag === true)
+                    {
+                        sumAng = snappedAng;
+                        deg = snappedAng;
+                        activateSnapFlag = false;
+                        ignoreSnapFlag = true;
+                    }
+                    else if(ignoreSnapFlag === true)
+                    {
+                        if(snapAng <= snapThreshold)
+                        {
+                            ignoreSnapFlag = false;
+                        }
                     }
                 }
 
                 rotateCursorBox["rotateArrow"].rotation = deg;
-
                 return Math.round(deg);
             }
         }
@@ -5068,7 +5087,7 @@
                 }
 
                 mouseMoveCount++;
-                if(mouseMoveCount >= 30)
+                if(mouseMoveCount >= 6)
                 {
                     mouseMoveCount = 0;
                     commandUndoIndexArr.push(command.length-1);
@@ -17369,8 +17388,12 @@
             if(replayStartON) stopReplay();
             const continueFlag:Boolean = (saveContinue === true && asFlag === false);
             const nextPath:String = checkExistingParentDirectory(saveFilePath);
+            const pngFile:File = new File(saveFilePath);
+            const rawFilePath:String = saveFilePath.substr(0,saveFilePath.lastIndexOf(".png"))+".2020";
+            const nowRawFile:File = new File(rawFilePath);
+            const fofoFileExists:Boolean = pngFile.exists && nowRawFile.exists;
 
-            if(nextPath === saveFilePath  && saveOneTime && continueFlag)
+            if(nextPath === saveFilePath && saveOneTime && continueFlag && fofoFileExists)
             {
                 if(updateAfterSaveFlag)
                 {
@@ -17406,9 +17429,7 @@
 
             if(continueFlag)
             {
-                const normalFile:File = new File(saveFilePath);
-
-                if(normalFile.exists === true)
+                if(fofoFileExists === true)
                 {
                     function saveContinueErrorEvent(e:Event):void
                     {
@@ -17440,7 +17461,7 @@
                     {
                         if(workerPNGSaveData !== null)
                         {
-                            fs.openAsync(normalFile,FileMode.WRITE);
+                            fs.openAsync(pngFile,FileMode.WRITE);
                             fs.writeBytes(workerPNGSaveData);
                             fs.close();
                             fs.removeEventListener(IOErrorEvent.IO_ERROR,saveContinueErrorEvent);
