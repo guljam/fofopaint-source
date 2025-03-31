@@ -26,9 +26,9 @@
 			this.scaleY = newScale;
 		}
 
-		public function updateMemoryInfo(memoryUsage:String,driveUseage:String):void
+		public function updateMemoryInfo(driveUseage:String):void
 		{
-			memoryInfo.text = "Memory usage : "+memoryUsage+" / Drive usage : "+driveUseage;
+			memoryInfo.text = "Drive usage : "+driveUseage;
 		}
 
 		public function randomLogo():void

@@ -52,7 +52,6 @@
     import flash.system.Worker;
     import flash.system.WorkerDomain;
     import flash.system.MessageChannel;
-    import flash.system.System;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import flash.text.TextField;
@@ -1302,20 +1301,19 @@
             rCursor.rotation = -newAngle;
         }
 
-        private function formatBytes(bytes:Number):String
-        {
-            var sizes:Array = ["Bytes","KB","MB","GB","TB"];
-
+        private function formatBytes(bytes:Number):String {
+            var sizes:Array = ["Bytes", "KB", "MB", "GB", "TB"];
+            
+            // 음수 또는 유효하지 않은 입력 처리
+            if (isNaN(bytes) || bytes < 0) return "Invalid";
             if (bytes == 0) return "0 Byte";
-
-            var i:int = Math.floor(Math.log(bytes)/Math.log(1024));
-
-            return Math.round(10*bytes/Math.pow(1024,i))/10+" "+sizes[i];
-        }
-
-        private function getMemoryUsageString():String
-        {
-            return formatBytes(System.totalMemory-System.freeMemory);
+            
+            // 단위 계산 (최대 TB까지 제한)
+            var i:int = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
+            
+            // 값 변환 및 소수점 첫째 자리 반올림
+            var value:Number = bytes / Math.pow(1024, i);
+            return Math.round(10 * value) / 10 + " " + sizes[i];
         }
 
         private function getDriveUsageString():String
@@ -9457,7 +9455,7 @@
             }
 
             aboutPanel.randomLogo();
-            aboutPanel.updateMemoryInfo(getMemoryUsageString(),getDriveUsageString());
+            aboutPanel.updateMemoryInfo(getDriveUsageString());
             setAboutPanelCenterPos();
             aboutPanel.visible = true;
         }
