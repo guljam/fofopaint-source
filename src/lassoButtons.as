@@ -113,8 +113,8 @@
 
 			if(str.indexOf("\n") !== -1)
 			{
-				lassoInfo.y = lassoInfoPos[0]-(lassoInfo.height-lassoInfoPos[1])-3;
-				lassoMenuMoveButton.y = lassoInfo.y;
+				lassoInfo.y = lassoInfoPos[0]-(lassoInfo.height-lassoInfoPos[1]);
+				lassoMenuMoveButton.y = Math.floor(lassoInfo.y-3);
 			}
 			else if(lassoInfoPos[0] !== lassoInfo.y)
 			{
@@ -122,7 +122,7 @@
 				lassoMenuMoveButton.y = 0;
 			}
 
-			lassoMenuMoveButton.height = lassoInfo.height+5;
+			// lassoMenuMoveButton.height = lassoInfo.height+5;
 		}
 
 		public function setScale(newScale:Number):void

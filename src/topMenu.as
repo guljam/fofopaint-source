@@ -166,10 +166,10 @@
 			gridButtonWrapper.addChild(gridSliderWrapper);
 			gridButtonWrapper.addChild(gridMoveButtonWrapper);
 
-			gridSliderWrapper.x = 0;
-			gridSliderWrapper.y = 3;
-			gridMoveButtonWrapper.x = gridSliderWrapper.x+gridButtonWrapper.width+5;
-			gridMoveButtonWrapper.y = 0;
+			gridSliderWrapper.x = 7;
+			gridSliderWrapper.y = 7;
+			gridMoveButtonWrapper.x = gridSliderWrapper.x+gridButtonWrapper.width+7;
+			gridMoveButtonWrapper.y = 4;
 			gridButtonWrapper.visible = false;
 		}
 
@@ -249,7 +249,7 @@
 		{
 			gridButtonWrapper.graphics.clear();
 			gridButtonWrapper.graphics.beginFill(color);
-			gridButtonWrapper.graphics.drawRect(-1,0,gridMoveButtonWrapper.x+gridMoveButtonWrapper.width+2,gridButtonWrapper.height+1);
+			gridButtonWrapper.graphics.drawRect(0,0,Math.floor(gridMoveButtonWrapper.x+gridMoveButtonWrapper.width+7),Math.floor(gridButtonWrapper.height+8)); 
 			gridButtonWrapper.graphics.endFill();
 
 			gridButtonWrapper.x = gridButton.x;

@@ -17,6 +17,7 @@
 		public var fillPenUndo:SimpleButton;
 		public var fillPenBGTitle:SimpleButton;
 		public var fillPenBG:SimpleButton;
+		public var fillPenSidebar:SimpleButton;
 		private const fillPenInfoPos:Array = [0, 0];
 		private var fixedScale:Number = 1.0;
 		private const baseColor:ColorTransform = new ColorTransform();
@@ -28,16 +29,14 @@
 
 			if (str.indexOf("\n") !== -1)
 			{
-				fillPenInfo.y = fillPenInfoPos[0] - (fillPenInfo.height - fillPenInfoPos[1]) - 3;
-				fillPenBGTitle.y = fillPenInfo.y;
+				fillPenInfo.y = fillPenInfoPos[0] - (fillPenInfo.height - fillPenInfoPos[1]);
+				fillPenBGTitle.y = Math.floor(fillPenInfo.y-3);
 			}
 			else if (fillPenInfoPos[0] !== fillPenInfo.y)
 			{
 				fillPenInfo.y = fillPenInfoPos[0];
 				fillPenBGTitle.y = 0;
 			}
-
-			fillPenBGTitle.height = fillPenInfo.height + 5;
 		}
 
 		public function changeBGColor(arr:Array):void
@@ -54,7 +53,8 @@
 				[
 					fillPenUndo,
 					fillPenOK,
-					fillPenCancel
+					fillPenCancel,
+					fillPenSidebar
 				];
 
 			var len:int = buttonArr.length;
@@ -103,10 +103,10 @@
 			fillPenOK.useHandCursor = false;
 			fillPenCancel.useHandCursor = false;
 			fillPenUndo.useHandCursor = false;
+			fillPenSidebar.useHandCursor = false;
 			fillPenInfo.autoSize = TextFieldAutoSize.LEFT;
 			fillPenInfoPos[0] = fillPenInfo.y;
 			fillPenInfoPos[1] = fillPenInfo.height;
 		}
 	}
-
 }

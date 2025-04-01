@@ -64,6 +64,27 @@
 
 		private const opColor:ColorTransform = new ColorTransform();
 
+		public function setFillPenModeOFF():void
+		{
+			etcOptionWrapper.alpha = 1.0;
+			penSizeGuide.alpha = 1.0;
+			penSizeBox.alpha = 1.0;
+			rectSizeSet.alpha = 1.0;
+			circleSizeSet.alpha = 1.0;
+			opaGuide.alpha = 1.0;
+			penSizeSelectCursor.alpha = 1.0;
+		}
+
+		public function setFillPenModeON(offAlpha:Number):void
+		{
+			etcOptionWrapper.alpha = offAlpha;
+			penSizeGuide.alpha = offAlpha;
+			penSizeBox.alpha = offAlpha;
+			rectSizeSet.alpha = offAlpha;
+			circleSizeSet.alpha = offAlpha;
+			penSizeSelectCursor.alpha = offAlpha;
+		}
+
 		public function blurShapeSetON():void
 		{
 			rectSizeSet.filters = [blurFilter];

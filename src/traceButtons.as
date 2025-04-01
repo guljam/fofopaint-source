@@ -119,8 +119,8 @@
 
 			if(str.indexOf("\n") !== -1)
 			{
-				traceInfo.y = traceInfoPos[0]-(traceInfo.height-traceInfoPos[1])-3;
-				traceMenuMoveButton.y = traceInfo.y;
+				traceInfo.y = traceInfoPos[0]-(traceInfo.height-traceInfoPos[1]);
+				traceMenuMoveButton.y = Math.floor(traceInfo.y-3);
 			}
 			else if(traceInfoPos[0] !== traceInfo.y)
 			{
@@ -128,7 +128,7 @@
 				traceMenuMoveButton.y = 0;
 			}
 
-			traceMenuMoveButton.height = traceInfo.height+5;
+			// traceMenuMoveButton.height = traceInfo.height+5;
 		}
 
 		public function setScale(newScale:Number):void

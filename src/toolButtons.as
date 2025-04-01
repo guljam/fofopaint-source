@@ -49,14 +49,17 @@
 
 		private var checkedLayerONFlag:Boolean = false;
 
-		public function setFillPenIconOFF():void
+		public function setFillPenModeOFF():void
 		{
-			const len:uint = buttonArr.length;
-
-			for (var i:uint = 0; i < len; i++)
-			{
-				buttonArr[i].alpha = 1.0;
-			}
+			toolErase.alpha = 1.0;
+			toolFillPen.alpha = 1.0;
+			toolSpuit.alpha = 1.0;
+			toolLine.alpha = 1.0;
+			toolLasso.alpha = 1.0;
+			toolLasso.alpha = 1.0;
+			toolMove.alpha = 1.0;
+			toolTrace.alpha = 1.0;
+			toolMirror.alpha = 1.0;
 
 			toolSelectCursor.visible = true;
 			toolRedo.visible = true;
@@ -65,21 +68,23 @@
 			toolFillPenCancel.visible = false;
 		}
 
-		public function setFillPenIconON(offAlpha:Number):void
+		public function setFillPenModeON(offAlpha:Number):void
 		{
-			const len:uint = buttonArr.length;
-
-			for (var i:uint = 0; i < len; i++)
-			{
-				buttonArr[i].alpha = offAlpha;
-			}
+			toolErase.alpha = offAlpha;
+			toolFillPen.alpha = offAlpha;
+			toolSpuit.alpha = offAlpha;
+			toolLine.alpha = offAlpha;
+			toolLasso.alpha = offAlpha;
+			toolLasso.alpha = offAlpha;
+			toolMove.alpha = offAlpha;
+			toolTrace.alpha = offAlpha;
+			toolMirror.alpha = offAlpha;
 
 			toolSelectCursor.visible = false;
 			toolRedo.visible = false;
 			toolPen.visible = false;
 			toolFillPenOK.visible = true;
 			toolFillPenCancel.visible = true;
-			toolUndo.alpha = 1.0;
 		}
 
 		public function setIconAlphaOnLassoToolON(alpha:Number):void

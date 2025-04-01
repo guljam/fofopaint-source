@@ -28,7 +28,7 @@
 		public var myPaletteButton:SimpleButton;
 		public var swapPositionButton:SimpleButton;
 		public const rgbInfoBG:Shape = new Shape();
-		private var rgbInfoBGColor:uint = 0;
+		public var rgbInfoBGColor:uint = 0;
 		private var rgbInfoBGBorderColor:uint = 0;
 		private var rgbInfoPaletteTypeSave:int = 0;
 		public const myPaletteBox:Sprite = new Sprite();
@@ -211,7 +211,13 @@
 			return lastRGBInfoText;
 		}
 
-		public function setPickerMode(mode:int):void
+		public function fillPenModeON():void
+		{
+			penColorButton.alpha = 0.2;
+			paperColorButton.alpha = 0.2;
+		}
+			
+		public function checkPickerModeButton(mode:int):void
 		{
 			if(mode === 1)
 			{
@@ -299,7 +305,7 @@
 
 			rgbInfoBGColor = color;
 			rgbInfoBGBorderColor = borderColor;
-			rgbInfoPaletteTypeSave = paletteType
+			rgbInfoPaletteTypeSave = paletteType;
 		}
 
 		public function getRGBInfoBGColor():uint
