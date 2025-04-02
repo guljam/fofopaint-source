@@ -62,7 +62,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.96;
+        private const APP_VERSION:Number = 25.97;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -18361,8 +18361,12 @@
                     eraseAlphaIndex = penAlphaList.indexOf(d["eraseAlpha"]);
                     eraseSizeIndex = d["eraseSizeIndex"];
                     setPenSize(d["penSizeIndex"]);
+                    saveFilePath = d["saveFilePath"];
                     saveFileName = d["saveFileName"];
-                    saveFilePath = d["saveFileName"];
+                    if(saveFilePath === saveFileName)
+                    {
+                        saveFilePath = File.desktopDirectory.nativePath + File.separator + saveFileName;
+                    }
                     realWorkingTimer.setRunningTime(d["APP_RUNNING_TIME"]);
                     realWorkingTimer.update();
                     traceAlphaSave = d["traceAlphaSave"]
@@ -18377,7 +18381,6 @@
                     if(!d["isSidebarVisible"]) setSidebarVisible(d["isSidebarVisible"],false);
                     makeJumpImageFlag = d["makeJumpImageFlag"];
                     rBGColorSave = d["rBGColorSave"];
-                    saveFilePath = d["saveFilePath"];
                     tickDraw.setFirstRCursorPos(d["getFirstRCursorPos.x"],d["getFirstRCursorPos.y"]);
 
                     setTraceImageInfo(d["tracePosInfo[0]"],
@@ -18455,6 +18458,11 @@
             }
             else //복원파일이 없을때
             {
+                if(saveFilePath === saveFileName)
+                {
+                    saveFilePath = File.desktopDirectory.nativePath + File.separator + saveFileName;
+                }
+
                 initMyPaletteList();
 
                 lastWindowSize.x = 680;
