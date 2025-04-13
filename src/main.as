@@ -62,7 +62,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.97;
+        private const APP_VERSION:Number = 25.98;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1681,7 +1681,7 @@
 
                 case "svBox":
                 {
-                    str = "Situation and value";
+                    str = "Situation and Value";
                 }
                 break;
 
@@ -20383,8 +20383,16 @@
 
                 spuitZoomCursor.spuitZoomBitmap.bitmapData.fillRect(spuitMagRect,STAGE_BG_COLOR);
                 spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvasBGShape,spuitMagMat,null,null,spuitMagRect);
-                spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvas11Bitmap.bitmapData,spuitMagMat,null,null,spuitMagRect);
-                spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvas1Bitmap.bitmapData,spuitMagMat,null,null,spuitMagRect);
+
+                if(canvas11Bitmap.visible)
+                {
+                    spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvas11Bitmap.bitmapData,spuitMagMat,null,null,spuitMagRect);
+                }
+
+                if(canvas1Bitmap.visible)
+                {
+                    spuitZoomCursor.spuitZoomBitmap.bitmapData.draw(canvas1Bitmap.bitmapData,spuitMagMat,null,null,spuitMagRect);
+                }
             }
 
             function spuitPickColor():uint
