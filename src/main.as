@@ -62,7 +62,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 25.98;
+        private const APP_VERSION:Number = 26.01;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -2723,7 +2723,7 @@
 
         private function getNewFileName():String
         {
-            return getTimeStampTailHead()+" "+getRandomString()+".png"
+            return getTimeStampTailHead()+" "+getRandomString(8)+".png"
         }
 
         private function updateStageOffset():void
@@ -10876,7 +10876,7 @@
                 break;
 
                 case "newWindowButton":
-                    str = "Open image view window [f6]\nMove window [click+drag on window]\nFit image size [right-click on window]";
+                    str = "Open image view window [f6]\nMove window [click+drag on window]\nFit to image size [right-click on window]";
                 break;
 
                 case "updateButton":
@@ -15807,8 +15807,16 @@
                 filePath = filePath.substr(0,filePath.lastIndexOf(".2020"))+".png";
             }
 
+            const saveFilePathSave:String = removeLastFileSeparator(saveFilePath);
+            const lastSepIndex:int = saveFilePathSave.lastIndexOf(File.separator);
+            trace("lastSepIndex",lastSepIndex)
+            const newPath:String = saveFilePathSave.substr(0,lastSepIndex)+File.separator+fileName;
+            trace("old path",saveFilePath)
+            trace("fileName",fileName)
+            trace("newPath",newPath)
+
             saveFileName = fileName;
-            saveFilePath = filePath;
+            saveFilePath = saveFilePathSave.substring(0);
             saveContinue = false;//연속 세이브 플래그 취소
             rMirrorON = false;
             mirrorON = false;
@@ -17766,17 +17774,22 @@
 
             return [path,name];
         }
+        
+        //끝의 파일 구분자가 있으면 제거해줌
+        private function removeLastFileSeparator(path:String):String
+        {
+            if (path.charAt(path.length - 1) === File.separator)
+            {
+                return path.substring(0, path.length - 1);
+            }
+            return path;
+        }
 
         //해당 디렉토리가 없으면 그 상위 디렉토리로 위치를 바꾸어줌
         private function checkExistingParentDirectory(path:String):String
         {
-            var cleanPath:String = path;
-            // 끝의 separator 제거
-            if (cleanPath.charAt(cleanPath.length - 1) === File.separator)
-            {
-                cleanPath = cleanPath.substring(0, cleanPath.length - 1);
-            }
-
+            trace("path",path);
+            var cleanPath:String = removeLastFileSeparator(path);
             var testPath:String = cleanPath;
             var file:File = new File(testPath);
             var lastSep:int;
