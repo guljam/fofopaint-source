@@ -15809,14 +15809,10 @@
 
             const saveFilePathSave:String = removeLastFileSeparator(saveFilePath);
             const lastSepIndex:int = saveFilePathSave.lastIndexOf(File.separator);
-            trace("lastSepIndex",lastSepIndex)
             const newPath:String = saveFilePathSave.substr(0,lastSepIndex)+File.separator+fileName;
-            trace("old path",saveFilePath)
-            trace("fileName",fileName)
-            trace("newPath",newPath)
 
             saveFileName = fileName;
-            saveFilePath = saveFilePathSave.substring(0);
+            saveFilePath = newPath;
             saveContinue = false;//연속 세이브 플래그 취소
             rMirrorON = false;
             mirrorON = false;
@@ -17675,7 +17671,6 @@
             setCaptureFlashEffect();
 
             const replayMode:Boolean = replayModeON;
-            checkExistingParentDirectory(saveFilePath);
             var name:String = saveFileName;
             var path:String = saveFilePath;
             const nextPath:String = checkExistingParentDirectory(path);
@@ -17788,7 +17783,6 @@
         //해당 디렉토리가 없으면 그 상위 디렉토리로 위치를 바꾸어줌
         private function checkExistingParentDirectory(path:String):String
         {
-            trace("path",path);
             var cleanPath:String = removeLastFileSeparator(path);
             var testPath:String = cleanPath;
             var file:File = new File(testPath);
