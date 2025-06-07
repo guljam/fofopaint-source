@@ -62,7 +62,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 26.02;
+        private const APP_VERSION:Number = 26.03;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -7886,25 +7886,41 @@
         private function pasteCanvasImageToTraceLayer():void
         {
             if(deepUndoON) setApplyDeepUndo();
-            var command:String = "clear";
-            mergeImageToTraceLayer((canvas1Bitmap.visible)  ? canvas1BitmapData :null
-                                    ,(canvas11Bitmap.visible) ? canvas11BitmapData:null);
-            const rect:Rectangle = new Rectangle(0,0,canvas1BitmapData.width,canvas1BitmapData.height);
 
-            if(canvas1Bitmap.visible)
+            var layer1Flag:Boolean = canvas1Bitmap.visible;
+            var layer2Flag:Boolean = canvas11Bitmap.visible;
+
+            if(checkedLayer === 1)
+            {
+                layer1Flag = true;
+                layer2Flag = false;
+            }
+            else if(checkedLayer === 2)
+            {
+                layer1Flag = false;
+                layer2Flag = true;
+            }
+
+            mergeImageToTraceLayer((layer1Flag)  ? canvas1BitmapData :null
+                                    ,(layer2Flag) ? canvas11BitmapData:null);
+            const rect:Rectangle = new Rectangle(0,0,canvas1BitmapData.width,canvas1BitmapData.height);
+            var command:String = "clear";
+
+            if(layer1Flag)
             {
                 canvas1BitmapData.fillRect(rect,0);
             }
-            if(canvas11Bitmap.visible)
+
+            if(layer2Flag)
             {
                 canvas11BitmapData.fillRect(rect,0);
             }
 
-            if(!canvas11Bitmap.visible)
+            if((layer1Flag && !layer2Flag) || !canvas11Bitmap.visible)
             {
                 command = "clear1";
             }
-            else if(!canvas1Bitmap.visible)
+            else if((layer2Flag && !layer1Flag) || !canvas1Bitmap.visible)
             {
                 command = "clear2";
             }
@@ -8152,6 +8168,15 @@
                 controlBox.layer2SelectButton.alpha = BUTTON_OFF_ALPHA;
                 setCanvas2IndexToLayer1();
             }
+
+            checkedLayer = 0;
+            controlBox.layer1CheckButton.visible = false;
+            controlBox.layer1UncheckButton.visible = true;
+            controlBox.layer2CheckButton.visible = false;
+            controlBox.layer2UncheckButton.visible = true;
+            toolBox.setToolButtonsForCheckedLayerOFF();
+            toolBox2.setToolButtonsForCheckedLayerOFF();
+
         }
 
         private function setSharpLineButtonShortcut():void
@@ -8446,12 +8471,12 @@
 
                 case "layer1CheckButton":
                 case "layer1UncheckButton":
-                    str = "Check layer 1 [1+w, 9+i]\nfor move image tool & lasso tool";
+                    str = "Check layer 1 [1+w, 9+i]\nfor move image tool, lasso tool, reference layer";
                 break;
 
                 case "layer2CheckButton":
                 case "layer2UncheckButton":
-                    str = "Check layer 2 [2+w, 0+i]\nfor move image tool & lasso tool";
+                    str = "Check layer 2 [2+w, 0+i]\nfor move image tool, lasso tool, reference layer";
                 break;
 
                 case "layerSwapButton":
