@@ -62,7 +62,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 26.05;
+        private const APP_VERSION:Number = 26.06;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -1018,12 +1018,18 @@
                         if(e.delta > 0)
                         {
                             setZoomInButton(true,replayModeON);
-                            setToolTipTempON(Math.floor(zoomed*100)+"%",1.5);
+                            if(!replayModeON)
+                            {
+                                setToolTipTempON(Math.floor(zoomed*100)+"%",1.5);
+                            }
                         }
                         else
                         {
                             setZoomInButton(false,replayModeON);
-                            setToolTipTempON(Math.floor(zoomed*100)+"%",1.5);
+                            if(!replayModeON)
+                            {
+                                setToolTipTempON(Math.floor(zoomed*100)+"%",1.5);
+                            }
                         }
                     }
                 })
