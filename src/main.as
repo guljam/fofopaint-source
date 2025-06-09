@@ -62,7 +62,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 26.06;
+        private const APP_VERSION:Number = 26.07;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -10135,7 +10135,7 @@
 
                         case "repCaptureButton":
                         case "captureButton":
-                             setCaptureModeON();
+                            setCaptureModeON();
                         break;
 
                         case "capRotate":
@@ -16453,7 +16453,7 @@
         {
             const data:Object = canvasBackupData;
             const xBitmap1:Bitmap = (replayMode) ? rcanvas1Bitmap : canvas1Bitmap;
-            const xBitmap11:Bitmap = (replayMode) ? rcanvas1Bitmap : canvas1Bitmap;
+            const xBitmap11:Bitmap = (replayMode) ? rcanvas11Bitmap : canvas11Bitmap;
 
             xBitmap1.smoothing = false;
             xBitmap11.smoothing = false;
