@@ -62,7 +62,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 26.07;
+        private const APP_VERSION:Number = 26.08;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -6491,6 +6491,11 @@
 
         private function keyDownLassoTool(e:KeyboardEvent):void
         {
+            if(mouseClickON || rightMouseClickON || mouseDragON)
+            {
+                return;
+            }
+
             const keyCode:uint = KEY_BUFFER[0];
             var keyUsed:Boolean;
 
@@ -22476,6 +22481,7 @@
                 {
                     captureWindowMove.setTo(dx,dy);
                     fitCanvasToWindow(true);
+                    
                     if(!drawCaptureArea.isFullImageCapture())
                     {
                         drawCaptureArea.updateDrawArea(true);
@@ -22504,14 +22510,20 @@
                     checkBoxPosition(traceMenu);
                 }
 
-                if(aboutPanelON) setAboutPanelCenterPos();
+                if(aboutPanelON)
+                {
+                    setAboutPanelCenterPos();
+                }
 
                 if(replayModeON)
                 {
                     updateReplayBarPos(stage.stageWidth);
                     autoScroll.updateRCanvasBounds();
 
-                    if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
+                    if(rFitZoomedON)
+                    {
+                        fitCanvasToWindowManualReplayMode();
+                    }
                 }
 
                 updateStageBGColor(uiColorSet[uiColorIndex][2]);
@@ -22519,8 +22531,14 @@
                 topBar.updateTimerPos(stage.stageWidth);
                 sideBar.updateSideBGSize(getSideBarBGHeight());
 
-                if(quickSidebarON) _quickSidebarOFF();
-                else setDefaultXSidebarPos();
+                if(quickSidebarON)
+                {
+                    _quickSidebarOFF();
+                }
+                else
+                {
+                    setDefaultXSidebarPos();
+                }
                 
                 updateScrollBarHeight();
                 updatePreviewBoxRectPos();
