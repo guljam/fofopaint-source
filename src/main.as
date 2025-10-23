@@ -62,7 +62,7 @@
     //import end
     public class main extends Sprite
     {
-        private const APP_VERSION:Number = 26.10;
+        private const APP_VERSION:Number = 26.11;
         private const APP_DATA_VERSION:Number = 2584;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
@@ -223,9 +223,9 @@
                     ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
                     ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
-                    ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc, right-click]\nMove text cursor [a-d, j-l, arrow key, tab, shift+tab]\nAdjust value [w-s, i-k]"
+                    ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc, right-click]\nMove text cursor [(a,d),(j,l), arrow key, tab]\nAdjust value [(w,s), (i,k)]"
                     ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
-                    ,STRING_HOLD_NSEC:String = " <- hold 2 sec"
+                    ,STRING_PRESS_HOLD:String = " (press and hold)"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
                     ,WORKER_STATE_RUNNING:int = (1 << 1)
@@ -255,7 +255,7 @@
                     ,hasTimer:Function = miniTimer.hasTimer
                     ,removeTimer:Function = miniTimer.remove
                     ;
-        //element
+        //요소 뭉텅이
         private const canvas1Bitmap:Bitmap = new Bitmap(canvas1BitmapData,"auto",true)
                     ,canvas11Bitmap:Bitmap = new Bitmap(canvas11BitmapData,"auto",true)
                     ,canvas2Bitmap:Bitmap = new Bitmap(canvas2BitmapData,"auto",true)
@@ -300,6 +300,8 @@
                     ,capStampFontListBox:capStampFontList = new capStampFontList()
                     ;
 
+        //캔버스와 초창기 개발 변수들
+        //펜툴 줌툴 미러 에어브러시 관련
         private var  canvas1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,canvas11BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,canvas2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
@@ -333,7 +335,7 @@
                     ,penSize:uint = 3
                     ,penSizeIndex:uint = 3
                     ,penAlphaIndex:uint = 9
-                    ,penShape:Boolean = false //false 이면 원 true 이면 사각형
+                    ,penIsSquare:Boolean = false //false 이면 원 true 이면 사각형
                     ,penSmoothValue:Number = 0 //펜 손떨방 플래그
                     ,penSmoothSlideValue:int = 0 //펜 손떨방 플래그
                     ,penSmoothSlideTotal:Number = 20 //손떨방 총 단계
@@ -347,17 +349,16 @@
                     ,airBrushSizeDrawMode:int = 0
                     ,airBrushSizeReplayMode:int = 0
                     ,airBrushSizeReplayMode2:int = 0
-                    ,eraseOddOffset:Number = 0//지우개 변수
-                    ,eraseSize:uint = 12
-                    ,eraseSizeIndex:uint = 8
-                    ,eraseShape:Boolean = false
-                    ,eraseAlpha:Number = 1.0
-                    ,eraseAlphaIndex:uint = 9
-                    ,eraseAirBrushON:Boolean = false
-                    ,penListShapeFlag:Boolean = false //펜 리스트에서 펜 모양 버튼 눌러줄때 툴이랑 상관없이 바꿔줌, 펜 미리보기 할때 필요
-                    ,penLastUpdateInfo:Array = [null,null] //updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뙴
+                    ,eraserSize:uint = 12
+                    ,eraserSizeIndex:uint = 8
+                    ,eraserIsSquare:Boolean = false
+                    ,eraserAlpha:Number = 1.0
+                    ,eraserAlphaIndex:uint = 9
+                    ,eraserAirBrushON:Boolean = false
+                    ,penListShapeIsSqare:Boolean = false //펜 리스트에서 펜 모양 버튼 눌러줄때 툴이랑 상관없이 바꿔줌, 펜 미리보기 할때 필요
+                    ,penLastSizeAndShape:Array = [null,null] //updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뙴
         //컬러픽커 관련 변수
-                    ,hsvColorArr:Vector.<Number> = new Vector.<Number> (3,true) //hue컬러 다른 함수들이랑 통신하기 위해서 전역으로 만들어줌
+                    ,hsvColorArr:Vector.<Number> = new Vector.<Number> (3,true) //h,s,v순서 hue컬러 다른 함수들이랑 통신하기 위해서 전역으로 만들어줌
                     ,pickerMode:uint = 1 //1이면 펜컬러 2이면 배경색
                     ,pickerModeResetFlag:Boolean = false // 배경색 선택하고 나서 커서가 사이드바를 나가면 리셋해주는 이벤트를 올려주는 플래그
                     ,pickerOpaClicked:Boolean = false //피커박스에서 투명도 조절했을때 올려줌 mouse out 이벤트 하나만 작동되게 할라고
@@ -413,7 +414,7 @@
                     ,myPaletteDragClickedColor:uint = 0 //드래그 준비 클릭한 컬러 저장해줌
                     ,myPaletteDragClickedIndex:int = -1 //드래그 준비 클릭한 컬러 인덱스 저장
                     ,myPaletteDragStarted:Boolean = false //컬러 히스토리 드래그 시작하면 올려줌
-                    ,myPalettePresetType:int = 0 //타입저정 0 마이팔레트, 1 drawr, 2 tegaki
+                    ,myPalettePresetType:int = 0 //타입저정 0=mypalette, 1=drawr, 2=tegaki
                     ,myPalettePreset:Array = []
                     ,myPaletteDrawrPreset:Array = [0xFFFFFF,0xC0C0C0,0xFF3B21,0xFFBD16,0xF5F30F,0xA5E975,0x71DBFD,0xFA80F9,null    ,null
                                                   ,0x000000,0x808080,0x8E0000,0xFFCC99,0x877D30,0x008F47,0x313BCD,0xC02E97,0x3F037E,null]
@@ -638,10 +639,10 @@
         //picker box RGB info관련 변수
                     ,rgbInfoFocusedON:Boolean = false // rgb info입력이 활성화 되었을때 올려줌
                     ,selectedRGBInfoIndex:int = -1 //처음 클릭했을때 R G B중 어느 영역을 클릭했는지
-                    ,rgbInfoCursorPosSave:int = -1 //포커스 아웃 될때 마지막 커서 위치가 어딘지 저장
+                    ,rgbInfoCursorLastIndex:int = -1 //포커스 아웃 될때 마지막 커서 위치가 어딘지 저장
                     ,rgbInfoTextFocusedONFlag:Boolean = false // 텍스트 입력이 켜지면 올려줌
                     ,rgbInfoRightClickFocusIgnoreFlag:Boolean = false // RGB INFO 오를쪽 클릭은 힌트 안뜨고 기능못하게함
-                    ,rgbInfoColorTypeHSV:Boolean = false // true가 되면 hsv false이면 rgb
+                    ,rgbInfoColorTypeIsHSV:Boolean = false // true가 되면 hsv false이면 rgb
 
         //기타
         private var windowClosingFlag:Boolean = false//윈도우 닫힐때 올려줌 save all data가 windows closing일때는 무조건 해주게 끔함
@@ -707,7 +708,7 @@
             checkVersion();
             setIMEDisabled();
             selectPenTool();
-            pickerBox.selectPresetButton(0);
+            pickerBox.changeColorPresets(0);
             hint.updateScale(getUIScale());
             hint.setCursorColor(hintHorverCursorColor[uiColorIndex]);
             toolTipBox.setBGColor(toolTipBoxBGColor[uiColorIndex]);
@@ -721,6 +722,12 @@
         }
 
         //function
+
+        private function isPopUpWindowOpened():Boolean
+        {
+            return topBar.gridButtonWrapper.visible || numPadBox.visible || loadMenuBox.visible;   
+        }
+
         private function getFilteredPos(mx:Number,my:Number):Point
         {
             mx = Math.round(mx*100)/100;
@@ -740,7 +747,7 @@
             return new Point(mx,my);
         }
             
-        private function setPickColorScratchPad():void
+        private function showPickColorScratchPad():void
         {
             pickColor(pickerBox.scratchPad.pickColor());
         }
@@ -767,7 +774,7 @@
                 capStampFontListBox.x = gp.x;
                 capStampFontListBox.y = topBar.BARSIZE*topBar.scaleX;
                 capStampFontListBox.updateSystemFontList();
-                setTopChildIndex(capStampFontListBox);
+                setAsTopChild(capStampFontListBox);
                 capStampFontListBox.setScale(getUIScale());
                 capStampFontListBox.visible = true;
 
@@ -902,12 +909,12 @@
             });
         }
 
-        private function checkSelectMyPaletteOrReset():void
+        private function handleSelectMyPaletteOrReset():void
         {
-            function mouseUpCheckSelectMyPaletteOrReset(e:MouseEvent):void
+            function onMyPaletteMouseUp(e:MouseEvent):void
             {
                 removeTimer("selectMyPaletteDelayTimer");
-                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpCheckSelectMyPaletteOrReset);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,onMyPaletteMouseUp);
 
                 if(e.target && e.target.name === "myPaletteButton")
                 {
@@ -928,30 +935,30 @@
                     }
                 }
             }
-            stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpCheckSelectMyPaletteOrReset);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMyPaletteMouseUp);
 
             addTimerByName("selectMyPaletteDelayTimer",0.4,false,function():void
             {
                 setCountDownLongKey(pickerBox.myPaletteButton,"Clearing my palette.. ",null,clearMyPaletteList,null);
-                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpCheckSelectMyPaletteOrReset);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,onMyPaletteMouseUp);
             });
         }
 
-        private function checkSelctOrAddColorMyPalette():void
+        private function handleSelctOrAddColorMyPalette():void
         {
             const firstClickColorIndex:uint = getMyPaletteIndexByMousePos();
             var colorAddedFlag:Boolean = false;
 
-            function mouseUpCheckSelctOrAddColorMyPalette(e:MouseEvent):void
+            function onMyPaletteMouseUp(e:MouseEvent):void
             {
                 removeTimer("addColorMyPaletteDelayTimer");
-                stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUpCheckSelctOrAddColorMyPalette);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,onMyPaletteMouseUp);
                 if(colorAddedFlag === false)
                 {
                     selectMyPaletteColor();
                 }
             }
-            stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpCheckSelctOrAddColorMyPalette);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMyPaletteMouseUp);
 
             addTimerByName("addColorMyPaletteDelayTimer",0.4,true,function():Boolean
             {
@@ -1038,34 +1045,35 @@
 
         private function rgbInfoNumPadIncKey(inc:int):void
         {
-            selectRGBInfoTextByRGBPos(rgbInfoCursorPosSave);
-            if(rgbInfoColorTypeHSV)
+            selectRGBInfoTextByRGBPos(rgbInfoCursorLastIndex);
+            if(rgbInfoColorTypeIsHSV)
             {
-                adjustHSVInfoColor(inc,true);
+                updateHSVInfoColor(inc,true);
+                numPadBox.updateOkBaseColor(pickerBox.getRGBInfoBGColor());
             }
             else
             {
                 adjustRGBInfoColor(inc,true);
+                numPadBox.updateOkBaseColor(pickerBox.getRGBInfoBGColor());
             }
         }
 
-        private function rgbInfoNumPadInputKey(num:String):void
+        private function pressNumpadKey(num:String):void
         {
             var startIndex:int = pickerBox.rgbInfo.selectionBeginIndex;
             var endIndex:int = pickerBox.rgbInfo.selectionEndIndex;
-
             var cursorIndex:int;
             var currentValue:int;
 
             // 00 이렇게 되는거 방지
-            if(rgbInfoColorTypeHSV)
+            if(rgbInfoColorTypeIsHSV)
             {
-                if(num === "0" && int(getRGBColorTextFromRGBInfoText()[rgbInfoCursorPosSave]) === 0)
+                if(num === "0" && int(getRGBColorTextFromRGBInfoText()[rgbInfoCursorLastIndex]) === 0)
                 {
                     return;
                 }
             }
-            else if(num === "0" && int(getRGBColorTextFromRGBInfoText()[rgbInfoCursorPosSave]) === 0)
+            else if(num === "0" && int(getRGBColorTextFromRGBInfoText()[rgbInfoCursorLastIndex]) === 0)
             {
                 return;
             }
@@ -1080,6 +1088,7 @@
             }
 
             checkRGBInfoTextFormat(true);
+            numPadBox.updateOkBaseColor(pickerBox.getRGBInfoBGColor());
         }
 
         private function getSidebarConstHeight():Number
@@ -1096,7 +1105,7 @@
                 var rightMouseClickONSave:Boolean = rightMouseClickON;
 
                 const deafultCount:Number = 3;
-                const countNowTime:Number = Math.ceil((stage.frameRate*2)/deafultCount);
+                const countNowTime:Number = Math.ceil((stage.frameRate*3)/deafultCount);
 
                 longKeyCountDown = deafultCount;
                 loneKeyFrameCount = 0;
@@ -1164,7 +1173,7 @@
         {
             if(flag)
             {
-                setDragDropSelectBoxCenterPos();
+                centerDragDropSelectBox();
                 stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownLoadBox);
             }
             else
@@ -1172,7 +1181,7 @@
                 stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownLoadBox);
             }
 
-            setTopChildIndex(loadMenuBox);
+            setAsTopChild(loadMenuBox);
 
             loadMenuBox.visible = flag;
         }
@@ -1272,7 +1281,7 @@
             var myPalettePresetTypeSave:int = myPalettePresetType;
             myPalettePresetType = type;
             updateMyPaletteList();
-            pickerBox.selectPresetButton(type);
+            pickerBox.changeColorPresets(type);
             if(pickerMode !== 1)
             {
                 changePickerModeToPenColor();
@@ -1496,7 +1505,7 @@
             rotateCursorBox.x = mouseX;
             rotateCursorBox.y = mouseY+(65*getUIScale());
             rotateCursorBox["rotateArrow"].rotation = target.rotation;
-            setTopChildIndex(rotateCursorBox);
+            setAsTopChild(rotateCursorBox);
             rotateCursorBox.visible = true;
 
             const toDeg:Number = 180.0/Math.PI;
@@ -1643,7 +1652,7 @@
 
         private function getCurrentColorHint():String
         {
-            const strColor:String = getColorInfoStringOfHex(pickerBox.getCurrentColor(),rgbInfoColorTypeHSV);
+            const strColor:String = getColorInfoStringOfHex(pickerBox.getCurrentColor(),rgbInfoColorTypeIsHSV);
 
             return "Current color : "+strColor;
         }
@@ -1652,7 +1661,7 @@
         {
             return mouseClickON || mouseDragON || toolBox2ON || fillPenStarted
             || lassoToolON || rgbInfoFocusedON || aboutPanelON || makeJumpImageFlag === 2
-            || loadMenuBox.visible || numPadBox.visible;
+            || isPopUpWindowOpened();
         }
 
         private function setLayerSwapEffect(target:DisplayObject):void
@@ -1681,13 +1690,13 @@
             {
                 case "hueColor":
                 {
-                    str = "Hue";
+                    str = "Hue\nOpen OKLCH adjustment [right-click]";
                 }
                 break;
 
                 case "svBox":
                 {
-                    str = "Situation and Value";
+                    str = "Situation and Value\nOpen OKLCH adjustment [right-click]";
                 }
                 break;
 
@@ -1716,7 +1725,7 @@
                     {
                         return;
                     }
-                    str = "Change value [click]\nChange color model [click "+((rgbInfoColorTypeHSV) ? "'HSV'":"'RGB'")+" text]";
+                    str = "Change value [click]\nChange color model [click "+((rgbInfoColorTypeIsHSV) ? "'HSV'":"'RGB'")+" text]";
                 }
                 break;
 
@@ -1742,9 +1751,9 @@
 
                 case "currentColor": str = getCurrentColorHint(); break;
                 case "transColorButton": str = "Transparent color\nON/OFF [c+space, m+space]"; break;
-                case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [click]"+STRING_HOLD_NSEC; break;
+                case "myPaletteButton": str = "Expand palette ON/OFF [click x 2]\nClear palette [click]"+STRING_PRESS_HOLD; break;
                 case "drawrPresetButton":
-                case "tegakiPresetButton": str = "Clear scratch pad [click]"+STRING_HOLD_NSEC;break;
+                case "tegakiPresetButton": str = "Clear scratch pad [click]"+STRING_PRESS_HOLD;break;
                 case "scratchPad": str = "Scratch pad\nDraw [click+drag]\nSelect color [c, m, click]"; break;
 
                 default:
@@ -1925,7 +1934,7 @@
 
                 hintHorverCursor.graphics.drawRect(0,0,w,(target is TextField) ? h-scale:h);
 
-                setTopChildIndex(hintHorverCursor);
+                setAsTopChild(hintHorverCursor);
                 hintHorverCursor.visible = true;
             }
 
@@ -1988,7 +1997,7 @@
                 updateHintPos();
 
                 // hintONEffect();
-                setTopChildIndex(hintBox);
+                setAsTopChild(hintBox);
                 hintBox.visible = true;
                 stage.addEventListener(Event.ENTER_FRAME,checkMoveingHint);
             }
@@ -2072,14 +2081,14 @@
 
             if(emptyFlag === -1) return false;
 
-            if(rgbInfoColorTypeHSV)
+            if(rgbInfoColorTypeIsHSV)
             {
                 c[0] = Number(c[0])/360;
                 c[1] = Number(c[1])/100;
                 c[2] = Number(c[2])/100;
                 const hsv:Vector.<Number> = new <Number>[c[0],c[1],c[2]];
                 getHSVInfoString(hsv);
-                setHSVCursorPosByColor(getHSVColorFromRGBInfoText());
+                moveHSVCursorByColor(getHSVColorFromRGBInfoText());
             }
             else
             {
@@ -2087,7 +2096,7 @@
                 c[1] = int(c[1]);
                 c[2] = int(c[2]);
                 getRGBInfoString(c[0],c[1],c[2]);
-                setHSVCursorPosByColor(getHexColorFromRGBInfoText());
+                moveHSVCursorByColor(getHexColorFromRGBInfoText());
             }
 
             //이전 항목으로 이동
@@ -2098,7 +2107,7 @@
             return true;
         }
 
-        //123,123,123에서 커서가 어느 지점이 있는지 반환함 0은 R, 1은 G, 2는 B
+        //123,123,123에서 커서가 어느 지점이 있는지 반환함 0=R, 1=G, 2=B
         private function getRGBInfoTextCursorPos():int
         {
             const textBeforeCursor:String = pickerBox.getRGBInfo().substring(0,pickerBox.rgbInfo.caretIndex);
@@ -2190,7 +2199,7 @@
         {
             const c:Array = getRGBColorTextFromRGBInfoText();
 
-            if(rgbInfoColorTypeHSV)
+            if(rgbInfoColorTypeIsHSV)
             {
                 if(int(c[0]) > 360) c[0] = "360";
                 if(int(c[1]) > 100) c[1] = "100";
@@ -2221,9 +2230,9 @@
             }
         }
 
-        private function adjustHSVInfoColor(value:int,fromNumPad:Boolean):void
+        private function updateHSVInfoColor(value:int,fromNumPad:Boolean):void
         {
-            const index:int = (fromNumPad) ? rgbInfoCursorPosSave:getRGBInfoTextCursorPos();
+            const index:int = (fromNumPad) ? rgbInfoCursorLastIndex:getRGBInfoTextCursorPos();
             const hsv:Array = getRGBColorTextFromRGBInfoText();
             var num:int = int(hsv[index]);
 
@@ -2245,7 +2254,7 @@
             pickerBox.setRGBInfo("HSV "+hsv);
             pickerBox.updateOldRGBInfoText();
 
-            setHSVCursorPosByColor(getHSVColorFromRGBInfoText());
+            moveHSVCursorByColor(getHSVColorFromRGBInfoText());
 
             //커서가 숫자 맨 끝자리에 있고 자릿수가 적어지면 다음 채널로 넘어가기 때문에 해줘야함
             selectRGBInfoTextByRGBPos(index);
@@ -2253,7 +2262,7 @@
 
         private function adjustRGBInfoColor(value:int,fromNumPad:Boolean):void
         {
-            const index:int = (fromNumPad) ? rgbInfoCursorPosSave:getRGBInfoTextCursorPos();
+            const index:int = (fromNumPad) ? rgbInfoCursorLastIndex:getRGBInfoTextCursorPos();
             const rgb:Array = getRGBColorTextFromRGBInfoText();
             var num:int = int(rgb[index]);
 
@@ -2266,7 +2275,7 @@
             pickerBox.setRGBInfo("RGB "+rgb);
             pickerBox.updateOldRGBInfoText();
 
-            setHSVCursorPosByColor(getHexColorFromRGBInfoText());
+            moveHSVCursorByColor(getHexColorFromRGBInfoText());
 
             //커서가 숫자 맨 끝자리에 있고 자릿수가 적어지면 다음 채널로 넘어가기 때문에 해줘야함
             selectRGBInfoTextByRGBPos(index);
@@ -2320,14 +2329,12 @@
 
                 case KEY.tab:
                 {
-                    if(isPressingShift())
+                    var cursorpos:int = getRGBInfoTextCursorPos()+1;
+                    if(cursorpos > 2)
                     {
-                        selectRGBInfoTextByRGBPos(getRGBInfoTextCursorPos()-1);
+                        cursorpos = 0;
                     }
-                    else
-                    {
-                        selectRGBInfoTextByRGBPos(getRGBInfoTextCursorPos()+1);
-                    }
+                    selectRGBInfoTextByRGBPos(cursorpos);
                 }
                 break;
 
@@ -2335,9 +2342,9 @@
                 case KEY.w:
                 case KEY.i:
                 {
-                    if(rgbInfoColorTypeHSV)
+                    if(rgbInfoColorTypeIsHSV)
                     {
-                        adjustHSVInfoColor(1,false);
+                        updateHSVInfoColor(1,false);
                     }
                     else
                     {
@@ -2351,9 +2358,9 @@
                 case KEY.s:
                 case KEY.k:
                 {
-                    if(rgbInfoColorTypeHSV)
+                    if(rgbInfoColorTypeIsHSV)
                     {
-                        adjustHSVInfoColor(-1,false);
+                        updateHSVInfoColor(-1,false);
                     }
                     else
                     {
@@ -2406,22 +2413,22 @@
             }
         }
 
-        private function setNumPadON():void
+        private function showNumPad():void
         {
             if(numPadBox.visible === false)
             {
-                numPadBox.visible = true;
-                setTopChildIndex(numPadBox);
-                const gp:Point = pickerBox.svBox.localToGlobal(ZERO_POINT);
+                numPadBox.on(HSVtoHEX(hsvColorArr[0],1.0,1.0),pickerBox.getRGBInfoBGColor(),getInvertedColor);
+                setAsTopChild(numPadBox);
+                const gp:Point = pickerBox.rgbInfoBG.localToGlobal(ZERO_POINT);
                 numPadBox.x = gp.x;
-                numPadBox.y = gp.y;
+                numPadBox.y = gp.y+pickerBox.rgbInfoBG.height*getUIScale();
                 resetNowKey();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,numPadMouseDownEvent,false,-2);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,numPadRightMouseDownEvent,false,-2);
             }
         }
 
-        private function setNumPadOFF():void
+        private function closeNumpad():void
         {
             if(pickerBox.getRGBInfoBGColor() !== pickerBox.getCurrentColor())
             {
@@ -2437,13 +2444,22 @@
             function numPadMouseUpEvent(e:MouseEvent):void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP,numPadMouseUpEvent);
-
                 if(oldTargetName === e.target.name)
                 {
                     switch(e.target.name)
                     {
-                        case "numInc": rgbInfoNumPadIncKey(1); break;
-                        case "numDec": rgbInfoNumPadIncKey(-1); break;
+                        case "numInc":
+                        {
+                            rgbInfoNumPadIncKey(1);
+                        }
+                        break;
+
+                        case "numDec":
+                        {
+                            rgbInfoNumPadIncKey(-1);
+                        }
+                        break;
+
                         case "num0":
                         case "num1":
                         case "num2":
@@ -2455,7 +2471,18 @@
                         case "num8":
                         case "num9":
                         {
-                            rgbInfoNumPadInputKey(e.target.name.charAt(3));
+                            pressNumpadKey(e.target.name.charAt(3));
+                        }
+                        break;
+
+                        case "numHexCopyBG":
+                        {
+                            const color:* = numPadBox.getCopyiedHexColor();
+                            if(color  as uint)
+                            {
+                                numPadBox.updateOkBaseColor(color);
+                                moveHSVCursorByColor(color);
+                            }
                         }
                         break;
                     }
@@ -2481,7 +2508,7 @@
             {
                 if(numPadBox.visible)
                 {
-                    setNumPadOFF();
+                    closeNumpad();
                 }
                 return;
             }
@@ -2494,8 +2521,22 @@
             {
                 setHoldKeyRepeat(false,rgbInfoNumPadIncKey,-1);
             }
-
-            checkNumPadMouseUp(targetName);
+            else if(targetName === "okLWrapper")
+            {
+                numPadBox.startAdjustLCH(0,moveHSVCursorByColor);
+            }
+            else if(targetName === "okCWrapper")
+            {
+                numPadBox.startAdjustLCH(1,moveHSVCursorByColor);
+            }
+            else if(targetName === "okHWrapper")
+            {
+                numPadBox.startAdjustLCH(2,moveHSVCursorByColor);
+            }
+            else
+            {
+                checkNumPadMouseUp(targetName);
+            }
         }
 
         //hsv rgb로 왔다갔다함
@@ -2503,14 +2544,14 @@
         {
             const oldCursorIndex:int = getRGBInfoTextCursorPos();
 
-            if(rgbInfoColorTypeHSV)
+            if(rgbInfoColorTypeIsHSV)
             {
-                rgbInfoColorTypeHSV = false;
+                rgbInfoColorTypeIsHSV = false;
                 pickerBox.setRGBInfo(getRGBInfoString(pickerBox.getRGBInfoBGColor()));
             }
             else
             {
-                rgbInfoColorTypeHSV = true;
+                rgbInfoColorTypeIsHSV = true;
                 pickerBox.setRGBInfo(getHSVInfoString(HEXtoHSV(pickerBox.getRGBInfoBGColor())));
             }
 
@@ -2539,7 +2580,7 @@
             setIMEDisabled();
             checkKeyInvalidKey();
 
-            rgbInfoCursorPosSave = selectedRGBInfoIndex;
+            rgbInfoCursorLastIndex = selectedRGBInfoIndex;
 
             if(rgbInfoRightClickFocusIgnoreFlag)
             {
@@ -2576,7 +2617,7 @@
 
             if(numPadBox.visible)
             {
-                setNumPadOFF();
+                closeNumpad();
             }
         }
 
@@ -2597,7 +2638,7 @@
                 return;
             }
             //가장 자리를 클릭하면 Y값이 음수가 될때가 있어서 제대로된 값이 안나옴 그래서 녺이는 양수 고정으로 함
-            const foundColorType:String = (rgbInfoColorTypeHSV) ? "HSV":"RGB";
+            const foundColorType:String = (rgbInfoColorTypeIsHSV) ? "HSV":"RGB";
             const isHSVRGBText:Boolean = (pickerBox.getRGBInfo().indexOf(foundColorType) !== -1)
             var currnetTextCursorPos:int = pickerBox.rgbInfo.getCharIndexAtPoint(pickerBox.rgbInfo.mouseX,10);
             if(rgbInfoFocusedON === false && isHSVRGBText && currnetTextCursorPos >= 0 && currnetTextCursorPos <= 3)
@@ -2640,7 +2681,7 @@
             }
             pickerBox.rgbInfo.addEventListener(Event.CHANGE,onRGBInfoTextChangeEvent);
             setNowToolForDrawing(false);
-            setNumPadON();
+            showNumPad();
 
             addTimerByName("rgbInfoTextFocusInEventDelayCheck",0.0,false,function():void
             {
@@ -2653,7 +2694,7 @@
 
         private function checkRGBInfoTextFormat(fromNumPad:Boolean):void
         {
-            var pattern:RegExp = /\b(RGB|HSV) \d{0,3},\d{0,3},\d{0,3}/;
+            const pattern:RegExp = /\b(RGB|HSV) \d{0,3},\d{0,3},\d{0,3}/;
             var isMatch:Boolean = pattern.test(pickerBox.getRGBInfo());
             //여기서 빈값을 채워주기 때문에 미리 함수 실행해줘야 함
             const hasEmptyChecked:Boolean = checkRGBInfoHasEmptyValue();
@@ -2663,13 +2704,13 @@
                 checkRGBInfoColorValueLimit();
                 pickerBox.updateOldRGBInfoText();
 
-                if(rgbInfoColorTypeHSV)
+                if(rgbInfoColorTypeIsHSV)
                 {
-                    setHSVCursorPosByColor(getHSVColorFromRGBInfoText());
+                    moveHSVCursorByColor(getHSVColorFromRGBInfoText());
                 }
                 else
                 {
-                    setHSVCursorPosByColor(getHexColorFromRGBInfoText());
+                    moveHSVCursorByColor(getHexColorFromRGBInfoText());
                 }
 
                 if(!fromNumPad && isCurrentRGBInfoTextLenBiggerThan3() && hasEmptyChecked === false)
@@ -3696,7 +3737,7 @@
 
         private function rightMouseDownQuickSidebarOFF(e:MouseEvent):void
         {
-            if(!e.target || rgbInfoFocusedON || numPadBox.visible)
+            if(!e.target || rgbInfoFocusedON || isPopUpWindowOpened())
             {
                 return;
             }
@@ -4284,7 +4325,9 @@
                 return true;
 
                 case KEY.g:
+                {
                     setHoldKeyRepeat(true,shortCutPenAlpha,true);
+                }
                 return true;
 
                 case KEY.b:
@@ -4600,13 +4643,13 @@
             {
                 penColor = hexColor;
                 updateOpacityCursorPos(penAlphaIndex);
-                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(hexColor) : hexColor);
+                moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(hexColor) : hexColor);
             }
             else if(mode === 2)
             {
                 setBackgroundColorDrawMode(hexColor);
                 if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(hexColor) : hexColor);
+                moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(hexColor) : hexColor);
                 addUndoBGColor(hexColor);
             }
         }
@@ -5236,7 +5279,7 @@
                 const scale:Number = fillPenBox.getScale();
 
                 fillPenBox.visible = true;
-                setTopChildIndex(fillPenBox);
+                setAsTopChild(fillPenBox);
 
                 if(fillPenBoxUndoUsed)
                 {
@@ -5540,7 +5583,7 @@
                 clickedButton = null;
                 fillPenBoxUndoUsed = false;
 
-                if(airBrushON || eraseAirBrushON)
+                if(airBrushON || eraserAirBrushON)
                 {
                     canvas2Draw.filters = [];
                 }
@@ -5926,7 +5969,7 @@
                 {
                     xSize = penSize;
                     xAlpha = penAlpha;
-                    xShape = penShape;
+                    xShape = penIsSquare;
                     xAirBrushON = airBrushON;
                     dotflag = true;
 
@@ -5949,12 +5992,12 @@
                 }
                 else
                 {
-                    xSize = eraseSize;
+                    xSize = eraserSize;
                     xColor = CANVAS_BG_COLOR;
-                    xAlpha = eraseAlpha;
-                    xShape = eraseShape;
+                    xAlpha = eraserAlpha;
+                    xShape = eraserIsSquare;
                     xBlendMode = "erase";
-                    xAirBrushON = eraseAirBrushON;
+                    xAirBrushON = eraserAirBrushON;
                 }
 
                 if(xSize === 1)
@@ -6036,7 +6079,7 @@
             function updateZoom(z:Number):void
             {
                 if(isNowToolPenOrLine()) cursorSize = penSize*zoomed;
-                else if(isNowTool(TOOL_ERASE)) cursorSize = eraseSize*zoomed;
+                else if(isNowTool(TOOL_ERASE)) cursorSize = eraserSize*zoomed;
                 else cursorSize = 0;
             }
 
@@ -6735,7 +6778,7 @@
             }
         }
 
-        private function updateRGBInfoTextByColor(color:*):void
+        private function updateRGBInfoTextFromColor(color:*):void
         {
             if(color is uint)
             {
@@ -6750,28 +6793,25 @@
                 return;
             }
 
-            const textColor:uint = (color is Vector.<Number>) ? HSVtoHEX(color[0],color[1],color[2]) : color;
-            setRGBInfoTextColorByColor(textColor);
+            const hexColor:uint = (color is Vector.<Number>) ? HSVtoHEX(color[0],color[1],color[2]) : color;
+            setRGBInfoTextColorByColor(hexColor);
         }
 
         private function setRGBInfoTextColorByColor(color:uint):void
         {
-            pickerBox.setRGBInfoColor(getInvertColor(color,1.0
-            ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
-            ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]));
+            pickerBox.updateRGBInfoColor(getInvertedColor(color));
         }
 
         private function initPickerBoxInfo(color:uint):void
         {
-            return;
-            updateRGBInfoTextByColor(color);
-            pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color),myPalettePresetType);
+            updateRGBInfoTextFromColor(color);
+            pickerBox.updateRGBInfoBG(color,getRGBInfoBorderColor(color),myPalettePresetType);
             updatePickerCurrentColor(color);
         }
 
         private function setLassoTraceImageButton():void
         {
-            setTopChildIndex(lassoMenu);
+            setAsTopChild(lassoMenu);
             traceImageCount++;
 
             function setLassoTraceImageButtonCountResetEvent(e:MouseEvent):void
@@ -6799,7 +6839,7 @@
         {
             if(traceMenu.traceImageButton.alpha !== 1.0) return;
 
-            setTopChildIndex(traceMenu);
+            setAsTopChild(traceMenu);
             traceImageCount++;
 
             function setTraceImageButtonCountResetEvent(e:MouseEvent):void
@@ -6866,7 +6906,7 @@
                 case "traceMirrorButton":str = "Flip image"; break;
                 case "traceVisibleONButton":
                 case "traceVisibleOFFButton":str = "Memory training ON/OFF"; break;
-                case "traceDeleteButton":str = "Erase reference image\n[click]"+STRING_HOLD_NSEC; break;
+                case "traceDeleteButton":str = "Erase reference image\n[click]"+STRING_PRESS_HOLD; break;
                 default:
                     traceMenu.hint("Reference layer");
                 return;
@@ -7059,7 +7099,7 @@
             }
 
             setTopBarHintOFF();
-            setTopChildIndex(topBar);
+            setAsTopChild(topBar);
 
             topBar.buttonSetVisible(mode,true,isRightSidebar,isSidebarVisible);
             topBar.updateButtonVisible(false);
@@ -7268,7 +7308,7 @@
                     }
                 }
 
-                setTopChildIndex(canvasGrid);
+                setAsTopChild(canvasGrid);
             }
 
             function mouseUpGridButton(e:MouseEvent):void
@@ -7554,7 +7594,7 @@
             traceMenu.y = Math.floor(mouseY-8);
             traceMenu.visible = true;
 
-            setTopChildIndex(traceMenu);
+            setAsTopChild(traceMenu);
             checkBoxPosition(traceMenu);
 
             if(traceMenuON === false)
@@ -7564,7 +7604,7 @@
             }
 
             traceMenuON = true;
-            setTopChildIndex(traceMenu);
+            setAsTopChild(traceMenu);
         }
 
         private function isTraceImageAlreadyDeleted():Boolean
@@ -7575,7 +7615,7 @@
 
         private function setTraceDeleteButton():void
         {
-            setTopChildIndex(traceMenu);
+            setAsTopChild(traceMenu);
 
             if(isTraceImageAlreadyDeleted())
             {
@@ -7737,7 +7777,7 @@
             stage.addEventListener(MouseEvent.MOUSE_MOVE,traceMoveButtonMoveEvent);
         }
 
-        private function resetTraceOpa():void
+        private function resetTraceOpacityTo50():void
         {
             traceAlphaSave = 0.5;
             canvasTraceLayer.alpha = 0.5;
@@ -7746,7 +7786,7 @@
             canvasTraceLayer.visible = true;
         }
 
-        private function setTraceOpaButton():void
+        private function startTraceOpacityAdjust():void
         {
             const barWidth:Number = traceMenu["traceOpaBar"].width;
             const minDist:Number = traceMenu["traceOpaBar"].x+1;
@@ -8032,7 +8072,7 @@
 
             if(flag)
             {
-                airBrushSizeDrawMode = (penFlag) ? penSize:eraseSize;
+                airBrushSizeDrawMode = (penFlag) ? penSize:eraserSize;
 
                 controlBox.blurShapeSetON();
             }
@@ -8046,16 +8086,16 @@
 
         private function setEraseAirBrushButtonShortCut():void
         {
-            eraseAirBrushON = !eraseAirBrushON;
-            setAirBrushCheckBox(eraseAirBrushON,false);
+            eraserAirBrushON = !eraserAirBrushON;
+            setAirBrushCheckBox(eraserAirBrushON,false);
 
-            if(eraseAirBrushON) setToolTipTempON("Eraser Air brush ON");
+            if(eraserAirBrushON) setToolTipTempON("Eraser Air brush ON");
             else setToolTipTempON("Eraser Air brush OFF");
         }
 
         private function setEraseAirBrushButton(flag:Boolean):void
         {
-            eraseAirBrushON = flag;
+            eraserAirBrushON = flag;
             setAirBrushCheckBox(flag,false);
         }
 
@@ -8613,7 +8653,7 @@
             }
             else if(isNowTool(TOOL_ERASE))
             {
-                setAlpha(eraseAlpha,eraseSize);
+                setAlpha(eraserAlpha,eraserSize);
             }
         }
 
@@ -8668,11 +8708,11 @@
             }
             else if(isNowTool(TOOL_ERASE))
             {
-                setSize(eraseSizeIndex,eraseAlpha);
+                setSize(eraserSizeIndex,eraserAlpha);
 
-                if(eraseAirBrushON && eraseSize !== airBrushSizeDrawMode)
+                if(eraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
                 {
-                    airBrushSizeDrawMode = eraseSize;
+                    airBrushSizeDrawMode = eraserSize;
                 }
             }
         }
@@ -8786,9 +8826,9 @@
             }
             else if(isNowTool(TOOL_ERASE))
             {
-                if(eraseAirBrushON && eraseSize !== airBrushSizeDrawMode)
+                if(eraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
                 {
-                    airBrushSizeDrawMode = eraseSize;
+                    airBrushSizeDrawMode = eraserSize;
                 }
             }
         }
@@ -8814,7 +8854,7 @@
             const minValue:Number = 0.02;
             const stepValue:Number = (maxValue-minValue)/step;
             const airBrushFlag:Boolean = isNowToolPenOrLine() && airBrushON;
-            const eraseAirBrushFlag:Boolean = isNowTool(TOOL_ERASE) && eraseAirBrushON;
+            const eraseAirBrushFlag:Boolean = isNowTool(TOOL_ERASE) && eraserAirBrushON;
             var oldValue:int = penSmoothSlideValue;
 
             mouseDragON = true;
@@ -9355,14 +9395,14 @@
             }
             else if(isNowTool(TOOL_ERASE))
             {
-                eraseSize = size;
-                eraseSizeIndex = index;
-                penCursorPosition.updateCursorSize(eraseSize);
+                eraserSize = size;
+                eraserSizeIndex = index;
+                penCursorPosition.updateCursorSize(eraserSize);
             }
             controlBox.movePenSizeCursor(index);
         }
 
-        private function setRGBInfoBorderColor(color:uint):uint
+        private function getRGBInfoBorderColor(color:uint):uint
         {
             const defColor:Number = getColorDifferenceForHuman(color,uiColorSet[uiColorIndex][0]);
             return (defColor <= 15) ? uiColorSet[uiColorIndex][1] : 0;
@@ -9375,7 +9415,7 @@
 
         private function updatePickerCurrentColor(color:uint):void
         {
-            pickerBox.updateCurrentColor(color,setRGBInfoBorderColor(color));
+            pickerBox.updateCurrentColor(color,getRGBInfoBorderColor(color));
         }
 
         private function checkAutoSwitchIsPickerModeToPenEvent(e:Event):void
@@ -9403,7 +9443,7 @@
 
             pickerMode = 2;
 
-            setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(color) : color);
+            moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(color) : color);
             updatePickerCurrentColor(color);
             pickerBox.checkPickerModeButton(2);
             pickerBox.transColorButton.visible = false;
@@ -9418,7 +9458,7 @@
 
             pickerMode = 1;
 
-            setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(color) : color);
+            moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(color) : color);
             updatePickerCurrentColor(color);
             pickerBox.checkPickerModeButton(1);
             pickerBox.transColorButton.visible = true;
@@ -9427,21 +9467,20 @@
 
         private function setPenShapeButton(shapeFlag:Boolean):void
         {
-            penListShapeFlag = shapeFlag;
-
+            penListShapeIsSqare = shapeFlag;
 
             if(isNowToolPenOrLine())
             {
-                if(penShape !== shapeFlag)
+                if(penIsSquare !== shapeFlag)
                 {
-                    penShape = shapeFlag;
+                    penIsSquare = shapeFlag;
                 }
             }
             else if(isNowTool(TOOL_ERASE))
             {
-                if(eraseShape !== shapeFlag)
+                if(eraserIsSquare !== shapeFlag)
                 {
-                    eraseShape = shapeFlag;
+                    eraserIsSquare = shapeFlag;
                 }
             }
 
@@ -9465,13 +9504,13 @@
             return pickerMode === 1;
         }
 
-        private function setHueColorButton():void
+        private function startHueColorSelection():void
         {
             const offsetX:Number = pickerBox["offsetX"];
             const max:Number = pickerBox["svBoxWidth"];
             var pickedColor:uint = 0;
 
-            setTopChildIndex(pickerBox["hueCursor"]);
+            setAsTopChild(pickerBox["hueCursor"]);
             mouseDragON = true;
             penCursorOFFFlag = true;
             penColorTransparentFlag = false;
@@ -9492,7 +9531,7 @@
 
                 pickedColor = color;
                 pickerBox.changeHueColor(baseHexColor);
-                pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color),myPalettePresetType);
+                pickerBox.updateRGBInfoBG(color,getRGBInfoBorderColor(color),myPalettePresetType);
             }
 
             function hueColorButtonMoveEvent(e:MouseEvent):void
@@ -9518,7 +9557,7 @@
                 mouseDragON = false;
                 penCursorOFFFlag = false;
 
-                updateRGBInfoTextByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
+                updateRGBInfoTextFromColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 pickerBox.setRGBInfoVisible(true);
 
                 setNowToolForDrawing(false);
@@ -9540,9 +9579,7 @@
             const g:uint = rgbColor[1];
             const b:uint = rgbColor[2];
             const rgbHexColor:uint = RGBtoHEX(r,g,b);
-            const invColor:uint = getInvertColor(rgbHexColor,1.0
-                                                ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1]
-                                                ,(uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0]);
+            const invColor:uint = getInvertedColor(rgbHexColor);
             hsvColorArr[0] = h;
             hsvColorArr[1] = s;
             hsvColorArr[2] = v;
@@ -9550,18 +9587,18 @@
             return rgbHexColor;
         }
 
-        private function setSVcolorButton():void
+        private function startSVColorSelection():void
         {
             const colorBarWidth:Number = pickerBox["svBoxWidth"];
             const colorBarHeight:Number = pickerBox["svBoxHeight"];
             var pickedColor:uint = 0;
 
-            setTopChildIndex(pickerBox["svCursor"]);
+            setAsTopChild(pickerBox["svCursor"]);
             mouseDragON = true;
             penCursorOFFFlag = true;
             penColorTransparentFlag = false;
 
-            function setSVBoxMouseMoveEvent(mx:Number,my:Number):void
+            function onSVBoxMouseMove(mx:Number,my:Number):void
             {
                 var svCursorX:Number = mx;
                 var svCursorY:Number = my;
@@ -9581,18 +9618,18 @@
                 const color:uint = updatePickerBoxInfoColor(hueValue,sValue,vValue);
 
                 pickedColor = color;
-                pickerBox.updateRGBInfoBG(color,setRGBInfoBorderColor(color),myPalettePresetType);
+                pickerBox.updateRGBInfoBG(color,getRGBInfoBorderColor(color),myPalettePresetType);
                 pickerBox.setRGBInfoVisible(false);
             }
 
             function svColorButtonMoveEvent(e:MouseEvent):void
             {
-                setSVBoxMouseMoveEvent(pickerBox["svBox"].mouseX,pickerBox["svBox"].mouseY);
+                onSVBoxMouseMove(pickerBox["svBox"].mouseX,pickerBox["svBox"].mouseY);
             }
 
             function svColorButtonUpEvent(e:MouseEvent):void
             {
-                setSVBoxMouseMoveEvent(pickerBox["svBox"].mouseX,pickerBox["svBox"].mouseY);
+                onSVBoxMouseMove(pickerBox["svBox"].mouseX,pickerBox["svBox"].mouseY);
 
                 if(isPenColorMode())
                 {
@@ -9609,7 +9646,7 @@
                 mouseDragON = false;
                 penCursorOFFFlag = false;
 
-                updateRGBInfoTextByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
+                updateRGBInfoTextFromColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 pickerBox.setRGBInfoVisible(true);
                 setNowToolForDrawing(false);
 
@@ -9618,7 +9655,7 @@
             }
 
             pickerBox.setRGBInfoVisible(false);
-            setSVBoxMouseMoveEvent(pickerBox["svBox"].mouseX,pickerBox["svBox"].mouseY);
+            onSVBoxMouseMove(pickerBox["svBox"].mouseX,pickerBox["svBox"].mouseY);
 
             stage.addEventListener(MouseEvent.MOUSE_UP,svColorButtonUpEvent);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, svColorButtonMoveEvent);
@@ -9880,7 +9917,7 @@
 
         private function openAboutPanel(welcome:Boolean):void
         {
-            setTopChildIndex(aboutPanel);
+            setAsTopChild(aboutPanel);
             aboutPanelON = true;
             clickBlockOnWindowActiveFlag = true;
             hint.off();
@@ -9922,7 +9959,7 @@
             layerSwappedFlag = false;
 
             resetTraceImageInfo();
-            resetTraceOpa();
+            resetTraceOpacityTo50();
             initReplayDataFile(true);
             resetReplaySpeedBar();
             resetReplayTime();
@@ -10219,7 +10256,7 @@
 
                         case "traceCancelButton":
                         {
-                            setTopChildIndex(traceMenu);
+                            setAsTopChild(traceMenu);
                             closeTraceMenu();
                         }
                         break;
@@ -10241,7 +10278,7 @@
 
                         case "traceMirrorButton":
                         {
-                            setTopChildIndex(traceMenu);
+                            setAsTopChild(traceMenu);
                             setTraceMirrorButton();
                         }
                         break;
@@ -10249,7 +10286,7 @@
                         case "traceVisibleONButton":
                         case "traceVisibleOFFButton":
                         {
-                            setTopChildIndex(traceMenu);
+                            setAsTopChild(traceMenu);
                             setTraceVisibleButton();
                         }
                         break;
@@ -10725,7 +10762,7 @@
                 }
                 return;
                 case "timer":
-                    str = "Actual working time\nReset [click]"+STRING_HOLD_NSEC;
+                    str = "Actual working time\nReset [click]"+STRING_PRESS_HOLD;
                 break;
 
                 case "playButton":
@@ -10769,7 +10806,7 @@
                 break;
 
                 case "clearButton":
-                    str = "New file [click, esc, backspace, delete]"+STRING_HOLD_NSEC;
+                    str = "New file [click, esc, backspace, delete]"+STRING_PRESS_HOLD;
                 break;
 
                 case "captureButton":
@@ -10824,15 +10861,15 @@
                 break;
 
                 case "reRecordingButton":
-                    str = "New file from this image [click, f2]"+STRING_HOLD_NSEC;
+                    str = "New file from this image [click, f2]"+STRING_PRESS_HOLD;
                 break;
 
                 case "cutPrevDataButton":
-                    str = "Delete front data [click, f3]"+STRING_HOLD_NSEC;
+                    str = "Delete earlier replay data [click, f3]"+STRING_PRESS_HOLD;
                 break;
 
                 case "superUndoButton":
-                    str = "Delete back data [click, f4]"+STRING_HOLD_NSEC;
+                    str = "Delete later replay data [click, f4]"+STRING_PRESS_HOLD;
                 break;
 
                 case "gridButton":
@@ -13880,7 +13917,7 @@
         private function setToolBoxPos(target:DisplayObject):void
         {
             const click:Point = new Point(mouseX,mouseY);
-            setTopChildIndex(target);
+            setAsTopChild(target);
 
             function toolBoxMoveMouseUpEvent(e:MouseEvent):void
             {
@@ -14168,11 +14205,11 @@
 
             toolTipBox.x = Math.floor(tooltipX);
             toolTipBox.y = Math.floor(tooltipY);
-            setTopChildIndex(toolTipBox);
+            setAsTopChild(toolTipBox);
         }
 
         //drag load
-        private function setDragDropSelectBoxCenterPos():void
+        private function centerDragDropSelectBox():void
         {
             loadMenuBox["dragDropFileBG"].x = 0;
             loadMenuBox["dragDropFileBG"].y = 0;
@@ -14222,7 +14259,7 @@
                 loadMenuBox.setPleaseWait(pleaseWaitFlag);
                 loadMenuBox.setRefLayerLoadMode(traceLayer);
                 setLoadBoxVisible(true);
-                setTopChildIndex(loadMenuBox);
+                setAsTopChild(loadMenuBox);
             }
 
             closeToolBox2();
@@ -14680,7 +14717,7 @@
             if(mainColor !== pickerBox.getRGBInfoBGColor())
             {
                 penColor = myPaletteTegakiPreset[index];
-                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(penColor):penColor);
+                moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(penColor):penColor);
             }
 
             if(!fillPenStarted)
@@ -14719,7 +14756,7 @@
             if(isPenColorMode())
             {
                 penColor = pickedColor;
-                setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
+                moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 setNowToolForDrawing(false);
             }
             else if(isBackgroundColorMode())
@@ -14823,11 +14860,12 @@
         }
 
         //주어진 컬러 알파값을 기반으로 반전 컬러를 구함
-        private function getInvertColor(color:uint,alpha:Number=1.0,bright:uint=0xC7C7C7,dark:uint=0x616161):uint
+        private function getInvertedColor(color:uint):uint
         {
+            const dark:uint   = (uiColorIndex >= 2) ? uiColorSet[uiColorIndex][1]:uiColorSet[uiColorIndex][0];
+            const bright:uint = (uiColorIndex >= 2) ? uiColorSet[uiColorIndex][0]:uiColorSet[uiColorIndex][1];
             return (getColorDifferenceForHuman(color,bright) <= 30) ? dark : bright;
         }
-
 
         private function saveMypPaletteList():void
         {
@@ -16375,7 +16413,7 @@
 
             if(numPadBox.visible)
             {
-                setNumPadOFF();
+                closeNumpad();
             }
 
             if(!isSidebarVisible)
@@ -16415,7 +16453,7 @@
                 if(canvas11Bitmap.visible) layer2 = true;
             }
 
-            setTopChildIndex(captureAreaRect);
+            setAsTopChild(captureAreaRect);
             captureAreaRect.visible = true;
 
             canvasBackupDataOnSave = {
@@ -18188,11 +18226,11 @@
                             "penSizeIndex":penSizeIndex,
                             "penColor":penColor,
                             "penAlpha":penAlpha,
-                            "penShape":penShape,
-                            "eraseSize":eraseSize,
-                            "eraseSizeIndex":eraseSizeIndex,
-                            "eraseShape":eraseShape,
-                            "eraseAlpha":eraseAlpha,
+                            "penShape":penIsSquare,
+                            "eraseSize":eraserSize,
+                            "eraseSizeIndex":eraserSizeIndex,
+                            "eraseShape":eraserIsSquare,
+                            "eraseAlpha":eraserAlpha,
                             "stage.nativeWindow.x":lastWindowSizeInfo[0],
                             "stage.nativeWindow.y":lastWindowSizeInfo[1],
                             "stage.nativeWindow.width":lastWindowSizeInfo[2],
@@ -18220,7 +18258,7 @@
                             "hueCursor.x":pickerBox["hueCursor"].x,
                             "svBaseColor":pickerBox["svBaseColor"],
                             "hsvColorArr[0]":hsvColorArr[0],
-                            "rgbInfoColorTypeHSV":rgbInfoColorTypeHSV,
+                            "rgbInfoColorTypeHSV":rgbInfoColorTypeIsHSV,
                             "makeJumpImageFlag":(makeJumpImageFlag === 2) ? 1:makeJumpImageFlag,
                             "rBGColorSave":rBGColorSave,
                             "isRightSidebar":isRightSidebar,
@@ -18388,21 +18426,21 @@
                     penColor = d["penColor"];
                     initPickerBoxInfo(d["penColor"]);
                     if(d["rgbInfoColorTypeHSV"]) toggleRGBInfoTextColorType();
-                    setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(d["penColor"]) : d["penColor"]);
+                    moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(d["penColor"]) : d["penColor"]);
                     pickerBox.changeHueColor(d["svBaseColor"]);
                     hsvColorArr[0] = d["hsvColorArr[0]"];
                     pickerBox["hueCursor"].x = d["hueCursor.x"];
                     penAlpha = d["penAlpha"];
                     penAlphaIndex = penAlphaList.indexOf(d["eraseAlpha"]);
                     setPenAlpha(d["penAlpha"]);
-                    penShape = d["penShape"];
-                    penListShapeFlag =  d["penShape"];
+                    penIsSquare = d["penShape"];
+                    penListShapeIsSqare =  d["penShape"];
                     controlBox.shapeFlag(d["penShape"]);
-                    eraseSize = d["eraseSize"];
-                    eraseShape = d["eraseShape"];
-                    eraseAlpha = d["eraseAlpha"];
-                    eraseAlphaIndex = penAlphaList.indexOf(d["eraseAlpha"]);
-                    eraseSizeIndex = d["eraseSizeIndex"];
+                    eraserSize = d["eraseSize"];
+                    eraserIsSquare = d["eraseShape"];
+                    eraserAlpha = d["eraseAlpha"];
+                    eraserAlphaIndex = penAlphaList.indexOf(d["eraseAlpha"]);
+                    eraserSizeIndex = d["eraseSizeIndex"];
                     setPenSize(d["penSizeIndex"]);
                     saveFilePath = d["saveFilePath"];
                     saveFileName = d["saveFileName"];
@@ -18515,7 +18553,7 @@
 
                 changeCanvasSize(CANVAS_WIDTH,CANVAS_HEIGHT,0,0,false);
                 updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
-                setHSVCursorPosByColor(penColor);
+                moveHSVCursorByColor(penColor);
                 openAboutPanel(true);
                 setUIColor(uiColorIndex);
                 updatePreviewBoxRectPos();
@@ -18543,22 +18581,22 @@
                 if(isPenTool)
                 {
                     size = penSize;
-                    shape = penShape;
+                    shape = penIsSquare;
                 }
                 else
                 {
-                    size = eraseSize;
-                    shape = eraseShape;
+                    size = eraserSize;
+                    shape = eraserIsSquare;
                 }
 
                 const z:Number = zoomed;
-                if(size*z === penLastUpdateInfo[0] && shape === penLastUpdateInfo[1])
+                if(size*z === penLastSizeAndShape[0] && shape === penLastSizeAndShape[1])
                 {
                     return;
                 }
 
-                penLastUpdateInfo[0] = size*z;
-                penLastUpdateInfo[1] = shape;
+                penLastSizeAndShape[0] = size*z;
+                penLastSizeAndShape[1] = shape;
 
                 penSizeCursor.graphics.clear();
 
@@ -18636,7 +18674,7 @@
                 }
                 else if(isNowTool(TOOL_ERASE))
                 {
-                    canvas2Alpha.alphaMultiplier = eraseAlpha;
+                    canvas2Alpha.alphaMultiplier = eraserAlpha;
 
                     if(subLayerON) canvas11BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,"erase",canvas2ClipRect);
                     else           canvas1BitmapData.draw( canvas2Bitmap,null,canvas2Alpha,"erase",canvas2ClipRect);
@@ -18894,7 +18932,7 @@
                 penCursorOFFFlag = true;
                 xSize = penSize;
                 xAlpha = penAlpha;
-                xShape = penShape;
+                xShape = penIsSquare;
                 xAirBrushON = airBrushON;
 
                 if(penColorTransparentFlag)
@@ -20010,8 +20048,8 @@
                     guideLineWidth = 30/zoomed;
                     regPoint.addChild(resizePreviewRect);
                     regPoint.addChild(resizePreviewRatioRect);
-                    setTopChildIndex(resizePreviewRect);
-                    setTopChildIndex(resizePreviewRatioRect);
+                    setAsTopChild(resizePreviewRect);
+                    setAsTopChild(resizePreviewRatioRect);
                 }
             }
 
@@ -20316,7 +20354,7 @@
 
                     lassoBox2.visible = true;
                     lassoMenu.visible = true;
-                    setTopChildIndex(lassoMenu);
+                    setAsTopChild(lassoMenu);
 
                     if(traceMenuON === true) traceMenu.visible = false;
 
@@ -20619,7 +20657,7 @@
 
                     penColor = pickedColor;
                     pickerIgnoreHistoryColor = pickedColor;
-                    setHSVCursorPosByColor((rgbInfoColorTypeHSV) ? HEXtoHSV(pickedColor) : pickedColor);
+                    moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 }
 
                 cancelSpuitTool(okFlag);
@@ -20710,7 +20748,7 @@
                     spuitZoomCursor.x = mouseX;
                     spuitZoomCursor.y = mouseY;
                     setColorTransform(spuitZoomCursor["spuitNowColor"],spuitPickColor());
-                    setTopChildIndex(spuitZoomCursor);
+                    setAsTopChild(spuitZoomCursor);
 
                     if(zoomed < 12.0)
                     {
@@ -21177,7 +21215,7 @@
             toolBox2["toolErase"].visible = true;
             toolBox2["toolErase"].x = nowButton2.x;
             toolBox2["toolErase"].y = nowButton2.y;
-            setTopChildIndex(toolBox2["toolErase"]);
+            setAsTopChild(toolBox2["toolErase"]);
         }
 
         //펜 지우개 직선 지우개-직선 통합
@@ -21196,9 +21234,9 @@
                 }
                 else
                 {
-                    sizeIndex = eraseSizeIndex;
-                    alphaIndex = eraseAlphaIndex;
-                    setAirBrushCheckBox(eraseAirBrushON,false);
+                    sizeIndex = eraserSizeIndex;
+                    alphaIndex = eraserAlphaIndex;
+                    setAirBrushCheckBox(eraserAirBrushON,false);
                 }
                 setPenSize(sizeIndex);
                 setPenAlpha(alpha);
@@ -21243,19 +21281,19 @@
         private function selectLineTool():void
         {
             setNowTool(TOOL_LINE);
-            checkSelectMainDrawTool(penSize,penColor,penAlpha,penShape,true,true);
+            checkSelectMainDrawTool(penSize,penColor,penAlpha,penIsSquare,true,true);
         }
 
         private function selectPenTool():void
         {
             setNowTool(TOOL_PEN);
-            checkSelectMainDrawTool(penSize,penColor,penAlpha,penShape,true,false);
+            checkSelectMainDrawTool(penSize,penColor,penAlpha,penIsSquare,true,false);
         }
 
         private function selectEraseTool():void
         {
             setNowTool(TOOL_ERASE);
-            checkSelectMainDrawTool(eraseSize,CANVAS_BG_COLOR,eraseAlpha,eraseShape,false,false);
+            checkSelectMainDrawTool(eraserSize,CANVAS_BG_COLOR,eraserAlpha,eraserIsSquare,false,false);
         }
 
         //라소박스 변형이랑 플래그 초기화
@@ -21938,7 +21976,7 @@
         }
 
         // hsv커서가 color에 맞춰서 위치를 움직여줌
-        private function setHSVCursorPosByColor(color:*):void
+        private function moveHSVCursorByColor(color:*):void
         {
             var hexColor:uint;
 
@@ -21976,15 +22014,15 @@
             const baseHexColor:uint = RGBtoHEX(baseColor[0],baseColor[1],baseColor[2]);
             pickerBox.changeHueColor(baseHexColor);
 
-            if(color is uint)
+            if(pickerBox.getRGBInfo().charAt(0) === 'R')
             {
-                updateRGBInfoTextByColor(hexColor);
+                updateRGBInfoTextFromColor(hexColor);
             }
             else
             {
-                updateRGBInfoTextByColor(hsvColor);
+                updateRGBInfoTextFromColor(hsvColor);
             }
-            pickerBox.updateRGBInfoBG(hexColor,setRGBInfoBorderColor(hexColor),myPalettePresetType);
+            pickerBox.updateRGBInfoBG(hexColor,getRGBInfoBorderColor(hexColor),myPalettePresetType);
         }
 
         //hex에서 rgb vector 배열로 반환
@@ -22107,8 +22145,8 @@
             }
             else if(eraseFlag === true)
             {
-                eraseAlpha = alpha;
-                eraseAlphaIndex = index;
+                eraserAlpha = alpha;
+                eraserAlphaIndex = index;
             }
         }
 
@@ -22320,7 +22358,7 @@
             stage.addChild(hintHorverCursor);
             stage.addChild(numPadBox);
             stage.addChild(capStampFontListBox);
-            setTopChildIndex(topBar);
+            setAsTopChild(topBar);
         }
 
         private function makeReplayCanvasFamily():void
@@ -22545,7 +22583,7 @@
 
                 if(loadMenuBox.visible === true)
                 {
-                    setDragDropSelectBoxCenterPos();
+                    centerDragDropSelectBox();
                 }
 
                 updateStageBGSize();
@@ -22620,7 +22658,7 @@
             }
         }
 
-        private function setTopChildIndex(ent:DisplayObject):void
+        private function setAsTopChild(ent:DisplayObject):void
         {
             const parent:DisplayObjectContainer = ent.parent as DisplayObjectContainer;
 
@@ -22906,7 +22944,7 @@
                 {
                     if(topBar.cutPrevDataButton.alpha === 1.0)
                     {
-                        setCountDownLongKey(null,"Deleting front data..",setDeleteBarDeleteFrontData,deleteReplayFrontData,setReplayDeleteBarVisibleOFF);
+                        setCountDownLongKey(null,"Deleting data..",setDeleteBarDeleteFrontData,deleteReplayFrontData,setReplayDeleteBarVisibleOFF);
                     }
                 }
                 break;
@@ -22915,7 +22953,7 @@
                 {
                     if(topBar.superUndoButton.alpha === 1.0)
                     {
-                        setCountDownLongKey(null,"Deleting back data.. ",setDeleteBarSuperUndo,superUndo,setReplayDeleteBarVisibleOFF);
+                        setCountDownLongKey(null,"Deleting data.. ",setDeleteBarSuperUndo,superUndo,setReplayDeleteBarVisibleOFF);
                     }
                 }
                 break;
@@ -22987,7 +23025,8 @@
 
         private function keyDownDrawMode(e:KeyboardEvent):void
         {
-            if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted || loadMenuBox.visible || topBar.gridButtonWrapper.visible)
+            if(mouseClickON || rightMouseClickON || keyWaitMouseUp || fillPenStarted
+            || isPopUpWindowOpened())
             {
                 return;
             }
@@ -23166,7 +23205,6 @@
                         if(KEY_BUFFER[1] === KEY.n1 || KEY_BUFFER[1] === KEY.n9)
                         {
                             layerCheckKeyPressed = true;
-
                             selectSubLayer(false,false);
                             setLayer1CheckToggle();
 
@@ -23352,7 +23390,7 @@
 
                 case KEY.tab:
                 case KEY.backslash:
-                    setSidebarVisible(!isSidebarVisible,false);
+                        setSidebarVisible(!isSidebarVisible,false);
                 return true;
             }
             return false;
@@ -23405,7 +23443,7 @@
                     {
                         if(pickerBox.scratchPad.visible)
                         {
-                            setPickColorScratchPad();
+                            showPickColorScratchPad();
                         }
                     }
                     else if(!isNowTool(TOOL_SPUIT))
@@ -23581,7 +23619,12 @@
 
             if(numPadBox.visible)
             {
-                setNumPadOFF();
+                closeNumpad();
+            }
+
+            if(numPadBox.isLCHSliderActive())
+            {
+                numPadBox.removeOKLCHMouseEvent();
             }
 
             if(pickerBox.scratchPad.isScratchStarted)
@@ -24071,7 +24114,7 @@
             if(makeJumpImageFlag === 1)
             {
                 removeInputEventDrawMode();
-                setTopChildIndex(replayTimeBox);
+                setAsTopChild(replayTimeBox);
                 updateReplayBarPos(stage.stageWidth);
                 setHintONTemp(STRING_PREPARE_REPLAY_DATA);
                 setMakeJumpImage();
@@ -24175,7 +24218,7 @@
             setRcursorRotation(regPoint.rotation);
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             replayTimeBox["pauseButton"].visible = false;
-            setTopChildIndex(replayTimeBox);
+            setAsTopChild(replayTimeBox);
             setReplayDeleteBarVisibleOFF();
             setTopBarHintOFF();
             setFitZoomedOFF();
@@ -24219,15 +24262,15 @@
             penSizeCursor.visible = false;
             replayTimeBox["pauseButton"].visible = false;
             replayTimeBox.y = Math.floor(topBar.BARSIZE*getUIScale()-4);
-            setTopChildIndex(replayTimeBox);
+            setAsTopChild(replayTimeBox);
             setReplayDeleteBarVisibleOFF();
             setTopBarHintOFF();
-            if(numPadBox.visible) setNumPadOFF();
+            if(numPadBox.visible) closeNumpad();
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             rCursor.alpha = 1.0;
             rCursor.visible = false;
             rcanvasPanel.addChild(rCursor);
-            setTopChildIndex(rCursor);
+            setAsTopChild(rCursor);
             setRcursorRotation(rregPoint.rotation);
             updateStageOffset();
             removeTimer("rCursorOffAlphaAnimTimer");
@@ -24347,7 +24390,7 @@
                 {
                     if(topBar.cutPrevDataButton.alpha === 1.0)
                     {
-                        setCountDownLongKey(topBar.cutPrevDataButton,"Deleting front data.. ",setDeleteBarDeleteFrontData,deleteReplayFrontData,setReplayDeleteBarVisibleOFF);
+                        setCountDownLongKey(topBar.cutPrevDataButton,"Deleting data.. ",setDeleteBarDeleteFrontData,deleteReplayFrontData,setReplayDeleteBarVisibleOFF);
                     }
                 }
                 break;
@@ -24356,7 +24399,7 @@
                 {
                     if(topBar.superUndoButton.alpha === 1.0)
                     {
-                        setCountDownLongKey(topBar.superUndoButton,"Deleting back data.. ",setDeleteBarSuperUndo,superUndo,setReplayDeleteBarVisibleOFF);
+                        setCountDownLongKey(topBar.superUndoButton,"Deleting data.. ",setDeleteBarSuperUndo,superUndo,setReplayDeleteBarVisibleOFF);
                     }
                 }
                 break;
@@ -24516,7 +24559,7 @@
             toolBox2.visible = true;
             toolBox2ON = true;
             setResizeButtonVisibleTimer(true);
-            setTopChildIndex(toolBox2);
+            setAsTopChild(toolBox2);
             addInputEventToolBox2();
         }
 
@@ -24783,7 +24826,7 @@
                         }
                         else if(isNowTool(TOOL_ERASE))
                         {
-                            setEraseAirBrushButton(!eraseAirBrushON);
+                            setEraseAirBrushButton(!eraserAirBrushON);
                         }
                     }
                 }
@@ -25023,7 +25066,7 @@
             {
                 case "scratchPad":
                 {
-                    pickerBox.scratchPad.drawReady(penSize,penColor,penAlpha,penShape,pickColor,getColorDifferenceForHuman);
+                    pickerBox.scratchPad.drawReady(penSize,penColor,penAlpha,penIsSquare,pickColor,getColorDifferenceForHuman);
                 }
                 return true;
 
@@ -25031,7 +25074,7 @@
                 {
                     if(pickerBox.scratchPad && !pickerBox.scratchPad.visible)
                     {
-                        setSVcolorButton();
+                        startSVColorSelection();
                     }
                 }
                 return true;
@@ -25040,7 +25083,7 @@
                 {
                     if(pickerBox.scratchPad && !pickerBox.scratchPad.visible)
                     {
-                        setHueColorButton();
+                        startHueColorSelection();
                     }
                 }
                 return true;
@@ -25049,7 +25092,7 @@
                 {
                     if(myPalettePresetType === 0)
                     {
-                        checkSelctOrAddColorMyPalette();
+                        handleSelctOrAddColorMyPalette();
                     }
                     else
                     {
@@ -25060,7 +25103,7 @@
 
                 case "myPaletteButton":
                 {
-                    checkSelectMyPaletteOrReset();
+                    handleSelectMyPaletteOrReset();
                 }
                 return true;
 
@@ -25228,7 +25271,7 @@
 
                     case "lassoMenuMoveButton":
                     {
-                        setTopChildIndex(lassoMenu);
+                        setAsTopChild(lassoMenu);
                         setToolBoxPos(lassoMenu);
                     }
                     break;
@@ -25283,16 +25326,21 @@
                     break;
                 }
             }
-
         }
 
         private function mouseDownDrawMode(e:MouseEvent):void
         {
-            if(fillPenStarted || loadMenuBox.visible || topBar.gridButtonWrapper.visible || numPadBox.visible) return;
+            if(fillPenStarted || loadMenuBox.visible
+            || topBar.gridButtonWrapper.visible || numPadBox.visible)
+            {
+                return;
+            }
 
             const target:DisplayObject = e.target as DisplayObject;
-
-            if(!target) return;
+            if(!target)
+            {
+                return;
+            }
 
             const targetName:String = target.name;
 
@@ -25434,29 +25482,29 @@
 
                 case "traceRotateButton":
                 {
-                    setTopChildIndex(traceMenu);
+                    setAsTopChild(traceMenu);
                     setTraceRotateButton();
                 }
                 return;
 
                 case "traceMoveButton":
                 {
-                    setTopChildIndex(traceMenu);
+                    setAsTopChild(traceMenu);
                     setTraceMoveButton();
                 }
                 return;
 
                 case "traceResizeButton":
                 {
-                    setTopChildIndex(traceMenu);
+                    setAsTopChild(traceMenu);
                     setTraceResizeButton();
                 }
                 return;
 
                 case "traceButtonWrapper":
                 {
-                    setTopChildIndex(traceMenu);
-                    setTraceOpaButton();
+                    setAsTopChild(traceMenu);
+                    startTraceOpacityAdjust();
                 }
                 return;
 

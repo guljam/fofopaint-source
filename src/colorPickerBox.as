@@ -63,7 +63,7 @@
 		private var panelWidth:Number = 0;
 		private var panelHeight:Number = 0;
 
-		private var rgbInfoWidth:int = 107;
+		private var rgbInfoWidth:int = 108;
 		private var rgbInfoHeight:int = 19;
 
 		private var lastRGBInfoText:String = "";
@@ -81,7 +81,7 @@
 			mainColorPickerBox.addChild(scratchPad);
 		}
 		
-		private function setScratchPadOFF():void
+		private function hideScratchPad():void
 		{
 			if(!scratchPad)
 			{
@@ -101,7 +101,7 @@
 			}
 		}
 
-		private function setScratchPadON():void
+		private function showScratchPad():void
 		{
 			if(!scratchPad)
 			{
@@ -156,28 +156,28 @@
 			}
 		}
 
-		public function selectPresetButton(type:int):void
+		public function changeColorPresets(type:int):void
 		{
 			if(type === 0)
 			{
 				myPaletteButton.alpha = 1.0;
 				drawrPresetButton.alpha = 0.6;
 				tegakiPresetButton.alpha = 0.6;
-				setScratchPadOFF();
+				hideScratchPad();
 			}
 			else if(type === 1)
 			{
 				myPaletteButton.alpha = 0.6;
 				drawrPresetButton.alpha = 1.0;
 				tegakiPresetButton.alpha = 0.6;
-				setScratchPadON();
+				showScratchPad();
 			}
 			else if(type === 2)
 			{
 				myPaletteButton.alpha = 0.6;
 				drawrPresetButton.alpha = 0.6;
 				tegakiPresetButton.alpha = 1.0;
-				setScratchPadON();
+				showScratchPad();
 			}
 		}
 
@@ -256,7 +256,7 @@
 			paperColorButton.transform.colorTransform = baseColor;
 		}
 
-		public function setRGBInfoColor(color:uint):void
+		public function updateRGBInfoColor(color:uint):void
 		{
 			rgbInfo.textColor = color;
 		}
@@ -305,7 +305,10 @@
 
 			rgbInfoBGColor = color;
 			rgbInfoBGBorderColor = borderColor;
-			rgbInfoPaletteTypeSave = paletteType;
+			if(rgbInfoPaletteTypeSave != paletteType)
+			{
+				rgbInfoPaletteTypeSave = paletteType;
+			}
 		}
 
 		public function getRGBInfoBGColor():uint
