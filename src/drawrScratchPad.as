@@ -87,12 +87,12 @@ package
 
         public function removeCheckMouseDistEvent():void
         {
-            stopDraw(null);
-            stage.removeEventListener(MouseEvent.MOUSE_MOVE, checkMouseDistMouseMove);
-            stage.removeEventListener(MouseEvent.MOUSE_UP, checkMouseDistMouseUp);
+            onMouseUpStopDrawLine(null);
+            stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveScratchPad);
+            stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpScratchPad);
         }
 
-        public function checkMouseDistMouseUp(e:MouseEvent):void
+        public function onMouseUpScratchPad(e:MouseEvent):void
         {
             if (Math.floor(scratchPadBitmap.mouseX) === Math.floor(startPos.x) && Math.floor(scratchPadBitmap.mouseY) === Math.floor(startPos.y))
             {
@@ -103,11 +103,11 @@ package
             }
 
             isScratchStarted = false;
-            stage.removeEventListener(MouseEvent.MOUSE_MOVE, checkMouseDistMouseMove);
-            stage.removeEventListener(MouseEvent.MOUSE_UP, checkMouseDistMouseUp);
+            stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveScratchPad);
+            stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpScratchPad);
         }
 
-        public function checkMouseDistMouseMove(e:MouseEvent):void
+        public function onMouseMoveScratchPad(e:MouseEvent):void
         {
             scratchStartCount++;
 
@@ -115,15 +115,15 @@ package
 
             if (Point.distance(startPos, nowPos) >= 1.0 || scratchStartCount >= 10)
             {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, checkMouseDistMouseMove);
-                stage.removeEventListener(MouseEvent.MOUSE_UP, checkMouseDistMouseUp);
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveScratchPad);
+                stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpScratchPad);
 
                 scratchPadDraw.graphics.clear();
                 scratchPadDraw.graphics.lineStyle(1.0, lineStyleData[0], lineStyleData[1]);
                 scratchPadDraw.graphics.moveTo(startPos.x, startPos.y);
 
-                stage.addEventListener(MouseEvent.MOUSE_MOVE, drawing);
-                stage.addEventListener(MouseEvent.MOUSE_UP, stopDraw);
+                stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawLine);
+                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpStopDrawLine);
             }
         }
 
@@ -146,22 +146,22 @@ package
                 lineStyleData[0] = lineColor;
                 lineStyleData[1] = lineAlpha;
                 startPos.setTo(scratchPadBitmap.mouseX, scratchPadBitmap.mouseY);
-                stage.addEventListener(MouseEvent.MOUSE_MOVE, checkMouseDistMouseMove);
-                stage.addEventListener(MouseEvent.MOUSE_UP, checkMouseDistMouseUp);
+                stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveScratchPad);
+                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpScratchPad);
             }
         }
 
-        private function drawing(e:MouseEvent):void
+        private function onMouseMoveDrawLine(e:MouseEvent):void
         {
             scratchPadDraw.graphics.lineTo(scratchPadBitmap.mouseX, scratchPadBitmap.mouseY);
         }
 
-        private function stopDraw(e:MouseEvent):void
+        private function onMouseUpStopDrawLine(e:MouseEvent):void
         {
             isScratchStarted = false;
             isPadCleared = false;
-            stage.removeEventListener(MouseEvent.MOUSE_MOVE, drawing);
-            stage.removeEventListener(MouseEvent.MOUSE_UP, stopDraw);
+            stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawLine);
+            stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpStopDrawLine);
             scratchPadBitmap.bitmapData.draw(scratchPadDraw);
             scratchPadDraw.graphics.clear();
         }
