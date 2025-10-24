@@ -21,7 +21,7 @@
 		public var toolMove:SimpleButton;
 		public var toolRotate:SimpleButton;
 		public var toolLine:SimpleButton;
-		public var toolTrace:SimpleButton;
+		public var toolRefLayer:SimpleButton;
 		public var toolZoom:SimpleButton;
 		public var toolBoxBG:SimpleButton;
 		public var toolBoxBG2:SimpleButton;
@@ -109,7 +109,7 @@
 											toolZoom,
 											toolMove,
 											toolRotate,
-											toolTrace,
+											toolRefLayer,
 										];
 
 			const rightButtonArr:Array = [
@@ -189,7 +189,7 @@
 			toolMove.useHandCursor = false;
 			toolRotate.useHandCursor = false;
 			toolLine.useHandCursor = false;
-			toolTrace.useHandCursor = false;
+			toolRefLayer.useHandCursor = false;
 			toolZoom.useHandCursor = false;
 			toolSidebar.useHandCursor = false;
 			toolBoxBG2.mouseEnabled = false;

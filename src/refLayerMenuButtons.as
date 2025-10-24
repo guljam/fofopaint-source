@@ -13,14 +13,14 @@
 		public var refMenuCloseButton:SimpleButton;
 		public var refLayerMenuMoveButton:SimpleButton;
 
-		public var refTransferImageButton:SimpleButton;
+		public var refTransferCanvasImageButton:SimpleButton;
 		public var refLoadImageButton:SimpleButton;
 		public var refClipBoardButton:SimpleButton;
 		public var refLayerMenuBGLeft:SimpleButton;
 
 		public var refOpacityCursor:SimpleButton;
 		public var refOpacityBar:SimpleButton;
-		public var refOpacitySlideWrapper:SimpleButton;
+		public var refOpacitySliderWrapper:SimpleButton;
 
 		public var refMoveImageButton:SimpleButton;
 		public var refRotateImageButton:SimpleButton;
@@ -46,7 +46,7 @@
 
 
 			const leftButtonArr:Array = [
-											refTransferImageButton,
+											refTransferCanvasImageButton,
 											refClipBoardButton,
 											refLoadImageButton,
 										];
@@ -141,7 +141,7 @@
 		{
 			visible = false;
 
-			fixedScale = 34/refTransferImageButton.width;
+			fixedScale = 34/refTransferCanvasImageButton.width;
 			setScale(1.0);
 
 			const offsetX:Number = refOpacityCursor.width/2;
@@ -149,9 +149,9 @@
 			refOpacityCursor.x = refOpacityBar.x+offsetX+refOpacityBar.width*0.5-offsetX;
 			refOpacityCursor.useHandCursor = false;
 			refOpacityBar.useHandCursor = false;
-			refOpacitySlideWrapper.useHandCursor = false;
+			refOpacitySliderWrapper.useHandCursor = false;
 			refLayerMenuMoveButton.useHandCursor = false;
-			refTransferImageButton.useHandCursor = false;
+			refTransferCanvasImageButton.useHandCursor = false;
 			refClipBoardButton.useHandCursor = false;
 			refLoadImageButton.useHandCursor = false;
 			refMoveImageButton.useHandCursor = false;

@@ -63,7 +63,7 @@
     public class main extends Sprite
     {
         private const APP_VERSION:Number = 26.11;
-        private const APP_DATA_VERSION:Number = 2584;
+        private const APP_DATA_VERSION:Number = 2611;
         private var NEW_VERSION:String = APP_VERSION+"";
         private var UPDATE_FILE:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
 
@@ -220,11 +220,11 @@
                     ,STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK"
                     ,STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done"
                     ,STRING_CAPTURE_OK:String = " _ Reset [right-click]"
-                    ,STRING_MERGE_LASSO_IMAGE_TO_TRACE:String = "Merge selected area\ninto reference layer"
-                    ,STRING_MERGE_CANVAS_IMAGE_TO_TRACE:String = "Merge canvas image\ninto reference layer"
+                    ,STRING_MERGE_LASSO_IMAGE_TO_REFLAYER:String = "Merge selected area\ninto reference layer"
+                    ,STRING_MERGE_CANVAS_IMAGE_TO_REFLAYER:String = "Merge canvas image\ninto reference layer"
                     ,STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]"
                     ,STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc, right-click]\nMove text cursor [(a,d),(j,l), arrow key, tab]\nAdjust value [(w,s), (i,k)]"
-                    ,STRING_TRACE_IMAGE_OPACITY:String = "Image opacity "
+                    ,STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity "
                     ,STRING_PRESS_HOLD:String = " (press and hold)"
                     ,WORKER_STATE_STOPPED:int = 0
                     ,WORKER_STATE_INIT:int = (1 << 0)
@@ -471,8 +471,8 @@
                     ,rFirstImageBGColor:uint = CANVAS_BG_COLOR
                     ,rMirrorON:Boolean = false //대칭 켜지면 올려줌
                     ,rCanvasZoomedMultiplier:Number = 1.0 //리플레이 줌
-                    ,rzoomedIndex:int = 3
-                    ,rzoomedSave:Number = 1.0 //리플레이에서 수동줌하면 여기다가 저장해줌
+                    ,rCanvasZoomedMultiplierLast:Number = 1.0 //리플레이에서 수동줌하면 여기다가 저장해줌
+                    ,rCanvasZoomedIndex:int = 3
                     ,rFitZoomedON:Boolean = false // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
                     ,rJumpImageIndexLast:int = -2 //썸네일 인덱스 바뀌면 여기다 저장
                     ,rJumpImageNowFrameLast:Number = -1
@@ -481,7 +481,7 @@
                     ,rJumpImageFrameData:Array = [0] //스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
                     ,rJumpImageLastBmpd1:BitmapData
                     ,rJumpImageLastBmpd11:BitmapData
-                    ,makeJumpImageFlag:int = 0 //0이상이면 make jump image함수를 실행함. jumpframe함수에서 체크 0= 작업 끝남 1 = 작업 준비 2 = 작업중
+                    ,rReplayImageCachingState:int = 0 //0이상이면 make jump image함수를 실행함. jumpframe함수에서 체크 0= 작업 끝남 1 = 작업 준비 2 = 작업중
                     ,rOnejumpFlagSave:Boolean = false //onejumpframe에서 prev인지 next인지 마지막 상태 저장해줌, 방향바꿀대 버튼 2번씩 눌러야 스킵되는거 방지하는거임
                     ,rOneJumpPrevSum:Number = 0 //뒤로 스킵키 오래누르고 있으면 프레임 합산은 여기다가 올려줌
                     ,rReplayRestartTimerCount:uint = 0 //리스타트 타이머
@@ -502,8 +502,8 @@
                     ,captureAreaPreviewLayer:Shape = new Shape()//스크린샷 박스 미리보기 그려줌
                     ,isCaptureModeON:Boolean = false //스크린샷 켜지면 올려줌
                     ,isCaptureModeInputEventsAdded:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
-                    ,canvasBackupData:Object = {} //캡쳐 키면 캔버스 이전 상태 저장함
-                    ,canvasBackupDataOnSave:Object = {} //save appdata에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
+                    ,canvasStateBeforeCaptureMode:Object = {} //캡쳐 키면 캔버스 이전 상태 저장함
+                    ,canvasStateForSave:Object = {} //save appdata에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
                     ,captureWindowMove:Point = new Point(0,0) //스크린샷이 켜져있는 상태에서 창을 조절했을때, 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
                     ,captureRotated:uint = 0 //캡쳐 회전한 변수 저장
                     ,captureFlipped:Boolean = false //캡쳐 대칭한 변수 저장
@@ -520,18 +520,17 @@
                     ,lastWindowState:int = 0
 
         //이미지 붙여넣기 변수
-                    ,isClipBoardButtonAvailable:Boolean = false //윈도우 active에서 붙여넣기 가능한 이미지가 있으면 올려줌
-                    ,clipImageOKCount:int = 0 //2번 이상 클릭되야 작동되게함
+                    ,isClipBoardButtonEnabled:Boolean = false //윈도우 active에서 붙여넣기 가능한 이미지가 있으면 올려줌
 
         //참고 레이어 변수
                     ,canvasRefLayer:Sprite = new Sprite()//트레이스 레이어임
                     ,canvasRefLayerBitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,canvasRefLayerBitmap:Bitmap = new Bitmap()
-                    ,refLayerImageFilePath:File = File.applicationStorageDirectory.resolvePath("traceImg")
+                    ,refLayerImageFilePath:File = File.applicationStorageDirectory.resolvePath("refimg")
                     ,refLayerMenuBox:refLayerMenuButtons = new refLayerMenuButtons()
                     ,refLayerMenuDragXMoveSum:Number = 0 //전역으로 돌려서 다시 클릭하거나 이미지를 불러와도 원래 스케일을 저장하도록함
                     ,refLayerImageTransformData:Array = [0,0,0,1.0,1.0,false] // width, height, rotation,scale, mirror flag
-                    ,isRefLayerMenuON:Boolean = false //trace메뉴 켜졌을때 올려줌
+                    ,isRefLayerMenuON:Boolean = false //참조레이어 메뉴 켜졌을때 올려줌
                     ,refLayerRawBitmapData:BitmapData = null
                     ,refLayerRawTransformData:Array = null
                     ,refLayerMenuConfirmCount:int = 0 //2번이상 클릭하면 되게
@@ -704,7 +703,7 @@
             previewBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
             realWorkingTimer.start();
             checkVersion();
-            setIMEDisabled();
+            disableIME();
             selectPenTool();
             colorPickerBox.changeColorPresets(0);
             hint.updateScale(getUIScale());
@@ -998,6 +997,7 @@
         private function onMouseWheelStage(e:MouseEvent):void
         {
             if(isMouseClicked || isRightMouseClicked || isMouseDragging
+            || isPopUpWindowOpened()
             || isCaptureModeON || !quickSidebarON && (!isNowKey(0) || getCommandKey() !== 0)) return;
 
             if(!hasTimer("wheelZoomTimer"))
@@ -1553,13 +1553,13 @@
             }
         }
 
-        private function getImageScaleHint(width:Number,height:Number,scale:Number,widthScaleFlag:Boolean):String
+        private function getImageScaleHint(width:Number,height:Number,scale:Number,scaleXFlag:Boolean):String
         {
-            if(widthScaleFlag)
+            if(scaleXFlag)
             {
-                return Math.round(width*scale)+ " x "+ Math.round(height*scale) +" (x"+scale.toFixed(2)+")";
+                return Math.round(width*scale)+ " x "+ Math.round(height*scale) +" ("+scale.toFixed(2)+")";
             }
-            return Math.round(width)+ " x "+ Math.round(height) +" (x"+scale.toFixed(2)+")";
+            return Math.round(width)+ " x "+ Math.round(height) +" ("+scale.toFixed(2)+")";
         }
 
         private function cImageResizeFunc(sc:Number):Function
@@ -1650,7 +1650,7 @@
         private function isHintCantUse():Boolean
         {
             return isMouseClicked || isMouseDragging || isToolBox2ON || isFillPenStarted
-            || lassoToolON || isRgbInfoFocused || aboutPanelON || makeJumpImageFlag === 2
+            || lassoToolON || isRgbInfoFocused || aboutPanelON || rReplayImageCachingState === 2
             || isPopUpWindowOpened();
         }
 
@@ -2567,7 +2567,7 @@
 
         private function rgbInfoTextFocusOutEvent(e:FocusEvent):void
         {
-            setIMEDisabled();
+            disableIME();
             checkKeyInvalidKey();
 
             rgbInfoCursorLastIndex = selectedRGBInfoIndex;
@@ -2645,7 +2645,7 @@
                 currnetTextCursorPos = colorPickerBox.rgbInfo.length;
             }
 
-            setIMEDisabled();
+            disableIME();
             removeInputEventsDrawMode();
 
             isRgbInfoFocused = true;
@@ -3188,7 +3188,7 @@
             return false;
         }
 
-        private function mergeLassoImageToTraceLayer():void
+        private function mergeLassoImageToRefLayer():void
         {
             if(isLassoImageCopied)
             {
@@ -3226,7 +3226,7 @@
 
             if(canvasRefLayer.visible === false || refLayerLastAlpha === 0.0)
             {
-                updateTraceOpaButtonPosByAlpha(0.5);
+                updateRefLayerOpacityCursorPosByValue(0.5);
                 refLayerLastAlpha = 0.5;
                 canvasRefLayer.visible = true;
                 canvasRefLayer.alpha = 0.5;
@@ -3234,26 +3234,29 @@
             canvasRefLayerBitmap.smoothing = true;
         }
 
-        private function mergeImageToTraceLayer(layer1:IBitmapDrawable,layer2:IBitmapDrawable):void
+        private function mergeImageToRefLayer(layer1:IBitmapDrawable,layer2:IBitmapDrawable):void
         {
-            var tracebmpd:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
+            var bmpd:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
             const mat:Matrix = new Matrix();
 
             mat.scale(canvasRefLayer.scaleX,canvasRefLayer.scaleY);
             mat.rotate(canvasRefLayer.rotation*Math.PI/180)
             mat.translate(CANVAS_WIDTH/2,CANVAS_HEIGHT/2);
 
-            tracebmpd.draw(canvasRefLayer,mat);
+            bmpd.draw(canvasRefLayer,mat);
 
-            if(layer2 !== null) tracebmpd.draw(layer2);
-            if(layer1 !== null) tracebmpd.draw(layer1);
+            if(layer2 !== null) bmpd.draw(layer2);
+            if(layer1 !== null) bmpd.draw(layer1);
 
-            if(canvasRefLayerBitmapData && tracebmpd !== canvasRefLayerBitmapData) canvasRefLayerBitmapData.dispose();
-            canvasRefLayerBitmapData = tracebmpd.clone();
+            if(canvasRefLayerBitmapData && bmpd !== canvasRefLayerBitmapData)
+            {
+                canvasRefLayerBitmapData.dispose();
+            }
+            canvasRefLayerBitmapData = bmpd.clone();
             canvasRefLayerBitmap.bitmapData = canvasRefLayerBitmapData;
 
-            tracebmpd.dispose();
-            tracebmpd = null;
+            bmpd.dispose();
+            bmpd = null;
         }
 
         private function setLayer1CheckToggle():void
@@ -3825,7 +3828,10 @@
                 penCursorPosition.removeSideBarClickEvents();
             }
 
-            if(isRefLayerMenuON) refLayerMenuBox.visible = false;
+            if(isRefLayerMenuON)
+            {
+                refLayerMenuBox.visible = false;
+            }
 
             if(toolTipBox.visible) toolTipBoxTimerOFF();
             // setSidebarReCacheBitmap();
@@ -5587,7 +5593,10 @@
                     }
                 }
 
-                if(isRefLayerMenuON) refLayerMenuBox.visible = false;
+                if(isRefLayerMenuON)
+                {
+                    refLayerMenuBox.visible = false;
+                }
                 dottedLine.updateScale(canvasZoomedMultipler);
 
                 const filteredPos:Point = getFilteredPos(canvasDraw.mouseX,canvasDraw.mouseY);
@@ -6420,8 +6429,8 @@
 
         private function restoreZoomReplayMode():void
         {
-            rzoomedIndex = getNearZoomIndex(rzoomedSave);
-            setZoomCanvas(canvasZoomMultiplerList[rzoomedIndex],true);
+            rCanvasZoomedIndex = getNearZoomIndex(rCanvasZoomedMultiplierLast);
+            setZoomCanvas(canvasZoomMultiplerList[rCanvasZoomedIndex],true);
             autoScroll.updateRCanvasBounds();
         }
 
@@ -6429,8 +6438,8 @@
         {
             const center:Point = getStageCenterPos(1);
 
-            rzoomedSave = 1.0;
-            rzoomedIndex = canvasZoomMultiplerList.indexOf(1.0);
+            rCanvasZoomedMultiplierLast = 1.0;
+            rCanvasZoomedIndex = canvasZoomMultiplerList.indexOf(1.0);
             setRegPoint(center.x,center.y,true);
             setZoomCanvas(1.0,true);
             setFitZoomedOFF();
@@ -6460,7 +6469,7 @@
             const xReg:Sprite = (replayMode) ? rCanvasAnchorPoint : canvasAnchorPoint;
             const zoomMax:int = canvasZoomMultiplerList.length-1;
             var center:Point;
-            var newZoomIndex:int = (replayMode) ? rzoomedIndex : canvasZoomIndex;
+            var newZoomIndex:int = (replayMode) ? rCanvasZoomedIndex : canvasZoomIndex;
 
             if(zoomInFlag)
             {
@@ -6478,9 +6487,9 @@
             if(replayMode)
             {
                 center = getStageCenterPos(1);
-                rzoomedSave = newZoom;
+                rCanvasZoomedMultiplierLast = newZoom;
                 setFitZoomedOFF();
-                rzoomedIndex = newZoomIndex;
+                rCanvasZoomedIndex = newZoomIndex;
                 setRegPoint(center.x,center.y,true);
                 setZoomCanvas(newZoom,replayMode);
                 autoScroll.updateRCanvasBounds();
@@ -6799,35 +6808,35 @@
             updatePickerCurrentColor(color);
         }
 
-        private function setLassosetTraceImageButton():void
+        private function transferLassoImageToRefLayer():void
         {
             setAsTopChild(lassoMenuBox);
             refLayerMenuConfirmCount++;
 
-            function setLassosetTraceImageButtonCountResetEvent(e:MouseEvent):void
+            function onMouseOutCancelTransferLassoImage(e:MouseEvent):void
             {
                 refLayerMenuConfirmCount = 0;
-                lassoMenuBox.lassoTrace.removeEventListener(MouseEvent.MOUSE_OUT,setLassosetTraceImageButtonCountResetEvent);
+                lassoMenuBox.lassoRefLayer.removeEventListener(MouseEvent.MOUSE_OUT,onMouseOutCancelTransferLassoImage);
             }
 
             if(refLayerMenuConfirmCount === 1)
             {
                 lassoMenuBox.hint(STRING_ONEMORE_CLICK_TO_OK);
-                lassoMenuBox.lassoTrace.addEventListener(MouseEvent.MOUSE_OUT,setLassosetTraceImageButtonCountResetEvent);
+                lassoMenuBox.lassoRefLayer.addEventListener(MouseEvent.MOUSE_OUT,onMouseOutCancelTransferLassoImage);
             }
             else if(refLayerMenuConfirmCount === 2)
             {
                 refLayerMenuConfirmCount = 0;
-                lassoMenuBox.lassoTrace.removeEventListener(MouseEvent.MOUSE_OUT,setLassosetTraceImageButtonCountResetEvent);
-                refLayerMenuBox.hint(STRING_MERGE_LASSO_IMAGE_TO_TRACE);
-                mergeLassoImageToTraceLayer();
-                openTraceWindow();
+                lassoMenuBox.lassoRefLayer.removeEventListener(MouseEvent.MOUSE_OUT,onMouseOutCancelTransferLassoImage);
+                refLayerMenuBox.hint(STRING_MERGE_LASSO_IMAGE_TO_REFLAYER);
+                mergeLassoImageToRefLayer();
+                openRefLayerMenu();
             }
         }
 
-        private function transferImageToRefLayer():void
+        private function handleTransferCanvasImageToRefLayer():void
         {
-            if(refLayerMenuBox.refTransferImageButton.alpha !== 1.0)
+            if(refLayerMenuBox.refTransferCanvasImageButton.alpha !== 1.0)
             {
                 return;
             }
@@ -6838,19 +6847,19 @@
             function onMouseOutRefTransferImageButton(e:MouseEvent):void
             {
                 refLayerMenuConfirmCount = 0;
-                refLayerMenuBox.refTransferImageButton.removeEventListener(MouseEvent.MOUSE_OUT,onMouseOutRefTransferImageButton);
+                refLayerMenuBox.refTransferCanvasImageButton.removeEventListener(MouseEvent.MOUSE_OUT,onMouseOutRefTransferImageButton);
             }
 
             if(refLayerMenuConfirmCount === 1)
             {
                 refLayerMenuBox.hint(STRING_ONEMORE_CLICK_TO_OK);
-                refLayerMenuBox.refTransferImageButton.addEventListener(MouseEvent.MOUSE_OUT,onMouseOutRefTransferImageButton);
+                refLayerMenuBox.refTransferCanvasImageButton.addEventListener(MouseEvent.MOUSE_OUT,onMouseOutRefTransferImageButton);
             }
             else if(refLayerMenuConfirmCount === 2)
             {
                 refLayerMenuConfirmCount = 0;
-                refLayerMenuBox.refTransferImageButton.removeEventListener(MouseEvent.MOUSE_OUT,onMouseOutRefTransferImageButton);
-                refLayerMenuBox.hint(STRING_MERGE_CANVAS_IMAGE_TO_TRACE);
+                refLayerMenuBox.refTransferCanvasImageButton.removeEventListener(MouseEvent.MOUSE_OUT,onMouseOutRefTransferImageButton);
+                refLayerMenuBox.hint(STRING_MERGE_CANVAS_IMAGE_TO_REFLAYER);
                 pasteCanvasImageToTraceLayer();
             }
         }
@@ -6888,18 +6897,18 @@
 
             switch(targetName)
             {
-                case "traceCancelButton":str = "Close [esc, backspace, t]"; break;
-                case "setTraceImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_TRACE; break;
-                case "traceLoadButton":str = "Load image"; break;
-                case "traceClipButton":str = "Load clipboard image"; break;
-                case "traceButtonWrapper":str = "Adjust image opacity"; break;
-                case "traceRotateButton":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "traceMoveButton":str = "Move image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "traceResizeButton":str = "Resize image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "traceMirrorButton":str = "Flip image"; break;
-                case "traceVisibleONButton":
-                case "traceVisibleOFFButton":str = "Memory training ON/OFF"; break;
-                case "traceDeleteButton":str = "Erase reference image\n[click]"+STRING_PRESS_HOLD; break;
+                case "refMenuCloseButton":str = "Close [esc, backspace, t]"; break;
+                case "refTransferCanvasImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_REFLAYER; break;
+                case "refLoadImageButton":str = "Load image"; break;
+                case "refClipBoardButton":str = "Load clipboard image"; break;
+                case "refOpacitySliderWrapper":str = "Adjust image opacity"; break;
+                case "refRotateImageButton":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "refMoveImageButton":str = "Move image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "refResizeImageButton":str = "Resize image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "refMirrorImageButton":str = "Flip image"; break;
+                case "refMemoryTrainingOnButton":
+                case "refMemoryTrainingOffButton":str = "Memory training ON/OFF"; break;
+                case "refClearImageButton":str = "Erase reference image\n[click]"+STRING_PRESS_HOLD; break;
                 default:
                     refLayerMenuBox.hint("Reference layer");
                 return;
@@ -6948,7 +6957,7 @@
                 case "lassoRotate":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
                 case "lassoMirror":str = "Flip image"; break;
                 case "lassoResize":str = "Resize image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "lassoTrace":str = STRING_MERGE_LASSO_IMAGE_TO_TRACE; break;
+                case "lassoRefLayer":str = STRING_MERGE_LASSO_IMAGE_TO_REFLAYER; break;
                 case "lasso1pxLeft":
                 case "lasso1pxRight":
                 case "lasso1pxUp":
@@ -6987,7 +6996,7 @@
                 case "toolMove": str = "Move image [e, u]"; break;
                 case "toolZoom": str = "Zoom [w, i]"; break;
                 case "toolRotate": str = "Rotate [s, k]"; break;
-                case "toolTrace": str = "Reference layer [t]"; break;
+                case "toolRefLayer": str = "Reference layer [t]"; break;
             }
 
             return str;
@@ -7018,7 +7027,7 @@
                 case "zoomInButton": str ="Zoom in canvas [w, i + drag canvas, mouse wheel on canvas]\nReset [right-click ,shift+w, shift+i]"; break;
                 case "zoomOutButton": str ="Zoom out canvas [w, i + drag canvas, mouse wheel on canvas]\nReset [right-click ,shift+w, shift+i]"; break;
                 case "toolRotate": str = "Rotate canvas [s, k]\nReset [right-click, shift+s , shift+k]"; break;
-                case "toolTrace": str = "Reference layer [t]"; break;
+                case "toolRefLayer": str = "Reference layer [t]"; break;
             }
 
             return str;
@@ -7504,12 +7513,12 @@
             };
         }
 
-        private function updateTraceOpaButtonPosByAlpha(alpha:Number):void
+        private function updateRefLayerOpacityCursorPosByValue(alpha:Number):void
         {
-            refLayerMenuBox["traceOpaButton"].x = (refLayerMenuBox["traceOpaBar"].x+1)+(refLayerMenuBox["traceOpaBar"].width*alpha);
+            refLayerMenuBox.refOpacityCursor.x = (refLayerMenuBox.refOpacityBar.x+1)+(refLayerMenuBox.refOpacityBar.width*alpha);
         }
 
-        private function closeTraceMenu():void
+        private function closeRefLayerMenu():void
         {
             isRefLayerMenuON = false;
             refLayerMenuBox.visible = false;
@@ -7527,8 +7536,7 @@
 
             switch(targetName)
             {
-
-                case "traceRotateButton":
+                case "refRotateImageButton":
                 {
                     if(canvasRefLayer.rotation !== 0)
                     {
@@ -7541,7 +7549,7 @@
                 }
                 break;
 
-                case "traceResizeButton":
+                case "refResizeImageButton":
                 {
                     if(canvasRefLayer.scaleY !== 1.0)
                     {
@@ -7556,7 +7564,7 @@
                 }
                 break;
 
-                case "traceMoveButton":
+                case "refMoveImageButton":
                 {
                     if(canvasRefLayerBitmap.x !== -canvasRefLayerBitmap.width/2
                     && canvasRefLayerBitmap.y !== -canvasRefLayerBitmap.height/2)
@@ -7580,7 +7588,7 @@
             }
         }
 
-        private function openTraceWindow():void //load clip버튼에서 눌러줬을때 틀여줌
+        private function openRefLayerMenu():void //load clip버튼에서 눌러줬을때 틀여줌
         {
             refLayerMenuBox.hint("Reference layer");
             refLayerMenuBox.x = Math.floor(mouseX-refLayerMenuBox.width/2);
@@ -7590,6 +7598,7 @@
             setAsTopChild(refLayerMenuBox);
             keepBoxInsideStage(refLayerMenuBox);
 
+trace관련 변수 다 정리 reflayer로
             if(isRefLayerMenuON === false)
             {
                 refLayerMenuBox.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpTraceWindow);
@@ -7617,11 +7626,11 @@
 
             if(isRefLayerMemoryTrainingON === true)
             {
-                setTraceVisibleButton();
+                handleRefLayerMemoryTrainingButton();
             }
         }
 
-        private function setTraceVisibleButton():void
+        private function handleRefLayerMemoryTrainingButton():void
         {
             if(isRefLayerMemoryTrainingON === false)
             {
@@ -7637,7 +7646,7 @@
             }
         }
 
-        private function setTraceMirrorButton():void
+        private function handleRefLayerImageMirrorButton():void
         {
             var tempBitData:BitmapData = new BitmapData(canvasRefLayerBitmapData.width,
                                                         canvasRefLayerBitmapData.height,true,0);
@@ -7667,7 +7676,7 @@
             isFileAlreadySaved = false;
         }
 
-        private function setTraceRotateButton():void
+        private function handleRefLayerImageRotateButton():void
         {
             var getAngle:Function = cGetCanvasRotationAngle(canvasRefLayer);
 
@@ -7675,7 +7684,7 @@
             refLayerMenuBox.visible = false;
             canvasRefLayerBitmap.smoothing = false;
 
-            function traceRotateButtonUpEvent(e:MouseEvent):void
+            function onMouseUpRefImageRotate(e:MouseEvent):void
             {
                 isMouseDragging = false;
                 isFileAlreadySaved = false;
@@ -7684,20 +7693,20 @@
                 refLayerImageTransformData[2] = canvasRefLayer.rotation; //deg로 저장
                 setRotateCursorOFF();
                 canvasRefLayerBitmap.smoothing = true;
-                stage.removeEventListener(MouseEvent.MOUSE_UP,traceRotateButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,traceRotateButtonMoveEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpRefImageRotate);
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveRefImageRotate);
             }
 
-            function traceRotateButtonMoveEvent(e:MouseEvent):void
+            function onMouseMoveRefImageRotate(e:MouseEvent):void
             {
                 canvasRefLayer.rotation = getAngle(false);
             }
 
-            stage.addEventListener(MouseEvent.MOUSE_UP,traceRotateButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,traceRotateButtonMoveEvent);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpRefImageRotate);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveRefImageRotate);
         }
 
-        private function setTraceResizeButton():void
+        private function handleRefLayerImageResizeButton():void
         {
             const mirrorFlag:Boolean = refLayerImageTransformData[5];
             var getScale:Function = cImageResizeFunc(canvasRefLayer.scaleX);
@@ -7707,7 +7716,7 @@
 
             isMouseDragging = true;
 
-            function traceResizeButtonUpEvent(e:MouseEvent):void
+            function onMouseUpRefImageRotate(e:MouseEvent):void
             {
                 isFileAlreadySaved = false;
                 isMouseDragging = false;
@@ -7718,11 +7727,11 @@
                 refLayerMenuBox.visible = true;
                 canvasRefLayerBitmap.smoothing = true;
                 setToolTipOFF();
-                stage.removeEventListener(MouseEvent.MOUSE_UP,traceResizeButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,traceResizeButtonMove);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpRefImageRotate);
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveRefImageRotate);
             }
 
-            function traceResizeButtonMove(e:MouseEvent):void
+            function onMouseMoveRefImageRotate(e:MouseEvent):void
             {
                 const scale:Number = getScale(mouseX,mouseY);
                 canvasRefLayer.scaleX = (mirrorFlag) ? -scale:scale;
@@ -7733,11 +7742,11 @@
 
             setToolTipString(getImageScaleHint(canvasRefLayerBitmapData.width,canvasRefLayerBitmapData.height,Math.abs(canvasRefLayer.scaleX),true));
             setToolTipON();
-            stage.addEventListener(MouseEvent.MOUSE_UP,traceResizeButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,traceResizeButtonMove);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpRefImageRotate);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveRefImageRotate);
         }
 
-        private function setTraceMoveButton():void
+        private function handleRefLayerImageMoveButton():void
         {
             var getMovedPos:Function = cImageMoveFunc(canvasRefLayerBitmap,canvasRefLayer.rotation+canvasAnchorPoint.rotation,refLayerImageTransformData[3],refLayerImageTransformData[4]);
 
@@ -7745,10 +7754,10 @@
             refLayerMenuBox.visible = false;
             canvasRefLayerBitmap.smoothing = false;
 
-            function traceMoveButtonUpEvent(e:MouseEvent):void
+            function onMouseUpRefImageMove(e:MouseEvent):void
             {
-                stage.removeEventListener(MouseEvent.MOUSE_UP,traceMoveButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,traceMoveButtonMoveEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpRefImageMove);
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveRefImageMove);
                 isFileAlreadySaved = false;
                 isMouseDragging = false;
                 getMovedPos = null;
@@ -7758,7 +7767,7 @@
                 canvasRefLayerBitmap.smoothing = true;
             }
 
-            function traceMoveButtonMoveEvent(e:MouseEvent):void
+            function onMouseMoveRefImageMove(e:MouseEvent):void
             {
                 const pos:Point = getMovedPos();
 
@@ -7766,41 +7775,41 @@
                 canvasRefLayerBitmap.y = pos.y;
             }
 
-            stage.addEventListener(MouseEvent.MOUSE_UP,traceMoveButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,traceMoveButtonMoveEvent);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpRefImageMove);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveRefImageMove);
         }
 
         private function resetTraceOpacityTo50():void
         {
             refLayerLastAlpha = 0.5;
             canvasRefLayer.alpha = 0.5;
-            updateTraceOpaButtonPosByAlpha(0.5);
-            refLayerMenuBox.hint(STRING_TRACE_IMAGE_OPACITY+Math.floor(0.5*100)+"%");
+            updateRefLayerOpacityCursorPosByValue(0.5);
+            refLayerMenuBox.hint(STRING_REFLAYER_IMAGE_OPACITY+Math.floor(0.5*100)+"%");
             canvasRefLayer.visible = true;
         }
 
-        private function startTraceOpacityAdjust():void
+        private function handleRefLayerOpacityButton():void
         {
-            const barWidth:Number = refLayerMenuBox["traceOpaBar"].width;
-            const minDist:Number = refLayerMenuBox["traceOpaBar"].x+1;
+            const barWidth:Number = refLayerMenuBox.refOpacityBar.width;
+            const minDist:Number = refLayerMenuBox.refOpacityBar.x+1;
             const maxDist:Number = minDist+barWidth-2;
             const step:Number = 10;
 
             isMouseDragging = true;
 
-            function traceOpaButtonUpEvent(e:MouseEvent):void
+            function onMouseUpRefLayerOpacity(e:MouseEvent):void
             {
                 isMouseDragging = false;
-                stage.removeEventListener(MouseEvent.MOUSE_UP,traceOpaButtonUpEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,traceOpaButtonMoveEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpRefLayerOpacity);
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveRefLayerOpacity);
             }
 
-            function traceOpaButtonMoveEvent(e:MouseEvent):void
+            function onMouseMoveRefLayerOpacity(e:MouseEvent):void
             {
-                setTraceOpaValue();
+                updateRefLayerOpacity();
             }
 
-            function setTraceOpaValue():void
+            function updateRefLayerOpacity():void
             {
                 var mx:Number = refLayerMenuBox.mouseX;
 
@@ -7811,7 +7820,7 @@
                 const valueMax:Number = maxDist-minDist;
                 const alpha:Number = getDiplayObjectAlpha(Math.floor(((value/valueMax))*100)/100);
 
-                refLayerMenuBox["traceOpaButton"].x = mx;
+                refLayerMenuBox.refOpacityCursor.x = mx;
 
                 if(alpha < 0.0)
                 {
@@ -7826,14 +7835,14 @@
                     refLayerLastAlpha = alpha;
                 }
 
-                refLayerMenuBox.hint(STRING_TRACE_IMAGE_OPACITY+Math.floor(alpha*100+0.5)+"%");
+                refLayerMenuBox.hint(STRING_REFLAYER_IMAGE_OPACITY+Math.floor(alpha*100+0.5)+"%");
             }
 
-            refLayerMenuBox.hint(STRING_TRACE_IMAGE_OPACITY+Math.floor(refLayerLastAlpha*100+0.5)+"%");
-            setTraceOpaValue();
+            refLayerMenuBox.hint(STRING_REFLAYER_IMAGE_OPACITY+Math.floor(refLayerLastAlpha*100+0.5)+"%");
+            updateRefLayerOpacity();
 
-            stage.addEventListener(MouseEvent.MOUSE_UP,traceOpaButtonUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE,traceOpaButtonMoveEvent);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpRefLayerOpacity);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveRefLayerOpacity);
         }
 
         private function saveRefLayerImage():void
@@ -7894,11 +7903,11 @@
             refLayerImageTransformData = [x,y,rotation,scaleX,scaleY,mirror];
         }
 
-        private function setDefaultRefLayerTransform():void
+        private function resetRefLayerOpacitySlider():void
         {
             if(canvasRefLayer.visible === false || refLayerLastAlpha === 0.0)
             {
-                updateTraceOpaButtonPosByAlpha(0.5);
+                updateRefLayerOpacityCursorPosByValue(0.5);
                 refLayerLastAlpha = 0.5;
                 canvasRefLayer.visible = true;
                 canvasRefLayer.alpha = 0.5;
@@ -7919,17 +7928,20 @@
             }
 
             const bmpd:BitmapData = getFinalImageFrom2020File(file,true);
-            pasteTraceImage(bmpd,bmpd.width,bmpd.height);
+            transferLoadedImageToRefLayer(bmpd,bmpd.width,bmpd.height);
 
             if(!isReplayModeON)
             {
-                openTraceWindow();
+                openRefLayerMenu();
             }
         }
 
         private function pasteCanvasImageToTraceLayer():void
         {
-            if(deepUndoON) setApplyDeepUndo();
+            if(deepUndoON)
+            {
+                setApplyDeepUndo();
+            }
 
             var layer1Flag:Boolean = canvasLayer1Bitmap.visible;
             var layer2Flag:Boolean = canvasLayer2Bitmap.visible;
@@ -7944,8 +7956,8 @@
                 layer1Flag = false;
                 layer2Flag = true;
             }
-
-            mergeImageToTraceLayer((layer1Flag)  ? canvasLayer1BitmapData :null
+trace("call");
+            mergeImageToRefLayer((layer1Flag)  ? canvasLayer1BitmapData :null
                                     ,(layer2Flag) ? canvasLayer2BitmapData:null);
             const rect:Rectangle = new Rectangle(0,0,canvasLayer1BitmapData.width,canvasLayer1BitmapData.height);
             var command:String = "clear";
@@ -7980,10 +7992,10 @@
             }
 
             resetRefLayerImageTransform();
-            setDefaultRefLayerTransform();
+            resetRefLayerOpacitySlider();
         }
 
-        private function pasteTraceImage(bmpd:IBitmapDrawable,w:Number,h:Number):void
+        private function transferLoadedImageToRefLayer(bmpd:IBitmapDrawable,w:Number,h:Number):void
         {
             const maxSize:Number = 1000;
             var maxLength:Number = (w > h) ? w : h;
@@ -8022,7 +8034,7 @@
                 refLayerImageTransformData[4] = autoScale;
             }
 
-            setDefaultRefLayerTransform();
+            resetRefLayerOpacitySlider();
         }
 
         private function getBlurSize(size:Number,z:Number):Number
@@ -8737,7 +8749,7 @@
 
         private function onKeyUpStage(e:KeyboardEvent):void
         {
-            setIMEDisabled();
+            disableIME();
             checkKeyInvalidKey();
 
             if(stage.nativeWindow.active)
@@ -8761,7 +8773,7 @@
 
         private function onKeyDownStage(e:KeyboardEvent):void
         {
-            setIMEDisabled();
+            disableIME();
             checkKeyInvalidKey();
 
             if(stage.nativeWindow.active)
@@ -9697,12 +9709,12 @@
             return verStr;
         }
 
-        private function setIMEEnabled():void
+        private function enableIME():void
         {
             IME.enabled = true;
         }
 
-        private function setIMEDisabled():void
+        private function disableIME():void
         {
             if(capInputFocusFlag)
             {
@@ -9932,7 +9944,7 @@
             rDataReadingFlag = false;
             undoData.setRFileTotalFrame(0);
             TOTAL_FRAME = 0;
-            makeJumpImageFlag = 0;
+            rReplayImageCachingState = 0;
             isLayerSwapped = false;
 
             resetRefLayerImageTransform();
@@ -10134,7 +10146,7 @@
                             setSidebarVisible(true,false);
                         break;
 
-                        case "traceLoadButton":
+                        case "refLoadImageButton":
                             loadFile(true);
                         break;
 
@@ -10148,8 +10160,8 @@
                             loadFile();
                         break;
 
-                        case "clipButton":
-                            setClipboardButton(false);
+                        case "clipBoardButton":
+                            handleClipboardButton(false);
                         break;
 
                         case "repCaptureButton":
@@ -10231,40 +10243,40 @@
                         }
                         break;
 
-                        case "traceCancelButton":
+                        case "refMenuCloseButton":
                         {
                             setAsTopChild(refLayerMenuBox);
-                            closeTraceMenu();
+                            closeRefLayerMenu();
                         }
                         break;
 
-                        case "setTraceImageButton":
+                        case "refTransferCanvasImageButton":
                         {
-                            transferImageToRefLayer();
+                            handleTransferCanvasImageToRefLayer();
                         }
                         break;
 
-                        case "traceClipButton":
+                        case "refClipBoardButton":
                         {
                             if(refLayerMenuBox.refClipBoardButton.alpha === 1.0)
                             {
-                                setClipboardButton(true);
+                                handleClipboardButton(true);
                             }
                         }
                         break;
 
-                        case "traceMirrorButton":
+                        case "refMirrorImageButton":
                         {
                             setAsTopChild(refLayerMenuBox);
-                            setTraceMirrorButton();
+                            handleRefLayerImageMirrorButton();
                         }
                         break;
 
-                        case "traceVisibleONButton":
-                        case "traceVisibleOFFButton":
+                        case "refMemoryTrainingOnButton":
+                        case "refMemoryTrainingOffButton":
                         {
                             setAsTopChild(refLayerMenuBox);
-                            setTraceVisibleButton();
+                            handleRefLayerMemoryTrainingButton();
                         }
                         break;
 
@@ -10276,8 +10288,8 @@
                             stopReplay();
                         break;
 
-                        case "lassoTrace":
-                            setLassosetTraceImageButton();
+                        case "lassoRefLayer":
+                            transferLassoImageToRefLayer();
                         break;
 
                         case "lassoOK":
@@ -10362,7 +10374,7 @@
         private function setCanvasSameReplayCanvas():void
         {
             canvasZoomedMultipler = rCanvasZoomedMultiplier;
-            canvasZoomIndex = rzoomedIndex;
+            canvasZoomIndex = rCanvasZoomedIndex;
             canvasAnchorPoint.x = Math.floor(rCanvasAnchorPoint.x); //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
             canvasAnchorPoint.y = Math.floor(rCanvasAnchorPoint.y);
             canvasAnchorPoint.scaleX = rCanvasAnchorPoint.scaleX;
@@ -10778,8 +10790,8 @@
                     str = "Load [ctrl+o]";
                 break;
 
-                case "clipButton":
-                    str = "Load clipboard image [ctrl+v, ctrl+n]"+((topBar["clipButton"].alpha < 1.0)?"\nThere are no copied images":"");
+                case "clipBoardButton":
+                    str = "Load clipboard image [ctrl+v, ctrl+n]"+((topBar.clipBoardButton.alpha < 1.0)?"\nThere are no copied images":"");
                 break;
 
                 case "clearButton":
@@ -11163,7 +11175,7 @@
             if(!isMouseClicked)
             {
                 fitCanvasToWindow();
-                rzoomedIndex = canvasZoomMultiplerList.indexOf(1.0);
+                rCanvasZoomedIndex = canvasZoomMultiplerList.indexOf(1.0);
             }
 
             setcanvasFlash(rCanvasPanel,0,0,RCANVAS_WIDTH,RCANVAS_HEIGHT);
@@ -13454,7 +13466,7 @@
         //프레임에 따라서 프레임 조작 버튼 활성화 해줌
         private function checkCutFrameButtonsCanUse():void
         {
-            if(makeJumpImageFlag === 2 || isInSaveProgress || isReplayStarted)
+            if(rReplayImageCachingState === 2 || isInSaveProgress || isReplayStarted)
             {
                 topBar["superUndoButton"].alpha = BUTTON_OFF_ALPHA;
                 topBar["cutPrevDataButton"].alpha = BUTTON_OFF_ALPHA;
@@ -13729,7 +13741,7 @@
         {
             const totalF:Number = TOTAL_FRAME;
 
-            if(totalF === 0 || makeJumpImageFlag > 0)
+            if(totalF === 0 || rReplayImageCachingState > 0)
             {
                 return;
             }
@@ -13873,7 +13885,7 @@
             if(isReplayFinishedWithFiwWindow === true)
             {
                 isReplayFinishedWithFiwWindow = false;
-                rzoomedIndex = getNearZoomIndex(rCanvasZoomedMultiplier);
+                rCanvasZoomedIndex = getNearZoomIndex(rCanvasZoomedMultiplier);
                 setZoomCanvas(rCanvasZoomedMultiplier,true);
             }
 
@@ -13891,19 +13903,19 @@
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
 
-        private function setToolBoxPos(target:DisplayObject):void
+        private function startDraggingTarget(target:DisplayObject):void
         {
             const click:Point = new Point(mouseX,mouseY);
             setAsTopChild(target);
 
-            function toolBoxMoveMouseUpEvent(e:MouseEvent):void
+            function onMouseUpDraggingTarget(e:MouseEvent):void
             {
                 keepBoxInsideStage(target);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,toolBoxMoveMouseMoveEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_UP, toolBoxMoveMouseUpEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveDraggingTarget);
+                stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpDraggingTarget);
             }
 
-            function toolBoxMoveMouseMoveEvent(e:MouseEvent):void
+            function onMouseMoveDraggingTarget(e:MouseEvent):void
             {
                 target.x = Math.floor(target.x+mouseX-click.x);
                 target.y = Math.floor(target.y+mouseY-click.y);
@@ -13912,8 +13924,8 @@
                 click.y = mouseY;
             }
 
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, toolBoxMoveMouseMoveEvent);
-            stage.addEventListener(MouseEvent.MOUSE_UP,toolBoxMoveMouseUpEvent);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDraggingTarget);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpDraggingTarget);
         }
 
         private function checkToolBoxMouseUp(targetName:String):void
@@ -14043,13 +14055,13 @@
                     }
                     break;
 
-                    case "toolTrace":
+                    case "toolRefLayer":
                     {
                         if(quickSidebarON) _closeQuickSidebar();
 
                         if(isRefLayerMenuON === false)
                         {
-                            openTraceWindow();
+                            openRefLayerMenu();
                             refLayerMenuBox.y = mouseY-60;
                         }
                     }
@@ -14238,7 +14250,7 @@
             closeToolBox2();
         }
 
-        private function setClipboardButton(traceLayer:Boolean):void
+        private function handleClipboardButton(traceLayer:Boolean):void
         {
             if(isInSaveProgress) return;
 
@@ -14270,18 +14282,18 @@
             || Clipboard.generalClipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
         }
 
-        private function setClipboardButtonNotAvailable():void
+        private function disableTopBarClipboardButton():void
         {
-            topBar["clipButton"].alpha = BUTTON_OFF_ALPHA;
-            refLayerMenuBox["traceClipButton"].alpha = BUTTON_OFF_ALPHA;
-            isClipBoardButtonAvailable = false;
+            topBar.clipBoardButton.alpha = BUTTON_OFF_ALPHA;
+            refLayerMenuBox.refClipBoardButton.alpha = BUTTON_OFF_ALPHA;
+            isClipBoardButtonEnabled = false;
         }
 
-        private function setClipboardButtonAvailable():void
+        private function enableTopBarClipboardButton():void
         {
-            topBar["clipButton"].alpha = 1.0;
-            refLayerMenuBox["traceClipButton"].alpha = 1.0;
-            isClipBoardButtonAvailable = true;
+            topBar.clipBoardButton.alpha = 1.0;
+            refLayerMenuBox.refClipBoardButton.alpha = 1.0;
+            isClipBoardButtonEnabled = true;
         }
 
         private function checkClipBoardImage():void
@@ -14290,7 +14302,7 @@
 
             if(data is BitmapData)
             {
-                setClipboardButtonAvailable();
+                enableTopBarClipboardButton();
             }
             else if(data is Array)
             {
@@ -14307,7 +14319,7 @@
                     if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
                     dragDropFileSave = file;
 
-                    setClipboardButtonAvailable();
+                    enableTopBarClipboardButton();
                 }
 
                 function onIOError(e:IOErrorEvent):void
@@ -14321,23 +14333,23 @@
                                 if(loadMenuBox.visible && isSameFile(file,dragDropFileSave)) return;
                                 dragDropFileSave = file;
 
-                                setClipboardButtonAvailable();
+                                enableTopBarClipboardButton();
                             }
                             else
                             {
-                                setClipboardButtonNotAvailable();
+                                disableTopBarClipboardButton();
                             }
                         }
                     }
                     catch(erro:Error)
                     {
-                        setClipboardButtonNotAvailable();
+                        disableTopBarClipboardButton();
                     }
                 }
             }
             else
             {
-                setClipboardButtonNotAvailable();
+                disableTopBarClipboardButton();
             }
         }
 
@@ -14487,8 +14499,8 @@
                 }
                 else
                 {
-                    pasteTraceImage(tempCopiedImage,tempCopiedImage.width,tempCopiedImage.height);
-                    if(!isReplayModeON) openTraceWindow();
+                    transferLoadedImageToRefLayer(tempCopiedImage,tempCopiedImage.width,tempCopiedImage.height);
+                    if(!isReplayModeON) openRefLayerMenu();
                 }
                 tempCopiedImage = null;
                 return;
@@ -14529,15 +14541,15 @@
                 {
                     if(tempCopiedImage)
                     {
-                        pasteTraceImage(tempCopiedImage,tempCopiedImage.width,tempCopiedImage.height);
+                        transferLoadedImageToRefLayer(tempCopiedImage,tempCopiedImage.width,tempCopiedImage.height);
                         tempCopiedImage = null;
                     }
                     else
                     {
-                        pasteTraceImage(loader,loader.content.width,loader.content.height);
+                        transferLoadedImageToRefLayer(loader,loader.content.width,loader.content.height);
                     }
 
-                    if(!isReplayModeON) openTraceWindow();
+                    if(!isReplayModeON) openRefLayerMenu();
                 }
 
                 tempDragDropFile = null;
@@ -15255,7 +15267,7 @@
 
                         _tickDraw = null;
                         undoData.setRFileTotalFrame(_frameSum);
-                        makeJumpImageFlag = 0;
+                        rReplayImageCachingState = 0;
                         resetReplayTime();
                         TOTAL_FRAME = getTotalFrame();
                         rNowFrame = TOTAL_FRAME;
@@ -15366,7 +15378,7 @@
 
         private function setSaveProgressOFF():void
         {
-            topBar.setButtonAlphaONSaving(isClipBoardButtonAvailable);
+            topBar.setButtonAlphaONSaving(isClipBoardButtonEnabled);
             if(isReplayModeON) checkCutFrameButtonsCanUse();
         }
 
@@ -15552,7 +15564,7 @@
 
             if(canvasRefLayerBitmapData)
             {
-                fs.writeObject(["traceImage",dataC, // 1
+                fs.writeObject(["refimage",dataC, // 1
                                             traceImgWidth,
                                             traceImgHeight,
                                             refLayerImageTransformData[0],
@@ -15745,7 +15757,7 @@
                         bg = d[5];
                     }
                 }
-                else if(d[0] === "traceImage")
+                else if(d[0] === "refimage" || d[0] === "traceImage")
                 {
                     ba = d[1] as ByteArray;
                     newRectangle = new Rectangle(0,0,d[2],d[3]);
@@ -15797,7 +15809,7 @@
             replayData.clear();
             replayData = null;
 
-            makeJumpImageFlag = 1;
+            rReplayImageCachingState = 1;
             loadFileAfter(fileName,filePath,imgW,imgH,finalIMGBMPD,finalIMGBMPD1,false,bg);
         }
 
@@ -15810,7 +15822,7 @@
             }
             TOTAL_FRAME = 0;
             undoData.setRFileTotalFrame(0);
-            makeJumpImageFlag = 0;
+            rReplayImageCachingState = 0;
             refLayerRawBitmapData = null;
             refLayerRawTransformData = null;
             loadFileAfter(fileName,filePath,width,height,imageData,imageData1,true,0xFFFFFF);
@@ -15940,7 +15952,7 @@
                 refLayerLastAlpha = refLayerRawTransformData[11];
                 canvasRefLayer.visible = true;
                 canvasRefLayer.alpha = getDiplayObjectAlpha(refLayerRawTransformData[11]);
-                updateTraceOpaButtonPosByAlpha(refLayerRawTransformData[11]);
+                updateRefLayerOpacityCursorPosByValue(refLayerRawTransformData[11]);
                 refLayerRawBitmapData.dispose();
                 refLayerRawBitmapData = null;
                 refLayerRawTransformData = null;
@@ -15960,7 +15972,7 @@
             canvasLayer2Bitmap.visible = true;
             topBar.captureButton.alpha = 1.0;
             topBar.clearButton.alpha = 1.0;
-            refLayerMenuBox.refTransferImageButton.alpha = 1.0;
+            refLayerMenuBox.refTransferCanvasImageButton.alpha = 1.0;
 
             updateCurrentColorPickerBox(false);
             setNowToolForDrawing(false);
@@ -16079,7 +16091,10 @@
                 penCursorOFFFlag = true;
                 penSizePreviewCursor.visible = false;
                 canvasRefLayer.visible = false;
-                if(isRefLayerMenuON === true) refLayerMenuBox.visible = false;
+                if(isRefLayerMenuON === true)
+                {
+                    refLayerMenuBox.visible = false;
+                }
 
                 changeTopBarIconFromMode("capture");
 
@@ -16375,7 +16390,7 @@
 
         private function startCaptureMode():void
         {
-            if(makeJumpImageFlag === 2 || isCaptureModeON) return;
+            if(rReplayImageCachingState === 2 || isCaptureModeON) return;
 
             if(isReplayStarted)
             {
@@ -16430,7 +16445,7 @@
             setAsTopChild(captureAreaPreviewLayer);
             captureAreaPreviewLayer.visible = true;
 
-            canvasBackupDataOnSave = {
+            canvasStateForSave = {
                                     "z" : canvasZoomedMultipler,
                                     "x" : Math.floor(canvasAnchorPoint.x), //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
                                     "y" : Math.floor(canvasAnchorPoint.y),
@@ -16439,7 +16454,7 @@
                                     "py" : Math.floor(canvasPanel.y)
             }
 
-            canvasBackupData = {
+            canvasStateBeforeCaptureMode = {
                                     "z" : xZoomed,
                                     "x" : Math.floor(xReg.x), //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
                                     "y" : Math.floor(xReg.y),
@@ -16468,7 +16483,7 @@
 
         private function exitCaptureMode(replayMode:Boolean,xReg:Sprite,xPanel:Sprite):void
         {
-            const data:Object = canvasBackupData;
+            const data:Object = canvasStateBeforeCaptureMode;
             const xBitmap1:Bitmap = (replayMode) ? rCanvasLayer1Bitmap : canvasLayer1Bitmap;
             const xBitmap11:Bitmap = (replayMode) ? rCanvasLayer2Bitmap : canvasLayer2Bitmap;
 
@@ -16521,7 +16536,7 @@
             }
 
             checkCanvasPanelPos(replayMode);
-            canvasBackupData = {};
+            canvasStateBeforeCaptureMode = {};
         }
 
         private function cDrawCaptureStamp():Object
@@ -16734,7 +16749,7 @@
             {
                 addTimer(0.2,false,function():void
                 {
-                    setIMEDisabled();
+                    disableIME();
                     capInputFocusFlag = false;
                 });
             }
@@ -18186,13 +18201,13 @@
             fs.open(appDataFilePath, FileMode.WRITE);
             fs.writeObject({"CANVAS_WIDTH":CANVAS_WIDTH,
                             "CANVAS_HEIGHT":CANVAS_HEIGHT,
-                            "zoomed":(isCaptureModeON) ? canvasBackupDataOnSave.z:canvasZoomedMultipler,
+                            "zoomed":(isCaptureModeON) ? canvasStateForSave.z:canvasZoomedMultipler,
                             "zoomedIndex":canvasZoomIndex,
-                            "canvasPanel.x":(isCaptureModeON) ? canvasBackupDataOnSave.px:canvasPanel.x,
-                            "canvasPanel.y":(isCaptureModeON) ? canvasBackupDataOnSave.py:canvasPanel.y,
-                            "regPoint.x":(isCaptureModeON) ? canvasBackupDataOnSave.x:canvasAnchorPoint.x,
-                            "regPoint.y":(isCaptureModeON) ? canvasBackupDataOnSave.y:canvasAnchorPoint.y,
-                            "regPoint.rotation":(isCaptureModeON) ? canvasBackupDataOnSave.r:canvasAnchorPoint.rotation,
+                            "canvasPanel.x":(isCaptureModeON) ? canvasStateForSave.px:canvasPanel.x,
+                            "canvasPanel.y":(isCaptureModeON) ? canvasStateForSave.py:canvasPanel.y,
+                            "regPoint.x":(isCaptureModeON) ? canvasStateForSave.x:canvasAnchorPoint.x,
+                            "regPoint.y":(isCaptureModeON) ? canvasStateForSave.y:canvasAnchorPoint.y,
+                            "regPoint.rotation":(isCaptureModeON) ? canvasStateForSave.r:canvasAnchorPoint.rotation,
                             "penSmoothValue":penSmoothValue,
                             "penSmoothSlideValue":penSmoothSlideValue,
                             "penSmoothButtonX":controlBox.penSmoothSliderCursor.x,
@@ -18223,8 +18238,8 @@
                             "refLayerImageTransformData[3]":refLayerImageTransformData[3],
                             "refLayerImageTransformData[4]":refLayerImageTransformData[4],
                             "refLayerImageTransformData[5]":refLayerImageTransformData[5],
-                            "traceMenuPos[0]":refLayerMenuBox.x,
-                            "traceMenuPos[1]":refLayerMenuBox.y,
+                            "refLayerMenuBox[0]":refLayerMenuBox.x,
+                            "refLayerMenuBox[1]":refLayerMenuBox.y,
                             "mirrorON":mirrorON,
                             "gridValue":gridValue,
                             "gridDrawOffsetX":gridDrawOffsetX,
@@ -18233,7 +18248,7 @@
                             "svBaseColor":colorPickerBox["svBaseColor"],
                             "hsvColorArr[0]":hsvColorArr[0],
                             "rgbInfoColorTypeHSV":rgbInfoColorTypeIsHSV,
-                            "makeJumpImageFlag":(makeJumpImageFlag === 2) ? 1:makeJumpImageFlag,
+                            "rReplayImageCachingState":(rReplayImageCachingState === 2) ? 1:rReplayImageCachingState,
                             "rBGColorSave":rLastCanvasBGColor,
                             "isRightSidebar":isRightSidebar,
                             "saveFilePath":saveFilePath,
@@ -18311,7 +18326,7 @@
                 rFirstImageLayer2BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0);
             }
 
-            if(refLayerImageFilePath.exists) //저장한 trace 이미지 복원
+            if(refLayerImageFilePath.exists)
             {
                 fs.open(refLayerImageFilePath, FileMode.READ);
                 arr = fs.readObject() as Array;
@@ -18426,15 +18441,15 @@
                     realWorkingTimer.update();
                     refLayerLastAlpha = d["refLayerLastAlpha"]
                     canvasRefLayer.alpha = d["refLayerLastAlpha"];
-                    refLayerMenuBox["traceOpaButton"].x = d["refOpacityCursor.x"];
-                    refLayerMenuBox.x = d["traceMenuPos[0]"];
-                    refLayerMenuBox.y = d["traceMenuPos[1]"];
+                    refLayerMenuBox.refOpacityCursor.x = d["refOpacityCursor.x"];
+                    refLayerMenuBox.x = d["refLayerMenuBox[0]"];
+                    refLayerMenuBox.y = d["refLayerMenuBox[1]"];
                     refLayerMenuDragXMoveSum = d["refLayerMenuDragXMoveSum"];
                     isRightSidebar = d["isRightSidebar"];
                     isSidebarVisible = d["isSidebarVisible"];
                     if(d["isRightSidebar"]) setSideBarRightPosition(true);
                     if(!d["isSidebarVisible"]) setSidebarVisible(d["isSidebarVisible"],false);
-                    makeJumpImageFlag = d["makeJumpImageFlag"];
+                    rReplayImageCachingState = d["rReplayImageCachingState"];
                     rLastCanvasBGColor = d["rBGColorSave"];
                     replayDrawCommands.setFirstRCursorPos(d["getFirstRCursorPos.x"],d["getFirstRCursorPos.y"]);
 
@@ -19563,7 +19578,7 @@
             if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
         }
 
-        private function updateCanvasTracePos(w:Number,h:Number,movedFlag:Boolean):void
+        private function updateRefLayerImagePos(w:Number,h:Number,movedFlag:Boolean):void
         {
             const scX:Number = refLayerImageTransformData[3];
             const scY:Number = refLayerImageTransformData[4];
@@ -19633,7 +19648,7 @@
             if(canvasLayer2Bitmap.bitmapData) canvasLayer2Bitmap.bitmapData.dispose();
             canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
 
-            updateCanvasTracePos(w,h,centerMovedFlag); //canvas width가 갱신되게 전에 체크해야함
+            updateRefLayerImagePos(w,h,centerMovedFlag); //canvas width가 갱신되게 전에 체크해야함
 
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
@@ -20330,7 +20345,10 @@
                     lassoMenuBox.visible = true;
                     setAsTopChild(lassoMenuBox);
 
-                    if(isRefLayerMenuON === true) refLayerMenuBox.visible = false;
+                    if(isRefLayerMenuON === true)
+                    {
+                        refLayerMenuBox.visible = false;
+                    }
 
                     addMouseKeyEventLassoTool();
                 }
@@ -20423,7 +20441,7 @@
                 || targetName === "toolMirror"
                 || targetName === "toolUndo"
                 || targetName === "toolRedo"
-                || targetName === "toolTrace");
+                || targetName === "toolRefLayer");
             }
 
             function setSpuitMag():void
@@ -20993,7 +21011,7 @@
                     layer2Bmpd.draw(lassoLayer2Bitmap,posMatrix);
                 }
 
-                mergeImageToTraceLayer(layer1Bmpd,layer2Bmpd);
+                mergeImageToRefLayer(layer1Bmpd,layer2Bmpd);
 
                 if(layer1Bmpd)
                 {
@@ -21563,7 +21581,7 @@
                     isFileAlreadySaved = false;
                     undoIndex = -1;
 
-                    if(makeJumpImageFlag === 1 || (makeJumpImageFlag === 0 && undoData.getRFileTotalFrame() > 0))
+                    if(rReplayImageCachingState === 1 || (rReplayImageCachingState === 0 && undoData.getRFileTotalFrame() > 0))
                     {
                         setDeepUndoON();
                         setRCursorVisibleONFadeOFF();
@@ -21836,7 +21854,7 @@
                         rJumpImageCount += c;
                         updateUndoRefImage();
 
-                        if(makeJumpImageFlag === 0)
+                        if(rReplayImageCachingState === 0)
                         {
                             if(rJumpImageCount > REPLAY_MAKE_JUMPIMAGE_INTERVAL)
                             {
@@ -23033,7 +23051,10 @@
                     }
                     else if(input === KEY.v || input === KEY.n)
                     {
-                        if(isClipBoardButtonAvailable) setClipboardButton(false);
+                        if(isClipBoardButtonEnabled)
+                        {
+                            handleClipboardButton(false);
+                        }
                     }
                 }) === false)
                 {
@@ -23378,7 +23399,7 @@
             {
                 if(keyCode === KEY.esc || keyCode === KEY.backspace)
                 {
-                    closeTraceMenu();
+                    closeRefLayerMenu();
                     return;
                 }
             }
@@ -23398,11 +23419,11 @@
                 {
                     if(isRefLayerMenuON)
                     {
-                        closeTraceMenu();
+                        closeRefLayerMenu();
                     }
                     else
                     {
-                        openTraceWindow();
+                        openRefLayerMenu();
                     }
                 }
                 break;
@@ -23530,7 +23551,7 @@
 
         private function onWindowActive(e:Event):void
         {
-            setIMEDisabled();
+            disableIME();
             realWorkingTimer.resume();
             checkClipBoardImage();
 
@@ -23786,9 +23807,9 @@
                 }
                 break;
 
-                case "toolTrace":
+                case "toolRefLayer":
                 {
-                    openTraceWindow();
+                    openRefLayerMenu();
                 }
                 break;
             }
@@ -24019,7 +24040,7 @@
                 case "toolLine":
                 case "toolMove":
                 case "toolRotate":
-                case "toolTrace":
+                case "toolRefLayer":
                 case "toolBoxBG":
                 case "toolMask":
                 {
@@ -24087,7 +24108,7 @@
             deepUndoON = true;
             rDataReadingFlag = false;
 
-            if(makeJumpImageFlag === 1)
+            if(rReplayImageCachingState === 1)
             {
                 removeInputEventsDrawMode();
                 setAsTopChild(rReplayTimeBarBox);
@@ -24109,7 +24130,7 @@
 
         private function setMakeJumpImage():void
         {
-            makeJumpImageFlag = 2;
+            rReplayImageCachingState = 2;
 
             if(!hasTimer("makeJumpImageWaitTimer"))
             {
@@ -24123,7 +24144,7 @@
         private function syncDrawCanvasWithReplayMode():void
         {
             canvasZoomedMultipler = rCanvasZoomedMultiplier;//줌배율도 공유
-            canvasZoomIndex = rzoomedIndex;
+            canvasZoomIndex = rCanvasZoomedIndex;
             canvasAnchorPoint.scaleX = rCanvasAnchorPoint.scaleX;
             canvasAnchorPoint.scaleY = rCanvasAnchorPoint.scaleY;
             canvasAnchorPoint.rotation = rCanvasAnchorPoint.rotation;
@@ -24137,7 +24158,7 @@
         private function syncReplayCanvasWithDrawMode():void
         {
             rCanvasZoomedMultiplier = canvasZoomedMultipler;//줌배율도 공유
-            rzoomedIndex = canvasZoomIndex;
+            rCanvasZoomedIndex = canvasZoomIndex;
             rCanvasAnchorPoint.scaleX = canvasAnchorPoint.scaleX;
             rCanvasAnchorPoint.scaleY = canvasAnchorPoint.scaleY;
             rCanvasAnchorPoint.rotation = canvasAnchorPoint.rotation;
@@ -24175,7 +24196,7 @@
 
         private function setReplayModeOFF():void
         {
-            if(makeJumpImageFlag === 2)
+            if(rReplayImageCachingState === 2)
             {
                 return;
             }
@@ -24224,7 +24245,7 @@
 
         private function setReplayModeON():void
         {
-            if(makeJumpImageFlag === 2)
+            if(rReplayImageCachingState === 2)
             {
                 return;
             }
@@ -24261,7 +24282,7 @@
 
             //frame sum이 재계산된 maxframe을 넘어가면 리플레이 프레임이 넘어가기 때문에 끝난거임
             //그래서 캔버스 복사해주고 리플레이를 리셋해줌
-            if(makeJumpImageFlag === 0)
+            if(rReplayImageCachingState === 0)
             {
                 if(CANVAS_WIDTH === RCANVAS_WIDTH && CANVAS_HEIGHT === RCANVAS_HEIGHT)
                 {
@@ -24273,7 +24294,7 @@
                     rCanvasZoomedMultiplier = 1;
                     rCanvasAnchorPoint.scaleX = 1;
                     rCanvasAnchorPoint.scaleY = 1;
-                    rzoomedIndex = canvasZoomMultiplerList.indexOf(rCanvasZoomedMultiplier);
+                    rCanvasZoomedIndex = canvasZoomMultiplerList.indexOf(rCanvasZoomedMultiplier);
                 }
             }
 
@@ -24286,7 +24307,7 @@
                 refLayerMenuBox.visible = false;
             }
 
-            if(makeJumpImageFlag === 1)
+            if(rReplayImageCachingState === 1)
             {
                 removeInputEventsReplayMode();
                 rReplayTimeBarBox["frameInfo"].text = STRING_PREPARE_REPLAY_DATA;
@@ -24294,7 +24315,7 @@
                 changeTopBarIconFromMode("replay");
                 setMakeJumpImage();
             }
-            else if(makeJumpImageFlag === 0)
+            else if(rReplayImageCachingState === 0)
             {
                 rDataReadingFlag = false;
                 updateNowTimeBarByDrawMode();
@@ -24428,7 +24449,7 @@
                 case "capFlip":
                 case "capRotate":
                 case "repCaptureButton":
-                case "clipButton":
+                case "clipBoardButton":
                 case "topBarColorButton":
                 case "playButton":
                 case "pauseButton":
@@ -24486,8 +24507,8 @@
             addTimerByName("rFitZoomedDelayTimer",0.15,false,function():void
             {
                 fitCanvasToWindow(false,true);
-                rzoomedIndex = getNearZoomIndex(rCanvasZoomedMultiplier);
-                rCanvasZoomedMultiplier = canvasZoomMultiplerList[rzoomedIndex];
+                rCanvasZoomedIndex = getNearZoomIndex(rCanvasZoomedMultiplier);
+                rCanvasZoomedMultiplier = canvasZoomMultiplerList[rCanvasZoomedIndex];
             });
         }
 
@@ -25248,7 +25269,7 @@
                     case "lassoMenuMoveButton":
                     {
                         setAsTopChild(lassoMenuBox);
-                        setToolBoxPos(lassoMenuBox);
+                        startDraggingTarget(lassoMenuBox);
                     }
                     break;
 
@@ -25285,7 +25306,7 @@
                     case "lassoCopy":
                     case "lassoOK":
                     case "lassoCancel":
-                    case "lassoTrace":
+                    case "lassoRefLayer":
                     case "sideBarPositionButton":
                     case "sideBarPositionButton2":
                     case "sideBarOFFButton":
@@ -25376,7 +25397,7 @@
                 case "replayModeButton":
                 case "captureButton":
                 case "repCaptureButton":
-                case "clipButton":
+                case "clipBoardButton":
                 case "topBarColorButton":
                 case "gridButton":
                 case "penOptionButton":
@@ -25388,13 +25409,13 @@
                 case "sideBarOFFButton2":
                 case "sideBarONButton":
                 case "sideBarONButton2":
-                case "traceCancelButton":
-                case "setTraceImageButton":
-                case "traceLoadButton":
-                case "traceMirrorButton":
-                case "traceVisibleONButton":
-                case "traceVisibleOFFButton":
-                case "traceClipButton":
+                case "refMenuCloseButton":
+                case "refTransferCanvasImageButton":
+                case "refLoadImageButton":
+                case "refMirrorImageButton":
+                case "refMemoryTrainingOnButton":
+                case "refMemoryTrainingOffButton":
+                case "refClipBoardButton":
                 case "appResetButton":
                 case "dpiButton":
                 case "newWindowButton":
@@ -25415,7 +25436,7 @@
                 }
                 return;
 
-                case "traceDeleteButton":
+                case "refClearImageButton":
                 {
                     startPressHoldKey(refLayerMenuBox.refClearImageButton,"Erasing reference image... ",null,setTraceDeleteButton,null);
                 }
@@ -25456,37 +25477,37 @@
                     setScrollBarMoveButton();
                 return;
 
-                case "traceRotateButton":
+                case "refRotateImageButton":
                 {
                     setAsTopChild(refLayerMenuBox);
-                    setTraceRotateButton();
+                    handleRefLayerImageRotateButton();
                 }
                 return;
 
-                case "traceMoveButton":
+                case "refMoveImageButton":
                 {
                     setAsTopChild(refLayerMenuBox);
-                    setTraceMoveButton();
+                    handleRefLayerImageMoveButton();
                 }
                 return;
 
-                case "traceResizeButton":
+                case "refResizeImageButton":
                 {
                     setAsTopChild(refLayerMenuBox);
-                    setTraceResizeButton();
+                    handleRefLayerImageResizeButton();
                 }
                 return;
 
-                case "traceButtonWrapper":
+                case "refOpacitySliderWrapper":
                 {
                     setAsTopChild(refLayerMenuBox);
-                    startTraceOpacityAdjust();
+                    handleRefLayerOpacityButton();
                 }
                 return;
 
-                case "traceMenuMoveButton":
+                case "refLayerMenuMoveButton":
                 {
-                    setToolBoxPos(refLayerMenuBox);
+                    startDraggingTarget(refLayerMenuBox);
                 }
                 return;
 

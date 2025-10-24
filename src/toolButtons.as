@@ -23,7 +23,7 @@
 		public var toolMove:SimpleButton;
 		public var toolRotate:SimpleButton;
 		public var toolLine:SimpleButton;
-		public var toolTrace:SimpleButton;
+		public var toolRefLayer:SimpleButton;
 		public var zoomInButton:SimpleButton;
 		public var zoomOutButton:SimpleButton;
 		public var toolSelectCursor:SimpleButton;
@@ -58,7 +58,7 @@
 			toolLasso.alpha = 1.0;
 			toolLasso.alpha = 1.0;
 			toolMove.alpha = 1.0;
-			toolTrace.alpha = 1.0;
+			toolRefLayer.alpha = 1.0;
 			toolMirror.alpha = 1.0;
 
 			toolSelectCursor.visible = true;
@@ -77,7 +77,7 @@
 			toolLasso.alpha = offAlpha;
 			toolLasso.alpha = offAlpha;
 			toolMove.alpha = offAlpha;
-			toolTrace.alpha = offAlpha;
+			toolRefLayer.alpha = offAlpha;
 			toolMirror.alpha = offAlpha;
 
 			toolSelectCursor.visible = false;
@@ -102,7 +102,7 @@
 				toolSpuit.alpha = alpha;
 				toolLasso.alpha = alpha;
 				toolLine.alpha = alpha;
-				toolTrace.alpha = alpha;
+				toolRefLayer.alpha = alpha;
 			}
 			else
 			{
@@ -120,7 +120,7 @@
 					// toolScanFill.alpha = alpha;
 					toolSpuit.alpha = alpha;
 					toolLine.alpha = alpha;
-					toolTrace.alpha = alpha;
+					toolRefLayer.alpha = alpha;
 				}
 
 			}
@@ -350,7 +350,7 @@
 			toolMove.useHandCursor = false;
 			toolRotate.useHandCursor = false;
 			toolLine.useHandCursor = false;
-			toolTrace.useHandCursor = false;
+			toolRefLayer.useHandCursor = false;
 			zoomInButton.useHandCursor = false;
 			zoomOutButton.useHandCursor = false;
 
@@ -368,7 +368,7 @@
 					toolLine,
 					toolLasso,
 					toolMove,
-					toolTrace,
+					toolRefLayer,
 					zoomInButton,
 					zoomOutButton,
 					toolRotate,
