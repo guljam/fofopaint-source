@@ -13,7 +13,7 @@
 	import flash.filters.ColorMatrixFilter;
 	import flash.geom.Rectangle;
 
-	public class colorPickerBox extends Sprite {
+	public class colorPickerButtons extends Sprite {
 		public var mainColorPickerBox:Sprite = new Sprite();
 		public var mainPresetButtonBox:Sprite = new Sprite();
 		public var mainPickerMenuBox:Sprite = new Sprite();
@@ -217,17 +217,17 @@
 			paperColorButton.alpha = 0.2;
 		}
 			
-		public function checkPickerModeButton(mode:int):void
+		public function activePaperColorButton(flag:Boolean):void
 		{
-			if(mode === 1)
-			{
-				penColorButton.alpha = 1.0;
-				paperColorButton.alpha = 0.6;
-			}
-			else
+			if(flag)
 			{
 				penColorButton.alpha = 0.6;
 				paperColorButton.alpha = 1.0;
+			}
+			else
+			{
+				penColorButton.alpha = 1.0;
+				paperColorButton.alpha = 0.6;
 			}
 		}
 
@@ -413,7 +413,7 @@
 
 		//피커박스 구조
 		//custom color, colorhistoryBox, drawr프리셋 따로따로 전부가 첫번째 자식들임
-		public function colorPickerBox() {
+		public function colorPickerButtons() {
 			// visible = false;
 			name = "pickerBox";
 			initTransparentColorButtonBmpd();

@@ -277,16 +277,15 @@
 
                     ,loadMenuBox:loadBox = new loadBox()
                     ,controlBox:controlMenu = new controlMenu()
-                    ,pickerBox:colorPickerBox = new colorPickerBox()
+                    ,colorPickerBox:colorPickerButtons = new colorPickerButtons()
                     ,previewBox:previewPanel = new previewPanel()
-                    ,appInfoBox:appInfoBar = new appInfoBar()
+                    ,canvasInfoBox:canvasInfoBar = new canvasInfoBar()
                     ,numPadBox:numPadButtons = new numPadButtons()
                     ,sideBar:sidePanel = new sidePanel()
                     ,fofo:fofoBottomBox = new fofoBottomBox()
                     ,sideBarScrollBar:Sprite = new Sprite()
-                    ,sideBarScrollSet:Sprite = new Sprite()
-                    ,canvasFlash:Sprite = new Sprite()
-                    ,capStampFontListBox:capStampFontList = new capStampFontList()
+                    ,sideBarScrollPanel:Sprite = new Sprite()
+                    ,canvasFlashEffect:Sprite = new Sprite()
                     ;
 
         //캔버스와 초창기 개발 변수들
@@ -350,7 +349,7 @@
 
         //컬러픽커 관련 변수
                     ,hsvColorArr:Vector.<Number> = new Vector.<Number> (3,true) //h,s,v순서 hue컬러 다른 함수들이랑 통신하기 위해서 전역으로 만들어줌
-                    ,pickerMode:uint = 1 //1이면 펜컬러 2이면 배경색
+                    ,isColorPickerModeBG:Boolean = false //false이면 펜컬러 true이면 배경색
                     ,pickerModeResetFlag:Boolean = false // 배경색 선택하고 나서 커서가 사이드바를 나가면 리셋해주는 이벤트를 올려주는 플래그
                     ,pickerOpaClicked:Boolean = false //피커박스에서 투명도 조절했을때 올려줌 mouse out 이벤트 하나만 작동되게 할라고
                     ,pickerHSVButtonMousePoslast:Point = new Point()
@@ -399,8 +398,8 @@
                     ,pressHoldFrameCount:int = 0
 
         //컬러 히스토리 관련 변수
+        private var isMyPaletteExpended:Boolean = false //전체로 보면 올려줌
                     ,myPaletteColorBeforeAddColor:Array = [-1,0] //index, hexcolor
-                    ,isMyPaletteExpended:Boolean = false //전체로 보면 올려줌
                     ,myPaletteColorLimit:int = 100
                     ,myPaletteColorWidth:Number = 17//Math.floor(pickerBox.svBoxWidth/myPaletteLimit)//히스토리 개별 색깔 가로 크기
                     ,myPaletteColorHeight:Number = 17
@@ -429,6 +428,9 @@
         private var repFileTemp:File//파일을 저장하거나 불러올때 씀
                     ,rFirstImageFile:File = replayCacheImageFolderPath.resolvePath("0")
                     ,rFileStream:FileStream = new FileStream()//함수들을 왔다갔다 해야해서 전역으로 하나,
+                    ,rCanvasLayer1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
+                    ,rCanvasLayer2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
+                    ,rCanvasDrawBitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rCanvasAnchorPoint:Sprite = new Sprite()//회전 스프라이트 부모
                     ,rCanvasPanel:Sprite = new Sprite()
                     ,rCanvasDrawLayer:Sprite = new Sprite()
@@ -437,11 +439,8 @@
                     ,rCanvasLayer1Bitmap:Bitmap = new Bitmap(rCanvasLayer1BitmapData,"auto",true)
                     ,rCanvasLayer2Bitmap:Bitmap = new Bitmap(rCanvasLayer2BitmapData,"auto",true)
                     ,rCanvasDrawLayerBitmap:Bitmap = new Bitmap(rCanvasDrawBitmapData,"auto",true)
-                    ,rReplayFOFOCursor:tinyCursor = new tinyCursor(); //재생할때 틀어주는 작은 마우스
+                    ,rReplayFOFOCursor:tinyCursor = new tinyCursor() //재생할때 틀어주는 작은 마우스
 
-        private var rCanvasLayer1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
-                    ,rCanvasLayer2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
-                    ,rCanvasDrawBitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,rcanvas2ClipRect:Rectangle = new Rectangle() //갱신된 부분만 그려주는 거 오래된 버전 지원때문에 남겨둠
                     ,rcanvas2ClipRect2:Rectangle = new Rectangle() //갱신된 부분만 그려주는 거 이게 새거임
                     ,isReplayStarted:Boolean = false //리플레이 시작버튼 여러번 누르는거 방지
@@ -485,7 +484,7 @@
                     ,makeJumpImageFlag:int = 0 //0이상이면 make jump image함수를 실행함. jumpframe함수에서 체크 0= 작업 끝남 1 = 작업 준비 2 = 작업중
                     ,rOnejumpFlagSave:Boolean = false //onejumpframe에서 prev인지 next인지 마지막 상태 저장해줌, 방향바꿀대 버튼 2번씩 눌러야 스킵되는거 방지하는거임
                     ,rOneJumpPrevSum:Number = 0 //뒤로 스킵키 오래누르고 있으면 프레임 합산은 여기다가 올려줌
-                    ,rRestartTimerCount:uint = 0 //리스타트 타이머
+                    ,rReplayRestartTimerCount:uint = 0 //리스타트 타이머
                     ,rFrameTextDelayTime:int = 0 //프레임 바 딜레이
                     ,rCanvasBounds:Object = null
                     ,doDrawSlowEventON:Boolean = false //doDrawSlowEvent가 켜지면 올려줌
@@ -494,11 +493,12 @@
                     ,rJumpFrameInitFlag:Boolean = false //리플레이모드 들어가서 바로 앞으로 재생할때 undodata첫부분부터 써주는 버그 때문에 이거 올려주고
 
         //about 관련 변수
-                    ,aboutPanelON:Boolean = false //어바웃 창 떴을때 킴
+        private var aboutPanelON:Boolean = false //어바웃 창 떴을때 킴
                     ,needUpdate:int = 0 //새버전 나왔을때 올려주는 플래그
                     ,isCheckingUpdate:Boolean = false
 
         //캡쳐모드 관련 변수
+        private var captureStampFontListBox:capStampFontList = new capStampFontList()
                     ,captureAreaPreviewLayer:Shape = new Shape()//스크린샷 박스 미리보기 그려줌
                     ,isCaptureModeON:Boolean = false //스크린샷 켜지면 올려줌
                     ,isCaptureModeInputEventsAdded:Boolean = false // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
@@ -528,7 +528,7 @@
                     ,canvasRefLayerBitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0)
                     ,canvasRefLayerBitmap:Bitmap = new Bitmap()
                     ,refLayerImageFilePath:File = File.applicationStorageDirectory.resolvePath("traceImg")
-                    ,refLayerMenuBox:traceButtons = new traceButtons()
+                    ,refLayerMenuBox:refLayerMenuButtons = new refLayerMenuButtons()
                     ,refLayerMenuDragXMoveSum:Number = 0 //전역으로 돌려서 다시 클릭하거나 이미지를 불러와도 원래 스케일을 저장하도록함
                     ,refLayerImageTransformData:Array = [0,0,0,1.0,1.0,false] // width, height, rotation,scale, mirror flag
                     ,isRefLayerMenuON:Boolean = false //trace메뉴 켜졌을때 올려줌
@@ -562,8 +562,8 @@
                     ,fillPenTool:Object = cFillPenTool()
                     // ,scanFillTool:Object = cScanFillTool()
                     ,drawDone:Function = cDrawDone()
-                    ,tickDraw:Object = cTickDraw()
-                    ,doDraw:Function = cDoDraw()
+                    ,replayDrawCommands:Object = cReplayDrawCommands()
+                    ,replayDraw:Function = cReplayDraw()
                     ,autoScroll:Object = cAutoScroll()
                     ,updatePenSizeCursor:Function = cUpdatePenSizeCursor()
                     ,undoData:Object = cAddUndoData()
@@ -621,8 +621,8 @@
                     ,canvasWindowInfo:Array = [null,null,400,400] //x y 너비 높이
                     ,canvasWindowON:Boolean = false //캔버스 새창 켜졌을때
                     ,canvasWindow:NativeWindow //참조된 새 창
-                    ,canvasWindowBitmap:Bitmap //새창안에 들어갈 레이어 1 2번
-                    ,canvasWindowBitmapSub:Bitmap
+                    ,canvasWindowLayer1Bitmap:Bitmap //새창안에 들어갈 레이어 1 2번
+                    ,canvasWindowLayer2Bitmap:Bitmap
                     ,canvasWindowCanvasPanel:Sprite //캔버스 배경색
                     ,canvasWindowCanvasPanelBgSize:Point = new Point(0,0)
                     ,canvasWindowCanvasPanelBgColor:uint = 0
@@ -634,7 +634,7 @@
                     ,deepUndoFrameSave:Number = -1 //리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
 
         //picker box RGB info관련 변수
-                    ,rgbInfoFocusedON:Boolean = false // rgb info입력이 활성화 되었을때 올려줌
+                    ,isRgbInfoFocused:Boolean = false // rgb info입력이 활성화 되었을때 올려줌
                     ,selectedRGBInfoIndex:int = -1 //처음 클릭했을때 R G B중 어느 영역을 클릭했는지
                     ,rgbInfoCursorLastIndex:int = -1 //포커스 아웃 될때 마지막 커서 위치가 어딘지 저장
                     ,rgbInfoTextFocusedONFlag:Boolean = false // 텍스트 입력이 켜지면 올려줌
@@ -691,8 +691,8 @@
             makeWorker();
             updateWindowSizeInfo();
             //입력 이벤트는 loadappdata보다느려야함
-            addStageInputEvent();
-            addInputEventStageChild();
+            addStageInputEvents();
+            addInputEventsStageChild();
             addInputEventsDrawMode();
             loadAppData(); //이전 세팅 복원
             initReplayDataFile();
@@ -706,7 +706,7 @@
             checkVersion();
             setIMEDisabled();
             selectPenTool();
-            pickerBox.changeColorPresets(0);
+            colorPickerBox.changeColorPresets(0);
             hint.updateScale(getUIScale());
             hint.setCursorColor(hintHorverCursorColor[uiColorIndex]);
             toolTipBox.setBGColor(toolTipBoxBGColor[uiColorIndex]);
@@ -747,17 +747,17 @@
             
         private function showPickColorScratchPad():void
         {
-            pickColor(pickerBox.scratchPad.pickColor());
+            pickColor(colorPickerBox.scratchPad.pickColor());
         }
 
         private function setCaptureFontListVisibleOff():void
         {
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,checkCaptureStampFontListVisibleOFFMouseDownEvent);    
-            capStampFontListBox.visible = false;
+            captureStampFontListBox.visible = false;
         }
         private function checkCaptureStampFontListVisibleOFFMouseDownEvent(e:MouseEvent):void
         {
-            if(!(capStampFontListBox.hitTestPoint(mouseX,mouseY) || topBar.capStampFont.hitTestPoint(mouseX,mouseY)))
+            if(!(captureStampFontListBox.hitTestPoint(mouseX,mouseY) || topBar.capStampFont.hitTestPoint(mouseX,mouseY)))
             {
                 setCaptureFontListVisibleOff();
             }
@@ -765,16 +765,16 @@
 
         private function setCaptureStampFontBoxVisbleON():void
         {
-            if(!capStampFontListBox.visible)
+            if(!captureStampFontListBox.visible)
             {
                 const gp:Point = topBar.capStampFont.localToGlobal(ZERO_POINT);
 
-                capStampFontListBox.x = gp.x;
-                capStampFontListBox.y = topBar.BARSIZE*topBar.scaleX;
-                capStampFontListBox.updateSystemFontList();
-                setAsTopChild(capStampFontListBox);
-                capStampFontListBox.setScale(getUIScale());
-                capStampFontListBox.visible = true;
+                captureStampFontListBox.x = gp.x;
+                captureStampFontListBox.y = topBar.BARSIZE*topBar.scaleX;
+                captureStampFontListBox.updateSystemFontList();
+                setAsTopChild(captureStampFontListBox);
+                captureStampFontListBox.setScale(getUIScale());
+                captureStampFontListBox.visible = true;
 
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,checkCaptureStampFontListVisibleOFFMouseDownEvent,false,-1);
             }
@@ -789,19 +789,19 @@
 
             addTimerByName("viewTransBGTimer",0.0,true,function doTransBG():Boolean
             {
-                if(canvasFlash.alpha < 0.0)
+                if(canvasFlashEffect.alpha < 0.0)
                 {
-                    canvasFlash.alpha = 0.0;
-                    canvasFlash.visible = false;
-                    canvasFlash.graphics.clear();
+                    canvasFlashEffect.alpha = 0.0;
+                    canvasFlashEffect.visible = false;
+                    canvasFlashEffect.graphics.clear();
                     if(canvasPanel.getChildByName("canvasFlash"))
                     {
-                        canvasPanel.removeChild(canvasFlash);
+                        canvasPanel.removeChild(canvasFlashEffect);
                     }
                     return false;
                 }
 
-                canvasFlash.alpha -= 0.15;
+                canvasFlashEffect.alpha -= 0.15;
                 return true;
             });
         }
@@ -810,29 +810,29 @@
         {
             if(!canvasPanel.getChildByName("canvasFlash"))
             {
-                canvasPanel.addChild(canvasFlash);
-                canvasPanel.setChildIndex(canvasFlash,0);
-                canvasFlash.visible = true;
-                canvasFlash.graphics.beginBitmapFill(capTransparentBGBMPD);
-                canvasFlash.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
-                canvasFlash.graphics.endFill();
-                canvasFlash.alpha = 0.0;
+                canvasPanel.addChild(canvasFlashEffect);
+                canvasPanel.setChildIndex(canvasFlashEffect,0);
+                canvasFlashEffect.visible = true;
+                canvasFlashEffect.graphics.beginBitmapFill(capTransparentBGBMPD);
+                canvasFlashEffect.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+                canvasFlashEffect.graphics.endFill();
+                canvasFlashEffect.alpha = 0.0;
             }
 
-            if(canvasFlash.alpha >= 1.0)
+            if(canvasFlashEffect.alpha >= 1.0)
             {
                 return;
             }
 
             addTimerByName("viewTransBGTimer",0.0,true,function doTransBG():Boolean
             {
-                if(canvasFlash.alpha >= 1.0)
+                if(canvasFlashEffect.alpha >= 1.0)
                 {
-                    canvasFlash.alpha = 1.0;
+                    canvasFlashEffect.alpha = 1.0;
                     return false;
                 }
 
-                canvasFlash.alpha += 0.15;
+                canvasFlashEffect.alpha += 0.15;
                 return true;
             });
         }
@@ -861,41 +861,41 @@
         {
             if(!parent.getChildByName("canvasFlash"))
             {
-                parent.addChild(canvasFlash);
+                parent.addChild(canvasFlashEffect);
             }
 
-            canvasFlash.visible = true;
-            canvasFlash.graphics.beginFill(0xFFFFFF);
-            canvasFlash.graphics.drawRect(ox,oy,width,height);
-            canvasFlash.graphics.endFill();
-            canvasFlash.alpha = 1.0;
+            canvasFlashEffect.visible = true;
+            canvasFlashEffect.graphics.beginFill(0xFFFFFF);
+            canvasFlashEffect.graphics.drawRect(ox,oy,width,height);
+            canvasFlashEffect.graphics.endFill();
+            canvasFlashEffect.alpha = 1.0;
 
             addTimerByName("flashingTimer",0.0,true,function doFlash():Boolean
             {
-                if(canvasFlash.alpha < 0.0)
+                if(canvasFlashEffect.alpha < 0.0)
                 {
-                    canvasFlash.alpha = 0.0;
-                    canvasFlash.visible = false;
-                    canvasFlash.graphics.clear();
+                    canvasFlashEffect.alpha = 0.0;
+                    canvasFlashEffect.visible = false;
+                    canvasFlashEffect.graphics.clear();
                     if(parent.getChildByName("canvasFlash"))
                     {
-                        parent.removeChild(canvasFlash);
+                        parent.removeChild(canvasFlashEffect);
                     }
                     return false;
                 }
-                canvasFlash.alpha -= 0.13;
+                canvasFlashEffect.alpha -= 0.13;
                 return true;
             });
         }
 
         private function setPickerBoxTransBGBrightness(index:int):void
         {
-            pickerBox.setBrightnessTransparentColorButtonBmpd(index);
+            colorPickerBox.setBrightnessTransparentColorButtonBmpd(index);
             updateMyPaletteList();
             updateHistoryList();
             if(isTransparentPenColor)
             {
-                pickerBox.setRGBInfoBGTransparentColorON(myPalettePresetType);
+                colorPickerBox.setRGBInfoBGTransparentColorON(myPalettePresetType);
             }
         }
 
@@ -903,16 +903,16 @@
         {
             addTimerByName("clearScratchPadTimer",0.4,false,function():void
             {
-                startPressHoldKey(target,"Clearing scratch pad.. ",null,pickerBox.scratchPad.clearPad,null);
+                startPressHoldKey(target,"Clearing scratch pad.. ",null,colorPickerBox.scratchPad.clearPad,null);
             });
         }
 
         private function handleSelectMyPaletteOrReset():void
         {
-            function onMyPaletteMouseUp(e:MouseEvent):void
+            function onMouseUpMyPalette(e:MouseEvent):void
             {
                 removeTimer("selectMyPaletteDelayTimer");
-                stage.removeEventListener(MouseEvent.MOUSE_UP,onMyPaletteMouseUp);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpMyPalette);
 
                 if(e.target && e.target.name === "myPaletteButton")
                 {
@@ -929,20 +929,20 @@
                     }
                     else
                     {
-                        changeMyPalettePreset(0);
+                        activeColorPreset(0);
                     }
                 }
             }
-            stage.addEventListener(MouseEvent.MOUSE_UP,onMyPaletteMouseUp);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpMyPalette);
 
             addTimerByName("selectMyPaletteDelayTimer",0.4,false,function():void
             {
-                startPressHoldKey(pickerBox.myPaletteButton,"Clearing my palette.. ",null,clearMyPaletteList,null);
-                stage.removeEventListener(MouseEvent.MOUSE_UP,onMyPaletteMouseUp);
+                startPressHoldKey(colorPickerBox.myPaletteButton,"Clearing my palette.. ",null,clearMyPaletteList,null);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpMyPalette);
             });
         }
 
-        private function handleSelctOrAddColorMyPalette():void
+        private function startSelectOrAddColorMyPalette():void
         {
             const firstClickColorIndex:uint = getMyPaletteIndexByMousePos();
             var colorAddedFlag:Boolean = false;
@@ -963,7 +963,7 @@
                 if(firstClickColorIndex === getMyPaletteIndexByMousePos())
                 {
                     colorAddedFlag = true;
-                    addColorToMyPalette(pickerBox.getRGBInfoBGColor(),getMyPaletteIndexByMousePos());
+                    addColorToMyPalette(colorPickerBox.getRGBInfoBGColor(),getMyPaletteIndexByMousePos());
                 }
                 else
                 {
@@ -973,7 +973,7 @@
             });
         }
 
-        private function isCursorInSideBar():Boolean
+        private function isMouseCursorInSideBar():Boolean
         {
             if(sideBar.visible === true)
             {
@@ -995,7 +995,7 @@
             return false;
         }
 
-        private function mouseWheelStage(e:MouseEvent):void
+        private function onMouseWheelStage(e:MouseEvent):void
         {
             if(isMouseClicked || isRightMouseClicked || isMouseDragging
             || isCaptureModeON || !quickSidebarON && (!isNowKey(0) || getCommandKey() !== 0)) return;
@@ -1004,7 +1004,7 @@
             {
                 addTimerByName("wheelZoomTimer",0.07,false,function():void
                 {
-                    if(isCursorInSideBar())
+                    if(isMouseCursorInSideBar())
                     {
                         if(sideBarScrollBar.visible === true)
                         {
@@ -1047,19 +1047,19 @@
             if(rgbInfoColorTypeIsHSV)
             {
                 updateHSVInfoColor(inc,true);
-                numPadBox.updateOkBaseColor(pickerBox.getRGBInfoBGColor());
+                numPadBox.updateOkBaseColor(colorPickerBox.getRGBInfoBGColor());
             }
             else
             {
                 adjustRGBInfoColor(inc,true);
-                numPadBox.updateOkBaseColor(pickerBox.getRGBInfoBGColor());
+                numPadBox.updateOkBaseColor(colorPickerBox.getRGBInfoBGColor());
             }
         }
 
         private function pressNumpadKey(num:String):void
         {
-            var startIndex:int = pickerBox.rgbInfo.selectionBeginIndex;
-            var endIndex:int = pickerBox.rgbInfo.selectionEndIndex;
+            var startIndex:int = colorPickerBox.rgbInfo.selectionBeginIndex;
+            var endIndex:int = colorPickerBox.rgbInfo.selectionEndIndex;
             var cursorIndex:int;
             var currentValue:int;
 
@@ -1078,15 +1078,15 @@
 
             if(startIndex != endIndex)
             {
-                pickerBox.rgbInfo.replaceText(startIndex,endIndex,num);
+                colorPickerBox.rgbInfo.replaceText(startIndex,endIndex,num);
             }
             else
             {
-                pickerBox.rgbInfo.replaceText(startIndex,startIndex,num);
+                colorPickerBox.rgbInfo.replaceText(startIndex,startIndex,num);
             }
 
             checkRGBInfoTextFormat(true);
-            numPadBox.updateOkBaseColor(pickerBox.getRGBInfoBGColor());
+            numPadBox.updateOkBaseColor(colorPickerBox.getRGBInfoBGColor());
         }
 
         private function getSidebarConstHeight():Number
@@ -1171,7 +1171,7 @@
         {
             if(flag)
             {
-                centerDragDropSelectBox();
+                updateLoadMenuBoxPosCenter();
                 stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownLoadBox);
             }
             else
@@ -1180,7 +1180,6 @@
             }
 
             setAsTopChild(loadMenuBox);
-
             loadMenuBox.visible = flag;
         }
 
@@ -1196,11 +1195,11 @@
 
         private function checkButtonUpLoadBox(oldTargetName:String):void
         {
-            loadMenuBox.addEventListener(MouseEvent.MOUSE_UP,mouseUpLoadBox);
+            loadMenuBox.addEventListener(MouseEvent.MOUSE_UP,onMouseUpLoadBox);
 
-            function mouseUpLoadBox(e:MouseEvent):void
+            function onMouseUpLoadBox(e:MouseEvent):void
             {
-                loadMenuBox.removeEventListener(MouseEvent.MOUSE_UP,mouseUpLoadBox);
+                loadMenuBox.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpLoadBox);
 
                 if(!e.target || e.target.alpha < 1.0) return;
 
@@ -1252,7 +1251,7 @@
             }
         }
 
-        private function mouseDownLoadBox(e:MouseEvent):void
+        private function onMouseDownLoadMenuBox(e:MouseEvent):void
         {
             if(!e.target)
             {
@@ -1270,7 +1269,7 @@
             setLoadBoxVisible(false);
         }
 
-        private function changeMyPalettePreset(type:int):void
+        private function activeColorPreset(type:int):void
         {
             if(myPalettePresetType === type)
             {
@@ -1279,25 +1278,25 @@
             var myPalettePresetTypeSave:int = myPalettePresetType;
             myPalettePresetType = type;
             updateMyPaletteList();
-            pickerBox.changeColorPresets(type);
-            if(pickerMode !== 1)
+            colorPickerBox.changeColorPresets(type);
+            if(isColorPickerModeBG)
             {
-                changePickerModeToPenColor();
+                deactiveColorPickerModeBG();
             }
 
             if(type === 1) // drawr
             {
-                myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = pickerBox.getRGBInfoBGColor();
+                myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = colorPickerBox.getRGBInfoBGColor();
                 pickColor(myPaletteSaveColorBeforeOtherType[1]);
             }
             else if(type === 2) //tegaki
             {
-                myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = pickerBox.getRGBInfoBGColor();
+                myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = colorPickerBox.getRGBInfoBGColor();
                 pickColor(myPaletteSaveColorBeforeOtherType[2]);
             }
             else
             {
-                myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = pickerBox.getRGBInfoBGColor();
+                myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = colorPickerBox.getRGBInfoBGColor();
                 pickColor(myPaletteSaveColorBeforeOtherType[0]);
             }
 
@@ -1643,7 +1642,7 @@
 
         private function getCurrentColorHint():String
         {
-            const strColor:String = getColorInfoStringOfHex(pickerBox.getCurrentColor(),rgbInfoColorTypeIsHSV);
+            const strColor:String = getColorInfoStringOfHex(colorPickerBox.getCurrentColor(),rgbInfoColorTypeIsHSV);
 
             return "Current color : "+strColor;
         }
@@ -1651,7 +1650,7 @@
         private function isHintCantUse():Boolean
         {
             return isMouseClicked || isMouseDragging || isToolBox2ON || isFillPenStarted
-            || lassoToolON || rgbInfoFocusedON || aboutPanelON || makeJumpImageFlag === 2
+            || lassoToolON || isRgbInfoFocused || aboutPanelON || makeJumpImageFlag === 2
             || isPopUpWindowOpened();
         }
 
@@ -1665,10 +1664,10 @@
             })
         }
 
-        private function pickerBoxHintONEvent(e:MouseEvent):void
+        private function onMouseOverPickerBoxHintON(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(!target || pickerBox.alpha < 1.0) return;
+            if(!target || colorPickerBox.alpha < 1.0) return;
             const targetName:String = target.name;
             var str:String = "";
 
@@ -1756,7 +1755,7 @@
             hint.on(str,target);
         }
 
-        private function scrollBarHintONEvent(e:MouseEvent):void
+        private function onMouseOverSideBarScrollHintON(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
             if(!target || (isHintCantUse() && !isFillPenStarted))
@@ -1777,14 +1776,14 @@
             });
         }
 
-        private function globalHintOFF(e:MouseEvent):void
+        private function onMouseOutGlobalHintOFF(e:MouseEvent):void
         {
             if(controlBox.hitTestPoint(mouseX,mouseY))
             {
                 return;
             }
 
-            if(!rgbInfoFocusedON && !isMouseDragging && !isCaptureModeON)
+            if(!isRgbInfoFocused && !isMouseDragging && !isCaptureModeON)
             {
                 if(hintBox.visible || hintHorverCursor.visible)
                 {
@@ -2044,7 +2043,7 @@
 
         private function isRGBInfoValueChanged():Boolean
         {
-            return pickerBox.getOldRGBInfoText() !== pickerBox.getFirstRGBInfoColorText();
+            return colorPickerBox.getOldRGBInfoText() !== colorPickerBox.getFirstRGBInfoColorText();
         }
 
         private function checkRGBInfoHasEmptyValue():Boolean
@@ -2101,7 +2100,7 @@
         //123,123,123에서 커서가 어느 지점이 있는지 반환함 0=R, 1=G, 2=B
         private function getRGBInfoTextCursorPos():int
         {
-            const textBeforeCursor:String = pickerBox.getRGBInfo().substring(0,pickerBox.rgbInfo.caretIndex);
+            const textBeforeCursor:String = colorPickerBox.getRGBInfo().substring(0,colorPickerBox.rgbInfo.caretIndex);
             const rgb:Array =  textBeforeCursor.split(",");
 
             return rgb.length-1;
@@ -2114,18 +2113,18 @@
 
             if(index === 0)
             {
-                pickerBox.rgbInfo.maxChars = 15;
-                pickerBox.rgbInfo.setSelection(4,pickerBox.getRGBInfo().indexOf(","));
+                colorPickerBox.rgbInfo.maxChars = 15;
+                colorPickerBox.rgbInfo.setSelection(4,colorPickerBox.getRGBInfo().indexOf(","));
             }
             else if(index === 1)
             {
-                pickerBox.rgbInfo.maxChars = 15;
-                pickerBox.rgbInfo.setSelection(pickerBox.getRGBInfo().indexOf(",")+1,pickerBox.getRGBInfo().lastIndexOf(","));
+                colorPickerBox.rgbInfo.maxChars = 15;
+                colorPickerBox.rgbInfo.setSelection(colorPickerBox.getRGBInfo().indexOf(",")+1,colorPickerBox.getRGBInfo().lastIndexOf(","));
             }
             else if(index === 2)
             {
-                pickerBox.rgbInfo.maxChars = getRGBInfoTextLimit();
-                pickerBox.rgbInfo.setSelection(pickerBox.getRGBInfo().lastIndexOf(",")+1,pickerBox.getRGBInfo().length);
+                colorPickerBox.rgbInfo.maxChars = getRGBInfoTextLimit();
+                colorPickerBox.rgbInfo.setSelection(colorPickerBox.getRGBInfo().lastIndexOf(",")+1,colorPickerBox.getRGBInfo().length);
             }
 
             selectedRGBInfoIndex = index;
@@ -2134,7 +2133,7 @@
         //RGB 문자열 3개가 든 배열을 반환함
         private function getRGBColorTextFromRGBInfoText():Array
         {
-            var rgbText:String = pickerBox.getRGBInfo().slice(4); // "RGB"와 공백 제거
+            var rgbText:String = colorPickerBox.getRGBInfo().slice(4); // "RGB"와 공백 제거
             var rgb:Array = rgbText.split(","); // 쉼표로 숫자를 나눔
 
             return rgb;
@@ -2196,7 +2195,7 @@
                 if(int(c[1]) > 100) c[1] = "100";
                 if(int(c[2]) > 100) c[2] = "100";
 
-                pickerBox.setRGBInfo("HSV "+c[0]+","+c[1]+","+c[2]);
+                colorPickerBox.setRGBInfo("HSV "+c[0]+","+c[1]+","+c[2]);
             }
             else
             {
@@ -2204,20 +2203,20 @@
                 if(int(c[1]) > 255) c[1]= "255";
                 if(int(c[2]) > 255) c[2]= "255";
 
-                pickerBox.setRGBInfo("RGB "+c[0]+","+c[1]+","+c[2]);
+                colorPickerBox.setRGBInfo("RGB "+c[0]+","+c[1]+","+c[2]);
             }
         }
 
         private function moveRGBInfoTextCursor(value:int):void
         {
-            const cursorPos:int = pickerBox.rgbInfo.caretIndex;
+            const cursorPos:int = colorPickerBox.rgbInfo.caretIndex;
             if(value === 1)
             {
-                pickerBox.rgbInfo.setSelection(cursorPos+1,cursorPos+1);
+                colorPickerBox.rgbInfo.setSelection(cursorPos+1,cursorPos+1);
             }
             else
             {
-                pickerBox.rgbInfo.setSelection(cursorPos-1,cursorPos-1);
+                colorPickerBox.rgbInfo.setSelection(cursorPos-1,cursorPos-1);
             }
         }
 
@@ -2242,8 +2241,8 @@
 
             hsv[index] = String(num);
 
-            pickerBox.setRGBInfo("HSV "+hsv);
-            pickerBox.updateOldRGBInfoText();
+            colorPickerBox.setRGBInfo("HSV "+hsv);
+            colorPickerBox.updateOldRGBInfoText();
 
             moveHSVCursorByColor(getHSVColorFromRGBInfoText());
 
@@ -2263,8 +2262,8 @@
 
             rgb[index] = String(num);
 
-            pickerBox.setRGBInfo("RGB "+rgb);
-            pickerBox.updateOldRGBInfoText();
+            colorPickerBox.setRGBInfo("RGB "+rgb);
+            colorPickerBox.updateOldRGBInfoText();
 
             moveHSVCursorByColor(getHexColorFromRGBInfoText());
 
@@ -2274,9 +2273,9 @@
 
         private function rgbInfoTextMouseDownEvent(e:MouseEvent):void
         {
-            if(pickerBox.rgbInfo.hitTestPoint(mouseX,mouseY))
+            if(colorPickerBox.rgbInfo.hitTestPoint(mouseX,mouseY))
             {
-                var clickedPos:int = pickerBox.rgbInfo.getCharIndexAtPoint(pickerBox.rgbInfo.mouseX,10);
+                var clickedPos:int = colorPickerBox.rgbInfo.getCharIndexAtPoint(colorPickerBox.rgbInfo.mouseX,10);
                 if(clickedPos >= 0 && clickedPos <= 3)
                 {
                     toggleRGBInfoTextColorType();
@@ -2408,11 +2407,11 @@
         {
             if(numPadBox.visible === false)
             {
-                numPadBox.on(HSVtoHEX(hsvColorArr[0],1.0,1.0),pickerBox.getRGBInfoBGColor(),getInvertedColor);
+                numPadBox.on(HSVtoHEX(hsvColorArr[0],1.0,1.0),colorPickerBox.getRGBInfoBGColor(),getInvertedColor);
                 setAsTopChild(numPadBox);
-                const gp:Point = pickerBox.rgbInfoBG.localToGlobal(ZERO_POINT);
+                const gp:Point = colorPickerBox.rgbInfoBG.localToGlobal(ZERO_POINT);
                 numPadBox.x = gp.x;
-                numPadBox.y = gp.y+pickerBox.rgbInfoBG.height*getUIScale();
+                numPadBox.y = gp.y+colorPickerBox.rgbInfoBG.height*getUIScale();
                 resetNowKey();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,numPadMouseDownEvent,false,-2);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,numPadRightMouseDownEvent,false,-2);
@@ -2421,7 +2420,7 @@
 
         private function closeNumpad():void
         {
-            if(pickerBox.getRGBInfoBGColor() !== pickerBox.getCurrentColor())
+            if(colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor())
             {
                 setRGBInfoTextInputOK();
             }
@@ -2495,7 +2494,7 @@
             if(!e.target) return;
 
             const targetName:String = e.target.name;
-            if(!numPadBox.hitTestPoint(mouseX,mouseY) && !pickerBox.rgbInfo.hitTestPoint(mouseX,mouseY))
+            if(!numPadBox.hitTestPoint(mouseX,mouseY) && !colorPickerBox.rgbInfo.hitTestPoint(mouseX,mouseY))
             {
                 if(numPadBox.visible)
                 {
@@ -2538,12 +2537,12 @@
             if(rgbInfoColorTypeIsHSV)
             {
                 rgbInfoColorTypeIsHSV = false;
-                pickerBox.setRGBInfo(getRGBInfoString(pickerBox.getRGBInfoBGColor()));
+                colorPickerBox.setRGBInfo(getRGBInfoString(colorPickerBox.getRGBInfoBGColor()));
             }
             else
             {
                 rgbInfoColorTypeIsHSV = true;
-                pickerBox.setRGBInfo(getHSVInfoString(HEXtoHSV(pickerBox.getRGBInfoBGColor())));
+                colorPickerBox.setRGBInfo(getHSVInfoString(HEXtoHSV(colorPickerBox.getRGBInfoBGColor())));
             }
 
             selectRGBInfoTextByRGBPos(oldCursorIndex);
@@ -2551,7 +2550,7 @@
 
         private function setRGBInfoTextInputOK():void
         {
-            const color:uint = pickerBox.getRGBInfoBGColor();
+            const color:uint = colorPickerBox.getRGBInfoBGColor();
 
             if(isPenColorMode())
             {
@@ -2561,8 +2560,8 @@
             else if(isBackgroundColorMode())
             {
                 updateCanvasBGColorDrawMode(color);
-                if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-                addUndoBGColor(color);
+                if(canvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
+                addUndoBGColorData(color);
             }
         }
 
@@ -2576,28 +2575,28 @@
             if(rgbInfoRightClickFocusIgnoreFlag)
             {
                 rgbInfoRightClickFocusIgnoreFlag = false;
-                pickerBox.rgbInfo.selectable = true;
+                colorPickerBox.rgbInfo.selectable = true;
                 return;
             }
 
             // stagefo();
             hint.off();
-            pickerBox.rgbInfo.background = false;
-            pickerBox.rgbInfo.border  = false;
-            pickerBox.rgbInfo.removeEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
+            colorPickerBox.rgbInfo.background = false;
+            colorPickerBox.rgbInfo.border  = false;
+            colorPickerBox.rgbInfo.removeEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN, rgbInfoTextKeyDownEvent);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,rgbInfoTextMouseDownEvent);
-            pickerBox.rgbInfo.removeEventListener(Event.CHANGE, onRGBInfoTextChangeEvent);
+            colorPickerBox.rgbInfo.removeEventListener(Event.CHANGE, onRGBInfoTextChangeEvent);
             rgbInfoRightClickFocusIgnoreFlag = false;
 
-            if(pickerBox.getRGBInfoBGColor() !== pickerBox.getCurrentColor())
+            if(colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor())
             {
                 setRGBInfoTextInputOK();
             }
 
             addTimerByName("rgbInfoTextFocusOutEventDelayInput",0.0,false,function():void
             {
-                rgbInfoFocusedON = false;
+                isRgbInfoFocused = false;
                 addInputEventsDrawMode();
             });
         }
@@ -2619,8 +2618,8 @@
                 //라소툴때문에 강제로 올려줌
                 rgbInfoRightClickFocusIgnoreFlag = true;
 
-                pickerBox.rgbInfo.selectable = false;
-                pickerBox.updateOldRGBInfoText();
+                colorPickerBox.rgbInfo.selectable = false;
+                colorPickerBox.updateOldRGBInfoText();
                 addTimerByName("textInputFocusIgnoreDelay",0.0,false,function():void
                 {
                     setStageFocusNull();
@@ -2630,9 +2629,9 @@
             }
             //가장 자리를 클릭하면 Y값이 음수가 될때가 있어서 제대로된 값이 안나옴 그래서 녺이는 양수 고정으로 함
             const foundColorType:String = (rgbInfoColorTypeIsHSV) ? "HSV":"RGB";
-            const isHSVRGBText:Boolean = (pickerBox.getRGBInfo().indexOf(foundColorType) !== -1)
-            var currnetTextCursorPos:int = pickerBox.rgbInfo.getCharIndexAtPoint(pickerBox.rgbInfo.mouseX,10);
-            if(rgbInfoFocusedON === false && isHSVRGBText && currnetTextCursorPos >= 0 && currnetTextCursorPos <= 3)
+            const isHSVRGBText:Boolean = (colorPickerBox.getRGBInfo().indexOf(foundColorType) !== -1)
+            var currnetTextCursorPos:int = colorPickerBox.rgbInfo.getCharIndexAtPoint(colorPickerBox.rgbInfo.mouseX,10);
+            if(isRgbInfoFocused === false && isHSVRGBText && currnetTextCursorPos >= 0 && currnetTextCursorPos <= 3)
             {
                 addTimerByName("textInputFocusIgnoreDelay",0.0,false,function():void
                 {
@@ -2643,57 +2642,57 @@
             }
             else if(currnetTextCursorPos < 0) //텍스트 맨 끝에 클릭하면 -1이 되서 이때는 커서를 가장 뒤로 이동시킴
             {
-                currnetTextCursorPos = pickerBox.rgbInfo.length;
+                currnetTextCursorPos = colorPickerBox.rgbInfo.length;
             }
 
             setIMEDisabled();
             removeInputEventsDrawMode();
 
-            rgbInfoFocusedON = true;
+            isRgbInfoFocused = true;
             isTransparentPenColor = false;
             selectedRGBInfoIndex = -1;
 
             if(isHSVRGBText)
             {
-                pickerBox.updateOldRGBInfoText();
+                colorPickerBox.updateOldRGBInfoText();
             }
             else //투명색으로 transparent 텍스트가 되있을때 말하는거임
             {
-                setRGBInfoTextColorByColor(pickerBox.getRGBInfoBGColor());
-                pickerBox.setRGBInfoBGTransparentColorOFF();
-                pickerBox.setRGBInfo(pickerBox.getOldRGBInfoText());
+                setRGBInfoTextColorByColor(colorPickerBox.getRGBInfoBGColor());
+                colorPickerBox.setRGBInfoBGTransparentColorOFF();
+                colorPickerBox.setRGBInfo(colorPickerBox.getOldRGBInfoText());
             }
 
-            pickerBox.updateFirstRGBInfoColorText();
+            colorPickerBox.updateFirstRGBInfoColorText();
             // pickerBox.rgbInfo.setSelection(0,0);
             if(quickSidebarON === false)
             {
                 stage.addEventListener(KeyboardEvent.KEY_DOWN,rgbInfoTextKeyDownEvent);
             }
-            pickerBox.rgbInfo.addEventListener(Event.CHANGE,onRGBInfoTextChangeEvent);
+            colorPickerBox.rgbInfo.addEventListener(Event.CHANGE,onRGBInfoTextChangeEvent);
             setNowToolForDrawing(false);
             showNumPad();
 
             addTimerByName("rgbInfoTextFocusInEventDelayCheck",0.0,false,function():void
             {
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,rgbInfoTextMouseDownEvent);
-                pickerBox.rgbInfo.setSelection(currnetTextCursorPos,currnetTextCursorPos);
-                pickerBox.rgbInfo.addEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
-                hint.on(STRING_CUSTOM_COLOR_HINT,pickerBox.rgbInfo);
+                colorPickerBox.rgbInfo.setSelection(currnetTextCursorPos,currnetTextCursorPos);
+                colorPickerBox.rgbInfo.addEventListener(Event.ENTER_FRAME,checkRGBInfoCursorPos);
+                hint.on(STRING_CUSTOM_COLOR_HINT,colorPickerBox.rgbInfo);
             });
         }
 
         private function checkRGBInfoTextFormat(fromNumPad:Boolean):void
         {
             const pattern:RegExp = /\b(RGB|HSV) \d{0,3},\d{0,3},\d{0,3}/;
-            var isMatch:Boolean = pattern.test(pickerBox.getRGBInfo());
+            var isMatch:Boolean = pattern.test(colorPickerBox.getRGBInfo());
             //여기서 빈값을 채워주기 때문에 미리 함수 실행해줘야 함
             const hasEmptyChecked:Boolean = checkRGBInfoHasEmptyValue();
 
             if(isMatch)
             {
                 checkRGBInfoColorValueLimit();
-                pickerBox.updateOldRGBInfoText();
+                colorPickerBox.updateOldRGBInfoText();
 
                 if(rgbInfoColorTypeIsHSV)
                 {
@@ -2711,7 +2710,7 @@
             }
             else
             {
-                pickerBox.resetToOldRGBInfoText();
+                colorPickerBox.resetToOldRGBInfoText();
             }
         }
 
@@ -2722,12 +2721,12 @@
 
         private function checkRGBInfoCursorPos(e:Event):void
         {
-            if(pickerBox.rgbInfo.caretIndex < 4)
+            if(colorPickerBox.rgbInfo.caretIndex < 4)
             {
-                pickerBox.rgbInfo.setSelection(4,4);
+                colorPickerBox.rgbInfo.setSelection(4,4);
             }
 
-            if(pickerBox.rgbInfo.caretIndex < 0)
+            if(colorPickerBox.rgbInfo.caretIndex < 0)
             {
                 selectRGBInfoTextByRGBPos(2);
             }
@@ -2816,12 +2815,12 @@
 
         private function setRCursorMirrorPos():void
         {
-            const p:Point = tickDraw.getRCursorPos();
+            const p:Point = replayDrawCommands.getRCursorPos();
             const half:Number = CANVAS_WIDTH/2;
             const curcorX:Number = rReplayFOFOCursor.x+(half-p.x)*2;
 
             rReplayFOFOCursor.x = curcorX;
-            tickDraw.setRCursorPos(curcorX,p.y);
+            replayDrawCommands.setRCursorPos(curcorX,p.y);
         }
 
         private function setRCursorVisibleONFadeOFF():void
@@ -2854,11 +2853,11 @@
         {
             if(undoIndex < 0)
             {
-                if(tickDraw.hasRCursorFirstPos())
+                if(replayDrawCommands.hasRCursorFirstPos())
                 {
-                    const p:Point = tickDraw.getFirstRCursorPos();
-                    tickDraw.setRCursorPos(p.x,p.y); //커서 위치도 업에이트 해줘야함 대칭해줄띠 getRcursor로 하기 때문에
-                    tickDraw.updateRCursorPosToFirst();
+                    const p:Point = replayDrawCommands.getFirstRCursorPos();
+                    replayDrawCommands.setRCursorPos(p.x,p.y); //커서 위치도 업에이트 해줘야함 대칭해줄띠 getRcursor로 하기 때문에
+                    replayDrawCommands.updateRCursorPosToFirst();
                 }
                 else
                 {
@@ -2868,7 +2867,7 @@
             }
             else
             {
-                tickDraw.updateRCursorPos();
+                replayDrawCommands.updateRCursorPos();
             }
         }
 
@@ -2879,8 +2878,8 @@
             const fofoHeight:Number = fofo.height-20*scale;
             const fofoTopRect:Rectangle = new Rectangle(sideBar.x,STAGE_TOP_OFFSET,sideBarWidth,fofoHeight);
             const fofoBottomRect:Rectangle = new Rectangle(sideBar.x,stage.stageHeight-STAGE_BOTTOM_OFFSET-fofoHeight,sideBarWidth,fofoHeight);
-            const gp:Point = sideBarScrollSet.localToGlobal(ZERO_POINT);
-            const sideBarRect:Rectangle = new Rectangle(gp.x-sideBarScrollSet.x*scale,gp.y,sideBar.getWidth(),getSidebarConstHeight()*scale);
+            const gp:Point = sideBarScrollPanel.localToGlobal(ZERO_POINT);
+            const sideBarRect:Rectangle = new Rectangle(gp.x-sideBarScrollPanel.x*scale,gp.y,sideBar.getWidth(),getSidebarConstHeight()*scale);
             const collisionTop:Boolean = sideBarRect.intersects(fofoTopRect);
             const collisionBottom:Boolean = sideBarRect.intersects(fofoBottomRect);
 
@@ -2949,7 +2948,7 @@
             }
         }
 
-        private function updateCanvasWindowCanvasPanelBGColor(color:uint,bmpd:BitmapData):void
+        private function updateCanvasWindowBGColor(color:uint,bmpd:BitmapData):void
         {
             if(canvasWindowCanvasPanelBgSize.x === bmpd.width
             && canvasWindowCanvasPanelBgSize.y === bmpd.height
@@ -2975,7 +2974,7 @@
         {
             const bounds:Rectangle = previewBox.setFitBitmapforBox(canvasLayer1BitmapData.width,canvasLayer1BitmapData.height
                                                                   ,canvasWindow.stage.stageWidth,canvasWindow.stage.stageHeight);
-            updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasLayer1BitmapData);
+            updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasLayer1BitmapData);
             canvasWindowCanvasPanel.x = bounds.x;
             canvasWindowCanvasPanel.y = bounds.y;
             canvasWindowCanvasPanel.width = bounds.width;
@@ -3001,12 +3000,12 @@
             });
         }
 
-        private function canvasWindowMovedEvent(e:Event):void
+        private function onMoveCanvasWindow(e:Event):void
         {
             updateCanvasWindowData();
         }
 
-        private function canvasWindowResizedEvent(e:Event):void
+        private function onResizeCanvasWindow(e:Event):void
         {
             if(!canvasWindowIgnoreResizeEventFlag) updateCanvasWindowData();
             else canvasWindowIgnoreResizeEventFlag = false;
@@ -3014,10 +3013,10 @@
 
         private function updateCanvasWindowImage():void
         {
-            canvasWindowBitmap.bitmapData = previewBox.prevBitmap.bitmapData;
-            canvasWindowBitmapSub.bitmapData = previewBox.prevBitmapSub.bitmapData;
-            canvasWindowBitmap.smoothing = true;
-            canvasWindowBitmapSub.smoothing = true;
+            canvasWindowLayer1Bitmap.bitmapData = previewBox.prevBitmap.bitmapData;
+            canvasWindowLayer2Bitmap.bitmapData = previewBox.prevBitmapSub.bitmapData;
+            canvasWindowLayer1Bitmap.smoothing = true;
+            canvasWindowLayer2Bitmap.smoothing = true;
         }
 
         private function setSyncWindowTitle():void
@@ -3046,12 +3045,12 @@
             canvasWindowCanvasPanel.y = 0;
         }
 
-        private function canvasWindowMoveStartEvent(e:MouseEvent):void
+        private function onMouseDownCanvasWindow(e:MouseEvent):void
         {
             canvasWindow.startMove();
         }
 
-        private function fitCanvasWindowSizeToCanvasRightMouseUp(e:MouseEvent):void
+        private function onRightMouseUpCanvasWindow(e:MouseEvent):void
         {
             if(canvasWindowCanvasPanel.width === canvasWindow.width
             && canvasWindowCanvasPanel.height === canvasWindow.height)
@@ -3074,12 +3073,12 @@
             stage.nativeWindow.activate();
         }
 
-        private function canvasWindowCloseKeyDown(e:KeyboardEvent):void
+        private function onKeyDownCanvasWindow(e:KeyboardEvent):void
         {
             if(e.keyCode === KEY.esc) closeCanvasWindowTemp();
         }
 
-        private function canvasWindowClosedEvent(e:Event):void
+        private function onClosingCanvasWindow(e:Event):void
         {
             if(windowClosingFlag == false)
             {
@@ -3101,25 +3100,25 @@
             setSyncWindowTitle();
             canvasWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
             canvasWindow.stage.align = StageAlign.TOP_LEFT;
-            canvasWindow.stage.addEventListener(MouseEvent.MOUSE_DOWN,canvasWindowMoveStartEvent);
-            canvasWindow.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,fitCanvasWindowSizeToCanvasRightMouseUp);
-            canvasWindow.stage.addEventListener(KeyboardEvent.KEY_DOWN,canvasWindowCloseKeyDown);
-            canvasWindow.addEventListener(Event.CLOSING,canvasWindowClosedEvent);
-            canvasWindow.addEventListener(Event.RESIZE,canvasWindowResizedEvent);
-            canvasWindow.addEventListener(NativeWindowBoundsEvent.MOVE,canvasWindowMovedEvent);
-            canvasWindow.addEventListener(Event.ACTIVATE,canvasWindowActivatedEvent);
+            canvasWindow.stage.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownCanvasWindow);
+            canvasWindow.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,onRightMouseUpCanvasWindow);
+            canvasWindow.stage.addEventListener(KeyboardEvent.KEY_DOWN,onKeyDownCanvasWindow);
+            canvasWindow.addEventListener(Event.CLOSING,onClosingCanvasWindow);
+            canvasWindow.addEventListener(Event.RESIZE,onResizeCanvasWindow);
+            canvasWindow.addEventListener(NativeWindowBoundsEvent.MOVE,onMoveCanvasWindow);
+            canvasWindow.addEventListener(Event.ACTIVATE,onActivateCanvasWindow);
 
             canvasWindowCanvasPanel = new Sprite();
             canvasWindowCanvasPanel.name = "canvasWindowCanvasPanel";
-            canvasWindowBitmap = new Bitmap();
-            canvasWindowBitmapSub = new Bitmap();
+            canvasWindowLayer1Bitmap = new Bitmap();
+            canvasWindowLayer2Bitmap = new Bitmap();
             updateCanvasWindowImage();
 
-            canvasWindowCanvasPanel.addChild(canvasWindowBitmapSub);
-            canvasWindowCanvasPanel.addChild(canvasWindowBitmap);
+            canvasWindowCanvasPanel.addChild(canvasWindowLayer2Bitmap);
+            canvasWindowCanvasPanel.addChild(canvasWindowLayer1Bitmap);
         }
 
-        private function canvasWindowActivatedEvent(e:Event):void
+        private function onActivateCanvasWindow(e:Event):void
         {
             canvasWindowON = true;
             if(!isReplayModeON && !isCaptureModeON)
@@ -3389,7 +3388,7 @@
             }
         }
 
-        private function addUndoBGColor(color:uint):void
+        private function addUndoBGColorData(color:uint):void
         {
             if(hasLastRDataCommand("bgColor"))
             {
@@ -3672,8 +3671,8 @@
             sideBar.y = Math.round(STAGE_TOP_OFFSET);
             sideBar.updateSideBGSize(getSideBarBGHeight());
 
-            if(lassoToolON) checkBoxPosition(lassoMenuBox);
-            if(isRefLayerMenuON) checkBoxPosition(refLayerMenuBox);
+            if(lassoToolON) keepBoxInsideStage(lassoMenuBox);
+            if(isRefLayerMenuON) keepBoxInsideStage(refLayerMenuBox);
 
             updatePreviewBoxRectPos();
             hint.off();
@@ -3695,7 +3694,7 @@
             setDefaultXSidebarPos();
             quickSidebarON = false;
             checkFOFOPosition();
-            pickerBox.rgbInfo.type = TextFieldType.INPUT;
+            colorPickerBox.rgbInfo.type = TextFieldType.INPUT;
 
             if(toolBox.getLastTool() === "toolSpuit")
             {
@@ -3728,7 +3727,7 @@
 
         private function rightMouseDownQuickSidebarOFF(e:MouseEvent):void
         {
-            if(!e.target || rgbInfoFocusedON || isPopUpWindowOpened())
+            if(!e.target || isRgbInfoFocused || isPopUpWindowOpened())
             {
                 return;
             }
@@ -3764,7 +3763,7 @@
                 break;
             }
 
-            if(pickerBox.rgbInfo.type === TextFieldType.INPUT)
+            if(colorPickerBox.rgbInfo.type === TextFieldType.INPUT)
             {
                 closeQuickSideBar();
             }
@@ -3804,13 +3803,13 @@
 
             if(shortcut)
             {
-                pickerBox.rgbInfo.type = TextFieldType.DYNAMIC;
+                colorPickerBox.rgbInfo.type = TextFieldType.DYNAMIC;
                 setNowToolByOldTool();
                 stage.addEventListener(KeyboardEvent.KEY_UP,keyUpQuickSidebarOFF);
             }
             else
             {
-                pickerBox.rgbInfo.type = TextFieldType.INPUT;
+                colorPickerBox.rgbInfo.type = TextFieldType.INPUT;
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownQuickSidebarOFF,false,-2);
             }
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownQuickSidebarOFF,false,-2);
@@ -4448,7 +4447,7 @@
             removeInputEventsDrawMode();
         }
 
-        private function mouseDownStage(e:MouseEvent):void
+        private function onMouseDownStage(e:MouseEvent):void
         {
             checkKeyInvalidKey();
             isMouseClicked = true;
@@ -4464,7 +4463,7 @@
             }
         }
 
-        private function rightMouseDownStage(e:MouseEvent):void
+        private function onRightMouseDownStage(e:MouseEvent):void
         {
             checkKeyInvalidKey();
             isRightMouseClicked = true;
@@ -4474,7 +4473,7 @@
             }
         }
 
-        private function wheelDownStage(e:MouseEvent):void
+        private function onMiddleMouseDownStage(e:MouseEvent):void
         {
             if(isCaptureModeON) return;
 
@@ -4492,7 +4491,7 @@
             handTool(isReplayModeON,true);
         }
 
-        private function mouseUpStage(e:MouseEvent):void
+        private function onMouseUpStage(e:MouseEvent):void
         {
             checkKeyInvalidKey();
             const mx:Number = mouseX;
@@ -4512,7 +4511,7 @@
             }
         }
 
-        private function rightMouseUpStage(e:MouseEvent):void
+        private function onRightMouseUpStage(e:MouseEvent):void
         {
             checkKeyInvalidKey();
             const mx:Number = mouseX;
@@ -4619,29 +4618,29 @@
         private function selectTransparentColor():void
         {
             isTransparentPenColor = true;
-            pickerBox.updateOldRGBInfoText();
-            pickerBox.setRGBInfoBGTransparentColorON(myPalettePresetType);
-            pickerBox.setRGBInfo("Transparent");
+            colorPickerBox.updateOldRGBInfoText();
+            colorPickerBox.setRGBInfoBGTransparentColorON(myPalettePresetType);
+            colorPickerBox.setRGBInfo("Transparent");
         }
 
-        private function setCurrentColor(mode:uint):void
+        private function updateCurrentColorPickerBox(bgmode:Boolean):void
         {
-            const hexColor:uint = pickerBox.currentColorColor;
+            const hexColor:uint = colorPickerBox.currentColorColor;
 
             isTransparentPenColor = false;
 
-            if(mode === 1)
+            if(bgmode)
+            {
+                updateCanvasBGColorDrawMode(hexColor);
+                if(canvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
+                moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(hexColor) : hexColor);
+                addUndoBGColorData(hexColor);
+            }
+            else
             {
                 penColor = hexColor;
                 updateOpacityCursorPos(penAlphaIndex);
                 moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(hexColor) : hexColor);
-            }
-            else if(mode === 2)
-            {
-                updateCanvasBGColorDrawMode(hexColor);
-                if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-                moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(hexColor) : hexColor);
-                addUndoBGColor(hexColor);
             }
         }
 
@@ -4952,7 +4951,7 @@
 
             function updateFillPenPreview(e:Event):void
             {
-                const newXcolor:uint = (isTransparentPenColor) ? CANVAS_BG_COLOR : pickerBox.rgbInfoBGColor;
+                const newXcolor:uint = (isTransparentPenColor) ? CANVAS_BG_COLOR : colorPickerBox.rgbInfoBGColor;
                 const newXAlpha:Number = penAlpha
                 const newXBlendMode:String = (isTransparentPenColor) ? "erase" : null;
 
@@ -5087,7 +5086,7 @@
 
                 toolBox.setFillPenModeOFF();
                 controlBox.setFillPenModeOFF();
-                pickerBox.checkPickerModeButton(1);
+                colorPickerBox.activePaperColorButton(false);
             }
 
             function endFillPenOK():void
@@ -5560,9 +5559,9 @@
                 command = new Vector.<int>();
                 data = new Vector.<Number>();
 
-                if(pickerMode !== 1)
+                if(isColorPickerModeBG)
                 {
-                    changePickerModeToPenColor();
+                    deactiveColorPickerModeBG();
                 }
                 mouseMoveCount = 0;
                 afterKeyUpOK = false;
@@ -5583,8 +5582,8 @@
                 {
                     if(!isCurrentColorSamePickedColor())
                     {
-                        updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
-                        addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
+                        updatePickerCurrentColor(colorPickerBox.getRGBInfoBGColor());
+                        addColorMyPaletteHistory(colorPickerBox.getRGBInfoBGColor());
                     }
                 }
 
@@ -5603,7 +5602,7 @@
                 canvasDrawLayer.alpha = xAlpha;
                 toolBox.setFillPenModeON(BUTTON_OFF_ALPHA);
                 controlBox.setFillPenModeON(BUTTON_OFF_ALPHA);
-                pickerBox.fillPenModeON();
+                colorPickerBox.fillPenModeON();
 
                 addEvents();
             }
@@ -5976,8 +5975,8 @@
 
                         if(!isCurrentColorSamePickedColor())
                         {
-                            updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
-                            addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
+                            updatePickerCurrentColor(colorPickerBox.getRGBInfoBGColor());
+                            addColorMyPaletteHistory(colorPickerBox.getRGBInfoBGColor());
                         }
                     }
                 }
@@ -6038,7 +6037,7 @@
             };
         }
 
-        private function stageMouseLeaveEvent(e:Event):void
+        private function onMouseLeaveStage(e:Event):void
         {
             isMouseClicked = false;
             isRightMouseClicked = false;
@@ -6048,7 +6047,7 @@
             penSizePreviewCursor.visible = false;
         }
 
-        private function updatePenCursorPositionEvent(e:MouseEvent):void
+        private function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
         {
             if(isReplayModeON || isCaptureModeON) return;
 
@@ -6773,11 +6772,11 @@
         {
             if(color is uint)
             {
-                pickerBox.setRGBInfo(getRGBInfoString(color));
+                colorPickerBox.setRGBInfo(getRGBInfoString(color));
             }
             else if(color is Vector.<Number>)
             {
-                pickerBox.setRGBInfo(getHSVInfoString(color));
+                colorPickerBox.setRGBInfo(getHSVInfoString(color));
             }
             else
             {
@@ -6790,64 +6789,67 @@
 
         private function setRGBInfoTextColorByColor(color:uint):void
         {
-            pickerBox.updateRGBInfoColor(getInvertedColor(color));
+            colorPickerBox.updateRGBInfoColor(getInvertedColor(color));
         }
 
         private function initPickerBoxInfo(color:uint):void
         {
             updateRGBInfoTextFromColor(color);
-            pickerBox.updateRGBInfoBG(color,getRGBInfoBorderColor(color),myPalettePresetType);
+            colorPickerBox.updateRGBInfoBG(color,getRGBInfoBorderColor(color),myPalettePresetType);
             updatePickerCurrentColor(color);
         }
 
-        private function setLassoTraceImageButton():void
+        private function setLassosetTraceImageButton():void
         {
             setAsTopChild(lassoMenuBox);
             refLayerMenuConfirmCount++;
 
-            function setLassoTraceImageButtonCountResetEvent(e:MouseEvent):void
+            function setLassosetTraceImageButtonCountResetEvent(e:MouseEvent):void
             {
                 refLayerMenuConfirmCount = 0;
-                lassoMenuBox.lassoTrace.removeEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
+                lassoMenuBox.lassoTrace.removeEventListener(MouseEvent.MOUSE_OUT,setLassosetTraceImageButtonCountResetEvent);
             }
 
             if(refLayerMenuConfirmCount === 1)
             {
                 lassoMenuBox.hint(STRING_ONEMORE_CLICK_TO_OK);
-                lassoMenuBox.lassoTrace.addEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
+                lassoMenuBox.lassoTrace.addEventListener(MouseEvent.MOUSE_OUT,setLassosetTraceImageButtonCountResetEvent);
             }
             else if(refLayerMenuConfirmCount === 2)
             {
                 refLayerMenuConfirmCount = 0;
-                lassoMenuBox.lassoTrace.removeEventListener(MouseEvent.MOUSE_OUT,setLassoTraceImageButtonCountResetEvent);
+                lassoMenuBox.lassoTrace.removeEventListener(MouseEvent.MOUSE_OUT,setLassosetTraceImageButtonCountResetEvent);
                 refLayerMenuBox.hint(STRING_MERGE_LASSO_IMAGE_TO_TRACE);
                 mergeLassoImageToTraceLayer();
                 openTraceWindow();
             }
         }
 
-        private function setTraceImageButton():void
+        private function transferImageToRefLayer():void
         {
-            if(refLayerMenuBox.traceImageButton.alpha !== 1.0) return;
+            if(refLayerMenuBox.refTransferImageButton.alpha !== 1.0)
+            {
+                return;
+            }
 
             setAsTopChild(refLayerMenuBox);
             refLayerMenuConfirmCount++;
 
-            function setTraceImageButtonCountResetEvent(e:MouseEvent):void
+            function onMouseOutRefTransferImageButton(e:MouseEvent):void
             {
                 refLayerMenuConfirmCount = 0;
-                refLayerMenuBox.traceImageButton.removeEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
+                refLayerMenuBox.refTransferImageButton.removeEventListener(MouseEvent.MOUSE_OUT,onMouseOutRefTransferImageButton);
             }
 
             if(refLayerMenuConfirmCount === 1)
             {
                 refLayerMenuBox.hint(STRING_ONEMORE_CLICK_TO_OK);
-                refLayerMenuBox.traceImageButton.addEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
+                refLayerMenuBox.refTransferImageButton.addEventListener(MouseEvent.MOUSE_OUT,onMouseOutRefTransferImageButton);
             }
             else if(refLayerMenuConfirmCount === 2)
             {
                 refLayerMenuConfirmCount = 0;
-                refLayerMenuBox.traceImageButton.removeEventListener(MouseEvent.MOUSE_OUT,setTraceImageButtonCountResetEvent);
+                refLayerMenuBox.refTransferImageButton.removeEventListener(MouseEvent.MOUSE_OUT,onMouseOutRefTransferImageButton);
                 refLayerMenuBox.hint(STRING_MERGE_CANVAS_IMAGE_TO_TRACE);
                 pasteCanvasImageToTraceLayer();
             }
@@ -6855,14 +6857,14 @@
 
         private function checkLassoMenuPos():void
         {
-            checkBoxPosition(lassoMenuBox);
+            keepBoxInsideStage(lassoMenuBox);
         }
 
-        private function traceMenuHintONEvent(e:MouseEvent):void
+        private function onMouseOverRefLayerMenu(e:MouseEvent):void
         {
             if(!isRefLayerMenuON)
             {
-                stage.removeEventListener(MouseEvent.MOUSE_OVER,traceMenuHintONEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_OVER,onMouseOverRefLayerMenu);
                 return;
             }
 
@@ -6887,7 +6889,7 @@
             switch(targetName)
             {
                 case "traceCancelButton":str = "Close [esc, backspace, t]"; break;
-                case "traceImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_TRACE; break;
+                case "setTraceImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_TRACE; break;
                 case "traceLoadButton":str = "Load image"; break;
                 case "traceClipButton":str = "Load clipboard image"; break;
                 case "traceButtonWrapper":str = "Adjust image opacity"; break;
@@ -6959,9 +6961,9 @@
             lassoMenuBox.hint(str);
         }
 
-        private function toolBoxHintOFFEvent(e:MouseEvent):void
+        private function onMouseOutToolBoxHintOFF(e:MouseEvent):void
         {
-            if(rgbInfoFocusedON) return;
+            if(isRgbInfoFocused) return;
             if(zoomToolHintON) zoomToolHintON = false;
         }
 
@@ -7022,7 +7024,7 @@
             return str;
         }
 
-        private function toolBoxHint2ONEvent(e:MouseEvent):void
+        private function onMouseOverToolBox2HintON(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
             if(!target || target.alpha < 1.0) return;
@@ -7031,7 +7033,7 @@
             toolBox2.hint((hintStr === "") ? "Tools" : hintStr);
         }
 
-        private function toolBoxHintONEvent(e:MouseEvent):void
+        private function onMouseOverToolBoxAppInfoHintON(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
             if(!target) return;
@@ -7082,7 +7084,7 @@
             }
         }
 
-        private function changeTopBarIcons(mode:String="draw"):void
+        private function changeTopBarIconFromMode(mode:String="draw"):void
         {
             if(lassoToolON === true || aboutPanelON === true)
             {
@@ -7586,19 +7588,19 @@
             refLayerMenuBox.visible = true;
 
             setAsTopChild(refLayerMenuBox);
-            checkBoxPosition(refLayerMenuBox);
+            keepBoxInsideStage(refLayerMenuBox);
 
             if(isRefLayerMenuON === false)
             {
                 refLayerMenuBox.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpTraceWindow);
-                stage.addEventListener(MouseEvent.MOUSE_OVER,traceMenuHintONEvent);
+                stage.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverRefLayerMenu);
             }
 
             isRefLayerMenuON = true;
             setAsTopChild(refLayerMenuBox);
         }
 
-        private function isTraceImageAlreadyDeleted():Boolean
+        private function isRefLayerImageAlreadyCleared():Boolean
         {
             return (canvasRefLayerBitmapData && canvasRefLayerBitmapData.width > 1 && canvasRefLayerBitmapData.height > 1)
                    || !canvasRefLayerBitmapData;
@@ -7608,7 +7610,7 @@
         {
             setAsTopChild(refLayerMenuBox);
 
-            if(isTraceImageAlreadyDeleted())
+            if(isRefLayerImageAlreadyCleared())
             {
                 clearRefLayerImage();
             }
@@ -7624,14 +7626,14 @@
             if(isRefLayerMemoryTrainingON === false)
             {
                 isRefLayerMemoryTrainingON = true;
-                refLayerMenuBox.traceVisibleOFFButton.visible = false;
-                refLayerMenuBox.traceVisibleONButton.visible = true;
+                refLayerMenuBox.refMemoryTrainingOffButton.visible = false;
+                refLayerMenuBox.refMemoryTrainingOnButton.visible = true;
             }
             else if(isRefLayerMemoryTrainingON === true)
             {
                 isRefLayerMemoryTrainingON = false;
-                refLayerMenuBox.traceVisibleOFFButton.visible = true;
-                refLayerMenuBox.traceVisibleONButton.visible = false;
+                refLayerMenuBox.refMemoryTrainingOffButton.visible = true;
+                refLayerMenuBox.refMemoryTrainingOnButton.visible = false;
             }
         }
 
@@ -8287,7 +8289,7 @@
         {
             updateStageBGColor(uiColorSet[index][2]);
             controlBox.changeUIColor(uiColorSet[index][1]);
-            pickerBox.changeUIColor(uiColorSet[index][1]);
+            colorPickerBox.changeUIColor(uiColorSet[index][1]);
             sideBar.changeUIColor(uiColorSet[index][0]);
             previewBox.chanegStageColor(uiColorSet[index][2]);
             toolBox.changeUIColor(uiToolBoxColorSet[index]);
@@ -8300,15 +8302,15 @@
             rotateCursorBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1]);
             rReplayTimeBarBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],uiToolBoxColorSet[index][4],index);
             checkClipBoardImage();
-            appInfoBox.changeUIColor(uiColorSet[index][1]);
-            setRGBInfoTextColorByColor(pickerBox.getRGBInfoBGColor());
+            canvasInfoBox.changeUIColor(uiColorSet[index][1]);
+            setRGBInfoTextColorByColor(colorPickerBox.getRGBInfoBGColor());
 
-            if(pickerMode !== 1)
+            if(isColorPickerModeBG)
             {
-                changePickerModeToPenColor();
+                deactiveColorPickerModeBG();
             }
 
-            pickerBox.checkPickerModeButton(pickerMode);
+            colorPickerBox.activePaperColorButton(isColorPickerModeBG);
             updateScrollBarColorHeight();
             setResizeButtonColor(uiColorSet[index][3]);
 
@@ -8316,7 +8318,7 @@
             hintBox.setBGColor(toolTipBoxBGColor[index]);
             hint.setCursorColor(hintHorverCursorColor[index]);
             fofo.changeColor(uiColorSet[index][1]);
-            capStampFontListBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],toolTipBoxBGColor[index]);
+            captureStampFontListBox.changeUIColor(uiColorSet[index][0],uiColorSet[index][1],toolTipBoxBGColor[index]);
 
             if(canvasWindowON)
             {
@@ -8326,47 +8328,47 @@
             setPickerBoxTransBGBrightness(index);
         }
 
-        private function addStageInputEvent():void
+        private function addStageInputEvents():void
         {
             //전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음
-            stage.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownStage,false,1);
-            stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpStage,false,1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,rightMouseUpStage,false,1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,rightMouseDownStage,false,1);
-            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN,wheelDownStage,false,1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownStage,false,1);
-            stage.addEventListener(KeyboardEvent.KEY_UP,keyUpStage,false,1);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, updatePenCursorPositionEvent);
-            stage.addEventListener(MouseEvent.MOUSE_UP,updatePenCursorPositionEvent,false,-1);
-            stage.addEventListener(Event.MOUSE_LEAVE,stageMouseLeaveEvent,false);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownStage,false,1);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpStage,false,1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,onRightMouseUpStage,false,1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onRightMouseDownStage,false,1);
+            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN,onMiddleMouseDownStage,false,1);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN,onKeyDownStage,false,1);
+            stage.addEventListener(KeyboardEvent.KEY_UP,onKeyUpStage,false,1);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveUpdatePenPreviewCursor);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseMoveUpdatePenPreviewCursor,false,-1);
+            stage.addEventListener(Event.MOUSE_LEAVE,onMouseLeaveStage,false);
         }
 
-        private function addInputEventStageChild():void
+        private function addInputEventsStageChild():void
         {
             //창을 가운데로 옮김
             stage.nativeWindow.x = Capabilities.screenResolutionX/2 - 680/2;
             stage.nativeWindow.y = Capabilities.screenResolutionY/2 - 768/2 - 50;
-            stage.nativeWindow.addEventListener(Event.RESIZE,windowResizeEvent);
-            stage.nativeWindow.addEventListener(Event.DEACTIVATE,windowDeactiveEvent);
-            stage.nativeWindow.addEventListener(Event.ACTIVATE,windowActiveEvent);
-            stage.nativeWindow.addEventListener(Event.CLOSING, windowClosingEvent);
-            stage.addEventListener(MouseEvent.MOUSE_OUT,globalHintOFF);
-            stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,onDragEnterEvent);
-            stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP,onDragDropEvent);
-            stage.addEventListener(MouseEvent.MOUSE_WHEEL, mouseWheelStage);
+            stage.nativeWindow.addEventListener(Event.RESIZE,onWindowResize);
+            stage.nativeWindow.addEventListener(Event.DEACTIVATE,onWindowDeactivate);
+            stage.nativeWindow.addEventListener(Event.ACTIVATE,onWindowActive);
+            stage.nativeWindow.addEventListener(Event.CLOSING, onWindowClosingEvent);
+            stage.addEventListener(MouseEvent.MOUSE_OUT,onMouseOutGlobalHintOFF);
+            stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,onDragEnter);
+            stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP,onDragDrop);
+            stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheelStage);
 
             //힌트 보여주는 이벤트
-            appInfoBox.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHintONEvent);
-            toolBox.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHintONEvent);
-            toolBox.addEventListener(MouseEvent.MOUSE_OUT,toolBoxHintOFFEvent);
-            toolBox2.addEventListener(MouseEvent.MOUSE_OVER,toolBoxHint2ONEvent);
-            rReplayTimeBarBox.addEventListener(MouseEvent.MOUSE_OVER,topBarHintONEvent);
-            topBar.addEventListener(MouseEvent.MOUSE_OVER,topBarHintONEvent);
-            previewBox.addEventListener(MouseEvent.MOUSE_OVER,previewBoxHintONEvent);
-            controlBox.addEventListener(MouseEvent.MOUSE_OVER,controlBoxHintONEvent);
-            pickerBox.addEventListener(MouseEvent.MOUSE_OVER,pickerBoxHintONEvent);
-            sideBarScrollBar.addEventListener(MouseEvent.MOUSE_OVER,scrollBarHintONEvent);
-            loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN,mouseDownLoadBox);
+            canvasInfoBox.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverToolBoxAppInfoHintON);
+            toolBox.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverToolBoxAppInfoHintON);
+            toolBox.addEventListener(MouseEvent.MOUSE_OUT,onMouseOutToolBoxHintOFF);
+            toolBox2.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverToolBox2HintON);
+            rReplayTimeBarBox.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverTopBarHintON);
+            topBar.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverTopBarHintON);
+            previewBox.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverPreviewBoxHintON);
+            controlBox.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverControlBoxHintON);
+            colorPickerBox.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverPickerBoxHintON);
+            sideBarScrollBar.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverSideBarScrollHintON);
+            loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownLoadMenuBox);
         }
 
         private function setControlBoxInfoOFF():void
@@ -8392,7 +8394,7 @@
             return "Size "+getPenSizeHint(targetName)+ " [f, v, h, n]";
         }
 
-        private function previewBoxHintONEvent(e:MouseEvent):void
+        private function onMouseOverPreviewBoxHintON(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
             if(!target) return;
@@ -8406,7 +8408,7 @@
             hint.on("Canvas navigator",e.currentTarget);
         }
 
-        private function controlBoxHintONEvent(e:MouseEvent):void
+        private function onMouseOverControlBoxHintON(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
             if(!target) return;
@@ -8733,7 +8735,7 @@
             }
         }
 
-        private function keyUpStage(e:KeyboardEvent):void
+        private function onKeyUpStage(e:KeyboardEvent):void
         {
             setIMEDisabled();
             checkKeyInvalidKey();
@@ -8757,7 +8759,7 @@
             }
         }
 
-        private function keyDownStage(e:KeyboardEvent):void
+        private function onKeyDownStage(e:KeyboardEvent):void
         {
             setIMEDisabled();
             checkKeyInvalidKey();
@@ -8911,7 +8913,7 @@
                 xBitmapData11 = rCanvasLayer2BitmapData;
                 xcanvas2 = rCanvasDrawLayer;
                 xBGCOLOR = RCANVAS_BG_COLOR;
-                alpha = tickDraw.getLineStyleAlpha();
+                alpha = replayDrawCommands.getLineStyleAlpha();
             }
             else
             {
@@ -9391,58 +9393,52 @@
 
         private function isCurrentColorSamePickedColor():Boolean
         {
-            return pickerBox.getRGBInfoBGColor() === pickerBox.getCurrentColor();
+            return colorPickerBox.getRGBInfoBGColor() === colorPickerBox.getCurrentColor();
         }
 
         private function updatePickerCurrentColor(color:uint):void
         {
-            pickerBox.updateCurrentColor(color,getRGBInfoBorderColor(color));
+            colorPickerBox.updateCurrentColor(color,getRGBInfoBorderColor(color));
         }
 
-        private function checkAutoSwitchIsPickerModeToPenEvent(e:Event):void
+        private function onEnterFrameColorPickerBoxModeBGOFF(e:Event):void
         {
-            if(!isMouseClicked && (!sideBar.visible || !pickerBox.hitTestPoint(mouseX,mouseY)))
+            if(!isMouseClicked && (!sideBar.visible || !colorPickerBox.hitTestPoint(mouseX,mouseY)))
             {
-                stage.removeEventListener(Event.ENTER_FRAME,checkAutoSwitchIsPickerModeToPenEvent);
+                stage.removeEventListener(Event.ENTER_FRAME,onEnterFrameColorPickerBoxModeBGOFF);
                 pickerModeResetFlag = false;
-                changePickerModeToPenColor();
+                deactiveColorPickerModeBG();
             }
         }
 
-        private function checkAutoSwitchIsPickerModeToPen():void
-        {
-            if(pickerModeResetFlag === false)
-            {
-                pickerModeResetFlag = true;
-                stage.addEventListener(Event.ENTER_FRAME,checkAutoSwitchIsPickerModeToPenEvent);
-            }
-        }
-
-        private function changePickerModeToPaperColor():void
+        private function activeColorPickerModeBG():void
         {
             const color:uint = CANVAS_BG_COLOR;
 
-            pickerMode = 2;
+            isColorPickerModeBG = true;
 
             moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(color) : color);
             updatePickerCurrentColor(color);
-            pickerBox.checkPickerModeButton(2);
-            pickerBox.transColorButton.visible = false;
+            colorPickerBox.activePaperColorButton(true);
+            colorPickerBox.transColorButton.visible = false;
             isTransparentPenColor = false;
 
-            checkAutoSwitchIsPickerModeToPen();
+            if(pickerModeResetFlag === false)
+            {
+                pickerModeResetFlag = true;
+                stage.addEventListener(Event.ENTER_FRAME,onEnterFrameColorPickerBoxModeBGOFF);
+            }
         }
 
-        private function changePickerModeToPenColor():void
+        private function deactiveColorPickerModeBG():void
         {
             const color:uint = penColor;
 
-            pickerMode = 1;
-
+            isColorPickerModeBG = false;
             moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(color) : color);
             updatePickerCurrentColor(color);
-            pickerBox.checkPickerModeButton(1);
-            pickerBox.transColorButton.visible = true;
+            colorPickerBox.activePaperColorButton(false);
+            colorPickerBox.transColorButton.visible = true;
             isTransparentPenColor = false;
         }
 
@@ -9477,21 +9473,21 @@
 
         private function isBackgroundColorMode():Boolean
         {
-            return pickerMode === 2 && isFillPenStarted === false;
+            return isColorPickerModeBG === true && isFillPenStarted === false;
         }
 
         private function isPenColorMode():Boolean
         {
-            return pickerMode === 1;
+            return isColorPickerModeBG === false;
         }
 
         private function startHueColorSelection():void
         {
-            const offsetX:Number = pickerBox["offsetX"];
-            const max:Number = pickerBox["svBoxWidth"];
+            const offsetX:Number = colorPickerBox["offsetX"];
+            const max:Number = colorPickerBox["svBoxWidth"];
             var pickedColor:uint = 0;
 
-            setAsTopChild(pickerBox["hueCursor"]);
+            setAsTopChild(colorPickerBox["hueCursor"]);
             isMouseDragging = true;
             penCursorOFFFlag = true;
             isTransparentPenColor = false;
@@ -9503,7 +9499,7 @@
                 if(hueCursorX < 0) hueCursorX = 0;
                 else if(hueCursorX > max) hueCursorX = max;
 
-                pickerBox["hueCursor"].x = hueCursorX;
+                colorPickerBox["hueCursor"].x = hueCursorX;
 
                 const hueValue:Number = hueCursorX/max;
                 const baseColor:Vector.<uint> = HSVtoRGB(hueValue,1.0,1.0);
@@ -9511,18 +9507,18 @@
                 const color:uint = updatePickerBoxInfoColor(hueValue,hsvColorArr[1],hsvColorArr[2]);
 
                 pickedColor = color;
-                pickerBox.changeHueColor(baseHexColor);
-                pickerBox.updateRGBInfoBG(color,getRGBInfoBorderColor(color),myPalettePresetType);
+                colorPickerBox.changeHueColor(baseHexColor);
+                colorPickerBox.updateRGBInfoBG(color,getRGBInfoBorderColor(color),myPalettePresetType);
             }
 
             function hueColorButtonMoveEvent(e:MouseEvent):void
             {
-                hueMoveStart(pickerBox["hueColor"].mouseX);
+                hueMoveStart(colorPickerBox["hueColor"].mouseX);
             }
 
             function hueColorButtonUpEvent(e:MouseEvent):void
             {
-                hueMoveStart(pickerBox["hueColor"].mouseX);
+                hueMoveStart(colorPickerBox["hueColor"].mouseX);
 
                 if(isPenColorMode())
                 {
@@ -9531,15 +9527,15 @@
                 else if(isBackgroundColorMode())
                 {
                     updateCanvasBGColorDrawMode(pickedColor);
-                    if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-                    addUndoBGColor(pickedColor);
+                    if(canvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
+                    addUndoBGColorData(pickedColor);
                 }
 
                 isMouseDragging = false;
                 penCursorOFFFlag = false;
 
                 updateRGBInfoTextFromColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(pickedColor) : pickedColor);
-                pickerBox.setRGBInfoVisible(true);
+                colorPickerBox.setRGBInfoVisible(true);
 
                 setNowToolForDrawing(false);
                 //timer로 동작하는 경우 마지막 커서위치에 안가있을수도 있기 때문에 up에서도 해줌
@@ -9547,8 +9543,8 @@
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,hueColorButtonMoveEvent);
             }
 
-            pickerBox.setRGBInfoVisible(false);
-            hueMoveStart(pickerBox["hueColor"].mouseX);
+            colorPickerBox.setRGBInfoVisible(false);
+            hueMoveStart(colorPickerBox["hueColor"].mouseX);
             stage.addEventListener(MouseEvent.MOUSE_UP,hueColorButtonUpEvent);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, hueColorButtonMoveEvent);
         }
@@ -9570,11 +9566,11 @@
 
         private function startSVColorSelection():void
         {
-            const colorBarWidth:Number = pickerBox["svBoxWidth"];
-            const colorBarHeight:Number = pickerBox["svBoxHeight"];
+            const colorBarWidth:Number = colorPickerBox["svBoxWidth"];
+            const colorBarHeight:Number = colorPickerBox["svBoxHeight"];
             var pickedColor:uint = 0;
 
-            setAsTopChild(pickerBox["svCursor"]);
+            setAsTopChild(colorPickerBox["svCursor"]);
             isMouseDragging = true;
             penCursorOFFFlag = true;
             isTransparentPenColor = false;
@@ -9590,8 +9586,8 @@
                 if(svCursorY < 0) svCursorY = 0;
                 else if(svCursorY > colorBarHeight) svCursorY = colorBarHeight;
 
-                pickerBox["svCursor"].x = svCursorX;
-                pickerBox["svCursor"].y = svCursorY;
+                colorPickerBox["svCursor"].x = svCursorX;
+                colorPickerBox["svCursor"].y = svCursorY;
 
                 const hueValue:Number = hsvColorArr[0];
                 const sValue:Number = svCursorX/colorBarWidth;
@@ -9599,18 +9595,18 @@
                 const color:uint = updatePickerBoxInfoColor(hueValue,sValue,vValue);
 
                 pickedColor = color;
-                pickerBox.updateRGBInfoBG(color,getRGBInfoBorderColor(color),myPalettePresetType);
-                pickerBox.setRGBInfoVisible(false);
+                colorPickerBox.updateRGBInfoBG(color,getRGBInfoBorderColor(color),myPalettePresetType);
+                colorPickerBox.setRGBInfoVisible(false);
             }
 
             function svColorButtonMoveEvent(e:MouseEvent):void
             {
-                onSVBoxMouseMove(pickerBox["svBox"].mouseX,pickerBox["svBox"].mouseY);
+                onSVBoxMouseMove(colorPickerBox["svBox"].mouseX,colorPickerBox["svBox"].mouseY);
             }
 
             function svColorButtonUpEvent(e:MouseEvent):void
             {
-                onSVBoxMouseMove(pickerBox["svBox"].mouseX,pickerBox["svBox"].mouseY);
+                onSVBoxMouseMove(colorPickerBox["svBox"].mouseX,colorPickerBox["svBox"].mouseY);
 
                 if(isPenColorMode())
                 {
@@ -9620,23 +9616,23 @@
                 else if(isBackgroundColorMode())
                 {
                     updateCanvasBGColorDrawMode(pickedColor);
-                    if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-                    addUndoBGColor(pickedColor);
+                    if(canvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
+                    addUndoBGColorData(pickedColor);
                 }
 
                 isMouseDragging = false;
                 penCursorOFFFlag = false;
 
                 updateRGBInfoTextFromColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(pickedColor) : pickedColor);
-                pickerBox.setRGBInfoVisible(true);
+                colorPickerBox.setRGBInfoVisible(true);
                 setNowToolForDrawing(false);
 
                 stage.removeEventListener(MouseEvent.MOUSE_UP,svColorButtonUpEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,svColorButtonMoveEvent);
             }
 
-            pickerBox.setRGBInfoVisible(false);
-            onSVBoxMouseMove(pickerBox["svBox"].mouseX,pickerBox["svBox"].mouseY);
+            colorPickerBox.setRGBInfoVisible(false);
+            onSVBoxMouseMove(colorPickerBox["svBox"].mouseX,colorPickerBox["svBox"].mouseY);
 
             stage.addEventListener(MouseEvent.MOUSE_UP,svColorButtonUpEvent);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, svColorButtonMoveEvent);
@@ -9881,7 +9877,7 @@
                 case "eng":
                 case "aboutHomePageLink":
                 // case "aboutMeLink":
-                    checkButtonUp(targetName);
+                    onMouseUpConfirmClick(targetName);
                 break;
 
                 default:
@@ -9956,14 +9952,14 @@
             saveFileName = newName;
             saveFilePath = newPath;
 
-            appInfoBox.setMirror(false);
+            canvasInfoBox.setMirror(false);
             updateWindowTitle();
             clearAutoKeyRepeatEvents(null);
         }
 
         private function setReRecordCopyCanvas():void
         {
-            const lineStyleSave:Array = tickDraw.getrLineStyleSave();
+            const lineStyleSave:Array = replayDrawCommands.getrLineStyleSave();
             // if(!lineStyleSave) return;
             var newColorTransform:ColorTransform = new ColorTransform(1,1,1,lineStyleSave[0]);
 
@@ -9991,7 +9987,7 @@
             canvasLayer2BitmapData = rCanvasLayer2BitmapData.clone();
             canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
 
-            changeCanvasSize(canvasLayer1Bitmap.width,canvasLayer1Bitmap.height);
+            updateCavnvasSizeDrawMode(canvasLayer1Bitmap.width,canvasLayer1Bitmap.height);
             updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
             previewBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
 
@@ -10008,7 +10004,7 @@
             clearCanvasReplayMode();
             clearDataResetVars();
             setWindowTitleStar();
-            tickDraw.resetFirstRCursorPos();
+            replayDrawCommands.resetFirstRCursorPos();
             clearRFrameCacheImages();
             //reset vars보다 뒤에 와야함
             //addundo에서 활성화 해주고 있기 때문에
@@ -10020,13 +10016,13 @@
             startPressHoldKey((!keyFlag)?topBar.clearButton:null,"Creating new file.. ",null,clearData,null);
         }
 
-        private function checkButtonUp(targetName:String):void
+        private function onMouseUpConfirmClick(targetName:String):void
         {
             if(aboutPanelON)
             {
-                function aboutButtonUpEvent(e:MouseEvent):void
+                function onMouseUpAboutBox(e:MouseEvent):void
                 {
-                    stage.removeEventListener(MouseEvent.MOUSE_UP,aboutButtonUpEvent);
+                    stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpAboutBox);
                     const upTargetName:String = e.target.name;
                     if(targetName === upTargetName)
                     {
@@ -10074,13 +10070,13 @@
                         }
                     }
                 }
-                stage.addEventListener(MouseEvent.MOUSE_UP,aboutButtonUpEvent);
+                stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpAboutBox);
                 return;
             }
 
-            function buttonUpEvent(e:MouseEvent):void
+            function onMouseClickButton(e:MouseEvent):void
             {
-                stage.removeEventListener(MouseEvent.MOUSE_UP, buttonUpEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseClickButton);
 
                 const upTargetName:String = e.target.name;
 
@@ -10194,11 +10190,11 @@
                         break;
 
                         case "capFontListPrev":
-                            capStampFontListBox.updateNextFontList(false);
+                            captureStampFontListBox.updateNextFontList(false);
                         break;
 
                         case "capFontListNext":
-                            capStampFontListBox.updateNextFontList(true);
+                            captureStampFontListBox.updateNextFontList(true);
                         break;
 
                         case "topBarColorButton":
@@ -10242,15 +10238,15 @@
                         }
                         break;
 
-                        case "traceImageButton":
+                        case "setTraceImageButton":
                         {
-                            setTraceImageButton();
+                            transferImageToRefLayer();
                         }
                         break;
 
                         case "traceClipButton":
                         {
-                            if(refLayerMenuBox.traceClipButton.alpha === 1.0)
+                            if(refLayerMenuBox.refClipBoardButton.alpha === 1.0)
                             {
                                 setClipboardButton(true);
                             }
@@ -10281,7 +10277,7 @@
                         break;
 
                         case "lassoTrace":
-                            setLassoTraceImageButton();
+                            setLassosetTraceImageButton();
                         break;
 
                         case "lassoOK":
@@ -10360,7 +10356,7 @@
                     }
                 }
             }
-            stage.addEventListener(MouseEvent.MOUSE_UP,buttonUpEvent);
+            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseClickButton);
         }
 
         private function setCanvasSameReplayCanvas():void
@@ -10390,7 +10386,7 @@
             jumpFrame(rNowFrameBackup,JUMP_FRAME_ONCE);
             mirrorON = rMirrorON;
             mirrorCommandReady = false;
-            appInfoBox.setMirror(rMirrorON);
+            canvasInfoBox.setMirror(rMirrorON);
         }
 
         private function deleteReplayFrontData():void
@@ -10475,7 +10471,7 @@
             undoToIndex(undoIndex);
             setDeepUndoOFF();
             checkReplaySpeedState();
-            tickDraw.setFirstRCursorPosCurrent();
+            replayDrawCommands.setFirstRCursorPosCurrent();
         }
 
         private function setReRecord():void
@@ -10527,8 +10523,8 @@
             resetUndo(true);
             rReplayFOFOCursor.visible = true;//대칭된 커서 위치를 갱신해주려고 임시로 켜줌
             // checkMirrorCanvasReplayMirror();
-            appInfoBox.setMirror(mirrorON);
-            tickDraw.setFirstRCursorPosCurrent();
+            canvasInfoBox.setMirror(mirrorON);
+            replayDrawCommands.setFirstRCursorPosCurrent();
             rReplayFOFOCursor.visible = false;
 
             previewBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
@@ -10560,7 +10556,7 @@
             }
             else if(rDataReadingFlag === false)
             {
-                tickDraw.setFirstRCursorPosCurrent();
+                replayDrawCommands.setFirstRCursorPosCurrent();
                 const fs:FileStream = new FileStream();
 
                 fs.open(replayDataFilePath,FileMode.UPDATE);
@@ -10596,7 +10592,7 @@
                 // mirrorON = rMirrorON;
                 // mirrorCommandReady = false;
                 // appInfoBox.setMirror(rMirrorON);
-                changeCanvasSize(canvasLayer1Bitmap.width,canvasLayer1Bitmap.height,0,0,false);
+                updateCavnvasSizeDrawMode(canvasLayer1Bitmap.width,canvasLayer1Bitmap.height,0,0,false);
                 updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
                 resetReplayTime();
                 setCanvasSameReplayCanvas();
@@ -10632,7 +10628,7 @@
             rReplayTimeBarBox["replayNowBar"].visible = false;
             rReplayTimeBarBox["replayDeleteBar"].visible = true;
 
-            if(tickDraw.getIndex() < tickDraw.getDataLength())
+            if(replayDrawCommands.getIndex() < replayDrawCommands.getDataLength())
             {
                 drawRemainReplayData();
                 checkCutFrameButtonsCanUse();
@@ -10655,7 +10651,7 @@
             rReplayTimeBarBox["replayNowBar"].visible = false;
             rReplayTimeBarBox["replayDeleteBar"].visible = true;
 
-            if(tickDraw.getIndex() < tickDraw.getDataLength())
+            if(replayDrawCommands.getIndex() < replayDrawCommands.getDataLength())
             {
                 drawRemainReplayData();
                 checkCutFrameButtonsCanUse();
@@ -10699,7 +10695,7 @@
             }
         }
 
-        private function topBarHintONEvent(e:MouseEvent):void //topbarhint
+        private function onMouseOverTopBarHintON(e:MouseEvent):void //topbarhint
         {
             const target:DisplayObject = e.target as DisplayObject;
             if(!target) return;
@@ -11004,7 +11000,7 @@
             bmpd = null;
             bmpd1 = null;
 
-            changeCanvasSizeReplayMode(rCanvasLayer1Bitmap.width,rCanvasLayer1Bitmap.height);
+            updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width,rCanvasLayer1Bitmap.height);
             updateCanvasBGColorReplayMode(data[4]);
         }
 
@@ -11173,17 +11169,17 @@
             setcanvasFlash(rCanvasPanel,0,0,RCANVAS_WIDTH,RCANVAS_HEIGHT);
         }
 
-        private function cancelRestartTimer():void
+        private function cancelReplayRestartTimer():void
         {
-            removeTimer("rRestartTimer");
+            removeTimer("rReplayRestartTimer");
 
             //재시작 카운터가 돌아갈때 1프레임 스킵을 하면
             //프레임 정보가 나오지 않고 END가 나와서 조건 걸어줌
-            if(rRestartTimerCount < 10)
+            if(rReplayRestartTimerCount < 10)
             {
                 rReplayTimeBarBox["frameInfo"].text = TOTAL_FRAME+" / " +TOTAL_FRAME;
             }
-            rRestartTimerCount = 10;
+            rReplayRestartTimerCount = 10;
             setColorTransform(rReplayTimeBarBox["replayNowBar"],uiColorSet[uiColorIndex][4]);
 
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,cancelRestartTimerEvent);
@@ -11193,38 +11189,38 @@
 
         private function cancelRestartTimerEvent(e:Object):void
         {
-            cancelRestartTimer();
+            cancelReplayRestartTimer();
         }
 
         private function setRestartTimer():void
         {
             if(isReplayRepeatON)
             {
-                rRestartTimerCount = 10;
+                rReplayRestartTimerCount = 10;
 
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,cancelRestartTimerEvent);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,cancelRestartTimerEvent);
                 stage.addEventListener(KeyboardEvent.KEY_DOWN,cancelRestartTimerEvent);
 
-                addTimerByName("rRestartTimer",1.0,true,function():Boolean
+                addTimerByName("rReplayRestartTimer",1.0,true,function():Boolean
                 {
-                    if(rRestartTimerCount === 0)
+                    if(rReplayRestartTimerCount === 0)
                     {
-                        cancelRestartTimer();
+                        cancelReplayRestartTimer();
                         startReplay();
                         return false;
                     }
 
-                    const str:String = "Play again in " + rRestartTimerCount +" sec";
+                    const str:String = "Play again in " + rReplayRestartTimerCount +" sec";
                     rReplayTimeBarBox["frameInfo"].text = str;
-                    --rRestartTimerCount;
+                    --rReplayRestartTimerCount;
                     return true;
                 });
             }
             else
             {
-                rRestartTimerCount = 9;
-                cancelRestartTimer();
+                rReplayRestartTimerCount = 9;
+                cancelReplayRestartTimer();
             }
         }
 
@@ -11250,7 +11246,7 @@
             isReplayFinished = true;
             doDrawSlowEventON = false;
             rSpeedLastStr = "";
-            tickDraw.reset();
+            replayDrawCommands.reset();
         }
 
         private function applyLassoShapen(scale:Number):void
@@ -11382,7 +11378,7 @@
             if(rFitZoomedON) fitCanvasToWindowManualReplayMode();
         }
 
-        private function cTickDraw():Object
+        private function cReplayDrawCommands():Object
         {
             const rCursorPos:Point = new Point(0,0);
             //undo인덱스가 처음일때 tickdraw가 아무것도 안해주니까 위치 갱신이 안되서
@@ -12418,7 +12414,7 @@
                 const moveY:Number = data[4];
                 const movedFlag:Boolean = data[5];
 
-                changeCanvasSizeReplayMode(width,height,moveX,moveY,movedFlag);
+                updateCanvasSizeReplayMode(width,height,moveX,moveY,movedFlag);
                 setRCursorPos(width/2,height/2);
             }
 
@@ -12878,7 +12874,7 @@
 
         private function doDrawEvent(e:Event):void
         {
-            doDraw(rReplaySpeedMultipler,JUMP_FRAME_PLAY);
+            replayDraw(rReplaySpeedMultipler,JUMP_FRAME_PLAY);
             replayHideCursor.check();
         }
 
@@ -12907,7 +12903,7 @@
         }
 
         //jumpFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
-        private function cDoDraw():Function
+        private function cReplayDraw():Function
         {
             //jumpFlag 1번은 마우스 커서로 무작위 스킵, 2,3번은 스트로크 단위혹은 프레임 단위로 앞뒤로 탐색
             var rDataLen:uint;
@@ -12944,11 +12940,11 @@
                 if(rData.length > 0)
                 {
                     rPrevFrame = rNowFrame;
-                    tickDraw.ready(rData[rDataIndex]);
+                    replayDrawCommands.ready(rData[rDataIndex]);
                 }
                 else
                 {
-                    tickDraw.reset();
+                    replayDrawCommands.reset();
                 }
             }
 
@@ -12959,7 +12955,7 @@
                     const obj:Array = rFileStream.readObject() as Array;
                     if(!obj) return true;
 
-                    tickDraw.ready(obj);
+                    replayDrawCommands.ready(obj);
                     rFileCutBytePosition = rFileLastBytePosition;
                     rFileLastBytePosition = rFileStream.position;
                     rPrevFrame = rNowFrame;
@@ -13001,7 +12997,7 @@
                     if(savedTime-rFrameCursorDelayTime >= 66)
                     {
                         rFrameCursorDelayTime = savedTime;
-                        tickDraw.updateRCursorPos();
+                        replayDrawCommands.updateRCursorPos();
 
                         if(!rFitZoomedON && !isMouseClicked && !deepUndoON)
                         {
@@ -13028,14 +13024,14 @@
             {
                 for(var i:Number=0;i<len;i++)
                 {
-                    if(tickDraw.isIndexBiggerData())
+                    if(replayDrawCommands.isIndexBiggerData())
                     {
                         rDataIndex++;
                         if(checkFinish(jumpFlag)) return;
                         rPrevFrame = rNowFrame;
-                        tickDraw.ready(rData[rDataIndex]);
+                        replayDrawCommands.ready(rData[rDataIndex]);
                     }
-                    tickDraw.next();
+                    replayDrawCommands.next();
                     rNowFrame++;
                 }
             }
@@ -13044,7 +13040,7 @@
             {
                 for(var i:Number=0;i<len;i++)
                 {
-                    if(tickDraw.isIndexBiggerData())
+                    if(replayDrawCommands.isIndexBiggerData())
                     {
                         // if(checkFinishDeepUndoLimit(jumpFlag)) return;
                         if(setFileDataToTickDraw())
@@ -13059,7 +13055,7 @@
                         }
                     }
 
-                    tickDraw.next();
+                    replayDrawCommands.next();
                     rNowFrame++;
                     readCount--;
                 }
@@ -13182,7 +13178,7 @@
 
             function check(viewCenterFlag:Boolean):void
             {
-                cp = tickDraw.getRCursorPos();
+                cp = replayDrawCommands.getRCursorPos();
 
                 globalChecked = false;
                 const div:Number = (viewCenterFlag) ? 1:3;
@@ -13505,15 +13501,15 @@
                 }
                 else if(rNowFrame <= TOTAL_FRAME)
                 {
-                    if(tickDraw.getRestDataCount() === 0)
+                    if(replayDrawCommands.getRestDataCount() === 0)
                     {
                         //+1해줘서 다음 데이터 갱신해주고 나머지 끝까지 그려줌
                         jumpFrame(rNowFrame+1,JUMP_FRAME_AFTER);
-                        jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_AFTER);
+                        jumpFrame(rNowFrame+replayDrawCommands.getRestDataCount(),JUMP_FRAME_AFTER);
                     }
                     else
                     {
-                        jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_AFTER);
+                        jumpFrame(rNowFrame+replayDrawCommands.getRestDataCount(),JUMP_FRAME_AFTER);
                     }
                 }
             }
@@ -13649,7 +13645,7 @@
                 //원하는 프레임에서 썸네일 이미지 프레임을 빼줌 나머지 프레임만 그려주면 되니깐
                 drawFrameCount = frame-jumpImageData[6];
                 rDataIndex = 0; //이거 먼저 초기화 시켜주어야함
-                tickDraw.reset();
+                replayDrawCommands.reset();
                 clearCanvasReplayMode();
                 rMirrorON = jumpImageData[7];
 
@@ -13661,7 +13657,7 @@
                 rCanvasLayer2BitmapData = tempBmpd1.clone();
                 rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
 
-                changeCanvasSizeReplayMode(rCanvasLayer1Bitmap.width,rCanvasLayer1Bitmap.height);
+                updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width,rCanvasLayer1Bitmap.height);
                 updateCanvasBGColorReplayMode(jumpImageData[4]);
 
                 if(updateRCavanvasImageFlag === 1 && isReplayStarted === false)
@@ -13692,7 +13688,7 @@
                 rPrevFrame = frame-1;
             }
 
-            doDraw(drawFrameCount,jumpflag,isReplayModeON);
+            replayDraw(drawFrameCount,jumpflag,isReplayModeON);
             rFileStream.close();
             //dodraw밑이기 때문에 rFrameSum이 갱신되서 위에 nowFrame은 쓸수가 없음
             if(rNowFrame >= TOTAL_FRAME)
@@ -13707,12 +13703,12 @@
                     rReplayFOFOCursor.visible = false;
                 }
 
-                tickDraw.updateRCursorPos();
+                replayDrawCommands.updateRCursorPos();
             }
             else
             {
                 isReplayFinished = false;
-                tickDraw.updateRCursorPos();
+                replayDrawCommands.updateRCursorPos();
                 rReplayFOFOCursor.visible = true;
             }
 
@@ -13725,7 +13721,7 @@
         //데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
         private function drawRemainReplayData():void
         {
-            jumpFrame(rNowFrame+tickDraw.getRestDataCount(),JUMP_FRAME_ONCE);
+            jumpFrame(rNowFrame+replayDrawCommands.getRestDataCount(),JUMP_FRAME_ONCE);
             rOnejumpFlagSave = false;
         }
 
@@ -13902,7 +13898,7 @@
 
             function toolBoxMoveMouseUpEvent(e:MouseEvent):void
             {
-                checkBoxPosition(target);
+                keepBoxInsideStage(target);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,toolBoxMoveMouseMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP, toolBoxMoveMouseUpEvent);
             }
@@ -14084,9 +14080,9 @@
             CANVAS_BG_COLOR = color;
             previewBox.changeprevBitmapBGColor(color);
             updateCanvasBGColor(canvasPanel,CANVAS_WIDTH,CANVAS_HEIGHT,color);
-            if( pickerBox.scratchPad)
+            if( colorPickerBox.scratchPad)
             {
-                pickerBox.scratchPad.updateBGColor(color);
+                colorPickerBox.scratchPad.updateBGColor(color);
             }
         }
 
@@ -14190,22 +14186,18 @@
         }
 
         //drag load
-        private function centerDragDropSelectBox():void
+        private function updateLoadMenuBoxPosCenter():void
         {
             loadMenuBox["dragDropFileBG"].x = 0;
             loadMenuBox["dragDropFileBG"].y = 0;
             loadMenuBox["dragDropFileBG"].width = 1;
             loadMenuBox["dragDropFileBG"].height = 1;
-            // loadMenuBox.scaleX = 1.0;
-            // loadMenuBox.scaleY = 1.0;
 
             const stw:Number = stage.stageWidth;
             const sth:Number = stage.stageHeight;
             const f1:Number = stw/loadMenuBox.width; //가장 짧은 길이를 기준으로 비율을 삼음
             const f2:Number = sth/loadMenuBox.height;
             const f:Number = (f1 <= f2) ? f1:f2;
-            // loadMenuBox.scaleX = 1.0;
-            // loadMenuBox.scaleY = 1.0;
             loadMenuBox.x = stw/2 - loadMenuBox.width/2;
             loadMenuBox.y = sth/2 - loadMenuBox.height/2;
             loadMenuBox["dragDropFileBG"].x = -loadMenuBox.x;
@@ -14251,7 +14243,7 @@
             if(isInSaveProgress) return;
 
             rFileStream.close();
-            cancelRestartTimer();
+            cancelReplayRestartTimer();
 
             const data:* = getSystemClipboardData();
 
@@ -14384,9 +14376,9 @@
                             stopReplay();
                         }
                         
-                        if(hasTimer("rRestartTimer"))
+                        if(hasTimer("rReplayRestartTimer"))
                         {
-                            cancelRestartTimer();
+                            cancelReplayRestartTimer();
                         }
 
                         setDragDropPreviewImageReady(file,false);
@@ -14399,7 +14391,7 @@
             }
         }
 
-        private function onDragDropEvent(e:NativeDragEvent):void
+        private function onDragDrop(e:NativeDragEvent):void
         {
             if(isFileBrowserOpened || isCaptureModeON === true ||isInSaveProgress !== 0)
             {
@@ -14407,7 +14399,7 @@
             }
 
             rFileStream.close();
-            cancelRestartTimer();
+            cancelReplayRestartTimer();
             const data:Object = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
             const file:File = data[0] as File;
 
@@ -14463,7 +14455,7 @@
             }
         }
 
-        private function onDragEnterEvent(e:NativeDragEvent):void
+        private function onDragEnter(e:NativeDragEvent):void
         {
             if(isFileBrowserOpened || isCaptureModeON === true ||isInSaveProgress !== 0)
             {
@@ -14633,8 +14625,8 @@
         {
             const isAllViewMode:Boolean = (myPalettePresetType === 0 && isMyPaletteExpended);
             const paletteLines:int = (isAllViewMode) ? 8:2;
-            var xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
-            var yLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseY/myPaletteColorHeight)
+            var xLineIndex:int = Math.floor(colorPickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
+            var yLineIndex:int = Math.floor(colorPickerBox.myPaletteBox.mouseY/myPaletteColorHeight)
 
             if(xLineIndex < 0) xLineIndex = 0;
             else if(xLineIndex > 9) xLineIndex = 9;
@@ -14657,8 +14649,8 @@
 
         private function getHistoryIndexByMousePos():int
         {
-            const xLineIndex:int = Math.floor(pickerBox.historyBox.mouseX/myPaletteColorWidth);
-            const yLineIndex:int = 10*(Math.floor(pickerBox.historyBox.mouseY/myPaletteColorHeight));
+            const xLineIndex:int = Math.floor(colorPickerBox.historyBox.mouseX/myPaletteColorWidth);
+            const yLineIndex:int = 10*(Math.floor(colorPickerBox.historyBox.mouseY/myPaletteColorHeight));
 
             if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > myPaletteColorLimit)
             {
@@ -14670,8 +14662,8 @@
 
         private function getMyPaletteIndexByMousePos():int
         {
-            var xLineIndex:int = Math.floor(pickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
-            var yLineIndex:int = 10*(Math.floor(pickerBox.myPaletteBox.mouseY/myPaletteColorHeight));
+            var xLineIndex:int = Math.floor(colorPickerBox.myPaletteBox.mouseX/myPaletteColorWidth);
+            var yLineIndex:int = 10*(Math.floor(colorPickerBox.myPaletteBox.mouseY/myPaletteColorHeight));
             if(xLineIndex > 9) xLineIndex = 9;
             if(yLineIndex > 80) yLineIndex = 80;
 
@@ -14695,7 +14687,7 @@
 
             const mainColor:uint = myPaletteTegakiPreset[index];
 
-            if(mainColor !== pickerBox.getRGBInfoBGColor())
+            if(mainColor !== colorPickerBox.getRGBInfoBGColor())
             {
                 penColor = myPaletteTegakiPreset[index];
                 moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(penColor):penColor);
@@ -14710,9 +14702,9 @@
 
                     if(canvasWindowON)
                     {
-                        updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+                        updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
                     }
-                    addUndoBGColor(bgColor);
+                    addUndoBGColorData(bgColor);
                 }
                 setNowToolForDrawing(false);
             }
@@ -14743,8 +14735,8 @@
             else if(isBackgroundColorMode())
             {
                 updateCanvasBGColorDrawMode(pickedColor);
-                if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
-                addUndoBGColor(pickedColor);
+                if(canvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
+                addUndoBGColorData(pickedColor);
             }
         }
 
@@ -14768,7 +14760,7 @@
 
             const pickedColor:uint = myPalettePreset[index+90];
 
-            if(pickedColor === pickerBox.getRGBInfoBGColor() && !isTransparentPenColor)
+            if(pickedColor === colorPickerBox.getRGBInfoBGColor() && !isTransparentPenColor)
             {
                 return;
             }
@@ -14799,7 +14791,7 @@
             {
                 if(isSelctedColorEmpty(index))
                 {
-                    if(isTransparentPenColor === false && pickerMode === 1)
+                    if(isTransparentPenColor === false && isColorPickerModeBG === false)
                     {
                         selectTransparentColor();
                     }
@@ -14817,7 +14809,7 @@
             {
                 if(isSelctedColorEmpty(index))
                 {
-                    if(isTransparentPenColor === false && pickerMode === 1)
+                    if(isTransparentPenColor === false && isColorPickerModeBG === false)
                     {
                         selectTransparentColor();
                     }
@@ -14905,7 +14897,7 @@
             }
             else
             {
-                if(myPalettePreset[index] !== pickerBox.getRGBInfoBGColor())
+                if(myPalettePreset[index] !== colorPickerBox.getRGBInfoBGColor())
                 {
                     myPaletteColorBeforeAddColor[0] = index;
                     myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
@@ -15002,35 +14994,35 @@
 
         private function updateHistoryList(ignoreIndex:int=-1):void
         {
-            pickerBox.historyBox.graphics.clear();
+            colorPickerBox.historyBox.graphics.clear();
 
 
             for(var i:uint=0;i<10;i++)
             {
                 if(i+90 === ignoreIndex)
                 {
-                    drawColorStartPos(pickerBox.historyBox.graphics,myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
+                    drawColorStartPos(colorPickerBox.historyBox.graphics,myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
                     continue;
                 }
                 if(!(myPalettePreset[i+90] is uint))
                 {
-                    pickerBox.historyBox.graphics.beginBitmapFill(pickerBox.myPaletteTransBGBmpd);
+                    colorPickerBox.historyBox.graphics.beginBitmapFill(colorPickerBox.myPaletteTransBGBmpd);
                 }
                 else
                 {
-                    pickerBox.historyBox.graphics.beginFill(myPalettePreset[i+90]);
+                    colorPickerBox.historyBox.graphics.beginFill(myPalettePreset[i+90]);
                 }
 
-                pickerBox.historyBox.graphics.drawRect(myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
+                colorPickerBox.historyBox.graphics.drawRect(myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
             }
 
-            pickerBox.historyBox.graphics.endFill();
+            colorPickerBox.historyBox.graphics.endFill();
 
-            pickerBox.historyBox.graphics.lineStyle(1,0,0.2);
+            colorPickerBox.historyBox.graphics.lineStyle(1,0,0.2);
             for(i=1;i<10;i++)
             {
-                pickerBox.historyBox.graphics.moveTo(myPaletteColorWidth*i,0);
-                pickerBox.historyBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight);
+                colorPickerBox.historyBox.graphics.moveTo(myPaletteColorWidth*i,0);
+                colorPickerBox.historyBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight);
             }
         }
 
@@ -15063,8 +15055,8 @@
             var nextX:Number = 0.0;
             var nextY:Number = 0.0;
 
-            pickerBox.myPaletteBox.graphics.clear();
-            pickerBox.myPaletteBox.graphics.lineStyle(0,0,0);
+            colorPickerBox.myPaletteBox.graphics.clear();
+            colorPickerBox.myPaletteBox.graphics.lineStyle(0,0,0);
 
             var px:Number;
             var py:Number;
@@ -15084,46 +15076,46 @@
 
                 if(i === ignoreIndex)
                 {
-                    drawColorStartPos(pickerBox.myPaletteBox.graphics,px,py,ww,hh);
+                    drawColorStartPos(colorPickerBox.myPaletteBox.graphics,px,py,ww,hh);
                     continue;
                 }
 
                 if(!(arr[i] is uint))
                 {
-                    pickerBox.myPaletteBox.graphics.beginBitmapFill(pickerBox.myPaletteTransBGBmpd);
+                    colorPickerBox.myPaletteBox.graphics.beginBitmapFill(colorPickerBox.myPaletteTransBGBmpd);
                 }
                 else
                 {
-                    pickerBox.myPaletteBox.graphics.beginFill(arr[i]);
+                    colorPickerBox.myPaletteBox.graphics.beginFill(arr[i]);
                 }
 
-                pickerBox.myPaletteBox.graphics.drawRect(px,py,ww,hh);
+                colorPickerBox.myPaletteBox.graphics.drawRect(px,py,ww,hh);
             }
-            pickerBox.myPaletteBox.graphics.endFill();
+            colorPickerBox.myPaletteBox.graphics.endFill();
 
             //구분선 그려주기
             if(type === 2) //tegaki
             {
-                pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
-                pickerBox.myPaletteBox.graphics.moveTo(0,hh);
-                pickerBox.myPaletteBox.graphics.lineTo(ww*10,hh);
+                colorPickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
+                colorPickerBox.myPaletteBox.graphics.moveTo(0,hh);
+                colorPickerBox.myPaletteBox.graphics.lineTo(ww*10,hh);
 
                 for(i=2;i<10;i+=2)
                 {
-                    pickerBox.myPaletteBox.graphics.moveTo(ww*i,0);
-                    pickerBox.myPaletteBox.graphics.lineTo(ww*i,hh*2);
+                    colorPickerBox.myPaletteBox.graphics.moveTo(ww*i,0);
+                    colorPickerBox.myPaletteBox.graphics.lineTo(ww*i,hh*2);
                 }
             }
             else if(type === 1) // drawr
             {
-                pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
-                pickerBox.myPaletteBox.graphics.moveTo(0,hh);
-                pickerBox.myPaletteBox.graphics.lineTo(ww*10,hh);
+                colorPickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
+                colorPickerBox.myPaletteBox.graphics.moveTo(0,hh);
+                colorPickerBox.myPaletteBox.graphics.lineTo(ww*10,hh);
 
                 for(i=1;i<10;i++)
                 {
-                    pickerBox.myPaletteBox.graphics.moveTo(ww*i,0);
-                    pickerBox.myPaletteBox.graphics.lineTo(ww*i,hh*2);
+                    colorPickerBox.myPaletteBox.graphics.moveTo(ww*i,0);
+                    colorPickerBox.myPaletteBox.graphics.lineTo(ww*i,hh*2);
                 }
             }
             else //my palette
@@ -15131,37 +15123,37 @@
                 if(isMyPaletteExpended === false)
                 {
                     //가로선
-                    pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
-                    pickerBox.myPaletteBox.graphics.moveTo(0,hh);
-                    pickerBox.myPaletteBox.graphics.lineTo(ww*10,hh);
+                    colorPickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
+                    colorPickerBox.myPaletteBox.graphics.moveTo(0,hh);
+                    colorPickerBox.myPaletteBox.graphics.lineTo(ww*10,hh);
 
                     //세로
                     for(i=1;i<10;i++)
                     {
-                        pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
-                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,hh*2);
+                        colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
+                        colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,hh*2);
                     }
                 }
                 else
                 {
-                    pickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
+                    colorPickerBox.myPaletteBox.graphics.lineStyle(1,0,0.2);
 
                     //가로
                     for(i=1;i<9;i++)
                     {
-                        pickerBox.myPaletteBox.graphics.moveTo(0,hh*i);
-                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*10,hh*i);
+                        colorPickerBox.myPaletteBox.graphics.moveTo(0,hh*i);
+                        colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*10,hh*i);
                     }
                     //세로
                     for(i=1;i<10;i++)
                     {
-                        pickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
-                        pickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,hh*9);
+                        colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth*i,0);
+                        colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth*i,hh*9);
                     }
                 }
             }
 
-            pickerBox.checkMainColorPickerBoxPosition(pickerBoxSwapPositionFlag);
+            colorPickerBox.checkMainColorPickerBoxPosition(pickerBoxSwapPositionFlag);
         }
 
         private function makeResizeButtonFamily():void
@@ -15187,7 +15179,7 @@
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
             var _rJumpImageCount:uint = 0;
-            var _tickDraw:Object = tickDraw;
+            var _tickDraw:Object = replayDrawCommands;
             var data:Array;
             var imgData:ByteArray = new ByteArray();
             var imgData1:ByteArray = new ByteArray();
@@ -15207,7 +15199,7 @@
             if(rCanvasLayer2BitmapData && rFirstImageLayer2BitmapData !== rCanvasLayer2BitmapData) rCanvasLayer2BitmapData.dispose();
             rCanvasLayer2BitmapData = rFirstImageLayer2BitmapData.clone();
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
-            changeCanvasSizeReplayMode(rCanvasLayer1BitmapData.width,rCanvasLayer1BitmapData.height); //크기도 바꿔주고
+            updateCanvasSizeReplayMode(rCanvasLayer1BitmapData.width,rCanvasLayer1BitmapData.height); //크기도 바꿔주고
 
             fs.open(replayDataFilePath,FileMode.READ);
             fs.position = 0;
@@ -15280,7 +15272,7 @@
                         mirrorON = rMirrorON;
                         rMirrorON = rMirrorON;
                         undoData.setUndoRefImageMirrorFlag(rMirrorON);
-                        appInfoBox.setMirror(rMirrorON);
+                        canvasInfoBox.setMirror(rMirrorON);
                         previewBox.visible = true;
 
                         if(!isReplayModeON && deepUndoON)
@@ -15384,7 +15376,7 @@
             if(topBar.saveButton.alpha === 1.0) topBar.setButtonAlphaOFFSaving(BUTTON_OFF_ALPHA);
         }
 
-        private function callWorkerEncodePNG(bmpd:BitmapData,bg:uint,isCaptureImage:Boolean,isTransBG:Boolean):void
+        private function startPngEncodingWorker(bmpd:BitmapData,bg:uint,isCaptureImage:Boolean,isTransBG:Boolean):void
         {
             setStartWorker(function():void
             {
@@ -15407,7 +15399,7 @@
             });
         }
 
-        private function callWorkerCompressUndoJumpImage(data:ByteArray,data1:ByteArray):void
+        private function startUndoDataCompressionWorker(data:ByteArray,data1:ByteArray):void
         {
             setStartWorker(function():void
             {
@@ -15493,11 +15485,11 @@
                     }
                 }
 
-                callWorkerCompressReplayData(rLayer1FirstImageData,rLayer2FirstImageData,rLayer1CurrentImageData,rLayer2CurrentImageData,refLayerImageData,replayDataReadBytes);
+                startReplayDataCompressionWorker(rLayer1FirstImageData,rLayer2FirstImageData,rLayer1CurrentImageData,rLayer2CurrentImageData,refLayerImageData,replayDataReadBytes);
             }
         }
 
-        private function callWorkerCompressReplayData(dataA:ByteArray,dataA1:ByteArray,dataB:ByteArray,dataB1:ByteArray,dataC:ByteArray,dataD:ByteArray):void
+        private function startReplayDataCompressionWorker(dataA:ByteArray,dataA1:ByteArray,dataB:ByteArray,dataB1:ByteArray,dataC:ByteArray,dataD:ByteArray):void
         {
             setStartWorker(function():void
             {
@@ -15854,7 +15846,7 @@
 
             updateCanvasBGColorDrawMode(newBG);
             updateCanvasBGColorReplayMode(newBG);
-            if(canvasWindowON) updateCanvasWindowCanvasPanelBGColor(CANVAS_BG_COLOR,canvasWindowBitmap.bitmapData);
+            if(canvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
 
             if(isImageFileExt(fileName) === true)
             {
@@ -15872,7 +15864,7 @@
             rMirrorON = false;
             mirrorON = false;
             mirrorCommandReady = false;
-            appInfoBox.setMirror(false);
+            canvasInfoBox.setMirror(false);
             checkGridMirror(false);
 
             if(lassoToolON === true)
@@ -15915,7 +15907,7 @@
                 canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
             }
 
-            changeCanvasSize(scaledwidth,scaledheight,0,0,false);
+            updateCavnvasSizeDrawMode(scaledwidth,scaledheight,0,0,false);
             setSameReplayModeImageByDrawMode();
 
             tmpBMPD.dispose();
@@ -15928,7 +15920,7 @@
             if(gridValue > 0) drawGrid();
             //bitmapdata가 갱신된이후에 업데이트 해줘야함
             resetUndo();
-            tickDraw.resetFirstRCursorPos();
+            replayDrawCommands.resetFirstRCursorPos();
 
             if(refLayerRawTransformData === null)
             {
@@ -15968,9 +15960,9 @@
             canvasLayer2Bitmap.visible = true;
             topBar.captureButton.alpha = 1.0;
             topBar.clearButton.alpha = 1.0;
-            refLayerMenuBox.traceImageButton.alpha = 1.0;
+            refLayerMenuBox.refTransferImageButton.alpha = 1.0;
 
-            setCurrentColor(1);
+            updateCurrentColorPickerBox(false);
             setNowToolForDrawing(false);
 
             previewBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
@@ -16089,7 +16081,7 @@
                 canvasRefLayer.visible = false;
                 if(isRefLayerMenuON === true) refLayerMenuBox.visible = false;
 
-                changeTopBarIcons("capture");
+                changeTopBarIconFromMode("capture");
 
                 setDefaultHintCaptureMode();
                 rReplayFOFOCursor.visible = false;
@@ -16103,7 +16095,7 @@
 
                 if(replayMode)
                 {
-                    changeTopBarIcons("replay");
+                    changeTopBarIconFromMode("replay");
                     addInputEventsReplayMode();
                     rReplayTimeBarBox.visible = true;
                 }
@@ -16117,10 +16109,10 @@
                     }
 
                     penCursorOFFFlag = false;
-                    changeTopBarIcons("draw");
+                    changeTopBarIconFromMode("draw");
                     addInputEventsDrawMode();
                 }
-                changePickerModeToPenColor();
+                deactiveColorPickerModeBG();
             }
 
             updateStageOffset();
@@ -16128,12 +16120,12 @@
 
         private function setDefaultHintCaptureMode():void
         {
-            if(capStampFontListBox.visible)
+            if(captureStampFontListBox.visible)
             {
                 return;
             }
 
-            if(!topBar.hitTestPoint(mouseX,mouseY) && !capStampFontListBox.hitTestPoint(mouseX,mouseY))
+            if(!topBar.hitTestPoint(mouseX,mouseY) && !captureStampFontListBox.hitTestPoint(mouseX,mouseY))
             {
                 if(drawCaptureArea.isFullImageCapture())
                 {
@@ -16164,7 +16156,7 @@
             {
                 if(isMouseDragging) return;
 
-                if(!(topBar.hitTestPoint(mouseX,mouseY) || capStampFontListBox.hitTestPoint(mouseX,mouseY)))
+                if(!(topBar.hitTestPoint(mouseX,mouseY) || captureStampFontListBox.hitTestPoint(mouseX,mouseY)))
                 {
                     hintHorverCursor.visible = false;
                 }
@@ -16196,7 +16188,7 @@
             if(targetName === "capLayer1VisibleButton" || targetName === "capLayer2VisibleButton"
             || targetName === "capStamp" || targetName === "capStampFont")
             {
-                checkButtonUp(targetName);
+                onMouseUpConfirmClick(targetName);
 
                 return;
             }
@@ -16208,7 +16200,7 @@
                 {
                     return;
                 }
-                checkButtonUp(targetName);
+                onMouseUpConfirmClick(targetName);
             }
 
             if(target.alpha < 1.0 && topBar.hitTestPoint(mouseX,mouseY))
@@ -16216,21 +16208,21 @@
                 return;
             }
 
-            if(capStampFontListBox.visible)
+            if(captureStampFontListBox.visible)
             {
                 if(targetName === "capFontListNext" || targetName === "capFontListPrev")
                 {
-                    checkButtonUp(targetName);
+                    onMouseUpConfirmClick(targetName);
                 }
-                else if(targetName.indexOf(capStampFontListBox.getStampFontButtonName()) !== -1)
+                else if(targetName.indexOf(captureStampFontListBox.getStampFontButtonName()) !== -1)
                 {
-                    drawCaptureStamp.changeFont(capStampFontListBox.getFontName(targetName),true);
+                    drawCaptureStamp.changeFont(captureStampFontListBox.getFontName(targetName),true);
                 }
                 else if(target.parent)
                 {
-                    if(target.parent.name && target.parent.name.indexOf(capStampFontListBox.getStampFontButtonName()) !== -1)
+                    if(target.parent.name && target.parent.name.indexOf(captureStampFontListBox.getStampFontButtonName()) !== -1)
                     {
-                        drawCaptureStamp.changeFont(capStampFontListBox.getFontName(target.parent.name),true);
+                        drawCaptureStamp.changeFont(captureStampFontListBox.getFontName(target.parent.name),true);
                     }
                 }
 
@@ -16245,7 +16237,7 @@
                 case "capOff":
                 case "capTrans":
                 {
-                    checkButtonUp(targetName);
+                    onMouseUpConfirmClick(targetName);
                 }
                 break;
 
@@ -16275,7 +16267,7 @@
         {
             const keyCode:uint = KEY_BUFFER[0];
 
-            if(capStampFontListBox.visible)
+            if(captureStampFontListBox.visible)
             {
                 if(keyCode === KEY.esc)
                 {
@@ -16488,7 +16480,7 @@
             captureAreaPreviewLayer.visible = false;
             captureAreaPreviewLayer.graphics.clear();
             drawCaptureStamp.off();
-            capStampFontListBox.visible = false;
+            captureStampFontListBox.visible = false;
 
             //캔버스 이전 모양 위치로 복원
             xReg.rotation = data.r;
@@ -16569,8 +16561,8 @@
             function changeFont(newFont:String,updateFlag:Boolean):void
             {
                 textformat.font = newFont;
-                capStampFontListBox.setSelectFont(newFont);
-                capStampFontListBox.updateFontListSelect(newFont);
+                captureStampFontListBox.setSelectFont(newFont);
+                captureStampFontListBox.updateFontListSelect(newFont);
                 topBar.captureInputFinal.setTextFormat(textformat);
                 if(updateFlag) update();
             }
@@ -17772,7 +17764,7 @@
                 if(workerPNGCaptureData === null) workerPNGCaptureData = new Vector.<ByteArray>();
                 if(workerPNGCaptureFileData === null) workerPNGCaptureFileData = [];
 
-                callWorkerEncodePNG(getCaptrueImageBitmapdata(false),0,true,captureTransBGON);
+                startPngEncodingWorker(getCaptrueImageBitmapdata(false),0,true,captureTransBGON);
                 saveCapturePNGByOrder(file.name,e.target.nativePath);
             }
         }
@@ -17942,7 +17934,7 @@
 
                     setSaveProgressON();
                     workerPNGSaveData = null;
-                    callWorkerEncodePNG(mergedImage.clone(),CANVAS_BG_COLOR,false,false);
+                    startPngEncodingWorker(mergedImage.clone(),CANVAS_BG_COLOR,false,false);
                     saveReplayFile();
                     updateWindowTitle();
                     resetKeyBuffer();
@@ -18029,7 +18021,7 @@
                     var f1:File = new File(newFileData[0]);
 
                     workerPNGSaveData = null;
-                    callWorkerEncodePNG(mergedImage.clone(),CANVAS_BG_COLOR,false,false);
+                    startPngEncodingWorker(mergedImage.clone(),CANVAS_BG_COLOR,false,false);
                     saveReplayFile();
                     updateWindowTitle();
 
@@ -18069,7 +18061,7 @@
 
             rMirrorON = false;
             mirrorON = false;
-            appInfoBox.setMirror(false);
+            canvasInfoBox.setMirror(false);
 
             const fs:FileStream = new FileStream();
             fs.open(undoDataFilePath,FileMode.READ);
@@ -18121,7 +18113,7 @@
         {
             const fs:FileStream = new FileStream();
             const ba:ByteArray = new ByteArray();
-            const bmpd:BitmapData = pickerBox.scratchPad.getBitmapData();
+            const bmpd:BitmapData = colorPickerBox.scratchPad.getBitmapData();
 
             fs.open(scratchPadDataFilePath,FileMode.READ);
             var arr:Array = fs.readObject() as Array;
@@ -18136,9 +18128,9 @@
         {
             const fs:FileStream = new FileStream();
             const ba:ByteArray = new ByteArray();
-            const bmpd:BitmapData = pickerBox.scratchPad.getBitmapData();
+            const bmpd:BitmapData = colorPickerBox.scratchPad.getBitmapData();
             const newRectangle:Rectangle = new Rectangle(0,0,bmpd.width,bmpd.height);
-            bmpd.copyPixelsToByteArray(pickerBox.scratchPad.getBitmapData().rect,ba);
+            bmpd.copyPixelsToByteArray(colorPickerBox.scratchPad.getBitmapData().rect,ba);
 
             fs.open(scratchPadDataFilePath,FileMode.WRITE);
             fs.writeObject([ba,newRectangle.width,newRectangle.height]);
@@ -18222,23 +18214,23 @@
                             "lastWindowState":lastWindowState,
                             "uiColorIndex":uiColorIndex,
                             "APP_RUNNING_TIME":realWorkingTimer.getRunningTime(),
-                            "traceAlphaSave":refLayerLastAlpha,
-                            "traceOpaButtonX":refLayerMenuBox["traceOpaButton"].x,
-                            "traceReizeMoveSum":refLayerMenuDragXMoveSum,
-                            "tracePosInfo[0]":refLayerImageTransformData[0],
-                            "tracePosInfo[1]":refLayerImageTransformData[1],
-                            "tracePosInfo[2]":refLayerImageTransformData[2],
-                            "tracePosInfo[3]":refLayerImageTransformData[3],
-                            "tracePosInfo[4]":refLayerImageTransformData[4],
-                            "tracePosInfo[5]":refLayerImageTransformData[5],
+                            "refLayerLastAlpha":refLayerLastAlpha,
+                            "refOpacityCursor.x":refLayerMenuBox.refOpacityCursor.x,
+                            "refLayerMenuDragXMoveSum":refLayerMenuDragXMoveSum,
+                            "refLayerImageTransformData[0]":refLayerImageTransformData[0],
+                            "refLayerImageTransformData[1]":refLayerImageTransformData[1],
+                            "refLayerImageTransformData[2]":refLayerImageTransformData[2],
+                            "refLayerImageTransformData[3]":refLayerImageTransformData[3],
+                            "refLayerImageTransformData[4]":refLayerImageTransformData[4],
+                            "refLayerImageTransformData[5]":refLayerImageTransformData[5],
                             "traceMenuPos[0]":refLayerMenuBox.x,
                             "traceMenuPos[1]":refLayerMenuBox.y,
                             "mirrorON":mirrorON,
                             "gridValue":gridValue,
                             "gridDrawOffsetX":gridDrawOffsetX,
                             "gridDrawOffsetY":gridDrawOffsetY,
-                            "hueCursor.x":pickerBox["hueCursor"].x,
-                            "svBaseColor":pickerBox["svBaseColor"],
+                            "hueCursor.x":colorPickerBox["hueCursor"].x,
+                            "svBaseColor":colorPickerBox["svBaseColor"],
                             "hsvColorArr[0]":hsvColorArr[0],
                             "rgbInfoColorTypeHSV":rgbInfoColorTypeIsHSV,
                             "makeJumpImageFlag":(makeJumpImageFlag === 2) ? 1:makeJumpImageFlag,
@@ -18252,8 +18244,8 @@
                             "canvasWindowInfo[1]":canvasWindowInfo[1],
                             "canvasWindowInfo[2]":canvasWindowInfo[2],
                             "canvasWindowInfo[3]":canvasWindowInfo[3],
-                            "getFirstRCursorPos.x":tickDraw.getFirstRCursorPos().x,
-                            "getFirstRCursorPos.y":tickDraw.getFirstRCursorPos().y,
+                            "getFirstRCursorPos.x":replayDrawCommands.getFirstRCursorPos().x,
+                            "getFirstRCursorPos.y":replayDrawCommands.getFirstRCursorPos().y,
                             "saveContinue":isContinueSaveON,
                             "myPalettePresetType":myPalettePresetType,
                             "myPaletteViewAllMode":isMyPaletteExpended,
@@ -18409,9 +18401,9 @@
                     initPickerBoxInfo(d["penColor"]);
                     if(d["rgbInfoColorTypeHSV"]) toggleRGBInfoTextColorType();
                     moveHSVCursorByColor((rgbInfoColorTypeIsHSV) ? HEXtoHSV(d["penColor"]) : d["penColor"]);
-                    pickerBox.changeHueColor(d["svBaseColor"]);
+                    colorPickerBox.changeHueColor(d["svBaseColor"]);
                     hsvColorArr[0] = d["hsvColorArr[0]"];
-                    pickerBox["hueCursor"].x = d["hueCursor.x"];
+                    colorPickerBox["hueCursor"].x = d["hueCursor.x"];
                     penAlpha = d["penAlpha"];
                     penAlphaIndex = penAlphaList.indexOf(d["eraseAlpha"]);
                     setPenAlpha(d["penAlpha"]);
@@ -18432,26 +18424,26 @@
                     }
                     realWorkingTimer.setRunningTime(d["APP_RUNNING_TIME"]);
                     realWorkingTimer.update();
-                    refLayerLastAlpha = d["traceAlphaSave"]
-                    canvasRefLayer.alpha = d["traceAlphaSave"];
-                    refLayerMenuBox["traceOpaButton"].x = d["traceOpaButtonX"];
+                    refLayerLastAlpha = d["refLayerLastAlpha"]
+                    canvasRefLayer.alpha = d["refLayerLastAlpha"];
+                    refLayerMenuBox["traceOpaButton"].x = d["refOpacityCursor.x"];
                     refLayerMenuBox.x = d["traceMenuPos[0]"];
                     refLayerMenuBox.y = d["traceMenuPos[1]"];
-                    refLayerMenuDragXMoveSum = d["traceReizeMoveSum"];
+                    refLayerMenuDragXMoveSum = d["refLayerMenuDragXMoveSum"];
                     isRightSidebar = d["isRightSidebar"];
                     isSidebarVisible = d["isSidebarVisible"];
                     if(d["isRightSidebar"]) setSideBarRightPosition(true);
                     if(!d["isSidebarVisible"]) setSidebarVisible(d["isSidebarVisible"],false);
                     makeJumpImageFlag = d["makeJumpImageFlag"];
                     rLastCanvasBGColor = d["rBGColorSave"];
-                    tickDraw.setFirstRCursorPos(d["getFirstRCursorPos.x"],d["getFirstRCursorPos.y"]);
+                    replayDrawCommands.setFirstRCursorPos(d["getFirstRCursorPos.x"],d["getFirstRCursorPos.y"]);
 
-                    updateRefLayerImageTransform(d["tracePosInfo[0]"],
-                                      d["tracePosInfo[1]"],
-                                      d["tracePosInfo[2]"],
-                                      d["tracePosInfo[3]"],
-                                      d["tracePosInfo[4]"],
-                                      d["tracePosInfo[5]"]);
+                    updateRefLayerImageTransform(d["refLayerImageTransformData[0]"],
+                                      d["refLayerImageTransformData[1]"],
+                                      d["refLayerImageTransformData[2]"],
+                                      d["refLayerImageTransformData[3]"],
+                                      d["refLayerImageTransformData[4]"],
+                                      d["refLayerImageTransformData[5]"]);
 
                     if(mirrorON !== d["mirrorON"]) mirrorCanvas(true);
 
@@ -18480,12 +18472,12 @@
                     rPrevFrame = getNowFrameUntilUndoIndex(undoIndex-1);
 
                     //혹시 몰라서 위치 체크 해줌
-                    appInfoBox.setRotate(canvasAnchorPoint.rotation);
+                    canvasInfoBox.setRotate(canvasAnchorPoint.rotation);
                     setCenvasCenterPos(true);
                     checkCanvasPanelPos();
                     checkCanvasPanelPos(true);
                     myPaletteSaveColorBeforeOtherType[0] = penColor;
-                    if(d["myPalettePresetType"] > 0) changeMyPalettePreset(d["myPalettePresetType"]);
+                    if(d["myPalettePresetType"] > 0) activeColorPreset(d["myPalettePresetType"]);
 
                     updateHistoryList();
                     isMyPaletteExpended = d["myPaletteViewAllMode"];
@@ -18501,10 +18493,10 @@
                     pickerBoxSwapPositionFlag = d["pickerBoxSwapPositionFlag"];
                     if(d["pickerBoxSwapPositionFlag"])
                     {
-                        pickerBox.swapColorBoxPosition(d["pickerBoxSwapPositionFlag"]);
+                        colorPickerBox.swapColorBoxPosition(d["pickerBoxSwapPositionFlag"]);
                     }
 
-                    sideBarScrollSet.y = d["scrollSetMovedY"];
+                    sideBarScrollPanel.y = d["scrollSetMovedY"];
                     topBar.captureInput.text = d["topBar.captureInput.text"];
                     capStampON = d["capStampON"];
                     if(d["captureStampFont"])
@@ -18533,14 +18525,14 @@
                 stage.nativeWindow.width = lastWindowSize.x;
                 stage.nativeWindow.height = lastWindowSize.y;
 
-                changeCanvasSize(CANVAS_WIDTH,CANVAS_HEIGHT,0,0,false);
+                updateCavnvasSizeDrawMode(CANVAS_WIDTH,CANVAS_HEIGHT,0,0,false);
                 updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
                 moveHSVCursorByColor(penColor);
                 openAboutPanel(true);
                 setUIColor(uiColorIndex);
                 updatePreviewBoxRectPos();
                 updateWindowSizeInfo();
-                appInfoBox.init(CANVAS_WIDTH,CANVAS_HEIGHT,Math.floor(canvasZoomedMultipler*100),canvasAnchorPoint.rotation,false);
+                canvasInfoBox.init(CANVAS_WIDTH,CANVAS_HEIGHT,Math.floor(canvasZoomedMultipler*100),canvasAnchorPoint.rotation,false);
 
                 selectSubLayer(false,false);
             }
@@ -18929,8 +18921,8 @@
 
                     if(!isCurrentColorSamePickedColor())
                     {
-                        updatePickerCurrentColor(pickerBox.getRGBInfoBGColor());
-                        addColorMyPaletteHistory(pickerBox.getRGBInfoBGColor());
+                        updatePickerCurrentColor(colorPickerBox.getRGBInfoBGColor());
+                        addColorMyPaletteHistory(colorPickerBox.getRGBInfoBGColor());
                     }
                 }
 
@@ -18974,7 +18966,7 @@
             setRegPoint(center.x,center.y,false);
             canvasAnchorPoint.rotation = 0;
             setRcursorRotation(0);
-            appInfoBox.setRotate(0);
+            canvasInfoBox.setRotate(0);
             updatePreviewBoxRectPos();
         }
 
@@ -19026,7 +19018,7 @@
 
                 xReg.rotation = ang;
                 setRcursorRotation(xReg.rotation);
-                appInfoBox.setRotate(Math.abs(xReg.rotation));
+                canvasInfoBox.setRotate(Math.abs(xReg.rotation));
             }
 
             return function (replayMode:Boolean=false):void
@@ -19479,7 +19471,7 @@
             }
         }
 
-        private function mirrorTraceLayerImage():void
+        private function mirrorRefLayerImage():void
         {
             canvasRefLayer.scaleX = -canvasRefLayer.scaleX;
             canvasRefLayer.rotation = -canvasRefLayer.rotation;
@@ -19496,7 +19488,7 @@
             mirrorON = !mirrorON;
             mirrorCommandReady = !mirrorCommandReady;
             mirrorDraw();
-            appInfoBox.setMirror(mirrorON);
+            canvasInfoBox.setMirror(mirrorON);
 
             //회전각 부호를 바꿔야 제대로 mirror가됨
             setRegPoint(p.x,p.y);//regpoint를 회전한 캔버스 중점으로 두고
@@ -19504,7 +19496,7 @@
             {
                 canvasAnchorPoint.rotation = -canvasAnchorPoint.rotation;//반대각으로 세팅
                 setRcursorRotation(canvasAnchorPoint.rotation)
-                mirrorTraceLayerImage();
+                mirrorRefLayerImage();
             }
 
             checkGridMirror(mirrorON);
@@ -19522,7 +19514,7 @@
             setRCursorMirrorPos();
         }
 
-        private function changeCanvasSizeReplayMode(w:Number,h:Number,moveX:Number=0,moveY:Number=0,movedFlag:Boolean=false):void
+        private function updateCanvasSizeReplayMode(w:Number,h:Number,moveX:Number=0,moveY:Number=0,movedFlag:Boolean=false):void
         {
             if(w === RCANVAS_WIDTH && h === RCANVAS_HEIGHT)
             {
@@ -19597,7 +19589,7 @@
             refLayerImageTransformData[1] = canvasRefLayerBitmap.y;
         }
 
-        private function changeCanvasSize(w:Number,h:Number,moveX:Number=0,moveY:Number=0,centerMovedFlag:Boolean=false):void
+        private function updateCavnvasSizeDrawMode(w:Number,h:Number,moveX:Number=0,moveY:Number=0,centerMovedFlag:Boolean=false):void
         {
             const maxSize:uint = CANVAS_MAX_SIZE;
 
@@ -19647,7 +19639,7 @@
             CANVAS_HEIGHT = h;
             checkCanvasPanelPos();
             if(gridValue > 0) drawGrid();
-            appInfoBox.setSize(w,h);
+            canvasInfoBox.setSize(w,h);
         }
 
         private function cResizeCanvas():Object
@@ -19845,7 +19837,7 @@
                             setApplyDeepUndo();
                         }
 
-                        changeCanvasSize(finalWidth,finalHeight,subX,subY,centerMovedFlag);
+                        updateCavnvasSizeDrawMode(finalWidth,finalHeight,subX,subY,centerMovedFlag);
                         updateResizeButtonPos(finalWidth,finalHeight);
                         rDataBuffer.push(["canvasSize",finalWidth,finalHeight,subX,subY,centerMovedFlag]);
 
@@ -20547,8 +20539,7 @@
                 {
                     if(isTransparentPenColor)
                     {
-                        setCurrentColor(1);
-
+                        updateCurrentColorPickerBox(false);
                         if(sideBar.visible === false)
                         {
                             setToolTipTempON("Current color selected");
@@ -20556,8 +20547,11 @@
                     }
                     else
                     {
-                        setCurrentColor(1);
-                        if(isTransparentPenColor === false) selectTransparentColor();
+                        updateCurrentColorPickerBox(false);
+                        if(isTransparentPenColor === false)
+                        {
+                            selectTransparentColor();
+                        }
 
                         if(sideBar.visible === false)
                         {
@@ -21131,14 +21125,14 @@
         private function selectZoomTool():void
         {
             setNowTool(TOOL_ZOOM);
-            toolBox.moveToolCursor("zoomInButton",appInfoBox);
+            toolBox.moveToolCursor("zoomInButton",canvasInfoBox);
             setControlBoxInfoOFF();
         }
 
         private function selectRotateTool():void
         {
             setNowTool(TOOL_ROTATE);
-            toolBox.moveToolCursor("toolRotate",appInfoBox);
+            toolBox.moveToolCursor("toolRotate",canvasInfoBox);
         }
 
         private function selectLassoTool():void
@@ -21336,7 +21330,7 @@
             controlBox.airBrushButtonWrapper.alpha = 1.0;
             controlBox.sharpLineButtonWrapper.alpha = 1.0;
             controlBox.opaSizeButtonWrapper.alpha = 1.0;
-            pickerBox.alpha = 1.0;
+            colorPickerBox.alpha = 1.0;
 
             setNowToolByOldTool();
         }
@@ -21459,7 +21453,7 @@
             rNowFrame = getNowFrameUntilUndoIndex(undoIndexSave);
 
             rMirrorON = undoRefData[5];
-            if(undoRefData[2] !== RCANVAS_WIDTH || undoRefData[3] !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(undoRefData[2],undoRefData[3],0,0,false);
+            if(undoRefData[2] !== RCANVAS_WIDTH || undoRefData[3] !== RCANVAS_HEIGHT) updateCanvasSizeReplayMode(undoRefData[2],undoRefData[3],0,0,false);
             if(undoRefData[4] !== RCANVAS_BG_COLOR) updateCanvasBGColorReplayMode(undoRefData[4]);
 
             rCanvasDraw.graphics.clear();
@@ -21478,13 +21472,13 @@
                 {
                     if(!rData[i]) continue;
 
-                    tickDraw.ready(rData[i]);
-                    tickDraw.drawAll();
+                    replayDrawCommands.ready(rData[i]);
+                    replayDrawCommands.drawAll();
                 }
             }
 
             updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
-            changeCanvasSize(RCANVAS_WIDTH,RCANVAS_HEIGHT,0,0,false);
+            updateCavnvasSizeDrawMode(RCANVAS_WIDTH,RCANVAS_HEIGHT,0,0,false);
             //앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
             const movedRegPos:Point = getCanvasMovedUndo(undoIndexSave,redoFlag);
             if(movedRegPos)
@@ -21595,7 +21589,7 @@
             canvasLayer2BitmapData = rCanvasLayer2BitmapData.clone();
             canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
 
-            changeCanvasSize(rCanvasLayer1BitmapData.width,rCanvasLayer1BitmapData.height,0,0,false);
+            updateCavnvasSizeDrawMode(rCanvasLayer1BitmapData.width,rCanvasLayer1BitmapData.height,0,0,false);
 
             updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
             checkCanvasPanelPos(false);
@@ -21667,7 +21661,7 @@
             {
                 var rMirrorSave:Boolean = rMirrorON;
 
-                if(undoRefImage[2] !== RCANVAS_WIDTH || undoRefImage[3] !== RCANVAS_HEIGHT) changeCanvasSizeReplayMode(undoRefImage[2],undoRefImage[3],0,0,false);
+                if(undoRefImage[2] !== RCANVAS_WIDTH || undoRefImage[3] !== RCANVAS_HEIGHT) updateCanvasSizeReplayMode(undoRefImage[2],undoRefImage[3],0,0,false);
                 if(undoRefImage[4] !== RCANVAS_BG_COLOR) updateCanvasBGColorReplayMode(undoRefImage[4]);
 
                 if(rCanvasLayer1BitmapData && undoRefImage[0] !== rCanvasLayer1BitmapData) rCanvasLayer1BitmapData.dispose();
@@ -21679,8 +21673,8 @@
                 rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
                 rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
 
-                tickDraw.ready(rData[0]);
-                tickDraw.drawAll();
+                replayDrawCommands.ready(rData[0]);
+                replayDrawCommands.drawAll();
 
                 if(undoRefImage[0] && undoRefImage[0] !== rCanvasLayer1BitmapData) undoRefImage[0].dispose();
                 if(undoRefImage[1] && undoRefImage[1] !== rCanvasLayer2BitmapData) undoRefImage[1].dispose();
@@ -21695,7 +21689,7 @@
                     undoRefImage[5] = !undoRefImage[5];
                 }
 
-                tickDraw.setFirstRCursorPosCurrent();
+                replayDrawCommands.setFirstRCursorPosCurrent();
             }
 
             function getUndoRefImage():Array
@@ -21865,7 +21859,7 @@
                                 if(workerUndoData2 === null) workerUndoData2 = [];
 
                                 workerUndoData2.push([w,h,bgColor,rf.size,rFileTotalFrame]);
-                                callWorkerCompressUndoJumpImage(imgData,imgData1);
+                                startUndoDataCompressionWorker(imgData,imgData1);
 
                                 if(!hasTimer("workerUndoDataTimer"))
                                 {
@@ -21985,18 +21979,18 @@
             if(hsvColor[1] > 0)
             {
                 hsvColorArr[0] = hsvColor[0];
-                pickerBox["hueCursor"].x = Math.round(hsvColor[0]*pickerBox["svBoxWidth"]);
+                colorPickerBox["hueCursor"].x = Math.round(hsvColor[0]*colorPickerBox["svBoxWidth"]);
             }
 
-            pickerBox["svCursor"].x = Math.round(hsvColor[1]*pickerBox["svBoxWidth"]);
-            pickerBox["svCursor"].y = Math.round(pickerBox["svBoxHeight"] - hsvColor[2]*pickerBox["svBoxHeight"]);
+            colorPickerBox["svCursor"].x = Math.round(hsvColor[1]*colorPickerBox["svBoxWidth"]);
+            colorPickerBox["svCursor"].y = Math.round(colorPickerBox["svBoxHeight"] - hsvColor[2]*colorPickerBox["svBoxHeight"]);
 
             //s v값을 제외한 순수 hue 컬러
             const baseColor:Vector.<uint> = HSVtoRGB(hsvColor[0],1.0,1.0);
             const baseHexColor:uint = RGBtoHEX(baseColor[0],baseColor[1],baseColor[2]);
-            pickerBox.changeHueColor(baseHexColor);
+            colorPickerBox.changeHueColor(baseHexColor);
 
-            if(pickerBox.getRGBInfo().charAt(0) === 'R')
+            if(colorPickerBox.getRGBInfo().charAt(0) === 'R')
             {
                 updateRGBInfoTextFromColor(hexColor);
             }
@@ -22004,7 +21998,7 @@
             {
                 updateRGBInfoTextFromColor(hsvColor);
             }
-            pickerBox.updateRGBInfoBG(hexColor,getRGBInfoBorderColor(hexColor),myPalettePresetType);
+            colorPickerBox.updateRGBInfoBG(hexColor,getRGBInfoBorderColor(hexColor),myPalettePresetType);
         }
 
         //hex에서 rgb vector 배열로 반환
@@ -22187,17 +22181,17 @@
         {
             updateSidebarDefaultRightPos();
 
-            sideBarScrollSet.x = 9;
-            sideBarScrollSet.y = scrollSetMovedY;
+            sideBarScrollPanel.x = 9;
+            sideBarScrollPanel.y = scrollSetMovedY;
             previewBox.x = -4;
             previewBox.y = 0;
-            appInfoBox.setWidth(previewBox.BOX_WIDTH);
-            appInfoBox.x = previewBox.x-2;
-            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+6);
+            canvasInfoBox.setWidth(previewBox.BOX_WIDTH);
+            canvasInfoBox.x = previewBox.x-2;
+            canvasInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+6);
             controlBox.x = 39;
-            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
-            pickerBox.x = 39;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height+10);
+            controlBox.y = Math.floor(canvasInfoBox.y+canvasInfoBox.height+7);
+            colorPickerBox.x = 39;
+            colorPickerBox.y = Math.floor(controlBox.y+controlBox.height+10);
             toolBox.x = -2;
             toolBox.y = Math.floor(controlBox.y+1);
 
@@ -22224,25 +22218,25 @@
             checkFOFOPosition();
             updateStageOffset();
 
-            if(lassoToolON) checkBoxPosition(lassoMenuBox);
-            if(isRefLayerMenuON) checkBoxPosition(refLayerMenuBox);
+            if(lassoToolON) keepBoxInsideStage(lassoMenuBox);
+            if(isRefLayerMenuON) keepBoxInsideStage(refLayerMenuBox);
         }
 
         private function setSideBarLeftPosition():void
         {
             sideBar.x = 0;
 
-            sideBarScrollSet.x = 5;
-            sideBarScrollSet.y = scrollSetMovedY;
+            sideBarScrollPanel.x = 5;
+            sideBarScrollPanel.y = scrollSetMovedY;
             previewBox.x = 0;
             previewBox.y = 0;
-            appInfoBox.setWidth(previewBox.BOX_WIDTH);
-            appInfoBox.x = previewBox.x-2;
-            appInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+6);
+            canvasInfoBox.setWidth(previewBox.BOX_WIDTH);
+            canvasInfoBox.x = previewBox.x-2;
+            canvasInfoBox.y = Math.floor(previewBox.y+previewBox.BOX_HEIGHT+6);
             controlBox.x = 0;
-            controlBox.y = Math.floor(appInfoBox.y+appInfoBox.height+7);
-            pickerBox.x = 0;
-            pickerBox.y = Math.floor(controlBox.y+controlBox.height+10);
+            controlBox.y = Math.floor(canvasInfoBox.y+canvasInfoBox.height+7);
+            colorPickerBox.x = 0;
+            colorPickerBox.y = Math.floor(controlBox.y+controlBox.height+10);
             toolBox.x = 177;
             toolBox.y = Math.floor(controlBox.y+1);
 
@@ -22269,8 +22263,8 @@
             updateStageOffset();
             checkFOFOPosition();
 
-            if(lassoToolON) checkBoxPosition(lassoMenuBox);
-            if(isRefLayerMenuON) checkBoxPosition(refLayerMenuBox);
+            if(lassoToolON) keepBoxInsideStage(lassoMenuBox);
+            if(isRefLayerMenuON) keepBoxInsideStage(refLayerMenuBox);
         }
 
         private function updateScrollBarColorHeight():void
@@ -22296,21 +22290,21 @@
             topBar.name = "topBar";
             sideBarScrollBar.name = "sideBarScrollBar";
             topBar.makeTopbarBG(COLOR_MID_DARK);
-            changeTopBarIcons("draw");
+            changeTopBarIconFromMode("draw");
 
             fillPenBox.x = -fillPenBox.width-3;
             fillPenBox.y = -fillPenBox.height-3;
 
-            pickerBox.rgbInfo.addEventListener(FocusEvent.FOCUS_IN, rgbInfoTextFocusInEvent);
-            pickerBox.rgbInfo.addEventListener(FocusEvent.FOCUS_OUT, rgbInfoTextFocusOutEvent);
+            colorPickerBox.rgbInfo.addEventListener(FocusEvent.FOCUS_IN, rgbInfoTextFocusInEvent);
+            colorPickerBox.rgbInfo.addEventListener(FocusEvent.FOCUS_OUT, rgbInfoTextFocusOutEvent);
             previewBox.scrollRect = new Rectangle(0,0,previewBox.width,previewBox.height);
 
-            sideBarScrollSet.addChild(previewBox);
-            sideBarScrollSet.addChild(appInfoBox);
-            toolBox.initCanvasControlButtons(appInfoBox);
-            sideBarScrollSet.addChild(toolBox);
-            sideBarScrollSet.addChild(controlBox);
-            sideBarScrollSet.addChild(pickerBox);
+            sideBarScrollPanel.addChild(previewBox);
+            sideBarScrollPanel.addChild(canvasInfoBox);
+            toolBox.initCanvasControlButtons(canvasInfoBox);
+            sideBarScrollPanel.addChild(toolBox);
+            sideBarScrollPanel.addChild(controlBox);
+            sideBarScrollPanel.addChild(colorPickerBox);
             // appInfoBox.cacheAsBitmap = true;
             // toolBox.cacheAsBitmap = true;
             // toolBox.cacheAsBitmap = true;
@@ -22318,12 +22312,12 @@
             // pickerBox.cacheAsBitmap = true;
 
             sideBar.addChild(sideBarScrollBar);
-            sideBar.addChild(sideBarScrollSet);
+            sideBar.addChild(sideBarScrollPanel);
             sideBar.updateSideBGSize(getSideBarBGHeight());
             sideBarScrollBar.alpha = 0.7;
             STAGE_TOP_OFFSET = topBar.BARSIZE;
 
-            capStampFontListBox.y = 100;
+            captureStampFontListBox.y = 100;
 
             topBar.updateTimerPos(stage.stageWidth);
             
@@ -22339,7 +22333,7 @@
             stage.addChild(hintBox);
             stage.addChild(hintHorverCursor);
             stage.addChild(numPadBox);
-            stage.addChild(capStampFontListBox);
+            stage.addChild(captureStampFontListBox);
             setAsTopChild(topBar);
         }
 
@@ -22393,7 +22387,7 @@
             stageBG.name = "stageBG";
             canvasRefLayer.name = "canvasTraceLayer";
             canvasGrid.name = "canvasGrid";
-            canvasFlash.name = "canvasFlash";
+            canvasFlashEffect.name = "canvasFlash";
 
             updateStageBGSize();
 
@@ -22490,7 +22484,7 @@
             return (stage.stageHeight-topBar.BARSIZE*getUIScale())/getUIScale();
         }
 
-        private function windowResizeEvent(e:Event):void
+        private function onWindowResize(e:Event):void
         {
             addTimerByName("windowResizeDelayTimer",0.2,false,function():void
             {
@@ -22520,14 +22514,14 @@
                 {
                     lassoMenuBox.x += dx;
                     lassoMenuBox.y += dy;
-                    checkBoxPosition(lassoMenuBox);
+                    keepBoxInsideStage(lassoMenuBox);
                 }
 
                 if(isRefLayerMenuON)
                 {
                     refLayerMenuBox.x += dx;
                     refLayerMenuBox.y += dy;
-                    checkBoxPosition(refLayerMenuBox);
+                    keepBoxInsideStage(refLayerMenuBox);
                 }
 
                 if(aboutPanelON)
@@ -22565,7 +22559,7 @@
 
                 if(loadMenuBox.visible === true)
                 {
-                    centerDragDropSelectBox();
+                    updateLoadMenuBoxPosCenter();
                 }
 
                 updateStageBGSize();
@@ -22614,13 +22608,13 @@
 
             if(!isCaptureModeON)
             {
-                appInfoBox.setZoom(newZoom);
+                canvasInfoBox.setZoom(newZoom);
             }
 
             updateRCursorScale(newZoom);
         }
 
-        private function windowClosingEvent(e:Event):void
+        private function onWindowClosingEvent(e:Event):void
         {
             windowClosingFlag = true;
 
@@ -22651,7 +22645,7 @@
         }
 
         //check box position함수는 요소 전체가 창에서 넘어가만 않게 하는거고
-        private function checkBoxPosition(ent:DisplayObject):void
+        private function keepBoxInsideStage(ent:DisplayObject):void
         {
             if(ent.x+ent.width > stage.stageWidth-STAGE_RIGHT_OFFSET) ent.x = stage.stageWidth-ent.width-STAGE_RIGHT_OFFSET;
             else if(ent.x < STAGE_LEFT_OFFSET) ent.x = STAGE_LEFT_OFFSET;
@@ -23421,9 +23415,9 @@
                 case KEY.c:
                 case KEY.m:
                 {
-                    if(pickerBox.scratchPad.hitTestPoint(stage.mouseX,stage.mouseY))
+                    if(colorPickerBox.scratchPad.hitTestPoint(stage.mouseX,stage.mouseY))
                     {
-                        if(pickerBox.scratchPad.visible)
+                        if(colorPickerBox.scratchPad.visible)
                         {
                             showPickColorScratchPad();
                         }
@@ -23534,7 +23528,7 @@
             });
         }
 
-        private function windowActiveEvent(e:Event):void
+        private function onWindowActive(e:Event):void
         {
             setIMEDisabled();
             realWorkingTimer.resume();
@@ -23550,7 +23544,7 @@
             }
         }
 
-        private function windowDeactiveEvent(e:Event):void
+        private function onWindowDeactivate(e:Event):void
         {
             isMouseClickBlocked = true;
             resizeCanvas.exit(true);
@@ -23609,9 +23603,9 @@
                 numPadBox.removeOKLCHMouseEvent();
             }
 
-            if(pickerBox.scratchPad.isScratchStarted)
+            if(colorPickerBox.scratchPad.isScratchStarted)
             {
-                pickerBox.scratchPad.removeCheckMouseDistEvent();
+                colorPickerBox.scratchPad.removeCheckMouseDistEvent();
             }
 
             setNowToolByOldTool();
@@ -23918,22 +23912,22 @@
             const limitTop:Number = Math.floor(-sideBarConstHeight+20.0);
             const limitBottom:Number = Math.floor(stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET-20.0*scale);
 
-            if(sideBarScrollSet.y < limitTop)
+            if(sideBarScrollPanel.y < limitTop)
             {
-                sideBarScrollSet.y = limitTop;//*scale;
+                sideBarScrollPanel.y = limitTop;//*scale;
             }
-            else if(sideBarScrollSet.y*scale > limitBottom)
+            else if(sideBarScrollPanel.y*scale > limitBottom)
             {
-                sideBarScrollSet.y = limitBottom/scale;
+                sideBarScrollPanel.y = limitBottom/scale;
             }
 
-            scrollSetMovedY = sideBarScrollSet.y;
+            scrollSetMovedY = sideBarScrollPanel.y;
         }
 
         private function resetSideBarPosition():void
         {
-            sideBarScrollSet.y = 0;
-            scrollSetMovedY = sideBarScrollSet.y;
+            sideBarScrollPanel.y = 0;
+            scrollSetMovedY = sideBarScrollPanel.y;
             checkFOFOPosition();
         }
 
@@ -23951,7 +23945,7 @@
             {
                 checkScrollSetOutStage();
                 isMouseDragging = false;
-                scrollSetMovedY = sideBarScrollSet.y;
+                scrollSetMovedY = sideBarScrollPanel.y;
 
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,sideBarMouseMoveEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_UP,sideBarMouseUpEvent);
@@ -23960,8 +23954,8 @@
 
             function _moveScroll(subY:Number):void
             {
-                sideBarScrollSet.y += subY*1.5;
-                scrollSetMovedY = sideBarScrollSet.y;
+                sideBarScrollPanel.y += subY*1.5;
+                scrollSetMovedY = sideBarScrollPanel.y;
             }
 
             function sideBarMouseMoveEvent(e:MouseEvent):void
@@ -24166,7 +24160,7 @@
             rCanvasLayer2BitmapData = canvasLayer2BitmapData.clone();
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
 
-            changeCanvasSizeReplayMode(canvasLayer1Bitmap.width,canvasLayer1Bitmap.height);
+            updateCanvasSizeReplayMode(canvasLayer1Bitmap.width,canvasLayer1Bitmap.height);
             updateCanvasBGColorReplayMode(CANVAS_BG_COLOR);
         }
 
@@ -24210,11 +24204,11 @@
 
             updatePreviewBoxRectPos();
             if(isTransparentPenColor) selectTransparentColor();
-            else changePickerModeToPenColor();
+            else deactiveColorPickerModeBG();
             updatePenSizeCursor();
             penCursorPosition.check();
-            changeTopBarIcons("draw");
-            appInfoBox.setZoom(canvasZoomedMultipler);
+            changeTopBarIconFromMode("draw");
+            canvasInfoBox.setZoom(canvasZoomedMultipler);
             updateRCursorScale(canvasZoomedMultipler);
 
             deepUndoON = deepUndoONSave;
@@ -24297,7 +24291,7 @@
                 removeInputEventsReplayMode();
                 rReplayTimeBarBox["frameInfo"].text = STRING_PREPARE_REPLAY_DATA;
                 setSidebarVisible(false,true);
-                changeTopBarIcons("replay");
+                changeTopBarIconFromMode("replay");
                 setMakeJumpImage();
             }
             else if(makeJumpImageFlag === 0)
@@ -24324,7 +24318,7 @@
                 doDrawSlowEventON = false;
                 checkCanvasPanelPos(true);
                 setSidebarVisible(false,true);
-                changeTopBarIcons("replay");
+                changeTopBarIconFromMode("replay");
                 addInputEventsReplayMode();
             }
         }
@@ -24350,7 +24344,7 @@
                         return;
                     }
 
-                    checkButtonUp(targetName);
+                    onMouseUpConfirmClick(targetName);
                     return;
                 }
             }
@@ -24450,7 +24444,7 @@
                     {
                         return;
                     }
-                    checkButtonUp(targetName);
+                    onMouseUpConfirmClick(targetName);
                 }
                 break;
             }
@@ -24777,7 +24771,7 @@
                     {
                         return true;
                     }
-                    checkButtonUp(targetName);
+                    onMouseUpConfirmClick(targetName);
                 }
                 return true;
 
@@ -24835,7 +24829,7 @@
                 updateMyPaletteList();
             }
 
-            pickerBox.removeColorHistoryDragBox();
+            colorPickerBox.removeColorHistoryDragBox();
             stage.removeEventListener(MouseEvent.MOUSE_UP,myPaletteDragMouseUpEvent);
             stage.removeEventListener(MouseEvent.MOUSE_MOVE,myPaletteDragMouseMoveEvent);
         }
@@ -24848,16 +24842,16 @@
                 {
                     removeTimer("addColorMyPaletteDelayTimer");
                     myPaletteDragStarted = true;
-                    pickerBox.setColorDragBoxColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
+                    colorPickerBox.setColorDragBoxColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
                     updateMyPaletteList(myPaletteDragClickedIndex);
                 }
 
-                pickerBox.setColorHistoryDragBoxPos();
+                colorPickerBox.setColorHistoryDragBoxPos();
 
             }
             else
             {
-                myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+                myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
             }
         }
 
@@ -24869,7 +24863,7 @@
             {
                 myPaletteDragStarted = false;
 
-                if(pickerBox.myPaletteBox.hitTestPoint(mouseX,mouseY))
+                if(colorPickerBox.myPaletteBox.hitTestPoint(mouseX,mouseY))
                 {
                     const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
                     const colorSave:* = myPalettePreset[putIndex];
@@ -24882,7 +24876,7 @@
             }
 
             updateHistoryList();
-            pickerBox.removeColorHistoryDragBox();
+            colorPickerBox.removeColorHistoryDragBox();
             stage.removeEventListener(MouseEvent.MOUSE_UP,historyDragMouseUpEvent);
             stage.removeEventListener(MouseEvent.MOUSE_MOVE,historyColorDragMouseMoveEvent);
         }
@@ -24894,16 +24888,16 @@
                 if(myPaletteDragStarted === false)
                 {
                     myPaletteDragStarted = true;
-                    pickerBox.setColorDragBoxColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
+                    colorPickerBox.setColorDragBoxColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
                     updateMyPaletteList(myPaletteDragClickedIndex);
                     updateHistoryList(myPaletteDragClickedIndex);
                 }
 
-                pickerBox.setColorHistoryDragBoxPos();
+                colorPickerBox.setColorHistoryDragBoxPos();
             }
             else
             {
-                myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+                myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
             }
         }
 
@@ -24921,25 +24915,25 @@
                     {
                         case "currentColor":
                         {
-                            setCurrentColor(pickerMode);
+                            updateCurrentColorPickerBox(isColorPickerModeBG);
                             setNowToolForDrawing(false);
                         }
                         break;
 
                         case "penColorButton":
                         {
-                            if(pickerMode !== 1)
+                            if(isColorPickerModeBG)
                             {
-                                changePickerModeToPenColor();
+                                deactiveColorPickerModeBG();
                             }
                         }
                         break;
 
                         case "paperColorButton":
                         {
-                            if(pickerMode !== 2)
+                            if(!isColorPickerModeBG)
                             {
-                                changePickerModeToPaperColor();
+                                activeColorPickerModeBG();
                             }
                         }
                         break;
@@ -24961,7 +24955,7 @@
 
                         case "transColorButton":
                         {
-                            if(pickerBox.transColorButton.alpha === 1.0)
+                            if(colorPickerBox.transColorButton.alpha === 1.0)
                             {
                                 selectTransparentColor();
                                 setNowToolForDrawing(false);
@@ -24972,21 +24966,21 @@
                         case "swapPositionButton":
                         {
                             pickerBoxSwapPositionFlag = !pickerBoxSwapPositionFlag;
-                            pickerBox.swapColorBoxPosition(pickerBoxSwapPositionFlag);
+                            colorPickerBox.swapColorBoxPosition(pickerBoxSwapPositionFlag);
                         }
                         break;
 
                         case "drawrPresetButton":
                         {
                             removeTimer("clearScratchPadTimer");
-                            changeMyPalettePreset(1);
+                            activeColorPreset(1);
                         }
                         break;
 
                         case "tegakiPresetButton":
                         {
                             removeTimer("clearScratchPadTimer");
-                            changeMyPalettePreset(2);
+                            activeColorPreset(2);
                         }
                         break;
                     }
@@ -25018,8 +25012,8 @@
                     {
                         isMouseDragging = true;
                         myPaletteDragClickedColor = myPalettePreset[index];
-                        myPaletteClickPos.setTo(pickerBox.mouseX,pickerBox.mouseY);
-                        myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+                        myPaletteClickPos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
+                        myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
                         stage.addEventListener(MouseEvent.MOUSE_UP,myPaletteDragMouseUpEvent,false,-1);
                         stage.addEventListener(MouseEvent.MOUSE_MOVE,myPaletteDragMouseMoveEvent);
                     }
@@ -25036,8 +25030,8 @@
                     {
                         isMouseDragging = true;
                         myPaletteDragClickedColor = myPalettePreset[index+90];
-                        myPaletteClickPos.setTo(pickerBox.mouseX,pickerBox.mouseY);
-                        myPaletteMovePos.setTo(pickerBox.mouseX,pickerBox.mouseY);
+                        myPaletteClickPos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
+                        myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
                         stage.addEventListener(MouseEvent.MOUSE_UP,historyDragMouseUpEvent,false,-1);
                         stage.addEventListener(MouseEvent.MOUSE_MOVE,historyColorDragMouseMoveEvent);
                     }
@@ -25048,13 +25042,13 @@
             {
                 case "scratchPad":
                 {
-                    pickerBox.scratchPad.drawReady(penSize,penColor,penAlpha,penIsSquare,pickColor,getColorDifferenceForHuman);
+                    colorPickerBox.scratchPad.drawReady(penSize,penColor,penAlpha,penIsSquare,pickColor,getColorDifferenceForHuman);
                 }
                 return true;
 
                 case "svBox":
                 {
-                    if(pickerBox.scratchPad && !pickerBox.scratchPad.visible)
+                    if(colorPickerBox.scratchPad && !colorPickerBox.scratchPad.visible)
                     {
                         startSVColorSelection();
                     }
@@ -25063,7 +25057,7 @@
 
                 case "hueColor":
                 {
-                    if(pickerBox.scratchPad && !pickerBox.scratchPad.visible)
+                    if(colorPickerBox.scratchPad && !colorPickerBox.scratchPad.visible)
                     {
                         startHueColorSelection();
                     }
@@ -25074,7 +25068,7 @@
                 {
                     if(myPalettePresetType === 0)
                     {
-                        handleSelctOrAddColorMyPalette();
+                        startSelectOrAddColorMyPalette();
                     }
                     else
                     {
@@ -25301,7 +25295,7 @@
                     case "lassoLayerMerge":
                     case "lassoLayerSwap":
                     case "lassoMirror":
-                        checkButtonUp(targetName);
+                        onMouseUpConfirmClick(targetName);
                     break;
 
                     default:
@@ -25328,7 +25322,7 @@
 
             if(sideBar.visible)
             {
-                if(sideBarScrollSet.hitTestPoint(mouseX,mouseY))
+                if(sideBarScrollPanel.hitTestPoint(mouseX,mouseY))
                 {
                     if(targetName === "prevStageBG"
                     || targetName === "prevBitmapBG"
@@ -25395,7 +25389,7 @@
                 case "sideBarONButton":
                 case "sideBarONButton2":
                 case "traceCancelButton":
-                case "traceImageButton":
+                case "setTraceImageButton":
                 case "traceLoadButton":
                 case "traceMirrorButton":
                 case "traceVisibleONButton":
@@ -25411,7 +25405,7 @@
                         return;
                     }
 
-                    checkButtonUp(targetName);
+                    onMouseUpConfirmClick(targetName);
                 }
                 return;
 
@@ -25423,7 +25417,7 @@
 
                 case "traceDeleteButton":
                 {
-                    startPressHoldKey(refLayerMenuBox.traceDeleteButton,"Erasing reference image... ",null,setTraceDeleteButton,null);
+                    startPressHoldKey(refLayerMenuBox.refClearImageButton,"Erasing reference image... ",null,setTraceDeleteButton,null);
                 }
                 return;
 
