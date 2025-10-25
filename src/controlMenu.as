@@ -144,7 +144,7 @@
 			penSmoothSliderCursor.transform.colorTransform = opColor;
 		}
 
-		public function shapeFlag(flag:Boolean):void // true이면 rect임
+		public function updatePenShapeSet(flag:Boolean):void // true이면 rect임
 		{
 			if (flag === true)
 			{

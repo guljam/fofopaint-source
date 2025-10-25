@@ -33,7 +33,7 @@
 		private var rgbInfoPaletteTypeSave:int = 0;
 		public const myPaletteBox:Sprite = new Sprite();
 		public const historyBox:Sprite = new Sprite();
-		public const myPaletteDragColorBox:Shape = new Shape();
+		public const myPaletteDragColor:Shape = new Shape();
 		public var penColorButton:SimpleButton;
 		public var paperColorButton:SimpleButton;
 		public var transColorButton:SimpleButton;
@@ -125,7 +125,7 @@
 			}
 		}
 
-		public function swapColorBoxPosition(flag:Boolean):void
+		public function swapColorBoxPositions(flag:Boolean):void
 		{
 			if(flag)
 			{
@@ -138,10 +138,10 @@
 				mainColorPickerBox.y = colorBoxPositionSave[1];
 			}
 
-			checkMainColorPickerBoxPosition(flag);
+			updateMainColorPickerBoxPosition(flag);
 		}
 
-		public function checkMainColorPickerBoxPosition(checkflag:Boolean):void
+		public function updateMainColorPickerBoxPosition(checkflag:Boolean):void
 		{
 			if(checkflag)
 			{
@@ -156,7 +156,7 @@
 			}
 		}
 
-		public function changeColorPresets(type:int):void
+		public function setActiveColorPreset(type:int):void
 		{
 			if(type === 0)
 			{
@@ -256,17 +256,17 @@
 			paperColorButton.transform.colorTransform = baseColor;
 		}
 
-		public function updateRGBInfoColor(color:uint):void
+		public function updateRGBInfoTextColor(color:uint):void
 		{
 			rgbInfo.textColor = color;
 		}
 
-		public function getRGBInfo():String
+		public function getRGBInfoText():String
 		{
 			return rgbInfo.text;
 		}
 
-		public function setRGBInfo(str:String):void
+		public function setRGBInfoText(str:String):void
 		{
 			rgbInfo.text = str;
 		}
@@ -276,12 +276,12 @@
 			rgbInfo.visible = flag;
 		}
 
-		public function setRGBInfoBGTransparentColorOFF():void
+		public function restoreRGBInfoBackground():void
 		{
 			updateRGBInfoBG(rgbInfoBGColor,rgbInfoBGBorderColor,rgbInfoPaletteTypeSave);
 		}
 
-		public function setRGBInfoBGTransparentColorON(paletteType:int):void
+		public function setRGBInfoBackgroundTransparent(paletteType:int):void
 		{
 			const rgbInfoBGwidth:Number = (paletteType !== 0)?svBoxWidth:rgbInfoWidth;
 			rgbInfoBG.graphics.clear();
@@ -335,7 +335,7 @@
 			}
 		}
 
-		public function changeHueColor(color:uint):void
+		public function updateHueColor(color:uint):void
 		{
 			svBase.graphics.clear();
 			svBase.graphics.lineStyle(0,0,0);
@@ -346,30 +346,30 @@
 			svBaseColor = color;
 		}
 
-		public function removeColorHistoryDragBox():void
+		public function removeDragColor():void
 		{
-			myPaletteDragColorBox.visible = false;
-			myPaletteDragColorBox.graphics.clear();
+			myPaletteDragColor.visible = false;
+			myPaletteDragColor.graphics.clear();
 		}
 
-		public function setColorHistoryDragBoxPos():void
+		public function updateDragColorPosToCursor():void
 		{
-			myPaletteDragColorBox.x = this.mouseX-myPaletteDragColorBox.width/2;
-			myPaletteDragColorBox.y = this.mouseY-myPaletteDragColorBox.height/2;
+			myPaletteDragColor.x = this.mouseX-myPaletteDragColor.width/2;
+			myPaletteDragColor.y = this.mouseY-myPaletteDragColor.height/2;
 		}
 
-		public function setColorDragBoxColor(color:uint,colorWidth:Number,colorHeight:Number):void
+		public function updateDragColor(color:uint,colorWidth:Number,colorHeight:Number):void
 		{
-			myPaletteDragColorBox.graphics.clear();
-			myPaletteDragColorBox.graphics.beginFill(color);
-			myPaletteDragColorBox.graphics.drawRect(0,0,colorWidth,colorHeight);
-			myPaletteDragColorBox.graphics.endFill();
+			myPaletteDragColor.graphics.clear();
+			myPaletteDragColor.graphics.beginFill(color);
+			myPaletteDragColor.graphics.drawRect(0,0,colorWidth,colorHeight);
+			myPaletteDragColor.graphics.endFill();
 
-			setChildIndex(myPaletteDragColorBox,this.numChildren-1);
-			myPaletteDragColorBox.visible = true;
+			setChildIndex(myPaletteDragColor,this.numChildren-1);
+			myPaletteDragColor.visible = true;
 		}
 
-		private function initMyPaletteTransBGBmpd():void
+		private function initMyPaletteTransBG():void
 		{
 			const checkerPatternWidth:Number = myPaletteTransBG.width;
 			const checkerPatternHeight:Number = myPaletteTransBG.height;
@@ -384,7 +384,7 @@
 			}
 		}
 
-		public function setBrightnessTransparentColorButtonBmpd(uiColorIndex:int):void
+		public function applyTransparentColorBrightness(uiColorIndex:int):void
 		{
 			const brightness:Number = transBGBrightnessList[uiColorIndex];
 			var colorMatrix:Array = [
@@ -397,11 +397,11 @@
 			transColorButton.filters = [colorMatrixFilter];
 			myPaletteTransBG.filters = [colorMatrixFilter];
 
-			initTransparentColorButtonBmpd();
-			initMyPaletteTransBGBmpd();
+			initTransparentColorButton();
+			initMyPaletteTransBG();
 		}
 
-		private function initTransparentColorButtonBmpd():void
+		private function initTransparentColorButton():void
 		{
 			const checkerPatternWidth:Number = transColorButton.width;
 			const checkerPatternHeight:Number = transColorButton.height;
@@ -416,8 +416,8 @@
 		public function colorPickerButtons() {
 			// visible = false;
 			name = "pickerBox";
-			initTransparentColorButtonBmpd();
-			initMyPaletteTransBGBmpd();
+			initTransparentColorButton();
+			initMyPaletteTransBG();
 
 			var gradMatrix:Matrix = new Matrix();
 			//sv기본 컬러
@@ -535,8 +535,8 @@
 			addChild(mainColorPickerBox);
 			addChild(mainPresetButtonBox);
 			addChild(mainPickerMenuBox);
-			addChild(myPaletteDragColorBox);
-			myPaletteDragColorBox.visible = false;
+			addChild(myPaletteDragColor);
+			myPaletteDragColor.visible = false;
 
 			panelWidth = 180;
 			panelHeight = mainPresetButtonBox.y+mainPresetButtonBox.height+3;

@@ -32,7 +32,7 @@
 		public var loadButton:SimpleButton;
 		public var repLoadButton:SimpleButton;
 		public var clipBoardButton:SimpleButton;
-		public var clearButton:SimpleButton;
+		public var newFileButton:SimpleButton;
 		public var gridButton:SimpleButton;
 		public var gridMoveLeftButton:SimpleButton;
 		public var gridMoveRightButton:SimpleButton;
@@ -271,7 +271,7 @@
 			repSaveButton.alpha = 1.0;
 			loadButton.alpha = 1.0;
 			repLoadButton.alpha = 1.0;
-			clearButton.alpha = 1.0;
+			newFileButton.alpha = 1.0;
 			reRecordingButton.alpha = 1.0;
 			superUndoButton.alpha = 1.0;
 			cutPrevDataButton.alpha = 1.0;
@@ -286,7 +286,7 @@
 			loadButton.alpha = offAlpha;
 			repLoadButton.alpha = offAlpha;
 			clipBoardButton.alpha = offAlpha;
-			clearButton.alpha = offAlpha;
+			newFileButton.alpha = offAlpha;
 			reRecordingButton.alpha = offAlpha;
 			superUndoButton.alpha = offAlpha;
 			cutPrevDataButton.alpha = offAlpha;
@@ -337,7 +337,7 @@
 			loadButton.transform.colorTransform = opColor;
 			repLoadButton.transform.colorTransform = opColor;
 			clipBoardButton.transform.colorTransform = opColor;
-			clearButton.transform.colorTransform = opColor;
+			newFileButton.transform.colorTransform = opColor;
 			gridButton.transform.colorTransform = opColor;
 			replayModeButton.transform.colorTransform = opColor;
 			drawModeButton.transform.colorTransform = opColor;
@@ -505,7 +505,7 @@
 												loadButton,
 												repLoadButton,
 												clipBoardButton,
-												clearButton,
+												newFileButton,
 												gridButton,
 												replayModeButton,
 												drawModeButton,
@@ -620,7 +620,7 @@
 			loadButton.useHandCursor = false;
 			repLoadButton.useHandCursor = false;
 			clipBoardButton.useHandCursor = false;
-			clearButton.useHandCursor = false;
+			newFileButton.useHandCursor = false;
 			gridButton.useHandCursor = false;
 			replayModeButton.useHandCursor = false;
 			drawModeButton.useHandCursor = false;
@@ -659,7 +659,7 @@
 								[saveButton,repSaveButton,capClipBoard],
 								[loadButton,repLoadButton,capRotate],
 								[clipBoardButton,reRecordingButton,capFlip],
-								[clearButton,cutPrevDataButton,capTrans],
+								[newFileButton,cutPrevDataButton,capTrans],
 								[gridButton,superUndoButton,capLayer1VisibleButton],
 								[sideBarPositionButton,replayZoomInButton,capLayer2VisibleButton],
 								[sideBarOFFButton,replayZoomOutButton,capStamp],
@@ -675,7 +675,7 @@
 									saveButton,
 									loadButton,
 									clipBoardButton,
-									clearButton,
+									newFileButton,
 									gridButton,
 									topBarColorButton,
 									dpiButton,

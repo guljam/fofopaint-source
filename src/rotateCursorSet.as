@@ -5,7 +5,7 @@
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
 
-	public class rotateCursor extends Sprite {
+	public class rotateCursorSet extends Sprite {
 		public var rotateBG:SimpleButton;
 		public var rotateArrow:SimpleButton;
 		public var rotateCircle:SimpleButton;
@@ -30,7 +30,7 @@
 			rotateCircle.transform.colorTransform = opColor;
 		}
 
-		public function rotateCursor() {
+		public function rotateCursorSet() {
 			visible = false;
 			setScale(1.0);
 		}
