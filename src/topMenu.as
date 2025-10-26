@@ -292,10 +292,16 @@
 			cutPrevDataButton.alpha = offAlpha;
 		}
 
-		public function updateButtonVisible(flag:Boolean):void
+		public function hideUpdateButton():void
 		{
-			updateButton.visible = flag;
-			aboutButton.visible = !flag;
+			updateButton.visible = false;
+			aboutButton.visible = true;
+		}
+
+		public function showUpdateButton():void
+		{
+			updateButton.visible = true;
+			aboutButton.visible = false;
 		}
 
 		public function updateTimerPos(stw:Number):void

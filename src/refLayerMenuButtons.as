@@ -127,8 +127,6 @@
 				refInfoText.y = refLayerMenuInfoPos[0];
 				refLayerMenuMoveButton.y = 0;
 			}
-
-			// traceMenuMoveButton.height = traceInfo.height+5;
 		}
 
 		public function setScale(newScale:Number):void
