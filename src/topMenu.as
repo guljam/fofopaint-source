@@ -433,9 +433,9 @@
 			function check(index:int):void
 			{
 				const arr:Array = [sideBarONButton,
-									sideBarOFFButton,
-									sideBarONButton2,
-									sideBarOFFButton2];
+								   sideBarOFFButton,
+								   sideBarONButton2,
+								   sideBarOFFButton2];
 				const len:uint = arr.length;
 
 				for(var i:uint=0;i<len;i++)
@@ -463,30 +463,55 @@
 			}
 		}
 
-		public function buttonSetVisible(mode:String,flag:Boolean,rightSidebar:Boolean=false,sidebarVisible:Boolean=false):void
+		private function setIconsVisible(arr:Array,flag:Boolean):void
 		{
-			const arr:Array = (mode === "replay")  ? replayModeButtons
-							: (mode === "capture") ? captureModeButtons
-							: (mode === "draw")    ? drawModeButtons
-							: null;
-			if(!arr) return;
-
 			const len:uint = arr.length;
 
 			for(var i:uint=0;i<len;i++)
 			{
 				if(arr[i] as DisplayObject) arr[i].visible = flag;
 			}
+		}
 
-			if(flag === true)
+		public function hideModeIcons(mode:String,rightSidebar:Boolean=false,sidebarVisible:Boolean=false):void
+		{
+			const arr:Array = (mode === "replay")  ? replayModeButtons
+							: (mode === "capture") ? captureModeButtons
+							: (mode === "draw")    ? drawModeButtons
+							: null;
+			if(!arr)
 			{
-				if(mode === "draw")
-				{
-					if(rightSidebar) sideBarPositionButton.visible = false;
-					else sideBarPositionButton2.visible = false;
+				return;
+			}
 
-					checkSideBarONOFFButton(sidebarVisible,rightSidebar);
+			setIconsVisible(arr,false);
+		}
+
+		public function showModeIcons(mode:String,rightSidebar:Boolean=false,sidebarVisible:Boolean=false):void
+		{
+			const arr:Array = (mode === "replay")  ? replayModeButtons
+							: (mode === "capture") ? captureModeButtons
+							: (mode === "draw")    ? drawModeButtons
+							: null;
+			if(!arr) 
+			{
+				return;
+			}
+
+			setIconsVisible(arr,true);
+
+			if(mode === "draw")
+			{
+				if(rightSidebar)
+				{
+					sideBarPositionButton.visible = false;
 				}
+				else
+				{
+					sideBarPositionButton2.visible = false;
+				}
+
+				checkSideBarONOFFButton(sidebarVisible,rightSidebar);
 			}
 		}
 

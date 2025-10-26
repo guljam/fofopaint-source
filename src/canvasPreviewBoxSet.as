@@ -7,7 +7,7 @@
 	import flash.text.TextField;
 	import flash.geom.Rectangle;
 
-	public class previewPanel extends Sprite {
+	public class canvasPreviewBoxSet extends Sprite {
 		public var prevCursor:Sprite = new Sprite();
 		private var prevInfo:TextField;
 		private var prevStageBG:Sprite = new Sprite();
@@ -131,9 +131,9 @@
 			prevStageBG.transform.colorTransform = stageColor;
 		}
 
-		public function previewPanel() {
+		public function canvasPreviewBoxSet() {
 			// constructor code
-			name = "prevBox";
+			name = "previewBox";
 			prevStageBG.graphics.lineStyle(0,0,0);
 			prevStageBG.graphics.beginFill(0xFFFFFF);
 			prevStageBG.graphics.drawRect(0,0,BOX_WIDTH,BOX_HEIGHT);
