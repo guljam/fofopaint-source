@@ -7,7 +7,7 @@
 	import flash.geom.ColorTransform;
 	import flash.display.Graphics;
 
-	public class replayTimeBar extends Sprite {
+	public class replayTimeLineSet extends Sprite {
 		public var replayBGBar:Sprite = new Sprite();
 		public var replayDeleteBar:Sprite = new Sprite();
 		public var replayTotalBar:Sprite = new Sprite();
@@ -145,7 +145,7 @@
 			setChildIndex(replayDeleteBar,3);
 		}
 
-		public function replayTimeBar() {
+		public function replayTimeLineSet() {
 			// constructor code
 			frameInfo.mouseEnabled = false;
 			visible = false;
