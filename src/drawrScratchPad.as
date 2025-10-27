@@ -8,7 +8,7 @@ package
     import flash.geom.Rectangle;
     import flash.geom.Point;
 
-    public class drawrScratchPad extends Sprite
+    public class DrawrScratchPad extends Sprite
     {
         private const scratchPadDraw:Shape = new Shape();
         private var scratchPadBitmap:Bitmap;
@@ -24,7 +24,7 @@ package
         public var pickColorBorderFunc:Function;
         private var scratchStartCount:int = 0;
 
-        public function drawrScratchPad(bmpdWidth:Number, bmpdHeight:Number):void
+        public function DrawrScratchPad(bmpdWidth:Number, bmpdHeight:Number):void
         {
             bmpdWidth = bmpdWidth / scratchPadZoom;
             bmpdHeight = bmpdHeight / scratchPadZoom;

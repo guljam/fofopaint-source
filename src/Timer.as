@@ -4,14 +4,14 @@
 	import flash.utils.getTimer;
 	import flash.display.Stage;
 
-	public class fofoTimer {
+	public class Timer {
 		static private var stage:Stage;
 		static private var framerate:Number;
 		static private var timerCount:Number = 0;
 		static private var started:Boolean = false;
 		static private const list:Array = [];
 
-		public function fofoTimer(initStage:Stage)
+		public function Timer(initStage:Stage)
 		{
 			if(!stage)
 			{
@@ -39,7 +39,7 @@
 						if(list[i][3]) //check loop flag
 						{
 							//false를 반환하면 타이머제거하고 종료
-							if(list[i][4].apply(main,list[i][5]) === false || !list[i])
+							if(list[i][4].apply(Main,list[i][5]) === false || !list[i])
 							{
 								list.splice(i,1)[0];
 								i--;
@@ -53,7 +53,7 @@
 						else //call func and remove timer
 						{
 							_func = list.splice(i,1)[0];
-							_func[4].apply(main,_func[5]);
+							_func[4].apply(Main,_func[5]);
 							i--;
 							len--;
 						}

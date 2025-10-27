@@ -11,9 +11,9 @@
 	import flash.ui.ContextMenu;
 	import flash.text.TextFormat;
 
-	public class topMenu extends Sprite {
+	public class TopMenuSet extends Sprite {
 		public const BARSIZE:Number = 38;
-		private var miniTimer:fofoTimer;
+		private var miniTimer:Timer;
 
 		//버튼 추가시 해야할거
 		//change uicolor, mouse down state 추가, handcursor false로 하기 button order추가, 모드에 속하는거 에 추가
@@ -615,7 +615,7 @@
 			replaySpeedSliderWrapper.y = 7;
 		}
 
-		public function topMenu()
+		public function TopMenuSet()
 		{
 			initReplaySpeedSliderWrapper();
 			initGridButtonWrapper();
@@ -796,7 +796,7 @@
 			setChildIndex(topbarBG,0);
 			cacheAsBitmap = true;
 
-			miniTimer = new fofoTimer(stage);
+			miniTimer = new Timer(stage);
 		}
 	}
 }

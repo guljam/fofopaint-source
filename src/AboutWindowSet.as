@@ -5,7 +5,7 @@
 	import flash.display.SimpleButton;
 	import flash.text.TextFieldAutoSize;
 
-	public class aboutBoxSet extends Sprite {
+	public class AboutWindowSet extends Sprite {
 
 		public var versionInfo:TextField;
 		public var memoryInfo:TextField;
@@ -52,7 +52,7 @@
 			versionInfo.text = "version " + str;
 		}
 
-		public function aboutBoxSet() {
+		public function AboutWindowSet() {
 			// constructor codef
 			imageIndex = Math.floor(Math.random()*4);
 			visible = false;

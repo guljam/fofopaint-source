@@ -13,7 +13,8 @@
 	import flash.filters.ColorMatrixFilter;
 	import flash.geom.Rectangle;
 
-	public class colorPickerButtons extends Sprite {
+	public class ColorPickerSet extends Sprite
+	{
 		public var mainColorPickerBox:Sprite = new Sprite();
 		public var mainPresetButtonBox:Sprite = new Sprite();
 		public var mainPickerMenuBox:Sprite = new Sprite();
@@ -71,11 +72,11 @@
 		private var colorBoxPositionSave:Array = [0,0];
 		private var transBGBrightnessList:Array = [0.8,0.85,0.88,0.98];
 
-		public var scratchPad:drawrScratchPad
+		public var scratchPad:DrawrScratchPad;
 
 		private function initScratcPad():void
 		{
-			scratchPad = new drawrScratchPad(svBoxWidth,mainColorPickerBox.height-24);
+			scratchPad = new DrawrScratchPad(svBoxWidth,mainColorPickerBox.height-24);
 			scratchPad.x = 0
 			scratchPad.y = hueColor.y;
 			mainColorPickerBox.addChild(scratchPad);
@@ -413,7 +414,7 @@
 
 		//피커박스 구조
 		//custom color, colorhistoryBox, drawr프리셋 따로따로 전부가 첫번째 자식들임
-		public function colorPickerButtons() {
+		public function ColorPickerSet() {
 			// visible = false;
 			name = "pickerBox";
 			initTransparentColorButton();

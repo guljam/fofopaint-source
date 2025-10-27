@@ -2,7 +2,7 @@
 {
 	import flash.display.SimpleButton;
 
-	public class tinyCursor extends SimpleButton {
+	public class FOFOCursor extends SimpleButton {
 
 		public function setScale(newScale:Number):void
 		{
@@ -10,12 +10,11 @@
 			this.scaleY = newScale;
 		}
 
-		public function tinyCursor() {
+		public function FOFOCursor() {
 			// constructor code
 			visible = false;
 			mouseEnabled = false;
 			useHandCursor = false;
 		}
 	}
-
 }

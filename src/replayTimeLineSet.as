@@ -7,18 +7,18 @@
 	import flash.geom.ColorTransform;
 	import flash.display.Graphics;
 
-	public class replayTimeLineSet extends Sprite {
+	public class ReplayTimelineSet extends Sprite {
 		public var replayBGBar:Sprite = new Sprite();
-		public var replayDeleteBar:Sprite = new Sprite();
-		public var replayTotalBar:Sprite = new Sprite();
-		public var replayNowBar:Sprite = new Sprite();
+		public var deleteRangeBar:Sprite = new Sprite();
+		public var trackBar:Sprite = new Sprite();
+		public var prograssBar:Sprite = new Sprite();
+		public var prograssInfo:TextField;
 		public var playButton:SimpleButton;
 		public var pauseButton:SimpleButton;
 		public var replayPrev:SimpleButton;
 		public var replayNext:SimpleButton;
-		public var frameInfo:TextField;
-		public var BARSIZE:Number = 27;
 		private var nowBarColorSave:ColorTransform = new ColorTransform();
+		public const BARSIZE:Number = 27;
 
 		public function setScale(newScale:Number):void
 		{
@@ -26,53 +26,41 @@
 			this.scaleY = newScale;
 		}
 
-		public function tempTotalBarX():void
+		private function initializeTrackBarX():void
 		{
-			replayTotalBar.x = 5;
-			replayTotalBar.y = 9;
-			replayDeleteBar.x = replayTotalBar.x;
-			replayDeleteBar.y = replayTotalBar.y;
-			replayNowBar.x = replayTotalBar.x;
-			replayNowBar.y = replayTotalBar.y;
-			frameInfo.x = replayTotalBar.x;
-			frameInfo.y = replayTotalBar.y;
-			frameInfo.width = replayTotalBar.width;
+			trackBar.x = Math.floor(replayNext.x+replayNext.width+7);
+			trackBar.y = 5;
+			deleteRangeBar.x = trackBar.x;
+			deleteRangeBar.y = trackBar.y;
+			prograssBar.x = trackBar.x;
+			prograssBar.y = trackBar.y;
+			prograssInfo.x = trackBar.x;
+			prograssInfo.y = trackBar.y;
+			prograssInfo.width = trackBar.width;
 		}
 
-		public function initTotalBarX():void
-		{
-			replayTotalBar.x = Math.floor(replayNext.x+replayNext.width+7);
-			replayTotalBar.y = 5;
-			replayDeleteBar.x = replayTotalBar.x;
-			replayDeleteBar.y = replayTotalBar.y;
-			replayNowBar.x = replayTotalBar.x;
-			replayNowBar.y = replayTotalBar.y;
-			frameInfo.x = replayTotalBar.x;
-			frameInfo.y = replayTotalBar.y;
-			frameInfo.width = replayTotalBar.width;
-		}
-
-		public function resetNowbarColor():void
+		public function resetPrograssBarColor():void
 		{
 			if(nowBarColorSave.color === 0)
 			{
 				return;
 			}
 
-			replayNowBar.transform.colorTransform = nowBarColorSave;
+			prograssBar.transform.colorTransform = nowBarColorSave;
 		}
+		
 		public function changeUIColor(base:uint,op:uint,color1:uint,index:uint):void
 		{
 			const baseColor:ColorTransform = new ColorTransform();
 			const opColor:ColorTransform = new ColorTransform();
-			const nowBarColor:ColorTransform = new ColorTransform();
-			const totalBarColor:ColorTransform = new ColorTransform();
+			const prograssBarColor:ColorTransform = new ColorTransform();
+			const trackBarColor:ColorTransform = new ColorTransform();
 
 			baseColor.color = base;
 			opColor.color = op;
-			nowBarColor.color = color1;
+			prograssBarColor.color = color1;
 			replayBGBar.transform.colorTransform = baseColor;
-            replayNowBar.transform.colorTransform = nowBarColor;
+            prograssBar.transform.colorTransform = prograssBarColor;
             playButton.transform.colorTransform = opColor;
             pauseButton.transform.colorTransform = opColor;
             replayPrev.transform.colorTransform = opColor;
@@ -82,20 +70,20 @@
 
 			if(index === 2)
             {
-				totalBarColor.color = 0xE7E7E7;
-                replayTotalBar.transform.colorTransform = totalBarColor;
-                frameInfo.textColor = op;
+				trackBarColor.color = 0xE7E7E7;
+                trackBar.transform.colorTransform = trackBarColor;
+                prograssInfo.textColor = op;
             }
             else if(index === 3)
 			{
-				totalBarColor.color = 0xFFFFFF;
-                replayTotalBar.transform.colorTransform = totalBarColor;
-				frameInfo.textColor = op;
+				trackBarColor.color = 0xFFFFFF;
+                trackBar.transform.colorTransform = trackBarColor;
+				prograssInfo.textColor = op;
 			}
             else
             {
-                replayTotalBar.transform.colorTransform = opColor;
-                frameInfo.textColor = base;
+                trackBar.transform.colorTransform = opColor;
+                prograssInfo.textColor = base;
             }
 		}
 
@@ -111,50 +99,56 @@
 			replayBGBar.name = "replayBGBar";
 			replayBGBar.mouseEnabled = false;
 
-			g = replayDeleteBar.graphics;
+			g = deleteRangeBar.graphics;
 			g.lineStyle(0,0,0);
 			// g.beginFill(0xFD7A80);
 			g.beginFill(0xFE8185);
 			g.drawRect(0,0,20,20);
 			g.endFill();
-			replayDeleteBar.name = "replayDeleteBar";
-			replayDeleteBar.mouseEnabled = false;
+			deleteRangeBar.name = "deleteRangeBar";
+			deleteRangeBar.mouseEnabled = false;
 
-			g = replayNowBar.graphics;
+			g = prograssBar.graphics;
 			g.lineStyle(0,0,0);
 			g.beginFill(0xFFFFFF);
 			g.drawRect(0,0,20,20);
 			g.endFill();
-			replayNowBar.name = "replayNowBar";
-			replayNowBar.mouseEnabled = false;
+			prograssBar.name = "prograssBar";
+			prograssBar.mouseEnabled = false;
 
-			g = replayTotalBar.graphics;
+			g = trackBar.graphics;
 			g.lineStyle(0,0,0);
 			g.beginFill(0xFFFFFF);
 			g.drawRect(0,0,20,20);
 			g.endFill();
-			replayTotalBar.name = "replayTotalBar";
+			trackBar.name = "trackBar";
 
 			addChild(replayBGBar);
-			addChild(replayTotalBar);
-			addChild(replayNowBar);
-			addChild(replayDeleteBar);
+			addChild(trackBar);
+			addChild(prograssBar);
+			addChild(deleteRangeBar);
 			setChildIndex(replayBGBar,0);
-			setChildIndex(replayTotalBar,1);
-			setChildIndex(replayNowBar,2);
-			setChildIndex(replayDeleteBar,3);
+			setChildIndex(trackBar,1);
+			setChildIndex(prograssBar,2);
+			setChildIndex(deleteRangeBar,3);
 		}
 
-		public function replayTimeLineSet() {
-			// constructor code
-			frameInfo.mouseEnabled = false;
+		public function setReplayDeleteBarVisibleOFF():void
+        {
+            deleteRangeBar.visible = false;
+            prograssBar.visible = true;
+        }
+
+		public function ReplayTimelineSet()
+		{
+			prograssInfo.mouseEnabled = false;
 			visible = false;
 
 			initReplayBox();
 
-			replayTotalBar.y = 5;
-			replayNowBar.y = replayTotalBar.y;
-			replayDeleteBar.y = replayTotalBar.y;
+			trackBar.y = 5;
+			prograssBar.y = trackBar.y;
+			deleteRangeBar.y = trackBar.y;
 
 			playButton.useHandCursor = false;
 			pauseButton.useHandCursor = false;
@@ -162,7 +156,7 @@
 			replayNext.useHandCursor = false;
 
 			playButton.x = 4;
-			playButton.y = replayTotalBar.y-5;
+			playButton.y = trackBar.y-5;
 			pauseButton.x = playButton.x;
 			pauseButton.y = playButton.y;
 			replayPrev.x = pauseButton.x+pauseButton.width+5;
@@ -170,9 +164,9 @@
 			replayNext.x = replayPrev.x+replayPrev.width+8;
 			replayNext.y = playButton.y;
 
-			replayDeleteBar.visible = false;
+			deleteRangeBar.visible = false;
 
-			initTotalBarX();
+			initializeTrackBarX();
 			cacheAsBitmap = true;
 		}
 	}

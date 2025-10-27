@@ -9,7 +9,7 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
 
-	public class lassoButtons extends Sprite
+	public class LassoMenuSet extends Sprite
 	{
 		public var lassoMenuMoveButton:SimpleButton;
 		public var lassoMenuBG:SimpleButton;
@@ -131,7 +131,7 @@
 			this.scaleY = newScale*fixedScale;
 		}
 
-		public function lassoButtons()
+		public function LassoMenuSet()
 		{
 			setScale(1.0);
 

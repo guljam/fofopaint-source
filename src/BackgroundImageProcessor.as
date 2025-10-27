@@ -9,7 +9,7 @@
 	import flash.display.PNGEncoderOptions;
 	import flash.geom.Rectangle;
 
-	public class worker extends Sprite
+	public class BackgroundImageProcessor extends Sprite
 	{
 		private var bgWorker:Worker;
 		private var mainToBack:MessageChannel;
@@ -17,7 +17,7 @@
 		private var command:String;
 		private var args:Array;
 
-		public function worker()
+		public function BackgroundImageProcessor()
 		{
 			bgWorker = Worker.current;
 			mainToBack = bgWorker.getSharedProperty("mainToBack");

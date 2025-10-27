@@ -14,7 +14,7 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	
-	public class capStampFontList extends Sprite {
+	public class CapStampFontListSet extends Sprite {
 		
 		public var capFontListPrev:SimpleButton;
 		public var capFontListNext:SimpleButton;
@@ -285,7 +285,7 @@
 			}
 		}
 
-		public function capStampFontList() {
+		public function CapStampFontListSet() {
 			visible = false;
 			addChild(capFontListBG);
 			setChildIndex(capFontListBG,0);

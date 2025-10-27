@@ -1,18 +1,17 @@
 ﻿package
 {
-	public class hintStringsSet {
+    import Main;
+
+	public class HintStringsSet {
 		private const hints:Object =
 		{
 			"replayModeButton":{str:"Switch to replay mode [f1, f7]",val:"APP_VERSION"}
 		}
 
-		public function get(targetName:String):String
+		public function get(targetName:String,aa:Main):String
 		{
 			return hints[targetName];
 		}
-
-
-
 
 		//         private function onMouseOverControlBoxHintON(e:MouseEvent):void
         // {

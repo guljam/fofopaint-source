@@ -9,7 +9,7 @@
 	import flash.utils.setTimeout;
 	import flash.utils.clearTimeout;
 
-	public class hintBoxSet extends Sprite {
+	public class HintBoxSet extends Sprite {
 		public var hintText:TextField;
 		private var _hintBG:Sprite;
 		private var _bgColor:uint = 0xFFA700;
@@ -57,6 +57,11 @@
 			return (_hintBG.height-1)*scaleX;
 		}
 
+		public function setHintTextColor(color:uint):void
+		{
+			hintText.textColor = color;
+		}
+
 		public function setHintText(str:String):void
 		{
 			hintText.text = str;
@@ -72,15 +77,16 @@
 
 		public function hideHintWithMouseEvents():void
 		{
+			hide();
 			if(_hintTimer !== 0)
 			{
 				clearTimeout(_hintTimer);
 				_hintTimer = 0;
 			}
-			hide();
 			_stage.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseEventHideHint);
 			_stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onMouseEventHideHint);
 		}
+
 		public function onMouseEventHideHint(e:MouseEvent):void
 		{
 			hideHintWithMouseEvents();
@@ -89,6 +95,12 @@
 		public function show(duration:Number=0.0):void
 		{
 			this.visible = true;
+			
+			if(_hintTimer !== 0)
+			{
+				clearTimeout(_hintTimer);
+				_hintTimer = 0;
+			}
 
 			if(duration > 0.0)
 			{
@@ -112,7 +124,7 @@
 			return this.visible;
 		}
 
-		public function hintBoxSet(stage:DisplayObjectContainer,initBG:Boolean)
+		public function HintBoxSet(stage:DisplayObjectContainer,initBG:Boolean)
 		{
 			_stage = stage;
 			visible = false;

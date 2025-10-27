@@ -4,7 +4,7 @@
 	import flash.geom.ColorTransform;
 	import flash.display.Shape;
 
-	public class sidePanel extends Sprite {
+	public class SidePanelSet extends Sprite {
 		private const sideBG:Shape = new Shape();
 		public const WIDTH:Number = 223;
 		public var HEIGHT:Number = 220;
@@ -54,7 +54,7 @@
 			sideBG.transform.colorTransform = baseColor;
 		}
 
-		public function sidePanel()
+		public function SidePanelSet()
 		{
 			name = "sideBar";
 

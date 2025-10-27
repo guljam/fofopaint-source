@@ -8,7 +8,7 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
 
-	public class refLayerMenuButtons extends Sprite {
+	public class RefLayerMenuSet extends Sprite {
 		public var refInfoText:TextField;
 		public var refMenuCloseButton:SimpleButton;
 		public var refLayerMenuMoveButton:SimpleButton;
@@ -135,7 +135,7 @@
 			this.scaleY = newScale*fixedScale;
 		}
 
-		public function refLayerMenuButtons()
+		public function RefLayerMenuSet()
 		{
 			visible = false;
 

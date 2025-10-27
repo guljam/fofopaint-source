@@ -10,7 +10,7 @@
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
 
-	public class loadBox extends Sprite
+	public class LoadBoxSet extends Sprite
 	{
 		public var dragDropLoadButton:SimpleButton;
 		public var dragDropLoadRefLayerButton:SimpleButton;
@@ -148,7 +148,7 @@
 			previewBitmapBox.graphics.endFill();
 		}
 
-		public function loadBox()
+		public function LoadBoxSet()
 		{
 			// constructor code
 

@@ -7,7 +7,7 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Shape;
 
-	public class toolButtons extends Sprite
+	public class ToolMenuSet extends Sprite
 	{
 		public var toolPen:SimpleButton;
 		public var toolFillPen:SimpleButton;
@@ -17,7 +17,7 @@
 		public var toolErase:SimpleButton;
 		public var toolUndo:SimpleButton;
 		public var toolRedo:SimpleButton;
-		public var toolSpuit:SimpleButton;
+		public var toolEyedropper:SimpleButton;
 		public var toolMirror:SimpleButton;
 		public var toolLasso:SimpleButton;
 		public var toolMove:SimpleButton;
@@ -53,7 +53,7 @@
 		{
 			toolErase.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
-			toolSpuit.alpha = 1.0;
+			toolEyedropper.alpha = 1.0;
 			toolLine.alpha = 1.0;
 			toolLasso.alpha = 1.0;
 			toolLasso.alpha = 1.0;
@@ -72,7 +72,7 @@
 		{
 			toolErase.alpha = offAlpha;
 			toolFillPen.alpha = offAlpha;
-			toolSpuit.alpha = offAlpha;
+			toolEyedropper.alpha = offAlpha;
 			toolLine.alpha = offAlpha;
 			toolLasso.alpha = offAlpha;
 			toolLasso.alpha = offAlpha;
@@ -99,7 +99,7 @@
 				toolErase.alpha = alpha;
 				toolFillPen.alpha = alpha;
 				// toolScanFill.alpha = alpha;
-				toolSpuit.alpha = alpha;
+				toolEyedropper.alpha = alpha;
 				toolLasso.alpha = alpha;
 				toolLine.alpha = alpha;
 				toolRefLayer.alpha = alpha;
@@ -118,7 +118,7 @@
 					toolErase.alpha = alpha;
 					toolFillPen.alpha = alpha;
 					// toolScanFill.alpha = alpha;
-					toolSpuit.alpha = alpha;
+					toolEyedropper.alpha = alpha;
 					toolLine.alpha = alpha;
 					toolRefLayer.alpha = alpha;
 				}
@@ -133,7 +133,7 @@
 			toolErase.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
 			// toolScanFill.alpha = 1.0;
-			toolSpuit.alpha = 1.0;
+			toolEyedropper.alpha = 1.0;
 			toolLine.alpha = 1.0;
 			toolSelectCursor.alpha = 1.0;
 		}
@@ -145,7 +145,7 @@
 			toolErase.alpha = alp;
 			toolFillPen.alpha = alp;
 			// toolScanFill.alpha = alp;
-			toolSpuit.alpha = alp;
+			toolEyedropper.alpha = alp;
 			toolLine.alpha = alp;
 
 			const btn:SimpleButton = getChildByName(lastTool) as SimpleButton;
@@ -330,7 +330,7 @@
 			toolFillPenCancel.y = toolPen.y;
 		}
 
-		public function toolButtons()
+		public function ToolMenuSet()
 		{
 			moveToolCursorInit();
 
@@ -344,7 +344,7 @@
 			toolErase.useHandCursor = false;
 			toolUndo.useHandCursor = false;
 			toolRedo.useHandCursor = false;
-			toolSpuit.useHandCursor = false;
+			toolEyedropper.useHandCursor = false;
 			toolMirror.useHandCursor = false;
 			toolLasso.useHandCursor = false;
 			toolMove.useHandCursor = false;
@@ -364,7 +364,7 @@
 					toolErase,
 					toolFillPen,
 					// toolScanFill,
-					toolSpuit,
+					toolEyedropper,
 					toolLine,
 					toolLasso,
 					toolMove,

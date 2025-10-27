@@ -4,7 +4,7 @@
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
 
-	public class fofoBottomBox extends Sprite {
+	public class FOFO extends Sprite {
 		public var fofo:SimpleButton;
 		public var fixedScale:Number = 0.65;
 		public var topPos:Boolean = false;
@@ -57,7 +57,7 @@
 			fofo.transform.colorTransform = c;
 		}
 
-		public function fofoBottomBox() {
+		public function FOFO() {
 			fofo.useHandCursor = false;
 			alpha = 1.0;
 			setScale(1.0);

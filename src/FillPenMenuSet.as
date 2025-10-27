@@ -9,7 +9,7 @@
 	import flash.text.TextFieldAutoSize;
 	import flash.geom.ColorTransform;
 
-	public class fillPenButtons extends Sprite
+	public class FillPenMenuSet extends Sprite
 	{
 		public var fillPenInfo:TextField;
 		public var fillPenOK:SimpleButton;
@@ -94,7 +94,7 @@
 			this.scaleY = newScale * fixedScale;
 		}
 
-		public function fillPenButtons()
+		public function FillPenMenuSet()
 		{
 			fixedScale = 34 / fillPenCancel.width;
 			setScale(1.0);

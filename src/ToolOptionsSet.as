@@ -5,7 +5,7 @@
 	import flash.geom.ColorTransform;
 	import flash.filters.BlurFilter;
 
-	public class controlMenu extends Sprite
+	public class ToolOptionsSet extends Sprite
 	{
 		public const penSizeBox:Sprite = new Sprite();
 		public const opaBox:Sprite = new Sprite();
@@ -508,7 +508,7 @@
 			penShapeSmoothingWarpper.y = layerButtonWrapper.y+layerButtonWrapper.height+2;
 		}
 
-		public function controlMenu()
+		public function ToolOptionsSet()
 		{
 			name = "controlBox";
 			initOpaSizeButtonWapper();

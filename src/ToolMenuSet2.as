@@ -8,14 +8,14 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.geom.Point;
 
-	public class toolButtons2 extends Sprite {
+	public class ToolMenuSet2 extends Sprite {
 		public var toolPen:SimpleButton;
 		public var toolFillPen:SimpleButton;
 		public var toolScanFill:SimpleButton;
 		public var toolErase:SimpleButton;
 		public var toolUndo:SimpleButton;
 		public var toolRedo:SimpleButton;
-		public var toolSpuit:SimpleButton;
+		public var toolEyedropper:SimpleButton;
 		public var toolMirror:SimpleButton;
 		public var toolLasso:SimpleButton;
 		public var toolMove:SimpleButton;
@@ -79,7 +79,7 @@
 			toolErase.alpha = alp;
 			toolFillPen.alpha = alp;
 			// toolScanFill.alpha = alp;
-			toolSpuit.alpha = alp;
+			toolEyedropper.alpha = alp;
 			toolLine.alpha = alp;
 		}
 
@@ -89,7 +89,7 @@
 			toolErase.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
 			// toolScanFill.alpha = 1.0;
-			toolSpuit.alpha = 1.0;
+			toolEyedropper.alpha = 1.0;
 			toolLine.alpha = 1.0;
 		}
 
@@ -119,7 +119,7 @@
 											toolErase,
 											toolUndo,
 											toolRedo,
-											toolSpuit,
+											toolEyedropper,
 											toolMirror,
 											toolLasso,
 											toolLine,
@@ -175,7 +175,7 @@
 			this.scaleY = newScale*fixedScale;
 		}
 
-		public function toolButtons2()
+		public function ToolMenuSet2()
 		{
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
@@ -183,7 +183,7 @@
 			toolErase.useHandCursor = false;
 			toolUndo.useHandCursor = false;
 			toolRedo.useHandCursor = false;
-			toolSpuit.useHandCursor = false;
+			toolEyedropper.useHandCursor = false;
 			toolMirror.useHandCursor = false;
 			toolLasso.useHandCursor = false;
 			toolMove.useHandCursor = false;

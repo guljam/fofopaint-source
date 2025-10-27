@@ -6,7 +6,7 @@
 	import flash.text.TextFieldAutoSize;
 	import flash.geom.ColorTransform;
 
-	public class canvasInfoBar extends Sprite {
+	public class CanvasInfoSet extends Sprite {
 		public var canvasInfo:TextField;
 		public var appInfoBorder:SimpleButton;
 		private var canvasWidth:Number = 0;
@@ -91,7 +91,7 @@
 			appInfoBorder.transform.colorTransform = colort;
 		}
 
-		public function canvasInfoBar() {
+		public function CanvasInfoSet() {
 			mouseEnabled = false;
 			canvasInfo.mouseEnabled = false;
 			canvasInfo.autoSize = TextFieldAutoSize.LEFT;

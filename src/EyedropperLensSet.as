@@ -5,25 +5,20 @@
 	import flash.display.Bitmap;
 	import flash.display.Shape;
 	import flash.geom.ColorTransform;
-	import flash.utils.setTimeout;
 	import flash.events.MouseEvent;
-	import flash.utils.clearTimeout;
-	import flash.geom.Transform;
-	import flash.utils.getTimer;
-	import flash.events.Event;
 	import flash.display.BitmapData;
 
-	public class spuitMag extends Sprite
+	public class EyedropperLensSet extends Sprite
 	{
 		private const deafultZoom:Number = 2.0;
 		public const magSize:Number = 112;
-		public const spuitZoomBitmapBox:Sprite = new Sprite();
+		public const circleBox:Sprite = new Sprite();
 		private const circleMask:Shape = new Shape();
 
-		public var spuitNowColor:SimpleButton;
-		public var spuitOldColor:SimpleButton;
-		public var spuitZoomBitmap:Bitmap = new Bitmap(new BitmapData(magSize, magSize, true, 0));
-		private var spuitOldColorTransform:ColorTransform = new ColorTransform();
+		public var nowColor:SimpleButton;
+		public var oldColor:SimpleButton;
+		public var bitmap:Bitmap = new Bitmap(new BitmapData(magSize, magSize, true, 0));
+		private var lastColor:ColorTransform = new ColorTransform();
 		private var offTimer:int = 0;
 
 		public function setScale(newScale:Number):void
@@ -34,7 +29,7 @@
 
 		public function rotateBitmap(r:Number):void
 		{
-			spuitZoomBitmapBox.rotation = r;
+			circleBox.rotation = r;
 		}
 
 		// public function visibleONAnimation():void
@@ -83,7 +78,7 @@
 			this.y = event.stageY;
 		}
 
-		public function spuitMag()
+		public function EyedropperLensSet()
 		{
 			visible = false;
 
@@ -96,14 +91,14 @@
 			circleMask.x = 0;
 			circleMask.y = 0;
 			const z1:Number = Math.round(-magSize / 2);
-			spuitZoomBitmap.x = z1;
-			spuitZoomBitmap.y = z1;
-			spuitZoomBitmapBox.addChild(spuitZoomBitmap);
-			spuitZoomBitmap.mask = circleMask;
+			bitmap.x = z1;
+			bitmap.y = z1;
+			circleBox.addChild(bitmap);
+			bitmap.mask = circleMask;
 
-			addChild(spuitZoomBitmapBox);
+			addChild(circleBox);
 			addChild(circleMask);
-			setChildIndex(spuitZoomBitmapBox, 0);
+			setChildIndex(circleBox, 0);
 			cacheAsBitmap = true;
 		}
 	}

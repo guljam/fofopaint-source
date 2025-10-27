@@ -12,7 +12,7 @@
 	import flash.display.BitmapData;
 	import flash.display.Bitmap;
 
-	public class numPadButtons extends Sprite
+	public class NumPadSet extends Sprite
 	{
 		public var numInc:SimpleButton;
 		public var numDec:SimpleButton;
@@ -495,7 +495,7 @@
 			l[props[flag]] = value;
 			if(flag == 1 && isBaseColorGray())
 			{
-				l["H"] = okBaseHue;
+				l.H = okBaseHue;
 			}
 
 			return OklchToHex(l);
@@ -547,7 +547,7 @@
 			previewBox.visible = true;
 		}
 
-		public function numPadButtons()
+		public function NumPadSet()
 		{
 			visible = false;
 			name = "numPadBox";
