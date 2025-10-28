@@ -5,8 +5,8 @@
 	import flash.display.SimpleButton;
 	import flash.text.TextFieldAutoSize;
 
-	public class AboutWindowSet extends Sprite {
-
+	public class AboutWindowSet extends Sprite
+	{
 		public var versionInfo:TextField;
 		public var memoryInfo:TextField;
 		public var resetAppButton:SimpleButton;
@@ -28,15 +28,15 @@
 
 		public function updateMemoryInfo(driveUseage:String):void
 		{
-			memoryInfo.text = "Drive usage : "+driveUseage;
+			memoryInfo.text = "Drive usage : " + driveUseage;
 		}
 
 		public function randomLogo():void
 		{
-			const arr:Array = [logo1,logo2,logo3,logo4,logo5];
-			var index:int = imageIndex+1;
+			const arr:Array = [logo1, logo2, logo3, logo4, logo5];
+			var index:int = imageIndex + 1;
 
-			if(index === arr.length)
+			if (index === arr.length)
 			{
 				index = 0;
 			}
@@ -52,9 +52,10 @@
 			versionInfo.text = "version " + str;
 		}
 
-		public function AboutWindowSet() {
+		public function AboutWindowSet()
+		{
 			// constructor codef
-			imageIndex = Math.floor(Math.random()*4);
+			imageIndex = Math.floor(Math.random() * 4);
 			visible = false;
 
 			logo2.visible = false;

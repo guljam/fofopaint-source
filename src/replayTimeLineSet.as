@@ -7,7 +7,8 @@
 	import flash.geom.ColorTransform;
 	import flash.display.Graphics;
 
-	public class ReplayTimelineSet extends Sprite {
+	public class ReplayTimelineSet extends Sprite
+	{
 		public var replayBGBar:Sprite = new Sprite();
 		public var deleteRangeBar:Sprite = new Sprite();
 		public var trackBar:Sprite = new Sprite();
@@ -28,7 +29,7 @@
 
 		private function initializeTrackBarX():void
 		{
-			trackBar.x = Math.floor(replayNext.x+replayNext.width+7);
+			trackBar.x = Math.floor(replayNext.x + replayNext.width + 7);
 			trackBar.y = 5;
 			deleteRangeBar.x = trackBar.x;
 			deleteRangeBar.y = trackBar.y;
@@ -41,15 +42,15 @@
 
 		public function resetPrograssBarColor():void
 		{
-			if(nowBarColorSave.color === 0)
+			if (nowBarColorSave.color === 0)
 			{
 				return;
 			}
 
 			prograssBar.transform.colorTransform = nowBarColorSave;
 		}
-		
-		public function changeUIColor(base:uint,op:uint,color1:uint,index:uint):void
+
+		public function changeUIColor(base:uint, op:uint, color1:uint, index:uint):void
 		{
 			const baseColor:ColorTransform = new ColorTransform();
 			const opColor:ColorTransform = new ColorTransform();
@@ -60,31 +61,31 @@
 			opColor.color = op;
 			prograssBarColor.color = color1;
 			replayBGBar.transform.colorTransform = baseColor;
-            prograssBar.transform.colorTransform = prograssBarColor;
-            playButton.transform.colorTransform = opColor;
-            pauseButton.transform.colorTransform = opColor;
-            replayPrev.transform.colorTransform = opColor;
-            replayNext.transform.colorTransform = opColor;
+			prograssBar.transform.colorTransform = prograssBarColor;
+			playButton.transform.colorTransform = opColor;
+			pauseButton.transform.colorTransform = opColor;
+			replayPrev.transform.colorTransform = opColor;
+			replayNext.transform.colorTransform = opColor;
 
 			nowBarColorSave.color = color1;
 
-			if(index === 2)
-            {
-				trackBarColor.color = 0xE7E7E7;
-                trackBar.transform.colorTransform = trackBarColor;
-                prograssInfo.textColor = op;
-            }
-            else if(index === 3)
+			if (index === 2)
 			{
-				trackBarColor.color = 0xFFFFFF;
-                trackBar.transform.colorTransform = trackBarColor;
+				trackBarColor.color = 0xE7E7E7;
+				trackBar.transform.colorTransform = trackBarColor;
 				prograssInfo.textColor = op;
 			}
-            else
-            {
-                trackBar.transform.colorTransform = opColor;
-                prograssInfo.textColor = base;
-            }
+			else if (index === 3)
+			{
+				trackBarColor.color = 0xFFFFFF;
+				trackBar.transform.colorTransform = trackBarColor;
+				prograssInfo.textColor = op;
+			}
+			else
+			{
+				trackBar.transform.colorTransform = opColor;
+				prograssInfo.textColor = base;
+			}
 		}
 
 		public function initReplayBox():void
@@ -92,34 +93,34 @@
 			var g:Graphics;
 
 			g = replayBGBar.graphics;
-			g.lineStyle(0,0,0);
+			g.lineStyle(0, 0, 0);
 			g.beginFill(0xFFFFFF);
-			g.drawRect(0,0,31,31);
+			g.drawRect(0, 0, 31, 31);
 			g.endFill();
 			replayBGBar.name = "replayBGBar";
 			replayBGBar.mouseEnabled = false;
 
 			g = deleteRangeBar.graphics;
-			g.lineStyle(0,0,0);
+			g.lineStyle(0, 0, 0);
 			// g.beginFill(0xFD7A80);
 			g.beginFill(0xFE8185);
-			g.drawRect(0,0,20,20);
+			g.drawRect(0, 0, 20, 20);
 			g.endFill();
 			deleteRangeBar.name = "deleteRangeBar";
 			deleteRangeBar.mouseEnabled = false;
 
 			g = prograssBar.graphics;
-			g.lineStyle(0,0,0);
+			g.lineStyle(0, 0, 0);
 			g.beginFill(0xFFFFFF);
-			g.drawRect(0,0,20,20);
+			g.drawRect(0, 0, 20, 20);
 			g.endFill();
 			prograssBar.name = "prograssBar";
 			prograssBar.mouseEnabled = false;
 
 			g = trackBar.graphics;
-			g.lineStyle(0,0,0);
+			g.lineStyle(0, 0, 0);
 			g.beginFill(0xFFFFFF);
-			g.drawRect(0,0,20,20);
+			g.drawRect(0, 0, 20, 20);
 			g.endFill();
 			trackBar.name = "trackBar";
 
@@ -127,17 +128,17 @@
 			addChild(trackBar);
 			addChild(prograssBar);
 			addChild(deleteRangeBar);
-			setChildIndex(replayBGBar,0);
-			setChildIndex(trackBar,1);
-			setChildIndex(prograssBar,2);
-			setChildIndex(deleteRangeBar,3);
+			setChildIndex(replayBGBar, 0);
+			setChildIndex(trackBar, 1);
+			setChildIndex(prograssBar, 2);
+			setChildIndex(deleteRangeBar, 3);
 		}
 
 		public function setReplayDeleteBarVisibleOFF():void
-        {
-            deleteRangeBar.visible = false;
-            prograssBar.visible = true;
-        }
+		{
+			deleteRangeBar.visible = false;
+			prograssBar.visible = true;
+		}
 
 		public function ReplayTimelineSet()
 		{
@@ -156,12 +157,12 @@
 			replayNext.useHandCursor = false;
 
 			playButton.x = 4;
-			playButton.y = trackBar.y-5;
+			playButton.y = trackBar.y - 5;
 			pauseButton.x = playButton.x;
 			pauseButton.y = playButton.y;
-			replayPrev.x = pauseButton.x+pauseButton.width+5;
+			replayPrev.x = pauseButton.x + pauseButton.width + 5;
 			replayPrev.y = playButton.y;
-			replayNext.x = replayPrev.x+replayPrev.width+8;
+			replayNext.x = replayPrev.x + replayPrev.width + 8;
 			replayNext.y = playButton.y;
 
 			deleteRangeBar.visible = false;

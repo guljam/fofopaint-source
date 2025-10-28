@@ -8,7 +8,8 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
 
-	public class RefLayerMenuSet extends Sprite {
+	public class RefLayerMenuSet extends Sprite
+	{
 		public var refInfoText:TextField;
 		public var refMenuCloseButton:SimpleButton;
 		public var refLayerMenuMoveButton:SimpleButton;
@@ -31,10 +32,10 @@
 		public var refClearImageButton:SimpleButton;
 		public var refLayerMenuBGRight:SimpleButton;
 
-		private var refLayerMenuInfoPos:Array = [0,0]; //y ,height
+		private var refLayerMenuInfoPos:Array = [0, 0]; // y ,height
 		private var fixedScale:Number = 1.0;
 
-		public function changeUIColor(arr:Array,brightBarFlag:Boolean):void
+		public function changeUIColor(arr:Array, brightBarFlag:Boolean):void
 		{
 
 			const base:ColorTransform = new ColorTransform();
@@ -44,55 +45,54 @@
 			const activeColor:ColorTransform = new ColorTransform();
 			const activeIconColor:ColorTransform = new ColorTransform();
 
-
 			const leftButtonArr:Array = [
-											refTransferCanvasImageButton,
-											refClipBoardButton,
-											refLoadImageButton,
-										];
+					refTransferCanvasImageButton,
+					refClipBoardButton,
+					refLoadImageButton,
+				];
 
-			const rightButtonArr:Array =[
-											refMoveImageButton,
-											refMirrorImageButton,
-											refResizeImageButton,
-											refRotateImageButton,
-											refMemoryTrainingOffButton,
-											refMemoryTrainingOnButton,
-											refClearImageButton,
-										];
+			const rightButtonArr:Array = [
+					refMoveImageButton,
+					refMirrorImageButton,
+					refResizeImageButton,
+					refRotateImageButton,
+					refMemoryTrainingOffButton,
+					refMemoryTrainingOnButton,
+					refClearImageButton,
+				];
 
-           	base.color = arr[0];
-           	subBase.color = arr[1];
-           	iconLeft.color = arr[2];
-           	iconRight.color = arr[3];
-           	activeColor.color = arr[4];
-           	activeIconColor.color = arr[5];
+			base.color = arr[0];
+			subBase.color = arr[1];
+			iconLeft.color = arr[2];
+			iconRight.color = arr[3];
+			activeColor.color = arr[4];
+			activeIconColor.color = arr[5];
 
 			var i:uint = 0;
 			var len:uint = leftButtonArr.length;
-			var btn:SimpleButton ;
+			var btn:SimpleButton;
 			var btnUp:DisplayObject;
 			var btnOver:DisplayObjectContainer;
 
-			for(i=0;i<len;i++)
+			for (i = 0; i < len; i++)
 			{
 				btn = leftButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
 				btnUp.transform.colorTransform = iconLeft;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor;//버튼 배경
-				btnOver.getChildAt(1).transform.colorTransform = activeIconColor; //버튼 아이콘
+				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
+				btnOver.getChildAt(1).transform.colorTransform = activeIconColor; // 버튼 아이콘
 				btn.downState = btn.overState;
 			}
 
 			len = rightButtonArr.length;
-			for(i=0;i<len;i++)
+			for (i = 0; i < len; i++)
 			{
 				btn = rightButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
 				btnUp.transform.colorTransform = iconRight;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; //d
+				btnOver.getChildAt(0).transform.colorTransform = activeColor; // d
 				btnOver.getChildAt(1).transform.colorTransform = iconRight;
 				btn.downState = btn.overState;
 			};
@@ -117,12 +117,12 @@
 		{
 			refInfoText.text = str;
 
-			if(str.indexOf("\n") !== -1)
+			if (str.indexOf("\n") !== -1)
 			{
-				refInfoText.y = refLayerMenuInfoPos[0]-(refInfoText.height-refLayerMenuInfoPos[1]);
-				refLayerMenuMoveButton.y = Math.floor(refInfoText.y-3);
+				refInfoText.y = refLayerMenuInfoPos[0] - (refInfoText.height - refLayerMenuInfoPos[1]);
+				refLayerMenuMoveButton.y = Math.floor(refInfoText.y - 3);
 			}
-			else if(refLayerMenuInfoPos[0] !== refInfoText.y)
+			else if (refLayerMenuInfoPos[0] !== refInfoText.y)
 			{
 				refInfoText.y = refLayerMenuInfoPos[0];
 				refLayerMenuMoveButton.y = 0;
@@ -131,20 +131,20 @@
 
 		public function setScale(newScale:Number):void
 		{
-			this.scaleX = newScale*fixedScale;
-			this.scaleY = newScale*fixedScale;
+			this.scaleX = newScale * fixedScale;
+			this.scaleY = newScale * fixedScale;
 		}
 
 		public function RefLayerMenuSet()
 		{
 			visible = false;
 
-			fixedScale = 34/refTransferCanvasImageButton.width;
+			fixedScale = 34 / refTransferCanvasImageButton.width;
 			setScale(1.0);
 
-			const offsetX:Number = refOpacityCursor.width/2;
+			const offsetX:Number = refOpacityCursor.width / 2;
 
-			refOpacityCursor.x = refOpacityBar.x+offsetX+refOpacityBar.width*0.5-offsetX;
+			refOpacityCursor.x = refOpacityBar.x + offsetX + refOpacityBar.width * 0.5 - offsetX;
 			refOpacityCursor.useHandCursor = false;
 			refOpacityBar.useHandCursor = false;
 			refOpacitySliderWrapper.useHandCursor = false;

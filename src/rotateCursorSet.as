@@ -5,7 +5,8 @@
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
 
-	public class RotateCursorSet extends Sprite {
+	public class RotateCursorSet extends Sprite
+	{
 		public var rotateBG:SimpleButton;
 		public var rotateArrow:SimpleButton;
 		public var rotateCircle:SimpleButton;
@@ -13,11 +14,11 @@
 
 		public function setScale(scale:Number):void
 		{
-			this.scaleX = scale*fixedScale;
-			this.scaleY = scale*fixedScale;
+			this.scaleX = scale * fixedScale;
+			this.scaleY = scale * fixedScale;
 		}
 
-		public function changeUIColor(base:uint,op:uint):void
+		public function changeUIColor(base:uint, op:uint):void
 		{
 			const baseColor:ColorTransform = new ColorTransform();
 			const opColor:ColorTransform = new ColorTransform();
@@ -30,7 +31,8 @@
 			rotateCircle.transform.colorTransform = opColor;
 		}
 
-		public function RotateCursorSet() {
+		public function RotateCursorSet()
+		{
 			visible = false;
 			setScale(1.0);
 		}

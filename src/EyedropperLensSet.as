@@ -34,42 +34,42 @@
 
 		// public function visibleONAnimation():void
 		// {
-		// 	if (visible)
-		// 	{
-		// 		return;
-		// 	}
-		// 	this.scaleX = 0;
-		// 	this.scaleY = 0;
-		// 	visible = true;
+		// if (visible)
+		// {
+		// return;
+		// }
+		// this.scaleX = 0;
+		// this.scaleY = 0;
+		// visible = true;
 
-		// 	var startTime:Number = getTimer();
-		// 	var duration:Number = 160; // 0.5 seconds
+		// var startTime:Number = getTimer();
+		// var duration:Number = 160; // 0.5 seconds
 
-		// 	this.addEventListener(Event.ENTER_FRAME, function(event:Event):void
-		// 		{
-		// 			var target:spuitMag = event.currentTarget as spuitMag;
-		// 			if (!target.visible)
-		// 			{
-		// 				target.scaleX = 1.0;
-		// 				target.scaleY = 1.0;
-		// 				target.removeEventListener(Event.ENTER_FRAME, arguments.callee);
-		// 				return;
-		// 			}
-		// 			var elapsed:Number = getTimer() - startTime;
-		// 			var progress:Number = elapsed / duration;
+		// this.addEventListener(Event.ENTER_FRAME, function(event:Event):void
+		// {
+		// var target:spuitMag = event.currentTarget as spuitMag;
+		// if (!target.visible)
+		// {
+		// target.scaleX = 1.0;
+		// target.scaleY = 1.0;
+		// target.removeEventListener(Event.ENTER_FRAME, arguments.callee);
+		// return;
+		// }
+		// var elapsed:Number = getTimer() - startTime;
+		// var progress:Number = elapsed / duration;
 
-		// 			if (progress >= 1)
-		// 			{
-		// 				progress = 1;
-		// 				target.scaleX = 1.0;
-		// 				target.scaleY = 1.0;
-		// 				target.removeEventListener(Event.ENTER_FRAME, arguments.callee);
-		// 			}
+		// if (progress >= 1)
+		// {
+		// progress = 1;
+		// target.scaleX = 1.0;
+		// target.scaleY = 1.0;
+		// target.removeEventListener(Event.ENTER_FRAME, arguments.callee);
+		// }
 
-		// 			var easeOutProgress:Number = 1 - Math.pow(1 - progress, 3); // Strong.easeOut equivalent
-		// 			target.scaleX = easeOutProgress;
-		// 			target.scaleY = easeOutProgress;
-		// 		});
+		// var easeOutProgress:Number = 1 - Math.pow(1 - progress, 3); // Strong.easeOut equivalent
+		// target.scaleX = easeOutProgress;
+		// target.scaleY = easeOutProgress;
+		// });
 		// }
 
 		private function pickedConfirmColorEffectMouseMoveEvent(event:MouseEvent):void

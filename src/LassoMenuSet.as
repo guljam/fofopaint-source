@@ -30,7 +30,7 @@
 		public var lassoLayerMerge:SimpleButton;
 		private const fixedScale:Number = 0.875;
 
-		private var lassoInfoPos:Array = [0,0];
+		private var lassoInfoPos:Array = [0, 0];
 
 		public function changeUIColor(arr:Array):void
 		{
@@ -49,23 +49,23 @@
 			activeIconColor.color = arr[5];
 
 			const leftButtonArr2:Array = [
-								lassoOK,
-								lassoCancel,
-								lassoRefLayer,
-								lassoLayerSwap,
-								lassoLayerMerge
-							 ];
+					lassoOK,
+					lassoCancel,
+					lassoRefLayer,
+					lassoLayerSwap,
+					lassoLayerMerge
+				];
 
 			const rightButtonArr:Array = [
-								lassoCopy,
-								lassoRotate,
-								lassoResize,
-								lassoMirror,
-								lasso1pxLeft,
-								lasso1pxRight,
-								lasso1pxUp,
-								lasso1pxDown,
-							 ];
+					lassoCopy,
+					lassoRotate,
+					lassoResize,
+					lassoMirror,
+					lasso1pxLeft,
+					lasso1pxRight,
+					lasso1pxUp,
+					lasso1pxDown,
+				];
 
 			var i:uint = 0;
 			var len:uint = leftButtonArr2.length;
@@ -91,7 +91,7 @@
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
 				btnUp.transform.colorTransform = iconRight;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; //
+				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 
 				btnOver.getChildAt(1).transform.colorTransform = iconRight;
 				btn.downState = btn.overState;
 			}
@@ -111,12 +111,12 @@
 		{
 			lassoInfo.text = str;
 
-			if(str.indexOf("\n") !== -1)
+			if (str.indexOf("\n") !== -1)
 			{
-				lassoInfo.y = lassoInfoPos[0]-(lassoInfo.height-lassoInfoPos[1]);
-				lassoMenuMoveButton.y = Math.floor(lassoInfo.y-3);
+				lassoInfo.y = lassoInfoPos[0] - (lassoInfo.height - lassoInfoPos[1]);
+				lassoMenuMoveButton.y = Math.floor(lassoInfo.y - 3);
 			}
-			else if(lassoInfoPos[0] !== lassoInfo.y)
+			else if (lassoInfoPos[0] !== lassoInfo.y)
 			{
 				lassoInfo.y = lassoInfoPos[0];
 				lassoMenuMoveButton.y = 0;
@@ -127,8 +127,8 @@
 
 		public function setScale(newScale:Number):void
 		{
-			this.scaleX = newScale*fixedScale;
-			this.scaleY = newScale*fixedScale;
+			this.scaleX = newScale * fixedScale;
+			this.scaleY = newScale * fixedScale;
 		}
 
 		public function LassoMenuSet()

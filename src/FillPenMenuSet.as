@@ -30,7 +30,7 @@
 			if (str.indexOf("\n") !== -1)
 			{
 				fillPenInfo.y = fillPenInfoPos[0] - (fillPenInfo.height - fillPenInfoPos[1]);
-				fillPenBGTitle.y = Math.floor(fillPenInfo.y-3);
+				fillPenBGTitle.y = Math.floor(fillPenInfo.y - 3);
 			}
 			else if (fillPenInfoPos[0] !== fillPenInfo.y)
 			{

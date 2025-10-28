@@ -1,5 +1,6 @@
-﻿package  {
-	
+﻿package
+{
+
 	import flash.display.Sprite;
 	import flash.system.MessageChannel;
 	import flash.system.Worker;
@@ -25,21 +26,23 @@
 			backToMain = bgWorker.getSharedProperty("backToMain");
 		}
 
-		private function encodePNG(ba:ByteArray,w:Number,h:Number,bg:uint,transBGFlag:Boolean,isCaptureImage:Boolean):void
+		private function encodePNG(ba:ByteArray, w:Number, h:Number, bg:uint, transBGFlag:Boolean, isCaptureImage:Boolean):void
 		{
-			var bmpd:BitmapData = new BitmapData(w,h,true,(transBGFlag)?0:bg);
-			var bmpd2:BitmapData = new BitmapData(w,h,true,0);
+			var bmpd:BitmapData = new BitmapData(w, h, true, (transBGFlag) ? 0 : bg);
+			var bmpd2:BitmapData = new BitmapData(w, h, true, 0);
 
 			ba.position = 0;
 			bmpd2.lock();
-			bmpd2.setPixels(new Rectangle(0,0,w,h),ba);
+			bmpd2.setPixels(new Rectangle(0, 0, w, h), ba);
 			bmpd2.unlock();
 			bmpd.draw(bmpd2);
 			ba.clear();
-			bmpd.encode(new Rectangle(0,0,w,h),new PNGEncoderOptions(),ba);
+			bmpd.encode(new Rectangle(0, 0, w, h), new PNGEncoderOptions(), ba);
 
-			if(isCaptureImage) backToMain.send("encodePNGCaptureDone");
-			else backToMain.send("encodePNGSaveDone");
+			if (isCaptureImage)
+				backToMain.send("encodePNGCaptureDone");
+			else
+				backToMain.send("encodePNGSaveDone");
 
 			backToMain.send(ba);
 
@@ -47,11 +50,11 @@
 			ba = null;
 		}
 
-		private function compressUndoData(ba:ByteArray,ba1:ByteArray):void
+		private function compressUndoData(ba:ByteArray, ba1:ByteArray):void
 		{
 			ba.compress();
 			ba1.compress();
-			backToMain.send("compressed "+ba.length+" / "+ba1.length)
+			backToMain.send("compressed " + ba.length + " / " + ba1.length);
 			backToMain.send("compress_UndoDataDone");
 			backToMain.send(ba);
 			backToMain.send(ba1);
@@ -63,11 +66,11 @@
 		}
 
 		private function compressReplayData(ba1:ByteArray
-											,ba2:ByteArray
-											,ba3:ByteArray
-											,ba4:ByteArray
-											,ba5:ByteArray
-											,ba6:ByteArray):void
+				, ba2:ByteArray
+				, ba3:ByteArray
+				, ba4:ByteArray
+				, ba5:ByteArray
+				, ba6:ByteArray):void
 		{
 			ba1.compress();
 			ba2.compress();
@@ -104,28 +107,28 @@
 			var msg:* = mainToBack.receive();
 			var command:String = msg as String;
 
-			if(command === "encodePNG")
+			if (command === "encodePNG")
 			{
 				encodePNG(mainToBack.receive(true)
-						,mainToBack.receive(true)
-						,mainToBack.receive(true)
-						,mainToBack.receive(true)
-						,mainToBack.receive(true)
-						,mainToBack.receive(true));
+						, mainToBack.receive(true)
+						, mainToBack.receive(true)
+						, mainToBack.receive(true)
+						, mainToBack.receive(true)
+						, mainToBack.receive(true));
 			}
-			else if(command === "compress_ReplayData")
+			else if (command === "compress_ReplayData")
 			{
 				compressReplayData(mainToBack.receive(true)
-									,mainToBack.receive(true)
-									,mainToBack.receive(true)
-									,mainToBack.receive(true)
-									,mainToBack.receive(true)
-									,mainToBack.receive(true));
+						, mainToBack.receive(true)
+						, mainToBack.receive(true)
+						, mainToBack.receive(true)
+						, mainToBack.receive(true)
+						, mainToBack.receive(true));
 			}
-			else if(command === "compress_UndoData")
+			else if (command === "compress_UndoData")
 			{
 				compressUndoData(mainToBack.receive(true)
-								,mainToBack.receive(true));
+						, mainToBack.receive(true));
 
 			}
 		}

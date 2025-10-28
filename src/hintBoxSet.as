@@ -6,16 +6,18 @@
 	import flash.display.Sprite;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.MouseEvent;
-	import flash.utils.setTimeout;
 	import flash.utils.clearTimeout;
 
-	public class HintBoxSet extends Sprite {
+	public class HintBoxSet extends Sprite
+	{
+		static private var _instantCount:int = 0;
 		public var hintText:TextField;
 		private var _hintBG:Sprite;
 		private var _bgColor:uint = 0xFFA700;
 		private var _hintHeight:Number = 0;
 		private var _stage:DisplayObjectContainer;
-		private var _hintTimer:int = 0;
+		private var _hintTimerName:String;
+		private var _isHintHideEventsAdded:Boolean = false;
 
 		public function setScale(newScale:Number):void
 		{
@@ -45,16 +47,16 @@
 
 		public function getScaledTextHeight():Number
 		{
-			return hintText.height*scaleX;
+			return hintText.height * scaleX;
 		}
 
 		public function getScaledTextWidth():Number
 		{
-			return hintText.width*scaleX;
+			return hintText.width * scaleX;
 		}
 		public function getScaledHeight():Number
 		{
-			return (_hintBG.height-1)*scaleX;
+			return (_hintBG.height - 1) * scaleX;
 		}
 
 		public function setHintTextColor(color:uint):void
@@ -65,26 +67,24 @@
 		public function setHintText(str:String):void
 		{
 			hintText.text = str;
-			if(_hintBG != null)
+			if (_hintBG != null)
 			{
 				_hintBG.graphics.clear();
-				_hintBG.graphics.lineStyle(1,0,0.5);
-				_hintBG.graphics.beginFill(_bgColor,0.75);
-				_hintBG.graphics.drawRect(-1,-1,hintText.width+2,hintText.height+2);
+				_hintBG.graphics.lineStyle(1, 0, 0.5);
+				_hintBG.graphics.beginFill(_bgColor, 0.75);
+				_hintBG.graphics.drawRect(-1, -1, hintText.width + 2, hintText.height + 2);
 				_hintBG.graphics.endFill();
 			}
 		}
 
 		public function hideHintWithMouseEvents():void
 		{
+		trace("hey");
 			hide();
-			if(_hintTimer !== 0)
-			{
-				clearTimeout(_hintTimer);
-				_hintTimer = 0;
-			}
-			_stage.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseEventHideHint);
-			_stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onMouseEventHideHint);
+			FOFOTimer.remove(_hintTimerName);
+			_isHintHideEventsAdded = false;
+			_stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseEventHideHint);
+			_stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseEventHideHint);
 		}
 
 		public function onMouseEventHideHint(e:MouseEvent):void
@@ -92,24 +92,25 @@
 			hideHintWithMouseEvents();
 		}
 
-		public function show(duration:Number=0.0):void
+		public function show(duration:Number = 0.0):void
 		{
 			this.visible = true;
 			
-			if(_hintTimer !== 0)
-			{
-				clearTimeout(_hintTimer);
-				_hintTimer = 0;
-			}
+			FOFOTimer.remove(_hintTimerName);
 
-			if(duration > 0.0)
+			if (duration > 0.0)
 			{
-				_hintTimer = setTimeout(function():void
+				FOFOTimer.addByName(_hintTimerName,duration,false,function():void
 				{
 					hideHintWithMouseEvents();
-				},duration*1000);
-				_stage.addEventListener(MouseEvent.MOUSE_DOWN,onMouseEventHideHint);
-				_stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onMouseEventHideHint);
+				});
+
+				if(!_isHintHideEventsAdded)
+				{
+					_isHintHideEventsAdded = true;
+					_stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseEventHideHint);
+					_stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseEventHideHint);
+				}
 			}
 		}
 
@@ -124,8 +125,10 @@
 			return this.visible;
 		}
 
-		public function HintBoxSet(stage:DisplayObjectContainer,initBG:Boolean)
+		public function HintBoxSet(stage:DisplayObjectContainer, initBG:Boolean)
 		{
+			_instantCount++;
+			_hintTimerName = "hintShowTime"+_instantCount;
 			_stage = stage;
 			visible = false;
 			hintText.mouseEnabled = false;
@@ -136,12 +139,12 @@
 			_hintHeight = this.height;
 			setHintText("");
 
-			if(initBG)
+			if (initBG)
 			{
 				_hintBG = new Sprite();
 				_hintBG.y = -1;
 				addChild(_hintBG);
-				setChildIndex(_hintBG,0);
+				setChildIndex(_hintBG, 0);
 				_hintBG.mouseEnabled = false;
 			}
 			hintText.mouseEnabled = false;

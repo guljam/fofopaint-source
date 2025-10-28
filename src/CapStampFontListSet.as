@@ -1,5 +1,6 @@
-﻿package  {
-	
+﻿package
+{
+
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -13,9 +14,9 @@
 	import flash.events.MouseEvent;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	
-	public class CapStampFontListSet extends Sprite {
-		
+
+	public class CapStampFontListSet extends Sprite
+	{
 		public var capFontListPrev:SimpleButton;
 		public var capFontListNext:SimpleButton;
 		private const capFontListBG:Shape = new Shape();
@@ -23,15 +24,15 @@
 		private const fontList:Array = [];
 		private const fontBoxWidth:Number = 200;
 		private const fontBoxHeight:Number = 25;
-		private const fontBoxRow:Number = 1
+		private const fontBoxRow:Number = 1;
 		private const fontBoxColumn:Number = 10;
-		private const defaultFontSize:Number = fontBoxHeight-8;
+		private const defaultFontSize:Number = fontBoxHeight - 8;
 		private const bgOffset:Number = 5;
 		private const childTextFieldBoxName:String = "capStampFont";
 		private var childTextFieldBoxMouseOverSave:Sprite = null;
 		private var listViewIndex:int = 0;
 		private var listViewIndexSave:int = -1;
-		private const listViewCount:int = fontBoxRow*fontBoxColumn;
+		private const listViewCount:int = fontBoxRow * fontBoxColumn;
 		private var listViewMaxCount:int = 0;
 		private var fontColor:uint = 0;
 		private var fontSelectedColor:uint = 0;
@@ -45,15 +46,15 @@
 		public function setSelectFontBG(target:Sprite):void
 		{
 			target.graphics.clear();
-			target.graphics.lineStyle(0,0,0);
+			target.graphics.lineStyle(0, 0, 0);
 			target.graphics.beginFill(fontSelectedColor);
-			target.graphics.drawRect(0,0,fontBoxWidth,fontBoxHeight);
+			target.graphics.drawRect(0, 0, fontBoxWidth, fontBoxHeight);
 		}
 
 		public function childTextFieldBoxHoverOFF(target:Sprite):void
 		{
 			const textfield:TextField = target.getChildAt(0) as TextField;
-			if(textfield && textfield.getTextFormat().font=== selectedFont)
+			if (textfield && textfield.getTextFormat().font === selectedFont)
 			{
 
 			}
@@ -66,16 +67,16 @@
 		public function childTextFieldBoxHoverON(target:Sprite):void
 		{
 			const textfield:TextField = target.getChildAt(0) as TextField;
-			if(textfield && textfield.getTextFormat().font=== selectedFont)
+			if (textfield && textfield.getTextFormat().font === selectedFont)
 			{
 
 			}
 			else
 			{
 				target.graphics.clear();
-				target.graphics.lineStyle(0,0,0);
-				target.graphics.beginFill(fontColor,0.2);
-				target.graphics.drawRect(0,0,fontBoxWidth,fontBoxHeight);
+				target.graphics.lineStyle(0, 0, 0);
+				target.graphics.beginFill(fontColor, 0.2);
+				target.graphics.drawRect(0, 0, fontBoxWidth, fontBoxHeight);
 			}
 		}
 
@@ -98,15 +99,15 @@
 			const row:int = fontBoxRow;
 			const column:int = fontBoxColumn;
 
-			for(var i:int=0;i<row;i++)
+			for (var i:int = 0; i < row; i++)
 			{
-				for(var j:int=0;j<column;j++)
+				for (var j:int = 0; j < column; j++)
 				{
 					const childTextFieldBox:Sprite = new Sprite();
-					childTextFieldBox.scrollRect = new Rectangle(0,0,fontBoxWidth,fontBoxHeight);
-					childTextFieldBox.x = fontBoxWidth*i;
-					childTextFieldBox.y = fontBoxHeight*j;
-					childTextFieldBox.name = childTextFieldBoxName+j;
+					childTextFieldBox.scrollRect = new Rectangle(0, 0, fontBoxWidth, fontBoxHeight);
+					childTextFieldBox.x = fontBoxWidth * i;
+					childTextFieldBox.y = fontBoxHeight * j;
+					childTextFieldBox.name = childTextFieldBoxName + j;
 
 					const childTextField:TextField = new TextField();
 					childTextField.border = false;
@@ -128,7 +129,7 @@
 
 		public function updateNextFontList(nextFlag:Boolean):void
 		{
-			if(nextFlag)
+			if (nextFlag)
 			{
 				listViewIndex++;
 			}
@@ -137,26 +138,26 @@
 				listViewIndex--;
 			}
 
-			if(listViewIndex > listViewMaxCount)
+			if (listViewIndex > listViewMaxCount)
 			{
 				listViewIndex = 0;
 			}
-			else if(listViewIndex < 0)
+			else if (listViewIndex < 0)
 			{
 				listViewIndex = listViewMaxCount;
 			}
 
-			updateFontList(listViewIndex,selectedFont);
+			updateFontList(listViewIndex, selectedFont);
 		}
 
 		public function updateFontListSelect(newFont:String):void
 		{
-			updateFontList(listViewIndex,newFont);
+			updateFontList(listViewIndex, newFont);
 		}
 
-		public function updateFontList(pageIndex:int,customSelectFont:String):void
+		public function updateFontList(pageIndex:int, customSelectFont:String):void
 		{
-			if(pageIndex === listViewIndexSave && customSelectFont !== selectedFont)
+			if (pageIndex === listViewIndexSave && customSelectFont !== selectedFont)
 			{
 				return;
 			}
@@ -166,19 +167,19 @@
 
 			const len:int = listViewCount;
 
-			for(var i:int=0;i<len;i++)
+			for (var i:int = 0; i < len; i++)
 			{
 				const textChildBox:Sprite = capFontListWapper.getChildAt(i) as Sprite;
 				const textchild:TextField = textChildBox.getChildAt(0) as TextField;
 				var textFormat:TextFormat = textchild.getTextFormat();
-				if(!textFormat)
+				if (!textFormat)
 				{
 					textFormat = new TextFormat();
 				}
 
-				const index:int = pageIndex*listViewCount+i;
+				const index:int = pageIndex * listViewCount + i;
 
-				if(fontList[index])
+				if (fontList[index])
 				{
 					textFormat.font = fontList[index];
 					textFormat.color = fontColor;
@@ -187,9 +188,9 @@
 					textchild.setTextFormat(textFormat);
 
 					var metrics:TextLineMetrics = textchild.getLineMetrics(0);
-					textchild.y = (textchild.height-metrics.height)/2;
+					textchild.y = (textchild.height - metrics.height) / 2;
 
-					if(fontList[index] === customSelectFont)
+					if (fontList[index] === customSelectFont)
 					{
 						setSelectFontBG(textChildBox);
 					}
@@ -214,24 +215,24 @@
 
 			fontList.length = 0;
 
-			for(var i:int=0;i<len;i++)
+			for (var i:int = 0; i < len; i++)
 			{
 				fontList.push(rawFontList[i].fontName);
-				if(selectedFont === rawFontList[i].fontName)
+				if (selectedFont === rawFontList[i].fontName)
 				{
 					selectedFontIndex = i;
 				}
 			}
 
-			listViewMaxCount = int(fontList.length/listViewCount);
+			listViewMaxCount = int(fontList.length / listViewCount);
 
-			//선택된 폰트 페이지로 가기
-			if(selectedFontIndex >= 0)
+			// 선택된 폰트 페이지로 가기
+			if (selectedFontIndex >= 0)
 			{
-				listViewIndex= int(selectedFontIndex/listViewCount);
+				listViewIndex = int(selectedFontIndex / listViewCount);
 			}
 
-			updateFontList(listViewIndex,selectedFont);
+			updateFontList(listViewIndex, selectedFont);
 		}
 
 		public function setScale(newScale:Number):void
@@ -240,12 +241,12 @@
 			this.scaleY = newScale;
 		}
 
-		public function changeUIColor(base:uint,op:uint,selectColor:uint):void
+		public function changeUIColor(base:uint, op:uint, selectColor:uint):void
 		{
 			capFontListBG.graphics.clear();
-			capFontListBG.graphics.lineStyle(0,0,0);
+			capFontListBG.graphics.lineStyle(0, 0, 0);
 			capFontListBG.graphics.beginFill(base);
-			capFontListBG.graphics.drawRect(-bgOffset,0,this.width+bgOffset*2,this.height+bgOffset);
+			capFontListBG.graphics.drawRect(-bgOffset, 0, this.width + bgOffset * 2, this.height + bgOffset);
 			capFontListBG.graphics.endFill();
 
 			const opColor:ColorTransform = new ColorTransform();
@@ -261,51 +262,52 @@
 		public function mouseOverEvent(e:MouseEvent):void
 		{
 			const target:DisplayObject = e.target as DisplayObject;
-			if(!target) return;
+			if (!target)
+				return;
 
 			const targetName:String = target.name;
 
-
-			if(childTextFieldBoxMouseOverSave && childTextFieldBoxMouseOverSave !== target)
+			if (childTextFieldBoxMouseOverSave && childTextFieldBoxMouseOverSave !== target)
 			{
-				childTextFieldBoxHoverOFF(childTextFieldBoxMouseOverSave);	
+				childTextFieldBoxHoverOFF(childTextFieldBoxMouseOverSave);
 				childTextFieldBoxMouseOverSave = null;
 			}
 
-			if(target === stage || target.parent === stage)
+			if (target === stage || target.parent === stage)
 			{
 				return;
 			}
 
-			if(targetName.indexOf(childTextFieldBoxName) !== -1
-			|| (target.parent && target.parent.name.indexOf(childTextFieldBoxName) !== -1))
+			if (targetName.indexOf(childTextFieldBoxName) !== -1
+					|| (target.parent && target.parent.name.indexOf(childTextFieldBoxName) !== -1))
 			{
 				childTextFieldBoxMouseOverSave = target as Sprite;
 				childTextFieldBoxHoverON(target as Sprite);
 			}
 		}
 
-		public function CapStampFontListSet() {
+		public function CapStampFontListSet()
+		{
 			visible = false;
 			addChild(capFontListBG);
-			setChildIndex(capFontListBG,0);
+			setChildIndex(capFontListBG, 0);
 			makeFontListChildBox();
 
 			capFontListPrev.useHandCursor = false;
 			capFontListNext.useHandCursor = false;
 
-			capFontListNext.x = 0
-			capFontListPrev.y = 0
-			capFontListNext.x = capFontListPrev.x+capFontListPrev.width;
+			capFontListNext.x = 0;
+			capFontListPrev.y = 0;
+			capFontListNext.x = capFontListPrev.x + capFontListPrev.width;
 			capFontListNext.y = capFontListPrev.y;
 			capFontListWapper.x = 0;
-			capFontListWapper.y = capFontListPrev.y+capFontListPrev.height;
+			capFontListWapper.y = capFontListPrev.y + capFontListPrev.height;
 
-			const listMoveBttons:Array = [capFontListPrev,capFontListNext];
+			const listMoveBttons:Array = [capFontListPrev, capFontListNext];
 			var btn:SimpleButton;
 			var btnDown:DisplayObjectContainer;
 
-			for(var i:uint=0;i<listMoveBttons.length;i++)
+			for (var i:uint = 0; i < listMoveBttons.length; i++)
 			{
 				btn = listMoveBttons[i] as SimpleButton;
 				btnDown = btn.downState as DisplayObjectContainer;
@@ -315,7 +317,7 @@
 
 			addChild(capFontListWapper);
 
-			this.addEventListener(MouseEvent.MOUSE_OVER,mouseOverEvent)
+			this.addEventListener(MouseEvent.MOUSE_OVER, mouseOverEvent);
 			// visible = true;
 		}
 	}

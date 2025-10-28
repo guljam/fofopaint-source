@@ -52,7 +52,7 @@ package
                 color = bgBmpd.getPixel(0, 0);
 
                 scratchPadDraw.graphics.clear();
-                scratchPadDraw.graphics.lineStyle(1 / scratchPadZoom,pickColorBorderFunc(color, 0) <= 40 ? 0xFFFFFF : 0);
+                scratchPadDraw.graphics.lineStyle(1 / scratchPadZoom, pickColorBorderFunc(color, 0) <= 40 ? 0xFFFFFF : 0);
                 scratchPadDraw.graphics.drawRect(Math.floor(scratchPadBitmap.mouseX), Math.floor(scratchPadBitmap.mouseY), 1, 1);
 
                 return color;
@@ -96,7 +96,7 @@ package
         {
             if (Math.floor(scratchPadBitmap.mouseX) === Math.floor(startPos.x) && Math.floor(scratchPadBitmap.mouseY) === Math.floor(startPos.y))
             {
-                if(mainPickColorFunc !== null)
+                if (mainPickColorFunc !== null)
                 {
                     mainPickColorFunc(pickColor());
                 }
@@ -127,14 +127,14 @@ package
             }
         }
 
-        public function drawReady(lineSize:Number, lineColor:uint, lineAlpha:Number, sqShape:Boolean,pickColorFunc:Function,rectColorFunc:Function):void
+        public function drawReady(lineSize:Number, lineColor:uint, lineAlpha:Number, sqShape:Boolean, pickColorFunc:Function, rectColorFunc:Function):void
         {
-            if(mainPickColorFunc === null)
+            if (mainPickColorFunc === null)
             {
                 mainPickColorFunc = pickColorFunc;
             }
 
-            if(pickColorBorderFunc === null)
+            if (pickColorBorderFunc === null)
             {
                 pickColorBorderFunc = rectColorFunc;
             }

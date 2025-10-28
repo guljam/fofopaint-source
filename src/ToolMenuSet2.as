@@ -8,7 +8,8 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.geom.Point;
 
-	public class ToolMenuSet2 extends Sprite {
+	public class ToolMenuSet2 extends Sprite
+	{
 		public var toolPen:SimpleButton;
 		public var toolFillPen:SimpleButton;
 		public var toolScanFill:SimpleButton;
@@ -30,7 +31,7 @@
 		private var fixedScale:Number = 1.0;
 		private var infoDataBackup:Array = [];
 
-		private var lastUsedToolPoint:Point = new Point(0,0);
+		private var lastUsedToolPoint:Point = new Point(0, 0);
 
 		public function getLastUsedToolPos():Point
 		{
@@ -40,15 +41,15 @@
 		public function updateLastUsedToolPos(targetName:String):void
 		{
 			const btn:SimpleButton = this.getChildByName(targetName) as SimpleButton;
-			lastUsedToolPoint.setTo((btn.x+btn.width/2)*fixedScale,(btn.y+btn.height/2)*fixedScale);
+			lastUsedToolPoint.setTo((btn.x + btn.width / 2) * fixedScale, (btn.y + btn.height / 2) * fixedScale);
 
 		}
 
 		public function hint(str:String):void
 		{
-			if(str.indexOf("\n") !== -1)
+			if (str.indexOf("\n") !== -1)
 			{
-				if(infoDataBackup.length === 0)
+				if (infoDataBackup.length === 0)
 				{
 					infoDataBackup[0] = toolInfo.y;
 					infoDataBackup[1] = toolInfo.height;
@@ -61,7 +62,7 @@
 					toolBoxBG.height += 20;
 				}
 			}
-			else if(infoDataBackup.length !== 0)
+			else if (infoDataBackup.length !== 0)
 			{
 				toolInfo.y = infoDataBackup[0];
 				toolInfo.height = infoDataBackup[1];
@@ -106,52 +107,52 @@
 			var btnOver:DisplayObjectContainer;
 
 			const leftButtonArr:Array = [
-											toolZoom,
-											toolMove,
-											toolRotate,
-											toolRefLayer,
-										];
+					toolZoom,
+					toolMove,
+					toolRotate,
+					toolRefLayer,
+				];
 
 			const rightButtonArr:Array = [
-											toolPen,
-											toolFillPen,
-											// toolScanFill,
-											toolErase,
-											toolUndo,
-											toolRedo,
-											toolEyedropper,
-											toolMirror,
-											toolLasso,
-											toolLine,
-											toolSidebar
-										];
+					toolPen,
+					toolFillPen,
+					// toolScanFill,
+					toolErase,
+					toolUndo,
+					toolRedo,
+					toolEyedropper,
+					toolMirror,
+					toolLasso,
+					toolLine,
+					toolSidebar
+				];
 
-           	base.color = arr[0];
-           	subBase.color = arr[1];
-           	iconLeft.color = arr[2];
-           	iconRight.color = arr[3];
-           	activeColor.color = arr[4];
-           	activeIconColor.color = arr[5];
+			base.color = arr[0];
+			subBase.color = arr[1];
+			iconLeft.color = arr[2];
+			iconRight.color = arr[3];
+			activeColor.color = arr[4];
+			activeIconColor.color = arr[5];
 
-			//배경
+			// 배경
 			toolBoxBG.transform.colorTransform = base;
 			toolBoxBG2.transform.colorTransform = subBase;
 			var i:uint = 0;
 			var len:uint = leftButtonArr.length;
 
-			for(i=0;i<len;i++)
+			for (i = 0; i < len; i++)
 			{
 				btn = leftButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
 				btnUp.transform.colorTransform = iconLeft;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor;//버튼 배경
-				btnOver.getChildAt(1).transform.colorTransform = activeIconColor; //버튼 아이콘
+				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
+				btnOver.getChildAt(1).transform.colorTransform = activeIconColor; // 버튼 아이콘
 				btn.downState = btn.overState;
 			}
 
 			len = rightButtonArr.length;
-			for(i=0;i<len;i++)
+			for (i = 0; i < len; i++)
 			{
 				btn = rightButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
@@ -161,7 +162,7 @@
 				btnOver.getChildAt(1).transform.colorTransform = iconRight;
 				btn.downState = btn.overState;
 			}
-			//텍스트
+			// 텍스트
 			toolInfo.textColor = arr[2];
 
 			btn = null;
@@ -171,8 +172,8 @@
 
 		public function setScale(newScale:Number):void
 		{
-			this.scaleX = newScale*fixedScale;
-			this.scaleY = newScale*fixedScale;
+			this.scaleX = newScale * fixedScale;
+			this.scaleY = newScale * fixedScale;
 		}
 
 		public function ToolMenuSet2()
@@ -199,7 +200,7 @@
 			toolErase.visible = true;
 			visible = false;
 
-			fixedScale = 34/toolPen.width;
+			fixedScale = 34 / toolPen.width;
 			setScale(1.0);
 		}
 	}

@@ -1,10 +1,11 @@
-﻿package  {
+﻿package
+{
 
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
 
-	public class canvasResizeButton extends SimpleButton {
-
+	public class canvasResizeButton extends SimpleButton
+	{
 		public function setColor(color:uint):void
 		{
 			const c:ColorTransform = new ColorTransform();
@@ -12,7 +13,8 @@
 			transform.colorTransform = c;
 		}
 
-		public function canvasResizeButton() {
+		public function canvasResizeButton()
+		{
 			// constructor code
 			visible = false;
 			useHandCursor = false;
