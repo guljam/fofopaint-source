@@ -79,7 +79,7 @@
 
 		public function hideHintWithMouseEvents():void
 		{
-		trace("hey");
+			trace("hey");
 			hide();
 			FOFOTimer.remove(_hintTimerName);
 			_isHintHideEventsAdded = false;
@@ -95,17 +95,17 @@
 		public function show(duration:Number = 0.0):void
 		{
 			this.visible = true;
-			
+
 			FOFOTimer.remove(_hintTimerName);
 
 			if (duration > 0.0)
 			{
-				FOFOTimer.addByName(_hintTimerName,duration,false,function():void
-				{
-					hideHintWithMouseEvents();
-				});
+				FOFOTimer.addByName(_hintTimerName, duration, false, function():void
+					{
+						hideHintWithMouseEvents();
+					});
 
-				if(!_isHintHideEventsAdded)
+				if (!_isHintHideEventsAdded)
 				{
 					_isHintHideEventsAdded = true;
 					_stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseEventHideHint);
@@ -128,7 +128,7 @@
 		public function HintBoxSet(stage:DisplayObjectContainer, initBG:Boolean)
 		{
 			_instantCount++;
-			_hintTimerName = "hintShowTime"+_instantCount;
+			_hintTimerName = "hintShowTime" + _instantCount;
 			_stage = stage;
 			visible = false;
 			hintText.mouseEnabled = false;

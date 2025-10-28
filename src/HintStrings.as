@@ -20,7 +20,7 @@
                 "loadButton": "Load [ctrl+o]",
                 "clipBoardButton": "Load clipboard image [ctrl+v, ctrl+n] _ There are no copied images",
                 "newFileButton": "New file [click, esc, backspace, delete] {STRING_PRESS_HOLD}",
-                "gridButton": "Grid [f2, f8]\nReset [right-click, while holding Shift: f2, f8]",
+                "gridButton": "Grid [f2, f8] _ Reset [right-click, while holding Shift: f2, f8]",
                 "sideBarPositionButton": "Right sidebar [f3]",
                 "sideBarPositionButton2": "Left sidebar [f3]",
                 "sideBarOFFButton": "Turn sidebar OFF [tab, \\  ]",
@@ -30,7 +30,7 @@
                 "topBarColorButton": "Change UI color [f4]",
                 "dpiButton": "Current UI scale : {getUIScaleString()} _ Change UI scale [f5] _ Reset [right-click, shift+F5]",
                 "newWindowCloseButton": "Close image view window [esc on window]",
-                "newWindowButton": "Open image view window [f6] _ Move window [click+drag on window] _ Fit to image size [right-click on window]",
+                "newWindowButton": "Open image view window [f6] _ Move window [drag on window] _ Fit to image size [right-click on window]",
                 "aboutButton": "About FOFO PAINT..",
                 "updateButton": "Version {newVersionStr} released!",
 
@@ -53,8 +53,6 @@
                 "replayRotateButton": "Rotate {STRING_RIGHT_CLICK_TO_RESET}",
                 "replayRepeatButton": "Repeat replay ON/OFF",
 
-                //TODO:힌트 기반 잡혔으니 힌트 다 해줘야함 if문까지 있어서 조건이 까다로운데 함수를 써야하나
-
                 // 캡쳐 모드
                 "capOff": "Exit capture mode (esc, backspace, f1, f7]",
                 "capFull": "Save full image [ctrl+s, ctrl+k]",
@@ -73,15 +71,6 @@
                 "gridMoveRightButton": "Move grid by 1 pixel _ Repeat [hold-click], Reset [right-click]",
                 "gridMoveUpButton": "Move grid by 1 pixel _ Repeat [hold-click], Reset [right-click]",
                 "gridMoveDownButton": "Move grid by 1 pixel _ Repeat [hold-click], Reset [right-click]",
-
-                "layer1CheckButton": "Layer 1 visible ON/OFF [shift+1, shift+9]",
-                "layer1UncheckButton": "Layer 1 visible ON/OFF [shift+1, shift+9]",
-
-                "layer2CheckButton": "Layer 2 visible ON/OFF [shift+2, shift+0]",
-                "layer2UncheckButton": "Layer 2 visible ON/OFF [shift+2, shift+0]",
-
-                "layerSwapButton": "Swap layer [shift+q, shift+p]",
-                "layerMergeButton": "Merge image to layer 2 [shift+e, shift+o]",
 
                 // 펜옵션
                 "shapeCircle": "circle",
@@ -109,6 +98,7 @@
                 "nSizeButton10": "{getSizeButtonHint(10)}",
                 "nSizeButton11": "{getSizeButtonHint(11)}",
                 "nSizeButton12": "{getSizeButtonHint(12)}",
+
                 "sharpLineButtonWrapper": "Sharp line [3, 8]",
                 "sharpLineOFFButton": "Sharp line [3, 8]",
                 "sharpLineONButton": "Sharp line [3, 8]",
@@ -117,14 +107,51 @@
                 "airBrushOFFButton": "Air brush [4, 7]",
                 "airBrushONButton": "Air brush [4, 7]",
                 "airBrushText": "Air brush [4, 7]",
-                "layer1SelectButton": "Select layer 1 [1, 9] Show only layer 1 ON/OFF [one more click]",
-                "layer2SelectButton": "Select layer 2 [2, 0] Show only layer 2 ON/OFF [one more click]",
+
+                "layer1SelectButton": "Select layer 1 [1, 9] Show only layer 1 ON/OFF [click x 2]",
+                "layer2SelectButton": "Select layer 2 [2, 0] Show only layer 2 ON/OFF [click x 2]",
                 "layer1CheckButton": "Check layer 1 [1+w, 9+i] (for move image tool, lasso tool, reference layer)",
                 "layer1UncheckButton": "Check layer 1 [1+w, 9+i] (for move image tool, lasso tool, reference layer)",
                 "layer2CheckButton": "Check layer 2 [2+w, 0+i] (for move image tool, lasso tool, reference layer)",
                 "layer2UncheckButton": "Check layer 2 [2+w, 0+i] (for move image tool, lasso tool, reference layer)",
                 "layerSwapButton": "Swap layers [shift+d, shift+j]",
-                "layerMergeButton": "Merge image to layer 2 [shift+e, shift+o]"
+                "layerMergeButton": "Merge image to layer 2 [shift+e, shift+o]",
+
+                // 툴박스 2
+                "toolQuickSidebar": "[6, s+d, j+k]",
+                "toolPen": "Pen [q, o key up]",
+                "toolFillPen": "Fill pen [q, o]",
+                "toolErase": "Eraser [d, j]",
+                "toolLasso": "Lasso [r, y]",
+                "toolEyedropper": "Eye dropper [c, m]",
+                "toolUndo": "Undo [z, .]",
+                "toolRedo": "Redo [x, ,]",
+                "toolMirror": "Flip canvas [a, l]",
+                "toolLine": "Line [shift]",
+                "toolMove": "Move image [e, u]",
+                "toolZoom": "Zoom canvas [w, i]",
+                "toolZoomIn": "Zoom-in canvas _ {STRING_RIGHT_CLICK_TO_RESET}",
+                "toolZoomOut": "Zoom-out canvas _ {STRING_RIGHT_CLICK_TO_RESET}",
+                "toolRotate": "Rotate canvas [s, k] _ {STRING_RIGHT_CLICK_TO_RESET}",
+                "toolRotate2": "Rotate canvas [s, k]",
+                "toolRefLayer": "Reference layer [t]",
+                "sideBarScrollBar":"Scroll sidebar [drag, mouse wheel on sidebar] _ {STRING_RIGHT_CLICK_TO_RESET}",
+                
+                //컬러 픽커
+                "hueColor": "Hue",
+                "svBox": "Situation and Value",
+                "swapPositionButton": "Swap palette position [click]",
+                "historyBox": "Move color to my palette [drag]",
+                "myPaletteBox": "Add, remove, restore color [hold click] _ Swap color position [drag]",
+                "rgbInfoText": "Change value [click] _ Change color model [click {getRGBorHSVString()} text]",
+                "paperColorButton": "Change background color",
+                "penColorButton": "Change pen color",
+                "currentColor":"{getCurrentColorHint()}",
+                "transColorButton": "Transparent color ON/OFF [c+space, m+space]",
+                "myPaletteButton": "My palette _ Expand palette ON/OFF [click x 2] _ Clear palette [click] {STRING_PRESS_HOLD}",
+                "drawrPresetButton": "Drawr color preset _ Clear scratch pad [click] {STRING_PRESS_HOLD}",
+                "tegakiPresetButton": "Tegaki color preset _ Clear scratch pad [click] {STRING_PRESS_HOLD}",
+                "scratchPad": "Scratch pad _ Draw [drag] _ Select color [c, m, click]"
             };
 
         static public function resolveTemplate(template:String):String

@@ -24,8 +24,8 @@
 		public var toolRotate:SimpleButton;
 		public var toolLine:SimpleButton;
 		public var toolRefLayer:SimpleButton;
-		public var zoomInButton:SimpleButton;
-		public var zoomOutButton:SimpleButton;
+		public var toolZoomIn:SimpleButton;
+		public var toolZoomOut:SimpleButton;
 		public var toolSelectCursor:SimpleButton;
 		private var lastTool:String = "toolPen";
 
@@ -196,19 +196,19 @@
 
 		public function initCanvasControlButtons(newParent:DisplayObjectContainer):void
 		{
-			newParent.addChild(zoomInButton);
-			newParent.addChild(zoomOutButton);
+			newParent.addChild(toolZoomIn);
+			newParent.addChild(toolZoomOut);
 			newParent.addChild(toolRotate);
 			newParent.addChild(toolMirror);
 
-			zoomInButton.x = 26;
-			zoomInButton.y = 23;
-			zoomOutButton.x = zoomInButton.x + zoomInButton.width + 7;
-			zoomOutButton.y = zoomInButton.y;
-			toolRotate.x = zoomOutButton.x + zoomOutButton.width + 8;
-			toolRotate.y = zoomInButton.y;
+			toolZoomIn.x = 26;
+			toolZoomIn.y = 23;
+			toolZoomOut.x = toolZoomIn.x + toolZoomIn.width + 7;
+			toolZoomOut.y = toolZoomIn.y;
+			toolRotate.x = toolZoomOut.x + toolZoomOut.width + 8;
+			toolRotate.y = toolZoomIn.y;
 			toolMirror.x = toolRotate.x + toolRotate.width + 7;
-			toolMirror.y = zoomInButton.y;
+			toolMirror.y = toolZoomIn.y;
 		}
 
 		public function changeUIColor(arr:Array):void
@@ -351,8 +351,8 @@
 			toolRotate.useHandCursor = false;
 			toolLine.useHandCursor = false;
 			toolRefLayer.useHandCursor = false;
-			zoomInButton.useHandCursor = false;
-			zoomOutButton.useHandCursor = false;
+			toolZoomIn.useHandCursor = false;
+			toolZoomOut.useHandCursor = false;
 
 			toolFillPenOK.visible = false;
 			toolFillPenCancel.visible = false;
@@ -369,8 +369,8 @@
 					toolLasso,
 					toolMove,
 					toolRefLayer,
-					zoomInButton,
-					zoomOutButton,
+					toolZoomIn,
+					toolZoomOut,
 					toolRotate,
 					toolMirror
 				];

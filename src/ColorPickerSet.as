@@ -13,6 +13,7 @@
 	import flash.filters.ColorMatrixFilter;
 	import flash.geom.Rectangle;
 
+
 	public class ColorPickerSet extends Sprite
 	{
 		public var mainColorPickerBox:Sprite = new Sprite();
@@ -23,7 +24,7 @@
 		public var svGradient:Shape = new Shape();//흰색 검은색 그라디언트 깔아주는 컬러 임
 		public var hueColor:Sprite = new Sprite();
 		public var hueColorMask:Shape = new Shape();
-		public var rgbInfo:TextField;
+		public var rgbInfoText:TextField;
 		public var drawrPresetButton:SimpleButton;
 		public var tegakiPresetButton:SimpleButton;
 		public var myPaletteButton:SimpleButton;
@@ -189,17 +190,17 @@
 
 		public function updateFirstRGBInfoColorText():void
 		{
-			firstRGBInfoColorText = rgbInfo.text;
+			firstRGBInfoColorText = rgbInfoText.text;
 		}
 
 		public function resetToOldRGBInfoText():void
 		{
-			rgbInfo.text = lastRGBInfoText;
+			rgbInfoText.text = lastRGBInfoText;
 		}
 
 		public function updateOldRGBInfoText():void
 		{
-			lastRGBInfoText = rgbInfo.text;
+			lastRGBInfoText = rgbInfoText.text;
 		}
 
 		public function setoldRGBInfoText(str:String):void
@@ -237,7 +238,7 @@
 			const baseColor:ColorTransform = new ColorTransform();
 			baseColor.color = color;
 
-			rgbInfo.textColor = color;
+			rgbInfoText.textColor = color;
 			var alphaSave:Number = myPaletteButton.alpha;
 
 			myPaletteButton.transform.colorTransform = baseColor;
@@ -259,22 +260,22 @@
 
 		public function updateRGBInfoTextColor(color:uint):void
 		{
-			rgbInfo.textColor = color;
+			rgbInfoText.textColor = color;
 		}
 
 		public function getRGBInfoText():String
 		{
-			return rgbInfo.text;
+			return rgbInfoText.text;
 		}
 
 		public function setRGBInfoText(str:String):void
 		{
-			rgbInfo.text = str;
+			rgbInfoText.text = str;
 		}
 
 		public function setRGBInfoVisible(flag:Boolean):void
 		{
-			rgbInfo.visible = flag;
+			rgbInfoText.visible = flag;
 		}
 
 		public function restoreRGBInfoBackground():void
@@ -290,7 +291,7 @@
             rgbInfoBG.graphics.beginBitmapFill(transColorButtonBmpd);
             rgbInfoBG.graphics.drawRect(0,0,rgbInfoBGwidth,rgbInfoHeight);
             rgbInfoBG.graphics.endFill();
-			rgbInfo.textColor = 0xFF0000;
+			rgbInfoText.textColor = 0xFF0000;
 		}
 
 		public function updateRGBInfoBG(color:uint,borderColor:uint,paletteType:int):void
@@ -470,13 +471,16 @@
 			emptyContextMenu.hideBuiltInItems();
 
 			updateRGBInfoBG(0,0,0);
-			rgbInfo.contextMenu = emptyContextMenu;
-			rgbInfo.restrict = "0-9";
-			rgbInfo.maxChars = 15;
-			rgbInfo.x = 0;
-			rgbInfo.y = 0;
+
+			rgbInfoText.contextMenu = emptyContextMenu;
+			rgbInfoText.restrict = "0-9";
+			rgbInfoText.maxChars = 15;
+			rgbInfoText.x = 0;
+			rgbInfoText.y = 0;
+
 			rgbInfoBG.x = 0;
-			rgbInfoBG.y = Math.floor(rgbInfo.y);
+			rgbInfoBG.y = 0;
+
 			transColorButton.x = Math.floor(rgbInfoBG.x+rgbInfoBG.width+5);
 			transColorButton.y = rgbInfoBG.y;
 			transColorButton.useHandCursor = false;
@@ -507,7 +511,7 @@
 			mainColorPickerBox.addChild(transColorButton);
 			mainColorPickerBox.addChild(currentColor);
 			mainColorPickerBox.addChild(rgbInfoBG);
-			mainColorPickerBox.addChild(rgbInfo);
+			mainColorPickerBox.addChild(rgbInfoText);
 			mainColorPickerBox.addChild(historyBox);
 			initScratcPad();
 			

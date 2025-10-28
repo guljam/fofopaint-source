@@ -11,6 +11,7 @@
 	import flash.events.MouseEvent;
 	import flash.display.BitmapData;
 	import flash.display.Bitmap;
+	import flash.display.Shape;
 
 	public class NumPadSet extends Sprite
 	{
@@ -50,16 +51,22 @@
 
 		private const okLWrapper:Sprite = new Sprite();
 		private var okLBitmap:Bitmap;
+		private const okLSlider:Shape = new Shape();
 		private const okCWrapper:Sprite = new Sprite();
 		private var okCBitmap:Bitmap;
+		private const okCSlider:Shape = new Shape();
 		private const okHWrapper:Sprite = new Sprite();
 		private var okHBitmap:Bitmap;
+		private const okHSlider:Shape = new Shape();
+
+		private const sliderOffset:Number = 5.0;
 		private var okBaseHue:Number = 0;
 		private var okBaseColor:uint = 0;
+		private var okBaseColorLch:Object;
 		private var okPickedColor:uint = 0;
 
 		private const previewBox:Sprite = new Sprite();
-		private var mouseMoveFunc:Function;
+		private var onMouseMoveUpdateLCH:Function;
 		private var pickColorFunc:Function;
 		private var clickedWrapperFlag:int;
 
@@ -70,15 +77,20 @@
 
 			okLWrapper.name = "okLWrapper";
 			okLWrapper.graphics.clear();
-			okLWrapper.graphics.beginFill(0, 0.0);
+			okLWrapper.graphics.beginFill(0, 0);
 			okLWrapper.graphics.drawRect(0, 0, width, height);
 			okLWrapper.graphics.endFill();
 			okLWrapper.x = 112;
 			okLWrapper.y = 21;
 			okLBitmap = new Bitmap(new BitmapData(1, height - 10, false, 0));
-			okLBitmap.y = 5;
+			okLBitmap.y = sliderOffset;
 			okLBitmap.width = width;
+			okLSlider.graphics.clear();
+			okLSlider.graphics.lineStyle(1, 0xFFFFFF);
+			okLSlider.graphics.moveTo(0, 0);
+			okLSlider.graphics.lineTo(width, 0);
 			okLWrapper.addChild(okLBitmap);
+			okLWrapper.addChild(okLSlider);
 			oklabLText.x = okLWrapper.x + (width - oklabLText.width) / 2 - 1;
 			oklabLText.y = okLWrapper.y - 14;
 
@@ -90,9 +102,14 @@
 			okCWrapper.x = okLWrapper.x + okLWrapper.width + 3;
 			okCWrapper.y = okLWrapper.y;
 			okCBitmap = new Bitmap(new BitmapData(1, height - 10, false, 0));
-			okCBitmap.y = 5;
+			okCBitmap.y = sliderOffset;
 			okCBitmap.width = width;
+			okCSlider.graphics.clear();
+			okCSlider.graphics.lineStyle(1, 0xFFFFFF);
+			okCSlider.graphics.moveTo(0, 0);
+			okCSlider.graphics.lineTo(width, 0);
 			okCWrapper.addChild(okCBitmap);
+			okCWrapper.addChild(okCSlider);
 			oklabCText.x = okCWrapper.x + (width - oklabCText.width) / 2 - 1;
 			oklabCText.y = okCWrapper.y - 14;
 
@@ -104,9 +121,14 @@
 			okHWrapper.x = okCWrapper.x + okCWrapper.width + 3;
 			okHWrapper.y = okLWrapper.y;
 			okHBitmap = new Bitmap(new BitmapData(1, height - 10, false, 0));
-			okHBitmap.y = 5;
+			okHBitmap.y = sliderOffset;
 			okHBitmap.width = width;
+			okHSlider.graphics.clear();
+			okHSlider.graphics.lineStyle(1, 0xFFFFFF);
+			okHSlider.graphics.moveTo(0, 0);
+			okHSlider.graphics.lineTo(width, 0);
 			okHWrapper.addChild(okHBitmap);
+			okHWrapper.addChild(okHSlider);
 			oklabHText.x = okHWrapper.x + (width - oklabHText.width) / 2;
 			oklabHText.y = okHWrapper.y - 14;
 
@@ -196,17 +218,36 @@
 			}
 		}
 
+		public function initOkLchSliderPos(lch:Object):void
+		{
+			const height:Number = okLBitmap.bitmapData.height;
+			const lpos:Number = height-lch.L*height;
+			const cpos:Number = height-lch.C*height;
+			const hpos:Number = height-(lch.H/360.0)*height;
+
+			okLSlider.y = lpos+sliderOffset;
+			okCSlider.y = cpos+sliderOffset;
+			okHSlider.y = hpos+sliderOffset;
+		}
+
 		public function updateOkBaseColor(color:uint):void
 		{
 			okBaseColor = color;
+			okBaseColorLch = hexToOklch(color);
+			if (isBaseColorGray())
+			{
+				okBaseColorLch.H = okBaseHue;
+			}
+			
+			initOkLchSliderPos(okBaseColorLch);
+
 			updateOKGradient(true, true, true);
 		}
 
-		public function on(purehue:uint, color:uint, invertcolorfunc:Function):void
+		public function readyLCHAdjustment(purehue:uint, color:uint, invertcolorfunc:Function):void
 		{
 			visible = true;
-			const ok:Object = hexToOklch(purehue);
-			okBaseHue = ok.H;
+			okBaseHue = hexToOklch(purehue).H;
 			updateOkBaseColor(color);
 			checkClipBoardHexColor(invertcolorfunc);
 		}
@@ -391,7 +432,16 @@
 
 		public function onOKLCHMouseUp(e:MouseEvent):void
 		{
-			okBaseColor = okPickedColor;
+			removeOKLCHMouseEvent();
+		}
+
+		public function onOKLCHMouseMove(e:MouseEvent):void
+		{
+			onMouseMoveUpdateLCH();
+			const hexColor:uint = OklchToHex(okBaseColorLch);
+			okPickedColor = hexColor;
+			updateColorPreviewBox(hexColor);
+
 			if (clickedWrapperFlag == 0)
 			{
 				updateOKGradient(false, true, true);
@@ -406,19 +456,11 @@
 			}
 
 			pickColorFunc(okPickedColor);
-			removeOKLCHMouseEvent();
-		}
-
-		public function onOKLCHMouseMove(e:MouseEvent):void
-		{
-			const color:uint = mouseMoveFunc();
-			okPickedColor = color;
-			updatePreviewBox(color);
 		}
 
 		public function isLCHSliderActive():Boolean
 		{
-			if (mouseMoveFunc !== null)
+			if (onMouseMoveUpdateLCH !== null)
 			{
 				return true;
 			}
@@ -427,16 +469,16 @@
 
 		public function removeOKLCHMouseEvent():void
 		{
-			mouseMoveFunc = null;
+			onMouseMoveUpdateLCH = null;
 			pickColorFunc = null;
-			hidePreviewBox();
+			hideClorPreviewBox();
 			stage.removeEventListener(MouseEvent.MOUSE_MOVE, onOKLCHMouseMove);
 			stage.removeEventListener(MouseEvent.MOUSE_UP, onOKLCHMouseUp);
 		}
 
 		private function addOKLCHMouseEvent():void
 		{
-			showPreviewBox();
+			showColorPreviewBox();
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, onOKLCHMouseMove);
 			stage.addEventListener(MouseEvent.MOUSE_UP, onOKLCHMouseUp);
 		}
@@ -449,42 +491,42 @@
 			}
 
 			const elements:Array = [okLWrapper, okCWrapper, okHWrapper];
-			const moveFuncs:Array = [getLColor, getCColor, getHColor];
+			const moveFuncs:Array = [updateL, updateC, updateH];
 			clickedWrapperFlag = flag;
-			mouseMoveFunc = moveFuncs[flag];
+			onMouseMoveUpdateLCH = moveFuncs[flag];
 			pickColorFunc = pickerBoxFunc;
-			showPreviewBox();
-			const color:uint = mouseMoveFunc();
-			okPickedColor = color;
-			updatePreviewBox(color);
+			showColorPreviewBox();
+
+			onMouseMoveUpdateLCH();
+			const hexColor:uint = OklchToHex(okBaseColorLch);
+			okPickedColor = hexColor;
+			updateColorPreviewBox(hexColor);
+
 			addOKLCHMouseEvent();
 		}
 
-		private function getColorFromBitmap(bmp:Bitmap):uint
-		{
-			const ypos:Number = clamp(bmp.mouseY, 0.0, bmp.bitmapData.height - 1.0);
-			return bmp.bitmapData.getPixel(0, ypos);
-		}
-
-		public function getLColor():uint
+		public function updateL():void
 		{
 			const ypos:Number = clamp(okLBitmap.mouseY, 0.0, okLBitmap.bitmapData.height - 1.0);
 			const value:Number = 1.0 - ypos / okLBitmap.bitmapData.height;
-			return getAdjustedBaseColor(0, value);
+			okBaseColorLch.L = value;
+			okLSlider.y = ypos + sliderOffset;
 		}
 
-		public function getCColor():uint
+		public function updateC():void
 		{
 			const ypos:Number = clamp(okCBitmap.mouseY, 0.0, okCBitmap.bitmapData.height - 1.0);
-			var value:Number = (1.0 - ypos / okCBitmap.bitmapData.height) / 2;
-			return getAdjustedBaseColor(1, value);
+			var value:Number = (1.0 - ypos / okCBitmap.bitmapData.height);
+			okBaseColorLch.C = value;
+			okCSlider.y = ypos + sliderOffset;
 		}
 
-		public function getHColor():uint
+		public function updateH():void
 		{
 			const ypos:Number = clamp(okHBitmap.mouseY, 0.0, okHBitmap.bitmapData.height - 1.0);
 			const value:Number = 360.0 - 360.0 * (ypos / okHBitmap.bitmapData.height);
-			return getAdjustedBaseColor(2, value);
+			okBaseColorLch.H = value;
+			okHSlider.y = ypos + sliderOffset;
 		}
 
 		public function isBaseColorGray():Boolean
@@ -494,15 +536,9 @@
 
 		public function getAdjustedBaseColor(flag:int, value:Number):uint
 		{
-			const l:Object = hexToOklch(okBaseColor);
+			const l:Object = {L: okBaseColorLch.L, C: okBaseColorLch.C, H: okBaseColorLch.H};
 			const props:Array = ["L", "C", "H"];
-
 			l[props[flag]] = value;
-			if (flag == 1 && isBaseColorGray())
-			{
-				l.H = okBaseHue;
-			}
-
 			return OklchToHex(l);
 		}
 
@@ -512,7 +548,7 @@
 			const configs:Array =
 				[
 					{flag: lflag, bmpd: okLBitmap.bitmapData, max: 1.0, step: 1.0 / height, idx: 0},
-					{flag: cflag, bmpd: okCBitmap.bitmapData, max: 0.5, step: 0.5 / height, idx: 1},
+					{flag: cflag, bmpd: okCBitmap.bitmapData, max: 1.0, step: 1.0 / height, idx: 1},
 					{flag: hflag, bmpd: okHBitmap.bitmapData, max: 360.0, step: 360.0 / height, idx: 2}
 				];
 
@@ -530,13 +566,13 @@
 			}
 		}
 
-		public function hidePreviewBox():void
+		public function hideClorPreviewBox():void
 		{
 			previewBox.visible = false;
 			previewBox.graphics.clear();
 		}
 
-		public function updatePreviewBox(color:uint):void
+		public function updateColorPreviewBox(color:uint):void
 		{
 			previewBox.graphics.clear();
 			previewBox.graphics.beginFill(color);
@@ -546,7 +582,7 @@
 			previewBox.graphics.endFill();
 		}
 
-		public function showPreviewBox():void
+		public function showColorPreviewBox():void
 		{
 			previewBox.visible = true;
 		}

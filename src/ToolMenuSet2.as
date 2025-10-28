@@ -12,7 +12,6 @@
 	{
 		public var toolPen:SimpleButton;
 		public var toolFillPen:SimpleButton;
-		public var toolScanFill:SimpleButton;
 		public var toolErase:SimpleButton;
 		public var toolUndo:SimpleButton;
 		public var toolRedo:SimpleButton;
@@ -20,14 +19,14 @@
 		public var toolMirror:SimpleButton;
 		public var toolLasso:SimpleButton;
 		public var toolMove:SimpleButton;
-		public var toolRotate:SimpleButton;
+		public var toolRotate2:SimpleButton;
 		public var toolLine:SimpleButton;
 		public var toolRefLayer:SimpleButton;
 		public var toolZoom:SimpleButton;
 		public var toolBoxBG:SimpleButton;
 		public var toolBoxBG2:SimpleButton;
-		public var toolSidebar:SimpleButton;
-		public var toolInfo:TextField;
+		public var toolQuickSidebar:SimpleButton;
+		public var toolInfoText:TextField;
 		private var fixedScale:Number = 1.0;
 		private var infoDataBackup:Array = [];
 
@@ -42,7 +41,6 @@
 		{
 			const btn:SimpleButton = this.getChildByName(targetName) as SimpleButton;
 			lastUsedToolPoint.setTo((btn.x + btn.width / 2) * fixedScale, (btn.y + btn.height / 2) * fixedScale);
-
 		}
 
 		public function hint(str:String):void
@@ -51,27 +49,27 @@
 			{
 				if (infoDataBackup.length === 0)
 				{
-					infoDataBackup[0] = toolInfo.y;
-					infoDataBackup[1] = toolInfo.height;
+					infoDataBackup[0] = toolInfoText.y;
+					infoDataBackup[1] = toolInfoText.height;
 					infoDataBackup[2] = toolBoxBG.y;
 					infoDataBackup[3] = toolBoxBG.height;
 
-					toolInfo.y -= 20;
-					toolInfo.height += 20;
+					toolInfoText.y -= 20;
+					toolInfoText.height += 20;
 					toolBoxBG.y -= 20;
 					toolBoxBG.height += 20;
 				}
 			}
 			else if (infoDataBackup.length !== 0)
 			{
-				toolInfo.y = infoDataBackup[0];
-				toolInfo.height = infoDataBackup[1];
+				toolInfoText.y = infoDataBackup[0];
+				toolInfoText.height = infoDataBackup[1];
 				toolBoxBG.y = infoDataBackup[2];
 				toolBoxBG.height = 60;
 				infoDataBackup.length = 0;
 			}
 
-			toolInfo.text = str;
+			toolInfoText.text = str;
 		}
 
 		public function setToolButtonsForCheckedLayerON(alp:Number):void
@@ -109,7 +107,7 @@
 			const leftButtonArr:Array = [
 					toolZoom,
 					toolMove,
-					toolRotate,
+					toolRotate2,
 					toolRefLayer,
 				];
 
@@ -124,7 +122,7 @@
 					toolMirror,
 					toolLasso,
 					toolLine,
-					toolSidebar
+					toolQuickSidebar
 				];
 
 			base.color = arr[0];
@@ -163,7 +161,7 @@
 				btn.downState = btn.overState;
 			}
 			// 텍스트
-			toolInfo.textColor = arr[2];
+			toolInfoText.textColor = arr[2];
 
 			btn = null;
 			btnUp = null;
@@ -188,17 +186,19 @@
 			toolMirror.useHandCursor = false;
 			toolLasso.useHandCursor = false;
 			toolMove.useHandCursor = false;
-			toolRotate.useHandCursor = false;
+			toolRotate2.useHandCursor = false;
 			toolLine.useHandCursor = false;
 			toolRefLayer.useHandCursor = false;
 			toolZoom.useHandCursor = false;
-			toolSidebar.useHandCursor = false;
+			toolQuickSidebar.useHandCursor = false;
 			toolBoxBG2.mouseEnabled = false;
 			toolBoxBG.mouseEnabled = false;
 
 			toolPen.visible = false;
 			toolErase.visible = true;
 			visible = false;
+
+			updateLastUsedToolPos("toolPen");
 
 			fixedScale = 34 / toolPen.width;
 			setScale(1.0);
