@@ -519,7 +519,7 @@
                    lastAppWindowState:int = 0;
 
         //이미지 붙여넣기 변수
-        public var isClipBoardButtonActivated:Boolean = false //윈도우 active에서 붙여넣기 가능한 이미지가 있으면 올려줌
+        public var  isClipBoardButtonActivated:Boolean = false //윈도우 active에서 붙여넣기 가능한 이미지가 있으면 올려줌
 
         //참고 레이어 변수
         public const canvasRefLayer:Sprite = new Sprite()//트레이스 레이어임
@@ -651,7 +651,7 @@
                     lastWindowDeactivateTime:int = 0,              // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
                     isPenSizeCursorInvisible:Boolean = false,      // 펜 커서가 보이지 않게 설정
                     lastLoadedFile:File,                       // invoke나 파일 드래그 드롭했을때 저장해줘서 같은 파일 로드하지 않게
-                    loadMenuBoxPreviewImageData:BitmapData,        // 메뉴 박스 미리보기 이미지 데이터
+                    loadMenuBoxBitmapData:BitmapData,        // 메뉴 박스 미리보기 이미지 데이터
                     loadMenuBoxFile:File,                          // 메뉴 박스에 로드할 파일
                     lastEraserPosButton:SimpleButton = null,       // 지우개 툴이 이동한 버튼 저장, 복원용
                     isQuickSidebarActive:Boolean = false,          // 퀵 사이드바 활성화 여부
@@ -1259,17 +1259,17 @@
             }
         }
 
-        public function closeLoadBoxMenu():void
+        public function closeLoadMenuBox():void
         {
-            stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadBox);
+            stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
             loadMenuBox.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
             loadMenuBox.visible = false;
         }
 
-        public function openLoadBoxMenu():void
+        public function openLoadMenuBox():void
         {
             loadMenuBox.updateClickBlockerSize(stage.stageWidth,stage.stageHeight);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadBox);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
             loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
             setAsTopChild(loadMenuBox);
             loadMenuBox.visible = true;
@@ -1298,15 +1298,16 @@
                     return;
                 }
 
-                if (oldTargetName === e.target.name)
+                if (oldTargetName === e.target.name
+                && isLoadPendingAfterSaving === false && isInSaveProgress === 0 && !isFileBrowserOpened)
                 {
                     switch (e.target.name)
                     {
                         case "dragDropLoadButton":
                             {
-                                if (isLoadPendingAfterSaving === false && isInSaveProgress === 0 && !isFileBrowserOpened && !loadMenuBox.isRefLayerLoadMode())
+                                if (!loadMenuBox.isRefLayerLoadMode())
                                 {
-                                    closeLoadBoxMenu();
+                                    closeLoadMenuBox();
                                     loadFileTo("canvas");
                                 }
                             }
@@ -1314,7 +1315,7 @@
 
                         case "dragDropSaveAndLoadButton":
                             {
-                                if (isLoadPendingAfterSaving === false && isInSaveProgress === 0 && !isFileBrowserOpened && !loadMenuBox.isRefLayerLoadMode())
+                                if (!loadMenuBox.isRefLayerLoadMode())
                                 {
                                     isLoadPendingAfterSaving = true;
                                     loadMenuBox.showPleaseWait();
@@ -1325,20 +1326,14 @@
 
                         case "dragDropLoadRefLayerButton":
                             {
-                                if (isLoadPendingAfterSaving === false && isInSaveProgress === 0 && !isFileBrowserOpened)
-                                {
-                                    loadFileTo("reflayer");
-                                    closeLoadBoxMenu();
-                                }
+                                loadFileTo("reflayer");
+                                closeLoadMenuBox();
                             }
                             break;
 
                         case "dragDropCancelButton":
                             {
-                                if (isLoadPendingAfterSaving === false && isInSaveProgress === 0 && !isFileBrowserOpened)
-                                {
-                                    closeLoadBoxMenu();
-                                }
+                                closeLoadMenuBox();
                             }
                             break;
                     }
@@ -1355,13 +1350,12 @@
             executeLoadMenuBoxClick(e.target.name);
         }
 
-        public function setLoadBoxOFFLoadFailed():void
+        public function showLoadFaildMouseHint():void
         {
             isLoadPendingAfterSaving = false;
             showMouseHintTemp("Load failed");
-            mouseHint.x = Math.floor(loadMenuBox.x);
-            mouseHint.y = Math.floor(loadMenuBox.y);
-            closeLoadBoxMenu();
+            mouseHint.y = stage.mouseY;
+            mouseHint.x = stage.mouseX;
         }
 
         public function activeColorPreset(type:int):void
@@ -3691,7 +3685,6 @@
 
         public function stopWorker(forceFlag:Boolean=false):Boolean
         {
-
             if((workerDataSendCount === workerDataReceiveCount
                 && workerPNGCaptureFileData === null
                 && workerPNGSaveData === null
@@ -4320,7 +4313,6 @@
 
         public function removeSidebarTempShowActivateEvents():void
         {
-        trace("removeSidebarTempShowActivateEvents",removeSidebarTempShowActivateEvents);
             removeTimer("sidebarTempShowActivateTimer");
             isSidebarTempShowDeactivated = false;
             isSidebarHideEventAdded = false;
@@ -5506,8 +5498,6 @@
                 controlBox.setFillPenModeON(BUTTON_OFF_ALPHA);
                 colorPickerBox.fillPenModeON();
 
-                trace("start");
-
                 addEvents();
             }
 
@@ -6666,7 +6656,7 @@
                 refLayerMenuConfirmCount = 0;
                 refLayerMenuBox.refTransferCanvasImageButton.removeEventListener(MouseEvent.MOUSE_OUT,onMouseOutRefTransferImageButton);
                 refLayerMenuBox.hint(STRING_MERGE_CANVAS_IMAGE_TO_REFLAYER);
-                pasteCanvasImageToRefLayer();
+                mergeCanvasImageToRefLayer();
             }
         }
 
@@ -7569,26 +7559,7 @@
             isFileAlreadySaved = false;
         }
 
-        public function transfer2020FileImageToRefLayer(file:File):void
-        {
-            if(isTrue2020File(file) === false)
-            {
-                isLoadPendingAfterSaving = false;
-                closeLoadBoxMenu();
-                setLoadBoxOFFLoadFailed();
-                return;
-            }
-
-            const bmpd:BitmapData = getFinalBitmapDataFrom2020File(file,true);
-            transferLoadedImageToRefLayer(bmpd,bmpd.width,bmpd.height);
-
-            if(!isReplayModeON)
-            {
-                openRefLayerMenu();
-            }
-        }
-
-        public function pasteCanvasImageToRefLayer():void
+        public function mergeCanvasImageToRefLayer():void
         {
             if(isDeepUndoEnabled)
             {
@@ -7998,7 +7969,7 @@
                 deactiveColorPickerModeBG();
             }
             colorPickerBox.activePaperColorButton(isColorPickerModeBG);
-            checkClipBoardImage();
+            checkEnableClipBoardButton();
             setPickerBoxTransBGBrightness(index);
             if(hintHighlightBox.visible)
             {
@@ -8104,7 +8075,7 @@
 
         public function startUpdate():void
         {
-            closeLoadBoxMenu();
+            closeLoadMenuBox();
             isUpdatePendingAfterSaving = false;
             topBar.hideUpdateButton();
 
@@ -9705,7 +9676,7 @@
 
                         case "clipBoardButton":
                         {
-                            validateClipboardFileForLoad(false);
+                            tryLoadClipboardImage(false);
                         }
                         break;
 
@@ -9841,7 +9812,7 @@
                         {
                             if(refLayerMenuBox.refClipBoardButton.alpha === 1.0)
                             {
-                                validateClipboardFileForLoad(true);
+                                tryLoadClipboardImage(true);
                             }
                         }
                         break;
@@ -13647,11 +13618,34 @@
         }
 
         //drag load
-        public function keyDownLoadBox(e:KeyboardEvent):void
+        public function keyDownLoadMenuBox(e:KeyboardEvent):void
         {
-            if(e.keyCode === KEY.esc || e.keyCode === KEY.backspace)
+            const firstKey:uint = getFirstPressedKey();
+            if(firstKey === KEY.esc || firstKey === KEY.backspace)
             {
-                closeLoadBoxMenu();
+                closeLoadMenuBox();
+            }
+            if(isClipBoardButtonActivated)
+            {
+                if(isPressingControl())
+                {
+                    if(isLastKey(secondKey))
+                    {
+                    trace("samekey");
+                        return;
+                        키가 빠르게 반복되므로 한번만하던지
+                        이전 파일비교하던지 해서 중복 확인 제거해야함
+                    }
+                    updateLastKey(secondKey);
+                    const secondKey:uint = getSecondPressedKey();
+                    if(secondKey === KEY.v || secondKey === KEY.n)
+                    {
+                        if(!isSameFile(file, lastLoadedFile))
+                        {
+                            tryLoadClipboardImage(false);
+                        }
+                    }
+                }
             }
         }
 
@@ -13659,8 +13653,8 @@
         {
             clearKeyBuffer();
             closeToolBox2();
-
             loadMenuBoxFile = file;
+            loadMenuBoxBitmapData = bmpd;
 
             if(isLassoToolStarted === true)
             {
@@ -13697,14 +13691,17 @@
                     }
                 }
 
-                openLoadBoxMenu();
+                openLoadMenuBox();
                 setAsTopChild(loadMenuBox);
             }
         }
-
-        public function validateClipboardFileForLoad(reflayer:Boolean):void
+        //TODO: loadbox단축키에서 바로 ctrl+v n 해줬을때 반복 중복 파일이나 이미지파일은 안되게 해야함
+        public function tryLoadClipboardImage(toRefLayer:Boolean):void
         {
-            if(isInSaveProgress) return;
+            if(isInSaveProgress)
+            {
+                return;
+            }
 
             rFileStream.close();
             cancelReplayRestartTimer();
@@ -13715,12 +13712,11 @@
             {
                 if(data is BitmapData)
                 {
-                    loadMenuBoxPreviewImageData = data as BitmapData;
-                    prepareOpenLoadBox(false,reflayer,null,loadMenuBoxPreviewImageData);
+                    prepareOpenLoadBox(false,toRefLayer,null,loadMenuBoxBitmapData);
                 }
-                else if(data is Array)
+                else if (data is Array && data.length > 0)
                 {
-                    validateFileAndOpenLoadBox(data[0] as File,reflayer);
+                    prepareLoadMenuBoxFromImageFile(data[0] as File, toRefLayer);
                 }
             }
         }
@@ -13745,7 +13741,8 @@
             isClipBoardButtonActivated = true;
         }
 
-        public function isWebP(file:File):Boolean {
+        public function isWebpFile(file:File):Boolean
+        {
             var stream:FileStream = new FileStream();
             stream.open(file, FileMode.READ);
 
@@ -13755,17 +13752,115 @@
 
             // Check "RIFF" at bytes 0–3
             if (header.length >= 12 &&
-                header[0] == 0x52 && header[1] == 0x49 &&
-                header[2] == 0x46 && header[3] == 0x46 &&
-                header[8] == 0x57 && header[9] == 0x45 &&
-                header[10] == 0x42 && header[11] == 0x50) {
+                    header[0] == 0x52 && header[1] == 0x49 &&
+                    header[2] == 0x46 && header[3] == 0x46 &&
+                    header[8] == 0x57 && header[9] == 0x45 &&
+                    header[10] == 0x42 && header[11] == 0x50)
+            {
                 return true;
             }
 
             return false;
         }
 
-        public function checkClipBoardImage():void
+        public function canDisplayLoadMenuBox(file:File):Boolean
+        {
+            return !loadMenuBox.visible || !isSameFile(file, lastLoadedFile);
+        }
+
+        public function prepareLoadMenuBoxFromImageFile(file:File,toRefLayer:Boolean):void
+        {
+            validateImageFile(file,
+            function(type:String,file:File,bmpd:BitmapData):void
+            {
+                lastLoadedFile = file;
+                if(type === "image")
+                {
+                    prepareOpenLoadBox(false,toRefLayer,null,bmpd);
+                }
+                else if(type === "2020")
+                {
+                    prepareOpenLoadBox(false,toRefLayer,file,getFinalBitmapDataFrom2020File(file,true));
+                }
+                else if(type === "webp")
+                {
+                    var byteArray:ByteArray = new ByteArray();
+                    var stream:FileStream = new FileStream();
+
+                    stream.open(file, FileMode.READ);
+                    stream.readBytes(byteArray, 0, stream.bytesAvailable);
+                    stream.close();
+                    prepareOpenLoadBox(false,toRefLayer,file,libwebp.DecodeWebp(byteArray));
+                }
+            },showLoadFaildMouseHint);
+        }
+
+        public function validateImageFile(file:File,callbackOk:Function,callbackCancel:Function=null):void
+        {
+            var loader:Loader = new Loader();
+
+            function cleanEvents():void
+            {
+                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onCompleteValidateFile);
+                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onErrorValidateFile);
+                loader.unload();
+                loader = null;
+            }
+
+            function onCompleteValidateFile(e:Event):void
+            {
+                if(callbackOk !== null)
+                {
+                    const bmpd:BitmapData = new BitmapData(loader.content.width,loader.content.height,true,0);
+                    bmpd.draw(loader);
+                    callbackOk("image",file,bmpd);
+                }
+                cleanEvents();
+            }
+
+            function onErrorValidateFile(e:IOErrorEvent):void
+            {
+                cleanEvents();
+
+                try
+                {
+                    if (file.exists)
+                    {
+                        if(isTrue2020File(file))
+                        {
+                            if(callbackOk !== null)
+                            {
+                                callbackOk("2020",file,null);
+                                return;
+                            }
+                        }
+                        else if(isWebpFile(file))
+                        {
+                            if(callbackOk !== null)
+                            {
+                                callbackOk("webp",file,null);
+                                return;
+                            }
+                        }
+                    }
+                }
+                catch (error:Error)
+                {
+                    
+                }
+
+                if(callbackCancel !== null)
+                {
+                    callbackCancel();
+                }
+            }
+
+            loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onCompleteValidateFile);
+            loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onErrorValidateFile);
+            loader.load(new URLRequest(file.url));
+        }
+
+        public function checkEnableClipBoardButton():void
         {
             const data:* = getSystemClipboardData();
 
@@ -13777,54 +13872,28 @@
 
             if (data is Array && data.length > 0)
             {
-                const file:File = data[0] as File;
-                const loader:Loader = new Loader();
-
-                loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void
-                    {
-                        if (!loadMenuBox.visible || !isSameFile(file, lastLoadedFile))
-                        {
-                            lastLoadedFile = file;
-                            enableTopBarClipboardButton();
-                        }
-                    });
-
-                loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
-                    {
-                        try
-                        {
-                            if (file.exists && isTrue2020File(file))
-                            {
-                                if (!loadMenuBox.visible || !isSameFile(file, lastLoadedFile))
-                                {
-                                    lastLoadedFile = file;
-                                    enableTopBarClipboardButton();
-                                    return;
-                                }
-                            }
-                            else if(isWebP(file))
-                            {로드 시스템 통합 인풋- 파일브라우저 invoke drag에서 file객체로 받아서 기본loader이면 바로 로드
-                            에러나면 2020이나 webp인지 확인후 canvas나 reflayer로 그려주는 흐름
-                                enableTopBarClipboardButton();
-                                return;
-                            }
-                        }
-                        catch (error:Error)
-                        {
-                        }
-                        disableTopBarClipboardButton();
-                    });
-
-                loader.load(new URLRequest(file.url));
-                return;
+                validateImageFile(data[0] as File,
+                function(type:String,file:File,bmpd:BitmapData):void
+                {
+                    enableTopBarClipboardButton();
+                },
+                function():void
+                {
+                    disableTopBarClipboardButton();
+                });
             }
-
-            disableTopBarClipboardButton();
+            else
+            {
+                disableTopBarClipboardButton();
+            }
         }
 
         public function isSameFile(file1:File,file2:File):Boolean
         {
-            if(!lastLoadedFile) return false;
+            if(!lastLoadedFile)
+            {
+                return false;
+            }
 
             return file1.nativePath === file2.nativePath
             && file1.size === file2.size
@@ -13835,7 +13904,7 @@
         //운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
         public function onInvokeEvent(event:InvokeEvent):void
         {
-            if(isFileBrowserOpened || isCaptureModeON || isInSaveProgress !== 0)
+            if(isFileBrowserOpened || isCaptureModeON || isInSaveProgress)
             {
                 return;
             }
@@ -13849,7 +13918,7 @@
 
                     if(file.exists)
                     {
-                        if(loadMenuBox.visible && isSameFile(file,lastLoadedFile))
+                        if(!canDisplayLoadMenuBox(file))
                         {
                             return;
                         }
@@ -13865,7 +13934,7 @@
                             cancelReplayRestartTimer();
                         }
 
-                        validateFileAndOpenLoadBox(file,false);
+                        prepareLoadMenuBoxFromImageFile(file,false);
                     }
                 }
                 catch(err:Error)
@@ -13879,70 +13948,24 @@
         {
             if(isFileBrowserOpened || isCaptureModeON === true ||isInSaveProgress !== 0)
             {
+            trace("return 222");
                 return;
             }
 
             rFileStream.close();
             cancelReplayRestartTimer();
-            const data:Object = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
-            const file:File = data[0] as File;
 
-            if(loadMenuBox.visible && isSameFile(file,lastLoadedFile))
+            const data:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+            trace("data.length ",data.length );
+            if(data && data.length > 0)
             {
-                return;
-            }
-            lastLoadedFile = file;
-            validateFileAndOpenLoadBox(data[0] as File,false);
-        }
+                const file:File = data[0] as File;
 
-        public function validateFileAndOpenLoadBox(file:File,reflayer:Boolean):void
-        {
-            if(!file)
-            {
-                return;
-            }
-
-            var loader:Loader = new Loader();
-            loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
-            loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onIOError);
-
-            loader.load(new URLRequest(file.url));
-
-            function onLoaderComplete(event:Event):void
-            {
-                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onLoaderComplete);
-                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
-
-                const bmpd:BitmapData = new BitmapData(loader.content.width,loader.content.height,true,0);
-                bmpd.draw(loader);
-                prepareOpenLoadBox(false,reflayer,null,bmpd);
-                loader.unload();
-                loader = null;
-            }
-
-            function onIOError(event:IOErrorEvent):void
-            {
-                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onLoaderComplete);
-                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
-
-                if(isTrue2020File(file))
+                if(canDisplayLoadMenuBox(file))
                 {
-                    prepareOpenLoadBox(false,reflayer,file,getFinalBitmapDataFrom2020File(file,true));
+                    prepareLoadMenuBoxFromImageFile(file,false);
+                    return;
                 }
-                else if(isWebP(file))
-                {
-                    var byteArray:ByteArray = new ByteArray();
-                    var stream:FileStream = new FileStream();
-
-                    stream.open(file, FileMode.READ);
-                    stream.readBytes(byteArray, 0, stream.bytesAvailable);
-                    stream.close();
-                    prepareOpenLoadBox(false,reflayer,file,libwebp.DecodeWebp(byteArray));
-                }
-
-                lastLoadedFile = null;
-                loader.unload();
-                loader = null;
             }
         }
 
@@ -13968,152 +13991,56 @@
 
         public function loadFileTo(where:String):void
         {
-            if(loadMenuBoxPreviewImageData) //클립보드에 이미지가 있으면
+            if(where === "reflayer")
             {
-                if(where === "reflayer")
+                if(loadMenuBoxBitmapData)
                 {
-                    transferLoadedImageToRefLayer(loadMenuBoxPreviewImageData,loadMenuBoxPreviewImageData.width,loadMenuBoxPreviewImageData.height);
+                    transferLoadedImageToRefLayer(loadMenuBoxBitmapData,loadMenuBoxBitmapData.width,loadMenuBoxBitmapData.height);
                     if(!isReplayModeON)
                     {
                         openRefLayerMenu();
                     }
+                    loadMenuBoxBitmapData.dispose();
+                    loadMenuBoxBitmapData = null;
                 }
-                else
-                {
-                    const fileName:String = getNewFileName();
-                    //두번째 변수에서 fileName를 같게 해줘야 저장할때 오류가 안남
-                    loadImageFileToCanvas(fileName,fileName,loadMenuBoxPreviewImageData.width,loadMenuBoxPreviewImageData.height,loadMenuBoxPreviewImageData,null);
-                }
-                loadMenuBoxPreviewImageData = null;
-                return;
             }
-
-            var fs:FileStream = new FileStream();
-            var loader:Loader = new Loader();
-            var tmpFileName:String = "";
-
-            //실제적으로 loader가 읽어서 캔버스에 그림
-            function onErrorLoader(e:Event):void
+            else if(loadMenuBoxFile !== null)
             {
-                setLoadBoxOFFLoadFailed();
-                loadMenuBoxFile = null;
-                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onErrorLoader);
-                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onCompleteLoader);
-                loader = null;
-            }
-
-            function onCompleteLoader(e:Event):void //drag load1
-            {
-                if(where === "reflayer")
+                if(loadMenuBoxFile.exists)
                 {
-                    if(loadMenuBoxPreviewImageData)
+                    var fs:FileStream = new FileStream();
+                    function onCompleteFileStream(e:Event):void
                     {
-                        transferLoadedImageToRefLayer(loadMenuBoxPreviewImageData,loadMenuBoxPreviewImageData.width,loadMenuBoxPreviewImageData.height);
-                        loadMenuBoxPreviewImageData = null;
-                    }
-                    else
-                    {
-                        transferLoadedImageToRefLayer(loader,loader.content.width,loader.content.height);
-                    }
-
-                    if(!isReplayModeON)
-                    {
-                        openRefLayerMenu();
-                    }
-
-                }
-                else
-                {
-                    if(loadMenuBoxPreviewImageData)
-                    {
-                        loadImageFileToCanvas("image",saveFilePath,loadMenuBoxPreviewImageData.width,loadMenuBoxPreviewImageData.height,loadMenuBoxPreviewImageData,null);
-                        loadMenuBoxPreviewImageData = null;
-                    }
-                    else
-                    {
-                        loadImageFileToCanvas(tmpFileName,loadMenuBoxFile.nativePath,loader.content.width,loader.content.height,loader,null);
-                    }
-                }
-
-                loadMenuBoxFile = null;
-                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onErrorLoader);
-                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onCompleteLoader);
-                loader.unload();
-                loader = null;
-            }
-
-            //file steram에서 바이트를 읽어서 다시 loader한테 보내줌
-            function onCompleteFileStream(e:Event):void
-            {
-                try
-                {
-                    if(isImageFileExt(loadMenuBoxFile.name) === true)
-                    {
-                        if(where === "reflayer")
-                        {
-                            transfer2020FileImageToRefLayer(loadMenuBoxFile);
-                        }
-                        else
-                        {
-                            loadReplayFile(loadMenuBoxFile,loadMenuBoxFile.name,loadMenuBoxFile.nativePath);
-                        }
-
-                        fs.close();
                         fs.removeEventListener(Event.COMPLETE, onCompleteFileStream);
                         fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
-                        fs = null;
-                    }
-                    else
-                    {
-                        var data2Byte:ByteArray = new ByteArray();
-                        fs.readBytes(data2Byte,0,fs.bytesAvailable);
                         fs.close();
-                        fs.removeEventListener(Event.COMPLETE, onCompleteFileStream);
-                        fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
                         fs = null;
+                        loadReplayFile(loadMenuBoxFile,loadMenuBoxFile.name,loadMenuBoxFile.nativePath);
+                        loadMenuBoxFile = null;
+                    }
 
-                        loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onErrorLoader);
-                        loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onCompleteLoader);
-                        loader.loadBytes(data2Byte);
-                        data2Byte.clear();
-                        data2Byte = null;
-                    }
-                }
-                catch(err:Error)
-                {
-                    loadMenuBoxFile = null;
-                    if(data2Byte)
+                    function onErrorFileStream(e:Event):void
                     {
-                        data2Byte.clear();
-                        data2Byte = null;
-                    }
-                    if(fs)
-                    {
-                        fs.close();
+                        showLoadFaildMouseHint();
                         fs.removeEventListener(Event.COMPLETE, onCompleteFileStream);
                         fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
+                        fs.close();
                         fs = null;
+                        loadMenuBoxFile = null;
                     }
-                    loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onErrorLoader);
-                    loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onCompleteLoader);
-                    setLoadBoxOFFLoadFailed();
+
+                    fs.addEventListener(Event.COMPLETE, onCompleteFileStream);
+                    fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
+                    fs.openAsync(loadMenuBoxFile,FileMode.READ);
                 }
             }
-
-            function onErrorFileStream(e:Event):void
+            else
             {
-                setLoadBoxOFFLoadFailed();
-                fs.close();
-                fs.removeEventListener(Event.COMPLETE, onCompleteFileStream);
-                fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
-                fs = null;
-                loadMenuBoxFile = null;
+                const fileName:String = getNewFileName();
+                //두번째 변수에서 fileName를 같게 해줘야 저장할때 오류가 안남
+                loadImageFile(fileName,fileName,loadMenuBoxBitmapData.width,loadMenuBoxBitmapData.height,loadMenuBoxBitmapData,null);
             }
 
-            tmpFileName = loadMenuBoxFile.name;
-            fs.addEventListener(Event.COMPLETE, onCompleteFileStream);
-            fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
-            fs.openAsync(loadMenuBoxFile,FileMode.READ);
         }
 
         public function getMyPaletteIndexByMousePosLimitBound():int
@@ -14718,7 +14645,7 @@
             }
 
             loadMenuBox.showPleaseWait();
-            openLoadBoxMenu();
+            openLoadMenuBox();
 
             function onFrameEnter(e:Event):void
             {
@@ -14799,7 +14726,7 @@
                             rCanvasAnchorPoint.visible = true;
                         }
 
-                        closeLoadBoxMenu();
+                        closeLoadMenuBox();
                         clearKeyBuffer();
                         return;
                     }
@@ -15095,7 +15022,7 @@
         {
             if(isTrue2020File(oldFile) === false)
             {
-                setLoadBoxOFFLoadFailed();
+                showLoadFaildMouseHint();
                 return;
             }
 
@@ -15288,30 +15215,31 @@
             replayData.clear();
             replayData = null;
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_READY;
-            loadFileAfter(fileName,filePath,imgW,imgH,finalIMGBMPD,finalIMGBMPD1,false,bg);
+            finalizeLoadFile(fileName,filePath,imgW,imgH,finalIMGBMPD,finalIMGBMPD1,false,bg);
         }
 
-        public function loadImageFileToCanvas(fileName:String,filePath:String,width:Number,height:Number,layer1Image:IBitmapDrawable,layer2Image:IBitmapDrawable):void
+        public function loadImageFile(fileName:String,filePath:String,width:Number,height:Number,layer1Image:IBitmapDrawable,layer2Image:IBitmapDrawable):void
         {
             if(isReplayModeON)
             {
                 updateReplayFrameOnDeepUndo(rNowFrame);
                 exitReplayMode();
             }
+
             TOTAL_FRAME = 0;
             undoData.setRFileTotalFrame(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             refLayerRawBitmapData = null;
             refLayerRawTransformData = null;
-            loadFileAfter(fileName,filePath,width,height,layer1Image,layer2Image,true,0xFFFFFF);
+            finalizeLoadFile(fileName,filePath,width,height,layer1Image,layer2Image,true,0xFFFFFF);
             initializeReplayDataFile(true); //일단 썸네일 이미지랑 리플레이 데이터 청소
         }
 
-        public function loadFileAfter(fileName:String,filePath:String, width:uint,height:uint,imageData:IBitmapDrawable,imageData1:IBitmapDrawable,imageOnlyFlag:Boolean,newBG:uint):void
+        public function finalizeLoadFile(fileName:String,filePath:String, width:uint,height:uint,imageData:IBitmapDrawable,imageData1:IBitmapDrawable,imageOnlyFlag:Boolean,newBG:uint):void
         {
             if(!imageData)
             {
-                setLoadBoxOFFLoadFailed();
+                showLoadFaildMouseHint();
                 return;
             }
 
@@ -15438,8 +15366,16 @@
             updateWindowTitle();
             selectSubLayer(false,false);
             selectReplaySubLayer(false);
-            if(controlBox.layer1CheckButton.visible) setLayer1CheckToggle();
-            if(controlBox.layer2CheckButton.visible) setLayer2CheckToggle();
+
+            if(controlBox.layer1CheckButton.visible)
+            {
+                setLayer1CheckToggle();
+            }
+            if(controlBox.layer2CheckButton.visible)
+            {
+                setLayer2CheckToggle();
+            }
+
             updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
             removeKeyRepeatEvents(null);
 
@@ -15466,10 +15402,10 @@
 
             lastLoadedFile = null;
             isLoadPendingAfterSaving = false;
-            closeLoadBoxMenu();
+            closeLoadMenuBox();
         }
 
-        public function loadFile(isTransferRefLayer:Boolean=false):void
+        public function loadFile(toRefLayer:Boolean=false):void
         {
             if(isReplayStarted) stopReplay();
             if(isLassoToolStarted || isFileBrowserOpened || isFillPenStarted || isInSaveProgress)
@@ -15478,9 +15414,9 @@
             }
 
             var windowTitle:String = "Open file";
-            var imgExt:Array = [new FileFilter("All supported formats","*.2020;*.png;*.jpg;*.gif;*.webp")];
+            var imgExt:Array = [new FileFilter("All supported formats","*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")];
 
-            if(isTransferRefLayer === true)
+            if(toRefLayer === true)
             {
                 windowTitle = "Open reference layer image";
             }
@@ -15488,35 +15424,34 @@
             //초기값으로 파일 경로가 저장된 파일 이름이랑 같으면 그냥 파일인스턴스로 만들어줌
             const file:File = (saveFilePath === saveFileName) ? new File() : new File(saveFilePath);
 
-            function onFileSelectCancel(e:Event):void
+            function cleanUpEvents():void
             {
-                setFileBrowserONFlag(false);
                 file.removeEventListener(Event.SELECT,onFileSelected);
                 file.removeEventListener(Event.COMPLETE,onFileSelectComplete);
                 file.removeEventListener(Event.CANCEL,onFileSelectCancel);
+            }
+
+            function onFileSelectCancel(e:Event):void
+            {
+                setFileBrowserONFlag(false);
+                cleanUpEvents();
                 addInputEventsDrawModeOrReplayMode();
             }
 
             function onFileSelected(e:Event):void
             {
                 setFileBrowserONFlag(false);
-
                 file.removeEventListener(Event.SELECT,onFileSelected);
                 file.load();
             }
 
             function onFileSelectComplete(e:Event):void
             {
-                file.removeEventListener(Event.SELECT,onFileSelected);
-                file.removeEventListener(Event.COMPLETE,onFileSelectComplete);
-                file.removeEventListener(Event.CANCEL,onFileSelectCancel);
+                cleanUpEvents();
                 setFileBrowserONFlag(false);
 
-                if(isTransferRefLayer)
-                {
-                    addInputEventsDrawModeOrReplayMode();
-                }
-                validateFileAndOpenLoadBox(file,isTransferRefLayer);
+                addInputEventsDrawModeOrReplayMode();
+                prepareLoadMenuBoxFromImageFile(file,toRefLayer);
             }
 
             setFileBrowserONFlag(true);
@@ -22264,13 +22199,13 @@
                         case KEY.left:
                         case KEY.z:
                         case KEY.dot:
-                            setJumpOneFrame(true,true);
+                            moveToPreviousFrame();
                         break;
 
                         case KEY.right:
                         case KEY.x:
                         case KEY.comma:
-                            setJumpOneFrame(false,true);
+                            moveToNextFrame();
                         break;
 
                         case KEY.f5:
@@ -22300,7 +22235,7 @@
                 case KEY.z:
                 case KEY.dot:
                 {
-                    setJumpOneFrame(true,false);
+                    moveToPreviousStep();
                 }
                 break;
 
@@ -22308,7 +22243,7 @@
                 case KEY.x:
                 case KEY.comma:
                 {
-                    setJumpOneFrame(false,false);
+                    moveToNextStep();
                 }
                 break;
 
@@ -22450,9 +22385,11 @@
 
         public function onKeyDownDrawMode(e:KeyboardEvent):void
         {
+        trace("hey");
             if(isMouseClicked || isRightMouseClicked || isKeyReleasedBeforeMouseUp || isFillPenStarted
             || isPopUpWindowOpened())
             {
+            trace("return");
                 return;
             }
 
@@ -22498,7 +22435,7 @@
                     {
                         if(isClipBoardButtonActivated)
                         {
-                            validateClipboardFileForLoad(false);
+                            tryLoadClipboardImage(false);
                         }
                     }
                 }))
@@ -23009,7 +22946,7 @@
         {
             tryDisableIME();
             realWorkingTimer.resume();
-            checkClipBoardImage();
+            checkEnableClipBoardButton();
 
             if(isAboutWindowShowing)
             {
@@ -23098,6 +23035,11 @@
 
         public function closeToolBox2():void
         {
+            if(!toolBox2.visible)
+            {
+                return;
+            }
+            
             removeInputEventsToolBox2();
             isToolBox2Showing = false;
             toolBox2.visible = false;
@@ -23681,7 +23623,7 @@
             isDeepUndoEnabled = lastDeepUndoEnabledFlag;
             if(rNowFrame !== lastReplayFrameOnDeepUndoStart)
             {
-                 //after로 해주는 이유는 캐쉬 안만들어줄라고
+                //after로 해주는 이유는 캐쉬 안만들어줄라고
                 renderReplayFrame(lastReplayFrameOnDeepUndoStart,JUMP_FRAME_FORWARD);
             }
             clearRFrameCacheImages();
@@ -23874,13 +23816,27 @@
 
                 case "replayPrev":
                 {
-                    setJumpOneFrame(true,isPressingControlShift());
+                    if(isPressingControlShift())
+                    {
+                        moveToPreviousFrame();
+                    }
+                    else
+                    {
+                        moveToPreviousStep();
+                    }
                 }
                 break;
 
                 case "replayNext":
                 {
-                    setJumpOneFrame(false,isPressingControlShift());
+                    if(isPressingControlShift())
+                    {
+                        moveToNextFrame();
+                    }
+                    else
+                    {
+                        moveToNextStep();
+                    }
                 }
                 break;
 
@@ -23981,8 +23937,8 @@
             switch(targetName)
             {
                 case "repSaveButton": saveFile(true); break;
-                case "replayPrev": setJumpOneFrame(true,true); break;
-                case "replayNext": setJumpOneFrame(false,true); break;
+                case "replayPrev": moveToPreviousFrame(); break;
+                case "replayNext": moveToNextStep();; break;
                 case "replayRotateButton" : resetRotationReplayMode(); break;
 
                 case "replayZoomInButton" :

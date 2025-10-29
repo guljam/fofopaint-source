@@ -9,7 +9,6 @@
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
-	import flash.display.Shape;
 	import flash.filters.BlurFilter;
 
 	public class LoadBoxSet extends Sprite
@@ -67,22 +66,20 @@
 			stageClickBlocker.y = 0;
 			stageClickBlocker.width = stw;
 			stageClickBlocker.height = sth;
+
 			if(pleaseWaitText.visible)
 			{
-				pleaseWaitText.x = stageClickBlocker.width / 2 - mainBox.width / 2;
-				pleaseWaitText.y = stageClickBlocker.height / 2 - mainBox.height / 2;
+				pleaseWaitText.x = stageClickBlocker.width / 2 - pleaseWaitText.width / 2;
+				pleaseWaitText.y = stageClickBlocker.height / 2 - pleaseWaitText.height / 2;
 			}
 			else
 			{
-				trace("stageClickBlocker",stageClickBlocker.width,stageClickBlocker.height);
 				mainBox.x = stageClickBlocker.width / 2 - mainBox.width / 2;
 				mainBox.y = stageClickBlocker.height / 2 - mainBox.height / 2;
 				clickBlockerBitmap.x = -10;
 				clickBlockerBitmap.y = -10;
 				clickBlockerBitmap.width = stageClickBlocker.width + 20;
 				clickBlockerBitmap.height = stageClickBlocker.height + 20;
-				clickBlockerBitmap.alpha = 0.5;
-				
 			}
 		}
 
@@ -195,15 +192,15 @@
 		{
 			stageClickBlocker.name = "dragDropFileBG";
 			stageClickBlocker.graphics.clear();
-			stageClickBlocker.graphics.beginFill(0xFFFFFF, 1.0);
+			stageClickBlocker.graphics.beginFill(0, 0.3);
 			stageClickBlocker.graphics.drawRect(0, 0, 50, 50);
 			stageClickBlocker.graphics.endFill();
 
 			clickBlockerBitmap.filters = [new BlurFilter(10, 10, 3)];
 			addChild(clickBlockerBitmap);
 			addChild(stageClickBlocker);
-			setChildIndex(clickBlockerBitmap, 0);
 			setChildIndex(stageClickBlocker, 0);
+			setChildIndex(clickBlockerBitmap, 0);
 
 			visible = false;
 

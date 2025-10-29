@@ -79,7 +79,6 @@
 
 		public function hideHintWithMouseEvents():void
 		{
-			trace("hey");
 			hide();
 			FOFOTimer.remove(_hintTimerName);
 			_isHintHideEventsAdded = false;

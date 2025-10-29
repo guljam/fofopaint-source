@@ -213,7 +213,6 @@
 
         static public function getHintFromTargetName(targetName:String):String
         {
-            trace("targetName", targetName);
             if (m === null || !hints.hasOwnProperty(targetName))
             {
                 return null;

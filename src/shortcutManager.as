@@ -9,7 +9,6 @@
 			{
 				"f": function():void
 				{
-					trace("hello", _main);
 					// _main.startKeyRepeat(true,_main.adjustPenSizeByShortcut,true)
 				}
 			};
