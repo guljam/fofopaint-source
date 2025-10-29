@@ -9,6 +9,8 @@
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
+	import flash.display.Shape;
+	import flash.filters.BlurFilter;
 
 	public class LoadBoxSet extends Sprite
 	{
@@ -17,81 +19,118 @@
 		public var dragDropSaveAndLoadButton:SimpleButton;
 		public var dragDropCancelButton:SimpleButton;
 		public var pleaseWaitText:TextField;
-		public var dragDropFileBG:Sprite = new Sprite();
+		public var stageClickBlocker:Sprite = new Sprite();
 
 		private var previewBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0));
+		private var clickBlockerBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0));
 		private var previewBitmapBox:Sprite = new Sprite();
+		private var menuBox:Sprite = new Sprite();
+		private var mainBox:Sprite = new Sprite();
 		private var bitmapSize:Number = 180;
 		private var refLayerLoadMode:Boolean = false;
-		private var refLayerModeBG:Sprite = new Sprite();
 
 		public function isRefLayerLoadMode():Boolean
 		{
 			return refLayerLoadMode;
 		}
 
-		public function setRefLayerLoadMode(flag:Boolean):void
+		public function activateAllButtons():void
 		{
-			refLayerLoadMode = flag;
+			dragDropLoadButton.alpha = 1.0;
+			dragDropSaveAndLoadButton.alpha = 1.0;
+		}
 
-			if (flag)
+		public function activateRelayerButtonOnly():void
+		{
+			refLayerLoadMode = true;
+			dragDropLoadButton.alpha = 0.3;
+			dragDropSaveAndLoadButton.alpha = 0.3;
+		}
+
+		public function hidePleaseWait():void
+		{
+			pleaseWaitText.visible = false;
+			mainBox.visible = true;
+		}
+
+		public function showPleaseWait():void
+		{
+			pleaseWaitText.visible = true;
+			mainBox.visible = false;
+		}
+
+		public function updateClickBlockerSize(stw:int, sth:int):void
+		{
+			this.x = 0;
+			this.y = 0;
+			stageClickBlocker.x = 0;
+			stageClickBlocker.y = 0;
+			stageClickBlocker.width = stw;
+			stageClickBlocker.height = sth;
+			if(pleaseWaitText.visible)
 			{
-				refLayerModeBG.visible = true;
+				pleaseWaitText.x = stageClickBlocker.width / 2 - mainBox.width / 2;
+				pleaseWaitText.y = stageClickBlocker.height / 2 - mainBox.height / 2;
 			}
 			else
 			{
-				refLayerModeBG.visible = false;
+				trace("stageClickBlocker",stageClickBlocker.width,stageClickBlocker.height);
+				mainBox.x = stageClickBlocker.width / 2 - mainBox.width / 2;
+				mainBox.y = stageClickBlocker.height / 2 - mainBox.height / 2;
+				clickBlockerBitmap.x = -10;
+				clickBlockerBitmap.y = -10;
+				clickBlockerBitmap.width = stageClickBlocker.width + 20;
+				clickBlockerBitmap.height = stageClickBlocker.height + 20;
+				clickBlockerBitmap.alpha = 0.5;
+				
 			}
 		}
 
-		public function setPreviewImage(newImage:BitmapData):void
+		public function setPreviewImage(bmpd:BitmapData):void
 		{
-			const bmpd:BitmapData = new BitmapData(bitmapSize, bitmapSize, true, 0);
-			var longWidth:Number = (newImage.width > newImage.height) ? newImage.width : newImage.height;
+			const tmpbmpd:BitmapData = new BitmapData(bitmapSize, bitmapSize, true, 0);
+			var longWidth:Number = (bmpd.width > bmpd.height) ? bmpd.width : bmpd.height;
 			var f:Number = bitmapSize / longWidth;
 			var imageOffsetX:Number = 0.0;
 			var imageOffsetY:Number = 0.0;
 
-			if (newImage.width > newImage.height)
-				imageOffsetY = (bitmapSize / 2) - (newImage.height * f) / 2;
+			if (bmpd.width > bmpd.height)
+			{
+				imageOffsetY = (bitmapSize / 2) - (bmpd.height * f) / 2;
+			}
 			else
-				imageOffsetX = (bitmapSize / 2) - (newImage.width * f) / 2;
+			{
+				imageOffsetX = (bitmapSize / 2) - (bmpd.width * f) / 2;
+			}
 
 			const mat:Matrix = new Matrix();
 			mat.scale(f, f);
 			mat.translate(imageOffsetX, imageOffsetY);
-			bmpd.draw(newImage, mat, null, null, null, true);
+			tmpbmpd.draw(bmpd, mat, null, null, null, true);
 
 			if (previewBitmap.bitmapData)
+			{
 				previewBitmap.bitmapData.dispose();
-			previewBitmap.bitmapData = bmpd;
+			}
+
+			previewBitmap.bitmapData = tmpbmpd;
+			clickBlockerBitmap.bitmapData = bmpd;
 		}
 
-		public function setPleaseWait(flag:Boolean):void
-		{
-			pleaseWaitText.visible = flag;
-			previewBitmapBox.visible = !flag;
-			dragDropLoadButton.visible = !flag;
-			dragDropLoadRefLayerButton.visible = !flag;
-			dragDropSaveAndLoadButton.visible = !flag;
-			dragDropCancelButton.visible = !flag;
-			refLayerModeBG.visible = !flag;
-		}
+		// public function setScale(newScale:Number):void
+		// {
+		// // 로지스틱 함수의 매개변수 설정
+		// var L:Number = 2.0; // 최대값
+		// var k:Number = 1.2; // 경사도
+		// var x0:Number = 3; // 중심 지점
 
-		public function setScale(newScale:Number):void
-		{
-			// 로지스틱 함수의 매개변수 설정
-			var L:Number = 2.0; // 최대값
-			var k:Number = 1.2; // 경사도
-			var x0:Number = 3; // 중심 지점
+		// // 로지스틱 함수 계산
+		// var exponent:Number = -k * (newScale - x0);
+		// const newScale2:Number = Math.floor((0.9 + (L / (1 + Math.exp(exponent)))) * 100) / 100;
 
-			// 로지스틱 함수 계산
-			var exponent:Number = -k * (newScale - x0);
-			const newScale2:Number = Math.floor((0.9 + (L / (1 + Math.exp(exponent)))) * 100) / 100;
-
-			this.scaleX = newScale2;
-			this.scaleY = newScale2;
-		}
+		// this.scaleX = newScale2;
+		// this.scaleY = newScale2;
+		// }
 
 		public function changeUIColor(arr:Array):void
 		{
@@ -141,46 +180,62 @@
 				childText.textColor = textColorOver;
 			}
 
-			refLayerModeBG.transform.colorTransform = subBase;
 			previewBitmapBox.graphics.clear();
-			previewBitmapBox.graphics.beginFill(arr[1], 0.5);
+			previewBitmapBox.graphics.beginFill(arr[1], 1.0);
 			previewBitmapBox.graphics.drawRect(0, 0, bitmapSize, bitmapSize);
 			previewBitmapBox.graphics.endFill();
+
+			mainBox.graphics.clear();
+			mainBox.graphics.beginFill(arr[1], 1.0);
+			mainBox.graphics.drawRect(-10, -10, mainBox.width + 20, mainBox.height + 20);
+			mainBox.graphics.endFill();
 		}
 
 		public function LoadBoxSet()
 		{
-			// constructor code
+			stageClickBlocker.name = "dragDropFileBG";
+			stageClickBlocker.graphics.clear();
+			stageClickBlocker.graphics.beginFill(0xFFFFFF, 1.0);
+			stageClickBlocker.graphics.drawRect(0, 0, 50, 50);
+			stageClickBlocker.graphics.endFill();
 
-			dragDropFileBG.name = "dragDropFileBG";
-			dragDropFileBG.graphics.clear();
-			dragDropFileBG.graphics.beginFill(0, 0.5);
-			dragDropFileBG.graphics.drawRect(0, 0, 50, 50);
-			dragDropFileBG.graphics.endFill();
-
-			addChild(dragDropFileBG);
-			setChildIndex(dragDropFileBG, 0);
+			clickBlockerBitmap.filters = [new BlurFilter(10, 10, 3)];
+			addChild(clickBlockerBitmap);
+			addChild(stageClickBlocker);
+			setChildIndex(clickBlockerBitmap, 0);
+			setChildIndex(stageClickBlocker, 0);
 
 			visible = false;
-			pleaseWaitText.visible = false;
-			pleaseWaitText.x = this.width / 2 - pleaseWaitText.width / 2;
-			pleaseWaitText.y = this.height / 2 - pleaseWaitText.height / 2;
 
 			dragDropLoadButton.useHandCursor = true;
 			dragDropLoadRefLayerButton.useHandCursor = true;
 			dragDropCancelButton.useHandCursor = true;
 			dragDropSaveAndLoadButton.useHandCursor = true;
 
-			previewBitmapBox.addChild(previewBitmap);
-			addChild(previewBitmapBox);
+			menuBox.addChild(dragDropSaveAndLoadButton);
+			menuBox.addChild(dragDropLoadButton);
+			menuBox.addChild(dragDropLoadRefLayerButton);
+			menuBox.addChild(dragDropCancelButton);
 
-			refLayerModeBG.name = "refLayerModeBG";
-			refLayerModeBG.graphics.clear();
-			refLayerModeBG.graphics.beginFill(0);
-			refLayerModeBG.graphics.drawRect(dragDropSaveAndLoadButton.x, dragDropSaveAndLoadButton.y
-					, dragDropSaveAndLoadButton.width, dragDropLoadButton.y + dragDropLoadButton.height);
-			refLayerModeBG.graphics.endFill();
-			addChild(refLayerModeBG);
+			dragDropSaveAndLoadButton.x = 0;
+			dragDropSaveAndLoadButton.y = 0;
+			dragDropLoadButton.x = 0;
+			dragDropLoadButton.y = dragDropSaveAndLoadButton.y + dragDropSaveAndLoadButton.height;
+			dragDropLoadRefLayerButton.x = 0;
+			dragDropLoadRefLayerButton.y = dragDropLoadButton.y + dragDropLoadButton.height;
+			dragDropCancelButton.x = 0;
+			dragDropCancelButton.y = dragDropLoadRefLayerButton.y + dragDropLoadRefLayerButton.height;
+
+			previewBitmapBox.addChild(previewBitmap);
+			menuBox.x = previewBitmapBox.x + bitmapSize + 5;
+			menuBox.y = previewBitmapBox.y;
+			mainBox.addChild(previewBitmapBox);
+			mainBox.addChild(menuBox);
+			mainBox.graphics.clear();
+			mainBox.graphics.beginFill(0xFF0000, 0.5);
+			mainBox.graphics.drawRect(-10, -10, mainBox.width + 20, mainBox.height + 20);
+			mainBox.graphics.endFill();
+			this.addChild(mainBox);
 
 			pleaseWaitText.textColor = 0xFFFFFF;
 

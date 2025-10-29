@@ -1,6 +1,9 @@
 {
 	"config": "air",
 	"compilerOptions": {
+		"external-library-path": [
+			"extension"
+		],
 		"source-path": [
 			"src"
 		],
