@@ -264,7 +264,7 @@
 			gridButtonWrapper.y = -gridButtonWrapper.height;
 		}
 
-		public function setButtonAlphaONSaving(clipFlag:Boolean):void
+		public function enableFileOperationButtons(clipFlag:Boolean):void
 		{
 			saveButton.alpha = 1.0;
 			repSaveButton.alpha = 1.0;
@@ -276,10 +276,12 @@
 			cutPrevDataButton.alpha = 1.0;
 
 			if (clipFlag)
+			{
 				clipBoardButton.alpha = 1.0;
+			}
 		}
 
-		public function setButtonAlphaOFFSaving(offAlpha:Number):void
+		public function disableFileOperationButtons(offAlpha:Number):void
 		{
 			saveButton.alpha = offAlpha;
 			repSaveButton.alpha = offAlpha;
