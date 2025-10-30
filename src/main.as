@@ -68,7 +68,7 @@
         public const  APP_STATE_VERSION:Number = 2700
         public const  TOOL_NONE:int = 0,
                       TOOL_PEN:int = (1 << 0),
-                      TOOL_ERASE:int = (1 << 1),
+                      TOOL_ERASER:int = (1 << 1),
                       TOOL_LINE:int = (1 << 2),
                       TOOL_FILL_PEN:int = (1 << 3),
                       TOOL_SCAN_FILL:int = (1 << 4),
@@ -563,7 +563,7 @@
                       autoScroll:Object = cReplayAutoScroll(),
                       updatePenSizeCursor:Function = cUpdatePenSizeCursor(),
                       undoData:Object = cAddUndoData(),
-                      penCursorPosition:Object = cUpdatePenCursorPosition(),
+                      penCursorManager:Object = cPenCursorUpdater(),
                       checkSelectMainDrawTool:Function = cCheckSelectMainDrawTool(),
                       drawCaptureArea:Object = cDrawCaptureArea(),
                       drawCaptureStamp:Object = cDrawCaptureStamp(),
@@ -713,6 +713,7 @@
             HintStrings.init(this);
             bottomHint.visible = true;
             selectPenTool();
+            checkCanUseClipBoardButton();
         }
 
         //function
@@ -2406,7 +2407,7 @@
                 stage.addEventListener(KeyboardEvent.KEY_DOWN, rgbInfoTextKeyDownEvent);
             }
             colorPickerBox.rgbInfoText.addEventListener(Event.CHANGE, onRGBInfoTextChangeEvent);
-            setNowToolForDrawing(false);
+            ensureDrawingToolSelected(false);
             showNumPad();
 
             addTimerByName("rgbInfoTextFocusInEventDelayCheck", 0.0, false, function():void
@@ -3975,7 +3976,10 @@
 
         public function startKeyRepeat(firstCall:Boolean,func:Function,...args):Boolean
         {
-            if(hasTimer("keyHoldWaitTimer") || hasTimer("keyHoldRepeatTimer")) return false;
+            if(hasTimer("keyHoldWaitTimer") || hasTimer("keyHoldRepeatTimer"))
+            {
+                return false;
+            }
 
             addTimerByName("keyHoldWaitTimer",KEY_REPEAT_DELAY,false,
             function():void
@@ -4011,7 +4015,7 @@
                     setPenAirBrushButtonShortCut();
                     return true;
                 }
-                else if(isSelectedTool(TOOL_ERASE))
+                else if(isSelectedTool(TOOL_ERASER))
                 {
                     setEraseAirBrushButtonShortCut();
                     return true;
@@ -4027,26 +4031,26 @@
                 case KEY.f:
                 case KEY.h:
                 {
-                    startKeyRepeat(true,adjustPenSizeByShortcut,true);
+                    startKeyRepeat(true,adjustPenOrEraserSizeByShortcut,true);
                 }
                 return true;
 
                 case KEY.v:
                 case KEY.n:
                 {
-                    startKeyRepeat(true,adjustPenSizeByShortcut,false);
+                    startKeyRepeat(true,adjustPenOrEraserSizeByShortcut,false);
                 }
                 return true;
 
                 case KEY.g:
                 {
-                    startKeyRepeat(true,adjustPenAlphaByShortcut,true);
+                    startKeyRepeat(true,adjustPenOrEraserAlphaByShortcut,true);
                 }
                 return true;
 
                 case KEY.b:
                 {
-                    startKeyRepeat(true,adjustPenAlphaByShortcut,false);
+                    startKeyRepeat(true,adjustPenOrEraserAlphaByShortcut,false);
                 }
                 return true;
             }
@@ -4073,7 +4077,7 @@
         {
             const first:uint = getFirstPressedKey();
             const second:uint = getSecondPressedKey();
-
+            
             if((second === KEY.shift && (first === KEY.ctrl || first === KEY.rightCtrl))
             || (first === KEY.shift && (second === KEY.ctrl || second === KEY.rightCtrl)))
             {
@@ -4837,6 +4841,7 @@
             const posSave:Point = new Point();
             var fillPenPreviewModeFlag:Boolean = false;
             var fillpenPreviewModeMouseTarget:DisplayObject;
+            var turnOffFillPenPreviewCount:int = 0;
 
             function updateFillPenPreview(e:Event):void
             {
@@ -4864,11 +4869,22 @@
                     drawFillPenData();
                 }
 
-                if(!sideBar.visible || !sideBar.hitTestPoint(mouseX,mouseY) && !isMouseClicked)
+                if(!sideBar.visible)
                 {
                     fillPenPreviewModeFlag = false;
                     stage.removeEventListener(Event.ENTER_FRAME,updateFillPenPreview);
                     drawPreviewLine();
+                }
+                else if(!sideBar.hitTestPoint(mouseX,mouseY) && !isMouseClicked)
+                {
+                    turnOffFillPenPreviewCount--;
+                    if(turnOffFillPenPreviewCount <= 0)
+                    {
+                        turnOffFillPenPreviewCount = 0;
+                        fillPenPreviewModeFlag = false;
+                        stage.removeEventListener(Event.ENTER_FRAME,updateFillPenPreview);
+                        drawPreviewLine();
+                    }
                 }
             }
 
@@ -4885,7 +4901,7 @@
                 }
             }
 
-            function fillPenHint(e:MouseEvent):void
+            function onMouseOverFillPenHint(e:MouseEvent):void
             {
                 const target:DisplayObject = e.target as DisplayObject;
                 if(!target) return;
@@ -4978,7 +4994,7 @@
                 colorPickerBox.activePaperColorButton(false);
             }
 
-            function endFillPenOK():void
+            function applyFillPen():void
             {
                 if(checkFillPenUndoReady() === true && command.length > 2)
                 {
@@ -5019,10 +5035,18 @@
                 }
             }
 
-            function fillPenKeyDownEvent(e:KeyboardEvent):void
+            function onKeydownFillPen(e:KeyboardEvent):void
             {
                 const keyCode:uint = e.keyCode;
-                if(isMouseClicked) return;
+                if(isMouseClicked)
+                {
+                    return;
+                }
+
+                if(isLastKey(keyCode))
+                {
+                    return;
+                }
 
                 const secondKey:int = getSecondPressedKey();
 
@@ -5030,6 +5054,7 @@
                 {
                     if(secondKey === KEY.d || secondKey === KEY.j)
                     {
+                        updateLastKey(keyCode);
                         if(isQuickSidebarActive === false)
                         {
                             activeQuickSideBar(true);
@@ -5042,6 +5067,7 @@
                 {
                     if(secondKey === KEY.s || secondKey === KEY.k)
                     {
+                        updateLastKey(keyCode);
                         if(isQuickSidebarActive === false)
                         {
                             activeQuickSideBar(true);
@@ -5050,8 +5076,19 @@
                         }
                     }
                 }
+                else if(keyCode === KEY.g || keyCode === KEY.b)
+                {
+                    updateLastKey(keyCode);
+                    startKeyRepeat(true,function(increase:Boolean):void
+                    {
+                        turnOffFillPenPreviewCount = stage.frameRate;
+                        adjustPenOrEraserAlphaByShortcut(increase);
+                    },(keyCode === KEY.g)?true:false);
+                    setFillPenColorPreviewMode();
+                }
                 else if(keyCode === KEY.n6)
                 {
+                    updateLastKey(keyCode);
                     if(isQuickSidebarActive === false)
                     {
                         activeQuickSideBar(true);
@@ -5061,9 +5098,11 @@
                 }
             }
 
-            function fillPenKeyUpEvent(e:KeyboardEvent):void
+            function onKeyUpFillPen(e:KeyboardEvent):void
             {
                 const keyCode:uint = e.keyCode;
+
+                resetLastKey();
 
                 if(isMouseClicked)
                 {
@@ -5080,7 +5119,7 @@
                 }
                 else if(keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter)
                 {
-                    endFillPenOK();
+                    applyFillPen();
                 }
                 else if(keyCode === KEY.esc || keyCode === KEY.backspace)
                 {
@@ -5088,7 +5127,7 @@
                 }
             }
 
-            function fillPenRightMouseUpEvent(e:MouseEvent):void
+            function onRightMouseUpFillPen(e:MouseEvent):void
             {
                 if(!e.target as DisplayObject || e.target === sideBarScrollBar
                 || sideBar.visible && sideBar.hitTestPoint(mouseX,mouseY))
@@ -5100,7 +5139,7 @@
 
                 if(targetName === "fillPenOK")
                 {
-                    endFillPenOK();
+                    applyFillPen();
                 }
                 else if(targetName === "fillPenCancel")
                 {
@@ -5125,10 +5164,13 @@
                 fillPenBox.visible = false;
             }
 
-            function fillPenRightMouseDownEvent(e:MouseEvent):void
+            function onRightMouseDownFillPen(e:MouseEvent):void
             {
                 const target:DisplayObject = e.target as DisplayObject;
-                if(isMouseClicked || isQuickSidebarActive ||!target) return;
+                if(isMouseClicked || isQuickSidebarActive ||!target)
+                {
+                    return;
+                }
 
                 if(target === sideBarScrollBar)
                 {
@@ -5174,7 +5216,7 @@
                 }
             }
 
-            function fillPenMouseUpEvent(e:MouseEvent):void
+            function onMouseUpFillPen(e:MouseEvent):void
             {
                 const target:DisplayObject = e.target as DisplayObject;
                 if(!target) return;
@@ -5183,13 +5225,13 @@
 
                 removeTimer("fillPenTimer");
                 isMouseDragging = false;
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveFillPen);
 
                 if(clickedButton === targetName)
                 {
                     if(targetName === "toolFillPenOK")
                     {
-                        endFillPenOK();
+                        applyFillPen();
                         return;
                     }
                     else if(targetName === "toolFillPenCancel")
@@ -5211,7 +5253,7 @@
                     {
                         if(targetName === "fillPenOK")
                         {
-                            endFillPenOK();
+                            applyFillPen();
                         }
                         else if(targetName === "fillPenCancel")
                         {
@@ -5240,18 +5282,23 @@
 
                     if(afterKeyUpOK)
                     {
-                        endFillPenOK();
+                        applyFillPen();
                     }
                     else if(fillPenPreviewModeFlag === false)
                     {
                         drawPreviewLine();
+                    }
+
+                    if(turnOffFillPenPreviewCount > 0)
+                    {
+                        turnOffFillPenPreviewCount = 0;
                     }
                 }
 
                 afterKeyUpOK = false;
             }
 
-            function fillPenMouseMoveEvent(e:MouseEvent):void
+            function onMouseMoveFillPen(e:MouseEvent):void
             {
                 // if(readyAddUndoFlag === false) checkFillPenUndoReady();
 
@@ -5286,6 +5333,7 @@
                     commandUndoIndexArr.push(command.length-1);
                 }
                 lastMousePos.setTo(mouseX,mouseY);
+                turnOffFillPenPreviewCount = 0;
 
                 if(!hasTimer("fillPenTimer"))
                 {
@@ -5293,7 +5341,7 @@
                 }
             }
 
-            function fillPenMouseDownEvent(e:MouseEvent):void
+            function onMouseDownFillPen(e:MouseEvent):void
             {
                 const target:DisplayObject = e.target as DisplayObject;
                 if(!target) return;
@@ -5378,7 +5426,7 @@
                 else if(isCursorInDrawArea() && isQuickSidebarActive === false)
                 {
                     isMouseDragging = true;
-                    stage.addEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
+                    stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveFillPen);
 
                     const filteredPos:Point = getFilteredPos(canvasDraw.mouseX,canvasDraw.mouseY);
                     const mx:Number = filteredPos.x+pos05Offset;
@@ -5418,26 +5466,26 @@
 
             function removeEvents():void
             {
-                fillPenBox.removeEventListener(MouseEvent.MOUSE_OVER,fillPenHint);
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,fillPenRightMouseDownEvent);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,fillPenRightMouseUpEvent);
-                stage.removeEventListener(KeyboardEvent.KEY_UP,fillPenKeyUpEvent);
-                stage.removeEventListener(KeyboardEvent.KEY_DOWN,fillPenKeyDownEvent);
+                fillPenBox.removeEventListener(MouseEvent.MOUSE_OVER,onMouseOverFillPenHint);
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseDownFillPen);
+                stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveFillPen);
+                stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpFillPen);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onRightMouseDownFillPen);
+                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,onRightMouseUpFillPen);
+                stage.removeEventListener(KeyboardEvent.KEY_UP,onKeyUpFillPen);
+                stage.removeEventListener(KeyboardEvent.KEY_DOWN,onKeydownFillPen);
             }
 
             function addEvents():void
             {
-                fillPenBox.addEventListener(MouseEvent.MOUSE_OVER,fillPenHint);
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,fillPenMouseDownEvent);
-                stage.addEventListener(MouseEvent.MOUSE_MOVE,fillPenMouseMoveEvent);
-                stage.addEventListener(MouseEvent.MOUSE_UP,fillPenMouseUpEvent);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,fillPenRightMouseDownEvent);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,fillPenRightMouseUpEvent);
-                stage.addEventListener(KeyboardEvent.KEY_UP,fillPenKeyUpEvent);
-                stage.addEventListener(KeyboardEvent.KEY_DOWN,fillPenKeyDownEvent);
+                fillPenBox.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverFillPenHint);
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownFillPen);
+                stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveFillPen);
+                stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpFillPen);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onRightMouseDownFillPen);
+                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,onRightMouseUpFillPen);
+                stage.addEventListener(KeyboardEvent.KEY_UP,onKeyUpFillPen);
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,onKeydownFillPen);
             }
 
             function start():void
@@ -5945,12 +5993,17 @@
         {
             if(isReplayModeON || isCaptureModeON) return;
 
-            penCursorPosition.check();
+            penCursorManager.check();
         }
 
-        public function cUpdatePenCursorPosition():Object
+        public function cPenCursorUpdater():Object
         {
             var cursorSize:Number = 3.0;
+
+            function getCursorSize():Number
+            {
+                return cursorSize;
+            }
 
             function updateCursorSize(size:Number):void
             {
@@ -5963,13 +6016,28 @@
                 {
                     cursorSize = penSize*canvasZoomedMultipler;
                 }
-                else if(isSelectedTool(TOOL_ERASE))
+                else if(isSelectedTool(TOOL_ERASER))
                 {
                     cursorSize = eraserSize*canvasZoomedMultipler;
                 }
                 else
                 {
                     cursorSize = 0;
+                }
+            }
+
+            function checkCursorVisibility():void
+            {
+                if(cursorSize <= 4 || isSelectedTool(TOOL_FILL_PEN))
+                {
+                    if(penSizePreviewCursor.visible)
+                    {
+                        penSizePreviewCursor.visible = false;
+                    }
+                }
+                else if(penSizePreviewCursor.visible === false)
+                {
+                    penSizePreviewCursor.visible = true;
                 }
             }
 
@@ -5997,22 +6065,15 @@
                     //addundo플래그가 커서가 캔버스 안에 들어올때 해주기 때문에 위치를 계속 갱신해줘야함
                     penSizePreviewCursor.x = mx;
                     penSizePreviewCursor.y = my;
-
-                    if(cursorSize <= 4 || isSelectedTool(TOOL_FILL_PEN))
-                    {
-                        penSizePreviewCursor.visible = false;
-                    }
-                    else
-                    {
-                        penSizePreviewCursor.visible = true;
-                    }
+                    checkCursorVisibility();
                 }
             }
 
             return {
                 check:check,
                 updateZoom:updateZoom,
-                updateCursorSize:updateCursorSize
+                updateCursorSize:updateCursorSize,
+                checkCursorVisibility:checkCursorVisibility
             };
         }
 
@@ -6562,10 +6623,10 @@
                             ,oy+dist*Math.cos(rad));
         }
 
-        public function setNowToolForDrawing(checkErase:Boolean):void
+        public function ensureDrawingToolSelected(checkErase:Boolean):void
         {
             if(!(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN)
-            || (checkErase && isSelectedTool(TOOL_ERASE))))
+            || (checkErase && isSelectedTool(TOOL_ERASER))))
             {
                 resetOldTool();
                 selectPenTool();
@@ -7969,7 +8030,7 @@
                 deactiveColorPickerModeBG();
             }
             colorPickerBox.activePaperColorButton(isColorPickerModeBG);
-            checkEnableClipBoardButton();
+            checkCanUseClipBoardButton();
             setPickerBoxTransBGBrightness(index);
             if(hintHighlightBox.visible)
             {
@@ -8016,10 +8077,9 @@
             var toolName:String = "Pen";
             const nt:uint = nowTool;
 
-            if(isSelectedTool(TOOL_ERASE)) toolName = "Eraser";
+            if(isSelectedTool(TOOL_ERASER)) toolName = "Eraser";
             else if(isSelectedTool(TOOL_LINE)) toolName = "Line";
-            else if(isSelectedTool(TOOL_FILL_PEN)) toolName = "Fill-pen";
-            // else if(isNowTool(TOOL_SCAN_FILL)) toolName = "Scan-fill";
+            else if(isSelectedTool(TOOL_FILL_PEN)) toolName = "FillPen";
 
             controlBox.hintText(toolName);
         }
@@ -8102,53 +8162,92 @@
             }
         }
 
-        public function adjustPenAlphaByShortcut(isIncrease:Boolean):void
+        public function showDrawToolHintSizeOpacity():void
         {
-            var alpha:Number = 0;
-            var alphaStr:String = "";
+            var tooltype:String = "";
+            var size:Number;
+            var alpha:Number;
+            if(isSelectedTool(TOOL_PEN))
+            {
+                tooltype = "Pen ";
+                size = penSizeList[penSizeIndex];
+                alpha = penAlphaList[penAlphaIndex];
+            }
+            else if(isSelectedTool(TOOL_LINE))
+            {
+                tooltype = "Line ";
+                size = penSizeList[penSizeIndex];
+                alpha = penAlphaList[penAlphaIndex];
+            }
+            else if(isSelectedTool(TOOL_FILL_PEN))
+            {
+                tooltype = "Fill Pen ";
+                size = 1;
+                alpha = penAlphaList[penAlphaIndex];
+            }
+            else if(isSelectedTool(TOOL_ERASER))
+            {
+                tooltype = "Eraser ";
+                size = penSizeList[eraserSizeIndex];
+                alpha = penAlphaList[eraserAlphaIndex];
+            }
+            trace("call");
+            
+            showMouseHintTemp(tooltype+size+"px, "+alpha*100+"%");
+        }
 
+        public function adjustPenOrEraserAlphaByShortcut(increase:Boolean):void
+        {
             function setAlpha(alp:Number,size:uint):void
             {
                 var index:Number = penAlphaList.indexOf(alp);
                 const len:uint = penAlphaList.length-1;
 
-                if(isIncrease)
+                if(increase)
                 {
                     index++;
-                    if(index > len) index = len;
+                    if(index > len)
+                    {
+                        index = len;
+                    }
                 }
                 else
                 {
                     index--;
-                    if(index < 1) index = 1;
+                    if(index < 1)
+                    {
+                        index = 1;
+                    }
                 }
 
-                const alphaValue:Number = penAlphaList[index];
-                alphaStr = size+"px, "+alphaValue*100+"%";
-
-                showMouseHintTemp(alphaStr);
-                setPenAlpha(alphaValue);
+                updatePenOrEraserAlpha(penAlphaList[index]);
+                showDrawToolHintSizeOpacity();
             }
 
-            setNowToolForDrawing(true);
+            ensureDrawingToolSelected(true);
 
             if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
             {
                 setAlpha(penAlpha,penSize);
             }
-            else if(isSelectedTool(TOOL_ERASE))
+            else if(isSelectedTool(TOOL_ERASER))
             {
                 setAlpha(eraserAlpha,eraserSize);
             }
+
         }
 
-        public function adjustPenSizeByShortcut(isIncrease:Boolean):void
+        public function adjustPenOrEraserSizeByShortcut(increase:Boolean):void
         {
+            if(isSelectedTool(TOOL_FILL_PEN))
+            {
+                return;
+            }
             const len:uint = penSizeList.length-1;
 
             function setSize(index:uint,alpha:Number):void
             {
-                if(isIncrease)
+                if(increase)
                 {
                     index++;
                     if(index > len)
@@ -8165,28 +8264,13 @@
                     }
                 }
 
-                const sizeValue:Number = penSizeList[index];
-                const sizeStr:String =  sizeValue+"px, "+(penAlpha*100)+"%";
-                const sizeValueZoomed:Number = sizeValue*canvasZoomedMultipler;
-
-                showMouseHintTemp(sizeStr);
-                setPenSize(index);
+                updatePenOrEraserSize(index);
                 updatePenSizeCursor();
-
-                if(penSizePreviewCursor.visible === true)
-                {
-                    if(sizeValueZoomed <= 4)
-                    {
-                        penSizePreviewCursor.visible = false;
-                    }
-                }
-                else if(sizeValueZoomed > 4)
-                {
-                    penSizePreviewCursor.visible = true;
-                }
+                showDrawToolHintSizeOpacity();
+                penCursorManager.checkCursorVisibility();
             }
 
-            setNowToolForDrawing(true);
+            ensureDrawingToolSelected(true);
 
             if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
             {
@@ -8197,7 +8281,7 @@
                     airBrushSizeDrawMode = penSize;
                 }
             }
-            else if(isSelectedTool(TOOL_ERASE))
+            else if(isSelectedTool(TOOL_ERASER))
             {
                 setSize(eraserSizeIndex,eraserAlpha);
 
@@ -8278,11 +8362,6 @@
                 realWorkingTimer.resetAFKCount();
             }
 
-            if(loadMenuBox.visible)
-            {
-                return;
-            }
-
             const index:int = isPressdKey(e.keyCode);
 
             if(index > -1)
@@ -8303,7 +8382,7 @@
 
             const keyCode:uint = e.keyCode;
 
-            if(loadMenuBox.visible || keyCode === KEY.window)
+            if(keyCode === KEY.window)
             {
                 return;
             }
@@ -8324,7 +8403,7 @@
             const number:String = targetName.substr(11,targetName.length);
             const index:int = parseInt(number);
 
-            setPenAlpha(penAlphaList[index]);
+            updatePenOrEraserAlpha(penAlphaList[index]);
         }
 
         public function setPenSizeButton(targetName:String):void
@@ -8332,7 +8411,7 @@
             const numberOnly:String = targetName.substr(11,targetName.length);
             const index:uint = parseInt(numberOnly);
 
-            setPenSize(index);
+            updatePenOrEraserSize(index);
             updatePenSizeCursor();
 
             if(isSelectedTool(TOOL_FILL_PEN))
@@ -8349,7 +8428,7 @@
                     airBrushSizeDrawMode = penSize;
                 }
             }
-            else if(isSelectedTool(TOOL_ERASE))
+            else if(isSelectedTool(TOOL_ERASER))
             {
                 if(eraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
                 {
@@ -8368,7 +8447,7 @@
             const minValue:Number = 0.02;
             const stepValue:Number = (maxValue-minValue)/step;
             const airBrushFlag:Boolean = isSelectedToolPenOrLine() && isAirBrushON;
-            const eraseAirBrushFlag:Boolean = isSelectedTool(TOOL_ERASE) && eraserAirBrushON;
+            const eraseAirBrushFlag:Boolean = isSelectedTool(TOOL_ERASER) && eraserAirBrushON;
             var oldValue:int = penSmoothSlideValue;
 
             isMouseDragging = true;
@@ -8883,7 +8962,7 @@
             stage.addEventListener(MouseEvent.MOUSE_MOVE, lassoMoveButtonMoveEvent);
         }
 
-        public function setPenSize(index:uint):void
+        public function updatePenOrEraserSize(index:uint):void
         {
             const size:uint = penSizeList[index];
 
@@ -8891,13 +8970,13 @@
             {
                 penSize = size;
                 penSizeIndex = index;
-                penCursorPosition.updateCursorSize(penSize);
+                penCursorManager.updateCursorSize(penSize);
             }
-            else if(isSelectedTool(TOOL_ERASE))
+            else if(isSelectedTool(TOOL_ERASER))
             {
                 eraserSize = size;
                 eraserSizeIndex = index;
-                penCursorPosition.updateCursorSize(eraserSize);
+                penCursorManager.updateCursorSize(eraserSize);
             }
             controlBox.movePenSizeCursor(index);
         }
@@ -8970,7 +9049,7 @@
                     penIsSquare = shapeFlag;
                 }
             }
-            else if(isSelectedTool(TOOL_ERASE))
+            else if(isSelectedTool(TOOL_ERASER))
             {
                 if(eraserIsSquare !== shapeFlag)
                 {
@@ -9054,7 +9133,7 @@
                 updateRGBInfoTextFromColor((isRgbInfoTextHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 colorPickerBox.setRGBInfoVisible(true);
 
-                setNowToolForDrawing(false);
+                ensureDrawingToolSelected(false);
                 //timer로 동작하는 경우 마지막 커서위치에 안가있을수도 있기 때문에 up에서도 해줌
                 stage.removeEventListener(MouseEvent.MOUSE_UP,hueColorButtonUpEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,hueColorButtonMoveEvent);
@@ -9142,7 +9221,7 @@
 
                 updateRGBInfoTextFromColor((isRgbInfoTextHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 colorPickerBox.setRGBInfoVisible(true);
-                setNowToolForDrawing(false);
+                ensureDrawingToolSelected(false);
 
                 stage.removeEventListener(MouseEvent.MOUSE_UP,svColorButtonUpEvent);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,svColorButtonMoveEvent);
@@ -9182,7 +9261,7 @@
                     selectFillPenTool();
                 break;
 
-                case TOOL_ERASE:
+                case TOOL_ERASER:
                     selectEraseTool();
                     updatePenSizeCursor();
                 break;
@@ -13356,7 +13435,7 @@
 
                     case "toolErase":
                     {
-                        if(!isSelectedTool(TOOL_ERASE))
+                        if(!isSelectedTool(TOOL_ERASER))
                         {
                             selectEraseTool();
                             updatePenSizeCursor();
@@ -13625,28 +13704,6 @@
             {
                 closeLoadMenuBox();
             }
-            if(isClipBoardButtonActivated)
-            {
-                if(isPressingControl())
-                {
-                    if(isLastKey(secondKey))
-                    {
-                    trace("samekey");
-                        return;
-                        키가 빠르게 반복되므로 한번만하던지
-                        이전 파일비교하던지 해서 중복 확인 제거해야함
-                    }
-                    updateLastKey(secondKey);
-                    const secondKey:uint = getSecondPressedKey();
-                    if(secondKey === KEY.v || secondKey === KEY.n)
-                    {
-                        if(!isSameFile(file, lastLoadedFile))
-                        {
-                            tryLoadClipboardImage(false);
-                        }
-                    }
-                }
-            }
         }
 
         public function prepareOpenLoadBox(displayPleaseWait:Boolean,reflayermenu:Boolean,file:File,bmpd:BitmapData):void
@@ -13704,7 +13761,10 @@
             }
 
             rFileStream.close();
-            cancelReplayRestartTimer();
+            if(hasTimer("rReplayRestartTimer"))
+            {
+                cancelReplayRestartTimer();
+            }
 
             const data:* = getSystemClipboardData();
 
@@ -13712,11 +13772,15 @@
             {
                 if(data is BitmapData)
                 {
-                    prepareOpenLoadBox(false,toRefLayer,null,loadMenuBoxBitmapData);
+                    prepareOpenLoadBox(false,toRefLayer,null,data as BitmapData);
                 }
                 else if (data is Array && data.length > 0)
                 {
-                    prepareLoadMenuBoxFromImageFile(data[0] as File, toRefLayer);
+                    const file:File = data[0] as File;
+                    if(canDisplayLoadMenuBox(file))
+                    {
+                        prepareLoadMenuBoxFromImageFile(file, toRefLayer);
+                    }
                 }
             }
         }
@@ -13790,7 +13854,7 @@
                     stream.open(file, FileMode.READ);
                     stream.readBytes(byteArray, 0, stream.bytesAvailable);
                     stream.close();
-                    prepareOpenLoadBox(false,toRefLayer,file,libwebp.DecodeWebp(byteArray));
+                    prepareOpenLoadBox(false,toRefLayer,null,libwebp.DecodeWebp(byteArray));
                 }
             },showLoadFaildMouseHint);
         }
@@ -13860,7 +13924,7 @@
             loader.load(new URLRequest(file.url));
         }
 
-        public function checkEnableClipBoardButton():void
+        public function checkCanUseClipBoardButton():void
         {
             const data:* = getSystemClipboardData();
 
@@ -13886,6 +13950,19 @@
             {
                 disableTopBarClipboardButton();
             }
+        }
+
+        public function getBitmapHash(bmp:BitmapData):uint
+        {
+            var bytes:ByteArray = bmp.getPixels(bmp.rect);
+            bytes.position = 0;
+
+            var hash:uint = 0;
+            while (bytes.bytesAvailable >= 4)
+            {
+                hash ^= bytes.readUnsignedInt();
+            }
+            return hash;
         }
 
         public function isSameFile(file1:File,file2:File):Boolean
@@ -13948,7 +14025,6 @@
         {
             if(isFileBrowserOpened || isCaptureModeON === true ||isInSaveProgress !== 0)
             {
-            trace("return 222");
                 return;
             }
 
@@ -13956,7 +14032,6 @@
             cancelReplayRestartTimer();
 
             const data:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
-            trace("data.length ",data.length );
             if(data && data.length > 0)
             {
                 const file:File = data[0] as File;
@@ -14033,6 +14108,10 @@
                     fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
                     fs.openAsync(loadMenuBoxFile,FileMode.READ);
                 }
+                else
+                {
+                    showLoadFaildMouseHint();
+                }
             }
             else
             {
@@ -14040,7 +14119,6 @@
                 //두번째 변수에서 fileName를 같게 해줘야 저장할때 오류가 안남
                 loadImageFile(fileName,fileName,loadMenuBoxBitmapData.width,loadMenuBoxBitmapData.height,loadMenuBoxBitmapData,null);
             }
-
         }
 
         public function getMyPaletteIndexByMousePosLimitBound():int
@@ -14132,7 +14210,7 @@
                     }
                     addUndoBGColorData(bgColor);
                 }
-                setNowToolForDrawing(false);
+                ensureDrawingToolSelected(false);
             }
         }
 
@@ -14156,7 +14234,7 @@
             {
                 penColor = pickedColor;
                 moveHSVCursorByColor((isRgbInfoTextHSV) ? HEXtoHSV(pickedColor) : pickedColor);
-                setNowToolForDrawing(false);
+                ensureDrawingToolSelected(false);
             }
             else if(isBackgroundColorMode())
             {
@@ -15386,7 +15464,7 @@
             refLayerMenuBox.refTransferCanvasImageButton.alpha = 1.0;
 
             updateCurrentColorPickerBox(false);
-            setNowToolForDrawing(false);
+            ensureDrawingToolSelected(false);
 
             previewBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
             updatePreviewBoxRectPos();
@@ -17779,7 +17857,7 @@
                     colorPickerBox.hueCursor.x = d["hueCursor.x"];
                     penAlpha = d["penAlpha"];
                     penAlphaIndex = penAlphaList.indexOf(d["eraseAlpha"]);
-                    setPenAlpha(d["penAlpha"]);
+                    updatePenOrEraserAlpha(d["penAlpha"]);
                     penIsSquare = d["penIsSquare"];
                     penListShapeIsSqare =  d["penIsSquare"];
                     controlBox.updatePenShapeSet(d["penIsSquare"]);
@@ -17788,7 +17866,7 @@
                     eraserAlpha = d["eraseAlpha"];
                     eraserAlphaIndex = penAlphaList.indexOf(d["eraseAlpha"]);
                     eraserSizeIndex = d["eraseSizeIndex"];
-                    setPenSize(d["penSizeIndex"]);
+                    updatePenOrEraserSize(d["penSizeIndex"]);
                     saveFilePath = d["saveFilePath"];
                     saveFileName = d["saveFileName"];
                     if(saveFilePath === saveFileName)
@@ -17919,7 +17997,7 @@
             return function():void
             {
                 const isPenTool:Boolean = isSelectedToolPenOrLine();
-                if(!isPenTool && !isSelectedTool(TOOL_ERASE))
+                if(!isPenTool && !isSelectedTool(TOOL_ERASER))
                 {
                     return;
                 }
@@ -18018,7 +18096,7 @@
                     if(isSubLayerON) canvasLayer2BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,(isTransparentPenColor) ? "erase":null,canvasDrawLayerClipRect);
                     else            canvasLayer1BitmapData.draw(canvas2Bitmap,null,canvas2Alpha,(isTransparentPenColor) ? "erase":null,canvasDrawLayerClipRect);
                 }
-                else if(isSelectedTool(TOOL_ERASE))
+                else if(isSelectedTool(TOOL_ERASER))
                 {
                     canvas2Alpha.alphaMultiplier = eraserAlpha;
 
@@ -20507,19 +20585,6 @@
             setControlBoxInfoOFF();
         }
 
-        // public function selectScanFillTool():void
-        // {
-        //     setNowTool(TOOL_SCAN_FILL);
-
-        //     penSizeCursor.visible = false;
-        //     updateOpacityCursorPos(penAlphaIndex);
-        //     setPenSize(penSizeIndex);
-
-        //     setEraseButtonPosToOtherButtonPos("toolScanFill");
-        //     toolBox.moveToolCursor("toolScanFill");
-        //     setControlBoxInfoOFF();
-        // }
-
         public function selectFillPenTool():void
         {
             selectTool(TOOL_FILL_PEN);
@@ -20528,7 +20593,8 @@
 
             updateOpacityCursorPos(penAlphaIndex);
             setAirBrushCheckBox(isAirBrushON,true);
-            setPenSize(penSizeIndex);
+            controlBox.movePenSizeCursor(1); //임시적으로 1해줌
+            // updatePenOrEraserSize(penSizeIndex);
 
             updateEraserButtonPosFromOtherTool("toolFillPen");
             toolBox.moveToolCursor("toolFillPen");
@@ -20578,8 +20644,8 @@
                     alphaIndex = eraserAlphaIndex;
                     setAirBrushCheckBox(eraserAirBrushON,false);
                 }
-                setPenSize(sizeIndex);
-                setPenAlpha(alpha);
+                updatePenOrEraserSize(sizeIndex);
+                updatePenOrEraserAlpha(alpha);
                 updateOpacityCursorPos(alphaIndex);
 
                 if(lineFlag === false)
@@ -20614,7 +20680,7 @@
                 }
 
                 controlBox.updatePenShapeSet(shape);
-                penCursorPosition.check();
+                penCursorManager.check();
             }
         }
 
@@ -20632,7 +20698,7 @@
 
         public function selectEraseTool():void
         {
-            selectTool(TOOL_ERASE);
+            selectTool(TOOL_ERASER);
             checkSelectMainDrawTool(eraserSize,canvasBGColor,eraserAlpha,eraserIsSquare,false,false);
         }
 
@@ -21468,10 +21534,10 @@
             controlBox.opaCursor.y = curButton.y;
         }
 
-        public function setPenAlpha(alpha:Number=0.0):void
+        public function updatePenOrEraserAlpha(alpha:Number=0.0):void
         {
             var index:int = penAlphaList.indexOf(alpha);
-            const eraseFlag:Boolean = isSelectedTool(TOOL_ERASE);
+            const eraseFlag:Boolean = isSelectedTool(TOOL_ERASER);
 
             updateOpacityCursorPos(index);
 
@@ -21934,7 +22000,7 @@
 
                 if(!isCaptureModeON)
                 {
-                    penCursorPosition.updateZoom(zoomValue);
+                    penCursorManager.updateZoom(zoomValue);
                 }
             }
             else
@@ -22126,7 +22192,10 @@
         public function adjustPlayBackSpeedByShortcut(increaseFlag:Boolean):void
         {
             const clacMax:Number = Math.floor(TOTAL_FRAME/(stage.frameRate*3));
-            if(clacMax <= 0) return;
+            if(clacMax <= 0)
+            {
+                return;
+            }
 
             const maxSpeed:Number = REPLAY_MAX_SPEED;
             var _rSpeed:Number = rReplaySpeedMultipler;
@@ -22161,9 +22230,9 @@
             }
         }
 
-        public function startAdjustPlayBackSpeedByShortcut(upFlag:Boolean):void
+        public function startAdjustPlayBackSpeedByShortcut(increase:Boolean):void
         {
-            startKeyRepeat(true,adjustPlayBackSpeedByShortcut,upFlag);
+            startKeyRepeat(true,adjustPlayBackSpeedByShortcut,increase);
         }
 
         public function onKeyUpReplayMode(e:KeyboardEvent):void
@@ -22341,7 +22410,7 @@
                     isLayerCheckKeyPressed = false;
                     if(lastTool > TOOL_NONE) setNowToolByOldTool();
 
-                    penCursorPosition.check();
+                    penCursorManager.check();
                 }
             }
 
@@ -22385,11 +22454,9 @@
 
         public function onKeyDownDrawMode(e:KeyboardEvent):void
         {
-        trace("hey");
             if(isMouseClicked || isRightMouseClicked || isKeyReleasedBeforeMouseUp || isFillPenStarted
             || isPopUpWindowOpened())
             {
-            trace("return");
                 return;
             }
 
@@ -22740,7 +22807,7 @@
                     {
                         setPenAirBrushButtonShortCut();
                     }
-                    else if(isSelectedTool(TOOL_ERASE))
+                    else if(isSelectedTool(TOOL_ERASER))
                     {
                         setEraseAirBrushButtonShortCut();
                     }
@@ -22867,7 +22934,7 @@
                 case KEY.d:
                 case KEY.j:
                 {
-                    if(!isSelectedTool(TOOL_ERASE))
+                    if(!isSelectedTool(TOOL_ERASER))
                     {
                         updateOldTool();
                         selectEraseTool();
@@ -22931,7 +22998,7 @@
                 }
                 break;
             }
-            penCursorPosition.check();
+            penCursorManager.check();
         }
 
         public function setClickBlockFlagOFFDelay():void
@@ -22946,7 +23013,7 @@
         {
             tryDisableIME();
             realWorkingTimer.resume();
-            checkEnableClipBoardButton();
+            checkCanUseClipBoardButton();
 
             if(isAboutWindowShowing)
             {
@@ -23615,7 +23682,7 @@
             if(isTransparentPenColor) selectTransparentColorButton();
             else deactiveColorPickerModeBG();
             updatePenSizeCursor();
-            penCursorPosition.check();
+            penCursorManager.check();
             updateTopBarModeIcons("draw");
             canvasInfoBox.setZoom(canvasZoomedMultipler);
             updateReplayCursorScale(canvasZoomedMultipler);
@@ -23895,7 +23962,7 @@
                 {
                     resetLastKey();
                     if(lastTool > TOOL_NONE) setNowToolByOldTool();
-                    penCursorPosition.check();
+                    penCursorManager.check();
                 }
             }
         }
@@ -24064,9 +24131,12 @@
             {
                 case "penSmoothSliderWapper":
                 {
-                    if(nowTool > 4) return true;
+                    if(nowTool > 4)
+                    {
+                        return true;
+                    }
                     setPenSmoothButton();
-                    setNowToolForDrawing(true);
+                    ensureDrawingToolSelected(true);
                 }
                 return true;
 
@@ -24082,7 +24152,7 @@
                 case "alphaButton10":
                 {
                     setOpaButton(targetName);
-                    setNowToolForDrawing(true);
+                    ensureDrawingToolSelected(true);
                 }
                 return true;
 
@@ -24099,22 +24169,31 @@
                 case "nSizeButton11":
                 case "nSizeButton12":
                 {
-                    setPenSizeButton(targetName);
-                    setNowToolForDrawing(true);
+                    if(!isSelectedTool(TOOL_FILL_PEN))
+                    {
+                        setPenSizeButton(targetName);
+                        ensureDrawingToolSelected(true);
+                    }
                 }
                 return true;
 
                 case "shapeRect":
                 {
-                    setPenShapeButton(true);
-                    setNowToolForDrawing(true);
+                    if(!isSelectedTool(TOOL_FILL_PEN))
+                    {
+                        setPenShapeButton(true);
+                        ensureDrawingToolSelected(true);
+                    }
                 }
                 return true;
 
                 case "shapeCircle":
                 {
-                    setPenShapeButton(false);
-                    setNowToolForDrawing(true);
+                     if(!isSelectedTool(TOOL_FILL_PEN))
+                    {
+                        setPenShapeButton(false);
+                        ensureDrawingToolSelected(true);
+                    }
                 }
                 return true;
 
@@ -24189,7 +24268,7 @@
                 {
                     if(controlBox.sharpLineButtonWrapper.alpha === 1.0)
                     {
-                        setNowToolForDrawing(true);
+                        ensureDrawingToolSelected(true);
                         setSharpLineButton(!isSharpLineON);
                     }
                 }
@@ -24202,12 +24281,12 @@
                 {
                     if(controlBox.airBrushButtonWrapper.alpha === 1.0)
                     {
-                        setNowToolForDrawing(true);
+                        ensureDrawingToolSelected(true);
                         if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
                         {
                             setPenAirBrushButton(!isAirBrushON);
                         }
-                        else if(isSelectedTool(TOOL_ERASE))
+                        else if(isSelectedTool(TOOL_ERASER))
                         {
                             setEraseAirBrushButton(!eraserAirBrushON);
                         }
@@ -24322,7 +24401,7 @@
                         case "currentColor":
                         {
                             updateCurrentColorPickerBox(isColorPickerModeBG);
-                            setNowToolForDrawing(false);
+                            ensureDrawingToolSelected(false);
                         }
                         break;
 
@@ -24364,7 +24443,7 @@
                             if(colorPickerBox.transColorButton.alpha === 1.0)
                             {
                                 selectTransparentColorButton();
-                                setNowToolForDrawing(false);
+                                ensureDrawingToolSelected(false);
                             }
                         }
                         break;
@@ -24399,7 +24478,7 @@
         {
             if(isToolBox2Showing || (isKeyPressed()
                                 && !isSelectedToolPenOrLine()
-                                && !isSelectedTool(TOOL_ERASE)
+                                && !isSelectedTool(TOOL_ERASER)
                                 && !isSelectedTool(TOOL_FILL_PEN)))
             {
                 return false;
@@ -24738,7 +24817,7 @@
                     {
                         return;
                     }
-                    else if(checkControlBoxButtons(target) && (isSelectedToolPenOrLine() || isSelectedTool(TOOL_ERASE)))
+                    else if(checkControlBoxButtons(target) && (isSelectedToolPenOrLine() || isSelectedTool(TOOL_ERASER)))
                     {
                         return;
                     }
@@ -24905,7 +24984,7 @@
                     case TOOL_PEN: if(isCurrentLayerActive() && isToolActive()) penTool(true); break;
                     case TOOL_FILL_PEN: if(isCurrentLayerActive() && isToolActive()) fillPenTool.start(); break;
                     // case TOOL_SCAN_FILL: if(isCurrentLayerActive() && isToolActive()) scanFillTool.start(); break;
-                    case TOOL_ERASE: if(isCurrentLayerActive() && isToolActive()) penTool(false); break;
+                    case TOOL_ERASER: if(isCurrentLayerActive() && isToolActive()) penTool(false); break;
                     case TOOL_LINE: if(isCurrentLayerActive() && isToolActive()) lineTool(true); break;
                     case TOOL_LASSO: if(isCurrentLayerActive()) lassoToolFunction.start(); break;
                     case TOOL_MOVE: if(isCurrentLayerActive()) moveTool(); break;

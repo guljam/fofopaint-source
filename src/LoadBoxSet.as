@@ -20,9 +20,7 @@
 		public var pleaseWaitText:TextField;
 		public var stageClickBlocker:Sprite = new Sprite();
 
-		private var previewBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0));
 		private var clickBlockerBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0));
-		private var previewBitmapBox:Sprite = new Sprite();
 		private var menuBox:Sprite = new Sprite();
 		private var mainBox:Sprite = new Sprite();
 		private var bitmapSize:Number = 180;
@@ -57,6 +55,17 @@
 			pleaseWaitText.visible = true;
 			mainBox.visible = false;
 		}
+
+		public function hide():void
+		{
+			if (clickBlockerBitmap.bitmapData)
+			{
+				clickBlockerBitmap.bitmapData.dispose();
+			}
+
+			this.visible = false;
+		}
+
 
 		public function updateClickBlockerSize(stw:int, sth:int):void
 		{
@@ -105,12 +114,10 @@
 			mat.translate(imageOffsetX, imageOffsetY);
 			tmpbmpd.draw(bmpd, mat, null, null, null, true);
 
-			if (previewBitmap.bitmapData)
+			if (clickBlockerBitmap.bitmapData)
 			{
-				previewBitmap.bitmapData.dispose();
+				clickBlockerBitmap.bitmapData.dispose();
 			}
-
-			previewBitmap.bitmapData = tmpbmpd;
 			clickBlockerBitmap.bitmapData = bmpd;
 		}
 
@@ -152,6 +159,7 @@
 			var textColorOver:uint;
 
 			subBase.color = arr[1];
+			subBase.alphaMultiplier = 0.0;
 			textColorOver = arr[3];
 			activeColor.color = arr[4];
 			textColorDeafult = arr[5];
@@ -177,13 +185,8 @@
 				childText.textColor = textColorOver;
 			}
 
-			previewBitmapBox.graphics.clear();
-			previewBitmapBox.graphics.beginFill(arr[1], 1.0);
-			previewBitmapBox.graphics.drawRect(0, 0, bitmapSize, bitmapSize);
-			previewBitmapBox.graphics.endFill();
-
 			mainBox.graphics.clear();
-			mainBox.graphics.beginFill(arr[1], 1.0);
+			mainBox.graphics.beginFill(arr[1], 0.8);
 			mainBox.graphics.drawRect(-10, -10, mainBox.width + 20, mainBox.height + 20);
 			mainBox.graphics.endFill();
 		}
@@ -223,10 +226,6 @@
 			dragDropCancelButton.x = 0;
 			dragDropCancelButton.y = dragDropLoadRefLayerButton.y + dragDropLoadRefLayerButton.height;
 
-			previewBitmapBox.addChild(previewBitmap);
-			menuBox.x = previewBitmapBox.x + bitmapSize + 5;
-			menuBox.y = previewBitmapBox.y;
-			mainBox.addChild(previewBitmapBox);
 			mainBox.addChild(menuBox);
 			mainBox.graphics.clear();
 			mainBox.graphics.beginFill(0xFF0000, 0.5);

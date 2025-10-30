@@ -76,6 +76,8 @@
 
 		public function setFillPenModeON(offAlpha:Number):void
 		{
+		필펜 선택했을때 시작됐을때 컨트롤박스 메뉴 임시로 투명하게 해주는 함수
+		기타 함수 set으ㄹ도 시작하는 어울리지 않는 함수명 리팩토링
 			etcOptionWrapper.alpha = offAlpha;
 			penSizeGuide.alpha = offAlpha;
 			penSizeBox.alpha = offAlpha;
@@ -173,7 +175,7 @@
 				infoFillPenOptions.visible = false;
 				infoLineOptions.visible = false;
 			}
-			else if (toolStr === "Fill-pen")
+			else if (toolStr === "FillPen")
 			{
 				infoPenOptions.visible = false;
 				infoEraserOptions.visible = false;
@@ -191,6 +193,7 @@
 
 		public function movePenSizeCursor(index:uint):void
 		{
+		trace("index",index);
 			const btn:Sprite = penSizeBox.getChildByName("nSizeButton" + index) as Sprite;
 
 			if (btn)
