@@ -6,7 +6,6 @@
 	import flash.display.Sprite;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.MouseEvent;
-	import flash.utils.clearTimeout;
 
 	public class HintBoxSet extends Sprite
 	{

@@ -47,10 +47,10 @@
 		public var penSmoothSlider:SimpleButton;
 		public var penSmoothSliderCursor:SimpleButton;
 
-		public var layer1CheckButton:SimpleButton;
-		public var layer1UncheckButton:SimpleButton;
-		public var layer2CheckButton:SimpleButton;
-		public var layer2UncheckButton:SimpleButton;
+		public var layer1CheckedButton:SimpleButton;
+		public var layer1UncheckedButton:SimpleButton;
+		public var layer2CheckedButton:SimpleButton;
+		public var layer2UncheckedButton:SimpleButton;
 		public var layerSwapButton:SimpleButton;
 		public var layerMergeButton:SimpleButton;
 		public var saperateLine:SimpleButton;
@@ -63,7 +63,7 @@
 
 		private const opColor:ColorTransform = new ColorTransform();
 
-		public function setFillPenModeOFF():void
+		public function restoreDisabledButtons():void
 		{
 			etcOptionWrapper.alpha = 1.0;
 			penSizeGuide.alpha = 1.0;
@@ -74,10 +74,29 @@
 			penSizeSelectCursor.alpha = 1.0;
 		}
 
-		public function setFillPenModeON(offAlpha:Number):void
+		public function isSizeButtonDisabled():Boolean
 		{
-		필펜 선택했을때 시작됐을때 컨트롤박스 메뉴 임시로 투명하게 해주는 함수
-		기타 함수 set으ㄹ도 시작하는 어울리지 않는 함수명 리팩토링
+			return penSizeGuide.alpha < 1.0;
+		}
+
+		public function updateButtonsAlphaFillPenSelected(alp:Number):void
+		{
+			penSizeGuide.alpha = alp;
+			penSizeBox.alpha = alp;
+			penSizeSelectCursor.alpha = alp;
+			rectSizeSet.alpha = alp;
+			circleSizeSet.alpha = alp;
+			shapeRect.alpha = alp;
+			shapeCircle.alpha = alp;
+			penSmoothSliderWapper.alpha = alp;
+			layer1CheckedButton.alpha = alp;
+			layer1UncheckedButton.alpha = alp;
+			layer2CheckedButton.alpha = alp;
+			layer2UncheckedButton.alpha = alp;
+		}
+
+		public function disableButtonFillPenStarted(offAlpha:Number):void
+		{
 			etcOptionWrapper.alpha = offAlpha;
 			penSizeGuide.alpha = offAlpha;
 			penSizeBox.alpha = offAlpha;
@@ -112,14 +131,14 @@
 			alphaBackup = layer1SelectButton.alpha;
 			layer1SelectButton.transform.colorTransform = opColor;
 			layer1SelectButton.alpha = alphaBackup;
-			layer1UncheckButton.transform.colorTransform = opColor;
-			layer1CheckButton.transform.colorTransform = opColor;
+			layer1UncheckedButton.transform.colorTransform = opColor;
+			layer1CheckedButton.transform.colorTransform = opColor;
 
 			alphaBackup = layer2SelectButton.alpha;
 			layer2SelectButton.transform.colorTransform = opColor;
 			layer2SelectButton.alpha = alphaBackup;
-			layer2UncheckButton.transform.colorTransform = opColor;
-			layer2CheckButton.transform.colorTransform = opColor;
+			layer2UncheckedButton.transform.colorTransform = opColor;
+			layer2CheckedButton.transform.colorTransform = opColor;
 
 			layerSwapButton.transform.colorTransform = opColor;
 			layerMergeButton.transform.colorTransform = opColor;
@@ -193,7 +212,6 @@
 
 		public function movePenSizeCursor(index:uint):void
 		{
-		trace("index",index);
 			const btn:Sprite = penSizeBox.getChildByName("nSizeButton" + index) as Sprite;
 
 			if (btn)
@@ -271,23 +289,23 @@
 
 		public function initLayerButton():void
 		{
-			layer1CheckButton.visible = false;
-			layer2CheckButton.visible = false;
+			layer1CheckedButton.visible = false;
+			layer2CheckedButton.visible = false;
 			layer1SelectButton.useHandCursor = false;
 			layer2SelectButton.useHandCursor = false;
-			layer1CheckButton.useHandCursor = false;
-			layer1UncheckButton.useHandCursor = false;
-			layer2CheckButton.useHandCursor = false;
-			layer2UncheckButton.useHandCursor = false;
+			layer1CheckedButton.useHandCursor = false;
+			layer1UncheckedButton.useHandCursor = false;
+			layer2CheckedButton.useHandCursor = false;
+			layer2UncheckedButton.useHandCursor = false;
 			layerSwapButton.useHandCursor = false;
 			layerMergeButton.useHandCursor = false;
 
 			layerButtonWrapper.addChild(layer1SelectButton);
 			layerButtonWrapper.addChild(layer2SelectButton);
-			layerButtonWrapper.addChild(layer1CheckButton);
-			layerButtonWrapper.addChild(layer1UncheckButton);
-			layerButtonWrapper.addChild(layer2CheckButton);
-			layerButtonWrapper.addChild(layer2UncheckButton);
+			layerButtonWrapper.addChild(layer1CheckedButton);
+			layerButtonWrapper.addChild(layer1UncheckedButton);
+			layerButtonWrapper.addChild(layer2CheckedButton);
+			layerButtonWrapper.addChild(layer2UncheckedButton);
 			layerButtonWrapper.addChild(layerSwapButton);
 			layerButtonWrapper.addChild(layerMergeButton);
 			layerButtonWrapper.addChild(saperateLine);
@@ -295,24 +313,24 @@
 			layerSwapButton.x = 0;
 			layerSwapButton.y = 0;
 
-			layer1CheckButton.x = layerSwapButton.x + layerSwapButton.width + 3;
-			layer1CheckButton.y = layerSwapButton.y + 2;
-			layer1UncheckButton.x = layer1CheckButton.x;
-			layer1UncheckButton.y = layer1CheckButton.y;
+			layer1CheckedButton.x = layerSwapButton.x + layerSwapButton.width + 3;
+			layer1CheckedButton.y = layerSwapButton.y + 2;
+			layer1UncheckedButton.x = layer1CheckedButton.x;
+			layer1UncheckedButton.y = layer1CheckedButton.y;
 
-			layer1SelectButton.x = layer1CheckButton.x + layer1CheckButton.width + 3;
-			layer1SelectButton.y = layer1CheckButton.y - 1;
+			layer1SelectButton.x = layer1CheckedButton.x + layer1CheckedButton.width + 3;
+			layer1SelectButton.y = layer1CheckedButton.y - 1;
 
 			layerMergeButton.x = layer1SelectButton.x + layer1SelectButton.width + 1;
-			layerMergeButton.y = layer1SelectButton.y + 1;
+			layerMergeButton.y = layer1SelectButton.y + 2;
 
-			layer2CheckButton.x = layer1CheckButton.x;
-			layer2CheckButton.y = layer1CheckButton.y + layer1CheckButton.height + 4;
-			layer2UncheckButton.x = layer2CheckButton.x;
-			layer2UncheckButton.y = layer2CheckButton.y;
+			layer2CheckedButton.x = layer1CheckedButton.x;
+			layer2CheckedButton.y = layer1CheckedButton.y + layer1CheckedButton.height + 4;
+			layer2UncheckedButton.x = layer2CheckedButton.x;
+			layer2UncheckedButton.y = layer2CheckedButton.y;
 
-			layer2SelectButton.x = layer2CheckButton.x + layer2CheckButton.width + 3;
-			layer2SelectButton.y = layer2CheckButton.y - 1;
+			layer2SelectButton.x = layer2CheckedButton.x + layer2CheckedButton.width + 3;
+			layer2SelectButton.y = layer2CheckedButton.y - 1;
 
 			saperateLine.x = layerMergeButton.x + layerMergeButton.width + 5;
 			saperateLine.y = 4;
@@ -328,7 +346,7 @@
 
 			penSmoothSlider.mouseEnabled = false;
 			penSmoothSlider.x = penSmoothSliderCursor.width / 2;
-			penSmoothSlider.y = penSmoothSliderCursor.height / 2 + 1;
+			penSmoothSlider.y = penSmoothSliderCursor.height / 2 + 2;
 
 			penSmoothSliderCursor.mouseEnabled = false;
 			penSmoothSliderCursor.x = penSmoothSlider.x;
@@ -336,7 +354,7 @@
 
 			penSmoothSliderWapper.graphics.clear();
 			penSmoothSliderWapper.graphics.beginFill(0xFF0000, 0.0);
-			penSmoothSliderWapper.graphics.drawRect(0, 0, penSmoothSlider.x + penSmoothSlider.width + penSmoothSliderCursor.width / 2, penSmoothSliderCursor.height + 1);
+			penSmoothSliderWapper.graphics.drawRect(0, 0, penSmoothSlider.x + penSmoothSlider.width + penSmoothSliderCursor.width / 2, penSmoothSliderCursor.height + 4);
 			penSmoothSliderWapper.graphics.endFill();
 		}
 
@@ -354,8 +372,8 @@
 			shapeRect.y = 1;
 			shapeRect.useHandCursor = false;
 
-			penSmoothSliderWapper.x = Math.floor(shapeRect.x + shapeRect.width + 7);
-			penSmoothSliderWapper.y = Math.floor(shapeRect.y + 1);
+			penSmoothSliderWapper.x = Math.floor(shapeRect.x + shapeRect.width + 6);
+			penSmoothSliderWapper.y = Math.floor(shapeRect.y);
 		}
 
 		public function initOpaSizeButtonWapper():void

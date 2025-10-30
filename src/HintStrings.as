@@ -14,11 +14,11 @@
             {
                 // 드로우 모드
                 "drawModeButton": "Switch to draw mode [f1, f7]",
-                "captureButton": "Capture mode [ctrl+c, ctrl+m]",
+                "captureButton": "Capture mode [ctrl+c, ctrl+,]",
                 "saveButton": "Save [ctrl+s] _Save as.. [shift+ctrl+s, right-click]",
                 "timer": "Actual working time _ Reset [click] {STRING_PRESS_HOLD}",
                 "loadButton": "Load [ctrl+o]",
-                "clipBoardButton": "Load clipboard image [ctrl+v, ctrl+n] _ There are no copied images",
+                "clipBoardButton": "Load clipboard image [ctrl+v, ctrl+m] _ There are no copied images",
                 "newFileButton": "New file [click, esc, backspace, delete] {STRING_PRESS_HOLD}",
                 "gridButton": "Grid [f2, f8] _ Reset [right-click, while holding Shift: f2, f8]",
                 "sideBarPositionButton": "Right sidebar [f3]",
@@ -55,8 +55,8 @@
 
                 // 캡쳐 모드
                 "capOff": "Exit capture mode (esc, backspace, f1, f7]",
-                "capFull": "Save full image [ctrl+s, ctrl+k]",
-                "capClipBoard": "Copy full image to clipboard [ctrl+c, ctrl+m]",
+                "capFull": "Save {getCaptureSaveHint()} [ctrl+s, ctrl+;]",
+                "capClipBoard": "Copy {getCaptureSaveHint()} to clipboard [ctrl+c, ctrl+,]",
                 "capTrans": "Background color ON/OFF [d, j]",
                 "capRotate": "Rotate image [s, k]",
                 "capFlip": "Flip image [a, l]",
@@ -110,12 +110,12 @@
 
                 "layer1SelectButton": "Select layer 1 [1, 9] Show only layer 1 ON/OFF [click x 2]",
                 "layer2SelectButton": "Select layer 2 [2, 0] Show only layer 2 ON/OFF [click x 2]",
-                "layer1CheckButton": "Check layer 1 [1+w, 9+i] (for move image tool, lasso tool, reference layer)",
-                "layer1UncheckButton": "Check layer 1 [1+w, 9+i] (for move image tool, lasso tool, reference layer)",
-                "layer2CheckButton": "Check layer 2 [2+w, 0+i] (for move image tool, lasso tool, reference layer)",
-                "layer2UncheckButton": "Check layer 2 [2+w, 0+i] (for move image tool, lasso tool, reference layer)",
+                "layer1CheckedButton": "Check layer 1 [1+w, 9+i] (for move image tool, lasso tool, reference layer)",
+                "layer1UncheckedButton": "Check layer 1 [1+w, 9+i] (for move image tool, lasso tool, reference layer)",
+                "layer2CheckedButton": "Check layer 2 [2+w, 0+i] (for move image tool, lasso tool, reference layer)",
+                "layer2UncheckedButton": "Check layer 2 [2+w, 0+i] (for move image tool, lasso tool, reference layer)",
                 "layerSwapButton": "Swap layers [shift+d, shift+j]",
-                "layerMergeButton": "Merge image to layer 2 [shift+e, shift+o]",
+                "layerMergeButton": "Merge image into layer 2 [shift+e, shift+o]",
 
                 // 툴박스 2
                 "toolQuickSidebar": "[6, s+d, j+k]",
@@ -135,7 +135,7 @@
                 "toolRotate": "Rotate canvas [s, k] _ {STRING_RIGHT_CLICK_TO_RESET}",
                 "toolRotate2": "Rotate canvas [s, k]",
                 "toolRefLayer": "Reference layer [t]",
-                "sideBarScrollBar":"Scroll sidebar [drag, mouse wheel on sidebar] _ {STRING_RIGHT_CLICK_TO_RESET}",
+                "sideBarScrollBar":"Scroll [drag, mouse wheel on sidebar] _ {STRING_RIGHT_CLICK_TO_RESET}",
                 
                 //컬러 픽커
                 "hueColor": "Hue",
@@ -151,7 +151,14 @@
                 "myPaletteButton": "My palette _ Expand palette ON/OFF [click x 2] _ Clear palette [click] {STRING_PRESS_HOLD}",
                 "drawrPresetButton": "Drawr color preset _ Clear scratch pad [click] {STRING_PRESS_HOLD}",
                 "tegakiPresetButton": "Tegaki color preset _ Clear scratch pad [click] {STRING_PRESS_HOLD}",
-                "scratchPad": "Scratch pad _ Draw [drag] _ Select color [c, m, click]"
+                "scratchPad": "Scratch pad _ Draw [drag] _ Select color [c, m, click]",
+
+                //캔버스 네비게이터
+                "navStageBG":"Canvas Navigator",
+                "navBitmapBG":"Canvas Navigator",
+                "navCursor":"Canvas Navigator",
+                "navLayer1Bitmap":"Canvas Navigator",
+                "navLayer2Bitmap":"Canvas Navigator"
             };
 
         static public function resolveTemplate(template:String):String

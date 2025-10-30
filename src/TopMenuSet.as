@@ -167,7 +167,7 @@
 			gridButtonWrapper.addChild(gridMoveButtonWrapper);
 
 			gridSliderWrapper.x = 7;
-			gridSliderWrapper.y = 7;
+			gridSliderWrapper.y = 4;
 			gridMoveButtonWrapper.x = gridSliderWrapper.x + gridButtonWrapper.width + 7;
 			gridMoveButtonWrapper.y = 4;
 			gridButtonWrapper.visible = false;
@@ -212,8 +212,8 @@
 			gridSliderCursor.useHandCursor = false;
 
 			gridSlider.mouseEnabled = false;
-			gridSlider.x = gridSliderCursor.width / 2;
-			gridSlider.y = gridSliderCursor.height / 2 + 1;
+			gridSlider.x = gridSliderCursor.width / 2 + 6;
+			gridSlider.y = gridSliderCursor.height / 2 + 4;
 
 			gridSliderCursor.mouseEnabled = false;
 			gridSliderCursor.x = gridSlider.x;
@@ -221,7 +221,7 @@
 
 			gridSliderWrapper.graphics.clear();
 			gridSliderWrapper.graphics.beginFill(0xFF0000, 0.0);
-			gridSliderWrapper.graphics.drawRect(0, 0, gridSlider.x + gridSlider.width + gridSliderCursor.width / 2, gridSliderCursor.height + 1);
+			gridSliderWrapper.graphics.drawRect(0, 0, gridSlider.x + gridSlider.width + gridSliderCursor.width / 2 + 5, gridSliderCursor.height + 7);
 			gridSliderWrapper.graphics.endFill();
 		}
 
@@ -230,10 +230,9 @@
 			replaySpeedSliderWrapper.name = "replaySpeedSliderWrapper";
 			replaySpeedSliderWrapper.addChild(replaySpeedSlider);
 			replaySpeedSliderWrapper.addChild(replaySpeedSliderCursor);
-
 			replaySpeedSlider.mouseEnabled = false;
-			replaySpeedSlider.x = replaySpeedSliderCursor.width / 2;
-			replaySpeedSlider.y = replaySpeedSliderCursor.height / 2 + 1;
+			replaySpeedSlider.x = replaySpeedSliderCursor.width / 2 + 3;
+			replaySpeedSlider.y = replaySpeedSliderCursor.height / 2 + 4;
 
 			replaySpeedSliderCursor.mouseEnabled = false;
 			replaySpeedSliderCursor.x = replaySpeedSlider.x + 1.5;
@@ -241,7 +240,7 @@
 
 			replaySpeedSliderWrapper.graphics.clear();
 			replaySpeedSliderWrapper.graphics.beginFill(0xFF0000, 0.0);
-			replaySpeedSliderWrapper.graphics.drawRect(0, 0, replaySpeedSlider.x + replaySpeedSlider.width + gridSliderCursor.width / 2, replaySpeedSliderCursor.height + 1);
+			replaySpeedSliderWrapper.graphics.drawRect(0, 0, replaySpeedSlider.x + replaySpeedSlider.width + gridSliderCursor.width + 1 / 2, replaySpeedSliderCursor.height + 8);
 			replaySpeedSliderWrapper.graphics.endFill();
 		}
 
@@ -620,7 +619,7 @@
 			updateButton.x = aboutButton.x;
 			updateButton.y = aboutButton.y;
 
-			replaySpeedSliderWrapper.y = 7;
+			replaySpeedSliderWrapper.y = 4;
 		}
 
 		public function TopMenuSet()
