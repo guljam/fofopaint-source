@@ -55,10 +55,10 @@
 
                 // 캡쳐 모드
                 "capOff": "Exit capture mode (esc, backspace, f1, f7]",
-                "capFull": "Save {getCaptureSaveHint()} [ctrl+s, ctrl+;]",
+                "capSave": "Save {getCaptureSaveHint()} [ctrl+s, ctrl+;]",
                 "capClipBoard": "Copy {getCaptureSaveHint()} to clipboard [ctrl+c, ctrl+,]",
                 "capTrans": "Background color ON/OFF [d, j]",
-                "capRotate": "Rotate image [s, k]",
+                "capRotate": "Rotate canvas by 90° [s, k]",
                 "capFlip": "Flip image [a, l]",
                 "capLayer1VisibleButton": "Layer 1 visible ON/OFF [1, 9]",
                 "capLayer2VisibleButton": "Layer 2 visible ON/OFF [2, 0]",
@@ -119,7 +119,7 @@
 
                 // 툴박스 2
                 "toolQuickSidebar": "[6, s+d, j+k]",
-                "toolPen": "Pen [q, o key up]",
+                "toolPen": "Pen [q , o key up]",
                 "toolFillPen": "Fill pen [q, o]",
                 "toolErase": "Eraser [d, j]",
                 "toolLasso": "Lasso [r, y]",
@@ -136,6 +136,9 @@
                 "toolRotate2": "Rotate canvas [s, k]",
                 "toolRefLayer": "Reference layer [t]",
                 "sideBarScrollBar":"Scroll [drag, mouse wheel on sidebar] _ {STRING_RIGHT_CLICK_TO_RESET}",
+
+                "toolFillPenOK" : "OK [right-click, enter, q / o key up)",
+                "toolFillPenCancel" : "Cancel [esc]",
                 
                 //컬러 픽커
                 "hueColor": "Hue",

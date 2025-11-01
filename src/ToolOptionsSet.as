@@ -121,7 +121,6 @@
 		{
 			var alphaBackup:Number; // 레이어 버튼이 색깔 바꾸면 알파가 초기화 되는 버그있어서 수동으로 만들어줌
 			opColor.color = op;
-
 			etcOptionBorder.transform.colorTransform = opColor;
 			infoPenOptions.transform.colorTransform = opColor;
 			infoEraserOptions.transform.colorTransform = opColor;

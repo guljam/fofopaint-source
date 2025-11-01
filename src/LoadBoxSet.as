@@ -20,11 +20,17 @@
 		public var pleaseWaitText:TextField;
 		public var stageClickBlocker:Sprite = new Sprite();
 
+		private var plaseWaitTextBase:String = ""
 		private var clickBlockerBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0));
 		private var menuBox:Sprite = new Sprite();
 		private var mainBox:Sprite = new Sprite();
 		private var bitmapSize:Number = 180;
 		private var refLayerLoadMode:Boolean = false;
+
+		public function isShowing():Boolean
+		{
+			return this.visible
+		}
 
 		public function isRefLayerLoadMode():Boolean
 		{
@@ -50,8 +56,16 @@
 			mainBox.visible = true;
 		}
 
-		public function showPleaseWait():void
+		public function updatePlaseWaitPrograss(prograss:String):void
 		{
+			pleaseWaitText.text = plaseWaitTextBase+" "+prograss;
+		}
+
+		public function showPleaseWait(str:String="Please Wait..."):void
+		{
+			plaseWaitTextBase= str;
+			pleaseWaitText.text = str;
+			pleaseWaitText.autoSize = "left";
 			pleaseWaitText.visible = true;
 			mainBox.visible = false;
 		}
@@ -65,7 +79,6 @@
 
 			this.visible = false;
 		}
-
 
 		public function updateClickBlockerSize(stw:int, sth:int):void
 		{

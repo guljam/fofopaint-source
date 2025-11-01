@@ -21,7 +21,7 @@
 		public var repCaptureButton:SimpleButton;
 		public var capRotate:SimpleButton;
 		public var capFlip:SimpleButton;
-		public var capFull:SimpleButton;
+		public var capSave:SimpleButton;
 		public var capOff:SimpleButton;
 		public var capTrans:SimpleButton;
 		public var capClipBoard:SimpleButton;
@@ -334,7 +334,7 @@
 			repCaptureButton.transform.colorTransform = opColor;
 			capRotate.transform.colorTransform = opColor;
 			capFlip.transform.colorTransform = opColor;
-			capFull.transform.colorTransform = opColor;
+			capSave.transform.colorTransform = opColor;
 			capOff.transform.colorTransform = opColor;
 			capTrans.transform.colorTransform = opColor;
 			capClipBoard.transform.colorTransform = opColor;
@@ -531,7 +531,7 @@
 					repCaptureButton,
 					capRotate,
 					capFlip,
-					capFull,
+					capSave,
 					capOff,
 					capTrans,
 					capClipBoard,
@@ -631,7 +631,7 @@
 
 			capRotate.visible = false;
 			capFlip.visible = false;
-			capFull.visible = false;
+			capSave.visible = false;
 			capOff.visible = false;
 			capTrans.visible = false;
 			capClipBoard.visible = false;
@@ -649,7 +649,7 @@
 			repCaptureButton.useHandCursor = false;
 			capRotate.useHandCursor = false;
 			capFlip.useHandCursor = false;
-			capFull.useHandCursor = false;
+			capSave.useHandCursor = false;
 			capOff.useHandCursor = false;
 			capTrans.useHandCursor = false;
 			capClipBoard.useHandCursor = false;
@@ -695,7 +695,7 @@
 
 			buttonOrder = [
 					[replayModeButton, drawModeButton, capOff],
-					[captureButton, repCaptureButton, capFull],
+					[captureButton, repCaptureButton, capSave],
 					[saveButton, repSaveButton, capClipBoard],
 					[loadButton, repLoadButton, capRotate],
 					[clipBoardButton, reRecordingButton, capFlip],
@@ -748,7 +748,7 @@
 
 			captureModeButtons = [
 					capOff,
-					capFull,
+					capSave,
 					capRotate,
 					capFlip,
 					capTrans,
