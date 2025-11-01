@@ -4,6 +4,7 @@
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
 	import flash.filters.BlurFilter;
+	import flash.display.DisplayObject;
 
 	public class ToolOptionsSet extends Sprite
 	{
@@ -13,7 +14,7 @@
 		public const airBrushButtonWrapper:Sprite = new Sprite();
 		public const layerButtonWrapper:Sprite = new Sprite();
 		public const opaSizeButtonWrapper:Sprite = new Sprite();
-		public const penShapeSmoothingWarpper:Sprite = new Sprite();
+		public const penShapeAndSmoothingWarpper:Sprite = new Sprite();
 		public const etcOptionWrapper:Sprite = new Sprite();
 
 		public var infoPenOptions:SimpleButton;
@@ -116,52 +117,110 @@
 			rectSizeSet.filters = null;
 			circleSizeSet.filters = null;
 		}
-
+		
 		public function changeUIColor(op:uint):void
 		{
-			var alphaBackup:Number; // 레이어 버튼이 색깔 바꾸면 알파가 초기화 되는 버그있어서 수동으로 만들어줌
+			const opColor:ColorTransform = new ColorTransform();
 			opColor.color = op;
-			etcOptionBorder.transform.colorTransform = opColor;
-			infoPenOptions.transform.colorTransform = opColor;
-			infoEraserOptions.transform.colorTransform = opColor;
-			infoFillPenOptions.transform.colorTransform = opColor;
-			infoLineOptions.transform.colorTransform = opColor;
 
-			alphaBackup = layer1SelectButton.alpha;
-			layer1SelectButton.transform.colorTransform = opColor;
-			layer1SelectButton.alpha = alphaBackup;
-			layer1UncheckedButton.transform.colorTransform = opColor;
-			layer1CheckedButton.transform.colorTransform = opColor;
+			// 모든 UI 요소를 배열에 담기
+			var uiElements:Array = [
+				etcOptionBorder,
+				infoPenOptions,
+				infoEraserOptions,
+				infoFillPenOptions,
+				infoLineOptions,
 
-			alphaBackup = layer2SelectButton.alpha;
-			layer2SelectButton.transform.colorTransform = opColor;
-			layer2SelectButton.alpha = alphaBackup;
-			layer2UncheckedButton.transform.colorTransform = opColor;
-			layer2CheckedButton.transform.colorTransform = opColor;
+				layer1SelectButton,
+				layer1UncheckedButton,
+				layer1CheckedButton,
 
-			layerSwapButton.transform.colorTransform = opColor;
-			layerMergeButton.transform.colorTransform = opColor;
+				layer2SelectButton,
+				layer2UncheckedButton,
+				layer2CheckedButton,
 
-			shapeRect.transform.colorTransform = opColor;
-			shapeCircle.transform.colorTransform = opColor;
-			rectSizeSet.transform.colorTransform = opColor;
-			circleSizeSet.transform.colorTransform = opColor;
-			penSizeGuide.transform.colorTransform = opColor;
+				layerSwapButton,
+				layerMergeButton,
 
-			sharpLineText.transform.colorTransform = opColor;
-			sharpLineONButton.transform.colorTransform = opColor;
-			sharpLineOFFButton.transform.colorTransform = opColor;
+				shapeRect,
+				shapeCircle,
+				rectSizeSet,
+				circleSizeSet,
+				penSizeGuide,
 
-			airBrushText.transform.colorTransform = opColor;
-			airBrushOFFButton.transform.colorTransform = opColor;
-			airBrushONButton.transform.colorTransform = opColor;
+				sharpLineText,
+				sharpLineONButton,
+				sharpLineOFFButton,
 
-			opaGuide.transform.colorTransform = opColor;
-			saperateLine.transform.colorTransform = opColor;
+				airBrushText,
+				airBrushOFFButton,
+				airBrushONButton,
 
-			penSmoothSlider.transform.colorTransform = opColor;
-			penSmoothSliderCursor.transform.colorTransform = opColor;
+				opaGuide,
+				saperateLine,
+
+				penSmoothSlider,
+				penSmoothSliderCursor
+			];
+
+			var alphaSave:Number;
+			// for문으로 순회하면서 적용
+			for each (var element:DisplayObject in uiElements)
+			{
+				alphaSave = element.alpha;
+				element.transform.colorTransform = opColor;
+				element.alpha = alphaSave;
+			}
 		}
+		// public function changeUIColor(op:uint):void
+		// {
+		// 	var alphaBackup:Number;
+		// 	const opColor:ColorTransform = new ColorTransform()
+		// 	opColor.color = op;
+			
+		// 	etcOptionBorder.transform.colorTransform = opColor;
+		// 	infoPenOptions.transform.colorTransform = opColor;
+		// 	infoEraserOptions.transform.colorTransform = opColor;
+		// 	infoFillPenOptions.transform.colorTransform = opColor;
+		// 	infoLineOptions.transform.colorTransform = opColor;
+
+		// 	alphaBackup = layer1SelectButton.alpha;
+		// 	layer1SelectButton.transform.colorTransform = opColor;
+		// 	layer1SelectButton.alpha = alphaBackup;
+		// 	layer1UncheckedButton.transform.colorTransform = opColor;
+		// 	layer1CheckedButton.transform.colorTransform = opColor;
+
+		// 	alphaBackup = layer2SelectButton.alpha;
+		// 	layer2SelectButton.transform.colorTransform = opColor;
+		// 	layer2SelectButton.alpha = alphaBackup;
+		// 	layer2UncheckedButton.transform.colorTransform = opColor;
+		// 	layer2CheckedButton.transform.colorTransform = opColor;
+
+		// 	layerSwapButton.transform.colorTransform = opColor;
+		// 	layerMergeButton.transform.colorTransform = opColor;
+			
+		// 	alphaBackup = shapeRect.alpha;
+		// 	shapeRect.transform.colorTransform = opColor;
+		// 	alphaBackup = shapeRect.alpha;
+		// 	shapeCircle.transform.colorTransform = opColor;
+		// 	rectSizeSet.transform.colorTransform = opColor;
+		// 	circleSizeSet.transform.colorTransform = opColor;
+		// 	penSizeGuide.transform.colorTransform = opColor;
+
+		// 	sharpLineText.transform.colorTransform = opColor;
+		// 	sharpLineONButton.transform.colorTransform = opColor;
+		// 	sharpLineOFFButton.transform.colorTransform = opColor;
+
+		// 	airBrushText.transform.colorTransform = opColor;
+		// 	airBrushOFFButton.transform.colorTransform = opColor;
+		// 	airBrushONButton.transform.colorTransform = opColor;
+
+		// 	opaGuide.transform.colorTransform = opColor;
+		// 	saperateLine.transform.colorTransform = opColor;
+
+		// 	penSmoothSlider.transform.colorTransform = opColor;
+		// 	penSmoothSliderCursor.transform.colorTransform = opColor;
+		// }
 
 		public function updatePenShapeSet(flag:Boolean):void // true이면 rect임
 		{
@@ -360,9 +419,9 @@
 		public function initPenShapeSmoothingWarpper():void
 		{
 			initPenSmoothSliderWrapper();
-			penShapeSmoothingWarpper.addChild(shapeCircle);
-			penShapeSmoothingWarpper.addChild(shapeRect);
-			penShapeSmoothingWarpper.addChild(penSmoothSliderWapper);
+			penShapeAndSmoothingWarpper.addChild(shapeCircle);
+			penShapeAndSmoothingWarpper.addChild(shapeRect);
+			penShapeAndSmoothingWarpper.addChild(penSmoothSliderWapper);
 
 			shapeCircle.x = 5;
 			shapeCircle.y = 0;
@@ -498,7 +557,7 @@
 			etcOptionWrapper.addChild(layerButtonWrapper);
 			etcOptionWrapper.addChild(sharpLineButtonWrapper);
 			etcOptionWrapper.addChild(airBrushButtonWrapper);
-			etcOptionWrapper.addChild(penShapeSmoothingWarpper);
+			etcOptionWrapper.addChild(penShapeAndSmoothingWarpper);
 			etcOptionWrapper.addChild(etcOptionBorder);
 
 			etcOptionBorder.mouseEnabled = false;
@@ -522,8 +581,8 @@
 			airBrushButtonWrapper.x = sharpLineButtonWrapper.x;
 			airBrushButtonWrapper.y = sharpLineButtonWrapper.y + sharpLineButtonWrapper.height + 2;
 
-			penShapeSmoothingWarpper.x = 0;
-			penShapeSmoothingWarpper.y = layerButtonWrapper.y + layerButtonWrapper.height + 2;
+			penShapeAndSmoothingWarpper.x = 0;
+			penShapeAndSmoothingWarpper.y = layerButtonWrapper.y + layerButtonWrapper.height + 2;
 		}
 
 		public function ToolOptionsSet()

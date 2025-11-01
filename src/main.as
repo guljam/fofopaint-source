@@ -661,7 +661,8 @@
                     isFileBrowserOpened:Boolean = false,           // 캡처 저장 시 중복 실행 방지 플래그
                     lastLoadedFile:File,                           // invoke나 파일 드래그 드롭했을때 저장해줘서 같은 파일 로드하지 않게
                     loadMenuBoxBitmapData:BitmapData,              // 메뉴 박스 미리보기 이미지 데이터
-                    loadMenuBoxFile:File;                          // 메뉴 박스에 로드할 파일
+                    loadMenuBoxFile:File,                          // 메뉴 박스에 로드할 파일
+                    isKeepBottonBarHintTemp:Boolean = false;         //챕쳐 모드 힌트 켜줄때 설명문으로 몇초정도 유지
 
         public function Main():void
         {
@@ -1755,7 +1756,6 @@
                 {
                     target.alpha = 1.0;
                 });
-
         }
 
         public function isRGBInfoValueChanged():Boolean
@@ -7862,6 +7862,11 @@
             {
                 hideHintHighlightBox();
             }
+
+            // if(isSelectedTool(TOOL_FILL_PEN))
+            // {
+            //     toolOptionsBox.disableButtonFillPenStarted(BUTTON_OFF_ALPHA);
+            // }
         }
 
         public function addStageInputEvents():void
@@ -8201,7 +8206,6 @@
 
         public function onKeyDownStage(e:KeyboardEvent):void
         {
-        필펜이 선택됐을때 비활성화 된 버튼들이 ui색깔 바꾸면 원상복귀되는 버그
             tryDisableIME();
             checkInvalidKey();
 
@@ -13426,6 +13430,39 @@
             bottomBar.graphics.endFill();
         }
 
+        public function isHintUnavailableWithFillPen(target:DisplayObject):Boolean
+        {
+            const targetName:String = target.name;
+            if(isFillPenStarted)
+            {
+                if(target.alpha > 0.5
+                &&
+                (  toolBox.contains(target)
+                || canvasInfoBox.contains(target)
+                || colorPickerBox.contains(target))
+                || targetName.indexOf("alphaButton") !== -1)
+                {
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else if(isSelectedTool(TOOL_FILL_PEN))
+            {
+                if(targetName.indexOf("nSizeButton") !== -1 || target.alpha < 0.5)
+                {
+                    return true;
+                }
+            }
+            else if(isHintUnavailable())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public function onMouseOverBottomHint(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
@@ -13435,39 +13472,12 @@
                 return;
             }
 
-            const targetName:String = target.name;
-            trace("targetName",targetName);
-            if(isSelectedTool(TOOL_FILL_PEN))
-            {
-                if(targetName.indexOf("nSizeButton") !== -1
-                || target.alpha < 0.5)
-                {
-                    return
-                }
-            }
-            else if(isFillPenStarted)
-            {
-                if( target.alpha > 0.5
-                &&
-                (  toolBox.contains(target)
-                || canvasInfoBox.contains(target)
-                || colorPickerBox.contains(target))
-                || targetName.indexOf("alphaButton") !== -1)
-                {
-
-                }
-                else
-                {
-                    return;
-                }
-            }
-            else if(isHintUnavailable())
+            if(isHintUnavailableWithFillPen(target))
             {
                 return;
             }
 
-            //TODO: 필펜툴 활성화되었을때 힌트가 안나옴  isHintUnavailable에서 걸러주는데 없애도 괜찮은지 모르겠음 일단 특정버튼만 힌트를 활성화 시켜주어야함
-            const hint:String = HintStrings.getHintFromTargetName(targetName);
+            const hint:String = HintStrings.getHintFromTargetName(target.name);
 
             if(hint)
             {
@@ -13541,13 +13551,34 @@
 
         public function hideBottomHint():void
         {
-            hideHintHighlightBox();
-            bottomBar.visible = false;
+            if(!isKeepBottonBarHintTemp)
+            {
+                hideHintHighlightBox();
+                bottomBar.visible = false;
+            }
+        }
+
+        public function showBottomHintKeepCaptureMode(str:String,time:Number=3.0):void
+        {
+            showBottomHint(str);
+            isKeepBottonBarHintTemp = true;
+
+            addTimerByName("bottomHintKeepTimer",0.3,true,function(endtime:Number):Boolean
+            {
+                if(getTimer() >= endtime || !isCaptureModeON)
+                {
+                    isKeepBottonBarHintTemp = false;
+                    hideBottomHint();
+                    return false;
+                }
+
+                return true;
+            },[getTimer()+time*1000])
         }
 
         public function showBottomHint(str:String):void
         {
-            if(str === "")
+            if(str === "" || isKeepBottonBarHintTemp)
             {
                 return;
             }
@@ -15808,7 +15839,7 @@
                                     "r" : canvasAnchorPoint.rotation,
                                     "px" : Math.floor(canvasPanel.x),
                                     "py" : Math.floor(canvasPanel.y)
-            }
+            };
 
             canvasStateBeforeCaptureMode = {
                                     "z" : xZoomed,
@@ -15819,18 +15850,17 @@
                                     "py" : Math.floor(xPanel.y),
                                     "layer1" : layer1,
                                     "layer2" : layer2
-                                }
+            };
 
-            // fitCanvasToWindow(true);
-            //캔버스 회전에 fit canvas 함수가 들어있음
-            rotateCaptureImage(captureCanvasRotationStep);
-            updateCanvasFlipOnCaptureMode();
-            applyTransparentCanvasBGCaptureMode(isCaptureTransparentBGShowing);
+            //rotateCaptureImage함수에 fit canvas 함수가 들어있음
+            rotateCaptureImage(0);
+            flipCaptureImage(false);
+            applyTransparentCanvasBGCaptureMode(false);
             captureStampManager.on();
             captureStampManager.update();
             addTimerByName("captureModeHintDelay",0.2,false,function():void
             {
-                showBottomHint("Drag on the canvas to select an area _ Reset the capture area [right-click]")
+                showBottomHintKeepCaptureMode("Drag on the canvas to select an area _ Reset the capture area [right-click]")
             })
         }
 
@@ -16489,172 +16519,9 @@
                 }
             }
 
-            // function onMouseMoveCaptureAreaDrawed(e:MouseEvent):void
-            // {
-            //     if(!isCaptureModeON)
-            //     {
-            //         removeEvent();
-            //         return;
-            //     }
-
-            //     const mx:Number = xPanel.mouseX;
-            //     const my:Number = xPanel.mouseY;
-            //     var subX:Number = Math.round(mx-clickPos.x);
-            //     var subY:Number = Math.round(my-clickPos.y);
-
-            //     if(mouseMoved === true)
-            //     {
-            //         if(resizeFlag)
-            //         {
-            //             if(!isCaptureCanvasFlipped && captureCanvasRotationStep === 0 || isCaptureCanvasFlipped && captureCanvasRotationStep === 3)
-            //             {
-            //                 rectRaw.width += subX;
-            //                 rectRaw.height += subY;
-            //                 rectClamped.width = rectRaw.width;
-            //                 rectClamped.height = rectRaw.height;
-
-            //                 if(rectClamped.width < minSize) rectClamped.width = minSize;
-            //                 else if(rectClamped.x+rectClamped.width > canvasWidth) rectClamped.width = canvasWidth-rectClamped.x;
-
-            //                 if(rectClamped.height < minSize) rectClamped.height = minSize;
-            //                 else if(rectClamped.y+rectClamped.height > canvasHeight) rectClamped.height = canvasHeight-rectClamped.y;
-            //             }
-            //             else if(!isCaptureCanvasFlipped && captureCanvasRotationStep === 1 || isCaptureCanvasFlipped && captureCanvasRotationStep === 2)
-            //             {
-            //                 rectRaw.width += subX;
-            //                 rectRaw.height -= subY;
-            //                 rectRaw.y += subY;
-            //                 rectClamped.width = rectRaw.width;
-            //                 rectClamped.height = rectRaw.height;
-            //                 rectClamped.y = rectRaw.y;
-
-            //                 if(rectClamped.y < 0.0)
-            //                 {
-            //                     rectClamped.y = 0.0;
-            //                     rectClamped.height = limitHeightSave;
-            //                 }
-            //                 if(rectClamped.height < minSize)
-            //                 {
-            //                     rectClamped.height = minSize;
-            //                     rectClamped.y = limitHeightSave-rectClamped.height;
-            //                 }
-
-            //                 if(rectClamped.width < minSize) rectClamped.width = minSize;
-            //                 else if(rectClamped.x+rectClamped.width > canvasWidth) rectClamped.width = canvasWidth-rectClamped.x;
-            //             }
-            //             else if(!isCaptureCanvasFlipped && captureCanvasRotationStep === 2 || isCaptureCanvasFlipped && captureCanvasRotationStep === 1)
-            //             {
-            //                 rectRaw.width -= subX;
-            //                 rectRaw.height -= subY;
-            //                 rectRaw.x += subX;
-            //                 rectRaw.y += subY;
-            //                 rectClamped.width = rectRaw.width;
-            //                 rectClamped.height = rectRaw.height;
-            //                 rectClamped.x = rectRaw.x;
-            //                 rectClamped.y = rectRaw.y;
-
-            //                 if(rectClamped.width < minSize)
-            //                 {
-            //                     rectClamped.width = minSize;
-            //                     rectClamped.x = limitWidthSave-rectClamped.width;
-            //                 }
-
-            //                 if(rectClamped.height < minSize)
-            //                 {
-            //                     rectClamped.height = minSize;
-            //                     rectClamped.y = limitHeightSave-rectClamped.height;
-            //                 }
-
-            //                 if(rectClamped.x < 0.0)
-            //                 {
-            //                     rectClamped.x = 0.0;
-            //                     rectClamped.width = limitWidthSave;
-            //                 }
-
-            //                 if(rectClamped.y < 0.0)
-            //                 {
-            //                     rectClamped.y = 0.0;
-            //                     rectClamped.height = limitHeightSave;
-            //                 }
-            //             }
-            //             else if(!isCaptureCanvasFlipped && captureCanvasRotationStep === 3 || isCaptureCanvasFlipped && captureCanvasRotationStep === 0)
-            //             {
-            //                 rectRaw.width -= subX;
-            //                 rectRaw.height += subY;
-            //                 rectRaw.x += subX;
-
-            //                 rectClamped.width = rectRaw.width;
-            //                 rectClamped.height = rectRaw.height;
-            //                 rectClamped.x = rectRaw.x;
-
-            //                 if(rectClamped.x < 0.0)
-            //                 {
-            //                     rectClamped.x = 0.0;
-            //                     rectClamped.width = limitWidthSave;
-            //                 }
-
-            //                 if(rectClamped.width < minSize)
-            //                 {
-            //                     rectClamped.width = minSize;
-            //                     rectClamped.x = limitWidthSave-rectClamped.width;
-            //                 }
-
-            //                 if(rectClamped.height < minSize) 
-            //                 {
-            //                     rectClamped.height = minSize;
-            //                 }
-            //                 else if(rectClamped.y+rectClamped.height > canvasHeight) 
-            //                 {
-            //                     rectClamped.height = canvasHeight-rectClamped.y;
-            //                 }
-            //             }
-
-            //             showBottomHint(getRotatedRectSizeString());
-            //         }
-            //         else
-            //         {
-            //             rectRaw.x += subX;
-            //             rectRaw.y += subY;
-            //             rectClamped.x = rectRaw.x;
-            //             rectClamped.y = rectRaw.y;
-
-            //             if(rectClamped.x < 0.0)
-            //             {
-            //                 rectClamped.x = 0.0;
-            //             }
-            //             else if(rectClamped.x+rectClamped.width > canvasWidth)
-            //             {
-            //                 rectClamped.x = canvasWidth-rectClamped.width;
-            //             }
-
-            //             if(rectClamped.y < 0.0)
-            //             {
-            //                 rectClamped.y = 0.0;
-            //             }
-            //             else if(rectClamped.y+rectClamped.height > canvasHeight)
-            //             {
-            //                 rectClamped.y = canvasHeight-rectClamped.height;
-            //             }
-            //         }
-
-            //         rectClamped.x = Math.round(rectClamped.x);
-            //         rectClamped.y = Math.round(rectClamped.y);
-            //         rectClamped.width = Math.round(rectClamped.width);
-            //         rectClamped.height = Math.round(rectClamped.height);
-
-            //         clickPos.setTo(xPanel.mouseX,xPanel.mouseY);
-            //         drawArea(false);
-            //     }
-            //     else if(Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
-            //     {
-            //         mouseMoved = true;
-            //         clickPos.setTo(mx,my);
-            //         captureStampManager.visible(false);
-            //     }
-            // }
             function onMouseMoveCaptureAreaDrawed(e:MouseEvent):void
             {
-                if (!isCaptureModeON)
+                if(!isCaptureModeON)
                 {
                     removeEvent();
                     return;
@@ -16662,146 +16529,162 @@
 
                 const mx:Number = xPanel.mouseX;
                 const my:Number = xPanel.mouseY;
-                var subX:Number = Math.round(mx - clickPos.x);
-                var subY:Number = Math.round(my - clickPos.y);
+                var subX:Number = Math.round(mx-clickPos.x);
+                var subY:Number = Math.round(my-clickPos.y);
 
-                if (mouseMoved)
+                if(mouseMoved === true)
                 {
-                    if (resizeFlag)
+                    if(resizeFlag)
                     {
-                        applyResizeByRotation(subX, subY);
+                        if(!isCaptureCanvasFlipped && captureCanvasRotationStep === 0
+                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 3)
+                        {
+                            rectRaw.width += subX;
+                            rectRaw.height += subY;
+                            rectClamped.width = rectRaw.width;
+                            rectClamped.height = rectRaw.height;
+
+                            if(rectClamped.width < minSize) rectClamped.width = minSize;
+                            else if(rectClamped.x+rectClamped.width > canvasWidth) rectClamped.width = canvasWidth-rectClamped.x;
+
+                            if(rectClamped.height < minSize) rectClamped.height = minSize;
+                            else if(rectClamped.y+rectClamped.height > canvasHeight) rectClamped.height = canvasHeight-rectClamped.y;
+                        }
+                        else if(!isCaptureCanvasFlipped && captureCanvasRotationStep === 1
+                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 2)
+                        {
+                            rectRaw.width += subX;
+                            rectRaw.height -= subY;
+                            rectRaw.y += subY;
+                            rectClamped.width = rectRaw.width;
+                            rectClamped.height = rectRaw.height;
+                            rectClamped.y = rectRaw.y;
+
+                            if(rectClamped.y < 0.0)
+                            {
+                                rectClamped.y = 0.0;
+                                rectClamped.height = limitHeightSave;
+                            }
+                            if(rectClamped.height < minSize)
+                            {
+                                rectClamped.height = minSize;
+                                rectClamped.y = limitHeightSave-rectClamped.height;
+                            }
+
+                            if(rectClamped.width < minSize) rectClamped.width = minSize;
+                            else if(rectClamped.x+rectClamped.width > canvasWidth) rectClamped.width = canvasWidth-rectClamped.x;
+                        }
+                        else if(!isCaptureCanvasFlipped && captureCanvasRotationStep === 2
+                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 1)
+                        {
+                            rectRaw.width -= subX;
+                            rectRaw.height -= subY;
+                            rectRaw.x += subX;
+                            rectRaw.y += subY;
+                            rectClamped.width = rectRaw.width;
+                            rectClamped.height = rectRaw.height;
+                            rectClamped.x = rectRaw.x;
+                            rectClamped.y = rectRaw.y;
+
+                            if(rectClamped.width < minSize)
+                            {
+                                rectClamped.width = minSize;
+                                rectClamped.x = limitWidthSave-rectClamped.width;
+                            }
+
+                            if(rectClamped.height < minSize)
+                            {
+                                rectClamped.height = minSize;
+                                rectClamped.y = limitHeightSave-rectClamped.height;
+                            }
+
+                            if(rectClamped.x < 0.0)
+                            {
+                                rectClamped.x = 0.0;
+                                rectClamped.width = limitWidthSave;
+                            }
+
+                            if(rectClamped.y < 0.0)
+                            {
+                                rectClamped.y = 0.0;
+                                rectClamped.height = limitHeightSave;
+                            }
+                        }
+                        else if(!isCaptureCanvasFlipped && captureCanvasRotationStep === 3
+                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 0)
+                        {
+                            rectRaw.width -= subX;
+                            rectRaw.height += subY;
+                            rectRaw.x += subX;
+
+                            rectClamped.width = rectRaw.width;
+                            rectClamped.height = rectRaw.height;
+                            rectClamped.x = rectRaw.x;
+
+                            if(rectClamped.x < 0.0)
+                            {
+                                rectClamped.x = 0.0;
+                                rectClamped.width = limitWidthSave;
+                            }
+
+                            if(rectClamped.width < minSize)
+                            {
+                                rectClamped.width = minSize;
+                                rectClamped.x = limitWidthSave-rectClamped.width;
+                            }
+
+                            if(rectClamped.height < minSize) 
+                            {
+                                rectClamped.height = minSize;
+                            }
+                            else if(rectClamped.y+rectClamped.height > canvasHeight) 
+                            {
+                                rectClamped.height = canvasHeight-rectClamped.y;
+                            }
+                        }
+
                         showBottomHint(getRotatedRectSizeString());
                     }
                     else
                     {
-                        moveRect(subX, subY);
+                        rectRaw.x += subX;
+                        rectRaw.y += subY;
+                        rectClamped.x = rectRaw.x;
+                        rectClamped.y = rectRaw.y;
+
+                        if(rectClamped.x < 0.0)
+                        {
+                            rectClamped.x = 0.0;
+                        }
+                        else if(rectClamped.x+rectClamped.width > canvasWidth)
+                        {
+                            rectClamped.x = canvasWidth-rectClamped.width;
+                        }
+
+                        if(rectClamped.y < 0.0)
+                        {
+                            rectClamped.y = 0.0;
+                        }
+                        else if(rectClamped.y+rectClamped.height > canvasHeight)
+                        {
+                            rectClamped.y = canvasHeight-rectClamped.height;
+                        }
                     }
 
-                    clampRect();
-                    roundRect();
-                    clickPos.setTo(mx, my);
+                    rectClamped.x = Math.round(rectClamped.x);
+                    rectClamped.y = Math.round(rectClamped.y);
+                    rectClamped.width = Math.round(rectClamped.width);
+                    rectClamped.height = Math.round(rectClamped.height);
+
+                    clickPos.setTo(xPanel.mouseX,xPanel.mouseY);
                     drawArea(false);
                 }
-                else if (Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
+                else if(Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
                 {
                     mouseMoved = true;
-                    clickPos.setTo(mx, my);
+                    clickPos.setTo(mx,my);
                     captureStampManager.visible(false);
                 }
-            }
-
-            function applyResizeByRotation(subX:Number, subY:Number):void
-            {
-                const rot:int = captureCanvasRotationStep;
-                const flipped:Boolean = isCaptureCanvasFlipped;
-
-                if ((!flipped && rot === 0) || (flipped && rot === 3))
-                {
-                    rectRaw.width += subX;
-                    rectRaw.height += subY;
-                }
-                else if ((!flipped && rot === 1) || (flipped && rot === 2))
-                {
-                    rectRaw.width += subX;
-                    rectRaw.height -= subY;
-                    rectRaw.y += subY;
-                }
-                else if ((!flipped && rot === 2) || (flipped && rot === 1))
-                {
-                    rectRaw.width -= subX;
-                    rectRaw.height -= subY;
-                    rectRaw.x += subX;
-                    rectRaw.y += subY;
-                }
-                else if ((!flipped && rot === 3) || (flipped && rot === 0))
-                {
-                    rectRaw.width -= subX;
-                    rectRaw.height += subY;
-                    rectRaw.x += subX;
-                }
-
-                rectClamped.copyFrom(rectRaw);
-            }
-
-            function moveRect(subX:Number, subY:Number):void
-            {
-                rectRaw.x += subX;
-                rectRaw.y += subY;
-                rectClamped.x = rectRaw.x;
-                rectClamped.y = rectRaw.y;
-            }
-
-            function clampRect():void
-            {
-                if (rectClamped.x < 0.0)
-                {
-                    rectClamped.x = 0.0;
-                }
-                else if (rectClamped.x + rectClamped.width > canvasWidth)
-                {
-                    rectClamped.x = canvasWidth - rectClamped.width;
-                }
-
-                if (rectClamped.y < 0.0)
-                {
-                    rectClamped.y = 0.0;
-                }
-                else if (rectClamped.y + rectClamped.height > canvasHeight)
-                {
-                    rectClamped.y = canvasHeight - rectClamped.height;
-                }
-
-                if (rectClamped.width < minSize)
-                {
-                    rectClamped.width = minSize;
-                }
-
-                if (rectClamped.height < minSize)
-                {
-                    rectClamped.height = minSize;
-                }
-
-                if (rectClamped.x < 0.0)
-                {
-                    rectClamped.x = 0.0;
-                    rectClamped.width = limitWidthSave;
-                }
-
-                if (rectClamped.y < 0.0)
-                {
-                    rectClamped.y = 0.0;
-                    rectClamped.height = limitHeightSave;
-                }
-
-                if (rectClamped.x + rectClamped.width > canvasWidth)
-                {
-                    rectClamped.width = canvasWidth - rectClamped.x;
-                }
-
-                if (rectClamped.y + rectClamped.height > canvasHeight)
-                {
-                    rectClamped.height = canvasHeight - rectClamped.y;
-                }
-
-                if (rectClamped.width < minSize)
-                {
-                    rectClamped.width = minSize;
-                    rectClamped.x = limitWidthSave - rectClamped.width;
-                }
-
-                if (rectClamped.height < minSize)
-                {
-                    rectClamped.height = minSize;
-                    rectClamped.y = limitHeightSave - rectClamped.height;
-                }
-            }
-
-            function roundRect():void
-            {
-                rectClamped.x = Math.round(rectClamped.x);
-                rectClamped.y = Math.round(rectClamped.y);
-                rectClamped.width = Math.round(rectClamped.width);
-                rectClamped.height = Math.round(rectClamped.height);
             }
 
             function onMouseMoveDrawCaptureArea(e:MouseEvent):void
@@ -17080,7 +16963,7 @@
                 return false;
             }
 
-            function startCaptureAreaUpdate(mx:Number,my:Number,flag:Boolean):void
+            function startUpdatingCaptureAreaPosSize(mx:Number,my:Number,flag:Boolean):void
             {
                 isMouseDragging = true;
                 resizeFlag = flag;
@@ -17122,11 +17005,11 @@
                     resizeFlag = false;
                     if(isCursorInResizeButton())
                     {
-                        startCaptureAreaUpdate(mx,my,true);
+                        startUpdatingCaptureAreaPosSize(mx,my,true);
                     }
                     else if(isCursorInCaptureDrea())
                     {
-                        startCaptureAreaUpdate(mx,my,false);
+                        startUpdatingCaptureAreaPosSize(mx,my,false);
                     }
                     else
                     {
