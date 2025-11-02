@@ -415,7 +415,8 @@
 
 		//피커박스 구조
 		//custom color, colorhistoryBox, drawr프리셋 따로따로 전부가 첫번째 자식들임
-		public function ColorPickerSet() {
+		public function ColorPickerSet()
+		{
 			// visible = false;
 			name = "pickerBox";
 			initTransparentColorButton();

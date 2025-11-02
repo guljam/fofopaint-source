@@ -94,7 +94,7 @@
 			return textformat.font;
 		}
 
-		private function makeFontListChildBox():void
+		private function initFontListCells():void
 		{
 			const row:int = fontBoxRow;
 			const column:int = fontBoxColumn;
@@ -291,7 +291,7 @@
 			visible = false;
 			addChild(capFontListBG);
 			setChildIndex(capFontListBG, 0);
-			makeFontListChildBox();
+			initFontListCells();
 
 			capFontListPrev.useHandCursor = false;
 			capFontListNext.useHandCursor = false;
