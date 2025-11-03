@@ -443,15 +443,13 @@
 
 			//hue 그라디언트
 			gradMatrix.createGradientBox(svBoxWidth, hueHeight, 0, 0, 0); //
+			hueColor.name = "hueColor";
 			hueColor.graphics.lineStyle(0,0,0);
 			hueColor.graphics.beginGradientFill(GradientType.LINEAR, [0xFF0000,0xFFFF00,0x00FF00,0x00FFFF,0x0000FF,0xFF00FF,0xFF0000],
 															[1,1,1,1,1,1,1],//255/6 = 42.5 x n
 															[0,42.5,85,127.5,170,212.5,255], gradMatrix);
 			hueColor.graphics.drawRect(0, 0, svBoxWidth, hueHeight);
 			hueColor.graphics.endFill();
-
-			hueColor.name = "hueColor";
-			svBox.name = "svBox";
 
 			mainPickerMenuBox.addChild(swapPositionButton);
 			mainPickerMenuBox.addChild(paperColorButton);
@@ -501,6 +499,8 @@
 			hueColor.y = Math.floor(rgbInfoBG.y+rgbInfoBG.height+4);
 			hueColor.addChild(hueCursor);
 			hueColor.addChild(hueColorMask);
+
+			svBox.name = "svBox";
 			svBox.addChild(svBase);
 			svBox.addChild(svGradient);
 			svBox.addChild(svCursor);

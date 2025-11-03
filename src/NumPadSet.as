@@ -51,13 +51,13 @@
 
 		private const okLWrapper:Sprite = new Sprite();
 		private var okLBitmap:Bitmap;
-		private const okLSlider:Shape = new Shape();
+		private const okLSliderCursor:Shape = new Shape();
 		private const okCWrapper:Sprite = new Sprite();
 		private var okCBitmap:Bitmap;
-		private const okCSlider:Shape = new Shape();
-		private const okHWrapper:Sprite = new Sprite();
-		private var okHBitmap:Bitmap;
-		private const okHSlider:Shape = new Shape();
+		private const okCSliderCursor:Shape = new Shape();
+		public const okHWrapper:Sprite = new Sprite();
+		public var okHBitmap:Bitmap;
+		private const okHSliderCusor:Shape = new Shape();
 
 		private const sliderOffset:Number = 5.0;
 		private var okBaseHue:Number = 0;
@@ -85,12 +85,12 @@
 			okLBitmap = new Bitmap(new BitmapData(1, height - 10, false, 0));
 			okLBitmap.y = sliderOffset;
 			okLBitmap.width = width;
-			okLSlider.graphics.clear();
-			okLSlider.graphics.lineStyle(1, 0xFFFFFF);
-			okLSlider.graphics.moveTo(0, 0);
-			okLSlider.graphics.lineTo(width, 0);
+			okLSliderCursor.graphics.clear();
+			okLSliderCursor.graphics.lineStyle(1, 0xFFFFFF, 1.0, false, "normal", "none");
+			okLSliderCursor.graphics.moveTo(0, 0);
+			okLSliderCursor.graphics.lineTo(width, 0);
 			okLWrapper.addChild(okLBitmap);
-			okLWrapper.addChild(okLSlider);
+			okLWrapper.addChild(okLSliderCursor);
 			oklabLText.x = okLWrapper.x + (width - oklabLText.width) / 2 - 1;
 			oklabLText.y = okLWrapper.y - 14;
 
@@ -104,12 +104,12 @@
 			okCBitmap = new Bitmap(new BitmapData(1, height - 10, false, 0));
 			okCBitmap.y = sliderOffset;
 			okCBitmap.width = width;
-			okCSlider.graphics.clear();
-			okCSlider.graphics.lineStyle(1, 0xFFFFFF);
-			okCSlider.graphics.moveTo(0, 0);
-			okCSlider.graphics.lineTo(width, 0);
+			okCSliderCursor.graphics.clear();
+			okCSliderCursor.graphics.lineStyle(1, 0xFFFFFF, 1.0, false, "normal", "none");
+			okCSliderCursor.graphics.moveTo(0, 0);
+			okCSliderCursor.graphics.lineTo(width, 0);
 			okCWrapper.addChild(okCBitmap);
-			okCWrapper.addChild(okCSlider);
+			okCWrapper.addChild(okCSliderCursor);
 			oklabCText.x = okCWrapper.x + (width - oklabCText.width) / 2 - 1;
 			oklabCText.y = okCWrapper.y - 14;
 
@@ -123,12 +123,12 @@
 			okHBitmap = new Bitmap(new BitmapData(1, height - 10, false, 0));
 			okHBitmap.y = sliderOffset;
 			okHBitmap.width = width;
-			okHSlider.graphics.clear();
-			okHSlider.graphics.lineStyle(1, 0xFFFFFF);
-			okHSlider.graphics.moveTo(0, 0);
-			okHSlider.graphics.lineTo(width, 0);
+			okHSliderCusor.graphics.clear();
+			okHSliderCusor.graphics.lineStyle(1, 0xFFFFFF, 1.0, false, "normal", "none");
+			okHSliderCusor.graphics.moveTo(0, 0);
+			okHSliderCusor.graphics.lineTo(width, 0);
 			okHWrapper.addChild(okHBitmap);
-			okHWrapper.addChild(okHSlider);
+			okHWrapper.addChild(okHSliderCusor);
 			oklabHText.x = okHWrapper.x + (width - oklabHText.width) / 2;
 			oklabHText.y = okHWrapper.y - 14;
 
@@ -221,13 +221,13 @@
 		public function initOkLchSliderPos(lch:Object):void
 		{
 			const height:Number = okLBitmap.bitmapData.height;
-			const lpos:Number = height-lch.L*height;
-			const cpos:Number = height-lch.C*height;
-			const hpos:Number = height-(lch.H/360.0)*height;
+			const lpos:Number = height - lch.L * height;
+			const cpos:Number = height - lch.C * height;
+			const hpos:Number = height - (lch.H / 360.0) * height;
 
-			okLSlider.y = lpos+sliderOffset;
-			okCSlider.y = cpos+sliderOffset;
-			okHSlider.y = hpos+sliderOffset;
+			okLSliderCursor.y = lpos + sliderOffset;
+			okCSliderCursor.y = cpos + sliderOffset;
+			okHSliderCusor.y = hpos + sliderOffset;
 		}
 
 		public function updateOkBaseColor(color:uint):void
@@ -238,7 +238,7 @@
 			{
 				okBaseColorLch.H = okBaseHue;
 			}
-			
+
 			initOkLchSliderPos(okBaseColorLch);
 
 			updateOKGradient(true, true, true);
@@ -430,12 +430,12 @@
 			return oklabToOklch(ok.L, ok.a, ok.b);
 		}
 
-		public function onOKLCHMouseUp(e:MouseEvent):void
+		public function onMouseUpOKLCH(e:MouseEvent):void
 		{
 			removeOKLCHMouseEvent();
 		}
 
-		public function onOKLCHMouseMove(e:MouseEvent):void
+		public function onMouseMoveOKLCH(e:MouseEvent):void
 		{
 			onMouseMoveUpdateLCH();
 			const hexColor:uint = OklchToHex(okBaseColorLch);
@@ -454,7 +454,7 @@
 			{
 				updateOKGradient(true, true, false);
 			}
-
+trace("okBaseColorLch",okBaseColorLch.L,okBaseColorLch.C,okBaseColorLch.H);
 			pickColorFunc(okPickedColor);
 		}
 
@@ -472,15 +472,15 @@
 			onMouseMoveUpdateLCH = null;
 			pickColorFunc = null;
 			hideClorPreviewBox();
-			stage.removeEventListener(MouseEvent.MOUSE_MOVE, onOKLCHMouseMove);
-			stage.removeEventListener(MouseEvent.MOUSE_UP, onOKLCHMouseUp);
+			stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveOKLCH);
+			stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpOKLCH);
 		}
 
 		private function addOKLCHMouseEvent():void
 		{
 			showColorPreviewBox();
-			stage.addEventListener(MouseEvent.MOUSE_MOVE, onOKLCHMouseMove);
-			stage.addEventListener(MouseEvent.MOUSE_UP, onOKLCHMouseUp);
+			stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveOKLCH);
+			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpOKLCH);
 		}
 
 		public function startAdjustLCH(flag:int, pickerBoxFunc:Function):void
@@ -510,15 +510,15 @@
 			const ypos:Number = clamp(okLBitmap.mouseY, 0.0, okLBitmap.bitmapData.height - 1.0);
 			const value:Number = 1.0 - ypos / okLBitmap.bitmapData.height;
 			okBaseColorLch.L = value;
-			okLSlider.y = ypos + sliderOffset;
+			okLSliderCursor.y = ypos + sliderOffset;
 		}
 
 		public function updateC():void
 		{
 			const ypos:Number = clamp(okCBitmap.mouseY, 0.0, okCBitmap.bitmapData.height - 1.0);
-			var value:Number = (1.0 - ypos / okCBitmap.bitmapData.height);
+			var value:Number = (1.0 - ypos / okCBitmap.bitmapData.height) / 2;
 			okBaseColorLch.C = value;
-			okCSlider.y = ypos + sliderOffset;
+			okCSliderCursor.y = ypos + sliderOffset;
 		}
 
 		public function updateH():void
@@ -526,7 +526,7 @@
 			const ypos:Number = clamp(okHBitmap.mouseY, 0.0, okHBitmap.bitmapData.height - 1.0);
 			const value:Number = 360.0 - 360.0 * (ypos / okHBitmap.bitmapData.height);
 			okBaseColorLch.H = value;
-			okHSlider.y = ypos + sliderOffset;
+			okHSliderCusor.y = ypos + sliderOffset;
 		}
 
 		public function isBaseColorGray():Boolean
@@ -548,7 +548,7 @@
 			const configs:Array =
 				[
 					{flag: lflag, bmpd: okLBitmap.bitmapData, max: 1.0, step: 1.0 / height, idx: 0},
-					{flag: cflag, bmpd: okCBitmap.bitmapData, max: 1.0, step: 1.0 / height, idx: 1},
+					{flag: cflag, bmpd: okCBitmap.bitmapData, max: 0.5, step: 0.5 / height, idx: 1},
 					{flag: hflag, bmpd: okHBitmap.bitmapData, max: 360.0, step: 360.0 / height, idx: 2}
 				];
 

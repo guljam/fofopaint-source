@@ -10,6 +10,24 @@
             m = mainclass;
         }
 
+        static private const hintsCaptureMode:Object =
+            {
+                "capOff": "Exit capture mode (esc, backspace, f1, f7]",
+                "capSave": "Save {getCaptureSaveHint()} [ctrl+s, ctrl+;]",
+                "capClipBoard": "Copy {getCaptureSaveHint()} to clipboard [ctrl+c, ctrl+,]",
+                "capTrans": "Background color ON/OFF [d, j]",
+                "capRotate": "Rotate canvas by 90° [s, k]",
+                "capFlip": "Flip image [a, l]",
+                "capLayer1VisibleButton": "Layer 1 visible ON/OFF [1, 9]",
+                "capLayer2VisibleButton": "Layer 2 visible ON/OFF [2, 0]",
+                "capStamp": "Stamp ON/OFF [f, h]",
+                "capStampFont": "Change stamp font",
+                "rCanvasPanel": "Drag on the canvas to select an area _ Reset the capture area [right-click]",
+                "rCanvasDrawLayer": "Drag on the canvas to select an area _ Reset the capture area [right-click]",
+                "canvasPanel": "Drag on the canvas to select an area _ Reset the capture area [right-click]",
+                "canvasDrawLayer": "Drag on the canvas to select an area _ Reset the capture area [right-click]"
+            };
+
         static private const hints:Object =
             {
                 // 드로우 모드
@@ -52,18 +70,6 @@
                 "replayFitToWindowButton": "Canvas center alignment ON/OFF [right-click on canvas]",
                 "replayRotateButton": "Rotate {STRING_RIGHT_CLICK_TO_RESET}",
                 "replayRepeatButton": "Repeat replay ON/OFF",
-
-                // 캡쳐 모드
-                "capOff": "Exit capture mode (esc, backspace, f1, f7]",
-                "capSave": "Save {getCaptureSaveHint()} [ctrl+s, ctrl+;]",
-                "capClipBoard": "Copy {getCaptureSaveHint()} to clipboard [ctrl+c, ctrl+,]",
-                "capTrans": "Background color ON/OFF [d, j]",
-                "capRotate": "Rotate canvas by 90° [s, k]",
-                "capFlip": "Flip image [a, l]",
-                "capLayer1VisibleButton": "Layer 1 visible ON/OFF [1, 9]",
-                "capLayer2VisibleButton": "Layer 2 visible ON/OFF [2, 0]",
-                "capStamp": "Stamp ON/OFF [f, h]",
-                "capStampFont": "Change stamp font",
 
                 // 그리드 슬라이더
                 "gridSliderWrapper": "Grid {getGridGapHint()} _ {STRING_RIGHT_CLICK_TO_RESET}",
@@ -135,12 +141,12 @@
                 "toolRotate": "Rotate canvas [s, k] _ {STRING_RIGHT_CLICK_TO_RESET}",
                 "toolRotate2": "Rotate canvas [s, k]",
                 "toolRefLayer": "Reference layer [t]",
-                "sideBarScrollBar":"Scroll [drag, mouse wheel on sidebar] _ {STRING_RIGHT_CLICK_TO_RESET}",
+                "sideBarScrollBar": "Scroll [drag, mouse wheel on sidebar] _ {STRING_RIGHT_CLICK_TO_RESET}",
 
-                "toolFillPenOK" : "OK [right-click, enter, q / o key up)",
-                "toolFillPenCancel" : "Cancel [esc]",
-                
-                //컬러 픽커
+                "toolFillPenOK": "OK [right-click, enter, q / o key up)",
+                "toolFillPenCancel": "Cancel [esc]",
+
+                // 컬러 픽커
                 "hueColor": "Hue",
                 "svBox": "Situation and Value",
                 "swapPositionButton": "Swap palette position [click]",
@@ -149,19 +155,19 @@
                 "rgbInfoText": "Change value [click] _ Change color model [click {getRGBorHSVString()} text]",
                 "paperColorButton": "Change background color",
                 "penColorButton": "Change pen color",
-                "currentColor":"{getCurrentColorHint()}",
+                "currentColor": "{getCurrentColorHint()}",
                 "transColorButton": "Transparent color ON/OFF [c+space, m+space]",
                 "myPaletteButton": "My palette _ Expand palette ON/OFF [click x 2] _ Clear palette [click] {STRING_PRESS_HOLD}",
                 "drawrPresetButton": "Drawr color preset _ Clear scratch pad [click] {STRING_PRESS_HOLD}",
                 "tegakiPresetButton": "Tegaki color preset _ Clear scratch pad [click] {STRING_PRESS_HOLD}",
                 "scratchPad": "Scratch pad _ Draw [drag] _ Select color [c, m, click]",
 
-                //캔버스 네비게이터
-                "navStageBG":"Canvas Navigator",
-                "navBitmapBG":"Canvas Navigator",
-                "navCursor":"Canvas Navigator",
-                "navLayer1Bitmap":"Canvas Navigator",
-                "navLayer2Bitmap":"Canvas Navigator"
+                // 캔버스 네비게이터
+                "navStageBG": "Canvas Navigator",
+                "navBitmapBG": "Canvas Navigator",
+                "navCursor": "Canvas Navigator",
+                "navLayer1Bitmap": "Canvas Navigator",
+                "navLayer2Bitmap": "Canvas Navigator"
             };
 
         static public function resolveTemplate(template:String):String
@@ -219,6 +225,16 @@
 
                     return value != null ? value.toString() : "";
                 });
+        }
+
+        static public function getHintFromTargetNameCaptureMode(targetName:String):String
+        {
+            if (m === null || !hintsCaptureMode.hasOwnProperty(targetName))
+            {
+                return null;
+            }
+
+            return resolveTemplate(hintsCaptureMode[targetName]);
         }
 
         static public function getHintFromTargetName(targetName:String):String

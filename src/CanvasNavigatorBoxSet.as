@@ -11,7 +11,7 @@
 	{
 		public var navCursor:Sprite = new Sprite();
 		private var navInfoText:TextField;
-		private var navStageBG:Sprite = new Sprite();
+		public var navStageBG:Sprite = new Sprite();
 		public var navBitmapBG:Sprite = new Sprite();
 		public var navLayer1Bitmap:Bitmap = new Bitmap();
 		public var navLayer2Bitmap:Bitmap = new Bitmap();
