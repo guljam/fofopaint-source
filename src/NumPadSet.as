@@ -454,7 +454,7 @@
 			{
 				updateOKGradient(true, true, false);
 			}
-trace("okBaseColorLch",okBaseColorLch.L,okBaseColorLch.C,okBaseColorLch.H);
+
 			pickColorFunc(okPickedColor);
 		}
 

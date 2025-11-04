@@ -150,7 +150,7 @@
                 "hueColor": "Hue",
                 "svBox": "Situation and Value",
                 "swapPositionButton": "Swap palette position [click]",
-                "historyBox": "Move color to my palette [drag]",
+                "historyBox": "Color history _ Move color to my palette [drag]",
                 "myPaletteBox": "Add, remove, restore color [hold click] _ Swap color position [drag]",
                 "rgbInfoText": "Change value [click] _ Change color model [click {getRGBorHSVString()} text]",
                 "paperColorButton": "Change background color",

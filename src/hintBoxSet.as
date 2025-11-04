@@ -69,9 +69,9 @@
 			if (_hintBG != null)
 			{
 				_hintBG.graphics.clear();
-				_hintBG.graphics.lineStyle(1, 0, 0.5);
+				// _hintBG.graphics.lineStyle(0, 0, 0.0);
 				_hintBG.graphics.beginFill(_bgColor, 0.75);
-				_hintBG.graphics.drawRect(-1, -1, hintText.width + 2, hintText.height + 2);
+				_hintBG.graphics.drawRect(-2, -2, hintText.width + 6, hintText.height + 3);
 				_hintBG.graphics.endFill();
 			}
 		}

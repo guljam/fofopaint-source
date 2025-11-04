@@ -7,6 +7,9 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.geom.Point;
+	import flash.events.Event;
+	import flash.utils.getTimer;
+	import flash.display.Shape;
 
 	public class ToolMenuSet2 extends Sprite
 	{
@@ -29,6 +32,9 @@
 		public var toolInfoText:TextField;
 		private var fixedScale:Number = 1.0;
 		private var infoDataBackup:Array = [];
+		private const resizeButtonWaitTimeBar:Shape = new Shape();
+		private var resizeButtonWaitTimeBarColor:uint = 0xFf0000;
+		private var WIDTH:Number = 0.0;
 
 		private var lastUsedToolPoint:Point = new Point(0, 0);
 
@@ -162,6 +168,7 @@
 			}
 			// 텍스트
 			toolInfoText.textColor = arr[2];
+			resizeButtonWaitTimeBarColor = arr[4];
 
 			btn = null;
 			btnUp = null;
@@ -172,6 +179,35 @@
 		{
 			this.scaleX = newScale * fixedScale;
 			this.scaleY = newScale * fixedScale;
+		}
+
+		public function startResizeButtonWaitBarAnimation(duration:Number):void
+		{
+			var totalWidth:Number = WIDTH;
+			var color:uint = resizeButtonWaitTimeBarColor;
+			var elapsed:Number = 0;
+			var startTime:int = getTimer();
+			var toolbox2:DisplayObjectContainer = this;
+
+			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+
+			function onEnterFrame(e:Event):void
+			{
+				elapsed = (getTimer() - startTime) / 1000; // 초 단위 경과 시간
+				var progress:Number = Math.min(elapsed / duration, 1); // 0~1 사이 비율
+
+				var currentWidth:Number = totalWidth * progress;
+
+				resizeButtonWaitTimeBar.graphics.clear();
+				resizeButtonWaitTimeBar.graphics.lineStyle(4, color, 1.0, false, "normal", "none");
+				resizeButtonWaitTimeBar.graphics.moveTo(0, 0);
+				resizeButtonWaitTimeBar.graphics.lineTo(currentWidth, 0);
+
+				if (progress >= 1 || toolbox2.visible === false)
+				{
+					removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+				}
+			}
 		}
 
 		public function ToolMenuSet2()
@@ -202,6 +238,10 @@
 
 			fixedScale = 34 / toolPen.width;
 			setScale(1.0);
+			WIDTH = this.width / fixedScale;
+
+			resizeButtonWaitTimeBar.y = 2;
+			addChild(resizeButtonWaitTimeBar);
 		}
 	}
 
