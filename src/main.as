@@ -326,7 +326,7 @@
                     isCanvasMirrored:Boolean = false,
                     mirrorCommandReady:Boolean = false, //미러 커맨드를 넣어줄지 말지 결정
                     canvasZoomMultiplerList:Array = [0.125,0.25,0.5,0.75,1.0,1.50,2.0,3.0,4.0,6.0,8.0,12.0,16.0,24.0,32.0],
-                    canvasZoomedMultipler:Number = 1.0,
+                    canvasZoomMultipler:Number = 1.0,
                     canvasZoomIndex:int = 3,
                     isMouseClicked:Boolean = false, //클릭하면 올려줌,
                     isRightMouseClicked:Boolean = false, //클릭하면 올려줌
@@ -463,13 +463,13 @@
                    rDataBuffer:Array = [], //draw layer에서 그려준 데이터를 이쪽으로 다모아줌
                    rData:Array = [], //rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
                    rDataFrame:Array = [], //rdata안에 몇프레임이 들어있는지 저장
+                   rDataReadFlag:Boolean = true, //rData읽을때는 true, r file 읽을때는 false
                    rFileLastBytePosition:Number = 0, //fs position 저장
                    rFileCutBytePosition:Number = 0, //super undo에서 파일 잘라줄때 필요함
                    rDataIndex:int = 0, //rData에서만씀 rData 스크로크 뭉치 인덱스
                    rDataStartIndex:int = 0, //리플레이에서 프레임 스캡을 앞부분으로 해줄때 rdata를 읽는 부분이면 현재 undoindex부분 부터 읽게 인덱스를 올려줌
                    rLastLayer2Selcted:Boolean = false, //리플레이 실행할때 이걸로 비교해서 캔버스 스왑해줌
                    rLastCanvasBGColor:uint = RCANVAS_BG_COLOR, //load replay에서 씀
-                   rMemoryReadFlag:Boolean = true, //rData읽을때는 true, r file 읽을때는 false
                    rReplaySpeedMultipler:Number = 1, //리플레이 속도 for루프로 2번씩혹은 3번씩 읽히게 만듬
                    rAirBrushSize:int = 0, //레거시지원 변수
                    rAirBrushSize2:int = 0, //새로운거
@@ -479,9 +479,9 @@
                    rFirstImageLayer2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0), 
                    rFirstImageBGColor:uint = canvasBGColor, 
                    rMirrorON:Boolean = false, //대칭 켜지면 올려줌
-                   rCanvasZoomedMultiplier:Number = 1.0, //리플레이 줌
-                   rCanvasZoomedMultiplierLast:Number = 1.0, //리플레이에서 수동줌하면 여기다가 저장해줌
-                   rCanvasZoomedIndex:int = 3, 
+                   rCanvasZoomMultiplier:Number = 1.0, //리플레이 줌
+                   rLastCanvasZoomMultiplier:Number = 1.0, //리플레이에서 수동줌하면 여기다가 저장해줌
+                   rCanvasZoomIndex:int = 3, 
                    isReplayCanvasFitToWindow:Boolean = false, // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
                    rJumpImageIndexLast:int = -2, //썸네일 인덱스 바뀌면 여기다 저장
                    rJumpImageNowFrameLast:Number = -1, 
@@ -564,9 +564,9 @@
                       drawDone:Function = cDrawDone(),
                       drawReplayByCommand:Object = cDrawReplayDataCommands(),
                       startDrawFromReplayData:Function = cDrawReplayData(),
-                      autoScroll:Object = cReplayAutoScroll(),
+                      rFollowMouse:Object = cReplayFollowMouse(),
                       updatePenSizeCursor:Function = cUpdatePenSizeCursor(),
-                      undoData:Object = cAddUndoData(),
+                      undoManager:Object = cAddUndoData(),
                       penCursorManager:Object = cPenCursorUpdater(),
                       checkSelectMainDrawTool:Function = cCheckSelectMainDrawTool(),
                       captureAreaManager:Object = cDrawCaptureArea(),
@@ -1103,7 +1103,7 @@
                                 zoomInCanvas(true, isReplayModeON);
                                 if (!isReplayModeON)
                                 {
-                                    showMouseHintTemp(Math.floor(canvasZoomedMultipler * 100) + "%");
+                                    showMouseHintTemp(Math.floor(canvasZoomMultipler * 100) + "%");
                                 }
                             }
                             else
@@ -1111,7 +1111,7 @@
                                 zoomInCanvas(false, isReplayModeON);
                                 if (!isReplayModeON)
                                 {
-                                    showMouseHintTemp(Math.floor(canvasZoomedMultipler * 100) + "%");
+                                    showMouseHintTemp(Math.floor(canvasZoomMultipler * 100) + "%");
                                 }
                             }
                         }
@@ -1545,7 +1545,7 @@
             var oldY:Number = target.y;
             var mx:Number = stage.mouseX;
             var my:Number = stage.mouseY;
-            const zoom:Number = canvasZoomedMultipler;
+            const zoom:Number = canvasZoomMultipler;
             const angle:Number = targetAngle;
 
             return function():Point
@@ -2947,7 +2947,7 @@
                 }
 
                 rDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
-                undoData.addNew();
+                undoManager.addNew();
 
                 disposeLassoBoxBitmapData();
                 resetLassoBox();
@@ -3090,14 +3090,14 @@
             {
                 rDataBuffer.push(["bgColor", color]);
                 updateLastRDataCommand("bgColor");
-                undoData.addContinue();
+                undoManager.addContinue();
             }
             else
             {
                 if (isDeepUndoEnabled)
                     applyDeepUndo();
                 rDataBuffer.push(["bgColor", color]);
-                undoData.addNew();
+                undoManager.addNew();
             }
         }
 
@@ -3157,7 +3157,7 @@
             }
 
             isDeleteUndoDataPending = false;
-            undoData.updateLastRDataMirror();
+            undoManager.updateLastRDataMirror();
             undoDataIndex = rData.length - 1;
         }
 
@@ -3197,7 +3197,7 @@
                 canvasLayer2BitmapData.draw(canvasLayer1BitmapData);
                 canvasLayer1BitmapData.fillRect(new Rectangle(0,0,CANVAS_WIDTH,CANVAS_HEIGHT),0);
                 rDataBuffer.push(["merge"]);
-                undoData.addNew();
+                undoManager.addNew();
             }
             toolOptionsBox.layerMergeButton.alpha = BUTTON_OFF_ALPHA;
         }
@@ -3235,7 +3235,7 @@
             else
             {
                 rDataBuffer.push(["swap"]);
-                undoData.addNew();
+                undoManager.addNew();
             }
 
             playLayerSwapFlickEffect(toolOptionsBox.layerSwapButton);
@@ -3364,7 +3364,7 @@
             rReplayFOFOCursor.setScale(scale);
             fofo.setScale(scale);
             checkFOFOPosition();
-            autoScroll.updateScale(scale);
+            rFollowMouse.updateScale(scale);
 
             //이거 위에서 뭔가 해주고 난후에 여기서 해줘야함
             sideBar.y = Math.round(STAGE_TOP_OFFSET);
@@ -3435,7 +3435,7 @@
                 case "toolZoomIn":
                 case "toolZoomOut":
                 {
-                    if(canvasZoomedMultipler !== 1.0)
+                    if(canvasZoomMultipler !== 1.0)
                     {
                         resetZoomDrawMode();
                     }
@@ -4981,7 +4981,7 @@
                 }
                 else if(target.name === "toolZoomIn" || target.name === "toolZoomOut")
                 {
-                    if(canvasZoomedMultipler !== 1.0)
+                    if(canvasZoomMultipler !== 1.0)
                     {
                         resetZoomDrawMode();
                     }
@@ -5332,7 +5332,7 @@
                 {
                     refLayerMenuBox.visible = false;
                 }
-                dottedLine.updateScale(canvasZoomedMultipler);
+                dottedLine.updateScale(canvasZoomMultipler);
 
                 const filteredPos:Point = getFilteredPos(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
                 var mx:Number = filteredPos.x+pos05Offset;
@@ -5808,18 +5808,18 @@
 
             function updateCursorSize(size:Number):void
             {
-                cursorSize = size*canvasZoomedMultipler;
+                cursorSize = size*canvasZoomMultipler;
             }
 
             function updateZoom(z:Number):void
             {
                 if(isSelectedToolPenOrLine())
                 {
-                    cursorSize = penSize*canvasZoomedMultipler;
+                    cursorSize = penSize*canvasZoomMultipler;
                 }
                 else if(isSelectedTool(TOOL_ERASER))
                 {
-                    cursorSize = eraserSize*canvasZoomedMultipler;
+                    cursorSize = eraserSize*canvasZoomMultipler;
                 }
                 else
                 {
@@ -6053,26 +6053,26 @@
 
         public function restoreZoomReplayMode():void
         {
-            rCanvasZoomedIndex = getNearZoomIndex(rCanvasZoomedMultiplierLast);
-            updateCanvasScale(canvasZoomMultiplerList[rCanvasZoomedIndex],true);
-            autoScroll.updateRCanvasBounds();
+            rCanvasZoomIndex = getNearZoomIndex(rLastCanvasZoomMultiplier);
+            updateCanvasScale(canvasZoomMultiplerList[rCanvasZoomIndex],true);
+            rFollowMouse.updateBounds();
         }
 
         public function resetZoomReplayMode():void
         {
             const center:Point = getStageCenterPos("replay");
 
-            rCanvasZoomedMultiplierLast = 1.0;
-            rCanvasZoomedIndex = canvasZoomMultiplerList.indexOf(1.0);
+            rLastCanvasZoomMultiplier = 1.0;
+            rCanvasZoomIndex = canvasZoomMultiplerList.indexOf(1.0);
             moveCanvasAnchorPoint(center.x,center.y,true);
             updateCanvasScale(1.0,true);
             setFitReplayCanvasToWindowOFF();
-            autoScroll.updateRCanvasBounds();
+            rFollowMouse.updateBounds();
         }
 
         public function resetZoomDrawMode():void
         {
-            if(canvasZoomedMultipler !== 1.0)
+            if(canvasZoomMultipler !== 1.0)
             {
                 const center:Point = getStageCenterPos("draw");
                 const gcenter:Point = canvasPanel.globalToLocal(new Point(center.x,center.y));
@@ -6093,7 +6093,7 @@
             const xAnc:Sprite = (replayMode) ? rCanvasAnchorPoint : canvasAnchorPoint;
             const zoomMax:int = canvasZoomMultiplerList.length-1;
             var center:Point;
-            var newZoomIndex:int = (replayMode) ? rCanvasZoomedIndex : canvasZoomIndex;
+            var newZoomIndex:int = (replayMode) ? rCanvasZoomIndex : canvasZoomIndex;
 
             if(zoomInFlag)
             {
@@ -6117,12 +6117,12 @@
             if(replayMode)
             {
                 center = getStageCenterPos("replay");
-                rCanvasZoomedMultiplierLast = newZoom;
+                rLastCanvasZoomMultiplier = newZoom;
                 setFitReplayCanvasToWindowOFF();
-                rCanvasZoomedIndex = newZoomIndex;
+                rCanvasZoomIndex = newZoomIndex;
                 moveCanvasAnchorPoint(center.x,center.y,true);
                 updateCanvasScale(newZoom,replayMode);
-                autoScroll.updateRCanvasBounds();
+                rFollowMouse.updateBounds();
             }
             else
             {
@@ -6227,7 +6227,7 @@
 
                         case KEY.w:
                         case KEY.i:
-                            if(canvasZoomedMultipler !== 1.0) resetZoomDrawMode();
+                            if(canvasZoomMultipler !== 1.0) resetZoomDrawMode();
                         return;
                     }
                 }))
@@ -6332,7 +6332,7 @@
             }
 
             const gp:Point = canvasLayer1Bitmap.globalToLocal(new Point(newLeftOffset,STAGE_TOP_OFFSET));
-            const zoom:Number = canvasZoomedMultipler;
+            const zoom:Number = canvasZoomMultipler;
             canvasNavigatorBox.updateCursor(gp.x*zoom,gp.y*zoom
                                     ,stage.stageWidth-newRightOffset-newLeftOffset
                                     ,stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET
@@ -6740,9 +6740,9 @@
             }
 
             var gridgap:Number = gridGapValue*GRID_GAP;
-            if(gridgap*canvasZoomedMultipler < gridgap)
+            if(gridgap*canvasZoomMultipler < gridgap)
             {
-                gridgap = gridgap/canvasZoomedMultipler;
+                gridgap = gridgap/canvasZoomMultipler;
             }
 
             if(gridgap !== lastGridGapValue)
@@ -6793,7 +6793,7 @@
             }
 
             canvasGrid.graphics.clear();
-            canvasGrid.graphics.lineStyle(1/canvasZoomedMultipler,GRID_NORMAL_COLOR,0.5,false);
+            canvasGrid.graphics.lineStyle(1/canvasZoomMultipler,GRID_NORMAL_COLOR,0.5,false);
             canvasGrid.graphics.drawPath(gridGraphicsCommands,gridGraphicsData);
 
             updateGridMirror(isCanvasMirrored);
@@ -7476,12 +7476,12 @@
 
             if(hasLastRDataCommand(command))
             {
-                undoData.addContinue();
+                undoManager.addContinue();
             }
             else
             {
                 rDataBuffer = [[command]];
-                undoData.addNew();
+                undoManager.addNew();
             }
 
             resetRefLayerImageTransform();
@@ -7554,7 +7554,7 @@
 
         public function blurReplayCanvasByValue(size:Number):void
         {
-            const blurSize:Number = getBlurSize(size,rCanvasZoomedMultiplier);
+            const blurSize:Number = getBlurSize(size,rCanvasZoomMultiplier);
             const blurf:BlurFilter = new BlurFilter(blurSize,blurSize,3);
             rAirBrushSize = size;
             rCanvasDrawShape.filters = [blurf];
@@ -9378,8 +9378,8 @@
             rMirrorON = false;
             isCanvasMirrored = false;
             mirrorCommandReady = false;
-            rMemoryReadFlag = false;
-            undoData.setRFileTotalFrame(0);
+            rDataReadFlag = false;
+            undoManager.setRFileTotalFrame(0);
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             isLayerSwapped = false;
@@ -9886,8 +9886,8 @@
 
         public function syncDrawCanvasWithReplayCanvas():void
         {
-            canvasZoomedMultipler = rCanvasZoomedMultiplier;
-            canvasZoomIndex = rCanvasZoomedIndex;
+            canvasZoomMultipler = rCanvasZoomMultiplier;
+            canvasZoomIndex = rCanvasZoomIndex;
             canvasAnchorPoint.x = Math.floor(rCanvasAnchorPoint.x); //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
             canvasAnchorPoint.y = Math.floor(rCanvasAnchorPoint.y);
             canvasAnchorPoint.scaleX = rCanvasAnchorPoint.scaleX;
@@ -9924,16 +9924,16 @@
 
             const fs:FileStream = new FileStream();
 
-            if(rMemoryReadFlag)
+            if(rDataReadFlag)
             {
                 //repfile 초기화
-                undoData.updateUndoBaseImageFromReplayMode();
+                undoManager.updateUndoBaseImageFromReplayMode();
                 fs.open(replayDataFilePath,FileMode.WRITE); //파일 생성
                 fs.close();
 
                 isFileAlreadySaved = false;
                 enableNewFileButton();
-                undoData.setRFileTotalFrame(0);
+                undoManager.setRFileTotalFrame(0);
 
                 rData.splice(0,rDataIndex+1);
                 rDataFrame.splice(0,rDataIndex+1);
@@ -10033,7 +10033,7 @@
             }
             //framedata도 인덱스 이후꺼 날려줌
             rJumpImageFrameData.splice(index+1);
-            undoData.setRFileTotalFrame(rNowFrameSave);
+            undoManager.setRFileTotalFrame(rNowFrameSave);
             updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
 
             resetReplayTime();
@@ -10060,7 +10060,7 @@
             ensureReplayCanvasState();
             hideReplayDeleteRangeBar();
 
-            if(rMemoryReadFlag === true)
+            if(rDataReadFlag === true)
             {
                 //위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
                 //실제 undo해줘야할 인덱스는 -1해줘야하는거임
@@ -10070,7 +10070,7 @@
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
                 resetReplayTime();
             }
-            else if(rMemoryReadFlag === false)
+            else if(rDataReadFlag === false)
             {
                 drawReplayByCommand.setFirstRCursorPosCurrent();
                 const fs:FileStream = new FileStream();
@@ -10094,7 +10094,7 @@
                 }
                 //framedata도 인덱스 이후꺼 날려줌
                 rJumpImageFrameData.splice(index+1);
-                undoData.setRFileTotalFrame(rNowFrameSave);
+                undoManager.setRFileTotalFrame(rNowFrameSave);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
 
                 canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData,rCanvasLayer1BitmapData,canvasLayer1Bitmap);
@@ -10267,14 +10267,14 @@
             undoDataIndex = -1;
             if(fromReplayMode)
             {
-                undoData.updateUndoBaseImageFromReplayMode();
+                undoManager.updateUndoBaseImageFromReplayMode();
             }
             else
             {
-                undoData.updateUndoBaseImageFromDrawMode();
+                undoManager.updateUndoBaseImageFromDrawMode();
             }
 
-            undoData.resetRJumpImageCount();
+            undoManager.resetRJumpImageCount();
             rData = [];
             rDataFrame = [];
             rDataBuffer = [];
@@ -10382,7 +10382,7 @@
             if(!isMouseClicked)
             {
                 fitCanvasToViewportWithMargin();
-                rCanvasZoomedIndex = canvasZoomMultiplerList.indexOf(1.0);
+                rCanvasZoomIndex = canvasZoomMultiplerList.indexOf(1.0);
             }
 
             applyCanvasFlashEffect(rCanvasPanel,0,0,RCANVAS_WIDTH,RCANVAS_HEIGHT);
@@ -11647,7 +11647,7 @@
 
             function tempDone2(data:Array):void
             {
-                if(rAirBrushSize > 0 && rCanvasZoomedMultiplier !== 1.0)
+                if(rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
                 {
                     blurReplayCanvasByDefaultValue();
                     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
@@ -11667,7 +11667,7 @@
 
             function tempDone(data:Array):void
             {
-                if(rAirBrushSize > 0 && rCanvasZoomedMultiplier !== 1.0)
+                if(rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
                 {
                     blurReplayCanvasByDefaultValue();
                     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
@@ -11761,7 +11761,7 @@
                 const subLayer:Boolean = data[1];
                 const canvasAlpha:ColorTransform = new ColorTransform(1,1,1,lineStyleData[0]);
 
-                if(rAirBrushSize > 0 && rCanvasZoomedMultiplier !== 1.0)
+                if(rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
                 {
                     blurReplayCanvasByDefaultValue();
                     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
@@ -11803,7 +11803,7 @@
                 const subLayer:Boolean = data[1];
                 const canvasAlpha:ColorTransform = new ColorTransform(1,1,1,lineStyleData[0]);
 
-                if(rAirBrushSize > 0 && rCanvasZoomedMultiplier !== 1.0)
+                if(rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
                 {
                     blurReplayCanvasByDefaultValue();
                     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
@@ -11843,7 +11843,7 @@
                 const subLayer:Boolean = data[1];
                 const canvasAlpha:ColorTransform = new ColorTransform(1,1,1,lineStyleData[0]);
 
-                if(rAirBrushSize > 0 && rCanvasZoomedMultiplier !== 1.0)
+                if(rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
                 {
                     blurReplayCanvasByDefaultValue();
                     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
@@ -12116,7 +12116,7 @@
 
             function readyToReadMemoryData(jumpFlag:int):void
             {
-                rMemoryReadFlag = true;
+                rDataReadFlag = true;
                 rDataIndex = rDataStartIndex;
                 rDataStartIndex = 0;
                 rDataLen = rData.length;
@@ -12191,7 +12191,7 @@
 
                         if(!isReplayCanvasFitToWindow && !isMouseClicked && !isDeepUndoEnabled)
                         {
-                            autoScroll.check(isReplaySlideShowMode);
+                            rFollowMouse.check(isReplaySlideShowMode);
                         }
 
                         replayTimelineBox.prograssBar.width = replayTimelineBox.trackBar.width*(rNowFrame/TOTAL_FRAME);
@@ -12270,7 +12270,7 @@
                     }
 
                     readCount = jumpCount;
-                    if(!rMemoryReadFlag)
+                    if(!rDataReadFlag)
                     {
                         //readcount 감소
                         drawFromFileData(jumpCount,jumpFlag);
@@ -12336,7 +12336,7 @@
             return " ("+timeStr+")";
         }
 
-        public function cReplayAutoScroll():Object
+        public function cReplayFollowMouse():Object
         {
             const padding:Number = 20;
             const cursorPos:Point = new Point(0,0);
@@ -12372,7 +12372,7 @@
                 scale = newScale;
             }
 
-            function updateRCanvasBounds():void
+            function updateBounds():void
             {
                 bounds = getBoundRect(rCanvasLayer1Bitmap);
                 left = bounds.left;
@@ -12381,7 +12381,7 @@
                 bottom = bounds.bottom;
                 stw = stage.stageWidth;
                 sth = stage.stageHeight-(topBar.BARSIZE+replayTimelineBox.BARSIZE)*scale;
-                zoom = rCanvasZoomedMultiplier;
+                zoom = rCanvasZoomMultiplier;
 
                 isCanvasWidthSmallerStage = right-left < stw;
                 isCanvasHeightSmallerStage = bottom-top < sth;
@@ -12406,7 +12406,7 @@
                     if(isNotCenterX)
                     {
                         rCanvasAnchorPoint.x += windowCenterPos.x;
-                        updateRCanvasBounds();
+                        updateBounds();
                     }
                 }
                 else
@@ -12419,12 +12419,12 @@
                     if(cursorPos.x < leftLimit)
                     {
                         rCanvasAnchorPoint.x += Math.floor(Math.abs((cursorPos.x-stw/2)/div));
-                        updateRCanvasBounds();
+                        updateBounds();
                     }
                     else if(cursorPos.x > rightLimit)
                     {
                         rCanvasAnchorPoint.x -= Math.floor(Math.abs((cursorPos.x-stw/2)/div));
-                        updateRCanvasBounds();
+                        updateBounds();
                     }
                 }
 
@@ -12433,7 +12433,7 @@
                     if(isNotCenterY)
                     {
                         rCanvasAnchorPoint.y += windowCenterPos.y;
-                        updateRCanvasBounds();
+                        updateBounds();
                     }
                 }
                 else
@@ -12449,19 +12449,19 @@
                     if(cursorPos.y < topLimit)
                     {
                         rCanvasAnchorPoint.y += Math.floor(Math.abs((cursorPos.y-sth/2)/div));
-                        updateRCanvasBounds();
+                        updateBounds();
                     }
                     else if(cursorPos.y > bottomLimit)
                     {
                         rCanvasAnchorPoint.y -= Math.floor(Math.abs((cursorPos.y-sth/2)/div));
-                        updateRCanvasBounds();
+                        updateBounds();
                     }
                 }
             }
 
             return {
                 check:check,
-                updateRCanvasBounds:updateRCanvasBounds,
+                updateBounds:updateBounds,
                 updateScale:updateScale
             };
         }
@@ -12501,7 +12501,7 @@
 
         public function getNowFrameUntilUndoIndex(index:int):Number
         {
-            return undoData.getRFileTotalFrame()+undoData.getRDataTotalFrame(index);
+            return undoManager.getRFileTotalFrame()+undoManager.getRDataTotalFrame(index);
         }
 
         public function getTotalFrame():Number
@@ -12785,7 +12785,7 @@
                 }
 
                 cachedImageData = null;
-                rMemoryReadFlag = false;
+                rDataReadFlag = false;
                 rDataStartIndex = 0;
                 if(updateRCavanvasImageFlag !== 2)
                 {
@@ -12797,7 +12797,7 @@
             }
             else
             {
-                if(!rMemoryReadFlag) rFileStream.position = rFileLastBytePosition;
+                if(!rDataReadFlag) rFileStream.position = rFileLastBytePosition;
                 remainingReplayFrameCount = frame - rNowFrame;
             }
 
@@ -12833,7 +12833,7 @@
 
             if(!isReplaySlideShowMode && !isReplayCanvasFitToWindow && !isDeepUndoEnabled)
             {
-                autoScroll.check(true);
+                rFollowMouse.check(true);
             }
         }
 
@@ -12975,7 +12975,7 @@
                 resetReplayTime();
                 clearCanvasReplayMode();
                 drawFirstJumpImage();
-                rMemoryReadFlag = false;
+                rDataReadFlag = false;
                 isReplayFinished = false;//resetReplayTime함수 에서 이걸 true로 해주기 때문에 아래쪽에서 변경
                 // resetRotationReplayMode();
 
@@ -12984,18 +12984,18 @@
                     restoreZoomReplayMode();
                 }
 
-                autoScroll.updateRCanvasBounds();
+                rFollowMouse.updateBounds();
                 selectReplaySubLayer(false);
             }
 
             if(isReplayFinishedWithFiwWindow === true)
             {
                 isReplayFinishedWithFiwWindow = false;
-                rCanvasZoomedIndex = getNearZoomIndex(rCanvasZoomedMultiplier);
-                updateCanvasScale(rCanvasZoomedMultiplier,true);
+                rCanvasZoomIndex = getNearZoomIndex(rCanvasZoomMultiplier);
+                updateCanvasScale(rCanvasZoomMultiplier,true);
             }
 
-            if(!rMemoryReadFlag)
+            if(!rDataReadFlag)
             {
                 rFileStream.open(replayDataFilePath,FileMode.READ);
                 rFileStream.position = rFileLastBytePosition;
@@ -14525,7 +14525,7 @@
             canvasAnchorPoint.visible = false;
             rCanvasAnchorPoint.visible = false;
             canvasNavigatorBox.visible = false;
-            undoData.resetRJumpImageCount();
+            undoManager.resetRJumpImageCount();
             clearCanvasReplayMode();//리플레이 캔버스 먼저 깨끗하게
 
             //첫 이미지 그려줌
@@ -14564,7 +14564,7 @@
                         fs.close();
                         drawReplayByCommand.clearData();
 
-                        undoData.setRFileTotalFrame(_frameSum);
+                        undoManager.setRFileTotalFrame(_frameSum);
                         rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
                         resetReplayTime();
                         updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
@@ -14581,13 +14581,13 @@
 
                         isCanvasMirrored = rMirrorON;
                         rMirrorON = rMirrorON;
-                        undoData.updateUndoBaseImageMirrorFlag(rMirrorON);
+                        undoManager.updateUndoBaseImageMirrorFlag(rMirrorON);
                         canvasInfoBox.setMirror(rMirrorON);
                         canvasNavigatorBox.visible = true;
 
                         if(!isReplayModeON && isDeepUndoEnabled)
                         {
-                            rMemoryReadFlag = false;
+                            rDataReadFlag = false;
                             addInputEventsDrawMode();
                             // jumpFrame(undoData.getRFileTotalFrame()-1,JUMP_FRAME_ONCE);
                             renderReplayFrame(rPrevFrame,JUMP_FRAME_INTERNAL);
@@ -15120,7 +15120,7 @@
             }
 
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
-            undoData.setRFileTotalFrame(0);
+            undoManager.setRFileTotalFrame(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             refLayerRawBitmapData = null;
             refLayerRawTransformData = null;
@@ -15664,7 +15664,7 @@
             {
                 xAnc = rCanvasAnchorPoint;
                 xPanel = rCanvasPanel;
-                xZoomed = rCanvasZoomedMultiplier;
+                xZoomed = rCanvasZoomMultiplier;
                 rReplayFOFOCursor.visible = false;
                 rCanvasPanel.addChild(captureDragAreaOverlay);
                 layer1 = true;
@@ -15674,7 +15674,7 @@
             {
                 xAnc = canvasAnchorPoint;
                 xPanel = canvasPanel;
-                xZoomed = canvasZoomedMultipler;
+                xZoomed = canvasZoomMultipler;
                 canvasPanel.addChild(captureDragAreaOverlay);
                 if(canvasLayer1Bitmap.visible) layer1 = true;
                 if(canvasLayer2Bitmap.visible) layer2 = true;
@@ -15684,7 +15684,7 @@
             captureDragAreaOverlay.visible = true;
 
             drawModeCanvasStateForSaveAppState = {
-                                    "z" : canvasZoomedMultipler,
+                                    "z" : canvasZoomMultipler,
                                     "x" : Math.floor(canvasAnchorPoint.x), //뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
                                     "y" : Math.floor(canvasAnchorPoint.y),
                                     "r" : canvasAnchorPoint.rotation,
@@ -17519,7 +17519,7 @@
 
             if(arr[6] is Number)
             {
-                undoData.setRFileTotalFrame(arr[6]);
+                undoManager.setRFileTotalFrame(arr[6]);
             }
 
             rData = (fs.readObject() as Array).concat();
@@ -17533,7 +17533,7 @@
             bmpd1.lock();
             bmpd1.setPixels(bmpdRect,arr[1]);
             bmpd1.unlock();
-            undoData.updateUndoBaseImage(bmpd.clone(),bmpd1.clone(),arr[2],arr[3],arr[4],arr[5]);
+            undoManager.updateUndoBaseImage(bmpd.clone(),bmpd1.clone(),arr[2],arr[3],arr[4],arr[5]);
 
             drawUndoData();
             rReplayFOFOCursor.visible = false;
@@ -17587,7 +17587,7 @@
         public function saveUndoData():void
         {
             const fs:FileStream = new FileStream();
-            const arr:Array = undoData.getUndoBaseImage();
+            const arr:Array = undoManager.getUndoBaseImage();
             const bmpd:BitmapData = arr[0];
             const bmpd1:BitmapData = arr[1];
             var ba:ByteArray = new ByteArray();
@@ -17599,7 +17599,7 @@
             // ba.compress();
             // ba1.compress();
             //레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
-            var newArr:Array = [ba,ba1,arr[2],arr[3],arr[4],arr[5],undoData.getRFileTotalFrame()];
+            var newArr:Array = [ba,ba1,arr[2],arr[3],arr[4],arr[5],undoManager.getRFileTotalFrame()];
 
             fs.open(undoDataFilePath,FileMode.WRITE);
             fs.writeInt(undoDataIndex);
@@ -17634,7 +17634,7 @@
             fs.writeObject({"CANVAS_WIDTH":CANVAS_WIDTH,
                             "CANVAS_HEIGHT":CANVAS_HEIGHT,
                             "canvasZoomIndex":canvasZoomIndex,
-                            "canvasZoomedMultipler":(isCaptureModeON) ? drawModeCanvasStateForSaveAppState.z:canvasZoomedMultipler,
+                            "canvasZoomedMultipler":(isCaptureModeON) ? drawModeCanvasStateForSaveAppState.z:canvasZoomMultipler,
                             "canvasPanel.x":(isCaptureModeON) ? drawModeCanvasStateForSaveAppState.px:canvasPanel.x,
                             "canvasPanel.y":(isCaptureModeON) ? drawModeCanvasStateForSaveAppState.py:canvasPanel.y,
                             "canvasAnchorPoint.x":(isCaptureModeON) ? drawModeCanvasStateForSaveAppState.x:canvasAnchorPoint.x,
@@ -17977,7 +17977,7 @@
                 applyUIColorSet(uiColorIndex);
                 updateCanvasNaigatorCursor();
                 updateAppWindowSizeInfo();
-                canvasInfoBox.init(CANVAS_WIDTH,CANVAS_HEIGHT,Math.floor(canvasZoomedMultipler*100),canvasAnchorPoint.rotation,false);
+                canvasInfoBox.init(CANVAS_WIDTH,CANVAS_HEIGHT,Math.floor(canvasZoomMultipler*100),canvasAnchorPoint.rotation,false);
 
                 selectLayer1(false);
             }
@@ -18008,7 +18008,7 @@
                     shape = eraserIsSquare;
                 }
 
-                const z:Number = canvasZoomedMultipler;
+                const z:Number = canvasZoomMultipler;
                 if(size*z === penLastSizeAndShape[0] && shape === penLastSizeAndShape[1])
                 {
                     return;
@@ -18105,7 +18105,7 @@
 
                 canvasDrawLayerBitmapData.fillRect(canvasDrawLayerClipRect,0); //그려준 영역만
                 canvasDrawLayerChild.graphics.clear();
-                undoData.addNew();
+                undoManager.addNew();
             }
         }
 
@@ -18456,7 +18456,7 @@
                     }
 
                     resetLastKey();
-                    autoScroll.updateRCanvasBounds();
+                    rFollowMouse.updateBounds();
                 }
 
                 hideCanvasRotateCursor();
@@ -18583,8 +18583,8 @@
                         }
                     }
 
-                    if(hasLastRDataCommand(command)) undoData.addContinue();
-                    else undoData.addNew();
+                    if(hasLastRDataCommand(command)) undoManager.addContinue();
+                    else undoManager.addNew();
                 }
             }
 
@@ -18746,7 +18746,7 @@
 
                 updateCanvasNaigatorCursor();
 
-                if(gridGapValue > 0 && lastZoom !== canvasZoomedMultipler)
+                if(gridGapValue > 0 && lastZoom !== canvasZoomMultipler)
                 {
                     drawGrid();
                 }
@@ -18756,7 +18756,7 @@
             {
                 function onDragStart():void
                 {
-                    lastZoom = canvasZoomedMultipler;
+                    lastZoom = canvasZoomMultipler;
                     dragDirection = 0;
                     //클릭한 위치가 캔버스밖을 벗어날경우 줌 기준점을 캔버스 경계선에 닿도록 함
                     var gp:Point;
@@ -18769,7 +18769,7 @@
                     else
                     {
                         gp = canvasPanel.localToGlobal(new Point(0,0));
-                        const panelLimitedPos:Point = getCanvasBoundLimitPoint(canvasPanel,canvasPanel.mouseX,canvasPanel.mouseY,CANVAS_WIDTH,CANVAS_HEIGHT,canvasZoomedMultipler,-canvasAnchorPoint.rotation);
+                        const panelLimitedPos:Point = getCanvasBoundLimitPoint(canvasPanel,canvasPanel.mouseX,canvasPanel.mouseY,CANVAS_WIDTH,CANVAS_HEIGHT,canvasZoomMultipler,-canvasAnchorPoint.rotation);
                         
                         //캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
                         moveCanvasAnchorPoint(panelLimitedPos.x+gp.x,panelLimitedPos.y+gp.y,false);
@@ -18780,7 +18780,7 @@
                     isPenSizeCursorInvisible = true;
                     setRefLayerAndGridVisible(true);
                     clickPos.setTo(mouseX,mouseY);
-                    showMouseHint(Math.floor(canvasZoomedMultipler*100)+"%");
+                    showMouseHint(Math.floor(canvasZoomMultipler*100)+"%");
                     fixMouseHintPos();
                 }
                 
@@ -18937,7 +18937,7 @@
             if(rCanvasLayer2Bitmap.bitmapData) rCanvasLayer2Bitmap.bitmapData.dispose();
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
             
-            autoScroll.updateRCanvasBounds();
+            rFollowMouse.updateBounds();
             keepCnvasPanelInStage(true);
 
             if(isReplayCanvasFitToWindow)
@@ -18998,8 +18998,8 @@
                 canvasLayer1BitmapData.draw(canvasLayer1Bitmap,mat);
                 canvasLayer2BitmapData.draw(canvasLayer2Bitmap,mat);
 
-                canvasAnchorPoint.x -= Math.round(rp.x*canvasZoomedMultipler);
-                canvasAnchorPoint.y -= Math.round(rp.y*canvasZoomedMultipler);
+                canvasAnchorPoint.x -= Math.round(rp.x*canvasZoomMultipler);
+                canvasAnchorPoint.y -= Math.round(rp.y*canvasZoomMultipler);
             }
             else
             {
@@ -19144,7 +19144,7 @@
                             continue;
                         }
 
-                        resizePreviewRatioRect.graphics.lineStyle(3/canvasZoomedMultipler,color,1.0,true,"normal","none");
+                        resizePreviewRatioRect.graphics.lineStyle(3/canvasZoomMultipler,color,1.0,true,"normal","none");
 
                         if(flipFlag)
                         {
@@ -19223,11 +19223,11 @@
 
                         if(hasLastRDataCommand("canvasSize"))
                         {
-                            undoData.addContinue();
+                            undoManager.addContinue();
                         }
                         else
                         {
-                            undoData.addNew();
+                            undoManager.addNew();
 
                             if(isCanvasWindowON)
                             {
@@ -19385,7 +19385,7 @@
                 resizePreviewRatioRect.x = resizePreviewRect.x;
                 resizePreviewRatioRect.y = resizePreviewRect.y;
                 ratioGuidePosBackUp.setTo(resizePreviewRatioRect.x,resizePreviewRatioRect.y);
-                guideLineWidth = 30/canvasZoomedMultipler;
+                guideLineWidth = 30/canvasZoomMultipler;
                 canvasAnchorPoint.addChild(resizePreviewRect);
                 canvasAnchorPoint.addChild(resizePreviewRatioRect);
                 setAsTopChild(resizePreviewRect);
@@ -19643,7 +19643,7 @@
                                       ? stage.stageWidth : lassoMenu.width;
 
                 lassoMenu.x = Math.floor(g.x-lassoW/2);
-                lassoMenu.y = Math.floor(g.y+(((lassoLayer1.height)/2)*canvasZoomedMultipler+20));
+                lassoMenu.y = Math.floor(g.y+(((lassoLayer1.height)/2)*canvasZoomMultipler+20));
                 // lassoMenu.y = floor(g.y+(((lassoBox1.height)/2)/zoomed+15));
             }
 
@@ -19780,7 +19780,7 @@
                 lassoPoints.push([clickPos.x,clickPos.y]);
                 lassoLayer1.visible = true;
 
-                dottedLine.updateScale(canvasZoomedMultipler);
+                dottedLine.updateScale(canvasZoomMultipler);
                 if(canvasLayer1Bitmap.visible)
                 {
                     if(lassoLayer1LastBitmapdata != null) lassoLayer1LastBitmapdata.dispose();
@@ -19813,13 +19813,13 @@
 
             function renderMagnifierBitmap():void
             {
-                const mid:Number = magSize/(4*canvasZoomedMultipler); //4는 기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
+                const mid:Number = magSize/(4*canvasZoomMultipler); //4는 기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
                 const tx:Number = -canvasLayer1Bitmap.mouseX+mid;
                 const ty:Number = -canvasLayer1Bitmap.mouseY+mid;
 
                 lensMat.identity();
                 lensMat.translate(tx,ty);
-                lensMat.scale(2.0*canvasZoomedMultipler,2.0*canvasZoomedMultipler);
+                lensMat.scale(2.0*canvasZoomMultipler,2.0*canvasZoomMultipler);
 
                 eyedropperLens.bitmap.bitmapData.fillRect(lensRect,STAGE_BG_COLOR);
                 eyedropperLens.bitmap.bitmapData.draw(canvasBGShape,lensMat,null,null,lensRect);
@@ -20039,7 +20039,7 @@
                 if(canShowEyedropperLens())
                 {
                     updateTargetColorTransform(eyedropperLens.nowColor,pickColor());
-                    if(canvasZoomedMultipler < 12.0)
+                    if(canvasZoomMultipler < 12.0)
                     {
                         renderMagnifierBitmap();
                     }
@@ -20108,7 +20108,7 @@
                     updateTargetColorTransform(eyedropperLens.nowColor,pickColor());
                     setAsTopChild(eyedropperLens);
 
-                    if(canvasZoomedMultipler < 12.0)
+                    if(canvasZoomMultipler < 12.0)
                     {
                         eyedropperLens.circleBox.visible = true;
                         renderMagnifierBitmap();
@@ -20265,7 +20265,7 @@
                     {
                         setFitReplayCanvasToWindowOFF();
                     }
-                    autoScroll.updateRCanvasBounds();
+                    rFollowMouse.updateBounds();
                 }
             }
 
@@ -20317,7 +20317,7 @@
                 ent.height = (h === 0) ? buttonSize : h;
             }
 
-            const z:Number = 1/canvasZoomedMultipler;
+            const z:Number = 1/canvasZoomMultipler;
             const buttonSize:Number = 20*z;
             const buttonSize2:Number = 40*z;
             const cpPosX:Number = canvasPanel.x;
@@ -20456,7 +20456,7 @@
                                                     ,checklayer1
                                                     ,checklayer2
                                                     ,command]);
-                    undoData.addNew();
+                    undoManager.addNew();
                 }
                 else
                 {
@@ -20817,13 +20817,13 @@
             {
                 xAnc = rCanvasAnchorPoint;
                 xCanvas = rCanvasPanel;
-                xZoomed = rCanvasZoomedMultiplier;
+                xZoomed = rCanvasZoomMultiplier;
             }
             else
             {
                 xAnc = canvasAnchorPoint;
                 xCanvas = canvasPanel;
-                xZoomed = canvasZoomedMultipler;
+                xZoomed = canvasZoomMultipler;
             }
 
             if(xAnc.x === tx && xAnc.y === ty)
@@ -20888,10 +20888,10 @@
 
         public function drawUndoData(redoFlag:Boolean=false):void
         {
-            const undoRefData:Array = undoData.getUndoBaseImage();
+            const undoRefData:Array = undoManager.getUndoBaseImage();
             const undoIndexSave:int = undoDataIndex;
 
-            rMemoryReadFlag = true;
+            rDataReadFlag = true;
             rDataIndex = undoIndexSave;
             rPrevFrame = rNowFrame;
             rNowFrame = getNowFrameUntilUndoIndex(undoIndexSave);
@@ -20928,8 +20928,8 @@
             const movedRegPos:Point = getCanvasMovedUndo(undoIndexSave,redoFlag);
             if(movedRegPos)
             {
-                canvasAnchorPoint.x += movedRegPos.x*canvasZoomedMultipler;
-                canvasAnchorPoint.y += movedRegPos.y*canvasZoomedMultipler;
+                canvasAnchorPoint.x += movedRegPos.x*canvasZoomMultipler;
+                canvasAnchorPoint.y += movedRegPos.y*canvasZoomMultipler;
                 updateRefLayerBitmapPos(movedRegPos);
             }
 
@@ -20960,7 +20960,7 @@
                 applyReplayCanvasToDrawModeCanvas();
                 startRCursorFadeOut();
 
-                if(rNowFrame >= undoData.getRFileTotalFrame())
+                if(rNowFrame >= undoManager.getRFileTotalFrame())
                 {
                     disableDeepUndo();
                     undoDataIndex = -1;
@@ -21003,7 +21003,7 @@
                     isFileAlreadySaved = false;
                     undoDataIndex = -1;
 
-                    if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY || (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE && undoData.getRFileTotalFrame() > 0))
+                    if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY || (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE && undoManager.getRFileTotalFrame() > 0))
                     {
                         enableDeepUndo();
                         startRCursorFadeOut();
@@ -21069,7 +21069,7 @@
 
             function updateUndoBaseImageFromReplayMode():void
             {
-                undoData.updateUndoBaseImage(rCanvasLayer1BitmapData.clone(),
+                undoManager.updateUndoBaseImage(rCanvasLayer1BitmapData.clone(),
                                              rCanvasLayer2BitmapData.clone(),
                                              rCanvasLayer1BitmapData.width,
                                              rCanvasLayer1BitmapData.height,
@@ -21079,7 +21079,7 @@
 
             function updateUndoBaseImageFromDrawMode():void
             {
-                undoData.updateUndoBaseImage(canvasLayer1BitmapData.clone(),
+                undoManager.updateUndoBaseImage(canvasLayer1BitmapData.clone(),
                                              canvasLayer2BitmapData.clone(),
                                              canvasLayer1BitmapData.width,
                                              canvasLayer1BitmapData.height,
@@ -21359,7 +21359,7 @@
                     rDataFrame.push(rDataBuffer.length);
                     rDataBuffer = [];
                     isFileAlreadySaved = false;
-                    rMemoryReadFlag = true;
+                    rDataReadFlag = true;
                 }
 
                 undoDataIndex = rData.length-1;
@@ -21948,7 +21948,7 @@
                 if(isReplayModeON)
                 {
                     updateTimelineBoxPos(stage.stageWidth);
-                    autoScroll.updateRCanvasBounds();
+                    rFollowMouse.updateBounds();
 
                     if(isReplayCanvasFitToWindow)
                     {
@@ -21995,7 +21995,7 @@
             if(!isReplayMode)
             {
                 xAnc = canvasAnchorPoint;
-                canvasZoomedMultipler = zoomValue;
+                canvasZoomMultipler = zoomValue;
 
                 if(!isCaptureModeON)
                 {
@@ -22004,7 +22004,7 @@
             }
             else
             {
-                rCanvasZoomedMultiplier = zoomValue;
+                rCanvasZoomMultiplier = zoomValue;
                 xAnc = rCanvasAnchorPoint;
 
                 if(rAirBrushSize > 0)
@@ -22647,7 +22647,7 @@
                         case KEY.w:
                         case KEY.i:
                         {
-                            if(canvasZoomedMultipler !== 1.0) resetZoomDrawMode();
+                            if(canvasZoomMultipler !== 1.0) resetZoomDrawMode();
                         }
                         return;
 
@@ -23585,7 +23585,7 @@
         {
             isDeepUndoEnabled = false;
             lastDeepUndoEnabledFlag = false;
-            rMemoryReadFlag = true;
+            rDataReadFlag = true;
             showRCursorOnUndo(-1);
             clearRFrameCacheImages();
         }
@@ -23593,7 +23593,7 @@
         public function enableDeepUndo():void
         {
             isDeepUndoEnabled = true;
-            rMemoryReadFlag = false;
+            rDataReadFlag = false;
 
             if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY)
             {
@@ -23606,7 +23606,7 @@
             {
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
                 //이미지 캐시 해주고 rPrevFrame 갱신해주고
-                renderReplayFrame(undoData.getRFileTotalFrame()-1,JUMP_FRAME_INTERNAL);
+                renderReplayFrame(undoManager.getRFileTotalFrame()-1,JUMP_FRAME_INTERNAL);
                 //실제 rPrevFrame으로 점프
                 renderReplayFrame(rPrevFrame,JUMP_FRAME_INTERNAL);
                 applyReplayCanvasToDrawModeCanvas();
@@ -23629,8 +23629,8 @@
 
         public function syncDrawCanvasWithReplayMode():void
         {
-            canvasZoomedMultipler = rCanvasZoomedMultiplier;//줌배율도 공유
-            canvasZoomIndex = rCanvasZoomedIndex;
+            canvasZoomMultipler = rCanvasZoomMultiplier;//줌배율도 공유
+            canvasZoomIndex = rCanvasZoomIndex;
             canvasAnchorPoint.scaleX = rCanvasAnchorPoint.scaleX;
             canvasAnchorPoint.scaleY = rCanvasAnchorPoint.scaleY;
             canvasAnchorPoint.rotation = rCanvasAnchorPoint.rotation;
@@ -23643,8 +23643,8 @@
 
         public function syncReplayCanvasWithDrawMode():void
         {
-            rCanvasZoomedMultiplier = canvasZoomedMultipler;//줌배율도 공유
-            rCanvasZoomedIndex = canvasZoomIndex;
+            rCanvasZoomMultiplier = canvasZoomMultipler;//줌배율도 공유
+            rCanvasZoomIndex = canvasZoomIndex;
             rCanvasAnchorPoint.scaleX = canvasAnchorPoint.scaleX;
             rCanvasAnchorPoint.scaleY = canvasAnchorPoint.scaleY;
             rCanvasAnchorPoint.rotation = canvasAnchorPoint.rotation;
@@ -23704,8 +23704,8 @@
             updatePenSizeCursor();
             penCursorManager.check();
             updateTopBarModeIcons("draw");
-            canvasInfoBox.setZoom(canvasZoomedMultipler);
-            updateReplayCursorScale(canvasZoomedMultipler);
+            canvasInfoBox.setZoom(canvasZoomMultipler);
+            updateReplayCursorScale(canvasZoomMultipler);
 
             isDeepUndoEnabled = lastDeepUndoEnabledFlag;
             if(rNowFrame !== lastReplayFrameOnDeepUndoStart)
@@ -23774,16 +23774,16 @@
                 else
                 {
                     fitCanvasToViewportWithMargin();
-                    rCanvasZoomedMultiplier = 1;
+                    rCanvasZoomMultiplier = 1;
                     rCanvasAnchorPoint.scaleX = 1;
                     rCanvasAnchorPoint.scaleY = 1;
-                    rCanvasZoomedIndex = canvasZoomMultiplerList.indexOf(rCanvasZoomedMultiplier);
+                    rCanvasZoomIndex = canvasZoomMultiplerList.indexOf(rCanvasZoomMultiplier);
                 }
             }
 
             updateTimelineBoxPos(stage.stageWidth);
-            autoScroll.updateRCanvasBounds();
-            updateReplayCursorScale(rCanvasZoomedMultiplier);
+            rFollowMouse.updateBounds();
+            updateReplayCursorScale(rCanvasZoomMultiplier);
 
             if(isRefLayerMenuON === true)
             {
@@ -23799,7 +23799,7 @@
             }
             else if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE)
             {
-                rMemoryReadFlag = false;
+                rDataReadFlag = false;
                 updateReplayTimeBarFromDrawMode();
                 syncReplayCanvasImageWithDrawMode();
 
@@ -23809,12 +23809,12 @@
                 if(undoDataIndex >= 0)
                 {
                     rDataStartIndex = undoDataIndex+1;
-                    rMemoryReadFlag = true;
+                    rDataReadFlag = true;
                 }
                 else
                 {
                     rDataStartIndex = 0;
-                    rMemoryReadFlag = false;
+                    rDataReadFlag = false;
                 }
 
                 updateDeleteReplayDataButtonsState();
@@ -24003,8 +24003,8 @@
             addTimerByName("rFitZoomedDelayTimer",0.15,false,function():void
             {
                 fitCanvasToViewportWithMargin(false,true);
-                rCanvasZoomedIndex = getNearZoomIndex(rCanvasZoomedMultiplier);
-                rCanvasZoomedMultiplier = canvasZoomMultiplerList[rCanvasZoomedIndex];
+                rCanvasZoomIndex = getNearZoomIndex(rCanvasZoomMultiplier);
+                rCanvasZoomMultiplier = canvasZoomMultiplerList[rCanvasZoomIndex];
             });
         }
 
@@ -24113,7 +24113,7 @@
                 case "toolZoomIn":
                 case "toolZoomOut":
                 {
-                    if(canvasZoomedMultipler !== 1.0) resetZoomDrawMode();
+                    if(canvasZoomMultipler !== 1.0) resetZoomDrawMode();
                 }
                 break;
 
@@ -24653,7 +24653,7 @@
             || targetName === "toolZoomIn"
             || targetName === "toolZoomOut")
             {
-                if(canvasZoomedMultipler !== 1.0) resetZoomDrawMode();
+                if(canvasZoomMultipler !== 1.0) resetZoomDrawMode();
             }
             else if(targetName === "toolRotate")
             {
