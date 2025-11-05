@@ -23268,7 +23268,7 @@
                 {
                     updateToolBoxMousePos(target as SimpleButton);
                     closeToolBox2();
-                    rotateTool();
+                    rotateTool(false);
                 }
                 break;
 
@@ -23829,13 +23829,16 @@
         public function onMouseDownReplayMode(e:MouseEvent):void //repdown1
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if(!target || loadMenuBox.visible) return;
+            if(!target || loadMenuBox.visible)
+            {
+                return;
+            }
 
             const targetName:String = target.name;
 
             if(targetName)
             {
-                if(targetName.indexOf("rCanvasDrawLayer") !== -1 || targetName === "stageBG")
+                if(targetName === "rcanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG")
                 {
                     handTool(true,false);
                     return;
