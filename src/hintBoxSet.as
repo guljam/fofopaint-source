@@ -94,8 +94,6 @@
 		{
 			this.visible = true;
 
-			FOFOTimer.remove(_hintTimerName);
-
 			if (duration > 0.0)
 			{
 				FOFOTimer.addByName(_hintTimerName, duration, false, function():void

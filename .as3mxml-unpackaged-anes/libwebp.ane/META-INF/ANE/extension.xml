@@ -1,0 +1,33 @@
+<extension xmlns="http://ns.adobe.com/air/extension/2.5">
+	<id>webp</id>
+	<versionNumber>1.0.0</versionNumber>
+	<platforms>
+		<platform name="Windows-x86">
+			<applicationDeployment>
+				<nativeLibrary>libWindows.dll</nativeLibrary>
+				<initializer>initializer</initializer>
+				<finalizer>finalizer</finalizer>
+			</applicationDeployment>
+		</platform>
+		<platform name="MacOS-x86">
+			<applicationDeployment>
+				<nativeLibrary>libMacOS.framework</nativeLibrary>
+				<initializer>initializer</initializer>
+				<finalizer>finalizer</finalizer>
+			</applicationDeployment>
+		</platform>
+		<!--
+		<platform name="Android-ARM">
+			<applicationDeployment>			
+				<nativeLibrary>libAndroid.so</nativeLibrary>
+				<initializer>initializer</initializer>
+				<finalizer>finalizer</finalizer>
+			</applicationDeployment>		
+		</platform>
+		-->
+		<platform name="default">
+			<applicationDeployment>
+			</applicationDeployment>
+		</platform>
+	</platforms>
+</extension>

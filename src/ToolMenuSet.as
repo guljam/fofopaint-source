@@ -332,6 +332,7 @@
 
 		public function ToolMenuSet()
 		{
+		trace("toolSelectCursor",toolSelectCursor);
 			moveToolCursorInit();
 
 			// initPenSizeCursor();

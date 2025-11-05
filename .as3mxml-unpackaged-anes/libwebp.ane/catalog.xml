@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<swc xmlns="http://www.adobe.com/flash/swccatalog/9">
+    <versions>
+        <swc version="1.2"/>
+        <compiler name="ActionScript Compiler" version="2.0.0" build="354139"/>
+    </versions>
+    <features>
+        <feature-script-deps/>
+    </features>
+    <libraries>
+        <library path="library.swf">
+            <script name="libwebp/DecodeWebp" mod="1417952533000">
+                <def id="libwebp:DecodeWebp"/>
+                <dep id="flash.display:BitmapData" type="e"/>
+                <dep id="flash.utils:ByteArray" type="s"/>
+                <dep id="libwebp:Webp" type="e"/>
+            </script>
+            <script name="libwebp/EncodeWebp" mod="1417952533000">
+                <def id="libwebp:EncodeWebp"/>
+                <dep id="Number" type="s"/>
+                <dep id="flash.display:BitmapData" type="s"/>
+                <dep id="flash.utils:ByteArray" type="e"/>
+                <dep id="libwebp:Webp" type="e"/>
+            </script>
+            <script name="libwebp/Webp" mod="1417952533000">
+                <def id="libwebp:Webp"/>
+                <dep id="Error" type="e"/>
+                <dep id="Object" type="i"/>
+                <dep id="String" type="e"/>
+                <dep id="flash.external:ExtensionContext" type="s"/>
+            </script>
+            <digests>
+                <digest type="SHA-256" signed="false" value="62f50a1c62b3ba274e051a7fe7dfcd57be930f371f9551a3fe68cd2a32ec6f6b"/>
+            </digests>
+        </library>
+    </libraries>
+</swc>
