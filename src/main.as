@@ -355,14 +355,14 @@
                     eraserIsSquare:Boolean = false,
                     eraserAlpha:Number = 1.0,
                     eraserAlphaIndex:uint = 9,
-                    eraserAirBrushON:Boolean = false,
+                    isEraserAirBrushON:Boolean = false,
                     isFillPenON:Boolean = false, //채우기 펜 플래그
                     isFillPenStarted:Boolean = false, //채우기 펜 시작됨
                     isSharpLineON:Boolean = false, //0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
                     isLayer2Selected:Boolean = false,
                     checkedLayer:int = 0, //레이어가 체크되면 저장해줌
                     isLayerSwapped:Boolean = false, //1<->2 번호 바뀌는 힌트 써주려고 만듬
-                    isAirBrushON:Boolean = false,
+                    isPenAirBrushON:Boolean = false,
                     airBrushSizeDrawMode:int = 0,
                     airBrushClipRectOffsetData:Array = [0,4,2,2,0,0,0,-2,-5,-5,-10,-16,-43];
 
@@ -567,7 +567,6 @@
                       updatePenSizeCursor:Function = cUpdatePenSizeCursor(),
                       undoManager:Object = cAddUndoData(),
                       penCursorManager:Object = cPenCursorUpdater(),
-                      checkSelectMainDrawTool:Function = cCheckSelectMainDrawTool(),
                       captureAreaManager:Object = cDrawCaptureArea(),
                       captureStampManager:Object = cDrawCaptureStamp(),
                       replayHideCursor:Object = cCheckHideCursor(),
@@ -699,8 +698,8 @@
             updateAppWindowSizeInfo();
             loadAppState();
             //입력 이벤트는 loadappdata보다느려야함
-            addStageInputEvents();
-            addInputEventsAppMenuBox();
+            addGlobalEventsStage();
+            addGlobalEventsChild();
             addInputEventsDrawMode();
             initializeReplayDataFile();
             initializeColorPickerBoxInfo(penColor);
@@ -722,6 +721,7 @@
         }
 
         //function
+
         public function getCaptureModeHintCanvasPanel():String
         {
             return "draw"
@@ -2395,12 +2395,6 @@
 
             colorPickerBox.updateFirstRGBInfoColorText();
 
-            //필펜 경우 제외시키고 작동은 되나 코드를 좀 정리하고싶음
-            if(isKeyPressed() && (isSelectedTool(TOOL_FILL_PEN) || isFillPenStarted))
-            {   
-                colorPickerBox.rgbInfoText.type = TextFieldType.DYNAMIC;
-            }
-
             if (isQuickSidebarActive === false)
             {
                 stage.addEventListener(KeyboardEvent.KEY_DOWN, rgbInfoTextKeyDownEvent);
@@ -2417,6 +2411,11 @@
                     colorPickerBox.rgbInfoText.addEventListener(Event.ENTER_FRAME, checkRGBInfoCursorPos);
                     showBottomHint(STRING_CUSTOM_COLOR_HINT);
                 });
+        }
+
+        public function onMouseOverRGBInfoTextSwitchType(e:MouseEvent):void
+        {
+            colorPickerBox.setRGBInfoTextTypeToInput(isKeyPressed())
         }
 
         public function checkRGBInfoTextFormat(fromNumPad:Boolean):void
@@ -3409,10 +3408,10 @@
             {
                 sideBar.visible = false;
             }
+
             setSidebarDefaultPos();
             isQuickSidebarActive = false;
             checkFOFOPosition();
-            colorPickerBox.rgbInfoText.type = TextFieldType.INPUT;
 
             if(toolBox.getLastTool() === "toolEyedropper")
             {
@@ -3483,10 +3482,7 @@
                 break;
             }
 
-            if(colorPickerBox.rgbInfoText.type === TextFieldType.INPUT)
-            {
-                startDeactivteQuickSidebar();
-            }
+            startDeactivteQuickSidebar();
         }
 
         public function onMouseDownQuickSidebar(e:MouseEvent):void
@@ -3529,13 +3525,11 @@
 
             if(shortcut)
             {
-                colorPickerBox.rgbInfoText.type = TextFieldType.DYNAMIC;
                 selectLastUsedTool();
                 stage.addEventListener(KeyboardEvent.KEY_UP,onKeyUpQuickSidebar);
             }
             else
             {
-                colorPickerBox.rgbInfoText.type = TextFieldType.INPUT;
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownQuickSidebar,false,-2);
             }
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onRightMouseDownQuickSidebar,false,-2);
@@ -3754,7 +3748,7 @@
                 dotLineColor = 0;
                 dotOldPoint.setTo(x,y);
                 oldPoint.setTo(x,y);
-                g.lineStyle(lineSize,0);
+                g.lineStyle(lineSize,0,1.0,false,"normal","none");
                 g.moveTo(x,y);
             }
 
@@ -3775,15 +3769,7 @@
 
             function toggleLineColor():uint
             {
-                if(dotLineColor === 0)
-                {
-                    dotLineColor = 0xFFFFFF;
-                }
-                else
-                {
-                    dotLineColor = 0;
-                }
-
+                dotLineColor = (dotLineColor === 0)?0xFFFFFF:0;
                 return dotLineColor;
             }
 
@@ -3803,7 +3789,7 @@
                         var pos:Point;
                         var divPoint:Point;
 
-                        for(var i:Number=div;i>=1;i--)
+                        for(var i:Number=div;i>=0.0;i--)
                         {
                             pos = Point.interpolate(oldPoint,endpos,minUnit*i);
                             g.lineTo(pos.x,pos.y);
@@ -3949,7 +3935,7 @@
             lastTool = tool;
         }
 
-        public function updateOldTool():void
+        public function updateLastTool():void
         {
             if(lastTool === TOOL_NONE)
             {
@@ -4027,7 +4013,6 @@
 
                 case KEY.g:
                 {
-                    openNumPad();
                     startKeyRepeat(true,adjustDrawToolAlphaByShortcut,true);
                 }
                 return true;
@@ -4823,7 +4808,7 @@
                     data.push(data[0]);
                     data.push(data[1]); //마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
                     canvasDrawLayer.alpha = xAlpha;
-                    rDataBuffer.push(["fill5",xColor,xAlpha,xBlendMode,command.concat(),data.concat(),isAirBrushON,airBrushSizeDrawMode]);
+                    rDataBuffer.push(["fill5",xColor,xAlpha,xBlendMode,command.concat(),data.concat(),isPenAirBrushON,airBrushSizeDrawMode]);
 
                     drawFillPenData();
                 }
@@ -4987,7 +4972,7 @@
             function onRightMouseDownFillPen(e:MouseEvent):void
             {
                 const target:DisplayObject = e.target as DisplayObject;
-                if(isMouseClicked || isQuickSidebarActive ||!target)
+                if(isMouseClicked || isQuickSidebarActive ||!target || numPadBox.visible)
                 {
                     return;
                 }
@@ -5168,7 +5153,6 @@
                 const targetName:String = target.name;
 
                 clickedButton = targetName;
-
                 if(fillPenBox.visible)
                 {
                     return;
@@ -5186,6 +5170,11 @@
                     if(handleColorPickerBoxMouseDown(target) || numPadBox.visible)
                     {
                         switchFillPenColorPreviewMode();
+                        return;
+                    }
+
+                    if(numPadBox.visible)
+                    {
                         return;
                     }
 
@@ -5332,7 +5321,7 @@
                 clickedButton = null;
                 fillPenBoxUndoUsed = false;
 
-                if(isAirBrushON || eraserAirBrushON)
+                if(isPenAirBrushON || isEraserAirBrushON)
                 {
                     canvasDrawLayerChild.filters = [];
                 }
@@ -5730,7 +5719,7 @@
                     xSize = penSize;
                     xAlpha = penAlpha;
                     xShape = penIsSquare;
-                    xAirBrushON = isAirBrushON;
+                    xAirBrushON = isPenAirBrushON;
                     dotflag = true;
 
                     if(isTransparentPenColor)
@@ -5757,7 +5746,7 @@
                     xAlpha = eraserAlpha;
                     xShape = eraserIsSquare;
                     xBlendMode = "erase";
-                    xAirBrushON = eraserAirBrushON;
+                    xAirBrushON = isEraserAirBrushON;
                 }
 
                 if(xSize === 1)
@@ -7605,31 +7594,31 @@
 
         public function toggleEraseAirBrushButtonShortCut():void
         {
-            eraserAirBrushON = !eraserAirBrushON;
-            toggleAirBrushCheckBox(eraserAirBrushON,false);
+            isEraserAirBrushON = !isEraserAirBrushON;
+            toggleAirBrushCheckBox(isEraserAirBrushON,false);
 
-            if(eraserAirBrushON) showMouseHintTemp("Eraser Air brush ON");
+            if(isEraserAirBrushON) showMouseHintTemp("Eraser Air brush ON");
             else showMouseHintTemp("Eraser Air brush OFF");
         }
 
         public function toggleEraseAirBrushButton(flag:Boolean):void
         {
-            eraserAirBrushON = flag;
+            isEraserAirBrushON = flag;
             toggleAirBrushCheckBox(flag,false);
         }
 
         public function togglePenAirBrushButtonShortCut():void
         {
-            isAirBrushON = !isAirBrushON;
-            toggleAirBrushCheckBox(isAirBrushON,true);
+            isPenAirBrushON = !isPenAirBrushON;
+            toggleAirBrushCheckBox(isPenAirBrushON,true);
 
-            if(isAirBrushON) showMouseHintTemp("Pen Air brush ON");
+            if(isPenAirBrushON) showMouseHintTemp("Pen Air brush ON");
             else showMouseHintTemp("Pen Air brush OFF");
         }
 
         public function togglePenAirBrushButton(flag:Boolean):void
         {
-            isAirBrushON = flag;
+            isPenAirBrushON = flag;
             toggleAirBrushCheckBox(flag,true);
         }
 
@@ -7879,7 +7868,7 @@
             // }
         }
 
-        public function addStageInputEvents():void
+        public function addGlobalEventsStage():void
         {
             //전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음
             stage.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownStage,false,1);
@@ -7894,10 +7883,6 @@
             stage.addEventListener(Event.MOUSE_LEAVE,onMouseLeaveStage,false);
             stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveBottomHint);
             NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent);
-        }
-
-        public function addInputEventsAppMenuBox():void
-        {
             //창을 가운데로 옮김
             stage.nativeWindow.x = Capabilities.screenResolutionX/2 - 680/2;
             stage.nativeWindow.y = Capabilities.screenResolutionY/2 - 768/2 - 50;
@@ -7908,9 +7893,12 @@
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,onDragEnterStage);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP,onDragDropStage);
             stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheelStage);
+        }
 
-            //힌트 보여주는 이벤트
+        public function addGlobalEventsChild():void
+        {
             toolBox2.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverToolBox2Hint);
+            colorPickerBox.rgbInfoText.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverRGBInfoTextSwitchType);
         }
 
         public function updateToolOptionsTextBySelectedTool():void
@@ -8119,7 +8107,7 @@
             {
                 setSize(penSizeIndex,penAlpha);
 
-                if(isAirBrushON && penSize !== airBrushSizeDrawMode)
+                if(isPenAirBrushON && penSize !== airBrushSizeDrawMode)
                 {
                     airBrushSizeDrawMode = penSize;
                 }
@@ -8128,7 +8116,7 @@
             {
                 setSize(eraserSizeIndex,eraserAlpha);
 
-                if(eraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
+                if(isEraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
                 {
                     airBrushSizeDrawMode = eraserSize;
                 }
@@ -8259,21 +8247,21 @@
 
             if(isSelectedTool(TOOL_FILL_PEN))
             {
-                if(isAirBrushON && penSize !== airBrushSizeDrawMode)
+                if(isPenAirBrushON && penSize !== airBrushSizeDrawMode)
                 {
                     airBrushSizeDrawMode = penSize;
                 }
             }
             else if(isSelectedToolPenOrLine())
             {
-                if(isAirBrushON && penSize !== airBrushSizeDrawMode)
+                if(isPenAirBrushON && penSize !== airBrushSizeDrawMode)
                 {
                     airBrushSizeDrawMode = penSize;
                 }
             }
             else if(isSelectedTool(TOOL_ERASER))
             {
-                if(eraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
+                if(isEraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
                 {
                     airBrushSizeDrawMode = eraserSize;
                 }
@@ -8289,8 +8277,8 @@
             const maxValue:Number = 0.85;
             const minValue:Number = 0.02;
             const stepValue:Number = (maxValue-minValue)/step;
-            const airBrushFlag:Boolean = isSelectedToolPenOrLine() && isAirBrushON;
-            const eraseAirBrushFlag:Boolean = isSelectedTool(TOOL_ERASER) && eraserAirBrushON;
+            const airBrushFlag:Boolean = isSelectedToolPenOrLine() && isPenAirBrushON;
+            const eraseAirBrushFlag:Boolean = isSelectedTool(TOOL_ERASER) && isEraserAirBrushON;
             var oldValue:int = penSmoothSlideValue;
 
             isMouseDragging = true;
@@ -18358,7 +18346,7 @@
                 xSize = penSize;
                 xAlpha = penAlpha;
                 xShape = penIsSquare;
-                xAirBrushON = isAirBrushON;
+                xAirBrushON = isPenAirBrushON;
 
                 if(isTransparentPenColor)
                 {
@@ -20095,12 +20083,12 @@
                     return;
                 }
 
-                updateOldTool();
+                updateLastTool();
                 selectLastTool(nowTool);
                 setToolIndex(TOOL_EYEDROPPER);
                 penColorBackup = penColor;
                 updateTargetColorTransform(eyedropperLens.oldColor,penColor);
-                updateEraserButtonPosFromOtherTool("toolEyedropper");
+                moveEraserButtonToOtherTool("toolEyedropper");
                 eyedropperLens.rotateBitmap(canvasAnchorPoint.rotation);
                 canvasRefLayer.visible = false;
                 canvasBGShape.graphics.clear();
@@ -20513,137 +20501,120 @@
             resetLassoBox();
         }
 
-        private function applyToolSelection(tool:int,
-                                            cursorName:String,
-                                            mainDrawArgs:Array = null,
-                                            extraHandler:Function = null,
-                                            enablePenSizeBox:Boolean = true,
-                                            cursorTarget:DisplayObjectContainer = null):void
+        public function selectPenTool(lineFlag:Boolean=false):void
         {
-            setToolIndex(tool);
+            setToolIndex((lineFlag)?TOOL_LINE:TOOL_PEN);
+            toggleAirBrushCheckBox(isPenAirBrushON,true);
+            setDrawToolSize(penSizeIndex);
+            updateDrawToolAlpha(penAlpha);
+            updateOpacityCursorPos(penAlphaIndex);
+            moveEraserButtonToOtherTool((lineFlag)?"toolLine":"toolPen");
+            toolBox.moveToolCursor((lineFlag)?"toolLine":"toolPen");
+            updateToolOptionsTextBySelectedTool();
+            toolOptionsBox.updatePenShapeSet(penIsSquare);
+            penCursorManager.check();
 
-            if (mainDrawArgs)
-            {
-                checkSelectMainDrawTool.apply(null, mainDrawArgs);
-            }
-
-            if (cursorTarget)
-            {
-                toolBox.moveToolCursor(cursorName, cursorTarget);
-            }
-            else
-            {
-                toolBox.moveToolCursor(cursorName);
-            }
-
-            // 특수 처리
-            if (extraHandler != null)
-            {
-                extraHandler();
-            }
-
-            // 대부분 공통
-            if (enablePenSizeBox)
+            if(toolOptionsBox.isSizeButtonsDisabled())
             {
                 toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
             }
         }
 
-        public function selectPenTool():void
+        public function selectLineTool():void
         {
-            applyToolSelection(
-                TOOL_PEN,
-                "toolPen",
-                [penSize, penColor, penAlpha, penIsSquare, true, false]
-            );
+            selectPenTool(true);
         }
 
         public function selectEraseTool():void
         {
-            applyToolSelection(
-                TOOL_ERASER,
-                "toolErase",
-                [eraserSize, canvasBGColor, eraserAlpha, eraserIsSquare, false, false]
-            );
+            setToolIndex(TOOL_ERASER);
+            toggleAirBrushCheckBox(isEraserAirBrushON,false);
+            setDrawToolSize(eraserSizeIndex);
+            updateDrawToolAlpha(eraserAlpha);
+            updateOpacityCursorPos(eraserAlphaIndex);
+
+            if(lastEraserPosButton)
+            {
+                lastEraserPosButton.visible = true;
+            }
+
+            lastEraserPosButton = null;
+            toolBox2.toolErase.visible = false;
+            toolBox.moveToolCursor("toolErase");
+            updateToolOptionsTextBySelectedTool();
+            toolOptionsBox.updatePenShapeSet(eraserIsSquare);
+            penCursorManager.check();
+
+            if(toolOptionsBox.isSizeButtonsDisabled())
+            {
+                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+            }
         }
 
-        public function selectLineTool():void
-        {
-            applyToolSelection(
-                TOOL_LINE,
-                "toolLine",
-                [penSize, penColor, penAlpha, penIsSquare, true, true]
-            );
-        }
 
-        public function selectFillPenTool():void
+        public function selectFillPenTool(fromShortCut:Boolean=false):void
         {
-            applyToolSelection(
-                TOOL_FILL_PEN,
-                "toolFillPen",
-                null,
-                function():void {
-                    penSizePreviewCursor.visible = false;
-                    updateOpacityCursorPos(penAlphaIndex);
-                    toggleAirBrushCheckBox(isAirBrushON, true);
-                    toolOptionsBox.movePenSizeCursor(1);
-                    toolOptionsBox.updateButtonsAlphaFillPenSelected(BUTTON_OFF_ALPHA);
-                    updateEraserButtonPosFromOtherTool("toolFillPen");
-                    updateToolOptionsTextBySelectedTool();
-                },
-                false   
-            );
+            setToolIndex(TOOL_FILL_PEN);
+            toolBox.moveToolCursor("toolFillPen");
+            penSizePreviewCursor.visible = false;
+            updateOpacityCursorPos(penAlphaIndex);
+            toggleAirBrushCheckBox(isPenAirBrushON, true);
+            toolOptionsBox.movePenSizeCursor(1);
+            toolOptionsBox.updateButtonsAlphaFillPenSelected(BUTTON_OFF_ALPHA);
+            moveEraserButtonToOtherTool("toolFillPen");
+            updateToolOptionsTextBySelectedTool();
         }
 
         public function selectMoveTool():void
         {
-            applyToolSelection(
-                TOOL_MOVE,
-                "toolMove",
-                null,
-                function():void { updateToolOptionsTextBySelectedTool(); }
-            );
+            updateToolOptionsTextBySelectedTool(); 
+            setToolIndex(TOOL_MOVE);
+            toolBox.moveToolCursor("toolMove");
+
+            if(toolOptionsBox.isSizeButtonsDisabled())
+            {
+                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+            }
         }
 
         public function selectZoomTool():void
         {
-            applyToolSelection(
-                TOOL_ZOOM,
-                "toolZoomIn",
-                null,
-                function():void { updateToolOptionsTextBySelectedTool(); },
-                true,
-                canvasInfoBox
-            );
+            updateToolOptionsTextBySelectedTool();
+            setToolIndex(TOOL_ZOOM);
+            toolBox.moveToolCursor("toolZoomIn",canvasInfoBox);
+
+            if(toolOptionsBox.isSizeButtonsDisabled())
+            {
+                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+            }
         }
 
         public function selectRotateTool():void
         {
-            applyToolSelection(
-                TOOL_ROTATE,
-                "toolRotate",
-                null,
-                null,
-                true,
-                canvasInfoBox
-            );
+            updateToolOptionsTextBySelectedTool();
+            setToolIndex(TOOL_ROTATE);
+            toolBox.moveToolCursor("toolRotate",canvasInfoBox);
+
+            if(toolOptionsBox.isSizeButtonsDisabled())
+            {
+                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+            }
         }
 
         public function selectLassoTool():void
         {
-            applyToolSelection(
-                TOOL_LASSO,
-                "toolLasso",
-                null,
-                function():void {
-                    updateEraserButtonPosFromOtherTool("toolLasso");
-                    updateToolOptionsTextBySelectedTool();
-                }
-            );
+            updateToolOptionsTextBySelectedTool();
+            setToolIndex(TOOL_LASSO);
+            toolBox.moveToolCursor("toolLasso");
+            moveEraserButtonToOtherTool("toolLasso");
+
+            if(toolOptionsBox.isSizeButtonsDisabled())
+            {
+                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+            }
         }
 
-
-        public function updateEraserButtonPosFromOtherTool(toolName:String):void
+        public function moveEraserButtonToOtherTool(toolName:String):void
         {
             const nowButton2:SimpleButton = toolBox2.getChildByName(toolName) as SimpleButton;
             if(!nowButton2) return;
@@ -20664,66 +20635,6 @@
             toolBox2.toolErase.x = nowButton2.x;
             toolBox2.toolErase.y = nowButton2.y;
             setAsTopChild(toolBox2.toolErase);
-        }
-
-        //펜 지우개 직선 지우개-직선 통합
-        public function cCheckSelectMainDrawTool():Function
-        {
-            var sizeIndex:uint;
-            var alphaIndex:uint;
-
-            return function (size:uint,color:uint,alpha:Number,shape:Boolean,penFlag:Boolean,lineFlag:Boolean):void
-            {
-                if(penFlag)
-                {
-                    sizeIndex = penSizeIndex;
-                    alphaIndex = penAlphaIndex;
-                    toggleAirBrushCheckBox(isAirBrushON,true);
-                }
-                else
-                {
-                    sizeIndex = eraserSizeIndex;
-                    alphaIndex = eraserAlphaIndex;
-                    toggleAirBrushCheckBox(eraserAirBrushON,false);
-                }
-                setDrawToolSize(sizeIndex);
-                updateDrawToolAlpha(alpha);
-                updateOpacityCursorPos(alphaIndex);
-
-                if(lineFlag === false)
-                {
-                    if(penFlag)
-                    {
-                        updateEraserButtonPosFromOtherTool("toolPen");
-                        toolBox.moveToolCursor("toolPen");
-                        updateToolOptionsTextBySelectedTool();
-                    }
-                    else
-                    {
-                        if(lastEraserPosButton) lastEraserPosButton.visible = true;
-
-                        lastEraserPosButton = null;
-
-                        toolBox2.toolErase.visible = false;
-                        toolBox.moveToolCursor("toolErase");
-                        updateToolOptionsTextBySelectedTool();
-                    }
-                }
-                else //선툴을 선택했을때
-                {
-                    if(penFlag)
-                    {
-                        updateEraserButtonPosFromOtherTool("toolLine");
-                        toolBox.moveToolCursor("toolLine");
-                        updateToolOptionsTextBySelectedTool();
-                    }
-                    toolBox2.toolErase.visible = true;
-                    toolBox2.toolPen.visible = true;
-                }
-
-                toolOptionsBox.updatePenShapeSet(shape);
-                penCursorManager.check();
-            }
         }
 
         //라소박스 변형이랑 플래그 초기화
@@ -22997,8 +22908,8 @@
                 case KEY.o:
                 {
                     setToolIndex(TOOL_PEN); //q키가 올라가면 펜툴로 바꿔지게
-                    updateOldTool();
-                    selectFillPenTool();
+                    updateLastTool();
+                    selectFillPenTool(true);
                 }
                 break;
 
@@ -23042,7 +22953,7 @@
                 {
                     if(!isSelectedTool(TOOL_LASSO))
                     {
-                        updateOldTool();
+                        updateLastTool();
                         selectLassoTool();
                     }
                 }
@@ -23052,7 +22963,7 @@
                 {
                     if(!isSelectedTool(TOOL_HAND))
                     {
-                        updateOldTool();
+                        updateLastTool();
                         setToolIndex(TOOL_HAND);
                     }
                 }
@@ -23063,7 +22974,7 @@
                 {
                     if(!isSelectedTool(TOOL_ERASER))
                     {
-                        updateOldTool();
+                        updateLastTool();
                         selectEraseTool();
                         updatePenSizeCursor();
                     }
@@ -23075,7 +22986,7 @@
                 {
                     if(!isSelectedTool(TOOL_ROTATE))
                     {
-                        updateOldTool();
+                        updateLastTool();
                         selectRotateTool();
                     }
                 }
@@ -23086,7 +22997,7 @@
                 {
                     if(!isSelectedTool(TOOL_MOVE))
                     {
-                        updateOldTool();
+                        updateLastTool();
                         selectMoveTool();
                     }
                 }
@@ -23097,7 +23008,7 @@
                 {
                     if(!isSelectedTool(TOOL_ZOOM))
                     {
-                        updateOldTool();
+                        updateLastTool();
                         selectZoomTool();
                     }
                 }
@@ -23107,7 +23018,7 @@
                 {
                     if(!isSelectedTool(TOOL_LINE))
                     {
-                        updateOldTool();
+                        updateLastTool();
                         selectLineTool();
                         updatePenSizeCursor();
                     }
@@ -23297,7 +23208,7 @@
                     if(toolBox2.visible && toolBox2.hitTestPoint(mouseX,mouseY))
                     {
                         updateToolBoxMousePos(toolBox2.toolPen);
-                        updateOldTool();
+                        updateLastTool();
                         handTool(false,false);
                     }
                     closeToolBox2();
@@ -24340,11 +24251,11 @@
                         ensureDrawingToolSelected(true);
                         if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
                         {
-                            togglePenAirBrushButton(!isAirBrushON);
+                            togglePenAirBrushButton(!isPenAirBrushON);
                         }
                         else if(isSelectedTool(TOOL_ERASER))
                         {
-                            toggleEraseAirBrushButton(!eraserAirBrushON);
+                            toggleEraseAirBrushButton(!isEraserAirBrushON);
                         }
                     }
                 }

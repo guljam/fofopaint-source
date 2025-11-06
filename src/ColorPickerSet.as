@@ -12,6 +12,7 @@
 	import flash.display.BitmapData;
 	import flash.filters.ColorMatrixFilter;
 	import flash.geom.Rectangle;
+	import flash.text.TextFieldType;
 
 
 	public class ColorPickerSet extends Sprite
@@ -75,6 +76,11 @@
 
 		public var scratchPad:DrawrScratchPad;
 
+		public function setRGBInfoTextTypeToInput(flag:Boolean):void
+		{
+			rgbInfoText.type = (flag) ? TextFieldType.DYNAMIC:TextFieldType.INPUT;
+		}
+		
 		private function initScratcPad():void
 		{
 			scratchPad = new DrawrScratchPad(svBoxWidth,mainColorPickerBox.height-24);

@@ -75,7 +75,7 @@
 			penSizeSelectCursor.alpha = 1.0;
 		}
 
-		public function isSizeButtonDisabled():Boolean
+		public function isSizeButtonsDisabled():Boolean
 		{
 			return penSizeGuide.alpha < 1.0;
 		}

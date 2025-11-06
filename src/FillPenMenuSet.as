@@ -100,6 +100,8 @@
 			setScale(1.0);
 
 			visible = false;
+			fillPenBGTitle.mouseEnabled = false;
+			fillPenBG.mouseEnabled = false;
 			fillPenOK.useHandCursor = false;
 			fillPenCancel.useHandCursor = false;
 			fillPenUndo.useHandCursor = false;
