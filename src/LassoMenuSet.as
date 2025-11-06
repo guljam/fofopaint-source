@@ -111,7 +111,7 @@
 		{
 			lassoInfo.text = str;
 
-			if (str.indexOf("\n") !== -1)
+			if (str && str.indexOf("\n") !== -1)
 			{
 				lassoInfo.y = lassoInfoPos[0] - (lassoInfo.height - lassoInfoPos[1]);
 				lassoMenuMoveButton.y = Math.floor(lassoInfo.y - 3);

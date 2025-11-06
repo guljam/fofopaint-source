@@ -263,7 +263,9 @@
 		{
 			const target:DisplayObject = e.target as DisplayObject;
 			if (!target)
+			{
 				return;
+			}
 
 			const targetName:String = target.name;
 
@@ -278,8 +280,8 @@
 				return;
 			}
 
-			if (targetName.indexOf(childTextFieldBoxName) !== -1
-					|| (target.parent && target.parent.name.indexOf(childTextFieldBoxName) !== -1))
+			if (targetName &&targetName.indexOf(childTextFieldBoxName) !== -1
+					|| (target.parent && target.parent.name && target.parent.name.indexOf(childTextFieldBoxName) !== -1))
 			{
 				childTextFieldBoxMouseOverSave = target as Sprite;
 				childTextFieldBoxHoverON(target as Sprite);

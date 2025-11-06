@@ -56,17 +56,16 @@
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import flash.utils.Timer;
-    import flash.text.TextFieldType;
     import flash.text.TextFormat;
     import flash.ui.Mouse;
     import libwebp.DecodeWebp;
-    import flash.events.ProgressEvent;
 
     //import end
     public class Main extends Sprite
     {
         public const  APP_VERSION:Number = 27.01;
         public const  APP_STATE_VERSION:Number = 2701;
+
         public const  TOOL_NONE:int = 0,
                       TOOL_PEN:int = (1 << 0),
                       TOOL_ERASER:int = (1 << 1),
@@ -164,9 +163,10 @@
         public var  STAGE_BG_COLOR:uint = 0xCCCCCC;
         public var  CANVAS_WIDTH:Number = 600,
                     CANVAS_HEIGHT:Number = 390,
-                    RCANVAS_BG_COLOR:uint = 0xFFFFFF,
+                    CANVAS_BG_COLOR:uint = 0xFFFFFF,
                     RCANVAS_WIDTH:Number = 600,
-                    RCANVAS_HEIGHT:Number = 390;
+                    RCANVAS_HEIGHT:Number = 390,
+                    RCANVAS_BG_COLOR:uint = 0xFFFFFF;
 
         public const BOTTOM_BAR_HEIGHT:Number = 25;
         public var  STAGE_TOP_OFFSET:Number = 0, //창 상하좌우 여백
@@ -308,8 +308,7 @@
 
         //초창기 개발 변수
         //펜툴 줌툴 미러 에어브러시
-        public var  canvasBGColor:uint = 0xFFFFFF,
-                    canvasAnchorPoint:Sprite = new Sprite(),//회전 스프라이트 부모
+        public var  canvasAnchorPoint:Sprite = new Sprite(),//회전 스프라이트 부모
                     canvasPanel:Sprite = new Sprite(), //회색 부분을 제외한 그리기 영역 추가
                     canvasDrawLayer:Sprite = new Sprite(), //캔버스 2번 임시로 그려주는 캔버스 버퍼?
                     canvasDrawLayerChild:Shape = new Shape(), //실제로 선을 긋는 요소
@@ -476,7 +475,7 @@
                    rPrevFrame:Number = 0, //jump one frame 에서 이전 프레임 탐색할때 이 프레임으로 탐색해줌 tickdraw에서 data 끝의 프레임을 저장함
                    rFirstImageLayer1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0), 
                    rFirstImageLayer2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0), 
-                   rFirstImageBGColor:uint = canvasBGColor, 
+                   rFirstImageBGColor:uint = CANVAS_BG_COLOR, 
                    rMirrorON:Boolean = false, //대칭 켜지면 올려줌
                    rCanvasZoomMultiplier:Number = 1.0, //리플레이 줌
                    rLastCanvasZoomMultiplier:Number = 1.0, //리플레이에서 수동줌하면 여기다가 저장해줌
@@ -698,14 +697,14 @@
             updateAppWindowSizeInfo();
             loadAppState();
             //입력 이벤트는 loadappdata보다느려야함
-            addGlobalEventsStage();
+            addGlobalEvents();
             addGlobalEventsChild();
             addInputEventsDrawMode();
             initializeReplayDataFile();
             initializeColorPickerBoxInfo(penColor);
             centerCanvas();
             centerCanvas(true);
-            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
             realWorkingTimer.start();
             checkForUpdates();
             tryDisableIME();
@@ -721,7 +720,6 @@
         }
 
         //function
-
         public function getCaptureModeHintCanvasPanel():String
         {
             return "draw"
@@ -781,7 +779,7 @@
                 isMouseDragging = false;
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onmouseUp);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseDown);
-
+                
                 onMouseUp();
             }
 
@@ -2286,7 +2284,7 @@
                 updateCanvasBGColorDrawMode(color);
                 if (isCanvasWindowON)
                 {
-                    updateCanvasWindowBGColor(canvasBGColor, canvasWindowLayer1Bitmap.bitmapData);
+                    updateCanvasWindowBGColor(CANVAS_BG_COLOR, canvasWindowLayer1Bitmap.bitmapData);
                 }
                 addUndoBGColorData(color);
             }
@@ -2714,7 +2712,7 @@
                                                                             canvasLayer1BitmapData.height,
                                                                             canvasWindow.stage.stageWidth,
                                                                             canvasWindow.stage.stageHeight);
-            updateCanvasWindowBGColor(canvasBGColor, canvasLayer1BitmapData);
+            updateCanvasWindowBGColor(CANVAS_BG_COLOR, canvasLayer1BitmapData);
             canvasWindowCanvasPanel.x = bounds.x;
             canvasWindowCanvasPanel.y = bounds.y;
             canvasWindowCanvasPanel.width = bounds.width;
@@ -3731,93 +3729,86 @@
 
         public function cDottedLine():Object
         {
-            const dotOldPoint:Point = new Point(0,0);
-            const oldPoint:Point = new Point(0,0);
-            var dotsize:Number = 4;
+            const lastDotPos:Point = new Point(0,0);
+            var lastLineLength:Number = 0;
+            var dotLineLength:Number = 5;
+            var subDotLength:Number;
+            var startPos:Point = new Point(0,0);
+            var lastInterpPos:Point = new Point(0,0);
             var lineSize:Number = 1;
             var dotLineColor:uint = 0;
+            var graphics:Graphics;
 
-            function updateScale(zoomed:Number):void
+            function setLineScale(zoomed:Number):void
             {
                 lineSize = 1/zoomed;
-                dotsize = 4/zoomed;
+                dotLineLength = 5/zoomed;
             }
 
-            function start(g:Graphics,x:Number,y:Number):void
+            function toggleLineColor(from:int):uint
             {
-                dotLineColor = 0;
-                dotOldPoint.setTo(x,y);
-                oldPoint.setTo(x,y);
-                g.lineStyle(lineSize,0,1.0,false,"normal","none");
-                g.moveTo(x,y);
-            }
-
-            function getLineColor():uint
-            {
-                return dotLineColor;
-            }
-
-            function resetLineColor():void
-            {
-                dotLineColor = 0;
-            }
-
-            function setDotOldPoint(x:Number,y:Number):void
-            {
-                dotOldPoint.setTo(x,y);
-            }
-
-            function toggleLineColor():uint
-            {
-                dotLineColor = (dotLineColor === 0)?0xFFFFFF:0;
-                return dotLineColor;
-            }
-
-            function draw(g:Graphics,x:Number,y:Number):void
-            {
-                const endpos:Point = new Point(x,y);
-                const dist:Number = Point.distance(dotOldPoint,endpos);
-
-                if(dist > dotsize)
+                if(dotLineColor === 0)
                 {
-                    dotOldPoint.setTo(x,y);
-
-                    const div:Number = Math.floor(dist/dotsize);
-                    if(div > 0)
-                    {
-                        const minUnit:Number = (dotsize/dist);
-                        var pos:Point;
-                        var divPoint:Point;
-
-                        for(var i:Number=div;i>=0.0;i--)
-                        {
-                            pos = Point.interpolate(oldPoint,endpos,minUnit*i);
-                            g.lineTo(pos.x,pos.y);
-                            g.lineStyle(lineSize,toggleLineColor());
-                            g.moveTo(pos.x,pos.y);
-                        }
-                    }
-                    else
-                    {
-                        g.lineStyle(lineSize,toggleLineColor());
-                        g.moveTo(x,y);
-                    }
+                    dotLineColor = 0xFFFFFF;
                 }
                 else
                 {
-                    g.lineTo(x,y);
+                    dotLineColor = 0;
                 }
 
-                oldPoint.setTo(x,y);
+                return dotLineColor;
+            }
+
+            function moveTo(g:Graphics,x:Number,y:Number):void
+            {
+                graphics = g;
+
+                dotLineColor = 0;
+                subDotLength = dotLineLength;
+                startPos.setTo(x,y);
+                lastDotPos.setTo(x,y);
+                lastInterpPos.setTo(x,y);
+
+                graphics.lineStyle(lineSize,dotLineColor,1.0,false,"normal","none");
+                graphics.moveTo(x,y);
+            }
+
+            function lineTo(x:Number,y:Number,closeLine:Boolean=false):void
+            {
+                const nowPos:Point = new Point(x,y);
+                var dist:Number = Point.distance(lastDotPos,nowPos);
+                var interpPoint:Point = new Point(lastDotPos.x,lastDotPos.y);
+                var ratio:Number;
+
+                subDotLength -= dist;
+                
+                while(subDotLength < 0)
+                {
+                    ratio = (dist-subDotLength)/dist-1.0;
+                    interpPoint = Point.interpolate(interpPoint,nowPos,ratio);
+                    
+                    toggleLineColor(1);
+                    graphics.lineStyle(lineSize,dotLineColor,1.0,false,"normal","none");
+                    graphics.moveTo(lastInterpPos.x,lastInterpPos.y);
+                    graphics.lineTo(interpPoint.x,interpPoint.y);
+
+                    lastInterpPos.setTo(interpPoint.x,interpPoint.y);
+                    dist =  Point.distance(nowPos,interpPoint);
+                    subDotLength += dotLineLength;
+                }
+
+                if(closeLine)
+                {
+                    graphics.lineTo(startPos.x,startPos.y);
+                }
+
+                lastDotPos.setTo(x,y);
             }
 
             return {
-                draw:draw,
-                start:start,
-                setDotOldPoint:setDotOldPoint,
-                resetLineColor:resetLineColor,
-                getLineColor:getLineColor,
-                updateScale:updateScale
+                lineTo:lineTo,
+                moveTo:moveTo,
+                setLineScale:setLineScale
             }
         }
 
@@ -4120,12 +4111,6 @@
         {
             checkInvalidKey();
             isMouseClicked = true;
-
-            if(stage.nativeWindow.active)
-            {
-                realWorkingTimer.resetAFKCount();
-            }
-
             hideBottomHint();
         }
 
@@ -4133,10 +4118,6 @@
         {
             checkInvalidKey();
             isRightMouseClicked = true;
-            if(stage.nativeWindow.active)
-            {
-                realWorkingTimer.resetAFKCount();
-            }
         }
 
         public function onMiddleMouseDownStage(e:MouseEvent):void
@@ -4168,13 +4149,6 @@
             {
                 isMouseDragging = false;
             }
-
-            
-
-            if(stage.nativeWindow.active)
-            {
-                realWorkingTimer.resetAFKCount();
-            }
         }
 
         public function onRightMouseUpStage(e:MouseEvent):void
@@ -4187,11 +4161,6 @@
             if(!isMouseClicked && isRightMouseClicked)
             {
                 isMouseDragging = false;
-            }
-
-            if(stage.nativeWindow.active)
-            {
-                realWorkingTimer.resetAFKCount();
             }
         }
 
@@ -4449,7 +4418,7 @@
             if(bgmode)
             {
                 updateCanvasBGColorDrawMode(hexColor);
-                if(isCanvasWindowON) updateCanvasWindowBGColor(canvasBGColor,canvasWindowLayer1Bitmap.bitmapData);
+                if(isCanvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
                 moveHSVCursorByColor((isRgbInfoTextHSV) ? HEXtoHSV(hexColor) : hexColor);
                 addUndoBGColorData(hexColor);
             }
@@ -4649,7 +4618,7 @@
 
             function onEnterFrameFillPenPreview(e:Event):void
             {
-                const newXcolor:uint = (isTransparentPenColor) ? canvasBGColor : colorPickerBox.rgbInfoBGColor;
+                const newXcolor:uint = (isTransparentPenColor) ? CANVAS_BG_COLOR : colorPickerBox.rgbInfoBGColor;
                 const newXAlpha:Number = penAlpha
                 const newXBlendMode:String = (isTransparentPenColor) ? "erase" : null;
 
@@ -4749,15 +4718,18 @@
                 canvasDrawLayerChild.graphics.clear();
 
                 const len:uint = data.length;
-                if(len <= 3) return;
+                if(len <= 3)
+                {
+                    return;
+                }
 
-                dottedLine.start(canvasDrawLayerChild.graphics,data[0],data[1]);
+                dottedLine.moveTo(canvasDrawLayerChild.graphics,data[0],data[1]);
 
                 for(var i:uint=2; i<len; i+=2)
                 {
-                    dottedLine.draw(canvasDrawLayerChild.graphics,data[i],data[i+1]);
+                    dottedLine.lineTo(data[i],data[i+1]);
                 }
-                dottedLine.draw(canvasDrawLayerChild.graphics,data[0],data[1]);
+                dottedLine.lineTo(data[0],data[1],true);
 
                 if(isLayer2Selected)
                 {
@@ -5314,7 +5286,7 @@
                 mouseMoveCount = 0;
                 afterKeyUpOK = false;
                 pos05Offset = getSharpLinePosOffset(1.0);
-                xColor = (isTransparentPenColor) ? canvasBGColor : penColor;
+                xColor = (isTransparentPenColor) ? CANVAS_BG_COLOR : penColor;
                 xAlpha = penAlpha;
                 xBlendMode = (isTransparentPenColor) ? "erase" : null;
                 commandUndoIndexArr[0] = 0;
@@ -5339,7 +5311,7 @@
                 {
                     refLayerMenuBox.visible = false;
                 }
-                dottedLine.updateScale(canvasZoomMultipler);
+                dottedLine.setLineScale(canvasZoomMultipler);
 
                 const filteredPos:Point = getFilteredPos(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
                 var mx:Number = filteredPos.x+pos05Offset;
@@ -5724,7 +5696,7 @@
 
                     if(isTransparentPenColor)
                     {
-                        xColor = canvasBGColor;
+                        xColor = CANVAS_BG_COLOR;
                         xBlendMode = "erase";
                     }
                     else
@@ -5742,7 +5714,7 @@
                 else
                 {
                     xSize = eraserSize;
-                    xColor = canvasBGColor;
+                    xColor = CANVAS_BG_COLOR;
                     xAlpha = eraserAlpha;
                     xShape = eraserIsSquare;
                     xBlendMode = "erase";
@@ -5895,18 +5867,14 @@
         public function cRealWorkingTimer():Object
         {
             var workingTime:int = 0;
-            var afkCount:int = 0; //마우스 멈춰있으면 올라가는 시간
             var lastTime:int = 0; //마지막 시간 저장해줌
             //시간 표시 관련 변수
             var tt:int;
             var hh:int;
             var mm:int;
             var ss:int;
-
-            function resetAFKCount():void
-            {
-                afkCount = 0;
-            }
+            var lastMousePosX:Number = 0;
+            var lastMousePosY:Number = 0;
 
             function reset():void
             {
@@ -5951,55 +5919,38 @@
                 const nowTime:int = getTimer();
                 const subTime:int = nowTime-lastTime;
 
-                if(subTime >= 1000)
+                if(!stage.nativeWindow.active
+                || (!isMouseClicked && !isRightMouseClicked && !isKeyPressed()
+                    && stage.mouseX === lastMousePosX && stage.mouseY === lastMousePosY))
                 {
-                    if(afkCount > 1000)
-                    {
-                        afkCount = 1001;
-
-                        topBar.timerAFkDot.visible = !topBar.timerAFkDot.visible;
-                        topBar.updateTimerPos(stage.stageWidth);
-                    }
-                    else
-                    {
-                        workingTime += subTime;
-                        update();
-                    }
-
-                    afkCount += subTime;
-                    lastTime = nowTime;
+                    topBar.timerAFkDot.visible = !topBar.timerAFkDot.visible;
+                    topBar.updateTimerPos(stage.stageWidth);
                 }
+                else
+                {
+                    workingTime += subTime;
+                    update();
+                }
+
+                lastMousePosX = stage.mouseX;
+                lastMousePosY = stage.mouseY;
+
+                lastTime = nowTime;
 
                 return true;
             }
 
-            function enterAFKMode():void
-            {
-                afkCount = 1001;
-            }
-
-            function resume():void
-            {
-                lastTime = getTimer();
-            }
-
             function start():void
             {
-                resume();
-                var timer:Timer = new Timer(1000); // 1000ms = 1초 간격
+                var timer:Timer = new Timer(1000);
                 timer.addEventListener(TimerEvent.TIMER, onTimer);
                 timer.start();
-
-                // addTimerByName("workingTimer",1.0,true,check);
             }
 
             return {
                 start:start,
-                resume:resume,
-                enterAFKMode:enterAFKMode,
                 reset:reset,
                 update:update,
-                resetAFKCount:resetAFKCount,
                 getRunningTime:getRunningTime,
                 setRunningTime:setRunningTime
             }
@@ -7041,9 +6992,6 @@
                 addInputEventsDrawMode();
             }
 
-            // 그리그 키관련 수정해야함
-            // 그리드 클릭으로 켜주고
-            // 단축키로 꺼주면 아무것도 작동안함
             function start(shortcutKey:Boolean):void
             {
                 if(topBar.gridButtonWrapper.visible === false)
@@ -7370,7 +7318,7 @@
                 onMouseMoveUpdateopacity();
             }
 
-            startDragInteraction(onDragStart,onMouseMoveUpdateopacity,null);
+            startDragInteraction(onDragStart,onMouseMoveUpdateopacity,function():void{});
         }
 
         public function saveRefLayerImage():void
@@ -7641,7 +7589,7 @@
                 xPanel = canvasPanel;
                 w = CANVAS_WIDTH;
                 h = CANVAS_HEIGHT;
-                color = canvasBGColor;
+                color = CANVAS_BG_COLOR;
             }
 
             xPanel.graphics.clear();
@@ -7769,7 +7717,7 @@
         {
             stageBG.graphics.clear();
             stageBG.graphics.beginFill(0,0.0);
-            stageBG.graphics.drawRect(0,0,stage.stageWidth,stage.stageHeight);
+            stageBG.graphics.drawRect(-2,-2,stage.stageWidth+4,stage.stageHeight+4);
             stageBG.graphics.endFill();
         }
 
@@ -7868,7 +7816,7 @@
             // }
         }
 
-        public function addGlobalEventsStage():void
+        public function addGlobalEvents():void
         {
             //전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음
             stage.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownStage,false,1);
@@ -7882,8 +7830,6 @@
             stage.addEventListener(MouseEvent.MOUSE_UP,onMouseMoveUpdatePenPreviewCursor,false,-1);
             stage.addEventListener(Event.MOUSE_LEAVE,onMouseLeaveStage,false);
             stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveBottomHint);
-            NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent);
-            //창을 가운데로 옮김
             stage.nativeWindow.x = Capabilities.screenResolutionX/2 - 680/2;
             stage.nativeWindow.y = Capabilities.screenResolutionY/2 - 768/2 - 50;
             stage.nativeWindow.addEventListener(Event.RESIZE,onWindowResize);
@@ -7893,6 +7839,7 @@
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,onDragEnterStage);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP,onDragDropStage);
             stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheelStage);
+            NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent);
         }
 
         public function addGlobalEventsChild():void
@@ -8188,11 +8135,6 @@
             tryDisableIME();
             checkInvalidKey();
 
-            if(stage.nativeWindow.active)
-            {
-                realWorkingTimer.resetAFKCount();
-            }
-
             const index:int = isPressdKey(e.keyCode);
 
             if(index > -1)
@@ -8205,11 +8147,6 @@
         {
             tryDisableIME();
             checkInvalidKey();
-
-            if(stage.nativeWindow.active)
-            {
-                realWorkingTimer.resetAFKCount();
-            }
 
             const keyCode:uint = e.keyCode;
 
@@ -8363,7 +8300,7 @@
                 xBitmapData1 = canvasLayer1BitmapData;
                 xBitmapData11 = canvasLayer2BitmapData;
                 xDrawLayer = canvasDrawLayer;
-                xBGCOLOR = canvasBGColor;
+                xBGCOLOR = CANVAS_BG_COLOR;
                 alpha = 1.0;
             }
 
@@ -8877,7 +8814,7 @@
 
         public function activeColorPickerModeBG():void
         {
-            const color:uint = canvasBGColor;
+            const color:uint = CANVAS_BG_COLOR;
 
             isColorPickerModeBG = true;
 
@@ -9001,7 +8938,7 @@
                 else if(isBackgroundColorMode())
                 {
                     updateCanvasBGColorDrawMode(pickedColor);
-                    if(isCanvasWindowON) updateCanvasWindowBGColor(canvasBGColor,canvasWindowLayer1Bitmap.bitmapData);
+                    if(isCanvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
                     addUndoBGColorData(pickedColor);
                 }
 
@@ -9072,7 +9009,7 @@
                 else if(isBackgroundColorMode())
                 {
                     updateCanvasBGColorDrawMode(pickedColor);
-                    if(isCanvasWindowON) updateCanvasWindowBGColor(canvasBGColor,canvasWindowLayer1Bitmap.bitmapData);
+                    if(isCanvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
                     addUndoBGColorData(pickedColor);
                 }
 
@@ -9145,7 +9082,7 @@
         {
             var verStr:String = version.toString();
 
-            if(verStr.indexOf(".") === -1) verStr = verStr + ".0";
+            if(verStr && verStr.indexOf(".") === -1) verStr = verStr + ".0";
 
             return verStr;
         }
@@ -9380,7 +9317,7 @@
         public function clearDataAndResetVars():void
         {
             isContinueSaveON = false;
-            rLastCanvasBGColor = canvasBGColor;
+            rLastCanvasBGColor = CANVAS_BG_COLOR;
             rMirrorON = false;
             isCanvasMirrored = false;
             mirrorCommandReady = false;
@@ -9431,7 +9368,7 @@
 
             updateCavnvasSizeDrawMode(canvasLayer1Bitmap.width,canvasLayer1Bitmap.height);
             updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
-            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
 
             if(isCanvasWindowON)
             {
@@ -10050,7 +9987,7 @@
             drawReplayByCommand.setFirstRCursorPosCurrent();
             rReplayFOFOCursor.visible = false;
 
-            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
 
             if(isCanvasWindowON)
             {
@@ -10114,7 +10051,7 @@
                 resetReplayTime();
                 syncDrawCanvasWithReplayCanvas();
                 resetUndoState();
-                canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+                canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
 
                 if(isCanvasWindowON)
                 {
@@ -10199,7 +10136,7 @@
                 const fs:FileStream = new FileStream();
                 fs.open(replayDataFilePath,FileMode.WRITE);
                 fs.close();
-                createFirstImageCache(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+                createFirstImageCache(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
             }
         }
 
@@ -13191,7 +13128,7 @@
         public function updateCanvasBGColorDrawMode(color:uint):void
         {
             isFileAlreadySaved = false;
-            canvasBGColor = color;
+            CANVAS_BG_COLOR = color;
             canvasNavigatorBox.changeprevBitmapBGColor(color);
             updateCanvasBGColor(canvasPanel,CANVAS_WIDTH,CANVAS_HEIGHT,color);
             if( colorPickerBox.scratchPad)
@@ -13222,7 +13159,7 @@
                 (  toolBox.contains(target)
                 || canvasInfoBox.contains(target)
                 || colorPickerBox.contains(target))
-                || targetName.indexOf("alphaButton") !== -1)
+                || (targetName && targetName.indexOf("alphaButton") !== -1))
                 {
                 }
                 else
@@ -13232,7 +13169,7 @@
             }
             else if(isSelectedTool(TOOL_FILL_PEN))
             {
-                if(targetName.indexOf("nSizeButton") !== -1 || target.alpha < 0.5)
+                if((targetName && targetName.indexOf("nSizeButton") !== -1) || target.alpha < 0.5)
                 {
                     return true;
                 }
@@ -13334,7 +13271,6 @@
         public function onMouseMoveBottomHint(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
-
             if(!target)
             {
                 return;
@@ -14016,13 +13952,13 @@
             if(!isFillPenStarted)
             {
                 const bgColor:uint = myPaletteTegakiPreset[index+10];
-                if(bgColor !== canvasBGColor)
+                if(bgColor !== CANVAS_BG_COLOR)
                 {
                     updateCanvasBGColorDrawMode(bgColor);
 
                     if(isCanvasWindowON)
                     {
-                        updateCanvasWindowBGColor(canvasBGColor,canvasWindowLayer1Bitmap.bitmapData);
+                        updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
                     }
                     addUndoBGColorData(bgColor);
                 }
@@ -14055,7 +13991,7 @@
             else if(isBackgroundColorMode())
             {
                 updateCanvasBGColorDrawMode(pickedColor);
-                if(isCanvasWindowON) updateCanvasWindowBGColor(canvasBGColor,canvasWindowLayer1Bitmap.bitmapData);
+                if(isCanvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
                 addUndoBGColorData(pickedColor);
             }
         }
@@ -14852,7 +14788,7 @@
             }
 
             fs.writeObject(["rFirstImage",dataA,dataA1,rImgDataW,rImgDataH,rFirstImageBGColor]);
-            fs.writeObject(["rFinalImage",dataB,dataB1,CANVAS_WIDTH,CANVAS_HEIGHT,canvasBGColor]);
+            fs.writeObject(["rFinalImage",dataB,dataB1,CANVAS_WIDTH,CANVAS_HEIGHT,CANVAS_BG_COLOR]);
 
             if(canvasRefLayerBitmapData)
             {
@@ -15153,7 +15089,7 @@
             updateCanvasBGColorReplayMode(newBG);
             if(isCanvasWindowON)
             {
-                updateCanvasWindowBGColor(canvasBGColor,canvasWindowLayer1Bitmap.bitmapData);
+                updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
             }
 
             // updateLastFilePathByRandomFileName();
@@ -15272,7 +15208,7 @@
 
             updateCurrentColorPickerBox(false);
             ensureDrawingToolSelected(false);
-            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
             updateCanvasNaigatorCursor();
 
             if(isCanvasWindowON)
@@ -15480,7 +15416,7 @@
                 {
                     handleMouseClick(targetName);
                 }
-                else if(targetName.indexOf(captureStampFontListBox.getStampFontButtonName()) !== -1)
+                else if(targetName && targetName.indexOf(captureStampFontListBox.getStampFontButtonName()) !== -1)
                 {
                     captureStampManager.changeFont(captureStampFontListBox.getFontName(targetName),true);
                 }
@@ -16272,7 +16208,15 @@
 
                     if(stampBGColor === null || !rect.equals(lastRectArea))
                     {
-                        stampBGColor = getImageDominantColor(smallBmpd);
+                        const tegakiBGColorIndex:int = myPaletteTegakiPreset.indexOf((isReplayModeON) ? RCANVAS_BG_COLOR:CANVAS_BG_COLOR);
+                        if(tegakiBGColorIndex >= 0)
+                        {
+                            stampBGColor = myPaletteTegakiPreset[tegakiBGColorIndex-10];
+                        }
+                        else
+                        {
+                            stampBGColor = getImageDominantColor(smallBmpd);
+                        }
                         updateLastRectArea(rect);
                     }
 
@@ -17032,7 +16976,10 @@
             const pattern:RegExp = /_\d\d\d\d\d\d\d\d\d/g;
             const findTimeStamp:String = pattern.exec(str);
 
-            if(findTimeStamp === null) return str;
+            if(findTimeStamp === null)
+            {
+                return str;
+            }
 
             const cutIndex:int = str.lastIndexOf(findTimeStamp);
             const cutStr:String = str.substr(0,cutIndex);
@@ -17377,7 +17324,7 @@
 
                     disableFileOperationButtonsTopbar();
                     workerPNGSaveData = null;
-                    startPngEncodingWorker(mergedImage.clone(),canvasBGColor,false,false);
+                    startPngEncodingWorker(mergedImage.clone(),CANVAS_BG_COLOR,false,false);
                     saveReplayFile();
                     updateWindowTitle();
                     clearKeyBuffer();
@@ -17460,7 +17407,7 @@
                     lastSaveFilePath = convertToPNGFilePath(e.target.nativePath);
                     lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
                     workerPNGSaveData = null;
-                    startPngEncodingWorker(mergedImage.clone(),canvasBGColor,false,false);
+                    startPngEncodingWorker(mergedImage.clone(),CANVAS_BG_COLOR,false,false);
                     saveReplayFile();
                     updateWindowTitle();
 
@@ -17623,7 +17570,6 @@
             updateAppWindowSizeInfo();
 
             const fs:FileStream = new FileStream();
-
             fs.open(appStateFilePath, FileMode.WRITE);
             fs.writeObject({"CANVAS_WIDTH":CANVAS_WIDTH,
                             "CANVAS_HEIGHT":CANVAS_HEIGHT,
@@ -17910,7 +17856,7 @@
                     rNowFrame = getNowFrameUntilUndoIndex(undoDataIndex);
                     rPrevFrame = getNowFrameUntilUndoIndex(undoDataIndex-1);
 
-                    //혹시 몰라서 위치 체크 해줌
+                    // 혹시 몰라서 위치 체크 해줌
                     canvasInfoBox.setRotate(canvasAnchorPoint.rotation);
                     centerCanvas(true);
                     keepCnvasPanelInStage();
@@ -18350,7 +18296,7 @@
 
                 if(isTransparentPenColor)
                 {
-                    xColor = canvasBGColor;
+                    xColor = CANVAS_BG_COLOR;
                     xBlendMode = "erase";
                 }
                 else
@@ -18800,7 +18746,7 @@
             tmpbmpd.dispose();
             tmpbmpd = null;
 
-            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
 
             if(isCanvasWindowON)
             {
@@ -18973,7 +18919,7 @@
             if(h > maxSize) h = maxSize;
             else if(h < 1) h = 1;
 
-            updateCanvasBGColor(canvasPanel,w,h,canvasBGColor);
+            updateCanvasBGColor(canvasPanel,w,h,CANVAS_BG_COLOR);
             updateCanvasPanelMask(w,h);
 
             canvasLayer1BitmapData = new BitmapData(w,h,true,0);
@@ -19369,7 +19315,7 @@
                 oldHeight = CANVAS_HEIGHT;
                 finalWidth = oldWidth;
                 finalHeight = oldHeight;
-                bgColor = canvasBGColor;
+                bgColor = CANVAS_BG_COLOR;
                 stageColor = STAGE_BG_COLOR;
                 subX = 0;
                 subY = 0;
@@ -19502,7 +19448,7 @@
             if(!copyFlag)
             {
                 xCanvasDrawLayer.graphics.clear();
-                xCanvasDrawLayer.graphics.beginFill(canvasBGColor);
+                xCanvasDrawLayer.graphics.beginFill(CANVAS_BG_COLOR);
                 xCanvasDrawLayer.graphics.moveTo(points[0][0],points[0][1]);
 
                 //rectLeft를 빼줘서 canvasdraw2의 0,0영역에 그려줌
@@ -19621,13 +19567,14 @@
                     return;
                 }
 
-                dottedLine.start(lassoDraw.graphics,lassoPoints[0][0],lassoPoints[0][1]);
+                dottedLine.moveTo(lassoDraw.graphics,lassoPoints[0][0],lassoPoints[0][1]);
 
                 for(var i:uint=0; i<len; i++)
                 {
-                    dottedLine.draw(lassoDraw.graphics,lassoPoints[i][0],lassoPoints[i][1]);
+                    dottedLine.lineTo(lassoPoints[i][0],lassoPoints[i][1]);
                 }
-                dottedLine.draw(lassoDraw.graphics,lassoPoints[0][0],lassoPoints[0][1]);
+
+                dottedLine.lineTo(lassoPoints[0][0],lassoPoints[0][1],true);
             }
 
             function setDeafultLassoMenuPos(lassoMenu:LassoMenuSet):void
@@ -19722,7 +19669,7 @@
 
                 if(!hasTimer("LassoDrawDelayTimer"))
                 {
-                    addTimerByName("LassoDrawDelayTimer",0.083,false,function():void
+                    addTimerByName("LassoDrawDelayTimer",0.1,false,function():void
                     {
                         drawPreviewLine();
                     });
@@ -19774,7 +19721,7 @@
                 lassoPoints.push([clickPos.x,clickPos.y]);
                 lassoLayer1.visible = true;
 
-                dottedLine.updateScale(canvasZoomMultipler);
+                dottedLine.setLineScale(canvasZoomMultipler);
                 if(canvasLayer1Bitmap.visible)
                 {
                     if(lassoLayer1LastBitmapdata != null) lassoLayer1LastBitmapdata.dispose();
@@ -19805,7 +19752,7 @@
             var penColorBackup:uint;
             var canvasBGShape:Shape = new Shape();
 
-            function renderMagnifierBitmap():void
+            function updateEyeDropperLensBitmap():void
             {
                 const mid:Number = magSize/(4*canvasZoomMultipler); //4는 기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
                 const tx:Number = -canvasLayer1Bitmap.mouseX+mid;
@@ -19834,9 +19781,9 @@
                 if(canvasLayer1Bitmap.hitTestPoint(mouseX,mouseY))
                 {
                     //배경색
-                    const r3:uint = (canvasBGColor & 0xFF0000) >> 16;
-                    const g3:uint = (canvasBGColor & 0x00FF00) >> 8;
-                    const b3:uint = (canvasBGColor & 0x0000FF);
+                    const r3:uint = (CANVAS_BG_COLOR & 0xFF0000) >> 16;
+                    const g3:uint = (CANVAS_BG_COLOR & 0x00FF00) >> 8;
+                    const b3:uint = (CANVAS_BG_COLOR & 0x0000FF);
 
                     var aa:Number = 0;
                     var rr:uint = 0;
@@ -20035,7 +19982,7 @@
                     updateTargetColorTransform(eyedropperLens.nowColor,pickColor());
                     if(canvasZoomMultipler < 12.0)
                     {
-                        renderMagnifierBitmap();
+                        updateEyeDropperLensBitmap();
                     }
                     eyedropperLens.visible = true;
                 }
@@ -20092,7 +20039,7 @@
                 eyedropperLens.rotateBitmap(canvasAnchorPoint.rotation);
                 canvasRefLayer.visible = false;
                 canvasBGShape.graphics.clear();
-                canvasBGShape.graphics.beginFill(canvasBGColor);
+                canvasBGShape.graphics.beginFill(CANVAS_BG_COLOR);
                 canvasBGShape.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 
                 if(canShowEyedropperLens())
@@ -20105,7 +20052,7 @@
                     if(canvasZoomMultipler < 12.0)
                     {
                         eyedropperLens.circleBox.visible = true;
-                        renderMagnifierBitmap();
+                        updateEyeDropperLensBitmap();
                     }
                     else
                     {
@@ -20137,7 +20084,7 @@
                     {
                         timerActivated = false;
                         canvasPanel.graphics.clear();
-                        canvasPanel.graphics.beginFill(canvasBGColor);
+                        canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
                         canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
                         canvasPanel.graphics.endFill();
                     }
@@ -20168,7 +20115,7 @@
                 {
                     timerActivated = false;
                     canvasPanel.graphics.clear();
-                    canvasPanel.graphics.beginFill(canvasBGColor);
+                    canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
                     canvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
                     canvasPanel.graphics.endFill();
                 }
@@ -20486,7 +20433,7 @@
                 canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData,lassoLayer2LastBitmapdata,canvasLayer2Bitmap);
             }
 
-            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
 
             if(isCanvasWindowON)
             {
@@ -20856,7 +20803,7 @@
             showRCursorOnUndo(undoDataIndex);
             checkMirrorCanvasReplayMirror();
 
-            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+            canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
 
             if(isCanvasWindowON)
             {
@@ -20971,7 +20918,7 @@
                                     ,rFirstImageLayer2BitmapData.clone()
                                     ,CANVAS_WIDTH
                                     ,CANVAS_HEIGHT
-                                    ,canvasBGColor
+                                    ,CANVAS_BG_COLOR
                                     ,isCanvasMirrored];
 
             function resetRJumpImageCount():void
@@ -21000,7 +20947,7 @@
                                              canvasLayer2BitmapData.clone(),
                                              canvasLayer1BitmapData.width,
                                              canvasLayer1BitmapData.height,
-                                             canvasBGColor,
+                                             CANVAS_BG_COLOR,
                                              isCanvasMirrored);
             }
 
@@ -21159,7 +21106,7 @@
                 rPrevFrame = rNowFrame;
                 rNowFrame = getTotalFrame();
 
-                canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+                canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
 
                 if(isCanvasWindowON)
                 {
@@ -21280,7 +21227,7 @@
                 }
 
                 undoDataIndex = rData.length-1;
-                canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,canvasBGColor);
+                canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
 
                 if(isCanvasWindowON)
                 {
@@ -21685,7 +21632,7 @@
             rReplayFOFOCursor.name = "rCursor";
             rReplayFOFOCursor.mouseEnabled = false;
 
-            rCanvasPanel.graphics.beginFill(canvasBGColor);
+            rCanvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
             rCanvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
             rCanvasPanel.graphics.endFill();
 
@@ -21738,7 +21685,7 @@
 
             captureDragAreaOverlay.visible = false;
 
-            updateCanvasBGColorDrawMode(canvasBGColor);
+            updateCanvasBGColorDrawMode(CANVAS_BG_COLOR);
             updateCanvasPanelMask(CANVAS_WIDTH,CANVAS_HEIGHT);
 
             updateStageBGColor(uiColorSets[uiColorIndex][2]);
@@ -23050,7 +22997,6 @@
         public function onWindowActive(e:Event):void
         {
             tryDisableIME();
-            realWorkingTimer.resume();
             checkCanUseClipBoardButton();
 
             if(isAboutBoxOpened)
@@ -23068,7 +23014,6 @@
             isMouseClickBlocked = true;
             resizeCanvas.exit(true);
             clearKeyBuffer();
-            realWorkingTimer.enterAFKMode();
             removeKeyRepeatEvents(null);
             removeTimer("pressholdtimer");
 
@@ -23583,7 +23528,7 @@
             rCanvasLayer1BitmapData = updateBitmapData(rCanvasLayer1BitmapData,canvasLayer1BitmapData,rCanvasLayer1Bitmap);
             rCanvasLayer2BitmapData = updateBitmapData(rCanvasLayer2BitmapData,canvasLayer2BitmapData,rCanvasLayer2Bitmap);
             updateCanvasSizeReplayMode(canvasLayer1Bitmap.width,canvasLayer1Bitmap.height);
-            updateCanvasBGColorReplayMode(canvasBGColor);
+            updateCanvasBGColorReplayMode(CANVAS_BG_COLOR);
         }
 
         public function updateReplayTimeBarFromDrawMode():void
@@ -23939,7 +23884,7 @@
 
             const targetName:String = e.target.name;
 
-            if(targetName.indexOf("canvas") !== -1 || targetName === "stageBG")
+            if(targetName && targetName.indexOf("canvas") !== -1 || targetName === "stageBG")
             {
                 if(isReplayCanvasFitToWindow) resetZoomReplayMode();
                 else setFitReplayCanvasToWindowON();
@@ -23952,7 +23897,6 @@
                 case "replayPrev": startKeyRepeat(true,moveToPreviousFrame); break;
                 case "replayNext": startKeyRepeat(true,moveToNextFrame); break;
                 case "replayRotateButton" : resetRotationReplayMode(); break;
-
                 case "replayZoomInButton" :
                 case "replayZoomOutButton" : resetZoomReplayMode(); break;
             }
