@@ -60,8 +60,7 @@
     import flash.text.TextFormat;
     import flash.ui.Mouse;
     import libwebp.DecodeWebp;
-    import flash.net.drm.AddToDeviceGroupSetting;
-    import flash.display.PNGEncoderOptions;
+    import flash.events.ProgressEvent;
 
     //import end
     public class Main extends Sprite
@@ -1034,7 +1033,7 @@
             }
             stage.addEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp);
 
-            addTimerByName("addColorMyPaletteDelayTimer", 0.4, true, function():Boolean
+            addTimerByName("addColorMyPaletteDelayTimer", 0.6, true, function():Boolean
                 {
                     if (firstClickColorIndex === getMyPaletteIndexByMousePos())
                     {
@@ -1056,13 +1055,17 @@
                 const scale:Number = getUIScale();
 
                 if (isRightSidebar
-                        && mouseX >= sideBar.x - sideBarScrollBar.width * scale && mouseX <= sideBar.x + sideBar.WIDTH * scale
-                        && mouseY >= sideBar.y && mouseY <= stage.stageHeight)
+                        && mouseX >= sideBar.x - sideBarScrollBar.width * scale
+                        && mouseX <= sideBar.x + sideBar.WIDTH * scale
+                        && mouseY >= sideBar.y
+                        && mouseY <= stage.stageHeight)
                 {
                     return true;
                 }
-                else if (mouseX >= sideBar.x && mouseX <= sideBar.x + sideBar.WIDTH * scale + sideBarScrollBar.width * scale
-                        && mouseY >= sideBar.y && mouseY <= stage.stageHeight)
+                else if (  mouseX >= sideBar.x
+                        && mouseX <= sideBar.x + sideBar.WIDTH * scale + sideBarScrollBar.width * scale
+                        && mouseY >= sideBar.y
+                        && mouseY <= stage.stageHeight)
                 {
                     return true;
                 }
@@ -2012,7 +2015,9 @@
                 case "7":
                 case "8":
                 case "9":
+                {
                     return true;
+                }
             }
 
             return false;
@@ -2101,6 +2106,8 @@
                 case KEY.shift:
                 case KEY.alt:
                 case KEY.ctrl:
+                case KEY.q:
+                case KEY.o:
                     {
                         // pass
                     }
@@ -2118,7 +2125,7 @@
             }
         }
 
-        public function showNumPad():void
+        public function openNumPad():void
         {
             if (numPadBox.visible === false)
             {
@@ -2285,6 +2292,16 @@
             }
         }
 
+        public function setStageFocusNull():void
+        {
+            stage.focus = null;
+
+            if (numPadBox.visible)
+            {
+                closeNumpad();
+            }
+        }
+
         public function onFocusOutRGBInfoText(e:FocusEvent):void
         {
             tryDisableIME();
@@ -2322,18 +2339,9 @@
                 });
         }
 
-        public function setStageFocusNull():void
-        {
-            stage.focus = null;
-
-            if (numPadBox.visible)
-            {
-                closeNumpad();
-            }
-        }
-
         public function onFocusInRGBInfoText(e:FocusEvent):void
         {
+            //TODO: 코드좀 정리하고싶은데
             if (isIgnoringRgbInfoTextRightClick || isLassoToolStarted)
             {
                 // 라소툴때문에 강제로 올려줌
@@ -2348,6 +2356,7 @@
 
                 return;
             }
+
             // 가장 자리를 클릭하면 Y값이 음수가 될때가 있어서 제대로된 값이 안나옴 그래서 녺이는 양수 고정으로 함
             const foundColorType:String = (isRgbInfoTextHSV) ? "HSV" : "RGB";
             const isHSVRGBText:Boolean = (colorPickerBox.getRGBInfoText().indexOf(foundColorType) !== -1);
@@ -2385,14 +2394,21 @@
             }
 
             colorPickerBox.updateFirstRGBInfoColorText();
-            // pickerBox.rgbInfo.setSelection(0,0);
+
+            //필펜 경우 제외시키고 작동은 되나 코드를 좀 정리하고싶음
+            if(isKeyPressed() && (isSelectedTool(TOOL_FILL_PEN) || isFillPenStarted))
+            {   
+                colorPickerBox.rgbInfoText.type = TextFieldType.DYNAMIC;
+            }
+
             if (isQuickSidebarActive === false)
             {
                 stage.addEventListener(KeyboardEvent.KEY_DOWN, rgbInfoTextKeyDownEvent);
             }
+
             colorPickerBox.rgbInfoText.addEventListener(Event.CHANGE, onChangeRGBInfoText);
             ensureDrawingToolSelected(false);
-            showNumPad();
+            openNumPad();
 
             addTimerByName("rgbInfoTextFocusInEventDelayCheck", 0.0, false, function():void
                 {
@@ -4011,6 +4027,7 @@
 
                 case KEY.g:
                 {
+                    openNumPad();
                     startKeyRepeat(true,adjustDrawToolAlphaByShortcut,true);
                 }
                 return true;
@@ -4645,7 +4662,7 @@
             var fillpenPreviewModeMouseTarget:DisplayObject;
             var turnOffFillPenPreviewCount:int = 0;
 
-            function updateFillPenPreview(e:Event):void
+            function onEnterFrameFillPenPreview(e:Event):void
             {
                 const newXcolor:uint = (isTransparentPenColor) ? canvasBGColor : colorPickerBox.rgbInfoBGColor;
                 const newXAlpha:Number = penAlpha
@@ -4674,7 +4691,7 @@
                 if(!sideBar.visible)
                 {
                     fillPenPreviewModeFlag = false;
-                    stage.removeEventListener(Event.ENTER_FRAME,updateFillPenPreview);
+                    stage.removeEventListener(Event.ENTER_FRAME,onEnterFrameFillPenPreview);
                     drawPreviewLine();
                 }
                 else if(!sideBar.hitTestPoint(mouseX,mouseY) && !isMouseClicked)
@@ -4684,22 +4701,23 @@
                     {
                         turnOffFillPenPreviewCount = 0;
                         fillPenPreviewModeFlag = false;
-                        stage.removeEventListener(Event.ENTER_FRAME,updateFillPenPreview);
+                        stage.removeEventListener(Event.ENTER_FRAME,onEnterFrameFillPenPreview);
                         drawPreviewLine();
                     }
                 }
             }
 
-            function setFillPenColorPreviewMode():void
+            function switchFillPenColorPreviewMode():void
             {
                 if(isLayer2Selected)
                 {
                     bringCanvasDrawLayerAboveLayer2();
                 }
+
                 if(fillPenPreviewModeFlag === false)
                 {
                     fillPenPreviewModeFlag = true;
-                    stage.addEventListener(Event.ENTER_FRAME,updateFillPenPreview);
+                    stage.addEventListener(Event.ENTER_FRAME,onEnterFrameFillPenPreview);
                 }
             }
 
@@ -4861,7 +4879,7 @@
                         {
                             activeQuickSideBar(true);
                             drawFillPenData();
-                            setFillPenColorPreviewMode();
+                            switchFillPenColorPreviewMode();
                         }
                     }
                 }
@@ -4874,7 +4892,7 @@
                         {
                             activeQuickSideBar(true);
                             drawFillPenData();
-                            setFillPenColorPreviewMode();
+                            switchFillPenColorPreviewMode();
                         }
                     }
                 }
@@ -4886,7 +4904,7 @@
                         turnOffFillPenPreviewCount = stage.frameRate;
                         adjustDrawToolAlphaByShortcut(increase);
                     },(keyCode === KEY.g)?true:false);
-                    setFillPenColorPreviewMode();
+                    switchFillPenColorPreviewMode();
                 }
                 else if(keyCode === KEY.n6)
                 {
@@ -4895,7 +4913,7 @@
                     {
                         activeQuickSideBar(true);
                         drawFillPenData();
-                        setFillPenColorPreviewMode();
+                        switchFillPenColorPreviewMode();
                     }
                 }
             }
@@ -4956,7 +4974,7 @@
                 {
                     activeQuickSideBar(false);
                     drawFillPenData();
-                    setFillPenColorPreviewMode();
+                    switchFillPenColorPreviewMode();
                 }
                 // else
                 // {
@@ -5165,9 +5183,9 @@
                         return;
                     }
 
-                    if(handleColorPickerBoxMouseDown(target))
+                    if(handleColorPickerBoxMouseDown(target) || numPadBox.visible)
                     {
-                        setFillPenColorPreviewMode();
+                        switchFillPenColorPreviewMode();
                         return;
                     }
 
@@ -5211,7 +5229,7 @@
                         case "alphaButton9":
                         case "alphaButton10":
                         {
-                            setFillPenColorPreviewMode();
+                            switchFillPenColorPreviewMode();
                             selectOpacityButton(targetName);
                         }
                         break;
@@ -5378,10 +5396,10 @@
             var xShape:Boolean;
             var xBlendMode:String;
             var xAirBrushON:Boolean;
-            var pos05Offset:Number; //경계선 0.5를 조절해서 번지게 보이느냐 샤프하게 보이느냐
+            var offsetForSharpline:Number; //경계선 0.5를 조절해서 번지게 보이느냐 샤프하게 보이느냐
             var mouseMoveCount:int; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
-            var mouseMovedFlag:Boolean;
-            var moveEventDistLimit:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
+            var isMouseMoved:Boolean;
+            var lastMouseMoveDist:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var dotflag:Boolean; //펜스무딩이 강하게 들어갔을때 아주 작은 위치만 그려주면 표현이 제대로 안되기 때문에 너무 작게 선이 그려졌을때 올려주는 플래그
             var sq1PXCursor:Boolean = false; //1픽셀 사각형 커서인경우 올려주고 커서 미리보기 회전적용되게 함
 
@@ -5475,8 +5493,8 @@
 
                 const filteredPos:Point = getFilteredPos(mx,my);
 
-                mx = filteredPos.x+pos05Offset;
-                my = filteredPos.y+pos05Offset;
+                mx = filteredPos.x+offsetForSharpline;
+                my = filteredPos.y+offsetForSharpline;
 
                 if(xShape === true)
                 {
@@ -5494,9 +5512,9 @@
                     }
                 }
 
-                if(mouseMovedFlag === false) //움직이기 시작할때 linestyle이랑 moveto넣어줌
+                if(isMouseMoved === false) //움직이기 시작할때 linestyle이랑 moveto넣어줌
                 {
-                    mouseMovedFlag = true;
+                    isMouseMoved = true;
 
                     canvasDrawLayerChild.graphics.clear();
                     lineStyleReady(xShape,xSize,xColor,xAlpha);
@@ -5504,8 +5522,8 @@
                     if(xShape)
                     {
                         const filteredStartPos:Point = getFilteredPos(clickPos.x,clickPos.y);
-                        filteredStartPos.x = filteredStartPos.x+pos05Offset;
-                        filteredStartPos.y = filteredStartPos.y+pos05Offset;
+                        filteredStartPos.x = filteredStartPos.x+offsetForSharpline;
+                        filteredStartPos.y = filteredStartPos.y+offsetForSharpline;
                         updateExtendEndPoint(mx,my,filteredStartPos.x,filteredStartPos.y,xSize/8);
                         rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,extendedPos.x,extendedPos.y,xBlendMode,false,isLayer2Selected,airBrushSizeDrawMode]);
                         penPoints.push(extendedPos.x);
@@ -5514,14 +5532,14 @@
                     }
                     else
                     {
-                        rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,smoothPos.x+pos05Offset,smoothPos.y+pos05Offset,xBlendMode,false,isLayer2Selected,airBrushSizeDrawMode]);
-                        penPoints.push(smoothPos.x+pos05Offset);
-                        penPoints.push(smoothPos.y+pos05Offset);
-                        canvasDrawLayerChild.graphics.moveTo(smoothPos.x+pos05Offset,smoothPos.y+pos05Offset);
+                        rDataBuffer.push(["lineStyle5",xShape,xSize,xColor,xAlpha,smoothPos.x+offsetForSharpline,smoothPos.y+offsetForSharpline,xBlendMode,false,isLayer2Selected,airBrushSizeDrawMode]);
+                        penPoints.push(smoothPos.x+offsetForSharpline);
+                        penPoints.push(smoothPos.y+offsetForSharpline);
+                        canvasDrawLayerChild.graphics.moveTo(smoothPos.x+offsetForSharpline,smoothPos.y+offsetForSharpline);
                     }
                 }
 
-                if(mouseMovedFlag)
+                if(isMouseMoved)
                 {
                     if(moveEvent2Last.x === mx && moveEvent2Last.y === my)
                     {
@@ -5604,17 +5622,24 @@
                 moveEventDistSave.setTo(mx,my);
                 const dist:Number = Point.distance(moveEventDistSave,moveEventLast);
 
-                //브러쉬 크기 제한보다 작게 움직였을때 무시함
-                if(dist < moveEventDistLimit)
+                //브러쉬 크기 제한보다 작게 움직였을때 무시
+                //브러시 크기에 따라서 짧은 선들의 집합으로 그림 사각펜에서 선을 안정화시킴
+                if(dist < lastMouseMoveDist)
                 {
-                    moveEventDistLimit = moveEventDistLimit-dist;
+                    lastMouseMoveDist = lastMouseMoveDist-dist;
 
-                    if(moveEventDistLimit <= 0) moveEventDistLimit = xSize/5;
+                    if(lastMouseMoveDist <= 0)
+                    {
+                        lastMouseMoveDist = xSize/5;
+                    }
                     return true;
                 }
 
-                moveEventDistLimit = moveEventDistLimit-dist;
-                if(moveEventDistLimit <= 0) moveEventDistLimit = xSize/5;
+                lastMouseMoveDist = lastMouseMoveDist-dist;
+                if(lastMouseMoveDist <= 0)
+                {
+                    lastMouseMoveDist = xSize/5;
+                }
 
                 moveEventLast.setTo(mx,my);
                 return false;
@@ -5671,7 +5696,7 @@
                 {
                     penSizePreviewCursor.rotation = 0;
 
-                    if(mouseMovedFlag === true)
+                    if(isMouseMoved === true)
                     {
                         const pointLen:uint = penPoints.length;
                         if(pointLen >= 4)
@@ -5683,7 +5708,7 @@
                     }
                 }
 
-                if(mouseMovedFlag === false || (penToolFlag && mouseMovedFlag === true && dotflag))
+                if(isMouseMoved === false || (penToolFlag && isMouseMoved === true && dotflag))
                 {
                     rDataBuffer = [];
                     rDataBuffer.push(["dot4",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,isLayer2Selected,airBrushSizeDrawMode,canvasAnchorPoint.rotation]);
@@ -5750,9 +5775,9 @@
                     canvasRefLayer.visible = false;
                 }
 
-                pos05Offset = getSharpLinePosOffset(xSize);
+                offsetForSharpline = getSharpLinePosOffset(xSize);
                 mouseMoveCount = 0; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
-                mouseMovedFlag = false;
+                isMouseMoved = false;
                 canvasSizeRect.width = CANVAS_WIDTH;
                 canvasSizeRect.height = CANVAS_HEIGHT;
                 resetCanvasDrawLayerCliprect();
@@ -5769,7 +5794,7 @@
                     sqLinePosLast.copyFrom(smoothPos);
                 }
 
-                moveEventDistLimit = xSize/5;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
+                lastMouseMoveDist = xSize/5;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
 
                 if(canAddUndoData === false)
                 {
@@ -8932,18 +8957,28 @@
             return isColorPickerModeBG === false;
         }
 
+        public function updatePickerBoxInfoColor(h:Number,s:Number,v:Number):uint
+        {
+            const rgbColor:Vector.<uint> = HSVtoRGB(h,s,v);
+            const r:uint = rgbColor[0];
+            const g:uint = rgbColor[1];
+            const b:uint = rgbColor[2];
+            const rgbHexColor:uint = RGBtoHEX(r,g,b);
+            const invColor:uint = getInvertedColor(rgbHexColor);
+            hsvColorData[0] = h;
+            hsvColorData[1] = s;
+            hsvColorData[2] = v;
+
+            return rgbHexColor;
+        }
+
         public function startHueColorSelection():void
         {
             const offsetX:Number = colorPickerBox.offsetX;
             const max:Number = colorPickerBox.svBoxWidth;
             var pickedColor:uint = 0;
 
-            setAsTopChild(colorPickerBox.hueCursor);
-            isMouseDragging = true;
-            isPenSizeCursorInvisible = true;
-            isTransparentPenColor = false;
-
-            function hueMoveStart(mx:Number):void
+            function pickHueColor(mx:Number):void
             {
                 var hueCursorX:Number = mx;
 
@@ -8962,14 +8997,14 @@
                 colorPickerBox.updateRGBInfoBG(color,getRGBInfoBorderColor(color),myPalettePresetType);
             }
 
-            function onMouseMoveHueColor(e:MouseEvent):void
+            function onMouseMove():void
             {
-                hueMoveStart(colorPickerBox.hueColor.mouseX);
+                pickHueColor(colorPickerBox.hueColor.mouseX);
             }
 
-            function onMouseUpHueColor(e:MouseEvent):void
+            function onMouseUp():void
             {
-                hueMoveStart(colorPickerBox.hueColor.mouseX);
+                pickHueColor(colorPickerBox.hueColor.mouseX);
 
                 if(isPenColorMode())
                 {
@@ -8982,37 +9017,24 @@
                     addUndoBGColorData(pickedColor);
                 }
 
-                isMouseDragging = false;
                 isPenSizeCursorInvisible = false;
 
                 updateRGBInfoTextFromColor((isRgbInfoTextHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 colorPickerBox.setRGBInfoVisible(true);
 
                 ensureDrawingToolSelected(false);
-                //timer로 동작하는 경우 마지막 커서위치에 안가있을수도 있기 때문에 up에서도 해줌
-                stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpHueColor);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveHueColor);
             }
 
-            colorPickerBox.setRGBInfoVisible(false);
-            hueMoveStart(colorPickerBox.hueColor.mouseX);
-            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpHueColor);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHueColor);
-        }
+            function onDragStart():void
+            {
+                setAsTopChild(colorPickerBox.hueCursor);
+                isPenSizeCursorInvisible = true;
+                isTransparentPenColor = false;
+                colorPickerBox.setRGBInfoVisible(false);
+                pickHueColor(colorPickerBox.hueColor.mouseX);
+            }
 
-        public function updatePickerBoxInfoColor(h:Number,s:Number,v:Number):uint
-        {
-            const rgbColor:Vector.<uint> = HSVtoRGB(h,s,v);
-            const r:uint = rgbColor[0];
-            const g:uint = rgbColor[1];
-            const b:uint = rgbColor[2];
-            const rgbHexColor:uint = RGBtoHEX(r,g,b);
-            const invColor:uint = getInvertedColor(rgbHexColor);
-            hsvColorData[0] = h;
-            hsvColorData[1] = s;
-            hsvColorData[2] = v;
-
-            return rgbHexColor;
+            startDragInteraction(onDragStart,onMouseMove,onMouseUp);
         }
 
         public function startSVColorSelection():void
@@ -9021,12 +9043,7 @@
             const colorBarHeight:Number = colorPickerBox.svBoxHeight;
             var pickedColor:uint = 0;
 
-            setAsTopChild(colorPickerBox.svCursor);
-            isMouseDragging = true;
-            isPenSizeCursorInvisible = true;
-            isTransparentPenColor = false;
-
-            function onSVBoxMouseMove(mx:Number,my:Number):void
+            function pickSVColor(mx:Number,my:Number):void
             {
                 var svCursorX:Number = mx;
                 var svCursorY:Number = my;
@@ -9050,14 +9067,14 @@
                 colorPickerBox.setRGBInfoVisible(false);
             }
 
-            function onMouseMoveSVColor(e:MouseEvent):void
+            function onMouseMove():void
             {
-                onSVBoxMouseMove(colorPickerBox.svBox.mouseX,colorPickerBox.svBox.mouseY);
+                pickSVColor(colorPickerBox.svBox.mouseX,colorPickerBox.svBox.mouseY);
             }
 
-            function onMouseUpSVColor(e:MouseEvent):void
+            function onMouseUp():void
             {
-                onSVBoxMouseMove(colorPickerBox.svBox.mouseX,colorPickerBox.svBox.mouseY);
+                pickSVColor(colorPickerBox.svBox.mouseX,colorPickerBox.svBox.mouseY);
 
                 if(isPenColorMode())
                 {
@@ -9071,22 +9088,23 @@
                     addUndoBGColorData(pickedColor);
                 }
 
-                isMouseDragging = false;
                 isPenSizeCursorInvisible = false;
 
                 updateRGBInfoTextFromColor((isRgbInfoTextHSV) ? HEXtoHSV(pickedColor) : pickedColor);
                 colorPickerBox.setRGBInfoVisible(true);
                 ensureDrawingToolSelected(false);
-
-                stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpSVColor);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveSVColor);
             }
 
-            colorPickerBox.setRGBInfoVisible(false);
-            onSVBoxMouseMove(colorPickerBox.svBox.mouseX,colorPickerBox.svBox.mouseY);
+            function onDragStart():void
+            {
+                setAsTopChild(colorPickerBox.svCursor);
+                isPenSizeCursorInvisible = true;
+                isTransparentPenColor = false;
+                colorPickerBox.setRGBInfoVisible(false);
+                pickSVColor(colorPickerBox.svBox.mouseX,colorPickerBox.svBox.mouseY);
+            }
 
-            stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpSVColor);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveSVColor);
+            startDragInteraction(onDragStart,onMouseMove,onMouseUp);
         }
 
         //단축키를  after tool mouse up에서 이전툴을 복구해줌
@@ -9449,7 +9467,7 @@
 
         public function createNewFile(fromShortcut:Boolean):void
         {
-            startPressHoldKey((!fromShortcut)?topBar.newFileButton:null,"Creating new file.. ",null,clearData,null);
+            startPressHoldKey((!fromShortcut)?topBar.newFileButton:null,"Creating a new file.. ",null,clearData,null);
         }
 
         public function handleMouseClick(targetName:String):void
@@ -13959,8 +13977,8 @@
 
         public function getHistoryIndexByMousePos():int
         {
-            const xLineIndex:int = Math.floor(colorPickerBox.historyBox.mouseX/myPaletteColorWidth);
-            const yLineIndex:int = 10*(Math.floor(colorPickerBox.historyBox.mouseY/myPaletteColorHeight));
+            const xLineIndex:int = Math.floor(colorPickerBox.colorHistoryBox.mouseX/myPaletteColorWidth);
+            const yLineIndex:int = 10*(Math.floor(colorPickerBox.colorHistoryBox.mouseY/myPaletteColorHeight));
 
             if(xLineIndex+yLineIndex < 0 || xLineIndex+yLineIndex > myPaletteColorLimit)
             {
@@ -14288,17 +14306,6 @@
             }
             else
             {
-                // //투명색 부분 있으면 지워줌
-                // for(i=90;i<100;i++)
-                // {
-                //     if(null === myPalettePreset[i])
-                //     {
-                //         myPalettePreset.splice(i,1);
-                //         break;
-                //     }
-                // }
-
-
                 myPalettePreset.insertAt(90,color);
                 myPalettePreset.removeAt(100);
             }
@@ -14308,35 +14315,34 @@
 
         public function updateHistoryList(ignoreIndex:int=-1):void
         {
-            colorPickerBox.historyBox.graphics.clear();
-
+            colorPickerBox.colorHistoryBox.graphics.clear();
 
             for(var i:uint=0;i<10;i++)
             {
-                if(i+90 === ignoreIndex)
+                if(90+i === ignoreIndex)
                 {
-                    drawColorStartPos(colorPickerBox.historyBox.graphics,myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
+                    drawColorStartPos(colorPickerBox.colorHistoryBox.graphics,myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
                     continue;
                 }
-                if(!(myPalettePreset[i+90] is uint))
+                if(!(myPalettePreset[90+i] is uint))
                 {
-                    colorPickerBox.historyBox.graphics.beginBitmapFill(colorPickerBox.myPaletteTransBGBmpd);
+                    colorPickerBox.colorHistoryBox.graphics.beginBitmapFill(colorPickerBox.myPaletteTransBGBmpd);
                 }
                 else
                 {
-                    colorPickerBox.historyBox.graphics.beginFill(myPalettePreset[i+90]);
+                    colorPickerBox.colorHistoryBox.graphics.beginFill(myPalettePreset[i+90]);
                 }
 
-                colorPickerBox.historyBox.graphics.drawRect(myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
+                colorPickerBox.colorHistoryBox.graphics.drawRect(myPaletteColorWidth*i,0,myPaletteColorWidth,myPaletteColorHeight);
             }
 
-            colorPickerBox.historyBox.graphics.endFill();
+            colorPickerBox.colorHistoryBox.graphics.endFill();
+            colorPickerBox.colorHistoryBox.graphics.lineStyle(1,0,0.2);
 
-            colorPickerBox.historyBox.graphics.lineStyle(1,0,0.2);
             for(i=1;i<10;i++)
             {
-                colorPickerBox.historyBox.graphics.moveTo(myPaletteColorWidth*i,0);
-                colorPickerBox.historyBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight);
+                colorPickerBox.colorHistoryBox.graphics.moveTo(myPaletteColorWidth*i,0);
+                colorPickerBox.colorHistoryBox.graphics.lineTo(myPaletteColorWidth*i,myPaletteColorHeight);
             }
         }
 
@@ -21740,6 +21746,7 @@
             bottomBar.addChild(bottomHint);
             bottomHint.x = 2;
             bottomHint.y = 3;
+
             stage.addChild(loadMenuBox);
             stage.addChild(refLayerMenuBox);
             stage.addChild(aboutBox);
@@ -22057,6 +22064,7 @@
             {
                 return;
             }
+
             if(parent.getChildIndex(target) === parent.numChildren-1)
             {
                 return;
@@ -22453,7 +22461,7 @@
                 {
                     if(topBar.reRecordingButton.alpha === 1.0)
                     {
-                        startPressHoldKey(null,"Creating new file from this image..",prepareCreateNewFileFromReplayCanvas,createNewFileFromReplayCanvas,hideReplayDeleteRangeBar);
+                        startPressHoldKey(null,"Creating a new file from this image..",prepareCreateNewFileFromReplayCanvas,createNewFileFromReplayCanvas,hideReplayDeleteRangeBar);
                     }
                 }
                 break;
@@ -22722,7 +22730,10 @@
                 {
                     if(secondKey === KEY.d || secondKey === KEY.j)
                     {
-                        if(isQuickSidebarActive === false) activeQuickSideBar(true);
+                        if(isQuickSidebarActive === false) 
+                        {
+                            activeQuickSideBar(true);
+                        }
                         return;
                     }
                 }
@@ -23864,7 +23875,7 @@
             {
                 case "reRecordingButton":
                 {
-                    startPressHoldKey(topBar.reRecordingButton,"Creating new file from this image.. ",prepareCreateNewFileFromReplayCanvas,createNewFileFromReplayCanvas,hideReplayDeleteRangeBar);
+                    startPressHoldKey(topBar.reRecordingButton,"Creating a new file from this image.. ",prepareCreateNewFileFromReplayCanvas,createNewFileFromReplayCanvas,hideReplayDeleteRangeBar);
                 }
                 break;
 
@@ -24343,91 +24354,124 @@
             return false;
         }
 
-        public function onMouseUpMyPaletteDrag(e:MouseEvent):void
+        public function startColorHistoryBoxDragging():void
         {
-            isMouseDragging = false;
+            const index:int =  getHistoryIndexByMousePos();
 
-            if(myPaletteDragStarted === true)
+            function onDragStart():void
             {
-                myPaletteDragStarted = false;
-
-                const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
-                const colorSave:* = myPalettePreset[putIndex];
-
-                myPalettePreset[putIndex] = myPaletteDragClickedColor;
-                myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
-
-                updateMyPaletteList();
-            }
-
-            colorPickerBox.removeDragColor();
-            stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpMyPaletteDrag);
-            stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveMyPaletteDrag);
-        }
-
-        public function onMouseMoveMyPaletteDrag(e:MouseEvent):void
-        {
-            if(Point.distance(myPaletteClickPos,myPaletteMovePos) >= 4)
-            {
-                if(myPaletteDragStarted === false)
-                {
-                    removeTimer("addColorMyPaletteDelayTimer");
-                    myPaletteDragStarted = true;
-                    colorPickerBox.updateDragColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
-                    updateMyPaletteList(myPaletteDragClickedIndex);
-                }
-
-                colorPickerBox.updateDragColorPosToCursor();
-            }
-            else
-            {
+                myPaletteDragClickedIndex = index+90;
+                myPaletteDragClickedColor = myPalettePreset[index+90];
+                myPaletteClickPos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
                 myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
             }
+
+            function onMouseMove():void
+            {  
+                if(Point.distance(myPaletteClickPos,myPaletteMovePos) >= 4)
+                {
+                    if(myPaletteDragStarted === false)
+                    {
+                        myPaletteDragStarted = true;
+                        colorPickerBox.updateDragColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
+                        updateMyPaletteList(myPaletteDragClickedIndex);
+                        updateHistoryList(myPaletteDragClickedIndex);
+                    }
+
+                    colorPickerBox.updateDragColorPosToCursor();
+                }
+                else
+                {
+                    myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
+                }
+            }
+
+            function onMouseUp():void
+            {
+                if(myPaletteDragStarted === true)
+                {
+                    myPaletteDragStarted = false;
+
+                    if(colorPickerBox.myPaletteBox.hitTestPoint(mouseX,mouseY))
+                    {
+                        const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
+                        const colorSave:* = myPalettePreset[putIndex];
+
+                        myPalettePreset[putIndex] = myPaletteDragClickedColor;
+                        myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
+                        myPalettePreset.removeAt(myPaletteDragClickedIndex);
+
+                        updateMyPaletteList(myPaletteDragClickedIndex);
+                    }
+                }
+
+                updateHistoryList();
+                colorPickerBox.removeDragColor();
+            }
+
+
+
+            if(index >= 0 && !isSelctedHistoryColorEmpty(index))
+            {
+                startDragInteraction(onDragStart,onMouseMove,onMouseUp);
+            }
         }
 
-        public function onMouseUpColorHistoryDrag(e:MouseEvent):void
+        public function startMyPaletteBoxDragging():void
         {
-            isMouseDragging = false;
+            var index:int =  getMyPaletteIndexByMousePos();
 
-            if(myPaletteDragStarted === true)
+            function onDragStart():void
             {
-                myPaletteDragStarted = false;
-
-                if(colorPickerBox.myPaletteBox.hitTestPoint(mouseX,mouseY))
+                if(index >= 0 && !isSelctedColorEmpty(index))
                 {
+                    myPaletteDragClickedIndex = index;
+                    myPaletteDragClickedColor = myPalettePreset[index];
+                    myPaletteClickPos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
+                    myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
+                }
+            }
+
+            function onMouseMouse():void
+            {
+                if(Point.distance(myPaletteClickPos,myPaletteMovePos) >= 4)
+                {
+                    if(myPaletteDragStarted === false)
+                    {
+                        removeTimer("addColorMyPaletteDelayTimer");
+                        myPaletteDragStarted = true;
+                        colorPickerBox.updateDragColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
+                        updateMyPaletteList(myPaletteDragClickedIndex);
+                    }
+
+                    colorPickerBox.updateDragColorPosToCursor();
+                }
+                else
+                {
+                    myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
+                }
+            }
+
+            function onMouseUp():void
+            {
+                if(myPaletteDragStarted === true)
+                {
+                    myPaletteDragStarted = false;
+                    
                     const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
                     const colorSave:* = myPalettePreset[putIndex];
 
                     myPalettePreset[putIndex] = myPaletteDragClickedColor;
                     myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null:colorSave;
-
-                    updateMyPaletteList(myPaletteDragClickedIndex);
-                }
-            }
-
-            updateHistoryList();
-            colorPickerBox.removeDragColor();
-            stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpColorHistoryDrag);
-            stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveColorHistoryDrag);
-        }
-
-        public function onMouseMoveColorHistoryDrag(e:MouseEvent):void
-        {
-            if(Point.distance(myPaletteClickPos,myPaletteMovePos) >= 4)
-            {
-                if(myPaletteDragStarted === false)
-                {
-                    myPaletteDragStarted = true;
-                    colorPickerBox.updateDragColor(myPaletteDragClickedColor,myPaletteColorWidth,myPaletteColorHeight);
-                    updateMyPaletteList(myPaletteDragClickedIndex);
-                    updateHistoryList(myPaletteDragClickedIndex);
+                    updateMyPaletteList();
                 }
 
-                colorPickerBox.updateDragColorPosToCursor();
+                colorPickerBox.removeDragColor();
             }
-            else
+
+            if(index >= 0 && !isSelctedColorEmpty(index))
             {
-                myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
+                startDragInteraction(onDragStart,onMouseMouse,onMouseUp);
             }
         }
 
@@ -24468,7 +24512,7 @@
                         }
                         break;
 
-                        case "historyBox":
+                        case "colorHistoryBox":
                         {
                             selectHistoryColor();
                         }
@@ -24530,41 +24574,20 @@
             }
 
             const targetName:String = target.name;
-            var index:int;
+
 
             if(targetName === "myPaletteBox")
             {
                 if(myPalettePresetType === 0)
                 {
-                    index = getMyPaletteIndexByMousePos();
-                    myPaletteDragClickedIndex = index;
-                    if(index >= 0 && !isSelctedColorEmpty(index))
-                    {
-                        isMouseDragging = true;
-                        myPaletteDragClickedColor = myPalettePreset[index];
-                        myPaletteClickPos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
-                        myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
-                        stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpMyPaletteDrag,false,-1);
-                        stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveMyPaletteDrag);
-                    }
+                    startMyPaletteBoxDragging();
                 }
             }
-            else if(targetName === "historyBox")
+            else if(targetName === "colorHistoryBox")
             {
                 if(myPalettePresetType === 0)
                 {
-                    index = getHistoryIndexByMousePos();
-                    myPaletteDragClickedIndex = index+90;
-
-                    if(index >= 0 && !isSelctedHistoryColorEmpty(index))
-                    {
-                        isMouseDragging = true;
-                        myPaletteDragClickedColor = myPalettePreset[index+90];
-                        myPaletteClickPos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
-                        myPaletteMovePos.setTo(colorPickerBox.mouseX,colorPickerBox.mouseY);
-                        stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpColorHistoryDrag,false,-1);
-                        stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveColorHistoryDrag);
-                    }
+                    startColorHistoryBoxDragging();
                 }
             }
 
@@ -24623,7 +24646,7 @@
 
                 case "penColorButton":
                 case "paperColorButton":
-                case "historyBox":
+                case "colorHistoryBox":
                 case "transColorButton":
                 case "currentColor":
                 case "swapPositionButton":

@@ -34,7 +34,7 @@
 		private var rgbInfoBGBorderColor:uint = 0;
 		private var rgbInfoPaletteTypeSave:int = 0;
 		public const myPaletteBox:Sprite = new Sprite();
-		public const historyBox:Sprite = new Sprite();
+		public const colorHistoryBox:Sprite = new Sprite();
 		public const myPaletteDragColor:Shape = new Shape();
 		public var penColorButton:SimpleButton;
 		public var paperColorButton:SimpleButton;
@@ -119,7 +119,7 @@
 				var child:* = mainColorPickerBox.getChildAt(i);
 				if(child === scratchPad
 				|| child === rgbInfoBG
-				|| child === historyBox)
+				|| child === colorHistoryBox)
 				{
 					continue;
 				}
@@ -513,11 +513,11 @@
 			mainColorPickerBox.addChild(currentColor);
 			mainColorPickerBox.addChild(rgbInfoBG);
 			mainColorPickerBox.addChild(rgbInfoText);
-			mainColorPickerBox.addChild(historyBox);
+			mainColorPickerBox.addChild(colorHistoryBox);
 			initScratcPad();
 			
-			historyBox.name = "historyBox";
-			historyBox.y = svBox.y+svBox.height+5;
+			colorHistoryBox.name = "colorHistoryBox";
+			colorHistoryBox.y = svBox.y+svBox.height+5;
 
 			mainPresetButtonBox.addChild(myPaletteButton);
 			mainPresetButtonBox.addChild(tegakiPresetButton);
