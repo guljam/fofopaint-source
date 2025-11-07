@@ -59,6 +59,8 @@
     import flash.text.TextFormat;
     import flash.ui.Mouse;
     import libwebp.DecodeWebp;
+    import flash.system.System;
+    import flash.utils.getQualifiedClassName;
 
     //import end
     public class Main extends Sprite
@@ -491,7 +493,7 @@
                    rReplayRestartTimerCount:uint = 0, //리스타트 타이머
                    rTimeLIneTextUpdateTime:int = 0, //프레임 바 딜레이
                    isReplaySlideShowMode:Boolean = false, //doDrawSlowEvent가 켜지면 올려줌
-                   rFrameCachedImages:Array = [], //이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
+                   rFrameTempCachedImages:Array = [], //이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
                    rSpeedLastHint:String = "";
 
         //about
@@ -732,6 +734,12 @@
             return (isRgbInfoTextHSV) ? "HSV" : "RGB";
         }
 
+        public function updateLayer1BitmapData(newbmpd:BitmapData):void
+        {
+            canvasLayer1BitmapData = newbmpd.clone();
+            canvasLayer1Bitmap.bitmapData = canvasLayer1BitmapData;
+        }
+
         public function updateBitmapData(currentbmpd:BitmapData, newbmpd:BitmapData, targetBitmap:Bitmap):BitmapData
         {
             if (currentbmpd !== null && currentbmpd === newbmpd)
@@ -740,7 +748,7 @@
             }
 
             const clone:BitmapData = newbmpd.clone();
-            currentbmpd.dispose();
+
             if(targetBitmap !== null)
             {
                 targetBitmap.bitmapData = clone;
@@ -830,6 +838,7 @@
             stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList);
             captureStampFontListBox.visible = false;
         }
+
         public function onMouseDownShowStampFontList(e:MouseEvent):void
         {
             if (!(captureStampFontListBox.hitTestPoint(mouseX, mouseY) || topBar.capStampFont.hitTestPoint(mouseX, mouseY)))
@@ -1697,12 +1706,7 @@
             };
 
         }
-
-        public function updateReplayFrameOnDeepUndo(frame:Number):void
-        {
-            lastReplayFrameOnDeepUndoStart = frame;
-        }
-
+    
         public function getColorInfoStringOfHex(hexColor:uint, hsvFlag:Boolean):String
         {
             if (hsvFlag)
@@ -7439,7 +7443,10 @@
             {
                 updateRefLayerOpacityCursorPosByValue(0.5);
                 refLayerLastAlpha = 0.5;
-                canvasRefLayer.visible = true;
+                if(!isCaptureModeON) //캡쳐 모드에서 reflayer로드시 뒤에 배경 생겨나서
+                {
+                    canvasRefLayer.visible = true;
+                }
                 canvasRefLayer.alpha = 0.5;
             }
 
@@ -8409,7 +8416,7 @@
         public function flipCaptureImage(flag:Boolean,initFlag:Boolean):void
         {
             isCaptureCanvasFlipped = flag;
-            fitCanvasToViewportCaptureMode(true);
+            fitCanvasToViewportMargin(true);
 
             const xAnc:Sprite = (isReplayModeON) ? rCanvasAnchorPoint : canvasAnchorPoint;
 
@@ -8483,7 +8490,7 @@
             //1: 90도 2:180 3:270
             if(rotateValue >= 4) rotateValue = 0;
             captureCanvasRotationStep = rotateValue;
-            fitCanvasToViewportCaptureMode(true);
+            fitCanvasToViewportMargin(true);
             topBar.capClipBoard.alpha = 1.0;
 
             if(!initFlag)
@@ -9443,7 +9450,7 @@
             clearDataAndResetVars();
             markWindowTitleAsDirty();
             drawReplayByCommand.resetFirstRCursorPos();
-            clearRFrameCacheImages();
+            clearRFrameTempCache();
             //reset vars보다 뒤에 와야함
             //addundo에서 활성화 해주고 있기 때문에
             topBar.newFileButton.alpha = BUTTON_OFF_ALPHA;
@@ -9591,7 +9598,6 @@
                         break;
 
                         case "loadButton":
-                        case "repLoadButton":
                         {
                             openLoadFileBrowser();
                         }
@@ -9992,19 +9998,101 @@
             drawReplayByCommand.setFirstRCursorPosCurrent();
         }
 
+        public function deleteReplayDataAfterCurrentFrame():void
+        {
+            ensureReplayCanvasState();
+            hideReplayDeleteRangeBar();
+
+            if(rDataReadFlag === true)
+            {
+                //위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
+                //실제 undo해줘야할 인덱스는 -1해줘야하는거임
+                undoToIndex(rDataIndex);
+                rData.splice(rDataIndex+1);
+                rDataFrame.splice(rDataIndex+1);
+                updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
+                resetReplayTime();
+            }
+            else if(rDataReadFlag === false)
+            {
+                drawReplayByCommand.setFirstRCursorPosCurrent();
+                const fs:FileStream = new FileStream();
+
+                fs.open(replayDataFilePath,FileMode.UPDATE);
+                fs.position = rFileLastBytePosition;
+                fs.truncate(); //데이터 위에 짤라주고
+                fs.close();
+
+                //썸네일 이미지도 날려줌
+                const rNowFrameSave:Number = rNowFrame;
+                const list:Array = replayCacheImageFolderPath.getDirectoryListing();
+                const index:Number = getCachedFrameImageIndex(rNowFrameSave);
+                //index번 이후 파일 삭제
+                for(var i:uint = 0,len:uint=list.length; i < len; i++)
+                {
+                    if(parseInt(list[i].name) > index)
+                    {
+                        list[i].deleteFile();
+                    }
+                }
+                //framedata도 인덱스 이후꺼 날려줌
+                rJumpImageFrameData.splice(index+1);
+                undoManager.setRFileTotalFrame(rNowFrameSave);
+                updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
+
+// trace("canvasLayer1BitmapData",canvasLayer1BitmapData === rCanvasLayer1BitmapData);
+                canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData,rCanvasLayer1BitmapData,canvasLayer1Bitmap);
+                canvasLayer1Bitmap.bitmapData = canvasLayer1BitmapData;
+                canvasLayer2BitmapData = updateBitmapData(canvasLayer1BitmapData,rCanvasLayer2BitmapData,canvasLayer2Bitmap);
+                canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
+                trace("canvasLayer1BitmapData",canvasLayer1BitmapData === canvasLayer1Bitmap.bitmapData);
+
+                // canvasLayer1BitmapData.dispose();
+                // canvasLayer1BitmapData = rCanvasLayer1BitmapData.clone();
+                // canvasLayer1Bitmap.bitmapData = canvasLayer1BitmapData;
+                // canvasLayer2BitmapData.dispose();
+                // canvasLayer2BitmapData = rCanvasLayer2BitmapData.clone();
+                // canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
+
+                // mirrorON = rMirrorON;
+                // mirrorCommandReady = false;
+                // appInfoBox.setMirror(rMirrorON);
+                updateCavnvasSizeDrawMode(canvasLayer1Bitmap.width,canvasLayer1Bitmap.height,0,0,false);
+                updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
+                resetReplayTime();
+                syncDrawCanvasWithReplayCanvas();
+                resetUndoState();
+                canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
+
+                if(isCanvasWindowON)
+                {
+                    updateCanvasWindowImage();
+                    updateCanvasWindowBitmapSize();
+                }
+            }
+
+            updateReplayPrograssBarAndText();
+            updateReplaySpeedSliderAlpha();
+            updateDeleteReplayDataButtonsState();
+
+            resetReplaySpeedBar();
+            disableDeepUndo();
+
+            if(isQuickSidebarActive)
+            {
+                deactivateQuickSidebar();
+            }
+
+            isContinueSaveON = false;
+        }
+
         public function createNewFileFromReplayCanvas():void
         {
             hideReplayDeleteRangeBar();
             copyReplayCanvasDataToDrawCanvas();
             clearDataAndResetVars();
             syncDrawCanvasWithReplayCanvas();
-
-            if(isReplayModeON)
-            {
-                updateReplayFrameOnDeepUndo(rNowFrame);
-                exitReplayMode();
-            }
-
+            exitReplayMode();
             disableDeepUndo();
             resetReplayTime();
         }
@@ -10056,82 +10144,7 @@
             disableDeepUndo();
         }
 
-        public function deleteReplayDataAfterCurrentFrame():void
-        {
-            ensureReplayCanvasState();
-            hideReplayDeleteRangeBar();
-
-            if(rDataReadFlag === true)
-            {
-                //위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
-                //실제 undo해줘야할 인덱스는 -1해줘야하는거임
-                undoToIndex(rDataIndex);
-                rData.splice(rDataIndex+1);
-                rDataFrame.splice(rDataIndex+1);
-                updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
-                resetReplayTime();
-            }
-            else if(rDataReadFlag === false)
-            {
-                drawReplayByCommand.setFirstRCursorPosCurrent();
-                const fs:FileStream = new FileStream();
-
-                fs.open(replayDataFilePath,FileMode.UPDATE);
-                fs.position = rFileLastBytePosition;
-                fs.truncate(); //데이터 위에 짤라주고
-                fs.close();
-
-                //썸네일 이미지도 날려줌
-                const rNowFrameSave:Number = rNowFrame;
-                const list:Array = replayCacheImageFolderPath.getDirectoryListing();
-                const index:Number = getCachedFrameImageIndex(rNowFrameSave);
-                //index번 이후 파일 삭제
-                for(var i:uint = 0,len:uint=list.length; i < len; i++)
-                {
-                    if(parseInt(list[i].name) > index)
-                    {
-                        list[i].deleteFile();
-                    }
-                }
-                //framedata도 인덱스 이후꺼 날려줌
-                rJumpImageFrameData.splice(index+1);
-                undoManager.setRFileTotalFrame(rNowFrameSave);
-                updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
-
-                canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData,rCanvasLayer1BitmapData,canvasLayer1Bitmap);
-                canvasLayer2BitmapData = updateBitmapData(canvasLayer1BitmapData,rCanvasLayer2BitmapData,canvasLayer2Bitmap);
-
-                // mirrorON = rMirrorON;
-                // mirrorCommandReady = false;
-                // appInfoBox.setMirror(rMirrorON);
-                updateCavnvasSizeDrawMode(canvasLayer1Bitmap.width,canvasLayer1Bitmap.height,0,0,false);
-                updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
-                resetReplayTime();
-                syncDrawCanvasWithReplayCanvas();
-                resetUndoState();
-                canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
-
-                if(isCanvasWindowON)
-                {
-                    updateCanvasWindowImage();
-                    updateCanvasWindowBitmapSize();
-                }
-            }
-
-            updateReplayPrograssBarAndText();
-            updateReplaySpeedSliderAlpha();
-            updateDeleteReplayDataButtonsState();
-
-            resetReplaySpeedBar();
-            disableDeepUndo();
-
-            if(isQuickSidebarActive)
-            {
-                deactivateQuickSidebar();
-            }
-
-            isContinueSaveON = false;
-        }
+     
 
         public function prepareDeleteReplayDataBeforeCurrentFrame():Boolean
         {
@@ -10285,15 +10298,7 @@
             isDeepUndoEnabled = false;
         }
 
-        public function fitCanvasToViewportReplayMode(captureMode:Boolean=false,manualFlag:Boolean=false):void
-        {
-            플래그로 가장 짧은 길이를 윈도우에 맞추어던지
-            가장 긴길이로 맞추어 주던지
-
-
-        }
-
-        public function fitCanvasToViewportCaptureMode(captureMode:Boolean=false,manualFlag:Boolean=false):void
+        public function fitCanvasToViewportMargin(captureMode:Boolean=false,manualFlag:Boolean=false):void
         {
             const replayMode:Boolean = isReplayModeON;
             const uiscale:Number = getUIScale();
@@ -10390,7 +10395,7 @@
             //재생이 끝나면 전체화면을 보여줌
             if(!isMouseClicked)
             {
-                fitCanvasToViewportCaptureMode();
+                fitCanvasToViewportMargin();
                 rCanvasZoomIndex = canvasZoomMultiplerList.indexOf(1.0);
             }
 
@@ -12065,6 +12070,7 @@
 
                 if(rNowFrame >= TOTAL_FRAME)
                 {
+                    isReplayFinished = true;
                     stopReplay();
                     replayCompleteEffect();
                     startReplayRestartTimer();
@@ -12080,21 +12086,29 @@
             replayHideCursor.check();
         }
 
-        public function clearRFrameCacheImages():void
+        public function clearRFrameTempCache():void
         {
-            rFrameCachedImages = [];
-            rJumpImageIndexLast = -2;
-            rCachedImageLastIndex = -2;
+            if(rFrameTempCachedImages.length > 0)
+            {
+                for(var i:int = 0;i<rFrameTempCachedImages.length;i++)
+                {
+                    rFrameTempCachedImages[i][0].dispose();
+                    rFrameTempCachedImages[i][1].dispose();
+                }
+                rFrameTempCachedImages.length = 0;
+                rJumpImageIndexLast = -2;
+                rCachedImageLastIndex = -2;
+            }
         }
 
-        public function getCacheImageLastFrame():Number
+        public function getRFrameTempCacheLastFrame():Number
         {
-            return rFrameCachedImages[rFrameCachedImages.length-1][6];
+            return rFrameTempCachedImages[rFrameTempCachedImages.length-1][6];
         }
 
-        public function addMemoryCacheImage(index:uint,lastReadBytes:Number):void
+        public function createRFrameTempCache(index:uint,lastReadBytes:Number):void
         {
-            rFrameCachedImages[index] = [rCanvasLayer1BitmapData.clone()
+            rFrameTempCachedImages[index] = [rCanvasLayer1BitmapData.clone()
                                         ,rCanvasLayer2BitmapData.clone()
                                         ,rCanvasLayer1BitmapData.width
                                         ,rCanvasLayer1BitmapData.height
@@ -12120,7 +12134,7 @@
 
             function makeMemoryCacheImage():void
             {
-                addMemoryCacheImage(rFrameCachedImages.length,rFileCutBytePosition);
+                createRFrameTempCache(rFrameTempCachedImages.length,rFileCutBytePosition);
             }
 
             function readyToReadMemoryData(jumpFlag:int):void
@@ -12167,7 +12181,7 @@
             {
                 if(rDataIndex >= rDataLen || rDataLen === 0) //자연적 으로 끝났을때
                 {
-                    syncMirrorReplayModeWithDrawMode();
+                    // syncMirrorReplayModeWithDrawMode();
 
                     rReplayFOFOCursor.visible = false;
                     isReplayFinished = true;
@@ -12254,7 +12268,7 @@
 
                         if(isReplayStarted === false && (jumpFlag === JUMP_FRAME_INTERNAL || jumpFlag === JUMP_FRAME_BACKWARD))
                         {
-                            if(rNowFrame > getCacheImageLastFrame() + REPLAY_MEMORY_CACHE_FRAME_INTERVAL)
+                            if(rNowFrame > getRFrameTempCacheLastFrame() + REPLAY_MEMORY_CACHE_FRAME_INTERVAL)
                             {
                                 makeMemoryCacheImage();
                             }
@@ -12569,7 +12583,7 @@
         //targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
         public function getCacheImageIndex(targetFrame:Number):int
         {
-            return binarySearchIndex(rFrameCachedImages, targetFrame, function(item:*):Number {
+            return binarySearchIndex(rFrameTempCachedImages, targetFrame, function(item:*):Number {
                 return item[6];
             });
         }
@@ -12704,39 +12718,42 @@
 
             const index:Number = getCachedFrameImageIndex(frame);
             var cachedImageIndex:Number = -1; //자잘 썸네일 인덱스를 넣어줌
-            var updateRCavanvasImageFlag:int = 0;
+            var loadCacheFlag:int = 0;
+            var remainingReplayFrameCount:Number = 0.0;
 
             rFileStream.open(replayDataFilePath,FileMode.READ);
-
-            if(index !== rJumpImageIndexLast)
+            
+            //isReplayStarted 붙여주는 이유는
+            //slide show모드로 재생하게 되면 클리어 케시를 계속 호출해주고
+            //재생 완료시 rJumpImageIndexLast가 갱신되어있을때 다시 해주면 메모리 캐시가 없는데 캐시를 불러주는 버그가 생겨서
+            //아무생각없이 넣어본건데 버그 안나서 그대로 두려고함
+            if(index !== rJumpImageIndexLast && isReplayStarted === false)
             {
-                clearRFrameCacheImages();
-                updateRCavanvasImageFlag = 1;
+                clearRFrameTempCache();
+                loadCacheFlag = 1;
             }
-            else if(rFrameCachedImages.length > 0)
+            else if(rFrameTempCachedImages.length > 0)
             {
-                if(frame >= rFrameCachedImages[0][6])
+                if(frame >= rFrameTempCachedImages[0][6])
                 {
                     cachedImageIndex = getCacheImageIndex(frame);
                     if(rCachedImageLastIndex !== cachedImageIndex || frame < rNowFrame)
                     {
-                        updateRCavanvasImageFlag = 2;
+                        loadCacheFlag = 2;
                     }
                 }
             }
 
-            var remainingReplayFrameCount:Number = 0.0;
-            //미리 찍어둔 이미지로 캔버스를 설정
-            if(updateRCavanvasImageFlag > 0 || frame < rNowFrame)
+            if(loadCacheFlag > 0 || frame < rNowFrame)
             {
                 var cachedImageData:Array;
                 var layer1bmpd:BitmapData;
                 var layer2bmpd:BitmapData;
                 var newrect:Rectangle;
 
-                if(updateRCavanvasImageFlag === 2)
+                if(loadCacheFlag === 2)
                 {
-                    cachedImageData = rFrameCachedImages[cachedImageIndex];
+                    cachedImageData = rFrameTempCachedImages[cachedImageIndex];
                     layer1bmpd = cachedImageData[0];
                     layer2bmpd = cachedImageData[1];
                     rCachedImageLastIndex = cachedImageIndex;
@@ -12788,15 +12805,15 @@
                 updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width,rCanvasLayer1Bitmap.height);
                 updateCanvasBGColorReplayMode(cachedImageData[4]);
 
-                if(updateRCavanvasImageFlag === 1 && isReplayStarted === false)
+                if(loadCacheFlag === 1 && isReplayStarted === false)
                 {
-                    addMemoryCacheImage(0,rFileLastBytePosition);
+                    createRFrameTempCache(0,rFileLastBytePosition);
                 }
 
                 cachedImageData = null;
                 rDataReadFlag = false;
                 rDataStartIndex = 0;
-                if(updateRCavanvasImageFlag !== 2)
+                if(loadCacheFlag !== 2)
                 {
                     layer1bmpd.dispose();
                     layer2bmpd.dispose();
@@ -12826,7 +12843,7 @@
                     if(!isReplayFinished)
                     {
                         isReplayFinished = true;
-                        syncMirrorReplayModeWithDrawMode();
+                        // syncMirrorReplayModeWithDrawMode();
                     }
                     rReplayFOFOCursor.visible = false;
                 }
@@ -12853,7 +12870,7 @@
             rOneFrameJumpLastFlag = false;
         }
 
-        public function onTimelineClickJumpReplayFrame():void
+        public function onTimelineClick():void
         {
             const totalF:Number = TOTAL_FRAME;
 
@@ -12863,29 +12880,11 @@
             }
             //리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
             var replayStartONSave:Boolean = false;
-            if(isReplayStarted)
-            {
-                replayStartONSave = true;
-                isReplayStarted = false;
-                stage.removeEventListener(Event.ENTER_FRAME,doDrawEvent);
-                stage.removeEventListener(Event.ENTER_FRAME,onEnterFrameStartReplaySlideShowMode);
-                rFileStream.close();
-            }
+            var clickX:Number = replayTimelineBox.trackBar.mouseX*replayTimelineBox.trackBar.scaleX;
+            var finalFrame:Number = Math.floor(totalF*clickX/replayTimelineBox.trackBar.width);
 
-            var clickedX:Number = replayTimelineBox.trackBar.mouseX*replayTimelineBox.trackBar.scaleX;
-            var oldFrame:Number = Math.floor(totalF*clickedX/replayTimelineBox.trackBar.width);
-            var finalFrame:Number = 0;
 
-            isMouseDragging = true;
-            replayTimelineBox.prograssBar.width = clickedX;
-            checkBarLimit();
-            oldFrame = finalFrame;
-            isReplaySlideShowMode = false;
-            isReplayFinished = false;
-            replayTimelineBox.resetPrograssBarColor();
-            replayHideCursor.check();
-
-            function checkBarLimit():void
+            function clampFrame():void
             {
                 var mx:Number = replayTimelineBox.trackBar.mouseX*replayTimelineBox.trackBar.scaleX;
 
@@ -12896,13 +12895,43 @@
                 replayTimelineBox.prograssBar.width = mx;
             }
 
-            function replayTimeMouseUpEvent(e:MouseEvent):void
+            function onDragStart():void
             {
-                isMouseDragging = false;
+                if(isReplayStarted)
+                {
+                    replayStartONSave = true;
+                    isReplayStarted = false;
+                    stage.removeEventListener(Event.ENTER_FRAME,doDrawEvent);
+                    stage.removeEventListener(Event.ENTER_FRAME,onEnterFrameStartReplaySlideShowMode);
+                    rFileStream.close();
+                }
+
+                replayTimelineBox.prograssBar.width = clickX;
+                clampFrame();
+                isReplaySlideShowMode = false;
+                isReplayFinished = false;
+                replayTimelineBox.resetPrograssBarColor();
+                replayHideCursor.check();
+            }
+
+            function onMouseMove():void
+            {
+                clampFrame();
+
+                if(!hasTimer("jumpFrameUpdateTimer"))
+                {
+                    addTimerByName("jumpFrameUpdateTimer",0.25,false,function():void
+                    {
+                        renderReplayFrame(finalFrame,JUMP_FRAME_INTERNAL);
+                    });
+                }
+            }
+
+            function onMouseUp():void
+            {
                 removeTimer("jumpFrameUpdateTimer");
                 renderReplayFrame(finalFrame,JUMP_FRAME_INTERNAL);
-                oldFrame = finalFrame;
-                checkBarLimit();
+                clampFrame();
 
                 //jumpframe함수 이후에 실행
                 updateDeleteReplayDataButtonsState();
@@ -12924,26 +12953,8 @@
                     updateTargetColorTransform(replayTimelineBox.prograssBar,uiColorSets[uiColorIndex][4]);
                 }
 
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE,replayTimeMouseMoveEvent);
-                stage.removeEventListener(MouseEvent.MOUSE_UP,replayTimeMouseUpEvent);
             }
-
-            function replayTimeMouseMoveEvent(e:MouseEvent):void
-            {
-                checkBarLimit();
-
-                if(!hasTimer("jumpFrameUpdateTimer"))
-                {
-                    addTimerByName("jumpFrameUpdateTimer",0.25,false,function():void
-                    {
-                        oldFrame = finalFrame;
-                        renderReplayFrame(finalFrame,JUMP_FRAME_INTERNAL);
-                    });
-                }
-            }
-
-            stage.addEventListener(MouseEvent.MOUSE_UP,replayTimeMouseUpEvent);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, replayTimeMouseMoveEvent);
+            startDragInteraction(onDragStart,onMouseMove,onMouseUp);
         }
 
         public function stopReplay():void
@@ -13015,9 +13026,7 @@
                 fitReplayCanvasToWindow();
             }
 
-            clearRFrameCacheImages();
-
-
+            clearRFrameTempCache();
             stage.addEventListener(Event.ENTER_FRAME,doDrawEvent);
         }
 
@@ -13275,16 +13284,16 @@
                 removeTimer("bottomHintOffDelay");
 
                 const targetName:String = target.name;
-                const xCanvasPanel:DisplayObject = (isReplayModeON)?  rCanvasPanel : canvasPanel
-                if (captureAreaManager.isFullImageCapture() && xCanvasPanel.hitTestPoint(stage.mouseX, stage.mouseY))
+                const xCanvasPanel:Sprite = (isReplayModeON)?  rCanvasPanel : canvasPanel;
+                if (captureAreaManager.isFullImageCapture() && xCanvasPanel.hitTestPoint(stage.mouseX, stage.mouseY,true))
                 {
-                    showHintHighlightBox(xCanvasPanel);
+                    showHintHighlightBox((isReplayModeON)? rCanvasLayer1Bitmap : canvasLayer1Bitmap);
                     showBottomHint(hint);
                 }
                 else if (!(targetName === "rCanvasPanel"
-                            || targetName === "rCanvasDrawLayer"
-                            || targetName === "canvasPanel"
-                            || targetName === "canvasDrawLayer"))
+                        || targetName === "rCanvasDrawLayer"
+                        || targetName === "canvasPanel"
+                        || targetName === "canvasDrawLayer"))
                 {
                     showHintHighlightBox(target);
                     showBottomHint(hint);
@@ -13341,7 +13350,7 @@
                 return;
             }
 
-            if(target === lastBottomHintTarget)
+            if(target === lastBottomHintTarget || isToolBox2Showing)
             {   
                 return;
             }
@@ -13383,15 +13392,15 @@
             }
         }
 
-        public function showHintHighlightBox(target:DisplayObject):void
+        public function showHintHighlightBox(target:DisplayObject,rect:Rectangle = null):void
         {
-            var gp:Point = target.localToGlobal(new Point(0, 0));
             hintHighlightBox.graphics.clear();
             hintHighlightBox.graphics.lineStyle(2*getUIScale(), hintHighlightBoxColors[uiColorIndex], 1.0);
 
-            const rect:Rectangle = target.getBounds(stage);
+            rect = target.getBounds(stage);
             const panelrect:Rectangle = canvasLayer1Bitmap.getBounds(stage);
 
+            var gp:Point = target.localToGlobal(new Point(0, 0));
             if (target === colorPickerBox.rgbInfoText)
             {
                 gp.x -= 2;
@@ -13513,7 +13522,7 @@
         }
 
         public function prepareOpenLoadBox(fromUpdate:Boolean,reflayermenu:Boolean,file:File,bmpd:BitmapData,filetype:String):void
-        {
+        {            
             clearKeyBuffer();
             closeToolBox2();
             loadMenuBoxFileType = filetype;
@@ -13562,7 +13571,7 @@
         
         public function tryLoadClipboardImage(toRefLayer:Boolean):void
         {
-            if(isSaveInProgress)
+            if(isFileLoadBlocked())
             {
                 return;
             }
@@ -13785,10 +13794,15 @@
             && file1.creationDate.getTime() === file2.creationDate.getTime();
         }
 
+        public function isFileLoadBlocked():Boolean
+        {
+            return isFileBrowserOpened || isSaveInProgress
+            || rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING;
+        }
         //운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
         public function onInvokeEvent(event:InvokeEvent):void
         {
-            if(isFileBrowserOpened || isCaptureModeON || isSaveInProgress)
+            if(isFileLoadBlocked())
             {
                 return;
             }
@@ -13828,9 +13842,10 @@
             }
         }
 
+        
         public function onDragDropStage(e:NativeDragEvent):void
         {
-            if(isFileBrowserOpened || isCaptureModeON === true ||isSaveInProgress !== 0)
+            if(isFileLoadBlocked())
             {
                 return;
             }
@@ -13853,7 +13868,7 @@
 
         public function onDragEnterStage(e:NativeDragEvent):void
         {
-            if(isFileBrowserOpened || isCaptureModeON === true ||isSaveInProgress !== 0)
+            if(isFileLoadBlocked())
             {
                 return;
             }
@@ -13878,7 +13893,7 @@
                 if(loadMenuBoxBitmapData)
                 {
                     transferLoadedImageToRefLayer(loadMenuBoxBitmapData,loadMenuBoxBitmapData.width,loadMenuBoxBitmapData.height);
-                    if(!isReplayModeON)
+                    if(!isReplayModeON && !isCaptureModeON)
                     {
                         openRefLayerMenu();
                     }
@@ -13902,6 +13917,7 @@
 
                             lastSaveFileName = loadMenuBoxFile.name;
                             lastSaveFilePath = loadMenuBoxFile.nativePath;
+                            enterDrawModeOnLoadFile();
                             loadReplayFile(loadMenuBoxFile);
                             loadMenuBoxFile = null;
                         }
@@ -13934,6 +13950,7 @@
             }
             else if(loadMenuBoxFileType === "clipboard")
             {
+                enterDrawModeOnLoadFile();
                 lastSaveFileName = getRandomFileName();
                 loadImageFile(loadMenuBoxBitmapData.width,loadMenuBoxBitmapData.height,loadMenuBoxBitmapData,null);
             }
@@ -14609,7 +14626,7 @@
                             updateReplayPrograssBarAndText();
                             updateReplaySpeedSliderAlpha();
                             updateDeleteReplayDataButtonsState();
-                            clearRFrameCacheImages();
+                            clearRFrameTempCache();
                             rJumpImageIndexLast = -2;
                             rJumpImageNowFrameLast = -1;
                             rTempCachedLastImageIndex = -2;
@@ -14915,7 +14932,10 @@
                 return;
             }
 
-            if(isSaveInProgress === 1) isSaveInProgress = 0;
+            if(isSaveInProgress === 1)
+            {
+                isSaveInProgress = 0;
+            }
 
             enableFileOperationButtonsTopbar();
         }
@@ -14926,12 +14946,6 @@
             {
                 showLoadFaildMouseHint();
                 return;
-            }
-
-            if(isReplayModeON)
-            {
-                updateReplayFrameOnDeepUndo(rNowFrame);
-                exitReplayMode();
             }
 
             const fs:FileStream = new FileStream();
@@ -15122,12 +15136,6 @@
 
         public function loadImageFile(width:Number,height:Number,layer1Image:IBitmapDrawable,layer2Image:IBitmapDrawable):void
         {
-            if(isReplayModeON)
-            {
-                updateReplayFrameOnDeepUndo(rNowFrame);
-                exitReplayMode();
-            }
-
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             undoManager.setRFileTotalFrame(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
@@ -15690,7 +15698,6 @@
             }
 
             setAsTopChild(captureDragAreaOverlay);
-            captureDragAreaOverlay.visible = true;
 
             drawModeCanvasStateForSaveAppState = {
                                     "z" : canvasZoomMultipler,
@@ -15716,7 +15723,7 @@
             topBar.capClipBoard.alpha = 1.0;
             captureCanvasRotationStep = 0;
             isCaptureCanvasFlipped = false;
-            fitCanvasToViewportCaptureMode(true);
+            fitCanvasToViewportMargin(true); 
             applyTransparentCanvasBGCaptureMode(false);
             captureStampManager.init();
             if(isCaptureStampEnabled)
@@ -15746,7 +15753,6 @@
 
             isCaptureModeON = false;
             isPenSizeCursorInvisible = false;
-            captureDragAreaOverlay.visible = false;
             captureDragAreaOverlay.graphics.clear();
             captureStampManager.off();
             captureStampFontListBox.visible = false;
@@ -16229,6 +16235,68 @@
                 }
             }
 
+            // function checkPosition(bmpdHeight:Number):void
+            // {
+            //     const ROT_0:uint = 0;
+            //     const ROT_90:uint = 1;
+            //     const ROT_180:uint = 2;
+            //     const ROT_270:uint = 3;
+            //     const rect:Rectangle = captureAreaManager.getCaptureArea();
+            //     const rotateFlag:uint = captureCanvasRotationStep;
+
+            //     // 캡처 영역 크기 결정
+            //     const offsetX:Number = captureAreaManager.isFullImageCapture()
+            //         ? (isReplayModeON ? RCANVAS_WIDTH : CANVAS_WIDTH)
+            //         : rect.width;
+            //     const offsetY:Number = captureAreaManager.isFullImageCapture()
+            //         ? (isReplayModeON ? RCANVAS_HEIGHT : CANVAS_HEIGHT)
+            //         : rect.height;
+
+            //     // 초기 설정
+            //     var scaleX:Number = 1.0;
+            //     var rotation:Number = 0.0;
+            //     var posX:Number = rect.x;
+            //     var posY:Number = rect.y;
+
+            //     // 좌우 반전 처리
+            //     if (isCaptureCanvasFlipped)
+            //         scaleX = -1.0;
+
+            //     // 회전 각도에 따라 위치 및 회전 계산
+            //     switch (rotateFlag)
+            //     {
+            //         case ROT_0:
+            //             rotation = 0;
+            //             posX = rect.x + (isCaptureCanvasFlipped ? offsetX : 0);
+            //             posY = rect.y + offsetY - bmpdHeight;
+            //             break;
+
+            //         case ROT_90:
+            //             rotation = isCaptureCanvasFlipped ? 90 : -90;
+            //             posX = rect.x + (isCaptureCanvasFlipped ? bmpdHeight : offsetX - bmpdHeight);
+            //             posY = rect.y + offsetY;
+            //             break;
+
+            //         case ROT_180:
+            //             rotation = 180;
+            //             posX = rect.x + (isCaptureCanvasFlipped ? 0 : offsetX);
+            //             posY = rect.y + bmpdHeight;
+            //             break;
+
+            //         case ROT_270:
+            //             rotation = isCaptureCanvasFlipped ? -90 : 90;
+            //             posX = rect.x + (isCaptureCanvasFlipped ? offsetX - bmpdHeight : bmpdHeight);
+            //             posY = rect.y;
+            //             break;
+            //     }
+
+            //     // 실제 적용
+            //     captureStampBitmap.scaleX = scaleX;
+            //     captureStampBitmap.rotation = rotation;
+            //     captureStampBitmap.x = posX;
+            //     captureStampBitmap.y = posY;
+            // }
+
             function getCaptureAreaWidth(rect:Rectangle):Number
             {
                 const notRotatedFlag:Boolean = captureCanvasRotationStep % 2 === 0;
@@ -16497,7 +16565,7 @@
             const rectRaw:Rectangle = new Rectangle();
             const rectClamped:Rectangle = new Rectangle();
             var resizeFlag:Boolean = false;
-            const resizeButtonSize:Number = 20.0;
+            const resizeButtonSize:Number = 14.0;
             const resizeButtonPos:Point = new Point(0,0);
             var minSize:Number = 10.0;
             const mouseMoveOffset:Number = 5.0;
@@ -16798,7 +16866,8 @@
                 captureDragAreaOverlay.graphics.beginFill(0xFF6600);
                 var posX:Number = rectClamped.x;
                 var posY:Number = rectClamped.y;
-                const offset:Number = 5/scale;
+                // const offset:Number = 5/scale;
+                const offset:Number = 0;
 
                 if(!isCaptureCanvasFlipped && captureCanvasRotationStep === 0|| isCaptureCanvasFlipped && captureCanvasRotationStep === 3)
                 {
@@ -17021,6 +17090,7 @@
                     rectFull.width = canvasWidth;
                     rectFull.height = canvasHeight;
                     resizeFlag = false;
+
                     if(isCursorInResizeButton())
                     {
                         startUpdatingCaptureAreaPosSize(mx,my,true);
@@ -18003,10 +18073,14 @@
 
                 initializeMyPaletteList();
 
-                lastAppWindowSize.x = 680;
-                lastAppWindowSize.y = 768;
-                stage.nativeWindow.width = lastAppWindowSize.x;
-                stage.nativeWindow.height = lastAppWindowSize.y;
+
+                addTimer(1.0,false,function():void
+                {
+                    lastAppWindowSize.x = 1000;
+                    lastAppWindowSize.y = 800;
+                    stage.nativeWindow.width = lastAppWindowSize.x;
+                    stage.nativeWindow.height = lastAppWindowSize.y;
+                });
 
                 updateCavnvasSizeDrawMode(CANVAS_WIDTH,CANVAS_HEIGHT,0,0,false);
                 updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
@@ -21784,8 +21858,6 @@
             lassoLayer2.addChild(lassoLayer2Bitmap);
             lassoLayer2.visible = false;
 
-            captureDragAreaOverlay.visible = false;
-
             updateCanvasBGColorDrawMode(CANVAS_BG_COLOR);
             updateCanvasPanelMask(CANVAS_WIDTH,CANVAS_HEIGHT);
 
@@ -21876,7 +21948,7 @@
                 if(isCaptureModeON)
                 {
                     captureWindowMove.setTo(dx,dy);
-                    fitCanvasToViewportCaptureMode(true);
+                    fitCanvasToViewportMargin(true);
                     
                     if(!captureAreaManager.isFullImageCapture())
                     {
@@ -22323,18 +22395,7 @@
                 return;
             }
 
-            if(isPressingControlShift())
-            {
-                checkSubKey(3,false,function(input:int):void
-                {
-                    if(input === KEY.s)
-                    {
-                        openSaveFileBrowser(true);
-                    }
-                });
-                return;
-            }
-            else if(isPressingShift())
+            if(isPressingShift())
             {
                 checkSubKey(2,false,function(input:int):void
                 {
@@ -22370,9 +22431,7 @@
             {
                 checkSubKey(2,false,function(input:int):void
                 {
-                    if(input === KEY.s) openSaveFileBrowser(false);
-                    else if(input === KEY.o) openLoadFileBrowser();
-                    else if(input === KEY.c || input === KEY.m) enterCaptureMode();
+                    if(input === KEY.c || input === KEY.m) enterCaptureMode();
                 });
                 return;
             }
@@ -22571,7 +22630,15 @@
             {
                 if(!checkSubKey(2,true,function(input:int):void
                 {
-                    if(input === KEY.c || input === KEY.comma)
+                     if(input === KEY.s)
+                    {
+                        openSaveFileBrowser(false);
+                    }
+                    else if(input === KEY.o)
+                    {
+                        openLoadFileBrowser();
+                    }
+                    else if(input === KEY.c || input === KEY.comma)
                     {
                         enterCaptureMode();
                     }
@@ -23558,7 +23625,7 @@
             lastDeepUndoEnabledFlag = false;
             rDataReadFlag = true;
             showRCursorOnUndo(-1);
-            clearRFrameCacheImages();
+            clearRFrameTempCache();
         }
 
         public function enableDeepUndo():void
@@ -23643,6 +23710,18 @@
             replayTimelineBox.prograssBar.width = (totalFrame === 0) ? 0 : replayTimelineBox.trackBar.width*(rNowFrame/totalFrame);
         }
 
+        public function enterDrawModeOnLoadFile():void
+        {
+             if(isCaptureModeON)
+            {
+                exitCaptureMode();
+            }
+            if(isReplayModeON)
+            {
+                exitReplayMode();
+            }
+        }
+
         public function exitReplayMode():void
         {
             if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING)
@@ -23684,7 +23763,7 @@
                 //after로 해주는 이유는 캐쉬 안만들어줄라고
                 renderReplayFrame(lastReplayFrameOnDeepUndoStart,JUMP_FRAME_FORWARD);
             }
-            clearRFrameCacheImages();
+            clearRFrameTempCache();
             rReplayFOFOCursor.visible = false;
             addInputEventsDrawMode();
         }
@@ -23736,21 +23815,21 @@
 
             //frame sum이 재계산된 maxframe을 넘어가면 리플레이 프레임이 넘어가기 때문에 끝난거임
             //그래서 캔버스 복사해주고 리플레이를 리셋해줌
-            if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE)
-            {
-                if(CANVAS_WIDTH === RCANVAS_WIDTH && CANVAS_HEIGHT === RCANVAS_HEIGHT)
-                {
-                    syncReplayCanvasWithDrawMode();
-                }
-                else
-                {
-                    fitCanvasToViewportCaptureMode();
-                    rCanvasZoomMultiplier = 1;
-                    rCanvasAnchorPoint.scaleX = 1;
-                    rCanvasAnchorPoint.scaleY = 1;
-                    rCanvasZoomIndex = canvasZoomMultiplerList.indexOf(rCanvasZoomMultiplier);
-                }
-            }
+            // if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE)
+            // {
+            //     if(CANVAS_WIDTH === RCANVAS_WIDTH && CANVAS_HEIGHT === RCANVAS_HEIGHT)
+            //     {
+            //         syncReplayCanvasWithDrawMode();
+            //     }
+            //     else
+            //     {
+            //         fitCanvasToViewportMargin();
+            //         rCanvasZoomMultiplier = 1;
+            //         rCanvasAnchorPoint.scaleX = 1;
+            //         rCanvasAnchorPoint.scaleY = 1;
+            //         rCanvasZoomIndex = canvasZoomMultiplerList.indexOf(rCanvasZoomMultiplier);
+            //     }
+            // }
 
             updateTimelineBoxPos(stage.stageWidth);
             rFollowMouse.updateBounds();
@@ -23772,7 +23851,8 @@
             {
                 rDataReadFlag = false;
                 updateReplayTimeBarFromDrawMode();
-                syncReplayCanvasImageWithDrawMode();
+                fitCanvasToViewportMargin();
+                // syncReplayCanvasImageWithDrawMode();
 
                 //이거 안해주고 리플레이틀고 프레임 조작 안하고 재생하면 중간부터 되서 데이터가 꼬임
                 isReplayFinished = true;
@@ -23871,7 +23951,7 @@
 
                 case "trackBar":
                 {
-                    onTimelineClickJumpReplayFrame();
+                    onTimelineClick();
                 }
                 break;
 
@@ -23908,7 +23988,6 @@
                 break;
 
                 case "drawModeButton":
-                case "repLoadButton":
                 case "saveButton":
                 case "captureButton":
                 case "capOff":
@@ -23975,7 +24054,7 @@
         {
             addTimerByName("rFitZoomedDelayTimer",0.15,false,function():void
             {
-                fitCanvasToViewportCaptureMode(false,true);
+                fitCanvasToViewportMargin(false,true);
                 rCanvasZoomIndex = getNearZoomIndex(rCanvasZoomMultiplier);
                 rCanvasZoomMultiplier = canvasZoomMultiplerList[rCanvasZoomIndex];
             });
