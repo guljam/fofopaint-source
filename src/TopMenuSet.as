@@ -28,9 +28,7 @@
 		public var capStamp:SimpleButton;
 		public var capStampFont:SimpleButton;
 		public var saveButton:SimpleButton;
-		public var repSaveButton:SimpleButton;
 		public var loadButton:SimpleButton;
-		public var repLoadButton:SimpleButton;
 		public var clipBoardButton:SimpleButton;
 		public var newFileButton:SimpleButton;
 		public var gridButton:SimpleButton;
@@ -57,7 +55,7 @@
 		public var sideBarONButton2:SimpleButton;
 		public var cutPrevDataButton:SimpleButton;
 		public var superUndoButton:SimpleButton;
-		public var reRecordingButton:SimpleButton;
+		public var repNewFileButton:SimpleButton;
 		public var newWindowButton:SimpleButton;
 		public var newWindowCloseButton:SimpleButton;
 		public var aboutButton:SimpleButton;
@@ -267,11 +265,9 @@
 		public function enableFileOperationButtons(clipFlag:Boolean):void
 		{
 			saveButton.alpha = 1.0;
-			repSaveButton.alpha = 1.0;
 			loadButton.alpha = 1.0;
-			repLoadButton.alpha = 1.0;
 			newFileButton.alpha = 1.0;
-			reRecordingButton.alpha = 1.0;
+			repNewFileButton.alpha = 1.0;
 			superUndoButton.alpha = 1.0;
 			cutPrevDataButton.alpha = 1.0;
 
@@ -284,12 +280,10 @@
 		public function disableFileOperationButtons(offAlpha:Number):void
 		{
 			saveButton.alpha = offAlpha;
-			repSaveButton.alpha = offAlpha;
 			loadButton.alpha = offAlpha;
-			repLoadButton.alpha = offAlpha;
 			clipBoardButton.alpha = offAlpha;
 			newFileButton.alpha = offAlpha;
-			reRecordingButton.alpha = offAlpha;
+			repNewFileButton.alpha = offAlpha;
 			superUndoButton.alpha = offAlpha;
 			cutPrevDataButton.alpha = offAlpha;
 		}
@@ -342,9 +336,7 @@
 			capStampFont.transform.colorTransform = opColor;
 			captureInputBorder.transform.colorTransform = opColor;
 			saveButton.transform.colorTransform = opColor;
-			repSaveButton.transform.colorTransform = opColor;
 			loadButton.transform.colorTransform = opColor;
-			repLoadButton.transform.colorTransform = opColor;
 			clipBoardButton.transform.colorTransform = opColor;
 			newFileButton.transform.colorTransform = opColor;
 			gridButton.transform.colorTransform = opColor;
@@ -368,7 +360,7 @@
 			sideBarONButton2.transform.colorTransform = opColor;
 			cutPrevDataButton.transform.colorTransform = opColor;
 			superUndoButton.transform.colorTransform = opColor;
-			reRecordingButton.transform.colorTransform = opColor;
+			repNewFileButton.transform.colorTransform = opColor;
 			aboutButton.transform.colorTransform = opColor;
 			newWindowButton.transform.colorTransform = opColor;
 			newWindowCloseButton.transform.colorTransform = opColor;
@@ -541,9 +533,7 @@
 					capStampFont,
 
 					saveButton,
-					repSaveButton,
 					loadButton,
-					repLoadButton,
 					clipBoardButton,
 					newFileButton,
 					gridButton,
@@ -565,7 +555,7 @@
 
 					cutPrevDataButton,
 					superUndoButton,
-					reRecordingButton,
+					repNewFileButton,
 					replayZoomInButton,
 					replayZoomOutButton,
 					replayFitToWindowButton,
@@ -595,8 +585,8 @@
 
 			for (var i:uint = 0, len:uint = buttonOrder.length; i < len; i++)
 			{
-				const set :Array = buttonOrder[i];
-				const len2:uint = set .length;
+				const set:Array = buttonOrder[i];
+				const len2:uint = set.length;
 
 				for (var j:uint = 0; j < len2; j++)
 				{
@@ -637,12 +627,10 @@
 			capClipBoard.visible = false;
 			drawModeButton.visible = false;
 
-			repLoadButton.visible = false;
-			repSaveButton.visible = false;
 			repCaptureButton.visible = false;
 			cutPrevDataButton.visible = false;
 			superUndoButton.visible = false;
-			reRecordingButton.visible = false;
+			repNewFileButton.visible = false;
 			drawModeButton.visible = false;
 
 			captureButton.useHandCursor = false;
@@ -656,9 +644,7 @@
 			capStamp.useHandCursor = false;
 			capStampFont.useHandCursor = false;
 			saveButton.useHandCursor = false;
-			repSaveButton.useHandCursor = false;
 			loadButton.useHandCursor = false;
-			repLoadButton.useHandCursor = false;
 			clipBoardButton.useHandCursor = false;
 			newFileButton.useHandCursor = false;
 			gridButton.useHandCursor = false;
@@ -676,7 +662,7 @@
 			sideBarPositionButton2.useHandCursor = false;
 			cutPrevDataButton.useHandCursor = false;
 			superUndoButton.useHandCursor = false;
-			reRecordingButton.useHandCursor = false;
+			repNewFileButton.useHandCursor = false;
 			aboutButton.useHandCursor = false;
 			updateButton.useHandCursor = false;
 			newWindowButton.useHandCursor = false;
@@ -696,17 +682,17 @@
 			buttonOrder = [
 					[replayModeButton, drawModeButton, capOff],
 					[captureButton, repCaptureButton, capSave],
-					[saveButton, repSaveButton, capClipBoard],
-					[loadButton, repLoadButton, capRotate],
-					[clipBoardButton, reRecordingButton, capFlip],
-					[newFileButton, cutPrevDataButton, capTrans],
-					[gridButton, superUndoButton, capLayer1VisibleButton],
-					[sideBarPositionButton, replayZoomInButton, capLayer2VisibleButton],
-					[sideBarOFFButton, replayZoomOutButton, capStamp],
-					[topBarColorButton, replayFitToWindowButton, capStampFont],
-					[dpiButton, replayRotateButton, captureInputWarpper],
-					[replayRepeatButton, newWindowButton, newWindowCloseButton],
-					[aboutButton, replaySpeedSliderWrapper]
+					[saveButton, repNewFileButton, capClipBoard],
+					[loadButton, cutPrevDataButton, capRotate],
+					[clipBoardButton, superUndoButton, capFlip],
+					[newFileButton, replayZoomInButton, capTrans],
+					[gridButton, replayZoomOutButton, capLayer1VisibleButton],
+					[sideBarPositionButton, replayFitToWindowButton, capLayer2VisibleButton],
+					[sideBarOFFButton, replayRotateButton, capStamp],
+					[topBarColorButton, replayRepeatButton, capStampFont],
+					[dpiButton, replaySpeedSliderWrapper,captureInputWarpper],
+					[newWindowButton, newWindowCloseButton],
+					[aboutButton]
 				];
 
 			drawModeButtons = [
@@ -732,12 +718,10 @@
 
 			replayModeButtons = [
 					drawModeButton,
-					reRecordingButton,
+					repNewFileButton,
 					cutPrevDataButton,
 					superUndoButton,
 					repCaptureButton,
-					repSaveButton,
-					repLoadButton,
 					replayZoomInButton,
 					replayZoomOutButton,
 					replayFitToWindowButton,

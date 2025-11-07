@@ -24,6 +24,11 @@
 			return Math.round(WIDTH * scaleX);
 		}
 
+		public function setBGAlpha(alpha:Number):void
+		{
+			sideBG.alpha = alpha;
+		}
+
 		public function updateSideBGSize(sth:Number):void
 		{
 			sideBG.width = WIDTH;

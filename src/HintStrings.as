@@ -54,14 +54,12 @@
 
                 // 리플레이 모드
                 "replayModeButton": "Switch to replay mode [f1 / f7]",
-                "repSaveButton": "Save [ctrl+s] _ Save as.. [shift+ctrl+s / right-click]",
-                "repLoadButton": "Load [ctrl+o]",
                 "repCaptureButton": "Capture mode [ctrl+c / ctrl+m]",
                 "playButton": "Play [enter / space]",
                 "pauseButton": "Pause [enter / space]",
                 "replayPrev": "Prev step [left / z / .] _ Prev frame [right-click / Shift + (left / z / .)]",
                 "replayNext": "Next step [right / x / ,] _ Next frame [right-click / Shift + (right / x / ,)]",
-                "reRecordingButton": "New file from this image [{STRING_PRESS_HOLD} f2]",
+                "repNewFileButton": "New file from this image [{STRING_PRESS_HOLD} f2]",
                 "cutPrevDataButton": "Delete data before current frame [{STRING_PRESS_HOLD} f3]",
                 "superUndoButton": "Delete data after current frame [{STRING_PRESS_HOLD} f4]",
                 "replaySpeedSliderWrapper": "Change playback speed [(up, down) / (f, v) / (h, n)]",
