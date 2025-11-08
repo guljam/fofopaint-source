@@ -22035,14 +22035,19 @@
 
         public function onWindowClosingEvent(e:Event):void
         {
+            isAppClosing = true;
+
             e.preventDefault();
             stage.nativeWindow.removeEventListener(Event.DEACTIVATE,onWindowDeactivate);
             removeInputEventCaptrueMode();
             removeInputEventsDrawMode();
             removeInputEventsReplayMode();
             realWorkingTimer.stop();
-            canvasWindow.visible = false;
-            isAppClosing = true;
+            
+            if(canvasWindow !== null)
+            {
+                canvasWindow.visible = false;
+            }
 
             if(isCaptureModeON === true)
             {
