@@ -50,41 +50,30 @@
 			prograssBar.transform.colorTransform = nowBarColorSave;
 		}
 
-		public function changeUIColor(base:uint, op:uint, color1:uint, index:uint):void
+		public function updateUIColor():void
 		{
-			const baseColor:ColorTransform = new ColorTransform();
-			const opColor:ColorTransform = new ColorTransform();
-			const prograssBarColor:ColorTransform = new ColorTransform();
-			const trackBarColor:ColorTransform = new ColorTransform();
-
-			baseColor.color = base;
-			opColor.color = op;
-			prograssBarColor.color = color1;
-			replayBGBar.transform.colorTransform = baseColor;
-			prograssBar.transform.colorTransform = prograssBarColor;
-			playButton.transform.colorTransform = opColor;
-			pauseButton.transform.colorTransform = opColor;
-			replayPrev.transform.colorTransform = opColor;
-			replayNext.transform.colorTransform = opColor;
-
-			nowBarColorSave.color = color1;
-
+			Global.applyUIBGColor(replayBGBar);
+			Global.applyUIFGColor(playButton);
+			Global.applyUIFGColor(pauseButton);
+			Global.applyUIFGColor(replayPrev);
+			Global.applyUIFGColor(replayNext);
+			Global.applyToolBoxButtonOverBGColor(prograssBar);
+			
+			const index:int = Global.getUIColorIndex();
 			if (index === 2)
 			{
-				trackBarColor.color = 0xE7E7E7;
-				trackBar.transform.colorTransform = trackBarColor;
-				prograssInfo.textColor = op;
+				Global.setColorTransform(trackBar,0xE7E7E7);
+				prograssInfo.textColor = Global.getUIFGColor();
 			}
 			else if (index === 3)
 			{
-				trackBarColor.color = 0xFFFFFF;
-				trackBar.transform.colorTransform = trackBarColor;
-				prograssInfo.textColor = op;
+				Global.setColorTransform(trackBar,0xFFFFFF);
+				prograssInfo.textColor = Global.getUIFGColor();
 			}
 			else
 			{
-				trackBar.transform.colorTransform = opColor;
-				prograssInfo.textColor = base;
+				Global.applyUIFGColor(trackBar);
+				prograssInfo.textColor = Global.getUIBGColor();
 			}
 		}
 

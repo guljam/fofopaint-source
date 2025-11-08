@@ -18,17 +18,11 @@
 			this.scaleY = scale * fixedScale;
 		}
 
-		public function changeUIColor(base:uint, op:uint):void
+		public function changeUIColor():void
 		{
-			const baseColor:ColorTransform = new ColorTransform();
-			const opColor:ColorTransform = new ColorTransform();
-
-			baseColor.color = base;
-			opColor.color = op;
-
-			rotateBG.transform.colorTransform = baseColor;
-			rotateArrow.transform.colorTransform = opColor;
-			rotateCircle.transform.colorTransform = opColor;
+			Global.applyUIBGColor(rotateBG);
+			Global.applyUIFGColor(rotateArrow);
+			Global.applyUIFGColor(rotateCircle);
 		}
 
 		public function RotateCursorSet()

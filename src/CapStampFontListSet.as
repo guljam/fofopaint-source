@@ -241,22 +241,19 @@
 			this.scaleY = newScale;
 		}
 
-		public function changeUIColor(base:uint, op:uint, selectColor:uint):void
+		public function updateUIColor():void
 		{
 			capFontListBG.graphics.clear();
 			capFontListBG.graphics.lineStyle(0, 0, 0);
-			capFontListBG.graphics.beginFill(base);
+			capFontListBG.graphics.beginFill(Global.getUIBGColor());
 			capFontListBG.graphics.drawRect(-bgOffset, 0, this.width + bgOffset * 2, this.height + bgOffset);
 			capFontListBG.graphics.endFill();
 
-			const opColor:ColorTransform = new ColorTransform();
+			Global.applyUIFGColor(capFontListPrev);
+			Global.applyUIFGColor(capFontListNext);
 
-			opColor.color = op;
-			capFontListPrev.transform.colorTransform = opColor;
-			capFontListNext.transform.colorTransform = opColor;
-
-			fontColor = op;
-			fontSelectedColor = selectColor;
+			fontColor = Global.getUIFGColor();
+			fontSelectedColor = Global.getHintBGColor();
 		}
 
 		public function mouseOverEvent(e:MouseEvent):void

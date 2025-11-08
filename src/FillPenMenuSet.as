@@ -39,15 +39,10 @@
 			}
 		}
 
-		public function changeBGColor(arr:Array):void
+		public function updateUIColor():void
 		{
-			const bgWidth:Number = fillPenOK.width * 2 + fillPenCancel.width;
-
-			baseColor.color = arr[0];
-			opColor.color = arr[1];
-
-			fillPenBGTitle.transform.colorTransform = baseColor;
-			fillPenBG.transform.colorTransform = opColor;
+			Global.applyToolBoxBGColor(fillPenBGTitle);
+			Global.applyToolBoxBGTopColor(fillPenBG);
 
 			const buttonArr:Array =
 				[
@@ -60,27 +55,22 @@
 			var len:int = buttonArr.length;
 			var btn:SimpleButton;
 			var btnUp:DisplayObject;
-			var btnOver:DisplayObjectContainer;
 
-			const iconLeft:ColorTransform = new ColorTransform();
-			const activeColor:ColorTransform = new ColorTransform();
-
-			iconLeft.color = arr[3];
-			activeColor.color = arr[4];
-			activeColor.alphaMultiplier = 0.7;
+			// iconLeft.color = arr[3];
+			// activeColor.color = arr[4];
+			// activeColor.alphaMultiplier = 0.7;
 
 			for (var i:uint = 0; i < len; i++)
 			{
 				btn = buttonArr[i];
-				btnUp = btn.upState as DisplayObject;
-				btnUp.transform.colorTransform = iconLeft;
-				btnOver = btn.overState as DisplayObjectContainer;
-				btnOver.getChildAt(1).transform.colorTransform = iconLeft; // 버튼 아이콘
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
+
+				Global.applyToolBoxButtonUpFGColor(btn.upState as DisplayObject);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer,4,3);
+
 				btn.downState = btn.overState;
 			}
 
-			fillPenInfo.textColor = arr[2];
+			fillPenInfo.textColor = Global.getToolBoxButtonUpBGColor();
 		}
 
 		public function getScale():Number

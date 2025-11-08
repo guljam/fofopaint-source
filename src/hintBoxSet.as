@@ -34,9 +34,9 @@
 			hintText.textColor = color;
 		}
 
-		public function updateBGColor(color:uint):void
+		public function updateBGColor():void
 		{
-			_bgColor = color;
+			_bgColor = Global.getHintBGColor();;
 		}
 
 		public function getDefaultHeight():Number

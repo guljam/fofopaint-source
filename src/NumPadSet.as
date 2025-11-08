@@ -148,15 +148,10 @@
 			scaleY = newScale;
 		}
 
-		public function changeUIColor(arr:Array):void
+		public function updateUIColor():void
 		{
-			const base:ColorTransform = new ColorTransform();
-			const over:ColorTransform = new ColorTransform();
-
-			numHexCopyTextBGDefaultColor[0] = arr[0];
-			numHexCopyTextBGDefaultColor[1] = arr[2];
-			base.color = arr[0];
-			over.color = arr[4];
+			numHexCopyTextBGDefaultColor[0] = Global.getToolBoxBGColor();
+			numHexCopyTextBGDefaultColor[1] = Global.getToolBoxButtonUpBGColor();
 
 			const texts:Array = [
 					numIncText,
@@ -205,8 +200,9 @@
 				btn = buttons[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObject;
-				btnUp.transform.colorTransform = base;
-				btnOver.transform.colorTransform = over;
+
+				Global.applyToolBoxBGColor(btnUp);
+				Global.applyToolBoxButtonOverBGColor(btnOver);
 				btn.downState = btnOver;
 			}
 
@@ -214,7 +210,7 @@
 
 			for (i = 0; i < len; i++)
 			{
-				texts[i].textColor = arr[2];
+				texts[i].textColor = Global.getToolBoxButtonUpBGColor();
 			}
 		}
 

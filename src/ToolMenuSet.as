@@ -13,7 +13,6 @@
 		public var toolFillPen:SimpleButton;
 		public var toolFillPenOK:SimpleButton;
 		public var toolFillPenCancel:SimpleButton;
-		public var toolScanFill:SimpleButton;
 		public var toolErase:SimpleButton;
 		public var toolUndo:SimpleButton;
 		public var toolRedo:SimpleButton;
@@ -68,8 +67,9 @@
 			toolFillPenCancel.visible = false;
 		}
 
-		public function setFillPenModeON(offAlpha:Number):void
+		public function setFillPenModeON():void
 		{
+			const offAlpha:Number = Global.OFFALPHA;
 			toolErase.alpha = offAlpha;
 			toolFillPen.alpha = offAlpha;
 			toolEyedropper.alpha = offAlpha;
@@ -98,7 +98,6 @@
 				toolPen.alpha = alpha;
 				toolErase.alpha = alpha;
 				toolFillPen.alpha = alpha;
-				// toolScanFill.alpha = alpha;
 				toolEyedropper.alpha = alpha;
 				toolLasso.alpha = alpha;
 				toolLine.alpha = alpha;
@@ -117,7 +116,6 @@
 					toolPen.alpha = alpha;
 					toolErase.alpha = alpha;
 					toolFillPen.alpha = alpha;
-					// toolScanFill.alpha = alpha;
 					toolEyedropper.alpha = alpha;
 					toolLine.alpha = alpha;
 					toolRefLayer.alpha = alpha;
@@ -132,21 +130,20 @@
 			toolPen.alpha = 1.0;
 			toolErase.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
-			// toolScanFill.alpha = 1.0;
 			toolEyedropper.alpha = 1.0;
 			toolLine.alpha = 1.0;
 			toolSelectCursor.alpha = 1.0;
 		}
 
-		public function setToolButtonsForCheckedLayerON(alp:Number):void
+		public function setToolButtonsForCheckedLayerON():void
 		{
+			const offalpha:Number = Global.OFFALPHA;
 			checkedLayerONFlag = true;
-			toolPen.alpha = alp;
-			toolErase.alpha = alp;
-			toolFillPen.alpha = alp;
-			// toolScanFill.alpha = alp;
-			toolEyedropper.alpha = alp;
-			toolLine.alpha = alp;
+			toolPen.alpha = offalpha;
+			toolErase.alpha = offalpha;
+			toolFillPen.alpha = offalpha;
+			toolEyedropper.alpha = offalpha;
+			toolLine.alpha = offalpha;
 
 			const btn:SimpleButton = getChildByName(lastTool) as SimpleButton;
 			if (btn)
@@ -164,14 +161,6 @@
 			{
 				removeChild(bgBox);
 			}
-		}
-
-		public function updateBGBoxColor(color:uint):void
-		{
-			bgBox.graphics.lineStyle(0, 0, 0);
-			bgBox.graphics.beginFill(color);
-			bgBox.graphics.drawRect(-4, -1, BOX_WIDTH + 8, BOX_HEIGHT + 2);
-			bgBox.graphics.endFill();
 		}
 
 		public function setCursorVisible(flag:Boolean):void
@@ -211,55 +200,38 @@
 			toolMirror.y = toolZoomIn.y;
 		}
 
-		public function changeUIColor(arr:Array):void
+		public function changeUIColor():void
 		{
-			base.color = arr[0];
-			// subBase.color = arr[1];
-			iconLeft.color = arr[2];
-			// iconRight.color = arr[3];
-			activeColor.color = arr[4];
-			activeColor.alphaMultiplier = 0.0;
-			activeIconColor.color = arr[5];
-
-			var len:uint = buttonArr.length;
-			const fillPenButtons:Array = [toolFillPenOK, toolFillPenCancel];
-
-			for (var i:uint = 0; i < len; i++)
+			var btn:SimpleButton;
+			for (var i:uint = 0; i < buttonArr.length; i++)
 			{
-				btn = buttonArr[i];
-				btnUp = btn.upState as DisplayObject;
-				btnUp.transform.colorTransform = iconLeft;
-				btnOver = btn.overState as DisplayObjectContainer;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
-				btnOver.getChildAt(1).transform.colorTransform = iconLeft; // 버튼 아이콘
-				btnDown = btn.downState as DisplayObjectContainer;
-				btnDown.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
-				btnDown.getChildAt(1).transform.colorTransform = iconLeft; // 버튼 아이콘
-				btnDown.x = 2;
-				btnDown.y = 2;
+				btn = buttonArr[i] as SimpleButton;
+				Global.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer,4,2,0.0);
+				Global.setButtonColorWithBG(btn.downState as DisplayObjectContainer,4,2,0.0);
+				btn.downState.x = 2;
+				btn.downState.y = 2;
 			}
 
-			len = fillPenButtons.length;
-			for (i = 0; i < len; i++)
+			const fillPenButtons:Array = [toolFillPenOK, toolFillPenCancel];
+			for (i = 0; i < fillPenButtons.length; i++)
 			{
-				btn = fillPenButtons[i];
-				btnUp = btn.upState as DisplayObject;
-				btnUp.transform.colorTransform = iconLeft;
-				btnOver = btn.overState as DisplayObjectContainer;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
-				btnOver.getChildAt(1).transform.colorTransform = iconLeft; // 버튼 아이콘
-				btnDown = btn.downState as DisplayObjectContainer;
-				btnDown.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
-				btnDown.getChildAt(1).transform.colorTransform = iconLeft; // 버튼 아이콘
-				btnDown.x = 2;
-				btnDown.y = 2;
+				btn = fillPenButtons[i] as SimpleButton;
+				Global.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer,4,2,0.0);
+				Global.setButtonColorWithBG(btn.downState as DisplayObjectContainer,4,2,0.0);
+				btn.downState.x = 2;
+				btn.downState.y = 2;
 			}
 
 			const rotateButton:DisplayObjectContainer = toolRotate.downState as DisplayObjectContainer;
 			rotateButton.x = 0;
 			rotateButton.y = 0;
 
-			updateBGBoxColor(arr[0]);
+			bgBox.graphics.lineStyle(0, 0, 0);
+			bgBox.graphics.beginFill(Global.getToolBoxBGColor());
+			bgBox.graphics.drawRect(-4, -1, BOX_WIDTH + 8, BOX_HEIGHT + 2);
+			bgBox.graphics.endFill();
 
 			btn = null;
 			btnUp = null;
@@ -340,7 +312,6 @@
 			toolFillPen.useHandCursor = false;
 			toolFillPenOK.useHandCursor = false;
 			toolFillPenCancel.useHandCursor = false;
-			// toolScanFill.useHandCursor = false;
 			toolErase.useHandCursor = false;
 			toolUndo.useHandCursor = false;
 			toolRedo.useHandCursor = false;
@@ -363,7 +334,6 @@
 					toolPen,
 					toolErase,
 					toolFillPen,
-					// toolScanFill,
 					toolEyedropper,
 					toolLine,
 					toolLasso,

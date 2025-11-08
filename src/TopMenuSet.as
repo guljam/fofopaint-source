@@ -72,6 +72,7 @@
 		private var drawModeButtons:Array = [];
 		private var replayModeButtons:Array = [];
 		private var captureModeButtons:Array = [];
+		private var gridBoxButtons:Array = [];
 		public var topbarBG:Shape = new Shape();
 		private var topbarBGColor:uint = 0;
 		private var hintOKBGColor:uint = 0;
@@ -242,10 +243,10 @@
 			replaySpeedSliderWrapper.graphics.endFill();
 		}
 
-		public function setReplaySpeedBarToGridSliderON(color:uint, shortcutKey:Boolean):void
+		public function setReplaySpeedBarToGridSliderON(shortcutKey:Boolean):void
 		{
 			gridButtonWrapper.graphics.clear();
-			gridButtonWrapper.graphics.beginFill(color);
+			gridButtonWrapper.graphics.beginFill(Global.getUIBGColor());
 			gridButtonWrapper.graphics.drawRect(0, 0, Math.floor(gridMoveButtonWrapper.x + gridMoveButtonWrapper.width + 7), Math.floor(gridButtonWrapper.height + 8));
 			gridButtonWrapper.graphics.endFill();
 
@@ -277,8 +278,9 @@
 			}
 		}
 
-		public function disableFileOperationButtons(offAlpha:Number):void
+		public function disableFileOperationButtons():void
 		{
+			const offAlpha:Number = Global.OFFALPHA;
 			saveButton.alpha = offAlpha;
 			loadButton.alpha = offAlpha;
 			clipBoardButton.alpha = offAlpha;
@@ -310,78 +312,36 @@
 			timerAFkDot.x = timer.x - 5;
 		}
 
-		public function changeUIColor(base:uint, op:uint, hintOKColor:uint):void
+		public function updateUIColor():void
 		{
-			const baseColor:ColorTransform = new ColorTransform();
-			const opColor:ColorTransform = new ColorTransform();
+			var i:int;
 
-			var alphaBackup:Number = 0.0;
+			Global.applyUIBGColor(topbarBG);
+			for (i = 0; i < drawModeButtons.length; i++)
+			{
+				Global.applyUIFGColor(drawModeButtons[i]);
+			}
 
-			opColor.color = op;
-			baseColor.color = base;
-			topbarBGColor = base;
-			hintOKBGColor = hintOKColor;
-			hintFontColor = op;
+			for (i = 0; i < replayModeButtons.length; i++)
+			{
+				Global.applyUIFGColor(replayModeButtons[i]);
+			}
 
-			topbarBG.transform.colorTransform = baseColor;
-			captureButton.transform.colorTransform = opColor;
-			repCaptureButton.transform.colorTransform = opColor;
-			capRotate.transform.colorTransform = opColor;
-			capFlip.transform.colorTransform = opColor;
-			capSave.transform.colorTransform = opColor;
-			capOff.transform.colorTransform = opColor;
-			capTrans.transform.colorTransform = opColor;
-			capClipBoard.transform.colorTransform = opColor;
-			capStamp.transform.colorTransform = opColor;
-			capStampFont.transform.colorTransform = opColor;
-			captureInputBorder.transform.colorTransform = opColor;
-			saveButton.transform.colorTransform = opColor;
-			loadButton.transform.colorTransform = opColor;
-			clipBoardButton.transform.colorTransform = opColor;
-			newFileButton.transform.colorTransform = opColor;
-			gridButton.transform.colorTransform = opColor;
-			replayModeButton.transform.colorTransform = opColor;
-			drawModeButton.transform.colorTransform = opColor;
-			topBarColorButton.transform.colorTransform = opColor;
-			dpiButton.transform.colorTransform = opColor;
+			for (i = 0; i < captureModeButtons.length; i++)
+			{
+				Global.applyUIFGColor(captureModeButtons[i]);
+			}
+			
+			for (i = 0; i < gridBoxButtons.length; i++)
+			{
+				Global.applyUIFGColor(gridBoxButtons[i]);
+			}
 
-			capLayer1VisibleButton.transform.colorTransform = opColor;
-			capLayer2VisibleButton.transform.colorTransform = opColor;
+			const fgColor:uint = Global.getUIFGColor();
 
-			alphaBackup = sideBarPositionButton.alpha;
-			sideBarPositionButton.transform.colorTransform = opColor;
-			sideBarPositionButton.alpha = alphaBackup;
-			alphaBackup = sideBarPositionButton2.alpha;
-			sideBarPositionButton2.transform.colorTransform = opColor;
-			sideBarPositionButton2.alpha = alphaBackup;
-			sideBarOFFButton.transform.colorTransform = opColor;
-			sideBarOFFButton2.transform.colorTransform = opColor;
-			sideBarONButton.transform.colorTransform = opColor;
-			sideBarONButton2.transform.colorTransform = opColor;
-			cutPrevDataButton.transform.colorTransform = opColor;
-			superUndoButton.transform.colorTransform = opColor;
-			repNewFileButton.transform.colorTransform = opColor;
-			aboutButton.transform.colorTransform = opColor;
-			newWindowButton.transform.colorTransform = opColor;
-			newWindowCloseButton.transform.colorTransform = opColor;
-			replayZoomInButton.transform.colorTransform = opColor;
-			replayZoomOutButton.transform.colorTransform = opColor;
-			replayFitToWindowButton.transform.colorTransform = opColor;
-			replayRotateButton.transform.colorTransform = opColor;
-			replaySpeedSliderCursor.transform.colorTransform = opColor;
-			replaySpeedSlider.transform.colorTransform = opColor;
-			replayRepeatButton.transform.colorTransform = opColor;
-
-			gridSlider.transform.colorTransform = opColor;
-			gridSliderCursor.transform.colorTransform = opColor;
-			gridMoveLeftButton.transform.colorTransform = opColor;
-			gridMoveRightButton.transform.colorTransform = opColor;
-			gridMoveUpButton.transform.colorTransform = opColor;
-			gridMoveDownButton.transform.colorTransform = opColor;
-
-			timer.textColor = op;
-			timerAFkDot.textColor = op;
-			captureInput.textColor = op;
+			timer.textColor = fgColor;
+			timerAFkDot.textColor = fgColor;
+			captureInput.textColor = fgColor;
 		}
 
 		public function setSpeedButtonPosByValue(rSpeed:Number, maxSpeed:Number):void
@@ -585,8 +545,8 @@
 
 			for (var i:uint = 0, len:uint = buttonOrder.length; i < len; i++)
 			{
-				const set:Array = buttonOrder[i];
-				const len2:uint = set.length;
+				const set :Array = buttonOrder[i];
+				const len2:uint = set .length;
 
 				for (var j:uint = 0; j < len2; j++)
 				{
@@ -670,12 +630,10 @@
 			replayZoomInButton.useHandCursor = false;
 			replayZoomOutButton.useHandCursor = false;
 			replayFitToWindowButton.useHandCursor = false;
-			replayFitToWindowButton.alpha = 0.25;
 			replayRotateButton.useHandCursor = false;
 			replayRepeatButton.useHandCursor = false;
 
 			newWindowCloseButton.visible = false;
-
 			sideBarOFFButton2.visible = false;
 			sideBarONButton.visible = false;
 			sideBarONButton2.visible = false;
@@ -691,7 +649,7 @@
 					[sideBarPositionButton, replayRotateButton, capLayer2VisibleButton],
 					[sideBarOFFButton, replayFitToWindowButton, capStamp],
 					[topBarColorButton, replayRepeatButton, capStampFont],
-					[dpiButton, replaySpeedSliderWrapper,captureInputWarpper],
+					[dpiButton, replaySpeedSliderWrapper, captureInputWarpper],
 					[newWindowButton, newWindowCloseButton],
 					[aboutButton]
 				];
@@ -744,6 +702,16 @@
 					captureInputWarpper,
 					capStampFont
 				];
+
+			gridBoxButtons = [
+					gridSlider,
+					gridSliderCursor,
+					gridMoveLeftButton,
+					gridMoveRightButton,
+					gridMoveUpButton,
+					gridMoveDownButton
+				];
+
 			initModeButtons();
 			initMouseDownState();
 

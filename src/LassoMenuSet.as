@@ -32,22 +32,8 @@
 
 		private var lassoInfoPos:Array = [0, 0];
 
-		public function changeUIColor(arr:Array):void
+		public function updateUIColor():void
 		{
-			const base:ColorTransform = new ColorTransform();
-			const subBase:ColorTransform = new ColorTransform();
-			const iconLeft:ColorTransform = new ColorTransform();
-			const iconRight:ColorTransform = new ColorTransform();
-			const activeColor:ColorTransform = new ColorTransform();
-			const activeIconColor:ColorTransform = new ColorTransform();
-
-			base.color = arr[0];
-			subBase.color = arr[1];
-			iconLeft.color = arr[2];
-			iconRight.color = arr[3];
-			activeColor.color = arr[4];
-			activeIconColor.color = arr[5];
-
 			const leftButtonArr2:Array = [
 					lassoOK,
 					lassoCancel,
@@ -68,38 +54,29 @@
 				];
 
 			var i:uint = 0;
-			var len:uint = leftButtonArr2.length;
 			var btn:SimpleButton;
-			var btnUp:DisplayObject;
-			var btnOver:DisplayObjectContainer;
 
-			for (i = 0; i < len; i++)
+			for (i = 0; i < leftButtonArr2.length; i++)
 			{
 				btn = leftButtonArr2[i];
-				btnUp = btn.upState as DisplayObject;
-				btnOver = btn.overState as DisplayObjectContainer;
-				btnUp.transform.colorTransform = iconLeft;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
-				btnOver.getChildAt(1).transform.colorTransform = activeIconColor;
+				Global.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 5);
 				btn.downState = btn.overState;
 			}
 
-			len = rightButtonArr.length;
-			for (i = 0; i < len; i++)
+			for (i = 0; i < rightButtonArr.length; i++)
 			{
 				btn = rightButtonArr[i];
-				btnUp = btn.upState as DisplayObject;
-				btnOver = btn.overState as DisplayObjectContainer;
-				btnUp.transform.colorTransform = iconRight;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 
-				btnOver.getChildAt(1).transform.colorTransform = iconRight;
+				// Global.setColorTransform(btn.upState as DisplayObject,0xFF0000);
+				Global.applyToolBoxButtonUpFGColor(btn.upState as DisplayObject);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3,1.0);
 				btn.downState = btn.overState;
 			}
 
-			lassoMenuMoveButton.transform.colorTransform = base;
-			lassoMenuBG.transform.colorTransform = base;
-			lassoMenuBG2.transform.colorTransform = subBase;
-			lassoInfo.textColor = arr[2];
+			Global.applyToolBoxBGColor(lassoMenuMoveButton);
+			Global.applyToolBoxBGColor(lassoMenuBG);
+			Global.applyToolBoxBGTopColor(lassoMenuBG2);
+			lassoInfo.textColor = Global.getToolBoxButtonUpBGColor();
 		}
 
 		public function getHintStr():String

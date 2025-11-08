@@ -10,6 +10,7 @@
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
 	import flash.filters.BlurFilter;
+	import flash.display.DisplayObject;
 
 	public class LoadBoxSet extends Sprite
 	{
@@ -84,21 +85,18 @@
 		{
 			this.x = 0;
 			this.y = 0;
+
 			stageClickBlocker.x = 0;
 			stageClickBlocker.y = 0;
 			stageClickBlocker.width = stw;
 			stageClickBlocker.height = sth;
 
-			if(pleaseWaitText.visible)
-			{
-			}
-			else
-			{
-			}
 			pleaseWaitText.x = stageClickBlocker.width / 2 - pleaseWaitText.width / 2;
 			pleaseWaitText.y = stageClickBlocker.height / 2 - pleaseWaitText.height / 2;
+
 			mainBox.x = stageClickBlocker.width / 2 - mainBox.width / 2;
 			mainBox.y = stageClickBlocker.height / 2 - mainBox.height / 2;
+			
 			clickBlockerBitmap.x = -10;
 			clickBlockerBitmap.y = -10;
 			clickBlockerBitmap.width = stageClickBlocker.width + 20;
@@ -134,22 +132,7 @@
 			clickBlockerBitmap.bitmapData = bmpd;
 		}
 
-		// public function setScale(newScale:Number):void
-		// {
-		// // 로지스틱 함수의 매개변수 설정
-		// var L:Number = 2.0; // 최대값
-		// var k:Number = 1.2; // 경사도
-		// var x0:Number = 3; // 중심 지점
-
-		// // 로지스틱 함수 계산
-		// var exponent:Number = -k * (newScale - x0);
-		// const newScale2:Number = Math.floor((0.9 + (L / (1 + Math.exp(exponent)))) * 100) / 100;
-
-		// this.scaleX = newScale2;
-		// this.scaleY = newScale2;
-		// }
-
-		public function changeUIColor(arr:Array):void
+		public function updateUIColor():void
 		{
 			const subBase:ColorTransform = new ColorTransform();
 			const activeColor:ColorTransform = new ColorTransform();
@@ -167,15 +150,6 @@
 			var btnUp:DisplayObjectContainer;
 			var btnOver:DisplayObjectContainer;
 			var childText:TextField;
-			var childButton:SimpleButton;
-			var textColorDeafult:uint;
-			var textColorOver:uint;
-
-			subBase.color = arr[1];
-			subBase.alphaMultiplier = 0.0;
-			textColorOver = arr[3];
-			activeColor.color = arr[4];
-			textColorDeafult = arr[5];
 
 			for (var i:uint = 0; i < len; i++)
 			{
@@ -184,23 +158,21 @@
 				btnOver = btn.overState as DisplayObjectContainer;
 
 				// 배경 깔아줌
-				childButton = btnUp.getChildAt(0) as SimpleButton;
-				btnUp.getChildAt(0).transform.colorTransform = subBase;
-				childButton = btnOver.getChildAt(0) as SimpleButton;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor;
+				(btnUp.getChildAt(0) as DisplayObject).alpha = 0.0;
+				Global.applyToolBoxButtonOverBGColor(btnOver.getChildAt(0) as DisplayObject);
 				btn.downState = btn.overState;
 
 				// 폰트색깔
 				childText = btnUp.getChildAt(1) as TextField;
-				childText.textColor = textColorDeafult;
+				childText.textColor = Global.getToolBoxButtonOverFGColor();
 
 				childText = btnOver.getChildAt(1) as TextField;
-				childText.textColor = textColorOver;
+				childText.textColor = Global.getToolBoxButtonUpFGColor();
 			}
 
 			mainBox.graphics.clear();
 			mainBox.graphics.lineStyle(1,0);
-			mainBox.graphics.beginFill(arr[1], 0.8);
+			mainBox.graphics.beginFill(Global.getToolBoxBGTopColor(), 0.8);
 			mainBox.graphics.drawRect(-10, -10, mainBox.width + 20, mainBox.height + 20);
 			mainBox.graphics.endFill();
 		}

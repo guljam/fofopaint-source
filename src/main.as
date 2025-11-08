@@ -87,12 +87,6 @@
                       JUMP_FRAME_BACKWARD:int = (1 << 2),
                       JUMP_FRAME_FORWARD:int = (1 << 3);
 
-        public const  UI_COLOR_DARK:uint = 0x323232, //어두운색
-                      UI_COLOR_MID_DARK:uint = 0x535353,//0x5B5B5B//중간 어두운색
-                      UI_COLOR_MID_BRIGHT:uint = 0xB8B8B8,//중간 밝은색
-                      UI_COLOR_BRIGHT:uint = 0xF0F0F0,//0xECEAE7//밝은색
-                      UI_RESIZE_BUTTON_COLOR:uint = 0xA5A5A5;
-
         public const  REPLAY_FASTEST_TOTAL_TIME:Number = 10,
                       REPLAY_DISK_CACHE_FRAME_INTERVAL:Number = 10000,
                       REPLAY_MEMORY_CACHE_FRAME_INTERVAL:Number = 700,
@@ -177,8 +171,6 @@
                     STAGE_BOTTOM_OFFSET:Number = BOTTOM_BAR_HEIGHT,
                     STAGE_RIGHT_OFFSET:Number = 0,
                     TOTAL_FRAME:Number = 0;//rdata+file 프레임 전부 합친거
-
-        public const BUTTON_OFF_ALPHA:Number = Math.round(0.25*256)/256;
                       
         //파일 저장 경로
         public const  appStateFilePath:File = File.applicationStorageDirectory.resolvePath("appstate"+(APP_STATE_VERSION.toString())),
@@ -581,26 +573,6 @@
 
         //ui 색깔
 
-        public var uiScaleIndex:int = 0,
-                    uiColorIndex:int = 1;
-        public const uiScales:Array = [1.0,1.25,1.5,1.75,2.0,2.25],
-                    uiColorSets:Array = [
-                        // 주 컬러           반대색        stage 배경색   크기조절 막대색                 리플레이 완료색     리플레이 재시작색
-                        [UI_COLOR_DARK,       0xE5E5E5,        0x4B4B4B,       0x676767,               0x74AC74,            0xE8BE71],
-                        [UI_COLOR_MID_DARK,   UI_COLOR_BRIGHT, 0x888888,  UI_RESIZE_BUTTON_COLOR,      0xA1CE9D,            0xF7DA83],
-                        [UI_COLOR_MID_BRIGHT, 0x505050,        0xC9C9C9,       0xB0B0B0,               0xB6DAAF,            0xF7EA8D],
-                        [UI_COLOR_BRIGHT,     0x505050,        0xE1E1E1,       0xCBCBCB,               0xCEE5C5,            0xF7F2A0]
-                    ],
-                    uiToolBoxColorSets:Array = [
-                        // 주 컬러           윗부분 막대색   전체 배경색     upstate 아이콘색     overstate 버튼색     overstate 아이콘색
-                        [UI_COLOR_DARK,        0x434343,      0xE5E5E5,       0xE5E5E5,            0x6E98B4,            0xE5E5E5],
-                        [UI_COLOR_MID_DARK,    0xE3E3E1,      0xE3E3E1,       UI_COLOR_MID_DARK,   0xB1DFEE,            UI_COLOR_MID_DARK],
-                        [UI_COLOR_MID_BRIGHT,  0xD6D5D4,      0x505050,       0x505050,            0xBADAE5,            0x505050],
-                        [UI_COLOR_BRIGHT,      0xE7E7E7,      0x505050,       0x505050,            0xCEEBF2,            0x505050]
-                    ],
-                    hintBGColors:Array = [0xFF7943,0xFF8A2C,0xFFAF45,0xFFCF46],
-                    hintHighlightBoxColors:Array = [0x73B5E4,0x7AC3F0,0x6C9CDB,0x609CFF];
-
         //워커
         public var  worker:Worker,
                     mainToBack:MessageChannel,
@@ -713,7 +685,7 @@
             checkForUpdates();
             tryDisableIME();
             colorPickerBox.setActiveColorPreset(0);
-            mouseHint.updateBGColor(hintBGColors[uiColorIndex]);
+            mouseHint.updateBGColor();
             moveSideBar("left"); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름
             stage.addChild(fofo);
             stage.setChildIndex(fofo,stage.getChildIndex(sideBar)+(stage.getChildIndex(fofo) < stage.getChildIndex(sideBar)?0:1));
@@ -857,7 +829,7 @@
                 captureStampFontListBox.x = gp.x;
                 captureStampFontListBox.y = topBar.BARSIZE * topBar.scaleX;
                 captureStampFontListBox.updateSystemFontList();
-                captureStampFontListBox.setScale(getUIScale());
+                captureStampFontListBox.setScale(Global.getUIScale());
                 setAsTopChild(captureStampFontListBox);
                 captureStampFontListBox.visible = true;
 
@@ -973,9 +945,9 @@
                 });
         }
 
-        public function updatePickerBoxTransBGBrightness(index:int):void
+        public function updatePickerBoxTransBGBrightness():void
         {
-            colorPickerBox.applyTransparentColorBrightness(index);
+            colorPickerBox.applyTransparentColorBrightness(Global.getUIColorIndex());
             updateMyPaletteList();
             updateHistoryList();
             if (isTransparentPenColor)
@@ -1062,7 +1034,7 @@
         {
             if (sideBar.visible === true)
             {
-                const scale:Number = getUIScale();
+                const scale:Number = Global.getUIScale();
 
                 if (isRightSidebar
                         && stage.mouseX >= sideBar.x - sideBarScrollBar.width * scale
@@ -1599,7 +1571,7 @@
         {
             const snapThreshold:Number = 82;
             canvasRotateCursor.x = stage.mouseX;
-            canvasRotateCursor.y = stage.mouseY + (65 * getUIScale());
+            canvasRotateCursor.y = stage.mouseY + (65 * Global.getUIScale());
             canvasRotateCursor.rotateArrow.rotation = target.rotation;
             setAsTopChild(canvasRotateCursor);
             canvasRotateCursor.visible = true;
@@ -1756,7 +1728,7 @@
 
         public function playLayerSwapFlickEffect(target:DisplayObject):void
         {
-            target.alpha = BUTTON_OFF_ALPHA;
+            target.alpha = Global.OFFALPHA;
 
             addTimerByName("layerSwapFlickEffect", 0.5, false, function():void
                 {
@@ -2154,7 +2126,7 @@
                 setAsTopChild(numPadBox);
                 const gp:Point = colorPickerBox.rgbInfoBG.localToGlobal(new Point(0, 0));
                 numPadBox.x = Math.floor(gp.x);
-                numPadBox.y = Math.floor(gp.y + colorPickerBox.rgbInfoBG.height * getUIScale()+1);
+                numPadBox.y = Math.floor(gp.y + colorPickerBox.rgbInfoBG.height * Global.getUIScale()+1);
                 resetLastKey();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, -2);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad, false, -2);
@@ -2534,7 +2506,7 @@
 
         public function updateStageOffset():void
         {
-            const scale:Number = getUIScale();
+            const scale:Number = Global.getUIScale();
 
             STAGE_TOP_OFFSET = (isReplayModeON) ? Math.round(topBar.BARSIZE * scale + replayTimelineBox.BARSIZE * scale) : Math.round(topBar.BARSIZE * scale);
             STAGE_BOTTOM_OFFSET = 0;
@@ -2643,7 +2615,7 @@
         public function checkCollisionFOFOAndSideBarScrollSet():int
         {
             const sideBarWidth:Number = sideBar.getWidth();
-            const scale:Number = getUIScale();
+            const scale:Number = Global.getUIScale();
             const fofoHeight:Number = fofo.height - 10 * scale;
             const fofoTopRect:Rectangle = new Rectangle(sideBar.x, STAGE_TOP_OFFSET, sideBarWidth, fofoHeight);
             const fofoBottomRect:Rectangle = new Rectangle(sideBar.x, stage.stageHeight - STAGE_BOTTOM_OFFSET - fofoHeight, sideBarWidth, fofoHeight);
@@ -2655,7 +2627,7 @@
             return (collisionTop && collisionBottom) ? 0 : (collisionBottom) ? 1 : (collisionTop) ? 2 : 3;
         }
 
-        private function alignFOFOToSidebar():void
+        public function alignFOFOToSidebar():void
         {
             if (isRightSidebar)
             {
@@ -2896,7 +2868,7 @@
             if (canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null)
             {
                 canvasWindow.stage.addChild(canvasWindowCanvasPanel);
-                canvasWindow.stage.color = uiColorSets[uiColorIndex][2];
+                canvasWindow.stage.color = Global.getUIStageColor();
             }
 
             updateCanvasWindowImage();
@@ -3033,8 +3005,8 @@
                 toolOptionsBox.layer1UncheckedButton.visible = false;
                 toolOptionsBox.layer2CheckedButton.visible = false;
                 toolOptionsBox.layer2UncheckedButton.visible = true;
-                toolBox.setToolButtonsForCheckedLayerON(BUTTON_OFF_ALPHA);
-                toolBox2.setToolButtonsForCheckedLayerON(BUTTON_OFF_ALPHA);
+                toolBox.setToolButtonsForCheckedLayerON();
+                toolBox2.setToolButtonsForCheckedLayerON();
             }
             else
             {
@@ -3055,8 +3027,8 @@
                 toolOptionsBox.layer2UncheckedButton.visible = false;
                 toolOptionsBox.layer1CheckedButton.visible = false;
                 toolOptionsBox.layer1UncheckedButton.visible = true;
-                toolBox.setToolButtonsForCheckedLayerON(BUTTON_OFF_ALPHA);
-                toolBox2.setToolButtonsForCheckedLayerON(BUTTON_OFF_ALPHA);
+                toolBox.setToolButtonsForCheckedLayerON();
+                toolBox2.setToolButtonsForCheckedLayerON();
             }
             else
             {
@@ -3068,7 +3040,7 @@
             }
         }
 
-        private function toggleLayerCaptureMode(layer:int):void
+        public function toggleLayerCaptureMode(layer:int):void
         {
             topBar.capClipBoard.alpha = 1.0;
 
@@ -3089,7 +3061,7 @@
             if (bitmap.visible)
             {
                 bitmap.visible = false;
-                button.alpha = BUTTON_OFF_ALPHA;
+                button.alpha = Global.OFFALPHA;
 
                 if (replayMode)
                 {
@@ -3238,7 +3210,7 @@
                 rDataBuffer.push(["merge"]);
                 undoManager.addNew();
             }
-            toolOptionsBox.layerMergeButton.alpha = BUTTON_OFF_ALPHA;
+            toolOptionsBox.layerMergeButton.alpha = Global.OFFALPHA;
         }
 
         public function swapLayer():void
@@ -3349,39 +3321,18 @@
         {
             Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT,getCaptrueImageBitmapdata(true),false);
             // showMouseHintTemp("The image copied to clipboard successfully");
-            topBar.capClipBoard.alpha = BUTTON_OFF_ALPHA;
+            topBar.capClipBoard.alpha = Global.OFFALPHA;
         }
 
-        public function getUIScaleString():String
+        public function applyUIScale():void
         {
-            return getUIScale()*100+"%";
-        }
-
-        public function getUIScale():Number
-        {
-            return uiScales[uiScaleIndex];
-        }
-
-        public function resetUIScale():void
-        {
-            applyUIScale(0);
-        }
-
-        public function applyUIScale(index:int):void
-        {
-            if(index > uiScales.length-1)
-            {
-                index = 0;
-            }
-            uiScaleIndex = index;
-
+        //todo:클래스 내부에서 global scale참조하도록 매개변수 없애기
+            const scale:Number = Global.getUIScale();
             const stw:Number = stage.stageWidth;
             const sth:Number = stage.stageHeight;
-            const scale:Number = uiScales[index];
 
             sideBar.setScale(scale);
             setSidebarDefaultPos();
-
             topBar.setScale(scale);
             topBar.updateTopbarBG(stw);
             topBar.updateTimerPos(stage.stageWidth);
@@ -3396,7 +3347,6 @@
             toolBox2.setScale(scale);
             aboutBox.setScale(scale);
             eyedropperLens.setScale(scale);
-            // loadMenuBox.setScale(scale);
             numPadBox.setScale(scale);
             updateStageOffset();
             updateScrollBarHeight();
@@ -3834,12 +3784,14 @@
             }
         }
 
-        public function setResizeButtonColor(color:uint):void
+        public function setResizeButtonColor():void
         {
-            updateTargetColorTransform(resizeButtonL,color);
-            updateTargetColorTransform(resizeButtonR,color);
-            updateTargetColorTransform(resizeButtonU,color);
-            updateTargetColorTransform(resizeButtonD,color);
+            const color:uint = Global.getUIResizeBarColor();
+
+            Global.setColorTransform(resizeButtonL,color);
+            Global.setColorTransform(resizeButtonR,color);
+            Global.setColorTransform(resizeButtonU,color);
+            Global.setColorTransform(resizeButtonD,color);
         }
 
         public function cCheckHideCursor():Object
@@ -4325,9 +4277,7 @@
             && !isCaptureModeON
             && !isToolBox2Showing
             && !isMouseClickBlocked
-            && !isFillPenStarted 
             && !isLassoToolStarted
-            && !resizeButtonR.visible
             && !resizeButtonR.visible;
         }
 
@@ -5392,8 +5342,8 @@
                 data.push(my);
                 lastMousePos.setTo(mx,my);
                 canvasDrawLayer.alpha = xAlpha;
-                toolBox.setFillPenModeON(BUTTON_OFF_ALPHA);
-                toolOptionsBox.disableButtonFillPenStarted(BUTTON_OFF_ALPHA);
+                toolBox.setFillPenModeON();
+                toolOptionsBox.disableButtonFillPenStarted();
                 colorPickerBox.fillPenModeON();
 
                 addEvents();
@@ -6391,7 +6341,7 @@
             var sy:Number = canvasNavigatorBox.mouseY;
 
             const prevCursorScale:Number = canvasNavigatorBox.navCursorMultiply;
-            const uiScale:Number = getUIScale();
+            const uiScale:Number = Global.getUIScale();
 
             setRefLayerAndGridVisible(false);
             hideBottomHint();
@@ -6399,7 +6349,7 @@
             function centerCanvas(mx:Number,my:Number):void
             {
                 const b:Object = getBoundRect(canvasNavigatorBox.navCursor);
-                const scale:Number = getUIScale();
+                const scale:Number = Global.getUIScale();
                 //prevToCanvasMultiply를 나눠 줘야 커서랑 같은 속도가 나옴
                 const rectCenterX:Number = b.left+(b.right-b.left)/2;
                 const rectCenterY:Number = b.top+(b.bottom-b.top)/2;
@@ -6434,7 +6384,7 @@
 
             function onMouseMoveCanvasNavigator(e:MouseEvent):void
             {
-                const scale:Number = getUIScale();
+                const scale:Number = Global.getUIScale();
                 var mx:Number = canvasNavigatorBox.mouseX;
                 var my:Number = canvasNavigatorBox.mouseY;
                 //previewBox.prevCursorMultiply를 곱해줘야 커서랑 같은 속도가 나옴
@@ -6740,7 +6690,7 @@
                 }
                 else
                 {
-                    topBar.capLayer1VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                    topBar.capLayer1VisibleButton.alpha = Global.OFFALPHA;
                 }
 
                 if(canvasLayer2Bitmap.visible)
@@ -6749,7 +6699,7 @@
                 }
                 else
                 {
-                    topBar.capLayer2VisibleButton.alpha = BUTTON_OFF_ALPHA;
+                    topBar.capLayer2VisibleButton.alpha = Global.OFFALPHA;
                 }
 
                 updateCaptureStampButtonAlpha();
@@ -6772,7 +6722,7 @@
         public function clearGrid():void
         {
             lastGridGapValue = 0;
-            topBar.setGridMoveButtonAlpha(BUTTON_OFF_ALPHA);
+            topBar.setGridMoveButtonAlpha(Global.OFFALPHA);
             canvasGrid.visible = false;
             canvasGrid.graphics.clear();
         }
@@ -7085,10 +7035,10 @@
                     }
                     else
                     {
-                        topBar.setGridMoveButtonAlpha(BUTTON_OFF_ALPHA);
+                        topBar.setGridMoveButtonAlpha(Global.OFFALPHA);
                     }
 
-                    topBar.setReplaySpeedBarToGridSliderON(uiColorSets[uiColorIndex][0],shortcutKey);
+                    topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
                     setCursorPosByValue(gridGapValue);
 
                     if(shortcutKey)
@@ -7239,7 +7189,6 @@
             addTimerByName("refLayerVisibleFadingTimer", 0.0, true, function (refLayer:Sprite,fadeStep:Number,maxAlpha:Number):Boolean
                 {
                     canvasRefLayer.alpha += fadeStep;
-                    trace("fadeStep",fadeStep);
                     if(canvasRefLayer.alpha >= maxAlpha)
                     {
                         canvasRefLayer.alpha = maxAlpha;
@@ -7830,10 +7779,10 @@
             stageBG.graphics.endFill();
         }
 
-        public function updateStageBGColor(color:uint=0xCCCCCC):void
-        {
+        public function updateStageBGColor():void
+        {   
+            const color:uint = Global.getUIStageColor();
             stage.color = color;
-
             STAGE_BG_COLOR = color;
         }
 
@@ -7848,35 +7797,15 @@
 
         public function cycleUIColor():void
         {
-            uiColorIndex++;
+            Global.setNextUIColor();
+            applyUIColorSet();
 
-            if(uiColorIndex > uiColorSets.length-1)
-            {
-                uiColorIndex = 0;
-            }
-
-            applyUIColorSet(uiColorIndex);
-
-            const uiColorName:String = (uiColorIndex === 0) ? "Black"
-                                      :(uiColorIndex === 1) ? "Dark Gray"
-                                      :(uiColorIndex === 2) ? "Medium Gray"
-                                      :(uiColorIndex === 3) ? "Light Gray" : "";
-
-            showMouseHintTemp(uiColorName);
+            showMouseHintTemp(Global.setUIColorString());
         }
 
-        public function applyUIColorSet(index:int):void
+        public function applyUIColorSet():void
         {
-            const UI_BASE_COLOR:uint = uiColorSets[index][0];
-            const UI_FORE_COLOR:uint = uiColorSets[index][1];
-            const STAGE_BG_COLOR:uint = uiColorSets[index][2];
-            const RESIZE_COLOR:uint = uiColorSets[index][3];
-            const REPLAY_BAR_COMPLETE_COLOR:uint = uiColorSets[index][4];
-
-            const TOOLBOX_COLOR_SET:Array = uiToolBoxColorSets[index];
-            const HINT_BG_COLOR:uint = hintBGColors[index];
-
-            updateStageBGColor(STAGE_BG_COLOR);
+            updateStageBGColor();
             updateBottomBarLayoutAndColor();
             canvasNavigatorBox.chanegStageColor(STAGE_BG_COLOR);
             
@@ -7885,47 +7814,44 @@
                 canvasWindow.stage.color = STAGE_BG_COLOR;
             }
 
-            sideBar.changeUIColor(UI_BASE_COLOR);
-            toolOptionsBox.changeUIColor(UI_FORE_COLOR);
-            colorPickerBox.changeUIColor(UI_FORE_COLOR);
-            canvasInfoBox.changeUIColor(UI_FORE_COLOR);
-            canvasRotateCursor.changeUIColor(UI_BASE_COLOR, UI_FORE_COLOR);
-            fofo.changeColor(UI_FORE_COLOR);
+            sideBar.updateUIColor();
+            toolOptionsBox.updateUIColor();
+            colorPickerBox.updateUIColor();
+            canvasInfoBox.updateUIColor();
+            canvasRotateCursor.changeUIColor();
+            fofo.updateColor();
             
-            toolBox.changeUIColor(TOOLBOX_COLOR_SET);
-            toolBox2.changeUIColor(TOOLBOX_COLOR_SET);
-            fillPenBox.changeBGColor(TOOLBOX_COLOR_SET);
-            lassoMenuBox.changeUIColor(TOOLBOX_COLOR_SET);
-            numPadBox.changeUIColor(TOOLBOX_COLOR_SET);
-            
-            refLayerMenuBox.changeUIColor(TOOLBOX_COLOR_SET, index === 0);
+            toolBox.changeUIColor();
+            toolBox2.changeUIColor();
+            fillPenBox.updateUIColor();
+            lassoMenuBox.updateUIColor();
+            numPadBox.updateUIColor();
+        
+            refLayerMenuBox.updateUIColor();
 
-            topBar.changeUIColor(UI_BASE_COLOR, UI_FORE_COLOR, REPLAY_BAR_COMPLETE_COLOR);
-            replayTimelineBox.changeUIColor(UI_BASE_COLOR, UI_FORE_COLOR, TOOLBOX_COLOR_SET[4], index);
-            captureStampFontListBox.changeUIColor(UI_BASE_COLOR, UI_FORE_COLOR, HINT_BG_COLOR);
+            topBar.updateUIColor();
+            replayTimelineBox.updateUIColor();
+            captureStampFontListBox.updateUIColor();
             
             setRGBInfoTextColorByColor(colorPickerBox.getRGBInfoBGColor());
-            mouseHint.updateBGColor(HINT_BG_COLOR);
+            mouseHint.updateBGColor();
             bottomHint.updateHintTextColor(0);
-            setResizeButtonColor(RESIZE_COLOR);
-            updateScrollBarColorHeight();
+            setResizeButtonColor();
+            updateScrollBarColorAndHeight();
             
             if (isColorPickerModeBG)
             {
                 deactiveColorPickerModeBG();
             }
+
             colorPickerBox.activePaperColorButton(isColorPickerModeBG);
             checkCanUseClipBoardButton();
-            updatePickerBoxTransBGBrightness(index);
+            updatePickerBoxTransBGBrightness();
+
             if(isBottomBarVisible())
             {
                 hideBottomHint();
             }
-
-            // if(isSelectedTool(TOOL_FILL_PEN))
-            // {
-            //     toolOptionsBox.disableButtonFillPenStarted(BUTTON_OFF_ALPHA);
-            // }
         }
 
         public function addGlobalEvents():void
@@ -7991,23 +7917,10 @@
             return RGBtoHSV(r,g,b);
         }
 
-        public function updateTargetColorTransform(target:DisplayObject,color:uint):void
-        {
-            if(!target)
-            {
-                return;
-            }
-
-            const c:ColorTransform = target.transform.colorTransform;
-            c.color = color;
-            c.alphaMultiplier = 1.0;
-
-            target.transform.colorTransform = c;
-        }
 
         public function updateTimelineBoxPos(stw:Number):void
         {
-            const scale:Number = getUIScale();
+            const scale:Number = Global.getUIScale();
             const maxWidth:Number = stw-(replayTimelineBox.trackBar.x+5)*scale;
 
             replayTimelineBox.trackBar.width =  Math.floor(maxWidth/scale);
@@ -8497,7 +8410,7 @@
             }
             else
             {
-                topBar.capStamp.alpha = BUTTON_OFF_ALPHA;
+                topBar.capStamp.alpha = Global.OFFALPHA;
                 topBar.captureInputWarpper.visible = false;
                 topBar.capStampFont.visible = false;
             }
@@ -8731,7 +8644,7 @@
 
         public function mergeLayerByLassoTool():void
         {
-            lassoMenuBox.lassoLayerMerge.alpha = BUTTON_OFF_ALPHA;
+            lassoMenuBox.lassoLayerMerge.alpha = Global.OFFALPHA;
             mergeLassoImage();
             addLassoLayerMergeCommand(1);
         }
@@ -8758,7 +8671,7 @@
             }
 
             isLassoImageCopied = true;
-            lassoMenuBox.lassoCopy.alpha = BUTTON_OFF_ALPHA;
+            lassoMenuBox.lassoCopy.alpha = Global.OFFALPHA;
             lassoCancelBmpd();
         }
 
@@ -8903,8 +8816,8 @@
 
         public function getRGBInfoBorderColor(color:uint):uint
         {
-            const defColor:Number = getColorDifferenceForHuman(color,uiColorSets[uiColorIndex][0]);
-            return (defColor <= 15) ? uiColorSets[uiColorIndex][1] : 0;
+            const defColor:Number = getColorDifferenceForHuman(color,Global.getUIBGColor());
+            return (defColor <= 15) ? Global.getUIFGColor() : 0;
         }
 
         public function isCurrentColorSamePickedColor():Boolean
@@ -9502,7 +9415,7 @@
             clearRFrameTempCache();
             //reset vars보다 뒤에 와야함
             //addundo에서 활성화 해주고 있기 때문에
-            topBar.newFileButton.alpha = BUTTON_OFF_ALPHA;
+            topBar.newFileButton.alpha = Global.OFFALPHA;
         }
 
         public function createNewFile(fromShortcut:Boolean):void
@@ -9604,7 +9517,10 @@
                         break;
 
                         case "dpiButton":
-                            applyUIScale(++uiScaleIndex);
+                        {
+                            Global.setNextScaleIndex();
+                            applyUIScale();
+                        }
                         break;
 
                         case "updateButton":
@@ -9989,7 +9905,7 @@
                 // resetReplayTime();
                 replayTimelineBox.prograssInfo.text = TOTAL_FRAME+" / " + TOTAL_FRAME;
                 replayTimelineBox.prograssBar.width = (TOTAL_FRAME === 0) ? 0 : replayTimelineBox.trackBar.width;
-                topBar.repNewFileButton.alpha = BUTTON_OFF_ALPHA;
+                topBar.repNewFileButton.alpha = Global.OFFALPHA;
 
                 rReplayFOFOCursor.visible = false;
             }
@@ -10333,7 +10249,7 @@
         public function fitCanvasToViewportMargin(captureMode:Boolean=false,manualFlag:Boolean=false):void
         {
             const replayMode:Boolean = isReplayModeON;
-            const uiscale:Number = getUIScale();
+            const uiscale:Number = Global.getUIScale();
             const offsetX:Number = 44+STAGE_LEFT_OFFSET+STAGE_RIGHT_OFFSET;
             const offsetY:Number = (captureMode) ? (topBar.BARSIZE)*uiscale+45*uiscale : (topBar.BARSIZE+replayTimelineBox.BARSIZE)*uiscale+45*uiscale;
             const stw:int = stage.stageWidth-offsetX;
@@ -10422,7 +10338,7 @@
             replayTimelineBox.playButton.visible = true;
             replayTimelineBox.pauseButton.visible = false;
 
-            updateTargetColorTransform(replayTimelineBox.prograssBar,uiColorSets[uiColorIndex][5]);
+            Global.setColorTransform(replayTimelineBox.prograssBar,Global.getUIReplayRestartBarColor());
 
             //재생이 끝나면 전체화면을 보여줌
             if(!isMouseClicked)
@@ -10445,7 +10361,7 @@
                 replayTimelineBox.prograssInfo.text = TOTAL_FRAME+" / " +TOTAL_FRAME;
             }
             rReplayRestartTimerCount = 10;
-            updateTargetColorTransform(replayTimelineBox.prograssBar,uiColorSets[uiColorIndex][4]);
+            Global.setColorTransform(replayTimelineBox.prograssBar,Global.getUIReplayEndBarColor());
 
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseKeyDownRemoveRestartTimer);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onMouseKeyDownRemoveRestartTimer);
@@ -12543,7 +12459,7 @@
             if(isReplayCanvasFitToWindow)
             {
                 resetZoomReplayMode();
-                topBar.replayFitToWindowButton.alpha = BUTTON_OFF_ALPHA;
+                topBar.replayFitToWindowButton.alpha = Global.OFFALPHA;
             }
             else
             {
@@ -12551,6 +12467,7 @@
                 topBar.replayFitToWindowButton.alpha = 1.0;
             }
         }
+
         public function toggleReplayRepeat():void
         {
             isReplayRepeatON = !isReplayRepeatON;
@@ -12561,7 +12478,7 @@
             }
             else
             {
-                topBar.replayRepeatButton.alpha = BUTTON_OFF_ALPHA;
+                topBar.replayRepeatButton.alpha = Global.OFFALPHA;
             }
         }
 
@@ -12643,9 +12560,9 @@
         {
             if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING || isSaveInProgress || isReplayStarted)
             {
-                topBar.superUndoButton.alpha = BUTTON_OFF_ALPHA;
-                topBar.cutPrevDataButton.alpha = BUTTON_OFF_ALPHA;
-                topBar.repNewFileButton.alpha = BUTTON_OFF_ALPHA;
+                topBar.superUndoButton.alpha = Global.OFFALPHA;
+                topBar.cutPrevDataButton.alpha = Global.OFFALPHA;
+                topBar.repNewFileButton.alpha = Global.OFFALPHA;
             }
             else
             {
@@ -12658,8 +12575,8 @@
                 }
                 else
                 {
-                    topBar.superUndoButton.alpha = BUTTON_OFF_ALPHA;
-                    topBar.cutPrevDataButton.alpha = BUTTON_OFF_ALPHA;
+                    topBar.superUndoButton.alpha = Global.OFFALPHA;
+                    topBar.cutPrevDataButton.alpha = Global.OFFALPHA;
                 }
             }
         }
@@ -12993,7 +12910,7 @@
 
                 if(rNowFrame === TOTAL_FRAME)
                 {
-                    updateTargetColorTransform(replayTimelineBox.prograssBar,uiColorSets[uiColorIndex][4]);
+                    Global.setColorTransform(replayTimelineBox.prograssBar,Global.getUIReplayEndBarColor());
                 }
 
             }
@@ -13262,10 +13179,10 @@
         public function updateBottomBarLayoutAndColor():void
         {
             bottomBar.x = 0; 
-            bottomBar.y = stage.stageHeight - BOTTOM_BAR_HEIGHT*getUIScale();
+            bottomBar.y = stage.stageHeight - BOTTOM_BAR_HEIGHT*Global.getUIScale();
             bottomBar.graphics.clear();
             // bottomBar.graphics.lineStyle(0,0xFF0000,0.0);
-            bottomBar.graphics.beginFill(hintBGColors[uiColorIndex],0.75);
+            bottomBar.graphics.beginFill(Global.getHintBGColor(),0.75);
             bottomBar.graphics.drawRect(-3,0,stage.stageWidth+6,BOTTOM_BAR_HEIGHT+3);
             bottomBar.graphics.endFill();
         }
@@ -13439,7 +13356,7 @@
         public function showHintHighlightBox(target:DisplayObject,rect:Rectangle = null):void
         {
             hintHighlightBox.graphics.clear();
-            hintHighlightBox.graphics.lineStyle(2*getUIScale(), hintHighlightBoxColors[uiColorIndex], 1.0);
+            hintHighlightBox.graphics.lineStyle(2*Global.getUIScale(), Global.getHintHightlightColor(), 1.0);
 
             rect = target.getBounds(stage);
             const panelrect:Rectangle = canvasLayer1Bitmap.getBounds(stage);
@@ -13526,7 +13443,7 @@
             const hintWidth:Number = mouseHint.getScaledTextWidth();
             const hintHeight:Number = mouseHint.getScaledTextHeight();
             var hintX:Number = Math.floor(mouseX-hintWidth/2)+5;
-            var hintY:Number = Math.floor(mouseY-45*getUIScale());
+            var hintY:Number = Math.floor(mouseY-45*Global.getUIScale());
             const hintRight:int = hintX+hintWidth;
             const hintBottom:int = hintY+hintHeight;
 
@@ -13589,7 +13506,7 @@
 
             if(loadMenuBox.visible === false)
             {
-                loadMenuBox.changeUIColor(uiToolBoxColorSets[uiColorIndex]);
+                loadMenuBox.updateUIColor();
 
                 if(fromUpdate)
                 {
@@ -13653,8 +13570,8 @@
 
         public function disableTopBarClipboardButton():void
         {
-            topBar.clipBoardButton.alpha = BUTTON_OFF_ALPHA;
-            refLayerMenuBox.refClipBoardButton.alpha = BUTTON_OFF_ALPHA;
+            topBar.clipBoardButton.alpha = Global.OFFALPHA;
+            refLayerMenuBox.refClipBoardButton.alpha = Global.OFFALPHA;
             isClipBoardButtonActivated = false;
         }
 
@@ -14218,8 +14135,9 @@
         //주어진 컬러 알파값을 기반으로 반전 컬러를 구함
         public function getInvertedColor(color:uint):uint
         {
-            const dark:uint   = (uiColorIndex >= 2) ? uiColorSets[uiColorIndex][1]:uiColorSets[uiColorIndex][0];
-            const bright:uint = (uiColorIndex >= 2) ? uiColorSets[uiColorIndex][0]:uiColorSets[uiColorIndex][1];
+            const dark:uint   = (Global.getUIColorIndex() >= 2) ? Global.getUIFGColor():Global.getUIBGColor();
+            const bright:uint = (Global.getUIColorIndex() >= 2) ? Global.getUIBGColor():Global.getUIFGColor();
+
             return (getColorDifferenceForHuman(color,bright) <= 30) ? dark : bright;
         }
 
@@ -14755,7 +14673,7 @@
 
             if(topBar.saveButton.alpha === 1.0)
             {
-                topBar.disableFileOperationButtons(BUTTON_OFF_ALPHA);
+                topBar.disableFileOperationButtons();
             }
         }
 
@@ -15479,7 +15397,7 @@
             {
                 if (isSidebarVisible)
                 {
-                    showSidebarTemporary();
+                    showSidebarPermanent();
                 }
 
                 if (isRefLayerMenuON)
@@ -15593,6 +15511,7 @@
 
         public function onKeyUpCaptureMode(e:KeyboardEvent):void
         {
+            updateLastKey(getLastKey());
             checkKeyUp(e.keyCode);
         }
 
@@ -15618,7 +15537,7 @@
                 }
             }
 
-            if(stage.focus === topBar.captureInput || isMouseClicked || isRightMouseClicked || isLastKey(firstKey))
+            if(stage.focus === topBar.captureInput || isMouseClicked || isRightMouseClicked)
             {
                 return;
             }
@@ -15626,6 +15545,11 @@
             if(isPressingControl())
             {
                 const secondKey:uint = getSecondPressedKey();
+                if(isLastKey(secondKey))
+                {
+                    return;
+                }
+                updateLastKey(secondKey);
                 if(secondKey === KEY.s || secondKey === KEY.semicolon)
                 {
                     saveCaptureImage();
@@ -15638,9 +15562,20 @@
                         copyCaptureImageToCilpBoard();
                     }
                 }
+                else if(secondKey === KEY.v || secondKey === KEY.m)
+                {
+                    if(isClipBoardButtonActivated)
+                    {
+                        tryLoadClipboardImage(false);
+                    }
+                }
                 return;
             }
 
+            if(isLastKey(firstKey))
+            {
+                return;
+            }
             updateLastKey(firstKey);
 
             switch(firstKey)
@@ -15650,36 +15585,6 @@
                 case KEY.f1:
                 case KEY.f7:
                     handleExitCaptureMode();
-                break;
-
-                case KEY.s:
-                case KEY.k:
-                    rotateCaptureImage(++captureCanvasRotationStep,false);
-                break;
-
-                case KEY.a:
-                case KEY.l:
-                    flipCaptureImage(!isCaptureCanvasFlipped,false);
-                break;
-
-                case KEY.d:
-                case KEY.j:
-                    applyTransparentCanvasBGCaptureMode(!isCaptureTransparentBGShowing);
-                break;
-
-                case KEY.f:
-                case KEY.h:
-                    toggleCaptureStampButton();
-                break;
-
-                case KEY.n1:
-                case KEY.n9:
-                    toggleLayerCaptureMode(1);
-                break;
-
-                case KEY.n2:
-                case KEY.n0:
-                    toggleLayerCaptureMode(2);
                 break;
 
                 default:
@@ -17478,7 +17383,7 @@
             {
                 stopReplay();
             }
-trace("isContinueSaveON",isContinueSaveON);
+
             const continueFlag:Boolean = (isContinueSaveON === true && asFlag === false);
             const nextPath:String = getExistingParentDirectory(lastSaveFilePath);
             const replayFilePath:String = getReplayFileNameFromPath(lastSaveFilePath);
@@ -17809,7 +17714,7 @@ trace("isContinueSaveON",isContinueSaveON);
                             "saveFileName":lastSaveFileName,
                             "toolBox.scaleX":toolBox.scaleX,
                             "lastWindowState":lastAppWindowState,
-                            "uiColorIndex":uiColorIndex,
+                            "uiColorIndex":Global.getUIColorIndex(),
                             "APP_RUNNING_TIME":realWorkingTimer.getRunningTime(),
                             "refLayerLastAlpha":refLayerLastAlpha,
                             "refOpacityCursor.x":refLayerMenuBox.refOpacityCursor.x,
@@ -17835,7 +17740,7 @@ trace("isContinueSaveON",isContinueSaveON);
                             "isRightSidebar":isRightSidebar,
                             "saveFilePath":lastSaveFilePath,
                             "isSidebarVisible":isSidebarVisible,
-                            "uiScaleIndex":uiScaleIndex,
+                            "uiScaleIndex":Global.getUIScaleIndex(),
                             "canvasWindowON":isCanvasWindowON,
                             "canvasWindowInfo[0]":canvasWindowInfo[0],
                             "canvasWindowInfo[1]":canvasWindowInfo[1],
@@ -17850,7 +17755,8 @@ trace("isContinueSaveON",isContinueSaveON);
                             "topBar.captureInput.text":topBar.captureInput.text,
                             "isCaptureStampON":isCaptureStampEnabled,
                             "captureStampFont":captureStampManager.getFontName(),
-                            "scrollSetMovedY":scrollSetMovedY
+                            "scrollSetMovedY":scrollSetMovedY,
+                            "isRefLayerMemoryTrainingON":isRefLayerMemoryTrainingON
                             });
             fs.close();
         }
@@ -17976,8 +17882,10 @@ trace("isContinueSaveON",isContinueSaveON);
 
                     //캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
                     if(d["lastWindowState"] === 1) stage.nativeWindow.maximize();
-                    applyUIScale(d["uiScaleIndex"]);
-                    applyUIColorSet(d["uiColorIndex"]);
+                    Global.setScaleIndex(d["uiScaleIndex"]);
+                    applyUIScale();
+                    Global.setUIColorIndex(d["uiColorIndex"]);
+                    applyUIColorSet();
                     canvasZoomIndex = d["canvasZoomIndex"];
                     updateCanvasScale(d["canvasZoomedMultipler"]);
                     canvasPanel.x = d["canvasPanel.x"];
@@ -17988,7 +17896,6 @@ trace("isContinueSaveON",isContinueSaveON);
                     setRcursorRotation(d["canvasAnchorPoint.rotation"]);
                     updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
                     canvasRotateCursor.rotateArrow.rotation = d["canvasAnchorPoint.rotation"];
-                    uiColorIndex = d["uiColorIndex"];
                     penSmoothValue = d["penSmoothValue"];
                     penSmoothSlideValue = d["penSmoothSlideValue"];
                     toolOptionsBox.penSmoothSliderCursor.x = d["penSmoothButtonX"];
@@ -18026,6 +17933,11 @@ trace("isContinueSaveON",isContinueSaveON);
                     refLayerMenuBox.x = d["refLayerMenuBox[0]"];
                     refLayerMenuBox.y = d["refLayerMenuBox[1]"];
                     refLayerMenuDragXMoveSum = d["refLayerMenuDragXMoveSum"];
+                    if(d["isRefLayerMemoryTrainingON"])
+                    {
+                        isRefLayerMemoryTrainingON = false;
+                        toggleRefLayerMemoryTraining();
+                    }
                     isRightSidebar = d["isRightSidebar"];
                     isSidebarVisible = d["isSidebarVisible"];
                     if(d["isRightSidebar"]) moveSideBar("right",true);
@@ -18133,7 +18045,7 @@ trace("isContinueSaveON",isContinueSaveON);
                 updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
                 moveHSVCursorByColor(penColor);
                 openAboutBox(true);
-                applyUIColorSet(uiColorIndex);
+                applyUIColorSet();
                 updateCanvasNaigatorCursor();
                 updateAppWindowSizeInfo();
                 canvasInfoBox.init(CANVAS_WIDTH,CANVAS_HEIGHT,Math.floor(canvasZoomMultipler*100),canvasAnchorPoint.rotation,false);
@@ -18820,7 +18732,7 @@ trace("isContinueSaveON",isContinueSaveON);
             function fixMouseHintPos():void
             {
                 mouseHint.x = clickPos.x-mouseHint.width/2;
-                mouseHint.y = clickPos.y-35*getUIScale();
+                mouseHint.y = clickPos.y-35*Global.getUIScale();
             }
 
             function zoomToolMouseMoveEvent2(dist:Number):void
@@ -19289,7 +19201,7 @@ trace("isContinueSaveON",isContinueSaveON);
                     else resizePreviewRatioRect.graphics.drawRect(-guideLineWidth,-max/2,guideLineWidth,max*2);
                     resizePreviewRatioRect.graphics.endFill();
 
-                    const color:uint = uiColorSets[uiColorIndex][1];
+                    const color:uint = Global.getUIFGColor()
                     var prevSize:Number; //스냅 격자 그려주는 위치
                     var realSize:Number; //스냅 걸릴때 실제 사이즈
                     const len:uint = ratioArr.length;
@@ -19858,8 +19770,8 @@ trace("isContinueSaveON",isContinueSaveON);
 
                     if(checkedLayer || !checklayer1 || !checklayer2)
                     {
-                        lassoMenuBox.lassoLayerSwap.alpha = BUTTON_OFF_ALPHA;
-                        lassoMenuBox.lassoLayerMerge.alpha = BUTTON_OFF_ALPHA;
+                        lassoMenuBox.lassoLayerSwap.alpha = Global.OFFALPHA;
+                        lassoMenuBox.lassoLayerMerge.alpha = Global.OFFALPHA;
                     }
                     else
                     {
@@ -20199,7 +20111,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
                 if(canShowEyedropperLens())
                 {
-                    updateTargetColorTransform(eyedropperLens.nowColor,pickColor());
+                    Global.setColorTransform(eyedropperLens.nowColor,pickColor());
                     if(canvasZoomMultipler < 12.0)
                     {
                         updateEyeDropperLensBitmap();
@@ -20254,7 +20166,7 @@ trace("isContinueSaveON",isContinueSaveON);
                 selectLastTool(nowTool);
                 setToolIndex(TOOL_EYEDROPPER);
                 penColorBackup = penColor;
-                updateTargetColorTransform(eyedropperLens.oldColor,penColor);
+                Global.setColorTransform(eyedropperLens.oldColor,penColor);
                 moveEraserButtonToOtherTool("toolEyedropper");
                 eyedropperLens.rotateBitmap(canvasAnchorPoint.rotation);
                 canvasRefLayer.visible = false;
@@ -20266,7 +20178,7 @@ trace("isContinueSaveON",isContinueSaveON);
                 {
                     eyedropperLens.x = stage.mouseX;
                     eyedropperLens.y = stage.mouseY;
-                    updateTargetColorTransform(eyedropperLens.nowColor,pickColor());
+                    Global.setColorTransform(eyedropperLens.nowColor,pickColor());
                     setAsTopChild(eyedropperLens);
 
                     if(canvasZoomMultipler < 12.0)
@@ -20607,7 +20519,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
             if(toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
         }
 
@@ -20638,7 +20550,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
             if(toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
         }
 
@@ -20651,7 +20563,7 @@ trace("isContinueSaveON",isContinueSaveON);
             updateOpacityCursorPos(penAlphaIndex);
             toggleAirBrushCheckBox(isPenAirBrushON, true);
             toolOptionsBox.movePenSizeCursor(1);
-            toolOptionsBox.updateButtonsAlphaFillPenSelected(BUTTON_OFF_ALPHA);
+            toolOptionsBox.setButtonsAlphaFillPenSelected(Global.OFFALPHA);
             moveEraserButtonToOtherTool("toolFillPen");
             updateToolOptionsTextBySelectedTool();
         }
@@ -20664,7 +20576,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
             if(toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
         }
 
@@ -20676,7 +20588,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
             if(toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
         }
 
@@ -20688,7 +20600,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
             if(toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
         }
 
@@ -20701,7 +20613,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
             if(toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.updateButtonsAlphaFillPenSelected(1.0);
+                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
         }
 
@@ -20777,7 +20689,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
             if(toolOptionsBox.layer1CheckedButton.visible || toolOptionsBox.layer2CheckedButton.visible)
             {
-                toolBox.setToolButtonsForCheckedLayerON(BUTTON_OFF_ALPHA);
+                toolBox.setToolButtonsForCheckedLayerON();
             }
 
             toolBox.setIconAlphaOnLassoToolON(1.0);
@@ -21698,12 +21610,12 @@ trace("isContinueSaveON",isContinueSaveON);
             hideBottomHint();
         }
 
-        public function updateScrollBarColorHeight():void
+        public function updateScrollBarColorAndHeight():void
         {
-            const scale:Number = getUIScale();
+            const scale:Number = Global.getUIScale();
             const height:Number = Math.round((stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET)/scale);
-            const color1:uint = uiColorSets[uiColorIndex][1];
-            const color2:uint = uiColorSets[uiColorIndex][0];
+            const color1:uint = Global.getUIFGColor();
+            const color2:uint = Global.getUIBGColor();
 
             sideBarScrollBar.graphics.clear();
             sideBarScrollBar.graphics.lineStyle(2,color1,1.0,true);
@@ -21720,7 +21632,7 @@ trace("isContinueSaveON",isContinueSaveON);
             aboutBox.setVersionInfo(APP_VERSION.toFixed(2));
             topBar.name = "topBar";
             sideBarScrollBar.name = "sideBarScrollBar";
-            topBar.makeTopbarBG(UI_COLOR_MID_DARK);
+            topBar.makeTopbarBG(Global.UI_COLOR_MID_DARK);
             updateTopBarModeIcons("draw");
 
             fillPenBox.x = -fillPenBox.width-3;
@@ -21746,6 +21658,7 @@ trace("isContinueSaveON",isContinueSaveON);
             captureStampFontListBox.y = 100;
 
             topBar.updateTimerPos(stage.stageWidth);
+            topBar.replayFitToWindowButton.alpha = Global.OFFALPHA;
             
             bottomBar.name = "bottomBar";
             bottomBar.addChild(bottomHint);
@@ -21833,7 +21746,7 @@ trace("isContinueSaveON",isContinueSaveON);
             updateCanvasBGColorDrawMode(CANVAS_BG_COLOR);
             updateCanvasPanelMask(CANVAS_WIDTH,CANVAS_HEIGHT);
 
-            updateStageBGColor(uiColorSets[uiColorIndex][2]);
+            updateStageBGColor();
 
             canvasRefLayer.alpha = refLayerLastAlpha;
             canvasRefLayer.addChild(canvasRefLayerBitmap);
@@ -21877,7 +21790,6 @@ trace("isContinueSaveON",isContinueSaveON);
 
         public function saveAllAppData():void
         {
-        trace("save");
             saveAppSatate();
             saveUndoData();
             saveReplayFrameData();
@@ -21904,14 +21816,14 @@ trace("isContinueSaveON",isContinueSaveON);
 
         public function updateScrollBarHeight():void
         {
-            updateScrollBarColorHeight();
+            updateScrollBarColorAndHeight();
             resetScrollBarX();
             checkScrollSetOutStage();
         }
 
         public function getSideBarBGHeight():Number
         {
-            return (stage.stageHeight-topBar.BARSIZE*getUIScale())/getUIScale();
+            return (stage.stageHeight-topBar.BARSIZE*Global.getUIScale())/Global.getUIScale();
         }
 
         public function onWindowResize(e:Event):void
@@ -21970,7 +21882,7 @@ trace("isContinueSaveON",isContinueSaveON);
                     }
                 }
 
-                updateStageBGColor(uiColorSets[uiColorIndex][2]);
+                updateStageBGColor();
                 topBar.updateTopbarBG(stage.stageWidth);
                 topBar.updateTimerPos(stage.stageWidth);
                 sideBar.updateSideBGSize(getSideBarBGHeight());
@@ -22193,7 +22105,7 @@ trace("isContinueSaveON",isContinueSaveON);
         //캔버스 정 가운데로
         public function getStageCenterPos(mode:String):Point
         {
-            const scale:Number = getUIScale();
+            const scale:Number = Global.getUIScale();
             const center:Point = new Point(0,0);
             var topBarOffset:Number = topBar.BARSIZE*scale;
 
@@ -22460,9 +22372,20 @@ trace("isContinueSaveON",isContinueSaveON);
             }
             else if(isPressingControl())
             {
-                checkSubKey(2,false,function(input:int):void
+                checkSubKey(2,true,function(input:int):void
                 {
-                    if(input === KEY.c || input === KEY.m) enterCaptureMode();
+                    if(input === KEY.c || input === KEY.m)
+                    {
+                        enterCaptureMode();
+                    }
+                    else if(input === KEY.v || input === KEY.m)
+                    {
+                    trace("aa");
+                        if(isClipBoardButtonActivated)
+                        {
+                            tryLoadClipboardImage(false);
+                        }
+                    }
                 });
                 return;
             }
@@ -22622,7 +22545,7 @@ trace("isContinueSaveON",isContinueSaveON);
             {
                 if(!checkSubKey(2,true,function(input:int):void
                 {
-                     if(input === KEY.s)
+                    if(input === KEY.s)
                     {
                         openSaveFileBrowser(false);
                     }
@@ -22711,9 +22634,10 @@ trace("isContinueSaveON",isContinueSaveON);
 
                         case KEY.f5:
                         {
-                            if(uiScaleIndex !== 0)
+                            if(Global.getScaleIndex() !== 0)
                             {
-                                resetUIScale();
+                                Global.resetScaleIndex();
+                                applyUIScale();
                             }
                         }
                         return;
@@ -23398,7 +23322,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
         public function checkScrollSetOutStage():void
         {
-            const scale:Number = getUIScale();
+            const scale:Number = Global.getUIScale();
             const limitTop:Number = Math.floor(-sideBarConstHeight+20.0);
             const limitBottom:Number = Math.floor(stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET-20.0*scale);
 
@@ -23423,7 +23347,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
         public function startScrollSidebarByDrag():void
         {
-            const scale:Number = getUIScale();
+            const scale:Number = Global.getUIScale();
             var clickY:Number = stage.mouseY;
             const alphaSave:Number = sideBarScrollBar.alpha;
             function onDragStart():void
@@ -23455,7 +23379,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
         public function startScrollSidebarByMouseWheel(deltaY:Number):void
         {
-            deltaY = Math.floor(deltaY*getUIScale());
+            deltaY = Math.floor(deltaY*Global.getUIScale());
             sideBarScrollPanel.y += deltaY*1.5;
             scrollSetMovedY = sideBarScrollPanel.y;
             checkFOFOPosition();
@@ -23530,7 +23454,7 @@ trace("isContinueSaveON",isContinueSaveON);
         {
             if(REPLAY_MAX_SPEED === 1.0)
             {
-                topBar.replaySpeedSliderWrapper.alpha = BUTTON_OFF_ALPHA;
+                topBar.replaySpeedSliderWrapper.alpha = Global.OFFALPHA;
             }
             else
             {
@@ -23556,7 +23480,7 @@ trace("isContinueSaveON",isContinueSaveON);
 
         public function updateReplayCursorScale(zoom:Number):void
         {
-            const z:Number = getUIScale()/zoom;
+            const z:Number = Global.getUIScale()/zoom;
             rReplayFOFOCursor.scaleX = z;
             rReplayFOFOCursor.scaleY = z;
         }
@@ -23725,7 +23649,7 @@ trace("isContinueSaveON",isContinueSaveON);
             replayTimelineBox.visible = true;
             penSizePreviewCursor.visible = false;
             replayTimelineBox.pauseButton.visible = false;
-            replayTimelineBox.y = Math.floor(topBar.BARSIZE*getUIScale()-4);
+            replayTimelineBox.y = Math.floor(topBar.BARSIZE*Global.getUIScale()-4);
             setAsTopChild(replayTimelineBox);
             hideReplayDeleteRangeBar();
 
@@ -24031,7 +23955,7 @@ trace("isContinueSaveON",isContinueSaveON);
             penSizePreviewCursor.visible = false;
 
             var pos:Point = toolBox2.getLastUsedToolPos();
-            const scale:Number = getUIScale();
+            const scale:Number = Global.getUIScale();
 
             toolBox2.x = Math.floor(stage.mouseX-pos.x*scale);
             toolBox2.y = Math.floor(stage.mouseY-pos.y*scale);
@@ -24089,9 +24013,10 @@ trace("isContinueSaveON",isContinueSaveON);
 
                 case "dpiButton":
                 {
-                    if(uiScaleIndex !== 0)
+                    if(Global.getScaleIndex() !== 0)
                     {
-                        resetUIScale();
+                        Global.resetScaleIndex();
+                        applyUIScale();
                     }
                 }
                 break;

@@ -78,14 +78,14 @@
 			toolInfoText.text = str;
 		}
 
-		public function setToolButtonsForCheckedLayerON(alp:Number):void
+		public function setToolButtonsForCheckedLayerON():void
 		{
-			toolPen.alpha = alp;
-			toolErase.alpha = alp;
-			toolFillPen.alpha = alp;
-			// toolScanFill.alpha = alp;
-			toolEyedropper.alpha = alp;
-			toolLine.alpha = alp;
+			const offAlpha:Number = Global.OFFALPHA;
+			toolPen.alpha = offAlpha;
+			toolErase.alpha = offAlpha;
+			toolFillPen.alpha = offAlpha;
+			toolEyedropper.alpha = offAlpha;
+			toolLine.alpha = offAlpha;
 		}
 
 		public function setToolButtonsForCheckedLayerOFF():void
@@ -93,19 +93,12 @@
 			toolPen.alpha = 1.0;
 			toolErase.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
-			// toolScanFill.alpha = 1.0;
 			toolEyedropper.alpha = 1.0;
 			toolLine.alpha = 1.0;
 		}
 
-		public function changeUIColor(arr:Array):void
+		public function changeUIColor():void
 		{
-			const base:ColorTransform = new ColorTransform();
-			const subBase:ColorTransform = new ColorTransform();
-			const iconLeft:ColorTransform = new ColorTransform();
-			const iconRight:ColorTransform = new ColorTransform();
-			const activeColor:ColorTransform = new ColorTransform();
-			const activeIconColor:ColorTransform = new ColorTransform();
 			var btn:SimpleButton;
 			var btnUp:DisplayObject;
 			var btnOver:DisplayObjectContainer;
@@ -131,44 +124,34 @@
 					toolQuickSidebar
 				];
 
-			base.color = arr[0];
-			subBase.color = arr[1];
-			iconLeft.color = arr[2];
-			iconRight.color = arr[3];
-			activeColor.color = arr[4];
-			activeIconColor.color = arr[5];
+			Global.applyToolBoxBGColor(toolBoxBG);
+			Global.applyToolBoxBGTopColor(toolBoxBG2);
 
-			// 배경
-			toolBoxBG.transform.colorTransform = base;
-			toolBoxBG2.transform.colorTransform = subBase;
 			var i:uint = 0;
-			var len:uint = leftButtonArr.length;
 
-			for (i = 0; i < len; i++)
+			for (i = 0; i < leftButtonArr.length; i++)
 			{
 				btn = leftButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
-				btnOver = btn.overState as DisplayObjectContainer;
-				btnUp.transform.colorTransform = iconLeft;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
-				btnOver.getChildAt(1).transform.colorTransform = activeIconColor; // 버튼 아이콘
+
+				Global.applyToolBoxButtonUpBGColor(btnUp);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer,4,5);
 				btn.downState = btn.overState;
 			}
 
-			len = rightButtonArr.length;
-			for (i = 0; i < len; i++)
+			for (i = 0; i < rightButtonArr.length; i++)
 			{
 				btn = rightButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
-				btnUp.transform.colorTransform = iconRight;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor;
-				btnOver.getChildAt(1).transform.colorTransform = iconRight;
+
+				Global.applyToolBoxButtonUpFGColor(btnUp);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer,4,3);
 				btn.downState = btn.overState;
 			}
 			// 텍스트
-			toolInfoText.textColor = arr[2];
-			resizeButtonWaitTimeBarColor = arr[4];
+			toolInfoText.textColor = Global.getToolBoxButtonUpBGColor()
+			resizeButtonWaitTimeBarColor = Global.getToolBoxButtonOverBGColor();
 
 			btn = null;
 			btnUp = null;

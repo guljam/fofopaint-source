@@ -80,24 +80,25 @@
 			return penSizeGuide.alpha < 1.0;
 		}
 
-		public function updateButtonsAlphaFillPenSelected(alp:Number):void
-		{
-			penSizeGuide.alpha = alp;
-			penSizeBox.alpha = alp;
-			penSizeSelectCursor.alpha = alp;
-			rectSizeSet.alpha = alp;
-			circleSizeSet.alpha = alp;
-			shapeRect.alpha = alp;
-			shapeCircle.alpha = alp;
-			penSmoothSliderWapper.alpha = alp;
-			layer1CheckedButton.alpha = alp;
-			layer1UncheckedButton.alpha = alp;
-			layer2CheckedButton.alpha = alp;
-			layer2UncheckedButton.alpha = alp;
+		public function setButtonsAlphaFillPenSelected(alpha:Number):void
+		{	
+			penSizeGuide.alpha = alpha;
+			penSizeBox.alpha = alpha;
+			penSizeSelectCursor.alpha = alpha;
+			rectSizeSet.alpha = alpha;
+			circleSizeSet.alpha = alpha;
+			shapeRect.alpha = alpha;
+			shapeCircle.alpha = alpha;
+			penSmoothSliderWapper.alpha = alpha;
+			layer1CheckedButton.alpha = alpha;
+			layer1UncheckedButton.alpha = alpha;
+			layer2CheckedButton.alpha = alpha;
+			layer2UncheckedButton.alpha = alpha;
 		}
 
-		public function disableButtonFillPenStarted(offAlpha:Number):void
+		public function disableButtonFillPenStarted():void
 		{
+			const offAlpha:Number = Global.OFFALPHA;
 			etcOptionWrapper.alpha = offAlpha;
 			penSizeGuide.alpha = offAlpha;
 			penSizeBox.alpha = offAlpha;
@@ -118,11 +119,8 @@
 			circleSizeSet.filters = null;
 		}
 		
-		public function changeUIColor(op:uint):void
+		public function updateUIColor():void
 		{
-			const opColor:ColorTransform = new ColorTransform();
-			opColor.color = op;
-
 			// 모든 UI 요소를 배열에 담기
 			var uiElements:Array = [
 				etcOptionBorder,
@@ -162,14 +160,11 @@
 				penSmoothSlider,
 				penSmoothSliderCursor
 			];
-
-			var alphaSave:Number;
-			// for문으로 순회하면서 적용
-			for each (var element:DisplayObject in uiElements)
+			
+			const len:uint = uiElements.length;
+			for (var i:uint = 0; i < len; i++)
 			{
-				alphaSave = element.alpha;
-				element.transform.colorTransform = opColor;
-				element.alpha = alphaSave;
+				Global.applyUIFGColor(uiElements[i]);
 			}
 		}
 		// public function changeUIColor(op:uint):void

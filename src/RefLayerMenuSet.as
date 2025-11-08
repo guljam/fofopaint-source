@@ -35,16 +35,8 @@
 		private var refLayerMenuInfoPos:Array = [0, 0]; // y ,height
 		private var fixedScale:Number = 1.0;
 
-		public function changeUIColor(arr:Array, brightBarFlag:Boolean):void
+		public function updateUIColor():void
 		{
-
-			const base:ColorTransform = new ColorTransform();
-			const subBase:ColorTransform = new ColorTransform();
-			const iconLeft:ColorTransform = new ColorTransform();
-			const iconRight:ColorTransform = new ColorTransform();
-			const activeColor:ColorTransform = new ColorTransform();
-			const activeIconColor:ColorTransform = new ColorTransform();
-
 			const leftButtonArr:Array = [
 					refTransferCanvasImageButton,
 					refClipBoardButton,
@@ -61,13 +53,6 @@
 					refClearImageButton,
 				];
 
-			base.color = arr[0];
-			subBase.color = arr[1];
-			iconLeft.color = arr[2];
-			iconRight.color = arr[3];
-			activeColor.color = arr[4];
-			activeIconColor.color = arr[5];
-
 			var i:uint = 0;
 			var len:uint = leftButtonArr.length;
 			var btn:SimpleButton;
@@ -79,9 +64,8 @@
 				btn = leftButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
-				btnUp.transform.colorTransform = iconLeft;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; // 버튼 배경
-				btnOver.getChildAt(1).transform.colorTransform = activeIconColor; // 버튼 아이콘
+				Global.applyToolBoxButtonUpBGColor(btnUp);
+				Global.setButtonColorWithBG(btnOver,4,5);
 				btn.downState = btn.overState;
 			}
 
@@ -91,21 +75,20 @@
 				btn = rightButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
-				btnUp.transform.colorTransform = iconRight;
-				btnOver.getChildAt(0).transform.colorTransform = activeColor; // d
-				btnOver.getChildAt(1).transform.colorTransform = iconRight;
+
+				Global.applyToolBoxButtonUpFGColor(btnUp);
+				Global.setButtonColorWithBG(btnOver,4,3);
 				btn.downState = btn.overState;
 			};
 
-			refLayerMenuMoveButton.transform.colorTransform = base;
-			refLayerMenuBGLeft.transform.colorTransform = base;
-			refLayerMenuBGRight.transform.colorTransform = subBase;
-			refMenuCloseButton.transform.colorTransform = iconLeft;
+			Global.applyToolBoxBGColor(refLayerMenuMoveButton);
+			Global.applyToolBoxBGColor(refLayerMenuBGLeft);
+			Global.applyToolBoxBGTopColor(refLayerMenuBGRight);
+			Global.applyToolBoxButtonUpBGColor(refMenuCloseButton);
+			Global.applyToolBoxButtonUpBGColor(refOpacityBar);
+			Global.applyToolBoxButtonUpBGColor(refOpacityCursor);
 
-			refOpacityBar.transform.colorTransform = iconLeft;
-			refOpacityCursor.transform.colorTransform = iconLeft;
-
-			refInfoText.textColor = arr[2];
+			refInfoText.textColor = Global.getToolBoxButtonUpBGColor();
 		}
 
 		public function getHintStr():String

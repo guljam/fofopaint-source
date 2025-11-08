@@ -83,13 +83,10 @@
 				+ getMirorrString();
 		}
 
-		public function changeUIColor(color:uint):void
+		public function updateUIColor():void
 		{
-			const colort:ColorTransform = new ColorTransform();
-			colort.color = color;
-
-			canvasInfo.textColor = color;
-			appInfoBorder.transform.colorTransform = colort;
+			canvasInfo.textColor = Global.getUIFGColor();
+			Global.applyUIFGColor(appInfoBorder);
 		}
 
 		public function CanvasInfoSet()

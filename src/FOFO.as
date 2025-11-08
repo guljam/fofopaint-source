@@ -52,11 +52,9 @@
 			y = sideBarHeight - height + 2;
 		}
 
-		public function changeColor(color:uint):void
+		public function updateColor():void
 		{
-			const c:ColorTransform = new ColorTransform();
-			c.color = color;
-			fofo.transform.colorTransform = c;
+			Global.applyUIFGColor(fofo);
 		}
 
 		public function FOFO()

@@ -239,29 +239,24 @@
 			}
 		}
 
-		public function changeUIColor(color:uint):void
+		public function updateUIColor():void
 		{
-			const baseColor:ColorTransform = new ColorTransform();
-			baseColor.color = color;
+			const fgColor:uint = Global.getUIFGColor()
+			rgbInfoText.textColor = Global.getUIFGColor();
+			const arr:Array = [
+								myPaletteButton,
+								drawrPresetButton,
+								tegakiPresetButton,
+								swapPositionButton,
+								penColorButton,
+								penColorButton,
+								paperColorButton
+								];
 
-			rgbInfoText.textColor = color;
-			var alphaSave:Number = myPaletteButton.alpha;
-
-			myPaletteButton.transform.colorTransform = baseColor;
-			myPaletteButton.alpha = alphaSave;
-
-			alphaSave = drawrPresetButton.alpha;
-			drawrPresetButton.transform.colorTransform = baseColor;
-			drawrPresetButton.alpha = alphaSave;
-
-			alphaSave = tegakiPresetButton.alpha;
-			tegakiPresetButton.transform.colorTransform = baseColor;
-			tegakiPresetButton.alpha = alphaSave;
-
-			swapPositionButton.transform.colorTransform = baseColor;
-			penColorButton.transform.colorTransform = baseColor;
-			penColorButton.transform.colorTransform = baseColor;
-			paperColorButton.transform.colorTransform = baseColor;
+			for (var i:uint = 0; i < arr.length; i++)
+			{
+				Global.applyUIFGColor(arr[i]);
+			}
 		}
 
 		public function updateRGBInfoTextColor(color:uint):void
