@@ -65,7 +65,7 @@
                 "replaySpeedSliderWrapper": "Change playback speed [(up, down) / (f, v) / (h, n)]",
                 "replayZoomOutButton": "Zoom out  _ Reset [right-click]",
                 "replayZoomInButton": "Zoom in _ Reset [right-click]",
-                "   ": "Fit Canvas to viewport ON/OFF [right-click on canvas]",
+                "replayFitToWindowButton": "Fit Canvas to viewport ON/OFF [right-click on canvas]",
                 "replayRotateButton": "Rotate {STRING_RIGHT_CLICK_TO_RESET}",
                 "replayRepeatButton": "Repeat replay ON/OFF",
 
