@@ -34,8 +34,8 @@
     <maximizable>true</maximizable>
     <minimizable>true</minimizable>
     <resizable>true</resizable>
-    <width>1000</width>
-    <height>800</height>
+    
+    
   </initialWindow>
   <icon>
     <image16x16>resource/icon/icon16.png</image16x16>
@@ -45,4 +45,4 @@
   </icon>
   <customUpdateUI>false</customUpdateUI>
   <allowBrowserInvocation>false</allowBrowserInvocation>
-  <supportedProfiles>desktop extendedDesktop </supportedProfiles></application>
+  <supportedProfiles>desktop extendedDesktop mobileDevice </supportedProfiles></application>

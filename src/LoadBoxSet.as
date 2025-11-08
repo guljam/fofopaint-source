@@ -43,7 +43,7 @@
 			dragDropSaveAndLoadButton.alpha = 1.0;
 		}
 
-		public function activateRelayerButtonOnly():void
+		public function activateReflayerButtonOnly():void
 		{
 			refLayerLoadMode = true;
 			dragDropLoadButton.alpha = 0.3;
@@ -63,7 +63,7 @@
 
 		public function showPleaseWait(str:String="Please Wait..."):void
 		{
-			plaseWaitTextBase= str;
+			plaseWaitTextBase = str;
 			pleaseWaitText.text = str;
 			pleaseWaitText.autoSize = "left";
 			pleaseWaitText.visible = true;
@@ -91,18 +91,18 @@
 
 			if(pleaseWaitText.visible)
 			{
-				pleaseWaitText.x = stageClickBlocker.width / 2 - pleaseWaitText.width / 2;
-				pleaseWaitText.y = stageClickBlocker.height / 2 - pleaseWaitText.height / 2;
 			}
 			else
 			{
-				mainBox.x = stageClickBlocker.width / 2 - mainBox.width / 2;
-				mainBox.y = stageClickBlocker.height / 2 - mainBox.height / 2;
-				clickBlockerBitmap.x = -10;
-				clickBlockerBitmap.y = -10;
-				clickBlockerBitmap.width = stageClickBlocker.width + 20;
-				clickBlockerBitmap.height = stageClickBlocker.height + 20;
 			}
+			pleaseWaitText.x = stageClickBlocker.width / 2 - pleaseWaitText.width / 2;
+			pleaseWaitText.y = stageClickBlocker.height / 2 - pleaseWaitText.height / 2;
+			mainBox.x = stageClickBlocker.width / 2 - mainBox.width / 2;
+			mainBox.y = stageClickBlocker.height / 2 - mainBox.height / 2;
+			clickBlockerBitmap.x = -10;
+			clickBlockerBitmap.y = -10;
+			clickBlockerBitmap.width = stageClickBlocker.width + 20;
+			clickBlockerBitmap.height = stageClickBlocker.height + 20;
 		}
 
 		public function setPreviewImage(bmpd:BitmapData):void
@@ -113,14 +113,14 @@
 			var imageOffsetX:Number = 0.0;
 			var imageOffsetY:Number = 0.0;
 
-			if (bmpd.width > bmpd.height)
-			{
-				imageOffsetY = (bitmapSize / 2) - (bmpd.height * f) / 2;
-			}
-			else
-			{
-				imageOffsetX = (bitmapSize / 2) - (bmpd.width * f) / 2;
-			}
+			// if (bmpd.width > bmpd.height)
+			// {
+			// 	imageOffsetY = (bitmapSize / 2) - (bmpd.height * f) / 2;
+			// }
+			// else
+			// {
+			// 	imageOffsetX = (bitmapSize / 2) - (bmpd.width * f) / 2;
+			// }
 
 			const mat:Matrix = new Matrix();
 			mat.scale(f, f);
@@ -199,6 +199,7 @@
 			}
 
 			mainBox.graphics.clear();
+			mainBox.graphics.lineStyle(1,0);
 			mainBox.graphics.beginFill(arr[1], 0.8);
 			mainBox.graphics.drawRect(-10, -10, mainBox.width + 20, mainBox.height + 20);
 			mainBox.graphics.endFill();
@@ -233,15 +234,16 @@
 			dragDropSaveAndLoadButton.x = 0;
 			dragDropSaveAndLoadButton.y = 0;
 			dragDropLoadButton.x = 0;
-			dragDropLoadButton.y = dragDropSaveAndLoadButton.y + dragDropSaveAndLoadButton.height;
+			dragDropLoadButton.y = dragDropSaveAndLoadButton.y + dragDropSaveAndLoadButton.height+10;
 			dragDropLoadRefLayerButton.x = 0;
-			dragDropLoadRefLayerButton.y = dragDropLoadButton.y + dragDropLoadButton.height;
+			dragDropLoadRefLayerButton.y = dragDropLoadButton.y + dragDropLoadButton.height+5;
 			dragDropCancelButton.x = 0;
-			dragDropCancelButton.y = dragDropLoadRefLayerButton.y + dragDropLoadRefLayerButton.height;
+			dragDropCancelButton.y = dragDropLoadRefLayerButton.y + dragDropLoadRefLayerButton.height+5;
 
 			mainBox.addChild(menuBox);
 			mainBox.graphics.clear();
-			mainBox.graphics.beginFill(0xFF0000, 0.5);
+			mainBox.graphics.lineStyle(1,0);
+			mainBox.graphics.beginFill(0xCCCCCC, 0.5);
 			mainBox.graphics.drawRect(-10, -10, mainBox.width + 20, mainBox.height + 20);
 			mainBox.graphics.endFill();
 			this.addChild(mainBox);

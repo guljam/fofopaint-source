@@ -24,9 +24,13 @@
 			return Math.round(WIDTH * scaleX);
 		}
 
-		public function setBGAlpha(alpha:Number):void
+		public function resetBG():void
 		{
-			sideBG.alpha = alpha;
+			sideBG.alpha = 1.0
+		}
+		public function setTransparentBG():void
+		{
+			sideBG.alpha = 0.8;
 		}
 
 		public function updateSideBGSize(sth:Number):void

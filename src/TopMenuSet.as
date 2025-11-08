@@ -670,6 +670,7 @@
 			replayZoomInButton.useHandCursor = false;
 			replayZoomOutButton.useHandCursor = false;
 			replayFitToWindowButton.useHandCursor = false;
+			replayFitToWindowButton.alpha = 0.25;
 			replayRotateButton.useHandCursor = false;
 			replayRepeatButton.useHandCursor = false;
 
