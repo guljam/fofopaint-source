@@ -4190,7 +4190,10 @@
                 const starFileName:String = stage.nativeWindow.title.slice(0,titleEndStr)+"*";
                 stage.nativeWindow.title = starFileName+STRING_TITLE_FOFOPAINT;
 
-                if(isCanvasWindowON) copyMainWindowTitleToCanvasWindow();
+                if(isCanvasWindowON)
+                {
+                    copyMainWindowTitleToCanvasWindow();
+                }
             }
         }
 
@@ -5711,7 +5714,7 @@
 
                 if(penToolFlag && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
                 {
-                    canvasRefLayer.visible = true;
+                    setCanvasRefLayerVisibleWithFading();
                 }
 
                 if(penSmoothSlideValue > 1)
@@ -5799,6 +5802,7 @@
 
                 if(penFlag && isRefLayerMemoryTrainingON)
                 {
+                    // setCanvasRefLayerVisibleWithFading(false);
                     canvasRefLayer.visible = false;
                 }
 
@@ -6389,7 +6393,7 @@
             const prevCursorScale:Number = canvasNavigatorBox.navCursorMultiply;
             const uiScale:Number = getUIScale();
 
-            setRefLayerAndGridVisible(true);
+            setRefLayerAndGridVisible(false);
             hideBottomHint();
 
             function centerCanvas(mx:Number,my:Number):void
@@ -6411,7 +6415,7 @@
 
             function onMouseUpCanvasNavigator(e:MouseEvent):void
             {
-                setRefLayerAndGridVisible(false);
+                setRefLayerAndGridVisible(true);
                 keepCnvasPanelInStage();
                 updateCanvasNaigatorCursor();
                 isMouseDragging = false;
@@ -7214,10 +7218,35 @@
                 clearRefLayerImage();
             }
 
-            if(isRefLayerMemoryTrainingON === true)
+            if(isRefLayerMemoryTrainingON)
             {
                 toggleRefLayerMemoryTraining();
             }
+        }
+
+        public function setCanvasRefLayerVisibleWithFading():void
+        {
+
+            var fadeStep:Number = Math.round(refLayerLastAlpha/15*256)/256;
+            // if(fadeStep < 0.05)
+            // {
+            //     fadeStep = 0.05;
+            // }
+
+            canvasRefLayer.alpha = 0.0;
+            canvasRefLayer.visible = true;
+
+            addTimerByName("refLayerVisibleFadingTimer", 0.0, true, function (refLayer:Sprite,fadeStep:Number,maxAlpha:Number):Boolean
+                {
+                    canvasRefLayer.alpha += fadeStep;
+                    trace("fadeStep",fadeStep);
+                    if(canvasRefLayer.alpha >= maxAlpha)
+                    {
+                        canvasRefLayer.alpha = maxAlpha;
+                        return false;
+                    }
+                    return true;
+                },[canvasRefLayer,fadeStep,refLayerLastAlpha]);
         }
 
         public function toggleRefLayerMemoryTraining():void
@@ -8556,7 +8585,7 @@
             }
         }
 
-        public function updateCanvasResizeButtonVisibleDelay(flag:Boolean):void
+        public function showCanvasResizeButtonVisibleDelay(flag:Boolean):void
         {
             if(flag)
             {
@@ -15377,7 +15406,7 @@
             }
 
             setFileBrowserIsOpen(true);
-            updateCanvasResizeButtonVisibleDelay(false);
+            showCanvasResizeButtonVisibleDelay(false);
             removeInputEventsReplayMode();
             removeInputEventsDrawMode();
 
@@ -17449,7 +17478,7 @@
             {
                 stopReplay();
             }
-
+trace("isContinueSaveON",isContinueSaveON);
             const continueFlag:Boolean = (isContinueSaveON === true && asFlag === false);
             const nextPath:String = getExistingParentDirectory(lastSaveFilePath);
             const replayFilePath:String = getReplayFileNameFromPath(lastSaveFilePath);
@@ -17461,17 +17490,15 @@
                 {
                     startUpdate();
                 }
+                else if(isLoadPendingAfterSaving)
+                {
+                    loadFileTo("canvas");
+                }
                 else
                 {
-                    if(isLoadPendingAfterSaving)
-                    {
-                        loadFileTo("canvas");
-                    }
-                    else
-                    {
-                        showMouseHintTemp("Already saved");
-                    }
+                    showMouseHintTemp("Already saved");
                 }
+
                 return;
             }
 
@@ -18434,9 +18461,9 @@
 
                 isPenSizeCursorInvisible = false;
 
-                if(isRefLayerMemoryTrainingON)
+                if(isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
                 {
-                    canvasRefLayer.visible = true
+                    setCanvasRefLayerVisibleWithFading();
                 }
 
                 isMouseDragging = false;
@@ -18513,6 +18540,7 @@
 
                 if(isRefLayerMemoryTrainingON)
                 {
+                    // setCanvasRefLayerVisibleWithFading(false);
                     canvasRefLayer.visible = false;
                 }
 
@@ -18577,7 +18605,7 @@
                     }
 
                     updatePenSizeCursor();
-                    setRefLayerAndGridVisible(false);
+                    setRefLayerAndGridVisible(true);
                     updateCanvasNaigatorCursor();
                 }
                 else
@@ -18601,7 +18629,7 @@
 
                 if(!isReplayMode)
                 {
-                    setRefLayerAndGridVisible(true);
+                    setRefLayerAndGridVisible(false);
                 }
 
                 const center:Point = getStageCenterPos("replay");
@@ -18869,7 +18897,7 @@
                 isPenSizeCursorInvisible = false;
                 hideMouseHint();
                 updatePenSizeCursor();
-                setRefLayerAndGridVisible(false);
+                setRefLayerAndGridVisible(true);
 
                 if(isLassoMenuHiddenTemp === true)
                 {
@@ -18910,7 +18938,7 @@
                     lastMousePos.setTo(stage.mouseX,stage.mouseY);
                     startZoomIndex = canvasZoomIndex;
                     isPenSizeCursorInvisible = true;
-                    setRefLayerAndGridVisible(true);
+                    setRefLayerAndGridVisible(false);
                     clickPos.setTo(stage.mouseX,stage.mouseY);
                     showMouseHint(Math.floor(canvasZoomMultipler*100)+"%");
                     fixMouseHintPos();
@@ -20121,7 +20149,7 @@
                 removeEyedropperEvents();
 
                 eyedropperLens.visible = false;
-                canvasRefLayer.visible = true;
+                setCanvasRefLayerVisibleWithFading();
                 canvasBGShape.graphics.clear();
 
                 if(okFlag)
@@ -20261,11 +20289,18 @@
         {
             if(canvasRefLayer.alpha > 0.0)
             {
-                canvasRefLayer.visible = !flag;
+                if(flag)
+                {
+                    setCanvasRefLayerVisibleWithFading();
+                }
+                else
+                {
+                    canvasRefLayer.visible = false;
+                }
             }
             if(gridGapValue > 0) 
             {
-                canvasGrid.visible = !flag;
+                canvasGrid.visible = flag;
             }
         }
 
@@ -20292,7 +20327,7 @@
 
                 if(isDrawMode)
                 {
-                    setRefLayerAndGridVisible(false);
+                    setRefLayerAndGridVisible(true);
 
                     if(isLassoToolStarted)
                     {
@@ -20340,7 +20375,7 @@
                 if(isDrawMode)
                 {
                     toolBox.setCursorVisible(false);
-                    setRefLayerAndGridVisible(true);
+                    setRefLayerAndGridVisible(false);
                 }
 
                 if(fromWheelClick)
@@ -21842,6 +21877,7 @@
 
         public function saveAllAppData():void
         {
+        trace("save");
             saveAppSatate();
             saveUndoData();
             saveReplayFrameData();
@@ -23122,6 +23158,7 @@
             && !loadMenuBox.visible
             && rReplayImageCacheState !== REPLAY_IMAGE_CAHCHE_PROCESSING)
             {
+                saveAllAppData();
                 lastWindowDeactivateTime = getTimer();
             }
 
@@ -23174,7 +23211,7 @@
             toolBox2.visible = false;
             if(!ignoreResizeButtonVisible)
             {
-                updateCanvasResizeButtonVisibleDelay(false);
+                showCanvasResizeButtonVisibleDelay(false);
             }
         }
 
@@ -24001,7 +24038,7 @@
             toolBox2.visible = true;
             toolBox2.alpha = 1.0;
             isToolBox2Showing = true;
-            updateCanvasResizeButtonVisibleDelay(true);
+            showCanvasResizeButtonVisibleDelay(true);
             setAsTopChild(toolBox2);
             addInputEventsToolBox2();
 
