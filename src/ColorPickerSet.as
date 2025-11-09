@@ -6,7 +6,6 @@
 	import flash.geom.Matrix;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
-	import flash.geom.ColorTransform;
 	import flash.display.Shape;
 	import flash.ui.ContextMenu;
 	import flash.display.BitmapData;
@@ -69,17 +68,16 @@
 		private var rgbInfoWidth:int = 108;
 		private var rgbInfoHeight:int = 19;
 
-		private var lastRGBInfoText:String = "";
 		private var firstRGBInfoColorText:String = "";
 		private var colorBoxPositionSave:Array = [0,0];
 		private var transBGBrightnessList:Array = [0.8,0.85,0.88,0.98];
 
 		public var scratchPad:DrawrScratchPad;
 
-		public function setRGBInfoTextTypeToInput(flag:Boolean):void
-		{
-			rgbInfoText.type = (flag) ? TextFieldType.DYNAMIC:TextFieldType.INPUT;
-		}
+		// public function setRGBInfoTextTypeToInput(flag:Boolean):void
+		// {
+		// 	rgbInfoText.type = (flag) ? TextFieldType.DYNAMIC:TextFieldType.INPUT;
+		// }
 		
 		private function initScratcPad():void
 		{
@@ -199,21 +197,6 @@
 			firstRGBInfoColorText = rgbInfoText.text;
 		}
 
-		public function restoreRGBInfoTextFromLast():void
-		{
-			rgbInfoText.text = lastRGBInfoText;
-		}
-
-		public function saveRGBInfoText():void
-		{
-			lastRGBInfoText = rgbInfoText.text;
-		}
-
-		public function getOldRGBInfoText():String
-		{
-			return lastRGBInfoText;
-		}
-
 		public function fillPenModeON():void
 		{
 			penColorButton.alpha = 0.2;
@@ -256,7 +239,7 @@
 
 		public function setRGBInfoTextTransparentMode():void
 		{
-			rgbInfoText.visible = true;
+			rgbInfoText.text = "";
 		}
 
 		public function updateRGBInfoTextByMode(isHsvMode:Boolean,baseHue:Number,textColor:*=null):void
@@ -279,7 +262,6 @@
 			}
 
 			rgbInfoText.text = modeStr+" "+pad(colorValues[0])+","+pad(colorValues[1])+","+pad(colorValues[2]);
-			rgbInfoText.visible = true;
 			if(textColor !== null)
 			{
 				rgbInfoText.textColor = textColor;
@@ -329,7 +311,7 @@
         }
 
 		public function updateRGBInfoBG(color:uint,isHsvMode:Boolean,baseHue:Number,paletteType:int):void
-		{
+		{	
 			const rgbInfoBGwidth:Number = (paletteType !== 0)?svBoxWidth:rgbInfoWidth;
 			const borderColor:uint = getRGBInfoBorderColor(color);
 
@@ -502,9 +484,8 @@
 			var emptyContextMenu:ContextMenu = new ContextMenu();
 			emptyContextMenu.hideBuiltInItems();
 
-			rgbInfoText.contextMenu = emptyContextMenu;
-			rgbInfoText.restrict = "0-9";
-			rgbInfoText.maxChars = 15;
+			rgbInfoText.type = TextFieldType.DYNAMIC;
+			rgbInfoText.selectable = false;
 			rgbInfoText.x = 0;
 			rgbInfoText.y = 0;
 

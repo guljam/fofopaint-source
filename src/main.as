@@ -607,12 +607,11 @@
                     lastReplayFrameOnDeepUndoStart:Number = -1; //리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
 
         //picker box RGB info관련
-        public var  isRgbInfoTextFocused:Boolean = false, // rgb info입력이 활성화 되었을때 올려줌
-                    lastRGBInfoColorPartIndex:int = -1, //처음 클릭했을때 R G B중 어느 영역을 클릭했는지
-                    lastRgbInfoTextCursorIndex:int = -1, //포커스 아웃 될때 마지막 커서 위치가 어딘지 저장
-                    isRgbInfoTextSelected:Boolean = false, //rgbinfo가 선택됐을때 올려줌 ,선택됐을때 같은 곳을 클릭하면 선택 또는 선택되도록 도와주는 플래그
-                    isIgnoringRgbInfoTextRightClick:Boolean = false, // RGB INFO 오를쪽 클릭은 힌트 안뜨고 기능못하게함
-                    isHSVInfoTextMode:Boolean = false; // true가 되면 hsv false이면 rgb
+        public var  lastRGBInfoColorPartIndex:int = -1, //처음 클릭했을때 R G B중 어느 영역을 클릭했는지
+                    isHSVInfoTextMode:Boolean = false, // true가 되면 hsv false이면 rgb
+                    numpadInputBuffer:String = "",    //숫자키 누르면 어기다가 저장해주고 필터링해줘서 rgbinfotext에 갱신해줌
+                    rgbInfoClickedColorValue:int = 0 //rgbin 선택된 숫자를 여가다가 저장 numpad에서 증가 감소 할때 이 숫자를 써줌
+
 
         //사이드바 관련
         public var  isSidebarVisible:Boolean = true,               // 사이드바 표시 여부
@@ -1105,6 +1104,7 @@
 
         public function rgbInfoNumPadIncKey(inc:int):void
         {
+        trace("inc?",inc);
             if (isHSVInfoTextMode)
             {
                 adjustSingleValueHSV(inc);
@@ -1121,33 +1121,60 @@
         {
             var startIndex:int = colorPickerBox.rgbInfoText.selectionBeginIndex;
             var endIndex:int = colorPickerBox.rgbInfoText.selectionEndIndex;
-            var cursorIndex:int;
-            var currentValue:int;
 
-trace("num",num);
-            // 00 이렇게 되는거 방지
-            if (num === "0")
+            if(numpadInputBuffer.length > 3)
             {
-                const rgb:Vector.<Number> = Global.HEXtoRGB(colorPickerBox.getRGBInfoBGColor());
-                if(rgb[lastRgbInfoTextCursorIndex] === 0)
+                stage.focus = null;
+                return;
+            }
+
+            numpadInputBuffer += num;
+
+            var value:int = parseInt(numpadInputBuffer);
+
+            if(isHSVInfoTextMode)
+            {
+                if(lastRGBInfoColorPartIndex === 0)
                 {
-                    return;
+                    if(value > 360)
+                    {
+                        value = 360;
+                    }
+                }
+                else if(value > 100)
+                {
+                    value = 100;
+                }
+            }
+            else if(value > 255)
+            {
+                value = 255;
+            }
+
+            const rgbInfoBGColor:uint = colorPickerBox.getRGBInfoBGColor();
+            const colorArr:Vector.<Number> = (isHSVInfoTextMode) ? Global.HEXtoHSV(rgbInfoBGColor,hsvColorData[0]) :Global.HEXtoRGB(rgbInfoBGColor);
+            var colorValue:Number = value;
+            if(isHSVInfoTextMode)
+            {
+                if(lastRGBInfoColorPartIndex === 0)
+                {
+                    colorValue = value/360;
+                }
+                else
+                {
+                    colorValue = colorValue/100;
                 }
             }
 
-            if (startIndex !== endIndex)
-            {
-                colorPickerBox.rgbInfoText.replaceText(startIndex, endIndex, num);
-            }
-            else
-            {
-                colorPickerBox.rgbInfoText.replaceText(startIndex, startIndex, num);
-            }
-            trace("텍스트 결과",colorPickerBox.rgbInfoText.text);
+            colorArr[lastRGBInfoColorPartIndex] = colorValue;
+            colorPickerBox.rgbInfoText.replaceText(startIndex, endIndex, String(value));
 
-            validateRGBInfoTextValue();
-            // updateColorPickerCursorPosAndRGBInfo(Global.HSVtoHEX(hsv[0], hsv[1], hsv[2]));
-            // numPadBox.updateOkBaseColor(colorPickerBox.getRGBInfoBGColor());
+            var hex:uint = (isHSVInfoTextMode) ? Global.HSVtoHEX(colorArr[0], colorArr[1], colorArr[2])
+                                               : Global.RGBtoHEX(colorArr[0], colorArr[1], colorArr[2]);
+
+            updateColorPickerCursorPosAndRGBInfo(hex);
+            numPadBox.updateOkBaseColor(hex);
+            keepRGBInfoTextPartFocus();
         }
 
         public function getSidebarConstHeight():Number
@@ -1706,22 +1733,17 @@ trace("num",num);
         public function isHintUnavailable():Boolean
         {
             return isMouseClicked || isRightMouseClicked || isMouseDragging || isToolBox2Showing || isFillPenStarted
-                || isLassoToolStarted || isRgbInfoTextFocused || isAboutBoxOpened || rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING;
+                || isLassoToolStarted || numPadBox.visible || isAboutBoxOpened || rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING;
         }
 
-        public function playLayerSwapFlickEffect(target:DisplayObject):void
+        public function playLayerSwapEffect(target:DisplayObject):void
         {
             target.alpha = Global.OFFALPHA;
 
             addTimerByName("layerSwapFlickEffect", 0.5, false, function():void
-                {
-                    target.alpha = 1.0;
-                });
-        }
-
-        public function isRGBInfoValueChanged():Boolean
-        {
-            return colorPickerBox.getOldRGBInfoText() !== colorPickerBox.getFirstRGBInfoColorText();
+            {
+                target.alpha = 1.0;
+            });
         }
 
         // 123,123,123에서 커서가 어느 지점이 있는지 반환함 0=R, 1=G, 2=B
@@ -1737,6 +1759,15 @@ trace("num",num);
             return rgb.length - 1;
         }
 
+        public function keepRGBInfoTextPartFocus():void
+        {
+            addTimerByName("keepRGBInfoTextPartFocusTimer",0.0,false,function():void
+            {
+                stage.focus = colorPickerBox.rgbInfoText;
+                selectRGBInfoTextByIndex(lastRGBInfoColorPartIndex);
+            })
+        }
+
         // index 값에 해당하는 RGB 텍스트 영역을 선택함
         public function selectRGBInfoTextByIndex(index:int):void
         {
@@ -1745,83 +1776,49 @@ trace("num",num);
                 return;
             }
 
+            lastRGBInfoColorPartIndex = index;
+
+            var start:int;
+            var end:int;
+
             if (index === 0)
             {
-                colorPickerBox.rgbInfoText.maxChars = 15;
-                colorPickerBox.rgbInfoText.setSelection(4, colorPickerBox.getRGBInfoText().indexOf(","));
+                start = 4;
+                end = colorPickerBox.getRGBInfoText().indexOf(",");
             }
             else if (index === 1)
             {
-                colorPickerBox.rgbInfoText.maxChars = 15;
-                colorPickerBox.rgbInfoText.setSelection(colorPickerBox.getRGBInfoText().indexOf(",") + 1, colorPickerBox.getRGBInfoText().lastIndexOf(","));
+                start = colorPickerBox.getRGBInfoText().indexOf(",") + 1;
+                end = colorPickerBox.getRGBInfoText().lastIndexOf(",");
             }
             else if (index === 2)
             {
-                colorPickerBox.rgbInfoText.maxChars = getRGBInfoTextLimit();
-                colorPickerBox.rgbInfoText.setSelection(colorPickerBox.getRGBInfoText().lastIndexOf(",") + 1, colorPickerBox.getRGBInfoText().length);
+                start = colorPickerBox.getRGBInfoText().lastIndexOf(",") + 1;
+                end = colorPickerBox.getRGBInfoText().length;
             }
 
-            lastRGBInfoColorPartIndex = index;
+            colorPickerBox.rgbInfoText.setSelection(start,end);
+            colorPickerBox.rgbInfoText.text.substring(start,end);
+            rgbInfoClickedColorValue = parseInt(colorPickerBox.rgbInfoText.text.substring(start, end));
+            trace("rgbInfoClickedColorValue",rgbInfoClickedColorValue,"lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
         }
 
-        // R G B 해당 영역의 값이 3자리 인지 아닌지 확인
-        public function getHSVorRGBColorVector():Vector.<Number>
+        public function getRGBColorTextFromRGBInfoText():Array
         {
-            return Global.hexToRGBHSVVector(colorPickerBox.getRGBInfoBGColor(),hsvColorData[0],isHSVInfoTextMode);
-        }
+            var rgbText:String = colorPickerBox.getRGBInfoText().slice(4); // "RGB"와 공백 제거
+            var rgb:Array = rgbText.split(","); // 쉼표로 숫자를 나눔
 
-        // RGB에서 R G 숫자 갯수에 따른 최대 글자 수를 구함
-        public function getRGBInfoTextLimit():int
-        {
-            const rgb:Vector.<Number> = getHSVorRGBColorVector();
-            var sum:uint = 9;
-
-            for (var i:uint = 0; i < 2; i++)
-            {
-                sum += String(int(rgb[i])).length;
-            }
-
-            return sum;
-        }
-
-        public function getClampRGBInfoArray():Array
-        {
-            const c:Array = getColorArrayFromRGBInfoText();
-
-            if (isHSVInfoTextMode)
-            {
-                if (int(c[0]) > 360) c[0] = 360;
-                if (int(c[1]) > 100) c[1] = 100;
-                if (int(c[2]) > 100) c[2] = 100;
-            }
-            else
-            {
-                if (int(c[0]) > 255) c[0] = 255;
-                if (int(c[1]) > 255) c[1] = 255;
-                if (int(c[2]) > 255) c[2] = 255;
-            }
-
-            return c;
-        }
-
-        public function moveRGBInfoTextCursor(value:int):void
-        {
-            const cursorPos:int = colorPickerBox.rgbInfoText.caretIndex;
-            if (value === 1)
-            {
-                colorPickerBox.rgbInfoText.setSelection(cursorPos + 1, cursorPos + 1);
-            }
-            else
-            {
-                colorPickerBox.rgbInfoText.setSelection(cursorPos - 1, cursorPos - 1);
-            }
+            return rgb;
         }
 
         public function adjustSingleValueHSV(incordec:int):void
         {
-            const index:int = lastRgbInfoTextCursorIndex;
-            const hsv:Array = getColorArrayFromRGBInfoText();
-            var num:int = hsv[index];
+
+            //TODO 밝기가 낮아지면 피커박스 커서도 이상해지고 여튼 값이 1:1대응이 되지 않음
+            //내부적으로는 당연히 오차가 있는데 보이는걸 조금 매끄럽게 보이고 싶음 구버전은 잘되는데 새로 짠거는 잘안되네
+            const index:int = lastRGBInfoColorPartIndex;
+            const hsv:Array = getRGBColorTextFromRGBInfoText();
+            var num:int = rgbInfoClickedColorValue;
 
             num += incordec;
 
@@ -1832,7 +1829,7 @@ trace("num",num);
 
             if (index === 0)
             {
-                if (num >= 360)
+                if (num > 360)
                 {
                     num = 360;
                 }
@@ -1845,21 +1842,21 @@ trace("num",num);
                 }
             }
 
+            rgbInfoClickedColorValue = num;
             hsv[index] = Number(num);
-
-            hsv[0] = Number(hsv[0])/360;
-            hsv[1] = Number(hsv[1])/100;
-            hsv[2] = Number(hsv[2])/100;
+            hsv[0] = hsv[0]/360;
+            hsv[1] = hsv[1]/100;
+            hsv[2] = hsv[2]/100;
 
             updateColorPickerCursorPosAndRGBInfo(Global.HSVtoHEX(hsv[0], hsv[1], hsv[2]));
-            colorPickerBox.saveRGBInfoText();
+            keepRGBInfoTextPartFocus();
         }
 
         public function adjustSingleValueRGB(value:int):void
         {
-            const index:int = lastRgbInfoTextCursorIndex
-            const rgb:Array = getColorArrayFromRGBInfoText();
-            var num:int = int(rgb[index]);
+            const index:int = lastRGBInfoColorPartIndex;
+            const rgb:Array = getRGBColorTextFromRGBInfoText();
+            var num:int = rgbInfoClickedColorValue;
 
             num += value;
             if (num < 0)
@@ -1871,59 +1868,15 @@ trace("num",num);
                 num = 255;
             }
 
+            rgbInfoClickedColorValue = num;
             rgb[index] = Number(num);
-
             updateColorPickerCursorPosAndRGBInfo(Global.RGBtoHEX(rgb[0], rgb[1], rgb[2]));
-            colorPickerBox.saveRGBInfoText();
+            keepRGBInfoTextPartFocus();
         }
 
         public function getRgbInfoTextClickedPosIndex():int
         {
-            return colorPickerBox.rgbInfoText.getCharIndexAtPoint(colorPickerBox.rgbInfoText.mouseX, 10)
-        }
-
-        public function onMouseDownRgbInfoText(e:MouseEvent):void
-        {
-            if (colorPickerBox.rgbInfoText.hitTestPoint(stage.mouseX, stage.mouseY))
-            {
-                var clickedPos:int = getRgbInfoTextClickedPosIndex();
-                if (clickedPos >= 0 && clickedPos <= 3)
-                {
-                    toggleRGBInfoTextColorType();
-                }
-                else
-                {
-                    selectRGBInfoTextColorPart(clickedPos);
-                }
-            }
-        }
-
-
-        public function onKeyDownRgbInfoText(e:KeyboardEvent):void
-        {
-            // e.preventDefault();
-            switch (String.fromCharCode(e.charCode))
-            {
-                case "0":
-                case "1":
-                case "2":
-                case "3":
-                case "4":
-                case "5":
-                case "6":
-                case "7":
-                case "8":
-                case "9":
-                {
-                    
-                }
-                break;
-                default:
-                {
-                    setStageFocusNull();
-                }
-                break;
-            }
+            return colorPickerBox.rgbInfoText.getCharIndexAtPoint(colorPickerBox.rgbInfoText.mouseX, 10);
         }
 
         public function openNumPad():void
@@ -1935,6 +1888,7 @@ trace("num",num);
                 const gp:Point = colorPickerBox.rgbInfoBG.localToGlobal(new Point(0, 0));
                 numPadBox.x = Math.floor(gp.x);
                 numPadBox.y = Math.floor(gp.y + colorPickerBox.rgbInfoBG.height * Global.getUIScale()+1);
+                numPadBox.alpha = 0.5;
                 resetLastKey();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, -2);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad, false, -2);
@@ -1951,13 +1905,8 @@ trace("num",num);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad);
 
-            stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownRgbInfoText);
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownRgbInfoText);
-            colorPickerBox.rgbInfoText.removeEventListener(Event.CHANGE, onChangeRGBInfoText);
-
             addTimerByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function():void
             {
-                isRgbInfoTextFocused = false;
                 addInputEventsDrawMode();
             });
         }
@@ -1971,20 +1920,7 @@ trace("num",num);
                 if (oldTargetName === e.target.name)
                 {
                     switch (e.target.name)
-                    {   
-
-                        case "numInc":
-                        {
-                            rgbInfoNumPadIncKey(1);
-                        }
-                        break;
-
-                        case "numDec":
-                        {
-                            rgbInfoNumPadIncKey(-1);
-                        }
-                        break;
-
+                    {
                         case "num0":
                         case "num1":
                         case "num2":
@@ -2019,10 +1955,7 @@ trace("num",num);
 
         public function onRightMouseDownNumPad(e:MouseEvent):void
         {
-            if (!e.target)
-                return;
-            setStageFocusNull();
-            isIgnoringRgbInfoTextRightClick = true;
+            closeNumpad();
         }
 
         public function onMouseDownNumPad(e:MouseEvent):void
@@ -2031,6 +1964,8 @@ trace("num",num);
             {
                 return;
             }
+
+            trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
 
             const targetName:String = e.target.name;
             if (!numPadBox.hitTestPoint(stage.mouseX, stage.mouseY) && !colorPickerBox.rgbInfoText.hitTestPoint(stage.mouseX, stage.mouseY))
@@ -2048,6 +1983,7 @@ trace("num",num);
 
             if (targetName === "numInc")
             {
+            trace("repeat");
                 startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
             }
             else if (targetName === "numDec")
@@ -2110,176 +2046,35 @@ trace("num",num);
             }
         }
 
-        public function setStageFocusNull():void
+        public function onMouseDownRGBInfoText(e:MouseEvent):void
         {
-            stage.focus = null;
+            var clickedPos:int = getRgbInfoTextClickedPosIndex();
 
-            if (numPadBox.visible)
+            numpadInputBuffer = "";
+
+            if (clickedPos >= 0 && clickedPos <= 3)
             {
-                closeNumpad();
-            }
-        }
-
-        public function onFocusOutRGBInfoText(e:FocusEvent):void
-        {
-            tryDisableIME();
-            checkInvalidKey();
-
-            lastRgbInfoTextCursorIndex = lastRGBInfoColorPartIndex;
-
-            if (isIgnoringRgbInfoTextRightClick)
-            {
-                isIgnoringRgbInfoTextRightClick = false;
-                colorPickerBox.rgbInfoText.selectable = true;
-                return;
-            }
-
-            // stagefo();
-            hideBottomHint();
-
-            isRgbInfoTextSelected = false;
-            isIgnoringRgbInfoTextRightClick = false;
-            colorPickerBox.rgbInfoText.background = false;
-            colorPickerBox.rgbInfoText.border = false;
-        }
-
-        public function onFocusInRGBInfoText(e:FocusEvent):void
-        {
-            //TODO: 코드좀 정리하고싶은데
-            if (isIgnoringRgbInfoTextRightClick || isLassoToolStarted)
-            {
-                // 라소툴때문에 강제로 올려줌
-                isIgnoringRgbInfoTextRightClick = true;
-
-                colorPickerBox.rgbInfoText.selectable = false;
-                colorPickerBox.saveRGBInfoText();
-                addTimerByName("textInputFocusIgnoreDelay", 0.0, false, function():void
-                    {
-                        setStageFocusNull();
-                    });
-
-                return;
-            }
-
-            if(numPadBox.visible)
-            {
-                return;
-            }
-
-            // 가장 자리를 클릭하면 Y값이 음수가 될때가 있어서 제대로된 값이 안나옴 그래서 녺이는 양수 고정으로 함
-            const foundColorType:String = (isHSVInfoTextMode) ? "HSV" : "RGB";
-            const isHSVRGBText:Boolean = (colorPickerBox.getRGBInfoText().indexOf(foundColorType) !== -1);
-            var currnetTextCursorPos:int = getRgbInfoTextClickedPosIndex();
-
-            if (isRgbInfoTextFocused === false && isHSVRGBText && currnetTextCursorPos >= 0 && currnetTextCursorPos <= 3)
-            {
-                addTimerByName("textInputFocusIgnoreDelay", 0.0, false, function():void
-                {
-                    setStageFocusNull();
-                });
-
                 toggleRGBInfoTextColorType();
-                return;
-            }
-            else if (currnetTextCursorPos < 0) // 텍스트 맨 끝에 클릭하면 -1이 되서 이때는 커서를 가장 뒤로 이동시킴
-            {
-                currnetTextCursorPos = colorPickerBox.rgbInfoText.length;
-            }
-
-            tryDisableIME();
-            removeInputEventsDrawMode();
-
-            isRgbInfoTextFocused = true;
-            isTransparentPenColor = false;
-            lastRGBInfoColorPartIndex = -1;
-
-            if (isHSVRGBText)
-            {
-                colorPickerBox.saveRGBInfoText();
-            }
-            else // 투명색으로 transparent 텍스트가 되있을때 말하는거임
-            {
-                colorPickerBox.restoreRGBInfoBackground(isHSVInfoTextMode,hsvColorData[0]);
-            }
-
-            colorPickerBox.updateFirstRGBInfoColorText();
-
-            if (isQuickSidebarActive === false)
-            {
-                stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownRgbInfoText);
-            }
-
-            colorPickerBox.rgbInfoText.addEventListener(Event.CHANGE, onChangeRGBInfoText);
-            ensureDrawingToolSelected(false);
-            openNumPad();
-
-            addTimerByName("rgbInfoTextFocusInEventDelayCheck", 0.0, false, function():void
-                {
-                    stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownRgbInfoText);
-                    colorPickerBox.rgbInfoText.setSelection(currnetTextCursorPos, currnetTextCursorPos);
-                    selectRGBInfoTextColorPart(getRgbInfoTextClickedPosIndex());
-                    showBottomHint(STRING_CUSTOM_COLOR_HINT);
-                });
-        }
-
-        public function onMouseOverRGBInfoTextSwitchType(e:MouseEvent):void
-        {
-            colorPickerBox.setRGBInfoTextTypeToInput(isKeyPressed())
-        }
-
-        // RGB 문자열 3개가 든 배열을 반환함
-        public function getColorArrayFromRGBInfoText():Array
-        {
-            var rgbText:String = colorPickerBox.getRGBInfoText().slice(4); // "RGB"와 공백 제거
-            var rgb:Array = rgbText.split(","); // 쉼표로 숫자를 나눔
-
-            return rgb;
-        }
-
-        public function validateRGBInfoTextValue():void
-        {
-
-        정규식 패턴 고쳐야하는데
-        일단 아이디어가 hsv슬라이더니까
-        인풋과 아웃풋을 전부 hsv로 기준을 잡고
-        color picker에서도 rgbinfo gb를 hsv정보를 저장해놓고
-        numpad에서 바꿀때 실제 hsv정보를 바꾸는것이 나을것같음
-        아이디어가 numpad를 입력하는것만으로 고치고 키보드입력금지
-        숫자 클릭하면 무조건 선택만되게 중복클릭시 커서나오는거 금지 삭제하고
-        클릭하면 클릭한 인덱스 hsv나 rgb값 인덱스에 접근해서
-        숫자를 입력하면 문자열 변수에 하나씩 추가하고 0~255 360으로 클램핑하고
-        다시 실제로 숫자를 대입해서 색깔을 적용시키고 rgbinfotext는 포맷팅만하는 방식이 좋을것같음
-        rgbinfotext를 직접 건드릴 필요는없잖아 어차피 껍데기 텍스트일뿐이고
-            // const pattern:RegExp = /\b(RGB|HSV) \d{0,3},\d{0,3},\d{0,3}/;
-            const pattern:RegExp = /\b(RGB|HSV)\s+\d{1,3},\s*\d{1,3},\s*\d{1,3}/;
-            var isMatch:Boolean = pattern.test(colorPickerBox.getRGBInfoText());
-            // 여기서 빈값을 채워주기 때문에 미리 함수 실행해줘야 함
-trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
-            if (isMatch)
-            {
-            trace("match");
-                const clampedColor:Array = getClampRGBInfoArray();
-                trace("clampedColor",clampedColor);
-                var hex:uint = (isHSVInfoTextMode) ? Global.HSVtoHEX(clampedColor[0]/360, clampedColor[1]/100, clampedColor[2]/100)
-                                                  : Global.RGBtoHEX(clampedColor[0], clampedColor[1], clampedColor[2]);
-
-                updateColorPickerCursorPosAndRGBInfo(hex);
-                colorPickerBox.saveRGBInfoText();
             }
             else
             {
-            trace("nomatch");
-                colorPickerBox.restoreRGBInfoTextFromLast();
+                selectRGBInfoTextColorPart(clickedPos);
+                if(!numPadBox.visible)
+                {
+                    colorPickerBox.restoreRGBInfoBackground(isHSVInfoTextMode,hsvColorData[0]);
+                    ensureDrawingToolSelected(false);
+                    openNumPad();
+                    addTimer(0.1,false,function():void
+                    {
+                        showBottomHint(STRING_CUSTOM_COLOR_HINT);
+                    });
+                }
             }
-        }
-
-        public function onChangeRGBInfoText(e:Event):void
-        {
-            validateRGBInfoTextValue();
         }
 
         public function selectRGBInfoTextColorPart(clickedIndex:int):void
         {
+            stage.focus = colorPickerBox.rgbInfoText;
             var clickedRGBPart:int = getRGBInfoTextCursorPos(clickedIndex);
 
             if (clickedIndex < 0)
@@ -2288,27 +2083,7 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
                 clickedRGBPart = 2;
             }
 
-            const startIndex:int = colorPickerBox.rgbInfoText.selectionBeginIndex;
-            const endIndex:int = colorPickerBox.rgbInfoText.selectionEndIndex;
-
-            if(isRgbInfoTextSelected && lastRGBInfoColorPartIndex === clickedRGBPart)
-            {
-                isRgbInfoTextSelected = false
-                if(clickedIndex < 0)
-                {
-                    clickedIndex = colorPickerBox.rgbInfoText.length;
-                }
-                colorPickerBox.rgbInfoText.setSelection(clickedIndex,clickedIndex);
-            }
-            else
-            {
-                if (startIndex === endIndex
-                || (startIndex === 0 && endIndex === colorPickerBox.rgbInfoText.text.length))
-                {
-                    isRgbInfoTextSelected = true;
-                    selectRGBInfoTextByIndex(clickedRGBPart);
-                }
-            }
+            selectRGBInfoTextByIndex(clickedRGBPart);
         }
 
         public function updateLastFilePathByRandomFileName():void
@@ -3073,7 +2848,7 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
                 undoManager.addNew();
             }
 
-            playLayerSwapFlickEffect(toolOptionsBox.layerSwapButton);
+            playLayerSwapEffect(toolOptionsBox.layerSwapButton);
         }
 
         public function getCaptrueImageBitmapdata(clipBoardCopyFlag:Boolean):BitmapData
@@ -3223,7 +2998,7 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
             }
 
             hideBottomHint();
-            setStageFocusNull();
+            closeNumpad();
         }
 
         public function startDeactivteQuickSidebar():void
@@ -3239,7 +3014,7 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
 
         public function onRightMouseDownQuickSidebar(e:MouseEvent):void
         {
-            if(!e.target || isRgbInfoTextFocused || isPopUpWindowOpened())
+            if(!e.target || numPadBox.visible || isPopUpWindowOpened())
             {
                 return;
             }
@@ -4247,7 +4022,6 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
         public function selectTransparentColor():void
         {
             isTransparentPenColor = true;
-            colorPickerBox.saveRGBInfoText();
             colorPickerBox.setRGBInfoBackgroundTransparent(myPalettePresetType);
             colorPickerBox.setRGBInfoTextTransparentMode();
         }
@@ -6210,7 +5984,6 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
             }
         }
 
-
         public function initializeColorPickerBoxInfo(color:uint):void
         {
             colorPickerBox.updateRGBInfoBG(color,isHSVInfoTextMode,hsvColorData[0],myPalettePresetType);
@@ -7655,7 +7428,6 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
         public function addGlobalEventsChild():void
         {
             toolBox2.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverToolBox2Hint);
-            colorPickerBox.rgbInfoText.addEventListener(MouseEvent.MOUSE_OVER,onMouseOverRGBInfoTextSwitchType);
         }
 
         public function updateToolOptionsTextBySelectedTool():void
@@ -8422,7 +8194,7 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
             swapLassoImage();
             addLassoLayerMergeCommand(0);
             lassoMenuBox.hint(getLassoMenuHintSwapLayer());
-            playLayerSwapFlickEffect(lassoMenuBox.lassoLayerSwap);
+            playLayerSwapEffect(lassoMenuBox.lassoLayerSwap);
         }
 
         public function copyCanvasImageToLassoTool():void
@@ -21060,8 +20832,8 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
         {
             isTransparentPenColor = false;
 
-            var hsv:Vector.<Number> = Global.HEXtoHSV(hexColor,hsvColorData[0]);
-
+            var hsv:Vector.<Number> = Global.HEXtoHSV(hexColor,hsvColorData[0]);;
+            trace("afer hsv",hsv);
             hsvColorData[1] = hsv[1];
             hsvColorData[2] = hsv[2];
 
@@ -21077,11 +20849,11 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
             //s v값을 제외한 순수 hue 컬러
             const baseColor:Vector.<uint> = Global.HSVtoRGB(hsv[0],1.0,1.0);
             const baseHexColor:uint = Global.RGBtoHEX(baseColor[0],baseColor[1],baseColor[2]);
-            colorPickerBox.updateHueColor(baseHexColor);
-            const colorValues:Array = getColorArrayFromRGBInfoText();
 
+            colorPickerBox.updateHueColor(baseHexColor);
             colorPickerBox.updateRGBInfoBG(hexColor,isHSVInfoTextMode,hsv[0],myPalettePresetType);
         }
+
         //opabox의 커서 위치와 색깔을 바꿈
         public function updateOpacityCursorPos(index:int):void
         {
@@ -21265,8 +21037,7 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
             fillPenBox.x = -fillPenBox.width-3;
             fillPenBox.y = -fillPenBox.height-3;
 
-            colorPickerBox.rgbInfoText.addEventListener(FocusEvent.FOCUS_IN, onFocusInRGBInfoText);
-            colorPickerBox.rgbInfoText.addEventListener(FocusEvent.FOCUS_OUT, onFocusOutRGBInfoText);
+            colorPickerBox.rgbInfoText.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownRGBInfoText);
             canvasNavigatorBox.scrollRect = new Rectangle(0,0,canvasNavigatorBox.width,canvasNavigatorBox.height);
 
             sideBarScrollPanel.addChild(canvasNavigatorBox);
@@ -23644,12 +23415,6 @@ trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
                         Global.resetScaleIndex();
                         applyUIScale();
                     }
-                }
-                break;
-
-                case "rgbInfoText":
-                {
-                    isIgnoringRgbInfoTextRightClick = true;
                 }
                 break;
 

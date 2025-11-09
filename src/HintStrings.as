@@ -150,7 +150,7 @@
                 "swapPositionButton": "Swap palette position",
                 "colorHistoryBox": "Color history _ Move color to my palette [drag]",
                 "myPaletteBox": "Add, remove, restore color [hold click] _ Swap color position [drag]",
-                "rgbInfoText": "Adjust value _ Change color model [click {getRGBorHSVString()} text]",
+                "rgbInfoText": "Adjust value _ Change color model [click {getRGBorHSVString()} part]",
                 "paperColorButton": "Change background color",
                 "penColorButton": "Change pen color",
                 "currentColor": "{getCurrentColorHint()}",
