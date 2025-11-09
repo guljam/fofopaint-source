@@ -67,7 +67,7 @@
 
 		private const previewBox:Sprite = new Sprite();
 		private var onMouseMoveUpdateLCH:Function;
-		private var pickColorFunc:Function;
+		private var onMouseUpFuncMain:Function;
 		private var clickedWrapperFlag:int;
 
 		private function initOkLCHSlider():void
@@ -451,7 +451,7 @@
 				updateOKGradient(true, true, false);
 			}
 
-			pickColorFunc(okPickedColor);
+			onMouseUpFuncMain(okPickedColor);
 		}
 
 		public function isLCHSliderActive():Boolean
@@ -466,7 +466,7 @@
 		public function removeOKLCHMouseEvent():void
 		{
 			onMouseMoveUpdateLCH = null;
-			pickColorFunc = null;
+			onMouseUpFuncMain = null;
 			hideClorPreviewBox();
 			stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveOKLCH);
 			stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpOKLCH);
@@ -479,18 +479,17 @@
 			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpOKLCH);
 		}
 
-		public function startAdjustLCH(flag:int, pickerBoxFunc:Function):void
+		public function startAdjustLCH(index:int, onMouseUpFunc:Function):void
 		{
-			if (flag < 0 || flag > 2)
+			if (index < 0 || index > 2)
 			{
 				return;
 			}
 
-			const elements:Array = [okLWrapper, okCWrapper, okHWrapper];
-			const moveFuncs:Array = [updateL, updateC, updateH];
-			clickedWrapperFlag = flag;
-			onMouseMoveUpdateLCH = moveFuncs[flag];
-			pickColorFunc = pickerBoxFunc;
+			const onMouseMoveFuncs:Array = [updateL, updateC, updateH];
+			clickedWrapperFlag = index;
+			onMouseMoveUpdateLCH = onMouseMoveFuncs[index];
+			onMouseUpFuncMain = onMouseUpFunc;
 			showColorPreviewBox();
 
 			onMouseMoveUpdateLCH();

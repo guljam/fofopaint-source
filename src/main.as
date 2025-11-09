@@ -136,7 +136,7 @@
                       STRING_MERGE_LASSO_IMAGE_TO_REFLAYER:String = "Merge selected area\ninto reference layer",
                       STRING_MERGE_CANVAS_IMAGE_TO_REFLAYER:String = "Merge canvas image\ninto reference layer",
                       STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]",
-                      STRING_CUSTOM_COLOR_HINT:String = "OK [enter, space, esc, right-click]\nMove text cursor [(a,d),(j,l), arrow key, tab]\nAdjust value [(w,s), (i,k)]",
+                      STRING_CUSTOM_COLOR_HINT:String = "OK [Any key except 0 ~ 9]",
                       STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity ",
                       STRING_PRESS_HOLD:String = "press and hold",
                       STRING_CLICK_HOLD:String = "click and hold";
@@ -1106,14 +1106,17 @@
 
         public function rgbInfoNumPadIncKey(inc:int):void
         {
+        trace("inc",inc);
             selectRGBInfoTextByRGBPos(lastRgbInfoTextCursorIndex);
             if (isRgbInfoTextHSV)
             {
+            trace("isRgbInfoTextHSV");
                 updateHSVInfoColor(inc, true);
                 numPadBox.updateOkBaseColor(colorPickerBox.getRGBInfoBGColor());
             }
             else
             {
+            trace("call");
                 updateRGBInfoTextColorFromNumpad(inc, true);
                 numPadBox.updateOkBaseColor(colorPickerBox.getRGBInfoBGColor());
             }
@@ -1965,6 +1968,8 @@
             const rgb:Array = getRGBColorTextFromRGBInfoText();
             var num:int = int(rgb[index]);
 
+            trace("value",value);
+
             num += value;
             if (num < 0)
                 num = 0;
@@ -1994,9 +1999,11 @@
             }
         }
 
-        public function isNumberKeyCode(charCode:uint):Boolean
+
+        public function rgbInfoTextKeyDownEvent(e:KeyboardEvent):void
         {
-            switch (String.fromCharCode(charCode))
+            // e.preventDefault();
+            switch (String.fromCharCode(e.charCode))
             {
                 case "0":
                 case "1":
@@ -2009,112 +2016,14 @@
                 case "8":
                 case "9":
                 {
-                    return true;
+                    
                 }
-            }
-
-            return false;
-        }
-
-        public function rgbInfoTextKeyDownEvent(e:KeyboardEvent):void
-        {
-            const keyCode:int = e.keyCode;
-
-            switch (keyCode)
-            {
-                case KEY.enter:
-                case KEY.esc:
-                case KEY.space:
-                    {
-                        setStageFocusNull();
-                    }
-                    break;
-
-                case KEY.tab:
-                    {
-                        var cursorpos:int = getRGBInfoTextCursorPos() + 1;
-                        if (cursorpos > 2)
-                        {
-                            cursorpos = 0;
-                        }
-                        selectRGBInfoTextByRGBPos(cursorpos);
-                    }
-                    break;
-
-                case KEY.up:
-                case KEY.w:
-                case KEY.i:
-                    {
-                        if (isRgbInfoTextHSV)
-                        {
-                            updateHSVInfoColor(1, false);
-                        }
-                        else
-                        {
-                            updateRGBInfoTextColorFromNumpad(1, false);
-                        }
-                        e.preventDefault();
-                    }
-                    break;
-
-                case KEY.down:
-                case KEY.s:
-                case KEY.k:
-                    {
-                        if (isRgbInfoTextHSV)
-                        {
-                            updateHSVInfoColor(-1, false);
-                        }
-                        else
-                        {
-                            updateRGBInfoTextColorFromNumpad(-1, false);
-                        }
-                        e.preventDefault();
-                    }
-                    break;
-
-                case KEY.d:
-                case KEY.l:
-                    {
-                        moveRGBInfoTextCursor(1);
-                        e.preventDefault();
-                    }
-                    break;
-
-                case KEY.a:
-                case KEY.j:
-                    {
-                        moveRGBInfoTextCursor(-1);
-                        e.preventDefault();
-                    }
-                    break;
-
-                case KEY.home:
-                case KEY.end:
-                case KEY.backspace:
-                case KEY.right:
-                case KEY.left:
-                case KEY.down:
-                case KEY.up:
-                case KEY.shift:
-                case KEY.alt:
-                case KEY.ctrl:
-                case KEY.q:
-                case KEY.o:
-                    {
-                        // pass
-                    }
-                    break;
-
+                break;
                 default:
-                    {
-                        if (!isNumberKeyCode(e.charCode))
-                        {
-                            e.preventDefault();
-                            setStageFocusNull();
-                        }
-                    }
-                    break;
+                {
+                    setStageFocusNull();
+                }
+                break;
             }
         }
 
@@ -2142,6 +2051,17 @@
             numPadBox.off();
             stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad);
+
+            colorPickerBox.rgbInfoText.removeEventListener(Event.ENTER_FRAME, checkRGBInfoCursorPos);
+            stage.removeEventListener(KeyboardEvent.KEY_DOWN, rgbInfoTextKeyDownEvent);
+            stage.removeEventListener(MouseEvent.MOUSE_DOWN, rgbInfoTextMouseDownEvent);
+            colorPickerBox.rgbInfoText.removeEventListener(Event.CHANGE, onChangeRGBInfoText);
+
+            addTimerByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function():void
+                {
+                    isRgbInfoTextFocused = false;
+                    addInputEventsDrawMode();
+                });
         }
 
         public function checkNumPadMouseUp(oldTargetName:String):void
@@ -2149,21 +2069,24 @@
             function onMouseUpNumpad(e:MouseEvent):void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad);
+trace("oldTargetName",oldTargetName);
                 if (oldTargetName === e.target.name)
                 {
+                trace("e.target.name",e.target.name);
                     switch (e.target.name)
-                    {
+                    {   
+
                         case "numInc":
-                            {
-                                rgbInfoNumPadIncKey(1);
-                            }
-                            break;
+                        {
+                            rgbInfoNumPadIncKey(1);
+                        }
+                        break;
 
                         case "numDec":
-                            {
-                                rgbInfoNumPadIncKey(-1);
-                            }
-                            break;
+                        {
+                            rgbInfoNumPadIncKey(-1);
+                        }
+                        break;
 
                         case "num0":
                         case "num1":
@@ -2175,21 +2098,21 @@
                         case "num7":
                         case "num8":
                         case "num9":
-                            {
-                                pressNumpadKey(e.target.name.charAt(3));
-                            }
-                            break;
+                        {
+                            pressNumpadKey(e.target.name.charAt(3));
+                        }
+                        break;
 
                         case "numHexCopyBG":
+                        {
+                            const color:* = numPadBox.getCopyiedHexColor();
+                            if (color as uint)
                             {
-                                const color:* = numPadBox.getCopyiedHexColor();
-                                if (color as uint)
-                                {
-                                    numPadBox.updateOkBaseColor(color);
-                                    moveHSVCursorByColor(color);
-                                }
+                                numPadBox.updateOkBaseColor(color);
+                                moveHSVCursorByColor(color);
                             }
-                            break;
+                        }
+                        break;
                     }
                 }
             };
@@ -2208,7 +2131,9 @@
         public function onMouseDownNumPad(e:MouseEvent):void
         {
             if (!e.target)
+            {
                 return;
+            }
 
             const targetName:String = e.target.name;
             if (!numPadBox.hitTestPoint(stage.mouseX, stage.mouseY) && !colorPickerBox.rgbInfoText.hitTestPoint(stage.mouseX, stage.mouseY))
@@ -2220,13 +2145,17 @@
                 return;
             }
 
+            //TODO : rgb info text 동작 수정해야함
+            // 항목을 선택하고 numpad로 수정하고 나서 다시 이전항목선택시 전체 선택이 안되고 일부 선택만됨
+            //RGB HSV와 숫자 사이를 더블 클릭하면 가장 뒤에 숫자 항목이 선택됨
+
             if (targetName === "numInc")
             {
-                startKeyRepeat(false, rgbInfoNumPadIncKey, 1);
+                startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
             }
             else if (targetName === "numDec")
             {
-                startKeyRepeat(false, rgbInfoNumPadIncKey, -1);
+                startKeyRepeat(true, rgbInfoNumPadIncKey, -1);
             }
             else if (targetName === "okLWrapper")
             {
@@ -2267,6 +2196,7 @@
 
         public function applyAdjustedColor():void
         {
+        trace("applyAdjustedColor");
             const color:uint = colorPickerBox.getRGBInfoBGColor();
 
             if (isPenColorMode())
@@ -2312,24 +2242,10 @@
             // stagefo();
             hideBottomHint();
 
+            isIgnoringRgbInfoTextRightClick = false;
             colorPickerBox.rgbInfoText.background = false;
             colorPickerBox.rgbInfoText.border = false;
-            colorPickerBox.rgbInfoText.removeEventListener(Event.ENTER_FRAME, checkRGBInfoCursorPos);
-            stage.removeEventListener(KeyboardEvent.KEY_DOWN, rgbInfoTextKeyDownEvent);
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN, rgbInfoTextMouseDownEvent);
-            colorPickerBox.rgbInfoText.removeEventListener(Event.CHANGE, onChangeRGBInfoText);
-            isIgnoringRgbInfoTextRightClick = false;
 
-            if (colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor())
-            {
-                applyAdjustedColor();
-            }
-
-            addTimerByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function():void
-                {
-                    isRgbInfoTextFocused = false;
-                    addInputEventsDrawMode();
-                });
         }
 
         public function onFocusInRGBInfoText(e:FocusEvent):void
@@ -2347,6 +2263,11 @@
                         setStageFocusNull();
                     });
 
+                return;
+            }
+
+            if(numPadBox.visible)
+            {
                 return;
             }
 
@@ -8832,7 +8753,9 @@
 
         public function onEnterFrameColorPickerBoxModeBGOFF(e:Event):void
         {
-            if(!isMouseClicked && (!sideBar.visible || !colorPickerBox.hitTestPoint(stage.mouseX, stage.mouseY)))
+            if(!numPadBox.visible
+            && !isMouseClicked
+            && (!sideBar.visible || !colorPickerBox.hitTestPoint(stage.mouseX, stage.mouseY)))
             {
                 stage.removeEventListener(Event.ENTER_FRAME,onEnterFrameColorPickerBoxModeBGOFF);
                 pickerModeResetFlag = false;
