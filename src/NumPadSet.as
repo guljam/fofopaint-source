@@ -27,7 +27,7 @@
 		public var num7:SimpleButton;
 		public var num8:SimpleButton;
 		public var num9:SimpleButton;
-		public var numHexCopyBG:SimpleButton;
+		public var numClip:SimpleButton;
 		public var oklchBG:SimpleButton;
 		public var numIncText:TextField;
 		public var numDecText:TextField;
@@ -44,7 +44,7 @@
 		public var oklabLText:TextField;
 		public var oklabCText:TextField;
 		public var oklabHText:TextField;
-		public var numHexCopyText:TextField = numHexCopyText;
+		public var numClipText:TextField = numClipText;
 
 		private var numHexCopyTextBGDefaultColor:Array = [0, 0xFFFFFF];
 		private var numHexCopyColor:* = null;
@@ -166,7 +166,7 @@
 					num7Text,
 					num8Text,
 					num9Text,
-					numHexCopyText,
+					numClipText,
 					oklabLText,
 					oklabCText,
 					oklabHText
@@ -185,7 +185,7 @@
 					num7,
 					num8,
 					num9,
-					numHexCopyBG,
+					numClip,
 					oklchBG,
 				];
 
@@ -255,12 +255,12 @@
 
 		private function updateHexCopyBGColor(color:uint):void
 		{
-			const c:ColorTransform = numHexCopyBG.transform.colorTransform;
+			const c:ColorTransform = numClip.transform.colorTransform;
 			c.color = color;
-			const btnUp:DisplayObject = numHexCopyBG.upState as DisplayObject;
-			const btnOver:DisplayObject = numHexCopyBG.overState as DisplayObject;
-			const btnDown:DisplayObject = numHexCopyBG.downState as DisplayObject;
-			numHexCopyBG.downState = btnOver;
+			const btnUp:DisplayObject = numClip.upState as DisplayObject;
+			const btnOver:DisplayObject = numClip.overState as DisplayObject;
+			const btnDown:DisplayObject = numClip.downState as DisplayObject;
+			numClip.downState = btnOver;
 			btnUp.transform.colorTransform = c;
 			btnOver.transform.colorTransform = c;
 			btnDown.transform.colorTransform = c;
@@ -287,19 +287,19 @@
 				const textcolor:uint = Global.getInvertedColor(hexcolor);
 				numHexCopyColor = hexcolor;
 				updateHexCopyBGColor(hexcolor);
-				numHexCopyText.text = "#" + colorstr;
-				numHexCopyText.textColor = textcolor;
+				numClipText.text = "#" + colorstr;
+				numClipText.textColor = textcolor;
 			}
 			else
 			{
 				numHexCopyColor = null;
 				updateHexCopyBGColor(numHexCopyTextBGDefaultColor[0]);
-				numHexCopyText.text = "No copied value";
-				numHexCopyText.textColor = numHexCopyTextBGDefaultColor[1];
+				numClipText.text = "No copied value";
+				numClipText.textColor = numHexCopyTextBGDefaultColor[1];
 			}
 		}
 
-		public function getCopyiedHexColor():*
+		public function getClipboardColor():*
 		{
 			return numHexCopyColor;
 		}
@@ -451,7 +451,7 @@
 				updateOKGradient(true, true, false);
 			}
 
-			onMouseUpFuncMain(okPickedColor);
+			// onMouseUpFuncMain(okPickedColor);
 		}
 
 		public function isLCHSliderActive():Boolean
@@ -465,6 +465,7 @@
 
 		public function removeOKLCHMouseEvent():void
 		{
+			onMouseUpFuncMain(okPickedColor);
 			onMouseMoveUpdateLCH = null;
 			onMouseUpFuncMain = null;
 			hideClorPreviewBox();
@@ -496,7 +497,6 @@
 			const hexColor:uint = OklchToHex(okBaseColorLch);
 			okPickedColor = hexColor;
 			updateColorPreviewBox(hexColor);
-
 			addOKLCHMouseEvent();
 		}
 
@@ -599,7 +599,7 @@
 			num8Text.mouseEnabled = false;
 			num9Text.mouseEnabled = false;
 			oklchBG.mouseEnabled = false;
-			numHexCopyText.mouseEnabled = false;
+			numClipText.mouseEnabled = false;
 			initOkLCHSlider();
 		}
 	}

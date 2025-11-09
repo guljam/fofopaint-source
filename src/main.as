@@ -372,7 +372,7 @@
         public var isToolBox2Showing:Boolean = false; //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
 
         //undo
-        public var  undoDataIndex:int = 0, //undo redo 상태 인덱스임
+        public var  undoDataIndex:int = -1, //undo redo 상태 인덱스임
                     isDeleteUndoDataPending:Boolean = false, //undo하고 나서 addundo가 되었을때 뒷부분 데이터 전부 날려주는 플래그
                     canAddUndoData:Boolean = false; //선을 그어줄대 선전체가 캔버스 바깥쪽에 있을수도 있으니까 이걸 판단해줌
 
@@ -610,9 +610,7 @@
         //picker box RGB info관련
         public var  lastRGBInfoColorPartIndex:int = -1, //처음 클릭했을때 R G B중 어느 영역을 클릭했는지
                     isHSVInfoTextMode:Boolean = false, // true가 되면 hsv false이면 rgb
-                    numpadInputBuffer:String = "",    //숫자키 누르면 어기다가 저장해주고 필터링해줘서 rgbinfotext에 갱신해줌
-                    rgbInfoClickedColorValue:int = 0 //rgbin 선택된 숫자를 여가다가 저장 numpad에서 증가 감소 할때 이 숫자를 써줌
-
+                    numpadInputBuffer:String = "";    //숫자키 누르면 어기다가 저장해주고 필터링해줘서 rgbinfotext에 갱신해줌
 
         //사이드바 관련
         public var  isSidebarVisible:Boolean = true,               // 사이드바 표시 여부
@@ -1100,7 +1098,6 @@
 
         public function rgbInfoNumPadIncKey(inc:int):void
         {
-        trace("isHSVInfoTextMode",isHSVInfoTextMode);
             if (isHSVInfoTextMode)
             {
                 adjustSingleValueHSV(inc);
@@ -1118,7 +1115,7 @@
             var startIndex:int = colorPickerBox.rgbInfoText.selectionBeginIndex;
             var endIndex:int = colorPickerBox.rgbInfoText.selectionEndIndex;
 
-            if(numpadInputBuffer.length > 3)
+            if(numpadInputBuffer.length >= 3)
             {
                 stage.focus = null;
                 return;
@@ -1136,41 +1133,41 @@
                     {
                         value = 360;
                     }
-                }
-                else if(value > 100)
-                {
-                    value = 100;
-                }
-            }
-            else if(value > 255)
-            {
-                value = 255;
-            }
-
-            const rgbInfoBGColor:uint = colorPickerBox.getRGBInfoBGColor();
-            const colorArr:Vector.<Number> = (isHSVInfoTextMode) ? Global.HEXtoHSV(rgbInfoBGColor,hsvColorData[0]) :Global.HEXtoRGB(rgbInfoBGColor);
-            var colorValue:Number = value;
-            if(isHSVInfoTextMode)
-            {
-                if(lastRGBInfoColorPartIndex === 0)
-                {
-                    colorValue = value/360;
+                    hsvColorData[lastRGBInfoColorPartIndex] = value/360;
                 }
                 else
                 {
-                    colorValue = colorValue/100;
+                    if(value > 100)
+                    {
+                        value = 100;
+                    }
+                    hsvColorData[lastRGBInfoColorPartIndex] = value/100;
                 }
             }
+            else 
+            {
+                if(value > 255)
+                {
+                    value = 255;
+                }
 
-            colorArr[lastRGBInfoColorPartIndex] = colorValue;
-            colorPickerBox.rgbInfoText.replaceText(startIndex, endIndex, String(value));
+                const arr:Array = getColorValueFromRGBInfoText();
+                arr[lastRGBInfoColorPartIndex] = value;
+                
+                const hsv:Vector.<Number> = Global.HEXtoHSV(Global.RGBtoHEX(arr[0],arr[1],arr[2]),hsvColorData[0]);
+                hsvColorData[0] = hsv[0];   
+                hsvColorData[1] = hsv[1];
+                hsvColorData[2] = hsv[2];
+            }
 
-            var hex:uint = (isHSVInfoTextMode) ? Global.HSVtoHEX(colorArr[0], colorArr[1], colorArr[2])
-                                               : Global.RGBtoHEX(colorArr[0], colorArr[1], colorArr[2]);
-
-            updateColorPickerCursorPosAndRGBInfo(hex);
-            numPadBox.updateOkBaseColor(hex);
+            updateColorPickerCursorPosAndRGBInfo(hsvColorData);
+            numPadBox.updateOkBaseColor(Global.HSVtoHEX(hsvColorData[0],hsvColorData[1],hsvColorData[2]));
             keepRGBInfoTextPartFocus();
+
+            if (colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor())
+            {
+                applyAdjustedColor();
+            }
         }
 
         public function getSidebarConstHeight():Number
@@ -1772,7 +1769,6 @@
                 return;
             }
 
-            lastRGBInfoColorPartIndex = index;
 
             var start:int;
             var end:int;
@@ -1794,9 +1790,7 @@
             }
 
             colorPickerBox.rgbInfoText.setSelection(start,end);
-            colorPickerBox.rgbInfoText.text.substring(start,end);
-            rgbInfoClickedColorValue = parseInt(colorPickerBox.rgbInfoText.text.substring(start, end));
-            trace("rgbInfoClickedColorValue",rgbInfoClickedColorValue,"lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
+            lastRGBInfoColorPartIndex = index;
         }
 
         public function getColorValueFromRGBInfoText():Array
@@ -1809,13 +1803,15 @@
 
         public function adjustSingleValueHSV(inc:int):void
         {
-            TODO: 텍스트 커서 위치 갱신 실제 값이랑 분할했는데도 계속 그러는데 원인분석 제대로 해봐야겠음
+        //TODO: hsv 48 28 0 값에서 값 조절이 안됨 조사 해봐야함
+        //hsv 0,0 ,0인데 rgb로 했다가 hsv로 하면 48이 나옴 이전값 hue를 주는건가?
+        //그럼 앱시작했을때는 왜 0이고 이전 앱 컬러값이 저장이 안되는지
             const index:int = lastRGBInfoColorPartIndex;
             const hsv:Array = getColorValueFromRGBInfoText();
             var num:int = int(hsv[lastRGBInfoColorPartIndex]);
 
             num += inc;
-
+            trace("num",num);
 
             if (num < 0)
             {
@@ -1837,16 +1833,13 @@
                 }
             }
 
-            rgbInfoClickedColorValue = num;
             hsv[index] = Number(num);
-            trace("2 hsv",hsv);
-            colorPickerBox.updateRGBInfoText("HSV",hsv[0],hsv[1],hsv[2]);
-
+            trace("hsv",hsv)
             hsv[0] = hsv[0]/360;
             hsv[1] = hsv[1]/100;
             hsv[2] = hsv[2]/100;
 
-            updateColorPickerCursorPosAndRGBInfo(Global.HSVtoHEX(hsv[0], hsv[1], hsv[2]));
+            updateColorPickerCursorPosAndRGBInfo(new <Number>[hsv[0],hsv[1],hsv[2]]);
             keepRGBInfoTextPartFocus();
         }
 
@@ -1854,7 +1847,7 @@
         {
             const index:int = lastRGBInfoColorPartIndex;
             const rgb:Array = getColorValueFromRGBInfoText();
-            var num:int = rgbInfoClickedColorValue;
+            var num:int = int(rgb[index]);
 
             num += inc;
             if (num < 0)
@@ -1866,10 +1859,7 @@
                 num = 255;
             }
 
-            rgbInfoClickedColorValue = num;
             rgb[index] = Number(num);
-            trace("1");
-            colorPickerBox.updateRGBInfoText("RGB",rgb[0],rgb[1],rgb[2]);
             updateColorPickerCursorPosAndRGBInfo(Global.RGBtoHEX(rgb[0], rgb[1], rgb[2]));
             keepRGBInfoTextPartFocus();
         }
@@ -1884,11 +1874,11 @@
             if (numPadBox.visible === false)
             {
                 numPadBox.readyLCHAdjustment(Global.HSVtoHEX(hsvColorData[0], 1.0, 1.0), colorPickerBox.getRGBInfoBGColor());
-                setAsTopChild(numPadBox);
                 const gp:Point = colorPickerBox.rgbInfoBG.localToGlobal(new Point(0, 0));
                 numPadBox.x = Math.floor(gp.x);
                 numPadBox.y = Math.floor(gp.y + colorPickerBox.rgbInfoBG.height * Global.getUIScale()+1);
                 numPadBox.alpha = 0.5;
+                setAsTopChild(numPadBox);
                 resetLastKey();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, -2);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad, false, -2);
@@ -1936,9 +1926,9 @@
                         }
                         break;
 
-                        case "numHexCopyBG":
+                        case "numClip":
                         {
-                            const color:* = numPadBox.getCopyiedHexColor();
+                            const color:* = numPadBox.getClipboardColor();
                             if (color as uint)
                             {
                                 numPadBox.updateOkBaseColor(color);
@@ -1965,8 +1955,6 @@
                 return;
             }
 
-            trace("lastRGBInfoColorPartIndex",lastRGBInfoColorPartIndex);
-
             const targetName:String = e.target.name;
             if (!numPadBox.hitTestPoint(stage.mouseX, stage.mouseY) && !colorPickerBox.rgbInfoText.hitTestPoint(stage.mouseX, stage.mouseY))
             {
@@ -1983,7 +1971,6 @@
 
             if (targetName === "numInc")
             {
-            trace("repeat");
                 startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
             }
             else if (targetName === "numDec")
@@ -1992,20 +1979,32 @@
             }
             else if (targetName === "okLWrapper")
             {
-                numPadBox.startAdjustLCH(0, updateColorPickerCursorPosAndRGBInfo);
+                startAdjustOKLCH(0);
             }
             else if (targetName === "okCWrapper")
             {
-                numPadBox.startAdjustLCH(1, updateColorPickerCursorPosAndRGBInfo);
+                startAdjustOKLCH(1);
             }
             else if (targetName === "okHWrapper")
             {
-                numPadBox.startAdjustLCH(2, updateColorPickerCursorPosAndRGBInfo);
+                startAdjustOKLCH(2);
             }
             else
             {
                 checkNumPadMouseUp(targetName);
             }
+        }
+
+        public function startAdjustOKLCH(index:int):void
+        {
+            numPadBox.startAdjustLCH(index, function(pickedColor:uint):void
+            {
+                updateColorPickerCursorPosAndRGBInfo(pickedColor);
+                if (colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor())
+                {
+                    applyAdjustedColor();
+                }
+            });
         }
 
         //hsv rgb로 왔다갔다함
@@ -2016,16 +2015,12 @@
             if (isHSVInfoTextMode)
             {
                 isHSVInfoTextMode = false;
-                trace("5");
-                const rgb:Vector.<Number> = Global.HEXtoRGB(colorPickerBox.getRGBInfoBGColor());
-                colorPickerBox.updateRGBInfoText("RGB",rgb[0],rgb[1],rgb[2]);
+                colorPickerBox.updateRGBInfoText("RGB",Global.HEXtoRGB(colorPickerBox.getRGBInfoBGColor()));
             }
             else
             {
                 isHSVInfoTextMode = true;
-                trace("4");
-                const hsv:Vector.<Number> = Global.HEXtoHSV(colorPickerBox.getRGBInfoBGColor(),hsvColorData[0]);
-                colorPickerBox.updateRGBInfoText("HSV",hsv[0]*360,hsv[1]*100,hsv[2]*100);
+                colorPickerBox.updateRGBInfoText("HSV",Global.HEXtoHSV(colorPickerBox.getRGBInfoBGColor(),hsvColorData[0]));
             }
         }
 
@@ -2054,6 +2049,11 @@
             var clickedPos:int = getRgbInfoTextClickedPosIndex();
 
             numpadInputBuffer = "";
+
+            if(colorPickerBox.getRGBInfoText() === "")
+            {
+                colorPickerBox.restoreRGBInfoText();
+            }
 
             if (clickedPos >= 0 && clickedPos <= 3)
             {
@@ -2771,7 +2771,7 @@
 
             isDeleteUndoDataPending = false;
             undoManager.updateLastRDataMirror();
-            undoDataIndex = rData.length - 1;
+            undoDataIndex = rData.length  ;
         }
 
         public function hasLastRDataCommand(command:String):Boolean
@@ -4026,10 +4026,9 @@
         {
             isTransparentPenColor = true;
             colorPickerBox.setRGBInfoBackgroundTransparent(myPalettePresetType);
-            colorPickerBox.setRGBInfoTextTransparentMode();
         }
 
-        public function updateCurrentColorPickerBox(bgmode:Boolean):void
+        public function selectCurrentColor(bgmode:Boolean):void
         {
             const hexColor:uint = colorPickerBox.currentColor;
 
@@ -4038,7 +4037,10 @@
             if(bgmode)
             {
                 updateCanvasBGColorDrawMode(hexColor);
-                if(isCanvasWindowON) updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
+                if(isCanvasWindowON)
+                {
+                    updateCanvasWindowBGColor(CANVAS_BG_COLOR,canvasWindowLayer1Bitmap.bitmapData);
+                }
                 updateColorPickerCursorPosAndRGBInfo(hexColor);
                 addUndoBGColorData(hexColor);
             }
@@ -5987,12 +5989,6 @@
             }
         }
 
-        public function initializeColorPickerBoxInfo(color:uint):void
-        {
-            colorPickerBox.updateRGBInfoBG(color,myPalettePresetType);
-            updatePickerCurrentColor(color);
-        }
-
         public function handleOneMoreClickMergeIntoRefLayer(menuBox:DisplayObject,button:SimpleButton,hintstr:String,func:Function):void
         {
             setAsTopChild(menuBox);
@@ -7694,7 +7690,6 @@
 
         public function onKeyUpStage(e:KeyboardEvent):void
         {
-        trace("isHSVInfoTextMode",isHSVInfoTextMode);
             tryDisableIME();
             checkInvalidKey();
 
@@ -8474,21 +8469,16 @@
 
                 updateHSVColorData(hueValue,hsvColorData[1],hsvColorData[2]);
                 pickedColor = Global.HSVtoHEX(hueValue,hsvColorData[1],hsvColorData[2]);
-
+                colorPickerBox.updateHueColor(baseHexColor);
+                colorPickerBox.updateRGBInfoBG(pickedColor,myPalettePresetType);
                 if(isHSVInfoTextMode)
                 {
-                trace("a");
-                    colorPickerBox.updateRGBInfoText("HSV",hueValue*360,hsvColorData[1]*100,hsvColorData[2]*100);
+                    colorPickerBox.updateRGBInfoText("HSV",hsvColorData);
                 }
                 else
                 {
-                trace("b");
-                    const rgb:Vector.<Number> = Global.HEXtoRGB(pickedColor);
-                    colorPickerBox.updateRGBInfoText("RGB",rgb[0],rgb[1],rgb[2]);
+                    colorPickerBox.updateRGBInfoText("RGB",pickedColor);
                 }
-
-                colorPickerBox.updateHueColor(baseHexColor);
-                colorPickerBox.updateRGBInfoBG(pickedColor,myPalettePresetType);
             }
 
             function onMouseMove():void
@@ -8554,21 +8544,16 @@
 
                 updateHSVColorData(hueValue,sValue,vValue);
                 pickedColor = Global.HSVtoHEX(hueValue,sValue,vValue);
-
+                colorPickerBox.updateRGBInfoBG(pickedColor,myPalettePresetType);
+                colorPickerBox.setRGBInfoVisible(false);
                 if(isHSVInfoTextMode)
                 {
-                trace("c");
-                    colorPickerBox.updateRGBInfoText("HSV",hueValue*360,sValue*100,vValue*100);
+                    colorPickerBox.updateRGBInfoText("HSV",hsvColorData);
                 }
                 else
                 {
-                trace("d");
-                    const rgb:Vector.<Number> = Global.HEXtoRGB(pickedColor);
-                    colorPickerBox.updateRGBInfoText("RGB",rgb[0],rgb[1],rgb[2]);
+                    colorPickerBox.updateRGBInfoText("RGB",pickedColor);
                 }
-
-                colorPickerBox.updateRGBInfoBG(pickedColor,myPalettePresetType);
-                colorPickerBox.setRGBInfoVisible(false);
             }
 
             function onMouseMove():void
@@ -14799,7 +14784,7 @@
             topBar.newFileButton.alpha = 1.0;
             refLayerMenuBox.refTransferCanvasImageButton.alpha = 1.0;
 
-            updateCurrentColorPickerBox(false);
+            selectCurrentColor(false);
             ensureDrawingToolSelected(false);
             canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
             updateCanvasNaigatorCursor();
@@ -17445,12 +17430,9 @@
                     toolOptionsBox.penSmoothSliderCursor.x = d["penSmoothButtonX"];
                     penSize = d["penSize"];
                     penColor = d["penColor"];
-                    initializeColorPickerBoxInfo(d["penColor"]);
-                    if(d["isHSVInfoTextMode"])
-                    {
-                        toggleRGBInfoTextColorType();
-                    }
-                    updateColorPickerCursorPosAndRGBInfo(d["penColor"]);
+                    isHSVInfoTextMode = d["isHSVInfoTextMode"];
+                    updatePickerCurrentColor(penColor);
+                    updateColorPickerCursorPosAndRGBInfo(penColor);
                     colorPickerBox.updateHueColor(d["svBaseColor"]);
                     hsvColorData[0] = d["hsvColorData[0]"];
                     colorPickerBox.hueCursor.x = d["hueCursor.x"];
@@ -17590,7 +17572,8 @@
 
                 updateCavnvasSizeDrawMode(CANVAS_WIDTH,CANVAS_HEIGHT,0,0,false);
                 updateResizeButtonPos(CANVAS_WIDTH,CANVAS_HEIGHT);
-                initializeColorPickerBoxInfo(penColor);
+                
+                updatePickerCurrentColor(penColor);
                 updateColorPickerCursorPosAndRGBInfo(penColor);
                 openAboutBox(true);
                 applyUIColorSet();
@@ -19545,7 +19528,7 @@
                 {
                     if(isTransparentPenColor)
                     {
-                        updateCurrentColorPickerBox(false);
+                        selectCurrentColor(false);
                         if(sideBar.visible === false)
                         {
                             showMouseHintTemp("Current color selected");
@@ -19553,7 +19536,7 @@
                     }
                     else
                     {
-                        updateCurrentColorPickerBox(false);
+                        selectCurrentColor(false);
                         if(isTransparentPenColor === false)
                         {
                             selectTransparentColor();
@@ -20662,7 +20645,10 @@
             //undo index까지의 프레임 합을 구함
             function getRDataTotalFrame(index:int):Number
             {
-                if(index < 0) return 0;
+                if(index < 0)
+                {
+                    return 0;
+                }
 
                 var sum:Number = 0;
 
@@ -20861,32 +20847,51 @@
         }
 
         // hsv커서가 color에 맞춰서 위치를 움직여줌
-        public function updateColorPickerCursorPosAndRGBInfo(hexColor:uint):void
+        public function updateColorPickerCursorPosAndRGBInfo(color:*):void
         {
-            isTransparentPenColor = false;
+            var hexColor:uint;
+            var hsvColor:Vector.<Number>;
 
-            var hsv:Vector.<Number> = Global.HEXtoHSV(hexColor,hsvColorData[0]);
-
-            hsvColorData[1] = hsv[1];
-            hsvColorData[2] = hsv[2];
-
-            if(hsv[1] > 0) //채도값이 있을때만 갱신시킴
+            if(color is uint)
             {
-                hsvColorData[0] = hsv[0];
-                colorPickerBox.hueCursor.x = Math.round(hsv[0]*colorPickerBox.svBoxWidth);
+                hexColor = color as uint;
+                hsvColor = Global.HEXtoHSV(hexColor,hsvColorData[0]);
+            }
+            else if(color is Vector.<Number>)
+            {
+                hexColor = Global.HSVtoHEX(color[0],color[1],color[2]);
+                hsvColor = color as Vector.<Number>;
             }
 
-            trace("hsvColorData",hsvColorData);
+            isTransparentPenColor = false;
 
-            colorPickerBox.svCursor.x = Math.round(hsv[1]*colorPickerBox.svBoxWidth);
-            colorPickerBox.svCursor.y = Math.round(colorPickerBox.svBoxHeight - hsv[2]*colorPickerBox.svBoxHeight);
+            hsvColorData[1] = hsvColor[1];
+            hsvColorData[2] = hsvColor[2];
+
+            if(hsvColor[1] > 0 || color is Vector.<Number>) //채도값이 있을때만 갱신시킴
+            {
+                hsvColorData[0] = hsvColor[0];
+                colorPickerBox.hueCursor.x = Math.round(hsvColor[0]*colorPickerBox.svBoxWidth);
+            }
+
+            colorPickerBox.svCursor.x = Math.round(hsvColor[1]*colorPickerBox.svBoxWidth);
+            colorPickerBox.svCursor.y = Math.round(colorPickerBox.svBoxHeight - hsvColor[2]*colorPickerBox.svBoxHeight);
 
             //s v값을 제외한 순수 hue 컬러
-            const baseColor:Vector.<uint> = Global.HSVtoRGB(hsv[0],1.0,1.0);
+            const baseColor:Vector.<uint> = Global.HSVtoRGB(hsvColor[0],1.0,1.0);
             const baseHexColor:uint = Global.RGBtoHEX(baseColor[0],baseColor[1],baseColor[2]);
 
             colorPickerBox.updateHueColor(baseHexColor);
             colorPickerBox.updateRGBInfoBG(hexColor,myPalettePresetType);
+
+            if(isHSVInfoTextMode)
+            {
+                colorPickerBox.updateRGBInfoText("HSV",hsvColorData);
+            }
+            else
+            {
+                colorPickerBox.updateRGBInfoText("RGB",hexColor);
+            }
         }
 
         //opabox의 커서 위치와 색깔을 바꿈
@@ -23818,7 +23823,7 @@
                     {
                         case "currentColor":
                         {
-                            updateCurrentColorPickerBox(isColorPickerModeBG);
+                            selectCurrentColor(isColorPickerModeBG);
                             ensureDrawingToolSelected(false);
                         }
                         break;
@@ -23858,7 +23863,7 @@
 
                         case "transColorButton":
                         {
-                            if(colorPickerBox.transColorButton.alpha === 1.0)
+                            if(colorPickerBox.transColorButton.alpha === 1.0 && isTransparentPenColor === false)
                             {
                                 selectTransparentColor();
                                 ensureDrawingToolSelected(false);

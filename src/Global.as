@@ -243,7 +243,7 @@ package
             return getUIScale()*100+"%";
         }
         
-        static public function RGBtoHSV(r:Number, g:Number, b:Number, lastHue:Number):Vector.<Number>
+        static public function RGBtoHSV(r:Number, g:Number, b:Number, baseHue:Number):Vector.<Number>
         {
             r = r/255;
             g = g/255;
@@ -272,7 +272,7 @@ package
             }
 
             const hsv:Vector.<Number> = new <Number> [h,s,v];
-            if(s === 0) hsv[0] = lastHue;
+            if(s === 0) hsv[0] = baseHue;
 
             return hsv;
         }
@@ -288,13 +288,13 @@ package
             return new <Number> [r,g,b];
         }
         
-        static public function HEXtoHSV(color:uint,lastHue:Number):Vector.<Number>
+        static public function HEXtoHSV(color:uint,baseHue:Number):Vector.<Number>
         {
             const r:uint = (color >> 16) & 0xFF;
             const g:uint = (color >> 8) & 0xFF;
             const b:uint = color & 0xFF;
 
-            return RGBtoHSV(r,g,b,lastHue);
+            return RGBtoHSV(r,g,b,baseHue);
         }
 
         //rgb값을 16진수로 hex값으로 만들어줌

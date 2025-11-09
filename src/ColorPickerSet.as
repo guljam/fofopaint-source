@@ -74,6 +74,8 @@
 
 		public var scratchPad:DrawrScratchPad;
 
+		private var lastRGBInfoText:String = "";
+
 		// public function setRGBInfoTextTypeToInput(flag:Boolean):void
 		// {
 		// 	rgbInfoText.type = (flag) ? TextFieldType.DYNAMIC:TextFieldType.INPUT;
@@ -237,20 +239,44 @@
 			}
 		}
 
-		public function setRGBInfoTextTransparentMode():void
+		public function restoreRGBInfoText():void
 		{
-			rgbInfoText.text = "";
+			rgbInfoText.text = lastRGBInfoText;
 		}
 
-		//s 값들은 정수로 들어감 hsv 나 rgb
-		public function updateRGBInfoText(mode:String,s1:int,s2:int,s3:int):void
+		public function updateRGBInfoText(mode:String,data:*):void
 		{
-			function pad(n:Number):String {
+			function pad(n:Number):String
+			{
 				return ("  " + n).substr(-3);
 			}
 
-			rgbInfoText.text = mode+" "+pad(s1)+","+pad(s2)+","+pad(s3);
-			trace("update text",rgbInfoText.text);
+			trace("data",data,"mode",mode);
+
+			if(mode === "HSV")
+			{
+				if(data[0] <= 1.0)
+				{
+					rgbInfoText.text = mode+" "+pad(Math.floor(data[0]*360))+","+pad(Math.floor(data[1]*100))+","+pad(Math.floor(data[2]*100));
+				}
+				else
+				{
+					rgbInfoText.text = mode+" "+pad(data[0])+","+pad(data[1])+","+pad(data[2]);
+				}
+			}
+			else
+			{
+				if(data is uint)
+				{
+					const rgb:Vector.<Number> = Global.HEXtoRGB(data as uint);
+					rgbInfoText.text = mode+" "+pad(rgb[0])+","+pad(rgb[1])+","+pad(rgb[2]);
+				}
+				else if(data is Vector.<Number> || data is Array)
+				{
+					rgbInfoText.text = mode+" "+pad(data[0])+","+pad(data[1])+","+pad(data[2]);
+				}
+			}
+
 			rgbInfoText.textColor = Global.getInvertedColor(rgbInfoBGColor);
 		}
 
@@ -281,13 +307,22 @@
 
 		public function setRGBInfoBackgroundTransparent(paletteType:int):void
 		{
-			const rgbInfoBGwidth:Number = (paletteType !== 0)?svBoxWidth:rgbInfoWidth;
-			rgbInfoBG.graphics.clear();
-            rgbInfoBG.graphics.lineStyle(0,0,0);
-            rgbInfoBG.graphics.beginBitmapFill(transColorButtonBmpd);
-            rgbInfoBG.graphics.drawRect(0,0,rgbInfoBGwidth,rgbInfoHeight);
-            rgbInfoBG.graphics.endFill();
-			rgbInfoText.textColor = 0xFF0000;
+			if(rgbInfoText.text !== "")
+			{
+				const rgbInfoBGwidth:Number = (paletteType !== 0)?svBoxWidth:rgbInfoWidth;
+				rgbInfoBG.graphics.clear();
+				rgbInfoBG.graphics.lineStyle(0,0,0);
+				rgbInfoBG.graphics.beginBitmapFill(transColorButtonBmpd);
+				rgbInfoBG.graphics.drawRect(0,0,rgbInfoBGwidth,rgbInfoHeight);
+				rgbInfoBG.graphics.endFill();
+				
+				lastRGBInfoText = rgbInfoText.text;
+				rgbInfoText.text = "";
+			}
+			else
+			{
+				trace("이미 되어있음");
+			}
 		}
 
 		public function getRGBInfoBorderColor(color:uint):uint
