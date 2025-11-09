@@ -242,30 +242,16 @@
 			rgbInfoText.text = "";
 		}
 
-		public function updateRGBInfoTextByMode(isHsvMode:Boolean,baseHue:Number,textColor:*=null):void
+		//s 값들은 정수로 들어감 hsv 나 rgb
+		public function updateRGBInfoText(mode:String,s1:int,s2:int,s3:int):void
 		{
 			function pad(n:Number):String {
 				return ("  " + n).substr(-3);
 			}
-			var colorValues:Vector.<Number>;
-			const modeStr:String = (isHsvMode)?"HSV":"RGB";
-			if(isHsvMode)
-			{
-				colorValues = Global.HEXtoHSV(rgbInfoBGColor,baseHue);
-				colorValues[0] = Math.round(colorValues[0]*360);
-				colorValues[1] = Math.round(colorValues[1]*100);
-				colorValues[2] = Math.round(colorValues[2]*100);
-			}
-			else
-			{
-				colorValues = Global.HEXtoRGB(rgbInfoBGColor);
-			}
 
-			rgbInfoText.text = modeStr+" "+pad(colorValues[0])+","+pad(colorValues[1])+","+pad(colorValues[2]);
-			if(textColor !== null)
-			{
-				rgbInfoText.textColor = textColor;
-			}
+			rgbInfoText.text = mode+" "+pad(s1)+","+pad(s2)+","+pad(s3);
+			trace("update text",rgbInfoText.text);
+			rgbInfoText.textColor = Global.getInvertedColor(rgbInfoBGColor);
 		}
 
 		public function setRGBInfoTextColor(color:uint):void
@@ -288,9 +274,9 @@
 			rgbInfoText.visible = flag;
 		}
 
-		public function restoreRGBInfoBackground(isHsvMode:Boolean,baseHue:Number):void
+		public function restoreRGBInfoBackground():void
 		{
-			updateRGBInfoBG(rgbInfoBGColor,isHsvMode,baseHue,rgbInfoPaletteTypeSave);
+			updateRGBInfoBG(rgbInfoBGColor,rgbInfoPaletteTypeSave);
 		}
 
 		public function setRGBInfoBackgroundTransparent(paletteType:int):void
@@ -310,7 +296,7 @@
             return (diff <= 15) ? Global.getUIFGColor() : 0;
         }
 
-		public function updateRGBInfoBG(color:uint,isHsvMode:Boolean,baseHue:Number,paletteType:int):void
+		public function updateRGBInfoBG(color:uint,paletteType:int):void
 		{	
 			const rgbInfoBGwidth:Number = (paletteType !== 0)?svBoxWidth:rgbInfoWidth;
 			const borderColor:uint = getRGBInfoBorderColor(color);
@@ -328,8 +314,6 @@
 			{
 				rgbInfoPaletteTypeSave = paletteType;
 			}
-
-			updateRGBInfoTextByMode(isHsvMode,baseHue,Global.getInvertedColor(color));
 		}
 
 		public function getCurrentColor():uint
