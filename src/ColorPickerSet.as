@@ -46,9 +46,9 @@
 
 		public var offsetX:Number = 0; //customcolor 박스 떨어진 위치
 
-		public var currentColor:Sprite = new Sprite();
-		public var currentColorColor:uint = 0;
-		public var currentColorWidth:Number = 28;
+		public var currentColorBox:Sprite = new Sprite();
+		public var currentColor:uint = 0;
+		public var currentColorBoxWidth:Number = 28;
 		public var hueCursor:SimpleButton;
 		public var svCursor:SimpleButton;
 		// public var preset17:SimpleButton = preset17;
@@ -199,19 +199,14 @@
 			firstRGBInfoColorText = rgbInfoText.text;
 		}
 
-		public function resetToOldRGBInfoText():void
+		public function restoreRGBInfoTextFromLast():void
 		{
 			rgbInfoText.text = lastRGBInfoText;
 		}
 
-		public function updateOldRGBInfoText():void
+		public function saveRGBInfoText():void
 		{
 			lastRGBInfoText = rgbInfoText.text;
-		}
-
-		public function setoldRGBInfoText(str:String):void
-		{
-			lastRGBInfoText = str;
 		}
 
 		public function getOldRGBInfoText():String
@@ -259,9 +254,46 @@
 			}
 		}
 
-		public function updateRGBInfoTextColor(color:uint):void
+		public function setRGBInfoTextTransparentMode():void
+		{
+			rgbInfoText.visible = true;
+		}
+
+		public function updateRGBInfoTextByMode(isHsvMode:Boolean,baseHue:Number,textColor:*=null):void
+		{
+			function pad(n:Number):String {
+				return ("  " + n).substr(-3);
+			}
+			var colorValues:Vector.<Number>;
+			const modeStr:String = (isHsvMode)?"HSV":"RGB";
+			if(isHsvMode)
+			{
+				colorValues = Global.HEXtoHSV(rgbInfoBGColor,baseHue);
+				colorValues[0] = Math.round(colorValues[0]*360);
+				colorValues[1] = Math.round(colorValues[1]*100);
+				colorValues[2] = Math.round(colorValues[2]*100);
+			}
+			else
+			{
+				colorValues = Global.HEXtoRGB(rgbInfoBGColor);
+			}
+
+			rgbInfoText.text = modeStr+" "+pad(colorValues[0])+","+pad(colorValues[1])+","+pad(colorValues[2]);
+			rgbInfoText.visible = true;
+			if(textColor !== null)
+			{
+				rgbInfoText.textColor = textColor;
+			}
+		}
+
+		public function setRGBInfoTextColor(color:uint):void
 		{
 			rgbInfoText.textColor = color;
+		}
+
+		public function getRGBInfoBGColor():uint
+		{
+			return rgbInfoBGColor;
 		}
 
 		public function getRGBInfoText():String
@@ -269,19 +301,14 @@
 			return rgbInfoText.text;
 		}
 
-		public function setRGBInfoText(str:String):void
-		{
-			rgbInfoText.text = str;
-		}
-
 		public function setRGBInfoVisible(flag:Boolean):void
 		{
 			rgbInfoText.visible = flag;
 		}
 
-		public function restoreRGBInfoBackground():void
+		public function restoreRGBInfoBackground(isHsvMode:Boolean,baseHue:Number):void
 		{
-			updateRGBInfoBG(rgbInfoBGColor,rgbInfoBGBorderColor,rgbInfoPaletteTypeSave);
+			updateRGBInfoBG(rgbInfoBGColor,isHsvMode,baseHue,rgbInfoPaletteTypeSave);
 		}
 
 		public function setRGBInfoBackgroundTransparent(paletteType:int):void
@@ -295,9 +322,16 @@
 			rgbInfoText.textColor = 0xFF0000;
 		}
 
-		public function updateRGBInfoBG(color:uint,borderColor:uint,paletteType:int):void
+		public function getRGBInfoBorderColor(color:uint):uint
+        {
+            const diff:Number = Global.getColorDifferenceForHuman(color,Global.getUIBGColor());
+            return (diff <= 15) ? Global.getUIFGColor() : 0;
+        }
+
+		public function updateRGBInfoBG(color:uint,isHsvMode:Boolean,baseHue:Number,paletteType:int):void
 		{
 			const rgbInfoBGwidth:Number = (paletteType !== 0)?svBoxWidth:rgbInfoWidth;
+			const borderColor:uint = getRGBInfoBorderColor(color);
 
 			rgbInfoBG.graphics.clear();
 			rgbInfoBG.graphics.beginFill(color);
@@ -312,29 +346,27 @@
 			{
 				rgbInfoPaletteTypeSave = paletteType;
 			}
-		}
 
-		public function getRGBInfoBGColor():uint
-		{
-			return rgbInfoBGColor;
+			updateRGBInfoTextByMode(isHsvMode,baseHue,Global.getInvertedColor(color));
 		}
 
 		public function getCurrentColor():uint
 		{
-			return currentColorColor;
+			return currentColor;
 		}
 
-		public function updateCurrentColor(color:uint,invColor:uint):void
+		public function updateCurrentColor(color:uint):void
 		{
-			if(currentColorColor !== color)
+			if(currentColor !== color)
 			{
-				currentColorColor = color;
-				currentColor.graphics.clear();
-				currentColor.graphics.beginFill(color);
-				currentColor.graphics.drawRect(0,0,currentColorWidth,19);
-				currentColor.graphics.endFill();
-				currentColor.graphics.lineStyle(1, (invColor === 0) ? color:invColor);
-				currentColor.graphics.drawRect(0,0, currentColorWidth,19);
+				const borderColor:uint = getRGBInfoBorderColor(color);
+				currentColor = color;
+				currentColorBox.graphics.clear();
+				currentColorBox.graphics.beginFill(color);
+				currentColorBox.graphics.drawRect(0,0,currentColorBoxWidth,19);
+				currentColorBox.graphics.endFill();
+				currentColorBox.graphics.lineStyle(1, (borderColor === 0) ? color:borderColor);
+				currentColorBox.graphics.drawRect(0,0, currentColorBoxWidth,19);
 			}
 		}
 
@@ -470,8 +502,6 @@
 			var emptyContextMenu:ContextMenu = new ContextMenu();
 			emptyContextMenu.hideBuiltInItems();
 
-			updateRGBInfoBG(0,0,0);
-
 			rgbInfoText.contextMenu = emptyContextMenu;
 			rgbInfoText.restrict = "0-9";
 			rgbInfoText.maxChars = 15;
@@ -481,12 +511,12 @@
 			rgbInfoBG.x = 0;
 			rgbInfoBG.y = 0;
 
-			transColorButton.x = Math.floor(rgbInfoBG.x+rgbInfoBG.width+5);
+			transColorButton.x = Math.floor(rgbInfoBG.x+rgbInfoWidth+5);
 			transColorButton.y = rgbInfoBG.y;
 			transColorButton.useHandCursor = false;
-			currentColor.x = Math.floor(transColorButton.x+transColorButton.width);
-			currentColor.y = transColorButton.y;
-			currentColor.name = "currentColor";
+			currentColorBox.x = Math.floor(transColorButton.x+transColorButton.width);
+			currentColorBox.y = transColorButton.y;
+			currentColorBox.name = "currentColor";
 
 			hueColorMask.graphics.beginFill(0xFFFF0000);
 			hueColorMask.graphics.drawRect(0, 0, svBoxWidth, hueHeight);
@@ -497,7 +527,7 @@
 			hueCursor.mask = hueColorMask;
 
 			hueColor.x = 0;
-			hueColor.y = Math.floor(rgbInfoBG.y+rgbInfoBG.height+4);
+			hueColor.y = Math.floor(rgbInfoBG.y+rgbInfoHeight+4);
 			hueColor.addChild(hueCursor);
 			hueColor.addChild(hueColorMask);
 
@@ -511,7 +541,7 @@
 			mainColorPickerBox.addChild(svBox); //mainColorPickerBox svBox안에 svColor안에 svCursor
 			mainColorPickerBox.addChild(hueColor);
 			mainColorPickerBox.addChild(transColorButton);
-			mainColorPickerBox.addChild(currentColor);
+			mainColorPickerBox.addChild(currentColorBox);
 			mainColorPickerBox.addChild(rgbInfoBG);
 			mainColorPickerBox.addChild(rgbInfoText);
 			mainColorPickerBox.addChild(colorHistoryBox);
@@ -551,7 +581,6 @@
 			colorBoxPositionSave[0] = myPaletteBox.y;
 			colorBoxPositionSave[1] = mainColorPickerBox.y;
 
-			updateCurrentColor(1,0);
 			svCursor.mouseEnabled = false;
 			hueCursor.mouseEnabled = false;
 		}

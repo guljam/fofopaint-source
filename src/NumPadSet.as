@@ -240,12 +240,12 @@
 			updateOKGradient(true, true, true);
 		}
 
-		public function readyLCHAdjustment(purehue:uint, color:uint, invertcolorfunc:Function):void
+		public function readyLCHAdjustment(purehue:uint, color:uint):void
 		{
 			visible = true;
 			okBaseHue = hexToOklch(purehue).H;
 			updateOkBaseColor(color);
-			checkClipBoardHexColor(invertcolorfunc);
+			checkClipBoardHexColor();
 		}
 
 		public function off():void
@@ -272,7 +272,7 @@
 			return pattern.test(str);
 		}
 
-		public function checkClipBoardHexColor(invertcolorfunc:Function):void
+		public function checkClipBoardHexColor():void
 		{
 			var str:* = Clipboard.generalClipboard.getData(ClipboardFormats.TEXT_FORMAT) as String;
 			if (str && isHexFormatColor(str))
@@ -284,7 +284,7 @@
 				}
 
 				const hexcolor:uint = uint("0x" + colorstr);
-				const textcolor:uint = invertcolorfunc(hexcolor);
+				const textcolor:uint = Global.getInvertedColor(hexcolor);
 				numHexCopyColor = hexcolor;
 				updateHexCopyBGColor(hexcolor);
 				numHexCopyText.text = "#" + colorstr;

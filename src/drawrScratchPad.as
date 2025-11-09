@@ -21,7 +21,6 @@ package
         public var isScratchStarted:Boolean = false;
         private var lineStyleData:Array = [];
         public var mainPickColorFunc:Function;
-        public var pickColorBorderFunc:Function;
         private var scratchStartCount:int = 0;
 
         public function DrawrScratchPad(bmpdWidth:Number, bmpdHeight:Number):void
@@ -52,7 +51,7 @@ package
                 color = bgBmpd.getPixel(0, 0);
 
                 scratchPadDraw.graphics.clear();
-                scratchPadDraw.graphics.lineStyle(1 / scratchPadZoom, pickColorBorderFunc(color, 0) <= 40 ? 0xFFFFFF : 0);
+                scratchPadDraw.graphics.lineStyle(1 / scratchPadZoom, Global.getColorDifferenceForHuman(color, 0) <= 40 ? 0xFFFFFF : 0);
                 scratchPadDraw.graphics.drawRect(Math.floor(scratchPadBitmap.mouseX), Math.floor(scratchPadBitmap.mouseY), 1, 1);
 
                 return color;
@@ -127,16 +126,11 @@ package
             }
         }
 
-        public function drawReady(lineSize:Number, lineColor:uint, lineAlpha:Number, sqShape:Boolean, pickColorFunc:Function, rectColorFunc:Function):void
+        public function drawReady(lineSize:Number, lineColor:uint, lineAlpha:Number, sqShape:Boolean, pickColorFunc:Function):void
         {
             if (mainPickColorFunc === null)
             {
                 mainPickColorFunc = pickColorFunc;
-            }
-
-            if (pickColorBorderFunc === null)
-            {
-                pickColorBorderFunc = rectColorFunc;
             }
 
             if (isScratchStarted === false)
