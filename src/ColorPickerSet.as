@@ -317,10 +317,6 @@
 				lastRGBInfoText = rgbInfoText.text;
 				rgbInfoText.text = "";
 			}
-			else
-			{
-				trace("이미 되어있음");
-			}
 		}
 
 		public function getRGBInfoBorderColor(color:uint):uint

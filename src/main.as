@@ -1830,13 +1830,11 @@
             }
 
             hsv[index] = Number(num);
-            trace("hsv",hsv)
             hsv[0] = hsv[0]/360;
             hsv[1] = hsv[1]/100;
             hsv[2] = hsv[2]/100;
 
             const hsvvec:Vector.<Number> = new <Number>[hsv[0],hsv[1],hsv[2]];
-            trace("hsv after",hsv,"hsvvec",hsvvec)
 
             updateColorPickerCursorPosAndRGBInfo(hsvvec);
             keepRGBInfoTextPartFocus();
@@ -1876,7 +1874,6 @@
                 const gp:Point = colorPickerBox.rgbInfoBG.localToGlobal(new Point(0, 0));
                 numPadBox.x = Math.floor(gp.x);
                 numPadBox.y = Math.floor(gp.y + colorPickerBox.rgbInfoBG.height * Global.getUIScale()+1);
-                numPadBox.alpha = 0.5;
                 setAsTopChild(numPadBox);
                 resetLastKey();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, -2);
@@ -2048,6 +2045,7 @@
             var clickedPos:int = getRgbInfoTextClickedPosIndex();
 
             numpadInputBuffer = "";
+            isTransparentPenColor = false;
 
             if(colorPickerBox.getRGBInfoText() === "")
             {
@@ -11558,7 +11556,7 @@
                     replayTimelineBox.setPrograssBarMaxWidthFlag(true);
                 }
             }
-            else if(replayTimelineBox.isPrograssBarMaxWidthReached())
+            else if(replayTimelineBox.isPrograssBarMaxWidthReached() || newWidth === 0)
             {
                 replayTimelineBox.setPrograssBarMaxWidthFlag(false);
                 Global.applyToolBoxButtonOverBGColor(replayTimelineBox.prograssBar);
@@ -11573,28 +11571,22 @@
             {
                 customFrame = rNowFrame;
             }
-
+            
             replayTimelineBox.prograssInfo.text = customFrame+" / "+TOTAL_FRAME+remainingTime;
         }
 
         public function startUpdatePrograssBar():void
         {
-        trace("stat?");
-            updatePrograssBarStartTime = getTimer();
             var lastCursorUpdateTime:int = getTimer();
             var lastTextUpdateTime:int = getTimer();
             const cursorUpdateTime:int = stage.frameRate*2.5;
             const textUpdateTime:int = 1000;
             const frameTime:Number = 1000 / stage.frameRate;
-            var deltaFrameSum:Number = 0.0;
             var accWidth:Number = 0.0;
-            updateReplayPrograssBarWidthByNowFame();
 
             function onEnterFrame(e:Event):void
             {   
                 const nowTime:int = getTimer();
-                var deltaTime:Number = nowTime-updatePrograssBarStartTime;
-                // trace("deltaTime",deltaTime);
                 const trackBarWidth:Number = replayTimelineBox.trackBar.width;
 
                 if(isReplayFinished)
@@ -11610,41 +11602,26 @@
                     return;
                 }
 
-                deltaFrameSum += (deltaTime - frameTime);
-                var multi:Number = 1.0;
-                if(deltaFrameSum < -frameTime)
-                {
-                    deltaFrameSum += frameTime;
-                    multi = multi-1.0;
-                    return;
-                }
-                if(deltaFrameSum > frameTime)
-                {   
-                    deltaFrameSum -= frameTime;
-                    multi = multi+1.0;
-                }
-                리플레이 속도를 줄이거나 빠르게 하면 prograss bar 오차가 커지는 오류 생각
-                slide show랑 일반 플레이 왔다갔다하는 로직 바꿨는데 이상없는지 확인 특히 슬라이드쇼에서 일반 으로 넘어갈때 파일스트림 마지막 바이트를 써주는게 맞는건지 잘모르겠음
-                // trace("accFrameTime",accFrameTime,"frameTime",frameTime,"diff:",deltaTime,"sum",(deltaTime - frameTime));
-                const stepWidth:Number = (trackBarWidth *rReplaySpeedMultipler) / TOTAL_FRAME;
-
-                accWidth += stepWidth*multi;
-                const accWidthInt:int = int(accWidth);
+                const stepWidth:Number = (trackBarWidth*rReplaySpeedMultipler) / TOTAL_FRAME;
 
                 if(replayTimelineBox.prograssBar.width + stepWidth >= trackBarWidth)
                 {
-                    // setReplayPrograssBarMaxWidth();
                 }
-                else if(accWidthInt >= 1)
+                else
                 {
-                    increaseReplayPrograssBarWidth(accWidthInt);
-                    accWidth -= accWidthInt;
+                    const accWidthInt:int = int(accWidth);
+
+                    accWidth += stepWidth;
+
+                    if(accWidthInt >= 1)
+                    {   
+                        increaseReplayPrograssBarWidth(accWidthInt);
+                        accWidth -= accWidthInt;
+                    }
                 }
-                // updateReplayPrograssBarWidthByNowFame();
 
                 if(nowTime - lastCursorUpdateTime >= cursorUpdateTime)
                 {
-                trace("deltaFrameSum",deltaFrameSum,"multi",multi);
                     lastCursorUpdateTime = nowTime;
                     drawReplayByCommand.updateRCursorPos();
 
@@ -11654,7 +11631,7 @@
                     }
                 }
 
-                if(nowTime - lastTextUpdateTime >= textUpdateTime) //갱신 느리게 해줌
+                if(nowTime - lastTextUpdateTime >= textUpdateTime)
                 {
                     lastTextUpdateTime = nowTime;
                     updateReplayPrograssText();
@@ -12613,6 +12590,7 @@
 
             if(isReplayFinished === true) //리플레이 시간 등등 초기화 시키고 시작
             {
+                resetReplayPrograssBarWidth();
                 rMirrorON = false;
                 resetReplayTime();
                 clearCanvasReplayMode();
@@ -13425,14 +13403,17 @@
             return isFileBrowserOpened || isSaveInProgress
             || rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING;
         }
+
         //운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
-        public function onInvokeEvent(event:InvokeEvent):void
+        public function onInvokeEvent(e:InvokeEvent):void
         {
             if(isFileLoadBlocked())
             {
+                e.preventDefault();
                 return;
             }
-            var arguments:Array = event.arguments;
+
+            var arguments:Array = e.arguments;
 
             if(arguments && arguments.length > 0)
             {
@@ -21790,14 +21771,10 @@
                     _rSpeed = 1;
                 }
             }
+
             rReplaySpeedMultipler = _rSpeed;
             topBar.setSpeedButtonPosByValue(_rSpeed,maxSpeed);
             showReplaySpeedMouseHint();
-
-            if(isReplayFinished === false)
-            {
-                updateReplayPrograssText();
-            }
         }
 
         public function startAdjustPlayBackSpeedByShortcut(increase:Boolean):void
@@ -21863,6 +21840,11 @@
                 topBar.replaySpeedSliderCursor.x = mx;
                 setSpeed(mx);
                 showReplaySpeedMouseHint();
+                
+                if(isReplayFinished === false)
+                {
+                    updateReplayPrograssText();
+                }
             }
 
             function replaySpeedButtomUpEvent(e:MouseEvent):void
