@@ -20,11 +20,23 @@
 		public var replayNext:SimpleButton;
 		private var nowBarColorSave:ColorTransform = new ColorTransform();
 		public const BARSIZE:Number = 27;
+		private var isPrograssBarMaxWidth:Boolean = false;
 
 		public function setScale(newScale:Number):void
 		{
 			this.scaleX = newScale;
 			this.scaleY = newScale;
+		}
+
+		public function isPrograssBarMaxWidthReached():Boolean
+		{
+			return isPrograssBarMaxWidth;
+		}
+
+		public function setPrograssBarMaxWidthFlag(flag:Boolean):void
+		{
+			isPrograssBarMaxWidth = flag;
+
 		}
 
 		private function initializeTrackBarX():void

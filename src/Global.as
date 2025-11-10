@@ -33,7 +33,7 @@ package
         static private const uiScales:Array = [1.0,1.25,1.5,1.75,2.0,2.25];
         static private var uiColorIndex:int = 1;
         static private const uiColorSets:Array = [
-                        // 주 컬러           반대색        stage 배경색   크기조절 막대색                 리플레이 완료색     리플레이 재시작색
+                        // 주 컬러           반대색        stage 배경색        크기조절 막대색                 리플레이 완료색     리플레이 재시작색
                         [UI_COLOR_DARK,       0xE5E5E5,        0x4B4B4B,       0x676767,               0x74AC74,            0xE8BE71],
                         [UI_COLOR_MID_DARK,   UI_COLOR_BRIGHT, 0x888888,  UI_RESIZE_BUTTON_COLOR,      0xA1CE9D,            0xF7DA83],
                         [UI_COLOR_MID_BRIGHT, 0x505050,        0xC9C9C9,       0xB0B0B0,               0xB6DAAF,            0xF7EA8D],

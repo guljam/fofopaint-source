@@ -251,13 +251,11 @@
 				return ("  " + n).substr(-3);
 			}
 
-			trace("data",data,"mode",mode);
-
 			if(mode === "HSV")
 			{
 				if(data[0] <= 1.0)
 				{
-					rgbInfoText.text = mode+" "+pad(Math.floor(data[0]*360))+","+pad(Math.floor(data[1]*100))+","+pad(Math.floor(data[2]*100));
+					rgbInfoText.text = mode+" "+pad(Math.round(data[0]*360))+","+pad(Math.round(data[1]*100))+","+pad(Math.round(data[2]*100));
 				}
 				else
 				{
