@@ -21170,7 +21170,8 @@
         public function updateScrollBarColorAndHeight():void
         {
             const scale:Number = Global.getUIScale();
-            const height:Number = Math.round((stage.stageHeight-STAGE_TOP_OFFSET-STAGE_BOTTOM_OFFSET)/scale);
+            const topBarHeight:Number = Math.round(topBar.BARSIZE * scale)
+            const height:Number = Math.round((stage.stageHeight-topBarHeight-STAGE_BOTTOM_OFFSET)/scale);
             const color1:uint = Global.getUIFGColor();
             const color2:uint = Global.getUIBGColor();
 
@@ -21374,7 +21375,7 @@
         {
             updateScrollBarColorAndHeight();
             resetScrollBarX();
-            checkScrollSetOutStage();
+            keepScrollSetInStage();
         }
 
         public function getSideBarBGHeight():Number
@@ -22877,7 +22878,7 @@
             lassoLayer2.y = lassoLayer1.y;
         }
 
-        public function checkScrollSetOutStage():void
+        public function keepScrollSetInStage():void
         {
             const scale:Number = Global.getUIScale();
             const limitTop:Number = Math.floor(-sideBarConstHeight+20.0);
@@ -22923,7 +22924,7 @@
             function onMouseUp():void
             {
                 sideBarScrollBar.alpha = alphaSave;
-                checkScrollSetOutStage();
+                keepScrollSetInStage();
                 scrollSetMovedY = sideBarScrollPanel.y;
 
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
