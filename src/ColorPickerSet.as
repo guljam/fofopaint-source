@@ -500,7 +500,7 @@
 			rgbInfoText.type = TextFieldType.DYNAMIC;
 			rgbInfoText.selectable = false;
 			rgbInfoText.x = 0;
-			rgbInfoText.y = 1;
+			rgbInfoText.y = 0.5;
 
 			rgbInfoBG.x = 0;
 			rgbInfoBG.y = 0;

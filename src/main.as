@@ -2939,6 +2939,11 @@
 
         public function applyUIScale():void
         {
+        // TODO: root containter모든 요소를 다 집어 넣어서 루트 컨테이너 스케일만 바꿔주면 간단해지는데
+        // 아까 간단하게 테스트 해봤는데 하이라이트 박스위치가 안맞음
+        // getchildindex setchildindex numchild
+        // stage.stagewidth나 stage.adeventlisther같은것들
+        // 좌표계 getbounds(stage) stage 이벤트 리스너
             const scale:Number = Global.getUIScale();
             const stw:Number = stage.stageWidth;
             const sth:Number = stage.stageHeight;
@@ -13017,6 +13022,7 @@
 
             if (target === colorPickerBox.rgbInfoText)
             {
+                // rect.y -= 2*scale;
                 rect.height -= 2*scale;
             }
             else if (target === sideBarScrollBar)
@@ -18368,7 +18374,10 @@
         }
 
         public function cZoomTool():Function
-        {   
+        {
+        //TODO: dpi변경시 캔버스도 기본배율바꿔주기?
+        //하지만 줌 크게 하면 성능저하및 앱 크래시 문제 걱정
+        //뷰포트만 갱신해주거나 비트맵 타일 변경된부분만 감지하는 dirty rect방식 고민
             const zoomMaxIndex:uint = canvasZoomMultiplerList.length-1;
             const clickPos:Point = new Point(0,0);
             const lastMousePos:Point = new Point(0,0);
@@ -21274,7 +21283,7 @@
             canvasDrawLayerChild.name = "canvasDrawShape";
             penSizePreviewCursor.name = "penSizeCursor";
             stageBG.name = "stageBG";
-            canvasRefLayer.name = "canvasTraceLayer";
+            canvasRefLayer.name = "canvasRefLayer";
             canvasGrid.name = "canvasGrid";
             canvasFlashEffect.name = "canvasFlash";
 
