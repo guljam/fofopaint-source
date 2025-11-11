@@ -36,7 +36,7 @@
 
 		public function updateBGColor():void
 		{
-			_bgColor = Global.getHintBGColor();;
+			_bgColor = Global.getHintBGColor();
 		}
 
 		public function getDefaultHeight():Number
@@ -76,18 +76,9 @@
 			}
 		}
 
-		public function hideHintWithMouseEvents():void
-		{
-			hide();
-			FOFOTimer.remove(_hintTimerName);
-			_isHintHideEventsAdded = false;
-			_stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseEventHideHint);
-			_stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseEventHideHint);
-		}
-
 		public function onMouseEventHideHint(e:MouseEvent):void
 		{
-			hideHintWithMouseEvents();
+			hide();
 		}
 
 		public function show(duration:Number = 0.0):void
@@ -97,9 +88,9 @@
 			if (duration > 0.0)
 			{
 				FOFOTimer.addByName(_hintTimerName, duration, false, function():void
-					{
-						hideHintWithMouseEvents();
-					});
+				{
+					hide();
+				});
 
 				if (!_isHintHideEventsAdded)
 				{
@@ -114,6 +105,10 @@
 		{
 			this.visible = false;
 			setHintText("");
+			FOFOTimer.remove(_hintTimerName);
+			_isHintHideEventsAdded = false;
+			_stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseEventHideHint);
+			_stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseEventHideHint);
 		}
 
 		public function isShowing():Boolean
@@ -124,7 +119,7 @@
 		public function HintBoxSet(stage:DisplayObjectContainer, initBG:Boolean)
 		{
 			_instantCount++;
-			_hintTimerName = "hintShowTime" + _instantCount;
+			_hintTimerName = "hintShowTimer" + _instantCount;
 			_stage = stage;
 			visible = false;
 			hintText.mouseEnabled = false;

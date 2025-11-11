@@ -34,6 +34,8 @@
     import flash.events.FocusEvent;
     import flash.events.InvokeEvent;
     import flash.events.TimerEvent;
+    import flash.events.UncaughtErrorEvent;
+    import flash.events.ErrorEvent;
     import flash.filesystem.File;
     import flash.filesystem.FileStream;
     import flash.filesystem.FileMode;
@@ -59,9 +61,7 @@
     import flash.text.TextFormat;
     import flash.ui.Mouse;
     import libwebp.DecodeWebp;
-    import flash.events.UncaughtErrorEvent;
-    import flash.events.ErrorEvent;
-    import flash.text.engine.BreakOpportunity;
+    import HintScrolling;
 
     //import end
     public class Main extends Sprite
@@ -286,6 +286,7 @@
                      eyedropperLens:EyedropperLensSet = new EyedropperLensSet(),
                      mouseHint:HintBoxSet = new HintBoxSet(stage,true),
                      bottomHint:HintBoxSet = new HintBoxSet(stage,false),
+                     bottomHintScrolling:HintScrolling = new HintScrolling(bottomHint,stage),
                      bottomBar:Sprite = new Sprite(),
                      hintHighlightBox:Shape = new Shape(), //요소에 마우스 클릭하면 사각형으로 하이라이트 표시해줌
                      aboutBox:AboutWindowSet = new AboutWindowSet(),
@@ -637,7 +638,7 @@
                     loadMenuBoxBitmapData:BitmapData,              // 메뉴 박스 미리보기 이미지 데이터
                     loadMenuBoxFileType:String,                    // 메뉴 박스에 로드할 파일 종류
                     loadMenuBoxFile:File,                          // 메뉴 박스에 로드할 파일
-                    lastBottomHintTarget:DisplayObject;            // bottomhint mosue move에서 자꾸 호출해주니까 미자막 오브 젝트 저장해서 호출 조금 덜하게 해줌
+                    lastBottomHintTargetRect:Rectangle = new Rectangle();// bottomhint mosue move에서 자꾸 호출해주니까 저장해서 호출 덜하게 해줌
 
         public function Main():void
         {
@@ -693,10 +694,28 @@
         }
 
         //function
-        public function getCaptureModeHintCanvasPanel():String
+        public function isSameWithLastBottomHintTargetRect(target:DisplayObject):Boolean
         {
-            return "draw"
+            return lastBottomHintTargetRect.equals(target.getBounds(stage));
         }
+
+        public function updateLastBottomHintTargetRect(target:DisplayObject):void
+        {
+            const rect:Rectangle = target.getBounds(stage);
+            lastBottomHintTargetRect.x = rect.x;
+            lastBottomHintTargetRect.y = rect.y;
+            lastBottomHintTargetRect.width = rect.width;
+            lastBottomHintTargetRect.height = rect.height;
+        }
+
+        public function resetLastBottomHintTargetRect():void
+        {
+            lastBottomHintTargetRect.x = 0;
+            lastBottomHintTargetRect.y = 0;
+            lastBottomHintTargetRect.width = 0;
+            lastBottomHintTargetRect.height = 0;
+        }
+
 
         public function updateLayer1BitmapData(newbmpd:BitmapData):void
         {
@@ -746,7 +765,6 @@
 
         public function startDragInteraction(onDragStart:Function, onMouseMove:Function, onMouseUp:Function):void
         {
-            // TODO: 슬라이더 메뉴관련은 이 함수로 대체해야함
             isMouseDragging = true;
 
             function onmouseUp(e:MouseEvent):void
@@ -1961,10 +1979,6 @@
                 return;
             }
 
-            //TODO : rgb info text 동작 수정해야함
-            // 항목을 선택하고 numpad로 수정하고 나서 다시 이전항목선택시 전체 선택이 안되고 일부 선택만됨
-            //RGB HSV와 숫자 사이를 더블 클릭하면 가장 뒤에 숫자 항목이 선택됨
-
             if (targetName === "numInc")
             {
                 startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
@@ -2925,7 +2939,6 @@
 
         public function applyUIScale():void
         {
-        //todo:클래스 내부에서 global scale참조하도록 매개변수 없애기
             const scale:Number = Global.getUIScale();
             const stw:Number = stage.stageWidth;
             const sth:Number = stage.stageHeight;
@@ -7338,19 +7351,15 @@
             canvasInfoBox.updateUIColor();
             canvasRotateCursor.changeUIColor();
             fofo.updateColor();
-            
             toolBox.changeUIColor();
             toolBox2.changeUIColor();
             fillPenBox.updateUIColor();
             lassoMenuBox.updateUIColor();
             numPadBox.updateUIColor();
-        
             refLayerMenuBox.updateUIColor();
-
             topBar.updateUIColor();
             replayTimelineBox.updateUIColor();
             captureStampFontListBox.updateUIColor();
-            //todo: rgbinfotext 색깔을 바꿔주어야하는데?
             mouseHint.updateBGColor();
             bottomHint.updateHintTextColor(0);
             setResizeButtonColor();
@@ -7400,24 +7409,26 @@
 
             function onGlobalError(e:UncaughtErrorEvent):void
             {
-                var msg:String = "eorr";
+                var msg:String = "An unknown error occurred.";
+                var errorObject:Object = e.error;
 
-                if (e.error is Error) {
-                    var err:Error = e.error as Error;
-                    msg = err.message;
-                    if (msg.hasOwnProperty("getStackTrace"))
-                    {
-                        var stack:String = err.getStackTrace();
-                        if (stack != null)
-                        {
-                            msg += "\n[stack trace]\n" + stack;
-                        }
-                    }
-                } else if (e.error is ErrorEvent) {
-                    msg = (e.error as ErrorEvent).text;
+                if (errorObject is Error)
+                {
+                    msg = (errorObject as Error).message;
+                }
+                else if (errorObject is ErrorEvent)
+                {
+                    msg = (errorObject as ErrorEvent).text;
+                }
+                else if (errorObject != null) // Error, ErrorEvent가 아닌 객체 처리
+                {
+                    msg = String(errorObject);
                 }
 
-                showMouseHintTemp(msg);
+                showMouseHintTemp(msg,10.0);
+                
+                // 이 핸들러가 에러를 처리했음을 시스템에 알리고 기본 동작을 막습니다. (권장)
+                e.preventDefault();
             }
         }
 
@@ -12409,8 +12420,6 @@
 
         public function renderReplayFrame(frame:Number,jumpflag:int):void //jumpp
         {
-        //TODO now prograss bar 는여기서 갱신조건 스탭으로만 하고
-        //플레이중에는 따로 시간계산해서 매끄럽게 진행하는것으로 바꿈 마우스 조작 매끄럽게하는느낌으로 가려고함
             if(frame < 0) 
             {
                 frame = 0;
@@ -12951,16 +12960,13 @@
             {
                 return;
             }
-
-            if(target === lastBottomHintTarget || isToolBox2Showing)
-            {   
+            if(isSameWithLastBottomHintTargetRect(target) || isToolBox2Showing)
+            {  
                 return;
             }
 
-            //TODO : 여백이 좁으면 왔다갔다 스크롤링도 추가해야함
-
             removeTimer("bottomHintOnDelay")
-            lastBottomHintTarget = target;
+            updateLastBottomHintTargetRect(target);
 
             if(isCaptureModeON)
             {
@@ -12996,29 +13002,34 @@
             }
         }
 
-        public function showHintHighlightBox(target:DisplayObject,rect:Rectangle = null):void
+        public function showHintHighlightBox(target:DisplayObject):void
         {
+            const scale:Number = Global.getUIScale();
             hintHighlightBox.graphics.clear();
-            hintHighlightBox.graphics.lineStyle(2*Global.getUIScale(), Global.getHintHightlightColor(), 1.0);
+            hintHighlightBox.graphics.lineStyle(2*scale, Global.getHintHightlightColor(), 1.0);
 
-            rect = target.getBounds(stage);
-            const panelrect:Rectangle = canvasLayer1Bitmap.getBounds(stage);
+            if (target.parent === canvasNavigatorBox)
+            {
+                target = canvasNavigatorBox;
+            }
 
-            var gp:Point = target.localToGlobal(new Point(0, 0));
+            const rect:Rectangle = target.getBounds(stage);
+
             if (target === colorPickerBox.rgbInfoText)
             {
-                gp.x -= 2;
-                gp.y -= 3;
+                rect.height -= 2*scale;
             }
-            else if (target.parent === canvasNavigatorBox)
+            else if (target === sideBarScrollBar)
             {
-                gp = canvasNavigatorBox.localToGlobal(new Point(0, 0));
-                target = canvasNavigatorBox;
+                rect.x +=1*scale;
+                rect.y +=1*scale;
+                rect.width -= 2*scale;
+                rect.height -= 2*scale;
             }
 
             hintHighlightBox.x = rect.x;
             hintHighlightBox.y = rect.y;
-            hintHighlightBox.graphics.drawRect(0, 0, rect.width, rect.height);
+            hintHighlightBox.graphics.drawRect(0,0, rect.width, rect.height);
             updateHightLightBoxZOrderByTarget(target);
             hintHighlightBox.visible = true;
         }
@@ -13044,6 +13055,7 @@
             removeTimer("bottomHintOnDelay");
             hideHintHighlightBox();
             bottomBar.visible = false;
+            bottomHint.hide();
         }
 
         public function showBottomHint(str:String):void
@@ -13058,6 +13070,7 @@
             updateBottomBarLayoutAndColor();
             bottomBar.visible = true;
             setAsTopChild(bottomBar);
+            bottomHintScrolling.start();
         }
 
         public function hideMouseHint():void
@@ -13065,13 +13078,9 @@
             mouseHint.hide();
         }
 
-        public function showMouseHintTemp(str:String):void
+        public function showMouseHintTemp(str:String,duration:Number=1.0):void
         {
-            // if(isHintUnavailable())
-            // {
-            //     return;
-            // }
-            showMouseHint(str,1.0);
+            showMouseHint(str,duration);
         }
 
         public function showMouseHint(str:String,duration:Number=0.0):void
@@ -15305,7 +15314,7 @@
                                     "layer2" : layer2
             };
 
-            lastBottomHintTarget = null;
+            resetLastBottomHintTargetRect();
             topBar.capClipBoard.alpha = 1.0;
             captureCanvasRotationStep = 0;
             isCaptureCanvasFlipped = false;
@@ -15367,7 +15376,7 @@
                 updateCanvasScale(data.z,replayMode);
             }
 
-            lastBottomHintTarget = null;
+            resetLastBottomHintTargetRect();
             hideMouseHint();
             captureWindowMove.setTo(0,0);
 
@@ -18757,7 +18766,7 @@
                                     ];
             var guideLineWidth:Number = 0;
             var ratioGuidePosBackUp:Point = new Point(0,0);
-            var widthFlag:Boolean = false; //가로인지 새로인지 결정
+            var isWidthDimention:Boolean = false; //가로인지 새로인지 결정
             var targetName:String;
             var oldWidth:Number;
             var oldHeight:Number;
@@ -18770,7 +18779,7 @@
 
             function updateRatioSnapGuidePos():void
             {
-                if(widthFlag)
+                if(isWidthDimention)
                 {
                     if(canvasPanel.mouseY > oldHeight/2)
                     {
@@ -18800,35 +18809,19 @@
                 }
             }
 
-            function checkRatioSnap(width:Number):Array
+            function getNearestRatio(width:Number):Array
             {
-                var low:Number = 0;
-                var high:Number = ratioSizeArr.length-1;
-                var index:Number = Math.floor((low+high)/2);
-                var snapWidth:Number;
-
-                while(low <= high)//2진 탐색
+                var index:Number =  binarySearchIndex(ratioSizeArr,width,function(item:*):Number
                 {
-                    snapWidth = ratioSizeArr[index][0];
+                    return item[0];
+                });
 
-                    if(snapWidth === width) break;
-                    else if(snapWidth > width) high = index-1;
-                    else low = index+1;
-
-                    index = Math.floor((low + high)/2);
-                }
-                ++index;
-
-                if(index < 0) index = 0;
-                else if(index > ratioSizeArr.length-1) index = ratioSizeArr.length-1;
-
-                return ratioSizeArr[index];
+                return ratioSizeArr[index+1];
             }
 
             function drawRatioSnapGuide(w:Number,h:Number,targetName:String):void
             {
-                widthFlag = (targetName === "resizeButtonL" || targetName === "resizeButtonR") ? true : false;
-                const flipFlag:Boolean = (targetName === "resizeButtonU" || targetName === "resizeButtonL") ? true : false;
+                isWidthDimention = (targetName === "resizeButtonL" || targetName === "resizeButtonR") ? true : false;
 
                 function _drawRatioLine(referenceSize:Number,offset:Number):void
                 {
@@ -18836,21 +18829,22 @@
 
                     //hittestpoint를 위해서 배경을 그려줌
                     resizePreviewRatioRect.graphics.beginFill(0xFFFF00,0.0);
-                    if(widthFlag) resizePreviewRatioRect.graphics.drawRect(-max/2,-guideLineWidth,max*2,guideLineWidth);
+                    if(isWidthDimention) resizePreviewRatioRect.graphics.drawRect(-max/2,-guideLineWidth,max*2,guideLineWidth);
                     else resizePreviewRatioRect.graphics.drawRect(-guideLineWidth,-max/2,guideLineWidth,max*2);
                     resizePreviewRatioRect.graphics.endFill();
 
-                    const color:uint = Global.getUIFGColor()
-                    var prevSize:Number; //스냅 격자 그려주는 위치
-                    var realSize:Number; //스냅 걸릴때 실제 사이즈
+                    const color:uint = Global.getUIFGColor();
+                    var snapGuideStartPos:Number; //스냅 격자 그려주는 위치
+                    var scaledSize:Number; //스냅 걸릴때 실제 사이즈
                     const len:uint = ratioArr.length;
+                    const flipFlag:Boolean = (targetName === "resizeButtonU" || targetName === "resizeButtonL") ? true : false;
 
                     for(var i:uint=0;i<len;i+=2)
                     {
-                        realSize = Math.round(referenceSize*ratioArr[i+1]);
-                        prevSize = realSize;
+                        scaledSize = Math.round(referenceSize*ratioArr[i+1]);
+                        snapGuideStartPos = scaledSize;
 
-                        if(realSize > max || realSize < min)
+                        if(scaledSize > max || scaledSize < min)
                         {
                             continue;
                         }
@@ -18859,24 +18853,24 @@
 
                         if(flipFlag)
                         {
-                            prevSize = -prevSize+offset;
+                            snapGuideStartPos = -snapGuideStartPos+offset;
                         }
 
-                        if(widthFlag)
+                        if(isWidthDimention)
                         {
-                            resizePreviewRatioRect.graphics.moveTo(prevSize,0);
-                            resizePreviewRatioRect.graphics.lineTo(prevSize,-guideLineWidth);
+                            resizePreviewRatioRect.graphics.moveTo(snapGuideStartPos,0);
+                            resizePreviewRatioRect.graphics.lineTo(snapGuideStartPos,-guideLineWidth);
                         }
                         else
                         {
-                            resizePreviewRatioRect.graphics.moveTo(0,prevSize);
-                            resizePreviewRatioRect.graphics.lineTo(-guideLineWidth,prevSize);
+                            resizePreviewRatioRect.graphics.moveTo(0,snapGuideStartPos);
+                            resizePreviewRatioRect.graphics.lineTo(-guideLineWidth,snapGuideStartPos);
                         }
-                        ratioSizeArr.push([realSize,ratioArr[i]]);
+                        ratioSizeArr.push([scaledSize,ratioArr[i]]);
                     }
                 }
 
-                if(widthFlag) //가로 조절
+                if(isWidthDimention) //가로 조절
                 {
                     _drawRatioLine(h,w);
                 }
@@ -18990,6 +18984,11 @@
                 updateRatioSnapGuidePos();
             }
 
+            function flipRatioString(r:String):String{
+                var p:Array = r.split(":");
+                return p[1] + ":" + p[0];
+            }
+
             function updateHeight(flipFlag:Boolean):Number
             {
                 subY = (flipFlag) ? resizeClickPos.y-canvasPanel.mouseY
@@ -19003,12 +19002,13 @@
 
                 if(resizePreviewRatioRect.hitTestPoint(stage.mouseX,stage.mouseY,true))
                 {
-                    const snap:Array = checkRatioSnap(height);
-                    if(snap)
+                    const info:Array = getNearestRatio(height);
+                    if(info)
                     {
-                        subY = snap[0]-oldHeight;
-                        finalHeight = snap[0];
-                        showMouseHint(oldWidth+" x "+finalHeight+" ("+snap[1]+")");
+                        subY = info[0]-oldHeight;
+                        finalHeight = info[0];
+                        const str:String = flipRatioString(info[1]);
+                        showMouseHint(oldWidth+" x "+finalHeight+" ("+str+")");
 
                         return subY;
                     }
@@ -19034,12 +19034,13 @@
 
                 if(resizePreviewRatioRect.hitTestPoint(stage.mouseX,stage.mouseY,true))
                 {
-                    const snap:Array = checkRatioSnap(width);
-                    if(snap)
+                    const info:Array = getNearestRatio(width);
+                    if(info)
                     {
-                        subX = snap[0]-oldWidth;
-                        finalWidth = snap[0];
-                        showMouseHint(finalWidth+" x "+oldHeight+" ("+snap[1]+")");
+                        subX = info[0]-oldWidth;
+                        finalWidth = info[0];
+
+                        showMouseHint(oldWidth+" x "+finalHeight+" ("+info[1]+")");
 
                         return subX;
                     }
@@ -22652,6 +22653,7 @@
                 colorPickerBox.scratchPad.removeCheckMouseDistEvent();
             }
 
+            hideBottomHint();
             selectLastUsedTool();
         }
 
