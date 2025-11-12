@@ -60,6 +60,11 @@
             }
         }
 
+        public function getReplayPrograssBarWidth():Number
+		{
+			return prograssBar.width;
+		}
+
 		public function updatePos(stw:Number):void
 		{
 			const scale:Number = this.scaleX;
