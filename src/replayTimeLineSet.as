@@ -21,6 +21,97 @@
 		private var nowBarColorSave:ColorTransform = new ColorTransform();
 		public const BARSIZE:Number = 27;
 		private var isPrograssBarMaxWidth:Boolean = false;
+		
+		public function updateReplayPrograssBarWidthByNowFame(frameRaio:Number):void
+        {
+            setReplayPrograssBarWidth(trackBar.width*frameRaio);
+        }
+
+        public function increaseReplayPrograssBarWidth(inc:Number):void
+        {
+            setReplayPrograssBarWidth(prograssBar.width+inc);
+        }
+
+        public function setReplayPrograssBarMaxWidth():void
+        {
+            setReplayPrograssBarWidth(trackBar.width);
+        }
+
+        public function resetReplayPrograssBarWidth():void
+        {
+            setReplayPrograssBarWidth(0);
+        }
+
+        public function setReplayPrograssBarWidth(newWidth:Number):void
+        {
+            prograssBar.width = newWidth;
+        
+            if(newWidth >= trackBar.width)
+            {
+                if(!isPrograssBarMaxWidthReached())
+                {
+                    setPrograssBarMaxWidthFlag(true);
+                }
+            }
+            else if(isPrograssBarMaxWidthReached() || newWidth === 0)
+            {
+                setPrograssBarMaxWidthFlag(false);
+                Global.applyToolBoxButtonOverBGColor(prograssBar);
+            }
+        }
+
+		public function updatePos(stw:Number):void
+		{
+			const scale:Number = this.scaleX;
+            const maxWidth:Number = stw-(trackBar.x+5)*scale;
+
+            trackBar.width =  Math.floor(maxWidth/scale);
+            replayBGBar.width =  Math.floor(stw/scale)+1;
+            prograssInfo.x = trackBar.x;
+            prograssInfo.width =  Math.floor(maxWidth/scale);
+		}
+
+		public function updateDeleteDangeBarPosWidth(mode:String):void
+		{
+			var dangX:Number;
+			var dangWidth:Number;
+
+			if(mode === "before")
+			{
+				dangX = trackBar.x;
+				dangWidth = prograssBar.width;
+			}
+			else if(mode === "after")
+			{
+				dangX = trackBar.x+prograssBar.width;
+				dangWidth = trackBar.width-prograssBar.width;
+			}
+			else if(mode === "total")
+			{
+				dangX = trackBar.x;
+            	dangWidth = deleteRangeBar.width = trackBar.width;
+			}
+			else
+			{
+				return;
+			}
+
+			deleteRangeBar.x = dangX;
+			deleteRangeBar.width = dangWidth;
+			setDeleteRangeBarVisible(true);
+		}
+
+		public function setDeleteRangeBarVisible(flag:Boolean):void
+		{
+			deleteRangeBar.visible = flag;
+            prograssBar.visible = !flag;
+		}
+
+		public function setPlayButtonVisible(flag:Boolean):void
+		{
+			playButton.visible = flag;
+            pauseButton.visible = !flag;
+		}
 
 		public function setScale(newScale:Number):void
 		{
