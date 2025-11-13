@@ -22,14 +22,14 @@
 		public const BARSIZE:Number = 27;
 		private var isPrograssBarMaxWidth:Boolean = false;
 		
-		public function showNextPrevButton():void
+		public function showReplayControlButton():void
 		{
 			replayPrev.visible = true;
 			replayNext.visible = true;
 			updatePos(stage.stageWidth);
 		}
 
-		public function hideNextPrevButton():void
+		public function hideReplayControlButton():void
 		{
 			replayPrev.visible = false;
 			replayNext.visible = false;

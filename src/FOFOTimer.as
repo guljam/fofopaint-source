@@ -54,6 +54,7 @@
 					delete deadTimers[deadKey];
 				}
 			}
+
 			if (loopCount === 0)
 			{
 				started = false;
@@ -70,8 +71,8 @@
 		{
 			if (timerList.hasOwnProperty(name))
 			{
-				timerList[name] = null;
-				deadTimers[name] = 0;
+				delete timerList[name];
+				delete deadTimers[name];
 			}
 		}
 

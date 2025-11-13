@@ -134,7 +134,6 @@
                       STRING_PLAYBACK_SPEED:String = "Playback speed x",
                       STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK",
                       STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done",
-                      STRING_CAPTURE_OK:String = " _ Reset [right-click]",
                       STRING_MERGE_LASSO_IMAGE_TO_REFLAYER:String = "Merge selected area\ninto reference layer",
                       STRING_MERGE_CANVAS_IMAGE_TO_REFLAYER:String = "Merge canvas image\ninto reference layer",
                       STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]",
@@ -323,7 +322,7 @@
                     // canvasZoomMultiplerList:Array = [0.125,0.25,0.5,0.75,1.0,1.50,2.0,3.0,4.0,6.0,8.0,12.0,16.0,24.0,32.0],
                     canvasZoomMultiplerList:Array = [0.125,0.25,0.5,0.75,1.0,1.50,2.0,3.0,4.0,6.0,8.0],
                     canvasZoomMultipler:Number = 1.0,
-                    canvasZoomIndex:int = 3,
+                    canvasZoomIndex:int = 4,
                     isMouseClicked:Boolean = false, //클릭하면 올려줌,
                     isRightMouseClicked:Boolean = false, //클릭하면 올려줌
                     isMouseDragging:Boolean = false, //툴을 계속 클릭한채로 움직이면 topmenu의 힌트가 안켜지도록 함
@@ -480,7 +479,7 @@
                    rMirrorON:Boolean = false, //대칭 켜지면 올려줌
                    rCanvasZoomMultiplier:Number = 1.0, //리플레이 줌
                    rLastCanvasZoomMultiplier:Number = 1.0, //리플레이에서 수동줌하면 여기다가 저장해줌
-                   rCanvasZoomIndex:int = 3, 
+                   rCanvasZoomIndex:int = 4, 
                    isReplayCanvasFitToWindow:Boolean = false, // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
                    rJumpImageIndexLast:int = -2, //썸네일 인덱스 바뀌면 여기다 저장
                    rJumpImageNowFrameLast:Number = -1, 
@@ -792,6 +791,7 @@
 
             return (rFinal << 16) | (gFinal << 8) | bFinal;
         }
+
         public function isSameWithLastBottomHintTargetRect(target:DisplayObject):Boolean
         {
             return lastBottomHintTargetRect.equals(target.getBounds(stage));
@@ -10073,7 +10073,7 @@
             tmpbmpd.draw(mergedbmpd,mat,alpha);
 
             rCanvasCompleteBitmap.bitmapData = tmpbmpd;            
-            rCanvasCompleteBitmap.filters = [new BlurFilter(20, 20, 3)];
+            rCanvasCompleteBitmap.filters = [new BlurFilter(15, 15, 3)];
             setReplayCompleteCanvasCenter();
 
             var glow:GlowFilter = new GlowFilter();
@@ -10088,10 +10088,18 @@
             stageBG.addChild(rCanvasCompleteAnchorPoint);
         }
 
+        public function getTrackBarHint():String
+        {
+            if(isReplayRestartTimerON())
+            {
+                return "Seek bar — Cancel restart [click]";
+            }
+            return "Seek bar";
+        }
+
         public function replayCompleteEffect():void
         {
             fitCanvasToViewportMargin(isReplayCanvasFitToWindow);
-            rCanvasZoomIndex = canvasZoomMultiplerList.indexOf(1.0);
             applyCanvasFlashEffect(rCanvasPanel,0,0,RCANVAS_WIDTH,RCANVAS_HEIGHT,function():Boolean
             {
                 return topBar.visible;
@@ -10106,6 +10114,7 @@
             removeTimer("replayRestartTimer");
             updateReplayPrograssText(true,TOTAL_FRAME);
             Global.setColorTransform(replayTimelineBox.prograssBar,Global.getUIReplayEndBarColor());
+            updateCanvasScale(rLastCanvasZoomMultiplier,true);
         }
 
         public function isReplayRestartTimerON():Boolean
@@ -10116,6 +10125,7 @@
         public function startReplayRestartTimer():void
         {
             Global.setColorTransform(replayTimelineBox.prograssBar,Global.getUIReplayRestartBarColor());
+
             if(isReplayRepeatON)
             {
                 rReplayRestartTimerCount = 20;
@@ -11766,6 +11776,7 @@
                     replayCompleteEffect();
                     startReplayRestartTimer();
                     showCompleteImageToBGReplayMode();
+                    hideBottomHint();
                     return false;
                 }
 
@@ -12701,7 +12712,7 @@
                 topBar.visible = true;
                 replayTimelineBox.y = lastReplayTimeBoxYPos;
                 replayTimelineBox.setPlayButtonVisible(true);
-                replayTimelineBox.showNextPrevButton();
+                replayTimelineBox.showReplayControlButton();
             }
         }
 
@@ -12710,7 +12721,7 @@
             if(topBar.visible === true)
             {
                 replayTimelineBox.y = 0;
-                replayTimelineBox.hideNextPrevButton();
+                replayTimelineBox.hideReplayControlButton();
                 topBar.visible = false;
                 hideBottomHint();
                 hideMouseHint();
@@ -12767,12 +12778,12 @@
                 selectReplaySubLayer(false);
             }
 
-            if(isReplayFinishedWithFiwWindow === true)
-            {
-                isReplayFinishedWithFiwWindow = false;
-                rCanvasZoomIndex = getNearZoomIndex(rCanvasZoomMultiplier);
-                updateCanvasScale(rCanvasZoomMultiplier,true);
-            }
+            // if(isReplayFinishedWithFiwWindow === true)
+            // {
+            //     isReplayFinishedWithFiwWindow = false;
+            //     rCanvasZoomIndex = getNearZoomIndex(rCanvasZoomMultiplier);
+            //     updateCanvasScale(rCanvasZoomMultiplier,true);
+            // }
 
             if(!rDataReadFlag)
             {
@@ -13110,12 +13121,13 @@
             {
                 return;
             }
+
             if(isSameWithLastBottomHintTargetRect(target) || isToolBox2Showing)
             {  
                 return;
             }
 
-            removeTimer("bottomHintOnDelay")
+            removeTimer("bottomHintOnDelay");
             updateLastBottomHintTargetRect(target);
 
             if(isCaptureModeON)
@@ -13221,7 +13233,10 @@
             updateBottomBarLayoutAndColor();
             bottomBar.visible = true;
             setAsTopChild(bottomBar);
-            bottomHintScrolling.start();
+            if(bottomHint.width > stage.stageWidth)
+            {
+                bottomHintScrolling.start();
+            }
         }
 
         public function hideMouseHint():void
@@ -19355,6 +19370,10 @@
                 lassoPoints = null;
             }
 
+            //TODO 프리퓨 라인 그릴때 for문으로 다 지우고 그려주지 말고 moveto만 해주고
+            //원점 이어주는건 따로 분리해서 clear반복하면서 그려주면 괜찮을것같음 fill pen방식도 다시 고려해봐야함
+            //예전에 drawpath방식으로 했다가 마지막 점이 안닫혀서 그냥 해줬는데 나중에 실험해보니까 잘되는거 확인했는데
+            //귀찮아서 그냥 냅뒀던기억
             function drawPreviewLine():void
             {
                 if(lassoPoints === null)
@@ -21330,8 +21349,6 @@
             canvasGrid.name = "canvasGrid";
             canvasFlashEffect.name = "canvasFlash";
 
-            updateStageBGSize();
-
             penSizePreviewCursor.visible = false;
 
             lassoLayer1.name = "lassoBox1";
@@ -21344,8 +21361,6 @@
 
             updateCanvasBGColorDrawMode(CANVAS_BG_COLOR);
             updateCanvasPanelMask(CANVAS_WIDTH,CANVAS_HEIGHT);
-
-            updateStageBGColor();
 
             canvasRefLayer.alpha = refLayerLastAlpha;
             canvasRefLayer.addChild(canvasRefLayerBitmap);
@@ -21442,13 +21457,16 @@
                         captureAreaManager.updateDrawArea(true);
                     }
                 }
+                else if(isReplayRestartTimerON())
+                {
+                    centerCanvas("replay")
+                }
                 else
                 {
                     rCanvasAnchorPoint.x = rCanvasAnchorPoint.x+dx;
                     rCanvasAnchorPoint.y = rCanvasAnchorPoint.y+dy;
                     canvasAnchorPoint.x = canvasAnchorPoint.x+dx;
                     canvasAnchorPoint.y = canvasAnchorPoint.y+dy;
-                    keepCanvasPanelInStage(isReplayModeON);
                 }
 
                 if(isLassoToolStarted)
@@ -21481,7 +21499,7 @@
                     }
                 }
 
-                updateStageBGColor();
+                // updateStageBGColor(3);
                 topBar.updateTopbarBG(stage.stageWidth);
                 topBar.updateTimerPos(stage.stageWidth);
                 sideBar.updateSideBGSize(getSideBarBGHeight());
@@ -23372,7 +23390,8 @@
             {
                 rDataReadFlag = false;
                 updateReplayTimeBarFromDrawMode();
-                fitCanvasToViewportMargin();
+                centerCanvas("replay");
+                // fitCanvasToViewportMargin();
                 //이거 안해주고 리플레이틀고 프레임 조작 안하고 재생하면 중간부터 되서 데이터가 꼬임
                 isReplayFinished = true;
 
@@ -23408,11 +23427,11 @@
 
             if(isReplayRestartTimerON())
             {
-                if(replayTimelineBox.hitTestPoint(stage.mouseX,stage.mouseY))
+                if(replayTimelineBox.trackBar.hitTestPoint(stage.mouseX,stage.mouseY))
                 {
                     cancelReplayRestartTimer();
+                    return;
                 }
-                return;
             }
 
             if(targetName && !isReplayRestartTimerON())

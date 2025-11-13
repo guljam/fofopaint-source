@@ -36,43 +36,36 @@ package
             const scale:Number = targetRect.width / _target.width;
             const targetWidth:Number = _target.width * scale;
 
-            if (targetWidth > _stage.stageWidth)
+            if (hintScrollWaitTimeSum >= _stage.frameRate)
             {
-                if (hintScrollWaitTimeSum >= _stage.frameRate)
+                if (hintMoveDirection)
                 {
-                    if (hintMoveDirection)
+                    if (targetRect.x + targetWidth > _stage.stageWidth)
                     {
-                        if (targetRect.x + targetWidth > _stage.stageWidth)
-                        {
-                            _target.x = _target.x - hintMoveSpeed * scale;
-                        }
-                        else
-                        {
-                            hintMoveDirection = !hintMoveDirection;
-                            hintScrollWaitTimeSum = 0;
-                        }
+                        _target.x = _target.x - hintMoveSpeed * scale;
                     }
                     else
                     {
-                        if (targetRect.x < 0)
-                        {
-                            _target.x = _target.x + hintMoveSpeed * scale;
-                        }
-                        else
-                        {
-                            hintMoveDirection = !hintMoveDirection;
-                            hintScrollWaitTimeSum = 0;
-                        }
+                        hintMoveDirection = !hintMoveDirection;
+                        hintScrollWaitTimeSum = 0;
                     }
                 }
                 else
                 {
-                    hintScrollWaitTimeSum++;
+                    if (targetRect.x < 0)
+                    {
+                        _target.x = _target.x + hintMoveSpeed * scale;
+                    }
+                    else
+                    {
+                        hintMoveDirection = !hintMoveDirection;
+                        hintScrollWaitTimeSum = 0;
+                    }
                 }
             }
             else
             {
-                resetVars();
+                hintScrollWaitTimeSum++;
             }
 
             return true;
