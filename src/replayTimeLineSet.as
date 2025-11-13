@@ -22,6 +22,20 @@
 		public const BARSIZE:Number = 27;
 		private var isPrograssBarMaxWidth:Boolean = false;
 		
+		public function showNextPrevButton():void
+		{
+			replayPrev.visible = true;
+			replayNext.visible = true;
+			updatePos(stage.stageWidth);
+		}
+
+		public function hideNextPrevButton():void
+		{
+			replayPrev.visible = false;
+			replayNext.visible = false;
+			updatePos(stage.stageWidth);
+		}
+
 		public function updateReplayPrograssBarWidthByNowFame(frameRaio:Number):void
         {
             setReplayPrograssBarWidth(trackBar.width*frameRaio);
@@ -44,6 +58,7 @@
 
         public function setReplayPrograssBarWidth(newWidth:Number):void
         {
+			prograssBar.x = trackBar.x;
             prograssBar.width = newWidth;
         
             if(newWidth >= trackBar.width)
@@ -67,12 +82,27 @@
 
 		public function updatePos(stw:Number):void
 		{
+			var startX:Number = 0.0;
+			if(replayNext.visible)
+			{
+				startX = Math.floor(replayNext.x + replayNext.width + 7);
+			}
+			else
+			{
+				startX = Math.floor(playButton.x + playButton.width + 7);
+			}
+
+			trackBar.x = startX;
+
 			const scale:Number = this.scaleX;
             const maxWidth:Number = stw-(trackBar.x+5)*scale;
-
+			const trackBarWidthSave:Number = trackBar.width;
             trackBar.width =  Math.floor(maxWidth/scale);
+			const scaleFactor:Number = trackBar.width/trackBarWidthSave;
             replayBGBar.width =  Math.floor(stw/scale)+1;
-            prograssInfo.x = trackBar.x;
+			prograssBar.x = startX
+			prograssBar.width = prograssBar.width * scaleFactor;
+            prograssInfo.x = startX;
             prograssInfo.width =  Math.floor(maxWidth/scale);
 		}
 
@@ -135,19 +165,6 @@
 
 		}
 
-		private function initializeTrackBarX():void
-		{
-			trackBar.x = Math.floor(replayNext.x + replayNext.width + 7);
-			trackBar.y = 5;
-			deleteRangeBar.x = trackBar.x;
-			deleteRangeBar.y = trackBar.y;
-			prograssBar.x = trackBar.x;
-			prograssBar.y = trackBar.y;
-			prograssInfo.x = trackBar.x;
-			prograssInfo.y = trackBar.y;
-			prograssInfo.width = trackBar.width;
-		}
-
 		public function resetPrograssBarColor():void
 		{
 			if (nowBarColorSave.color === 0)
@@ -156,6 +173,19 @@
 			}
 
 			prograssBar.transform.colorTransform = nowBarColorSave;
+		}
+
+		private function initializeTrackBarX():void
+		{
+			trackBar.x = Math.floor(replayNext.x + replayNext.width + 7);
+			trackBar.y = 8;
+			deleteRangeBar.x = trackBar.x;
+			deleteRangeBar.y = trackBar.y;
+			prograssBar.x = trackBar.x;
+			prograssBar.y = trackBar.y;
+			prograssInfo.x = trackBar.x;
+			prograssInfo.y = trackBar.y;
+			prograssInfo.width = trackBar.width;
 		}
 
 		public function updateUIColor():void
@@ -192,7 +222,7 @@
 			g = replayBGBar.graphics;
 			g.lineStyle(0, 0, 0);
 			g.beginFill(0xFFFFFF);
-			g.drawRect(0, 0, 31, 31);
+			g.drawRect(0, 0, 31, 36);
 			g.endFill();
 			replayBGBar.name = "replayBGBar";
 			replayBGBar.mouseEnabled = false;
@@ -243,18 +273,13 @@
 			visible = false;
 
 			initReplayBox();
-
-			trackBar.y = 5;
-			prograssBar.y = trackBar.y;
-			deleteRangeBar.y = trackBar.y;
-
 			playButton.useHandCursor = false;
 			pauseButton.useHandCursor = false;
 			replayPrev.useHandCursor = false;
 			replayNext.useHandCursor = false;
 
 			playButton.x = 4;
-			playButton.y = trackBar.y - 5;
+			playButton.y = 3;
 			pauseButton.x = playButton.x;
 			pauseButton.y = playButton.y;
 			replayPrev.x = pauseButton.x + pauseButton.width + 5;
@@ -265,7 +290,7 @@
 			deleteRangeBar.visible = false;
 
 			initializeTrackBarX();
-			cacheAsBitmap = true;
+			// cacheAsBitmap = true;
 		}
 	}
 }

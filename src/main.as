@@ -62,6 +62,8 @@
     import flash.ui.Mouse;
     import libwebp.DecodeWebp;
     import HintScrolling;
+    import flash.media.Video;
+    import flash.filters.GlowFilter;
 
     //import end
     public class Main extends Sprite
@@ -439,12 +441,14 @@
                    rCanvasPanel:Sprite = new Sprite(),
                    rCanvasDrawLayer:Sprite = new Sprite(),
                    rCanvasDrawShape:Shape = new Shape(),
+                   rCanvasCompleteAnchorPoint:Sprite = new Sprite(),
                    rCanvasLayer1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0),
                    rCanvasLayer2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0),
                    rCanvasDrawLayerBitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0),
                    replayTimelineBox:ReplayTimelineSet = new ReplayTimelineSet(),
                    rCanvasLayer1Bitmap:Bitmap = new Bitmap(rCanvasLayer1BitmapData, "auto", true),
-                   rCanvasLayer2Bitmap:Bitmap = new Bitmap(rCanvasLayer2BitmapData, "auto", true),
+                   rCanvasLayer2Bitmap:Bitmap = new Bitmap(),
+                   rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1,1,false,0), "auto", true),
                    rCanvasDrawLayerBitmap:Bitmap = new Bitmap(rCanvasDrawLayerBitmapData, "auto", true),
                    rReplayFOFOCursor:FOFOCursor = new FOFOCursor(), //재생할때 틀어주는 작은 마우스
                    rCanvasDrawLayerClipRectLegacy:Rectangle = new Rectangle(), //갱신된 부분만 그려주는 거 오래된 버전 지원때문에 남겨둠
@@ -488,7 +492,7 @@
                    rTimeLIneTextUpdateTime:int = 0, //프레임 바 딜레이
                    isReplaySlideShowMode:Boolean = false, //doDrawSlowEvent가 켜지면 올려줌
                    rFrameTempCachedImages:Array = [], //이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
-                   rSpeedLastHint:String = "";
+                   lastReplayTimeBoxYPos:Number = 0 //리플레이 재생해줄때 topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
 
         //about
         public var isAboutBoxOpened:Boolean = false, //어바웃 창 떴을때 킴
@@ -522,7 +526,7 @@
         //참고 레이어
         public const canvasRefLayer:Sprite = new Sprite()//트레이스 레이어임
         public var  isRefLayerMemoryTrainingON:Boolean = false, // 이거 켜지면 캔버스 그릴때 임시적으로 안보이게함
-                    canvasRefLayerBitmapData:BitmapData = new BitmapData(CANVAS_WIDTH,CANVAS_HEIGHT,true,0), 
+                    canvasRefLayerBitmapData:BitmapData = new BitmapData(1,1,true,0), 
                     canvasRefLayerBitmap:Bitmap = new Bitmap(), 
                     refLayerMenuBox:RefLayerMenuSet = new RefLayerMenuSet(), 
                     refLayerMenuDragXMoveSum:Number = 0, //전역으로 돌려서 다시 클릭하거나 이미지를 불러와도 원래 스케일을 저장하도록함
@@ -675,8 +679,6 @@
             addGlobalEventsChild();
             addInputEventsDrawMode();
             initializeReplayDataFile();
-            centerCanvas();
-            centerCanvas(true);
             canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,CANVAS_BG_COLOR);
             realWorkingTimer.start();
             checkForUpdates();
@@ -693,6 +695,103 @@
         }
 
         //function
+        public function getImageDominantColor(bitmapData:BitmapData, k:int = 3, maxIter:int = 10):uint
+        {
+            var pixels:Vector.<uint> = bitmapData.getVector(bitmapData.rect);
+            var totalPixels:int = pixels.length;
+
+            // 초기 클러스터 중심을 무작위 픽셀에서 선택
+            var centers:Array = [];
+            for (var i:int = 0; i < k; i++)
+            {
+                var randPixel:uint = pixels[int(Math.random() * totalPixels)];
+                centers.push([
+                    (randPixel >> 16) & 0xFF,
+                    (randPixel >> 8) & 0xFF,
+                    randPixel & 0xFF
+                ]);
+            }
+
+            var assignments:Vector.<int> = new Vector.<int>(totalPixels, true);
+
+            // 반복 학습
+            for (var iter:int = 0; iter < maxIter; iter++)
+            {
+                // 1. 각 픽셀을 가장 가까운 클러스터에 할당
+                for (var p:int = 0; p < totalPixels; p++)
+                {
+                    var pixel:uint = pixels[p];
+                    var r:int = (pixel >> 16) & 0xFF;
+                    var g:int = (pixel >> 8) & 0xFF;
+                    var b:int = pixel & 0xFF;
+
+                    var bestCluster:int = 0;
+                    var bestDist:Number = Number.MAX_VALUE;
+
+                    for (var c:int = 0; c < k; c++)
+                    {
+                        var cr:int = centers[c][0];
+                        var cg:int = centers[c][1];
+                        var cb:int = centers[c][2];
+                        var dist:Number = (r - cr) * (r - cr) + (g - cg) * (g - cg) + (b - cb) * (b - cb);
+
+                        if (dist < bestDist)
+                        {
+                            bestDist = dist;
+                            bestCluster = c;
+                        }
+                    }
+                    assignments[p] = bestCluster;
+                }
+
+                // 2. 클러스터 중심 재계산
+                var sum:Array = [];
+                var count:Array = [];
+                for (c = 0; c < k; c++)
+                {
+                    sum[c] = [0, 0, 0];
+                    count[c] = 0;
+                }
+
+                for (p = 0; p < totalPixels; p++)
+                {
+                    var cluster:int = assignments[p];
+                    pixel = pixels[p];
+                    sum[cluster][0] += (pixel >> 16) & 0xFF;
+                    sum[cluster][1] += (pixel >> 8) & 0xFF;
+                    sum[cluster][2] += pixel & 0xFF;
+                    count[cluster]++;
+                }
+
+                for (c = 0; c < k; c++)
+                {
+                    if (count[c] > 0)
+                    {
+                        centers[c][0] = sum[c][0] / count[c];
+                        centers[c][1] = sum[c][1] / count[c];
+                        centers[c][2] = sum[c][2] / count[c];
+                    }
+                }
+            }
+
+            // 가장 큰 클러스터 찾기
+            var maxCluster:int = 0;
+            var maxCount:int = 0;
+            for (c = 0; c < k; c++)
+            {
+                if (count[c] > maxCount)
+                {
+                    maxCount = count[c];
+                    maxCluster = c;
+                }
+            }
+
+            var rFinal:int = centers[maxCluster][0];
+            var gFinal:int = centers[maxCluster][1];
+            var bFinal:int = centers[maxCluster][2];
+
+            return (rFinal << 16) | (gFinal << 8) | bFinal;
+        }
         public function isSameWithLastBottomHintTargetRect(target:DisplayObject):Boolean
         {
             return lastBottomHintTargetRect.equals(target.getBounds(stage));
@@ -853,23 +952,24 @@
                 return;
             }
 
+            const fadeStep:Number = Math.floor(0.1*256)/256;
             addTimerByName("viewTransBGTimer", 0.0, true, function():Boolean
+            {
+                if (canvasFlashEffect.alpha < 0.0 || isCaptureModeON)
                 {
-                    if (canvasFlashEffect.alpha < 0.0)
+                    canvasFlashEffect.alpha = 0.0;
+                    canvasFlashEffect.visible = false;
+                    canvasFlashEffect.graphics.clear();
+                    if (canvasPanel.getChildByName("canvasFlash"))
                     {
-                        canvasFlashEffect.alpha = 0.0;
-                        canvasFlashEffect.visible = false;
-                        canvasFlashEffect.graphics.clear();
-                        if (canvasPanel.getChildByName("canvasFlash"))
-                        {
-                            canvasPanel.removeChild(canvasFlashEffect);
-                        }
-                        return false;
+                        canvasPanel.removeChild(canvasFlashEffect);
                     }
+                    return false;
+                }
 
-                    canvasFlashEffect.alpha -= 0.15;
-                    return true;
-                });
+                canvasFlashEffect.alpha -= fadeStep;
+                return true;
+            });
         }
 
         public function enableTransparentBGDrawMode():void
@@ -890,40 +990,60 @@
                 return;
             }
 
+            const fadeStep:Number = Math.floor(0.1*256)/256;
             addTimerByName("viewTransBGTimer", 0.0, true, function ():Boolean
+            {
+                if (canvasFlashEffect.alpha >= 1.0 || isCaptureModeON)
                 {
-                    if (canvasFlashEffect.alpha >= 1.0)
-                    {
-                        canvasFlashEffect.alpha = 1.0;
-                        return false;
-                    }
+                    canvasFlashEffect.alpha = 1.0;
+                    return false;
+                }
 
-                    canvasFlashEffect.alpha += 0.15;
-                    return true;
-                });
+                canvasFlashEffect.alpha += fadeStep;
+                return true;
+            });
         }
 
         public function executeCaptureFlashEffect():void
-        {
+        {   
+            var xPanel:Sprite = (isReplayModeON) ? rCanvasPanel : canvasPanel;
+            var posX:Number;
+            var posY:Number;
+            var canvasWidth:Number;
+            var canvasHeight:Number;
+
             if (captureAreaManager.isFullImageCapture())
             {
+                posX = 0;
+                posY = 0;
                 if (isReplayModeON)
                 {
-                    applyCanvasFlashEffect(rCanvasPanel, 0, 0, RCANVAS_WIDTH, RCANVAS_HEIGHT);
+                    canvasWidth = RCANVAS_WIDTH;
+                    canvasHeight = RCANVAS_HEIGHT;
                 }
                 else
                 {
-                    applyCanvasFlashEffect(canvasPanel, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                    canvasWidth = CANVAS_WIDTH;
+                    canvasHeight = CANVAS_HEIGHT;
                 }
             }
             else
             {
                 const nowCaptureArea:Rectangle = captureAreaManager.getCaptureArea();
-                applyCanvasFlashEffect((isReplayModeON) ? rCanvasPanel : canvasPanel, nowCaptureArea.x, nowCaptureArea.y, nowCaptureArea.width, nowCaptureArea.height);
+                
+                posX = nowCaptureArea.x;
+                posY = nowCaptureArea.y;
+                canvasWidth = nowCaptureArea.width;
+                canvasHeight = nowCaptureArea.height;
             }
+
+            applyCanvasFlashEffect(xPanel, posX, posY, canvasWidth, canvasHeight, function():Boolean
+            {
+                return !isCaptureModeON;
+            });
         }
 
-        public function applyCanvasFlashEffect(parent:DisplayObjectContainer, ox:Number, oy:Number, width:Number, height:Number):void
+        public function applyCanvasFlashEffect(parent:DisplayObjectContainer, ox:Number, oy:Number, width:Number, height:Number,stopHandler:Function):void
         {
             if (!parent.getChildByName("canvasFlash"))
             {
@@ -936,9 +1056,11 @@
             canvasFlashEffect.graphics.endFill();
             canvasFlashEffect.alpha = 1.0;
 
+            const fadeStep:Number = Math.floor(0.05*256)/256;
+
             addTimerByName("flashingTimer", 0.0, true, function ():Boolean
                 {
-                    if (canvasFlashEffect.alpha < 0.1)
+                    if (canvasFlashEffect.alpha < 0.1 || stopHandler())
                     {
                         canvasFlashEffect.alpha = 0.0;
                         canvasFlashEffect.visible = false;
@@ -949,7 +1071,7 @@
                         }
                         return false;
                     }
-                    canvasFlashEffect.alpha -= 0.13;
+                    canvasFlashEffect.alpha -= fadeStep;
                     return true;
                 });
         }
@@ -1090,23 +1212,17 @@
                                 }
                             }
                         }
-                        else if (isCursorInDrawArea())
+                        else if (!isReplayModeON && isCursorInDrawArea())
                         {
                             if (e.delta > 0)
                             {
-                                zoomInCanvas(true, isReplayModeON);
-                                if (!isReplayModeON)
-                                {
-                                    showMouseHintTemp(Math.floor(canvasZoomMultipler * 100) + "%");
-                                }
+                                zoomInCanvas(true, false);
+                                showMouseHintTemp(Math.floor(canvasZoomMultipler * 100) + "%");
                             }
                             else
                             {
-                                zoomInCanvas(false, isReplayModeON);
-                                if (!isReplayModeON)
-                                {
-                                    showMouseHintTemp(Math.floor(canvasZoomMultipler * 100) + "%");
-                                }
+                                zoomInCanvas(false, false);
+                                showMouseHintTemp(Math.floor(canvasZoomMultipler * 100) + "%");
                             }
                         }
                     });
@@ -1665,11 +1781,12 @@
 
         public function getImageScaleHint(width:Number, height:Number, scale:Number, scaleXFlag:Boolean):String
         {
+            const scaleStr:String = Math.round(scale*100)+"%";
             if (scaleXFlag)
             {
-                return Math.round(width * scale) + " x " + Math.round(height * scale) + " (" + scale.toFixed(2) + ")";
+                return Math.round(width * scale) + " x " + Math.round(height * scale) + " (" + scaleStr + ")";
             }
-            return Math.round(width) + " x " + Math.round(height) + " (" + scale.toFixed(2) + ")";
+            return Math.round(width) + " x " + Math.round(height) + " (" + scaleStr + ")";
         }
 
         public function createScaleUpdaterFromMouseDrag(sc:Number):Function
@@ -1721,10 +1838,14 @@
                 mxLastPos = mx;
                 myLastPos = my;
 
-                if (scale > 100)
-                    scale = 100;
+                if (scale > 4.0)
+                {
+                    scale = 4.0;
+                }
                 else if (scale < 0.1)
+                {
                     scale = 0.1;
+                }
 
                 return scale;
             };
@@ -2936,6 +3057,11 @@
             topBar.capClipBoard.alpha = Global.OFFALPHA;
         }
 
+        public function getUIScaleString():String
+        {
+            return Global.getUIScaleString();
+        }
+
         public function applyUIScale():void
         {
             const scale:Number = Global.getUIScale();
@@ -3267,7 +3393,7 @@
                     }
                     else if(isUpdatePendingAfterSaving)
                     {
-                        startUpdate();
+                        startUpdatingApp();
                     }
 
                     enableFileOperationButtonsTopbar();
@@ -5274,9 +5400,9 @@
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 
-                if(penToolFlag && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
+                if(!isRefLayerEmpty() && penToolFlag && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
                 {
-                    setCanvasRefLayerVisibleWithFading();
+                    setCanvasRefLayerVisibleDelay();
                 }
 
                 if(penSmoothSlideValue > 1)
@@ -5362,10 +5488,9 @@
                     sq1PXCursor = false;
                 }
 
-                if(penFlag && isRefLayerMemoryTrainingON)
+                if(!isRefLayerEmpty() && penFlag && isRefLayerMemoryTrainingON)
                 {
-                    // setCanvasRefLayerVisibleWithFading(false);
-                    canvasRefLayer.visible = false;
+                    setCanvasRefLayerInvisible();
                 }
 
                 offsetForSharpline = getSharpLinePosOffset(xSize);
@@ -5623,7 +5748,7 @@
             rCanvasZoomIndex = canvasZoomMultiplerList.indexOf(1.0);
             moveCanvasAnchorPoint(center.x,center.y,true);
             updateCanvasScale(1.0,true);
-            setFitReplayCanvasToWindowOFF();
+            setFitReplayCanvasToViewportOFF();
             rFollowMouse.updateBounds();
         }
 
@@ -5675,7 +5800,7 @@
             {
                 center = getStageCenterPos("replay");
                 rLastCanvasZoomMultiplier = newZoom;
-                setFitReplayCanvasToWindowOFF();
+                setFitReplayCanvasToViewportOFF();
                 rCanvasZoomIndex = newZoomIndex;
                 moveCanvasAnchorPoint(center.x,center.y,true);
                 updateCanvasScale(newZoom,replayMode);
@@ -5927,7 +6052,7 @@
             function onMouseUpCanvasNavigator(e:MouseEvent):void
             {
                 setRefLayerAndGridVisible(true);
-                keepCnvasPanelInStage();
+                keepCanvasPanelInStage();
                 updateCanvasNaigatorCursor();
                 isMouseDragging = false;
 
@@ -6694,25 +6819,57 @@
             }
         }
 
-        public function setCanvasRefLayerVisibleWithFading():void
+        public function setCanvasRefLayerInvisible():void
         {
-            var fadeStep:Number = Math.round(refLayerLastAlpha/stage.frameRate*256)/256;
+            removeTimer("refLayerVisibleDelayTimer");
+            canvasRefLayer.visible = false;
+        }
+
+        public function setCanvasRefLayerVisibleDelay():void
+        {
+            addTimerByName("refLayerVisibleDelayTimer",1.0,false,function():void
+            {
+                setCanvasRefLayerVisibleWithFading(true);
+            });
+        }
+
+        public function setCanvasRefLayerVisibleWithFading(flag:Boolean):void
+        {
+            var fadeStep:Number = Math.round(refLayerLastAlpha/(stage.frameRate*2)*256)/256;
+
             if(fadeStep <= 0.04)
             {
                 fadeStep = 0.04;
             }
 
-            canvasRefLayer.alpha = 0.0;
+            if(!canvasRefLayer.visible)
+            {
+                canvasRefLayer.alpha = 0.0;
+            }
+
             canvasRefLayer.visible = true;
 
             addTimerByName("refLayerVisibleFadingTimer", 0.0, true, function (refLayer:Sprite,fadeStep:Number,maxAlpha:Number):Boolean
             {
-                canvasRefLayer.alpha += fadeStep;
-
-                if(canvasRefLayer.alpha >= maxAlpha)
+                if(flag)
                 {
-                    canvasRefLayer.alpha = maxAlpha;
-                    return false;
+                    canvasRefLayer.alpha += fadeStep;
+
+                    if(canvasRefLayer.alpha >= maxAlpha)
+                    {
+                        canvasRefLayer.alpha = maxAlpha;
+                        return false;
+                    }
+                }
+                else
+                {
+                    canvasRefLayer.alpha -= fadeStep;
+
+                    if(canvasRefLayer.alpha <= 0.0)
+                    {
+                        canvasRefLayer.alpha = 0.0;
+                        return false;
+                    }
                 }
                 return true;
             },[canvasRefLayer,fadeStep,refLayerLastAlpha]);
@@ -6800,6 +6957,7 @@
             function onMouseMove():void
             {
                 const scale:Number = getscale(mouseX,mouseY);
+                if(scale)
                 canvasRefLayer.scaleX = (canvasRefLayer.scaleX < 0) ? -scale:scale;
                 canvasRefLayer.scaleY = scale;
                 showMouseHint(getImageScaleHint(canvasRefLayerBitmapData.width,canvasRefLayerBitmapData.height,scale,true));
@@ -7297,6 +7455,10 @@
             stageBG.graphics.beginFill(0,0.0);
             stageBG.graphics.drawRect(-2,-2,stage.stageWidth+4,stage.stageHeight+4);
             stageBG.graphics.endFill();
+            if(stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
+            {
+                setReplayCompleteCanvasCenter();
+            }
         }
 
         public function updateStageBGColor():void
@@ -7451,7 +7613,7 @@
         public function updateTimelineBoxPos(stw:Number):void
         {
             replayTimelineBox.updatePos(stw);
-            replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
+            // replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
         }
 
         public function prepareUpdate():void
@@ -7461,7 +7623,7 @@
             openSaveFileBrowser(false);
         }
 
-        public function startUpdate():void
+        public function startUpdatingApp():void
         {
             closeLoadMenuBox();
             isUpdatePendingAfterSaving = false;
@@ -7902,7 +8064,7 @@
         public function flipCaptureImage(flag:Boolean,initFlag:Boolean):void
         {
             isCaptureCanvasFlipped = flag;
-            fitCanvasToViewportMargin(true);
+            fitCanvasToViewportMargin();
 
             const xAnc:Sprite = (isReplayModeON) ? rCanvasAnchorPoint : canvasAnchorPoint;
 
@@ -7976,7 +8138,7 @@
             //1: 90도 2:180 3:270
             if(rotateValue >= 4) rotateValue = 0;
             captureCanvasRotationStep = rotateValue;
-            fitCanvasToViewportMargin(true);
+            fitCanvasToViewportMargin();
             topBar.capClipBoard.alpha = 1.0;
 
             if(!initFlag)
@@ -8934,7 +9096,13 @@
         public function clearData():void
         {
             clearCanvas();
+            resetZoomReplayMode();
+            resetRotationReplayMode();
+            centerCanvas("replay");
             clearCanvasReplayMode();
+            resetZoomDrawMode();
+            resetRotationDrawMode();
+            centerCanvas("draw");
             clearDataAndResetVars();
             markWindowTitleAsDirty();
             drawReplayByCommand.resetFirstRCursorPos();
@@ -9046,6 +9214,7 @@
                         {
                             Global.setNextScaleIndex();
                             applyUIScale();
+                            showMouseHintTemp(Global.getUIScaleString());
                         }
                         break;
 
@@ -9246,7 +9415,14 @@
                         case "refMirrorImageButton":
                         {
                             setAsTopChild(refLayerMenuBox);
-                            startRefLayerImageMirror();
+                            if(isRefLayerEmpty())
+                            {
+                                showRefLayerIsEmptyHint();
+                            }
+                            else
+                            {
+                                startRefLayerImageMirror();
+                            }
                         }
                         break;
 
@@ -9254,19 +9430,43 @@
                         case "refMemoryTrainingOffButton":
                         {
                             setAsTopChild(refLayerMenuBox);
-                            toggleRefLayerMemoryTraining();
+                            if(isRefLayerEmpty())
+                            {
+                                showRefLayerIsEmptyHint();
+                            }
+                            else
+                            {
+                                toggleRefLayerMemoryTraining();
+                            }
                         }
                         break;
 
                         case "playButton":
                         {
-                            startReplay();
+                            if(isReplayRestartTimerON())
+                            {
+                                cancelReplayRestartTimer();
+                            }
+                            else
+                            {
+                                hideTopbarOnReplayStart();
+                                startReplay();
+                            }
                         }
                         break;
 
                         case "pauseButton":
                         {
-                            stopReplay();
+                            removeTimer("prograssBarUpdateTimer");
+                            if(isReplayRestartTimerON())
+                            {
+                                cancelReplayRestartTimer();
+                            }
+                            else
+                            {
+                                showTopbarOnReplayEnd();
+                                stopReplay();
+                            }
                         }
                         break;
 
@@ -9626,6 +9826,8 @@
                 if(drawReplayByCommand.getCurrentPosition() < drawReplayByCommand.getDataLength())
                 {
                     finalizeRemainingReplayData();
+                    updateReplayPrograssText();
+                    replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
                     updateDeleteReplayDataButtonsState();
                 }
 
@@ -9740,39 +9942,37 @@
             isDeepUndoEnabled = false;
         }
 
-        public function fitCanvasToViewportMargin(captureMode:Boolean=false,manualFlag:Boolean=false):void
+        public function fitCanvasToViewportMargin(fitting:Boolean=false):void
         {
-            const replayMode:Boolean = isReplayModeON;
             const uiscale:Number = Global.getUIScale();
             const offsetX:Number = 44+STAGE_LEFT_OFFSET+STAGE_RIGHT_OFFSET;
-            const offsetY:Number = (captureMode) ? (topBar.BARSIZE)*uiscale+45*uiscale : (topBar.BARSIZE+replayTimelineBox.BARSIZE)*uiscale+45*uiscale;
+            const offsetY:Number = (isCaptureModeON)? (topBar.BARSIZE)*uiscale+42*uiscale : (topBar.BARSIZE)*uiscale+42*uiscale;
             const stw:int = stage.stageWidth-offsetX;
-            const sth:int = stage.stageHeight-offsetY-STAGE_BOTTOM_OFFSET-mouseHint.getDefaultHeight()*uiscale;
+            const sth:int = stage.stageHeight-offsetY-STAGE_BOTTOM_OFFSET;
             var xBitmap1:Bitmap;
             var xBitmap11:Bitmap;
             var xAnc:Sprite;
-            var w:Number;
-            var h:Number;
-            var _captureRotated:uint;
+            var canvasWidth:Number;
+            var canvasHeight:Number;
 
-            if(replayMode)
+            if(isReplayModeON)
             {
                 xBitmap1 = rCanvasLayer1Bitmap;
                 xBitmap11 = rCanvasLayer2Bitmap;
                 xAnc = rCanvasAnchorPoint;
 
-                if(manualFlag)
+                if(fitting)
                 {
                     xAnc.scaleX = 1.0;
                     xAnc.scaleY = 1.0; //크기를 원래대로 해놓고 해야 길이 측정이 됨
                     const b:Rectangle = rCanvasLayer1Bitmap.getBounds(stage);
-                    w = b.right-b.left;
-                    h = b.bottom-b.top;
+                    canvasWidth = b.right-b.left;
+                    canvasHeight = b.bottom-b.top;
                 }
                 else
                 {
-                    w = RCANVAS_WIDTH;
-                    h = RCANVAS_HEIGHT;
+                    canvasWidth = RCANVAS_WIDTH;
+                    canvasHeight = RCANVAS_HEIGHT;
                 }
             }
             else
@@ -9780,112 +9980,156 @@
                 xBitmap1 = canvasLayer1Bitmap;
                 xBitmap11 = canvasLayer2Bitmap;
                 xAnc = canvasAnchorPoint;
-                w = CANVAS_WIDTH;
-                h = CANVAS_HEIGHT;
+                canvasWidth = CANVAS_WIDTH;
+                canvasHeight = CANVAS_HEIGHT;
             }
 
-            if(captureMode)
+            if(isCaptureModeON)
             {
-                _captureRotated = captureCanvasRotationStep;
                 if(captureCanvasRotationStep === 1 || captureCanvasRotationStep === 3)
                 {
-                    const widthSave:Number = w;
-                    w = h;
-                    h = widthSave;
+                    const widthSave:Number = canvasWidth;
+                    canvasWidth = canvasHeight;
+                    canvasHeight = widthSave;
                 }
             }
 
-            //줌이 1.0 보다 작고 가로 세로 줌비율이 가장 작은걸로 선택
-            var z:Number = stw/w;
-            const zh:Number = sth/h;
+            const scaleW:Number = stw/canvasWidth;
+            const scaleH:Number = sth/canvasHeight;
+            var scale:Number = Math.min(scaleW,scaleH);
 
-            if(zh < z) z = zh;
-            if(z > 1.0) z = 1.0;
-
-            if(captureMode)
+            if(!fitting && scale > 1.0)
             {
-                xAnc.rotation = 90*_captureRotated;
+                scale = 1.0;
             }
 
-            if(replayMode === true && z < 1.0 && !isReplayCanvasFitToWindow)
+            if(isCaptureModeON)
+            {
+                xAnc.rotation = 90*captureCanvasRotationStep;
+            }
+
+            if(isReplayModeON && !isReplayCanvasFitToWindow)
             {
                 isReplayFinishedWithFiwWindow = true;
             }
 
-            updateCanvasScale(z,replayMode);
-            centerCanvas(replayMode,captureMode);
+            updateCanvasScale(scale,isReplayModeON);
 
-            if(!manualFlag || isReplayFinished)
+            if(isCaptureModeON)
+            {
+                centerCanvas("capture");
+            }
+            else if(isReplayModeON)
+            {
+                centerCanvas("replay");
+            }
+            else
+            {
+                centerCanvas("draw");
+            }
+
+            if(!fitting || isReplayFinished)
             {
                 xBitmap1.smoothing = true;
                 xBitmap11.smoothing = true;
             }
-
-            // if(captureMode)
-            // {
-            //     drawCaptureArea.updateDrawArea("fitCanvasToWindow");
-            // }
         }
         
 
-        public function replayCompleteEffect():void
+        public function setReplayCompleteCanvasCenter():void
         {
-            replayTimelineBox.setPlayButtonVisible(true);
-            Global.setColorTransform(replayTimelineBox.prograssBar,Global.getUIReplayRestartBarColor());
-
-            //재생이 끝나면 전체화면을 보여줌
-            if(!isMouseClicked)
+            rCanvasCompleteAnchorPoint.width = stage.stageWidth+200;
+            rCanvasCompleteAnchorPoint.height = stage.stageHeight+200;
+            rCanvasCompleteAnchorPoint.x = stage.stageWidth/2;
+            rCanvasCompleteAnchorPoint.y = stage.stageHeight/2;
+            rCanvasCompleteBitmap.x = -rCanvasCompleteBitmap.width/2;
+            rCanvasCompleteBitmap.y = -rCanvasCompleteBitmap.height/2;
+        }
+        
+        public function hideCompleteImageToBGReplayMode():void
+        {
+            if(stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
             {
-                fitCanvasToViewportMargin();
-                rCanvasZoomIndex = canvasZoomMultiplerList.indexOf(1.0);
+                stageBG.removeChild(rCanvasCompleteAnchorPoint);
             }
 
-            applyCanvasFlashEffect(rCanvasPanel,0,0,RCANVAS_WIDTH,RCANVAS_HEIGHT);
+            if(rCanvasCompleteBitmap.bitmapData)
+            {
+                rCanvasCompleteBitmap.bitmapData.dispose();
+            }
+
+            rCanvasCompleteBitmap.filters = [];
+            rCanvasPanel.filters = [];
+        }
+
+        public function showCompleteImageToBGReplayMode():void
+        {
+            const mergedbmpd:BitmapData = getMergedBitmapdtata(false,true,true,null);
+            const tmpbmpd:BitmapData = new BitmapData(mergedbmpd.width/2,mergedbmpd.height/2,false,0);
+            const mat:Matrix = new Matrix();
+            mat.scale(0.5,0.5);
+
+            var alpha:ColorTransform = new ColorTransform(1, 1, 1, 0.8);
+            tmpbmpd.draw(mergedbmpd,mat,alpha);
+
+            rCanvasCompleteBitmap.bitmapData = tmpbmpd;            
+            rCanvasCompleteBitmap.filters = [new BlurFilter(20, 20, 3)];
+            setReplayCompleteCanvasCenter();
+
+            var glow:GlowFilter = new GlowFilter();
+            glow.color = 0xFFFFFF;   // 빨간색 테두리
+            glow.alpha = 0.5;
+            glow.blurX = 20;
+            glow.blurY = 20;
+            glow.strength = 2;
+            glow.quality = 3;
+
+            rCanvasPanel.filters = [glow];
+            stageBG.addChild(rCanvasCompleteAnchorPoint);
+        }
+
+        public function replayCompleteEffect():void
+        {
+            fitCanvasToViewportMargin(isReplayCanvasFitToWindow);
+            rCanvasZoomIndex = canvasZoomMultiplerList.indexOf(1.0);
+            applyCanvasFlashEffect(rCanvasPanel,0,0,RCANVAS_WIDTH,RCANVAS_HEIGHT,function():Boolean
+            {
+                return topBar.visible;
+            });
         }
 
         public function cancelReplayRestartTimer():void
         {
+            replayTimelineBox.setPlayButtonVisible(true);
+            hideCompleteImageToBGReplayMode();
+            showTopbarOnReplayEnd();
             removeTimer("replayRestartTimer");
-
-            //재시작 카운터가 돌아갈때 1프레임 스킵을 하면
-            //프레임 정보가 나오지 않고 END가 나와서 조건 걸어줌
-            if(rReplayRestartTimerCount < 10)
-            {
-                replayTimelineBox.prograssInfo.text = TOTAL_FRAME+" / " +TOTAL_FRAME;
-            }
-            rReplayRestartTimerCount = 10;
+            updateReplayPrograssText(true,TOTAL_FRAME);
             Global.setColorTransform(replayTimelineBox.prograssBar,Global.getUIReplayEndBarColor());
-
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseKeyDownRemoveRestartTimer);
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onMouseKeyDownRemoveRestartTimer);
-            stage.removeEventListener(KeyboardEvent.KEY_DOWN,onMouseKeyDownRemoveRestartTimer);
         }
 
-        public function onMouseKeyDownRemoveRestartTimer(e:Object):void
+        public function isReplayRestartTimerON():Boolean
         {
-            cancelReplayRestartTimer();
+            return hasTimer("replayRestartTimer");
         }
 
         public function startReplayRestartTimer():void
         {
+            Global.setColorTransform(replayTimelineBox.prograssBar,Global.getUIReplayRestartBarColor());
             if(isReplayRepeatON)
             {
-                rReplayRestartTimerCount = 10;
-
-                stage.addEventListener(MouseEvent.MOUSE_DOWN,onMouseKeyDownRemoveRestartTimer);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onMouseKeyDownRemoveRestartTimer);
-                stage.addEventListener(KeyboardEvent.KEY_DOWN,onMouseKeyDownRemoveRestartTimer);
-
+                rReplayRestartTimerCount = 20;
                 addTimerByName("replayRestartTimer",1.0,true,function():Boolean
                 {
                     if(rReplayRestartTimerCount === 0)
                     {
                         cancelReplayRestartTimer();
+                        hideTopbarOnReplayStart();
                         startReplay();
                         return false;
                     }
 
-                    const str:String = "Play again in " + rReplayRestartTimerCount +" sec";
+                    const str:String = "Playing again in " + rReplayRestartTimerCount +" sec";
                     replayTimelineBox.prograssInfo.text = str;
                     --rReplayRestartTimerCount;
                     return true;
@@ -9893,8 +10137,8 @@
             }
             else
             {
-                rReplayRestartTimerCount = 9;
-                cancelReplayRestartTimer();
+                rReplayRestartTimerCount = 0;
+                updateReplayPrograssText(true,TOTAL_FRAME);
             }
         }
 
@@ -9919,7 +10163,6 @@
             rTempCachedLastImageIndex = -2;
             isReplayFinished = true;
             isReplaySlideShowMode = false;
-            rSpeedLastHint = "";
             drawReplayByCommand.clearData();
         }
 
@@ -10043,7 +10286,7 @@
 
             if(isReplayCanvasFitToWindow)
             {
-                fitReplayCanvasToWindow();
+                fitReplayCanvasToViewport();
             }
         }
 
@@ -11507,6 +11750,7 @@
             const textUpdateTime:int = 1000;
 
             updateReplayPrograssText();
+            replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
 
             addTimerByName("prograssBarUpdateTimer",0.0,true,function():Boolean
             {
@@ -11515,18 +11759,14 @@
                     return false;
                 }
 
-                if(rNowFrame === TOTAL_FRAME)
+                if(rNowFrame >= TOTAL_FRAME)
                 {
                     replayTimelineBox.setReplayPrograssBarMaxWidth();
                     updateReplayPrograssText(true,TOTAL_FRAME);
                     replayCompleteEffect();
                     startReplayRestartTimer();
+                    showCompleteImageToBGReplayMode();
                     return false;
-                }
-
-                if(!isReplayStarted && rNowFrame < TOTAL_FRAME)
-                {
-                    return true;
                 }
 
                 const nowTime:int = getTimer();
@@ -11851,8 +12091,8 @@
             var cp:Point; //커서 좌표
             var gp:Point; //캔버스 글로벌 좌표
             var rg:Point; //캔버스 회전된 글로벌 좌표
-            var zoom:Number;
-            var scale:Number;
+            var zoom:Number = 1.0;
+            var scale:Number = 1.0;
 
             //rcanvas1 글로벌 좌표에 회전된 캔버스에서 커서 위치를 더해줌. 즉 윈도우 기준에서 커서 커서 위치를 구하는거임
             var isCanvasWidthSmallerStage:Boolean; //캔버스 가로 새로 길이가 스테이지 길이보다 클때 체크
@@ -11861,7 +12101,7 @@
             var isNotCenterY:Boolean;
 
             const leftLimit:Number = padding;
-            const topLimit:Number = padding+topBar.BARSIZE+replayTimelineBox.BARSIZE;
+            const topLimit:Number = padding+topBar.BARSIZE;
             var rightLimit:Number;
             var bottomLimit:Number;
 
@@ -11878,18 +12118,18 @@
                 top = bounds.top;
                 bottom = bounds.bottom;
                 stw = stage.stageWidth;
-                sth = stage.stageHeight-(topBar.BARSIZE+replayTimelineBox.BARSIZE)*scale;
+                sth = stage.stageHeight-(topBar.BARSIZE)*scale;
                 zoom = rCanvasZoomMultiplier;
 
                 isCanvasWidthSmallerStage = right-left < stw;
                 isCanvasHeightSmallerStage = bottom-top < sth;
                 //캔버스 중점위치, 창 중점위치 사이 거리
-                windowCenterPos.setTo(Math.floor(stw/2-(right+left)/2),Math.floor((topBar.BARSIZE+replayTimelineBox.BARSIZE)*scale+sth/2-(bottom+top)/2));
+                windowCenterPos.setTo(Math.floor(stw/2-(right+left)/2),Math.floor((topBar.BARSIZE)*scale+sth/2-(bottom+top)/2));
                 isNotCenterX = Math.abs(windowCenterPos.x) > 0; //캔버스 중점위치, 창 중점위치 사이 거리
                 isNotCenterY = Math.abs(windowCenterPos.y) > 0;
 
                 rightLimit = stw-padding;
-                bottomLimit = sth+topBar.BARSIZE+replayTimelineBox.BARSIZE-padding;
+                bottomLimit = sth+topBar.BARSIZE-padding;
             }
 
             function check(viewCenterFlag:Boolean):void
@@ -11978,7 +12218,7 @@
             }
             else
             {
-                setFitReplayCanvasToWindowON();
+                setFitReplayCanvasToViewportON();
                 topBar.replayFitToWindowButton.alpha = 1.0;
             }
         }
@@ -12150,7 +12390,6 @@
                     renderReplayFrame(rNowFrame+1,JUMP_FRAME_NEXT);
                     renderReplayFrame(rNowFrame+drawReplayByCommand.getRemainingData(),JUMP_FRAME_NEXT);
                     //jumpframe함수 이후에 실행
-
                 }
                 else
                 {
@@ -12455,13 +12694,36 @@
             startDragInteraction(onDragStart,onMouseMove,onMouseUp);
         }
 
-        public function stopReplay():void
+        public function showTopbarOnReplayEnd():void
+        {
+            if(topBar.visible === false)
+            {
+                topBar.visible = true;
+                replayTimelineBox.y = lastReplayTimeBoxYPos;
+                replayTimelineBox.setPlayButtonVisible(true);
+                replayTimelineBox.showNextPrevButton();
+            }
+        }
+
+        public function hideTopbarOnReplayStart():void
+        {
+            if(topBar.visible === true)
+            {
+                replayTimelineBox.y = 0;
+                replayTimelineBox.hideNextPrevButton();
+                topBar.visible = false;
+                hideBottomHint();
+                hideMouseHint();
+            }
+        }
+
+        public function stopReplay():void   
         {
             removeTimer("replayDrawTimer");
-
-            replayTimelineBox.playButton.visible = true;
-            replayTimelineBox.pauseButton.visible = false;
-
+            if(!isReplayFinished)
+            {
+                replayTimelineBox.setPlayButtonVisible(true);
+            }
             rFileStream.close();
 
             isReplayStarted = false;
@@ -12520,7 +12782,7 @@
 
             if(isReplayCanvasFitToWindow)
             {
-                fitReplayCanvasToWindow();
+                fitReplayCanvasToViewport();
             }
 
             clearRFrameTempCache();
@@ -13079,7 +13341,7 @@
             }
 
             rFileStream.close();
-            if(hasTimer("replayRestartTimer"))
+            if(isReplayRestartTimerON())
             {
                 cancelReplayRestartTimer();
             }
@@ -13332,7 +13594,7 @@
                             stopReplay();
                         }
                         
-                        if(hasTimer("replayRestartTimer"))
+                        if(isReplayRestartTimerON())
                         {
                             cancelReplayRestartTimer();
                         }
@@ -13443,6 +13705,7 @@
                     }
                     else if(loadMenuBoxFileType === "webp" || loadMenuBoxFileType === "image")
                     {
+                        enterDrawModeOnLoadFile();
                         lastSaveFileName = loadMenuBoxFile.name;
                         lastSaveFilePath = loadMenuBoxFile.nativePath;
                         loadImageFile(loadMenuBoxBitmapData.width,loadMenuBoxBitmapData.height,loadMenuBoxBitmapData,null);
@@ -14130,7 +14393,7 @@
 
                             disableDeepUndo();
                             undoToIndex(rData.length-1);
-                            centerCanvas(true,false);
+                            centerCanvas("replay");
 
                             removeInputEventsDrawMode();
                             addInputEventsReplayMode();
@@ -14731,7 +14994,7 @@
             updateCavnvasSizeDrawMode(scaledwidth,scaledheight,0,0,false);
             syncReplayCanvasImageWithDrawMode();
             syncReplayCanvasWithDrawMode();
-            centerCanvas();
+            centerCanvas("draw");
 
             updatePenSizeCursor();
 
@@ -14879,6 +15142,7 @@
 
             if (replayMode)
             {
+                showTopbarOnReplayEnd();
                 replayTimelineBox.setDeleteRangeBarVisible(false);
                 replayTimelineBox.visible = false;
                 removeInputEventsReplayMode();
@@ -15207,7 +15471,7 @@
             topBar.capClipBoard.alpha = 1.0;
             captureCanvasRotationStep = 0;
             isCaptureCanvasFlipped = false;
-            fitCanvasToViewportMargin(true); 
+            fitCanvasToViewportMargin(); 
             applyTransparentCanvasBGCaptureMode(false);
             captureStampManager.init();
             if(isCaptureStampEnabled)
@@ -15285,7 +15549,7 @@
                 restoreCanvasBackgroundColor(false);
             }
 
-            keepCnvasPanelInStage(replayMode);
+            keepCanvasPanelInStage(replayMode);
             canvasStateBeforeCaptureMode = {};
         }
 
@@ -15445,126 +15709,6 @@
                 mat.translate(0,inputBMPD.height-captrueStampBMPD.height);
                 inputBMPD.draw(captureStampBitmap,mat,ct);
             }
-
-            function getImageDominantColor(bitmapData:BitmapData, k:int = 3, maxIter:int = 10):uint
-            {
-                var pixels:Vector.<uint> = bitmapData.getVector(bitmapData.rect);
-                var totalPixels:int = pixels.length;
-
-                // 초기 클러스터 중심을 무작위 픽셀에서 선택
-                var centers:Array = [];
-                for (var i:int = 0; i < k; i++)
-                {
-                    var randPixel:uint = pixels[int(Math.random() * totalPixels)];
-                    centers.push([
-                        (randPixel >> 16) & 0xFF,
-                        (randPixel >> 8) & 0xFF,
-                        randPixel & 0xFF
-                    ]);
-                }
-
-                var assignments:Vector.<int> = new Vector.<int>(totalPixels, true);
-
-                // 반복 학습
-                for (var iter:int = 0; iter < maxIter; iter++)
-                {
-                    // 1. 각 픽셀을 가장 가까운 클러스터에 할당
-                    for (var p:int = 0; p < totalPixels; p++)
-                    {
-                        var pixel:uint = pixels[p];
-                        var r:int = (pixel >> 16) & 0xFF;
-                        var g:int = (pixel >> 8) & 0xFF;
-                        var b:int = pixel & 0xFF;
-
-                        var bestCluster:int = 0;
-                        var bestDist:Number = Number.MAX_VALUE;
-
-                        for (var c:int = 0; c < k; c++)
-                        {
-                            var cr:int = centers[c][0];
-                            var cg:int = centers[c][1];
-                            var cb:int = centers[c][2];
-                            var dist:Number = (r - cr) * (r - cr) + (g - cg) * (g - cg) + (b - cb) * (b - cb);
-
-                            if (dist < bestDist)
-                            {
-                                bestDist = dist;
-                                bestCluster = c;
-                            }
-                        }
-                        assignments[p] = bestCluster;
-                    }
-
-                    // 2. 클러스터 중심 재계산
-                    var sum:Array = [];
-                    var count:Array = [];
-                    for (c = 0; c < k; c++)
-                    {
-                        sum[c] = [0, 0, 0];
-                        count[c] = 0;
-                    }
-
-                    for (p = 0; p < totalPixels; p++)
-                    {
-                        var cluster:int = assignments[p];
-                        pixel = pixels[p];
-                        sum[cluster][0] += (pixel >> 16) & 0xFF;
-                        sum[cluster][1] += (pixel >> 8) & 0xFF;
-                        sum[cluster][2] += pixel & 0xFF;
-                        count[cluster]++;
-                    }
-
-                    for (c = 0; c < k; c++)
-                    {
-                        if (count[c] > 0)
-                        {
-                            centers[c][0] = sum[c][0] / count[c];
-                            centers[c][1] = sum[c][1] / count[c];
-                            centers[c][2] = sum[c][2] / count[c];
-                        }
-                    }
-                }
-
-                // 가장 큰 클러스터 찾기
-                var maxCluster:int = 0;
-                var maxCount:int = 0;
-                for (c = 0; c < k; c++)
-                {
-                    if (count[c] > maxCount)
-                    {
-                        maxCount = count[c];
-                        maxCluster = c;
-                    }
-                }
-
-                var rFinal:int = centers[maxCluster][0];
-                var gFinal:int = centers[maxCluster][1];
-                var bFinal:int = centers[maxCluster][2];
-
-                return (rFinal << 16) | (gFinal << 8) | bFinal;
-            }
-
-            // function getImageAverageColor(bitmapData:BitmapData):uint
-            // {
-            //     var pixels:Vector.<uint> = bitmapData.getVector(bitmapData.rect);
-            //     var totalPixels:int = pixels.length;
-
-            //     var sumR:uint = 0;
-            //     var sumG:uint = 0;
-            //     var sumB:uint = 0;
-
-            //     for each (var pixel:uint in pixels) {
-            //         sumR += (pixel >> 16) & 0xFF;
-            //         sumG += (pixel >> 8) & 0xFF;
-            //         sumB += pixel & 0xFF;
-            //     }
-
-            //     var avgR:int = sumR / totalPixels;
-            //     var avgG:int = sumG / totalPixels;
-            //     var avgB:int = sumB / totalPixels;
-
-            //     return (avgR << 16) | (avgG << 8) | avgB;
-            // }
 
             function getCaptureAreaBmpd(clipRect:Rectangle,layer1:Boolean,layer2:Boolean):BitmapData
             {
@@ -16928,7 +17072,7 @@
             {
                 if(isUpdatePendingAfterSaving)
                 {
-                    startUpdate();
+                    startUpdatingApp();
                 }
                 else if(isLoadPendingAfterSaving)
                 {
@@ -17056,7 +17200,7 @@
                     }
                     else if(isUpdatePendingAfterSaving)
                     {
-                        startUpdate();
+                        startUpdatingApp();
                     }
                 }
 
@@ -17515,9 +17659,9 @@
 
                     // 혹시 몰라서 위치 체크 해줌
                     canvasInfoBox.setRotate(canvasAnchorPoint.rotation);
-                    centerCanvas(true);
-                    keepCnvasPanelInStage();
-                    keepCnvasPanelInStage(true);
+                    centerCanvas("replay");
+                    keepCanvasPanelInStage();
+                    keepCanvasPanelInStage(true);
                     myPaletteSaveColorBeforeOtherType[0] = penColor;
                     if(d["myPalettePresetType"] > 0) activeColorPreset(d["myPalettePresetType"]);
 
@@ -17568,7 +17712,7 @@
                 {
                     if(stage.nativeWindow.width === 1000 && stage.nativeWindow.height === 800)
                     {
-                        centerCanvas();
+                        centerCanvas("draw");
                         return false;
                     }
                     stage.nativeWindow.width = lastAppWindowSize.x;
@@ -17586,7 +17730,6 @@
                 updateCanvasNaigatorCursor();
                 updateAppWindowSizeInfo();
                 canvasInfoBox.init(CANVAS_WIDTH,CANVAS_HEIGHT,Math.floor(canvasZoomMultipler*100),canvasAnchorPoint.rotation,false);
-
                 selectLayer1(false);
             }
         }
@@ -17910,9 +18053,9 @@
 
                 isPenSizeCursorInvisible = false;
 
-                if(isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
+                if(!isRefLayerEmpty() && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
                 {
-                    setCanvasRefLayerVisibleWithFading();
+                    setCanvasRefLayerVisibleDelay();
                 }
 
                 isMouseDragging = false;
@@ -17987,10 +18130,9 @@
                 oldY = canvasDrawLayerChild.mouseY;
                 subLayerFlag = isLayer2Selected
 
-                if(isRefLayerMemoryTrainingON)
+                if(!isRefLayerEmpty() && isRefLayerMemoryTrainingON)
                 {
-                    // setCanvasRefLayerVisibleWithFading(false);
-                    canvasRefLayer.visible = false;
+                    setCanvasRefLayerInvisible();
                 }
 
                 //캔버스2번 지워주고, draw판넬 데이터도 지워줌
@@ -18061,7 +18203,7 @@
                 {
                     if(isReplayCanvasFitToWindow)
                     {
-                        fitReplayCanvasToWindow();
+                        fitReplayCanvasToViewport();
                     }
 
                     resetLastKey();
@@ -18069,7 +18211,7 @@
                 }
 
                 hideCanvasRotateCursor();
-                keepCnvasPanelInStage(isReplayMode);
+                keepCanvasPanelInStage(isReplayMode);
             }
 
             function onDragStart():void
@@ -18547,11 +18689,11 @@
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
             
             rFollowMouse.updateBounds();
-            keepCnvasPanelInStage(true);
+            keepCanvasPanelInStage(true);
 
             if(isReplayCanvasFitToWindow)
             {
-                fitReplayCanvasToWindow();
+                fitReplayCanvasToViewport();
             }
         }
 
@@ -18626,7 +18768,7 @@
 
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
-            keepCnvasPanelInStage();
+            keepCanvasPanelInStage();
             if(gridGapValue > 0) drawGrid();
             canvasInfoBox.setSize(w,h);
         }
@@ -19590,8 +19732,13 @@
                 removeEyedropperEvents();
 
                 eyedropperLens.visible = false;
-                setCanvasRefLayerVisibleWithFading();
+                // canvasRefLayer.visible = true;
                 canvasBGShape.graphics.clear();
+                if(canvasRefLayerBitmapData.width > 1 && canvasRefLayerBitmapData.height > 1)
+                {
+                    setCanvasRefLayerVisibleWithFading(true);
+                }
+                // setCanvasRefLayerVisibleDelay();
 
                 if(okFlag)
                 {
@@ -19726,19 +19873,34 @@
             };
         }
 
+        public function showRefLayerIsEmptyHint():void
+        {
+            showMouseHintTemp("The reference layer is empty");
+        }
+
+        public function isRefLayerEmpty():Boolean
+        {
+            return canvasRefLayerBitmapData.width === 1 && canvasRefLayerBitmapData.height === 1;
+        }
+
         public function setRefLayerAndGridVisible(flag:Boolean):void
         {
-            if(canvasRefLayer.alpha > 0.0)
+            if(!isRefLayerEmpty() && refLayerLastAlpha > 0.0)
             {
-                if(flag)
+                var shouldShow:Boolean = false;
+
+                if (isRefLayerMemoryTrainingON)
                 {
-                    setCanvasRefLayerVisibleWithFading();
+                    shouldShow = !hasTimer("refLayerVisibleDelayTimer") && flag;
                 }
                 else
                 {
-                    canvasRefLayer.visible = false;
+                    shouldShow = flag;
                 }
+
+                setCanvasRefLayerVisibleWithFading(shouldShow);
             }
+
             if(gridGapValue > 0) 
             {
                 canvasGrid.visible = flag;
@@ -19764,7 +19926,7 @@
                 isMouseDragging = false;
                 isPenSizeCursorInvisible = false;
 
-                keepCnvasPanelInStage(_replayMode);
+                keepCanvasPanelInStage(_replayMode);
 
                 if(isDrawMode)
                 {
@@ -19787,10 +19949,6 @@
                 }
                 else
                 {
-                    if(old.x !== xAnc.x || old.y !== xAnc.y)
-                    {
-                        setFitReplayCanvasToWindowOFF();
-                    }
                     rFollowMouse.updateBounds();
                 }
             }
@@ -20396,7 +20554,7 @@
                 updateCanvasWindowBitmapSize();
             }
 
-            keepCnvasPanelInStage(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
+            keepCanvasPanelInStage(); //사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
             updateCanvasNaigatorCursor();
             enableNewFileButton();
         }
@@ -20474,7 +20632,7 @@
             canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData,rCanvasLayer2BitmapData,canvasLayer2Bitmap);
             updateCavnvasSizeDrawMode(rCanvasLayer1BitmapData.width,rCanvasLayer1BitmapData.height,0,0,false);
             updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
-            keepCnvasPanelInStage(false);
+            keepCanvasPanelInStage(false);
             isFileAlreadySaved = false;
             checkMirrorCanvasReplayMirror();
             canvasNavigatorBox.updateImage(canvasLayer1BitmapData,canvasLayer2BitmapData,RCANVAS_BG_COLOR);
@@ -21123,11 +21281,15 @@
             rCanvasAnchorPoint.name = "rCanvasAnchorPoint";
             rCanvasLayer1Bitmap.name = "rCanvasLayer1Bitmap";
             rCanvasLayer2Bitmap.name = "rCanvasLayer2Bitmap";
+            rCanvasCompleteBitmap.name = "rCanvasCompleteBitmap";
+            rCanvasCompleteAnchorPoint.name = "rCanvasCompleteAnchorPoint";
             rCanvasDrawLayer.name = "rCanvasDrawLayer";
             rCanvasDrawShape.name = "rCanvasDrawShape";
             replayTimelineBox.name = "replayTimelineBox";
             rReplayFOFOCursor.name = "rCursor";
             rReplayFOFOCursor.mouseEnabled = false;
+
+            rCanvasCompleteAnchorPoint.addChild(rCanvasCompleteBitmap);
 
             rCanvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
             rCanvasPanel.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
@@ -21273,7 +21435,7 @@
                 if(isCaptureModeON)
                 {
                     captureWindowMove.setTo(dx,dy);
-                    fitCanvasToViewportMargin(true);
+                    fitCanvasToViewportMargin();
                     
                     if(!captureAreaManager.isFullImageCapture())
                     {
@@ -21286,7 +21448,7 @@
                     rCanvasAnchorPoint.y = rCanvasAnchorPoint.y+dy;
                     canvasAnchorPoint.x = canvasAnchorPoint.x+dx;
                     canvasAnchorPoint.y = canvasAnchorPoint.y+dy;
-                    keepCnvasPanelInStage(isReplayModeON);
+                    keepCanvasPanelInStage(isReplayModeON);
                 }
 
                 if(isLassoToolStarted)
@@ -21315,7 +21477,7 @@
 
                     if(isReplayCanvasFitToWindow)
                     {
-                        fitReplayCanvasToWindow();
+                        fitReplayCanvasToViewport();
                     }
                 }
 
@@ -21502,7 +21664,7 @@
             else if(rect.y+rect.height > stage.stageHeight-STAGE_BOTTOM_OFFSET) target.y = stage.stageHeight-rect.height-STAGE_BOTTOM_OFFSET;
         }
 
-        public function keepCnvasPanelInStage(replayMode:Boolean = false):void
+        public function keepCanvasPanelInStage(replayMode:Boolean = false):void
         {
             var xAnc:Sprite;
             var xCanvas:Bitmap;
@@ -21555,7 +21717,7 @@
             }
             else if(mode === "replay")
             {
-                topBarOffset = topBarOffset+replayTimelineBox.BARSIZE*scale;
+                topBarOffset = topBarOffset;
                 center.setTo(stage.stageWidth/2,Math.floor(topBarOffset+(stage.stageHeight-topBarOffset)/2));
             }
             else if(mode === "capture") 
@@ -21570,17 +21732,15 @@
             return center;
         }
 
-        public function centerCanvas(isReplayMode:Boolean = false, isCaptureMode:Boolean = false):void
+        public function centerCanvas(mode:String):void
         {
             var xAnc:Sprite;
             var xCanvas:Sprite;
             var w:Number;
             var h:Number;
-            var center:Point = (isCaptureMode) ? getStageCenterPos("capture") :
-                (isReplayMode) ? getStageCenterPos("replay") :
-                getStageCenterPos("draw");
+            var center:Point = getStageCenterPos(mode);
 
-            if (isReplayMode)
+            if (isReplayModeON)
             {
                 xAnc = rCanvasAnchorPoint;
                 xCanvas = rCanvasPanel;
@@ -21600,7 +21760,7 @@
             xCanvas.x = Math.floor(-w / 2);
             xCanvas.y = Math.floor(-h / 2);
 
-            if(!isReplayMode)
+            if(!isReplayModeON)
             {
                 updateCanvasNaigatorCursor();
             }
@@ -21630,7 +21790,6 @@
             const timeStr:String = getReplayRemainingTimeString(rReplaySpeedMultipler,TOTAL_FRAME);
             const finalStr:String = STRING_PLAYBACK_SPEED+rReplaySpeedMultipler+timeStr;
 
-            rSpeedLastHint = finalStr;
             showMouseHintTemp(finalStr);
         }
         
@@ -21775,6 +21934,42 @@
             {
                 return;
             }
+            
+            if(isReplayStarted)
+            {
+                switch(firstKey)
+                {
+                    case KEY.backspace:
+                    case KEY.esc:
+                    case KEY.enter:
+                    case KEY.space:
+                    {
+                        updateLastKey(firstKey);
+                        removeTimer("prograssBarUpdateTimer");
+                        showTopbarOnReplayEnd();
+                        stopReplay();
+                    }
+                    break;
+                }
+                return;
+            }
+
+            if(isReplayRestartTimerON())
+            {
+                switch(firstKey)
+                {
+                    case KEY.backspace:
+                    case KEY.esc:
+                    case KEY.enter:
+                    case KEY.space:
+                    {
+                        updateLastKey(firstKey);
+                        cancelReplayRestartTimer();
+                    }
+                    break;
+                }
+                return;
+            }
 
             if(isPressingShift())
             {
@@ -21786,7 +21981,10 @@
                         case KEY.z:
                         case KEY.dot:
                         {
-                            startKeyRepeat(true,moveToPreviousFrame);
+                            if(!isReplayStarted)
+                            {
+                                startKeyRepeat(true,moveToPreviousFrame);
+                            }
                         }
                         break;
 
@@ -21794,14 +21992,10 @@
                         case KEY.x:
                         case KEY.comma:
                         {
-                            startKeyRepeat(true,moveToNextFrame);
-                        }
-                        break;
-
-                        case KEY.f5:
-                        case KEY.f6:
-                        {
-                            resetZoomReplayMode();
+                            if(!isReplayStarted)
+                            {
+                                startKeyRepeat(true,moveToNextFrame);
+                            }
                         }
                         break;
                     }
@@ -21835,7 +22029,10 @@
                 case KEY.z:
                 case KEY.dot:
                 {
-                    startKeyRepeat(true,moveToPreviousStep);
+                    if(!isReplayStarted)
+                    {
+                        startKeyRepeat(true,moveToPreviousStep);
+                    }   
                 }
                 break;
 
@@ -21843,7 +22040,10 @@
                 case KEY.x:
                 case KEY.comma:
                 {
-                    startKeyRepeat(true,moveToNextStep);
+                    if(!isReplayStarted)   
+                    {
+                        startKeyRepeat(true,moveToNextStep);
+                    }
                 }
                 break;
 
@@ -21851,7 +22051,10 @@
                 case KEY.f:
                 case KEY.h:
                 {
-                    startAdjustPlayBackSpeedByShortcut(true);
+                    if(!isReplayStarted)
+                    {
+                        startAdjustPlayBackSpeedByShortcut(true);
+                    }
                 }
                 break;
 
@@ -21859,7 +22062,10 @@
                 case KEY.v:
                 case KEY.n:
                 {
-                    startAdjustPlayBackSpeedByShortcut(false);
+                    if(!isReplayStarted)
+                    {
+                        startAdjustPlayBackSpeedByShortcut(false);
+                    }
                 }
                 break;
 
@@ -21875,8 +22081,15 @@
                 case KEY.enter:
                 case KEY.space:
                 {
-                    if(isReplayStarted === false) startReplay();
-                    else stopReplay();
+                    if(isReplayRestartTimerON())
+                    {
+                        cancelReplayRestartTimer();
+                    }
+                    else
+                    {
+                        hideTopbarOnReplayStart();
+                        startReplay();
+                    }
                 }
                 break;
             }
@@ -23015,7 +23228,7 @@
 
         public function enterDrawModeOnLoadFile():void
         {
-             if(isCaptureModeON)
+            if(isCaptureModeON)
             {
                 exitCaptureMode();
             }
@@ -23038,6 +23251,7 @@
             }
 
             removeInputEventsReplayMode();
+            cancelReplayRestartTimer();
             isReplayModeON = false;
             isPenSizeCursorInvisible = false;
             rCanvasAnchorPoint.visible = false;
@@ -23065,7 +23279,6 @@
             replayTimelineBox.pauseButton.visible = false;
             setAsTopChild(replayTimelineBox);
             replayTimelineBox.setDeleteRangeBarVisible(false);
-            setFitReplayCanvasToWindowOFF();
             updateStageOffset();
             updateCanvasNaigatorCursor();
 
@@ -23111,6 +23324,7 @@
             penSizePreviewCursor.visible = false;
             replayTimelineBox.pauseButton.visible = false;
             replayTimelineBox.y = Math.floor(topBar.BARSIZE*Global.getUIScale()-4);
+            lastReplayTimeBoxYPos = replayTimelineBox.y;
             setAsTopChild(replayTimelineBox);
             replayTimelineBox.setDeleteRangeBarVisible(false);
 
@@ -23175,7 +23389,7 @@
 
                 updateDeleteReplayDataButtonsState();
                 isReplaySlideShowMode = false;
-                keepCnvasPanelInStage(true);
+                keepCanvasPanelInStage(true);
                 hideSidebarTemporary();
                 updateTopBarModeIcons("replay");
                 addInputEventsReplayMode();
@@ -23192,7 +23406,16 @@
 
             const targetName:String = target.name;
 
-            if(targetName)
+            if(isReplayRestartTimerON())
+            {
+                if(replayTimelineBox.hitTestPoint(stage.mouseX,stage.mouseY))
+                {
+                    cancelReplayRestartTimer();
+                }
+                return;
+            }
+
+            if(targetName && !isReplayRestartTimerON())
             {
                 if(targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG")
                 {
@@ -23286,6 +23509,7 @@
 
                 case "replayPrev":
                 {
+                    removeTimer("prograssBarUpdateTimer");
                     if(isPressingShift())
                     {
                         startKeyRepeat(true,moveToPreviousFrame);
@@ -23299,6 +23523,7 @@
 
                 case "replayNext":
                 {
+                    removeTimer("prograssBarUpdateTimer");
                     if(isPressingShift())
                     {
                         startKeyRepeat(true,moveToNextFrame);
@@ -23333,8 +23558,6 @@
                 case "replayZoomInButton":
                 case "replayZoomOutButton":
                 case "replayFitToWindowButton":
-                case "playButton":
-                case "pauseButton":
                 case "replayPrev":
                 case "replayNext":
                 {
@@ -23368,22 +23591,22 @@
             }
         }
 
-        public function setFitReplayCanvasToWindowOFF():void
+        public function setFitReplayCanvasToViewportOFF():void
         {
             isReplayCanvasFitToWindow = false;
         }
 
-        public function setFitReplayCanvasToWindowON():void
+        public function setFitReplayCanvasToViewportON():void
         {
             isReplayCanvasFitToWindow = true;
-            fitReplayCanvasToWindow();
+            fitReplayCanvasToViewport();
         }
 
-        public function fitReplayCanvasToWindow():void
+        public function fitReplayCanvasToViewport():void
         {
             addTimerByName("rFitZoomedDelayTimer",0.15,false,function():void
             {
-                fitCanvasToViewportMargin(false,true);
+                fitCanvasToViewportMargin(true);
                 rCanvasZoomIndex = getNearZoomIndex(rCanvasZoomMultiplier);
                 rCanvasZoomMultiplier = canvasZoomMultiplerList[rCanvasZoomIndex];
             });
@@ -23397,8 +23620,14 @@
 
             if(targetName && targetName.indexOf("canvas") !== -1 || targetName === "stageBG")
             {
-                if(isReplayCanvasFitToWindow) resetZoomReplayMode();
-                else setFitReplayCanvasToWindowON();
+                if(isReplayCanvasFitToWindow)
+                {
+                    resetZoomReplayMode();
+                }
+                else
+                {
+                    setFitReplayCanvasToViewportON();
+                }
                 return;
             }
 
@@ -23480,6 +23709,7 @@
                     {
                         Global.resetScaleIndex();
                         applyUIScale();
+                        showMouseHintTemp(Global.getUIScaleString());
                     }
                 }
                 break;
@@ -24351,7 +24581,14 @@
 
                 case "refClearImageButton":
                 {
-                    startPressHoldKey(refLayerMenuBox.refClearImageButton,"Erasing reference image...",null,startReflayerClear,null);
+                    if(isRefLayerEmpty())
+                    {
+                        showRefLayerIsEmptyHint();
+                    }
+                    else
+                    {
+                        startPressHoldKey(refLayerMenuBox.refClearImageButton,"Erasing reference image...",null,startReflayerClear,null);
+                    }
                 }
                 return;
 
@@ -24398,28 +24635,56 @@
                 case "refRotateImageButton":
                 {
                     setAsTopChild(refLayerMenuBox);
-                    startRefLayerRotation();
+                    if(isRefLayerEmpty())
+                    {
+                        showRefLayerIsEmptyHint();
+                    }
+                    else
+                    {
+                       startRefLayerRotation();
+                    }
                 }
                 return;
 
                 case "refMoveImageButton":
                 {
                     setAsTopChild(refLayerMenuBox);
-                    startRefLayerImageDrag();
+                    if(isRefLayerEmpty())
+                    {
+                        showRefLayerIsEmptyHint();
+                    }
+                    else
+                    {
+                        startRefLayerImageDrag();
+                    }
                 }
                 return;
 
                 case "refResizeImageButton":
                 {
                     setAsTopChild(refLayerMenuBox);
-                    startRefLayerImageScale();
+                    if(isRefLayerEmpty())
+                    {
+                        showRefLayerIsEmptyHint();
+                    }
+                    else
+                    {
+                        startRefLayerImageScale();
+                    }
                 }
                 return;
 
                 case "refOpacitySliderWrapper":
                 {
                     setAsTopChild(refLayerMenuBox);
-                    startRefLayerOpacityDrag();
+                    if(isRefLayerEmpty())
+                    {
+                        showRefLayerIsEmptyHint();
+                    }
+                    else
+                    {
+                        startRefLayerOpacityDrag();
+                    }
                 }
                 return;
 
