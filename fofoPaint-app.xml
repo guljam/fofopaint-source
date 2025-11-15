@@ -45,4 +45,4 @@
   </icon>
   <customUpdateUI>false</customUpdateUI>
   <allowBrowserInvocation>false</allowBrowserInvocation>
-  <supportedProfiles>desktop extendedDesktop mobileDevice </supportedProfiles></application>
+  <supportedProfiles>desktop extendedDesktop </supportedProfiles></application>

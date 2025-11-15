@@ -8611,11 +8611,6 @@
             return isColorPickerModeBG === false;
         }
 
-        public function getRGBorHSVString():String
-        {
-            return (isHSVInfoTextMode) ? "'HSV'":"'RGB'";
-        }
-
         public function updateHSVColorData(h:Number,s:Number,v:Number):void
         {
             hsvColorData[0] = h;

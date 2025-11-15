@@ -169,6 +169,11 @@
                 "navLayer2Bitmap": "Canvas Navigator"
             };
 
+        static public function getRGBorHSVString():String
+        {
+            return (_main.isHSVInfoTextMode) ? "'HSV'":"'RGB'";
+        }
+
         static public function getCaptureSaveHintString():String
         {
             return (_main.captureAreaManager.isFullImageCapture()) ? "image":"selected area";
