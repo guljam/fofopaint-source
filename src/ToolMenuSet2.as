@@ -3,7 +3,6 @@
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
-	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.geom.Point;
@@ -35,9 +34,19 @@
 		private const resizeButtonWaitTimeBar:Shape = new Shape();
 		private var resizeButtonWaitTimeBarColor:uint = 0xFf0000;
 		private var WIDTH:Number = 0.0;
-
 		private var lastUsedToolPoint:Point = new Point(0, 0);
+		private var onMouseOverTarget:DisplayObject;
 
+		public function getMouseOverTarget():DisplayObject
+		{
+			return onMouseOverTarget;
+		}
+
+		public function setMouseOverTarget(target:DisplayObject):void
+		{
+			onMouseOverTarget = target;
+		}
+	
 		public function getLastUsedToolPos():Point
 		{
 			return lastUsedToolPoint;
@@ -113,7 +122,6 @@
 			const rightButtonArr:Array = [
 					toolPen,
 					toolFillPen,
-					// toolScanFill,
 					toolErase,
 					toolUndo,
 					toolRedo,
@@ -197,7 +205,6 @@
 		{
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
-			// toolScanFill.useHandCursor = false;
 			toolErase.useHandCursor = false;
 			toolUndo.useHandCursor = false;
 			toolRedo.useHandCursor = false;
@@ -218,6 +225,7 @@
 			visible = false;
 
 			updateLastUsedToolPos("toolPen");
+			onMouseOverTarget = toolPen;
 
 			fixedScale = 34 / toolPen.width;
 			setScale(1.0);

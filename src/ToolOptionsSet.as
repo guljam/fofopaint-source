@@ -64,20 +64,35 @@
 
 		private const opColor:ColorTransform = new ColorTransform();
 
-		public function restoreDisabledButtons():void
+		public function isLayerCheckButtonsDisabled():Boolean
 		{
-			etcOptionWrapper.alpha = 1.0;
-			penSizeGuide.alpha = 1.0;
-			penSizeBox.alpha = 1.0;
-			rectSizeSet.alpha = 1.0;
-			circleSizeSet.alpha = 1.0;
-			opaGuide.alpha = 1.0;
-			penSizeSelectCursor.alpha = 1.0;
+			return layer1CheckedButton.alpha <= 1.0;
 		}
 
 		public function isSizeButtonsDisabled():Boolean
 		{
 			return penSizeGuide.alpha < 1.0;
+		}
+
+		public function restoreDisabledButtons():void
+		{
+			etcOptionWrapper.alpha = 1.0;
+		}
+
+		public function enablePenSmoothingSlider():void
+		{
+			penSmoothSliderWapper.alpha = 1.0;
+		}
+
+		public function disablePenSmoothingSlider():void
+		{
+			penSmoothSliderWapper.alpha = Global.OFFALPHA;
+		}
+
+		public function disableButtonFillPenStarted():void
+		{
+			const offAlpha:Number = Global.OFFALPHA;
+			etcOptionWrapper.alpha = offAlpha;
 		}
 
 		public function setButtonsAlphaFillPenSelected(alpha:Number):void
@@ -94,17 +109,6 @@
 			layer1UncheckedButton.alpha = alpha;
 			layer2CheckedButton.alpha = alpha;
 			layer2UncheckedButton.alpha = alpha;
-		}
-
-		public function disableButtonFillPenStarted():void
-		{
-			const offAlpha:Number = Global.OFFALPHA;
-			etcOptionWrapper.alpha = offAlpha;
-			penSizeGuide.alpha = offAlpha;
-			penSizeBox.alpha = offAlpha;
-			rectSizeSet.alpha = offAlpha;
-			circleSizeSet.alpha = offAlpha;
-			penSizeSelectCursor.alpha = offAlpha;
 		}
 
 		public function blurShapeSetON():void
@@ -167,55 +171,6 @@
 				Global.applyUIFGColor(uiElements[i]);
 			}
 		}
-		// public function changeUIColor(op:uint):void
-		// {
-		// 	var alphaBackup:Number;
-		// 	const opColor:ColorTransform = new ColorTransform()
-		// 	opColor.color = op;
-			
-		// 	etcOptionBorder.transform.colorTransform = opColor;
-		// 	infoPenOptions.transform.colorTransform = opColor;
-		// 	infoEraserOptions.transform.colorTransform = opColor;
-		// 	infoFillPenOptions.transform.colorTransform = opColor;
-		// 	infoLineOptions.transform.colorTransform = opColor;
-
-		// 	alphaBackup = layer1SelectButton.alpha;
-		// 	layer1SelectButton.transform.colorTransform = opColor;
-		// 	layer1SelectButton.alpha = alphaBackup;
-		// 	layer1UncheckedButton.transform.colorTransform = opColor;
-		// 	layer1CheckedButton.transform.colorTransform = opColor;
-
-		// 	alphaBackup = layer2SelectButton.alpha;
-		// 	layer2SelectButton.transform.colorTransform = opColor;
-		// 	layer2SelectButton.alpha = alphaBackup;
-		// 	layer2UncheckedButton.transform.colorTransform = opColor;
-		// 	layer2CheckedButton.transform.colorTransform = opColor;
-
-		// 	layerSwapButton.transform.colorTransform = opColor;
-		// 	layerMergeButton.transform.colorTransform = opColor;
-			
-		// 	alphaBackup = shapeRect.alpha;
-		// 	shapeRect.transform.colorTransform = opColor;
-		// 	alphaBackup = shapeRect.alpha;
-		// 	shapeCircle.transform.colorTransform = opColor;
-		// 	rectSizeSet.transform.colorTransform = opColor;
-		// 	circleSizeSet.transform.colorTransform = opColor;
-		// 	penSizeGuide.transform.colorTransform = opColor;
-
-		// 	sharpLineText.transform.colorTransform = opColor;
-		// 	sharpLineONButton.transform.colorTransform = opColor;
-		// 	sharpLineOFFButton.transform.colorTransform = opColor;
-
-		// 	airBrushText.transform.colorTransform = opColor;
-		// 	airBrushOFFButton.transform.colorTransform = opColor;
-		// 	airBrushONButton.transform.colorTransform = opColor;
-
-		// 	opaGuide.transform.colorTransform = opColor;
-		// 	saperateLine.transform.colorTransform = opColor;
-
-		// 	penSmoothSlider.transform.colorTransform = opColor;
-		// 	penSmoothSliderCursor.transform.colorTransform = opColor;
-		// }
 
 		public function updatePenShapeSet(flag:Boolean):void // true이면 rect임
 		{
