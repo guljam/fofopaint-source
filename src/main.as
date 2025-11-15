@@ -7396,42 +7396,46 @@
 
         public function selectLayer1(onlyViewFlag:Boolean):void
         {
+            isLayer2Selected = false;
+
+            toolOptionsBox.layer1SelectButton.alpha = 1.0;
+            toolOptionsBox.layer2SelectButton.alpha = 0.6;
+
             if (onlyViewFlag)
             {
                 canvasLayer1Bitmap.visible = true;
                 canvasLayer2Bitmap.visible = false;
+                toolOptionsBox.moveLayerInvisibleLineToLayer2();
             }
             else
             {
                 canvasLayer1Bitmap.visible = true;
                 canvasLayer2Bitmap.visible = true;
+                toolOptionsBox.removeLayerInvisibleLine();
             }
-
-            isLayer2Selected = false;
-
-            toolOptionsBox.layer1SelectButton.alpha = 1.0;
-            toolOptionsBox.layer2SelectButton.alpha = 0.6;
 
             bringCanvasDrawLayerAboveLayer1();
         }
 
         public function selectLayer2(onlyViewFlag:Boolean):void
         {
+            isLayer2Selected = true;
+
+            toolOptionsBox.layer1SelectButton.alpha = 0.6;
+            toolOptionsBox.layer2SelectButton.alpha = 1.0;
+
             if (onlyViewFlag)
             {
                 canvasLayer1Bitmap.visible = false;
                 canvasLayer2Bitmap.visible = true;
+                toolOptionsBox.moveLayerInvisibleLineToLayer1();
             }
             else
             {
                 canvasLayer1Bitmap.visible = true;
                 canvasLayer2Bitmap.visible = true;
+                toolOptionsBox.removeLayerInvisibleLine();
             }
-
-            isLayer2Selected = true;
-
-            toolOptionsBox.layer1SelectButton.alpha = 0.6;
-            toolOptionsBox.layer2SelectButton.alpha = 1.0;
 
             bringCanvasDrawLayerAboveLayer2();
         }

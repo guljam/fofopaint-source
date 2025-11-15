@@ -113,8 +113,8 @@
                 "airBrushONButton": "Air brush [4 / 7]",
                 "airBrushText": "Air brush [4 / 7]",
 
-                "layer1SelectButton": "Select layer 1 [1 / 9] Show only layer 1 ON/OFF [click x 2]",
-                "layer2SelectButton": "Select layer 2 [2 / 0] Show only layer 2 ON/OFF [click x 2]",
+                "layer1SelectButton": "Select layer 1 [1 / 9] — Toggle view only layer 1 [click again]",
+                "layer2SelectButton": "Select layer 2 [2 / 0] — Toggle view only layer 2 [click again]",
                 "layer1CheckedButton": "Check layer 1 (for move image tool, lasso tool, merge into reference layer)",
                 "layer1UncheckedButton": "Check layer 1 (for move image tool, lasso tool, merge into reference layer)",
                 "layer2CheckedButton": "Check layer 2 (for move image tool, lasso tool, merge into reference layer)",

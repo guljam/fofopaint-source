@@ -4,7 +4,7 @@
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
 	import flash.filters.BlurFilter;
-	import flash.display.DisplayObject;
+	import flash.display.Shape;
 
 	public class ToolOptionsSet extends Sprite
 	{
@@ -41,8 +41,7 @@
 
 		public var layer1SelectButton:SimpleButton;
 		public var layer2SelectButton:SimpleButton;
-		public var layer1Button:SimpleButton;
-		public var layer2Button:SimpleButton;
+		public var layerInvisibledLine:Shape = new Shape();
 
 		public const penSmoothSliderWapper:Sprite = new Sprite();
 		public var penSmoothSlider:SimpleButton;
@@ -63,6 +62,43 @@
 		private var BOX_HEIGHT:Number = 260;
 
 		private const opColor:ColorTransform = new ColorTransform();
+
+		public function drawLayerInvisibledLine(width:Number):void
+		{
+			layerInvisibledLine.graphics.clear();
+			layerInvisibledLine.graphics.lineStyle(3,0xFF0000);
+			layerInvisibledLine.graphics.moveTo(0,0);
+			layerInvisibledLine.graphics.lineTo(width,0);
+		}
+
+		public function removeLayerInvisibleLine():void
+		{
+			if(layerInvisibledLine.visible === true)
+			{
+				layerInvisibledLine.visible = false;
+				layerInvisibledLine.graphics.clear();
+			}
+		}
+
+		public function moveLayerInvisibleLineToLayer1():void
+		{
+			drawLayerInvisibledLine(layer1SelectButton.width);
+			layerInvisibledLine.x = layer1SelectButton.x;
+			layerInvisibledLine.y = layer1SelectButton.y+layer1SelectButton.height/2;
+			layerInvisibledLine.alpha = layer1SelectButton.alpha;
+
+			layerInvisibledLine.visible = true;
+		}
+
+		public function moveLayerInvisibleLineToLayer2():void
+		{
+			drawLayerInvisibledLine(layer2SelectButton.width);
+			layerInvisibledLine.x = layer2SelectButton.x;
+			layerInvisibledLine.y = layer2SelectButton.y+layer2SelectButton.height/2;
+			layerInvisibledLine.alpha = layer2SelectButton.alpha;
+
+			layerInvisibledLine.visible = true;
+		}
 
 		public function isLayerCheckButtonsDisabled():Boolean
 		{
@@ -307,6 +343,8 @@
 			layer2UncheckedButton.useHandCursor = false;
 			layerSwapButton.useHandCursor = false;
 			layerMergeButton.useHandCursor = false;
+			saperateLine.mouseEnabled = false;
+			layerInvisibledLine.visible = false;
 
 			layerButtonWrapper.addChild(layer1SelectButton);
 			layerButtonWrapper.addChild(layer2SelectButton);
@@ -317,6 +355,7 @@
 			layerButtonWrapper.addChild(layerSwapButton);
 			layerButtonWrapper.addChild(layerMergeButton);
 			layerButtonWrapper.addChild(saperateLine);
+			layerButtonWrapper.addChild(layerInvisibledLine);
 
 			layerSwapButton.x = 0;
 			layerSwapButton.y = 0;
@@ -343,7 +382,8 @@
 			saperateLine.x = layerMergeButton.x + layerMergeButton.width + 5;
 			saperateLine.y = 4;
 
-			saperateLine.mouseEnabled = false;
+			layerInvisibledLine.x = 0;
+			layerInvisibledLine.y = 0;
 		}
 
 		public function initPenSmoothSliderWrapper():void
