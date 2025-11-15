@@ -62,9 +62,9 @@
     import flash.text.TextFormat;
     import flash.ui.Mouse;
     import libwebp.DecodeWebp;
-    import HintScrolling;
 
-    //import end
+    //import
+
     public class Main extends Sprite
     {
         public const  APP_VERSION:Number = 27.01;
@@ -567,7 +567,7 @@
                       penCursorManager:Object = cPenCursorUpdater(),
                       captureAreaManager:Object = cDrawCaptureArea(),
                       captureStampManager:Object = cDrawCaptureStamp(),
-                      replayHideCursor:Object = cCheckHideCursor(),
+                      replayHideCursor:Object = cReplayHideCursor(),
                       resizeCanvas:Object = cResizeCanvas(),
                       gridButton:Object = cGridFunc();
 
@@ -594,7 +594,7 @@
                     workerWaitCount:int = 0, //워커 시작하고나서 약간 대기 시켜줘야함,
                     workerFunctionsBeforeStart:Array = [];
 
-        //새창 관련
+        //새창
        public var  canvasWindowInfo:Array = [null, null, 400, 400], // x, y, 너비, 높이
                    isCanvasWindowON:Boolean = false,                // 캔버스 새창 켜졌을 때
                    canvasWindow:NativeWindow,                       // 참조된 새 창
@@ -605,17 +605,17 @@
                    canvasWindowCanvasPanelBgColor:uint = 0,         // 배경 색상
                    canvasWindowIgnoreResizeEventFlag:Boolean = false; // 창 크기 조정 이벤트 무시 플래그
 
-        // 딥언도 관련
+        // 딥언도
         public var isDeepUndoEnabled:Boolean = false,
                     lastDeepUndoEnabledFlag:Boolean = false, //리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
                     lastReplayFrameOnDeepUndoStart:Number = -1; //리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
 
-        //picker box RGB info관련
+        //picker box RGB info
         public var  lastRGBInfoColorPartIndex:int = -1, //처음 클릭했을때 R G B중 어느 영역을 클릭했는지
                     isHSVInfoTextMode:Boolean = false, // true가 되면 hsv false이면 rgb
                     numpadInputBuffer:String = "";    //숫자키 누르면 어기다가 저장해주고 필터링해줘서 rgbinfotext에 갱신해줌
 
-        //사이드바 관련
+        //사이드바
         public var  isSidebarVisible:Boolean = true,               // 사이드바 표시 여부
                     isSidebarTempShowDeactivated:Boolean = false,  // 사이드바 임시로 보여주는 기능이 잠시 꺼졌을때 올려줌
                     isReactivateSidebarTempShowEventsAdded:Boolean = false,  // 사이드바 임시로 보여주는 기능을 끄는 이벤트들이 등록되면 올려줌
@@ -623,6 +623,9 @@
                     isRightSidebar:Boolean = false,                // 사이드바 위치 (false: 왼쪽, true: 오른쪽)
                     lassoAndRefLayerBoxLastPos:Array = [0,0,0,0,0,0,0,0]; // 사이즈바 켜줄때 임시로 사이드바 안쪽으로 밀려나게 하고 위치가 변경되지 않았으면 원래대로 복귀해줌
                                                                           //좌표순서 라소 이전, 이후, 트레이스 이전 이후
+        
+        //드래그 이벤트 변수
+        public var dragInteractionFuncs:Object = {onDragStart:null,onMouseMove:null,onMouseUp:null};
 
         //기타
         public var  isAppClosing:Boolean = false,                  // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
@@ -865,10 +868,10 @@
         {
             isMouseDragging = true;
 
-            function onmouseUp(e:MouseEvent):void
+            function onMouseUp(e:MouseEvent):void
             {
                 isMouseDragging = false;
-                stage.removeEventListener(MouseEvent.MOUSE_UP, onmouseUp);
+                stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
                 
                 onMouseUpFunc();
@@ -882,7 +885,7 @@
             onDragStartFunc();
 
             stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-            stage.addEventListener(MouseEvent.MOUSE_UP, onmouseUp);
+            stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
         }
 
         public function isPopUpWindowOpened():Boolean
@@ -2876,7 +2879,9 @@
         public function deleteLastRDataCommand(command:String):void
         {
             if (rData.length === 0)
+            {
                 return;
+            }
 
             const index:int = undoDataIndex;
 
@@ -2902,7 +2907,7 @@
 
             isDeleteUndoDataPending = false;
             undoManager.updateLastRDataMirror();
-            undoDataIndex = rData.length  ;
+            undoDataIndex = rData.length-1;
         }
 
         public function hasLastRDataCommand(command:String):Boolean
@@ -2971,7 +2976,6 @@
             tempbmpd11.dispose();
             tempbmpd1 = null;
             tempbmpd11 = null;
-
             if(hasLastRDataCommand("swap"))
             {
                 deleteLastRDataCommand("swap");
@@ -3537,11 +3541,12 @@
             Global.setColorTransform(resizeButtonD,color);
         }
 
-        public function cCheckHideCursor():Object
+        public function cReplayHideCursor():Object
         {
-            var isMouseHide:Boolean = false;
+            var isMouseHided:Boolean = false;
             var count:int = 0;
             const pos:Point = new Point(0,0);
+            const frameRate:Number = stage.frameRate;
 
             function isMouseMoved():Boolean
             {
@@ -3553,31 +3558,33 @@
                 pos.setTo(stage.mouseX,stage.mouseY);
             }
 
-            function reset():void
+            function show():void
             {
                 Mouse.show();
-                isMouseHide = false;
+                isMouseHided = false;
                 count = 0;
             }
 
             function check():void
             {
-                if(isMouseHide)
+                if(isMouseHided)
                 {
                     if(isMouseMoved())
                     {
-                        reset();
+                        count = 0;
+                        show();
                     }
                 }
-                else
+                else if(isReplayStarted || isReplayRestartTimerON())
                 {
-                    if(count > stage.frameRate)
+                    if(count > frameRate)
                     {
+                        count = frameRate;
                         if(!isHighlightBoxVisible())
                         {
                             Mouse.hide();
                             hideBottomHint();
-                            isMouseHide = true;
+                            isMouseHided = true;
                             updateMousePos();
                         }
                     }
@@ -3597,7 +3604,7 @@
 
             return{
                 check:check,
-                reset:reset
+                show:show
             }
         }
 
@@ -7389,6 +7396,26 @@
             {
                 canvasPanel.setChildIndex(canvasDrawLayer,canvasPanel.getChildIndex(canvasLayer1Bitmap));
             }
+        }
+
+        public function showMouseHintLayerVisible():void
+        {
+            var str:String = "No layers visible";
+
+            if(canvasLayer1Bitmap.visible === true && canvasLayer2Bitmap.visible === false)
+            {
+                str = "Layer 1 only visible";
+            }
+            else if(canvasLayer1Bitmap.visible === false && canvasLayer2Bitmap.visible === true)
+            {
+                str = "Layer 2 only visible";
+            }
+            else if(canvasLayer1Bitmap.visible === true && canvasLayer2Bitmap.visible === true)
+            {
+                str = "All layers visible";
+            }
+
+            showMouseHintTemp(str);
         }
 
         public function selectLayer1(onlyViewFlag:Boolean):void
@@ -11768,6 +11795,26 @@
             replayTimelineBox.prograssInfo.text = customFrame+" / "+TOTAL_FRAME+remainingTime;
         }
 
+        public function startCheckingHideMouseCursor():void
+        {
+            if(hasTimer("replayHideCursorCheckTimer"))
+            {
+                return;
+            }
+
+            addTimerByName("replayHideCursorCheckTimer",0.0,true,function():Boolean
+            {
+                if(!isReplayModeON)
+                {
+                    return false;
+                }
+
+                replayHideCursor.check();
+
+                return true;
+            });
+        }
+
         public function startUpdatingPrograssBarTimer():void
         {
             if(hasTimer("prograssBarUpdateTimer"))
@@ -11842,7 +11889,6 @@
                     stopReplay();
                 }
             }
-            replayHideCursor.check();
         }
 
         public function startReplayDrawTimer():void
@@ -11878,8 +11924,6 @@
                 {
                     drawCanvasFromReplayData(rReplaySpeedMultipler,JUMP_FRAME_PLAY);
                 }
-
-                replayHideCursor.check();
                 return true;
             })
         }
@@ -12687,7 +12731,6 @@
                 isReplaySlideShowMode = false;
                 isReplayFinished = false;
                 replayTimelineBox.resetPrograssBarColor();
-                replayHideCursor.check();
             }
 
             function onMouseMove():void
@@ -12770,7 +12813,6 @@
             isReplayStarted = false;
             isReplaySlideShowMode = false;
             updateDeleteReplayDataButtonsState();
-            replayHideCursor.reset();
         }
 
         public function handleReplayStartButton():void
@@ -12790,9 +12832,8 @@
             replayTimelineBox.resetPrograssBarColor();
             replayTimelineBox.playButton.visible = false;
             replayTimelineBox.pauseButton.visible = true;
-            updateDeleteReplayDataButtonsState();
-
             rReplayFOFOCursor.visible = true;
+            updateDeleteReplayDataButtonsState();
 
             if(isReplayFinished === true) //리플레이 시간 등등 초기화 시키고 시작
             {
@@ -12803,23 +12844,9 @@
                 drawFirstJumpImage();
                 rDataReadFlag = false;
                 isReplayFinished = false;//resetReplayTime함수 에서 이걸 true로 해주기 때문에 아래쪽에서 변경
-                resetRotationReplayMode();
-
-                if(!isReplayCanvasFitToWindow)
-                {
-                    restoreZoomReplayMode();
-                }
-
                 rFollowMouse.updateBounds();
                 selectReplaySubLayer(false);
             }
-
-            // if(isReplayFinishedWithFiwWindow === true)
-            // {
-            //     isReplayFinishedWithFiwWindow = false;
-            //     rCanvasZoomIndex = getNearZoomIndex(rCanvasZoomMultiplier);
-            //     updateCanvasScale(rCanvasZoomMultiplier,true);
-            // }
 
             if(!rDataReadFlag)
             {
@@ -12835,6 +12862,7 @@
             clearRFrameTempCache();
             startReplayDrawTimer();
             startUpdatingPrograssBarTimer();
+            startCheckingHideMouseCursor();
         }
 
         public function startBoxDrag(target:DisplayObject):void
@@ -13280,7 +13308,7 @@
             mouseHint.hide();
         }
 
-        public function showMouseHintTemp(str:String,duration:Number=1.0):void
+        public function showMouseHintTemp(str:String,duration:Number=3.0):void
         {
             showMouseHint(str,duration);
         }
@@ -19976,7 +20004,7 @@
 
                 isMouseDragging = false;
                 isPenSizeCursorInvisible = false;
-
+                
                 keepCanvasPanelInStage(isReplayMode);
 
                 if(isDrawMode)
@@ -20006,6 +20034,11 @@
 
             function onMouseMoveHandTool(e:MouseEvent):void
             {
+                if(isReplayMode && isReplayRestartTimerON())
+                {
+                    onMouseUpHandTool(null);
+                    return;
+                }
                 xAnc.x += (stage.mouseX-old.x);
                 xAnc.y += (mouseY-old.y);
 
@@ -21496,14 +21529,18 @@
                         captureAreaManager.updateDrawArea(true);
                     }
                 }
-                else if(isReplayRestartTimerON())
-                {
-                    centerCanvas("replay")
-                }
                 else
                 {
-                    rCanvasAnchorPoint.x = rCanvasAnchorPoint.x+dx;
-                    rCanvasAnchorPoint.y = rCanvasAnchorPoint.y+dy;
+                    if(isReplayRestartTimerON())
+                    {
+                        centerCanvas("replay")
+                    }
+                    else
+                    {
+                        rCanvasAnchorPoint.x = rCanvasAnchorPoint.x+dx;
+                        rCanvasAnchorPoint.y = rCanvasAnchorPoint.y+dy;
+                    }
+
                     canvasAnchorPoint.x = canvasAnchorPoint.x+dx;
                     canvasAnchorPoint.y = canvasAnchorPoint.y+dy;
                 }
@@ -21538,9 +21575,9 @@
                     }
                 }
 
-                // updateStageBGColor(3);
                 topBar.updateTopbarBG(stage.stageWidth);
                 topBar.updateTimerPos(stage.stageWidth);
+
                 sideBar.updateSideBGSize(getSideBarBGHeight());
 
                 if(isQuickSidebarActive)
@@ -21564,6 +21601,7 @@
                 checkFOFOPosition();
                 updateBottomBarLayoutAndColor();
                 lastAppWindowSize.setTo(stage.nativeWindow.width,stage.nativeWindow.height);
+                hideBottomHint();
 
                 if(isAppClosing)
                 {
@@ -22302,45 +22340,6 @@
                             if(canvasZoomMultipler !== 1.0) resetZoomDrawMode();
                         }
                         return;
-
-                        case KEY.d:
-                        case KEY.j:
-                        {
-                            swapLayer();
-                            showMouseHintTemp(getCanvasLayerSwappedHintString());
-                        }
-                        return;
-
-                        case KEY.e:
-                        case KEY.o:
-                        {
-                            if(toolOptionsBox.layerMergeButton.alpha === 1.0)
-                            {
-                                mergeImageIntoLayer2();
-                                showMouseHintTemp("Layers has been merged to layer 2");
-                            }
-                        }
-                        return;
-
-                        case KEY.f2:
-                        case KEY.f8:
-                        {
-                            if(gridGapValue !== 0)
-                            {
-                                resetGrid();
-                            }
-                        }
-                        return;
-
-                        case KEY.f5:
-                        {
-                            if(Global.getScaleIndex() !== 0)
-                            {
-                                Global.resetScaleIndex();
-                                applyUIScale();
-                            }
-                        }
-                        return;
                     }
                 }))
                 {
@@ -22429,19 +22428,19 @@
                 {
                     if(isLayer2Selected)
                     {
+                        showMouseHint("Layer 1 selected");
                         selectLayer1(false);
                     }
                     else
                     {
                         selectLayer1(canvasLayer2Bitmap.visible);
+                        showMouseHintLayerVisible();
                     }
 
                     if(toolOptionsBox.layer2CheckedButton.visible)
                     {
                         toggleLayer2Check();
                     }
-
-                    showMouseHintTemp("Layer 1 selected");
                 }
                 return true;
 
@@ -22450,18 +22449,19 @@
                 {
                     if(!isLayer2Selected)
                     {
+                        showMouseHintTemp("Layer 2 selected");
                         selectLayer2(false);
                     }
                     else
                     {
                         selectLayer2(canvasLayer1Bitmap.visible);
+                        showMouseHintLayerVisible();
                     }
+
                     if(toolOptionsBox.layer1CheckedButton.visible)
                     {
                         toggleLayer1Check();
                     }
-
-                    showMouseHintTemp("Layer 2 selected");
                 }
                 return true;
 
@@ -23965,6 +23965,7 @@
                     else
                     {
                         selectLayer1(canvasLayer2Bitmap.visible);
+                        showMouseHintLayerVisible();
                     }
 
                     if(toolOptionsBox.layer2CheckedButton.visible)
@@ -23983,6 +23984,7 @@
                     else
                     {
                         selectLayer2(canvasLayer1Bitmap.visible);
+                        showMouseHintLayerVisible();
                     }
 
                     if(toolOptionsBox.layer1CheckedButton.visible)
@@ -24802,90 +24804,5 @@
                 }
             }
         }
-
-        // public var printdeepLevel:int = 0;
-        // public function printArray(obj:Object,deepKey:String=""):void
-        // {
-        //     var _print:Function = trace;
-        //     var blank:String="";
-        //     if(printdeepLevel === 0) _print('--- PRINT START --- ');
-        //     else
-        //     {
-        //         const count:int = printdeepLevel;
-        //         for(var b:int=0; b<count; b++)
-        //         {
-        //             blank += "   ";
-        //         }
-        //         _print(blank+'> index['+deepKey+']');
-        //     }
-
-        //     _print(blank+'{');
-        //     for(var i:String in obj)
-        //     {
-        //         if(obj[i] !== null && typeof obj[i] === "object" && obj[i].length > 0)
-        //         {
-        //             ++printdeepLevel;
-        //             printArray(obj[i],i);
-        //         }
-        //         else
-        //         {
-        //             _print(blank+'| '+i+' : ' + obj[i]);
-        //         }
-        //     }
-        //     _print(blank+'}');
-        //     --printdeepLevel;
-        //     if(printdeepLevel < 0) printdeepLevel = 0;
-        // }
-
-        // public function testFuncTime():void
-        // {
-        //     const loop:int = 100000;
-        //     function func1():void
-        //     {
-
-        //     }
-
-        //     function func2():void
-        //     {
-
-        //     }
-
-        //     function func3():void
-        //     {
-
-        //     }
-
-        //     var _print:Function = trace;
-        //     var i:int=0;
-        //     var nt:int = getTimer();
-        //     while(i < loop)
-        //     {
-        //         func1();
-
-        //         i++;
-        //     }
-
-        //     _print("time 1",getTimer()-nt);
-
-        //     i = 0;
-        //     nt = getTimer();
-        //     while(i < loop)
-        //     {
-        //         func2();
-        //         i++;
-        //     }
-
-        //     _print("time 2",getTimer()-nt);
-
-        //     i = 0;
-        //     nt = getTimer();
-        //     while(i < loop)
-        //     {
-        //         func3();
-        //         i++;
-        //     }
-
-        //     _print("time 3",getTimer()-nt);
-        // }
     }
  }

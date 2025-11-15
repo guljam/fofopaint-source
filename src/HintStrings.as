@@ -119,8 +119,8 @@
                 "layer1UncheckedButton": "Check layer 1 (for move image tool, lasso tool, merge into reference layer)",
                 "layer2CheckedButton": "Check layer 2 (for move image tool, lasso tool, merge into reference layer)",
                 "layer2UncheckedButton": "Check layer 2 (for move image tool, lasso tool, merge into reference layer)",
-                "layerSwapButton": "Swap layers [shift+d / shift+j]",
-                "layerMergeButton": "Merge image into layer 2 [shift+e / shift+o]",
+                "layerSwapButton": "Swap layers",
+                "layerMergeButton": "Merge image into layer 2",
 
                 // 툴박스 2
                 "toolQuickSidebar": "[6 / s+d / j+k]",

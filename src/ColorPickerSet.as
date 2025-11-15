@@ -17,8 +17,8 @@
 	public class ColorPickerSet extends Sprite
 	{
 		public var mainColorPickerBox:Sprite = new Sprite();
-		public var mainPresetButtonBox:Sprite = new Sprite();
-		public var mainPickerMenuBox:Sprite = new Sprite();
+		public var colorPickerPresetBox:Sprite = new Sprite();
+		public var colorPickerTypeBox:Sprite = new Sprite();
 		public var svBox:Sprite = new Sprite(); //hue랑 sv합친거
 		public var svBase:Shape = new Shape(); //메인 컬러 박스에 뒤에 깔아주는 컬러
 		public var svGradient:Shape = new Shape();//흰색 검은색 그라디언트 깔아주는 컬러 임
@@ -153,14 +153,14 @@
 		{
 			if(checkflag)
 			{
-				mainPresetButtonBox.y = myPaletteBox.y+myPaletteBox.height+9;
-				mainPickerMenuBox.y = mainPresetButtonBox.y+mainPresetButtonBox.height+3;
+				colorPickerPresetBox.y = myPaletteBox.y+myPaletteBox.height+9;
+				colorPickerTypeBox.y = colorPickerPresetBox.y+colorPickerPresetBox.height+6;
 			}
 			else
 			{
 				mainColorPickerBox.y = myPaletteBox.y+myPaletteBox.height+5;
-				mainPresetButtonBox.y = mainColorPickerBox.y+mainColorPickerBox.height+8;
-				mainPickerMenuBox.y = mainPresetButtonBox.y+mainPresetButtonBox.height+3;
+				colorPickerPresetBox.y = mainColorPickerBox.y+mainColorPickerBox.height+8;
+				colorPickerTypeBox.y = colorPickerPresetBox.y+colorPickerPresetBox.height+6;
 			}
 		}
 
@@ -479,9 +479,9 @@
 			hueColor.graphics.drawRect(0, 0, svBoxWidth, hueHeight);
 			hueColor.graphics.endFill();
 
-			mainPickerMenuBox.addChild(swapPositionButton);
-			mainPickerMenuBox.addChild(paperColorButton);
-			mainPickerMenuBox.addChild(penColorButton);
+			colorPickerTypeBox.addChild(swapPositionButton);
+			colorPickerTypeBox.addChild(paperColorButton);
+			colorPickerTypeBox.addChild(penColorButton);
 
 			penColorButton.x = 0;
 			penColorButton.y = 0;
@@ -544,9 +544,9 @@
 			colorHistoryBox.name = "colorHistoryBox";
 			colorHistoryBox.y = svBox.y+svBox.height+5;
 
-			mainPresetButtonBox.addChild(myPaletteButton);
-			mainPresetButtonBox.addChild(tegakiPresetButton);
-			mainPresetButtonBox.addChild(drawrPresetButton);
+			colorPickerPresetBox.addChild(myPaletteButton);
+			colorPickerPresetBox.addChild(tegakiPresetButton);
+			colorPickerPresetBox.addChild(drawrPresetButton);
 
 			myPaletteButton.useHandCursor = false;
 			myPaletteButton.x = 0;
@@ -564,13 +564,13 @@
 
 			addChild(myPaletteBox);
 			addChild(mainColorPickerBox);
-			addChild(mainPresetButtonBox);
-			addChild(mainPickerMenuBox);
+			addChild(colorPickerPresetBox);
+			addChild(colorPickerTypeBox);
 			addChild(myPaletteDragColor);
 			myPaletteDragColor.visible = false;
 
 			panelWidth = 180;
-			panelHeight = mainPresetButtonBox.y+mainPresetButtonBox.height+3;
+			panelHeight = colorPickerPresetBox.y+colorPickerPresetBox.height+3;
 
 			colorBoxPositionSave[0] = myPaletteBox.y;
 			colorBoxPositionSave[1] = mainColorPickerBox.y;
