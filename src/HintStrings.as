@@ -4,17 +4,17 @@
 
     public class HintStrings
     {
-        static private var m:Main;
+        static private var _main:Main;
         static public function init(mainclass:Main):void
         {
-            m = mainclass;
+            _main = mainclass;
         }
-
+                            
         static private const hintsCaptureMode:Object =
             {
                 "capOff": "Exit capture mode [esc / backspace / f1 / f7]",
-                "capSave": "Save {getCaptureSaveHint()} [ctrl+s / ctrl+;]",
-                "capClipBoard": "Copy {getCaptureSaveHint()} to clipboard [ctrl+c / ctrl+,]",
+                "capSave": "Save {getCaptureSaveHintString()} [ctrl+s / ctrl+;]",
+                "capClipBoard": "Copy {getCaptureSaveHintString()} to clipboard [ctrl+c / ctrl+,]",
                 "capTrans": "Background color ON/OFF",
                 "capRotate": "Rotate canvas by 90°",
                 "capFlip": "Flip image",
@@ -34,10 +34,10 @@
                 "drawModeButton": "Switch to draw mode [f1 / f7 / esc / backspace]",
                 "captureButton": "Capture mode [ctrl+c / ctrl+,]",
                 "saveButton": "Save [ctrl+s] _Save as.. [shift+ctrl+s / right-click]",
-                "timer": "Actual working time — Reset [{STRING_CLICK_HOLD}]",
+                "timer": "Actual working time — Reset [click and hold]",
                 "loadButton": "Load [ctrl+o]",
                 "clipBoardButton": "Load clipboard image [ctrl+v / ctrl+m] — There are no copied images",
-                "newFileButton": "New file [{STRING_PRESS_HOLD} esc / backspace / delete]",
+                "newFileButton": "New file [press and hold esc / backspace / delete]",
                 "gridButton": "Grid — Reset [right-click]",
                 "sideBarPositionButton": "Right sidebar",
                 "sideBarPositionButton2": "Left sidebar",
@@ -68,41 +68,41 @@
                 "replayFitToWindowButton": "Fit Canvas to viewport ON/OFF [right-click on canvas]",
                 "replayRotateButton": "Rotate {STRING_RIGHT_CLICK_TO_RESET}",
                 "replayRepeatButton": "Repeat replay ON/OFF",
-                "trackBar":"{getTrackBarHint()}",
+                "trackBar":"{getTrackBarHintString()}",
 
                 // 그리드 슬라이더
-                "gridSliderWrapper": "Grid {getGridGapHint()} — {STRING_RIGHT_CLICK_TO_RESET}",
-                "gridMoveLeftButton": "Move grid by 1 pixel — Repeat [{STRING_CLICK_HOLD}], Reset [right-click]",
-                "gridMoveRightButton": "Move grid by 1 pixel — Repeat [{STRING_CLICK_HOLD}], Reset [right-click]",
-                "gridMoveUpButton": "Move grid by 1 pixel — Repeat [{STRING_CLICK_HOLD}], Reset [right-click]",
-                "gridMoveDownButton": "Move grid by 1 pixel — Repeat [{STRING_CLICK_HOLD}], Reset [right-click]",
+                "gridSliderWrapper": "Grid {getGridGapHintString()} — {STRING_RIGHT_CLICK_TO_RESET}",
+                "gridMoveLeftButton": "Move grid by 1 pixel — Repeat [click and hold], Reset [right-click]",
+                "gridMoveRightButton": "Move grid by 1 pixel — Repeat [click and hold], Reset [right-click]",
+                "gridMoveUpButton": "Move grid by 1 pixel — Repeat [click and hold], Reset [right-click]",
+                "gridMoveDownButton": "Move grid by 1 pixel — Repeat [click and hold], Reset [right-click]",
 
                 // 펜옵션
                 "shapeCircle": "circle",
                 "shapeRect": "Square",
                 "penSmoothSliderWapper": "Pen smoothing {penSmoothSlideValue} / {penSmoothSlideTotal}",
-                "alphaButton1": "{getOpacityButtonHint(1)}",
-                "alphaButton2": "{getOpacityButtonHint(2)}",
-                "alphaButton3": "{getOpacityButtonHint(3)}",
-                "alphaButton4": "{getOpacityButtonHint(4)}",
-                "alphaButton5": "{getOpacityButtonHint(5)}",
-                "alphaButton6": "{getOpacityButtonHint(6)}",
-                "alphaButton7": "{getOpacityButtonHint(7)}",
-                "alphaButton8": "{getOpacityButtonHint(8)}",
-                "alphaButton9": "{getOpacityButtonHint(9)}",
-                "alphaButton10": "{getOpacityButtonHint(10)}",
-                "nSizeButton1": "{getSizeButtonHint(1)}",
-                "nSizeButton2": "{getSizeButtonHint(2)}",
-                "nSizeButton3": "{getSizeButtonHint(3)}",
-                "nSizeButton4": "{getSizeButtonHint(4)}",
-                "nSizeButton5": "{getSizeButtonHint(5)}",
-                "nSizeButton6": "{getSizeButtonHint(6)}",
-                "nSizeButton7": "{getSizeButtonHint(7)}",
-                "nSizeButton8": "{getSizeButtonHint(8)}",
-                "nSizeButton9": "{getSizeButtonHint(9)}",
-                "nSizeButton10": "{getSizeButtonHint(10)}",
-                "nSizeButton11": "{getSizeButtonHint(11)}",
-                "nSizeButton12": "{getSizeButtonHint(12)}",
+                "alphaButton1": "{getOpacityButtonHintString(1)}",
+                "alphaButton2": "{getOpacityButtonHintString(2)}",
+                "alphaButton3": "{getOpacityButtonHintString(3)}",
+                "alphaButton4": "{getOpacityButtonHintString(4)}",
+                "alphaButton5": "{getOpacityButtonHintString(5)}",
+                "alphaButton6": "{getOpacityButtonHintString(6)}",
+                "alphaButton7": "{getOpacityButtonHintString(7)}",
+                "alphaButton8": "{getOpacityButtonHintString(8)}",
+                "alphaButton9": "{getOpacityButtonHintString(9)}",
+                "alphaButton10": "{getOpacityButtonHintString(10)}",
+                "nSizeButton1": "{getSizeButtonHintString(1)}",
+                "nSizeButton2": "{getSizeButtonHintString(2)}",
+                "nSizeButton3": "{getSizeButtonHintString(3)}",
+                "nSizeButton4": "{getSizeButtonHintString(4)}",
+                "nSizeButton5": "{getSizeButtonHintString(5)}",
+                "nSizeButton6": "{getSizeButtonHintString(6)}",
+                "nSizeButton7": "{getSizeButtonHintString(7)}",
+                "nSizeButton8": "{getSizeButtonHintString(8)}",
+                "nSizeButton9": "{getSizeButtonHintString(9)}",
+                "nSizeButton10": "{getSizeButtonHintString(10)}",
+                "nSizeButton11": "{getSizeButtonHintString(11)}",
+                "nSizeButton12": "{getSizeButtonHintString(12)}",
 
                 "sharpLineButtonWrapper": "Sharp line [3 / 8]",
                 "sharpLineOFFButton": "Sharp line [3 / 8]",
@@ -154,11 +154,11 @@
                 "rgbInfoText": "Adjust value — Change color model [click {getRGBorHSVString()} part]",
                 "paperColorButton": "Change background color",
                 "penColorButton": "Change pen color",
-                "currentColor": "{getCurrentColorHint()}",
+                "currentColor": "{getCurrentColorHintString()}",
                 "transColorButton": "Transparent color ON/OFF [c+space / m+space]",
-                "myPaletteButton": "My palette — Expand palette ON/OFF [click x 2] — Clear palette [{STRING_CLICK_HOLD}]",
-                "drawrPresetButton": "Drawr color preset — Clear scratch pad [{STRING_CLICK_HOLD}]",
-                "tegakiPresetButton": "Tegaki color preset — Clear scratch pad [{STRING_CLICK_HOLD}]",
+                "myPaletteButton": "My palette — Expand palette ON/OFF [click x 2] — Clear palette [click and hold]",
+                "drawrPresetButton": "Drawr color preset — Clear scratch pad [click and hold]",
+                "tegakiPresetButton": "Tegaki color preset — Clear scratch pad [click and hold]",
                 "scratchPad": "Scratch pad — Draw [drag] — Select color [click / c /  m]",
 
                 // 캔버스 네비게이터
@@ -168,6 +168,49 @@
                 "navLayer1Bitmap": "Canvas Navigator",
                 "navLayer2Bitmap": "Canvas Navigator"
             };
+
+        static public function getCaptureSaveHintString():String
+        {
+            return (_main.captureAreaManager.isFullImageCapture()) ? "image":"selected area";
+        }
+
+        static public function getUIScaleString():String
+        {
+            return Global.getUIScaleString();
+        }
+
+        static public function getTrackBarHintString():String
+        {
+            if(_main.isReplayRestartTimerON())
+            {
+                return "Seek bar — Cancel restart [click]";
+            }
+            return "Seek bar";
+        }
+
+        static public function getGridGapHintString():String
+        {
+            return _main.gridGapValue+_main.GRID_GAP +"px";
+        }
+
+        static public function getOpacityButtonHintString(index:int):String
+        {
+            return "Opacity "+(_main.penAlphaList[index]*100)+"% [g / b]";
+        }
+
+        static public function getSizeButtonHintString(index:int):String
+        {
+            return "Size "+_main.penSizeList[index]+ "px [(f, v) / (h, n)]";
+        }
+
+        static public function getCurrentColorHintString():String
+        {
+            const pickedColor:uint = _main.colorPickerBox.getRGBInfoBGColor();
+            const arr:Vector.<Number> = (_main.isHSVInfoTextMode) ? Global.HEXtoHSV(pickedColor,_main.hsvColorData[0]) : Global.HEXtoRGB(pickedColor);
+            const mode:String = (_main.isHSVInfoTextMode) ? "HSV" : "RGB";
+
+            return "Current color : " + mode +" " + arr[0] + "," + arr[1] + "," + arr[2];
+        }
 
         static public function resolveTemplate(template:String):String
         {
@@ -199,9 +242,9 @@
                             }
                         }
 
-                        if (m.hasOwnProperty(fnName) && m[fnName] is Function)
+                        if (HintStrings[fnName] && HintStrings[fnName] is Function)
                         {
-                            value = m[fnName].apply(m, argList);
+                            value = HintStrings[fnName].apply(HintStrings, argList);
                         }
                         else
                         {
@@ -211,10 +254,10 @@
                     else
                     {
                         // 변수 치환 {varName}
-                        if (m.hasOwnProperty(expr))
+                        if (_main.hasOwnProperty(expr))
                         {
                             // 함수여도 ()가 없으면 실행하지 않고 함수 객체를 문자열로 표시
-                            value = m[expr];
+                            value = _main[expr];
                         }
                         else
                         {
@@ -228,7 +271,7 @@
 
         static public function getHintFromTargetNameCaptureMode(targetName:String):String
         {
-            if (m === null || !hintsCaptureMode.hasOwnProperty(targetName))
+            if (_main === null || !hintsCaptureMode.hasOwnProperty(targetName))
             {
                 return null;
             }
@@ -238,7 +281,7 @@
 
         static public function getHintFromTargetName(targetName:String):String
         {
-            if (m === null || !hints.hasOwnProperty(targetName))
+            if (_main === null || !hints.hasOwnProperty(targetName))
             {
                 return null;
             }

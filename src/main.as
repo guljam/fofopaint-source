@@ -130,16 +130,12 @@
                       WORKER_STATE_RUNNING:int = (1 << 1);
 
         public const  STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT",
-                      STRING_PLAYBACK_SPEED:String = "Playback speed x",
-                      STRING_ONEMORE_CLICK_TO_OK:String = "One more click to OK",
-                      STRING_WAIT_PROCESSING_DONE:String = "Close the app after processing done",
                       STRING_MERGE_LASSO_IMAGE_TO_REFLAYER:String = "Merge selected area\ninto reference layer",
                       STRING_MERGE_CANVAS_IMAGE_TO_REFLAYER:String = "Merge canvas image\ninto reference layer",
-                      STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]",
                       STRING_CUSTOM_COLOR_HINT:String = "OK [Any key except 0 ~ 9]",
                       STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity ",
-                      STRING_PRESS_HOLD:String = "press and hold",
-                      STRING_CLICK_HOLD:String = "click and hold";
+                      STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]";
+                     
                     
         public const  REPLAY_IMAGE_CAHCHE_COMPLETE:int = (1 << 0),
                       REPLAY_IMAGE_CAHCHE_READY:int = (1 << 1),
@@ -1852,16 +1848,6 @@
 
                 return scale;
             };
-
-        }
-    
-        public function getCurrentColorHint():String
-        {
-            const pickedColor:uint = colorPickerBox.getRGBInfoBGColor();
-            const arr:Vector.<Number> = (isHSVInfoTextMode) ? Global.HEXtoHSV(pickedColor,hsvColorData[0]) : Global.HEXtoRGB(pickedColor);
-            const mode:String = (isHSVInfoTextMode) ? "HSV" : "RGB";
-
-            return "Current color : " + mode +" " + arr[0] + "," + arr[1] + "," + arr[2];
         }
 
         public function isHintUnavailable():Boolean
@@ -3059,11 +3045,6 @@
             Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT,getCaptrueImageBitmapdata(true),false);
             // showMouseHintTemp("The image copied to clipboard successfully");
             topBar.capClipBoard.alpha = Global.OFFALPHA;
-        }
-
-        public function getUIScaleString():String
-        {
-            return Global.getUIScaleString();
         }
 
         public function applyUIScale():void
@@ -6156,7 +6137,7 @@
 
             if(refLayerMenuConfirmCount === 1)
             {
-                menuBox["hint"](STRING_ONEMORE_CLICK_TO_OK);
+                menuBox["hint"]("One more click to OK");
                 button.addEventListener(MouseEvent.MOUSE_OUT,onMouseOutCancel);
             }
             else if(refLayerMenuConfirmCount === 2)
@@ -6371,11 +6352,6 @@
 
                 updateCaptureStampButtonAlpha();
             }
-        }
-
-        public function getGridGapHint():String
-        {
-            return gridGapValue+GRID_GAP +"px";
         }
 
         public function resetGrid():void
@@ -7642,16 +7618,6 @@
             toolOptionsBox.hintText(toolName);
         }
 
-        public function getOpacityButtonHint(index:int):String
-        {
-            return "Opacity "+(penAlphaList[index]*100)+"% [g / b]";
-        }
-
-        public function getSizeButtonHint(index:int):String
-        {
-            return "Size "+penSizeList[index]+ "px [(f, v) / (h, n)]";
-        }
-
         public function updateTimelineBoxPos(stw:Number):void
         {
             replayTimelineBox.updatePos(stw);
@@ -8643,6 +8609,11 @@
         public function isPenColorMode():Boolean
         {
             return isColorPickerModeBG === false;
+        }
+
+        public function getRGBorHSVString():String
+        {
+            return (isHSVInfoTextMode) ? "'HSV'":"'RGB'";
         }
 
         public function updateHSVColorData(h:Number,s:Number,v:Number):void
@@ -10135,15 +10106,6 @@
 
             rCanvasPanel.filters = [glow];
             stageBG.addChild(rCanvasCompleteAnchorPoint);
-        }
-
-        public function getTrackBarHint():String
-        {
-            if(isReplayRestartTimerON())
-            {
-                return "Seek bar — Cancel restart [click]";
-            }
-            return "Seek bar";
         }
 
         public function replayCompleteEffect():void
@@ -16846,11 +16808,6 @@
             return randomString;
         }
 
-        public function getCaptureSaveHint():String
-        {
-            return (captureAreaManager.isFullImageCapture()) ? "image":"selected area";
-        }
-
         public function cutTimeStamp(str:String):String
         {
             const pattern:RegExp = /_\d\d\d\d\d\d\d\d\d/g;
@@ -21883,7 +21840,7 @@
         public function showReplaySpeedMouseHint():void
         {
             const timeStr:String = getReplayRemainingTimeString(rReplaySpeedMultipler,TOTAL_FRAME);
-            const finalStr:String = STRING_PLAYBACK_SPEED+rReplaySpeedMultipler+timeStr;
+            const finalStr:String = "Playback speed x"+rReplaySpeedMultipler+timeStr;
 
             showMouseHintTemp(finalStr);
         }
