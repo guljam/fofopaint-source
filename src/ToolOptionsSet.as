@@ -63,6 +63,20 @@
 
 		private const opColor:ColorTransform = new ColorTransform();
 
+		public function setSelectLayerButtonActiveAlpha(layer:int):void
+		{
+			if(layer === 1)
+			{
+				layer1SelectButton.alpha = 1.0;
+				layer2SelectButton.alpha = 0.6;
+			}
+			else if(layer === 2)
+			{
+				layer1SelectButton.alpha = 0.6;
+				layer2SelectButton.alpha = 1.0;
+			}
+		}
+
 		public function drawLayerInvisibledLine(width:Number):void
 		{
 			layerInvisibledLine.graphics.clear();

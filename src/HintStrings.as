@@ -122,12 +122,11 @@
                 "layerSwapButton": "Swap layers",
                 "layerMergeButton": "Merge image into layer 2",
 
-                // 툴박스 2
+                // 툴박스 2 
                 "toolQuickSidebar": "[6 / s+d / j+k]",
                 "toolPen": "Pen [q / o key up]",
                 "toolFillPen": "Fill pen [q / o]",
                 "toolErase": "Eraser [d / j]",
-                "toolLasso": "Lasso [r / y]",
                 "toolEyedropper": "Eye dropper [c /m]",
                 "toolUndo": "Undo [z / .] — Continue [click and hold]",
                 "toolRedo": "Redo [x / ,] — Continue [click and hold]",

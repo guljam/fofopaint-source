@@ -160,6 +160,8 @@
                     RCANVAS_WIDTH:Number = 600,
                     RCANVAS_HEIGHT:Number = 390,
                     RCANVAS_BG_COLOR:uint = 0xFFFFFF;
+                    
+        public const REFLAYER_VISIBLE_DELAY:Number = 0.7;
 
         public const BOTTOM_BAR_HEIGHT:Number = 25;
         public var  STAGE_TOP_OFFSET:Number = 0, //창 상하좌우 여백
@@ -367,8 +369,7 @@
                    pickerIgnoreHistoryColor:* = null; //히스토리 색 등록 할때 여기에 등록된 색은 등록 안하게함
 
         //오른쪽 클릭 툴박스
-        public var isToolBox2Showing:Boolean = false, //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
-                   BoxClickedPos:Point = new Point(0,0); //오른쪽 클릭 눌렀을때 좌표저장 4프레임정도 마우스 커서를 따라나니게 함
+        public var isToolBox2Showing:Boolean = false; //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
 
         //undo
         public var  undoDataIndex:int = -1, //undo redo 상태 인덱스임
@@ -529,7 +530,8 @@
                     refLayerRawBitmapData:BitmapData = null, 
                     refLayerRawTransformData:Array = null, 
                     refLayerMenuConfirmCount:int = 0, //2번이상 클릭하면 되게
-                    refLayerLastAlpha:Number = 0.5;
+                    refLayerLastAlpha:Number = 0.5,
+                    refLayerVisibleDelayOffTime:int = 0; //setCanvasRefLayerVisibleSlowly함수가 setCanvasRefLayerVisibleDelay함수보다 빨리 켜지지 않게 하기 
 
         //그리드 레이어
         public const canvasGrid:Shape = new Shape(), //트레이스 레이어임
@@ -887,25 +889,6 @@
         public function isPopUpWindowOpened():Boolean
         {
             return topBar.gridButtonWrapper.visible || numPadBox.visible || loadMenuBox.visible || aboutBox.visible;
-        }
-
-        public function getFilteredPos(mx:Number, my:Number):Point
-        {
-            mx = Math.round(mx * 100) / 100;
-            my = Math.round(my * 100) / 100;
-
-            if (isSharpLineON)
-            {
-                my = Math.floor(my);
-                mx = Math.floor(mx);
-            }
-            else if (penSmoothSlideValue === 0 && (canvasAnchorPoint.rotation % 90 === 0))
-            {
-                my = Math.round(my);
-                mx = Math.round(mx);
-            }
-
-            return new Point(mx, my);
         }
 
         public function showPickColorScratchPad():void
@@ -4748,7 +4731,6 @@
 
                 fillPenBox.x = Math.floor(stage.mouseX-(lastFillPenBoxUsedButton.x+lastFillPenBoxUsedButton.width/2)*scale);
                 fillPenBox.y = Math.floor(stage.mouseY-(lastFillPenBoxUsedButton.y+lastFillPenBoxUsedButton.height/2)*scale);
-                startBoxFollowMouseTemp(fillPenBox);
                 fillPenBox.visible = true;
                 setAsTopChild(fillPenBox);
             }
@@ -4837,7 +4819,7 @@
 
             function onMouseMoveFillPen(e:MouseEvent):void
             {
-                const filteredPos:Point = getFilteredPos(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
+                const filteredPos:Point = getRefinedPoint(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
                 const mx:Number = filteredPos.x+pos05Offset;
                 const my:Number = filteredPos.y+pos05Offset;
 
@@ -4965,7 +4947,7 @@
                     isMouseDragging = true;
                     stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveFillPen);
 
-                    const filteredPos:Point = getFilteredPos(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
+                    const filteredPos:Point = getRefinedPoint(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
                     const mx:Number = filteredPos.x+pos05Offset;
                     const my:Number = filteredPos.y+pos05Offset;
 
@@ -5070,7 +5052,7 @@
                 }
                 dottedLine.setLineScale(canvasZoomMultipler);
 
-                const filteredPos:Point = getFilteredPos(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
+                const filteredPos:Point = getRefinedPoint(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
                 var mx:Number = filteredPos.x+pos05Offset;
                 var my:Number = filteredPos.y+pos05Offset;
                 lastPosOnMouseMove.setTo(mx,my);
@@ -5103,11 +5085,11 @@
             const sqPenCursorLast:Point = new Point(); //사각형 커서 각도를 위한 위치저장
             const sqLinePosLast:Point = new Point(); //사각형라인일 때 일정 길이이상 일때만 그려주기 위한 위치
             const extendedPos:Point = new Point(); //사각형라인일 때 양끝점을 약간 확장해주기 위한 위치
-            const penCommand:Vector.<int> = new Vector.<int>(); //그냥펜
-            const penPoints:Vector.<Number> = new Vector.<Number>(); //그냥펜 좌표
+            const penCommand:Vector.<int> = new Vector.<int>(); //그냥 펜 명령
+            const penPoints:Vector.<Number> = new Vector.<Number>(); //그냥 펜 좌표
             const canvasSizeRect:Rectangle = new Rectangle();
 
-            var penToolFlag:Boolean;
+            var isPenTool:Boolean;
             var xSize:uint;
             var xColor:uint;
             var xAlpha:Number;
@@ -5115,7 +5097,7 @@
             var xBlendMode:String;
             var xAirBrushON:Boolean;
             var offsetForSharpline:Number; //경계선 0.5를 조절해서 번지게 보이느냐 샤프하게 보이느냐
-            var mouseMoveCount:int; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
+            var mouseMovedCount:int; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
             var isMouseMoved:Boolean;
             var lastMouseMoveDist:Number;//penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
             var dotflag:Boolean; //펜스무딩이 강하게 들어갔을때 아주 작은 위치만 그려주면 표현이 제대로 안되기 때문에 너무 작게 선이 그려졌을때 올려주는 플래그
@@ -5171,7 +5153,7 @@
                 ox += (smoothLast.x-ox)*penSmoothValue;
                 oy += (smoothLast.y-oy)*penSmoothValue;
 
-                processPenToolMove(ox,oy);
+                handleMouseMove(ox,oy);
 
                 if(Math.abs(smoothLast.x-ox) < 0.02 && Math.abs(smoothLast.y-oy) < 0.02)
                 {
@@ -5202,14 +5184,14 @@
             }
 
 
-            function processPenToolMove(mx:Number,my:Number):void
+            function handleMouseMove(mx:Number,my:Number):void
             {
                 if(canAddUndoData === false)
                 {
                     setCanUndoDataFlagON();
                 }
 
-                const filteredPos:Point = getFilteredPos(mx,my);
+                const filteredPos:Point = getRefinedPoint(mx,my);
 
                 mx = filteredPos.x+offsetForSharpline;
                 my = filteredPos.y+offsetForSharpline;
@@ -5239,7 +5221,7 @@
 
                     if(xShape)
                     {
-                        const filteredStartPos:Point = getFilteredPos(clickPos.x,clickPos.y);
+                        const filteredStartPos:Point = getRefinedPoint(clickPos.x,clickPos.y);
                         filteredStartPos.x = filteredStartPos.x+offsetForSharpline;
                         filteredStartPos.y = filteredStartPos.y+offsetForSharpline;
                         updateExtendEndPoint(mx,my,filteredStartPos.x,filteredStartPos.y,xSize/8);
@@ -5270,10 +5252,10 @@
                     moveEvent2Last.setTo(mx,my);
                     canvasDrawLayerChild.graphics.lineTo(mx,my);
 
-                    mouseMoveCount++;
-                    if(mouseMoveCount >= 100)
+                    mouseMovedCount++;
+                    if(mouseMovedCount >= 100)
                     {
-                        mouseMoveCount = 0;
+                        mouseMovedCount = 0;
 
                         if(airBrushSizeDrawMode > 0)
                         {
@@ -5365,7 +5347,7 @@
 
             function onMouseMovePenTool(e:MouseEvent):void
             {
-                var filteredPos:Point = getFilteredPos(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
+                var filteredPos:Point = getRefinedPoint(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
                 const mx:Number = filteredPos.x;
                 const my:Number = filteredPos.y;
 
@@ -5374,7 +5356,7 @@
                     return;
                 } 
 
-                if(penToolFlag && penSmoothSlideValue > 1)
+                if(isPenTool && penSmoothSlideValue > 1)
                 {
                     var ox:Number = smoothPos.x;
                     var oy:Number = smoothPos.y;
@@ -5382,7 +5364,7 @@
                     ox += (smoothLast.x-smoothPos.x)*penSmoothValue;
                     oy += (smoothLast.y-smoothPos.y)*penSmoothValue;
 
-                    processPenToolMove(ox,oy);
+                    handleMouseMove(ox,oy);
                     smoothPos.setTo(ox,oy);
                     smoothLast.setTo(mx,my);
 
@@ -5390,7 +5372,7 @@
                 }
                 else
                 {
-                    processPenToolMove(mx,my);
+                    handleMouseMove(mx,my);
                     smoothPos.setTo(mx,my);
                 }
             }
@@ -5400,7 +5382,7 @@
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 
-                if(!isRefLayerEmpty() && penToolFlag && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
+                if(!isRefLayerEmpty() && isPenTool && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
                 {
                     setCanvasRefLayerVisibleDelay();
                 }
@@ -5426,7 +5408,7 @@
                     }
                 }
 
-                if(isMouseMoved === false || (penToolFlag && isMouseMoved === true && dotflag))
+                if(isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
                 {
                     rDataBuffer = [];
                     rDataBuffer.push(["dot4",xShape,xSize,xColor,xAlpha,clickPos.x,clickPos.y,xBlendMode,isLayer2Selected,airBrushSizeDrawMode,canvasAnchorPoint.rotation]);
@@ -5439,11 +5421,11 @@
                 drawDone();
             }
 
-            return function(penFlag:Boolean):void
+            return function(flag:Boolean):void
             {
-                penToolFlag = penFlag;
+                isPenTool = flag;
 
-                if(penToolFlag)
+                if(isPenTool)
                 {
                     xSize = penSize;
                     xAlpha = penAlpha;
@@ -5488,18 +5470,18 @@
                     sq1PXCursor = false;
                 }
 
-                if(!isRefLayerEmpty() && penFlag && isRefLayerMemoryTrainingON)
+                if(!isRefLayerEmpty() && flag && isRefLayerMemoryTrainingON)
                 {
                     setCanvasRefLayerInvisible();
                 }
 
                 offsetForSharpline = getSharpLinePosOffset(xSize);
-                mouseMoveCount = 0; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
+                mouseMovedCount = 0; //마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
                 isMouseMoved = false;
                 canvasSizeRect.width = CANVAS_WIDTH;
                 canvasSizeRect.height = CANVAS_HEIGHT;
                 resetCanvasDrawLayerCliprect();
-                const filteredPos:Point = getFilteredPos(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
+                const filteredPos:Point = getRefinedPoint(canvasDrawLayerChild.mouseX,canvasDrawLayerChild.mouseY);
 
                 clickPos.copyFrom(filteredPos); //점찍어 줄 때 판단하는 클릭한 자리 저장
                 smoothPos.copyFrom(filteredPos);
@@ -5523,6 +5505,25 @@
                 stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMovePenTool);
                 stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpPenTool);
             };
+        }
+
+        public function getRefinedPoint(mx:Number, my:Number):Point
+        {
+            mx = Math.round(mx * 100) / 100;
+            my = Math.round(my * 100) / 100;
+
+            if (isSharpLineON)
+            {
+                my = Math.floor(my);
+                mx = Math.floor(mx);
+            }
+            else if (penSmoothSlideValue === 0 && (canvasAnchorPoint.rotation % 90 === 0))
+            {
+                my = Math.round(my);
+                mx = Math.round(mx);
+            }
+
+            return new Point(mx, my);
         }
 
         public function onMouseLeaveStage(e:Event):void
@@ -6818,14 +6819,24 @@
 
         public function setCanvasRefLayerInvisible():void
         {
-            removeTimer("refLayerVisibleDelayTimer");
+            if(hasTimer("refLayerVisibleDelayTimer"))
+            {
+                removeTimer("refLayerVisibleDelayTimer");
+                if(refLayerVisibleDelayOffTime === 0)
+                {
+                    refLayerVisibleDelayOffTime = getTimer();
+                }
+            }
+            else
+            {
+                refLayerVisibleDelayOffTime = 0;
+            }
             canvasRefLayer.visible = false;
         }
 
-        public function setCanvasRefLayerVisibleDelay():void
+        public function setCanvasRefLayerVisibleDelay(delay:Number = REFLAYER_VISIBLE_DELAY):void
         {
-        //TODO 절묘한 타이밍이 맞으면 refLayerVisibleDelayTimer가 지워지는듯하여 reflayer가 안나타남 메모리 트레이닝에서
-            addTimerByName("refLayerVisibleDelayTimer",0.7,false,function():void
+            addTimerByName("refLayerVisibleDelayTimer",delay,false,function():void
             {
                 setCanvasRefLayerVisibleSlowly(true);
             });
@@ -6837,7 +6848,7 @@
 
             if(fadeStep <= 0.04)
             {
-                fadeStep = 0.04;
+                fadeStep = 0.04;    
             }
 
             if(!canvasRefLayer.visible)
@@ -7398,8 +7409,7 @@
         {
             isLayer2Selected = false;
 
-            toolOptionsBox.layer1SelectButton.alpha = 1.0;
-            toolOptionsBox.layer2SelectButton.alpha = 0.6;
+            toolOptionsBox.setSelectLayerButtonActiveAlpha(1);
 
             if (onlyViewFlag)
             {
@@ -7421,8 +7431,7 @@
         {
             isLayer2Selected = true;
 
-            toolOptionsBox.layer1SelectButton.alpha = 0.6;
-            toolOptionsBox.layer2SelectButton.alpha = 1.0;
+            toolOptionsBox.setSelectLayerButtonActiveAlpha(2);
 
             if (onlyViewFlag)
             {
@@ -9699,6 +9708,7 @@
             updateReplayPrograssBarAndText();
             updateReplaySpeedSliderAlpha();
             drawReplayByCommand.setFirstRCursorPosCurrent();
+            resetRefLayerImageTransform();
         }
 
         public function deleteReplayDataAfterCurrentFrame():void
@@ -9771,6 +9781,7 @@
 
             resetReplaySpeedBar();
             disableDeepUndo();
+            resetRefLayerImageTransform();
 
             if(isQuickSidebarActive)
             {
@@ -9789,6 +9800,7 @@
             exitReplayMode();
             disableDeepUndo();
             resetReplayTime();
+            resetRefLayerImageTransform();
         }
 
         //addundo data에서 캔버스 비트맵 데이터가 변경되기 전, rdatabuffer 비어있을때 넣어줘야함
@@ -19769,11 +19781,7 @@
                 eyedropperLens.visible = false;
                 // canvasRefLayer.visible = true;
                 canvasBGShape.graphics.clear();
-                if(canvasRefLayerBitmapData.width > 1 && canvasRefLayerBitmapData.height > 1)
-                {
-                    setCanvasRefLayerVisibleSlowly(true);
-                }
-                // setCanvasRefLayerVisibleDelay();
+                setRefLayerAndGridVisible(true);
 
                 if(okFlag)
                 {
@@ -19880,7 +19888,7 @@
                 Global.setColorTransform(eyedropperLens.oldColor,penColor);
                 moveEraserButtonToOtherTool("toolEyedropper");
                 eyedropperLens.rotateBitmap(canvasAnchorPoint.rotation);
-                canvasRefLayer.visible = false;
+                setCanvasRefLayerInvisible();
                 canvasBGShape.graphics.clear();
                 canvasBGShape.graphics.beginFill(CANVAS_BG_COLOR);
                 canvasBGShape.graphics.drawRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
@@ -19922,18 +19930,26 @@
         {
             if(!isRefLayerEmpty() && refLayerLastAlpha > 0.0)
             {
-                var shouldShow:Boolean = false;
-
-                if (isRefLayerMemoryTrainingON)
+                if(flag === false)
                 {
-                    shouldShow = !hasTimer("refLayerVisibleDelayTimer") && flag;
+                    setCanvasRefLayerInvisible();
+                }
+                else if(refLayerVisibleDelayOffTime > 0)
+                {
+                    const ondelay:Number = (getTimer() - refLayerVisibleDelayOffTime)/1000;
+                    if(ondelay < REFLAYER_VISIBLE_DELAY)
+                    {
+                        setCanvasRefLayerVisibleDelay(REFLAYER_VISIBLE_DELAY-ondelay);
+                    }
+                    else
+                    {
+                        setCanvasRefLayerVisibleSlowly(true);
+                    }
                 }
                 else
                 {
-                    shouldShow = flag;
+                    setCanvasRefLayerVisibleSlowly(true);
                 }
-
-                setCanvasRefLayerVisibleSlowly(shouldShow);
             }
 
             if(gridGapValue > 0) 
@@ -23661,40 +23677,8 @@
             }
         }
 
-        public function startBoxFollowMouseTemp(target:DisplayObject):void
-        {
-            target.alpha = 0.6;
-            BoxClickedPos.setTo(stage.mouseX,stage.mouseY);
-
-            addTimerByName("openToolBox2DelayTimer",0.0,true,function():Boolean
-            {
-                if(!target.visible)
-                {
-                    target.alpha = 1.0;
-                    return false;
-                }
-
-                target.alpha += 0.1;
-                if(target.alpha >= 1.0)
-                {
-                    target.alpha = 1.0;
-                    return false;
-                }
-
-                target.x += stage.mouseX-BoxClickedPos.x;
-                target.y += stage.mouseY-BoxClickedPos.y;
-
-                BoxClickedPos.setTo(stage.mouseX,stage.mouseY);
-
-                return true;
-            });
-        }
-
         public function openToolBox2(fromShortcut:Boolean):void
         {
-        //TODO: 툴박스 킬때 펜 버튼으로 켤때 커서가 움직여서 편하게 툴을 선택할수없으니까
-        //마우스 말고 마우스 움직임으로 툴을 선택하도록 하는게 나을것같음 근데 기존동작이랑 다르니까 좀 고민됨
-        //그리고 5단축키로 툴박스 켜고 끄게 만들고(마우스 오른쪽 클릭 대신) 키이벤트인지 마우스인지 구분해서 이벤트도 추가 삭제해줘야함
             isPenSizeCursorInvisible = true;
             penSizePreviewCursor.visible = false;
 
@@ -23703,6 +23687,7 @@
 
             toolBox2.x = Math.floor(stage.mouseX-pos.x*scale);
             toolBox2.y = Math.floor(stage.mouseY-pos.y*scale);
+            toolBox2.alpha = 1.0;
             toolBox2.visible = true;
             isToolBox2Showing = true;
             showCanvasResizeButtonVisibleDelay(true);
@@ -23802,7 +23787,6 @@
                         }
                         else
                         {
-                            startBoxFollowMouseTemp(toolBox2);
                             openToolBox2(false);
                         }
                     }
