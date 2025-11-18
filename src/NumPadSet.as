@@ -294,7 +294,7 @@
 			{
 				numHexCopyColor = null;
 				updateHexCopyBGColor(numHexCopyTextBGDefaultColor[0]);
-				numClipText.text = "No copied value";
+				numClipText.text = "No value copied";
 				numClipText.textColor = numHexCopyTextBGDefaultColor[1];
 			}
 		}

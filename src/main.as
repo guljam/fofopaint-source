@@ -3539,7 +3539,7 @@
                         show();
                     }
                 }
-                else if(isReplayStarted || isReplayRestartTimerON())
+                else
                 {
                     if(count > frameRate)
                     {
@@ -11777,8 +11777,9 @@
 
             addTimerByName("replayHideCursorCheckTimer",0.0,true,function():Boolean
             {
-                if(!isReplayModeON)
+                if(!isReplayModeON || topBar.visible)
                 {
+                    replayHideCursor.show();
                     return false;
                 }
 
