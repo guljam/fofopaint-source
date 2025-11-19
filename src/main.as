@@ -67,7 +67,7 @@
 
     public class Main extends Sprite
     {
-        public const  APP_VERSION:Number = 27.01;
+        public const  APP_VERSION:Number = 27.03;
         public const  APP_STATE_VERSION:Number = 2701;
 
         public const  TOOL_NONE:int = 0,
@@ -695,6 +695,11 @@
         }
 
         //function
+        public function isGeneratingCacheImages():Boolean
+        {
+            return rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING
+        }
+
         public function getImageDominantColor(bitmapData:BitmapData, k:int = 3, maxIter:int = 10):uint
         {
             var pixels:Vector.<uint> = bitmapData.getVector(bitmapData.rect);
@@ -1403,7 +1408,7 @@
             repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + getRandomString(32));
         }
 
-        public function executeLoadMenuBoxClick(oldTargetName:String):void
+        public function handleLoadMenuBoxClick(oldTargetName:String):void
         {
             loadMenuBox.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
 
@@ -1465,7 +1470,7 @@
             {
                 return;
             }
-            executeLoadMenuBoxClick(e.target.name);
+            handleLoadMenuBoxClick(e.target.name);
         }
 
         public function showLoadFaildMouseHint():void
@@ -1836,7 +1841,7 @@
         public function isHintUnavailable():Boolean
         {
             return isMouseClicked || isRightMouseClicked || isMouseDragging || isToolBox2Showing || isFillPenStarted
-                || isLassoToolStarted || numPadBox.visible || isAboutBoxOpened || rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING;
+                || isLassoToolStarted || numPadBox.visible || isAboutBoxOpened || isGeneratingCacheImages();
         }
 
         public function playLayerSwapEffect(target:DisplayObject):void
@@ -2811,7 +2816,9 @@
             else
             {
                 if (isDeepUndoEnabled)
+                {
                     applyDeepUndo();
+                }
                 rDataBuffer.push(["bgColor", color]);
                 undoManager.addNew();
             }
@@ -2927,7 +2934,10 @@
                 return;
             }
 
-            if(isDeepUndoEnabled) applyDeepUndo();
+            if(isDeepUndoEnabled)
+            {
+                applyDeepUndo();
+            }
 
             isLayerSwapped = !isLayerSwapped;
 
@@ -4372,6 +4382,7 @@
             const lastPosOnMouseMove:Point = new Point();
             var lastFillPenBoxUsedButton:SimpleButton;
             var turnOffFillPenPreviewCount:int = 0;
+            var isStartedFromShortCut:Boolean = false;
 
             function updateLastFillPenBoxButtonUsed(target:SimpleButton):void
             {
@@ -4534,6 +4545,12 @@
                 toolOptionsBox.restoreDisabledButtons();
                 
                 colorPickerBox.activePaperColorButton(false);
+
+                if(isStartedFromShortCut)
+                {
+                    setLastTool(TOOL_PEN);
+                    selectPenTool();
+                }
             }
 
             function applyFillPen():void
@@ -4914,7 +4931,7 @@
                         case "toolZoomIn":
                         case "toolZoomOut":
                         {
-                            executeToolBoxClick(targetName);
+                            handleToolBoxClick(targetName);
                         }
                         return;
 
@@ -5010,6 +5027,14 @@
             function start():void
             {
                 isFillPenStarted = true;
+                if(getFirstPressedKey() === KEY.q || getFirstPressedKey() === KEY.o)
+                {
+                    isStartedFromShortCut = true;
+                }
+                else
+                {
+                    isStartedFromShortCut = false;
+                }
 
                 canvasSizeRect.width = CANVAS_WIDTH;
                 canvasSizeRect.height = CANVAS_HEIGHT;
@@ -12363,7 +12388,7 @@
 
         public function updateDeleteReplayDataButtonsState():void
         {
-            if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING || isSaveInProgress || isReplayStarted)
+            if(isGeneratingCacheImages() || isSaveInProgress || isReplayStarted)
             {
                 topBar.superUndoButton.alpha = Global.OFFALPHA;
                 topBar.cutPrevDataButton.alpha = Global.OFFALPHA;
@@ -12865,11 +12890,15 @@
             startDragInteraction(onDragStart,onMouseMove,onMouseUp);
         }
 
-        public function executeToolBoxClick(targetName:String):void
+        public function handleToolBoxClick(targetName:String):void
         {
             function onMouseUpToolBox(e:MouseEvent):void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpToolBox);
+                if(isGeneratingCacheImages())
+                {
+                    return;
+                }
 
                 const upTargetName:String = e.target.name;
 
@@ -13614,7 +13643,7 @@
         public function isFileLoadBlocked():Boolean
         {
             return isFileBrowserOpened || isSaveInProgress
-            || rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING;
+            || isGeneratingCacheImages();
         }
 
         //운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
@@ -15446,7 +15475,7 @@
 
         public function enterCaptureMode():void
         {
-            if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING || isCaptureModeON)
+            if(isCaptureModeON || isGeneratingCacheImages())
             {
                 return;
             }
@@ -17462,7 +17491,7 @@
                             "hueCursor.x":colorPickerBox.hueCursor.x,
                             "svBaseColor":colorPickerBox.svBaseColor,
                             "isHSVInfoTextMode":isHSVInfoTextMode,
-                            "rReplayImageCacheState":(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING) ? REPLAY_IMAGE_CAHCHE_READY:rReplayImageCacheState,
+                            "rReplayImageCacheState":(isGeneratingCacheImages()) ? REPLAY_IMAGE_CAHCHE_READY:rReplayImageCacheState,
                             "rLastCanvasBGColor":rLastCanvasBGColor,
                             "isRightSidebar":isRightSidebar,
                             "saveFilePath":lastSaveFilePath,
@@ -19717,23 +19746,19 @@
                     if(isTransparentPenColor)
                     {
                         selectCurrentColor(false);
-                        if(sideBar.visible === false)
-                        {
-                            showMouseHintTemp("Current color selected");
-                        }
+
+                        showMouseHintTemp("Current color selected");
                     }
                     else
                     {
                         selectCurrentColor(false);
+
                         if(isTransparentPenColor === false)
                         {
                             selectTransparentColor();
                         }
 
-                        if(sideBar.visible === false)
-                        {
-                            showMouseHintTemp("Transparent color selected");
-                        }
+                        showMouseHintTemp("Transparent color selected");
                     }
                     exitEyeDropperTool(false);
                 }
@@ -20657,6 +20682,12 @@
 
         public function undo():void
         {
+            if(isGeneratingCacheImages())
+            {
+                removeKeyRepeatEvents(null);
+                return;
+            }
+
             if(isDeepUndoEnabled)
             {
                 if(rNowFrame > 0)
@@ -22517,8 +22548,7 @@
                 case KEY.q:
                 case KEY.o:
                 {
-                    setToolIndex(TOOL_PEN); //q키가 올라가면 펜툴로 바꿔지게
-                    updateLastTool();
+                    setLastTool(TOOL_PEN);
                     selectFillPenTool();
                 }
                 break;
@@ -22701,7 +22731,7 @@
             && !isLoadPendingAfterSaving
             && !isUpdatePendingAfterSaving
             && !loadMenuBox.visible
-            && rReplayImageCacheState !== REPLAY_IMAGE_CAHCHE_PROCESSING)
+            && !isGeneratingCacheImages())
             {
                 saveAllAppData();
             }
@@ -23058,7 +23088,7 @@
                 {
                     startKeyRepeat(false,undo);
                     startKeyRepeatStopTimerOnMouseLeave(target);
-                    executeToolBoxClick(targetName);
+                    handleToolBoxClick(targetName);
                 }
                 return true;
 
@@ -23066,7 +23096,7 @@
                 {
                     startKeyRepeat(false,redo);
                     startKeyRepeatStopTimerOnMouseLeave(target);
-                    executeToolBoxClick(targetName);
+                    handleToolBoxClick(targetName);
                 }
                 return true;
 
@@ -23088,7 +23118,7 @@
                 case "toolMask":
                 {
                     // setTopChildIndex(toolBox);
-                    executeToolBoxClick(targetName);
+                    handleToolBoxClick(targetName);
                 }
                 return true;
             }
@@ -23247,7 +23277,7 @@
 
         public function exitReplayMode():void
         {
-            if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING)
+            if(isGeneratingCacheImages())
             {
                 return;
             }
@@ -23317,7 +23347,7 @@
 
         public function enterReplayMode():void
         {
-            if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING)
+            if(isGeneratingCacheImages())
             {
                 return;
             }
@@ -23370,6 +23400,7 @@
 
             if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY)
             {
+                removeKeyRepeatEvents(null);
                 removeInputEventsReplayMode();
                 hideSidebarTemporary();
                 updateTopBarModeIcons("replay");

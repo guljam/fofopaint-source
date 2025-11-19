@@ -22,7 +22,7 @@
 		public var stageClickBlocker:Sprite = new Sprite();
 
 		private var plaseWaitTextBase:String = ""
-		private var clickBlockerBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0));
+		private var clickBlockerBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, true, 0));
 		private var menuBox:Sprite = new Sprite();
 		private var mainBox:Sprite = new Sprite();
 		private var bitmapSize:Number = 180;
