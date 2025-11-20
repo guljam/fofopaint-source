@@ -14,7 +14,7 @@
 	{
 		public var toolPen:SimpleButton;
 		public var toolFillPen:SimpleButton;
-		public var toolErase:SimpleButton;
+		public var toolEraser:SimpleButton;
 		public var toolUndo:SimpleButton;
 		public var toolRedo:SimpleButton;
 		public var toolEyedropper:SimpleButton;
@@ -29,7 +29,7 @@
 		public var toolBoxBG2:SimpleButton;
 		public var toolQuickSidebar:SimpleButton;
 		public var toolInfoText:TextField;
-		private var fixedScale:Number = 1.0;
+		private var constScale:Number = 1.0;
 		private var infoDataBackup:Array = [];
 		private const resizeButtonWaitTimeBar:Shape = new Shape();
 		private var resizeButtonWaitTimeBarColor:uint = 0xFf0000;
@@ -55,7 +55,7 @@
 		public function updateLastUsedToolPos(targetName:String):void
 		{
 			const btn:SimpleButton = this.getChildByName(targetName) as SimpleButton;
-			lastUsedToolPoint.setTo((btn.x + btn.width / 2) * fixedScale, (btn.y + btn.height / 2) * fixedScale);
+			lastUsedToolPoint.setTo((btn.x + btn.width / 2) * constScale, (btn.y + btn.height / 2) * constScale);
 		}
 
 		public function hint(str:String):void
@@ -91,7 +91,7 @@
 		{
 			const offAlpha:Number = Global.OFFALPHA;
 			toolPen.alpha = offAlpha;
-			toolErase.alpha = offAlpha;
+			toolEraser.alpha = offAlpha;
 			toolFillPen.alpha = offAlpha;
 			toolEyedropper.alpha = offAlpha;
 			toolLine.alpha = offAlpha;
@@ -100,7 +100,7 @@
 		public function setToolButtonsForCheckedLayerOFF():void
 		{
 			toolPen.alpha = 1.0;
-			toolErase.alpha = 1.0;
+			toolEraser.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
 			toolEyedropper.alpha = 1.0;
 			toolLine.alpha = 1.0;
@@ -122,7 +122,7 @@
 			const rightButtonArr:Array = [
 					toolPen,
 					toolFillPen,
-					toolErase,
+					toolEraser,
 					toolUndo,
 					toolRedo,
 					toolEyedropper,
@@ -168,8 +168,8 @@
 
 		public function setScale(newScale:Number):void
 		{
-			this.scaleX = newScale * fixedScale;
-			this.scaleY = newScale * fixedScale;
+			this.scaleX = newScale * constScale;
+			this.scaleY = newScale * constScale;
 		}
 
 		public function startResizeButtonWaitBarAnimation(duration:Number):void
@@ -205,7 +205,7 @@
 		{
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
-			toolErase.useHandCursor = false;
+			toolEraser.useHandCursor = false;
 			toolUndo.useHandCursor = false;
 			toolRedo.useHandCursor = false;
 			toolEyedropper.useHandCursor = false;
@@ -221,15 +221,15 @@
 			toolBoxBG.mouseEnabled = false;
 
 			toolPen.visible = false;
-			toolErase.visible = true;
+			toolEraser.visible = true;
 			visible = false;
 
 			updateLastUsedToolPos("toolPen");
 			onMouseOverTarget = toolPen;
 
-			fixedScale = 34 / toolPen.width;
+			constScale = 34 / toolPen.width;
 			setScale(1.0);
-			WIDTH = this.width / fixedScale;
+			WIDTH = this.width / constScale;
 
 			resizeButtonWaitTimeBar.y = 2;
 			addChild(resizeButtonWaitTimeBar);

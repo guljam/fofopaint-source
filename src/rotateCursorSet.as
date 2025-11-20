@@ -10,12 +10,12 @@
 		public var rotateBG:SimpleButton;
 		public var rotateArrow:SimpleButton;
 		public var rotateCircle:SimpleButton;
-		private const fixedScale:Number = 0.7;
+		private const constScale:Number = 0.7;
 
 		public function setScale(scale:Number):void
 		{
-			this.scaleX = scale * fixedScale;
-			this.scaleY = scale * fixedScale;
+			this.scaleX = scale * constScale;
+			this.scaleY = scale * constScale;
 		}
 
 		public function changeUIColor():void

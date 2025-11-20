@@ -7,7 +7,7 @@
 	import flash.geom.ColorTransform;
 	import flash.display.Graphics;
 
-	public class ReplayTimelineSet extends Sprite
+	public class seekBarSet extends Sprite
 	{
 		public var replayBGBar:Sprite = new Sprite();
 		public var deleteRangeBar:Sprite = new Sprite();
@@ -267,7 +267,7 @@
 			prograssBar.visible = true;
 		}
 
-		public function ReplayTimelineSet()
+		public function seekBarSet()
 		{
 			prograssInfo.mouseEnabled = false;
 			visible = false;

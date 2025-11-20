@@ -28,7 +28,7 @@
 		public var lasso1pxUp:SimpleButton;
 		public var lassoLayerSwap:SimpleButton;
 		public var lassoLayerMerge:SimpleButton;
-		private const fixedScale:Number = 0.875;
+		private const constScale:Number = 0.875;
 
 		private var lassoInfoPos:Array = [0, 0];
 
@@ -104,8 +104,8 @@
 
 		public function setScale(newScale:Number):void
 		{
-			this.scaleX = newScale * fixedScale;
-			this.scaleY = newScale * fixedScale;
+			this.scaleX = newScale * constScale;
+			this.scaleY = newScale * constScale;
 		}
 
 		public function LassoMenuSet()

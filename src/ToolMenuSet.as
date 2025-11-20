@@ -13,7 +13,7 @@
 		public var toolFillPen:SimpleButton;
 		public var toolFillPenOK:SimpleButton;
 		public var toolFillPenCancel:SimpleButton;
-		public var toolErase:SimpleButton;
+		public var toolEraser:SimpleButton;
 		public var toolUndo:SimpleButton;
 		public var toolRedo:SimpleButton;
 		public var toolEyedropper:SimpleButton;
@@ -25,6 +25,7 @@
 		public var toolRefLayer:SimpleButton;
 		public var toolZoomIn:SimpleButton;
 		public var toolZoomOut:SimpleButton;
+		public var toolHand:SimpleButton;
 		public var toolSelectCursor:SimpleButton;
 		private var lastTool:String = "toolPen";
 
@@ -50,7 +51,7 @@
 
 		public function setFillPenModeOFF():void
 		{
-			toolErase.alpha = 1.0;
+			toolEraser.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
 			toolEyedropper.alpha = 1.0;
 			toolLine.alpha = 1.0;
@@ -70,7 +71,7 @@
 		public function setFillPenModeON():void
 		{
 			const offAlpha:Number = Global.OFFALPHA;
-			toolErase.alpha = offAlpha;
+			toolEraser.alpha = offAlpha;
 			toolFillPen.alpha = offAlpha;
 			toolEyedropper.alpha = offAlpha;
 			toolLine.alpha = offAlpha;
@@ -96,7 +97,7 @@
 				toolUndo.alpha = alpha;
 				toolRedo.alpha = alpha;
 				toolPen.alpha = alpha;
-				toolErase.alpha = alpha;
+				toolEraser.alpha = alpha;
 				toolFillPen.alpha = alpha;
 				toolEyedropper.alpha = alpha;
 				toolLasso.alpha = alpha;
@@ -114,7 +115,7 @@
 				if (checkedLayerONFlag === false)
 				{
 					toolPen.alpha = alpha;
-					toolErase.alpha = alpha;
+					toolEraser.alpha = alpha;
 					toolFillPen.alpha = alpha;
 					toolEyedropper.alpha = alpha;
 					toolLine.alpha = alpha;
@@ -128,7 +129,7 @@
 		{
 			checkedLayerONFlag = false;
 			toolPen.alpha = 1.0;
-			toolErase.alpha = 1.0;
+			toolEraser.alpha = 1.0;
 			toolFillPen.alpha = 1.0;
 			toolEyedropper.alpha = 1.0;
 			toolLine.alpha = 1.0;
@@ -140,7 +141,7 @@
 			const offalpha:Number = Global.OFFALPHA;
 			checkedLayerONFlag = true;
 			toolPen.alpha = offalpha;
-			toolErase.alpha = offalpha;
+			toolEraser.alpha = offalpha;
 			toolFillPen.alpha = offalpha;
 			toolEyedropper.alpha = offalpha;
 			toolLine.alpha = offalpha;
@@ -183,7 +184,7 @@
 			y = deafultY;
 		}
 
-		public function initCanvasControlButtons(newParent:DisplayObjectContainer):void
+		public function moveCanvasControlButtonsTo(newParent:DisplayObjectContainer):void
 		{
 			newParent.addChild(toolZoomIn);
 			newParent.addChild(toolZoomOut);
@@ -224,9 +225,11 @@
 				btn.downState.y = 2;
 			}
 
-			const rotateButton:DisplayObjectContainer = toolRotate.downState as DisplayObjectContainer;
-			rotateButton.x = 0;
-			rotateButton.y = 0;
+			const rotateButtonDownState:DisplayObjectContainer = toolRotate.downState as DisplayObjectContainer;
+			rotateButtonDownState.x = 0;
+			rotateButtonDownState.y = 0;
+			toolHand.x = 0;
+			toolHand.y = 0;
 
 			bgBox.graphics.lineStyle(0, 0, 0);
 			bgBox.graphics.beginFill(Global.getToolBoxBGColor());
@@ -312,7 +315,7 @@
 			toolFillPen.useHandCursor = false;
 			toolFillPenOK.useHandCursor = false;
 			toolFillPenCancel.useHandCursor = false;
-			toolErase.useHandCursor = false;
+			toolEraser.useHandCursor = false;
 			toolUndo.useHandCursor = false;
 			toolRedo.useHandCursor = false;
 			toolEyedropper.useHandCursor = false;
@@ -324,6 +327,8 @@
 			toolRefLayer.useHandCursor = false;
 			toolZoomIn.useHandCursor = false;
 			toolZoomOut.useHandCursor = false;
+			toolHand.mouseEnabled = false;
+			toolHand.visible = false;
 
 			toolFillPenOK.visible = false;
 			toolFillPenCancel.visible = false;
@@ -332,7 +337,7 @@
 					toolUndo,
 					toolRedo,
 					toolPen,
-					toolErase,
+					toolEraser,
 					toolFillPen,
 					toolEyedropper,
 					toolLine,
@@ -342,7 +347,8 @@
 					toolZoomIn,
 					toolZoomOut,
 					toolRotate,
-					toolMirror
+					toolMirror,
+					toolHand
 				];
 
 			initButtonsPos();

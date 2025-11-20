@@ -33,7 +33,7 @@
 		public var refLayerMenuBGRight:SimpleButton;
 
 		private var refLayerMenuInfoPos:Array = [0, 0]; // y ,height
-		private var fixedScale:Number = 1.0;
+		private var constScale:Number = 1.0;
 
 		public function updateUIColor():void
 		{
@@ -114,15 +114,15 @@
 
 		public function setScale(newScale:Number):void
 		{
-			this.scaleX = newScale * fixedScale;
-			this.scaleY = newScale * fixedScale;
+			this.scaleX = newScale * constScale;
+			this.scaleY = newScale * constScale;
 		}
 
 		public function RefLayerMenuSet()
 		{
 			visible = false;
 
-			fixedScale = 34 / refTransferCanvasImageButton.width;
+			constScale = 34 / refTransferCanvasImageButton.width;
 			setScale(1.0);
 
 			const offsetX:Number = refOpacityCursor.width / 2;

@@ -19,7 +19,7 @@
 		public var fillPenBG:SimpleButton;
 		public var fillPenSidebar:SimpleButton;
 		private const fillPenInfoPos:Array = [0, 0];
-		private var fixedScale:Number = 1.0;
+		private var constScale:Number = 1.0;
 		private const baseColor:ColorTransform = new ColorTransform();
 		private const opColor:ColorTransform = new ColorTransform();
 
@@ -80,13 +80,13 @@
 
 		public function setScale(newScale:Number):void
 		{
-			this.scaleX = newScale * fixedScale;
-			this.scaleY = newScale * fixedScale;
+			this.scaleX = newScale * constScale;
+			this.scaleY = newScale * constScale;
 		}
 
 		public function FillPenMenuSet()
 		{
-			fixedScale = 34 / fillPenCancel.width;
+			constScale = 34 / fillPenCancel.width;
 			setScale(1.0);
 
 			visible = false;

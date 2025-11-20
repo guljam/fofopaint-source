@@ -8,13 +8,13 @@
 	public class FOFO extends Sprite
 	{
 		public var fofo:SimpleButton;
-		public var fixedScale:Number = 0.65;
+		public var constScale:Number = 0.65;
 		public var topPos:Boolean = false;
 
 		public function setScale(newScale:Number):void
 		{
-			this.scaleX = newScale * fixedScale;
-			this.scaleY = newScale * fixedScale;
+			this.scaleX = newScale * constScale;
+			this.scaleY = newScale * constScale;
 		}
 
 		public function isTopPos():Boolean

@@ -67,21 +67,23 @@
 
     public class Main extends Sprite
     {
-        public const  APP_VERSION:Number = 27.03;
+        public const  APP_VERSION:Number = 27.04;
         public const  APP_STATE_VERSION:Number = 2701;
 
         public const  TOOL_NONE:int = 0,
                       TOOL_PEN:int = (1 << 0),
                       TOOL_ERASER:int = (1 << 1),
                       TOOL_LINE:int = (1 << 2),
-                      TOOL_FILL_PEN:int = (1 << 3),
-                      TOOL_SCAN_FILL:int = (1 << 4),
-                      TOOL_HAND:int = (1 << 5),
-                      TOOL_LASSO:int = (1 << 6),
-                      TOOL_EYEDROPPER:int = (1 << 7),
-                      TOOL_ZOOM:int = (1 << 8),
-                      TOOL_ROTATE:int = (1 << 9),
-                      TOOL_MOVE:int = (1 << 10);
+                      TOOL_FILLPEN:int = (1 << 3),
+                      TOOL_HAND:int = (1 << 4),
+                      TOOL_LASSO:int = (1 << 5),
+                      TOOL_EYEDROPPER:int = (1 << 6),
+                      TOOL_ZOOM:int = (1 << 7),
+                      TOOL_ROTATE:int = (1 << 8),
+                      TOOL_MOVE:int = (1 << 9),
+                      TOOL_UNDO:int = (1 << 10),
+                      TOOL_REDO:int = (1 << 11),
+                      TOOL_MIRROR:int = (1 << 12);
 
         public const  JUMP_FRAME_PLAY:int = (1 << 0),
                       JUMP_FRAME_MANUAL:int = (1 << 1),
@@ -135,8 +137,7 @@
                       STRING_CUSTOM_COLOR_HINT:String = "OK [Any key except 0 ~ 9]",
                       STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity ",
                       STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]";
-                     
-                    
+ 
         public const  REPLAY_IMAGE_CAHCHE_COMPLETE:int = (1 << 0),
                       REPLAY_IMAGE_CAHCHE_READY:int = (1 << 1),
                       REPLAY_IMAGE_CAHCHE_PROCESSING:int = (1 << 2);
@@ -149,6 +150,8 @@
                       UPDATE_FILE_URL:String = "https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air",
                       UPDATE_MAX_DOWNLOAD_RETRY:int = 5,
                       UPDATE_RETRY_DELAY:Number = 3.0;
+
+        public const  SCROLL_BAR_WIDTH:Number = 21;
 
         public const  CANVAS_MIN_SIZE:Number = 100,
                       CANVAS_MAX_SIZE:Number = 2000;
@@ -369,7 +372,9 @@
                    pickerIgnoreHistoryColor:* = null; //히스토리 색 등록 할때 여기에 등록된 색은 등록 안하게함
 
         //오른쪽 클릭 툴박스
-        public var isToolBox2Showing:Boolean = false; //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
+        public var isToolBox2Showing:Boolean = false, //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
+                   selectedToolViewBitmap:Bitmap = new Bitmap(),
+                   selectedToolViewBox:Sprite = new Sprite();
 
         //undo
         public var  undoDataIndex:int = -1, //undo redo 상태 인덱스임
@@ -441,7 +446,7 @@
                    rCanvasLayer1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0),
                    rCanvasLayer2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0),
                    rCanvasDrawLayerBitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0),
-                   replayTimelineBox:ReplayTimelineSet = new ReplayTimelineSet(),
+                   seekBarBox:seekBarSet = new seekBarSet(),
                    rCanvasLayer1Bitmap:Bitmap = new Bitmap(rCanvasLayer1BitmapData, "auto", true),
                    rCanvasLayer2Bitmap:Bitmap = new Bitmap(),
                    rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1,1,false,0), "auto", true),
@@ -485,7 +490,7 @@
                    rJumpImageFrameData:Array = [0], //스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
                    rReplayImageCacheState:int = REPLAY_IMAGE_CAHCHE_COMPLETE, 
                    rReplayRestartTimerCount:uint = 0, //리스타트 타이머
-                   rTimeLIneTextUpdateTime:int = 0, //프레임 바 딜레이
+                   rSeekbarTextUpdateTime:int = 0, //프레임 바 딜레이
                    isReplaySlideShowMode:Boolean = false, //doDrawSlowEvent가 켜지면 올려줌
                    rFrameTempCachedImages:Array = [], //이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
                    lastReplayTimeBoxYPos:Number = 0 //리플레이 재생해줄때 topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
@@ -618,6 +623,7 @@
                     isSidebarTempShowDeactivated:Boolean = false,  // 사이드바 임시로 보여주는 기능이 잠시 꺼졌을때 올려줌
                     isReactivateSidebarTempShowEventsAdded:Boolean = false,  // 사이드바 임시로 보여주는 기능을 끄는 이벤트들이 등록되면 올려줌
                     isSidebarHideEventAdded:Boolean = false,          // 사이드바가 임시로 보여졌을때 마우스 클릭하면 꺼주는 이벤트가 추가되면 올려줌
+                    mouseMoveCountHideSidebar:int = 0,               //사이드바가 임시적으로 켜져있을때 마우스 카운트 올려줘서 사라지게 만듬
                     isRightSidebar:Boolean = false,                // 사이드바 위치 (false: 왼쪽, true: 오른쪽)
                     lassoAndRefLayerBoxLastPos:Array = [0,0,0,0,0,0,0,0]; // 사이즈바 켜줄때 임시로 사이드바 안쪽으로 밀려나게 하고 위치가 변경되지 않았으면 원래대로 복귀해줌
                                                                           //좌표순서 라소 이전, 이후, 트레이스 이전 이후
@@ -695,6 +701,95 @@
         }
 
         //function
+        public function getViewportRect():Rectangle
+        {
+            const stw:int = stage.stageWidth;
+            const sth:int = stage.stageHeight;
+            const rect:Rectangle = new Rectangle(0,0,stw,sth);
+
+            rect.y += STAGE_TOP_OFFSET;
+
+            if(isQuickSidebarActive)
+            {
+                return rect;
+            }
+
+            rect.x += STAGE_LEFT_OFFSET;
+            rect.width -= (STAGE_LEFT_OFFSET+STAGE_RIGHT_OFFSET);
+            rect.height -= (STAGE_TOP_OFFSET+STAGE_TOP_OFFSET);
+
+            return rect;
+        }
+
+        public function getToolButtonFromToolIndex(toolIndex:*=null):SimpleButton
+        {
+            switch(toolIndex)
+            {
+                case TOOL_PEN: return toolBox.toolPen;
+                case TOOL_FILLPEN: return toolBox.toolFillPen;
+                case TOOL_ERASER: return toolBox.toolEraser;
+                case TOOL_EYEDROPPER: return toolBox.toolEyedropper;
+                case TOOL_LASSO: return toolBox.toolLasso;
+                case TOOL_MOVE: return toolBox.toolMove;
+                case TOOL_LINE: return toolBox.toolLine;
+                case TOOL_ZOOM: return toolBox.toolZoomIn;
+                case TOOL_ROTATE: return toolBox.toolRotate;
+                case TOOL_HAND: return toolBox.toolHand;
+                case TOOL_UNDO: return toolBox.toolUndo;
+                case TOOL_REDO: return toolBox.toolRedo;
+                case TOOL_MIRROR: return toolBox.toolMirror;
+            }
+            return null;
+        }
+
+        public function updateSelectedToolViewBoxPos():void
+        {
+            const viewportRect:Rectangle = getViewportRect();
+
+            selectedToolViewBox.x = viewportRect.x+viewportRect.width/2-selectedToolViewBitmap.width/2;
+            selectedToolViewBox.y = viewportRect.y+20*Global.getUIScale();
+        }
+
+        public function showNowToolIconToCursorTemp(toolIndex:int):void
+        {   
+                if(isQuickSidebarActive)
+                {
+                    return;
+                }
+
+                const toolButton:SimpleButton = getToolButtonFromToolIndex(toolIndex);
+
+                if(toolButton === null)
+                {
+                    return;
+                }
+                const bmpd:BitmapData = selectedToolViewBitmap.bitmapData;
+                const scale:Number = toolButton.scaleX;
+
+                if(selectedToolViewBitmap.bitmapData === null)
+                {
+                    selectedToolViewBitmap.bitmapData = new BitmapData(toolButton.width/scale+10,toolButton.height/scale+10,true,0x99000000|Global.getUIBGColor());
+                    const mask:Shape = new Shape();
+                    mask.graphics.clear();
+                    mask.graphics.beginFill(0,0);
+                    mask.graphics.drawCircle(selectedToolViewBitmap.bitmapData.width/2,selectedToolViewBitmap.bitmapData.height/2,toolButton.width/scale/2+5);
+                    mask.graphics.endFill();
+                    selectedToolViewBox.addChild(mask);
+                    selectedToolViewBox.mask = mask;
+                }
+                else
+                {
+                    bmpd.fillRect(new Rectangle(0,0,bmpd.width,bmpd.height),0x99000000|Global.getUIBGColor());
+                }
+
+                const mat:Matrix = new Matrix();
+                mat.translate(5,5);
+                selectedToolViewBitmap.bitmapData.draw(toolButton,mat);
+                updateSelectedToolViewBoxPos();
+
+                startAlphaFadeOut(selectedToolViewBox,1.0,1.0);
+        }
+
         public function isGeneratingCacheImages():Boolean
         {
             return rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING
@@ -1840,8 +1935,10 @@
 
         public function isHintUnavailable():Boolean
         {
-            return isMouseClicked || isRightMouseClicked || isMouseDragging || isToolBox2Showing || isFillPenStarted
-                || isLassoToolStarted || numPadBox.visible || isAboutBoxOpened || isGeneratingCacheImages();
+            return isMouseClicked || isRightMouseClicked || isMouseDragging || isToolBox2Showing
+            || numPadBox.visible || isAboutBoxOpened || isGeneratingCacheImages();
+            // || isFillPenStarted
+            // || isLassoToolStarted
         }
 
         public function playLayerSwapEffect(target:DisplayObject):void
@@ -2218,10 +2315,20 @@
         {
             const scale:Number = Global.getUIScale();
 
-            STAGE_TOP_OFFSET = (isReplayModeON) ? Math.round(topBar.BARSIZE * scale + replayTimelineBox.BARSIZE * scale) : Math.round(topBar.BARSIZE * scale);
+            STAGE_TOP_OFFSET = 0;
             STAGE_BOTTOM_OFFSET = 0;
             STAGE_RIGHT_OFFSET = 0;
             STAGE_LEFT_OFFSET = 0;
+
+            if(topBar.visible)
+            {
+                STAGE_TOP_OFFSET += topBar.BARSIZE * scale;
+            }
+
+            if(seekBarBox.visible)
+            {
+                STAGE_TOP_OFFSET += seekBarBox.BARSIZE * scale;
+            }
 
             if (isCaptureModeON || isReplayModeON)
             {
@@ -2232,11 +2339,11 @@
             {
                 if (isRightSidebar)
                 {
-                    STAGE_RIGHT_OFFSET = Math.round(sideBar.getWidth());
+                    STAGE_RIGHT_OFFSET = Math.round(sideBar.getWidth()+SCROLL_BAR_WIDTH);
                 }
                 else
                 {
-                    STAGE_LEFT_OFFSET = Math.round(sideBar.getWidth());
+                    STAGE_LEFT_OFFSET = Math.round(sideBar.getWidth())+SCROLL_BAR_WIDTH;
                 }
             }
         }
@@ -2274,30 +2381,37 @@
             drawReplayByCommand.setRCursorPos(curcorX, p.y);
         }
 
-        public function startRCursorFadeOut():void
+        public function startAlphaFadeOut(target:DisplayObject,startAlpha:Number=1.0,waitDuration:Number=0.0):void
         {
-            rReplayFOFOCursor.alpha = 1.0;
-            rReplayFOFOCursor.visible = true;
+            target.alpha = startAlpha;
+            target.visible = true;
+            
+            const startTime:int = getTimer()+waitDuration*1000;
 
-            addTimerByName("rCursorOffAlphaAnimTimer", 0.0, true, function():Boolean
+            addTimerByName("alphaFadeOutTimer_"+target.name, 0.0, true, function():Boolean
+            {
+                if(getTimer() < startTime)
                 {
-                    if (rReplayFOFOCursor.visible === false)
-                    {
-                        return false;
-                    }
-
-                    rReplayFOFOCursor.alpha -= 0.1;
-
-                    if (rReplayFOFOCursor.alpha < 0.0)
-                    {
-                        rReplayFOFOCursor.visible = false;
-                        rReplayFOFOCursor.alpha = 1.0;
-
-                        return false;
-                    }
-
                     return true;
-                });
+                }
+
+                if (target.visible === false)
+                {
+                    return false;
+                }
+
+                target.alpha -= 0.1;
+
+                if (target.alpha < 0.0)
+                {
+                    target.visible = false;
+                    target.alpha = 1.0;
+
+                    return false;
+                }
+
+                return true;
+            });
         }
 
         public function showRCursorOnUndo(undoIndex:int):void
@@ -3051,7 +3165,7 @@
             topBar.setScale(scale);
             topBar.updateTopbarBG(stw);
             topBar.updateTimerPos(stage.stageWidth);
-            replayTimelineBox.setScale(scale);
+            seekBarBox.setScale(scale);
             canvasRotateCursor.setScale(scale);
             mouseHint.setScale(scale);
             bottomBar.scaleX = scale;
@@ -3259,6 +3373,11 @@
             if(isBottomBarVisible())
             {
                 hideBottomHint();
+            }
+
+            if(selectedToolViewBox.visible)
+            {
+                selectedToolViewBox.visible = false;
             }
 
             sideBar.setTransparentBG();
@@ -3607,7 +3726,7 @@
             return nowTool === tool;
         }
 
-        public function setToolIndex(tool:int):void
+        public function setSelectedTool(tool:int):void
         {
             nowTool = tool;
         }
@@ -3685,7 +3804,7 @@
             }
             else if(secondKey === KEY.n4 || secondKey === KEY.n7)
             {
-                if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
+                if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
                 {
                     togglePenAirBrushButtonShortCut();
                     return true;
@@ -3790,7 +3909,8 @@
         public function isCursorInDrawArea():Boolean
         {
             return !(topBar.hitTestPoint(stage.mouseX,stage.mouseY)
-            || (sideBar.visible && sideBar.hitTestPoint(stage.mouseX,stage.mouseY)))
+            || (sideBar.visible && sideBar.hitTestPoint(stage.mouseX,stage.mouseY))
+            || (seekBarBox.visible && seekBarBox.hitTestPoint(stage.mouseX,stage.mouseY)))
         }
 
         public function initializeStageSettings():void
@@ -3855,6 +3975,7 @@
             }
 
             handTool(isReplayModeON,true);
+            showNowToolIconToCursorTemp(TOOL_HAND);
         }
 
         public function onMouseUpStage(e:MouseEvent):void
@@ -4027,7 +4148,6 @@
             && !isCaptureModeON
             && !isToolBox2Showing
             && !isMouseClickBlocked
-            && !isLassoToolStarted
             && !resizeButtonR.visible;
         }
 
@@ -4058,6 +4178,21 @@
                     startShowSideBarTemporary();
                 }
             }
+
+            if(!isSidebarVisible && sideBar.visible)
+            {
+                if(isCursorInDrawArea())
+                {
+                    if(!hasTimer("sidebarHideDelayTimer"))
+                    {
+                        addTimerByName("sidebarHideDelayTimer",0.3,false,hideSidebarTemporary);
+                    }
+                }
+                else if(hasTimer("sidebarHideDelayTimer"))
+                {
+                    removeTimer("sidebarHideDelayTimer");
+                }
+            }
         }
 
         public function onMouseUpSideBar(e:MouseEvent):void
@@ -4079,6 +4214,11 @@
             updateStageOffset();
             updateCanvasNaigatorCursor();
             checkFOFOPosition();
+
+            if(selectedToolViewBox.visible)
+            {
+                updateSelectedToolViewBoxPos();
+            }
         }
 
         public function restoreLassoAndRefLayerBoxLastPos():void
@@ -5598,7 +5738,7 @@
 
             function checkCursorVisibility():void
             {
-                if(cursorSize <= 4 || isSelectedTool(TOOL_FILL_PEN))
+                if(cursorSize <= 4 || isSelectedTool(TOOL_FILLPEN))
                 {
                     if(penSizePreviewCursor.visible)
                     {
@@ -5622,7 +5762,7 @@
                 //(sideBar.visible && (sideBarScrollBar.hitTestPoint(mouseX,mouseY) || sideBar.hitTestPoint(mouseX,mouseY)))
                 
                 if(isPenSizeCursorInvisible
-                || (nowTool > TOOL_LINE && nowTool !== TOOL_FILL_PEN) //1 2 3 4 펜 지우개 라인툴 라인-지우개툴
+                || (nowTool > TOOL_LINE && nowTool !== TOOL_FILLPEN) //1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                 || !isCursorInDrawArea()
                 || resizeCanvas.isCanvasResizing()
                 || (refLayerMenuBox.visible && refLayerMenuBox.hitTestPoint(stage.mouseX, stage.mouseY))
@@ -5853,10 +5993,16 @@
             }
         }
 
-        public function checkKeyUp(keyCode:uint):void
+        public function checkGeneralKeyUp(keyCode:uint):void
         {
-            if(KEY_BUFFER.length === 0) resetLastKey();
-            else if(!isCaptureModeON && !isReplayModeON && isLastKey(keyCode)) onKeyDownLassoTool(null);
+            if(KEY_BUFFER.length === 0) 
+            {
+                resetLastKey();
+            }
+            else if(!isCaptureModeON && !isReplayModeON && isLastKey(keyCode)) 
+            {
+                onKeyDownLassoTool(null);
+            }
         }
 
         public function onKeyUpLassoTool(e:KeyboardEvent):void
@@ -5867,7 +6013,7 @@
                 isLassoMenuHiddenTemp = false;
             }
 
-            checkKeyUp(keyCode);
+            checkGeneralKeyUp(keyCode);
         }
 
         public function onKeyDownLassoTool(e:KeyboardEvent):void
@@ -5907,7 +6053,12 @@
                         break;
 
                         case KEY.d:
-                        case KEY.l:move1PxLassoTool(LASSO_1PX_MOVE_RIGHT); break;
+                        case KEY.l:
+                        {
+                            move1PxLassoTool(LASSO_1PX_MOVE_RIGHT);
+                        }
+                        break;
+
                     }
                 }))
                 {
@@ -5921,7 +6072,8 @@
                 updateLastKey(keyCode);
 
                 isLassoMenuHiddenTemp = true;
-                setToolIndex(TOOL_HAND);
+                setSelectedTool(TOOL_HAND);
+                showNowToolIconToCursorTemp(TOOL_HAND);
             }
             else if(isPressingShift())
             {
@@ -5931,12 +6083,22 @@
                     {
                         case KEY.s:
                         case KEY.k:
-                            if(canvasAnchorPoint.rotation !== 0.0) resetRotationDrawMode();
+                        {
+                            if(canvasAnchorPoint.rotation !== 0.0)
+                            {
+                                resetRotationDrawMode();
+                            }
+                        }
                         return;
 
                         case KEY.w:
                         case KEY.i:
-                            if(canvasZoomMultipler !== 1.0) resetZoomDrawMode();
+                        {
+                            if(canvasZoomMultipler !== 1.0)
+                            {
+                                resetZoomDrawMode();
+                            }
+                        }
                         return;
                     }
                 }))
@@ -5949,6 +6111,7 @@
             {
                 return;
             }
+
             updateLastKey(keyCode);
 
             switch(keyCode)
@@ -5972,7 +6135,8 @@
                 {
                     isLassoMenuHiddenTemp = true;
                     updateLastKey(keyCode);
-                    setToolIndex(TOOL_ZOOM);
+                    setSelectedTool(TOOL_ZOOM);
+                    showNowToolIconToCursorTemp(TOOL_ZOOM);
                 }
                 break;
 
@@ -5981,19 +6145,14 @@
                 {
                     isLassoMenuHiddenTemp = true;
                     updateLastKey(keyCode);
-                    setToolIndex(TOOL_ROTATE);
+                    setSelectedTool(TOOL_ROTATE);
+                    showNowToolIconToCursorTemp(TOOL_ROTATE);
                 }
                 break;
 
                 case KEY.enter:
                 {
                     applyLassoImageToCanvas();
-                }
-                break;
-
-                case KEY.f3:
-                {
-                    toggleSideBarPosition();
                 }
                 break;
 
@@ -6141,7 +6300,7 @@
 
         public function selectPenToolIfNotDrawingTool(checkErase:Boolean):void
         {
-            if(!(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN)
+            if(!(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)
             || (checkErase && isSelectedTool(TOOL_ERASER))))
             {
                 resetLastTool();
@@ -6350,7 +6509,7 @@
                 topBar.showModeIcons("replay");
                 topBar.hideModeIcons("draw");
                 topBar.hideModeIcons("capture");
-                replayTimelineBox.setPlayButtonVisible(!isReplayStarted);
+                seekBarBox.setPlayButtonVisible(!isReplayStarted);
             }
             else if(mode === "capture")
             {
@@ -7565,7 +7724,7 @@
             numPadBox.updateUIColor();
             refLayerMenuBox.updateUIColor();
             topBar.updateUIColor();
-            replayTimelineBox.updateUIColor();
+            seekBarBox.updateUIColor();
             captureStampFontListBox.updateUIColor();
             mouseHint.updateBGColor();
             bottomHint.updateHintTextColor(0);
@@ -7651,15 +7810,9 @@
 
             if(isSelectedTool(TOOL_ERASER)) toolName = "Eraser";
             else if(isSelectedTool(TOOL_LINE)) toolName = "Line";
-            else if(isSelectedTool(TOOL_FILL_PEN)) toolName = "FillPen";
+            else if(isSelectedTool(TOOL_FILLPEN)) toolName = "FillPen";
 
             toolOptionsBox.hintText(toolName);
-        }
-
-        public function updateTimelineBoxPos(stw:Number):void
-        {
-            replayTimelineBox.updatePos(stw);
-            // replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
         }
 
         public function prepareUpdate():void
@@ -7715,7 +7868,7 @@
                 size = penSizeList[penSizeIndex];
                 alpha = penAlphaList[penAlphaIndex];
             }
-            else if(isSelectedTool(TOOL_FILL_PEN))
+            else if(isSelectedTool(TOOL_FILLPEN))
             {
                 tooltype = "Fill Pen ";
                 size = 1;
@@ -7761,7 +7914,7 @@
 
             selectPenToolIfNotDrawingTool(true);
 
-            if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
+            if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
             {
                 setAlpha(penAlpha,penSize);
             }
@@ -7773,7 +7926,7 @@
 
         public function adjustDrawToolSizeByShortcut(increase:Boolean):void
         {
-            if(isSelectedTool(TOOL_FILL_PEN))
+            if(isSelectedTool(TOOL_FILLPEN))
             {
                 return;
             }
@@ -7806,7 +7959,7 @@
 
             selectPenToolIfNotDrawingTool(true);
 
-            if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
+            if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
             {
                 setSize(penSizeIndex,penAlpha);
 
@@ -7938,7 +8091,7 @@
             setDrawToolSize(index);
             updatePenSizeCursor();
 
-            if(isSelectedTool(TOOL_FILL_PEN))
+            if(isSelectedTool(TOOL_FILLPEN))
             {
                 if(isPenAirBrushON && penSize !== airBrushSizeDrawMode)
                 {
@@ -8279,6 +8432,7 @@
             stage.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseDownDrawMode);
             stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpDrawMode,false);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onRightMouseDownDrawMode);
+            colorPickerBox.rgbInfoText.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseDownRGBInfoText);
             // stage.removeEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
         }
 
@@ -8293,6 +8447,7 @@
                 stage.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownDrawMode,false,-1);
                 stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpDrawMode,false,-1);
                 stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,onRightMouseDownDrawMode,false,-1);
+                colorPickerBox.rgbInfoText.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownRGBInfoText);
             }
         }
 
@@ -8540,7 +8695,7 @@
         {
             const size:uint = penSizeList[index];
 
-            if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
+            if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
             {
                 penSize = size;
                 penSizeIndex = index;
@@ -8822,7 +8977,7 @@
                     updatePenSizeCursor();
                 break;
 
-                case TOOL_FILL_PEN:
+                case TOOL_FILLPEN:
                     selectFillPenTool();
                 break;
 
@@ -9655,7 +9810,7 @@
         {
             //미러 되어있을 수도 있기 때문에 워래 프레임 으로 점프해준뒤에 실행해줌
             ensureReplayCanvasState();
-            replayTimelineBox.setDeleteRangeBarVisible(false);
+            seekBarBox.setDeleteRangeBarVisible(false);
             createFirstImageCache(rCanvasLayer1BitmapData,rCanvasLayer2BitmapData,RCANVAS_BG_COLOR);
 
             const fs:FileStream = new FileStream();
@@ -9678,11 +9833,11 @@
 
                 if(TOTAL_FRAME === 0)
                 {
-                    replayTimelineBox.resetReplayPrograssBarWidth();
+                    seekBarBox.resetReplayPrograssBarWidth();
                 }
                 else
                 {
-                    replayTimelineBox.setReplayPrograssBarMaxWidth();
+                    seekBarBox.setReplayPrograssBarMaxWidth();
                 }
                 
                 topBar.repNewFileButton.alpha = Global.OFFALPHA;
@@ -9715,7 +9870,7 @@
                 ba = null;
 
                 rReplayFOFOCursor.visible = false;
-                replayTimelineBox.resetReplayPrograssBarWidth();
+                seekBarBox.resetReplayPrograssBarWidth();
                 isFileAlreadySaved = false;
                 startGeneratingReplayCacheImage();
             }
@@ -9739,7 +9894,7 @@
         public function deleteReplayDataAfterCurrentFrame():void
         {
             ensureReplayCanvasState();
-            replayTimelineBox.setDeleteRangeBarVisible(false);
+            seekBarBox.setDeleteRangeBarVisible(false);
 
             if(rDataReadFlag === true)
             {
@@ -9818,7 +9973,7 @@
 
         public function createNewFileFromReplayCanvas():void
         {
-            replayTimelineBox.setDeleteRangeBarVisible(false);
+            seekBarBox.setDeleteRangeBarVisible(false);
             copyReplayCanvasDataToDrawCanvas();
             clearDataAndResetVars();
             syncDrawCanvasWithReplayCanvas();
@@ -9883,18 +10038,18 @@
                 {
                     finalizeRemainingReplayData();
                     updateReplayPrograssText();
-                    replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
+                    seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
                     updateDeleteReplayDataButtonsState();
                 }
 
                 if(rNowFrame >= TOTAL_FRAME)
                 {
-                    replayTimelineBox.setDeleteRangeBarVisible(false);
+                    seekBarBox.setDeleteRangeBarVisible(false);
                     return true;
                 }
             }
 
-            replayTimelineBox.updateDeleteDangeBarPosWidth(mode);
+            seekBarBox.updateDeleteDangeBarPosWidth(mode);
 
             return false;
         }
@@ -10155,12 +10310,12 @@
 
         public function cancelReplayRestartTimer():void
         {
-            replayTimelineBox.setPlayButtonVisible(true);
+            seekBarBox.setPlayButtonVisible(true);
             hideCompleteImageToBGReplayMode();
             showTopbarOnReplayEnd();
             removeTimer("replayRestartTimer");
             updateReplayPrograssText(true,TOTAL_FRAME);
-            Global.setColorTransform(replayTimelineBox.prograssBar,Global.getUIReplayEndBarColor());
+            Global.setColorTransform(seekBarBox.prograssBar,Global.getUIReplayEndBarColor());
             updateCanvasScale(rLastCanvasZoomMultiplier,true);
         }
 
@@ -10171,7 +10326,7 @@
 
         public function startReplayRestartTimer():void
         {
-            Global.setColorTransform(replayTimelineBox.prograssBar,Global.getUIReplayRestartBarColor());
+            Global.setColorTransform(seekBarBox.prograssBar,Global.getUIReplayRestartBarColor());
 
             if(isReplayRepeatON)
             {
@@ -10186,7 +10341,7 @@
                     }
 
                     const str:String = "Playing again in " + rReplayRestartTimerCount +" sec";
-                    replayTimelineBox.prograssInfo.text = str;
+                    seekBarBox.prograssInfo.text = str;
                     --rReplayRestartTimerCount;
                     return true;
                 });
@@ -11790,7 +11945,7 @@
                 customFrame = rNowFrame;
             }
             
-            replayTimelineBox.prograssInfo.text = customFrame+" / "+TOTAL_FRAME+remainingTime;
+            seekBarBox.prograssInfo.text = customFrame+" / "+TOTAL_FRAME+remainingTime;
         }
 
         public function startCheckingHideMouseCursor():void
@@ -11827,7 +11982,7 @@
             const textUpdateTime:int = 1000;
 
             updateReplayPrograssText();
-            replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
+            seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
 
             addTimerByName("prograssBarUpdateTimer",0.0,true,function():Boolean
             {
@@ -11838,7 +11993,7 @@
 
                 if(rNowFrame >= TOTAL_FRAME)
                 {
-                    replayTimelineBox.setReplayPrograssBarMaxWidth();
+                    seekBarBox.setReplayPrograssBarMaxWidth();
                     updateReplayPrograssText(true,TOTAL_FRAME);
                     replayCompleteEffect();
                     startReplayRestartTimer();
@@ -11864,7 +12019,7 @@
                 {
                     lastTextUpdateTime = nowTime;
                     updateReplayPrograssText();
-                    replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
+                    seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
                 }
 
                 updatePrograssBarStartTime = getTimer();
@@ -11875,9 +12030,9 @@
         public function drawCanvasFromReplayDataSlideShowMode():void
         {
             const nowTime:int = getTimer();
-            if(nowTime - rTimeLIneTextUpdateTime >= REPLAY_SLIDESHOW_UPDATE_TIME)
+            if(nowTime - rSeekbarTextUpdateTime >= REPLAY_SLIDESHOW_UPDATE_TIME)
             {
-                rTimeLIneTextUpdateTime = nowTime;
+                rSeekbarTextUpdateTime = nowTime;
 
                 const nextFrame:Number = rReplaySpeedMultipler*stage.frameRate;
                 renderReplayFrame(rNowFrame+Math.floor(nextFrame/REPLAY_SLIDESHOW_FRAME_RATE),JUMP_FRAME_MANUAL);
@@ -12450,7 +12605,7 @@
             {
                 renderReplayFrame(rPrevFrame,JUMP_FRAME_PREV);
                 updateDeleteReplayDataButtonsState();
-                replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
+                seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
                 updateReplayPrograssText();
             }
         }
@@ -12472,7 +12627,7 @@
                     renderReplayFrame(rNowFrame+drawReplayByCommand.getRemainingData(),JUMP_FRAME_NEXT);
                 }
                 updateDeleteReplayDataButtonsState();
-                replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
+                seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
                 updateReplayPrograssText();
             }
         }
@@ -12484,7 +12639,7 @@
             {
                 renderReplayFrame(rNowFrame-1,JUMP_FRAME_MANUAL);
                 updateDeleteReplayDataButtonsState();
-                replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
+                seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
                 updateReplayPrograssText();
             }
         }
@@ -12496,7 +12651,7 @@
             {
                 renderReplayFrame(rNowFrame+1,JUMP_FRAME_MANUAL);
                 updateDeleteReplayDataButtonsState();
-                replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
+                seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
                 updateReplayPrograssText();
             }
         }
@@ -12679,7 +12834,7 @@
             renderReplayFrame(rNowFrame+drawReplayByCommand.getRemainingData(),JUMP_FRAME_MANUAL);
         }
 
-        public function onTimelineClick():void
+        public function onSeekbarClick():void
         {
             if(TOTAL_FRAME === 0 || rReplayImageCacheState > REPLAY_IMAGE_CAHCHE_COMPLETE)
             {
@@ -12688,29 +12843,29 @@
 
             //리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
             var wasReplayRunning:Boolean = false;
-            var clickX:Number = replayTimelineBox.trackBar.mouseX*replayTimelineBox.trackBar.scaleX;
-            var finalFrame:Number = Math.floor(TOTAL_FRAME*clickX/replayTimelineBox.trackBar.width);
+            var clickX:Number = seekBarBox.trackBar.mouseX*seekBarBox.trackBar.scaleX;
+            var finalFrame:Number = Math.floor(TOTAL_FRAME*clickX/seekBarBox.trackBar.width);
 
             function clampFrame():void
             {
-                var mx:Number = replayTimelineBox.trackBar.mouseX*replayTimelineBox.trackBar.scaleX;
+                var mx:Number = seekBarBox.trackBar.mouseX*seekBarBox.trackBar.scaleX;
 
                 if(mx < 0)
                 {
                     mx = 0;
-                    replayTimelineBox.resetReplayPrograssBarWidth();
+                    seekBarBox.resetReplayPrograssBarWidth();
                 }
-                else if(mx > replayTimelineBox.trackBar.width)
+                else if(mx > seekBarBox.trackBar.width)
                 {
-                    mx = replayTimelineBox.trackBar.width;
-                    replayTimelineBox.setReplayPrograssBarMaxWidth();
+                    mx = seekBarBox.trackBar.width;
+                    seekBarBox.setReplayPrograssBarMaxWidth();
                 }
                 else
                 {
-                    replayTimelineBox.setReplayPrograssBarWidth(mx);
+                    seekBarBox.setReplayPrograssBarWidth(mx);
                 }
 
-                finalFrame = Math.floor(TOTAL_FRAME*mx/replayTimelineBox.trackBar.width);
+                finalFrame = Math.floor(TOTAL_FRAME*mx/seekBarBox.trackBar.width);
 
                 updateReplayPrograssText(false,finalFrame);
             }
@@ -12725,11 +12880,11 @@
                     rFileStream.close();
                 }
                 removeTimer("prograssBarUpdateTimer");
-                replayTimelineBox.setReplayPrograssBarWidth(clickX);
+                seekBarBox.setReplayPrograssBarWidth(clickX);
                 clampFrame();
                 isReplaySlideShowMode = false;
                 isReplayFinished = false;
-                replayTimelineBox.resetPrograssBarColor();
+                seekBarBox.resetPrograssBarColor();
             }
 
             function onMouseMove():void
@@ -12761,7 +12916,7 @@
                 }
                 else if(isReplayFinished)
                 {
-                    replayTimelineBox.setReplayPrograssBarMaxWidth();
+                    seekBarBox.setReplayPrograssBarMaxWidth();
                     updateReplayPrograssText(true,TOTAL_FRAME);
                     stopReplay();
                 }
@@ -12774,9 +12929,9 @@
             if(topBar.visible === false)
             {
                 topBar.visible = true;
-                replayTimelineBox.y = lastReplayTimeBoxYPos;
-                replayTimelineBox.setPlayButtonVisible(true);
-                replayTimelineBox.showReplayControlButton();
+                seekBarBox.y = lastReplayTimeBoxYPos;
+                seekBarBox.setPlayButtonVisible(true);
+                seekBarBox.showReplayControlButton();
                 hideBottomHint();
                 hideMouseHint();
             }
@@ -12786,8 +12941,8 @@
         {
             if(topBar.visible === true)
             {
-                replayTimelineBox.y = 0;
-                replayTimelineBox.hideReplayControlButton();
+                seekBarBox.y = 0;
+                seekBarBox.hideReplayControlButton();
                 topBar.visible = false;
                 hideBottomHint();
                 hideMouseHint();
@@ -12805,7 +12960,7 @@
             removeTimer("replayDrawTimer");
             if(!isReplayFinished)
             {
-                replayTimelineBox.setPlayButtonVisible(true);
+                seekBarBox.setPlayButtonVisible(true);
             }
             rFileStream.close();
 
@@ -12828,15 +12983,15 @@
             }
 
             isReplayStarted = true;
-            replayTimelineBox.resetPrograssBarColor();
-            replayTimelineBox.playButton.visible = false;
-            replayTimelineBox.pauseButton.visible = true;
+            seekBarBox.resetPrograssBarColor();
+            seekBarBox.playButton.visible = false;
+            seekBarBox.pauseButton.visible = true;
             rReplayFOFOCursor.visible = true;
             updateDeleteReplayDataButtonsState();
 
             if(isReplayFinished === true) //리플레이 시간 등등 초기화 시키고 시작
             {
-                replayTimelineBox.resetReplayPrograssBarWidth();
+                seekBarBox.resetReplayPrograssBarWidth();
                 rMirrorON = false;
                 resetReplayTime();
                 clearCanvasReplayMode();
@@ -12918,7 +13073,7 @@
 
                     case "toolFillPen":
                     {
-                        if(!isSelectedTool(TOOL_FILL_PEN))
+                        if(!isSelectedTool(TOOL_FILLPEN))
                         {
                             selectFillPenTool();
                             updatePenSizeCursor();
@@ -12926,7 +13081,7 @@
                     }
                     break;
 
-                    case "toolErase":
+                    case "toolEraser":
                     {
                         if(!isSelectedTool(TOOL_ERASER))
                         {
@@ -13065,7 +13220,19 @@
             bottomBar.graphics.endFill();
         }
 
-        public function isHintUnavailableWithFillPen(target:DisplayObject):Boolean
+        public function isHintAvailableWithLassoToolStarted(target:DisplayObject):Boolean
+        {
+            if(target === toolBox.toolZoomIn
+            || target === toolBox.toolZoomOut
+            || target === toolBox.toolRotate
+            || target === sideBarScrollBar)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public function isHintAvailableWithFillPen(target:DisplayObject):Boolean
         {
             const targetName:String = target.name;
 
@@ -13076,27 +13243,29 @@
                 (  toolBox.contains(target)
                 || canvasInfoBox.contains(target)
                 || colorPickerBox.contains(target))
+                || target === sideBarScrollBar
                 || (targetName && targetName.indexOf("alphaButton") !== -1))
                 {
+                    return true;
                 }
                 else
                 {
-                    return true;
+                    return false;
                 }
             }
-            else if(isSelectedTool(TOOL_FILL_PEN))
+            else if(isSelectedTool(TOOL_FILLPEN))
             {
                 if((targetName && targetName.indexOf("nSizeButton") !== -1) || target.alpha < 0.5)
                 {
-                    return true;
+                    return false;
                 }
             }
             else if(isHintUnavailable())
             {
-                return true;
+                return false;
             }
 
-            return false;
+            return true;
         }
 
         public function isCanvasNaviatorChild(target:DisplayObject):Boolean
@@ -13154,6 +13323,7 @@
             if(hint)
             {
                 removeTimer("bottomHintOffDelay");
+
                 if(isCanvasNaviatorChild(target))
                 {
                     showHintHighlightBox(canvasNavigatorBox.navStageBG);
@@ -13190,7 +13360,7 @@
             }
 
             if(isSameWithLastBottomHintTargetRect(target) || isToolBox2Showing)
-            {  
+            {
                 return;
             }
 
@@ -13201,7 +13371,14 @@
             {
                 showBottomHintForTargetCaptureMode(target);
             }
-            else if(!isHintUnavailableWithFillPen(target))
+            else if(isLassoToolStarted)
+            {
+                if(isHintAvailableWithLassoToolStarted(target))
+                {
+                    showBottomHintForTarget(target);
+                }
+            }
+            else if(isHintAvailableWithFillPen(target))
             {
                 showBottomHintForTarget(target);
             }
@@ -13213,7 +13390,7 @@
             const tbIndex:int = stage.getChildIndex(topBar);
             const hIndex:int = stage.getChildIndex(hintHighlightBox);
 
-            if (topBar.contains(target) || replayTimelineBox.contains(target))
+            if (topBar.contains(target) || seekBarBox.contains(target))
             {
                 var desiredIndex:int = Math.min(tbIndex + 1, topIndex);
                 if (hIndex != desiredIndex)
@@ -14525,9 +14702,9 @@
                         imgData1.clear();
                         imgData2.clear();
 
-                        if(replayTimelineBox.prograssBar.width > 0)
+                        if(seekBarBox.prograssBar.width > 0)
                         {
-                            replayTimelineBox.resetReplayPrograssBarWidth();
+                            seekBarBox.resetReplayPrograssBarWidth();
                         }
                     }
                 }
@@ -15012,7 +15189,7 @@
             resetReplayTime();
             clearCanvasReplayMode();
             updateReplayPrograssText(true,0);
-            replayTimelineBox.resetReplayPrograssBarWidth();
+            seekBarBox.resetReplayPrograssBarWidth();
 
             updateCanvasBGColorDrawMode(newBG);
             updateCanvasBGColorReplayMode(newBG);
@@ -15225,8 +15402,8 @@
             if (replayMode)
             {
                 showTopbarOnReplayEnd();
-                replayTimelineBox.setDeleteRangeBarVisible(false);
-                replayTimelineBox.visible = false;
+                seekBarBox.setDeleteRangeBarVisible(false);
+                seekBarBox.visible = false;
                 removeInputEventsReplayMode();
             }
             else
@@ -15272,7 +15449,7 @@
             {
                 updateTopBarModeIcons("replay");
                 addInputEventsReplayMode();
-                replayTimelineBox.visible = true;
+                seekBarBox.visible = true;
             }
             else
             {
@@ -15393,7 +15570,7 @@
         public function onKeyUpCaptureMode(e:KeyboardEvent):void
         {
             updateLastKey(getLastKey());
-            checkKeyUp(e.keyCode);
+            checkGeneralKeyUp(e.keyCode);
         }
 
         public function onKeyDownCaptureMode(e:KeyboardEvent):void
@@ -17910,7 +18087,7 @@
                 updateCanvasDrawLayerCliprect();
                 extandCanvasDrawLayerCliprect(); // 그린 영역을 100% 다 포함하지 않아서 약간 늘려줌
 
-                if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
+                if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
                 {
                     drawLayerAlpha.alphaMultiplier = penAlpha;
 
@@ -19415,6 +19592,14 @@
             return true;
         }
 
+        public function setAlphaButtonsOnLassoTool(alpha:Number):void
+        {
+            colorPickerBox.alpha = alpha;
+            toolBox.alpha = alpha;
+            toolOptionsBox.alpha = alpha;
+            toolBox.toolMirror.alpha = alpha;
+        }
+
         public function cLassoTool():Object
         {
             var clickPos:Point = new Point(0,0);
@@ -19536,6 +19721,7 @@
                         refLayerMenuBox.visible = false;
                     }
 
+                    setAlphaButtonsOnLassoTool(Global.OFFALPHA);
                     addInputEventsLassoTool();
                 }
             }
@@ -19811,7 +19997,7 @@
 
                 if(okFlag)
                 {
-                    if(!(isLastTool(TOOL_FILL_PEN)
+                    if(!(isLastTool(TOOL_FILLPEN)
                     || isLastTool(TOOL_LINE)
                     || isLastTool(TOOL_PEN)))
                     {
@@ -19857,10 +20043,12 @@
                 if(canShowEyedropperLens())
                 {
                     Global.setColorTransform(eyedropperLens.nowColor,pickColor());
+
                     if(canvasZoomMultipler < 12.0)
                     {
                         updateEyeDropperLensBitmap();
                     }
+
                     eyedropperLens.visible = true;
                 }
                 else
@@ -19909,7 +20097,7 @@
 
                 updateLastTool();
                 setLastTool(nowTool);
-                setToolIndex(TOOL_EYEDROPPER);
+                setSelectedTool(TOOL_EYEDROPPER);
                 penColorBackup = penColor;
                 Global.setColorTransform(eyedropperLens.oldColor,penColor);
                 moveEraserButtonToOtherTool("toolEyedropper");
@@ -20275,7 +20463,7 @@
 
         public function selectPenTool(lineFlag:Boolean=false):void
         {
-            setToolIndex((lineFlag)?TOOL_LINE:TOOL_PEN);
+            setSelectedTool((lineFlag)?TOOL_LINE:TOOL_PEN);
             toggleAirBrushCheckBox(isPenAirBrushON,true);
             setDrawToolSize(penSizeIndex);
             updateDrawToolAlpha(penAlpha);
@@ -20302,7 +20490,7 @@
 
         public function selectEraseTool():void
         {
-            setToolIndex(TOOL_ERASER);
+            setSelectedTool(TOOL_ERASER);
             toggleAirBrushCheckBox(isEraserAirBrushON,false);
             setDrawToolSize(eraserSizeIndex);
             updateDrawToolAlpha(eraserAlpha);
@@ -20314,8 +20502,8 @@
             }
 
             lastEraserPosButton = null;
-            toolBox2.toolErase.visible = false;
-            toolBox.moveToolCursor("toolErase");
+            toolBox2.toolEraser.visible = false;
+            toolBox.moveToolCursor("toolEraser");
             updateToolOptionsTextBySelectedTool();
             toolOptionsBox.updatePenShapeSet(eraserIsSquare);
             penCursorManager.check();
@@ -20330,7 +20518,7 @@
 
         public function selectFillPenTool():void
         {
-            setToolIndex(TOOL_FILL_PEN);
+            setSelectedTool(TOOL_FILLPEN);
             toolBox.moveToolCursor("toolFillPen");
             penSizePreviewCursor.visible = false;
             updateOpacityCursorPos(penAlphaIndex);
@@ -20344,7 +20532,7 @@
         public function selectMoveTool():void
         {
             updateToolOptionsTextBySelectedTool(); 
-            setToolIndex(TOOL_MOVE);
+            setSelectedTool(TOOL_MOVE);
             toolBox.moveToolCursor("toolMove");
             if(toolOptionsBox.isSizeButtonsDisabled())
             {
@@ -20356,7 +20544,7 @@
         public function selectZoomTool():void
         {
             updateToolOptionsTextBySelectedTool();
-            setToolIndex(TOOL_ZOOM);
+            setSelectedTool(TOOL_ZOOM);
             toolBox.moveToolCursor("toolZoomIn",canvasInfoBox);
 
             if(toolOptionsBox.isSizeButtonsDisabled())
@@ -20369,7 +20557,7 @@
         public function selectRotateTool():void
         {
             updateToolOptionsTextBySelectedTool();
-            setToolIndex(TOOL_ROTATE);
+            setSelectedTool(TOOL_ROTATE);
             toolBox.moveToolCursor("toolRotate",canvasInfoBox);
 
             if(toolOptionsBox.isSizeButtonsDisabled())
@@ -20382,7 +20570,7 @@
         public function selectLassoTool():void
         {
             updateToolOptionsTextBySelectedTool();
-            setToolIndex(TOOL_LASSO);
+            setSelectedTool(TOOL_LASSO);
             toolBox.moveToolCursor("toolLasso");
             moveEraserButtonToOtherTool("toolLasso");
 
@@ -20410,10 +20598,10 @@
             lastEraserPosButton = nowButton2;
 
             nowButton2.visible = false;
-            toolBox2.toolErase.visible = true;
-            toolBox2.toolErase.x = nowButton2.x;
-            toolBox2.toolErase.y = nowButton2.y;
-            setAsTopChild(toolBox2.toolErase);
+            toolBox2.toolEraser.visible = true;
+            toolBox2.toolEraser.x = nowButton2.x;
+            toolBox2.toolEraser.y = nowButton2.y;
+            setAsTopChild(toolBox2.toolEraser);
         }
 
         //라소박스 변형이랑 플래그 초기화
@@ -20477,6 +20665,7 @@
             colorPickerBox.alpha = 1.0;
 
             selectLastUsedTool();
+            setAlphaButtonsOnLassoTool(1.0);
         }
 
         //stage를 기준으로 사각형 꼭지점들 구하기
@@ -20654,7 +20843,7 @@
             {
                 moveToNextStep();
                 applyReplayCanvasToDrawModeCanvas();
-                startRCursorFadeOut();
+                startAlphaFadeOut(rReplayFOFOCursor,1.0,0.3);
 
                 if(rNowFrame >= undoManager.getRFileTotalFrame())
                 {
@@ -20675,7 +20864,7 @@
                 {
                     isFileAlreadySaved = false;
                     drawUndoData(true);
-                    startRCursorFadeOut();
+                    startAlphaFadeOut(rReplayFOFOCursor,1.0,0.3);
                 }
             }
         }
@@ -20694,7 +20883,7 @@
                 {
                     moveToPreviousStep();
                     applyReplayCanvasToDrawModeCanvas();
-                    startRCursorFadeOut();
+                    startAlphaFadeOut(rReplayFOFOCursor,1.0,0.3);
                 }
             }
             else
@@ -20708,7 +20897,7 @@
                     if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY || (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE && undoManager.getRFileTotalFrame() > 0))
                     {
                         enableDeepUndo();
-                        startRCursorFadeOut();
+                        startAlphaFadeOut(rReplayFOFOCursor,1.0,0.3);
                     }
                 }
                 else if(rData.length > 0)
@@ -20716,7 +20905,7 @@
                     isFileAlreadySaved = false;
                     isDeleteUndoDataPending = true;
                     drawUndoData();
-                    startRCursorFadeOut();
+                    startAlphaFadeOut(rReplayFOFOCursor,1.0,0.3);
                 }
             }
         }
@@ -21311,7 +21500,7 @@
             sideBarScrollBar.graphics.clear();
             sideBarScrollBar.graphics.lineStyle(2,color1,1.0,true);
             sideBarScrollBar.graphics.beginFill(color2);
-            sideBarScrollBar.graphics.drawRect(0,1,21,height-2);
+            sideBarScrollBar.graphics.drawRect(0,1,SCROLL_BAR_WIDTH,height-2);
             sideBarScrollBar.graphics.endFill();
 
             scrollBarHeight = height;
@@ -21329,12 +21518,11 @@
             fillPenBox.x = -fillPenBox.width-3;
             fillPenBox.y = -fillPenBox.height-3;
 
-            colorPickerBox.rgbInfoText.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownRGBInfoText);
             canvasNavigatorBox.scrollRect = new Rectangle(0,0,canvasNavigatorBox.width,canvasNavigatorBox.height);
 
             sideBarScrollPanel.addChild(canvasNavigatorBox);
             sideBarScrollPanel.addChild(canvasInfoBox);
-            toolBox.initCanvasControlButtons(canvasInfoBox);
+            toolBox.moveCanvasControlButtonsTo(canvasInfoBox);
             sideBarScrollPanel.addChild(toolBox);
             sideBarScrollPanel.addChild(toolOptionsBox);
             sideBarScrollPanel.addChild(colorPickerBox);
@@ -21355,6 +21543,13 @@
             bottomHint.x = 2;
             bottomHint.y = 3;
 
+            selectedToolViewBox.name = "selectedToolViewBox";
+            selectedToolViewBox.mouseEnabled = false;
+            selectedToolViewBox.visible = false;
+
+            selectedToolViewBitmap.name = "selectedToolConfirmBitmap";
+            selectedToolViewBox.addChild(selectedToolViewBitmap);
+
             stage.addChild(loadMenuBox);
             stage.addChild(refLayerMenuBox);
             stage.addChild(aboutBox);
@@ -21368,6 +21563,7 @@
             stage.addChild(hintHighlightBox);
             stage.addChild(bottomBar);
             stage.addChild(mouseHint);
+            stage.addChild(selectedToolViewBox);
         }
 
         public function initializeReplayCanvas():void
@@ -21380,7 +21576,7 @@
             rCanvasCompleteAnchorPoint.name = "rCanvasCompleteAnchorPoint";
             rCanvasDrawLayer.name = "rCanvasDrawLayer";
             rCanvasDrawShape.name = "rCanvasDrawShape";
-            replayTimelineBox.name = "replayTimelineBox";
+            seekBarBox.name = "seekBarBox";
             rReplayFOFOCursor.name = "rCursor";
             rReplayFOFOCursor.mouseEnabled = false;
 
@@ -21405,8 +21601,8 @@
             rCanvasAnchorPoint.addChild(rCanvasPanel);
             rCanvasAnchorPoint.visible = false;
             stage.addChild(rCanvasAnchorPoint);
-            stage.addChild(replayTimelineBox);
-            replayTimelineBox.x = 0;
+            stage.addChild(seekBarBox);
+            seekBarBox.x = 0;
         }
 
         public function initializeCanvas():void
@@ -21570,7 +21766,7 @@
 
                 if(isReplayModeON)
                 {
-                    updateTimelineBoxPos(stage.stageWidth);
+                    seekBarBox.updatePos(stage.stageWidth);
                     rFollowMouse.updateBounds();
 
                     if(isReplayCanvasFitToWindow)
@@ -22023,7 +22219,7 @@
 
         public function onKeyUpReplayMode(e:KeyboardEvent):void
         {
-            checkKeyUp(e.keyCode);
+            checkGeneralKeyUp(e.keyCode);
         }
 
         public function onKeyDownReplayMode(e:KeyboardEvent):void//keydown2
@@ -22209,7 +22405,12 @@
                 else
                 {
                     isLayerCheckKeyPressed = false;
-                    if(lastTool > TOOL_NONE) selectLastUsedTool();
+
+                    if(lastTool > TOOL_NONE)
+                    {
+                        selectLastUsedTool();
+                        showNowToolIconToCursorTemp(nowTool);
+                    }
 
                     penCursorManager.check();
                 }
@@ -22334,14 +22535,21 @@
                         case KEY.s:
                         case KEY.k:
                         {
-                            if(canvasAnchorPoint.rotation !== 0.0) resetRotationDrawMode();
+                            if(canvasAnchorPoint.rotation !== 0.0)
+                            {
+                                resetRotationDrawMode();
+                            }
+
                         }
                         return;
 
                         case KEY.w:
                         case KEY.i:
                         {
-                            if(canvasZoomMultipler !== 1.0) resetZoomDrawMode();
+                            if(canvasZoomMultipler !== 1.0)
+                            {
+                                resetZoomDrawMode();
+                            }
                         }
                         return;
                     }
@@ -22482,7 +22690,7 @@
                 case KEY.n4:
                 case KEY.n7:
                 {
-                    if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
+                    if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
                     {
                         togglePenAirBrushButtonShortCut();
                     }
@@ -22505,6 +22713,7 @@
                 case KEY.comma:
                 {
                     startKeyRepeat(true,redo);
+                    showNowToolIconToCursorTemp(TOOL_REDO);
                 }
                 return true;
 
@@ -22512,6 +22721,7 @@
                 case KEY.dot:
                 {
                     startKeyRepeat(true,undo);
+                    showNowToolIconToCursorTemp(TOOL_UNDO);
                 }
                 return true;
 
@@ -22550,6 +22760,7 @@
                 {
                     setLastTool(TOOL_PEN);
                     selectFillPenTool();
+                    showNowToolIconToCursorTemp(TOOL_FILLPEN);
                 }
                 break;
 
@@ -22568,7 +22779,10 @@
 
                 case KEY.a:
                 case KEY.l:
+                {
                     mirrorCanvas();
+                    showNowToolIconToCursorTemp(TOOL_MIRROR);
+                }
                 break;
 
                 case KEY.c:
@@ -22584,6 +22798,7 @@
                     else if(!isSelectedTool(TOOL_EYEDROPPER))
                     {
                         eyeDropperTool();
+                        showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
                     }
                 }
                 break;
@@ -22595,20 +22810,18 @@
                     {
                         updateLastTool();
                         selectLassoTool();
+                        showNowToolIconToCursorTemp(TOOL_LASSO);
                     }
                 }
                 break;
 
                 case KEY.space:
                 {
-                    //     if(isToolBox2Showing === false)
-                    //     {
-                    //         openToolBox2();
-                    //     }
                     if(!isSelectedTool(TOOL_HAND))
                     {
                         updateLastTool();
-                        setToolIndex(TOOL_HAND);
+                        setSelectedTool(TOOL_HAND);
+                        showNowToolIconToCursorTemp(TOOL_HAND);
                     }
                 }
                 break;
@@ -22621,6 +22834,7 @@
                         updateLastTool();
                         selectEraseTool();
                         updatePenSizeCursor();
+                        showNowToolIconToCursorTemp(TOOL_ERASER);
                     }
                 }
                 break;
@@ -22632,6 +22846,7 @@
                     {
                         updateLastTool();
                         selectRotateTool();
+                        showNowToolIconToCursorTemp(TOOL_ROTATE);
                     }
                 }
                 break;
@@ -22643,6 +22858,7 @@
                     {
                         updateLastTool();
                         selectMoveTool();
+                        showNowToolIconToCursorTemp(TOOL_MOVE);
                     }
                 }
                 break;
@@ -22654,6 +22870,7 @@
                     {
                         updateLastTool();
                         selectZoomTool();
+                        showNowToolIconToCursorTemp(TOOL_ZOOM);
                     }
                 }
                 break;
@@ -22872,6 +23089,7 @@
                 {
                     selectPenTool();
                     updatePenSizeCursor();
+                    showNowToolIconToCursorTemp(TOOL_PEN);
                 }
                 break;
 
@@ -22879,13 +23097,15 @@
                 {
                     selectFillPenTool();
                     updatePenSizeCursor();
+                    showNowToolIconToCursorTemp(TOOL_FILLPEN);
                 }
                 break;
 
-                case "toolErase":
+                case "toolEraser":
                 {
                     selectEraseTool();
                     updatePenSizeCursor();
+                    showNowToolIconToCursorTemp(TOOL_ERASER);
                 }
                 break;
 
@@ -22893,12 +23113,14 @@
                 {
                     selectLineTool();
                     updatePenSizeCursor();
+                    showNowToolIconToCursorTemp(TOOL_LINE);
                 }
                 break;
 
                 case "toolLasso":
                 {
                     selectLassoTool();
+                    showNowToolIconToCursorTemp(TOOL_LASSO);
                 }
                 break;
 
@@ -22907,6 +23129,7 @@
                     if(!isSelectedTool(TOOL_EYEDROPPER))
                     {
                         eyeDropperTool();
+                        showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
                     }
                 }
                 break;
@@ -22914,18 +23137,21 @@
                 case "toolUndo":
                 {
                     undo();
+                    showNowToolIconToCursorTemp(TOOL_UNDO);
                 }
                 break;
 
                 case "toolRedo":
                 {
                     redo();
+                    showNowToolIconToCursorTemp(TOOL_REDO);
                 }
                 break;
 
                 case "toolMirror":
                 {
                     mirrorCanvas();
+                    showNowToolIconToCursorTemp(TOOL_MIRROR);
                 }
                 break;
 
@@ -23104,7 +23330,7 @@
                 case "toolZoomOut":
                 case "toolPen":
                 case "toolFillPen":
-                case "toolErase":
+                case "toolEraser":
                 case "toolLasso":
                 case "toolEyedropper":
                 case "toolUndo":
@@ -23149,10 +23375,10 @@
         {
             const totalFrame:Number = TOTAL_FRAME;
             const nowFrame:Number = rNowFrame;
-            const trackBarWidth:Number = replayTimelineBox.trackBar.width;
+            const trackBarWidth:Number = seekBarBox.trackBar.width;
 
-            replayTimelineBox.prograssInfo.text = nowFrame+" / "+totalFrame;
-            replayTimelineBox.prograssBar.width = (totalFrame === 0) ? 0 : trackBarWidth*(nowFrame/totalFrame);
+            seekBarBox.prograssInfo.text = nowFrame+" / "+totalFrame;
+            seekBarBox.prograssBar.width = (totalFrame === 0) ? 0 : trackBarWidth*(nowFrame/totalFrame);
         }
 
         public function clearKeyBuffer():void
@@ -23163,7 +23389,7 @@
 
         public function updateReplayCursorScale(zoom:Number):void
         {
-            const z:Number = Global.getUIScale()/zoom;
+            const z:Number = 1.0/zoom;
             rReplayFOFOCursor.scaleX = z;
             rReplayFOFOCursor.scaleY = z;
         }
@@ -23185,8 +23411,8 @@
             if(rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY)
             {
                 removeInputEventsDrawMode();
-                setAsTopChild(replayTimelineBox);
-                updateTimelineBoxPos(stage.stageWidth);
+                setAsTopChild(seekBarBox);
+                seekBarBox.updatePos(stage.stageWidth);
                 startGeneratingReplayCacheImage();
             }
             else
@@ -23255,11 +23481,11 @@
             updateReplayPrograssText(true,rNowFrame);
             if(TOTAL_FRAME === 0)
             {
-                replayTimelineBox.resetReplayPrograssBarWidth();
+                seekBarBox.resetReplayPrograssBarWidth();
             }
             else
             {
-                replayTimelineBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
+                seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame/TOTAL_FRAME);
             }
         }
 
@@ -23293,7 +23519,7 @@
             isPenSizeCursorInvisible = false;
             rCanvasAnchorPoint.visible = false;
             rReplayFOFOCursor.visible = false;
-            replayTimelineBox.visible = false;
+            seekBarBox.visible = false;
             canvasAnchorPoint.visible = true;
             penSizePreviewCursor.visible = true;
             if(isRefLayerMenuON === true)
@@ -23313,9 +23539,9 @@
                 hideMouseHint();
             }
 
-            replayTimelineBox.pauseButton.visible = false;
-            setAsTopChild(replayTimelineBox);
-            replayTimelineBox.setDeleteRangeBarVisible(false);
+            seekBarBox.pauseButton.visible = false;
+            setAsTopChild(seekBarBox);
+            seekBarBox.setDeleteRangeBarVisible(false);
             updateStageOffset();
             updateCanvasNaigatorCursor();
 
@@ -23357,13 +23583,13 @@
             isPenSizeCursorInvisible = true;
             canvasAnchorPoint.visible = false;
             rCanvasAnchorPoint.visible = true;
-            replayTimelineBox.visible = true;
+            seekBarBox.visible = true;
             penSizePreviewCursor.visible = false;
-            replayTimelineBox.pauseButton.visible = false;
-            replayTimelineBox.y = Math.floor(topBar.BARSIZE*Global.getUIScale()-4);
-            lastReplayTimeBoxYPos = replayTimelineBox.y;
-            setAsTopChild(replayTimelineBox);
-            replayTimelineBox.setDeleteRangeBarVisible(false);
+            seekBarBox.pauseButton.visible = false;
+            seekBarBox.y = Math.floor(topBar.BARSIZE*Global.getUIScale()-4);
+            lastReplayTimeBoxYPos = seekBarBox.y;
+            setAsTopChild(seekBarBox);
+            seekBarBox.setDeleteRangeBarVisible(false);
 
             if(numPadBox.visible)
             {
@@ -23389,7 +23615,7 @@
             updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame()); //최대 속도 계산
             updateReplayPrograssBarAndText();
             updateReplaySpeedSliderAlpha();
-            updateTimelineBoxPos(stage.stageWidth);
+            seekBarBox.updatePos(stage.stageWidth);
             rFollowMouse.updateBounds();
             updateReplayCursorScale(rCanvasZoomMultiplier);
 
@@ -23447,7 +23673,7 @@
 
             if(isReplayRestartTimerON())
             {
-                if(replayTimelineBox.trackBar.hitTestPoint(stage.mouseX,stage.mouseY))
+                if(seekBarBox.trackBar.hitTestPoint(stage.mouseX,stage.mouseY))
                 {
                     cancelReplayRestartTimer();
                     return;
@@ -23490,7 +23716,7 @@
                     createNewFileFromReplayCanvas,
                     function():void
                     {
-                        replayTimelineBox.setDeleteRangeBarVisible(false);
+                        seekBarBox.setDeleteRangeBarVisible(false);
                     });
                 }
                 break;
@@ -23506,7 +23732,7 @@
                         deleteReplayDataBeforeCurrentFrame,
                         function():void
                         {
-                            replayTimelineBox.setDeleteRangeBarVisible(false);
+                            seekBarBox.setDeleteRangeBarVisible(false);
                         });
                     }
                 }
@@ -23522,7 +23748,7 @@
                         },
                         deleteReplayDataAfterCurrentFrame,function():void
                         {
-                            replayTimelineBox.setDeleteRangeBarVisible(false);
+                            seekBarBox.setDeleteRangeBarVisible(false);
                         });
                     }
                 }
@@ -23542,7 +23768,7 @@
 
                 case "trackBar":
                 {
-                    onTimelineClick();
+                    onSeekbarClick();
                 }
                 break;
 
@@ -23628,7 +23854,11 @@
                 else
                 {
                     resetLastKey();
-                    if(lastTool > TOOL_NONE) selectLastUsedTool();
+
+                    if(lastTool > TOOL_NONE)
+                    {
+                        selectLastUsedTool();
+                    }
                     penCursorManager.check();
                 }
             }
@@ -23883,7 +24113,7 @@
                 case "nSizeButton11":
                 case "nSizeButton12":
                 {
-                    if(!isSelectedTool(TOOL_FILL_PEN))
+                    if(!isSelectedTool(TOOL_FILLPEN))
                     {
                         selectPenToolIfNotDrawingTool(true);
                         selectPenSizeButton(targetName);
@@ -23893,7 +24123,7 @@
 
                 case "shapeRect":
                 {
-                    if(!isSelectedTool(TOOL_FILL_PEN))
+                    if(!isSelectedTool(TOOL_FILLPEN))
                     {
                         selectPenToolIfNotDrawingTool(true);
                         selectPenShapeButton(true);
@@ -23903,7 +24133,7 @@
 
                 case "shapeCircle":
                 {
-                     if(!isSelectedTool(TOOL_FILL_PEN))
+                     if(!isSelectedTool(TOOL_FILLPEN))
                     {
                         selectPenToolIfNotDrawingTool(true);
                         selectPenShapeButton(false);
@@ -23998,7 +24228,7 @@
                     if(toolOptionsBox.airBrushButtonWrapper.alpha === 1.0)
                     {
                         selectPenToolIfNotDrawingTool(true);
-                        if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILL_PEN))
+                        if(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
                         {
                             togglePenAirBrushButton(!isPenAirBrushON);
                         }
@@ -24228,7 +24458,7 @@
             if(isToolBox2Showing || (isKeyPressed()
                                 && !isSelectedToolPenOrLine()
                                 && !isSelectedTool(TOOL_ERASER)
-                                && !isSelectedTool(TOOL_FILL_PEN)))
+                                && !isSelectedTool(TOOL_FILLPEN)))
             {
                 return false;
             }
@@ -24399,7 +24629,8 @@
             {
                 updateLastKey(KEY.space);
                 isLassoMenuHiddenTemp = true;
-                setToolIndex(TOOL_HAND);
+                setSelectedTool(TOOL_HAND);
+                showNowToolIconToCursorTemp(TOOL_HAND);
             }
         }
 
@@ -24764,7 +24995,7 @@
                 switch (nowTool)
                 {
                     case TOOL_PEN: if(isToolEnabledByLayerUnChecked()) penTool(true); break;
-                    case TOOL_FILL_PEN: if(isToolEnabledByLayerUnChecked()) fillPenTool.start(); break;
+                    case TOOL_FILLPEN: if(isToolEnabledByLayerUnChecked()) fillPenTool.start(); break;
                     case TOOL_ERASER: if(isToolEnabledByLayerUnChecked()) penTool(false); break;
                     case TOOL_LINE: if(isToolEnabledByLayerUnChecked()) lineTool(true); break;
                     case TOOL_LASSO: lassoToolFunction.start(); break;

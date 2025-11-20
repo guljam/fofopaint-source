@@ -4,7 +4,6 @@
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
 	import flash.text.TextFieldAutoSize;
-	import flash.geom.ColorTransform;
 
 	public class CanvasInfoSet extends Sprite
 	{
