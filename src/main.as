@@ -623,7 +623,6 @@
                     isSidebarTempShowDeactivated:Boolean = false,  // 사이드바 임시로 보여주는 기능이 잠시 꺼졌을때 올려줌
                     isReactivateSidebarTempShowEventsAdded:Boolean = false,  // 사이드바 임시로 보여주는 기능을 끄는 이벤트들이 등록되면 올려줌
                     isSidebarHideEventAdded:Boolean = false,          // 사이드바가 임시로 보여졌을때 마우스 클릭하면 꺼주는 이벤트가 추가되면 올려줌
-                    mouseMoveCountHideSidebar:int = 0,               //사이드바가 임시적으로 켜져있을때 마우스 카운트 올려줘서 사라지게 만듬
                     isRightSidebar:Boolean = false,                // 사이드바 위치 (false: 왼쪽, true: 오른쪽)
                     lassoAndRefLayerBoxLastPos:Array = [0,0,0,0,0,0,0,0]; // 사이즈바 켜줄때 임시로 사이드바 안쪽으로 밀려나게 하고 위치가 변경되지 않았으면 원래대로 복귀해줌
                                                                           //좌표순서 라소 이전, 이후, 트레이스 이전 이후
