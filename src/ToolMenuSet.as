@@ -6,6 +6,9 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Shape;
+	import flash.display.BitmapData;
+	import flash.display.Bitmap;
+	import flash.geom.Matrix;
 
 	public class ToolMenuSet extends Sprite
 	{
@@ -48,6 +51,52 @@
 		private var buttonArr:Array;
 
 		private var checkedLayerONFlag:Boolean = false;
+		private const toolSelectViewBmpdCache:Object = {};
+
+		public function isToolSelectViewBmpdCached(key:String):Boolean
+		{
+			if(toolSelectViewBmpdCache.hasOwnProperty(key))
+			{
+				return true;
+			}
+
+			return false;
+		}
+
+		public function getToolSelectViewBmpd(index:int,button:SimpleButton):BitmapData
+		{
+			const key:String = Global.getUIBGColor()+"_"+String(index);
+
+			if(!toolSelectViewBmpdCache.hasOwnProperty(key))
+			{
+				makeCacheToolSelectViewBmpd(key,button);
+			}
+
+			return toolSelectViewBmpdCache[key];
+		}
+
+		public function makeCacheToolSelectViewBmpd(key:String,toolButton:SimpleButton):void
+		{
+			const extend:Number = 20;
+			const bgcolor:uint = Global.getUIBGColor();
+			const scale:Number = this.scaleX;
+			const bmpd:BitmapData = new BitmapData(toolButton.width/scale+extend,toolButton.height/scale+extend,true,0);
+			const sprite:Sprite = new Sprite();
+			const mask:Shape = new Shape();
+			const mat:Matrix = new Matrix();
+
+			mat.translate(5,5);
+
+			mask.graphics.clear();
+			mask.graphics.beginFill(bgcolor,0.7);
+			mask.graphics.drawCircle(bmpd.width/2,bmpd.height/2,toolButton.width/scale/2+extend/2);
+			mask.graphics.endFill();
+
+			bmpd.draw(mask);
+			bmpd.draw(toolButton,mat);
+
+			toolSelectViewBmpdCache[key] = bmpd;
+		}
 
 		public function setFillPenModeOFF():void
 		{

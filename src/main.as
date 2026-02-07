@@ -67,7 +67,7 @@
 
     public class Main extends Sprite
     {
-        public const  APP_VERSION:Number = 27.04;
+        public const  APP_VERSION:Number = 27.08;
         public const  APP_STATE_VERSION:Number = 2701;
 
         public const  TOOL_NONE:int = 0,
@@ -365,7 +365,7 @@
         //컬러픽커
         public var hsvColorData:Vector.<Number> = new Vector.<Number>(3, true), //h,s,v순서 hue컬러 다른 함수들이랑 통신하기 위해서 전역으로 만들어줌
                    isColorPickerModeBG:Boolean = false, //false이면 펜컬러 true이면 배경색
-                   pickerModeResetFlag:Boolean = false, //배경색 선택하고 나서 커서가 사이드바를 나가면 리셋해주는 이벤트를 올려주는 플래그
+                   isColorPickerModeResetEventAdded:Boolean = false, //배경색 선택하고 나서 커서가 사이드바를 나가면 리셋해주는 이벤트를 올려주는 플래그
                    pickerOpaClicked:Boolean = false, //피커박스에서 투명도 조절했을때 올려줌 mouse out 이벤트 하나만 작동되게 할라고
                    pickerHSVButtonMousePoslast:Point = new Point(), //HSV버튼 마우스 위치 저장용
                    isColorPickerBoxPositionSwapped:Boolean = false, //마이팔래트랑 컬러피커박스 위치 바뀌면 올려줌
@@ -373,8 +373,7 @@
 
         //오른쪽 클릭 툴박스
         public var isToolBox2Showing:Boolean = false, //툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
-                   selectedToolViewBitmap:Bitmap = new Bitmap(),
-                   selectedToolViewBox:Sprite = new Sprite();
+                   selectedToolViewBitmap:Bitmap = new Bitmap();
 
         //undo
         public var  undoDataIndex:int = -1, //undo redo 상태 인덱스임
@@ -516,7 +515,7 @@
                     capTransparentBGBMPDSize:Number = 32,
                     capTransparentBGBMPD:BitmapData;
 
-        //윈도우 크기변
+        //윈도우 크기변수
         public var lastAppWindowSize:Point = new Point(), //창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
                    lastAppWindowSizeInfo:Array = [0,0,680,768],
                    lastAppWindowState:int = 0;
@@ -720,7 +719,15 @@
             return rect;
         }
 
-        public function getToolButtonFromToolIndex(toolIndex:*=null):SimpleButton
+        public function updateSelectedToolViewBoxPos():void
+        {
+            const viewportRect:Rectangle = getViewportRect();
+
+            selectedToolViewBitmap.x = viewportRect.x+viewportRect.width/2-selectedToolViewBitmap.width/2;
+            selectedToolViewBitmap.y = viewportRect.y+20*Global.getUIScale();
+        }
+
+		public function getToolButtonFromToolIndex(toolIndex:*):SimpleButton
         {
             switch(toolIndex)
             {
@@ -738,60 +745,32 @@
                 case TOOL_REDO: return toolBox.toolRedo;
                 case TOOL_MIRROR: return toolBox.toolMirror;
             }
+		
             return null;
-        }
-
-        public function updateSelectedToolViewBoxPos():void
-        {
-            const viewportRect:Rectangle = getViewportRect();
-
-            selectedToolViewBox.x = viewportRect.x+viewportRect.width/2-selectedToolViewBitmap.width/2;
-            selectedToolViewBox.y = viewportRect.y+20*Global.getUIScale();
         }
 
         public function showNowToolIconToCursorTemp(toolIndex:int):void
         {   
-                if(isQuickSidebarActive)
-                {
-                    return;
-                }
+            if(isQuickSidebarActive)
+            {
+                return;
+            }
 
-                const toolButton:SimpleButton = getToolButtonFromToolIndex(toolIndex);
+            const toolButton:SimpleButton = getToolButtonFromToolIndex(toolIndex);
 
-                if(toolButton === null)
-                {
-                    return;
-                }
-                const bmpd:BitmapData = selectedToolViewBitmap.bitmapData;
-                const scale:Number = toolButton.scaleX;
-
-                if(selectedToolViewBitmap.bitmapData === null)
-                {
-                    selectedToolViewBitmap.bitmapData = new BitmapData(toolButton.width/scale+10,toolButton.height/scale+10,true,0x99000000|Global.getUIBGColor());
-                    const mask:Shape = new Shape();
-                    mask.graphics.clear();
-                    mask.graphics.beginFill(0,0);
-                    mask.graphics.drawCircle(selectedToolViewBitmap.bitmapData.width/2,selectedToolViewBitmap.bitmapData.height/2,toolButton.width/scale/2+5);
-                    mask.graphics.endFill();
-                    selectedToolViewBox.addChild(mask);
-                    selectedToolViewBox.mask = mask;
-                }
-                else
-                {
-                    bmpd.fillRect(new Rectangle(0,0,bmpd.width,bmpd.height),0x99000000|Global.getUIBGColor());
-                }
-
-                const mat:Matrix = new Matrix();
-                mat.translate(5,5);
-                selectedToolViewBitmap.bitmapData.draw(toolButton,mat);
-                updateSelectedToolViewBoxPos();
-
-                startAlphaFadeOut(selectedToolViewBox,1.0,1.0);
+            if(toolButton === null)
+            {
+                return;
+            }
+            
+            selectedToolViewBitmap.bitmapData = toolBox.getToolSelectViewBmpd(toolIndex,toolButton);
+            updateSelectedToolViewBoxPos();
+            startAlphaFadeOut(selectedToolViewBitmap,1.0,1.0);
         }
 
         public function isGeneratingCacheImages():Boolean
         {
-            return rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING
+            return rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING;
         }
 
         public function getImageDominantColor(bitmapData:BitmapData, k:int = 3, maxIter:int = 10):uint
@@ -3374,9 +3353,9 @@
                 hideBottomHint();
             }
 
-            if(selectedToolViewBox.visible)
+            if(selectedToolViewBitmap.visible)
             {
-                selectedToolViewBox.visible = false;
+                selectedToolViewBitmap.visible = false;
             }
 
             sideBar.setTransparentBG();
@@ -4214,7 +4193,7 @@
             updateCanvasNaigatorCursor();
             checkFOFOPosition();
 
-            if(selectedToolViewBox.visible)
+            if(selectedToolViewBitmap.visible)
             {
                 updateSelectedToolViewBoxPos();
             }
@@ -5309,7 +5288,7 @@
                 }
             }
 
-            function lineSmoothing():void
+            function lineSmoothing():Boolean
             {
                 var ox:Number = smoothPos.x;
                 var oy:Number = smoothPos.y;
@@ -5321,13 +5300,14 @@
 
                 if(Math.abs(smoothLast.x-ox) < 0.02 && Math.abs(smoothLast.y-oy) < 0.02)
                 {
-                    return;
+                    return false;
                 }
                 else
                 {
                     smoothPos.setTo(ox,oy);
-                    addTimerByName("lineSmoothingTimer",0.02,false,lineSmoothing);
+                    addTimerByName("lineSmoothingTimer1",0.02,true,lineSmoothing);
                 }
+                return true;   
             }
 
             //끝 부분점을 distance만큼 길게 늘임
@@ -5554,6 +5534,7 @@
                 if(penSmoothSlideValue > 1)
                 {
                     removeTimer("lineSmoothingTimer");
+                    removeTimer("lineSmoothingTimer1");
                 }
 
                 if(xShape === true)
@@ -8721,14 +8702,12 @@
             colorPickerBox.updateCurrentColor(color);
         }
 
-        public function onEnterFrameColorPickerBoxModeBGOFF(e:Event):void
+        public function onMouseDownColorPickerBoxModeBGOFF(e:MouseEvent):void
         {
-            if(!numPadBox.visible
-            && !isMouseClicked
-            && (!sideBar.visible || !colorPickerBox.hitTestPoint(stage.mouseX, stage.mouseY)))
+            if(isCursorInDrawArea())
             {
-                stage.removeEventListener(Event.ENTER_FRAME,onEnterFrameColorPickerBoxModeBGOFF);
-                pickerModeResetFlag = false;
+                isColorPickerModeResetEventAdded = false;
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseDownColorPickerBoxModeBGOFF);
                 switchColorPickerModePen();
             }
         }
@@ -8745,10 +8724,10 @@
             colorPickerBox.transColorButton.visible = false;
             isTransparentPenColor = false;
 
-            if(pickerModeResetFlag === false)
+            if(isColorPickerModeResetEventAdded === false)
             {
-                pickerModeResetFlag = true;
-                stage.addEventListener(Event.ENTER_FRAME,onEnterFrameColorPickerBoxModeBGOFF);
+                isColorPickerModeResetEventAdded = true;
+                stage.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDownColorPickerBoxModeBGOFF);
             }
         }
 
@@ -8762,6 +8741,12 @@
             colorPickerBox.activePaperColorButton(false);
             colorPickerBox.transColorButton.visible = true;
             isTransparentPenColor = false;
+
+            if(isColorPickerModeResetEventAdded === true)
+            {
+                isColorPickerModeResetEventAdded = false;
+                stage.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseDownColorPickerBoxModeBGOFF);
+            }
         }
 
         public function selectPenShapeButton(shapeFlag:Boolean):void
@@ -13487,7 +13472,7 @@
             mouseHint.hide();
         }
 
-        public function showMouseHintTemp(str:String,duration:Number=3.0):void
+        public function showMouseHintTemp(str:String,duration:Number=2.0):void
         {
             showMouseHint(str,duration);
         }
@@ -18656,7 +18641,7 @@
             const zoomMaxIndex:uint = canvasZoomMultiplerList.length-1;
             const clickPos:Point = new Point(0,0);
             const lastMousePos:Point = new Point(0,0);
-            const mouseMoveStep:int = 37; //이 픽셀이상움직일때만 zoomcanvas를 실행
+            const mouseMoveStep:int = 26; //이 픽셀이상움직일때만 zoomcanvas를 실행
             var lastZoom:Number = 0.0;
             var startZoomIndex:int = 0;
             var dragDirection:int = 0; //1이면 x축
@@ -21542,12 +21527,8 @@
             bottomHint.x = 2;
             bottomHint.y = 3;
 
-            selectedToolViewBox.name = "selectedToolViewBox";
-            selectedToolViewBox.mouseEnabled = false;
-            selectedToolViewBox.visible = false;
-
-            selectedToolViewBitmap.name = "selectedToolConfirmBitmap";
-            selectedToolViewBox.addChild(selectedToolViewBitmap);
+            selectedToolViewBitmap.name = "selectedToolViewBitmap";
+            selectedToolViewBitmap.visible = false;
 
             stage.addChild(loadMenuBox);
             stage.addChild(refLayerMenuBox);
@@ -21562,7 +21543,7 @@
             stage.addChild(hintHighlightBox);
             stage.addChild(bottomBar);
             stage.addChild(mouseHint);
-            stage.addChild(selectedToolViewBox);
+            stage.addChild(selectedToolViewBitmap);
         }
 
         public function initializeReplayCanvas():void
@@ -21794,6 +21775,11 @@
                 if(loadMenuBox.visible === true)
                 {
                     loadMenuBox.updateClickBlockerSize(stage.stageWidth,stage.stageHeight);
+                }
+
+                if(selectedToolViewBitmap.visible)
+                {
+                    updateSelectedToolViewBoxPos();
                 }
 
                 updateStageBGSize();
@@ -22639,7 +22625,7 @@
                 {
                     if(isLayer2Selected)
                     {
-                        showMouseHint("Layer 1 selected");
+                        showMouseHintTemp("Layer 1 selected");
                         selectLayer1(false);
                     }
                     else

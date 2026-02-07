@@ -15,4 +15,4 @@ git add .
 git commit --file=D:\github_clones\2020FlashPaint\versionInfo.txt
 git push
 
-gh release upload update2 E:\fofopaint-source\bin\fofoPaint.air --clobber
+gh release upload update2 E:\fofopaint-source\bin\fofoPaint.air --clobber --repo guljam/2020FlashPaint
