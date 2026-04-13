@@ -131,6 +131,7 @@
                 "toolUndo": "Undo [z / .] — Continue [click and hold]",
                 "toolRedo": "Redo [x / ,] — Continue [click and hold]",
                 "toolMirror": "Flip canvas [a / l]",
+                "toolLasso": "Lasso [r / y]",
                 "toolLine": "Line [shift]",
                 "toolMove": "Move image [e / u]",
                 "toolZoom": "Zoom canvas [w / i]",

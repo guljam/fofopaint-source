@@ -67,7 +67,7 @@
 
     public class Main extends Sprite
     {
-        public const  APP_VERSION:Number = 27.08;
+        public const  APP_VERSION:Number = 27.10;
         public const  APP_STATE_VERSION:Number = 2701;
 
         public const  TOOL_NONE:int = 0,
