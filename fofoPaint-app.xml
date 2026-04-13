@@ -19,11 +19,6 @@
 <application xmlns="http://ns.adobe.com/air/application/51.3">
   <id>fofoPaint</id>
   <versionNumber>27.10</versionNumber>
-    <systemConfig>
-    <![CDATA[
-    -GC-policy: generational
-    ]]>
-</systemConfig>
   <filename>fofoPaint</filename>
   <description/>
   <name>fofoPaint</name>
