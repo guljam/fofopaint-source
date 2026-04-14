@@ -537,7 +537,7 @@
                      gridGraphicsCommands:Vector.<int> = new Vector.<int>,
                      gridGraphicsData:Vector.<Number> = new Vector.<Number>;
 
-        public var  gridGapValue:uint = 0,
+        public var  gridGapMultiplier:uint = 0,
                     lastGridGapValue:Number = 0.0, //줌할때 다시 그려주는거 방지 갭이 다를때만 다시 그러줌
                     gridDrawOffsetX:Number = 0.0,
                     gridDrawOffsetY:Number = 0.0;
@@ -5956,7 +5956,7 @@
                 updatePenSizeCursor();
                 updateCanvasNaigatorCursor();
 
-                if(gridGapValue > 0)
+                if(gridGapMultiplier > 0)
                 {
                     drawGrid();
                 }
@@ -6460,7 +6460,7 @@
         public function resetGrid():void
         {
             lastGridGapValue = 0;
-            gridGapValue = 0;
+            gridGapMultiplier = 0;
             gridButton.setCursorPosByValue(0);
             clearGrid();
         }
@@ -6475,13 +6475,13 @@
 
         public function drawGrid():void
         {
-            if(gridGapValue === 0)
+            if(gridGapMultiplier === 0)
             {
                 clearGrid();
                 return;
             }
 
-            var gridgap:Number = gridGapValue*GRID_GAP;
+            var gridgap:Number = gridGapMultiplier*GRID_GAP;
             if(gridgap*canvasZoomMultipler < gridgap)
             {
                 gridgap = gridgap/canvasZoomMultipler;
@@ -6575,7 +6575,7 @@
 
                     if(value === 0)
                     {
-                        gridGapValue = 0;
+                        gridGapMultiplier = 0;
                         oldValue = 0;
                         hideBottomHint();
                         clearGrid();
@@ -6592,9 +6592,9 @@
                             gridDrawOffsetY = gridDrawOffsetY*(value/oldValue);
                         }
 
-                        gridGapValue = value;
+                        gridGapMultiplier = value;
                         oldValue = value;
-                        showMouseHintTemp("Grid " + (gridGapValue*GRID_GAP)+"px ("+gridGapValue+"/20)");
+                        showMouseHintTemp(HintStrings.getGridGapAdjustHintString(value,GRID_GAP));
 
                         drawGrid();
                     }
@@ -6634,11 +6634,11 @@
                     gridDrawOffsetX += moveX*(isCanvasMirrored ? -1:1);
                     gridDrawOffsetY += moveY;
 
-                    if(Math.abs(gridDrawOffsetX) >= gridGapValue*GRID_GAP) gridDrawOffsetX = 0.0;
-                    if(Math.abs(gridDrawOffsetY) >= gridGapValue*GRID_GAP) gridDrawOffsetY = 0.0;
+                    if(Math.abs(gridDrawOffsetX) >= gridGapMultiplier*GRID_GAP) gridDrawOffsetX = 0.0;
+                    if(Math.abs(gridDrawOffsetY) >= gridGapMultiplier*GRID_GAP) gridDrawOffsetY = 0.0;
 
                     lastGridGapValue = 0;
-                    if(gridGapValue > 0) drawGrid();
+                    if(gridGapMultiplier > 0) drawGrid();
                 });
             }
 
@@ -6684,7 +6684,7 @@
                 else if(topBar.gridSliderWrapper.hitTestPoint(stage.mouseX,stage.mouseY))
                 {
                     isMouseDragging = true;
-                    oldValue = gridGapValue;
+                    oldValue = gridGapMultiplier;
                     drawGridByValue(topBar.gridSliderWrapper.mouseX,true);
                     stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMoveGridButton);
                     stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUpGridButton);
@@ -6699,7 +6699,7 @@
                     {
                         if(isPressingShift())
                         {
-                            if(gridGapValue !== 0)
+                            if(gridGapMultiplier !== 0)
                             {
                                 hideBottomHint();
                                 oldValue = 0;
@@ -6723,26 +6723,26 @@
                 if(targetName === "gridMoveLeftButton"
                 || targetName === "gridMoveRightButton")
                 {
-                    if(gridGapValue > 0)
+                    if(gridGapMultiplier > 0)
                     {
                         gridDrawOffsetX = 0.0;
                         lastGridGapValue = 0.0
-                        if(gridGapValue > 0) drawGrid();
+                        if(gridGapMultiplier > 0) drawGrid();
                     }
                 }
                 else if(targetName === "gridMoveUpButton"
                      || targetName === "gridMoveDownButton")
                 {
-                    if(gridGapValue > 0)
+                    if(gridGapMultiplier > 0)
                     {
                         gridDrawOffsetY = 0.0;
                         lastGridGapValue = 0.0;
-                        if(gridGapValue > 0) drawGrid();
+                        if(gridGapMultiplier > 0) drawGrid();
                     }
                 }
                 else if(targetName === "gridSliderWrapper")
                 {
-                    if(gridGapValue !== 0)
+                    if(gridGapMultiplier !== 0)
                     {
                         hideBottomHint();
                         resetGrid();
@@ -6775,7 +6775,7 @@
                 {
                     removeInputEventsDrawMode();
 
-                    if(gridGapValue > 0)
+                    if(gridGapMultiplier > 0)
                     {
                         topBar.setGridMoveButtonAlpha(1.0);
                     }
@@ -6785,7 +6785,7 @@
                     }
 
                     topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
-                    setCursorPosByValue(gridGapValue);
+                    setCursorPosByValue(gridGapMultiplier);
 
                     if(shortcutKey)
                     {
@@ -9231,7 +9231,7 @@
 
         public function createNewFile(fromShortcut:Boolean):void
         {
-            startPressHoldKey((!fromShortcut)?topBar.newFileButton:null,"Creating a new file..",null,clearData,null);
+            startPressHoldKey((!fromShortcut)?topBar.newFileButton:null,HintStrings.getNewFileHintString(),null,clearData,null);
         }
 
         public function handleMouseClick(targetName:String):void
@@ -15170,7 +15170,7 @@
 
             updatePenSizeCursor();
 
-            if(gridGapValue > 0)
+            if(gridGapMultiplier > 0)
             {
                 drawGrid();
             }
@@ -15465,7 +15465,7 @@
 
                 case "timer":
                 {
-                    startPressHoldKey(topBar.timer,"Resetting the timer...",null, realWorkingTimer.reset,null);
+                    startPressHoldKey(topBar.timer,HintStrings.getResetTimerHintString(),null, realWorkingTimer.reset,null);
                 }
                 break;
 
@@ -17574,7 +17574,7 @@
                             "refLayerMenuBox[0]":refLayerMenuBox.x,
                             "refLayerMenuBox[1]":refLayerMenuBox.y,
                             "isCanvasMirrored":isCanvasMirrored,
-                            "gridValue":gridGapValue,
+                            "gridValue":gridGapMultiplier,
                             "hsvColorData[0]":hsvColorData[0],
                             "gridDrawOffsetX":gridDrawOffsetX,
                             "gridDrawOffsetY":gridDrawOffsetY,
@@ -17800,7 +17800,7 @@
 
                     if(isCanvasMirrored !== d["isCanvasMirrored"]) mirrorCanvas(true);
 
-                    gridGapValue = d["gridValue"];
+                    gridGapMultiplier = d["gridValue"];
                     gridDrawOffsetX = d["gridDrawOffsetX"];
                     gridDrawOffsetY = d["gridDrawOffsetY"];
                     if(!gridDrawOffsetX) gridDrawOffsetX = 0.0;
@@ -18665,7 +18665,7 @@
 
                 updateCanvasNaigatorCursor();
 
-                if(gridGapValue > 0 && lastZoom !== canvasZoomMultipler)
+                if(gridGapMultiplier > 0 && lastZoom !== canvasZoomMultipler)
                 {
                     drawGrid();
                 }
@@ -18937,7 +18937,7 @@
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
             keepCanvasPanelInStage();
-            if(gridGapValue > 0) drawGrid();
+            if(gridGapMultiplier > 0) drawGrid();
             canvasInfoBox.setSize(w,h);
         }
 
@@ -20080,7 +20080,7 @@
                 }
             }
 
-            if(gridGapValue > 0) 
+            if(gridGapMultiplier > 0) 
             {
                 canvasGrid.visible = flag;
             }
@@ -23622,7 +23622,7 @@
             {
                 case "repNewFileButton":
                 {
-                    startPressHoldKey(topBar.repNewFileButton,"Creating a new file from this image..",
+                    startPressHoldKey(topBar.repNewFileButton,HintStrings.getNewFileHintString(),
                     function():Boolean
                     {
                         return prepareDeleteReplayData("total");
@@ -23720,7 +23720,7 @@
 
                 case "timer":
                 {
-                    startPressHoldKey(topBar.timer,"Resetting the timer...",null, realWorkingTimer.reset,null);
+                    startPressHoldKey(topBar.timer,HintStrings.getResetTimerHintString(),null, realWorkingTimer.reset,null);
                 }
                 break;
 
@@ -23930,7 +23930,7 @@
 
                 case "gridButton":
                 {
-                    if(gridGapValue !== 0)
+                    if(gridGapMultiplier !== 0)
                     {
                         hideBottomHint();
                         resetGrid();
@@ -24809,7 +24809,7 @@
 
                 case "timer":
                 {
-                    startPressHoldKey(topBar.timer,"Resetting the timer...",null, realWorkingTimer.reset,null);
+                    startPressHoldKey(topBar.timer,HintStrings.getResetTimerHintString(),null, realWorkingTimer.reset,null);
                 }
                 return
 

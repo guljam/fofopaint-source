@@ -40,7 +40,7 @@
                 "drawModeButton": "Enter draw mode [f1 / f7 / esc / backspace]",
                 "captureButton": "Enter capture mode [ctrl+c / ctrl+,]",
                 "saveButton": "Save [ctrl+s] _ Save as... [shift+ctrl+s / right-click]",
-                "timer": "Working time — Hold to reset",
+                "timer": "Work time _ Hold to reset",
                 "loadButton": "Load image [ctrl+o]",
                 "clipBoardButton": "Load from clipboard [ctrl+v / ctrl+m] _ No image found",
                 "newFileButton": "New file [hold esc / backspace / delete]",
@@ -56,7 +56,7 @@
                 "newWindowCloseButton": "Close image view [esc]",
                 "newWindowButton": "Image view _ Drag to move _ Right-click to fit size",
                 "aboutButton": "About FOFO PAINT",
-                "updateButton": "Update: Version {newVersionStr} is available!",
+                "updateButton": STRING_VARIBALE_HINT,
 
                 // 리플레이 모드
                 "replayModeButton": "Enter replay mode [f1 / f7]",
@@ -77,7 +77,7 @@
                 "trackBar": STRING_VARIBALE_HINT,
 
                 // 그리드 슬라이더
-                "gridSliderWrapper": "Grid: {getGridGapHintString()} _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "gridSliderWrapper": STRING_VARIBALE_HINT,
                 "gridMoveLeftButton": "Nudge left _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
                 "gridMoveRightButton": "Nudge right _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
                 "gridMoveUpButton": "Nudge up _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
@@ -112,8 +112,8 @@
                 "toolFillPen": "Fill pen [q / o]",
                 "toolEraser": "Eraser [d / j]",
                 "toolEyedropper": "Eyedropper [c / m]",
-                "toolUndo": "Undo [z / .] _ Hold to repeat",
-                "toolRedo": "Redo [x / ,] _ Hold to repeat",
+                "toolUndo": STRING_VARIBALE_HINT,
+                "toolRedo": STRING_VARIBALE_HINT,
                 "toolMirror": "Flip canvas [a / l]",
                 "toolLasso": "Lasso [r / y]",
                 "toolLine": "Line [shift]",
@@ -152,6 +152,63 @@
                 "navLayer1Bitmap": "Canvas Navigator",
                 "navLayer2Bitmap": "Canvas Navigator"
             };
+
+        static private function initSizeAndAlphaButtonHintString():void
+        {
+            if(_main === null)  
+            {
+                return;
+            }
+            
+            var len:int = _main.penAlphaList.length;
+            var key:String = "alphaButton";
+            for(var i:int =1; i<=len; i++)
+            {
+                hints[key+i] = "Opacity "+(_main.penAlphaList[i]*100)+"% [g / b]";
+            }
+
+            len = _main.penSizeList.length;
+            key = "nSizeButton";
+            for(i =1; i<=len; i++)
+            {
+                hints[key+i] = "Size "+(_main.penSizeList[i])+ "px [f / v, h / n]"
+            }
+        }
+
+        static public function getRedoButtonHint():String
+        {
+            if(_main === null || _main.toolBox2.visible)
+            {
+                return "Redo [x / ,]";
+            }
+
+            return "Redo [x / ,] _ Hold to repeat";
+        }
+
+        static public function getUndoButtonHint():String
+        {
+            if(_main === null || _main.toolBox2.visible)
+            {
+                return "Undo [z / .]";
+            }
+
+            return "Undo [z / .] _ Hold to repeat";
+        }
+
+        static public function getGridGapAdjustHintString(multi:uint,gap:uint):String
+        {
+            return "Grid " + (multi*gap)+"px ("+multi+"/20)";
+        }
+
+        static public function getNewFileHintString():String
+        {
+            return "Creating new file...";
+        }
+
+        static public function getResetTimerHintString():String
+        {
+            return "Resetting the timer...";
+        }
 
         static public function getPenSmoothingValueString():String
         {
@@ -207,34 +264,16 @@
                 return "";
             }
 
-            return _main.gridGapValue+_main.GRID_GAP +"px";
+            return _main.gridGapMultiplier+_main.GRID_GAP +"px";
         }
 
-        static private function initSizeAndAlphaButtonHintString():void
+        static public function getNewVersionAvailableHintString():String
         {
-            if(_main === null)  
-            {
-                return;
-            }
-            
-            var len:int = _main.penAlphaList.length;
-            var key:String = "alphaButton";
-            for(var i:int =1; i<=len; i++)
-            {
-                hints[key+i] = "Opacity "+(_main.penAlphaList[i]*100)+"% [g / b]";
-            }
-
-            len = _main.penSizeList.length;
-            key = "nSizeButton";
-            for(i =1; i<=len; i++)
-            {
-                hints[key+i] = "Size "+(_main.penSizeList[i])+ "px [f / v, h / n]"
-            }
+            return "Version " +_main.newVersionStr+" is available!";
         }
 
         static public function getOpacityButtonHintString(index:int):String
         {
-            trace("callgetOpacityButtonHintString",index)
             if(_main === null)  
             {
                 return "";
@@ -369,6 +408,16 @@
                 return hintSet[targetName];
             }
 
+            if(targetName === "toolUndo")
+            {
+                return getUndoButtonHint();
+            }
+
+            if(targetName === "toolRedo")
+            {
+                return getRedoButtonHint();
+            }
+
             if(targetName === "capSave")
             {
                 return "Save "+ getCaptureSaveHintString()+" [ctrl+s / ctrl+;]";
@@ -402,6 +451,16 @@
             if(targetName === "currentColor")
             {
                 return getCurrentColorHintString();
+            }
+
+            if(targetName === "updateButton")
+            {
+                return getNewVersionAvailableHintString();
+            }
+
+            if(targetName === "gridSliderWrapper")
+            {
+                return "Grid: " + getGridGapHintString() +" _ " +STRING_RIGHT_CLICK_TO_RESET;
             }
 
             return "";
