@@ -67,7 +67,7 @@
 
     public class Main extends Sprite
     {
-        public const  APP_VERSION:Number = 27.10;
+        public const  APP_VERSION:Number = 27.11;
         public const  APP_STATE_VERSION:Number = 2701;
 
         public const  TOOL_NONE:int = 0,
@@ -131,12 +131,7 @@
                       WORKER_STATE_INIT:int = (1 << 0),
                       WORKER_STATE_RUNNING:int = (1 << 1);
 
-        public const  STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT",
-                      STRING_MERGE_LASSO_IMAGE_TO_REFLAYER:String = "Merge selected area\ninto reference layer",
-                      STRING_MERGE_CANVAS_IMAGE_TO_REFLAYER:String = "Merge canvas image\ninto reference layer",
-                      STRING_CUSTOM_COLOR_HINT:String = "OK [Any key except 0 ~ 9]",
-                      STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity ",
-                      STRING_RIGHT_CLICK_TO_RESET:String = "Reset [right-click]";
+        public const  STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
  
         public const  REPLAY_IMAGE_CAHCHE_COMPLETE:int = (1 << 0),
                       REPLAY_IMAGE_CAHCHE_READY:int = (1 << 1),
@@ -678,7 +673,7 @@
             initializeWorker();
             updateAppWindowSizeInfo();
             loadAppState();
-            //입력 이벤트는 loadappdata보다느려야함
+            //입력 이벤트는 loadappdstate보다느려야함
             addGlobalEvents();
             addGlobalEventsChild();
             addInputEventsDrawMode();
@@ -2250,10 +2245,6 @@
                     colorPickerBox.restoreRGBInfoBackground();
                     selectPenToolIfNotDrawingTool(false);
                     openNumPad();
-                    addTimer(0.1,false,function():void
-                    {
-                        showBottomHint(STRING_CUSTOM_COLOR_HINT);
-                    });
                 }
             }
         }
@@ -5179,7 +5170,6 @@
                 {
                     canvasDrawLayerChild.filters = [];
                 }
-
                 if(!isTransparentPenColor)
                 {
                     if(!isCurrentColorSamePickedColor())
@@ -6320,7 +6310,7 @@
             handleOneMoreClickMergeIntoRefLayer(
             lassoMenuBox,
             lassoMenuBox.lassoRefLayer,
-            STRING_MERGE_LASSO_IMAGE_TO_REFLAYER,
+            HintStrings.STRING_MERGE_INTO_REFLAYER,
             function():void
             {
                 mergeLassoImageToRefLayer();
@@ -6338,7 +6328,7 @@
             handleOneMoreClickMergeIntoRefLayer(
             refLayerMenuBox,
             refLayerMenuBox.refTransferCanvasImageButton,
-            STRING_MERGE_CANVAS_IMAGE_TO_REFLAYER,
+            HintStrings.STRING_MERGE_INTO_REFLAYER,
             mergeCanvasImageToRefLayer);
         }
 
@@ -6365,38 +6355,7 @@
                 return;
             }
 
-            const targetName:String = e.target.name;
-            var str:String = "";
-
-            switch(targetName)
-            {
-                case "refMenuCloseButton":str = "Close [esc, backspace, t]"; break;
-                case "refTransferCanvasImageButton":str = STRING_MERGE_CANVAS_IMAGE_TO_REFLAYER; break;
-                case "refLoadImageButton":str = "Load image"; break;
-                case "refClipBoardButton":str = "Load clipboard image"; break;
-                case "refOpacitySliderWrapper":str = "Adjust image opacity"; break;
-                case "refRotateImageButton":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "refMoveImageButton":str = "Move image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "refResizeImageButton":str = "Resize image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "refMirrorImageButton":str = "Flip image"; break;
-                case "refMemoryTrainingOnButton":
-                case "refMemoryTrainingOffButton":str = "Memory training ON/OFF"; break;
-                case "refClearImageButton":str = "Erase reference image\n[click and hold]"; break;
-                default:
-                {
-                    refLayerMenuBox.hint("Reference layer");
-                }
-                return;
-            }
-
-            refLayerMenuBox.hint(str);
-        }
-
-        public function getLassoMenuHintSwapLayer():String
-        {
-            if(isLassoLayerSwapButtonClicked) return "Swap layers 2 <-> 1";
-
-            return "Swap layers 1 <-> 2";
+            refLayerMenuBox.hint(HintStrings.getHintFromTargetNameRefLayer(e.target.name));
         }
 
         public function lassoMenuHintONEvent(e:MouseEvent):void
@@ -6405,7 +6364,7 @@
             {
                 stage.removeEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
                 return;
-            }
+            }   
 
             if(lassoMenuBox.hitTestPoint(stage.mouseX,stage.mouseY) === false)
             {
@@ -6421,28 +6380,7 @@
                 return;
             }
 
-            const targetName:String = e.target.name;
-            var str:String = "Lasso tool";
-
-            switch(targetName)
-            {
-                case "lassoOK":str = "OK [enter, right-click]"; break;
-                case "lassoCancel":str = "Cancel [esc, backspace]"; break;
-                case "lassoCopy":str = "Copy image"; break;
-                case "lassoRotate":str = "Rotate image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "lassoMirror":str = "Flip image"; break;
-                case "lassoResize":str = "Resize image\n"+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "lassoRefLayer":str = STRING_MERGE_LASSO_IMAGE_TO_REFLAYER; break;
-                case "lasso1pxLeft":
-                case "lasso1pxRight":
-                case "lasso1pxUp":
-                case "lasso1pxDown": str = "Move image 1px\n[space+wasd / ijkl]"; break;
-                case "lassoLayerMerge": str = "Merge image to layer 2"; break;
-                case "lassoLayerSwap": str = getLassoMenuHintSwapLayer(); break;
-                default: break;
-            }
-
-            lassoMenuBox.hint(str);
+            lassoMenuBox.hint(HintStrings.getHintFromTargetNameLassoTool(e.target.name));
         }
 
         public function onMouseOverToolBox2Hint(e:MouseEvent):void
@@ -7182,7 +7120,7 @@
             refLayerLastAlpha = 0.5;
             canvasRefLayer.alpha = 0.5;
             updateRefLayerOpacityCursorPosByValue(0.5);
-            refLayerMenuBox.hint(STRING_REFLAYER_IMAGE_OPACITY+Math.floor(0.5*100)+"%");
+            refLayerMenuBox.hint(HintStrings.STRING_REFLAYER_IMAGE_OPACITY+Math.floor(0.5*100)+"%");
             canvasRefLayer.visible = true;
         }
 
@@ -7215,12 +7153,12 @@
                     refLayerLastAlpha = alpha;
                 }
 
-                refLayerMenuBox.hint(STRING_REFLAYER_IMAGE_OPACITY+Math.floor(alpha*100+0.5)+"%");
+                refLayerMenuBox.hint(HintStrings.STRING_REFLAYER_IMAGE_OPACITY+Math.floor(alpha*100+0.5)+"%");
             }
 
             function onDragStart():void
             {
-                refLayerMenuBox.hint(STRING_REFLAYER_IMAGE_OPACITY+Math.floor(refLayerLastAlpha*100+0.5)+"%");
+                refLayerMenuBox.hint(HintStrings.STRING_REFLAYER_IMAGE_OPACITY+Math.floor(refLayerLastAlpha*100+0.5)+"%");
                 onMouseMoveUpdateopacity();
             }
 
@@ -7551,22 +7489,7 @@
 
         public function showMouseHintLayerVisible():void
         {
-            var str:String = "No layers visible";
-
-            if(canvasLayer1Bitmap.visible === true && canvasLayer2Bitmap.visible === false)
-            {
-                str = "Layer 1 only visible";
-            }
-            else if(canvasLayer1Bitmap.visible === false && canvasLayer2Bitmap.visible === true)
-            {
-                str = "Layer 2 only visible";
-            }
-            else if(canvasLayer1Bitmap.visible === true && canvasLayer2Bitmap.visible === true)
-            {
-                str = "All layers visible";
-            }
-
-            showMouseHintTemp(str);
+            showMouseHintTemp(HintStrings.getLayerVisibleHint(canvasLayer1Bitmap.visible,canvasLayer2Bitmap.visible));
         }
 
         public function selectLayer1(onlyViewFlag:Boolean):void
@@ -8151,7 +8074,7 @@
 
                     penSmoothSlideValue = value;
                     oldValue = value;
-                    showBottomHint("Pen smoothing "+value + "/"+step);
+                    showBottomHint(HintStrings.getHintFromTargetName("penSmoothSliderWapper"));
                 }
             }
 
@@ -8535,7 +8458,7 @@
             isLassoLayerSwapButtonClicked = !isLassoLayerSwapButtonClicked;
             swapLassoImage();
             addLassoLayerMergeCommand(0);
-            lassoMenuBox.hint(getLassoMenuHintSwapLayer());
+            lassoMenuBox.hint(HintStrings.getLassoMenuHintSwapLayer());
             playLayerSwapEffect(lassoMenuBox.lassoLayerSwap);
         }
 
@@ -10324,8 +10247,7 @@
                         return false;
                     }
 
-                    const str:String = "Playing again in " + rReplayRestartTimerCount +" sec";
-                    seekBarBox.prograssInfo.text = str;
+                    seekBarBox.prograssInfo.text =  HintStrings.getReplayRestartHintString(rReplayRestartTimerCount);
                     --rReplayRestartTimerCount;
                     return true;
                 });
@@ -13461,6 +13383,7 @@
             updateBottomBarLayoutAndColor();
             bottomBar.visible = true;
             setAsTopChild(bottomBar);
+
             if(bottomHint.width > stage.stageWidth)
             {
                 bottomHintScrolling.start();
@@ -14275,6 +14198,12 @@
                 updateHistoryList();
                 updateMyPaletteList();
             }
+        }
+
+        public function initMyPaletteHistory():void
+        {
+            myPalettePreset[90] = 0;
+            updateHistoryList();
         }
 
         public function addColorMyPaletteHistory(color:uint):void
@@ -17969,6 +17898,7 @@
                 updateAppWindowSizeInfo();
                 canvasInfoBox.init(CANVAS_WIDTH,CANVAS_HEIGHT,Math.floor(canvasZoomMultipler*100),canvasAnchorPoint.rotation,false);
                 selectLayer1(false);
+                initMyPaletteHistory();
             }
         }
 
@@ -22068,8 +21998,7 @@
         public function showReplaySpeedMouseHint():void
         {
             const timeStr:String = getReplayRemainingTimeString(rReplaySpeedMultipler,TOTAL_FRAME);
-            const finalStr:String = "Playback speed x"+rReplaySpeedMultipler+timeStr;
-
+            const finalStr:String = HintStrings.getReplaySpeedHintString(rReplaySpeedMultipler,timeStr);
             showMouseHintTemp(finalStr);
         }
         
@@ -23710,7 +23639,7 @@
                 {
                     if(topBar.cutPrevDataButton.alpha === 1.0)
                     {
-                        startPressHoldKey(topBar.cutPrevDataButton,"Deleting data..",function():Boolean
+                        startPressHoldKey(topBar.cutPrevDataButton,HintStrings.getDeleteReplayDataHintString(),function():Boolean
                         {
                             return prepareDeleteReplayData("before");
                         },
@@ -23727,7 +23656,7 @@
                 {
                     if(topBar.superUndoButton.alpha === 1.0)
                     {
-                        startPressHoldKey(topBar.superUndoButton,"Deleting data..",function():Boolean
+                        startPressHoldKey(topBar.superUndoButton,HintStrings.getDeleteReplayDataHintString(),function():Boolean
                         {
                             return prepareDeleteReplayData("after");
                         },

@@ -8,158 +8,142 @@
         static public function init(mainclass:Main):void
         {
             _main = mainclass;
+            initSizeAndAlphaButtonHintString();
         }
+
+        static public const STRING_MERGE_INTO_REFLAYER:String = "Merge into reference layer";
+        static public const STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity ";
+        static public const STRING_RIGHT_CLICK_TO_RESET:String = "Right-click to reset";
+        static public const STRING_VARIBALE_HINT:String = "!";
                             
         static private const hintsCaptureMode:Object =
             {
                 "capOff": "Exit capture mode [esc / backspace / f1 / f7]",
-                "capSave": "Save {getCaptureSaveHintString()} [ctrl+s / ctrl+;]",
-                "capClipBoard": "Copy {getCaptureSaveHintString()} to clipboard [ctrl+c / ctrl+,]",
-                "capTrans": "Background color ON/OFF",
+                "capSave": STRING_VARIBALE_HINT,
+                "capClipBoard": STRING_VARIBALE_HINT,
+                "capTrans": "Toggle background color",
                 "capRotate": "Rotate canvas by 90°",
                 "capFlip": "Flip image",
-                "capLayer1VisibleButton": "Layer 1 visible ON/OFF",
-                "capLayer2VisibleButton": "Layer 2 visible ON/OFF",
-                "capStamp": "Stamp ON/OFF",
+                "capLayer1VisibleButton": "Show / Hide Layer 1",
+                "capLayer2VisibleButton": "Show / Hide Layer 2",
+                "capStamp": "Toggle stamp",
                 "capStampFont": "Change stamp font",
-                "rCanvasPanel": "Drag on the canvas to select an area — Reset the capture area [right-click]",
-                "rCanvasDrawLayer": "Drag on the canvas to select an area — Reset the capture area [right-click]",
-                "canvasPanel": "Drag on the canvas to select an area — Reset the capture area [right-click]",
-                "canvasDrawLayer": "Drag on the canvas to select an area — Reset the capture area [right-click]"
+                "rCanvasPanel": "Drag to select area _ Right-click to reset area",
+                "rCanvasDrawLayer": "Drag to select area _ Right-click to reset area",
+                "canvasPanel": "Drag to select area _ Right-click to reset area",
+                "canvasDrawLayer": "Drag to select area _ Right-click to reset area"
             };
 
         static private const hints:Object =
             {
                 // 드로우 모드
-                "drawModeButton": "Switch to draw mode [f1 / f7 / esc / backspace]",
-                "captureButton": "Capture mode [ctrl+c / ctrl+,]",
-                "saveButton": "Save [ctrl+s] _Save as.. [shift+ctrl+s / right-click]",
-                "timer": "Actual working time — Reset [click and hold]",
-                "loadButton": "Load [ctrl+o]",
-                "clipBoardButton": "Load clipboard image [ctrl+v / ctrl+m] — There are no copied images",
-                "newFileButton": "New file [press and hold esc / backspace / delete]",
-                "gridButton": "Grid — {STRING_RIGHT_CLICK_TO_RESET}",
-                "sideBarPositionButton": "Right sidebar",
-                "sideBarPositionButton2": "Left sidebar",
-                "sideBarOFFButton": "Turn sidebar OFF [tab / \\ (back slash)]",
-                "sideBarOFFButton2": "Turn sidebar OFF [tab / \\ (back slash)]",
-                "sideBarONButton": "Turn sidebar ON [tab / \\ (back slash)]",
-                "sideBarONButton2": "Turn sidebar ON [tab / \\ (back slash)]",
-                "topBarColorButton": "Change UI color",
-                "dpiButton": "Current UI scale : {getUIScaleString()} — Change UI scale — {STRING_RIGHT_CLICK_TO_RESET}",
-                "newWindowCloseButton": "Close image view window [esc on window]",
-                "newWindowButton": "Open image view window — Move window [drag on window] — Fit to image size [right-click on window]",
-                "aboutButton": "About FOFO PAINT..",
-                "updateButton": "Version {newVersionStr} released!",
+                "drawModeButton": "Enter draw mode [f1 / f7 / esc / backspace]",
+                "captureButton": "Enter capture mode [ctrl+c / ctrl+,]",
+                "saveButton": "Save [ctrl+s] _ Save as... [shift+ctrl+s / right-click]",
+                "timer": "Working time — Hold to reset",
+                "loadButton": "Load image [ctrl+o]",
+                "clipBoardButton": "Load from clipboard [ctrl+v / ctrl+m] _ No image found",
+                "newFileButton": "New file [hold esc / backspace / delete]",
+                "gridButton": "Grid _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "sideBarPositionButton": "Move sidebar to right",
+                "sideBarPositionButton2": "Move sidebar to left",
+                "sideBarOFFButton": "Hide sidebar [tab / \\]",
+                "sideBarOFFButton2": "Hide sidebar [tab / \\]",
+                "sideBarONButton": "Show sidebar [tab / \\]",
+                "sideBarONButton2": "Show sidebar [tab / \\]",
+                "topBarColorButton": "Change UI color theme",
+                "dpiButton": STRING_VARIBALE_HINT,
+                "newWindowCloseButton": "Close image view [esc]",
+                "newWindowButton": "Image view _ Drag to move _ Right-click to fit size",
+                "aboutButton": "About FOFO PAINT",
+                "updateButton": "Update: Version {newVersionStr} is available!",
 
                 // 리플레이 모드
-                "replayModeButton": "Switch to replay mode [f1 / f7]",
-                "repCaptureButton": "Capture mode [ctrl+c / ctrl+m]",
-                "playButton": "Play [enter / space / right-click on viewport]",
+                "replayModeButton": "Enter replay mode [f1 / f7]",
+                "repCaptureButton": "Enter capture mode [ctrl+c / ctrl+m]",
+                "playButton": "Play [enter / space] _ Right-click on viewport",
                 "pauseButton": "Pause [enter / space / esc / backspace]",
-                "replayPrev": "Prev step [left / z / .] — Prev frame [right-click / Shift + (left / z / .)]",
-                "replayNext": "Next step [right / x / ,] — Next frame [right-click / Shift + (right / x / ,)]",
-                "repNewFileButton": "New file from this image",
-                "cutPrevDataButton": "Delete data before current frame",
-                "superUndoButton": "Delete data after current frame",
-                "replaySpeedSliderWrapper": "Adjust playback speed [(up, down) / (f, v) / (h, n)]",
-                "replayZoomOutButton": "Zoom out — {STRING_RIGHT_CLICK_TO_RESET}",
-                "replayZoomInButton": "Zoom in — {STRING_RIGHT_CLICK_TO_RESET}",
-                "replayFitToWindowButton": "Fit Canvas to viewport ON/OFF [right-click on canvas]",
-                "replayRotateButton": "Rotate — {STRING_RIGHT_CLICK_TO_RESET}",
-                "replayRepeatButton": "Repeat replay ON/OFF",
-                "trackBar":"{getTrackBarHintString()}",
+                "replayPrev": "Prev step [left / z / .] _ Prev frame [Shift + (left / z / .) / right-click]",
+                "replayNext": "Next step [right / x / ,] _ Next frame [Shift + (right / x / ,) / right-click]",
+                "repNewFileButton": "Create new file from current frame",
+                "cutPrevDataButton": "Trim all before current frame",
+                "superUndoButton": "Trim all after current frame",
+                "replaySpeedSliderWrapper": "Playback speed [up / down, f  / v, h / n]",
+                "replayZoomOutButton": "Zoom out _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "replayZoomInButton": "Zoom in _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "replayFitToWindowButton": "Toggle fit to viewport",
+                "replayRotateButton": "Rotate _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "replayRepeatButton": "Toggle loop playback",
+                "trackBar": STRING_VARIBALE_HINT,
 
                 // 그리드 슬라이더
-                "gridSliderWrapper": "Grid {getGridGapHintString()} — {STRING_RIGHT_CLICK_TO_RESET}",
-                "gridMoveLeftButton": "Move grid by 1 pixel — Repeat [click and hold], {STRING_RIGHT_CLICK_TO_RESET}",
-                "gridMoveRightButton": "Move grid by 1 pixel — Repeat [click and hold], {STRING_RIGHT_CLICK_TO_RESET}",
-                "gridMoveUpButton": "Move grid by 1 pixel — Repeat [click and hold], {STRING_RIGHT_CLICK_TO_RESET}",
-                "gridMoveDownButton": "Move grid by 1 pixel — Repeat [click and hold], {STRING_RIGHT_CLICK_TO_RESET}",
+                "gridSliderWrapper": "Grid: {getGridGapHintString()} _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "gridMoveLeftButton": "Nudge left _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "gridMoveRightButton": "Nudge right _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "gridMoveUpButton": "Nudge up _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "gridMoveDownButton": "Nudge down _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
 
                 // 펜옵션
-                "shapeCircle": "circle",
-                "shapeRect": "Square",
-                "penSmoothSliderWapper": "Pen smoothing {penSmoothSlideValue} / {penSmoothSlideTotal}",
-                "alphaButton1": "{getOpacityButtonHintString(1)}",
-                "alphaButton2": "{getOpacityButtonHintString(2)}",
-                "alphaButton3": "{getOpacityButtonHintString(3)}",
-                "alphaButton4": "{getOpacityButtonHintString(4)}",
-                "alphaButton5": "{getOpacityButtonHintString(5)}",
-                "alphaButton6": "{getOpacityButtonHintString(6)}",
-                "alphaButton7": "{getOpacityButtonHintString(7)}",
-                "alphaButton8": "{getOpacityButtonHintString(8)}",
-                "alphaButton9": "{getOpacityButtonHintString(9)}",
-                "alphaButton10": "{getOpacityButtonHintString(10)}",
-                "nSizeButton1": "{getSizeButtonHintString(1)}",
-                "nSizeButton2": "{getSizeButtonHintString(2)}",
-                "nSizeButton3": "{getSizeButtonHintString(3)}",
-                "nSizeButton4": "{getSizeButtonHintString(4)}",
-                "nSizeButton5": "{getSizeButtonHintString(5)}",
-                "nSizeButton6": "{getSizeButtonHintString(6)}",
-                "nSizeButton7": "{getSizeButtonHintString(7)}",
-                "nSizeButton8": "{getSizeButtonHintString(8)}",
-                "nSizeButton9": "{getSizeButtonHintString(9)}",
-                "nSizeButton10": "{getSizeButtonHintString(10)}",
-                "nSizeButton11": "{getSizeButtonHintString(11)}",
-                "nSizeButton12": "{getSizeButtonHintString(12)}",
+                "shapeCircle": "Circle",
+                "shapeRect": "Rectangle",
+                "penSmoothSliderWapper": STRING_VARIBALE_HINT,
 
-                "sharpLineButtonWrapper": "Sharp line [3 / 8]",
-                "sharpLineOFFButton": "Sharp line [3 / 8]",
-                "sharpLineONButton": "Sharp line [3 / 8]",
-                "sharpLineText": "Sharp line [3 / 8]",
-                "airBrushButtonWrapper": "Air brush [4 / 7]",
-                "airBrushOFFButton": "Air brush [4 / 7]",
-                "airBrushONButton": "Air brush [4 / 7]",
-                "airBrushText": "Air brush [4 / 7]",
+                "sharpLineButtonWrapper": "Toggle Sharp line [3 / 8]",
+                "sharpLineOFFButton": "Toggle Sharp line [3 / 8]",
+                "sharpLineONButton": "Toggle Sharp line [3 / 8]",
+                "sharpLineText": "Toggle Sharp line [3 / 8]",
+                "airBrushButtonWrapper": "Toggle Air brush [4 / 7]",
+                "airBrushOFFButton": "Toggle Air brush [4 / 7]",
+                "airBrushONButton": "Toggle Air brush [4 / 7]",
+                "airBrushText": "Toggle Air brush [4 / 7]",
 
-                "layer1SelectButton": "Select layer 1 [1 / 9] — Toggle view only layer 1 [click again]",
-                "layer2SelectButton": "Select layer 2 [2 / 0] — Toggle view only layer 2 [click again]",
-                "layer1CheckedButton": "Check layer 1 (for move image tool, lasso tool, merge into reference layer)",
-                "layer1UncheckedButton": "Check layer 1 (for move image tool, lasso tool, merge into reference layer)",
-                "layer2CheckedButton": "Check layer 2 (for move image tool, lasso tool, merge into reference layer)",
-                "layer2UncheckedButton": "Check layer 2 (for move image tool, lasso tool, merge into reference layer)",
+                "layer1SelectButton": "Select Layer 1 [1 / 9] _ Click again to solo",
+                "layer2SelectButton": "Select Layer 2 [2 / 0] _ Click again to solo",
+                "layer1CheckedButton": "Enable Layer 1 (for Move, Lasso, Merge)",
+                "layer1UncheckedButton": "Enable Layer 1 (for Move, Lasso, Merge)",
+                "layer2CheckedButton": "Enable Layer 2 (for Move, Lasso, Merge)",
+                "layer2UncheckedButton": "Enable Layer 2 (for Move, Lasso, Merge)",
                 "layerSwapButton": "Swap layers",
-                "layerMergeButton": "Merge image into layer 2",
+                "layerMergeButton": "Merge into Layer 2",
 
                 // 툴박스 2 
                 "toolQuickSidebar": "[6 / s+d / j+k]",
                 "toolPen": "Pen [q / o key up]",
                 "toolFillPen": "Fill pen [q / o]",
                 "toolEraser": "Eraser [d / j]",
-                "toolEyedropper": "Eye dropper [c /m]",
-                "toolUndo": "Undo [z / .] — Continue [click and hold]",
-                "toolRedo": "Redo [x / ,] — Continue [click and hold]",
+                "toolEyedropper": "Eyedropper [c / m]",
+                "toolUndo": "Undo [z / .] _ Hold to repeat",
+                "toolRedo": "Redo [x / ,] _ Hold to repeat",
                 "toolMirror": "Flip canvas [a / l]",
                 "toolLasso": "Lasso [r / y]",
                 "toolLine": "Line [shift]",
                 "toolMove": "Move image [e / u]",
                 "toolZoom": "Zoom canvas [w / i]",
-                "toolZoomIn": "Zoom-in canvas — {STRING_RIGHT_CLICK_TO_RESET}",
-                "toolZoomOut": "Zoom-out canvas — {STRING_RIGHT_CLICK_TO_RESET}",
-                "toolRotate": "Rotate canvas [s / k] — {STRING_RIGHT_CLICK_TO_RESET}",
+                "toolZoomIn": "Zoom in _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "toolZoomOut": "Zoom out _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "toolRotate": "Rotate canvas [s / k] _ "+STRING_RIGHT_CLICK_TO_RESET,
                 "toolRotate2": "Rotate canvas [s / k]",
                 "toolRefLayer": "Reference layer [t]",
-                "sideBarScrollBar": "Scroll [drag / mouse wheel on sidebar] — {STRING_RIGHT_CLICK_TO_RESET}",
+                "sideBarScrollBar": "Scroll [drag / wheel] _ "+STRING_RIGHT_CLICK_TO_RESET,
 
-                "toolFillPenOK": "OK [right-click / enter / (q , o) key up)",
+                "toolFillPenOK": "Confirm [right-click / enter / q or o]",
                 "toolFillPenCancel": "Cancel [esc]",
 
                 // 컬러 픽커
                 "hueColor": "Hue",
-                "svBox": "Situation and Value",
+                "svBox": "Saturation & Value",
                 "swapPositionButton": "Swap palette position",
-                "colorHistoryBox": "Color history — Move color to my palette [drag]",
-                "myPaletteBox": "Add, remove, restore color [click and hold] — Swap color position [drag]",
-                "rgbInfoText": "Adjust value — Change color model [click {getRGBorHSVString()} part]",
+                "colorHistoryBox": "Color history _ Drag to add to My Palette",
+                "myPaletteBox": "Hold to add, remove, or restore _ Drag to swap position",
+                "rgbInfoText": STRING_VARIBALE_HINT,
                 "paperColorButton": "Change background color",
                 "penColorButton": "Change pen color",
-                "currentColor": "{getCurrentColorHintString()}",
-                "transColorButton": "Transparent color ON/OFF [c+space / m+space]",
-                "myPaletteButton": "My palette — Expand palette ON/OFF [click x 2] — Clear palette [click and hold]",
-                "drawrPresetButton": "Drawr color preset — Clear scratch pad [click and hold]",
-                "tegakiPresetButton": "Tegaki color preset — Clear scratch pad [click and hold]",
-                "scratchPad": "Scratch pad — Draw [drag] — Select color [click / c /  m]",
+                "currentColor": STRING_VARIBALE_HINT,
+                "transColorButton": "Toggle transparency [c+space / m+space]",
+                "myPaletteButton": "My Palette _ Click to expand / collapse _ Hold to clear",
+                "drawrPresetButton": "Drawr presets _ Hold to clear scratch pad",
+                "tegakiPresetButton": "Tegaki presets _ Hold to clear scratch pad",
+                "scratchPad": "Scratch pad _ Drag to draw _ Click or [c / m] to select color",
 
                 // 캔버스 네비게이터
                 "navStageBG": "Canvas Navigator",
@@ -169,13 +153,31 @@
                 "navLayer2Bitmap": "Canvas Navigator"
             };
 
+        static public function getPenSmoothingValueString():String
+        {
+            if(_main === null)
+            {
+                return "";
+            }
+
+            return _main.penSmoothSlideValue +" / "+ _main.penSmoothSlideTotal;
+        }
+
         static public function getRGBorHSVString():String
         {
+            if(_main === null)
+            {
+                return "";
+            }
             return (_main.isHSVInfoTextMode) ? "'HSV'":"'RGB'";
         }
 
         static public function getCaptureSaveHintString():String
         {
+            if(_main === null)
+            {
+                return "";
+            }
             return (_main.captureAreaManager.isFullImageCapture()) ? "image":"selected area";
         }
 
@@ -186,30 +188,78 @@
 
         static public function getTrackBarHintString():String
         {
+            if(_main === null)
+            {
+                return "";
+            }
+
             if(_main.isReplayRestartTimerON())
             {
-                return "Seek bar — Cancel restart [click]";
+                return "Seek bar _ Click to abort restart";
             }
             return "Seek bar";
         }
 
         static public function getGridGapHintString():String
         {
+            if(_main === null)
+            {
+                return "";
+            }
+
             return _main.gridGapValue+_main.GRID_GAP +"px";
+        }
+
+        static private function initSizeAndAlphaButtonHintString():void
+        {
+            if(_main === null)  
+            {
+                return;
+            }
+            
+            var len:int = _main.penAlphaList.length;
+            var key:String = "alphaButton";
+            for(var i:int =1; i<=len; i++)
+            {
+                hints[key+i] = "Opacity "+(_main.penAlphaList[i]*100)+"% [g / b]";
+            }
+
+            len = _main.penSizeList.length;
+            key = "nSizeButton";
+            for(i =1; i<=len; i++)
+            {
+                hints[key+i] = "Size "+(_main.penSizeList[i])+ "px [f / v, h / n]"
+            }
         }
 
         static public function getOpacityButtonHintString(index:int):String
         {
+            trace("callgetOpacityButtonHintString",index)
+            if(_main === null)  
+            {
+                return "";
+            }
+
             return "Opacity "+(_main.penAlphaList[index]*100)+"% [g / b]";
         }
 
         static public function getSizeButtonHintString(index:int):String
         {
-            return "Size "+_main.penSizeList[index]+ "px [(f, v) / (h, n)]";
+            if(_main === null)
+            {
+                return "";
+            }
+
+            return "Size "+(_main.penSizeList[index])+ "px [f / v, h / n]";
         }
 
         static public function getCurrentColorHintString():String
         {
+            if(_main === null)
+            {
+                return "";
+            }
+
             const pickedColor:uint = _main.colorPickerBox.getRGBInfoBGColor();
             const arr:Vector.<Number> = (_main.isHSVInfoTextMode) ? Global.HEXtoHSV(pickedColor,_main.hsvColorData[0]) : Global.HEXtoRGB(pickedColor);
             const mode:String = (_main.isHSVInfoTextMode) ? "HSV" : "RGB";
@@ -217,62 +267,90 @@
             return "Current color : " + mode +" " + arr[0] + "," + arr[1] + "," + arr[2];
         }
 
-        static public function resolveTemplate(template:String):String
-        {
-            return template.replace(/\{([^\}]+)\}/g, function(...args):String
-                {
-                    var expr:String = args[1]; // {} 안의 전체 내용
-                    var value:*;
+        static public function getHintFromTargetNameRefLayer(targetName:String):String
+        {    
+            var str:String = "Reference layer";
 
-                    // 함수 호출 패턴 {func(arg1,arg2,...)}
-                    var fnMatch:Array = expr.match(/^(\w+)\((.*)\)$/);
-                    if (fnMatch)
-                    {
-                        var fnName:String = fnMatch[1];
-                        var rawArgs:String = fnMatch[2];
-                        var argList:Array = [];
+            switch(targetName)
+            {
+                case "refMenuCloseButton":str = "Close [esc, backspace, t]"; break;
+                case "refTransferCanvasImageButton":str = STRING_MERGE_INTO_REFLAYER; break;
+                case "refLoadImageButton":str = "Load image"; break;
+                case "refClipBoardButton":str = "Load clipboard image"; break;
+                case "refOpacitySliderWrapper":str = "Adjust image opacity"; break;
+                case "refRotateImageButton":str = "Rotate _ "+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "refMoveImageButton":str = "Move _ "+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "refResizeImageButton":str = "Resize _ "+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "refMirrorImageButton":str = "Flip image"; break;
+                case "refMemoryTrainingOnButton":
+                case "refMemoryTrainingOffButton":str = "Toggle Memory training"; break;
+                case "refClearImageButton":str = "Hold to erase reference image"; break;
+                default: break;
+            }
 
-                        if (rawArgs.length > 0)
-                        {
-                            var parts:Array = rawArgs.split(",");
-                            for each (var p:String in parts)
-                            {
-                                p = p.replace(/^\s+|\s+$/g, ""); // trim
-                                if (!isNaN(Number(p)))
-                                    argList.push(Number(p));
-                                else if (p == "true" || p == "false")
-                                    argList.push(p == "true");
-                                else
-                                    argList.push(p.replace(/^['"]|['"]$/g, "")); // 문자열
-                            }
-                        }
-
-                        if (HintStrings[fnName] && HintStrings[fnName] is Function)
-                        {
-                            value = HintStrings[fnName].apply(HintStrings, argList);
-                        }
-                        else
-                        {
-                            value = "{" + expr + "}";
-                        }
-                    }
-                    else
-                    {
-                        // 변수 치환 {varName}
-                        if (_main.hasOwnProperty(expr))
-                        {
-                            // 함수여도 ()가 없으면 실행하지 않고 함수 객체를 문자열로 표시
-                            value = _main[expr];
-                        }
-                        else
-                        {
-                            value = "{" + expr + "}";
-                        }
-                    }
-
-                    return value != null ? value.toString() : "";
-                });
+            return str;
         }
+
+        static public function getLassoMenuHintSwapLayer():String
+        {
+            if(_main === null)
+            {
+                return "";
+            }
+
+            return "Swap layers " + ((_main.isLassoLayerSwapButtonClicked) ?"*":"");
+        }
+
+        static public function getLayerVisibleHint(layer1:Boolean, layer2:Boolean):String
+        {
+            if (layer1) 
+            {
+                return layer2 ? "All layers visible" : "Layer 1 only";
+            }
+
+            return layer2 ? "Layer 2 only" : "No layers visible";
+        }
+
+        static public function getHintFromTargetNameLassoTool(targetName:String):String
+        {
+            var str:String = "Lasso tool";
+
+            switch(targetName)
+            {
+                case "lassoOK":str = "Confirm [enter, right-click]"; break;
+                case "lassoCancel":str = "Cancel [esc, backspace]"; break;
+                case "lassoCopy":str = "Copy selection"; break;
+                case "lassoRotate":str = "Rotate selection _ " + STRING_RIGHT_CLICK_TO_RESET; break;
+                case "lassoMirror":str = "Flip selection"; break;
+                case "lassoResize":str = "Resize selection _ "+STRING_RIGHT_CLICK_TO_RESET; break;
+                case "lassoRefLayer":str = STRING_MERGE_INTO_REFLAYER; break;
+                case "lasso1pxLeft":
+                case "lasso1pxRight":
+                case "lasso1pxUp":
+                case "lasso1pxDown": str = "Nudge image [space + wasd or ijkl]"; break;
+                case "lassoLayerMerge": str = "Merge into layer 2"; break;
+                case "lassoLayerSwap": str = getLassoMenuHintSwapLayer(); break;
+                default: break;
+            }
+
+            return str;
+        }
+
+        static public function getDeleteReplayDataHintString():String
+        {
+            return "Triming data..";
+        }
+
+        static public function getReplayRestartHintString(count:Number):String
+        {
+            return "Restarting in " + count +" sec";
+        }
+
+        static public function getReplaySpeedHintString(speed:Number,timeStr:String):String
+        {
+            return "Playback speed x"+speed+timeStr;
+        }
+
 
         static public function getHintFromTargetNameCaptureMode(targetName:String):String
         {
@@ -281,7 +359,52 @@
                 return null;
             }
 
-            return resolveTemplate(hintsCaptureMode[targetName]);
+            return getFinalHint(targetName,hintsCaptureMode);
+        }
+
+        static private function getFinalHint(targetName:String,hintSet:Object):String
+        {
+            if(hintSet[targetName] !== STRING_VARIBALE_HINT)
+            {
+                return hintSet[targetName];
+            }
+
+            if(targetName === "capSave")
+            {
+                return "Save "+ getCaptureSaveHintString()+" [ctrl+s / ctrl+;]";
+            }
+
+            if(targetName === "capClipBoard")
+            {
+                return "Copy "+ getCaptureSaveHintString() +" to clipboard [ctrl+c / ctrl+,]";
+            }
+
+            if(targetName === "dpiButton")
+            {
+                return "Change UI scale _ "+STRING_RIGHT_CLICK_TO_RESET+" (Current: "+getUIScaleString()+")";
+            }
+
+            if(targetName === "trackBar")
+            {
+                return getTrackBarHintString();
+            }
+
+            if(targetName === "penSmoothSliderWapper")
+            {
+                return "Pen smoothing "+getPenSmoothingValueString();
+            }
+
+            if(targetName === "rgbInfoText")
+            {
+                return "Adjust values _ Click "+getRGBorHSVString()+" to change color model";
+            }
+
+            if(targetName === "currentColor")
+            {
+                return getCurrentColorHintString();
+            }
+
+            return "";
         }
 
         static public function getHintFromTargetName(targetName:String):String
@@ -291,7 +414,7 @@
                 return null;
             }
 
-            return resolveTemplate(hints[targetName]);
+            return getFinalHint(targetName,hints);
         }
     }
 }

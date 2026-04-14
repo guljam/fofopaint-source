@@ -511,6 +511,9 @@
 			currentColorBox.x = Math.floor(transColorButton.x+transColorButton.width);
 			currentColorBox.y = transColorButton.y;
 			currentColorBox.name = "currentColor";
+			currentColorBox.graphics.clear();
+			currentColorBox.graphics.beginFill(0);
+			currentColorBox.graphics.drawRect(0,0,currentColorBoxWidth,19);
 
 			hueColorMask.graphics.beginFill(0xFFFF0000);
 			hueColorMask.graphics.drawRect(0, 0, svBoxWidth, hueHeight);
