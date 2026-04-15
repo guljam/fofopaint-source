@@ -5,4 +5,3 @@
 - animate에서 debug를 한번 실행시키면 swf파일이 갱신됨
 - webp인코더 디코더 ane네이티브 확장을 하나 이용중
 - font폴더에 Si Kancil.ttf폰트가 설치되어있어야 앱내의 고유폰트가 표시됨
-- 배포자동화는 _make_air_file.ps1 + vscode_fofo_auto_release.bat파일로 했음
