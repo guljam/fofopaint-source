@@ -3,3 +3,6 @@ webfile/*
 fofoPaint.air
 fofoPaint.exe
 RECOVER_fofoPaint.fla
+fofopaint-source.code-workspace
+vscode_fofo_auto_release.bat
+_make_air_file.ps1
