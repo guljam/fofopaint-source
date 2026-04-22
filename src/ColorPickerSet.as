@@ -437,7 +437,7 @@
 			const checkerPatternHeight:Number = transColorButton.height;
 			const mat:Matrix = new Matrix();
 			mat.scale(transColorButton.scaleX,transColorButton.scaleY);
-			transColorButtonBmpd = new BitmapData(checkerPatternWidth,checkerPatternHeight,false,0);
+			transColorButtonBmpd = new BitmapData(checkerPatternWidth-10,checkerPatternHeight,false,0);
 			transColorButtonBmpd.draw(transColorButton,mat);
 		}
 

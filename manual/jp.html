@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>jp</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">jp</h1>
+</header>
+<h1 id="ワコムドライバー設定">ワコムドライバー設定</h1>
+<p>ワコムドライバ設定ウィンドウを開き、マッピングタブのWindowsインク使用チェックを解除してください、使用時の線が変になります。</p>
+<p>タブレットを使用する場合は、「マウスの右キー」をペンボタンに設定してください。
+ツール選択や一部の機能を使いやすいです。</p>
+<h1 id="ツール選択方法">ツール選択方法</h1>
+<figure>
+<img src="./images/193027299-7c0a4c8b-76fc-4843-b01a-cf323483f8cc.png"
+alt="newtool2" />
+<figcaption aria-hidden="true">newtool2</figcaption>
+</figure>
+<p>キャンバスにカーソルを置いてマウスの右クリックを押すと、ツールメニューが表示されます。</p>
+<p>選択したいツールアイコンにカーソルを移動し、マウスの右ボタンを離すと選択されます。</p>
+<p>キャンバスの移動は右クリック後、ツールボックスの明るい部分をクリックしてドラッグしてください。(マウスの左+右クリック状態になる)</p>
+<p>ズームツール、回転ツール、イメージ移動ツールはキャンバス移動ができず、ツール固有の機能を使用します。
+(クリックしてドラッグ)</p>
+<p>塗りつぶしペン(fill-pen)の使い方は、ツールを選択した後、キャンバスに目的の領域を描きます。
+単純クリックすると多角形を描くことができます。
+右クリックするとアイコンが3つ表示されます。undoボタンを押すと描いた領域を少しずつ以前に戻ることができます。
+OKボタンにカーソルを置いて右クリックを外すと完了です。</p>
+<p>Lasso Tool使い方は<a href="#Lassoの使い方">ここ</a></p>
+<p>Quick side
+barは、側面にあるサイドバーを現在のマウスカーソルに移動させます。
+マウスを右クリックするか、サイドバーの外側をクリックすると元の位置に戻ります。</p>
+<p>括弧内のアルファベットは(右利きのショートカットキー、左利きのショートカットキー)</p>
+<h1 id="ショートカットキー">ショートカットキー</h1>
+<figure>
+<img src="./images/724ea577-bdac-49ad-b8c6-0e72999be1f3"
+alt="keylayout3" />
+<figcaption aria-hidden="true">keylayout3</figcaption>
+</figure>
+<p>緑色の領域は右利き、青色の領域は左利き用です。
+基本的にキーを押すと機能が活性化し、外すと消えます。</p>
+<h2 id="基本ショートカットキー">基本ショートカットキー</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">機能</th>
+<th style="text-align: left;">ショートカットキー</th>
+<th style="text-align: left;">機能</th>
+<th style="text-align: left;">ショートカットキー</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">お絵描き / Replayモード</td>
+<td style="text-align: left;"><code>F1</code> または
+<code>F7</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">チャプチャーモード</td>
+<td style="text-align: left;"><code>Ctrl+C</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">ファイル保存</td>
+<td style="text-align: left;"><code>Ctrl+S</code></td>
+<td style="text-align: left;">別の名前でファイル保存</td>
+<td style="text-align: left;"><code>Ctrl+Shift+S</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">ファイル読み込み</td>
+<td style="text-align: left;"><code>Ctrl+O</code></td>
+<td style="text-align: left;">Clipboardからファイル読み込み</td>
+<td style="text-align: left;"><code>Ctrl+V</code></td>
+</tr>
+</tbody>
+</table>
+<h2
+id="お絵描きモードのショートカットキー">お絵描きモードのショートカットキー</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">機能</th>
+<th style="text-align: left;">ショートカットキー</th>
+<th style="text-align: left;">機能</th>
+<th style="text-align: left;">ショートカットキー</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">レイヤー１選択</td>
+<td style="text-align: left;"><code>1</code> または <code>9</code></td>
+<td style="text-align: left;">レイヤー２を選択</td>
+<td style="text-align: left;"><code>2</code> または <code>0</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">レイヤーを単独表示・解除</td>
+<td style="text-align: left;">レイヤ選択キーを２回以上押す</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">レイヤー１をチェック</td>
+<td style="text-align: left;"><code>1</code> + <code>w</code> または
+<code>9</code> + <code>i</code></td>
+<td style="text-align: left;">レイヤー２をチェック</td>
+<td style="text-align: left;"><code>2</code> + <code>w</code> または
+<code>0</code> + <code>i</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">消しゴム</td>
+<td style="text-align: left;"><code>D</code> または <code>J</code></td>
+<td style="text-align: left;">Lasso</td>
+<td style="text-align: left;"><code>R</code> または <code>Y</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">直線</td>
+<td style="text-align: left;"><code>Shift</code></td>
+<td style="text-align: left;">スポイト</td>
+<td style="text-align: left;"><code>C</code> または <code>M</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">透明色を選択（取り消し）</td>
+<td style="text-align: left;"><code>C</code>+<code>Space</code> または
+<code>M</code>+<code>Space</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">参考レイヤー窓</td>
+<td style="text-align: left;"><code>T</code></td>
+<td style="text-align: left;">Fill pen</td>
+<td style="text-align: left;"><code>Q</code> または <code>O</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">ペンサイズ調節</td>
+<td style="text-align: left;"><code>F</code> <code>V</code> または
+<code>H</code> <code>N</code></td>
+<td style="text-align: left;">消しゴムサイズ調節</td>
+<td style="text-align: left;"><code>D</code> + <code>F</code>
+<code>V</code> または <code>J</code>+<code>H</code> <code>N</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">ペン透明度調節</td>
+<td style="text-align: left;"><code>G</code> <code>B</code></td>
+<td style="text-align: left;">消しゴム透明度調節</td>
+<td style="text-align: left;"><code>D</code>+<code>G</code>
+<code>B</code> または <code>J</code>+<code>G</code> <code>B</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">ズーム</td>
+<td style="text-align: left;"><code>W</code> または <code>I</code></td>
+<td style="text-align: left;">チャンマス移動</td>
+<td style="text-align: left;"><code>Space</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">チャンバス左右反転</td>
+<td style="text-align: left;"><code>A</code> または <code>L</code></td>
+<td style="text-align: left;">チャンバス回転</td>
+<td style="text-align: left;"><code>S</code> または <code>K</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">チャンバスのイメージ移動</td>
+<td style="text-align: left;"><code>E</code> または <code>Y</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Undo</td>
+<td style="text-align: left;"><code>Z</code> または <code>.</code></td>
+<td style="text-align: left;">Redo</td>
+<td style="text-align: left;"><code>X</code> または <code>,</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Quick side-bar</td>
+<td style="text-align: left;"><code>S</code>+<code>D</code> または
+<code>J</code>+<code>K</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<h2
+id="replayモードのショートカットキー">Replayモードのショートカットキー</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">機能</th>
+<th style="text-align: left;">ショートカットキー</th>
+<th style="text-align: left;">機能</th>
+<th style="text-align: left;">ショートカットキー</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">再生/停止</td>
+<td style="text-align: left;"><code>Enter</code> または
+<code>Space</code></td>
+<td style="text-align: left;">再生速度調節</td>
+<td style="text-align: left;"><code>↑</code> <code>↓</code> または
+<code>F</code> <code>V</code> または <code>H</code> <code>N</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">ストローク単位で探索</td>
+<td style="text-align: left;"><code>←</code> <code>→</code> または
+<code>Z</code> <code>X</code> または <code>.</code> <code>,</code></td>
+<td style="text-align: left;">１Frame単位で探索</td>
+<td
+style="text-align: left;"><code>Shift</code>押したまま左のボタンを押す</td>
+</tr>
+<tr>
+<td style="text-align: left;">現在イメージから新しいファイルを作成</td>
+<td style="text-align: left;"><code>F2</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">データの前の部分を消す</td>
+<td style="text-align: left;"><code>F3</code></td>
+<td style="text-align: left;">データの後の部分を消す</td>
+<td style="text-align: left;"><code>F4</code></td>
+</tr>
+</tbody>
+</table>
+<h2
+id="キャプチャーモードのショートカットキー">キャプチャーモードのショートカットキー</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">機能</th>
+<th style="text-align: left;">ショートカットキー</th>
+<th style="text-align: left;">機能</th>
+<th style="text-align: left;">ショートカットキー</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">イメージを保存</td>
+<td style="text-align: left;"><code>Ctrl+S</code> または
+<code>Ctrl+K</code></td>
+<td style="text-align: left;">Clipboardにコピー</td>
+<td style="text-align: left;"><code>Ctrl+C</code>または
+<code>Ctrl+M</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">イメージ回転</td>
+<td style="text-align: left;"><code>S</code> または <code>K</code></td>
+<td style="text-align: left;">イメージ左右反転</td>
+<td style="text-align: left;"><code>A</code> または <code>L</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">背景色をON/OFF</td>
+<td style="text-align: left;"><code>D</code> または <code>J</code></td>
+<td style="text-align: left;">終了</td>
+<td style="text-align: left;"><code>ESC</code></td>
+</tr>
+</tbody>
+</table>
+<h1 id="ペンオプション">ペンオプション</h1>
+<p><img
+src="./images/172030469-9247dc93-544c-40dd-969b-83e155b53aae.png"
+alt="penoption1" /> ペン形や大きさ、手ブレ補正強度を調節します。</p>
+<p><img
+src="./images/233364028-86793b20-593e-4902-a764-cc1fe170a49a.jpg"
+alt="layerfunc" /> - レイヤー選択ボックスです。 左の矢印は、レイヤー 1
+番と 2 番の画像を互いに変える機能です。</p>
+<ul>
+<li><p>文字をクリックするとレイヤーが選択されます。
+２回以上クリックすると、そのレイヤーを単独で表示・解除ができます。</p></li>
+<li><p>チェックマーク付きの四角ボックスは、ボックスがチェックされると画像移動ツール（move
+image）とラソツール（lasso）のみ有効になります。
+これら2つのツールは、レイヤー1と2のすべての画像を修正します。
+ただし、チェックマークが点灯している場合は、そのレイヤーのみを変更できます。</p></li>
+<li><p>右にある矢印は、1 番レイヤーのイメージを2
+番レイヤーに倂合します。</p></li>
+</ul>
+<p><img
+src="./images/172030482-c152ee3f-711a-4529-a93b-fd19ba2289a4.png"
+alt="penoption3" /> 線の感じが鋭くなります。</p>
+<p><img
+src="./images/172030486-0e6b2f5f-f2f8-4138-8566-b1ae9fbf72e4.png"
+alt="penoption4" /> 線の輪郭がぼやけます。</p>
+<p><img
+src="./images/193265927-55ffbbae-2465-4acf-9cbb-4035b78c4bb5.png"
+alt="opabutton2" /> ペンの透明度を調節します。</p>
+<h1 id="色選択">色選択</h1>
+<figure>
+<img src="./images/f8c55682-4011-4e40-8b3c-ca64b17534f8" alt="color1" />
+<figcaption aria-hidden="true">color1</figcaption>
+</figure>
+<ul>
+<li>Paperアイコンをクリックして色を選択すると、背景色が変わります。</li>
+<li>Penアイコンをクリックして色を選択すると、ペンの色が変わります。</li>
+<li>Penアイコンの真下にある小さいボックスをクリックすると、変更される前の色が選択されます。</li>
+<li>市松模様のアイコンを選択すると、透明色を選択できます。
+消しゴムと機能と同じですが、直線ツールやFill-penでも消しゴムのように色を消すことができます。</li>
+<li>透明色の選択を取り消すには、別の色を選択するとキャンセルされます。</li>
+<li>「RGB 0,0,0」部分をクリックすると、手動でRGB値を入力できます。</li>
+<li>「RGB
+0,0,0」部分の「RGB」のテキストをクリックしたら値をRGBとHSVに切り替えることができます。
+値を切り替える過程で1程度値の誤差が発生することがあります。</li>
+<li>手動でRGB値を変更する時、矢印左右キーまたはtabキーでr g
+b項目移動でき、矢印上下キーで1ずつ値を増加、減少することができます。
+矢印キーの代わりにW A S D、I J K Lキーも同じように使用できます。</li>
+<li>入力値を完了するには、別の場所をクリックするか、EscまたはEnterまたはSpaceキーを押します。</li>
+</ul>
+<figure>
+<img src="./images/6a4664c6-35a5-45a9-b129-08a988b65dd1"
+alt="mypalette" />
+<figcaption aria-hidden="true">mypalette</figcaption>
+</figure>
+<ul>
+<li>マイパレットには最大90色が保存されます。</li>
+<li>「my
+palette」ボタンを複数クリックすることで、非表示パレット領域を見たり隠したりできます。</li>
+<li>色を選択後、マイパレットボックスを１秒ほど長くクリックすると、手動で色を登録できます。</li>
+<li>同じ位置をずっと長くクリックしていると、新しい色ー透明色ー以前の色を循環して登録することができます。</li>
+<li>色をクリック+ドラッグすることで色の位置を移動できます。</li>
+<li>「my
+palette」ボタンを２秒間長くクリックするとパレットのすべての色を消します。</li>
+</ul>
+<figure>
+<img src="./images/133b1de9-3615-4084-a1aa-a34e60871ff8" alt="numpad" />
+<figcaption aria-hidden="true">numpad</figcaption>
+</figure>
+<ul>
+<li>“RGB 0,0,0” 部分をクリックすると、テンキーが現れます。</li>
+<li>ClipBoardにコピーされたHEX値を適用するボタンとOKLCHスライダーがあります。</li>
+<li>OKLCHは人間の知覚に近いカラーモデルで、LCHはLightness（明るさ）、Chroma（彩度）、Hue（色相）の略です。色を変更する際、HSVシステムよりも自然な色変化が可能です。</li>
+<li>アプリに搭載されたOKLCHカラースライダーは、基本的な数値計算機能のみを備えており、数値によっては彩度が過剰になったり、色味に歪みが生じることがありますが、これは正常な動作です。</li>
+</ul>
+<h1 id="上段のメニュー">上段のメニュー</h1>
+<h2 id="お絵描きモード">お絵描きモード</h2>
+<p><img
+src="./images/172030682-9760978c-5b9d-4900-8059-fb250bb2143c.png"
+alt="top1" /> <img
+src="./images/172030709-76a58bd2-f5fd-459b-b43a-3a33043fbab2.png"
+alt="top1-1" /> リプレイモード、描きモードに変更するボタンです。</p>
+<p><img
+src="./images/172030683-7ccb08e5-1db5-49c4-9631-c1c4d21fff26.png"
+alt="top2" /> キャプチャモードに変更するボタンです。</p>
+<p><img
+src="./images/172030684-fa7e8eff-43a8-4644-ba35-24b4e4b5d90e.png"
+alt="top3" />
+保存ボタンです。初めて保存するときだけ経路と名前を聞き、その後はクリックだけで最初に決めた経路に自動的に保存します。
+新しい経路と名前で保存したい場合は、保存ボタンを右クリックするか、ショートカットキー<code>Ctrl+Shift+S</code>を押してください。
+- <em>.pngファイルと</em>.2020ファイル、2つを保存します。
+2020拡張子のファイルはRawイメージとリプレイデータを含んでいます。
+続いて描く場合*。2020ファイルを読み込むことをお勧めします。 -
+画像サイズとリプレイファイルが大きい場合、保存時間が長くかかることがあります。
+保存する過程では、一部のボタンが無効化されます。</p>
+<p><img
+src="./images/172030685-dee55e5d-1d52-42af-a28a-ca8b1d8ed5f8.png"
+alt="top4" /> 読み込みボタンです。
+<em>.2020ファイルと、</em>.png、<em>.gif、</em>.jpgファイルを読み込むことができます。
+-
+ファイルをドラッグ&amp;ドロップでウィンドウにドラッグして読み込むこともできます。
+-
+プログラムで対応する最大解像度は2000x2000で、画像がこの解像度を超える場合は強制的にリサイズされます。</p>
+<p><img
+src="./images/172030686-8f981783-6048-4de3-bb8d-23c1dd409d51.png"
+alt="top5" />
+クリップボードにコピーされた画像があれば、このボタンが有効になります。 -
+また、イメージファイルと*.2020ファイルがクリップボードにコピーされていても有効になります。
+- ショートカットキーは<code>Ctrl+V</code>です。</p>
+<p><img
+src="./images/172030687-d3b7111e-4fc6-4c18-b68c-14180fb7310f.png"
+alt="top6" /> 新しいファイルを作成するボタンです。
+ショートカットキー「ESC」または「Delete」を2回押してもいいです。 -
+新しいファイルが作成されると、既存のイメージとリプレイデータが完全に消えるので、使用する前にデータを保存してください。</p>
+<p><img
+src="./images/172030688-4ea49673-d713-43e0-a183-c44a3e64f53e.png"
+alt="top7" /> 格子表示ボタンです。
+押すたびに格子間隔が変わったり消えたりします。</p>
+<p><img
+src="./images/172030689-a9b4d7f1-94f3-4d62-9201-f90a6be0b898.png"
+alt="top8" /> ツールメニューの位置を左右に変更するボタンです。</p>
+<p><img
+src="./images/172030690-fd0b5d3f-943a-4b56-a8af-77a4c6fa2ea4.png"
+alt="top9" /> ツールメニューを隠すボタンです。 -
+カーソルをウィンドウの端に移動すると、ツールメニューが表示されます。</p>
+<p><img
+src="./images/172030691-465cac10-e671-4484-847e-e35e3300c03e.png"
+alt="top10" /> インターフェースの色を変えるボタンです。</p>
+<p><img
+src="./images/193263209-f46148ca-29fd-455f-80c6-29ef02db7948.png"
+alt="newwindow" /> 新しい窓を表示します。 -
+キャンバスイメージを確認できるウィンドウです。 -
+ウィンドウの中を右クリックするとウィンドウのサイズが画像に合わせて調整されます。
+- ウィンドウが活性化された状態でescキーを押すとウィンドウが閉じます。 -
+ウィンドウ内部をクリック+ドラッグすると、ウィンドウの位置を移動させることができます。</p>
+<p><img
+src="./images/172030693-09d0e2f3-2253-4edc-8075-08706e54c4ff.png"
+alt="top11" /> アプリの情報を示すボタンです。 -
+言語別にマニュアルを見られ、アプリを初期化するボタンがあります。 -
+新しいバージョンが検出されると、感嘆符表示に変わります。
+アップデート内容によっては、アプリが初期化される場合がありますので、更新する前にデータを保存してください。
+-
+アップデートに失敗した場合は、ランタイムを最新バージョンにインストールしてください。
+https://airsdk.harman.com/runtime</p>
+<h2 id="ᅟreplayモード">ᅟReplayモード</h2>
+<p><img
+src="./images/172031161-5004d7bf-8fde-4084-be14-53f83cbeb5ef.png"
+alt="rep1" /> 現在描かれている画像をキャプチャするボタンです。</p>
+<p><img
+src="./images/172030687-d3b7111e-4fc6-4c18-b68c-14180fb7310f.png"
+alt="top6" />
+現在描かれている画像を最初にして、新しいファイルを作成します。 -
+新しいファイルが作成されると、既存のイメージとリプレイデータが完全に消えるので、使用する前にデータを保存してください。</p>
+<p><img
+src="./images/181043728-64851b97-a830-4b4c-9919-1a7f167ff661.png"
+alt="rep3-1" /> データの前/後の部分を消去するボタンです。 -
+フレーム探索バーで望む時点に移動した後にこのボタンを2秒間押してください。
+-
+このボタンを使って残したい部分のデータを編集することができます。もちろん描画モードで描いている絵にも影響があるのでご注意ください。
+-
+データの以後の消しボタンはUndoと同じく作動します。使用すると、描画モードで描いている絵がリプレイが描かれている時点に戻ります。
+- 消去されたデータは復元できませんので、ご注意してご使用ください。</p>
+<p><img
+src="./images/172031166-a63af1b2-1472-45fe-970d-e3eeb239180c.png"
+alt="rep5" />
+キャンバスを拡大/縮小するボタンです。マウス右クリックでズームをリセットできます。</p>
+<p><img
+src="./images/197422680-0d6a2568-fb22-4f8b-a784-24a7b76984f7.png"
+alt="repfit" />
+キャンバスをウィンドウの中央に配置します。クリックするたび昨日をON/OFFします。</p>
+<p><img
+src="./images/172031167-42eb5419-d4c4-4585-9e67-f2ec0d9128de.png"
+alt="rep6" />
+キャンバスを回転するボタンです。クリックした後ドゥジュエウにドラッグしてください。</p>
+<p><img
+src="./images/172031275-edcaa712-2755-40d6-b1fe-d06594a7ada0.png"
+alt="rep7" /> リプレイをストローク単位に移動するボタンです。
+このボタンを右クリックするか、<code>Shift</code>キーを押したままクリックすると、1フレーム単位で探索することができます。</p>
+<p><img src="./images/71df26b1-f3be-48f7-8d9b-fa2cf6b68f1e"
+alt="reprepeat" />
+このボタンが有効になったら、リプレイが終了した時、１０秒後にまた再生します。</p>
+<p><img
+src="./images/172031160-b73481cd-691d-4c1a-b74c-52a72e317ea5.png"
+alt="rep0" /> リプレイ再生速度を調節 -
+再生時間が短い場合は活性化されません。</p>
+<h2 id="キャプチャモード">キャプチャモード</h2>
+<figure>
+<img src="./images/c3b5ad3f-3422-49d0-af28-ca2f97d88f90" alt="image" />
+<figcaption aria-hidden="true">image</figcaption>
+</figure>
+<ul>
+<li>キャンバスをクリックすると画像を保存できます。</li>
+<li>キャンバスにクリック+ドラッグして領域指定を行うことができます。</li>
+<li>キャンバス領域内をクリック+ドラッグして領域を移動するか、領域の右下にあるオレンジ色のボタンをクリック+ドラッグしてサイズを変更できます。</li>
+<li>選択範囲を解除するにはキャンバスを右クリックします。</li>
+</ul>
+<p><img
+src="./images/172031636-159bcc58-899a-4615-b4f2-a90c0a95ffd2.png"
+alt="cap1" /> キャプチャモードを終了するボタンです。</p>
+<p><img
+src="./images/172031637-c89edf44-6af9-4db8-8483-76dfa43a1ab9.png"
+alt="cap2" /> 全体のイメージを保存するボタンです。 -
+キャプチャモードでイメージにクリック+ドラッグで領域を指定して保存することもできます。</p>
+<p><img
+src="./images/192659795-1ddcd674-aa1d-4814-809d-8d75104d74bd.png"
+alt="capclip" />
+全体または選択された領域をクリップボードにコピーします。
+クリックすると重複コピーを防止するためにボタンが無効になり、領域を新たに選択したり、画像が回転/反転などになった場合、再び活性化されます。</p>
+<p><img
+src="./images/172031638-48288a0b-c7d9-431f-817d-fbf3802b1794.png"
+alt="cap3" /> イメージを回転するボタンです。</p>
+<p><img
+src="./images/172031639-2c49e674-516c-4149-98f4-c1d61235c15e.png"
+alt="cap4" /> 画像を左右反転するボタンです。</p>
+<p><img
+src="./images/172031641-8f54a9b4-b811-4abb-bc5e-44b9dc314ff1.png"
+alt="cap5" /> 背景色を透明にするボタンです。</p>
+<p><img src="./images/693f7d7e-371a-47de-97f8-f193857fb3e5"
+alt="capstamp1" /> 画像にスタンプを追加します。
+コメントを2行まで作成でき、保存された日付とアプリのバージョンも一緒に表示されます。</p>
+<h1 id="lassoの使い方">Lassoの使い方</h1>
+<ul>
+<li>Lassoツールを選択して(または<code>R</code>,<code>Y</code>キーを押したまま）好きな領域を描くとメニューが表示されます。</li>
+<li>メニューが表示された状態でキャンバス部分をクリック+ドラッグすると領域内の画像が動きます。</li>
+</ul>
+<p><img
+src="./images/193026133-b5f0cd8c-99da-4222-b698-afa908afbba1.png"
+alt="lassotrace" />
+選択した領域の画像を参考レイヤーに移動させます。参考レイヤーに画像が描かれている場合は、その上に描かれます。</p>
+<p><img src="./images/eb9edd50-6f24-4349-adde-4f185ebde616"
+alt="lassolayerswap" /> 選択した領域のレイヤー位置を交換します。
+誤って2番レイヤーに線画を描いた場合、この機能を利用して画像の一部を1番レイヤーに移動させることができます。でもほかのレイヤーが見えないか、チェックされている場合は使用できません。</p>
+<p><img src="./images/fdeeaee1-9d0f-4a36-b533-6b278e92650b"
+alt="lassolayermerge" /> 選択した領域のレイヤーを 2
+番のレイヤーにまとめます。</p>
+<p><img
+src="./images/174497388-def91772-41ce-4e92-86b1-81eca1077fe4.png"
+alt="lasso3" /> 選択された領域を左右反転します。</p>
+<p><img
+src="./images/174497389-a055bff9-92ca-49d5-8d6d-83720849a452.png"
+alt="lasso4" /> 選択された領域を1ピクセルずつ動きます。</p>
+<p><img
+src="./images/174497390-f101fb73-5c53-40d7-a7a3-83da82139763.png"
+alt="lasso5" /> 選択された領域をコピーします。</p>
+<p><img
+src="./images/174497392-b4bdc991-5f08-43fc-b9e2-61a11d1cb5d3.png"
+alt="lasso6" /> 選択された領域を回転したり拡大/縮小します。</p>
+<h1 id="参考レイヤーの使い方">参考レイヤーの使い方</h1>
+<ul>
+<li>FOFOペイントは絵を描くことのできる本レイヤーが一つあって、参考レイヤーは、本レイヤー下側に位置します。</li>
+<li>言葉そのまま参考にできるレイヤーにより、きれいに線を取ったりしときに使われたレイヤです。</li>
+<li>ツールメニューで参考レイヤー(Reference
+layer)を選択すると、ウィンドウが表示されます。</li>
+</ul>
+<p><img
+src="./images/172031885-570f0c39-afdd-4893-a806-31cbfbc3d159.png"
+alt="ref1" /> 現在の画像を参考にレイヤーに移動させるボタンです。 -
+参考レイヤーに画像が描かれている場合は、その上に描き続けます。 -
+Undoボタンを押すと、消えた画像を復元することができます。 -
+本レイヤーに下絵を描き、このボタンを押して画像を参考レイヤーに送り、その絵を参考にしてきれいに絵を描くことができます。</p>
+<p><img
+src="./images/172031887-b4bcd7ca-7d65-40e1-95d1-ad2cb350d339.png"
+alt="ref2" /> 参考レイヤーに別の画像を表示するボタンです。 -
+参考にレイヤーにある画像が消され、読み込んだ画像が新しく描かれます。 -
+トレーシングの練習をしようとする時、イメージをこのボタンを利用して画像を読み込みます。</p>
+<p><img
+src="./images/172031888-515b753c-9d8b-4d6a-b03c-16891d27dde9.png"
+alt="ref3" />
+クリップボードにコピーされた画像を参考レイヤーにコピーするボタンです。 -
+クリップボードにコピーされた画像がある場合、このボタンが有効になります。</p>
+<p><img
+src="./images/172031890-968b6647-e8af-49ad-b6ed-6bb545eeb6ce.png"
+alt="ref5" /> メモリートレーニングのボタンなのです。 -
+このボタンを押して目が閉じたら絵を描く時ごとに参考レイヤーが見えないようになります。トレーシングの練習をする時の形を記憶する練習をすることができます。</p>
+<p><img
+src="./images/172031891-f2ff7470-a28e-4fea-8617-954a71a2e7af.png"
+alt="ref6" /> 参考レイヤーの画像を消すボタンです。</p>
+<p><img
+src="./images/172032165-11d5e768-687e-4b4f-8e86-136e0c9e3c9a.png"
+alt="ref7" /> 参考レイヤーの透明度を調節 -
+参考レイヤーに新しいイメージがコピーされれば、透明度が50%へと下方修正されます。</p>
+<h1 id="キャンバスサイズ調節">キャンバスサイズ調節</h1>
+<ul>
+<li><p><code>Ctrl</code>キーを押すか、マウスの右クリックを1秒ほど押すと、キャンバス周辺に枠が現れます。</p></li>
+<li><p>そして、お好みの枠をクリック+ドラッグしてキャンバスをお好みの大きさに調整します。
+対角線調整はできず、縦または横のみの調整が可能です。</p></li>
+<li><p><code>Ctrl</code>キーを離したり、マウスの右クリックを離したりすると、キャンバスのサイズ調整が終了します。</p></li>
+<li><p>キャンバスサイズを調整するとき、キャンバス周りの格子線にカーソルを当てると、一定比率に合わせて調整できます。
+<img src="./images/198891449-27a86ac2-bc51-40e8-acdf-47e1ebe326cc.gif"
+alt="snapresize" /></p></li>
+</ul>
+<h1
+id="アプリのウィンドウサイズのスケーリングを設定">アプリのウィンドウサイズのスケーリングを設定</h1>
+<p>・高解像度モニターでウィンドウサイズのスケールを125%以上に設定した場合に、FOFO
+Paint UIのスケールを1:1にするかどうかを設定します。</p>
+<ul>
+<li><p>fofopaint.exe ファイルを見つけます。
+デフォルトのインストールを行った場合は、C:Files
+(x86)にあります。</p></li>
+<li><p>fofopaint.exe を右クリックし、[プロパティ] に移動します。
+「互換性」タブをクリックします。</p></li>
+<li><p>[高 DPI 設定の変更]
+をクリックします。新しいウィンドウの下部にある [DPI オーバーライド]
+タブがアクティブな場合、FOFO PAINT アプリの UI は 1:1
+のスケーリングを維持し、
+チェックを外すとウィンドウサイズの倍率に合わせて少し拡大されます。</p></li>
+<li><p>高 DPI
+設定が変更されない場合は、「すべてのユーザーに対して変更」をクリックし、再度高
+DPI 設定の変更をクリックして設定してください。</p></li>
+</ul>
+<h1 id="手動でアプリ初期化">手動でアプリ初期化</h1>
+<ul>
+<li><p>Windowsオペレーティングシステムの場合、&lt;
+C:&lt;ユーザー名&gt;&gt;または&lt;
+%appdata%&gt;パスに行くとファイルがあります。これらのファイルをすべて削除してアプリを起動すると、アプリが初期化されます。</p></li>
+<li><p>あるいは、ファイル検索で”repdata”という名前を検索し、その位置に移動してファイルをすべて消してください。</p></li>
+</ul>
+<p>#デフォルトアプリの設定 - Windowsのユーザーベースの説明です。 -
+ファイルを保存すると<em>.2020ファイルが生成されますが、このファイルをダブルクリックすると、どのアプリを接続するかを選択できます。
+- pcでアプリ選択ボタンをクリックした後、fofo
+paintインストールパス（C：¥Program
+Files（x86）¥fofoPaint）に移動し、fofopaint.exeをクリックします。 -
+基本アプリが正しく選択された場合</em>.2020拡張子ファイルのアイコンが縞柄のしっぽのポポちゃんに変更されます。
+- *.2020ファイルをダブルクリックして実行すると、fofo
+paintアプリが起動し、ドラッグ＆ドロップメニューが表示されます。 -
+既存に保存されていた画像を保存せずにロードするには「load
+file」をクリックし、保存してロードするには「save and load
+file」を選択します。 - transfer to reference
+layerは画像を参照レイヤーに転送するボタンです。</p>
+</body>
+</html>

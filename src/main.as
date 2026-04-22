@@ -67,7 +67,7 @@
 
     public class Main extends Sprite
     {
-        public const  APP_VERSION:Number = 27.11;
+        public const  APP_VERSION:Number = 27.12;
         public const  APP_STATE_VERSION:Number = 2701;
 
         public const  TOOL_NONE:int = 0,
@@ -9101,6 +9101,7 @@
                 case "jp":
                 case "eng":
                 case "aboutHomePageLink":
+                case "aboutManualFolder":
                 // case "aboutMeLink":
                     handleMouseClick(targetName);
                 break;
@@ -9234,6 +9235,18 @@
             startPressHoldKey((!fromShortcut)?topBar.newFileButton:null,HintStrings.getNewFileHintString(),null,clearData,null);
         }
 
+        public function openLocalManualFolder():void
+        {
+            var targetFolder:File = File.applicationDirectory.resolvePath("manual");
+            trace("targetFolder",targetFolder);
+
+            if (targetFolder.exists && targetFolder.isDirectory)
+            {
+                var request:URLRequest = new URLRequest(targetFolder.url);
+                navigateToURL(request);
+            } 
+        }
+
         public function handleMouseClick(targetName:String):void
         {
             if(isAboutBoxOpened)
@@ -9242,6 +9255,8 @@
                 {
                     stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUpAboutBox);
                     const upTargetName:String = e.target.name;
+                    trace("upTargetName",upTargetName);
+
                     if(targetName === upTargetName)
                     {
                         switch(targetName)
@@ -9276,6 +9291,10 @@
 
                             case "aboutHomePageLink":
                                 navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/"));
+                            break;
+
+                            case "aboutManualFolder":
+                                openLocalManualFolder();
                             break;
 
                             // case "aboutMeLink":

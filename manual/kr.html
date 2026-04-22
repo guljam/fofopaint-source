@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>kr</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">kr</h1>
+</header>
+<h1 id="필수세팅">필수세팅</h1>
+<p>와콤 드라이버 설정 창을 열고 맵핑 탭의 <strong>Windows 잉크 사용
+체크를 해제</strong>해 주세요, 사용 시 선이 이상하게 그어집니다.</p>
+<p>타블렛 사용시 펜 버튼에 마우스 오른쪽 키를 설정해 주세요. 툴 선택과
+일부 기능은 마우스 오른쪽 버튼을 사용해야 편리합니다.</p>
+<h1 id="툴-선택-방법">툴 선택 방법</h1>
+<figure>
+<img src="./images/193027299-7c0a4c8b-76fc-4843-b01a-cf323483f8cc.png"
+alt="newtool2" />
+<figcaption aria-hidden="true">newtool2</figcaption>
+</figure>
+<p>캔버스에 커서를 두고 마우스 오른쪽 클릭을 누르면 툴 메뉴가
+나타납니다.</p>
+<p>선택하고 싶은 툴 아이콘에 커서를 이동한 후 마우스 오른쪽 버튼을 떼면
+선택됩니다.</p>
+<p>캔버스 이동은 밝은 부분을 아무데나 클릭 후 드래그 하면 됩니다.
+(마우스 왼쪽+오른쪽 클릭 상태가 됨)</p>
+<p>줌 툴, 회전 툴, 이미지 이동 툴은 캔버스 이동이 되지 않으며 툴 고유
+기능을 사용합니다. (드래그를 이용)</p>
+<p>채우기펜(fill-pen) 사용법은 툴을 선택후 캔버스에 원하는 영역을
+그립니다. 클릭을 하면 다각형을 그릴 수 있습니다. 오른쪽 클릭을 하면
+아이콘 3개가 나타나는데, undo버튼을 누르게 되면 그린 영역을 이전으로
+돌릴 수 있습니다. OK버튼에 커서를 올려놓고 클릭을 떼면 채우기가
+완료됩니다.</p>
+<p>라소툴 사용법은 <a href="#라소툴-사용법">여기</a>를 클릭</p>
+<p>빠른 사이드 바(Quick side bar)는 측면에 있는 사이드 바를 현재 마우스
+커서로 이동 시킵니다. 마우스 오른쪽 클릭을 하거나 사이드바 바깥 쪽을
+클릭하면 원래 위치로 되돌아갑니다.</p>
+<p>괄호 안의 알파벳은 (오른손잡이 단축키, 왼손잡이 단축키) 입니다.</p>
+<h1 id="단축키">단축키</h1>
+<figure>
+<img src="./images/724ea577-bdac-49ad-b8c6-0e72999be1f3"
+alt="keylayout3" />
+<figcaption aria-hidden="true">keylayout3</figcaption>
+</figure>
+<p>녹색 영역은 오른손잡이, 파란색 영역은 왼손잡이용 입니다. 기본적으로
+키를 누르면 있으면 기능이 활성화되고, 떼면 꺼집니다. 버튼에 커서를 두면
+힌트가 나타납니다. 해당 힌트 단축키 설명을 참고하세요.</p>
+<h2 id="기본-단축키">기본 단축키</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">단축키</th>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">단축키</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">그리기 또는 리플레이 모드</td>
+<td style="text-align: left;"><code>F1</code> 또는 <code>F7</code></td>
+<td style="text-align: left;">캡쳐 모드</td>
+<td style="text-align: left;"><code>Ctrl+C</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">파일 저장</td>
+<td style="text-align: left;"><code>Ctrl+S</code></td>
+<td style="text-align: left;">다른이름으로 저장</td>
+<td style="text-align: left;"><code>Ctrl+Shift+S</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">파일 불러오기</td>
+<td style="text-align: left;"><code>Ctrl+O</code></td>
+<td style="text-align: left;">클립보드에서 이미지 불러오기</td>
+<td style="text-align: left;"><code>Ctrl+V</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="그리기-모드-단축키">그리기 모드 단축키</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">단축키</th>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">단축키</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">레이어 1 선택</td>
+<td style="text-align: left;"><code>1</code> 또는 <code>9</code></td>
+<td style="text-align: left;">레이어 2 선택</td>
+<td style="text-align: left;"><code>2</code> 또는 <code>0</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">단독 레이어만 보기/해제</td>
+<td style="text-align: left;">레이어 선택 키를 여러번 누름</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">지우개 툴</td>
+<td style="text-align: left;"><code>D</code> 또는 <code>J</code></td>
+<td style="text-align: left;">라소 툴</td>
+<td style="text-align: left;"><code>R</code> 또는 <code>Y</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">직선 툴</td>
+<td style="text-align: left;"><code>Shift</code></td>
+<td style="text-align: left;">색 뽑기 툴</td>
+<td style="text-align: left;"><code>C</code> 또는 <code>M</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">투명색 선택 또는 취소</td>
+<td style="text-align: left;"><code>C</code>+<code>Space</code> 또는
+<code>M</code>+<code>Space</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">참고 레이어 메뉴 보이기/숨기기</td>
+<td style="text-align: left;"><code>T</code></td>
+<td style="text-align: left;">채우기 펜</td>
+<td style="text-align: left;"><code>Q</code> 또는 <code>O</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">펜 크기 조절</td>
+<td style="text-align: left;"><code>F</code> <code>V</code> 또는
+<code>H</code> <code>N</code></td>
+<td style="text-align: left;">지우개 크기 조절</td>
+<td style="text-align: left;"><code>D</code>+<code>F</code>
+<code>V</code> 또는 <code>J</code>+<code>H</code> <code>N</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">펜 투명도 조절</td>
+<td style="text-align: left;"><code>G</code> <code>B</code></td>
+<td style="text-align: left;">지우개 투명도 조절</td>
+<td style="text-align: left;"><code>D</code>+<code>G</code>
+<code>B</code> 또는 <code>J</code>+<code>G</code> <code>B</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">캔버스 확대/축소</td>
+<td style="text-align: left;"><code>W</code> 또는 <code>I</code></td>
+<td style="text-align: left;">캔버스 이동</td>
+<td style="text-align: left;"><code>Space</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">캔버스 좌우 반전</td>
+<td style="text-align: left;"><code>A</code> 또는 <code>L</code></td>
+<td style="text-align: left;">캔버스 회전</td>
+<td style="text-align: left;"><code>S</code> 또는 <code>K</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">캔버스 이미지 이동</td>
+<td style="text-align: left;"><code>E</code> 또는 <code>Y</code></td>
+<td style="text-align: left;">캔버스 크기 조절</td>
+<td style="text-align: left;"><code>Ctrl</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">작업취소</td>
+<td style="text-align: left;"><code>Z</code> 또는 <code>.</code></td>
+<td style="text-align: left;">되돌리기</td>
+<td style="text-align: left;"><code>X</code> 또는 <code>,</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">빠른 사이드바</td>
+<td style="text-align: left;"><code>S</code>+<code>D</code> 또는
+<code>J</code>+<code>K</code> 또는 <code>6</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="리플레이-모드-단축키">리플레이 모드 단축키</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">단축키</th>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">단축키</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">리플레이 재생 시작/정지</td>
+<td style="text-align: left;"><code>Enter</code> 또는 <code>Space</code>
+또는 캔버스 부분을 오른쪽 클릭</td>
+<td style="text-align: left;">재생속도 조절</td>
+<td style="text-align: left;"><code>↑</code> <code>↓</code> 또는
+<code>F</code> <code>V</code> 또는 <code>H</code> <code>N</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">스트로크 단위로 프레임 탐색</td>
+<td style="text-align: left;"><code>←</code> <code>→</code> 또는
+<code>Z</code> <code>X</code> 또는 <code>.</code> <code>,</code></td>
+<td style="text-align: left;">1프레임 단위로 탐색</td>
+<td style="text-align: left;"><code>Shift</code>를 누른채로 왼쪽의 항목
+키를 누름</td>
+</tr>
+</tbody>
+</table>
+<h2 id="캡쳐-모드-단축키">캡쳐 모드 단축키</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">단축키</th>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">단축키</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">전체(선택 영역) 이미지 저장</td>
+<td style="text-align: left;"><code>Ctrl+S</code> 또는
+<code>Ctrl+;</code></td>
+<td style="text-align: left;">클립보드로 복사</td>
+<td style="text-align: left;"><code>Ctrl+C</code> 또는
+<code>Ctrl+,</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">나가기</td>
+<td style="text-align: left;"><code>ESC</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<h1 id="펜-옵션">펜 옵션</h1>
+<p><img
+src="./images/172030469-9247dc93-544c-40dd-969b-83e155b53aae.png"
+alt="penoption1" /> 펜 모양과 크기, 손 떨림 보정 강도를 조절합니다.</p>
+<p><img
+src="./images/233364028-86793b20-593e-4902-a764-cc1fe170a49a.jpg"
+alt="layerfunc" /> - 레이어 선택 상자입니다. 가장 왼쪽의 화살표는 레이어
+1번과 2번의 이미지를 서로 바꾸는 기능입니다.</p>
+<ul>
+<li><p>글씨를 클릭하면 레이어가 선택됩니다. 중복으로 클릭하면 해당
+레이어만 보기/해제가 가능합니다.</p></li>
+<li><p>체크표시된 사각형 박스는 박스가 체크되면 이미지 이동 툴(move
+image)과 라소 툴(lasso)만 활성화 됩니다. 이 두개의 툴은 레이어 1번과 2번
+전부 이미지를 수정합니다. 하지만 체크 표시가 켜져 있을경우 해당 레이어만
+수정이 가능합니다.</p></li>
+<li><p>오른쪽에 있는 화살표를 클릭하면 1번 레이어의 이미지가 2번
+레이어에 합쳐집니다.</p></li>
+</ul>
+<p><img
+src="./images/172030482-c152ee3f-711a-4529-a93b-fd19ba2289a4.png"
+alt="penoption3" /> 선의 느낌이 날카로워 집니다.</p>
+<p><img
+src="./images/172030486-0e6b2f5f-f2f8-4138-8566-b1ae9fbf72e4.png"
+alt="penoption4" /> 선의 윤곽이 흐려집니다.</p>
+<p><img
+src="./images/193265927-55ffbbae-2465-4acf-9cbb-4035b78c4bb5.png"
+alt="opabutton2" /> 펜 투명도를 조절 합니다</p>
+<h1 id="색-선택기">색 선택기</h1>
+<figure>
+<img src="./images/f8c55682-4011-4e40-8b3c-ca64b17534f8" alt="color1" />
+<figcaption aria-hidden="true">color1</figcaption>
+</figure>
+<ul>
+<li>Paper 아이콘을 클릭한 후 색을 선택하면 배경색이 바뀝니다.</li>
+<li>Pen 아이콘을 클릭한 후 색을 선택하면 펜 색깔이 바뀝니다.</li>
+<li>Pen 아이콘 아랫쪽에 있는 작은 박스를 클릭하면 변경되기 전의 색이
+선택됩니다.</li>
+<li>체크무늬 아이콘을 선택하면 투명색을 선택할 수 있습니다. 지우개와
+기능과 동일하지만, 직선 툴 또는 채우기 펜(fill pen)에서도 지우개와 같이
+색을 지울 수 있습니다.</li>
+<li>투명색은 다른 색을 선택하면 취소됩니다.</li>
+<li>“RGB 0,0,0” 부분을 클릭하면 수동으로 RGB값을 입력할 수
+있습니다.</li>
+<li>“RGB 0,0,0” 부분에서 ’RGB’단어를 클릭할 때마다 RGB와 HSV로 전환 할
+수 있습니다. 값을 전환하는 과정에서 1정도 오차가 날 수 있습니다.</li>
+<li>수동으로 RGB값을 변경할 때 화살표 좌우 키 또는 tab키로 r g b항목
+이동 할 수 있으며, 화살표 위 아래키로 1씩 값을 증가, 감소 할 수
+있습니다. 화살표키 대신 W A S D, I J K L키도 똑같이 사용
+가능합니다.</li>
+<li>입력 값을 완료 하려면 다른 곳을 클릭하거나, Esc 또는 Enter 또는
+Space키를 누르세요.</li>
+</ul>
+<figure>
+<img src="./images/6a4664c6-35a5-45a9-b129-08a988b65dd1"
+alt="mypalette" />
+<figcaption aria-hidden="true">mypalette</figcaption>
+</figure>
+<ul>
+<li>마이팔레트는 색을 90개까지 저장합니다.</li>
+<li>“my palette” 버튼을 중복 클릭하면 숨겨진 팔레트 영역이 펼치거나 숨길
+수 있습니다.</li>
+<li>색을 선택한 후, 마이팔레트 상자에 길게 클릭하면 색을 수동으로 등록할
+수 있습니다.</li>
+<li>해당 칸을 계속 길게 클릭하면 새로운 색 - 투명색 - 이전색이 반복되며
+등록됩니다.</li>
+<li>색을 클릭 + 드래그 하여 색 위치를 이동시킬 수 있습니다.</li>
+<li>“my palette”버튼을 약 2초간 길게 클릭 하면 팔레트의 색상을 모두 지울
+수 있습니다.</li>
+</ul>
+<figure>
+<img src="./images/133b1de9-3615-4084-a1aa-a34e60871ff8" alt="numpad" />
+<figcaption aria-hidden="true">numpad</figcaption>
+</figure>
+<ul>
+<li>“RGB 0,0,0” 부분을 클릭하면 색을 수동으로 입력하면 숫자패드가
+나옵니다.</li>
+<li>클립보드에 hex값을 적용하는 버튼과 OKLCH슬라이더가 있습니다.</li>
+<li>OKLCH는 인간친화적인 색상 모델입니다 LCH는 밝기(Lightness)
+Chroma(채도) Hue(색조)의 약자이며, HSV시스템과 비슷하지만 색상을
+변경할때 자연스러운 색상으로 즉시 변경할수 있습니다</li>
+<li>해당 앱에 탑재된 OKLCH컬러 슬라이더는 기본적인 수치계산 기능만
+제공하며 수치에 따라서 과채도나 색상 왜곡이 발생할 수 있으나 정상적인
+동작입니다</li>
+</ul>
+<h1 id="상단-메뉴">상단 메뉴</h1>
+<h2 id="그리기-모드">그리기 모드</h2>
+<p><img
+src="./images/172030682-9760978c-5b9d-4900-8059-fb250bb2143c.png"
+alt="top1" /> <img
+src="./images/172030709-76a58bd2-f5fd-459b-b43a-3a33043fbab2.png"
+alt="top1-1" /> 리플레이 모드, 그리기 모드로 변경하는 버튼입니다.</p>
+<p><img
+src="./images/172030683-7ccb08e5-1db5-49c4-9631-c1c4d21fff26.png"
+alt="top2" /> 캡쳐모드로 변경하는 버튼입니다.</p>
+<p><img
+src="./images/172030684-fa7e8eff-43a8-4644-ba35-24b4e4b5d90e.png"
+alt="top3" /> 저장 버튼입니다. 처음 저장할 때만 경로와 이름을 묻고, 그
+다음에 클릭할때는 처음 지정한 경로와 이름으로 저장됩니다. - 새로운
+경로와 이름으로 저장하고 싶다면, 저장 버튼을 오른쪽 클릭하거나 단축키
+<code>Ctrl+Shift+S</code>를 누르세요. - <em>.png 파일과 </em>.2020 파일,
+2개를 저장합니다. 2020 확장자의 파일은 원본 이미지와 리플레이 데이터를
+담고 있습니다. 이어서 그릴경우 *.2020 파일을 불러오는것을 권장합니다. -
+이미지크기와 리플레이 파일이 클 경우 저장시간이 오래 걸릴 수 있습니다.
+저장하는 과정에서는 일부 버튼이 비활성화 됩니다.</p>
+<p><img
+src="./images/172030685-dee55e5d-1d52-42af-a28a-ca8b1d8ed5f8.png"
+alt="top4" /> 불러오기 버튼입니다. <em>.2020 파일과, </em>.png,
+<em>.gif, </em>.jpg파일을 불러올 수 있습니다. - 파일을 드래그 &amp;
+드롭으로 창에 끌어놓아 불러올 수도 있습니다. - 프로그램에서 지원하는
+최대 해상도는 2000x2000이며, 이미지가 이 해상도를 넘을 시 강제로
+리사이즈 됩니다.</p>
+<p><img
+src="./images/172030686-8f981783-6048-4de3-bb8d-23c1dd409d51.png"
+alt="top5" /> 클립보드에 복사된 이미지가 있으면 이 버튼이 활성화 됩니다.
+- 또한, 이미지 파일과 *.2020파일이 클립보드에 복사 되어있어도 활성화
+됩니다. - 단축키는 <code>Ctrl+V</code>입니다.</p>
+<p><img
+src="./images/172030687-d3b7111e-4fc6-4c18-b68c-14180fb7310f.png"
+alt="top6" /> 새 파일을 만드는 버튼입니다. 단축키 <code>ESC</code> 또는
+<code>Delete</code>를 두 번 눌러도 됩니다. - 새 파일이 만들어지면 기존
+이미지와 리플레이 데이터가 완전히 사라지게 되니 사용하기 전에 데이터를
+저장하세요.</p>
+<p><img
+src="./images/172030688-4ea49673-d713-43e0-a183-c44a3e64f53e.png"
+alt="top7" /> 격자 표시 버튼입니다. 누를때 마다 격자 간격이 변하거나
+꺼집니다.</p>
+<p><img
+src="./images/172030689-a9b4d7f1-94f3-4d62-9201-f90a6be0b898.png"
+alt="top8" /> 툴 메뉴 위치를 좌/우로 변경하는 버튼입니다.</p>
+<p><img
+src="./images/172030690-fd0b5d3f-943a-4b56-a8af-77a4c6fa2ea4.png"
+alt="top9" /> 툴 메뉴를 감추는 버튼입니다. - 커서를 창의 가장자리에
+가져가면 툴 메뉴가 보여집니다.</p>
+<p><img
+src="./images/172030691-465cac10-e671-4484-847e-e35e3300c03e.png"
+alt="top10" /> 인터페이스의 색깔을 바꾸는 버튼입니다.</p>
+<p><img
+src="./images/193263209-f46148ca-29fd-455f-80c6-29ef02db7948.png"
+alt="newwindow" /> 새 창을 띄웁니다. - 캔버스 이미지를 확인 할 수 있는
+창입니다. - 새 창에 마우스 오른쪽 클릭 하면 창크기가 이미지에 맞춰
+조정됩니다. - 새 창이 활성화 된 상태에서 esc키를 누르면 창이 닫힙니다. -
+창 내부를 클릭+드래그 하면 창 위치를 이동 시킬 수 있습니다.</p>
+<p><img
+src="./images/172030693-09d0e2f3-2253-4edc-8075-08706e54c4ff.png"
+alt="top11" /> 프로그램 정보를 보여주는 버튼입니다. - 언어별로 설명서를
+볼 수 있고, 앱을 초기화 하는 버튼이 있습니다. - 새 버전이 감지되면
+느낌표 표시로 바뀝니다. 업데이트 내용에 따라서 앱이 초기화 되는 경우가
+있으니 업데이트 하기전에 작업을 저장하세요. - 업데이트 실패 할 경우
+런타임을 최신버전으로 설치 하시기 바랍니다.
+https://airsdk.harman.com/runtime</p>
+<h2 id="리플레이-모드">리플레이 모드</h2>
+<p><img
+src="./images/172031161-5004d7bf-8fde-4084-be14-53f83cbeb5ef.png"
+alt="rep1" /> 현재 그려지고 있는 이미지를 캡쳐 하는 버튼 입니다.</p>
+<p><img
+src="./images/172030687-d3b7111e-4fc6-4c18-b68c-14180fb7310f.png"
+alt="top6" /> 현재 그려지고 있는 이미지를 처음으로 하여 새 파일을
+만듭니다. - 새 파일이 만들어지면 기존 이미지와 리플레이 데이터가 완전히
+사라지게 되니 사용하기 전에 데이터를 저장하세요.</p>
+<p><img
+src="./images/181043728-64851b97-a830-4b4c-9919-1a7f167ff661.png"
+alt="rep3-1" /> 데이터 앞/뒤 지우기 버튼입니다. - 프레임 탐색막대에서
+원하는 시점으로 이동한 후에 이 버튼을 2초간 누르세요. - 이 버튼을
+이용하여 원하는 리플레이 데이터만 남길 수 있습니다. 이 버튼을 사용하면
+그리기 모드에서 그리고 있는 그림에도 영향이 있으므로 주의하세요. -
+데이터 뒤 지우기는 undo와 같은 기능을 합니다. 사용하면 그리기 모드에서
+그리고 있는 그림이 리플레이가 그려지고 있는 시점으로 돌아갑니다. -
+지워진 데이터는 복원할 수 없으니 주의해서 사용하세요.</p>
+<p><img
+src="./images/172031166-a63af1b2-1472-45fe-970d-e3eeb239180c.png"
+alt="rep5" /> 캔버스를 확대/축소하는 버튼입니다. 마우스 오른쪽 버튼을
+클릭하면 줌이 초기화 됩니다.</p>
+<p><img
+src="./images/197422680-0d6a2568-fb22-4f8b-a784-24a7b76984f7.png"
+alt="repfit" /> 캔버스를 창 중앙에 위치 시킵니다. 클릭 할 때마다
+켜지거나 꺼집니다.</p>
+<p><img
+src="./images/172031167-42eb5419-d4c4-4585-9e67-f2ec0d9128de.png"
+alt="rep6" /> 캔버스를 회전하는 버튼입니다. 클릭한 후 좌우로 드래그
+하세요.</p>
+<p><img
+src="./images/172031275-edcaa712-2755-40d6-b1fe-d06594a7ada0.png"
+alt="rep7" /> 리플레이를 스트로크 단위로 이동하는 버튼입니다. 이 버튼을
+오른쪽 클릭하거나, <code>Shift</code>키를 누른채로 클릭하면 1프레임
+단위로 탐색할 수 있습니다.</p>
+<p><img src="./images/71df26b1-f3be-48f7-8d9b-fa2cf6b68f1e"
+alt="reprepeat" /> 이 버튼이 활성화 되어있으면 리플레이가 종료되었을때
+10초 후에 다시 반복합니다.</p>
+<p><img
+src="./images/172031160-b73481cd-691d-4c1a-b74c-52a72e317ea5.png"
+alt="rep0" /> 리플레이 재생 속도를 조절 할 수 있는 막대 입니다. -
+재생시간이 짧은 경우에는 활성화되지 않습니다.</p>
+<h2 id="캡쳐-모드">캡쳐 모드</h2>
+<figure>
+<img src="./images/c3b5ad3f-3422-49d0-af28-ca2f97d88f90" alt="image" />
+<figcaption aria-hidden="true">image</figcaption>
+</figure>
+<ul>
+<li>캔버스를 클릭하면 이미지를 저장 할 수 있습니다.</li>
+<li>캔버스에 클릭+드래그를 하여 영역지정을 할 수 있습니다.</li>
+<li>캔버스 영역안을 클릭+드래그 하여 영역을 움직 이거나, 영역 오른쪽
+아래에 있는 주황색 버튼을 클릭+드래그 하여 크기를 조정 할 수
+있습니다.</li>
+<li>선택 영역 해제는 캔버스를 마우스 오른쪽 클릭을 하세요.</li>
+</ul>
+<p><img
+src="./images/172031636-159bcc58-899a-4615-b4f2-a90c0a95ffd2.png"
+alt="cap1" /> 캡쳐모드를 종료하는 버튼입니다.</p>
+<p><img
+src="./images/172031637-c89edf44-6af9-4db8-8483-76dfa43a1ab9.png"
+alt="cap2" /> 전체 이미지를 저장하는 버튼입니다. - 캡쳐 모드에서
+이미지에 클릭+드래그로 영역을 지정하여 저장할 수도 있습니다.</p>
+<p><img
+src="./images/192659795-1ddcd674-aa1d-4814-809d-8d75104d74bd.png"
+alt="capclip" /> 전체 또는 선택된 영역을 클립보드로 복사합니다. 클릭하면
+중복 복사를 방지 하기 위해서 버튼이 비활성화 되며, 영역을 새로
+선택하거나 이미지가 회전/반전 등이 된 경우 다시 활성화 됩니다.</p>
+<p><img
+src="./images/172031638-48288a0b-c7d9-431f-817d-fbf3802b1794.png"
+alt="cap3" /> 이미지를 회전하는 버튼입니다.</p>
+<p><img
+src="./images/172031639-2c49e674-516c-4149-98f4-c1d61235c15e.png"
+alt="cap4" /> 이미지를 좌/우 반전하는 버튼입니다.</p>
+<p><img
+src="./images/172031641-8f54a9b4-b811-4abb-bc5e-44b9dc314ff1.png"
+alt="cap5" /> 배경색을 투명하게 만드는 버튼입니다.</p>
+<p><img src="./images/693f7d7e-371a-47de-97f8-f193857fb3e5"
+alt="capstamp1" /> 이미지에 스탬프를 추가합니다. 코멘트를 2줄까지 작성할
+수 있고, 저장된 날짜와 앱의 버전도 같이 표시됩니다.</p>
+<h1 id="라소툴-사용법">라소툴 사용법</h1>
+<ul>
+<li>라소툴 버튼을 선택 후(또는 <code>R</code>, <code>Y</code> 키를
+누른채로) 영역을 그리면 메뉴가 나타납니다.</li>
+<li>메뉴가 나타난 상태에서 캔버스 부분을 클릭+드래그 하면 영역안의
+이미지가 움직입니다.</li>
+</ul>
+<p><img
+src="./images/193026133-b5f0cd8c-99da-4222-b698-afa908afbba1.png"
+alt="lassotrace" /> 선택한 영역의 이미지를 참고 레이어로 이동 시킵니다.
+참고 레이어에 이미지가 그려져 있을경우 그 위에 그려집니다.</p>
+<p><img src="./images/eb9edd50-6f24-4349-adde-4f185ebde616"
+alt="lassolayerswap" /> 선택된 영역의 레이어 위치를 교환합니다. 실수로
+2번 레이어에 선화를 그렸을 때, 이 기능을 이용해서 이미지의 일부를 1번
+레이어로 이동시킬 수 있습니다. 한쪽 레이어가 보이지 않거나, 체크되어있는
+경우는 사용 할 수 없습니다.</p>
+<p><img src="./images/fdeeaee1-9d0f-4a36-b533-6b278e92650b"
+alt="lassolayermerge" /> 선택된 영역의 레이어를 2번 레이어로
+합칩니다.</p>
+<p><img
+src="./images/174497388-def91772-41ce-4e92-86b1-81eca1077fe4.png"
+alt="lasso3" /> 선택된 영역을 좌우 반전합니다.</p>
+<p><img
+src="./images/174497389-a055bff9-92ca-49d5-8d6d-83720849a452.png"
+alt="lasso4" /> 선택된 영역을 1픽셀씩 움직입니다.</p>
+<p><img
+src="./images/174497390-f101fb73-5c53-40d7-a7a3-83da82139763.png"
+alt="lasso5" /> 선택된 영역을 복사합니다.</p>
+<p><img
+src="./images/174497392-b4bdc991-5f08-43fc-b9e2-61a11d1cb5d3.png"
+alt="lasso6" /> 선택된 영역을 회전하거나 확대/축소 합니다.</p>
+<h1 id="참고-레이어-사용법">참고 레이어 사용법</h1>
+<ul>
+<li>FOFO페인트는 그림을 그릴 수 있는 본 레이어가 하나있고, 참고 레이어는
+본 레이어 아랫쪽에 위치합니다.</li>
+<li>말 그대로 참고만 할 수 있는 레이어로 깔끔하게 선을 따거나 할때
+쓰이는 레이어입니다.</li>
+<li>툴 메뉴에서 참고레이어(Reference layer)를 선택하면 창이 뜹니다.</li>
+</ul>
+<p><img
+src="./images/172031885-570f0c39-afdd-4893-a806-31cbfbc3d159.png"
+alt="ref1" /> 현재의 이미지를 참고 레이어로 이동시키는 버튼입니다. -
+참고 레이어에 이미 이미지가 그려져 있을경우 그 위에 계속 그려집니다. -
+Undo버튼을 누르면 사라진 이미지를 복원 할 수 있습니다. - 본 레이어에
+밑그림을 그리고 이 버튼을 눌러 이미지를 참고 레이어로 보낸다음, 그
+그림을 참고하여 깔끔하게 그림을 그릴 수 있습니다.</p>
+<p><img
+src="./images/172031887-b4bcd7ca-7d65-40e1-95d1-ad2cb350d339.png"
+alt="ref2" /> 참고 레이어에 다른 이미지를 불러오는 버튼입니다. - 참고
+레이어에 있는 이미지 지워지고 불러온 이미지가 새롭게 그려집니다. -
+트레이싱 연습을 하고자 할때 이미지를 이 버튼을 이용하여 이미지를 불러올
+수 있습니다.</p>
+<p><img
+src="./images/172031888-515b753c-9d8b-4d6a-b03c-16891d27dde9.png"
+alt="ref3" /> 클립보드에 복사된 이미지를 참고레이어로 복사 하는
+버튼입니다 - 클립보드에 복사된 이미지가 있을경우 이 버튼이 활성화
+됩니다.</p>
+<p><img
+src="./images/172031890-968b6647-e8af-49ad-b6ed-6bb545eeb6ce.png"
+alt="ref5" /> 메모리 트레이닝 버튼입니다. - 이 버튼을 눌러 눈이 감겨지게
+되면 그림을 그릴 때마다 참고 레이어가 보이지 않게됩니다. 트레이싱 연습을
+할 때 형태를 기억하는 연습을 할 수 있습니다.</p>
+<p><img
+src="./images/172031891-f2ff7470-a28e-4fea-8617-954a71a2e7af.png"
+alt="ref6" /> 참고레이어의 이미지를 지우는 버튼입니다.</p>
+<p><img
+src="./images/172032165-11d5e768-687e-4b4f-8e86-136e0c9e3c9a.png"
+alt="ref7" /> 참고레이어의 투명도를 조절하는 막대입니다. - 참고 레이어에
+새로운 이미지가 복사되면 투명도가 50%로 재조정 됩니다.</p>
+<h1 id="캔버스-크기-조절">캔버스 크기 조절</h1>
+<ul>
+<li><p><code>Ctrl</code>키를 누르거나 마우스 오른쪽 클릭을 1초정도
+누르고 있으면 캔버스 주변에 테두리가 나타납니다.</p></li>
+<li><p>그 때 원하는 테두리를 클릭+드래그 하여 캔버스를 원하는 크기로
+조절합니다. 대각선 조정은 되지 않으며 가로 또는 세로만 조절
+가능합니다.</p></li>
+<li><p><code>Ctrl</code>키를 떼거나 마우스 오른쪽 클릭을 떼면 캔버스
+크기 조정이 종료됩니다.</p></li>
+<li><p>캔버스 크기를 조절할 때 캔버스 경계의 격자 선에 커서를 대면 일정
+비율에 맞게 조정이 가능합니다.</p></li>
+</ul>
+<figure>
+<img src="./images/198891449-27a86ac2-bc51-40e8-acdf-47e1ebe326cc.gif"
+alt="snapresize" />
+<figcaption aria-hidden="true">snapresize</figcaption>
+</figure>
+<h1 id="앱-창크기-배율-설정">앱 창크기 배율 설정</h1>
+<ul>
+<li><p>고해상도 모니터에서 창 크기배율을 125% 이상 설정했을때,
+포포페인트 UI배율을 1:1로 할지 안할지를 설정합니다.</p></li>
+<li><p>fofopaint.exe 파일을 찾습니다. 기본 설치를 했다면 C:Files
+(x86)경로에 있습니다.</p></li>
+<li><p>fofopaint.exe 오른쪽 클릭, 속성에 들어갑니다. 호환성 탭을
+클릭합니다.</p></li>
+<li><p>높은 DPI설정 변경을 클릭합니다, 새 창 아래에 DPI재정의 탭이
+활성화 되어있으면 FOFO PAINT 앱의 UI가 1:1배율 유지하고 체크가 해제
+되어있으면 윈도우 창크기의 배율에 따라 약간 확대되어 보입니다.</p></li>
+<li><p>만일 높은 DPI설정 변경이 되지 않는다면 “모든 사용자에 대한
+변경”을 클릭하여, 다시 높은 DPI설정 변경을 클릭해 설정합니다.</p></li>
+</ul>
+<h1 id="수동으로-앱-초기화">수동으로 앱 초기화</h1>
+<ul>
+<li><p>윈도우 운영체제의 경우 &lt; C: [사용자 이름] Store&gt; 혹은 &lt;
+%appdata%Store &gt; 경로로 가시면 파일들이 있습니다 이 파일들을 전부
+삭제 후 앱을 시작하면 앱이 초기화됩니다.</p></li>
+<li><p>혹은 파일 검색에서 “repdata”라는 이름을 검색한 후, 해당 위치로
+이동한뒤 파일들을 전부 지워주세요.</p></li>
+</ul>
+<h1 id="기본-앱-설정">기본 앱 설정</h1>
+<ul>
+<li>윈도우 사용자 기준 설명입니다.</li>
+<li>파일을 저장하면 *.2020파일이 생성되는데 이 파일을 더블클릭하면 어떤
+앱을 연결 할 것인지 선택 할 수 있습니다.</li>
+<li>pc에서 앱 선택 버튼을 클릭 후 fofo paint 설치경로(C:Files (x86))로
+이동하여 fofopaint.exe를 클릭합니다.</li>
+<li>기본 앱이 제대로 선택 되었다면 *.2020확장자 파일의 아이콘이 얼룩꼬리
+포포로 변경됩니다.</li>
+<li>*.2020파일을 더블클릭하여 실행하면 fofo paint앱이 실행되면서 드래그
+&amp; 드롭 메뉴가 나타납니다.</li>
+<li>기존에 저장되어있던 그림을 저장하지 않고 로드하려면 “load file”를
+클릭, 저장하고 로드하려면 “save and load file”을 선택합니다.</li>
+<li>“transfer to reference layer”는 로드 되는 이미지를 참고레이어로
+전송하는 버튼입니다.</li>
+</ul>
+</body>
+</html>

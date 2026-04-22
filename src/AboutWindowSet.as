@@ -13,6 +13,7 @@
 		public var releaseNoteButton:SimpleButton;
 		public var aboutMeLink:SimpleButton;
 		public var aboutHomePageLink:SimpleButton;
+		public var aboutManualFolder:SimpleButton;
 		public var logo1:SimpleButton;
 		public var logo2:SimpleButton;
 		public var logo3:SimpleButton;
