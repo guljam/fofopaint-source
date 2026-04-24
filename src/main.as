@@ -67,7 +67,7 @@
 
     public class Main extends Sprite
     {
-        public const  APP_VERSION:Number = 27.12;
+        public const  APP_VERSION:Number = 27.13;
         public const  APP_STATE_VERSION:Number = 2701;
 
         public const  TOOL_NONE:int = 0,
@@ -10081,6 +10081,11 @@
 
         public function fitCanvasToViewportMargin(fitting:Boolean=false):void
         {
+            if(!isReplayModeON && !isCaptureModeON)
+            {
+                return;
+            }
+
             const uiscale:Number = Global.getUIScale();
             const offsetX:Number = 44+STAGE_LEFT_OFFSET+STAGE_RIGHT_OFFSET;
             const offsetY:Number = (isCaptureModeON)? (topBar.BARSIZE)*uiscale+42*uiscale : (topBar.BARSIZE)*uiscale+42*uiscale;
@@ -10150,19 +10155,15 @@
                 isReplayFinishedWithFiwWindow = true;
             }
 
-            updateCanvasScale(scale,isReplayModeON);
-
             if(isCaptureModeON)
             {
+                updateCanvasScale(scale,isReplayModeON);
                 centerCanvas("capture");
             }
             else if(isReplayModeON)
             {
+                updateCanvasScale(scale,isReplayModeON);
                 centerCanvas("replay");
-            }
-            else
-            {
-                centerCanvas("draw");
             }
 
             if(!fitting || isReplayFinished)
