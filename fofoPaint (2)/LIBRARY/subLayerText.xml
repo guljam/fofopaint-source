@@ -1,0 +1,92 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="subLayerText" itemID="622dfc79-00000251" symbolType="button" lastModified="1701665572">
+  <timeline>
+    <DOMTimeline name="subLayerText" currentFrame="2">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="layerOptionsBG" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="2.28297424316406" d="1.29444885253906" tx="0.1"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.85" y="7.75"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="layer1TextIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="1.1" ty="4.3"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.15" y="5.9"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="1" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="layerOptionsBG" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="2.28297424316406" d="1.29444885253906" tx="0.1"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.85" y="7.75"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="layer1TextIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="1.1" ty="4.3"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.15" y="5.9"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="2" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="layerOptionsBG" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="2.28297424316406" d="1.29444885253906" tx="0.1"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.85" y="7.75"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="layer1TextIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="2.1" ty="5.3"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.15" y="5.9"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="3" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="layerOptionsBG" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="2.28297424316406" d="1.29444885253906" tx="0.1"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.85" y="7.75"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="layer1TextIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="1.1" ty="4.3"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.15" y="5.9"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

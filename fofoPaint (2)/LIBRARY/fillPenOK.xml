@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="fillPenOK" itemID="655955d6-000002ab" symbolType="button" lastModified="1700462034">
+  <timeline>
+    <DOMTimeline name="fillPenOK">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolmenuButton1" name="lassoResize" symbolType="button">
+                  <matrix>
+                    <Matrix a="2.68153381347656" d="1.78707885742188"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point y="0.05"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="okIcon" selected="true" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="0.999618530273438" d="0.9951171875" tx="19.65" ty="8.8"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="13.1" y="13.4"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

@@ -16,7 +16,7 @@
 	<text xml:lang="ja">Japanese App name goes here</text>
 	</name>
 -->
-<application xmlns="http://ns.adobe.com/air/application/51.3">
+<application xmlns="http://ns.adobe.com/air/application/51.1">
   <id>fofoPaint</id>
   <versionNumber>27.13</versionNumber>
   <filename>fofoPaint</filename>

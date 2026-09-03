@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="toolmenuChild/undoButton" itemID="5d0a3214-0000027e" symbolType="button" lastModified="1656809664">
+  <timeline>
+    <DOMTimeline name="undoButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolBoxBG2" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.449996948242188" d="0.449996948242188"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.2"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/icons/undoIcon" symbolType="button">
+                  <matrix>
+                    <Matrix a="-1.3458251953125" d="1.39129638671875" tx="38.3" ty="13.9"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.8" y="4.65"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

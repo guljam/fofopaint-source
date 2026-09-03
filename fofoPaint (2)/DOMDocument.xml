@@ -1,0 +1,362 @@
+<DOMDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" backgroundColor="#CCCCCC" width="10" height="10" frameRate="30" currentTimeline="1" xflVersion="23.0" creatorInfo="Adobe Animate" platform="Windows" versionInfo="Saved by Animate Windows 24.0 build 5" majorVersion="24" buildNumber="5" guidesLocked="true" timelineLabelWidth="250" viewAngle3D="9.97498251304855" vanishingPoint3DX="5" vanishingPoint3DY="5" nextSceneIdentifier="2" playOptionsPlayLoop="false" playOptionsPlayPages="false" playOptionsPlayFrameActions="false" filetypeGUID="DD0DDBBF-5BEF-45B2-9F24-A3048D2A676F" fileGUID="FBD296FC3F8ADF478D5889DD302BFDBC" hasAccessibleData="true">
+     <brushdefinitions>
+          <Include href="PaintBrushDefinitions.xml"/>
+     </brushdefinitions>
+     <folders>
+          <DOMFolderItem name="AboutWindowChild" itemID="68ff23d1-0000026d" isExpanded="true"/>
+          <DOMFolderItem name="ColorPickerChild" itemID="6571fe03-000002b7"/>
+          <DOMFolderItem name="etc" itemID="6571fdf1-000002b3"/>
+          <DOMFolderItem name="fillPenSEtChild" itemID="68ff23d8-0000026e"/>
+          <DOMFolderItem name="LassoMenuChild" itemID="6571fe0c-000002b9"/>
+          <DOMFolderItem name="LoadBoxChild" itemID="6571fe0f-000002ba"/>
+          <DOMFolderItem name="numpadChild" itemID="68f94b6b-0000026f"/>
+          <DOMFolderItem name="PenControlBoxChild" itemID="6571fe09-000002b8"/>
+          <DOMFolderItem name="refLayerMenuChild" itemID="68fad76e-00000273"/>
+          <DOMFolderItem name="rotateCursorChild" itemID="6571fb5c-00000269"/>
+          <DOMFolderItem name="toolmenuChild" itemID="5d09f564-000002f0"/>
+          <DOMFolderItem name="toolmenuChild/icons" itemID="5d96ff06-00000156"/>
+          <DOMFolderItem name="topMenuChild" itemID="5cf67b89-000003a7"/>
+     </folders>
+     <fonts>
+          <DOMFontItem name="Font 3" itemID="622e388e-00000371" font="SiKancil" size="0" id="8" sourceLastImported="1647196302" embeddedCharacters="°●" embedRanges="1|2|3|4"/>
+          <DOMFontItem name="Font 1" itemID="6756457a-00000252" font="_typewriter" size="0" id="9" sourceLastImported="1733707130"/>
+     </fonts>
+     <media>
+          <DOMBitmapItem name="AboutWindowChild/fofoConsoleImg.png" itemID="633795ae-0000025f" sourceExternalFilepath="./resource/toolsvgs/logo/fofoConsoleImg.png" sourceLastImported="1664587162" externalFileCRC32="1202011013" externalFileSize="2604" allowSmoothing="true" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="AboutWindowChild/fofoConsoleImg.png" bitmapDataHRef="M 12 1664587182.dat" frameRight="2740" frameBottom="2320"/>
+          <DOMBitmapItem name="AboutWindowChild/fofoConsoleImg2.png" itemID="633795b8-00000264" sourceExternalFilepath="./resource/toolsvgs/logo/fofoConsoleImg2.png" sourceLastImported="1664587166" externalFileCRC32="3203231611" externalFileSize="2771" allowSmoothing="true" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="AboutWindowChild/fofoConsoleImg2.png" bitmapDataHRef="M 13 1664587192.dat" frameRight="2740" frameBottom="2320"/>
+          <DOMBitmapItem name="AboutWindowChild/fofoConsoleImg3.png" itemID="63379e15-0000027d" sourceExternalFilepath="./resource/toolsvgs/logo/fofoConsoleImg3.png" sourceLastImported="1664589323" externalFileCRC32="182779466" externalFileSize="3350" allowSmoothing="true" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="AboutWindowChild/fofoConsoleImg3.png" bitmapDataHRef="M 16 1664589333.dat" frameRight="2740" frameBottom="2320"/>
+          <DOMBitmapItem name="AboutWindowChild/fofologo2.png" itemID="62b09bba-00000224" sourceExternalFilepath="./resource/toolsvgs/logo/newfofologo_dQP.png" sourceLastImported="1655741370" externalFileCRC32="3773747332" externalFileSize="6293" allowSmoothing="true" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="AboutWindowChild/fofologo2.png" bitmapDataHRef="M 7 1655741350.dat" frameRight="8660" frameBottom="5480"/>
+          <DOMBitmapItem name="AboutWindowChild/fofologo3-1.png" itemID="62b09ba7-0000021a" sourceExternalFilepath="./resource/toolsvgs/logo/fofologo3-1.png" sourceLastImported="1655741034" externalFileCRC32="3039266099" externalFileSize="6891" allowSmoothing="true" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="AboutWindowChild/fofologo3-1.png" bitmapDataHRef="M 9 1655741351.dat" frameRight="8660" frameBottom="5480"/>
+          <DOMBitmapItem name="AboutWindowChild/fofologo3-2.png" itemID="62b09ba7-0000021e" sourceExternalFilepath="./resource/toolsvgs/logo/fofologo3-2.png" sourceLastImported="1655741035" externalFileCRC32="2645582915" externalFileSize="14422" allowSmoothing="true" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="AboutWindowChild/fofologo3-2.png" bitmapDataHRef="M 10 1655741351.dat" frameRight="8660" frameBottom="5480"/>
+          <DOMBitmapItem name="AboutWindowChild/fofologo3-3.png" itemID="62b6fe78-00000340" sourceExternalFilepath="./resource/toolsvgs/logo/fofologo3-3.png" sourceLastImported="1588107160" externalFileCRC32="4226199100" externalFileSize="26971" allowSmoothing="true" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="AboutWindowChild/fofologo3-3.png" bitmapDataHRef="M 7 1656159864.dat" frameRight="8660" frameBottom="5480"/>
+          <DOMBitmapItem name="AboutWindowChild/fofologo3.png" itemID="62b09ba7-00000216" sourceExternalFilepath="./resource/toolsvgs/logo/fofologo3.png" sourceLastImported="1655741034" externalFileCRC32="3455236939" externalFileSize="6274" allowSmoothing="true" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="AboutWindowChild/fofologo3.png" bitmapDataHRef="M 8 1655741351.dat" frameRight="8660" frameBottom="5480"/>
+     </media>
+     <symbols>
+          <Include href="AboutWindowChild/aboutBG.xml" itemIcon="1" loadImmediate="false" itemID="622e2c6b-00000350" lastModified="1701876738"/>
+          <Include href="AboutWindowChild/aboutHomePageButton.xml" itemIcon="0" loadImmediate="false" itemID="6336dd6c-0000022f" lastModified="1762321629"/>
+          <Include href="AboutWindowChild/aboutManualFolder.xml" itemIcon="0" loadImmediate="false" itemID="69e92d29-00000251" lastModified="1776889282"/>
+          <Include href="AboutWindowChild/aboutTextSet.xml" loadImmediate="false" itemID="5ebf1eed-000001da" lastModified="1736608504"/>
+          <Include href="AboutWindowChild/aboutTwitterButton.xml" itemIcon="0" loadImmediate="false" itemID="606ed42e-0000025d" lastModified="1735616857"/>
+          <Include href="AboutWindowChild/engManualButton.xml" itemIcon="0" loadImmediate="false" itemID="5d8a6164-000000c8" lastModified="1735617015"/>
+          <Include href="AboutWindowChild/jpMaualButton.xml" itemIcon="0" loadImmediate="false" itemID="5d8a6142-000000c2" lastModified="1735617010"/>
+          <Include href="AboutWindowChild/korManualButton.xml" itemIcon="0" loadImmediate="false" itemID="5d8a611b-000000bc" lastModified="1735617000"/>
+          <Include href="AboutWindowChild/logo1.xml" itemIcon="1" loadImmediate="false" itemID="5ea83231-00000164" lastModified="1701770593"/>
+          <Include href="AboutWindowChild/logo2.xml" itemIcon="1" loadImmediate="false" itemID="5ea8320e-00000151" lastModified="1655741471"/>
+          <Include href="AboutWindowChild/logo3.xml" itemIcon="1" loadImmediate="false" itemID="5ea83215-00000156" lastModified="1655741479"/>
+          <Include href="AboutWindowChild/logo4.xml" itemIcon="1" loadImmediate="false" itemID="5ea8321e-0000015b" lastModified="1655741487"/>
+          <Include href="AboutWindowChild/logo5.xml" itemIcon="1" loadImmediate="false" itemID="5ea83224-00000160" lastModified="1656159875"/>
+          <Include href="AboutWindowChild/releaseNoteButton.xml" itemIcon="0" loadImmediate="false" itemID="65053faf-00000238" lastModified="1763292713"/>
+          <Include href="AboutWindowChild/resetappButton.xml" itemIcon="0" loadImmediate="false" itemID="6505407e-00000246" lastModified="1696467067"/>
+          <Include href="AboutWindowSet.xml" itemID="68ff21a4-00000260" lastModified="1776890644"/>
+          <Include href="canvasInfoBorder.xml" itemIcon="0" loadImmediate="false" itemID="68fabca7-00000247" lastModified="1761262759"/>
+          <Include href="CanvasInfoSet.xml" itemID="68ff2192-0000025e" lastModified="1761550738"/>
+          <Include href="CapStampFontListSet.xml" itemID="68ff20f8-00000257" lastModified="1761551162"/>
+          <Include href="ColorPickerChild/colorHistoryText.xml" itemIcon="0" loadImmediate="false" itemID="6566c543-000003b8" lastModified="1702028203"/>
+          <Include href="ColorPickerChild/colorPIckerIcon.xml" itemIcon="0" loadImmediate="false" itemID="6566be47-00000339" lastModified="1709099586"/>
+          <Include href="ColorPickerChild/colorPickerTitleBG.xml" itemIcon="1" loadImmediate="false" itemID="65de6499-00000251" lastModified="1709073711"/>
+          <Include href="ColorPickerChild/colorPickerTitleIcon.xml" itemIcon="1" loadImmediate="false" itemID="65de636a-0000024d" lastModified="1738719817"/>
+          <Include href="ColorPickerChild/drawrPresetBorder.xml" itemIcon="1" loadImmediate="false" itemID="6572e28e-0000025e" lastModified="1702027918"/>
+          <Include href="ColorPickerChild/drawrPresetButton.xml" itemIcon="0" loadImmediate="false" itemID="6572e278-0000025d" lastModified="1702028508"/>
+          <Include href="ColorPickerChild/drawrText.xml" itemIcon="0" loadImmediate="false" itemID="6566c52a-000003af" lastModified="1701234296"/>
+          <Include href="ColorPickerChild/HueCursorSet.xml" itemIcon="0" itemID="5ebc9829-00000274" lastModified="1653912549"/>
+          <Include href="ColorPickerChild/myPaletteTransBGButton.xml" itemIcon="0" loadImmediate="false" itemID="6575a5c6-00000236" lastModified="1702208966"/>
+          <Include href="ColorPickerChild/paperButtonIcon.xml" itemIcon="1" loadImmediate="false" itemID="6576cd12-0000026c" lastModified="1709081631"/>
+          <Include href="ColorPickerChild/paperColorButton.xml" itemIcon="0" loadImmediate="false" itemID="6294c0bd-0000021d" lastModified="1709082930"/>
+          <Include href="ColorPickerChild/paperColorButtonBorder.xml" itemIcon="1" loadImmediate="false" itemID="6294c1ae-00000229" lastModified="1709082900"/>
+          <Include href="ColorPickerChild/penButtonIcon.xml" itemIcon="1" loadImmediate="false" itemID="6576ccaa-00000244" lastModified="1709081684"/>
+          <Include href="ColorPickerChild/penColorButton.xml" itemIcon="0" loadImmediate="false" itemID="6294c0b6-00000219" lastModified="1709085254"/>
+          <Include href="ColorPickerChild/penColorButtonBorder.xml" itemIcon="1" loadImmediate="false" itemID="6571fce8-00000299" lastModified="1709081760"/>
+          <Include href="ColorPickerChild/svCursor.xml" itemIcon="0" itemID="5ebc9829-0000028b" lastModified="1653903420"/>
+          <Include href="ColorPickerChild/tegakiPresetButton.xml" itemIcon="0" loadImmediate="false" itemID="6572e2a9-00000261" lastModified="1702028493"/>
+          <Include href="ColorPickerChild/tegakiText.xml" itemIcon="0" loadImmediate="false" itemID="6566c533-000003b4" lastModified="1701234244"/>
+          <Include href="ColorPickerChild/tegakPresetBorder.xml" itemIcon="0" loadImmediate="false" itemID="6572e22f-00000252" lastModified="1702028389"/>
+          <Include href="ColorPickerChild/transColorButton.xml" itemIcon="0" loadImmediate="false" itemID="651c626e-0000024b" lastModified="1700281137"/>
+          <Include href="ColorPickerChild/userPaletteBorder.xml" itemIcon="0" loadImmediate="false" itemID="6572e24a-00000258" lastModified="1702028352"/>
+          <Include href="ColorPickerChild/userPaletteButton.xml" itemIcon="0" loadImmediate="false" itemID="6572e2ed-0000027a" lastModified="1702028522"/>
+          <Include href="ColorPickerSet.xml" itemID="68ff21bb-00000261" lastModified="1776890724"/>
+          <Include href="confirmBoxSet.xml" itemID="690075e4-0000025a" lastModified="1761638367"/>
+          <Include href="confirmButton.xml" loadImmediate="false" itemID="690077c4-00000265" lastModified="1761638340"/>
+          <Include href="etc/bg2.xml" itemIcon="0" loadImmediate="false" itemID="5ebf7950-00000260" lastModified="1589606760"/>
+          <Include href="etc/fofoBottom.xml" itemIcon="0" loadImmediate="false" itemID="63378b91-00000232" lastModified="1735541167"/>
+          <Include href="etc/FOFOCursor.xml" itemIcon="0" itemID="68ff2a7b-0000027f" lastModified="1761553019"/>
+          <Include href="etc/layerOptionsBG.xml" itemIcon="1" loadImmediate="false" itemID="6440306d-00000520" lastModified="1700278295"/>
+          <Include href="etc/refLayerMenuMoveButton.xml" itemIcon="0" loadImmediate="false" itemID="68fada59-00000299" lastModified="1761270361"/>
+          <Include href="etc/spuitMagRing.xml" itemIcon="0" itemID="5cfd186e-0000027e" lastModified="1654447347"/>
+          <Include href="etc/tinyCursorGraphic.xml" itemIcon="1" loadImmediate="false" itemID="5fd2f098-00000231" lastModified="1701791523"/>
+          <Include href="EyedropperLensSet.xml" itemID="68ff27c4-00000277" lastModified="1761552324"/>
+          <Include href="FillPenMenuSet.xml" itemID="68ff2129-0000025a" lastModified="1762421419"/>
+          <Include href="fillPenSEtChild/fillPenBG.xml" itemIcon="0" loadImmediate="false" itemID="655b1455-000003ae" lastModified="1700467797"/>
+          <Include href="fillPenSEtChild/fillPenCancel.xml" itemIcon="0" loadImmediate="false" itemID="655b085d-00000371" lastModified="1700464733"/>
+          <Include href="fillPenSEtChild/fillPenOK.xml" itemIcon="0" loadImmediate="false" itemID="655955d6-000002ab" lastModified="1700462034"/>
+          <Include href="fillPenSEtChild/fillPenUndoButton.xml" itemIcon="0" loadImmediate="false" itemID="60a8b3ad-000002d2" lastModified="1700621541"/>
+          <Include href="FOFO.xml" itemID="68ff21d7-00000262" lastModified="1761550817"/>
+          <Include href="HintBoxSet.xml" itemID="68ff2070-00000250" lastModified="1761550448"/>
+          <Include href="LassoMenuChild/cancelIcon.xml" itemIcon="1" loadImmediate="false" itemID="62c0af3c-0000039c" lastModified="1656807851"/>
+          <Include href="LassoMenuChild/lasso1pxIcon.xml" itemIcon="0" loadImmediate="false" itemID="5ec87204-0000011c" lastModified="1762424950"/>
+          <Include href="LassoMenuChild/lasso1pxLeft.xml" itemIcon="0" loadImmediate="false" itemID="5ec8720e-00000120" lastModified="1762424944"/>
+          <Include href="LassoMenuChild/lassoCanceIcon.xml" itemIcon="1" loadImmediate="false" itemID="5d0a0852-000004db" lastModified="1656794944"/>
+          <Include href="LassoMenuChild/lassoCancelButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a0f16-0000054f" lastModified="1656809536"/>
+          <Include href="LassoMenuChild/lassoCopyButton.xml" itemIcon="0" loadImmediate="false" itemID="5e15cfcf-00000100" lastModified="1656809368"/>
+          <Include href="LassoMenuChild/lassocopyicon.xml" itemIcon="1" loadImmediate="false" itemID="5e15cefa-000000e5" lastModified="1656809349"/>
+          <Include href="LassoMenuChild/lassoLayerMergeButton.xml" itemIcon="0" loadImmediate="false" itemID="651d9a03-00000248" lastModified="1696439168"/>
+          <Include href="LassoMenuChild/lassoLayerMergeIcon.xml" itemIcon="1" loadImmediate="false" itemID="651d99de-0000023f" lastModified="1696438750"/>
+          <Include href="LassoMenuChild/lassoLayerSwap.xml" itemIcon="0" loadImmediate="false" itemID="6519fa85-0000023f" lastModified="1696438821"/>
+          <Include href="LassoMenuChild/lassomenuBG.xml" itemIcon="0" loadImmediate="false" itemID="5d9f4e21-000000e8" lastModified="1590091141"/>
+          <Include href="LassoMenuChild/lassoMenuBG2.xml" itemIcon="0" loadImmediate="false" itemID="5ebf73fd-0000024d" lastModified="1700468453"/>
+          <Include href="LassoMenuChild/lassoMirrorButton.xml" itemIcon="0" loadImmediate="false" itemID="5d9f4d26-000000b9" lastModified="1656809454"/>
+          <Include href="LassoMenuChild/lassoOKButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a0f0e-00000549" lastModified="1762635174"/>
+          <Include href="LassoMenuChild/lassoRefLayerTransferImageButton.xml" itemIcon="0" loadImmediate="false" itemID="68fad722-00000261" lastModified="1761269538"/>
+          <Include href="LassoMenuChild/lassoResizeButton.xml" itemIcon="0" loadImmediate="false" itemID="5d9f4cf6-000000aa" lastModified="1655857639"/>
+          <Include href="LassoMenuChild/lassoRotateButton.xml" itemIcon="0" loadImmediate="false" itemID="5e9c4a63-00000425" lastModified="1701969722"/>
+          <Include href="LassoMenuChild/lassoSwapLayerIcon.xml" itemIcon="1" loadImmediate="false" itemID="6519f9fc-00000236" lastModified="1696201212"/>
+          <Include href="LassoMenuChild/okIcon.xml" itemIcon="1" loadImmediate="false" itemID="62c0aed0-00000390" lastModified="1762635184"/>
+          <Include href="LassoMenuChild/refMirrorImageButton.xml" itemIcon="0" loadImmediate="false" itemID="68fad765-00000271" lastModified="1761269605"/>
+          <Include href="LassoMenuChild/refMoveImageButton.xml" itemIcon="0" loadImmediate="false" itemID="68fad777-00000275" lastModified="1761269623"/>
+          <Include href="LassoMenuChild/refResizeImageButton.xml" itemIcon="0" loadImmediate="false" itemID="68fad787-00000276" lastModified="1761269639"/>
+          <Include href="LassoMenuChild/refRotateImageButton.xml" itemIcon="0" loadImmediate="false" itemID="68fad78c-00000277" lastModified="1761269644"/>
+          <Include href="LassoMenuChild/rotateIcon2.xml" itemIcon="1" loadImmediate="false" itemID="5d0a06c8-000003d3" lastModified="1656794733"/>
+          <Include href="LassoMenuSet.xml" itemID="68ff2208-00000263" lastModified="1768525481"/>
+          <Include href="LoadBoxChild/dragDropCancelButton.xml" itemIcon="0" loadImmediate="false" itemID="5ec868c7-0000018f" lastModified="1761699271"/>
+          <Include href="LoadBoxChild/dragDropFileButton.xml" itemIcon="0" loadImmediate="false" itemID="5ec86873-0000017a" lastModified="1762321489"/>
+          <Include href="LoadBoxChild/dragDropFileSaveButton.xml" itemIcon="0" loadImmediate="false" itemID="65738d52-000002d8" lastModified="1762321428"/>
+          <Include href="LoadBoxChild/dragDropRefButton.xml" itemIcon="0" loadImmediate="false" itemID="5ec8689f-00000185" lastModified="1761699258"/>
+          <Include href="LoadBoxChild/loadBoxMini.xml" itemIcon="0" loadImmediate="false" itemID="5e9df800-00000195" lastModified="1702650677"/>
+          <Include href="LoadBoxSet.xml" itemID="68ff221a-00000264" lastModified="1762584975"/>
+          <Include href="numpadChild/numPadBorder.xml" itemIcon="1" loadImmediate="false" itemID="658e1707-0000023d" lastModified="1762181306"/>
+          <Include href="numpadChild/numpadButton.xml" itemIcon="0" loadImmediate="false" itemID="68f94b7b-00000272" lastModified="1761169003"/>
+          <Include href="numpadChild/numpadLCHCursor.xml" itemIcon="0" loadImmediate="false" itemID="68f99fee-00000325" lastModified="1761189943"/>
+          <Include href="NumPadSet.xml" itemID="68ff2235-00000265" lastModified="1762726464"/>
+          <Include href="PenControlBoxChild/airBrushText.xml" itemIcon="0" loadImmediate="false" itemID="622dfc58-0000024d" lastModified="1687962516"/>
+          <Include href="PenControlBoxChild/alphaBG.xml" itemIcon="0" loadImmediate="false" itemID="622dfed4-00000255" lastModified="1738720104"/>
+          <Include href="PenControlBoxChild/circleshapeBG.xml" itemIcon="1" loadImmediate="false" itemID="65584c42-0000029d" lastModified="1701764270"/>
+          <Include href="PenControlBoxChild/eraserOptionsIcon.xml" itemIcon="0" loadImmediate="false" itemID="6566b44c-00000315" lastModified="1701235431"/>
+          <Include href="PenControlBoxChild/fillPenOptionsIcon.xml" itemIcon="0" loadImmediate="false" itemID="6566b6f3-0000031c" lastModified="1761796216"/>
+          <Include href="PenControlBoxChild/layer1MergeButton.xml" itemIcon="0" loadImmediate="false" itemID="63300c12-0000026a" lastModified="1700278422"/>
+          <Include href="PenControlBoxChild/layer1MergeIcon.xml" itemIcon="1" loadImmediate="false" itemID="63300bad-00000251" lastModified="1761809754"/>
+          <Include href="PenControlBoxChild/layer1TextIcon.xml" itemIcon="1" loadImmediate="false" itemID="64404124-00000557" lastModified="1701665706"/>
+          <Include href="PenControlBoxChild/layer2TextIcon.xml" itemIcon="1" loadImmediate="false" itemID="64404137-0000055b" lastModified="1701665322"/>
+          <Include href="PenControlBoxChild/layerSwapButton.xml" itemIcon="0" loadImmediate="false" itemID="63300bc2-0000025e" lastModified="1700278211"/>
+          <Include href="PenControlBoxChild/layerSwapIcon.xml" itemIcon="1" loadImmediate="false" itemID="63300b9e-0000024d" lastModified="1709188875"/>
+          <Include href="PenControlBoxChild/lineOptionsIcon.xml" itemIcon="0" loadImmediate="false" itemID="6566b7e1-00000320" lastModified="1701235619"/>
+          <Include href="PenControlBoxChild/penboxShapeCircle.xml" itemIcon="0" loadImmediate="false" itemID="5cf6583a-000002c2" lastModified="1709201013"/>
+          <Include href="PenControlBoxChild/penBoxShapeRect.xml" itemIcon="0" loadImmediate="false" itemID="5cf65823-000002be" lastModified="1709201022"/>
+          <Include href="PenControlBoxChild/penlistAlphaCursor.xml" itemIcon="0" loadImmediate="false" itemID="5e0f2026-000001c4" lastModified="1738720235"/>
+          <Include href="PenControlBoxChild/penOptionsIcon.xml" itemIcon="0" loadImmediate="false" itemID="6566b29a-0000024e" lastModified="1701235704"/>
+          <Include href="PenControlBoxChild/penOptionsRect.xml" itemIcon="0" loadImmediate="false" itemID="65e01f1c-000002cd" lastModified="1743092440"/>
+          <Include href="PenControlBoxChild/penSizeGuide.xml" itemIcon="0" loadImmediate="false" itemID="5f589c66-0000013a" lastModified="1668884884"/>
+          <Include href="PenControlBoxChild/penSizeSelectCursor.xml" itemIcon="0" loadImmediate="false" itemID="622df1be-0000029d" lastModified="1662766846"/>
+          <Include href="PenControlBoxChild/penSmoothBar.xml" itemIcon="0" loadImmediate="false" itemID="5ebe8b1f-00000127" lastModified="1709199442"/>
+          <Include href="PenControlBoxChild/penSmoothControl.xml" itemIcon="0" loadImmediate="false" itemID="5dffe7df-000000bb" lastModified="1709312978"/>
+          <Include href="PenControlBoxChild/pixelSnapButton1.xml" itemIcon="0" loadImmediate="false" itemID="5e8572ad-000000f9" lastModified="1682157496"/>
+          <Include href="PenControlBoxChild/pixelSnapButton2.xml" itemIcon="0" loadImmediate="false" itemID="5e857370-00000104" lastModified="1682157491"/>
+          <Include href="PenControlBoxChild/pixelSnapText.xml" itemIcon="0" loadImmediate="false" itemID="622dfc30-00000249" lastModified="1688214864"/>
+          <Include href="PenControlBoxChild/saperateLine.xml" itemIcon="0" loadImmediate="false" itemID="649c447e-00000244" lastModified="1687963338"/>
+          <Include href="PenControlBoxChild/shapecircle.xml" itemIcon="1" loadImmediate="false" itemID="65584c60-000002a4" lastModified="1709187898"/>
+          <Include href="PenControlBoxChild/shapeCircleGrid.xml" itemIcon="0" loadImmediate="false" itemID="622df6a3-000002b5" lastModified="1682157628"/>
+          <Include href="PenControlBoxChild/shaperect.xml" itemIcon="1" loadImmediate="false" itemID="65584d03-000002b8" lastModified="1709188148"/>
+          <Include href="PenControlBoxChild/shaperectBG.xml" itemIcon="1" loadImmediate="false" itemID="65584cfe-000002b4" lastModified="1700285768"/>
+          <Include href="PenControlBoxChild/shapeRectGrid.xml" itemIcon="0" loadImmediate="false" itemID="622df75c-000002c1" lastModified="1682157738"/>
+          <Include href="PenControlBoxChild/subLayerText.xml" itemIcon="0" loadImmediate="false" itemID="622dfc79-00000251" lastModified="1701665572"/>
+          <Include href="PenControlBoxChild/subLayerText copy.xml" itemIcon="0" loadImmediate="false" itemID="6336545f-00000251" lastModified="1701665872"/>
+          <Include href="refLayerMenuChild/refClearImageButton.xml" itemIcon="0" loadImmediate="false" itemID="68fad844-0000028f" lastModified="1761269828"/>
+          <Include href="refLayerMenuChild/refClipBoardButton.xml" itemIcon="0" loadImmediate="false" itemID="68fad81e-0000028b" lastModified="1761269790"/>
+          <Include href="refLayerMenuChild/refClipBoardIcon.xml" itemIcon="1" loadImmediate="false" itemID="68fad733-00000264" lastModified="1761269555"/>
+          <Include href="refLayerMenuChild/refCloseIcon.xml" itemIcon="1" loadImmediate="false" itemID="68fad72f-00000263" lastModified="1761269551"/>
+          <Include href="refLayerMenuChild/refLoadImageButton.xml" itemIcon="0" loadImmediate="false" itemID="68fad824-0000028c" lastModified="1761269796"/>
+          <Include href="refLayerMenuChild/refMemoryTrainingClosedEye.xml" itemIcon="0" loadImmediate="false" itemID="68fad80b-00000289" lastModified="1761269771"/>
+          <Include href="refLayerMenuChild/refMemoryTrainingCloseEye.xml" itemIcon="1" loadImmediate="false" itemID="68fad759-0000026a" lastModified="1761269593"/>
+          <Include href="refLayerMenuChild/refMemoryTrainingOpenedEye.xml" itemIcon="0" loadImmediate="false" itemID="68fad817-0000028a" lastModified="1761269783"/>
+          <Include href="refLayerMenuChild/refMemoryTrainingOpenEye.xml" itemIcon="1" loadImmediate="false" itemID="68fad74f-00000266" lastModified="1761269583"/>
+          <Include href="refLayerMenuChild/refMenuButtonWrapper.xml" itemIcon="0" loadImmediate="false" itemID="68fad831-0000028d" lastModified="1761269809"/>
+          <Include href="refLayerMenuChild/refOpacityBar.xml" itemIcon="0" loadImmediate="false" itemID="68fad84f-00000290" lastModified="1761269839"/>
+          <Include href="refLayerMenuChild/refOpacityCursor.xml" itemIcon="0" loadImmediate="false" itemID="68fad83c-0000028e" lastModified="1761269820"/>
+          <Include href="refLayerMenuChild/refTransferCanvasImageButton.xml" itemIcon="0" loadImmediate="false" itemID="68fae175-000002a5" lastModified="1761272181"/>
+          <Include href="refLayerMenuChild/trashIcon.xml" itemIcon="1" loadImmediate="false" itemID="5fd737f0-00000278" lastModified="1656807107"/>
+          <Include href="RefLayerMenuSet.xml" itemID="68ff2244-00000266" lastModified="1776137248"/>
+          <Include href="rotateCursorChild/rotateArrow.xml" itemIcon="0" loadImmediate="false" itemID="606f8dad-0000025a" lastModified="1666590173"/>
+          <Include href="rotateCursorChild/rotateBG.xml" itemIcon="0" loadImmediate="false" itemID="606f8bc7-00000245" lastModified="1735524500"/>
+          <Include href="rotateCursorChild/rotateCircle.xml" itemIcon="0" loadImmediate="false" itemID="606f8bde-00000249" lastModified="1735524759"/>
+          <Include href="RotateCursorSet.xml" itemID="68ff2266-00000268" lastModified="1761550950"/>
+          <Include href="seekBarSet.xml" itemID="691e6844-00000259" lastModified="1763600454"/>
+          <Include href="SidePanelSet.xml" itemID="68ff22a0-00000269" lastModified="1761551595"/>
+          <Include href="toolHand.xml" itemIcon="0" loadImmediate="false" itemID="691e6bc1-0000025c" lastModified="1763601898"/>
+          <Include href="toolmenuChild/icons/lassoIcon.xml" itemIcon="1" loadImmediate="false" itemID="5d9f6c11-00000102" lastModified="1656796201"/>
+          <Include href="toolmenuChild/icons/lineicon2 copy.xml" itemIcon="1" loadImmediate="false" itemID="5ebc20f5-00000558" lastModified="1656794454"/>
+          <Include href="toolmenuChild/icons/mirrorIcon.xml" itemIcon="1" loadImmediate="false" itemID="5d97168a-00000232" lastModified="1656809448"/>
+          <Include href="toolmenuChild/icons/resizeIcon.xml" itemIcon="1" loadImmediate="false" itemID="5e9c469f-00000384" lastModified="1656794521"/>
+          <Include href="toolmenuChild/icons/spuitIcon.xml" itemIcon="1" loadImmediate="false" itemID="5d9fd75e-000000ad" lastModified="1656795615"/>
+          <Include href="toolmenuChild/icons/toolBoxBGLight.xml" itemIcon="1" loadImmediate="false" itemID="5d9d3377-00000149" lastModified="1709244070"/>
+          <Include href="toolmenuChild/icons/toolEraseIcon.xml" itemIcon="0" loadImmediate="false" itemID="5d09f57b-000002f7" lastModified="1647183633"/>
+          <Include href="toolmenuChild/icons/toolFillPenIcon.xml" itemIcon="1" loadImmediate="false" itemID="5fc84a88-00000113" lastModified="1762634945"/>
+          <Include href="toolmenuChild/icons/toolMoveIcon.xml" itemIcon="1" loadImmediate="false" itemID="5d09f652-00000378" lastModified="1659936744"/>
+          <Include href="toolmenuChild/icons/toolPenIcon.xml" itemIcon="0" loadImmediate="false" itemID="5d09f570-000002f3" lastModified="1656806432"/>
+          <Include href="toolmenuChild/icons/undoIcon.xml" itemIcon="0" loadImmediate="false" itemID="5d9d2112-000000b3" lastModified="1656806521"/>
+          <Include href="toolmenuChild/icons/zoomIcon.xml" itemIcon="1" loadImmediate="false" itemID="5d9f6725-000000dd" lastModified="1656791963"/>
+          <Include href="toolmenuChild/icons/zoomIcon copy.xml" itemIcon="1" loadImmediate="false" itemID="606d8e34-0000024d" lastModified="1656791879"/>
+          <Include href="toolmenuChild/icons/zoomIcon copy 2.xml" itemIcon="1" loadImmediate="false" itemID="606d8e81-00000260" lastModified="1656791926"/>
+          <Include href="toolmenuChild/lassoButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a32a1-000002b9" lastModified="1656805182"/>
+          <Include href="toolmenuChild/lineButton2.xml" itemIcon="0" loadImmediate="false" itemID="5e32d518-00000102" lastModified="1656807022"/>
+          <Include href="toolmenuChild/mirrorButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a3283-000002a9" lastModified="1656805000"/>
+          <Include href="toolmenuChild/moveButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a0e52-00000524" lastModified="1659936844"/>
+          <Include href="toolmenuChild/quickSidebarButton.xml" itemIcon="0" loadImmediate="false" itemID="631b9fef-0000025b" lastModified="1743354721"/>
+          <Include href="toolmenuChild/redoButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a3232-00000289" lastModified="1656809667"/>
+          <Include href="toolmenuChild/rotateButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a0e5c-00000531" lastModified="1666556750"/>
+          <Include href="toolmenuChild/spuitButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a3243-00000294" lastModified="1655857400"/>
+          <Include href="toolmenuChild/toolBoxBG2.xml" itemIcon="0" loadImmediate="false" itemID="5ebf5c09-00000211" lastModified="1662754853"/>
+          <Include href="toolmenuChild/toolEraseButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a0b96-00000501" lastModified="1656795421"/>
+          <Include href="toolmenuChild/toolFillPenButton.xml" itemIcon="0" loadImmediate="false" itemID="5fc84a91-00000117" lastModified="1743063909"/>
+          <Include href="toolmenuChild/toolHandIcon.xml" itemIcon="1" loadImmediate="false" itemID="691e6dd1-00000268" lastModified="1763601873"/>
+          <Include href="toolmenuChild/toolmenuButton1.xml" itemIcon="0" loadImmediate="false" itemID="5d09ef6b-00000280" lastModified="1607939740"/>
+          <Include href="toolmenuChild/toolMenuClose.xml" itemIcon="0" loadImmediate="false" itemID="5e9e1979-000001d8" lastModified="1743518224"/>
+          <Include href="toolmenuChild/toolPenButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a0b89-000004fa" lastModified="1656806321"/>
+          <Include href="toolmenuChild/toolSelectCursor.xml" itemIcon="0" loadImmediate="false" itemID="622f67d8-00000201" lastModified="1662767321"/>
+          <Include href="toolmenuChild/undoButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a3214-0000027e" lastModified="1656809664"/>
+          <Include href="toolmenuChild/zoomButton.xml" itemIcon="0" loadImmediate="false" itemID="5d0a0e58-0000052b" lastModified="1656806943"/>
+          <Include href="toolmenuChild/zoomInButton.xml" itemIcon="0" loadImmediate="false" itemID="606d8f93-0000027e" lastModified="1656792011"/>
+          <Include href="toolmenuChild/zoomOutButton.xml" itemIcon="0" loadImmediate="false" itemID="606d8f98-00000287" lastModified="1664578056"/>
+          <Include href="ToolMenuSet.xml" itemID="68ff23ab-0000026b" lastModified="1763601916"/>
+          <Include href="ToolMenuSet2.xml" itemID="68ff23bb-0000026c" lastModified="1763592744"/>
+          <Include href="ToolOptionsSet.xml" itemID="68ff2182-0000025d" lastModified="1763592719"/>
+          <Include href="topMenuChild/abouticon.xml" itemIcon="1" loadImmediate="false" itemID="5e2aabfd-00000124" lastModified="1647197097"/>
+          <Include href="topMenuChild/aboutONButton2.xml" itemIcon="0" loadImmediate="false" itemID="5ebec155-000002fc" lastModified="1700445375"/>
+          <Include href="topMenuChild/cameraicon.xml" itemIcon="1" loadImmediate="false" itemID="5e1cb4f5-00000209" lastModified="1656796625"/>
+          <Include href="topMenuChild/canvasSizeTextBG.xml" itemIcon="0" loadImmediate="false" itemID="5d3d137b-0000028b" lastModified="1647196447"/>
+          <Include href="topMenuChild/capCancelButton.xml" itemIcon="0" loadImmediate="false" itemID="5e11ce4d-000000e9" lastModified="1700383133"/>
+          <Include href="topMenuChild/capFlip.xml" itemIcon="0" loadImmediate="false" itemID="5df15fd0-000000e2" lastModified="1655857518"/>
+          <Include href="topMenuChild/capFlipIcon.xml" itemIcon="1" loadImmediate="false" itemID="5df160fd-000000e9" lastModified="1656808395"/>
+          <Include href="topMenuChild/capLayer1VisibleButton.xml" itemIcon="0" loadImmediate="false" itemID="64402144-00000488" lastModified="1681924965"/>
+          <Include href="topMenuChild/capLayer1VisibleIcon.xml" itemIcon="1" loadImmediate="false" itemID="64402355-000004d4" lastModified="1700382342"/>
+          <Include href="topMenuChild/capLayer2visibleButton.xml" itemIcon="0" loadImmediate="false" itemID="6440214a-00000489" lastModified="1681924426"/>
+          <Include href="topMenuChild/capLayer2VisibleIcon.xml" itemIcon="1" loadImmediate="false" itemID="64402361-000004d6" lastModified="1681938750"/>
+          <Include href="topMenuChild/capofficon.xml" itemIcon="1" loadImmediate="false" itemID="5e11ce91-000000f1" lastModified="1700383127"/>
+          <Include href="topMenuChild/caprotate.svg.xml" itemIcon="1" loadImmediate="false" itemID="5df15f1e-000000ca" lastModified="1761964873"/>
+          <Include href="topMenuChild/capRotateButton.xml" itemIcon="0" loadImmediate="false" itemID="5df15f62-000000d4" lastModified="1656808286"/>
+          <Include href="topMenuChild/capStampButton.xml" itemIcon="0" loadImmediate="false" itemID="65dfe67f-00000260" lastModified="1709175458"/>
+          <Include href="topMenuChild/capStampFont.xml" itemIcon="0" loadImmediate="false" itemID="677fe700-00000265" lastModified="1736435456"/>
+          <Include href="topMenuChild/capStampFontIcon.xml" itemIcon="1" loadImmediate="false" itemID="677fe6f6-00000263" lastModified="1736435446"/>
+          <Include href="topMenuChild/capStampIcon.xml" itemIcon="1" loadImmediate="false" itemID="65dfe674-0000025c" lastModified="1709190539"/>
+          <Include href="topMenuChild/captrans.xml" itemIcon="0" loadImmediate="false" itemID="5e1cc5e6-000002d4" lastModified="1656809056"/>
+          <Include href="topMenuChild/captureButton.xml" itemIcon="0" loadImmediate="false" itemID="5df162b6-000000ef" lastModified="1700381844"/>
+          <Include href="topMenuChild/captureInputBorder.xml" itemIcon="0" loadImmediate="false" itemID="65e02c89-000002cb" lastModified="1709192291"/>
+          <Include href="topMenuChild/changeThemeButton.xml" itemIcon="0" loadImmediate="false" itemID="5e1ba1ce-0000085a" lastModified="1700381930"/>
+          <Include href="topMenuChild/clearIcon2.xml" itemIcon="1" loadImmediate="false" itemID="5e2d5841-000001ab" lastModified="1653941991"/>
+          <Include href="topMenuChild/clipBoardIconTopBar.xml" itemIcon="1" loadImmediate="false" itemID="62c0ab8e-0000036d" lastModified="1762580914"/>
+          <Include href="topMenuChild/clipbutton.xml" itemIcon="0" loadImmediate="false" itemID="5e228720-0000013e" lastModified="1656796601"/>
+          <Include href="topMenuChild/controlBoxMoveButton1.xml" itemIcon="0" loadImmediate="false" itemID="5ec0460d-00000111" lastModified="1700382278"/>
+          <Include href="topMenuChild/controlBoxMoveButton2.xml" itemIcon="0" loadImmediate="false" itemID="629524eb-00000277" lastModified="1700382252"/>
+          <Include href="topMenuChild/controlBoxMoveIcon.xml" itemIcon="0" loadImmediate="false" itemID="5ec045d4-00000108" lastModified="1700382276"/>
+          <Include href="topMenuChild/cutPrevDataButton.xml" itemIcon="0" loadImmediate="false" itemID="5fcf2ceb-0000011a" lastModified="1761817102"/>
+          <Include href="topMenuChild/cutPrevDataIcon.xml" itemIcon="1" loadImmediate="false" itemID="5fcf2d15-00000121" lastModified="1761817154"/>
+          <Include href="topMenuChild/DPIButton.xml" itemIcon="0" loadImmediate="false" itemID="6319c8d5-00000216" lastModified="1700382244"/>
+          <Include href="topMenuChild/DPIIcon.xml" itemIcon="1" loadImmediate="false" itemID="6319c8a5-00000212" lastModified="1700382238"/>
+          <Include href="topMenuChild/drawModeButton.xml" itemIcon="0" loadImmediate="false" itemID="5d6e1316-00000390" lastModified="1700382676"/>
+          <Include href="topMenuChild/drawmodeIcon.xml" itemIcon="1" loadImmediate="false" itemID="5d904bf5-0000010a" lastModified="1700382674"/>
+          <Include href="topMenuChild/fitToWindowButton.xml" itemIcon="0" loadImmediate="false" itemID="63559958-0000023b" lastModified="1700383912"/>
+          <Include href="topMenuChild/fitToWindowIcon.xml" itemIcon="1" loadImmediate="false" itemID="63559934-00000232" lastModified="1762580970"/>
+          <Include href="topMenuChild/gridButton.xml" itemIcon="0" loadImmediate="false" itemID="5ebaeed6-0000014a" lastModified="1701583521"/>
+          <Include href="topMenuChild/gridicon.xml" itemIcon="1" loadImmediate="false" itemID="5ebaee40-0000012c" lastModified="1701583492"/>
+          <Include href="topMenuChild/gridMoveDownButton.xml" itemIcon="0" loadImmediate="false" itemID="6579a919-00000291" lastModified="1702480143"/>
+          <Include href="topMenuChild/gridMoveIcon.xml" itemIcon="1" loadImmediate="false" itemID="6579a367-0000023d" lastModified="1702480154"/>
+          <Include href="topMenuChild/gridMoveLeftButton.xml" itemIcon="0" loadImmediate="false" itemID="6579a8fd-00000280" lastModified="1702480135"/>
+          <Include href="topMenuChild/gridMoveRightButton.xml" itemIcon="0" loadImmediate="false" itemID="6579a912-0000028a" lastModified="1702480140"/>
+          <Include href="topMenuChild/gridMoveUpButton.xml" itemIcon="0" loadImmediate="false" itemID="6579a90d-00000282" lastModified="1702480145"/>
+          <Include href="topMenuChild/loadButton.xml" itemIcon="0" loadImmediate="false" itemID="5d814f85-000000a8" lastModified="1702282534"/>
+          <Include href="topMenuChild/newFileButton.xml" itemIcon="0" loadImmediate="false" itemID="68fb1bd1-00000246" lastModified="1761287121"/>
+          <Include href="topMenuChild/newWindowButton.xml" itemIcon="0" loadImmediate="false" itemID="63366550-00000266" lastModified="1700381345"/>
+          <Include href="topMenuChild/newWindowCloseButton.xml" itemIcon="0" loadImmediate="false" itemID="633768be-00000233" lastModified="1700381589"/>
+          <Include href="topMenuChild/newWindowCloseIcon.xml" itemIcon="1" loadImmediate="false" itemID="633768b6-0000022f" lastModified="1700383979"/>
+          <Include href="topMenuChild/newWindowIcon.xml" itemIcon="1" loadImmediate="false" itemID="63366545-0000025d" lastModified="1700381515"/>
+          <Include href="topMenuChild/pause.svg.xml" itemIcon="1" loadImmediate="false" itemID="5d6e0d32-00000338" lastModified="1647192866"/>
+          <Include href="topMenuChild/pauseButton.xml" itemIcon="0" loadImmediate="false" itemID="5d6e0da9-00000347" lastModified="1664594393"/>
+          <Include href="topMenuChild/playButton.xml" itemIcon="0" loadImmediate="false" itemID="5d6e0d7d-00000341" lastModified="1664594324"/>
+          <Include href="topMenuChild/playicon.xml" itemIcon="1" loadImmediate="false" itemID="5e1b6d86-000001cb" lastModified="1664656537"/>
+          <Include href="topMenuChild/refLayerMenuButton.xml" itemIcon="0" loadImmediate="false" itemID="68fad7e8-00000287" lastModified="1761269736"/>
+          <Include href="topMenuChild/reflayertransferimage.xml" itemIcon="1" loadImmediate="false" itemID="68fad706-00000260" lastModified="1761269510"/>
+          <Include href="topMenuChild/refLoadImageIcon.xml" itemIcon="1" loadImmediate="false" itemID="68fad7ca-0000027f" lastModified="1761269706"/>
+          <Include href="topMenuChild/refMenuBG.xml" itemIcon="1" loadImmediate="false" itemID="68fad729-00000262" lastModified="1761269545"/>
+          <Include href="topMenuChild/repeatIcon.xml" itemIcon="1" loadImmediate="false" itemID="65e6c5b4-0000026b" lastModified="1709624137"/>
+          <Include href="topMenuChild/replayModeButton.xml" itemIcon="0" loadImmediate="false" itemID="5d6e1227-0000036d" lastModified="1700382994"/>
+          <Include href="topMenuChild/replayRepeatButton.xml" itemIcon="0" loadImmediate="false" itemID="65e6c5cb-0000026f" lastModified="1709624152"/>
+          <Include href="topMenuChild/replayRotate.xml" itemIcon="0" loadImmediate="false" itemID="5ebdce17-000003a8" lastModified="1666556721"/>
+          <Include href="topMenuChild/replayTimeOneFrame.xml" itemIcon="0" loadImmediate="false" itemID="5d70504f-000002c4" lastModified="1763060890"/>
+          <Include href="topMenuChild/replayTimeOneFrame copy.xml" itemIcon="0" loadImmediate="false" itemID="5e1c752b-0000011b" lastModified="1763060882"/>
+          <Include href="topMenuChild/saveButton.xml" itemIcon="0" loadImmediate="false" itemID="5d814abd-0000009c" lastModified="1664593839"/>
+          <Include href="topMenuChild/savefile.svg.xml" itemIcon="1" loadImmediate="false" itemID="5cf6b3d9-00000275" lastModified="1656790426"/>
+          <Include href="topMenuChild/setImageButton.xml" itemIcon="0" loadImmediate="false" itemID="5d79d034-000002d4" lastModified="1761817106"/>
+          <Include href="topMenuChild/sideBarOnButton.xml" itemIcon="0" loadImmediate="false" itemID="629ac63d-0000020e" lastModified="1700382270"/>
+          <Include href="topMenuChild/sideBarONButton2.xml" itemIcon="0" loadImmediate="false" itemID="629ac90d-0000030b" lastModified="1655857534"/>
+          <Include href="topMenuChild/sideBarONIcon.xml" itemIcon="0" loadImmediate="false" itemID="629ac617-00000205" lastModified="1700382268"/>
+          <Include href="topMenuChild/sideBarVisibleButton.xml" itemIcon="0" loadImmediate="false" itemID="6299f298-00000212" lastModified="1700382261"/>
+          <Include href="topMenuChild/sideBarVisibleButton2.xml" itemIcon="0" loadImmediate="false" itemID="6299f398-00000225" lastModified="1655857532"/>
+          <Include href="topMenuChild/sidebarVisibleIcon.xml" itemIcon="1" loadImmediate="false" itemID="6299f2c8-0000021b" lastModified="1700382259"/>
+          <Include href="topMenuChild/stepicon.xml" itemIcon="1" loadImmediate="false" itemID="5e1aaeb1-00000322" lastModified="1647286076"/>
+          <Include href="topMenuChild/themeIcon.xml" itemIcon="1" loadImmediate="false" itemID="5e1bcfb8-00000183" lastModified="1700381730"/>
+          <Include href="topMenuChild/topBarZoomInButton.xml" itemIcon="0" loadImmediate="false" itemID="606fd5ab-0000026a" lastModified="1656791883"/>
+          <Include href="topMenuChild/topBarZoomOutButton.xml" itemIcon="0" loadImmediate="false" itemID="606fd5b2-00000273" lastModified="1655857482"/>
+          <Include href="topMenuChild/topMenuButton.xml" itemIcon="0" loadImmediate="false" itemID="5cf67b81-000003a1" lastModified="1761166304"/>
+          <Include href="topMenuChild/transBGIcon.xml" itemIcon="1" loadImmediate="false" itemID="5e1cc5cd-000002cb" lastModified="1656808998"/>
+          <Include href="topMenuChild/updateButton.xml" itemIcon="0" loadImmediate="false" itemID="629a1aa8-0000026a" lastModified="1700445372"/>
+          <Include href="topMenuChild/updateIcon.xml" itemIcon="1" loadImmediate="false" itemID="629a1a8c-00000266" lastModified="1701969276"/>
+          <Include href="topMenuChild/video-camera.svg.xml" itemIcon="1" loadImmediate="false" itemID="5d8c3cfb-000003b3" lastModified="1656791074"/>
+          <Include href="topMenuChild/video-player-outline.svg.xml" itemIcon="1" loadImmediate="false" itemID="5d8c35b8-00000357" lastModified="1700475105"/>
+          <Include href="TopMenuSet.xml" itemID="68ff2166-0000025c" lastModified="1762511396"/>
+     </symbols>
+     <timelines>
+          <DOMTimeline name="Scene 1" layerDepthEnabled="true">
+               <layers>
+                    <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+                         <frames>
+                              <DOMFrame index="0" keyMode="9728">
+                                   <elements/>
+                              </DOMFrame>
+                         </frames>
+                    </DOMLayer>
+               </layers>
+          </DOMTimeline>
+     </timelines>
+     <scripts/>
+     <persistentData>
+          <PD n="com.air.artemis.ipadest" v="drawinFlash_new2.ipa"/>
+          <PD n="com.air.artemis.airdest" v="E:/fofopaint-source/bin/fofoPaint.air"/>
+          <PD n="com.air.artemis.ipaopt" v="test"/>
+          <PD n="ane.tmp.unzipped.folder" v="C:\Users\cube4\AppData\Local\Temp\Tmp_ANE_File_Unzipped_Packages"/>
+          <PD n="com.air.oldTargetPlatform" v="Desktop"/>
+          <PD n="com.air.artemis.included.count" v="2"/>
+          <PD n="DebugMovieChecked" v="ADLDesktop"/>
+          <PD n="TestMovieChecked" v="ADLDesktop"/>
+          <PD n="com.air.artemis.pubair" v="true"/>
+          <PD n="com.air.sdk.path" v="D:\adobe_air_sdk_manager\AIRSDK_51.3.1"/>
+          <PD n="com.air.artemis.included.item0" v="worker.swf"/>
+          <PD n="com.air.artemis.pubipa" v="false"/>
+          <PD n="com.air.artemis.included.item1" v="manual"/>
+          <PD n="com.air.artemis.hostip" v="Default"/>
+          <PD n="flash.swf.basename" v="fofoPaint"/>
+          <PD n="com.air.artemis.pubcaptive" v="false"/>
+          <PD n="flash.fla.filepath" v="E:/fofopaint-source/fofoPaint.fla"/>
+          <PD n="swf.folder.path" v="E:/fofopaint-source/"/>
+          <PD n="com.air.artemis.pubexe" v="false"/>
+     </persistentData>
+     <PrinterSettings/>
+     <publishHistory>
+          <PublishItem publishSize="653880" publishTime="1776890696" publishDebug="true"/>
+          <PublishItem publishSize="653885" publishTime="1776890665" publishDebug="true"/>
+          <PublishItem publishSize="653888" publishTime="1776890654" publishDebug="true"/>
+          <PublishItem publishSize="653888" publishTime="1776890591" publishDebug="true"/>
+          <PublishItem publishSize="653884" publishTime="1776890575" publishDebug="true"/>
+          <PublishItem publishSize="653888" publishTime="1776890562" publishDebug="true"/>
+          <PublishItem publishSize="653888" publishTime="1776890500" publishDebug="true"/>
+          <PublishItem publishSize="653887" publishTime="1776890462" publishDebug="true"/>
+          <PublishItem publishSize="653883" publishTime="1776890377" publishDebug="true"/>
+          <PublishItem publishSize="653882" publishTime="1776890345" publishDebug="true"/>
+          <PublishItem publishSize="653881" publishTime="1776890333" publishDebug="true"/>
+          <PublishItem publishSize="653859" publishTime="1776890288" publishDebug="true"/>
+          <PublishItem publishSize="653877" publishTime="1776890248" publishDebug="true"/>
+          <PublishItem publishSize="653884" publishTime="1776890166" publishDebug="true"/>
+          <PublishItem publishSize="653875" publishTime="1776890130" publishDebug="true"/>
+          <PublishItem publishSize="653875" publishTime="1776890117" publishDebug="true"/>
+          <PublishItem publishSize="653875" publishTime="1776890102" publishDebug="true"/>
+          <PublishItem publishSize="653875" publishTime="1776890097" publishDebug="true"/>
+          <PublishItem publishSize="653875" publishTime="1776890090" publishDebug="true"/>
+          <PublishItem publishSize="653876" publishTime="1776890085" publishDebug="true"/>
+     </publishHistory>
+</DOMDocument>

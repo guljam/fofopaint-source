@@ -1,0 +1,48 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="rotateCursor" itemID="5cea5843-00000268" linkageExportForAS="true" linkageClassName="rotateCursor" lastModified="1735525312" lastUniqueIdentifier="1" isSpriteSubclass="true">
+  <timeline>
+    <DOMTimeline name="rotateCursor" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Capa_1" color="#0000FF" autoNamed="false">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="rotateCursorChild/rotateArrow" name="rotateArrow" symbolType="button">
+                  <matrix>
+                    <Matrix ty="0.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="25.95" y="4.45"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="rotateCursorChild/rotateBG" name="rotateBG" selected="true" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.04669189453125" d="1.04669189453125" tx="-66.05" ty="-65"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="60" y="59.95"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="rotateCursorChild/rotateCircle" name="rotateCircle" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.1060791015625" d="1.10560607910156"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="48.25" y="48.2"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

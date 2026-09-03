@@ -7,7 +7,10 @@
 		"source-path": [
 			"src"
 		],
-		"output": "fofoPaint.swf"
+		"output": "fofoPaint.swf",
+		        "target-player": "51.1",
+        "swf-version": 51,
+		"debug": true
 	},
 	"application": "fofoPaint-app.xml",
 	"mainClass": "Main"

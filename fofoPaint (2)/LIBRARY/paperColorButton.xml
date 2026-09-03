@@ -1,0 +1,112 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="paperColorButton" itemID="6294c0bd-0000021d" symbolType="button" lastModified="1701802157" lastUniqueIdentifier="1">
+  <timeline>
+    <DOMTimeline name="paperColorButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="paperColorButtonBorder" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="-4.65" ty="-0.5"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="27" y="11.55"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="paperColorText" width="33.2" height="14.2" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="3.8" ty="2.5"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>paper</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="13.2" size="13" bitmapSize="260" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="1" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="paperColorButtonBorder" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="-4.65" ty="-0.5"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="27" y="11.55"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="paperColorText" width="33.2" height="14.2" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="3.8" ty="2.5"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>paper</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="13.2" size="13" bitmapSize="260" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="2" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="paperColorButtonBorder" selected="true" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="-3.65" ty="0.5"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="27" y="11.55"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="paperColorText" selected="true" width="33.2" height="14.2" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="4.8" ty="3.5"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>paper</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="13.2" size="13" bitmapSize="260" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="3" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="paperColorButtonBorder" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="-4.65" ty="-0.5"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="27" y="11.55"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="paperColorText" width="33.2" height="14.2" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="3.8" ty="2.5"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>paper</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="13.2" size="13" bitmapSize="260" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

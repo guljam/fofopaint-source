@@ -1,0 +1,30 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="colorPickerChild/HueCursorSet" itemID="5ebc9829-00000274" linkageExportForAS="true" linkageClassName="hueCursorSet" symbolType="button" lastModified="1653912549">
+  <timeline>
+    <DOMTimeline name="HueCursorSet">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMShape>
+                  <fills>
+                    <FillStyle index="1">
+                      <SolidColor alpha="0.498039215686275"/>
+                    </FillStyle>
+                  </fills>
+                  <edges>
+                    <Edge fillStyle1="1" edges="!-40 0|40 0!40 0|40 300!40 300|-40 300!-40 300|-40 0"/>
+                    <Edge cubics="!-40 0(;-40,0 40,0 40,0q-40 0 40 0);"/>
+                    <Edge cubics="!40 0(;40,0 40,300 40,300q40 0 40 300);"/>
+                    <Edge cubics="!-40 300(;-40,300 -40,0 -40,0q-40 300 -40 0);"/>
+                    <Edge cubics="!40 300(;40,300 -40,300 -40,300q40 300 -40 300);"/>
+                  </edges>
+                </DOMShape>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

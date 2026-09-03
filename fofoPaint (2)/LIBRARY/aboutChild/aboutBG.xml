@@ -1,0 +1,34 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="aboutChild/aboutBG" itemID="622e2c6b-00000350" symbolType="graphic" lastModified="1701876738">
+  <timeline>
+    <DOMTimeline name="aboutBG" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMRectangleObject objectWidth="434" objectHeight="155.05" x="49.75" y="334.25" selected="true" lockFlag="true">
+                  <matrix>
+                    <Matrix d="2.32164001464844" tx="-49.75" ty="-776"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="49.75" y="334.05"/>
+                  </transformationPoint>
+                  <fill>
+                    <SolidColor color="#FFFFFF"/>
+                  </fill>
+                  <stroke>
+                    <SolidStroke scaleMode="normal">
+                      <fill>
+                        <SolidColor/>
+                      </fill>
+                    </SolidStroke>
+                  </stroke>
+                </DOMRectangleObject>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

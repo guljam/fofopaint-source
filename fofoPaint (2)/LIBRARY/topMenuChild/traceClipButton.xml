@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="topMenuChild/traceClipButton" itemID="5e9c4c6b-000004a2" symbolType="button" lastModified="1656805676">
+  <timeline>
+    <DOMTimeline name="traceClipButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolmenuButton1" name="traceButtonMini" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.78707885742188" d="1.78707885742188"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.05" y="0.05"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="clipBoardIconTrace" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="0.936447143554688" d="0.9375" tx="10.3" ty="7.35"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="12.25" y="14.6"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="traceVisible2Button" itemID="5fd73c6f-0000024f" symbolType="button" lastModified="1656806842">
+  <timeline>
+    <DOMTimeline name="traceVisible2Button">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolmenuButton1" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.78707885742188" d="1.78707885742188"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.05" y="0.05"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="traceInVisibleIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="1.09706115722656" d="1.09266662597656" tx="6.75" ty="12.15"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="16.1" y="11.6"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

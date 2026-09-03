@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="lassoMenuChild/traceRotateButton" itemID="5ebd8176-0000018c" symbolType="button" lastModified="1666556787">
+  <timeline>
+    <DOMTimeline name="traceRotateButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolmenuButton1" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.78707885742188" d="1.78707885742188"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.05" y="0.05"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="lassoMenuChild/rotateIcon2" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="1.02642822265625" d="1.023193359375" tx="5.9" ty="8.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="253.55" y="253.7"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>
