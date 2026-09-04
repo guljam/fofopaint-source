@@ -1,4 +1,5 @@
-package main_module.tools {
+package main_module.tools
+{
     import flash.events.MouseEvent;
     import flash.filters.BlurFilter;
     import flash.geom.Point;
@@ -10,7 +11,8 @@ package main_module.tools {
 
     import Main;
 
-    public class PenTool {
+    public class PenTool
+    {
         private static var _stage:Stage;
 
         private static const clickPos:Point = new Point(); // 점찍어 줄 때 판단하는 클릭한 자리 저장
@@ -47,7 +49,32 @@ package main_module.tools {
         private static var lastMouseMoveDist:Number; // penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
         private static var dotflag:Boolean; // 펜스무딩이 강하게 들어갔을때 아주 작은 위치만 그려주면 표현이 제대로 안되기 때문에 너무 작게 선이 그려졌을때 올려주는 플래그
         private static var sq1pxCursor:Boolean = false; // 1픽셀 사각형 커서인경우 올려주고 커서 미리보기 회전적용되게 함
-        private static function isCircleRectColliding(cx:Number, cy:Number, r:Number, rx:Number, ry:Number, w:Number, h:Number):Boolean {
+
+        public static var penAlpha:Number = 1.0;
+        public static var penColor:uint = 0x000000;
+        public static var penSize:uint = 3;
+        public static var penIsSquare:Boolean = false;
+        public static var isTransparentPenColor:Boolean = false; // 펜 컬러 투명 켜졌을때 올려줌
+        public static var penSizeList:Array = [0, 1, 2, 3, 4, 5, 7, 10, 13, 18, 30, 45, 80];
+        public static var penAlphaList:Array = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+        public static var penCursorSize:Number = 3;
+        public static var penCursorShape:Boolean = false;
+        public static var penSizeIndex:uint = 3;
+        public static var penAlphaIndex:uint = 9;
+        public static var penSmoothValue:Number = 0; // 펜 손떨방 플래그
+        public static var penSmoothSlideValue:int = 0; // 펜 손떨방 플래그
+        public static var penSmoothSlideTotal:Number = 20; // 손떨방 총 단계
+        public static var penListShapeIsSqare:Boolean = false; // 펜 리스트에서 펜 모양 버튼 눌러줄때 툴이랑 상관없이 바꿔줌, 펜 미리보기 할때 필요
+        public static var penLastSizeAndShape:Array = [null, null]; // updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뜀
+        public static var eraserSize:uint = 12;
+        public static var eraserSizeIndex:uint = 8;
+        public static var eraserIsSquare:Boolean = false;
+        public static var eraserAlpha:Number = 1.0;
+        public static var eraserAlphaIndex:uint = 9;
+        public static var isEraserAirBrushON:Boolean = false;
+
+        private static function isCircleRectColliding(cx:Number, cy:Number, r:Number, rx:Number, ry:Number, w:Number, h:Number):Boolean
+        {
 
             const px:Number = Math.max(rx, Math.min(cx, rx + w));
 
@@ -59,17 +86,21 @@ package main_module.tools {
 
         }
 
-        private static function setCanUndoDataFlagON():void {
+        private static function setCanUndoDataFlagON():void
+        {
 
-            if (Main._instance.canvasLayer1Bitmap.hitTestPoint(_stage.mouseX, _stage.mouseY, true)) {
+            if (Main._instance.canvasLayer1Bitmap.hitTestPoint(_stage.mouseX, _stage.mouseY, true))
+            {
 
                 Main._instance.canAddUndoData = true;
 
             }
 
-            else if (Main._instance.penCursorShape) {
+            else if (penCursorShape)
+            {
 
-                if (canvasSizeRect.intersects(Main._instance.penSizePreviewCursor.getBounds(Main._instance.canvasPanel))) {
+                if (canvasSizeRect.intersects(Main._instance.penSizePreviewCursor.getBounds(Main._instance.canvasPanel)))
+                {
 
                     Main._instance.canAddUndoData = true;
 
@@ -77,7 +108,8 @@ package main_module.tools {
 
             }
 
-            else if (isCircleRectColliding(Main._instance.canvasPanel.mouseX, Main._instance.canvasPanel.mouseY, Main._instance.penCursorSize, 0, 0, Main._instance.CANVAS_WIDTH, Main._instance.CANVAS_HEIGHT)) {
+            else if (isCircleRectColliding(Main._instance.canvasPanel.mouseX, Main._instance.canvasPanel.mouseY, penCursorSize, 0, 0, Main._instance.CANVAS_WIDTH, Main._instance.CANVAS_HEIGHT))
+            {
 
                 Main._instance.canAddUndoData = true;
 
@@ -85,17 +117,20 @@ package main_module.tools {
 
         }
 
-        private static function lineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void {
+        private static function lineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void
+        {
 
             Main._instance.canvasDrawLayer.alpha = alpha;
 
-            if (shape === false) {
+            if (shape === false)
+            {
 
                 Main._instance.canvasDrawLayerChild.graphics.lineStyle(size, color);
 
             }
 
-            else {
+            else
+            {
 
                 Main._instance.canvasDrawLayerChild.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.BEVEL);
 
@@ -103,25 +138,28 @@ package main_module.tools {
 
         }
 
-        private static function lineSmoothing():Boolean {
+        private static function lineSmoothing():Boolean
+        {
 
             var ox:Number = smoothPos.x;
 
             var oy:Number = smoothPos.y;
 
-            ox += (smoothLast.x - ox) * Main._instance.penSmoothValue;
+            ox += (smoothLast.x - ox) * penSmoothValue;
 
-            oy += (smoothLast.y - oy) * Main._instance.penSmoothValue;
+            oy += (smoothLast.y - oy) * penSmoothValue;
 
             handleMouseMove(ox, oy);
 
-            if (Math.abs(smoothLast.x - ox) < 0.02 && Math.abs(smoothLast.y - oy) < 0.02) {
+            if (Math.abs(smoothLast.x - ox) < 0.02 && Math.abs(smoothLast.y - oy) < 0.02)
+            {
 
                 return false;
 
             }
 
-            else {
+            else
+            {
 
                 smoothPos.setTo(ox, oy);
 
@@ -134,7 +172,8 @@ package main_module.tools {
         }
 
         // 끝 부분점을 distance만큼 길게 늘임
-        private static function updateExtendEndPoint(x1:Number, y1:Number, x2:Number, y2:Number, distance:Number):void {
+        private static function updateExtendEndPoint(x1:Number, y1:Number, x2:Number, y2:Number, distance:Number):void
+        {
 
             // 선분 방향 벡터 계산
             const directionX:Number = x2 - x1;
@@ -153,9 +192,11 @@ package main_module.tools {
 
         }
 
-        private static function handleMouseMove(mx:Number, my:Number):void {
+        private static function handleMouseMove(mx:Number, my:Number):void
+        {
 
-            if (Main._instance.canAddUndoData === false) {
+            if (Main._instance.canAddUndoData === false)
+            {
 
                 setCanUndoDataFlagON();
 
@@ -167,7 +208,8 @@ package main_module.tools {
 
             my = filteredPos.y + offsetForSharpline;
 
-            if (xShape === true) {
+            if (xShape === true)
+            {
 
                 const sx:Number = sqLinePosLast.x - mx;
 
@@ -175,13 +217,15 @@ package main_module.tools {
 
                 const dist:Number = Math.sqrt(sx * sx + sy * sy);
 
-                if (dist <= 2.5) {
+                if (dist <= 2.5)
+                {
 
                     return;
 
                 }
 
-                else {
+                else
+                {
 
                     sqLinePosLast.setTo(mx, my);
 
@@ -198,7 +242,8 @@ package main_module.tools {
 
                 lineStyleReady(xShape, xSize, xColor, xAlpha);
 
-                if (xShape) {
+                if (xShape)
+                {
 
                     const filteredStartPos:Point = Main._instance.getRefinedPoint(clickPos.x, clickPos.y);
 
@@ -218,7 +263,8 @@ package main_module.tools {
 
                 }
 
-                else {
+                else
+                {
 
                     Main._instance.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, Main._instance.isLayer2Selected, Main._instance.airBrushSizeDrawMode]);
 
@@ -232,9 +278,11 @@ package main_module.tools {
 
             }
 
-            if (isMouseMoved) {
+            if (isMouseMoved)
+            {
 
-                if (moveEvent2Last.x === mx && moveEvent2Last.y === my) {
+                if (moveEvent2Last.x === mx && moveEvent2Last.y === my)
+                {
 
                     return;
 
@@ -254,11 +302,13 @@ package main_module.tools {
 
                 mouseMovedCount++;
 
-                if (mouseMovedCount >= 100) {
+                if (mouseMovedCount >= 100)
+                {
 
                     mouseMovedCount = 0;
 
-                    if (Main._instance.airBrushSizeDrawMode > 0) {
+                    if (Main._instance.airBrushSizeDrawMode > 0)
+                    {
 
                         const blurSize:Number = Main._instance.getBlurSize(Main._instance.airBrushSizeDrawMode, 1.0);
 
@@ -270,7 +320,8 @@ package main_module.tools {
 
                     }
 
-                    else {
+                    else
+                    {
 
                         Main._instance.canvasDrawLayerBitmapData.draw(Main._instance.canvasDrawLayerChild, null, null, "layer");
 
@@ -295,7 +346,8 @@ package main_module.tools {
                     Main._instance.rDataBuffer.push(["tempDone4"]);
 
                     // TODO: write object를 쓰지 않고 원시 데이터를 써서 리플레이를 빠르고 효율적이게 다시 쓸수있을것같음
-                    if (xShape === true) {
+                    if (xShape === true)
+                    {
 
                         Main._instance.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, Main._instance.isLayer2Selected, Main._instance.airBrushSizeDrawMode]);
 
@@ -309,7 +361,8 @@ package main_module.tools {
 
                     }
 
-                    else {
+                    else
+                    {
 
                         Main._instance.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, Main._instance.isLayer2Selected, Main._instance.airBrushSizeDrawMode]);
 
@@ -325,7 +378,8 @@ package main_module.tools {
 
                 }
 
-                if (xShape === true || sq1pxCursor === true) {
+                if (xShape === true || sq1pxCursor === true)
+                {
 
                     const rad:Number = Math.atan2(mx - sqPenCursorLast.x, my - sqPenCursorLast.y);
 
@@ -339,7 +393,8 @@ package main_module.tools {
 
                 }
 
-                if (Point.distance(clickPos, moveEvent2Last) >= 0.2) {
+                if (Point.distance(clickPos, moveEvent2Last) >= 0.2)
+                {
 
                     dotflag = false;
 
@@ -349,7 +404,8 @@ package main_module.tools {
 
         }
 
-        private static function penToolMouseMoveLimit(mx:Number, my:Number):Boolean {
+        private static function penToolMouseMoveLimit(mx:Number, my:Number):Boolean
+        {
 
             moveEventDistSave.setTo(mx, my);
 
@@ -357,11 +413,13 @@ package main_module.tools {
 
             // 브러쉬 크기 제한보다 작게 움직였을때 무시
             // 브러시 크기에 따라서 짧은 선들의 집합으로 그림 사각펜에서 선을 안정화시킴
-            if (dist < lastMouseMoveDist) {
+            if (dist < lastMouseMoveDist)
+            {
 
                 lastMouseMoveDist = lastMouseMoveDist - dist;
 
-                if (lastMouseMoveDist <= 0) {
+                if (lastMouseMoveDist <= 0)
+                {
 
                     lastMouseMoveDist = xSize / 5;
 
@@ -373,7 +431,8 @@ package main_module.tools {
 
             lastMouseMoveDist = lastMouseMoveDist - dist;
 
-            if (lastMouseMoveDist <= 0) {
+            if (lastMouseMoveDist <= 0)
+            {
 
                 lastMouseMoveDist = xSize / 5;
 
@@ -385,7 +444,8 @@ package main_module.tools {
 
         }
 
-        private static function onMouseMovePenTool(e:MouseEvent):void {
+        private static function onMouseMovePenTool(e:MouseEvent):void
+        {
 
             var filteredPos:Point = Main._instance.getRefinedPoint(Main._instance.canvasDrawLayerChild.mouseX, Main._instance.canvasDrawLayerChild.mouseY);
 
@@ -393,21 +453,23 @@ package main_module.tools {
 
             const my:Number = filteredPos.y;
 
-            if (penToolMouseMoveLimit(mx, my)) {
+            if (penToolMouseMoveLimit(mx, my))
+            {
 
                 return;
 
             }
 
-            if (isPenTool && Main._instance.penSmoothSlideValue > 1) {
+            if (isPenTool && penSmoothSlideValue > 1)
+            {
 
                 var ox:Number = smoothPos.x;
 
                 var oy:Number = smoothPos.y;
 
-                ox += (smoothLast.x - smoothPos.x) * Main._instance.penSmoothValue;
+                ox += (smoothLast.x - smoothPos.x) * penSmoothValue;
 
-                oy += (smoothLast.y - smoothPos.y) * Main._instance.penSmoothValue;
+                oy += (smoothLast.y - smoothPos.y) * penSmoothValue;
 
                 handleMouseMove(ox, oy);
 
@@ -419,7 +481,8 @@ package main_module.tools {
 
             }
 
-            else {
+            else
+            {
 
                 handleMouseMove(mx, my);
 
@@ -429,19 +492,22 @@ package main_module.tools {
 
         }
 
-        private static function onMouseUpPenTool(e:MouseEvent):void {
+        private static function onMouseUpPenTool(e:MouseEvent):void
+        {
 
             _stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
 
             _stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 
-            if (!Main._instance.isRefLayerEmpty() && isPenTool && Main._instance.isRefLayerMemoryTrainingON && Main._instance.refLayerLastAlpha > 0.0) {
+            if (!Main._instance.isRefLayerEmpty() && isPenTool && Main._instance.isRefLayerMemoryTrainingON && Main._instance.refLayerLastAlpha > 0.0)
+            {
 
                 Main._instance.setCanvasRefLayerVisibleDelay();
 
             }
 
-            if (Main._instance.penSmoothSlideValue > 1) {
+            if (penSmoothSlideValue > 1)
+            {
 
                 Main._instance.removeTimer("lineSmoothingTimer");
 
@@ -449,15 +515,18 @@ package main_module.tools {
 
             }
 
-            if (xShape === true) {
+            if (xShape === true)
+            {
 
                 Main._instance.penSizePreviewCursor.rotation = 0;
 
-                if (isMouseMoved === true) {
+                if (isMouseMoved === true)
+                {
 
                     const pointLen:uint = penPoints.length;
 
-                    if (pointLen >= 4) {
+                    if (pointLen >= 4)
+                    {
 
                         updateExtendEndPoint(penPoints[pointLen - 4], penPoints[pointLen - 3], penPoints[pointLen - 2], penPoints[pointLen - 1], xSize / 8);
 
@@ -471,7 +540,8 @@ package main_module.tools {
 
             }
 
-            if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag)) {
+            if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
+            {
 
                 Main._instance.rDataBuffer = [];
 
@@ -491,38 +561,45 @@ package main_module.tools {
 
         }
 
-        public static function init(stage:Stage):void {
+        public static function init(stage:Stage):void
+        {
             _stage = stage;
         }
 
-        public function PenTool():void {
+        public function PenTool():void
+        {
 
         }
 
-        public static function start():void {
+        public static function start():void
+        {
             execute(true);
         }
 
-        public static function startWithEraserMode():void {
+        public static function startWithEraserMode():void
+        {
             execute(false);
         }
 
-        public static function execute(flag:Boolean):void {
+        public static function execute(flag:Boolean):void
+        {
             isPenTool = flag;
 
-            if (isPenTool) {
+            if (isPenTool)
+            {
 
-                xSize = Main._instance.penSize;
+                xSize = penSize;
 
-                xAlpha = Main._instance.penAlpha;
+                xAlpha = penAlpha;
 
-                xShape = Main._instance.penIsSquare;
+                xShape = penIsSquare;
 
                 xAirBrushON = Main._instance.isPenAirBrushON;
 
                 dotflag = true;
 
-                if (Main._instance.isTransparentPenColor) {
+                if (isTransparentPenColor)
+                {
 
                     xColor = Main._instance.CANVAS_BG_COLOR;
 
@@ -530,13 +607,15 @@ package main_module.tools {
 
                 }
 
-                else {
+                else
+                {
 
-                    xColor = Main._instance.penColor;
+                    xColor = penColor;
 
                     xBlendMode = null;
 
-                    if (!Main._instance.isCurrentColorSamePickedColor()) {
+                    if (!Main._instance.isCurrentColorSamePickedColor())
+                    {
 
                         Main._instance.updatePickerCurrentColor(Main._instance.colorPickerBox.getRGBInfoBGColor());
 
@@ -548,23 +627,25 @@ package main_module.tools {
 
             }
 
-            else {
+            else
+            {
 
-                xSize = Main._instance.eraserSize;
+                xSize = eraserSize;
 
                 xColor = Main._instance.CANVAS_BG_COLOR;
 
-                xAlpha = Main._instance.eraserAlpha;
+                xAlpha = eraserAlpha;
 
-                xShape = Main._instance.eraserIsSquare;
+                xShape = eraserIsSquare;
 
                 xBlendMode = "erase";
 
-                xAirBrushON = Main._instance.isEraserAirBrushON;
+                xAirBrushON = isEraserAirBrushON;
 
             }
 
-            if (xSize === 1) {
+            if (xSize === 1)
+            {
 
                 sq1pxCursor = true;
 
@@ -572,13 +653,15 @@ package main_module.tools {
 
             }
 
-            else {
+            else
+            {
 
                 sq1pxCursor = false;
 
             }
 
-            if (!Main._instance.isRefLayerEmpty() && flag && Main._instance.isRefLayerMemoryTrainingON) {
+            if (!Main._instance.isRefLayerEmpty() && flag && Main._instance.isRefLayerMemoryTrainingON)
+            {
 
                 Main._instance.setCanvasRefLayerInvisible();
 
@@ -603,7 +686,8 @@ package main_module.tools {
             smoothLast.copyFrom(filteredPos); // penmove할때 마지막x y저장
             moveEventLast.copyFrom(filteredPos);
 
-            if (xShape === true) {
+            if (xShape === true)
+            {
 
                 sqPenCursorLast.copyFrom(smoothPos);
 
@@ -612,7 +696,8 @@ package main_module.tools {
             }
 
             lastMouseMoveDist = xSize / 5; // penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
-            if (Main._instance.canAddUndoData === false) {
+            if (Main._instance.canAddUndoData === false)
+            {
 
                 setCanUndoDataFlagON();
 

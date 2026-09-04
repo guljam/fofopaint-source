@@ -1,6 +1,7 @@
 ﻿package
 {
     import Main;
+    import main_module.tools.PenTool;
 
     public class HintStrings
     {
@@ -15,7 +16,7 @@
         static public const STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity ";
         static public const STRING_RIGHT_CLICK_TO_RESET:String = "Right-click to reset";
         static public const STRING_VARIBALE_HINT:String = "!";
-                            
+
         static private const hintsCaptureMode:Object =
             {
                 "capOff": "Exit capture mode [esc / backspace / f1 / f7]",
@@ -44,7 +45,7 @@
                 "loadButton": "Load image [ctrl+o]",
                 "clipBoardButton": "Load from clipboard [ctrl+v / ctrl+m] _ No image found",
                 "newFileButton": "New file [hold esc / backspace / delete]",
-                "gridButton": "Grid _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "gridButton": "Grid _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "sideBarPositionButton": "Move sidebar to right",
                 "sideBarPositionButton2": "Move sidebar to left",
                 "sideBarOFFButton": "Hide sidebar [tab / \\]",
@@ -69,19 +70,19 @@
                 "cutPrevDataButton": "Trim all before current frame",
                 "superUndoButton": "Trim all after current frame",
                 "replaySpeedSliderWrapper": "Playback speed [up / down, f  / v, h / n]",
-                "replayZoomOutButton": "Zoom out _ "+STRING_RIGHT_CLICK_TO_RESET,
-                "replayZoomInButton": "Zoom in _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "replayZoomOutButton": "Zoom out _ " + STRING_RIGHT_CLICK_TO_RESET,
+                "replayZoomInButton": "Zoom in _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "replayFitToWindowButton": "Toggle fit to viewport",
-                "replayRotateButton": "Rotate _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "replayRotateButton": "Rotate _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "replayRepeatButton": "Toggle loop playback",
                 "trackBar": STRING_VARIBALE_HINT,
 
                 // 그리드 슬라이더
                 "gridSliderWrapper": STRING_VARIBALE_HINT,
-                "gridMoveLeftButton": "Nudge left _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
-                "gridMoveRightButton": "Nudge right _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
-                "gridMoveUpButton": "Nudge up _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
-                "gridMoveDownButton": "Nudge down _ Hold to repeat _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "gridMoveLeftButton": "Nudge left _ Hold to repeat _ " + STRING_RIGHT_CLICK_TO_RESET,
+                "gridMoveRightButton": "Nudge right _ Hold to repeat _ " + STRING_RIGHT_CLICK_TO_RESET,
+                "gridMoveUpButton": "Nudge up _ Hold to repeat _ " + STRING_RIGHT_CLICK_TO_RESET,
+                "gridMoveDownButton": "Nudge down _ Hold to repeat _ " + STRING_RIGHT_CLICK_TO_RESET,
 
                 // 펜옵션
                 "shapeCircle": "Circle",
@@ -106,7 +107,7 @@
                 "layerSwapButton": "Swap layers",
                 "layerMergeButton": "Merge into Layer 2",
 
-                // 툴박스 2 
+                // 툴박스 2
                 "toolQuickSidebar": "[6 / s+d / j+k]",
                 "toolPen": "Pen [q / o key up]",
                 "toolFillPen": "Fill pen [q / o]",
@@ -119,12 +120,12 @@
                 "toolLine": "Line [shift]",
                 "toolMove": "Move image [e / u]",
                 "toolZoom": "Zoom canvas [w / i]",
-                "toolZoomIn": "Zoom in _ "+STRING_RIGHT_CLICK_TO_RESET,
-                "toolZoomOut": "Zoom out _ "+STRING_RIGHT_CLICK_TO_RESET,
-                "toolRotate": "Rotate canvas [s / k] _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "toolZoomIn": "Zoom in _ " + STRING_RIGHT_CLICK_TO_RESET,
+                "toolZoomOut": "Zoom out _ " + STRING_RIGHT_CLICK_TO_RESET,
+                "toolRotate": "Rotate canvas [s / k] _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "toolRotate2": "Rotate canvas [s / k]",
                 "toolRefLayer": "Reference layer [t]",
-                "sideBarScrollBar": "Scroll [drag / wheel] _ "+STRING_RIGHT_CLICK_TO_RESET,
+                "sideBarScrollBar": "Scroll [drag / wheel] _ " + STRING_RIGHT_CLICK_TO_RESET,
 
                 "toolFillPenOK": "Confirm [right-click / enter / q or o]",
                 "toolFillPenCancel": "Cancel [esc]",
@@ -155,29 +156,29 @@
 
         static private function initSizeAndAlphaButtonHintString():void
         {
-            if(_main === null)  
+            if (_main === null)
             {
                 return;
             }
-            
-            var len:int = _main.penAlphaList.length;
+
+            var len:int = PenTool.penAlphaList.length;
             var key:String = "alphaButton";
-            for(var i:int =1; i<=len; i++)
+            for (var i:int = 1; i <= len; i++)
             {
-                hints[key+i] = "Opacity "+(_main.penAlphaList[i]*100)+"% [g / b]";
+                hints[key + i] = "Opacity " + (PenTool.penAlphaList[i] * 100) + "% [g / b]";
             }
 
-            len = _main.penSizeList.length;
+            len = PenTool.penSizeList.length;
             key = "nSizeButton";
-            for(i =1; i<=len; i++)
+            for (i = 1; i <= len; i++)
             {
-                hints[key+i] = "Size "+(_main.penSizeList[i])+ "px [f / v, h / n]"
+                hints[key + i] = "Size " + (PenTool.penSizeList[i]) + "px [f / v, h / n]";
             }
         }
 
         static public function getRedoButtonHint():String
         {
-            if(_main === null || _main.toolBox2.visible)
+            if (_main === null || _main.toolBox2.visible)
             {
                 return "Redo [x / ,]";
             }
@@ -187,7 +188,7 @@
 
         static public function getUndoButtonHint():String
         {
-            if(_main === null || _main.toolBox2.visible)
+            if (_main === null || _main.toolBox2.visible)
             {
                 return "Undo [z / .]";
             }
@@ -195,9 +196,9 @@
             return "Undo [z / .] _ Hold to repeat";
         }
 
-        static public function getGridGapAdjustHintString(multi:uint,gap:uint):String
+        static public function getGridGapAdjustHintString(multi:uint, gap:uint):String
         {
-            return "Grid " + (multi*gap)+"px ("+multi+"/20)";
+            return "Grid " + (multi * gap) + "px (" + multi + "/20)";
         }
 
         static public function getNewFileHintString():String
@@ -212,30 +213,30 @@
 
         static public function getPenSmoothingValueString():String
         {
-            if(_main === null)
+            if (_main === null)
             {
                 return "";
             }
 
-            return _main.penSmoothSlideValue +" / "+ _main.penSmoothSlideTotal;
+            return PenTool.penSmoothSlideValue + " / " + PenTool.penSmoothSlideTotal;
         }
 
         static public function getRGBorHSVString():String
         {
-            if(_main === null)
+            if (_main === null)
             {
                 return "";
             }
-            return (_main.isHSVInfoTextMode) ? "'HSV'":"'RGB'";
+            return (_main.isHSVInfoTextMode) ? "'HSV'" : "'RGB'";
         }
 
         static public function getCaptureSaveHintString():String
         {
-            if(_main === null)
+            if (_main === null)
             {
                 return "";
             }
-            return (_main.captureAreaManager.isFullImageCapture()) ? "image":"selected area";
+            return (_main.captureAreaManager.isFullImageCapture()) ? "image" : "selected area";
         }
 
         static public function getUIScaleString():String
@@ -245,12 +246,12 @@
 
         static public function getTrackBarHintString():String
         {
-            if(_main === null)
+            if (_main === null)
             {
                 return "";
             }
 
-            if(_main.isReplayRestartTimerON())
+            if (_main.isReplayRestartTimerON())
             {
                 return "Seek bar _ Click to abort restart";
             }
@@ -259,72 +260,95 @@
 
         static public function getGridGapHintString():String
         {
-            if(_main === null)
+            if (_main === null)
             {
                 return "";
             }
 
-            return _main.gridGapMultiplier+_main.GRID_GAP +"px";
+            return _main.gridGapMultiplier + _main.GRID_GAP + "px";
         }
 
         static public function getNewVersionAvailableHintString():String
         {
-            return "Version " +_main.newVersionStr+" is available!";
+            return "Version " + _main.newVersionStr + " is available!";
         }
 
         static public function getOpacityButtonHintString(index:int):String
         {
-            if(_main === null)  
+            if (_main === null)
             {
                 return "";
             }
 
-            return "Opacity "+(_main.penAlphaList[index]*100)+"% [g / b]";
+            return "Opacity " + (PenTool.penAlphaList[index] * 100) + "% [g / b]";
         }
 
         static public function getSizeButtonHintString(index:int):String
         {
-            if(_main === null)
+            if (_main === null)
             {
                 return "";
             }
 
-            return "Size "+(_main.penSizeList[index])+ "px [f / v, h / n]";
+            return "Size " + (PenTool.penSizeList[index]) + "px [f / v, h / n]";
         }
 
         static public function getCurrentColorHintString():String
         {
-            if(_main === null)
+            if (_main === null)
             {
                 return "";
             }
 
             const pickedColor:uint = _main.colorPickerBox.getRGBInfoBGColor();
-            const arr:Vector.<Number> = (_main.isHSVInfoTextMode) ? Global.HEXtoHSV(pickedColor,_main.hsvColorData[0]) : Global.HEXtoRGB(pickedColor);
+            const arr:Vector.<Number> = (_main.isHSVInfoTextMode) ? Global.HEXtoHSV(pickedColor, _main.hsvColorData[0]) : Global.HEXtoRGB(pickedColor);
             const mode:String = (_main.isHSVInfoTextMode) ? "HSV" : "RGB";
 
-            return "Current color : " + mode +" " + arr[0] + "," + arr[1] + "," + arr[2];
+            return "Current color : " + mode + " " + arr[0] + "," + arr[1] + "," + arr[2];
         }
 
         static public function getHintFromTargetNameRefLayer(targetName:String):String
-        {    
+        {
             var str:String = "Reference layer";
 
-            switch(targetName)
+            switch (targetName)
             {
-                case "refMenuCloseButton":str = "Close [esc, backspace, t]"; break;
-                case "refTransferCanvasImageButton":str = STRING_MERGE_INTO_REFLAYER; break;
-                case "refLoadImageButton":str = "Load image"; break;
-                case "refClipBoardButton":str = "Load clipboard image"; break;
-                case "refOpacitySliderWrapper":str = "Adjust image opacity"; break;
-                case "refRotateImageButton":str = "Rotate _ "+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "refMoveImageButton":str = "Move _ "+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "refResizeImageButton":str = "Resize _ "+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "refMirrorImageButton":str = "Flip image"; break;
+                case "refMenuCloseButton":
+                    str = "Close [esc, backspace, t]";
+                    break;
+                case "refTransferCanvasImageButton":
+                    str = STRING_MERGE_INTO_REFLAYER;
+                    break;
+                case "refLoadImageButton":
+                    str = "Load image";
+                    break;
+                case "refClipBoardButton":
+                    str = "Load clipboard image";
+                    break;
+                case "refOpacitySliderWrapper":
+                    str = "Adjust image opacity";
+                    break;
+                case "refRotateImageButton":
+                    str = "Rotate _ " + STRING_RIGHT_CLICK_TO_RESET;
+                    break;
+                case "refMoveImageButton":
+                    str = "Move _ " + STRING_RIGHT_CLICK_TO_RESET;
+                    break;
+                case "refResizeImageButton":
+                    str = "Resize _ " + STRING_RIGHT_CLICK_TO_RESET;
+                    break;
+                case "refMirrorImageButton":
+                    str = "Flip image";
+                    break;
                 case "refMemoryTrainingOnButton":
-                case "refMemoryTrainingOffButton":str = "Toggle Memory training"; break;
-                case "refClearImageButton":str = "Hold to erase reference image"; break;
-                default: break;
+                case "refMemoryTrainingOffButton":
+                    str = "Toggle Memory training";
+                    break;
+                case "refClearImageButton":
+                    str = "Hold to erase reference image";
+                    break;
+                default:
+                    break;
             }
 
             return str;
@@ -332,17 +356,17 @@
 
         static public function getLassoMenuHintSwapLayer():String
         {
-            if(_main === null)
+            if (_main === null)
             {
                 return "";
             }
 
-            return "Swap layers " + ((_main.isLassoLayerSwapButtonClicked) ?"*":"");
+            return "Swap layers " + ((_main.isLassoLayerSwapButtonClicked) ? "*" : "");
         }
 
         static public function getLayerVisibleHint(layer1:Boolean, layer2:Boolean):String
         {
-            if (layer1) 
+            if (layer1)
             {
                 return layer2 ? "All layers visible" : "Layer 1 only";
             }
@@ -354,22 +378,43 @@
         {
             var str:String = "Lasso tool";
 
-            switch(targetName)
+            switch (targetName)
             {
-                case "lassoOK":str = "Confirm [enter, right-click]"; break;
-                case "lassoCancel":str = "Cancel [esc, backspace]"; break;
-                case "lassoCopy":str = "Copy selection"; break;
-                case "lassoRotate":str = "Rotate selection _ " + STRING_RIGHT_CLICK_TO_RESET; break;
-                case "lassoMirror":str = "Flip selection"; break;
-                case "lassoResize":str = "Resize selection _ "+STRING_RIGHT_CLICK_TO_RESET; break;
-                case "lassoRefLayer":str = STRING_MERGE_INTO_REFLAYER; break;
+                case "lassoOK":
+                    str = "Confirm [enter, right-click]";
+                    break;
+                case "lassoCancel":
+                    str = "Cancel [esc, backspace]";
+                    break;
+                case "lassoCopy":
+                    str = "Copy selection";
+                    break;
+                case "lassoRotate":
+                    str = "Rotate selection _ " + STRING_RIGHT_CLICK_TO_RESET;
+                    break;
+                case "lassoMirror":
+                    str = "Flip selection";
+                    break;
+                case "lassoResize":
+                    str = "Resize selection _ " + STRING_RIGHT_CLICK_TO_RESET;
+                    break;
+                case "lassoRefLayer":
+                    str = STRING_MERGE_INTO_REFLAYER;
+                    break;
                 case "lasso1pxLeft":
                 case "lasso1pxRight":
                 case "lasso1pxUp":
-                case "lasso1pxDown": str = "Nudge image [space + wasd or ijkl]"; break;
-                case "lassoLayerMerge": str = "Merge into layer 2"; break;
-                case "lassoLayerSwap": str = getLassoMenuHintSwapLayer(); break;
-                default: break;
+                case "lasso1pxDown":
+                    str = "Nudge image [space + wasd or ijkl]";
+                    break;
+                case "lassoLayerMerge":
+                    str = "Merge into layer 2";
+                    break;
+                case "lassoLayerSwap":
+                    str = getLassoMenuHintSwapLayer();
+                    break;
+                default:
+                    break;
             }
 
             return str;
@@ -382,14 +427,13 @@
 
         static public function getReplayRestartHintString(count:Number):String
         {
-            return "Restarting in " + count +" sec";
+            return "Restarting in " + count + " sec";
         }
 
-        static public function getReplaySpeedHintString(speed:Number,timeStr:String):String
+        static public function getReplaySpeedHintString(speed:Number, timeStr:String):String
         {
-            return "Playback speed x"+speed+timeStr;
+            return "Playback speed x" + speed + timeStr;
         }
-
 
         static public function getHintFromTargetNameCaptureMode(targetName:String):String
         {
@@ -398,69 +442,69 @@
                 return null;
             }
 
-            return getFinalHint(targetName,hintsCaptureMode);
+            return getFinalHint(targetName, hintsCaptureMode);
         }
 
-        static private function getFinalHint(targetName:String,hintSet:Object):String
+        static private function getFinalHint(targetName:String, hintSet:Object):String
         {
-            if(hintSet[targetName] !== STRING_VARIBALE_HINT)
+            if (hintSet[targetName] !== STRING_VARIBALE_HINT)
             {
                 return hintSet[targetName];
             }
 
-            if(targetName === "toolUndo")
+            if (targetName === "toolUndo")
             {
                 return getUndoButtonHint();
             }
 
-            if(targetName === "toolRedo")
+            if (targetName === "toolRedo")
             {
                 return getRedoButtonHint();
             }
 
-            if(targetName === "capSave")
+            if (targetName === "capSave")
             {
-                return "Save "+ getCaptureSaveHintString()+" [ctrl+s / ctrl+;]";
+                return "Save " + getCaptureSaveHintString() + " [ctrl+s / ctrl+;]";
             }
 
-            if(targetName === "capClipBoard")
+            if (targetName === "capClipBoard")
             {
-                return "Copy "+ getCaptureSaveHintString() +" to clipboard [ctrl+c / ctrl+,]";
+                return "Copy " + getCaptureSaveHintString() + " to clipboard [ctrl+c / ctrl+,]";
             }
 
-            if(targetName === "dpiButton")
+            if (targetName === "dpiButton")
             {
-                return "Change UI scale _ "+STRING_RIGHT_CLICK_TO_RESET+" (Current: "+getUIScaleString()+")";
+                return "Change UI scale _ " + STRING_RIGHT_CLICK_TO_RESET + " (Current: " + getUIScaleString() + ")";
             }
 
-            if(targetName === "trackBar")
+            if (targetName === "trackBar")
             {
                 return getTrackBarHintString();
             }
 
-            if(targetName === "penSmoothSliderWapper")
+            if (targetName === "penSmoothSliderWapper")
             {
-                return "Pen smoothing "+getPenSmoothingValueString();
+                return "Pen smoothing " + getPenSmoothingValueString();
             }
 
-            if(targetName === "rgbInfoText")
+            if (targetName === "rgbInfoText")
             {
-                return "Adjust values _ Click "+getRGBorHSVString()+" to change color model";
+                return "Adjust values _ Click " + getRGBorHSVString() + " to change color model";
             }
 
-            if(targetName === "currentColor")
+            if (targetName === "currentColor")
             {
                 return getCurrentColorHintString();
             }
 
-            if(targetName === "updateButton")
+            if (targetName === "updateButton")
             {
                 return getNewVersionAvailableHintString();
             }
 
-            if(targetName === "gridSliderWrapper")
+            if (targetName === "gridSliderWrapper")
             {
-                return "Grid: " + getGridGapHintString() +" _ " +STRING_RIGHT_CLICK_TO_RESET;
+                return "Grid: " + getGridGapHintString() + " _ " + STRING_RIGHT_CLICK_TO_RESET;
             }
 
             return "";
@@ -473,7 +517,7 @@
                 return null;
             }
 
-            return getFinalHint(targetName,hints);
+            return getFinalHint(targetName, hints);
         }
     }
 }

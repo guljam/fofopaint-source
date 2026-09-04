@@ -327,28 +327,7 @@
             nowTool:int = 1, // 현재 툴 번호
             lastTool:int = TOOL_NONE, // 툴백업
             isKeyReleasedBeforeMouseUp:Boolean = false, // 키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
-            penAlpha:Number = 1.0, // 펜 변수,
-            penColor:uint = 0x000000,
-            isTransparentPenColor:Boolean = false, // 펜 컬러 투명 켜졌을때 올려줌
-            penSizeList:Array = [0, 1, 2, 3, 4, 5, 7, 10, 13, 18, 30, 45, 80],
-            penAlphaList:Array = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            penCursorSize:Number = 3,
-            penCursorShape:Boolean = false,
-            penSize:uint = 3,
-            penSizeIndex:uint = 3,
-            penAlphaIndex:uint = 9,
-            penIsSquare:Boolean = false, // false 이면 원 true 이면 사각형
-            penSmoothValue:Number = 0, // 펜 손떨방 플래그
-            penSmoothSlideValue:int = 0, // 펜 손떨방 플래그
-            penSmoothSlideTotal:Number = 20, // 손떨방 총 단계
-            penListShapeIsSqare:Boolean = false, // 펜 리스트에서 펜 모양 버튼 눌러줄때 툴이랑 상관없이 바꿔줌, 펜 미리보기 할때 필요
-            penLastSizeAndShape:Array = [null, null], // updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뜀
-            eraserSize:uint = 12,
-            eraserSizeIndex:uint = 8,
-            eraserIsSquare:Boolean = false,
-            eraserAlpha:Number = 1.0,
-            eraserAlphaIndex:uint = 9,
-            isEraserAirBrushON:Boolean = false,
+
             isFillPenON:Boolean = false, // 채우기 펜 플래그
             isFillPenStarted:Boolean = false, // 채우기 펜 시작됨
             isSharpLineON:Boolean = false, // 0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
@@ -1157,7 +1136,7 @@
             colorPickerBox.applyTransparentColorBrightness(Global.getUIColorIndex());
             updateMyPaletteList();
             updateHistoryList();
-            if (isTransparentPenColor)
+            if (PenTool.isTransparentPenColor)
             {
                 colorPickerBox.setRGBInfoBackgroundTransparent(myPalettePresetType);
             }
@@ -1676,10 +1655,10 @@
 
         public function getClipRectOffsetAirBrush(size:int):Number
         {
-            const len:uint = penSizeList.length;
+            const len:uint = PenTool.penSizeList.length;
             for (var i:uint = 1; i < len; i++)
             {
-                if (penSizeList[i] === size)
+                if (PenTool.penSizeList[i] === size)
                 {
                     return size + airBrushClipRectOffsetData[i];
                 }
@@ -2228,8 +2207,8 @@
 
             if (isPenColorMode())
             {
-                penColor = color;
-                updateOpacityCursorPos(penAlphaIndex);
+                PenTool.penColor = color;
+                updateOpacityCursorPos(PenTool.penAlphaIndex);
             }
             else if (isBackgroundColorMode())
             {
@@ -2247,7 +2226,7 @@
             var clickedPos:int = getRgbInfoTextClickedPosIndex();
 
             numpadInputBuffer = "";
-            isTransparentPenColor = false;
+            PenTool.isTransparentPenColor = false;
 
             if (colorPickerBox.getRGBInfoText() === "")
             {
@@ -4310,7 +4289,7 @@
 
         public function selectTransparentColor():void
         {
-            isTransparentPenColor = true;
+            PenTool.isTransparentPenColor = true;
             colorPickerBox.setRGBInfoBackgroundTransparent(myPalettePresetType);
         }
 
@@ -4318,7 +4297,7 @@
         {
             const hexColor:uint = colorPickerBox.currentColor;
 
-            isTransparentPenColor = false;
+            PenTool.isTransparentPenColor = false;
 
             if (bgmode)
             {
@@ -4332,8 +4311,8 @@
             }
             else
             {
-                penColor = hexColor;
-                updateOpacityCursorPos(penAlphaIndex);
+                PenTool.penColor = hexColor;
+                updateOpacityCursorPos(PenTool.penAlphaIndex);
                 updateColorPickerCursorPosAndRGBInfo(hexColor);
             }
         }
@@ -4536,10 +4515,10 @@
                 showFillColor();
                 addTimerByName("fillColorUpdateTimer", 0.1, true, function():Boolean
                     {
-                        const newXcolor:uint = (isTransparentPenColor) ? CANVAS_BG_COLOR : colorPickerBox.rgbInfoBGColor;
-                        const newXAlpha:Number = penAlpha;
+                        const newXcolor:uint = (PenTool.isTransparentPenColor) ? CANVAS_BG_COLOR : colorPickerBox.rgbInfoBGColor;
+                        const newXAlpha:Number = PenTool.penAlpha;
 
-                        const newXBlendMode:String = (isTransparentPenColor) ? "erase" : null;
+                        const newXBlendMode:String = (PenTool.isTransparentPenColor) ? "erase" : null;
 
                         if (newXcolor !== xColor)
                         {
@@ -5202,18 +5181,18 @@
                 mouseMoveCount = 0;
                 afterKeyUpOK = false;
                 pos05Offset = getSharpLinePosOffset(1.0);
-                xColor = (isTransparentPenColor) ? CANVAS_BG_COLOR : penColor;
-                xAlpha = penAlpha;
-                xBlendMode = (isTransparentPenColor) ? "erase" : null;
+                xColor = (PenTool.isTransparentPenColor) ? CANVAS_BG_COLOR : PenTool.penColor;
+                xAlpha = PenTool.penAlpha;
+                xBlendMode = (PenTool.isTransparentPenColor) ? "erase" : null;
                 commandUndoIndexArr[0] = 0;
                 clickedButton = null;
                 updateLastFillPenBoxButtonUsed(fillPenBox.fillPenOK as SimpleButton);
 
-                if (isPenAirBrushON || isEraserAirBrushON)
+                if (isPenAirBrushON || PenTool.isEraserAirBrushON)
                 {
                     canvasDrawLayerChild.filters = [];
                 }
-                if (!isTransparentPenColor)
+                if (!PenTool.isTransparentPenColor)
                 {
                     if (!isCurrentColorSamePickedColor())
                     {
@@ -5250,440 +5229,6 @@
                 };
         }
 
-        public function cPenTool():Function
-        {
-            const clickPos:Point = new Point(); // 점찍어 줄 때 판단하는 클릭한 자리 저장
-            const smoothPos:Point = new Point(); // 펜 스무딩에서 커서 뒤에 따라가는 실제 선의 죄표를 저장
-            const smoothLast:Point = new Point(); // 펜 스무딩에서 현재 마우스 커서 위치를 저장
-            const moveEventLast:Point = new Point(); // 마우스 move이벤트에서 브러시 크기 필터 해주기 위해 현재 위치 저장
-            const moveEventDistSave:Point = new Point(); // 마우스 move이벤트에서 브러시 크기 필터 해주기 위해 마지막 위치 저장
-            const moveEvent2Last:Point = new Point(); // penMove2함수에서 smooth pos를 저장해서 같은 위치면 안그려주기 위해서 마지막 위치를 저장
-            const sqPenCursorLast:Point = new Point(); // 사각형 커서 각도를 위한 위치저장
-            const sqLinePosLast:Point = new Point(); // 사각형라인일 때 일정 길이이상 일때만 그려주기 위한 위치
-            const extendedPos:Point = new Point(); // 사각형라인일 때 양끝점을 약간 확장해주기 위한 위치
-            const penCommand:Vector.<int> = new Vector.<int>(); // 그냥 펜 명령
-            const penPoints:Vector.<Number> = new Vector.<Number>(); // 그냥 펜 좌표
-            const canvasSizeRect:Rectangle = new Rectangle();
-
-            var isPenTool:Boolean;
-            var xSize:uint;
-            var xColor:uint;
-            var xAlpha:Number;
-            var xShape:Boolean;
-            var xBlendMode:String;
-            var xAirBrushON:Boolean;
-            var offsetForSharpline:Number; // 경계선 0.5를 조절해서 번지게 보이느냐 샤프하게 보이느냐
-            var mouseMovedCount:int; // 마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
-            var isMouseMoved:Boolean;
-            var lastMouseMoveDist:Number; // penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
-            var dotflag:Boolean; // 펜스무딩이 강하게 들어갔을때 아주 작은 위치만 그려주면 표현이 제대로 안되기 때문에 너무 작게 선이 그려졌을때 올려주는 플래그
-            var sq1PXCursor:Boolean = false; // 1픽셀 사각형 커서인경우 올려주고 커서 미리보기 회전적용되게 함
-
-            function isCircleRectColliding(cx:Number, cy:Number, r:Number, rx:Number, ry:Number, w:Number, h:Number):Boolean
-            {
-                const px:Number = Math.max(rx, Math.min(cx, rx + w));
-                const py:Number = Math.max(ry, Math.min(cy, ry + h));
-                const distance:Number = (Math.sqrt(Math.pow(px - cx, 2) + Math.pow(py - cy, 2)));
-
-                return distance <= r / 2;
-            }
-
-            function setCanUndoDataFlagON():void
-            {
-                if (canvasLayer1Bitmap.hitTestPoint(stage.mouseX, stage.mouseY, true))
-                {
-                    canAddUndoData = true;
-                }
-                else if (penCursorShape)
-                {
-                    if (canvasSizeRect.intersects(penSizePreviewCursor.getBounds(canvasPanel)))
-                    {
-                        canAddUndoData = true;
-                    }
-                }
-                else if (isCircleRectColliding(canvasPanel.mouseX, canvasPanel.mouseY, penCursorSize, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT))
-                {
-                    canAddUndoData = true;
-                }
-            }
-
-            function lineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void
-            {
-                canvasDrawLayer.alpha = alpha;
-
-                if (shape === false)
-                {
-                    canvasDrawLayerChild.graphics.lineStyle(size, color);
-                }
-                else
-                {
-                    canvasDrawLayerChild.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.BEVEL);
-                }
-            }
-
-            function lineSmoothing():Boolean
-            {
-                var ox:Number = smoothPos.x;
-                var oy:Number = smoothPos.y;
-
-                ox += (smoothLast.x - ox) * penSmoothValue;
-                oy += (smoothLast.y - oy) * penSmoothValue;
-
-                handleMouseMove(ox, oy);
-
-                if (Math.abs(smoothLast.x - ox) < 0.02 && Math.abs(smoothLast.y - oy) < 0.02)
-                {
-                    return false;
-                }
-                else
-                {
-                    smoothPos.setTo(ox, oy);
-                    addTimerByName("lineSmoothingTimer1", 0.02, true, lineSmoothing);
-                }
-                return true;
-            }
-
-            // 끝 부분점을 distance만큼 길게 늘임
-            function updateExtendEndPoint(x1:Number, y1:Number, x2:Number, y2:Number, distance:Number):void
-            {
-                // 선분 방향 벡터 계산
-                const directionX:Number = x2 - x1;
-                const directionY:Number = y2 - y1;
-
-                // 선분 길이 계산
-                const length:Number = Math.sqrt(directionX * directionX + directionY * directionY);
-
-                // 선분 방향 벡터 정규화
-                const normalizedDirectionX:Number = directionX / length;
-                const normalizedDirectionY:Number = directionY / length;
-
-                extendedPos.setTo(x2 + normalizedDirectionX * distance, y2 + normalizedDirectionY * distance);
-            }
-
-            function handleMouseMove(mx:Number, my:Number):void
-            {
-                if (canAddUndoData === false)
-                {
-                    setCanUndoDataFlagON();
-                }
-
-                const filteredPos:Point = getRefinedPoint(mx, my);
-
-                mx = filteredPos.x + offsetForSharpline;
-                my = filteredPos.y + offsetForSharpline;
-
-                if (xShape === true)
-                {
-                    const sx:Number = sqLinePosLast.x - mx;
-                    const sy:Number = sqLinePosLast.y - my;
-                    const dist:Number = Math.sqrt(sx * sx + sy * sy);
-
-                    if (dist <= 2.5)
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        sqLinePosLast.setTo(mx, my);
-                    }
-                }
-
-                if (isMouseMoved === false) // 움직이기 시작할때 linestyle이랑 moveto넣어줌
-                {
-                    isMouseMoved = true;
-
-                    canvasDrawLayerChild.graphics.clear();
-                    lineStyleReady(xShape, xSize, xColor, xAlpha);
-
-                    if (xShape)
-                    {
-                        const filteredStartPos:Point = getRefinedPoint(clickPos.x, clickPos.y);
-                        filteredStartPos.x = filteredStartPos.x + offsetForSharpline;
-                        filteredStartPos.y = filteredStartPos.y + offsetForSharpline;
-                        updateExtendEndPoint(mx, my, filteredStartPos.x, filteredStartPos.y, xSize / 8);
-                        rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, isLayer2Selected, airBrushSizeDrawMode]);
-                        penPoints.push(extendedPos.x);
-                        penPoints.push(extendedPos.y);
-                        canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
-                    }
-                    else
-                    {
-                        rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, isLayer2Selected, airBrushSizeDrawMode]);
-                        penPoints.push(smoothPos.x + offsetForSharpline);
-                        penPoints.push(smoothPos.y + offsetForSharpline);
-                        canvasDrawLayerChild.graphics.moveTo(smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline);
-                    }
-                }
-
-                if (isMouseMoved)
-                {
-                    if (moveEvent2Last.x === mx && moveEvent2Last.y === my)
-                    {
-                        return;
-                    }
-                    rDataBuffer.push(["lineTo", mx, my]);
-                    penCommand.push(2);
-                    penPoints.push(mx);
-                    penPoints.push(my);
-                    moveEvent2Last.setTo(mx, my);
-                    canvasDrawLayerChild.graphics.lineTo(mx, my);
-
-                    mouseMovedCount++;
-                    if (mouseMovedCount >= 100)
-                    {
-                        mouseMovedCount = 0;
-
-                        if (airBrushSizeDrawMode > 0)
-                        {
-                            const blurSize:Number = getBlurSize(airBrushSizeDrawMode, 1.0);
-                            canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
-                            canvasDrawLayerBitmapData.draw(canvasDrawLayerChild, null, null, "layer");
-                            canvasDrawLayerChild.filters = [];
-                        }
-                        else
-                        {
-                            canvasDrawLayerBitmapData.draw(canvasDrawLayerChild, null, null, "layer");
-                        }
-
-                        canvasDrawLayerBitmap.bitmapData = canvasDrawLayerBitmapData;
-                        updateCanvasDrawLayerCliprect();
-                        canvasDrawLayerChild.graphics.clear();
-
-                        lineStyleReady(xShape, xSize, xColor, xAlpha);
-
-                        const prevX:Number = penPoints[penPoints.length - 4];
-                        const prevY:Number = penPoints[penPoints.length - 3];
-                        penCommand.length = 0;
-                        penPoints.length = 0;
-                        rDataBuffer.push(["tempDone4"]);
-                        // TODO: write object를 쓰지 않고 원시 데이터를 써서 리플레이를 빠르고 효율적이게 다시 쓸수있을것같음
-
-                        if (xShape === true)
-                        {
-                            rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, isLayer2Selected, airBrushSizeDrawMode]);
-                            penCommand.push(1);
-                            penPoints.push(prevX);
-                            penPoints.push(prevY);
-                            canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
-                        }
-                        else
-                        {
-                            rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, isLayer2Selected, airBrushSizeDrawMode]);
-                            penCommand.push(1);
-                            penPoints.push(mx);
-                            penPoints.push(my);
-                            canvasDrawLayerChild.graphics.moveTo(mx, my);
-                        }
-                    }
-
-                    if (xShape === true || sq1PXCursor === true)
-                    {
-                        const rad:Number = Math.atan2(mx - sqPenCursorLast.x, my - sqPenCursorLast.y);
-                        const deg:Number = -rad * (180 / Math.PI) + canvasAnchorPoint.rotation;
-
-                        penSizePreviewCursor.rotation = deg;
-                        sqPenCursorLast.x = mx;
-                        sqPenCursorLast.y = my;
-                    }
-
-                    if (Point.distance(clickPos, moveEvent2Last) >= 0.2)
-                    {
-                        dotflag = false;
-                    }
-                }
-            }
-
-            function penToolMouseMoveLimit(mx:Number, my:Number):Boolean
-            {
-                moveEventDistSave.setTo(mx, my);
-                const dist:Number = Point.distance(moveEventDistSave, moveEventLast);
-
-                // 브러쉬 크기 제한보다 작게 움직였을때 무시
-                // 브러시 크기에 따라서 짧은 선들의 집합으로 그림 사각펜에서 선을 안정화시킴
-                if (dist < lastMouseMoveDist)
-                {
-                    lastMouseMoveDist = lastMouseMoveDist - dist;
-
-                    if (lastMouseMoveDist <= 0)
-                    {
-                        lastMouseMoveDist = xSize / 5;
-                    }
-                    return true;
-                }
-
-                lastMouseMoveDist = lastMouseMoveDist - dist;
-                if (lastMouseMoveDist <= 0)
-                {
-                    lastMouseMoveDist = xSize / 5;
-                }
-
-                moveEventLast.setTo(mx, my);
-                return false;
-            }
-
-            function onMouseMovePenTool(e:MouseEvent):void
-            {
-                var filteredPos:Point = getRefinedPoint(canvasDrawLayerChild.mouseX, canvasDrawLayerChild.mouseY);
-                const mx:Number = filteredPos.x;
-                const my:Number = filteredPos.y;
-
-                if (penToolMouseMoveLimit(mx, my))
-                {
-                    return;
-                }
-
-                if (isPenTool && penSmoothSlideValue > 1)
-                {
-                    var ox:Number = smoothPos.x;
-                    var oy:Number = smoothPos.y;
-
-                    ox += (smoothLast.x - smoothPos.x) * penSmoothValue;
-                    oy += (smoothLast.y - smoothPos.y) * penSmoothValue;
-
-                    handleMouseMove(ox, oy);
-                    smoothPos.setTo(ox, oy);
-                    smoothLast.setTo(mx, my);
-
-                    addTimerByName("lineSmoothingTimer", 0.03, false, lineSmoothing);
-                }
-                else
-                {
-                    handleMouseMove(mx, my);
-                    smoothPos.setTo(mx, my);
-                }
-            }
-
-            function onMouseUpPenTool(e:MouseEvent):void
-            {
-                stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
-
-                if (!isRefLayerEmpty() && isPenTool && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
-                {
-                    setCanvasRefLayerVisibleDelay();
-                }
-
-                if (penSmoothSlideValue > 1)
-                {
-                    removeTimer("lineSmoothingTimer");
-                    removeTimer("lineSmoothingTimer1");
-                }
-
-                if (xShape === true)
-                {
-                    penSizePreviewCursor.rotation = 0;
-
-                    if (isMouseMoved === true)
-                    {
-                        const pointLen:uint = penPoints.length;
-                        if (pointLen >= 4)
-                        {
-                            updateExtendEndPoint(penPoints[pointLen - 4], penPoints[pointLen - 3], penPoints[pointLen - 2], penPoints[pointLen - 1], xSize / 8);
-                            rDataBuffer.push(["lineTo", extendedPos.x, extendedPos.y]);
-                            canvasDrawLayerChild.graphics.lineTo(extendedPos.x, extendedPos.y);
-                        }
-                    }
-                }
-
-                if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
-                {
-                    rDataBuffer = [];
-                    rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, isLayer2Selected, airBrushSizeDrawMode, canvasAnchorPoint.rotation]);
-                    dotTool(xShape, xSize, xColor, clickPos.x, clickPos.y, canvasAnchorPoint.rotation);
-                    resetCanvasDrawLayerCliprect();
-                }
-
-                penCommand.length = 0;
-                penPoints.length = 0;
-                drawDone();
-            }
-
-            return function(flag:Boolean):void
-            {
-                isPenTool = flag;
-
-                if (isPenTool)
-                {
-                    xSize = penSize;
-                    xAlpha = penAlpha;
-                    xShape = penIsSquare;
-                    xAirBrushON = isPenAirBrushON;
-                    dotflag = true;
-
-                    if (isTransparentPenColor)
-                    {
-                        xColor = CANVAS_BG_COLOR;
-                        xBlendMode = "erase";
-                    }
-                    else
-                    {
-                        xColor = penColor;
-                        xBlendMode = null;
-
-                        if (!isCurrentColorSamePickedColor())
-                        {
-                            updatePickerCurrentColor(colorPickerBox.getRGBInfoBGColor());
-                            addColorMyPaletteHistory(colorPickerBox.getRGBInfoBGColor());
-                        }
-                    }
-                }
-                else
-                {
-                    xSize = eraserSize;
-                    xColor = CANVAS_BG_COLOR;
-                    xAlpha = eraserAlpha;
-                    xShape = eraserIsSquare;
-                    xBlendMode = "erase";
-                    xAirBrushON = isEraserAirBrushON;
-                }
-
-                if (xSize === 1)
-                {
-                    sq1PXCursor = true;
-                    xShape = false;
-                }
-                else
-                {
-                    sq1PXCursor = false;
-                }
-
-                if (!isRefLayerEmpty() && flag && isRefLayerMemoryTrainingON)
-                {
-                    setCanvasRefLayerInvisible();
-                }
-
-                offsetForSharpline = getSharpLinePosOffset(xSize);
-                mouseMovedCount = 0; // 마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
-                isMouseMoved = false;
-                canvasSizeRect.width = CANVAS_WIDTH;
-                canvasSizeRect.height = CANVAS_HEIGHT;
-                resetCanvasDrawLayerCliprect();
-                const filteredPos:Point = getRefinedPoint(canvasDrawLayerChild.mouseX, canvasDrawLayerChild.mouseY);
-
-                clickPos.copyFrom(filteredPos); // 점찍어 줄 때 판단하는 클릭한 자리 저장
-                smoothPos.copyFrom(filteredPos);
-                smoothLast.copyFrom(filteredPos); // penmove할때 마지막x y저장
-                moveEventLast.copyFrom(filteredPos);
-
-                if (xShape === true)
-                {
-                    sqPenCursorLast.copyFrom(smoothPos);
-                    sqLinePosLast.copyFrom(smoothPos);
-                }
-
-                lastMouseMoveDist = xSize / 5; // penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
-
-                if (canAddUndoData === false)
-                {
-                    setCanUndoDataFlagON();
-                }
-                canvasDrawLayerChild.filters = [];
-
-                stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
-                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
-            };
-        }
-
         public function getRefinedPoint(mx:Number, my:Number):Point
         {
             mx = Math.round(mx * 100) / 100;
@@ -5694,7 +5239,7 @@
                 my = Math.floor(my);
                 mx = Math.floor(mx);
             }
-            else if (penSmoothSlideValue === 0 && (canvasAnchorPoint.rotation % 90 === 0))
+            else if (PenTool.penSmoothSlideValue === 0 && (canvasAnchorPoint.rotation % 90 === 0))
             {
                 my = Math.round(my);
                 mx = Math.round(mx);
@@ -5737,11 +5282,11 @@
             {
                 if (isSelectedToolPenOrLine())
                 {
-                    cursorSize = penSize * canvasZoomMultipler;
+                    cursorSize = PenTool.penSize * canvasZoomMultipler;
                 }
                 else if (isSelectedTool(TOOL_ERASER))
                 {
-                    cursorSize = eraserSize * canvasZoomMultipler;
+                    cursorSize = PenTool.eraserSize * canvasZoomMultipler;
                 }
                 else
                 {
@@ -7446,7 +6991,7 @@ public function toggleAirBrushCheckBox(flag:Boolean, penFlag:Boolean):void
 
     if (flag)
     {
-        airBrushSizeDrawMode = (penFlag) ? penSize : eraserSize;
+        airBrushSizeDrawMode = (penFlag) ? PenTool.penSize : PenTool.eraserSize;
         toolOptionsBox.blurShapeSetON();
     }
     else if (airBrushSizeDrawMode !== 0)
@@ -7459,10 +7004,10 @@ public function toggleAirBrushCheckBox(flag:Boolean, penFlag:Boolean):void
 
 public function toggleEraseAirBrushButtonShortCut():void
 {
-    isEraserAirBrushON = !isEraserAirBrushON;
-    toggleAirBrushCheckBox(isEraserAirBrushON, false);
+    PenTool.isEraserAirBrushON = !PenTool.isEraserAirBrushON;
+    toggleAirBrushCheckBox(PenTool.isEraserAirBrushON, false);
 
-    if (isEraserAirBrushON)
+    if (PenTool.isEraserAirBrushON)
         showMouseHintTemp("Eraser Air brush ON");
     else
         showMouseHintTemp("Eraser Air brush OFF");
@@ -7470,7 +7015,7 @@ public function toggleEraseAirBrushButtonShortCut():void
 
 public function toggleEraseAirBrushButton(flag:Boolean):void
 {
-    isEraserAirBrushON = flag;
+    PenTool.isEraserAirBrushON = flag;
     toggleAirBrushCheckBox(flag, false);
 }
 
@@ -7838,26 +7383,26 @@ public function showDrawToolHintSizeOpacity():void
     if (isSelectedTool(TOOL_PEN))
     {
         tooltype = "Pen ";
-        size = penSizeList[penSizeIndex];
-        alpha = penAlphaList[penAlphaIndex];
+        size = PenTool.penSizeList[PenTool.penSizeIndex];
+        alpha = PenTool.penAlphaList[PenTool.penAlphaIndex];
     }
     else if (isSelectedTool(TOOL_LINE))
     {
         tooltype = "Line ";
-        size = penSizeList[penSizeIndex];
-        alpha = penAlphaList[penAlphaIndex];
+        size = PenTool.penSizeList[PenTool.penSizeIndex];
+        alpha = PenTool.penAlphaList[PenTool.penAlphaIndex];
     }
     else if (isSelectedTool(TOOL_FILLPEN))
     {
         tooltype = "Fill Pen ";
         size = 1;
-        alpha = penAlphaList[penAlphaIndex];
+        alpha = PenTool.penAlphaList[PenTool.penAlphaIndex];
     }
     else if (isSelectedTool(TOOL_ERASER))
     {
         tooltype = "Eraser ";
-        size = penSizeList[eraserSizeIndex];
-        alpha = penAlphaList[eraserAlphaIndex];
+        size = PenTool.penSizeList[PenTool.eraserSizeIndex];
+        alpha = PenTool.penAlphaList[PenTool.eraserAlphaIndex];
     }
 
     showMouseHintTemp(tooltype + size + "px, " + alpha * 100 + "%");
@@ -7867,8 +7412,8 @@ public function adjustDrawToolAlphaByShortcut(increase:Boolean):void
 {
     function setAlpha(alp:Number, size:uint):void
     {
-        var index:Number = penAlphaList.indexOf(alp);
-        const len:uint = penAlphaList.length - 1;
+        var index:Number = PenTool.penAlphaList.indexOf(alp);
+        const len:uint = PenTool.penAlphaList.length - 1;
 
         if (increase)
         {
@@ -7887,7 +7432,7 @@ public function adjustDrawToolAlphaByShortcut(increase:Boolean):void
             }
         }
 
-        updateDrawToolAlpha(penAlphaList[index]);
+        updateDrawToolAlpha(PenTool.penAlphaList[index]);
         showDrawToolHintSizeOpacity();
     }
 
@@ -7895,11 +7440,11 @@ public function adjustDrawToolAlphaByShortcut(increase:Boolean):void
 
     if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
     {
-        setAlpha(penAlpha, penSize);
+        setAlpha(PenTool.penAlpha, PenTool.penSize);
     }
     else if (isSelectedTool(TOOL_ERASER))
     {
-        setAlpha(eraserAlpha, eraserSize);
+        setAlpha(PenTool.eraserAlpha, PenTool.eraserSize);
     }
 }
 
@@ -7909,7 +7454,7 @@ public function adjustDrawToolSizeByShortcut(increase:Boolean):void
     {
         return;
     }
-    const len:uint = penSizeList.length - 1;
+    const len:uint = PenTool.penSizeList.length - 1;
 
     function setSize(index:uint, alpha:Number):void
     {
@@ -7940,20 +7485,20 @@ public function adjustDrawToolSizeByShortcut(increase:Boolean):void
 
     if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
     {
-        setSize(penSizeIndex, penAlpha);
+        setSize(PenTool.penSizeIndex, PenTool.penAlpha);
 
-        if (isPenAirBrushON && penSize !== airBrushSizeDrawMode)
+        if (isPenAirBrushON && PenTool.penSize !== airBrushSizeDrawMode)
         {
-            airBrushSizeDrawMode = penSize;
+            airBrushSizeDrawMode = PenTool.penSize;
         }
     }
     else if (isSelectedTool(TOOL_ERASER))
     {
-        setSize(eraserSizeIndex, eraserAlpha);
+        setSize(PenTool.eraserSizeIndex, PenTool.eraserAlpha);
 
-        if (isEraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
+        if (PenTool.isEraserAirBrushON && PenTool.eraserSize !== airBrushSizeDrawMode)
         {
-            airBrushSizeDrawMode = eraserSize;
+            airBrushSizeDrawMode = PenTool.eraserSize;
         }
     }
 }
@@ -8059,7 +7604,7 @@ public function selectOpacityButton(targetName:String):void
     const number:String = targetName.substr(11, targetName.length);
     const index:int = parseInt(number);
 
-    updateDrawToolAlpha(penAlphaList[index]);
+    updateDrawToolAlpha(PenTool.penAlphaList[index]);
 }
 
 public function selectPenSizeButton(targetName:String):void
@@ -8072,23 +7617,23 @@ public function selectPenSizeButton(targetName:String):void
 
     if (isSelectedTool(TOOL_FILLPEN))
     {
-        if (isPenAirBrushON && penSize !== airBrushSizeDrawMode)
+        if (isPenAirBrushON && PenTool.penSize !== airBrushSizeDrawMode)
         {
-            airBrushSizeDrawMode = penSize;
+            airBrushSizeDrawMode = PenTool.penSize;
         }
     }
     else if (isSelectedToolPenOrLine())
     {
-        if (isPenAirBrushON && penSize !== airBrushSizeDrawMode)
+        if (isPenAirBrushON && PenTool.penSize !== airBrushSizeDrawMode)
         {
-            airBrushSizeDrawMode = penSize;
+            airBrushSizeDrawMode = PenTool.penSize;
         }
     }
     else if (isSelectedTool(TOOL_ERASER))
     {
-        if (isEraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
+        if (PenTool.isEraserAirBrushON && PenTool.eraserSize !== airBrushSizeDrawMode)
         {
-            airBrushSizeDrawMode = eraserSize;
+            airBrushSizeDrawMode = PenTool.eraserSize;
         }
     }
 }
@@ -8097,14 +7642,14 @@ public function startPenSmootingAdjustment():void
 {
     const minDist:Number = toolOptionsBox.penSmoothSlider.x + 1; // 펜 리스트에 흰색 선 시작과 끝 x좌표임
     const maxDist:Number = minDist + toolOptionsBox.penSmoothSlider.width - 1;
-    const step:Number = penSmoothSlideTotal;
+    const step:Number = PenTool.penSmoothSlideTotal;
     const div:Number = (maxDist - minDist) / step;
     const maxValue:Number = 0.85;
     const minValue:Number = 0.02;
     const stepValue:Number = (maxValue - minValue) / step;
     const airBrushFlag:Boolean = isSelectedToolPenOrLine() && isPenAirBrushON;
-    const eraseAirBrushFlag:Boolean = isSelectedTool(TOOL_ERASER) && isEraserAirBrushON;
-    var oldValue:int = penSmoothSlideValue;
+    const eraseAirBrushFlag:Boolean = isSelectedTool(TOOL_ERASER) && PenTool.isEraserAirBrushON;
+    var oldValue:int = PenTool.penSmoothSlideValue;
 
     isMouseDragging = true;
 
@@ -8142,14 +7687,14 @@ public function startPenSmootingAdjustment():void
 
             if (value === 0)
             {
-                penSmoothValue = 0;
+                PenTool.penSmoothValue = 0;
             }
             else
             {
-                penSmoothValue = maxValue - (value * stepValue);
+                PenTool.penSmoothValue = maxValue - (value * stepValue);
             }
 
-            penSmoothSlideValue = value;
+            PenTool.penSmoothSlideValue = value;
             oldValue = value;
             showBottomHint(HintStrings.getHintFromTargetName("penSmoothSliderWapper"));
         }
@@ -8676,19 +8221,19 @@ public function startLassoImageMove():void
 
 public function setDrawToolSize(index:uint):void
 {
-    const size:uint = penSizeList[index];
+    const size:uint = PenTool.penSizeList[index];
 
     if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
     {
-        penSize = size;
-        penSizeIndex = index;
-        penCursorManager.updateCursorSize(penSize);
+        PenTool.penSize = size;
+        PenTool.penSizeIndex = index;
+        penCursorManager.updateCursorSize(PenTool.penSize);
     }
     else if (isSelectedTool(TOOL_ERASER))
     {
-        eraserSize = size;
-        eraserSizeIndex = index;
-        penCursorManager.updateCursorSize(eraserSize);
+        PenTool.eraserSize = size;
+        PenTool.eraserSizeIndex = index;
+        penCursorManager.updateCursorSize(PenTool.eraserSize);
     }
     toolOptionsBox.movePenSizeCursor(index);
 }
@@ -8723,7 +8268,7 @@ public function switchColorPickerModeBG():void
     updatePickerCurrentColor(color);
     colorPickerBox.activePaperColorButton(true);
     colorPickerBox.transColorButton.visible = false;
-    isTransparentPenColor = false;
+    PenTool.isTransparentPenColor = false;
 
     if (isColorPickerModeResetEventAdded === false)
     {
@@ -8734,14 +8279,14 @@ public function switchColorPickerModeBG():void
 
 public function switchColorPickerModePen():void
 {
-    const color:uint = penColor;
+    const color:uint = PenTool.penColor;
 
     isColorPickerModeBG = false;
     updateColorPickerCursorPosAndRGBInfo(color);
     updatePickerCurrentColor(color);
     colorPickerBox.activePaperColorButton(false);
     colorPickerBox.transColorButton.visible = true;
-    isTransparentPenColor = false;
+    PenTool.isTransparentPenColor = false;
 
     if (isColorPickerModeResetEventAdded === true)
     {
@@ -8752,20 +8297,20 @@ public function switchColorPickerModePen():void
 
 public function selectPenShapeButton(shapeFlag:Boolean):void
 {
-    penListShapeIsSqare = shapeFlag;
+    PenTool.penListShapeIsSqare = shapeFlag;
 
     if (isSelectedToolPenOrLine())
     {
-        if (penIsSquare !== shapeFlag)
+        if (PenTool.penIsSquare !== shapeFlag)
         {
-            penIsSquare = shapeFlag;
+            PenTool.penIsSquare = shapeFlag;
         }
     }
     else if (isSelectedTool(TOOL_ERASER))
     {
-        if (eraserIsSquare !== shapeFlag)
+        if (PenTool.eraserIsSquare !== shapeFlag)
         {
-            eraserIsSquare = shapeFlag;
+            PenTool.eraserIsSquare = shapeFlag;
         }
     }
 
@@ -8775,8 +8320,8 @@ public function selectPenShapeButton(shapeFlag:Boolean):void
 
 public function updatePenColor(color:uint):void
 {
-    penColor = color;
-    updateOpacityCursorPos(penAlphaIndex);
+    PenTool.penColor = color;
+    updateOpacityCursorPos(PenTool.penAlphaIndex);
 }
 
 public function isBackgroundColorMode():Boolean
@@ -8861,7 +8406,7 @@ public function startHueColorSelection():void
     {
         setAsTopChild(colorPickerBox.hueCursor);
         isPenSizeCursorInvisible = true;
-        isTransparentPenColor = false;
+        PenTool.isTransparentPenColor = false;
         colorPickerBox.setRGBInfoVisible(false);
         pickHueColor(colorPickerBox.hueColor.mouseX);
     }
@@ -8922,8 +8467,8 @@ public function startSVColorSelection():void
 
         if (isPenColorMode())
         {
-            penColor = pickedColor;
-            updateOpacityCursorPos(penAlphaIndex);
+            PenTool.penColor = pickedColor;
+            updateOpacityCursorPos(PenTool.penAlphaIndex);
         }
         else if (isBackgroundColorMode())
         {
@@ -8943,7 +8488,7 @@ public function startSVColorSelection():void
     {
         setAsTopChild(colorPickerBox.svCursor);
         isPenSizeCursorInvisible = true;
-        isTransparentPenColor = false;
+        PenTool.isTransparentPenColor = false;
         colorPickerBox.setRGBInfoVisible(false);
         pickSVColor(colorPickerBox.svBox.mouseX, colorPickerBox.svBox.mouseY);
     }
@@ -14214,8 +13759,8 @@ public function selectTegakiColorPreset(index:int):void
 
     if (mainColor !== colorPickerBox.getRGBInfoBGColor())
     {
-        penColor = myPaletteTegakiPreset[index];
-        updateColorPickerCursorPosAndRGBInfo(penColor);
+        PenTool.penColor = myPaletteTegakiPreset[index];
+        updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
     }
 
     if (!isFillPenStarted)
@@ -14253,7 +13798,7 @@ public function pickColor(pickedColor:uint):void
 {
     if (isPenColorMode())
     {
-        penColor = pickedColor;
+        PenTool.penColor = pickedColor;
         updateColorPickerCursorPosAndRGBInfo(pickedColor);
         selectPenToolIfNotDrawingTool(false);
     }
@@ -14277,7 +13822,7 @@ public function selectHistoryColor():void
 
     if (!(myPalettePreset[index + 90] is uint))
     {
-        if (isTransparentPenColor === false)
+        if (PenTool.isTransparentPenColor === false)
         {
             selectTransparentColor();
         }
@@ -14286,7 +13831,7 @@ public function selectHistoryColor():void
 
     const pickedColor:uint = myPalettePreset[index + 90];
 
-    if (pickedColor === colorPickerBox.getRGBInfoBGColor() && !isTransparentPenColor)
+    if (pickedColor === colorPickerBox.getRGBInfoBGColor() && !PenTool.isTransparentPenColor)
     {
         return;
     }
@@ -14317,7 +13862,7 @@ public function selectMyPaletteColor():void
     {
         if (isSelctedColorEmpty(index))
         {
-            if (isTransparentPenColor === false && isColorPickerModeBG === false)
+            if (PenTool.isTransparentPenColor === false && isColorPickerModeBG === false)
             {
                 selectTransparentColor();
             }
@@ -14335,7 +13880,7 @@ public function selectMyPaletteColor():void
     {
         if (isSelctedColorEmpty(index))
         {
-            if (isTransparentPenColor === false && isColorPickerModeBG === false)
+            if (PenTool.isTransparentPenColor === false && isColorPickerModeBG === false)
             {
                 selectTransparentColor();
             }
@@ -14420,13 +13965,13 @@ public function addColorToMyPalette(color:uint, index:int):void
         {
             myPaletteColorBeforeAddColor[0] = index;
             myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
-            myPalettePreset[index] = (isTransparentPenColor) ? null : color;
+            myPalettePreset[index] = (PenTool.isTransparentPenColor) ? null : color;
             updateMyPaletteList();
             addColorMyPaletteHistory(color);
         }
         else
         {
-            if (isTransparentPenColor)
+            if (PenTool.isTransparentPenColor)
             {
                 myPaletteColorBeforeAddColor[0] = index;
                 myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
@@ -17814,18 +17359,18 @@ public function saveAppSatate():void
                 "canvasAnchorPoint.x": (isCaptureModeON) ? drawModeCanvasStateForSaveAppState.x : canvasAnchorPoint.x,
                 "canvasAnchorPoint.y": (isCaptureModeON) ? drawModeCanvasStateForSaveAppState.y : canvasAnchorPoint.y,
                 "canvasAnchorPoint.rotation": (isCaptureModeON) ? drawModeCanvasStateForSaveAppState.r : canvasAnchorPoint.rotation,
-                "penSmoothValue": penSmoothValue,
-                "penSmoothSlideValue": penSmoothSlideValue,
+                "penSmoothValue": PenTool.penSmoothValue,
+                "penSmoothSlideValue": PenTool.penSmoothSlideValue,
                 "penSmoothButtonX": toolOptionsBox.penSmoothSliderCursor.x,
-                "penSize": penSize,
-                "penSizeIndex": penSizeIndex,
-                "penColor": penColor,
-                "penAlpha": penAlpha,
-                "penIsSquare": penIsSquare,
-                "eraseSize": eraserSize,
-                "eraseSizeIndex": eraserSizeIndex,
-                "eraserIsSquare": eraserIsSquare,
-                "eraseAlpha": eraserAlpha,
+                "penSize": PenTool.penSize,
+                "penSizeIndex": PenTool.penSizeIndex,
+                "penColor": PenTool.penColor,
+                "penAlpha": PenTool.penAlpha,
+                "penIsSquare": PenTool.penIsSquare,
+                "eraseSize": PenTool.eraserSize,
+                "eraseSizeIndex": PenTool.eraserSizeIndex,
+                "eraserIsSquare": PenTool.eraserIsSquare,
+                "eraseAlpha": PenTool.eraserAlpha,
                 "stage.nativeWindow.x": lastAppWindowSizeInfo[0],
                 "stage.nativeWindow.y": lastAppWindowSizeInfo[1],
                 "stage.nativeWindow.width": lastAppWindowSizeInfo[2],
@@ -18020,28 +17565,28 @@ public function loadAppState():void
                 setRcursorRotation(d["canvasAnchorPoint.rotation"]);
                 updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
                 canvasRotateCursor.rotateArrow.rotation = d["canvasAnchorPoint.rotation"];
-                penSmoothValue = d["penSmoothValue"];
-                penSmoothSlideValue = d["penSmoothSlideValue"];
+                PenTool.penSmoothValue = d["penSmoothValue"];
+                PenTool.penSmoothSlideValue = d["penSmoothSlideValue"];
                 toolOptionsBox.penSmoothSliderCursor.x = d["penSmoothButtonX"];
-                penSize = d["penSize"];
-                penColor = d["penColor"];
+                PenTool.penSize = d["penSize"];
+                PenTool.penColor = d["penColor"];
                 hsvColorData[0] = d["hsvColorData[0]"]; // 순서 중요 이게 먼저오고 밑에 rgb info갱신해주어야함
                 isHSVInfoTextMode = d["isHSVInfoTextMode"];
-                updatePickerCurrentColor(penColor);
-                updateColorPickerCursorPosAndRGBInfo(penColor);
+                updatePickerCurrentColor(PenTool.penColor);
+                updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
                 colorPickerBox.updateHueColor(d["svBaseColor"]);
                 colorPickerBox.hueCursor.x = d["hueCursor.x"];
-                penAlpha = d["penAlpha"];
-                penAlphaIndex = penAlphaList.indexOf(d["eraseAlpha"]);
+                PenTool.penAlpha = d["penAlpha"];
+                PenTool.penAlphaIndex = PenTool.penAlphaList.indexOf(d["eraseAlpha"]);
                 updateDrawToolAlpha(d["penAlpha"]);
-                penIsSquare = d["penIsSquare"];
-                penListShapeIsSqare = d["penIsSquare"];
+                PenTool.penIsSquare = d["penIsSquare"];
+                PenTool.penListShapeIsSqare = d["penIsSquare"];
                 toolOptionsBox.updatePenShapeSet(d["penIsSquare"]);
-                eraserSize = d["eraseSize"];
-                eraserIsSquare = d["eraserIsSquare"];
-                eraserAlpha = d["eraseAlpha"];
-                eraserAlphaIndex = penAlphaList.indexOf(d["eraseAlpha"]);
-                eraserSizeIndex = d["eraseSizeIndex"];
+                PenTool.eraserSize = d["eraseSize"];
+                PenTool.eraserIsSquare = d["eraserIsSquare"];
+                PenTool.eraserAlpha = d["eraseAlpha"];
+                PenTool.eraserAlphaIndex = PenTool.penAlphaList.indexOf(d["eraseAlpha"]);
+                PenTool.eraserSizeIndex = d["eraseSizeIndex"];
                 setDrawToolSize(d["penSizeIndex"]);
                 lastSaveFilePath = d["saveFilePath"];
                 lastSaveFileName = d["saveFileName"];
@@ -18114,7 +17659,7 @@ public function loadAppState():void
                 centerCanvas("replay");
                 keepCanvasPanelInStage();
                 keepCanvasPanelInStage(true);
-                myPaletteSaveColorBeforeOtherType[0] = penColor;
+                myPaletteSaveColorBeforeOtherType[0] = PenTool.penColor;
                 if (d["myPalettePresetType"] > 0)
                     activeColorPreset(d["myPalettePresetType"]);
 
@@ -18177,8 +17722,8 @@ public function loadAppState():void
         updateCavnvasSizeDrawMode(CANVAS_WIDTH, CANVAS_HEIGHT, 0, 0, false);
         updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
 
-        updatePickerCurrentColor(penColor);
-        updateColorPickerCursorPosAndRGBInfo(penColor);
+        updatePickerCurrentColor(PenTool.penColor);
+        updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
         openAboutBox(true);
         applyUIColorSet();
         updateCanvasNaigatorCursor();
@@ -18205,23 +17750,23 @@ public function cUpdatePenSizeCursor():Function
 
         if (isPenTool)
         {
-            size = penSize;
-            shape = penIsSquare;
+            size = PenTool.penSize;
+            shape = PenTool.penIsSquare;
         }
         else
         {
-            size = eraserSize;
-            shape = eraserIsSquare;
+            size = PenTool.eraserSize;
+            shape = PenTool.eraserIsSquare;
         }
 
         const z:Number = canvasZoomMultipler;
-        if (size * z === penLastSizeAndShape[0] && shape === penLastSizeAndShape[1])
+        if (size * z === PenTool.penLastSizeAndShape[0] && shape === PenTool.penLastSizeAndShape[1])
         {
             return;
         }
 
-        penLastSizeAndShape[0] = size * z;
-        penLastSizeAndShape[1] = shape;
+        PenTool.penLastSizeAndShape[0] = size * z;
+        PenTool.penLastSizeAndShape[1] = shape;
 
         penSizePreviewCursor.graphics.clear();
 
@@ -18243,8 +17788,8 @@ public function cUpdatePenSizeCursor():Function
             penSizePreviewCursor.graphics.drawRect(-size / 2 * z, -size / 8 * z, size * z, size * z / 4);
         }
 
-        penCursorShape = shape;
-        penCursorSize = size;
+        PenTool.penCursorShape = shape;
+        PenTool.penCursorSize = size;
     };
 }
 
@@ -18290,16 +17835,16 @@ public function cDrawDone():Function
 
         if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
         {
-            drawLayerAlpha.alphaMultiplier = penAlpha;
+            drawLayerAlpha.alphaMultiplier = PenTool.penAlpha;
 
             if (isLayer2Selected)
-                canvasLayer2BitmapData.draw(canvasDrawLayerBitmap, null, drawLayerAlpha, (isTransparentPenColor) ? "erase" : null, canvasDrawLayerClipRect);
+                canvasLayer2BitmapData.draw(canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, canvasDrawLayerClipRect);
             else
-                canvasLayer1BitmapData.draw(canvasDrawLayerBitmap, null, drawLayerAlpha, (isTransparentPenColor) ? "erase" : null, canvasDrawLayerClipRect);
+                canvasLayer1BitmapData.draw(canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, canvasDrawLayerClipRect);
         }
         else if (isSelectedTool(TOOL_ERASER))
         {
-            drawLayerAlpha.alphaMultiplier = eraserAlpha;
+            drawLayerAlpha.alphaMultiplier = PenTool.eraserAlpha;
 
             if (isLayer2Selected)
                 canvasLayer2BitmapData.draw(canvasDrawLayerBitmap, null, drawLayerAlpha, "erase", canvasDrawLayerClipRect);
@@ -18570,19 +18115,19 @@ public function cLineTool():Function
     return function(lineToolFlag:Boolean):void
     {
         isPenSizeCursorInvisible = true;
-        xSize = penSize;
-        xAlpha = penAlpha;
-        xShape = penIsSquare;
+        xSize = PenTool.penSize;
+        xAlpha = PenTool.penAlpha;
+        xShape = PenTool.penIsSquare;
         xAirBrushON = isPenAirBrushON;
 
-        if (isTransparentPenColor)
+        if (PenTool.isTransparentPenColor)
         {
             xColor = CANVAS_BG_COLOR;
             xBlendMode = "erase";
         }
         else
         {
-            xColor = penColor;
+            xColor = PenTool.penColor;
             xBlendMode = null;
 
             if (!isCurrentColorSamePickedColor())
@@ -20198,7 +19743,7 @@ public function cEyeDropperTool():Function
         }
         else if (e.keyCode === KEY.space)
         {
-            if (isTransparentPenColor)
+            if (PenTool.isTransparentPenColor)
             {
                 selectCurrentColor(false);
 
@@ -20208,7 +19753,7 @@ public function cEyeDropperTool():Function
             {
                 selectCurrentColor(false);
 
-                if (isTransparentPenColor === false)
+                if (PenTool.isTransparentPenColor === false)
                 {
                     selectTransparentColor();
                 }
@@ -20290,7 +19835,7 @@ public function cEyeDropperTool():Function
             okFlag = true;
             const pickedColor:uint = pickColor();
 
-            penColor = pickedColor;
+            PenTool.penColor = pickedColor;
             pickerIgnoreHistoryColor = pickedColor;
             updateColorPickerCursorPosAndRGBInfo(pickedColor);
         }
@@ -20367,8 +19912,8 @@ public function cEyeDropperTool():Function
         updateLastTool();
         setLastTool(nowTool);
         setSelectedTool(TOOL_EYEDROPPER);
-        penColorBackup = penColor;
-        Global.setColorTransform(eyedropperLens.oldColor, penColor);
+        penColorBackup = PenTool.penColor;
+        Global.setColorTransform(eyedropperLens.oldColor, PenTool.penColor);
         moveEraserButtonToOtherTool("toolEyedropper");
         eyedropperLens.rotateBitmap(canvasAnchorPoint.rotation);
         setCanvasRefLayerInvisible();
@@ -20736,13 +20281,13 @@ public function selectPenTool(lineFlag:Boolean = false):void
 {
     setSelectedTool((lineFlag) ? TOOL_LINE : TOOL_PEN);
     toggleAirBrushCheckBox(isPenAirBrushON, true);
-    setDrawToolSize(penSizeIndex);
-    updateDrawToolAlpha(penAlpha);
-    updateOpacityCursorPos(penAlphaIndex);
+    setDrawToolSize(PenTool.penSizeIndex);
+    updateDrawToolAlpha(PenTool.penAlpha);
+    updateOpacityCursorPos(PenTool.penAlphaIndex);
     moveEraserButtonToOtherTool((lineFlag) ? "toolLine" : "toolPen");
     toolBox.moveToolCursor((lineFlag) ? "toolLine" : "toolPen");
     updateToolOptionsTextBySelectedTool();
-    toolOptionsBox.updatePenShapeSet(penIsSquare);
+    toolOptionsBox.updatePenShapeSet(PenTool.penIsSquare);
     penCursorManager.check();
 
     if (toolOptionsBox.isSizeButtonsDisabled())
@@ -20762,10 +20307,10 @@ public function selectLineTool():void
 public function selectEraseTool():void
 {
     setSelectedTool(TOOL_ERASER);
-    toggleAirBrushCheckBox(isEraserAirBrushON, false);
-    setDrawToolSize(eraserSizeIndex);
-    updateDrawToolAlpha(eraserAlpha);
-    updateOpacityCursorPos(eraserAlphaIndex);
+    toggleAirBrushCheckBox(PenTool.isEraserAirBrushON, false);
+    setDrawToolSize(PenTool.eraserSizeIndex);
+    updateDrawToolAlpha(PenTool.eraserAlpha);
+    updateOpacityCursorPos(PenTool.eraserAlphaIndex);
 
     if (lastEraserPosButton)
     {
@@ -20776,7 +20321,7 @@ public function selectEraseTool():void
     toolBox2.toolEraser.visible = false;
     toolBox.moveToolCursor("toolEraser");
     updateToolOptionsTextBySelectedTool();
-    toolOptionsBox.updatePenShapeSet(eraserIsSquare);
+    toolOptionsBox.updatePenShapeSet(PenTool.eraserIsSquare);
     penCursorManager.check();
 
     if (toolOptionsBox.isSizeButtonsDisabled())
@@ -20792,7 +20337,7 @@ public function selectFillPenTool():void
     setSelectedTool(TOOL_FILLPEN);
     toolBox.moveToolCursor("toolFillPen");
     penSizePreviewCursor.visible = false;
-    updateOpacityCursorPos(penAlphaIndex);
+    updateOpacityCursorPos(PenTool.penAlphaIndex);
     toggleAirBrushCheckBox(isPenAirBrushON, true);
     toolOptionsBox.movePenSizeCursor(1);
     toolOptionsBox.setButtonsAlphaFillPenSelected(Global.OFFALPHA);
@@ -21586,7 +21131,7 @@ public function updateColorPickerCursorPosAndRGBInfo(color:*):void
         hsvColor = color as Vector.<Number>;
     }
 
-    isTransparentPenColor = false;
+    PenTool.isTransparentPenColor = false;
 
     hsvColorData[1] = hsvColor[1];
     hsvColorData[2] = hsvColor[2];
@@ -21635,20 +21180,20 @@ public function updateOpacityCursorPos(index:int):void
 public function updateDrawToolAlpha(alpha:Number = 0.0):void
 {
 
-    var index:int = penAlphaList.indexOf(alpha);
+    var index:int = PenTool.penAlphaList.indexOf(alpha);
     const eraseFlag:Boolean = isSelectedTool(TOOL_ERASER);
 
     updateOpacityCursorPos(index);
 
     if (eraseFlag === false)
     {
-        penAlpha = alpha;
-        penAlphaIndex = index;
+        PenTool.penAlpha = alpha;
+        PenTool.penAlphaIndex = index;
     }
     else if (eraseFlag === true)
     {
-        eraserAlpha = alpha;
-        eraserAlphaIndex = index;
+        PenTool.eraserAlpha = alpha;
+        PenTool.eraserAlphaIndex = index;
     }
 }
 
@@ -23852,7 +23397,7 @@ public function exitReplayMode():void
     updateStageOffset();
     updateCanvasNaigatorCursor();
 
-    if (isTransparentPenColor)
+    if (PenTool.isTransparentPenColor)
     {
         selectTransparentColor();
     }
@@ -24543,7 +24088,7 @@ public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean
                     }
                     else if (isSelectedTool(TOOL_ERASER))
                     {
-                        toggleEraseAirBrushButton(!isEraserAirBrushON);
+                        toggleEraseAirBrushButton(!PenTool.isEraserAirBrushON);
                     }
                 }
             }
@@ -24726,7 +24271,7 @@ public function handleColorPickerBoxClick(targetName:String):void
 
                 case "transColorButton":
                     {
-                        if (colorPickerBox.transColorButton.alpha === 1.0 && isTransparentPenColor === false)
+                        if (colorPickerBox.transColorButton.alpha === 1.0 && PenTool.isTransparentPenColor === false)
                         {
                             selectPenToolIfNotDrawingTool(false);
                             selectTransparentColor();
@@ -24791,7 +24336,7 @@ public function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean
     {
         case "scratchPad":
             {
-                colorPickerBox.scratchPad.drawReady(penSize, penColor, penAlpha, penIsSquare, pickColor);
+                colorPickerBox.scratchPad.drawReady(PenTool.penSize, PenTool.penColor, PenTool.penAlpha, PenTool.penIsSquare, pickColor);
             }
             return true;
 
