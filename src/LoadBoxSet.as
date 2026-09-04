@@ -231,7 +231,6 @@
 			this.addChild(mainBox);
 
 			pleaseWaitText.textColor = 0xFFFFFF;
-			trace('pleaseWaitText',pleaseWaitText);
 
 			setChildIndex(pleaseWaitText, numChildren - 1);
 		}

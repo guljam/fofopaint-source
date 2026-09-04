@@ -106,9 +106,7 @@
 
 		public function HintBoxSet(stage:DisplayObjectContainer, initBG:Boolean) {
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			trace('fields',fields);
 			VisualBuilder.buildInto(this,EmbeddedClass,fields);
-trace('_hintBG',_hintBG,"hintText",hintText);
 			_instantCount++;
 			_hintTimerName = "hintShowTimer" + _instantCount;
 			_stage = stage;

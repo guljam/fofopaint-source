@@ -58,7 +58,6 @@
 		{
 			const btn:SimpleButton = this[targetName] as SimpleButton;
 			lastUsedToolPoint.setTo((btn.x + btn.width / 2) * constScale, (btn.y + btn.height / 2) * constScale);
-			trace('lastUsedToolPoint',lastUsedToolPoint);
 		}
 
 		public function hint(str:String):void

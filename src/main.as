@@ -641,7 +641,6 @@
             lastBottomHintTargetRect:Rectangle = new Rectangle(); // bottomhint mosue move에서 자꾸 호출해주니까 저장해서 호출 덜하게 해줌
 
         public function Main():void {
-            trace("MAIN CALLED");
             if (stage) {
                 initializeStage();
             }
@@ -8074,7 +8073,6 @@ public function createNewFile(fromShortcut:Boolean):void {
 
 public function openLocalManualFolder():void {
     var targetFolder:File = File.applicationDirectory.resolvePath("manual");
-    trace("targetFolder", targetFolder);
 
     if (targetFolder.exists && targetFolder.isDirectory) {
         var request:URLRequest = new URLRequest(targetFolder.url);
@@ -8087,7 +8085,6 @@ public function handleMouseClick(targetName:String):void {
         function onMouseUpAboutBox(e:MouseEvent):void {
             stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
             const upTargetName:String = e.target.name;
-            trace("upTargetName", upTargetName);
 
             if (targetName === upTargetName) {
                 switch (targetName) {

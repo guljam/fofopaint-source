@@ -8,7 +8,7 @@ package assets {
                 target:Object,
                 embeddedClass:Class,
                 fields:Array
-            ):Sprite {
+            ):void {
             if (!target)
                 throw new ArgumentError("target must not be null.");
 
@@ -39,8 +39,6 @@ package assets {
                 // addChild하면 기존 visual에서 자동 제거됨
                 targetContainer.addChild(child);
             }
-
-            return visual;
         }
 
         private static function bindFields(
