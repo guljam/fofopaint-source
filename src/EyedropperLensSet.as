@@ -7,6 +7,9 @@
 	import flash.geom.ColorTransform;
 	import flash.events.MouseEvent;
 	import flash.display.BitmapData;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
+
 
 	public class EyedropperLensSet extends Sprite
 	{
@@ -78,8 +81,17 @@
 			this.y = event.stageY;
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="EyedropperLensSet"
+        )]
+		private static const EmbeddedClass:Class;
+
 		public function EyedropperLensSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+
 			visible = false;
 
 			const halfMagSize:Number = magSize / 2;

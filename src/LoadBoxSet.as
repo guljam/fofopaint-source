@@ -11,6 +11,8 @@
 	import flash.geom.Matrix;
 	import flash.filters.BlurFilter;
 	import flash.display.DisplayObject;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
 	public class LoadBoxSet extends Sprite
 	{
@@ -177,8 +179,16 @@
 			mainBox.graphics.endFill();
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="LoadBoxSet"
+        )]
+		private static const EmbeddedClass:Class;
+
 		public function LoadBoxSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
 			stageClickBlocker.name = "dragDropFileBG";
 			stageClickBlocker.graphics.clear();
 			stageClickBlocker.graphics.beginFill(0, 0.3);
@@ -221,6 +231,7 @@
 			this.addChild(mainBox);
 
 			pleaseWaitText.textColor = 0xFFFFFF;
+			trace('pleaseWaitText',pleaseWaitText);
 
 			setChildIndex(pleaseWaitText, numChildren - 1);
 		}

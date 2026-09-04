@@ -4,6 +4,8 @@
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
 	import flash.text.TextFieldAutoSize;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
 	public class CanvasInfoSet extends Sprite
 	{
@@ -88,8 +90,16 @@
 			Global.applyUIFGColor(appInfoBorder);
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="CanvasInfoSet"
+        )]
+		private static const EmbeddedClass:Class;
+
 		public function CanvasInfoSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
 			mouseEnabled = false;
 			canvasInfo.mouseEnabled = false;
 			canvasInfo.autoSize = TextFieldAutoSize.LEFT;

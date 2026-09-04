@@ -6,6 +6,8 @@
 	import flash.text.TextField;
 	import flash.geom.ColorTransform;
 	import flash.display.Graphics;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
 	public class seekBarSet extends Sprite
 	{
@@ -267,8 +269,17 @@
 			prograssBar.visible = true;
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="seekBarSet"
+        )]
+		private static const EmbeddedClass:Class;
+
 		public function seekBarSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+
 			prograssInfo.mouseEnabled = false;
 			visible = false;
 

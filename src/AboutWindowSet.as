@@ -4,6 +4,8 @@
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
 	import flash.text.TextFieldAutoSize;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
 	public class AboutWindowSet extends Sprite
 	{
@@ -53,8 +55,15 @@
 			versionInfo.text = "version " + str;
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="AboutWindowSet"
+        )]
+		private static const EmbeddedClass:Class;
 		public function AboutWindowSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
 			// constructor codef
 			imageIndex = Math.floor(Math.random() * 4);
 			visible = false;

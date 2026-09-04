@@ -8,8 +8,8 @@
 			"src"
 		],
 		"output": "fofoPaint.swf",
-		        "target-player": "51.1",
-        "swf-version": 51,
+		"target-player": "51.1",
+		"swf-version": 51,
 		"debug": true
 	},
 	"application": "fofoPaint-app.xml",

@@ -12,7 +12,8 @@
 	import flash.filters.ColorMatrixFilter;
 	import flash.geom.Rectangle;
 	import flash.text.TextFieldType;
-
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
 	public class ColorPickerSet extends Sprite
 	{
@@ -443,8 +444,17 @@
 
 		//피커박스 구조
 		//custom color, colorhistoryBox, drawr프리셋 따로따로 전부가 첫번째 자식들임
+
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="ColorPickerSet"
+        )]
+		private static const EmbeddedClass:Class;
+
 		public function ColorPickerSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
 			// visible = false;
 			name = "pickerBox";
 			initTransparentColorButton();

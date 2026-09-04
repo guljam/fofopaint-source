@@ -12,6 +12,9 @@
 	import flash.display.BitmapData;
 	import flash.display.Bitmap;
 	import flash.display.Shape;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
+
 
 	public class NumPadSet extends Sprite
 	{
@@ -582,8 +585,17 @@
 			previewBox.visible = true;
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="NumPadSet"
+        )]
+
+		private static const EmbeddedClass:Class;
 		public function NumPadSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+
 			visible = false;
 			name = "numPadBox";
 			numIncText.mouseEnabled = false;

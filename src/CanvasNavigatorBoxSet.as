@@ -1,16 +1,15 @@
-﻿package
-{
+﻿package {
 	import flash.display.Sprite;
 	import flash.geom.ColorTransform;
 	import flash.display.BitmapData;
 	import flash.display.Bitmap;
 	import flash.text.TextField;
 	import flash.geom.Rectangle;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
-	public class CanvasNavigatorBoxSet extends Sprite
-	{
+	public class CanvasNavigatorBoxSet extends Sprite {
 		public var navCursor:Sprite = new Sprite();
-		private var navInfoText:TextField;
 		public var navStageBG:Sprite = new Sprite();
 		public var navBitmapBG:Sprite = new Sprite();
 		public var navLayer1Bitmap:Bitmap = new Bitmap();
@@ -40,8 +39,7 @@
 		// x, y canvas1bitmap을 기준으로 창 왼쪽 오른쪽 점의 좌표임, 회전을 하면 캔버스를 회전한 기준으로 잡힘
 		// w, h 캔버스 전체 영역가로 세로 길이 (캔버스 자체 길이가 아님 빈공백칸을 말하는거)
 		// canvasWidth 줌배율을 적용한 캔버스 크기
-		public function updateCursor(x:Number, y:Number, w:Number, h:Number, canvasWidth:Number, rotation:Number):void
-		{
+		public function updateCursor(x:Number, y:Number, w:Number, h:Number, canvasWidth:Number, rotation:Number):void {
 			const f1:Number = navLayer1Bitmap.width / canvasWidth;
 			// const f2:Number = _prevBitmap.height/canvasHeight;
 			var cursorWidth:Number = Math.floor(w * f1);
@@ -52,8 +50,8 @@
 			navCursor.graphics.clear();
 			navCursor.graphics.lineStyle(2, 0xFF6600);
 			navCursor.graphics.beginFill(0xFF0000, 0);
-			navCursor.graphics.drawRect(0, 0, cursorWidth, cursorHeight) // 썸네일 비트맵/실제 캔버스 길이 배율을 곱해주면 캔버스 부분이 작게 축소됨
-				navCursor.graphics.endFill();
+			navCursor.graphics.drawRect(0, 0, cursorWidth, cursorHeight); // 썸네일 비트맵/실제 캔버스 길이 배율을 곱해주면 캔버스 부분이 작게 축소됨
+			navCursor.graphics.endFill();
 
 			navCursor.rotation = -rotation;
 			// 캔버스 원점 위치 음수값으로 넣어주고 당연 배율 적용하고,
@@ -62,31 +60,27 @@
 			navCursor.y = Math.floor(y * f1 + navLayer1Bitmap.y);
 		}
 
-		public function setFitBitmapforBox(w:Number, h:Number, bw:Number, bh:Number):Rectangle
-		{
+		public function setFitBitmapforBox(w:Number, h:Number, bw:Number, bh:Number):Rectangle {
 			var ratio:Number = bw / w;
 			var fw:Number = w * ratio;
 			var fh:Number = h * ratio;
 			var alignWidthFlag:Boolean = true;
 
-			if (fh > bh)
-			{
+			if (fh > bh) {
 				alignWidthFlag = false;
 				ratio = bh / fh;
 				fw = fw * ratio;
 				fh = fh * ratio;
 			}
 
-			if (alignWidthFlag)
-			{
+			if (alignWidthFlag) {
 				return new Rectangle(0, Math.round(bh / 2 - fh / 2), Math.round(fw), Math.round(fh));
 			}
 
 			return new Rectangle(Math.round(bw / 2 - fw / 2), 0, Math.round(fw), Math.round(fh));
 		}
 
-		public function updateImage(bmpd:BitmapData, bmpd1:BitmapData, bg:uint):void
-		{
+		public function updateImage(bmpd:BitmapData, bmpd1:BitmapData, bg:uint):void {
 			const w:Number = bmpd.width;
 			const h:Number = bmpd.height;
 
@@ -95,8 +89,7 @@
 			navLayer2Bitmap.bitmapData = bmpd1;
 			navLayer2Bitmap.smoothing = true;
 
-			if (navBitmapLastWidth === w && navBitmapLastHeight === h)
-			{
+			if (navBitmapLastWidth === w && navBitmapLastHeight === h) {
 				return;
 			}
 
@@ -120,20 +113,17 @@
 			changeprevBitmapBGColor(bg);
 		}
 
-		public function changeprevBitmapBGColor(color:uint):void
-		{
+		public function changeprevBitmapBGColor(color:uint):void {
 			prevBMPBGColor.color = color;
 			navBitmapBG.transform.colorTransform = prevBMPBGColor;
 		}
 
-		public function chanegStageColor(consoleBGColor:uint):void
-		{
+		public function chanegStageColor(consoleBGColor:uint):void {
 			stageColor.color = consoleBGColor;
 			navStageBG.transform.colorTransform = stageColor;
 		}
 
-		public function CanvasNavigatorBoxSet()
-		{
+		public function CanvasNavigatorBoxSet() {
 			name = "canvasNavigatorBox";
 			navStageBG.graphics.lineStyle(0, 0, 0);
 			navStageBG.graphics.beginFill(0xFFFFFF);

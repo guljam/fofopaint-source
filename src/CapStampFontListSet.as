@@ -10,10 +10,12 @@
 	import flash.geom.Rectangle;
 	import flash.text.TextFieldType;
 	import flash.display.Shape;
-	import flash.geom.ColorTransform;
 	import flash.events.MouseEvent;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.geom.ColorTransform;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
 	public class CapStampFontListSet extends Sprite
 	{
@@ -285,8 +287,17 @@
 			}
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="CapStampFontListSet"
+        )]
+		private static const EmbeddedClass:Class;
+
 		public function CapStampFontListSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+
 			visible = false;
 			addChild(capFontListBG);
 			setChildIndex(capFontListBG, 0);

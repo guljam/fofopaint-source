@@ -9,6 +9,8 @@
 	import flash.events.Event;
 	import flash.utils.getTimer;
 	import flash.display.Shape;
+	import assets.VisualFieldCollector;
+	import assets.VisualBuilder;
 
 	public class ToolMenuSet2 extends Sprite
 	{
@@ -54,8 +56,9 @@
 
 		public function updateLastUsedToolPos(targetName:String):void
 		{
-			const btn:SimpleButton = this.getChildByName(targetName) as SimpleButton;
+			const btn:SimpleButton = this[targetName] as SimpleButton;
 			lastUsedToolPoint.setTo((btn.x + btn.width / 2) * constScale, (btn.y + btn.height / 2) * constScale);
+			trace('lastUsedToolPoint',lastUsedToolPoint);
 		}
 
 		public function hint(str:String):void
@@ -200,9 +203,15 @@
 				}
 			}
 		}
-
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="ToolMenuSet2"
+        )]
+        private static const EmbeddedClass:Class;
 		public function ToolMenuSet2()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
 			toolEraser.useHandCursor = false;

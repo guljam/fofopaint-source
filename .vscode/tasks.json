@@ -8,7 +8,6 @@
 			"problemMatcher": [],
 			"group": {
 				"kind": "test",
-				"isDefault": true
 			}
 		},
 		{
@@ -18,7 +17,6 @@
 			"problemMatcher": [],
 			"group": {
 				"kind": "test",
-				"isDefault": true
 			}
 		},
 		{
@@ -26,10 +24,19 @@
 			"command": "taskkill /im fofopaint.exe /t /f\n E:/fofopaint-source/worker.fla\n E:/fofopaint-source/fofoPaint.fla",
 			"group": {
 				"kind": "build",
-				"isDefault": true
 			},
 			"problemMatcher": [],
 			"label": "fofopaint : run fla and task kill fofopaint"
+		},
+		{
+			"label": "AIR SDK Build Debug",
+			"type": "actionscript",
+			"debug": true,
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
 		}
 	]
 }

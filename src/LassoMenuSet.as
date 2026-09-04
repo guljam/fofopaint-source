@@ -4,10 +4,11 @@
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
-	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
 	public class LassoMenuSet extends Sprite
 	{
@@ -108,8 +109,17 @@
 			this.scaleY = newScale * constScale;
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="LassoMenuSet"
+        )]
+		private static const EmbeddedClass:Class;
+
 		public function LassoMenuSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+
 			setScale(1.0);
 
 			lassoMenuMoveButton.useHandCursor = false;

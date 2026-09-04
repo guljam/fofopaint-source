@@ -3,10 +3,11 @@
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
-	import flash.geom.ColorTransform;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.text.TextFieldAutoSize;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
 	public class RefLayerMenuSet extends Sprite
 	{
@@ -118,8 +119,17 @@
 			this.scaleY = newScale * constScale;
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="RefLayerMenuSet"
+        )]
+		private static const EmbeddedClass:Class;
+
 		public function RefLayerMenuSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+
 			visible = false;
 
 			constScale = 34 / refTransferCanvasImageButton.width;

@@ -5,6 +5,9 @@
 	import flash.geom.ColorTransform;
 	import flash.filters.BlurFilter;
 	import flash.display.Shape;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
+
 
 	public class ToolOptionsSet extends Sprite
 	{
@@ -589,8 +592,17 @@
 			penShapeAndSmoothingWarpper.y = layerButtonWrapper.y + layerButtonWrapper.height + 2;
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="ToolOptionsSet"
+        )]
+		private static const EmbeddedClass:Class;
+
 		public function ToolOptionsSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+
 			name = "controlBox";
 			initOpaSizeButtonWapper();
 			initETCOptionsWrapper();

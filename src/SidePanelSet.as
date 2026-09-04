@@ -1,66 +1,54 @@
-﻿package
-{
+﻿package {
 	import flash.display.Sprite;
-	import flash.geom.ColorTransform;
 	import flash.display.Shape;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
-	public class SidePanelSet extends Sprite
-	{
+	public class SidePanelSet extends Sprite {
 		private const sideBarBG:Shape = new Shape();
 		public const WIDTH:Number = 223;
 		public var HEIGHT:Number = 220;
 		public var tempVisibleON:Boolean = false;
 
-		public function setScale(newScale:Number):void
-		{
+		public function setScale(newScale:Number):void {
 			this.scaleX = newScale;
 			this.scaleY = newScale;
 		}
 
-		public function getWidth():Number
-		{
+		public function getWidth():Number {
 			return Math.round(WIDTH * scaleX);
 		}
 
-		public function resetBG():void
-		{
-			sideBarBG.alpha = 1.0
+		public function resetBG():void {
+			sideBarBG.alpha = 1.0;
 		}
-		public function setTransparentBG():void
-		{
+		public function setTransparentBG():void {
 			sideBarBG.alpha = 0.8;
 		}
 
-		public function updateSideBGSize(sth:Number):void
-		{
+		public function updateSideBGSize(sth:Number):void {
 			sideBarBG.width = WIDTH;
 			sideBarBG.height = sth + 1; // 공백 보정으로 길이를 약간 늘려줌
 			HEIGHT = sth;
 		}
 
-		public function setTempVisibleOFF(rightSide:Boolean):void
-		{
+		public function setTempVisibleOFF(rightSide:Boolean):void {
 			tempVisibleON = false;
 			visible = false;
 
-			if (rightSide)
-			{
+			if (rightSide) {
 				x = stage.stageWidth - WIDTH * scaleX;
 			}
-			else
-			{
+			else {
 				x = 0;
 			}
 		}
 
-		public function setTempVisibleON(toolBarWidth:Number, rightSide:Boolean):void
-		{
-			if (rightSide)
-			{
+		public function setTempVisibleON(toolBarWidth:Number, rightSide:Boolean):void {
+			if (rightSide) {
 				x = stage.stageWidth - (toolBarWidth - 1) * scaleX;
 			}
-			else
-			{
+			else {
 				x = (-WIDTH + toolBarWidth) * scaleX;
 			}
 
@@ -68,13 +56,20 @@
 			visible = true;
 		}
 
-		public function updateUIColor():void
-		{
+		public function updateUIColor():void {
 			Global.applyUIBGColor(sideBarBG);
 		}
 
-		public function SidePanelSet()
-		{
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="SidePanelSet"
+        )]
+		private static const EmbeddedClass:Class
+
+		public function SidePanelSet() {
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+
 			name = "sideBar";
 
 			sideBarBG.graphics.clear();

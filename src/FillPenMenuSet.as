@@ -8,6 +8,8 @@
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.geom.ColorTransform;
+	import assets.VisualBuilder;
+	import assets.VisualFieldCollector;
 
 	public class FillPenMenuSet extends Sprite
 	{
@@ -84,8 +86,17 @@
 			this.scaleY = newScale * constScale;
 		}
 
+		[Embed(
+            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            symbol="FillPenMenuSet"
+        )]
+		private static const EmbeddedClass:Class;
+
 		public function FillPenMenuSet()
 		{
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
+			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			
 			constScale = 34 / fillPenCancel.width;
 			setScale(1.0);
 
