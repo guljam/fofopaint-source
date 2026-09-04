@@ -1,4 +1,5 @@
-﻿package {
+﻿package
+{
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
     import flash.desktop.NativeApplication;
@@ -61,10 +62,13 @@
     import flash.text.TextFormat;
     import flash.ui.Mouse;
     import libwebp.DecodeWebp;
+    import main_module.tools.PenTool;
 
     // import
 
-    public class Main extends Sprite {
+    public class Main extends Sprite
+    {
+        public static var _instance:Main;
         public const APP_VERSION:Number = 27.13;
         public const APP_STATE_VERSION:Number = 2701;
 
@@ -543,7 +547,6 @@
         // 툴 클로져 자주쓰는거는 클로져로 메모리에 미리 올려둬서 성능향상하려고 한건데 모르겠음
         public const realWorkingTimer:Object = cRealWorkingTimer(),
             dottedLine:Object = cDottedLine(), // 순서 먼저 와야함
-            penTool:Function = cPenTool(),
             dotTool:Function = cDrawDot(),
             lineTool:Function = cLineTool(),
             handTool:Function = cHandTool(),
@@ -640,21 +643,34 @@
             loadMenuBoxFile:File, // 메뉴 박스에 로드할 파일
             lastBottomHintTargetRect:Rectangle = new Rectangle(); // bottomhint mosue move에서 자꾸 호출해주니까 저장해서 호출 덜하게 해줌
 
-        public function Main():void {
-            if (stage) {
+        public function Main():void
+        {
+            _instance = this;
+
+            if (stage)
+            {
                 initializeStage();
             }
-            else {
+            else
+            {
                 this.addEventListener(Event.ADDED_TO_STAGE, onStageAdded);
             }
         }
 
-        public function onStageAdded(e:Event):void {
+        public function onStageAdded(e:Event):void
+        {
             this.removeEventListener(Event.ADDED_TO_STAGE, onStageAdded);
             initializeStage();
         }
 
-        public function initializeStage():void {
+        public function initializeModule():void
+        {
+            PenTool.init(stage);
+        }
+        public function initializeStage():void
+        {
+
+            initializeModule();
             updateWindowTitle();
             markWindowTitleAsDirty();
             initializeStageSettings();
@@ -687,14 +703,16 @@
         }
 
         // function
-        public function getViewportRect():Rectangle {
+        public function getViewportRect():Rectangle
+        {
             const stw:int = stage.stageWidth;
             const sth:int = stage.stageHeight;
             const rect:Rectangle = new Rectangle(0, 0, stw, sth);
 
             rect.y += STAGE_TOP_OFFSET;
 
-            if (isQuickSidebarActive) {
+            if (isQuickSidebarActive)
+            {
                 return rect;
             }
 
@@ -705,15 +723,18 @@
             return rect;
         }
 
-        public function updateSelectedToolViewBoxPos():void {
+        public function updateSelectedToolViewBoxPos():void
+        {
             const viewportRect:Rectangle = getViewportRect();
 
             selectedToolViewBitmap.x = viewportRect.x + viewportRect.width / 2 - selectedToolViewBitmap.width / 2;
             selectedToolViewBitmap.y = viewportRect.y + 20 * Global.getUIScale();
         }
 
-        public function getToolButtonFromToolIndex(toolIndex:*):SimpleButton {
-            switch (toolIndex) {
+        public function getToolButtonFromToolIndex(toolIndex:*):SimpleButton
+        {
+            switch (toolIndex)
+            {
                 case TOOL_PEN:
                     return toolBox.toolPen;
                 case TOOL_FILLPEN:
@@ -745,14 +766,17 @@
             return null;
         }
 
-        public function showNowToolIconToCursorTemp(toolIndex:int):void {
-            if (isQuickSidebarActive) {
+        public function showNowToolIconToCursorTemp(toolIndex:int):void
+        {
+            if (isQuickSidebarActive)
+            {
                 return;
             }
 
             const toolButton:SimpleButton = getToolButtonFromToolIndex(toolIndex);
 
-            if (toolButton === null) {
+            if (toolButton === null)
+            {
                 return;
             }
 
@@ -761,17 +785,20 @@
             startAlphaFadeOut(selectedToolViewBitmap, 1.0, 1.0);
         }
 
-        public function isGeneratingCacheImages():Boolean {
+        public function isGeneratingCacheImages():Boolean
+        {
             return rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING;
         }
 
-        public function getImageDominantColor(bitmapData:BitmapData, k:int = 3, maxIter:int = 10):uint {
+        public function getImageDominantColor(bitmapData:BitmapData, k:int = 3, maxIter:int = 10):uint
+        {
             var pixels:Vector.<uint> = bitmapData.getVector(bitmapData.rect);
             var totalPixels:int = pixels.length;
 
             // 초기 클러스터 중심을 무작위 픽셀에서 선택
             var centers:Array = [];
-            for (var i:int = 0; i < k; i++) {
+            for (var i:int = 0; i < k; i++)
+            {
                 var randPixel:uint = pixels[int(Math.random() * totalPixels)];
                 centers.push([
                             (randPixel >> 16) & 0xFF,
@@ -783,9 +810,11 @@
             var assignments:Vector.<int> = new Vector.<int>(totalPixels, true);
 
             // 반복 학습
-            for (var iter:int = 0; iter < maxIter; iter++) {
+            for (var iter:int = 0; iter < maxIter; iter++)
+            {
                 // 1. 각 픽셀을 가장 가까운 클러스터에 할당
-                for (var p:int = 0; p < totalPixels; p++) {
+                for (var p:int = 0; p < totalPixels; p++)
+                {
                     var pixel:uint = pixels[p];
                     var r:int = (pixel >> 16) & 0xFF;
                     var g:int = (pixel >> 8) & 0xFF;
@@ -794,13 +823,15 @@
                     var bestCluster:int = 0;
                     var bestDist:Number = Number.MAX_VALUE;
 
-                    for (var c:int = 0; c < k; c++) {
+                    for (var c:int = 0; c < k; c++)
+                    {
                         var cr:int = centers[c][0];
                         var cg:int = centers[c][1];
                         var cb:int = centers[c][2];
                         var dist:Number = (r - cr) * (r - cr) + (g - cg) * (g - cg) + (b - cb) * (b - cb);
 
-                        if (dist < bestDist) {
+                        if (dist < bestDist)
+                        {
                             bestDist = dist;
                             bestCluster = c;
                         }
@@ -811,12 +842,14 @@
                 // 2. 클러스터 중심 재계산
                 var sum:Array = [];
                 var count:Array = [];
-                for (c = 0; c < k; c++) {
+                for (c = 0; c < k; c++)
+                {
                     sum[c] = [0, 0, 0];
                     count[c] = 0;
                 }
 
-                for (p = 0; p < totalPixels; p++) {
+                for (p = 0; p < totalPixels; p++)
+                {
                     var cluster:int = assignments[p];
                     pixel = pixels[p];
                     sum[cluster][0] += (pixel >> 16) & 0xFF;
@@ -825,8 +858,10 @@
                     count[cluster]++;
                 }
 
-                for (c = 0; c < k; c++) {
-                    if (count[c] > 0) {
+                for (c = 0; c < k; c++)
+                {
+                    if (count[c] > 0)
+                    {
                         centers[c][0] = sum[c][0] / count[c];
                         centers[c][1] = sum[c][1] / count[c];
                         centers[c][2] = sum[c][2] / count[c];
@@ -837,8 +872,10 @@
             // 가장 큰 클러스터 찾기
             var maxCluster:int = 0;
             var maxCount:int = 0;
-            for (c = 0; c < k; c++) {
-                if (count[c] > maxCount) {
+            for (c = 0; c < k; c++)
+            {
+                if (count[c] > maxCount)
+                {
                     maxCount = count[c];
                     maxCluster = c;
                 }
@@ -851,11 +888,13 @@
             return (rFinal << 16) | (gFinal << 8) | bFinal;
         }
 
-        public function isSameWithLastBottomHintTargetRect(target:DisplayObject):Boolean {
+        public function isSameWithLastBottomHintTargetRect(target:DisplayObject):Boolean
+        {
             return lastBottomHintTargetRect.equals(target.getBounds(stage));
         }
 
-        public function updateLastBottomHintTargetRect(target:DisplayObject):void {
+        public function updateLastBottomHintTargetRect(target:DisplayObject):void
+        {
             const rect:Rectangle = target.getBounds(stage);
             lastBottomHintTargetRect.x = rect.x;
             lastBottomHintTargetRect.y = rect.y;
@@ -863,55 +902,66 @@
             lastBottomHintTargetRect.height = rect.height;
         }
 
-        public function resetLastBottomHintTargetRect():void {
+        public function resetLastBottomHintTargetRect():void
+        {
             lastBottomHintTargetRect.x = 0;
             lastBottomHintTargetRect.y = 0;
             lastBottomHintTargetRect.width = 0;
             lastBottomHintTargetRect.height = 0;
         }
 
-        public function updateLayer1BitmapData(newbmpd:BitmapData):void {
+        public function updateLayer1BitmapData(newbmpd:BitmapData):void
+        {
             canvasLayer1BitmapData = newbmpd.clone();
             canvasLayer1Bitmap.bitmapData = canvasLayer1BitmapData;
         }
 
-        public function updateBitmapData(currentbmpd:BitmapData, newbmpd:BitmapData, targetBitmap:Bitmap):BitmapData {
-            if (currentbmpd !== null && currentbmpd === newbmpd) {
+        public function updateBitmapData(currentbmpd:BitmapData, newbmpd:BitmapData, targetBitmap:Bitmap):BitmapData
+        {
+            if (currentbmpd !== null && currentbmpd === newbmpd)
+            {
                 return currentbmpd;
             }
 
             const clone:BitmapData = newbmpd.clone();
             // currentbmpd distpos를 해주고 싶지만 뭔가 이미지 적용이 안되는 현상이 있어서 안해줌
 
-            if (targetBitmap !== null) {
+            if (targetBitmap !== null)
+            {
                 targetBitmap.bitmapData = clone;
             }
 
             return clone;
         }
 
-        public function calculateSliderValueFromMouseX(mousex:Number, minx:Number, maxx:Number, minvalue:Number, maxvalue:Number, cursor:DisplayObject):Number {
-            if (mousex < minx) {
+        public function calculateSliderValueFromMouseX(mousex:Number, minx:Number, maxx:Number, minvalue:Number, maxvalue:Number, cursor:DisplayObject):Number
+        {
+            if (mousex < minx)
+            {
                 mousex = minx;
             }
-            else if (mousex > maxx) {
+            else if (mousex > maxx)
+            {
                 mousex = maxx;
             }
 
             const per:Number = (mousex - minx) / (maxx - minx);
             const value:Number = minvalue + (maxvalue - minvalue) * per;
 
-            if (cursor !== null) {
+            if (cursor !== null)
+            {
                 cursor.x = mousex;
             }
 
             return value;
         }
 
-        public function startDragInteraction(onDragStartFunc:Function, onMouseMoveFunc:Function, onMouseUpFunc:Function):void {
+        public function startDragInteraction(onDragStartFunc:Function, onMouseMoveFunc:Function, onMouseUpFunc:Function):void
+        {
             isMouseDragging = true;
 
-            function onMouseUp(e:MouseEvent):void {
+            function onMouseUp(e:MouseEvent):void
+            {
                 isMouseDragging = false;
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
@@ -919,7 +969,8 @@
                 onMouseUpFunc();
             }
 
-            function onMouseMove(e:MouseEvent):void {
+            function onMouseMove(e:MouseEvent):void
+            {
                 onMouseMoveFunc();
             }
 
@@ -929,27 +980,34 @@
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
         }
 
-        public function isPopUpWindowOpened():Boolean {
+        public function isPopUpWindowOpened():Boolean
+        {
             return topBar.gridButtonWrapper.visible || numPadBox.visible || loadMenuBox.visible || aboutBox.visible;
         }
 
-        public function showPickColorScratchPad():void {
+        public function showPickColorScratchPad():void
+        {
             pickColor(colorPickerBox.scratchPad.pickColor());
         }
 
-        public function hideStampFontList():void {
+        public function hideStampFontList():void
+        {
             stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList);
             captureStampFontListBox.visible = false;
         }
 
-        public function onMouseDownShowStampFontList(e:MouseEvent):void {
-            if (!(captureStampFontListBox.hitTestPoint(stage.mouseX, stage.mouseY) || topBar.capStampFont.hitTestPoint(stage.mouseX, stage.mouseY))) {
+        public function onMouseDownShowStampFontList(e:MouseEvent):void
+        {
+            if (!(captureStampFontListBox.hitTestPoint(stage.mouseX, stage.mouseY) || topBar.capStampFont.hitTestPoint(stage.mouseX, stage.mouseY)))
+            {
                 hideStampFontList();
             }
         }
 
-        public function showStampFontList():void {
-            if (!captureStampFontListBox.visible) {
+        public function showStampFontList():void
+        {
+            if (!captureStampFontListBox.visible)
+            {
                 const gp:Point = topBar.capStampFont.localToGlobal(new Point(0, 0));
 
                 captureStampFontListBox.x = gp.x;
@@ -963,18 +1021,23 @@
             }
         }
 
-        public function disableTransparentBGDrawMode():void {
-            if (!canvasPanel.getChildByName("canvasFlash")) {
+        public function disableTransparentBGDrawMode():void
+        {
+            if (!canvasPanel.getChildByName("canvasFlash"))
+            {
                 return;
             }
 
             const fadeStep:Number = Math.floor(0.1 * 256) / 256;
-            addTimerByName("viewTransBGTimer", 0.0, true, function():Boolean {
-                    if (canvasFlashEffect.alpha < 0.0 || isCaptureModeON) {
+            addTimerByName("viewTransBGTimer", 0.0, true, function():Boolean
+                {
+                    if (canvasFlashEffect.alpha < 0.0 || isCaptureModeON)
+                    {
                         canvasFlashEffect.alpha = 0.0;
                         canvasFlashEffect.visible = false;
                         canvasFlashEffect.graphics.clear();
-                        if (canvasPanel.getChildByName("canvasFlash")) {
+                        if (canvasPanel.getChildByName("canvasFlash"))
+                        {
                             canvasPanel.removeChild(canvasFlashEffect);
                         }
                         return false;
@@ -985,8 +1048,10 @@
                 });
         }
 
-        public function enableTransparentBGDrawMode():void {
-            if (!canvasPanel.getChildByName("canvasFlash")) {
+        public function enableTransparentBGDrawMode():void
+        {
+            if (!canvasPanel.getChildByName("canvasFlash"))
+            {
                 canvasPanel.addChild(canvasFlashEffect);
                 canvasPanel.setChildIndex(canvasFlashEffect, 0);
                 canvasFlashEffect.visible = true;
@@ -996,13 +1061,16 @@
                 canvasFlashEffect.alpha = 0.0;
             }
 
-            if (canvasFlashEffect.alpha >= 1.0) {
+            if (canvasFlashEffect.alpha >= 1.0)
+            {
                 return;
             }
 
             const fadeStep:Number = Math.floor(0.1 * 256) / 256;
-            addTimerByName("viewTransBGTimer", 0.0, true, function():Boolean {
-                    if (canvasFlashEffect.alpha >= 1.0 || isCaptureModeON) {
+            addTimerByName("viewTransBGTimer", 0.0, true, function():Boolean
+                {
+                    if (canvasFlashEffect.alpha >= 1.0 || isCaptureModeON)
+                    {
                         canvasFlashEffect.alpha = 1.0;
                         return false;
                     }
@@ -1012,26 +1080,31 @@
                 });
         }
 
-        public function executeCaptureFlashEffect():void {
+        public function executeCaptureFlashEffect():void
+        {
             var xPanel:Sprite = (isReplayModeON) ? rCanvasPanel : canvasPanel;
             var posX:Number;
             var posY:Number;
             var canvasWidth:Number;
             var canvasHeight:Number;
 
-            if (captureAreaManager.isFullImageCapture()) {
+            if (captureAreaManager.isFullImageCapture())
+            {
                 posX = 0;
                 posY = 0;
-                if (isReplayModeON) {
+                if (isReplayModeON)
+                {
                     canvasWidth = RCANVAS_WIDTH;
                     canvasHeight = RCANVAS_HEIGHT;
                 }
-                else {
+                else
+                {
                     canvasWidth = CANVAS_WIDTH;
                     canvasHeight = CANVAS_HEIGHT;
                 }
             }
-            else {
+            else
+            {
                 const nowCaptureArea:Rectangle = captureAreaManager.getCaptureArea();
 
                 posX = nowCaptureArea.x;
@@ -1040,13 +1113,16 @@
                 canvasHeight = nowCaptureArea.height;
             }
 
-            applyCanvasFlashEffect(xPanel, posX, posY, canvasWidth, canvasHeight, function():Boolean {
+            applyCanvasFlashEffect(xPanel, posX, posY, canvasWidth, canvasHeight, function():Boolean
+                {
                     return !isCaptureModeON;
                 });
         }
 
-        public function applyCanvasFlashEffect(parent:DisplayObjectContainer, ox:Number, oy:Number, width:Number, height:Number, stopHandler:Function):void {
-            if (!parent.getChildByName("canvasFlash")) {
+        public function applyCanvasFlashEffect(parent:DisplayObjectContainer, ox:Number, oy:Number, width:Number, height:Number, stopHandler:Function):void
+        {
+            if (!parent.getChildByName("canvasFlash"))
+            {
                 parent.addChild(canvasFlashEffect);
             }
 
@@ -1058,12 +1134,15 @@
 
             const fadeStep:Number = Math.floor(0.05 * 256) / 256;
 
-            addTimerByName("flashingTimer", 0.0, true, function():Boolean {
-                    if (canvasFlashEffect.alpha < 0.1 || stopHandler()) {
+            addTimerByName("flashingTimer", 0.0, true, function():Boolean
+                {
+                    if (canvasFlashEffect.alpha < 0.1 || stopHandler())
+                    {
                         canvasFlashEffect.alpha = 0.0;
                         canvasFlashEffect.visible = false;
                         canvasFlashEffect.graphics.clear();
-                        if (parent.getChildByName("canvasFlash")) {
+                        if (parent.getChildByName("canvasFlash"))
+                        {
                             parent.removeChild(canvasFlashEffect);
                         }
                         return false;
@@ -1073,88 +1152,110 @@
                 });
         }
 
-        public function updatePickerBoxTransBGBrightness():void {
+        public function updatePickerBoxTransBGBrightness():void
+        {
             colorPickerBox.applyTransparentColorBrightness(Global.getUIColorIndex());
             updateMyPaletteList();
             updateHistoryList();
-            if (isTransparentPenColor) {
+            if (isTransparentPenColor)
+            {
                 colorPickerBox.setRGBInfoBackgroundTransparent(myPalettePresetType);
             }
         }
 
-        public function startScratchPadResetTimer(target:DisplayObject):void {
-            addTimerByName("clearScratchPadTimer", 0.4, false, function():void {
+        public function startScratchPadResetTimer(target:DisplayObject):void
+        {
+            addTimerByName("clearScratchPadTimer", 0.4, false, function():void
+                {
                     startPressHoldKey(target, "Clearing scratch pad..", null, colorPickerBox.scratchPad.clearPad, null);
                 });
         }
 
-        public function selectOrResetMyPalette():void {
-            function onMouseUpMyPalette(e:MouseEvent):void {
+        public function selectOrResetMyPalette():void
+        {
+            function onMouseUpMyPalette(e:MouseEvent):void
+            {
                 removeTimer("selectMyPaletteDelayTimer");
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
 
-                if (e.target && e.target.name === "myPaletteButton") {
-                    if (myPalettePresetType === 0) {
-                        if (isMyPaletteExpended === false) {
+                if (e.target && e.target.name === "myPaletteButton")
+                {
+                    if (myPalettePresetType === 0)
+                    {
+                        if (isMyPaletteExpended === false)
+                        {
                             switchMyPaletteToExpended();
                         }
-                        else {
+                        else
+                        {
                             switchMyPaletteToCompact();
                         }
                     }
-                    else {
+                    else
+                    {
                         activeColorPreset(0);
                     }
                 }
             }
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
 
-            addTimerByName("selectMyPaletteDelayTimer", 0.4, false, function():void {
+            addTimerByName("selectMyPaletteDelayTimer", 0.4, false, function():void
+                {
                     startPressHoldKey(colorPickerBox.myPaletteButton, "Clearing my palette..", null, clearMyPaletteList, null);
                     stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
                 });
         }
 
-        public function startSelectOrAddColorMyPalette():void {
+        public function startSelectOrAddColorMyPalette():void
+        {
             const firstClickColorIndex:uint = getMyPaletteIndexByMousePos();
             var colorAddedFlag:Boolean = false;
 
-            function onMyPaletteMouseUp(e:MouseEvent):void {
+            function onMyPaletteMouseUp(e:MouseEvent):void
+            {
                 removeTimer("addColorMyPaletteDelayTimer");
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp);
-                if (colorAddedFlag === false) {
+                if (colorAddedFlag === false)
+                {
                     selectMyPaletteColor();
                 }
             }
             stage.addEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp);
 
-            addTimerByName("addColorMyPaletteDelayTimer", 0.6, true, function():Boolean {
-                    if (firstClickColorIndex === getMyPaletteIndexByMousePos()) {
+            addTimerByName("addColorMyPaletteDelayTimer", 0.6, true, function():Boolean
+                {
+                    if (firstClickColorIndex === getMyPaletteIndexByMousePos())
+                    {
                         colorAddedFlag = true;
                         addColorToMyPalette(colorPickerBox.getRGBInfoBGColor(), getMyPaletteIndexByMousePos());
                     }
-                    else {
+                    else
+                    {
                         return false;
                     }
                     return true;
                 });
         }
 
-        public function isMouseCursorInSideBar():Boolean {
-            if (sideBar.visible === true) {
+        public function isMouseCursorInSideBar():Boolean
+        {
+            if (sideBar.visible === true)
+            {
                 const scale:Number = Global.getUIScale();
 
                 if (isRightSidebar
                         && stage.mouseX >= sideBar.x - sideBarScrollBar.width * scale
                         && stage.mouseX <= sideBar.x + sideBar.WIDTH * scale
                         && stage.mouseY >= sideBar.y
-                        && stage.mouseY <= stage.stageHeight) {
+                        && stage.mouseY <= stage.stageHeight)
+                {
                     return true;
                 }
                 else if (stage.mouseX >= sideBar.x
                         && stage.mouseX <= sideBar.x + sideBar.WIDTH * scale + sideBarScrollBar.width * scale
                         && stage.mouseY >= sideBar.y
-                        && stage.mouseY <= stage.stageHeight) {
+                        && stage.mouseY <= stage.stageHeight)
+                {
                     return true;
                 }
             }
@@ -1162,30 +1263,40 @@
             return false;
         }
 
-        public function onMouseWheelStage(e:MouseEvent):void {
+        public function onMouseWheelStage(e:MouseEvent):void
+        {
             if (isMouseClicked || isRightMouseClicked || isMouseDragging
                     || isPopUpWindowOpened()
                     || isCaptureModeON || !isQuickSidebarActive && isKeyPressed() || getCommandKey() !== 0)
                 return;
 
-            if (!hasTimer("wheelZoomTimer")) {
-                addTimerByName("wheelZoomTimer", 0.07, false, function():void {
-                        if (isMouseCursorInSideBar()) {
-                            if (sideBarScrollBar.visible === true) {
-                                if (e.delta > 0) {
+            if (!hasTimer("wheelZoomTimer"))
+            {
+                addTimerByName("wheelZoomTimer", 0.07, false, function():void
+                    {
+                        if (isMouseCursorInSideBar())
+                        {
+                            if (sideBarScrollBar.visible === true)
+                            {
+                                if (e.delta > 0)
+                                {
                                     startScrollSidebarByMouseWheel(40);
                                 }
-                                else {
+                                else
+                                {
                                     startScrollSidebarByMouseWheel(-40);
                                 }
                             }
                         }
-                        else if (!isReplayModeON && isCursorInDrawArea()) {
-                            if (e.delta > 0) {
+                        else if (!isReplayModeON && isCursorInDrawArea())
+                        {
+                            if (e.delta > 0)
+                            {
                                 zoomInCanvas(true, false);
                                 showMouseHintTemp(Math.floor(canvasZoomMultipler * 100) + "%");
                             }
-                            else {
+                            else
+                            {
                                 zoomInCanvas(false, false);
                                 showMouseHintTemp(Math.floor(canvasZoomMultipler * 100) + "%");
                             }
@@ -1194,22 +1305,27 @@
             }
         }
 
-        public function rgbInfoNumPadIncKey(inc:int):void {
-            if (isHSVInfoTextMode) {
+        public function rgbInfoNumPadIncKey(inc:int):void
+        {
+            if (isHSVInfoTextMode)
+            {
                 adjustSingleValueHSV(inc);
                 numPadBox.updateOkBaseColor(colorPickerBox.getRGBInfoBGColor());
             }
-            else {
+            else
+            {
                 adjustSingleValueRGB(inc);
                 numPadBox.updateOkBaseColor(colorPickerBox.getRGBInfoBGColor());
             }
         }
 
-        public function pressNumpadKey(num:String):void {
+        public function pressNumpadKey(num:String):void
+        {
             var startIndex:int = colorPickerBox.rgbInfoText.selectionBeginIndex;
             var endIndex:int = colorPickerBox.rgbInfoText.selectionEndIndex;
 
-            if (numpadInputBuffer.length >= 3) {
+            if (numpadInputBuffer.length >= 3)
+            {
                 stage.focus = null;
                 return;
             }
@@ -1218,22 +1334,29 @@
 
             var value:int = parseInt(numpadInputBuffer);
 
-            if (isHSVInfoTextMode) {
-                if (lastRGBInfoColorPartIndex === 0) {
-                    if (value > 360) {
+            if (isHSVInfoTextMode)
+            {
+                if (lastRGBInfoColorPartIndex === 0)
+                {
+                    if (value > 360)
+                    {
                         value = 360;
                     }
                     hsvColorData[lastRGBInfoColorPartIndex] = value / 360;
                 }
-                else {
-                    if (value > 100) {
+                else
+                {
+                    if (value > 100)
+                    {
                         value = 100;
                     }
                     hsvColorData[lastRGBInfoColorPartIndex] = value / 100;
                 }
             }
-            else {
-                if (value > 255) {
+            else
+            {
+                if (value > 255)
+                {
                     value = 255;
                 }
 
@@ -1250,17 +1373,21 @@
             numPadBox.updateOkBaseColor(Global.HSVtoHEX(hsvColorData[0], hsvColorData[1], hsvColorData[2]));
             keepRGBInfoTextPartFocus();
 
-            if (colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor()) {
+            if (colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor())
+            {
                 applyAdjustedColor();
             }
         }
 
-        public function getSidebarConstHeight():Number {
+        public function getSidebarConstHeight():Number
+        {
             return (sideBarConstHeight + ((isMyPaletteExpended && myPalettePresetType === 0) ? myPaletteColorHeight * 7 : 0));
         }
 
-        public function startPressHoldKey(button:DisplayObject, hintStr:String, readyFunc:Function, okFunc:Function, cancelFunc:Function):void {
-            if (!hasTimer("pressholdtimer")) {
+        public function startPressHoldKey(button:DisplayObject, hintStr:String, readyFunc:Function, okFunc:Function, cancelFunc:Function):void
+        {
+            if (!hasTimer("pressholdtimer"))
+            {
                 var keyBufferLenSave:uint = getPressedKeyCount();
                 var mouseClickONSave:Boolean = isMouseClicked;
                 var rightMouseClickONSave:Boolean = isRightMouseClicked;
@@ -1271,28 +1398,35 @@
                 pressHoldCountDownTime = countDownTime;
                 pressHoldFrameCount = 0;
 
-                if (readyFunc !== null) {
-                    if (readyFunc() === true) {
+                if (readyFunc !== null)
+                {
+                    if (readyFunc() === true)
+                    {
                         return;
                     }
                 }
 
-                function cancelHoldingKey():void {
+                function cancelHoldingKey():void
+                {
                     pressHoldFrameCount = 0;
                     pressHoldCountDownTime = countDownTime;
                     hideMouseHint();
                 }
 
-                if (hintStr !== "") {
+                if (hintStr !== "")
+                {
                     showMouseHint(hintStr + " " + pressHoldCountDownTime);
                 }
 
-                addTimerByName("pressholdtimer", 0.0, true, function():Boolean {
+                addTimerByName("pressholdtimer", 0.0, true, function():Boolean
+                    {
                         if (isMouseClicked !== mouseClickONSave
                                 || isRightMouseClicked !== rightMouseClickONSave
                                 || keyBufferLenSave !== getPressedKeyCount()
-                                || (button && button.hitTestPoint(stage.mouseX, stage.mouseY) === false)) {
-                            if (cancelFunc !== null) {
+                                || (button && button.hitTestPoint(stage.mouseX, stage.mouseY) === false))
+                        {
+                            if (cancelFunc !== null)
+                            {
                                 cancelFunc();
                             }
                             cancelHoldingKey();
@@ -1301,14 +1435,16 @@
 
                         pressHoldFrameCount++;
 
-                        if (pressHoldFrameCount >= countDownTimeNow) {
+                        if (pressHoldFrameCount >= countDownTimeNow)
+                        {
                             pressHoldFrameCount = 0;
                             pressHoldCountDownTime--;
                         }
 
                         showMouseHint(hintStr + " " + pressHoldCountDownTime);
 
-                        if (pressHoldCountDownTime <= 0) {
+                        if (pressHoldCountDownTime <= 0)
+                        {
                             cancelHoldingKey();
                             okFunc();
                             return false;
@@ -1319,14 +1455,17 @@
             }
         }
 
-        public function closeLoadMenuBox():void {
+        public function closeLoadMenuBox():void
+        {
             stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
             loadMenuBox.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
             loadMenuBox.visible = false;
         }
 
-        public function openLoadMenuBoxOnClosing():void {
-            if (loadMenuBox.visible === false) {
+        public function openLoadMenuBoxOnClosing():void
+        {
+            if (loadMenuBox.visible === false)
+            {
                 const bmpd:BitmapData = getMergedBitmapdtata(false, true, true, null);
                 loadMenuBox.setPreviewImage(bmpd);
                 loadMenuBox.showPleaseWait("Closing fofo paint...");
@@ -1336,8 +1475,10 @@
             }
         }
 
-        public function openLoadMenuBox():void {
-            if (loadMenuBox.visible === false) {
+        public function openLoadMenuBox():void
+        {
+            if (loadMenuBox.visible === false)
+            {
                 stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
                 loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
                 loadMenuBox.visible = true;
@@ -1346,30 +1487,38 @@
             setAsTopChild(loadMenuBox);
         }
 
-        public function getJumpImageFolder():File {
+        public function getJumpImageFolder():File
+        {
             return File.applicationStorageDirectory.resolvePath("imagecache");
         }
 
-        public function initializeRepTempFile():void {
+        public function initializeRepTempFile():void
+        {
             repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + getRandomString(32));
         }
 
-        public function handleLoadMenuBoxClick(oldTargetName:String):void {
+        public function handleLoadMenuBoxClick(oldTargetName:String):void
+        {
             loadMenuBox.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
 
-            function onMouseUpLoadMenuBox(e:MouseEvent):void {
+            function onMouseUpLoadMenuBox(e:MouseEvent):void
+            {
                 loadMenuBox.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
 
-                if (!e.target || e.target.alpha < 1.0) {
+                if (!e.target || e.target.alpha < 1.0)
+                {
                     return;
                 }
 
                 if (oldTargetName === e.target.name
-                        && isLoadPendingAfterSaving === false && isSaveInProgress === 0 && !isFileBrowserOpened) {
-                    switch (e.target.name) {
+                        && isLoadPendingAfterSaving === false && isSaveInProgress === 0 && !isFileBrowserOpened)
+                {
+                    switch (e.target.name)
+                    {
                         case "dragDropLoadButton":
                             {
-                                if (!loadMenuBox.isRefLayerLoadMode()) {
+                                if (!loadMenuBox.isRefLayerLoadMode())
+                                {
                                     closeLoadMenuBox();
                                     loadFileTo("canvas");
                                 }
@@ -1378,7 +1527,8 @@
 
                         case "dragDropSaveAndLoadButton":
                             {
-                                if (!loadMenuBox.isRefLayerLoadMode()) {
+                                if (!loadMenuBox.isRefLayerLoadMode())
+                                {
                                     isLoadPendingAfterSaving = true;
                                     loadMenuBox.showPleaseWait("Saving in progress...");
                                     openSaveFileBrowser(false);
@@ -1403,29 +1553,35 @@
             }
         }
 
-        public function onMouseDownLoadMenuBox(e:MouseEvent):void {
-            if (!e.target) {
+        public function onMouseDownLoadMenuBox(e:MouseEvent):void
+        {
+            if (!e.target)
+            {
                 return;
             }
             handleLoadMenuBoxClick(e.target.name);
         }
 
-        public function showLoadFaildMouseHint():void {
+        public function showLoadFaildMouseHint():void
+        {
             isLoadPendingAfterSaving = false;
             showMouseHintTemp("Load failed");
             mouseHint.y = stage.mouseY;
             mouseHint.x = stage.mouseX;
         }
 
-        public function activeColorPreset(type:int):void {
-            if (myPalettePresetType === type) {
+        public function activeColorPreset(type:int):void
+        {
+            if (myPalettePresetType === type)
+            {
                 return;
             }
             var myPalettePresetTypeSave:int = myPalettePresetType;
             myPalettePresetType = type;
             updateMyPaletteList();
             colorPickerBox.setActiveColorPreset(type);
-            if (isColorPickerModeBG) {
+            if (isColorPickerModeBG)
+            {
                 switchColorPickerModePen();
             }
 
@@ -1439,7 +1595,8 @@
                 myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = colorPickerBox.getRGBInfoBGColor();
                 pickColor(myPaletteSaveColorBeforeOtherType[2]);
             }
-            else {
+            else
+            {
                 myPaletteSaveColorBeforeOtherType[myPalettePresetTypeSave] = colorPickerBox.getRGBInfoBGColor();
                 pickColor(myPaletteSaveColorBeforeOtherType[0]);
             }
@@ -1447,16 +1604,19 @@
             checkFOFOPosition();
         }
 
-        public function setFileBrowserIsOpen(flag:Boolean):void {
+        public function setFileBrowserIsOpen(flag:Boolean):void
+        {
             isFileBrowserOpened = flag;
             clearKeyBuffer();
         }
 
-        public function setRcursorRotation(newAngle:Number):void {
+        public function setRcursorRotation(newAngle:Number):void
+        {
             rReplayFOFOCursor.rotation = -newAngle;
         }
 
-        public function formatBytes(bytes:Number):String {
+        public function formatBytes(bytes:Number):String
+        {
             var sizes:Array = ["Bytes", "KB", "MB", "GB", "TB"];
 
             // 음수 또는 유효하지 않은 입력 처리
@@ -1473,18 +1633,24 @@
             return Math.round(10 * value) / 10 + " " + sizes[i];
         }
 
-        public function getDriveUsageString():String {
-            function getDirectorySize(dir:File):Number {
+        public function getDriveUsageString():String
+        {
+            function getDirectorySize(dir:File):Number
+            {
                 var size:Number = 0;
 
-                if (dir.isDirectory) {
+                if (dir.isDirectory)
+                {
                     var files:Array = dir.getDirectoryListing();
 
-                    for each (var file:File in files) {
-                        if (file.isDirectory) {
+                    for each (var file:File in files)
+                    {
+                        if (file.isDirectory)
+                        {
                             size += getDirectorySize(file);
                         }
-                        else {
+                        else
+                        {
                             size += file.size;
                         }
                     }
@@ -1496,33 +1662,41 @@
             return formatBytes(getDirectorySize(File.applicationStorageDirectory));
         }
 
-        public function addInputEventsDrawModeOrReplayMode():void {
-            if (isReplayModeON) {
+        public function addInputEventsDrawModeOrReplayMode():void
+        {
+            if (isReplayModeON)
+            {
                 addInputEventsReplayMode();
             }
-            else {
+            else
+            {
                 addInputEventsDrawMode();
             }
         }
 
-        public function getClipRectOffsetAirBrush(size:int):Number {
+        public function getClipRectOffsetAirBrush(size:int):Number
+        {
             const len:uint = penSizeList.length;
-            for (var i:uint = 1; i < len; i++) {
-                if (penSizeList[i] === size) {
+            for (var i:uint = 1; i < len; i++)
+            {
+                if (penSizeList[i] === size)
+                {
                     return size + airBrushClipRectOffsetData[i];
                 }
             }
             return 0;
         }
 
-        public function resetRCanvasDrawLayerCliprect2():void {
+        public function resetRCanvasDrawLayerCliprect2():void
+        {
             rCanvasDrawLayerClipRect.x = 0;
             rCanvasDrawLayerClipRect.y = 0;
             rCanvasDrawLayerClipRect.width = 0;
             rCanvasDrawLayerClipRect.height = 0;
         }
 
-        public function extandRCanvasDrawLayerCliprect2():void {
+        public function extandRCanvasDrawLayerCliprect2():void
+        {
             var rairBrushOffset:Number = (rAirBrushSize2 > 0) ? getClipRectOffsetAirBrush(rAirBrushSize2) : 1;
 
             rCanvasDrawLayerClipRect.x -= rairBrushOffset;
@@ -1531,11 +1705,13 @@
             rCanvasDrawLayerClipRect.height += (rairBrushOffset * 2);
         }
 
-        public function updateRCanvasDrawLayerCliprect2():void {
+        public function updateRCanvasDrawLayerCliprect2():void
+        {
             rCanvasDrawLayerClipRect = rCanvasDrawLayerClipRect.union(rCanvasDrawShape.getBounds(rCanvasPanel));
         }
 
-        public function extandRCanvasDrawLayerCliprect():void {
+        public function extandRCanvasDrawLayerCliprect():void
+        {
             var rairBrushOffset:Number = (rAirBrushSize > 0) ? getClipRectOffsetAirBrush(rAirBrushSize) : 1;
 
             rCanvasDrawLayerClipRectLegacy.x -= rairBrushOffset;
@@ -1544,25 +1720,29 @@
             rCanvasDrawLayerClipRectLegacy.height += (rairBrushOffset * 2);
         }
 
-        public function resetRCanvasDrawLayerCliprect():void {
+        public function resetRCanvasDrawLayerCliprect():void
+        {
             rCanvasDrawLayerClipRectLegacy.x = 0;
             rCanvasDrawLayerClipRectLegacy.y = 0;
             rCanvasDrawLayerClipRectLegacy.width = 0;
             rCanvasDrawLayerClipRectLegacy.height = 0;
         }
 
-        public function updateRCanvasDrawLayerCliprect():void {
+        public function updateRCanvasDrawLayerCliprect():void
+        {
             rCanvasDrawLayerClipRectLegacy = rCanvasDrawLayerClipRectLegacy.union(rCanvasDrawShape.getBounds(rCanvasPanel));
         }
 
-        public function resetCanvasDrawLayerCliprect():void {
+        public function resetCanvasDrawLayerCliprect():void
+        {
             canvasDrawLayerClipRect.x = 0;
             canvasDrawLayerClipRect.y = 0;
             canvasDrawLayerClipRect.width = 0;
             canvasDrawLayerClipRect.height = 0;
         }
 
-        public function extandCanvasDrawLayerCliprect():void {
+        public function extandCanvasDrawLayerCliprect():void
+        {
             var airBrushOffset:Number = (airBrushSizeDrawMode > 0) ? getClipRectOffsetAirBrush(airBrushSizeDrawMode) : 1;
 
             canvasDrawLayerClipRect.x -= airBrushOffset;
@@ -1571,20 +1751,24 @@
             canvasDrawLayerClipRect.height += (airBrushOffset * 2);
         }
 
-        public function updateCanvasDrawLayerCliprect():void {
+        public function updateCanvasDrawLayerCliprect():void
+        {
             canvasDrawLayerClipRect = canvasDrawLayerClipRect.union(canvasDrawLayerChild.getBounds(canvasPanel));
         }
 
-        public function normalizeAlphaValue(alp:Number):Number {
+        public function normalizeAlphaValue(alp:Number):Number
+        {
             // 객체의 alpha값이 8비트int로 변환된후 다시 Number로 변환되기 때문에 실제 소수점 비교를 할때도 같은 방식을 써주어야함
             return Math.round(alp * 256) / 256;
         }
 
-        public function getCanvasLayerSwappedHintString():String {
+        public function getCanvasLayerSwappedHintString():String
+        {
             return "Layers has been swapped " + ((isLayerSwapped) ? "1 / 2" : "2 / 1");
         }
 
-        public function createPosUpdateFunctionByMouseDrag(target:DisplayObject, targetAngle:Number, customScaleX:Number = 1.0, customScaleY:Number = 1.0):Function {
+        public function createPosUpdateFunctionByMouseDrag(target:DisplayObject, targetAngle:Number, customScaleX:Number = 1.0, customScaleY:Number = 1.0):Function
+        {
             var oldX:Number = target.x;
             var oldY:Number = target.y;
             var mx:Number = stage.mouseX;
@@ -1592,7 +1776,8 @@
             const zoom:Number = canvasZoomMultipler;
             const angle:Number = targetAngle;
 
-            return function():Point {
+            return function():Point
+            {
                 const dx:Number = stage.mouseX - mx;
                 const dy:Number = stage.mouseY - my;
                 const newPos:Point = rotatePoint(dx, dy, angle);
@@ -1604,11 +1789,13 @@
 
         }
 
-        public function hideCanvasRotateCursor():void {
+        public function hideCanvasRotateCursor():void
+        {
             canvasRotateCursor.visible = false;
         }
 
-        public function createAngleUpdateFunctionByMouseDrag(target:DisplayObject):Function {
+        public function createAngleUpdateFunctionByMouseDrag(target:DisplayObject):Function
+        {
             const snapThreshold:Number = 82;
             canvasRotateCursor.x = stage.mouseX;
             canvasRotateCursor.y = stage.mouseY + (65 * Global.getUIScale());
@@ -1626,7 +1813,8 @@
             var ignoreSnapFlag:Boolean = true;
             var snappedAng:Number = 0;
 
-            return function():Number {
+            return function():Number
+            {
                 const nowAng:Number = Math.atan2(stage.mouseX - canvasRotateCursor.x, stage.mouseY - canvasRotateCursor.y) * toDeg;
                 const subAng:Number = lastAng - nowAng;
 
@@ -1637,21 +1825,26 @@
                 const snap90N:Number = 90.0 - snap90;
                 const snapAng:Number = (snap90 > snap90N) ? snap90 : snap90N;
 
-                if (snapAng > snapThreshold && ignoreSnapFlag === false) {
+                if (snapAng > snapThreshold && ignoreSnapFlag === false)
+                {
                     activateSnapFlag = true;
                     deg = Math.round(deg / 90) * 90;
-                    if (snappedAng !== deg) {
+                    if (snappedAng !== deg)
+                    {
                         snappedAng = deg;
                     }
                 }
-                else if (activateSnapFlag === true) {
+                else if (activateSnapFlag === true)
+                {
                     sumAng = snappedAng;
                     deg = snappedAng;
                     activateSnapFlag = false;
                     ignoreSnapFlag = true;
                 }
-                else if (ignoreSnapFlag === true) {
-                    if (snapAng <= snapThreshold) {
+                else if (ignoreSnapFlag === true)
+                {
+                    if (snapAng <= snapThreshold)
+                    {
                         ignoreSnapFlag = false;
                     }
                 }
@@ -1662,15 +1855,18 @@
 
         }
 
-        public function getImageScaleHint(width:Number, height:Number, scale:Number, scaleXFlag:Boolean):String {
+        public function getImageScaleHint(width:Number, height:Number, scale:Number, scaleXFlag:Boolean):String
+        {
             const scaleStr:String = Math.round(scale * 100) + "%";
-            if (scaleXFlag) {
+            if (scaleXFlag)
+            {
                 return Math.round(width * scale) + " x " + Math.round(height * scale) + " (" + scaleStr + ")";
             }
             return Math.round(width) + " x " + Math.round(height) + " (" + scaleStr + ")";
         }
 
-        public function createScaleUpdaterFromMouseDrag(sc:Number):Function {
+        public function createScaleUpdaterFromMouseDrag(sc:Number):Function
+        {
             var clickX:Number = stage.mouseX;
             var clickY:Number = stage.mouseY;
             var scale:Number = Math.abs(sc);
@@ -1678,9 +1874,12 @@
             var myLastPos:Number;
             var moveFlag:int;
 
-            return function(mx:Number, my:Number):Number {
-                if (moveFlag != 0) {
-                    if (moveFlag === 1) {
+            return function(mx:Number, my:Number):Number
+            {
+                if (moveFlag != 0)
+                {
+                    if (moveFlag === 1)
+                    {
                         const subX:Number = mx - mxLastPos;
 
                         if (subX !== 0) // 차이가 0이 될때가 있어서 이건 스킵
@@ -1689,20 +1888,25 @@
                             refLayerMenuDragXMoveSum += subX;
                         }
                     }
-                    else if (moveFlag === 2) {
+                    else if (moveFlag === 2)
+                    {
                         const subY:Number = myLastPos - my;
 
-                        if (subY !== 0) {
+                        if (subY !== 0)
+                        {
                             scale *= Math.pow(2, subY * 0.008);
                             refLayerMenuDragXMoveSum += subY;
                         }
                     }
                 }
-                else if (moveFlag === 0) {
-                    if (Math.abs(mx - clickX) > 5) {
+                else if (moveFlag === 0)
+                {
+                    if (Math.abs(mx - clickX) > 5)
+                    {
                         moveFlag = 1;
                     }
-                    else if (Math.abs(my - clickY) > 5) {
+                    else if (Math.abs(my - clickY) > 5)
+                    {
                         moveFlag = 2;
                     }
                 }
@@ -1710,10 +1914,12 @@
                 mxLastPos = mx;
                 myLastPos = my;
 
-                if (scale > 4.0) {
+                if (scale > 4.0)
+                {
                     scale = 4.0;
                 }
-                else if (scale < 0.1) {
+                else if (scale < 0.1)
+                {
                     scale = 0.1;
                 }
 
@@ -1721,24 +1927,29 @@
             };
         }
 
-        public function isHintUnavailable():Boolean {
+        public function isHintUnavailable():Boolean
+        {
             return isMouseClicked || isRightMouseClicked || isMouseDragging || isToolBox2Showing
                 || numPadBox.visible || isAboutBoxOpened || isGeneratingCacheImages();
             // || isFillPenStarted
             // || isLassoToolStarted
         }
 
-        public function playLayerSwapEffect(target:DisplayObject):void {
+        public function playLayerSwapEffect(target:DisplayObject):void
+        {
             target.alpha = Global.OFFALPHA;
 
-            addTimerByName("layerSwapFlickEffect", 0.5, false, function():void {
+            addTimerByName("layerSwapFlickEffect", 0.5, false, function():void
+                {
                     target.alpha = 1.0;
                 });
         }
 
         // 123,123,123에서 커서가 어느 지점이 있는지 반환함 0=R, 1=G, 2=B
-        public function getRGBInfoTextCursorPos(customIndex:* = null):int {
-            if (customIndex === null) {
+        public function getRGBInfoTextCursorPos(customIndex:* = null):int
+        {
+            if (customIndex === null)
+            {
                 customIndex = colorPickerBox.rgbInfoText.caretIndex;
             }
 
@@ -1747,8 +1958,10 @@
             return rgb.length - 1;
         }
 
-        public function keepRGBInfoTextPartFocus():void {
-            addTimerByName("keepRGBInfoTextPartFocusTimer", 0.0, false, function():void {
+        public function keepRGBInfoTextPartFocus():void
+        {
+            addTimerByName("keepRGBInfoTextPartFocusTimer", 0.0, false, function():void
+                {
                     stage.focus = colorPickerBox.rgbInfoText;
                     selectRGBInfoTextByIndex(lastRGBInfoColorPartIndex);
                 });
@@ -1756,23 +1969,28 @@
         }
 
         // index 값에 해당하는 RGB 텍스트 영역을 선택함
-        public function selectRGBInfoTextByIndex(index:int):void {
-            if (index < 0 || index > 2) {
+        public function selectRGBInfoTextByIndex(index:int):void
+        {
+            if (index < 0 || index > 2)
+            {
                 return;
             }
 
             var start:int;
             var end:int;
 
-            if (index === 0) {
+            if (index === 0)
+            {
                 start = 4;
                 end = colorPickerBox.getRGBInfoText().indexOf(",");
             }
-            else if (index === 1) {
+            else if (index === 1)
+            {
                 start = colorPickerBox.getRGBInfoText().indexOf(",") + 1;
                 end = colorPickerBox.getRGBInfoText().lastIndexOf(",");
             }
-            else if (index === 2) {
+            else if (index === 2)
+            {
                 start = colorPickerBox.getRGBInfoText().lastIndexOf(",") + 1;
                 end = colorPickerBox.getRGBInfoText().length;
             }
@@ -1781,31 +1999,38 @@
             lastRGBInfoColorPartIndex = index;
         }
 
-        public function getColorValueFromRGBInfoText():Array {
+        public function getColorValueFromRGBInfoText():Array
+        {
             var rgbText:String = colorPickerBox.getRGBInfoText().slice(4); // "RGB"와 공백 제거
             var rgb:Array = rgbText.split(","); // 쉼표로 숫자를 나눔
 
             return rgb;
         }
 
-        public function adjustSingleValueHSV(inc:int):void {
+        public function adjustSingleValueHSV(inc:int):void
+        {
             const index:int = lastRGBInfoColorPartIndex;
             const hsv:Array = getColorValueFromRGBInfoText();
             var num:int = int(hsv[lastRGBInfoColorPartIndex]);
 
             num += inc;
 
-            if (num < 0) {
+            if (num < 0)
+            {
                 num = 0;
             }
 
-            if (index === 0) {
-                if (num > 360) {
+            if (index === 0)
+            {
+                if (num > 360)
+                {
                     num = 360;
                 }
             }
-            else {
-                if (num > 100) {
+            else
+            {
+                if (num > 100)
+                {
                     num = 100;
                 }
             }
@@ -1821,16 +2046,19 @@
             keepRGBInfoTextPartFocus();
         }
 
-        public function adjustSingleValueRGB(inc:int):void {
+        public function adjustSingleValueRGB(inc:int):void
+        {
             const index:int = lastRGBInfoColorPartIndex;
             const rgb:Array = getColorValueFromRGBInfoText();
             var num:int = int(rgb[index]);
 
             num += inc;
-            if (num < 0) {
+            if (num < 0)
+            {
                 num = 0;
             }
-            else if (num > 255) {
+            else if (num > 255)
+            {
                 num = 255;
             }
 
@@ -1839,12 +2067,15 @@
             keepRGBInfoTextPartFocus();
         }
 
-        public function getRgbInfoTextClickedPosIndex():int {
+        public function getRgbInfoTextClickedPosIndex():int
+        {
             return colorPickerBox.rgbInfoText.getCharIndexAtPoint(colorPickerBox.rgbInfoText.mouseX, 10);
         }
 
-        public function openNumPad():void {
-            if (numPadBox.visible === false) {
+        public function openNumPad():void
+        {
+            if (numPadBox.visible === false)
+            {
                 numPadBox.readyLCHAdjustment(Global.HSVtoHEX(hsvColorData[0], 1.0, 1.0), colorPickerBox.getRGBInfoBGColor());
                 const gp:Point = colorPickerBox.rgbInfoBG.localToGlobal(new Point(0, 0));
                 numPadBox.x = Math.floor(gp.x);
@@ -1856,25 +2087,32 @@
             }
         }
 
-        public function closeNumpad():void {
-            if (colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor()) {
+        public function closeNumpad():void
+        {
+            if (colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor())
+            {
                 applyAdjustedColor();
             }
             numPadBox.off();
             stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad);
 
-            addTimerByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function():void {
+            addTimerByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function():void
+                {
                     addInputEventsDrawMode();
                 });
         }
 
-        public function checkNumPadMouseUp(oldTargetName:String):void {
-            function onMouseUpNumpad(e:MouseEvent):void {
+        public function checkNumPadMouseUp(oldTargetName:String):void
+        {
+            function onMouseUpNumpad(e:MouseEvent):void
+            {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad);
 
-                if (oldTargetName === e.target.name) {
-                    switch (e.target.name) {
+                if (oldTargetName === e.target.name)
+                {
+                    switch (e.target.name)
+                    {
                         case "num0":
                         case "num1":
                         case "num2":
@@ -1893,7 +2131,8 @@
                         case "numClip":
                             {
                                 const color:* = numPadBox.getClipboardColor();
-                                if (color as uint) {
+                                if (color as uint)
+                                {
                                     numPadBox.updateOkBaseColor(color);
                                     updateColorPickerCursorPosAndRGBInfo(color);
                                 }
@@ -1906,98 +2145,124 @@
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad);
         }
 
-        public function onRightMouseDownNumPad(e:MouseEvent):void {
+        public function onRightMouseDownNumPad(e:MouseEvent):void
+        {
             closeNumpad();
         }
 
-        public function onMouseDownNumPad(e:MouseEvent):void {
-            if (!e.target) {
+        public function onMouseDownNumPad(e:MouseEvent):void
+        {
+            if (!e.target)
+            {
                 return;
             }
 
             const targetName:String = e.target.name;
-            if (!numPadBox.hitTestPoint(stage.mouseX, stage.mouseY) && !colorPickerBox.rgbInfoText.hitTestPoint(stage.mouseX, stage.mouseY)) {
-                if (numPadBox.visible) {
+            if (!numPadBox.hitTestPoint(stage.mouseX, stage.mouseY) && !colorPickerBox.rgbInfoText.hitTestPoint(stage.mouseX, stage.mouseY))
+            {
+                if (numPadBox.visible)
+                {
                     closeNumpad();
                 }
                 return;
             }
 
-            if (targetName === "numInc") {
+            if (targetName === "numInc")
+            {
                 startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
             }
-            else if (targetName === "numDec") {
+            else if (targetName === "numDec")
+            {
                 startKeyRepeat(true, rgbInfoNumPadIncKey, -1);
             }
-            else if (targetName === "okLWrapper") {
+            else if (targetName === "okLWrapper")
+            {
                 startAdjustOKLCH(0);
             }
-            else if (targetName === "okCWrapper") {
+            else if (targetName === "okCWrapper")
+            {
                 startAdjustOKLCH(1);
             }
-            else if (targetName === "okHWrapper") {
+            else if (targetName === "okHWrapper")
+            {
                 startAdjustOKLCH(2);
             }
-            else {
+            else
+            {
                 checkNumPadMouseUp(targetName);
             }
         }
 
-        public function startAdjustOKLCH(index:int):void {
-            numPadBox.startAdjustLCH(index, function(pickedColor:uint):void {
+        public function startAdjustOKLCH(index:int):void
+        {
+            numPadBox.startAdjustLCH(index, function(pickedColor:uint):void
+                {
                     updateColorPickerCursorPosAndRGBInfo(pickedColor);
-                    if (colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor()) {
+                    if (colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor())
+                    {
                         applyAdjustedColor();
                     }
                 });
         }
 
         // hsv rgb로 왔다갔다함
-        public function toggleRGBInfoTextColorType():void {
+        public function toggleRGBInfoTextColorType():void
+        {
             const cursorPosSave:int = getRGBInfoTextCursorPos();
 
-            if (isHSVInfoTextMode) {
+            if (isHSVInfoTextMode)
+            {
                 isHSVInfoTextMode = false;
                 colorPickerBox.updateRGBInfoText("RGB", Global.HEXtoRGB(colorPickerBox.getRGBInfoBGColor()));
             }
-            else {
+            else
+            {
                 isHSVInfoTextMode = true;
                 colorPickerBox.updateRGBInfoText("HSV", Global.HEXtoHSV(colorPickerBox.getRGBInfoBGColor(), hsvColorData[0]));
             }
         }
 
-        public function applyAdjustedColor():void {
+        public function applyAdjustedColor():void
+        {
             const color:uint = colorPickerBox.getRGBInfoBGColor();
 
-            if (isPenColorMode()) {
+            if (isPenColorMode())
+            {
                 penColor = color;
                 updateOpacityCursorPos(penAlphaIndex);
             }
-            else if (isBackgroundColorMode()) {
+            else if (isBackgroundColorMode())
+            {
                 updateCanvasBGColorDrawMode(color);
-                if (isCanvasWindowON) {
+                if (isCanvasWindowON)
+                {
                     updateCanvasWindowBGColor(CANVAS_BG_COLOR, canvasWindowLayer1Bitmap.bitmapData);
                 }
                 addUndoBGColorData(color);
             }
         }
 
-        public function onMouseDownRGBInfoText(e:MouseEvent):void {
+        public function onMouseDownRGBInfoText(e:MouseEvent):void
+        {
             var clickedPos:int = getRgbInfoTextClickedPosIndex();
 
             numpadInputBuffer = "";
             isTransparentPenColor = false;
 
-            if (colorPickerBox.getRGBInfoText() === "") {
+            if (colorPickerBox.getRGBInfoText() === "")
+            {
                 colorPickerBox.restoreRGBInfoText();
             }
 
-            if (clickedPos >= 0 && clickedPos <= 3) {
+            if (clickedPos >= 0 && clickedPos <= 3)
+            {
                 toggleRGBInfoTextColorType();
             }
-            else {
+            else
+            {
                 selectRGBInfoTextColorPart(clickedPos);
-                if (!numPadBox.visible) {
+                if (!numPadBox.visible)
+                {
                     colorPickerBox.restoreRGBInfoBackground();
                     selectPenToolIfNotDrawingTool(false);
                     openNumPad();
@@ -2005,11 +2270,13 @@
             }
         }
 
-        public function selectRGBInfoTextColorPart(clickedIndex:int):void {
+        public function selectRGBInfoTextColorPart(clickedIndex:int):void
+        {
             stage.focus = colorPickerBox.rgbInfoText;
             var clickedRGBPart:int = getRGBInfoTextCursorPos(clickedIndex);
 
-            if (clickedIndex < 0) {
+            if (clickedIndex < 0)
+            {
                 // 음수이면 가장 오른쪽 부분 클릭
                 clickedRGBPart = 2;
             }
@@ -2017,21 +2284,25 @@
             selectRGBInfoTextByIndex(clickedRGBPart);
         }
 
-        public function updateLastFilePathByRandomFileName():void {
+        public function updateLastFilePathByRandomFileName():void
+        {
             const newFileName:String = getRandomFileName();
             lastSaveFileName = newFileName;
             lastSaveFilePath = getDirectoryOnly(lastSaveFilePath) + File.separator + newFileName;
         }
 
-        public function getReplayFileNameFromPath(path:String):String {
+        public function getReplayFileNameFromPath(path:String):String
+        {
             return path.substr(0, path.lastIndexOf(".png")) + ".2020";
         }
 
-        public function getRandomFileName():String {
+        public function getRandomFileName():String
+        {
             return getTimeStampTailHead() + "_" + getRandomString(8) + ".png";
         }
 
-        public function updateStageOffset():void {
+        public function updateStageOffset():void
+        {
             const scale:Number = Global.getUIScale();
 
             STAGE_TOP_OFFSET = 0;
@@ -2039,48 +2310,59 @@
             STAGE_RIGHT_OFFSET = 0;
             STAGE_LEFT_OFFSET = 0;
 
-            if (topBar.visible) {
+            if (topBar.visible)
+            {
                 STAGE_TOP_OFFSET += topBar.BARSIZE * scale;
             }
 
-            if (seekBarBox.visible) {
+            if (seekBarBox.visible)
+            {
                 STAGE_TOP_OFFSET += seekBarBox.BARSIZE * scale;
             }
 
-            if (isCaptureModeON || isReplayModeON) {
+            if (isCaptureModeON || isReplayModeON)
+            {
                 return;
             }
 
-            if (sideBar.visible) {
-                if (isRightSidebar) {
+            if (sideBar.visible)
+            {
+                if (isRightSidebar)
+                {
                     STAGE_RIGHT_OFFSET = Math.round(sideBar.getWidth() + SCROLL_BAR_WIDTH);
                 }
-                else {
+                else
+                {
                     STAGE_LEFT_OFFSET = Math.round(sideBar.getWidth()) + SCROLL_BAR_WIDTH;
                 }
             }
         }
 
         // 드로우 모드와 리플레이 모드 캔버스 미러가 다를경우 undo 적용 이후에 mirror커맨드 넣어주도록 함
-        public function checkMirrorCanvasReplayMirror():void {
-            if (isCanvasMirrored !== rMirrorON) {
+        public function checkMirrorCanvasReplayMirror():void
+        {
+            if (isCanvasMirrored !== rMirrorON)
+            {
                 mirrorCommandReady = true;
                 mirrorDraw();
                 updateGridMirror(isCanvasMirrored);
                 mirrorRCursorPos();
             }
-            else if (mirrorCommandReady) {
+            else if (mirrorCommandReady)
+            {
                 mirrorCommandReady = false;
             }
         }
 
-        public function hideLassoMenuBoxTemp():void {
+        public function hideLassoMenuBoxTemp():void
+        {
             lassoMenuBox.visible = true;
             isLassoMenuHiddenTemp = false;
             resetLastKey();
         }
 
-        public function mirrorRCursorPos():void {
+        public function mirrorRCursorPos():void
+        {
             const p:Point = drawReplayByCommand.getRCursorPos();
             const half:Number = CANVAS_WIDTH / 2;
             const curcorX:Number = rReplayFOFOCursor.x + (half - p.x) * 2;
@@ -2089,24 +2371,29 @@
             drawReplayByCommand.setRCursorPos(curcorX, p.y);
         }
 
-        public function startAlphaFadeOut(target:DisplayObject, startAlpha:Number = 1.0, waitDuration:Number = 0.0):void {
+        public function startAlphaFadeOut(target:DisplayObject, startAlpha:Number = 1.0, waitDuration:Number = 0.0):void
+        {
             target.alpha = startAlpha;
             target.visible = true;
 
             const startTime:int = getTimer() + waitDuration * 1000;
 
-            addTimerByName("alphaFadeOutTimer_" + target.name, 0.0, true, function():Boolean {
-                    if (getTimer() < startTime) {
+            addTimerByName("alphaFadeOutTimer_" + target.name, 0.0, true, function():Boolean
+                {
+                    if (getTimer() < startTime)
+                    {
                         return true;
                     }
 
-                    if (target.visible === false) {
+                    if (target.visible === false)
+                    {
                         return false;
                     }
 
                     target.alpha -= 0.1;
 
-                    if (target.alpha < 0.0) {
+                    if (target.alpha < 0.0)
+                    {
                         target.visible = false;
                         target.alpha = 1.0;
 
@@ -2117,24 +2404,30 @@
                 });
         }
 
-        public function showRCursorOnUndo(undoIndex:int):void {
-            if (undoIndex < 0) {
-                if (drawReplayByCommand.hasRCursorFirstPos()) {
+        public function showRCursorOnUndo(undoIndex:int):void
+        {
+            if (undoIndex < 0)
+            {
+                if (drawReplayByCommand.hasRCursorFirstPos())
+                {
                     const p:Point = drawReplayByCommand.getFirstRCursorPos();
                     drawReplayByCommand.setRCursorPos(p.x, p.y); // 커서 위치도 업에이트 해줘야함 대칭해줄띠 getRcursor로 하기 때문에
                     drawReplayByCommand.updateRCursorPosToFirst();
                 }
-                else {
+                else
+                {
                     rReplayFOFOCursor.visible = false;
                     hideMouseHint();
                 }
             }
-            else {
+            else
+            {
                 drawReplayByCommand.updateRCursorPos();
             }
         }
 
-        public function checkCollisionFOFOAndSideBarScrollSet():int {
+        public function checkCollisionFOFOAndSideBarScrollSet():int
+        {
             const sideBarWidth:Number = sideBar.getWidth();
             const scale:Number = Global.getUIScale();
             const fofoHeight:Number = fofo.height - 10 * scale;
@@ -2148,19 +2441,24 @@
             return (collisionTop && collisionBottom) ? 0 : (collisionBottom) ? 1 : (collisionTop) ? 2 : 3;
         }
 
-        public function alignFOFOToSidebar():void {
-            if (isRightSidebar) {
+        public function alignFOFOToSidebar():void
+        {
+            if (isRightSidebar)
+            {
                 fofo.setMirror(false);
                 fofo.x = sideBar.x + sideBar.getWidth() - fofo.width;
             }
-            else {
+            else
+            {
                 fofo.setMirror(true);
                 fofo.x = sideBar.x;
             }
         }
 
-        public function checkFOFOPosition():void {
-            if (!sideBar.visible) {
+        public function checkFOFOPosition():void
+        {
+            if (!sideBar.visible)
+            {
                 fofo.visible = false;
                 return;
             }
@@ -2168,7 +2466,8 @@
             const checkYPos:int = checkCollisionFOFOAndSideBarScrollSet();
             fofo.visible = sideBar.visible;
 
-            switch (checkYPos) {
+            switch (checkYPos)
+            {
                 case 3:
                     // 충돌 없음 그대로 둠
                     return;
@@ -2194,10 +2493,12 @@
             }
         }
 
-        public function updateCanvasWindowBGColor(color:uint, bmpd:BitmapData):void {
+        public function updateCanvasWindowBGColor(color:uint, bmpd:BitmapData):void
+        {
             if (canvasWindowCanvasPanelBgSize.x === bmpd.width
                     && canvasWindowCanvasPanelBgSize.y === bmpd.height
-                    && canvasWindowCanvasPanelBgColor === color) {
+                    && canvasWindowCanvasPanelBgColor === color)
+            {
                 return;
             }
 
@@ -2209,11 +2510,13 @@
             canvasWindowCanvasPanelBgColor = color;
         }
 
-        public function setCanvasWindowVisible(flag:Boolean):void {
+        public function setCanvasWindowVisible(flag:Boolean):void
+        {
             canvasWindow.visible = flag;
         }
 
-        public function updateCanvasWindowBitmapSize():void {
+        public function updateCanvasWindowBitmapSize():void
+        {
             const bounds:Rectangle = canvasNavigatorBox.setFitBitmapforBox(canvasLayer1BitmapData.width,
                     canvasLayer1BitmapData.height,
                     canvasWindow.stage.stageWidth,
@@ -2225,49 +2528,60 @@
             canvasWindowCanvasPanel.height = bounds.height;
         }
 
-        public function updateCanvasWindowData():void {
+        public function updateCanvasWindowData():void
+        {
             addTimerByName("canvasWindowUpdateDelayTimer", 0.2, false,
-                    function():void {
+                    function():void
+                    {
                         canvasWindowInfo[0] = canvasWindow.x;
                         canvasWindowInfo[1] = canvasWindow.y;
                         canvasWindowInfo[2] = canvasWindow.width;
                         canvasWindowInfo[3] = canvasWindow.height;
 
                         if (canvasWindowCanvasPanel.width !== canvasWindow.stage.stageWidth
-                                || canvasWindowCanvasPanel.height !== canvasWindow.stage.stageHeight) {
+                                || canvasWindowCanvasPanel.height !== canvasWindow.stage.stageHeight)
+                        {
                             updateCanvasWindowBitmapSize();
                             return;
                         }
                     });
         }
 
-        public function onMoveCanvasWindow(e:Event):void {
+        public function onMoveCanvasWindow(e:Event):void
+        {
             updateCanvasWindowData();
         }
 
-        public function onResizeCanvasWindow(e:Event):void {
-            if (!canvasWindowIgnoreResizeEventFlag) {
+        public function onResizeCanvasWindow(e:Event):void
+        {
+            if (!canvasWindowIgnoreResizeEventFlag)
+            {
                 updateCanvasWindowData();
             }
-            else {
+            else
+            {
                 canvasWindowIgnoreResizeEventFlag = false;
             }
         }
 
-        public function updateCanvasWindowImage():void {
+        public function updateCanvasWindowImage():void
+        {
             canvasWindowLayer1Bitmap.bitmapData = canvasNavigatorBox.navLayer1Bitmap.bitmapData;
             canvasWindowLayer2Bitmap.bitmapData = canvasNavigatorBox.navLayer2Bitmap.bitmapData;
             canvasWindowLayer1Bitmap.smoothing = true;
             canvasWindowLayer2Bitmap.smoothing = true;
         }
 
-        public function copyMainWindowTitleToCanvasWindow():void {
+        public function copyMainWindowTitleToCanvasWindow():void
+        {
             canvasWindow.title = stage.nativeWindow.title;
         }
 
-        public function fitCanvasWindowSizeToImage():void {
+        public function fitCanvasWindowSizeToImage():void
+        {
             if (canvasWindowCanvasPanel.width === canvasWindow.stage.stageWidth
-                    && canvasWindowCanvasPanel.height === canvasWindow.stage.stageHeight) {
+                    && canvasWindowCanvasPanel.height === canvasWindow.stage.stageHeight)
+            {
                 return;
             }
 
@@ -2284,41 +2598,50 @@
             canvasWindowCanvasPanel.y = 0;
         }
 
-        public function onMouseDownCanvasWindow(e:MouseEvent):void {
+        public function onMouseDownCanvasWindow(e:MouseEvent):void
+        {
             canvasWindow.startMove();
         }
 
-        public function onRightMouseUpCanvasWindow(e:MouseEvent):void {
+        public function onRightMouseUpCanvasWindow(e:MouseEvent):void
+        {
             if (canvasWindowCanvasPanel.width === canvasWindow.width
-                    && canvasWindowCanvasPanel.height === canvasWindow.height) {
+                    && canvasWindowCanvasPanel.height === canvasWindow.height)
+            {
                 return;
             }
 
             fitCanvasWindowSizeToImage();
         }
 
-        public function closeCanvasWindow():void {
+        public function closeCanvasWindow():void
+        {
             canvasWindow.visible = false;
             isCanvasWindowON = false;
-            if (!isReplayModeON && !isCaptureModeON) {
+            if (!isReplayModeON && !isCaptureModeON)
+            {
                 topBar.newWindowButton.visible = true;
                 topBar.newWindowCloseButton.visible = false;
             }
             stage.nativeWindow.activate();
         }
 
-        public function onKeyDownCanvasWindow(e:KeyboardEvent):void {
-            if (e.keyCode === KEY.esc) {
+        public function onKeyDownCanvasWindow(e:KeyboardEvent):void
+        {
+            if (e.keyCode === KEY.esc)
+            {
                 closeCanvasWindow();
             }
         }
 
-        public function onClosingCanvasWindow(e:Event):void {
+        public function onClosingCanvasWindow(e:Event):void
+        {
             e.preventDefault();
             closeCanvasWindow();
         }
 
-        public function initializeCanvasWindow():void {
+        public function initializeCanvasWindow():void
+        {
             var windowOptions:NativeWindowInitOptions = new NativeWindowInitOptions();
             windowOptions.systemChrome = NativeWindowSystemChrome.STANDARD;
             windowOptions.type = NativeWindowType.NORMAL;
@@ -2348,13 +2671,16 @@
             canvasWindowCanvasPanel.addChild(canvasWindowLayer1Bitmap);
         }
 
-        public function onActivateCanvasWindow(e:Event):void {
+        public function onActivateCanvasWindow(e:Event):void
+        {
             isCanvasWindowON = true;
-            if (!isReplayModeON && !isCaptureModeON) {
+            if (!isReplayModeON && !isCaptureModeON)
+            {
                 topBar.newWindowButton.visible = false;
                 topBar.newWindowCloseButton.visible = true;
             }
-            if (canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null) {
+            if (canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null)
+            {
                 canvasWindow.stage.addChild(canvasWindowCanvasPanel);
                 canvasWindow.stage.color = Global.getUIStageColor();
             }
@@ -2364,10 +2690,13 @@
             updateCanvasWindowData();
         }
 
-        public function openImageViewWindow():void {
-            if (canvasWindow === null) {
+        public function openImageViewWindow():void
+        {
+            if (canvasWindow === null)
+            {
                 initializeCanvasWindow();
-                if (canvasWindowInfo[0] === null) {
+                if (canvasWindowInfo[0] === null)
+                {
                     canvasWindowInfo[0] = stage.nativeWindow.x + topBar.newWindowButton.x - canvasWindowInfo[2] / 2;
                     canvasWindowInfo[1] = stage.nativeWindow.y;
                 }
@@ -2377,37 +2706,47 @@
             canvasWindow.activate();
         }
 
-        public function isLayer2SelectedReplayMode():Boolean {
+        public function isLayer2SelectedReplayMode():Boolean
+        {
             return rCanvasPanel.getChildIndex(rCanvasDrawLayer) < rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap);
         }
 
-        public function enableNewFileButton():void {
-            if (!isSaveInProgress && topBar.newFileButton.alpha < 1.0) {
+        public function enableNewFileButton():void
+        {
+            if (!isSaveInProgress && topBar.newFileButton.alpha < 1.0)
+            {
                 topBar.newFileButton.alpha = 1.0;
             }
-            if (toolOptionsBox.layerMergeButton.alpha < 1.0) {
+            if (toolOptionsBox.layerMergeButton.alpha < 1.0)
+            {
                 toolOptionsBox.layerMergeButton.alpha = 1.0;
             }
 
             markWindowTitleAsDirty();
         }
 
-        public function isAllLayerInvisible():Boolean {
-            if (!canvasLayer1Bitmap.visible && !canvasLayer2Bitmap.visible) {
+        public function isAllLayerInvisible():Boolean
+        {
+            if (!canvasLayer1Bitmap.visible && !canvasLayer2Bitmap.visible)
+            {
                 showMouseHintTemp("All layer locked");
                 return true;
             }
             return false;
         }
 
-        public function mergeLassoImageToRefLayer():void {
-            if (isLassoImageCopied) {
+        public function mergeLassoImageToRefLayer():void
+        {
+            if (isLassoImageCopied)
+            {
                 applyLassoBoxImageToCanvas(true);
                 disposeLassoBoxBitmapData();
                 resetLassoBox();
             }
-            else {
-                if (isDeepUndoEnabled) {
+            else
+            {
+                if (isDeepUndoEnabled)
+                {
                     applyDeepUndo();
                 }
                 const lassoInfo:Array = applyLassoBoxImageToCanvas(true);
@@ -2417,11 +2756,13 @@
                 var l1:Boolean = true;
                 var l2:Boolean = true;
 
-                if (checkedLayer === 1 || (canvasLayer1Bitmap.visible && !canvasLayer2Bitmap.visible)) {
+                if (checkedLayer === 1 || (canvasLayer1Bitmap.visible && !canvasLayer2Bitmap.visible))
+                {
                     l1 = true;
                     l2 = false;
                 }
-                else if (checkedLayer === 2 || (!canvasLayer1Bitmap.visible && canvasLayer2Bitmap.visible)) {
+                else if (checkedLayer === 2 || (!canvasLayer1Bitmap.visible && canvasLayer2Bitmap.visible))
+                {
                     l1 = false;
                     l2 = true;
                 }
@@ -2433,7 +2774,8 @@
                 resetLassoBox();
             }
 
-            if (canvasRefLayer.visible === false || refLayerLastAlpha === 0.0) {
+            if (canvasRefLayer.visible === false || refLayerLastAlpha === 0.0)
+            {
                 updateRefLayerOpacityCursorPosByValue(0.5);
                 refLayerLastAlpha = 0.5;
                 canvasRefLayer.visible = true;
@@ -2442,7 +2784,8 @@
             canvasRefLayerBitmap.smoothing = true;
         }
 
-        public function mergeImageToRefLayer(layer1:IBitmapDrawable, layer2:IBitmapDrawable):void {
+        public function mergeImageToRefLayer(layer1:IBitmapDrawable, layer2:IBitmapDrawable):void
+        {
             var tmpbmpd:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
             const mat:Matrix = new Matrix();
 
@@ -2452,10 +2795,12 @@
 
             tmpbmpd.draw(canvasRefLayer, mat);
 
-            if (layer2 !== null) {
+            if (layer2 !== null)
+            {
                 tmpbmpd.draw(layer2);
             }
-            if (layer1 !== null) {
+            if (layer1 !== null)
+            {
                 tmpbmpd.draw(layer1);
             }
 
@@ -2465,8 +2810,10 @@
             tmpbmpd = null;
         }
 
-        public function toggleLayer1Check():void {
-            if (toolOptionsBox.layer1CheckedButton.visible === false) {
+        public function toggleLayer1Check():void
+        {
+            if (toolOptionsBox.layer1CheckedButton.visible === false)
+            {
                 checkedLayer = 1;
                 toolOptionsBox.layer1CheckedButton.visible = true;
                 toolOptionsBox.layer1UncheckedButton.visible = false;
@@ -2475,7 +2822,8 @@
                 toolBox.setToolButtonsForCheckedLayerON();
                 toolBox2.setToolButtonsForCheckedLayerON();
             }
-            else {
+            else
+            {
                 checkedLayer = 0;
                 toolOptionsBox.layer1CheckedButton.visible = false;
                 toolOptionsBox.layer1UncheckedButton.visible = true;
@@ -2484,8 +2832,10 @@
             }
         }
 
-        public function toggleLayer2Check():void {
-            if (toolOptionsBox.layer2CheckedButton.visible === false) {
+        public function toggleLayer2Check():void
+        {
+            if (toolOptionsBox.layer2CheckedButton.visible === false)
+            {
                 checkedLayer = 2;
                 toolOptionsBox.layer2CheckedButton.visible = true;
                 toolOptionsBox.layer2UncheckedButton.visible = false;
@@ -2494,7 +2844,8 @@
                 toolBox.setToolButtonsForCheckedLayerON();
                 toolBox2.setToolButtonsForCheckedLayerON();
             }
-            else {
+            else
+            {
                 checkedLayer = 0;
                 toolOptionsBox.layer2CheckedButton.visible = false;
                 toolOptionsBox.layer2UncheckedButton.visible = true;
@@ -2503,7 +2854,8 @@
             }
         }
 
-        public function toggleLayerCaptureMode(layer:int):void {
+        public function toggleLayerCaptureMode(layer:int):void
+        {
             topBar.capClipBoard.alpha = 1.0;
 
             const replayMode:Boolean = isReplayModeON;
@@ -2520,28 +2872,35 @@
                 ? topBar.capLayer2VisibleButton
                 : topBar.capLayer1VisibleButton;
 
-            if (bitmap.visible) {
+            if (bitmap.visible)
+            {
                 bitmap.visible = false;
                 button.alpha = Global.OFFALPHA;
 
-                if (replayMode) {
+                if (replayMode)
+                {
                     if ((layer == 1 && !isLayer2SelectedReplayMode())
-                            || (layer == 2 && isLayer2SelectedReplayMode())) {
+                            || (layer == 2 && isLayer2SelectedReplayMode()))
+                    {
                         rCanvasDrawLayer.visible = false;
                     }
                 }
 
-                if (otherButton.alpha < 1.0) {
+                if (otherButton.alpha < 1.0)
+                {
                     toggleLayerCaptureMode((layer == 1) ? 2 : 1);
                 }
             }
-            else {
+            else
+            {
                 bitmap.visible = true;
                 button.alpha = 1.0;
 
-                if (replayMode) {
+                if (replayMode)
+                {
                     if ((layer == 1 && !isLayer2SelectedReplayMode())
-                            || (layer == 2 && isLayer2SelectedReplayMode())) {
+                            || (layer == 2 && isLayer2SelectedReplayMode()))
+                    {
                         rCanvasDrawLayer.visible = true;
                     }
                 }
@@ -2550,14 +2909,18 @@
             captureAreaManager.updateDrawArea();
         }
 
-        public function addUndoBGColorData(color:uint):void {
-            if (hasLastRDataCommand("bgColor")) {
+        public function addUndoBGColorData(color:uint):void
+        {
+            if (hasLastRDataCommand("bgColor"))
+            {
                 rDataBuffer.push(["bgColor", color]);
                 updateLastRDataCommand("bgColor");
                 undoManager.addContinue();
             }
-            else {
-                if (isDeepUndoEnabled) {
+            else
+            {
+                if (isDeepUndoEnabled)
+                {
                     applyDeepUndo();
                 }
                 rDataBuffer.push(["bgColor", color]);
@@ -2565,18 +2928,23 @@
             }
         }
 
-        public function updateLastRDataCommand(command:String):void {
+        public function updateLastRDataCommand(command:String):void
+        {
             if (rData.length === 0)
                 return;
 
             const arr:Array = rData[rData.length - 1];
-            if (arr.length === 1) {
+            if (arr.length === 1)
+            {
                 rData[rData.length - 1] = rDataBuffer.concat();
                 rDataBuffer = [];
             }
-            else {
-                for (var i:uint = 0; i < arr.length; i++) {
-                    if (command === arr[i][0]) {
+            else
+            {
+                for (var i:uint = 0; i < arr.length; i++)
+                {
+                    if (command === arr[i][0])
+                    {
                         // rdata버퍼가 배열이기 때문에 concat을 하면 배열안에 배열이 있어서 0번만 반환해줌
                         // buffer.concat -> [["data",11]] //이런식으로 반환이됨
                         arr[i] = rDataBuffer[0].concat();
@@ -2588,21 +2956,27 @@
             rDataFrame[rDataFrame.length - 1] = rData[rData.length - 1].length;
         }
 
-        public function deleteLastRDataCommand(command:String):void {
-            if (rData.length === 0) {
+        public function deleteLastRDataCommand(command:String):void
+        {
+            if (rData.length === 0)
+            {
                 return;
             }
 
             const index:int = undoDataIndex;
 
-            if (rData[index].length === 1) {
+            if (rData[index].length === 1)
+            {
                 rData.splice(index);
                 rDataFrame.splice(index);
             }
-            else {
+            else
+            {
                 const len:uint = rData[index].length;
-                for (var i:uint = 0; i < len; i++) {
-                    if (command === rData[index][i][0]) {
+                for (var i:uint = 0; i < len; i++)
+                {
+                    if (command === rData[index][i][0])
+                    {
                         rData[index].splice(i, 1);
                         --i;
                     }
@@ -2616,14 +2990,18 @@
             undoDataIndex = rData.length - 1;
         }
 
-        public function hasLastRDataCommand(command:String):Boolean {
+        public function hasLastRDataCommand(command:String):Boolean
+        {
             const index:int = undoDataIndex;
 
-            if (rData.length > 0 && index >= 0) {
+            if (rData.length > 0 && index >= 0)
+            {
                 const len:uint = rData[index].length;
 
-                for (var i:uint = 0; i < len; i++) {
-                    if (command === rData[index][i][0]) {
+                for (var i:uint = 0; i < len; i++)
+                {
+                    if (command === rData[index][i][0])
+                    {
                         return true;
                     }
                 }
@@ -2632,12 +3010,16 @@
             return false;
         }
 
-        public function mergeImageIntoLayer2():void {
-            if (hasLastRDataCommand("merge")) {
+        public function mergeImageIntoLayer2():void
+        {
+            if (hasLastRDataCommand("merge"))
+            {
                 deleteLastRDataCommand("merge");
             }
-            else {
-                if (isDeepUndoEnabled) {
+            else
+            {
+                if (isDeepUndoEnabled)
+                {
                     applyDeepUndo();
                 }
 
@@ -2649,12 +3031,15 @@
             toolOptionsBox.layerMergeButton.alpha = Global.OFFALPHA;
         }
 
-        public function swapLayer():void {
-            if (toolOptionsBox.layerSwapButton.alpha < 1.0) {
+        public function swapLayer():void
+        {
+            if (toolOptionsBox.layerSwapButton.alpha < 1.0)
+            {
                 return;
             }
 
-            if (isDeepUndoEnabled) {
+            if (isDeepUndoEnabled)
+            {
                 applyDeepUndo();
             }
 
@@ -2674,10 +3059,12 @@
             tempbmpd11.dispose();
             tempbmpd1 = null;
             tempbmpd11 = null;
-            if (hasLastRDataCommand("swap")) {
+            if (hasLastRDataCommand("swap"))
+            {
                 deleteLastRDataCommand("swap");
             }
-            else {
+            else
+            {
                 rDataBuffer.push(["swap"]);
                 undoManager.addNew();
             }
@@ -2685,17 +3072,20 @@
             playLayerSwapEffect(toolOptionsBox.layerSwapButton);
         }
 
-        public function getCaptrueImageBitmapdata(clipBoardCopyFlag:Boolean):BitmapData {
+        public function getCaptrueImageBitmapdata(clipBoardCopyFlag:Boolean):BitmapData
+        {
             const isReplayMode:Boolean = isReplayModeON;
             var rect:Rectangle = (!captureAreaManager.isFullImageCapture()) ? captureAreaManager.getCaptureArea() : null;
             var layer1:Boolean;
             var layer2:Boolean;
 
-            if (isReplayMode) {
+            if (isReplayMode)
+            {
                 layer1 = rCanvasLayer1Bitmap.visible;
                 layer2 = rCanvasLayer2Bitmap.visible;
             }
-            else {
+            else
+            {
                 layer1 = canvasLayer1Bitmap.visible;
                 layer2 = canvasLayer2Bitmap.visible;
             }
@@ -2706,24 +3096,30 @@
             var swapWH:Boolean = false;
             mat.rotate(deg * Math.PI / 180);
 
-            if (deg === 90) {
+            if (deg === 90)
+            {
                 mat.translate(bmpd.height, 0);
                 swapWH = true;
             }
-            else if (deg === -90 || deg == 270) {
+            else if (deg === -90 || deg == 270)
+            {
                 mat.translate(0, bmpd.width);
                 swapWH = true;
             }
-            else if (deg === 180) {
+            else if (deg === 180)
+            {
                 mat.translate(bmpd.width, bmpd.height);
             }
 
-            if (isCaptureCanvasFlipped) {
-                if (swapWH) {
+            if (isCaptureCanvasFlipped)
+            {
+                if (swapWH)
+                {
                     mat.scale(1, -1);
                     mat.translate(0, bmpd.width);
                 }
-                else {
+                else
+                {
                     mat.scale(-1, 1);
                     mat.translate(bmpd.width, 0);
                 }
@@ -2732,7 +3128,8 @@
                 : new BitmapData(bmpd.width, bmpd.height, true, 0);
 
             tmpbmpd.draw(bmpd, mat);
-            if (isCaptureStampEnabled && tmpbmpd.width >= 300) {
+            if (isCaptureStampEnabled && tmpbmpd.width >= 300)
+            {
                 captureStampManager.kungFinal(tmpbmpd);
             }
             bmpd.dispose();
@@ -2740,13 +3137,15 @@
             return tmpbmpd;
         }
 
-        public function copyCaptureImageToCilpBoard():void {
+        public function copyCaptureImageToCilpBoard():void
+        {
             Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT, getCaptrueImageBitmapdata(true), false);
             // showMouseHintTemp("The image copied to clipboard successfully");
             topBar.capClipBoard.alpha = Global.OFFALPHA;
         }
 
-        public function applyUIScale():void {
+        public function applyUIScale():void
+        {
             const scale:Number = Global.getUIScale();
             const stw:Number = stage.stageWidth;
             const sth:Number = stage.stageHeight;
@@ -2788,17 +3187,20 @@
             hideBottomHint();
         }
 
-        public function onMouseUpQuickSidebar(e:MouseEvent):void {
+        public function onMouseUpQuickSidebar(e:MouseEvent):void
+        {
             deactivateQuickSidebar();
         }
 
-        public function deactivateQuickSidebar():void {
+        public function deactivateQuickSidebar():void
+        {
             stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar);
             stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpQuickSidebar);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownQuickSidebar);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownQuickSidebar);
 
-            if (isSidebarVisible === false) {
+            if (isSidebarVisible === false)
+            {
                 sideBar.visible = false;
             }
 
@@ -2807,11 +3209,13 @@
             checkFOFOPosition();
             sideBar.resetBG();
 
-            if (toolBox.getLastTool() === "toolEyedropper") {
+            if (toolBox.getLastTool() === "toolEyedropper")
+            {
                 eyeDropperTool();
             }
 
-            if (isRefLayerMenuON) {
+            if (isRefLayerMenuON)
+            {
                 refLayerMenuBox.visible = true;
             }
 
@@ -2819,8 +3223,10 @@
             closeNumpad();
         }
 
-        public function startDeactivteQuickSidebar():void {
-            if (isMouseClicked && sideBar.hitTestPoint(stage.mouseX, stage.mouseY)) {
+        public function startDeactivteQuickSidebar():void
+        {
+            if (isMouseClicked && sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
+            {
                 stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar);
                 return;
             }
@@ -2828,16 +3234,20 @@
             deactivateQuickSidebar();
         }
 
-        public function onRightMouseDownQuickSidebar(e:MouseEvent):void {
-            if (!e.target || numPadBox.visible || isPopUpWindowOpened()) {
+        public function onRightMouseDownQuickSidebar(e:MouseEvent):void
+        {
+            if (!e.target || numPadBox.visible || isPopUpWindowOpened())
+            {
                 return;
             }
 
-            switch (e.target.name) {
+            switch (e.target.name)
+            {
                 case "toolZoomIn":
                 case "toolZoomOut":
                     {
-                        if (canvasZoomMultipler !== 1.0) {
+                        if (canvasZoomMultipler !== 1.0)
+                        {
                             resetZoomDrawMode();
                         }
                     }
@@ -2845,7 +3255,8 @@
 
                 case "toolRotate":
                     {
-                        if (canvasAnchorPoint.rotation !== 0.0) {
+                        if (canvasAnchorPoint.rotation !== 0.0)
+                        {
                             resetRotationDrawMode();
                         }
                     }
@@ -2871,44 +3282,55 @@
             startDeactivteQuickSidebar();
         }
 
-        public function onMouseDownQuickSidebar(e:MouseEvent):void {
+        public function onMouseDownQuickSidebar(e:MouseEvent):void
+        {
             if (e.target && e.target.name === "sideBarScrollBar")
                 return;
 
             if (stage.mouseX < sideBar.x || stage.mouseX > sideBar.x + sideBar.getWidth()
-                    || stage.mouseY < sideBar.y) {
+                    || stage.mouseY < sideBar.y)
+            {
                 startDeactivteQuickSidebar();
             }
         }
 
-        public function onKeyUpQuickSidebar(e:KeyboardEvent):void {
+        public function onKeyUpQuickSidebar(e:KeyboardEvent):void
+        {
             const keyCode:uint = e.keyCode;
             if (keyCode === KEY.s || keyCode === KEY.d
                     || keyCode === KEY.j || keyCode === KEY.k
-                    || keyCode === KEY.n6) {
+                    || keyCode === KEY.n6)
+            {
                 startDeactivteQuickSidebar();
             }
         }
 
-        public function setSidebarDefaultPos():void {
-            if (isRightSidebar) {
+        public function setSidebarDefaultPos():void
+        {
+            if (isRightSidebar)
+            {
                 sideBar.x = Math.round(stage.stageWidth - sideBar.getWidth());
             }
-            else {
+            else
+            {
                 sideBar.x = 0;
             }
         }
 
-        public function activeQuickSideBar(shortcut:Boolean):void {
+        public function activeQuickSideBar(shortcut:Boolean):void
+        {
             isQuickSidebarActive = true;
 
-            if (shortcut) {
-                if (!isFillPenStarted) {
+            if (shortcut)
+            {
+                if (!isFillPenStarted)
+                {
                     selectLastUsedTool();
                 }
                 stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpQuickSidebar);
             }
-            else {
+            else
+            {
                 stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownQuickSidebar, false, -2);
             }
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownQuickSidebar, false, -2);
@@ -2918,30 +3340,37 @@
             const scrollBarWidthRight:Number = (!isRightSidebar) ? sideBarScrollBar.width : 0;
             sideBar.x = mouseX - (sideBarWidth) / 2 + ((isRightSidebar) ? -18 : 22);
 
-            if (sideBar.x - scrollBarWidthLeft < 0) {
+            if (sideBar.x - scrollBarWidthLeft < 0)
+            {
                 sideBar.x = scrollBarWidthLeft;
             }
-            else if (sideBar.x + sideBarWidth + scrollBarWidthRight > stage.stageWidth) {
+            else if (sideBar.x + sideBarWidth + scrollBarWidthRight > stage.stageWidth)
+            {
                 sideBar.x = stage.stageWidth - (sideBarWidth + scrollBarWidthRight);
             }
 
-            if (sideBar.visible === true && isSidebarVisible === false) {
+            if (sideBar.visible === true && isSidebarVisible === false)
+            {
                 removeSidebarTempShowActivateEvents();
             }
 
-            if (isRefLayerMenuON) {
+            if (isRefLayerMenuON)
+            {
                 refLayerMenuBox.visible = false;
             }
 
-            if (mouseHint.isShowing()) {
+            if (mouseHint.isShowing())
+            {
                 hideMouseHint();
             }
 
-            if (isBottomBarVisible()) {
+            if (isBottomBarVisible())
+            {
                 hideBottomHint();
             }
 
-            if (selectedToolViewBitmap.visible) {
+            if (selectedToolViewBitmap.visible)
+            {
                 selectedToolViewBitmap.visible = false;
             }
 
@@ -2950,19 +3379,23 @@
             checkFOFOPosition();
         }
 
-        public function onFromWorker(e:Event):void {
+        public function onFromWorker(e:Event):void
+        {
             var msg:* = backToMain.receive();
             const command:String = msg as String;
 
-            if (command === "encodePNGCaptureDone") {
+            if (command === "encodePNGCaptureDone")
+            {
                 workerDataReceiveCount++;
                 receivedCaptureImageQueueFromWorker.push(backToMain.receive(true));
             }
-            else if (command === "encodePNGSaveDone") {
+            else if (command === "encodePNGSaveDone")
+            {
                 workerDataReceiveCount++;
                 receivedSaveImageDataFromWorker = backToMain.receive(true);
             }
-            else if (command === "compress_ReplayDataDone") {
+            else if (command === "compress_ReplayDataDone")
+            {
                 workerDataReceiveCount++;
                 writeReplayFile(backToMain.receive(true)
                         , backToMain.receive(true)
@@ -2972,74 +3405,91 @@
                         , backToMain.receive(true)
                     );
             }
-            else if (command === "compress_UndoDataDone") {
+            else if (command === "compress_UndoDataDone")
+            {
                 workerDataReceiveCount++;
                 receivedUndoImageQueueFromWorker.push([backToMain.receive(true), backToMain.receive(true)]);
             }
 
-            if (!hasTimer("workerStopTimer")) {
+            if (!hasTimer("workerStopTimer"))
+            {
                 addTimerByName("workerStopTimer", WORKER_WAIT_INTERVAL, true, stopWorkerIfIdle);
             }
         }
 
-        public function sendDataToWorker(func:Function):void {
-            if (workerState === WORKER_STATE_RUNNING) {
+        public function sendDataToWorker(func:Function):void
+        {
+            if (workerState === WORKER_STATE_RUNNING)
+            {
                 func();
             }
-            else {
+            else
+            {
                 workerFunctionsBeforeStart.push(func);
-                function waitWorkerReady(e:Event):void {
-                    if (worker === null) {
+                function waitWorkerReady(e:Event):void
+                {
+                    if (worker === null)
+                    {
                         stage.removeEventListener(Event.ENTER_FRAME, waitWorkerReady);
                         workerWaitCount = 0;
                         workerState = WORKER_STATE_STOPPED;
                         return;
                     }
 
-                    if (worker.state === "running") {
+                    if (worker.state === "running")
+                    {
                         workerWaitCount++;
-                        if (workerWaitCount > 10) {
+                        if (workerWaitCount > 10)
+                        {
                             workerWaitCount = 0;
                             workerState = WORKER_STATE_RUNNING;
                             stage.removeEventListener(Event.ENTER_FRAME, waitWorkerReady);
-                            while (workerFunctionsBeforeStart.length) {
+                            while (workerFunctionsBeforeStart.length)
+                            {
                                 workerFunctionsBeforeStart[0]();
                                 workerFunctionsBeforeStart[0] = null;
                                 workerFunctionsBeforeStart.shift();
                             }
                         }
                     }
-                    else {
+                    else
+                    {
                         workerWaitCount = 0;
                     }
                 }
                 stage.addEventListener(Event.ENTER_FRAME, waitWorkerReady);
 
-                if (workerState === WORKER_STATE_STOPPED) {
+                if (workerState === WORKER_STATE_STOPPED)
+                {
                     startWorker();
                 }
             }
         }
 
-        public function stopWorkerIfIdle(forceFlag:Boolean = false):Boolean {
+        public function stopWorkerIfIdle(forceFlag:Boolean = false):Boolean
+        {
             if ((workerDataSendCount === workerDataReceiveCount
                         && captureImageDataQueue === null
                         && receivedSaveImageDataFromWorker === null
                         && undoDataQueue === null)
-                    || (forceFlag === true)) {
+                    || (forceFlag === true))
+            {
                 workerState = WORKER_STATE_STOPPED;
                 workerDataSendCount = 0;
                 workerDataReceiveCount = 0;
 
-                if (worker) {
+                if (worker)
+                {
                     worker.terminate();
                     worker = null;
                 }
 
-                if (isLoadPendingAfterSaving) {
+                if (isLoadPendingAfterSaving)
+                {
                     loadFileTo("canvas");
                 }
-                else if (isUpdatePendingAfterSaving) {
+                else if (isUpdatePendingAfterSaving)
+                {
                     startUpdatingApp();
                 }
 
@@ -3049,8 +3499,10 @@
             return true;
         }
 
-        public function startWorker():void {
-            if (worker === null || worker.state === "new") {
+        public function startWorker():void
+        {
+            if (worker === null || worker.state === "new")
+            {
                 workerState = WORKER_STATE_INIT;
                 worker = WorkerDomain.current.createWorker(workerSWF, true);
                 mainToBack = Worker.current.createMessageChannel(worker);
@@ -3062,23 +3514,27 @@
             }
         }
 
-        public function initializeWorker():void {
+        public function initializeWorker():void
+        {
             var workerLoader:URLLoader = new URLLoader();
             workerLoader.dataFormat = URLLoaderDataFormat.BINARY;
             workerLoader.addEventListener(Event.COMPLETE, onCompleteWorker);
             workerLoader.load(new URLRequest("worker.swf"));
 
-            function onCompleteWorker(e:Event):void {
+            function onCompleteWorker(e:Event):void
+            {
                 workerSWF = e.target.data as ByteArray;
                 workerLoader = null;
             }
         }
 
-        public function updateCanvasPanelMask(w:Number, h:Number):void {
+        public function updateCanvasPanelMask(w:Number, h:Number):void
+        {
             canvasPanel.scrollRect = new Rectangle(0, 0, w, h);
         }
 
-        public function cDottedLine():Object {
+        public function cDottedLine():Object
+        {
             const lastDotPos:Point = new Point(0, 0);
             var lastLineLength:Number = 0;
             var dotLineLength:Number = 5;
@@ -3089,23 +3545,28 @@
             var dotLineColor:uint = 0;
             var graphics:Graphics;
 
-            function setLineScale(zoomed:Number):void {
+            function setLineScale(zoomed:Number):void
+            {
                 lineSize = 1 / zoomed;
                 dotLineLength = 5 / zoomed;
             }
 
-            function toggleLineColor(from:int):uint {
-                if (dotLineColor === 0) {
+            function toggleLineColor(from:int):uint
+            {
+                if (dotLineColor === 0)
+                {
                     dotLineColor = 0xFFFFFF;
                 }
-                else {
+                else
+                {
                     dotLineColor = 0;
                 }
 
                 return dotLineColor;
             }
 
-            function moveTo(g:Graphics, x:Number, y:Number):void {
+            function moveTo(g:Graphics, x:Number, y:Number):void
+            {
                 graphics = g;
 
                 dotLineColor = 0;
@@ -3118,7 +3579,8 @@
                 graphics.moveTo(x, y);
             }
 
-            function lineTo(x:Number, y:Number, closeLine:Boolean = false):void {
+            function lineTo(x:Number, y:Number, closeLine:Boolean = false):void
+            {
                 const nowPos:Point = new Point(x, y);
                 var dist:Number = Point.distance(lastDotPos, nowPos);
                 var interpPoint:Point = new Point(lastDotPos.x, lastDotPos.y);
@@ -3126,7 +3588,8 @@
 
                 subDotLength -= dist;
 
-                while (subDotLength < 0) {
+                while (subDotLength < 0)
+                {
                     ratio = (dist - subDotLength) / dist - 1.0;
                     interpPoint = Point.interpolate(interpPoint, nowPos, ratio);
 
@@ -3140,7 +3603,8 @@
                     subDotLength += dotLineLength;
                 }
 
-                if (closeLine) {
+                if (closeLine)
+                {
                     graphics.lineTo(startPos.x, startPos.y);
                 }
 
@@ -3155,7 +3619,8 @@
 
         }
 
-        public function setResizeButtonColor():void {
+        public function setResizeButtonColor():void
+        {
             const color:uint = Global.getUIResizeBarColor();
 
             Global.setColorTransform(resizeButtonL, color);
@@ -3164,48 +3629,60 @@
             Global.setColorTransform(resizeButtonD, color);
         }
 
-        public function cReplayHideCursor():Object {
+        public function cReplayHideCursor():Object
+        {
             var isMouseHided:Boolean = false;
             var count:int = 0;
             const pos:Point = new Point(0, 0);
             const frameRate:Number = stage.frameRate;
 
-            function isMouseMoved():Boolean {
+            function isMouseMoved():Boolean
+            {
                 return pos.x !== stage.mouseX || pos.y !== stage.mouseY || isMouseClicked || isRightMouseClicked;
             }
 
-            function updateMousePos():void {
+            function updateMousePos():void
+            {
                 pos.setTo(stage.mouseX, stage.mouseY);
             }
 
-            function show():void {
+            function show():void
+            {
                 Mouse.show();
                 isMouseHided = false;
                 count = 0;
             }
 
-            function check():void {
-                if (isMouseHided) {
-                    if (isMouseMoved()) {
+            function check():void
+            {
+                if (isMouseHided)
+                {
+                    if (isMouseMoved())
+                    {
                         count = 0;
                         show();
                     }
                 }
-                else {
-                    if (count > frameRate) {
+                else
+                {
+                    if (count > frameRate)
+                    {
                         count = frameRate;
-                        if (!isHighlightBoxVisible()) {
+                        if (!isHighlightBoxVisible())
+                        {
                             Mouse.hide();
                             hideBottomHint();
                             isMouseHided = true;
                             updateMousePos();
                         }
                     }
-                    else {
+                    else
+                    {
                         count++;
                     }
 
-                    if (isMouseMoved()) {
+                    if (isMouseMoved())
+                    {
                         count = 0;
                     }
 
@@ -3220,51 +3697,65 @@
 
         }
 
-        public function updateLastKey(key:int):void {
+        public function updateLastKey(key:int):void
+        {
             LAST_KEY = getLastKey();
         }
 
-        public function resetLastKey():void {
+        public function resetLastKey():void
+        {
             LAST_KEY = -1;
         }
 
-        public function isLastKey(key:uint):Boolean {
+        public function isLastKey(key:uint):Boolean
+        {
             return LAST_KEY === key;
         }
 
-        public function isSelectedToolPenOrLine():Boolean {
+        public function isSelectedToolPenOrLine():Boolean
+        {
             return nowTool === TOOL_PEN || nowTool === TOOL_LINE;
         }
 
-        public function isSelectedTool(tool:int):Boolean {
+        public function isSelectedTool(tool:int):Boolean
+        {
             return nowTool === tool;
         }
 
-        public function setSelectedTool(tool:int):void {
+        public function setSelectedTool(tool:int):void
+        {
             nowTool = tool;
         }
 
-        public function resetLastTool():void {
+        public function resetLastTool():void
+        {
             lastTool = TOOL_NONE;
         }
 
-        public function isLastTool(tool:int):Boolean {
+        public function isLastTool(tool:int):Boolean
+        {
             return lastTool === tool;
         }
 
-        public function setLastTool(tool:int):void {
+        public function setLastTool(tool:int):void
+        {
             lastTool = tool;
         }
 
-        public function updateLastTool():void {
-            if (lastTool === TOOL_NONE) {
+        public function updateLastTool():void
+        {
+            if (lastTool === TOOL_NONE)
+            {
                 lastTool = nowTool;
             }
         }
 
-        public function startKeyRepeatStopTimerOnMouseLeave(target:DisplayObject):void {
-            addTimerByName("checkKeyRepeatStop", 0.0, true, function():Boolean {
-                    if (!target.hitTestPoint(stage.mouseX, stage.mouseY)) {
+        public function startKeyRepeatStopTimerOnMouseLeave(target:DisplayObject):void
+        {
+            addTimerByName("checkKeyRepeatStop", 0.0, true, function():Boolean
+                {
+                    if (!target.hitTestPoint(stage.mouseX, stage.mouseY))
+                    {
                         removeKeyRepeatEvents(null);
                         return false;
                     }
@@ -3274,39 +3765,49 @@
 
         }
 
-        public function startKeyRepeat(firstCall:Boolean, func:Function, ...args):Boolean {
-            if (hasTimer("keyHoldWaitTimer") || hasTimer("keyHoldRepeatTimer")) {
+        public function startKeyRepeat(firstCall:Boolean, func:Function, ...args):Boolean
+        {
+            if (hasTimer("keyHoldWaitTimer") || hasTimer("keyHoldRepeatTimer"))
+            {
                 return false;
             }
 
             addTimerByName("keyHoldWaitTimer", KEY_REPEAT_START_DELAY, false,
-                    function():void {
+                    function():void
+                    {
                         func.apply(Main, args);
                         addTimerByName("keyHoldRepeatTimer", KEY_REPEAT_INTERVAL, true, func, args);
                     });
 
             addKeyRepeatEvents();
-            if (firstCall) {
+            if (firstCall)
+            {
                 func.apply(Main, args);
             }
 
             return true;
         }
 
-        public function checkPenOptionsKeyDown(keyCode:uint):Boolean {
+        public function checkPenOptionsKeyDown(keyCode:uint):Boolean
+        {
             const secondKey:int = getSecondPressedKey();
-            if (secondKey === KEY.n3 || secondKey === KEY.n8) {
-                if (toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0) {
+            if (secondKey === KEY.n3 || secondKey === KEY.n8)
+            {
+                if (toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
+                {
                     toggleSharpLineByShortcut();
                 }
                 return true;
             }
-            else if (secondKey === KEY.n4 || secondKey === KEY.n7) {
-                if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)) {
+            else if (secondKey === KEY.n4 || secondKey === KEY.n7)
+            {
+                if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
+                {
                     togglePenAirBrushButtonShortCut();
                     return true;
                 }
-                else if (isSelectedTool(TOOL_ERASER)) {
+                else if (isSelectedTool(TOOL_ERASER))
+                {
                     toggleEraseAirBrushButtonShortCut();
                     return true;
                 }
@@ -3314,8 +3815,10 @@
             return false;
         }
 
-        public function handlePenOpacitySizeKeyDown(keyCode:uint):Boolean {
-            switch (keyCode) {
+        public function handlePenOpacitySizeKeyDown(keyCode:uint):Boolean
+        {
+            switch (keyCode)
+            {
                 case KEY.f:
                 case KEY.h:
                     {
@@ -3346,57 +3849,69 @@
             return false;
         }
 
-        public function isPressingQuickSidebarShortcut(key1:int, key2:int):Boolean {
+        public function isPressingQuickSidebarShortcut(key1:int, key2:int):Boolean
+        {
             if ((key1 === KEY.s && key2 === KEY.d)
                     || (key1 === KEY.d && key2 === KEY.s)
                     || (key1 === KEY.j && key2 === KEY.k)
-                    || (key1 === KEY.k && key2 === KEY.j)) {
+                    || (key1 === KEY.k && key2 === KEY.j))
+            {
                 return true;
             }
             return false;
         }
 
-        public function isPressingControl():Boolean {
+        public function isPressingControl():Boolean
+        {
             return getCommandKey() === COMMAND_CTRL;
         }
 
-        public function isPressingShift():Boolean {
+        public function isPressingShift():Boolean
+        {
             return getCommandKey() === COMMAND_SHIFT;
         }
 
-        public function isPressingControlShift():Boolean {
+        public function isPressingControlShift():Boolean
+        {
             return getCommandKey() === COMMAND_CTRL_SHIFT;
         }
 
-        public function getCommandKey():int {
+        public function getCommandKey():int
+        {
             const first:uint = getFirstPressedKey();
             const second:uint = getSecondPressedKey();
 
             if ((second === KEY.shift && (first === KEY.ctrl || first === KEY.rightCtrl))
-                    || (first === KEY.shift && (second === KEY.ctrl || second === KEY.rightCtrl))) {
+                    || (first === KEY.shift && (second === KEY.ctrl || second === KEY.rightCtrl)))
+            {
                 return COMMAND_CTRL_SHIFT;
             }
-            if (first === KEY.shift) {
+            if (first === KEY.shift)
+            {
                 return COMMAND_SHIFT;
             }
-            if (first === KEY.ctrl || first === KEY.rightCtrl) {
+            if (first === KEY.ctrl || first === KEY.rightCtrl)
+            {
                 return COMMAND_CTRL;
             }
 
             return 0;
         }
 
-        public function isToolEnabledByLayerUnChecked():Boolean {
+        public function isToolEnabledByLayerUnChecked():Boolean
+        {
             return checkedLayer === 0;
         }
 
-        public function isCursorInDrawArea():Boolean {
+        public function isCursorInDrawArea():Boolean
+        {
             return !(topBar.hitTestPoint(stage.mouseX, stage.mouseY)
                     || (sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
                     || (seekBarBox.visible && seekBarBox.hitTestPoint(stage.mouseX, stage.mouseY)));
         }
 
-        public function initializeStageSettings():void {
+        public function initializeStageSettings():void
+        {
             stage.vsyncEnabled = true;
             stage.scaleMode = StageScaleMode.NO_SCALE; // 창크기 상관없이 스테이지 크기 고정
             stage.align = StageAlign.TOP_LEFT;
@@ -3405,7 +3920,8 @@
             NativeApplication.nativeApplication.autoExit = true;
         }
 
-        public function removeInputEventsLassoTool():void {
+        public function removeInputEventsLassoTool():void
+        {
             stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool);
             stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool);
             stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool);
@@ -3415,7 +3931,8 @@
             addInputEventsDrawMode();
         }
 
-        public function addInputEventsLassoTool():void {
+        public function addInputEventsLassoTool():void
+        {
             stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool);
             stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool);
@@ -3426,26 +3943,31 @@
             removeInputEventsDrawMode();
         }
 
-        public function onMouseDownStage(e:MouseEvent):void {
+        public function onMouseDownStage(e:MouseEvent):void
+        {
             checkInvalidKey();
             isMouseClicked = true;
             hideBottomHint();
         }
 
-        public function onRightMouseDownStage(e:MouseEvent):void {
+        public function onRightMouseDownStage(e:MouseEvent):void
+        {
             checkInvalidKey();
             isRightMouseClicked = true;
         }
 
-        public function onMiddleMouseDownStage(e:MouseEvent):void {
+        public function onMiddleMouseDownStage(e:MouseEvent):void
+        {
             if (isCaptureModeON)
                 return;
 
-            if (hasTimer("toolTipTempONTimer")) {
+            if (hasTimer("toolTipTempONTimer"))
+            {
                 hideMouseHint();
             }
 
-            if (isLassoToolStarted) {
+            if (isLassoToolStarted)
+            {
                 lassoMenuBox.visible = false;
                 isLassoMenuHiddenTemp = true;
             }
@@ -3454,57 +3976,68 @@
             showNowToolIconToCursorTemp(TOOL_HAND);
         }
 
-        public function onMouseUpStage(e:MouseEvent):void {
+        public function onMouseUpStage(e:MouseEvent):void
+        {
             checkInvalidKey();
             const mx:Number = stage.mouseX;
             const my:Number = stage.mouseY;
 
             isMouseClicked = false;
-            if (!isMouseClicked && isRightMouseClicked) {
+            if (!isMouseClicked && isRightMouseClicked)
+            {
                 isMouseDragging = false;
             }
         }
 
-        public function onRightMouseUpStage(e:MouseEvent):void {
+        public function onRightMouseUpStage(e:MouseEvent):void
+        {
             checkInvalidKey();
             const mx:Number = stage.mouseX;
             const my:Number = stage.mouseY;
 
             isRightMouseClicked = false;
-            if (!isMouseClicked && isRightMouseClicked) {
+            if (!isMouseClicked && isRightMouseClicked)
+            {
                 isMouseDragging = false;
             }
         }
 
-        public function markWindowTitleAsDirty():void {
+        public function markWindowTitleAsDirty():void
+        {
             const titleEndStr:int = stage.nativeWindow.title.lastIndexOf(STRING_TITLE_FOFOPAINT);
 
-            if (titleEndStr > 0 && stage.nativeWindow.title.charAt(titleEndStr - 1) !== "*") {
+            if (titleEndStr > 0 && stage.nativeWindow.title.charAt(titleEndStr - 1) !== "*")
+            {
                 const starFileName:String = stage.nativeWindow.title.slice(0, titleEndStr) + "*";
                 stage.nativeWindow.title = starFileName + STRING_TITLE_FOFOPAINT;
 
-                if (isCanvasWindowON) {
+                if (isCanvasWindowON)
+                {
                     copyMainWindowTitleToCanvasWindow();
                 }
             }
         }
 
-        public function resetApp():void {
+        public function resetApp():void
+        {
             stage.nativeWindow.removeEventListener(Event.CLOSING, onWindowClosingEvent);
             stage.nativeWindow.removeEventListener(Event.DEACTIVATE, onWindowDeactivate);
             const files:File = File.applicationStorageDirectory;
             files.deleteDirectory(true);
         }
 
-        public function startHidingSidebarTemporary():void {
+        public function startHidingSidebarTemporary():void
+        {
             removeSidebarTempShowActivateEvents();
 
-            if (isSidebarVisible === false) {
+            if (isSidebarVisible === false)
+            {
                 hideSidebarTemporary();
             }
         }
 
-        public function addSidebarTempShowActivateEvents():void {
+        public function addSidebarTempShowActivateEvents():void
+        {
             isReactivateSidebarTempShowEventsAdded = true;
 
             stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReactivateSidebarTempShow);
@@ -3513,12 +4046,14 @@
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpReactivateSidebarTempShow);
         }
 
-        public function setSideBarClickEvents():void {
+        public function setSideBarClickEvents():void
+        {
             isSidebarHideEventAdded = true;
             stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownHideSidebar, false, -1);
         }
 
-        public function removeSidebarTempShowActivateEvents():void {
+        public function removeSidebarTempShowActivateEvents():void
+        {
             removeTimer("sidebarTempShowActivateTimer");
             isSidebarTempShowDeactivated = false;
             isSidebarHideEventAdded = false;
@@ -3532,16 +4067,20 @@
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseDownReactivateSidebarTempShow);
         }
 
-        public function onMouseDownReactivateSidebarTempShow(e:MouseEvent):void {
-            if (sideBar.hitTestPoint(stage.mouseX, stage.mouseY) === false) {
+        public function onMouseDownReactivateSidebarTempShow(e:MouseEvent):void
+        {
+            if (sideBar.hitTestPoint(stage.mouseX, stage.mouseY) === false)
+            {
                 removeSidebarTempShowActivateEvents();
             }
         }
 
         // 1초정도 켜지지 않게함
-        public function startTimerActivateSidebarShowTemp():void {
+        public function startTimerActivateSidebarShowTemp():void
+        {
             isSidebarTempShowDeactivated = true;
-            addTimerByName("sidebarTempShowActivateTimer", 0.7, false, function():void {
+            addTimerByName("sidebarTempShowActivateTimer", 0.7, false, function():void
+                {
                     isReactivateSidebarTempShowEventsAdded = false;
                     isSidebarTempShowDeactivated = false;
 
@@ -3549,35 +4088,46 @@
                 });
         }
 
-        public function onMouseUpReactivateSidebarTempShow(e:MouseEvent):void {
-            if (!(isRightMouseClicked && isMouseClicked)) {
+        public function onMouseUpReactivateSidebarTempShow(e:MouseEvent):void
+        {
+            if (!(isRightMouseClicked && isMouseClicked))
+            {
                 startTimerActivateSidebarShowTemp();
             }
         }
 
-        public function sidebarOFFRightMouseDownEvent(e:MouseEvent):void {
+        public function sidebarOFFRightMouseDownEvent(e:MouseEvent):void
+        {
             isMouseClickBlocked = true;
             unblockMouseClickAfterDelay();
             startHidingSidebarTemporary();
         }
 
-        public function onMouseDownHideSidebar(e:MouseEvent):void {
-            if (e.target && (e.target.name === "sideBarONButton" || e.target.name === "sideBarONButton2" || e.target.name === "fofo")) {
+        public function onMouseDownHideSidebar(e:MouseEvent):void
+        {
+            if (e.target && (e.target.name === "sideBarONButton" || e.target.name === "sideBarONButton2" || e.target.name === "fofo"))
+            {
 
             }
-            else if (sideBar.hitTestPoint(stage.mouseX, stage.mouseY) === false) {
+            else if (sideBar.hitTestPoint(stage.mouseX, stage.mouseY) === false)
+            {
                 startHidingSidebarTemporary();
             }
         }
 
-        public function startShowSideBarTemporary():void {
-            if (!(isMouseClicked || isRightMouseClicked || isMouseDragging)) {
-                if (!isSidebarTempShowDeactivated) {
-                    if (isSidebarHideEventAdded === false) {
+        public function startShowSideBarTemporary():void
+        {
+            if (!(isMouseClicked || isRightMouseClicked || isMouseDragging))
+            {
+                if (!isSidebarTempShowDeactivated)
+                {
+                    if (isSidebarHideEventAdded === false)
+                    {
                         setSideBarClickEvents();
                     }
 
-                    if (sideBar.visible === false) {
+                    if (sideBar.visible === false)
+                    {
                         // setSidebarVisible(true,true);
                         showSidebarTemporary();
                     }
@@ -3589,7 +4139,8 @@
             }
         }
 
-        public function canShowSidebarTemporarily():Boolean {
+        public function canShowSidebarTemporarily():Boolean
+        {
             return !sideBar.visible
                 && !isReplayModeON
                 && !isCaptureModeON
@@ -3598,81 +4149,101 @@
                 && !resizeButtonR.visible;
         }
 
-        public function onMouseLeaveSideBar(e:Event):void {
-            if (canShowSidebarTemporarily()) {
+        public function onMouseLeaveSideBar(e:Event):void
+        {
+            if (canShowSidebarTemporarily())
+            {
                 const sideBarWidth:Number = sideBar.getWidth();
 
                 if (((isRightSidebar && stage.mouseX > stage.stageWidth - sideBarWidth)
                             || (!isRightSidebar && stage.mouseX < sideBarWidth))
-                        && mouseY > STAGE_TOP_OFFSET) {
+                        && mouseY > STAGE_TOP_OFFSET)
+                {
                     startShowSideBarTemporary();
                 }
             }
         }
 
-        public function onMouseMoveSideBar(e:MouseEvent):void {
-            if (canShowSidebarTemporarily()) {
+        public function onMouseMoveSideBar(e:MouseEvent):void
+        {
+            if (canShowSidebarTemporarily())
+            {
                 const mx:Number = stage.mouseX;
                 const my:Number = stage.mouseY;
 
-                if ((!isRightSidebar && mx <= 15 || isRightSidebar && mx >= stage.stageWidth - 15) && my > STAGE_TOP_OFFSET) {
+                if ((!isRightSidebar && mx <= 15 || isRightSidebar && mx >= stage.stageWidth - 15) && my > STAGE_TOP_OFFSET)
+                {
                     startShowSideBarTemporary();
                 }
             }
 
-            if (!isSidebarVisible && sideBar.visible) {
-                if (isCursorInDrawArea()) {
-                    if (!hasTimer("sidebarHideDelayTimer")) {
+            if (!isSidebarVisible && sideBar.visible)
+            {
+                if (isCursorInDrawArea())
+                {
+                    if (!hasTimer("sidebarHideDelayTimer"))
+                    {
                         addTimerByName("sidebarHideDelayTimer", 0.3, false, hideSidebarTemporary);
                     }
                 }
-                else if (hasTimer("sidebarHideDelayTimer")) {
+                else if (hasTimer("sidebarHideDelayTimer"))
+                {
                     removeTimer("sidebarHideDelayTimer");
                 }
             }
         }
 
-        public function onMouseUpSideBar(e:MouseEvent):void {
+        public function onMouseUpSideBar(e:MouseEvent):void
+        {
             const mx:Number = stage.mouseX;
             const my:Number = stage.mouseY;
 
-            if (mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight) {
-                if (sideBar.visible === false) {
+            if (mx < 0 || mx > stage.stageWidth || my < 0 || my > stage.stageHeight)
+            {
+                if (sideBar.visible === false)
+                {
                     addSidebarTempShowActivateEvents();
                 }
             }
         }
 
-        public function updateSidebarLayout():void {
+        public function updateSidebarLayout():void
+        {
             updateStageOffset();
             updateCanvasNaigatorCursor();
             checkFOFOPosition();
 
-            if (selectedToolViewBitmap.visible) {
+            if (selectedToolViewBitmap.visible)
+            {
                 updateSelectedToolViewBoxPos();
             }
         }
 
-        public function restoreLassoAndRefLayerBoxLastPos():void {
+        public function restoreLassoAndRefLayerBoxLastPos():void
+        {
             const arr:Array = lassoAndRefLayerBoxLastPos;
 
             if ((arr[0] !== arr[2] || arr[1] !== arr[3])
-                    && lassoMenuBox.x === arr[2] && lassoMenuBox.y === arr[3]) {
+                    && lassoMenuBox.x === arr[2] && lassoMenuBox.y === arr[3])
+            {
                 lassoMenuBox.x = arr[0];
                 lassoMenuBox.y = arr[1];
             }
 
             if ((arr[4] !== arr[6] || arr[5] !== arr[7])
-                    && refLayerMenuBox.x === arr[6] && refLayerMenuBox.y === arr[7]) {
+                    && refLayerMenuBox.x === arr[6] && refLayerMenuBox.y === arr[7])
+            {
                 refLayerMenuBox.x = arr[4];
                 refLayerMenuBox.y = arr[5];
             }
         }
 
-        public function recordLassoAndRefLayerBoxLastPos():void {
+        public function recordLassoAndRefLayerBoxLastPos():void
+        {
             const arr:Array = lassoAndRefLayerBoxLastPos;
 
-            if (isLassoToolStarted) {
+            if (isLassoToolStarted)
+            {
                 arr[0] = lassoMenuBox.x;
                 arr[1] = lassoMenuBox.y;
                 keepBoxInsideViewPort(lassoMenuBox);
@@ -3680,7 +4251,8 @@
                 arr[3] = lassoMenuBox.y;
             }
 
-            if (isRefLayerMenuON) {
+            if (isRefLayerMenuON)
+            {
                 arr[4] = refLayerMenuBox.x;
                 arr[5] = refLayerMenuBox.y;
                 keepBoxInsideViewPort(refLayerMenuBox);
@@ -3690,7 +4262,8 @@
 
         }
 
-        public function showSidebarPermanent():void {
+        public function showSidebarPermanent():void
+        {
             isSidebarVisible = true;
             sideBar.visible = true;
             topBar.checkSideBarONOFFButton(true, isRightSidebar);
@@ -3705,7 +4278,8 @@
             stage.removeEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
         }
 
-        public function hideSidebarPermanent():void {
+        public function hideSidebarPermanent():void
+        {
             isSidebarVisible = false;
             sideBar.visible = false;
             topBar.checkSideBarONOFFButton(false, isRightSidebar);
@@ -3719,51 +4293,60 @@
             stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
         }
 
-        public function showSidebarTemporary():void {
+        public function showSidebarTemporary():void
+        {
             sideBar.visible = true;
             updateSidebarLayout();
             recordLassoAndRefLayerBoxLastPos();
             sideBar.setTransparentBG();
         }
 
-        public function hideSidebarTemporary():void {
+        public function hideSidebarTemporary():void
+        {
             sideBar.visible = false;
             updateSidebarLayout();
             restoreLassoAndRefLayerBoxLastPos();
         }
 
-        public function selectTransparentColor():void {
+        public function selectTransparentColor():void
+        {
             isTransparentPenColor = true;
             colorPickerBox.setRGBInfoBackgroundTransparent(myPalettePresetType);
         }
 
-        public function selectCurrentColor(bgmode:Boolean):void {
+        public function selectCurrentColor(bgmode:Boolean):void
+        {
             const hexColor:uint = colorPickerBox.currentColor;
 
             isTransparentPenColor = false;
 
-            if (bgmode) {
+            if (bgmode)
+            {
                 updateCanvasBGColorDrawMode(hexColor);
-                if (isCanvasWindowON) {
+                if (isCanvasWindowON)
+                {
                     updateCanvasWindowBGColor(CANVAS_BG_COLOR, canvasWindowLayer1Bitmap.bitmapData);
                 }
                 updateColorPickerCursorPosAndRGBInfo(hexColor);
                 addUndoBGColorData(hexColor);
             }
-            else {
+            else
+            {
                 penColor = hexColor;
                 updateOpacityCursorPos(penAlphaIndex);
                 updateColorPickerCursorPosAndRGBInfo(hexColor);
             }
         }
 
-        public function getFinalBitmapDataFrom2020File(file:File, bgFlag:Boolean):BitmapData {
+        public function getFinalBitmapDataFrom2020File(file:File, bgFlag:Boolean):BitmapData
+        {
             const fs:FileStream = new FileStream();
             fs.open(file, FileMode.READ);
             var finalIMGBMPD:BitmapData;
             var finalIMGBMPD1:BitmapData;
 
-            if (isNew2020File(file)) {
+            if (isNew2020File(file))
+            {
                 fs.readUTFBytes(9); // FOFOPAINT헤더 읽어줌
                 const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
                 fs.position += compBytes;
@@ -3773,14 +4356,17 @@
             var newRectangle:Rectangle;
             var bg:uint;
 
-            while (true) {
+            while (true)
+            {
                 if (fs.bytesAvailable === 0)
                     break;
                 const d:Array = fs.readObject() as Array;
 
-                if (d[0] === "rFinalImage") {
+                if (d[0] === "rFinalImage")
+                {
                     // 구버전 파일 레이어 없을때
-                    if (d[2] is ByteArray === false) {
+                    if (d[2] is ByteArray === false)
+                    {
                         ba = d[1] as ByteArray;
                         newRectangle = new Rectangle(0, 0, d[2], d[3]);
 
@@ -3793,7 +4379,8 @@
                         ba = null;
                         bg = d[4];
                     }
-                    else {
+                    else
+                    {
                         ba = d[2] as ByteArray;
                         newRectangle = new Rectangle(0, 0, d[3], d[4]);
                         ba.uncompress();
@@ -3820,7 +4407,8 @@
             }
             fs.close();
 
-            if (bgFlag) {
+            if (bgFlag)
+            {
                 const bgBmpd:BitmapData = new BitmapData(finalIMGBMPD.width, finalIMGBMPD.height, false, bg);
                 bgBmpd.draw(finalIMGBMPD);
 
@@ -3830,18 +4418,22 @@
             return finalIMGBMPD;
         }
 
-        public function isNew2020File(file:File):Boolean {
-            if (!file) {
+        public function isNew2020File(file:File):Boolean
+        {
+            if (!file)
+            {
                 return false;
             }
 
             const fs:FileStream = new FileStream();
             fs.open(file, FileMode.READ);
 
-            try {
+            try
+            {
                 const header:String = fs.readUTFBytes(9);
 
-                if (header === "FOFOPAINT") {
+                if (header === "FOFOPAINT")
+                {
                     fs.close();
                     return true;
                 }
@@ -3849,7 +4441,8 @@
                 fs.close();
                 fs.open(file, FileMode.READ);
             }
-            catch (err:Error) {
+            catch (err:Error)
+            {
                 fs.close();
                 return false;
             }
@@ -3857,11 +4450,13 @@
             return false;
         }
 
-        public function isOld2020File(file:File):Boolean {
+        public function isOld2020File(file:File):Boolean
+        {
             const fs:FileStream = new FileStream();
             fs.open(file, FileMode.READ);
 
-            try {
+            try
+            {
                 // 구버전 파일 읽기 헤더가 없고 바로 배열임
                 const arr:Array = (fs.readObject() as Array);
 
@@ -3873,29 +4468,34 @@
                 fs.close();
                 return true;
             }
-            catch (err:Error) {
+            catch (err:Error)
+            {
                 fs.close();
                 return false;
             }
             return false;
         }
 
-        public function isTrue2020File(file:File):Boolean {
+        public function isTrue2020File(file:File):Boolean
+        {
             if (!file || !(file is File))
                 return false;
 
-            if (isNew2020File(file)) {
+            if (isNew2020File(file))
+            {
                 return true;
             }
 
-            if (isOld2020File(file)) {
+            if (isOld2020File(file))
+            {
                 return true;
             }
 
             return false;
         }
 
-        public function isImageFileExt(path:String):Boolean {
+        public function isImageFileExt(path:String):Boolean
+        {
             // 가장 마지막 확장자만 따짐
             const gif:int = path.lastIndexOf(".gif");
             const jpg:int = path.lastIndexOf(".jpg");
@@ -3906,7 +4506,8 @@
             return maxIndex === find2020;
         }
 
-        public function cFillPenTool():Object {
+        public function cFillPenTool():Object
+        {
             const lastMousePos:Point = new Point(0, 0);
             var canvasSizeRect:Rectangle = new Rectangle();
             var command:Vector.<int>;
@@ -3925,43 +4526,52 @@
             var turnOffFillPenPreviewCount:int = 0;
             var isStartedFromShortCut:Boolean = false;
 
-            function updateLastFillPenBoxButtonUsed(target:SimpleButton):void {
+            function updateLastFillPenBoxButtonUsed(target:SimpleButton):void
+            {
                 lastFillPenBoxUsedButton = target;
             }
 
-            function startFillColorUpdateTimer():void {
+            function startFillColorUpdateTimer():void
+            {
                 showFillColor();
-                addTimerByName("fillColorUpdateTimer", 0.1, true, function():Boolean {
+                addTimerByName("fillColorUpdateTimer", 0.1, true, function():Boolean
+                    {
                         const newXcolor:uint = (isTransparentPenColor) ? CANVAS_BG_COLOR : colorPickerBox.rgbInfoBGColor;
                         const newXAlpha:Number = penAlpha;
 
                         const newXBlendMode:String = (isTransparentPenColor) ? "erase" : null;
 
-                        if (newXcolor !== xColor) {
+                        if (newXcolor !== xColor)
+                        {
                             xColor = newXcolor;
                             xAlpha = newXAlpha;
                             xBlendMode = newXBlendMode;
                             showFillColor();
                         }
 
-                        if (newXAlpha !== xAlpha) {
+                        if (newXAlpha !== xAlpha)
+                        {
                             xAlpha = newXAlpha;
                             showFillColor();
                         }
 
-                        if (newXBlendMode !== xBlendMode) {
+                        if (newXBlendMode !== xBlendMode)
+                        {
                             xBlendMode = newXBlendMode;
                             showFillColor();
                         }
 
-                        if (!sideBar.visible) {
+                        if (!sideBar.visible)
+                        {
                             showDottedLine();
                             return false;
                         }
-                        else if (!isMouseClicked && !sideBar.hitTestPoint(stage.mouseX, stage.mouseY)) {
+                        else if (!isMouseClicked && !sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
+                        {
                             turnOffFillPenPreviewCount--;
 
-                            if (turnOffFillPenPreviewCount <= 0) {
+                            if (turnOffFillPenPreviewCount <= 0)
+                            {
                                 turnOffFillPenPreviewCount = 0;
                                 showDottedLine();
                                 return false;
@@ -3972,14 +4582,16 @@
 
             }
 
-            function onMouseOverFillPenHint(e:MouseEvent):void {
+            function onMouseOverFillPenHint(e:MouseEvent):void
+            {
                 const target:DisplayObject = e.target as DisplayObject;
                 if (!target)
                     return;
 
                 const targetName:String = target.name;
 
-                if (!hasTimer("fillColorUpdateTimer") && sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY)) {
+                if (!hasTimer("fillColorUpdateTimer") && sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
+                {
                     startFillColorUpdateTimer();
                 }
 
@@ -3993,17 +4605,21 @@
                     fillPenBox.hint("[6, s+d, j+k]");
             }
 
-            function checkFillPenUndoReady():Boolean {
-                if (canvasSizeRect.intersects(canvasDrawLayerChild.getBounds(canvasPanel))) {
+            function checkFillPenUndoReady():Boolean
+            {
+                if (canvasSizeRect.intersects(canvasDrawLayerChild.getBounds(canvasPanel)))
+                {
                     return true;
                 }
                 return false;
             }
 
-            function showFillColor():void {
+            function showFillColor():void
+            {
                 canvasDrawLayerChild.graphics.clear();
 
-                if (data.length === 0) {
+                if (data.length === 0)
+                {
                     return;
                 }
 
@@ -4017,29 +4633,34 @@
                 canvasDrawLayer.alpha = xAlpha;
             }
 
-            function showDottedLine():void {
+            function showDottedLine():void
+            {
                 canvasDrawLayerChild.graphics.clear();
 
                 const len:uint = data.length;
-                if (len <= 3) {
+                if (len <= 3)
+                {
                     return;
                 }
 
                 dottedLine.moveTo(canvasDrawLayerChild.graphics, data[0], data[1]);
 
-                for (var i:uint = 2; i < len; i += 2) {
+                for (var i:uint = 2; i < len; i += 2)
+                {
                     dottedLine.lineTo(data[i], data[i + 1]);
                 }
                 dottedLine.lineTo(data[0], data[1], true);
 
-                if (isLayer2Selected) {
+                if (isLayer2Selected)
+                {
                     bringCanvasDrawLayerAboveLayer1();
                 }
 
                 canvasDrawLayer.alpha = 1.0;
             }
 
-            function exitFillPen():void {
+            function exitFillPen():void
+            {
                 removeEvents();
                 canvasDrawLayer.alpha = 1.0;
                 mouseMoveCount = 0;
@@ -4049,7 +4670,8 @@
                 commandUndoIndexArr.length = 0;
                 canvasDrawLayerChild.graphics.clear();
 
-                if (isRefLayerMenuON) {
+                if (isRefLayerMenuON)
+                {
                     refLayerMenuBox.visible = true;
                 }
 
@@ -4057,11 +4679,13 @@
                 fillPenBox.x = -fillPenBox.width - 3;
                 fillPenBox.y = -fillPenBox.height - 3;
 
-                if (isLayer2Selected) {
+                if (isLayer2Selected)
+                {
                     bringCanvasDrawLayerAboveLayer2();
                 }
 
-                if (isQuickSidebarActive) {
+                if (isQuickSidebarActive)
+                {
                     startDeactivteQuickSidebar();
                 }
 
@@ -4071,14 +4695,17 @@
 
                 colorPickerBox.activePaperColorButton(false);
 
-                if (isStartedFromShortCut) {
+                if (isStartedFromShortCut)
+                {
                     setLastTool(TOOL_PEN);
                     selectPenTool();
                 }
             }
 
-            function applyFillPen():void {
-                if (checkFillPenUndoReady() === true && command.length > 2) {
+            function applyFillPen():void
+            {
+                if (checkFillPenUndoReady() === true && command.length > 2)
+                {
                     canAddUndoData = true;
                     command.push(2);
                     data.push(data[0]);
@@ -4093,7 +4720,8 @@
                 exitFillPen();
             }
 
-            function undoData():void {
+            function undoData():void
+            {
                 if (command.length === 0)
                     return;
 
@@ -4101,104 +4729,128 @@
                 data.splice(commandUndoIndexArr[commandUndoIndexArr.length - 1] * 2, data.length);
                 commandUndoIndexArr.pop();
 
-                if (command.length <= 1) {
+                if (command.length <= 1)
+                {
                     command.length = 0;
                     data.length = 0;
                     commandUndoIndexArr[0] = 0;
                     canvasDrawLayerChild.graphics.clear();
                 }
-                else {
+                else
+                {
                     showDottedLine();
                 }
             }
 
-            function onKeydownFillPen(e:KeyboardEvent):void {
+            function onKeydownFillPen(e:KeyboardEvent):void
+            {
                 const pressedKey:uint = e.keyCode;
 
-                if (isMouseClicked) {
+                if (isMouseClicked)
+                {
                     return;
                 }
 
-                if (isLastKey(pressedKey)) {
+                if (isLastKey(pressedKey))
+                {
                     return;
                 }
 
                 const secondKey:int = getSecondPressedKey();
 
                 if (isPressingQuickSidebarShortcut(pressedKey, secondKey)
-                        || pressedKey === KEY.n6) {
+                        || pressedKey === KEY.n6)
+                {
                     updateLastKey(pressedKey);
 
-                    if (isQuickSidebarActive === false) {
+                    if (isQuickSidebarActive === false)
+                    {
                         activeQuickSideBar(true);
 
-                        if (!hasTimer("fillColorUpdateTimer")) {
+                        if (!hasTimer("fillColorUpdateTimer"))
+                        {
                             startFillColorUpdateTimer();
                         }
                     }
                 }
-                else if (pressedKey === KEY.g || pressedKey === KEY.b) {
+                else if (pressedKey === KEY.g || pressedKey === KEY.b)
+                {
                     updateLastKey(pressedKey);
 
-                    startKeyRepeat(true, function(increase:Boolean):void {
+                    startKeyRepeat(true, function(increase:Boolean):void
+                        {
                             turnOffFillPenPreviewCount = stage.frameRate;
                             adjustDrawToolAlphaByShortcut(increase);
                         }, (pressedKey === KEY.g) ? true : false);
 
-                    if (!hasTimer("fillColorUpdateTimer")) {
+                    if (!hasTimer("fillColorUpdateTimer"))
+                    {
                         startFillColorUpdateTimer();
                     }
                 }
             }
 
-            function onKeyUpFillPen(e:KeyboardEvent):void {
+            function onKeyUpFillPen(e:KeyboardEvent):void
+            {
                 const keyCode:uint = e.keyCode;
 
                 resetLastKey();
 
-                if (isMouseClicked) {
-                    if (keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter) {
+                if (isMouseClicked)
+                {
+                    if (keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter)
+                    {
                         afterKeyUpOK = true;
                     }
                     return;
                 }
 
-                if (keyCode === KEY.w || keyCode === KEY.i || keyCode === KEY.z || keyCode === KEY.dot) {
+                if (keyCode === KEY.w || keyCode === KEY.i || keyCode === KEY.z || keyCode === KEY.dot)
+                {
                     undoData();
                 }
-                else if (keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter) {
+                else if (keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter)
+                {
                     applyFillPen();
                 }
-                else if (keyCode === KEY.esc || keyCode === KEY.backspace) {
+                else if (keyCode === KEY.esc || keyCode === KEY.backspace)
+                {
                     exitFillPen();
                 }
             }
 
-            function onRightMouseUpFillPen(e:MouseEvent):void {
+            function onRightMouseUpFillPen(e:MouseEvent):void
+            {
                 const target:DisplayObject = e.target as DisplayObject;
                 if (!target as DisplayObject || target === sideBarScrollBar
-                        || sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY)) {
+                        || sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
+                {
                     return;
                 }
 
                 const targetName:String = target.name;
 
-                if (targetName === "fillPenOK") {
+                if (targetName === "fillPenOK")
+                {
                     applyFillPen();
                 }
-                else if (targetName === "fillPenCancel") {
+                else if (targetName === "fillPenCancel")
+                {
                     exitFillPen();
                 }
-                else if (targetName === "fillPenUndo") {
+                else if (targetName === "fillPenUndo")
+                {
                     updateLastFillPenBoxButtonUsed(target as SimpleButton);
                     undoData();
                 }
-                else if (targetName === "fillPenSidebar") {
+                else if (targetName === "fillPenSidebar")
+                {
                     updateLastFillPenBoxButtonUsed(target as SimpleButton);
 
                     activeQuickSideBar(false);
 
-                    if (!hasTimer("fillColorUpdateTimer")) {
+                    if (!hasTimer("fillColorUpdateTimer"))
+                    {
                         startFillColorUpdateTimer();
                     }
                 }
@@ -4206,31 +4858,39 @@
                 fillPenBox.visible = false;
             }
 
-            function onRightMouseDownFillPen(e:MouseEvent):void {
+            function onRightMouseDownFillPen(e:MouseEvent):void
+            {
                 const target:DisplayObject = e.target as DisplayObject;
 
-                if (isMouseClicked || isQuickSidebarActive || !target || numPadBox.visible) {
+                if (isMouseClicked || isQuickSidebarActive || !target || numPadBox.visible)
+                {
                     return;
                 }
 
-                if (target === sideBarScrollBar) {
+                if (target === sideBarScrollBar)
+                {
                     resetSideBarPosition();
                     return;
                 }
-                else if (target.name === "toolZoomIn" || target.name === "toolZoomOut") {
-                    if (canvasZoomMultipler !== 1.0) {
+                else if (target.name === "toolZoomIn" || target.name === "toolZoomOut")
+                {
+                    if (canvasZoomMultipler !== 1.0)
+                    {
                         resetZoomDrawMode();
                     }
                     return;
                 }
-                else if (target.name === "toolRotate") {
-                    if (canvasAnchorPoint.rotation !== 0.0) {
+                else if (target.name === "toolRotate")
+                {
+                    if (canvasAnchorPoint.rotation !== 0.0)
+                    {
                         resetRotationDrawMode();
                     }
                     return;
                 }
 
-                if (sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY)) {
+                if (sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
+                {
                     return;
                 }
 
@@ -4242,7 +4902,8 @@
                 setAsTopChild(fillPenBox);
             }
 
-            function onMouseUpFillPen(e:MouseEvent):void {
+            function onMouseUpFillPen(e:MouseEvent):void
+            {
                 const target:DisplayObject = e.target as DisplayObject;
 
                 if (!target)
@@ -4254,55 +4915,69 @@
                 isMouseDragging = false;
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
 
-                if (clickedButton === targetName) {
-                    if (targetName === "toolFillPenOK") {
+                if (clickedButton === targetName)
+                {
+                    if (targetName === "toolFillPenOK")
+                    {
                         applyFillPen();
                         return;
                     }
-                    else if (targetName === "toolFillPenCancel") {
+                    else if (targetName === "toolFillPenCancel")
+                    {
                         exitFillPen();
                         return;
                     }
-                    else if (targetName === "toolUndo") {
+                    else if (targetName === "toolUndo")
+                    {
                         undoData();
                         return;
                     }
                 }
 
-                if (fillPenBox.visible) {
-                    if (clickedButton === targetName) {
-                        if (targetName === "fillPenOK") {
+                if (fillPenBox.visible)
+                {
+                    if (clickedButton === targetName)
+                    {
+                        if (targetName === "fillPenOK")
+                        {
                             applyFillPen();
                         }
-                        else if (targetName === "fillPenCancel") {
+                        else if (targetName === "fillPenCancel")
+                        {
                             exitFillPen();
                         }
-                        else if (targetName === "fillPenUndo") {
+                        else if (targetName === "fillPenUndo")
+                        {
                             updateLastFillPenBoxButtonUsed(target as SimpleButton);
                             undoData();
                         }
                     }
                 }
-                else {
+                else
+                {
                     const mousePos:Point = new Point(stage.mouseX, stage.mouseY);
                     const dist:Number = Math.floor(Point.distance(mousePos, lastMousePos));
 
                     mouseMoveCount += dist;
-                    if (mouseMoveCount >= 10) {
+                    if (mouseMoveCount >= 10)
+                    {
                         mouseMoveCount = 0;
                         commandUndoIndexArr.push(command.length - 1);
                     }
 
                     lastMousePos.setTo(mousePos.x, mousePos.y);
 
-                    if (afterKeyUpOK) {
+                    if (afterKeyUpOK)
+                    {
                         applyFillPen();
                     }
-                    else if (isCursorInDrawArea()) {
+                    else if (isCursorInDrawArea())
+                    {
                         showDottedLine();
                     }
 
-                    if (turnOffFillPenPreviewCount > 0) {
+                    if (turnOffFillPenPreviewCount > 0)
+                    {
                         turnOffFillPenPreviewCount = 0;
                     }
                 }
@@ -4310,68 +4985,81 @@
                 afterKeyUpOK = false;
             }
 
-            function onMouseMoveFillPen(e:MouseEvent):void {
+            function onMouseMoveFillPen(e:MouseEvent):void
+            {
                 const filteredPos:Point = getRefinedPoint(canvasDrawLayerChild.mouseX, canvasDrawLayerChild.mouseY);
                 const mx:Number = filteredPos.x + pos05Offset;
                 const my:Number = filteredPos.y + pos05Offset;
 
-                if (lastPosOnMouseMove.x === mx && lastPosOnMouseMove.y === my) {
+                if (lastPosOnMouseMove.x === mx && lastPosOnMouseMove.y === my)
+                {
                     return;
                 }
 
                 lastPosOnMouseMove.setTo(mx, my);
 
-                if (command.length === 0) {
+                if (command.length === 0)
+                {
                     command.push(1);
                     data.push(mx);
                     data.push(my);
                 }
-                else {
+                else
+                {
                     command.push(2);
                     data.push(mx);
                     data.push(my);
                 }
 
                 mouseMoveCount++;
-                if (mouseMoveCount >= 6) {
+                if (mouseMoveCount >= 6)
+                {
                     mouseMoveCount = 0;
                     commandUndoIndexArr.push(command.length - 1);
                 }
                 lastMousePos.setTo(stage.mouseX, stage.mouseY);
                 turnOffFillPenPreviewCount = 0;
 
-                if (!hasTimer("previewFilledColorUpdateTimer")) {
+                if (!hasTimer("previewFilledColorUpdateTimer"))
+                {
                     addTimerByName("previewFilledColorUpdateTimer", 0.1, false, showFillColor);
                 }
             }
 
-            function onMouseDownFillPen(e:MouseEvent):void {
+            function onMouseDownFillPen(e:MouseEvent):void
+            {
                 const target:DisplayObject = e.target as DisplayObject;
                 if (!target)
                     return;
                 const targetName:String = target.name;
 
                 clickedButton = targetName;
-                if (fillPenBox.visible) {
+                if (fillPenBox.visible)
+                {
                     return;
                 }
 
-                if (sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY)) {
+                if (sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
+                {
                     if (targetName === "penColorButton"
                             || targetName === "paperColorButton"
-                            || targetName === "rgbInfoText") {
+                            || targetName === "rgbInfoText")
+                    {
                         return;
                     }
 
-                    if (handleColorPickerBoxMouseDown(target) || numPadBox.visible) {
+                    if (handleColorPickerBoxMouseDown(target) || numPadBox.visible)
+                    {
                         return;
                     }
 
-                    if (numPadBox.visible) {
+                    if (numPadBox.visible)
+                    {
                         return;
                     }
 
-                    switch (targetName) {
+                    switch (targetName)
+                    {
                         case "toolRotate":
                             {
                                 rotateTool(false);
@@ -4419,10 +5107,12 @@
                     }
                 }
 
-                if (targetName === "sideBarScrollBar") {
+                if (targetName === "sideBarScrollBar")
+                {
                     startScrollSidebarByDrag();
                 }
-                else if (isCursorInDrawArea() && isQuickSidebarActive === false) {
+                else if (isCursorInDrawArea() && isQuickSidebarActive === false)
+                {
                     isMouseDragging = true;
                     stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
 
@@ -4430,11 +5120,13 @@
                     const mx:Number = filteredPos.x + pos05Offset;
                     const my:Number = filteredPos.y + pos05Offset;
 
-                    if (isLayer2Selected) {
+                    if (isLayer2Selected)
+                    {
                         bringCanvasDrawLayerAboveLayer2();
                     }
 
-                    if (lastPosOnMouseMove.x === mx && lastPosOnMouseMove.y === my) {
+                    if (lastPosOnMouseMove.x === mx && lastPosOnMouseMove.y === my)
+                    {
                         removeTimer("previewFilledColorUpdateTimer");
                         showFillColor();
                         return;
@@ -4442,12 +5134,14 @@
 
                     lastPosOnMouseMove.setTo(mx, my);
 
-                    if (command.length === 0) {
+                    if (command.length === 0)
+                    {
                         command.push(1);
                         data.push(mx);
                         data.push(my);
                     }
-                    else {
+                    else
+                    {
                         command.push(2);
                         data.push(mx);
                         data.push(my);
@@ -4458,7 +5152,8 @@
                 }
             }
 
-            function removeEvents():void {
+            function removeEvents():void
+            {
                 stage.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverFillPenHint);
                 stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
@@ -4469,7 +5164,8 @@
                 stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeydownFillPen);
             }
 
-            function addEvents():void {
+            function addEvents():void
+            {
                 stage.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverFillPenHint);
                 stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen);
                 stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
@@ -4480,12 +5176,15 @@
                 stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeydownFillPen);
             }
 
-            function start():void {
+            function start():void
+            {
                 isFillPenStarted = true;
-                if (getFirstPressedKey() === KEY.q || getFirstPressedKey() === KEY.o) {
+                if (getFirstPressedKey() === KEY.q || getFirstPressedKey() === KEY.o)
+                {
                     isStartedFromShortCut = true;
                 }
-                else {
+                else
+                {
                     isStartedFromShortCut = false;
                 }
 
@@ -4495,7 +5194,8 @@
                 command = new Vector.<int>();
                 data = new Vector.<Number>();
 
-                if (isColorPickerModeBG) {
+                if (isColorPickerModeBG)
+                {
                     switchColorPickerModePen();
                 }
 
@@ -4509,17 +5209,21 @@
                 clickedButton = null;
                 updateLastFillPenBoxButtonUsed(fillPenBox.fillPenOK as SimpleButton);
 
-                if (isPenAirBrushON || isEraserAirBrushON) {
+                if (isPenAirBrushON || isEraserAirBrushON)
+                {
                     canvasDrawLayerChild.filters = [];
                 }
-                if (!isTransparentPenColor) {
-                    if (!isCurrentColorSamePickedColor()) {
+                if (!isTransparentPenColor)
+                {
+                    if (!isCurrentColorSamePickedColor())
+                    {
                         updatePickerCurrentColor(colorPickerBox.getRGBInfoBGColor());
                         addColorMyPaletteHistory(colorPickerBox.getRGBInfoBGColor());
                     }
                 }
 
-                if (isRefLayerMenuON) {
+                if (isRefLayerMenuON)
+                {
                     refLayerMenuBox.visible = false;
                 }
                 dottedLine.setLineScale(canvasZoomMultipler);
@@ -4546,7 +5250,8 @@
                 };
         }
 
-        public function cPenTool():Function {
+        public function cPenTool():Function
+        {
             const clickPos:Point = new Point(); // 점찍어 줄 때 판단하는 클릭한 자리 저장
             const smoothPos:Point = new Point(); // 펜 스무딩에서 커서 뒤에 따라가는 실제 선의 죄표를 저장
             const smoothLast:Point = new Point(); // 펜 스무딩에서 현재 마우스 커서 위치를 저장
@@ -4574,7 +5279,8 @@
             var dotflag:Boolean; // 펜스무딩이 강하게 들어갔을때 아주 작은 위치만 그려주면 표현이 제대로 안되기 때문에 너무 작게 선이 그려졌을때 올려주는 플래그
             var sq1PXCursor:Boolean = false; // 1픽셀 사각형 커서인경우 올려주고 커서 미리보기 회전적용되게 함
 
-            function isCircleRectColliding(cx:Number, cy:Number, r:Number, rx:Number, ry:Number, w:Number, h:Number):Boolean {
+            function isCircleRectColliding(cx:Number, cy:Number, r:Number, rx:Number, ry:Number, w:Number, h:Number):Boolean
+            {
                 const px:Number = Math.max(rx, Math.min(cx, rx + w));
                 const py:Number = Math.max(ry, Math.min(cy, ry + h));
                 const distance:Number = (Math.sqrt(Math.pow(px - cx, 2) + Math.pow(py - cy, 2)));
@@ -4582,32 +5288,41 @@
                 return distance <= r / 2;
             }
 
-            function setCanUndoDataFlagON():void {
-                if (canvasLayer1Bitmap.hitTestPoint(stage.mouseX, stage.mouseY, true)) {
+            function setCanUndoDataFlagON():void
+            {
+                if (canvasLayer1Bitmap.hitTestPoint(stage.mouseX, stage.mouseY, true))
+                {
                     canAddUndoData = true;
                 }
-                else if (penCursorShape) {
-                    if (canvasSizeRect.intersects(penSizePreviewCursor.getBounds(canvasPanel))) {
+                else if (penCursorShape)
+                {
+                    if (canvasSizeRect.intersects(penSizePreviewCursor.getBounds(canvasPanel)))
+                    {
                         canAddUndoData = true;
                     }
                 }
-                else if (isCircleRectColliding(canvasPanel.mouseX, canvasPanel.mouseY, penCursorSize, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)) {
+                else if (isCircleRectColliding(canvasPanel.mouseX, canvasPanel.mouseY, penCursorSize, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT))
+                {
                     canAddUndoData = true;
                 }
             }
 
-            function lineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void {
+            function lineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void
+            {
                 canvasDrawLayer.alpha = alpha;
 
-                if (shape === false) {
+                if (shape === false)
+                {
                     canvasDrawLayerChild.graphics.lineStyle(size, color);
                 }
-                else {
+                else
+                {
                     canvasDrawLayerChild.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.BEVEL);
                 }
             }
 
-            function lineSmoothing():Boolean {
+            function lineSmoothing():Boolean
+            {
                 var ox:Number = smoothPos.x;
                 var oy:Number = smoothPos.y;
 
@@ -4616,10 +5331,12 @@
 
                 handleMouseMove(ox, oy);
 
-                if (Math.abs(smoothLast.x - ox) < 0.02 && Math.abs(smoothLast.y - oy) < 0.02) {
+                if (Math.abs(smoothLast.x - ox) < 0.02 && Math.abs(smoothLast.y - oy) < 0.02)
+                {
                     return false;
                 }
-                else {
+                else
+                {
                     smoothPos.setTo(ox, oy);
                     addTimerByName("lineSmoothingTimer1", 0.02, true, lineSmoothing);
                 }
@@ -4627,7 +5344,8 @@
             }
 
             // 끝 부분점을 distance만큼 길게 늘임
-            function updateExtendEndPoint(x1:Number, y1:Number, x2:Number, y2:Number, distance:Number):void {
+            function updateExtendEndPoint(x1:Number, y1:Number, x2:Number, y2:Number, distance:Number):void
+            {
                 // 선분 방향 벡터 계산
                 const directionX:Number = x2 - x1;
                 const directionY:Number = y2 - y1;
@@ -4642,8 +5360,10 @@
                 extendedPos.setTo(x2 + normalizedDirectionX * distance, y2 + normalizedDirectionY * distance);
             }
 
-            function handleMouseMove(mx:Number, my:Number):void {
-                if (canAddUndoData === false) {
+            function handleMouseMove(mx:Number, my:Number):void
+            {
+                if (canAddUndoData === false)
+                {
                     setCanUndoDataFlagON();
                 }
 
@@ -4652,15 +5372,18 @@
                 mx = filteredPos.x + offsetForSharpline;
                 my = filteredPos.y + offsetForSharpline;
 
-                if (xShape === true) {
+                if (xShape === true)
+                {
                     const sx:Number = sqLinePosLast.x - mx;
                     const sy:Number = sqLinePosLast.y - my;
                     const dist:Number = Math.sqrt(sx * sx + sy * sy);
 
-                    if (dist <= 2.5) {
+                    if (dist <= 2.5)
+                    {
                         return;
                     }
-                    else {
+                    else
+                    {
                         sqLinePosLast.setTo(mx, my);
                     }
                 }
@@ -4672,7 +5395,8 @@
                     canvasDrawLayerChild.graphics.clear();
                     lineStyleReady(xShape, xSize, xColor, xAlpha);
 
-                    if (xShape) {
+                    if (xShape)
+                    {
                         const filteredStartPos:Point = getRefinedPoint(clickPos.x, clickPos.y);
                         filteredStartPos.x = filteredStartPos.x + offsetForSharpline;
                         filteredStartPos.y = filteredStartPos.y + offsetForSharpline;
@@ -4682,7 +5406,8 @@
                         penPoints.push(extendedPos.y);
                         canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
                     }
-                    else {
+                    else
+                    {
                         rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, isLayer2Selected, airBrushSizeDrawMode]);
                         penPoints.push(smoothPos.x + offsetForSharpline);
                         penPoints.push(smoothPos.y + offsetForSharpline);
@@ -4690,8 +5415,10 @@
                     }
                 }
 
-                if (isMouseMoved) {
-                    if (moveEvent2Last.x === mx && moveEvent2Last.y === my) {
+                if (isMouseMoved)
+                {
+                    if (moveEvent2Last.x === mx && moveEvent2Last.y === my)
+                    {
                         return;
                     }
                     rDataBuffer.push(["lineTo", mx, my]);
@@ -4702,16 +5429,19 @@
                     canvasDrawLayerChild.graphics.lineTo(mx, my);
 
                     mouseMovedCount++;
-                    if (mouseMovedCount >= 100) {
+                    if (mouseMovedCount >= 100)
+                    {
                         mouseMovedCount = 0;
 
-                        if (airBrushSizeDrawMode > 0) {
+                        if (airBrushSizeDrawMode > 0)
+                        {
                             const blurSize:Number = getBlurSize(airBrushSizeDrawMode, 1.0);
                             canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
                             canvasDrawLayerBitmapData.draw(canvasDrawLayerChild, null, null, "layer");
                             canvasDrawLayerChild.filters = [];
                         }
-                        else {
+                        else
+                        {
                             canvasDrawLayerBitmapData.draw(canvasDrawLayerChild, null, null, "layer");
                         }
 
@@ -4728,14 +5458,16 @@
                         rDataBuffer.push(["tempDone4"]);
                         // TODO: write object를 쓰지 않고 원시 데이터를 써서 리플레이를 빠르고 효율적이게 다시 쓸수있을것같음
 
-                        if (xShape === true) {
+                        if (xShape === true)
+                        {
                             rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, isLayer2Selected, airBrushSizeDrawMode]);
                             penCommand.push(1);
                             penPoints.push(prevX);
                             penPoints.push(prevY);
                             canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
                         }
-                        else {
+                        else
+                        {
                             rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, isLayer2Selected, airBrushSizeDrawMode]);
                             penCommand.push(1);
                             penPoints.push(mx);
@@ -4744,7 +5476,8 @@
                         }
                     }
 
-                    if (xShape === true || sq1PXCursor === true) {
+                    if (xShape === true || sq1PXCursor === true)
+                    {
                         const rad:Number = Math.atan2(mx - sqPenCursorLast.x, my - sqPenCursorLast.y);
                         const deg:Number = -rad * (180 / Math.PI) + canvasAnchorPoint.rotation;
 
@@ -4753,29 +5486,34 @@
                         sqPenCursorLast.y = my;
                     }
 
-                    if (Point.distance(clickPos, moveEvent2Last) >= 0.2) {
+                    if (Point.distance(clickPos, moveEvent2Last) >= 0.2)
+                    {
                         dotflag = false;
                     }
                 }
             }
 
-            function penToolMouseMoveLimit(mx:Number, my:Number):Boolean {
+            function penToolMouseMoveLimit(mx:Number, my:Number):Boolean
+            {
                 moveEventDistSave.setTo(mx, my);
                 const dist:Number = Point.distance(moveEventDistSave, moveEventLast);
 
                 // 브러쉬 크기 제한보다 작게 움직였을때 무시
                 // 브러시 크기에 따라서 짧은 선들의 집합으로 그림 사각펜에서 선을 안정화시킴
-                if (dist < lastMouseMoveDist) {
+                if (dist < lastMouseMoveDist)
+                {
                     lastMouseMoveDist = lastMouseMoveDist - dist;
 
-                    if (lastMouseMoveDist <= 0) {
+                    if (lastMouseMoveDist <= 0)
+                    {
                         lastMouseMoveDist = xSize / 5;
                     }
                     return true;
                 }
 
                 lastMouseMoveDist = lastMouseMoveDist - dist;
-                if (lastMouseMoveDist <= 0) {
+                if (lastMouseMoveDist <= 0)
+                {
                     lastMouseMoveDist = xSize / 5;
                 }
 
@@ -4783,16 +5521,19 @@
                 return false;
             }
 
-            function onMouseMovePenTool(e:MouseEvent):void {
+            function onMouseMovePenTool(e:MouseEvent):void
+            {
                 var filteredPos:Point = getRefinedPoint(canvasDrawLayerChild.mouseX, canvasDrawLayerChild.mouseY);
                 const mx:Number = filteredPos.x;
                 const my:Number = filteredPos.y;
 
-                if (penToolMouseMoveLimit(mx, my)) {
+                if (penToolMouseMoveLimit(mx, my))
+                {
                     return;
                 }
 
-                if (isPenTool && penSmoothSlideValue > 1) {
+                if (isPenTool && penSmoothSlideValue > 1)
+                {
                     var ox:Number = smoothPos.x;
                     var oy:Number = smoothPos.y;
 
@@ -4805,31 +5546,38 @@
 
                     addTimerByName("lineSmoothingTimer", 0.03, false, lineSmoothing);
                 }
-                else {
+                else
+                {
                     handleMouseMove(mx, my);
                     smoothPos.setTo(mx, my);
                 }
             }
 
-            function onMouseUpPenTool(e:MouseEvent):void {
+            function onMouseUpPenTool(e:MouseEvent):void
+            {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 
-                if (!isRefLayerEmpty() && isPenTool && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0) {
+                if (!isRefLayerEmpty() && isPenTool && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
+                {
                     setCanvasRefLayerVisibleDelay();
                 }
 
-                if (penSmoothSlideValue > 1) {
+                if (penSmoothSlideValue > 1)
+                {
                     removeTimer("lineSmoothingTimer");
                     removeTimer("lineSmoothingTimer1");
                 }
 
-                if (xShape === true) {
+                if (xShape === true)
+                {
                     penSizePreviewCursor.rotation = 0;
 
-                    if (isMouseMoved === true) {
+                    if (isMouseMoved === true)
+                    {
                         const pointLen:uint = penPoints.length;
-                        if (pointLen >= 4) {
+                        if (pointLen >= 4)
+                        {
                             updateExtendEndPoint(penPoints[pointLen - 4], penPoints[pointLen - 3], penPoints[pointLen - 2], penPoints[pointLen - 1], xSize / 8);
                             rDataBuffer.push(["lineTo", extendedPos.x, extendedPos.y]);
                             canvasDrawLayerChild.graphics.lineTo(extendedPos.x, extendedPos.y);
@@ -4837,7 +5585,8 @@
                     }
                 }
 
-                if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag)) {
+                if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
+                {
                     rDataBuffer = [];
                     rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, isLayer2Selected, airBrushSizeDrawMode, canvasAnchorPoint.rotation]);
                     dotTool(xShape, xSize, xColor, clickPos.x, clickPos.y, canvasAnchorPoint.rotation);
@@ -4849,31 +5598,37 @@
                 drawDone();
             }
 
-            return function(flag:Boolean):void {
+            return function(flag:Boolean):void
+            {
                 isPenTool = flag;
 
-                if (isPenTool) {
+                if (isPenTool)
+                {
                     xSize = penSize;
                     xAlpha = penAlpha;
                     xShape = penIsSquare;
                     xAirBrushON = isPenAirBrushON;
                     dotflag = true;
 
-                    if (isTransparentPenColor) {
+                    if (isTransparentPenColor)
+                    {
                         xColor = CANVAS_BG_COLOR;
                         xBlendMode = "erase";
                     }
-                    else {
+                    else
+                    {
                         xColor = penColor;
                         xBlendMode = null;
 
-                        if (!isCurrentColorSamePickedColor()) {
+                        if (!isCurrentColorSamePickedColor())
+                        {
                             updatePickerCurrentColor(colorPickerBox.getRGBInfoBGColor());
                             addColorMyPaletteHistory(colorPickerBox.getRGBInfoBGColor());
                         }
                     }
                 }
-                else {
+                else
+                {
                     xSize = eraserSize;
                     xColor = CANVAS_BG_COLOR;
                     xAlpha = eraserAlpha;
@@ -4882,15 +5637,18 @@
                     xAirBrushON = isEraserAirBrushON;
                 }
 
-                if (xSize === 1) {
+                if (xSize === 1)
+                {
                     sq1PXCursor = true;
                     xShape = false;
                 }
-                else {
+                else
+                {
                     sq1PXCursor = false;
                 }
 
-                if (!isRefLayerEmpty() && flag && isRefLayerMemoryTrainingON) {
+                if (!isRefLayerEmpty() && flag && isRefLayerMemoryTrainingON)
+                {
                     setCanvasRefLayerInvisible();
                 }
 
@@ -4907,14 +5665,16 @@
                 smoothLast.copyFrom(filteredPos); // penmove할때 마지막x y저장
                 moveEventLast.copyFrom(filteredPos);
 
-                if (xShape === true) {
+                if (xShape === true)
+                {
                     sqPenCursorLast.copyFrom(smoothPos);
                     sqLinePosLast.copyFrom(smoothPos);
                 }
 
                 lastMouseMoveDist = xSize / 5; // penmove에서 distlimit이하이면 jump해주는거임, 이동시킬때 이 limit을 dist 만큼 빼줌
 
-                if (canAddUndoData === false) {
+                if (canAddUndoData === false)
+                {
                     setCanUndoDataFlagON();
                 }
                 canvasDrawLayerChild.filters = [];
@@ -4924,15 +5684,18 @@
             };
         }
 
-        public function getRefinedPoint(mx:Number, my:Number):Point {
+        public function getRefinedPoint(mx:Number, my:Number):Point
+        {
             mx = Math.round(mx * 100) / 100;
             my = Math.round(my * 100) / 100;
 
-            if (isSharpLineON) {
+            if (isSharpLineON)
+            {
                 my = Math.floor(my);
                 mx = Math.floor(mx);
             }
-            else if (penSmoothSlideValue === 0 && (canvasAnchorPoint.rotation % 90 === 0)) {
+            else if (penSmoothSlideValue === 0 && (canvasAnchorPoint.rotation % 90 === 0))
+            {
                 my = Math.round(my);
                 mx = Math.round(mx);
             }
@@ -4940,55 +5703,69 @@
             return new Point(mx, my);
         }
 
-        public function onMouseLeaveStage(e:Event):void {
+        public function onMouseLeaveStage(e:Event):void
+        {
             isMouseClicked = false;
             isRightMouseClicked = false;
             isMouseDragging = false;
             penSizePreviewCursor.visible = false;
         }
 
-        public function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void {
+        public function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
+        {
             if (isReplayModeON || isCaptureModeON)
                 return;
 
             penCursorManager.check();
         }
 
-        public function cPenCursorUpdater():Object {
+        public function cPenCursorUpdater():Object
+        {
             var cursorSize:Number = 3.0;
 
-            function getCursorSize():Number {
+            function getCursorSize():Number
+            {
                 return cursorSize;
             }
 
-            function updateCursorSize(size:Number):void {
+            function updateCursorSize(size:Number):void
+            {
                 cursorSize = size * canvasZoomMultipler;
             }
 
-            function updateZoom(z:Number):void {
-                if (isSelectedToolPenOrLine()) {
+            function updateZoom(z:Number):void
+            {
+                if (isSelectedToolPenOrLine())
+                {
                     cursorSize = penSize * canvasZoomMultipler;
                 }
-                else if (isSelectedTool(TOOL_ERASER)) {
+                else if (isSelectedTool(TOOL_ERASER))
+                {
                     cursorSize = eraserSize * canvasZoomMultipler;
                 }
-                else {
+                else
+                {
                     cursorSize = 0;
                 }
             }
 
-            function checkCursorVisibility():void {
-                if (cursorSize <= 4 || isSelectedTool(TOOL_FILLPEN)) {
-                    if (penSizePreviewCursor.visible) {
+            function checkCursorVisibility():void
+            {
+                if (cursorSize <= 4 || isSelectedTool(TOOL_FILLPEN))
+                {
+                    if (penSizePreviewCursor.visible)
+                    {
                         penSizePreviewCursor.visible = false;
                     }
                 }
-                else if (penSizePreviewCursor.visible === false) {
+                else if (penSizePreviewCursor.visible === false)
+                {
                     penSizePreviewCursor.visible = true;
                 }
             }
 
-            function check():void {
+            function check():void
+            {
                 const mx:Number = stage.mouseX;
                 const my:Number = stage.mouseY;
 
@@ -5002,10 +5779,12 @@
                         || !isCursorInDrawArea()
                         || resizeCanvas.isCanvasResizing()
                         || (refLayerMenuBox.visible && refLayerMenuBox.hitTestPoint(stage.mouseX, stage.mouseY))
-                        || loadMenuBox.visible) {
+                        || loadMenuBox.visible)
+                {
                     penSizePreviewCursor.visible = false;
                 }
-                else {
+                else
+                {
                     // addundo플래그가 커서가 캔버스 안에 들어올때 해주기 때문에 위치를 계속 갱신해줘야함
                     penSizePreviewCursor.x = mx;
                     penSizePreviewCursor.y = my;
@@ -5021,7 +5800,8 @@
                 };
         }
 
-        public function cRealWorkingTimer():Object {
+        public function cRealWorkingTimer():Object
+        {
             var workingTimer:Timer = new Timer(1000);
             var workingTime:int = 0;
             var lastTime:int = 0; // 마지막 시간 저장해줌
@@ -5033,23 +5813,28 @@
             var lastMousePosX:Number = 0;
             var lastMousePosY:Number = 0;
 
-            function reset():void {
+            function reset():void
+            {
                 lastTime = getTimer();
                 workingTime = 0;
                 topBar.timer.text = "00:00:00";
                 topBar.updateTimerPos(stage.stageWidth);
             }
 
-            function setRunningTime(newTime:int):void {
+            function setRunningTime(newTime:int):void
+            {
                 workingTime = newTime;
             }
 
-            function getRunningTime():int {
+            function getRunningTime():int
+            {
                 return workingTime;
             }
 
-            function update():void {
-                if (workingTime < 0) {
+            function update():void
+            {
+                if (workingTime < 0)
+                {
                     workingTime = 0;
                 }
 
@@ -5066,17 +5851,20 @@
                 topBar.updateTimerPos(stage.stageWidth);
             }
 
-            function onTimer():Boolean {
+            function onTimer():Boolean
+            {
                 const nowTime:int = getTimer();
                 const subTime:int = nowTime - lastTime;
 
                 if (!stage.nativeWindow.active
                         || (!isMouseClicked && !isRightMouseClicked && !isKeyPressed()
-                            && stage.mouseX === lastMousePosX && stage.mouseY === lastMousePosY)) {
+                            && stage.mouseX === lastMousePosX && stage.mouseY === lastMousePosY))
+                {
                     topBar.timerAFkDot.visible = !topBar.timerAFkDot.visible;
                     topBar.updateTimerPos(stage.stageWidth);
                 }
-                else {
+                else
+                {
                     workingTime += subTime;
                     update();
                 }
@@ -5089,15 +5877,18 @@
                 return true;
             }
 
-            function stop():void {
-                if (workingTimer !== null) {
+            function stop():void
+            {
+                if (workingTimer !== null)
+                {
                     workingTimer.stop();
                     workingTimer.removeEventListener(TimerEvent.TIMER, onTimer);
                     workingTimer = null;
                 }
             }
 
-            function start():void {
+            function start():void
+            {
                 workingTimer.addEventListener(TimerEvent.TIMER, onTimer);
                 workingTimer.start();
             }
@@ -5113,20 +5904,23 @@
 
         }
 
-        public function initializeCaptureModeTransparentBG():void {
+        public function initializeCaptureModeTransparentBG():void
+        {
             const halfSize:Number = Math.floor(capTransparentBGBMPDSize / 2);
             capTransparentBGBMPD = new BitmapData(capTransparentBGBMPDSize, capTransparentBGBMPDSize, false, 0xFFFFFF);
             capTransparentBGBMPD.fillRect(new Rectangle(0, 0, halfSize, halfSize), 0xC8C8C8);
             capTransparentBGBMPD.fillRect(new Rectangle(halfSize, halfSize, halfSize, halfSize), 0xCCCCCC);
         }
 
-        public function restoreZoomReplayMode():void {
+        public function restoreZoomReplayMode():void
+        {
             rCanvasZoomIndex = getNearZoomIndex(rLastCanvasZoomMultiplier);
             updateCanvasScale(canvasZoomMultiplerList[rCanvasZoomIndex], true);
             rFollowMouse.updateBounds();
         }
 
-        public function resetZoomReplayMode():void {
+        public function resetZoomReplayMode():void
+        {
             const center:Point = getStageCenterPos("replay");
 
             rLastCanvasZoomMultiplier = 1.0;
@@ -5137,8 +5931,10 @@
             rFollowMouse.updateBounds();
         }
 
-        public function resetZoomDrawMode():void {
-            if (canvasZoomMultipler !== 1.0) {
+        public function resetZoomDrawMode():void
+        {
+            if (canvasZoomMultipler !== 1.0)
+            {
                 const center:Point = getStageCenterPos("draw");
                 const gcenter:Point = canvasPanel.globalToLocal(new Point(center.x, center.y));
                 const gp:Point = canvasPanel.localToGlobal(new Point(0, 0));
@@ -5153,28 +5949,34 @@
             }
         }
 
-        public function zoomInCanvas(zoomInFlag:Boolean, isReplayMode:Boolean):void {
+        public function zoomInCanvas(zoomInFlag:Boolean, isReplayMode:Boolean):void
+        {
             const xAnc:Sprite = (isReplayMode) ? rCanvasAnchorPoint : canvasAnchorPoint;
             const zoomMax:int = canvasZoomMultiplerList.length - 1;
             var center:Point;
             var newZoomIndex:int = (isReplayMode) ? rCanvasZoomIndex : canvasZoomIndex;
 
-            if (zoomInFlag) {
+            if (zoomInFlag)
+            {
                 newZoomIndex++;
-                if (newZoomIndex > zoomMax) {
+                if (newZoomIndex > zoomMax)
+                {
                     newZoomIndex = zoomMax;
                 }
             }
-            else {
+            else
+            {
                 newZoomIndex--;
-                if (newZoomIndex < 0) {
+                if (newZoomIndex < 0)
+                {
                     newZoomIndex = 0;
                 }
             }
 
             const newZoom:Number = canvasZoomMultiplerList[newZoomIndex];
 
-            if (isReplayMode) {
+            if (isReplayMode)
+            {
                 center = getStageCenterPos("replay");
                 rLastCanvasZoomMultiplier = newZoom;
                 setFitReplayCanvasToViewportOFF();
@@ -5184,7 +5986,8 @@
                 rFollowMouse.updateBounds();
                 showMouseHintTemp(String(Math.floor(newZoom * 100)) + "%");
             }
-            else {
+            else
+            {
                 center = getStageCenterPos("draw");
                 const gcenter:Point = canvasPanel.globalToLocal(new Point(center.x, center.y));
                 const gp:Point = canvasPanel.localToGlobal(new Point(0, 0));
@@ -5196,39 +5999,49 @@
                 updatePenSizeCursor();
                 updateCanvasNaigatorCursor();
 
-                if (gridGapMultiplier > 0) {
+                if (gridGapMultiplier > 0)
+                {
                     drawGrid();
                 }
             }
         }
 
-        public function checkGeneralKeyUp(keyCode:uint):void {
-            if (KEY_BUFFER.length === 0) {
+        public function checkGeneralKeyUp(keyCode:uint):void
+        {
+            if (KEY_BUFFER.length === 0)
+            {
                 resetLastKey();
             }
-            else if (!isCaptureModeON && !isReplayModeON && isLastKey(keyCode)) {
+            else if (!isCaptureModeON && !isReplayModeON && isLastKey(keyCode))
+            {
                 onKeyDownLassoTool(null);
             }
         }
 
-        public function onKeyUpLassoTool(e:KeyboardEvent):void {
+        public function onKeyUpLassoTool(e:KeyboardEvent):void
+        {
             const keyCode:uint = e.keyCode;
-            if (isLassoMenuHiddenTemp && !isMouseClicked) {
+            if (isLassoMenuHiddenTemp && !isMouseClicked)
+            {
                 isLassoMenuHiddenTemp = false;
             }
 
             checkGeneralKeyUp(keyCode);
         }
 
-        public function onKeyDownLassoTool(e:KeyboardEvent):void {
-            if (isMouseClicked || isRightMouseClicked || isMouseDragging) {
+        public function onKeyDownLassoTool(e:KeyboardEvent):void
+        {
+            if (isMouseClicked || isRightMouseClicked || isMouseDragging)
+            {
                 return;
             }
 
             const keyCode:uint = getFirstPressedKey();
 
-            if (keyCode === KEY.space) {
-                if (checkSubKey(2, true, function(input:int):void {
+            if (keyCode === KEY.space)
+            {
+                if (checkSubKey(2, true, function(input:int):void
+                        {
                             switch (input)
                                 {
                                     case KEY.w:
@@ -5260,11 +6073,13 @@
     break;
 
 }
-})) {
+}))
+{
     return;
     }
 
-    if (isLastKey(keyCode)) {
+    if (isLastKey(keyCode))
+    {
         return;
     }
     updateLastKey(keyCode);
@@ -5273,8 +6088,10 @@
     setSelectedTool(TOOL_HAND);
     showNowToolIconToCursorTemp(TOOL_HAND);
 }
-else if (isPressingShift()) {
-    if (checkSubKey(2, true, function(input:int):void {
+else if (isPressingShift())
+{
+    if (checkSubKey(2, true, function(input:int):void
+            {
                 switch (input)
                     {
                         case KEY.s:
@@ -5297,25 +6114,30 @@ else if (isPressingShift()) {
         }
         return;
 }
-})) {
+}))
+{
     return;
 }
 }
 
-if (isLastKey(keyCode)) {
+if (isLastKey(keyCode))
+{
     return;
 }
 
 updateLastKey(keyCode);
 
-switch (keyCode) {
+switch (keyCode)
+{
     case KEY.tab:
     case KEY.backslash:
         {
-            if (isSidebarVisible) {
+            if (isSidebarVisible)
+            {
                 hideSidebarPermanent();
             }
-            else {
+            else
+            {
                 showSidebarPermanent();
             }
         }
@@ -5356,29 +6178,36 @@ switch (keyCode) {
 }
 }
 
-public function toggleSideBarPosition():void {
-    if (isRightSidebar === false) {
+public function toggleSideBarPosition():void
+{
+    if (isRightSidebar === false)
+    {
         isRightSidebar = true;
         moveSideBar("right");
     }
-    else if (isRightSidebar === true) {
+    else if (isRightSidebar === true)
+    {
         isRightSidebar = false;
         moveSideBar("left");
     }
 }
 
-public function updateCanvasNaigatorCursor():void {
+public function updateCanvasNaigatorCursor():void
+{
     var newRightOffset:Number = 0;
     var newLeftOffset:Number = 0;
 
-    if (isSidebarVisible === true) {
+    if (isSidebarVisible === true)
+    {
         newRightOffset = STAGE_RIGHT_OFFSET;
         newLeftOffset = STAGE_LEFT_OFFSET;
 
-        if (isRightSidebar) {
+        if (isRightSidebar)
+        {
             newRightOffset = Math.round(sideBar.getWidth());
         }
-        else {
+        else
+        {
             newLeftOffset = Math.round(sideBar.getWidth());
         }
     }
@@ -5391,7 +6220,8 @@ public function updateCanvasNaigatorCursor():void {
             , CANVAS_WIDTH * zoom, canvasAnchorPoint.rotation);
 }
 
-public function startCanvasMoveByCanvasNavigator(navCursorClicked:Boolean):void {
+public function startCanvasMoveByCanvasNavigator(navCursorClicked:Boolean):void
+{
     var sx:Number = canvasNavigatorBox.mouseX;
     var sy:Number = canvasNavigatorBox.mouseY;
 
@@ -5401,7 +6231,8 @@ public function startCanvasMoveByCanvasNavigator(navCursorClicked:Boolean):void 
     setRefLayerAndGridVisible(false);
     hideBottomHint();
 
-    function centerCanvas(mx:Number, my:Number):void {
+    function centerCanvas(mx:Number, my:Number):void
+    {
         const b:Object = getBoundRect(canvasNavigatorBox.navCursor);
         const scale:Number = Global.getUIScale();
         // prevToCanvasMultiply를 나눠 줘야 커서랑 같은 속도가 나옴
@@ -5417,14 +6248,17 @@ public function startCanvasMoveByCanvasNavigator(navCursorClicked:Boolean):void 
         updateCanvasNaigatorCursor();
     }
 
-    function onMouseUpCanvasNavigator(e:MouseEvent):void {
+    function onMouseUpCanvasNavigator(e:MouseEvent):void
+    {
         setRefLayerAndGridVisible(true);
         keepCanvasPanelInStage();
         updateCanvasNaigatorCursor();
         isMouseDragging = false;
 
-        if (isLassoToolStarted) {
-            if (isLassoMenuHiddenTemp === true) {
+        if (isLassoToolStarted)
+        {
+            if (isLassoMenuHiddenTemp === true)
+            {
                 hideLassoMenuBoxTemp();
             }
         }
@@ -5433,7 +6267,8 @@ public function startCanvasMoveByCanvasNavigator(navCursorClicked:Boolean):void 
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator);
     }
 
-    function onMouseMoveCanvasNavigator(e:MouseEvent):void {
+    function onMouseMoveCanvasNavigator(e:MouseEvent):void
+    {
         const scale:Number = Global.getUIScale();
         var mx:Number = canvasNavigatorBox.mouseX;
         var my:Number = canvasNavigatorBox.mouseY;
@@ -5452,13 +6287,15 @@ public function startCanvasMoveByCanvasNavigator(navCursorClicked:Boolean):void 
     }
     moveCanvasAnchorPoint(0, 0);
 
-    if (isLassoToolStarted) {
+    if (isLassoToolStarted)
+    {
         lassoMenuBox.visible = false;
         isLassoMenuHiddenTemp = true;
     }
 
     // 클릭한 지점이 커서 바깥부분일때 강제로 캔버스 중심으로 옮겨줌
-    if (!navCursorClicked) {
+    if (!navCursorClicked)
+    {
         centerCanvas(stage.mouseX, stage.mouseY);
     }
 
@@ -5468,36 +6305,43 @@ public function startCanvasMoveByCanvasNavigator(navCursorClicked:Boolean):void 
 
 }
 // 원점 penSmoothX oy로부터 dx쪽으로 dist 만큼 떨어진 거리 점을 리턴함
-public function movePointAngleDist(ox:Number, oy:Number, dx:Number, dy:Number, dist:Number):Point {
+public function movePointAngleDist(ox:Number, oy:Number, dx:Number, dy:Number, dist:Number):Point
+{
     const rad:Number = Math.atan2(dx - ox, dy - oy);
 
     return new Point(ox + dist * Math.sin(rad)
             , oy + dist * Math.cos(rad));
 }
 
-public function selectPenToolIfNotDrawingTool(checkErase:Boolean):void {
+public function selectPenToolIfNotDrawingTool(checkErase:Boolean):void
+{
     if (!(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)
-                || (checkErase && isSelectedTool(TOOL_ERASER)))) {
+                || (checkErase && isSelectedTool(TOOL_ERASER))))
+    {
         resetLastTool();
         selectPenTool();
         updatePenSizeCursor();
     }
 }
 
-public function handleOneMoreClickMergeIntoRefLayer(menuBox:DisplayObject, button:SimpleButton, hintstr:String, func:Function):void {
+public function handleOneMoreClickMergeIntoRefLayer(menuBox:DisplayObject, button:SimpleButton, hintstr:String, func:Function):void
+{
     setAsTopChild(menuBox);
     refLayerMenuConfirmCount++;
 
-    function onMouseOutCancel(e:MouseEvent):void {
+    function onMouseOutCancel(e:MouseEvent):void
+    {
         button.removeEventListener(MouseEvent.MOUSE_OUT, onMouseOutCancel);
         refLayerMenuConfirmCount = 0;
     }
 
-    if (refLayerMenuConfirmCount === 1) {
+    if (refLayerMenuConfirmCount === 1)
+    {
         menuBox["hint"]("One more click to OK");
         button.addEventListener(MouseEvent.MOUSE_OUT, onMouseOutCancel);
     }
-    else if (refLayerMenuConfirmCount === 2) {
+    else if (refLayerMenuConfirmCount === 2)
+    {
         button.removeEventListener(MouseEvent.MOUSE_OUT, onMouseOutCancel);
         refLayerMenuConfirmCount = 0;
 
@@ -5506,19 +6350,23 @@ public function handleOneMoreClickMergeIntoRefLayer(menuBox:DisplayObject, butto
     }
 }
 
-public function mergeLassoImageIntoToRefLayer():void {
+public function mergeLassoImageIntoToRefLayer():void
+{
     handleOneMoreClickMergeIntoRefLayer(
             lassoMenuBox,
             lassoMenuBox.lassoRefLayer,
             HintStrings.STRING_MERGE_INTO_REFLAYER,
-            function():void {
+            function():void
+            {
                 mergeLassoImageToRefLayer();
                 openRefLayerMenu();
             });
 }
 
-public function mergeCanvasImageIntoRefLayer():void {
-    if (refLayerMenuBox.refTransferCanvasImageButton.alpha !== 1.0) {
+public function mergeCanvasImageIntoRefLayer():void
+{
+    if (refLayerMenuBox.refTransferCanvasImageButton.alpha !== 1.0)
+    {
         return;
     }
 
@@ -5529,51 +6377,63 @@ public function mergeCanvasImageIntoRefLayer():void {
             mergeCanvasImageToRefLayer);
 }
 
-public function onMouseOverRefLayerMenuHint(e:MouseEvent):void {
-    if (!isRefLayerMenuON) {
+public function onMouseOverRefLayerMenuHint(e:MouseEvent):void
+{
+    if (!isRefLayerMenuON)
+    {
         stage.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverRefLayerMenuHint);
         return;
     }
 
-    if (refLayerMenuBox.hitTestPoint(stage.mouseX, stage.mouseY) === false) {
-        if (refLayerMenuBox.getHintStr() !== "Reference layer") {
+    if (refLayerMenuBox.hitTestPoint(stage.mouseX, stage.mouseY) === false)
+    {
+        if (refLayerMenuBox.getHintStr() !== "Reference layer")
+        {
             refLayerMenuBox.hint("Reference layer");
         }
 
         return;
     }
 
-    if (isMouseDragging === true) {
+    if (isMouseDragging === true)
+    {
         return;
     }
 
     refLayerMenuBox.hint(HintStrings.getHintFromTargetNameRefLayer(e.target.name));
 }
 
-public function lassoMenuHintONEvent(e:MouseEvent):void {
-    if (!isLassoToolStarted) {
+public function lassoMenuHintONEvent(e:MouseEvent):void
+{
+    if (!isLassoToolStarted)
+    {
         stage.removeEventListener(MouseEvent.MOUSE_OVER, lassoMenuHintONEvent);
         return;
     }
 
-    if (lassoMenuBox.hitTestPoint(stage.mouseX, stage.mouseY) === false) {
-        if (lassoMenuBox.getHintStr() !== "Lasso tool") {
+    if (lassoMenuBox.hitTestPoint(stage.mouseX, stage.mouseY) === false)
+    {
+        if (lassoMenuBox.getHintStr() !== "Lasso tool")
+        {
             lassoMenuBox.hint("Lasso tool");
         }
         return;
     }
 
-    if (isMouseDragging === true) {
+    if (isMouseDragging === true)
+    {
         return;
     }
 
     lassoMenuBox.hint(HintStrings.getHintFromTargetNameLassoTool(e.target.name));
 }
 
-public function onMouseOverToolBox2Hint(e:MouseEvent):void {
+public function onMouseOverToolBox2Hint(e:MouseEvent):void
+{
     const target:DisplayObject = e.target as DisplayObject;
 
-    if (!target || target.alpha < 1.0) {
+    if (!target || target.alpha < 1.0)
+    {
         return;
     }
 
@@ -5582,8 +6442,10 @@ public function onMouseOverToolBox2Hint(e:MouseEvent):void {
     toolBox2.hint((hintStr === null) ? "Tools" : hintStr);
 }
 
-public function updateTopBarModeIcons(mode:String):void {
-    if (isLassoToolStarted === true || isAboutBoxOpened === true) {
+public function updateTopBarModeIcons(mode:String):void
+{
+    if (isLassoToolStarted === true || isAboutBoxOpened === true)
+    {
         return;
     }
 
@@ -5591,12 +6453,14 @@ public function updateTopBarModeIcons(mode:String):void {
 
     topBar.hideUpdateButton();
 
-    if (mode === "draw") {
+    if (mode === "draw")
+    {
         topBar.showModeIcons("draw", isRightSidebar, isSidebarVisible);
         topBar.hideModeIcons("replay");
         topBar.hideModeIcons("capture");
         updatePenSizeCursor();
-        if (appUpdateStatus !== UPDATE_NONE) {
+        if (appUpdateStatus !== UPDATE_NONE)
+        {
             topBar.showUpdateButton();
         }
 
@@ -5605,28 +6469,34 @@ public function updateTopBarModeIcons(mode:String):void {
         else
             topBar.newWindowCloseButton.visible = false;
     }
-    else if (mode === "replay") {
+    else if (mode === "replay")
+    {
         topBar.showModeIcons("replay");
         topBar.hideModeIcons("draw");
         topBar.hideModeIcons("capture");
         seekBarBox.setPlayButtonVisible(!isReplayStarted);
     }
-    else if (mode === "capture") {
+    else if (mode === "capture")
+    {
         topBar.showModeIcons("capture");
         topBar.hideModeIcons("replay");
         topBar.hideModeIcons("draw");
 
-        if (canvasLayer1Bitmap.visible) {
+        if (canvasLayer1Bitmap.visible)
+        {
             topBar.capLayer1VisibleButton.alpha = 1.0;
         }
-        else {
+        else
+        {
             topBar.capLayer1VisibleButton.alpha = Global.OFFALPHA;
         }
 
-        if (canvasLayer2Bitmap.visible) {
+        if (canvasLayer2Bitmap.visible)
+        {
             topBar.capLayer2VisibleButton.alpha = 1.0;
         }
-        else {
+        else
+        {
             topBar.capLayer2VisibleButton.alpha = Global.OFFALPHA;
         }
 
@@ -5634,32 +6504,38 @@ public function updateTopBarModeIcons(mode:String):void {
     }
 }
 
-public function resetGrid():void {
+public function resetGrid():void
+{
     lastGridGapValue = 0;
     gridGapMultiplier = 0;
     gridButton.setCursorPosByValue(0);
     clearGrid();
 }
 
-public function clearGrid():void {
+public function clearGrid():void
+{
     lastGridGapValue = 0;
     topBar.setGridMoveButtonAlpha(Global.OFFALPHA);
     canvasGrid.visible = false;
     canvasGrid.graphics.clear();
 }
 
-public function drawGrid():void {
-    if (gridGapMultiplier === 0) {
+public function drawGrid():void
+{
+    if (gridGapMultiplier === 0)
+    {
         clearGrid();
         return;
     }
 
     var gridgap:Number = gridGapMultiplier * GRID_GAP;
-    if (gridgap * canvasZoomMultipler < gridgap) {
+    if (gridgap * canvasZoomMultipler < gridgap)
+    {
         gridgap = gridgap / canvasZoomMultipler;
     }
 
-    if (gridgap !== lastGridGapValue) {
+    if (gridgap !== lastGridGapValue)
+    {
         lastGridGapValue = gridgap;
 
         const gridWidth:Number = CANVAS_WIDTH;
@@ -5679,7 +6555,8 @@ public function drawGrid():void {
         gridGraphicsData.length = 0;
 
         // 가로선
-        for (; i <= len; i++) {
+        for (; i <= len; i++)
+        {
             gridGraphicsCommands.push(1);
             gridGraphicsCommands.push(2);
             gridGraphicsData.push(0);
@@ -5697,7 +6574,8 @@ public function drawGrid():void {
             i = 0;
 
         // 세로선
-        for (; i <= len; i++) {
+        for (; i <= len; i++)
+        {
             gridGraphicsCommands.push(1);
             gridGraphicsCommands.push(2);
             gridGraphicsData.push(gridgap * i + offsetX);
@@ -5717,43 +6595,52 @@ public function drawGrid():void {
     canvasGrid.visible = true;
 }
 
-public function cGridFunc():Object {
+public function cGridFunc():Object
+{
     const minDist:Number = topBar.gridSlider.x + 1.5;
     const maxDist:Number = minDist + topBar.gridSlider.width - 2.5;
     const step:Number = 20;
     const div:Number = (maxDist - minDist) / step;
     var oldValue:Number;
 
-    function setCursorPosByValue(value:Number):void {
+    function setCursorPosByValue(value:Number):void
+    {
         topBar.gridSliderCursor.x = value * div + minDist;
     }
 
-    function drawGridByValue(mx:Number, initFlag:Boolean):void {
-        if (mx < minDist) {
+    function drawGridByValue(mx:Number, initFlag:Boolean):void
+    {
+        if (mx < minDist)
+        {
             mx = minDist;
         }
-        else if (mx > maxDist) {
+        else if (mx > maxDist)
+        {
             mx = maxDist;
         }
 
         const value:Number = Math.floor((mx - minDist) / div);
 
-        if (oldValue !== value || initFlag) {
+        if (oldValue !== value || initFlag)
+        {
             setCursorPosByValue(value);
 
-            if (value === 0) {
+            if (value === 0)
+            {
                 gridGapMultiplier = 0;
                 oldValue = 0;
                 hideBottomHint();
                 clearGrid();
                 return;
             }
-            else {
+            else
+            {
                 if (topBar.isGridMoveButtonOFFAlpha())
                     topBar.setGridMoveButtonAlpha(1.0);
 
                 // 변한 크기만큼 오프셋도 변화시켜줌
-                if (oldValue > 0 && value > 0) {
+                if (oldValue > 0 && value > 0)
+                {
                     gridDrawOffsetX = gridDrawOffsetX * (value / oldValue);
                     gridDrawOffsetY = gridDrawOffsetY * (value / oldValue);
                 }
@@ -5769,19 +6656,23 @@ public function cGridFunc():Object {
         setAsTopChild(canvasGrid);
     }
 
-    function onMouseUpGridButton(e:MouseEvent):void {
+    function onMouseUpGridButton(e:MouseEvent):void
+    {
         isMouseDragging = false;
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
     }
 
-    function onMouseMoveGridButton(e:MouseEvent):void {
+    function onMouseMoveGridButton(e:MouseEvent):void
+    {
         var mx:Number = topBar.gridSliderWrapper.mouseX;
 
-        if (mx < minDist) {
+        if (mx < minDist)
+        {
             mx = minDist;
         }
-        else if (mx > maxDist) {
+        else if (mx > maxDist)
+        {
             mx = maxDist;
         }
 
@@ -5789,8 +6680,10 @@ public function cGridFunc():Object {
         showBottomHint(HintStrings.getHintFromTargetName("gridSliderWrapper"));
     }
 
-    function repeatGridMoveByValue(moveX:Number, moveY:Number):void {
-        startKeyRepeat(true, function():void {
+    function repeatGridMoveByValue(moveX:Number, moveY:Number):void
+    {
+        startKeyRepeat(true, function():void
+            {
                 gridDrawOffsetX += moveX * (isCanvasMirrored ? -1 : 1);
                 gridDrawOffsetY += moveY;
 
@@ -5805,39 +6698,48 @@ public function cGridFunc():Object {
             });
     }
 
-    function onMouseDownGridButton(e:MouseEvent):void {
+    function onMouseDownGridButton(e:MouseEvent):void
+    {
         if (!e.target)
             return;
         const targetName:String = e.target.name;
 
-        if (targetName === "gridButton" || topBar.gridButtonWrapper.hitTestPoint(stage.mouseX, stage.mouseY) === false) {
+        if (targetName === "gridButton" || topBar.gridButtonWrapper.hitTestPoint(stage.mouseX, stage.mouseY) === false)
+        {
             off();
             return;
         }
 
-        if (topBar.gridMoveButtonWrapper.hitTestPoint(stage.mouseX, stage.mouseY)) {
-            if (e.target.alpha === 1.0) {
+        if (topBar.gridMoveButtonWrapper.hitTestPoint(stage.mouseX, stage.mouseY))
+        {
+            if (e.target.alpha === 1.0)
+            {
                 var p:Point;
 
-                if (targetName === "gridMoveLeftButton") {
+                if (targetName === "gridMoveLeftButton")
+                {
                     p = rotatePoint(-1, 0, canvasAnchorPoint.rotation);
                     repeatGridMoveByValue(p.x, p.y);
                 }
-                else if (targetName === "gridMoveRightButton") {
+                else if (targetName === "gridMoveRightButton")
+                {
                     p = rotatePoint(1, 0, canvasAnchorPoint.rotation);
                     repeatGridMoveByValue(p.x, p.y);
                 }
-                else if (targetName === "gridMoveUpButton") {
+                else if (targetName === "gridMoveUpButton")
+                {
                     p = rotatePoint(0, -1, canvasAnchorPoint.rotation);
                     repeatGridMoveByValue(p.x, p.y);
                 }
-                else if (targetName === "gridMoveDownButton") {
+                else if (targetName === "gridMoveDownButton")
+                {
                     p = rotatePoint(0, 1, canvasAnchorPoint.rotation);
                     repeatGridMoveByValue(p.x, p.y);
                 }
             }
         }
-        else if (topBar.gridSliderWrapper.hitTestPoint(stage.mouseX, stage.mouseY)) {
+        else if (topBar.gridSliderWrapper.hitTestPoint(stage.mouseX, stage.mouseY))
+        {
             isMouseDragging = true;
             oldValue = gridGapMultiplier;
             drawGridByValue(topBar.gridSliderWrapper.mouseX, true);
@@ -5846,32 +6748,41 @@ public function cGridFunc():Object {
         }
     }
 
-    function onKeyUpGridButton(e:KeyboardEvent):void {
-        if (e.keyCode === KEY.f2 || e.keyCode === KEY.f8) {
-            if (!(isMouseClicked || isMouseDragging)) {
-                if (isPressingShift()) {
-                    if (gridGapMultiplier !== 0) {
+    function onKeyUpGridButton(e:KeyboardEvent):void
+    {
+        if (e.keyCode === KEY.f2 || e.keyCode === KEY.f8)
+        {
+            if (!(isMouseClicked || isMouseDragging))
+            {
+                if (isPressingShift())
+                {
+                    if (gridGapMultiplier !== 0)
+                    {
                         hideBottomHint();
                         oldValue = 0;
                         resetGrid();
                     }
                 }
-                else {
+                else
+                {
                     off();
                 }
             }
         }
     }
 
-    function onRightMouseDownGridButton(e:MouseEvent):void {
+    function onRightMouseDownGridButton(e:MouseEvent):void
+    {
         if (!e.target)
             return;
 
         const targetName:String = e.target.name;
 
         if (targetName === "gridMoveLeftButton"
-                || targetName === "gridMoveRightButton") {
-            if (gridGapMultiplier > 0) {
+                || targetName === "gridMoveRightButton")
+        {
+            if (gridGapMultiplier > 0)
+            {
                 gridDrawOffsetX = 0.0;
                 lastGridGapValue = 0.0;
 
@@ -5880,26 +6791,32 @@ public function cGridFunc():Object {
             }
         }
         else if (targetName === "gridMoveUpButton"
-                || targetName === "gridMoveDownButton") {
-            if (gridGapMultiplier > 0) {
+                || targetName === "gridMoveDownButton")
+        {
+            if (gridGapMultiplier > 0)
+            {
                 gridDrawOffsetY = 0.0;
                 lastGridGapValue = 0.0;
                 if (gridGapMultiplier > 0)
                     drawGrid();
             }
         }
-        else if (targetName === "gridSliderWrapper") {
-            if (gridGapMultiplier !== 0) {
+        else if (targetName === "gridSliderWrapper")
+        {
+            if (gridGapMultiplier !== 0)
+            {
                 hideBottomHint();
                 resetGrid();
             }
         }
-        else {
+        else
+        {
             off();
         }
     }
 
-    function off():void {
+    function off():void
+    {
         hideBottomHint();
         isMouseDragging = false;
         removeKeyRepeatEvents(null);
@@ -5913,21 +6830,26 @@ public function cGridFunc():Object {
         addInputEventsDrawMode();
     }
 
-    function start(shortcutKey:Boolean):void {
-        if (topBar.gridButtonWrapper.visible === false) {
+    function start(shortcutKey:Boolean):void
+    {
+        if (topBar.gridButtonWrapper.visible === false)
+        {
             removeInputEventsDrawMode();
 
-            if (gridGapMultiplier > 0) {
+            if (gridGapMultiplier > 0)
+            {
                 topBar.setGridMoveButtonAlpha(1.0);
             }
-            else {
+            else
+            {
                 topBar.setGridMoveButtonAlpha(Global.OFFALPHA);
             }
 
             topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
             setCursorPosByValue(gridGapMultiplier);
 
-            if (shortcutKey) {
+            if (shortcutKey)
+            {
                 const p:Point = topBar.globalToLocal(new Point(stage.mouseX, stage.mouseY));
                 topBar.gridButtonWrapper.x = p.x - topBar.gridSliderWrapper.x - topBar.gridSliderCursor.x;
                 topBar.gridButtonWrapper.y = p.y - topBar.gridSliderWrapper.y - topBar.gridSliderCursor.y;
@@ -5937,7 +6859,8 @@ public function cGridFunc():Object {
             stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton, false, -1);
             stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton, false, -1);
         }
-        else {
+        else
+        {
             off();
         }
     }
@@ -5948,29 +6871,35 @@ public function cGridFunc():Object {
         };
 }
 
-public function updateRefLayerOpacityCursorPosByValue(alpha:Number):void {
+public function updateRefLayerOpacityCursorPosByValue(alpha:Number):void
+{
     refLayerMenuBox.refOpacityCursor.x = (refLayerMenuBox.refOpacityBar.x + 1) + (refLayerMenuBox.refOpacityBar.width * alpha);
 }
 
-public function closeRefLayerMenu():void {
+public function closeRefLayerMenu():void
+{
     isRefLayerMenuON = false;
     refLayerMenuBox.visible = false;
     refLayerMenuBox.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpRefLayerMenu);
 }
 
-public function onRightMouseUpRefLayerMenu(e:MouseEvent):void {
+public function onRightMouseUpRefLayerMenu(e:MouseEvent):void
+{
     if (!isRefLayerMenuON)
         return;
 
     const target:DisplayObject = e.target as DisplayObject;
-    if (!target) {
+    if (!target)
+    {
         return;
     }
 
-    switch (target.name) {
+    switch (target.name)
+    {
         case "refRotateImageButton":
             {
-                if (canvasRefLayer.rotation !== 0) {
+                if (canvasRefLayer.rotation !== 0)
+                {
                     isFileAlreadySaved = false;
 
                     canvasRefLayer.rotation = 0;
@@ -5980,7 +6909,8 @@ public function onRightMouseUpRefLayerMenu(e:MouseEvent):void {
 
         case "refResizeImageButton":
             {
-                if (canvasRefLayer.scaleY !== 1.0) {
+                if (canvasRefLayer.scaleY !== 1.0)
+                {
                     isFileAlreadySaved = false;
 
                     canvasRefLayer.scaleX = (canvasRefLayer.scaleX < 0) ? -1.0 : 1.0;
@@ -5992,7 +6922,8 @@ public function onRightMouseUpRefLayerMenu(e:MouseEvent):void {
         case "refMoveImageButton":
             {
                 if (canvasRefLayerBitmap.x !== -canvasRefLayerBitmap.width / 2
-                        && canvasRefLayerBitmap.y !== -canvasRefLayerBitmap.height / 2) {
+                        && canvasRefLayerBitmap.y !== -canvasRefLayerBitmap.height / 2)
+                {
                     isFileAlreadySaved = false;
 
                     canvasRefLayer.x = CANVAS_WIDTH / 2;
@@ -6019,7 +6950,8 @@ public function openRefLayerMenu():void // load clip버튼에서 눌러줬을때
     setAsTopChild(refLayerMenuBox);
     keepBoxInsideViewPort(refLayerMenuBox);
 
-    if (isRefLayerMenuON === false) {
+    if (isRefLayerMenuON === false)
+    {
         refLayerMenuBox.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpRefLayerMenu);
         stage.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverRefLayerMenuHint);
     }
@@ -6028,68 +6960,86 @@ public function openRefLayerMenu():void // load clip버튼에서 눌러줬을때
     setAsTopChild(refLayerMenuBox);
 }
 
-public function isRefLayerImageAlreadyCleared():Boolean {
+public function isRefLayerImageAlreadyCleared():Boolean
+{
     return (canvasRefLayerBitmapData && canvasRefLayerBitmapData.width > 1 && canvasRefLayerBitmapData.height > 1)
         || !canvasRefLayerBitmapData;
 }
 
-public function startReflayerClear():void {
+public function startReflayerClear():void
+{
     setAsTopChild(refLayerMenuBox);
 
-    if (isRefLayerImageAlreadyCleared()) {
+    if (isRefLayerImageAlreadyCleared())
+    {
         clearRefLayerImage();
     }
 
-    if (isRefLayerMemoryTrainingON) {
+    if (isRefLayerMemoryTrainingON)
+    {
         toggleRefLayerMemoryTraining();
     }
 }
 
-public function setCanvasRefLayerInvisible():void {
-    if (hasTimer("refLayerVisibleDelayTimer")) {
+public function setCanvasRefLayerInvisible():void
+{
+    if (hasTimer("refLayerVisibleDelayTimer"))
+    {
         removeTimer("refLayerVisibleDelayTimer");
-        if (refLayerVisibleDelayOffTime === 0) {
+        if (refLayerVisibleDelayOffTime === 0)
+        {
             refLayerVisibleDelayOffTime = getTimer();
         }
     }
-    else {
+    else
+    {
         refLayerVisibleDelayOffTime = 0;
     }
     canvasRefLayer.visible = false;
 }
 
-public function setCanvasRefLayerVisibleDelay(delay:Number = REFLAYER_VISIBLE_DELAY):void {
-    addTimerByName("refLayerVisibleDelayTimer", delay, false, function():void {
+public function setCanvasRefLayerVisibleDelay(delay:Number = REFLAYER_VISIBLE_DELAY):void
+{
+    addTimerByName("refLayerVisibleDelayTimer", delay, false, function():void
+        {
             setCanvasRefLayerVisibleSlowly(true);
         });
 }
 
-public function setCanvasRefLayerVisibleSlowly(flag:Boolean):void {
+public function setCanvasRefLayerVisibleSlowly(flag:Boolean):void
+{
     var fadeStep:Number = Math.round(refLayerLastAlpha / (stage.frameRate * 2) * 256) / 256;
 
-    if (fadeStep <= 0.04) {
+    if (fadeStep <= 0.04)
+    {
         fadeStep = 0.04;
     }
 
-    if (!canvasRefLayer.visible) {
+    if (!canvasRefLayer.visible)
+    {
         canvasRefLayer.alpha = 0.0;
     }
 
     canvasRefLayer.visible = true;
 
-    addTimerByName("refLayerVisibleFadingTimer", 0.0, true, function(refLayer:Sprite, fadeStep:Number, maxAlpha:Number):Boolean {
-            if (flag) {
+    addTimerByName("refLayerVisibleFadingTimer", 0.0, true, function(refLayer:Sprite, fadeStep:Number, maxAlpha:Number):Boolean
+        {
+            if (flag)
+            {
                 canvasRefLayer.alpha += fadeStep;
 
-                if (canvasRefLayer.alpha >= maxAlpha) {
+                if (canvasRefLayer.alpha >= maxAlpha)
+                {
                     canvasRefLayer.alpha = maxAlpha;
                     return false;
                 }
             }
-            else {
+            else
+            {
                 canvasRefLayer.alpha -= fadeStep;
 
-                if (canvasRefLayer.alpha <= 0.0) {
+                if (canvasRefLayer.alpha <= 0.0)
+                {
                     canvasRefLayer.alpha = 0.0;
                     return false;
                 }
@@ -6098,20 +7048,24 @@ public function setCanvasRefLayerVisibleSlowly(flag:Boolean):void {
         }, [canvasRefLayer, fadeStep, refLayerLastAlpha]);
 }
 
-public function toggleRefLayerMemoryTraining():void {
-    if (isRefLayerMemoryTrainingON === false) {
+public function toggleRefLayerMemoryTraining():void
+{
+    if (isRefLayerMemoryTrainingON === false)
+    {
         isRefLayerMemoryTrainingON = true;
         refLayerMenuBox.refMemoryTrainingOffButton.visible = false;
         refLayerMenuBox.refMemoryTrainingOnButton.visible = true;
     }
-    else if (isRefLayerMemoryTrainingON === true) {
+    else if (isRefLayerMemoryTrainingON === true)
+    {
         isRefLayerMemoryTrainingON = false;
         refLayerMenuBox.refMemoryTrainingOffButton.visible = true;
         refLayerMenuBox.refMemoryTrainingOnButton.visible = false;
     }
 }
 
-public function startRefLayerImageMirror():void {
+public function startRefLayerImageMirror():void
+{
     var tmpbmpd:BitmapData = new BitmapData(canvasRefLayerBitmapData.width,
             canvasRefLayerBitmapData.height, true, 0);
     var flipMat:Matrix = new Matrix(-1, 0, 0, 1, canvasRefLayerBitmapData.width);
@@ -6136,19 +7090,23 @@ public function startRefLayerImageMirror():void {
     isFileAlreadySaved = false;
 }
 
-public function startRefLayerRotation():void {
+public function startRefLayerRotation():void
+{
     const getangle:Function = createAngleUpdateFunctionByMouseDrag(canvasRefLayer);
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         refLayerMenuBox.visible = false;
         canvasRefLayerBitmap.smoothing = false;
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         canvasRefLayer.rotation = getangle();
     }
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         isFileAlreadySaved = false;
         refLayerMenuBox.visible = true;
         hideCanvasRotateCursor();
@@ -6158,16 +7116,19 @@ public function startRefLayerRotation():void {
     startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
-public function startRefLayerImageScale():void {
+public function startRefLayerImageScale():void
+{
     const getscale:Function = createScaleUpdaterFromMouseDrag(canvasRefLayer.scaleX);
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         showMouseHint(getImageScaleHint(canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height, Math.abs(canvasRefLayer.scaleX), true));
         refLayerMenuBox.visible = false;
         canvasRefLayerBitmap.smoothing = false;
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         const scale:Number = getscale(mouseX, mouseY);
         if (scale)
             canvasRefLayer.scaleX = (canvasRefLayer.scaleX < 0) ? -scale : scale;
@@ -6175,7 +7136,8 @@ public function startRefLayerImageScale():void {
         showMouseHint(getImageScaleHint(canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height, scale, true));
     }
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         isFileAlreadySaved = false;
         refLayerMenuBox.visible = true;
         canvasRefLayerBitmap.smoothing = true;
@@ -6185,24 +7147,28 @@ public function startRefLayerImageScale():void {
     startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
-public function startRefLayerImageDrag():void {
+public function startRefLayerImageDrag():void
+{
     const getpos:Function = createPosUpdateFunctionByMouseDrag(canvasRefLayerBitmap,
             canvasRefLayer.rotation + canvasAnchorPoint.rotation,
             canvasRefLayer.scaleX,
             canvasRefLayer.scaleY);
-    function onDragStart():void {
+    function onDragStart():void
+    {
         refLayerMenuBox.visible = false;
         canvasRefLayerBitmap.smoothing = false;
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         const pos:Point = getpos();
 
         canvasRefLayerBitmap.x = pos.x;
         canvasRefLayerBitmap.y = pos.y;
     }
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         isFileAlreadySaved = false;
         refLayerMenuBox.visible = true;
         canvasRefLayerBitmap.smoothing = true;
@@ -6211,7 +7177,8 @@ public function startRefLayerImageDrag():void {
     startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
-public function resetRefLayerMenuOpacity():void {
+public function resetRefLayerMenuOpacity():void
+{
     refLayerLastAlpha = 0.5;
     canvasRefLayer.alpha = 0.5;
     updateRefLayerOpacityCursorPosByValue(0.5);
@@ -6219,12 +7186,14 @@ public function resetRefLayerMenuOpacity():void {
     canvasRefLayer.visible = true;
 }
 
-public function startRefLayerOpacityDrag():void {
+public function startRefLayerOpacityDrag():void
+{
     const barwidth:Number = refLayerMenuBox.refOpacityBar.width;
     const minx:Number = refLayerMenuBox.refOpacityBar.x + 1;
     const maxx:Number = minx + barwidth - 2;
 
-    function onMouseMoveUpdateopacity():void {
+    function onMouseMoveUpdateopacity():void
+    {
         const value:Number = calculateSliderValueFromMouseX(refLayerMenuBox.mouseX,
                 minx,
                 maxx,
@@ -6233,13 +7202,15 @@ public function startRefLayerOpacityDrag():void {
                 refLayerMenuBox.refOpacityCursor);
         const alpha:Number = normalizeAlphaValue(value);
 
-        if (alpha <= 0.04) {
+        if (alpha <= 0.04)
+        {
             canvasRefLayer.visible = false;
             canvasRefLayer.alpha = 0.0;
             refLayerLastAlpha = 0.0;
 
         }
-        else {
+        else
+        {
             canvasRefLayer.visible = true;
             canvasRefLayer.alpha = alpha;
             refLayerLastAlpha = alpha;
@@ -6248,16 +7219,19 @@ public function startRefLayerOpacityDrag():void {
         refLayerMenuBox.hint(HintStrings.STRING_REFLAYER_IMAGE_OPACITY + Math.floor(alpha * 100 + 0.5) + "%");
     }
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         refLayerMenuBox.hint(HintStrings.STRING_REFLAYER_IMAGE_OPACITY + Math.floor(refLayerLastAlpha * 100 + 0.5) + "%");
         onMouseMoveUpdateopacity();
     }
 
-    startDragInteraction(onDragStart, onMouseMoveUpdateopacity, function():void {
+    startDragInteraction(onDragStart, onMouseMoveUpdateopacity, function():void
+        {
         });
 }
 
-public function saveRefLayerImage():void {
+public function saveRefLayerImage():void
+{
     if (!canvasRefLayerBitmap.bitmapData)
         return;
 
@@ -6277,7 +7251,8 @@ public function saveRefLayerImage():void {
     ba = null;
 }
 
-public function clearRefLayerImage():void {
+public function clearRefLayerImage():void
+{
     canvasRefLayerBitmapData.dispose();
     canvasRefLayerBitmapData = new BitmapData(1, 1, true, 0);
     canvasRefLayerBitmap.bitmapData = canvasRefLayerBitmapData;
@@ -6288,7 +7263,8 @@ public function clearRefLayerImage():void {
     saveRefLayerImage();
 }
 
-public function resetRefLayerImageTransform():void {
+public function resetRefLayerImageTransform():void
+{
     const ww:Number = -canvasRefLayerBitmap.width / 2;
     const hh:Number = -canvasRefLayerBitmap.height / 2;
 
@@ -6300,7 +7276,8 @@ public function resetRefLayerImageTransform():void {
     refLayerMenuDragXMoveSum = 0;
 }
 
-public function updateRefLayerImageTransform(x:Number, y:Number, rotation:Number, scaleX:Number, scaleY:Number):void {
+public function updateRefLayerImageTransform(x:Number, y:Number, rotation:Number, scaleX:Number, scaleY:Number):void
+{
     canvasRefLayer.x = CANVAS_WIDTH / 2;
     canvasRefLayer.y = CANVAS_HEIGHT / 2;
     canvasRefLayerBitmap.x = x;
@@ -6310,8 +7287,10 @@ public function updateRefLayerImageTransform(x:Number, y:Number, rotation:Number
     canvasRefLayer.rotation = rotation;
 }
 
-public function resetRefLayerOpacitySlider():void {
-    if (canvasRefLayer.visible === false || refLayerLastAlpha === 0.0) {
+public function resetRefLayerOpacitySlider():void
+{
+    if (canvasRefLayer.visible === false || refLayerLastAlpha === 0.0)
+    {
         updateRefLayerOpacityCursorPosByValue(0.5);
         refLayerLastAlpha = 0.5;
         if (!isCaptureModeON) // 캡쳐 모드에서 reflayer로드시 뒤에 배경 생겨나서
@@ -6325,19 +7304,23 @@ public function resetRefLayerOpacitySlider():void {
     isFileAlreadySaved = false;
 }
 
-public function mergeCanvasImageToRefLayer():void {
-    if (isDeepUndoEnabled) {
+public function mergeCanvasImageToRefLayer():void
+{
+    if (isDeepUndoEnabled)
+    {
         applyDeepUndo();
     }
 
     var layer1Flag:Boolean = canvasLayer1Bitmap.visible;
     var layer2Flag:Boolean = canvasLayer2Bitmap.visible;
 
-    if (checkedLayer === 1) {
+    if (checkedLayer === 1)
+    {
         layer1Flag = true;
         layer2Flag = false;
     }
-    else if (checkedLayer === 2) {
+    else if (checkedLayer === 2)
+    {
         layer1Flag = false;
         layer2Flag = true;
     }
@@ -6347,25 +7330,31 @@ public function mergeCanvasImageToRefLayer():void {
     const rect:Rectangle = new Rectangle(0, 0, canvasLayer1BitmapData.width, canvasLayer1BitmapData.height);
     var command:String = "clear";
 
-    if (layer1Flag) {
+    if (layer1Flag)
+    {
         canvasLayer1BitmapData.fillRect(rect, 0);
     }
 
-    if (layer2Flag) {
+    if (layer2Flag)
+    {
         canvasLayer2BitmapData.fillRect(rect, 0);
     }
 
-    if ((layer1Flag && !layer2Flag) || !canvasLayer2Bitmap.visible) {
+    if ((layer1Flag && !layer2Flag) || !canvasLayer2Bitmap.visible)
+    {
         command = "clear1";
     }
-    else if ((layer2Flag && !layer1Flag) || !canvasLayer1Bitmap.visible) {
+    else if ((layer2Flag && !layer1Flag) || !canvasLayer1Bitmap.visible)
+    {
         command = "clear2";
     }
 
-    if (hasLastRDataCommand(command)) {
+    if (hasLastRDataCommand(command))
+    {
         undoManager.addContinue();
     }
-    else {
+    else
+    {
         rDataBuffer = [[command]];
         undoManager.addNew();
     }
@@ -6374,7 +7363,8 @@ public function mergeCanvasImageToRefLayer():void {
     resetRefLayerOpacitySlider();
 }
 
-public function transferLoadedImageToRefLayer(bmpd:IBitmapDrawable, w:Number, h:Number):void {
+public function transferLoadedImageToRefLayer(bmpd:IBitmapDrawable, w:Number, h:Number):void
+{
     const maxSize:Number = 1000;
     var maxLength:Number = (w > h) ? w : h;
     var scaleFix:Number = (maxLength > maxSize) ? maxSize / maxLength : 1.0;
@@ -6405,7 +7395,8 @@ public function transferLoadedImageToRefLayer(bmpd:IBitmapDrawable, w:Number, h:
     else if (h > gh && widthFlag === false)
         autoScale = gh / h;
 
-    if (autoScale > 0) {
+    if (autoScale > 0)
+    {
         canvasRefLayer.scaleX = autoScale;
         canvasRefLayer.scaleY = autoScale;
     }
@@ -6413,7 +7404,8 @@ public function transferLoadedImageToRefLayer(bmpd:IBitmapDrawable, w:Number, h:
     resetRefLayerOpacitySlider();
 }
 
-public function getBlurSize(size:Number, z:Number):Number {
+public function getBlurSize(size:Number, z:Number):Number
+{
     var blurSize:Number = size / 2;
 
     if (blurSize <= 2)
@@ -6425,41 +7417,48 @@ public function getBlurSize(size:Number, z:Number):Number {
 }
 
 // drawdone에서 줌된 blur사이즈가 아니 1배율 블러를 적용해야 제대로 되기 때문에 이거해줌
-public function blurReplayCanvasByDefaultValue():void {
+public function blurReplayCanvasByDefaultValue():void
+{
     const blurSize:Number = getBlurSize(rAirBrushSize, 1.0);
     const blurf:BlurFilter = new BlurFilter(blurSize, blurSize, 3);
 
     rCanvasDrawShape.filters = [blurf];
 }
 
-public function resetBlurReplayCanvas():void {
+public function resetBlurReplayCanvas():void
+{
     rAirBrushSize = 0;
     rCanvasDrawShape.filters = [];
 }
 
-public function blurReplayCanvasByValue(size:Number):void {
+public function blurReplayCanvasByValue(size:Number):void
+{
     const blurSize:Number = getBlurSize(size, rCanvasZoomMultiplier);
     const blurf:BlurFilter = new BlurFilter(blurSize, blurSize, 3);
     rAirBrushSize = size;
     rCanvasDrawShape.filters = [blurf];
 }
 
-public function toggleAirBrushCheckBox(flag:Boolean, penFlag:Boolean):void {
+public function toggleAirBrushCheckBox(flag:Boolean, penFlag:Boolean):void
+{
     toolOptionsBox.airBrushOFFButton.visible = flag;
     toolOptionsBox.airBrushONButton.visible = !flag;
 
-    if (flag) {
+    if (flag)
+    {
         airBrushSizeDrawMode = (penFlag) ? penSize : eraserSize;
         toolOptionsBox.blurShapeSetON();
     }
-    else if (airBrushSizeDrawMode !== 0) {
+    else if (airBrushSizeDrawMode !== 0)
+    {
         airBrushSizeDrawMode = 0;
         canvasDrawLayerChild.filters = [];
         toolOptionsBox.blurShapeSetOFF();
     }
 }
 
-public function toggleEraseAirBrushButtonShortCut():void {
+public function toggleEraseAirBrushButtonShortCut():void
+{
     isEraserAirBrushON = !isEraserAirBrushON;
     toggleAirBrushCheckBox(isEraserAirBrushON, false);
 
@@ -6469,12 +7468,14 @@ public function toggleEraseAirBrushButtonShortCut():void {
         showMouseHintTemp("Eraser Air brush OFF");
 }
 
-public function toggleEraseAirBrushButton(flag:Boolean):void {
+public function toggleEraseAirBrushButton(flag:Boolean):void
+{
     isEraserAirBrushON = flag;
     toggleAirBrushCheckBox(flag, false);
 }
 
-public function togglePenAirBrushButtonShortCut():void {
+public function togglePenAirBrushButtonShortCut():void
+{
     isPenAirBrushON = !isPenAirBrushON;
     toggleAirBrushCheckBox(isPenAirBrushON, true);
 
@@ -6484,24 +7485,28 @@ public function togglePenAirBrushButtonShortCut():void {
         showMouseHintTemp("Pen Air brush OFF");
 }
 
-public function togglePenAirBrushButton(flag:Boolean):void {
+public function togglePenAirBrushButton(flag:Boolean):void
+{
     isPenAirBrushON = flag;
     toggleAirBrushCheckBox(flag, true);
 }
 
-public function restoreCanvasBackgroundColor(replayMode:Boolean):void {
+public function restoreCanvasBackgroundColor(replayMode:Boolean):void
+{
     var xPanel:Sprite;
     var w:Number = CANVAS_WIDTH;
     var h:Number = CANVAS_HEIGHT;
     var color:uint;
 
-    if (replayMode) {
+    if (replayMode)
+    {
         xPanel = rCanvasPanel;
         w = RCANVAS_WIDTH;
         h = RCANVAS_HEIGHT;
         color = RCANVAS_BG_COLOR;
     }
-    else {
+    else
+    {
         xPanel = canvasPanel;
         w = CANVAS_WIDTH;
         h = CANVAS_HEIGHT;
@@ -6514,17 +7519,20 @@ public function restoreCanvasBackgroundColor(replayMode:Boolean):void {
     xPanel.graphics.endFill();
 }
 
-public function applyTransparentCanvasBackground(replayMode:Boolean):void {
+public function applyTransparentCanvasBackground(replayMode:Boolean):void
+{
     var xPanel:Sprite;
     var w:Number = CANVAS_WIDTH;
     var h:Number = CANVAS_HEIGHT;
 
-    if (replayMode) {
+    if (replayMode)
+    {
         xPanel = rCanvasPanel;
         w = RCANVAS_WIDTH;
         h = RCANVAS_HEIGHT;
     }
-    else {
+    else
+    {
         xPanel = canvasPanel;
         w = CANVAS_WIDTH;
         h = CANVAS_HEIGHT;
@@ -6537,33 +7545,41 @@ public function applyTransparentCanvasBackground(replayMode:Boolean):void {
     xPanel.graphics.endFill();
 }
 
-public function bringCanvasDrawLayerAboveLayer1():void {
-    if (canvasPanel.getChildIndex(canvasDrawLayer) < canvasPanel.getChildIndex(lassoLayer1)) {
+public function bringCanvasDrawLayerAboveLayer1():void
+{
+    if (canvasPanel.getChildIndex(canvasDrawLayer) < canvasPanel.getChildIndex(lassoLayer1))
+    {
         canvasPanel.setChildIndex(canvasDrawLayer, canvasPanel.getChildIndex(lassoLayer1));
     }
 }
 
-public function bringCanvasDrawLayerAboveLayer2():void {
-    if (canvasPanel.getChildIndex(canvasDrawLayer) > canvasPanel.getChildIndex(canvasLayer1Bitmap)) {
+public function bringCanvasDrawLayerAboveLayer2():void
+{
+    if (canvasPanel.getChildIndex(canvasDrawLayer) > canvasPanel.getChildIndex(canvasLayer1Bitmap))
+    {
         canvasPanel.setChildIndex(canvasDrawLayer, canvasPanel.getChildIndex(canvasLayer1Bitmap));
     }
 }
 
-public function showMouseHintLayerVisible():void {
+public function showMouseHintLayerVisible():void
+{
     showMouseHintTemp(HintStrings.getLayerVisibleHint(canvasLayer1Bitmap.visible, canvasLayer2Bitmap.visible));
 }
 
-public function selectLayer1(onlyViewFlag:Boolean):void {
+public function selectLayer1(onlyViewFlag:Boolean):void
+{
     isLayer2Selected = false;
 
     toolOptionsBox.setSelectLayerButtonActiveAlpha(1);
 
-    if (onlyViewFlag) {
+    if (onlyViewFlag)
+    {
         canvasLayer1Bitmap.visible = true;
         canvasLayer2Bitmap.visible = false;
         toolOptionsBox.moveLayerInvisibleLineToLayer2();
     }
-    else {
+    else
+    {
         canvasLayer1Bitmap.visible = true;
         canvasLayer2Bitmap.visible = true;
         toolOptionsBox.removeLayerInvisibleLine();
@@ -6572,17 +7588,20 @@ public function selectLayer1(onlyViewFlag:Boolean):void {
     bringCanvasDrawLayerAboveLayer1();
 }
 
-public function selectLayer2(onlyViewFlag:Boolean):void {
+public function selectLayer2(onlyViewFlag:Boolean):void
+{
     isLayer2Selected = true;
 
     toolOptionsBox.setSelectLayerButtonActiveAlpha(2);
 
-    if (onlyViewFlag) {
+    if (onlyViewFlag)
+    {
         canvasLayer1Bitmap.visible = false;
         canvasLayer2Bitmap.visible = true;
         toolOptionsBox.moveLayerInvisibleLineToLayer1();
     }
-    else {
+    else
+    {
         canvasLayer1Bitmap.visible = true;
         canvasLayer2Bitmap.visible = true;
         toolOptionsBox.removeLayerInvisibleLine();
@@ -6591,23 +7610,28 @@ public function selectLayer2(onlyViewFlag:Boolean):void {
     bringCanvasDrawLayerAboveLayer2();
 }
 
-public function toggleSharpLineByShortcut():void {
+public function toggleSharpLineByShortcut():void
+{
     toggleSharpLine(!isSharpLineON);
 
-    if (isSharpLineON) {
+    if (isSharpLineON)
+    {
         showMouseHintTemp("Sharp line ON");
     }
-    else {
+    else
+    {
         showMouseHintTemp("Sharp line OFF");
     }
 }
 
-public function getSharpLinePosOffset(size:Number):Number {
+public function getSharpLinePosOffset(size:Number):Number
+{
     return (isSharpLineON) ? (size % 2.0 === 0) ? 0.0 : 0.5
         : (size % 2.0 === 0) ? 0.5 : 0.0;
 }
 
-public function toggleSharpLine(flag:Boolean):void {
+public function toggleSharpLine(flag:Boolean):void
+{
     isSharpLineON = flag;
 
     toolOptionsBox.sharpLineOFFButton.visible = flag;
@@ -6616,42 +7640,50 @@ public function toggleSharpLine(flag:Boolean):void {
     updatePenSizeCursor();
 }
 
-public function updateStageBGSize():void {
+public function updateStageBGSize():void
+{
     stageBG.graphics.clear();
     stageBG.graphics.beginFill(0, 0.0);
     stageBG.graphics.drawRect(-2, -2, stage.stageWidth + 4, stage.stageHeight + 4);
     stageBG.graphics.endFill();
-    if (stageBG.getChildByName("rCanvasCompleteAnchorPoint")) {
+    if (stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
+    {
         setReplayCompleteCanvasCenter();
     }
 }
 
-public function updateStageBGColor():void {
+public function updateStageBGColor():void
+{
     const color:uint = Global.getUIStageColor();
     stage.color = color;
     STAGE_BG_COLOR = color;
 }
 
-public function updateWindowTitle():void {
+public function updateWindowTitle():void
+{
     stage.nativeWindow.title = lastSaveFileName + STRING_TITLE_FOFOPAINT;
-    if (isCanvasWindowON) {
+    if (isCanvasWindowON)
+    {
         copyMainWindowTitleToCanvasWindow();
     }
 }
 
-public function cycleUIColor():void {
+public function cycleUIColor():void
+{
     Global.setNextUIColor();
     applyUIColorSet();
 
     showMouseHintTemp(Global.setUIColorString());
 }
 
-public function applyUIColorSet():void {
+public function applyUIColorSet():void
+{
     updateStageBGColor();
     updateBottomBarLayoutAndColor();
     canvasNavigatorBox.chanegStageColor(STAGE_BG_COLOR);
 
-    if (isCanvasWindowON) {
+    if (isCanvasWindowON)
+    {
         canvasWindow.stage.color = STAGE_BG_COLOR;
     }
 
@@ -6675,7 +7707,8 @@ public function applyUIColorSet():void {
     setResizeButtonColor();
     updateScrollBarColorAndHeight();
 
-    if (isColorPickerModeBG) {
+    if (isColorPickerModeBG)
+    {
         switchColorPickerModePen();
     }
 
@@ -6683,12 +7716,14 @@ public function applyUIColorSet():void {
     checkCanUseClipBoardButton();
     updatePickerBoxTransBGBrightness();
 
-    if (isBottomBarVisible()) {
+    if (isBottomBarVisible())
+    {
         hideBottomHint();
     }
 }
 
-public function addGlobalEvents():void {
+public function addGlobalEvents():void
+{
     // 전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음
     stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownStage, false, 1);
     stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpStage, false, 1);
@@ -6714,14 +7749,17 @@ public function addGlobalEvents():void {
 
     loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onGlobalError);
 
-    function onGlobalError(e:UncaughtErrorEvent):void {
+    function onGlobalError(e:UncaughtErrorEvent):void
+    {
         var msg:String = "An unknown error occurred.";
         var errorObject:Object = e.error;
 
-        if (errorObject is Error) {
+        if (errorObject is Error)
+        {
             msg = (errorObject as Error).message;
         }
-        else if (errorObject is ErrorEvent) {
+        else if (errorObject is ErrorEvent)
+        {
             msg = (errorObject as ErrorEvent).text;
         }
         else if (errorObject != null) // Error, ErrorEvent가 아닌 객체 처리
@@ -6736,11 +7774,13 @@ public function addGlobalEvents():void {
     }
 }
 
-public function addGlobalEventsChild():void {
+public function addGlobalEventsChild():void
+{
     toolBox2.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverToolBox2Hint);
 }
 
-public function updateToolOptionsTextBySelectedTool():void {
+public function updateToolOptionsTextBySelectedTool():void
+{
     var toolName:String = "Pen";
     const nt:uint = nowTool;
 
@@ -6754,55 +7794,67 @@ public function updateToolOptionsTextBySelectedTool():void {
     toolOptionsBox.hintText(toolName);
 }
 
-public function prepareUpdate():void {
+public function prepareUpdate():void
+{
     prepareOpenLoadBox(true, false, null, null, null);
     isUpdatePendingAfterSaving = true;
     openSaveFileBrowser(false);
 }
 
-public function startUpdatingApp():void {
+public function startUpdatingApp():void
+{
     closeLoadMenuBox();
     isUpdatePendingAfterSaving = false;
     topBar.hideUpdateButton();
 
-    if (appUpdateStatus === UPDATE_READY) {
-        addTimer(0.5, false, function():void {
+    if (appUpdateStatus === UPDATE_READY)
+    {
+        addTimer(0.5, false, function():void
+            {
                 installNewVersion();
             });
     }
-    else if (appUpdateStatus === UPDATE_NEEDS_MANUAL) {
+    else if (appUpdateStatus === UPDATE_NEEDS_MANUAL)
+    {
         navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint"));
     }
     navigateToURL(new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt"));
 }
 
-public function installNewVersion():void {
-    if (updateFilePath.exists) {
+public function installNewVersion():void
+{
+    if (updateFilePath.exists)
+    {
         var updater:Updater = new Updater();
         updater.update(updateFilePath, newVersionStr);
     }
 }
 
-public function showDrawToolHintSizeOpacity():void {
+public function showDrawToolHintSizeOpacity():void
+{
     var tooltype:String = "";
     var size:Number;
     var alpha:Number;
-    if (isSelectedTool(TOOL_PEN)) {
+    if (isSelectedTool(TOOL_PEN))
+    {
         tooltype = "Pen ";
         size = penSizeList[penSizeIndex];
         alpha = penAlphaList[penAlphaIndex];
     }
-    else if (isSelectedTool(TOOL_LINE)) {
+    else if (isSelectedTool(TOOL_LINE))
+    {
         tooltype = "Line ";
         size = penSizeList[penSizeIndex];
         alpha = penAlphaList[penAlphaIndex];
     }
-    else if (isSelectedTool(TOOL_FILLPEN)) {
+    else if (isSelectedTool(TOOL_FILLPEN))
+    {
         tooltype = "Fill Pen ";
         size = 1;
         alpha = penAlphaList[penAlphaIndex];
     }
-    else if (isSelectedTool(TOOL_ERASER)) {
+    else if (isSelectedTool(TOOL_ERASER))
+    {
         tooltype = "Eraser ";
         size = penSizeList[eraserSizeIndex];
         alpha = penAlphaList[eraserAlphaIndex];
@@ -6811,20 +7863,26 @@ public function showDrawToolHintSizeOpacity():void {
     showMouseHintTemp(tooltype + size + "px, " + alpha * 100 + "%");
 }
 
-public function adjustDrawToolAlphaByShortcut(increase:Boolean):void {
-    function setAlpha(alp:Number, size:uint):void {
+public function adjustDrawToolAlphaByShortcut(increase:Boolean):void
+{
+    function setAlpha(alp:Number, size:uint):void
+    {
         var index:Number = penAlphaList.indexOf(alp);
         const len:uint = penAlphaList.length - 1;
 
-        if (increase) {
+        if (increase)
+        {
             index++;
-            if (index > len) {
+            if (index > len)
+            {
                 index = len;
             }
         }
-        else {
+        else
+        {
             index--;
-            if (index < 1) {
+            if (index < 1)
+            {
                 index = 1;
             }
         }
@@ -6835,30 +7893,39 @@ public function adjustDrawToolAlphaByShortcut(increase:Boolean):void {
 
     selectPenToolIfNotDrawingTool(true);
 
-    if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)) {
+    if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
+    {
         setAlpha(penAlpha, penSize);
     }
-    else if (isSelectedTool(TOOL_ERASER)) {
+    else if (isSelectedTool(TOOL_ERASER))
+    {
         setAlpha(eraserAlpha, eraserSize);
     }
 }
 
-public function adjustDrawToolSizeByShortcut(increase:Boolean):void {
-    if (isSelectedTool(TOOL_FILLPEN)) {
+public function adjustDrawToolSizeByShortcut(increase:Boolean):void
+{
+    if (isSelectedTool(TOOL_FILLPEN))
+    {
         return;
     }
     const len:uint = penSizeList.length - 1;
 
-    function setSize(index:uint, alpha:Number):void {
-        if (increase) {
+    function setSize(index:uint, alpha:Number):void
+    {
+        if (increase)
+        {
             index++;
-            if (index > len) {
+            if (index > len)
+            {
                 index = len;
             }
         }
-        else {
+        else
+        {
             index--;
-            if (index < 1) {
+            if (index < 1)
+            {
                 index = 1;
             }
         }
@@ -6871,132 +7938,163 @@ public function adjustDrawToolSizeByShortcut(increase:Boolean):void {
 
     selectPenToolIfNotDrawingTool(true);
 
-    if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)) {
+    if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
+    {
         setSize(penSizeIndex, penAlpha);
 
-        if (isPenAirBrushON && penSize !== airBrushSizeDrawMode) {
+        if (isPenAirBrushON && penSize !== airBrushSizeDrawMode)
+        {
             airBrushSizeDrawMode = penSize;
         }
     }
-    else if (isSelectedTool(TOOL_ERASER)) {
+    else if (isSelectedTool(TOOL_ERASER))
+    {
         setSize(eraserSizeIndex, eraserAlpha);
 
-        if (isEraserAirBrushON && eraserSize !== airBrushSizeDrawMode) {
+        if (isEraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
+        {
             airBrushSizeDrawMode = eraserSize;
         }
     }
 }
 
 // composing 키에대한 체크 잘모르겠음 한영 변환이 관련있는거 같음
-public function checkInvalidKey():void {
+public function checkInvalidKey():void
+{
     const len:uint = KEY_BUFFER.length;
-    for (var i:int = 0; i < len; i++) {
+    for (var i:int = 0; i < len; i++)
+    {
         if (KEY_BUFFER[i] === 229
                 || KEY_BUFFER[i] === 241
-                || KEY_BUFFER[i] === 242) {
+                || KEY_BUFFER[i] === 242)
+        {
             clearKeyBuffer();
             return;
         }
     }
 
-    if (len >= 2) {
+    if (len >= 2)
+    {
         if ((KEY_BUFFER[0] === 18 && KEY_BUFFER[1] === 32)
-                || (KEY_BUFFER[0] === 32 && KEY_BUFFER[1] === 18)) {
+                || (KEY_BUFFER[0] === 32 && KEY_BUFFER[1] === 18))
+        {
             clearKeyBuffer();
         }
     }
 }
 
-public function getPressedKeyCount():int {
+public function getPressedKeyCount():int
+{
     return KEY_BUFFER.length;
 }
 
-public function isKeyPressed():Boolean {
+public function isKeyPressed():Boolean
+{
     return KEY_BUFFER.length > 0;
 }
 
-public function getLastKey():int {
+public function getLastKey():int
+{
     return KEY_BUFFER[KEY_BUFFER.length - 1];
 }
 
-public function isTwoKeyPressed():Boolean {
+public function isTwoKeyPressed():Boolean
+{
     return KEY_BUFFER.length === 2;
 }
 
-public function isPressdKey(key:int):int {
+public function isPressdKey(key:int):int
+{
     return KEY_BUFFER.lastIndexOf(key);
 }
 
-public function getFirstPressedKey():int {
+public function getFirstPressedKey():int
+{
     return KEY_BUFFER[0];
 }
 
-public function getSecondPressedKey():int {
+public function getSecondPressedKey():int
+{
     return KEY_BUFFER[1];
 }
 
-public function onKeyUpStage(e:KeyboardEvent):void {
+public function onKeyUpStage(e:KeyboardEvent):void
+{
     tryDisableIME();
     checkInvalidKey();
 
     const index:int = isPressdKey(e.keyCode);
 
-    if (index > -1) {
+    if (index > -1)
+    {
         KEY_BUFFER.splice(index, 1);
     }
 }
 
-public function onKeyDownStage(e:KeyboardEvent):void {
+public function onKeyDownStage(e:KeyboardEvent):void
+{
     tryDisableIME();
     checkInvalidKey();
 
     const keyCode:uint = e.keyCode;
 
-    if (keyCode === KEY.window) {
+    if (keyCode === KEY.window)
+    {
         return;
     }
 
-    if (keyCode === KEY.tab || keyCode === KEY.alt) {
+    if (keyCode === KEY.tab || keyCode === KEY.alt)
+    {
         e.preventDefault();
     }
 
-    if (KEY_BUFFER.lastIndexOf(keyCode) === -1) {
+    if (KEY_BUFFER.lastIndexOf(keyCode) === -1)
+    {
         KEY_BUFFER.push(keyCode);
     }
 }
 
-public function selectOpacityButton(targetName:String):void {
+public function selectOpacityButton(targetName:String):void
+{
     const number:String = targetName.substr(11, targetName.length);
     const index:int = parseInt(number);
 
     updateDrawToolAlpha(penAlphaList[index]);
 }
 
-public function selectPenSizeButton(targetName:String):void {
+public function selectPenSizeButton(targetName:String):void
+{
     const numberOnly:String = targetName.substr(11, targetName.length);
     const index:uint = parseInt(numberOnly);
 
     setDrawToolSize(index);
     updatePenSizeCursor();
 
-    if (isSelectedTool(TOOL_FILLPEN)) {
-        if (isPenAirBrushON && penSize !== airBrushSizeDrawMode) {
+    if (isSelectedTool(TOOL_FILLPEN))
+    {
+        if (isPenAirBrushON && penSize !== airBrushSizeDrawMode)
+        {
             airBrushSizeDrawMode = penSize;
         }
     }
-    else if (isSelectedToolPenOrLine()) {
-        if (isPenAirBrushON && penSize !== airBrushSizeDrawMode) {
+    else if (isSelectedToolPenOrLine())
+    {
+        if (isPenAirBrushON && penSize !== airBrushSizeDrawMode)
+        {
             airBrushSizeDrawMode = penSize;
         }
     }
-    else if (isSelectedTool(TOOL_ERASER)) {
-        if (isEraserAirBrushON && eraserSize !== airBrushSizeDrawMode) {
+    else if (isSelectedTool(TOOL_ERASER))
+    {
+        if (isEraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
+        {
             airBrushSizeDrawMode = eraserSize;
         }
     }
 }
 
-public function startPenSmootingAdjustment():void {
+public function startPenSmootingAdjustment():void
+{
     const minDist:Number = toolOptionsBox.penSmoothSlider.x + 1; // 펜 리스트에 흰색 선 시작과 끝 x좌표임
     const maxDist:Number = minDist + toolOptionsBox.penSmoothSlider.width - 1;
     const step:Number = penSmoothSlideTotal;
@@ -7010,26 +8108,31 @@ public function startPenSmootingAdjustment():void {
 
     isMouseDragging = true;
 
-    function onMouseUpPenSmoothing(e:MouseEvent):void {
+    function onMouseUpPenSmoothing(e:MouseEvent):void
+    {
         isMouseDragging = false;
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing);
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
     }
 
-    function adjustPenSmoothingValue():void {
+    function adjustPenSmoothingValue():void
+    {
         var mx:Number = toolOptionsBox.penSmoothSliderWapper.mouseX + toolOptionsBox.penSmoothSlider.x;
 
-        if (mx < minDist) {
+        if (mx < minDist)
+        {
             mx = minDist;
         }
-        else if (mx > maxDist) {
+        else if (mx > maxDist)
+        {
             mx = maxDist;
         }
 
         // 버튼을 기준으로 중간값으로
         const value:Number = Math.floor((mx - minDist) / div);
 
-        if (oldValue !== value) {
+        if (oldValue !== value)
+        {
             const xpos:Number = value * div + minDist;
 
             if (toolOptionsBox.penSmoothSliderCursor.x === xpos)
@@ -7037,10 +8140,12 @@ public function startPenSmootingAdjustment():void {
 
             toolOptionsBox.penSmoothSliderCursor.x = xpos;
 
-            if (value === 0) {
+            if (value === 0)
+            {
                 penSmoothValue = 0;
             }
-            else {
+            else
+            {
                 penSmoothValue = maxValue - (value * stepValue);
             }
 
@@ -7050,7 +8155,8 @@ public function startPenSmootingAdjustment():void {
         }
     }
 
-    function onMouseMovePenSmoothing(e:MouseEvent):void {
+    function onMouseMovePenSmoothing(e:MouseEvent):void
+    {
         adjustPenSmoothingValue();
     }
 
@@ -7060,7 +8166,8 @@ public function startPenSmootingAdjustment():void {
     stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
 }
 
-public function getMergedBitmapdtata(transparentBG:Boolean, layer1merge:Boolean, layer2merge:Boolean, clipRect:Rectangle):BitmapData {
+public function getMergedBitmapdtata(transparentBG:Boolean, layer1merge:Boolean, layer2merge:Boolean, clipRect:Rectangle):BitmapData
+{
     var xBitmapData1:BitmapData;
     var xBitmapData11:BitmapData;
     var xDrawLayer:Sprite;
@@ -7069,14 +8176,16 @@ public function getMergedBitmapdtata(transparentBG:Boolean, layer1merge:Boolean,
     var mat:Matrix;
     var bmpd:BitmapData;
 
-    if (isReplayModeON) {
+    if (isReplayModeON)
+    {
         xBitmapData1 = rCanvasLayer1BitmapData;
         xBitmapData11 = rCanvasLayer2BitmapData;
         xDrawLayer = rCanvasDrawLayer;
         xBGCOLOR = RCANVAS_BG_COLOR;
         alpha = drawReplayByCommand.getLineStyleAlpha();
     }
-    else {
+    else
+    {
         xBitmapData1 = canvasLayer1BitmapData;
         xBitmapData11 = canvasLayer2BitmapData;
         xDrawLayer = canvasDrawLayer;
@@ -7084,16 +8193,19 @@ public function getMergedBitmapdtata(transparentBG:Boolean, layer1merge:Boolean,
         alpha = 1.0;
     }
 
-    if (clipRect !== null) {
+    if (clipRect !== null)
+    {
         bmpd = new BitmapData(clipRect.width, clipRect.height, true, (transparentBG) ? 0 : 0xFF000000 | xBGCOLOR);
         mat = new Matrix();
         mat.translate(-clipRect.x, -clipRect.y);
     }
-    else {
+    else
+    {
         bmpd = new BitmapData(xBitmapData1.width, xBitmapData1.height, true, (transparentBG) ? 0 : 0xFF000000 | xBGCOLOR);
     }
 
-    if (layer2merge) {
+    if (layer2merge)
+    {
         bmpd.draw(xBitmapData11, mat); // 레이어 쌓기
     }
 
@@ -7106,7 +8218,8 @@ public function getMergedBitmapdtata(transparentBG:Boolean, layer1merge:Boolean,
     }
     else // 리플레이에서 레이어 1번그리고 있을때
     {
-        if (layer1merge) {
+        if (layer1merge)
+        {
             bmpd.draw(xBitmapData1, mat);
             bmpd.draw(xDrawLayer, mat, new ColorTransform(1, 1, 1, alpha));
         }
@@ -7115,76 +8228,92 @@ public function getMergedBitmapdtata(transparentBG:Boolean, layer1merge:Boolean,
     return bmpd;
 }
 
-public function updateCanvasFlipOnCaptureMode():void {
+public function updateCanvasFlipOnCaptureMode():void
+{
     const xAnc:Sprite = (isReplayModeON) ? rCanvasAnchorPoint : canvasAnchorPoint;
-    if (captureCanvasRotationStep === 1) {
+    if (captureCanvasRotationStep === 1)
+    {
         xAnc.rotation = 90;
     }
-    else if (captureCanvasRotationStep === 3) {
+    else if (captureCanvasRotationStep === 3)
+    {
         xAnc.rotation = 270;
     }
 }
 
-public function flipCaptureImage(flag:Boolean, initFlag:Boolean):void {
+public function flipCaptureImage(flag:Boolean, initFlag:Boolean):void
+{
     isCaptureCanvasFlipped = flag;
     fitCanvasToViewportMargin();
 
     const xAnc:Sprite = (isReplayModeON) ? rCanvasAnchorPoint : canvasAnchorPoint;
 
-    if (captureCanvasRotationStep === 1) {
+    if (captureCanvasRotationStep === 1)
+    {
         captureCanvasRotationStep = 3;
         xAnc.rotation = 270;
     }
-    else if (captureCanvasRotationStep === 3) {
+    else if (captureCanvasRotationStep === 3)
+    {
         captureCanvasRotationStep = 1;
         xAnc.rotation = 90;
     }
 
     topBar.capClipBoard.alpha = 1.0;
-    if (!initFlag) {
+    if (!initFlag)
+    {
         captureAreaManager.updateDrawArea();
     }
 }
 
-public function updateCaptureStampButtonAlpha():void {
-    if (isCaptureStampEnabled) {
+public function updateCaptureStampButtonAlpha():void
+{
+    if (isCaptureStampEnabled)
+    {
         topBar.capStamp.alpha = 1.0;
         topBar.captureInputWarpper.visible = true;
         topBar.capStampFont.visible = true;
     }
-    else {
+    else
+    {
         topBar.capStamp.alpha = Global.OFFALPHA;
         topBar.captureInputWarpper.visible = false;
         topBar.capStampFont.visible = false;
     }
 }
 
-public function toggleCaptureStampButton():void {
+public function toggleCaptureStampButton():void
+{
     topBar.capClipBoard.alpha = 1.0;
     isCaptureStampEnabled = !isCaptureStampEnabled;
     updateCaptureStampButtonAlpha();
     captureStampManager.update();
 }
 
-public function handleExitCaptureMode():void {
+public function handleExitCaptureMode():void
+{
     setFileBrowserIsOpen(false);
     exitCaptureMode();
 }
 
-public function applyTransparentCanvasBGCaptureMode(flag:Boolean):void {
+public function applyTransparentCanvasBGCaptureMode(flag:Boolean):void
+{
     isCaptureTransparentBGShowing = flag;
 
-    if (isCaptureTransparentBGShowing) {
+    if (isCaptureTransparentBGShowing)
+    {
         applyTransparentCanvasBackground(isReplayModeON);
     }
-    else {
+    else
+    {
         restoreCanvasBackgroundColor(isReplayModeON);
     }
 
     topBar.capClipBoard.alpha = 1.0;
 }
 
-public function rotateCaptureImage(rotateValue:uint, initFlag:Boolean):void {
+public function rotateCaptureImage(rotateValue:uint, initFlag:Boolean):void
+{
     // 90도 시계 방향으로 회전
     // 1: 90도 2:180 3:270
     if (rotateValue >= 4)
@@ -7193,13 +8322,15 @@ public function rotateCaptureImage(rotateValue:uint, initFlag:Boolean):void {
     fitCanvasToViewportMargin();
     topBar.capClipBoard.alpha = 1.0;
 
-    if (!initFlag) {
+    if (!initFlag)
+    {
         captureAreaManager.updateDrawArea();
     }
 }
 
 // rotate hand zoom에서 쓰임
-public function hideCanvasResizeButtons():void {
+public function hideCanvasResizeButtons():void
+{
     isPenSizeCursorInvisible = false;
     resizeButtonR.visible = false;
     resizeButtonL.visible = false;
@@ -7207,7 +8338,8 @@ public function hideCanvasResizeButtons():void {
     resizeButtonU.visible = false;
 }
 
-public function showCanvasResizeButtons():void {
+public function showCanvasResizeButtons():void
+{
     isPenSizeCursorInvisible = true;
     resizeButtonR.visible = true;
     resizeButtonL.visible = true;
@@ -7215,38 +8347,48 @@ public function showCanvasResizeButtons():void {
     resizeButtonU.visible = true;
 }
 
-public function updateCanvasResizeButtonVisible(flag:Boolean):void {
-    if (resizeButtonR.visible === flag) {
+public function updateCanvasResizeButtonVisible(flag:Boolean):void
+{
+    if (resizeButtonR.visible === flag)
+    {
         return;
     }
 
-    if (flag) {
+    if (flag)
+    {
         updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
         showCanvasResizeButtons();
     }
-    else {
+    else
+    {
         hideCanvasResizeButtons();
     }
 }
 
-public function showCanvasResizeButtonVisibleDelay(flag:Boolean):void {
-    if (flag) {
+public function showCanvasResizeButtonVisibleDelay(flag:Boolean):void
+{
+    if (flag)
+    {
         updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
         toolBox2.startResizeButtonWaitBarAnimation(0.9);
-        addTimerByName("resizeButtonVisibleDelayTimer", 0.9, false, function():void {
+        addTimerByName("resizeButtonVisibleDelayTimer", 0.9, false, function():void
+            {
                 showCanvasResizeButtons();
                 enableTransparentBGDrawMode();
             });
     }
-    else {
+    else
+    {
         removeTimer("resizeButtonVisibleDelayTimer");
         hideCanvasResizeButtons();
         disableTransparentBGDrawMode();
     }
 }
 
-public function addInputEventsReplayMode():void {
-    if (isReplayModeInputEventsAdded === false) {
+public function addInputEventsReplayMode():void
+{
+    if (isReplayModeInputEventsAdded === false)
+    {
         isReplayModeInputEventsAdded = true;
         // resetKeyBuffer();
         stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode, false, -1);
@@ -7256,7 +8398,8 @@ public function addInputEventsReplayMode():void {
     }
 }
 
-public function removeInputEventsReplayMode():void {
+public function removeInputEventsReplayMode():void
+{
     isReplayModeInputEventsAdded = false;
     stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode);
     stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode);
@@ -7264,7 +8407,8 @@ public function removeInputEventsReplayMode():void {
     stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode);
 }
 
-public function removeInputEventsDrawMode():void {
+public function removeInputEventsDrawMode():void
+{
     isDrawModeInputEventsAdded = false;
     stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownDrawMode);
     stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpDrawMode);
@@ -7275,8 +8419,10 @@ public function removeInputEventsDrawMode():void {
     // stage.removeEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
 }
 
-public function addInputEventsDrawMode():void {
-    if (isDrawModeInputEventsAdded === false) {
+public function addInputEventsDrawMode():void
+{
+    if (isDrawModeInputEventsAdded === false)
+    {
         isDrawModeInputEventsAdded = true;
         // resetKeyBuffer();
         stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpDrawMode, false, -1);
@@ -7288,7 +8434,8 @@ public function addInputEventsDrawMode():void {
     }
 }
 
-public function removeInputEventCaptrueMode():void {
+public function removeInputEventCaptrueMode():void
+{
     isCaptureModeInputEventsAdded = false;
     stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode);
     stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCaptureMode);
@@ -7296,8 +8443,10 @@ public function removeInputEventCaptrueMode():void {
     stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownCaptureMode);
 }
 
-public function addInputEventsCaptrueMode():void {
-    if (isCaptureModeInputEventsAdded === false) {
+public function addInputEventsCaptrueMode():void
+{
+    if (isCaptureModeInputEventsAdded === false)
+    {
         isCaptureModeInputEventsAdded = true;
         // resetKeyBuffer();
         stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode, false, -1);
@@ -7307,7 +8456,8 @@ public function addInputEventsCaptrueMode():void {
     }
 }
 
-public function removeInputEventsToolBox2():void {
+public function removeInputEventsToolBox2():void
+{
     stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2);
     stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2);
     toolBox2.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverToolBox2);
@@ -7315,44 +8465,55 @@ public function removeInputEventsToolBox2():void {
     addInputEventsDrawMode();
 }
 
-public function addInputEventsToolBox2(fromShortcut:Boolean):void {
+public function addInputEventsToolBox2(fromShortcut:Boolean):void
+{
     removeInputEventsDrawMode();
-    if (fromShortcut) {
+    if (fromShortcut)
+    {
         toolBox2.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverToolBox2, false, -2);
         stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpToolBox2, false, -2);
     }
-    else {
+    else
+    {
         stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2, false, -2);
     }
     stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2, false, -2);
 }
 
-public function addLassoLayerMergeCommand(command:int):void {
-    if (lassoLayerCommandData === null) {
+public function addLassoLayerMergeCommand(command:int):void
+{
+    if (lassoLayerCommandData === null)
+    {
         lassoLayerCommandData = [];
     }
     // 0번 스왑명령, 1번 머지 명령
-    if (command === 0) {
-        if (lassoLayerCommandData.length > 0 && lassoLayerCommandData[lassoLayerCommandData.length - 1] === 0) {
+    if (command === 0)
+    {
+        if (lassoLayerCommandData.length > 0 && lassoLayerCommandData[lassoLayerCommandData.length - 1] === 0)
+        {
             lassoLayerCommandData.pop();
         }
-        else {
+        else
+        {
             lassoLayerCommandData.push(0);
         }
     }
-    else if (lassoLayerCommandData[lassoLayerCommandData.length - 1] !== command) {
+    else if (lassoLayerCommandData[lassoLayerCommandData.length - 1] !== command)
+    {
         lassoLayerCommandData.push(command);
     }
 }
 
-public function swapLassoImage():void {
+public function swapLassoImage():void
+{
     var tmpbmpd:BitmapData = lassoLayer1Bitmap.bitmapData;
     lassoLayer1Bitmap.bitmapData = lassoLayer2Bitmap.bitmapData;
     lassoLayer2Bitmap.bitmapData = tmpbmpd;
     tmpbmpd = null;
 }
 
-public function mergeLassoImage():void {
+public function mergeLassoImage():void
+{
     var rect:Rectangle = new Rectangle(0, 0, lassoLayer1Bitmap.bitmapData.width, lassoLayer1Bitmap.bitmapData.height);
 
     lassoLayer2Bitmap.bitmapData.draw(lassoLayer1Bitmap);
@@ -7360,14 +8521,17 @@ public function mergeLassoImage():void {
     rect = null;
 }
 
-public function mergeLayerByLassoTool():void {
+public function mergeLayerByLassoTool():void
+{
     lassoMenuBox.lassoLayerMerge.alpha = Global.OFFALPHA;
     mergeLassoImage();
     addLassoLayerMergeCommand(1);
 }
 
-public function swapLayerByLassoTool():void {
-    if (lassoMenuBox.lassoLayerSwap.alpha < 1.0) {
+public function swapLayerByLassoTool():void
+{
+    if (lassoMenuBox.lassoLayerSwap.alpha < 1.0)
+    {
         return;
     }
 
@@ -7378,8 +8542,10 @@ public function swapLayerByLassoTool():void {
     playLayerSwapEffect(lassoMenuBox.lassoLayerSwap);
 }
 
-public function copyCanvasImageToLassoTool():void {
-    if (isLassoImageCopied) {
+public function copyCanvasImageToLassoTool():void
+{
+    if (isLassoImageCopied)
+    {
         return;
     }
 
@@ -7388,10 +8554,12 @@ public function copyCanvasImageToLassoTool():void {
     lassoCancelBmpd();
 }
 
-public function startLassoImageRotation():void {
+public function startLassoImageRotation():void
+{
     var getAngle:Function = createAngleUpdateFunctionByMouseDrag(lassoLayer1);
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         getAngle = null;
         hideCanvasRotateCursor();
 
@@ -7400,13 +8568,15 @@ public function startLassoImageRotation():void {
         lassoMenuBox.visible = true;
     }
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         lassoMenuBox.visible = false;
         lassoLayer1Bitmap.smoothing = false;
         lassoLayer2Bitmap.smoothing = false;
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         const angle:Number = getAngle(false);
 
         lassoLayer1.rotation = angle;
@@ -7416,18 +8586,21 @@ public function startLassoImageRotation():void {
     startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
-public function startLassoImageResize():void {
+public function startLassoImageResize():void
+{
     const mirrorScale:Number = (lassoLayer1.scaleX < 0) ? -1.0 : 1.0;
     var getScale:Function = createScaleUpdaterFromMouseDrag(lassoLayer1.scaleX);
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         lassoMenuBox.visible = false;
         lassoLayer1Bitmap.smoothing = false;
         lassoLayer2Bitmap.smoothing = false;
 
         showMouseHint(getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
     }
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         getScale = null;
         keepBoxInsideViewPort(lassoMenuBox);
         hideMouseHint();
@@ -7437,7 +8610,8 @@ public function startLassoImageResize():void {
         lassoMenuBox.visible = true;
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         const scale:Number = getScale(stage.mouseX, stage.mouseY);
 
         lassoLayer1.scaleX = scale * mirrorScale;
@@ -7451,23 +8625,27 @@ public function startLassoImageResize():void {
     startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
-public function hasLassoImageChanges():Boolean {
+public function hasLassoImageChanges():Boolean
+{
     if (isLassoImageCopied
             || lassoFirstData[0] !== lassoLayer1.x
             || lassoFirstData[1] !== lassoLayer1.y
             || lassoFirstData[2] !== lassoLayer1.scaleX
             || lassoFirstData[3] !== lassoLayer1.scaleY
             || lassoFirstData[4] !== lassoLayer1.rotation
-            || (lassoLayerCommandData && lassoLayerCommandData.length > 0)) {
+            || (lassoLayerCommandData && lassoLayerCommandData.length > 0))
+    {
         return true;
     }
     return false;
 }
 
-public function startLassoImageMove():void {
+public function startLassoImageMove():void
+{
     var getMovedPos:Function = createPosUpdateFunctionByMouseDrag(lassoLayer1, canvasAnchorPoint.rotation);
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         getMovedPos = null;
         keepBoxInsideViewPort(lassoMenuBox);
 
@@ -7476,7 +8654,8 @@ public function startLassoImageMove():void {
         lassoMenuBox.visible = true;
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         const pos:Point = getMovedPos();
 
         lassoLayer1.x = Math.round(pos.x);
@@ -7485,7 +8664,8 @@ public function startLassoImageMove():void {
         lassoLayer2.y = lassoLayer1.y;
     }
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         lassoMenuBox.visible = false;
         lassoLayer1Bitmap.smoothing = false;
         lassoLayer2Bitmap.smoothing = false;
@@ -7494,15 +8674,18 @@ public function startLassoImageMove():void {
     startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
-public function setDrawToolSize(index:uint):void {
+public function setDrawToolSize(index:uint):void
+{
     const size:uint = penSizeList[index];
 
-    if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)) {
+    if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
+    {
         penSize = size;
         penSizeIndex = index;
         penCursorManager.updateCursorSize(penSize);
     }
-    else if (isSelectedTool(TOOL_ERASER)) {
+    else if (isSelectedTool(TOOL_ERASER))
+    {
         eraserSize = size;
         eraserSizeIndex = index;
         penCursorManager.updateCursorSize(eraserSize);
@@ -7510,23 +8693,28 @@ public function setDrawToolSize(index:uint):void {
     toolOptionsBox.movePenSizeCursor(index);
 }
 
-public function isCurrentColorSamePickedColor():Boolean {
+public function isCurrentColorSamePickedColor():Boolean
+{
     return colorPickerBox.getRGBInfoBGColor() === colorPickerBox.getCurrentColor();
 }
 
-public function updatePickerCurrentColor(color:uint):void {
+public function updatePickerCurrentColor(color:uint):void
+{
     colorPickerBox.updateCurrentColor(color);
 }
 
-public function onMouseDownColorPickerBoxModeBGOFF(e:MouseEvent):void {
-    if (isCursorInDrawArea()) {
+public function onMouseDownColorPickerBoxModeBGOFF(e:MouseEvent):void
+{
+    if (isCursorInDrawArea())
+    {
         isColorPickerModeResetEventAdded = false;
         stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);
         switchColorPickerModePen();
     }
 }
 
-public function switchColorPickerModeBG():void {
+public function switchColorPickerModeBG():void
+{
     const color:uint = CANVAS_BG_COLOR;
 
     isColorPickerModeBG = true;
@@ -7537,13 +8725,15 @@ public function switchColorPickerModeBG():void {
     colorPickerBox.transColorButton.visible = false;
     isTransparentPenColor = false;
 
-    if (isColorPickerModeResetEventAdded === false) {
+    if (isColorPickerModeResetEventAdded === false)
+    {
         isColorPickerModeResetEventAdded = true;
         stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);
     }
 }
 
-public function switchColorPickerModePen():void {
+public function switchColorPickerModePen():void
+{
     const color:uint = penColor;
 
     isColorPickerModeBG = false;
@@ -7553,22 +8743,28 @@ public function switchColorPickerModePen():void {
     colorPickerBox.transColorButton.visible = true;
     isTransparentPenColor = false;
 
-    if (isColorPickerModeResetEventAdded === true) {
+    if (isColorPickerModeResetEventAdded === true)
+    {
         isColorPickerModeResetEventAdded = false;
         stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);
     }
 }
 
-public function selectPenShapeButton(shapeFlag:Boolean):void {
+public function selectPenShapeButton(shapeFlag:Boolean):void
+{
     penListShapeIsSqare = shapeFlag;
 
-    if (isSelectedToolPenOrLine()) {
-        if (penIsSquare !== shapeFlag) {
+    if (isSelectedToolPenOrLine())
+    {
+        if (penIsSquare !== shapeFlag)
+        {
             penIsSquare = shapeFlag;
         }
     }
-    else if (isSelectedTool(TOOL_ERASER)) {
-        if (eraserIsSquare !== shapeFlag) {
+    else if (isSelectedTool(TOOL_ERASER))
+    {
+        if (eraserIsSquare !== shapeFlag)
+        {
             eraserIsSquare = shapeFlag;
         }
     }
@@ -7577,31 +8773,37 @@ public function selectPenShapeButton(shapeFlag:Boolean):void {
     updatePenSizeCursor();
 }
 
-public function updatePenColor(color:uint):void {
+public function updatePenColor(color:uint):void
+{
     penColor = color;
     updateOpacityCursorPos(penAlphaIndex);
 }
 
-public function isBackgroundColorMode():Boolean {
+public function isBackgroundColorMode():Boolean
+{
     return isColorPickerModeBG === true && isFillPenStarted === false;
 }
 
-public function isPenColorMode():Boolean {
+public function isPenColorMode():Boolean
+{
     return isColorPickerModeBG === false;
 }
 
-public function updateHSVColorData(h:Number, s:Number, v:Number):void {
+public function updateHSVColorData(h:Number, s:Number, v:Number):void
+{
     hsvColorData[0] = h;
     hsvColorData[1] = s;
     hsvColorData[2] = v;
 }
 
-public function startHueColorSelection():void {
+public function startHueColorSelection():void
+{
     const offsetX:Number = colorPickerBox.offsetX;
     const max:Number = colorPickerBox.svBoxWidth;
     var pickedColor:uint = 0;
 
-    function pickHueColor(mx:Number):void {
+    function pickHueColor(mx:Number):void
+    {
         var hueCursorX:Number = mx;
 
         if (hueCursorX < 0)
@@ -7619,25 +8821,31 @@ public function startHueColorSelection():void {
         pickedColor = Global.HSVtoHEX(hueValue, hsvColorData[1], hsvColorData[2]);
         colorPickerBox.updateHueColor(baseHexColor);
         colorPickerBox.updateRGBInfoBG(pickedColor, myPalettePresetType);
-        if (isHSVInfoTextMode) {
+        if (isHSVInfoTextMode)
+        {
             colorPickerBox.updateRGBInfoText("HSV", hsvColorData);
         }
-        else {
+        else
+        {
             colorPickerBox.updateRGBInfoText("RGB", pickedColor);
         }
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         pickHueColor(colorPickerBox.hueColor.mouseX);
     }
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         pickHueColor(colorPickerBox.hueColor.mouseX);
 
-        if (isPenColorMode()) {
+        if (isPenColorMode())
+        {
             updatePenColor(pickedColor);
         }
-        else if (isBackgroundColorMode()) {
+        else if (isBackgroundColorMode())
+        {
             updateCanvasBGColorDrawMode(pickedColor);
             if (isCanvasWindowON)
                 updateCanvasWindowBGColor(CANVAS_BG_COLOR, canvasWindowLayer1Bitmap.bitmapData);
@@ -7649,7 +8857,8 @@ public function startHueColorSelection():void {
         selectPenToolIfNotDrawingTool(false);
     }
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         setAsTopChild(colorPickerBox.hueCursor);
         isPenSizeCursorInvisible = true;
         isTransparentPenColor = false;
@@ -7660,12 +8869,14 @@ public function startHueColorSelection():void {
     startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
-public function startSVColorSelection():void {
+public function startSVColorSelection():void
+{
     const colorBarWidth:Number = colorPickerBox.svBoxWidth;
     const colorBarHeight:Number = colorPickerBox.svBoxHeight;
     var pickedColor:uint = 0;
 
-    function pickSVColor(mx:Number, my:Number):void {
+    function pickSVColor(mx:Number, my:Number):void
+    {
         var svCursorX:Number = mx;
         var svCursorY:Number = my;
 
@@ -7690,26 +8901,32 @@ public function startSVColorSelection():void {
         pickedColor = Global.HSVtoHEX(hueValue, sValue, vValue);
         colorPickerBox.updateRGBInfoBG(pickedColor, myPalettePresetType);
         colorPickerBox.setRGBInfoVisible(false);
-        if (isHSVInfoTextMode) {
+        if (isHSVInfoTextMode)
+        {
             colorPickerBox.updateRGBInfoText("HSV", hsvColorData);
         }
-        else {
+        else
+        {
             colorPickerBox.updateRGBInfoText("RGB", pickedColor);
         }
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         pickSVColor(colorPickerBox.svBox.mouseX, colorPickerBox.svBox.mouseY);
     }
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         pickSVColor(colorPickerBox.svBox.mouseX, colorPickerBox.svBox.mouseY);
 
-        if (isPenColorMode()) {
+        if (isPenColorMode())
+        {
             penColor = pickedColor;
             updateOpacityCursorPos(penAlphaIndex);
         }
-        else if (isBackgroundColorMode()) {
+        else if (isBackgroundColorMode())
+        {
             updateCanvasBGColorDrawMode(pickedColor);
             if (isCanvasWindowON)
                 updateCanvasWindowBGColor(CANVAS_BG_COLOR, canvasWindowLayer1Bitmap.bitmapData);
@@ -7722,7 +8939,8 @@ public function startSVColorSelection():void {
         selectPenToolIfNotDrawingTool(false);
     }
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         setAsTopChild(colorPickerBox.svCursor);
         isPenSizeCursorInvisible = true;
         isTransparentPenColor = false;
@@ -7734,16 +8952,19 @@ public function startSVColorSelection():void {
 }
 
 // 단축키를  after tool mouse up에서 이전툴을 복구해줌
-public function selectLastUsedTool():void {
+public function selectLastUsedTool():void
+{
     const lastToolSave:int = lastTool;
 
-    if (lastToolSave === TOOL_NONE) {
+    if (lastToolSave === TOOL_NONE)
+    {
         selectPenTool();
         updatePenSizeCursor();
         return;
     }
 
-    switch (lastToolSave) {
+    switch (lastToolSave)
+    {
         case TOOL_PEN:
             selectPenTool();
             updatePenSizeCursor();
@@ -7786,7 +9007,8 @@ public function selectLastUsedTool():void {
 }
 
 // VERSION변수를 문자열로 변환, 변환할때 뒤에 .0이 붙었는지 까지 체크
-public function convertVersionString(version:Number):String {
+public function convertVersionString(version:Number):String
+{
     var verStr:String = version.toString();
 
     if (verStr && verStr.indexOf(".") === -1)
@@ -7795,12 +9017,15 @@ public function convertVersionString(version:Number):String {
     return verStr;
 }
 
-public function enableIME():void {
+public function enableIME():void
+{
     IME.enabled = true;
 }
 
-public function tryDisableIME():void {
-    if (isCaptureStampTextFieldFocused) {
+public function tryDisableIME():void
+{
+    if (isCaptureStampTextFieldFocused)
+    {
         IME.enabled = true;
         return;
     }
@@ -7814,8 +9039,10 @@ public function tryDisableIME():void {
 
 // 문자열을 소수 2번째 자리까지만 변환
 
-public function checkForUpdates():void {
-    if (appUpdateStatus === UPDATE_CHECKING) {
+public function checkForUpdates():void
+{
+    if (appUpdateStatus === UPDATE_CHECKING)
+    {
         return;
     }
 
@@ -7830,18 +9057,21 @@ public function checkForUpdates():void {
     loader.addEventListener(IOErrorEvent.IO_ERROR, onErrorCheckVersion);
     loader.load(versionInfo);
 
-    function onErrorCheckVersion(e:IOErrorEvent):void {
+    function onErrorCheckVersion(e:IOErrorEvent):void
+    {
         appUpdateStatus = UPDATE_NONE;
         loader.removeEventListener(Event.COMPLETE, onCompleteCheckVersion);
         loader.removeEventListener(IOErrorEvent.IO_ERROR, onErrorCheckVersion);
         loader = null;
     }
 
-    function parseVersion(str:String):Number {
+    function parseVersion(str:String):Number
+    {
         return parseFloat(str);
     }
 
-    function isNewVersion(newVersionArray:Array):Boolean {
+    function isNewVersion(newVersionArray:Array):Boolean
+    {
         var current:Array = APP_VERSION.toFixed(2).split(".");
 
         var newMajor:Number = parseFloat(newVersionArray[0]);
@@ -7852,19 +9082,23 @@ public function checkForUpdates():void {
         return (newMajor > curMajor) || (newMajor === curMajor && newMinor > curMinor);
     }
 
-    function onCompleteCheckVersion(e:Event):void {
+    function onCompleteCheckVersion(e:Event):void
+    {
         const versionStr:String = loader.data as String;
-        if (!versionStr) {
+        if (!versionStr)
+        {
             return;
         }
 
         const versionArray:Array = versionStr.split(".");
 
-        if (versionArray.length === 2) {
+        if (versionArray.length === 2)
+        {
             var tryCount:uint = 0;
 
             const updateFile:URLRequest = new URLRequest(UPDATE_FILE_URL);
-            if (isNewVersion(versionArray)) {
+            if (isNewVersion(versionArray))
+            {
                 newVersionStr = versionStr;
                 var fileLoader:URLLoader = e.target as URLLoader;
 
@@ -7872,7 +9106,8 @@ public function checkForUpdates():void {
                 fileLoader.addEventListener(Event.COMPLETE, downloadSuccessEvent);
                 fileLoader.addEventListener(IOErrorEvent.IO_ERROR, downloadFailedEvent);
 
-                function onUpdateCheckFinished(updateState:int):void {
+                function onUpdateCheckFinished(updateState:int):void
+                {
                     fileLoader.removeEventListener(Event.COMPLETE, downloadSuccessEvent);
                     fileLoader.removeEventListener(IOErrorEvent.IO_ERROR, downloadFailedEvent);
 
@@ -7880,19 +9115,24 @@ public function checkForUpdates():void {
                     topBar.showUpdateButton();
                 }
 
-                function downloadFailedEvent(e:Event):void {
-                    if (tryCount < 5) {
-                        addTimerByName("updateRryTimer", 1.0, false, function():void {
+                function downloadFailedEvent(e:Event):void
+                {
+                    if (tryCount < 5)
+                    {
+                        addTimerByName("updateRryTimer", 1.0, false, function():void
+                            {
                                 tryCount++;
                                 fileLoader.load(updateFile);
                             });
                     }
-                    else {
+                    else
+                    {
                         onUpdateCheckFinished(UPDATE_NEEDS_MANUAL);
                     }
                 }
 
-                function downloadSuccessEvent(e:Event):void {
+                function downloadSuccessEvent(e:Event):void
+                {
                     var fs:FileStream = new FileStream();
                     fs.open(updateFilePath, FileMode.WRITE);
                     fs.writeBytes(fileLoader.data);
@@ -7900,22 +9140,27 @@ public function checkForUpdates():void {
                     onUpdateCheckFinished(UPDATE_READY);
                 }
 
-                if (Updater.isSupported) {
+                if (Updater.isSupported)
+                {
                     fileLoader.load(updateFile); // 다운로드를 시작함
                 }
-                else {
+                else
+                {
                     onUpdateCheckFinished(UPDATE_NEEDS_MANUAL);
                 }
             }
-            else {
+            else
+            {
                 appUpdateStatus = UPDATE_NONE;
                 // 최신 버전이면 이미 다운로드한 파일 있는지 체크하고 제거
-                if (updateFilePath.exists) {
+                if (updateFilePath.exists)
+                {
                     updateFilePath.deleteFile();
                 }
             }
         }
-        else {
+        else
+        {
             appUpdateStatus = UPDATE_NONE;
         }
         loader.removeEventListener(Event.COMPLETE, onCompleteCheckVersion);
@@ -7924,22 +9169,26 @@ public function checkForUpdates():void {
     }
 }
 
-public function closeAboutBox():void {
+public function closeAboutBox():void
+{
     stage.removeEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown);
     removeInputEventCaptrueMode();
     removeInputEventsReplayMode();
     addInputEventsDrawMode();
     isAboutBoxOpened = false;
     aboutBox.visible = false;
-    addTimerByName("clickBlockTimer", 0.15, false, function():void {
+    addTimerByName("clickBlockTimer", 0.15, false, function():void
+        {
             isMouseClickBlocked = false;
         });
 }
 
-public function onAboutWindowMouseDown(e:MouseEvent):void {
+public function onAboutWindowMouseDown(e:MouseEvent):void
+{
     const targetName:String = e.target.name;
 
-    switch (targetName) {
+    switch (targetName)
+    {
         case "appResetButton":
         case "versionInfo":
         case "releaseNoteButton":
@@ -7960,25 +9209,30 @@ public function onAboutWindowMouseDown(e:MouseEvent):void {
     }
 }
 
-public function updateAboutPanelCenterPos():void {
+public function updateAboutPanelCenterPos():void
+{
     aboutBox.x = Math.floor(stage.stageWidth / 2) + Math.floor(-aboutBox.width / 2);
     aboutBox.y = Math.floor((stage.stageHeight - 39) / 2) + Math.floor(-aboutBox.height / 2);
 }
 
-public function openAboutBox(welcome:Boolean):void {
+public function openAboutBox(welcome:Boolean):void
+{
     setAsTopChild(aboutBox);
     isAboutBoxOpened = true;
     isMouseClickBlocked = true;
     hideBottomHint();
     removeInputEventsDrawMode();
 
-    if (welcome === true) {
+    if (welcome === true)
+    {
         aboutBox.resetAppButton.visible = false;
-        addTimerByName("openAboutPanelOFFTimer", 1.0, false, function():void {
+        addTimerByName("openAboutPanelOFFTimer", 1.0, false, function():void
+            {
                 stage.addEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown);
             });
     }
-    else {
+    else
+    {
         removeInputEventsDrawMode();
         aboutBox.resetAppButton.visible = true;
         checkForUpdates();
@@ -7991,7 +9245,8 @@ public function openAboutBox(welcome:Boolean):void {
     aboutBox.visible = true;
 }
 
-public function clearDataAndResetVars():void {
+public function clearDataAndResetVars():void
+{
     isContinueSaveON = false;
     rLastCanvasBGColor = CANVAS_BG_COLOR;
     rMirrorON = false;
@@ -8017,7 +9272,8 @@ public function clearDataAndResetVars():void {
     removeKeyRepeatEvents(null);
 }
 
-public function copyReplayCanvasDataToDrawCanvas():void {
+public function copyReplayCanvasDataToDrawCanvas():void
+{
     const lineStyleSave:Array = drawReplayByCommand.getrLineStyleSave();
     // if(!lineStyleSave) return;
     var newColorTransform:ColorTransform = new ColorTransform(1, 1, 1, lineStyleSave[0]);
@@ -8025,10 +9281,12 @@ public function copyReplayCanvasDataToDrawCanvas():void {
     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
     rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
 
-    if (isLayer2SelectedReplayMode()) {
+    if (isLayer2SelectedReplayMode())
+    {
         rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, newColorTransform, lineStyleSave[1]);
     }
-    else {
+    else
+    {
         rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, newColorTransform, lineStyleSave[1]);
     }
 
@@ -8043,13 +9301,15 @@ public function copyReplayCanvasDataToDrawCanvas():void {
     updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
     canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
 
-    if (isCanvasWindowON) {
+    if (isCanvasWindowON)
+    {
         updateCanvasWindowImage();
         updateCanvasWindowBitmapSize();
     }
 }
 
-public function clearData():void {
+public function clearData():void
+{
     clearCanvas();
     resetZoomReplayMode();
     resetRotationReplayMode();
@@ -8067,27 +9327,35 @@ public function clearData():void {
     topBar.newFileButton.alpha = Global.OFFALPHA;
 }
 
-public function createNewFile(fromShortcut:Boolean):void {
+public function createNewFile(fromShortcut:Boolean):void
+{
     startPressHoldKey((!fromShortcut) ? topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, clearData, null);
 }
 
-public function openLocalManualFolder():void {
+public function openLocalManualFolder():void
+{
     var targetFolder:File = File.applicationDirectory.resolvePath("manual");
 
-    if (targetFolder.exists && targetFolder.isDirectory) {
+    if (targetFolder.exists && targetFolder.isDirectory)
+    {
         var request:URLRequest = new URLRequest(targetFolder.url);
         navigateToURL(request);
     }
 }
 
-public function handleMouseClick(targetName:String):void {
-    if (isAboutBoxOpened) {
-        function onMouseUpAboutBox(e:MouseEvent):void {
+public function handleMouseClick(targetName:String):void
+{
+    if (isAboutBoxOpened)
+    {
+        function onMouseUpAboutBox(e:MouseEvent):void
+        {
             stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
             const upTargetName:String = e.target.name;
 
-            if (targetName === upTargetName) {
-                switch (targetName) {
+            if (targetName === upTargetName)
+            {
+                switch (targetName)
+                {
                     case "resetAppButton":
                         {
                             resetApp();
@@ -8138,13 +9406,16 @@ public function handleMouseClick(targetName:String):void {
         return;
     }
 
-    function onMouseUp(e:MouseEvent):void {
+    function onMouseUp(e:MouseEvent):void
+    {
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
 
         const upTargetName:String = e.target.name;
 
-        if (targetName === upTargetName) {
-            switch (upTargetName) {
+        if (targetName === upTargetName)
+        {
+            switch (upTargetName)
+            {
                 case "drawModeButton":
                     {
                         exitReplayMode();
@@ -8366,7 +9637,8 @@ public function handleMouseClick(targetName:String):void {
 
                 case "refClipBoardButton":
                     {
-                        if (refLayerMenuBox.refClipBoardButton.alpha === 1.0) {
+                        if (refLayerMenuBox.refClipBoardButton.alpha === 1.0)
+                        {
                             tryLoadClipboardImage(true);
                         }
                     }
@@ -8375,10 +9647,12 @@ public function handleMouseClick(targetName:String):void {
                 case "refMirrorImageButton":
                     {
                         setAsTopChild(refLayerMenuBox);
-                        if (isRefLayerEmpty()) {
+                        if (isRefLayerEmpty())
+                        {
                             showRefLayerIsEmptyHint();
                         }
-                        else {
+                        else
+                        {
                             startRefLayerImageMirror();
                         }
                     }
@@ -8388,10 +9662,12 @@ public function handleMouseClick(targetName:String):void {
                 case "refMemoryTrainingOffButton":
                     {
                         setAsTopChild(refLayerMenuBox);
-                        if (isRefLayerEmpty()) {
+                        if (isRefLayerEmpty())
+                        {
                             showRefLayerIsEmptyHint();
                         }
-                        else {
+                        else
+                        {
                             toggleRefLayerMemoryTraining();
                         }
                     }
@@ -8399,10 +9675,12 @@ public function handleMouseClick(targetName:String):void {
 
                 case "playButton":
                     {
-                        if (isReplayRestartTimerON()) {
+                        if (isReplayRestartTimerON())
+                        {
                             cancelReplayRestartTimer();
                         }
-                        else {
+                        else
+                        {
                             handleReplayStartButton();
                         }
                     }
@@ -8411,10 +9689,12 @@ public function handleMouseClick(targetName:String):void {
                 case "pauseButton":
                     {
                         removeTimer("prograssBarUpdateTimer");
-                        if (isReplayRestartTimerON()) {
+                        if (isReplayRestartTimerON())
+                        {
                             cancelReplayRestartTimer();
                         }
-                        else {
+                        else
+                        {
                             handleReplayStopButton();
                         }
                     }
@@ -8434,7 +9714,8 @@ public function handleMouseClick(targetName:String):void {
 
                 case "lassoCancel":
                     {
-                        if (isLassoToolStarted === true) {
+                        if (isLassoToolStarted === true)
+                        {
                             cancelLassoTool();
                         }
                     }
@@ -8442,7 +9723,8 @@ public function handleMouseClick(targetName:String):void {
 
                 case "lassoLayerMerge":
                     {
-                        if (lassoMenuBox.lassoLayerMerge.alpha === 1.0) {
+                        if (lassoMenuBox.lassoLayerMerge.alpha === 1.0)
+                        {
                             mergeLayerByLassoTool();
                         }
                     }
@@ -8450,7 +9732,8 @@ public function handleMouseClick(targetName:String):void {
 
                 case "lassoLayerSwap":
                     {
-                        if (lassoMenuBox.lassoLayerSwap.alpha === 1.0) {
+                        if (lassoMenuBox.lassoLayerSwap.alpha === 1.0)
+                        {
                             swapLayerByLassoTool();
                         }
                     }
@@ -8520,7 +9803,8 @@ public function handleMouseClick(targetName:String):void {
     stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
 }
 
-public function syncDrawCanvasWithReplayCanvas():void {
+public function syncDrawCanvasWithReplayCanvas():void
+{
     canvasZoomMultipler = rCanvasZoomMultiplier;
     canvasZoomIndex = rCanvasZoomIndex;
     canvasAnchorPoint.x = Math.floor(rCanvasAnchorPoint.x); // 뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
@@ -8533,7 +9817,8 @@ public function syncDrawCanvasWithReplayCanvas():void {
     setRcursorRotation(rCanvasAnchorPoint.rotation);
 }
 
-public function ensureReplayCanvasState():void {
+public function ensureReplayCanvasState():void
+{
     const rNowFrameBackup:Number = rNowFrame;
     renderReplayFrame(0, JUMP_FRAME_MANUAL);
     renderReplayFrame(rNowFrameBackup, JUMP_FRAME_MANUAL);
@@ -8542,7 +9827,8 @@ public function ensureReplayCanvasState():void {
     canvasInfoBox.setMirror(rMirrorON);
 }
 
-public function deleteReplayDataBeforeCurrentFrame():void {
+public function deleteReplayDataBeforeCurrentFrame():void
+{
     // 미러 되어있을 수도 있기 때문에 워래 프레임 으로 점프해준뒤에 실행해줌
     ensureReplayCanvasState();
     seekBarBox.setDeleteRangeBarVisible(false);
@@ -8550,7 +9836,8 @@ public function deleteReplayDataBeforeCurrentFrame():void {
 
     const fs:FileStream = new FileStream();
 
-    if (rDataReadFlag) {
+    if (rDataReadFlag)
+    {
         // repfile 초기화
         undoManager.updateUndoBaseImageFromReplayMode();
         fs.open(replayDataFilePath, FileMode.WRITE); // 파일 생성
@@ -8565,10 +9852,12 @@ public function deleteReplayDataBeforeCurrentFrame():void {
         updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
         updateReplayPrograssText(true, TOTAL_FRAME);
 
-        if (TOTAL_FRAME === 0) {
+        if (TOTAL_FRAME === 0)
+        {
             seekBarBox.resetReplayPrograssBarWidth();
         }
-        else {
+        else
+        {
             seekBarBox.setReplayPrograssBarMaxWidth();
         }
 
@@ -8576,7 +9865,8 @@ public function deleteReplayDataBeforeCurrentFrame():void {
 
         rReplayFOFOCursor.visible = false;
     }
-    else {
+    else
+    {
         // make jumpimage에서 변경해주기 때문에
         if (repFileTemp.exists) // 이미 있으면 지워주고
         {
@@ -8609,7 +9899,8 @@ public function deleteReplayDataBeforeCurrentFrame():void {
     resetReplaySpeedBar();
     isReplayFinished = true;
 
-    if (undoDataIndex > rData.length - 1) {
+    if (undoDataIndex > rData.length - 1)
+    {
         undoDataIndex = rData.length - 1;
     }
 
@@ -8621,11 +9912,13 @@ public function deleteReplayDataBeforeCurrentFrame():void {
     resetRefLayerImageTransform();
 }
 
-public function deleteReplayDataAfterCurrentFrame():void {
+public function deleteReplayDataAfterCurrentFrame():void
+{
     ensureReplayCanvasState();
     seekBarBox.setDeleteRangeBarVisible(false);
 
-    if (rDataReadFlag === true) {
+    if (rDataReadFlag === true)
+    {
         // 위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
         // 실제 undo해줘야할 인덱스는 -1해줘야하는거임
         undoToIndex(rDataIndex);
@@ -8634,7 +9927,8 @@ public function deleteReplayDataAfterCurrentFrame():void {
         updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
         resetReplayTime();
     }
-    else if (rDataReadFlag === false) {
+    else if (rDataReadFlag === false)
+    {
         drawReplayByCommand.setFirstRCursorPosCurrent();
         const fs:FileStream = new FileStream();
 
@@ -8648,8 +9942,10 @@ public function deleteReplayDataAfterCurrentFrame():void {
         const list:Array = replayCacheImageFolderPath.getDirectoryListing();
         const index:Number = getCachedFrameImageIndex(rNowFrameSave);
         // index번 이후 파일 삭제
-        for (var i:uint = 0, len:uint = list.length; i < len; i++) {
-            if (parseInt(list[i].name) > index) {
+        for (var i:uint = 0, len:uint = list.length; i < len; i++)
+        {
+            if (parseInt(list[i].name) > index)
+            {
                 list[i].deleteFile();
             }
         }
@@ -8673,7 +9969,8 @@ public function deleteReplayDataAfterCurrentFrame():void {
         resetUndoState();
         canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
 
-        if (isCanvasWindowON) {
+        if (isCanvasWindowON)
+        {
             updateCanvasWindowImage();
             updateCanvasWindowBitmapSize();
         }
@@ -8687,14 +9984,16 @@ public function deleteReplayDataAfterCurrentFrame():void {
     disableDeepUndo();
     resetRefLayerImageTransform();
 
-    if (isQuickSidebarActive) {
+    if (isQuickSidebarActive)
+    {
         deactivateQuickSidebar();
     }
 
     isContinueSaveON = false;
 }
 
-public function createNewFileFromReplayCanvas():void {
+public function createNewFileFromReplayCanvas():void
+{
     seekBarBox.setDeleteRangeBarVisible(false);
     copyReplayCanvasDataToDrawCanvas();
     clearDataAndResetVars();
@@ -8706,7 +10005,8 @@ public function createNewFileFromReplayCanvas():void {
 }
 
 // addundo data에서 캔버스 비트맵 데이터가 변경되기 전, rdatabuffer 비어있을때 넣어줘야함
-public function applyDeepUndo():void {
+public function applyDeepUndo():void
+{
     const fs:FileStream = new FileStream();
 
     fs.open(replayDataFilePath, FileMode.UPDATE);
@@ -8720,8 +10020,10 @@ public function applyDeepUndo():void {
     const index:Number = getCachedFrameImageIndex(rNowFrameSave);
     const len:uint = list.length;
     // index번 이후 파일 삭제
-    for (var i:uint = 0; i < len; i++) {
-        if (parseInt(list[i].name) > index) {
+    for (var i:uint = 0; i < len; i++)
+    {
+        if (parseInt(list[i].name) > index)
+        {
             list[i].deleteFile();
         }
     }
@@ -8740,7 +10042,8 @@ public function applyDeepUndo():void {
 
     canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
 
-    if (isCanvasWindowON) {
+    if (isCanvasWindowON)
+    {
         updateCanvasWindowImage();
         updateCanvasWindowBitmapSize();
     }
@@ -8748,16 +10051,20 @@ public function applyDeepUndo():void {
     disableDeepUndo();
 }
 
-public function prepareDeleteReplayData(mode:String):Boolean {
-    if (mode !== "total") {
-        if (drawReplayByCommand.getCurrentPosition() < drawReplayByCommand.getDataLength()) {
+public function prepareDeleteReplayData(mode:String):Boolean
+{
+    if (mode !== "total")
+    {
+        if (drawReplayByCommand.getCurrentPosition() < drawReplayByCommand.getDataLength())
+        {
             finalizeRemainingReplayData();
             updateReplayPrograssText();
             seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
             updateDeleteReplayDataButtonsState();
         }
 
-        if (rNowFrame >= TOTAL_FRAME) {
+        if (rNowFrame >= TOTAL_FRAME)
+        {
             seekBarBox.setDeleteRangeBarVisible(false);
             return true;
         }
@@ -8771,7 +10078,8 @@ public function prepareDeleteReplayData(mode:String):Boolean {
 public function initializeReplayDataFile(overWrite:Boolean = false):void // 기본 리플레이 파일 만들어줌
 {
     initializeRepTempFile();
-    if (replayDataFilePath.exists === false || overWrite === true) {
+    if (replayDataFilePath.exists === false || overWrite === true)
+    {
         const fs:FileStream = new FileStream();
         fs.open(replayDataFilePath, FileMode.WRITE);
         fs.close();
@@ -8779,7 +10087,8 @@ public function initializeReplayDataFile(overWrite:Boolean = false):void // 기�
     }
 }
 
-public function drawFirstJumpImage():void {
+public function drawFirstJumpImage():void
+{
     const fs:FileStream = new FileStream();
     const file:File = replayCacheImageFolderPath.resolvePath("0");
     fs.open(file, FileMode.READ);
@@ -8811,8 +10120,10 @@ public function drawFirstJumpImage():void {
     updateCanvasBGColorReplayMode(data[4]);
 }
 
-public function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint):void {
-    if (replayCacheImageFolderPath.exists) {
+public function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint):void
+{
+    if (replayCacheImageFolderPath.exists)
+    {
         replayCacheImageFolderPath.deleteDirectory(true);
     }
     replayCacheImageFolderPath.createDirectory();
@@ -8842,12 +10153,15 @@ public function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColo
     ba2.clear();
 }
 
-public function resetUndoState(fromReplayMode:Boolean = false):void {
+public function resetUndoState(fromReplayMode:Boolean = false):void
+{
     undoDataIndex = -1;
-    if (fromReplayMode) {
+    if (fromReplayMode)
+    {
         undoManager.updateUndoBaseImageFromReplayMode();
     }
-    else {
+    else
+    {
         undoManager.updateUndoBaseImageFromDrawMode();
     }
 
@@ -8861,8 +10175,10 @@ public function resetUndoState(fromReplayMode:Boolean = false):void {
     isDeepUndoEnabled = false;
 }
 
-public function fitCanvasToViewportMargin(fitting:Boolean = false):void {
-    if (!isReplayModeON && !isCaptureModeON) {
+public function fitCanvasToViewportMargin(fitting:Boolean = false):void
+{
+    if (!isReplayModeON && !isCaptureModeON)
+    {
         return;
     }
 
@@ -8877,24 +10193,28 @@ public function fitCanvasToViewportMargin(fitting:Boolean = false):void {
     var canvasWidth:Number;
     var canvasHeight:Number;
 
-    if (isReplayModeON) {
+    if (isReplayModeON)
+    {
         xBitmap1 = rCanvasLayer1Bitmap;
         xBitmap11 = rCanvasLayer2Bitmap;
         xAnc = rCanvasAnchorPoint;
 
-        if (fitting) {
+        if (fitting)
+        {
             xAnc.scaleX = 1.0;
             xAnc.scaleY = 1.0; // 크기를 원래대로 해놓고 해야 길이 측정이 됨
             const b:Rectangle = rCanvasLayer1Bitmap.getBounds(stage);
             canvasWidth = b.right - b.left;
             canvasHeight = b.bottom - b.top;
         }
-        else {
+        else
+        {
             canvasWidth = RCANVAS_WIDTH;
             canvasHeight = RCANVAS_HEIGHT;
         }
     }
-    else {
+    else
+    {
         xBitmap1 = canvasLayer1Bitmap;
         xBitmap11 = canvasLayer2Bitmap;
         xAnc = canvasAnchorPoint;
@@ -8902,8 +10222,10 @@ public function fitCanvasToViewportMargin(fitting:Boolean = false):void {
         canvasHeight = CANVAS_HEIGHT;
     }
 
-    if (isCaptureModeON) {
-        if (captureCanvasRotationStep === 1 || captureCanvasRotationStep === 3) {
+    if (isCaptureModeON)
+    {
+        if (captureCanvasRotationStep === 1 || captureCanvasRotationStep === 3)
+        {
             const widthSave:Number = canvasWidth;
             canvasWidth = canvasHeight;
             canvasHeight = widthSave;
@@ -8914,34 +10236,41 @@ public function fitCanvasToViewportMargin(fitting:Boolean = false):void {
     const scaleH:Number = sth / canvasHeight;
     var scale:Number = Math.min(scaleW, scaleH);
 
-    if (!fitting && scale > 1.0) {
+    if (!fitting && scale > 1.0)
+    {
         scale = 1.0;
     }
 
-    if (isCaptureModeON) {
+    if (isCaptureModeON)
+    {
         xAnc.rotation = 90 * captureCanvasRotationStep;
     }
 
-    if (isReplayModeON && !isReplayCanvasFitToWindow) {
+    if (isReplayModeON && !isReplayCanvasFitToWindow)
+    {
         isReplayFinishedWithFiwWindow = true;
     }
 
-    if (isCaptureModeON) {
+    if (isCaptureModeON)
+    {
         updateCanvasScale(scale, isReplayModeON);
         centerCanvas("capture");
     }
-    else if (isReplayModeON) {
+    else if (isReplayModeON)
+    {
         updateCanvasScale(scale, isReplayModeON);
         centerCanvas("replay");
     }
 
-    if (!fitting || isReplayFinished) {
+    if (!fitting || isReplayFinished)
+    {
         xBitmap1.smoothing = true;
         xBitmap11.smoothing = true;
     }
 }
 
-public function setReplayCompleteCanvasCenter():void {
+public function setReplayCompleteCanvasCenter():void
+{
     rCanvasCompleteAnchorPoint.width = stage.stageWidth + 200;
     rCanvasCompleteAnchorPoint.height = stage.stageHeight + 200;
     rCanvasCompleteAnchorPoint.x = stage.stageWidth / 2;
@@ -8950,12 +10279,15 @@ public function setReplayCompleteCanvasCenter():void {
     rCanvasCompleteBitmap.y = -rCanvasCompleteBitmap.height / 2;
 }
 
-public function hideCompleteImageToBGReplayMode():void {
-    if (stageBG.getChildByName("rCanvasCompleteAnchorPoint")) {
+public function hideCompleteImageToBGReplayMode():void
+{
+    if (stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
+    {
         stageBG.removeChild(rCanvasCompleteAnchorPoint);
     }
 
-    if (rCanvasCompleteBitmap.bitmapData) {
+    if (rCanvasCompleteBitmap.bitmapData)
+    {
         rCanvasCompleteBitmap.bitmapData.dispose();
     }
 
@@ -8963,7 +10295,8 @@ public function hideCompleteImageToBGReplayMode():void {
     rCanvasPanel.filters = [];
 }
 
-public function showCompleteImageToBGReplayMode():void {
+public function showCompleteImageToBGReplayMode():void
+{
     const mergedbmpd:BitmapData = getMergedBitmapdtata(false, true, true, null);
     const tmpbmpd:BitmapData = new BitmapData(mergedbmpd.width / 2, mergedbmpd.height / 2, false, 0);
     const mat:Matrix = new Matrix();
@@ -8988,14 +10321,17 @@ public function showCompleteImageToBGReplayMode():void {
     stageBG.addChild(rCanvasCompleteAnchorPoint);
 }
 
-public function replayCompleteEffect():void {
+public function replayCompleteEffect():void
+{
     fitCanvasToViewportMargin(isReplayCanvasFitToWindow);
-    applyCanvasFlashEffect(rCanvasPanel, 0, 0, RCANVAS_WIDTH, RCANVAS_HEIGHT, function():Boolean {
+    applyCanvasFlashEffect(rCanvasPanel, 0, 0, RCANVAS_WIDTH, RCANVAS_HEIGHT, function():Boolean
+        {
             return topBar.visible;
         });
 }
 
-public function cancelReplayRestartTimer():void {
+public function cancelReplayRestartTimer():void
+{
     seekBarBox.setPlayButtonVisible(true);
     hideCompleteImageToBGReplayMode();
     showTopbarOnReplayEnd();
@@ -9005,17 +10341,22 @@ public function cancelReplayRestartTimer():void {
     updateCanvasScale(rLastCanvasZoomMultiplier, true);
 }
 
-public function isReplayRestartTimerON():Boolean {
+public function isReplayRestartTimerON():Boolean
+{
     return hasTimer("replayRestartTimer");
 }
 
-public function startReplayRestartTimer():void {
+public function startReplayRestartTimer():void
+{
     Global.setColorTransform(seekBarBox.prograssBar, Global.getUIReplayRestartBarColor());
 
-    if (isReplayRepeatON) {
+    if (isReplayRepeatON)
+    {
         rReplayRestartTimerCount = 20;
-        addTimerByName("replayRestartTimer", 1.0, true, function():Boolean {
-                if (rReplayRestartTimerCount === 0) {
+        addTimerByName("replayRestartTimer", 1.0, true, function():Boolean
+            {
+                if (rReplayRestartTimerCount === 0)
+                {
                     cancelReplayRestartTimer();
                     handleReplayStartButton();
                     return false;
@@ -9026,20 +10367,23 @@ public function startReplayRestartTimer():void {
                 return true;
             });
     }
-    else {
+    else
+    {
         rReplayRestartTimerCount = 0;
         updateReplayPrograssText(true, TOTAL_FRAME);
     }
 }
 
-public function resetReplaySpeedBar():void {
+public function resetReplaySpeedBar():void
+{
     rReplaySpeedMultipler = 1.0; // 속도 리셋
     topBar.replaySpeedSliderCursor.x = topBar.replaySpeedSlider.x + 1.5;
 }
 
 // total frame file max frame등등은 수동으로 초기화
 // 이건 리플레이 시간을 초기화 시켜주는것 뿐임 데이터는 건드리지 않음
-public function resetReplayTime():void {
+public function resetReplayTime():void
+{
     // 어떤 이유가 있어서 rDataReadFlag는 여기 넣으면 안됨 수동으로 조절
     rDataIndex = 0;
     rDataStartIndex = 0;
@@ -9054,7 +10398,8 @@ public function resetReplayTime():void {
     drawReplayByCommand.clearData();
 }
 
-public function applyLassoShapen(scale:Number):void {
+public function applyLassoShapen(scale:Number):void
+{
     if (scale === 0.0)
         return;
 
@@ -9068,35 +10413,43 @@ public function applyLassoShapen(scale:Number):void {
     lassoLayer2Bitmap.filters = [sharpen];
 }
 
-public function selectReplaySubLayer(flag:Boolean):void {
+public function selectReplaySubLayer(flag:Boolean):void
+{
     rLastLayer2Selcted = flag;
 
-    if (flag) {
-        if (rCanvasPanel.getChildIndex(rCanvasDrawLayer) > rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap)) {
+    if (flag)
+    {
+        if (rCanvasPanel.getChildIndex(rCanvasDrawLayer) > rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap))
+        {
             rCanvasPanel.setChildIndex(rCanvasDrawLayer, rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap));
         }
     }
-    else if (rCanvasPanel.getChildIndex(rCanvasDrawLayer) < rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap)) {
+    else if (rCanvasPanel.getChildIndex(rCanvasDrawLayer) < rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap))
+    {
         rCanvasPanel.setChildIndex(rCanvasDrawLayer, rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap));
     }
 }
 
-public function moveImageReplayMode(x:Number, y:Number, layer1:Boolean, layer2:Boolean):void {
+public function moveImageReplayMode(x:Number, y:Number, layer1:Boolean, layer2:Boolean):void
+{
     var tmpbmpd:BitmapData = new BitmapData(RCANVAS_WIDTH, RCANVAS_HEIGHT, true, 0);
     var movedMat:Matrix = new Matrix();
-    if (!layer1 && !layer2) {
+    if (!layer1 && !layer2)
+    {
         layer1 = true;
         layer2 = true;
     }
 
     movedMat.translate(x, y);
 
-    if (layer1) {
+    if (layer1)
+    {
         tmpbmpd.draw(rCanvasLayer1BitmapData, movedMat);
         rCanvasLayer1BitmapData = updateBitmapData(rCanvasLayer1BitmapData, tmpbmpd, rCanvasLayer1Bitmap);
     }
 
-    if (layer2) {
+    if (layer2)
+    {
         tmpbmpd.fillRect(new Rectangle(0, 0, RCANVAS_WIDTH, RCANVAS_HEIGHT), 0);
         tmpbmpd.draw(rCanvasLayer2BitmapData, movedMat);
 
@@ -9106,37 +10459,47 @@ public function moveImageReplayMode(x:Number, y:Number, layer1:Boolean, layer2:B
     tmpbmpd = null;
 }
 
-public function replayLineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void {
+public function replayLineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void
+{
     rCanvasDrawLayer.alpha = alpha;
-    if (shape) {
+    if (shape)
+    {
         rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.ROUND);
     }
-    else {
+    else
+    {
         rCanvasDrawShape.graphics.lineStyle(size, color);
     }
 }
 
-public function replayLineStyleReady2(shape:Boolean, size:uint, color:uint, alpha:Number):void {
+public function replayLineStyleReady2(shape:Boolean, size:uint, color:uint, alpha:Number):void
+{
     rCanvasDrawLayer.alpha = alpha;
-    if (shape) {
+    if (shape)
+    {
         rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.BEVEL);
     }
-    else {
+    else
+    {
         rCanvasDrawShape.graphics.lineStyle(size, color);
     }
 }
 
-public function replayLineStyleReady3(shape:Boolean, size:uint, color:uint, alpha:Number):void {
+public function replayLineStyleReady3(shape:Boolean, size:uint, color:uint, alpha:Number):void
+{
     rCanvasDrawLayer.alpha = alpha;
-    if (shape) {
+    if (shape)
+    {
         rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.BEVEL);
     }
-    else {
+    else
+    {
         rCanvasDrawShape.graphics.lineStyle(size, color);
     }
 }
 
-public function mirrorCanvasReplayMode():void {
+public function mirrorCanvasReplayMode():void
+{
     var tmpbmpd:BitmapData = new BitmapData(RCANVAS_WIDTH, RCANVAS_HEIGHT, true, 0);
     var flipMat:Matrix = new Matrix(-1, 0, 0, 1, RCANVAS_WIDTH);
 
@@ -9154,12 +10517,14 @@ public function mirrorCanvasReplayMode():void {
 
     rMirrorON = !rMirrorON;
 
-    if (isReplayCanvasFitToWindow) {
+    if (isReplayCanvasFitToWindow)
+    {
         fitReplayCanvasToViewport();
     }
 }
 
-public function cDrawReplayDataCommands():Object {
+public function cDrawReplayDataCommands():Object
+{
     const rCursorPos:Point = new Point(0, 0);
     // undo인덱스가 처음일때 tickdraw가 아무것도 안해주니까 위치 갱신이 안되서
     // undorefimage갱신 될때 마다 마지막 포인터 위치 저장해주는거
@@ -9174,51 +10539,62 @@ public function cDrawReplayDataCommands():Object {
     const cmd:Vector.<int> = new Vector.<int>();
     const pos:Vector.<Number> = new Vector.<Number>();
 
-    function updateLineStyleBackup(alpha:Number, blendMode:String):void {
+    function updateLineStyleBackup(alpha:Number, blendMode:String):void
+    {
         lineStyleBackup[0] = alpha;
         lineStyleBackup[1] = blendMode;
     }
 
-    function getFirstRCursorPos():Point {
+    function getFirstRCursorPos():Point
+    {
         return rCursorPosFirst;
     }
 
-    function resetFirstRCursorPos():void {
+    function resetFirstRCursorPos():void
+    {
         rCursorPosFirst.setTo(-1, -1);
     }
 
-    function setFirstRCursorPos(x:Number, y:Number):void {
+    function setFirstRCursorPos(x:Number, y:Number):void
+    {
         rCursorPosFirst.setTo(x, y);
     }
 
-    function setFirstRCursorPosCurrent():void {
+    function setFirstRCursorPosCurrent():void
+    {
         rCursorPosFirst.setTo(rCursorPos.x, rCursorPos.y);
     }
 
-    function hasRCursorFirstPos():Boolean {
+    function hasRCursorFirstPos():Boolean
+    {
         return rCursorPosFirst.x > 0 && rCursorPosFirst.y > 0;
     }
 
-    function updateRCursorPosToFirst():void {
+    function updateRCursorPosToFirst():void
+    {
         rReplayFOFOCursor.x = rCursorPosFirst.x;
         rReplayFOFOCursor.y = rCursorPosFirst.y;
     }
 
-    function updateRCursorPos():void {
+    function updateRCursorPos():void
+    {
         rReplayFOFOCursor.x = rCursorPos.x;
         rReplayFOFOCursor.y = rCursorPos.y;
     }
 
-    function setRCursorPosFromMoveTool(x:Number, y:Number):void {
+    function setRCursorPosFromMoveTool(x:Number, y:Number):void
+    {
         setRCursorPos(rCursorPos.x + x, rCursorPos.y + y);
 
     }
 
-    function setRCursorPosToCenter():void {
+    function setRCursorPosToCenter():void
+    {
         setRCursorPos(RCANVAS_WIDTH / 2, RCANVAS_HEIGHT / 2);
     }
 
-    function setRCursorPos(x:Number, y:Number):void {
+    function setRCursorPos(x:Number, y:Number):void
+    {
         if (x < 0)
             x = 0;
         else if (x > RCANVAS_WIDTH)
@@ -9232,87 +10608,107 @@ public function cDrawReplayDataCommands():Object {
         rCursorPos.setTo(x, y);
     }
 
-    function getRCursorPos():Point {
+    function getRCursorPos():Point
+    {
         return rCursorPos;
     }
 
-    function clearData():void {
+    function clearData():void
+    {
         data = [];
         index = 0;
     }
 
-    function setData(refData:Array, startIndex:uint = 0):void {
+    function setData(refData:Array, startIndex:uint = 0):void
+    {
         data = refData;
         index = startIndex;
     }
 
-    function getRemainingData():uint {
+    function getRemainingData():uint
+    {
         if (!data)
             return 0;
         return data.length - index;
     }
 
-    function isReadFinished():Boolean {
+    function isReadFinished():Boolean
+    {
         if (!data)
             return true;
         return index > data.length - 1;
     }
 
-    function getDataLength():uint {
+    function getDataLength():uint
+    {
         if (!data)
             return 0;
         return data.length;
     }
 
-    function getCurrentPosition():uint {
+    function getCurrentPosition():uint
+    {
         return index;
     }
 
-    function setIndex(newIndex:uint):void {
+    function setIndex(newIndex:uint):void
+    {
         index = newIndex;
     }
 
-    function getLineStyleAlpha():Number {
+    function getLineStyleAlpha():Number
+    {
         return lineStyleBackup[0];
     }
 
-    function getrLineStyleSave():Array {
+    function getrLineStyleSave():Array
+    {
         if (lineStyleBackup.length !== 2)
             return [1.0, null];
 
         return lineStyleBackup;
     }
 
-    function drawAll():void {
+    function drawAll():void
+    {
         var len:uint = data.length;
-        for (var i:uint = 0; i < len; i++) {
+        for (var i:uint = 0; i < len; i++)
+        {
             drawNext();
         }
     }
 
-    function checkAirBrush(airBrushFlag:Boolean, size:uint):void {
-        if (airBrushFlag === true) {
+    function checkAirBrush(airBrushFlag:Boolean, size:uint):void
+    {
+        if (airBrushFlag === true)
+        {
             if (rAirBrushSize !== size)
                 blurReplayCanvasByValue(size);
         }
-        else if (rAirBrushSize > 0) {
+        else if (rAirBrushSize > 0)
+        {
             resetBlurReplayCanvas();
         }
     }
 
-    function checkSubLayer(subLayerFlag:Boolean):void {
-        if (subLayerFlag) {
+    function checkSubLayer(subLayerFlag:Boolean):void
+    {
+        if (subLayerFlag)
+        {
             // if((replayStartON && subLayerFlag) !== false && rSubLayerSave !== subLayerFlag)
-            if (rLastLayer2Selcted !== subLayerFlag) {
+            if (rLastLayer2Selcted !== subLayerFlag)
+            {
                 selectReplaySubLayer(subLayerFlag);
             }
         }
-        else if (rLastLayer2Selcted) {
+        else if (rLastLayer2Selcted)
+        {
             selectReplaySubLayer(false);
         }
     }
 
-    function lineStyle5(data:Array):void {
+    function lineStyle5(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9329,27 +10725,32 @@ public function cDrawReplayDataCommands():Object {
 
         rAirBrushSize2 = airBrushSize;
 
-        if (fillpen) {
+        if (fillpen)
+        {
             rCanvasDrawShape.graphics.clear();
             replayLineStyleReady2(false, 1, color, 1.0);
             rCanvasDrawShape.graphics.beginFill(color);
             rCanvasDrawShape.graphics.moveTo(startX, startY);
             rCanvasDrawLayer.alpha = alpha;
         }
-        else {
+        else
+        {
             replayLineStyleReady3(shape, size, color, alpha);
             rCanvasDrawShape.graphics.moveTo(startX, startY);
         }
 
-        if (index === 0) {
+        if (index === 0)
+        {
             resetRCanvasDrawLayerCliprect2();
         }
-        else {
+        else
+        {
             updateRCanvasDrawLayerCliprect2();
         }
     }
 
-    function lineStyle4(data:Array):void {
+    function lineStyle4(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9365,27 +10766,32 @@ public function cDrawReplayDataCommands():Object {
         checkSubLayer(subLayer);
         checkAirBrush(airBrush, size);
 
-        if (fillpen) {
+        if (fillpen)
+        {
             rCanvasDrawShape.graphics.clear();
             replayLineStyleReady2(false, 1, color, 1.0);
             rCanvasDrawShape.graphics.beginFill(color);
             rCanvasDrawShape.graphics.moveTo(startX, startY);
             rCanvasDrawLayer.alpha = alpha;
         }
-        else {
+        else
+        {
             replayLineStyleReady3(shape, size, color, alpha);
             rCanvasDrawShape.graphics.moveTo(startX, startY);
         }
 
-        if (index === 0) {
+        if (index === 0)
+        {
             resetRCanvasDrawLayerCliprect();
         }
-        else {
+        else
+        {
             updateRCanvasDrawLayerCliprect();
         }
     }
 
-    function lineStyle3(data:Array):void {
+    function lineStyle3(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9401,11 +10807,13 @@ public function cDrawReplayDataCommands():Object {
         checkSubLayer(subLayer);
         checkAirBrush(airBrush, size);
 
-        if (!fillpen) {
+        if (!fillpen)
+        {
             replayLineStyleReady3(shape, size, color, alpha);
             rCanvasDrawShape.graphics.moveTo(startX, startY);
         }
-        else {
+        else
+        {
             rCanvasDrawShape.graphics.clear();
             replayLineStyleReady2(false, 1, color, 1.0);
             rCanvasDrawShape.graphics.beginFill(color);
@@ -9414,7 +10822,8 @@ public function cDrawReplayDataCommands():Object {
         }
     }
 
-    function lineStyle2(data:Array):void {
+    function lineStyle2(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9430,11 +10839,13 @@ public function cDrawReplayDataCommands():Object {
         checkSubLayer(subLayer);
         checkAirBrush(airBrush, size);
 
-        if (!fillpen) {
+        if (!fillpen)
+        {
             replayLineStyleReady2(shape, size, color, alpha);
             rCanvasDrawShape.graphics.moveTo(startX, startY);
         }
-        else {
+        else
+        {
             rCanvasDrawShape.graphics.clear();
             replayLineStyleReady2(false, 1, color, 1.0);
             rCanvasDrawShape.graphics.beginFill(color);
@@ -9443,7 +10854,8 @@ public function cDrawReplayDataCommands():Object {
         }
     }
 
-    function lineStyle(data:Array):void {
+    function lineStyle(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9459,11 +10871,13 @@ public function cDrawReplayDataCommands():Object {
         checkSubLayer(subLayer);
         checkAirBrush(airBrush, size);
 
-        if (!fillpen) {
+        if (!fillpen)
+        {
             replayLineStyleReady(shape, size, color, alpha);
             rCanvasDrawShape.graphics.moveTo(startX, startY);
         }
-        else {
+        else
+        {
             rCanvasDrawShape.graphics.clear();
             replayLineStyleReady(false, 1, color, 1.0);
             rCanvasDrawShape.graphics.beginFill(color);
@@ -9472,7 +10886,8 @@ public function cDrawReplayDataCommands():Object {
         }
     }
 
-    function lineTo(data:Array):void {
+    function lineTo(data:Array):void
+    {
         const x:Number = data[1];
         const y:Number = data[2];
 
@@ -9480,7 +10895,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(x, y);
     }
 
-    function sqline(data:Array):void {
+    function sqline(data:Array):void
+    {
         const size:Number = data[1];
         const color:Number = data[2];
         const alpha:Number = data[3];
@@ -9500,7 +10916,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
     }
 
-    function fill5(data:Array):void {
+    function fill5(data:Array):void
+    {
         const color:Number = data[1];
         const alpha:Number = data[2];
         const blendMode:String = data[3];
@@ -9521,7 +10938,8 @@ public function cDrawReplayDataCommands():Object {
         resetRCanvasDrawLayerCliprect2();
     }
 
-    function fill4(data:Array):void {
+    function fill4(data:Array):void
+    {
         const color:Number = data[1];
         const alpha:Number = data[2];
         const blendMode:String = data[3];
@@ -9541,7 +10959,8 @@ public function cDrawReplayDataCommands():Object {
         resetRCanvasDrawLayerCliprect();
     }
 
-    function fill3(data:Array):void {
+    function fill3(data:Array):void
+    {
         const color:Number = data[1];
         const alpha:Number = data[2];
         const blendMode:String = data[3];
@@ -9560,7 +10979,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
     }
 
-    function fill2(data:Array):void {
+    function fill2(data:Array):void
+    {
         const color:Number = data[1];
         const alpha:Number = data[2];
         const blendMode:String = data[3];
@@ -9575,7 +10995,8 @@ public function cDrawReplayDataCommands():Object {
         rCanvasDrawShape.graphics.beginFill(color);
         rCanvasDrawShape.graphics.moveTo(arr[0], arr[1]);
 
-        for (var i:uint = 2; i < len; i += 2) {
+        for (var i:uint = 2; i < len; i += 2)
+        {
             rCanvasDrawShape.graphics.lineTo(arr[i], arr[i + 1]);
         }
 
@@ -9583,7 +11004,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(arr[len - 2], arr[len - 1]);
     }
 
-    function fill(data:Array):void {
+    function fill(data:Array):void
+    {
         const color:Number = data[1];
         const alpha:Number = data[2];
         const blendMode:String = data[3];
@@ -9600,7 +11022,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
     }
 
-    function dot4(data:Array):void {
+    function dot4(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9619,7 +11042,8 @@ public function cDrawReplayDataCommands():Object {
         rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
         rCanvasDrawShape.graphics.beginFill(color);
 
-        if (shape) {
+        if (shape)
+        {
             cmd.length = 0;
             pos.length = 0;
             const halfSize:Number = size / 2;
@@ -9648,7 +11072,8 @@ public function cDrawReplayDataCommands():Object {
 
             point = null;
         }
-        else {
+        else
+        {
             rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
         }
 
@@ -9657,7 +11082,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(startX, startY);
     }
 
-    function dot3(data:Array):void {
+    function dot3(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9676,7 +11102,8 @@ public function cDrawReplayDataCommands():Object {
         rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
         rCanvasDrawShape.graphics.beginFill(color);
 
-        if (shape) {
+        if (shape)
+        {
             cmd.length = 0;
             pos.length = 0;
 
@@ -9702,7 +11129,8 @@ public function cDrawReplayDataCommands():Object {
 
             rCanvasDrawShape.graphics.drawPath(cmd, pos);
         }
-        else {
+        else
+        {
             rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
         }
 
@@ -9712,7 +11140,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(startX, startY);
     }
 
-    function dot2(data:Array):void {
+    function dot2(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9740,7 +11169,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(startX, startY);
     }
 
-    function dot(data:Array):void {
+    function dot(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9767,7 +11197,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(startX, startY);
     }
 
-    function line3(data:Array):void {
+    function line3(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9798,7 +11229,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(endX, endY);
     }
 
-    function line2(data:Array):void {
+    function line2(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9829,7 +11261,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(endX, endY);
     }
 
-    function line1(data:Array):void {
+    function line1(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9859,7 +11292,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(endX, endY);
     }
 
-    function line(data:Array):void {
+    function line(data:Array):void
+    {
         const shape:Boolean = data[1];
         const size:uint = data[2];
         const color:uint = data[3];
@@ -9889,22 +11323,26 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(endX, endY);
     }
 
-    function move1(data:Array):void {
+    function move1(data:Array):void
+    {
         moveImageReplayMode(data[1], data[2], true, false);
         setRCursorPosFromMoveTool(data[1], data[2]);
     }
 
-    function move2(data:Array):void {
+    function move2(data:Array):void
+    {
         moveImageReplayMode(data[1], data[2], false, true);
         setRCursorPosFromMoveTool(data[1], data[2]);
     }
 
-    function move(data:Array):void {
+    function move(data:Array):void
+    {
         moveImageReplayMode(data[1], data[2], true, true);
         setRCursorPosFromMoveTool(data[1], data[2]);
     }
 
-    function resetLassoVars():void {
+    function resetLassoVars():void
+    {
         lassoLayer1Bitmap.filters = [];
         lassoLayer2Bitmap.filters = [];
 
@@ -9929,30 +11367,36 @@ public function cDrawReplayDataCommands():Object {
     }
 
     // 성능 문제로 샤픈 안해줌
-    function lasso2(data:Array, clearOnly:Boolean):void {
+    function lasso2(data:Array, clearOnly:Boolean):void
+    {
         if (data[1].length === 0 || data[2].length === 0)
             return;
 
         var imageMovedToLasso:Boolean;
-        if (data.length <= 5) {
-            if (data[3] === null || (data[3] is Array && data[3].length === 0)) {
+        if (data.length <= 5)
+        {
+            if (data[3] === null || (data[3] is Array && data[3].length === 0))
+            {
                 // (["lasso",point1,point2,null,lassoInfo]); 초기 버전 데이터 구조 3번이 비어있음
                 // (["lasso",point1,point2,[],lassoInfo]);
                 imageMovedToLasso = moveSelectedAreaToLassoBox(true, data[1], data[2], false, true, true);
             }
-            else if (data[3].length === 7) {
+            else if (data[3].length === 7)
+            {
                 // (["lasso",point1,point2,lassoInfo]); 2019년판 구버전
                 // (["lasso",point1,point2,lassoInfo,lassoCopyON])
                 imageMovedToLasso = moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], true, true);
             }
         }
-        else {
+        else
+        {
             // (["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터 길이가 6이상임
             // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
             imageMovedToLasso = moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], data[5], data[6]);
         }
 
-        if (imageMovedToLasso && !clearOnly) {
+        if (imageMovedToLasso && !clearOnly)
+        {
             var lassoInfo:Array = (data[3] is Array && data[3].length === 7) ? data[3] : data[4];
             const bmpScaleX:Number = lassoInfo[0];
             const bmpScaleY:Number = lassoInfo[1];
@@ -9973,30 +11417,38 @@ public function cDrawReplayDataCommands():Object {
             lassoLayer1Bitmap.smoothing = true;
             lassoLayer2Bitmap.smoothing = true;
 
-            if (data[7] as Boolean) {
-                if (data[7] === true) {
+            if (data[7] as Boolean)
+            {
+                if (data[7] === true)
+                {
                     swapLassoImage();
                 }
             }
-            else if (data[7] as Array) {
+            else if (data[7] as Array)
+            {
                 const len:uint = data[7].length;
 
-                for (var i:uint = 0; i < len; i++) {
-                    if (data[7][i] === 0) {
+                for (var i:uint = 0; i < len; i++)
+                {
+                    if (data[7][i] === 0)
+                    {
                         swapLassoImage();
                     }
-                    else if (data[7][i] === 1) {
+                    else if (data[7][i] === 1)
+                    {
                         mergeLassoImage();
                     }
                 }
             }
 
-            if (data[5] || !data[5] && !data[6]) {
+            if (data[5] || !data[5] && !data[6])
+            {
                 rCanvasLayer1BitmapData.draw(lassoLayer1Bitmap, mat);
                 rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
             }
 
-            if (data[6]) {
+            if (data[6])
+            {
                 rCanvasLayer2BitmapData.draw(lassoLayer2Bitmap, mat);
                 rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
             }
@@ -10005,30 +11457,36 @@ public function cDrawReplayDataCommands():Object {
         resetLassoVars();
     }
 
-    function lasso(data:Array, clearOnly:Boolean):void {
+    function lasso(data:Array, clearOnly:Boolean):void
+    {
         if (data[1].length === 0 || data[2].length === 0)
             return;
 
         var imageMovedToLasso:Boolean;
-        if (data.length <= 5) {
-            if (data[3] === null || (data[3] is Array && data[3].length === 0)) {
+        if (data.length <= 5)
+        {
+            if (data[3] === null || (data[3] is Array && data[3].length === 0))
+            {
                 // (["lasso",point1,point2,null,lassoInfo]); 초기 버전 데이터 구조 3번이 비어있음
                 // (["lasso",point1,point2,[],lassoInfo]);
                 imageMovedToLasso = moveSelectedAreaToLassoBox(true, data[1], data[2], false, true, true);
             }
-            else if (data[3].length === 7) {
+            else if (data[3].length === 7)
+            {
                 // (["lasso",point1,point2,lassoInfo]); 2019년판 구버전
                 // (["lasso",point1,point2,lassoInfo,lassoCopyON])
                 imageMovedToLasso = moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], true, true);
             }
         }
-        else {
+        else
+        {
             // (["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터 길이가 6이상임
             // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
             imageMovedToLasso = moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], data[5], data[6]);
         }
 
-        if (imageMovedToLasso && !clearOnly) {
+        if (imageMovedToLasso && !clearOnly)
+        {
             var lassoInfo:Array = (data[3] is Array && data[3].length === 7) ? data[3] : data[4];
             const bmpScaleX:Number = lassoInfo[0];
             const bmpScaleY:Number = lassoInfo[1];
@@ -10049,34 +11507,43 @@ public function cDrawReplayDataCommands():Object {
             lassoLayer1Bitmap.smoothing = true;
             lassoLayer2Bitmap.smoothing = true;
 
-            if (data[7] as Boolean) {
-                if (data[7] === true) {
+            if (data[7] as Boolean)
+            {
+                if (data[7] === true)
+                {
                     swapLassoImage();
                 }
             }
-            else if (data[7] as Array) {
+            else if (data[7] as Array)
+            {
                 const len:uint = data[7].length;
 
-                for (var i:uint = 0; i < len; i++) {
-                    if (data[7][i] === 0) {
+                for (var i:uint = 0; i < len; i++)
+                {
+                    if (data[7][i] === 0)
+                    {
                         swapLassoImage();
                     }
-                    else if (data[7][i] === 1) {
+                    else if (data[7][i] === 1)
+                    {
                         mergeLassoImage();
                     }
                 }
             }
 
-            if (bmpScaleX !== 1 || bmpAngle !== 0) {
+            if (bmpScaleX !== 1 || bmpAngle !== 0)
+            {
                 applyLassoShapen(bmpScaleX);
             }
 
-            if (data[5] || !data[5] && !data[6]) {
+            if (data[5] || !data[5] && !data[6])
+            {
                 rCanvasLayer1BitmapData.draw(lassoLayer1Bitmap, mat);
                 rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
             }
 
-            if (data[6]) {
+            if (data[6])
+            {
                 rCanvasLayer2BitmapData.draw(lassoLayer2Bitmap, mat);
                 rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
             }
@@ -10085,12 +11552,14 @@ public function cDrawReplayDataCommands():Object {
         resetLassoVars();
     }
 
-    function mirror():void {
+    function mirror():void
+    {
         mirrorCanvasReplayMode();
         setRCursorPosToCenter();
     }
 
-    function bgColor(data:Array):void {
+    function bgColor(data:Array):void
+    {
         const color:uint = data[1];
 
         rLastCanvasBGColor = color;
@@ -10098,7 +11567,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPosToCenter();
     }
 
-    function canvasSize(data:Array):void {
+    function canvasSize(data:Array):void
+    {
         const width:Number = data[1];
         const height:Number = data[2];
         const moveX:Number = data[3];
@@ -10109,14 +11579,17 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPos(width / 2, height / 2);
     }
 
-    function tempDone4(data:Array):void {
-        if (rAirBrushSize2 > 0) {
+    function tempDone4(data:Array):void
+    {
+        if (rAirBrushSize2 > 0)
+        {
             const blurSize:Number = getBlurSize(rAirBrushSize2, 1.0);
             rCanvasDrawShape.filters = [new BlurFilter(blurSize, blurSize, 3)];
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             canvasDrawLayerChild.filters = [];
         }
-        else {
+        else
+        {
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
         }
 
@@ -10125,15 +11598,18 @@ public function cDrawReplayDataCommands():Object {
         rCanvasDrawShape.graphics.clear();
     }
 
-    function tempDone3(data:Array):void {
+    function tempDone3(data:Array):void
+    {
         rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
         rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
         updateRCanvasDrawLayerCliprect2();
         rCanvasDrawShape.graphics.clear();
     }
 
-    function tempDone2(data:Array):void {
-        if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0) {
+    function tempDone2(data:Array):void
+    {
+        if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
+        {
             blurReplayCanvasByDefaultValue();
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
@@ -10141,7 +11617,8 @@ public function cDrawReplayDataCommands():Object {
             rCanvasDrawShape.graphics.clear();
             blurReplayCanvasByValue(rAirBrushSize);
         }
-        else {
+        else
+        {
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
             updateRCanvasDrawLayerCliprect();
@@ -10149,33 +11626,39 @@ public function cDrawReplayDataCommands():Object {
         }
     }
 
-    function tempDone(data:Array):void {
-        if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0) {
+    function tempDone(data:Array):void
+    {
+        if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
+        {
             blurReplayCanvasByDefaultValue();
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
             rCanvasDrawShape.graphics.clear();
             blurReplayCanvasByValue(rAirBrushSize);
         }
-        else {
+        else
+        {
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
             rCanvasDrawShape.graphics.clear();
         }
     }
 
-    function drawDone5(data:Array):void {
+    function drawDone5(data:Array):void
+    {
         const lineStyleData:Array = getrLineStyleSave();
         const subLayer:Boolean = data[1];
         const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
 
-        if (rAirBrushSize2 > 0) {
+        if (rAirBrushSize2 > 0)
+        {
             const blurSize:Number = getBlurSize(rAirBrushSize2, 1.0);
             rCanvasDrawShape.filters = [new BlurFilter(blurSize, blurSize, 3)];
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawShape.filters = [];
         }
-        else {
+        else
+        {
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
         }
 
@@ -10184,11 +11667,13 @@ public function cDrawReplayDataCommands():Object {
         updateRCanvasDrawLayerCliprect2();
         extandRCanvasDrawLayerCliprect2();
 
-        if (subLayer) {
+        if (subLayer)
+        {
             rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
         }
-        else {
+        else
+        {
             rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
             rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
         }
@@ -10197,7 +11682,8 @@ public function cDrawReplayDataCommands():Object {
         rCanvasDrawShape.graphics.clear();
     }
 
-    function drawDone4(data:Array):void {
+    function drawDone4(data:Array):void
+    {
         const lineStyleData:Array = getrLineStyleSave();
         const subLayer:Boolean = data[1];
         const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
@@ -10208,17 +11694,20 @@ public function cDrawReplayDataCommands():Object {
         updateRCanvasDrawLayerCliprect2();
         extandRCanvasDrawLayerCliprect2();
 
-        if (rAirBrushSize2 > 0) {
+        if (rAirBrushSize2 > 0)
+        {
             const blurSize:Number = getBlurSize(rAirBrushSize2, 1.0);
             rCanvasDrawLayerBitmapData.applyFilter(rCanvasDrawLayerBitmapData, rCanvasDrawLayerClipRect, new Point(rCanvasDrawLayerClipRect.x, rCanvasDrawLayerClipRect.y), new BlurFilter(blurSize, blurSize, 3));
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
         }
 
-        if (subLayer) {
+        if (subLayer)
+        {
             rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
         }
-        else {
+        else
+        {
             rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
             rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
         }
@@ -10227,18 +11716,21 @@ public function cDrawReplayDataCommands():Object {
         rCanvasDrawShape.graphics.clear();
     }
 
-    function drawDone3(data:Array):void {
+    function drawDone3(data:Array):void
+    {
         const lineStyleData:Array = getrLineStyleSave();
         const subLayer:Boolean = data[1];
         const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
 
-        if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0) {
+        if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
+        {
             blurReplayCanvasByDefaultValue();
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
             blurReplayCanvasByValue(rAirBrushSize);
         }
-        else {
+        else
+        {
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
         }
@@ -10246,11 +11738,13 @@ public function cDrawReplayDataCommands():Object {
         updateRCanvasDrawLayerCliprect();
         extandRCanvasDrawLayerCliprect();
 
-        if (subLayer) {
+        if (subLayer)
+        {
             rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRectLegacy);
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
         }
-        else {
+        else
+        {
             rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRectLegacy);
             rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
         }
@@ -10258,32 +11752,38 @@ public function cDrawReplayDataCommands():Object {
         rCanvasDrawLayerBitmapData.fillRect(rCanvasDrawLayerClipRectLegacy, 0);
         rCanvasDrawShape.graphics.clear();
 
-        if (rAirBrushSize > 0) {
+        if (rAirBrushSize > 0)
+        {
             resetBlurReplayCanvas();
         }
     }
 
-    function drawDone2(data:Array):void {
+    function drawDone2(data:Array):void
+    {
         const lineStyleData:Array = getrLineStyleSave();
         const subLayer:Boolean = data[1];
         const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
 
-        if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0) {
+        if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
+        {
             blurReplayCanvasByDefaultValue();
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
             blurReplayCanvasByValue(rAirBrushSize);
         }
-        else {
+        else
+        {
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
         }
 
-        if (subLayer) {
+        if (subLayer)
+        {
             rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1]);
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
         }
-        else {
+        else
+        {
             rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1]);
             rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
         }
@@ -10291,29 +11791,34 @@ public function cDrawReplayDataCommands():Object {
         rCanvasDrawLayerBitmapData.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
         rCanvasDrawShape.graphics.clear();
 
-        if (rAirBrushSize > 0) {
+        if (rAirBrushSize > 0)
+        {
             resetBlurReplayCanvas();
         }
     }
 
-    function drawDone(data:Array):void {
+    function drawDone(data:Array):void
+    {
         const lineStyleData:Array = getrLineStyleSave();
         // if(!lineStyleData) return;
         const subLayer:Boolean = data[1];
         const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
 
-        if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0) {
+        if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
+        {
             blurReplayCanvasByDefaultValue();
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
             blurReplayCanvasByValue(rAirBrushSize);
         }
-        else {
+        else
+        {
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
         }
 
-        if (subLayer) {
+        if (subLayer)
+        {
             var tmpbmpd:BitmapData = new BitmapData(RCANVAS_WIDTH, RCANVAS_HEIGHT, true, 0);
             tmpbmpd.draw(rCanvasDrawLayerBitmap, null, canvasAlpha);
             tmpbmpd.draw(rCanvasLayer1Bitmap);
@@ -10323,7 +11828,8 @@ public function cDrawReplayDataCommands():Object {
             tmpbmpd.dispose();
             tmpbmpd = null;
         }
-        else {
+        else
+        {
             rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1]);
             rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
         }
@@ -10333,13 +11839,16 @@ public function cDrawReplayDataCommands():Object {
 
         rCanvasDrawShape.graphics.clear();
 
-        if (rAirBrushSize > 0) {
+        if (rAirBrushSize > 0)
+        {
             resetBlurReplayCanvas();
         }
     }
 
-    function clear(layer1:Boolean, layer2:Boolean):void {
-        if (!layer1 && !layer2) {
+    function clear(layer1:Boolean, layer2:Boolean):void
+    {
+        if (!layer1 && !layer2)
+        {
             layer1 = true;
             layer2 = true;
         }
@@ -10352,7 +11861,8 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPosToCenter();
     }
 
-    function swapLayer():void {
+    function swapLayer():void
+    {
         var tempbmpd1:BitmapData = rCanvasLayer1BitmapData.clone();
         var tempbmpd11:BitmapData = rCanvasLayer2BitmapData.clone();
         const rect:Rectangle = new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
@@ -10370,18 +11880,22 @@ public function cDrawReplayDataCommands():Object {
         setRCursorPosToCenter();
     }
 
-    function mergeLayer():void {
+    function mergeLayer():void
+    {
         rCanvasLayer2BitmapData.draw(rCanvasLayer1BitmapData);
         rCanvasLayer1BitmapData.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
         setRCursorPosToCenter();
     }
 
-    function drawNext():void {
-        if (!data || data.length === 0) {
+    function drawNext():void
+    {
+        if (!data || data.length === 0)
+        {
             return;
         }
         const d:Array = data[index];
-        switch (d[0]) {
+        switch (d[0])
+        {
             case "lineStyle":
                 lineStyle(d);
                 break;
@@ -10547,35 +12061,44 @@ public function cDrawReplayDataCommands():Object {
 
 }
 
-public function updateTotalFrameAndReplayMaxSpeedFor10Sec(totalframe:Number):void {
+public function updateTotalFrameAndReplayMaxSpeedFor10Sec(totalframe:Number):void
+{
     TOTAL_FRAME = totalframe;
     var maxSpeed:Number = Math.floor(totalframe / 10 / stage.frameRate);
-    if (maxSpeed < 1.0) {
+    if (maxSpeed < 1.0)
+    {
         maxSpeed = 1.0;
     }
     REPLAY_MAX_SPEED = maxSpeed;
-    if (rReplaySpeedMultipler > maxSpeed) {
+    if (rReplaySpeedMultipler > maxSpeed)
+    {
         rReplaySpeedMultipler = maxSpeed;
     }
 }
 
-public function updateReplayPrograssText(finishFlag:Boolean = false, customFrame:Number = NaN):void {
+public function updateReplayPrograssText(finishFlag:Boolean = false, customFrame:Number = NaN):void
+{
     const remainingTime:String = (isDeepUndoEnabled || finishFlag) ? "" : getReplayRemainingTimeString(rReplaySpeedMultipler, TOTAL_FRAME - rNowFrame);
 
-    if (isNaN(customFrame)) {
+    if (isNaN(customFrame))
+    {
         customFrame = rNowFrame;
     }
 
     seekBarBox.prograssInfo.text = customFrame + " / " + TOTAL_FRAME + remainingTime;
 }
 
-public function startCheckingHideMouseCursor():void {
-    if (hasTimer("replayHideCursorCheckTimer")) {
+public function startCheckingHideMouseCursor():void
+{
+    if (hasTimer("replayHideCursorCheckTimer"))
+    {
         return;
     }
 
-    addTimerByName("replayHideCursorCheckTimer", 0.0, true, function():Boolean {
-            if (!isReplayModeON || topBar.visible) {
+    addTimerByName("replayHideCursorCheckTimer", 0.0, true, function():Boolean
+        {
+            if (!isReplayModeON || topBar.visible)
+            {
                 replayHideCursor.show();
                 return false;
             }
@@ -10586,8 +12109,10 @@ public function startCheckingHideMouseCursor():void {
         });
 }
 
-public function startUpdatingPrograssBarTimer():void {
-    if (hasTimer("prograssBarUpdateTimer")) {
+public function startUpdatingPrograssBarTimer():void
+{
+    if (hasTimer("prograssBarUpdateTimer"))
+    {
         return;
     }
 
@@ -10599,12 +12124,15 @@ public function startUpdatingPrograssBarTimer():void {
     updateReplayPrograssText();
     seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
 
-    addTimerByName("prograssBarUpdateTimer", 0.0, true, function():Boolean {
-            if (!isReplayModeON) {
+    addTimerByName("prograssBarUpdateTimer", 0.0, true, function():Boolean
+        {
+            if (!isReplayModeON)
+            {
                 return false;
             }
 
-            if (rNowFrame >= TOTAL_FRAME) {
+            if (rNowFrame >= TOTAL_FRAME)
+            {
                 seekBarBox.setReplayPrograssBarMaxWidth();
                 updateReplayPrograssText(true, TOTAL_FRAME);
                 replayCompleteEffect();
@@ -10616,16 +12144,19 @@ public function startUpdatingPrograssBarTimer():void {
 
             const nowTime:int = getTimer();
 
-            if (nowTime - lastCursorUpdateTime >= cursorUpdateTime) {
+            if (nowTime - lastCursorUpdateTime >= cursorUpdateTime)
+            {
                 lastCursorUpdateTime = nowTime;
                 drawReplayByCommand.updateRCursorPos();
 
-                if (!isReplayCanvasFitToWindow && !isMouseClicked && !isDeepUndoEnabled) {
+                if (!isReplayCanvasFitToWindow && !isMouseClicked && !isDeepUndoEnabled)
+                {
                     rFollowMouse.check(isReplaySlideShowMode);
                 }
             }
 
-            if (nowTime - lastTextUpdateTime >= textUpdateTime) {
+            if (nowTime - lastTextUpdateTime >= textUpdateTime)
+            {
                 lastTextUpdateTime = nowTime;
                 updateReplayPrograssText();
                 seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
@@ -10636,44 +12167,55 @@ public function startUpdatingPrograssBarTimer():void {
         });
 }
 
-public function drawCanvasFromReplayDataSlideShowMode():void {
+public function drawCanvasFromReplayDataSlideShowMode():void
+{
     const nowTime:int = getTimer();
-    if (nowTime - rSeekbarTextUpdateTime >= REPLAY_SLIDESHOW_UPDATE_TIME) {
+    if (nowTime - rSeekbarTextUpdateTime >= REPLAY_SLIDESHOW_UPDATE_TIME)
+    {
         rSeekbarTextUpdateTime = nowTime;
 
         const nextFrame:Number = rReplaySpeedMultipler * stage.frameRate;
         renderReplayFrame(rNowFrame + Math.floor(nextFrame / REPLAY_SLIDESHOW_FRAME_RATE), JUMP_FRAME_MANUAL);
 
-        if (rNowFrame >= TOTAL_FRAME) {
+        if (rNowFrame >= TOTAL_FRAME)
+        {
             isReplayFinished = true;
             stopReplay();
         }
     }
 }
 
-public function startReplayDrawTimer():void {
-    addTimerByName("replayDrawTimer", 0.0, true, function():Boolean {
-            if (isReplaySlideShowMode) {
-                if (!shouldUseReplaySlideShowMode()) {
+public function startReplayDrawTimer():void
+{
+    addTimerByName("replayDrawTimer", 0.0, true, function():Boolean
+        {
+            if (isReplaySlideShowMode)
+            {
+                if (!shouldUseReplaySlideShowMode())
+                {
                     isReplaySlideShowMode = false;
                     rFileStream.close();
 
-                    if (!rDataReadFlag) {
+                    if (!rDataReadFlag)
+                    {
                         rFileStream.open(replayDataFilePath, FileMode.READ);
                         rFileStream.position = rFileLastBytePosition;
                     }
                 }
-                else {
+                else
+                {
                     drawCanvasFromReplayDataSlideShowMode();
                 }
                 return true;
             }
 
-            if (shouldUseReplaySlideShowMode()) {
+            if (shouldUseReplaySlideShowMode())
+            {
                 isReplaySlideShowMode = true;
                 rFileStream.close();
             }
-            else {
+            else
+            {
                 drawCanvasFromReplayData(rReplaySpeedMultipler, JUMP_FRAME_PLAY);
             }
             return true;
@@ -10681,9 +12223,12 @@ public function startReplayDrawTimer():void {
 
 }
 
-public function clearRFrameTempCache():void {
-    if (rFrameTempCachedImages.length > 0) {
-        for (var i:int = 0; i < rFrameTempCachedImages.length; i++) {
+public function clearRFrameTempCache():void
+{
+    if (rFrameTempCachedImages.length > 0)
+    {
+        for (var i:int = 0; i < rFrameTempCachedImages.length; i++)
+        {
             rFrameTempCachedImages[i][0].dispose();
             rFrameTempCachedImages[i][1].dispose();
         }
@@ -10693,11 +12238,13 @@ public function clearRFrameTempCache():void {
     }
 }
 
-public function getRFrameTempCacheLastFrame():Number {
+public function getRFrameTempCacheLastFrame():Number
+{
     return rFrameTempCachedImages[rFrameTempCachedImages.length - 1][6];
 }
 
-public function createRFrameTempCache(index:uint, lastReadBytes:Number):void {
+public function createRFrameTempCache(index:uint, lastReadBytes:Number):void
+{
     rFrameTempCachedImages[index] = [rCanvasLayer1BitmapData.clone()
             , rCanvasLayer2BitmapData.clone()
             , rCanvasLayer1BitmapData.width
@@ -10709,7 +12256,8 @@ public function createRFrameTempCache(index:uint, lastReadBytes:Number):void {
 }
 
 // jumpFlag  0: 기본 재생 1:탐색바를 마우스를 이용하여 스킵, 2:one frame 이전스트로크, 3:one frame 이후 스트로크
-public function cDrawReplayData():Function {
+public function cDrawReplayData():Function
+{
     // jumpFlag 1번은 마우스 커서로 이동, 2,3번은 스트로크 단위혹은 프레임 단위로 앞뒤로 탐색
     var rDataLen:uint;
     var savedTime:int;
@@ -10722,32 +12270,39 @@ public function cDrawReplayData():Function {
     var nowJumpFlag:Boolean;
     const cursorUpdateTime:int = stage.frameRate * 2;
 
-    function makeMemoryCacheImage():void {
+    function makeMemoryCacheImage():void
+    {
         createRFrameTempCache(rFrameTempCachedImages.length, rFileCutBytePosition);
     }
 
-    function readyToReadMemoryData(jumpFlag:int):void {
+    function readyToReadMemoryData(jumpFlag:int):void
+    {
         rDataReadFlag = true;
         rDataIndex = rDataStartIndex;
         rDataStartIndex = 0;
         rDataLen = rData.length;
 
-        if (jumpFlag === JUMP_FRAME_PLAY) {
+        if (jumpFlag === JUMP_FRAME_PLAY)
+        {
             rFileStream.close();
             rFileLastBytePosition = 0;
         }
 
-        if (rData.length > 0) {
+        if (rData.length > 0)
+        {
             rPrevFrame = rNowFrame;
             drawReplayByCommand.setData(rData[rDataIndex]);
         }
-        else {
+        else
+        {
             drawReplayByCommand.clearData();
         }
     }
 
-    function readNextFileData():Boolean {
-        if (rFileStream.bytesAvailable > 0) {
+    function readNextFileData():Boolean
+    {
+        if (rFileStream.bytesAvailable > 0)
+        {
             const obj:Array = rFileStream.readObject() as Array;
             if (!obj)
                 return true;
@@ -10761,7 +12316,8 @@ public function cDrawReplayData():Function {
         return false;
     }
 
-    function checkFinish(jumpFlag:int):Boolean {
+    function checkFinish(jumpFlag:int):Boolean
+    {
         if (rDataIndex >= rDataLen || rDataLen === 0) // 자연적으로 끝났을때
         {
             rReplayFOFOCursor.visible = false;
@@ -10778,11 +12334,15 @@ public function cDrawReplayData():Function {
         return false;
     }
 
-    function drawFromMemoryData(len:Number, jumpFlag:int):void {
-        for (var i:Number = 0; i < len; i++) {
-            if (drawReplayByCommand.isReadFinished()) {
+    function drawFromMemoryData(len:Number, jumpFlag:int):void
+    {
+        for (var i:Number = 0; i < len; i++)
+        {
+            if (drawReplayByCommand.isReadFinished())
+            {
                 rDataIndex++;
-                if (checkFinish(jumpFlag)) {
+                if (checkFinish(jumpFlag))
+                {
                     return;
                 }
                 rPrevFrame = rNowFrame;
@@ -10793,17 +12353,23 @@ public function cDrawReplayData():Function {
         }
     }
 
-    function drawFromFileData(len:Number, jumpFlag:int):void {
-        for (var i:Number = 0; i < len; i++) {
-            if (drawReplayByCommand.isReadFinished()) {
-                if (readNextFileData() === false) {
+    function drawFromFileData(len:Number, jumpFlag:int):void
+    {
+        for (var i:Number = 0; i < len; i++)
+        {
+            if (drawReplayByCommand.isReadFinished())
+            {
+                if (readNextFileData() === false)
+                {
                     // 더이상 읽을 데이터가 없을때 메모리읽기로 넘겨줌
                     readyToReadMemoryData(jumpFlag);
                     return;
                 }
 
-                if (isReplayStarted === false && (jumpFlag === JUMP_FRAME_MANUAL || jumpFlag === JUMP_FRAME_PREV)) {
-                    if (rNowFrame > getRFrameTempCacheLastFrame() + REPLAY_MEMORY_CACHE_FRAME_INTERVAL) {
+                if (isReplayStarted === false && (jumpFlag === JUMP_FRAME_MANUAL || jumpFlag === JUMP_FRAME_PREV))
+                {
+                    if (rNowFrame > getRFrameTempCacheLastFrame() + REPLAY_MEMORY_CACHE_FRAME_INTERVAL)
+                    {
                         makeMemoryCacheImage();
                     }
                 }
@@ -10815,15 +12381,19 @@ public function cDrawReplayData():Function {
         }
     }
 
-    return function(jumpCount:Number, jumpFlag:int):void {
-        if (jumpCount > 0) {
+    return function(jumpCount:Number, jumpFlag:int):void
+    {
+        if (jumpCount > 0)
+        {
             readCount = jumpCount;
-            if (!rDataReadFlag) {
+            if (!rDataReadFlag)
+            {
                 // readcount 감소
                 drawFromFileData(jumpCount, jumpFlag);
             }
 
-            if (readCount > 0) {
+            if (readCount > 0)
+            {
                 // readcount를 읽어줌
                 drawFromMemoryData(readCount, jumpFlag);
             }
@@ -10832,7 +12402,8 @@ public function cDrawReplayData():Function {
 
 }
 
-public function getReplayRemainingTimeString(speed:Number, totalFrame:Number, isSlideShowMode:Boolean = false):String {
+public function getReplayRemainingTimeString(speed:Number, totalFrame:Number, isSlideShowMode:Boolean = false):String
+{
     const fps:Number = (isSlideShowMode === true) ? 1.0 : stage.frameRate;
     const totalSec:Number = totalFrame / (fps * speed);
     if (totalSec === 0)
@@ -10843,25 +12414,31 @@ public function getReplayRemainingTimeString(speed:Number, totalFrame:Number, is
     const sec:int = totalSec % 60;
     var timeStr:String = "";
 
-    if (hour > 0) {
+    if (hour > 0)
+    {
         timeStr += hour + ":";
     }
 
-    if (min > 0) {
+    if (min > 0)
+    {
         timeStr += (min >= 10) ? min + ":" : "0" + min + ":";
     }
-    else {
+    else
+    {
         timeStr = "00:";
     }
 
-    if (sec > 0) {
+    if (sec > 0)
+    {
         timeStr += (sec >= 10) ? sec : "0" + sec;
     }
-    else {
+    else
+    {
         timeStr += "00";
     }
 
-    if (hour === 0 && min === 0 && sec === 0) {
+    if (hour === 0 && min === 0 && sec === 0)
+    {
         const milisec:Number = totalSec - Math.floor(totalSec);
         const milisecStr:String = milisec.toFixed(1);
 
@@ -10871,7 +12448,8 @@ public function getReplayRemainingTimeString(speed:Number, totalFrame:Number, is
     return " (" + timeStr + ")";
 }
 
-public function cReplayFollowMouse():Object {
+public function cReplayFollowMouse():Object
+{
     const padding:Number = 20;
     const cursorPos:Point = new Point(0, 0);
     const windowCenterPos:Point = new Point(0, 0); // 캔버스 중점위치, 창 중점위치 사이 거리
@@ -10901,11 +12479,13 @@ public function cReplayFollowMouse():Object {
     var rightLimit:Number;
     var bottomLimit:Number;
 
-    function updateScale(newScale:Number):void {
+    function updateScale(newScale:Number):void
+    {
         scale = newScale;
     }
 
-    function updateBounds():void {
+    function updateBounds():void
+    {
         bounds = getBoundRect(rCanvasLayer1Bitmap);
         left = bounds.left;
         right = bounds.right;
@@ -10926,53 +12506,65 @@ public function cReplayFollowMouse():Object {
         bottomLimit = sth + topBar.BARSIZE - padding;
     }
 
-    function check(viewCenterFlag:Boolean):void {
+    function check(viewCenterFlag:Boolean):void
+    {
         cp = drawReplayByCommand.getRCursorPos();
 
         globalChecked = false;
         const div:Number = (viewCenterFlag) ? 1 : 3;
 
-        if (isCanvasWidthSmallerStage) {
-            if (isNotCenterX) {
+        if (isCanvasWidthSmallerStage)
+        {
+            if (isNotCenterX)
+            {
                 rCanvasAnchorPoint.x += windowCenterPos.x;
                 updateBounds();
             }
         }
-        else {
+        else
+        {
             globalChecked = true;
             gp = rCanvasLayer1Bitmap.localToGlobal(new Point(0, 0));
             rg = rotatePoint(cp.x, cp.y, -rCanvasAnchorPoint.rotation);
             cursorPos.x = gp.x + (rg.x * zoom);
 
-            if (cursorPos.x < leftLimit) {
+            if (cursorPos.x < leftLimit)
+            {
                 rCanvasAnchorPoint.x += Math.floor(Math.abs((cursorPos.x - stw / 2) / div));
                 updateBounds();
             }
-            else if (cursorPos.x > rightLimit) {
+            else if (cursorPos.x > rightLimit)
+            {
                 rCanvasAnchorPoint.x -= Math.floor(Math.abs((cursorPos.x - stw / 2) / div));
                 updateBounds();
             }
         }
 
-        if (isCanvasHeightSmallerStage) {
-            if (isNotCenterY) {
+        if (isCanvasHeightSmallerStage)
+        {
+            if (isNotCenterY)
+            {
                 rCanvasAnchorPoint.y += windowCenterPos.y;
                 updateBounds();
             }
         }
-        else {
-            if (globalChecked === false) {
+        else
+        {
+            if (globalChecked === false)
+            {
                 globalChecked = true;
                 gp = rCanvasLayer1Bitmap.localToGlobal(new Point(0, 0));
                 rg = rotatePoint(cp.x, cp.y, -rCanvasAnchorPoint.rotation);
             }
             cursorPos.y = gp.y + (rg.y * zoom);
 
-            if (cursorPos.y < topLimit) {
+            if (cursorPos.y < topLimit)
+            {
                 rCanvasAnchorPoint.y += Math.floor(Math.abs((cursorPos.y - sth / 2) / div));
                 updateBounds();
             }
-            else if (cursorPos.y > bottomLimit) {
+            else if (cursorPos.y > bottomLimit)
+            {
                 rCanvasAnchorPoint.y -= Math.floor(Math.abs((cursorPos.y - sth / 2) / div));
                 updateBounds();
             }
@@ -10986,59 +12578,74 @@ public function cReplayFollowMouse():Object {
         };
 }
 
-public function shouldUseReplaySlideShowMode():Boolean {
+public function shouldUseReplaySlideShowMode():Boolean
+{
     return rReplaySpeedMultipler > REPLAY_SLIDESHOW_ACTIVE_SPEED;
 }
 
-public function toggleFitToCanvasReplayMode():void {
-    if (isReplayCanvasFitToWindow) {
+public function toggleFitToCanvasReplayMode():void
+{
+    if (isReplayCanvasFitToWindow)
+    {
         resetZoomReplayMode();
         topBar.replayFitToWindowButton.alpha = Global.OFFALPHA;
     }
-    else {
+    else
+    {
         setFitReplayCanvasToViewportON();
         topBar.replayFitToWindowButton.alpha = 1.0;
     }
 }
 
-public function toggleReplayRepeat():void {
+public function toggleReplayRepeat():void
+{
     isReplayRepeatON = !isReplayRepeatON;
 
-    if (isReplayRepeatON) {
+    if (isReplayRepeatON)
+    {
         topBar.replayRepeatButton.alpha = 1.0;
     }
-    else {
+    else
+    {
         topBar.replayRepeatButton.alpha = Global.OFFALPHA;
     }
 }
 
-public function getNowFrameUntilUndoIndex(index:int):Number {
+public function getNowFrameUntilUndoIndex(index:int):Number
+{
     return undoManager.getRFileTotalFrame() + undoManager.getRDataTotalFrame(index);
 }
 
-public function getTotalFrame():Number {
+public function getTotalFrame():Number
+{
     return getNowFrameUntilUndoIndex(rDataFrame.length - 1);
 }
 
-public function binarySearchIndex(list:Array, target:Number, valueExtractor:Function):int {
+public function binarySearchIndex(list:Array, target:Number, valueExtractor:Function):int
+{
     var low:int = 0;
     var high:int = list.length - 1;
-    if (high <= 0) {
+    if (high <= 0)
+    {
         return high;
     }
 
     var index:int = Math.floor((low + high) / 2);
 
-    while (low <= high) {
+    while (low <= high)
+    {
         var value:Number = valueExtractor(list[index]);
 
-        if (value === target) {
+        if (value === target)
+        {
             break;
         }
-        else if (value > target) {
+        else if (value > target)
+        {
             high = index - 1;
         }
-        else {
+        else
+        {
             low = index + 1;
         }
 
@@ -11048,8 +12655,10 @@ public function binarySearchIndex(list:Array, target:Number, valueExtractor:Func
     return index;
 }
 
-public function getNearZoomIndex(nowZoom:Number):int {
-    var index:int = binarySearchIndex(canvasZoomMultiplerList, nowZoom, function(item:*):Number {
+public function getNearZoomIndex(nowZoom:Number):int
+{
+    var index:int = binarySearchIndex(canvasZoomMultiplerList, nowZoom, function(item:*):Number
+        {
             return item;
         });
 
@@ -11057,47 +12666,58 @@ public function getNearZoomIndex(nowZoom:Number):int {
         return 0;
     else if (index >= canvasZoomMultiplerList.length - 1)
         return canvasZoomMultiplerList.length - 1;
-    else if (canvasZoomMultiplerList[index + 1] - nowZoom < nowZoom - canvasZoomMultiplerList[index - 1]) {
+    else if (canvasZoomMultiplerList[index + 1] - nowZoom < nowZoom - canvasZoomMultiplerList[index - 1])
+    {
         return index + 1;
     }
     return index;
 }
 
 // targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
-public function getCacheImageIndex(targetFrame:Number):int {
-    return binarySearchIndex(rFrameTempCachedImages, targetFrame, function(item:*):Number {
+public function getCacheImageIndex(targetFrame:Number):int
+{
+    return binarySearchIndex(rFrameTempCachedImages, targetFrame, function(item:*):Number
+        {
             return item[6];
         });
 }
 
 // targetFrame이 rJumpImageFrameData데이터에 몆 번 인덱스에 있나 구해줌
-public function getCachedFrameImageIndex(targetFrame:Number):int {
-    return binarySearchIndex(rJumpImageFrameData, targetFrame, function(item:*):Number {
+public function getCachedFrameImageIndex(targetFrame:Number):int
+{
+    return binarySearchIndex(rJumpImageFrameData, targetFrame, function(item:*):Number
+        {
             return Number(item);
         });
 }
 
-public function updateDeleteReplayDataButtonsState():void {
-    if (isGeneratingCacheImages() || isSaveInProgress || isReplayStarted) {
+public function updateDeleteReplayDataButtonsState():void
+{
+    if (isGeneratingCacheImages() || isSaveInProgress || isReplayStarted)
+    {
         topBar.superUndoButton.alpha = Global.OFFALPHA;
         topBar.cutPrevDataButton.alpha = Global.OFFALPHA;
         topBar.repNewFileButton.alpha = Global.OFFALPHA;
     }
-    else {
+    else
+    {
         topBar.repNewFileButton.alpha = 1.0;
 
-        if (rNowFrame > 0 && rNowFrame < TOTAL_FRAME) {
+        if (rNowFrame > 0 && rNowFrame < TOTAL_FRAME)
+        {
             topBar.superUndoButton.alpha = 1.0;
             topBar.cutPrevDataButton.alpha = 1.0;
         }
-        else {
+        else
+        {
             topBar.superUndoButton.alpha = Global.OFFALPHA;
             topBar.cutPrevDataButton.alpha = Global.OFFALPHA;
         }
     }
 }
 
-public function addKeyRepeatEvents():void {
+public function addKeyRepeatEvents():void
+{
     stage.nativeWindow.addEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
     stage.addEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents);
     stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents);
@@ -11106,7 +12726,8 @@ public function addKeyRepeatEvents():void {
     stage.addEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents);
 }
 
-public function removeKeyRepeatEvents(e:Object):void {
+public function removeKeyRepeatEvents(e:Object):void
+{
     removeTimer("checkKeyRepeatStop");
     removeTimer("keyHoldWaitTimer");
     removeTimer("keyHoldRepeatTimer");
@@ -11118,16 +12739,20 @@ public function removeKeyRepeatEvents(e:Object):void {
     stage.removeEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents);
 }
 
-public function readyForFrameJump():void {
+public function readyForFrameJump():void
+{
     isReplayFinished = false;
-    if (isReplayStarted) {
+    if (isReplayStarted)
+    {
         stopReplay();
     }
 }
 
-public function moveToPreviousStep():void {
+public function moveToPreviousStep():void
+{
     readyForFrameJump();
-    if (rNowFrame > 0) {
+    if (rNowFrame > 0)
+    {
         renderReplayFrame(rPrevFrame, JUMP_FRAME_PREV);
         updateDeleteReplayDataButtonsState();
         seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
@@ -11135,16 +12760,20 @@ public function moveToPreviousStep():void {
     }
 }
 
-public function moveToNextStep():void {
+public function moveToNextStep():void
+{
     readyForFrameJump();
-    if (rNowFrame <= TOTAL_FRAME) {
-        if (drawReplayByCommand.getRemainingData() === 0) {
+    if (rNowFrame <= TOTAL_FRAME)
+    {
+        if (drawReplayByCommand.getRemainingData() === 0)
+        {
             // +1해줘서 다음 데이터 갱신해주고 나머지 끝까지 그려줌
             renderReplayFrame(rNowFrame + 1, JUMP_FRAME_NEXT);
             renderReplayFrame(rNowFrame + drawReplayByCommand.getRemainingData(), JUMP_FRAME_NEXT);
             // jumpframe함수 이후에 실행
         }
-        else {
+        else
+        {
             renderReplayFrame(rNowFrame + drawReplayByCommand.getRemainingData(), JUMP_FRAME_NEXT);
         }
         updateDeleteReplayDataButtonsState();
@@ -11153,9 +12782,11 @@ public function moveToNextStep():void {
     }
 }
 
-public function moveToPreviousFrame():void {
+public function moveToPreviousFrame():void
+{
     readyForFrameJump();
-    if (rNowFrame > 0) {
+    if (rNowFrame > 0)
+    {
         renderReplayFrame(rNowFrame - 1, JUMP_FRAME_MANUAL);
         updateDeleteReplayDataButtonsState();
         seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
@@ -11163,9 +12794,11 @@ public function moveToPreviousFrame():void {
     }
 }
 
-public function moveToNextFrame():void {
+public function moveToNextFrame():void
+{
     readyForFrameJump();
-    if (rNowFrame < TOTAL_FRAME) {
+    if (rNowFrame < TOTAL_FRAME)
+    {
         renderReplayFrame(rNowFrame + 1, JUMP_FRAME_MANUAL);
         updateDeleteReplayDataButtonsState();
         seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
@@ -11173,7 +12806,8 @@ public function moveToNextFrame():void {
     }
 }
 
-public function drawCacheImageFirst(tragetFrame:Number):Number {
+public function drawCacheImageFirst(tragetFrame:Number):Number
+{
     const index:Number = getCachedFrameImageIndex(tragetFrame);
     var cachedImageIndex:Number = -1; // 자잘 썸네일 인덱스를 넣어줌
     var loadCacheFlag:int = 0;
@@ -11183,32 +12817,39 @@ public function drawCacheImageFirst(tragetFrame:Number):Number {
     // slide show모드로 재생하게 되면 클리어 케시를 계속 호출해주고
     // 재생 완료시 rJumpImageIndexLast가 갱신되어있을때 다시 해주면 메모리 캐시가 없는데 캐시를 불러주는 버그가 생겨서
     // 아무생각없이 넣어본건데 버그 안나서 그대로 두려고함
-    if (index !== rJumpImageIndexLast && isReplayStarted === false) {
+    if (index !== rJumpImageIndexLast && isReplayStarted === false)
+    {
         clearRFrameTempCache();
         loadCacheFlag = 1;
     }
-    else if (rFrameTempCachedImages.length > 0) {
-        if (tragetFrame >= rFrameTempCachedImages[0][6]) {
+    else if (rFrameTempCachedImages.length > 0)
+    {
+        if (tragetFrame >= rFrameTempCachedImages[0][6])
+        {
             cachedImageIndex = getCacheImageIndex(tragetFrame);
-            if (rCachedImageLastIndex !== cachedImageIndex || tragetFrame < rNowFrame) {
+            if (rCachedImageLastIndex !== cachedImageIndex || tragetFrame < rNowFrame)
+            {
                 loadCacheFlag = 2;
             }
         }
     }
 
-    if (loadCacheFlag > 0 || tragetFrame < rNowFrame) {
+    if (loadCacheFlag > 0 || tragetFrame < rNowFrame)
+    {
         var cachedImageData:Array;
         var layer1bmpd:BitmapData;
         var layer2bmpd:BitmapData;
         var newrect:Rectangle;
 
-        if (loadCacheFlag === 2) {
+        if (loadCacheFlag === 2)
+        {
             cachedImageData = rFrameTempCachedImages[cachedImageIndex];
             layer1bmpd = cachedImageData[0];
             layer2bmpd = cachedImageData[1];
             rCachedImageLastIndex = cachedImageIndex;
         }
-        else {
+        else
+        {
             const file:File = replayCacheImageFolderPath.resolvePath(String(index));
             const fs:FileStream = new FileStream();
 
@@ -11254,28 +12895,33 @@ public function drawCacheImageFirst(tragetFrame:Number):Number {
         updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
         updateCanvasBGColorReplayMode(cachedImageData[4]);
 
-        if (loadCacheFlag === 1 && isReplayStarted === false) {
+        if (loadCacheFlag === 1 && isReplayStarted === false)
+        {
             createRFrameTempCache(0, rFileLastBytePosition);
         }
 
         cachedImageData = null;
         rDataReadFlag = false;
         rDataStartIndex = 0;
-        if (loadCacheFlag !== 2) {
+        if (loadCacheFlag !== 2)
+        {
             layer1bmpd.dispose();
             layer2bmpd.dispose();
             layer1bmpd = null;
             layer2bmpd = null;
         }
     }
-    else {
-        if (!rDataReadFlag) {
+    else
+    {
+        if (!rDataReadFlag)
+        {
             rFileStream.position = rFileLastBytePosition;
         }
         remainingFrameCount = tragetFrame - rNowFrame;
     }
 
-    if (remainingFrameCount === 0.0) {
+    if (remainingFrameCount === 0.0)
+    {
         rPrevFrame = tragetFrame - 1;
     }
 
@@ -11284,15 +12930,19 @@ public function drawCacheImageFirst(tragetFrame:Number):Number {
 
 public function renderReplayFrame(frame:Number, jumpflag:int):void // jumpp
 {
-    if (frame < 0) {
+    if (frame < 0)
+    {
         frame = 0;
     }
-    else if (frame > TOTAL_FRAME) {
+    else if (frame > TOTAL_FRAME)
+    {
         frame = TOTAL_FRAME;
     }
 
-    if (isReplayModeON) {
-        if (frame >= TOTAL_FRAME && isReplayFinished) {
+    if (isReplayModeON)
+    {
+        if (frame >= TOTAL_FRAME && isReplayFinished)
+        {
             return;
         }
     }
@@ -11303,34 +12953,41 @@ public function renderReplayFrame(frame:Number, jumpflag:int):void // jumpp
     rFileStream.close();
 
     // dodraw밑이기 때문에 rFrameSum이 갱신되서 위에 nowFrame은 쓸수가 없음
-    if (rNowFrame >= TOTAL_FRAME) {
+    if (rNowFrame >= TOTAL_FRAME)
+    {
         if (isReplayModeON) // deepundo도 있어서
         {
-            if (!isReplayFinished) {
+            if (!isReplayFinished)
+            {
                 isReplayFinished = true;
                 // syncMirrorReplayModeWithDrawMode();
             }
             rReplayFOFOCursor.visible = false;
         }
     }
-    else {
+    else
+    {
         isReplayFinished = false;
         rReplayFOFOCursor.visible = true;
     }
     drawReplayByCommand.updateRCursorPos();
 
-    if (!isReplaySlideShowMode && !isReplayCanvasFitToWindow && !isDeepUndoEnabled) {
+    if (!isReplaySlideShowMode && !isReplayCanvasFitToWindow && !isDeepUndoEnabled)
+    {
         rFollowMouse.check(true);
     }
 }
 
 // 데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
-public function finalizeRemainingReplayData():void {
+public function finalizeRemainingReplayData():void
+{
     renderReplayFrame(rNowFrame + drawReplayByCommand.getRemainingData(), JUMP_FRAME_MANUAL);
 }
 
-public function onSeekbarClick():void {
-    if (TOTAL_FRAME === 0 || rReplayImageCacheState > REPLAY_IMAGE_CAHCHE_COMPLETE) {
+public function onSeekbarClick():void
+{
+    if (TOTAL_FRAME === 0 || rReplayImageCacheState > REPLAY_IMAGE_CAHCHE_COMPLETE)
+    {
         return;
     }
 
@@ -11339,18 +12996,22 @@ public function onSeekbarClick():void {
     var clickX:Number = seekBarBox.trackBar.mouseX * seekBarBox.trackBar.scaleX;
     var finalFrame:Number = Math.floor(TOTAL_FRAME * clickX / seekBarBox.trackBar.width);
 
-    function clampFrame():void {
+    function clampFrame():void
+    {
         var mx:Number = seekBarBox.trackBar.mouseX * seekBarBox.trackBar.scaleX;
 
-        if (mx < 0) {
+        if (mx < 0)
+        {
             mx = 0;
             seekBarBox.resetReplayPrograssBarWidth();
         }
-        else if (mx > seekBarBox.trackBar.width) {
+        else if (mx > seekBarBox.trackBar.width)
+        {
             mx = seekBarBox.trackBar.width;
             seekBarBox.setReplayPrograssBarMaxWidth();
         }
-        else {
+        else
+        {
             seekBarBox.setReplayPrograssBarWidth(mx);
         }
 
@@ -11359,8 +13020,10 @@ public function onSeekbarClick():void {
         updateReplayPrograssText(false, finalFrame);
     }
 
-    function onDragStart():void {
-        if (isReplayStarted) {
+    function onDragStart():void
+    {
+        if (isReplayStarted)
+        {
             wasReplayRunning = true;
             isReplayStarted = false;
             removeTimer("replayDrawTimer");
@@ -11374,17 +13037,21 @@ public function onSeekbarClick():void {
         seekBarBox.resetPrograssBarColor();
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         clampFrame();
 
-        if (!hasTimer("jumpFrameUpdateTimer")) {
-            addTimerByName("jumpFrameUpdateTimer", 0.25, false, function():void {
+        if (!hasTimer("jumpFrameUpdateTimer"))
+        {
+            addTimerByName("jumpFrameUpdateTimer", 0.25, false, function():void
+                {
                     renderReplayFrame(finalFrame, JUMP_FRAME_MANUAL);
                 });
         }
     }
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         removeTimer("jumpFrameUpdateTimer");
         renderReplayFrame(finalFrame, JUMP_FRAME_MANUAL);
         clampFrame();
@@ -11393,10 +13060,12 @@ public function onSeekbarClick():void {
         updateDeleteReplayDataButtonsState();
 
         // 재생중에 스킵하고 있었으면 다시 시작
-        if (wasReplayRunning && !isReplayFinished) {
+        if (wasReplayRunning && !isReplayFinished)
+        {
             startReplay();
         }
-        else if (isReplayFinished) {
+        else if (isReplayFinished)
+        {
             seekBarBox.setReplayPrograssBarMaxWidth();
             updateReplayPrograssText(true, TOTAL_FRAME);
             stopReplay();
@@ -11405,8 +13074,10 @@ public function onSeekbarClick():void {
     startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
-public function showTopbarOnReplayEnd():void {
-    if (topBar.visible === false) {
+public function showTopbarOnReplayEnd():void
+{
+    if (topBar.visible === false)
+    {
         topBar.visible = true;
         seekBarBox.y = lastReplayTimeBoxYPos;
         seekBarBox.setPlayButtonVisible(true);
@@ -11416,8 +13087,10 @@ public function showTopbarOnReplayEnd():void {
     }
 }
 
-public function hideTopbarOnReplayStart():void {
-    if (topBar.visible === true) {
+public function hideTopbarOnReplayStart():void
+{
+    if (topBar.visible === true)
+    {
         seekBarBox.y = 0;
         seekBarBox.hideReplayControlButton();
         topBar.visible = false;
@@ -11426,14 +13099,17 @@ public function hideTopbarOnReplayStart():void {
     }
 }
 
-public function handleReplayStopButton():void {
+public function handleReplayStopButton():void
+{
     showTopbarOnReplayEnd();
     stopReplay();
 }
 
-public function stopReplay():void {
+public function stopReplay():void
+{
     removeTimer("replayDrawTimer");
-    if (!isReplayFinished) {
+    if (!isReplayFinished)
+    {
         seekBarBox.setPlayButtonVisible(true);
     }
     rFileStream.close();
@@ -11443,13 +13119,16 @@ public function stopReplay():void {
     updateDeleteReplayDataButtonsState();
 }
 
-public function handleReplayStartButton():void {
+public function handleReplayStartButton():void
+{
     hideTopbarOnReplayStart();
     startReplay();
 }
 
-public function startReplay():void {
-    if (isReplayStarted || TOTAL_FRAME === 0) {
+public function startReplay():void
+{
+    if (isReplayStarted || TOTAL_FRAME === 0)
+    {
         return;
     }
 
@@ -11473,12 +13152,14 @@ public function startReplay():void {
         selectReplaySubLayer(false);
     }
 
-    if (!rDataReadFlag) {
+    if (!rDataReadFlag)
+    {
         rFileStream.open(replayDataFilePath, FileMode.READ);
         rFileStream.position = rFileLastBytePosition;
     }
 
-    if (isReplayCanvasFitToWindow) {
+    if (isReplayCanvasFitToWindow)
+    {
         fitReplayCanvasToViewport();
     }
 
@@ -11488,14 +13169,17 @@ public function startReplay():void {
     startCheckingHideMouseCursor();
 }
 
-public function startBoxDrag(target:DisplayObject):void {
+public function startBoxDrag(target:DisplayObject):void
+{
     const clickPos:Point = new Point(stage.mouseX, stage.mouseY);
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         setAsTopChild(target);
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         target.x = Math.floor(target.x + stage.mouseX - clickPos.x);
         target.y = Math.floor(target.y + stage.mouseY - clickPos.y);
 
@@ -11503,17 +13187,21 @@ public function startBoxDrag(target:DisplayObject):void {
         clickPos.y = stage.mouseY;
     }
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         keepBoxInsideViewPort(target);
     }
 
     startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
-public function handleToolBoxClick(targetName:String):void {
-    function onMouseUpToolBox(e:MouseEvent):void {
+public function handleToolBoxClick(targetName:String):void
+{
+    function onMouseUpToolBox(e:MouseEvent):void
+    {
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox);
-        if (isGeneratingCacheImages()) {
+        if (isGeneratingCacheImages())
+        {
             return;
         }
 
@@ -11522,10 +13210,12 @@ public function handleToolBoxClick(targetName:String):void {
         if (upTargetName !== targetName)
             return;
 
-        switch (upTargetName) {
+        switch (upTargetName)
+        {
             case "toolPen":
                 {
-                    if (!isSelectedTool(TOOL_PEN)) {
+                    if (!isSelectedTool(TOOL_PEN))
+                    {
                         selectPenTool();
                         updatePenSizeCursor();
                     }
@@ -11534,7 +13224,8 @@ public function handleToolBoxClick(targetName:String):void {
 
             case "toolFillPen":
                 {
-                    if (!isSelectedTool(TOOL_FILLPEN)) {
+                    if (!isSelectedTool(TOOL_FILLPEN))
+                    {
                         selectFillPenTool();
                         updatePenSizeCursor();
                     }
@@ -11543,7 +13234,8 @@ public function handleToolBoxClick(targetName:String):void {
 
             case "toolEraser":
                 {
-                    if (!isSelectedTool(TOOL_ERASER)) {
+                    if (!isSelectedTool(TOOL_ERASER))
+                    {
                         selectEraseTool();
                         updatePenSizeCursor();
                     }
@@ -11552,7 +13244,8 @@ public function handleToolBoxClick(targetName:String):void {
 
             case "toolLine":
                 {
-                    if (!isSelectedTool(TOOL_LINE)) {
+                    if (!isSelectedTool(TOOL_LINE))
+                    {
                         selectLineTool();
                         updatePenSizeCursor();
                     }
@@ -11561,7 +13254,8 @@ public function handleToolBoxClick(targetName:String):void {
 
             case "toolLasso":
                 {
-                    if (!isSelectedTool(TOOL_LASSO)) {
+                    if (!isSelectedTool(TOOL_LASSO))
+                    {
                         selectLassoTool();
                     }
                 }
@@ -11569,11 +13263,13 @@ public function handleToolBoxClick(targetName:String):void {
 
             case "toolEyedropper":
                 {
-                    if (isQuickSidebarActive) {
+                    if (isQuickSidebarActive)
+                    {
                         resetLastTool();
                         toolBox.moveToolCursor("toolEyedropper");
                     }
-                    else if (!isSelectedTool(TOOL_EYEDROPPER)) {
+                    else if (!isSelectedTool(TOOL_EYEDROPPER))
+                    {
                         eyeDropperTool();
                     }
                 }
@@ -11581,7 +13277,8 @@ public function handleToolBoxClick(targetName:String):void {
 
             case "toolUndo":
                 {
-                    if (!hasTimer("keyHoldRepeatTimer")) {
+                    if (!hasTimer("keyHoldRepeatTimer"))
+                    {
                         undo();
                     }
                 }
@@ -11589,7 +13286,8 @@ public function handleToolBoxClick(targetName:String):void {
 
             case "toolRedo":
                 {
-                    if (!hasTimer("keyHoldRepeatTimer")) {
+                    if (!hasTimer("keyHoldRepeatTimer"))
+                    {
                         redo();
                     }
                 }
@@ -11624,7 +13322,8 @@ public function handleToolBoxClick(targetName:String):void {
                     if (isQuickSidebarActive)
                         deactivateQuickSidebar();
 
-                    if (isRefLayerMenuON === false) {
+                    if (isRefLayerMenuON === false)
+                    {
                         openRefLayerMenu();
                         refLayerMenuBox.y = mouseY - 60;
                     }
@@ -11636,29 +13335,34 @@ public function handleToolBoxClick(targetName:String):void {
     stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox, false, 1);
 }
 
-public function updateCanvasBGColor(xCanvas:Sprite, w:Number, h:Number, color:uint):void {
+public function updateCanvasBGColor(xCanvas:Sprite, w:Number, h:Number, color:uint):void
+{
     xCanvas.graphics.clear();
     xCanvas.graphics.beginFill(color);
     xCanvas.graphics.drawRect(0, 0, w, h);
     xCanvas.graphics.endFill();
 }
 
-public function updateCanvasBGColorReplayMode(color:uint):void {
+public function updateCanvasBGColorReplayMode(color:uint):void
+{
     RCANVAS_BG_COLOR = color;
     updateCanvasBGColor(rCanvasPanel, RCANVAS_WIDTH, RCANVAS_HEIGHT, color);
 }
 
-public function updateCanvasBGColorDrawMode(color:uint):void {
+public function updateCanvasBGColorDrawMode(color:uint):void
+{
     isFileAlreadySaved = false;
     CANVAS_BG_COLOR = color;
     canvasNavigatorBox.changeprevBitmapBGColor(color);
     updateCanvasBGColor(canvasPanel, CANVAS_WIDTH, CANVAS_HEIGHT, color);
-    if (colorPickerBox.scratchPad) {
+    if (colorPickerBox.scratchPad)
+    {
         colorPickerBox.scratchPad.updateBGColor(color);
     }
 }
 
-public function updateBottomBarLayoutAndColor():void {
+public function updateBottomBarLayoutAndColor():void
+{
     bottomBar.x = 0;
     bottomBar.y = stage.stageHeight - BOTTOM_BAR_HEIGHT * Global.getUIScale();
     bottomBar.graphics.clear();
@@ -11668,46 +13372,56 @@ public function updateBottomBarLayoutAndColor():void {
     bottomBar.graphics.endFill();
 }
 
-public function isHintAvailableWithLassoToolStarted(target:DisplayObject):Boolean {
+public function isHintAvailableWithLassoToolStarted(target:DisplayObject):Boolean
+{
     if (target === toolBox.toolZoomIn
             || target === toolBox.toolZoomOut
             || target === toolBox.toolRotate
-            || target === sideBarScrollBar) {
+            || target === sideBarScrollBar)
+    {
         return true;
     }
     return false;
 }
 
-public function isHintAvailableWithFillPen(target:DisplayObject):Boolean {
+public function isHintAvailableWithFillPen(target:DisplayObject):Boolean
+{
     const targetName:String = target.name;
 
-    if (isFillPenStarted) {
+    if (isFillPenStarted)
+    {
         if (target.alpha > 0.5
                 &&
                 (toolBox.contains(target)
                     || canvasInfoBox.contains(target)
                     || colorPickerBox.contains(target))
                 || target === sideBarScrollBar
-                || (targetName && targetName.indexOf("alphaButton") !== -1)) {
+                || (targetName && targetName.indexOf("alphaButton") !== -1))
+        {
             return true;
         }
-        else {
+        else
+        {
             return false;
         }
     }
-    else if (isSelectedTool(TOOL_FILLPEN)) {
-        if ((targetName && targetName.indexOf("nSizeButton") !== -1) || target.alpha < 0.5) {
+    else if (isSelectedTool(TOOL_FILLPEN))
+    {
+        if ((targetName && targetName.indexOf("nSizeButton") !== -1) || target.alpha < 0.5)
+        {
             return false;
         }
     }
-    else if (isHintUnavailable()) {
+    else if (isHintUnavailable())
+    {
         return false;
     }
 
     return true;
 }
 
-public function isCanvasNaviatorChild(target:DisplayObject):Boolean {
+public function isCanvasNaviatorChild(target:DisplayObject):Boolean
+{
     const targetName:String = target.name;
     return (targetName === "navStageBG"
             || targetName === "navBitmapBG"
@@ -11717,125 +13431,156 @@ public function isCanvasNaviatorChild(target:DisplayObject):Boolean {
 
 }
 
-public function showBottomHintForTargetCaptureMode(target:DisplayObject):void {
-    if (isHintUnavailable()) {
+public function showBottomHintForTargetCaptureMode(target:DisplayObject):void
+{
+    if (isHintUnavailable())
+    {
         return;
     }
 
     const hint:String = HintStrings.getHintFromTargetNameCaptureMode(target.name);
 
-    if (hint) {
+    if (hint)
+    {
         removeTimer("bottomHintOffDelay");
 
         const targetName:String = target.name;
         const xCanvasPanel:Sprite = (isReplayModeON) ? rCanvasPanel : canvasPanel;
-        if (captureAreaManager.isFullImageCapture() && xCanvasPanel.hitTestPoint(stage.mouseX, stage.mouseY, true)) {
+        if (captureAreaManager.isFullImageCapture() && xCanvasPanel.hitTestPoint(stage.mouseX, stage.mouseY, true))
+        {
             showHintHighlightBox((isReplayModeON) ? rCanvasLayer1Bitmap : canvasLayer1Bitmap);
             showBottomHint(hint);
         }
         else if (!(targetName === "rCanvasPanel"
                     || targetName === "rCanvasDrawLayer"
                     || targetName === "canvasPanel"
-                    || targetName === "canvasDrawLayer")) {
+                    || targetName === "canvasDrawLayer"))
+        {
             showHintHighlightBox(target);
             showBottomHint(hint);
         }
     }
-    else {
-        if (!hasTimer("bottomHintOffDelay")) {
+    else
+    {
+        if (!hasTimer("bottomHintOffDelay"))
+        {
             addTimerByName("bottomHintOffDelay", 0.3, false, hideBottomHint);
         }
     }
 }
 
-public function showBottomHintForTarget(target:DisplayObject):void {
+public function showBottomHintForTarget(target:DisplayObject):void
+{
     const hint:String = HintStrings.getHintFromTargetName(target.name);
 
-    if (hint) {
+    if (hint)
+    {
         removeTimer("bottomHintOffDelay");
 
-        if (isCanvasNaviatorChild(target)) {
+        if (isCanvasNaviatorChild(target))
+        {
             showHintHighlightBox(canvasNavigatorBox.navStageBG);
         }
-        else {
+        else
+        {
             showHintHighlightBox(target);
         }
 
-        if (!isBottomBarVisible()) {
+        if (!isBottomBarVisible())
+        {
             addTimerByName("bottomHintOnDelay", 1.0, false, showBottomHint, [hint]);
         }
-        else if (bottomHint.visible) {
+        else if (bottomHint.visible)
+        {
             showBottomHint(hint);
         }
     }
-    else {
-        if (!hasTimer("bottomHintOffDelay")) {
+    else
+    {
+        if (!hasTimer("bottomHintOffDelay"))
+        {
             addTimerByName("bottomHintOffDelay", 0.3, false, hideBottomHint);
         }
     }
 }
 
-public function onMouseMoveBottomHint(e:MouseEvent):void {
+public function onMouseMoveBottomHint(e:MouseEvent):void
+{
     const target:DisplayObject = e.target as DisplayObject;
-    if (!target) {
+    if (!target)
+    {
         return;
     }
 
-    if (isSameWithLastBottomHintTargetRect(target) || isToolBox2Showing) {
+    if (isSameWithLastBottomHintTargetRect(target) || isToolBox2Showing)
+    {
         return;
     }
 
     removeTimer("bottomHintOnDelay");
     updateLastBottomHintTargetRect(target);
 
-    if (isCaptureModeON) {
+    if (isCaptureModeON)
+    {
         showBottomHintForTargetCaptureMode(target);
     }
-    else if (isLassoToolStarted) {
-        if (isHintAvailableWithLassoToolStarted(target)) {
+    else if (isLassoToolStarted)
+    {
+        if (isHintAvailableWithLassoToolStarted(target))
+        {
             showBottomHintForTarget(target);
         }
     }
-    else if (isHintAvailableWithFillPen(target)) {
+    else if (isHintAvailableWithFillPen(target))
+    {
         showBottomHintForTarget(target);
     }
 }
 
-public function updateHightLightBoxZOrderByTarget(target:DisplayObject):void {
+public function updateHightLightBoxZOrderByTarget(target:DisplayObject):void
+{
     const topIndex:int = stage.numChildren - 1;
     const tbIndex:int = stage.getChildIndex(topBar);
     const hIndex:int = stage.getChildIndex(hintHighlightBox);
 
-    if (topBar.contains(target) || seekBarBox.contains(target)) {
+    if (topBar.contains(target) || seekBarBox.contains(target))
+    {
         var desiredIndex:int = Math.min(tbIndex + 1, topIndex);
-        if (hIndex != desiredIndex) {
+        if (hIndex != desiredIndex)
+        {
             stage.setChildIndex(hintHighlightBox, desiredIndex);
         }
     }
-    else {
+    else
+    {
         var desiredIndex2:int = Math.max(tbIndex - 1, 0);
-        if (hIndex != desiredIndex2) {
+        if (hIndex != desiredIndex2)
+        {
             stage.setChildIndex(hintHighlightBox, desiredIndex2);
         }
     }
 }
 
-public function showHintHighlightBox(target:DisplayObject):void {
+public function showHintHighlightBox(target:DisplayObject):void
+{
     const scale:Number = Global.getUIScale();
     hintHighlightBox.graphics.clear();
     hintHighlightBox.graphics.lineStyle(2 * scale, Global.getHintHightlightColor(), 1.0);
 
-    if (target.parent === canvasNavigatorBox) {
+    if (target.parent === canvasNavigatorBox)
+    {
         target = canvasNavigatorBox;
     }
 
     const rect:Rectangle = target.getBounds(stage);
 
-    if (target === colorPickerBox.rgbInfoText) {
+    if (target === colorPickerBox.rgbInfoText)
+    {
         // rect.y -= 2*scale;
         rect.height -= 2 * scale;
     }
-    else if (target === sideBarScrollBar) {
+    else if (target === sideBarScrollBar)
+    {
         rect.x += 1 * scale;
         rect.y += 1 * scale;
         rect.width -= 2 * scale;
@@ -11849,28 +13594,34 @@ public function showHintHighlightBox(target:DisplayObject):void {
     hintHighlightBox.visible = true;
 }
 
-public function hideHintHighlightBox():void {
+public function hideHintHighlightBox():void
+{
     hintHighlightBox.graphics.clear();
     hintHighlightBox.visible = false;
 }
 
-public function isBottomBarVisible():Boolean {
+public function isBottomBarVisible():Boolean
+{
     return bottomBar.visible;
 }
 
-public function isHighlightBoxVisible():Boolean {
+public function isHighlightBoxVisible():Boolean
+{
     return hintHighlightBox.visible;
 }
 
-public function hideBottomHint():void {
+public function hideBottomHint():void
+{
     removeTimer("bottomHintOnDelay");
     hideHintHighlightBox();
     bottomBar.visible = false;
     bottomHint.hide();
 }
 
-public function showBottomHint(str:String):void {
-    if (str === "") {
+public function showBottomHint(str:String):void
+{
+    if (str === "")
+    {
         return;
     }
 
@@ -11880,21 +13631,26 @@ public function showBottomHint(str:String):void {
     bottomBar.visible = true;
     setAsTopChild(bottomBar);
 
-    if (bottomHint.width > stage.stageWidth) {
+    if (bottomHint.width > stage.stageWidth)
+    {
         bottomHintScrolling.start();
     }
 }
 
-public function hideMouseHint():void {
+public function hideMouseHint():void
+{
     mouseHint.hide();
 }
 
-public function showMouseHintTemp(str:String, duration:Number = 2.0):void {
+public function showMouseHintTemp(str:String, duration:Number = 2.0):void
+{
     showMouseHint(str, duration);
 }
 
-public function showMouseHint(str:String, duration:Number = 0.0):void {
-    if (str !== "") {
+public function showMouseHint(str:String, duration:Number = 0.0):void
+{
+    if (str !== "")
+    {
         mouseHint.setHintText(str);
     }
 
@@ -11907,17 +13663,21 @@ public function showMouseHint(str:String, duration:Number = 0.0):void {
     const hintRight:int = hintX + hintWidth;
     const hintBottom:int = hintY + hintHeight;
 
-    if (hintX < 0) {
+    if (hintX < 0)
+    {
         hintX = 0;
     }
-    else if (hintRight > stw) {
+    else if (hintRight > stw)
+    {
         hintX = stw - hintWidth;
     }
 
-    if (hintY < 0) {
+    if (hintY < 0)
+    {
         hintY = 0;
     }
-    else if (hintBottom >= sth) {
+    else if (hintBottom >= sth)
+    {
         hintY = sth - hintHeight;
     }
 
@@ -11929,44 +13689,54 @@ public function showMouseHint(str:String, duration:Number = 0.0):void {
 }
 
 // drag load
-public function keyDownLoadMenuBox(e:KeyboardEvent):void {
+public function keyDownLoadMenuBox(e:KeyboardEvent):void
+{
     const firstKey:uint = getFirstPressedKey();
-    if (firstKey === KEY.esc || firstKey === KEY.backspace) {
+    if (firstKey === KEY.esc || firstKey === KEY.backspace)
+    {
         closeLoadMenuBox();
     }
 }
 
-public function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, file:File, bmpd:BitmapData, filetype:String):void {
+public function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, file:File, bmpd:BitmapData, filetype:String):void
+{
     clearKeyBuffer();
     closeToolBox2();
     loadMenuBoxFileType = filetype;
     loadMenuBoxFile = file;
     loadMenuBoxBitmapData = bmpd;
 
-    if (isLassoToolStarted === true) {
+    if (isLassoToolStarted === true)
+    {
         cancelLassoTool();
         resetLassoBox();
         resetLastTool();
         selectPenTool();
     }
 
-    if (bmpd) {
+    if (bmpd)
+    {
         loadMenuBox.setPreviewImage(bmpd);
         loadMenuBox.updateClickBlockerSize(stage.stageWidth, stage.stageHeight);
     }
 
-    if (loadMenuBox.visible === false) {
+    if (loadMenuBox.visible === false)
+    {
         loadMenuBox.updateUIColor();
 
-        if (fromUpdate) {
+        if (fromUpdate)
+        {
             loadMenuBox.showPleaseWait("Waiting for the file to be saved");
         }
-        else {
+        else
+        {
             loadMenuBox.hidePleaseWait();
-            if (reflayermenu) {
+            if (reflayermenu)
+            {
                 loadMenuBox.activateReflayerButtonOnly();
             }
-            else {
+            else
+            {
                 loadMenuBox.activateAllButtons();
             }
         }
@@ -11976,49 +13746,60 @@ public function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, fil
     }
 }
 
-public function tryLoadClipboardImage(toRefLayer:Boolean):void {
-    if (isFileLoadBlocked()) {
+public function tryLoadClipboardImage(toRefLayer:Boolean):void
+{
+    if (isFileLoadBlocked())
+    {
         return;
     }
 
     rFileStream.close();
-    if (isReplayRestartTimerON()) {
+    if (isReplayRestartTimerON())
+    {
         cancelReplayRestartTimer();
     }
 
     const data:* = getSystemClipboardData();
 
-    if (data) {
-        if (data is BitmapData) {
+    if (data)
+    {
+        if (data is BitmapData)
+        {
             prepareOpenLoadBox(false, toRefLayer, null, data as BitmapData, "clipboard");
         }
-        else if (data is Array && data.length > 0) {
+        else if (data is Array && data.length > 0)
+        {
             const file:File = data[0] as File;
-            if (canDisplayLoadMenuBox(file)) {
+            if (canDisplayLoadMenuBox(file))
+            {
                 prepareLoadMenuBoxFromImageFile(file, toRefLayer);
             }
         }
     }
 }
 
-public function getSystemClipboardData():* {
+public function getSystemClipboardData():*
+{
     return Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT)
         || Clipboard.generalClipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
 }
 
-public function disableTopBarClipboardButton():void {
+public function disableTopBarClipboardButton():void
+{
     topBar.clipBoardButton.alpha = Global.OFFALPHA;
     refLayerMenuBox.refClipBoardButton.alpha = Global.OFFALPHA;
     isClipBoardButtonActivated = false;
 }
 
-public function enableTopBarClipboardButton():void {
+public function enableTopBarClipboardButton():void
+{
     topBar.clipBoardButton.alpha = 1.0;
     refLayerMenuBox.refClipBoardButton.alpha = 1.0;
     isClipBoardButtonActivated = true;
 }
 
-public function isWebpFile(file:File):Boolean {
+public function isWebpFile(file:File):Boolean
+{
     var stream:FileStream = new FileStream();
     stream.open(file, FileMode.READ);
 
@@ -12031,28 +13812,35 @@ public function isWebpFile(file:File):Boolean {
             header[0] == 0x52 && header[1] == 0x49 &&
             header[2] == 0x46 && header[3] == 0x46 &&
             header[8] == 0x57 && header[9] == 0x45 &&
-            header[10] == 0x42 && header[11] == 0x50) {
+            header[10] == 0x42 && header[11] == 0x50)
+    {
         return true;
     }
 
     return false;
 }
 
-public function canDisplayLoadMenuBox(file:File):Boolean {
+public function canDisplayLoadMenuBox(file:File):Boolean
+{
     return !loadMenuBox.visible || !isSameFile(file, lastLoadedFile);
 }
 
-public function prepareLoadMenuBoxFromImageFile(file:File, toRefLayer:Boolean):void {
+public function prepareLoadMenuBoxFromImageFile(file:File, toRefLayer:Boolean):void
+{
     validateImageFile(file,
-            function(type:String, file:File, bmpd:BitmapData):void {
+            function(type:String, file:File, bmpd:BitmapData):void
+            {
                 lastLoadedFile = file;
-                if (type === "image") {
+                if (type === "image")
+                {
                     prepareOpenLoadBox(false, toRefLayer, file, bmpd, "image");
                 }
-                else if (type === "2020") {
+                else if (type === "2020")
+                {
                     prepareOpenLoadBox(false, toRefLayer, file, getFinalBitmapDataFrom2020File(file, true), "2020");
                 }
-                else if (type === "webp") {
+                else if (type === "webp")
+                {
                     var byteArray:ByteArray = new ByteArray();
                     var stream:FileStream = new FileStream();
 
@@ -12064,18 +13852,22 @@ public function prepareLoadMenuBoxFromImageFile(file:File, toRefLayer:Boolean):v
             }, showLoadFaildMouseHint);
 }
 
-public function validateImageFile(file:File, callbackOk:Function, callbackCancel:Function = null):void {
+public function validateImageFile(file:File, callbackOk:Function, callbackCancel:Function = null):void
+{
     var loader:Loader = new Loader();
 
-    function cleanEvents():void {
+    function cleanEvents():void
+    {
         loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onCompleteValidateFile);
         loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onErrorValidateFile);
         loader.unload();
         loader = null;
     }
 
-    function onCompleteValidateFile(e:Event):void {
-        if (callbackOk !== null) {
+    function onCompleteValidateFile(e:Event):void
+    {
+        if (callbackOk !== null)
+        {
             const bmpd:BitmapData = new BitmapData(loader.content.width, loader.content.height, true, 0);
             bmpd.draw(loader);
             callbackOk("image", file, bmpd);
@@ -12083,30 +13875,39 @@ public function validateImageFile(file:File, callbackOk:Function, callbackCancel
         cleanEvents();
     }
 
-    function onErrorValidateFile(e:IOErrorEvent):void {
+    function onErrorValidateFile(e:IOErrorEvent):void
+    {
         cleanEvents();
 
-        try {
-            if (file.exists) {
-                if (isTrue2020File(file)) {
-                    if (callbackOk !== null) {
+        try
+        {
+            if (file.exists)
+            {
+                if (isTrue2020File(file))
+                {
+                    if (callbackOk !== null)
+                    {
                         callbackOk("2020", file, null);
                         return;
                     }
                 }
-                else if (isWebpFile(file)) {
-                    if (callbackOk !== null) {
+                else if (isWebpFile(file))
+                {
+                    if (callbackOk !== null)
+                    {
                         callbackOk("webp", file, null);
                         return;
                     }
                 }
             }
         }
-        catch (error:Error) {
+        catch (error:Error)
+        {
 
         }
 
-        if (callbackCancel !== null) {
+        if (callbackCancel !== null)
+        {
             callbackCancel();
         }
     }
@@ -12116,41 +13917,51 @@ public function validateImageFile(file:File, callbackOk:Function, callbackCancel
     loader.load(new URLRequest(file.url));
 }
 
-public function checkCanUseClipBoardButton():void {
+public function checkCanUseClipBoardButton():void
+{
     const data:* = getSystemClipboardData();
 
-    if (data is BitmapData) {
+    if (data is BitmapData)
+    {
         enableTopBarClipboardButton();
         return;
     }
 
-    if (data is Array && data.length > 0) {
+    if (data is Array && data.length > 0)
+    {
         validateImageFile(data[0] as File,
-                function(type:String, file:File, bmpd:BitmapData):void {
+                function(type:String, file:File, bmpd:BitmapData):void
+                {
                     enableTopBarClipboardButton();
                 },
-                function():void {
+                function():void
+                {
                     disableTopBarClipboardButton();
                 });
     }
-    else {
+    else
+    {
         disableTopBarClipboardButton();
     }
 }
 
-public function getBitmapHash(bmp:BitmapData):uint {
+public function getBitmapHash(bmp:BitmapData):uint
+{
     var bytes:ByteArray = bmp.getPixels(bmp.rect);
     bytes.position = 0;
 
     var hash:uint = 0;
-    while (bytes.bytesAvailable >= 4) {
+    while (bytes.bytesAvailable >= 4)
+    {
         hash ^= bytes.readUnsignedInt();
     }
     return hash;
 }
 
-public function isSameFile(file1:File, file2:File):Boolean {
-    if (!lastLoadedFile) {
+public function isSameFile(file1:File, file2:File):Boolean
+{
+    if (!lastLoadedFile)
+    {
         return false;
     }
 
@@ -12160,49 +13971,61 @@ public function isSameFile(file1:File, file2:File):Boolean {
         && file1.creationDate.getTime() === file2.creationDate.getTime();
 }
 
-public function isFileLoadBlocked():Boolean {
+public function isFileLoadBlocked():Boolean
+{
     return isFileBrowserOpened || isSaveInProgress
         || isGeneratingCacheImages();
 }
 
 // 운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
-public function onInvokeEvent(e:InvokeEvent):void {
-    if (isFileLoadBlocked()) {
+public function onInvokeEvent(e:InvokeEvent):void
+{
+    if (isFileLoadBlocked())
+    {
         e.preventDefault();
         return;
     }
 
     var arguments:Array = e.arguments;
 
-    if (arguments && arguments.length > 0) {
-        try {
+    if (arguments && arguments.length > 0)
+    {
+        try
+        {
             var file:File = new File(arguments[0] as String);
 
-            if (file.exists) {
-                if (!canDisplayLoadMenuBox(file)) {
+            if (file.exists)
+            {
+                if (!canDisplayLoadMenuBox(file))
+                {
                     return;
                 }
                 lastLoadedFile = file;
 
-                if (isReplayStarted) {
+                if (isReplayStarted)
+                {
                     stopReplay();
                 }
 
-                if (isReplayRestartTimerON()) {
+                if (isReplayRestartTimerON())
+                {
                     cancelReplayRestartTimer();
                 }
 
                 prepareLoadMenuBoxFromImageFile(file, false);
             }
         }
-        catch (err:Error) {
+        catch (err:Error)
+        {
 
         }
     }
 }
 
-public function onDragDropStage(e:NativeDragEvent):void {
-    if (isFileLoadBlocked()) {
+public function onDragDropStage(e:NativeDragEvent):void
+{
+    if (isFileLoadBlocked())
+    {
         return;
     }
 
@@ -12210,49 +14033,63 @@ public function onDragDropStage(e:NativeDragEvent):void {
     cancelReplayRestartTimer();
 
     const data:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
-    if (data && data.length > 0) {
+    if (data && data.length > 0)
+    {
         const file:File = data[0] as File;
 
-        if (canDisplayLoadMenuBox(file)) {
+        if (canDisplayLoadMenuBox(file))
+        {
             prepareLoadMenuBoxFromImageFile(file, false);
             return;
         }
     }
 }
 
-public function onDragEnterStage(e:NativeDragEvent):void {
-    if (isFileLoadBlocked()) {
+public function onDragEnterStage(e:NativeDragEvent):void
+{
+    if (isFileLoadBlocked())
+    {
         return;
     }
 
     var c:Clipboard = e.clipboard;
-    if (c.hasFormat("air:file list") === true) {
+    if (c.hasFormat("air:file list") === true)
+    {
         if (isReplayStarted)
             stopReplay();
         var files:Array = c.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
         // 두개이상 선택하고 드래그 할수있기 때문에 하나만 선택되었을때 되도록 해줌
-        if (files && files.length == 1) {
+        if (files && files.length == 1)
+        {
             NativeDragManager.acceptDragDrop(stage);
         }
     }
 }
 
-public function loadFileTo(where:String):void {
-    if (where === "reflayer") {
-        if (loadMenuBoxBitmapData) {
+public function loadFileTo(where:String):void
+{
+    if (where === "reflayer")
+    {
+        if (loadMenuBoxBitmapData)
+        {
             transferLoadedImageToRefLayer(loadMenuBoxBitmapData, loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height);
-            if (!isReplayModeON && !isCaptureModeON) {
+            if (!isReplayModeON && !isCaptureModeON)
+            {
                 openRefLayerMenu();
             }
             loadMenuBoxBitmapData.dispose();
             loadMenuBoxBitmapData = null;
         }
     }
-    else if (loadMenuBoxFile !== null) {
-        if (loadMenuBoxFile.exists) {
-            if (loadMenuBoxFileType === "2020") {
+    else if (loadMenuBoxFile !== null)
+    {
+        if (loadMenuBoxFile.exists)
+        {
+            if (loadMenuBoxFileType === "2020")
+            {
                 var fs:FileStream = new FileStream();
-                function onCompleteFileStream(e:Event):void {
+                function onCompleteFileStream(e:Event):void
+                {
                     fs.removeEventListener(Event.COMPLETE, onCompleteFileStream);
                     fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
                     fs.close();
@@ -12265,7 +14102,8 @@ public function loadFileTo(where:String):void {
                     loadMenuBoxFile = null;
                 }
 
-                function onErrorFileStream(e:Event):void {
+                function onErrorFileStream(e:Event):void
+                {
                     showLoadFaildMouseHint();
                     fs.removeEventListener(Event.COMPLETE, onCompleteFileStream);
                     fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
@@ -12278,25 +14116,29 @@ public function loadFileTo(where:String):void {
                 fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
                 fs.openAsync(loadMenuBoxFile, FileMode.READ);
             }
-            else if (loadMenuBoxFileType === "webp" || loadMenuBoxFileType === "image") {
+            else if (loadMenuBoxFileType === "webp" || loadMenuBoxFileType === "image")
+            {
                 enterDrawModeOnLoadFile();
                 lastSaveFileName = loadMenuBoxFile.name;
                 lastSaveFilePath = loadMenuBoxFile.nativePath;
                 loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
             }
         }
-        else {
+        else
+        {
             showLoadFaildMouseHint();
         }
     }
-    else if (loadMenuBoxFileType === "clipboard") {
+    else if (loadMenuBoxFileType === "clipboard")
+    {
         enterDrawModeOnLoadFile();
         lastSaveFileName = getRandomFileName();
         loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
     }
 }
 
-public function getMyPaletteIndexByMousePosLimitBound():int {
+public function getMyPaletteIndexByMousePosLimitBound():int
+{
     const isAllViewMode:Boolean = (myPalettePresetType === 0 && isMyPaletteExpended);
     const paletteLines:int = (isAllViewMode) ? 8 : 2;
     var xLineIndex:int = Math.floor(colorPickerBox.myPaletteBox.mouseX / myPaletteColorWidth);
@@ -12309,11 +14151,14 @@ public function getMyPaletteIndexByMousePosLimitBound():int {
 
     if (yLineIndex < 0)
         yLineIndex = 0;
-    else if (yLineIndex >= paletteLines) {
-        if (isAllViewMode) {
+    else if (yLineIndex >= paletteLines)
+    {
+        if (isAllViewMode)
+        {
             yLineIndex = paletteLines;
         }
-        else {
+        else
+        {
             yLineIndex = paletteLines - 1;
         }
     }
@@ -12321,18 +14166,21 @@ public function getMyPaletteIndexByMousePosLimitBound():int {
     return xLineIndex + yLineIndex * 10;
 }
 
-public function getHistoryIndexByMousePos():int {
+public function getHistoryIndexByMousePos():int
+{
     const xLineIndex:int = Math.floor(colorPickerBox.colorHistoryBox.mouseX / myPaletteColorWidth);
     const yLineIndex:int = 10 * (Math.floor(colorPickerBox.colorHistoryBox.mouseY / myPaletteColorHeight));
 
-    if (xLineIndex + yLineIndex < 0 || xLineIndex + yLineIndex > myPaletteColorLimit) {
+    if (xLineIndex + yLineIndex < 0 || xLineIndex + yLineIndex > myPaletteColorLimit)
+    {
         return -1;
     }
 
     return xLineIndex + yLineIndex;
 }
 
-public function getMyPaletteIndexByMousePos():int {
+public function getMyPaletteIndexByMousePos():int
+{
     var xLineIndex:int = Math.floor(colorPickerBox.myPaletteBox.mouseX / myPaletteColorWidth);
     var yLineIndex:int = 10 * (Math.floor(colorPickerBox.myPaletteBox.mouseY / myPaletteColorHeight));
     if (xLineIndex > 9)
@@ -12340,37 +14188,45 @@ public function getMyPaletteIndexByMousePos():int {
     if (yLineIndex > 80)
         yLineIndex = 80;
 
-    if (xLineIndex + yLineIndex < 0 || xLineIndex + yLineIndex > myPaletteColorLimit) {
+    if (xLineIndex + yLineIndex < 0 || xLineIndex + yLineIndex > myPaletteColorLimit)
+    {
         return -1;
     }
 
     return xLineIndex + yLineIndex;
 }
 
-public function getTegakiColorPresetIndex(index:int):int {
-    if (index >= 10) {
+public function getTegakiColorPresetIndex(index:int):int
+{
+    if (index >= 10)
+    {
         index = index - 10;
     }
 
     return Math.floor(index / 2) * 2;
 }
 
-public function selectTegakiColorPreset(index:int):void {
+public function selectTegakiColorPreset(index:int):void
+{
     index = getTegakiColorPresetIndex(index);
 
     const mainColor:uint = myPaletteTegakiPreset[index];
 
-    if (mainColor !== colorPickerBox.getRGBInfoBGColor()) {
+    if (mainColor !== colorPickerBox.getRGBInfoBGColor())
+    {
         penColor = myPaletteTegakiPreset[index];
         updateColorPickerCursorPosAndRGBInfo(penColor);
     }
 
-    if (!isFillPenStarted) {
+    if (!isFillPenStarted)
+    {
         const bgColor:uint = myPaletteTegakiPreset[index + 10];
-        if (bgColor !== CANVAS_BG_COLOR) {
+        if (bgColor !== CANVAS_BG_COLOR)
+        {
             updateCanvasBGColorDrawMode(bgColor);
 
-            if (isCanvasWindowON) {
+            if (isCanvasWindowON)
+            {
                 updateCanvasWindowBGColor(CANVAS_BG_COLOR, canvasWindowLayer1Bitmap.bitmapData);
             }
             addUndoBGColorData(bgColor);
@@ -12379,11 +14235,13 @@ public function selectTegakiColorPreset(index:int):void {
     }
 }
 
-public function isSelctedHistoryColorEmpty(index:int):Boolean {
+public function isSelctedHistoryColorEmpty(index:int):Boolean
+{
     return !(myPalettePreset[index + 90] is uint);
 }
 
-public function isSelctedColorEmpty(index:int):Boolean {
+public function isSelctedColorEmpty(index:int):Boolean
+{
     var list:Array = (myPalettePresetType === 1) ? myPaletteDrawrPreset
         : (myPalettePresetType === 2) ? myPaletteTegakiPreset
         : myPalettePreset;
@@ -12391,13 +14249,16 @@ public function isSelctedColorEmpty(index:int):Boolean {
     return !(list[index] is uint);
 }
 
-public function pickColor(pickedColor:uint):void {
-    if (isPenColorMode()) {
+public function pickColor(pickedColor:uint):void
+{
+    if (isPenColorMode())
+    {
         penColor = pickedColor;
         updateColorPickerCursorPosAndRGBInfo(pickedColor);
         selectPenToolIfNotDrawingTool(false);
     }
-    else if (isBackgroundColorMode()) {
+    else if (isBackgroundColorMode())
+    {
         updateCanvasBGColorDrawMode(pickedColor);
         if (isCanvasWindowON)
             updateCanvasWindowBGColor(CANVAS_BG_COLOR, canvasWindowLayer1Bitmap.bitmapData);
@@ -12405,7 +14266,8 @@ public function pickColor(pickedColor:uint):void {
     }
 }
 
-public function selectHistoryColor():void {
+public function selectHistoryColor():void
+{
     const index:int = getHistoryIndexByMousePos();
 
     if (index < 0 || myPaletteDragStarted) // || index !== myPaletteDragClickedIndex)
@@ -12413,8 +14275,10 @@ public function selectHistoryColor():void {
         return;
     }
 
-    if (!(myPalettePreset[index + 90] is uint)) {
-        if (isTransparentPenColor === false) {
+    if (!(myPalettePreset[index + 90] is uint))
+    {
+        if (isTransparentPenColor === false)
+        {
             selectTransparentColor();
         }
         return;
@@ -12422,31 +14286,39 @@ public function selectHistoryColor():void {
 
     const pickedColor:uint = myPalettePreset[index + 90];
 
-    if (pickedColor === colorPickerBox.getRGBInfoBGColor() && !isTransparentPenColor) {
+    if (pickedColor === colorPickerBox.getRGBInfoBGColor() && !isTransparentPenColor)
+    {
         return;
     }
 
     pickColor(pickedColor);
 }
 
-public function selectMyPaletteColor():void {
+public function selectMyPaletteColor():void
+{
     const index:int = getMyPaletteIndexByMousePos();
 
-    if (index < 0) {
+    if (index < 0)
+    {
         return;
     }
 
-    if (index !== myPaletteDragClickedIndex) {
-        if (myPalettePresetType === 0) {
+    if (index !== myPaletteDragClickedIndex)
+    {
+        if (myPalettePresetType === 0)
+        {
             return;
         }
     }
 
     var pickedColor:uint;
 
-    if (myPalettePresetType === 0) {
-        if (isSelctedColorEmpty(index)) {
-            if (isTransparentPenColor === false && isColorPickerModeBG === false) {
+    if (myPalettePresetType === 0)
+    {
+        if (isSelctedColorEmpty(index))
+        {
+            if (isTransparentPenColor === false && isColorPickerModeBG === false)
+            {
                 selectTransparentColor();
             }
             return;
@@ -12459,9 +14331,12 @@ public function selectMyPaletteColor():void {
         // return;
         // }
     }
-    else if (myPalettePresetType === 1) {
-        if (isSelctedColorEmpty(index)) {
-            if (isTransparentPenColor === false && isColorPickerModeBG === false) {
+    else if (myPalettePresetType === 1)
+    {
+        if (isSelctedColorEmpty(index))
+        {
+            if (isTransparentPenColor === false && isColorPickerModeBG === false)
+            {
                 selectTransparentColor();
             }
             return;
@@ -12474,7 +14349,8 @@ public function selectMyPaletteColor():void {
         // return;
         // }
     }
-    else if (myPalettePresetType === 2) {
+    else if (myPalettePresetType === 2)
+    {
         selectTegakiColorPreset(index);
         return;
     }
@@ -12482,7 +14358,8 @@ public function selectMyPaletteColor():void {
     pickColor(pickedColor);
 }
 
-public function saveMypPaletteList():void {
+public function saveMypPaletteList():void
+{
     const fs:FileStream = new FileStream();
 
     fs.open(myPaletteDataFilePath, FileMode.WRITE);
@@ -12490,55 +14367,67 @@ public function saveMypPaletteList():void {
     fs.close();
 }
 
-public function initializeMyPaletteList():void {
+public function initializeMyPaletteList():void
+{
     updateHistoryList();
     updateMyPaletteList();
 
-    if (!myPaletteDataFilePath.exists) {
+    if (!myPaletteDataFilePath.exists)
+    {
         saveMypPaletteList();
     }
 }
 
-public function switchMyPaletteToCompact():void {
+public function switchMyPaletteToCompact():void
+{
     isMyPaletteExpended = false;
     updateMyPaletteList();
     hideBottomHint();
     checkFOFOPosition();
 }
 
-public function switchMyPaletteToExpended():void {
+public function switchMyPaletteToExpended():void
+{
     isMyPaletteExpended = true;
     updateMyPaletteList();
     hideBottomHint();
     checkFOFOPosition();
 }
 
-public function addColorToMyPalette(color:uint, index:int):void {
+public function addColorToMyPalette(color:uint, index:int):void
+{
     if (index < 0)
         return;
 
-    if (isSelctedColorEmpty(index)) {
-        if (myPaletteColorBeforeAddColor[0] === index) {
+    if (isSelctedColorEmpty(index))
+    {
+        if (myPaletteColorBeforeAddColor[0] === index)
+        {
             myPalettePreset[index] = myPaletteColorBeforeAddColor[1];
             updateMyPaletteList();
             addColorMyPaletteHistory(color);
         }
-        else {
+        else
+        {
             myPalettePreset[index] = color;
             updateMyPaletteList();
             addColorMyPaletteHistory(color);
         }
     }
-    else {
-        if (myPalettePreset[index] !== colorPickerBox.getRGBInfoBGColor()) {
+    else
+    {
+        if (myPalettePreset[index] !== colorPickerBox.getRGBInfoBGColor())
+        {
             myPaletteColorBeforeAddColor[0] = index;
             myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
             myPalettePreset[index] = (isTransparentPenColor) ? null : color;
             updateMyPaletteList();
             addColorMyPaletteHistory(color);
         }
-        else {
-            if (isTransparentPenColor) {
+        else
+        {
+            if (isTransparentPenColor)
+            {
                 myPaletteColorBeforeAddColor[0] = index;
                 myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
             }
@@ -12550,41 +14439,52 @@ public function addColorToMyPalette(color:uint, index:int):void {
     }
 }
 
-public function clearMyPaletteList():void {
-    for (var i:int = 0; i < 90; i++) {
+public function clearMyPaletteList():void
+{
+    for (var i:int = 0; i < 90; i++)
+    {
         myPalettePreset[i] = null;
     }
 
-    if (myPalettePresetType === 0) {
+    if (myPalettePresetType === 0)
+    {
         updateHistoryList();
         updateMyPaletteList();
     }
 }
 
-public function initMyPaletteHistory():void {
+public function initMyPaletteHistory():void
+{
     myPalettePreset[90] = 0;
     updateHistoryList();
 }
 
-public function addColorMyPaletteHistory(color:uint):void {
+public function addColorMyPaletteHistory(color:uint):void
+{
     // 색깔 같으면 체크안함
-    if (myPalettePreset[90] === color) {
+    if (myPalettePreset[90] === color)
+    {
         return;
     }
 
-    if ((pickerIgnoreHistoryColor as uint) === color) {
+    if ((pickerIgnoreHistoryColor as uint) === color)
+    {
         pickerIgnoreHistoryColor = null;
         return;
     }
 
     // 이미 있는 색깔이면 다시 최신으로 갱신
-    for (var i:uint = 90; i < 100; i++) {
-        if (color === myPalettePreset[i]) {
+    for (var i:uint = 90; i < 100; i++)
+    {
+        if (color === myPalettePreset[i])
+        {
             const tmpColor:uint = myPalettePreset.splice(i, 1);
-            if (myPalettePreset[90] === null || myPalettePreset[90] === undefined) {
+            if (myPalettePreset[90] === null || myPalettePreset[90] === undefined)
+            {
                 myPalettePreset[90] = tmpColor;
             }
-            else {
+            else
+            {
                 myPalettePreset.insertAt(90, tmpColor);
             }
             updateHistoryList();
@@ -12593,10 +14493,12 @@ public function addColorMyPaletteHistory(color:uint):void {
     }
 
     // 첫부분에 셕이 없으면 그대로 넣어줌
-    if (myPalettePreset[90] === null || myPalettePreset[90] === undefined) {
+    if (myPalettePreset[90] === null || myPalettePreset[90] === undefined)
+    {
         myPalettePreset[90] = color;
     }
-    else {
+    else
+    {
         myPalettePreset.insertAt(90, color);
         myPalettePreset.removeAt(100);
     }
@@ -12604,18 +14506,23 @@ public function addColorMyPaletteHistory(color:uint):void {
     updateHistoryList();
 }
 
-public function updateHistoryList(ignoreIndex:int = -1):void {
+public function updateHistoryList(ignoreIndex:int = -1):void
+{
     colorPickerBox.colorHistoryBox.graphics.clear();
 
-    for (var i:uint = 0; i < 10; i++) {
-        if (90 + i === ignoreIndex) {
+    for (var i:uint = 0; i < 10; i++)
+    {
+        if (90 + i === ignoreIndex)
+        {
             drawColorStartPos(colorPickerBox.colorHistoryBox.graphics, myPaletteColorWidth * i, 0, myPaletteColorWidth, myPaletteColorHeight);
             continue;
         }
-        if (!(myPalettePreset[90 + i] is uint)) {
+        if (!(myPalettePreset[90 + i] is uint))
+        {
             colorPickerBox.colorHistoryBox.graphics.beginBitmapFill(colorPickerBox.myPaletteTransBGBmpd);
         }
-        else {
+        else
+        {
             colorPickerBox.colorHistoryBox.graphics.beginFill(myPalettePreset[i + 90]);
         }
 
@@ -12625,13 +14532,15 @@ public function updateHistoryList(ignoreIndex:int = -1):void {
     colorPickerBox.colorHistoryBox.graphics.endFill();
     colorPickerBox.colorHistoryBox.graphics.lineStyle(1, 0, 0.2);
 
-    for (i = 1; i < 10; i++) {
+    for (i = 1; i < 10; i++)
+    {
         colorPickerBox.colorHistoryBox.graphics.moveTo(myPaletteColorWidth * i, 0);
         colorPickerBox.colorHistoryBox.graphics.lineTo(myPaletteColorWidth * i, myPaletteColorHeight);
     }
 }
 
-public function drawColorStartPos(g:Graphics, px:Number, py:Number, ww:Number, hh:Number):void {
+public function drawColorStartPos(g:Graphics, px:Number, py:Number, ww:Number, hh:Number):void
+{
     g.beginFill(0xFFFFFF);
     g.drawRect(px, py, myPaletteColorWidth, myPaletteColorHeight);
     g.endFill();
@@ -12643,7 +14552,8 @@ public function drawColorStartPos(g:Graphics, px:Number, py:Number, ww:Number, h
     g.lineStyle(0, 0, 0);
 }
 
-public function updateMyPaletteList(ignoreIndex:int = -1):void {
+public function updateMyPaletteList(ignoreIndex:int = -1):void
+{
     const type:int = myPalettePresetType;
     const arr:Array = (type === 0) ? myPalettePreset
         : (type === 1) ? myPaletteDrawrPreset
@@ -12666,8 +14576,10 @@ public function updateMyPaletteList(ignoreIndex:int = -1):void {
     var py:Number;
 
     // 색깔 쭉 그려주기
-    for (var i:uint = 0; i < len; i++) {
-        if (i > 0 && i % 10 === 0) {
+    for (var i:uint = 0; i < len; i++)
+    {
+        if (i > 0 && i % 10 === 0)
+        {
             nextX = 0;
             nextY++;
         }
@@ -12676,15 +14588,18 @@ public function updateMyPaletteList(ignoreIndex:int = -1):void {
         py = hh * (nextY);
         nextX += 1.0;
 
-        if (i === ignoreIndex) {
+        if (i === ignoreIndex)
+        {
             drawColorStartPos(colorPickerBox.myPaletteBox.graphics, px, py, ww, hh);
             continue;
         }
 
-        if (!(arr[i] is uint)) {
+        if (!(arr[i] is uint))
+        {
             colorPickerBox.myPaletteBox.graphics.beginBitmapFill(colorPickerBox.myPaletteTransBGBmpd);
         }
-        else {
+        else
+        {
             colorPickerBox.myPaletteBox.graphics.beginFill(arr[i]);
         }
 
@@ -12699,7 +14614,8 @@ public function updateMyPaletteList(ignoreIndex:int = -1):void {
         colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
         colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
 
-        for (i = 2; i < 10; i += 2) {
+        for (i = 2; i < 10; i += 2)
+        {
             colorPickerBox.myPaletteBox.graphics.moveTo(ww * i, 0);
             colorPickerBox.myPaletteBox.graphics.lineTo(ww * i, hh * 2);
         }
@@ -12710,35 +14626,41 @@ public function updateMyPaletteList(ignoreIndex:int = -1):void {
         colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
         colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
 
-        for (i = 1; i < 10; i++) {
+        for (i = 1; i < 10; i++)
+        {
             colorPickerBox.myPaletteBox.graphics.moveTo(ww * i, 0);
             colorPickerBox.myPaletteBox.graphics.lineTo(ww * i, hh * 2);
         }
     }
     else // my palette
     {
-        if (isMyPaletteExpended === false) {
+        if (isMyPaletteExpended === false)
+        {
             // 가로선
             colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
             colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
             colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
 
             // 세로
-            for (i = 1; i < 10; i++) {
+            for (i = 1; i < 10; i++)
+            {
                 colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth * i, 0);
                 colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * i, hh * 2);
             }
         }
-        else {
+        else
+        {
             colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
 
             // 가로
-            for (i = 1; i < 9; i++) {
+            for (i = 1; i < 9; i++)
+            {
                 colorPickerBox.myPaletteBox.graphics.moveTo(0, hh * i);
                 colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * 10, hh * i);
             }
             // 세로
-            for (i = 1; i < 10; i++) {
+            for (i = 1; i < 10; i++)
+            {
                 colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth * i, 0);
                 colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * i, hh * 9);
             }
@@ -12748,8 +14670,10 @@ public function updateMyPaletteList(ignoreIndex:int = -1):void {
     colorPickerBox.updateMainColorPickerBoxPosition(isColorPickerBoxPositionSwapped);
 }
 
-public function initializeResizeButtonFamily():void {
-    function drawRect(target:Sprite):void {
+public function initializeResizeButtonFamily():void
+{
+    function drawRect(target:Sprite):void
+    {
         target.visible = false;
         target.graphics.clear();
         target.graphics.beginFill(0xFF0000);
@@ -12782,7 +14706,8 @@ public function createCacheImage
         lastBytePosition:Number,
         frameSum:Number,
         mirrorFlag:Boolean
-    ):void {
+    ):void
+{
     const fs:FileStream = new FileStream();
 
     rJumpImageFrameData.push(frameSum);
@@ -12829,7 +14754,8 @@ public function generateReplayCacheImage():void // loadrep
     rMirrorON = false;
     loadMenuBox.visible = false;
 
-    function printPrograssHint(bytes:Number):void {
+    function printPrograssHint(bytes:Number):void
+    {
         const perc:Number = Math.round(((totalSize - bytes) / totalSize) * 100);
         // const str:String = perc.toFixed(1)+"%";
 
@@ -12839,11 +14765,14 @@ public function generateReplayCacheImage():void // loadrep
     loadMenuBox.showPleaseWait("Reading replay file");
     openLoadMenuBox();
 
-    function onFrameEnter(e:Event):void {
-        while (true) {
+    function onFrameEnter(e:Event):void
+    {
+        while (true)
+        {
             const namojiBytes:Number = fs.bytesAvailable;
 
-            if (namojiBytes === 0) {
+            if (namojiBytes === 0)
+            {
                 stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
                 fs.close();
                 drawReplayByCommand.clearData();
@@ -12857,7 +14786,8 @@ public function generateReplayCacheImage():void // loadrep
                 rPrevFrame = _frameSumLast;
                 isReplayFinished = true;
 
-                if (mirrorCommandReady) {
+                if (mirrorCommandReady)
+                {
                     rMirrorON = !rMirrorON;
                     mirrorCommandReady = rMirrorON;
                 }
@@ -12868,7 +14798,8 @@ public function generateReplayCacheImage():void // loadrep
                 canvasInfoBox.setMirror(rMirrorON);
                 canvasNavigatorBox.visible = true;
 
-                if (!isReplayModeON && isDeepUndoEnabled) {
+                if (!isReplayModeON && isDeepUndoEnabled)
+                {
                     rDataReadFlag = false;
                     addInputEventsDrawMode();
                     // jumpFrame(undoData.getRFileTotalFrame()-1,JUMP_FRAME_ONCE);
@@ -12876,7 +14807,8 @@ public function generateReplayCacheImage():void // loadrep
                     applyReplayCanvasToDrawModeCanvas();
                     canvasAnchorPoint.visible = true;
                 }
-                else if (isReplayModeON) {
+                else if (isReplayModeON)
+                {
                     updateReplayPrograssBarAndText();
                     updateReplaySpeedSliderAlpha();
                     updateDeleteReplayDataButtonsState();
@@ -12899,7 +14831,8 @@ public function generateReplayCacheImage():void // loadrep
                 return;
             }
 
-            if (getTimer() - hintPrintTimeSave > 250) {
+            if (getTimer() - hintPrintTimeSave > 250)
+            {
                 hintPrintTimeSave = getTimer();
                 printPrograssHint(namojiBytes);
                 return;
@@ -12912,7 +14845,8 @@ public function generateReplayCacheImage():void // loadrep
             dataWriteCount += data.length;
             drawReplayByCommand.drawAll();
 
-            if (dataWriteCount > REPLAY_DISK_CACHE_FRAME_INTERVAL) {
+            if (dataWriteCount > REPLAY_DISK_CACHE_FRAME_INTERVAL)
+            {
                 var imgData1:ByteArray = new ByteArray();
                 var imgData2:ByteArray = new ByteArray();
 
@@ -12935,7 +14869,8 @@ public function generateReplayCacheImage():void // loadrep
                 imgData1.clear();
                 imgData2.clear();
 
-                if (seekBarBox.prograssBar.width > 0) {
+                if (seekBarBox.prograssBar.width > 0)
+                {
                     seekBarBox.resetReplayPrograssBarWidth();
                 }
             }
@@ -12944,25 +14879,32 @@ public function generateReplayCacheImage():void // loadrep
     stage.addEventListener(Event.ENTER_FRAME, onFrameEnter);
 }
 
-public function enableFileOperationButtonsTopbar():void {
+public function enableFileOperationButtonsTopbar():void
+{
     topBar.enableFileOperationButtons(isClipBoardButtonActivated);
-    if (isReplayModeON) {
+    if (isReplayModeON)
+    {
         updateDeleteReplayDataButtonsState();
     }
 }
 
-public function disableFileOperationButtonsTopbar():void {
-    if (isSaveInProgress === 0) {
+public function disableFileOperationButtonsTopbar():void
+{
+    if (isSaveInProgress === 0)
+    {
         isSaveInProgress = 1;
     }
 
-    if (topBar.saveButton.alpha === 1.0) {
+    if (topBar.saveButton.alpha === 1.0)
+    {
         topBar.disableFileOperationButtons();
     }
 }
 
-public function startPngEncodingWorker(bmpd:BitmapData, bg:uint, isCaptureImage:Boolean, isTransBG:Boolean):void {
-    sendDataToWorker(function():void {
+public function startPngEncodingWorker(bmpd:BitmapData, bg:uint, isCaptureImage:Boolean, isTransBG:Boolean):void
+{
+    sendDataToWorker(function():void
+        {
             workerDataSendCount++;
             var ba:ByteArray = new ByteArray();
             bmpd.copyPixelsToByteArray(new Rectangle(0, 0, bmpd.width, bmpd.height), ba);
@@ -12983,8 +14925,10 @@ public function startPngEncodingWorker(bmpd:BitmapData, bg:uint, isCaptureImage:
         });
 }
 
-public function startUndoImageCompressionWorker(data:ByteArray, data1:ByteArray):void {
-    sendDataToWorker(function():void {
+public function startUndoImageCompressionWorker(data:ByteArray, data1:ByteArray):void
+{
+    sendDataToWorker(function():void
+        {
             workerDataSendCount++;
             mainToBack.send("compress_UndoData");
             mainToBack.send(data);
@@ -12997,8 +14941,10 @@ public function startUndoImageCompressionWorker(data:ByteArray, data1:ByteArray)
         });
 }
 
-public function saveReplayFile():void {
-    if (replayDataFilePath.exists) {
+public function saveReplayFile():void
+{
+    if (replayDataFilePath.exists)
+    {
         rLayer1FirstImageData.position = 0;
         rLayer2FirstImageData.position = 0;
         rLayer1CurrentImageData.position = 0;
@@ -13027,7 +14973,8 @@ public function saveReplayFile():void {
         canvasLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2CurrentImageData);
 
         // 참고 레이어 이미지 저장
-        if (canvasRefLayerBitmapData) {
+        if (canvasRefLayerBitmapData)
+        {
             const refImgWidth:Number = canvasRefLayerBitmapData.width;
             const refImgHeight:Number = canvasRefLayerBitmapData.height;
             newRectangle = new Rectangle(0, 0, refImgWidth, refImgHeight);
@@ -13042,11 +14989,13 @@ public function saveReplayFile():void {
         fs.position = 0;
 
         // 딥 언도일때는 읽은 바이트 까지만 읽어줌
-        if (isDeepUndoEnabled) {
+        if (isDeepUndoEnabled)
+        {
             fs.readBytes(replayDataReadBytes, 0, rFileLastBytePosition);
             fs.close();
         }
-        else {
+        else
+        {
             // 그게 아니면 전체 리플레이 데이터 끝까지 읽고 undo데이터까지 넣어줌
             fs.readBytes(replayDataReadBytes, 0, fs.bytesAvailable);
             fs.close();
@@ -13054,7 +15003,8 @@ public function saveReplayFile():void {
 
             for (var i:int = 0, len:int = undoDataIndex; i <= len; i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
             {
-                if (rData[i] && rData[i].length === 0) {
+                if (rData[i] && rData[i].length === 0)
+                {
                     continue;
                 }
                 replayDataReadBytes.writeObject(rData[i]);
@@ -13065,8 +15015,10 @@ public function saveReplayFile():void {
     }
 }
 
-public function startReplayDataCompressionWorker(dataA:ByteArray, dataA1:ByteArray, dataB:ByteArray, dataB1:ByteArray, dataC:ByteArray, dataD:ByteArray):void {
-    sendDataToWorker(function():void {
+public function startReplayDataCompressionWorker(dataA:ByteArray, dataA1:ByteArray, dataB:ByteArray, dataB1:ByteArray, dataC:ByteArray, dataD:ByteArray):void
+{
+    sendDataToWorker(function():void
+        {
             workerDataSendCount++;
             mainToBack.send("compress_ReplayData");
             mainToBack.send(dataA);
@@ -13095,7 +15047,8 @@ public function writeReplayFile(dataA:ByteArray
         , dataB:ByteArray
         , dataB1:ByteArray
         , dataC:ByteArray
-        , dataD:ByteArray):void {
+        , dataD:ByteArray):void
+{
 
     const fs:FileStream = new FileStream();
     const rImgDataW:int = rFirstImageLayer1BitmapData.width;
@@ -13120,7 +15073,8 @@ public function writeReplayFile(dataA:ByteArray
     fs.writeObject(["rFirstImage", dataA, dataA1, rImgDataW, rImgDataH, rFirstImageBGColor]);
     fs.writeObject(["rFinalImage", dataB, dataB1, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BG_COLOR]);
 
-    if (canvasRefLayerBitmapData) {
+    if (canvasRefLayerBitmapData)
+    {
         fs.writeObject(["refimage", dataC, // 1
                     refImgWidth,
                     refImgHeight,
@@ -13148,13 +15102,16 @@ public function writeReplayFile(dataA:ByteArray
     dataC = null;
     dataD = null;
 
-    try {
+    try
+    {
         const newPath:String = lastSaveFilePath.substr(0, lastSaveFilePath.lastIndexOf(".png")) + ".2020";
         repFileTemp.moveTo(new File(newPath), true);
     }
-    catch (err:Error) {
+    catch (err:Error)
+    {
         // 파일 엑세스가 불가하므로 새로운 파일로 저장해줌
-        if (isSaveInProgress === 1) {
+        if (isSaveInProgress === 1)
+        {
             isSaveInProgress = 0;
         }
         enableFileOperationButtonsTopbar();
@@ -13162,7 +15119,8 @@ public function writeReplayFile(dataA:ByteArray
         return;
     }
 
-    if (isSaveInProgress === 1) {
+    if (isSaveInProgress === 1)
+    {
         isSaveInProgress = 0;
     }
 
@@ -13171,7 +15129,8 @@ public function writeReplayFile(dataA:ByteArray
 
 public function loadReplayFile(oldFile:File):void // loadrep
 {
-    if (isTrue2020File(oldFile) === false) {
+    if (isTrue2020File(oldFile) === false)
+    {
         showLoadFaildMouseHint();
         return;
     }
@@ -13189,7 +15148,8 @@ public function loadReplayFile(oldFile:File):void // loadrep
     initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소
     oldFile.copyTo(repFileTemp, true); // repdata.c3p를 복사 덮어씌우기
 
-    if (refLayerRawTransformData) {
+    if (refLayerRawTransformData)
+    {
         refLayerRawBitmapData.dispose();
         refLayerRawBitmapData = null;
         refLayerRawTransformData = null;
@@ -13203,23 +15163,28 @@ public function loadReplayFile(oldFile:File):void // loadrep
     var replayData:ByteArray = new ByteArray();
     const isNew2020FileFlag:Boolean = isNew2020File(oldFile);
 
-    if (isNew2020FileFlag) {
+    if (isNew2020FileFlag)
+    {
         const a:String = fs.readUTFBytes(9); // FOFOPAINT헤더 읽어줌
         const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
-        if (compBytes > 0) {
+        if (compBytes > 0)
+        {
             // 압축된 데이터 써주고 압축 풀어줌
             fs.readBytes(replayData, 0, compBytes);
             replayData.uncompress();
         }
     }
 
-    while (true) {
+    while (true)
+    {
         if (fs.bytesAvailable === 0)
             break;
         d = fs.readObject();
 
-        if (d[0] === "rFirstImage") {
-            if (d[2] is ByteArray === false) {
+        if (d[0] === "rFirstImage")
+        {
+            if (d[2] is ByteArray === false)
+            {
                 ba = d[1] as ByteArray;
                 rect = new Rectangle(0, 0, d[2], d[3]);
                 ba.uncompress();
@@ -13232,7 +15197,8 @@ public function loadReplayFile(oldFile:File):void // loadrep
                 rLastCanvasBGColor = d[4];
                 createFirstImageCache(rFirstImageLayer1BitmapData, null, d[4]);
             }
-            else {
+            else
+            {
                 ba = d[1] as ByteArray;
                 rect = new Rectangle(0, 0, d[3], d[4]);
                 ba.uncompress();
@@ -13258,7 +15224,8 @@ public function loadReplayFile(oldFile:File):void // loadrep
         else if (d[0] === "rFinalImage") // 최종 이미지
         {
             // 레이어1일때 구버전
-            if (d[2] is ByteArray === false) {
+            if (d[2] is ByteArray === false)
+            {
                 ba = d[1] as ByteArray;
                 rect = new Rectangle(0, 0, d[2], d[3]);
                 ba.uncompress();
@@ -13274,7 +15241,8 @@ public function loadReplayFile(oldFile:File):void // loadrep
                 imgH = d[3];
                 bg = d[4];
             }
-            else {
+            else
+            {
                 ba = d[1] as ByteArray;
                 rect = new Rectangle(0, 0, d[3], d[4]);
                 ba.uncompress();
@@ -13299,7 +15267,8 @@ public function loadReplayFile(oldFile:File):void // loadrep
                 bg = d[5];
             }
         }
-        else if (d[0] === "refimage" || d[0] === "traceImage") {
+        else if (d[0] === "refimage" || d[0] === "traceImage")
+        {
             ba = d[1] as ByteArray;
             rect = new Rectangle(0, 0, d[2], d[3]);
             ba.uncompress();
@@ -13318,19 +15287,22 @@ public function loadReplayFile(oldFile:File):void // loadrep
             replayData.position = replayData.length;
             replayData.writeObject(d);
         }
-        else {
+        else
+        {
             imgStartByte = fs.position;
         }
     }
     fs.close();
 
-    if (isNew2020FileFlag) {
+    if (isNew2020FileFlag)
+    {
         fs.open(replayDataFilePath, FileMode.WRITE);
         fs.position = 0;
         fs.writeBytes(replayData);
         fs.close();
     }
-    else {
+    else
+    {
         // 이미지직전까지 바이트를 기준으로 짤라줌, 즉 뒤에 붙은 첫 이미지 + 마지막 이미지를 지워줌
         fs.open(repFileTemp, FileMode.UPDATE);
         fs.position = imgStartByte;
@@ -13339,7 +15311,8 @@ public function loadReplayFile(oldFile:File):void // loadrep
         repFileTemp.moveTo(replayDataFilePath, true);
     }
 
-    if (repFileTemp.exists) {
+    if (repFileTemp.exists)
+    {
         repFileTemp.deleteFile();
     }
 
@@ -13349,7 +15322,8 @@ public function loadReplayFile(oldFile:File):void // loadrep
     finalizeLoadFile(imgW, imgH, finalIMGBMPD, finalIMGBMPD1, false, bg);
 }
 
-public function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDrawable, layer2Image:IBitmapDrawable):void {
+public function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDrawable, layer2Image:IBitmapDrawable):void
+{
     updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
     undoManager.setRFileTotalFrame(0);
     rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
@@ -13359,8 +15333,10 @@ public function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDr
     initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소
 }
 
-public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawable, imageData1:IBitmapDrawable, imageOnlyFlag:Boolean, newBG:uint):void {
-    if (!imageData) {
+public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawable, imageData1:IBitmapDrawable, imageOnlyFlag:Boolean, newBG:uint):void
+{
+    if (!imageData)
+    {
         showLoadFaildMouseHint();
         return;
     }
@@ -13373,7 +15349,8 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
     scaleMat.scale(scaleFix, scaleFix);
     var tmpbmpd:BitmapData = new BitmapData(scaledwidth, scaledheight, true, 0);
 
-    if (isCaptureModeON) {
+    if (isCaptureModeON)
+    {
         handleExitCaptureMode();
     }
 
@@ -13385,7 +15362,8 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
 
     updateCanvasBGColorDrawMode(newBG);
     updateCanvasBGColorReplayMode(newBG);
-    if (isCanvasWindowON) {
+    if (isCanvasWindowON)
+    {
         updateCanvasWindowBGColor(CANVAS_BG_COLOR, canvasWindowLayer1Bitmap.bitmapData);
     }
 
@@ -13397,34 +15375,40 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
     canvasInfoBox.setMirror(false);
     updateGridMirror(false);
 
-    if (isLassoToolStarted === true) {
+    if (isLassoToolStarted === true)
+    {
         cancelLassoTool();
         resetLassoBox();
     }
 
-    if (isFillPenStarted) {
+    if (isFillPenStarted)
+    {
         fillPenTool.cancel();
     }
 
     tmpbmpd.draw(imageData, scaleMat, null, null, null, true);
     canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, tmpbmpd, canvasLayer1Bitmap);
 
-    if (imageOnlyFlag) {
+    if (imageOnlyFlag)
+    {
         if (rFirstImageLayer1BitmapData && tmpbmpd !== rFirstImageLayer1BitmapData)
             rFirstImageLayer1BitmapData.dispose();
         rFirstImageLayer1BitmapData = tmpbmpd.clone(); // 이미지만 불러와주면 첫 이미지를 갱신해줌
     }
 
-    if (imageData1 !== null) {
+    if (imageData1 !== null)
+    {
         tmpbmpd.fillRect(new Rectangle(0, 0, scaledwidth, scaledheight), 0);
         tmpbmpd.draw(imageData1, scaleMat, null, null, null, true);
         canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, tmpbmpd, canvasLayer2Bitmap);
 
-        if (imageOnlyFlag) {
+        if (imageOnlyFlag)
+        {
             rFirstImageLayer2BitmapData = tmpbmpd.clone();
         }
     }
-    else {
+    else
+    {
         canvasLayer2BitmapData = new BitmapData(canvasLayer1BitmapData.width, canvasLayer1BitmapData.height, true, 0);
         canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
     }
@@ -13443,17 +15427,20 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
 
     updatePenSizeCursor();
 
-    if (gridGapMultiplier > 0) {
+    if (gridGapMultiplier > 0)
+    {
         drawGrid();
     }
     // bitmapdata가 갱신된이후에 업데이트 해줘야함
     resetUndoState();
     drawReplayByCommand.resetFirstRCursorPos();
 
-    if (refLayerRawTransformData === null) {
+    if (refLayerRawTransformData === null)
+    {
         clearRefLayerImage();
     }
-    else {
+    else
+    {
         canvasRefLayerBitmapData = refLayerRawBitmapData.clone();
         canvasRefLayerBitmap.bitmapData = canvasRefLayerBitmapData;
 
@@ -13477,10 +15464,12 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
     selectLayer1(false);
     selectReplaySubLayer(false);
 
-    if (toolOptionsBox.layer1CheckedButton.visible) {
+    if (toolOptionsBox.layer1CheckedButton.visible)
+    {
         toggleLayer1Check();
     }
-    if (toolOptionsBox.layer2CheckedButton.visible) {
+    if (toolOptionsBox.layer2CheckedButton.visible)
+    {
         toggleLayer2Check();
     }
 
@@ -13498,7 +15487,8 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
     canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
     updateCanvasNaigatorCursor();
 
-    if (isCanvasWindowON) {
+    if (isCanvasWindowON)
+    {
         updateCanvasWindowImage();
         canvasWindowIgnoreResizeEventFlag = true;
         updateCanvasWindowBitmapSize();
@@ -13511,41 +15501,49 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
     closeLoadMenuBox();
 }
 
-public function openLoadFileBrowser(toRefLayer:Boolean = false):void {
-    if (isReplayStarted) {
+public function openLoadFileBrowser(toRefLayer:Boolean = false):void
+{
+    if (isReplayStarted)
+    {
         stopReplay();
     }
-    if (isLassoToolStarted || isFileBrowserOpened || isFillPenStarted || isSaveInProgress) {
+    if (isLassoToolStarted || isFileBrowserOpened || isFillPenStarted || isSaveInProgress)
+    {
         return;
     }
 
     var windowTitle:String = "Open file";
-    if (toRefLayer === true) {
+    if (toRefLayer === true)
+    {
         windowTitle = "Open reference layer image";
     }
 
     const loadPath:String = getDirectoryOnly(getExistingParentDirectory(lastSaveFilePath));
     const file:File = (lastSaveFilePath === lastSaveFileName) ? new File() : new File(loadPath);
 
-    function cleanUpEvents():void {
+    function cleanUpEvents():void
+    {
         file.removeEventListener(Event.SELECT, onFileSelected);
         file.removeEventListener(Event.COMPLETE, onFileSelectComplete);
         file.removeEventListener(Event.CANCEL, onFileSelectCancel);
     }
 
-    function onFileSelectCancel(e:Event):void {
+    function onFileSelectCancel(e:Event):void
+    {
         setFileBrowserIsOpen(false);
         cleanUpEvents();
         addInputEventsDrawModeOrReplayMode();
     }
 
-    function onFileSelected(e:Event):void {
+    function onFileSelected(e:Event):void
+    {
         setFileBrowserIsOpen(false);
         file.removeEventListener(Event.SELECT, onFileSelected);
         file.load();
     }
 
-    function onFileSelectComplete(e:Event):void {
+    function onFileSelectComplete(e:Event):void
+    {
         cleanUpEvents();
         setFileBrowserIsOpen(false);
         addInputEventsDrawModeOrReplayMode();
@@ -13563,25 +15561,29 @@ public function openLoadFileBrowser(toRefLayer:Boolean = false):void {
     file.addEventListener(Event.CANCEL, onFileSelectCancel);
 }
 
-public function activateCaptureUI():void {
+public function activateCaptureUI():void
+{
     const replayMode:Boolean = isReplayModeON;
 
     captureAreaManager.reset();
     updateCanvasResizeButtonVisible(false);
     removeTimer("rCursorOffAlphaAnimTimer");
 
-    if (replayMode) {
+    if (replayMode)
+    {
         showTopbarOnReplayEnd();
         seekBarBox.setDeleteRangeBarVisible(false);
         seekBarBox.visible = false;
         removeInputEventsReplayMode();
     }
-    else {
+    else
+    {
         canvasGrid.visible = false;
         removeInputEventsDrawMode();
     }
 
-    if (isSidebarVisible) {
+    if (isSidebarVisible)
+    {
         hideSidebarTemporary();
     }
 
@@ -13589,14 +15591,16 @@ public function activateCaptureUI():void {
     penSizePreviewCursor.visible = false;
     canvasRefLayer.visible = false;
 
-    if (isRefLayerMenuON) {
+    if (isRefLayerMenuON)
+    {
         refLayerMenuBox.visible = false;
     }
 
     updateTopBarModeIcons("capture");
     rReplayFOFOCursor.visible = false;
 
-    if (mouseHint.isShowing()) {
+    if (mouseHint.isShowing())
+    {
         hideMouseHint();
     }
 
@@ -13604,23 +15608,28 @@ public function activateCaptureUI():void {
     updateStageOffset();
 }
 
-public function deactivateCaptureUI():void {
+public function deactivateCaptureUI():void
+{
     const replayMode:Boolean = isReplayModeON;
 
     removeInputEventCaptrueMode();
     canvasRefLayer.visible = true;
 
-    if (replayMode) {
+    if (replayMode)
+    {
         updateTopBarModeIcons("replay");
         addInputEventsReplayMode();
         seekBarBox.visible = true;
     }
-    else {
-        if (isSidebarVisible) {
+    else
+    {
+        if (isSidebarVisible)
+        {
             showSidebarPermanent();
         }
 
-        if (isRefLayerMenuON) {
+        if (isRefLayerMenuON)
+        {
             refLayerMenuBox.visible = true;
         }
 
@@ -13633,51 +15642,65 @@ public function deactivateCaptureUI():void {
     updateStageOffset();
 }
 
-public function onRightMouseDownCaptureMode(e:MouseEvent):void {
-    if (topBar.hitTestPoint(stage.mouseX, stage.mouseY) === false) {
-        if (!captureAreaManager.isFullImageCapture()) {
+public function onRightMouseDownCaptureMode(e:MouseEvent):void
+{
+    if (topBar.hitTestPoint(stage.mouseX, stage.mouseY) === false)
+    {
+        if (!captureAreaManager.isFullImageCapture())
+        {
             captureAreaManager.resetCaptureArea();
         }
     }
 }
 
-public function onMouseDownCaptureMode(e:MouseEvent):void {
+public function onMouseDownCaptureMode(e:MouseEvent):void
+{
     const target:DisplayObject = e.target as DisplayObject;
 
-    if (!target) {
+    if (!target)
+    {
         return;
     }
 
     const targetName:String = target.name;
 
     if (targetName === "capLayer1VisibleButton" || targetName === "capLayer2VisibleButton"
-            || targetName === "capStamp" || targetName === "capStampFont") {
+            || targetName === "capStamp" || targetName === "capStampFont")
+    {
         handleMouseClick(targetName);
 
         return;
     }
 
-    if (targetName === "capClipBoard") {
+    if (targetName === "capClipBoard")
+    {
         executeCaptureFlashEffect();
-        if (target.alpha < 1.0 && topBar.hitTestPoint(stage.mouseX, stage.mouseY)) {
+        if (target.alpha < 1.0 && topBar.hitTestPoint(stage.mouseX, stage.mouseY))
+        {
             return;
         }
         handleMouseClick(targetName);
     }
 
-    if (target.alpha < 1.0 && topBar.hitTestPoint(stage.mouseX, stage.mouseY)) {
+    if (target.alpha < 1.0 && topBar.hitTestPoint(stage.mouseX, stage.mouseY))
+    {
         return;
     }
 
-    if (captureStampFontListBox.visible) {
-        if (targetName === "capFontListNext" || targetName === "capFontListPrev") {
+    if (captureStampFontListBox.visible)
+    {
+        if (targetName === "capFontListNext" || targetName === "capFontListPrev")
+        {
             handleMouseClick(targetName);
         }
-        else if (targetName && targetName.indexOf(captureStampFontListBox.getStampFontButtonName()) !== -1) {
+        else if (targetName && targetName.indexOf(captureStampFontListBox.getStampFontButtonName()) !== -1)
+        {
             captureStampManager.changeFont(captureStampFontListBox.getFontName(targetName), true);
         }
-        else if (target.parent) {
-            if (target.parent.name && target.parent.name.indexOf(captureStampFontListBox.getStampFontButtonName()) !== -1) {
+        else if (target.parent)
+        {
+            if (target.parent.name && target.parent.name.indexOf(captureStampFontListBox.getStampFontButtonName()) !== -1)
+            {
                 captureStampManager.changeFont(captureStampFontListBox.getFontName(target.parent.name), true);
             }
         }
@@ -13685,7 +15708,8 @@ public function onMouseDownCaptureMode(e:MouseEvent):void {
         return;
     }
 
-    switch (targetName) {
+    switch (targetName)
+    {
         case "capRotate":
         case "capFlip":
         case "capSave":
@@ -13704,7 +15728,8 @@ public function onMouseDownCaptureMode(e:MouseEvent):void {
 
         default:
             {
-                if (!isMouseClickBlocked) {
+                if (!isMouseClickBlocked)
+                {
                     captureAreaManager.start();
                 }
             }
@@ -13712,61 +15737,77 @@ public function onMouseDownCaptureMode(e:MouseEvent):void {
     }
 }
 
-public function onKeyUpCaptureMode(e:KeyboardEvent):void {
+public function onKeyUpCaptureMode(e:KeyboardEvent):void
+{
     updateLastKey(getLastKey());
     checkGeneralKeyUp(e.keyCode);
 }
 
-public function onKeyDownCaptureMode(e:KeyboardEvent):void {
+public function onKeyDownCaptureMode(e:KeyboardEvent):void
+{
     const firstKey:uint = getFirstPressedKey();
 
-    if (captureStampFontListBox.visible) {
-        if (firstKey === KEY.esc) {
+    if (captureStampFontListBox.visible)
+    {
+        if (firstKey === KEY.esc)
+        {
             hideStampFontList();
         }
         return;
     }
 
-    if (firstKey === KEY.esc) {
-        if (stage.focus === topBar.captureInput) {
+    if (firstKey === KEY.esc)
+    {
+        if (stage.focus === topBar.captureInput)
+        {
             stage.focus = null;
             return;
         }
     }
 
-    if (stage.focus === topBar.captureInput || isMouseClicked || isRightMouseClicked) {
+    if (stage.focus === topBar.captureInput || isMouseClicked || isRightMouseClicked)
+    {
         return;
     }
 
-    if (isPressingControl()) {
+    if (isPressingControl())
+    {
         const secondKey:uint = getSecondPressedKey();
-        if (isLastKey(secondKey)) {
+        if (isLastKey(secondKey))
+        {
             return;
         }
         updateLastKey(secondKey);
-        if (secondKey === KEY.s || secondKey === KEY.semicolon) {
+        if (secondKey === KEY.s || secondKey === KEY.semicolon)
+        {
             saveCaptureImage();
         }
-        else if (secondKey === KEY.c || secondKey === KEY.comma) {
+        else if (secondKey === KEY.c || secondKey === KEY.comma)
+        {
             executeCaptureFlashEffect();
-            if (topBar.capClipBoard.alpha === 1.0) {
+            if (topBar.capClipBoard.alpha === 1.0)
+            {
                 copyCaptureImageToCilpBoard();
             }
         }
-        else if (secondKey === KEY.v || secondKey === KEY.m) {
-            if (isClipBoardButtonActivated) {
+        else if (secondKey === KEY.v || secondKey === KEY.m)
+        {
+            if (isClipBoardButtonActivated)
+            {
                 tryLoadClipboardImage(false);
             }
         }
         return;
     }
 
-    if (isLastKey(firstKey)) {
+    if (isLastKey(firstKey))
+    {
         return;
     }
     updateLastKey(firstKey);
 
-    switch (firstKey) {
+    switch (firstKey)
+    {
         case KEY.esc:
         case KEY.backspace:
         case KEY.f1:
@@ -13779,23 +15820,28 @@ public function onKeyDownCaptureMode(e:KeyboardEvent):void {
     }
 }
 
-public function enterCaptureMode():void {
-    if (isCaptureModeON || isGeneratingCacheImages()) {
+public function enterCaptureMode():void
+{
+    if (isCaptureModeON || isGeneratingCacheImages())
+    {
         return;
     }
 
-    if (isReplayStarted) {
+    if (isReplayStarted)
+    {
         stopReplay();
     }
 
     isCaptureModeON = true;
     isPenSizeCursorInvisible = true;
 
-    if (numPadBox.visible) {
+    if (numPadBox.visible)
+    {
         closeNumpad();
     }
 
-    if (!isSidebarVisible && sideBar.visible) {
+    if (!isSidebarVisible && sideBar.visible)
+    {
         startHidingSidebarTemporary();
     }
 
@@ -13808,7 +15854,8 @@ public function enterCaptureMode():void {
     var layer1:Boolean;
     var layer2:Boolean;
 
-    if (isReplayModeON) {
+    if (isReplayModeON)
+    {
         xAnc = rCanvasAnchorPoint;
         xPanel = rCanvasPanel;
         xZoomed = rCanvasZoomMultiplier;
@@ -13817,7 +15864,8 @@ public function enterCaptureMode():void {
         layer1 = true;
         layer2 = true;
     }
-    else {
+    else
+    {
         xAnc = canvasAnchorPoint;
         xPanel = canvasPanel;
         xZoomed = canvasZoomMultipler;
@@ -13857,18 +15905,21 @@ public function enterCaptureMode():void {
     fitCanvasToViewportMargin();
     applyTransparentCanvasBGCaptureMode(false);
     captureStampManager.init();
-    if (isCaptureStampEnabled) {
+    if (isCaptureStampEnabled)
+    {
         captureStampManager.update();
     }
 }
 
-public function resetCaptureCanvasChangeValue():void {
+public function resetCaptureCanvasChangeValue():void
+{
     captureCanvasRotationStep = 0;
     isCaptureCanvasFlipped = false;
     isCaptureTransparentBGShowing = false;
 }
 
-public function exitCaptureMode():void {
+public function exitCaptureMode():void
+{
     const replayMode:Boolean = isReplayModeON;
     const data:Object = canvasStateBeforeCaptureMode;
     const xBitmap1:Bitmap = (replayMode) ? rCanvasLayer1Bitmap : canvasLayer1Bitmap;
@@ -13892,17 +15943,20 @@ public function exitCaptureMode():void {
     xPanel.x = data.px;
     xPanel.y = data.py;
 
-    if (replayMode) {
+    if (replayMode)
+    {
         rCanvasLayer1Bitmap.visible = true;
         rCanvasLayer2Bitmap.visible = true;
         rCanvasDrawLayer.visible = true;
     }
-    else {
+    else
+    {
         canvasLayer1Bitmap.visible = data.layer1;
         canvasLayer2Bitmap.visible = data.layer2;
     }
 
-    if (!isReplayCanvasFitToWindow) {
+    if (!isReplayCanvasFitToWindow)
+    {
         updateCanvasScale(data.z, replayMode);
     }
 
@@ -13916,11 +15970,13 @@ public function exitCaptureMode():void {
     deactivateCaptureUI();
     hideBottomHint();
 
-    if (replayMode) {
+    if (replayMode)
+    {
         restoreCanvasBackgroundColor(true);
         rReplayFOFOCursor.visible = true;
     }
-    else if (!replayMode) {
+    else if (!replayMode)
+    {
         restoreCanvasBackgroundColor(false);
     }
 
@@ -13928,7 +15984,8 @@ public function exitCaptureMode():void {
     canvasStateBeforeCaptureMode = {};
 }
 
-public function cDrawCaptureStamp():Object {
+public function cDrawCaptureStamp():Object
+{
     var captrueStampBMPD:BitmapData = new BitmapData(1, 1, false, 0);
     var captureStampBitmap:Bitmap = new Bitmap(captrueStampBMPD);
     const stampAlpha:uint = 0xCB000000;
@@ -13945,18 +16002,21 @@ public function cDrawCaptureStamp():Object {
     captureStampBitmap.name = "captureStampBitmap";
     captureStampBitmap.visible = false;
 
-    function updateLastRectArea(rect:Rectangle):void {
+    function updateLastRectArea(rect:Rectangle):void
+    {
         lastRectArea.x = rect.x;
         lastRectArea.y = rect.y;
         lastRectArea.width = rect.width;
         lastRectArea.height = rect.height;
     }
 
-    function getFontName():String {
+    function getFontName():String
+    {
         return textformat.font;
     }
 
-    function checkCaptrueStampBMPDHeight(twolineFlag:Boolean, mainTextWidth:Number):Number {
+    function checkCaptrueStampBMPDHeight(twolineFlag:Boolean, mainTextWidth:Number):Number
+    {
         var maxHeight:Number = kungDateStr(twolineFlag, true);
         const lines1:int = topBar.getCaptureInputFinalLines();
         if (lines1 === 2)
@@ -13972,17 +16032,20 @@ public function cDrawCaptureStamp():Object {
         return maxHeight;
     }
 
-    function changeFont(newFont:String, updateFlag:Boolean):void {
+    function changeFont(newFont:String, updateFlag:Boolean):void
+    {
         textformat.font = newFont;
         captureStampFontListBox.setSelectFont(newFont);
         captureStampFontListBox.updateFontListSelect(newFont);
         topBar.captureInputFinal.setTextFormat(textformat);
-        if (updateFlag) {
+        if (updateFlag)
+        {
             update();
         }
     }
 
-    function getCaptureStampDate(newLine:Boolean):String {
+    function getCaptureStampDate(newLine:Boolean):String
+    {
         const date:Date = new Date();
         const y:Number = date.getFullYear();
         const m:Number = date.getMonth() + 1;
@@ -14002,13 +16065,15 @@ public function cDrawCaptureStamp():Object {
             + hourstr + ":" + minstr + ":" + secstr;
     }
 
-    function getAppNameString(newLine:Boolean):String {
+    function getAppNameString(newLine:Boolean):String
+    {
         return "FOFO PAINT"
             + ((newLine) ? "\n" : " ")
             + APP_VERSION.toFixed(2);
     }
 
-    function getTextWidthText(text:String, offset:Number):Number {
+    function getTextWidthText(text:String, offset:Number):Number
+    {
         const backupStr:String = topBar.captureInputFinal.text;
         const backupWidth:Number = topBar.getCaptureInputFinalWidth();
         topBar.setCaptureInputFinalWidth(CANVAS_MAX_SIZE);
@@ -14020,25 +16085,30 @@ public function cDrawCaptureStamp():Object {
         return width;
     }
 
-    function getTextWidthAppName(newLine:Boolean):Number {
+    function getTextWidthAppName(newLine:Boolean):Number
+    {
         return getTextWidthText(getAppNameString(newLine), 5);
     }
 
-    function getTextWidthDate(newLine:Boolean):Number {
+    function getTextWidthDate(newLine:Boolean):Number
+    {
         return getTextWidthText(getCaptureStampDate(newLine), 10);
     }
 
-    function getTextWidthMain():Number {
+    function getTextWidthMain():Number
+    {
         return getTextWidthText(topBar.getCaptureInputString(), 2);
     }
 
-    function kungStamp(textStr:String, textWidth:Number, align:String, posX:Number, offsetX:Number, testHeightFlag:Boolean):Number {
+    function kungStamp(textStr:String, textWidth:Number, align:String, posX:Number, offsetX:Number, testHeightFlag:Boolean):Number
+    {
         textformat.align = align;
         topBar.captureInputFinal.defaultTextFormat = textformat;
         topBar.setCaptureInputFinalWidth(textWidth);
         topBar.setCaptureInputFinalString(textStr);
 
-        if (testHeightFlag) {
+        if (testHeightFlag)
+        {
             return topBar.captureInputFinal.textHeight;
         }
 
@@ -14048,20 +16118,24 @@ public function cDrawCaptureStamp():Object {
         return 0;
     }
 
-    function kungAppnameStr(newLine:Boolean, testHeightFlag:Boolean):Number {
+    function kungAppnameStr(newLine:Boolean, testHeightFlag:Boolean):Number
+    {
         const textWidth:Number = getTextWidthAppName(newLine);
         return kungStamp(getAppNameString(newLine), textWidth, "right", captrueStampBMPD.width - textWidth, 2, testHeightFlag);
     }
 
-    function kungMainStr(newLine:Boolean, textWidth:Number, testHeightFlag:Boolean):Number {
+    function kungMainStr(newLine:Boolean, textWidth:Number, testHeightFlag:Boolean):Number
+    {
         return kungStamp(topBar.getCaptureInputString(), textWidth, "left", getTextWidthDate(newLine), 0, testHeightFlag);
     }
 
-    function kungDateStr(newLine:Boolean, testHeightFlag:Boolean):Number {
+    function kungDateStr(newLine:Boolean, testHeightFlag:Boolean):Number
+    {
         return kungStamp(getCaptureStampDate(newLine), getTextWidthDate(newLine), "left", 2, 0, testHeightFlag);
     }
 
-    function kungFinal(inputBMPD:BitmapData):void {
+    function kungFinal(inputBMPD:BitmapData):void
+    {
         update(); // 미자막 시간 찍어줘야함
         const mat:Matrix = new Matrix();
         const ct:ColorTransform = new ColorTransform();
@@ -14070,29 +16144,34 @@ public function cDrawCaptureStamp():Object {
         inputBMPD.draw(captureStampBitmap, mat, ct);
     }
 
-    function getCaptureAreaBmpd(clipRect:Rectangle, layer1:Boolean, layer2:Boolean):BitmapData {
+    function getCaptureAreaBmpd(clipRect:Rectangle, layer1:Boolean, layer2:Boolean):BitmapData
+    {
         var longEdge:Number;
         var areaWidth:Number;
         var areaHeight:Number;
         const fullImageFlag:Boolean = clipRect.width === 0 && clipRect.height === 0;
 
-        if (fullImageFlag) {
+        if (fullImageFlag)
+        {
             longEdge = CANVAS_HEIGHT > CANVAS_WIDTH ? CANVAS_HEIGHT : CANVAS_WIDTH;
             areaWidth = CANVAS_WIDTH;
             areaHeight = CANVAS_HEIGHT;
         }
-        else {
+        else
+        {
             longEdge = clipRect.height > clipRect.width ? clipRect.height : clipRect.width;
             areaWidth = clipRect.width;
             areaHeight = clipRect.height;
         }
 
-        if (areaWidth === 0 || areaHeight === 0) {
+        if (areaWidth === 0 || areaHeight === 0)
+        {
             return null;
         }
 
         var scale:Number = 1.0;
-        if (longEdge > 100) {
+        if (longEdge > 100)
+        {
             scale = 100 / longEdge;
         }
         const width:Number = areaWidth * scale;
@@ -14106,90 +16185,111 @@ public function cDrawCaptureStamp():Object {
         return tmpbmpd;
     }
 
-    function onFocusOutCaptureInput(e:FocusEvent):void {
-        addTimer(0.2, false, function():void {
+    function onFocusOutCaptureInput(e:FocusEvent):void
+    {
+        addTimer(0.2, false, function():void
+            {
                 tryDisableIME();
                 isCaptureStampTextFieldFocused = false;
             });
     }
 
-    function onFocusInCaptureInput(e:FocusEvent):void {
+    function onFocusInCaptureInput(e:FocusEvent):void
+    {
         isCaptureStampTextFieldFocused = true;
-        addTimer(0.0, false, function():void {
+        addTimer(0.0, false, function():void
+            {
                 topBar.captureInput.setSelection(0, topBar.captureInput.text.length);
             });
     }
 
-    function onChangeCaptureInput(e:Event):void {
+    function onChangeCaptureInput(e:Event):void
+    {
         topBar.capClipBoard.alpha = 1.0;
 
-        if (!hasTimer("inputUpdateTimer")) {
+        if (!hasTimer("inputUpdateTimer"))
+        {
             addTimerByName("inputUpdateTimer", 0.2, false, update);
         }
     }
 
-    function setVisible(flag:Boolean):void {
-        if (captureStampBitmap.visible !== flag) {
+    function setVisible(flag:Boolean):void
+    {
+        if (captureStampBitmap.visible !== flag)
+        {
             captureStampBitmap.visible = flag;
         }
     }
 
-    function checkPosition(bmpdHeight:Number):void {
+    function checkPosition(bmpdHeight:Number):void
+    {
         const rect:Rectangle = captureAreaManager.getCaptureArea();
         const rotateFlag:uint = captureCanvasRotationStep;
         var offsetX:Number;
         var offsetY:Number;
 
-        if (captureAreaManager.isFullImageCapture()) {
+        if (captureAreaManager.isFullImageCapture())
+        {
             offsetX = (isReplayModeON) ? RCANVAS_WIDTH : CANVAS_WIDTH;
             offsetY = (isReplayModeON) ? RCANVAS_HEIGHT : CANVAS_HEIGHT;
         }
-        else {
+        else
+        {
             offsetX = rect.width;
             offsetY = rect.height;
         }
 
-        if (isCaptureCanvasFlipped) {
+        if (isCaptureCanvasFlipped)
+        {
             captureStampBitmap.scaleX = -1.0;
-            if (rotateFlag === 0) {
+            if (rotateFlag === 0)
+            {
                 captureStampBitmap.rotation = 0;
                 captureStampBitmap.x = rect.x + offsetX;
                 captureStampBitmap.y = rect.y + offsetY - bmpdHeight;
             }
-            else if (rotateFlag === 1) {
+            else if (rotateFlag === 1)
+            {
                 captureStampBitmap.rotation = 90;
                 captureStampBitmap.x = rect.x + bmpdHeight;
                 captureStampBitmap.y = rect.y + offsetY;
             }
-            else if (rotateFlag === 2) {
+            else if (rotateFlag === 2)
+            {
                 captureStampBitmap.rotation = 180;
                 captureStampBitmap.x = rect.x;
                 captureStampBitmap.y = rect.y + bmpdHeight;
             }
-            else if (rotateFlag === 3) {
+            else if (rotateFlag === 3)
+            {
                 captureStampBitmap.rotation = -90;
                 captureStampBitmap.x = rect.x + offsetX - bmpdHeight;
                 captureStampBitmap.y = rect.y;
             }
         }
-        else {
+        else
+        {
             captureStampBitmap.scaleX = 1.0;
-            if (rotateFlag === 0) {
+            if (rotateFlag === 0)
+            {
                 captureStampBitmap.rotation = 0;
                 captureStampBitmap.x = rect.x;
                 captureStampBitmap.y = rect.y + offsetY - bmpdHeight;
             }
-            else if (rotateFlag === 1) {
+            else if (rotateFlag === 1)
+            {
                 captureStampBitmap.rotation = -90;
                 captureStampBitmap.x = rect.x + offsetX - bmpdHeight;
                 captureStampBitmap.y = rect.y + offsetY;
             }
-            else if (rotateFlag === 2) {
+            else if (rotateFlag === 2)
+            {
                 captureStampBitmap.rotation = 180;
                 captureStampBitmap.x = rect.x + offsetX;
                 captureStampBitmap.y = rect.y + bmpdHeight;
             }
-            else if (rotateFlag === 3) {
+            else if (rotateFlag === 3)
+            {
                 captureStampBitmap.rotation = 90;
                 captureStampBitmap.x = rect.x + bmpdHeight;
                 captureStampBitmap.y = rect.y;
@@ -14259,22 +16359,29 @@ public function cDrawCaptureStamp():Object {
     // captureStampBitmap.y = posY;
     // }
 
-    function getCaptureAreaWidth(rect:Rectangle):Number {
+    function getCaptureAreaWidth(rect:Rectangle):Number
+    {
         const notRotatedFlag:Boolean = captureCanvasRotationStep % 2 === 0;
 
-        if (notRotatedFlag) {
-            if (captureAreaManager.isFullImageCapture()) {
+        if (notRotatedFlag)
+        {
+            if (captureAreaManager.isFullImageCapture())
+            {
                 return (isReplayModeON) ? RCANVAS_WIDTH : CANVAS_WIDTH;
             }
-            else {
+            else
+            {
                 return rect.width;
             }
         }
-        else {
-            if (captureAreaManager.isFullImageCapture()) {
+        else
+        {
+            if (captureAreaManager.isFullImageCapture())
+            {
                 return (isReplayModeON) ? RCANVAS_HEIGHT : CANVAS_HEIGHT;
             }
-            else {
+            else
+            {
                 return rect.height;
             }
         }
@@ -14282,7 +16389,8 @@ public function cDrawCaptureStamp():Object {
         return 0;
     }
 
-    function getColorBrightness(color:uint):Number {
+    function getColorBrightness(color:uint):Number
+    {
         var red:int = (color >> 16) & 0xFF;
         var green:int = (color >> 8) & 0xFF;
         var blue:int = color & 0xFF;
@@ -14293,13 +16401,17 @@ public function cDrawCaptureStamp():Object {
         return brightness;
     }
 
-    function update():void {
-        if (isCaptureStampEnabled) {
+    function update():void
+    {
+        if (isCaptureStampEnabled)
+        {
             const rect:Rectangle = captureAreaManager.getCaptureArea();
 
             const bmpdWidth:Number = getCaptureAreaWidth(rect);
-            if (bmpdWidth < 300) {
-                if (captureStampBitmap.visible === true) {
+            if (bmpdWidth < 300)
+            {
+                if (captureStampBitmap.visible === true)
+                {
                     captureStampBitmap.visible = false;
                 }
                 return;
@@ -14307,25 +16419,31 @@ public function cDrawCaptureStamp():Object {
             const layer1Visible:Boolean = (isReplayModeON) ? rCanvasLayer1Bitmap.visible : canvasLayer1Bitmap.visible;
             const layer2Visible:Boolean = (isReplayModeON) ? rCanvasLayer2Bitmap.visible : canvasLayer2Bitmap.visible;
             var bitmapVisibleFlag:int = 0;
-            if (layer1Visible) {
+            if (layer1Visible)
+            {
                 bitmapVisibleFlag += 1;
             }
 
-            if (layer2Visible) {
+            if (layer2Visible)
+            {
                 bitmapVisibleFlag += 2;
             }
 
             const bmpd:BitmapData = getCaptureAreaBmpd(rect, layer1Visible, layer2Visible);
-            if (!bmpd) {
+            if (!bmpd)
+            {
                 return;
             }
 
-            if (stampBGColor === null || !rect.equals(lastRectArea) || lastBitmapVisibleFlag !== bitmapVisibleFlag) {
+            if (stampBGColor === null || !rect.equals(lastRectArea) || lastBitmapVisibleFlag !== bitmapVisibleFlag)
+            {
                 const tegakiBGColorIndex:int = myPaletteTegakiPreset.indexOf((isReplayModeON) ? RCANVAS_BG_COLOR : CANVAS_BG_COLOR);
-                if (tegakiBGColorIndex >= 0) {
+                if (tegakiBGColorIndex >= 0)
+                {
                     stampBGColor = myPaletteTegakiPreset[tegakiBGColorIndex - 10];
                 }
-                else {
+                else
+                {
                     stampBGColor = getImageDominantColor(bmpd);
                 }
                 updateLastRectArea(rect);
@@ -14345,12 +16463,14 @@ public function cDrawCaptureStamp():Object {
 
             var twolineFlag:Boolean = false;
 
-            if (topBar.getCaptureInputFinalLines() >= 2) {
+            if (topBar.getCaptureInputFinalLines() >= 2)
+            {
                 twolineFlag = true;
 
                 var loopcount:int = 0;
 
-                do {
+                do
+                {
                     textformat.size = defaultFontSize - loopcount;
                     topBar.captureInputFinal.defaultTextFormat = textformat;
                     dateStrWidth = getTextWidthDate(true);
@@ -14360,9 +16480,11 @@ public function cDrawCaptureStamp():Object {
                     topBar.setCaptureInputFinalString(topBar.getCaptureInputString());
                     loopcount++;
 
-                    if (defaultFontSize - loopcount <= 13) {
+                    if (defaultFontSize - loopcount <= 13)
+                    {
                         // 글씨크기를 한계까지 줄이고 칸이 꽉차면 더이상 입력 못하게함
-                        if (topBar.captureInputFinal.numLines >= 3) {
+                        if (topBar.captureInputFinal.numLines >= 3)
+                        {
                             topBar.captureInput.maxChars = 1;
                             topBar.captureInput.text = topBar.captureInput.text.slice(0, -1);
                         }
@@ -14373,17 +16495,20 @@ public function cDrawCaptureStamp():Object {
                 while (topBar.getCaptureInputFinalLines() >= 3);
             }
 
-            if (captrueStampBMPD) {
+            if (captrueStampBMPD)
+            {
                 captrueStampBMPD.dispose();
             }
             var bmpdHeight:Number = checkCaptrueStampBMPDHeight(twolineFlag, mainTextWidth);
             captrueStampBMPD = new BitmapData(bmpdWidth, bmpdHeight, true, stampAlpha | stampBGColor);
             captureStampBitmap.bitmapData = captrueStampBMPD;
 
-            if (getColorBrightness(stampBGColor) >= 150) {
+            if (getColorBrightness(stampBGColor) >= 150)
+            {
                 topBar.captureInputFinal.textColor = 0x0;
             }
-            else {
+            else
+            {
                 topBar.captureInputFinal.textColor = 0xFFFFFF;
             }
 
@@ -14391,43 +16516,55 @@ public function cDrawCaptureStamp():Object {
             kungMainStr(twolineFlag, mainTextWidth, false);
             kungAppnameStr(twolineFlag, false);
 
-            if (captureStampBitmap.visible === false) {
+            if (captureStampBitmap.visible === false)
+            {
                 captureStampBitmap.visible = true;
             }
 
-            if (isReplayModeON) {
-                if (rCanvasPanel.getChildByName("captureStampBitmap") === null) {
+            if (isReplayModeON)
+            {
+                if (rCanvasPanel.getChildByName("captureStampBitmap") === null)
+                {
                     rCanvasPanel.addChild(captureStampBitmap);
                 }
             }
-            else if (canvasPanel.getChildByName("captureStampBitmap") === null) {
+            else if (canvasPanel.getChildByName("captureStampBitmap") === null)
+            {
                 canvasPanel.addChild(captureStampBitmap);
             }
 
             checkPosition(bmpdHeight);
         }
-        else if (captureStampBitmap.visible === true) {
-            if (isReplayModeON) {
-                if (rCanvasPanel.getChildByName("captureStampBitmap") !== null) {
+        else if (captureStampBitmap.visible === true)
+        {
+            if (isReplayModeON)
+            {
+                if (rCanvasPanel.getChildByName("captureStampBitmap") !== null)
+                {
                     rCanvasPanel.removeChild(captureStampBitmap);
                 }
             }
-            else if (canvasPanel.getChildByName("captureStampBitmap") !== null) {
+            else if (canvasPanel.getChildByName("captureStampBitmap") !== null)
+            {
                 canvasPanel.removeChild(captureStampBitmap);
             }
             captureStampBitmap.visible = false;
         }
     }
 
-    function off():void {
-        if (isReplayModeON) {
+    function off():void
+    {
+        if (isReplayModeON)
+        {
             rCanvasPanel.scrollRect = new Rectangle(0, 0, RCANVAS_WIDTH, RCANVAS_HEIGHT);
         }
-        else {
+        else
+        {
             canvasPanel.scrollRect = new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         }
 
-        if (captrueStampBMPD) {
+        if (captrueStampBMPD)
+        {
             captrueStampBMPD.dispose();
         }
 
@@ -14438,16 +16575,20 @@ public function cDrawCaptureStamp():Object {
         topBar.captureInput.removeEventListener(FocusEvent.FOCUS_OUT, onFocusOutCaptureInput);
 
         captureStampBitmap.visible = false;
-        if (canvasPanel.getChildByName("captureStampBitmap") !== null) {
+        if (canvasPanel.getChildByName("captureStampBitmap") !== null)
+        {
             canvasPanel.removeChild(captureStampBitmap);
         }
     }
 
-    function init():void {
-        if (isReplayModeON) {
+    function init():void
+    {
+        if (isReplayModeON)
+        {
             rCanvasPanel.scrollRect = null;
         }
-        else {
+        else
+        {
             canvasPanel.scrollRect = null;
         }
 
@@ -14472,7 +16613,8 @@ public function cDrawCaptureStamp():Object {
 }
 
 // 마우스 클릭하면 캡쳐 영역그리는 함수
-public function cDrawCaptureArea():Object {
+public function cDrawCaptureArea():Object
+{
     var xPanel:Sprite;
     var mouseMoved:Boolean = false;
     var canvasWidth:Number = 0;
@@ -14489,36 +16631,45 @@ public function cDrawCaptureArea():Object {
     var minSize:Number = 10.0;
     const mouseMoveOffset:Number = 5.0;
 
-    function validateCaptureArea():void {
+    function validateCaptureArea():void
+    {
         var intersection:Rectangle = rectFull.intersection(rectClamped);
 
-        if (intersection.width >= minSize && intersection.height >= minSize) {
+        if (intersection.width >= minSize && intersection.height >= minSize)
+        {
             rectClamped.x = Math.round(intersection.x);
             rectClamped.y = Math.round(intersection.y);
             rectClamped.width = Math.round(intersection.width);
             rectClamped.height = Math.round(intersection.height);
         }
-        else {
-            addTimer(0.0, false, function():void {
+        else
+        {
+            addTimer(0.0, false, function():void
+                {
                     resetCaptureArea();
                 });
         }
     }
 
-    function normalizeRectClamped():void {
-        if (rectClamped.width < 0) {
+    function normalizeRectClamped():void
+    {
+        if (rectClamped.width < 0)
+        {
             rectClamped.width = Math.abs(rectClamped.width);
             rectClamped.x = rectClamped.x - rectClamped.width;
         }
 
-        if (rectClamped.height < 0) {
+        if (rectClamped.height < 0)
+        {
             rectClamped.height = Math.abs(rectClamped.height);
             rectClamped.y = rectClamped.y - rectClamped.height;
         }
     }
 
-    function onMouseMoveCaptureAreaDrawed(e:MouseEvent):void {
-        if (!isCaptureModeON) {
+    function onMouseMoveCaptureAreaDrawed(e:MouseEvent):void
+    {
+        if (!isCaptureModeON)
+        {
             removeCaptureAreaEvents();
             return;
         }
@@ -14528,10 +16679,13 @@ public function cDrawCaptureArea():Object {
         var subX:Number = Math.round(mx - clickPos.x);
         var subY:Number = Math.round(my - clickPos.y);
 
-        if (mouseMoved === true) {
-            if (resizeFlag) {
+        if (mouseMoved === true)
+        {
+            if (resizeFlag)
+            {
                 if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 0
-                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 3) {
+                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 3)
+                {
                     rectRaw.width += subX;
                     rectRaw.height += subY;
                     rectClamped.width = rectRaw.width;
@@ -14548,7 +16702,8 @@ public function cDrawCaptureArea():Object {
                         rectClamped.height = canvasHeight - rectClamped.y;
                 }
                 else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 1
-                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 2) {
+                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 2)
+                {
                     rectRaw.width += subX;
                     rectRaw.height -= subY;
                     rectRaw.y += subY;
@@ -14556,11 +16711,13 @@ public function cDrawCaptureArea():Object {
                     rectClamped.height = rectRaw.height;
                     rectClamped.y = rectRaw.y;
 
-                    if (rectClamped.y < 0.0) {
+                    if (rectClamped.y < 0.0)
+                    {
                         rectClamped.y = 0.0;
                         rectClamped.height = limitHeightSave;
                     }
-                    if (rectClamped.height < minSize) {
+                    if (rectClamped.height < minSize)
+                    {
                         rectClamped.height = minSize;
                         rectClamped.y = limitHeightSave - rectClamped.height;
                     }
@@ -14571,7 +16728,8 @@ public function cDrawCaptureArea():Object {
                         rectClamped.width = canvasWidth - rectClamped.x;
                 }
                 else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 2
-                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 1) {
+                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 1)
+                {
                     rectRaw.width -= subX;
                     rectRaw.height -= subY;
                     rectRaw.x += subX;
@@ -14581,28 +16739,33 @@ public function cDrawCaptureArea():Object {
                     rectClamped.x = rectRaw.x;
                     rectClamped.y = rectRaw.y;
 
-                    if (rectClamped.width < minSize) {
+                    if (rectClamped.width < minSize)
+                    {
                         rectClamped.width = minSize;
                         rectClamped.x = limitWidthSave - rectClamped.width;
                     }
 
-                    if (rectClamped.height < minSize) {
+                    if (rectClamped.height < minSize)
+                    {
                         rectClamped.height = minSize;
                         rectClamped.y = limitHeightSave - rectClamped.height;
                     }
 
-                    if (rectClamped.x < 0.0) {
+                    if (rectClamped.x < 0.0)
+                    {
                         rectClamped.x = 0.0;
                         rectClamped.width = limitWidthSave;
                     }
 
-                    if (rectClamped.y < 0.0) {
+                    if (rectClamped.y < 0.0)
+                    {
                         rectClamped.y = 0.0;
                         rectClamped.height = limitHeightSave;
                     }
                 }
                 else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 3
-                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 0) {
+                        || isCaptureCanvasFlipped && captureCanvasRotationStep === 0)
+                {
                     rectRaw.width -= subX;
                     rectRaw.height += subY;
                     rectRaw.x += subX;
@@ -14611,43 +16774,52 @@ public function cDrawCaptureArea():Object {
                     rectClamped.height = rectRaw.height;
                     rectClamped.x = rectRaw.x;
 
-                    if (rectClamped.x < 0.0) {
+                    if (rectClamped.x < 0.0)
+                    {
                         rectClamped.x = 0.0;
                         rectClamped.width = limitWidthSave;
                     }
 
-                    if (rectClamped.width < minSize) {
+                    if (rectClamped.width < minSize)
+                    {
                         rectClamped.width = minSize;
                         rectClamped.x = limitWidthSave - rectClamped.width;
                     }
 
-                    if (rectClamped.height < minSize) {
+                    if (rectClamped.height < minSize)
+                    {
                         rectClamped.height = minSize;
                     }
-                    else if (rectClamped.y + rectClamped.height > canvasHeight) {
+                    else if (rectClamped.y + rectClamped.height > canvasHeight)
+                    {
                         rectClamped.height = canvasHeight - rectClamped.y;
                     }
                 }
 
                 showBottomHint(getRotatedRectSizeString());
             }
-            else {
+            else
+            {
                 rectRaw.x += subX;
                 rectRaw.y += subY;
                 rectClamped.x = rectRaw.x;
                 rectClamped.y = rectRaw.y;
 
-                if (rectClamped.x < 0.0) {
+                if (rectClamped.x < 0.0)
+                {
                     rectClamped.x = 0.0;
                 }
-                else if (rectClamped.x + rectClamped.width > canvasWidth) {
+                else if (rectClamped.x + rectClamped.width > canvasWidth)
+                {
                     rectClamped.x = canvasWidth - rectClamped.width;
                 }
 
-                if (rectClamped.y < 0.0) {
+                if (rectClamped.y < 0.0)
+                {
                     rectClamped.y = 0.0;
                 }
-                else if (rectClamped.y + rectClamped.height > canvasHeight) {
+                else if (rectClamped.y + rectClamped.height > canvasHeight)
+                {
                     rectClamped.y = canvasHeight - rectClamped.height;
                 }
             }
@@ -14660,15 +16832,18 @@ public function cDrawCaptureArea():Object {
             clickPos.setTo(xPanel.mouseX, xPanel.mouseY);
             drawArea(false);
         }
-        else if (Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset) {
+        else if (Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
+        {
             mouseMoved = true;
             clickPos.setTo(mx, my);
             captureStampManager.setVisible(false);
         }
     }
 
-    function onMouseMoveDrawCaptureArea(e:MouseEvent):void {
-        if (!isCaptureModeON) {
+    function onMouseMoveDrawCaptureArea(e:MouseEvent):void
+    {
+        if (!isCaptureModeON)
+        {
             removeCaptureAreaEvents();
             return;
         }
@@ -14677,7 +16852,8 @@ public function cDrawCaptureArea():Object {
         var subX:Number = Math.round(mx - clickPos.x);
         var subY:Number = Math.round(my - clickPos.y);
 
-        if (mouseMoved) {
+        if (mouseMoved)
+        {
             rectRaw.width = subX;
             rectRaw.height = subY;
 
@@ -14689,7 +16865,8 @@ public function cDrawCaptureArea():Object {
             showBottomHint(getRotatedRectSizeString());
             drawArea(false);
         }
-        else if (Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset) {
+        else if (Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
+        {
             rectRaw.x = clickPos.x;
             rectRaw.y = clickPos.y;
             rectRaw.width = subX;
@@ -14707,11 +16884,13 @@ public function cDrawCaptureArea():Object {
         }
     }
 
-    function onMouseUpCaptureArea(e:MouseEvent):void {
+    function onMouseUpCaptureArea(e:MouseEvent):void
+    {
         isMouseDragging = false;
         removeCaptureAreaEvents();
 
-        if (mouseMoved === true) {
+        if (mouseMoved === true)
+        {
             // rect길이가 음수인경우 cx cy를 양수로 다시 맞추어줌
             normalizeRectClamped();
             validateCaptureArea();
@@ -14722,25 +16901,31 @@ public function cDrawCaptureArea():Object {
         mouseMoved = false;
     }
 
-    function removeCaptureAreaEvents():void {
+    function removeCaptureAreaEvents():void
+    {
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCaptureAreaDrawed);
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
     }
 
-    function updateDrawArea(forceFlag:Boolean = false):void {
-        if (rectClamped.width > minSize && rectClamped.height > minSize || forceFlag) {
+    function updateDrawArea(forceFlag:Boolean = false):void
+    {
+        if (rectClamped.width > minSize && rectClamped.height > minSize || forceFlag)
+        {
             drawArea(true);
         }
         captureStampManager.update();
     }
 
-    function getCanvasScale():Number {
+    function getCanvasScale():Number
+    {
         return (isReplayModeON) ? Math.abs(rCanvasAnchorPoint.scaleX) : Math.abs(canvasAnchorPoint.scaleX);
     }
 
-    function drawResizeButton(scale:Number):void {
-        if (isFullImageCapture()) {
+    function drawResizeButton(scale:Number):void
+    {
+        if (isFullImageCapture())
+        {
             return;
         }
 
@@ -14751,19 +16936,23 @@ public function cDrawCaptureArea():Object {
         // const offset:Number = 5/scale;
         const offset:Number = 0;
 
-        if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 0 || isCaptureCanvasFlipped && captureCanvasRotationStep === 3) {
+        if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 0 || isCaptureCanvasFlipped && captureCanvasRotationStep === 3)
+        {
             posX += rectClamped.width + offset;
             posY += rectClamped.height + offset;
         }
-        else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 1 || isCaptureCanvasFlipped && captureCanvasRotationStep === 2) {
+        else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 1 || isCaptureCanvasFlipped && captureCanvasRotationStep === 2)
+        {
             posX += rectClamped.width + offset;
             posY += -offset;
         }
-        else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 3 || isCaptureCanvasFlipped && captureCanvasRotationStep === 0) {
+        else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 3 || isCaptureCanvasFlipped && captureCanvasRotationStep === 0)
+        {
             posY += rectClamped.height + offset;
             posX += -offset;
         }
-        else {
+        else
+        {
             posX += -offset;
             posY += -offset;
         }
@@ -14782,7 +16971,8 @@ public function cDrawCaptureArea():Object {
                 , 0, 0];
         const len:uint = pos.length;
         var p:Point;
-        for (var i:uint = 0; i < len; i += 2) {
+        for (var i:uint = 0; i < len; i += 2)
+        {
             p = rotatePoint(pos[i], pos[i + 1], captureCanvasRotationStep * 90.0);
             pos[i] = posX + p.x * ((isCaptureCanvasFlipped) ? -1.0 : 1.0);
             pos[i + 1] = posY + p.y;
@@ -14791,7 +16981,8 @@ public function cDrawCaptureArea():Object {
         captureDragAreaOverlay.graphics.endFill();
     }
 
-    function drawArea(resizeButtonON:Boolean):void {
+    function drawArea(resizeButtonON:Boolean):void
+    {
         const zoomed:Number = getCanvasScale();
 
         const lineSize:Number = Math.ceil(1 / zoomed);
@@ -14811,32 +17002,39 @@ public function cDrawCaptureArea():Object {
 
         captureDragAreaOverlay.graphics.drawRect(rectClamped.x, rectClamped.y, rectClamped.width, rectClamped.height);
 
-        if (resizeButtonON) {
+        if (resizeButtonON)
+        {
             drawResizeButton(zoomed);
         }
     }
 
-    function getRotatedRectSizeString():String {
+    function getRotatedRectSizeString():String
+    {
         const w:Number = Math.abs(rectClamped.width);
         const h:Number = Math.abs(rectClamped.height);
 
-        if (rectClamped.x === 0.0 && rectClamped.y === 0.0 && rectClamped.width === 0.0 && rectClamped.height === 0.0) {
-            if (isReplayModeON) {
+        if (rectClamped.x === 0.0 && rectClamped.y === 0.0 && rectClamped.width === 0.0 && rectClamped.height === 0.0)
+        {
+            if (isReplayModeON)
+            {
                 return (captureCanvasRotationStep === 0 || captureCanvasRotationStep === 2) ? RCANVAS_WIDTH + " x " + RCANVAS_HEIGHT : RCANVAS_HEIGHT + " x " + RCANVAS_WIDTH;
             }
-            else {
+            else
+            {
                 return (captureCanvasRotationStep === 0 || captureCanvasRotationStep === 2) ? canvasWidth + " x " + canvasHeight : canvasHeight + " x " + canvasWidth;
             }
         }
 
-        if (w < minSize || h < minSize) {
+        if (w < minSize || h < minSize)
+        {
             return "";
         }
 
         return (captureCanvasRotationStep === 0 || captureCanvasRotationStep === 2) ? w + " x " + h : h + " x " + w;
     }
 
-    function resetCaptureArea():void {
+    function resetCaptureArea():void
+    {
         resizeButtonPos.setTo(0, 0);
         resizeFlag = false;
         clickPos.setTo(0, 0);
@@ -14859,7 +17057,8 @@ public function cDrawCaptureArea():Object {
         captureStampManager.update();
     }
 
-    function reset():void {
+    function reset():void
+    {
         resizeButtonPos.setTo(0, 0);
         resizeFlag = false;
         clickPos.setTo(0, 0);
@@ -14884,37 +17083,45 @@ public function cDrawCaptureArea():Object {
         topBar.capClipBoard.alpha = 1.0;
     }
 
-    function isFullImageCapture():Boolean {
+    function isFullImageCapture():Boolean
+    {
         return rectClamped.width === 0.0 || rectClamped.height === 0.0;
     }
 
-    function getCaptureArea():Rectangle {
+    function getCaptureArea():Rectangle
+    {
         return rectClamped;
     }
 
-    function isCursorInCaptureDrea():Boolean {
-        if (!xPanel) {
+    function isCursorInCaptureDrea():Boolean
+    {
+        if (!xPanel)
+        {
             return false;
         }
 
         return rectClamped.contains(xPanel.mouseX, xPanel.mouseY);
     }
 
-    function isCursorInResizeButton():Boolean {
-        if (!xPanel) {
+    function isCursorInResizeButton():Boolean
+    {
+        if (!xPanel)
+        {
             return false;
         }
 
         const p1:Point = new Point(xPanel.mouseX, xPanel.mouseY);
 
-        if (Point.distance(p1, resizeButtonPos) * getCanvasScale() < resizeButtonSize) {
+        if (Point.distance(p1, resizeButtonPos) * getCanvasScale() < resizeButtonSize)
+        {
             return true;
         }
 
         return false;
     }
 
-    function startUpdatingCaptureAreaPosSize(mx:Number, my:Number, flag:Boolean):void {
+    function startUpdatingCaptureAreaPosSize(mx:Number, my:Number, flag:Boolean):void
+    {
         isMouseDragging = true;
         resizeFlag = flag;
         rectRaw.x = rectClamped.x;
@@ -14929,15 +17136,18 @@ public function cDrawCaptureArea():Object {
         stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
     }
 
-    function start():void {
-        if (topBar.hitTestPoint(stage.mouseX, stage.mouseY) === false) {
+    function start():void
+    {
+        if (topBar.hitTestPoint(stage.mouseX, stage.mouseY) === false)
+        {
             if (isReplayModeON) // 리플레이 변수로 변경
             {
                 canvasWidth = RCANVAS_WIDTH;
                 canvasHeight = RCANVAS_HEIGHT;
                 xPanel = rCanvasPanel;
             }
-            else {
+            else
+            {
                 canvasWidth = CANVAS_WIDTH;
                 canvasHeight = CANVAS_HEIGHT;
                 xPanel = canvasPanel;
@@ -14951,13 +17161,16 @@ public function cDrawCaptureArea():Object {
             rectFull.height = canvasHeight;
             resizeFlag = false;
 
-            if (isCursorInResizeButton()) {
+            if (isCursorInResizeButton())
+            {
                 startUpdatingCaptureAreaPosSize(mx, my, true);
             }
-            else if (isCursorInCaptureDrea()) {
+            else if (isCursorInCaptureDrea())
+            {
                 startUpdatingCaptureAreaPosSize(mx, my, false);
             }
-            else {
+            else
+            {
                 clickPos.setTo(mx, my);
                 isMouseDragging = true;
                 stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
@@ -14979,13 +17192,15 @@ public function cDrawCaptureArea():Object {
         };
 }
 
-public function getRandomString(charLength:int = 6):String {
+public function getRandomString(charLength:int = 6):String
+{
     const chars:String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     const charsLen:uint = chars.length;
     var randomString:String = "";
     var index:int;
 
-    while (charLength > 0) {
+    while (charLength > 0)
+    {
         index = Math.floor(charsLen * Math.random());
         randomString += chars.charAt(index);
         charLength--;
@@ -14994,11 +17209,13 @@ public function getRandomString(charLength:int = 6):String {
     return randomString;
 }
 
-public function cutTimeStamp(str:String):String {
+public function cutTimeStamp(str:String):String
+{
     const pattern:RegExp = /_\d\d\d\d\d\d\d\d\d/g;
     const findTimeStamp:String = pattern.exec(str);
 
-    if (findTimeStamp === null) {
+    if (findTimeStamp === null)
+    {
         return str;
     }
 
@@ -15008,7 +17225,8 @@ public function cutTimeStamp(str:String):String {
     return cutStr;
 }
 
-public function getTimeStampTailHead():String {
+public function getTimeStampTailHead():String
+{
     const date:Date = new Date();
     const y:Number = date.getFullYear();
     const m:Number = date.getMonth() + 1;
@@ -15020,7 +17238,8 @@ public function getTimeStampTailHead():String {
     return timeStr;
 }
 
-public function getTimeStampTail():String {
+public function getTimeStampTail():String
+{
     const date:Date = new Date();
     const hour:Number = date.getHours();
     const min:Number = date.getMinutes();
@@ -15036,11 +17255,16 @@ public function getTimeStampTail():String {
     return timeStr;
 }
 
-public function pollTimerWaitWorkerForSaveCaptureImage():void {
-    if (!hasTimer("workerPNGCaptureTimer")) {
-        addTimerByName("workerPNGCaptureTimer", WORKER_WAIT_INTERVAL, true, function():Boolean {
-                if (receivedCaptureImageQueueFromWorker.length > 0) {
-                    while (receivedCaptureImageQueueFromWorker.length > 0) {
+public function pollTimerWaitWorkerForSaveCaptureImage():void
+{
+    if (!hasTimer("workerPNGCaptureTimer"))
+    {
+        addTimerByName("workerPNGCaptureTimer", WORKER_WAIT_INTERVAL, true, function():Boolean
+            {
+                if (receivedCaptureImageQueueFromWorker.length > 0)
+                {
+                    while (receivedCaptureImageQueueFromWorker.length > 0)
+                    {
                         const fileName:String = captureImageDataQueue[0][0];
                         const filePath:String = captureImageDataQueue[0][1];
 
@@ -15067,7 +17291,8 @@ public function pollTimerWaitWorkerForSaveCaptureImage():void {
                         captureImageDataQueue.shift();
                     }
                 }
-                else if (receivedCaptureImageQueueFromWorker.length === 0 && captureImageDataQueue.length === 0) {
+                else if (receivedCaptureImageQueueFromWorker.length === 0 && captureImageDataQueue.length === 0)
+                {
                     captureImageDataQueue = null;
                     receivedCaptureImageQueueFromWorker = null;
                     return false;
@@ -15077,8 +17302,10 @@ public function pollTimerWaitWorkerForSaveCaptureImage():void {
     }
 }
 
-public function saveCaptureImage():void {
-    if (isFileBrowserOpened) {
+public function saveCaptureImage():void
+{
+    if (isFileBrowserOpened)
+    {
         return;
     }
 
@@ -15104,7 +17331,8 @@ public function saveCaptureImage():void {
     file.addEventListener(Event.SELECT, onSelectSaveCaptureImage);
     file.browseForSave(saveWindowTitle);
 
-    function onCancelSaveCaptureImage(e:Event):void {
+    function onCancelSaveCaptureImage(e:Event):void
+    {
         setFileBrowserIsOpen(false);
         file.cancel();
         file.removeEventListener(IOErrorEvent.IO_ERROR, onCancelSaveCaptureImage);
@@ -15112,7 +17340,8 @@ public function saveCaptureImage():void {
         file.removeEventListener(Event.SELECT, onSelectSaveCaptureImage);
     }
 
-    function onSelectSaveCaptureImage(e:Event):void {
+    function onSelectSaveCaptureImage(e:Event):void
+    {
         setFileBrowserIsOpen(false);
         file.cancel();
         file.removeEventListener(IOErrorEvent.IO_ERROR, onCancelSaveCaptureImage);
@@ -15131,7 +17360,8 @@ public function saveCaptureImage():void {
     }
 }
 
-public function checkSaveFailedFileName(saveFailed:Boolean):File {
+public function checkSaveFailedFileName(saveFailed:Boolean):File
+{
     var _path:String = lastSaveFilePath;
     var _name:String = lastSaveFileName;
 
@@ -15143,7 +17373,8 @@ public function checkSaveFailedFileName(saveFailed:Boolean):File {
     var fileName:String = _name;
     var filePath:String = pathonly + fileName;
 
-    if (saveFailed) {
+    if (saveFailed)
+    {
         // 파일 쓰기가 실패하면 뒤에 new 붙임
         filePath = _path.substr(0, _path.lastIndexOf(".png")) + "_copy.png";
         fileName = _name.substr(0, _name.lastIndexOf(".png")) + "_copy.png";
@@ -15152,32 +17383,39 @@ public function checkSaveFailedFileName(saveFailed:Boolean):File {
     return (_name !== _path) ? new File(filePath) : File.desktopDirectory.resolvePath(fileName);
 }
 
-public function getFileNameFromPath(path:String):String {
-    if (!path || path.length == 0) {
+public function getFileNameFromPath(path:String):String
+{
+    if (!path || path.length == 0)
+    {
         return "";
     }
 
     var lastSlash:int = path.lastIndexOf(File.separator);
 
-    if (lastSlash >= 0) {
+    if (lastSlash >= 0)
+    {
         return path.substring(lastSlash + 1);
     }
 
     return path;
 }
 
-public function convertToPNGFilePath(path:String):String {
+public function convertToPNGFilePath(path:String):String
+{
     const extArr:Array = [".2020", ".jpg", ".jpeg", ".gif", "jfif"];
     var pathOnly:String = getDirectoryOnly(path) + File.separator;
     var name:String = getFileNameFromPath(path);
 
-    for (var i:uint = 0; i < 3; i++) {
-        if (name.toLowerCase().lastIndexOf(extArr[i]) !== -1) {
+    for (var i:uint = 0; i < 3; i++)
+    {
+        if (name.toLowerCase().lastIndexOf(extArr[i]) !== -1)
+        {
             return pathOnly + name.substr(0, name.lastIndexOf(extArr[i])) + ".png";
         }
     }
 
-    if (name.lastIndexOf(".png") === -1) {
+    if (name.lastIndexOf(".png") === -1)
+    {
         return pathOnly + name + ".png";
     }
 
@@ -15185,22 +17423,27 @@ public function convertToPNGFilePath(path:String):String {
 }
 
 // 끝의 파일 구분자가 있으면 제거해줌
-public function removeLastFileSeparator(path:String):String {
-    if (path.charAt(path.length - 1) === File.separator) {
+public function removeLastFileSeparator(path:String):String
+{
+    if (path.charAt(path.length - 1) === File.separator)
+    {
         return path.substring(0, path.length - 1);
     }
     return path;
 }
 
-public function getDirectoryOnly(path:String):String {
-    if (!path || path.length == 0) {
+public function getDirectoryOnly(path:String):String
+{
+    if (!path || path.length == 0)
+    {
         return "";
     }
 
     // 마지막 구분자 위치 찾기
     var lastSlash:int = Math.max(path.lastIndexOf("\\"), path.lastIndexOf("/"));
 
-    if (lastSlash >= 0) {
+    if (lastSlash >= 0)
+    {
         // 마지막 구분자 앞부분만 반환
         return path.substring(0, lastSlash);
     }
@@ -15210,11 +17453,14 @@ public function getDirectoryOnly(path:String):String {
 }
 
 // 해당 디렉토리가 없으면 그 상위 디렉토리로 위치를 바꾸어줌
-public function getExistingParentDirectory(path:String):String {
-    try {
+public function getExistingParentDirectory(path:String):String
+{
+    try
+    {
         const oldFild:File = new File(path);
 
-        if (oldFild.exists) {
+        if (oldFild.exists)
+        {
             return path;
         }
 
@@ -15222,14 +17468,17 @@ public function getExistingParentDirectory(path:String):String {
         var file:File = new File(testPath);
         var lastSep:int;
 
-        while (true) {
-            if (file.exists && file.isDirectory) {
+        while (true)
+        {
+            if (file.exists && file.isDirectory)
+            {
                 return testPath + File.separator + lastSaveFileName;
             }
 
             // 마지막 separator 위치 찾기
             lastSep = testPath.lastIndexOf(File.separator);
-            if (lastSep === -1) {
+            if (lastSep === -1)
+            {
                 break;
             }
 
@@ -15238,16 +17487,19 @@ public function getExistingParentDirectory(path:String):String {
             file = new File(testPath);
         }
     }
-    catch (e:Error) {
+    catch (e:Error)
+    {
         return File.desktopDirectory.nativePath + File.separator + lastSaveFileName;
     }
 
     return File.desktopDirectory.nativePath + File.separator + lastSaveFileName;
 }
 
-public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):void {
+public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):void
+{
     // 계속 저장하는거 방지 다른 이름으로 저장은 예외
-    if (isReplayStarted) {
+    if (isReplayStarted)
+    {
         stopReplay();
     }
 
@@ -15256,55 +17508,69 @@ public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):
     const replayFilePath:String = getReplayFileNameFromPath(lastSaveFilePath);
     const rawFile:File = new File(replayFilePath);
 
-    if (nextPath === lastSaveFilePath && isFileAlreadySaved && continueFlag && rawFile.exists) {
-        if (isUpdatePendingAfterSaving) {
+    if (nextPath === lastSaveFilePath && isFileAlreadySaved && continueFlag && rawFile.exists)
+    {
+        if (isUpdatePendingAfterSaving)
+        {
             startUpdatingApp();
         }
-        else if (isLoadPendingAfterSaving) {
+        else if (isLoadPendingAfterSaving)
+        {
             loadFileTo("canvas");
         }
-        else {
+        else
+        {
             showMouseHintTemp("Already saved");
         }
 
         return;
     }
 
-    if (isLassoToolStarted || isFillPenStarted || isSaveInProgress) {
+    if (isLassoToolStarted || isFillPenStarted || isSaveInProgress)
+    {
         return;
     }
 
     const fs:FileStream = new FileStream();
     const mergedImage:BitmapData = getMergedBitmapdtata(false, true, true, null);
 
-    if (nextPath !== lastSaveFilePath) {
+    if (nextPath !== lastSaveFilePath)
+    {
         lastSaveFilePath = nextPath;
     }
 
-    function onErrorSaveFileContinue(e:Event):void {
+    function onErrorSaveFileContinue(e:Event):void
+    {
         fs.close();
         fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
         isFileAlreadySaved = false;
 
-        if (isLoadPendingAfterSaving) {
+        if (isLoadPendingAfterSaving)
+        {
             loadFileTo("canvas");
         }
-        else {
+        else
+        {
             openSaveFileBrowser(true, true);
         }
     }
 
-    function pollTimerWaitWorkerForImageSave(lastPath:String, isContinueSave:Boolean):void {
-        if (isContinueSave) {
+    function pollTimerWaitWorkerForImageSave(lastPath:String, isContinueSave:Boolean):void
+    {
+        if (isContinueSave)
+        {
             fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
         }
 
-        addTimerByName("workerPNGSaveTimer", WORKER_WAIT_INTERVAL, true, function(_path:String):Boolean {
-                if (receivedSaveImageDataFromWorker !== null) {
+        addTimerByName("workerPNGSaveTimer", WORKER_WAIT_INTERVAL, true, function(_path:String):Boolean
+            {
+                if (receivedSaveImageDataFromWorker !== null)
+                {
                     fs.openAsync(new File(_path), FileMode.WRITE);
                     fs.writeBytes(receivedSaveImageDataFromWorker);
                     fs.close();
-                    if (isContinueSave) {
+                    if (isContinueSave)
+                    {
                         fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
                     }
 
@@ -15316,8 +17582,10 @@ public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):
             }, [lastPath]);
     }
 
-    if (continueFlag) {
-        if (rawFile.exists) {
+    if (continueFlag)
+    {
+        if (rawFile.exists)
+        {
             disableFileOperationButtonsTopbar();
             receivedSaveImageDataFromWorker = null;
             startPngEncodingWorker(mergedImage.clone(), CANVAS_BG_COLOR, false, false);
@@ -15333,8 +17601,10 @@ public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):
             openSaveFileBrowser(true);
         }
     }
-    else {
-        if (isFileBrowserOpened) {
+    else
+    {
+        if (isFileBrowserOpened)
+        {
             return;
         }
 
@@ -15351,26 +17621,31 @@ public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):
 
         setFileBrowserIsOpen(true);
 
-        function removeEvent():void {
+        function removeEvent():void
+        {
             file.removeEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
             file.removeEventListener(Event.CANCEL, onErrorEvent);
             file.removeEventListener(Event.SELECT, onSelectEvent);
         }
 
-        function onErrorEvent(e:Event):void {
+        function onErrorEvent(e:Event):void
+        {
             setFileBrowserIsOpen(false);
             file.cancel();
             removeEvent();
 
-            if (isLoadPendingAfterSaving) {
+            if (isLoadPendingAfterSaving)
+            {
                 loadFileTo("canvas");
             }
-            else if (isUpdatePendingAfterSaving) {
+            else if (isUpdatePendingAfterSaving)
+            {
                 startUpdatingApp();
             }
         }
 
-        function onSelectEvent(e:Event):void {
+        function onSelectEvent(e:Event):void
+        {
             setFileBrowserIsOpen(false);
             disableFileOperationButtonsTopbar();
             removeEvent();
@@ -15389,15 +17664,18 @@ public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):
     }
 }
 
-public function saveReplayFrameData():void {
+public function saveReplayFrameData():void
+{
     const fs:FileStream = new FileStream();
     fs.open(replayCacheImageFrameDataFilePath, FileMode.WRITE);
     fs.writeObject(rJumpImageFrameData);
     fs.close();
 }
 
-public function loadUndoData():void {
-    if (undoDataFilePath.exists === false) {
+public function loadUndoData():void
+{
+    if (undoDataFilePath.exists === false)
+    {
         return;
     }
 
@@ -15414,7 +17692,8 @@ public function loadUndoData():void {
     var bmpd:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
     var bmpd1:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
 
-    if (arr[6] is Number) {
+    if (arr[6] is Number)
+    {
         undoManager.setRFileTotalFrame(arr[6]);
     }
 
@@ -15442,15 +17721,18 @@ public function loadUndoData():void {
     arr = null;
 
     // undo index가 arr의 가장 마지막 부분이 아니면 undo를 하던 중이니까 isDeleteUndoDataPending 켜줌
-    if (lastUndoIndex < rData.length - 1) {
+    if (lastUndoIndex < rData.length - 1)
+    {
         isDeleteUndoDataPending = true;
     }
-    else {
+    else
+    {
         isDeleteUndoDataPending = false;
     }
 }
 
-public function loadScratchPadImage():void {
+public function loadScratchPadImage():void
+{
     const fs:FileStream = new FileStream();
     const ba:ByteArray = new ByteArray();
     const bmpd:BitmapData = colorPickerBox.scratchPad.getBitmapData();
@@ -15464,7 +17746,8 @@ public function loadScratchPadImage():void {
     bmpd.unlock();
 }
 
-public function saveScratchPadImage():void {
+public function saveScratchPadImage():void
+{
     const fs:FileStream = new FileStream();
     const ba:ByteArray = new ByteArray();
     const bmpd:BitmapData = colorPickerBox.scratchPad.getBitmapData();
@@ -15476,7 +17759,8 @@ public function saveScratchPadImage():void {
     fs.close();
 }
 
-public function saveUndoData():void {
+public function saveUndoData():void
+{
     const fs:FileStream = new FileStream();
     const arr:Array = undoManager.getUndoBaseImage();
     const bmpd:BitmapData = arr[0];
@@ -15505,7 +17789,8 @@ public function saveUndoData():void {
     ba = null;
 }
 
-public function updateAppWindowSizeInfo():void {
+public function updateAppWindowSizeInfo():void
+{
     const windowSizeInfo:Rectangle = stage.nativeWindow.bounds;
 
     lastAppWindowSizeInfo[0] = windowSizeInfo.x;
@@ -15514,7 +17799,8 @@ public function updateAppWindowSizeInfo():void {
     lastAppWindowSizeInfo[3] = windowSizeInfo.height;
 }
 
-public function saveAppSatate():void {
+public function saveAppSatate():void
+{
     updateAppWindowSizeInfo();
 
     const fs:FileStream = new FileStream();
@@ -15594,7 +17880,8 @@ public function saveAppSatate():void {
     fs.close();
 }
 
-public function loadAppState():void {
+public function loadAppState():void
+{
     const fs:FileStream = new FileStream();
     var arr:Array = [];
     var newRectangle:Rectangle;
@@ -15602,12 +17889,14 @@ public function loadAppState():void {
     const firstCachedImage:File = replayCacheImageFolderPath.resolvePath("0");
     // 앱 경로에 마지막 저장 파일이 있으면 끄기전의 상태로 세팅해줌
 
-    if (firstCachedImage.exists) {
+    if (firstCachedImage.exists)
+    {
         fs.open(firstCachedImage, FileMode.READ);
         arr = fs.readObject() as Array;
         fs.close();
 
-        if (arr[1] is ByteArray === false) {
+        if (arr[1] is ByteArray === false)
+        {
             arr[0].uncompress();
             newRectangle = new Rectangle(0, 0, arr[1], arr[2]);
             if (rFirstImageLayer1BitmapData)
@@ -15621,7 +17910,8 @@ public function loadAppState():void {
             rFirstImageLayer2BitmapData = new BitmapData(arr[1], arr[2], true, 0);
             rFirstImageBGColor = arr[3];
         }
-        else {
+        else
+        {
             arr[0].uncompress();
             newRectangle = new Rectangle(0, 0, arr[2], arr[3]);
             if (rFirstImageLayer1BitmapData)
@@ -15641,14 +17931,16 @@ public function loadAppState():void {
             rFirstImageBGColor = arr[4];
         }
     }
-    else {
+    else
+    {
         rFirstImageLayer1BitmapData.dispose();
         rFirstImageLayer2BitmapData.dispose();
         rFirstImageLayer1BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
         rFirstImageLayer2BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
     }
 
-    if (refLayerImageFilePath.exists) {
+    if (refLayerImageFilePath.exists)
+    {
         fs.open(refLayerImageFilePath, FileMode.READ);
         arr = fs.readObject() as Array;
         fs.close();
@@ -15667,14 +17959,16 @@ public function loadAppState():void {
         tmpbmpd = null;
     }
 
-    if (replayCacheImageFrameDataFilePath.exists) {
+    if (replayCacheImageFrameDataFilePath.exists)
+    {
         fs.open(replayCacheImageFrameDataFilePath, FileMode.READ);
         arr = fs.readObject() as Array;
         fs.close();
         rJumpImageFrameData = arr.concat();
     }
 
-    if (myPaletteDataFilePath.exists) {
+    if (myPaletteDataFilePath.exists)
+    {
         fs.open(myPaletteDataFilePath, FileMode.READ);
         var list:Array = fs.readObject();
         myPalettePreset = list.concat();
@@ -15682,22 +17976,26 @@ public function loadAppState():void {
         list = null;
     }
 
-    if (undoDataFilePath.exists) {
+    if (undoDataFilePath.exists)
+    {
         loadUndoData(); // undo data 복구 먼저 해줘야함
     }
 
-    if (scratchPadDataFilePath.exists) {
+    if (scratchPadDataFilePath.exists)
+    {
         loadScratchPadImage();
     }
 
-    if (appStateFilePath.exists) {
+    if (appStateFilePath.exists)
+    {
         fs.open(appStateFilePath, FileMode.READ);
         var d:Object = fs.readObject();
         fs.close();
 
         // loadUndoData함수에서 canvaspanel이 호출되는데 이전에 reflayer 이미지 정보값을 넣어두어야함
         // 그냥 해주면 창크기 적용이 안되서 타이머 걸어줌
-        addTimerByName("loadAppDataDelayTimer", 0.2, false, function(d:Object):void {
+        addTimerByName("loadAppDataDelayTimer", 0.2, false, function(d:Object):void
+            {
                 stage.nativeWindow.width = d["stage.nativeWindow.width"];
                 stage.nativeWindow.height = d["stage.nativeWindow.height"];
                 stage.nativeWindow.x = d["stage.nativeWindow.x"];
@@ -15747,7 +18045,8 @@ public function loadAppState():void {
                 setDrawToolSize(d["penSizeIndex"]);
                 lastSaveFilePath = d["saveFilePath"];
                 lastSaveFileName = d["saveFileName"];
-                if (lastSaveFilePath === lastSaveFileName) {
+                if (lastSaveFilePath === lastSaveFileName)
+                {
                     lastSaveFilePath = File.desktopDirectory.nativePath + File.separator + lastSaveFileName;
                 }
                 realWorkingTimer.setRunningTime(d["APP_RUNNING_TIME"]);
@@ -15759,7 +18058,8 @@ public function loadAppState():void {
                 refLayerMenuBox.x = d["refLayerMenuBox[0]"];
                 refLayerMenuBox.y = d["refLayerMenuBox[1]"];
                 refLayerMenuDragXMoveSum = d["refLayerMenuDragXMoveSum"];
-                if (d["isRefLayerMemoryTrainingON"]) {
+                if (d["isRefLayerMemoryTrainingON"])
+                {
                     isRefLayerMemoryTrainingON = false;
                     toggleRefLayerMemoryTraining();
                 }
@@ -15792,7 +18092,8 @@ public function loadAppState():void {
 
                 if (d["gridValue"] > 0)
                     drawGrid();
-                if (d["canvasWindowON"]) {
+                if (d["canvasWindowON"])
+                {
                     canvasWindowInfo = [
                             d["canvasWindowInfo[0]"],
                             d["canvasWindowInfo[1]"],
@@ -15819,22 +18120,26 @@ public function loadAppState():void {
 
                 updateHistoryList();
                 isMyPaletteExpended = d["isMyPaletteExpended"];
-                if (myPalettePresetType === 0 && d["isMyPaletteExpended"]) {
+                if (myPalettePresetType === 0 && d["isMyPaletteExpended"])
+                {
                     switchMyPaletteToExpended();
                 }
-                else {
+                else
+                {
                     updateMyPaletteList();
                 }
 
                 isColorPickerBoxPositionSwapped = d["isColorPickerBoxPositionSwapped"];
-                if (d["isColorPickerBoxPositionSwapped"]) {
+                if (d["isColorPickerBoxPositionSwapped"])
+                {
                     colorPickerBox.swapColorBoxPositions(d["isColorPickerBoxPositionSwapped"]);
                 }
 
                 sideBarScrollPanel.y = d["scrollSetMovedY"];
                 topBar.captureInput.text = d["topBar.captureInput.text"];
                 isCaptureStampEnabled = d["isCaptureStampON"];
-                if (d["captureStampFont"]) {
+                if (d["captureStampFont"])
+                {
                     captureStampManager.changeFont(d["captureStampFont"], false);
                 }
 
@@ -15847,7 +18152,8 @@ public function loadAppState():void {
     }
     else // 복원파일이 없을때
     {
-        if (lastSaveFilePath === lastSaveFileName) {
+        if (lastSaveFilePath === lastSaveFileName)
+        {
             lastSaveFilePath = File.desktopDirectory.nativePath + File.separator + lastSaveFileName;
         }
 
@@ -15855,8 +18161,10 @@ public function loadAppState():void {
         lastAppWindowSize.x = 1000;
         lastAppWindowSize.y = 800;
 
-        addTimer(0.3, true, function():Boolean {
-                if (stage.nativeWindow.width === 1000 && stage.nativeWindow.height === 800) {
+        addTimer(0.3, true, function():Boolean
+            {
+                if (stage.nativeWindow.width === 1000 && stage.nativeWindow.height === 800)
+                {
                     centerCanvas("draw");
                     return false;
                 }
@@ -15882,27 +18190,33 @@ public function loadAppState():void {
 }
 
 // size, size drag, zoom, rotate시 업데이트 해줌
-public function cUpdatePenSizeCursor():Function {
+public function cUpdatePenSizeCursor():Function
+{
     var size:Number;
     var shape:Boolean;
 
-    return function():void {
+    return function():void
+    {
         const isPenTool:Boolean = isSelectedToolPenOrLine();
-        if (!isPenTool && !isSelectedTool(TOOL_ERASER)) {
+        if (!isPenTool && !isSelectedTool(TOOL_ERASER))
+        {
             return;
         }
 
-        if (isPenTool) {
+        if (isPenTool)
+        {
             size = penSize;
             shape = penIsSquare;
         }
-        else {
+        else
+        {
             size = eraserSize;
             shape = eraserIsSquare;
         }
 
         const z:Number = canvasZoomMultipler;
-        if (size * z === penLastSizeAndShape[0] && shape === penLastSizeAndShape[1]) {
+        if (size * z === penLastSizeAndShape[0] && shape === penLastSizeAndShape[1])
+        {
             return;
         }
 
@@ -15911,7 +18225,8 @@ public function cUpdatePenSizeCursor():Function {
 
         penSizePreviewCursor.graphics.clear();
 
-        if (shape === false) {
+        if (shape === false)
+        {
             penSizePreviewCursor.graphics.lineStyle(1, 0xFFFFFF);
             penSizePreviewCursor.graphics.drawCircle(0, 0, (size / 2 - 1 / z) * z);
 
@@ -15919,7 +18234,8 @@ public function cUpdatePenSizeCursor():Function {
             penSizePreviewCursor.graphics.drawCircle(0, 0, (size / 2) * z);
             penSizePreviewCursor.rotation = 0;
         }
-        else if (shape === true) {
+        else if (shape === true)
+        {
             penSizePreviewCursor.graphics.lineStyle(1, 0xFFFFFF);
             penSizePreviewCursor.graphics.drawRect((-size / 2 + 1 / z) * z, (-size / 8 + 1 / z) * z, (size - 2 / z) * z, (size / 4 - 2 / z) * z);
 
@@ -15932,17 +18248,21 @@ public function cUpdatePenSizeCursor():Function {
     };
 }
 
-public function cDrawDone():Function {
+public function cDrawDone():Function
+{
     var drawLayerAlpha:ColorTransform = new ColorTransform();
 
-    return function():void {
-        if (canAddUndoData === false) {
+    return function():void
+    {
+        if (canAddUndoData === false)
+        {
             rDataBuffer = [];
             canvasDrawLayerChild.graphics.clear();
             return;
         }
 
-        if (isDeepUndoEnabled) {
+        if (isDeepUndoEnabled)
+        {
             var rDataBufferSave:Array = rDataBuffer.concat();
             applyDeepUndo();
             rDataBuffer = rDataBufferSave;
@@ -15951,13 +18271,15 @@ public function cDrawDone():Function {
 
         canAddUndoData = false;
 
-        if (airBrushSizeDrawMode > 0) {
+        if (airBrushSizeDrawMode > 0)
+        {
             const blurSize:Number = getBlurSize(airBrushSizeDrawMode, 1.0);
             canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
             canvasDrawLayerBitmapData.draw(canvasDrawLayerChild);
             canvasDrawLayerChild.filters = [];
         }
-        else {
+        else
+        {
             canvasDrawLayerBitmapData.draw(canvasDrawLayerChild);
         }
 
@@ -15966,7 +18288,8 @@ public function cDrawDone():Function {
         updateCanvasDrawLayerCliprect();
         extandCanvasDrawLayerCliprect(); // 그린 영역을 100% 다 포함하지 않아서 약간 늘려줌
 
-        if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)) {
+        if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
+        {
             drawLayerAlpha.alphaMultiplier = penAlpha;
 
             if (isLayer2Selected)
@@ -15974,7 +18297,8 @@ public function cDrawDone():Function {
             else
                 canvasLayer1BitmapData.draw(canvasDrawLayerBitmap, null, drawLayerAlpha, (isTransparentPenColor) ? "erase" : null, canvasDrawLayerClipRect);
         }
-        else if (isSelectedTool(TOOL_ERASER)) {
+        else if (isSelectedTool(TOOL_ERASER))
+        {
             drawLayerAlpha.alphaMultiplier = eraserAlpha;
 
             if (isLayer2Selected)
@@ -15997,7 +18321,8 @@ public function cDrawDone():Function {
 
 }
 
-public function cLineTool():Function {
+public function cLineTool():Function
+{
     const toDeg:Number = 180 / Math.PI;
     // const oldPoint:Point = new Point(0,0);
     var oldX:Number;
@@ -16016,12 +18341,14 @@ public function cLineTool():Function {
     var mouseMovedFlag:Boolean;
     var subLayerFlag:Boolean;
 
-    function isTwoLineIntersection(x1:Number, y1:Number, x2:Number, y2:Number, x3:Number, y3:Number, x4:Number, y4:Number):Boolean {
+    function isTwoLineIntersection(x1:Number, y1:Number, x2:Number, y2:Number, x3:Number, y3:Number, x4:Number, y4:Number):Boolean
+    {
         var denominator:Number = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
         var numerator1:Number = (x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3);
         var numerator2:Number = (x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3);
 
-        if (denominator == 0) {
+        if (denominator == 0)
+        {
             // 두 선분이 평행하거나 일치함
             return false;
         }
@@ -16029,28 +18356,34 @@ public function cLineTool():Function {
         var t1:Number = numerator1 / denominator;
         var t2:Number = numerator2 / denominator;
 
-        if (t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1) {
+        if (t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1)
+        {
             // 두 선분이 교차함
             return true;
         }
-        else {
+        else
+        {
             // 두 선분이 교차하지 않음
             return false;
         }
     }
 
     // 중앙선+양옆선 3개의 선이 캔버스 4개의 선과 하나라도 닿으면 true를 반환함
-    function isLineInsideCanvas():Boolean {
-        if (canvasPanel.hitTestPoint(stage.mouseX, stage.mouseY, true)) {
+    function isLineInsideCanvas():Boolean
+    {
+        if (canvasPanel.hitTestPoint(stage.mouseX, stage.mouseY, true))
+        {
             return true;
         }
-        else {
+        else
+        {
             const sideLine1:Array = getSideLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, xSize / 2, xShape);
             const sideLine2:Array = getSideLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, -xSize / 2, xShape);
 
             if (checkCollision(startPoint.x, startPoint.y, endPoint.x, endPoint.y)
                     || checkCollision(sideLine1[0], sideLine1[1], sideLine1[2], sideLine1[3])
-                    || checkCollision(sideLine2[0], sideLine2[1], sideLine2[2], sideLine2[3])) {
+                    || checkCollision(sideLine2[0], sideLine2[1], sideLine2[2], sideLine2[3]))
+            {
                 return true;
             }
         }
@@ -16058,7 +18391,8 @@ public function cLineTool():Function {
         return false;
     }
 
-    function checkCollision(x1:Number, y1:Number, x2:Number, y2:Number):Boolean {
+    function checkCollision(x1:Number, y1:Number, x2:Number, y2:Number):Boolean
+    {
         return isTwoLineIntersection(x1, y1, x2, y2, 0, 0, canvasSizeWidth, 0)
             || isTwoLineIntersection(x1, y1, x2, y2, 0, 0, 0, canvasSizeHeight)
             || isTwoLineIntersection(x1, y1, x2, y2, 0, canvasSizeHeight, canvasSizeWidth, canvasSizeHeight)
@@ -16066,9 +18400,11 @@ public function cLineTool():Function {
 
     }
 
-    function getSideLine(x1:Number, y1:Number, x2:Number, y2:Number, distance:Number, squareCapFlag:Boolean):Array {
+    function getSideLine(x1:Number, y1:Number, x2:Number, y2:Number, distance:Number, squareCapFlag:Boolean):Array
+    {
         // 길이를 약간 늘려줌
-        if (!squareCapFlag) {
+        if (!squareCapFlag)
+        {
             const pointVec:Array = extendLineSegment(x1, y1, x2, y2, Math.abs(distance));
             x1 = pointVec[0];
             y1 = pointVec[1];
@@ -16098,7 +18434,8 @@ public function cLineTool():Function {
     }
 
     // 선분 시작 끝점을 distance로 늘려서 좌표를 반환함
-    function extendLineSegment(x1:Number, y1:Number, x2:Number, y2:Number, distance:Number):Array {
+    function extendLineSegment(x1:Number, y1:Number, x2:Number, y2:Number, distance:Number):Array
+    {
         // 선분의 방향 벡터 계산
         var directionX:Number = x2 - x1;
         var directionY:Number = y2 - y1;
@@ -16119,10 +18456,12 @@ public function cLineTool():Function {
         return [extendedX1, extendedY1, extendedX2, extendedY2];
     }
 
-    function showDgreeHint():void {
+    function showDgreeHint():void
+    {
         const ang:Number = Math.atan2(oldX - canvasDrawLayerChild.mouseX, oldY - canvasDrawLayerChild.mouseY);
         var deg:Number = ang * toDeg + 90;
-        if (deg > 180) {
+        if (deg > 180)
+        {
             deg = deg - 90;
         }
 
@@ -16135,10 +18474,12 @@ public function cLineTool():Function {
         canvasDrawLayerChild.graphics.clear();
 
         canvasDrawLayer.alpha = xAlpha;
-        if (xShape) {
+        if (xShape)
+        {
             canvasDrawLayerChild.graphics.lineStyle(xSize, xColor, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
         }
-        else {
+        else
+        {
             canvasDrawLayerChild.graphics.lineStyle(xSize, xColor);
         }
 
@@ -16146,20 +18487,24 @@ public function cLineTool():Function {
         canvasDrawLayerChild.graphics.lineTo(endPoint.x, endPoint.y);
     }
 
-    function onMouseMoveLineTool(e:MouseEvent):void {
-        if (!mouseMovedFlag) {
+    function onMouseMoveLineTool(e:MouseEvent):void
+    {
+        if (!mouseMovedFlag)
+        {
             mouseMovedFlag = true;
         }
         const mx:Number = canvasDrawLayerChild.mouseX;
         const my:Number = canvasDrawLayerChild.mouseY;
 
-        if (xShape === true) {
+        if (xShape === true)
+        {
             const extPoints:Array = extendLineSegment(oldX, oldY, mx, my, xSize / 8);
             startPoint.setTo(extPoints[0], extPoints[1]);
             endPoint.setTo(extPoints[2], extPoints[3]);
 
         }
-        else {
+        else
+        {
             startPoint.setTo(oldX, oldY);
             endPoint.setTo(mx, my);
 
@@ -16169,38 +18514,45 @@ public function cLineTool():Function {
         showDgreeHint();
     }
 
-    function onMouseUpLineTool(e:MouseEvent):void {
+    function onMouseUpLineTool(e:MouseEvent):void
+    {
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLineTool);
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLineTool);
 
         isPenSizeCursorInvisible = false;
 
-        if (!isRefLayerEmpty() && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0) {
+        if (!isRefLayerEmpty() && isRefLayerMemoryTrainingON && refLayerLastAlpha > 0.0)
+        {
             setCanvasRefLayerVisibleDelay();
         }
 
         isMouseDragging = false;
         hideMouseHint();
 
-        if (isLineInsideCanvas() === true) {
+        if (isLineInsideCanvas() === true)
+        {
             const mx:Number = canvasDrawLayerChild.mouseX;
             const my:Number = canvasDrawLayerChild.mouseY;
 
             canAddUndoData = true;
 
-            if (mouseMovedFlag === false && oldX === mx && oldY === my) {
+            if (mouseMovedFlag === false && oldX === mx && oldY === my)
+            {
                 rDataBuffer = [];
                 rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, subLayerFlag, xAirBrushON, canvasAnchorPoint.rotation]);
                 dotTool(xShape, xSize, xColor, mx, my, canvasAnchorPoint.rotation);
             }
-            else {
-                if (xShape === true) {
+            else
+            {
+                if (xShape === true)
+                {
                     const extPoints:Array = extendLineSegment(oldX, oldY, mx, my, xSize / 8);
                     startPoint.setTo(extPoints[0], extPoints[1]);
                     endPoint.setTo(extPoints[2], extPoints[3]);
 
                 }
-                else {
+                else
+                {
                     startPoint.setTo(oldX, oldY);
                     endPoint.setTo(mx, my);
 
@@ -16215,22 +18567,26 @@ public function cLineTool():Function {
         drawDone();
     }
 
-    return function(lineToolFlag:Boolean):void {
+    return function(lineToolFlag:Boolean):void
+    {
         isPenSizeCursorInvisible = true;
         xSize = penSize;
         xAlpha = penAlpha;
         xShape = penIsSquare;
         xAirBrushON = isPenAirBrushON;
 
-        if (isTransparentPenColor) {
+        if (isTransparentPenColor)
+        {
             xColor = CANVAS_BG_COLOR;
             xBlendMode = "erase";
         }
-        else {
+        else
+        {
             xColor = penColor;
             xBlendMode = null;
 
-            if (!isCurrentColorSamePickedColor()) {
+            if (!isCurrentColorSamePickedColor())
+            {
                 updatePickerCurrentColor(colorPickerBox.getRGBInfoBGColor());
                 addColorMyPaletteHistory(colorPickerBox.getRGBInfoBGColor());
             }
@@ -16244,7 +18600,8 @@ public function cLineTool():Function {
         oldY = canvasDrawLayerChild.mouseY;
         subLayerFlag = isLayer2Selected;
 
-        if (!isRefLayerEmpty() && isRefLayerMemoryTrainingON) {
+        if (!isRefLayerEmpty() && isRefLayerMemoryTrainingON)
+        {
             setCanvasRefLayerInvisible();
         }
 
@@ -16259,14 +18616,16 @@ public function cLineTool():Function {
     };
 }
 
-public function resetRotationReplayMode():void {
+public function resetRotationReplayMode():void
+{
     const center:Point = getStageCenterPos("replay");
     moveCanvasAnchorPoint(center.x, center.y, true);
     rCanvasAnchorPoint.rotation = 0;
     setRcursorRotation(0);
 }
 
-public function resetRotationDrawMode():void {
+public function resetRotationDrawMode():void
+{
     const center:Point = getStageCenterPos("draw");
 
     updatePenSizeCursor();
@@ -16277,12 +18636,14 @@ public function resetRotationDrawMode():void {
     updateCanvasNaigatorCursor();
 }
 
-public function cCanvasRotateTool():Function {
+public function cCanvasRotateTool():Function
+{
     var isReplayMode:Boolean;
     var xAnc:Sprite;
     var getAngle:Function;
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         const ang:Number = getAngle(true);
 
         xAnc.rotation = ang;
@@ -16290,12 +18651,16 @@ public function cCanvasRotateTool():Function {
         canvasInfoBox.setRotate(Math.abs(xAnc.rotation));
     }
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         isPenSizeCursorInvisible = false;
 
-        if (!isReplayMode) {
-            if (isLassoToolStarted) {
-                if (isLassoMenuHiddenTemp === true) {
+        if (!isReplayMode)
+        {
+            if (isLassoToolStarted)
+            {
+                if (isLassoMenuHiddenTemp === true)
+                {
                     hideLassoMenuBoxTemp();
                 }
             }
@@ -16304,8 +18669,10 @@ public function cCanvasRotateTool():Function {
             setRefLayerAndGridVisible(true);
             updateCanvasNaigatorCursor();
         }
-        else {
-            if (isReplayCanvasFitToWindow) {
+        else
+        {
+            if (isReplayCanvasFitToWindow)
+            {
                 fitReplayCanvasToViewport();
             }
 
@@ -16317,10 +18684,12 @@ public function cCanvasRotateTool():Function {
         keepCanvasPanelInStage(isReplayMode);
     }
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         isPenSizeCursorInvisible = true;
 
-        if (!isReplayMode) {
+        if (!isReplayMode)
+        {
             setRefLayerAndGridVisible(false);
         }
 
@@ -16330,7 +18699,8 @@ public function cCanvasRotateTool():Function {
         hideBottomHint();
     }
 
-    return function(fromReplayMode:Boolean):void {
+    return function(fromReplayMode:Boolean):void
+    {
         isReplayMode = fromReplayMode;
         xAnc = (isReplayMode) ? rCanvasAnchorPoint : canvasAnchorPoint;
 
@@ -16340,10 +18710,12 @@ public function cCanvasRotateTool():Function {
 
 }
 
-public function cMoveTool():Function {
+public function cMoveTool():Function
+{
     var getMovedPos:Function;
 
-    function onMouseUpMoveTool(e:MouseEvent):void {
+    function onMouseUpMoveTool(e:MouseEvent):void
+    {
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool);
         stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool);
@@ -16363,14 +18735,17 @@ public function cMoveTool():Function {
             applyDeepUndo();
         // 최종적으로 움직인 거리를 실제로 비트맵 데이터 조작
 
-        if (checkedLayer === 0) {
-            if (canvasLayer1Bitmap.visible) {
+        if (checkedLayer === 0)
+        {
+            if (canvasLayer1Bitmap.visible)
+            {
                 movedMat.translate(movex, movey);
                 tmpbmpd.draw(canvasLayer1BitmapData, movedMat);
                 canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, tmpbmpd, canvasLayer1Bitmap);
             }
 
-            if (canvasLayer2Bitmap.visible) {
+            if (canvasLayer2Bitmap.visible)
+            {
                 movedMat = new Matrix();
                 movedMat.translate(movex1, movey1);
                 tmpbmpd.fillRect(new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT), 0);
@@ -16378,12 +18753,14 @@ public function cMoveTool():Function {
                 canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, tmpbmpd, canvasLayer2Bitmap);
             }
         }
-        else if (checkedLayer === 1) {
+        else if (checkedLayer === 1)
+        {
             movedMat.translate(movex, movey);
             tmpbmpd.draw(canvasLayer1BitmapData, movedMat);
             canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, tmpbmpd, canvasLayer1Bitmap);
         }
-        else if (checkedLayer === 2) {
+        else if (checkedLayer === 2)
+        {
             movedMat = new Matrix();
             movedMat.translate(movex1, movey1);
             tmpbmpd.fillRect(new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT), 0);
@@ -16398,27 +18775,34 @@ public function cMoveTool():Function {
         canvasLayer2Bitmap.x = 0;
         canvasLayer2Bitmap.y = 0;
 
-        if (isLassoToolStarted === false) {
+        if (isLassoToolStarted === false)
+        {
             var command:String = "move";
 
-            if (checkedLayer === 1) {
+            if (checkedLayer === 1)
+            {
                 command = "move1";
                 rDataBuffer.push([command, movex, movey]);
             }
-            else if (checkedLayer === 2) {
+            else if (checkedLayer === 2)
+            {
                 command = "move2";
                 rDataBuffer.push([command, movex1, movey1]);
             }
-            else {
-                if (!canvasLayer2Bitmap.visible) {
+            else
+            {
+                if (!canvasLayer2Bitmap.visible)
+                {
                     command = "move1";
                     rDataBuffer.push([command, movex, movey]);
                 }
-                else if (!canvasLayer1Bitmap.visible) {
+                else if (!canvasLayer1Bitmap.visible)
+                {
                     command = "move2";
                     rDataBuffer.push([command, movex1, movey1]);
                 }
-                else {
+                else
+                {
                     rDataBuffer.push([command, movex, movey]);
                 }
             }
@@ -16430,31 +18814,38 @@ public function cMoveTool():Function {
         }
     }
 
-    function onMouseMoveMovetool(e:MouseEvent):void {
+    function onMouseMoveMovetool(e:MouseEvent):void
+    {
         const pos:Point = getMovedPos();
 
-        if (checkedLayer === 0) {
-            if (canvasLayer1Bitmap.visible) {
+        if (checkedLayer === 0)
+        {
+            if (canvasLayer1Bitmap.visible)
+            {
                 canvasLayer1Bitmap.x = pos.x;
                 canvasLayer1Bitmap.y = pos.y;
             }
 
-            if (canvasLayer2Bitmap.visible) {
+            if (canvasLayer2Bitmap.visible)
+            {
                 canvasLayer2Bitmap.x = pos.x;
                 canvasLayer2Bitmap.y = pos.y;
             }
         }
-        else if (checkedLayer === 1) {
+        else if (checkedLayer === 1)
+        {
             canvasLayer1Bitmap.x = pos.x;
             canvasLayer1Bitmap.y = pos.y;
         }
-        else if (checkedLayer === 2) {
+        else if (checkedLayer === 2)
+        {
             canvasLayer2Bitmap.x = pos.x;
             canvasLayer2Bitmap.y = pos.y;
         }
     }
 
-    return function():void {
+    return function():void
+    {
         if (isAllLayerInvisible())
             return;
 
@@ -16468,7 +18859,8 @@ public function cMoveTool():Function {
     };
 }
 
-public function getCanvasBoundLimitPoint(canvas:Sprite, px:Number, py:Number, width:Number, height:Number, zoom:Number, rotation:Number):Point {
+public function getCanvasBoundLimitPoint(canvas:Sprite, px:Number, py:Number, width:Number, height:Number, zoom:Number, rotation:Number):Point
+{
     // 매개변수 rotation은 음수값으로 넣어야 됨
     var zoomClickX:Number = px * zoom;
     var zoomClickY:Number = py * zoom;
@@ -16486,7 +18878,8 @@ public function getCanvasBoundLimitPoint(canvas:Sprite, px:Number, py:Number, wi
     return rotatePoint(zoomClickX, zoomClickY, rotation);
 }
 
-public function cZoomTool():Function {
+public function cZoomTool():Function
+{
     const zoomMaxIndex:uint = canvasZoomMultiplerList.length - 1;
     const clickPos:Point = new Point(0, 0);
     const lastMousePos:Point = new Point(0, 0);
@@ -16495,23 +18888,29 @@ public function cZoomTool():Function {
     var startZoomIndex:int = 0;
     var dragDirection:int = 0; // 1이면 x축
 
-    function fixMouseHintPos():void {
+    function fixMouseHintPos():void
+    {
         mouseHint.x = clickPos.x - mouseHint.width / 2;
         mouseHint.y = clickPos.y - 35 * Global.getUIScale();
     }
 
-    function zoomToolMouseMoveEvent2(dist:Number):void {
-        if (dist > mouseMoveStep) {
+    function zoomToolMouseMoveEvent2(dist:Number):void
+    {
+        if (dist > mouseMoveStep)
+        {
             startZoomIndex--;
         }
-        else {
+        else
+        {
             startZoomIndex++;
         }
 
-        if (startZoomIndex < 0) {
+        if (startZoomIndex < 0)
+        {
             startZoomIndex = 0;
         }
-        else if (startZoomIndex > zoomMaxIndex) {
+        else if (startZoomIndex > zoomMaxIndex)
+        {
             startZoomIndex = zoomMaxIndex;
         }
 
@@ -16523,68 +18922,83 @@ public function cZoomTool():Function {
         fixMouseHintPos();
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         var abs:Function = Math.abs;
         var mx:Number = stage.mouseX;
         var my:Number = stage.mouseY;
 
-        if (dragDirection === 0) {
-            if (abs(mx - lastMousePos.x) > 20) {
+        if (dragDirection === 0)
+        {
+            if (abs(mx - lastMousePos.x) > 20)
+            {
                 dragDirection = 1;
                 lastMousePos.x = stage.mouseX;
             }
-            else if (abs(my - lastMousePos.y) > 20) {
+            else if (abs(my - lastMousePos.y) > 20)
+            {
                 dragDirection = 2;
                 lastMousePos.y = stage.mouseY;
             }
         }
-        else if (dragDirection === 1) {
+        else if (dragDirection === 1)
+        {
             const subX:Number = lastMousePos.x - mx;
-            if (abs(subX) > mouseMoveStep) {
+            if (abs(subX) > mouseMoveStep)
+            {
                 lastMousePos.x = stage.mouseX;
                 zoomToolMouseMoveEvent2(subX);
             }
         }
-        else if (dragDirection === 2) {
+        else if (dragDirection === 2)
+        {
             const subY:Number = my - lastMousePos.y;
 
-            if (abs(subY) > mouseMoveStep) {
+            if (abs(subY) > mouseMoveStep)
+            {
                 lastMousePos.y = stage.mouseY;
                 zoomToolMouseMoveEvent2(subY);
             }
         }
     }
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         isMouseDragging = false;
         isPenSizeCursorInvisible = false;
         hideMouseHint();
         updatePenSizeCursor();
         setRefLayerAndGridVisible(true);
 
-        if (isLassoMenuHiddenTemp === true) {
+        if (isLassoMenuHiddenTemp === true)
+        {
             hideLassoMenuBoxTemp();
         }
 
         updateCanvasNaigatorCursor();
 
-        if (gridGapMultiplier > 0 && lastZoom !== canvasZoomMultipler) {
+        if (gridGapMultiplier > 0 && lastZoom !== canvasZoomMultipler)
+        {
             drawGrid();
         }
     }
 
-    return function():void {
-        function onDragStart():void {
+    return function():void
+    {
+        function onDragStart():void
+        {
             lastZoom = canvasZoomMultipler;
             dragDirection = 0;
             // 클릭한 위치가 캔버스밖을 벗어날경우 줌 기준점을 캔버스 경계선에 닿도록 함
             var gp:Point;
 
-            if (isLassoMenuHiddenTemp === true) {
+            if (isLassoMenuHiddenTemp === true)
+            {
                 gp = lassoLayer1.localToGlobal(new Point(0, 0));
                 moveCanvasAnchorPoint(gp.x, gp.y, false);
             }
-            else {
+            else
+            {
                 gp = canvasPanel.localToGlobal(new Point(0, 0));
                 const panelLimitedPos:Point = getCanvasBoundLimitPoint(canvasPanel, canvasPanel.mouseX, canvasPanel.mouseY, CANVAS_WIDTH, CANVAS_HEIGHT, canvasZoomMultipler, -canvasAnchorPoint.rotation);
 
@@ -16607,7 +19021,8 @@ public function cZoomTool():Function {
 }
 
 // 비트맵 데이터를 대칭으로 돌려줌
-public function mirrorDraw():void {
+public function mirrorDraw():void
+{
     var tmpbmpd:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
     var flipMat:Matrix = new Matrix(-1, 0, 0, 1, CANVAS_WIDTH);
 
@@ -16625,13 +19040,15 @@ public function mirrorDraw():void {
 
     canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
 
-    if (isCanvasWindowON) {
+    if (isCanvasWindowON)
+    {
         updateCanvasWindowImage();
     }
 }
 
 // 캔버스의 중심좌표를 구함 컨트롤 박스 옵션 박스 포함
-public function getCanvasPanelMidPos():Point {
+public function getCanvasPanelMidPos():Point
+{
     const boundRect:Object = getBoundRect(canvasLayer1Bitmap);
     const left:Number = boundRect.left;
     const top:Number = boundRect.top;
@@ -16646,29 +19063,36 @@ public function getCanvasPanelMidPos():Point {
     return p;
 }
 
-public function syncMirrorReplayModeWithDrawMode():void {
-    if (mirrorCommandReady) {
+public function syncMirrorReplayModeWithDrawMode():void
+{
+    if (mirrorCommandReady)
+    {
         mirrorCanvasReplayMode();
     }
 }
 
-public function updateGridMirror(mirrorflag:Boolean):void {
-    if (mirrorflag) {
+public function updateGridMirror(mirrorflag:Boolean):void
+{
+    if (mirrorflag)
+    {
         canvasGrid.scaleX = -1.0;
         canvasGrid.x = CANVAS_WIDTH;
     }
-    else {
+    else
+    {
         canvasGrid.scaleX = 1;
         canvasGrid.x = 0;
     }
 }
 
-public function mirrorRefLayerImage():void {
+public function mirrorRefLayerImage():void
+{
     canvasRefLayer.scaleX = -canvasRefLayer.scaleX;
     canvasRefLayer.rotation = -canvasRefLayer.rotation;
 }
 
-public function mirrorCanvas(canvasOnly:Boolean = false):void {
+public function mirrorCanvas(canvasOnly:Boolean = false):void
+{
     // canvaspanel로 하면 중점이 안맞아서 canvas1로함
     const p:Point = getCanvasPanelMidPos();
 
@@ -16702,8 +19126,10 @@ public function mirrorCanvas(canvasOnly:Boolean = false):void {
     mirrorRCursorPos();
 }
 
-public function updateCanvasSizeReplayMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, movedFlag:Boolean = false):void {
-    if (w === RCANVAS_WIDTH && h === RCANVAS_HEIGHT) {
+public function updateCanvasSizeReplayMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, movedFlag:Boolean = false):void
+{
+    if (w === RCANVAS_WIDTH && h === RCANVAS_HEIGHT)
+    {
         return;
     }
 
@@ -16723,7 +19149,8 @@ public function updateCanvasSizeReplayMode(w:Number, h:Number, moveX:Number = 0,
     RCANVAS_WIDTH = w;
     RCANVAS_HEIGHT = h;
 
-    if (movedFlag) {
+    if (movedFlag)
+    {
         // movex y는 캔버스 사이즈 조절에서 원점이 움직였을경우 그만큼 bitmapdata를 움직여줘야 원래 이미지대로 나옴
         var mat:Matrix = new Matrix();
         mat.translate(moveX, moveY);
@@ -16731,7 +19158,8 @@ public function updateCanvasSizeReplayMode(w:Number, h:Number, moveX:Number = 0,
         rCanvasLayer1BitmapData.draw(rCanvasLayer1Bitmap, mat);
         rCanvasLayer2BitmapData.draw(rCanvasLayer2Bitmap, mat);
     }
-    else {
+    else
+    {
         rCanvasLayer1BitmapData.draw(rCanvasLayer1Bitmap);
         rCanvasLayer2BitmapData.draw(rCanvasLayer2Bitmap);
     }
@@ -16747,12 +19175,14 @@ public function updateCanvasSizeReplayMode(w:Number, h:Number, moveX:Number = 0,
     rFollowMouse.updateBounds();
     keepCanvasPanelInStage(true);
 
-    if (isReplayCanvasFitToWindow) {
+    if (isReplayCanvasFitToWindow)
+    {
         fitReplayCanvasToViewport();
     }
 }
 
-public function updateRefLayerImagePos(w:Number, h:Number, movedFlag:Boolean):void {
+public function updateRefLayerImagePos(w:Number, h:Number, movedFlag:Boolean):void
+{
     const scX:Number = canvasRefLayer.scaleX;
     const scY:Number = canvasRefLayer.scaleX;
     const subW:Number = (CANVAS_WIDTH - w) / 2;
@@ -16762,17 +19192,20 @@ public function updateRefLayerImagePos(w:Number, h:Number, movedFlag:Boolean):vo
     canvasRefLayer.x = w / 2;
     canvasRefLayer.y = h / 2;
 
-    if (movedFlag) {
+    if (movedFlag)
+    {
         canvasRefLayerBitmap.x += -rPos.x / scX;
         canvasRefLayerBitmap.y += -rPos.y / scY;
     }
-    else {
+    else
+    {
         canvasRefLayerBitmap.x += rPos.x / scX;
         canvasRefLayerBitmap.y += rPos.y / scY;
     }
 }
 
-public function updateCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void {
+public function updateCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
+{
     const maxSize:uint = CANVAS_MAX_SIZE;
 
     if (w > maxSize)
@@ -16792,7 +19225,8 @@ public function updateCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, 
     canvasLayer2BitmapData = new BitmapData(w, h, true, 0);
     canvasDrawLayerBitmapData = new BitmapData(w, h, true, 0);
 
-    if (centerMovedFlag) {
+    if (centerMovedFlag)
+    {
         // movex y는 캔버스 사이즈 조절에서 원점이 움직였을경우 그만큼 bitmapdata를 움직여줘야
         // 원래 이미지대로 나옴
         var mat:Matrix = new Matrix();
@@ -16806,7 +19240,8 @@ public function updateCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, 
         canvasAnchorPoint.x -= Math.round(rp.x * canvasZoomMultipler);
         canvasAnchorPoint.y -= Math.round(rp.y * canvasZoomMultipler);
     }
-    else {
+    else
+    {
         canvasLayer1BitmapData.draw(canvasLayer1Bitmap);
         canvasLayer2BitmapData.draw(canvasLayer2Bitmap);
     }
@@ -16829,7 +19264,8 @@ public function updateCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, 
     canvasInfoBox.setSize(w, h);
 }
 
-public function cResizeCanvas():Object {
+public function cResizeCanvas():Object
+{
     var started:Boolean = false;
     const resizePreviewRect:Shape = new Shape();
     const resizePreviewRatioRect:Shape = new Shape();
@@ -16863,41 +19299,54 @@ public function cResizeCanvas():Object {
     var canvasSizeChanging:Boolean;
     var rightMouseupEventON:Boolean = false;
 
-    function updateRatioSnapGuidePos():void {
-        if (isResizingWidth) {
-            if (canvasPanel.mouseY > oldHeight / 2) {
-                if (resizePreviewRatioRect.y === ratioGuidePosBackUp.y) {
+    function updateRatioSnapGuidePos():void
+    {
+        if (isResizingWidth)
+        {
+            if (canvasPanel.mouseY > oldHeight / 2)
+            {
+                if (resizePreviewRatioRect.y === ratioGuidePosBackUp.y)
+                {
                     resizePreviewRatioRect.y = ratioGuidePosBackUp.y + oldHeight + guideLineWidth;
                 }
             }
-            else if (resizePreviewRatioRect.y !== ratioGuidePosBackUp.y) {
+            else if (resizePreviewRatioRect.y !== ratioGuidePosBackUp.y)
+            {
                 resizePreviewRatioRect.y = ratioGuidePosBackUp.y;
             }
         }
-        else {
-            if (canvasPanel.mouseX > oldWidth / 2) {
-                if (resizePreviewRatioRect.x === ratioGuidePosBackUp.x) {
+        else
+        {
+            if (canvasPanel.mouseX > oldWidth / 2)
+            {
+                if (resizePreviewRatioRect.x === ratioGuidePosBackUp.x)
+                {
                     resizePreviewRatioRect.x = ratioGuidePosBackUp.x + oldWidth + guideLineWidth;
                 }
             }
-            else if (resizePreviewRatioRect.x !== ratioGuidePosBackUp.x) {
+            else if (resizePreviewRatioRect.x !== ratioGuidePosBackUp.x)
+            {
                 resizePreviewRatioRect.x = ratioGuidePosBackUp.x;
             }
         }
     }
 
-    function getNearestRatio(width:Number):Array {
-        var index:Number = binarySearchIndex(ratioSizeArr, width, function(item:*):Number {
+    function getNearestRatio(width:Number):Array
+    {
+        var index:Number = binarySearchIndex(ratioSizeArr, width, function(item:*):Number
+            {
                 return item[0];
             });
 
         return ratioSizeArr[index + 1];
     }
 
-    function drawRatioSnapGuide(w:Number, h:Number, targetName:String):void {
+    function drawRatioSnapGuide(w:Number, h:Number, targetName:String):void
+    {
         isResizingWidth = (targetName === "resizeButtonL" || targetName === "resizeButtonR") ? true : false;
 
-        function _drawRatioLine(referenceSize:Number, offset:Number):void {
+        function _drawRatioLine(referenceSize:Number, offset:Number):void
+        {
             ratioSizeArr.length = 0;
 
             // hittestpoint를 위해서 배경을 그려줌
@@ -16914,25 +19363,30 @@ public function cResizeCanvas():Object {
             const len:uint = ratioArr.length;
             const flipFlag:Boolean = (targetName === "resizeButtonU" || targetName === "resizeButtonL") ? true : false;
 
-            for (var i:uint = 0; i < len; i += 2) {
+            for (var i:uint = 0; i < len; i += 2)
+            {
                 scaledSize = Math.round(referenceSize * ratioArr[i + 1]);
                 snapGuideStartPos = scaledSize;
 
-                if (scaledSize > max || scaledSize < min) {
+                if (scaledSize > max || scaledSize < min)
+                {
                     continue;
                 }
 
                 resizePreviewRatioRect.graphics.lineStyle(3 / canvasZoomMultipler, color, 1.0, true, "normal", "none");
 
-                if (flipFlag) {
+                if (flipFlag)
+                {
                     snapGuideStartPos = -snapGuideStartPos + offset;
                 }
 
-                if (isResizingWidth) {
+                if (isResizingWidth)
+                {
                     resizePreviewRatioRect.graphics.moveTo(snapGuideStartPos, 0);
                     resizePreviewRatioRect.graphics.lineTo(snapGuideStartPos, -guideLineWidth);
                 }
-                else {
+                else
+                {
                     resizePreviewRatioRect.graphics.moveTo(0, snapGuideStartPos);
                     resizePreviewRatioRect.graphics.lineTo(-guideLineWidth, snapGuideStartPos);
                 }
@@ -16944,21 +19398,27 @@ public function cResizeCanvas():Object {
         {
             _drawRatioLine(h, w);
         }
-        else {
+        else
+        {
             _drawRatioLine(w, h);
         }
     }
 
-    function isCanvasResizing():Boolean {
+    function isCanvasResizing():Boolean
+    {
         return canvasSizeChanging;
     }
 
-    function exitResizeCanvas():void {
-        if (started) {
+    function exitResizeCanvas():void
+    {
+        if (started)
+        {
             started = false;
-            if (targetName !== null) {
+            if (targetName !== null)
+            {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent);
-                if (!isRightMouseClicked) {
+                if (!isRightMouseClicked)
+                {
                     rightMouseupEventON = false;
                     stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent);
                 }
@@ -16981,10 +19441,12 @@ public function cResizeCanvas():Object {
             resizePreviewRect.graphics.clear();
             resizePreviewRatioRect.graphics.clear();
 
-            if (subX !== 0 || subY !== 0) {
+            if (subX !== 0 || subY !== 0)
+            {
                 const centerMovedFlag:Boolean = (targetName === "resizeButtonL" || targetName === "resizeButtonU") ? true : false;
 
-                if (isDeepUndoEnabled) {
+                if (isDeepUndoEnabled)
+                {
                     applyDeepUndo();
                 }
 
@@ -16992,13 +19454,16 @@ public function cResizeCanvas():Object {
                 updateResizeButtonPos(finalWidth, finalHeight);
                 rDataBuffer.push(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
 
-                if (hasLastRDataCommand("canvasSize")) {
+                if (hasLastRDataCommand("canvasSize"))
+                {
                     undoManager.addContinue();
                 }
-                else {
+                else
+                {
                     undoManager.addNew();
 
-                    if (isCanvasWindowON) {
+                    if (isCanvasWindowON)
+                    {
                         updateCanvasWindowBitmapSize();
                     }
                 }
@@ -17006,32 +19471,39 @@ public function cResizeCanvas():Object {
 
             targetName = null;
         }
-        else {
+        else
+        {
             updateCanvasResizeButtonVisible(false);
             rightMouseupEventON = false;
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent);
         }
     }
 
-    function isMouseCursorInStage():Boolean {
+    function isMouseCursorInStage():Boolean
+    {
         return stage.mouseX >= 0 && stage.mouseY >= 0 && stage.mouseX <= stage.stageWidth && stage.mouseY <= stage.stageHeight;
     }
 
-    function resizeButtonRightMouseUpEvent(e:MouseEvent):void {
+    function resizeButtonRightMouseUpEvent(e:MouseEvent):void
+    {
         exitResizeCanvas();
     }
 
-    function resizeButtonMouseUpEvent(e:MouseEvent):void {
+    function resizeButtonMouseUpEvent(e:MouseEvent):void
+    {
         exitResizeCanvas();
     }
 
-    function drawResizePreviewRect(size:Number, x:Number, y:Number, w:Number, h:Number):void {
+    function drawResizePreviewRect(size:Number, x:Number, y:Number, w:Number, h:Number):void
+    {
         resizePreviewRect.graphics.clear();
 
-        if (size > 0) {
+        if (size > 0)
+        {
             resizePreviewRect.graphics.beginFill(bgColor);
         }
-        else {
+        else
+        {
             resizePreviewRect.graphics.beginFill(stageColor);
         }
 
@@ -17040,12 +19512,14 @@ public function cResizeCanvas():Object {
         updateRatioSnapGuidePos();
     }
 
-    function flipRatioString(r:String):String {
+    function flipRatioString(r:String):String
+    {
         var p:Array = r.split(":");
         return p[1] + ":" + p[0];
     }
 
-    function updateHeight(flipFlag:Boolean):Number {
+    function updateHeight(flipFlag:Boolean):Number
+    {
         subY = (flipFlag) ? resizeClickPos.y - canvasPanel.mouseY
             : canvasPanel.mouseY - resizeClickPos.y;
 
@@ -17057,9 +19531,11 @@ public function cResizeCanvas():Object {
         else if (height === min)
             subY = min - oldHeight;
 
-        if (resizePreviewRatioRect.hitTestPoint(stage.mouseX, stage.mouseY, true)) {
+        if (resizePreviewRatioRect.hitTestPoint(stage.mouseX, stage.mouseY, true))
+        {
             const info:Array = getNearestRatio(height);
-            if (info) {
+            if (info)
+            {
                 subY = info[0] - oldHeight;
                 finalHeight = info[0];
                 const str:String = flipRatioString(info[1]);
@@ -17075,7 +19551,8 @@ public function cResizeCanvas():Object {
         return subY;
     }
 
-    function updateWidth(flipFlag:Boolean):Number {
+    function updateWidth(flipFlag:Boolean):Number
+    {
         subX = (flipFlag) ? resizeClickPos.x - canvasPanel.mouseX
             : canvasPanel.mouseX - resizeClickPos.x;
 
@@ -17088,9 +19565,11 @@ public function cResizeCanvas():Object {
         else if (width === min)
             subX = min - oldWidth;
 
-        if (resizePreviewRatioRect.hitTestPoint(stage.mouseX, stage.mouseY, true)) {
+        if (resizePreviewRatioRect.hitTestPoint(stage.mouseX, stage.mouseY, true))
+        {
             const info:Array = getNearestRatio(width);
-            if (info) {
+            if (info)
+            {
                 subX = info[0] - oldWidth;
                 finalWidth = info[0];
 
@@ -17106,31 +19585,37 @@ public function cResizeCanvas():Object {
         return subX;
     }
 
-    function onMouseMoveReizeButtonD(e:MouseEvent):void {
+    function onMouseMoveReizeButtonD(e:MouseEvent):void
+    {
         var subY:Number = updateHeight(false);
         drawResizePreviewRect(subY, 0, oldHeight, oldWidth, subY);
     }
 
-    function onMouseMoveReizeButtonU(e:MouseEvent):void {
+    function onMouseMoveReizeButtonU(e:MouseEvent):void
+    {
         var subY:Number = updateHeight(true);
         drawResizePreviewRect(subY, 0, -subY, oldWidth, subY);
     }
 
-    function onMouseMoveReizeButtonR(e:MouseEvent):void {
+    function onMouseMoveReizeButtonR(e:MouseEvent):void
+    {
         var subX:Number = updateWidth(false);
         drawResizePreviewRect(subX, oldWidth, 0, subX, oldHeight);
     }
 
-    function onMouseMoveReizeButtonL(e:MouseEvent):void {
+    function onMouseMoveReizeButtonL(e:MouseEvent):void
+    {
         var subX:Number = updateWidth(true);
         drawResizePreviewRect(subX, -subX, 0, subX, oldHeight);
     }
 
-    function isResizing():Boolean {
+    function isResizing():Boolean
+    {
         return started;
     }
 
-    function initVars():void {
+    function initVars():void
+    {
         oldWidth = CANVAS_WIDTH;
         oldHeight = CANVAS_HEIGHT;
         finalWidth = oldWidth;
@@ -17152,9 +19637,11 @@ public function cResizeCanvas():Object {
         setAsTopChild(resizePreviewRatioRect);
     }
 
-    function startResizeCanvas(_targetName:String):void {
+    function startResizeCanvas(_targetName:String):void
+    {
         // TODO:Drag인터렉션으로 변환
-        if (started === false) {
+        if (started === false)
+        {
             started = true;
             initVars();
         }
@@ -17171,7 +19658,8 @@ public function cResizeCanvas():Object {
         updateCanvasResizeButtonVisible(false);
 
         stage.addEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent);
-        if (rightMouseupEventON === false) {
+        if (rightMouseupEventON === false)
+        {
             rightMouseupEventON = true;
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent);
         }
@@ -17198,7 +19686,8 @@ public function cResizeCanvas():Object {
 
 }
 
-public function moveSelectedAreaToLassoBox(replayMode:Boolean, rectArr:Vector.<Number>, points:Array, copyFlag:Boolean, layer1:Boolean, layer2:Boolean):Boolean {
+public function moveSelectedAreaToLassoBox(replayMode:Boolean, rectArr:Vector.<Number>, points:Array, copyFlag:Boolean, layer1:Boolean, layer2:Boolean):Boolean
+{
     // 라소 경계 사각형 좌표와 크기
     const rectLeft:Number = rectArr[0];
     const rectTop:Number = rectArr[1];
@@ -17219,32 +19708,38 @@ public function moveSelectedAreaToLassoBox(replayMode:Boolean, rectArr:Vector.<N
 
     // 에어브러시 켜줄때 필터 백업함
 
-    if (replayMode) {
+    if (replayMode)
+    {
         canvasDrawLayerFilterBackUp = rCanvasDrawShape.filters.concat();
         rCanvasDrawShape.filters = [];
         xCanvasDrawLayer = rCanvasDrawShape;
 
-        if (layer1) {
+        if (layer1)
+        {
             canvasBitmapData = rCanvasLayer1BitmapData;
             canvasBitmap = rCanvasLayer1Bitmap;
         }
 
-        if (layer2) {
+        if (layer2)
+        {
             canvasBitmapDataSub = rCanvasLayer2BitmapData;
             canvasBitmapSub = rCanvasLayer2Bitmap;
         }
     }
-    else {
+    else
+    {
         canvasDrawLayerFilterBackUp = canvasDrawLayerChild.filters.concat();
         canvasDrawLayerChild.filters = [];
         xCanvasDrawLayer = canvasDrawLayerChild;
 
-        if (layer1) {
+        if (layer1)
+        {
             canvasBitmapData = canvasLayer1BitmapData;
             canvasBitmap = canvasLayer1Bitmap;
         }
 
-        if (layer2) {
+        if (layer2)
+        {
             canvasBitmapDataSub = canvasLayer2BitmapData;
             canvasBitmapSub = canvasLayer2Bitmap;
         }
@@ -17266,24 +19761,28 @@ public function moveSelectedAreaToLassoBox(replayMode:Boolean, rectArr:Vector.<N
     lassoLayer2Bitmap.smoothing = true;
 
     // bitmap1canvas에서 그려준 영역을 지워줌
-    if (!copyFlag) {
+    if (!copyFlag)
+    {
         xCanvasDrawLayer.graphics.clear();
         xCanvasDrawLayer.graphics.beginFill(CANVAS_BG_COLOR);
         xCanvasDrawLayer.graphics.moveTo(points[0][0], points[0][1]);
 
         // rectLeft를 빼줘서 canvasdraw2의 0,0영역에 그려줌
-        for (i = 1; i < lassoPointsLen; i++) {
+        for (i = 1; i < lassoPointsLen; i++)
+        {
             xCanvasDrawLayer.graphics.lineTo(points[i][0], points[i][1]);
         }
 
         xCanvasDrawLayer.graphics.endFill();
 
-        if (layer1) {
+        if (layer1)
+        {
             canvasBitmapData.draw(xCanvasDrawLayer, null, null, "erase");
             canvasBitmap.bitmapData = canvasBitmapData;
         }
 
-        if (layer2) {
+        if (layer2)
+        {
             canvasBitmapDataSub.draw(xCanvasDrawLayer, null, null, "erase");
             canvasBitmapSub.bitmapData = canvasBitmapDataSub;
         }
@@ -17299,18 +19798,21 @@ public function moveSelectedAreaToLassoBox(replayMode:Boolean, rectArr:Vector.<N
     xCanvasDrawLayer.graphics.moveTo(points[0][0] - rectLeft, points[0][1] - rectTop);
 
     // rectLeft를 빼줘서 canvasdraw2의 0,0영역에 그려줌
-    for (i = 1; i < lassoPointsLen; i++) {
+    for (i = 1; i < lassoPointsLen; i++)
+    {
         xCanvasDrawLayer.graphics.lineTo(points[i][0] - rectLeft, points[i][1] - rectTop);
     }
 
     // 마지막으로 시작점을 이어줌
     xCanvasDrawLayer.graphics.endFill();
-    if (layer1) {
+    if (layer1)
+    {
         lassoLayer1Bitmap.bitmapData = lassoBMPD;
         lassoLayer1Bitmap.bitmapData.draw(xCanvasDrawLayer, null, null, "erase");
     }
 
-    if (layer2) {
+    if (layer2)
+    {
         lassoLayer2Bitmap.bitmapData = lassoBMPDsub;
         lassoLayer2Bitmap.bitmapData.draw(xCanvasDrawLayer, null, null, "erase");
     }
@@ -17318,12 +19820,14 @@ public function moveSelectedAreaToLassoBox(replayMode:Boolean, rectArr:Vector.<N
 
     // 회전 확대를 bmp사각형의 중심으로 맞추어줌
 
-    if (layer1) {
+    if (layer1)
+    {
         lassoLayer1Bitmap.x = -rectWidth / 2;
         lassoLayer1Bitmap.y = -rectHeight / 2;
     }
 
-    if (layer2) {
+    if (layer2)
+    {
         lassoLayer2Bitmap.x = -rectWidth / 2;
         lassoLayer2Bitmap.y = -rectHeight / 2;
     }
@@ -17335,24 +19839,28 @@ public function moveSelectedAreaToLassoBox(replayMode:Boolean, rectArr:Vector.<N
     lassoDraw.x = -lassoLayer1.x;
     lassoDraw.y = -lassoLayer1.y;
 
-    if (replayMode) {
+    if (replayMode)
+    {
         rCanvasDrawShape.filters = canvasDrawLayerFilterBackUp.concat();
     }
-    else {
+    else
+    {
         canvasDrawLayerChild.filters = canvasDrawLayerFilterBackUp.concat();
     }
 
     return true;
 }
 
-public function setAlphaButtonsOnLassoTool(alpha:Number):void {
+public function setAlphaButtonsOnLassoTool(alpha:Number):void
+{
     colorPickerBox.alpha = alpha;
     toolBox.alpha = alpha;
     toolOptionsBox.alpha = alpha;
     toolBox.toolMirror.alpha = alpha;
 }
 
-public function cLassoTool():Object {
+public function cLassoTool():Object
+{
     var clickPos:Point = new Point(0, 0);
     var maxWidth:Number;
     var maxHeight:Number;
@@ -17360,7 +19868,8 @@ public function cLassoTool():Object {
     var lassoRect:Vector.<Number>;
     var lassoPoints:Array;
 
-    function resetPosData():void {
+    function resetPosData():void
+    {
         if (lassoRect)
             lassoRect.length = 0;
         if (lassoPoints)
@@ -17369,28 +19878,33 @@ public function cLassoTool():Object {
         lassoPoints = null;
     }
 
-    function drawPreviewLine():void {
-        if (lassoPoints === null) {
+    function drawPreviewLine():void
+    {
+        if (lassoPoints === null)
+        {
             return;
         }
 
         lassoDraw.graphics.clear();
 
         const len:uint = lassoPoints.length;
-        if (lassoPoints.length < 2) {
+        if (lassoPoints.length < 2)
+        {
             return;
         }
 
         dottedLine.moveTo(lassoDraw.graphics, lassoPoints[0][0], lassoPoints[0][1]);
 
-        for (var i:uint = 0; i < len; i++) {
+        for (var i:uint = 0; i < len; i++)
+        {
             dottedLine.lineTo(lassoPoints[i][0], lassoPoints[i][1]);
         }
 
         dottedLine.lineTo(lassoPoints[0][0], lassoPoints[0][1], true);
     }
 
-    function setDeafultLassoMenuPos(lassoMenu:LassoMenuSet):void {
+    function setDeafultLassoMenuPos(lassoMenu:LassoMenuSet):void
+    {
         const g:Point = lassoLayer1.localToGlobal(new Point(0, 0));
         const lassoW:Number = (lassoMenu.width > stage.stageWidth)
             ? stage.stageWidth : lassoMenu.width;
@@ -17400,13 +19914,15 @@ public function cLassoTool():Object {
         // lassoMenu.y = floor(g.y+(((lassoBox1.height)/2)/zoomed+15));
     }
 
-    function onMouseUpLassoTool():void {
+    function onMouseUpLassoTool():void
+    {
         isMouseDragging = false;
         removeTimer("LassoDrawDelayTimer");
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoTool);
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool);
 
-        if (Math.abs(lassoRect[0] - lassoRect[2]) < 5 || Math.abs(lassoRect[1] - lassoRect[3]) < 5) {
+        if (Math.abs(lassoRect[0] - lassoRect[2]) < 5 || Math.abs(lassoRect[1] - lassoRect[3]) < 5)
+        {
             resetLassoBox();
             return;
         }
@@ -17426,19 +19942,23 @@ public function cLassoTool():Object {
         var checklayer1:Boolean = canvasLayer1Bitmap.visible;
         var checklayer2:Boolean = canvasLayer2Bitmap.visible;
 
-        if (checkedLayer === 1) {
+        if (checkedLayer === 1)
+        {
             checklayer1 = true;
             checklayer2 = false;
         }
-        else if (checkedLayer === 2) {
+        else if (checkedLayer === 2)
+        {
             checklayer1 = false;
             checklayer2 = true;
         }
 
-        if (moveSelectedAreaToLassoBox(false, lassoRect, lassoPoints, isLassoImageCopied, checklayer1, checklayer2) === false) {
+        if (moveSelectedAreaToLassoBox(false, lassoRect, lassoPoints, isLassoImageCopied, checklayer1, checklayer2) === false)
+        {
             resetLassoBox();
         }
-        else {
+        else
+        {
             drawPreviewLine();
             // 라소 메뉴 마우스 커서에보이기
             lassoFirstData = [lassoLayer1.x, lassoLayer1.y, lassoLayer1.scaleX, lassoLayer1.scaleY, lassoLayer1.rotation];
@@ -17446,11 +19966,13 @@ public function cLassoTool():Object {
             setDeafultLassoMenuPos(lassoMenuBox);
             keepBoxInsideViewPort(lassoMenuBox);
 
-            if (checkedLayer || !checklayer1 || !checklayer2) {
+            if (checkedLayer || !checklayer1 || !checklayer2)
+            {
                 lassoMenuBox.lassoLayerSwap.alpha = Global.OFFALPHA;
                 lassoMenuBox.lassoLayerMerge.alpha = Global.OFFALPHA;
             }
-            else {
+            else
+            {
                 lassoMenuBox.lassoLayerSwap.alpha = 1.0;
                 lassoMenuBox.lassoLayerMerge.alpha = 1.0;
             }
@@ -17459,7 +19981,8 @@ public function cLassoTool():Object {
             lassoMenuBox.visible = true;
             setAsTopChild(lassoMenuBox);
 
-            if (isRefLayerMenuON === true) {
+            if (isRefLayerMenuON === true)
+            {
                 refLayerMenuBox.visible = false;
             }
 
@@ -17468,35 +19991,43 @@ public function cLassoTool():Object {
         }
     }
 
-    function onMouseMoveLassoTool(MouseEvent:Event):void {
+    function onMouseMoveLassoTool(MouseEvent:Event):void
+    {
         var mx:Number = canvasDrawLayerChild.mouseX;
         var my:Number = canvasDrawLayerChild.mouseY;
 
         lassoPoints.push([mx, my]);
 
-        if (!hasTimer("LassoDrawDelayTimer")) {
-            addTimerByName("LassoDrawDelayTimer", 0.1, false, function():void {
+        if (!hasTimer("LassoDrawDelayTimer"))
+        {
+            addTimerByName("LassoDrawDelayTimer", 0.1, false, function():void
+                {
                     drawPreviewLine();
                 });
         }
 
         // 사각형 꼭지점 체크
-        if (mx < lassoRect[0]) {
+        if (mx < lassoRect[0])
+        {
             lassoRect[0] = mx;
         }
-        else if (mx > lassoRect[2]) {
+        else if (mx > lassoRect[2])
+        {
             lassoRect[2] = mx;
         }
 
-        if (my < lassoRect[1]) {
+        if (my < lassoRect[1])
+        {
             lassoRect[1] = my;
         }
-        else if (my > lassoRect[3]) {
+        else if (my > lassoRect[3])
+        {
             lassoRect[3] = my;
         }
     }
 
-    function start():void {
+    function start():void
+    {
         if (isLassoToolStarted === true || isAllLayerInvisible())
             return;
 
@@ -17523,12 +20054,14 @@ public function cLassoTool():Object {
         lassoLayer1.visible = true;
 
         dottedLine.setLineScale(canvasZoomMultipler);
-        if (canvasLayer1Bitmap.visible) {
+        if (canvasLayer1Bitmap.visible)
+        {
             if (lassoLayer1LastBitmapdata != null)
                 lassoLayer1LastBitmapdata.dispose();
             lassoLayer1LastBitmapdata = canvasLayer1BitmapData.clone();
         }
-        if (canvasLayer2Bitmap.visible) {
+        if (canvasLayer2Bitmap.visible)
+        {
             if (lassoLayer2LastBitmapdata != null)
                 lassoLayer2LastBitmapdata.dispose();
             lassoLayer2LastBitmapdata = canvasLayer2BitmapData.clone();
@@ -17545,7 +20078,8 @@ public function cLassoTool():Object {
 
 }
 
-public function cEyeDropperTool():Function {
+public function cEyeDropperTool():Function
+{
     // 일단 흰색으로 배경 깔아줌
     const magSize:Number = eyedropperLens.magSize;
     const lensRect:Rectangle = new Rectangle(0, 0, magSize, magSize);
@@ -17553,7 +20087,8 @@ public function cEyeDropperTool():Function {
     var penColorBackup:uint;
     var canvasBGShape:Shape = new Shape();
 
-    function updateEyeDropperLensBitmap():void {
+    function updateEyeDropperLensBitmap():void
+    {
         const mid:Number = magSize / (4 * canvasZoomMultipler); // 4는 기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
         const tx:Number = -canvasLayer1Bitmap.mouseX + mid;
         const ty:Number = -canvasLayer1Bitmap.mouseY + mid;
@@ -17565,17 +20100,21 @@ public function cEyeDropperTool():Function {
         eyedropperLens.bitmap.bitmapData.fillRect(lensRect, STAGE_BG_COLOR);
         eyedropperLens.bitmap.bitmapData.draw(canvasBGShape, lensMat, null, null, lensRect);
 
-        if (canvasLayer2Bitmap.visible) {
+        if (canvasLayer2Bitmap.visible)
+        {
             eyedropperLens.bitmap.bitmapData.draw(canvasLayer2Bitmap.bitmapData, lensMat, null, null, lensRect);
         }
 
-        if (canvasLayer1Bitmap.visible) {
+        if (canvasLayer1Bitmap.visible)
+        {
             eyedropperLens.bitmap.bitmapData.draw(canvasLayer1Bitmap.bitmapData, lensMat, null, null, lensRect);
         }
     }
 
-    function pickColor():uint {
-        if (canvasLayer1Bitmap.hitTestPoint(stage.mouseX, stage.mouseY)) {
+    function pickColor():uint
+    {
+        if (canvasLayer1Bitmap.hitTestPoint(stage.mouseX, stage.mouseY))
+        {
             // 배경색
             const r3:uint = (CANVAS_BG_COLOR & 0xFF0000) >> 16;
             const g3:uint = (CANVAS_BG_COLOR & 0x00FF00) >> 8;
@@ -17595,7 +20134,8 @@ public function cEyeDropperTool():Function {
             var b2:uint = 0;
 
             // 위 레이어
-            if (canvasLayer1Bitmap.visible) {
+            if (canvasLayer1Bitmap.visible)
+            {
                 const c1:uint = canvasLayer1BitmapData.getPixel32(canvasLayer1Bitmap.mouseX, canvasLayer1Bitmap.mouseY);
                 a1 = ((c1 & 0xFF000000) >>> 24) / 255;
                 r1 = (c1 & 0x00FF0000) >>> 16;
@@ -17604,7 +20144,8 @@ public function cEyeDropperTool():Function {
             }
 
             // 밑 레이어
-            if (canvasLayer2Bitmap.visible) {
+            if (canvasLayer2Bitmap.visible)
+            {
                 const c2:uint = canvasLayer2BitmapData.getPixel32(canvasLayer1Bitmap.mouseX, canvasLayer1Bitmap.mouseY);
                 a2 = ((c2 & 0xFF000000) >>> 24) / 255;
                 r2 = (c2 & 0x00FF0000) >>> 16;
@@ -17632,34 +20173,43 @@ public function cEyeDropperTool():Function {
 
             return Global.RGBtoHEX(r, g, b);
         }
-        else {
+        else
+        {
             return penColorBackup;
         }
     }
 
-    function onRightMouseDownEyeDropper(e:MouseEvent):void {
+    function onRightMouseDownEyeDropper(e:MouseEvent):void
+    {
         exitEyeDropperTool(false);
     }
 
-    function onKeyDownEyeDropper(e:KeyboardEvent):void {
-        if (isNotEyeDropperTool()) {
+    function onKeyDownEyeDropper(e:KeyboardEvent):void
+    {
+        if (isNotEyeDropperTool())
+        {
             exitEyeDropperTool(false);
             return;
         }
 
-        if (e.keyCode === KEY.c || e.keyCode === KEY.m) {
+        if (e.keyCode === KEY.c || e.keyCode === KEY.m)
+        {
 
         }
-        else if (e.keyCode === KEY.space) {
-            if (isTransparentPenColor) {
+        else if (e.keyCode === KEY.space)
+        {
+            if (isTransparentPenColor)
+            {
                 selectCurrentColor(false);
 
                 showMouseHintTemp("Current color selected");
             }
-            else {
+            else
+            {
                 selectCurrentColor(false);
 
-                if (isTransparentPenColor === false) {
+                if (isTransparentPenColor === false)
+                {
                     selectTransparentColor();
                 }
 
@@ -17667,37 +20217,46 @@ public function cEyeDropperTool():Function {
             }
             exitEyeDropperTool(false);
         }
-        else {
+        else
+        {
             exitEyeDropperTool(false);
         }
     }
 
-    function onKeyUpEyeDropper(e:KeyboardEvent):void {
-        if (isNotEyeDropperTool()) {
+    function onKeyUpEyeDropper(e:KeyboardEvent):void
+    {
+        if (isNotEyeDropperTool())
+        {
             exitEyeDropperTool(false);
             return;
         }
 
-        if (e.keyCode === KEY.c || e.keyCode === KEY.m) {
+        if (e.keyCode === KEY.c || e.keyCode === KEY.m)
+        {
             confirmEyeDropperSelection();
         }
     }
 
-    function onMouseDownEyeDropper(e:MouseEvent):void {
-        if (isNotEyeDropperTool()) {
+    function onMouseDownEyeDropper(e:MouseEvent):void
+    {
+        if (isNotEyeDropperTool())
+        {
             exitEyeDropperTool(false);
             return;
         }
 
-        if (eyedropperLens.visible) {
+        if (eyedropperLens.visible)
+        {
             confirmEyeDropperSelection();
         }
-        else {
+        else
+        {
             exitEyeDropperTool(false);
         }
     }
 
-    function exitEyeDropperTool(okFlag:Boolean):void {
+    function exitEyeDropperTool(okFlag:Boolean):void
+    {
         removeEyedropperEvents();
 
         eyedropperLens.visible = false;
@@ -17705,24 +20264,29 @@ public function cEyeDropperTool():Function {
         canvasBGShape.graphics.clear();
         setRefLayerAndGridVisible(true);
 
-        if (okFlag) {
+        if (okFlag)
+        {
             if (!(isLastTool(TOOL_FILLPEN)
                         || isLastTool(TOOL_LINE)
-                        || isLastTool(TOOL_PEN))) {
+                        || isLastTool(TOOL_PEN)))
+            {
                 setLastTool(TOOL_PEN);
             }
         }
         selectLastUsedTool();
     }
 
-    function isNotEyeDropperTool():Boolean {
+    function isNotEyeDropperTool():Boolean
+    {
         return !isSelectedTool(TOOL_EYEDROPPER) || isReplayModeON || isCaptureModeON || isFileBrowserOpened || isMouseClickBlocked;
     }
 
-    function confirmEyeDropperSelection():void {
+    function confirmEyeDropperSelection():void
+    {
         var okFlag:Boolean = false;
 
-        if (eyedropperLens.visible === true) {
+        if (eyedropperLens.visible === true)
+        {
             okFlag = true;
             const pickedColor:uint = pickColor();
 
@@ -17734,8 +20298,10 @@ public function cEyeDropperTool():Function {
         exitEyeDropperTool(okFlag);
     }
 
-    function onMouseMoveEyeDropper(e:MouseEvent):void {
-        if (isNotEyeDropperTool()) {
+    function onMouseMoveEyeDropper(e:MouseEvent):void
+    {
+        if (isNotEyeDropperTool())
+        {
             exitEyeDropperTool(false);
             return;
         }
@@ -17743,21 +20309,25 @@ public function cEyeDropperTool():Function {
         eyedropperLens.x = stage.mouseX;
         eyedropperLens.y = stage.mouseY;
 
-        if (canShowEyedropperLens()) {
+        if (canShowEyedropperLens())
+        {
             Global.setColorTransform(eyedropperLens.nowColor, pickColor());
 
-            if (canvasZoomMultipler < 12.0) {
+            if (canvasZoomMultipler < 12.0)
+            {
                 updateEyeDropperLensBitmap();
             }
 
             eyedropperLens.visible = true;
         }
-        else {
+        else
+        {
             eyedropperLens.visible = false;
         }
     }
 
-    function removeEyedropperEvents():void {
+    function removeEyedropperEvents():void
+    {
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveEyeDropper);
         stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper);
         stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper);
@@ -17765,7 +20335,8 @@ public function cEyeDropperTool():Function {
         stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper);
     }
 
-    function addEyedropperEvents():void {
+    function addEyedropperEvents():void
+    {
         stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveEyeDropper);
         stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper, false, -2);
         stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper, false, -2);
@@ -17773,19 +20344,23 @@ public function cEyeDropperTool():Function {
         stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper, false, 2);
     }
 
-    function canShowEyedropperLens():Boolean {
+    function canShowEyedropperLens():Boolean
+    {
         return isCursorInDrawArea() && canvasLayer1Bitmap.hitTestPoint(stage.mouseX, stage.mouseY, true)
             && !(refLayerMenuBox.visible && refLayerMenuBox.hitTestPoint(stage.mouseX, stage.mouseY));
     }
 
-    return function():void {
+    return function():void
+    {
         toolBox.moveToolCursor("toolEyedropper");
 
-        if (checkedLayer !== 0) {
+        if (checkedLayer !== 0)
+        {
             return;
         }
 
-        if (isAllLayerInvisible()) {
+        if (isAllLayerInvisible())
+        {
             return;
         }
 
@@ -17801,17 +20376,20 @@ public function cEyeDropperTool():Function {
         canvasBGShape.graphics.beginFill(CANVAS_BG_COLOR);
         canvasBGShape.graphics.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-        if (canShowEyedropperLens()) {
+        if (canShowEyedropperLens())
+        {
             eyedropperLens.x = stage.mouseX;
             eyedropperLens.y = stage.mouseY;
             Global.setColorTransform(eyedropperLens.nowColor, pickColor());
             setAsTopChild(eyedropperLens);
 
-            if (canvasZoomMultipler < 12.0) {
+            if (canvasZoomMultipler < 12.0)
+            {
                 eyedropperLens.circleBox.visible = true;
                 updateEyeDropperLensBitmap();
             }
-            else {
+            else
+            {
                 eyedropperLens.circleBox.visible = false;
             }
             eyedropperLens.visible = true;
@@ -17821,39 +20399,50 @@ public function cEyeDropperTool():Function {
     };
 }
 
-public function showRefLayerIsEmptyHint():void {
+public function showRefLayerIsEmptyHint():void
+{
     showMouseHintTemp("The reference layer is empty");
 }
 
-public function isRefLayerEmpty():Boolean {
+public function isRefLayerEmpty():Boolean
+{
     return canvasRefLayerBitmapData.width === 1 && canvasRefLayerBitmapData.height === 1;
 }
 
-public function setRefLayerAndGridVisible(flag:Boolean):void {
-    if (!isRefLayerEmpty() && refLayerLastAlpha > 0.0) {
-        if (flag === false) {
+public function setRefLayerAndGridVisible(flag:Boolean):void
+{
+    if (!isRefLayerEmpty() && refLayerLastAlpha > 0.0)
+    {
+        if (flag === false)
+        {
             setCanvasRefLayerInvisible();
         }
-        else if (refLayerVisibleDelayOffTime > 0) {
+        else if (refLayerVisibleDelayOffTime > 0)
+        {
             const ondelay:Number = (getTimer() - refLayerVisibleDelayOffTime) / 1000;
-            if (ondelay < REFLAYER_VISIBLE_DELAY) {
+            if (ondelay < REFLAYER_VISIBLE_DELAY)
+            {
                 setCanvasRefLayerVisibleDelay(REFLAYER_VISIBLE_DELAY - ondelay);
             }
-            else {
+            else
+            {
                 setCanvasRefLayerVisibleSlowly(true);
             }
         }
-        else {
+        else
+        {
             setCanvasRefLayerVisibleSlowly(true);
         }
     }
 
-    if (gridGapMultiplier > 0) {
+    if (gridGapMultiplier > 0)
+    {
         canvasGrid.visible = flag;
     }
 }
 
-public function cHandTool():Function {
+public function cHandTool():Function
+{
     const old:Point = new Point(0, 0);
 
     var isReplayMode:Boolean;
@@ -17861,7 +20450,8 @@ public function cHandTool():Function {
     var xAnc:Sprite;
     var xBitmap:Bitmap;
 
-    function onMouseUpHandTool(e:MouseEvent):void {
+    function onMouseUpHandTool(e:MouseEvent):void
+    {
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHandTool);
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpHandTool);
         stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpHandTool);
@@ -17872,28 +20462,35 @@ public function cHandTool():Function {
 
         keepCanvasPanelInStage(isReplayMode);
 
-        if (isDrawMode) {
+        if (isDrawMode)
+        {
             setRefLayerAndGridVisible(true);
 
-            if (isLassoToolStarted) {
-                if (isLassoMenuHiddenTemp === true) {
+            if (isLassoToolStarted)
+            {
+                if (isLassoMenuHiddenTemp === true)
+                {
                     hideLassoMenuBoxTemp();
                 }
             } // tool box에서 클릭해서 핸드툴 들어갈때 필요함
-            else if (!isLastKey(KEY.space)) {
+            else if (!isLastKey(KEY.space))
+            {
                 selectLastUsedTool();
             }
 
             toolBox.setCursorVisible(true);
             updateCanvasNaigatorCursor();
         }
-        else {
+        else
+        {
             rFollowMouse.updateBounds();
         }
     }
 
-    function onMouseMoveHandTool(e:MouseEvent):void {
-        if (isReplayMode && isReplayRestartTimerON()) {
+    function onMouseMoveHandTool(e:MouseEvent):void
+    {
+        if (isReplayMode && isReplayRestartTimerON())
+        {
             onMouseUpHandTool(null);
             return;
         }
@@ -17903,7 +20500,8 @@ public function cHandTool():Function {
         old.setTo(stage.mouseX, stage.mouseY);
     }
 
-    return function(fromReplayMode:Boolean, fromWheelClick:Boolean):void {
+    return function(fromReplayMode:Boolean, fromWheelClick:Boolean):void
+    {
         isMouseDragging = true;
         isReplayMode = fromReplayMode;
         isDrawMode = !fromReplayMode;
@@ -17912,12 +20510,14 @@ public function cHandTool():Function {
         old.setTo(stage.mouseX, stage.mouseY);
         isPenSizeCursorInvisible = true;
 
-        if (isDrawMode) {
+        if (isDrawMode)
+        {
             toolBox.setCursorVisible(false);
             setRefLayerAndGridVisible(false);
         }
 
-        if (fromWheelClick) {
+        if (fromWheelClick)
+        {
             stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
         }
 
@@ -17930,8 +20530,10 @@ public function cHandTool():Function {
 
 // zoom이나 rotate reg포인트 바뀔때마다
 // 캔버스 판넬위치 따라 다니면서 크기 똑같이 해줌
-public function updateResizeButtonPos(width:Number, height:Number):void {
-    function setpos(target:Sprite, x:Number, y:Number, w:Number, h:Number):void {
+public function updateResizeButtonPos(width:Number, height:Number):void
+{
+    function setpos(target:Sprite, x:Number, y:Number, w:Number, h:Number):void
+    {
         target.x = x;
         target.y = y;
         target.width = (w === 0) ? buttonSize : w;
@@ -17954,13 +20556,15 @@ public function updateResizeButtonPos(width:Number, height:Number):void {
     setpos(resizeButtonR, right, top, 0, height + buttonSize);
 }
 
-public function applyLassoBoxImageToCanvas(isTransferRefLayer:Boolean):Array {
+public function applyLassoBoxImageToCanvas(isTransferRefLayer:Boolean):Array
+{
     const lassoBMPScaleX:Number = lassoLayer1.scaleX;
     const lassoBMPScaleY:Number = lassoLayer1.scaleY;
     var lassoBMPWidth:Number = lassoLayer1Bitmap.width * lassoBMPScaleX;
     var lassoBMPHeight:Number = lassoLayer1Bitmap.height * lassoBMPScaleY;
 
-    if (checkedLayer === 2 || canvasLayer1Bitmap.visible === false) {
+    if (checkedLayer === 2 || canvasLayer1Bitmap.visible === false)
+    {
         lassoBMPWidth = lassoLayer2Bitmap.width * lassoBMPScaleX;
         lassoBMPHeight = lassoLayer2Bitmap.height * lassoBMPScaleY;
     }
@@ -17978,34 +20582,40 @@ public function applyLassoBoxImageToCanvas(isTransferRefLayer:Boolean):Array {
     lassoLayer1Bitmap.smoothing = true;
     lassoLayer2Bitmap.smoothing = true;
 
-    if (isTransferRefLayer === false) {
+    if (isTransferRefLayer === false)
+    {
         if (canvasLayer1Bitmap.visible)
             canvasLayer1BitmapData.draw(lassoLayer1Bitmap, posMatrix);
         if (canvasLayer2Bitmap.visible)
             canvasLayer2BitmapData.draw(lassoLayer2Bitmap, posMatrix);
     }
-    else {
+    else
+    {
         var layer1Bmpd:BitmapData;
         var layer2Bmpd:BitmapData;
 
-        if (canvasLayer1Bitmap.visible) {
+        if (canvasLayer1Bitmap.visible)
+        {
             layer1Bmpd = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
             layer1Bmpd.draw(lassoLayer1Bitmap, posMatrix);
         }
 
-        if (canvasLayer2Bitmap.visible) {
+        if (canvasLayer2Bitmap.visible)
+        {
             layer2Bmpd = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
             layer2Bmpd.draw(lassoLayer2Bitmap, posMatrix);
         }
 
         mergeImageToRefLayer(layer1Bmpd, layer2Bmpd);
 
-        if (layer1Bmpd) {
+        if (layer1Bmpd)
+        {
             layer1Bmpd.dispose();
             layer1Bmpd = null;
         }
 
-        if (layer2Bmpd) {
+        if (layer2Bmpd)
+        {
             layer2Bmpd.dispose();
             layer2Bmpd = null;
         }
@@ -18013,12 +20623,14 @@ public function applyLassoBoxImageToCanvas(isTransferRefLayer:Boolean):Array {
         resetRefLayerImageTransform();
     }
 
-    if (lassoLayer1LastBitmapdata) {
+    if (lassoLayer1LastBitmapdata)
+    {
         lassoLayer1LastBitmapdata.dispose();
         lassoLayer1LastBitmapdata = null;
     }
 
-    if (lassoLayer2LastBitmapdata) {
+    if (lassoLayer2LastBitmapdata)
+    {
         lassoLayer2LastBitmapdata.dispose();
         lassoLayer2LastBitmapdata = null;
     }
@@ -18028,11 +20640,14 @@ public function applyLassoBoxImageToCanvas(isTransferRefLayer:Boolean):Array {
             ang, boxX, boxY];
 }
 
-public function applyLassoImageToCanvas():void {
-    if (isLassoToolStarted === true) {
+public function applyLassoImageToCanvas():void
+{
+    if (isLassoToolStarted === true)
+    {
         if (hasLassoImageChanges() === true) // 사용후에 ok하면 처리해줌
         {
-            if (isDeepUndoEnabled) {
+            if (isDeepUndoEnabled)
+            {
                 applyDeepUndo();
             }
 
@@ -18041,18 +20656,21 @@ public function applyLassoImageToCanvas():void {
             const point2:Array = lassoTransformData[1].concat();
             var command:Array = null;
 
-            if (lassoLayerCommandData && lassoLayerCommandData.length > 0) {
+            if (lassoLayerCommandData && lassoLayerCommandData.length > 0)
+            {
                 command = lassoLayerCommandData.concat();
             }
 
             var checklayer1:Boolean = canvasLayer1Bitmap.visible;
             var checklayer2:Boolean = canvasLayer2Bitmap.visible;
 
-            if (checkedLayer === 1) {
+            if (checkedLayer === 1)
+            {
                 checklayer1 = true;
                 checklayer2 = false;
             }
-            else if (checkedLayer === 2) {
+            else if (checkedLayer === 2)
+            {
                 checklayer1 = false;
                 checklayer2 = true;
             }
@@ -18065,7 +20683,8 @@ public function applyLassoImageToCanvas():void {
                         , command]);
             undoManager.addNew();
         }
-        else {
+        else
+        {
             lassoCancelBmpd();
         }
 
@@ -18074,38 +20693,47 @@ public function applyLassoImageToCanvas():void {
     resetLassoBox();
 }
 
-public function disposeLassoBoxBitmapData():void {
-    if (lassoLayer1Bitmap.bitmapData) {
+public function disposeLassoBoxBitmapData():void
+{
+    if (lassoLayer1Bitmap.bitmapData)
+    {
         lassoLayer1Bitmap.bitmapData.dispose();
     }
-    if (lassoLayer2Bitmap.bitmapData) {
+    if (lassoLayer2Bitmap.bitmapData)
+    {
         lassoLayer2Bitmap.bitmapData.dispose();
     }
 }
 
-public function lassoCancelBmpd():void {
-    if (lassoLayer1LastBitmapdata) {
+public function lassoCancelBmpd():void
+{
+    if (lassoLayer1LastBitmapdata)
+    {
         canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, lassoLayer1LastBitmapdata, canvasLayer1Bitmap);
     }
 
-    if (lassoLayer2LastBitmapdata) {
+    if (lassoLayer2LastBitmapdata)
+    {
         canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, lassoLayer2LastBitmapdata, canvasLayer2Bitmap);
     }
 
     canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
 
-    if (isCanvasWindowON) {
+    if (isCanvasWindowON)
+    {
         updateCanvasWindowImage();
     }
 }
 
-public function cancelLassoTool():void {
+public function cancelLassoTool():void
+{
     disposeLassoBoxBitmapData();
     lassoCancelBmpd();
     resetLassoBox();
 }
 
-public function selectPenTool(lineFlag:Boolean = false):void {
+public function selectPenTool(lineFlag:Boolean = false):void
+{
     setSelectedTool((lineFlag) ? TOOL_LINE : TOOL_PEN);
     toggleAirBrushCheckBox(isPenAirBrushON, true);
     setDrawToolSize(penSizeIndex);
@@ -18117,26 +20745,30 @@ public function selectPenTool(lineFlag:Boolean = false):void {
     toolOptionsBox.updatePenShapeSet(penIsSquare);
     penCursorManager.check();
 
-    if (toolOptionsBox.isSizeButtonsDisabled()) {
+    if (toolOptionsBox.isSizeButtonsDisabled())
+    {
         toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
     }
 
     toolOptionsBox.enablePenSmoothingSlider();
 }
 
-public function selectLineTool():void {
+public function selectLineTool():void
+{
     selectPenTool(true);
     toolOptionsBox.disablePenSmoothingSlider();
 }
 
-public function selectEraseTool():void {
+public function selectEraseTool():void
+{
     setSelectedTool(TOOL_ERASER);
     toggleAirBrushCheckBox(isEraserAirBrushON, false);
     setDrawToolSize(eraserSizeIndex);
     updateDrawToolAlpha(eraserAlpha);
     updateOpacityCursorPos(eraserAlphaIndex);
 
-    if (lastEraserPosButton) {
+    if (lastEraserPosButton)
+    {
         lastEraserPosButton.visible = true;
     }
 
@@ -18147,14 +20779,16 @@ public function selectEraseTool():void {
     toolOptionsBox.updatePenShapeSet(eraserIsSquare);
     penCursorManager.check();
 
-    if (toolOptionsBox.isSizeButtonsDisabled()) {
+    if (toolOptionsBox.isSizeButtonsDisabled())
+    {
         toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
     }
 
     toolOptionsBox.disablePenSmoothingSlider();
 }
 
-public function selectFillPenTool():void {
+public function selectFillPenTool():void
+{
     setSelectedTool(TOOL_FILLPEN);
     toolBox.moveToolCursor("toolFillPen");
     penSizePreviewCursor.visible = false;
@@ -18166,56 +20800,66 @@ public function selectFillPenTool():void {
     updateToolOptionsTextBySelectedTool();
 }
 
-public function selectMoveTool():void {
+public function selectMoveTool():void
+{
     updateToolOptionsTextBySelectedTool();
     setSelectedTool(TOOL_MOVE);
     toolBox.moveToolCursor("toolMove");
-    if (toolOptionsBox.isSizeButtonsDisabled()) {
+    if (toolOptionsBox.isSizeButtonsDisabled())
+    {
         toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
     }
     toolOptionsBox.enablePenSmoothingSlider();
 }
 
-public function selectZoomTool():void {
+public function selectZoomTool():void
+{
     updateToolOptionsTextBySelectedTool();
     setSelectedTool(TOOL_ZOOM);
     toolBox.moveToolCursor("toolZoomIn", canvasInfoBox);
 
-    if (toolOptionsBox.isSizeButtonsDisabled()) {
+    if (toolOptionsBox.isSizeButtonsDisabled())
+    {
         toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
     }
     toolOptionsBox.enablePenSmoothingSlider();
 }
 
-public function selectRotateTool():void {
+public function selectRotateTool():void
+{
     updateToolOptionsTextBySelectedTool();
     setSelectedTool(TOOL_ROTATE);
     toolBox.moveToolCursor("toolRotate", canvasInfoBox);
 
-    if (toolOptionsBox.isSizeButtonsDisabled()) {
+    if (toolOptionsBox.isSizeButtonsDisabled())
+    {
         toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
     }
     toolOptionsBox.enablePenSmoothingSlider();
 }
 
-public function selectLassoTool():void {
+public function selectLassoTool():void
+{
     updateToolOptionsTextBySelectedTool();
     setSelectedTool(TOOL_LASSO);
     toolBox.moveToolCursor("toolLasso");
     moveEraserButtonToOtherTool("toolLasso");
 
-    if (toolOptionsBox.isSizeButtonsDisabled()) {
+    if (toolOptionsBox.isSizeButtonsDisabled())
+    {
         toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
     }
     toolOptionsBox.enablePenSmoothingSlider();
 }
 
-public function moveEraserButtonToOtherTool(toolName:String):void {
+public function moveEraserButtonToOtherTool(toolName:String):void
+{
     const nowButton2:SimpleButton = toolBox2.getChildByName(toolName) as SimpleButton;
     if (!nowButton2)
         return;
 
-    if (lastEraserPosButton) {
+    if (lastEraserPosButton)
+    {
         if (lastEraserPosButton.x !== nowButton2.x
                 || lastEraserPosButton.y !== nowButton2.y) // 위치가 다를 때에만 보여줌
         {
@@ -18233,7 +20877,8 @@ public function moveEraserButtonToOtherTool(toolName:String):void {
 }
 
 // 라소박스 변형이랑 플래그 초기화
-public function resetLassoBox():void {
+public function resetLassoBox():void
+{
     removeInputEventsLassoTool();
     isLassoToolStarted = false;
     isLassoMirrorON = false;
@@ -18264,12 +20909,14 @@ public function resetLassoBox():void {
     lassoMenuBox.lassoLayerMerge.alpha = 1.0;
     lassoToolFunction.resetPosData();
 
-    if (lassoLayer1LastBitmapdata) {
+    if (lassoLayer1LastBitmapdata)
+    {
         lassoLayer1LastBitmapdata.dispose();
         lassoLayer1LastBitmapdata = null;
     }
 
-    if (lassoLayer2LastBitmapdata) {
+    if (lassoLayer2LastBitmapdata)
+    {
         lassoLayer2LastBitmapdata.dispose();
         lassoLayer2LastBitmapdata = null;
     }
@@ -18277,7 +20924,8 @@ public function resetLassoBox():void {
     if (isRefLayerMenuON === true)
         refLayerMenuBox.visible = true;
 
-    if (toolOptionsBox.layer1CheckedButton.visible || toolOptionsBox.layer2CheckedButton.visible) {
+    if (toolOptionsBox.layer1CheckedButton.visible || toolOptionsBox.layer2CheckedButton.visible)
+    {
         toolBox.setToolButtonsForCheckedLayerON();
     }
 
@@ -18295,7 +20943,8 @@ public function resetLassoBox():void {
 
 // stage를 기준으로 사각형 꼭지점들 구하기
 // 회전이나 기준점 상관없이 보이는 그대로 리턴함
-public function getBoundRect(ent:DisplayObject):Object {
+public function getBoundRect(ent:DisplayObject):Object
+{
     const b:Rectangle = ent.getBounds(stage);
     const tl:Point = b.topLeft;
     const br:Point = b.bottomRight;
@@ -18313,7 +20962,8 @@ public function getBoundRect(ent:DisplayObject):Object {
     return o;
 }
 
-public function moveCanvasAnchorPoint(tx:Number, ty:Number, replayMode:Boolean = false):void {
+public function moveCanvasAnchorPoint(tx:Number, ty:Number, replayMode:Boolean = false):void
+{
     tx = Math.round(tx);
     ty = Math.round(ty);
 
@@ -18321,18 +20971,21 @@ public function moveCanvasAnchorPoint(tx:Number, ty:Number, replayMode:Boolean =
     var xCanvas:Sprite;
     var xZoomed:Number;
 
-    if (replayMode) {
+    if (replayMode)
+    {
         xAnc = rCanvasAnchorPoint;
         xCanvas = rCanvasPanel;
         xZoomed = rCanvasZoomMultiplier;
     }
-    else {
+    else
+    {
         xAnc = canvasAnchorPoint;
         xCanvas = canvasPanel;
         xZoomed = canvasZoomMultipler;
     }
 
-    if (xAnc.x === tx && xAnc.y === ty) {
+    if (xAnc.x === tx && xAnc.y === ty)
+    {
         return;
     }
 
@@ -18350,7 +21003,8 @@ public function moveCanvasAnchorPoint(tx:Number, ty:Number, replayMode:Boolean =
 
 // 0,0을 기준으로 점tx,ty를 rad만큼 회전함,
 // 3시 방향이 0도이고, 반시계 방향이 양수값임.
-public function rotatePoint(tx:Number, ty:Number, deg:Number):Point {
+public function rotatePoint(tx:Number, ty:Number, deg:Number):Point
+{
     const rad:Number = -(deg / 180) * Math.PI;
     const cosO:Number = Math.cos(rad);
     const sinO:Number = Math.sin(rad);
@@ -18359,12 +21013,14 @@ public function rotatePoint(tx:Number, ty:Number, deg:Number):Point {
     return rp;
 }
 
-public function updateRefLayerBitmapPos(pos:Point):void {
+public function updateRefLayerBitmapPos(pos:Point):void
+{
     canvasRefLayerBitmap.x += -pos.x * (1 / canvasRefLayer.scaleX);
     canvasRefLayerBitmap.y += -pos.y * (1 / canvasRefLayer.scaleY);
 }
 
-public function getCanvasMovedUndo(index:int, redoFlag:Boolean):Point {
+public function getCanvasMovedUndo(index:int, redoFlag:Boolean):Point
+{
     const prevData:Array = (redoFlag) ? rData[index] : rData[index + 1];
     if (!prevData)
         return null;
@@ -18373,8 +21029,10 @@ public function getCanvasMovedUndo(index:int, redoFlag:Boolean):Point {
     var xSum:Number = 0;
     var ySum:Number = 0;
 
-    for (var i:uint = 0; i < len; i++) {
-        if (prevData[i][0] === "canvasSize" && prevData[i][5] === true) {
+    for (var i:uint = 0; i < len; i++)
+    {
+        if (prevData[i][0] === "canvasSize" && prevData[i][5] === true)
+        {
             xSum += prevData[i][3];
             ySum += prevData[i][4];
         }
@@ -18388,7 +21046,8 @@ public function getCanvasMovedUndo(index:int, redoFlag:Boolean):Point {
     return movedXY;
 }
 
-public function drawUndoData(redoFlag:Boolean = false):void {
+public function drawUndoData(redoFlag:Boolean = false):void
+{
     const undoRefData:Array = undoManager.getUndoBaseImage();
     const undoIndexSave:int = undoDataIndex;
 
@@ -18398,10 +21057,12 @@ public function drawUndoData(redoFlag:Boolean = false):void {
     rNowFrame = getNowFrameUntilUndoIndex(undoIndexSave);
 
     rMirrorON = undoRefData[5];
-    if (undoRefData[2] !== RCANVAS_WIDTH || undoRefData[3] !== RCANVAS_HEIGHT) {
+    if (undoRefData[2] !== RCANVAS_WIDTH || undoRefData[3] !== RCANVAS_HEIGHT)
+    {
         updateCanvasSizeReplayMode(undoRefData[2], undoRefData[3], 0, 0, false);
     }
-    if (undoRefData[4] !== RCANVAS_BG_COLOR) {
+    if (undoRefData[4] !== RCANVAS_BG_COLOR)
+    {
         updateCanvasBGColorReplayMode(undoRefData[4]);
     }
 
@@ -18410,8 +21071,10 @@ public function drawUndoData(redoFlag:Boolean = false):void {
     rCanvasLayer1BitmapData = updateBitmapData(rCanvasLayer1BitmapData, undoRefData[0], rCanvasLayer1Bitmap);
     rCanvasLayer2BitmapData = updateBitmapData(rCanvasLayer2BitmapData, undoRefData[1], rCanvasLayer2Bitmap);
 
-    if (rData.length > 0) {
-        for (var i:int = 0; i <= undoIndexSave; i++) {
+    if (rData.length > 0)
+    {
+        for (var i:int = 0; i <= undoIndexSave; i++)
+        {
             if (!rData[i])
                 continue;
 
@@ -18424,7 +21087,8 @@ public function drawUndoData(redoFlag:Boolean = false):void {
     updateCavnvasSizeDrawMode(RCANVAS_WIDTH, RCANVAS_HEIGHT, 0, 0, false);
     // 앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
     const movedRegPos:Point = getCanvasMovedUndo(undoIndexSave, redoFlag);
-    if (movedRegPos) {
+    if (movedRegPos)
+    {
         canvasAnchorPoint.x += movedRegPos.x * canvasZoomMultipler;
         canvasAnchorPoint.y += movedRegPos.y * canvasZoomMultipler;
         updateRefLayerBitmapPos(movedRegPos);
@@ -18438,7 +21102,8 @@ public function drawUndoData(redoFlag:Boolean = false):void {
 
     canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
 
-    if (isCanvasWindowON) {
+    if (isCanvasWindowON)
+    {
         updateCanvasWindowImage();
         updateCanvasWindowBitmapSize();
     }
@@ -18448,25 +21113,31 @@ public function drawUndoData(redoFlag:Boolean = false):void {
     enableNewFileButton();
 }
 
-public function redo():void {
-    if (isDeepUndoEnabled) {
+public function redo():void
+{
+    if (isDeepUndoEnabled)
+    {
         moveToNextStep();
         applyReplayCanvasToDrawModeCanvas();
         startAlphaFadeOut(rReplayFOFOCursor, 1.0, 0.3);
 
-        if (rNowFrame >= undoManager.getRFileTotalFrame()) {
+        if (rNowFrame >= undoManager.getRFileTotalFrame())
+        {
             disableDeepUndo();
             undoDataIndex = -1;
         }
     }
-    else {
+    else
+    {
         undoDataIndex++;
-        if (undoDataIndex > rData.length - 1) {
+        if (undoDataIndex > rData.length - 1)
+        {
             isFileAlreadySaved = false;
             isDeleteUndoDataPending = false;
             undoDataIndex = rData.length - 1;
         }
-        else if (rData.length > 0) {
+        else if (rData.length > 0)
+        {
             isFileAlreadySaved = false;
             drawUndoData(true);
             startAlphaFadeOut(rReplayFOFOCursor, 1.0, 0.3);
@@ -18474,31 +21145,39 @@ public function redo():void {
     }
 }
 
-public function undo():void {
-    if (isGeneratingCacheImages()) {
+public function undo():void
+{
+    if (isGeneratingCacheImages())
+    {
         removeKeyRepeatEvents(null);
         return;
     }
 
-    if (isDeepUndoEnabled) {
-        if (rNowFrame > 0) {
+    if (isDeepUndoEnabled)
+    {
+        if (rNowFrame > 0)
+        {
             moveToPreviousStep();
             applyReplayCanvasToDrawModeCanvas();
             startAlphaFadeOut(rReplayFOFOCursor, 1.0, 0.3);
         }
     }
-    else {
+    else
+    {
         undoDataIndex--;
-        if (undoDataIndex < -1) {
+        if (undoDataIndex < -1)
+        {
             isFileAlreadySaved = false;
             undoDataIndex = -1;
 
-            if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY || (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE && undoManager.getRFileTotalFrame() > 0)) {
+            if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY || (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE && undoManager.getRFileTotalFrame() > 0))
+            {
                 enableDeepUndo();
                 startAlphaFadeOut(rReplayFOFOCursor, 1.0, 0.3);
             }
         }
-        else if (rData.length > 0) {
+        else if (rData.length > 0)
+        {
             isFileAlreadySaved = false;
             isDeleteUndoDataPending = true;
             drawUndoData();
@@ -18507,7 +21186,8 @@ public function undo():void {
     }
 }
 
-public function applyReplayCanvasToDrawModeCanvas():void {
+public function applyReplayCanvasToDrawModeCanvas():void
+{
     canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, rCanvasLayer1BitmapData, canvasLayer1Bitmap);
     canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, rCanvasLayer2BitmapData, canvasLayer2Bitmap);
     updateCavnvasSizeDrawMode(rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height, 0, 0, false);
@@ -18517,23 +21197,29 @@ public function applyReplayCanvasToDrawModeCanvas():void {
     checkMirrorCanvasReplayMirror();
     canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, RCANVAS_BG_COLOR);
 
-    if (isCanvasWindowON) {
+    if (isCanvasWindowON)
+    {
         updateCanvasWindowImage();
         updateCanvasWindowBitmapSize();
     }
 }
 
-public function undoToIndex(index:int):void {
+public function undoToIndex(index:int):void
+{
     undoDataIndex = index;
     isFileAlreadySaved = false;
     enableNewFileButton();
     drawUndoData();
 }
 
-public function pollTimerWaitWorkerForCacheUndoData():void {
-    if (!hasTimer("workerUndoDataTimer")) {
-        addTimerByName("workerUndoDataTimer", WORKER_WAIT_INTERVAL, true, function():Boolean {
-                if (receivedUndoImageQueueFromWorker.length > 0) {
+public function pollTimerWaitWorkerForCacheUndoData():void
+{
+    if (!hasTimer("workerUndoDataTimer"))
+    {
+        addTimerByName("workerUndoDataTimer", WORKER_WAIT_INTERVAL, true, function():Boolean
+            {
+                if (receivedUndoImageQueueFromWorker.length > 0)
+                {
                     createCacheImage(receivedUndoImageQueueFromWorker[0][0],
                             receivedUndoImageQueueFromWorker[0][1],
                             undoDataQueue[0][0],
@@ -18552,7 +21238,8 @@ public function pollTimerWaitWorkerForCacheUndoData():void {
                     receivedUndoImageQueueFromWorker.shift();
                     undoDataQueue.shift();
                 }
-                else if (undoDataQueue.length === 0 && receivedUndoImageQueueFromWorker.length === 0) {
+                else if (undoDataQueue.length === 0 && receivedUndoImageQueueFromWorker.length === 0)
+                {
                     receivedUndoImageQueueFromWorker = null;
                     undoDataQueue = null;
 
@@ -18563,7 +21250,8 @@ public function pollTimerWaitWorkerForCacheUndoData():void {
     }
 }
 
-public function cAddUndoData():Object {
+public function cAddUndoData():Object
+{
     var dataWriteCount:uint = 0; // 데이터로 저장할때  rDataFrame 카운터 누적
     var rFileTotalFrame:Number = 0; // file에저장된 프레임수 누적해서 저장
     // undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
@@ -18574,16 +21262,19 @@ public function cAddUndoData():Object {
             , CANVAS_BG_COLOR
             , isCanvasMirrored];
 
-    function resetRJumpImageCount():void {
+    function resetRJumpImageCount():void
+    {
         dataWriteCount = 0;
     }
 
-    function updateUndoBaseImageMirrorFlag(flag:Boolean):void {
+    function updateUndoBaseImageMirrorFlag(flag:Boolean):void
+    {
         undoBaseImage[5] = flag;
 
     }
 
-    function updateUndoBaseImageFromReplayMode():void {
+    function updateUndoBaseImageFromReplayMode():void
+    {
         undoManager.updateUndoBaseImage(rCanvasLayer1BitmapData.clone(),
                 rCanvasLayer2BitmapData.clone(),
                 rCanvasLayer1BitmapData.width,
@@ -18592,7 +21283,8 @@ public function cAddUndoData():Object {
                 rMirrorON);
     }
 
-    function updateUndoBaseImageFromDrawMode():void {
+    function updateUndoBaseImageFromDrawMode():void
+    {
         undoManager.updateUndoBaseImage(canvasLayer1BitmapData.clone(),
                 canvasLayer2BitmapData.clone(),
                 canvasLayer1BitmapData.width,
@@ -18601,13 +21293,16 @@ public function cAddUndoData():Object {
                 isCanvasMirrored);
     }
 
-    function updateReplayCanvasFromUndoBaseInfo():void {
+    function updateReplayCanvasFromUndoBaseInfo():void
+    {
         var rMirrorSave:Boolean = rMirrorON;
 
-        if (undoBaseImage[2] !== RCANVAS_WIDTH || undoBaseImage[3] !== RCANVAS_HEIGHT) {
+        if (undoBaseImage[2] !== RCANVAS_WIDTH || undoBaseImage[3] !== RCANVAS_HEIGHT)
+        {
             updateCanvasSizeReplayMode(undoBaseImage[2], undoBaseImage[3], 0, 0, false);
         }
-        if (undoBaseImage[4] !== RCANVAS_BG_COLOR) {
+        if (undoBaseImage[4] !== RCANVAS_BG_COLOR)
+        {
             updateCanvasBGColorReplayMode(undoBaseImage[4]);
         }
 
@@ -18617,10 +21312,12 @@ public function cAddUndoData():Object {
         drawReplayByCommand.setData(rData[0]);
         drawReplayByCommand.drawAll();
 
-        if (undoBaseImage[0] && undoBaseImage[0] !== rCanvasLayer1BitmapData) {
+        if (undoBaseImage[0] && undoBaseImage[0] !== rCanvasLayer1BitmapData)
+        {
             undoBaseImage[0].dispose();
         }
-        if (undoBaseImage[1] && undoBaseImage[1] !== rCanvasLayer2BitmapData) {
+        if (undoBaseImage[1] && undoBaseImage[1] !== rCanvasLayer2BitmapData)
+        {
             undoBaseImage[1].dispose();
         }
 
@@ -18630,22 +21327,27 @@ public function cAddUndoData():Object {
         undoBaseImage[3] = RCANVAS_HEIGHT;
         undoBaseImage[4] = RCANVAS_BG_COLOR;
 
-        if (rMirrorON !== rMirrorSave) {
+        if (rMirrorON !== rMirrorSave)
+        {
             undoBaseImage[5] = !undoBaseImage[5];
         }
 
         drawReplayByCommand.setFirstRCursorPosCurrent();
     }
 
-    function getUndoBaseImage():Array {
+    function getUndoBaseImage():Array
+    {
         return undoBaseImage;
     }
 
-    function updateUndoBaseImage(bmpd1:BitmapData, bmpd2:BitmapData, width:Number, height:Number, bgColor:uint, mirrorFlag:Boolean):void {
-        if (undoBaseImage[0] && bmpd1 !== undoBaseImage[0]) {
+    function updateUndoBaseImage(bmpd1:BitmapData, bmpd2:BitmapData, width:Number, height:Number, bgColor:uint, mirrorFlag:Boolean):void
+    {
+        if (undoBaseImage[0] && bmpd1 !== undoBaseImage[0])
+        {
             undoBaseImage[0].dispose();
         }
-        if (undoBaseImage[1] && bmpd2 !== undoBaseImage[1]) {
+        if (undoBaseImage[1] && bmpd2 !== undoBaseImage[1])
+        {
             undoBaseImage[1].dispose();
         }
 
@@ -18658,65 +21360,79 @@ public function cAddUndoData():Object {
     }
 
     // undo index까지의 프레임 합을 구함
-    function getRDataTotalFrame(index:int):Number {
-        if (index < 0) {
+    function getRDataTotalFrame(index:int):Number
+    {
+        if (index < 0)
+        {
             return 0;
         }
 
         var sum:Number = 0;
 
-        for (var i:int = 0; i <= index; i++) {
+        for (var i:int = 0; i <= index; i++)
+        {
             sum += rDataFrame[i];
         }
 
         return sum;
     }
 
-    function getRFileTotalFrame():Number {
+    function getRFileTotalFrame():Number
+    {
         return rFileTotalFrame;
     }
 
-    function setRFileTotalFrame(frame:Number):void {
+    function setRFileTotalFrame(frame:Number):void
+    {
         rFileTotalFrame = frame;
     }
 
     // 미러가 되어있는지 확인해서 mirror커맨드를 무조건 앞으로 보냄
     // 그게 아니면 미러 커맨드 지워줌
-    function updateLastRDataMirror():void {
+    function updateLastRDataMirror():void
+    {
         var popArr:Array;
 
-        if (mirrorCommandReady) {
+        if (mirrorCommandReady)
+        {
             // 마지막 데이터에 1개만의 미러 커맨드가 있으먼 미러를 무효로함 mirror mirror니까 원래대로임
-            if (rData.length > 0 && rData[rData.length - 1].length === 1 && rData[rData.length - 1][0][0] === "mirror") {
+            if (rData.length > 0 && rData[rData.length - 1].length === 1 && rData[rData.length - 1][0][0] === "mirror")
+            {
                 mirrorCommandReady = false;
                 rData.pop();
                 rDataFrame.pop();
             } // 그게 아니면 가장 앞에 미러커맨드를 넣어줌
-            else if (rDataBuffer.length > 0 && rDataBuffer[0][0] !== "mirror") {
+            else if (rDataBuffer.length > 0 && rDataBuffer[0][0] !== "mirror")
+            {
                 mirrorCommandReady = false;
                 rDataBuffer.unshift(["mirror"]);
             }
         }
-        else {
+        else
+        {
             // 미러 커맨드가 꺼져있는데 독립인 미러커맨드가 있으면 지워주고 미러 커맨드 플래그를 올려줘서 다음번에
             // 미러 커맨드가 가장 앞에 오도록함
-            if (rData.length > 0 && rData[rData.length - 1].length === 1 && rData[rData.length - 1][0][0] === "mirror") {
+            if (rData.length > 0 && rData[rData.length - 1].length === 1 && rData[rData.length - 1][0][0] === "mirror")
+            {
                 rData.pop();
                 rDataFrame.pop();
                 mirrorCommandReady = true;
             } // 그게 아니면 그냥 지워줌
-            else if (rDataBuffer.length > 0 && rDataBuffer[0][0] === "mirror") {
+            else if (rDataBuffer.length > 0 && rDataBuffer[0][0] === "mirror")
+            {
                 rDataBuffer.shift();
             }
         }
     }
 
     // 끝 부분 중복처리 일때 넣어주는 거
-    function addContinue():void {
+    function addContinue():void
+    {
         if (rData.length === 0)
             return;
 
-        if (isDeleteUndoDataPending) {
+        if (isDeleteUndoDataPending)
+        {
             isDeleteUndoDataPending = false;
             rData.splice(undoDataIndex + 1);
             rDataFrame.splice(undoDataIndex + 1);
@@ -18726,7 +21442,8 @@ public function cAddUndoData():Object {
 
         // 버퍼에mirror가 있을수도 있기 때문에 요소를 하나씩 push해주어야함
         const len:uint = rDataBuffer.length;
-        for (var i:uint = 0; i < len; i++) {
+        for (var i:uint = 0; i < len; i++)
+        {
             rData[rData.length - 1].push(rDataBuffer[i]); // 배열안에 배열이 들어있음
         }
 
@@ -18738,14 +21455,17 @@ public function cAddUndoData():Object {
 
         canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
 
-        if (isCanvasWindowON) {
+        if (isCanvasWindowON)
+        {
             updateCanvasWindowImage();
             updateCanvasWindowBitmapSize();
         }
     }
 
-    function addNew():void {
-        if (isDeleteUndoDataPending === true) {
+    function addNew():void
+    {
+        if (isDeleteUndoDataPending === true)
+        {
             isDeleteUndoDataPending = false;
             rData.splice(undoDataIndex + 1);
             rDataFrame.splice(undoDataIndex + 1);
@@ -18754,7 +21474,8 @@ public function cAddUndoData():Object {
         {
             var oldData:Array = rData[0];
 
-            if (oldData.length > 0) {
+            if (oldData.length > 0)
+            {
                 const fs:FileStream = new FileStream();
                 const c:uint = rDataFrame[0];
                 const rf:File = replayDataFilePath;
@@ -18768,8 +21489,10 @@ public function cAddUndoData():Object {
                 dataWriteCount += c;
                 updateReplayCanvasFromUndoBaseInfo();
 
-                if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE) {
-                    if (dataWriteCount > REPLAY_DISK_CACHE_FRAME_INTERVAL) {
+                if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE)
+                {
+                    if (dataWriteCount > REPLAY_DISK_CACHE_FRAME_INTERVAL)
+                    {
                         dataWriteCount = 0;
                         const data:Array = undoBaseImage;
                         const bmpd:BitmapData = data[0];
@@ -18807,7 +21530,8 @@ public function cAddUndoData():Object {
 
         updateLastRDataMirror();
 
-        if (rDataBuffer.length > 0) {
+        if (rDataBuffer.length > 0)
+        {
             rData.push(rDataBuffer);
             rDataFrame.push(rDataBuffer.length);
             rDataBuffer = [];
@@ -18818,7 +21542,8 @@ public function cAddUndoData():Object {
         undoDataIndex = rData.length - 1;
         canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
 
-        if (isCanvasWindowON) {
+        if (isCanvasWindowON)
+        {
             updateCanvasWindowImage();
         }
 
@@ -18845,15 +21570,18 @@ public function cAddUndoData():Object {
 }
 
 // hsv커서가 color에 맞춰서 위치를 움직여줌
-public function updateColorPickerCursorPosAndRGBInfo(color:*):void {
+public function updateColorPickerCursorPosAndRGBInfo(color:*):void
+{
     var hexColor:uint;
     var hsvColor:Vector.<Number>;
 
-    if (color is uint) {
+    if (color is uint)
+    {
         hexColor = color as uint;
         hsvColor = Global.HEXtoHSV(hexColor, hsvColorData[0]);
     }
-    else if (color is Vector.<Number>) {
+    else if (color is Vector.<Number>)
+    {
         hexColor = Global.HSVtoHEX(color[0], color[1], color[2]);
         hsvColor = color as Vector.<Number>;
     }
@@ -18879,16 +21607,19 @@ public function updateColorPickerCursorPosAndRGBInfo(color:*):void {
     colorPickerBox.updateHueColor(baseHexColor);
     colorPickerBox.updateRGBInfoBG(hexColor, myPalettePresetType);
 
-    if (isHSVInfoTextMode) {
+    if (isHSVInfoTextMode)
+    {
         colorPickerBox.updateRGBInfoText("HSV", hsvColor);
     }
-    else {
+    else
+    {
         colorPickerBox.updateRGBInfoText("RGB", hexColor);
     }
 }
 
 // opabox의 커서 위치와 색깔을 바꿈
-public function updateOpacityCursorPos(index:int):void {
+public function updateOpacityCursorPos(index:int):void
+{
     if (index <= 0)
         return;
 
@@ -18901,33 +21632,39 @@ public function updateOpacityCursorPos(index:int):void {
     toolOptionsBox.opaCursor.y = curButton.y;
 }
 
-public function updateDrawToolAlpha(alpha:Number = 0.0):void {
+public function updateDrawToolAlpha(alpha:Number = 0.0):void
+{
 
     var index:int = penAlphaList.indexOf(alpha);
     const eraseFlag:Boolean = isSelectedTool(TOOL_ERASER);
 
     updateOpacityCursorPos(index);
 
-    if (eraseFlag === false) {
+    if (eraseFlag === false)
+    {
         penAlpha = alpha;
         penAlphaIndex = index;
     }
-    else if (eraseFlag === true) {
+    else if (eraseFlag === true)
+    {
         eraserAlpha = alpha;
         eraserAlphaIndex = index;
     }
 }
 
-public function cDrawDot():Function {
+public function cDrawDot():Function
+{
     const cmd:Vector.<int> = new Vector.<int>();
     const pos:Vector.<Number> = new Vector.<Number>();
 
-    return function(shape:Boolean, size:uint, color:uint, posX:Number, posY:Number, rotation:Number):void {
+    return function(shape:Boolean, size:uint, color:uint, posX:Number, posY:Number, rotation:Number):void
+    {
         canvasDrawLayerChild.graphics.clear();
         canvasDrawLayerChild.graphics.lineStyle(0, 0, 0);
         canvasDrawLayerChild.graphics.beginFill(color);
 
-        if (shape === true) {
+        if (shape === true)
+        {
             cmd.length = 0;
             pos.length = 0;
 
@@ -18953,7 +21690,8 @@ public function cDrawDot():Function {
 
             canvasDrawLayerChild.graphics.drawPath(cmd, pos);
         }
-        else {
+        else
+        {
             canvasDrawLayerChild.graphics.drawCircle(posX, posY, size / 2);
         }
         canvasDrawLayerChild.graphics.endFill();
@@ -18961,7 +21699,8 @@ public function cDrawDot():Function {
 
 }
 
-public function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = false):void {
+public function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = false):void
+{
     // direction: "left" or "right"
     const isRight:Boolean = (direction === "right");
 
@@ -18987,27 +21726,33 @@ public function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = f
     toolBox.x = isRight ? -2 : 177;
     toolBox.y = Math.floor(toolOptionsBox.y + 1);
 
-    if (!isRight && toolBox.getDeafultY() === 0) {
+    if (!isRight && toolBox.getDeafultY() === 0)
+    {
         toolBox.setDeafultY(toolBox.y);
     }
 
     resetScrollBarX();
     sideBar.y = topBar.BARSIZE * topBar.scaleX;
 
-    if (!ignoreCheckStageOffset) {
-        if (isRight) {
+    if (!ignoreCheckStageOffset)
+    {
+        if (isRight)
+        {
             canvasAnchorPoint.x -= STAGE_RIGHT_OFFSET;
         }
-        else {
+        else
+        {
             canvasAnchorPoint.x += STAGE_LEFT_OFFSET;
         }
     }
 
-    if (sideBar.visible) {
+    if (sideBar.visible)
+    {
         topBar.sideBarOFFButton.visible = isRight;
         topBar.sideBarOFFButton2.visible = !isRight;
     }
-    else {
+    else
+    {
         topBar.sideBarONButton.visible = isRight;
         topBar.sideBarONButton2.visible = !isRight;
     }
@@ -19017,18 +21762,21 @@ public function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = f
 
     checkFOFOPosition();
 
-    if (isLassoToolStarted) {
+    if (isLassoToolStarted)
+    {
         keepBoxInsideViewPort(lassoMenuBox);
     }
 
-    if (isRefLayerMenuON) {
+    if (isRefLayerMenuON)
+    {
         keepBoxInsideViewPort(refLayerMenuBox);
     }
 
     hideBottomHint();
 }
 
-public function updateScrollBarColorAndHeight():void {
+public function updateScrollBarColorAndHeight():void
+{
     const scale:Number = Global.getUIScale();
     const topBarHeight:Number = Math.round(topBar.BARSIZE * scale);
 
@@ -19045,7 +21793,8 @@ public function updateScrollBarColorAndHeight():void {
     scrollBarHeight = height;
 }
 
-public function initializeAppMenus():void {
+public function initializeAppMenus():void
+{
     aboutBox.name = "aboutPanel";
     aboutBox.setVersionInfo(APP_VERSION.toFixed(2));
     topBar.name = "topBar";
@@ -19100,7 +21849,8 @@ public function initializeAppMenus():void {
     stage.addChild(selectedToolViewBitmap);
 }
 
-public function initializeReplayCanvas():void {
+public function initializeReplayCanvas():void
+{
     rCanvasPanel.name = "rCanvasPanel";
     rCanvasAnchorPoint.name = "rCanvasAnchorPoint";
     rCanvasLayer1Bitmap.name = "rCanvasLayer1Bitmap";
@@ -19138,7 +21888,8 @@ public function initializeReplayCanvas():void {
     seekBarBox.x = 0;
 }
 
-public function initializeCanvas():void {
+public function initializeCanvas():void
+{
     var g:Graphics;
 
     canvasPanel.name = "canvasPanel";
@@ -19197,14 +21948,17 @@ public function initializeCanvas():void {
     stage.setChildIndex(stageBG, 0);
 }
 
-public function deleteTempDirectory():void {
+public function deleteTempDirectory():void
+{
     const file:File = File.applicationStorageDirectory.resolvePath("tmp");
-    if (file.exists) {
+    if (file.exists)
+    {
         file.deleteDirectory(true);
     }
 }
 
-public function saveAllAppData():void {
+public function saveAllAppData():void
+{
     saveAppSatate();
     saveUndoData();
     saveReplayFrameData();
@@ -19213,47 +21967,60 @@ public function saveAllAppData():void {
     saveScratchPadImage();
 }
 
-public function resetScrollBarX():void {
-    if (sideBarScrollBar.visible === false) {
+public function resetScrollBarX():void
+{
+    if (sideBarScrollBar.visible === false)
+    {
         sideBarScrollBar.x = 0;
     }
-    else if (isRightSidebar) {
+    else if (isRightSidebar)
+    {
         sideBarScrollBar.x = canvasNavigatorBox.x - sideBarScrollBar.width + 4;
     }
-    else {
+    else
+    {
         sideBarScrollBar.x = sideBar.WIDTH;
     }
 }
 
-public function updateScrollBarHeight():void {
+public function updateScrollBarHeight():void
+{
     updateScrollBarColorAndHeight();
     resetScrollBarX();
     keepScrollSetInStage();
 }
 
-public function getSideBarBGHeight():Number {
+public function getSideBarBGHeight():Number
+{
     return (stage.stageHeight - topBar.BARSIZE * Global.getUIScale()) / Global.getUIScale();
 }
 
-public function onWindowResize(e:Event):void {
-    addTimerByName("windowResizeDelayTimer", 0.2, false, function():void {
+public function onWindowResize(e:Event):void
+{
+    addTimerByName("windowResizeDelayTimer", 0.2, false, function():void
+        {
             const dx:Number = Math.round((stage.nativeWindow.width - lastAppWindowSize.x) / 1.75);
             const dy:Number = Math.round((stage.nativeWindow.height - lastAppWindowSize.y) / 1.75);
 
-            if (isCaptureModeON) {
+            if (isCaptureModeON)
+            {
                 captureWindowMove.setTo(dx, dy);
                 fitCanvasToViewportMargin();
 
-                if (!captureAreaManager.isFullImageCapture()) {
+                if (!captureAreaManager.isFullImageCapture())
+                {
                     captureAreaManager.updateDrawArea(true);
                 }
             }
-            else {
-                if (isReplayRestartTimerON()) {
+            else
+            {
+                if (isReplayRestartTimerON())
+                {
                     centerCanvas("replay");
 
                 }
-                else {
+                else
+                {
                     rCanvasAnchorPoint.x = rCanvasAnchorPoint.x + dx;
                     rCanvasAnchorPoint.y = rCanvasAnchorPoint.y + dy;
                 }
@@ -19262,27 +22029,32 @@ public function onWindowResize(e:Event):void {
                 canvasAnchorPoint.y = canvasAnchorPoint.y + dy;
             }
 
-            if (isLassoToolStarted) {
+            if (isLassoToolStarted)
+            {
                 lassoMenuBox.x += dx;
                 lassoMenuBox.y += dy;
                 keepBoxInsideViewPort(lassoMenuBox);
             }
 
-            if (isRefLayerMenuON) {
+            if (isRefLayerMenuON)
+            {
                 refLayerMenuBox.x += dx;
                 refLayerMenuBox.y += dy;
                 keepBoxInsideViewPort(refLayerMenuBox);
             }
 
-            if (isAboutBoxOpened) {
+            if (isAboutBoxOpened)
+            {
                 updateAboutPanelCenterPos();
             }
 
-            if (isReplayModeON) {
+            if (isReplayModeON)
+            {
                 seekBarBox.updatePos(stage.stageWidth);
                 rFollowMouse.updateBounds();
 
-                if (isReplayCanvasFitToWindow) {
+                if (isReplayCanvasFitToWindow)
+                {
                     fitReplayCanvasToViewport();
                 }
             }
@@ -19292,21 +22064,25 @@ public function onWindowResize(e:Event):void {
 
             sideBar.updateSideBGSize(getSideBarBGHeight());
 
-            if (isQuickSidebarActive) {
+            if (isQuickSidebarActive)
+            {
                 deactivateQuickSidebar();
             }
-            else {
+            else
+            {
                 setSidebarDefaultPos();
             }
 
             updateScrollBarHeight();
             updateCanvasNaigatorCursor();
 
-            if (loadMenuBox.visible === true) {
+            if (loadMenuBox.visible === true)
+            {
                 loadMenuBox.updateClickBlockerSize(stage.stageWidth, stage.stageHeight);
             }
 
-            if (selectedToolViewBitmap.visible) {
+            if (selectedToolViewBitmap.visible)
+            {
                 updateSelectedToolViewBoxPos();
             }
 
@@ -19316,8 +22092,10 @@ public function onWindowResize(e:Event):void {
             lastAppWindowSize.setTo(stage.nativeWindow.width, stage.nativeWindow.height);
             hideBottomHint();
 
-            if (isAppClosing) {
-                if (!hasTimer("pollTimerWaitWorkerStop")) {
+            if (isAppClosing)
+            {
+                if (!hasTimer("pollTimerWaitWorkerStop"))
+                {
                     deleteTempDirectory();
                     saveAllAppData();
                     stage.nativeWindow.close();
@@ -19326,7 +22104,8 @@ public function onWindowResize(e:Event):void {
         });
 }
 
-public function updateCanvasScale(zoomValue:Number, isReplayMode:Boolean = false):void {
+public function updateCanvasScale(zoomValue:Number, isReplayMode:Boolean = false):void
+{
     if (!zoomValue)
         zoomValue = 1.0;
     if (zoomValue < 0.0)
@@ -19334,19 +22113,23 @@ public function updateCanvasScale(zoomValue:Number, isReplayMode:Boolean = false
 
     var xAnc:Sprite;
 
-    if (!isReplayMode) {
+    if (!isReplayMode)
+    {
         xAnc = canvasAnchorPoint;
         canvasZoomMultipler = zoomValue;
 
-        if (!isCaptureModeON) {
+        if (!isCaptureModeON)
+        {
             penCursorManager.updateZoom(zoomValue);
         }
     }
-    else {
+    else
+    {
         rCanvasZoomMultiplier = zoomValue;
         xAnc = rCanvasAnchorPoint;
 
-        if (rAirBrushSize > 0) {
+        if (rAirBrushSize > 0)
+        {
             blurReplayCanvasByValue(rAirBrushSize);
         }
     }
@@ -19354,23 +22137,28 @@ public function updateCanvasScale(zoomValue:Number, isReplayMode:Boolean = false
     xAnc.scaleX = zoomValue;
     xAnc.scaleY = zoomValue;
 
-    if (isCaptureModeON && isCaptureCanvasFlipped) {
+    if (isCaptureModeON && isCaptureCanvasFlipped)
+    {
         xAnc.scaleX = -xAnc.scaleX;
     }
 
-    if (!isCaptureModeON) {
+    if (!isCaptureModeON)
+    {
         canvasInfoBox.setZoom(zoomValue);
     }
 
     updateReplayCursorScale(zoomValue);
 }
 
-public function checkWindowMaximizedAndSaveAllData():void {
-    if (stage.nativeWindow.displayState === "maximized") {
+public function checkWindowMaximizedAndSaveAllData():void
+{
+    if (stage.nativeWindow.displayState === "maximized")
+    {
         lastAppWindowState = 1;
         stage.nativeWindow.restore();
     }
-    else {
+    else
+    {
         lastAppWindowState = 0;
         deleteTempDirectory();
         saveAllAppData();
@@ -19378,7 +22166,8 @@ public function checkWindowMaximizedAndSaveAllData():void {
     }
 }
 
-public function onWindowClosingEvent(e:Event):void {
+public function onWindowClosingEvent(e:Event):void
+{
     isAppClosing = true;
 
     e.preventDefault();
@@ -19388,28 +22177,36 @@ public function onWindowClosingEvent(e:Event):void {
     removeInputEventsReplayMode();
     realWorkingTimer.stop();
 
-    if (canvasWindow !== null) {
+    if (canvasWindow !== null)
+    {
         canvasWindow.visible = false;
     }
 
-    if (isCaptureModeON === true) {
+    if (isCaptureModeON === true)
+    {
         handleExitCaptureMode();
     }
 
-    if (isReplayStarted === true) {
+    if (isReplayStarted === true)
+    {
         stopReplay();
     }
 
-    if (isLassoToolStarted) {
+    if (isLassoToolStarted)
+    {
         cancelLassoTool();
     }
 
-    if (workerState === WORKER_STATE_RUNNING) {
-        if (!hasTimer("pollTimerWaitWorkerStop")) {
+    if (workerState === WORKER_STATE_RUNNING)
+    {
+        if (!hasTimer("pollTimerWaitWorkerStop"))
+        {
             stage.nativeWindow.title = "Waiting for remaining tasks...";
             openLoadMenuBoxOnClosing();
-            addTimerByName("pollTimerWaitWorkerStop", WORKER_WAIT_INTERVAL, true, function():Boolean {
-                    if (workerState === WORKER_STATE_STOPPED) {
+            addTimerByName("pollTimerWaitWorkerStop", WORKER_WAIT_INTERVAL, true, function():Boolean
+                {
+                    if (workerState === WORKER_STATE_STOPPED)
+                    {
                         removeTimer("pollTimerWaitWorkerStop");
                         checkWindowMaximizedAndSaveAllData();
                         return false;
@@ -19418,19 +22215,23 @@ public function onWindowClosingEvent(e:Event):void {
                 });
         }
     }
-    else {
+    else
+    {
         checkWindowMaximizedAndSaveAllData();
     }
 }
 
-public function setAsTopChild(target:DisplayObject):void {
+public function setAsTopChild(target:DisplayObject):void
+{
     const parent:DisplayObjectContainer = target.parent as DisplayObjectContainer;
 
-    if (parent === null) {
+    if (parent === null)
+    {
         return;
     }
 
-    if (parent.getChildIndex(target) === parent.numChildren - 1) {
+    if (parent.getChildIndex(target) === parent.numChildren - 1)
+    {
         return;
     }
 
@@ -19438,7 +22239,8 @@ public function setAsTopChild(target:DisplayObject):void {
 }
 
 // check box position함수는 요소 전체가 창에서 넘어가만 않게 하는거고
-public function keepBoxInsideViewPort(target:DisplayObject):void {
+public function keepBoxInsideViewPort(target:DisplayObject):void
+{
     const rect:Rectangle = target.getBounds(stage);
 
     if (rect.x < STAGE_LEFT_OFFSET)
@@ -19452,15 +22254,18 @@ public function keepBoxInsideViewPort(target:DisplayObject):void {
         target.y = stage.stageHeight - rect.height - STAGE_BOTTOM_OFFSET;
 }
 
-public function keepCanvasPanelInStage(replayMode:Boolean = false):void {
+public function keepCanvasPanelInStage(replayMode:Boolean = false):void
+{
     var xAnc:Sprite;
     var xCanvas:Bitmap;
 
-    if (replayMode) {
+    if (replayMode)
+    {
         xAnc = rCanvasAnchorPoint;
         xCanvas = rCanvasLayer1Bitmap;
     }
-    else {
+    else
+    {
         xAnc = canvasAnchorPoint;
         xCanvas = canvasLayer1Bitmap;
     }
@@ -19491,45 +22296,53 @@ public function keepCanvasPanelInStage(replayMode:Boolean = false):void {
 }
 
 // 캔버스 정 가운데로
-public function getStageCenterPos(mode:String):Point {
+public function getStageCenterPos(mode:String):Point
+{
     const scale:Number = Global.getUIScale();
     const center:Point = new Point(0, 0);
     var topBarOffset:Number = topBar.BARSIZE * scale;
 
-    if (mode === "draw") {
+    if (mode === "draw")
+    {
         center.setTo((!isSidebarVisible) ? Math.floor(stage.stageWidth / 2)
                 : (isRightSidebar) ? Math.floor((stage.stageWidth - STAGE_RIGHT_OFFSET) / 2)
                 : Math.floor(STAGE_LEFT_OFFSET + (stage.stageWidth - STAGE_LEFT_OFFSET) / 2)
                 , Math.floor(topBarOffset + (stage.stageHeight - topBarOffset) / 2));
     }
-    else if (mode === "replay") {
+    else if (mode === "replay")
+    {
         topBarOffset = topBarOffset;
         center.setTo(stage.stageWidth / 2, Math.floor(topBarOffset + (stage.stageHeight - topBarOffset) / 2));
     }
-    else if (mode === "capture") {
+    else if (mode === "capture")
+    {
         center.setTo(stage.stageWidth / 2, Math.floor(topBarOffset + (stage.stageHeight - topBarOffset) / 2));
     }
-    else {
+    else
+    {
         center.setTo(stage.stageWidth / 2, stage.stageHeight / 2);
     }
 
     return center;
 }
 
-public function centerCanvas(mode:String):void {
+public function centerCanvas(mode:String):void
+{
     var xAnc:Sprite;
     var xCanvas:Sprite;
     var w:Number;
     var h:Number;
     var center:Point = getStageCenterPos(mode);
 
-    if (isReplayModeON) {
+    if (isReplayModeON)
+    {
         xAnc = rCanvasAnchorPoint;
         xCanvas = rCanvasPanel;
         w = RCANVAS_WIDTH;
         h = RCANVAS_HEIGHT;
     }
-    else {
+    else
+    {
         xAnc = canvasAnchorPoint;
         xCanvas = canvasPanel;
         w = CANVAS_WIDTH;
@@ -19541,12 +22354,14 @@ public function centerCanvas(mode:String):void {
     xCanvas.x = Math.floor(-w / 2);
     xCanvas.y = Math.floor(-h / 2);
 
-    if (!isReplayModeON) {
+    if (!isReplayModeON)
+    {
         updateCanvasNaigatorCursor();
     }
 }
 
-public function clearCanvasReplayMode():void {
+public function clearCanvasReplayMode():void
+{
     const rect:Rectangle = new Rectangle(0, 0, RCANVAS_WIDTH, RCANVAS_HEIGHT);
 
     rCanvasDrawShape.graphics.clear();
@@ -19555,7 +22370,8 @@ public function clearCanvasReplayMode():void {
     rCanvasDrawLayerBitmapData.fillRect(rect, 0);
 }
 
-public function clearCanvas():void {
+public function clearCanvas():void
+{
     const rect:Rectangle = new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     if (canvasLayer1BitmapData)
@@ -19566,31 +22382,38 @@ public function clearCanvas():void {
         canvasDrawLayerBitmapData.fillRect(rect, 0);
 }
 
-public function showReplaySpeedMouseHint():void {
+public function showReplaySpeedMouseHint():void
+{
     const timeStr:String = getReplayRemainingTimeString(rReplaySpeedMultipler, TOTAL_FRAME);
     const finalStr:String = HintStrings.getReplaySpeedHintString(rReplaySpeedMultipler, timeStr);
     showMouseHintTemp(finalStr);
 }
 
 // keyfunc
-public function adjustReplaySpeedByShortcut(increaseFlag:Boolean):void {
+public function adjustReplaySpeedByShortcut(increaseFlag:Boolean):void
+{
     const clacMax:Number = Math.floor(TOTAL_FRAME / (stage.frameRate * 3));
-    if (clacMax <= 0) {
+    if (clacMax <= 0)
+    {
         return;
     }
 
     const maxSpeed:Number = REPLAY_MAX_SPEED;
     var _rSpeed:Number = rReplaySpeedMultipler;
 
-    if (increaseFlag) {
+    if (increaseFlag)
+    {
         _rSpeed += 1;
-        if (_rSpeed > maxSpeed) {
+        if (_rSpeed > maxSpeed)
+        {
             _rSpeed = maxSpeed;
         }
     }
-    else {
+    else
+    {
         _rSpeed -= 1;
-        if (_rSpeed < 1) {
+        if (_rSpeed < 1)
+        {
             _rSpeed = 1;
         }
     }
@@ -19600,11 +22423,13 @@ public function adjustReplaySpeedByShortcut(increaseFlag:Boolean):void {
     showReplaySpeedMouseHint();
 }
 
-public function startAdjustPlayBackSpeedByShortcut(increase:Boolean):void {
+public function startAdjustPlayBackSpeedByShortcut(increase:Boolean):void
+{
     startKeyRepeat(true, adjustReplaySpeedByShortcut, increase);
 }
 
-public function adjutReplaySpeedByMouse():void {
+public function adjutReplaySpeedByMouse():void
+{
     const totalF:Number = TOTAL_FRAME;
 
     if (totalF <= stage.frameRate * 3) // 3초 이내면 안함
@@ -19621,32 +22446,40 @@ public function adjutReplaySpeedByMouse():void {
     isPenSizeCursorInvisible = true;
     isMouseDragging = true;
 
-    function setSpeed(mx:Number):void {
+    function setSpeed(mx:Number):void
+    {
         var exp:Number = mx / maxDist;
 
-        if (exp < 0) {
+        if (exp < 0)
+        {
             exp = 0;
         }
-        else if (exp > 1) {
+        else if (exp > 1)
+        {
             exp = 1;
         }
 
         var nowSpeed:Number = Math.floor(Math.pow(maxSpeed, exp));
 
-        if (oldSpeed !== nowSpeed) {
+        if (oldSpeed !== nowSpeed)
+        {
             oldSpeed = nowSpeed;
-            if (nowSpeed > maxSpeed) {
+            if (nowSpeed > maxSpeed)
+            {
                 nowSpeed = maxSpeed;
             }
             rReplaySpeedMultipler = nowSpeed;
         }
     }
 
-    function moveButton(mx:Number):void {
-        if (mx < minDist) {
+    function moveButton(mx:Number):void
+    {
+        if (mx < minDist)
+        {
             mx = minDist;
         }
-        else if (mx > maxDist) {
+        else if (mx > maxDist)
+        {
             mx = maxDist;
         }
 
@@ -19654,21 +22487,25 @@ public function adjutReplaySpeedByMouse():void {
         setSpeed(mx);
         showReplaySpeedMouseHint();
 
-        if (isReplayFinished === false) {
+        if (isReplayFinished === false)
+        {
             updateReplayPrograssText();
         }
     }
 
-    function replaySpeedButtomUpEvent(e:MouseEvent):void {
+    function replaySpeedButtomUpEvent(e:MouseEvent):void
+    {
         isMouseDragging = false;
-        if (isReplayFinished === false) {
+        if (isReplayFinished === false)
+        {
             updateReplayPrograssText();
         }
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
         stage.removeEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent);
     }
 
-    function replaySpeedButtomMoveEvent(e:MouseEvent):void {
+    function replaySpeedButtomMoveEvent(e:MouseEvent):void
+    {
         moveButton(topBar.replaySpeedSliderWrapper.mouseX);
     }
 
@@ -19680,19 +22517,23 @@ public function adjutReplaySpeedByMouse():void {
     stage.addEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent);
 }
 
-public function onKeyUpReplayMode(e:KeyboardEvent):void {
+public function onKeyUpReplayMode(e:KeyboardEvent):void
+{
     checkGeneralKeyUp(e.keyCode);
 }
 
 public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
 {
     const firstKey:uint = getFirstPressedKey();
-    if (isMouseClicked || isRightMouseClicked || isLastKey(firstKey) || loadMenuBox.visible) {
+    if (isMouseClicked || isRightMouseClicked || isLastKey(firstKey) || loadMenuBox.visible)
+    {
         return;
     }
 
-    if (isReplayStarted) {
-        switch (firstKey) {
+    if (isReplayStarted)
+    {
+        switch (firstKey)
+        {
             case KEY.backspace:
             case KEY.esc:
             case KEY.enter:
@@ -19708,8 +22549,10 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         return;
     }
 
-    if (isReplayRestartTimerON()) {
-        switch (firstKey) {
+    if (isReplayRestartTimerON())
+    {
+        switch (firstKey)
+        {
             case KEY.backspace:
             case KEY.esc:
             case KEY.enter:
@@ -19723,14 +22566,18 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         return;
     }
 
-    if (isPressingShift()) {
-        checkSubKey(2, false, function(input:int):void {
-                switch (input) {
+    if (isPressingShift())
+    {
+        checkSubKey(2, false, function(input:int):void
+            {
+                switch (input)
+                {
                     case KEY.left:
                     case KEY.z:
                     case KEY.dot:
                         {
-                            if (!isReplayStarted) {
+                            if (!isReplayStarted)
+                            {
                                 startKeyRepeat(true, moveToPreviousFrame);
                             }
                         }
@@ -19740,7 +22587,8 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
                     case KEY.x:
                     case KEY.comma:
                         {
-                            if (!isReplayStarted) {
+                            if (!isReplayStarted)
+                            {
                                 startKeyRepeat(true, moveToNextFrame);
                             }
                         }
@@ -19749,13 +22597,18 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
             });
         return;
     }
-    else if (isPressingControl()) {
-        checkSubKey(2, true, function(input:int):void {
-                if (input === KEY.c || input === KEY.m) {
+    else if (isPressingControl())
+    {
+        checkSubKey(2, true, function(input:int):void
+            {
+                if (input === KEY.c || input === KEY.m)
+                {
                     enterCaptureMode();
                 }
-                else if (input === KEY.v || input === KEY.m) {
-                    if (isClipBoardButtonActivated) {
+                else if (input === KEY.v || input === KEY.m)
+                {
+                    if (isClipBoardButtonActivated)
+                    {
                         tryLoadClipboardImage(false);
                     }
                 }
@@ -19765,12 +22618,14 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
 
     updateLastKey(firstKey);
 
-    switch (firstKey) {
+    switch (firstKey)
+    {
         case KEY.left:
         case KEY.z:
         case KEY.dot:
             {
-                if (!isReplayStarted) {
+                if (!isReplayStarted)
+                {
                     startKeyRepeat(true, moveToPreviousStep);
                 }
             }
@@ -19780,7 +22635,8 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         case KEY.x:
         case KEY.comma:
             {
-                if (!isReplayStarted) {
+                if (!isReplayStarted)
+                {
                     startKeyRepeat(true, moveToNextStep);
                 }
             }
@@ -19790,7 +22646,8 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         case KEY.f:
         case KEY.h:
             {
-                if (!isReplayStarted) {
+                if (!isReplayStarted)
+                {
                     startAdjustPlayBackSpeedByShortcut(true);
                 }
             }
@@ -19800,7 +22657,8 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         case KEY.v:
         case KEY.n:
             {
-                if (!isReplayStarted) {
+                if (!isReplayStarted)
+                {
                     startAdjustPlayBackSpeedByShortcut(false);
                 }
             }
@@ -19818,10 +22676,12 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         case KEY.enter:
         case KEY.space:
             {
-                if (isReplayRestartTimerON()) {
+                if (isReplayRestartTimerON())
+                {
                     cancelReplayRestartTimer();
                 }
-                else {
+                else
+                {
                     handleReplayStartButton();
                 }
             }
@@ -19833,17 +22693,22 @@ public function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
 {
     const keyCode:uint = e.keyCode;
 
-    if (isLastKey(keyCode)) {
-        if (isMouseClicked === true) {
+    if (isLastKey(keyCode))
+    {
+        if (isMouseClicked === true)
+        {
             isKeyReleasedBeforeMouseUp = true;
         }
-        else if (isKeyPressed()) {
+        else if (isKeyPressed())
+        {
             onKeyDownDrawMode(null);
         }
-        else {
+        else
+        {
             isLayerCheckKeyPressed = false;
 
-            if (lastTool > TOOL_NONE) {
+            if (lastTool > TOOL_NONE)
+            {
                 selectLastUsedTool();
                 showNowToolIconToCursorTemp(nowTool);
             }
@@ -19852,39 +22717,49 @@ public function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
         }
     }
 
-    if (!isKeyPressed()) {
+    if (!isKeyPressed())
+    {
         resetLastKey();
     }
 
-    if (!isPressingControl()) {
-        if (resizeCanvas.isResizing()) {
+    if (!isPressingControl())
+    {
+        if (resizeCanvas.isResizing())
+        {
             resizeCanvas.exit(true);
         }
-        if (resizeButtonR.visible) {
+        if (resizeButtonR.visible)
+        {
             updateCanvasResizeButtonVisible(false);
         }
     }
 }
 
-public function checkSubKey(expectedLength:uint, updateFlag:Boolean, callback:Function):Boolean {
-    if (getPressedKeyCount() !== expectedLength) {
+public function checkSubKey(expectedLength:uint, updateFlag:Boolean, callback:Function):Boolean
+{
+    if (getPressedKeyCount() !== expectedLength)
+    {
         return false;
     }
 
     const subKey:uint = getLastKey();
-    if (updateFlag) {
+    if (updateFlag)
+    {
         updateLastKey(subKey);
     }
 
-    if (callback !== null) {
+    if (callback !== null)
+    {
         callback(subKey);
     }
     return true;
 }
 
-public function onKeyDownDrawMode(e:KeyboardEvent):void {
+public function onKeyDownDrawMode(e:KeyboardEvent):void
+{
     if (isMouseClicked || isRightMouseClicked || isKeyReleasedBeforeMouseUp || isFillPenStarted
-            || isPopUpWindowOpened()) {
+            || isPopUpWindowOpened())
+    {
         return;
     }
 
@@ -19892,14 +22767,18 @@ public function onKeyDownDrawMode(e:KeyboardEvent):void {
     const secondKey:int = getSecondPressedKey();
 
     // 자툴이 nowkey를 쓰기 때문에 nowkey 리턴 이전에서 체크해야함
-    if (isPressingControlShift()) {
+    if (isPressingControlShift())
+    {
         // shift 누르고 ctrl 순서로 누를때 이전툴로 복원
-        if (isSelectedTool(TOOL_LINE)) {
+        if (isSelectedTool(TOOL_LINE))
+        {
             selectLastUsedTool();
         }
 
-        checkSubKey(3, true, function(input:int):void {
-                if (input === KEY.s) {
+        checkSubKey(3, true, function(input:int):void
+            {
+                if (input === KEY.s)
+                {
                     openSaveFileBrowser(true);
                 }
             });
@@ -19907,8 +22786,10 @@ public function onKeyDownDrawMode(e:KeyboardEvent):void {
         return;
     }
 
-    if (isPressingControl()) {
-        if (!checkSubKey(2, true, function(input:int):void {
+    if (isPressingControl())
+    {
+        if (!checkSubKey(2, true, function(input:int):void
+                {
                     if (input === KEY.s)
                         {
                             openSaveFileBrowser(false);
@@ -19928,8 +22809,10 @@ public function onKeyDownDrawMode(e:KeyboardEvent):void {
                         tryLoadClipboardImage(false);
             }
         }
-    })) {
-        if (resizeCanvas.isResizing() === false) {
+    }))
+    {
+        if (resizeCanvas.isResizing() === false)
+        {
             updateCanvasResizeButtonVisible(true);
         }
         }
@@ -19937,14 +22820,18 @@ public function onKeyDownDrawMode(e:KeyboardEvent):void {
         return;
     }
 
-    if (isPressingShift()) {
-        if (handlePenOpacitySizeKeyDown(secondKey)) {
+    if (isPressingShift())
+    {
+        if (handlePenOpacitySizeKeyDown(secondKey))
+        {
             return;
         }
-        else if (checkPenOptionsKeyDown(secondKey)) {
+        else if (checkPenOptionsKeyDown(secondKey))
+        {
             return;
         }
-        else if (checkSubKey(2, true, function(input:int):void {
+        else if (checkSubKey(2, true, function(input:int):void
+                {
                     switch (input)
                         {
                             case KEY.s:
@@ -19968,64 +22855,81 @@ public function onKeyDownDrawMode(e:KeyboardEvent):void {
             }
             return;
 }
-})) {
+}))
+{
     return;
 }
 }
 
-if (isTwoKeyPressed()) {
+if (isTwoKeyPressed())
+{
     // 지우개키 조합 따로 체크
-    if (firstKey === KEY.d || firstKey === KEY.j) {
-        if (handlePenOpacitySizeKeyDown(secondKey)) {
+    if (firstKey === KEY.d || firstKey === KEY.j)
+    {
+        if (handlePenOpacitySizeKeyDown(secondKey))
+        {
             return;
         }
-        else if (secondKey === KEY.s || secondKey === KEY.k) {
-            if (isQuickSidebarActive === false) {
+        else if (secondKey === KEY.s || secondKey === KEY.k)
+        {
+            if (isQuickSidebarActive === false)
+            {
                 activeQuickSideBar(true);
             }
             return;
         }
-        else if (checkPenOptionsKeyDown(secondKey)) {
+        else if (checkPenOptionsKeyDown(secondKey))
+        {
             return;
         }
 
     }
-    else if (isPressingQuickSidebarShortcut(firstKey, secondKey)) {
-        if (isQuickSidebarActive === false) {
+    else if (isPressingQuickSidebarShortcut(firstKey, secondKey))
+    {
+        if (isQuickSidebarActive === false)
+        {
             activeQuickSideBar(true);
         }
         return;
     }
 
     // 필펜 조합 체크
-    else if (firstKey === KEY.q || firstKey === KEY.o) {
-        if (handlePenOpacitySizeKeyDown(secondKey)) {
+    else if (firstKey === KEY.q || firstKey === KEY.o)
+    {
+        if (handlePenOpacitySizeKeyDown(secondKey))
+        {
             return;
         }
-        else if (checkPenOptionsKeyDown(secondKey)) {
+        else if (checkPenOptionsKeyDown(secondKey))
+        {
             return;
         }
     }
 }
 
-if (isLastKey(firstKey)) {
+if (isLastKey(firstKey))
+{
     return;
 }
 updateLastKey(firstKey);
 
-if (handlePenOpacitySizeKeyDown(firstKey)) {
+if (handlePenOpacitySizeKeyDown(firstKey))
+{
     return;
 }
 
-if (handleExtraKeyDown(firstKey)) {
+if (handleExtraKeyDown(firstKey))
+{
     return;
 }
 
 handleToolKeyDown(firstKey);
 }
 
-public function handleExtraKeyDown(keyCode:int):Boolean {
-    switch (keyCode) {
+public function handleExtraKeyDown(keyCode:int):Boolean
+{
+    switch (keyCode)
+    {
         case KEY.f1:
         case KEY.f7:
             {
@@ -20036,16 +22940,19 @@ public function handleExtraKeyDown(keyCode:int):Boolean {
         case KEY.n1:
         case KEY.n9:
             {
-                if (isLayer2Selected) {
+                if (isLayer2Selected)
+                {
                     showMouseHintTemp("Layer 1 selected");
                     selectLayer1(false);
                 }
-                else {
+                else
+                {
                     selectLayer1(canvasLayer2Bitmap.visible);
                     showMouseHintLayerVisible();
                 }
 
-                if (toolOptionsBox.layer2CheckedButton.visible) {
+                if (toolOptionsBox.layer2CheckedButton.visible)
+                {
                     toggleLayer2Check();
                 }
             }
@@ -20054,16 +22961,19 @@ public function handleExtraKeyDown(keyCode:int):Boolean {
         case KEY.n2:
         case KEY.n0:
             {
-                if (!isLayer2Selected) {
+                if (!isLayer2Selected)
+                {
                     showMouseHintTemp("Layer 2 selected");
                     selectLayer2(false);
                 }
-                else {
+                else
+                {
                     selectLayer2(canvasLayer1Bitmap.visible);
                     showMouseHintLayerVisible();
                 }
 
-                if (toolOptionsBox.layer1CheckedButton.visible) {
+                if (toolOptionsBox.layer1CheckedButton.visible)
+                {
                     toggleLayer1Check();
                 }
             }
@@ -20072,7 +22982,8 @@ public function handleExtraKeyDown(keyCode:int):Boolean {
         case KEY.n3:
         case KEY.n8:
             {
-                if (toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0) {
+                if (toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
+                {
                     toggleSharpLineByShortcut();
                 }
             }
@@ -20081,10 +22992,12 @@ public function handleExtraKeyDown(keyCode:int):Boolean {
         case KEY.n4:
         case KEY.n7:
             {
-                if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)) {
+                if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
+                {
                     togglePenAirBrushButtonShortCut();
                 }
-                else if (isSelectedTool(TOOL_ERASER)) {
+                else if (isSelectedTool(TOOL_ERASER))
+                {
                     toggleEraseAirBrushButtonShortCut();
                 }
             }
@@ -20117,10 +23030,12 @@ public function handleExtraKeyDown(keyCode:int):Boolean {
         case KEY.tab:
         case KEY.backslash:
             {
-                if (isSidebarVisible) {
+                if (isSidebarVisible)
+                {
                     hideSidebarPermanent();
                 }
-                else {
+                else
+                {
                     showSidebarPermanent();
                 }
             }
@@ -20129,15 +23044,19 @@ public function handleExtraKeyDown(keyCode:int):Boolean {
     return false;
 }
 
-public function handleToolKeyDown(keyCode:int):void {
-    if (isRefLayerMenuON) {
-        if (keyCode === KEY.esc || keyCode === KEY.backspace) {
+public function handleToolKeyDown(keyCode:int):void
+{
+    if (isRefLayerMenuON)
+    {
+        if (keyCode === KEY.esc || keyCode === KEY.backspace)
+        {
             closeRefLayerMenu();
             return;
         }
     }
 
-    switch (keyCode) {
+    switch (keyCode)
+    {
         case KEY.q:
         case KEY.o:
             {
@@ -20149,10 +23068,12 @@ public function handleToolKeyDown(keyCode:int):void {
 
         case KEY.t:
             {
-                if (isRefLayerMenuON) {
+                if (isRefLayerMenuON)
+                {
                     closeRefLayerMenu();
                 }
-                else {
+                else
+                {
                     openRefLayerMenu();
                 }
             }
@@ -20169,12 +23090,15 @@ public function handleToolKeyDown(keyCode:int):void {
         case KEY.c:
         case KEY.m:
             {
-                if (colorPickerBox.scratchPad.hitTestPoint(stage.mouseX, stage.mouseY)) {
-                    if (colorPickerBox.scratchPad.visible) {
+                if (colorPickerBox.scratchPad.hitTestPoint(stage.mouseX, stage.mouseY))
+                {
+                    if (colorPickerBox.scratchPad.visible)
+                    {
                         showPickColorScratchPad();
                     }
                 }
-                else if (!isSelectedTool(TOOL_EYEDROPPER)) {
+                else if (!isSelectedTool(TOOL_EYEDROPPER))
+                {
                     eyeDropperTool();
                     showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
                 }
@@ -20184,7 +23108,8 @@ public function handleToolKeyDown(keyCode:int):void {
         case KEY.r:
         case KEY.y:
             {
-                if (!isSelectedTool(TOOL_LASSO)) {
+                if (!isSelectedTool(TOOL_LASSO))
+                {
                     updateLastTool();
                     selectLassoTool();
                     showNowToolIconToCursorTemp(TOOL_LASSO);
@@ -20194,7 +23119,8 @@ public function handleToolKeyDown(keyCode:int):void {
 
         case KEY.space:
             {
-                if (!isSelectedTool(TOOL_HAND)) {
+                if (!isSelectedTool(TOOL_HAND))
+                {
                     updateLastTool();
                     setSelectedTool(TOOL_HAND);
                     showNowToolIconToCursorTemp(TOOL_HAND);
@@ -20205,7 +23131,8 @@ public function handleToolKeyDown(keyCode:int):void {
         case KEY.d:
         case KEY.j:
             {
-                if (!isSelectedTool(TOOL_ERASER)) {
+                if (!isSelectedTool(TOOL_ERASER))
+                {
                     updateLastTool();
                     selectEraseTool();
                     updatePenSizeCursor();
@@ -20217,7 +23144,8 @@ public function handleToolKeyDown(keyCode:int):void {
         case KEY.s:
         case KEY.k:
             {
-                if (!isSelectedTool(TOOL_ROTATE)) {
+                if (!isSelectedTool(TOOL_ROTATE))
+                {
                     updateLastTool();
                     selectRotateTool();
                     showNowToolIconToCursorTemp(TOOL_ROTATE);
@@ -20228,7 +23156,8 @@ public function handleToolKeyDown(keyCode:int):void {
         case KEY.e:
         case KEY.u:
             {
-                if (!isSelectedTool(TOOL_MOVE)) {
+                if (!isSelectedTool(TOOL_MOVE))
+                {
                     updateLastTool();
                     selectMoveTool();
                     showNowToolIconToCursorTemp(TOOL_MOVE);
@@ -20239,7 +23168,8 @@ public function handleToolKeyDown(keyCode:int):void {
         case KEY.w:
         case KEY.i:
             {
-                if (!isSelectedTool(TOOL_ZOOM)) {
+                if (!isSelectedTool(TOOL_ZOOM))
+                {
                     updateLastTool();
                     selectZoomTool();
                     showNowToolIconToCursorTemp(TOOL_ZOOM);
@@ -20249,7 +23179,8 @@ public function handleToolKeyDown(keyCode:int):void {
 
         case KEY.shift:
             {
-                if (!isSelectedTool(TOOL_LINE)) {
+                if (!isSelectedTool(TOOL_LINE))
+                {
                     updateLastTool();
                     selectLineTool();
                     updatePenSizeCursor();
@@ -20261,7 +23192,8 @@ public function handleToolKeyDown(keyCode:int):void {
         case KEY.del:
         case KEY.backspace:
             {
-                if (topBar.newFileButton.alpha === 1.0 && !isSaveInProgress) {
+                if (topBar.newFileButton.alpha === 1.0 && !isSaveInProgress)
+                {
                     createNewFile(true);
                 }
             }
@@ -20270,37 +23202,45 @@ public function handleToolKeyDown(keyCode:int):void {
     penCursorManager.check();
 }
 
-public function unblockMouseClickAfterDelay():void {
-    addTimerByName("clickBlockTimer", 0.15, false, function():void {
+public function unblockMouseClickAfterDelay():void
+{
+    addTimerByName("clickBlockTimer", 0.15, false, function():void
+        {
             isMouseClickBlocked = false;
         });
 }
 
-public function onWindowActive(e:Event):void {
+public function onWindowActive(e:Event):void
+{
     tryDisableIME();
     checkCanUseClipBoardButton();
 
-    if (isAboutBoxOpened) {
+    if (isAboutBoxOpened)
+    {
         isMouseClickBlocked = true;
     }
-    else {
+    else
+    {
         unblockMouseClickAfterDelay();
     }
 }
 
-public function onWindowDeactivate(e:Event):void {
+public function onWindowDeactivate(e:Event):void
+{
     isMouseClickBlocked = true;
     resizeCanvas.exit(true);
     clearKeyBuffer();
     removeKeyRepeatEvents(null);
     removeTimer("pressholdtimer");
 
-    if (isToolBox2Showing) {
+    if (isToolBox2Showing)
+    {
         isRightMouseClicked = false;
         closeToolBox2();
     }
 
-    if (!isSidebarVisible) {
+    if (!isSidebarVisible)
+    {
         startHidingSidebarTemporary();
     }
 
@@ -20310,24 +23250,29 @@ public function onWindowDeactivate(e:Event):void {
             && !isLoadPendingAfterSaving
             && !isUpdatePendingAfterSaving
             && !loadMenuBox.visible
-            && !isGeneratingCacheImages()) {
+            && !isGeneratingCacheImages())
+    {
         saveAllAppData();
     }
     lastWindowDeactivateTime = getTimer();
 
-    if (isQuickSidebarActive && !isDeepUndoEnabled) {
+    if (isQuickSidebarActive && !isDeepUndoEnabled)
+    {
         deactivateQuickSidebar();
     }
 
-    if (numPadBox.visible) {
+    if (numPadBox.visible)
+    {
         closeNumpad();
     }
 
-    if (numPadBox.isLCHSliderActive()) {
+    if (numPadBox.isLCHSliderActive())
+    {
         numPadBox.removeOKLCHMouseEvent();
     }
 
-    if (colorPickerBox.scratchPad.isScratchStarted) {
+    if (colorPickerBox.scratchPad.isScratchStarted)
+    {
         colorPickerBox.scratchPad.removeCheckMouseDistEvent();
     }
 
@@ -20335,39 +23280,48 @@ public function onWindowDeactivate(e:Event):void {
     selectLastUsedTool();
 }
 
-public function updateToolBoxMousePos(target:SimpleButton):void {
+public function updateToolBoxMousePos(target:SimpleButton):void
+{
     // 아이콘 중앙으로 맞추어줌
-    if (!target) {
+    if (!target)
+    {
         return;
     }
 
-    if (target.parent === toolBox2) {
+    if (target.parent === toolBox2)
+    {
         toolBox2.updateLastUsedToolPos(target.name);
     }
 }
 
-public function closeToolBox2(ignoreResizeButtonVisible:Boolean = false):void {
-    if (!isToolBox2Showing) {
+public function closeToolBox2(ignoreResizeButtonVisible:Boolean = false):void
+{
+    if (!isToolBox2Showing)
+    {
         return;
     }
 
     removeInputEventsToolBox2();
     isToolBox2Showing = false;
     toolBox2.visible = false;
-    if (!ignoreResizeButtonVisible) {
+    if (!ignoreResizeButtonVisible)
+    {
         showCanvasResizeButtonVisibleDelay(false);
     }
 }
 
-public function onMouseDownToolBox2(e:MouseEvent):void {
+public function onMouseDownToolBox2(e:MouseEvent):void
+{
     const target:DisplayObject = e.target as DisplayObject;
-    if (!target) {
+    if (!target)
+    {
         return;
     }
 
     const targetName:String = target.name;
 
-    switch (targetName) {
+    switch (targetName)
+    {
         case "toolZoom":
             {
                 updateToolBoxMousePos(target as SimpleButton);
@@ -20404,7 +23358,8 @@ public function onMouseDownToolBox2(e:MouseEvent):void {
 
         default:
             {
-                if (toolBox2.visible && toolBox2.hitTestPoint(stage.mouseX, stage.mouseY)) {
+                if (toolBox2.visible && toolBox2.hitTestPoint(stage.mouseX, stage.mouseY))
+                {
                     updateToolBoxMousePos(toolBox2.toolPen);
                     updateLastTool();
                     handTool(false, false);
@@ -20415,14 +23370,17 @@ public function onMouseDownToolBox2(e:MouseEvent):void {
     }
 }
 
-public function handleToolBox2Closing(target:DisplayObject):void {
+public function handleToolBox2Closing(target:DisplayObject):void
+{
     const targetName:String = target.name;
 
-    if (targetName !== null && targetName.indexOf("tool") !== -1) {
+    if (targetName !== null && targetName.indexOf("tool") !== -1)
+    {
         updateToolBoxMousePos(target as SimpleButton);
     }
 
-    switch (targetName) {
+    switch (targetName)
+    {
         case "toolQuickSidebar":
             {
                 activeQuickSideBar(false);
@@ -20470,7 +23428,8 @@ public function handleToolBox2Closing(target:DisplayObject):void {
 
         case "toolEyedropper":
             {
-                if (!isSelectedTool(TOOL_EYEDROPPER)) {
+                if (!isSelectedTool(TOOL_EYEDROPPER))
+                {
                     eyeDropperTool();
                     showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
                 }
@@ -20508,36 +23467,43 @@ public function handleToolBox2Closing(target:DisplayObject):void {
     closeToolBox2();
 }
 
-public function onMouseOverToolBox2(e:MouseEvent):void {
+public function onMouseOverToolBox2(e:MouseEvent):void
+{
     const target:DisplayObject = e.target as DisplayObject;
 
-    if (!target) {
+    if (!target)
+    {
         return;
     }
 
     const targetName:String = target.name;
 
-    if (targetName && targetName.indexOf("tool") !== -1) {
+    if (targetName && targetName.indexOf("tool") !== -1)
+    {
         toolBox2.setMouseOverTarget(target);
     }
 }
 
-public function onKeyUpToolBox2(e:KeyboardEvent):void {
+public function onKeyUpToolBox2(e:KeyboardEvent):void
+{
     resetLastKey();
     handleToolBox2Closing(toolBox2.getMouseOverTarget());
 }
 
-public function onRightMouseUpToolBox2(e:MouseEvent):void {
+public function onRightMouseUpToolBox2(e:MouseEvent):void
+{
     isPenSizeCursorInvisible = false;
 
-    if (isLassoToolStarted === true) {
+    if (isLassoToolStarted === true)
+    {
         closeToolBox2();
         return;
     }
 
     const target:SimpleButton = e.target as SimpleButton;
 
-    if (!target || target.alpha < 1.0 || !isCursorInDrawArea()) {
+    if (!target || target.alpha < 1.0 || !isCursorInDrawArea())
+    {
         closeToolBox2();
         return;
     }
@@ -20545,7 +23511,8 @@ public function onRightMouseUpToolBox2(e:MouseEvent):void {
     handleToolBox2Closing(target);
 }
 
-public function move1PxLassoTool(command:int):void {
+public function move1PxLassoTool(command:int):void
+{
     var posX:Number = 0;
     var posY:Number = 0;
 
@@ -20566,43 +23533,51 @@ public function move1PxLassoTool(command:int):void {
     lassoLayer2.y = lassoLayer1.y;
 }
 
-public function keepScrollSetInStage():void {
+public function keepScrollSetInStage():void
+{
     const scale:Number = Global.getUIScale();
     const limitTop:Number = Math.floor(-sideBarConstHeight + 20.0);
     const limitBottom:Number = Math.floor(stage.stageHeight - STAGE_TOP_OFFSET - STAGE_BOTTOM_OFFSET - 20.0 * scale);
 
-    if (sideBarScrollPanel.y < limitTop) {
+    if (sideBarScrollPanel.y < limitTop)
+    {
         sideBarScrollPanel.y = limitTop; // *scale;
     }
-    else if (sideBarScrollPanel.y * scale > limitBottom) {
+    else if (sideBarScrollPanel.y * scale > limitBottom)
+    {
         sideBarScrollPanel.y = limitBottom / scale;
     }
 
     scrollSetMovedY = sideBarScrollPanel.y;
 }
 
-public function resetSideBarPosition():void {
+public function resetSideBarPosition():void
+{
     sideBarScrollPanel.y = 0;
     scrollSetMovedY = sideBarScrollPanel.y;
     checkFOFOPosition();
 }
 
-public function startScrollSidebarByDrag():void {
+public function startScrollSidebarByDrag():void
+{
     const scale:Number = Global.getUIScale();
     var clickY:Number = stage.mouseY;
     const alphaSave:Number = sideBarScrollBar.alpha;
-    function onDragStart():void {
+    function onDragStart():void
+    {
         sideBarScrollBar.alpha = 0.9;
     }
 
-    function onMouseMove():void {
+    function onMouseMove():void
+    {
         const subY:Number = (clickY - mouseY) / scale;
         sideBarScrollPanel.y += subY * 1.5;
         scrollSetMovedY = sideBarScrollPanel.y;
         clickY = mouseY;
     }
 
-    function onMouseUp():void {
+    function onMouseUp():void
+    {
         sideBarScrollBar.alpha = alphaSave;
         keepScrollSetInStage();
         scrollSetMovedY = sideBarScrollPanel.y;
@@ -20615,23 +23590,27 @@ public function startScrollSidebarByDrag():void {
     startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
-public function startScrollSidebarByMouseWheel(deltaY:Number):void {
+public function startScrollSidebarByMouseWheel(deltaY:Number):void
+{
     deltaY = Math.floor(deltaY * Global.getUIScale());
     sideBarScrollPanel.y += deltaY * 1.5;
     scrollSetMovedY = sideBarScrollPanel.y;
     checkFOFOPosition();
-    if (bottomBar.visible) {
+    if (bottomBar.visible)
+    {
         hideBottomHint();
     }
 }
 
-public function handleToolBoxMouseDown(target:DisplayObject):Boolean {
+public function handleToolBoxMouseDown(target:DisplayObject):Boolean
+{
     if (isKeyPressed() && !isQuickSidebarActive || !target)
         return true;
 
     const targetName:String = target.name;
 
-    switch (targetName) {
+    switch (targetName)
+    {
         case "toolRotate":
             {
                 rotateTool(false);
@@ -20679,23 +23658,28 @@ public function handleToolBoxMouseDown(target:DisplayObject):Boolean {
     return false;
 }
 
-public function startCanvasResizing(targetName:String):void {
+public function startCanvasResizing(targetName:String):void
+{
     isPenSizeCursorInvisible = true;
     penSizePreviewCursor.visible = false;
     showMouseHint(CANVAS_WIDTH + " x " + CANVAS_HEIGHT);
     resizeCanvas.start(targetName);
 }
 
-public function updateReplaySpeedSliderAlpha():void {
-    if (REPLAY_MAX_SPEED === 1.0) {
+public function updateReplaySpeedSliderAlpha():void
+{
+    if (REPLAY_MAX_SPEED === 1.0)
+    {
         topBar.replaySpeedSliderWrapper.alpha = Global.OFFALPHA;
     }
-    else {
+    else
+    {
         topBar.replaySpeedSliderWrapper.alpha = 1.0;
     }
 }
 
-public function updateReplayPrograssBarAndText():void {
+public function updateReplayPrograssBarAndText():void
+{
     const totalFrame:Number = TOTAL_FRAME;
     const nowFrame:Number = rNowFrame;
     const trackBarWidth:Number = seekBarBox.trackBar.width;
@@ -20704,18 +23688,21 @@ public function updateReplayPrograssBarAndText():void {
     seekBarBox.prograssBar.width = (totalFrame === 0) ? 0 : trackBarWidth * (nowFrame / totalFrame);
 }
 
-public function clearKeyBuffer():void {
+public function clearKeyBuffer():void
+{
     KEY_BUFFER.length = 0;
     resetLastKey();
 }
 
-public function updateReplayCursorScale(zoom:Number):void {
+public function updateReplayCursorScale(zoom:Number):void
+{
     const z:Number = 1.0 / zoom;
     rReplayFOFOCursor.scaleX = z;
     rReplayFOFOCursor.scaleY = z;
 }
 
-public function disableDeepUndo():void {
+public function disableDeepUndo():void
+{
     isDeepUndoEnabled = false;
     lastDeepUndoEnabledFlag = false;
     rDataReadFlag = true;
@@ -20723,17 +23710,20 @@ public function disableDeepUndo():void {
     clearRFrameTempCache();
 }
 
-public function enableDeepUndo():void {
+public function enableDeepUndo():void
+{
     isDeepUndoEnabled = true;
     rDataReadFlag = false;
 
-    if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY) {
+    if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY)
+    {
         removeInputEventsDrawMode();
         setAsTopChild(seekBarBox);
         seekBarBox.updatePos(stage.stageWidth);
         startGeneratingReplayCacheImage();
     }
-    else {
+    else
+    {
         updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
         // 이미지 캐시 해주고 rPrevFrame 갱신해주고
         renderReplayFrame(undoManager.getRFileTotalFrame() - 1, JUMP_FRAME_MANUAL);
@@ -20743,17 +23733,21 @@ public function enableDeepUndo():void {
     }
 }
 
-public function startGeneratingReplayCacheImage():void {
+public function startGeneratingReplayCacheImage():void
+{
     rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_PROCESSING;
 
-    if (!hasTimer("generatereplaycacheimagedelay")) {
-        addTimerByName("generatereplaycacheimagedelay", 0.1, false, function():void {
+    if (!hasTimer("generatereplaycacheimagedelay"))
+    {
+        addTimerByName("generatereplaycacheimagedelay", 0.1, false, function():void
+            {
                 generateReplayCacheImage();
             });
     }
 }
 
-public function syncDrawCanvasWithReplayMode():void {
+public function syncDrawCanvasWithReplayMode():void
+{
     canvasZoomMultipler = rCanvasZoomMultiplier; // 줌배율도 공유
     canvasZoomIndex = rCanvasZoomIndex;
     canvasAnchorPoint.scaleX = rCanvasAnchorPoint.scaleX;
@@ -20766,7 +23760,8 @@ public function syncDrawCanvasWithReplayMode():void {
     setRcursorRotation(canvasAnchorPoint.rotation);
 }
 
-public function syncReplayCanvasWithDrawMode():void {
+public function syncReplayCanvasWithDrawMode():void
+{
     rCanvasZoomMultiplier = canvasZoomMultipler; // 줌배율도 공유
     rCanvasZoomIndex = canvasZoomIndex;
     rCanvasAnchorPoint.scaleX = canvasAnchorPoint.scaleX;
@@ -20779,7 +23774,8 @@ public function syncReplayCanvasWithDrawMode():void {
     setRcursorRotation(rCanvasAnchorPoint.rotation);
 }
 
-public function syncReplayCanvasImageWithDrawMode():void {
+public function syncReplayCanvasImageWithDrawMode():void
+{
     rCanvasDrawShape.graphics.clear();
     rCanvasLayer1BitmapData = updateBitmapData(rCanvasLayer1BitmapData, canvasLayer1BitmapData, rCanvasLayer1Bitmap);
     rCanvasLayer2BitmapData = updateBitmapData(rCanvasLayer2BitmapData, canvasLayer2BitmapData, rCanvasLayer2Bitmap);
@@ -20787,31 +23783,40 @@ public function syncReplayCanvasImageWithDrawMode():void {
     updateCanvasBGColorReplayMode(CANVAS_BG_COLOR);
 }
 
-public function updateReplayTimeBarFromDrawMode():void {
+public function updateReplayTimeBarFromDrawMode():void
+{
     updateReplayPrograssText(true, rNowFrame);
-    if (TOTAL_FRAME === 0) {
+    if (TOTAL_FRAME === 0)
+    {
         seekBarBox.resetReplayPrograssBarWidth();
     }
-    else {
+    else
+    {
         seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
     }
 }
 
-public function enterDrawModeOnLoadFile():void {
-    if (isCaptureModeON) {
+public function enterDrawModeOnLoadFile():void
+{
+    if (isCaptureModeON)
+    {
         exitCaptureMode();
     }
-    if (isReplayModeON) {
+    if (isReplayModeON)
+    {
         exitReplayMode();
     }
 }
 
-public function exitReplayMode():void {
-    if (isGeneratingCacheImages()) {
+public function exitReplayMode():void
+{
+    if (isGeneratingCacheImages())
+    {
         return;
     }
 
-    if (isReplayStarted === true) {
+    if (isReplayStarted === true)
+    {
         stopReplay();
     }
 
@@ -20824,17 +23829,20 @@ public function exitReplayMode():void {
     seekBarBox.visible = false;
     canvasAnchorPoint.visible = true;
     penSizePreviewCursor.visible = true;
-    if (isRefLayerMenuON === true) {
+    if (isRefLayerMenuON === true)
+    {
         refLayerMenuBox.visible = true;
     }
-    if (isSidebarVisible === true) {
+    if (isSidebarVisible === true)
+    {
         showSidebarPermanent();
     }
 
     canvasPanel.addChild(rReplayFOFOCursor);
     setRcursorRotation(canvasAnchorPoint.rotation);
 
-    if (mouseHint.isShowing()) {
+    if (mouseHint.isShowing())
+    {
         hideMouseHint();
     }
 
@@ -20844,10 +23852,12 @@ public function exitReplayMode():void {
     updateStageOffset();
     updateCanvasNaigatorCursor();
 
-    if (isTransparentPenColor) {
+    if (isTransparentPenColor)
+    {
         selectTransparentColor();
     }
-    else {
+    else
+    {
         switchColorPickerModePen();
     }
 
@@ -20858,7 +23868,8 @@ public function exitReplayMode():void {
     updateReplayCursorScale(canvasZoomMultipler);
 
     isDeepUndoEnabled = lastDeepUndoEnabledFlag;
-    if (rNowFrame !== lastReplayFrameOnDeepUndoStart) {
+    if (rNowFrame !== lastReplayFrameOnDeepUndoStart)
+    {
         // after로 해주는 이유는 캐쉬 안만들어줄라고
         renderReplayFrame(lastReplayFrameOnDeepUndoStart, JUMP_FRAME_NEXT);
     }
@@ -20867,8 +23878,10 @@ public function exitReplayMode():void {
     addInputEventsDrawMode();
 }
 
-public function enterReplayMode():void {
-    if (isGeneratingCacheImages()) {
+public function enterReplayMode():void
+{
+    if (isGeneratingCacheImages())
+    {
         return;
     }
 
@@ -20885,11 +23898,13 @@ public function enterReplayMode():void {
     setAsTopChild(seekBarBox);
     seekBarBox.setDeleteRangeBarVisible(false);
 
-    if (numPadBox.visible) {
+    if (numPadBox.visible)
+    {
         closeNumpad();
     }
 
-    if (mouseHint.isShowing()) {
+    if (mouseHint.isShowing())
+    {
         hideMouseHint();
     }
 
@@ -20911,18 +23926,21 @@ public function enterReplayMode():void {
     rFollowMouse.updateBounds();
     updateReplayCursorScale(rCanvasZoomMultiplier);
 
-    if (isRefLayerMenuON === true) {
+    if (isRefLayerMenuON === true)
+    {
         refLayerMenuBox.visible = false;
     }
 
-    if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY) {
+    if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY)
+    {
         removeKeyRepeatEvents(null);
         removeInputEventsReplayMode();
         hideSidebarTemporary();
         updateTopBarModeIcons("replay");
         startGeneratingReplayCacheImage();
     }
-    else if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE) {
+    else if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE)
+    {
         rDataReadFlag = false;
         updateReplayTimeBarFromDrawMode();
         centerCanvas("replay");
@@ -20930,11 +23948,13 @@ public function enterReplayMode():void {
         // 이거 안해주고 리플레이틀고 프레임 조작 안하고 재생하면 중간부터 되서 데이터가 꼬임
         isReplayFinished = true;
 
-        if (undoDataIndex >= 0) {
+        if (undoDataIndex >= 0)
+        {
             rDataStartIndex = undoDataIndex + 1;
             rDataReadFlag = true;
         }
-        else {
+        else
+        {
             rDataStartIndex = 0;
             rDataReadFlag = false;
         }
@@ -20951,26 +23971,33 @@ public function enterReplayMode():void {
 public function onMouseDownReplayMode(e:MouseEvent):void // repdown1
 {
     const target:DisplayObject = e.target as DisplayObject;
-    if (!target || loadMenuBox.visible) {
+    if (!target || loadMenuBox.visible)
+    {
         return;
     }
 
     const targetName:String = target.name;
 
-    if (isReplayRestartTimerON()) {
-        if (seekBarBox.trackBar.hitTestPoint(stage.mouseX, stage.mouseY)) {
+    if (isReplayRestartTimerON())
+    {
+        if (seekBarBox.trackBar.hitTestPoint(stage.mouseX, stage.mouseY))
+        {
             cancelReplayRestartTimer();
             return;
         }
     }
 
-    if (targetName && !isReplayRestartTimerON()) {
-        if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG") {
+    if (targetName && !isReplayRestartTimerON())
+    {
+        if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG")
+        {
             handTool(true, false);
             return;
         }
-        else if (targetName === "replayRepeatButton" || targetName === "replayFitToWindowButton") {
-            if (isKeyPressed()) {
+        else if (targetName === "replayRepeatButton" || targetName === "replayFitToWindowButton")
+        {
+            if (isKeyPressed())
+            {
                 return;
             }
 
@@ -20979,19 +24006,23 @@ public function onMouseDownReplayMode(e:MouseEvent):void // repdown1
         }
     }
 
-    if (target.alpha < 1.0) {
+    if (target.alpha < 1.0)
+    {
         return;
     }
 
-    switch (targetName) {
+    switch (targetName)
+    {
         case "repNewFileButton":
             {
                 startPressHoldKey(topBar.repNewFileButton, HintStrings.getNewFileHintString(),
-                        function():Boolean {
+                        function():Boolean
+                        {
                             return prepareDeleteReplayData("total");
                         },
                         createNewFileFromReplayCanvas,
-                        function():void {
+                        function():void
+                        {
                             seekBarBox.setDeleteRangeBarVisible(false);
                         });
             }
@@ -20999,12 +24030,15 @@ public function onMouseDownReplayMode(e:MouseEvent):void // repdown1
 
         case "cutPrevDataButton":
             {
-                if (topBar.cutPrevDataButton.alpha === 1.0) {
-                    startPressHoldKey(topBar.cutPrevDataButton, HintStrings.getDeleteReplayDataHintString(), function():Boolean {
+                if (topBar.cutPrevDataButton.alpha === 1.0)
+                {
+                    startPressHoldKey(topBar.cutPrevDataButton, HintStrings.getDeleteReplayDataHintString(), function():Boolean
+                        {
                             return prepareDeleteReplayData("before");
                         },
                             deleteReplayDataBeforeCurrentFrame,
-                            function():void {
+                            function():void
+                            {
                                 seekBarBox.setDeleteRangeBarVisible(false);
                             });
                 }
@@ -21013,11 +24047,14 @@ public function onMouseDownReplayMode(e:MouseEvent):void // repdown1
 
         case "superUndoButton":
             {
-                if (topBar.superUndoButton.alpha === 1.0) {
-                    startPressHoldKey(topBar.superUndoButton, HintStrings.getDeleteReplayDataHintString(), function():Boolean {
+                if (topBar.superUndoButton.alpha === 1.0)
+                {
+                    startPressHoldKey(topBar.superUndoButton, HintStrings.getDeleteReplayDataHintString(), function():Boolean
+                        {
                             return prepareDeleteReplayData("after");
                         },
-                            deleteReplayDataAfterCurrentFrame, function():void {
+                            deleteReplayDataAfterCurrentFrame, function():void
+                            {
                                 seekBarBox.setDeleteRangeBarVisible(false);
                             });
                 }
@@ -21045,11 +24082,13 @@ public function onMouseDownReplayMode(e:MouseEvent):void // repdown1
         case "replayPrev":
             {
                 removeTimer("prograssBarUpdateTimer");
-                if (isPressingShift()) {
+                if (isPressingShift())
+                {
                     startKeyRepeat(true, moveToPreviousFrame);
                     startKeyRepeatStopTimerOnMouseLeave(target);
                 }
-                else {
+                else
+                {
                     startKeyRepeat(true, moveToPreviousStep);
                     startKeyRepeatStopTimerOnMouseLeave(target);
                 }
@@ -21059,11 +24098,13 @@ public function onMouseDownReplayMode(e:MouseEvent):void // repdown1
         case "replayNext":
             {
                 removeTimer("prograssBarUpdateTimer");
-                if (isPressingShift()) {
+                if (isPressingShift())
+                {
                     startKeyRepeat(true, moveToNextFrame);
                     startKeyRepeatStopTimerOnMouseLeave(target);
                 }
-                else {
+                else
+                {
                     startKeyRepeat(true, moveToNextStep);
                     startKeyRepeatStopTimerOnMouseLeave(target);
                 }
@@ -21096,7 +24137,8 @@ public function onMouseDownReplayMode(e:MouseEvent):void // repdown1
         case "replayPrev":
         case "replayNext":
             {
-                if (isKeyPressed()) {
+                if (isKeyPressed())
+                {
                     return;
                 }
                 handleMouseClick(targetName);
@@ -21112,13 +24154,16 @@ public function onMouseUpDrawMode(e:MouseEvent):void // mouseup1
     {
         isKeyReleasedBeforeMouseUp = false;
 
-        if (KEY_BUFFER.length > 0) {
+        if (KEY_BUFFER.length > 0)
+        {
             onKeyDownDrawMode(null);
         }
-        else {
+        else
+        {
             resetLastKey();
 
-            if (lastTool > TOOL_NONE) {
+            if (lastTool > TOOL_NONE)
+            {
                 selectLastUsedTool();
             }
             penCursorManager.check();
@@ -21126,30 +24171,36 @@ public function onMouseUpDrawMode(e:MouseEvent):void // mouseup1
     }
 }
 
-public function setFitReplayCanvasToViewportOFF():void {
+public function setFitReplayCanvasToViewportOFF():void
+{
     isReplayCanvasFitToWindow = false;
 }
 
-public function setFitReplayCanvasToViewportON():void {
+public function setFitReplayCanvasToViewportON():void
+{
     isReplayCanvasFitToWindow = true;
     fitReplayCanvasToViewport();
 }
 
-public function fitReplayCanvasToViewport():void {
-    addTimerByName("rFitZoomedDelayTimer", 0.15, false, function():void {
+public function fitReplayCanvasToViewport():void
+{
+    addTimerByName("rFitZoomedDelayTimer", 0.15, false, function():void
+        {
             fitCanvasToViewportMargin(true);
             rCanvasZoomIndex = getNearZoomIndex(rCanvasZoomMultiplier);
             rCanvasZoomMultiplier = canvasZoomMultiplerList[rCanvasZoomIndex];
         });
 }
 
-public function onRightMouseDownReplayMode(e:MouseEvent):void {
+public function onRightMouseDownReplayMode(e:MouseEvent):void
+{
     if (isMouseClicked || isKeyPressed() || !e.target || loadMenuBox.visible)
         return;
 
     const targetName:String = e.target.name;
 
-    switch (targetName) {
+    switch (targetName)
+    {
         case "replayPrev":
             {
                 startKeyRepeat(true, moveToPreviousFrame);
@@ -21171,7 +24222,8 @@ public function onRightMouseDownReplayMode(e:MouseEvent):void {
             break;
 
         case "replayZoomInButton":
-        case "replayZoomOutButton": {
+        case "replayZoomOutButton":
+        {
             resetZoomReplayMode();
             break;
         }
@@ -21179,13 +24231,16 @@ public function onRightMouseDownReplayMode(e:MouseEvent):void {
         case "rCanvasDrawLayer":
         case "stageBG":
             {
-                if (isReplayRestartTimerON()) {
+                if (isReplayRestartTimerON())
+                {
                     cancelReplayRestartTimer();
                 }
-                else if (!isReplayStarted) {
+                else if (!isReplayStarted)
+                {
                     handleReplayStartButton();
                 }
-                else {
+                else
+                {
                     handleReplayStopButton();
                 }
             }
@@ -21193,7 +24248,8 @@ public function onRightMouseDownReplayMode(e:MouseEvent):void {
     }
 }
 
-public function openToolBox2(fromShortcut:Boolean):void {
+public function openToolBox2(fromShortcut:Boolean):void
+{
     isPenSizeCursorInvisible = true;
     penSizePreviewCursor.visible = false;
 
@@ -21209,16 +24265,21 @@ public function openToolBox2(fromShortcut:Boolean):void {
     setAsTopChild(toolBox2);
     addInputEventsToolBox2(fromShortcut);
 
-    addTimerByName("toolBox2HideCheckTimer", 0.1, true, function():Boolean {
-            if (!isToolBox2Showing) {
+    addTimerByName("toolBox2HideCheckTimer", 0.1, true, function():Boolean
+        {
+            if (!isToolBox2Showing)
+            {
                 return false;
             }
 
-            if (resizeButtonR.visible) {
-                if (!toolBox2.hitTestPoint(stage.mouseX, stage.mouseY)) {
+            if (resizeButtonR.visible)
+            {
+                if (!toolBox2.hitTestPoint(stage.mouseX, stage.mouseY))
+                {
                     toolBox2.alpha = 0.6;
                 }
-                else if (toolBox2.alpha < 1.0) {
+                else if (toolBox2.alpha < 1.0)
+                {
                     toolBox2.alpha = 1.0;
                 }
             }
@@ -21230,12 +24291,14 @@ public function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
 {
     if (isMouseClicked || isKeyPressed() || isPressingControl() || isQuickSidebarActive
             || isFillPenStarted || isSelectedTool(TOOL_EYEDROPPER) || (isRefLayerMenuON && refLayerMenuBox.hitTestPoint(mouseX, mouseY))
-            || loadMenuBox.visible || topBar.gridButtonWrapper.visible || numPadBox.visible) {
+            || loadMenuBox.visible || topBar.gridButtonWrapper.visible || numPadBox.visible)
+    {
         return;
     }
 
     const targetName:String = e.target.name;
-    switch (targetName) {
+    switch (targetName)
+    {
         case "saveButton":
             {
                 openSaveFileBrowser(true);
@@ -21244,7 +24307,8 @@ public function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
 
         case "dpiButton":
             {
-                if (Global.getScaleIndex() !== 0) {
+                if (Global.getScaleIndex() !== 0)
+                {
                     Global.resetScaleIndex();
                     applyUIScale();
                     showMouseHintTemp(Global.getUIScaleString());
@@ -21262,7 +24326,8 @@ public function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
 
         case "gridButton":
             {
-                if (gridGapMultiplier !== 0) {
+                if (gridGapMultiplier !== 0)
+                {
                     hideBottomHint();
                     resetGrid();
                 }
@@ -21271,7 +24336,8 @@ public function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
 
         case "toolRotate":
             {
-                if (canvasAnchorPoint.rotation !== 0.0) {
+                if (canvasAnchorPoint.rotation !== 0.0)
+                {
                     resetRotationDrawMode();
                 }
             }
@@ -21285,11 +24351,14 @@ public function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
 
         default:
             {
-                if (isCursorInDrawArea()) {
-                    if (isToolBox2Showing && !isDeepUndoEnabled) {
+                if (isCursorInDrawArea())
+                {
+                    if (isToolBox2Showing && !isDeepUndoEnabled)
+                    {
                         closeToolBox2();
                     }
-                    else {
+                    else
+                    {
                         openToolBox2(false);
                     }
                 }
@@ -21298,21 +24367,26 @@ public function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
     }
 }
 
-public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean {
-    if (isToolBox2Showing) {
+public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean
+{
+    if (isToolBox2Showing)
+    {
         return true;
     }
 
     const targetName:String = target.name;
 
-    if (target.alpha === Global.OFFALPHA) {
+    if (target.alpha === Global.OFFALPHA)
+    {
         return true;
     }
 
-    switch (targetName) {
+    switch (targetName)
+    {
         case "penSmoothSliderWapper":
             {
-                if (nowTool !== TOOL_PEN) {
+                if (nowTool !== TOOL_PEN)
+                {
                     return true;
                 }
                 selectPenToolIfNotDrawingTool(true);
@@ -21349,7 +24423,8 @@ public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean {
         case "nSizeButton11":
         case "nSizeButton12":
             {
-                if (!isSelectedTool(TOOL_FILLPEN)) {
+                if (!isSelectedTool(TOOL_FILLPEN))
+                {
                     selectPenToolIfNotDrawingTool(true);
                     selectPenSizeButton(targetName);
                 }
@@ -21358,7 +24433,8 @@ public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean {
 
         case "shapeRect":
             {
-                if (!isSelectedTool(TOOL_FILLPEN)) {
+                if (!isSelectedTool(TOOL_FILLPEN))
+                {
                     selectPenToolIfNotDrawingTool(true);
                     selectPenShapeButton(true);
                 }
@@ -21367,7 +24443,8 @@ public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean {
 
         case "shapeCircle":
             {
-                if (!isSelectedTool(TOOL_FILLPEN)) {
+                if (!isSelectedTool(TOOL_FILLPEN))
+                {
                     selectPenToolIfNotDrawingTool(true);
                     selectPenShapeButton(false);
                 }
@@ -21392,15 +24469,18 @@ public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean {
 
         case "layer1SelectButton":
             {
-                if (isLayer2Selected) {
+                if (isLayer2Selected)
+                {
                     selectLayer1(false);
                 }
-                else {
+                else
+                {
                     selectLayer1(canvasLayer2Bitmap.visible);
                     showMouseHintLayerVisible();
                 }
 
-                if (toolOptionsBox.layer2CheckedButton.visible) {
+                if (toolOptionsBox.layer2CheckedButton.visible)
+                {
                     toggleLayer2Check();
                 }
             }
@@ -21408,15 +24488,18 @@ public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean {
 
         case "layer2SelectButton":
             {
-                if (!isLayer2Selected) {
+                if (!isLayer2Selected)
+                {
                     selectLayer2(false);
                 }
-                else {
+                else
+                {
                     selectLayer2(canvasLayer1Bitmap.visible);
                     showMouseHintLayerVisible();
                 }
 
-                if (toolOptionsBox.layer1CheckedButton.visible) {
+                if (toolOptionsBox.layer1CheckedButton.visible)
+                {
                     toggleLayer1Check();
                 }
             }
@@ -21425,7 +24508,8 @@ public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean {
         case "layerMergeButton":
         case "layerSwapButton":
             {
-                if (isToolBox2Showing || target.alpha < 1.0) {
+                if (isToolBox2Showing || target.alpha < 1.0)
+                {
                     return true;
                 }
                 handleMouseClick(targetName);
@@ -21437,7 +24521,8 @@ public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean {
         case "sharpLineONButton":
         case "sharpLineText":
             {
-                if (toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0) {
+                if (toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
+                {
                     selectPenToolIfNotDrawingTool(true);
                     toggleSharpLine(!isSharpLineON);
                 }
@@ -21449,12 +24534,15 @@ public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean {
         case "airBrushONButton":
         case "airBrushText":
             {
-                if (toolOptionsBox.airBrushButtonWrapper.alpha === 1.0) {
+                if (toolOptionsBox.airBrushButtonWrapper.alpha === 1.0)
+                {
                     selectPenToolIfNotDrawingTool(true);
-                    if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)) {
+                    if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
+                    {
                         togglePenAirBrushButton(!isPenAirBrushON);
                     }
-                    else if (isSelectedTool(TOOL_ERASER)) {
+                    else if (isSelectedTool(TOOL_ERASER))
+                    {
                         toggleEraseAirBrushButton(!isEraserAirBrushON);
                     }
                 }
@@ -21465,19 +24553,24 @@ public function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean {
     return false;
 }
 
-public function startColorHistoryBoxDragging():void {
+public function startColorHistoryBoxDragging():void
+{
     const index:int = getHistoryIndexByMousePos();
 
-    function onDragStart():void {
+    function onDragStart():void
+    {
         myPaletteDragClickedIndex = index + 90;
         myPaletteDragClickedColor = myPalettePreset[index + 90];
         myPaletteClickPos.setTo(colorPickerBox.mouseX, colorPickerBox.mouseY);
         myPaletteMovePos.setTo(colorPickerBox.mouseX, colorPickerBox.mouseY);
     }
 
-    function onMouseMove():void {
-        if (Point.distance(myPaletteClickPos, myPaletteMovePos) >= 4) {
-            if (myPaletteDragStarted === false) {
+    function onMouseMove():void
+    {
+        if (Point.distance(myPaletteClickPos, myPaletteMovePos) >= 4)
+        {
+            if (myPaletteDragStarted === false)
+            {
                 myPaletteDragStarted = true;
                 colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
                 updateMyPaletteList(myPaletteDragClickedIndex);
@@ -21486,16 +24579,20 @@ public function startColorHistoryBoxDragging():void {
 
             colorPickerBox.updateDragColorPosToCursor();
         }
-        else {
+        else
+        {
             myPaletteMovePos.setTo(colorPickerBox.mouseX, colorPickerBox.mouseY);
         }
     }
 
-    function onMouseUp():void {
-        if (myPaletteDragStarted === true) {
+    function onMouseUp():void
+    {
+        if (myPaletteDragStarted === true)
+        {
             myPaletteDragStarted = false;
 
-            if (colorPickerBox.myPaletteBox.hitTestPoint(mouseX, mouseY)) {
+            if (colorPickerBox.myPaletteBox.hitTestPoint(mouseX, mouseY))
+            {
                 const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
                 const colorSave:* = myPalettePreset[putIndex];
 
@@ -21511,16 +24608,20 @@ public function startColorHistoryBoxDragging():void {
         colorPickerBox.removeDragColor();
     }
 
-    if (index >= 0 && !isSelctedHistoryColorEmpty(index)) {
+    if (index >= 0 && !isSelctedHistoryColorEmpty(index))
+    {
         startDragInteraction(onDragStart, onMouseMove, onMouseUp);
     }
 }
 
-public function startMyPaletteBoxDragging():void {
+public function startMyPaletteBoxDragging():void
+{
     var index:int = getMyPaletteIndexByMousePos();
 
-    function onDragStart():void {
-        if (index >= 0 && !isSelctedColorEmpty(index)) {
+    function onDragStart():void
+    {
+        if (index >= 0 && !isSelctedColorEmpty(index))
+        {
             myPaletteDragClickedIndex = index;
             myPaletteDragClickedColor = myPalettePreset[index];
             myPaletteClickPos.setTo(colorPickerBox.mouseX, colorPickerBox.mouseY);
@@ -21528,9 +24629,12 @@ public function startMyPaletteBoxDragging():void {
         }
     }
 
-    function onMouseMouse():void {
-        if (Point.distance(myPaletteClickPos, myPaletteMovePos) >= 4) {
-            if (myPaletteDragStarted === false) {
+    function onMouseMouse():void
+    {
+        if (Point.distance(myPaletteClickPos, myPaletteMovePos) >= 4)
+        {
+            if (myPaletteDragStarted === false)
+            {
                 removeTimer("addColorMyPaletteDelayTimer");
                 myPaletteDragStarted = true;
                 colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
@@ -21539,13 +24643,16 @@ public function startMyPaletteBoxDragging():void {
 
             colorPickerBox.updateDragColorPosToCursor();
         }
-        else {
+        else
+        {
             myPaletteMovePos.setTo(colorPickerBox.mouseX, colorPickerBox.mouseY);
         }
     }
 
-    function onMouseUp():void {
-        if (myPaletteDragStarted === true) {
+    function onMouseUp():void
+    {
+        if (myPaletteDragStarted === true)
+        {
             myPaletteDragStarted = false;
 
             const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
@@ -21559,19 +24666,24 @@ public function startMyPaletteBoxDragging():void {
         colorPickerBox.removeDragColor();
     }
 
-    if (index >= 0 && !isSelctedColorEmpty(index)) {
+    if (index >= 0 && !isSelctedColorEmpty(index))
+    {
         startDragInteraction(onDragStart, onMouseMouse, onMouseUp);
     }
 }
 
-public function handleColorPickerBoxClick(targetName:String):void {
-    function onMouseUpColorPickerBox(e:MouseEvent):void {
+public function handleColorPickerBoxClick(targetName:String):void
+{
+    function onMouseUpColorPickerBox(e:MouseEvent):void
+    {
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpColorPickerBox);
 
         const upTargetName:String = e.target.name;
 
-        if (targetName === upTargetName) {
-            switch (upTargetName) {
+        if (targetName === upTargetName)
+        {
+            switch (upTargetName)
+            {
                 case "currentColor":
                     {
                         selectPenToolIfNotDrawingTool(false);
@@ -21581,7 +24693,8 @@ public function handleColorPickerBoxClick(targetName:String):void {
 
                 case "penColorButton":
                     {
-                        if (isColorPickerModeBG) {
+                        if (isColorPickerModeBG)
+                        {
                             switchColorPickerModePen();
                         }
                     }
@@ -21589,7 +24702,8 @@ public function handleColorPickerBoxClick(targetName:String):void {
 
                 case "paperColorButton":
                     {
-                        if (!isColorPickerModeBG) {
+                        if (!isColorPickerModeBG)
+                        {
                             switchColorPickerModeBG();
                         }
                     }
@@ -21603,7 +24717,8 @@ public function handleColorPickerBoxClick(targetName:String):void {
 
                 case "myPaletteBox":
                     {
-                        if (myPaletteDragStarted === false) {
+                        if (myPaletteDragStarted === false)
+                        {
                             selectMyPaletteColor();
                         }
                     }
@@ -21611,7 +24726,8 @@ public function handleColorPickerBoxClick(targetName:String):void {
 
                 case "transColorButton":
                     {
-                        if (colorPickerBox.transColorButton.alpha === 1.0 && isTransparentPenColor === false) {
+                        if (colorPickerBox.transColorButton.alpha === 1.0 && isTransparentPenColor === false)
+                        {
                             selectPenToolIfNotDrawingTool(false);
                             selectTransparentColor();
                         }
@@ -21644,28 +24760,35 @@ public function handleColorPickerBoxClick(targetName:String):void {
     stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpColorPickerBox);
 }
 
-public function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean {
+public function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean
+{
     if (isToolBox2Showing || (isKeyPressed()
                 && !isSelectedToolPenOrLine()
                 && !isSelectedTool(TOOL_ERASER)
-                && !isSelectedTool(TOOL_FILLPEN))) {
+                && !isSelectedTool(TOOL_FILLPEN)))
+    {
         return false;
     }
 
     const targetName:String = target.name;
 
-    if (targetName === "myPaletteBox") {
-        if (myPalettePresetType === 0) {
+    if (targetName === "myPaletteBox")
+    {
+        if (myPalettePresetType === 0)
+        {
             startMyPaletteBoxDragging();
         }
     }
-    else if (targetName === "colorHistoryBox") {
-        if (myPalettePresetType === 0) {
+    else if (targetName === "colorHistoryBox")
+    {
+        if (myPalettePresetType === 0)
+        {
             startColorHistoryBoxDragging();
         }
     }
 
-    switch (targetName) {
+    switch (targetName)
+    {
         case "scratchPad":
             {
                 colorPickerBox.scratchPad.drawReady(penSize, penColor, penAlpha, penIsSquare, pickColor);
@@ -21674,7 +24797,8 @@ public function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean {
 
         case "svBox":
             {
-                if (colorPickerBox.scratchPad && !colorPickerBox.scratchPad.visible) {
+                if (colorPickerBox.scratchPad && !colorPickerBox.scratchPad.visible)
+                {
                     startSVColorSelection();
                 }
             }
@@ -21682,7 +24806,8 @@ public function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean {
 
         case "hueColor":
             {
-                if (colorPickerBox.scratchPad && !colorPickerBox.scratchPad.visible) {
+                if (colorPickerBox.scratchPad && !colorPickerBox.scratchPad.visible)
+                {
                     startHueColorSelection();
                 }
             }
@@ -21690,10 +24815,12 @@ public function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean {
 
         case "myPaletteBox":
             {
-                if (myPalettePresetType === 0) {
+                if (myPalettePresetType === 0)
+                {
                     startSelectOrAddColorMyPalette();
                 }
-                else {
+                else
+                {
                     handleColorPickerBoxClick(targetName);
                 }
             }
@@ -21732,8 +24859,10 @@ public function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean {
     return false;
 }
 
-public function onRightMouseDownLassoTool(e:MouseEvent):void {
-    if (!isLassoToolStarted) {
+public function onRightMouseDownLassoTool(e:MouseEvent):void
+{
+    if (!isLassoToolStarted)
+    {
         return;
     }
 
@@ -21745,18 +24874,22 @@ public function onRightMouseDownLassoTool(e:MouseEvent):void {
 
     if (targetName === "toolZoom"
             || targetName === "toolZoomIn"
-            || targetName === "toolZoomOut") {
+            || targetName === "toolZoomOut")
+    {
         if (canvasZoomMultipler !== 1.0)
             resetZoomDrawMode();
     }
-    else if (targetName === "toolRotate") {
+    else if (targetName === "toolRotate")
+    {
         if (canvasAnchorPoint.rotation !== 0.0)
             resetRotationDrawMode();
     }
 }
 
-public function onRightMouseUpLassoTool(e:MouseEvent):void {
-    if (!isLassoToolStarted || isMouseClicked) {
+public function onRightMouseUpLassoTool(e:MouseEvent):void
+{
+    if (!isLassoToolStarted || isMouseClicked)
+    {
         return;
     }
 
@@ -21769,23 +24902,29 @@ public function onRightMouseUpLassoTool(e:MouseEvent):void {
     if (targetName === "toolZoom"
             || targetName === "toolZoomIn"
             || targetName === "toolZoomOut"
-            || targetName === "toolRotate") {
+            || targetName === "toolRotate")
+    {
         return;
     }
 
-    if (lassoMenuBox.hitTestPoint(stage.mouseX, stage.mouseY) === false || targetName === "lassoOK") {
+    if (lassoMenuBox.hitTestPoint(stage.mouseX, stage.mouseY) === false || targetName === "lassoOK")
+    {
         applyLassoImageToCanvas();
         return;
     }
 
-    if (targetName === "lassoRotate") {
-        if (lassoLayer1.rotation !== 0) {
+    if (targetName === "lassoRotate")
+    {
+        if (lassoLayer1.rotation !== 0)
+        {
             lassoLayer1.rotation = 0;
             lassoLayer2.rotation = 0;
         }
     }
-    else if (targetName === "lassoResize") {
-        if (lassoLayer1.scaleY !== 1.0) {
+    else if (targetName === "lassoResize")
+    {
+        if (lassoLayer1.scaleY !== 1.0)
+        {
             lassoLayer1.scaleX = (isLassoMirrorON) ? -1.0 : 1.0;
             lassoLayer1.scaleY = 1.0;
             lassoLayer2.scaleX = lassoLayer1.scaleX;
@@ -21794,8 +24933,10 @@ public function onRightMouseUpLassoTool(e:MouseEvent):void {
     }
 }
 
-public function onMouseUpLassoTool(e:MouseEvent):void {
-    if (getPressedKeyCount() === 1 && getFirstPressedKey() === KEY.space) {
+public function onMouseUpLassoTool(e:MouseEvent):void
+{
+    if (getPressedKeyCount() === 1 && getFirstPressedKey() === KEY.space)
+    {
         updateLastKey(KEY.space);
         isLassoMenuHiddenTemp = true;
         setSelectedTool(TOOL_HAND);
@@ -21803,20 +24944,25 @@ public function onMouseUpLassoTool(e:MouseEvent):void {
     }
 }
 
-public function onMouseDownLassoTool(e:MouseEvent):void {
-    if (isRightMouseClicked) {
+public function onMouseDownLassoTool(e:MouseEvent):void
+{
+    if (isRightMouseClicked)
+    {
         return;
     }
 
     const target:DisplayObject = e.target as DisplayObject;
-    if (!target) {
+    if (!target)
+    {
         return;
     }
 
     const targetName:String = target.name;
 
-    if (isCursorInDrawArea() && lassoMenuBox.hitTestPoint(stage.mouseX, stage.mouseY) === false) {
-        if (isLassoMenuHiddenTemp) {
+    if (isCursorInDrawArea() && lassoMenuBox.hitTestPoint(stage.mouseX, stage.mouseY) === false)
+    {
+        if (isLassoMenuHiddenTemp)
+        {
             lassoMenuBox.visible = false;
             if (isSelectedTool(TOOL_HAND))
                 handTool(false, false);
@@ -21825,12 +24971,15 @@ public function onMouseDownLassoTool(e:MouseEvent):void {
             else if (isSelectedTool(TOOL_ROTATE))
                 rotateTool(false);
         }
-        else {
+        else
+        {
             startLassoImageMove();
         }
     }
-    else {
-        switch (targetName) {
+    else
+    {
+        switch (targetName)
+        {
             case "lassoMove":
                 {
                     startLassoImageMove();
@@ -21922,33 +25071,42 @@ public function onMouseDownLassoTool(e:MouseEvent):void {
         }
     }
 }
-public function handleSidebarMouseDown(target:DisplayObject):Boolean {
+public function handleSidebarMouseDown(target:DisplayObject):Boolean
+{
     const targetName:String = target.name;
 
-    if (sideBarScrollPanel.hitTestPoint(stage.mouseX, stage.mouseY)) {
+    if (sideBarScrollPanel.hitTestPoint(stage.mouseX, stage.mouseY))
+    {
         if (targetName === "navStageBG"
                 || targetName === "navBitmapBG"
                 || targetName === "navLayer1Bitmap"
-                || targetName === "navLayer2Bitmap") {
+                || targetName === "navLayer2Bitmap")
+        {
             startCanvasMoveByCanvasNavigator(false);
             return true;
         }
-        else if (targetName === "navCursor") {
+        else if (targetName === "navCursor")
+        {
             startCanvasMoveByCanvasNavigator(true);
             return true;
         }
-        else if (handleColorPickerBoxMouseDown(target) && !isKeyPressed()) {
+        else if (handleColorPickerBoxMouseDown(target) && !isKeyPressed())
+        {
             return true;
         }
-        else if (handlePenOptionsBoxMouseDown(target) && (isSelectedToolPenOrLine() || isSelectedTool(TOOL_ERASER))) {
+        else if (handlePenOptionsBoxMouseDown(target) && (isSelectedToolPenOrLine() || isSelectedTool(TOOL_ERASER)))
+        {
             return true;
         }
-        else if (toolBox.alpha === 1.0 && target.alpha === 1.0 && handleToolBoxMouseDown(target)) {
+        else if (toolBox.alpha === 1.0 && target.alpha === 1.0 && handleToolBoxMouseDown(target))
+        {
             return true;
         }
     }
-    else if (isSidebarVisible === false) {
-        if (sideBar.visible && !sideBar.hitTestPoint(stage.mouseX, stage.mouseY) && isCursorInDrawArea()) {
+    else if (isSidebarVisible === false)
+    {
+        if (sideBar.visible && !sideBar.hitTestPoint(stage.mouseX, stage.mouseY) && isCursorInDrawArea())
+        {
             startHidingSidebarTemporary();
             return true;
         }
@@ -21956,33 +25114,41 @@ public function handleSidebarMouseDown(target:DisplayObject):Boolean {
     return false;
 }
 
-public function onMouseDownDrawMode(e:MouseEvent):void {
+public function onMouseDownDrawMode(e:MouseEvent):void
+{
     if (isFillPenStarted || loadMenuBox.visible
-            || topBar.gridButtonWrapper.visible || numPadBox.visible) {
+            || topBar.gridButtonWrapper.visible || numPadBox.visible)
+    {
         return;
     }
 
     const target:DisplayObject = e.target as DisplayObject;
-    if (!target) {
+    if (!target)
+    {
         return;
     }
 
     const targetName:String = target.name;
 
-    if (sideBar.visible) {
-        if (sideBarScrollPanel.hitTestPoint(stage.mouseX, stage.mouseY) && handleSidebarMouseDown(target)) {
+    if (sideBar.visible)
+    {
+        if (sideBarScrollPanel.hitTestPoint(stage.mouseX, stage.mouseY) && handleSidebarMouseDown(target))
+        {
             return;
         }
     }
 
-    if (isQuickSidebarActive) {
-        if (targetName === "sideBarScrollBar") {
+    if (isQuickSidebarActive)
+    {
+        if (targetName === "sideBarScrollBar")
+        {
             startScrollSidebarByDrag();
         }
         return;
     }
 
-    switch (targetName) {
+    switch (targetName)
+    {
         case "saveButton": // 아래 3개는 topbar메뉴에 가면 안됨 mouseuphandler랑 같이 연동되서 여기서 해주어야함
         case "loadButton":
         case "replayModeButton":
@@ -22012,7 +25178,8 @@ public function onMouseDownDrawMode(e:MouseEvent):void {
         case "newWindowButton":
         case "newWindowCloseButton":
             {
-                if (isToolBox2Showing || isKeyPressed() || e.target.alpha < 1.0) {
+                if (isToolBox2Showing || isKeyPressed() || e.target.alpha < 1.0)
+                {
                     return;
                 }
 
@@ -22028,10 +25195,12 @@ public function onMouseDownDrawMode(e:MouseEvent):void {
 
         case "refClearImageButton":
             {
-                if (isRefLayerEmpty()) {
+                if (isRefLayerEmpty())
+                {
                     showRefLayerIsEmptyHint();
                 }
-                else {
+                else
+                {
                     startPressHoldKey(refLayerMenuBox.refClearImageButton, "Erasing reference image...", null, startReflayerClear, null);
                 }
             }
@@ -22045,7 +25214,8 @@ public function onMouseDownDrawMode(e:MouseEvent):void {
 
         case "newFileButton":
             {
-                if (topBar.newFileButton.alpha === 1.0 && !isSaveInProgress) {
+                if (topBar.newFileButton.alpha === 1.0 && !isSaveInProgress)
+                {
                     createNewFile(false);
                 }
             }
@@ -22069,10 +25239,12 @@ public function onMouseDownDrawMode(e:MouseEvent):void {
         case "refRotateImageButton":
             {
                 setAsTopChild(refLayerMenuBox);
-                if (isRefLayerEmpty()) {
+                if (isRefLayerEmpty())
+                {
                     showRefLayerIsEmptyHint();
                 }
-                else {
+                else
+                {
                     startRefLayerRotation();
                 }
             }
@@ -22081,10 +25253,12 @@ public function onMouseDownDrawMode(e:MouseEvent):void {
         case "refMoveImageButton":
             {
                 setAsTopChild(refLayerMenuBox);
-                if (isRefLayerEmpty()) {
+                if (isRefLayerEmpty())
+                {
                     showRefLayerIsEmptyHint();
                 }
-                else {
+                else
+                {
                     startRefLayerImageDrag();
                 }
             }
@@ -22093,10 +25267,12 @@ public function onMouseDownDrawMode(e:MouseEvent):void {
         case "refResizeImageButton":
             {
                 setAsTopChild(refLayerMenuBox);
-                if (isRefLayerEmpty()) {
+                if (isRefLayerEmpty())
+                {
                     showRefLayerIsEmptyHint();
                 }
-                else {
+                else
+                {
                     startRefLayerImageScale();
                 }
             }
@@ -22105,10 +25281,12 @@ public function onMouseDownDrawMode(e:MouseEvent):void {
         case "refOpacitySliderWrapper":
             {
                 setAsTopChild(refLayerMenuBox);
-                if (isRefLayerEmpty()) {
+                if (isRefLayerEmpty())
+                {
                     showRefLayerIsEmptyHint();
                 }
-                else {
+                else
+                {
                     startRefLayerOpacityDrag();
                 }
             }
@@ -22125,11 +25303,13 @@ public function onMouseDownDrawMode(e:MouseEvent):void {
     }
 
     // 캔버스 영역 밖에서는 해주지 않음
-    if (isCursorInDrawArea() && !isMouseClickBlocked) {
-        switch (nowTool) {
+    if (isCursorInDrawArea() && !isMouseClickBlocked)
+    {
+        switch (nowTool)
+        {
             case TOOL_PEN:
                 if (isToolEnabledByLayerUnChecked())
-                    penTool(true);
+                    PenTool.start();
                 break;
             case TOOL_FILLPEN:
                 if (isToolEnabledByLayerUnChecked())
@@ -22137,7 +25317,7 @@ public function onMouseDownDrawMode(e:MouseEvent):void {
                 break;
             case TOOL_ERASER:
                 if (isToolEnabledByLayerUnChecked())
-                    penTool(false);
+                    PenTool.startWithEraserMode();
                 break;
             case TOOL_LINE:
                 if (isToolEnabledByLayerUnChecked())
