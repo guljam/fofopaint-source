@@ -62,7 +62,12 @@
     import flash.text.TextFormat;
     import flash.ui.Mouse;
     import libwebp.DecodeWebp;
+
     import main_module.tools.PenTool;
+    import main_module.Utils;
+    import main_module.GridOverlay;
+    import main_module.DragInteraction;
+    import main_module.ClipboardBridge;
 
     // import
 
@@ -99,10 +104,6 @@
             REPLAY_SLIDESHOW_FRAME_RATE:Number = 2, // 1/2초 = 0.5초마다 갱신
             REPLAY_SLIDESHOW_UPDATE_TIME:Number = 1000 / REPLAY_SLIDESHOW_FRAME_RATE;
         public var REPLAY_MAX_SPEED:Number = 0.0;
-
-        public const GRID_GAP:uint = 10,
-            GRID_NORMAL_COLOR:uint = 0x808080;
-
         public const LASSO_SHARP_DATA:Array = [[[
                         0, -1, 0,
                         -1, 12, -1
@@ -263,13 +264,6 @@
                 f12: 123,
                 window: 91
             };
-
-        // 프레임 타이머
-        public const addTimer:Function = FOFOTimer.add,
-            addTimerByName:Function = FOFOTimer.addByName,
-            hasTimer:Function = FOFOTimer.hasTimer,
-            removeTimer:Function = FOFOTimer.remove;
-
         // 메뉴 요소
         public const stageBG:Sprite = new Sprite(), // 드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
             resizeButtonR:Sprite = new Sprite(), // 캔버스 리사이즈 하는 버튼
@@ -496,9 +490,6 @@
             lastAppWindowSizeInfo:Array = [0, 0, 680, 768],
             lastAppWindowState:int = 0;
 
-        // 이미지 붙여넣기
-        public var isClipBoardButtonActivated:Boolean = false; // 윈도우 active에서 붙여넣기 가능한 이미지가 있으면 올려줌
-
         // 참고 레이어
         public const canvasRefLayer:Sprite = new Sprite(); // 트레이스 레이어임
         public var isRefLayerMemoryTrainingON:Boolean = false, // 이거 켜지면 캔버스 그릴때 임시적으로 안보이게함
@@ -512,17 +503,6 @@
             refLayerMenuConfirmCount:int = 0, // 2번이상 클릭하면 되게
             refLayerLastAlpha:Number = 0.5,
             refLayerVisibleDelayOffTime:int = 0; // setCanvasRefLayerVisibleSlowly함수가 setCanvasRefLayerVisibleDelay함수보다 빨리 켜지지 않게 하기
-
-        // 그리드 레이어
-        public const canvasGrid:Shape = new Shape(), // 트레이스 레이어임
-            gridGraphicsCommands:Vector.<int> = new Vector.<int>,
-            gridGraphicsData:Vector.<Number> = new Vector.<Number>;
-
-        public var gridGapMultiplier:uint = 0,
-            lastGridGapValue:Number = 0.0, // 줌할때 다시 그려주는거 방지 갭이 다를때만 다시 그러줌
-            gridDrawOffsetX:Number = 0.0,
-            gridDrawOffsetY:Number = 0.0;
-
         // 툴 클로져 자주쓰는거는 클로져로 메모리에 미리 올려둬서 성능향상하려고 한건데 모르겠음
         public const realWorkingTimer:Object = cRealWorkingTimer(),
             dottedLine:Object = cDottedLine(), // 순서 먼저 와야함
@@ -545,8 +525,7 @@
             captureAreaManager:Object = cDrawCaptureArea(),
             captureStampManager:Object = cDrawCaptureStamp(),
             replayHideCursor:Object = cReplayHideCursor(),
-            resizeCanvas:Object = cResizeCanvas(),
-            gridButton:Object = cGridFunc();
+            resizeCanvas:Object = cResizeCanvas();
 
         // 스크롤바
         public var scrollSetMovedY:Number = 0,
@@ -600,10 +579,6 @@
             isRightSidebar:Boolean = false, // 사이드바 위치 (false: 왼쪽, true: 오른쪽)
             lassoAndRefLayerBoxLastPos:Array = [0, 0, 0, 0, 0, 0, 0, 0]; // 사이즈바 켜줄때 임시로 사이드바 안쪽으로 밀려나게 하고 위치가 변경되지 않았으면 원래대로 복귀해줌
         // 좌표순서 라소 이전, 이후, 트레이스 이전 이후
-
-        // 드래그 이벤트 변수
-        public var dragInteractionFuncs:Object = {onDragStart: null, onMouseMove: null, onMouseUp: null};
-
         // 기타
         public var isAppClosing:Boolean = false, // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
             lastWindowDeactivateTime:int = 0, // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
@@ -645,6 +620,7 @@
         public function initializeModule():void
         {
             PenTool.init(stage);
+            GridOverlay.initialize();
         }
         public function initializeStage():void
         {
@@ -678,7 +654,7 @@
             HintStrings.init(this);
             bottomHint.visible = true;
             selectPenTool();
-            checkCanUseClipBoardButton();
+            ClipboardBridge.checkCanUseClipBoardButton();
         }
 
         // function
@@ -912,53 +888,6 @@
 
             return clone;
         }
-
-        public function calculateSliderValueFromMouseX(mousex:Number, minx:Number, maxx:Number, minvalue:Number, maxvalue:Number, cursor:DisplayObject):Number
-        {
-            if (mousex < minx)
-            {
-                mousex = minx;
-            }
-            else if (mousex > maxx)
-            {
-                mousex = maxx;
-            }
-
-            const per:Number = (mousex - minx) / (maxx - minx);
-            const value:Number = minvalue + (maxvalue - minvalue) * per;
-
-            if (cursor !== null)
-            {
-                cursor.x = mousex;
-            }
-
-            return value;
-        }
-
-        public function startDragInteraction(onDragStartFunc:Function, onMouseMoveFunc:Function, onMouseUpFunc:Function):void
-        {
-            isMouseDragging = true;
-
-            function onMouseUp(e:MouseEvent):void
-            {
-                isMouseDragging = false;
-                stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-
-                onMouseUpFunc();
-            }
-
-            function onMouseMove(e:MouseEvent):void
-            {
-                onMouseMoveFunc();
-            }
-
-            onDragStartFunc();
-
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-            stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
-        }
-
         public function isPopUpWindowOpened():Boolean
         {
             return topBar.gridButtonWrapper.visible || numPadBox.visible || loadMenuBox.visible || aboutBox.visible;
@@ -1008,7 +937,7 @@
             }
 
             const fadeStep:Number = Math.floor(0.1 * 256) / 256;
-            addTimerByName("viewTransBGTimer", 0.0, true, function():Boolean
+            FOFOTimer.addByName("viewTransBGTimer", 0.0, true, function():Boolean
                 {
                     if (canvasFlashEffect.alpha < 0.0 || isCaptureModeON)
                     {
@@ -1046,7 +975,7 @@
             }
 
             const fadeStep:Number = Math.floor(0.1 * 256) / 256;
-            addTimerByName("viewTransBGTimer", 0.0, true, function():Boolean
+            FOFOTimer.addByName("viewTransBGTimer", 0.0, true, function():Boolean
                 {
                     if (canvasFlashEffect.alpha >= 1.0 || isCaptureModeON)
                     {
@@ -1113,7 +1042,7 @@
 
             const fadeStep:Number = Math.floor(0.05 * 256) / 256;
 
-            addTimerByName("flashingTimer", 0.0, true, function():Boolean
+            FOFOTimer.addByName("flashingTimer", 0.0, true, function():Boolean
                 {
                     if (canvasFlashEffect.alpha < 0.1 || stopHandler())
                     {
@@ -1144,7 +1073,7 @@
 
         public function startScratchPadResetTimer(target:DisplayObject):void
         {
-            addTimerByName("clearScratchPadTimer", 0.4, false, function():void
+            FOFOTimer.addByName("clearScratchPadTimer", 0.4, false, function():void
                 {
                     startPressHoldKey(target, "Clearing scratch pad..", null, colorPickerBox.scratchPad.clearPad, null);
                 });
@@ -1154,7 +1083,7 @@
         {
             function onMouseUpMyPalette(e:MouseEvent):void
             {
-                removeTimer("selectMyPaletteDelayTimer");
+                FOFOTimer.remove("selectMyPaletteDelayTimer");
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
 
                 if (e.target && e.target.name === "myPaletteButton")
@@ -1178,7 +1107,7 @@
             }
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
 
-            addTimerByName("selectMyPaletteDelayTimer", 0.4, false, function():void
+            FOFOTimer.addByName("selectMyPaletteDelayTimer", 0.4, false, function():void
                 {
                     startPressHoldKey(colorPickerBox.myPaletteButton, "Clearing my palette..", null, clearMyPaletteList, null);
                     stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
@@ -1192,7 +1121,7 @@
 
             function onMyPaletteMouseUp(e:MouseEvent):void
             {
-                removeTimer("addColorMyPaletteDelayTimer");
+                FOFOTimer.remove("addColorMyPaletteDelayTimer");
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp);
                 if (colorAddedFlag === false)
                 {
@@ -1201,7 +1130,7 @@
             }
             stage.addEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp);
 
-            addTimerByName("addColorMyPaletteDelayTimer", 0.6, true, function():Boolean
+            FOFOTimer.addByName("addColorMyPaletteDelayTimer", 0.6, true, function():Boolean
                 {
                     if (firstClickColorIndex === getMyPaletteIndexByMousePos())
                     {
@@ -1249,9 +1178,9 @@
                     || isCaptureModeON || !isQuickSidebarActive && isKeyPressed() || getCommandKey() !== 0)
                 return;
 
-            if (!hasTimer("wheelZoomTimer"))
+            if (!FOFOTimer.hasTimer("wheelZoomTimer"))
             {
-                addTimerByName("wheelZoomTimer", 0.07, false, function():void
+                FOFOTimer.addByName("wheelZoomTimer", 0.07, false, function():void
                     {
                         if (isMouseCursorInSideBar())
                         {
@@ -1365,7 +1294,7 @@
 
         public function startPressHoldKey(button:DisplayObject, hintStr:String, readyFunc:Function, okFunc:Function, cancelFunc:Function):void
         {
-            if (!hasTimer("pressholdtimer"))
+            if (!FOFOTimer.hasTimer("pressholdtimer"))
             {
                 var keyBufferLenSave:uint = getPressedKeyCount();
                 var mouseClickONSave:Boolean = isMouseClicked;
@@ -1397,7 +1326,7 @@
                     showMouseHint(hintStr + " " + pressHoldCountDownTime);
                 }
 
-                addTimerByName("pressholdtimer", 0.0, true, function():Boolean
+                FOFOTimer.addByName("pressholdtimer", 0.0, true, function():Boolean
                     {
                         if (isMouseClicked !== mouseClickONSave
                                 || isRightMouseClicked !== rightMouseClickONSave
@@ -1473,7 +1402,7 @@
 
         public function initializeRepTempFile():void
         {
-            repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + getRandomString(32));
+            repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + Utils.getRandomString(32));
         }
 
         public function handleLoadMenuBoxClick(oldTargetName:String):void
@@ -1918,7 +1847,7 @@
         {
             target.alpha = Global.OFFALPHA;
 
-            addTimerByName("layerSwapFlickEffect", 0.5, false, function():void
+            FOFOTimer.addByName("layerSwapFlickEffect", 0.5, false, function():void
                 {
                     target.alpha = 1.0;
                 });
@@ -1939,7 +1868,7 @@
 
         public function keepRGBInfoTextPartFocus():void
         {
-            addTimerByName("keepRGBInfoTextPartFocusTimer", 0.0, false, function():void
+            FOFOTimer.addByName("keepRGBInfoTextPartFocusTimer", 0.0, false, function():void
                 {
                     stage.focus = colorPickerBox.rgbInfoText;
                     selectRGBInfoTextByIndex(lastRGBInfoColorPartIndex);
@@ -2076,7 +2005,7 @@
             stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad);
             stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad);
 
-            addTimerByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function():void
+            FOFOTimer.addByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function():void
                 {
                     addInputEventsDrawMode();
                 });
@@ -2277,7 +2206,7 @@
 
         public function getRandomFileName():String
         {
-            return getTimeStampTailHead() + "_" + getRandomString(8) + ".png";
+            return getTimeStampTailHead() + "_" + Utils.getRandomString(8) + ".png";
         }
 
         public function updateStageOffset():void
@@ -2324,7 +2253,7 @@
             {
                 mirrorCommandReady = true;
                 mirrorDraw();
-                updateGridMirror(isCanvasMirrored);
+                GridOverlay.updateGridMirror(isCanvasMirrored);
                 mirrorRCursorPos();
             }
             else if (mirrorCommandReady)
@@ -2357,7 +2286,7 @@
 
             const startTime:int = getTimer() + waitDuration * 1000;
 
-            addTimerByName("alphaFadeOutTimer_" + target.name, 0.0, true, function():Boolean
+            FOFOTimer.addByName("alphaFadeOutTimer_" + target.name, 0.0, true, function():Boolean
                 {
                     if (getTimer() < startTime)
                     {
@@ -2509,7 +2438,7 @@
 
         public function updateCanvasWindowData():void
         {
-            addTimerByName("canvasWindowUpdateDelayTimer", 0.2, false,
+            FOFOTimer.addByName("canvasWindowUpdateDelayTimer", 0.2, false,
                     function():void
                     {
                         canvasWindowInfo[0] = canvasWindow.x;
@@ -3390,9 +3319,9 @@
                 receivedUndoImageQueueFromWorker.push([backToMain.receive(true), backToMain.receive(true)]);
             }
 
-            if (!hasTimer("workerStopTimer"))
+            if (!FOFOTimer.hasTimer("workerStopTimer"))
             {
-                addTimerByName("workerStopTimer", WORKER_WAIT_INTERVAL, true, stopWorkerIfIdle);
+                FOFOTimer.addByName("workerStopTimer", WORKER_WAIT_INTERVAL, true, stopWorkerIfIdle);
             }
         }
 
@@ -3731,7 +3660,7 @@
 
         public function startKeyRepeatStopTimerOnMouseLeave(target:DisplayObject):void
         {
-            addTimerByName("checkKeyRepeatStop", 0.0, true, function():Boolean
+            FOFOTimer.addByName("checkKeyRepeatStop", 0.0, true, function():Boolean
                 {
                     if (!target.hitTestPoint(stage.mouseX, stage.mouseY))
                     {
@@ -3746,16 +3675,16 @@
 
         public function startKeyRepeat(firstCall:Boolean, func:Function, ...args):Boolean
         {
-            if (hasTimer("keyHoldWaitTimer") || hasTimer("keyHoldRepeatTimer"))
+            if (FOFOTimer.hasTimer("keyHoldWaitTimer") || FOFOTimer.hasTimer("keyHoldRepeatTimer"))
             {
                 return false;
             }
 
-            addTimerByName("keyHoldWaitTimer", KEY_REPEAT_START_DELAY, false,
+            FOFOTimer.addByName("keyHoldWaitTimer", KEY_REPEAT_START_DELAY, false,
                     function():void
                     {
                         func.apply(Main, args);
-                        addTimerByName("keyHoldRepeatTimer", KEY_REPEAT_INTERVAL, true, func, args);
+                        FOFOTimer.addByName("keyHoldRepeatTimer", KEY_REPEAT_INTERVAL, true, func, args);
                     });
 
             addKeyRepeatEvents();
@@ -3940,7 +3869,7 @@
             if (isCaptureModeON)
                 return;
 
-            if (hasTimer("toolTipTempONTimer"))
+            if (FOFOTimer.hasTimer("toolTipTempONTimer"))
             {
                 hideMouseHint();
             }
@@ -4033,7 +3962,7 @@
 
         public function removeSidebarTempShowActivateEvents():void
         {
-            removeTimer("sidebarTempShowActivateTimer");
+            FOFOTimer.remove("sidebarTempShowActivateTimer");
             isSidebarTempShowDeactivated = false;
             isSidebarHideEventAdded = false;
             isReactivateSidebarTempShowEventsAdded = false;
@@ -4058,7 +3987,7 @@
         public function startTimerActivateSidebarShowTemp():void
         {
             isSidebarTempShowDeactivated = true;
-            addTimerByName("sidebarTempShowActivateTimer", 0.7, false, function():void
+            FOFOTimer.addByName("sidebarTempShowActivateTimer", 0.7, false, function():void
                 {
                     isReactivateSidebarTempShowEventsAdded = false;
                     isSidebarTempShowDeactivated = false;
@@ -4160,14 +4089,14 @@
             {
                 if (isCursorInDrawArea())
                 {
-                    if (!hasTimer("sidebarHideDelayTimer"))
+                    if (!FOFOTimer.hasTimer("sidebarHideDelayTimer"))
                     {
-                        addTimerByName("sidebarHideDelayTimer", 0.3, false, hideSidebarTemporary);
+                        FOFOTimer.addByName("sidebarHideDelayTimer", 0.3, false, hideSidebarTemporary);
                     }
                 }
-                else if (hasTimer("sidebarHideDelayTimer"))
+                else if (FOFOTimer.hasTimer("sidebarHideDelayTimer"))
                 {
-                    removeTimer("sidebarHideDelayTimer");
+                    FOFOTimer.remove("sidebarHideDelayTimer");
                 }
             }
         }
@@ -4513,7 +4442,7 @@
             function startFillColorUpdateTimer():void
             {
                 showFillColor();
-                addTimerByName("fillColorUpdateTimer", 0.1, true, function():Boolean
+                FOFOTimer.addByName("fillColorUpdateTimer", 0.1, true, function():Boolean
                     {
                         const newXcolor:uint = (PenTool.isTransparentPenColor) ? CANVAS_BG_COLOR : colorPickerBox.rgbInfoBGColor;
                         const newXAlpha:Number = PenTool.penAlpha;
@@ -4569,7 +4498,7 @@
 
                 const targetName:String = target.name;
 
-                if (!hasTimer("fillColorUpdateTimer") && sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
+                if (!FOFOTimer.hasTimer("fillColorUpdateTimer") && sideBar.visible && sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
                 {
                     startFillColorUpdateTimer();
                 }
@@ -4746,7 +4675,7 @@
                     {
                         activeQuickSideBar(true);
 
-                        if (!hasTimer("fillColorUpdateTimer"))
+                        if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
                         {
                             startFillColorUpdateTimer();
                         }
@@ -4762,7 +4691,7 @@
                             adjustDrawToolAlphaByShortcut(increase);
                         }, (pressedKey === KEY.g) ? true : false);
 
-                    if (!hasTimer("fillColorUpdateTimer"))
+                    if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
                     {
                         startFillColorUpdateTimer();
                     }
@@ -4828,7 +4757,7 @@
 
                     activeQuickSideBar(false);
 
-                    if (!hasTimer("fillColorUpdateTimer"))
+                    if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
                     {
                         startFillColorUpdateTimer();
                     }
@@ -4890,7 +4819,7 @@
 
                 const targetName:String = e.target.name;
 
-                removeTimer("previewFilledColorUpdateTimer");
+                FOFOTimer.remove("previewFilledColorUpdateTimer");
                 isMouseDragging = false;
                 stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
 
@@ -4999,9 +4928,9 @@
                 lastMousePos.setTo(stage.mouseX, stage.mouseY);
                 turnOffFillPenPreviewCount = 0;
 
-                if (!hasTimer("previewFilledColorUpdateTimer"))
+                if (!FOFOTimer.hasTimer("previewFilledColorUpdateTimer"))
                 {
-                    addTimerByName("previewFilledColorUpdateTimer", 0.1, false, showFillColor);
+                    FOFOTimer.addByName("previewFilledColorUpdateTimer", 0.1, false, showFillColor);
                 }
             }
 
@@ -5106,7 +5035,7 @@
 
                     if (lastPosOnMouseMove.x === mx && lastPosOnMouseMove.y === my)
                     {
-                        removeTimer("previewFilledColorUpdateTimer");
+                        FOFOTimer.remove("previewFilledColorUpdateTimer");
                         showFillColor();
                         return;
                     }
@@ -5126,7 +5055,7 @@
                         data.push(my);
                     }
 
-                    removeTimer("previewFilledColorUpdateTimer");
+                    FOFOTimer.remove("previewFilledColorUpdateTimer");
                     showFillColor();
                 }
             }
@@ -5490,7 +5419,7 @@
                 updateCanvasScale(1.0, false);
                 updatePenSizeCursor();
                 updateCanvasNaigatorCursor();
-                drawGrid();
+                GridOverlay.drawGrid();
             }
         }
 
@@ -5544,9 +5473,9 @@
                 updatePenSizeCursor();
                 updateCanvasNaigatorCursor();
 
-                if (gridGapMultiplier > 0)
+                if (GridOverlay.gridGapMultiplier > 0)
                 {
-                    drawGrid();
+                    GridOverlay.drawGrid();
                 }
             }
         }
@@ -6048,374 +5977,6 @@ public function updateTopBarModeIcons(mode:String):void
         updateCaptureStampButtonAlpha();
     }
 }
-
-public function resetGrid():void
-{
-    lastGridGapValue = 0;
-    gridGapMultiplier = 0;
-    gridButton.setCursorPosByValue(0);
-    clearGrid();
-}
-
-public function clearGrid():void
-{
-    lastGridGapValue = 0;
-    topBar.setGridMoveButtonAlpha(Global.OFFALPHA);
-    canvasGrid.visible = false;
-    canvasGrid.graphics.clear();
-}
-
-public function drawGrid():void
-{
-    if (gridGapMultiplier === 0)
-    {
-        clearGrid();
-        return;
-    }
-
-    var gridgap:Number = gridGapMultiplier * GRID_GAP;
-    if (gridgap * canvasZoomMultipler < gridgap)
-    {
-        gridgap = gridgap / canvasZoomMultipler;
-    }
-
-    if (gridgap !== lastGridGapValue)
-    {
-        lastGridGapValue = gridgap;
-
-        const gridWidth:Number = CANVAS_WIDTH;
-        const gridHeight:Number = CANVAS_HEIGHT;
-        const offsetX:Number = gridDrawOffsetX;
-        const offsetY:Number = gridDrawOffsetY;
-
-        var i:uint = 1;
-        var len:Number = Math.floor(gridHeight / gridgap + 0.5); // 가로선 횟수 w, h반대되는거 맞음
-
-        if (offsetY < 0)
-            len += 1;
-        else if (offsetY > 0)
-            i = 0;
-
-        gridGraphicsCommands.length = 0;
-        gridGraphicsData.length = 0;
-
-        // 가로선
-        for (; i <= len; i++)
-        {
-            gridGraphicsCommands.push(1);
-            gridGraphicsCommands.push(2);
-            gridGraphicsData.push(0);
-            gridGraphicsData.push(gridgap * i + offsetY);
-            gridGraphicsData.push(gridWidth);
-            gridGraphicsData.push(gridgap * i + offsetY);
-        }
-
-        i = 1;
-        len = Math.floor(gridWidth / gridgap + 0.5); // 세로선 횟수
-
-        if (offsetX < 0)
-            len += 1;
-        else if (offsetX > 0)
-            i = 0;
-
-        // 세로선
-        for (; i <= len; i++)
-        {
-            gridGraphicsCommands.push(1);
-            gridGraphicsCommands.push(2);
-            gridGraphicsData.push(gridgap * i + offsetX);
-
-            gridGraphicsData.push(0);
-            gridGraphicsData.push(gridgap * i + offsetX);
-            gridGraphicsData.push(gridHeight);
-        }
-    }
-
-    canvasGrid.graphics.clear();
-    canvasGrid.graphics.lineStyle(1 / canvasZoomMultipler, GRID_NORMAL_COLOR, 0.5, false);
-    canvasGrid.graphics.drawPath(gridGraphicsCommands, gridGraphicsData);
-
-    updateGridMirror(isCanvasMirrored);
-    canvasGrid.cacheAsBitmap = true;
-    canvasGrid.visible = true;
-}
-
-public function cGridFunc():Object
-{
-    const minDist:Number = topBar.gridSlider.x + 1.5;
-    const maxDist:Number = minDist + topBar.gridSlider.width - 2.5;
-    const step:Number = 20;
-    const div:Number = (maxDist - minDist) / step;
-    var oldValue:Number;
-
-    function setCursorPosByValue(value:Number):void
-    {
-        topBar.gridSliderCursor.x = value * div + minDist;
-    }
-
-    function drawGridByValue(mx:Number, initFlag:Boolean):void
-    {
-        if (mx < minDist)
-        {
-            mx = minDist;
-        }
-        else if (mx > maxDist)
-        {
-            mx = maxDist;
-        }
-
-        const value:Number = Math.floor((mx - minDist) / div);
-
-        if (oldValue !== value || initFlag)
-        {
-            setCursorPosByValue(value);
-
-            if (value === 0)
-            {
-                gridGapMultiplier = 0;
-                oldValue = 0;
-                hideBottomHint();
-                clearGrid();
-                return;
-            }
-            else
-            {
-                if (topBar.isGridMoveButtonOFFAlpha())
-                    topBar.setGridMoveButtonAlpha(1.0);
-
-                // 변한 크기만큼 오프셋도 변화시켜줌
-                if (oldValue > 0 && value > 0)
-                {
-                    gridDrawOffsetX = gridDrawOffsetX * (value / oldValue);
-                    gridDrawOffsetY = gridDrawOffsetY * (value / oldValue);
-                }
-
-                gridGapMultiplier = value;
-                oldValue = value;
-                showMouseHintTemp(HintStrings.getGridGapAdjustHintString(value, GRID_GAP));
-
-                drawGrid();
-            }
-        }
-
-        setAsTopChild(canvasGrid);
-    }
-
-    function onMouseUpGridButton(e:MouseEvent):void
-    {
-        isMouseDragging = false;
-        stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
-        stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
-    }
-
-    function onMouseMoveGridButton(e:MouseEvent):void
-    {
-        var mx:Number = topBar.gridSliderWrapper.mouseX;
-
-        if (mx < minDist)
-        {
-            mx = minDist;
-        }
-        else if (mx > maxDist)
-        {
-            mx = maxDist;
-        }
-
-        drawGridByValue(mx, false);
-        showBottomHint(HintStrings.getHintFromTargetName("gridSliderWrapper"));
-    }
-
-    function repeatGridMoveByValue(moveX:Number, moveY:Number):void
-    {
-        startKeyRepeat(true, function():void
-            {
-                gridDrawOffsetX += moveX * (isCanvasMirrored ? -1 : 1);
-                gridDrawOffsetY += moveY;
-
-                if (Math.abs(gridDrawOffsetX) >= gridGapMultiplier * GRID_GAP)
-                    gridDrawOffsetX = 0.0;
-                if (Math.abs(gridDrawOffsetY) >= gridGapMultiplier * GRID_GAP)
-                    gridDrawOffsetY = 0.0;
-
-                lastGridGapValue = 0;
-                if (gridGapMultiplier > 0)
-                    drawGrid();
-            });
-    }
-
-    function onMouseDownGridButton(e:MouseEvent):void
-    {
-        if (!e.target)
-            return;
-        const targetName:String = e.target.name;
-
-        if (targetName === "gridButton" || topBar.gridButtonWrapper.hitTestPoint(stage.mouseX, stage.mouseY) === false)
-        {
-            off();
-            return;
-        }
-
-        if (topBar.gridMoveButtonWrapper.hitTestPoint(stage.mouseX, stage.mouseY))
-        {
-            if (e.target.alpha === 1.0)
-            {
-                var p:Point;
-
-                if (targetName === "gridMoveLeftButton")
-                {
-                    p = rotatePoint(-1, 0, canvasAnchorPoint.rotation);
-                    repeatGridMoveByValue(p.x, p.y);
-                }
-                else if (targetName === "gridMoveRightButton")
-                {
-                    p = rotatePoint(1, 0, canvasAnchorPoint.rotation);
-                    repeatGridMoveByValue(p.x, p.y);
-                }
-                else if (targetName === "gridMoveUpButton")
-                {
-                    p = rotatePoint(0, -1, canvasAnchorPoint.rotation);
-                    repeatGridMoveByValue(p.x, p.y);
-                }
-                else if (targetName === "gridMoveDownButton")
-                {
-                    p = rotatePoint(0, 1, canvasAnchorPoint.rotation);
-                    repeatGridMoveByValue(p.x, p.y);
-                }
-            }
-        }
-        else if (topBar.gridSliderWrapper.hitTestPoint(stage.mouseX, stage.mouseY))
-        {
-            isMouseDragging = true;
-            oldValue = gridGapMultiplier;
-            drawGridByValue(topBar.gridSliderWrapper.mouseX, true);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
-            stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
-        }
-    }
-
-    function onKeyUpGridButton(e:KeyboardEvent):void
-    {
-        if (e.keyCode === KEY.f2 || e.keyCode === KEY.f8)
-        {
-            if (!(isMouseClicked || isMouseDragging))
-            {
-                if (isPressingShift())
-                {
-                    if (gridGapMultiplier !== 0)
-                    {
-                        hideBottomHint();
-                        oldValue = 0;
-                        resetGrid();
-                    }
-                }
-                else
-                {
-                    off();
-                }
-            }
-        }
-    }
-
-    function onRightMouseDownGridButton(e:MouseEvent):void
-    {
-        if (!e.target)
-            return;
-
-        const targetName:String = e.target.name;
-
-        if (targetName === "gridMoveLeftButton"
-                || targetName === "gridMoveRightButton")
-        {
-            if (gridGapMultiplier > 0)
-            {
-                gridDrawOffsetX = 0.0;
-                lastGridGapValue = 0.0;
-
-                if (gridGapMultiplier > 0)
-                    drawGrid();
-            }
-        }
-        else if (targetName === "gridMoveUpButton"
-                || targetName === "gridMoveDownButton")
-        {
-            if (gridGapMultiplier > 0)
-            {
-                gridDrawOffsetY = 0.0;
-                lastGridGapValue = 0.0;
-                if (gridGapMultiplier > 0)
-                    drawGrid();
-            }
-        }
-        else if (targetName === "gridSliderWrapper")
-        {
-            if (gridGapMultiplier !== 0)
-            {
-                hideBottomHint();
-                resetGrid();
-            }
-        }
-        else
-        {
-            off();
-        }
-    }
-
-    function off():void
-    {
-        hideBottomHint();
-        isMouseDragging = false;
-        removeKeyRepeatEvents(null);
-        stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton);
-        stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
-        stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton);
-        stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
-        stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton);
-        topBar.setReplaySpeedBarToGridSliderOFF(stage);
-        clearKeyBuffer();
-        addInputEventsDrawMode();
-    }
-
-    function start(shortcutKey:Boolean):void
-    {
-        if (topBar.gridButtonWrapper.visible === false)
-        {
-            removeInputEventsDrawMode();
-
-            if (gridGapMultiplier > 0)
-            {
-                topBar.setGridMoveButtonAlpha(1.0);
-            }
-            else
-            {
-                topBar.setGridMoveButtonAlpha(Global.OFFALPHA);
-            }
-
-            topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
-            setCursorPosByValue(gridGapMultiplier);
-
-            if (shortcutKey)
-            {
-                const p:Point = topBar.globalToLocal(new Point(stage.mouseX, stage.mouseY));
-                topBar.gridButtonWrapper.x = p.x - topBar.gridSliderWrapper.x - topBar.gridSliderCursor.x;
-                topBar.gridButtonWrapper.y = p.y - topBar.gridSliderWrapper.y - topBar.gridSliderCursor.y;
-            }
-
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton, false, -1);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton, false, -1);
-            stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton, false, -1);
-        }
-        else
-        {
-            off();
-        }
-    }
-
-    return {
-            start: start,
-            setCursorPosByValue: setCursorPosByValue
-        };
-}
-
 public function updateRefLayerOpacityCursorPosByValue(alpha:Number):void
 {
     refLayerMenuBox.refOpacityCursor.x = (refLayerMenuBox.refOpacityBar.x + 1) + (refLayerMenuBox.refOpacityBar.width * alpha);
@@ -6528,9 +6089,9 @@ public function startReflayerClear():void
 
 public function setCanvasRefLayerInvisible():void
 {
-    if (hasTimer("refLayerVisibleDelayTimer"))
+    if (FOFOTimer.hasTimer("refLayerVisibleDelayTimer"))
     {
-        removeTimer("refLayerVisibleDelayTimer");
+        FOFOTimer.remove("refLayerVisibleDelayTimer");
         if (refLayerVisibleDelayOffTime === 0)
         {
             refLayerVisibleDelayOffTime = getTimer();
@@ -6545,7 +6106,7 @@ public function setCanvasRefLayerInvisible():void
 
 public function setCanvasRefLayerVisibleDelay(delay:Number = REFLAYER_VISIBLE_DELAY):void
 {
-    addTimerByName("refLayerVisibleDelayTimer", delay, false, function():void
+    FOFOTimer.addByName("refLayerVisibleDelayTimer", delay, false, function():void
         {
             setCanvasRefLayerVisibleSlowly(true);
         });
@@ -6567,7 +6128,7 @@ public function setCanvasRefLayerVisibleSlowly(flag:Boolean):void
 
     canvasRefLayer.visible = true;
 
-    addTimerByName("refLayerVisibleFadingTimer", 0.0, true, function(refLayer:Sprite, fadeStep:Number, maxAlpha:Number):Boolean
+    FOFOTimer.addByName("refLayerVisibleFadingTimer", 0.0, true, function(refLayer:Sprite, fadeStep:Number, maxAlpha:Number):Boolean
         {
             if (flag)
             {
@@ -6658,7 +6219,7 @@ public function startRefLayerRotation():void
         canvasRefLayerBitmap.smoothing = true;
     }
 
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+    DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
 public function startRefLayerImageScale():void
@@ -6689,7 +6250,7 @@ public function startRefLayerImageScale():void
         hideMouseHint();
     }
 
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+    DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
 public function startRefLayerImageDrag():void
@@ -6719,7 +6280,7 @@ public function startRefLayerImageDrag():void
         canvasRefLayerBitmap.smoothing = true;
     }
 
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+    DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
 public function resetRefLayerMenuOpacity():void
@@ -6739,7 +6300,7 @@ public function startRefLayerOpacityDrag():void
 
     function onMouseMoveUpdateopacity():void
     {
-        const value:Number = calculateSliderValueFromMouseX(refLayerMenuBox.mouseX,
+        const value:Number = Utils.calculateSliderValueFromMouseX(refLayerMenuBox.mouseX,
                 minx,
                 maxx,
                 0,
@@ -6770,7 +6331,7 @@ public function startRefLayerOpacityDrag():void
         onMouseMoveUpdateopacity();
     }
 
-    startDragInteraction(onDragStart, onMouseMoveUpdateopacity, function():void
+    DragInteraction.startDragInteraction(onDragStart, onMouseMoveUpdateopacity, function():void
         {
         });
 }
@@ -7258,7 +6819,7 @@ public function applyUIColorSet():void
     }
 
     colorPickerBox.activePaperColorButton(isColorPickerModeBG);
-    checkCanUseClipBoardButton();
+    ClipboardBridge.checkCanUseClipBoardButton();
     updatePickerBoxTransBGBrightness();
 
     if (isBottomBarVisible())
@@ -7354,7 +6915,7 @@ public function startUpdatingApp():void
 
     if (appUpdateStatus === UPDATE_READY)
     {
-        addTimer(0.5, false, function():void
+        FOFOTimer.add(0.5, false, function():void
             {
                 installNewVersion();
             });
@@ -7916,7 +7477,7 @@ public function showCanvasResizeButtonVisibleDelay(flag:Boolean):void
     {
         updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
         toolBox2.startResizeButtonWaitBarAnimation(0.9);
-        addTimerByName("resizeButtonVisibleDelayTimer", 0.9, false, function():void
+        FOFOTimer.addByName("resizeButtonVisibleDelayTimer", 0.9, false, function():void
             {
                 showCanvasResizeButtons();
                 enableTransparentBGDrawMode();
@@ -7924,7 +7485,7 @@ public function showCanvasResizeButtonVisibleDelay(flag:Boolean):void
     }
     else
     {
-        removeTimer("resizeButtonVisibleDelayTimer");
+        FOFOTimer.remove("resizeButtonVisibleDelayTimer");
         hideCanvasResizeButtons();
         disableTransparentBGDrawMode();
     }
@@ -8128,7 +7689,7 @@ public function startLassoImageRotation():void
         lassoLayer2.rotation = angle;
     }
 
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+    DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
 public function startLassoImageResize():void
@@ -8167,7 +7728,7 @@ public function startLassoImageResize():void
         showMouseHint(getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
     }
 
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+    DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
 public function hasLassoImageChanges():Boolean
@@ -8216,7 +7777,7 @@ public function startLassoImageMove():void
         lassoLayer2Bitmap.smoothing = false;
     }
 
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+    DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
 public function setDrawToolSize(index:uint):void
@@ -8411,7 +7972,7 @@ public function startHueColorSelection():void
         pickHueColor(colorPickerBox.hueColor.mouseX);
     }
 
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+    DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
 public function startSVColorSelection():void
@@ -8493,7 +8054,7 @@ public function startSVColorSelection():void
         pickSVColor(colorPickerBox.svBox.mouseX, colorPickerBox.svBox.mouseY);
     }
 
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+    DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
 // 단축키를  after tool mouse up에서 이전툴을 복구해줌
@@ -8664,7 +8225,7 @@ public function checkForUpdates():void
                 {
                     if (tryCount < 5)
                     {
-                        addTimerByName("updateRryTimer", 1.0, false, function():void
+                        FOFOTimer.addByName("updateRryTimer", 1.0, false, function():void
                             {
                                 tryCount++;
                                 fileLoader.load(updateFile);
@@ -8722,7 +8283,7 @@ public function closeAboutBox():void
     addInputEventsDrawMode();
     isAboutBoxOpened = false;
     aboutBox.visible = false;
-    addTimerByName("clickBlockTimer", 0.15, false, function():void
+    FOFOTimer.addByName("clickBlockTimer", 0.15, false, function():void
         {
             isMouseClickBlocked = false;
         });
@@ -8771,7 +8332,7 @@ public function openAboutBox(welcome:Boolean):void
     if (welcome === true)
     {
         aboutBox.resetAppButton.visible = false;
-        addTimerByName("openAboutPanelOFFTimer", 1.0, false, function():void
+        FOFOTimer.addByName("openAboutPanelOFFTimer", 1.0, false, function():void
             {
                 stage.addEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown);
             });
@@ -9041,7 +8602,7 @@ public function handleMouseClick(targetName:String):void
 
                 case "clipBoardButton":
                     {
-                        tryLoadClipboardImage(false);
+                        ClipboardBridge.tryLoadClipboardImage(false);
                     }
                     break;
 
@@ -9120,7 +8681,7 @@ public function handleMouseClick(targetName:String):void
 
                 case "gridButton":
                     {
-                        gridButton.start(false);
+                        GridOverlay.gridButton.start(false);
                     }
                     break;
 
@@ -9184,7 +8745,7 @@ public function handleMouseClick(targetName:String):void
                     {
                         if (refLayerMenuBox.refClipBoardButton.alpha === 1.0)
                         {
-                            tryLoadClipboardImage(true);
+                            ClipboardBridge.tryLoadClipboardImage(true);
                         }
                     }
                     break;
@@ -9233,7 +8794,7 @@ public function handleMouseClick(targetName:String):void
 
                 case "pauseButton":
                     {
-                        removeTimer("prograssBarUpdateTimer");
+                        FOFOTimer.remove("prograssBarUpdateTimer");
                         if (isReplayRestartTimerON())
                         {
                             cancelReplayRestartTimer();
@@ -9880,7 +9441,7 @@ public function cancelReplayRestartTimer():void
     seekBarBox.setPlayButtonVisible(true);
     hideCompleteImageToBGReplayMode();
     showTopbarOnReplayEnd();
-    removeTimer("replayRestartTimer");
+    FOFOTimer.remove("replayRestartTimer");
     updateReplayPrograssText(true, TOTAL_FRAME);
     Global.setColorTransform(seekBarBox.prograssBar, Global.getUIReplayEndBarColor());
     updateCanvasScale(rLastCanvasZoomMultiplier, true);
@@ -9888,7 +9449,7 @@ public function cancelReplayRestartTimer():void
 
 public function isReplayRestartTimerON():Boolean
 {
-    return hasTimer("replayRestartTimer");
+    return FOFOTimer.hasTimer("replayRestartTimer");
 }
 
 public function startReplayRestartTimer():void
@@ -9898,7 +9459,7 @@ public function startReplayRestartTimer():void
     if (isReplayRepeatON)
     {
         rReplayRestartTimerCount = 20;
-        addTimerByName("replayRestartTimer", 1.0, true, function():Boolean
+        FOFOTimer.addByName("replayRestartTimer", 1.0, true, function():Boolean
             {
                 if (rReplayRestartTimerCount === 0)
                 {
@@ -11635,12 +11196,12 @@ public function updateReplayPrograssText(finishFlag:Boolean = false, customFrame
 
 public function startCheckingHideMouseCursor():void
 {
-    if (hasTimer("replayHideCursorCheckTimer"))
+    if (FOFOTimer.hasTimer("replayHideCursorCheckTimer"))
     {
         return;
     }
 
-    addTimerByName("replayHideCursorCheckTimer", 0.0, true, function():Boolean
+    FOFOTimer.addByName("replayHideCursorCheckTimer", 0.0, true, function():Boolean
         {
             if (!isReplayModeON || topBar.visible)
             {
@@ -11656,7 +11217,7 @@ public function startCheckingHideMouseCursor():void
 
 public function startUpdatingPrograssBarTimer():void
 {
-    if (hasTimer("prograssBarUpdateTimer"))
+    if (FOFOTimer.hasTimer("prograssBarUpdateTimer"))
     {
         return;
     }
@@ -11669,7 +11230,7 @@ public function startUpdatingPrograssBarTimer():void
     updateReplayPrograssText();
     seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
 
-    addTimerByName("prograssBarUpdateTimer", 0.0, true, function():Boolean
+    FOFOTimer.addByName("prograssBarUpdateTimer", 0.0, true, function():Boolean
         {
             if (!isReplayModeON)
             {
@@ -11732,7 +11293,7 @@ public function drawCanvasFromReplayDataSlideShowMode():void
 
 public function startReplayDrawTimer():void
 {
-    addTimerByName("replayDrawTimer", 0.0, true, function():Boolean
+    FOFOTimer.addByName("replayDrawTimer", 0.0, true, function():Boolean
         {
             if (isReplaySlideShowMode)
             {
@@ -12166,43 +11727,9 @@ public function getTotalFrame():Number
     return getNowFrameUntilUndoIndex(rDataFrame.length - 1);
 }
 
-public function binarySearchIndex(list:Array, target:Number, valueExtractor:Function):int
-{
-    var low:int = 0;
-    var high:int = list.length - 1;
-    if (high <= 0)
-    {
-        return high;
-    }
-
-    var index:int = Math.floor((low + high) / 2);
-
-    while (low <= high)
-    {
-        var value:Number = valueExtractor(list[index]);
-
-        if (value === target)
-        {
-            break;
-        }
-        else if (value > target)
-        {
-            high = index - 1;
-        }
-        else
-        {
-            low = index + 1;
-        }
-
-        index = Math.floor((low + high) / 2);
-    }
-
-    return index;
-}
-
 public function getNearZoomIndex(nowZoom:Number):int
 {
-    var index:int = binarySearchIndex(canvasZoomMultiplerList, nowZoom, function(item:*):Number
+    var index:int = Utils.binarySearchIndex(canvasZoomMultiplerList, nowZoom, function(item:*):Number
         {
             return item;
         });
@@ -12221,7 +11748,7 @@ public function getNearZoomIndex(nowZoom:Number):int
 // targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
 public function getCacheImageIndex(targetFrame:Number):int
 {
-    return binarySearchIndex(rFrameTempCachedImages, targetFrame, function(item:*):Number
+    return Utils.binarySearchIndex(rFrameTempCachedImages, targetFrame, function(item:*):Number
         {
             return item[6];
         });
@@ -12230,7 +11757,7 @@ public function getCacheImageIndex(targetFrame:Number):int
 // targetFrame이 rJumpImageFrameData데이터에 몆 번 인덱스에 있나 구해줌
 public function getCachedFrameImageIndex(targetFrame:Number):int
 {
-    return binarySearchIndex(rJumpImageFrameData, targetFrame, function(item:*):Number
+    return Utils.binarySearchIndex(rJumpImageFrameData, targetFrame, function(item:*):Number
         {
             return Number(item);
         });
@@ -12273,9 +11800,9 @@ public function addKeyRepeatEvents():void
 
 public function removeKeyRepeatEvents(e:Object):void
 {
-    removeTimer("checkKeyRepeatStop");
-    removeTimer("keyHoldWaitTimer");
-    removeTimer("keyHoldRepeatTimer");
+    FOFOTimer.remove("checkKeyRepeatStop");
+    FOFOTimer.remove("keyHoldWaitTimer");
+    FOFOTimer.remove("keyHoldRepeatTimer");
     stage.nativeWindow.removeEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
     stage.removeEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents);
     stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents);
@@ -12571,10 +12098,10 @@ public function onSeekbarClick():void
         {
             wasReplayRunning = true;
             isReplayStarted = false;
-            removeTimer("replayDrawTimer");
+            FOFOTimer.remove("replayDrawTimer");
             rFileStream.close();
         }
-        removeTimer("prograssBarUpdateTimer");
+        FOFOTimer.remove("prograssBarUpdateTimer");
         seekBarBox.setReplayPrograssBarWidth(clickX);
         clampFrame();
         isReplaySlideShowMode = false;
@@ -12586,9 +12113,9 @@ public function onSeekbarClick():void
     {
         clampFrame();
 
-        if (!hasTimer("jumpFrameUpdateTimer"))
+        if (!FOFOTimer.hasTimer("jumpFrameUpdateTimer"))
         {
-            addTimerByName("jumpFrameUpdateTimer", 0.25, false, function():void
+            FOFOTimer.addByName("jumpFrameUpdateTimer", 0.25, false, function():void
                 {
                     renderReplayFrame(finalFrame, JUMP_FRAME_MANUAL);
                 });
@@ -12597,7 +12124,7 @@ public function onSeekbarClick():void
 
     function onMouseUp():void
     {
-        removeTimer("jumpFrameUpdateTimer");
+        FOFOTimer.remove("jumpFrameUpdateTimer");
         renderReplayFrame(finalFrame, JUMP_FRAME_MANUAL);
         clampFrame();
 
@@ -12616,7 +12143,7 @@ public function onSeekbarClick():void
             stopReplay();
         }
     }
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+    DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
 public function showTopbarOnReplayEnd():void
@@ -12652,7 +12179,7 @@ public function handleReplayStopButton():void
 
 public function stopReplay():void
 {
-    removeTimer("replayDrawTimer");
+    FOFOTimer.remove("replayDrawTimer");
     if (!isReplayFinished)
     {
         seekBarBox.setPlayButtonVisible(true);
@@ -12713,33 +12240,6 @@ public function startReplay():void
     startUpdatingPrograssBarTimer();
     startCheckingHideMouseCursor();
 }
-
-public function startBoxDrag(target:DisplayObject):void
-{
-    const clickPos:Point = new Point(stage.mouseX, stage.mouseY);
-
-    function onDragStart():void
-    {
-        setAsTopChild(target);
-    }
-
-    function onMouseMove():void
-    {
-        target.x = Math.floor(target.x + stage.mouseX - clickPos.x);
-        target.y = Math.floor(target.y + stage.mouseY - clickPos.y);
-
-        clickPos.x = stage.mouseX;
-        clickPos.y = stage.mouseY;
-    }
-
-    function onMouseUp():void
-    {
-        keepBoxInsideViewPort(target);
-    }
-
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
-}
-
 public function handleToolBoxClick(targetName:String):void
 {
     function onMouseUpToolBox(e:MouseEvent):void
@@ -12822,7 +12322,7 @@ public function handleToolBoxClick(targetName:String):void
 
             case "toolUndo":
                 {
-                    if (!hasTimer("keyHoldRepeatTimer"))
+                    if (!FOFOTimer.hasTimer("keyHoldRepeatTimer"))
                     {
                         undo();
                     }
@@ -12831,7 +12331,7 @@ public function handleToolBoxClick(targetName:String):void
 
             case "toolRedo":
                 {
-                    if (!hasTimer("keyHoldRepeatTimer"))
+                    if (!FOFOTimer.hasTimer("keyHoldRepeatTimer"))
                     {
                         redo();
                     }
@@ -12987,7 +12487,7 @@ public function showBottomHintForTargetCaptureMode(target:DisplayObject):void
 
     if (hint)
     {
-        removeTimer("bottomHintOffDelay");
+        FOFOTimer.remove("bottomHintOffDelay");
 
         const targetName:String = target.name;
         const xCanvasPanel:Sprite = (isReplayModeON) ? rCanvasPanel : canvasPanel;
@@ -13007,9 +12507,9 @@ public function showBottomHintForTargetCaptureMode(target:DisplayObject):void
     }
     else
     {
-        if (!hasTimer("bottomHintOffDelay"))
+        if (!FOFOTimer.hasTimer("bottomHintOffDelay"))
         {
-            addTimerByName("bottomHintOffDelay", 0.3, false, hideBottomHint);
+            FOFOTimer.addByName("bottomHintOffDelay", 0.3, false, hideBottomHint);
         }
     }
 }
@@ -13020,7 +12520,7 @@ public function showBottomHintForTarget(target:DisplayObject):void
 
     if (hint)
     {
-        removeTimer("bottomHintOffDelay");
+        FOFOTimer.remove("bottomHintOffDelay");
 
         if (isCanvasNaviatorChild(target))
         {
@@ -13033,7 +12533,7 @@ public function showBottomHintForTarget(target:DisplayObject):void
 
         if (!isBottomBarVisible())
         {
-            addTimerByName("bottomHintOnDelay", 1.0, false, showBottomHint, [hint]);
+            FOFOTimer.addByName("bottomHintOnDelay", 1.0, false, showBottomHint, [hint]);
         }
         else if (bottomHint.visible)
         {
@@ -13042,9 +12542,9 @@ public function showBottomHintForTarget(target:DisplayObject):void
     }
     else
     {
-        if (!hasTimer("bottomHintOffDelay"))
+        if (!FOFOTimer.hasTimer("bottomHintOffDelay"))
         {
-            addTimerByName("bottomHintOffDelay", 0.3, false, hideBottomHint);
+            FOFOTimer.addByName("bottomHintOffDelay", 0.3, false, hideBottomHint);
         }
     }
 }
@@ -13062,7 +12562,7 @@ public function onMouseMoveBottomHint(e:MouseEvent):void
         return;
     }
 
-    removeTimer("bottomHintOnDelay");
+    FOFOTimer.remove("bottomHintOnDelay");
     updateLastBottomHintTargetRect(target);
 
     if (isCaptureModeON)
@@ -13157,7 +12657,7 @@ public function isHighlightBoxVisible():Boolean
 
 public function hideBottomHint():void
 {
-    removeTimer("bottomHintOnDelay");
+    FOFOTimer.remove("bottomHintOnDelay");
     hideHintHighlightBox();
     bottomBar.visible = false;
     bottomHint.hide();
@@ -13290,59 +12790,6 @@ public function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, fil
         setAsTopChild(loadMenuBox);
     }
 }
-
-public function tryLoadClipboardImage(toRefLayer:Boolean):void
-{
-    if (isFileLoadBlocked())
-    {
-        return;
-    }
-
-    rFileStream.close();
-    if (isReplayRestartTimerON())
-    {
-        cancelReplayRestartTimer();
-    }
-
-    const data:* = getSystemClipboardData();
-
-    if (data)
-    {
-        if (data is BitmapData)
-        {
-            prepareOpenLoadBox(false, toRefLayer, null, data as BitmapData, "clipboard");
-        }
-        else if (data is Array && data.length > 0)
-        {
-            const file:File = data[0] as File;
-            if (canDisplayLoadMenuBox(file))
-            {
-                prepareLoadMenuBoxFromImageFile(file, toRefLayer);
-            }
-        }
-    }
-}
-
-public function getSystemClipboardData():*
-{
-    return Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT)
-        || Clipboard.generalClipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
-}
-
-public function disableTopBarClipboardButton():void
-{
-    topBar.clipBoardButton.alpha = Global.OFFALPHA;
-    refLayerMenuBox.refClipBoardButton.alpha = Global.OFFALPHA;
-    isClipBoardButtonActivated = false;
-}
-
-public function enableTopBarClipboardButton():void
-{
-    topBar.clipBoardButton.alpha = 1.0;
-    refLayerMenuBox.refClipBoardButton.alpha = 1.0;
-    isClipBoardButtonActivated = true;
-}
-
 public function isWebpFile(file:File):Boolean
 {
     var stream:FileStream = new FileStream();
@@ -13461,35 +12908,6 @@ public function validateImageFile(file:File, callbackOk:Function, callbackCancel
     loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onErrorValidateFile);
     loader.load(new URLRequest(file.url));
 }
-
-public function checkCanUseClipBoardButton():void
-{
-    const data:* = getSystemClipboardData();
-
-    if (data is BitmapData)
-    {
-        enableTopBarClipboardButton();
-        return;
-    }
-
-    if (data is Array && data.length > 0)
-    {
-        validateImageFile(data[0] as File,
-                function(type:String, file:File, bmpd:BitmapData):void
-                {
-                    enableTopBarClipboardButton();
-                },
-                function():void
-                {
-                    disableTopBarClipboardButton();
-                });
-    }
-    else
-    {
-        disableTopBarClipboardButton();
-    }
-}
-
 public function getBitmapHash(bmp:BitmapData):uint
 {
     var bytes:ByteArray = bmp.getPixels(bmp.rect);
@@ -14426,7 +13844,7 @@ public function generateReplayCacheImage():void // loadrep
 
 public function enableFileOperationButtonsTopbar():void
 {
-    topBar.enableFileOperationButtons(isClipBoardButtonActivated);
+    topBar.enableFileOperationButtons(ClipboardBridge.isClipBoardButtonActivated);
     if (isReplayModeON)
     {
         updateDeleteReplayDataButtonsState();
@@ -14918,7 +14336,7 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
     isCanvasMirrored = false;
     mirrorCommandReady = false;
     canvasInfoBox.setMirror(false);
-    updateGridMirror(false);
+    GridOverlay.updateGridMirror(false);
 
     if (isLassoToolStarted === true)
     {
@@ -14972,9 +14390,9 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
 
     updatePenSizeCursor();
 
-    if (gridGapMultiplier > 0)
+    if (GridOverlay.gridGapMultiplier > 0)
     {
-        drawGrid();
+        GridOverlay.drawGrid();
     }
     // bitmapdata가 갱신된이후에 업데이트 해줘야함
     resetUndoState();
@@ -15112,7 +14530,7 @@ public function activateCaptureUI():void
 
     captureAreaManager.reset();
     updateCanvasResizeButtonVisible(false);
-    removeTimer("rCursorOffAlphaAnimTimer");
+    FOFOTimer.remove("rCursorOffAlphaAnimTimer");
 
     if (replayMode)
     {
@@ -15123,7 +14541,7 @@ public function activateCaptureUI():void
     }
     else
     {
-        canvasGrid.visible = false;
+        GridOverlay.canvasGrid.visible = false;
         removeInputEventsDrawMode();
     }
 
@@ -15337,9 +14755,9 @@ public function onKeyDownCaptureMode(e:KeyboardEvent):void
         }
         else if (secondKey === KEY.v || secondKey === KEY.m)
         {
-            if (isClipBoardButtonActivated)
+            if (ClipboardBridge.isClipBoardButtonActivated)
             {
-                tryLoadClipboardImage(false);
+                ClipboardBridge.tryLoadClipboardImage(false);
             }
         }
         return;
@@ -15732,7 +15150,7 @@ public function cDrawCaptureStamp():Object
 
     function onFocusOutCaptureInput(e:FocusEvent):void
     {
-        addTimer(0.2, false, function():void
+        FOFOTimer.add(0.2, false, function():void
             {
                 tryDisableIME();
                 isCaptureStampTextFieldFocused = false;
@@ -15742,7 +15160,7 @@ public function cDrawCaptureStamp():Object
     function onFocusInCaptureInput(e:FocusEvent):void
     {
         isCaptureStampTextFieldFocused = true;
-        addTimer(0.0, false, function():void
+        FOFOTimer.add(0.0, false, function():void
             {
                 topBar.captureInput.setSelection(0, topBar.captureInput.text.length);
             });
@@ -15752,9 +15170,9 @@ public function cDrawCaptureStamp():Object
     {
         topBar.capClipBoard.alpha = 1.0;
 
-        if (!hasTimer("inputUpdateTimer"))
+        if (!FOFOTimer.hasTimer("inputUpdateTimer"))
         {
-            addTimerByName("inputUpdateTimer", 0.2, false, update);
+            FOFOTimer.addByName("inputUpdateTimer", 0.2, false, update);
         }
     }
 
@@ -16189,7 +15607,7 @@ public function cDrawCaptureArea():Object
         }
         else
         {
-            addTimer(0.0, false, function():void
+            FOFOTimer.add(0.0, false, function():void
                 {
                     resetCaptureArea();
                 });
@@ -16737,23 +16155,6 @@ public function cDrawCaptureArea():Object
         };
 }
 
-public function getRandomString(charLength:int = 6):String
-{
-    const chars:String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    const charsLen:uint = chars.length;
-    var randomString:String = "";
-    var index:int;
-
-    while (charLength > 0)
-    {
-        index = Math.floor(charsLen * Math.random());
-        randomString += chars.charAt(index);
-        charLength--;
-    }
-
-    return randomString;
-}
-
 public function cutTimeStamp(str:String):String
 {
     const pattern:RegExp = /_\d\d\d\d\d\d\d\d\d/g;
@@ -16802,9 +16203,9 @@ public function getTimeStampTail():String
 
 public function pollTimerWaitWorkerForSaveCaptureImage():void
 {
-    if (!hasTimer("workerPNGCaptureTimer"))
+    if (!FOFOTimer.hasTimer("workerPNGCaptureTimer"))
     {
-        addTimerByName("workerPNGCaptureTimer", WORKER_WAIT_INTERVAL, true, function():Boolean
+        FOFOTimer.addByName("workerPNGCaptureTimer", WORKER_WAIT_INTERVAL, true, function():Boolean
             {
                 if (receivedCaptureImageQueueFromWorker.length > 0)
                 {
@@ -17107,7 +16508,7 @@ public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):
             fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
         }
 
-        addTimerByName("workerPNGSaveTimer", WORKER_WAIT_INTERVAL, true, function(_path:String):Boolean
+        FOFOTimer.addByName("workerPNGSaveTimer", WORKER_WAIT_INTERVAL, true, function(_path:String):Boolean
             {
                 if (receivedSaveImageDataFromWorker !== null)
                 {
@@ -17392,10 +16793,10 @@ public function saveAppSatate():void
                 "refLayerMenuBox[0]": refLayerMenuBox.x,
                 "refLayerMenuBox[1]": refLayerMenuBox.y,
                 "isCanvasMirrored": isCanvasMirrored,
-                "gridValue": gridGapMultiplier,
+                "gridValue": GridOverlay.gridGapMultiplier,
                 "hsvColorData[0]": hsvColorData[0],
-                "gridDrawOffsetX": gridDrawOffsetX,
-                "gridDrawOffsetY": gridDrawOffsetY,
+                "gridDrawOffsetX": GridOverlay.gridDrawOffsetX,
+                "gridDrawOffsetY": GridOverlay.gridDrawOffsetY,
                 "hueCursor.x": colorPickerBox.hueCursor.x,
                 "svBaseColor": colorPickerBox.svBaseColor,
                 "isHSVInfoTextMode": isHSVInfoTextMode,
@@ -17539,7 +16940,7 @@ public function loadAppState():void
 
         // loadUndoData함수에서 canvaspanel이 호출되는데 이전에 reflayer 이미지 정보값을 넣어두어야함
         // 그냥 해주면 창크기 적용이 안되서 타이머 걸어줌
-        addTimerByName("loadAppDataDelayTimer", 0.2, false, function(d:Object):void
+        FOFOTimer.addByName("loadAppDataDelayTimer", 0.2, false, function(d:Object):void
             {
                 stage.nativeWindow.width = d["stage.nativeWindow.width"];
                 stage.nativeWindow.height = d["stage.nativeWindow.height"];
@@ -17627,16 +17028,16 @@ public function loadAppState():void
                 if (isCanvasMirrored !== d["isCanvasMirrored"])
                     mirrorCanvas(true);
 
-                gridGapMultiplier = d["gridValue"];
-                gridDrawOffsetX = d["gridDrawOffsetX"];
-                gridDrawOffsetY = d["gridDrawOffsetY"];
-                if (!gridDrawOffsetX)
-                    gridDrawOffsetX = 0.0;
-                if (!gridDrawOffsetY)
-                    gridDrawOffsetY = 0.0;
+                GridOverlay.gridGapMultiplier = d["gridValue"];
+                GridOverlay.gridDrawOffsetX = d["gridDrawOffsetX"];
+                GridOverlay.gridDrawOffsetY = d["gridDrawOffsetY"];
+                if (!GridOverlay.gridDrawOffsetX)
+                    GridOverlay.gridDrawOffsetX = 0.0;
+                if (!GridOverlay.gridDrawOffsetY)
+                    GridOverlay.gridDrawOffsetY = 0.0;
 
                 if (d["gridValue"] > 0)
-                    drawGrid();
+                    GridOverlay.drawGrid();
                 if (d["canvasWindowON"])
                 {
                     canvasWindowInfo = [
@@ -17706,7 +17107,7 @@ public function loadAppState():void
         lastAppWindowSize.x = 1000;
         lastAppWindowSize.y = 800;
 
-        addTimer(0.3, true, function():Boolean
+        FOFOTimer.add(0.3, true, function():Boolean
             {
                 if (stage.nativeWindow.width === 1000 && stage.nativeWindow.height === 800)
                 {
@@ -18250,7 +17651,7 @@ public function cCanvasRotateTool():Function
         xAnc = (isReplayMode) ? rCanvasAnchorPoint : canvasAnchorPoint;
 
         getAngle = createAngleUpdateFunctionByMouseDrag(xAnc);
-        startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+        DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
     };
 
 }
@@ -18522,9 +17923,9 @@ public function cZoomTool():Function
 
         updateCanvasNaigatorCursor();
 
-        if (gridGapMultiplier > 0 && lastZoom !== canvasZoomMultipler)
+        if (GridOverlay.gridGapMultiplier > 0 && lastZoom !== canvasZoomMultipler)
         {
-            drawGrid();
+            GridOverlay.drawGrid();
         }
     }
 
@@ -18560,7 +17961,7 @@ public function cZoomTool():Function
             fixMouseHintPos();
         }
 
-        startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+        DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
     };
 
 }
@@ -18615,21 +18016,6 @@ public function syncMirrorReplayModeWithDrawMode():void
         mirrorCanvasReplayMode();
     }
 }
-
-public function updateGridMirror(mirrorflag:Boolean):void
-{
-    if (mirrorflag)
-    {
-        canvasGrid.scaleX = -1.0;
-        canvasGrid.x = CANVAS_WIDTH;
-    }
-    else
-    {
-        canvasGrid.scaleX = 1;
-        canvasGrid.x = 0;
-    }
-}
-
 public function mirrorRefLayerImage():void
 {
     canvasRefLayer.scaleX = -canvasRefLayer.scaleX;
@@ -18656,7 +18042,7 @@ public function mirrorCanvas(canvasOnly:Boolean = false):void
         mirrorRefLayerImage();
     }
 
-    updateGridMirror(isCanvasMirrored);
+    GridOverlay.updateGridMirror(isCanvasMirrored);
 
     const halfCanvas:Number = (stage.stageWidth - sideBar.getWidth()) / 2;
     var stageHalf:Number = (sideBar.visible === false) ? stage.stageWidth / 2
@@ -18804,8 +18190,8 @@ public function updateCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, 
     CANVAS_WIDTH = w;
     CANVAS_HEIGHT = h;
     keepCanvasPanelInStage();
-    if (gridGapMultiplier > 0)
-        drawGrid();
+    if (GridOverlay.gridGapMultiplier > 0)
+        GridOverlay.drawGrid();
     canvasInfoBox.setSize(w, h);
 }
 
@@ -18878,7 +18264,7 @@ public function cResizeCanvas():Object
 
     function getNearestRatio(width:Number):Array
     {
-        var index:Number = binarySearchIndex(ratioSizeArr, width, function(item:*):Number
+        var index:Number = Utils.binarySearchIndex(ratioSizeArr, width, function(item:*):Number
             {
                 return item[0];
             });
@@ -19462,7 +18848,7 @@ public function cLassoTool():Object
     function onMouseUpLassoTool():void
     {
         isMouseDragging = false;
-        removeTimer("LassoDrawDelayTimer");
+        FOFOTimer.remove("LassoDrawDelayTimer");
         stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoTool);
         stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool);
 
@@ -19543,9 +18929,9 @@ public function cLassoTool():Object
 
         lassoPoints.push([mx, my]);
 
-        if (!hasTimer("LassoDrawDelayTimer"))
+        if (!FOFOTimer.hasTimer("LassoDrawDelayTimer"))
         {
-            addTimerByName("LassoDrawDelayTimer", 0.1, false, function():void
+            FOFOTimer.addByName("LassoDrawDelayTimer", 0.1, false, function():void
                 {
                     drawPreviewLine();
                 });
@@ -19980,9 +19366,9 @@ public function setRefLayerAndGridVisible(flag:Boolean):void
         }
     }
 
-    if (gridGapMultiplier > 0)
+    if (GridOverlay.gridGapMultiplier > 0)
     {
-        canvasGrid.visible = flag;
+        GridOverlay.canvasGrid.visible = flag;
     }
 }
 
@@ -20759,9 +20145,9 @@ public function undoToIndex(index:int):void
 
 public function pollTimerWaitWorkerForCacheUndoData():void
 {
-    if (!hasTimer("workerUndoDataTimer"))
+    if (!FOFOTimer.hasTimer("workerUndoDataTimer"))
     {
-        addTimerByName("workerUndoDataTimer", WORKER_WAIT_INTERVAL, true, function():Boolean
+        FOFOTimer.addByName("workerUndoDataTimer", WORKER_WAIT_INTERVAL, true, function():Boolean
             {
                 if (receivedUndoImageQueueFromWorker.length > 0)
                 {
@@ -21446,7 +20832,7 @@ public function initializeCanvas():void
     penSizePreviewCursor.name = "penSizeCursor";
     stageBG.name = "stageBG";
     canvasRefLayer.name = "canvasRefLayer";
-    canvasGrid.name = "canvasGrid";
+    GridOverlay.canvasGrid.name = "canvasGrid";
     canvasFlashEffect.name = "canvasFlash";
 
     penSizePreviewCursor.visible = false;
@@ -21476,7 +20862,7 @@ public function initializeCanvas():void
     canvasPanel.addChild(canvasLayer1Bitmap);
     canvasPanel.addChild(lassoLayer1);
     canvasPanel.addChild(canvasDrawLayer);
-    canvasPanel.addChild(canvasGrid);
+    canvasPanel.addChild(GridOverlay.canvasGrid);
     canvasPanel.addChild(rReplayFOFOCursor);
     // canvasrotate가 중점으로 올수있게 위치를 절반으로세팅
     canvasPanel.x = Math.floor(-canvasPanel.width / 2);
@@ -21542,7 +20928,7 @@ public function getSideBarBGHeight():Number
 
 public function onWindowResize(e:Event):void
 {
-    addTimerByName("windowResizeDelayTimer", 0.2, false, function():void
+    FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, function():void
         {
             const dx:Number = Math.round((stage.nativeWindow.width - lastAppWindowSize.x) / 1.75);
             const dy:Number = Math.round((stage.nativeWindow.height - lastAppWindowSize.y) / 1.75);
@@ -21639,7 +21025,7 @@ public function onWindowResize(e:Event):void
 
             if (isAppClosing)
             {
-                if (!hasTimer("pollTimerWaitWorkerStop"))
+                if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
                 {
                     deleteTempDirectory();
                     saveAllAppData();
@@ -21744,15 +21130,15 @@ public function onWindowClosingEvent(e:Event):void
 
     if (workerState === WORKER_STATE_RUNNING)
     {
-        if (!hasTimer("pollTimerWaitWorkerStop"))
+        if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
         {
             stage.nativeWindow.title = "Waiting for remaining tasks...";
             openLoadMenuBoxOnClosing();
-            addTimerByName("pollTimerWaitWorkerStop", WORKER_WAIT_INTERVAL, true, function():Boolean
+            FOFOTimer.addByName("pollTimerWaitWorkerStop", WORKER_WAIT_INTERVAL, true, function():Boolean
                 {
                     if (workerState === WORKER_STATE_STOPPED)
                     {
-                        removeTimer("pollTimerWaitWorkerStop");
+                        FOFOTimer.remove("pollTimerWaitWorkerStop");
                         checkWindowMaximizedAndSaveAllData();
                         return false;
                     }
@@ -22085,7 +21471,7 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
             case KEY.space:
                 {
                     updateLastKey(firstKey);
-                    removeTimer("prograssBarUpdateTimer");
+                    FOFOTimer.remove("prograssBarUpdateTimer");
                     handleReplayStopButton();
                     ;
                 }
@@ -22152,9 +21538,9 @@ public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
                 }
                 else if (input === KEY.v || input === KEY.m)
                 {
-                    if (isClipBoardButtonActivated)
+                    if (ClipboardBridge.isClipBoardButtonActivated)
                     {
-                        tryLoadClipboardImage(false);
+                        ClipboardBridge.tryLoadClipboardImage(false);
                     }
                 }
             });
@@ -22349,9 +21735,9 @@ public function onKeyDownDrawMode(e:KeyboardEvent):void
         }
         else if (input === KEY.v || input === KEY.m)
             {
-                if (isClipBoardButtonActivated)
+                if (ClipboardBridge.isClipBoardButtonActivated)
                     {
-                        tryLoadClipboardImage(false);
+                        ClipboardBridge.tryLoadClipboardImage(false);
             }
         }
     }))
@@ -22749,7 +22135,7 @@ public function handleToolKeyDown(keyCode:int):void
 
 public function unblockMouseClickAfterDelay():void
 {
-    addTimerByName("clickBlockTimer", 0.15, false, function():void
+    FOFOTimer.addByName("clickBlockTimer", 0.15, false, function():void
         {
             isMouseClickBlocked = false;
         });
@@ -22758,7 +22144,7 @@ public function unblockMouseClickAfterDelay():void
 public function onWindowActive(e:Event):void
 {
     tryDisableIME();
-    checkCanUseClipBoardButton();
+    ClipboardBridge.checkCanUseClipBoardButton();
 
     if (isAboutBoxOpened)
     {
@@ -22776,7 +22162,7 @@ public function onWindowDeactivate(e:Event):void
     resizeCanvas.exit(true);
     clearKeyBuffer();
     removeKeyRepeatEvents(null);
-    removeTimer("pressholdtimer");
+    FOFOTimer.remove("pressholdtimer");
 
     if (isToolBox2Showing)
     {
@@ -23132,7 +22518,7 @@ public function startScrollSidebarByDrag():void
         checkFOFOPosition();
     }
 
-    startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+    DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
 }
 
 public function startScrollSidebarByMouseWheel(deltaY:Number):void
@@ -23282,9 +22668,9 @@ public function startGeneratingReplayCacheImage():void
 {
     rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_PROCESSING;
 
-    if (!hasTimer("generatereplaycacheimagedelay"))
+    if (!FOFOTimer.hasTimer("generatereplaycacheimagedelay"))
     {
-        addTimerByName("generatereplaycacheimagedelay", 0.1, false, function():void
+        FOFOTimer.addByName("generatereplaycacheimagedelay", 0.1, false, function():void
             {
                 generateReplayCacheImage();
             });
@@ -23459,7 +22845,7 @@ public function enterReplayMode():void
     setAsTopChild(rReplayFOFOCursor);
     setRcursorRotation(rCanvasAnchorPoint.rotation);
     updateStageOffset();
-    removeTimer("rCursorOffAlphaAnimTimer");
+    FOFOTimer.remove("rCursorOffAlphaAnimTimer");
     hideBottomHint();
     lastDeepUndoEnabledFlag = isDeepUndoEnabled;
     isDeepUndoEnabled = false;
@@ -23626,7 +23012,7 @@ public function onMouseDownReplayMode(e:MouseEvent):void // repdown1
 
         case "replayPrev":
             {
-                removeTimer("prograssBarUpdateTimer");
+                FOFOTimer.remove("prograssBarUpdateTimer");
                 if (isPressingShift())
                 {
                     startKeyRepeat(true, moveToPreviousFrame);
@@ -23642,7 +23028,7 @@ public function onMouseDownReplayMode(e:MouseEvent):void // repdown1
 
         case "replayNext":
             {
-                removeTimer("prograssBarUpdateTimer");
+                FOFOTimer.remove("prograssBarUpdateTimer");
                 if (isPressingShift())
                 {
                     startKeyRepeat(true, moveToNextFrame);
@@ -23729,7 +23115,7 @@ public function setFitReplayCanvasToViewportON():void
 
 public function fitReplayCanvasToViewport():void
 {
-    addTimerByName("rFitZoomedDelayTimer", 0.15, false, function():void
+    FOFOTimer.addByName("rFitZoomedDelayTimer", 0.15, false, function():void
         {
             fitCanvasToViewportMargin(true);
             rCanvasZoomIndex = getNearZoomIndex(rCanvasZoomMultiplier);
@@ -23810,7 +23196,7 @@ public function openToolBox2(fromShortcut:Boolean):void
     setAsTopChild(toolBox2);
     addInputEventsToolBox2(fromShortcut);
 
-    addTimerByName("toolBox2HideCheckTimer", 0.1, true, function():Boolean
+    FOFOTimer.addByName("toolBox2HideCheckTimer", 0.1, true, function():Boolean
         {
             if (!isToolBox2Showing)
             {
@@ -23871,10 +23257,10 @@ public function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
 
         case "gridButton":
             {
-                if (gridGapMultiplier !== 0)
+                if (GridOverlay.gridGapMultiplier !== 0)
                 {
                     hideBottomHint();
-                    resetGrid();
+                    GridOverlay.resetGrid();
                 }
             }
             break;
@@ -24155,7 +23541,7 @@ public function startColorHistoryBoxDragging():void
 
     if (index >= 0 && !isSelctedHistoryColorEmpty(index))
     {
-        startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+        DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
     }
 }
 
@@ -24180,7 +23566,7 @@ public function startMyPaletteBoxDragging():void
         {
             if (myPaletteDragStarted === false)
             {
-                removeTimer("addColorMyPaletteDelayTimer");
+                FOFOTimer.remove("addColorMyPaletteDelayTimer");
                 myPaletteDragStarted = true;
                 colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
                 updateMyPaletteList(myPaletteDragClickedIndex);
@@ -24213,7 +23599,7 @@ public function startMyPaletteBoxDragging():void
 
     if (index >= 0 && !isSelctedColorEmpty(index))
     {
-        startDragInteraction(onDragStart, onMouseMouse, onMouseUp);
+        DragInteraction.startDragInteraction(onDragStart, onMouseMouse, onMouseUp);
     }
 }
 
@@ -24288,14 +23674,14 @@ public function handleColorPickerBoxClick(targetName:String):void
 
                 case "drawrPresetButton":
                     {
-                        removeTimer("clearScratchPadTimer");
+                        FOFOTimer.remove("clearScratchPadTimer");
                         activeColorPreset(1);
                     }
                     break;
 
                 case "tegakiPresetButton":
                     {
-                        removeTimer("clearScratchPadTimer");
+                        FOFOTimer.remove("clearScratchPadTimer");
                         activeColorPreset(2);
                     }
                     break;
@@ -24561,7 +23947,7 @@ public function onMouseDownLassoTool(e:MouseEvent):void
             case "lassoMenuMoveButton":
                 {
                     setAsTopChild(lassoMenuBox);
-                    startBoxDrag(lassoMenuBox);
+                    DragInteraction.startBoxDrag(lassoMenuBox);
                 }
                 break;
 
@@ -24839,7 +24225,7 @@ public function onMouseDownDrawMode(e:MouseEvent):void
 
         case "refLayerMenuMoveButton":
             {
-                startBoxDrag(refLayerMenuBox);
+                DragInteraction.startBoxDrag(refLayerMenuBox);
             }
             return;
 

@@ -9,8 +9,6 @@ package main_module.tools
     import flash.display.LineScaleMode;
     import flash.display.Stage;
 
-    import Main;
-
     public class PenTool
     {
         private static var _stage:Stage;
@@ -163,7 +161,7 @@ package main_module.tools
 
                 smoothPos.setTo(ox, oy);
 
-                Main._instance.addTimerByName("lineSmoothingTimer1", 0.02, true, lineSmoothing);
+                FOFOTimer.addByName("lineSmoothingTimer1", 0.02, true, lineSmoothing);
 
             }
 
@@ -477,7 +475,7 @@ package main_module.tools
 
                 smoothLast.setTo(mx, my);
 
-                Main._instance.addTimerByName("lineSmoothingTimer", 0.03, false, lineSmoothing);
+                FOFOTimer.addByName("lineSmoothingTimer", 0.03, false, lineSmoothing);
 
             }
 
@@ -509,9 +507,9 @@ package main_module.tools
             if (penSmoothSlideValue > 1)
             {
 
-                Main._instance.removeTimer("lineSmoothingTimer");
+                FOFOTimer.remove("lineSmoothingTimer");
 
-                Main._instance.removeTimer("lineSmoothingTimer1");
+                FOFOTimer.remove("lineSmoothingTimer1");
 
             }
 

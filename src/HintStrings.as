@@ -1,6 +1,7 @@
 ﻿package
 {
     import Main;
+    import main_module.GridOverlay;
     import main_module.tools.PenTool;
 
     public class HintStrings
@@ -265,7 +266,7 @@
                 return "";
             }
 
-            return _main.gridGapMultiplier + _main.GRID_GAP + "px";
+            return GridOverlay.gridGapMultiplier + GridOverlay.GRID_GAP + "px";
         }
 
         static public function getNewVersionAvailableHintString():String
