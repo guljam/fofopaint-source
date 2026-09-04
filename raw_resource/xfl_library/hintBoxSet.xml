@@ -1,0 +1,32 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="hintBoxSet" itemID="68fdc738-00000248" linkageExportForAS="true" linkageClassName="hintBoxSet" lastModified="1761471358" isSpriteSubclass="true">
+  <timeline>
+    <DOMTimeline name="hintBoxSet" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMDynamicText name="hintText" left="-149.2" width="395.45" height="30.5" antiAliasThickness="1" isSelectable="false" lineType="multiline no wrap">
+                  <matrix>
+                    <Matrix tx="151.2" ty="2"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="98.8" y="23.75"/>
+                  </transformationPoint>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters></characters>
+                      <textAttrs>
+                        <DOMTextAttrs aliasText="false" lineHeight="16.25" size="16" bitmapSize="320" face="SiKancil"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

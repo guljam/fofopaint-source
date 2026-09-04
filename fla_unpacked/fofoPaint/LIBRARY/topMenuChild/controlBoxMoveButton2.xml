@@ -1,0 +1,32 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="topMenuChild/controlBoxMoveButton2" itemID="629524eb-00000277" symbolType="button" lastModified="1700382252">
+  <timeline>
+    <DOMTimeline name="controlBoxMoveButton2">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="topMenuChild/topMenuButton" symbolType="button">
+                  <transformationPoint>
+                    <Point x="22.5" y="22.5"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="topMenuChild/controlBoxMoveIcon" symbolType="button">
+                  <matrix>
+                    <Matrix a="-0.346969604492188" d="-0.346466064453125" tx="38.55" ty="38.15"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="40.5" y="44.6"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

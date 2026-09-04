@@ -1,0 +1,32 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="replayRepeatButton" itemID="65e6c5cb-0000026f" symbolType="button" lastModified="1709624152">
+  <timeline>
+    <DOMTimeline name="replayRepeatButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="topMenuChild/topMenuButton" symbolType="button">
+                  <transformationPoint>
+                    <Point x="22.5" y="22.5"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="repeatIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="1.19462585449219" d="1.33760070800781" tx="5.1" ty="6.4"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="14.7" y="11.7"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

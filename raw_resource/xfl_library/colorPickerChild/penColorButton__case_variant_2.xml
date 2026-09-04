@@ -1,0 +1,92 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="ColorPickerChild/penColorButton" itemID="6294c0b6-00000219" symbolType="button" lastModified="1709085254">
+  <timeline>
+    <DOMTimeline name="penColorButton" currentFrame="2">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/penColorButtonBorder" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="-0.5" ty="0.35"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="26.9" y="11.65"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/penButtonIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="4" ty="6.25"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.6" y="5.15"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="1" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/penColorButtonBorder" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="-0.5" ty="0.35"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="26.9" y="11.65"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/penButtonIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="4" ty="6.25"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.6" y="5.15"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="2" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/penColorButtonBorder" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="0.5" ty="1.15"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="26.9" y="11.65"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/penButtonIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="5" ty="7.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.6" y="5.15"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="3" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/penColorButtonBorder" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="-0.5" ty="0.35"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="26.9" y="11.65"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/penButtonIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="4" ty="6.25"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.6" y="5.15"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

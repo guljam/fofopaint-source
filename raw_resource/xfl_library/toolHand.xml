@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="toolHand" itemID="691e6bc1-0000025c" symbolType="button" lastModified="1763601898">
+  <timeline>
+    <DOMTimeline name="toolHand">
+      <layers>
+        <DOMLayer name="레이어_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolBoxBG2" selected="true" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.449996948242188" d="0.449996948242188"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.2"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolHandIcon" selected="true" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="1.07719421386719" d="1.075927734375" tx="7.5" ty="8"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="13.95" y="13.5"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

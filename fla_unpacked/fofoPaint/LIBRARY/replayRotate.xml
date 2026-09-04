@@ -1,0 +1,32 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="replayRotate" itemID="5ebdce17-000003a8" symbolType="button" lastModified="1666556721">
+  <timeline>
+    <DOMTimeline name="replayRotate">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="topMenuChild/topMenuButton" symbolType="button">
+                  <transformationPoint>
+                    <Point x="29.95" y="29.95"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="lassoChild/rotateIcon2" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="1.02642822265625" d="1.02499389648438" tx="6.05" ty="8.15"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="16.3" y="14.8"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

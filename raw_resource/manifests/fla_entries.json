@@ -1,0 +1,3348 @@
+[
+  {
+    "archivePath": "DOMDocument.xml",
+    "outputPath": "xfl_metadata/DOMDocument.xml",
+    "bytes": 49343,
+    "sha256": "B7353FB3AD8D3B052CEB0846F8D20A5DCBF87DDBB1DCE87B9B44DC781781D625",
+    "category": "xfl_metadata"
+  },
+  {
+    "archivePath": "PublishSettings.xml",
+    "outputPath": "xfl_metadata/PublishSettings.xml",
+    "bytes": 7438,
+    "sha256": "581FD0AF61A0592995CFDB23DBE3BF73BF047FC7AABA0567E229C821A8863197",
+    "category": "xfl_metadata"
+  },
+  {
+    "archivePath": "PaintBrushDefinitions.xml",
+    "outputPath": "xfl_metadata/PaintBrushDefinitions.xml",
+    "bytes": 1395,
+    "sha256": "CC540DC732D84848D07DF8CC710F61A0A3A49D67743F6406EB95D48615CB7F79",
+    "category": "xfl_metadata"
+  },
+  {
+    "archivePath": "LIBRARY/aboutBox.xml",
+    "outputPath": "xfl_library/aboutBox.xml",
+    "bytes": 5925,
+    "sha256": "57CCCD11F726BC075380E6845A3EB4975559B42297463987489E72FFC1EB1151",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/engManualButton.xml",
+    "outputPath": "xfl_library/aboutChild/engManualButton.xml",
+    "bytes": 2020,
+    "sha256": "D7B6C9F1A1A8930FB4838AEB3EDFF7D36ACEBE976719D4D850B0A4AE628BA95A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/jpMaualButton.xml",
+    "outputPath": "xfl_library/aboutChild/jpMaualButton.xml",
+    "bytes": 2018,
+    "sha256": "E968FCBF5F632999C441A73F628962A30B546B7054885F583A2425EC05B3E363",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/korManualButton.xml",
+    "outputPath": "xfl_library/aboutChild/korManualButton.xml",
+    "bytes": 2001,
+    "sha256": "C1918862D04E203BBFBC79A4816293B27DED1945DBDF4428D7300EAEC04F1B10",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/logo1.xml",
+    "outputPath": "xfl_library/aboutChild/logo1.xml",
+    "bytes": 732,
+    "sha256": "CF2917BC93CA9BB4AC89BE7C2E10CDF467B673E2D17615598EBFC96ED4E7B124",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/logo2.xml",
+    "outputPath": "xfl_library/aboutChild/logo2.xml",
+    "bytes": 732,
+    "sha256": "AEF287469F44B909B31CA19790CE148F4D95D35F795F46568F58E3C5E4CB1195",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/logo3.xml",
+    "outputPath": "xfl_library/aboutChild/logo3.xml",
+    "bytes": 734,
+    "sha256": "8DA5AB70F063E01BFF83095E14334127CA58398CE4EA4BAA2296CCAED424B2D6",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/logo4.xml",
+    "outputPath": "xfl_library/aboutChild/logo4.xml",
+    "bytes": 734,
+    "sha256": "92C259EA81FD1D5094922ACA75A2ADAC9419B30A54B00E7CDC4E661F356F0233",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/logo5.xml",
+    "outputPath": "xfl_library/aboutChild/logo5.xml",
+    "bytes": 718,
+    "sha256": "306C13DB33B2AF9E64DC2BDA5A501CDFC9E6CF302774628E02E6F309F374B059",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutTextSet.xml",
+    "outputPath": "xfl_library/aboutTextSet.xml",
+    "bytes": 2379,
+    "sha256": "2373AAE20EA73A7DA2DCE5F4BC111E3B3578718287E14115F78121A2D3A43F8E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/bg2.xml",
+    "outputPath": "xfl_library/bg2.xml",
+    "bytes": 1002,
+    "sha256": "410647B1CED2AC20830EB69ED0E032FA62FC6EF0789AA4839C3EE02ED0E29232",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerBox.xml",
+    "outputPath": "xfl_library/colorPickerBox.xml",
+    "bytes": 5474,
+    "sha256": "C7367E472E84E58DFA868EA5BC6D2373D9E6B030C05ABF1CA4098B06824F421A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/HueCursorSet.xml",
+    "outputPath": "xfl_library/colorPickerChild/HueCursorSet.xml",
+    "bytes": 1423,
+    "sha256": "71D2718A120BA317DCD91BC0744C8B2C2931860968E6A6EBE600E9AC3EAADC63",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/svCursor.xml",
+    "outputPath": "xfl_library/colorPickerChild/svCursor.xml",
+    "bytes": 1968,
+    "sha256": "E2A6BBF8EAA83C1C05AF9A79E5BCD89226B8DC6AC1E9F1E5031121B1BD601417",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/controlBoxMoveButton1.xml",
+    "outputPath": "xfl_library/controlBoxMoveButton1.xml",
+    "bytes": 1420,
+    "sha256": "B5EC560DC5D748A594CB450683DB4F727B3C0C66D4AC60034FF3216FD8469508",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/controlBoxMoveIcon.xml",
+    "outputPath": "xfl_library/controlBoxMoveIcon.xml",
+    "bytes": 24063,
+    "sha256": "AF2470C0E11B267BE83889C2F5210BE60AF15B4B77AC5E6236C9CA03C977735B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/controlMenu.xml",
+    "outputPath": "xfl_library/controlMenu.xml",
+    "bytes": 13380,
+    "sha256": "072AE537F7144446060490AB9A56F92FC74E311773238639A4075F90902B0738",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/dragDropCancelButton.xml",
+    "outputPath": "xfl_library/dragDropCancelButton.xml",
+    "bytes": 3181,
+    "sha256": "63903C7F78ED1925C36A113C22E4F7EF5F83C2FB49F5D1D61C67BDD30D9EFE53",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/dragDropFileButton.xml",
+    "outputPath": "xfl_library/dragDropFileButton.xml",
+    "bytes": 3048,
+    "sha256": "6150DEA80B97AA59C68A8C98AAE698D8305DC9C43C4B2C716200F7DBB7BA7A14",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/dragDropRefButton.xml",
+    "outputPath": "xfl_library/dragDropRefButton.xml",
+    "bytes": 3080,
+    "sha256": "A9A97A764C13C78521D15CCE8270F98E62443D8B5C63FF4209F8B425D92B5A72",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lasso1pxIcon.xml",
+    "outputPath": "xfl_library/lasso1pxIcon.xml",
+    "bytes": 10945,
+    "sha256": "B662F0A2A753E703B6316B0CD01C641A947F191AF8DE4A2DE0AAD65196D52703",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lasso1pxLeft.xml",
+    "outputPath": "xfl_library/lasso1pxLeft.xml",
+    "bytes": 1561,
+    "sha256": "7E87D64E12A8C541A794D859542C664A932CA38A27D80BD013A0798F084D86F4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoButtons.xml",
+    "outputPath": "xfl_library/lassoButtons.xml",
+    "bytes": 8746,
+    "sha256": "AA152AD37656521B0D15986CC41EBFF77DA49BDFDDEA8921F30C36148912DE68",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuBG2.xml",
+    "outputPath": "xfl_library/lassoMenuBG2.xml",
+    "bytes": 1356,
+    "sha256": "D64A6FAD127170176C4BD39F3B324C4A246B57049ECFD250A3A7A1ED37F9B935",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/loadBox.xml",
+    "outputPath": "xfl_library/loadBox.xml",
+    "bytes": 3136,
+    "sha256": "C1132653E975B847D6F7E7D01E67E6D538B3318C352407874EBBC1B6A243DEDD",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/loadBoxChild/loadBoxMini.xml",
+    "outputPath": "xfl_library/loadBoxChild/loadBoxMini.xml",
+    "bytes": 1581,
+    "sha256": "4E6CF7DC651646F797D8A8646258D8B1128D45AE9FF7ED04CA2D1B2C0B8CBA72",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/penSizeGuide.xml",
+    "outputPath": "xfl_library/penSizeGuide.xml",
+    "bytes": 53778,
+    "sha256": "D3DFA63F867C58A1EA2E6B96B219CE3E205496D6C79BA4D2667EC94751B44FD8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/penSmoothBar.xml",
+    "outputPath": "xfl_library/penSmoothBar.xml",
+    "bytes": 9730,
+    "sha256": "4D2CD2F61C98BCE003DD75BDC92C4E8674805BDCAD278A6BE5F1F014ED4B4577",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/penSmoothSliderSet.xml",
+    "outputPath": "xfl_library/penSmoothSliderSet.xml",
+    "bytes": 1928,
+    "sha256": "E5FC72F330FB932D4C1C640314EC10ADE9F6860A9A5C81D811AEE84F44732364",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/replayRotate.xml",
+    "outputPath": "xfl_library/replayRotate.xml",
+    "bytes": 1420,
+    "sha256": "802E738DBFB9534BB779F622E9E88D212F2312AB89E0CF3B82AB901B6DD14D65",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/replayTimeBar.xml",
+    "outputPath": "xfl_library/replayTimeBar.xml",
+    "bytes": 3173,
+    "sha256": "50D26BBED5ECED1AFDD139145683826516391C6F6B89F8177CF395896A106CFB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/rotateCursor.xml",
+    "outputPath": "xfl_library/rotateCursor.xml",
+    "bytes": 2251,
+    "sha256": "C06CE9A37AC9D5D792B48E3599481A537939C3F869D25C33062437D02B99E815",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolBoxBG2.xml",
+    "outputPath": "xfl_library/toolBoxBG2.xml",
+    "bytes": 1014,
+    "sha256": "6D04907F0A624193B34BF6B5BCC7A323E775B6A35F2B8538A8A8E67F06C6C2D8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/lassoIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/lassoIcon.xml",
+    "bytes": 9350,
+    "sha256": "06DB023F9791479B1065C4D76242E11DB81321F06CCC46B2FF10FA821DADE850",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/mirrorIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/mirrorIcon.xml",
+    "bytes": 17373,
+    "sha256": "B55C05FD20932EFE7984070FCEFA9B1A7A0C54C3CF2A48E856817FB32DC1918B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/spuitIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/spuitIcon.xml",
+    "bytes": 37195,
+    "sha256": "266B6CF4462328FCD26608C9FA17028E49FE45A4826CDAD0E52F071266BE1CA2",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/toolEraseIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/toolEraseIcon.xml",
+    "bytes": 18682,
+    "sha256": "24A2F52C11E762ECC69BDE14567EB7E7CB3C12439EB42F51375C9B87DD41FB4D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/toolMoveIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/toolMoveIcon.xml",
+    "bytes": 22040,
+    "sha256": "FF7C6BA870BA7CF1BD17E6205E878A27D238A7D812949A6560EA24857A10F9BE",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/toolPenIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/toolPenIcon.xml",
+    "bytes": 9591,
+    "sha256": "EB331B584A1F01DAF949D4A9EFFF94B39B7E9A3087AC79998F96C7458B200B37",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/undoIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/undoIcon.xml",
+    "bytes": 10210,
+    "sha256": "9D57C7ED1A49181626E081981668EB220CA4E2ADB6ABA51EC41714D631C1CA61",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/zoomIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/zoomIcon.xml",
+    "bytes": 13012,
+    "sha256": "E007F40258AD5808EE1BEAB0604D87956E0273BB23365662F70C4B4C06CA157F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/lassoButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/lassoButton.xml",
+    "bytes": 1569,
+    "sha256": "C7F01189FD65C50866E03B98BBDD27A7D0630BF251339D13D9F2B94D8AF3250A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/lineButton2.xml",
+    "outputPath": "xfl_library/toolmenuChild/lineButton2.xml",
+    "bytes": 1580,
+    "sha256": "FB6F2B060130BD998987E3958511F3A136F1362A3F45C1144EA555B571B0C7C9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/lineicon2 copy.xml",
+    "outputPath": "xfl_library/toolmenuChild/lineicon2 copy.xml",
+    "bytes": 1281,
+    "sha256": "A15B8CC60F0DBF6903770CC3E614BA985A6F0ADC04F08E167082D4170534A906",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/mirrorButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/mirrorButton.xml",
+    "bytes": 1577,
+    "sha256": "532768E851CA5C337D9718D339956D0A8806E40FBD26B6C30CBD58D64C5BAD50",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/moveButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/moveButton.xml",
+    "bytes": 1540,
+    "sha256": "ED081E8447FEF657FD881F2508C08906A335D0E36140E9259A6C5EA539BF8A1A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/redoButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/redoButton.xml",
+    "bytes": 1531,
+    "sha256": "C98424D412B5CB80E58E6B68B04D0598E5D9645A809087D77887D72AEC51C8C3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/resizeIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/resizeIcon.xml",
+    "bytes": 11986,
+    "sha256": "6FABBAEB1166BFACA1A2B7F7A6C4E1D4B121EF8DA41DDBF9354029FF257A4AB1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/rotateButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/rotateButton.xml",
+    "bytes": 1569,
+    "sha256": "033570D3500DA860070AE55FC0420312C8628086C3840094A615F149CB4E2007",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/spuitButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/spuitButton.xml",
+    "bytes": 1545,
+    "sha256": "DA3BFA31A2EABF6C6B4DCDF196AB7ADA042EC59772DDE3D71D71D8DF6664A49C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/toolBoxBGLight.xml",
+    "outputPath": "xfl_library/toolmenuChild/toolBoxBGLight.xml",
+    "bytes": 1062,
+    "sha256": "178A0FDF60625FD21556F6B749355BF658872F1D181C10895E7A7A1DD1872ED1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/toolEraseButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/toolEraseButton.xml",
+    "bytes": 1576,
+    "sha256": "D44E21082D793088D67ACB629D3CF4EAE39BF814142AEE45F0F00B942169318F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/toolmenuButton1.xml",
+    "outputPath": "xfl_library/toolmenuChild/toolmenuButton1.xml",
+    "bytes": 1503,
+    "sha256": "04F91A6CD340EE2ED05E5CD175BA68BD6CD327D2CB8CDB930FA8450CFD102626",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/toolMenuClose.xml",
+    "outputPath": "xfl_library/toolmenuChild/toolMenuClose.xml",
+    "bytes": 1576,
+    "sha256": "ADB1855D0F85921FA3E9689A1347E7B2CA6AD08F4C85FB594A232A6B8D60E5B0",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/toolPenButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/toolPenButton.xml",
+    "bytes": 1577,
+    "sha256": "AC7E35B741F7E1A573B40274118349BEBDE049C197DA6AFE6EC29B2CC0B90CFF",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/undoButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/undoButton.xml",
+    "bytes": 1541,
+    "sha256": "F2BBC4434D40C1F8BFD9F3D2A6329D40ACE59BDF4884F65E59DB04B4DE6B6357",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/zoomButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/zoomButton.xml",
+    "bytes": 1509,
+    "sha256": "EF5C0039F3687967EFF38C47E641D6EC2E832485D41ADF2324E58DD91844BDAA",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenu.xml",
+    "outputPath": "xfl_library/topMenu.xml",
+    "bytes": 25567,
+    "sha256": "06DA95184FAF228BFEA8021C329BBF2A689AE9CF7B2BFC7F36D4C4CB13ADCAB3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/abouticon.xml",
+    "outputPath": "xfl_library/topMenuChild/abouticon.xml",
+    "bytes": 619,
+    "sha256": "1723521FCDBF2A422B7D51B7F67A3DF86CEADEC4ABF2DDBB3B62CD8AB8B56D83",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/cameraicon.xml",
+    "outputPath": "xfl_library/topMenuChild/cameraicon.xml",
+    "bytes": 22056,
+    "sha256": "D456B9D214ACE7C10BC03C704DAA12E232363EA910D819668C2A859A733B8762",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/canvasSizeTextBG.xml",
+    "outputPath": "xfl_library/topMenuChild/canvasSizeTextBG.xml",
+    "bytes": 1036,
+    "sha256": "C2F035730C859204224A49F62B6A3E2EBC06808F947844577EE781D69CD11ED6",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capCancelButton.xml",
+    "outputPath": "xfl_library/topMenuChild/capCancelButton.xml",
+    "bytes": 1435,
+    "sha256": "82B2766AF5D7B42D9C98E6E32D0FF434120EFAC68ADE98EF3328DBC07CD7C882",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capFlip.xml",
+    "outputPath": "xfl_library/topMenuChild/capFlip.xml",
+    "bytes": 1426,
+    "sha256": "DFD6FF927CD03D3B850A9CCFCA17BA5AD6B65C10E22E08777CF78A25678C65BD",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capFlipIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/capFlipIcon.xml",
+    "bytes": 26682,
+    "sha256": "D62C5C86DE8CAB7AD57AC1E7A536EA92A8A60676CB1958943F1F0740FE0C903F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capofficon.xml",
+    "outputPath": "xfl_library/topMenuChild/capofficon.xml",
+    "bytes": 8613,
+    "sha256": "EEDB7EC113C7C2861A4BA09A4E84308A174F23C840228FA6ED407965459BDE6B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/caprotate.svg.xml",
+    "outputPath": "xfl_library/topMenuChild/caprotate.svg.xml",
+    "bytes": 21342,
+    "sha256": "0677297C3D7627823950958D5C2CA17C3BC9C0D9537454BB537A8136362B313E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capRotateButton.xml",
+    "outputPath": "xfl_library/topMenuChild/capRotateButton.xml",
+    "bytes": 1460,
+    "sha256": "73D2C5959373EC5558482020A447DEA10B9CE685B7BF663CF3121D50E1252716",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/captrans.xml",
+    "outputPath": "xfl_library/topMenuChild/captrans.xml",
+    "bytes": 1439,
+    "sha256": "294C8359C0FA3C7859CB8BFEB258954AC9A101C984CE8ECA17EECF11D4AA5D70",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/captureButton.xml",
+    "outputPath": "xfl_library/topMenuChild/captureButton.xml",
+    "bytes": 1440,
+    "sha256": "49EDDA9F86F5F6834D4279C8B4658F1629DE8EDCFA327BFB7B7733879E9DCAF5",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/changeThemeButton.xml",
+    "outputPath": "xfl_library/topMenuChild/changeThemeButton.xml",
+    "bytes": 1439,
+    "sha256": "27F844E97FD0FD9DC3B99E565888E6B77CE26A4FABAEDC0F39DEDCB6AD3F3155",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/clearIcon2.xml",
+    "outputPath": "xfl_library/topMenuChild/clearIcon2.xml",
+    "bytes": 15437,
+    "sha256": "A1127BE4F66D53D6C2DA06E61F2943D8B4A498BE54F268F9A71EB75A1AFB0643",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/clipbutton.xml",
+    "outputPath": "xfl_library/topMenuChild/clipbutton.xml",
+    "bytes": 1438,
+    "sha256": "2B58AD27340BD501596EF7FA9D8D382ADC12DA3D9EAF0BA1EE0DFE6BC6477A1F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/drawModeButton.xml",
+    "outputPath": "xfl_library/topMenuChild/drawModeButton.xml",
+    "bytes": 1443,
+    "sha256": "B6B89926F130AE6D1440CE0921FF1FE3F7E24B47A44958D6E741D364BD7F3AFE",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/drawmodeIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/drawmodeIcon.xml",
+    "bytes": 17679,
+    "sha256": "64F704BC1DD383EA09439F5FFE23C5F242D9C7FC340CBD423C57DE2551558636",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/gridButton.xml",
+    "outputPath": "xfl_library/topMenuChild/gridButton.xml",
+    "bytes": 1430,
+    "sha256": "BF85F6E1431F6749D88DF18CC8BD7471A1D3C6B58CA399D6D0303180766A8F57",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/gridicon.xml",
+    "outputPath": "xfl_library/topMenuChild/gridicon.xml",
+    "bytes": 44365,
+    "sha256": "518779D015A5EA7354CFF835E82666FF6ED50DCAB440EE40B638B218A63EE8F6",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/loadButton.xml",
+    "outputPath": "xfl_library/topMenuChild/loadButton.xml",
+    "bytes": 19472,
+    "sha256": "9271D902B8382F4E5A1DDEFF216DF2A78EC7C5292530DC7F6E9D8654F6CD32C1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/pause.svg.xml",
+    "outputPath": "xfl_library/topMenuChild/pause.svg.xml",
+    "bytes": 9418,
+    "sha256": "3461C8DD9313C0BAF9077C3EE7110FEB13C34E99FF20009982C5410F6AD06B3F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/pauseButton.xml",
+    "outputPath": "xfl_library/topMenuChild/pauseButton.xml",
+    "bytes": 4356,
+    "sha256": "5BCBC6584FB7DF7A196E015BA7F3C1DAA90C29A7C2094645401CB5C5BFA86502",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/playButton.xml",
+    "outputPath": "xfl_library/topMenuChild/playButton.xml",
+    "bytes": 4852,
+    "sha256": "DB976BAD6C44173AD21FA609D13E809B59A44A4DE174EE389651FF030BB07C19",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/playicon.xml",
+    "outputPath": "xfl_library/topMenuChild/playicon.xml",
+    "bytes": 8393,
+    "sha256": "0430CF06E077664A54995AE0E0FA002DFA112832D6F910CA0C1A18093999F1AD",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/replayModeButton.xml",
+    "outputPath": "xfl_library/topMenuChild/replayModeButton.xml",
+    "bytes": 1469,
+    "sha256": "7723DCDF2468246B93063B7538AC4BC227D29F3CC49F0097C193436203CD8C4D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/saveButton.xml",
+    "outputPath": "xfl_library/topMenuChild/saveButton.xml",
+    "bytes": 1428,
+    "sha256": "FC7E79A0C6A1011B33FEC563D4BD91BB20D3D956C8458AF5E1F77A96D57EEF2D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/savefile.svg.xml",
+    "outputPath": "xfl_library/topMenuChild/savefile.svg.xml",
+    "bytes": 9827,
+    "sha256": "235755884BD760D2B038BABFD9A184B2689776A0D3E8BAD51595506B0C7F4751",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/setImageButton.xml",
+    "outputPath": "xfl_library/topMenuChild/setImageButton.xml",
+    "bytes": 1474,
+    "sha256": "5A508B9ED604DD83AD0C92905AF456D0E3913C8D99FD5E8A6FFEB994EE4E46F9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/themeIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/themeIcon.xml",
+    "bytes": 29572,
+    "sha256": "6D0D9456405A2F8BE331B9826C654312067D44461B92A93EE2F72773049AB365",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/topMenuButton.xml",
+    "outputPath": "xfl_library/topMenuChild/topMenuButton.xml",
+    "bytes": 1536,
+    "sha256": "983FA0CA0AB242BBE3D3BDC55B69EBBD4CC5AA220044BDBE07FED9E6E47EFCC1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/traceButtonWrapper.xml",
+    "outputPath": "xfl_library/topMenuChild/traceButtonWrapper.xml",
+    "bytes": 1212,
+    "sha256": "D688E3472BAF5A4AC302A49B4A13AD8FF64C4930B32D387CE5A58F8741208F06",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/traceClipButton.xml",
+    "outputPath": "xfl_library/topMenuChild/traceClipButton.xml",
+    "bytes": 1581,
+    "sha256": "780ED921EBA1E9A3969D04AF21EC010087E6DD965975F94DB22E13A83EB5FD1C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/traceImageButton.xml",
+    "outputPath": "xfl_library/topMenuChild/traceImageButton.xml",
+    "bytes": 1632,
+    "sha256": "597640850A99118F9271BDE30091FAA6F0A18D05E98F3D18477CF9D9E488D1D8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/traceLoadButton.xml",
+    "outputPath": "xfl_library/topMenuChild/traceLoadButton.xml",
+    "bytes": 1597,
+    "sha256": "41C81588335B1AEE0FF745B8F775235C87B29CA75FDFA4A0C6D6DB3523442B4B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/traceMenuBG.xml",
+    "outputPath": "xfl_library/topMenuChild/traceMenuBG.xml",
+    "bytes": 1391,
+    "sha256": "5FEAD77B5F83D52B4E566A34BAA20F74B51CD1EF4B3F2B45EBC817BC229A51F2",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/traceMenuOpaBar.xml",
+    "outputPath": "xfl_library/topMenuChild/traceMenuOpaBar.xml",
+    "bytes": 13372,
+    "sha256": "B5C80638D92CBB39E6F1DD43508FF58A3D03C1F45DD3D16AC3298B16C7D5DC72",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/traceOpaBUtton.xml",
+    "outputPath": "xfl_library/topMenuChild/traceOpaBUtton.xml",
+    "bytes": 6009,
+    "sha256": "6A3367609046902A3E133B8FCD6D4717D78E7A2D424600C54891C6B8F417BB74",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/transBGIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/transBGIcon.xml",
+    "bytes": 14439,
+    "sha256": "5979DEFF1BBCD15A48A50217DF46F15EDCA7E54DD9EB8BA2F7CABC0563D8DAEA",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/video-camera.svg.xml",
+    "outputPath": "xfl_library/topMenuChild/video-camera.svg.xml",
+    "bytes": 24986,
+    "sha256": "F2DCF55E44B0EFC3DE28FC73BBEA99F73AB3C90F306538C23976C870838CD94B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/video-player-outline.svg.xml",
+    "outputPath": "xfl_library/topMenuChild/video-player-outline.svg.xml",
+    "bytes": 20570,
+    "sha256": "9D30415F60FA6A8435CEB2D61CA045F52620A1F80764291EDCB737870B62D712",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolFillPenButton.xml",
+    "outputPath": "xfl_library/toolFillPenButton.xml",
+    "bytes": 1543,
+    "sha256": "8AE8ACFAB4F6C0F6B7DCE28BB3D3E573924715027B0B236FBE8835005EE60C6E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/cutPrevDataButton.xml",
+    "outputPath": "xfl_library/cutPrevDataButton.xml",
+    "bytes": 1430,
+    "sha256": "3D67FD97732AFD7691E131611A3FA95BC5F283A1046B37281FBAB44548DDC0A6",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/toolFillPenIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/toolFillPenIcon.xml",
+    "bytes": 10783,
+    "sha256": "3C863AF4D5ADCDB5741126102589E93150A813205E1CD8E7B22DBFB07C2CF6ED",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/aboutONButton2.xml",
+    "outputPath": "xfl_library/topMenuChild/aboutONButton2.xml",
+    "bytes": 35961,
+    "sha256": "7706885AFE98B51C6641031E8EC8A950FCC15DAF50CE3709279DC6D8EE3EE1A3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/cutPrevDataIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/cutPrevDataIcon.xml",
+    "bytes": 15438,
+    "sha256": "AD99EFD5355B243E029FDBC5EA467D39C4AB206F320A31A2052A0DBD1D487755",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/traceVisibleButton.xml",
+    "outputPath": "xfl_library/traceVisibleButton.xml",
+    "bytes": 1590,
+    "sha256": "8342EE49B75DCC8A37669749BE03F3884745A91B2FE0A386F293AEE2D9F86B49",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/traceDeleteButton.xml",
+    "outputPath": "xfl_library/traceDeleteButton.xml",
+    "bytes": 1568,
+    "sha256": "0B8BAE3D4E0C44850A7BC88F15095B5974A94FC95299DABA29C3C2D5408FE9F2",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/traceVisible2Button.xml",
+    "outputPath": "xfl_library/traceVisible2Button.xml",
+    "bytes": 1562,
+    "sha256": "8CF06A84F89B4EBB213B67776204A951EB9B0CDE430C9055C0908AD216D01C1C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/windowMoveButtonSqure.xml",
+    "outputPath": "xfl_library/windowMoveButtonSqure.xml",
+    "bytes": 1030,
+    "sha256": "8DA6DDB03F195DB217245C87D0F4874D6CFA12BF4DFB1714E5DF5C1999B0AA59",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/zoomInButton.xml",
+    "outputPath": "xfl_library/zoomInButton.xml",
+    "bytes": 1490,
+    "sha256": "3B2A252CE00C7B1A3189DD1F32BFD342219661CE71E9FEF2F3555FEF0E34F6E9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/zoomIcon copy.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/zoomIcon copy.xml",
+    "bytes": 19246,
+    "sha256": "B484ADBE3532D61F5D611A7868FEE828A2BF382724A71219326B89989344EEBD",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/zoomIcon copy 2.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/zoomIcon copy 2.xml",
+    "bytes": 16200,
+    "sha256": "3C54F406F476627BD1739391555E322EE01B1EE951B99E8795D81BFB35151BC3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/zoomOutButton.xml",
+    "outputPath": "xfl_library/zoomOutButton.xml",
+    "bytes": 1494,
+    "sha256": "C89E4B2C8029B162D75DFC24E6B63A7327CF76392D3AA1B8EA14B854E8F24B4B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutTwitterButton.xml",
+    "outputPath": "xfl_library/aboutTwitterButton.xml",
+    "bytes": 2452,
+    "sha256": "664A7E1B97984E3DA5B4753DB29CDE537A82EC21BB424B1D4E0121BFAE2C476A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/rotateBG.xml",
+    "outputPath": "xfl_library/rotateBG.xml",
+    "bytes": 5794,
+    "sha256": "EAC8DE79823F09F5738E6C1C058391E858C0307BD772A40A0825B88A3664A09A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/rotateCircle.xml",
+    "outputPath": "xfl_library/rotateCircle.xml",
+    "bytes": 62702,
+    "sha256": "CE6CA0B1644C9044FA77A3CF71FCBD5D09CB3BA136A7C76084024772A4E1197F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/rotateArrow.xml",
+    "outputPath": "xfl_library/rotateArrow.xml",
+    "bytes": 5066,
+    "sha256": "915D7A3E443CCF3BF194D0B83DDB23682EFC4F363CB676EC2CAE8CE518E9D417",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topBarZoomInButton.xml",
+    "outputPath": "xfl_library/topBarZoomInButton.xml",
+    "bytes": 1398,
+    "sha256": "D9504752AAA8F7DE27A1D9E1B218A90079370520828154874DFEFF755FF3526F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topBarZoomOutButton.xml",
+    "outputPath": "xfl_library/topBarZoomOutButton.xml",
+    "bytes": 1417,
+    "sha256": "8404CC2C81D24D7A2E62680C874069287949642C48D4BF03BE3D3B79B1F2EB6E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fillPenUndoButton.xml",
+    "outputPath": "xfl_library/fillPenUndoButton.xml",
+    "bytes": 1524,
+    "sha256": "B3A4CFC99D81BD8A5AF23D4935BAC4A9CA87939B8AD9A0F7583C497E8919442F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/penSizeSelectCursor.xml",
+    "outputPath": "xfl_library/penSizeSelectCursor.xml",
+    "bytes": 11546,
+    "sha256": "0151BA3F69A1E30BB06007C4F4EE55822CEA04A563B47489E26F7E815B898050",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/shapeCircleGrid.xml",
+    "outputPath": "xfl_library/shapeCircleGrid.xml",
+    "bytes": 58625,
+    "sha256": "B571EAEAAF869B3CAEAE6D92F196C75EF0211F9857ED0A64E52E1D922D36ED2C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/shapeRectGrid.xml",
+    "outputPath": "xfl_library/shapeRectGrid.xml",
+    "bytes": 80645,
+    "sha256": "20345C6F57E2377334C6CA8CE30F274BDDB36E5E0C56014AA0955A15C62A39AE",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/pixelSnapText.xml",
+    "outputPath": "xfl_library/pixelSnapText.xml",
+    "bytes": 13758,
+    "sha256": "206477477E1952332B3A7D9C185F2E57EA8547FBA816C861D79B8E8BDD7CDC01",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/airBrushText.xml",
+    "outputPath": "xfl_library/airBrushText.xml",
+    "bytes": 25602,
+    "sha256": "29EBFAF1F82CA8EDC9308D26F1C0C7CC8D6748256EA61EE3A6C7DBA47ADA9521",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/subLayerText.xml",
+    "outputPath": "xfl_library/subLayerText.xml",
+    "bytes": 4170,
+    "sha256": "A5ACC006531DCBBFA197E9F5ED9B5B63E87F95F4E1ECC6D7A5960D4C77C27607",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/alphaBG.xml",
+    "outputPath": "xfl_library/alphaBG.xml",
+    "bytes": 40614,
+    "sha256": "48A0E5AD7E0DC1F105A0FA84B9B173221AF05A7C75B6F92025C13491EDEA9568",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutBG.xml",
+    "outputPath": "xfl_library/aboutBG.xml",
+    "bytes": 45310,
+    "sha256": "5DEAAFCEA59DF57049387818D47B47D162D2C830AD9621383A09044609CA8625",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolSelectCursor.xml",
+    "outputPath": "xfl_library/toolSelectCursor.xml",
+    "bytes": 11445,
+    "sha256": "66AB6835910E46F97941F491540E28C099B1CE4D0782EF4BC528C417C8B7A128",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/tegakiPreset0.xml",
+    "outputPath": "xfl_library/tegakiPreset0.xml",
+    "bytes": 1662,
+    "sha256": "0DF24D447EDFA45A2F31D0E4D74A7ED5272352C581BD1EE911FDC3E82C2E6FFA",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/tegakiPreset1.xml",
+    "outputPath": "xfl_library/tegakiPreset1.xml",
+    "bytes": 1659,
+    "sha256": "B62F591AC29A81E793141849A09DB961D22CFF945A13707FF3DF4B79826C07FC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/tegakiPreset2.xml",
+    "outputPath": "xfl_library/tegakiPreset2.xml",
+    "bytes": 1659,
+    "sha256": "6E7B8FFE9DBF80CA5A39DD76F184ACADC6596C0F1B117DC84A3D1EDD19AF3D1F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/tegakiPreset3.xml",
+    "outputPath": "xfl_library/tegakiPreset3.xml",
+    "bytes": 1659,
+    "sha256": "3E41061517A216A23DCAB36A494010607103B158C955E6306CCC5D50B7F6AA79",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/tegakiPreset4.xml",
+    "outputPath": "xfl_library/tegakiPreset4.xml",
+    "bytes": 1659,
+    "sha256": "39E446728BBA93EA4BA511C5EA6D7A286EDBE76A18FB529BD072FB779CDEBEE2",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/aboutBG.xml",
+    "outputPath": "xfl_library/aboutChild/aboutBG.xml",
+    "bytes": 1425,
+    "sha256": "261E940505F736005A0A9B780CBE63168866133DAFBCB2B850C194F1C3F52BE4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/aboutTextSet.xml",
+    "outputPath": "xfl_library/aboutChild/aboutTextSet.xml",
+    "bytes": 3589,
+    "sha256": "3227E794E765A0FD3A12CCB39775645B04F8E8B3B437A09F901EE975F636D895",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/aboutTwitterButton.xml",
+    "outputPath": "xfl_library/aboutChild/aboutTwitterButton.xml",
+    "bytes": 2509,
+    "sha256": "6174C9865D93DFAAA0BC3AF654FF6FC382D1288C19FCC7439A7CA6F1DD938A25",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/paperColorButton.xml",
+    "outputPath": "xfl_library/paperColorButton.xml",
+    "bytes": 5329,
+    "sha256": "5C23DD72902B80AAF221F2DA15B3FD6022F1E7CB9D92B88EB9612BF45DD56ECC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/penColorButton.xml",
+    "outputPath": "xfl_library/penColorButton.xml",
+    "bytes": 8234,
+    "sha256": "9E8912B5D9D3480AED8799E5F37D305FEB1461230C35BD7A5FBBD5F718425D69",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/controlBoxMoveButton2.xml",
+    "outputPath": "xfl_library/controlBoxMoveButton2.xml",
+    "bytes": 1425,
+    "sha256": "2BC6701EC38700E9E7E8C458542E4AEF3CD479D7CECE506101890AA5311F2C5B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/canvasResizeButton.xml",
+    "outputPath": "xfl_library/canvasResizeButton.xml",
+    "bytes": 1048,
+    "sha256": "B7BD8A896F52517D3149109CCD0F60ECBE1759C15CBBB4BAC96BE22CF0C8BD3F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/sideBarVisibleButton.xml",
+    "outputPath": "xfl_library/sideBarVisibleButton.xml",
+    "bytes": 1432,
+    "sha256": "1C3D4482D0D281C034079FD0D5E985A5A120E5BA4BFC4502FAD15A9AE0C85449",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/sideBarVisibleButton2.xml",
+    "outputPath": "xfl_library/sideBarVisibleButton2.xml",
+    "bytes": 1452,
+    "sha256": "4932BB7B70CEE4E504E52803E983C84CD8ED37E880D4E637F49B2EDD31B894FB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/updateButton.xml",
+    "outputPath": "xfl_library/updateButton.xml",
+    "bytes": 1566,
+    "sha256": "7054851304906878D6055986B3461E49C4C67D5AFF0174BCE6857059EF2B0E38",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/sideBarONIcon.xml",
+    "outputPath": "xfl_library/sideBarONIcon.xml",
+    "bytes": 20511,
+    "sha256": "D14D8771D39BB3FA2990CA56DC4C23433D0F37B87F400730C62DDA94B166299E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/sideBarOnButton.xml",
+    "outputPath": "xfl_library/sideBarOnButton.xml",
+    "bytes": 1441,
+    "sha256": "A5B884E2A6E8FC1F997D67A67F10746712B8D506EDAB9D137C48CEFFE6161D16",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/sideBarONButton2.xml",
+    "outputPath": "xfl_library/sideBarONButton2.xml",
+    "bytes": 1431,
+    "sha256": "3C1AAB98254A28EE8890A1C542311EE815F3D56D92AD82E72B62687D161BAD3E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/traceIconTrace.xml",
+    "outputPath": "xfl_library/topMenuChild/traceIconTrace.xml",
+    "bytes": 19547,
+    "sha256": "1B8195C7DA20A755A2F2B96F49665E2107DD240213B66FE098244FD8A28A2312",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/DPIButton.xml",
+    "outputPath": "xfl_library/DPIButton.xml",
+    "bytes": 1389,
+    "sha256": "A0470CD21AF4802416897603DB99C6387FA9B24B09CC1F70D843887AE6DD5CD4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/layerSwapButton.xml",
+    "outputPath": "xfl_library/layerSwapButton.xml",
+    "bytes": 4324,
+    "sha256": "3BB6405EDE1DBF4CB7C131EFCFE6B82FDA6BB2E8AA9121B8D6F5421DE340C1A0",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/layer1MergeButton.xml",
+    "outputPath": "xfl_library/layer1MergeButton.xml",
+    "bytes": 4084,
+    "sha256": "DDFD9B5708F99C1951990FCDA0152E3B14F46AF7137BF167D031D3595E3B5E24",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/layer1InvisibleIcon.xml",
+    "outputPath": "xfl_library/layer1InvisibleIcon.xml",
+    "bytes": 11076,
+    "sha256": "1CA9765A580D82ED9D06BDA2B1C6772A95E67BCDE13572CD2B7A1E8D4AC483F9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/subLayerText copy.xml",
+    "outputPath": "xfl_library/subLayerText copy.xml",
+    "bytes": 4148,
+    "sha256": "0E0537A98C3B7E8E94B12A7B0187AC5C834B6EB5BBCBE4A65E0EE5290D2B8914",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/newWindowButton.xml",
+    "outputPath": "xfl_library/newWindowButton.xml",
+    "bytes": 1488,
+    "sha256": "1D313F66C19651DA8D0530A412812ECA00B7A73DEAE5C404C839CD86832C32D5",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/aboutHomePageButton.xml",
+    "outputPath": "xfl_library/aboutChild/aboutHomePageButton.xml",
+    "bytes": 2457,
+    "sha256": "4B989993625338DA28C08612F40D4B3D66A9927A71C7FB8A727D2A3F5EB26E43",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/newWindowCloseButton.xml",
+    "outputPath": "xfl_library/newWindowCloseButton.xml",
+    "bytes": 1407,
+    "sha256": "B3B224777BB2B329D4D72E3CABCC3CDBC84EBD394CD9EABEC73A3F8804CCB737",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fofoBottom.xml",
+    "outputPath": "xfl_library/fofoBottom.xml",
+    "bytes": 1089,
+    "sha256": "4D6F9EF1A4079B54DEB1E6FEAF9D9143B97B25AABB7BFF8CC728E0F489488EF2",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fofoBottomBox.xml",
+    "outputPath": "xfl_library/fofoBottomBox.xml",
+    "bytes": 1438,
+    "sha256": "6BBCD12E61C62F736FB82B21785FA79C079848EEDFCBC121270A14AC52B50007",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fitToWindowButton.xml",
+    "outputPath": "xfl_library/fitToWindowButton.xml",
+    "bytes": 1519,
+    "sha256": "1707D2452F28CCA6A1002C4588BE95C601DFB7DE9B90FEFDEEA9CF5F8C9DF897",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/capLayer1VisibleButton.xml",
+    "outputPath": "xfl_library/capLayer1VisibleButton.xml",
+    "bytes": 1458,
+    "sha256": "A5F7AC3E0793515D142E7CB1D5AB2B6AEFACAD175EFDEDBD2261A20E80148E9F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/capLayer2visibleButton.xml",
+    "outputPath": "xfl_library/capLayer2visibleButton.xml",
+    "bytes": 1474,
+    "sha256": "D8C07646EFC60A64C49B81F706F3EB104FDFBEF9BFD9EE24BC24E8DF300AF688",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/layer2InvisibleIcon.xml",
+    "outputPath": "xfl_library/layer2InvisibleIcon.xml",
+    "bytes": 10499,
+    "sha256": "D67F7510DB7EB9FFE3BD77FB25B1E7D0603C4C3C9B119EEE67B7FC3DD482EDDE",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/saperateLine.xml",
+    "outputPath": "xfl_library/saperateLine.xml",
+    "bytes": 7839,
+    "sha256": "55F24EA4A016D087D0D74DE11A253CCFF2B381902D2AB5BCB392CCA41048C2A0",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/releaseNoteButton.xml",
+    "outputPath": "xfl_library/releaseNoteButton.xml",
+    "bytes": 2140,
+    "sha256": "51402E63A9733BAAE118024BBC2784B969E792C4D8686D1BD54E1905D18B92C1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/resetappButton.xml",
+    "outputPath": "xfl_library/resetappButton.xml",
+    "bytes": 1435,
+    "sha256": "0335D50B7D81E561715E7C5706D2D51658B5E2A8D8223AE47AA98F39B360ED26",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoLayerSwap.xml",
+    "outputPath": "xfl_library/lassoLayerSwap.xml",
+    "bytes": 1589,
+    "sha256": "39C12C892EBB872FD47FD3B031E4C90027032EDE9B11D028E2F4610E5019882B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/transColorButton.xml",
+    "outputPath": "xfl_library/transColorButton.xml",
+    "bytes": 4495,
+    "sha256": "EECA821D5086E7B2839CC2E855ED5679A2BA644F3D8252A4BD48BAD7EDFA9B3F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoLayerMergeButton.xml",
+    "outputPath": "xfl_library/lassoLayerMergeButton.xml",
+    "bytes": 1626,
+    "sha256": "A527EBAE6D371276B08554910B2F4B49348D4457ED9BE4FB1A798C4EECB90B18",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fillPenButtons.xml",
+    "outputPath": "xfl_library/fillPenButtons.xml",
+    "bytes": 4554,
+    "sha256": "3E6D1C22B516BE699662D2A236BFFA23FB09208155C341217E2584BCB1A673A6",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fillPenOK.xml",
+    "outputPath": "xfl_library/fillPenOK.xml",
+    "bytes": 1552,
+    "sha256": "7B1A811C6B73C5C83785545FB10DF0348CB5E22D2BFFEB9E5AEA33CAB39EC6F5",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fillPenCancel.xml",
+    "outputPath": "xfl_library/fillPenCancel.xml",
+    "bytes": 1588,
+    "sha256": "A6FBB7D3D5544676FE399831E3D30E92A2BB45E2DFBC696105D26788D1354001",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fillPenBG.xml",
+    "outputPath": "xfl_library/fillPenBG.xml",
+    "bytes": 989,
+    "sha256": "572580835F53D99A17F0CC54B050C5FA8DFB2DB5EF03B90D811FEF5920EEE673",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoTraceButton.xml",
+    "outputPath": "xfl_library/lassoTraceButton.xml",
+    "bytes": 1581,
+    "sha256": "83A705A84E3F0D31B32C54C3A10546B03DD3C49F28C9ED6DB3F946CB99664295",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/penOptionsIcon.xml",
+    "outputPath": "xfl_library/penOptionsIcon.xml",
+    "bytes": 60457,
+    "sha256": "BFA0C10BB2527E39A74FE5221D39FEC648C5145C739B0009D267B50658874DE8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/eraserOptionsIcon.xml",
+    "outputPath": "xfl_library/eraserOptionsIcon.xml",
+    "bytes": 55161,
+    "sha256": "A908EF696E6A48E2CD92611D6573F0407019D2DC449F6AB9792362063739F8E4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fillPenOptionsIcon.xml",
+    "outputPath": "xfl_library/fillPenOptionsIcon.xml",
+    "bytes": 51183,
+    "sha256": "81D717FCB5D8B4146D22386BCB8CDBD8A72C204A19F07A4643B3DA026A21AA36",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lineOptionsIcon.xml",
+    "outputPath": "xfl_library/lineOptionsIcon.xml",
+    "bytes": 44223,
+    "sha256": "B352BE1AE40E6899A810B2C6D5EBE27E3E0F3B63AFA45E52AC56364348720053",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPIckerIcon.xml",
+    "outputPath": "xfl_library/colorPIckerIcon.xml",
+    "bytes": 35245,
+    "sha256": "94E6AB37F5E0F5E746C9D20C1317443D08A1D31390E51B467F57A7BFB39AC651",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorHistoryText.xml",
+    "outputPath": "xfl_library/colorHistoryText.xml",
+    "bytes": 37510,
+    "sha256": "5C2D42C595B79EB5D854194051AEE5888C76169A9E0190EF5D9D6942D4AF936A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/drawrText.xml",
+    "outputPath": "xfl_library/drawrText.xml",
+    "bytes": 16769,
+    "sha256": "EE29EE6FDDC90B5DE690349069C48A8A993144B3A06B1CDF4F1E8012796509FE",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/tegakiText.xml",
+    "outputPath": "xfl_library/tegakiText.xml",
+    "bytes": 20748,
+    "sha256": "1F6F3AB3D7C61C7E3B1C93FD459D7DE7F2586414770212CD4121863839944D2F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/appInfoArrowIcon.xml",
+    "outputPath": "xfl_library/appInfoArrowIcon.xml",
+    "bytes": 23576,
+    "sha256": "1518D56CCDAA9C2B37F3834EDF7B238F97E303B3BA3FD4616A1DB03615A2A858",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/releaseNoteButton.xml",
+    "outputPath": "xfl_library/aboutChild/releaseNoteButton.xml",
+    "bytes": 2151,
+    "sha256": "50107E66986173E9F35A13684F6697E54BF83EE99FB9943374D0E14502A14CCB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutChild/resetappButton.xml",
+    "outputPath": "xfl_library/aboutChild/resetappButton.xml",
+    "bytes": 1446,
+    "sha256": "F0BC91EB0704E41BA6C874C63943E435DF19BE4CB95FC53FF1BF665C15D898D1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/colorHistoryText.xml",
+    "outputPath": "xfl_library/colorPickerChild/colorHistoryText.xml",
+    "bytes": 37527,
+    "sha256": "1C405B6397AD85812C604771DB5ABC04607F2BE356634B2458C4AB973A863D30",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/colorPIckerIcon.xml",
+    "outputPath": "xfl_library/colorPickerChild/colorPIckerIcon.xml",
+    "bytes": 35262,
+    "sha256": "49A4831574D4135974E86052D9652FB1C5B44D41C8C5A7D3CE41B72436588085",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/drawrText.xml",
+    "outputPath": "xfl_library/colorPickerChild/drawrText.xml",
+    "bytes": 16786,
+    "sha256": "5276664516BF1C7D84C62A417C5ED2EAA0727B3C11DAFF7D9465F517E77F1227",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/paperColorButton.xml",
+    "outputPath": "xfl_library/colorPickerChild/paperColorButton.xml",
+    "bytes": 5414,
+    "sha256": "D39FE12F24D70E3B0AA6392E8061FE12127F5290457FF1BA520579746A028C3E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/paperColorButtonBorder.xml",
+    "outputPath": "xfl_library/colorPickerChild/paperColorButtonBorder.xml",
+    "bytes": 9267,
+    "sha256": "A03A7FA8CCDACA698FF338CF9688C697290BF65997DB13338E1234BFB51F3BF3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/penColorButton.xml",
+    "outputPath": "xfl_library/colorPickerChild/penColorButton.xml",
+    "bytes": 8323,
+    "sha256": "22954B9C46021790DD25F0CA864FEA7491583CB8B5E861EAD3A174D818E925B8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/penColorButtonBorder.xml",
+    "outputPath": "xfl_library/colorPickerChild/penColorButtonBorder.xml",
+    "bytes": 11585,
+    "sha256": "D57A78D29A321B48B9BB1B20C4292F69F61C1E218D3CE0342DDE217D2C6111FB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/tegakiText.xml",
+    "outputPath": "xfl_library/colorPickerChild/tegakiText.xml",
+    "bytes": 20765,
+    "sha256": "9F7AB42A744D5316335B48EA25480977813F91BEC71AB18728C3C7B63063DFE3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerChild/transColorButton.xml",
+    "outputPath": "xfl_library/colorPickerChild/transColorButton.xml",
+    "bytes": 4633,
+    "sha256": "1BACA71ABB72CA329B24555910BB06E9CD57B82D51B19FD5007D53A70D32834F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/etc/bg2.xml",
+    "outputPath": "xfl_library/etc/bg2.xml",
+    "bytes": 1006,
+    "sha256": "0D69F3DF8BF104113974F14282F27BBCF891FB14456881D5909398380F327EF3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/etc/fofoBottom.xml",
+    "outputPath": "xfl_library/etc/fofoBottom.xml",
+    "bytes": 1161,
+    "sha256": "3305F829DB2229337AE0F02B25D5B41E4B77C1040A0331CDFD400D0C12099C4F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/etc/layerOptionsBG.xml",
+    "outputPath": "xfl_library/etc/layerOptionsBG.xml",
+    "bytes": 1056,
+    "sha256": "0DB9DAF5CB9C74B487C5DCE38079D1271E6A090AC8A404B1B38F0F4C44C8E2DF",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/etc/tinyCursorGraphic.xml",
+    "outputPath": "xfl_library/etc/tinyCursorGraphic.xml",
+    "bytes": 94187,
+    "sha256": "EC5FEADC2DECDE9AE614DFAACD1D9AEF0652AEC81DF1929419FA9A7E2FCF0706",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/etc/windowMoveButtonSqure.xml",
+    "outputPath": "xfl_library/etc/windowMoveButtonSqure.xml",
+    "bytes": 1034,
+    "sha256": "B73DACBA0C43E4B9594B8D8515DDCB80BBDD0611AEDFD933A7018FD4D7145032",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/cancelIcon.xml",
+    "outputPath": "xfl_library/lassoMenuChild/cancelIcon.xml",
+    "bytes": 10359,
+    "sha256": "35ED27B2D634E233C764AE5636567CDAC70FB1F6B805E485A7409EDF3366C1B9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lasso1pxIcon.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lasso1pxIcon.xml",
+    "bytes": 10960,
+    "sha256": "4F67711CF2BDCD6888B755C4B0EF8AF259C05BAB701EE5BF55E862ACAAF38B40",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lasso1pxLeft.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lasso1pxLeft.xml",
+    "bytes": 1591,
+    "sha256": "A83419F76AC84E62C572DBBD1737BC6955495F9EACCDF305F45E4D29A3EAF427",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoCanceIcon.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoCanceIcon.xml",
+    "bytes": 958,
+    "sha256": "EEF4575968A18DB15AC4F61D8A8C5C0902948C91575C3037DF875D83DC04B075",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoCancelButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoCancelButton.xml",
+    "bytes": 1624,
+    "sha256": "0A83B233AD8740A845578AEFFC1565CE4C392AC555CF808B1C63EA1BE629E91E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoCopyButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoCopyButton.xml",
+    "bytes": 1609,
+    "sha256": "302C6786D9660D61200AD9E2CA95380194863BF56F241AECFFDDAEBCB25FFA9D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassocopyicon.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassocopyicon.xml",
+    "bytes": 12856,
+    "sha256": "7343D27D3037B782AE1162656D31EA6135F96AA29229B35CBFAC9B54F548D16D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoLayerMergeButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoLayerMergeButton.xml",
+    "bytes": 1656,
+    "sha256": "F96D594F42F86AEEB8C7CC225F1C5EE3B4345F3DB81BAE21A6C9C5953941B977",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoLayerMergeIcon.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoLayerMergeIcon.xml",
+    "bytes": 22547,
+    "sha256": "FC3D074240C85F60ABA473444FD4719A06C11AA3C7E8DF85B9C67E402FE08458",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoLayerSwap.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoLayerSwap.xml",
+    "bytes": 1619,
+    "sha256": "5119322636E58E09FC4C95063E93018E01E46B6CD9936AE8EDBD19579F08C76C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassomenuBG.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassomenuBG.xml",
+    "bytes": 1031,
+    "sha256": "8D8AB6ADAB344D2AF785D341D242413BBB1590B299A36D5B5E57F4D58D826376",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoMenuBG2.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoMenuBG2.xml",
+    "bytes": 1371,
+    "sha256": "2C351306C7B0E8AB00A0F341ECA0FEBBA1C60998D2CE836B0259948D8C114D5C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoMirrorButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoMirrorButton.xml",
+    "bytes": 1555,
+    "sha256": "20AABDC046EA91D8A3908F0A0E4CC4F7F104C7F14AD7D00539DEEA5D020AD697",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoOKButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoOKButton.xml",
+    "bytes": 1613,
+    "sha256": "0B73151706A3388534604CF18899A717FE3C14862E2F901C8363BFFA69CF3726",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoResizeButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoResizeButton.xml",
+    "bytes": 1582,
+    "sha256": "4C516377DF871F4CE056546F039F7FD90A7E415B6A684627649F50EC29A9D198",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoRotateButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoRotateButton.xml",
+    "bytes": 1572,
+    "sha256": "E5EC5390A45319CE82FE917B9F46C5ED3D0EBBFD76E866E4D2C82FA693F5CCDD",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoSwapLayerIcon.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoSwapLayerIcon.xml",
+    "bytes": 25270,
+    "sha256": "F52151C8670430D5DA23C5152C0FB13405F5F10940F793F72826D2E4B4D9D88D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/lassoTraceButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/lassoTraceButton.xml",
+    "bytes": 1596,
+    "sha256": "2A5C8D1CB25BAA85D896FF3AF1383804CD6040BB12866FCE6572DE1C519AC59D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/okIcon.xml",
+    "outputPath": "xfl_library/lassoMenuChild/okIcon.xml",
+    "bytes": 7425,
+    "sha256": "957EF57020C412B4FD18E080D0662BF5FDB56C329F6E5F24C54EF7A70DF3A768",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/rotateIcon2.xml",
+    "outputPath": "xfl_library/lassoMenuChild/rotateIcon2.xml",
+    "bytes": 8544,
+    "sha256": "52100A044789E374F3B4F3538490E848B68E5504A2683F7C5FEFFD88090DC4B3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/traceMirrorButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/traceMirrorButton.xml",
+    "bytes": 1538,
+    "sha256": "FAB982AEBC984157890E54CF0787584C3C9CD2D24E40ABCD04D0443AC089F256",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/traceMoveButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/traceMoveButton.xml",
+    "bytes": 1574,
+    "sha256": "873604055BC95A1D1B52C4B9DD70929563157AEC11D2CA33185695FEE9362512",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/traceResizeButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/traceResizeButton.xml",
+    "bytes": 1559,
+    "sha256": "2BCCC59B95110151727F8F1D20D39BAB92CC8099FDFB85344CA74392991B6132",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/lassoMenuChild/traceRotateButton.xml",
+    "outputPath": "xfl_library/lassoMenuChild/traceRotateButton.xml",
+    "bytes": 1580,
+    "sha256": "293FDE181CB767099E8E44E73F5C4A8A4B1AF201D444028EA478CC9D5EE74CE3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/loadBoxChild/dragDropCancelButton.xml",
+    "outputPath": "xfl_library/loadBoxChild/dragDropCancelButton.xml",
+    "bytes": 3194,
+    "sha256": "0228418A60FC20F91D7274A86F5656D4D453DC9EBFF6C09D0973AC74F9A0147D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/loadBoxChild/dragDropFileButton.xml",
+    "outputPath": "xfl_library/loadBoxChild/dragDropFileButton.xml",
+    "bytes": 3061,
+    "sha256": "DA6149D92FC5DEB40734AAD811BDE0E49AE51DD26966613B6CF615F70C44766F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/loadBoxChild/dragDropRefButton.xml",
+    "outputPath": "xfl_library/loadBoxChild/dragDropRefButton.xml",
+    "bytes": 3093,
+    "sha256": "6E5A474D0236AAC1890FBE65EB35873571A6B99CEFCB73A564DBD3F47ACEA59E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/rotateCursorChild/rotateArrow.xml",
+    "outputPath": "xfl_library/rotateCursorChild/rotateArrow.xml",
+    "bytes": 5086,
+    "sha256": "FF640BCBE7481CDDDA79BAACA1AF52C11D3FFD33D9B58697D0288808AFBF3CE6",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/rotateCursorChild/rotateBG.xml",
+    "outputPath": "xfl_library/rotateCursorChild/rotateBG.xml",
+    "bytes": 1994,
+    "sha256": "DD5FC21487B1671584277927A898566E8FF57B22A6D3D807C594A82687826F6D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/rotateCursorChild/rotateCircle.xml",
+    "outputPath": "xfl_library/rotateCursorChild/rotateCircle.xml",
+    "bytes": 55770,
+    "sha256": "3B25C463D77F6FCCBA677CD7874EE4AA8E17CB7926EB014C63A3157370CF659D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/toolBoxBG2.xml",
+    "outputPath": "xfl_library/toolmenuChild/toolBoxBG2.xml",
+    "bytes": 1030,
+    "sha256": "07292AD068ECAC16F4419B5E45555CE4A98D37D5B807E143F27E0D3C16EF1ECF",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/toolFillPenButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/toolFillPenButton.xml",
+    "bytes": 1593,
+    "sha256": "654470C597F98D115E23D9402A085ACECEF392CD3BCBF9D881AB1E2E4EC1A525",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/toolSelectCursor.xml",
+    "outputPath": "xfl_library/toolmenuChild/toolSelectCursor.xml",
+    "bytes": 11459,
+    "sha256": "922CF139DAD2C6EBFF66CB6537F829357934A54F917FCE971EBAB7D8CD3F3CE6",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/zoomInButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/zoomInButton.xml",
+    "bytes": 1518,
+    "sha256": "930413CB618CAF3312353BAF5180B7F9A56C5C8DD9F9EE35E20BFB25F578B1D1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/zoomOutButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/zoomOutButton.xml",
+    "bytes": 1522,
+    "sha256": "3D737CBEC2199E74958E3E366A4DEBE686AFAC14314DE1A50AD296ED7FD75C8F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capLayer1VisibleButton.xml",
+    "outputPath": "xfl_library/topMenuChild/capLayer1VisibleButton.xml",
+    "bytes": 1516,
+    "sha256": "C5C959BD82469B79E87CD054EB5AEF180AA012BB19E3B8A2738B695643EB9401",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capLayer1VisibleIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/capLayer1VisibleIcon.xml",
+    "bytes": 17706,
+    "sha256": "E0DC3B29E59F265739FE126A5124ABD55953E3CC2213E4F067620AA4F09610F1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capLayer2visibleButton.xml",
+    "outputPath": "xfl_library/topMenuChild/capLayer2visibleButton.xml",
+    "bytes": 1500,
+    "sha256": "06A02250C54BBAB6E1ECAE0F470E02BE5F90EC923989BC09DE82988FCD162175",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capLayer2VisibleIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/capLayer2VisibleIcon.xml",
+    "bytes": 9621,
+    "sha256": "ED83D96F1FC4857CF8AD506DCD602CB34B36AABEDC20EAE7633E7013A43C7D38",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/clipBoardIconTopBar.xml",
+    "outputPath": "xfl_library/topMenuChild/clipBoardIconTopBar.xml",
+    "bytes": 19935,
+    "sha256": "87B93090DA8942BA8A8F9588662A52D795B9476C4A03A4FE598D28077D292CDE",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/controlBoxMoveButton1.xml",
+    "outputPath": "xfl_library/topMenuChild/controlBoxMoveButton1.xml",
+    "bytes": 1446,
+    "sha256": "7E6D57BECB45E4B6484148C9EC537B2749E421F64166E55C4F5BDE99C48F605C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/controlBoxMoveButton2.xml",
+    "outputPath": "xfl_library/topMenuChild/controlBoxMoveButton2.xml",
+    "bytes": 1451,
+    "sha256": "41E280FE6F14FC127C72AE8DF328F609DA54BE2E4A5C235426B39A9CCB400B95",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/controlBoxMoveIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/controlBoxMoveIcon.xml",
+    "bytes": 24076,
+    "sha256": "D4D7666DD9BC55BD3C58A280C143E3FBFC2D97285942BF021963FB58D84FA8ED",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/cutPrevDataButton.xml",
+    "outputPath": "xfl_library/topMenuChild/cutPrevDataButton.xml",
+    "bytes": 1449,
+    "sha256": "FCCF4C38BB6665C09262B23D1CC864EE3D686B02C7BA9E23D55F75AC25946D99",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/DPIButton.xml",
+    "outputPath": "xfl_library/topMenuChild/DPIButton.xml",
+    "bytes": 1415,
+    "sha256": "F3E94FDF69E07735F537BE7AC301570A99F5718137FEE9B45F1E67CA28D411E9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/DPIIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/DPIIcon.xml",
+    "bytes": 23968,
+    "sha256": "19BF83CF8C28111B8640DD6AABD320A31634E3CC1CF847B49A9F91885E2314C4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/fitToWindowButton.xml",
+    "outputPath": "xfl_library/topMenuChild/fitToWindowButton.xml",
+    "bytes": 1561,
+    "sha256": "772A295F2327AC8B5E1F4E769FC7FF48CDA612B89575F6BB1875C4F69B445E46",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/fitToWindowIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/fitToWindowIcon.xml",
+    "bytes": 16987,
+    "sha256": "7F6795B654D1FB481CDB5B2FF5D85D51919E1CAF0214CDED440C19F46613998A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/newWindowButton.xml",
+    "outputPath": "xfl_library/topMenuChild/newWindowButton.xml",
+    "bytes": 1514,
+    "sha256": "52E94A9E0674F2F2BD321BC2AE22274CB57952649B8D13A0DBEA8DF8A304C444",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/newWindowCloseButton.xml",
+    "outputPath": "xfl_library/topMenuChild/newWindowCloseButton.xml",
+    "bytes": 1433,
+    "sha256": "312C2015D27E67679F19551E8F8F80B4E89ECFABE15F8BDB6C8A58331FCF96EB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/newWindowCloseIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/newWindowCloseIcon.xml",
+    "bytes": 24900,
+    "sha256": "D293151476315B228C40AA8A9C02F00DE0F6B38A1524B17BA93D70375A0B6CEA",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/newWindowIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/newWindowIcon.xml",
+    "bytes": 27751,
+    "sha256": "FF0BAD590F660B5CC41D978EEB5F67D817B31BBA48F9F47926C155511E07B6CD",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/replayRotate.xml",
+    "outputPath": "xfl_library/topMenuChild/replayRotate.xml",
+    "bytes": 1437,
+    "sha256": "231749404546B24AED5CAC50829959B57572FD4DB4AA6678CEBC6F41E20AF014",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/sideBarOnButton.xml",
+    "outputPath": "xfl_library/topMenuChild/sideBarOnButton.xml",
+    "bytes": 1467,
+    "sha256": "CCF44933DF5DAC1CA77A1ABCA37D52B5E1C69CC2A64B53A95C66527368167E4A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/sideBarONButton2.xml",
+    "outputPath": "xfl_library/topMenuChild/sideBarONButton2.xml",
+    "bytes": 1457,
+    "sha256": "D3D3BFCE1670379E49A979642118016046AA1F00CDA6A50D9936135EC235E3F4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/sideBarONIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/sideBarONIcon.xml",
+    "bytes": 20524,
+    "sha256": "556BF1DB3EC426164597D741687497E547978CAAA2260900EE879E3E573C9D03",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/sideBarVisibleButton.xml",
+    "outputPath": "xfl_library/topMenuChild/sideBarVisibleButton.xml",
+    "bytes": 1458,
+    "sha256": "1F657E36F66599D2655EB897301E34A0E0BC8691F5BBC7E647B12080A32CC050",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/sideBarVisibleButton2.xml",
+    "outputPath": "xfl_library/topMenuChild/sideBarVisibleButton2.xml",
+    "bytes": 1478,
+    "sha256": "AEDB88A9110B4D5073302F669F77152D640EF582A27BD903BFF2B614B9EB909F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/sidebarVisibleIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/sidebarVisibleIcon.xml",
+    "bytes": 19980,
+    "sha256": "CFBA518010C5AEBE8AD0155D06BFBC0003710D34D0E07DEA2C56993E139FAC56",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/topBarZoomInButton.xml",
+    "outputPath": "xfl_library/topMenuChild/topBarZoomInButton.xml",
+    "bytes": 1411,
+    "sha256": "D4A5565DE2B905BFCD6CDB20027284DF2151A112E3C7B09FBD5A53404B37B1E6",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/topBarZoomOutButton.xml",
+    "outputPath": "xfl_library/topMenuChild/topBarZoomOutButton.xml",
+    "bytes": 1430,
+    "sha256": "EF35291E2A9932115F2B6B4B57402CCAB07CFA08290732AA8692F6CE00375FA3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/updateButton.xml",
+    "outputPath": "xfl_library/topMenuChild/updateButton.xml",
+    "bytes": 1592,
+    "sha256": "D8EE09B25079B1E530FCD16EB180EFF7051ABEF73C3CB1FC3D22E3BFEF40CC51",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/updateIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/updateIcon.xml",
+    "bytes": 13913,
+    "sha256": "B43112FEAF95092AE3717A755F168525417618BAA8EB8E67EDA3A83372026D6D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceButtonWrapper.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceButtonWrapper.xml",
+    "bytes": 1214,
+    "sha256": "F5D60FA2333E6A72B4D456C32AC44AA999C878F8B6544FEAFD82372ADCFAEE51",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceclipBoardIcon.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceclipBoardIcon.xml",
+    "bytes": 11679,
+    "sha256": "4A81C7BB6176C561FE3CFCECA35DC929EA105CB4B33611B8ADE696D61C128D26",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceClipButton.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceClipButton.xml",
+    "bytes": 1598,
+    "sha256": "1E7941B5A4237C10BE2F3E25CF7B96DCC64A935FF060270B721F70114085B705",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceCloseIcon.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceCloseIcon.xml",
+    "bytes": 4264,
+    "sha256": "28E940972ED74A953EDA6281B1EA99C596D2D06B5B9833E4FEB436E8977F8481",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceDeleteButton.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceDeleteButton.xml",
+    "bytes": 1598,
+    "sha256": "10F58AF1C292E922E07D859A823C3BB2802D6241662771073F075C2488025164",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceImageButton.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceImageButton.xml",
+    "bytes": 1634,
+    "sha256": "AA2D70CD4B928E72E4014AB0B9ADA497A7DCDC0A44098FF215E501C9D05B207C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceInVisibleIcon.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceInVisibleIcon.xml",
+    "bytes": 15495,
+    "sha256": "8E9C4CA5CF6663CAF3EC3C0E1A42D5C3F0137EE766985ECDFBCF55EAF0DE7F02",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceLoadButton.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceLoadButton.xml",
+    "bytes": 1599,
+    "sha256": "FDB8D2E2F550CA88819E2C1E891DD2A3C109C0FB09F542F5D9B031E5FF3DC09C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceMenuOpaBar.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceMenuOpaBar.xml",
+    "bytes": 13374,
+    "sha256": "7ECEA8AF09949B1A565C601456998297C56CB5008D58CF83A30720A4BC0FD6AD",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceOpaBUtton.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceOpaBUtton.xml",
+    "bytes": 6011,
+    "sha256": "88699AD1F2EE830A6896F64A586512937FD58A4193011781ACD4FA0CB8E214C2",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceVisible2Button.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceVisible2Button.xml",
+    "bytes": 1592,
+    "sha256": "0FE755CEBC73D239E279291BA07B471EFC5FBA01D8E3DAA77250C5DF403B1CB3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceVisibleButton.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceVisibleButton.xml",
+    "bytes": 1620,
+    "sha256": "87DA9C74A461768C2BCD562D44DFA9EB8FCCE0F655196BCA553BBC9BA6443DA6",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/traceVisibleIcon.xml",
+    "outputPath": "xfl_library/TraceMenuChild/traceVisibleIcon.xml",
+    "bytes": 12596,
+    "sha256": "6EF7A0B166C80C1ED7918314C1212B3BDACC433AC5B65A2E9EB4CDB1B90752BB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TraceMenuChild/trashIcon.xml",
+    "outputPath": "xfl_library/TraceMenuChild/trashIcon.xml",
+    "bytes": 23917,
+    "sha256": "233C0427CB8FE62F0DFF6E023F97C5A8FAA46A23A3ADEFCB3FD03EB7184771F2",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/appInfoBar.xml",
+    "outputPath": "xfl_library/appInfoBar.xml",
+    "bytes": 1739,
+    "sha256": "50FAAEB14F2C59D864C281C656131F0C7BC7B2E440E5E2B31C2DEB066E751857",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/colorHistoryText.xml",
+    "outputPath": "xfl_library/ColorPickerChild/colorHistoryText__case_variant_2.xml",
+    "bytes": 34106,
+    "sha256": "060CEE229E0739B5160A3E11A7B2541B8BD717EF3B5B9E535ABE419F38769E16",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/colorPIckerIcon.xml",
+    "outputPath": "xfl_library/ColorPickerChild/colorPIckerIcon__case_variant_2.xml",
+    "bytes": 4374,
+    "sha256": "B40496018D002ED8C6E94C2117629FCFB6441599CC3C4BA8EE904D6A6A650C99",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/drawrText.xml",
+    "outputPath": "xfl_library/ColorPickerChild/drawrText__case_variant_2.xml",
+    "bytes": 16703,
+    "sha256": "52087BE09F35463807453A89E8500276830AFA502D202CD410A4117B9B385F19",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/HueCursorSet.xml",
+    "outputPath": "xfl_library/ColorPickerChild/HueCursorSet__case_variant_2.xml",
+    "bytes": 1423,
+    "sha256": "6E221F0B735706E067186DC3761F69FFB148893EB23A29135A8EC3CF59F4CA7F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/paperColorButton.xml",
+    "outputPath": "xfl_library/ColorPickerChild/paperColorButton__case_variant_2.xml",
+    "bytes": 4366,
+    "sha256": "D16071151214852E5CF9FF0A288DD8F2F3C860DBED69F57E2A162C9C21683EF9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/paperColorButtonBorder.xml",
+    "outputPath": "xfl_library/ColorPickerChild/paperColorButtonBorder__case_variant_2.xml",
+    "bytes": 17775,
+    "sha256": "FECE9AEE8735FE276609DC6BFC4339CF50FCBCBF4D57FDD6BED973A6CFC9368A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/penColorButton.xml",
+    "outputPath": "xfl_library/ColorPickerChild/penColorButton__case_variant_2.xml",
+    "bytes": 4218,
+    "sha256": "9886D35D3ED7EF429AE2210119FBAF0D9159CF85A937AF7C185C6EECC48B1423",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/penColorButtonBorder.xml",
+    "outputPath": "xfl_library/ColorPickerChild/penColorButtonBorder__case_variant_2.xml",
+    "bytes": 44557,
+    "sha256": "8A12633285BB39D9A8A52AD6520B4551AC6B4FD068E5FB9994450EAF7B6D9762",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/svCursor.xml",
+    "outputPath": "xfl_library/ColorPickerChild/svCursor__case_variant_2.xml",
+    "bytes": 1968,
+    "sha256": "99BAFC095F25448E8DFC5467A29050FD6D0EBF56387075B0579E7D0A15FA8365",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/tegakiText.xml",
+    "outputPath": "xfl_library/ColorPickerChild/tegakiText__case_variant_2.xml",
+    "bytes": 20765,
+    "sha256": "00B7D26F8A27BC103987C9B01582692BE5E020E3ED359D96069A5563BBCE8AAC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/transColorButton.xml",
+    "outputPath": "xfl_library/ColorPickerChild/transColorButton__case_variant_2.xml",
+    "bytes": 5156,
+    "sha256": "564A14FB6344D668696FC66947EF6C644F9A8AD8C265229105FFDD63B83AD503",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/etc/spuitMagRing.xml",
+    "outputPath": "xfl_library/etc/spuitMagRing.xml",
+    "bytes": 1095,
+    "sha256": "D091AE92F2ADFDEB7846FA57E6915173E58474A35058A66F5001382CA11FDFC1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/cancelIcon.xml",
+    "outputPath": "xfl_library/LassoMenuChild/cancelIcon__case_variant_2.xml",
+    "bytes": 10359,
+    "sha256": "3E8D3E9E26EA8454347F3833A95A2E9D6792649ACA9C9F6949705C9DE6F09F90",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lasso1pxIcon.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lasso1pxIcon__case_variant_2.xml",
+    "bytes": 5127,
+    "sha256": "DE76F0914BC41D9D714F6D4B5769CA57EA063859A79108C40F86B3853CC8040C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lasso1pxLeft.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lasso1pxLeft__case_variant_2.xml",
+    "bytes": 1614,
+    "sha256": "65FD6E809B774921AAE2DE7533C63A4E23391E1DFB22309E51EE0BB5ED57B4B8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoCanceIcon.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoCanceIcon__case_variant_2.xml",
+    "bytes": 958,
+    "sha256": "F6C35C1DAFC10E821188EC7E3CFB7498B9D1CAC8E897E5AD5781086CA89F26BB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoCancelButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoCancelButton__case_variant_2.xml",
+    "bytes": 1624,
+    "sha256": "959EA65138A76D22E113AEE531476D4484782AD0C5593E50673D1C336049E078",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoCopyButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoCopyButton__case_variant_2.xml",
+    "bytes": 1609,
+    "sha256": "106DF584E3C4ED22F20BB5E5061FF022B42ED6825CEF1122A555E08234734C58",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassocopyicon.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassocopyicon__case_variant_2.xml",
+    "bytes": 12856,
+    "sha256": "951E640C7B242560EBB2F0D0BC00920831FAACDFD7C8717594DADC736E3FE1D8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoLayerMergeButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoLayerMergeButton__case_variant_2.xml",
+    "bytes": 1656,
+    "sha256": "C9DD902106FAF9A93599D52D5242D977E0A5ABEA4F0B252EC09E68C24E7C452C",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoLayerMergeIcon.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoLayerMergeIcon__case_variant_2.xml",
+    "bytes": 22547,
+    "sha256": "34917FEF3A8A1114D1255A1AC0D9BA1E1B5A23C9536E228C24A74CBE8B7B04AE",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoLayerSwap.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoLayerSwap__case_variant_2.xml",
+    "bytes": 1619,
+    "sha256": "69351A3A5E23935F72650B4151BDDE51D076E9EF72551F93B12B8047CA2D85CB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassomenuBG.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassomenuBG__case_variant_2.xml",
+    "bytes": 1031,
+    "sha256": "916178C07622111FE9AF2BE42F449D2C80F6EADDAEAF0908E155CFA400D24CC3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoMenuBG2.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoMenuBG2__case_variant_2.xml",
+    "bytes": 1371,
+    "sha256": "818078860C7F5347A5E9F1324C26BF887BEF4CF8C2772B75AEF504DC1F2FE4EA",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoMirrorButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoMirrorButton__case_variant_2.xml",
+    "bytes": 1555,
+    "sha256": "3DE7AD93A12B549B2E978F748786E92DE10FAF9CAA6AF32B28FEA03ADEC4731B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoOKButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoOKButton__case_variant_2.xml",
+    "bytes": 1598,
+    "sha256": "D3C7799998296ED3402AB2D9E0481B493E8CAE626C0E7E7E7F4FB8AB40478D9F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoResizeButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoResizeButton__case_variant_2.xml",
+    "bytes": 1588,
+    "sha256": "B5C340665FD89A8474A861C069C53BA574CE8B259F1A5AD0DC938724451B7DDF",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoRotateButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoRotateButton__case_variant_2.xml",
+    "bytes": 1586,
+    "sha256": "1AA09A4386E7B539607A0DFF57CB84D9A4FD9D672433AA5BA291E7D356196BB7",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoSwapLayerIcon.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoSwapLayerIcon__case_variant_2.xml",
+    "bytes": 25270,
+    "sha256": "9C9032202AAAE3B1B97DED4A75791AC03ACCD0C3A415DF0943A1CD91FE643625",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoTraceButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoTraceButton__case_variant_2.xml",
+    "bytes": 1596,
+    "sha256": "D586B8B8CEA7A37A42A6741B75A26F023280E84E1E172031449300AF415D9351",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/okIcon.xml",
+    "outputPath": "xfl_library/LassoMenuChild/okIcon__case_variant_2.xml",
+    "bytes": 15419,
+    "sha256": "6A5057BA10D29F1C3B33C1702E628C28CB114F63671BEFEA3CA4719A25F1D137",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/rotateIcon2.xml",
+    "outputPath": "xfl_library/LassoMenuChild/rotateIcon2__case_variant_2.xml",
+    "bytes": 8546,
+    "sha256": "CCE78CEF282FA2E808240D78745F2C51A3383D1359720EAA3CFEF2071FAC3A09",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/traceMirrorButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/traceMirrorButton__case_variant_2.xml",
+    "bytes": 1538,
+    "sha256": "35A3B808CDF4EE7DA5322E609759D4C1B26262389E6D1B1B435E162D4FF904A1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/traceMoveButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/traceMoveButton__case_variant_2.xml",
+    "bytes": 1574,
+    "sha256": "EAE293348F898C58498C9E604D0472C628026B288D1146D4166442113D983E6B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LoadBoxChild/dragDropCancelButton.xml",
+    "outputPath": "xfl_library/LoadBoxChild/dragDropCancelButton__case_variant_2.xml",
+    "bytes": 1725,
+    "sha256": "E4843D4496FDE6494CAE4AEDE0F4C568F9BF80D5D16863B10DB14253F82B2ADC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LoadBoxChild/dragDropFileButton.xml",
+    "outputPath": "xfl_library/LoadBoxChild/dragDropFileButton__case_variant_2.xml",
+    "bytes": 1775,
+    "sha256": "D4AED5ED3D95DAD3A3D364B1CEC9E4115F9D1B058B0275E3CBB35F0EAD077355",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LoadBoxChild/dragDropRefButton.xml",
+    "outputPath": "xfl_library/LoadBoxChild/dragDropRefButton__case_variant_2.xml",
+    "bytes": 1781,
+    "sha256": "AC40807ACEF528E13B0A3BEFA630D98CEE3B4A36E8AB400AB5114E2FAA06C605",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LoadBoxChild/loadBoxMini.xml",
+    "outputPath": "xfl_library/LoadBoxChild/loadBoxMini__case_variant_2.xml",
+    "bytes": 1564,
+    "sha256": "10BE9C89F18413C632A990D0C39F3C1FD0D6F001F183D5A9F8E0CE9E8794A035",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/airBrushText.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/airBrushText.xml",
+    "bytes": 19002,
+    "sha256": "1CBE807ACEFF5D0EBEF74B79E1577E24100FB3B44C65BB78CA0009AEB7526A79",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/alphaBG.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/alphaBG.xml",
+    "bytes": 116603,
+    "sha256": "601F74FCBC90F469A465FB6D14C498DF7F4763F99038227415E8B2A6B64633C5",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/circleshapeBG.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/circleshapeBG.xml",
+    "bytes": 1053,
+    "sha256": "9648A342E7A6E4B9089CB591C5E2F5037048AE53FE20BEB1ABAFC0ABECD581B9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/eraserOptionsIcon.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/eraserOptionsIcon.xml",
+    "bytes": 55072,
+    "sha256": "25F4E81C5DFA2A198E801B98E2E519D17AC9C62EE6768B11DB1BDAFD1FAD54B8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/fillPenOptionsIcon.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/fillPenOptionsIcon.xml",
+    "bytes": 50956,
+    "sha256": "E774969E164E04FDB864F8E4304B0CCFEA6E1558350A11783ED789B64F2130ED",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/layer1MergeButton.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/layer1MergeButton.xml",
+    "bytes": 4194,
+    "sha256": "6B7828C3755B553C80BEFBBB875EB74547E9BAD9F162BBFC76F768F590EE845E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/layer1MergeIcon.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/layer1MergeIcon.xml",
+    "bytes": 26074,
+    "sha256": "D24D13567DE9745E72AAFB548D7B158AE7CE28A77FA9BCB955EC762AE7D73B1B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/layer1TextIcon.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/layer1TextIcon.xml",
+    "bytes": 23027,
+    "sha256": "BF0F8D908755B8920B89EE27F8BAA5DC3AF3053C719336425E8972D362461272",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/layer2TextIcon.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/layer2TextIcon.xml",
+    "bytes": 24733,
+    "sha256": "7F23AB21505707FCD8D1EAB59A6CE62B7172EAC8D941C6670AA93A826CC96BDB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/layerSwapButton.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/layerSwapButton.xml",
+    "bytes": 4418,
+    "sha256": "BED08D0F22E48ED6BC8D7FCD411F55670778E3024A3593EA9FDC5D1B38540A95",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/layerSwapIcon.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/layerSwapIcon.xml",
+    "bytes": 20835,
+    "sha256": "ABFE7583B9E21B63315749E60D8A860F5CCF430BEB5EDC10A74283C9A79A2761",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/lineOptionsIcon.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/lineOptionsIcon.xml",
+    "bytes": 44242,
+    "sha256": "CC773BC143F465BA445DC8D2BB54259DC6246BC469B83E39C1DE5FF57B15DDE8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/penboxShapeCircle.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/penboxShapeCircle.xml",
+    "bytes": 4379,
+    "sha256": "C31ACF25DD138420DEE6420E894ED3465162FD407F826EAB8A2FEAAE3550430A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/penBoxShapeRect.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/penBoxShapeRect.xml",
+    "bytes": 4176,
+    "sha256": "157E3971E0235992E960A06D323D35688719B2C1C235B387298E364499FE4F02",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/penlistAlphaCursor.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/penlistAlphaCursor.xml",
+    "bytes": 6643,
+    "sha256": "D369105E06C45302EE884941082E27041AA8D289C732CA5D63EB9A376C384C01",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/penOptionsIcon.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/penOptionsIcon.xml",
+    "bytes": 60476,
+    "sha256": "4A7068E10EB7E4099F5CDC3BA5E2EC53B40E497C68E8F9DF45F8AE1B9579E488",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/penSizeGuide.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/penSizeGuide.xml",
+    "bytes": 52298,
+    "sha256": "F7562F3E2ECA23A0FBFAFC8D61EF621685E55E8C35FB34788335A3B648017A47",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/penSizeSelectCursor.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/penSizeSelectCursor.xml",
+    "bytes": 11565,
+    "sha256": "151F33E159DFA9359B3B5E6D81EDCB494730273BCF829E90C393D06B20A3E8BC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/penSmoothBar.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/penSmoothBar.xml",
+    "bytes": 17428,
+    "sha256": "6CF32DF2BF11C1F89AC14FAAA314B43D59F34E0159C256B285D2567A24D9606F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/penSmoothControl.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/penSmoothControl.xml",
+    "bytes": 6889,
+    "sha256": "8782F2556F0F9045A436616E805CF7B29DDA73269D93B6D9BE8C6BFC1F81D03B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/pixelSnapButton1.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/pixelSnapButton1.xml",
+    "bytes": 3640,
+    "sha256": "51CCCD012D5AEE6A418D77417155E35EC4C1735ED55CA80EE9F71F10B1CA8CF4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/pixelSnapButton2.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/pixelSnapButton2.xml",
+    "bytes": 7705,
+    "sha256": "639C3D907788BD4B1B32BDBF80339893B2B950762CA5FEB39F3232F586C59885",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/pixelSnapText.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/pixelSnapText.xml",
+    "bytes": 13777,
+    "sha256": "6CEB9764BC5F87E98D522639B9FAE5D0944556F214D23F64A77176700061AC1D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/saperateLine.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/saperateLine.xml",
+    "bytes": 7858,
+    "sha256": "7BC3D4C1E3E466944DDFFAC89917C31867F657EF97407761E093086CEB10DB32",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/shapecircle.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/shapecircle.xml",
+    "bytes": 12592,
+    "sha256": "AC56B35B3A36EAC6A7A690F94276A6B0E1A5741970697A6FF0305A0FBBC0266E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/shapeCircleGrid.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/shapeCircleGrid.xml",
+    "bytes": 58644,
+    "sha256": "9E838CEAFDF96C08D1CE0B6307B3552EB5839E3E0965725F5808637E96E1A2D3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/shaperect.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/shaperect.xml",
+    "bytes": 8929,
+    "sha256": "F6359C06B34354DE4C2BD67C590265A2F81BBABAF23973F168E5F3AFD0F24617",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/shaperectBG.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/shaperectBG.xml",
+    "bytes": 1365,
+    "sha256": "6D56BAE1B078E138EE1BB9CCE821C41C2290376BE21FF1C144D5CDB79B51C424",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/shapeRectGrid.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/shapeRectGrid.xml",
+    "bytes": 80664,
+    "sha256": "8CFCED9175EE7CF119E606B49C907147065D7E180BED8421ACB092020CD37335",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/subLayerText.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/subLayerText.xml",
+    "bytes": 4281,
+    "sha256": "003D519BDE47940253A9FF111A4D2E6430C40EF7C8E1CEDB1E9BC9A15EAE2F05",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/subLayerText copy.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/subLayerText copy.xml",
+    "bytes": 4259,
+    "sha256": "C8B8C8625C637DC8B9BA90D1F65274CF4FB4287A6DFBBFA95A9EAC9A2983E320",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/lineicon2 copy.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/lineicon2 copy.xml",
+    "bytes": 1287,
+    "sha256": "4B2CACEF2D03E3C7D7F4EE166655FE11F66B04124DE06FF5D04006C819962F50",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/resizeIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/resizeIcon.xml",
+    "bytes": 11992,
+    "sha256": "2A93088236A4D4A0B6C487EF4F17A8623B3B85F01AD9D6F84A460A25CEBEBA37",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/toolBoxBGLight.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/toolBoxBGLight.xml",
+    "bytes": 1070,
+    "sha256": "46F90A1B42897D2675056B11ABCD76C6BE7FDD1E71CE1D21942DC9C4BEBE66DF",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/icons/toolFillPenIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/icons/toolFillPenIcon.xml",
+    "bytes": 21977,
+    "sha256": "294EF203B5FD1B6D2EAF469985ABF747722610D08FC0B244219A41901877EB75",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/replayTimeOneFrame.xml",
+    "outputPath": "xfl_library/topMenuChild/replayTimeOneFrame.xml",
+    "bytes": 4352,
+    "sha256": "43DE8BBAB9F931AC55EEB5C96325BBCB80055AEB3B63DCE9F0222468EAB452E5",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/replayTimeOneFrame copy.xml",
+    "outputPath": "xfl_library/topMenuChild/replayTimeOneFrame copy.xml",
+    "bytes": 4382,
+    "sha256": "03592674744A47EC028392E7555D264F9B91A3D4D0F04B0D0E175B54E56B2544",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/stepicon.xml",
+    "outputPath": "xfl_library/topMenuChild/stepicon.xml",
+    "bytes": 5331,
+    "sha256": "218EBC6C997499C97454F6EBB6D8042A70D2F111F8C817C402948BCCA5C8DCC4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/drawrPresetIconBorder.xml",
+    "outputPath": "xfl_library/drawrPresetIconBorder.xml",
+    "bytes": 3313,
+    "sha256": "9B653E6DB3EAEEF11B339C2629B0E6897F8FC4B4C9EBD4BFA5246409BE17D555",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/drawrPresetIcon.xml",
+    "outputPath": "xfl_library/drawrPresetIcon.xml",
+    "bytes": 3764,
+    "sha256": "D440E557D261ADFF791A755D073BA30C544F81FD9671B4F185B8B949BFFEC2F1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/drawrPresetBorder.xml",
+    "outputPath": "xfl_library/ColorPickerChild/drawrPresetBorder.xml",
+    "bytes": 13254,
+    "sha256": "6C205226A0CEBF791976E4E43AE4AA217C41697900F02F99C29503CE4E382ABC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/drawrPresetButton.xml",
+    "outputPath": "xfl_library/ColorPickerChild/drawrPresetButton.xml",
+    "bytes": 3805,
+    "sha256": "D93A6357BBB0C52CF3057D67702D8C29A16E1F88B50C861927AF61F06ED39D84",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/tegakiPresetButton.xml",
+    "outputPath": "xfl_library/ColorPickerChild/tegakiPresetButton.xml",
+    "bytes": 3767,
+    "sha256": "BFC5720DEF55BDABB30518534747E45E3B3B0B504BE6684AEAEA09633FDD2FCC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/tegakPresetBorder.xml",
+    "outputPath": "xfl_library/ColorPickerChild/tegakPresetBorder.xml",
+    "bytes": 12894,
+    "sha256": "396873F91A57A379F2E6E174CE14D8C7BD722582BAE6A2E6956729E9745A55E9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/userPaletteBorder.xml",
+    "outputPath": "xfl_library/ColorPickerChild/userPaletteBorder.xml",
+    "bytes": 25506,
+    "sha256": "D38A7935CF61734C79079FB6F083D6C98B34A786230CAD0359CE41CAA0AC4720",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/userPaletteButton.xml",
+    "outputPath": "xfl_library/ColorPickerChild/userPaletteButton.xml",
+    "bytes": 3817,
+    "sha256": "1CABE575DC999F9971EBA63CE5BB7D2FD6BE28A1C7FD8D4360D9485ED545D9EF",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/myPaletteTransBGButton.xml",
+    "outputPath": "xfl_library/ColorPickerChild/myPaletteTransBGButton.xml",
+    "bytes": 3488,
+    "sha256": "486D005D6DEB8F22963DCEA0FD03BAC904900B2540DAB4D5950C019376D09ED8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LoadBoxChild/dragDropFileSaveButton.xml",
+    "outputPath": "xfl_library/LoadBoxChild/dragDropFileSaveButton.xml",
+    "bytes": 1746,
+    "sha256": "8CFCADD94D26A72F11B3F57251C7F6922B96A66D44A382963605A1A6E77BECD8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/paperButtonIcon.xml",
+    "outputPath": "xfl_library/ColorPickerChild/paperButtonIcon.xml",
+    "bytes": 30927,
+    "sha256": "0506B29A56FFBA4DF26616C8A15AD906D9A7BC0D98C33069CCE672F5FA9A60F2",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/penButtonIcon.xml",
+    "outputPath": "xfl_library/ColorPickerChild/penButtonIcon.xml",
+    "bytes": 24002,
+    "sha256": "9C11923CD0A864668B095A1D4E060319073A0754970B9BBAC1BBA4957BCC0A92",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/gridMoveDownButton.xml",
+    "outputPath": "xfl_library/topMenuChild/gridMoveDownButton.xml",
+    "bytes": 1432,
+    "sha256": "43786332DEDBC4B4B1065AB364DC559EFEFC7E13E48DD94598978E6AF42A29DB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/gridMoveIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/gridMoveIcon.xml",
+    "bytes": 8535,
+    "sha256": "7B60F7B7FA8AD611F238A9250628B16B4B744057B7D05F52F66FEE5659F6C2EC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/gridMoveLeftButton.xml",
+    "outputPath": "xfl_library/topMenuChild/gridMoveLeftButton.xml",
+    "bytes": 1446,
+    "sha256": "AADF9BDC7F8116F945CEC7B090965D64426ABDBF306BC0545DACBB8954105F99",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/gridMoveRightButton.xml",
+    "outputPath": "xfl_library/topMenuChild/gridMoveRightButton.xml",
+    "bytes": 1415,
+    "sha256": "44DD0E2C5CD2235FAE9A3A3D780A4492F983A5AEF03E81FC24B84B7646A30B78",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/gridMoveUpButton.xml",
+    "outputPath": "xfl_library/topMenuChild/gridMoveUpButton.xml",
+    "bytes": 1458,
+    "sha256": "7B4610DB9C1FFC4C1046162F9F4A3F55B03FAA6B695E3A7CAAE965962F401BEE",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/numPadButtons.xml",
+    "outputPath": "xfl_library/numPadButtons.xml",
+    "bytes": 18963,
+    "sha256": "581C649795788D1372CE33511412A61A48C4056D58ED54324BDCA0E6B562A1BB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerTitleIcon.xml",
+    "outputPath": "xfl_library/colorPickerTitleIcon.xml",
+    "bytes": 15418,
+    "sha256": "ADF3764FF612A9FC290349202039D328271DEF4DA1F9BD4F09BAF3E87ED71D06",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerTitleBG.xml",
+    "outputPath": "xfl_library/colorPickerTitleBG.xml",
+    "bytes": 1386,
+    "sha256": "BFD63EF6F2AD8B2AEAE473EBFC53C589F1820872D4F71D09343EB9CB09C52D46",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/capStampIcon.xml",
+    "outputPath": "xfl_library/capStampIcon.xml",
+    "bytes": 16052,
+    "sha256": "77F41420E81B8CF8B6E400351D10F637442A2E7D633879F89FEFA2B85784DD08",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/PenControlBoxChild/penOptionsRect.xml",
+    "outputPath": "xfl_library/PenControlBoxChild/penOptionsRect.xml",
+    "bytes": 25053,
+    "sha256": "4264C33194DE192965A4C04834775983EBE11BE6D310934C00922A08261B2A9F",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/repeatIcon.xml",
+    "outputPath": "xfl_library/repeatIcon.xml",
+    "bytes": 11770,
+    "sha256": "4FB2CE67D53E69D23EE893AB7D750E55143F02A3CAD8EE3BA6CE248F4E4E93A8",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/replayRepeatButton.xml",
+    "outputPath": "xfl_library/replayRepeatButton.xml",
+    "bytes": 1416,
+    "sha256": "76CA3AA16978597619B8B958EC1202929A1087A48CDFC14CFD3341A5027D8296",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capStampButton.xml",
+    "outputPath": "xfl_library/topMenuChild/capStampButton.xml",
+    "bytes": 1469,
+    "sha256": "B81A43F626629639786EB3B2CDFA5337A44AC50F61BF9B28165D5937EC3CEF51",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/captureInputBorder.xml",
+    "outputPath": "xfl_library/topMenuChild/captureInputBorder.xml",
+    "bytes": 21098,
+    "sha256": "F8812C753D9E060E50C7ABB7D839621CF544FA7F53C316540BBF26A76CB28B44",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/quickSidebarButton.xml",
+    "outputPath": "xfl_library/toolmenuChild/quickSidebarButton.xml",
+    "bytes": 1991,
+    "sha256": "F0AEA247AEED87B207218587D13F003852AD76E6922AB2B9C040B5AEBC24B161",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/capStampFont.xml",
+    "outputPath": "xfl_library/capStampFont.xml",
+    "bytes": 1371,
+    "sha256": "8BBDFF2CD5FEF12A35E6C89B2E71774A905A430C7FA5ECD711BB7ED80D1D74EC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/capStampFontIcon.xml",
+    "outputPath": "xfl_library/capStampFontIcon.xml",
+    "bytes": 78112,
+    "sha256": "F2986A77962FE74BDE58DDB686910A7B11F1EEDD361C98AFFAE5FE24DFC820AC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/capStampFontList.xml",
+    "outputPath": "xfl_library/capStampFontList.xml",
+    "bytes": 1557,
+    "sha256": "5ADFD2315B0991C46F2B983CCCA813FA8C082BC8C0F33A740D582E9A0999A238",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/appInfoBorder.xml",
+    "outputPath": "xfl_library/appInfoBorder.xml",
+    "bytes": 163787,
+    "sha256": "D3780FAC30C7DB0631098ABD85D843A3A54B9B47B92574DD96435350606F1C0D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/numpadChild/numPadBorder.xml",
+    "outputPath": "xfl_library/numpadChild/numPadBorder.xml",
+    "bytes": 1801,
+    "sha256": "D39326766EB892F7D7CB6347E383473248BBF9136F357644AB6DCBCC2239C9AA",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/numpadChild/numpadButton.xml",
+    "outputPath": "xfl_library/numpadChild/numpadButton.xml",
+    "bytes": 2601,
+    "sha256": "381E7F3FDC8EA7C3D60B63E4962FC3DB5F9EAC9D9AD77BB19F5018423AAF73C5",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/numpadChild/numpadLCHCursor.xml",
+    "outputPath": "xfl_library/numpadChild/numpadLCHCursor.xml",
+    "bytes": 1324,
+    "sha256": "9C1EFA3B8D8B39DB9FCE41D8F3B6A87A11684212B1902A08D8DCEC5BDD51DE56",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/canvasInfoBar2.xml",
+    "outputPath": "xfl_library/canvasInfoBar2.xml",
+    "bytes": 1753,
+    "sha256": "09753C2931A275D535B4CB17638F65261E2DD70D769E202C423BD34A16451D42",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/canvasInfoBorder.xml",
+    "outputPath": "xfl_library/canvasInfoBorder.xml",
+    "bytes": 163776,
+    "sha256": "BC96B3D591E5278F03FB60451374905DBE194C9F33733B68DFDD24520C976C04",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/colorPickerButtons.xml",
+    "outputPath": "xfl_library/colorPickerButtons.xml",
+    "bytes": 5486,
+    "sha256": "59A0100BBB2C1A6022C57C66E39AFBE874EAB6152ED960E4F477F1226888C2DD",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuButtons.xml",
+    "outputPath": "xfl_library/refLayerMenuButtons.xml",
+    "bytes": 9391,
+    "sha256": "D147470F8882A59334A7B3AAB3001CAA04D3870B9F9E320D76395569AE522FC4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/lassoRefLayerTransferImageButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/lassoRefLayerTransferImageButton.xml",
+    "bytes": 1635,
+    "sha256": "FB1998A873730F42BD9FBCE146C6D20295AC57052AA0D5418BED609EE2DE41D9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/refMirrorImageButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/refMirrorImageButton.xml",
+    "bytes": 1544,
+    "sha256": "993B82249BC508CD86B7A65640A90BB773F3D51B85F052F304E286DA75FA347D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/refMoveImageButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/refMoveImageButton.xml",
+    "bytes": 1580,
+    "sha256": "B70492D5C3047E0384A4E2A373DF1A47C5D87786A598CDDE69D3D14CC19E5A89",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/refResizeImageButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/refResizeImageButton.xml",
+    "bytes": 1571,
+    "sha256": "9E578CA89F962A731730CD90646EC42205136662E6DABD62613BE8A00A8A0CF2",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuChild/refRotateImageButton.xml",
+    "outputPath": "xfl_library/LassoMenuChild/refRotateImageButton.xml",
+    "bytes": 1582,
+    "sha256": "9BC1433CBCE5F144E02C688C4C76BDC4D65E9F1B1EA1C28D934D3DAF5693D708",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refClearImageButton.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refClearImageButton.xml",
+    "bytes": 1624,
+    "sha256": "4BE3F8353A95EC5E186C52E603B2AA8962974BA761E826DC9CF5FF9783709FCF",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refClipBoardButton.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refClipBoardButton.xml",
+    "bytes": 1608,
+    "sha256": "00D12D20046B419901C22601761E9B4F56A7426BB7F9C0DA2E54CC6271E79235",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refClipBoardIcon.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refClipBoardIcon.xml",
+    "bytes": 25198,
+    "sha256": "D89A94F84D6DE5C44487FB372FEBE69DC14E176734162B691994B939F5110A71",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refCloseIcon.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refCloseIcon.xml",
+    "bytes": 4263,
+    "sha256": "A6F0B2C43709CF7CA0BBDC07E9BA220F382EF4899A799AD043878941E2600019",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refLoadImageButton.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refLoadImageButton.xml",
+    "bytes": 1611,
+    "sha256": "5FF1F254B64553994A2FEA14D7A0B76F4BC9BF79D8FA1134BFFC5E813C12E468",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refMemoryTrainingClosedEye.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refMemoryTrainingClosedEye.xml",
+    "bytes": 1619,
+    "sha256": "669DD1EED5BCAE0A319DC9E91A009FA0F898EA0A006B0F25A3E7FEAC86303F61",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refMemoryTrainingCloseEye.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refMemoryTrainingCloseEye.xml",
+    "bytes": 15514,
+    "sha256": "F41CFCF0669E10D37CAECA41E212C4956A2C3A2BA5C97E663440ED0A8790DCD1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refMemoryTrainingOpenedEye.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refMemoryTrainingOpenedEye.xml",
+    "bytes": 1631,
+    "sha256": "A08B66BD204A5E73A73CD90834E61D53881DCCCA2569B959A0B63D32936CDCBC",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refMemoryTrainingOpenEye.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refMemoryTrainingOpenEye.xml",
+    "bytes": 12698,
+    "sha256": "8E56FDCD966705744FA605490967374D817C628708B3840A275251A124EB3815",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refMenuButtonWrapper.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refMenuButtonWrapper.xml",
+    "bytes": 1217,
+    "sha256": "4DC9CEC2D3DA187A16E76105107674DDC4818D6F51A445E78762AD0D6E32AB3D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refOpacityBar.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refOpacityBar.xml",
+    "bytes": 14582,
+    "sha256": "211B4FFF0A84D7BAC59DF1B47B71BBD705698A60C69275280CCCEA40F3D166A7",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refOpacityCursor.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refOpacityCursor.xml",
+    "bytes": 6002,
+    "sha256": "774E59072266B842390DB027F5F782C85200459F382152B13344669FFACDE4D4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/trashIcon.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/trashIcon.xml",
+    "bytes": 23920,
+    "sha256": "80F1A060419963D44BB83DB09B210327FCEF76D71A701053767AEF93783C84A1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/refLayerMenuButton.xml",
+    "outputPath": "xfl_library/topMenuChild/refLayerMenuButton.xml",
+    "bytes": 1578,
+    "sha256": "33EEC8828096284CF8EF3F410B8A2BFC4D9ABDF5377A15E6F4F2E970861A519D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/reflayertransferimage.xml",
+    "outputPath": "xfl_library/topMenuChild/reflayertransferimage.xml",
+    "bytes": 19561,
+    "sha256": "2144DFBF8419382DACE0D40B4BD7B3BD8AAED329B8F255A435CED0D41CFB1B5E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/refLoadImageIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/refLoadImageIcon.xml",
+    "bytes": 7732,
+    "sha256": "25D60FA1AF9E8158758FB7DC96B1455DEDA94EEC0585042AABEB80E6BFC7B27B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/refMenuBG.xml",
+    "outputPath": "xfl_library/topMenuChild/refMenuBG.xml",
+    "bytes": 1387,
+    "sha256": "94C3F2CA2083C57006F4A0C018A2945FF2514B40E901C1829581AF3E205ACC10",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/etc/refLayerMenuMoveButton.xml",
+    "outputPath": "xfl_library/etc/refLayerMenuMoveButton.xml",
+    "bytes": 1036,
+    "sha256": "C68D8E21BFBE88ED8810A9D4E62D098F125207C2CDB08F791075EF00FAE7CC04",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/refLayerMenuChild/refTransferCanvasImageButton.xml",
+    "outputPath": "xfl_library/refLayerMenuChild/refTransferCanvasImageButton.xml",
+    "bytes": 1668,
+    "sha256": "F57578F3ECC16FB6D34257774171FCABBED29A9D8CC25844334FB77223785B79",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/newFileButton.xml",
+    "outputPath": "xfl_library/topMenuChild/newFileButton.xml",
+    "bytes": 1538,
+    "sha256": "6E4BDD6B78E03036E4FAEA8C1CBBD82A0F33A112D9CAF3604269C8F8BCAF64C1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/colorPickerTitleBG.xml",
+    "outputPath": "xfl_library/ColorPickerChild/colorPickerTitleBG.xml",
+    "bytes": 1403,
+    "sha256": "A0C9B49CE75DD3892A7AA262292F42B2823C7D843F7F2CA9892CF356D16CF150",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerChild/colorPickerTitleIcon.xml",
+    "outputPath": "xfl_library/ColorPickerChild/colorPickerTitleIcon.xml",
+    "bytes": 15435,
+    "sha256": "8D9AE2149A9A401341BB2852CA204035D3311E411B72A474EFC1320EFE577E92",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/mouseHintSet.xml",
+    "outputPath": "xfl_library/mouseHintSet.xml",
+    "bytes": 1554,
+    "sha256": "C31890625762076E846666BBA47157F9EBCA46A44CB657E3466E2BA8AB313BC0",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capStampFont.xml",
+    "outputPath": "xfl_library/topMenuChild/capStampFont.xml",
+    "bytes": 1397,
+    "sha256": "F694752B9FED2C71C0435E64FDDC4F88B1DCD3AC747C53B609310C67C5B94797",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capStampFontIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/capStampFontIcon.xml",
+    "bytes": 78125,
+    "sha256": "DC4E7EC71DAD3B0FF71BC032BA761B6282F5BEBEE7A97A29F7CC4FA4CEACE570",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/capStampIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/capStampIcon.xml",
+    "bytes": 16065,
+    "sha256": "0B8C64C11773BFEC1A8C101E7119B2E90E2534CD5611D0EBDFAECCF501E5503D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/repeatIcon.xml",
+    "outputPath": "xfl_library/topMenuChild/repeatIcon.xml",
+    "bytes": 11783,
+    "sha256": "96DD762E5B914B325759B0F531FDB39E0B5C49F1CE5D2477BAC7C0D2F525E014",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/topMenuChild/replayRepeatButton.xml",
+    "outputPath": "xfl_library/topMenuChild/replayRepeatButton.xml",
+    "bytes": 1442,
+    "sha256": "9298F291B81A38977F64B09171E2DCE660308AE211824AD099B082A44D4E632B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/hintSet.xml",
+    "outputPath": "xfl_library/hintSet.xml",
+    "bytes": 1486,
+    "sha256": "996E674F36184275B89F5E757AD4E4F31FDB35E547A69DA57EB11483FBD124D0",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/hintBoxSet.xml",
+    "outputPath": "xfl_library/hintBoxSet.xml",
+    "bytes": 1503,
+    "sha256": "8B7A77C56EDFF8876B8D03E5D8A979BA3B96E30F7325D74C11122C9661930C3E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/aboutBoxSet.xml",
+    "outputPath": "xfl_library/aboutBoxSet.xml",
+    "bytes": 5910,
+    "sha256": "F5B6906CF00FA4A6C1D1AF303ABD8CF1328966818CA6F21EE8259AD334A17F82",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowSet.xml",
+    "outputPath": "xfl_library/AboutWindowSet.xml",
+    "bytes": 6414,
+    "sha256": "6FA8347916CFCADA227668A235323329AF5111A52DFF2DDB595FF521EEEF20A9",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/CanvasInfoSet.xml",
+    "outputPath": "xfl_library/CanvasInfoSet.xml",
+    "bytes": 1751,
+    "sha256": "3ABF3ACAD674E2049233491F9AB5C57651C34017823BE29F703B1940A486A7B1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/CapStampFontListSet.xml",
+    "outputPath": "xfl_library/CapStampFontListSet.xml",
+    "bytes": 1566,
+    "sha256": "4B481A883D462F4AB250777BE3D11D96EC0413FBCDF4BF12B6F771B7867FB289",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ColorPickerSet.xml",
+    "outputPath": "xfl_library/ColorPickerSet.xml",
+    "bytes": 5489,
+    "sha256": "9C6E20791C2B679F5684E937649AF38D4933C6F6767F42BF8CC207151045C945",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/FillPenMenuSet.xml",
+    "outputPath": "xfl_library/FillPenMenuSet.xml",
+    "bytes": 4516,
+    "sha256": "91DF3B481CC40ACD81A668948133506E4CDCA426C529C14AC6BCA4E2585B1816",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/FOFO.xml",
+    "outputPath": "xfl_library/FOFO.xml",
+    "bytes": 1411,
+    "sha256": "EF3F1E7EE6584F1AD6465262FEDEB93E857E88D12472B35D3326009C2D23BF50",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/HintBoxSet.xml",
+    "outputPath": "xfl_library/HintBoxSet__case_variant_2.xml",
+    "bytes": 1503,
+    "sha256": "53196F3615AEF8AC5F1222F73A2B692F52DE4669DED1656EC53E65FE7B554304",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LassoMenuSet.xml",
+    "outputPath": "xfl_library/LassoMenuSet.xml",
+    "bytes": 8753,
+    "sha256": "2B483F3EA58853E9059F2EB62CAA5A4A37DCB7418D54D12180F1D618CB7FC226",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/LoadBoxSet.xml",
+    "outputPath": "xfl_library/LoadBoxSet.xml",
+    "bytes": 3018,
+    "sha256": "9D824114F4E1B1F88B5FCB18DB16EE20EB3108D7AED045CDBB4EBFF872F21055",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/NumPadSet.xml",
+    "outputPath": "xfl_library/NumPadSet.xml",
+    "bytes": 18934,
+    "sha256": "920A9D6AB95F1A8880EADCEA6FEDF3E5EA0993E9F43A4C5B3EA52D6B4B6BFFC7",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/RefLayerMenuSet.xml",
+    "outputPath": "xfl_library/RefLayerMenuSet.xml",
+    "bytes": 9397,
+    "sha256": "4821C071A95582E7B64C1DE93783FF5499EE02AC470BD7039CDC68F63C0D8DC1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ReplayTimelineSet.xml",
+    "outputPath": "xfl_library/ReplayTimelineSet.xml",
+    "bytes": 3181,
+    "sha256": "4E6070002A2648A99BAEE2CEE8A7D36FA09211E0E7A345A1F9CE77FAB0065F29",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/RotateCursorSet.xml",
+    "outputPath": "xfl_library/RotateCursorSet.xml",
+    "bytes": 2236,
+    "sha256": "5D250F363FC1422F04720AAE06BFDE53D58CDE462260513EBA380A4F34193B7B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/SidePanelSet.xml",
+    "outputPath": "xfl_library/SidePanelSet.xml",
+    "bytes": 673,
+    "sha256": "408467CD0D9CB3AB9B7027A1F8033FBDDC2AB25B67089DA72E78FA8172A0AEB2",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ToolOptionsSet.xml",
+    "outputPath": "xfl_library/ToolOptionsSet.xml",
+    "bytes": 13427,
+    "sha256": "EC493280CB1A61FD1075F4641FD127B842805B327BCDD622A6549A1DF8248661",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/TopMenuSet.xml",
+    "outputPath": "xfl_library/TopMenuSet.xml",
+    "bytes": 24716,
+    "sha256": "BA4958F4049618A6CE50A1298C613C8845A131F2E83B2E12F1887FF5569DD495",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ToolMenuSet.xml",
+    "outputPath": "xfl_library/ToolMenuSet.xml",
+    "bytes": 8666,
+    "sha256": "026B2087F0FA926001765CE3E1C3B5D365FDF59D8FCE8C732B58F31AAF2EAFD4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/ToolMenuSet2.xml",
+    "outputPath": "xfl_library/ToolMenuSet2.xml",
+    "bytes": 8674,
+    "sha256": "1FE393F0EE17D1D8CFDC8E7069552D778CC72FDEEC10C445760A69BC36DCB02A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/fofoConsoleImg.png",
+    "outputPath": "bitmap/AboutWindowChild/fofoConsoleImg.png",
+    "bytes": 2604,
+    "sha256": "126C5447CB5EE97CB467A3B5EC8FD806C62814871F0A99D58D67B2E2B360E95A",
+    "category": "bitmap"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/fofoConsoleImg2.png",
+    "outputPath": "bitmap/AboutWindowChild/fofoConsoleImg2.png",
+    "bytes": 2771,
+    "sha256": "318A03AACEEDB1D32B9FB3C21B2829322F1183518DF286FD4F83682AF07CE931",
+    "category": "bitmap"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/fofoConsoleImg3.png",
+    "outputPath": "bitmap/AboutWindowChild/fofoConsoleImg3.png",
+    "bytes": 3350,
+    "sha256": "C1EE888663D4444D885E5D7BA94C3262AB450DFCF27CF9EF687DAC30AA277BA9",
+    "category": "bitmap"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/fofologo2.png",
+    "outputPath": "bitmap/AboutWindowChild/fofologo2.png",
+    "bytes": 6293,
+    "sha256": "0C6798D78B7AEE3744B214643CCBB5CAD90D711FFA77F112F19A42150F87716B",
+    "category": "bitmap"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/fofologo3-1.png",
+    "outputPath": "bitmap/AboutWindowChild/fofologo3-1.png",
+    "bytes": 6891,
+    "sha256": "EC138A8B90C22DD66E8CE4136E25E7669EF44E7A94B232993C04D884926FA6F8",
+    "category": "bitmap"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/fofologo3-2.png",
+    "outputPath": "bitmap/AboutWindowChild/fofologo3-2.png",
+    "bytes": 14422,
+    "sha256": "3362F937F360D3DBC3D56EE339605DF8FE928E4652377DD383C31CBBCBD05529",
+    "category": "bitmap"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/fofologo3-3.png",
+    "outputPath": "bitmap/AboutWindowChild/fofologo3-3.png",
+    "bytes": 26971,
+    "sha256": "BFA3B356AD93F7D7993AACCA5ABD4F398DB6269D005ABA739EC0DC6EF6262319",
+    "category": "bitmap"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/fofologo3.png",
+    "outputPath": "bitmap/AboutWindowChild/fofologo3.png",
+    "bytes": 6274,
+    "sha256": "0A05C9C0FB370579B985FC2C1E57A8286286655D6ABE4D6A77546ABC69D66C44",
+    "category": "bitmap"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/aboutBG.xml",
+    "outputPath": "xfl_library/AboutWindowChild/aboutBG.xml",
+    "bytes": 1431,
+    "sha256": "BFFA7862DB6100A85E8059D74B5BBC0D803D85836E6061670DAE414F7EDD5729",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/aboutHomePageButton.xml",
+    "outputPath": "xfl_library/AboutWindowChild/aboutHomePageButton.xml",
+    "bytes": 2495,
+    "sha256": "FEA8B71A0E5543577E25C934F7D541125DF772C9087125B3BF17E6675A6904D3",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/aboutTextSet.xml",
+    "outputPath": "xfl_library/AboutWindowChild/aboutTextSet.xml",
+    "bytes": 3637,
+    "sha256": "00B53312E06F9D34C2A9789652873EE7AD6AB9CBEBCF9DA8B61B779A0BC81E7D",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/aboutTwitterButton.xml",
+    "outputPath": "xfl_library/AboutWindowChild/aboutTwitterButton.xml",
+    "bytes": 1517,
+    "sha256": "B88817B58C1761FB76B8F6E711F6763BECE91EB0F8D2A784D39A8F89348A47E1",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/engManualButton.xml",
+    "outputPath": "xfl_library/AboutWindowChild/engManualButton.xml",
+    "bytes": 2029,
+    "sha256": "0775822D46E76FD6A837C4233B196CDFFDF042D67A8A5606D1DAF308D8A9E979",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/jpMaualButton.xml",
+    "outputPath": "xfl_library/AboutWindowChild/jpMaualButton.xml",
+    "bytes": 2027,
+    "sha256": "D2667947428F33B160595AB21C9B251DB60FD68A427D9FDE7C529869B1F10B76",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/korManualButton.xml",
+    "outputPath": "xfl_library/AboutWindowChild/korManualButton.xml",
+    "bytes": 2027,
+    "sha256": "B268F106E6781BF792DB020F138DE22EFE3FBD50060A29F3524DAF0B3FB4D01E",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/logo1.xml",
+    "outputPath": "xfl_library/AboutWindowChild/logo1.xml",
+    "bytes": 744,
+    "sha256": "6A93B92DE5BAC493B87028C65B98331D664F4FAD1EF895660B96154020AA1B89",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/logo2.xml",
+    "outputPath": "xfl_library/AboutWindowChild/logo2.xml",
+    "bytes": 744,
+    "sha256": "514C2DD029EA1B44AF948C3EEB0EC5D48306C9E842C14F1BEEB41E7159545744",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/logo3.xml",
+    "outputPath": "xfl_library/AboutWindowChild/logo3.xml",
+    "bytes": 746,
+    "sha256": "5878EAD194FE13CF9728BC3C5D14FE42679601021C2632539AE2FDE5F90EFB7B",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/logo4.xml",
+    "outputPath": "xfl_library/AboutWindowChild/logo4.xml",
+    "bytes": 746,
+    "sha256": "3B57B0BFC4B424CF344C63BDFF57ED5F23C4F24DF4EE5327A73A40D9C0501B19",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/logo5.xml",
+    "outputPath": "xfl_library/AboutWindowChild/logo5.xml",
+    "bytes": 730,
+    "sha256": "3730D3FA54680C158DD90F6A7C03D16A4BC44C326ABB6E6DCF38F503E3B7B671",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/releaseNoteButton.xml",
+    "outputPath": "xfl_library/AboutWindowChild/releaseNoteButton.xml",
+    "bytes": 2160,
+    "sha256": "67FF14697D049770EC6CC184AAB8978A8BBC733384854D01974F2C6C860E3F24",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/resetappButton.xml",
+    "outputPath": "xfl_library/AboutWindowChild/resetappButton.xml",
+    "bytes": 1452,
+    "sha256": "16136B67CFE30ABE96EAA0A70165BE691170BF2EAD7C03A9D763BC012BCED770",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fillPenSEtChild/fillPenBG.xml",
+    "outputPath": "xfl_library/fillPenSEtChild/fillPenBG.xml",
+    "bytes": 1005,
+    "sha256": "E05EC72E92C8FD7E2E7BE27ED0586F9E2B08972C083E339DEE02D7960D93CA07",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fillPenSEtChild/fillPenCancel.xml",
+    "outputPath": "xfl_library/fillPenSEtChild/fillPenCancel.xml",
+    "bytes": 1608,
+    "sha256": "613F043956583B3E161CAF17A979C4E3727733048C8E5424045A61DA3FB15759",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fillPenSEtChild/fillPenOK.xml",
+    "outputPath": "xfl_library/fillPenSEtChild/fillPenOK.xml",
+    "bytes": 1583,
+    "sha256": "2EE453EE7D1B052B2063CA641BBB6B81B47D72A9F9462B7BFF2DFFB8680D1020",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/fillPenSEtChild/fillPenUndoButton.xml",
+    "outputPath": "xfl_library/fillPenSEtChild/fillPenUndoButton.xml",
+    "bytes": 1554,
+    "sha256": "A256DEC2B81FBDB5C9FB6D0B9A9D66D98B1A27304F5C275DB139AD3C4A5B9EA6",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/EyedropperLensSet.xml",
+    "outputPath": "xfl_library/EyedropperLensSet.xml",
+    "bytes": 2019,
+    "sha256": "FC95FF7D99230004DBD9E74002194A9CECD8CC1B80E3FE2333758DCEA3269ABB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/etc/FOFOCursor.xml",
+    "outputPath": "xfl_library/etc/FOFOCursor.xml",
+    "bytes": 1093,
+    "sha256": "0C6BD2BDBC0E32573AF9FA4C001D97B2AB8CF8F973E515125CC9A2291C77D227",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/confirmBoxSet.xml",
+    "outputPath": "xfl_library/confirmBoxSet.xml",
+    "bytes": 1793,
+    "sha256": "325F740B1C0ABA6E45050A4A8C74FCC00EC4DA03693A22D0EAE069D67627A3EF",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/confirmButton.xml",
+    "outputPath": "xfl_library/confirmButton.xml",
+    "bytes": 1027,
+    "sha256": "F873815F4ECC103EA978FE00F73A66B446583797DF2B445F46FA7F9AEBF9848A",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/seekBarSet.xml",
+    "outputPath": "xfl_library/seekBarSet.xml",
+    "bytes": 3160,
+    "sha256": "B0B11CED2F01A5F3FD2CF74AA7AA2A6E03D5096CF8626EF9EA0F27F2288955F4",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolHand.xml",
+    "outputPath": "xfl_library/toolHand.xml",
+    "bytes": 1565,
+    "sha256": "F40DC479ABDFFFF2F332271D3FE994E423F1B96BCE3F89324B9A5BF59BECF0BB",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/toolmenuChild/toolHandIcon.xml",
+    "outputPath": "xfl_library/toolmenuChild/toolHandIcon.xml",
+    "bytes": 24262,
+    "sha256": "603CB9B8676983F9590B6FF017E0A8953ED1378A919FF9D2E75B38643ACC5EE7",
+    "category": "xfl_library"
+  },
+  {
+    "archivePath": "LIBRARY/AboutWindowChild/aboutManualFolder.xml",
+    "outputPath": "xfl_library/AboutWindowChild/aboutManualFolder.xml",
+    "bytes": 1311,
+    "sha256": "456B5CCA0B58B2802DA68F3B82889B98A583F1237E70AAAD7A662C9A5AE37A61",
+    "category": "xfl_library"
+  }
+]

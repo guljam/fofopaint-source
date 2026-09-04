@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="LassoMenuChild/traceMoveButton" itemID="5ebd8172-0000018a" symbolType="button" lastModified="1659936791">
+  <timeline>
+    <DOMTimeline name="traceMoveButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolmenuButton1" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.78707885742188" d="1.78707885742188"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.05" y="0.05"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/icons/toolMoveIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="0.999176025390625" d="0.998870849609375" tx="6.7" ty="7.2"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point y="-0.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

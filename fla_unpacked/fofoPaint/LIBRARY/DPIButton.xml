@@ -1,0 +1,32 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="DPIButton" itemID="6319c8d5-00000216" symbolType="button" lastModified="1700382244">
+  <timeline>
+    <DOMTimeline name="DPIButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="topMenuChild/topMenuButton" selected="true" symbolType="button">
+                  <transformationPoint>
+                    <Point x="29.95" y="29.95"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="DPIIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="1.07020568847656" tx="5.85" ty="6.7"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="15" y="15"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

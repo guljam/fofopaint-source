@@ -1,0 +1,10 @@
+{
+  "parentClass": "FOFO",
+  "parentCharacterId": 290,
+  "instanceName": "fofo",
+  "characterId": 289,
+  "depth": 1,
+  "matrix": "t0,0",
+  "assetPath": "by_linkage/FOFO/children/fofo__id_289",
+  "resolvedAsset": true
+}

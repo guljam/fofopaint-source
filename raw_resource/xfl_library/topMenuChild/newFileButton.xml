@@ -1,0 +1,32 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="topMenuChild/newFileButton" itemID="68fb1bd1-00000246" symbolType="button" lastModified="1761287121">
+  <timeline>
+    <DOMTimeline name="newFileButton" guides='&lt;guidelines&gt;&lt;guideline direction="h"&gt;39&lt;/guideline&gt;&lt;/guidelines&gt;'>
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="topMenuChild/topMenuButton" symbolType="button">
+                  <transformationPoint>
+                    <Point x="29.95" y="29.95"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="topMenuChild/clearIcon2" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="0.599029541015625" d="0.599029541015625" tx="10.4" ty="7.85"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="27.15" y="26.95"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

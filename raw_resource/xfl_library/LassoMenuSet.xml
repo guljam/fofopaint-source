@@ -1,0 +1,163 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="LassoMenuSet" itemID="68ff2208-00000263" linkageExportForAS="true" linkageClassName="LassoMenuSet" lastModified="1768525481" lastUniqueIdentifier="6" isSpriteSubclass="true">
+  <timeline>
+    <DOMTimeline name="LassoMenuSet" guides='&lt;guidelines&gt;&lt;guideline direction="h"&gt;-192&lt;/guideline&gt;&lt;/guidelines&gt;' layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="lassomenu_svg" color="#00FFFF" current="true" isSelected="true" autoNamed="false">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="etc/bg2" name="lassoMenuBG" symbolType="button">
+                  <matrix>
+                    <Matrix a="2.68000793457031" d="1.73997497558594" ty="32"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                  <color>
+                    <Color tintMultiplier="1" tintColor="#666666"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassoMenuBG2" name="lassoMenuMoveButton" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.46994018554688" d="0.609893798828125"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassomenuBG" name="lassoMenuBG2" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.11326599121094" d="0.869979858398438" tx="126.9" ty="32"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.3" y="0.1"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassoOKButton" name="lassoOK" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894821166992188" d="0.894821166992188" tx="7" ty="32"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.3" y="23.5"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassoCancelButton" name="lassoCancel" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894821166992188" d="0.894821166992188" tx="7" ty="72"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.45" y="22.35"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassoResizeButton" name="lassoResize" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894821166992188" d="0.894821166992188" tx="207" ty="32"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassoMirrorButton" name="lassoMirror" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894821166992188" d="0.894821166992188" tx="127" ty="32"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.3" y="22.45"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassoRotateButton" name="lassoRotate" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894821166992188" d="0.894821166992188" tx="167" ty="32"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.45" y="22.45"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="lassoInfo" left="-149.2" width="228" height="16.25" isSelectable="false">
+                  <matrix>
+                    <Matrix tx="160.2" ty="9.6"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="61.45" y="23"/>
+                  </transformationPoint>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>lasso tool</characters>
+                      <textAttrs>
+                        <DOMTextAttrs aliasText="false" lineHeight="16.25" size="16" bitmapSize="320" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lasso1pxLeft" name="lasso1pxLeft" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894821166992188" d="0.894821166992188" tx="227" ty="92"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point y="0.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lasso1pxLeft" name="lasso1pxRight" symbolType="button">
+                  <matrix>
+                    <Matrix a="-0.894821166992188" d="0.894821166992188" tx="267" ty="92"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.35" y="0.1"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lasso1pxLeft" name="lasso1pxDown" symbolType="button">
+                  <matrix>
+                    <Matrix a="0" b="-0.894821166992188" c="0.894821166992188" d="0" tx="187" ty="92"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="-0.1" y="0.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lasso1pxLeft" name="lasso1pxUp" symbolType="button">
+                  <matrix>
+                    <Matrix a="0" b="0.894821166992188" c="0.894821166992188" d="0" tx="147" ty="92"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassoCopyButton" name="lassoCopy" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894821166992188" d="0.894821166992188" tx="247" ty="32"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point y="0.2"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassoLayerSwap" name="lassoLayerSwap" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894851684570312" d="0.894851684570312" tx="87" ty="32"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.35" y="22.35"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassoLayerMergeButton" name="lassoLayerMerge" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894851684570312" d="0.894851684570312" tx="87" ty="72"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.4" y="22.4"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="LassoMenuChild/lassoRefLayerTransferImageButton" name="lassoRefLayer" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894851684570312" d="0.894851684570312" tx="47" ty="32"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point y="0.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

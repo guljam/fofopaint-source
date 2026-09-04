@@ -1,0 +1,52 @@
+[
+  {
+    "parentClass": "seekBarSet",
+    "parentCharacterId": 196,
+    "instanceName": "prograssInfo",
+    "characterId": 188,
+    "depth": 1,
+    "matrix": "t756,719",
+    "assetPath": "by_linkage/seekBarSet/children/prograssInfo__id_188",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "seekBarSet",
+    "parentCharacterId": 196,
+    "instanceName": "pauseButton",
+    "characterId": 190,
+    "depth": 2,
+    "matrix": "s0.6670532,0.66703796 t0,579",
+    "assetPath": "by_linkage/seekBarSet/children/pauseButton__id_190",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "seekBarSet",
+    "parentCharacterId": 196,
+    "instanceName": "playButton",
+    "characterId": 192,
+    "depth": 6,
+    "matrix": "s0.6670532,0.66703796 t17,0",
+    "assetPath": "by_linkage/seekBarSet/children/playButton__id_192",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "seekBarSet",
+    "parentCharacterId": 196,
+    "instanceName": "replayNext",
+    "characterId": 194,
+    "depth": 10,
+    "matrix": "s0.6666565,0.6666565 t1244,0",
+    "assetPath": "by_linkage/seekBarSet/children/replayNext__id_194",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "seekBarSet",
+    "parentCharacterId": 196,
+    "instanceName": "replayPrev",
+    "characterId": 195,
+    "depth": 14,
+    "matrix": "s0.6666565,0.6666565 t617,0",
+    "assetPath": "by_linkage/seekBarSet/children/replayPrev__id_195",
+    "resolvedAsset": true
+  }
+]

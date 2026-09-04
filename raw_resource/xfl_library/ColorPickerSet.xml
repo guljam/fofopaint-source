@@ -1,0 +1,109 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="ColorPickerSet" itemID="68ff21bb-00000261" linkageExportForAS="true" linkageClassName="ColorPickerSet" lastModified="1776890724" lastUniqueIdentifier="35" isSpriteSubclass="true">
+  <timeline>
+    <DOMTimeline name="ColorPickerSet" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/svCursor" name="svCursor" symbolType="button">
+                  <matrix>
+                    <Matrix tx="25.05" ty="63.1"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/HueCursorSet" name="hueCursor" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.5" d="0.917434692382812" tx="24.55" ty="51.95"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point y="0.1"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMInputText name="rgbInfoText" width="104" height="16.8" lineType="multiline no wrap">
+                  <matrix>
+                    <Matrix tx="2" ty="2"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>RGB 255,255,255</characters>
+                      <textAttrs>
+                        <DOMTextAttrs aliasText="false" lineHeight="14.2" size="14" bitmapSize="280" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMInputText>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/penColorButton" name="penColorButton" symbolType="button">
+                  <matrix>
+                    <Matrix tx="72.85" ty="31.65"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="27.6" y="17.65"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/paperColorButton" name="paperColorButton" symbolType="button">
+                  <matrix>
+                    <Matrix ty="31.85"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="27" y="17.25"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/transColorButton" name="transColorButton" selected="true" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.634902954101562" d="0.68017578125" tx="36.5" ty="52.2"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.1" y="0.3"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/colorPIckerIcon" name="swapPositionButton" symbolType="button">
+                  <matrix>
+                    <Matrix ty="53.45"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="5.5" y="-1"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/drawrPresetButton" name="drawrPresetButton" symbolType="button">
+                  <matrix>
+                    <Matrix tx="67.7" ty="11.3"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="21.55" y="9.8"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/tegakiPresetButton" name="tegakiPresetButton" symbolType="button">
+                  <matrix>
+                    <Matrix tx="110.85" ty="11.3"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.05" y="10.2"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/userPaletteButton" name="myPaletteButton" symbolType="button">
+                  <matrix>
+                    <Matrix ty="11"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="34.25" y="9.8"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="ColorPickerChild/myPaletteTransBGButton" name="myPaletteTransBG" symbolType="button">
+                  <matrix>
+                    <Matrix tx="66.55" ty="53.1"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="8.5" y="8.5"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

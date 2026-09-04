@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="topMenuChild/fitToWindowButton" itemID="63559958-0000023b" symbolType="button" lastModified="1700383912">
+  <timeline>
+    <DOMTimeline name="fitToWindowButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="topMenuChild/topMenuButton" symbolType="button">
+                  <matrix>
+                    <Matrix tx="-0.4"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.5" y="22.5"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="topMenuChild/fitToWindowIcon" selected="true" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="0.73455810546875" d="0.733444213867188" tx="4.6" ty="6.3"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="39.6" y="39.95"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

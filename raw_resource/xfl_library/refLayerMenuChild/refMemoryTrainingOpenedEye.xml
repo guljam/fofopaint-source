@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="refLayerMenuChild/refMemoryTrainingOpenedEye" itemID="68fad817-0000028a" symbolType="button" lastModified="1761269783">
+  <timeline>
+    <DOMTimeline name="refMemoryTrainingOpenedEye">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolmenuButton1" selected="true" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.78707885742188" d="1.78707885742188"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.05" y="0.05"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="refLayerMenuChild/refMemoryTrainingOpenEye" selected="true" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="1.12239074707031" d="1.11691284179688" tx="6.35" ty="11.8"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

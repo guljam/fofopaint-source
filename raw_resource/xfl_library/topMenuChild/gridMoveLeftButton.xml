@@ -1,0 +1,32 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="topMenuChild/gridMoveLeftButton" itemID="6579a8fd-00000280" symbolType="button" lastModified="1702480135">
+  <timeline>
+    <DOMTimeline name="gridMoveLeftButton" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="topMenuChild/topMenuButton" selected="true" symbolType="button">
+                  <transformationPoint>
+                    <Point x="22.5" y="22.5"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="topMenuChild/gridMoveIcon" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="9.85" ty="15.25"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.1" y="7.45"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

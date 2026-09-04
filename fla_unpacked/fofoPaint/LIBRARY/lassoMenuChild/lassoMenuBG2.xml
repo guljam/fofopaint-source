@@ -1,0 +1,30 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="lassoMenuChild/lassoMenuBG2" itemID="5ebf73fd-0000024d" symbolType="button" lastModified="1700468453">
+  <timeline>
+    <DOMTimeline name="lassoMenuBG2">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMShape>
+                  <fills>
+                    <FillStyle index="1">
+                      <SolidColor color="#666666"/>
+                    </FillStyle>
+                  </fills>
+                  <edges>
+                    <Edge fillStyle1="1" edges="!4000 2000S2|0 2000!0 2000|0 0!0 0|4000 0!4000 0|4000 2000"/>
+                    <Edge cubics="!4000 0(;4000,0 4000,2000 4000,2000q4000 0 4000 2000);"/>
+                    <Edge cubics="!0 2000(;0,2000 0,0 0,0q0 2000 0 0);"/>
+                    <Edge cubics="!4000 2000(;4000,2000 0,2000 0,2000q4000 2000 0 2000);"/>
+                    <Edge cubics="!0 0(;0,0 4000,0 4000,0q0 0 4000 0);"/>
+                  </edges>
+                </DOMShape>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

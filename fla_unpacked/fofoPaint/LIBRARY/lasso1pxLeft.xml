@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="lasso1pxLeft" itemID="5ec8720e-00000120" symbolType="button" lastModified="1655857581">
+  <timeline>
+    <DOMTimeline name="lasso1pxLeft">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolmenuButton1" name="lassoMove" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.893539428710938" d="1.78707885742188"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.05" y="0.05"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="lasso1pxIcon" selected="true" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.5294189453125" d="0.5294189453125" tx="5.75" ty="12.15"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="9.25" y="18.6"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

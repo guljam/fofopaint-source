@@ -1,0 +1,32 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="CapStampFontListSet" itemID="68ff20f8-00000257" linkageExportForAS="true" linkageClassName="CapStampFontListSet" lastModified="1761551162" isSpriteSubclass="true">
+  <timeline>
+    <DOMTimeline name="CapStampFontListSet" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="topMenuChild/gridMoveLeftButton" name="capFontListPrev" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.666671752929688" d="0.666671752929688"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="topMenuChild/gridMoveRightButton" name="capFontListNext" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.666671752929688" d="0.666671752929688"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.55" y="22.5"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

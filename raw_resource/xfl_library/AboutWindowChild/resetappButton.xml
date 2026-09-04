@@ -1,0 +1,32 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="AboutWindowChild/resetappButton" itemID="6505407e-00000246" symbolType="button" lastModified="1696467067">
+  <timeline>
+    <DOMTimeline name="resetappButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMDynamicText top="9.9" left="33.15" width="65.4" height="15.25" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="-31.15" ty="-7.9"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="60.85" y="16"/>
+                  </transformationPoint>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>Reset app</characters>
+                      <textAttrs>
+                        <DOMTextAttrs aliasText="false" autoKern="false" lineHeight="15.25" size="15" bitmapSize="300" face="SiKancil" fillColor="#FF0000"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

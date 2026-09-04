@@ -1,0 +1,92 @@
+[
+  {
+    "parentClass": "ColorPickerSet",
+    "parentCharacterId": 339,
+    "instanceName": "rgbInfoText",
+    "characterId": 312,
+    "depth": 5,
+    "matrix": "t40,40",
+    "assetPath": "by_linkage/ColorPickerSet/children/rgbInfoText__id_312",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "ColorPickerSet",
+    "parentCharacterId": 339,
+    "instanceName": "penColorButton",
+    "characterId": 315,
+    "depth": 6,
+    "matrix": "t1457,633",
+    "assetPath": "by_linkage/ColorPickerSet/children/penColorButton__id_315",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "ColorPickerSet",
+    "parentCharacterId": 339,
+    "instanceName": "paperColorButton",
+    "characterId": 318,
+    "depth": 9,
+    "matrix": "t0,637",
+    "assetPath": "by_linkage/ColorPickerSet/children/paperColorButton__id_318",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "ColorPickerSet",
+    "parentCharacterId": 339,
+    "instanceName": "transColorButton",
+    "characterId": 320,
+    "depth": 12,
+    "matrix": "s0.6348877,0.6801758 t730,1044",
+    "assetPath": "by_linkage/ColorPickerSet/children/transColorButton__id_320",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "ColorPickerSet",
+    "parentCharacterId": 339,
+    "instanceName": "swapPositionButton",
+    "characterId": 322,
+    "depth": 14,
+    "matrix": "t0,1069",
+    "assetPath": "by_linkage/ColorPickerSet/children/swapPositionButton__id_322",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "ColorPickerSet",
+    "parentCharacterId": 339,
+    "instanceName": "drawrPresetButton",
+    "characterId": 326,
+    "depth": 17,
+    "matrix": "t1354,226",
+    "assetPath": "by_linkage/ColorPickerSet/children/drawrPresetButton__id_326",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "ColorPickerSet",
+    "parentCharacterId": 339,
+    "instanceName": "tegakiPresetButton",
+    "characterId": 331,
+    "depth": 20,
+    "matrix": "t2217,226",
+    "assetPath": "by_linkage/ColorPickerSet/children/tegakiPresetButton__id_331",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "ColorPickerSet",
+    "parentCharacterId": 339,
+    "instanceName": "myPaletteButton",
+    "characterId": 336,
+    "depth": 24,
+    "matrix": "t0,220",
+    "assetPath": "by_linkage/ColorPickerSet/children/myPaletteButton__id_336",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "ColorPickerSet",
+    "parentCharacterId": 339,
+    "instanceName": "myPaletteTransBG",
+    "characterId": 338,
+    "depth": 28,
+    "matrix": "t1331,1062",
+    "assetPath": "by_linkage/ColorPickerSet/children/myPaletteTransBG__id_338",
+    "resolvedAsset": true
+  }
+]

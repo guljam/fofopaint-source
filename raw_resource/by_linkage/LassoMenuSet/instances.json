@@ -1,0 +1,172 @@
+[
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoMenuBG",
+    "characterId": 141,
+    "depth": 1,
+    "matrix": "",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoMenuBG__id_141",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoMenuMoveButton",
+    "characterId": 264,
+    "depth": 3,
+    "matrix": "s1.4699402,0.6098938 t0,0",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoMenuMoveButton__id_264",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoMenuBG2",
+    "characterId": 265,
+    "depth": 5,
+    "matrix": "s1.113266,0.86997986 t2538,640",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoMenuBG2__id_265",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoOK",
+    "characterId": 181,
+    "depth": 7,
+    "matrix": "s0.89482117,0.89482117 t140,640",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoOK__id_181",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoCancel",
+    "characterId": 183,
+    "depth": 11,
+    "matrix": "s0.89482117,0.89482117 t140,1440",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoCancel__id_183",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoResize",
+    "characterId": 266,
+    "depth": 15,
+    "matrix": "s0.89482117,0.89482117 t4140,640",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoResize__id_266",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoMirror",
+    "characterId": 267,
+    "depth": 19,
+    "matrix": "s0.89482117,0.89482117 t2540,640",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoMirror__id_267",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoRotate",
+    "characterId": 268,
+    "depth": 23,
+    "matrix": "s0.89482117,0.89482117 t3340,640",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoRotate__id_268",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoInfo",
+    "characterId": 269,
+    "depth": 27,
+    "matrix": "t3204,192",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoInfo__id_269",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lasso1pxLeft",
+    "characterId": 272,
+    "depth": 28,
+    "matrix": "s0.89482117,0.89482117 t4540,1840",
+    "assetPath": "by_linkage/LassoMenuSet/children/lasso1pxLeft__id_272",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lasso1pxRight",
+    "characterId": 272,
+    "depth": 32,
+    "matrix": "s-0.89482117,0.89482117 t5340,1840",
+    "assetPath": "by_linkage/LassoMenuSet/children/lasso1pxRight__id_272",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lasso1pxDown",
+    "characterId": 272,
+    "depth": 36,
+    "matrix": "s0.0,0.0 r-0.89482117,0.89482117 t3740,1840",
+    "assetPath": "by_linkage/LassoMenuSet/children/lasso1pxDown__id_272",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lasso1pxUp",
+    "characterId": 272,
+    "depth": 40,
+    "matrix": "s0.0,0.0 r0.89482117,0.89482117 t2940,1840",
+    "assetPath": "by_linkage/LassoMenuSet/children/lasso1pxUp__id_272",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoCopy",
+    "characterId": 274,
+    "depth": 44,
+    "matrix": "s0.89482117,0.89482117 t4940,640",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoCopy__id_274",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoLayerSwap",
+    "characterId": 276,
+    "depth": 48,
+    "matrix": "s0.8948364,0.8948364 t1740,640",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoLayerSwap__id_276",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoLayerMerge",
+    "characterId": 278,
+    "depth": 52,
+    "matrix": "s0.8948364,0.8948364 t1740,1440",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoLayerMerge__id_278",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "LassoMenuSet",
+    "parentCharacterId": 280,
+    "instanceName": "lassoRefLayer",
+    "characterId": 279,
+    "depth": 56,
+    "matrix": "s0.8948364,0.8948364 t940,640",
+    "assetPath": "by_linkage/LassoMenuSet/children/lassoRefLayer__id_279",
+    "resolvedAsset": true
+  }
+]

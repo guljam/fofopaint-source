@@ -1,0 +1,37 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="LoadBoxChild/dragDropCancelButton" itemID="5ec868c7-0000018f" symbolType="button" lastModified="1761699271">
+  <timeline>
+    <DOMTimeline name="dragDropCancelButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="LoadBoxChild/loadBoxMini" name="dragDropCancelButton" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.18782043457031" d="-0.568099975585938" ty="40"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point y="70.3"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText left="60.9" width="102.6" height="22.35" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="-9.7" ty="8.85"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>cancel</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="22.35" size="22" bitmapSize="440" face="SiKancil"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

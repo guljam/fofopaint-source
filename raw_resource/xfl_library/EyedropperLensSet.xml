@@ -1,0 +1,40 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="EyedropperLensSet" itemID="68ff27c4-00000277" linkageExportForAS="true" linkageClassName="EyedropperLensSet" lastModified="1761552324" isSpriteSubclass="true">
+  <timeline>
+    <DOMTimeline name="EyedropperLensSet" currentFrame="1" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" duration="2" keyMode="9728">
+              <elements>
+                <DOMOvalObject objectWidth="193.4" objectHeight="193.4" x="-174.85" y="-58.25" innerRadius="83" endAngle="0">
+                  <matrix>
+                    <Matrix a="0.77545166015625" d="0.776260375976562" tx="60.6" ty="-29.8"/>
+                  </matrix>
+                  <fill>
+                    <SolidColor color="#808080"/>
+                  </fill>
+                </DOMOvalObject>
+                <DOMSymbolInstance libraryItemName="etc/spuitMagRing" name="nowColor" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.31556701660156" d="1.32615661621094" tx="-65.8" ty="-67"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="54.35" y="26.85"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="etc/spuitMagRing" name="oldColor" symbolType="button">
+                  <matrix>
+                    <Matrix a="-1.31570434570312" d="-1.31704711914062" tx="65.75" ty="65"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="14.65" y="14.6"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

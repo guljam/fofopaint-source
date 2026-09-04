@@ -1,0 +1,86 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="fillPenButtons" itemID="65595561-00000288" linkageExportForAS="true" linkageClassName="fillPenButtons" lastModified="1743517509" lastUniqueIdentifier="3">
+  <timeline>
+    <DOMTimeline name="fillPenButtons" currentFrame="1" guides='&lt;guidelines&gt;&lt;guideline direction="h"&gt;-43&lt;/guideline&gt;&lt;guideline direction="v"&gt;-89&lt;/guideline&gt;&lt;/guidelines&gt;' layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" duration="2" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="fillPenMenuChild/fillPenBG" name="fillPenBGTitle" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.61407470703125" d="1.01699829101562"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="53.95" y="32"/>
+                  </transformationPoint>
+                  <color>
+                    <Color tintMultiplier="1" tintColor="#666666"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="fillPenMenuChild/fillPenBG" name="fillPenBG" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.61404418945312" d="1.28886413574219" ty="31.95"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="49.55" y="33.85"/>
+                  </transformationPoint>
+                  <color>
+                    <Color tintMultiplier="1" tintColor="#ECEAE7"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="fillPenMenuChild/fillPenUndoButton" name="fillPenUndo" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.88885498046875" d="0.88885498046875" tx="7" ty="31.95"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="25.5" y="22.55"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="fillPenInfo" selected="true" left="-150.15" width="149.5" height="16.25" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="161.15" ty="9.6"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="-151.1" y="-2"/>
+                  </transformationPoint>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>Tools</characters>
+                      <textAttrs>
+                        <DOMTextAttrs aliasText="false" lineHeight="16.25" size="16" bitmapSize="320" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+                <DOMSymbolInstance libraryItemName="fillPenMenuChild/fillPenOK" name="fillPenOK" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.89459228515625" d="0.894851684570312" tx="67" ty="31.95"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="29.55" y="22.35"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="fillPenMenuChild/fillPenCancel" name="fillPenCancel" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.894851684570312" d="0.894851684570312" tx="127" ty="31.95"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.4" y="22.4"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/quickSidebarButton" name="fillPenSidebar" symbolType="button">
+                  <matrix>
+                    <Matrix tx="7" ty="71.95"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="93.2" y="26.5"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

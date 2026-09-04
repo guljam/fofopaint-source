@@ -1,0 +1,65 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="loadBoxChild/dragDropCancelButton" itemID="5ec868c7-0000018f" symbolType="button" lastModified="1647197382">
+  <timeline>
+    <DOMTimeline name="dragDropCancelButton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="loadBoxChild/loadBoxMini" name="dragDropCancelButton" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.62904357910156" d="0.78924560546875"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="125" y="62.6"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="cancelText" selected="true" left="60.9" width="88.6" height="11.7" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix a="4.33602905273438" d="4.33602905273438" tx="-252.55" ty="23.95"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>cancel</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="10.2" size="10" bitmapSize="200" face="SiKancil"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="1" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="loadBoxChild/loadBoxMini" name="dragDropCancelButton" symbolType="button">
+                  <matrix>
+                    <Matrix a="1.62904357910156" d="0.78924560546875"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="125" y="62.6"/>
+                  </transformationPoint>
+                  <color>
+                    <Color tintMultiplier="1" tintColor="#B1DFEE"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="cancelText" left="60.9" width="88.6" height="11.7" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix a="4.33602905273438" d="4.33602905273438" tx="-252.55" ty="23.95"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>cancel</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="10.2" size="10" bitmapSize="200" face="SiKancil"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

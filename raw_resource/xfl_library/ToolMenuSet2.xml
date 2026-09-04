@@ -1,0 +1,163 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="ToolMenuSet2" itemID="68ff23bb-0000026c" linkageExportForAS="true" linkageClassName="ToolMenuSet2" lastModified="1763592744" lastUniqueIdentifier="3" isSpriteSubclass="true">
+  <timeline>
+    <DOMTimeline name="ToolMenuSet2" guides='&lt;guidelines&gt;&lt;guideline direction="h"&gt;-43&lt;/guideline&gt;&lt;guideline direction="v"&gt;-89&lt;/guideline&gt;&lt;/guidelines&gt;' layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" duration="3" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/icons/toolBoxBGLight" name="toolBoxBG2" symbolType="button">
+                  <matrix>
+                    <Matrix a="3.47996520996094" d="2.53962707519531" ty="70"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="etc/bg2" name="toolBoxBG" symbolType="button">
+                  <matrix>
+                    <Matrix a="3.47991943359375" d="1.3995361328125"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.05" y="0.15"/>
+                  </transformationPoint>
+                  <color>
+                    <Color tintMultiplier="1" tintColor="#666666"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/zoomButton" name="toolZoom" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.888961791992188" d="0.889328002929688" tx="87" ty="30"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.4" y="22.3"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolPenButton" name="toolPen" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.889251708984375" d="0.889205932617188" tx="47" ty="70"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.45" y="22.5"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/undoButton" name="toolUndo" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.88916015625" d="0.888671875" tx="87" ty="70"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.45" y="22.4"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/moveButton" name="toolMove" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.888961791992188" d="0.889328002929688" tx="47" ty="30"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/redoButton" name="toolRedo" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.88916015625" d="0.888671875" tx="127" ty="70"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.45" y="22.4"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/rotateButton" name="toolRotate2" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.888961791992188" d="0.889328002929688" tx="127" ty="30"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point y="0.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/spuitButton" name="toolEyedropper" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.88916015625" d="0.888671875" tx="47" ty="110"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.3" y="22.5"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/mirrorButton" name="toolMirror" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.888961791992188" d="0.889328002929688" tx="87" ty="110"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.4" y="22.5"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/lassoButton" name="toolLasso" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.88916015625" d="0.888671875" tx="127" ty="110"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/lineButton2" name="toolLine" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.889251708984375" d="0.889251708984375" tx="7" ty="110"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="-0.15" y="-0.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolEraseButton" name="toolEraser" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.889389038085938" d="0.889328002929688" tx="47" ty="70"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="22.3" y="22.45"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="topMenuChild/refLayerMenuButton" name="toolRefLayer" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.889236450195312" d="0.889251708984375" tx="7" ty="30"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.1" y="0.15"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="toolInfoText" left="-149.2" width="149.75" height="16.25" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix a="1.01333618164062" tx="162.2" ty="9.6"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="-151.15" y="-2"/>
+                  </transformationPoint>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>Tools</characters>
+                      <textAttrs>
+                        <DOMTextAttrs aliasText="false" lineHeight="16.25" size="16" bitmapSize="320" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolFillPenButton" name="toolFillPen" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.889297485351562" d="0.889419555664062" tx="7" ty="70"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="20" y="21.35"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/quickSidebarButton" name="toolQuickSidebar" symbolType="button">
+                  <matrix>
+                    <Matrix tx="7" ty="150"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="93.2" y="26.5"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

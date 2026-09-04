@@ -1,0 +1,32 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="topMenuChild/clipbutton" itemID="5e228720-0000013e" symbolType="button" lastModified="1656796601">
+  <timeline>
+    <DOMTimeline name="clipbutton">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="topMenuChild/topMenuButton" symbolType="button">
+                  <transformationPoint>
+                    <Point x="29.95" y="29.95"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="topMenuChild/clipBoardIconTopBar" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="0.65228271484375" d="0.653045654296875" tx="9.3" ty="7.4"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="20.3" y="24.6"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

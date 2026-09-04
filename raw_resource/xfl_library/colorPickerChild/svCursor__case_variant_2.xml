@@ -1,0 +1,39 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="ColorPickerChild/svCursor" itemID="5ebc9829-0000028b" linkageExportForAS="true" linkageClassName="svCursorSet" symbolType="button" lastModified="1653903420">
+  <timeline>
+    <DOMTimeline name="svCursor">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMShape isDrawingObject="true">
+                  <matrix>
+                    <Matrix a="0.874984741210938" d="0.874984741210938"/>
+                  </matrix>
+                  <fills>
+                    <FillStyle index="1">
+                      <SolidColor color="#FFFFFF"/>
+                    </FillStyle>
+                  </fills>
+                  <strokes>
+                    <StrokeStyle index="1">
+                      <SolidStroke scaleMode="normal">
+                        <fill>
+                          <SolidColor color="#676767"/>
+                        </fill>
+                      </SolidStroke>
+                    </StrokeStyle>
+                  </strokes>
+                  <edges>
+                    <Edge fillStyle1="1" strokeStyle="1" edges="!160 0[160 66 112 112!112 112[66 160 0 160!0 160[-66 160 -113 112!-113 112[-160 66 -160 0!-160 0[-160 -66 -113 -113!-113 -113[-66 -160 0 -160!0 -160[66 -160 112 -113!112 -113[160 -66 160 0"/>
+                    <Edge fillStyle0="1" edges="!102 0[102 42 72 72!72 72[42 102 0 102!0 102[-42 102 -72 72!-72 72[-102 42 -102 0!-102 0[-102 -42 -72 -72!-72 -72[-42 -102 0 -102!0 -102[42 -102 72 -72!72 -72[102 -42 102 0"/>
+                  </edges>
+                </DOMShape>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

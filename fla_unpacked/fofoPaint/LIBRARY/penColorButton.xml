@@ -1,0 +1,167 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="penColorButton" itemID="6294c0b6-00000219" symbolType="button" lastModified="1701234788">
+  <timeline>
+    <DOMTimeline name="penColorButton" currentFrame="2">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMShape>
+                  <fills>
+                    <FillStyle index="1">
+                      <SolidColor color="#FFFFFF"/>
+                    </FillStyle>
+                  </fills>
+                  <edges>
+                    <Edge fillStyle0="1" edges="!296 192[302 191 309 191!309 191|267 190!267 190[281 191 296 192"/>
+                    <Edge cubics="!267 190(;267,190 309,191 309,191q267 190 309 191);"/>
+                    <Edge cubics="!267 190(;276,191 286,191 296,192q267 190Q281 191q296 192);"/>
+                    <Edge cubics="!296 192(;300,191 304,191 309,191q296 192Q302 191q309 191);"/>
+                  </edges>
+                </DOMShape>
+                <DOMSymbolInstance libraryItemName="penColoButtonBorder" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="-0.5" ty="-0.15"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="26.9" y="11.65"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="penColorText" width="20.85" height="14.2" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="4" ty="2.45"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>pen</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="13.2" size="13" bitmapSize="260" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="1" keyMode="9728">
+              <elements>
+                <DOMShape>
+                  <fills>
+                    <FillStyle index="1">
+                      <SolidColor color="#FFFFFF"/>
+                    </FillStyle>
+                  </fills>
+                  <edges>
+                    <Edge fillStyle0="1" edges="!296 192[302 191 309 191!309 191|267 190!267 190[281 191 296 192"/>
+                    <Edge cubics="!267 190(;267,190 309,191 309,191q267 190 309 191);"/>
+                    <Edge cubics="!267 190(;276,191 286,191 296,192q267 190Q281 191q296 192);"/>
+                    <Edge cubics="!296 192(;300,191 304,191 309,191q296 192Q302 191q309 191);"/>
+                  </edges>
+                </DOMShape>
+                <DOMSymbolInstance libraryItemName="penColoButtonBorder" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="-0.5" ty="-0.15"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="26.9" y="11.65"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="penColorText" width="20.85" height="14.2" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="4" ty="2.45"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>pen</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="13.2" size="13" bitmapSize="260" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="2" keyMode="9728">
+              <elements>
+                <DOMShape selected="true" isFloating="true">
+                  <matrix>
+                    <Matrix tx="1" ty="1"/>
+                  </matrix>
+                  <fills>
+                    <FillStyle index="1">
+                      <SolidColor color="#FFFFFF"/>
+                    </FillStyle>
+                  </fills>
+                  <edges>
+                    <Edge fillStyle0="1" edges="!296 192S1[302 191 309 191!309 191|267 190!267 190[281 191 296 192"/>
+                    <Edge cubics="!267 190(;267,190 309,191 309,191q267 190 309 191);"/>
+                    <Edge cubics="!267 190(;276,191 286,191 296,192q267 190Q281 191q296 192);"/>
+                    <Edge cubics="!296 192(;300,191 304,191 309,191q296 192Q302 191q309 191);"/>
+                  </edges>
+                </DOMShape>
+                <DOMSymbolInstance libraryItemName="penColoButtonBorder" selected="true" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="0.5" ty="0.85"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="26.9" y="11.65"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="penColorText" selected="true" width="20.85" height="14.2" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="5" ty="3.45"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>pen</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="13.2" size="13" bitmapSize="260" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="3" keyMode="9728">
+              <elements>
+                <DOMShape>
+                  <fills>
+                    <FillStyle index="1">
+                      <SolidColor color="#FFFFFF"/>
+                    </FillStyle>
+                  </fills>
+                  <edges>
+                    <Edge fillStyle0="1" edges="!296 192[302 191 309 191!309 191|267 190!267 190[281 191 296 192"/>
+                    <Edge cubics="!267 190(;267,190 309,191 309,191q267 190 309 191);"/>
+                    <Edge cubics="!267 190(;276,191 286,191 296,192q267 190Q281 191q296 192);"/>
+                    <Edge cubics="!296 192(;300,191 304,191 309,191q296 192Q302 191q309 191);"/>
+                  </edges>
+                </DOMShape>
+                <DOMSymbolInstance libraryItemName="penColoButtonBorder" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="-0.5" ty="-0.15"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="26.9" y="11.65"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMDynamicText name="penColorText" width="20.85" height="14.2" isSelectable="false" lineType="multiline">
+                  <matrix>
+                    <Matrix tx="4" ty="2.45"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>pen</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="13.2" size="13" bitmapSize="260" face="SiKancil" fillColor="#FFFFFF"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

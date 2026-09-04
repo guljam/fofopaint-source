@@ -1,0 +1,30 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="PenControlBoxChild/shaperectBG" itemID="65584cfe-000002b4" symbolType="graphic" lastModified="1700285768">
+  <timeline>
+    <DOMTimeline name="shaperectBG" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMShape>
+                  <fills>
+                    <FillStyle index="1">
+                      <SolidColor color="#FF0000"/>
+                    </FillStyle>
+                  </fills>
+                  <edges>
+                    <Edge fillStyle1="1" edges="!0 0|620 0!620 0|620 620!620 620|0 620!0 620|0 0"/>
+                    <Edge cubics="!0 620(;0,620 0,0 0,0q0 620 0 0);"/>
+                    <Edge cubics="!620 620(;620,620 0,620 0,620q620 620 0 620);"/>
+                    <Edge cubics="!620 0(;620,0 620,620 620,620q620 0 620 620);"/>
+                    <Edge cubics="!0 0(;0,0 620,0 620,0q0 0 620 0);"/>
+                  </edges>
+                </DOMShape>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

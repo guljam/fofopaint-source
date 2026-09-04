@@ -1,0 +1,35 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="toolmenuChild/lineButton2" itemID="5e32d518-00000102" symbolType="button" lastModified="1656807022">
+  <timeline>
+    <DOMTimeline name="lineButton2">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/toolBoxBG2" selected="true" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.449996948242188" d="0.449996948242188"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.2"/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0"/>
+                  </color>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="toolmenuChild/icons/lineicon2 copy" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="0.847488403320312" d="0.846099853515625" tx="9.5" ty="9.5"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="19.05" y="19.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

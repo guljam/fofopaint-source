@@ -1,0 +1,32 @@
+[
+  {
+    "parentClass": "RotateCursorSet",
+    "parentCharacterId": 203,
+    "instanceName": "rotateBG",
+    "characterId": 198,
+    "depth": 1,
+    "matrix": "s1.0466919,1.0466919 t-1321,-1300",
+    "assetPath": "by_linkage/RotateCursorSet/children/rotateBG__id_198",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "RotateCursorSet",
+    "parentCharacterId": 203,
+    "instanceName": "rotateCircle",
+    "characterId": 200,
+    "depth": 3,
+    "matrix": "s1.1060791,1.1055908 t0,0",
+    "assetPath": "by_linkage/RotateCursorSet/children/rotateCircle__id_200",
+    "resolvedAsset": true
+  },
+  {
+    "parentClass": "RotateCursorSet",
+    "parentCharacterId": 203,
+    "instanceName": "rotateArrow",
+    "characterId": 202,
+    "depth": 5,
+    "matrix": "t0,1",
+    "assetPath": "by_linkage/RotateCursorSet/children/rotateArrow__id_202",
+    "resolvedAsset": true
+  }
+]

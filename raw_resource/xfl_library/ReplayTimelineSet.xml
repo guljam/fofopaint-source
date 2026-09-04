@@ -1,0 +1,61 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="ReplayTimelineSet" itemID="68ff225b-00000267" linkageExportForAS="true" linkageClassName="ReplayTimelineSet" lastModified="1763044260">
+  <timeline>
+    <DOMTimeline name="ReplayTimelineSet" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMDynamicText name="prograssInfo" left="-0.35" width="319.55" height="19.2" isSelectable="false" tabIndex="1" hasAccessibleData="true">
+                  <matrix>
+                    <Matrix tx="37.8" ty="35.95"/>
+                  </matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>99999999 / 99999999 (9999999sec)</characters>
+                      <textAttrs>
+                        <DOMTextAttrs alignment="center" aliasText="false" lineHeight="16.25" size="16" bitmapSize="320" face="SiKancil" fillColor="#666666"/>
+                      </textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMDynamicText>
+                <DOMSymbolInstance libraryItemName="topMenuChild/pauseButton" name="pauseButton" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.66705322265625" d="0.667037963867188" ty="28.95"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.45" y="0.15"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="topMenuChild/playButton" name="playButton" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.66705322265625" d="0.667037963867188" tx="0.85"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.3" y="0.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="topMenuChild/replayTimeOneFrame" name="replayNext" selected="true" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.666656494140625" d="0.666656494140625" tx="62.2"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="16.3" y="33.55"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="topMenuChild/replayTimeOneFrame copy" name="replayPrev" symbolType="button">
+                  <matrix>
+                    <Matrix a="0.666656494140625" d="0.666656494140625" tx="30.85"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="0.3" y="-0.1"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

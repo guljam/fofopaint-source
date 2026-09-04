@@ -1,0 +1,56 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="PenControlBoxChild/pixelSnapButton1" itemID="5e8572ad-000000f9" symbolType="button" lastModified="1682157496">
+  <timeline>
+    <DOMTimeline name="pixelSnapButton1">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMShape>
+                  <fills>
+                    <FillStyle index="1">
+                      <SolidColor color="#FFFFFF"/>
+                    </FillStyle>
+                  </fills>
+                  <edges>
+                    <Edge fillStyle1="1" edges="!325 329[319 334 304 334!304 334[269 334 179 329!179 329[100 324 54 325!54 325[25 327 17 313!17 313[12 305 17 278!17 278|6 46!6 46[6 26 12 19!12 19[18 12 29 10!29 10[44 6 77 6!77 6|309 6!309 6[322 6 327 10!327 10[336 16 334 40!334 40
+[332 57 332 91!332 91|332 304!332 304[332 323 325 329!54 198|54 238!54 238[59 276 58 283!58 283|292 291!292 291|292 48!292 48|47 47!47 47[46 73 50 127!50 127[55 167 54 198"/>
+                    <Edge cubics="!319 323(;313,328 305,328 298,328q319 323Q313 328q298 328);"/>
+                    <Edge cubics="!298 328(;215,327 132,318 48,319q298 328Q263 328q173 323Q94 318q48 319);"/>
+                    <Edge cubics="!48 319(;34,320 18,319 11,307q48 319Q19 321q11 307);"/>
+                    <Edge cubics="!11 307(;5,297 9,284 11,272q11 307Q6 299q11 272);"/>
+                    <Edge cubics="!0 40(;0,31 0,20 6,13q0 40Q0 20q6 13);"/>
+                    <Edge cubics="!6 13(;10,8 16,5 23,4q6 13Q12 6q23 4);"/>
+                    <Edge cubics="!23 4(;38,0 55,0 71,0q23 4Q38 0q71 0);"/>
+                    <Edge cubics="!303 0(;309,0 316,0 321,4q303 0Q316 0q321 4);"/>
+                    <Edge cubics="!321 4(;330,10 329,24 328,34q321 4Q330 10q328 34);"/>
+                    <Edge cubics="!328 34(;326,51 326,68 326,85q328 34Q326 51q326 85);"/>
+                    <Edge cubics="!326 85(;326,156 326,227 326,298q326 85 326 298);"/>
+                    <Edge cubics="!326 298(;326,307 326,317 319,323q326 298Q326 317q319 323);"/>
+                    <Edge cubics="!48 192(;48,205 47,218 48,232q48 192Q48 232q48 232);"/>
+                    <Edge cubics="!48 232(;50,247 54,262 52,277q48 232Q53 270q52 277);"/>
+                    <Edge cubics="!52 277(;130,280 208,283 286,285q52 277 286 285);"/>
+                    <Edge cubics="!286 285(;286,204 286,123 286,42q286 285 286 42);"/>
+                    <Edge cubics="!286 42(;204,42 123,41 41,41q286 42 41 41);"/>
+                    <Edge cubics="!41 41(;40,68 42,94 44,121q41 41Q40 67q44 121);"/>
+                    <Edge cubics="!44 121(;47,144 49,168 48,192q44 121Q49 161q48 192);"/>
+                    <Edge cubics="!71 0(;71,0 303,0 303,0q71 0 303 0);"/>
+                    <Edge cubics="!11 272(;11,272 0,40 0,40q11 272 0 40);"/>
+                  </edges>
+                </DOMShape>
+                <DOMSymbolInstance libraryItemName="etc/layerOptionsBG" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="0.77618408203125" d="1.10026550292969"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="10.8" y="7.75"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>
