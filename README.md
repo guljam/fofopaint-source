@@ -1,7 +1,0 @@
-- 핵심 파일은 main.as이며 Main.as로 대문자로 바꾸어야할 수도있음
-- 개발환경은vscode + adobe animate였으며, 앱 수정시 fla파일을 실행해야함
-- vscode에서 action script mxml확장을 사용했으며 adobe air sdk는 51.3.1을 사용하였음
-- 앱 실제 디버깅은 adobe animate에서 debug모드로 했음 vscode로는 코드작성만
-- animate에서 debug를 한번 실행시키면 swf파일이 갱신됨
-- webp인코더 디코더 ane네이티브 확장을 하나 이용중
-- font폴더에 Si Kancil.ttf폰트가 설치되어있어야 앱내의 고유폰트가 표시됨
