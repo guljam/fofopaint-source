@@ -6,9 +6,9 @@ package main_module
     import flash.display.DisplayObject;
     import flash.events.MouseEvent;
 
-    import Symbols.TopMenuSet;
-    import Symbols.HintBoxSet;
-    import Symbols.RotateCursorSet;
+    import symbols.TopMenuSet;
+    import symbols.HintBoxSet;
+    import symbols.RotateCursorSet;
 
     public final class MainUI
     {

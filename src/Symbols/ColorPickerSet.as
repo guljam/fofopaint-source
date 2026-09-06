@@ -1,4 +1,4 @@
-﻿package Symbols
+﻿package symbols
 {
 	import flash.display.Sprite;
 	import flash.display.GradientType;

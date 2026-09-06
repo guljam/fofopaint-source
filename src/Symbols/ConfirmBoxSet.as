@@ -1,4 +1,4 @@
-package Symbols
+package symbols
 {
 	import flash.text.TextField;
 	import flash.display.Sprite;

@@ -65,24 +65,25 @@
     import main_module.ImageViewWindow;
     import main_module.MainUI;
     import main_module.AppUpdater;
-    import Symbols.ToolMenuSet;
-    import Symbols.ToolMenuSet2;
-    import Symbols.FillPenMenuSet;
-    import Symbols.EyedropperLensSet;
-    import Symbols.AboutWindowSet;
-    import Symbols.CanvasInfoSet;
-    import Symbols.CanvasNavigatorBoxSet;
-    import Symbols.CapStampFontListSet;
-    import Symbols.ColorPickerSet;
-    import Symbols.FOFO;
-    import Symbols.LassoMenuSet;
-    import Symbols.LoadBoxSet;
-    import Symbols.NumPadSet;
-    import Symbols.RefLayerMenuSet;
-    import Symbols.SidePanelSet;
-    import Symbols.ToolOptionsSet;
-    import Symbols.seekBarSet;
-    import Symbols.FOFO;
+
+    import symbols.ToolMenuSet;
+    import symbols.ToolMenuSet2;
+    import symbols.FillPenMenuSet;
+    import symbols.EyedropperLensSet;
+    import symbols.AboutWindowSet;
+    import symbols.CanvasInfoSet;
+    import symbols.CanvasNavigatorBoxSet;
+    import symbols.CapStampFontListSet;
+    import symbols.ColorPickerSet;
+    import symbols.FOFO;
+    import symbols.LassoMenuSet;
+    import symbols.LoadBoxSet;
+    import symbols.NumPadSet;
+    import symbols.RefLayerMenuSet;
+    import symbols.SidePanelSet;
+    import symbols.ToolOptionsSet;
+    import symbols.seekBarSet;
+    import symbols.FOFO;
 
     // import
 
