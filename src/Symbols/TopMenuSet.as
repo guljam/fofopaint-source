@@ -1,5 +1,7 @@
 ﻿package symbols
 {
+
+    import main_module.SidebarController;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -540,7 +542,7 @@
 
 			if (mode === 0)
 			{
-				showModeIcons("draw", main.isRightSidebar, main.isSidebarVisible);
+				showModeIcons("draw", SidebarController.isRightSidebar, SidebarController.isSidebarVisible);
 				hideModeIcons("replay");
 				hideModeIcons("capture");
 				main.updatePenSizeCursor();

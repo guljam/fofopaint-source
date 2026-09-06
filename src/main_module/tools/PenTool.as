@@ -1,5 +1,7 @@
 package main_module.tools
 {
+    import main_module.PaletteController;
+    import main_module.ReferenceLayerController;
     import flash.events.MouseEvent;
     import flash.filters.BlurFilter;
     import flash.geom.Point;
@@ -359,9 +361,9 @@ package main_module.tools
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 
-            if (!main.isRefLayerEmpty() && isPenTool && main.isRefLayerMemoryTrainingON && main.refLayerLastAlpha > 0.0)
+            if (!ReferenceLayerController.isRefLayerEmpty() && isPenTool && ReferenceLayerController.isRefLayerMemoryTrainingON && ReferenceLayerController.refLayerLastAlpha > 0.0)
             {
-                main.setCanvasRefLayerVisibleDelay();
+                ReferenceLayerController.setCanvasRefLayerVisibleDelay();
             }
 
             if (penSmoothSlideValue > 1)
@@ -439,7 +441,7 @@ package main_module.tools
                     if (!main.isCurrentColorSamePickedColor())
                     {
                         main.updatePickerCurrentColor(main.colorPickerBox.getRGBInfoBGColor());
-                        main.addColorMyPaletteHistory(main.colorPickerBox.getRGBInfoBGColor());
+                        PaletteController.addColorMyPaletteHistory(main.colorPickerBox.getRGBInfoBGColor());
                     }
                 }
             }
@@ -463,9 +465,9 @@ package main_module.tools
                 sq1pxCursor = false;
             }
 
-            if (!main.isRefLayerEmpty() && flag && main.isRefLayerMemoryTrainingON)
+            if (!ReferenceLayerController.isRefLayerEmpty() && flag && ReferenceLayerController.isRefLayerMemoryTrainingON)
             {
-                main.setCanvasRefLayerInvisible();
+                ReferenceLayerController.setCanvasRefLayerInvisible();
             }
 
             offsetForSharpline = main.getSharpLinePosOffset(xSize);

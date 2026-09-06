@@ -54,7 +54,7 @@ package main_module
 
             function onMouseUp():void
             {
-                main.keepBoxInsideViewPort(target);
+                MainUIController.keepBoxInsideViewPort(target);
             }
 
             startDragInteraction(onDragStart, onMouseMove, onMouseUp);

@@ -1,5 +1,9 @@
 package main_module
 {
+
+    import main_module.SidebarController;
+
+    import main_module.MainUIController;
     import flash.display.Sprite;
     import flash.display.Shape;
     import flash.geom.Rectangle;
@@ -195,7 +199,7 @@ package main_module
                 // rect.y -= 2*scale;
                 rect.height -= 2 * scale;
             }
-            else if (target === main.sideBarScrollBar)
+            else if (target === SidebarController.sideBarScrollBar)
             {
                 rect.x += 1 * scale;
                 rect.y += 1 * scale;
@@ -353,7 +357,7 @@ package main_module
             main.aboutBox.name = "aboutPanel";
             main.aboutBox.setVersionInfo(main.APP_VERSION.toFixed(2));
             topBar.name = "topBar";
-            main.sideBarScrollBar.name = "sideBarScrollBar";
+            SidebarController.sideBarScrollBar.name = "sideBarScrollBar";
             topBar.makeTopbarBG(Global.UI_COLOR_MID_DARK);
             updateTopbarIconsDrawMode();
 
@@ -362,18 +366,18 @@ package main_module
 
             main.canvasNavigatorBox.scrollRect = new Rectangle(0, 0, main.canvasNavigatorBox.width, main.canvasNavigatorBox.height);
 
-            main.sideBarScrollPanel.addChild(main.canvasNavigatorBox);
-            main.sideBarScrollPanel.addChild(main.canvasInfoBox);
+            SidebarController.sideBarScrollPanel.addChild(main.canvasNavigatorBox);
+            SidebarController.sideBarScrollPanel.addChild(main.canvasInfoBox);
             main.toolBox.moveCanvasControlButtonsTo(main.canvasInfoBox);
-            main.sideBarScrollPanel.addChild(main.toolBox);
-            main.sideBarScrollPanel.addChild(main.toolOptionsBox);
-            main.sideBarScrollPanel.addChild(main.colorPickerBox);
+            SidebarController.sideBarScrollPanel.addChild(main.toolBox);
+            SidebarController.sideBarScrollPanel.addChild(main.toolOptionsBox);
+            SidebarController.sideBarScrollPanel.addChild(main.colorPickerBox);
 
-            main.sideBar.addChild(main.sideBarScrollBar);
-            main.sideBar.addChild(main.sideBarScrollPanel);
-            main.sideBar.updateSideBGSize(main.getSideBarBGHeight());
-            main.sideBarScrollBar.alpha = 0.75;
-            main.STAGE_TOP_OFFSET = topBar.BARSIZE;
+            SidebarController.sideBar.addChild(SidebarController.sideBarScrollBar);
+            SidebarController.sideBar.addChild(SidebarController.sideBarScrollPanel);
+            SidebarController.sideBar.updateSideBGSize(SidebarController.getSideBarBGHeight());
+            SidebarController.sideBarScrollBar.alpha = 0.75;
+            MainUIController.STAGE_TOP_OFFSET = topBar.BARSIZE;
 
             main.captureStampFontListBox.y = 100;
 
@@ -389,9 +393,9 @@ package main_module
             main.selectedToolViewBitmap.visible = false;
 
             main.stage.addChild(main.loadMenuBox);
-            main.stage.addChild(main.refLayerMenuBox);
+            main.stage.addChild(ReferenceLayerController.refLayerMenuBox);
             main.stage.addChild(main.aboutBox);
-            main.stage.addChild(main.sideBar);
+            main.stage.addChild(SidebarController.sideBar);
             main.stage.addChild(main.fillPenBox);
             main.stage.addChild(main.toolBox2);
             main.stage.addChild(canvasRotateCursor);

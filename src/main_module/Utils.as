@@ -58,7 +58,7 @@ package main_module
                         if (subX !== 0) // 차이가 0이 될때가 있어서 이건 스킵
                         {
                             scale *= Math.pow(2, subX * 0.008);
-                            main.refLayerMenuDragXMoveSum += subX;
+                            ReferenceLayerController.refLayerMenuDragXMoveSum += subX;
                         }
                     }
                     else if (moveFlag === 2)
@@ -68,7 +68,7 @@ package main_module
                         if (subY !== 0)
                         {
                             scale *= Math.pow(2, subY * 0.008);
-                            main.refLayerMenuDragXMoveSum += subY;
+                            ReferenceLayerController.refLayerMenuDragXMoveSum += subY;
                         }
                     }
                 }

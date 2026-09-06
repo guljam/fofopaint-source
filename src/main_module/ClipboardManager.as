@@ -53,7 +53,7 @@ package main_module
         {
             const main:Main = Main._instance;
             MainUI.topBar.clipBoardButton.alpha = Global.OFFALPHA;
-            main.refLayerMenuBox.refClipBoardButton.alpha = Global.OFFALPHA;
+            ReferenceLayerController.refLayerMenuBox.refClipBoardButton.alpha = Global.OFFALPHA;
             isClipBoardButtonActivated = false;
         }
 
@@ -61,7 +61,7 @@ package main_module
         {
             const main:Main = Main._instance;
             MainUI.topBar.clipBoardButton.alpha = 1.0;
-            main.refLayerMenuBox.refClipBoardButton.alpha = 1.0;
+            ReferenceLayerController.refLayerMenuBox.refClipBoardButton.alpha = 1.0;
             isClipBoardButtonActivated = true;
         }
 
