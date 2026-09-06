@@ -5,7 +5,7 @@ package main_module
     import flash.display.BitmapData;
     import flash.filesystem.File;
 
-    public class ClipboardBridge
+    public class ClipboardManager
     {
         public static var isClipBoardButtonActivated:Boolean = false;
 
@@ -52,7 +52,7 @@ package main_module
         public static function disableTopBarClipboardButton():void
         {
             const main:Main = Main._instance;
-            main.topBar.clipBoardButton.alpha = Global.OFFALPHA;
+            MainUI.topBar.clipBoardButton.alpha = Global.OFFALPHA;
             main.refLayerMenuBox.refClipBoardButton.alpha = Global.OFFALPHA;
             isClipBoardButtonActivated = false;
         }
@@ -60,7 +60,7 @@ package main_module
         public static function enableTopBarClipboardButton():void
         {
             const main:Main = Main._instance;
-            main.topBar.clipBoardButton.alpha = 1.0;
+            MainUI.topBar.clipBoardButton.alpha = 1.0;
             main.refLayerMenuBox.refClipBoardButton.alpha = 1.0;
             isClipBoardButtonActivated = true;
         }

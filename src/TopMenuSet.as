@@ -11,6 +11,11 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	import main_module.AppUpdater;
+	import main_module.ImageViewWindow;
+	import main_module.MainUI;
+	import main_module.Utils;
+
 	public class TopMenuSet extends Sprite {
 
 		public const BARSIZE:Number = 38;
@@ -518,6 +523,69 @@
 			updateButton.y = aboutButton.y;
 
 			replaySpeedSliderWrapper.y = 4;
+		}
+
+		public function updateIconsByMode(mode:int):void
+		{
+			const main:Main = Main._instance;
+			if (main.isLassoToolStarted === true || main.isAboutBoxOpened === true)
+			{
+				return;
+			}
+
+			Utils.setAsTopChild(this);
+
+			hideUpdateButton();
+
+			if (mode === 0)
+			{
+				showModeIcons("draw", main.isRightSidebar, main.isSidebarVisible);
+				hideModeIcons("replay");
+				hideModeIcons("capture");
+				main.updatePenSizeCursor();
+				if (AppUpdater.status !== AppUpdater.FLAG_NO_UPDATE)
+				{
+					showUpdateButton();
+				}
+
+				if (ImageViewWindow.isCanvasWindowON)
+					MainUI.topBar.newWindowButton.visible = false;
+				else
+					MainUI.topBar.newWindowCloseButton.visible = false;
+			}
+			else if (mode === 1)
+			{
+				showModeIcons("replay");
+				hideModeIcons("draw");
+				hideModeIcons("capture");
+				main.seekBarBox.setPlayButtonVisible(!main.isReplayStarted);
+			}
+			else if (mode === 2)
+			{
+				showModeIcons("capture");
+				hideModeIcons("replay");
+				hideModeIcons("draw");
+
+				if (main.canvasLayer1Bitmap.visible)
+				{
+					capLayer1VisibleButton.alpha = 1.0;
+				}
+				else
+				{
+					capLayer1VisibleButton.alpha = Global.OFFALPHA;
+				}
+
+				if (main.canvasLayer2Bitmap.visible)
+				{
+					capLayer2VisibleButton.alpha = 1.0;
+				}
+				else
+				{
+					capLayer2VisibleButton.alpha = Global.OFFALPHA;
+				}
+
+				main.updateCaptureStampButtonAlpha();
+			}
 		}
 
 		[Embed(

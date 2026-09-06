@@ -1,8 +1,9 @@
 ﻿package
 {
     import Main;
-    import main_module.GridOverlay;
+    import main_module.CanvasGridOverlay;
     import main_module.tools.PenTool;
+    import main_module.AppUpdater;
 
     public class HintStrings
     {
@@ -266,12 +267,12 @@
                 return "";
             }
 
-            return GridOverlay.gridGapMultiplier + GridOverlay.GRID_GAP + "px";
+            return CanvasGridOverlay.gridGapMultiplier + CanvasGridOverlay.GRID_GAP + "px";
         }
 
         static public function getNewVersionAvailableHintString():String
         {
-            return "Version " + _main.newVersionStr + " is available!";
+            return "Version " + AppUpdater.newVersionStr + " is available!";
         }
 
         static public function getOpacityButtonHintString(index:int):String

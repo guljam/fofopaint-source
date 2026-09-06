@@ -5,7 +5,7 @@ package main_module
     import flash.events.MouseEvent;
     import flash.geom.Point;
 
-    public class GridOverlay
+    public class CanvasGridOverlay
     {
         public static const GRID_GAP:uint = 10;
         public static const GRID_NORMAL_COLOR:uint = 0x808080;
@@ -40,7 +40,7 @@ package main_module
         {
             const main:Main = Main._instance;
             lastGridGapValue = 0;
-            main.topBar.setGridMoveButtonAlpha(Global.OFFALPHA);
+            MainUI.topBar.setGridMoveButtonAlpha(Global.OFFALPHA);
             canvasGrid.visible = false;
             canvasGrid.graphics.clear();
         }
@@ -122,15 +122,15 @@ package main_module
         public static function cGridFunc():Object
         {
             const main:Main = Main._instance;
-            const minDist:Number = main.topBar.gridSlider.x + 1.5;
-            const maxDist:Number = minDist + main.topBar.gridSlider.width - 2.5;
+            const minDist:Number = MainUI.topBar.gridSlider.x + 1.5;
+            const maxDist:Number = minDist + MainUI.topBar.gridSlider.width - 2.5;
             const step:Number = 20;
             const div:Number = (maxDist - minDist) / step;
             var oldValue:Number;
 
             function setCursorPosByValue(value:Number):void
             {
-                main.topBar.gridSliderCursor.x = value * div + minDist;
+                MainUI.topBar.gridSliderCursor.x = value * div + minDist;
             }
 
             function drawGridByValue(mx:Number, initFlag:Boolean):void
@@ -154,14 +154,14 @@ package main_module
                     {
                         gridGapMultiplier = 0;
                         oldValue = 0;
-                        main.hideBottomHint();
+                        MainUI.hideBottomHint();
                         clearGrid();
                         return;
                     }
                     else
                     {
-                        if (main.topBar.isGridMoveButtonOFFAlpha())
-                            main.topBar.setGridMoveButtonAlpha(1.0);
+                        if (MainUI.topBar.isGridMoveButtonOFFAlpha())
+                            MainUI.topBar.setGridMoveButtonAlpha(1.0);
 
                         if (oldValue > 0 && value > 0)
                         {
@@ -171,12 +171,12 @@ package main_module
 
                         gridGapMultiplier = value;
                         oldValue = value;
-                        main.showMouseHintTemp(HintStrings.getGridGapAdjustHintString(value, GRID_GAP));
+                        MainUI.showMouseHintTemp(HintStrings.getGridGapAdjustHintString(value, GRID_GAP));
                         drawGrid();
                     }
                 }
 
-                main.setAsTopChild(canvasGrid);
+                Utils.setAsTopChild(canvasGrid);
             }
 
             function onMouseUpGridButton(e:MouseEvent):void
@@ -188,7 +188,7 @@ package main_module
 
             function onMouseMoveGridButton(e:MouseEvent):void
             {
-                var mx:Number = main.topBar.gridSliderWrapper.mouseX;
+                var mx:Number = MainUI.topBar.gridSliderWrapper.mouseX;
 
                 if (mx < minDist)
                 {
@@ -200,7 +200,7 @@ package main_module
                 }
 
                 drawGridByValue(mx, false);
-                main.showBottomHint(HintStrings.getHintFromTargetName("gridSliderWrapper"));
+                MainUI.showBottomHint(HintStrings.getHintFromTargetName("gridSliderWrapper"));
             }
 
             function repeatGridMoveByValue(moveX:Number, moveY:Number):void
@@ -227,36 +227,36 @@ package main_module
                     return;
                 const targetName:String = e.target.name;
 
-                if (targetName === "gridButton" || main.topBar.gridButtonWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+                if (targetName === "gridButton" || MainUI.topBar.gridButtonWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
                 {
                     off();
                     return;
                 }
 
-                if (main.topBar.gridMoveButtonWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                if (MainUI.topBar.gridMoveButtonWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                 {
                     if (e.target.alpha === 1.0)
                     {
                         var p:Point;
 
                         if (targetName === "gridMoveLeftButton")
-                            p = main.rotatePoint(-1, 0, main.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(-1, 0, main.canvasAnchorPoint.rotation);
                         else if (targetName === "gridMoveRightButton")
-                            p = main.rotatePoint(1, 0, main.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(1, 0, main.canvasAnchorPoint.rotation);
                         else if (targetName === "gridMoveUpButton")
-                            p = main.rotatePoint(0, -1, main.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(0, -1, main.canvasAnchorPoint.rotation);
                         else if (targetName === "gridMoveDownButton")
-                            p = main.rotatePoint(0, 1, main.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(0, 1, main.canvasAnchorPoint.rotation);
 
                         if (p !== null)
                             repeatGridMoveByValue(p.x, p.y);
                     }
                 }
-                else if (main.topBar.gridSliderWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                else if (MainUI.topBar.gridSliderWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                 {
                     main.isMouseDragging = true;
                     oldValue = gridGapMultiplier;
-                    drawGridByValue(main.topBar.gridSliderWrapper.mouseX, true);
+                    drawGridByValue(MainUI.topBar.gridSliderWrapper.mouseX, true);
                     main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
                     main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
                 }
@@ -272,7 +272,7 @@ package main_module
                         {
                             if (gridGapMultiplier !== 0)
                             {
-                                main.hideBottomHint();
+                                MainUI.hideBottomHint();
                                 oldValue = 0;
                                 resetGrid();
                             }
@@ -314,7 +314,7 @@ package main_module
                 {
                     if (gridGapMultiplier !== 0)
                     {
-                        main.hideBottomHint();
+                        MainUI.hideBottomHint();
                         resetGrid();
                     }
                 }
@@ -326,7 +326,7 @@ package main_module
 
             function off():void
             {
-                main.hideBottomHint();
+                MainUI.hideBottomHint();
                 main.isMouseDragging = false;
                 main.removeKeyRepeatEvents(null);
                 main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton);
@@ -334,25 +334,25 @@ package main_module
                 main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
                 main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton);
-                main.topBar.setReplaySpeedBarToGridSliderOFF(main.stage);
+                MainUI.topBar.setReplaySpeedBarToGridSliderOFF(main.stage);
                 main.clearKeyBuffer();
                 main.addInputEventsDrawMode();
             }
 
             function start(shortcutKey:Boolean):void
             {
-                if (main.topBar.gridButtonWrapper.visible === false)
+                if (MainUI.topBar.gridButtonWrapper.visible === false)
                 {
                     main.removeInputEventsDrawMode();
-                    main.topBar.setGridMoveButtonAlpha(gridGapMultiplier > 0 ? 1.0 : Global.OFFALPHA);
-                    main.topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
+                    MainUI.topBar.setGridMoveButtonAlpha(gridGapMultiplier > 0 ? 1.0 : Global.OFFALPHA);
+                    MainUI.topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
                     setCursorPosByValue(gridGapMultiplier);
 
                     if (shortcutKey)
                     {
-                        const p:Point = main.topBar.globalToLocal(new Point(main.stage.mouseX, main.stage.mouseY));
-                        main.topBar.gridButtonWrapper.x = p.x - main.topBar.gridSliderWrapper.x - main.topBar.gridSliderCursor.x;
-                        main.topBar.gridButtonWrapper.y = p.y - main.topBar.gridSliderWrapper.y - main.topBar.gridSliderCursor.y;
+                        const p:Point = MainUI.topBar.globalToLocal(new Point(main.stage.mouseX, main.stage.mouseY));
+                        MainUI.topBar.gridButtonWrapper.x = p.x - MainUI.topBar.gridSliderWrapper.x - MainUI.topBar.gridSliderCursor.x;
+                        MainUI.topBar.gridButtonWrapper.y = p.y - MainUI.topBar.gridSliderWrapper.y - MainUI.topBar.gridSliderCursor.y;
                     }
 
                     main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton, false, -1);

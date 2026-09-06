@@ -40,7 +40,7 @@ package main_module
 
             function onDragStart():void
             {
-                main.setAsTopChild(target);
+                Utils.setAsTopChild(target);
             }
 
             function onMouseMove():void
