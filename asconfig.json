@@ -1,8 +1,13 @@
 {
 	"config": "air",
 	"compilerOptions": {
-		"external-library-path": [
-			"extension"
+		//external-library-path는 디버깅때 파일을 포함하지만 최종 swf구현에 넣지 않음
+		//library-path"는 최종 swf에 포함 시킴
+		// "external-library-path": [
+		// 	"extension"
+		// ],
+		"library-path": [
+			"extension/libwebp.swc"
 		],
 		"source-path": [
 			"src"
@@ -10,8 +15,12 @@
 		"output": "fofoPaint.swf",
 		"target-player": "51.1",
 		"swf-version": 51,
-		"debug": true
+		"debug": true,
+		"strict": true,
+		"warnings": true,
+		"verbose-stacktraces": true
 	},
 	"application": "fofoPaint-app.xml",
-	"mainClass": "Main"
+	"mainClass": "Main",
+	"type": "app"
 }

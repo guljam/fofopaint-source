@@ -14,11 +14,4 @@
 /vscode_fofo_auto_release.bat
 
 # raw_resource는 기본적으로 전부 제외
-/raw_resource/*
-
-# source 폴더는 탐색 허용
-!/raw_resource/source/
-/raw_resource/source/*
-
-# 이 파일 하나만 Git에 포함
-!/raw_resource/source/fofoPaint-animate-27.13.swf
+/raw_resource/

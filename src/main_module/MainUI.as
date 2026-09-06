@@ -6,6 +6,10 @@ package main_module
     import flash.display.DisplayObject;
     import flash.events.MouseEvent;
 
+    import Symbols.TopMenuSet;
+    import Symbols.HintBoxSet;
+    import Symbols.RotateCursorSet;
+
     public final class MainUI
     {
         private static const main:Main = Main._instance;
@@ -13,7 +17,10 @@ package main_module
         public static const topBar:TopMenuSet = new TopMenuSet();
         public static const mouseHint:HintBoxSet = new HintBoxSet(main.stage, true);
         public static const bottomHint:HintBoxSet = new HintBoxSet(main.stage, false);
-        public static const bottomHintScrolling:HintScrolling = new HintScrolling(bottomHint, main.stage);
+        private static const BOTTOM_HINT_SCROLL_TIMER:String = "bottomHintScrollTimer";
+        private static var bottomHintScrollWaitFrames:int = 0;
+        private static var bottomHintScrollToLeft:Boolean = true;
+        private static const BOTTOM_HINT_SCROLL_SPEED:Number = 2;
         public static const bottomBar:Sprite = new Sprite();
         public static const hintHighlightBox:Shape = new Shape(); // 요소에 마우스 클릭하면 사각형으로 하이라이트 표시해줌
         public static const lastBottomHintTargetRect:Rectangle = new Rectangle(); // bottomhint mosue move에서 자꾸 호출해주니까 저장해서 호출 덜하게 해줌
@@ -266,7 +273,11 @@ package main_module
 
             if (bottomHint.width > main.stage.stageWidth)
             {
-                bottomHintScrolling.start();
+                startBottomHintScrolling();
+            }
+            else
+            {
+                stopBottomHintScrolling();
             }
         }
 
@@ -457,7 +468,78 @@ package main_module
                 canvasRotateCursor.rotateArrow.rotation = deg;
                 return Math.round(deg);
             };
+        }
 
+        private static function resetBottomHintScrolling():void
+        {
+            bottomHint.x = 0;
+            bottomHintScrollWaitFrames = 0;
+            bottomHintScrollToLeft = true;
+        }
+
+        private static function animateBottomHintScrolling():Boolean
+        {
+            if (!bottomHint.visible)
+            {
+                resetBottomHintScrolling();
+                return false;
+            }
+
+            const rect:Rectangle = bottomHint.getBounds(main.stage);
+            const scale:Number = rect.width / bottomHint.width;
+            const move:Number = BOTTOM_HINT_SCROLL_SPEED * scale;
+
+            if (bottomHintScrollWaitFrames < main.stage.frameRate)
+            {
+                bottomHintScrollWaitFrames++;
+                return true;
+            }
+
+            if (bottomHintScrollToLeft)
+            {
+                if (rect.right > main.stage.stageWidth)
+                {
+                    bottomHint.x -= move;
+                }
+                else
+                {
+                    bottomHintScrollToLeft = false;
+                    bottomHintScrollWaitFrames = 0;
+                }
+            }
+            else
+            {
+                if (rect.left < 0)
+                {
+                    bottomHint.x += move;
+                }
+                else
+                {
+                    bottomHintScrollToLeft = true;
+                    bottomHintScrollWaitFrames = 0;
+                }
+            }
+
+            return true;
+        }
+
+        private static function startBottomHintScrolling():void
+        {
+            resetBottomHintScrolling();
+
+            FOFOTimer.remove(BOTTOM_HINT_SCROLL_TIMER);
+            FOFOTimer.addByName(
+                    BOTTOM_HINT_SCROLL_TIMER,
+                    0.0,
+                    true,
+                    animateBottomHintScrolling
+                );
+        }
+
+        private static function stopBottomHintScrolling():void
+        {
+            FOFOTimer.remove(BOTTOM_HINT_SCROLL_TIMER);
+            resetBottomHintScrolling();
         }
     }
 }

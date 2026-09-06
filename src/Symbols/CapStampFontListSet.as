@@ -1,4 +1,4 @@
-﻿package
+﻿package Symbols
 {
 
 	import flash.display.Sprite;
@@ -13,7 +13,6 @@
 	import flash.events.MouseEvent;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.geom.ColorTransform;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
@@ -288,7 +287,7 @@
 		}
 
 		[Embed(
-            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            source="fofoPaint-animate-27.13.swf",
             symbol="CapStampFontListSet"
         )]
 		private static const EmbeddedClass:Class;

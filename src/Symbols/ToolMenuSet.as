@@ -1,4 +1,5 @@
-﻿package {
+﻿package Symbols
+{
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
@@ -320,7 +321,7 @@
 			toolFillPenCancel.y = toolPen.y;
 		}
 		[Embed(
-            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            source="fofoPaint-animate-27.13.swf",
             symbol="ToolMenuSet"
         )]
         private static const EmbeddedClass:Class;

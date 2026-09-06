@@ -1,4 +1,4 @@
-﻿package
+﻿package Symbols
 {
 	import flash.display.Sprite;
 	import flash.display.GradientType;
@@ -446,7 +446,7 @@
 		//custom color, colorhistoryBox, drawr프리셋 따로따로 전부가 첫번째 자식들임
 
 		[Embed(
-            source="../raw_resource/source/fofoPaint-animate-27.13.swf",
+            source="fofoPaint-animate-27.13.swf",
             symbol="ColorPickerSet"
         )]
 		private static const EmbeddedClass:Class;

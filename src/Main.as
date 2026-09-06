@@ -4,7 +4,6 @@
     import flash.desktop.ClipboardFormats;
     import flash.desktop.NativeApplication;
     import flash.desktop.NativeDragManager;
-    import flash.desktop.Updater;
     import flash.display.Shape;
     import flash.display.Sprite;
     import flash.display.Bitmap;
@@ -20,17 +19,12 @@
     import flash.display.StageScaleMode;
     import flash.display.StageAlign;
     import flash.display.StageQuality;
-    import flash.display.NativeWindow;
     import flash.display.Loader;
-    import flash.display.NativeWindowInitOptions;
-    import flash.display.NativeWindowSystemChrome;
-    import flash.display.NativeWindowType;
     import flash.events.Event;
     import flash.events.IOErrorEvent;
     import flash.events.MouseEvent;
     import flash.events.KeyboardEvent;
     import flash.events.NativeDragEvent;
-    import flash.events.NativeWindowBoundsEvent;
     import flash.events.FocusEvent;
     import flash.events.InvokeEvent;
     import flash.events.TimerEvent;
@@ -71,14 +65,30 @@
     import main_module.ImageViewWindow;
     import main_module.MainUI;
     import main_module.AppUpdater;
-    import flash.display.Stage;
+    import Symbols.ToolMenuSet;
+    import Symbols.ToolMenuSet2;
+    import Symbols.FillPenMenuSet;
+    import Symbols.EyedropperLensSet;
+    import Symbols.AboutWindowSet;
+    import Symbols.CanvasInfoSet;
+    import Symbols.CanvasNavigatorBoxSet;
+    import Symbols.CapStampFontListSet;
+    import Symbols.ColorPickerSet;
+    import Symbols.FOFO;
+    import Symbols.LassoMenuSet;
+    import Symbols.LoadBoxSet;
+    import Symbols.NumPadSet;
+    import Symbols.RefLayerMenuSet;
+    import Symbols.SidePanelSet;
+    import Symbols.ToolOptionsSet;
+    import Symbols.seekBarSet;
+    import Symbols.FOFO;
 
     // import
 
     public class Main extends Sprite
     {
         public static var _instance:Main;
-        public static var _stage:Stage;
         public const APP_VERSION:Number = 28.01;
         public const APP_STATE_VERSION:Number = 2801;
 
@@ -578,7 +588,6 @@
         public function Main():void
         {
             _instance = this;
-            _stage = this.stage;
 
             if (this.stage)
             {
