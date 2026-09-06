@@ -7,6 +7,12 @@ package main_module
 
     public class Utils
     {
+        // 객체의 alpha값이 8비트int로 변환된후 다시 Number로 변환되기 때문에 실제 소수점 비교를 할때도 같은 방식을 써주어야함
+        public static function normalizeAlphaValue(alp:Number):Number
+        {
+            return Math.round(alp * 256) / 256;
+        }
+
         // 0,0을 기준으로 점tx,ty를 rad만큼 회전함,
         // 3시 방향이 0도이고, 반시계 방향이 양수값임.
         public static function rotatePoint(tx:Number, ty:Number, deg:Number):Point
@@ -46,7 +52,7 @@ package main_module
             var myLastPos:Number;
             var moveFlag:int;
 
-            return function(mx:Number, my:Number):Number
+            return function (mx:Number, my:Number):Number
             {
                 const main:Main = Main._instance;
                 if (moveFlag != 0)
@@ -111,7 +117,7 @@ package main_module
             const zoom:Number = main.canvasZoomMultipler;
             const angle:Number = targetAngle;
 
-            return function():Point
+            return function ():Point
             {
                 const dx:Number = main.stage.mouseX - mx;
                 const dy:Number = main.stage.mouseY - my;

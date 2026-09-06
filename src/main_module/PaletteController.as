@@ -8,6 +8,7 @@ package main_module
     import flash.filesystem.FileMode;
     import flash.geom.Point;
     import main_module.tools.PenTool;
+    import flash.display.Graphics;
 
     public final class PaletteController
     {
@@ -55,7 +56,7 @@ package main_module
                     }
                     else
                     {
-                        main.activeColorPreset(0);
+                        ColorPickerController.activeColorPreset(0);
                     }
                 }
             }
@@ -63,7 +64,7 @@ package main_module
 
             FOFOTimer.addByName("selectMyPaletteDelayTimer", 0.4, false, function():void
                 {
-                    main.startPressHoldKey(main.colorPickerBox.myPaletteButton, "Clearing my palette..", null, clearMyPaletteList, null);
+                    main.startPressHoldKey(ColorPickerController.colorPickerBox.myPaletteButton, "Clearing my palette..", null, clearMyPaletteList, null);
                     main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
                 });
         }
@@ -91,7 +92,7 @@ package main_module
                     if (firstClickColorIndex === getMyPaletteIndexByMousePos())
                     {
                         colorAddedFlag = true;
-                        addColorToMyPalette(main.colorPickerBox.getRGBInfoBGColor(), getMyPaletteIndexByMousePos());
+                        addColorToMyPalette(ColorPickerController.colorPickerBox.getRGBInfoBGColor(), getMyPaletteIndexByMousePos());
                     }
                     else
                     {
@@ -107,8 +108,8 @@ package main_module
 
             const isAllViewMode:Boolean = (myPalettePresetType === 0 && isMyPaletteExpended);
             const paletteLines:int = (isAllViewMode) ? 8 : 2;
-            var xLineIndex:int = Math.floor(main.colorPickerBox.myPaletteBox.mouseX / myPaletteColorWidth);
-            var yLineIndex:int = Math.floor(main.colorPickerBox.myPaletteBox.mouseY / myPaletteColorHeight);
+            var xLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseX / myPaletteColorWidth);
+            var yLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseY / myPaletteColorHeight);
 
             if (xLineIndex < 0)
                 xLineIndex = 0;
@@ -136,8 +137,8 @@ package main_module
         {
             const main:Main = Main._instance;
 
-            const xLineIndex:int = Math.floor(main.colorPickerBox.colorHistoryBox.mouseX / myPaletteColorWidth);
-            const yLineIndex:int = 10 * (Math.floor(main.colorPickerBox.colorHistoryBox.mouseY / myPaletteColorHeight));
+            const xLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.colorHistoryBox.mouseX / myPaletteColorWidth);
+            const yLineIndex:int = 10 * (Math.floor(ColorPickerController.colorPickerBox.colorHistoryBox.mouseY / myPaletteColorHeight));
 
             if (xLineIndex + yLineIndex < 0 || xLineIndex + yLineIndex > myPaletteColorLimit)
             {
@@ -151,8 +152,8 @@ package main_module
         {
             const main:Main = Main._instance;
 
-            var xLineIndex:int = Math.floor(main.colorPickerBox.myPaletteBox.mouseX / myPaletteColorWidth);
-            var yLineIndex:int = 10 * (Math.floor(main.colorPickerBox.myPaletteBox.mouseY / myPaletteColorHeight));
+            var xLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseX / myPaletteColorWidth);
+            var yLineIndex:int = 10 * (Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseY / myPaletteColorHeight));
             if (xLineIndex > 9)
                 xLineIndex = 9;
             if (yLineIndex > 80)
@@ -195,19 +196,19 @@ package main_module
             {
                 if (PenTool.isTransparentPenColor === false)
                 {
-                    main.selectTransparentColor();
+                    ColorPickerController.selectTransparentColor();
                 }
                 return;
             }
 
             const pickedColor:uint = myPalettePreset[index + 90];
 
-            if (pickedColor === main.colorPickerBox.getRGBInfoBGColor() && !PenTool.isTransparentPenColor)
+            if (pickedColor === ColorPickerController.colorPickerBox.getRGBInfoBGColor() && !PenTool.isTransparentPenColor)
             {
                 return;
             }
 
-            main.pickColor(pickedColor);
+            ColorPickerController.pickColor(pickedColor);
         }
 
         public static function selectMyPaletteColor():void
@@ -235,9 +236,9 @@ package main_module
             {
                 if (isSelctedColorEmpty(index))
                 {
-                    if (PenTool.isTransparentPenColor === false && main.isColorPickerModeBG === false)
+                    if (PenTool.isTransparentPenColor === false && ColorPickerController.isColorPickerModeBG === false)
                     {
-                        main.selectTransparentColor();
+                        ColorPickerController.selectTransparentColor();
                     }
                     return;
                 }
@@ -253,9 +254,9 @@ package main_module
             {
                 if (isSelctedColorEmpty(index))
                 {
-                    if (PenTool.isTransparentPenColor === false && main.isColorPickerModeBG === false)
+                    if (PenTool.isTransparentPenColor === false && ColorPickerController.isColorPickerModeBG === false)
                     {
-                        main.selectTransparentColor();
+                        ColorPickerController.selectTransparentColor();
                     }
                     return;
                 }
@@ -269,11 +270,11 @@ package main_module
             }
             else if (myPalettePresetType === 2)
             {
-                main.selectTegakiColorPreset(index);
+                ColorPickerController.selectTegakiColorPreset(index);
                 return;
             }
 
-            main.pickColor(pickedColor);
+            ColorPickerController.pickColor(pickedColor);
         }
 
         public static function saveMypPaletteList():void
@@ -340,7 +341,7 @@ package main_module
             }
             else
             {
-                if (myPalettePreset[index] !== main.colorPickerBox.getRGBInfoBGColor())
+                if (myPalettePreset[index] !== ColorPickerController.colorPickerBox.getRGBInfoBGColor())
                 {
                     myPaletteColorBeforeAddColor[0] = index;
                     myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
@@ -393,9 +394,9 @@ package main_module
                 return;
             }
 
-            if ((main.pickerIgnoreHistoryColor as uint) === color)
+            if ((ColorPickerController.pickerIgnoreHistoryColor as uint) === color)
             {
-                main.pickerIgnoreHistoryColor = null;
+                ColorPickerController.pickerIgnoreHistoryColor = null;
                 return;
             }
 
@@ -436,34 +437,34 @@ package main_module
         {
             const main:Main = Main._instance;
 
-            main.colorPickerBox.colorHistoryBox.graphics.clear();
+            ColorPickerController.colorPickerBox.colorHistoryBox.graphics.clear();
 
             for (var i:uint = 0; i < 10; i++)
             {
                 if (90 + i === ignoreIndex)
                 {
-                    main.drawColorStartPos(main.colorPickerBox.colorHistoryBox.graphics, myPaletteColorWidth * i, 0, myPaletteColorWidth, myPaletteColorHeight);
+                    PaletteController.drawColorStartPos(ColorPickerController.colorPickerBox.colorHistoryBox.graphics, myPaletteColorWidth * i, 0, myPaletteColorWidth, myPaletteColorHeight);
                     continue;
                 }
                 if (!(myPalettePreset[90 + i] is uint))
                 {
-                    main.colorPickerBox.colorHistoryBox.graphics.beginBitmapFill(main.colorPickerBox.myPaletteTransBGBmpd);
+                    ColorPickerController.colorPickerBox.colorHistoryBox.graphics.beginBitmapFill(ColorPickerController.colorPickerBox.myPaletteTransBGBmpd);
                 }
                 else
                 {
-                    main.colorPickerBox.colorHistoryBox.graphics.beginFill(myPalettePreset[i + 90]);
+                    ColorPickerController.colorPickerBox.colorHistoryBox.graphics.beginFill(myPalettePreset[i + 90]);
                 }
 
-                main.colorPickerBox.colorHistoryBox.graphics.drawRect(myPaletteColorWidth * i, 0, myPaletteColorWidth, myPaletteColorHeight);
+                ColorPickerController.colorPickerBox.colorHistoryBox.graphics.drawRect(myPaletteColorWidth * i, 0, myPaletteColorWidth, myPaletteColorHeight);
             }
 
-            main.colorPickerBox.colorHistoryBox.graphics.endFill();
-            main.colorPickerBox.colorHistoryBox.graphics.lineStyle(1, 0, 0.2);
+            ColorPickerController.colorPickerBox.colorHistoryBox.graphics.endFill();
+            ColorPickerController.colorPickerBox.colorHistoryBox.graphics.lineStyle(1, 0, 0.2);
 
             for (i = 1; i < 10; i++)
             {
-                main.colorPickerBox.colorHistoryBox.graphics.moveTo(myPaletteColorWidth * i, 0);
-                main.colorPickerBox.colorHistoryBox.graphics.lineTo(myPaletteColorWidth * i, myPaletteColorHeight);
+                ColorPickerController.colorPickerBox.colorHistoryBox.graphics.moveTo(myPaletteColorWidth * i, 0);
+                ColorPickerController.colorPickerBox.colorHistoryBox.graphics.lineTo(myPaletteColorWidth * i, myPaletteColorHeight);
             }
         }
 
@@ -486,8 +487,8 @@ package main_module
             var nextX:Number = 0.0;
             var nextY:Number = 0.0;
 
-            main.colorPickerBox.myPaletteBox.graphics.clear();
-            main.colorPickerBox.myPaletteBox.graphics.lineStyle(0, 0, 0);
+            ColorPickerController.colorPickerBox.myPaletteBox.graphics.clear();
+            ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineStyle(0, 0, 0);
 
             var px:Number;
             var py:Number;
@@ -507,46 +508,46 @@ package main_module
 
                 if (i === ignoreIndex)
                 {
-                    main.drawColorStartPos(main.colorPickerBox.myPaletteBox.graphics, px, py, ww, hh);
+                    drawColorStartPos(ColorPickerController.colorPickerBox.myPaletteBox.graphics, px, py, ww, hh);
                     continue;
                 }
 
                 if (!(arr[i] is uint))
                 {
-                    main.colorPickerBox.myPaletteBox.graphics.beginBitmapFill(main.colorPickerBox.myPaletteTransBGBmpd);
+                    ColorPickerController.colorPickerBox.myPaletteBox.graphics.beginBitmapFill(ColorPickerController.colorPickerBox.myPaletteTransBGBmpd);
                 }
                 else
                 {
-                    main.colorPickerBox.myPaletteBox.graphics.beginFill(arr[i]);
+                    ColorPickerController.colorPickerBox.myPaletteBox.graphics.beginFill(arr[i]);
                 }
 
-                main.colorPickerBox.myPaletteBox.graphics.drawRect(px, py, ww, hh);
+                ColorPickerController.colorPickerBox.myPaletteBox.graphics.drawRect(px, py, ww, hh);
             }
-            main.colorPickerBox.myPaletteBox.graphics.endFill();
+            ColorPickerController.colorPickerBox.myPaletteBox.graphics.endFill();
 
             // 구분선 그려주기
             if (type === 2) // tegaki
             {
-                main.colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
-                main.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
-                main.colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
+                ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
+                ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
+                ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
 
                 for (i = 2; i < 10; i += 2)
                 {
-                    main.colorPickerBox.myPaletteBox.graphics.moveTo(ww * i, 0);
-                    main.colorPickerBox.myPaletteBox.graphics.lineTo(ww * i, hh * 2);
+                    ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(ww * i, 0);
+                    ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(ww * i, hh * 2);
                 }
             }
             else if (type === 1) // drawr
             {
-                main.colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
-                main.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
-                main.colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
+                ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
+                ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
+                ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
 
                 for (i = 1; i < 10; i++)
                 {
-                    main.colorPickerBox.myPaletteBox.graphics.moveTo(ww * i, 0);
-                    main.colorPickerBox.myPaletteBox.graphics.lineTo(ww * i, hh * 2);
+                    ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(ww * i, 0);
+                    ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(ww * i, hh * 2);
                 }
             }
             else // my palette
@@ -554,37 +555,37 @@ package main_module
                 if (isMyPaletteExpended === false)
                 {
                     // 가로선
-                    main.colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
-                    main.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
-                    main.colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
+                    ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
+                    ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
+                    ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
 
                     // 세로
                     for (i = 1; i < 10; i++)
                     {
-                        main.colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth * i, 0);
-                        main.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * i, hh * 2);
+                        ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth * i, 0);
+                        ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * i, hh * 2);
                     }
                 }
                 else
                 {
-                    main.colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
+                    ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
 
                     // 가로
                     for (i = 1; i < 9; i++)
                     {
-                        main.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh * i);
-                        main.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * 10, hh * i);
+                        ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh * i);
+                        ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * 10, hh * i);
                     }
                     // 세로
                     for (i = 1; i < 10; i++)
                     {
-                        main.colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth * i, 0);
-                        main.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * i, hh * 9);
+                        ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth * i, 0);
+                        ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * i, hh * 9);
                     }
                 }
             }
 
-            main.colorPickerBox.updateMainColorPickerBoxPosition(main.isColorPickerBoxPositionSwapped);
+            ColorPickerController.colorPickerBox.updateMainColorPickerBoxPosition(ColorPickerController.isColorPickerBoxPositionSwapped);
         }
 
         public static function startColorHistoryBoxDragging():void
@@ -597,8 +598,8 @@ package main_module
             {
                 myPaletteDragClickedIndex = index + 90;
                 myPaletteDragClickedColor = myPalettePreset[index + 90];
-                myPaletteClickPos.setTo(main.colorPickerBox.mouseX, main.colorPickerBox.mouseY);
-                myPaletteMovePos.setTo(main.colorPickerBox.mouseX, main.colorPickerBox.mouseY);
+                myPaletteClickPos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
+                myPaletteMovePos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
             }
 
             function onMouseMove():void
@@ -608,16 +609,16 @@ package main_module
                     if (myPaletteDragStarted === false)
                     {
                         myPaletteDragStarted = true;
-                        main.colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
+                        ColorPickerController.colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
                         updateMyPaletteList(myPaletteDragClickedIndex);
                         updateHistoryList(myPaletteDragClickedIndex);
                     }
 
-                    main.colorPickerBox.updateDragColorPosToCursor();
+                    ColorPickerController.colorPickerBox.updateDragColorPosToCursor();
                 }
                 else
                 {
-                    myPaletteMovePos.setTo(main.colorPickerBox.mouseX, main.colorPickerBox.mouseY);
+                    myPaletteMovePos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
                 }
             }
 
@@ -627,7 +628,7 @@ package main_module
                 {
                     myPaletteDragStarted = false;
 
-                    if (main.colorPickerBox.myPaletteBox.hitTestPoint(main.mouseX, main.mouseY))
+                    if (ColorPickerController.colorPickerBox.myPaletteBox.hitTestPoint(main.mouseX, main.mouseY))
                     {
                         const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
                         const colorSave:* = myPalettePreset[putIndex];
@@ -641,7 +642,7 @@ package main_module
                 }
 
                 updateHistoryList();
-                main.colorPickerBox.removeDragColor();
+                ColorPickerController.colorPickerBox.removeDragColor();
             }
 
             if (index >= 0 && !isSelctedHistoryColorEmpty(index))
@@ -662,8 +663,8 @@ package main_module
                 {
                     myPaletteDragClickedIndex = index;
                     myPaletteDragClickedColor = myPalettePreset[index];
-                    myPaletteClickPos.setTo(main.colorPickerBox.mouseX, main.colorPickerBox.mouseY);
-                    myPaletteMovePos.setTo(main.colorPickerBox.mouseX, main.colorPickerBox.mouseY);
+                    myPaletteClickPos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
+                    myPaletteMovePos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
                 }
             }
 
@@ -675,15 +676,15 @@ package main_module
                     {
                         FOFOTimer.remove("addColorMyPaletteDelayTimer");
                         myPaletteDragStarted = true;
-                        main.colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
+                        ColorPickerController.colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
                         updateMyPaletteList(myPaletteDragClickedIndex);
                     }
 
-                    main.colorPickerBox.updateDragColorPosToCursor();
+                    ColorPickerController.colorPickerBox.updateDragColorPosToCursor();
                 }
                 else
                 {
-                    myPaletteMovePos.setTo(main.colorPickerBox.mouseX, main.colorPickerBox.mouseY);
+                    myPaletteMovePos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
                 }
             }
 
@@ -701,13 +702,27 @@ package main_module
                     updateMyPaletteList();
                 }
 
-                main.colorPickerBox.removeDragColor();
+                ColorPickerController.colorPickerBox.removeDragColor();
             }
 
             if (index >= 0 && !isSelctedColorEmpty(index))
             {
                 DragInteraction.startDragInteraction(onDragStart, onMouseMouse, onMouseUp);
             }
+        }
+
+        public static function drawColorStartPos(g:Graphics, px:Number, py:Number, ww:Number, hh:Number):void
+        {
+            g.beginFill(0xFFFFFF);
+            g.drawRect(px, py, PaletteController.myPaletteColorWidth, PaletteController.myPaletteColorHeight);
+            g.endFill();
+
+            g.lineStyle(3, 0xFF6600);
+            g.moveTo(px + 5, py + 5);
+            g.lineTo(px + ww - 5, py + hh - 5);
+            g.moveTo(px + ww - 5, py + 5);
+            g.lineTo(px + 5, py + hh - 5);
+            g.lineStyle(0, 0, 0);
         }
     }
 }

@@ -470,7 +470,7 @@ package main_module
 
                     main.updateStageBGSize();
                     SidebarController.checkFOFOPosition();
-                    main.updateBottomBarLayoutAndColor();
+                    updateBottomBarLayoutAndColor();
                     lastAppWindowSize.setTo(main.stage.nativeWindow.width, main.stage.nativeWindow.height);
                     MainUI.hideBottomHint();
 
@@ -550,6 +550,85 @@ package main_module
             {
                 main.unblockMouseClickAfterDelay();
             }
+        }
+
+        public static function updateStageBGColor():void
+        {
+            const main:Main = Main._instance;
+            const color:uint = Global.getUIStageColor();
+
+            main.stage.color = color;
+            MainUIController.STAGE_BG_COLOR = color;
+        }
+
+        public static function cycleUIColor():void
+        {
+            Global.setNextUIColor();
+            applyUIColorSet();
+            MainUI.showMouseHintTemp(Global.setUIColorString());
+        }
+
+        public static function applyUIColorSet():void
+        {
+            const main:Main = Main._instance;
+            updateStageBGColor();
+            updateBottomBarLayoutAndColor();
+
+            main.canvasNavigatorBox.chanegStageColor(MainUIController.STAGE_BG_COLOR);
+
+            if (ImageViewWindow.isCanvasWindowON)
+            {
+                ImageViewWindow.canvasWindow.stage.color = MainUIController.STAGE_BG_COLOR;
+            }
+
+            SidebarController.sideBar.updateUIColor();
+            main.toolOptionsBox.updateUIColor();
+            ColorPickerController.colorPickerBox.updateUIColor();
+            main.canvasInfoBox.updateUIColor();
+            MainUI.canvasRotateCursor.changeUIColor();
+            main.fofo.updateColor();
+            main.toolBox.changeUIColor();
+            main.toolBox2.changeUIColor();
+            main.fillPenBox.updateUIColor();
+            main.lassoMenuBox.updateUIColor();
+            main.numPadBox.updateUIColor();
+            ReferenceLayerController.refLayerMenuBox.updateUIColor();
+            MainUI.topBar.updateUIColor();
+            main.seekBarBox.updateUIColor();
+            main.captureStampFontListBox.updateUIColor();
+            MainUI.mouseHint.updateBGColor();
+            MainUI.bottomHint.updateHintTextColor(0);
+
+            MainUIController.setResizeButtonColor();
+            SidebarController.updateScrollBarColorAndHeight();
+
+            if (ColorPickerController.isColorPickerModeBG)
+            {
+                ColorPickerController.switchColorPickerModePen();
+            }
+
+            ColorPickerController.colorPickerBox.activePaperColorButton(ColorPickerController.isColorPickerModeBG);
+            ClipboardManager.checkCanUseClipBoardButton();
+            ColorPickerController.updatePickerBoxTransBGBrightness();
+
+            if (MainUI.isBottomBarVisible())
+            {
+                MainUI.hideBottomHint();
+            }
+        }
+
+        public static function updateBottomBarLayoutAndColor():void
+        {
+            const main:Main = Main._instance;
+
+            MainUI.bottomBar.x = 0;
+            MainUI.bottomBar.y = main.stage.stageHeight - MainUIController.BOTTOM_BAR_HEIGHT * Global.getUIScale();
+
+            MainUI.bottomBar.graphics.clear();
+            // WorkspaceView.bottomBar.graphics.lineStyle(0,0xFF0000,0.0);
+            MainUI.bottomBar.graphics.beginFill(Global.getHintBGColor(), 0.75);
+            MainUI.bottomBar.graphics.drawRect(-3, 0, main.stage.stageWidth + 6, MainUIController.BOTTOM_BAR_HEIGHT + 3);
+            MainUI.bottomBar.graphics.endFill();
         }
     }
 }

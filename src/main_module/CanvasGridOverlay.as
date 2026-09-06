@@ -81,7 +81,7 @@ package main_module
                 gridGraphicsCommands.length = 0;
                 gridGraphicsData.length = 0;
 
-                for (; i <= len; i++)
+                for (;i <= len;i++)
                 {
                     gridGraphicsCommands.push(1);
                     gridGraphicsCommands.push(2);
@@ -99,7 +99,7 @@ package main_module
                 else if (offsetX > 0)
                     i = 0;
 
-                for (; i <= len; i++)
+                for (;i <= len;i++)
                 {
                     gridGraphicsCommands.push(1);
                     gridGraphicsCommands.push(2);
@@ -205,7 +205,7 @@ package main_module
 
             function repeatGridMoveByValue(moveX:Number, moveY:Number):void
             {
-                main.startKeyRepeat(true, function():void
+                main.startKeyRepeat(true, function ():void
                     {
                         gridDrawOffsetX += moveX * (main.isCanvasMirrored ? -1 : 1);
                         gridDrawOffsetY += moveY;

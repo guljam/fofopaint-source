@@ -4,6 +4,7 @@
     import main_module.CanvasGridOverlay;
     import main_module.tools.PenTool;
     import main_module.AppUpdater;
+    import main_module.ColorPickerController;
 
     public class HintStrings
     {
@@ -229,7 +230,7 @@
             {
                 return "";
             }
-            return (_main.isHSVInfoTextMode) ? "'HSV'" : "'RGB'";
+            return (ColorPickerController.isHSVInfoTextMode) ? "'HSV'" : "'RGB'";
         }
 
         static public function getCaptureSaveHintString():String
@@ -302,9 +303,9 @@
                 return "";
             }
 
-            const pickedColor:uint = _main.colorPickerBox.getRGBInfoBGColor();
-            const arr:Vector.<Number> = (_main.isHSVInfoTextMode) ? Global.HEXtoHSV(pickedColor, _main.hsvColorData[0]) : Global.HEXtoRGB(pickedColor);
-            const mode:String = (_main.isHSVInfoTextMode) ? "HSV" : "RGB";
+            const pickedColor:uint = ColorPickerController.colorPickerBox.getRGBInfoBGColor();
+            const arr:Vector.<Number> = (ColorPickerController.isHSVInfoTextMode) ? Global.HEXtoHSV(pickedColor, ColorPickerController.hsvColorData[0]) : Global.HEXtoRGB(pickedColor);
+            const mode:String = (ColorPickerController.isHSVInfoTextMode) ? "HSV" : "RGB";
 
             return "Current color : " + mode + " " + arr[0] + "," + arr[1] + "," + arr[2];
         }

@@ -16,6 +16,7 @@ package main_module
 
     public final class MainUI
     {
+        // todo main ui topbar stage bg 는 따로빼고 hint 클래스로 만들어버리기
         private static const main:Main = Main._instance;
         public static const stageBG:Sprite = new Sprite(); // 드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
         public static const topBar:TopMenuSet = new TopMenuSet();
@@ -194,7 +195,7 @@ package main_module
 
             const rect:Rectangle = target.getBounds(main.stage);
 
-            if (target === main.colorPickerBox.rgbInfoText)
+            if (target === ColorPickerController.colorPickerBox.rgbInfoText)
             {
                 // rect.y -= 2*scale;
                 rect.height -= 2 * scale;
@@ -271,7 +272,7 @@ package main_module
 
             bottomHint.setHintText(str);
             bottomHint.show();
-            main.updateBottomBarLayoutAndColor();
+            MainUIController.updateBottomBarLayoutAndColor();
             bottomBar.visible = true;
             Utils.setAsTopChild(bottomBar);
 
@@ -371,7 +372,7 @@ package main_module
             main.toolBox.moveCanvasControlButtonsTo(main.canvasInfoBox);
             SidebarController.sideBarScrollPanel.addChild(main.toolBox);
             SidebarController.sideBarScrollPanel.addChild(main.toolOptionsBox);
-            SidebarController.sideBarScrollPanel.addChild(main.colorPickerBox);
+            SidebarController.sideBarScrollPanel.addChild(ColorPickerController.colorPickerBox);
 
             SidebarController.sideBar.addChild(SidebarController.sideBarScrollBar);
             SidebarController.sideBar.addChild(SidebarController.sideBarScrollPanel);

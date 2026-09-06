@@ -481,7 +481,7 @@ package main_module
                         0,
                         1.0,
                         refLayerMenuBox.refOpacityCursor);
-                const alpha:Number = main.normalizeAlphaValue(value);
+                const alpha:Number = Utils.normalizeAlphaValue(value);
 
                 if (alpha <= 0.04)
                 {

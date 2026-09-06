@@ -9,6 +9,7 @@ package main_module.tools
     import flash.display.CapsStyle;
     import flash.display.JointStyle;
     import flash.display.LineScaleMode;
+    import main_module.ColorPickerController;
 
     public final class PenTool
     {
@@ -438,10 +439,10 @@ package main_module.tools
                     xColor = penColor;
                     xBlendMode = null;
 
-                    if (!main.isCurrentColorSamePickedColor())
+                    if (!ColorPickerController.isCurrentColorSamePickedColor())
                     {
-                        main.updatePickerCurrentColor(main.colorPickerBox.getRGBInfoBGColor());
-                        PaletteController.addColorMyPaletteHistory(main.colorPickerBox.getRGBInfoBGColor());
+                        ColorPickerController.updatePickerCurrentColor(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
+                        PaletteController.addColorMyPaletteHistory(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
                     }
                 }
             }

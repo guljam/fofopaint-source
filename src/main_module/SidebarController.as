@@ -92,7 +92,7 @@ package main_module
             const collisionTop:Boolean = sideBarRect.intersects(fofoTopRect);
             const collisionBottom:Boolean = sideBarRect.intersects(fofoBottomRect);
 
-            return (collisionTop && collisionBottom) ? 0 : (collisionBottom) ? 1 : (collisionTop) ? 2 : 3;
+            return (collisionTop && collisionBottom) ? FOFO.COLLISION_ALL : (collisionBottom) ? FOFO.COLLISION_BOTTOM : (collisionTop) ? FOFO.COLLISION_TOP : FOFO.COLLISION_NONE;
         }
 
         public static function alignFOFOToSidebar():void
@@ -107,6 +107,7 @@ package main_module
                 fofo.setMirror(true);
                 fofo.x = sideBar.x;
             }
+            trace('fofo.x ', fofo.x);
         }
 
         public static function checkFOFOPosition():void
@@ -116,6 +117,7 @@ package main_module
             if (!sideBar.visible)
             {
                 fofo.visible = false;
+
                 return;
             }
 
@@ -124,29 +126,30 @@ package main_module
 
             switch (checkYPos)
             {
-                case 3:
-                    // 충돌 없음 그대로 둠
+                case FOFO.COLLISION_NONE:
                     return;
 
-                case 0:
-                    // 위/아래 모두 충돌 숨김
+                case FOFO.COLLISION_ALL:
                     fofo.visible = false;
                     break;
 
-                case 1:
-                    // 아래쪽 충돌
-                    fofo.setTop(MainUIController.STAGE_TOP_OFFSET);
-                    alignFOFOToSidebar();
-                    fofo.visible = true;
+                case FOFO.COLLISION_BOTTOM:
+                    {
+                        fofo.setTop(MainUIController.STAGE_TOP_OFFSET);
+                        alignFOFOToSidebar();
+                        fofo.visible = true;
+                    }
                     break;
 
-                case 2:
-                    // 위쪽 충돌
-                    alignFOFOToSidebar();
-                    fofo.setBottom(main.stage.stageHeight - MainUIController.STAGE_BOTTOM_OFFSET);
-                    fofo.visible = true;
+                case FOFO.COLLISION_TOP:
+                    {
+                        alignFOFOToSidebar();
+                        fofo.setBottom(main.stage.stageHeight - MainUIController.STAGE_BOTTOM_OFFSET);
+                        fofo.visible = true;
+                    }
                     break;
             }
+            trace('fofo.visible', fofo.visible, fofo.parent);
         }
 
         public static function onMouseUpQuickSidebar(e:MouseEvent):void
@@ -186,7 +189,7 @@ package main_module
             }
 
             MainUI.hideBottomHint();
-            main.closeNumpad();
+            ColorPickerController.closeNumpad();
         }
 
         public static function startDeactivteQuickSidebar():void
@@ -428,7 +431,7 @@ package main_module
         {
             isSidebarTempShowDeactivated = true;
 
-            FOFOTimer.addByName("sidebarTempShowActivateTimer", 0.7, false, function():void
+            FOFOTimer.addByName("sidebarTempShowActivateTimer", 0.7, false, function ():void
                 {
                     isReactivateSidebarTempShowEventsAdded = false;
                     isSidebarTempShowDeactivated = false;
@@ -693,8 +696,8 @@ package main_module
             main.toolOptionsBox.x = isRight ? 39 : 0;
             main.toolOptionsBox.y = Math.floor(main.canvasInfoBox.y + main.canvasInfoBox.height + 7);
 
-            main.colorPickerBox.x = main.toolOptionsBox.x;
-            main.colorPickerBox.y = Math.floor(main.toolOptionsBox.y + main.toolOptionsBox.height + 10);
+            ColorPickerController.colorPickerBox.x = main.toolOptionsBox.x;
+            ColorPickerController.colorPickerBox.y = Math.floor(main.toolOptionsBox.y + main.toolOptionsBox.height + 10);
 
             main.toolBox.x = isRight ? -2 : 177;
             main.toolBox.y = Math.floor(main.toolOptionsBox.y + 1);
@@ -903,7 +906,7 @@ package main_module
                     main.startCanvasMoveByCanvasNavigator(true);
                     return true;
                 }
-                else if (main.handleColorPickerBoxMouseDown(target) && !main.isKeyPressed())
+                else if (ColorPickerController.handleColorPickerBoxMouseDown(target) && !main.isKeyPressed())
                 {
                     return true;
                 }

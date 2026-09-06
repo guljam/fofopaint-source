@@ -12,6 +12,11 @@
 		public var constScale:Number = 0.65;
 		public var topPos:Boolean = false;
 
+		public static const COLLISION_NONE:int = 0;
+		public static const COLLISION_TOP:int = 1;
+		public static const COLLISION_BOTTOM:int = 2;
+		public static const COLLISION_ALL:int = 3;
+
 		public function setScale(newScale:Number):void
 		{
 			this.scaleX = newScale * constScale;
@@ -37,8 +42,7 @@
 			}
 		}
 
-		public function setTop(topY:Number):void
-		{
+		public function setTop(topY:Number):void{
 			topPos = true;
 			fofo.scaleY = -1.0;
 			fofo.y = fofo.height;
@@ -70,7 +74,8 @@
 			VisualBuilder.buildInto(this,EmbeddedClass,fields);
 
 			fofo.useHandCursor = false;
-			alpha = 1.0;
+			trace('fofo',fofo);
+			this.alpha = 1.0;
 			setScale(1.0);
 		}
 	}
