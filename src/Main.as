@@ -47,9 +47,6 @@
     import flash.net.URLLoaderDataFormat;
     import flash.system.Capabilities;
     import flash.system.IME;
-    import flash.system.Worker;
-    import flash.system.WorkerDomain;
-    import flash.system.MessageChannel;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import flash.utils.Timer;
@@ -65,6 +62,7 @@
     import main_module.ImageViewWindow;
     import main_module.MainUI;
     import main_module.AppUpdater;
+    import main_module.BackgroundWorkerCoordinator;
 
     import symbols.ToolMenuSet;
     import symbols.ToolMenuSet2;
@@ -144,11 +142,6 @@
             LASSO_1PX_MOVE_DOWN:int = (1 << 1),
             LASSO_1PX_MOVE_LEFT:int = (1 << 2),
             LASSO_1PX_MOVE_RIGHT:int = (1 << 3);
-
-        public const WORKER_WAIT_INTERVAL:Number = 0.5,
-            WORKER_STATE_STOPPED:int = 0,
-            WORKER_STATE_INIT:int = (1 << 0),
-            WORKER_STATE_RUNNING:int = (1 << 1);
 
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
 
@@ -531,24 +524,6 @@
             scrollBarHeight:Number = 0,
             sideBarConstHeight:Number = 780;
 
-        // 워커
-        public var worker:Worker,
-            mainToBack:MessageChannel,
-            backToMain:MessageChannel,
-            isSaveInProgress:int = 0,
-            isSaveInProgressOFFDelayTimer:int = 0,
-            receivedSaveImageDataFromWorker:ByteArray = null,
-            captureImageDataQueue:Array = null,
-            receivedCaptureImageQueueFromWorker:Vector.<ByteArray>,
-            receivedUndoImageQueueFromWorker:Array = null,
-            undoDataQueue:Array = null,
-            workerSWF:ByteArray = null,
-            workerDataSendCount:int = 0,
-            workerDataReceiveCount:int = 0,
-            workerState:int = WORKER_STATE_STOPPED,
-            workerWaitCount:int = 0, // 워커 시작하고나서 약간 대기 시켜줘야함,
-            workerFunctionsBeforeStart:Array = [];
-
         // 새창
 
         // 딥언도
@@ -622,7 +597,7 @@
             MainUI.initializeAppMenus();
             initializeResizeButtonFamily();
             initializeCaptureModeTransparentBG();
-            initializeWorker();
+            BackgroundWorkerCoordinator.initializeWorker();
             updateAppWindowSizeInfo();
             loadAppState();
             // 입력 이벤트는 loadappdstate보다느려야함
@@ -1385,7 +1360,7 @@
                 }
 
                 if (oldTargetName === e.target.name
-                        && isLoadPendingAfterSaving === false && isSaveInProgress === 0 && !isFileBrowserOpened)
+                        && isLoadPendingAfterSaving === false && BackgroundWorkerCoordinator.isSaveInProgress === 0 && !isFileBrowserOpened)
                 {
                     switch (e.target.name)
                     {
@@ -2206,7 +2181,7 @@
 
         public function enableNewFileButton():void
         {
-            if (!isSaveInProgress && MainUI.topBar.newFileButton.alpha < 1.0)
+            if (!BackgroundWorkerCoordinator.isSaveInProgress && MainUI.topBar.newFileButton.alpha < 1.0)
             {
                 MainUI.topBar.newFileButton.alpha = 1.0;
             }
@@ -2872,155 +2847,6 @@
             checkFOFOPosition();
         }
 
-        public function onFromWorker(e:Event):void
-        {
-            var msg:* = backToMain.receive();
-            const command:String = msg as String;
-
-            if (command === "encodePNGCaptureDone")
-            {
-                workerDataReceiveCount++;
-                receivedCaptureImageQueueFromWorker.push(backToMain.receive(true));
-            }
-            else if (command === "encodePNGSaveDone")
-            {
-                workerDataReceiveCount++;
-                receivedSaveImageDataFromWorker = backToMain.receive(true);
-            }
-            else if (command === "compress_ReplayDataDone")
-            {
-                workerDataReceiveCount++;
-                writeReplayFile(backToMain.receive(true)
-                        , backToMain.receive(true)
-                        , backToMain.receive(true)
-                        , backToMain.receive(true)
-                        , backToMain.receive(true)
-                        , backToMain.receive(true)
-                    );
-            }
-            else if (command === "compress_UndoDataDone")
-            {
-                workerDataReceiveCount++;
-                receivedUndoImageQueueFromWorker.push([backToMain.receive(true), backToMain.receive(true)]);
-            }
-
-            if (!FOFOTimer.hasTimer("workerStopTimer"))
-            {
-                FOFOTimer.addByName("workerStopTimer", WORKER_WAIT_INTERVAL, true, stopWorkerIfIdle);
-            }
-        }
-
-        public function sendDataToWorker(func:Function):void
-        {
-            if (workerState === WORKER_STATE_RUNNING)
-            {
-                func();
-            }
-            else
-            {
-                workerFunctionsBeforeStart.push(func);
-                function waitWorkerReady(e:Event):void
-                {
-                    if (worker === null)
-                    {
-                        stage.removeEventListener(Event.ENTER_FRAME, waitWorkerReady);
-                        workerWaitCount = 0;
-                        workerState = WORKER_STATE_STOPPED;
-                        return;
-                    }
-
-                    if (worker.state === "running")
-                    {
-                        workerWaitCount++;
-                        if (workerWaitCount > 10)
-                        {
-                            workerWaitCount = 0;
-                            workerState = WORKER_STATE_RUNNING;
-                            stage.removeEventListener(Event.ENTER_FRAME, waitWorkerReady);
-                            while (workerFunctionsBeforeStart.length)
-                            {
-                                workerFunctionsBeforeStart[0]();
-                                workerFunctionsBeforeStart[0] = null;
-                                workerFunctionsBeforeStart.shift();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        workerWaitCount = 0;
-                    }
-                }
-                stage.addEventListener(Event.ENTER_FRAME, waitWorkerReady);
-
-                if (workerState === WORKER_STATE_STOPPED)
-                {
-                    startWorker();
-                }
-            }
-        }
-
-        public function stopWorkerIfIdle(forceFlag:Boolean = false):Boolean
-        {
-            if ((workerDataSendCount === workerDataReceiveCount
-                        && captureImageDataQueue === null
-                        && receivedSaveImageDataFromWorker === null
-                        && undoDataQueue === null)
-                    || (forceFlag === true))
-            {
-                workerState = WORKER_STATE_STOPPED;
-                workerDataSendCount = 0;
-                workerDataReceiveCount = 0;
-
-                if (worker)
-                {
-                    worker.terminate();
-                    worker = null;
-                }
-
-                if (isLoadPendingAfterSaving)
-                {
-                    loadFileTo("canvas");
-                }
-                else if (AppUpdater.isUpdatePendingAfterSaving)
-                {
-                    AppUpdater.startUpdate();
-                }
-
-                enableFileOperationButtonsTopbar();
-                return false;
-            }
-            return true;
-        }
-
-        public function startWorker():void
-        {
-            if (worker === null || worker.state === "new")
-            {
-                workerState = WORKER_STATE_INIT;
-                worker = WorkerDomain.current.createWorker(workerSWF, true);
-                mainToBack = Worker.current.createMessageChannel(worker);
-                backToMain = worker.createMessageChannel(Worker.current);
-                backToMain.addEventListener(Event.CHANNEL_MESSAGE, onFromWorker);
-                worker.setSharedProperty("backToMain", backToMain);
-                worker.setSharedProperty("mainToBack", mainToBack);
-                worker.start();
-            }
-        }
-
-        public function initializeWorker():void
-        {
-            var workerLoader:URLLoader = new URLLoader();
-            workerLoader.dataFormat = URLLoaderDataFormat.BINARY;
-            workerLoader.addEventListener(Event.COMPLETE, onCompleteWorker);
-            workerLoader.load(new URLRequest("worker.swf"));
-
-            function onCompleteWorker(e:Event):void
-            {
-                workerSWF = e.target.data as ByteArray;
-                workerLoader = null;
-            }
-        }
-
         public function updateCanvasPanelMask(w:Number, h:Number):void
         {
             canvasPanel.scrollRect = new Rectangle(0, 0, w, h);
@@ -3513,7 +3339,7 @@
 
         public function resetApp():void
         {
-            stage.nativeWindow.removeEventListener(Event.CLOSING, onWindowClosingEvent);
+            stage.nativeWindow.removeEventListener(Event.CLOSING, BackgroundWorkerCoordinator.onWindowClosingEvent);
             stage.nativeWindow.removeEventListener(Event.DEACTIVATE, onWindowDeactivate);
             const files:File = File.applicationStorageDirectory;
             files.deleteDirectory(true);
@@ -6149,32 +5975,6 @@ public function restoreCanvasBackgroundColor(replayMode:Boolean):void
     xPanel.graphics.endFill();
 }
 
-public function applyTransparentCanvasBackground(replayMode:Boolean):void
-{
-    var xPanel:Sprite;
-    var w:Number = CANVAS_WIDTH;
-    var h:Number = CANVAS_HEIGHT;
-
-    if (replayMode)
-    {
-        xPanel = rCanvasPanel;
-        w = RCANVAS_WIDTH;
-        h = RCANVAS_HEIGHT;
-    }
-    else
-    {
-        xPanel = canvasPanel;
-        w = CANVAS_WIDTH;
-        h = CANVAS_HEIGHT;
-    }
-
-    xPanel.graphics.clear();
-    xPanel.graphics.lineStyle(0, 0, 0);
-    xPanel.graphics.beginBitmapFill(capTransparentBGBMPD);
-    xPanel.graphics.drawRect(0, 0, w, h);
-    xPanel.graphics.endFill();
-}
-
 public function bringCanvasDrawLayerAboveLayer1():void
 {
     if (canvasPanel.getChildIndex(canvasDrawLayer) < canvasPanel.getChildIndex(lassoLayer1))
@@ -6366,7 +6166,7 @@ public function addGlobalEvents():void
     stage.nativeWindow.addEventListener(Event.RESIZE, onWindowResize);
     stage.nativeWindow.addEventListener(Event.DEACTIVATE, onWindowDeactivate);
     stage.nativeWindow.addEventListener(Event.ACTIVATE, onWindowActive);
-    stage.nativeWindow.addEventListener(Event.CLOSING, onWindowClosingEvent);
+    stage.nativeWindow.addEventListener(Event.CLOSING, BackgroundWorkerCoordinator.onWindowClosingEvent);
     stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, onDragEnterStage);
     stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, onDragDropStage);
     stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheelStage);
@@ -6891,7 +6691,7 @@ public function applyTransparentCanvasBGCaptureMode(flag:Boolean):void
 
     if (isCaptureTransparentBGShowing)
     {
-        applyTransparentCanvasBackground(isReplayModeON);
+        BackgroundWorkerCoordinator.applyTransparentCanvasBackground(isReplayModeON);
     }
     else
     {
@@ -11118,7 +10918,7 @@ public function getCachedFrameImageIndex(targetFrame:Number):int
 
 public function updateDeleteReplayDataButtonsState():void
 {
-    if (isGeneratingCacheImages() || isSaveInProgress || isReplayStarted)
+    if (isGeneratingCacheImages() || BackgroundWorkerCoordinator.isSaveInProgress || isReplayStarted)
     {
         MainUI.topBar.superUndoButton.alpha = Global.OFFALPHA;
         MainUI.topBar.cutPrevDataButton.alpha = Global.OFFALPHA;
@@ -12032,7 +11832,7 @@ public function isSameFile(file1:File, file2:File):Boolean
 
 public function isFileLoadBlocked():Boolean
 {
-    return isFileBrowserOpened || isSaveInProgress
+    return isFileBrowserOpened || BackgroundWorkerCoordinator.isSaveInProgress
         || isGeneratingCacheImages();
 }
 
@@ -12949,55 +12749,15 @@ public function enableFileOperationButtonsTopbar():void
 
 public function disableFileOperationButtonsTopbar():void
 {
-    if (isSaveInProgress === 0)
+    if (BackgroundWorkerCoordinator.isSaveInProgress === 0)
     {
-        isSaveInProgress = 1;
+        BackgroundWorkerCoordinator.isSaveInProgress = 1;
     }
 
     if (MainUI.topBar.saveButton.alpha === 1.0)
     {
         MainUI.topBar.disableFileOperationButtons();
     }
-}
-
-public function startPngEncodingWorker(bmpd:BitmapData, bg:uint, isCaptureImage:Boolean, isTransBG:Boolean):void
-{
-    sendDataToWorker(function():void
-        {
-            workerDataSendCount++;
-            var ba:ByteArray = new ByteArray();
-            bmpd.copyPixelsToByteArray(new Rectangle(0, 0, bmpd.width, bmpd.height), ba);
-
-            mainToBack.send("encodePNG");
-            mainToBack.send(ba);
-            mainToBack.send(bmpd.width);
-            mainToBack.send(bmpd.height);
-            mainToBack.send(bg);
-            mainToBack.send(isTransBG);
-            mainToBack.send(isCaptureImage);
-
-            ba.clear();
-
-            ba = null;
-            bmpd.dispose();
-            bmpd = null;
-        });
-}
-
-public function startUndoImageCompressionWorker(data:ByteArray, data1:ByteArray):void
-{
-    sendDataToWorker(function():void
-        {
-            workerDataSendCount++;
-            mainToBack.send("compress_UndoData");
-            mainToBack.send(data);
-            mainToBack.send(data1);
-
-            data.clear();
-            data1.clear();
-            data = null;
-            data1 = null;
-        });
 }
 
 public function saveReplayFile():void
@@ -13070,35 +12830,8 @@ public function saveReplayFile():void
             }
         }
 
-        startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, refLayerImageData, replayDataReadBytes);
+        BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, refLayerImageData, replayDataReadBytes);
     }
-}
-
-public function startReplayDataCompressionWorker(dataA:ByteArray, dataA1:ByteArray, dataB:ByteArray, dataB1:ByteArray, dataC:ByteArray, dataD:ByteArray):void
-{
-    sendDataToWorker(function():void
-        {
-            workerDataSendCount++;
-            mainToBack.send("compress_ReplayData");
-            mainToBack.send(dataA);
-            mainToBack.send(dataA1);
-            mainToBack.send(dataB);
-            mainToBack.send(dataB1);
-            mainToBack.send(dataC);
-            mainToBack.send(dataD);
-            dataA.clear();
-            dataA1.clear();
-            dataB.clear();
-            dataB1.clear();
-            dataC.clear();
-            dataD.clear();
-            dataA = null;
-            dataA1 = null;
-            dataB = null;
-            dataB1 = null;
-            dataC = null;
-            dataD = null;
-        });
 }
 
 public function writeReplayFile(dataA:ByteArray
@@ -13169,18 +12902,18 @@ public function writeReplayFile(dataA:ByteArray
     catch (err:Error)
     {
         // 파일 엑세스가 불가하므로 새로운 파일로 저장해줌
-        if (isSaveInProgress === 1)
+        if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
         {
-            isSaveInProgress = 0;
+            BackgroundWorkerCoordinator.isSaveInProgress = 0;
         }
         enableFileOperationButtonsTopbar();
         openSaveFileBrowser(true, true);
         return;
     }
 
-    if (isSaveInProgress === 1)
+    if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
     {
-        isSaveInProgress = 0;
+        BackgroundWorkerCoordinator.isSaveInProgress = 0;
     }
 
     enableFileOperationButtonsTopbar();
@@ -13566,7 +13299,7 @@ public function openLoadFileBrowser(toRefLayer:Boolean = false):void
     {
         stopReplay();
     }
-    if (isLassoToolStarted || isFileBrowserOpened || isFillPenStarted || isSaveInProgress)
+    if (isLassoToolStarted || isFileBrowserOpened || isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
     {
         return;
     }
@@ -15297,53 +15030,6 @@ public function getTimeStampTail():String
     return timeStr;
 }
 
-public function pollTimerWaitWorkerForSaveCaptureImage():void
-{
-    if (!FOFOTimer.hasTimer("workerPNGCaptureTimer"))
-    {
-        FOFOTimer.addByName("workerPNGCaptureTimer", WORKER_WAIT_INTERVAL, true, function():Boolean
-            {
-                if (receivedCaptureImageQueueFromWorker.length > 0)
-                {
-                    while (receivedCaptureImageQueueFromWorker.length > 0)
-                    {
-                        const fileName:String = captureImageDataQueue[0][0];
-                        const filePath:String = captureImageDataQueue[0][1];
-
-                        // 마지막 경로 업데이트
-                        // saveFilePath = filePath.substr(0,filePath.lastIndexOf(fileName))+saveFileName;
-
-                        const fs:FileStream = new FileStream();
-                        var file:File = new File(filePath);
-                        if (fileName.lastIndexOf(".png") === -1) // png를 안붙여 줬을때
-                        {
-                            const fixedPath:String = filePath.replace(fileName, ""); // 이름짜르고 경로만 저장
-                            const dotPNG:String = fileName + ".png";
-                            file = new File(fixedPath + dotPNG);
-                        }
-
-                        fs.open(file, FileMode.WRITE);
-                        fs.writeBytes(receivedCaptureImageQueueFromWorker[0]);
-                        fs.close();
-                        receivedCaptureImageQueueFromWorker[0].clear();
-                        receivedCaptureImageQueueFromWorker[0] = null;
-                        receivedCaptureImageQueueFromWorker.shift();
-
-                        captureImageDataQueue[0] = null;
-                        captureImageDataQueue.shift();
-                    }
-                }
-                else if (receivedCaptureImageQueueFromWorker.length === 0 && captureImageDataQueue.length === 0)
-                {
-                    captureImageDataQueue = null;
-                    receivedCaptureImageQueueFromWorker = null;
-                    return false;
-                }
-                return true;
-            });
-    }
-}
-
 public function saveCaptureImage():void
 {
     if (isFileBrowserOpened)
@@ -15390,15 +15076,15 @@ public function saveCaptureImage():void
         file.removeEventListener(Event.CANCEL, onCancelSaveCaptureImage);
         file.removeEventListener(Event.SELECT, onSelectSaveCaptureImage);
 
-        if (receivedCaptureImageQueueFromWorker === null)
-            receivedCaptureImageQueueFromWorker = new Vector.<ByteArray>();
-        if (captureImageDataQueue === null)
-            captureImageDataQueue = [];
+        if (BackgroundWorkerCoordinator.receivedCaptureImageQueueFromWorker === null)
+            BackgroundWorkerCoordinator.receivedCaptureImageQueueFromWorker = new Vector.<ByteArray>();
+        if (BackgroundWorkerCoordinator.captureImageDataQueue === null)
+            BackgroundWorkerCoordinator.captureImageDataQueue = [];
 
         lastSaveCaptureFilePath = getDirectoryOnly(e.target.nativePath) + File.separator + lastSaveFileName;
-        captureImageDataQueue.push([file.name, e.target.nativePath]);
-        startPngEncodingWorker(getCaptrueImageBitmapdata(false), 0, true, isCaptureTransparentBGShowing);
-        pollTimerWaitWorkerForSaveCaptureImage();
+        BackgroundWorkerCoordinator.captureImageDataQueue.push([file.name, e.target.nativePath]);
+        BackgroundWorkerCoordinator.startPngEncodingWorker(getCaptrueImageBitmapdata(false), 0, true, isCaptureTransparentBGShowing);
+        BackgroundWorkerCoordinator.pollTimerWaitWorkerForSaveCaptureImage();
     }
 }
 
@@ -15568,7 +15254,7 @@ public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):
         return;
     }
 
-    if (isLassoToolStarted || isFillPenStarted || isSaveInProgress)
+    if (isLassoToolStarted || isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
     {
         return;
     }
@@ -15604,20 +15290,20 @@ public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):
             fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
         }
 
-        FOFOTimer.addByName("workerPNGSaveTimer", WORKER_WAIT_INTERVAL, true, function(_path:String):Boolean
+        FOFOTimer.addByName("workerPNGSaveTimer", BackgroundWorkerCoordinator.WORKER_WAIT_INTERVAL, true, function(_path:String):Boolean
             {
-                if (receivedSaveImageDataFromWorker !== null)
+                if (BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker !== null)
                 {
                     fs.openAsync(new File(_path), FileMode.WRITE);
-                    fs.writeBytes(receivedSaveImageDataFromWorker);
+                    fs.writeBytes(BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker);
                     fs.close();
                     if (isContinueSave)
                     {
                         fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
                     }
 
-                    receivedSaveImageDataFromWorker.clear();
-                    receivedSaveImageDataFromWorker = null;
+                    BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker.clear();
+                    BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
                     return false;
                 }
                 return true;
@@ -15629,8 +15315,8 @@ public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):
         if (rawFile.exists)
         {
             disableFileOperationButtonsTopbar();
-            receivedSaveImageDataFromWorker = null;
-            startPngEncodingWorker(mergedImage.clone(), CANVAS_BG_COLOR, false, false);
+            BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
+            BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), CANVAS_BG_COLOR, false, false);
             saveReplayFile();
             updateWindowTitle();
             clearKeyBuffer();
@@ -15697,8 +15383,8 @@ public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):
 
             lastSaveFilePath = convertToPNGFilePath(e.target.nativePath);
             lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
-            receivedSaveImageDataFromWorker = null;
-            startPngEncodingWorker(mergedImage.clone(), CANVAS_BG_COLOR, false, false);
+            BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
+            BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), CANVAS_BG_COLOR, false, false);
             saveReplayFile();
             updateWindowTitle();
             pollTimerWaitWorkerForImageSave(lastSaveFilePath, false);
@@ -19227,44 +18913,6 @@ public function undoToIndex(index:int):void
     drawUndoData();
 }
 
-public function pollTimerWaitWorkerForCacheUndoData():void
-{
-    if (!FOFOTimer.hasTimer("workerUndoDataTimer"))
-    {
-        FOFOTimer.addByName("workerUndoDataTimer", WORKER_WAIT_INTERVAL, true, function():Boolean
-            {
-                if (receivedUndoImageQueueFromWorker.length > 0)
-                {
-                    createCacheImage(receivedUndoImageQueueFromWorker[0][0],
-                            receivedUndoImageQueueFromWorker[0][1],
-                            undoDataQueue[0][0],
-                            undoDataQueue[0][1],
-                            undoDataQueue[0][2],
-                            undoDataQueue[0][3],
-                            undoDataQueue[0][4],
-                            undoDataQueue[0][5]);
-
-                    receivedUndoImageQueueFromWorker[0][0].clear();
-                    receivedUndoImageQueueFromWorker[0][1].clear();
-                    receivedUndoImageQueueFromWorker[0][0] = null;
-                    receivedUndoImageQueueFromWorker[0][1] = null;
-                    receivedUndoImageQueueFromWorker[0] = null;
-                    undoDataQueue[0] = null;
-                    receivedUndoImageQueueFromWorker.shift();
-                    undoDataQueue.shift();
-                }
-                else if (undoDataQueue.length === 0 && receivedUndoImageQueueFromWorker.length === 0)
-                {
-                    receivedUndoImageQueueFromWorker = null;
-                    undoDataQueue = null;
-
-                    return false;
-                }
-                return true;
-            });
-    }
-}
-
 public function cAddUndoData():Object
 {
     var dataWriteCount:uint = 0; // 데이터로 저장할때  rDataFrame 카운터 누적
@@ -19524,14 +19172,14 @@ public function cAddUndoData():Object
                         bmpd1.copyPixelsToByteArray(newRectangle, imgData1);
 
                         // 위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
-                        if (receivedUndoImageQueueFromWorker === null)
-                            receivedUndoImageQueueFromWorker = [];
-                        if (undoDataQueue === null)
-                            undoDataQueue = [];
+                        if (BackgroundWorkerCoordinator.receivedUndoImageQueueFromWorker === null)
+                            BackgroundWorkerCoordinator.receivedUndoImageQueueFromWorker = [];
+                        if (BackgroundWorkerCoordinator.undoDataQueue === null)
+                            BackgroundWorkerCoordinator.undoDataQueue = [];
 
-                        undoDataQueue.push([w, h, bgColor, rf.size, rFileTotalFrame, isCanvasMirrored]);
-                        startUndoImageCompressionWorker(imgData, imgData1);
-                        pollTimerWaitWorkerForCacheUndoData();
+                        BackgroundWorkerCoordinator.undoDataQueue.push([w, h, bgColor, rf.size, rFileTotalFrame, isCanvasMirrored]);
+                        BackgroundWorkerCoordinator.startUndoImageCompressionWorker(imgData, imgData1);
+                        BackgroundWorkerCoordinator.pollTimerWaitWorkerForCacheUndoData();
                     }
                 }
             }
@@ -20122,61 +19770,6 @@ public function checkWindowMaximizedAndSaveAllData():void
         deleteTempDirectory();
         saveAllAppData();
         stage.nativeWindow.close();
-    }
-}
-
-public function onWindowClosingEvent(e:Event):void
-{
-    isAppClosing = true;
-
-    e.preventDefault();
-    stage.nativeWindow.removeEventListener(Event.DEACTIVATE, onWindowDeactivate);
-    removeInputEventCaptrueMode();
-    removeInputEventsDrawMode();
-    removeInputEventsReplayMode();
-    realWorkingTimer.stop();
-
-    if (ImageViewWindow.canvasWindow !== null)
-    {
-        ImageViewWindow.canvasWindow.visible = false;
-    }
-
-    if (isCaptureModeON === true)
-    {
-        handleExitCaptureMode();
-    }
-
-    if (isReplayStarted === true)
-    {
-        stopReplay();
-    }
-
-    if (isLassoToolStarted)
-    {
-        cancelLassoTool();
-    }
-
-    if (workerState === WORKER_STATE_RUNNING)
-    {
-        if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
-        {
-            stage.nativeWindow.title = "Waiting for remaining tasks...";
-            openLoadMenuBoxOnClosing();
-            FOFOTimer.addByName("pollTimerWaitWorkerStop", WORKER_WAIT_INTERVAL, true, function():Boolean
-                {
-                    if (workerState === WORKER_STATE_STOPPED)
-                    {
-                        FOFOTimer.remove("pollTimerWaitWorkerStop");
-                        checkWindowMaximizedAndSaveAllData();
-                        return false;
-                    }
-                    return true;
-                });
-        }
-    }
-    else
-    {
-        checkWindowMaximizedAndSaveAllData();
     }
 }
 
@@ -21134,7 +20727,7 @@ public function handleToolKeyDown(keyCode:int):void
         case KEY.del:
         case KEY.backspace:
             {
-                if (MainUI.topBar.newFileButton.alpha === 1.0 && !isSaveInProgress)
+                if (MainUI.topBar.newFileButton.alpha === 1.0 && !BackgroundWorkerCoordinator.isSaveInProgress)
                 {
                     createNewFile(true);
                 }
@@ -21187,7 +20780,7 @@ public function onWindowDeactivate(e:Event):void
     }
 
     if (getTimer() - lastWindowDeactivateTime >= 3000
-            && !isSaveInProgress
+            && !BackgroundWorkerCoordinator.isSaveInProgress
             && !isFileBrowserOpened
             && !isLoadPendingAfterSaving
             && !AppUpdater.isUpdatePendingAfterSaving
@@ -23156,7 +22749,7 @@ public function onMouseDownDrawMode(e:MouseEvent):void
 
         case "newFileButton":
             {
-                if (MainUI.topBar.newFileButton.alpha === 1.0 && !isSaveInProgress)
+                if (MainUI.topBar.newFileButton.alpha === 1.0 && !BackgroundWorkerCoordinator.isSaveInProgress)
                 {
                     createNewFile(false);
                 }

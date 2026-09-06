@@ -1,14 +1,17 @@
-package assets {
+package assets
+{
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
     import flash.display.Sprite;
 
-    public final class VisualBuilder {
+    public final class VisualBuilder
+    {
         public static function buildInto(
                 target:Object,
                 embeddedClass:Class,
                 fields:Array
-            ):void {
+            ):void
+        {
             if (!target)
                 throw new ArgumentError("target must not be null.");
 
@@ -33,7 +36,8 @@ package assets {
 
             // Animate의 원래 timeline 구조처럼
             // visual의 직접 자식을 target의 직접 자식으로 이동
-            while (visual.numChildren > 0) {
+            while (visual.numChildren > 0)
+            {
                 var child:DisplayObject = visual.getChildAt(0);
 
                 // addChild하면 기존 visual에서 자동 제거됨
@@ -45,9 +49,12 @@ package assets {
                 target:Object,
                 visual:DisplayObjectContainer,
                 fields:Array
-            ):void {
-            for each (var fieldName:String in fields) {
-                if (!(fieldName in target)) {
+            ):void
+        {
+            for each (var fieldName:String in fields)
+            {
+                if (!(fieldName in target))
+                {
                     throw new ReferenceError(
                             "Target does not declare field: " + fieldName
                         );
@@ -56,7 +63,8 @@ package assets {
                 var child:DisplayObject =
                     findNamedChild(visual, fieldName);
 
-                if (!child) {
+                if (!child)
+                {
                     throw new ReferenceError(
                             "Embedded symbol is missing instance: " +
                             fieldName
@@ -70,14 +78,16 @@ package assets {
         private static function findNamedChild(
                 root:DisplayObjectContainer,
                 instanceName:String
-            ):DisplayObject {
+            ):DisplayObject
+        {
             var child:DisplayObject =
                 root.getChildByName(instanceName);
 
             if (child)
                 return child;
 
-            for (var i:int = 0; i < root.numChildren; i++) {
+            for (var i:int = 0; i < root.numChildren; i++)
+            {
                 var container:DisplayObjectContainer =
                     root.getChildAt(i) as DisplayObjectContainer;
 
