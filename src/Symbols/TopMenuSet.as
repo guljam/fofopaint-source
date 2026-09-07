@@ -18,6 +18,7 @@
 	import Modules.ImageViewWindow;
 	import Modules.MainUI;
 	import Modules.Utils;
+	import Modules.CaptureController;
 
 	public class TopMenuSet extends Sprite {
 
@@ -561,7 +562,7 @@
 				showModeIcons("replay");
 				hideModeIcons("draw");
 				hideModeIcons("capture");
-				main.seekBarBox.setPlayButtonVisible(!main.isReplayStarted);
+				MainUI.seekBarBox.setPlayButtonVisible(!main.isReplayStarted);
 			}
 			else if (mode === 2)
 			{
@@ -587,7 +588,7 @@
 					capLayer2VisibleButton.alpha = Global.OFFALPHA;
 				}
 
-				main.updateCaptureStampButtonAlpha();
+				CaptureController.updateCaptureStampButtonAlpha();
 			}
 		}
 

@@ -217,7 +217,7 @@ package Modules
 
             xPanel.graphics.clear();
             xPanel.graphics.lineStyle(0, 0, 0);
-            xPanel.graphics.beginBitmapFill(main.capTransparentBGBMPD);
+            xPanel.graphics.beginBitmapFill(CaptureController.capTransparentBGBMPD);
             xPanel.graphics.drawRect(0, 0, w, h);
             xPanel.graphics.endFill();
         }
@@ -384,7 +384,7 @@ package Modules
 
             e.preventDefault();
             main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, main.onWindowDeactivate);
-            main.removeInputEventCaptrueMode();
+            CaptureController.removeInputEventCaptrueMode();
             main.removeInputEventsDrawMode();
             main.removeInputEventsReplayMode();
             main.realWorkingTimer.stop();
@@ -394,9 +394,9 @@ package Modules
                 ImageViewWindow.canvasWindow.visible = false;
             }
 
-            if (main.isCaptureModeON === true)
+            if (CaptureController.isCaptureModeON === true)
             {
-                main.handleExitCaptureMode();
+                CaptureController.handleExitCaptureMode();
             }
 
             if (main.isReplayStarted === true)

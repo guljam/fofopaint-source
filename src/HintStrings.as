@@ -5,6 +5,7 @@
     import Modules.PenTool;
     import Modules.AppUpdater;
     import Modules.ColorPickerController;
+    import Modules.CaptureController;
 
     public class HintStrings
     {
@@ -239,7 +240,7 @@
             {
                 return "";
             }
-            return (_main.captureAreaManager.isFullImageCapture()) ? "image" : "selected area";
+            return (CaptureController.captureAreaManager.isFullImageCapture()) ? "image" : "selected area";
         }
 
         static public function getUIScaleString():String

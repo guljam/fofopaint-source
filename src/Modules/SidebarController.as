@@ -503,7 +503,7 @@ package Modules
 
             return !sideBar.visible
                 && !main.isReplayModeON
-                && !main.isCaptureModeON
+                && !CaptureController.isCaptureModeON
                 && !main.isToolBox2Showing
                 && !main.isMouseClickBlocked
                 && !MainUIController.resizeButtonR.visible;

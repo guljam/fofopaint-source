@@ -78,12 +78,12 @@ package Modules
                 STAGE_TOP_OFFSET += MainUI.topBar.BARSIZE * scale;
             }
 
-            if (main.seekBarBox.visible)
+            if (MainUI.seekBarBox.visible)
             {
-                STAGE_TOP_OFFSET += main.seekBarBox.BARSIZE * scale;
+                STAGE_TOP_OFFSET += MainUI.seekBarBox.BARSIZE * scale;
             }
 
-            if (main.isCaptureModeON || main.isReplayModeON)
+            if (CaptureController.isCaptureModeON || main.isReplayModeON)
             {
                 return;
             }
@@ -114,7 +114,7 @@ package Modules
             MainUI.topBar.setScale(scale);
             MainUI.topBar.updateTopbarBG(stw);
             MainUI.topBar.updateTimerPos(main.stage.stageWidth);
-            main.seekBarBox.setScale(scale);
+            MainUI.seekBarBox.setScale(scale);
             MainUI.canvasRotateCursor.setScale(scale);
             MainUI.mouseHint.setScale(scale);
             MainUI.bottomBar.scaleX = scale;
@@ -384,14 +384,14 @@ package Modules
                     const dx:Number = Math.round((main.stage.nativeWindow.width - lastAppWindowSize.x) / 1.75);
                     const dy:Number = Math.round((main.stage.nativeWindow.height - lastAppWindowSize.y) / 1.75);
 
-                    if (main.isCaptureModeON)
+                    if (CaptureController.isCaptureModeON)
                     {
-                        main.captureWindowMove.setTo(dx, dy);
+                        CaptureController.captureWindowMove.setTo(dx, dy);
                         main.fitCanvasToViewportMargin();
 
-                        if (!main.captureAreaManager.isFullImageCapture())
+                        if (!CaptureController.captureAreaManager.isFullImageCapture())
                         {
-                            main.captureAreaManager.updateDrawArea(true);
+                            CaptureController.captureAreaManager.updateDrawArea(true);
                         }
                     }
                     else
@@ -432,7 +432,7 @@ package Modules
 
                     if (main.isReplayModeON)
                     {
-                        main.seekBarBox.updatePos(main.stage.stageWidth);
+                        MainUI.seekBarBox.updatePos(main.stage.stageWidth);
                         main.rFollowMouse.updateBounds();
 
                         if (main.isReplayCanvasFitToWindow)
@@ -594,8 +594,8 @@ package Modules
             main.numPadBox.updateUIColor();
             ReferenceLayerController.refLayerMenuBox.updateUIColor();
             MainUI.topBar.updateUIColor();
-            main.seekBarBox.updateUIColor();
-            main.captureStampFontListBox.updateUIColor();
+            MainUI.seekBarBox.updateUIColor();
+            CaptureController.captureStampFontListBox.updateUIColor();
             MainUI.mouseHint.updateBGColor();
             MainUI.bottomHint.updateHintTextColor(0);
 

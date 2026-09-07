@@ -576,7 +576,7 @@ package Modules
 			{
 				updateRefLayerOpacityCursorPosByValue(0.5);
 				refLayerLastAlpha = 0.5;
-				if (!main.isCaptureModeON) // 캡쳐 모드에서 reflayer로드시 뒤에 배경 생겨나서
+				if (!CaptureController.isCaptureModeON) // 캡쳐 모드에서 reflayer로드시 뒤에 배경 생겨나서
 				{
 					canvasRefLayer.visible = true;
 				}
