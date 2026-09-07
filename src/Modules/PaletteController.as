@@ -102,7 +102,7 @@ package Modules
                 });
         }
 
-        public static function getMyPaletteIndexByMousePosLimitBound():int
+        private static function getMyPaletteIndexByMousePosLimitBound():int
         {
             const main:Main = Main._instance;
 
@@ -133,7 +133,7 @@ package Modules
             return xLineIndex + yLineIndex * 10;
         }
 
-        public static function getHistoryIndexByMousePos():int
+        private static function getHistoryIndexByMousePos():int
         {
             const main:Main = Main._instance;
 
@@ -148,7 +148,7 @@ package Modules
             return xLineIndex + yLineIndex;
         }
 
-        public static function getMyPaletteIndexByMousePos():int
+        private static function getMyPaletteIndexByMousePos():int
         {
             const main:Main = Main._instance;
 
@@ -167,12 +167,12 @@ package Modules
             return xLineIndex + yLineIndex;
         }
 
-        public static function isSelctedHistoryColorEmpty(index:int):Boolean
+        private static function isSelctedHistoryColorEmpty(index:int):Boolean
         {
             return !(myPalettePreset[index + 90] is uint);
         }
 
-        public static function isSelctedColorEmpty(index:int):Boolean
+        private static function isSelctedColorEmpty(index:int):Boolean
         {
             var list:Array = (myPalettePresetType === 1) ? myPaletteDrawrPreset
                 : (myPalettePresetType === 2) ? myPaletteTegakiPreset
@@ -297,7 +297,7 @@ package Modules
             }
         }
 
-        public static function switchMyPaletteToCompact():void
+        private static function switchMyPaletteToCompact():void
         {
             const main:Main = Main._instance;
 
@@ -317,7 +317,7 @@ package Modules
             SidebarController.checkFOFOPosition();
         }
 
-        public static function addColorToMyPalette(color:uint, index:int):void
+        private static function addColorToMyPalette(color:uint, index:int):void
         {
             const main:Main = Main._instance;
 
@@ -364,7 +364,7 @@ package Modules
             }
         }
 
-        public static function clearMyPaletteList():void
+        private static function clearMyPaletteList():void
         {
             for (var i:int = 0;i < 90;i++)
             {
@@ -711,7 +711,7 @@ package Modules
             }
         }
 
-        public static function drawColorStartPos(g:Graphics, px:Number, py:Number, ww:Number, hh:Number):void
+        private static function drawColorStartPos(g:Graphics, px:Number, py:Number, ww:Number, hh:Number):void
         {
             g.beginFill(0xFFFFFF);
             g.drawRect(px, py, PaletteController.myPaletteColorWidth, PaletteController.myPaletteColorHeight);

@@ -24,7 +24,7 @@
 			this.scaleY = newScale;
 		}
 
-		public function getText():String {
+		private function getText():String {
 			return hintText.text;
 		}
 
@@ -36,7 +36,7 @@
 			_bgColor = Global.getHintBGColor();
 		}
 
-		public function getDefaultHeight():Number {
+		private function getDefaultHeight():Number {
 			return _hintHeight;
 		}
 
@@ -47,7 +47,7 @@
 		public function getScaledTextWidth():Number {
 			return hintText.width * scaleX;
 		}
-		public function getScaledHeight():Number {
+		private function getScaledHeight():Number {
 			return (_hintBG.height - 1) * scaleX;
 		}
 
@@ -66,7 +66,7 @@
 			}
 		}
 
-		public function onMouseEventHideHint(e:MouseEvent):void {
+		private function onMouseEventHideHint(e:MouseEvent):void {
 			hide();
 		}
 

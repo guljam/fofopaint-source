@@ -8,14 +8,14 @@ package Modules
     public class CanvasGridOverlay
     {
         public static const GRID_GAP:uint = 10;
-        public static const GRID_NORMAL_COLOR:uint = 0x808080;
+        private static const GRID_NORMAL_COLOR:uint = 0x808080;
 
         public static const canvasGrid:Shape = new Shape();
-        public static const gridGraphicsCommands:Vector.<int> = new Vector.<int>();
-        public static const gridGraphicsData:Vector.<Number> = new Vector.<Number>();
+        private static const gridGraphicsCommands:Vector.<int> = new Vector.<int>();
+        private static const gridGraphicsData:Vector.<Number> = new Vector.<Number>();
 
         public static var gridGapMultiplier:uint = 0;
-        public static var lastGridGapValue:Number = 0.0;
+        private static var lastGridGapValue:Number = 0.0;
         public static var gridDrawOffsetX:Number = 0.0;
         public static var gridDrawOffsetY:Number = 0.0;
         public static var gridButton:Object;
@@ -36,7 +36,7 @@ package Modules
             clearGrid();
         }
 
-        public static function clearGrid():void
+        private static function clearGrid():void
         {
             const main:Main = Main._instance;
             lastGridGapValue = 0;
@@ -119,7 +119,7 @@ package Modules
             canvasGrid.visible = true;
         }
 
-        public static function cGridFunc():Object
+        private static function cGridFunc():Object
         {
             const main:Main = Main._instance;
             const minDist:Number = MainUI.topBar.gridSlider.x + 1.5;

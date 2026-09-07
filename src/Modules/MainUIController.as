@@ -16,7 +16,7 @@ package Modules
     {
         public static var STAGE_BG_COLOR:uint = 0xCCCCCC;
 
-        public static const BOTTOM_BAR_HEIGHT:Number = 25;
+        private static const BOTTOM_BAR_HEIGHT:Number = 25;
 
         public static var STAGE_TOP_OFFSET:Number = 0, // 창 상하좌우 여백
             STAGE_LEFT_OFFSET:Number = 0,
@@ -146,7 +146,7 @@ package Modules
             MainUI.hideBottomHint();
         }
 
-        public static function setResizeButtonColor():void
+        private static function setResizeButtonColor():void
         {
             const color:uint = Global.getUIResizeBarColor();
 
@@ -215,7 +215,7 @@ package Modules
             }
         }
 
-        public static function hideCanvasResizeButtons():void
+        private static function hideCanvasResizeButtons():void
         {
             const main:Main = Main._instance;
 
@@ -226,7 +226,7 @@ package Modules
             resizeButtonU.visible = false;
         }
 
-        public static function showCanvasResizeButtons():void
+        private static function showCanvasResizeButtons():void
         {
             const main:Main = Main._instance;
 
@@ -552,7 +552,7 @@ package Modules
             }
         }
 
-        public static function updateStageBGColor():void
+        private static function updateStageBGColor():void
         {
             const main:Main = Main._instance;
             const color:uint = Global.getUIStageColor();

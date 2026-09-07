@@ -12,19 +12,20 @@ package Modules
 
     public class ColorPickerController
     {
-        // TODO : numpad, hsv, 스크레치패드+drawr+tegaki로 나눠야함
+        // TODO : numpad 안나옴, numpad, hsv, 스크레치패드+drawr+tegaki로 클래스 나누기
+
         public static const colorPickerBox:ColorPickerSet = new ColorPickerSet();
         public static const numPadBox:NumPadSet = new NumPadSet();
         public static const hsvColorData:Vector.<Number> = new Vector.<Number>(3, true); // h,s,v순서 hue컬러 다른 함수들이랑 통신하기 위해서 전역으로 만들어줌
 
         public static var isColorPickerModeBG:Boolean = false; // false이면 펜컬러 true이면 배경색
-        public static var isColorPickerModeResetEventAdded:Boolean = false; // 배경색 선택하고 나서 커서가 사이드바를 나가면 리셋해주는 이벤트를 올려주는 플래그
+        private static var isColorPickerModeResetEventAdded:Boolean = false; // 배경색 선택하고 나서 커서가 사이드바를 나가면 리셋해주는 이벤트를 올려주는 플래그
 
         public static var isColorPickerBoxPositionSwapped:Boolean = false; // 마이팔래트랑 컬러피커박스 위치 바뀌면 올려줌
         public static var pickerIgnoreHistoryColor:* = null; // 히스토리 색 등록 할때 여기에 등록된 색은 등록 안하게함
-        public static var lastRGBInfoColorPartIndex:int = -1; // 처음 클릭했을때 R G B중 어느 영역을 클릭했는지
+        private static var lastRGBInfoColorPartIndex:int = -1; // 처음 클릭했을때 R G B중 어느 영역을 클릭했는지
         public static var isHSVInfoTextMode:Boolean = false; // true가 되면 hsv false이면 rgb
-        public static var numpadInputBuffer:String = ""; // 숫자키 누르면 어기다가 저장해주고 필터링해줘서 rgbinfotext에 갱신해줌
+        private static var numpadInputBuffer:String = ""; // 숫자키 누르면 어기다가 저장해주고 필터링해줘서 rgbinfotext에 갱신해줌
 
         public static function getImageDominantColor(bitmapData:BitmapData, k:int = 3, maxIter:int = 10):uint
         {
@@ -151,7 +152,7 @@ package Modules
             }
         }
 
-        public static function rgbInfoNumPadIncKey(inc:int):void
+        private static function rgbInfoNumPadIncKey(inc:int):void
         {
             if (isHSVInfoTextMode)
             {
@@ -165,7 +166,7 @@ package Modules
             }
         }
 
-        public static function pressNumpadKey(num:String):void
+        private static function pressNumpadKey(num:String):void
         {
             var startIndex:int = colorPickerBox.rgbInfoText.selectionBeginIndex;
             var endIndex:int = colorPickerBox.rgbInfoText.selectionEndIndex;
@@ -269,7 +270,7 @@ package Modules
         }
 
         // 123,123,123에서 커서가 어느 지점이 있는지 반환함 0=R, 1=G, 2=B
-        public static function getRGBInfoTextCursorPos(customIndex:* = null):int
+        private static function getRGBInfoTextCursorPos(customIndex:* = null):int
         {
             if (customIndex === null)
             {
@@ -282,7 +283,7 @@ package Modules
             return rgb.length - 1;
         }
 
-        public static function keepRGBInfoTextPartFocus():void
+        private static function keepRGBInfoTextPartFocus():void
         {
 
             FOFOTimer.addByName("keepRGBInfoTextPartFocusTimer", 0.0, false, function ():void
@@ -294,7 +295,7 @@ package Modules
         }
 
         // index 값에 해당하는 RGB 텍스트 영역을 선택함
-        public static function selectRGBInfoTextByIndex(index:int):void
+        private static function selectRGBInfoTextByIndex(index:int):void
         {
             if (index < 0 || index > 2)
             {
@@ -325,7 +326,7 @@ package Modules
             lastRGBInfoColorPartIndex = index;
         }
 
-        public static function getColorValueFromRGBInfoText():Array
+        private static function getColorValueFromRGBInfoText():Array
         {
             var rgbText:String = colorPickerBox.getRGBInfoText().slice(4); // "RGB"와 공백 제거
             var rgb:Array = rgbText.split(","); // 쉼표로 숫자를 나눔
@@ -333,7 +334,7 @@ package Modules
             return rgb;
         }
 
-        public static function adjustSingleValueHSV(inc:int):void
+        private static function adjustSingleValueHSV(inc:int):void
         {
             const index:int = lastRGBInfoColorPartIndex;
             const hsv:Array = getColorValueFromRGBInfoText();
@@ -374,7 +375,7 @@ package Modules
             keepRGBInfoTextPartFocus();
         }
 
-        public static function adjustSingleValueRGB(inc:int):void
+        private static function adjustSingleValueRGB(inc:int):void
         {
             const index:int = lastRGBInfoColorPartIndex;
             const rgb:Array = getColorValueFromRGBInfoText();
@@ -398,12 +399,12 @@ package Modules
             keepRGBInfoTextPartFocus();
         }
 
-        public static function getRgbInfoTextClickedPosIndex():int
+        private static function getRgbInfoTextClickedPosIndex():int
         {
             return colorPickerBox.rgbInfoText.getCharIndexAtPoint(colorPickerBox.rgbInfoText.mouseX, 10);
         }
 
-        public static function openNumPad():void
+        private static function openNumPad():void
         {
             if (numPadBox.visible === false)
             {
@@ -444,7 +445,7 @@ package Modules
                 });
         }
 
-        public static function checkNumPadMouseUp(oldTargetName:String):void
+        private static function checkNumPadMouseUp(oldTargetName:String):void
         {
             const main:Main = Main._instance;
             function onMouseUpNumpad(e:MouseEvent):void
@@ -484,12 +485,12 @@ package Modules
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad);
         }
 
-        public static function onRightMouseDownNumPad(e:MouseEvent):void
+        private static function onRightMouseDownNumPad(e:MouseEvent):void
         {
             closeNumpad();
         }
 
-        public static function onMouseDownNumPad(e:MouseEvent):void
+        private static function onMouseDownNumPad(e:MouseEvent):void
         {
             if (!e.target)
             {
@@ -535,7 +536,7 @@ package Modules
             }
         }
 
-        public static function startAdjustOKLCH(index:int):void
+        private static function startAdjustOKLCH(index:int):void
         {
             numPadBox.startAdjustLCH(index, function (pickedColor:uint):void
                 {
@@ -549,7 +550,7 @@ package Modules
         }
 
         // hsv rgb로 왔다갔다함
-        public static function toggleRGBInfoTextColorType():void
+        private static function toggleRGBInfoTextColorType():void
         {
             const cursorPosSave:int = getRGBInfoTextCursorPos();
 
@@ -565,7 +566,7 @@ package Modules
             }
         }
 
-        public static function applyAdjustedColor():void
+        private static function applyAdjustedColor():void
         {
             const main:Main = Main._instance;
             const color:uint = colorPickerBox.getRGBInfoBGColor();
@@ -618,7 +619,7 @@ package Modules
             }
         }
 
-        public static function selectRGBInfoTextColorPart(clickedIndex:int):void
+        private static function selectRGBInfoTextColorPart(clickedIndex:int):void
         {
             const main:Main = Main._instance;
 
@@ -677,7 +678,7 @@ package Modules
             colorPickerBox.updateCurrentColor(color);
         }
 
-        public static function onMouseDownColorPickerBoxModeBGOFF(e:MouseEvent):void
+        private static function onMouseDownColorPickerBoxModeBGOFF(e:MouseEvent):void
         {
             const main:Main = Main._instance;
             if (main.isCursorInDrawArea())
@@ -689,7 +690,7 @@ package Modules
             }
         }
 
-        public static function switchColorPickerModeBG():void
+        private static function switchColorPickerModeBG():void
         {
             const main:Main = Main._instance;
             const color:uint = main.CANVAS_BG_COLOR;
@@ -733,7 +734,7 @@ package Modules
             }
         }
 
-        public static function updatePenColor(color:uint):void
+        private static function updatePenColor(color:uint):void
         {
             const main:Main = Main._instance;
 
@@ -741,25 +742,25 @@ package Modules
             main.updateOpacityCursorPos(PenTool.penAlphaIndex);
         }
 
-        public static function isBackgroundColorMode():Boolean
+        private static function isBackgroundColorMode():Boolean
         {
             const main:Main = Main._instance;
             return isColorPickerModeBG === true && main.isFillPenStarted === false;
         }
 
-        public static function isPenColorMode():Boolean
+        private static function isPenColorMode():Boolean
         {
             return isColorPickerModeBG === false;
         }
 
-        public static function updateHSVColorData(h:Number, s:Number, v:Number):void
+        private static function updateHSVColorData(h:Number, s:Number, v:Number):void
         {
             hsvColorData[0] = h;
             hsvColorData[1] = s;
             hsvColorData[2] = v;
         }
 
-        public static function startHueColorSelection():void
+        private static function startHueColorSelection():void
         {
             const main:Main = Main._instance;
             const offsetX:Number = colorPickerBox.offsetX;
@@ -848,7 +849,7 @@ package Modules
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
         }
 
-        public static function startSVColorSelection():void
+        private static function startSVColorSelection():void
         {
             const main:Main = Main._instance;
             const colorBarWidth:Number = colorPickerBox.svBoxWidth;
@@ -965,7 +966,7 @@ package Modules
             }
         }
 
-        public static function getTegakiColorPresetIndex(index:int):int
+        private static function getTegakiColorPresetIndex(index:int):int
         {
             if (index >= 10)
             {
@@ -1080,7 +1081,7 @@ package Modules
             }
         }
 
-        public static function handleColorPickerBoxClick(targetName:String):void
+        private static function handleColorPickerBoxClick(targetName:String):void
         {
             const main:Main = Main._instance;
             function onMouseUpColorPickerBox(e:MouseEvent):void

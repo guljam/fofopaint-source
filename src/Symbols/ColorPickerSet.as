@@ -17,12 +17,12 @@
 
 	public class ColorPickerSet extends Sprite
 	{
-		public var mainColorPickerBox:Sprite = new Sprite();
-		public var colorPickerPresetBox:Sprite = new Sprite();
-		public var colorPickerTypeBox:Sprite = new Sprite();
+		private var mainColorPickerBox:Sprite = new Sprite();
+		private var colorPickerPresetBox:Sprite = new Sprite();
+		private var colorPickerTypeBox:Sprite = new Sprite();
 		public var svBox:Sprite = new Sprite(); //hue랑 sv합친거
-		public var svBase:Shape = new Shape(); //메인 컬러 박스에 뒤에 깔아주는 컬러
-		public var svGradient:Shape = new Shape();//흰색 검은색 그라디언트 깔아주는 컬러 임
+		private var svBase:Shape = new Shape(); //메인 컬러 박스에 뒤에 깔아주는 컬러
+		private var svGradient:Shape = new Shape();//흰색 검은색 그라디언트 깔아주는 컬러 임
 		public var hueColor:Sprite = new Sprite();
 		public var hueColorMask:Shape = new Shape();
 		public var rgbInfoText:TextField;
@@ -36,7 +36,7 @@
 		private var rgbInfoPaletteTypeSave:int = 0;
 		public const myPaletteBox:Sprite = new Sprite();
 		public const colorHistoryBox:Sprite = new Sprite();
-		public const myPaletteDragColor:Shape = new Shape();
+		private const myPaletteDragColor:Shape = new Shape();
 		public var penColorButton:SimpleButton;
 		public var paperColorButton:SimpleButton;
 		public var transColorButton:SimpleButton;
@@ -46,9 +46,9 @@
 
 		public var offsetX:Number = 0; //customcolor 박스 떨어진 위치
 
-		public var currentColorBox:Sprite = new Sprite();
+		private var currentColorBox:Sprite = new Sprite();
 		public var currentColor:uint = 0;
-		public var currentColorBoxWidth:Number = 28;
+		private var currentColorBoxWidth:Number = 28;
 		public var hueCursor:SimpleButton;
 		public var svCursor:SimpleButton;
 		// public var preset17:SimpleButton = preset17;
@@ -190,12 +190,12 @@
 			}
 		}
 
-		public function getFirstRGBInfoColorText():String
+		private function getFirstRGBInfoColorText():String
 		{
 			return firstRGBInfoColorText;
 		}
 
-		public function updateFirstRGBInfoColorText():void
+		private function updateFirstRGBInfoColorText():void
 		{
 			firstRGBInfoColorText = rgbInfoText.text;
 		}
@@ -279,7 +279,7 @@
 			rgbInfoText.textColor = Global.getInvertedColor(rgbInfoBGColor);
 		}
 
-		public function setRGBInfoTextColor(color:uint):void
+		private function setRGBInfoTextColor(color:uint):void
 		{
 			rgbInfoText.textColor = color;
 		}
@@ -320,7 +320,7 @@
 			}
 		}
 
-		public function getRGBInfoBorderColor(color:uint):uint
+		private function getRGBInfoBorderColor(color:uint):uint
         {
             const diff:Number = Global.getColorDifferenceForHuman(color,Global.getUIBGColor());
             return (diff <= 15) ? Global.getUIFGColor() : 0;

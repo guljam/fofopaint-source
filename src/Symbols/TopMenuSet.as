@@ -82,7 +82,7 @@
 		private var replayModeButtons:Array = [];
 		private var captureModeButtons:Array = [];
 		private var gridBoxButtons:Array = [];
-		public var topbarBG:Shape = new Shape();
+		private var topbarBG:Shape = new Shape();
 		private var topbarBGColor:uint = 0;
 		private var hintOKBGColor:uint = 0;
 		private var hintFontColor:uint = 0;
@@ -116,7 +116,7 @@
 			return captureInputFinal.numLines;
 		}
 
-		public function getCaptureInputFinalHeight():Number {
+		private function getCaptureInputFinalHeight():Number {
 			return captureInputFinal.height;
 		}
 
@@ -124,11 +124,11 @@
 			captureInputFinal.text = newText;
 		}
 
-		public function setCaptureInputString(newText:String):void {
+		private function setCaptureInputString(newText:String):void {
 			captureInput.text = newText;
 		}
 
-		public function getCaptureInputFinalString():String {
+		private function getCaptureInputFinalString():String {
 			return captureInputFinal.text;
 		}
 

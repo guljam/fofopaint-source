@@ -23,10 +23,10 @@ package Modules
         private static var _isCanvasWindowON:Boolean = false; // 캔버스 새창 켜졌을 때
         public static var canvasWindow:NativeWindow; // 참조된 새 창
         public static var canvasWindowLayer1Bitmap:Bitmap; // 새창 안에 들어갈 레이어 1
-        public static var canvasWindowLayer2Bitmap:Bitmap; // 새창 안에 들어갈 레이어 2
-        public static var canvasWindowCanvasPanel:Sprite; // 캔버스 배경색
-        public static var canvasWindowCanvasPanelBgSize:Point = new Point(0, 0); // 배경 크기
-        public static var canvasWindowCanvasPanelBgColor:uint = 0; // 배경 색상
+        private static var canvasWindowLayer2Bitmap:Bitmap; // 새창 안에 들어갈 레이어 2
+        private static var canvasWindowCanvasPanel:Sprite; // 캔버스 배경색
+        private static var canvasWindowCanvasPanelBgSize:Point = new Point(0, 0); // 배경 크기
+        private static var canvasWindowCanvasPanelBgColor:uint = 0; // 배경 색상
         public static var canvasWindowIgnoreResizeEventFlag:Boolean = false; // 창 크기 조정 이벤트 무시 플래그
 
         public static function get isCanvasWindowON():Boolean
@@ -51,7 +51,7 @@ package Modules
             canvasWindowCanvasPanelBgColor = color;
         }
 
-        public static function setCanvasWindowVisible(flag:Boolean):void
+        private static function setCanvasWindowVisible(flag:Boolean):void
         {
             canvasWindow.visible = flag;
         }
@@ -70,7 +70,7 @@ package Modules
             canvasWindowCanvasPanel.height = bounds.height;
         }
 
-        public static function updateCanvasWindowData():void
+        private static function updateCanvasWindowData():void
         {
             FOFOTimer.addByName("canvasWindowUpdateDelayTimer", 0.2, false,
                     function ():void
@@ -89,12 +89,12 @@ package Modules
                     });
         }
 
-        public static function onMoveCanvasWindow(e:Event):void
+        private static function onMoveCanvasWindow(e:Event):void
         {
             updateCanvasWindowData();
         }
 
-        public static function onResizeCanvasWindow(e:Event):void
+        private static function onResizeCanvasWindow(e:Event):void
         {
             if (!canvasWindowIgnoreResizeEventFlag)
             {
@@ -122,7 +122,7 @@ package Modules
             canvasWindow.title = main.stage.nativeWindow.title;
         }
 
-        public static function fitCanvasWindowSizeToImage():void
+        private static function fitCanvasWindowSizeToImage():void
         {
             if (canvasWindowCanvasPanel.width === canvasWindow.stage.stageWidth
                     && canvasWindowCanvasPanel.height === canvasWindow.stage.stageHeight)
@@ -143,12 +143,12 @@ package Modules
             canvasWindowCanvasPanel.y = 0;
         }
 
-        public static function onMouseDownCanvasWindow(e:MouseEvent):void
+        private static function onMouseDownCanvasWindow(e:MouseEvent):void
         {
             canvasWindow.startMove();
         }
 
-        public static function onRightMouseUpCanvasWindow(e:MouseEvent):void
+        private static function onRightMouseUpCanvasWindow(e:MouseEvent):void
         {
             if (canvasWindowCanvasPanel.width === canvasWindow.width
                     && canvasWindowCanvasPanel.height === canvasWindow.height)
@@ -173,7 +173,7 @@ package Modules
             main.stage.nativeWindow.activate();
         }
 
-        public static function onKeyDownCanvasWindow(e:KeyboardEvent):void
+        private static function onKeyDownCanvasWindow(e:KeyboardEvent):void
         {
             const main:Main = Main._instance;
             if (e.keyCode === main.KEY.esc)
@@ -182,13 +182,13 @@ package Modules
             }
         }
 
-        public static function onClosingCanvasWindow(e:Event):void
+        private static function onClosingCanvasWindow(e:Event):void
         {
             e.preventDefault();
             closeCanvasWindow();
         }
 
-        public static function initializeCanvasWindow():void
+        private static function initializeCanvasWindow():void
         {
             const main:Main = Main._instance;
 
@@ -221,7 +221,7 @@ package Modules
             canvasWindowCanvasPanel.addChild(canvasWindowLayer1Bitmap);
         }
 
-        public static function onActivateCanvasWindow(e:Event):void
+        private static function onActivateCanvasWindow(e:Event):void
         {
             const main:Main = Main._instance;
 

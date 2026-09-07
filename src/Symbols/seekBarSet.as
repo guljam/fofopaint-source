@@ -11,8 +11,8 @@
 
 	public class seekBarSet extends Sprite
 	{
-		public var replayBGBar:Sprite = new Sprite();
-		public var deleteRangeBar:Sprite = new Sprite();
+		private var replayBGBar:Sprite = new Sprite();
+		private var deleteRangeBar:Sprite = new Sprite();
 		public var trackBar:Sprite = new Sprite();
 		public var prograssBar:Sprite = new Sprite();
 		public var prograssInfo:TextField;
@@ -43,7 +43,7 @@
             setReplayPrograssBarWidth(trackBar.width*frameRaio);
         }
 
-        public function increaseReplayPrograssBarWidth(inc:Number):void
+        private function increaseReplayPrograssBarWidth(inc:Number):void
         {
             setReplayPrograssBarWidth(prograssBar.width+inc);
         }
@@ -77,7 +77,7 @@
             }
         }
 
-        public function getReplayPrograssBarWidth():Number
+        private function getReplayPrograssBarWidth():Number
 		{
 			return prograssBar.width;
 		}
@@ -156,12 +156,12 @@
 			this.scaleY = newScale;
 		}
 
-		public function isPrograssBarMaxWidthReached():Boolean
+		private function isPrograssBarMaxWidthReached():Boolean
 		{
 			return isPrograssBarMaxWidth;
 		}
 
-		public function setPrograssBarMaxWidthFlag(flag:Boolean):void
+		private function setPrograssBarMaxWidthFlag(flag:Boolean):void
 		{
 			isPrograssBarMaxWidth = flag;
 
@@ -217,7 +217,7 @@
 			}
 		}
 
-		public function initReplayBox():void
+		private function initReplayBox():void
 		{
 			var g:Graphics;
 
@@ -263,7 +263,7 @@
 			setChildIndex(deleteRangeBar, 3);
 		}
 
-		public function setReplayDeleteBarVisibleOFF():void
+		private function setReplayDeleteBarVisibleOFF():void
 		{
 			deleteRangeBar.visible = false;
 			prograssBar.visible = true;

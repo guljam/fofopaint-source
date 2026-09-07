@@ -58,8 +58,8 @@
 		private const okCWrapper:Sprite = new Sprite();
 		private var okCBitmap:Bitmap;
 		private const okCSliderCursor:Shape = new Shape();
-		public const okHWrapper:Sprite = new Sprite();
-		public var okHBitmap:Bitmap;
+		private const okHWrapper:Sprite = new Sprite();
+		private var okHBitmap:Bitmap;
 		private const okHSliderCusor:Shape = new Shape();
 
 		private const sliderOffset:Number = 5.0;
@@ -217,7 +217,7 @@
 			}
 		}
 
-		public function initOkLchSliderPos(lch:Object):void
+		private function initOkLchSliderPos(lch:Object):void
 		{
 			const height:Number = okLBitmap.bitmapData.height;
 			const lpos:Number = height - lch.L * height;
@@ -275,7 +275,7 @@
 			return pattern.test(str);
 		}
 
-		public function checkClipBoardHexColor():void
+		private function checkClipBoardHexColor():void
 		{
 			var str:* = Clipboard.generalClipboard.getData(ClipboardFormats.TEXT_FORMAT) as String;
 			if (str && isHexFormatColor(str))
@@ -429,12 +429,12 @@
 			return oklabToOklch(ok.L, ok.a, ok.b);
 		}
 
-		public function onMouseUpOKLCH(e:MouseEvent):void
+		private function onMouseUpOKLCH(e:MouseEvent):void
 		{
 			removeOKLCHMouseEvent();
 		}
 
-		public function onMouseMoveOKLCH(e:MouseEvent):void
+		private function onMouseMoveOKLCH(e:MouseEvent):void
 		{
 			onMouseMoveUpdateLCH();
 			const hexColor:uint = OklchToHex(okBaseColorLch);
@@ -503,7 +503,7 @@
 			addOKLCHMouseEvent();
 		}
 
-		public function updateL():void
+		private function updateL():void
 		{
 			const ypos:Number = clamp(okLBitmap.mouseY, 0.0, okLBitmap.bitmapData.height - 1.0);
 			const value:Number = 1.0 - ypos / okLBitmap.bitmapData.height;
@@ -511,7 +511,7 @@
 			okLSliderCursor.y = ypos + sliderOffset;
 		}
 
-		public function updateC():void
+		private function updateC():void
 		{
 			const ypos:Number = clamp(okCBitmap.mouseY, 0.0, okCBitmap.bitmapData.height - 1.0);
 			var value:Number = (1.0 - ypos / okCBitmap.bitmapData.height) / 2;
@@ -519,7 +519,7 @@
 			okCSliderCursor.y = ypos + sliderOffset;
 		}
 
-		public function updateH():void
+		private function updateH():void
 		{
 			const ypos:Number = clamp(okHBitmap.mouseY, 0.0, okHBitmap.bitmapData.height - 1.0);
 			const value:Number = 360.0 - 360.0 * (ypos / okHBitmap.bitmapData.height);
@@ -527,12 +527,12 @@
 			okHSliderCusor.y = ypos + sliderOffset;
 		}
 
-		public function isBaseColorGray():Boolean
+		private function isBaseColorGray():Boolean
 		{
 			return okBaseColor % 0x010101 == 0;
 		}
 
-		public function getAdjustedBaseColor(flag:int, value:Number):uint
+		private function getAdjustedBaseColor(flag:int, value:Number):uint
 		{
 			const l:Object = {L: okBaseColorLch.L, C: okBaseColorLch.C, H: okBaseColorLch.H};
 			const props:Array = ["L", "C", "H"];
@@ -540,7 +540,7 @@
 			return OklchToHex(l);
 		}
 
-		public function updateOKGradient(lflag:Boolean, cflag:Boolean, hflag:Boolean):void
+		private function updateOKGradient(lflag:Boolean, cflag:Boolean, hflag:Boolean):void
 		{
 			const height:int = okLBitmap.bitmapData.height;
 			const configs:Array =
@@ -564,13 +564,13 @@
 			}
 		}
 
-		public function hideClorPreviewBox():void
+		private function hideClorPreviewBox():void
 		{
 			previewBox.visible = false;
 			previewBox.graphics.clear();
 		}
 
-		public function updateColorPreviewBox(color:uint):void
+		private function updateColorPreviewBox(color:uint):void
 		{
 			previewBox.graphics.clear();
 			previewBox.graphics.beginFill(color);
@@ -580,7 +580,7 @@
 			previewBox.graphics.endFill();
 		}
 
-		public function showColorPreviewBox():void
+		private function showColorPreviewBox():void
 		{
 			previewBox.visible = true;
 		}

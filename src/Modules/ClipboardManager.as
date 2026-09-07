@@ -43,13 +43,13 @@ package Modules
             }
         }
 
-        public static function getSystemClipboardData():*
+        private static function getSystemClipboardData():*
         {
             return Clipboard.generalClipboard.getData(ClipboardFormats.BITMAP_FORMAT)
                 || Clipboard.generalClipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
         }
 
-        public static function disableTopBarClipboardButton():void
+        private static function disableTopBarClipboardButton():void
         {
             const main:Main = Main._instance;
             MainUI.topBar.clipBoardButton.alpha = Global.OFFALPHA;
@@ -57,7 +57,7 @@ package Modules
             isClipBoardButtonActivated = false;
         }
 
-        public static function enableTopBarClipboardButton():void
+        private static function enableTopBarClipboardButton():void
         {
             const main:Main = Main._instance;
             MainUI.topBar.clipBoardButton.alpha = 1.0;

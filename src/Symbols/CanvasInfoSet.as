@@ -51,12 +51,12 @@
 			update();
 		}
 
-		public function getMirorrString():String
+		private function getMirorrString():String
 		{
 			return (canvasMirror) ? "m*" : "";
 		}
 
-		public function getStringFixedLength(str:String, fixedLength:int):String
+		private function getStringFixedLength(str:String, fixedLength:int):String
 		{
 			const strlen:uint = str.length;
 			const len:int = fixedLength - strlen;

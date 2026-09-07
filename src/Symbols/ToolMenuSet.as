@@ -37,7 +37,7 @@
         public const BOX_WIDTH:Number = 34;
         public const BOX_HEIGHT:Number = 476;
 
-        public var bgBox:Shape = new Shape();
+        private var bgBox:Shape = new Shape();
         private var deafultY:Number = 0;
 
         private const base:ColorTransform = new ColorTransform();
@@ -71,7 +71,7 @@
             return toolSelectViewBmpdCache[key];
         }
 
-        public function makeCacheToolSelectViewBmpd(key:String, toolButton:SimpleButton):void
+        private function makeCacheToolSelectViewBmpd(key:String, toolButton:SimpleButton):void
         {
             const extend:Number = 20;
             const bgcolor:uint = Global.getUIBGColor();
@@ -187,7 +187,7 @@
             }
         }
 
-        public function bgBoxVisible(flag:Boolean):void
+        private function bgBoxVisible(flag:Boolean):void
         {
             if (flag)
             {
@@ -215,7 +215,7 @@
             deafultY = y;
         }
 
-        public function checkBottomOFF():void
+        private function checkBottomOFF():void
         {
             y = deafultY;
         }
@@ -284,7 +284,7 @@
             return lastTool;
         }
 
-        public function moveToolCursorInit():void
+        private function moveToolCursorInit():void
         {
             moveToolCursor(lastTool);
         }
@@ -321,7 +321,7 @@
             toolSelectCursor.alpha = btn.alpha;
         }
 
-        public function initButtonsPos():void
+        private function initButtonsPos():void
         {
             const len:uint = buttonArr.length;
 

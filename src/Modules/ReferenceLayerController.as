@@ -108,7 +108,7 @@ package Modules
 					mergeCanvasImageToRefLayer);
 		}
 
-		public static function onMouseOverRefLayerMenuHint(e:MouseEvent):void
+		private static function onMouseOverRefLayerMenuHint(e:MouseEvent):void
 		{
 			const main:Main = Main._instance;
 
@@ -148,7 +148,7 @@ package Modules
 			refLayerMenuBox.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpRefLayerMenu);
 		}
 
-		public static function onRightMouseUpRefLayerMenu(e:MouseEvent):void
+		private static function onRightMouseUpRefLayerMenu(e:MouseEvent):void
 		{
 			const main:Main = Main._instance;
 
@@ -229,7 +229,7 @@ package Modules
 			Utils.setAsTopChild(refLayerMenuBox);
 		}
 
-		public static function isRefLayerImageAlreadyCleared():Boolean
+		private static function isRefLayerImageAlreadyCleared():Boolean
 		{
 			return (canvasRefLayerBitmapData && canvasRefLayerBitmapData.width > 1 && canvasRefLayerBitmapData.height > 1)
 				|| !canvasRefLayerBitmapData;
@@ -568,7 +568,7 @@ package Modules
 			canvasRefLayer.rotation = rotation;
 		}
 
-		public static function resetRefLayerOpacitySlider():void
+		private static function resetRefLayerOpacitySlider():void
 		{
 			const main:Main = Main._instance;
 
@@ -587,7 +587,7 @@ package Modules
 			main.isFileAlreadySaved = false;
 		}
 
-		public static function mergeCanvasImageToRefLayer():void
+		private static function mergeCanvasImageToRefLayer():void
 		{
 			const main:Main = Main._instance;
 

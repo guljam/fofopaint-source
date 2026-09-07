@@ -6,7 +6,7 @@ package Modules
 
     public class DragInteraction
     {
-        public static var dragInteractionFuncs:Object = {onDragStart: null, onMouseMove: null, onMouseUp: null};
+        private static var dragInteractionFuncs:Object = {onDragStart: null, onMouseMove: null, onMouseUp: null};
 
         public static function startDragInteraction(onDragStartFunc:Function, onMouseMoveFunc:Function, onMouseUpFunc:Function):void
         {

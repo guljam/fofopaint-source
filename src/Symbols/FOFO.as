@@ -9,8 +9,8 @@
     {
         //todo fofo가 stage에 추가되었다가 삭제되는 버그있음 pickerbox나 sidebar 리팩토링 문제일수도 있음
         public var fofo:SimpleButton;
-        public var constScale:Number = 0.65;
-        public var topPos:Boolean = false;
+        private var constScale:Number = 0.65;
+        private var topPos:Boolean = false;
 
         public static const COLLISION_NONE:int = 0;
         public static const COLLISION_TOP:int = 1;
@@ -23,7 +23,7 @@
             this.scaleY = newScale * constScale;
         }
 
-        public function isTopPos():Boolean
+        private function isTopPos():Boolean
         {
             return topPos;
         }

@@ -8,8 +8,8 @@
 	public class SidePanelSet extends Sprite {
 		private const sideBarBG:Shape = new Shape();
 		public const WIDTH:Number = 223;
-		public var HEIGHT:Number = 220;
-		public var tempVisibleON:Boolean = false;
+		private var HEIGHT:Number = 220;
+		private var tempVisibleON:Boolean = false;
 
 		public function setScale(newScale:Number):void {
 			this.scaleX = newScale;
@@ -33,7 +33,7 @@
 			HEIGHT = sth;
 		}
 
-		public function setTempVisibleOFF(rightSide:Boolean):void {
+		private function setTempVisibleOFF(rightSide:Boolean):void {
 			tempVisibleON = false;
 			visible = false;
 
@@ -45,7 +45,7 @@
 			}
 		}
 
-		public function setTempVisibleON(toolBarWidth:Number, rightSide:Boolean):void {
+		private function setTempVisibleON(toolBarWidth:Number, rightSide:Boolean):void {
 			if (rightSide) {
 				x = stage.stageWidth - (toolBarWidth - 1) * scaleX;
 			}

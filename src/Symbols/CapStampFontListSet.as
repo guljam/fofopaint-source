@@ -44,7 +44,7 @@
 			selectedFont = newFont;
 		}
 
-		public function setSelectFontBG(target:Sprite):void
+		private function setSelectFontBG(target:Sprite):void
 		{
 			target.graphics.clear();
 			target.graphics.lineStyle(0, 0, 0);
@@ -52,7 +52,7 @@
 			target.graphics.drawRect(0, 0, fontBoxWidth, fontBoxHeight);
 		}
 
-		public function childTextFieldBoxHoverOFF(target:Sprite):void
+		private function childTextFieldBoxHoverOFF(target:Sprite):void
 		{
 			const textfield:TextField = target.getChildAt(0) as TextField;
 			if (textfield && textfield.getTextFormat().font === selectedFont)
@@ -65,7 +65,7 @@
 			}
 		}
 
-		public function childTextFieldBoxHoverON(target:Sprite):void
+		private function childTextFieldBoxHoverON(target:Sprite):void
 		{
 			const textfield:TextField = target.getChildAt(0) as TextField;
 			if (textfield && textfield.getTextFormat().font === selectedFont)
@@ -156,7 +156,7 @@
 			updateFontList(listViewIndex, newFont);
 		}
 
-		public function updateFontList(pageIndex:int, customSelectFont:String):void
+		private function updateFontList(pageIndex:int, customSelectFont:String):void
 		{
 			if (pageIndex === listViewIndexSave && customSelectFont !== selectedFont)
 			{
@@ -257,7 +257,7 @@
 			fontSelectedColor = Global.getHintBGColor();
 		}
 
-		public function mouseOverEvent(e:MouseEvent):void
+		private function mouseOverEvent(e:MouseEvent):void
 		{
 			const target:DisplayObject = e.target as DisplayObject;
 			if (!target)

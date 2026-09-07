@@ -11,14 +11,14 @@
 
 	public class ToolOptionsSet extends Sprite
 	{
-		public const penSizeBox:Sprite = new Sprite();
+		private const penSizeBox:Sprite = new Sprite();
 		public const opaBox:Sprite = new Sprite();
 		public const sharpLineButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();
 		public const layerButtonWrapper:Sprite = new Sprite();
 		public const opaSizeButtonWrapper:Sprite = new Sprite();
-		public const penShapeAndSmoothingWarpper:Sprite = new Sprite();
-		public const etcOptionWrapper:Sprite = new Sprite();
+		private const penShapeAndSmoothingWarpper:Sprite = new Sprite();
+		private const etcOptionWrapper:Sprite = new Sprite();
 
 		public var infoPenOptions:SimpleButton;
 		public var infoEraserOptions:SimpleButton;
@@ -44,7 +44,7 @@
 
 		public var layer1SelectButton:SimpleButton;
 		public var layer2SelectButton:SimpleButton;
-		public var layerInvisibledLine:Shape = new Shape();
+		private var layerInvisibledLine:Shape = new Shape();
 
 		public const penSmoothSliderWapper:Sprite = new Sprite();
 		public var penSmoothSlider:SimpleButton;
@@ -80,7 +80,7 @@
 			}
 		}
 
-		public function drawLayerInvisibledLine(width:Number):void
+		private function drawLayerInvisibledLine(width:Number):void
 		{
 			layerInvisibledLine.graphics.clear();
 			layerInvisibledLine.graphics.lineStyle(3,0xFF0000);
@@ -117,7 +117,7 @@
 			layerInvisibledLine.visible = true;
 		}
 
-		public function isLayerCheckButtonsDisabled():Boolean
+		private function isLayerCheckButtonsDisabled():Boolean
 		{
 			return layer1CheckedButton.alpha <= 1.0;
 		}
@@ -282,7 +282,7 @@
 			}
 		}
 
-		public function initAirBrushButtonWrapper():void
+		private function initAirBrushButtonWrapper():void
 		{
 			const w:Number = airBrushOFFButton.width + sharpLineText.width + 7;
 			const h:Number = airBrushOFFButton.height + 2;
@@ -315,7 +315,7 @@
 			airBrushButtonWrapper.name = "airBrushButtonWrapper";
 		}
 
-		public function initSharpLineButtonWrapper():void
+		private function initSharpLineButtonWrapper():void
 		{
 			const w:Number = sharpLineOFFButton.width + sharpLineText.width + 7;
 			const h:Number = sharpLineOFFButton.height + 2;
@@ -348,7 +348,7 @@
 			sharpLineButtonWrapper.name = "sharpLineButtonWrapper";
 		}
 
-		public function initLayerButton():void
+		private function initLayerButton():void
 		{
 			layer1CheckedButton.visible = false;
 			layer2CheckedButton.visible = false;
@@ -403,7 +403,7 @@
 			layerInvisibledLine.y = 0;
 		}
 
-		public function initPenSmoothSliderWrapper():void
+		private function initPenSmoothSliderWrapper():void
 		{
 			penSmoothSliderWapper.name = "penSmoothSliderWapper";
 			penSmoothSliderWapper.addChild(penSmoothSlider);
@@ -423,7 +423,7 @@
 			penSmoothSliderWapper.graphics.endFill();
 		}
 
-		public function initPenShapeSmoothingWarpper():void
+		private function initPenShapeSmoothingWarpper():void
 		{
 			initPenSmoothSliderWrapper();
 			penShapeAndSmoothingWarpper.addChild(shapeCircle);
@@ -441,7 +441,7 @@
 			penSmoothSliderWapper.y = Math.floor(shapeRect.y);
 		}
 
-		public function initOpaSizeButtonWapper():void
+		private function initOpaSizeButtonWapper():void
 		{
 			initPenSizeButton();
 			initOpaButton();
@@ -482,7 +482,7 @@
 			opaSizeButtonWrapper.name = "opaSizeButtonWrapper";
 		}
 
-		public function initOpaButton():void
+		private function initOpaButton():void
 		{
 			var offset:Number = 1.0;
 			for (var i:uint = 1; i <= 10; i++)
@@ -510,7 +510,7 @@
 			opaBox.addChild(opaCursor);
 		}
 
-		public function initPenSizeButton():void
+		private function initPenSizeButton():void
 		{
 			const offset:Number = 1.0;
 			for (var i:uint = 1; i <= 12; i++)
@@ -530,7 +530,7 @@
 			}
 		}
 
-		public function initInfoButton():void
+		private function initInfoButton():void
 		{
 			infoPenOptions.mouseEnabled = false;
 			infoPenOptions.x = 0;

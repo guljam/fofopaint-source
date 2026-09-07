@@ -13,11 +13,11 @@
 	{
 		public var navCursor:Sprite = new Sprite();
 		public var navStageBG:Sprite = new Sprite();
-		public var navBitmapBG:Sprite = new Sprite();
+		private var navBitmapBG:Sprite = new Sprite();
 		public var navLayer1Bitmap:Bitmap = new Bitmap();
 		public var navLayer2Bitmap:Bitmap = new Bitmap();
 		public var navBitmapLastWidth:Number = 0;
-		public var navBitmapLastHeight:Number = 0;
+		private var navBitmapLastHeight:Number = 0;
 		public const BOX_WIDTH:Number = 213;
 		public const BOX_HEIGHT:Number = 173;
 		// public const maskShape:Sprite = new Sprite();
