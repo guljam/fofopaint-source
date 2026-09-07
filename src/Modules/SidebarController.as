@@ -107,7 +107,6 @@ package Modules
                 fofo.setMirror(true);
                 fofo.x = sideBar.x;
             }
-            trace('fofo.x ', fofo.x);
         }
 
         public static function checkFOFOPosition():void
@@ -149,7 +148,6 @@ package Modules
                     }
                     break;
             }
-            trace('fofo.visible', fofo.visible, fofo.parent);
         }
 
         public static function onMouseUpQuickSidebar(e:MouseEvent):void

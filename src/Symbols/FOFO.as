@@ -75,7 +75,6 @@
             VisualBuilder.buildInto(this, EmbeddedClass, fields);
 
             fofo.useHandCursor = false;
-            trace('fofo', fofo);
             this.alpha = 1.0;
             setScale(1.0);
         }

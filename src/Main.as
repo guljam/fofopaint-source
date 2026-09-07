@@ -924,7 +924,6 @@
 
         public function initializeStage():void
         {
-
             initializeModule();
 
             MainUIController.updateWindowTitle();
