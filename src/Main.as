@@ -493,9 +493,7 @@
 
             canvasInfoBox:CanvasInfoSet = new CanvasInfoSet(),
 
-            numPadBox:NumPadSet = new NumPadSet(),
-
-            fofo:FOFO = new FOFO();
+            numPadBox:NumPadSet = new NumPadSet();
 
         public var canvasFlashEffect:Sprite = new Sprite();
 
@@ -975,10 +973,8 @@
 
             SidebarController.moveSideBar("left"); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름
 
-            // TODO : fofo 가 stage에 들어갔다가 어떤 이유로 parent가 stage가 아니라 null이됨
-            stage.addChild(fofo);
-            stage.setChildIndex(fofo, stage.getChildIndex(SidebarController.sideBar) + (stage.getChildIndex(fofo) < stage.getChildIndex(SidebarController.sideBar) ? 0 : 1));
-            trace('fofo', fofo.parent);
+            stage.addChild(SidebarController.fofo);
+            stage.setChildIndex(SidebarController.fofo, stage.getChildIndex(SidebarController.sideBar) + (stage.getChildIndex(SidebarController.fofo) < stage.getChildIndex(SidebarController.sideBar) ? 0 : 1));
 
             HintStrings.init(this);
 

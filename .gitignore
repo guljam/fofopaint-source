@@ -15,3 +15,4 @@
 
 # raw_resource는 기본적으로 전부 제외
 /raw_resource/
+/as3-structure-tool/

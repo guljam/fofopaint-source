@@ -129,7 +129,7 @@ package main_module
             updateStageOffset();
             SidebarController.updateScrollBarHeight();
             main.rReplayFOFOCursor.setScale(scale);
-            main.fofo.setScale(scale);
+            SidebarController.fofo.setScale(scale);
             SidebarController.checkFOFOPosition();
             main.rFollowMouse.updateScale(scale);
 
@@ -265,7 +265,7 @@ package main_module
             {
                 updateResizeButtonPos(main.CANVAS_WIDTH, main.CANVAS_HEIGHT);
                 main.toolBox2.startResizeButtonWaitBarAnimation(0.9);
-                FOFOTimer.addByName("resizeButtonVisibleDelayTimer", 0.9, false, function():void
+                FOFOTimer.addByName("resizeButtonVisibleDelayTimer", 0.9, false, function ():void
                     {
                         showCanvasResizeButtons();
                         main.enableTransparentBGDrawMode();
@@ -379,7 +379,7 @@ package main_module
         {
             const main:Main = Main._instance;
 
-            FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, function():void
+            FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, function ():void
                 {
                     const dx:Number = Math.round((main.stage.nativeWindow.width - lastAppWindowSize.x) / 1.75);
                     const dy:Number = Math.round((main.stage.nativeWindow.height - lastAppWindowSize.y) / 1.75);
@@ -586,7 +586,7 @@ package main_module
             ColorPickerController.colorPickerBox.updateUIColor();
             main.canvasInfoBox.updateUIColor();
             MainUI.canvasRotateCursor.changeUIColor();
-            main.fofo.updateColor();
+            SidebarController.fofo.updateColor();
             main.toolBox.changeUIColor();
             main.toolBox2.changeUIColor();
             main.fillPenBox.updateUIColor();
