@@ -60,25 +60,25 @@
 			var btnUp:DisplayObject;
 			var btnOver:DisplayObjectContainer;
 
-			for (i = 0; i < len; i++)
+			for (i = 0;i < len;i++)
 			{
 				btn = leftButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
 				Global.applyToolBoxButtonUpBGColor(btnUp);
-				Global.setButtonColorWithBG(btnOver,4,5);
+				Global.setButtonColorWithBG(btnOver, 4, 5);
 				btn.downState = btn.overState;
 			}
 
 			len = rightButtonArr.length;
-			for (i = 0; i < len; i++)
+			for (i = 0;i < len;i++)
 			{
 				btn = rightButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
 
 				Global.applyToolBoxButtonUpFGColor(btnUp);
-				Global.setButtonColorWithBG(btnOver,4,3);
+				Global.setButtonColorWithBG(btnOver, 4, 3);
 				btn.downState = btn.overState;
 			};
 
@@ -119,16 +119,13 @@
 			this.scaleY = newScale * constScale;
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="RefLayerMenuSet"
-        )]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="RefLayerMenuSet")]
 		private static const EmbeddedClass:Class;
 
 		public function RefLayerMenuSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 
 			visible = false;
 

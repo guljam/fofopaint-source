@@ -241,7 +241,7 @@
         {
             var btn:SimpleButton;
             var i:uint;
-            for (i = 0; i < buttonArr.length; i++)
+            for (i = 0;i < buttonArr.length;i++)
             {
                 btn = buttonArr[i] as SimpleButton;
                 Global.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
@@ -252,7 +252,7 @@
             }
 
             const fillPenButtons:Array = [toolFillPenOK, toolFillPenCancel];
-            for (i = 0; i < fillPenButtons.length; i++)
+            for (i = 0;i < fillPenButtons.length;i++)
             {
                 btn = fillPenButtons[i] as SimpleButton;
                 Global.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
@@ -329,7 +329,7 @@
             buttonArr[0].y = 0;
             buttonArr[0].useHandCursor = false;
 
-            for (var i:uint = 1; i < len; i++)
+            for (var i:uint = 1;i < len;i++)
             {
                 buttonArr[i].x = buttonArr[i - 1].x;
                 buttonArr[i].y = buttonArr[i - 1].y + buttonArr[i - 1].height + 2;
@@ -342,10 +342,7 @@
             toolFillPenCancel.y = toolPen.y;
         }
 
-        [Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="ToolMenuSet"
-        )]
+        [Embed(source="fofoPaint-animate-27.13.swf",symbol="ToolMenuSet")]
         private static const EmbeddedClass:Class;
 
         public function ToolMenuSet()
@@ -378,22 +375,22 @@
             toolFillPenCancel.visible = false;
 
             buttonArr = [
-                toolUndo,
-                toolRedo,
-                toolPen,
-                toolEraser,
-                toolFillPen,
-                toolEyedropper,
-                toolLine,
-                toolLasso,
-                toolMove,
-                toolRefLayer,
-                toolZoomIn,
-                toolZoomOut,
-                toolRotate,
-                toolMirror,
-                toolHand
-            ];
+                    toolUndo,
+                    toolRedo,
+                    toolPen,
+                    toolEraser,
+                    toolFillPen,
+                    toolEyedropper,
+                    toolLine,
+                    toolLasso,
+                    toolMove,
+                    toolRefLayer,
+                    toolZoomIn,
+                    toolZoomOut,
+                    toolRotate,
+                    toolMirror,
+                    toolHand
+                ];
             initButtonsPos();
         }
     }

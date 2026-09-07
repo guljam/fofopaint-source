@@ -55,16 +55,13 @@
 			versionInfo.text = "version " + str;
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="AboutWindowSet"
-        )]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="AboutWindowSet")]
 		private static const EmbeddedClass:Class;
 
 		public function AboutWindowSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 			// constructor codef
 			imageIndex = Math.floor(Math.random() * 4);
 			visible = false;

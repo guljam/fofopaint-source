@@ -10,7 +10,6 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
-
 	public class EyedropperLensSet extends Sprite
 	{
 		private const deafultZoom:Number = 2.0;
@@ -81,16 +80,13 @@
 			this.y = event.stageY;
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="EyedropperLensSet"
-        )]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="EyedropperLensSet")]
 		private static const EmbeddedClass:Class;
 
 		public function EyedropperLensSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 
 			visible = false;
 

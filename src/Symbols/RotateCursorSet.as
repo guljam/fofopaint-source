@@ -26,15 +26,14 @@
 			Global.applyUIFGColor(rotateArrow);
 			Global.applyUIFGColor(rotateCircle);
 		}
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="RotateCursorSet"
-        )]
+
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="RotateCursorSet")]
 		private static const EmbeddedClass:Class;
+
 		public function RotateCursorSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 			visible = false;
 			setScale(1.0);
 		}

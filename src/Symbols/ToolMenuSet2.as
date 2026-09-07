@@ -48,7 +48,7 @@
 		{
 			onMouseOverTarget = target;
 		}
-	
+
 		public function getLastUsedToolPos():Point
 		{
 			return lastUsedToolPoint;
@@ -139,28 +139,28 @@
 
 			var i:uint = 0;
 
-			for (i = 0; i < leftButtonArr.length; i++)
+			for (i = 0;i < leftButtonArr.length;i++)
 			{
 				btn = leftButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 
 				Global.applyToolBoxButtonUpBGColor(btnUp);
-				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer,4,5);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 5);
 				btn.downState = btn.overState;
 			}
 
-			for (i = 0; i < rightButtonArr.length; i++)
+			for (i = 0;i < rightButtonArr.length;i++)
 			{
 				btn = rightButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
 
 				Global.applyToolBoxButtonUpFGColor(btnUp);
-				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer,4,3);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3);
 				btn.downState = btn.overState;
 			}
 			// 텍스트
-			toolInfoText.textColor = Global.getToolBoxButtonUpBGColor()
+			toolInfoText.textColor = Global.getToolBoxButtonUpBGColor();
 			resizeButtonWaitTimeBarColor = Global.getToolBoxButtonOverBGColor();
 
 			btn = null;
@@ -202,15 +202,14 @@
 				}
 			}
 		}
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="ToolMenuSet2"
-        )]
-        private static const EmbeddedClass:Class;
+
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="ToolMenuSet2")]
+		private static const EmbeddedClass:Class;
+
 		public function ToolMenuSet2()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 			toolPen.useHandCursor = false;
 			toolFillPen.useHandCursor = false;
 			toolEraser.useHandCursor = false;

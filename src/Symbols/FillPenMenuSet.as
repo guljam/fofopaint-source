@@ -62,12 +62,12 @@
 			// activeColor.color = arr[4];
 			// activeColor.alphaMultiplier = 0.7;
 
-			for (var i:uint = 0; i < len; i++)
+			for (var i:uint = 0;i < len;i++)
 			{
 				btn = buttonArr[i];
 
 				Global.applyToolBoxButtonUpFGColor(btn.upState as DisplayObject);
-				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer,4,3);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3);
 
 				btn.downState = btn.overState;
 			}
@@ -86,17 +86,14 @@
 			this.scaleY = newScale * constScale;
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="FillPenMenuSet"
-        )]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="FillPenMenuSet")]
 		private static const EmbeddedClass:Class;
 
 		public function FillPenMenuSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
-			
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
+
 			constScale = 34 / fillPenCancel.width;
 			setScale(1.0);
 

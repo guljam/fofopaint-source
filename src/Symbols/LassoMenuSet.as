@@ -57,7 +57,7 @@
 			var i:uint = 0;
 			var btn:SimpleButton;
 
-			for (i = 0; i < leftButtonArr2.length; i++)
+			for (i = 0;i < leftButtonArr2.length;i++)
 			{
 				btn = leftButtonArr2[i];
 				Global.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
@@ -65,12 +65,12 @@
 				btn.downState = btn.overState;
 			}
 
-			for (i = 0; i < rightButtonArr.length; i++)
+			for (i = 0;i < rightButtonArr.length;i++)
 			{
 				btn = rightButtonArr[i];
 				// Global.setColorTransform(btn.upState as DisplayObject,0xFF0000);
 				Global.applyToolBoxButtonUpFGColor(btn.upState as DisplayObject);
-				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3,1.0);
+				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3, 1.0);
 				btn.downState = btn.overState;
 			}
 
@@ -109,16 +109,13 @@
 			this.scaleY = newScale * constScale;
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="LassoMenuSet"
-        )]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="LassoMenuSet")]
 		private static const EmbeddedClass:Class;
 
 		public function LassoMenuSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 
 			setScale(1.0);
 

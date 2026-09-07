@@ -23,7 +23,7 @@
 		private var nowBarColorSave:ColorTransform = new ColorTransform();
 		public const BARSIZE:Number = 27;
 		private var isPrograssBarMaxWidth:Boolean = false;
-		
+
 		public function showReplayControlButton():void
 		{
 			replayPrev.visible = true;
@@ -39,45 +39,45 @@
 		}
 
 		public function updateReplayPrograssBarWidthByNowFame(frameRaio:Number):void
-        {
-            setReplayPrograssBarWidth(trackBar.width*frameRaio);
-        }
+		{
+			setReplayPrograssBarWidth(trackBar.width * frameRaio);
+		}
 
-        private function increaseReplayPrograssBarWidth(inc:Number):void
-        {
-            setReplayPrograssBarWidth(prograssBar.width+inc);
-        }
+		private function increaseReplayPrograssBarWidth(inc:Number):void
+		{
+			setReplayPrograssBarWidth(prograssBar.width + inc);
+		}
 
-        public function setReplayPrograssBarMaxWidth():void
-        {
-            setReplayPrograssBarWidth(trackBar.width);
-        }
+		public function setReplayPrograssBarMaxWidth():void
+		{
+			setReplayPrograssBarWidth(trackBar.width);
+		}
 
-        public function resetReplayPrograssBarWidth():void
-        {
-            setReplayPrograssBarWidth(0);
-        }
+		public function resetReplayPrograssBarWidth():void
+		{
+			setReplayPrograssBarWidth(0);
+		}
 
-        public function setReplayPrograssBarWidth(newWidth:Number):void
-        {
+		public function setReplayPrograssBarWidth(newWidth:Number):void
+		{
 			prograssBar.x = trackBar.x;
-            prograssBar.width = newWidth;
-        
-            if(newWidth >= trackBar.width)
-            {
-                if(!isPrograssBarMaxWidthReached())
-                {
-                    setPrograssBarMaxWidthFlag(true);
-                }
-            }
-            else if(isPrograssBarMaxWidthReached() || newWidth === 0)
-            {
-                setPrograssBarMaxWidthFlag(false);
-                Global.applyToolBoxButtonOverBGColor(prograssBar);
-            }
-        }
+			prograssBar.width = newWidth;
 
-        private function getReplayPrograssBarWidth():Number
+			if (newWidth >= trackBar.width)
+			{
+				if (!isPrograssBarMaxWidthReached())
+				{
+					setPrograssBarMaxWidthFlag(true);
+				}
+			}
+			else if (isPrograssBarMaxWidthReached() || newWidth === 0)
+			{
+				setPrograssBarMaxWidthFlag(false);
+				Global.applyToolBoxButtonOverBGColor(prograssBar);
+			}
+		}
+
+		private function getReplayPrograssBarWidth():Number
 		{
 			return prograssBar.width;
 		}
@@ -85,7 +85,7 @@
 		public function updatePos(stw:Number):void
 		{
 			var startX:Number = 0.0;
-			if(replayNext.visible)
+			if (replayNext.visible)
 			{
 				startX = Math.floor(replayNext.x + replayNext.width + 7);
 			}
@@ -97,15 +97,15 @@
 			trackBar.x = startX;
 
 			const scale:Number = this.scaleX;
-            const maxWidth:Number = stw-(trackBar.x+5)*scale;
+			const maxWidth:Number = stw - (trackBar.x + 5) * scale;
 			const trackBarWidthSave:Number = trackBar.width;
-            trackBar.width =  Math.floor(maxWidth/scale);
-			const scaleFactor:Number = trackBar.width/trackBarWidthSave;
-            replayBGBar.width =  Math.floor(stw/scale)+1;
-			prograssBar.x = startX
+			trackBar.width = Math.floor(maxWidth / scale);
+			const scaleFactor:Number = trackBar.width / trackBarWidthSave;
+			replayBGBar.width = Math.floor(stw / scale) + 1;
+			prograssBar.x = startX;
 			prograssBar.width = prograssBar.width * scaleFactor;
-            prograssInfo.x = startX;
-            prograssInfo.width =  Math.floor(maxWidth/scale);
+			prograssInfo.x = startX;
+			prograssInfo.width = Math.floor(maxWidth / scale);
 		}
 
 		public function updateDeleteDangeBarPosWidth(mode:String):void
@@ -113,20 +113,20 @@
 			var dangX:Number;
 			var dangWidth:Number;
 
-			if(mode === "before")
+			if (mode === "before")
 			{
 				dangX = trackBar.x;
 				dangWidth = prograssBar.width;
 			}
-			else if(mode === "after")
+			else if (mode === "after")
 			{
-				dangX = trackBar.x+prograssBar.width;
-				dangWidth = trackBar.width-prograssBar.width;
+				dangX = trackBar.x + prograssBar.width;
+				dangWidth = trackBar.width - prograssBar.width;
 			}
-			else if(mode === "total")
+			else if (mode === "total")
 			{
 				dangX = trackBar.x;
-            	dangWidth = deleteRangeBar.width = trackBar.width;
+				dangWidth = deleteRangeBar.width = trackBar.width;
 			}
 			else
 			{
@@ -141,13 +141,13 @@
 		public function setDeleteRangeBarVisible(flag:Boolean):void
 		{
 			deleteRangeBar.visible = flag;
-            prograssBar.visible = !flag;
+			prograssBar.visible = !flag;
 		}
 
 		public function setPlayButtonVisible(flag:Boolean):void
 		{
 			playButton.visible = flag;
-            pauseButton.visible = !flag;
+			pauseButton.visible = !flag;
 		}
 
 		public function setScale(newScale:Number):void
@@ -198,16 +198,16 @@
 			Global.applyUIFGColor(replayPrev);
 			Global.applyUIFGColor(replayNext);
 			Global.applyToolBoxButtonOverBGColor(prograssBar);
-			
+
 			const index:int = Global.getUIColorIndex();
 			if (index === 2)
 			{
-				Global.setColorTransform(trackBar,0xE7E7E7);
+				Global.setColorTransform(trackBar, 0xE7E7E7);
 				prograssInfo.textColor = Global.getUIFGColor();
 			}
 			else if (index === 3)
 			{
-				Global.setColorTransform(trackBar,0xFFFFFF);
+				Global.setColorTransform(trackBar, 0xFFFFFF);
 				prograssInfo.textColor = Global.getUIFGColor();
 			}
 			else
@@ -269,16 +269,13 @@
 			prograssBar.visible = true;
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="seekBarSet"
-        )]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="seekBarSet")]
 		private static const EmbeddedClass:Class;
 
 		public function seekBarSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 
 			prograssInfo.mouseEnabled = false;
 			visible = false;

@@ -55,10 +55,7 @@
 		private function childTextFieldBoxHoverOFF(target:Sprite):void
 		{
 			const textfield:TextField = target.getChildAt(0) as TextField;
-			if (textfield && textfield.getTextFormat().font === selectedFont)
-			{
-
-			}
+			if (textfield && textfield.getTextFormat().font === selectedFont) {}
 			else
 			{
 				target.graphics.clear();
@@ -68,10 +65,7 @@
 		private function childTextFieldBoxHoverON(target:Sprite):void
 		{
 			const textfield:TextField = target.getChildAt(0) as TextField;
-			if (textfield && textfield.getTextFormat().font === selectedFont)
-			{
-
-			}
+			if (textfield && textfield.getTextFormat().font === selectedFont) {}
 			else
 			{
 				target.graphics.clear();
@@ -100,9 +94,9 @@
 			const row:int = fontBoxRow;
 			const column:int = fontBoxColumn;
 
-			for (var i:int = 0; i < row; i++)
+			for (var i:int = 0;i < row;i++)
 			{
-				for (var j:int = 0; j < column; j++)
+				for (var j:int = 0;j < column;j++)
 				{
 					const childTextFieldBox:Sprite = new Sprite();
 					childTextFieldBox.scrollRect = new Rectangle(0, 0, fontBoxWidth, fontBoxHeight);
@@ -168,7 +162,7 @@
 
 			const len:int = listViewCount;
 
-			for (var i:int = 0; i < len; i++)
+			for (var i:int = 0;i < len;i++)
 			{
 				const textChildBox:Sprite = capFontListWapper.getChildAt(i) as Sprite;
 				const textchild:TextField = textChildBox.getChildAt(0) as TextField;
@@ -216,7 +210,7 @@
 
 			fontList.length = 0;
 
-			for (var i:int = 0; i < len; i++)
+			for (var i:int = 0;i < len;i++)
 			{
 				fontList.push(rawFontList[i].fontName);
 				if (selectedFont === rawFontList[i].fontName)
@@ -278,7 +272,7 @@
 				return;
 			}
 
-			if (targetName &&targetName.indexOf(childTextFieldBoxName) !== -1
+			if (targetName && targetName.indexOf(childTextFieldBoxName) !== -1
 					|| (target.parent && target.parent.name && target.parent.name.indexOf(childTextFieldBoxName) !== -1))
 			{
 				childTextFieldBoxMouseOverSave = target as Sprite;
@@ -286,16 +280,13 @@
 			}
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="CapStampFontListSet"
-        )]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="CapStampFontListSet")]
 		private static const EmbeddedClass:Class;
 
 		public function CapStampFontListSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 
 			visible = false;
 			addChild(capFontListBG);
@@ -316,7 +307,7 @@
 			var btn:SimpleButton;
 			var btnDown:DisplayObjectContainer;
 
-			for (var i:uint = 0; i < listMoveBttons.length; i++)
+			for (var i:uint = 0;i < listMoveBttons.length;i++)
 			{
 				btn = listMoveBttons[i] as SimpleButton;
 				btnDown = btn.downState as DisplayObjectContainer;

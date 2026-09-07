@@ -15,7 +15,6 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
-
 	public class NumPadSet extends Sprite
 	{
 		public var numInc:SimpleButton;
@@ -198,7 +197,7 @@
 			var btnUp:DisplayObject;
 			var btnOver:DisplayObject;
 
-			for (i = 0; i < len; i++)
+			for (i = 0;i < len;i++)
 			{
 				btn = buttons[i];
 				btnUp = btn.upState as DisplayObject;
@@ -211,7 +210,7 @@
 
 			len = texts.length;
 
-			for (i = 0; i < len; i++)
+			for (i = 0;i < len;i++)
 			{
 				texts[i].textColor = Global.getToolBoxButtonUpBGColor();
 			}
@@ -345,7 +344,7 @@
 
 			var y:Number = Math.exp(Math.log(x) / 3); // 초기 추정값
 
-			for (var i:int = 0; i < maxIter; i++)
+			for (var i:int = 0;i < maxIter;i++)
 			{
 				var next:Number = (2 * y + x / (y * y)) / 3;
 				if (Math.abs(next - y) < tol)
@@ -555,7 +554,7 @@
 				if (cfg.flag)
 				{
 					cfg.bmpd.lock();
-					for (var i:int = height; i >= 0; i--)
+					for (var i:int = height;i >= 0;i--)
 					{
 						cfg.bmpd.setPixel(0, i, getAdjustedBaseColor(cfg.idx, cfg.max - cfg.step * i));
 					}
@@ -585,16 +584,13 @@
 			previewBox.visible = true;
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="NumPadSet"
-        )]
-
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="NumPadSet")]
 		private static const EmbeddedClass:Class;
+
 		public function NumPadSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 
 			visible = false;
 			name = "numPadBox";

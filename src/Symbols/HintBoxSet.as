@@ -9,7 +9,8 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
-	public class HintBoxSet extends Sprite {
+	public class HintBoxSet extends Sprite
+	{
 		static private var _instantCount:int = 0;
 		public var hintText:TextField;
 		private var _hintBG:Sprite;
@@ -19,45 +20,56 @@
 		private var _hintTimerName:String;
 		private var _isHintHideEventsAdded:Boolean = false;
 
-		public function setScale(newScale:Number):void {
+		public function setScale(newScale:Number):void
+		{
 			this.scaleX = newScale;
 			this.scaleY = newScale;
 		}
 
-		private function getText():String {
+		private function getText():String
+		{
 			return hintText.text;
 		}
 
-		public function updateHintTextColor(color:uint):void {
+		public function updateHintTextColor(color:uint):void
+		{
 			hintText.textColor = color;
 		}
 
-		public function updateBGColor():void {
+		public function updateBGColor():void
+		{
 			_bgColor = Global.getHintBGColor();
 		}
 
-		private function getDefaultHeight():Number {
+		private function getDefaultHeight():Number
+		{
 			return _hintHeight;
 		}
 
-		public function getScaledTextHeight():Number {
+		public function getScaledTextHeight():Number
+		{
 			return hintText.height * scaleX;
 		}
 
-		public function getScaledTextWidth():Number {
+		public function getScaledTextWidth():Number
+		{
 			return hintText.width * scaleX;
 		}
-		private function getScaledHeight():Number {
+		private function getScaledHeight():Number
+		{
 			return (_hintBG.height - 1) * scaleX;
 		}
 
-		public function setHintTextColor(color:uint):void {
+		public function setHintTextColor(color:uint):void
+		{
 			hintText.textColor = color;
 		}
 
-		public function setHintText(str:String):void {
+		public function setHintText(str:String):void
+		{
 			hintText.text = str;
-			if (_hintBG != null) {
+			if (_hintBG != null)
+			{
 				_hintBG.graphics.clear();
 				// _hintBG.graphics.lineStyle(0, 0, 0.0);
 				_hintBG.graphics.beginFill(_bgColor, 0.75);
@@ -66,19 +78,24 @@
 			}
 		}
 
-		private function onMouseEventHideHint(e:MouseEvent):void {
+		private function onMouseEventHideHint(e:MouseEvent):void
+		{
 			hide();
 		}
 
-		public function show(duration:Number = 0.0):void {
+		public function show(duration:Number = 0.0):void
+		{
 			this.visible = true;
 
-			if (duration > 0.0) {
-				FOFOTimer.addByName(_hintTimerName, duration, false, function():void {
+			if (duration > 0.0)
+			{
+				FOFOTimer.addByName(_hintTimerName, duration, false, function ():void
+					{
 						hide();
 					});
 
-				if (!_isHintHideEventsAdded) {
+				if (!_isHintHideEventsAdded)
+				{
 					_isHintHideEventsAdded = true;
 					_stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseEventHideHint);
 					_stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseEventHideHint);
@@ -86,7 +103,8 @@
 			}
 		}
 
-		public function hide():void {
+		public function hide():void
+		{
 			this.visible = false;
 			setHintText("");
 			FOFOTimer.remove(_hintTimerName);
@@ -95,19 +113,18 @@
 			_stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseEventHideHint);
 		}
 
-		public function isShowing():Boolean {
+		public function isShowing():Boolean
+		{
 			return this.visible;
 		}
 
-		[Embed(
-				source="fofoPaint-animate-27.13.swf",
-				symbol="HintBoxSet"
-			)]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="HintBoxSet")]
 		private static const EmbeddedClass:Class;
 
-		public function HintBoxSet(stage:DisplayObjectContainer, initBG:Boolean) {
+		public function HintBoxSet(stage:DisplayObjectContainer, initBG:Boolean)
+		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 			_instantCount++;
 			_hintTimerName = "hintShowTimer" + _instantCount;
 			_stage = stage;
@@ -120,7 +137,8 @@
 			_hintHeight = this.height;
 			setHintText("");
 
-			if (initBG) {
+			if (initBG)
+			{
 				_hintBG = new Sprite();
 				_hintBG.y = -1;
 				addChild(_hintBG);

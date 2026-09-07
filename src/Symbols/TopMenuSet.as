@@ -1,7 +1,7 @@
 ﻿package Symbols
 {
 
-    import Modules.SidebarController;
+	import Modules.SidebarController;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -20,7 +20,8 @@
 	import Modules.Utils;
 	import Modules.CaptureController;
 
-	public class TopMenuSet extends Sprite {
+	public class TopMenuSet extends Sprite
+	{
 
 		public const BARSIZE:Number = 38;
 
@@ -104,56 +105,68 @@
 		public var captureInputBorder:SimpleButton;
 		private var cpatureInputStringSave:String = "";
 
-		public function getCaptureInputFinalWidth():Number {
+		public function getCaptureInputFinalWidth():Number
+		{
 			return captureInputFinal.width;
 		}
 
-		public function setCaptureInputFinalWidth(newWidth:Number):void {
+		public function setCaptureInputFinalWidth(newWidth:Number):void
+		{
 			captureInputFinal.width = newWidth;
 		}
 
-		public function getCaptureInputFinalLines():int {
+		public function getCaptureInputFinalLines():int
+		{
 			return captureInputFinal.numLines;
 		}
 
-		private function getCaptureInputFinalHeight():Number {
+		private function getCaptureInputFinalHeight():Number
+		{
 			return captureInputFinal.height;
 		}
 
-		public function setCaptureInputFinalString(newText:String):void {
+		public function setCaptureInputFinalString(newText:String):void
+		{
 			captureInputFinal.text = newText;
 		}
 
-		private function setCaptureInputString(newText:String):void {
+		private function setCaptureInputString(newText:String):void
+		{
 			captureInput.text = newText;
 		}
 
-		private function getCaptureInputFinalString():String {
+		private function getCaptureInputFinalString():String
+		{
 			return captureInputFinal.text;
 		}
 
-		public function getCaptureInputString():String {
+		public function getCaptureInputString():String
+		{
 
 			return captureInput.text;
 		}
 
-		public function setScale(scale:Number):void {
+		public function setScale(scale:Number):void
+		{
 			this.scaleX = scale;
 			this.scaleY = scale;
 		}
 
-		public function isGridMoveButtonOFFAlpha():Boolean {
+		public function isGridMoveButtonOFFAlpha():Boolean
+		{
 			return gridMoveLeftButton.alpha < 1.0;
 		}
 
-		public function setGridMoveButtonAlpha(alpha:Number):void {
+		public function setGridMoveButtonAlpha(alpha:Number):void
+		{
 			gridMoveLeftButton.alpha = alpha;
 			gridMoveRightButton.alpha = alpha;
 			gridMoveUpButton.alpha = alpha;
 			gridMoveDownButton.alpha = alpha;
 		}
 
-		private function initGridButtonWrapper():void {
+		private function initGridButtonWrapper():void
+		{
 			gridButtonWrapper.name = "gridButtonWrapper";
 
 			initGridSliderWrapper();
@@ -170,7 +183,8 @@
 		}
 
 		// control menu initPenSmoothSliderWrapper와 같음
-		private function initGridMoveButtonWrapper():void {
+		private function initGridMoveButtonWrapper():void
+		{
 			gridMoveButtonWrapper.name = "gridMoveButtonWrapper";
 
 			gridMoveButtonWrapper.addChild(gridMoveLeftButton);
@@ -198,7 +212,8 @@
 			gridMoveButtonWrapper.graphics.endFill();
 		}
 
-		private function initGridSliderWrapper():void {
+		private function initGridSliderWrapper():void
+		{
 			gridSliderWrapper.name = "gridSliderWrapper";
 			gridSliderWrapper.addChild(gridSlider);
 			gridSliderWrapper.addChild(gridSliderCursor);
@@ -219,7 +234,8 @@
 			gridSliderWrapper.graphics.endFill();
 		}
 
-		private function initReplaySpeedSliderWrapper():void {
+		private function initReplaySpeedSliderWrapper():void
+		{
 			replaySpeedSliderWrapper.name = "replaySpeedSliderWrapper";
 			replaySpeedSliderWrapper.addChild(replaySpeedSlider);
 			replaySpeedSliderWrapper.addChild(replaySpeedSliderCursor);
@@ -237,7 +253,8 @@
 			replaySpeedSliderWrapper.graphics.endFill();
 		}
 
-		public function setReplaySpeedBarToGridSliderON(shortcutKey:Boolean):void {
+		public function setReplaySpeedBarToGridSliderON(shortcutKey:Boolean):void
+		{
 			gridButtonWrapper.graphics.clear();
 			gridButtonWrapper.graphics.beginFill(Global.getUIBGColor());
 			gridButtonWrapper.graphics.drawRect(0, 0, Math.floor(gridMoveButtonWrapper.x + gridMoveButtonWrapper.width + 7), Math.floor(gridButtonWrapper.height + 8));
@@ -249,13 +266,15 @@
 			gridButtonWrapper.visible = true;
 		}
 
-		public function setReplaySpeedBarToGridSliderOFF(stage:DisplayObjectContainer):void {
+		public function setReplaySpeedBarToGridSliderOFF(stage:DisplayObjectContainer):void
+		{
 			gridButtonWrapper.visible = false;
 			gridButtonWrapper.x = 0;
 			gridButtonWrapper.y = -gridButtonWrapper.height;
 		}
 
-		public function enableFileOperationButtons(clipFlag:Boolean):void {
+		public function enableFileOperationButtons(clipFlag:Boolean):void
+		{
 			saveButton.alpha = 1.0;
 			loadButton.alpha = 1.0;
 			newFileButton.alpha = 1.0;
@@ -263,12 +282,14 @@
 			superUndoButton.alpha = 1.0;
 			cutPrevDataButton.alpha = 1.0;
 
-			if (clipFlag) {
+			if (clipFlag)
+			{
 				clipBoardButton.alpha = 1.0;
 			}
 		}
 
-		public function disableFileOperationButtons():void {
+		public function disableFileOperationButtons():void
+		{
 			const offAlpha:Number = Global.OFFALPHA;
 			saveButton.alpha = offAlpha;
 			loadButton.alpha = offAlpha;
@@ -279,17 +300,20 @@
 			cutPrevDataButton.alpha = offAlpha;
 		}
 
-		public function hideUpdateButton():void {
+		public function hideUpdateButton():void
+		{
 			updateButton.visible = false;
 			aboutButton.visible = true;
 		}
 
-		public function showUpdateButton():void {
+		public function showUpdateButton():void
+		{
 			updateButton.visible = true;
 			aboutButton.visible = false;
 		}
 
-		public function updateTimerPos(stw:Number):void {
+		public function updateTimerPos(stw:Number):void
+		{
 			const limitX:Number = (replaySpeedSliderWrapper.x + replaySpeedSliderWrapper.width + 8) * this.scaleX;
 			var newX:Number = stw - (timer.textWidth + 10) * this.scaleX;
 			if (newX < limitX)
@@ -298,23 +322,28 @@
 			timerAFkDot.x = timer.x - 5;
 		}
 
-		public function updateUIColor():void {
+		public function updateUIColor():void
+		{
 			var i:int;
 
 			Global.applyUIBGColor(topbarBG);
-			for (i = 0; i < drawModeButtons.length; i++) {
+			for (i = 0;i < drawModeButtons.length;i++)
+			{
 				Global.applyUIFGColor(drawModeButtons[i]);
 			}
 
-			for (i = 0; i < replayModeButtons.length; i++) {
+			for (i = 0;i < replayModeButtons.length;i++)
+			{
 				Global.applyUIFGColor(replayModeButtons[i]);
 			}
 
-			for (i = 0; i < captureModeButtons.length; i++) {
+			for (i = 0;i < captureModeButtons.length;i++)
+			{
 				Global.applyUIFGColor(captureModeButtons[i]);
 			}
 
-			for (i = 0; i < gridBoxButtons.length; i++) {
+			for (i = 0;i < gridBoxButtons.length;i++)
+			{
 				Global.applyUIFGColor(gridBoxButtons[i]);
 			}
 
@@ -325,7 +354,8 @@
 			captureInput.textColor = fgColor;
 		}
 
-		public function setSpeedButtonPosByValue(rSpeed:Number, maxSpeed:Number):void {
+		public function setSpeedButtonPosByValue(rSpeed:Number, maxSpeed:Number):void
+		{
 			if (maxSpeed <= 1)
 				return;
 
@@ -340,19 +370,23 @@
 
 			replaySpeedSliderCursor.x = replaySpeedSlider.x + nowX;
 
-			if (replaySpeedSliderCursor.x < minDist) {
+			if (replaySpeedSliderCursor.x < minDist)
+			{
 				replaySpeedSliderCursor.x = minDist;
 			}
-			else if (replaySpeedSliderCursor.x > maxDist) {
+			else if (replaySpeedSliderCursor.x > maxDist)
+			{
 				replaySpeedSliderCursor.x = maxDist;
 			}
 		}
 
-		public function updateTopbarBG(stw:int):void {
+		public function updateTopbarBG(stw:int):void
+		{
 			topbarBG.width = Math.ceil(stw / this.scaleX);
 		}
 
-		public function makeTopbarBG(color:uint):void {
+		public function makeTopbarBG(color:uint):void
+		{
 			topbarBG.graphics.clear();
 			topbarBG.graphics.beginFill(color);
 			topbarBG.graphics.drawRect(0, 0, 10, BARSIZE);
@@ -360,31 +394,38 @@
 			topbarBGColor = color;
 		}
 
-		public function checkSideBarONOFFButton(visible:Boolean, rightSidebar:Boolean):void {
-			function check(index:int):void {
+		public function checkSideBarONOFFButton(visible:Boolean, rightSidebar:Boolean):void
+		{
+			function check(index:int):void
+			{
 				const arr:Array = [sideBarONButton,
 						sideBarOFFButton,
 						sideBarONButton2,
 						sideBarOFFButton2];
 				const len:uint = arr.length;
 
-				for (var i:uint = 0; i < len; i++) {
-					if (i === index) {
+				for (var i:uint = 0;i < len;i++)
+				{
+					if (i === index)
+					{
 						(arr[i] as SimpleButton).visible = true;
 					}
-					else {
+					else
+					{
 						(arr[i] as SimpleButton).visible = false;
 					}
 				}
 			}
 
-			if (rightSidebar) {
+			if (rightSidebar)
+			{
 				if (visible)
 					check(1);
 				else
 					check(0);
 			}
-			else {
+			else
+			{
 				if (visible)
 					check(3);
 				else
@@ -392,43 +433,52 @@
 			}
 		}
 
-		private function setIconsVisible(arr:Array, flag:Boolean):void {
+		private function setIconsVisible(arr:Array, flag:Boolean):void
+		{
 			const len:uint = arr.length;
 
-			for (var i:uint = 0; i < len; i++) {
+			for (var i:uint = 0;i < len;i++)
+			{
 				if (arr[i] as DisplayObject)
 					arr[i].visible = flag;
 			}
 		}
 
-		public function hideModeIcons(mode:String, rightSidebar:Boolean = false, sidebarVisible:Boolean = false):void {
+		public function hideModeIcons(mode:String, rightSidebar:Boolean = false, sidebarVisible:Boolean = false):void
+		{
 			const arr:Array = (mode === "replay") ? replayModeButtons
 				: (mode === "capture") ? captureModeButtons
 				: (mode === "draw") ? drawModeButtons
 				: null;
-			if (!arr) {
+			if (!arr)
+			{
 				return;
 			}
 
 			setIconsVisible(arr, false);
 		}
 
-		public function showModeIcons(mode:String, rightSidebar:Boolean = false, sidebarVisible:Boolean = false):void {
+		public function showModeIcons(mode:String, rightSidebar:Boolean = false, sidebarVisible:Boolean = false):void
+		{
 			const arr:Array = (mode === "replay") ? replayModeButtons
 				: (mode === "capture") ? captureModeButtons
 				: (mode === "draw") ? drawModeButtons
 				: null;
-			if (!arr) {
+			if (!arr)
+			{
 				return;
 			}
 
 			setIconsVisible(arr, true);
 
-			if (mode === "draw") {
-				if (rightSidebar) {
+			if (mode === "draw")
+			{
+				if (rightSidebar)
+				{
 					sideBarPositionButton.visible = false;
 				}
-				else {
+				else
+				{
 					sideBarPositionButton2.visible = false;
 				}
 
@@ -436,7 +486,8 @@
 			}
 		}
 
-		public function initMouseDownState():void {
+		public function initMouseDownState():void
+		{
 			const arr:Vector.<SimpleButton> = new <SimpleButton>[
 					captureButton,
 					repCaptureButton,
@@ -488,7 +539,8 @@
 			const len:uint = arr.length;
 			var btnDown:DisplayObjectContainer;
 
-			for (var i:uint = 0; i < len; i++) {
+			for (var i:uint = 0;i < len;i++)
+			{
 				btnDown = arr[i].downState as DisplayObjectContainer;
 				btnDown.x = 2;
 				btnDown.y = 2;
@@ -501,13 +553,16 @@
 			const startY:Number = 2;
 			const gap:Number = 36;
 
-			for (var i:uint = 0, len:uint = buttonOrder.length; i < len; i++) {
+			for (var i:uint = 0, len:uint = buttonOrder.length;i < len;i++)
+			{
 				const set :Array = buttonOrder[i];
 				const len2:uint = set .length;
 
-				for (var j:uint = 0; j < len2; j++) {
+				for (var j:uint = 0;j < len2;j++)
+				{
 					const ele:DisplayObject = set [j] as DisplayObject;
-					if (ele) {
+					if (ele)
+					{
 						ele.x = Math.floor(startX) + gap * i;
 						ele.y = 4;
 					}
@@ -592,15 +647,13 @@
 			}
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="TopMenuSet"
-        )]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="TopMenuSet")]
 		private static const EmbeddedClass:Class;
 
-		public function TopMenuSet() {
+		public function TopMenuSet()
+		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 			initReplaySpeedSliderWrapper();
 			initGridButtonWrapper();
 

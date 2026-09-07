@@ -8,7 +8,6 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
-
 	public class ToolOptionsSet extends Sprite
 	{
 		private const penSizeBox:Sprite = new Sprite();
@@ -68,12 +67,12 @@
 
 		public function setSelectLayerButtonActiveAlpha(layer:int):void
 		{
-			if(layer === 1)
+			if (layer === 1)
 			{
 				layer1SelectButton.alpha = 1.0;
 				layer2SelectButton.alpha = 0.6;
 			}
-			else if(layer === 2)
+			else if (layer === 2)
 			{
 				layer1SelectButton.alpha = 0.6;
 				layer2SelectButton.alpha = 1.0;
@@ -83,14 +82,14 @@
 		private function drawLayerInvisibledLine(width:Number):void
 		{
 			layerInvisibledLine.graphics.clear();
-			layerInvisibledLine.graphics.lineStyle(3,0xFF0000);
-			layerInvisibledLine.graphics.moveTo(0,0);
-			layerInvisibledLine.graphics.lineTo(width,0);
+			layerInvisibledLine.graphics.lineStyle(3, 0xFF0000);
+			layerInvisibledLine.graphics.moveTo(0, 0);
+			layerInvisibledLine.graphics.lineTo(width, 0);
 		}
 
 		public function removeLayerInvisibleLine():void
 		{
-			if(layerInvisibledLine.visible === true)
+			if (layerInvisibledLine.visible === true)
 			{
 				layerInvisibledLine.visible = false;
 				layerInvisibledLine.graphics.clear();
@@ -101,7 +100,7 @@
 		{
 			drawLayerInvisibledLine(layer1SelectButton.width);
 			layerInvisibledLine.x = layer1SelectButton.x;
-			layerInvisibledLine.y = layer1SelectButton.y+layer1SelectButton.height/2;
+			layerInvisibledLine.y = layer1SelectButton.y + layer1SelectButton.height / 2;
 			layerInvisibledLine.alpha = layer1SelectButton.alpha;
 
 			layerInvisibledLine.visible = true;
@@ -111,7 +110,7 @@
 		{
 			drawLayerInvisibledLine(layer2SelectButton.width);
 			layerInvisibledLine.x = layer2SelectButton.x;
-			layerInvisibledLine.y = layer2SelectButton.y+layer2SelectButton.height/2;
+			layerInvisibledLine.y = layer2SelectButton.y + layer2SelectButton.height / 2;
 			layerInvisibledLine.alpha = layer2SelectButton.alpha;
 
 			layerInvisibledLine.visible = true;
@@ -149,7 +148,7 @@
 		}
 
 		public function setButtonsAlphaFillPenSelected(alpha:Number):void
-		{	
+		{
 			penSizeGuide.alpha = alpha;
 			penSizeBox.alpha = alpha;
 			penSizeSelectCursor.alpha = alpha;
@@ -175,51 +174,51 @@
 			rectSizeSet.filters = null;
 			circleSizeSet.filters = null;
 		}
-		
+
 		public function updateUIColor():void
 		{
 			// 모든 UI 요소를 배열에 담기
 			var uiElements:Array = [
-				etcOptionBorder,
-				infoPenOptions,
-				infoEraserOptions,
-				infoFillPenOptions,
-				infoLineOptions,
+					etcOptionBorder,
+					infoPenOptions,
+					infoEraserOptions,
+					infoFillPenOptions,
+					infoLineOptions,
 
-				layer1SelectButton,
-				layer1UncheckedButton,
-				layer1CheckedButton,
+					layer1SelectButton,
+					layer1UncheckedButton,
+					layer1CheckedButton,
 
-				layer2SelectButton,
-				layer2UncheckedButton,
-				layer2CheckedButton,
+					layer2SelectButton,
+					layer2UncheckedButton,
+					layer2CheckedButton,
 
-				layerSwapButton,
-				layerMergeButton,
+					layerSwapButton,
+					layerMergeButton,
 
-				shapeRect,
-				shapeCircle,
-				rectSizeSet,
-				circleSizeSet,
-				penSizeGuide,
+					shapeRect,
+					shapeCircle,
+					rectSizeSet,
+					circleSizeSet,
+					penSizeGuide,
 
-				sharpLineText,
-				sharpLineONButton,
-				sharpLineOFFButton,
+					sharpLineText,
+					sharpLineONButton,
+					sharpLineOFFButton,
 
-				airBrushText,
-				airBrushOFFButton,
-				airBrushONButton,
+					airBrushText,
+					airBrushOFFButton,
+					airBrushONButton,
 
-				opaGuide,
-				saperateLine,
+					opaGuide,
+					saperateLine,
 
-				penSmoothSlider,
-				penSmoothSliderCursor
-			];
-			
+					penSmoothSlider,
+					penSmoothSliderCursor
+				];
+
 			const len:uint = uiElements.length;
-			for (var i:uint = 0; i < len; i++)
+			for (var i:uint = 0;i < len;i++)
 			{
 				Global.applyUIFGColor(uiElements[i]);
 			}
@@ -485,7 +484,7 @@
 		private function initOpaButton():void
 		{
 			var offset:Number = 1.0;
-			for (var i:uint = 1; i <= 10; i++)
+			for (var i:uint = 1;i <= 10;i++)
 			{
 				const btn:Sprite = new Sprite();
 
@@ -513,7 +512,7 @@
 		private function initPenSizeButton():void
 		{
 			const offset:Number = 1.0;
-			for (var i:uint = 1; i <= 12; i++)
+			for (var i:uint = 1;i <= 12;i++)
 			{
 				const btn:Sprite = new Sprite();
 
@@ -592,16 +591,13 @@
 			penShapeAndSmoothingWarpper.y = layerButtonWrapper.y + layerButtonWrapper.height + 2;
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="ToolOptionsSet"
-        )]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="ToolOptionsSet")]
 		private static const EmbeddedClass:Class;
 
 		public function ToolOptionsSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 
 			name = "controlBox";
 			initOpaSizeButtonWapper();

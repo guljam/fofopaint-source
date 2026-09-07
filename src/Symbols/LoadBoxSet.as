@@ -23,7 +23,7 @@
 		public var pleaseWaitText:TextField;
 		public var stageClickBlocker:Sprite = new Sprite();
 
-		private var plaseWaitTextBase:String = ""
+		private var plaseWaitTextBase:String = "";
 		private var clickBlockerBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, true, 0));
 		private var menuBox:Sprite = new Sprite();
 		private var mainBox:Sprite = new Sprite();
@@ -32,7 +32,7 @@
 
 		public function isShowing():Boolean
 		{
-			return this.visible
+			return this.visible;
 		}
 
 		public function isRefLayerLoadMode():Boolean
@@ -61,10 +61,10 @@
 
 		public function updatePlaseWaitPrograss(prograss:String):void
 		{
-			pleaseWaitText.text = plaseWaitTextBase+" "+prograss;
+			pleaseWaitText.text = plaseWaitTextBase + " " + prograss;
 		}
 
-		public function showPleaseWait(str:String="Please Wait..."):void
+		public function showPleaseWait(str:String = "Please Wait..."):void
 		{
 			plaseWaitTextBase = str;
 			pleaseWaitText.text = str;
@@ -98,7 +98,7 @@
 
 			mainBox.x = stageClickBlocker.width / 2 - mainBox.width / 2;
 			mainBox.y = stageClickBlocker.height / 2 - mainBox.height / 2;
-			
+
 			clickBlockerBitmap.x = -10;
 			clickBlockerBitmap.y = -10;
 			clickBlockerBitmap.width = stageClickBlocker.width + 20;
@@ -115,11 +115,11 @@
 
 			// if (bmpd.width > bmpd.height)
 			// {
-			// 	imageOffsetY = (bitmapSize / 2) - (bmpd.height * f) / 2;
+			// imageOffsetY = (bitmapSize / 2) - (bmpd.height * f) / 2;
 			// }
 			// else
 			// {
-			// 	imageOffsetX = (bitmapSize / 2) - (bmpd.width * f) / 2;
+			// imageOffsetX = (bitmapSize / 2) - (bmpd.width * f) / 2;
 			// }
 
 			const mat:Matrix = new Matrix();
@@ -153,7 +153,7 @@
 			var btnOver:DisplayObjectContainer;
 			var childText:TextField;
 
-			for (var i:uint = 0; i < len; i++)
+			for (var i:uint = 0;i < len;i++)
 			{
 				btn = buttonList[i] as SimpleButton;
 				btnUp = btn.upState as DisplayObjectContainer;
@@ -173,22 +173,19 @@
 			}
 
 			mainBox.graphics.clear();
-			mainBox.graphics.lineStyle(1,0);
+			mainBox.graphics.lineStyle(1, 0);
 			mainBox.graphics.beginFill(Global.getToolBoxBGTopColor(), 0.8);
 			mainBox.graphics.drawRect(-10, -10, mainBox.width + 20, mainBox.height + 20);
 			mainBox.graphics.endFill();
 		}
 
-		[Embed(
-            source="fofoPaint-animate-27.13.swf",
-            symbol="LoadBoxSet"
-        )]
+		[Embed(source="fofoPaint-animate-27.13.swf",symbol="LoadBoxSet")]
 		private static const EmbeddedClass:Class;
 
 		public function LoadBoxSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
-			VisualBuilder.buildInto(this,EmbeddedClass,fields);
+			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 			stageClickBlocker.name = "dragDropFileBG";
 			stageClickBlocker.graphics.clear();
 			stageClickBlocker.graphics.beginFill(0, 0.3);
@@ -216,15 +213,15 @@
 			dragDropSaveAndLoadButton.x = 0;
 			dragDropSaveAndLoadButton.y = 0;
 			dragDropLoadButton.x = 0;
-			dragDropLoadButton.y = dragDropSaveAndLoadButton.y + dragDropSaveAndLoadButton.height+10;
+			dragDropLoadButton.y = dragDropSaveAndLoadButton.y + dragDropSaveAndLoadButton.height + 10;
 			dragDropLoadRefLayerButton.x = 0;
-			dragDropLoadRefLayerButton.y = dragDropLoadButton.y + dragDropLoadButton.height+5;
+			dragDropLoadRefLayerButton.y = dragDropLoadButton.y + dragDropLoadButton.height + 5;
 			dragDropCancelButton.x = 0;
-			dragDropCancelButton.y = dragDropLoadRefLayerButton.y + dragDropLoadRefLayerButton.height+5;
+			dragDropCancelButton.y = dragDropLoadRefLayerButton.y + dragDropLoadRefLayerButton.height + 5;
 
 			mainBox.addChild(menuBox);
 			mainBox.graphics.clear();
-			mainBox.graphics.lineStyle(1,0);
+			mainBox.graphics.lineStyle(1, 0);
 			mainBox.graphics.beginFill(0xCCCCCC, 0.5);
 			mainBox.graphics.drawRect(-10, -10, mainBox.width + 20, mainBox.height + 20);
 			mainBox.graphics.endFill();
