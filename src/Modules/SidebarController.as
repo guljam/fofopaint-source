@@ -645,7 +645,7 @@ package Modules
             sideBar.setTransparentBG();
         }
 
-        private static function hideSidebarTemporary():void
+        public static function hideSidebarTemporary():void
         {
             const main:Main = Main._instance;
 
@@ -656,7 +656,7 @@ package Modules
             main.restoreLassoAndRefLayerBoxLastPos();
         }
 
-        private static function toggleSideBarPosition():void
+        public static function toggleSideBarPosition():void
         {
             if (isRightSidebar === false)
             {
@@ -670,7 +670,7 @@ package Modules
             }
         }
 
-        private static function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = false):void
+        public static function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = false):void
         {
             const main:Main = Main._instance;
 

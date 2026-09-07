@@ -547,7 +547,7 @@
 				hideModeIcons("replay");
 				hideModeIcons("capture");
 				main.updatePenSizeCursor();
-				if (AppUpdater.status !== AppUpdater.FLAG_NO_UPDATE)
+				if (AppUpdater.needUpdate())
 				{
 					showUpdateButton();
 				}

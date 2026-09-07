@@ -25,7 +25,6 @@
     import flash.events.MouseEvent;
     import flash.events.KeyboardEvent;
     import flash.events.NativeDragEvent;
-    import flash.events.FocusEvent;
     import flash.events.InvokeEvent;
     import flash.events.TimerEvent;
     import flash.events.UncaughtErrorEvent;
@@ -42,15 +41,12 @@
     import flash.geom.Rectangle;
     import flash.net.URLRequest;
     import flash.net.FileFilter;
-    import flash.net.URLLoader;
     import flash.net.navigateToURL;
-    import flash.net.URLLoaderDataFormat;
     import flash.system.Capabilities;
     import flash.system.IME;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import flash.utils.Timer;
-    import flash.text.TextFormat;
     import flash.ui.Mouse;
     import libwebp.DecodeWebp;
     import Modules.PenTool;
@@ -73,23 +69,17 @@
     import Symbols.AboutWindowSet;
     import Symbols.CanvasInfoSet;
     import Symbols.CanvasNavigatorBoxSet;
-    import Symbols.CapStampFontListSet;
-    import Symbols.ColorPickerSet;
-    import Symbols.FOFO;
     import Symbols.LassoMenuSet;
     import Symbols.LoadBoxSet;
     import Symbols.NumPadSet;
-    import Symbols.SidePanelSet;
     import Symbols.ToolOptionsSet;
-    import Symbols.seekBarSet;
-    import Symbols.FOFO;
     import Modules.ColorPickerController;
     import Modules.CaptureController;
     // import
     public class Main extends Sprite
     {
         public static var _instance:Main;
-        public const APP_VERSION:Number = 28.01;
+        public const APP_VERSION:Number = 22.01;
         public const APP_STATE_VERSION:Number = 2801;
         public const TOOL_NONE:int = 0,
             TOOL_PEN:int = (1 << 0),
