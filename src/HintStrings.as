@@ -180,7 +180,7 @@
             }
         }
 
-        static public function getRedoButtonHint():String
+        static private function getRedoButtonHint():String
         {
             if (_main === null || _main.toolBox2.visible)
             {
@@ -190,7 +190,7 @@
             return "Redo [x / ,] _ Hold to repeat";
         }
 
-        static public function getUndoButtonHint():String
+        static private function getUndoButtonHint():String
         {
             if (_main === null || _main.toolBox2.visible)
             {
@@ -215,7 +215,7 @@
             return "Resetting the timer...";
         }
 
-        static public function getPenSmoothingValueString():String
+        static private function getPenSmoothingValueString():String
         {
             if (_main === null)
             {
@@ -225,7 +225,7 @@
             return PenTool.penSmoothSlideValue + " / " + PenTool.penSmoothSlideTotal;
         }
 
-        static public function getRGBorHSVString():String
+        static private function getRGBorHSVString():String
         {
             if (_main === null)
             {
@@ -234,7 +234,7 @@
             return (ColorPickerController.isHSVInfoTextMode) ? "'HSV'" : "'RGB'";
         }
 
-        static public function getCaptureSaveHintString():String
+        static private function getCaptureSaveHintString():String
         {
             if (_main === null)
             {
@@ -248,7 +248,7 @@
             return Global.getUIScaleString();
         }
 
-        static public function getTrackBarHintString():String
+        static private function getTrackBarHintString():String
         {
             if (_main === null)
             {
@@ -262,7 +262,7 @@
             return "Seek bar";
         }
 
-        static public function getGridGapHintString():String
+        static private function getGridGapHintString():String
         {
             if (_main === null)
             {
@@ -272,12 +272,12 @@
             return CanvasGridOverlay.gridGapMultiplier + CanvasGridOverlay.GRID_GAP + "px";
         }
 
-        static public function getNewVersionAvailableHintString():String
+        static private function getNewVersionAvailableHintString():String
         {
             return "Version " + AppUpdater.newVersionStr + " is available!";
         }
 
-        static public function getOpacityButtonHintString(index:int):String
+        static private function getOpacityButtonHintString(index:int):String
         {
             if (_main === null)
             {
@@ -287,7 +287,7 @@
             return "Opacity " + (PenTool.penAlphaList[index] * 100) + "% [g / b]";
         }
 
-        static public function getSizeButtonHintString(index:int):String
+        static private function getSizeButtonHintString(index:int):String
         {
             if (_main === null)
             {
@@ -297,7 +297,7 @@
             return "Size " + (PenTool.penSizeList[index]) + "px [f / v, h / n]";
         }
 
-        static public function getCurrentColorHintString():String
+        static private function getCurrentColorHintString():String
         {
             if (_main === null)
             {

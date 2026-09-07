@@ -377,7 +377,7 @@ package Modules
 			main.aboutBox.setVersionInfo(main.APP_VERSION);
 			topBar.name = "topBar";
 			SidebarController.sideBarScrollBar.name = "sideBarScrollBar";
-			topBar.makeTopbarBG(Global.UI_COLOR_MID_DARK);
+			topBar.makeTopbarBG(Global.setDefaultUIColor());
 			updateTopbarIconsDrawMode();
 
 			main.fillPenBox.x = -main.fillPenBox.width - 3;

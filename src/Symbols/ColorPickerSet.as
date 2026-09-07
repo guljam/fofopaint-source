@@ -445,7 +445,7 @@
 		//피커박스 구조
 		//custom color, colorhistoryBox, drawr프리셋 따로따로 전부가 첫번째 자식들임
 
-		[Embed(source="fofoPaint-animate-27.13.swf", ymbol="ColorPickerSet")]
+		[Embed(source="fofoPaint-animate-27.13.swf", symbol="ColorPickerSet")]
 		private static const EmbeddedClass:Class;
 
 		public function ColorPickerSet()
