@@ -9,18 +9,18 @@
 
 	public class AboutWindowSet extends Sprite
 	{
-		public var versionInfo:TextField;
-		public var memoryInfo:TextField;
+		private var versionInfo:TextField;
+		private var memoryInfo:TextField;
 		public var resetAppButton:SimpleButton;
-		public var releaseNoteButton:SimpleButton;
-		public var aboutMeLink:SimpleButton;
-		public var aboutHomePageLink:SimpleButton;
-		public var aboutManualFolder:SimpleButton;
-		public var logo1:SimpleButton;
-		public var logo2:SimpleButton;
-		public var logo3:SimpleButton;
-		public var logo4:SimpleButton;
-		public var logo5:SimpleButton;
+		private var releaseNoteButton:SimpleButton;
+		private var aboutMeLink:SimpleButton;
+		private var aboutHomePageLink:SimpleButton;
+		private var aboutManualFolder:SimpleButton;
+		private var logo1:SimpleButton;
+		private var logo2:SimpleButton;
+		private var logo3:SimpleButton;
+		private var logo4:SimpleButton;
+		private var logo5:SimpleButton;
 		private var imageIndex:int = 0;
 
 		public function setScale(newScale:Number):void
