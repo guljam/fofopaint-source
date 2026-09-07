@@ -1,4 +1,4 @@
-﻿package symbols
+﻿package Symbols
 {
     import flash.display.SimpleButton;
     import flash.display.Sprite;

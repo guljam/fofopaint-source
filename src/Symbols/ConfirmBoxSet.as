@@ -1,4 +1,4 @@
-package symbols
+package Symbols
 {
 	import flash.text.TextField;
 	import flash.display.Sprite;
@@ -8,9 +8,6 @@ package symbols
 		public var confirmText:TextField;
 		private var confirmBG:Sprite = new Sprite();
 
-		public function ConfirmBoxSet()
-		{
-
-		}
+		public function ConfirmBoxSet() {}
 	}
 }

@@ -1,10 +1,10 @@
 ﻿package
 {
     import Main;
-    import main_module.CanvasGridOverlay;
-    import main_module.tools.PenTool;
-    import main_module.AppUpdater;
-    import main_module.ColorPickerController;
+    import Modules.CanvasGridOverlay;
+    import Modules.PenTool;
+    import Modules.AppUpdater;
+    import Modules.ColorPickerController;
 
     public class HintStrings
     {
@@ -166,14 +166,14 @@
 
             var len:int = PenTool.penAlphaList.length;
             var key:String = "alphaButton";
-            for (var i:int = 1; i <= len; i++)
+            for (var i:int = 1;i <= len;i++)
             {
                 hints[key + i] = "Opacity " + (PenTool.penAlphaList[i] * 100) + "% [g / b]";
             }
 
             len = PenTool.penSizeList.length;
             key = "nSizeButton";
-            for (i = 1; i <= len; i++)
+            for (i = 1;i <= len;i++)
             {
                 hints[key + i] = "Size " + (PenTool.penSizeList[i]) + "px [f / v, h / n]";
             }

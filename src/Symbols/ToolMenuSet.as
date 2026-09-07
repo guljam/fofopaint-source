@@ -1,4 +1,4 @@
-﻿package symbols
+﻿package Symbols
 {
     import flash.display.Bitmap;
     import flash.display.BitmapData;

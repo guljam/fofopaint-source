@@ -1,7 +1,7 @@
-package main_module.tools
+package Modules
 {
-    import main_module.PaletteController;
-    import main_module.ReferenceLayerController;
+    import Modules.PaletteController;
+    import Modules.ReferenceLayerController;
     import flash.events.MouseEvent;
     import flash.filters.BlurFilter;
     import flash.geom.Point;
@@ -9,7 +9,7 @@ package main_module.tools
     import flash.display.CapsStyle;
     import flash.display.JointStyle;
     import flash.display.LineScaleMode;
-    import main_module.ColorPickerController;
+    import Modules.ColorPickerController;
 
     public final class PenTool
     {

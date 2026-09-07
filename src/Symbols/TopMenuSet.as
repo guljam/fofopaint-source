@@ -1,7 +1,7 @@
-﻿package symbols
+﻿package Symbols
 {
 
-    import main_module.SidebarController;
+    import Modules.SidebarController;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -14,10 +14,10 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
-	import main_module.AppUpdater;
-	import main_module.ImageViewWindow;
-	import main_module.MainUI;
-	import main_module.Utils;
+	import Modules.AppUpdater;
+	import Modules.ImageViewWindow;
+	import Modules.MainUI;
+	import Modules.Utils;
 
 	public class TopMenuSet extends Sprite {
 

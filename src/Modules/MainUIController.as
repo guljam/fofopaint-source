@@ -1,7 +1,7 @@
-package main_module
+package Modules
 {
 
-    import main_module.SidebarController;
+    import Modules.SidebarController;
     import flash.display.Sprite;
     import flash.display.DisplayObject;
     import flash.display.SimpleButton;

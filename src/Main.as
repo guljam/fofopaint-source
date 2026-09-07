@@ -107,66 +107,66 @@
 
     import libwebp.DecodeWebp;
 
-    import main_module.tools.PenTool;
+    import Modules.PenTool;
 
-    import main_module.Utils;
+    import Modules.Utils;
 
-    import main_module.CanvasGridOverlay;
+    import Modules.CanvasGridOverlay;
 
-    import main_module.DragInteraction;
+    import Modules.DragInteraction;
 
-    import main_module.ClipboardManager;
+    import Modules.ClipboardManager;
 
-    import main_module.ImageViewWindow;
+    import Modules.ImageViewWindow;
 
-    import main_module.MainUI;
+    import Modules.MainUI;
 
-    import main_module.AppUpdater;
+    import Modules.AppUpdater;
 
-    import main_module.BackgroundWorkerCoordinator;
+    import Modules.BackgroundWorkerCoordinator;
 
-    import main_module.ReferenceLayerController;
+    import Modules.ReferenceLayerController;
 
-    import main_module.MainUIController;
+    import Modules.MainUIController;
 
-    import main_module.SidebarController;
+    import Modules.SidebarController;
 
-    import main_module.PaletteController;
+    import Modules.PaletteController;
 
-    import symbols.ToolMenuSet;
+    import Symbols.ToolMenuSet;
 
-    import symbols.ToolMenuSet2;
+    import Symbols.ToolMenuSet2;
 
-    import symbols.FillPenMenuSet;
+    import Symbols.FillPenMenuSet;
 
-    import symbols.EyedropperLensSet;
+    import Symbols.EyedropperLensSet;
 
-    import symbols.AboutWindowSet;
+    import Symbols.AboutWindowSet;
 
-    import symbols.CanvasInfoSet;
+    import Symbols.CanvasInfoSet;
 
-    import symbols.CanvasNavigatorBoxSet;
+    import Symbols.CanvasNavigatorBoxSet;
 
-    import symbols.CapStampFontListSet;
+    import Symbols.CapStampFontListSet;
 
-    import symbols.ColorPickerSet;
+    import Symbols.ColorPickerSet;
 
-    import symbols.FOFO;
+    import Symbols.FOFO;
 
-    import symbols.LassoMenuSet;
+    import Symbols.LassoMenuSet;
 
-    import symbols.LoadBoxSet;
+    import Symbols.LoadBoxSet;
 
-    import symbols.NumPadSet;
+    import Symbols.NumPadSet;
 
-    import symbols.SidePanelSet;
+    import Symbols.SidePanelSet;
 
-    import symbols.ToolOptionsSet;
+    import Symbols.ToolOptionsSet;
 
-    import symbols.seekBarSet;
+    import Symbols.seekBarSet;
 
-    import symbols.FOFO;
-    import main_module.ColorPickerController;
+    import Symbols.FOFO;
+    import Modules.ColorPickerController;
 
     // import
 
@@ -5593,13 +5593,13 @@
             {
                 case KEY.tab:
                 case KEY.backslash:
-                    if (isSidebarVisible)
+                    if (SidebarController.isSidebarVisible)
                     {
-                        hideSidebarPermanent();
+                        SidebarController.hideSidebarPermanent();
                     }
                     else
                     {
-                        showSidebarPermanent();
+                        SidebarController.showSidebarPermanent();
                     }
                     break;
 

@@ -1,4 +1,4 @@
-package main_module
+package Modules
 {
     import flash.display.DisplayObject;
     import flash.display.Sprite;
@@ -7,8 +7,8 @@ package main_module
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import symbols.SidePanelSet;
-    import symbols.FOFO;
+    import Symbols.SidePanelSet;
+    import Symbols.FOFO;
     import flash.filesystem.File;
     import flash.display.BitmapData;
 

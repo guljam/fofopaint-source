@@ -1,4 +1,4 @@
-package main_module
+package Modules
 {
 
     import flash.display.NativeWindow;
@@ -73,7 +73,7 @@ package main_module
         public static function updateCanvasWindowData():void
         {
             FOFOTimer.addByName("canvasWindowUpdateDelayTimer", 0.2, false,
-                    function():void
+                    function ():void
                     {
                         canvasWindowInfo[0] = canvasWindow.x;
                         canvasWindowInfo[1] = canvasWindow.y;
@@ -260,9 +260,6 @@ package main_module
             canvasWindow.activate();
         }
 
-        public function ImageViewWindow():void
-        {
-
-        }
+        public function ImageViewWindow():void {}
     }
 }

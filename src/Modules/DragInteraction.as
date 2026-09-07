@@ -1,4 +1,4 @@
-package main_module
+package Modules
 {
     import flash.display.DisplayObject;
     import flash.events.MouseEvent;

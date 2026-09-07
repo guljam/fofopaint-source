@@ -1,13 +1,13 @@
-package main_module
+package Modules
 {
 
-    import main_module.SidebarController;
+    import Modules.SidebarController;
     import flash.events.MouseEvent;
     import flash.filesystem.File;
     import flash.filesystem.FileStream;
     import flash.filesystem.FileMode;
     import flash.geom.Point;
-    import main_module.tools.PenTool;
+    import Modules.PenTool;
     import flash.display.Graphics;
 
     public final class PaletteController
@@ -62,7 +62,7 @@ package main_module
             }
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
 
-            FOFOTimer.addByName("selectMyPaletteDelayTimer", 0.4, false, function():void
+            FOFOTimer.addByName("selectMyPaletteDelayTimer", 0.4, false, function ():void
                 {
                     main.startPressHoldKey(ColorPickerController.colorPickerBox.myPaletteButton, "Clearing my palette..", null, clearMyPaletteList, null);
                     main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
@@ -87,7 +87,7 @@ package main_module
             }
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp);
 
-            FOFOTimer.addByName("addColorMyPaletteDelayTimer", 0.6, true, function():Boolean
+            FOFOTimer.addByName("addColorMyPaletteDelayTimer", 0.6, true, function ():Boolean
                 {
                     if (firstClickColorIndex === getMyPaletteIndexByMousePos())
                     {
@@ -366,7 +366,7 @@ package main_module
 
         public static function clearMyPaletteList():void
         {
-            for (var i:int = 0; i < 90; i++)
+            for (var i:int = 0;i < 90;i++)
             {
                 myPalettePreset[i] = null;
             }
@@ -401,7 +401,7 @@ package main_module
             }
 
             // 이미 있는 색깔이면 다시 최신으로 갱신
-            for (var i:uint = 90; i < 100; i++)
+            for (var i:uint = 90;i < 100;i++)
             {
                 if (color === myPalettePreset[i])
                 {
@@ -439,7 +439,7 @@ package main_module
 
             ColorPickerController.colorPickerBox.colorHistoryBox.graphics.clear();
 
-            for (var i:uint = 0; i < 10; i++)
+            for (var i:uint = 0;i < 10;i++)
             {
                 if (90 + i === ignoreIndex)
                 {
@@ -461,7 +461,7 @@ package main_module
             ColorPickerController.colorPickerBox.colorHistoryBox.graphics.endFill();
             ColorPickerController.colorPickerBox.colorHistoryBox.graphics.lineStyle(1, 0, 0.2);
 
-            for (i = 1; i < 10; i++)
+            for (i = 1;i < 10;i++)
             {
                 ColorPickerController.colorPickerBox.colorHistoryBox.graphics.moveTo(myPaletteColorWidth * i, 0);
                 ColorPickerController.colorPickerBox.colorHistoryBox.graphics.lineTo(myPaletteColorWidth * i, myPaletteColorHeight);
@@ -494,7 +494,7 @@ package main_module
             var py:Number;
 
             // 색깔 쭉 그려주기
-            for (var i:uint = 0; i < len; i++)
+            for (var i:uint = 0;i < len;i++)
             {
                 if (i > 0 && i % 10 === 0)
                 {
@@ -532,7 +532,7 @@ package main_module
                 ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
                 ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
 
-                for (i = 2; i < 10; i += 2)
+                for (i = 2;i < 10;i += 2)
                 {
                     ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(ww * i, 0);
                     ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(ww * i, hh * 2);
@@ -544,7 +544,7 @@ package main_module
                 ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh);
                 ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
 
-                for (i = 1; i < 10; i++)
+                for (i = 1;i < 10;i++)
                 {
                     ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(ww * i, 0);
                     ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(ww * i, hh * 2);
@@ -560,7 +560,7 @@ package main_module
                     ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(ww * 10, hh);
 
                     // 세로
-                    for (i = 1; i < 10; i++)
+                    for (i = 1;i < 10;i++)
                     {
                         ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth * i, 0);
                         ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * i, hh * 2);
@@ -571,13 +571,13 @@ package main_module
                     ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
 
                     // 가로
-                    for (i = 1; i < 9; i++)
+                    for (i = 1;i < 9;i++)
                     {
                         ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh * i);
                         ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * 10, hh * i);
                     }
                     // 세로
-                    for (i = 1; i < 10; i++)
+                    for (i = 1;i < 10;i++)
                     {
                         ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth * i, 0);
                         ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * i, hh * 9);

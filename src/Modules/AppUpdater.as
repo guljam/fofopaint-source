@@ -1,4 +1,4 @@
-package main_module
+package Modules
 {
     import flash.filesystem.File;
     import flash.net.navigateToURL;
@@ -47,7 +47,7 @@ package main_module
 
             if (status === FLAG_UPDATE_READY)
             {
-                FOFOTimer.add(0.5, false, function():void
+                FOFOTimer.add(0.5, false, function ():void
                     {
                         installNewVersion();
                     });
@@ -149,7 +149,7 @@ package main_module
                         {
                             if (tryCount < 5)
                             {
-                                FOFOTimer.addByName("updateRryTimer", 1.0, false, function():void
+                                FOFOTimer.addByName("updateRryTimer", 1.0, false, function ():void
                                     {
                                         tryCount++;
                                         fileLoader.load(updateFile);

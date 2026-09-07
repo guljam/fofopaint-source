@@ -1,4 +1,4 @@
-package main_module
+package Modules
 {
     import flash.display.Shape;
     import flash.events.KeyboardEvent;

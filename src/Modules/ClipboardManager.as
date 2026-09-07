@@ -1,4 +1,4 @@
-package main_module
+package Modules
 {
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
@@ -79,11 +79,11 @@ package main_module
             if (data is Array && data.length > 0)
             {
                 main.validateImageFile(data[0] as File,
-                        function(type:String, file:File, bmpd:BitmapData):void
+                        function (type:String, file:File, bmpd:BitmapData):void
                         {
                             enableTopBarClipboardButton();
                         },
-                        function():void
+                        function ():void
                         {
                             disableTopBarClipboardButton();
                         });

@@ -1,9 +1,9 @@
-package main_module
+package Modules
 {
-    import symbols.ColorPickerSet;
-    import symbols.NumPadSet;
+    import Symbols.ColorPickerSet;
+    import Symbols.NumPadSet;
     import flash.display.BitmapData;
-    import main_module.tools.PenTool;
+    import Modules.PenTool;
     import flash.geom.Point;
     import flash.events.MouseEvent;
     import flash.ui.ContextMenuBuiltInItems;
