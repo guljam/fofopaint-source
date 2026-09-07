@@ -27,28 +27,28 @@ package Modules
         public static var isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
         public static var isCaptureStampTextFieldFocused:Boolean = false; // 포커스 되면 올려줌
         public static var isCaptureStampEnabled:Boolean = false;
-        public static var isCaptureModeInputEventsAdded:Boolean = false; // 이벤트 세트가 켜지거나 꺼지는거 보관 중복 이벤트 추가 피하려고
+        private static var isCaptureModeInputEventsAdded:Boolean = false; // 이벤트 세트가 켜지거나 꺼지는거 보관 중복 이벤트 추가 피하려고
 
         public static var captureStampFontListBox:CapStampFontListSet = new CapStampFontListSet();
-        public static var captureDragAreaOverlay:Shape = new Shape(); // 스크린샷 박스 미리보기 그려줌
-        public static var canvasStateBeforeCaptureMode:Object = {}; // 캡쳐 키면 캔버스 이전 상태 저장함
+        private static var captureDragAreaOverlay:Shape = new Shape(); // 스크린샷 박스 미리보기 그려줌
+        private static var canvasStateBeforeCaptureMode:Object = {}; // 캡쳐 키면 캔버스 이전 상태 저장함
         public static var drawModeCanvasStateForSaveAppState:Object = {}; // save app state에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
         public static var captureWindowMove:Point = new Point(0, 0); // 스크린샷이 켜져있는 상태에서 창을 조절했을때 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
         public static var captureCanvasRotationStep:uint = 0; // 캡쳐 회전한 변수 저장
-        public static var capTransparentBGBMPDSize:Number = 32;
+        private static var capTransparentBGBMPDSize:Number = 32;
         public static var capTransparentBGBMPD:BitmapData;
 
         public static const captureAreaManager:Object = cDrawCaptureArea();
         public static const captureStampManager:Object = cDrawCaptureStamp();
 
-        public static function hideStampFontList():void
+        private static function hideStampFontList():void
         {
             const main:Main = Main._instance;
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList);
             captureStampFontListBox.visible = false;
         }
 
-        public static function onMouseDownShowStampFontList(e:MouseEvent):void
+        private static function onMouseDownShowStampFontList(e:MouseEvent):void
         {
             const main:Main = Main._instance;
             if (!(captureStampFontListBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || MainUI.topBar.capStampFont.hitTestPoint(main.stage.mouseX, main.stage.mouseY)))
@@ -194,7 +194,7 @@ package Modules
             capTransparentBGBMPD.fillRect(new Rectangle(halfSize, halfSize, halfSize, halfSize), 0xCCCCCC);
         }
 
-        public static function updateCanvasFlipOnCaptureMode():void
+        private static function updateCanvasFlipOnCaptureMode():void
         {
             const main:Main = Main._instance;
             const xAnc:Sprite = (main.isReplayModeON) ? main.rCanvasAnchorPoint : main.canvasAnchorPoint;
@@ -299,7 +299,7 @@ package Modules
             }
         }
 
-        public static function showBottomHintForTargetCaptureMode(target:DisplayObject):void
+        private static function showBottomHintForTargetCaptureMode(target:DisplayObject):void
         {
             const main:Main = Main._instance;
 
@@ -335,7 +335,7 @@ package Modules
             }
         }
 
-        public static function onRightMouseDownCaptureMode(e:MouseEvent):void
+        private static function onRightMouseDownCaptureMode(e:MouseEvent):void
         {
             const main:Main = Main._instance;
 
@@ -348,7 +348,7 @@ package Modules
             }
         }
 
-        public static function onMouseDownCaptureMode(e:MouseEvent):void
+        private static function onMouseDownCaptureMode(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
             if (!target)
@@ -421,7 +421,7 @@ package Modules
             }
         }
 
-        public static function onKeyUpCaptureMode(e:KeyboardEvent):void
+        private static function onKeyUpCaptureMode(e:KeyboardEvent):void
         {
             const main:Main = Main._instance;
 
@@ -429,7 +429,7 @@ package Modules
             main.checkGeneralKeyUp(e.keyCode);
         }
 
-        public static function onKeyDownCaptureMode(e:KeyboardEvent):void
+        private static function onKeyDownCaptureMode(e:KeyboardEvent):void
         {
             const main:Main = Main._instance;
             const firstKey:uint = main.getFirstPressedKey();
@@ -674,7 +674,7 @@ package Modules
             canvasStateBeforeCaptureMode = {};
         }
 
-        public static function cDrawCaptureStamp():Object
+        private static function cDrawCaptureStamp():Object
         {
             var captrueStampBMPD:BitmapData = new BitmapData(1, 1, false, 0);
             var captureStampBitmap:Bitmap = new Bitmap(captrueStampBMPD);
@@ -849,6 +849,7 @@ package Modules
 
             function getCaptureAreaBmpd(clipRect:Rectangle, layer1:Boolean, layer2:Boolean):BitmapData
             {
+                const main:Main = Main._instance;
                 var longEdge:Number;
                 var areaWidth:Number;
                 var areaHeight:Number;
@@ -857,7 +858,6 @@ package Modules
 
                 if (fullImageFlag)
                 {
-                    const main:Main = Main._instance;
                     longEdge = main.CANVAS_HEIGHT > main.CANVAS_WIDTH ? main.CANVAS_HEIGHT : main.CANVAS_WIDTH;
                     areaWidth = main.CANVAS_WIDTH;
                     areaHeight = main.CANVAS_HEIGHT;
@@ -1057,6 +1057,7 @@ package Modules
 
             function update():void
             {
+                const main:Main = Main._instance;
                 if (isCaptureStampEnabled)
                 {
                     const rect:Rectangle = captureAreaManager.getCaptureArea();
@@ -1070,7 +1071,7 @@ package Modules
                         }
                         return;
                     }
-                    const main:Main = Main._instance;
+
                     const layer1Visible:Boolean = (main.isReplayModeON) ? main.rCanvasLayer1Bitmap.visible : main.canvasLayer1Bitmap.visible;
                     const layer2Visible:Boolean = (main.isReplayModeON) ? main.rCanvasLayer2Bitmap.visible : main.canvasLayer2Bitmap.visible;
 
@@ -1280,7 +1281,7 @@ package Modules
         }
 
         // 마우스 클릭하면 캡쳐 영역그리는 함수
-        public static function cDrawCaptureArea():Object
+        private static function cDrawCaptureArea():Object
         {
             var xPanel:Sprite;
             var mouseMoved:Boolean = false;

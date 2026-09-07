@@ -21,26 +21,26 @@ package Modules
         public static const sideBarScrollPanel:Sprite = new Sprite();
 
         public static var scrollSetMovedY:Number = 0;
-        public static var scrollBarHeight:Number = 0;
-        public static var sideBarConstHeight:Number = 780;
+        private static var scrollBarHeight:Number = 0;
+        private static var sideBarConstHeight:Number = 780;
 
         public static var isSidebarVisible:Boolean = true; // 사이드바 표시 여부
-        public static var isSidebarTempShowDeactivated:Boolean = false; // 사이드바 임시로 보여주는 기능이 잠시 꺼졌을때 올려줌
-        public static var isReactivateSidebarTempShowEventsAdded:Boolean = false; // 사이드바 임시로 보여주는 기능을 끄는 이벤트들이 등록되면 올려줌
-        public static var isSidebarHideEventAdded:Boolean = false; // 사이드바가 임시로 보여졌을때 마우스 클릭하면 꺼주는 이벤트가 추가되면 올려줌
+        private static var isSidebarTempShowDeactivated:Boolean = false; // 사이드바 임시로 보여주는 기능이 잠시 꺼졌을때 올려줌
+        private static var isReactivateSidebarTempShowEventsAdded:Boolean = false; // 사이드바 임시로 보여주는 기능을 끄는 이벤트들이 등록되면 올려줌
+        private static var isSidebarHideEventAdded:Boolean = false; // 사이드바가 임시로 보여졌을때 마우스 클릭하면 꺼주는 이벤트가 추가되면 올려줌
         public static var isRightSidebar:Boolean = false; // 사이드바 위치 (false: 왼쪽, true: 오른쪽)
         public static var lassoAndRefLayerBoxLastPos:Array = [0, 0, 0, 0, 0, 0, 0, 0]; // 사이즈바 켜줄때 임시로 사이드바 안쪽으로 밀려나게 하고 위치가 변경되지 않았으면 원래대로 복귀해줌
 
         public static var isQuickSidebarActive:Boolean = false; // 퀵 사이드바 활성화 여부
         public static var isLoadPendingAfterSaving:Boolean = false; // 저장 후 로드 대기 플래그
-        public static var isLayerCheckKeyPressed:Boolean = false; // 키 입력 반복 시 함수 중복 호출 방지 플래그
-        public static var isDrawModeInputEventsAdded:Boolean = false; // 드로우 모드 이벤트 중복 추가 방지
-        public static var isReplayModeInputEventsAdded:Boolean = false; // 리플레이 모드 이벤트 중복 추가 방지
-        public static var isFileBrowserOpened:Boolean = false; // 캡처 저장 시 중복 실행 방지 플래그
-        public static var lastLoadedFile:File; // invoke나 파일 드래그 드롭했을때 저장해줘서 같은 파일 로드하지 않게
-        public static var loadMenuBoxBitmapData:BitmapData; // 메뉴 박스 미리보기 이미지 데이터
-        public static var loadMenuBoxFileType:String; // 메뉴 박스에 로드할 파일 종류
-        public static var loadMenuBoxFile:File; // 메뉴 박스에 로드할 파일
+        private static var isLayerCheckKeyPressed:Boolean = false; // 키 입력 반복 시 함수 중복 호출 방지 플래그
+        private static var isDrawModeInputEventsAdded:Boolean = false; // 드로우 모드 이벤트 중복 추가 방지
+        private static var isReplayModeInputEventsAdded:Boolean = false; // 리플레이 모드 이벤트 중복 추가 방지
+        private static var isFileBrowserOpened:Boolean = false; // 캡처 저장 시 중복 실행 방지 플래그
+        private static var lastLoadedFile:File; // invoke나 파일 드래그 드롭했을때 저장해줘서 같은 파일 로드하지 않게
+        private static var loadMenuBoxBitmapData:BitmapData; // 메뉴 박스 미리보기 이미지 데이터
+        private static var loadMenuBoxFileType:String; // 메뉴 박스에 로드할 파일 종류
+        private static var loadMenuBoxFile:File; // 메뉴 박스에 로드할 파일
 
         public static function isMouseCursorInSideBar():Boolean
         {
@@ -70,12 +70,12 @@ package Modules
             return false;
         }
 
-        public static function getSidebarConstHeight():Number
+        private static function getSidebarConstHeight():Number
         {
             return (sideBarConstHeight + ((PaletteController.isMyPaletteExpended && PaletteController.myPalettePresetType === 0) ? PaletteController.myPaletteColorHeight * 7 : 0));
         }
 
-        public static function checkCollisionFOFOAndSideBarScrollSet():int
+        private static function checkCollisionFOFOAndSideBarScrollSet():int
         {
             const main:Main = Main._instance;
 
@@ -95,7 +95,7 @@ package Modules
             return (collisionTop && collisionBottom) ? FOFO.COLLISION_ALL : (collisionBottom) ? FOFO.COLLISION_BOTTOM : (collisionTop) ? FOFO.COLLISION_TOP : FOFO.COLLISION_NONE;
         }
 
-        public static function alignFOFOToSidebar():void
+        private static function alignFOFOToSidebar():void
         {
             if (isRightSidebar)
             {
@@ -150,7 +150,7 @@ package Modules
             }
         }
 
-        public static function onMouseUpQuickSidebar(e:MouseEvent):void
+        private static function onMouseUpQuickSidebar(e:MouseEvent):void
         {
             deactivateQuickSidebar();
         }
@@ -203,7 +203,7 @@ package Modules
             deactivateQuickSidebar();
         }
 
-        public static function onRightMouseDownQuickSidebar(e:MouseEvent):void
+        private static function onRightMouseDownQuickSidebar(e:MouseEvent):void
         {
             const main:Main = Main._instance;
 
@@ -244,7 +244,7 @@ package Modules
             startDeactivteQuickSidebar();
         }
 
-        public static function onMouseDownQuickSidebar(e:MouseEvent):void
+        private static function onMouseDownQuickSidebar(e:MouseEvent):void
         {
             const main:Main = Main._instance;
 
@@ -260,7 +260,7 @@ package Modules
             }
         }
 
-        public static function onKeyUpQuickSidebar(e:KeyboardEvent):void
+        private static function onKeyUpQuickSidebar(e:KeyboardEvent):void
         {
             const main:Main = Main._instance;
             const keyCode:uint = e.keyCode;
@@ -379,7 +379,7 @@ package Modules
             }
         }
 
-        public static function addSidebarTempShowActivateEvents():void
+        private static function addSidebarTempShowActivateEvents():void
         {
             const main:Main = Main._instance;
             isReactivateSidebarTempShowEventsAdded = true;
@@ -390,7 +390,7 @@ package Modules
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpReactivateSidebarTempShow);
         }
 
-        public static function setSideBarClickEvents():void
+        private static function setSideBarClickEvents():void
         {
             const main:Main = Main._instance;
             isSidebarHideEventAdded = true;
@@ -398,7 +398,7 @@ package Modules
             main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownHideSidebar, false, -1);
         }
 
-        public static function removeSidebarTempShowActivateEvents():void
+        private static function removeSidebarTempShowActivateEvents():void
         {
             const main:Main = Main._instance;
 
@@ -415,7 +415,7 @@ package Modules
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseDownReactivateSidebarTempShow);
         }
 
-        public static function onMouseDownReactivateSidebarTempShow(e:MouseEvent):void
+        private static function onMouseDownReactivateSidebarTempShow(e:MouseEvent):void
         {
             const main:Main = Main._instance;
 
@@ -425,7 +425,7 @@ package Modules
             }
         }
 
-        public static function startTimerActivateSidebarShowTemp():void
+        private static function startTimerActivateSidebarShowTemp():void
         {
             isSidebarTempShowDeactivated = true;
 
@@ -437,7 +437,7 @@ package Modules
                 });
         }
 
-        public static function onMouseUpReactivateSidebarTempShow(e:MouseEvent):void
+        private static function onMouseUpReactivateSidebarTempShow(e:MouseEvent):void
         {
             const main:Main = Main._instance;
 
@@ -447,7 +447,7 @@ package Modules
             }
         }
 
-        public static function sidebarOFFRightMouseDownEvent(e:MouseEvent):void
+        private static function sidebarOFFRightMouseDownEvent(e:MouseEvent):void
         {
             const main:Main = Main._instance;
 
@@ -457,7 +457,7 @@ package Modules
             startHidingSidebarTemporary();
         }
 
-        public static function onMouseDownHideSidebar(e:MouseEvent):void
+        private static function onMouseDownHideSidebar(e:MouseEvent):void
         {
             const main:Main = Main._instance;
 
@@ -471,7 +471,7 @@ package Modules
             }
         }
 
-        public static function startShowSideBarTemporary():void
+        private static function startShowSideBarTemporary():void
         {
             const main:Main = Main._instance;
 
@@ -497,7 +497,7 @@ package Modules
             }
         }
 
-        public static function canShowSidebarTemporarily():Boolean
+        private static function canShowSidebarTemporarily():Boolean
         {
             const main:Main = Main._instance;
 
@@ -509,7 +509,7 @@ package Modules
                 && !MainUIController.resizeButtonR.visible;
         }
 
-        public static function onMouseLeaveSideBar(e:Event):void
+        private static function onMouseLeaveSideBar(e:Event):void
         {
             const main:Main = Main._instance;
 
@@ -526,7 +526,7 @@ package Modules
             }
         }
 
-        public static function onMouseMoveSideBar(e:MouseEvent):void
+        private static function onMouseMoveSideBar(e:MouseEvent):void
         {
             const main:Main = Main._instance;
 
@@ -557,7 +557,7 @@ package Modules
             }
         }
 
-        public static function onMouseUpSideBar(e:MouseEvent):void
+        private static function onMouseUpSideBar(e:MouseEvent):void
         {
             const main:Main = Main._instance;
 
@@ -573,7 +573,7 @@ package Modules
             }
         }
 
-        public static function updateSidebarLayout():void
+        private static function updateSidebarLayout():void
         {
             const main:Main = Main._instance;
 
@@ -632,7 +632,7 @@ package Modules
             main.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
         }
 
-        public static function showSidebarTemporary():void
+        private static function showSidebarTemporary():void
         {
             const main:Main = Main._instance;
 
@@ -645,7 +645,7 @@ package Modules
             sideBar.setTransparentBG();
         }
 
-        public static function hideSidebarTemporary():void
+        private static function hideSidebarTemporary():void
         {
             const main:Main = Main._instance;
 
@@ -656,7 +656,7 @@ package Modules
             main.restoreLassoAndRefLayerBoxLastPos();
         }
 
-        public static function toggleSideBarPosition():void
+        private static function toggleSideBarPosition():void
         {
             if (isRightSidebar === false)
             {
@@ -670,7 +670,7 @@ package Modules
             }
         }
 
-        public static function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = false):void
+        private static function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = false):void
         {
             const main:Main = Main._instance;
 
@@ -770,7 +770,7 @@ package Modules
             scrollBarHeight = height;
         }
 
-        public static function resetScrollBarX():void
+        private static function resetScrollBarX():void
         {
             const main:Main = Main._instance;
 
@@ -802,7 +802,7 @@ package Modules
             return (main.stage.stageHeight - MainUI.topBar.BARSIZE * Global.getUIScale()) / Global.getUIScale();
         }
 
-        public static function keepScrollSetInStage():void
+        private static function keepScrollSetInStage():void
         {
             const main:Main = Main._instance;
 
