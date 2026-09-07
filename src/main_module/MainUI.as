@@ -434,7 +434,7 @@ package main_module
             var ignoreSnapFlag:Boolean = true;
             var snappedAng:Number = 0;
 
-            return function():Number
+            return function ():Number
             {
                 const nowAng:Number = Math.atan2(main.stage.mouseX - canvasRotateCursor.x, main.stage.mouseY - canvasRotateCursor.y) * toDeg;
                 const subAng:Number = lastAng - nowAng;
