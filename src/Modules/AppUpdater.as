@@ -10,6 +10,7 @@ package Modules
     import flash.filesystem.FileMode;
     import flash.net.URLLoader;
     import flash.net.URLLoaderDataFormat;
+    import flash.utils.ByteArray;
 
     public final class AppUpdater
     {
@@ -79,17 +80,36 @@ package Modules
                 MainUI.showMouseHintTemp("Skip update (debub mode)");
             }
         }
-        private static function isNewVersion(newVersionArray:Array):Boolean
+        private static function isNewVersion(newVersion:String):Boolean
         {
-            const main:Main = Main._instance;
-            var current:Array = main.APP_VERSION.toFixed(2).split(".");
+            var currentStr:String = Main._instance.APP_VERSION; // 또는 APP_VERSION.toString()
+            var current:Array = currentStr.split(".");
+            const newVersionArray:Array = newVersion.split(".");
 
-            var newMajor:Number = parseFloat(newVersionArray[0]);
-            var newMinor:Number = parseFloat(newVersionArray[1]);
-            var curMajor:Number = parseFloat(current[0]);
-            var curMinor:Number = parseFloat(current[1]);
+            // 최소 2자리인지 확인
+            if (newVersionArray.length < 2 || current.length < 2)
+            {
+                return false;
+            }
 
-            return (newMajor > curMajor) || (newMajor === curMajor && newMinor > curMinor);
+            var newMajor:int = parseInt(newVersionArray[0], 10);
+            var newMinor:int = parseInt(newVersionArray[1], 10);
+            var curMajor:int = parseInt(current[0], 10);
+            var curMinor:int = parseInt(current[1], 10);
+
+            // NaN 체크
+            if (isNaN(newMajor) || isNaN(newMinor) || isNaN(curMajor) || isNaN(curMinor))
+            {
+                return false;
+            }
+
+            if (newMajor > curMajor)
+                return true;
+            if (newMajor < curMajor)
+                return false;
+
+            // major가 같으면 minor 비교
+            return newMinor > curMinor;
         }
 
         public static function getVersionFileFromGithub(onComplete:Function):void
@@ -125,17 +145,7 @@ package Modules
 
         public static function tryUpdate(versionStr:String):void
         {
-            const versionArray:Array = versionStr.split(".");
-
-            // 1. 버전 형식 검사
-            if (versionArray.length !== 2)
-            {
-                status = FLAG_NO_UPDATE;
-                return;
-            }
-
-            // 2. 새 버전인지 검사
-            if (!isNewVersion(versionArray))
+            if (!isNewVersion(versionStr))
             {
                 status = FLAG_NO_UPDATE;
 

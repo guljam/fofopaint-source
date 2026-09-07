@@ -765,7 +765,7 @@ package Modules
 
                 return "FOFO PAINT"
                     + ((newLine) ? "\n" : " ")
-                    + main.APP_VERSION.toFixed(2);
+                    + main.APP_VERSION;
             }
 
             function getTextWidthText(text:String, offset:Number):Number

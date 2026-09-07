@@ -374,7 +374,7 @@ package Modules
 		{
 			const main:Main = Main._instance;
 			main.aboutBox.name = "aboutPanel";
-			main.aboutBox.setVersionInfo(main.APP_VERSION.toFixed(2));
+			main.aboutBox.setVersionInfo(main.APP_VERSION);
 			topBar.name = "topBar";
 			SidebarController.sideBarScrollBar.name = "sideBarScrollBar";
 			topBar.makeTopbarBG(Global.UI_COLOR_MID_DARK);

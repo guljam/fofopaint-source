@@ -79,8 +79,8 @@
     public class Main extends Sprite
     {
         public static var _instance:Main;
-        public const APP_VERSION:Number = 22.01;
-        public const APP_STATE_VERSION:Number = 2801;
+        public const APP_VERSION:String = "28.01";
+        public const APP_STATE_VERSION:String = "2801";
         public const TOOL_NONE:int = 0,
             TOOL_PEN:int = (1 << 0),
             TOOL_ERASER:int = (1 << 1),
@@ -141,7 +141,7 @@
             RCANVAS_BG_COLOR:uint = 0xFFFFFF;
         public var TOTAL_FRAME:Number = 0; // rdata+file 프레임 전부 합친거
         // 파일 저장 경로
-        public const appStateFilePath:File = File.applicationStorageDirectory.resolvePath("appstate" + (APP_STATE_VERSION.toString())),
+        public const appStateFilePath:File = File.applicationStorageDirectory.resolvePath("appstate" + APP_STATE_VERSION),
             scratchPadDataFilePath:File = File.applicationStorageDirectory.resolvePath("scratchdata"),
             undoDataFilePath:File = File.applicationStorageDirectory.resolvePath("undodata"),
             replayDataFilePath:File = File.applicationStorageDirectory.resolvePath("repdata"),
