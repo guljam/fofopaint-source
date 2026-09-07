@@ -22,24 +22,24 @@ package Modules
             WORKER_STATE_INIT:int = (1 << 0),
             WORKER_STATE_RUNNING:int = (1 << 1);
 
-        public static var worker:Worker,
-            mainToBack:MessageChannel,
-            backToMain:MessageChannel,
-            isSaveInProgress:int = 0,
-            isSaveInProgressOFFDelayTimer:int = 0,
-            receivedSaveImageDataFromWorker:ByteArray = null,
-            captureImageDataQueue:Array = null,
-            receivedCaptureImageQueueFromWorker:Vector.<ByteArray>,
-            receivedUndoImageQueueFromWorker:Array = null,
-            undoDataQueue:Array = null,
-            workerSWF:ByteArray = null,
-            workerDataSendCount:int = 0,
-            workerDataReceiveCount:int = 0,
-            workerState:int = WORKER_STATE_STOPPED,
-            workerWaitCount:int = 0, // 워커 시작하고나서 약간 대기 시켜줘야함,
-            workerFunctionsBeforeStart:Array = [];
+        private static var worker:Worker;
+        public static var mainToBack:MessageChannel;
+        public static var backToMain:MessageChannel;
+        public static var isSaveInProgress:int = 0;
+        private static var isSaveInProgressOFFDelayTimer:int = 0;
+        public static var receivedSaveImageDataFromWorker:ByteArray = null;
+        public static var captureImageDataQueue:Array = null;
+        public static var receivedCaptureImageQueueFromWorker:Vector.<ByteArray>;
+        public static var receivedUndoImageQueueFromWorker:Array = null;
+        public static var undoDataQueue:Array = null;
+        private static var workerSWF:ByteArray = null;
+        private static var workerDataSendCount:int = 0;
+        private static var workerDataReceiveCount:int = 0;
+        private static var workerState:int = WORKER_STATE_STOPPED;
+        private static var workerWaitCount:int = 0; // 워커 시작하고나서 약간 대기 시켜줘야함,
+        private static var workerFunctionsBeforeStart:Array = [];
 
-        public static function onFromWorker(e:Event):void
+        private static function onFromWorker(e:Event):void
         {
             const main:Main = Main._instance;
 
@@ -79,7 +79,7 @@ package Modules
             }
         }
 
-        public static function sendDataToWorker(func:Function):void
+        private static function sendDataToWorker(func:Function):void
         {
             const main:Main = Main._instance;
 
@@ -130,7 +130,7 @@ package Modules
             }
         }
 
-        public static function stopWorkerIfIdle(forceFlag:Boolean = false):Boolean
+        private static function stopWorkerIfIdle(forceFlag:Boolean = false):Boolean
         {
             const main:Main = Main._instance;
 
@@ -165,7 +165,7 @@ package Modules
             return true;
         }
 
-        public static function startWorker():void
+        private static function startWorker():void
         {
             if (worker === null || worker.state === "new")
             {

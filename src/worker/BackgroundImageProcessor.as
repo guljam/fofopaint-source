@@ -20,7 +20,7 @@ package worker
 
         private var command:String;
 
-        private var args:Array;
+        public var args:Array;
 
         public function BackgroundImageProcessor()
         {

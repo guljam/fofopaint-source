@@ -112,7 +112,7 @@ package Modules
             return newMinor > curMinor;
         }
 
-        public static function getVersionFileFromGithub(onComplete:Function):void
+        private static function getVersionFileFromGithub(onComplete:Function):void
         {
             var request:URLRequest = new URLRequest(UPDATE_VERSION_URL);
             request.useCache = false;
@@ -143,7 +143,7 @@ package Modules
             }
         }
 
-        public static function tryUpdate(versionStr:String):void
+        private static function tryUpdate(versionStr:String):void
         {
             if (!isNewVersion(versionStr))
             {
