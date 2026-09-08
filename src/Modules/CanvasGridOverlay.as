@@ -45,7 +45,6 @@ package Modules
 
         private static function clearGrid():void
         {
-            const main:Main = Main._instance;
             lastGridGapValue = 0;
             MainUI.topBar.setGridMoveButtonAlpha(Global.OFFALPHA);
             canvasGrid.visible = false;
@@ -54,8 +53,6 @@ package Modules
 
         public static function drawGrid():void
         {
-            const main:Main = Main._instance;
-
             if (gridGapMultiplier === 0)
             {
                 clearGrid();
@@ -63,17 +60,17 @@ package Modules
             }
 
             var gridgap:Number = gridGapMultiplier * GRID_GAP;
-            if (gridgap * main.canvasZoomMultipler < gridgap)
+            if (gridgap * CanvasController.canvasZoomMultipler < gridgap)
             {
-                gridgap = gridgap / main.canvasZoomMultipler;
+                gridgap = gridgap / CanvasController.canvasZoomMultipler;
             }
 
             if (gridgap !== lastGridGapValue)
             {
                 lastGridGapValue = gridgap;
 
-                const gridWidth:Number = main.CANVAS_WIDTH;
-                const gridHeight:Number = main.CANVAS_HEIGHT;
+                const gridWidth:Number = CanvasController.CANVAS_WIDTH;
+                const gridHeight:Number = CanvasController.CANVAS_HEIGHT;
                 const offsetX:Number = gridDrawOffsetX;
                 const offsetY:Number = gridDrawOffsetY;
 
@@ -118,17 +115,16 @@ package Modules
             }
 
             canvasGrid.graphics.clear();
-            canvasGrid.graphics.lineStyle(1 / main.canvasZoomMultipler, GRID_NORMAL_COLOR, 0.5, false);
+            canvasGrid.graphics.lineStyle(1 / CanvasController.canvasZoomMultipler, GRID_NORMAL_COLOR, 0.5, false);
             canvasGrid.graphics.drawPath(gridGraphicsCommands, gridGraphicsData);
 
-            updateGridMirror(main.isCanvasMirrored);
+            updateGridMirror(CanvasController.isCanvasMirrored);
             canvasGrid.cacheAsBitmap = true;
             canvasGrid.visible = true;
         }
 
         private static function cGridFunc():Object
         {
-            const main:Main = Main._instance;
             const minDist:Number = MainUI.topBar.gridSlider.x + 1.5;
             const maxDist:Number = minDist + MainUI.topBar.gridSlider.width - 2.5;
             const step:Number = 20;
@@ -188,7 +184,7 @@ package Modules
 
             function onMouseUpGridButton(e:MouseEvent):void
             {
-                main.isMouseDragging = false;
+                CanvasController.isMouseDragging = false;
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
             }
@@ -214,7 +210,7 @@ package Modules
             {
                 main.startKeyRepeat(true, function ():void
                     {
-                        gridDrawOffsetX += moveX * (main.isCanvasMirrored ? -1 : 1);
+                        gridDrawOffsetX += moveX * (CanvasController.isCanvasMirrored ? -1 : 1);
                         gridDrawOffsetY += moveY;
 
                         if (Math.abs(gridDrawOffsetX) >= gridGapMultiplier * GRID_GAP)
@@ -247,13 +243,13 @@ package Modules
                         var p:Point;
 
                         if (targetName === "gridMoveLeftButton")
-                            p = Utils.rotatePoint(-1, 0, main.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(-1, 0, CanvasController.canvasAnchorPoint.rotation);
                         else if (targetName === "gridMoveRightButton")
-                            p = Utils.rotatePoint(1, 0, main.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(1, 0, CanvasController.canvasAnchorPoint.rotation);
                         else if (targetName === "gridMoveUpButton")
-                            p = Utils.rotatePoint(0, -1, main.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(0, -1, CanvasController.canvasAnchorPoint.rotation);
                         else if (targetName === "gridMoveDownButton")
-                            p = Utils.rotatePoint(0, 1, main.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(0, 1, CanvasController.canvasAnchorPoint.rotation);
 
                         if (p !== null)
                             repeatGridMoveByValue(p.x, p.y);
@@ -261,7 +257,7 @@ package Modules
                 }
                 else if (MainUI.topBar.gridSliderWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                 {
-                    main.isMouseDragging = true;
+                    CanvasController.isMouseDragging = true;
                     oldValue = gridGapMultiplier;
                     drawGridByValue(MainUI.topBar.gridSliderWrapper.mouseX, true);
                     main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
@@ -273,7 +269,7 @@ package Modules
             {
                 if (e.keyCode === main.KEY.f2 || e.keyCode === main.KEY.f8)
                 {
-                    if (!(main.isMouseClicked || main.isMouseDragging))
+                    if (!(CanvasController.isMouseClicked || CanvasController.isMouseDragging))
                     {
                         if (main.isPressingShift())
                         {
@@ -334,7 +330,7 @@ package Modules
             function off():void
             {
                 MainUI.hideBottomHint();
-                main.isMouseDragging = false;
+                CanvasController.isMouseDragging = false;
                 main.removeKeyRepeatEvents(null);
                 main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
@@ -383,7 +379,7 @@ package Modules
             if (mirrorflag)
             {
                 canvasGrid.scaleX = -1.0;
-                canvasGrid.x = Main._instance.CANVAS_WIDTH;
+                canvasGrid.x = CanvasController.CANVAS_WIDTH;
             }
             else
             {

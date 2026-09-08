@@ -1,6 +1,5 @@
 package Modules
 {
-
 	import Modules.SidebarController;
 
 	import Modules.MainUIController;
@@ -12,7 +11,6 @@ package Modules
 
 	import Symbols.TopMenuSet;
 	import Symbols.HintBoxSet;
-	import Symbols.RotateCursorSet;
 	import Symbols.seekBarSet;
 	import Symbols.CapStampFontListSet;
 	import flash.geom.Point;
@@ -39,7 +37,6 @@ package Modules
 		public static const bottomBar:Sprite = new Sprite();
 		private static const hintHighlightBox:Shape = new Shape(); // 요소에 마우스 클릭하면 사각형으로 하이라이트 표시해줌
 		private static const lastBottomHintTargetRect:Rectangle = new Rectangle(); // bottomhint mosue move에서 자꾸 호출해주니까 저장해서 호출 덜하게 해줌
-		public static const canvasRotateCursor:RotateCursorSet = new RotateCursorSet(); // 회전이 얼마나 됐는지 표시,
 		private static var isCaptureModeInputEventsAdded:Boolean = false; // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
 		public static var isCaptureCanvasFlipped:Boolean = false; // 캡쳐 대칭한 변수 저장
 		public static var isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
@@ -88,7 +85,7 @@ package Modules
 
 		public static function isHintUnavailable():Boolean
 		{
-			return main.isMouseClicked || main.isRightMouseClicked || main.isMouseDragging || main.isToolBox2Showing
+			return CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging || main.isToolBox2Showing
 				|| main.numPadBox.visible || main.isAboutBoxOpened || main.isGeneratingCacheImages();
 			// || isFillPenStarted
 			// || isLassoToolStarted
@@ -96,7 +93,7 @@ package Modules
 
 		public static function showMouseHintLayerVisible():void
 		{
-			showMouseHintTemp(HintStrings.getLayerVisibleHint(main.canvasLayer1Bitmap.visible, main.canvasLayer2Bitmap.visible));
+			showMouseHintTemp(HintStrings.getLayerVisibleHint(CanvasController.canvasLayer1Bitmap.visible, CanvasController.canvasLayer2Bitmap.visible));
 		}
 
 		private static function showBottomHintForTargetCaptureMode(target:DisplayObject):void
@@ -113,10 +110,10 @@ package Modules
 				FOFOTimer.remove("bottomHintOffDelay");
 
 				const targetName:String = target.name;
-				const xCanvasPanel:Sprite = (main.isReplayModeON) ? main.rCanvasPanel : main.canvasPanel;
+				const xCanvasPanel:Sprite = (main.isReplayModeON) ? main.rCanvasPanel : CanvasController.canvasPanel;
 				if (CaptureController.captureAreaManager.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
 				{
-					showHintHighlightBox((main.isReplayModeON) ? main.rCanvasLayer1Bitmap : main.canvasLayer1Bitmap);
+					showHintHighlightBox((main.isReplayModeON) ? main.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
 					showBottomHint(hint);
 				}
 				else if (!(targetName === "rCanvasPanel"
@@ -178,9 +175,9 @@ package Modules
 			{
 				FOFOTimer.remove("bottomHintOffDelay");
 
-				if (main.isCanvasNaviatorChild(target))
+				if (CanvasController.isCanvasNaviatorChild(target))
 				{
-					showHintHighlightBox(main.canvasNavigatorBox.navStageBG);
+					showHintHighlightBox(CanvasController.canvasNavigatorBox.navStageBG);
 				}
 				else
 				{
@@ -211,9 +208,9 @@ package Modules
 			hintHighlightBox.graphics.clear();
 			hintHighlightBox.graphics.lineStyle(2 * scale, Global.getHintHightlightColor(), 1.0);
 
-			if (target.parent === main.canvasNavigatorBox)
+			if (target.parent === CanvasController.canvasNavigatorBox)
 			{
-				target = main.canvasNavigatorBox;
+				target = CanvasController.canvasNavigatorBox;
 			}
 
 			const rect:Rectangle = target.getBounds(main.stage);
@@ -387,11 +384,11 @@ package Modules
 			main.fillPenBox.x = -main.fillPenBox.width - 3;
 			main.fillPenBox.y = -main.fillPenBox.height - 3;
 
-			main.canvasNavigatorBox.scrollRect = new Rectangle(0, 0, main.canvasNavigatorBox.width, main.canvasNavigatorBox.height);
+			CanvasController.canvasNavigatorBox.scrollRect = new Rectangle(0, 0, CanvasController.canvasNavigatorBox.width, CanvasController.canvasNavigatorBox.height);
 
-			SidebarController.sideBarScrollPanel.addChild(main.canvasNavigatorBox);
-			SidebarController.sideBarScrollPanel.addChild(main.canvasInfoBox);
-			main.toolBox.moveCanvasControlButtonsTo(main.canvasInfoBox);
+			SidebarController.sideBarScrollPanel.addChild(CanvasController.canvasNavigatorBox);
+			SidebarController.sideBarScrollPanel.addChild(CanvasController.canvasInfoBox);
+			main.toolBox.moveCanvasControlButtonsTo(CanvasController.canvasInfoBox);
 			SidebarController.sideBarScrollPanel.addChild(main.toolBox);
 			SidebarController.sideBarScrollPanel.addChild(main.toolOptionsBox);
 			SidebarController.sideBarScrollPanel.addChild(ColorPickerController.colorPickerBox);
@@ -421,7 +418,7 @@ package Modules
 			main.stage.addChild(SidebarController.sideBar);
 			main.stage.addChild(main.fillPenBox);
 			main.stage.addChild(main.toolBox2);
-			main.stage.addChild(canvasRotateCursor);
+			main.stage.addChild(CanvasController.canvasRotateCursor);
 			main.stage.addChild(main.numPadBox);
 			main.stage.addChild(CaptureController.captureStampFontListBox);
 			main.stage.addChild(topBar);
@@ -433,31 +430,31 @@ package Modules
 
 		public static function hideCanvasRotateCursor():void
 		{
-			canvasRotateCursor.visible = false;
+			CanvasController.canvasRotateCursor.visible = false;
 		}
 
 		public static function showCanvasRotateCursorMouseDrag(target:DisplayObject):Function
 		{
 			const snapThreshold:Number = 82;
-			canvasRotateCursor.x = main.stage.mouseX;
-			canvasRotateCursor.y = main.stage.mouseY + (65 * Global.getUIScale());
-			canvasRotateCursor.rotateArrow.rotation = target.rotation;
-			Utils.setAsTopChild(canvasRotateCursor);
-			canvasRotateCursor.visible = true;
+			CanvasController.canvasRotateCursor.x = main.stage.mouseX;
+			CanvasController.canvasRotateCursor.y = main.stage.mouseY + (65 * Global.getUIScale());
+			CanvasController.canvasRotateCursor.rotateArrow.rotation = target.rotation;
+			Utils.setAsTopChild(CanvasController.canvasRotateCursor);
+			CanvasController.canvasRotateCursor.visible = true;
 
 			const toDeg:Number = 180.0 / Math.PI;
 			// 움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
 
 			var sumAng:Number = target.rotation;
 			// 각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
-			var lastAng:Number = Math.atan2(main.stage.mouseX - canvasRotateCursor.x, main.stage.mouseY - canvasRotateCursor.y) * toDeg;
+			var lastAng:Number = Math.atan2(main.stage.mouseX - CanvasController.canvasRotateCursor.x, main.stage.mouseY - CanvasController.canvasRotateCursor.y) * toDeg;
 			var activateSnapFlag:Boolean = false;
 			var ignoreSnapFlag:Boolean = true;
 			var snappedAng:Number = 0;
 
 			return function ():Number
 			{
-				const nowAng:Number = Math.atan2(main.stage.mouseX - canvasRotateCursor.x, main.stage.mouseY - canvasRotateCursor.y) * toDeg;
+				const nowAng:Number = Math.atan2(main.stage.mouseX - CanvasController.canvasRotateCursor.x, main.stage.mouseY - CanvasController.canvasRotateCursor.y) * toDeg;
 				const subAng:Number = lastAng - nowAng;
 
 				lastAng = nowAng;
@@ -491,7 +488,7 @@ package Modules
 					}
 				}
 
-				canvasRotateCursor.rotateArrow.rotation = deg;
+				CanvasController.canvasRotateCursor.rotateArrow.rotation = deg;
 				return Math.round(deg);
 			};
 		}
@@ -608,8 +605,8 @@ package Modules
 				SidebarController.hideSidebarTemporary();
 			}
 
-			main.isPenSizeCursorInvisible = true;
-			main.penSizePreviewCursor.visible = false;
+			CanvasController.isPenSizeCursorInvisible = true;
+			CanvasController.penSizePreviewCursor.visible = false;
 			ReferenceLayerController.canvasRefLayer.visible = false;
 
 			if (ReferenceLayerController.isRefLayerMenuON)
@@ -651,7 +648,7 @@ package Modules
 				{
 					ReferenceLayerController.refLayerMenuBox.visible = true;
 				}
-				main.isPenSizeCursorInvisible = false;
+				CanvasController.isPenSizeCursorInvisible = false;
 				MainUI.updateTopbarIconsDrawMode();
 				main.addInputEventsDrawMode();
 			}

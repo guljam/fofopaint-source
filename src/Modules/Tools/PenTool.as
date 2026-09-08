@@ -10,6 +10,7 @@ package Modules.Tools
     import flash.display.JointStyle;
     import flash.display.LineScaleMode;
     import Modules.ColorPickerController;
+    import Modules.CanvasController;
 
     public final class PenTool
     {
@@ -81,18 +82,18 @@ package Modules.Tools
 
         private static function setCanUndoDataFlagON():void
         {
-            if (main.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
+            if (CanvasController.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
             {
                 main.canAddUndoData = true;
             }
             else if (penCursorShape)
             {
-                if (canvasSizeRect.intersects(main.penSizePreviewCursor.getBounds(main.canvasPanel)))
+                if (canvasSizeRect.intersects(CanvasController.penSizePreviewCursor.getBounds(CanvasController.canvasPanel)))
                 {
                     main.canAddUndoData = true;
                 }
             }
-            else if (isCircleRectColliding(main.canvasPanel.mouseX, main.canvasPanel.mouseY, penCursorSize, 0, 0, main.CANVAS_WIDTH, main.CANVAS_HEIGHT))
+            else if (isCircleRectColliding(CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY, penCursorSize, 0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT))
             {
                 main.canAddUndoData = true;
             }
@@ -100,15 +101,15 @@ package Modules.Tools
 
         private static function lineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void
         {
-            main.canvasDrawLayer.alpha = alpha;
+            CanvasController.canvasDrawLayer.alpha = alpha;
 
             if (shape === false)
             {
-                main.canvasDrawLayerChild.graphics.lineStyle(size, color);
+                CanvasController.canvasDrawLayerChild.graphics.lineStyle(size, color);
             }
             else
             {
-                main.canvasDrawLayerChild.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.BEVEL);
+                CanvasController.canvasDrawLayerChild.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.BEVEL);
             }
         }
 
@@ -159,7 +160,7 @@ package Modules.Tools
                 setCanUndoDataFlagON();
             }
 
-            const filteredPos:Point = main.getRefinedPoint(mx, my);
+            const filteredPos:Point = CanvasController.getRefinedPoint(mx, my);
             mx = filteredPos.x + offsetForSharpline;
             my = filteredPos.y + offsetForSharpline;
 
@@ -183,28 +184,28 @@ package Modules.Tools
             {
                 isMouseMoved = true;
 
-                main.canvasDrawLayerChild.graphics.clear();
+                CanvasController.canvasDrawLayerChild.graphics.clear();
                 lineStyleReady(xShape, xSize, xColor, xAlpha);
 
                 if (xShape)
                 {
-                    const filteredStartPos:Point = main.getRefinedPoint(clickPos.x, clickPos.y);
+                    const filteredStartPos:Point = CanvasController.getRefinedPoint(clickPos.x, clickPos.y);
                     filteredStartPos.x = filteredStartPos.x + offsetForSharpline;
                     filteredStartPos.y = filteredStartPos.y + offsetForSharpline;
 
                     updateExtendEndPoint(mx, my, filteredStartPos.x, filteredStartPos.y, xSize / 8);
 
-                    main.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, main.isLayer2Selected, main.airBrushSizeDrawMode]);
+                    main.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasController.isLayer2Selected, main.airBrushSizeDrawMode]);
                     penPoints.push(extendedPos.x);
                     penPoints.push(extendedPos.y);
-                    main.canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
+                    CanvasController.canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
                 }
                 else
                 {
-                    main.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, main.isLayer2Selected, main.airBrushSizeDrawMode]);
+                    main.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasController.isLayer2Selected, main.airBrushSizeDrawMode]);
                     penPoints.push(smoothPos.x + offsetForSharpline);
                     penPoints.push(smoothPos.y + offsetForSharpline);
-                    main.canvasDrawLayerChild.graphics.moveTo(smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline);
+                    CanvasController.canvasDrawLayerChild.graphics.moveTo(smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline);
                 }
             }
 
@@ -221,7 +222,7 @@ package Modules.Tools
                 penPoints.push(my);
 
                 moveEvent2Last.setTo(mx, my);
-                main.canvasDrawLayerChild.graphics.lineTo(mx, my);
+                CanvasController.canvasDrawLayerChild.graphics.lineTo(mx, my);
 
                 mouseMovedCount++;
 
@@ -231,20 +232,20 @@ package Modules.Tools
 
                     if (main.airBrushSizeDrawMode > 0)
                     {
-                        const blurSize:Number = main.getBlurSize(main.airBrushSizeDrawMode, 1.0);
-                        main.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
-                        main.canvasDrawLayerBitmapData.draw(main.canvasDrawLayerChild, null, null, "layer");
-                        main.canvasDrawLayerChild.filters = [];
+                        const blurSize:Number = CanvasController.getBlurSize(main.airBrushSizeDrawMode, 1.0);
+                        CanvasController.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
+                        CanvasController.canvasDrawLayerBitmapData.draw(CanvasController.canvasDrawLayerChild, null, null, "layer");
+                        CanvasController.canvasDrawLayerChild.filters = [];
                     }
                     else
                     {
-                        main.canvasDrawLayerBitmapData.draw(main.canvasDrawLayerChild, null, null, "layer");
+                        CanvasController.canvasDrawLayerBitmapData.draw(CanvasController.canvasDrawLayerChild, null, null, "layer");
                     }
 
-                    main.canvasDrawLayerBitmap.bitmapData = main.canvasDrawLayerBitmapData;
-                    main.updateCanvasDrawLayerCliprect();
+                    CanvasController.canvasDrawLayerBitmap.bitmapData = CanvasController.canvasDrawLayerBitmapData;
+                    CanvasController.updateCanvasDrawLayerCliprect();
 
-                    main.canvasDrawLayerChild.graphics.clear();
+                    CanvasController.canvasDrawLayerChild.graphics.clear();
                     lineStyleReady(xShape, xSize, xColor, xAlpha);
 
                     const prevX:Number = penPoints[penPoints.length - 4];
@@ -257,28 +258,28 @@ package Modules.Tools
 
                     if (xShape === true)
                     {
-                        main.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, main.isLayer2Selected, main.airBrushSizeDrawMode]);
+                        main.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasController.isLayer2Selected, main.airBrushSizeDrawMode]);
                         penCommand.push(1);
                         penPoints.push(prevX);
                         penPoints.push(prevY);
-                        main.canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
+                        CanvasController.canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
                     }
                     else
                     {
-                        main.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, main.isLayer2Selected, main.airBrushSizeDrawMode]);
+                        main.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasController.isLayer2Selected, main.airBrushSizeDrawMode]);
                         penCommand.push(1);
                         penPoints.push(mx);
                         penPoints.push(my);
-                        main.canvasDrawLayerChild.graphics.moveTo(mx, my);
+                        CanvasController.canvasDrawLayerChild.graphics.moveTo(mx, my);
                     }
                 }
 
                 if (xShape === true || sq1pxCursor === true)
                 {
                     const rad:Number = Math.atan2(mx - sqPenCursorLast.x, my - sqPenCursorLast.y);
-                    const deg:Number = -rad * (180 / Math.PI) + main.canvasAnchorPoint.rotation;
+                    const deg:Number = -rad * (180 / Math.PI) + CanvasController.canvasAnchorPoint.rotation;
 
-                    main.penSizePreviewCursor.rotation = deg;
+                    CanvasController.penSizePreviewCursor.rotation = deg;
 
                     sqPenCursorLast.x = mx;
                     sqPenCursorLast.y = my;
@@ -322,7 +323,7 @@ package Modules.Tools
 
         private static function onMouseMovePenTool(e:MouseEvent):void
         {
-            var filteredPos:Point = main.getRefinedPoint(main.canvasDrawLayerChild.mouseX, main.canvasDrawLayerChild.mouseY);
+            var filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
             const mx:Number = filteredPos.x;
             const my:Number = filteredPos.y;
 
@@ -372,7 +373,7 @@ package Modules.Tools
 
             if (xShape === true)
             {
-                main.penSizePreviewCursor.rotation = 0;
+                CanvasController.penSizePreviewCursor.rotation = 0;
 
                 if (isMouseMoved === true)
                 {
@@ -383,7 +384,7 @@ package Modules.Tools
                         updateExtendEndPoint(penPoints[pointLen - 4], penPoints[pointLen - 3], penPoints[pointLen - 2], penPoints[pointLen - 1], xSize / 8);
 
                         main.rDataBuffer.push(["lineTo", extendedPos.x, extendedPos.y]);
-                        main.canvasDrawLayerChild.graphics.lineTo(extendedPos.x, extendedPos.y);
+                        CanvasController.canvasDrawLayerChild.graphics.lineTo(extendedPos.x, extendedPos.y);
                     }
                 }
             }
@@ -391,10 +392,10 @@ package Modules.Tools
             if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
             {
                 main.rDataBuffer = [];
-                main.rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, main.isLayer2Selected, main.airBrushSizeDrawMode, main.canvasAnchorPoint.rotation]);
+                main.rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasController.isLayer2Selected, main.airBrushSizeDrawMode, CanvasController.canvasAnchorPoint.rotation]);
 
-                main.dotTool(xShape, xSize, xColor, clickPos.x, clickPos.y, main.canvasAnchorPoint.rotation);
-                main.resetCanvasDrawLayerCliprect();
+                main.dotTool(xShape, xSize, xColor, clickPos.x, clickPos.y, CanvasController.canvasAnchorPoint.rotation);
+                CanvasController.resetCanvasDrawLayerCliprect();
             }
 
             penCommand.length = 0;
@@ -427,7 +428,7 @@ package Modules.Tools
 
                 if (isTransparentPenColor)
                 {
-                    xColor = main.CANVAS_BG_COLOR;
+                    xColor = CanvasController.CANVAS_BG_COLOR;
                     xBlendMode = "erase";
                 }
                 else
@@ -445,7 +446,7 @@ package Modules.Tools
             else
             {
                 xSize = eraserSize;
-                xColor = main.CANVAS_BG_COLOR;
+                xColor = CanvasController.CANVAS_BG_COLOR;
                 xAlpha = eraserAlpha;
                 xShape = eraserIsSquare;
                 xBlendMode = "erase";
@@ -471,12 +472,12 @@ package Modules.Tools
             mouseMovedCount = 0;
             isMouseMoved = false;
 
-            canvasSizeRect.width = main.CANVAS_WIDTH;
-            canvasSizeRect.height = main.CANVAS_HEIGHT;
+            canvasSizeRect.width = CanvasController.CANVAS_WIDTH;
+            canvasSizeRect.height = CanvasController.CANVAS_HEIGHT;
 
-            main.resetCanvasDrawLayerCliprect();
+            CanvasController.resetCanvasDrawLayerCliprect();
 
-            const filteredPos:Point = main.getRefinedPoint(main.canvasDrawLayerChild.mouseX, main.canvasDrawLayerChild.mouseY);
+            const filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
 
             clickPos.copyFrom(filteredPos);
             smoothPos.copyFrom(filteredPos);
@@ -496,7 +497,7 @@ package Modules.Tools
                 setCanUndoDataFlagON();
             }
 
-            main.canvasDrawLayerChild.filters = [];
+            CanvasController.canvasDrawLayerChild.filters = [];
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
         }

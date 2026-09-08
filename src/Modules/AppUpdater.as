@@ -85,7 +85,7 @@ package Modules
         }
         private static function isNewVersion(newVersion:String):Boolean
         {
-            var currentStr:String = Main._instance.APP_VERSION; // 또는 APP_VERSION.toString()
+            var currentStr:String = main.APP_VERSION; // 또는 APP_VERSION.toString()
             var current:Array = currentStr.split(".");
             const newVersionArray:Array = newVersion.split(".");
 

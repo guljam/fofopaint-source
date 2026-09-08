@@ -113,7 +113,7 @@ package Modules
             MainUI.topBar.updateTopbarBG(stw);
             MainUI.topBar.updateTimerPos(main.stage.stageWidth);
             MainUI.seekBarBox.setScale(scale);
-            MainUI.canvasRotateCursor.setScale(scale);
+            CanvasController.canvasRotateCursor.setScale(scale);
             MainUI.mouseHint.setScale(scale);
             MainUI.bottomBar.scaleX = scale;
             MainUI.bottomBar.scaleY = scale;
@@ -190,12 +190,12 @@ package Modules
                 }
             }
 
-            const gp:Point = main.canvasLayer1Bitmap.globalToLocal(new Point(newLeftOffset, STAGE_TOP_OFFSET));
-            const zoom:Number = main.canvasZoomMultipler;
-            main.canvasNavigatorBox.updateCursor(gp.x * zoom, gp.y * zoom
+            const gp:Point = CanvasController.canvasLayer1Bitmap.globalToLocal(new Point(newLeftOffset, STAGE_TOP_OFFSET));
+            const zoom:Number = CanvasController.canvasZoomMultipler;
+            CanvasController.canvasNavigatorBox.updateCursor(gp.x * zoom, gp.y * zoom
                     , main.stage.stageWidth - newRightOffset - newLeftOffset
                     , main.stage.stageHeight - STAGE_TOP_OFFSET - STAGE_BOTTOM_OFFSET
-                    , main.CANVAS_WIDTH * zoom, main.canvasAnchorPoint.rotation);
+                    , CanvasController.CANVAS_WIDTH * zoom, CanvasController.canvasAnchorPoint.rotation);
         }
 
         public static function updateWindowTitle():void
@@ -209,7 +209,7 @@ package Modules
 
         private static function hideCanvasResizeButtons():void
         {
-            main.isPenSizeCursorInvisible = false;
+            CanvasController.isPenSizeCursorInvisible = false;
             resizeButtonR.visible = false;
             resizeButtonL.visible = false;
             resizeButtonD.visible = false;
@@ -218,7 +218,7 @@ package Modules
 
         private static function showCanvasResizeButtons():void
         {
-            main.isPenSizeCursorInvisible = true;
+            CanvasController.isPenSizeCursorInvisible = true;
             resizeButtonR.visible = true;
             resizeButtonL.visible = true;
             resizeButtonD.visible = true;
@@ -234,7 +234,7 @@ package Modules
 
             if (flag)
             {
-                updateResizeButtonPos(main.CANVAS_WIDTH, main.CANVAS_HEIGHT);
+                updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
                 showCanvasResizeButtons();
             }
             else
@@ -247,19 +247,19 @@ package Modules
         {
             if (flag)
             {
-                updateResizeButtonPos(main.CANVAS_WIDTH, main.CANVAS_HEIGHT);
+                updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
                 main.toolBox2.startResizeButtonWaitBarAnimation(0.9);
                 FOFOTimer.addByName("resizeButtonVisibleDelayTimer", 0.9, false, function ():void
                     {
                         showCanvasResizeButtons();
-                        main.enableTransparentBGDrawMode();
+                        CanvasController.enableTransparentBGDrawMode();
                     });
             }
             else
             {
                 FOFOTimer.remove("resizeButtonVisibleDelayTimer");
                 hideCanvasResizeButtons();
-                main.disableTransparentBGDrawMode();
+                CanvasController.disableTransparentBGDrawMode();
             }
         }
 
@@ -309,10 +309,10 @@ package Modules
             drawRect(resizeButtonL);
             drawRect(resizeButtonR);
 
-            main.canvasAnchorPoint.addChild(resizeButtonU);
-            main.canvasAnchorPoint.addChild(resizeButtonD);
-            main.canvasAnchorPoint.addChild(resizeButtonR);
-            main.canvasAnchorPoint.addChild(resizeButtonL);
+            CanvasController.canvasAnchorPoint.addChild(resizeButtonU);
+            CanvasController.canvasAnchorPoint.addChild(resizeButtonD);
+            CanvasController.canvasAnchorPoint.addChild(resizeButtonR);
+            CanvasController.canvasAnchorPoint.addChild(resizeButtonL);
         }
 
         public static function updateAppWindowSizeInfo():void
@@ -335,11 +335,11 @@ package Modules
                 target.height = (h === 0) ? buttonSize : h;
             }
 
-            const z:Number = 1 / main.canvasZoomMultipler;
+            const z:Number = 1 / CanvasController.canvasZoomMultipler;
             const buttonSize:Number = 20 * z;
             const buttonSize2:Number = 40 * z;
-            const cpPosX:Number = main.canvasPanel.x;
-            const cpPosY:Number = main.canvasPanel.y;
+            const cpPosX:Number = CanvasController.canvasPanel.x;
+            const cpPosY:Number = CanvasController.canvasPanel.y;
             const top:Number = cpPosY - buttonSize;
             const bottom:Number = cpPosY + height;
             const left:Number = cpPosX - buttonSize;
@@ -372,7 +372,7 @@ package Modules
                     {
                         if (main.isReplayRestartTimerON())
                         {
-                            main.centerCanvas("replay");
+                            CanvasController.centerCanvas("replay");
 
                         }
                         else
@@ -381,8 +381,8 @@ package Modules
                             main.rCanvasAnchorPoint.y = main.rCanvasAnchorPoint.y + dy;
                         }
 
-                        main.canvasAnchorPoint.x = main.canvasAnchorPoint.x + dx;
-                        main.canvasAnchorPoint.y = main.canvasAnchorPoint.y + dy;
+                        CanvasController.canvasAnchorPoint.x = CanvasController.canvasAnchorPoint.x + dx;
+                        CanvasController.canvasAnchorPoint.y = CanvasController.canvasAnchorPoint.y + dy;
                     }
 
                     if (LassoTool.isLassoToolStarted)
@@ -512,7 +512,7 @@ package Modules
 
             if (main.isAboutBoxOpened)
             {
-                main.isMouseClickBlocked = true;
+                CanvasController.isMouseClickBlocked = true;
             }
             else
             {
@@ -540,7 +540,7 @@ package Modules
             updateStageBGColor();
             updateBottomBarLayoutAndColor();
 
-            main.canvasNavigatorBox.chanegStageColor(MainUIController.STAGE_BG_COLOR);
+            CanvasController.canvasNavigatorBox.chanegStageColor(MainUIController.STAGE_BG_COLOR);
 
             if (ImageViewWindow.isCanvasWindowON)
             {
@@ -550,8 +550,8 @@ package Modules
             SidebarController.sideBar.updateUIColor();
             main.toolOptionsBox.updateUIColor();
             ColorPickerController.colorPickerBox.updateUIColor();
-            main.canvasInfoBox.updateUIColor();
-            MainUI.canvasRotateCursor.changeUIColor();
+            CanvasController.canvasInfoBox.updateUIColor();
+            CanvasController.canvasRotateCursor.changeUIColor();
             SidebarController.fofo.updateColor();
             main.toolBox.changeUIColor();
             main.toolBox2.changeUIColor();

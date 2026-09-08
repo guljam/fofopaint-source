@@ -20,6 +20,7 @@
 	import Modules.Utils;
 	import Modules.CaptureController;
 	import Modules.Tools.LassoTool;
+	import Modules.CanvasController;
 
 	public class TopMenuSet extends Sprite
 	{
@@ -586,6 +587,7 @@
 
 		public function updateIconsByMode(mode:int):void
 		{
+			//todo 나중에 리팩토링 다되면 분리되면 제거 main
 			const main:Main = Main._instance;
 			if (LassoTool.isLassoToolStarted === true || main.isAboutBoxOpened === true)
 			{
@@ -625,7 +627,7 @@
 				hideModeIcons("replay");
 				hideModeIcons("draw");
 
-				if (main.canvasLayer1Bitmap.visible)
+				if (CanvasController.canvasLayer1Bitmap.visible)
 				{
 					capLayer1VisibleButton.alpha = 1.0;
 				}
@@ -634,7 +636,7 @@
 					capLayer1VisibleButton.alpha = Global.OFFALPHA;
 				}
 
-				if (main.canvasLayer2Bitmap.visible)
+				if (CanvasController.canvasLayer2Bitmap.visible)
 				{
 					capLayer2VisibleButton.alpha = 1.0;
 				}

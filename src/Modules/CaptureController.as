@@ -79,7 +79,7 @@ package Modules
 
         public static function executeCaptureFlashEffect():void
         {
-            var xPanel:Sprite = (main.isReplayModeON) ? main.rCanvasPanel : main.canvasPanel;
+            var xPanel:Sprite = (main.isReplayModeON) ? main.rCanvasPanel : CanvasController.canvasPanel;
             var posX:Number;
             var posY:Number;
             var canvasWidth:Number;
@@ -96,8 +96,8 @@ package Modules
                 }
                 else
                 {
-                    canvasWidth = main.CANVAS_WIDTH;
-                    canvasHeight = main.CANVAS_HEIGHT;
+                    canvasWidth = CanvasController.CANVAS_WIDTH;
+                    canvasHeight = CanvasController.CANVAS_HEIGHT;
                 }
             }
             else
@@ -109,7 +109,7 @@ package Modules
                 canvasHeight = nowCaptureArea.height;
             }
 
-            main.applyCanvasFlashEffect(xPanel, posX, posY, canvasWidth, canvasHeight, function ():Boolean
+            CanvasController.applyCanvasFlashEffect(xPanel, posX, posY, canvasWidth, canvasHeight, function ():Boolean
                 {
                     return !isCaptureModeON;
                 });
@@ -129,11 +129,11 @@ package Modules
             }
             else
             {
-                layer1 = main.canvasLayer1Bitmap.visible;
-                layer2 = main.canvasLayer2Bitmap.visible;
+                layer1 = CanvasController.canvasLayer1Bitmap.visible;
+                layer2 = CanvasController.canvasLayer2Bitmap.visible;
             }
 
-            const bmpd:BitmapData = main.getMergedBitmapdtata((isCaptureModeON && isCaptureTransparentBGShowing && !clipBoardCopyFlag) ? true : false, layer1, layer2, rect);
+            const bmpd:BitmapData = CanvasController.getMergedBitmapdtata((isCaptureModeON && isCaptureTransparentBGShowing && !clipBoardCopyFlag) ? true : false, layer1, layer2, rect);
             const mat:Matrix = new Matrix();
             const deg:Number = 90 * captureCanvasRotationStep;
             var swapWH:Boolean = false;
@@ -198,7 +198,7 @@ package Modules
 
         private static function updateCanvasFlipOnCaptureMode():void
         {
-            const xAnc:Sprite = (main.isReplayModeON) ? main.rCanvasAnchorPoint : main.canvasAnchorPoint;
+            const xAnc:Sprite = (main.isReplayModeON) ? main.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
             if (captureCanvasRotationStep === 1)
             {
                 xAnc.rotation = 90;
@@ -213,7 +213,7 @@ package Modules
         {
             isCaptureCanvasFlipped = flag;
             main.fitCanvasToViewportMargin();
-            const xAnc:Sprite = (main.isReplayModeON) ? main.rCanvasAnchorPoint : main.canvasAnchorPoint;
+            const xAnc:Sprite = (main.isReplayModeON) ? main.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
 
             if (captureCanvasRotationStep === 1)
             {
@@ -308,11 +308,11 @@ package Modules
             {
                 FOFOTimer.remove("bottomHintOffDelay");
                 const targetName:String = target.name;
-                const xCanvasPanel:Sprite = (main.isReplayModeON) ? main.rCanvasPanel : main.canvasPanel;
+                const xCanvasPanel:Sprite = (main.isReplayModeON) ? main.rCanvasPanel : CanvasController.canvasPanel;
 
                 if (captureAreaManager.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
                 {
-                    MainUI.showHintHighlightBox((main.isReplayModeON) ? main.rCanvasLayer1Bitmap : main.canvasLayer1Bitmap);
+                    MainUI.showHintHighlightBox((main.isReplayModeON) ? main.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
                     MainUI.showBottomHint(hint);
                 }
                 else if (!(targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "canvasPanel" || targetName === "canvasDrawLayer"))
@@ -405,7 +405,7 @@ package Modules
                     main.startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, main.realWorkingTimer.reset, null);
                     break;
                 default:
-                    if (!main.isMouseClickBlocked)
+                    if (!CanvasController.isMouseClickBlocked)
                     {
                         captureAreaManager.start();
                     }
@@ -440,7 +440,7 @@ package Modules
                 }
             }
 
-            if (main.stage.focus === MainUI.topBar.captureInput || main.isMouseClicked || main.isRightMouseClicked)
+            if (main.stage.focus === MainUI.topBar.captureInput || CanvasController.isMouseClicked || CanvasController.isRightMouseClicked)
             {
                 return;
             }
@@ -509,7 +509,7 @@ package Modules
             }
 
             isCaptureModeON = true;
-            main.isPenSizeCursorInvisible = true;
+            CanvasController.isPenSizeCursorInvisible = true;
 
             if (ColorPickerController.numPadBox.visible)
             {
@@ -542,25 +542,25 @@ package Modules
             }
             else
             {
-                xAnc = main.canvasAnchorPoint;
-                xPanel = main.canvasPanel;
-                xZoomed = main.canvasZoomMultipler;
-                main.canvasPanel.addChild(captureDragAreaOverlay);
-                if (main.canvasLayer1Bitmap.visible)
+                xAnc = CanvasController.canvasAnchorPoint;
+                xPanel = CanvasController.canvasPanel;
+                xZoomed = CanvasController.canvasZoomMultipler;
+                CanvasController.canvasPanel.addChild(captureDragAreaOverlay);
+                if (CanvasController.canvasLayer1Bitmap.visible)
                     layer1 = true;
-                if (main.canvasLayer2Bitmap.visible)
+                if (CanvasController.canvasLayer2Bitmap.visible)
                     layer2 = true;
             }
 
             Utils.setAsTopChild(captureDragAreaOverlay);
 
             drawModeCanvasStateForSaveAppState = {
-                    "z": main.canvasZoomMultipler,
-                    "x": Math.floor(main.canvasAnchorPoint.x), // 뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
-                    "y": Math.floor(main.canvasAnchorPoint.y),
-                    "r": main.canvasAnchorPoint.rotation,
-                    "px": Math.floor(main.canvasPanel.x),
-                    "py": Math.floor(main.canvasPanel.y)
+                    "z": CanvasController.canvasZoomMultipler,
+                    "x": Math.floor(CanvasController.canvasAnchorPoint.x), // 뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
+                    "y": Math.floor(CanvasController.canvasAnchorPoint.y),
+                    "r": CanvasController.canvasAnchorPoint.rotation,
+                    "px": Math.floor(CanvasController.canvasPanel.x),
+                    "py": Math.floor(CanvasController.canvasPanel.y)
                 };
 
             canvasStateBeforeCaptureMode = {
@@ -599,15 +599,15 @@ package Modules
         {
             const replayMode:Boolean = main.isReplayModeON;
             const data:Object = canvasStateBeforeCaptureMode;
-            const xBitmap1:Bitmap = (replayMode) ? main.rCanvasLayer1Bitmap : main.canvasLayer1Bitmap;
-            const xBitmap11:Bitmap = (replayMode) ? main.rCanvasLayer2Bitmap : main.canvasLayer2Bitmap;
-            const xAnc:Sprite = (replayMode) ? main.rCanvasAnchorPoint : main.canvasAnchorPoint;
-            const xPanel:Sprite = (replayMode) ? main.rCanvasPanel : main.canvasPanel;
+            const xBitmap1:Bitmap = (replayMode) ? main.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap;
+            const xBitmap11:Bitmap = (replayMode) ? main.rCanvasLayer2Bitmap : CanvasController.canvasLayer2Bitmap;
+            const xAnc:Sprite = (replayMode) ? main.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
+            const xPanel:Sprite = (replayMode) ? main.rCanvasPanel : CanvasController.canvasPanel;
 
             xBitmap1.smoothing = false;
             xBitmap11.smoothing = false;
             isCaptureModeON = false;
-            main.isPenSizeCursorInvisible = false;
+            CanvasController.isPenSizeCursorInvisible = false;
 
             captureDragAreaOverlay.graphics.clear();
             captureStampManager.off();
@@ -628,13 +628,13 @@ package Modules
             }
             else
             {
-                main.canvasLayer1Bitmap.visible = data.layer1;
-                main.canvasLayer2Bitmap.visible = data.layer2;
+                CanvasController.canvasLayer1Bitmap.visible = data.layer1;
+                CanvasController.canvasLayer2Bitmap.visible = data.layer2;
             }
 
             if (!main.isReplayCanvasFitToWindow)
             {
-                main.updateCanvasScale(data.z, replayMode);
+                CanvasController.updateCanvasScale(data.z, replayMode);
             }
 
             MainUI.resetLastBottomHintTargetRect();
@@ -656,7 +656,7 @@ package Modules
                 main.restoreCanvasBackgroundColor(false);
             }
 
-            main.keepCanvasPanelInStage(replayMode);
+            CanvasController.keepCanvasPanelInStage(replayMode);
             canvasStateBeforeCaptureMode = {};
         }
 
@@ -757,7 +757,7 @@ package Modules
                 const backupStr:String = MainUI.topBar.captureInputFinal.text;
                 const backupWidth:Number = MainUI.topBar.getCaptureInputFinalWidth();
 
-                MainUI.topBar.setCaptureInputFinalWidth(main.CANVAS_MAX_SIZE);
+                MainUI.topBar.setCaptureInputFinalWidth(CanvasController.CANVAS_MAX_SIZE);
                 MainUI.topBar.setCaptureInputFinalString(text);
 
                 const width:Number = MainUI.topBar.captureInputFinal.textWidth + offset;
@@ -840,9 +840,9 @@ package Modules
 
                 if (fullImageFlag)
                 {
-                    longEdge = main.CANVAS_HEIGHT > main.CANVAS_WIDTH ? main.CANVAS_HEIGHT : main.CANVAS_WIDTH;
-                    areaWidth = main.CANVAS_WIDTH;
-                    areaHeight = main.CANVAS_HEIGHT;
+                    longEdge = CanvasController.CANVAS_HEIGHT > CanvasController.CANVAS_WIDTH ? CanvasController.CANVAS_HEIGHT : CanvasController.CANVAS_WIDTH;
+                    areaWidth = CanvasController.CANVAS_WIDTH;
+                    areaHeight = CanvasController.CANVAS_HEIGHT;
                 }
                 else
                 {
@@ -870,7 +870,7 @@ package Modules
                 mat.scale(scale, scale);
 
                 const tmpbmpd:BitmapData = new BitmapData(width, height, true, 0);
-                const rawbmpd:BitmapData = main.getMergedBitmapdtata(false, layer1, layer2, (fullImageFlag) ? null : clipRect);
+                const rawbmpd:BitmapData = CanvasController.getMergedBitmapdtata(false, layer1, layer2, (fullImageFlag) ? null : clipRect);
 
                 tmpbmpd.draw(rawbmpd, mat);
 
@@ -924,8 +924,8 @@ package Modules
                 if (captureAreaManager.isFullImageCapture())
                 {
 
-                    offsetX = (main.isReplayModeON) ? main.RCANVAS_WIDTH : main.CANVAS_WIDTH;
-                    offsetY = (main.isReplayModeON) ? main.RCANVAS_HEIGHT : main.CANVAS_HEIGHT;
+                    offsetX = (main.isReplayModeON) ? main.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
+                    offsetY = (main.isReplayModeON) ? main.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
                 }
                 else
                 {
@@ -1002,7 +1002,7 @@ package Modules
                     if (captureAreaManager.isFullImageCapture())
                     {
 
-                        return (main.isReplayModeON) ? main.RCANVAS_WIDTH : main.CANVAS_WIDTH;
+                        return (main.isReplayModeON) ? main.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
                     }
                     else
                     {
@@ -1013,7 +1013,7 @@ package Modules
                 {
                     if (captureAreaManager.isFullImageCapture())
                     {
-                        return (main.isReplayModeON) ? main.RCANVAS_HEIGHT : main.CANVAS_HEIGHT;
+                        return (main.isReplayModeON) ? main.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
                     }
                     else
                     {
@@ -1052,8 +1052,8 @@ package Modules
                         return;
                     }
 
-                    const layer1Visible:Boolean = (main.isReplayModeON) ? main.rCanvasLayer1Bitmap.visible : main.canvasLayer1Bitmap.visible;
-                    const layer2Visible:Boolean = (main.isReplayModeON) ? main.rCanvasLayer2Bitmap.visible : main.canvasLayer2Bitmap.visible;
+                    const layer1Visible:Boolean = (main.isReplayModeON) ? main.rCanvasLayer1Bitmap.visible : CanvasController.canvasLayer1Bitmap.visible;
+                    const layer2Visible:Boolean = (main.isReplayModeON) ? main.rCanvasLayer2Bitmap.visible : CanvasController.canvasLayer2Bitmap.visible;
 
                     var bitmapVisibleFlag:int = 0;
 
@@ -1075,7 +1075,7 @@ package Modules
 
                     if (stampBGColor === null || !rect.equals(lastRectArea) || lastBitmapVisibleFlag !== bitmapVisibleFlag)
                     {
-                        const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((main.isReplayModeON) ? main.RCANVAS_BG_COLOR : main.CANVAS_BG_COLOR);
+                        const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((main.isReplayModeON) ? main.RCANVAS_BG_COLOR : CanvasController.CANVAS_BG_COLOR);
 
                         if (tegakiBGColorIndex >= 0)
                         {
@@ -1171,9 +1171,9 @@ package Modules
                             main.rCanvasPanel.addChild(captureStampBitmap);
                         }
                     }
-                    else if (main.canvasPanel.getChildByName("captureStampBitmap") === null)
+                    else if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") === null)
                     {
-                        main.canvasPanel.addChild(captureStampBitmap);
+                        CanvasController.canvasPanel.addChild(captureStampBitmap);
                     }
 
                     checkPosition(bmpdHeight);
@@ -1187,9 +1187,9 @@ package Modules
                             main.rCanvasPanel.removeChild(captureStampBitmap);
                         }
                     }
-                    else if (main.canvasPanel.getChildByName("captureStampBitmap") !== null)
+                    else if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") !== null)
                     {
-                        main.canvasPanel.removeChild(captureStampBitmap);
+                        CanvasController.canvasPanel.removeChild(captureStampBitmap);
                     }
 
                     captureStampBitmap.visible = false;
@@ -1204,7 +1204,7 @@ package Modules
                 }
                 else
                 {
-                    main.canvasPanel.scrollRect = new Rectangle(0, 0, main.CANVAS_WIDTH, main.CANVAS_HEIGHT);
+                    CanvasController.canvasPanel.scrollRect = new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
                 }
 
                 if (captrueStampBMPD)
@@ -1220,9 +1220,9 @@ package Modules
 
                 captureStampBitmap.visible = false;
 
-                if (main.canvasPanel.getChildByName("captureStampBitmap") !== null)
+                if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") !== null)
                 {
-                    main.canvasPanel.removeChild(captureStampBitmap);
+                    CanvasController.canvasPanel.removeChild(captureStampBitmap);
                 }
             }
 
@@ -1234,7 +1234,7 @@ package Modules
                 }
                 else
                 {
-                    main.canvasPanel.scrollRect = null;
+                    CanvasController.canvasPanel.scrollRect = null;
                 }
 
                 textformat.font = null;
@@ -1512,7 +1512,7 @@ package Modules
 
             function onMouseUpCaptureArea(e:MouseEvent):void
             {
-                main.isMouseDragging = false;
+                CanvasController.isMouseDragging = false;
                 removeCaptureAreaEvents();
 
                 if (mouseMoved === true)
@@ -1545,7 +1545,7 @@ package Modules
 
             function getCanvasScale():Number
             {
-                return (main.isReplayModeON) ? Math.abs(main.rCanvasAnchorPoint.scaleX) : Math.abs(main.canvasAnchorPoint.scaleX);
+                return (main.isReplayModeON) ? Math.abs(main.rCanvasAnchorPoint.scaleX) : Math.abs(CanvasController.canvasAnchorPoint.scaleX);
             }
 
             function drawResizeButton(scale:Number):void
@@ -1746,7 +1746,7 @@ package Modules
 
             function startUpdatingCaptureAreaPosSize(mx:Number, my:Number, flag:Boolean):void
             {
-                main.isMouseDragging = true;
+                CanvasController.isMouseDragging = true;
                 resizeFlag = flag;
                 rectRaw.x = rectClamped.x;
                 rectRaw.y = rectClamped.y;
@@ -1771,9 +1771,9 @@ package Modules
                     }
                     else
                     {
-                        canvasWidth = main.CANVAS_WIDTH;
-                        canvasHeight = main.CANVAS_HEIGHT;
-                        xPanel = main.canvasPanel;
+                        canvasWidth = CanvasController.CANVAS_WIDTH;
+                        canvasHeight = CanvasController.CANVAS_HEIGHT;
+                        xPanel = CanvasController.canvasPanel;
                     }
 
                     var mx:Number = xPanel.mouseX;
@@ -1796,7 +1796,7 @@ package Modules
                     else
                     {
                         clickPos.setTo(mx, my);
-                        main.isMouseDragging = true;
+                        CanvasController.isMouseDragging = true;
                         main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
                         main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
                     }

@@ -211,8 +211,8 @@ package Modules
         public static function applyTransparentCanvasBackground(replayMode:Boolean):void
         {
             var xPanel:Sprite;
-            var w:Number = main.CANVAS_WIDTH;
-            var h:Number = main.CANVAS_HEIGHT;
+            var w:Number = CanvasController.CANVAS_WIDTH;
+            var h:Number = CanvasController.CANVAS_HEIGHT;
 
             if (replayMode)
             {
@@ -222,9 +222,9 @@ package Modules
             }
             else
             {
-                xPanel = main.canvasPanel;
-                w = main.CANVAS_WIDTH;
-                h = main.CANVAS_HEIGHT;
+                xPanel = CanvasController.canvasPanel;
+                w = CanvasController.CANVAS_WIDTH;
+                h = CanvasController.CANVAS_HEIGHT;
             }
 
             xPanel.graphics.clear();

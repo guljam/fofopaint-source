@@ -16,10 +16,10 @@ package Modules
 
         public static function startDragInteraction(onDragStartFunc:Function, onMouseMoveFunc:Function, onMouseUpFunc:Function):void
         {
-            main.isMouseDragging = true;
+            CanvasController.isMouseDragging = true;
             function onMouseUp(e:MouseEvent):void
             {
-                main.isMouseDragging = false;
+                CanvasController.isMouseDragging = false;
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
 

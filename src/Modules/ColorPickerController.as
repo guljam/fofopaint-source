@@ -578,7 +578,7 @@ package Modules
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
-                    ImageViewWindow.updateCanvasWindowBGColor(main.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
+                    ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                 }
 
                 main.addUndoBGColorData(color);
@@ -647,7 +647,7 @@ package Modules
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
-                    ImageViewWindow.updateCanvasWindowBGColor(main.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
+                    ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                 }
 
                 updateColorPickerCursorPosAndRGBInfo(hexColor);
@@ -684,7 +684,7 @@ package Modules
 
         private static function switchColorPickerModeBG():void
         {
-            const color:uint = main.CANVAS_BG_COLOR;
+            const color:uint = CanvasController.CANVAS_BG_COLOR;
 
             isColorPickerModeBG = true;
 
@@ -810,13 +810,13 @@ package Modules
 
                     if (ImageViewWindow.isCanvasWindowON)
                     {
-                        ImageViewWindow.updateCanvasWindowBGColor(main.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
+                        ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                     }
 
                     main.addUndoBGColorData(pickedColor);
                 }
 
-                main.isPenSizeCursorInvisible = false;
+                CanvasController.isPenSizeCursorInvisible = false;
                 colorPickerBox.setRGBInfoVisible(true);
                 main.selectPenToolIfNotDrawingTool(false);
             }
@@ -825,7 +825,7 @@ package Modules
             {
                 Utils.setAsTopChild(colorPickerBox.hueCursor);
 
-                main.isPenSizeCursorInvisible = true;
+                CanvasController.isPenSizeCursorInvisible = true;
                 PenTool.isTransparentPenColor = false;
 
                 colorPickerBox.setRGBInfoVisible(false);
@@ -910,13 +910,13 @@ package Modules
 
                     if (ImageViewWindow.isCanvasWindowON)
                     {
-                        ImageViewWindow.updateCanvasWindowBGColor(main.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
+                        ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                     }
 
                     main.addUndoBGColorData(pickedColor);
                 }
 
-                main.isPenSizeCursorInvisible = false;
+                CanvasController.isPenSizeCursorInvisible = false;
                 colorPickerBox.setRGBInfoVisible(true);
 
                 main.selectPenToolIfNotDrawingTool(false);
@@ -926,7 +926,7 @@ package Modules
             {
                 Utils.setAsTopChild(colorPickerBox.svCursor);
 
-                main.isPenSizeCursorInvisible = true;
+                CanvasController.isPenSizeCursorInvisible = true;
                 PenTool.isTransparentPenColor = false;
 
                 colorPickerBox.setRGBInfoVisible(false);
@@ -940,10 +940,10 @@ package Modules
         public static function updateCanvasBGColorDrawMode(color:uint):void
         {
             FileManager.isFileAlreadySaved = false;
-            main.CANVAS_BG_COLOR = color;
+            CanvasController.CANVAS_BG_COLOR = color;
 
-            main.canvasNavigatorBox.changeprevBitmapBGColor(color);
-            main.updateCanvasBGColor(main.canvasPanel, main.CANVAS_WIDTH, main.CANVAS_HEIGHT, color);
+            CanvasController.canvasNavigatorBox.changeprevBitmapBGColor(color);
+            main.updateCanvasBGColor(CanvasController.canvasPanel, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, color);
 
             if (colorPickerBox.scratchPad)
             {
@@ -977,13 +977,13 @@ package Modules
             {
                 const bgColor:uint = PaletteController.myPaletteTegakiPreset[index + 10];
 
-                if (bgColor !== main.CANVAS_BG_COLOR)
+                if (bgColor !== CanvasController.CANVAS_BG_COLOR)
                 {
                     updateCanvasBGColorDrawMode(bgColor);
 
                     if (ImageViewWindow.isCanvasWindowON)
                     {
-                        ImageViewWindow.updateCanvasWindowBGColor(main.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
+                        ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                     }
 
                     main.addUndoBGColorData(bgColor);
@@ -1008,7 +1008,7 @@ package Modules
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
-                    ImageViewWindow.updateCanvasWindowBGColor(main.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
+                    ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                 }
 
                 main.addUndoBGColorData(pickedColor);

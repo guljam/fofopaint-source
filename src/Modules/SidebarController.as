@@ -189,7 +189,7 @@ package Modules
 
         public static function startDeactivteQuickSidebar():void
         {
-            if (main.isMouseClicked && sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (CanvasController.isMouseClicked && sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
             {
                 main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar);
                 return;
@@ -209,14 +209,14 @@ package Modules
             {
                 case "toolZoomIn":
                 case "toolZoomOut":
-                    if (main.canvasZoomMultipler !== 1.0)
+                    if (CanvasController.canvasZoomMultipler !== 1.0)
                     {
-                        main.resetZoomDrawMode();
+                        CanvasController.resetZoomDrawMode();
                     }
                     break;
 
                 case "toolRotate":
-                    if (main.canvasAnchorPoint.rotation !== 0.0)
+                    if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                     {
                         main.resetRotationDrawMode();
                     }
@@ -418,7 +418,7 @@ package Modules
 
         private static function onMouseUpReactivateSidebarTempShow(e:MouseEvent):void
         {
-            if (!(main.isRightMouseClicked && main.isMouseClicked))
+            if (!(CanvasController.isRightMouseClicked && CanvasController.isMouseClicked))
             {
                 startTimerActivateSidebarShowTemp();
             }
@@ -426,7 +426,7 @@ package Modules
 
         private static function sidebarOFFRightMouseDownEvent(e:MouseEvent):void
         {
-            main.isMouseClickBlocked = true;
+            CanvasController.isMouseClickBlocked = true;
             main.unblockMouseClickAfterDelay();
 
             startHidingSidebarTemporary();
@@ -446,7 +446,7 @@ package Modules
 
         private static function startShowSideBarTemporary():void
         {
-            if (!(main.isMouseClicked || main.isRightMouseClicked || main.isMouseDragging))
+            if (!(CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging))
             {
                 if (!isSidebarTempShowDeactivated)
                 {
@@ -474,7 +474,7 @@ package Modules
                 && !main.isReplayModeON
                 && !CaptureController.isCaptureModeON
                 && !main.isToolBox2Showing
-                && !main.isMouseClickBlocked
+                && !CanvasController.isMouseClickBlocked
                 && !MainUIController.resizeButtonR.visible;
         }
 
@@ -635,15 +635,15 @@ package Modules
             sideBarScrollPanel.x = isRight ? 9 : 5;
             sideBarScrollPanel.y = scrollSetMovedY;
 
-            main.canvasNavigatorBox.x = isRight ? -4 : 0;
-            main.canvasNavigatorBox.y = 0;
+            CanvasController.canvasNavigatorBox.x = isRight ? -4 : 0;
+            CanvasController.canvasNavigatorBox.y = 0;
 
-            main.canvasInfoBox.setWidth(main.canvasNavigatorBox.BOX_WIDTH);
-            main.canvasInfoBox.x = main.canvasNavigatorBox.x - 2;
-            main.canvasInfoBox.y = Math.floor(main.canvasNavigatorBox.y + main.canvasNavigatorBox.BOX_HEIGHT + 6);
+            CanvasController.canvasInfoBox.setWidth(CanvasController.canvasNavigatorBox.BOX_WIDTH);
+            CanvasController.canvasInfoBox.x = CanvasController.canvasNavigatorBox.x - 2;
+            CanvasController.canvasInfoBox.y = Math.floor(CanvasController.canvasNavigatorBox.y + CanvasController.canvasNavigatorBox.BOX_HEIGHT + 6);
 
             main.toolOptionsBox.x = isRight ? 39 : 0;
-            main.toolOptionsBox.y = Math.floor(main.canvasInfoBox.y + main.canvasInfoBox.height + 7);
+            main.toolOptionsBox.y = Math.floor(CanvasController.canvasInfoBox.y + CanvasController.canvasInfoBox.height + 7);
 
             ColorPickerController.colorPickerBox.x = main.toolOptionsBox.x;
             ColorPickerController.colorPickerBox.y = Math.floor(main.toolOptionsBox.y + main.toolOptionsBox.height + 10);
@@ -664,11 +664,11 @@ package Modules
             {
                 if (isRight)
                 {
-                    main.canvasAnchorPoint.x -= MainUIController.STAGE_RIGHT_OFFSET;
+                    CanvasController.canvasAnchorPoint.x -= MainUIController.STAGE_RIGHT_OFFSET;
                 }
                 else
                 {
-                    main.canvasAnchorPoint.x += MainUIController.STAGE_LEFT_OFFSET;
+                    CanvasController.canvasAnchorPoint.x += MainUIController.STAGE_LEFT_OFFSET;
                 }
             }
 
@@ -727,7 +727,7 @@ package Modules
             }
             else if (isRightSidebar)
             {
-                sideBarScrollBar.x = main.canvasNavigatorBox.x - sideBarScrollBar.width + 4;
+                sideBarScrollBar.x = CanvasController.canvasNavigatorBox.x - sideBarScrollBar.width + 4;
             }
             else
             {
@@ -836,12 +836,12 @@ package Modules
                         || targetName === "navLayer1Bitmap"
                         || targetName === "navLayer2Bitmap")
                 {
-                    main.startCanvasMoveByCanvasNavigator(false);
+                    CanvasController.startCanvasMoveByCanvasNavigator(false);
                     return true;
                 }
                 else if (targetName === "navCursor")
                 {
-                    main.startCanvasMoveByCanvasNavigator(true);
+                    CanvasController.startCanvasMoveByCanvasNavigator(true);
                     return true;
                 }
                 else if (ColorPickerController.handleColorPickerBoxMouseDown(target) && !main.isKeyPressed())

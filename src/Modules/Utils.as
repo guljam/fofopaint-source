@@ -4,6 +4,7 @@ package Modules
     import flash.display.DisplayObjectContainer;
     import flash.geom.Point;
     import flash.display.Stage;
+    import flash.geom.Rectangle;
 
     public class Utils
     {
@@ -11,6 +12,26 @@ package Modules
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
+        }
+
+        // stage를 기준으로 사각형 꼭지점들 구하기
+        // 회전이나 기준점 상관없이 보이는 그대로 리턴함
+        public static function getBoundRect(ent:DisplayObject):Object
+        {
+            const b:Rectangle = ent.getBounds(main.stage);
+            const tl:Point = b.topLeft;
+            const br:Point = b.bottomRight;
+            const tlx:Number = tl.x;
+            const tly:Number = tl.y;
+            const brx:Number = br.x;
+            const bry:Number = br.y;
+            const o:Object = {
+                    left: tlx,
+                    top: tly,
+                    right: brx,
+                    bottom: bry
+                };
+            return o;
         }
 
         // 객체의 alpha값이 8비트int로 변환된후 다시 Number로 변환되기 때문에 실제 소수점 비교를 할때도 같은 방식을 써주어야함
@@ -50,7 +71,7 @@ package Modules
 
         public static function updateImageScaleMouseDrag(sc:Number):Function
         {
-            const stage:Stage = Main._instance.stage;
+            const stage:Stage = main.stage;
             var clickX:Number = stage.mouseX;
             var clickY:Number = stage.mouseY;
             var scale:Number = Math.abs(sc);
@@ -117,7 +138,7 @@ package Modules
             var oldY:Number = target.y;
             var mx:Number = main.stage.mouseX;
             var my:Number = main.stage.mouseY;
-            const zoom:Number = main.canvasZoomMultipler;
+            const zoom:Number = CanvasController.canvasZoomMultipler;
             const angle:Number = targetAngle;
 
             return function ():Point

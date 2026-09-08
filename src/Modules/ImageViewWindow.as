@@ -64,11 +64,11 @@ package Modules
 
         public static function updateCanvasWindowBitmapSize():void
         {
-            const bounds:Rectangle = main.canvasNavigatorBox.setFitBitmapforBox(main.canvasLayer1BitmapData.width,
-                    main.canvasLayer1BitmapData.height,
+            const bounds:Rectangle = CanvasController.canvasNavigatorBox.setFitBitmapforBox(CanvasController.canvasLayer1BitmapData.width,
+                    CanvasController.canvasLayer1BitmapData.height,
                     canvasWindow.stage.stageWidth,
                     canvasWindow.stage.stageHeight);
-            updateCanvasWindowBGColor(main.CANVAS_BG_COLOR, main.canvasLayer1BitmapData);
+            updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, CanvasController.canvasLayer1BitmapData);
             canvasWindowCanvasPanel.x = bounds.x;
             canvasWindowCanvasPanel.y = bounds.y;
             canvasWindowCanvasPanel.width = bounds.width;
@@ -113,8 +113,8 @@ package Modules
 
         public static function updateCanvasWindowImage():void
         {
-            canvasWindowLayer1Bitmap.bitmapData = main.canvasNavigatorBox.navLayer1Bitmap.bitmapData;
-            canvasWindowLayer2Bitmap.bitmapData = main.canvasNavigatorBox.navLayer2Bitmap.bitmapData;
+            canvasWindowLayer1Bitmap.bitmapData = CanvasController.canvasNavigatorBox.navLayer1Bitmap.bitmapData;
+            canvasWindowLayer2Bitmap.bitmapData = CanvasController.canvasNavigatorBox.navLayer2Bitmap.bitmapData;
             canvasWindowLayer1Bitmap.smoothing = true;
             canvasWindowLayer2Bitmap.smoothing = true;
         }

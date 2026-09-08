@@ -47,12 +47,12 @@ package Modules
 
         public static function mergeImageToRefLayer(layer1:IBitmapDrawable, layer2:IBitmapDrawable):void
         {
-            var tmpbmpd:BitmapData = new BitmapData(main.CANVAS_WIDTH, main.CANVAS_HEIGHT, true, 0);
+            var tmpbmpd:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
             const mat:Matrix = new Matrix();
 
             mat.scale(canvasRefLayer.scaleX, canvasRefLayer.scaleY);
             mat.rotate(canvasRefLayer.rotation * Math.PI / 180);
-            mat.translate(main.CANVAS_WIDTH / 2, main.CANVAS_HEIGHT / 2);
+            mat.translate(CanvasController.CANVAS_WIDTH / 2, CanvasController.CANVAS_HEIGHT / 2);
 
             tmpbmpd.draw(canvasRefLayer, mat);
 
@@ -65,7 +65,7 @@ package Modules
                 tmpbmpd.draw(layer1);
             }
 
-            canvasRefLayerBitmapData = main.updateBitmapData(canvasRefLayerBitmapData, tmpbmpd, canvasRefLayerBitmap);
+            canvasRefLayerBitmapData = CanvasController.updateBitmapData(canvasRefLayerBitmapData, tmpbmpd, canvasRefLayerBitmap);
 
             tmpbmpd.dispose();
             tmpbmpd = null;
@@ -129,7 +129,7 @@ package Modules
                 return;
             }
 
-            if (main.isMouseDragging === true)
+            if (CanvasController.isMouseDragging === true)
             {
                 return;
             }
@@ -192,8 +192,8 @@ package Modules
                         {
                             FileManager.isFileAlreadySaved = false;
 
-                            canvasRefLayer.x = main.CANVAS_WIDTH / 2;
-                            canvasRefLayer.y = main.CANVAS_HEIGHT / 2;
+                            canvasRefLayer.x = CanvasController.CANVAS_WIDTH / 2;
+                            canvasRefLayer.y = CanvasController.CANVAS_HEIGHT / 2;
 
                             canvasRefLayerBitmap.x = -canvasRefLayerBitmap.bitmapData.width / 2;
                             canvasRefLayerBitmap.y = -canvasRefLayerBitmap.bitmapData.height / 2;
@@ -338,7 +338,7 @@ package Modules
 
             tmpbmpd.draw(canvasRefLayerBitmapData, flipMat);
 
-            canvasRefLayerBitmapData = main.updateBitmapData(canvasRefLayerBitmapData, tmpbmpd, canvasRefLayerBitmap);
+            canvasRefLayerBitmapData = CanvasController.updateBitmapData(canvasRefLayerBitmapData, tmpbmpd, canvasRefLayerBitmap);
 
             tmpbmpd.dispose();
             tmpbmpd = null;
@@ -348,7 +348,7 @@ package Modules
             // canvas1을 기준으로 중심점 거리를 구해서 x값보정과 각도 보정을 함
             const canvasCenterX:Number = canvasRefLayer.x + canvasRefLayerBitmap.x + canvasRefLayerBitmap.width / 2;
             const subX:Number = Math.round((canvasRefLayer.x - canvasCenterX) * 2);
-            const deg:Number = canvasRefLayer.rotation - (main.canvasAnchorPoint.rotation) * 2;
+            const deg:Number = canvasRefLayer.rotation - (CanvasController.canvasAnchorPoint.rotation) * 2;
 
             canvasRefLayerBitmap.x = canvasRefLayerBitmap.x + subX;
             canvasRefLayer.rotation = deg; // 캔버스 전체가 회전해있을때 각도보정
@@ -416,7 +416,7 @@ package Modules
         public static function startRefLayerImageDrag():void
         {
             const getpos:Function = Utils.updateImagePosMouseDrag(canvasRefLayerBitmap,
-                    canvasRefLayer.rotation + main.canvasAnchorPoint.rotation,
+                    canvasRefLayer.rotation + CanvasController.canvasAnchorPoint.rotation,
                     canvasRefLayer.scaleX,
                     canvasRefLayer.scaleY);
             function onDragStart():void
@@ -542,8 +542,8 @@ package Modules
 
         public static function updateRefLayerImageTransform(x:Number, y:Number, rotation:Number, scaleX:Number, scaleY:Number):void
         {
-            canvasRefLayer.x = main.CANVAS_WIDTH / 2;
-            canvasRefLayer.y = main.CANVAS_HEIGHT / 2;
+            canvasRefLayer.x = CanvasController.CANVAS_WIDTH / 2;
+            canvasRefLayer.y = CanvasController.CANVAS_HEIGHT / 2;
             canvasRefLayerBitmap.x = x;
             canvasRefLayerBitmap.y = y;
             canvasRefLayer.scaleX = scaleX;
@@ -575,40 +575,40 @@ package Modules
                 main.applyDeepUndo();
             }
 
-            var layer1Flag:Boolean = main.canvasLayer1Bitmap.visible;
-            var layer2Flag:Boolean = main.canvasLayer2Bitmap.visible;
+            var layer1Flag:Boolean = CanvasController.canvasLayer1Bitmap.visible;
+            var layer2Flag:Boolean = CanvasController.canvasLayer2Bitmap.visible;
 
-            if (main.checkedLayer === 1)
+            if (CanvasController.checkedLayer === 1)
             {
                 layer1Flag = true;
                 layer2Flag = false;
             }
-            else if (main.checkedLayer === 2)
+            else if (CanvasController.checkedLayer === 2)
             {
                 layer1Flag = false;
                 layer2Flag = true;
             }
 
-            mergeImageToRefLayer((layer1Flag) ? main.canvasLayer1BitmapData : null
-                    , (layer2Flag) ? main.canvasLayer2BitmapData : null);
-            const rect:Rectangle = new Rectangle(0, 0, main.canvasLayer1BitmapData.width, main.canvasLayer1BitmapData.height);
+            mergeImageToRefLayer((layer1Flag) ? CanvasController.canvasLayer1BitmapData : null
+                    , (layer2Flag) ? CanvasController.canvasLayer2BitmapData : null);
+            const rect:Rectangle = new Rectangle(0, 0, CanvasController.canvasLayer1BitmapData.width, CanvasController.canvasLayer1BitmapData.height);
             var command:String = "clear";
 
             if (layer1Flag)
             {
-                main.canvasLayer1BitmapData.fillRect(rect, 0);
+                CanvasController.canvasLayer1BitmapData.fillRect(rect, 0);
             }
 
             if (layer2Flag)
             {
-                main.canvasLayer2BitmapData.fillRect(rect, 0);
+                CanvasController.canvasLayer2BitmapData.fillRect(rect, 0);
             }
 
-            if ((layer1Flag && !layer2Flag) || !main.canvasLayer2Bitmap.visible)
+            if ((layer1Flag && !layer2Flag) || !CanvasController.canvasLayer2Bitmap.visible)
             {
                 command = "clear1";
             }
-            else if ((layer2Flag && !layer1Flag) || !main.canvasLayer1Bitmap.visible)
+            else if ((layer2Flag && !layer1Flag) || !CanvasController.canvasLayer1Bitmap.visible)
             {
                 command = "clear2";
             }
@@ -642,15 +642,15 @@ package Modules
 
             tmpbmpd.draw(bmpd, scaleMat, null, null, null, true);
 
-            canvasRefLayerBitmapData = main.updateBitmapData(canvasRefLayerBitmapData, tmpbmpd, canvasRefLayerBitmap);
+            canvasRefLayerBitmapData = CanvasController.updateBitmapData(canvasRefLayerBitmapData, tmpbmpd, canvasRefLayerBitmap);
 
             tmpbmpd.dispose();
             tmpbmpd = null;
 
             resetRefLayerImageTransform();
 
-            const gw:Number = main.CANVAS_WIDTH;
-            const gh:Number = main.CANVAS_HEIGHT;
+            const gw:Number = CanvasController.CANVAS_WIDTH;
+            const gh:Number = CanvasController.CANVAS_HEIGHT;
             const widthFlag:Boolean = (w >= h) ? true : false;
             var autoScale:Number = 0;
 
@@ -678,8 +678,8 @@ package Modules
         {
             const scX:Number = canvasRefLayer.scaleX;
             const scY:Number = canvasRefLayer.scaleX;
-            const subW:Number = (main.CANVAS_WIDTH - w) / 2;
-            const subH:Number = (main.CANVAS_HEIGHT - h) / 2;
+            const subW:Number = (CanvasController.CANVAS_WIDTH - w) / 2;
+            const subH:Number = (CanvasController.CANVAS_HEIGHT - h) / 2;
             const rPos:Point = Utils.rotatePoint(subW, subH, canvasRefLayer.rotation);
 
             canvasRefLayer.x = w / 2;

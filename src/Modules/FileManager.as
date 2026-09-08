@@ -70,7 +70,7 @@ package Modules
         {
             if (loadMenuBox.visible === false)
             {
-                const bmpd:BitmapData = main.getMergedBitmapdtata(false, true, true, null);
+                const bmpd:BitmapData = CanvasController.getMergedBitmapdtata(false, true, true, null);
                 loadMenuBox.setPreviewImage(bmpd);
                 loadMenuBox.showPleaseWait("Closing fofo paint...");
                 loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
@@ -733,9 +733,9 @@ package Modules
                 main.rFirstImageLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1FirstImageData);
                 main.rFirstImageLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2FirstImageData);
                 // 현재 캔버스 이미지 레이어 1 2 저장
-                newRectangle = new Rectangle(0, 0, main.CANVAS_WIDTH, main.CANVAS_HEIGHT);
-                main.canvasLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1CurrentImageData);
-                main.canvasLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2CurrentImageData);
+                newRectangle = new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                CanvasController.canvasLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1CurrentImageData);
+                CanvasController.canvasLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2CurrentImageData);
                 // 참고 레이어 이미지 저장
                 if (ReferenceLayerController.canvasRefLayerBitmapData)
                 {
@@ -1020,7 +1020,7 @@ package Modules
                 return;
             }
             const fs:FileStream = new FileStream();
-            const mergedImage:BitmapData = main.getMergedBitmapdtata(false, true, true, null);
+            const mergedImage:BitmapData = CanvasController.getMergedBitmapdtata(false, true, true, null);
             if (nextPath !== lastSaveFilePath)
             {
                 lastSaveFilePath = nextPath;
@@ -1069,7 +1069,7 @@ package Modules
                 {
                     disableFileOperationButtonsTopbar();
                     BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
-                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), main.CANVAS_BG_COLOR, false, false);
+                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), CanvasController.CANVAS_BG_COLOR, false, false);
                     saveReplayFile();
                     MainUIController.updateWindowTitle();
                     main.clearKeyBuffer();
@@ -1128,7 +1128,7 @@ package Modules
                     lastSaveFilePath = convertToPNGFilePath(e.target.nativePath);
                     lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
                     BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
-                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), main.CANVAS_BG_COLOR, false, false);
+                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), CanvasController.CANVAS_BG_COLOR, false, false);
                     saveReplayFile();
                     MainUIController.updateWindowTitle();
                     pollTimerWaitWorkerForImageSave(lastSaveFilePath, false);
@@ -1161,20 +1161,25 @@ package Modules
             fs.close();
         }
 
+        private static function getAppstateObject():object
+        {
+            const obj = {};
+        }
         private static function saveAppSatate():void
         {
-            MainUIController.updateAppWindowSizeInfo();
+            const a:Object = {};
+            a.b =
+                MainUIController.updateAppWindowSizeInfo();
             const fs:FileStream = new FileStream();
             fs.open(appStateFilePath, FileMode.WRITE);
-            fs.writeObject({"CANVAS_WIDTH": main.CANVAS_WIDTH,
-                        "CANVAS_HEIGHT": main.CANVAS_HEIGHT,
-                        "canvasZoomIndex": main.canvasZoomIndex,
-                        "canvasZoomedMultipler": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.z : main.canvasZoomMultipler,
-                        "canvasPanel.x": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.px : main.canvasPanel.x,
-                        "canvasPanel.y": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.py : main.canvasPanel.y,
-                        "canvasAnchorPoint.x": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.x : main.canvasAnchorPoint.x,
-                        "canvasAnchorPoint.y": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.y : main.canvasAnchorPoint.y,
-                        "canvasAnchorPoint.rotation": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.r : main.canvasAnchorPoint.rotation,
+            fs.writeObject({
+                        "canvasZoomIndex": CanvasController.canvasZoomIndex,
+                        "canvasZoomedMultipler": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.z : CanvasController.canvasZoomMultipler,
+                        "canvasPanel.x": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.px : CanvasController.canvasPanel.x,
+                        "canvasPanel.y": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.py : CanvasController.canvasPanel.y,
+                        "canvasAnchorPoint.x": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.x : CanvasController.canvasAnchorPoint.x,
+                        "canvasAnchorPoint.y": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.y : CanvasController.canvasAnchorPoint.y,
+                        "canvasAnchorPoint.rotation": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.r : CanvasController.canvasAnchorPoint.rotation,
                         "penSmoothValue": PenTool.penSmoothValue,
                         "penSmoothSlideValue": PenTool.penSmoothSlideValue,
                         "penSmoothButtonX": main.toolOptionsBox.penSmoothSliderCursor.x,
@@ -1192,7 +1197,6 @@ package Modules
                         "stage.nativeWindow.width": MainUIController.lastAppWindowSizeInfo[2],
                         "stage.nativeWindow.height": MainUIController.lastAppWindowSizeInfo[3],
                         "saveFileName": lastSaveFileName,
-                        "toolBox.scaleX": main.toolBox.scaleX,
                         "lastWindowState": MainUIController.lastAppWindowState,
                         "uiColorIndex": Global.getUIColorIndex(),
                         "APP_RUNNING_TIME": main.realWorkingTimer.getRunningTime(),
@@ -1204,10 +1208,9 @@ package Modules
                         "canvasRefLayer.rotation": ReferenceLayerController.canvasRefLayer.rotation,
                         "canvasRefLayer.scaleX": ReferenceLayerController.canvasRefLayer.scaleX,
                         "canvasRefLayer.scaleY": ReferenceLayerController.canvasRefLayer.scaleY,
-                        "canvasRefLayer.mirror": Boolean(ReferenceLayerController.canvasRefLayer.scaleX),
                         "refLayerMenuBox[0]": ReferenceLayerController.refLayerMenuBox.x,
                         "refLayerMenuBox[1]": ReferenceLayerController.refLayerMenuBox.y,
-                        "isCanvasMirrored": main.isCanvasMirrored,
+                        "isCanvasMirrored": CanvasController.isCanvasMirrored,
                         "gridValue": CanvasGridOverlay.gridGapMultiplier,
                         "hsvColorData[0]": ColorPickerController.hsvColorData[0],
                         "gridDrawOffsetX": CanvasGridOverlay.gridDrawOffsetX,
@@ -1278,14 +1281,14 @@ package Modules
 
         public static function onWindowDeactivate(e:Event):void
         {
-            main.isMouseClickBlocked = true;
+            CanvasController.isMouseClickBlocked = true;
             main.resizeCanvas.exit(true);
             main.clearKeyBuffer();
             main.removeKeyRepeatEvents(null);
             FOFOTimer.remove("pressholdtimer");
             if (main.isToolBox2Showing)
             {
-                main.isRightMouseClicked = false;
+                CanvasController.isRightMouseClicked = false;
                 main.closeToolBox2();
             }
             if (!SidebarController.isSidebarVisible)
@@ -1391,4 +1394,5 @@ package Modules
             }
         }
     }
+
 }
