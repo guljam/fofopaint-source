@@ -39,19 +39,19 @@ package Modules
         public static var isContinueSaveON:Boolean = false; // 한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
         public static var lastSaveFileName:String = getRandomFileName(); // 세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
         public static var lastSaveFilePath:String = lastSaveFileName; // 파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
-        public static var lastSaveCaptureFilePath:String = lastSaveFileName;
-        public static var rLayer1FirstImageData:ByteArray = new ByteArray(); // 리플레이 데이터 저장해줄때 쓰는 바이트 배열 전역으로 돌려서 새로운 객체 하나만 생성하도록함
-        public static var rLayer2FirstImageData:ByteArray = new ByteArray();
-        public static var rLayer1CurrentImageData:ByteArray = new ByteArray();
-        public static var rLayer2CurrentImageData:ByteArray = new ByteArray();
-        public static var replayDataReadBytes:ByteArray = new ByteArray();
+        private static var lastSaveCaptureFilePath:String = lastSaveFileName;
+        private static var rLayer1FirstImageData:ByteArray = new ByteArray(); // 리플레이 데이터 저장해줄때 쓰는 바이트 배열 전역으로 돌려서 새로운 객체 하나만 생성하도록함
+        private static var rLayer2FirstImageData:ByteArray = new ByteArray();
+        private static var rLayer1CurrentImageData:ByteArray = new ByteArray();
+        private static var rLayer2CurrentImageData:ByteArray = new ByteArray();
+        private static var replayDataReadBytes:ByteArray = new ByteArray();
 
         public static var isLoadPendingAfterSaving:Boolean = false;
         public static var isFileBrowserOpened:Boolean = false;
         public static var lastLoadedFile:File;
-        public static var loadMenuBoxBitmapData:BitmapData;
-        public static var loadMenuBoxFileType:String;
-        public static var loadMenuBoxFile:File;
+        private static var loadMenuBoxBitmapData:BitmapData;
+        private static var loadMenuBoxFileType:String;
+        private static var loadMenuBoxFile:File;
 
         public static function closeLoadMenuBox():void
         {
@@ -85,7 +85,7 @@ package Modules
             Utils.setAsTopChild(loadMenuBox);
         }
 
-        public static function getJumpImageFolder():File
+        private static function getJumpImageFolder():File
         {
             return File.applicationStorageDirectory.resolvePath("imagecache");
         }
@@ -95,7 +95,7 @@ package Modules
             main.repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + Utils.getRandomString(32));
         }
 
-        public static function handleLoadMenuBoxClick(oldTargetName:String):void
+        private static function handleLoadMenuBoxClick(oldTargetName:String):void
         {
             loadMenuBox.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
             function onMouseUpLoadMenuBox(e:MouseEvent):void
@@ -145,7 +145,7 @@ package Modules
             }
         }
 
-        public static function onMouseDownLoadMenuBox(e:MouseEvent):void
+        private static function onMouseDownLoadMenuBox(e:MouseEvent):void
         {
             if (!e.target)
             {
@@ -166,7 +166,7 @@ package Modules
             isFileBrowserOpened = flag;
             main.clearKeyBuffer();
         }
-        public static function formatBytes(bytes:Number):String
+        private static function formatBytes(bytes:Number):String
         {
             var sizes:Array = ["Bytes", "KB", "MB", "GB", "TB"];
             // 음수 또는 유효하지 않은 입력 처리
@@ -213,7 +213,7 @@ package Modules
             lastSaveFilePath = getDirectoryOnly(lastSaveFilePath) + File.separator + newFileName;
         }
 
-        public static function getRandomFileName():String
+        private static function getRandomFileName():String
         {
             return CaptureController.getTimeStampTailHead() + "_" + Utils.getRandomString(8) + ".png";
         }
@@ -231,7 +231,7 @@ package Modules
             MainUIController.markWindowTitleAsDirty();
         }
 
-        public static function getFinalBitmapDataFrom2020File(file:File, bgFlag:Boolean):BitmapData
+        private static function getFinalBitmapDataFrom2020File(file:File, bgFlag:Boolean):BitmapData
         {
             const fs:FileStream = new FileStream();
             fs.open(file, FileMode.READ);
@@ -327,7 +327,7 @@ package Modules
             }
             return false;
         }
-        public static function isOld2020File(file:File):Boolean
+        private static function isOld2020File(file:File):Boolean
         {
             const fs:FileStream = new FileStream();
             fs.open(file, FileMode.READ);
@@ -363,7 +363,7 @@ package Modules
             }
             return false;
         }
-        public static function isImageFileExt(path:String):Boolean
+        private static function isImageFileExt(path:String):Boolean
         {
             // 가장 마지막 확장자만 따짐
             const gif:int = path.lastIndexOf(".gif");
@@ -387,7 +387,7 @@ package Modules
             }
         }
 
-        public static function keyDownLoadMenuBox(e:KeyboardEvent):void
+        private static function keyDownLoadMenuBox(e:KeyboardEvent):void
         {
             const firstKey:uint = main.getFirstPressedKey();
             if (firstKey === main.KEY.esc || firstKey === main.KEY.backspace)
@@ -437,7 +437,7 @@ package Modules
                 Utils.setAsTopChild(loadMenuBox);
             }
         }
-        public static function isWebpFile(file:File):Boolean
+        private static function isWebpFile(file:File):Boolean
         {
             var stream:FileStream = new FileStream();
             stream.open(file, FileMode.READ);
@@ -541,7 +541,7 @@ package Modules
             loader.load(new URLRequest(file.url));
         }
 
-        public static function isSameFile(file1:File, file2:File):Boolean
+        private static function isSameFile(file1:File, file2:File):Boolean
         {
             if (!lastLoadedFile)
             {
@@ -692,7 +692,7 @@ package Modules
                 main.updateDeleteReplayDataButtonsState();
             }
         }
-        public static function disableFileOperationButtonsTopbar():void
+        private static function disableFileOperationButtonsTopbar():void
         {
             if (BackgroundWorkerCoordinator.isSaveInProgress === 0)
             {
@@ -703,7 +703,7 @@ package Modules
                 MainUI.topBar.disableFileOperationButtons();
             }
         }
-        public static function saveReplayFile():void
+        private static function saveReplayFile():void
         {
             if (replayDataFilePath.exists)
             {
@@ -867,7 +867,7 @@ package Modules
             }
         }
 
-        public static function checkSaveFailedFileName(saveFailed:Boolean):File
+        private static function checkSaveFailedFileName(saveFailed:Boolean):File
         {
             var _path:String = lastSaveFilePath;
             var _name:String = lastSaveFileName;
@@ -885,7 +885,7 @@ package Modules
             }
             return (_name !== _path) ? new File(filePath) : File.desktopDirectory.resolvePath(fileName);
         }
-        public static function getFileNameFromPath(path:String):String
+        private static function getFileNameFromPath(path:String):String
         {
             if (!path || path.length == 0)
             {
@@ -899,7 +899,7 @@ package Modules
             return path;
         }
 
-        public static function convertToPNGFilePath(path:String):String
+        private static function convertToPNGFilePath(path:String):String
         {
             const extArr:Array = [".2020", ".jpg", ".jpeg", ".gif", "jfif"];
             var pathOnly:String = getDirectoryOnly(path) + File.separator;
@@ -919,7 +919,7 @@ package Modules
         }
 
         // 끝의 파일 구분자가 있으면 제거해줌
-        public static function removeLastFileSeparator(path:String):String
+        private static function removeLastFileSeparator(path:String):String
         {
             if (path.charAt(path.length - 1) === File.separator)
             {
@@ -928,7 +928,7 @@ package Modules
             return path;
         }
 
-        public static function getDirectoryOnly(path:String):String
+        private static function getDirectoryOnly(path:String):String
         {
             if (!path || path.length == 0)
             {
@@ -946,7 +946,7 @@ package Modules
         }
 
         // 해당 디렉토리가 없으면 그 상위 디렉토리로 위치를 바꾸어줌
-        public static function getExistingParentDirectory(path:String):String
+        private static function getExistingParentDirectory(path:String):String
         {
             try
             {
@@ -1143,7 +1143,7 @@ package Modules
             bmpd.unlock();
         }
 
-        public static function saveScratchPadImage():void
+        private static function saveScratchPadImage():void
         {
             const fs:FileStream = new FileStream();
             const ba:ByteArray = new ByteArray();
@@ -1155,7 +1155,7 @@ package Modules
             fs.close();
         }
 
-        public static function saveAppSatate():void
+        private static function saveAppSatate():void
         {
             MainUIController.updateAppWindowSizeInfo();
             const fs:FileStream = new FileStream();
@@ -1318,7 +1318,7 @@ package Modules
         }
 
         // todo 이것은 mainui controller로 가야하지 않을까
-        public static function enterDrawModeOnLoadFile():void
+        private static function enterDrawModeOnLoadFile():void
         {
             if (CaptureController.isCaptureModeON)
             {
