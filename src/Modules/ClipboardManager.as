@@ -7,12 +7,16 @@ package Modules
 
     public class ClipboardManager
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
+
         public static var isClipBoardButtonActivated:Boolean = false;
 
         public static function tryLoadClipboardImage(toRefLayer:Boolean):void
         {
-            const main:Main = Main._instance;
-
             if (FileManager.isFileLoadBlocked())
             {
                 return;
@@ -51,7 +55,6 @@ package Modules
 
         private static function disableTopBarClipboardButton():void
         {
-            const main:Main = Main._instance;
             MainUI.topBar.clipBoardButton.alpha = Global.OFFALPHA;
             ReferenceLayerController.refLayerMenuBox.refClipBoardButton.alpha = Global.OFFALPHA;
             isClipBoardButtonActivated = false;
@@ -59,7 +62,6 @@ package Modules
 
         private static function enableTopBarClipboardButton():void
         {
-            const main:Main = Main._instance;
             MainUI.topBar.clipBoardButton.alpha = 1.0;
             ReferenceLayerController.refLayerMenuBox.refClipBoardButton.alpha = 1.0;
             isClipBoardButtonActivated = true;
@@ -67,7 +69,6 @@ package Modules
 
         public static function checkCanUseClipBoardButton():void
         {
-            const main:Main = Main._instance;
             const data:* = getSystemClipboardData();
 
             if (data is BitmapData)

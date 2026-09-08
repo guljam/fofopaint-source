@@ -20,12 +20,18 @@ package Modules
     import flash.desktop.ClipboardFormats;
     import flash.net.FileFilter;
     import flash.utils.getTimer;
+    import Modules.Tools.PenTool;
+    import Modules.Tools.LassoTool;
 
     public class FileManager
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
         // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
 
-        public static const main:Main = Main._instance;
         public static const appStateFilePath:File = File.applicationStorageDirectory.resolvePath("appstate" + main.APP_STATE_VERSION);
         public static const scratchPadDataFilePath:File = File.applicationStorageDirectory.resolvePath("scratchdata");
         public static const undoDataFilePath:File = File.applicationStorageDirectory.resolvePath("undodata");
@@ -402,10 +408,10 @@ package Modules
             loadMenuBoxFileType = filetype;
             loadMenuBoxFile = file;
             loadMenuBoxBitmapData = bmpd;
-            if (main.isLassoToolStarted === true)
+            if (LassoTool.isLassoToolStarted === true)
             {
-                main.cancelLassoTool();
-                main.resetLassoBox();
+                LassoTool.cancelLassoTool();
+                LassoTool.resetLassoBox();
                 main.resetLastTool();
                 main.selectPenTool();
             }
@@ -774,7 +780,7 @@ package Modules
             {
                 main.stopReplay();
             }
-            if (main.isLassoToolStarted || isFileBrowserOpened || main.isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
+            if (LassoTool.isLassoToolStarted || isFileBrowserOpened || main.isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
             {
                 return;
             }
@@ -1009,7 +1015,7 @@ package Modules
                 }
                 return;
             }
-            if (main.isLassoToolStarted || main.isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
+            if (LassoTool.isLassoToolStarted || main.isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
             {
                 return;
             }
@@ -1327,6 +1333,61 @@ package Modules
             if (main.isReplayModeON)
             {
                 main.exitReplayMode();
+            }
+        }
+
+        public static function onWindowClosingEvent(e:Event):void
+        {
+            main.isAppClosing = true;
+
+            e.preventDefault();
+            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
+            CaptureController.removeInputEventCaptrueMode();
+            main.removeInputEventsDrawMode();
+            main.removeInputEventsReplayMode();
+            main.realWorkingTimer.stop();
+
+            if (ImageViewWindow.canvasWindow !== null)
+            {
+                ImageViewWindow.canvasWindow.visible = false;
+            }
+
+            if (CaptureController.isCaptureModeON === true)
+            {
+                CaptureController.handleExitCaptureMode();
+            }
+
+            if (main.isReplayStarted === true)
+            {
+                main.stopReplay();
+            }
+
+            if (LassoTool.isLassoToolStarted)
+            {
+                LassoTool.cancelLassoTool();
+            }
+
+            if (BackgroundWorkerCoordinator.isWorkerRunning())
+            {
+                if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
+                {
+                    main.stage.nativeWindow.title = "Waiting for remaining tasks...";
+                    FileManager.openLoadMenuBoxOnClosing();
+                    FOFOTimer.addByName("pollTimerWaitWorkerStop", BackgroundWorkerCoordinator.getWaitPollingInterval(), true, function ():Boolean
+                        {
+                            if (BackgroundWorkerCoordinator.isWorkerStopped())
+                            {
+                                FOFOTimer.remove("pollTimerWaitWorkerStop");
+                                FileManager.checkWindowMaximizedAndSaveAllData();
+                                return false;
+                            }
+                            return true;
+                        });
+                }
+            }
+            else
+            {
+                FileManager.checkWindowMaximizedAndSaveAllData();
             }
         }
     }

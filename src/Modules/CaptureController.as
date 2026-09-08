@@ -22,6 +22,12 @@ package Modules
 
     public class CaptureController
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
+
         public static var isCaptureModeON:Boolean = false; // 스크린샷 켜지면 올려줌
         public static var isCaptureCanvasFlipped:Boolean = false; // 캡쳐 대칭한 변수 저장
         public static var isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
@@ -43,14 +49,12 @@ package Modules
 
         private static function hideStampFontList():void
         {
-            const main:Main = Main._instance;
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList);
             captureStampFontListBox.visible = false;
         }
 
         private static function onMouseDownShowStampFontList(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
             if (!(captureStampFontListBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || MainUI.topBar.capStampFont.hitTestPoint(main.stage.mouseX, main.stage.mouseY)))
             {
                 hideStampFontList();
@@ -61,7 +65,7 @@ package Modules
         {
             if (!captureStampFontListBox.visible)
             {
-                const main:Main = Main._instance;
+
                 const gp:Point = MainUI.topBar.capStampFont.localToGlobal(new Point(0, 0));
                 captureStampFontListBox.x = gp.x;
                 captureStampFontListBox.y = MainUI.topBar.BARSIZE * MainUI.topBar.scaleX;
@@ -75,7 +79,6 @@ package Modules
 
         public static function executeCaptureFlashEffect():void
         {
-            const main:Main = Main._instance;
             var xPanel:Sprite = (main.isReplayModeON) ? main.rCanvasPanel : main.canvasPanel;
             var posX:Number;
             var posY:Number;
@@ -114,7 +117,6 @@ package Modules
 
         public static function getCaptrueImageBitmapdata(clipBoardCopyFlag:Boolean):BitmapData
         {
-            const main:Main = Main._instance;
             const isReplayMode:Boolean = main.isReplayModeON;
             var rect:Rectangle = (!captureAreaManager.isFullImageCapture()) ? captureAreaManager.getCaptureArea() : null;
             var layer1:Boolean;
@@ -196,7 +198,6 @@ package Modules
 
         private static function updateCanvasFlipOnCaptureMode():void
         {
-            const main:Main = Main._instance;
             const xAnc:Sprite = (main.isReplayModeON) ? main.rCanvasAnchorPoint : main.canvasAnchorPoint;
             if (captureCanvasRotationStep === 1)
             {
@@ -210,7 +211,6 @@ package Modules
 
         public static function flipCaptureImage(flag:Boolean, initFlag:Boolean):void
         {
-            const main:Main = Main._instance;
             isCaptureCanvasFlipped = flag;
             main.fitCanvasToViewportMargin();
             const xAnc:Sprite = (main.isReplayModeON) ? main.rCanvasAnchorPoint : main.canvasAnchorPoint;
@@ -259,15 +259,12 @@ package Modules
 
         public static function handleExitCaptureMode():void
         {
-            const main:Main = Main._instance;
             FileManager.setFileBrowserIsOpen(false);
             exitCaptureMode();
         }
 
         public static function applyTransparentCanvasBGCaptureMode(flag:Boolean):void
         {
-            const main:Main = Main._instance;
-
             isCaptureTransparentBGShowing = flag;
 
             if (isCaptureTransparentBGShowing)
@@ -290,7 +287,7 @@ package Modules
                 rotateValue = 0;
             }
             captureCanvasRotationStep = rotateValue;
-            const main:Main = Main._instance;
+
             main.fitCanvasToViewportMargin();
             MainUI.topBar.capClipBoard.alpha = 1.0;
             if (!initFlag)
@@ -301,8 +298,6 @@ package Modules
 
         private static function showBottomHintForTargetCaptureMode(target:DisplayObject):void
         {
-            const main:Main = Main._instance;
-
             if (MainUI.isHintUnavailable())
             {
                 return;
@@ -337,8 +332,6 @@ package Modules
 
         private static function onRightMouseDownCaptureMode(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
                 if (!captureAreaManager.isFullImageCapture())
@@ -357,7 +350,6 @@ package Modules
             }
 
             const targetName:String = target.name;
-            const main:Main = Main._instance;
 
             if (targetName === "capLayer1VisibleButton" || targetName === "capLayer2VisibleButton" || targetName === "capStamp" || targetName === "capStampFont")
             {
@@ -423,15 +415,12 @@ package Modules
 
         private static function onKeyUpCaptureMode(e:KeyboardEvent):void
         {
-            const main:Main = Main._instance;
-
             main.updateLastKey(main.getLastKey());
             main.checkGeneralKeyUp(e.keyCode);
         }
 
         private static function onKeyDownCaptureMode(e:KeyboardEvent):void
         {
-            const main:Main = Main._instance;
             const firstKey:uint = main.getFirstPressedKey();
             if (captureStampFontListBox.visible)
             {
@@ -509,8 +498,6 @@ package Modules
 
         public static function enterCaptureMode():void
         {
-            const main:Main = Main._instance;
-
             if (isCaptureModeON || main.isGeneratingCacheImages())
             {
                 return;
@@ -610,7 +597,6 @@ package Modules
 
         public static function exitCaptureMode():void
         {
-            const main:Main = Main._instance;
             const replayMode:Boolean = main.isReplayModeON;
             const data:Object = canvasStateBeforeCaptureMode;
             const xBitmap1:Bitmap = (replayMode) ? main.rCanvasLayer1Bitmap : main.canvasLayer1Bitmap;
@@ -761,8 +747,6 @@ package Modules
 
             function getAppNameString(newLine:Boolean):String
             {
-                const main:Main = Main._instance;
-
                 return "FOFO PAINT"
                     + ((newLine) ? "\n" : " ")
                     + main.APP_VERSION;
@@ -772,7 +756,6 @@ package Modules
             {
                 const backupStr:String = MainUI.topBar.captureInputFinal.text;
                 const backupWidth:Number = MainUI.topBar.getCaptureInputFinalWidth();
-                const main:Main = Main._instance;
 
                 MainUI.topBar.setCaptureInputFinalWidth(main.CANVAS_MAX_SIZE);
                 MainUI.topBar.setCaptureInputFinalString(text);
@@ -849,7 +832,6 @@ package Modules
 
             function getCaptureAreaBmpd(clipRect:Rectangle, layer1:Boolean, layer2:Boolean):BitmapData
             {
-                const main:Main = Main._instance;
                 var longEdge:Number;
                 var areaWidth:Number;
                 var areaHeight:Number;
@@ -899,7 +881,6 @@ package Modules
             {
                 FOFOTimer.add(0.2, false, function ():void
                     {
-                        const main:Main = Main._instance;
                         main.tryDisableIME();
                         isCaptureStampTextFieldFocused = false;
                     });
@@ -942,7 +923,7 @@ package Modules
 
                 if (captureAreaManager.isFullImageCapture())
                 {
-                    const main:Main = Main._instance;
+
                     offsetX = (main.isReplayModeON) ? main.RCANVAS_WIDTH : main.CANVAS_WIDTH;
                     offsetY = (main.isReplayModeON) ? main.RCANVAS_HEIGHT : main.CANVAS_HEIGHT;
                 }
@@ -1020,7 +1001,7 @@ package Modules
                 {
                     if (captureAreaManager.isFullImageCapture())
                     {
-                        const main:Main = Main._instance;
+
                         return (main.isReplayModeON) ? main.RCANVAS_WIDTH : main.CANVAS_WIDTH;
                     }
                     else
@@ -1057,7 +1038,6 @@ package Modules
 
             function update():void
             {
-                const main:Main = Main._instance;
                 if (isCaptureStampEnabled)
                 {
                     const rect:Rectangle = captureAreaManager.getCaptureArea();
@@ -1218,8 +1198,6 @@ package Modules
 
             function off():void
             {
-                const main:Main = Main._instance;
-
                 if (main.isReplayModeON)
                 {
                     main.rCanvasPanel.scrollRect = new Rectangle(0, 0, main.RCANVAS_WIDTH, main.RCANVAS_HEIGHT);
@@ -1250,8 +1228,6 @@ package Modules
 
             function init():void
             {
-                const main:Main = Main._instance;
-
                 if (main.isReplayModeON)
                 {
                     main.rCanvasPanel.scrollRect = null;
@@ -1536,8 +1512,6 @@ package Modules
 
             function onMouseUpCaptureArea(e:MouseEvent):void
             {
-                const main:Main = Main._instance;
-
                 main.isMouseDragging = false;
                 removeCaptureAreaEvents();
 
@@ -1555,7 +1529,6 @@ package Modules
 
             function removeCaptureAreaEvents():void
             {
-                const main:Main = Main._instance;
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCaptureAreaDrawed);
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
@@ -1572,7 +1545,6 @@ package Modules
 
             function getCanvasScale():Number
             {
-                const main:Main = Main._instance;
                 return (main.isReplayModeON) ? Math.abs(main.rCanvasAnchorPoint.scaleX) : Math.abs(main.canvasAnchorPoint.scaleX);
             }
 
@@ -1668,7 +1640,6 @@ package Modules
             {
                 const w:Number = Math.abs(rectClamped.width);
                 const h:Number = Math.abs(rectClamped.height);
-                const main:Main = Main._instance;
 
                 if (rectClamped.x === 0.0 && rectClamped.y === 0.0 && rectClamped.width === 0.0 && rectClamped.height === 0.0)
                 {
@@ -1775,8 +1746,6 @@ package Modules
 
             function startUpdatingCaptureAreaPosSize(mx:Number, my:Number, flag:Boolean):void
             {
-                const main:Main = Main._instance;
-
                 main.isMouseDragging = true;
                 resizeFlag = flag;
                 rectRaw.x = rectClamped.x;
@@ -1792,7 +1761,6 @@ package Modules
 
             function start():void
             {
-                const main:Main = Main._instance;
                 if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
                 {
                     if (main.isReplayModeON) // 리플레이 변수로 변경
@@ -1904,8 +1872,6 @@ package Modules
 
         public static function removeInputEventCaptrueMode():void
         {
-            const main:Main = Main._instance;
-
             isCaptureModeInputEventsAdded = false;
             main.stage.removeEventListener(KeyboardEvent.KEY_UP, CaptureController.onKeyUpCaptureMode);
             main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, CaptureController.onKeyDownCaptureMode);
@@ -1917,7 +1883,7 @@ package Modules
         {
             if (isCaptureModeInputEventsAdded === false)
             {
-                const main:Main = Main._instance;
+
                 isCaptureModeInputEventsAdded = true;
                 // resetKeyBuffer();
                 main.stage.addEventListener(KeyboardEvent.KEY_UP, CaptureController.onKeyUpCaptureMode, false, -1);

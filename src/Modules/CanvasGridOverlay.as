@@ -7,6 +7,13 @@ package Modules
 
     public class CanvasGridOverlay
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+            initialize();
+        }
+
         public static const GRID_GAP:uint = 10;
         private static const GRID_NORMAL_COLOR:uint = 0x808080;
 

@@ -6,13 +6,17 @@ package Modules
 
     public class DragInteraction
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
+
         private static var dragInteractionFuncs:Object = {onDragStart: null, onMouseMove: null, onMouseUp: null};
 
         public static function startDragInteraction(onDragStartFunc:Function, onMouseMoveFunc:Function, onMouseUpFunc:Function):void
         {
-            const main:Main = Main._instance;
             main.isMouseDragging = true;
-
             function onMouseUp(e:MouseEvent):void
             {
                 main.isMouseDragging = false;
@@ -35,7 +39,6 @@ package Modules
 
         public static function startBoxDrag(target:DisplayObject):void
         {
-            const main:Main = Main._instance;
             const clickPos:Point = new Point(main.stage.mouseX, main.stage.mouseY);
 
             function onDragStart():void

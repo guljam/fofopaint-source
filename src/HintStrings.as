@@ -2,17 +2,19 @@
 {
     import Main;
     import Modules.CanvasGridOverlay;
-    import Modules.PenTool;
+    import Modules.Tools.PenTool;
     import Modules.AppUpdater;
     import Modules.ColorPickerController;
     import Modules.CaptureController;
+    import Modules.Tools.PenTool;
+    import Modules.Tools.LassoTool;
 
     public class HintStrings
     {
-        static private var _main:Main;
-        static public function init(mainclass:Main):void
+        static private var main:Main;
+        static public function setMainInstance(mainclass:Main):void
         {
-            _main = mainclass;
+            main = mainclass;
             initSizeAndAlphaButtonHintString();
         }
 
@@ -160,7 +162,7 @@
 
         static private function initSizeAndAlphaButtonHintString():void
         {
-            if (_main === null)
+            if (main === null)
             {
                 return;
             }
@@ -182,7 +184,7 @@
 
         static private function getRedoButtonHint():String
         {
-            if (_main === null || _main.toolBox2.visible)
+            if (main === null || main.toolBox2.visible)
             {
                 return "Redo [x / ,]";
             }
@@ -192,7 +194,7 @@
 
         static private function getUndoButtonHint():String
         {
-            if (_main === null || _main.toolBox2.visible)
+            if (main === null || main.toolBox2.visible)
             {
                 return "Undo [z / .]";
             }
@@ -217,7 +219,7 @@
 
         static private function getPenSmoothingValueString():String
         {
-            if (_main === null)
+            if (main === null)
             {
                 return "";
             }
@@ -227,7 +229,7 @@
 
         static private function getRGBorHSVString():String
         {
-            if (_main === null)
+            if (main === null)
             {
                 return "";
             }
@@ -236,7 +238,7 @@
 
         static private function getCaptureSaveHintString():String
         {
-            if (_main === null)
+            if (main === null)
             {
                 return "";
             }
@@ -250,12 +252,12 @@
 
         static private function getTrackBarHintString():String
         {
-            if (_main === null)
+            if (main === null)
             {
                 return "";
             }
 
-            if (_main.isReplayRestartTimerON())
+            if (main.isReplayRestartTimerON())
             {
                 return "Seek bar _ Click to abort restart";
             }
@@ -264,7 +266,7 @@
 
         static private function getGridGapHintString():String
         {
-            if (_main === null)
+            if (main === null)
             {
                 return "";
             }
@@ -279,7 +281,7 @@
 
         static private function getOpacityButtonHintString(index:int):String
         {
-            if (_main === null)
+            if (main === null)
             {
                 return "";
             }
@@ -289,7 +291,7 @@
 
         static private function getSizeButtonHintString(index:int):String
         {
-            if (_main === null)
+            if (main === null)
             {
                 return "";
             }
@@ -299,7 +301,7 @@
 
         static private function getCurrentColorHintString():String
         {
-            if (_main === null)
+            if (main === null)
             {
                 return "";
             }
@@ -360,12 +362,12 @@
 
         static public function getLassoMenuHintSwapLayer():String
         {
-            if (_main === null)
+            if (main === null)
             {
                 return "";
             }
 
-            return "Swap layers " + ((_main.isLassoLayerSwapButtonClicked) ? "*" : "");
+            return "Swap layers " + ((LassoTool.isLassoLayerSwapButtonClicked) ? "*" : "");
         }
 
         static public function getLayerVisibleHint(layer1:Boolean, layer2:Boolean):String
@@ -441,7 +443,7 @@
 
         static public function getHintFromTargetNameCaptureMode(targetName:String):String
         {
-            if (_main === null || !hintsCaptureMode.hasOwnProperty(targetName))
+            if (main === null || !hintsCaptureMode.hasOwnProperty(targetName))
             {
                 return null;
             }
@@ -516,7 +518,7 @@
 
         static public function getHintFromTargetName(targetName:String):String
         {
-            if (_main === null || !hints.hasOwnProperty(targetName))
+            if (main === null || !hints.hasOwnProperty(targetName))
             {
                 return null;
             }

@@ -17,6 +17,12 @@ package Modules
 
     public final class BackgroundWorkerCoordinator
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
+
         public static const WORKER_WAIT_INTERVAL:Number = 0.5,
             WORKER_STATE_STOPPED:int = 0,
             WORKER_STATE_INIT:int = (1 << 0),
@@ -39,10 +45,22 @@ package Modules
         private static var workerWaitCount:int = 0; // 워커 시작하고나서 약간 대기 시켜줘야함,
         private static var workerFunctionsBeforeStart:Array = [];
 
+        public static function getWaitPollingInterval():Number
+        {
+            return WORKER_WAIT_INTERVAL;
+        }
+
+        public static function isWorkerStopped():Boolean
+        {
+            return workerState === WORKER_STATE_STOPPED;
+        }
+        public static function isWorkerRunning():Boolean
+        {
+            return workerState === WORKER_STATE_RUNNING;
+        }
+
         private static function onFromWorker(e:Event):void
         {
-            const main:Main = Main._instance;
-
             var msg:* = backToMain.receive();
             const command:String = msg as String;
 
@@ -81,8 +99,6 @@ package Modules
 
         private static function sendDataToWorker(func:Function):void
         {
-            const main:Main = Main._instance;
-
             if (workerState === WORKER_STATE_RUNNING)
             {
                 func();
@@ -132,8 +148,6 @@ package Modules
 
         private static function stopWorkerIfIdle(forceFlag:Boolean = false):Boolean
         {
-            const main:Main = Main._instance;
-
             if ((workerDataSendCount === workerDataReceiveCount
                         && captureImageDataQueue === null
                         && receivedSaveImageDataFromWorker === null
@@ -196,8 +210,6 @@ package Modules
 
         public static function applyTransparentCanvasBackground(replayMode:Boolean):void
         {
-            const main:Main = Main._instance;
-
             var xPanel:Sprite;
             var w:Number = main.CANVAS_WIDTH;
             var h:Number = main.CANVAS_HEIGHT;
@@ -338,8 +350,6 @@ package Modules
 
         public static function pollTimerWaitWorkerForCacheUndoData():void
         {
-            const main:Main = Main._instance;
-
             if (!FOFOTimer.hasTimer("workerUndoDataTimer"))
             {
                 FOFOTimer.addByName("workerUndoDataTimer", WORKER_WAIT_INTERVAL, true, function ():Boolean
@@ -373,63 +383,6 @@ package Modules
                         }
                         return true;
                     });
-            }
-        }
-
-        public static function onWindowClosingEvent(e:Event):void
-        {
-            const main:Main = Main._instance;
-
-            main.isAppClosing = true;
-
-            e.preventDefault();
-            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
-            CaptureController.removeInputEventCaptrueMode();
-            main.removeInputEventsDrawMode();
-            main.removeInputEventsReplayMode();
-            main.realWorkingTimer.stop();
-
-            if (ImageViewWindow.canvasWindow !== null)
-            {
-                ImageViewWindow.canvasWindow.visible = false;
-            }
-
-            if (CaptureController.isCaptureModeON === true)
-            {
-                CaptureController.handleExitCaptureMode();
-            }
-
-            if (main.isReplayStarted === true)
-            {
-                main.stopReplay();
-            }
-
-            if (main.isLassoToolStarted)
-            {
-                main.cancelLassoTool();
-            }
-
-            if (workerState === WORKER_STATE_RUNNING)
-            {
-                if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
-                {
-                    main.stage.nativeWindow.title = "Waiting for remaining tasks...";
-                    FileManager.openLoadMenuBoxOnClosing();
-                    FOFOTimer.addByName("pollTimerWaitWorkerStop", WORKER_WAIT_INTERVAL, true, function ():Boolean
-                        {
-                            if (workerState === WORKER_STATE_STOPPED)
-                            {
-                                FOFOTimer.remove("pollTimerWaitWorkerStop");
-                                FileManager.checkWindowMaximizedAndSaveAllData();
-                                return false;
-                            }
-                            return true;
-                        });
-                }
-            }
-            else
-            {
-                FileManager.checkWindowMaximizedAndSaveAllData();
             }
         }
     }

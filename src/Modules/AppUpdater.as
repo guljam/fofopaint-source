@@ -14,6 +14,12 @@ package Modules
 
     public final class AppUpdater
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
+
         private static const FLAG_NO_UPDATE:int = 0;
         private static const FLAG_CHECKING_UPDATE:int = (1 << 0);
         private static const FLAG_UPDATE_READY:int = (1 << 1);
@@ -37,8 +43,6 @@ package Modules
 
         public static function prepareUpdate():void
         {
-            const main:Main = Main._instance;
-
             FileManager.prepareOpenLoadBox(true, false, null, null, null);
             isUpdatePendingAfterSaving = true;
             FileManager.openSaveFileBrowser(false);
@@ -46,7 +50,6 @@ package Modules
 
         public static function startUpdate():void
         {
-            const main:Main = Main._instance;
             FileManager.closeLoadMenuBox();
             isUpdatePendingAfterSaving = false;
             MainUI.topBar.hideUpdateButton();

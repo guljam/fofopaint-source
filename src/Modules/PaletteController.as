@@ -7,11 +7,17 @@ package Modules
     import flash.filesystem.FileStream;
     import flash.filesystem.FileMode;
     import flash.geom.Point;
-    import Modules.PenTool;
+    import Modules.Tools.PenTool;
     import flash.display.Graphics;
 
     public final class PaletteController
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
+
         public static const myPaletteDataFilePath:File = File.applicationStorageDirectory.resolvePath("mypalettedata");
 
         public static var isMyPaletteExpended:Boolean = false, // 전체로 보면 올려줌
@@ -34,8 +40,6 @@ package Modules
 
         public static function selectOrResetMyPalette():void
         {
-            const main:Main = Main._instance;
-
             function onMouseUpMyPalette(e:MouseEvent):void
             {
                 FOFOTimer.remove("selectMyPaletteDelayTimer");
@@ -71,8 +75,6 @@ package Modules
 
         public static function startSelectOrAddColorMyPalette():void
         {
-            const main:Main = Main._instance;
-
             const firstClickColorIndex:uint = getMyPaletteIndexByMousePos();
             var colorAddedFlag:Boolean = false;
 
@@ -104,8 +106,6 @@ package Modules
 
         private static function getMyPaletteIndexByMousePosLimitBound():int
         {
-            const main:Main = Main._instance;
-
             const isAllViewMode:Boolean = (myPalettePresetType === 0 && isMyPaletteExpended);
             const paletteLines:int = (isAllViewMode) ? 8 : 2;
             var xLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseX / myPaletteColorWidth);
@@ -135,8 +135,6 @@ package Modules
 
         private static function getHistoryIndexByMousePos():int
         {
-            const main:Main = Main._instance;
-
             const xLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.colorHistoryBox.mouseX / myPaletteColorWidth);
             const yLineIndex:int = 10 * (Math.floor(ColorPickerController.colorPickerBox.colorHistoryBox.mouseY / myPaletteColorHeight));
 
@@ -150,8 +148,6 @@ package Modules
 
         private static function getMyPaletteIndexByMousePos():int
         {
-            const main:Main = Main._instance;
-
             var xLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseX / myPaletteColorWidth);
             var yLineIndex:int = 10 * (Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseY / myPaletteColorHeight));
             if (xLineIndex > 9)
@@ -183,8 +179,6 @@ package Modules
 
         public static function selectHistoryColor():void
         {
-            const main:Main = Main._instance;
-
             const index:int = getHistoryIndexByMousePos();
 
             if (index < 0 || myPaletteDragStarted) // || index !== myPaletteDragClickedIndex)
@@ -213,8 +207,6 @@ package Modules
 
         public static function selectMyPaletteColor():void
         {
-            const main:Main = Main._instance;
-
             const index:int = getMyPaletteIndexByMousePos();
 
             if (index < 0)
@@ -299,8 +291,6 @@ package Modules
 
         private static function switchMyPaletteToCompact():void
         {
-            const main:Main = Main._instance;
-
             isMyPaletteExpended = false;
             updateMyPaletteList();
             MainUI.hideBottomHint();
@@ -309,8 +299,6 @@ package Modules
 
         public static function switchMyPaletteToExpended():void
         {
-            const main:Main = Main._instance;
-
             isMyPaletteExpended = true;
             updateMyPaletteList();
             MainUI.hideBottomHint();
@@ -319,8 +307,6 @@ package Modules
 
         private static function addColorToMyPalette(color:uint, index:int):void
         {
-            const main:Main = Main._instance;
-
             if (index < 0)
                 return;
 
@@ -386,8 +372,6 @@ package Modules
 
         public static function addColorMyPaletteHistory(color:uint):void
         {
-            const main:Main = Main._instance;
-
             // 색깔 같으면 체크안함
             if (myPalettePreset[90] === color)
             {
@@ -435,8 +419,6 @@ package Modules
 
         public static function updateHistoryList(ignoreIndex:int = -1):void
         {
-            const main:Main = Main._instance;
-
             ColorPickerController.colorPickerBox.colorHistoryBox.graphics.clear();
 
             for (var i:uint = 0;i < 10;i++)
@@ -470,8 +452,6 @@ package Modules
 
         public static function updateMyPaletteList(ignoreIndex:int = -1):void
         {
-            const main:Main = Main._instance;
-
             const type:int = myPalettePresetType;
             const arr:Array = (type === 0) ? myPalettePreset
                 : (type === 1) ? myPaletteDrawrPreset
@@ -590,8 +570,6 @@ package Modules
 
         public static function startColorHistoryBoxDragging():void
         {
-            const main:Main = Main._instance;
-
             const index:int = getHistoryIndexByMousePos();
 
             function onDragStart():void
@@ -653,8 +631,6 @@ package Modules
 
         public static function startMyPaletteBoxDragging():void
         {
-            const main:Main = Main._instance;
-
             var index:int = getMyPaletteIndexByMousePos();
 
             function onDragStart():void

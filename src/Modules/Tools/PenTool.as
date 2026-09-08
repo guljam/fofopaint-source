@@ -1,4 +1,4 @@
-package Modules
+package Modules.Tools
 {
     import Modules.PaletteController;
     import Modules.ReferenceLayerController;
@@ -13,6 +13,12 @@ package Modules
 
     public final class PenTool
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
+
         private static const clickPos:Point = new Point(); // 점찍어 줄 때 판단하는 클릭한 자리 저장
         private static const smoothPos:Point = new Point(); // 펜 스무딩에서 커서 뒤에 따라가는 실제 선의 죄표를 저장
         private static const smoothLast:Point = new Point(); // 펜 스무딩에서 현재 마우스 커서 위치를 저장
@@ -75,8 +81,6 @@ package Modules
 
         private static function setCanUndoDataFlagON():void
         {
-            const main:Main = Main._instance;
-
             if (main.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
             {
                 main.canAddUndoData = true;
@@ -96,7 +100,6 @@ package Modules
 
         private static function lineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void
         {
-            const main:Main = Main._instance;
             main.canvasDrawLayer.alpha = alpha;
 
             if (shape === false)
@@ -151,8 +154,6 @@ package Modules
 
         private static function handleMouseMove(mx:Number, my:Number):void
         {
-            const main:Main = Main._instance;
-
             if (main.canAddUndoData === false)
             {
                 setCanUndoDataFlagON();
@@ -321,8 +322,6 @@ package Modules
 
         private static function onMouseMovePenTool(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             var filteredPos:Point = main.getRefinedPoint(main.canvasDrawLayerChild.mouseX, main.canvasDrawLayerChild.mouseY);
             const mx:Number = filteredPos.x;
             const my:Number = filteredPos.y;
@@ -357,8 +356,6 @@ package Modules
 
         private static function onMouseUpPenTool(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 
@@ -418,7 +415,6 @@ package Modules
 
         public static function execute(flag:Boolean):void
         {
-            const main:Main = Main._instance;
             isPenTool = flag;
 
             if (isPenTool)

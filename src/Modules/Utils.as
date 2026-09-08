@@ -7,6 +7,11 @@ package Modules
 
     public class Utils
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
 
         // 객체의 alpha값이 8비트int로 변환된후 다시 Number로 변환되기 때문에 실제 소수점 비교를 할때도 같은 방식을 써주어야함
         public static function normalizeAlphaValue(alp:Number):Number
@@ -55,7 +60,6 @@ package Modules
 
             return function (mx:Number, my:Number):Number
             {
-                const main:Main = Main._instance;
                 if (moveFlag != 0)
                 {
                     if (moveFlag === 1)
@@ -109,8 +113,6 @@ package Modules
 
         public static function updateImagePosMouseDrag(target:DisplayObject, targetAngle:Number, customScaleX:Number = 1.0, customScaleY:Number = 1.0):Function
         {
-            const main:Main = Main._instance;
-
             var oldX:Number = target.x;
             var oldY:Number = target.y;
             var mx:Number = main.stage.mouseX;

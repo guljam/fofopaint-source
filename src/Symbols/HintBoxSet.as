@@ -8,6 +8,7 @@
 	import flash.events.MouseEvent;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
+	import flash.display.Stage;
 
 	public class HintBoxSet extends Sprite
 	{
@@ -16,7 +17,12 @@
 		private var _hintBG:Sprite;
 		private var _bgColor:uint = 0xFFA700;
 		private var _hintHeight:Number = 0;
-		private var _stage:DisplayObjectContainer;
+		private static var _stage:Stage;
+		public static function setMainStage(instance:Stage):void
+		{
+			_stage = instance;
+		}
+
 		private var _hintTimerName:String;
 		private var _isHintHideEventsAdded:Boolean = false;
 
@@ -121,13 +127,12 @@
 		[Embed(source="fofoPaint-animate-27.13.swf",symbol="HintBoxSet")]
 		private static const EmbeddedClass:Class;
 
-		public function HintBoxSet(stage:DisplayObjectContainer, initBG:Boolean)
+		public function HintBoxSet(initBG:Boolean)
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
 			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 			_instantCount++;
 			_hintTimerName = "hintShowTimer" + _instantCount;
-			_stage = stage;
 			visible = false;
 			hintText.mouseEnabled = false;
 			hintText.autoSize = TextFieldAutoSize.LEFT;

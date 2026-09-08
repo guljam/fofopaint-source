@@ -11,9 +11,15 @@ package Modules
     import Symbols.FOFO;
     import flash.filesystem.File;
     import flash.display.BitmapData;
+    import Modules.Tools.LassoTool;
 
     public final class SidebarController
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
         public static const SCROLL_BAR_WIDTH:Number = 21;
         public static const sideBar:SidePanelSet = new SidePanelSet();
         public static const fofo:FOFO = new FOFO();
@@ -29,7 +35,6 @@ package Modules
         private static var isReactivateSidebarTempShowEventsAdded:Boolean = false; // 사이드바 임시로 보여주는 기능을 끄는 이벤트들이 등록되면 올려줌
         private static var isSidebarHideEventAdded:Boolean = false; // 사이드바가 임시로 보여졌을때 마우스 클릭하면 꺼주는 이벤트가 추가되면 올려줌
         public static var isRightSidebar:Boolean = false; // 사이드바 위치 (false: 왼쪽, true: 오른쪽)
-        public static var lassoAndRefLayerBoxLastPos:Array = [0, 0, 0, 0, 0, 0, 0, 0]; // 사이즈바 켜줄때 임시로 사이드바 안쪽으로 밀려나게 하고 위치가 변경되지 않았으면 원래대로 복귀해줌
 
         public static var isQuickSidebarActive:Boolean = false; // 퀵 사이드바 활성화 여부
         public static var isLoadPendingAfterSaving:Boolean = false; // 저장 후 로드 대기 플래그
@@ -44,8 +49,6 @@ package Modules
 
         public static function isMouseCursorInSideBar():Boolean
         {
-            const main:Main = Main._instance;
-
             if (sideBar.visible === true)
             {
                 const scale:Number = Global.getUIScale();
@@ -77,8 +80,6 @@ package Modules
 
         private static function checkCollisionFOFOAndSideBarScrollSet():int
         {
-            const main:Main = Main._instance;
-
             const sideBarWidth:Number = sideBar.getWidth();
             const scale:Number = Global.getUIScale();
             const fofoHeight:Number = fofo.height - 10 * scale;
@@ -111,8 +112,6 @@ package Modules
 
         public static function checkFOFOPosition():void
         {
-            const main:Main = Main._instance;
-
             if (!sideBar.visible)
             {
                 fofo.visible = false;
@@ -157,8 +156,6 @@ package Modules
 
         public static function deactivateQuickSidebar():void
         {
-            const main:Main = Main._instance;
-
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar);
             main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpQuickSidebar);
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownQuickSidebar);
@@ -192,8 +189,6 @@ package Modules
 
         public static function startDeactivteQuickSidebar():void
         {
-            const main:Main = Main._instance;
-
             if (main.isMouseClicked && sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
             {
                 main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar);
@@ -205,8 +200,6 @@ package Modules
 
         private static function onRightMouseDownQuickSidebar(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             if (!e.target || main.numPadBox.visible || MainUIController.isPopUpWindowOpened())
             {
                 return;
@@ -246,8 +239,6 @@ package Modules
 
         private static function onMouseDownQuickSidebar(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             if (e.target && e.target.name === "sideBarScrollBar")
             {
                 return;
@@ -262,7 +253,6 @@ package Modules
 
         private static function onKeyUpQuickSidebar(e:KeyboardEvent):void
         {
-            const main:Main = Main._instance;
             const keyCode:uint = e.keyCode;
 
             if (keyCode === main.KEY.s || keyCode === main.KEY.d
@@ -275,8 +265,6 @@ package Modules
 
         public static function setSidebarDefaultPos():void
         {
-            const main:Main = Main._instance;
-
             if (isRightSidebar)
             {
                 sideBar.x = Math.round(main.stage.stageWidth - sideBar.getWidth());
@@ -289,7 +277,6 @@ package Modules
 
         public static function activeQuickSideBar(shortcut:Boolean):void
         {
-            const main:Main = Main._instance;
             isQuickSidebarActive = true;
 
             if (shortcut)
@@ -356,8 +343,6 @@ package Modules
 
         public static function isPressingQuickSidebarShortcut(key1:int, key2:int):Boolean
         {
-            const main:Main = Main._instance;
-
             if ((key1 === main.KEY.s && key2 === main.KEY.d)
                     || (key1 === main.KEY.d && key2 === main.KEY.s)
                     || (key1 === main.KEY.j && key2 === main.KEY.k)
@@ -381,7 +366,6 @@ package Modules
 
         private static function addSidebarTempShowActivateEvents():void
         {
-            const main:Main = Main._instance;
             isReactivateSidebarTempShowEventsAdded = true;
 
             main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReactivateSidebarTempShow);
@@ -392,7 +376,6 @@ package Modules
 
         private static function setSideBarClickEvents():void
         {
-            const main:Main = Main._instance;
             isSidebarHideEventAdded = true;
 
             main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownHideSidebar, false, -1);
@@ -400,8 +383,6 @@ package Modules
 
         private static function removeSidebarTempShowActivateEvents():void
         {
-            const main:Main = Main._instance;
-
             FOFOTimer.remove("sidebarTempShowActivateTimer");
 
             isSidebarTempShowDeactivated = false;
@@ -417,8 +398,6 @@ package Modules
 
         private static function onMouseDownReactivateSidebarTempShow(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             if (sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
                 removeSidebarTempShowActivateEvents();
@@ -439,8 +418,6 @@ package Modules
 
         private static function onMouseUpReactivateSidebarTempShow(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             if (!(main.isRightMouseClicked && main.isMouseClicked))
             {
                 startTimerActivateSidebarShowTemp();
@@ -449,8 +426,6 @@ package Modules
 
         private static function sidebarOFFRightMouseDownEvent(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             main.isMouseClickBlocked = true;
             main.unblockMouseClickAfterDelay();
 
@@ -459,8 +434,6 @@ package Modules
 
         private static function onMouseDownHideSidebar(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             if (e.target && (e.target.name === "sideBarONButton" || e.target.name === "sideBarONButton2" || e.target.name === "fofo"))
             {
                 // do nothing
@@ -473,8 +446,6 @@ package Modules
 
         private static function startShowSideBarTemporary():void
         {
-            const main:Main = Main._instance;
-
             if (!(main.isMouseClicked || main.isRightMouseClicked || main.isMouseDragging))
             {
                 if (!isSidebarTempShowDeactivated)
@@ -499,8 +470,6 @@ package Modules
 
         private static function canShowSidebarTemporarily():Boolean
         {
-            const main:Main = Main._instance;
-
             return !sideBar.visible
                 && !main.isReplayModeON
                 && !CaptureController.isCaptureModeON
@@ -511,8 +480,6 @@ package Modules
 
         private static function onMouseLeaveSideBar(e:Event):void
         {
-            const main:Main = Main._instance;
-
             if (canShowSidebarTemporarily())
             {
                 const sideBarWidth:Number = sideBar.getWidth();
@@ -528,8 +495,6 @@ package Modules
 
         private static function onMouseMoveSideBar(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             if (canShowSidebarTemporarily())
             {
                 const mx:Number = main.stage.mouseX;
@@ -559,8 +524,6 @@ package Modules
 
         private static function onMouseUpSideBar(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             const mx:Number = main.stage.mouseX;
             const my:Number = main.stage.mouseY;
 
@@ -575,8 +538,6 @@ package Modules
 
         private static function updateSidebarLayout():void
         {
-            const main:Main = Main._instance;
-
             MainUIController.updateStageOffset();
             MainUIController.updateCanvasNaigatorCursor();
 
@@ -590,8 +551,6 @@ package Modules
 
         public static function showSidebarPermanent():void
         {
-            const main:Main = Main._instance;
-
             isSidebarVisible = true;
             sideBar.visible = true;
 
@@ -601,7 +560,7 @@ package Modules
 
             MainUI.hideBottomHint();
 
-            main.recordLassoAndRefLayerBoxLastPos();
+            LassoTool.recordLassoAndRefLayerBoxLastPos();
 
             sideBar.resetBG();
 
@@ -613,8 +572,6 @@ package Modules
 
         public static function hideSidebarPermanent():void
         {
-            const main:Main = Main._instance;
-
             isSidebarVisible = false;
             sideBar.visible = false;
 
@@ -624,7 +581,7 @@ package Modules
 
             MainUI.hideBottomHint();
 
-            main.restoreLassoAndRefLayerBoxLastPos();
+            LassoTool.restoreLassoAndRefLayerBoxLastPos();
 
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpSideBar);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpSideBar);
@@ -634,26 +591,22 @@ package Modules
 
         private static function showSidebarTemporary():void
         {
-            const main:Main = Main._instance;
-
             sideBar.visible = true;
 
             updateSidebarLayout();
 
-            main.recordLassoAndRefLayerBoxLastPos();
+            LassoTool.recordLassoAndRefLayerBoxLastPos();
 
             sideBar.setTransparentBG();
         }
 
         public static function hideSidebarTemporary():void
         {
-            const main:Main = Main._instance;
-
             sideBar.visible = false;
 
             updateSidebarLayout();
 
-            main.restoreLassoAndRefLayerBoxLastPos();
+            LassoTool.restoreLassoAndRefLayerBoxLastPos();
         }
 
         public static function toggleSideBarPosition():void
@@ -672,8 +625,6 @@ package Modules
 
         public static function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = false):void
         {
-            const main:Main = Main._instance;
-
             // direction: "left" or "right"
             const isRight:Boolean = (direction === "right");
 
@@ -737,9 +688,9 @@ package Modules
 
             checkFOFOPosition();
 
-            if (main.isLassoToolStarted)
+            if (LassoTool.isLassoToolStarted)
             {
-                MainUIController.keepBoxInsideViewPort(main.lassoMenuBox);
+                MainUIController.keepBoxInsideViewPort(LassoTool.lassoMenuBox);
             }
 
             if (ReferenceLayerController.isRefLayerMenuON)
@@ -752,8 +703,6 @@ package Modules
 
         public static function updateScrollBarColorAndHeight():void
         {
-            const main:Main = Main._instance;
-
             const scale:Number = Global.getUIScale();
             const topBarHeight:Number = Math.round(MainUI.topBar.BARSIZE * scale);
             const height:Number = Math.round((main.stage.stageHeight - topBarHeight - MainUIController.STAGE_BOTTOM_OFFSET) / scale);
@@ -772,8 +721,6 @@ package Modules
 
         private static function resetScrollBarX():void
         {
-            const main:Main = Main._instance;
-
             if (sideBarScrollBar.visible === false)
             {
                 sideBarScrollBar.x = 0;
@@ -797,15 +744,11 @@ package Modules
 
         public static function getSideBarBGHeight():Number
         {
-            const main:Main = Main._instance;
-
             return (main.stage.stageHeight - MainUI.topBar.BARSIZE * Global.getUIScale()) / Global.getUIScale();
         }
 
         private static function keepScrollSetInStage():void
         {
-            const main:Main = Main._instance;
-
             const scale:Number = Global.getUIScale();
             const limitTop:Number = Math.floor(-sideBarConstHeight + 20.0);
             const limitBottom:Number = Math.floor(main.stage.stageHeight - MainUIController.STAGE_TOP_OFFSET - MainUIController.STAGE_BOTTOM_OFFSET - 20.0 * scale);
@@ -832,8 +775,6 @@ package Modules
 
         public static function startScrollSidebarByDrag():void
         {
-            const main:Main = Main._instance;
-
             const scale:Number = Global.getUIScale();
             var clickY:Number = main.stage.mouseY;
             const alphaSave:Number = sideBarScrollBar.alpha;
@@ -886,7 +827,6 @@ package Modules
 
         public static function handleSidebarMouseDown(target:DisplayObject):Boolean
         {
-            const main:Main = Main._instance;
             const targetName:String = target.name;
 
             if (sideBarScrollPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY))

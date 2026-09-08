@@ -3,15 +3,19 @@ package Modules
     import Symbols.ColorPickerSet;
     import Symbols.NumPadSet;
     import flash.display.BitmapData;
-    import Modules.PenTool;
+    import Modules.Tools.PenTool;
     import flash.geom.Point;
     import flash.events.MouseEvent;
-    import flash.ui.ContextMenuBuiltInItems;
     import flash.display.DisplayObject;
-    import flash.ui.ContextMenuClipboardItems;
+    import Modules.Tools.PenTool;
 
     public class ColorPickerController
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
         // TODO : numpad 기능 안나옴, numpad, hsv, 스크레치패드+drawr+tegaki로 클래스 나누기
 
         public static const colorPickerBox:ColorPickerSet = new ColorPickerSet();
@@ -170,7 +174,6 @@ package Modules
         {
             var startIndex:int = colorPickerBox.rgbInfoText.selectionBeginIndex;
             var endIndex:int = colorPickerBox.rgbInfoText.selectionEndIndex;
-            const main:Main = Main._instance;
 
             if (numpadInputBuffer.length >= 3)
             {
@@ -285,10 +288,8 @@ package Modules
 
         private static function keepRGBInfoTextPartFocus():void
         {
-
             FOFOTimer.addByName("keepRGBInfoTextPartFocusTimer", 0.0, false, function ():void
                 {
-                    const main:Main = Main._instance;
                     main.stage.focus = colorPickerBox.rgbInfoText;
                     selectRGBInfoTextByIndex(lastRGBInfoColorPartIndex);
                 });
@@ -408,7 +409,7 @@ package Modules
         {
             if (numPadBox.visible === false)
             {
-                const main:Main = Main._instance;
+
                 numPadBox.readyLCHAdjustment(Global.HSVtoHEX(hsvColorData[0], 1.0, 1.0), colorPickerBox.getRGBInfoBGColor());
 
                 const gp:Point = colorPickerBox.rgbInfoBG.localToGlobal(new Point(0, 0));
@@ -427,7 +428,6 @@ package Modules
 
         public static function closeNumpad():void
         {
-            const main:Main = Main._instance;
             if (colorPickerBox.getRGBInfoBGColor() !== colorPickerBox.getCurrentColor())
             {
                 applyAdjustedColor();
@@ -440,14 +440,12 @@ package Modules
 
             FOFOTimer.addByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function ():void
                 {
-                    const main:Main = Main._instance;
                     main.addInputEventsDrawMode();
                 });
         }
 
         private static function checkNumPadMouseUp(oldTargetName:String):void
         {
-            const main:Main = Main._instance;
             function onMouseUpNumpad(e:MouseEvent):void
             {
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad);
@@ -498,7 +496,6 @@ package Modules
             }
 
             const targetName:String = e.target.name;
-            const main:Main = Main._instance;
 
             if (!numPadBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) && !colorPickerBox.rgbInfoText.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
             {
@@ -568,7 +565,6 @@ package Modules
 
         private static function applyAdjustedColor():void
         {
-            const main:Main = Main._instance;
             const color:uint = colorPickerBox.getRGBInfoBGColor();
 
             if (isPenColorMode())
@@ -611,7 +607,7 @@ package Modules
 
                 if (!numPadBox.visible)
                 {
-                    const main:Main = Main._instance;
+
                     colorPickerBox.restoreRGBInfoBackground();
                     main.selectPenToolIfNotDrawingTool(false);
                     openNumPad();
@@ -621,8 +617,6 @@ package Modules
 
         private static function selectRGBInfoTextColorPart(clickedIndex:int):void
         {
-            const main:Main = Main._instance;
-
             main.stage.focus = colorPickerBox.rgbInfoText;
 
             var clickedRGBPart:int = getRGBInfoTextCursorPos(clickedIndex);
@@ -644,7 +638,6 @@ package Modules
 
         public static function selectCurrentColor(bgmode:Boolean):void
         {
-            const main:Main = Main._instance;
             const hexColor:uint = colorPickerBox.currentColor;
             PenTool.isTransparentPenColor = false;
 
@@ -680,7 +673,6 @@ package Modules
 
         private static function onMouseDownColorPickerBoxModeBGOFF(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
             if (main.isCursorInDrawArea())
             {
                 isColorPickerModeResetEventAdded = false;
@@ -692,7 +684,6 @@ package Modules
 
         private static function switchColorPickerModeBG():void
         {
-            const main:Main = Main._instance;
             const color:uint = main.CANVAS_BG_COLOR;
 
             isColorPickerModeBG = true;
@@ -728,7 +719,7 @@ package Modules
 
             if (isColorPickerModeResetEventAdded === true)
             {
-                const main:Main = Main._instance;
+
                 isColorPickerModeResetEventAdded = false;
                 main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);
             }
@@ -736,15 +727,12 @@ package Modules
 
         private static function updatePenColor(color:uint):void
         {
-            const main:Main = Main._instance;
-
             PenTool.penColor = color;
             main.updateOpacityCursorPos(PenTool.penAlphaIndex);
         }
 
         private static function isBackgroundColorMode():Boolean
         {
-            const main:Main = Main._instance;
             return isColorPickerModeBG === true && main.isFillPenStarted === false;
         }
 
@@ -762,7 +750,6 @@ package Modules
 
         private static function startHueColorSelection():void
         {
-            const main:Main = Main._instance;
             const offsetX:Number = colorPickerBox.offsetX;
             const max:Number = colorPickerBox.svBoxWidth;
 
@@ -851,7 +838,6 @@ package Modules
 
         private static function startSVColorSelection():void
         {
-            const main:Main = Main._instance;
             const colorBarWidth:Number = colorPickerBox.svBoxWidth;
             const colorBarHeight:Number = colorPickerBox.svBoxHeight;
 
@@ -953,7 +939,6 @@ package Modules
 
         public static function updateCanvasBGColorDrawMode(color:uint):void
         {
-            const main:Main = Main._instance;
             FileManager.isFileAlreadySaved = false;
             main.CANVAS_BG_COLOR = color;
 
@@ -978,7 +963,6 @@ package Modules
 
         public static function selectTegakiColorPreset(index:int):void
         {
-            const main:Main = Main._instance;
             index = getTegakiColorPresetIndex(index);
 
             const mainColor:uint = PaletteController.myPaletteTegakiPreset[index];
@@ -1011,8 +995,6 @@ package Modules
 
         public static function pickColor(pickedColor:uint):void
         {
-            const main:Main = Main._instance;
-
             if (isPenColorMode())
             {
                 PenTool.penColor = pickedColor;
@@ -1083,7 +1065,6 @@ package Modules
 
         private static function handleColorPickerBoxClick(targetName:String):void
         {
-            const main:Main = Main._instance;
             function onMouseUpColorPickerBox(e:MouseEvent):void
             {
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpColorPickerBox);
@@ -1155,7 +1136,6 @@ package Modules
 
         public static function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean
         {
-            const main:Main = Main._instance;
             if (main.isToolBox2Showing || (main.isKeyPressed()
                         && !main.isSelectedToolPenOrLine()
                         && !main.isSelectedTool(main.TOOL_ERASER)

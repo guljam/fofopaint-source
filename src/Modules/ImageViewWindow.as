@@ -19,6 +19,12 @@ package Modules
 
     public final class ImageViewWindow
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
+
         public static var canvasWindowInfo:Array = [null, null, 400, 400]; // x, y, 너비, 높이
         private static var _isCanvasWindowON:Boolean = false; // 캔버스 새창 켜졌을 때
         public static var canvasWindow:NativeWindow; // 참조된 새 창
@@ -58,7 +64,6 @@ package Modules
 
         public static function updateCanvasWindowBitmapSize():void
         {
-            const main:Main = Main._instance;
             const bounds:Rectangle = main.canvasNavigatorBox.setFitBitmapforBox(main.canvasLayer1BitmapData.width,
                     main.canvasLayer1BitmapData.height,
                     canvasWindow.stage.stageWidth,
@@ -108,8 +113,6 @@ package Modules
 
         public static function updateCanvasWindowImage():void
         {
-            const main:Main = Main._instance;
-
             canvasWindowLayer1Bitmap.bitmapData = main.canvasNavigatorBox.navLayer1Bitmap.bitmapData;
             canvasWindowLayer2Bitmap.bitmapData = main.canvasNavigatorBox.navLayer2Bitmap.bitmapData;
             canvasWindowLayer1Bitmap.smoothing = true;
@@ -118,7 +121,6 @@ package Modules
 
         public static function copyMainWindowTitleToCanvasWindow():void
         {
-            const main:Main = Main._instance;
             canvasWindow.title = main.stage.nativeWindow.title;
         }
 
@@ -161,8 +163,6 @@ package Modules
 
         public static function closeCanvasWindow():void
         {
-            const main:Main = Main._instance;
-
             canvasWindow.visible = false;
             _isCanvasWindowON = false;
             if (!main.isReplayModeON && !CaptureController.isCaptureModeON)
@@ -175,7 +175,6 @@ package Modules
 
         private static function onKeyDownCanvasWindow(e:KeyboardEvent):void
         {
-            const main:Main = Main._instance;
             if (e.keyCode === main.KEY.esc)
             {
                 closeCanvasWindow();
@@ -190,8 +189,6 @@ package Modules
 
         private static function initializeCanvasWindow():void
         {
-            const main:Main = Main._instance;
-
             var windowOptions:NativeWindowInitOptions = new NativeWindowInitOptions();
             windowOptions.systemChrome = NativeWindowSystemChrome.STANDARD;
             windowOptions.type = NativeWindowType.NORMAL;
@@ -223,8 +220,6 @@ package Modules
 
         private static function onActivateCanvasWindow(e:Event):void
         {
-            const main:Main = Main._instance;
-
             _isCanvasWindowON = true;
 
             if (!main.isReplayModeON && !CaptureController.isCaptureModeON)
@@ -250,7 +245,7 @@ package Modules
                 initializeCanvasWindow();
                 if (canvasWindowInfo[0] === null)
                 {
-                    const main:Main = Main._instance;
+
                     canvasWindowInfo[0] = main.stage.nativeWindow.x + MainUI.topBar.newWindowButton.x - canvasWindowInfo[2] / 2;
                     canvasWindowInfo[1] = main.stage.nativeWindow.y;
                 }

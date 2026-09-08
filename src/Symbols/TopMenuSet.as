@@ -19,6 +19,7 @@
 	import Modules.MainUI;
 	import Modules.Utils;
 	import Modules.CaptureController;
+	import Modules.Tools.LassoTool;
 
 	public class TopMenuSet extends Sprite
 	{
@@ -142,7 +143,6 @@
 
 		public function getCaptureInputString():String
 		{
-
 			return captureInput.text;
 		}
 
@@ -587,7 +587,7 @@
 		public function updateIconsByMode(mode:int):void
 		{
 			const main:Main = Main._instance;
-			if (main.isLassoToolStarted === true || main.isAboutBoxOpened === true)
+			if (LassoTool.isLassoToolStarted === true || main.isAboutBoxOpened === true)
 			{
 				return;
 			}

@@ -17,16 +17,21 @@ package Modules
 	import Symbols.CapStampFontListSet;
 	import flash.geom.Point;
 	import flash.display.BitmapData;
+	import Modules.Tools.LassoTool;
 
 	public final class MainUI
 	{
+		public static var main:Main;
+		public static function setMainInstance(instance:Main):void
+		{
+			main = instance;
+		}
+		public static var mouseHint:HintBoxSet = new HintBoxSet(true);
+		public static var bottomHint:HintBoxSet = new HintBoxSet(false);
 		// todo main ui topbar stage bg 는 따로빼고 hint 클래스로 만들어버리기
-		private static const main:Main = Main._instance;
 		public static const stageBG:Sprite = new Sprite(); // 드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
 		public static const topBar:TopMenuSet = new TopMenuSet();
 		public static const seekBarBox:seekBarSet = new seekBarSet();
-		public static const mouseHint:HintBoxSet = new HintBoxSet(main.stage, true);
-		public static const bottomHint:HintBoxSet = new HintBoxSet(main.stage, false);
 		private static const BOTTOM_HINT_SCROLL_TIMER:String = "bottomHintScrollTimer";
 		private static var bottomHintScrollWaitFrames:int = 0;
 		private static var bottomHintScrollToLeft:Boolean = true;
@@ -152,9 +157,9 @@ package Modules
 			{
 				showBottomHintForTargetCaptureMode(target);
 			}
-			else if (main.isLassoToolStarted)
+			else if (LassoTool.isLassoToolStarted)
 			{
-				if (main.isHintAvailableWithLassoToolStarted(target))
+				if (LassoTool.isHintAvailableWithLassoToolStarted(target))
 				{
 					showBottomHintForTarget(target);
 				}
@@ -372,7 +377,6 @@ package Modules
 
 		public static function initializeAppMenus():void
 		{
-			const main:Main = Main._instance;
 			main.aboutBox.name = "aboutPanel";
 			main.aboutBox.setVersionInfo(main.APP_VERSION);
 			topBar.name = "topBar";
@@ -434,7 +438,6 @@ package Modules
 
 		public static function showCanvasRotateCursorMouseDrag(target:DisplayObject):Function
 		{
-			const main:Main = Main._instance;
 			const snapThreshold:Number = 82;
 			canvasRotateCursor.x = main.stage.mouseX;
 			canvasRotateCursor.y = main.stage.mouseY + (65 * Global.getUIScale());
@@ -569,7 +572,7 @@ package Modules
 		{
 			if (topBar.visible === false)
 			{
-				const main:Main = Main._instance;
+
 				topBar.visible = true;
 				seekBarBox.y = main.lastReplayTimeBoxYPos;
 				seekBarBox.setPlayButtonVisible(true);
@@ -582,7 +585,6 @@ package Modules
 
 		public static function activateCaptureUI():void
 		{
-			const main:Main = Main._instance;
 			const replayMode:Boolean = main.isReplayModeON;
 			CaptureController.captureAreaManager.reset();
 			MainUIController.updateCanvasResizeButtonVisible(false);
@@ -629,7 +631,6 @@ package Modules
 
 		public static function deactivateCaptureUI():void
 		{
-			const main:Main = Main._instance;
 			const replayMode:Boolean = main.isReplayModeON;
 			CaptureController.removeInputEventCaptrueMode();
 			ReferenceLayerController.canvasRefLayer.visible = true;

@@ -9,11 +9,17 @@ package Modules
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import Modules.Tools.LassoTool;
 
     // todo: 캔버스 리사이즈 버튼은 나중에 따로 분리 해야함
 
     public final class MainUIController
     {
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+        }
         public static var STAGE_BG_COLOR:uint = 0xCCCCCC;
 
         private static const BOTTOM_BAR_HEIGHT:Number = 25;
@@ -35,8 +41,6 @@ package Modules
 
         public static function getViewportRect():Rectangle
         {
-            const main:Main = Main._instance;
-
             const stw:int = main.stage.stageWidth;
             const sth:int = main.stage.stageHeight;
             const rect:Rectangle = new Rectangle(0, 0, stw, sth);
@@ -57,15 +61,11 @@ package Modules
 
         public static function isPopUpWindowOpened():Boolean
         {
-            const main:Main = Main._instance;
-
             return MainUI.topBar.gridButtonWrapper.visible || main.numPadBox.visible || FileManager.loadMenuBox.visible || main.aboutBox.visible;
         }
 
         public static function updateStageOffset():void
         {
-            const main:Main = Main._instance;
-
             const scale:Number = Global.getUIScale();
 
             STAGE_TOP_OFFSET = 0;
@@ -103,8 +103,6 @@ package Modules
 
         public static function applyUIScale():void
         {
-            const main:Main = Main._instance;
-
             const scale:Number = Global.getUIScale();
             const stw:Number = main.stage.stageWidth;
             const sth:Number = main.stage.stageHeight;
@@ -119,7 +117,7 @@ package Modules
             MainUI.mouseHint.setScale(scale);
             MainUI.bottomBar.scaleX = scale;
             MainUI.bottomBar.scaleY = scale;
-            main.lassoMenuBox.setScale(scale);
+            LassoTool.lassoMenuBox.setScale(scale);
             ReferenceLayerController.refLayerMenuBox.setScale(scale);
             main.fillPenBox.setScale(scale);
             main.toolBox2.setScale(scale);
@@ -137,8 +135,8 @@ package Modules
             SidebarController.sideBar.y = Math.round(STAGE_TOP_OFFSET);
             SidebarController.sideBar.updateSideBGSize(SidebarController.getSideBarBGHeight());
 
-            if (main.isLassoToolStarted)
-                keepBoxInsideViewPort(main.lassoMenuBox);
+            if (LassoTool.isLassoToolStarted)
+                keepBoxInsideViewPort(LassoTool.lassoMenuBox);
             if (ReferenceLayerController.isRefLayerMenuON)
                 keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
 
@@ -158,8 +156,6 @@ package Modules
 
         public static function markWindowTitleAsDirty():void
         {
-            const main:Main = Main._instance;
-
             const titleEndStr:int = main.stage.nativeWindow.title.lastIndexOf(main.STRING_TITLE_FOFOPAINT);
 
             if (titleEndStr > 0 && main.stage.nativeWindow.title.charAt(titleEndStr - 1) !== "*")
@@ -176,8 +172,6 @@ package Modules
 
         public static function updateCanvasNaigatorCursor():void
         {
-            const main:Main = Main._instance;
-
             var newRightOffset:Number = 0;
             var newLeftOffset:Number = 0;
 
@@ -206,8 +200,6 @@ package Modules
 
         public static function updateWindowTitle():void
         {
-            const main:Main = Main._instance;
-
             main.stage.nativeWindow.title = FileManager.lastSaveFileName + main.STRING_TITLE_FOFOPAINT;
             if (ImageViewWindow.isCanvasWindowON)
             {
@@ -217,8 +209,6 @@ package Modules
 
         private static function hideCanvasResizeButtons():void
         {
-            const main:Main = Main._instance;
-
             main.isPenSizeCursorInvisible = false;
             resizeButtonR.visible = false;
             resizeButtonL.visible = false;
@@ -228,8 +218,6 @@ package Modules
 
         private static function showCanvasResizeButtons():void
         {
-            const main:Main = Main._instance;
-
             main.isPenSizeCursorInvisible = true;
             resizeButtonR.visible = true;
             resizeButtonL.visible = true;
@@ -239,8 +227,6 @@ package Modules
 
         public static function updateCanvasResizeButtonVisible(flag:Boolean):void
         {
-            const main:Main = Main._instance;
-
             if (resizeButtonR.visible === flag)
             {
                 return;
@@ -259,8 +245,6 @@ package Modules
 
         public static function showCanvasResizeButtonVisibleDelay(flag:Boolean):void
         {
-            const main:Main = Main._instance;
-
             if (flag)
             {
                 updateResizeButtonPos(main.CANVAS_WIDTH, main.CANVAS_HEIGHT);
@@ -281,8 +265,6 @@ package Modules
 
         public static function onAboutWindowMouseDown(e:MouseEvent):void
         {
-            const main:Main = Main._instance;
-
             const targetName:String = e.target.name;
 
             switch (targetName)
@@ -309,8 +291,6 @@ package Modules
 
         public static function initializeResizeButtonFamily():void
         {
-            const main:Main = Main._instance;
-
             function drawRect(target:Sprite):void
             {
                 target.visible = false;
@@ -337,8 +317,6 @@ package Modules
 
         public static function updateAppWindowSizeInfo():void
         {
-            const main:Main = Main._instance;
-
             const windowSizeInfo:Rectangle = main.stage.nativeWindow.bounds;
 
             lastAppWindowSizeInfo[0] = windowSizeInfo.x;
@@ -349,8 +327,6 @@ package Modules
 
         public static function updateResizeButtonPos(width:Number, height:Number):void
         {
-            const main:Main = Main._instance;
-
             function setpos(target:Sprite, x:Number, y:Number, w:Number, h:Number):void
             {
                 target.x = x;
@@ -377,8 +353,6 @@ package Modules
 
         public static function onWindowResize(e:Event):void
         {
-            const main:Main = Main._instance;
-
             FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, function ():void
                 {
                     const dx:Number = Math.round((main.stage.nativeWindow.width - lastAppWindowSize.x) / 1.75);
@@ -411,11 +385,11 @@ package Modules
                         main.canvasAnchorPoint.y = main.canvasAnchorPoint.y + dy;
                     }
 
-                    if (main.isLassoToolStarted)
+                    if (LassoTool.isLassoToolStarted)
                     {
-                        main.lassoMenuBox.x += dx;
-                        main.lassoMenuBox.y += dy;
-                        keepBoxInsideViewPort(main.lassoMenuBox);
+                        LassoTool.lassoMenuBox.x += dx;
+                        LassoTool.lassoMenuBox.y += dy;
+                        keepBoxInsideViewPort(LassoTool.lassoMenuBox);
                     }
 
                     if (ReferenceLayerController.isRefLayerMenuON)
@@ -488,8 +462,6 @@ package Modules
 
         public static function keepBoxInsideViewPort(target:DisplayObject):void
         {
-            const main:Main = Main._instance;
-
             const rect:Rectangle = target.getBounds(main.stage);
 
             if (rect.x < STAGE_LEFT_OFFSET)
@@ -505,8 +477,6 @@ package Modules
 
         public static function getStageCenterPos(mode:String):Point
         {
-            const main:Main = Main._instance;
-
             const scale:Number = Global.getUIScale();
             const center:Point = new Point(0, 0);
             var topBarOffset:Number = MainUI.topBar.BARSIZE * scale;
@@ -537,8 +507,6 @@ package Modules
 
         public static function onWindowActive(e:Event):void
         {
-            const main:Main = Main._instance;
-
             main.tryDisableIME();
             ClipboardManager.checkCanUseClipBoardButton();
 
@@ -554,7 +522,6 @@ package Modules
 
         private static function updateStageBGColor():void
         {
-            const main:Main = Main._instance;
             const color:uint = Global.getUIStageColor();
 
             main.stage.color = color;
@@ -570,7 +537,6 @@ package Modules
 
         public static function applyUIColorSet():void
         {
-            const main:Main = Main._instance;
             updateStageBGColor();
             updateBottomBarLayoutAndColor();
 
@@ -590,7 +556,7 @@ package Modules
             main.toolBox.changeUIColor();
             main.toolBox2.changeUIColor();
             main.fillPenBox.updateUIColor();
-            main.lassoMenuBox.updateUIColor();
+            LassoTool.lassoMenuBox.updateUIColor();
             main.numPadBox.updateUIColor();
             ReferenceLayerController.refLayerMenuBox.updateUIColor();
             MainUI.topBar.updateUIColor();
@@ -619,8 +585,6 @@ package Modules
 
         public static function updateBottomBarLayoutAndColor():void
         {
-            const main:Main = Main._instance;
-
             MainUI.bottomBar.x = 0;
             MainUI.bottomBar.y = main.stage.stageHeight - MainUIController.BOTTOM_BAR_HEIGHT * Global.getUIScale();
 
