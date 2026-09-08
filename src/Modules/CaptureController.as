@@ -260,7 +260,7 @@ package Modules
         public static function handleExitCaptureMode():void
         {
             const main:Main = Main._instance;
-            main.setFileBrowserIsOpen(false);
+            FileManager.setFileBrowserIsOpen(false);
             exitCaptureMode();
         }
 
@@ -467,7 +467,7 @@ package Modules
 
                 if (secondKey === main.KEY.s || secondKey === main.KEY.semicolon)
                 {
-                    main.saveCaptureImage();
+                    FileManager.saveCaptureImage();
                 }
                 else if (secondKey === main.KEY.c || secondKey === main.KEY.comma)
                 {

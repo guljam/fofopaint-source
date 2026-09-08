@@ -48,7 +48,6 @@
     import flash.utils.getTimer;
     import flash.utils.Timer;
     import flash.ui.Mouse;
-    import libwebp.DecodeWebp;
     import Modules.PenTool;
     import Modules.Utils;
     import Modules.CanvasGridOverlay;
@@ -75,6 +74,7 @@
     import Symbols.ToolOptionsSet;
     import Modules.ColorPickerController;
     import Modules.CaptureController;
+    import Modules.FileManager;
     // import
     public class Main extends Sprite
     {
@@ -141,12 +141,7 @@
             RCANVAS_BG_COLOR:uint = 0xFFFFFF;
         public var TOTAL_FRAME:Number = 0; // rdata+file 프레임 전부 합친거
         // 파일 저장 경로
-        public const appStateFilePath:File = File.applicationStorageDirectory.resolvePath("appstate" + APP_STATE_VERSION),
-            scratchPadDataFilePath:File = File.applicationStorageDirectory.resolvePath("scratchdata"),
-            undoDataFilePath:File = File.applicationStorageDirectory.resolvePath("undodata"),
-            replayDataFilePath:File = File.applicationStorageDirectory.resolvePath("repdata"),
-            replayCacheImageFolderPath:File = File.applicationStorageDirectory.resolvePath("imagecache"),
-            replayCacheImageFrameDataFilePath:File = File.applicationStorageDirectory.resolvePath("jumpframedata");
+
         // 키 누름 관련
         public var LAST_KEY:int = -1; // 마지막 누른거 여기다가 저장 반복호출되는 keydown 함수에서 한번만 호출되게 하는변수
         public const KEY_BUFFER:Array = []; // 정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
@@ -234,7 +229,7 @@
             toolBox2:ToolMenuSet2 = new ToolMenuSet2(),
             fillPenBox:FillPenMenuSet = new FillPenMenuSet(),
             eyedropperLens:EyedropperLensSet = new EyedropperLensSet(),
-            loadMenuBox:LoadBoxSet = new LoadBoxSet(),
+            
             toolOptionsBox:ToolOptionsSet = new ToolOptionsSet(),
             canvasNavigatorBox:CanvasNavigatorBoxSet = new CanvasNavigatorBoxSet(),
             canvasInfoBox:CanvasInfoSet = new CanvasInfoSet(),
@@ -305,17 +300,7 @@
             lassoLayer2LastBitmapdata:BitmapData, // copy나 취소했을때 원래대로 돌려주는 이미지
             lassoLayerCommandData:Array = null, // 스왑 머지 순서 저장해줌
             isLassoLayerSwapButtonClicked:Boolean; // 스왑 버튼 클릭할때마다 true false로 변경해줌
-        // save load 관련 변수
-        public var isFileAlreadySaved:Boolean = false, // 세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
-            isContinueSaveON:Boolean = false, // 한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
-            lastSaveFileName:String = getRandomFileName(), // 세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
-            lastSaveFilePath:String = lastSaveFileName, // 파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
-            lastSaveCaptureFilePath:String = lastSaveFileName,
-            rLayer1FirstImageData:ByteArray = new ByteArray(), // 리플레이 데이터 저장해줄때 쓰는 바이트 배열 전역으로 돌려서 새로운 객체 하나만 생성하도록함
-            rLayer2FirstImageData:ByteArray = new ByteArray(),
-            rLayer1CurrentImageData:ByteArray = new ByteArray(),
-            rLayer2CurrentImageData:ByteArray = new ByteArray(),
-            replayDataReadBytes:ByteArray = new ByteArray();
+
         // 키 오래누름 관련 변수
         public var pressHoldCountDownTime:Number = 0.0,
             pressHoldFrameCount:int = 0;
@@ -411,15 +396,10 @@
             lastWindowDeactivateTime:int = 0, // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
             isPenSizeCursorInvisible:Boolean = false, // 펜 커서가 보이지 않게 설정
             lastEraserPosButton:SimpleButton = null, // 지우개 툴이 이동한 버튼 저장; 복원용
-            isLoadPendingAfterSaving:Boolean = false,
             isLayerCheckKeyPressed:Boolean = false,
             isDrawModeInputEventsAdded:Boolean = false,
-            isReplayModeInputEventsAdded:Boolean = false,
-            isFileBrowserOpened:Boolean = false,
-            lastLoadedFile:File,
-            loadMenuBoxBitmapData:BitmapData,
-            loadMenuBoxFileType:String,
-            loadMenuBoxFile:File;
+            isReplayModeInputEventsAdded:Boolean = false;
+            
         public function Main():void
         {
             _instance = this;
@@ -739,154 +719,21 @@
                     });
             }
         }
-        public function closeLoadMenuBox():void
-        {
-            stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
-            loadMenuBox.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
-            loadMenuBox.visible = false;
-        }
-        public function openLoadMenuBoxOnClosing():void
-        {
-            if (loadMenuBox.visible === false)
-            {
-                const bmpd:BitmapData = getMergedBitmapdtata(false, true, true, null);
-                loadMenuBox.setPreviewImage(bmpd);
-                loadMenuBox.showPleaseWait("Closing fofo paint...");
-                loadMenuBox.updateClickBlockerSize(stage.stageWidth, stage.stageHeight);
-                Utils.setAsTopChild(loadMenuBox);
-                loadMenuBox.visible = true;
-            }
-        }
-        public function openLoadMenuBox():void
-        {
-            if (loadMenuBox.visible === false)
-            {
-                stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
-                loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
-                loadMenuBox.visible = true;
-            }
-            loadMenuBox.updateClickBlockerSize(stage.stageWidth, stage.stageHeight);
-            Utils.setAsTopChild(loadMenuBox);
-        }
-        public function getJumpImageFolder():File
-        {
-            return File.applicationStorageDirectory.resolvePath("imagecache");
-        }
-        public function initializeRepTempFile():void
-        {
-            repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + Utils.getRandomString(32));
-        }
-        public function handleLoadMenuBoxClick(oldTargetName:String):void
-        {
-            loadMenuBox.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
-            function onMouseUpLoadMenuBox(e:MouseEvent):void
-            {
-                loadMenuBox.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
-                if (!e.target || e.target.alpha < 1.0)
-                {
-                    return;
-                }
-                if (oldTargetName === e.target.name
-                        && isLoadPendingAfterSaving === false && BackgroundWorkerCoordinator.isSaveInProgress === 0 && !isFileBrowserOpened)
-                {
-                    switch (e.target.name)
-                    {
-                        case "dragDropLoadButton":
-                            {
-                                if (!loadMenuBox.isRefLayerLoadMode())
-                                {
-                                    closeLoadMenuBox();
-                                    loadFileTo("canvas");
-                                }
-                            }
-                            break;
-                        case "dragDropSaveAndLoadButton":
-                            {
-                                if (!loadMenuBox.isRefLayerLoadMode())
-                                {
-                                    isLoadPendingAfterSaving = true;
-                                    loadMenuBox.showPleaseWait("Saving in progress...");
-                                    openSaveFileBrowser(false);
-                                }
-                            }
-                            break;
-                        case "dragDropLoadRefLayerButton":
-                            {
-                                loadFileTo("reflayer");
-                                closeLoadMenuBox();
-                            }
-                            break;
-                        case "dragDropCancelButton":
-                            {
-                                closeLoadMenuBox();
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-        public function onMouseDownLoadMenuBox(e:MouseEvent):void
-        {
-            if (!e.target)
-            {
-                return;
-            }
-            handleLoadMenuBoxClick(e.target.name);
-        }
-        public function showLoadFaildMouseHint():void
-        {
-            isLoadPendingAfterSaving = false;
-            MainUI.showMouseHintTemp("Load failed");
-            MainUI.mouseHint.y = stage.mouseY;
-            MainUI.mouseHint.x = stage.mouseX;
-        }
-        public function setFileBrowserIsOpen(flag:Boolean):void
-        {
-            isFileBrowserOpened = flag;
-            clearKeyBuffer();
-        }
+
+
+
+
+
+
+
+
+
         public function setRcursorRotation(newAngle:Number):void
         {
             rReplayFOFOCursor.rotation = -newAngle;
         }
-        public function formatBytes(bytes:Number):String
-        {
-            var sizes:Array = ["Bytes", "KB", "MB", "GB", "TB"];
-            // 음수 또는 유효하지 않은 입력 처리
-            if (isNaN(bytes) || bytes < 0)
-                return "Invalid";
-            if (bytes == 0)
-                return "0 Byte";
-            // 단위 계산 (최대 TB까지 제한)
-            var i:int = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
-            // 값 변환 및 소수점 첫째 자리 반올림
-            var value:Number = bytes / Math.pow(1024, i);
-            return Math.round(10 * value) / 10 + " " + sizes[i];
-        }
-        public function getDriveUsageString():String
-        {
-            function getDirectorySize(dir:File):Number
-            {
-                var size:Number = 0;
-                if (dir.isDirectory)
-                {
-                    var files:Array = dir.getDirectoryListing();
-                    for each (var file:File in files)
-                    {
-                        if (file.isDirectory)
-                        {
-                            size += getDirectorySize(file);
-                        }
-                        else
-                        {
-                            size += file.size;
-                        }
-                    }
-                }
-                return size;
-            }
-            return formatBytes(getDirectorySize(File.applicationStorageDirectory));
-        }
+
+
         public function addInputEventsDrawModeOrReplayMode():void
         {
             if (isReplayModeON)
@@ -979,20 +826,12 @@
                     target.alpha = 1.0;
                 });
         }
-        public function updateLastFilePathByRandomFileName():void
-        {
-            const newFileName:String = getRandomFileName();
-            lastSaveFileName = newFileName;
-            lastSaveFilePath = getDirectoryOnly(lastSaveFilePath) + File.separator + newFileName;
-        }
+
         public function getReplayFileNameFromPath(path:String):String
         {
             return path.substr(0, path.lastIndexOf(".png")) + ".2020";
         }
-        public function getRandomFileName():String
-        {
-            return CaptureController.getTimeStampTailHead() + "_" + Utils.getRandomString(8) + ".png";
-        }
+
         // 드로우 모드와 리플레이 모드 캔버스 미러가 다를경우 undo 적용 이후에 mirror커맨드 넣어주도록 함
         public function checkMirrorCanvasReplayMirror():void
         {
@@ -1072,18 +911,7 @@
         {
             return rCanvasPanel.getChildIndex(rCanvasDrawLayer) < rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap);
         }
-        public function enableNewFileButton():void
-        {
-            if (!BackgroundWorkerCoordinator.isSaveInProgress && MainUI.topBar.newFileButton.alpha < 1.0)
-            {
-                MainUI.topBar.newFileButton.alpha = 1.0;
-            }
-            if (toolOptionsBox.layerMergeButton.alpha < 1.0)
-            {
-                toolOptionsBox.layerMergeButton.alpha = 1.0;
-            }
-            MainUIController.markWindowTitleAsDirty();
-        }
+
         public function isAllLayerInvisible():Boolean
         {
             if (!canvasLayer1Bitmap.visible && !canvasLayer2Bitmap.visible)
@@ -1721,7 +1549,7 @@
         public function resetApp():void
         {
             stage.nativeWindow.removeEventListener(Event.CLOSING, BackgroundWorkerCoordinator.onWindowClosingEvent);
-            stage.nativeWindow.removeEventListener(Event.DEACTIVATE, onWindowDeactivate);
+            stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
             const files:File = File.applicationStorageDirectory;
             files.deleteDirectory(true);
         }
@@ -1762,147 +1590,8 @@
                 arr[7] = ReferenceLayerController.refLayerMenuBox.y;
             }
         }
-        public function getFinalBitmapDataFrom2020File(file:File, bgFlag:Boolean):BitmapData
-        {
-            const fs:FileStream = new FileStream();
-            fs.open(file, FileMode.READ);
-            var finalIMGBMPD:BitmapData;
-            var finalIMGBMPD1:BitmapData;
-            if (isNew2020File(file))
-            {
-                fs.readUTFBytes(9); // FOFOPAINT헤더 읽어줌
-                const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
-                fs.position += compBytes;
-            }
-            var ba:ByteArray;
-            var newRectangle:Rectangle;
-            var bg:uint;
-            while (true)
-            {
-                if (fs.bytesAvailable === 0)
-                    break;
-                const d:Array = fs.readObject() as Array;
-                if (d[0] === "rFinalImage")
-                {
-                    // 구버전 파일 레이어 없을때
-                    if (d[2] is ByteArray === false)
-                    {
-                        ba = d[1] as ByteArray;
-                        newRectangle = new Rectangle(0, 0, d[2], d[3]);
-                        ba.uncompress();
-                        finalIMGBMPD = new BitmapData(d[2], d[3], true, 0);
-                        finalIMGBMPD.lock();
-                        finalIMGBMPD.setPixels(newRectangle, ba);
-                        finalIMGBMPD.unlock();
-                        ba.clear();
-                        ba = null;
-                        bg = d[4];
-                    }
-                    else
-                    {
-                        ba = d[2] as ByteArray;
-                        newRectangle = new Rectangle(0, 0, d[3], d[4]);
-                        ba.uncompress();
-                        finalIMGBMPD = new BitmapData(d[3], d[4], true, 0);
-                        finalIMGBMPD.lock();
-                        finalIMGBMPD.setPixels(newRectangle, ba);
-                        finalIMGBMPD.unlock();
-                        ba.clear();
-                        ba = d[1] as ByteArray;
-                        ba.uncompress();
-                        finalIMGBMPD1 = new BitmapData(d[3], d[4], true, 0);
-                        finalIMGBMPD1.lock();
-                        finalIMGBMPD1.setPixels(newRectangle, ba);
-                        finalIMGBMPD1.unlock();
-                        ba.clear();
-                        ba = null;
-                        bg = d[5];
-                        finalIMGBMPD.draw(finalIMGBMPD1);
-                        finalIMGBMPD1.dispose();
-                    }
-                }
-            }
-            fs.close();
-            if (bgFlag)
-            {
-                const bgBmpd:BitmapData = new BitmapData(finalIMGBMPD.width, finalIMGBMPD.height, false, bg);
-                bgBmpd.draw(finalIMGBMPD);
-                return bgBmpd;
-            }
-            return finalIMGBMPD;
-        }
-        public function isNew2020File(file:File):Boolean
-        {
-            if (!file)
-            {
-                return false;
-            }
-            const fs:FileStream = new FileStream();
-            fs.open(file, FileMode.READ);
-            try
-            {
-                const header:String = fs.readUTFBytes(9);
-                if (header === "FOFOPAINT")
-                {
-                    fs.close();
-                    return true;
-                }
-                fs.close();
-                fs.open(file, FileMode.READ);
-            }
-            catch (err:Error)
-            {
-                fs.close();
-                return false;
-            }
-            return false;
-        }
-        public function isOld2020File(file:File):Boolean
-        {
-            const fs:FileStream = new FileStream();
-            fs.open(file, FileMode.READ);
-            try
-            {
-                // 구버전 파일 읽기 헤더가 없고 바로 배열임
-                const arr:Array = (fs.readObject() as Array);
-                if (!arr)
-                    return false;
-                if (!(arr[0][0] is String))
-                    return false;
-                fs.close();
-                return true;
-            }
-            catch (err:Error)
-            {
-                fs.close();
-                return false;
-            }
-            return false;
-        }
-        public function isTrue2020File(file:File):Boolean
-        {
-            if (!file || !(file is File))
-                return false;
-            if (isNew2020File(file))
-            {
-                return true;
-            }
-            if (isOld2020File(file))
-            {
-                return true;
-            }
-            return false;
-        }
-        public function isImageFileExt(path:String):Boolean
-        {
-            // 가장 마지막 확장자만 따짐
-            const gif:int = path.lastIndexOf(".gif");
-            const jpg:int = path.lastIndexOf(".jpg");
-            const png:int = path.lastIndexOf(".png");
-            const find2020:int = path.lastIndexOf(".2020");
-            const maxIndex:int = Math.max(gif, jpg, png, find2020);
-            return maxIndex === find2020;
-        }
+
+
         public function cFillPenTool():Object
         {
             const lastMousePos:Point = new Point(0, 0);
@@ -2618,7 +2307,7 @@
                         || !isCursorInDrawArea()
                         || resizeCanvas.isCanvasResizing()
                         || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(stage.mouseX, stage.mouseY))
-                        || loadMenuBox.visible)
+                        || FileManager.loadMenuBox.visible)
                 {
                     penSizePreviewCursor.visible = false;
                 }
@@ -3263,13 +2952,13 @@
             stage.nativeWindow.x = Capabilities.screenResolutionX / 2 - 680 / 2;
             stage.nativeWindow.y = Capabilities.screenResolutionY / 2 - 768 / 2 - 50;
             stage.nativeWindow.addEventListener(Event.RESIZE, MainUIController.onWindowResize);
-            stage.nativeWindow.addEventListener(Event.DEACTIVATE, onWindowDeactivate);
+            stage.nativeWindow.addEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
             stage.nativeWindow.addEventListener(Event.ACTIVATE, MainUIController.onWindowActive);
             stage.nativeWindow.addEventListener(Event.CLOSING, BackgroundWorkerCoordinator.onWindowClosingEvent);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, onDragEnterStage);
-            stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, onDragDropStage);
+            stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, FileManager.onDragDropStage);
             stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheelStage);
-            NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent);
+            NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, FileManager.onInvokeEvent);
             loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onGlobalError);
             function onGlobalError(e:UncaughtErrorEvent):void
             {
@@ -4042,13 +3731,13 @@
                 stage.addEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
             }
             aboutBox.randomLogo();
-            aboutBox.updateMemoryInfo(getDriveUsageString());
+            aboutBox.updateMemoryInfo(FileManager.getDriveUsageString());
             updateAboutPanelCenterPos();
             aboutBox.visible = true;
         }
         public function clearDataAndResetVars():void
         {
-            isContinueSaveON = false;
+            FileManager.isContinueSaveON = false;
             rLastCanvasBGColor = CANVAS_BG_COLOR;
             rMirrorON = false;
             isCanvasMirrored = false;
@@ -4065,7 +3754,7 @@
             resetReplayTime();
             resetUndoState();
             CaptureController.resetCaptureCanvasChangeValue();
-            updateLastFilePathByRandomFileName();
+            FileManager.updateLastFilePathByRandomFileName();
             canvasInfoBox.setMirror(false);
             MainUIController.updateWindowTitle();
             removeKeyRepeatEvents(null);
@@ -4099,7 +3788,7 @@
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
         }
-        public function clearData():void
+        public function clearDrawingData():void
         {
             clearCanvas();
             resetZoomReplayMode();
@@ -4117,19 +3806,7 @@
             // addundo에서 활성화 해주고 있기 때문에
             MainUI.topBar.newFileButton.alpha = Global.OFFALPHA;
         }
-        public function createNewFile(fromShortcut:Boolean):void
-        {
-            startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, clearData, null);
-        }
-        public function openLocalManualFolder():void
-        {
-            var targetFolder:File = File.applicationDirectory.resolvePath("manual");
-            if (targetFolder.exists && targetFolder.isDirectory)
-            {
-                var request:URLRequest = new URLRequest(targetFolder.url);
-                navigateToURL(request);
-            }
-        }
+
         public function handleMouseClick(targetName:String):void
         {
             if (isAboutBoxOpened)
@@ -4168,7 +3845,7 @@
                                 navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/"));
                                 break;
                             case "aboutManualFolder":
-                                openLocalManualFolder();
+                                FileManager.openLocalManualFolder();
                                 break;
                                 // case "aboutMeLink":
                                 // navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));
@@ -4243,17 +3920,17 @@
                             break;
                         case "refLoadImageButton":
                             {
-                                openLoadFileBrowser(true);
+                                FileManager.openLoadFileBrowser(true);
                             }
                             break;
                         case "saveButton":
                             {
-                                openSaveFileBrowser(false);
+                                FileManager.openSaveFileBrowser(false);
                             }
                             break;
                         case "loadButton":
                             {
-                                openLoadFileBrowser();
+                                FileManager.openLoadFileBrowser();
                             }
                             break;
                         case "clipBoardButton":
@@ -4284,7 +3961,7 @@
                             break;
                         case "capSave":
                             {
-                                saveCaptureImage();
+                                FileManager.saveCaptureImage();
                             }
                             break;
                         case "capOff":
@@ -4554,10 +4231,10 @@
             {
                 // repfile 초기화
                 undoManager.updateUndoBaseImageFromReplayMode();
-                fs.open(replayDataFilePath, FileMode.WRITE); // 파일 생성
+                fs.open(FileManager.replayDataFilePath, FileMode.WRITE); // 파일 생성
                 fs.close();
-                isFileAlreadySaved = false;
-                enableNewFileButton();
+                FileManager.isFileAlreadySaved = false;
+                FileManager.enableNewFileButton();
                 undoManager.setRFileTotalFrame(0);
                 rData.splice(0, rDataIndex + 1);
                 rDataFrame.splice(0, rDataIndex + 1);
@@ -4584,12 +4261,12 @@
                 var ba:ByteArray = new ByteArray();
                 var d:Array;
                 // 짤라서 ba에 넣어주기
-                fs.open(replayDataFilePath, FileMode.READ);
+                fs.open(FileManager.replayDataFilePath, FileMode.READ);
                 fs.position = rFileLastBytePosition;
                 fs.readBytes(ba, 0, fs.bytesAvailable);
                 fs.close();
                 // ba에 넣어준걸 다시 써주기
-                fs.open(replayDataFilePath, FileMode.WRITE);
+                fs.open(FileManager.replayDataFilePath, FileMode.WRITE);
                 fs.position = 0;
                 fs.writeBytes(ba, 0, ba.length);
                 fs.close();
@@ -4597,7 +4274,7 @@
                 ba = null;
                 rReplayFOFOCursor.visible = false;
                 MainUI.seekBarBox.resetReplayPrograssBarWidth();
-                isFileAlreadySaved = false;
+                FileManager.isFileAlreadySaved = false;
                 startGeneratingReplayCacheImage();
             }
             resetReplaySpeedBar();
@@ -4631,13 +4308,13 @@
             {
                 drawReplayByCommand.setFirstRCursorPosCurrent();
                 const fs:FileStream = new FileStream();
-                fs.open(replayDataFilePath, FileMode.UPDATE);
+                fs.open(FileManager.replayDataFilePath, FileMode.UPDATE);
                 fs.position = rFileLastBytePosition;
                 fs.truncate(); // 데이터 위에 짤라주고
                 fs.close();
                 // 썸네일 이미지도 날려줌
                 const rNowFrameSave:Number = rNowFrame;
-                const list:Array = replayCacheImageFolderPath.getDirectoryListing();
+                const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
                 const index:Number = getCachedFrameImageIndex(rNowFrameSave);
                 // index번 이후 파일 삭제
                 for (var i:uint = 0, len:uint = list.length;i < len;i++)
@@ -4680,7 +4357,7 @@
             {
                 SidebarController.deactivateQuickSidebar();
             }
-            isContinueSaveON = false;
+            FileManager.isContinueSaveON = false;
         }
         public function createNewFileFromReplayCanvas():void
         {
@@ -4697,13 +4374,13 @@
         public function applyDeepUndo():void
         {
             const fs:FileStream = new FileStream();
-            fs.open(replayDataFilePath, FileMode.UPDATE);
+            fs.open(FileManager.replayDataFilePath, FileMode.UPDATE);
             fs.position = rFileLastBytePosition;
             fs.truncate(); // 데이터 위에 짤라주고
             fs.close();
             // 썸네일 이미지도 날려줌
             const rNowFrameSave:Number = rNowFrame;
-            const list:Array = replayCacheImageFolderPath.getDirectoryListing();
+            const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
             const index:Number = getCachedFrameImageIndex(rNowFrameSave);
             const len:uint = list.length;
             // index번 이후 파일 삭제
@@ -4755,11 +4432,11 @@
         }
         public function initializeReplayDataFile(overWrite:Boolean = false):void // 기본 리플레이 파일 만들어줌
         {
-            initializeRepTempFile();
-            if (replayDataFilePath.exists === false || overWrite === true)
+            FileManager.initializeRepTempFile();
+            if (FileManager.replayDataFilePath.exists === false || overWrite === true)
             {
                 const fs:FileStream = new FileStream();
-                fs.open(replayDataFilePath, FileMode.WRITE);
+                fs.open(FileManager.replayDataFilePath, FileMode.WRITE);
                 fs.close();
                 createFirstImageCache(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
             }
@@ -4767,7 +4444,7 @@
         public function drawFirstJumpImage():void
         {
             const fs:FileStream = new FileStream();
-            const file:File = replayCacheImageFolderPath.resolvePath("0");
+            const file:File = FileManager.replayCacheImageFolderPath.resolvePath("0");
             fs.open(file, FileMode.READ);
             const data:Array = fs.readObject() as Array;
             fs.close();
@@ -4793,11 +4470,11 @@
         }
         public function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint):void
         {
-            if (replayCacheImageFolderPath.exists)
+            if (FileManager.replayCacheImageFolderPath.exists)
             {
-                replayCacheImageFolderPath.deleteDirectory(true);
+                FileManager.replayCacheImageFolderPath.deleteDirectory(true);
             }
-            replayCacheImageFolderPath.createDirectory();
+            FileManager.replayCacheImageFolderPath.createDirectory();
             const fs:FileStream = new FileStream();
             var ba1:ByteArray = new ByteArray();
             var ba2:ByteArray = new ByteArray();
@@ -6587,7 +6264,7 @@
                             rFileStream.close();
                             if (!rDataReadFlag)
                             {
-                                rFileStream.open(replayDataFilePath, FileMode.READ);
+                                rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
                                 rFileStream.position = rFileLastBytePosition;
                             }
                         }
@@ -7138,7 +6815,7 @@
                 }
                 else
                 {
-                    const file:File = replayCacheImageFolderPath.resolvePath(String(index));
+                    const file:File = FileManager.replayCacheImageFolderPath.resolvePath(String(index));
                     const fs:FileStream = new FileStream();
                     fs.open(file, FileMode.READ);
                     cachedImageData = fs.readObject() as Array;
@@ -7220,7 +6897,7 @@
                     return;
                 }
             }
-            rFileStream.open(replayDataFilePath, FileMode.READ);
+            rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             drawCanvasFromReplayData(remainingFrameCount, jumpflag);
             rFileStream.close();
@@ -7390,7 +7067,7 @@
             }
             if (!rDataReadFlag)
             {
-                rFileStream.open(replayDataFilePath, FileMode.READ);
+                rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
                 rFileStream.position = rFileLastBytePosition;
             }
             if (isReplayCanvasFitToWindow)
@@ -7591,158 +7268,8 @@
                     || targetName === "navCursor");
         }
         // drag load
-        public function keyDownLoadMenuBox(e:KeyboardEvent):void
-        {
-            const firstKey:uint = getFirstPressedKey();
-            if (firstKey === KEY.esc || firstKey === KEY.backspace)
-            {
-                closeLoadMenuBox();
-            }
-        }
-        public function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, file:File, bmpd:BitmapData, filetype:String):void
-        {
-            clearKeyBuffer();
-            closeToolBox2();
-            loadMenuBoxFileType = filetype;
-            loadMenuBoxFile = file;
-            loadMenuBoxBitmapData = bmpd;
-            if (isLassoToolStarted === true)
-            {
-                cancelLassoTool();
-                resetLassoBox();
-                resetLastTool();
-                selectPenTool();
-            }
-            if (bmpd)
-            {
-                loadMenuBox.setPreviewImage(bmpd);
-                loadMenuBox.updateClickBlockerSize(stage.stageWidth, stage.stageHeight);
-            }
-            if (loadMenuBox.visible === false)
-            {
-                loadMenuBox.updateUIColor();
-                if (fromUpdate)
-                {
-                    loadMenuBox.showPleaseWait("Waiting for the file to be saved");
-                }
-                else
-                {
-                    loadMenuBox.hidePleaseWait();
-                    if (reflayermenu)
-                    {
-                        loadMenuBox.activateReflayerButtonOnly();
-                    }
-                    else
-                    {
-                        loadMenuBox.activateAllButtons();
-                    }
-                }
-                openLoadMenuBox();
-                Utils.setAsTopChild(loadMenuBox);
-            }
-        }
-        public function isWebpFile(file:File):Boolean
-        {
-            var stream:FileStream = new FileStream();
-            stream.open(file, FileMode.READ);
-            var header:ByteArray = new ByteArray();
-            stream.readBytes(header, 0, Math.min(12, stream.bytesAvailable));
-            stream.close();
-            // Check "RIFF" at bytes 0–3
-            if (header.length >= 12 &&
-                    header[0] == 0x52 && header[1] == 0x49 &&
-                    header[2] == 0x46 && header[3] == 0x46 &&
-                    header[8] == 0x57 && header[9] == 0x45 &&
-                    header[10] == 0x42 && header[11] == 0x50)
-            {
-                return true;
-            }
-            return false;
-        }
-        public function canDisplayLoadMenuBox(file:File):Boolean
-        {
-            return !loadMenuBox.visible || !isSameFile(file, lastLoadedFile);
-        }
-        public function prepareLoadMenuBoxFromImageFile(file:File, toRefLayer:Boolean):void
-        {
-            validateImageFile(file,
-                    function (type:String, file:File, bmpd:BitmapData):void
-                    {
-                        lastLoadedFile = file;
-                        if (type === "image")
-                        {
-                            prepareOpenLoadBox(false, toRefLayer, file, bmpd, "image");
-                        }
-                        else if (type === "2020")
-                        {
-                            prepareOpenLoadBox(false, toRefLayer, file, getFinalBitmapDataFrom2020File(file, true), "2020");
-                        }
-                        else if (type === "webp")
-                        {
-                            var byteArray:ByteArray = new ByteArray();
-                            var stream:FileStream = new FileStream();
-                            stream.open(file, FileMode.READ);
-                            stream.readBytes(byteArray, 0, stream.bytesAvailable);
-                            stream.close();
-                            prepareOpenLoadBox(false, toRefLayer, file, libwebp.DecodeWebp(byteArray), "webp");
-                        }
-                    }, showLoadFaildMouseHint);
-        }
-        public function validateImageFile(file:File, callbackOk:Function, callbackCancel:Function = null):void
-        {
-            var loader:Loader = new Loader();
-            function cleanEvents():void
-            {
-                loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onCompleteValidateFile);
-                loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onErrorValidateFile);
-                loader.unload();
-                loader = null;
-            }
-            function onCompleteValidateFile(e:Event):void
-            {
-                if (callbackOk !== null)
-                {
-                    const bmpd:BitmapData = new BitmapData(loader.content.width, loader.content.height, true, 0);
-                    bmpd.draw(loader);
-                    callbackOk("image", file, bmpd);
-                }
-                cleanEvents();
-            }
-            function onErrorValidateFile(e:IOErrorEvent):void
-            {
-                cleanEvents();
-                try
-                {
-                    if (file.exists)
-                    {
-                        if (isTrue2020File(file))
-                        {
-                            if (callbackOk !== null)
-                            {
-                                callbackOk("2020", file, null);
-                                return;
-                            }
-                        }
-                        else if (isWebpFile(file))
-                        {
-                            if (callbackOk !== null)
-                            {
-                                callbackOk("webp", file, null);
-                                return;
-                            }
-                        }
-                    }
-                }
-                catch (error:Error) {}
-                if (callbackCancel !== null)
-                {
-                    callbackCancel();
-                }
-            }
-            loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onCompleteValidateFile);
-            loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onErrorValidateFile);
-            loader.load(new URLRequest(file.url));
-        }
+
+
         public function getBitmapHash(bmp:BitmapData):uint
         {
             var bytes:ByteArray = bmp.getPixels(bmp.rect);
@@ -7754,79 +7281,12 @@
             }
             return hash;
         }
-        public function isSameFile(file1:File, file2:File):Boolean
-        {
-            if (!lastLoadedFile)
-            {
-                return false;
-            }
-            return file1.nativePath === file2.nativePath
-                && file1.size === file2.size
-                && file1.modificationDate.getTime() === file2.modificationDate.getTime()
-                && file1.creationDate.getTime() === file2.creationDate.getTime();
-        }
-        public function isFileLoadBlocked():Boolean
-        {
-            return isFileBrowserOpened || BackgroundWorkerCoordinator.isSaveInProgress
-                || isGeneratingCacheImages();
-        }
-        // 운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
-        public function onInvokeEvent(e:InvokeEvent):void
-        {
-            if (isFileLoadBlocked())
-            {
-                e.preventDefault();
-                return;
-            }
-            var arguments:Array = e.arguments;
-            if (arguments && arguments.length > 0)
-            {
-                try
-                {
-                    var file:File = new File(arguments[0] as String);
-                    if (file.exists)
-                    {
-                        if (!canDisplayLoadMenuBox(file))
-                        {
-                            return;
-                        }
-                        lastLoadedFile = file;
-                        if (isReplayStarted)
-                        {
-                            stopReplay();
-                        }
-                        if (isReplayRestartTimerON())
-                        {
-                            cancelReplayRestartTimer();
-                        }
-                        prepareLoadMenuBoxFromImageFile(file, false);
-                    }
-                }
-                catch (err:Error) {}
-            }
-        }
-        public function onDragDropStage(e:NativeDragEvent):void
-        {
-            if (isFileLoadBlocked())
-            {
-                return;
-            }
-            rFileStream.close();
-            cancelReplayRestartTimer();
-            const data:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
-            if (data && data.length > 0)
-            {
-                const file:File = data[0] as File;
-                if (canDisplayLoadMenuBox(file))
-                {
-                    prepareLoadMenuBoxFromImageFile(file, false);
-                    return;
-                }
-            }
-        }
+
+
+
         public function onDragEnterStage(e:NativeDragEvent):void
         {
-            if (isFileLoadBlocked())
+            if (FileManager.isFileLoadBlocked())
             {
                 return;
             }
@@ -7843,73 +7303,7 @@
                 }
             }
         }
-        public function loadFileTo(where:String):void
-        {
-            if (where === "reflayer")
-            {
-                if (loadMenuBoxBitmapData)
-                {
-                    ReferenceLayerController.transferLoadedImageToRefLayer(loadMenuBoxBitmapData, loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height);
-                    if (!isReplayModeON && !CaptureController.isCaptureModeON)
-                    {
-                        ReferenceLayerController.openRefLayerMenu();
-                    }
-                    loadMenuBoxBitmapData.dispose();
-                    loadMenuBoxBitmapData = null;
-                }
-            }
-            else if (loadMenuBoxFile !== null)
-            {
-                if (loadMenuBoxFile.exists)
-                {
-                    if (loadMenuBoxFileType === "2020")
-                    {
-                        var fs:FileStream = new FileStream();
-                        function onCompleteFileStream(e:Event):void
-                        {
-                            fs.removeEventListener(Event.COMPLETE, onCompleteFileStream);
-                            fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
-                            fs.close();
-                            fs = null;
-                            lastSaveFileName = loadMenuBoxFile.name;
-                            lastSaveFilePath = loadMenuBoxFile.nativePath;
-                            enterDrawModeOnLoadFile();
-                            loadReplayFile(loadMenuBoxFile);
-                            loadMenuBoxFile = null;
-                        }
-                        function onErrorFileStream(e:Event):void
-                        {
-                            showLoadFaildMouseHint();
-                            fs.removeEventListener(Event.COMPLETE, onCompleteFileStream);
-                            fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
-                            fs.close();
-                            fs = null;
-                            loadMenuBoxFile = null;
-                        }
-                        fs.addEventListener(Event.COMPLETE, onCompleteFileStream);
-                        fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
-                        fs.openAsync(loadMenuBoxFile, FileMode.READ);
-                    }
-                    else if (loadMenuBoxFileType === "webp" || loadMenuBoxFileType === "image")
-                    {
-                        enterDrawModeOnLoadFile();
-                        lastSaveFileName = loadMenuBoxFile.name;
-                        lastSaveFilePath = loadMenuBoxFile.nativePath;
-                        loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
-                    }
-                }
-                else
-                {
-                    showLoadFaildMouseHint();
-                }
-            }
-            else if (loadMenuBoxFileType === "clipboard")
-            {
-                enterDrawModeOnLoadFile();
-                lastSaveFileName = getRandomFileName();
-                loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
-            }
-        }
+
         public function createCacheImage
             (
                 layer1ImageData:ByteArray,
@@ -7924,7 +7318,7 @@
         {
             const fs:FileStream = new FileStream();
             rJumpImageFrameData.push(frameSum);
-            fs.open(replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length - 1)), FileMode.WRITE);
+            fs.open(FileManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length - 1)), FileMode.WRITE);
             fs.writeObject([layer1ImageData // 0
                         , layer2ImageData
                         , imageWidth
@@ -7939,7 +7333,7 @@
         {
             const fs:FileStream = new FileStream();
             const fs2:FileStream = new FileStream();
-            const totalSize:Number = replayDataFilePath.size;
+            const totalSize:Number = FileManager.replayDataFilePath.size;
             const deepUndoFlag:Boolean = isDeepUndoEnabled;
             var rect:Rectangle;
             var _frameSum:Number = 0;
@@ -7956,18 +7350,18 @@
             rCanvasLayer2BitmapData = updateBitmapData(rCanvasLayer2BitmapData, rFirstImageLayer2BitmapData, rCanvasLayer2Bitmap);
             // 크기도 바꿔주고
             updateCanvasSizeReplayMode(rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
-            fs.open(replayDataFilePath, FileMode.READ);
+            fs.open(FileManager.replayDataFilePath, FileMode.READ);
             fs.position = 0;
             rMirrorON = false;
-            loadMenuBox.visible = false;
+            FileManager.loadMenuBox.visible = false;
             function printPrograssHint(bytes:Number):void
             {
                 const perc:Number = Math.round(((totalSize - bytes) / totalSize) * 100);
                 // const str:String = perc.toFixed(1)+"%";
-                loadMenuBox.updatePlaseWaitPrograss(perc + "%");
+                FileManager.loadMenuBox.updatePlaseWaitPrograss(perc + "%");
             }
-            loadMenuBox.showPleaseWait("Reading replay file");
-            openLoadMenuBox();
+            FileManager.loadMenuBox.showPleaseWait("Reading replay file");
+            FileManager.openLoadMenuBox();
             function onFrameEnter(e:Event):void
             {
                 while (true)
@@ -8021,7 +7415,7 @@
                             addInputEventsReplayMode();
                             rCanvasAnchorPoint.visible = true;
                         }
-                        closeLoadMenuBox();
+                        FileManager.closeLoadMenuBox();
                         clearKeyBuffer();
                         return;
                     }
@@ -8066,89 +7460,7 @@
             }
             stage.addEventListener(Event.ENTER_FRAME, onFrameEnter);
         }
-        public function enableFileOperationButtonsTopbar():void
-        {
-            MainUI.topBar.enableFileOperationButtons(ClipboardManager.isClipBoardButtonActivated);
-            if (isReplayModeON)
-            {
-                updateDeleteReplayDataButtonsState();
-            }
-        }
-        public function disableFileOperationButtonsTopbar():void
-        {
-            if (BackgroundWorkerCoordinator.isSaveInProgress === 0)
-            {
-                BackgroundWorkerCoordinator.isSaveInProgress = 1;
-            }
-            if (MainUI.topBar.saveButton.alpha === 1.0)
-            {
-                MainUI.topBar.disableFileOperationButtons();
-            }
-        }
-        public function saveReplayFile():void
-        {
-            if (replayDataFilePath.exists)
-            {
-                rLayer1FirstImageData.position = 0;
-                rLayer2FirstImageData.position = 0;
-                rLayer1CurrentImageData.position = 0;
-                rLayer2CurrentImageData.position = 0;
-                ReferenceLayerController.refLayerImageData.position = 0;
-                replayDataReadBytes.position = 0;
-                rLayer1FirstImageData.length = 0;
-                rLayer2FirstImageData.length = 0;
-                rLayer1CurrentImageData.length = 0;
-                rLayer2CurrentImageData.length = 0;
-                ReferenceLayerController.refLayerImageData.length = 0;
-                replayDataReadBytes.length = 0;
-                // 첫번째 이미지 레이어 1 2 저장
-                const fs:FileStream = new FileStream();
-                const rImgDataW:Number = rFirstImageLayer1BitmapData.width;
-                const rImgDataH:Number = rFirstImageLayer1BitmapData.height;
-                var newRectangle:Rectangle = new Rectangle(0, 0, rImgDataW, rImgDataH);
-                rFirstImageLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1FirstImageData);
-                rFirstImageLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2FirstImageData);
-                // 현재 캔버스 이미지 레이어 1 2 저장
-                newRectangle = new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-                canvasLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1CurrentImageData);
-                canvasLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2CurrentImageData);
-                // 참고 레이어 이미지 저장
-                if (ReferenceLayerController.canvasRefLayerBitmapData)
-                {
-                    const refImgWidth:Number = ReferenceLayerController.canvasRefLayerBitmapData.width;
-                    const refImgHeight:Number = ReferenceLayerController.canvasRefLayerBitmapData.height;
-                    newRectangle = new Rectangle(0, 0, refImgWidth, refImgHeight);
-                    ReferenceLayerController.canvasRefLayerBitmapData.copyPixelsToByteArray(newRectangle, ReferenceLayerController.refLayerImageData);
-                }
-                // 리플레이 파일을 임시파일로 복사
-                replayDataFilePath.copyTo(repFileTemp, true);
-                // 임시파일전체를 바이트배열로 읽어서 압축해줌
-                fs.open(repFileTemp, FileMode.READ);
-                fs.position = 0;
-                // 딥 언도일때는 읽은 바이트 까지만 읽어줌
-                if (isDeepUndoEnabled)
-                {
-                    fs.readBytes(replayDataReadBytes, 0, rFileLastBytePosition);
-                    fs.close();
-                }
-                else
-                {
-                    // 그게 아니면 전체 리플레이 데이터 끝까지 읽고 undo데이터까지 넣어줌
-                    fs.readBytes(replayDataReadBytes, 0, fs.bytesAvailable);
-                    fs.close();
-                    replayDataReadBytes.position = replayDataReadBytes.length;
-                    for (var i:int = 0, len:int = undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
-                    {
-                        if (rData[i] && rData[i].length === 0)
-                        {
-                            continue;
-                        }
-                        replayDataReadBytes.writeObject(rData[i]);
-                    }
-                }
-                BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, ReferenceLayerController.refLayerImageData, replayDataReadBytes);
-            }
-        }
+
         public function writeReplayFile(dataA:ByteArray
                 , dataA1:ByteArray
                 , dataB:ByteArray
@@ -8203,7 +7515,7 @@
             dataD = null;
             try
             {
-                const newPath:String = lastSaveFilePath.substr(0, lastSaveFilePath.lastIndexOf(".png")) + ".2020";
+                const newPath:String = FileManager.lastSaveFilePath.substr(0, FileManager.lastSaveFilePath.lastIndexOf(".png")) + ".2020";
                 repFileTemp.moveTo(new File(newPath), true);
             }
             catch (err:Error)
@@ -8213,21 +7525,22 @@
                 {
                     BackgroundWorkerCoordinator.isSaveInProgress = 0;
                 }
-                enableFileOperationButtonsTopbar();
-                openSaveFileBrowser(true, true);
+                FileManager.enableFileOperationButtonsTopbar();
+                FileManager.openSaveFileBrowser(true, true);
                 return;
             }
             if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
             {
                 BackgroundWorkerCoordinator.isSaveInProgress = 0;
             }
-            enableFileOperationButtonsTopbar();
+            FileManager.enableFileOperationButtonsTopbar();
         }
+
         public function loadReplayFile(oldFile:File):void // loadrep
         {
-            if (isTrue2020File(oldFile) === false)
+            if (FileManager.isTrue2020File(oldFile) === false)
             {
-                showLoadFaildMouseHint();
+                FileManager.showLoadFaildMouseHint();
                 return;
             }
             const fs:FileStream = new FileStream();
@@ -8252,7 +7565,7 @@
             var d:Array;
             var ba:ByteArray;
             var replayData:ByteArray = new ByteArray();
-            const isNew2020FileFlag:Boolean = isNew2020File(oldFile);
+            const isNew2020FileFlag:Boolean = FileManager.isNew2020File(oldFile);
             if (isNew2020FileFlag)
             {
                 const a:String = fs.readUTFBytes(9); // FOFOPAINT헤더 읽어줌
@@ -8378,7 +7691,7 @@
             fs.close();
             if (isNew2020FileFlag)
             {
-                fs.open(replayDataFilePath, FileMode.WRITE);
+                fs.open(FileManager.replayDataFilePath, FileMode.WRITE);
                 fs.position = 0;
                 fs.writeBytes(replayData);
                 fs.close();
@@ -8390,7 +7703,7 @@
                 fs.position = imgStartByte;
                 fs.truncate();
                 fs.close();
-                repFileTemp.moveTo(replayDataFilePath, true);
+                repFileTemp.moveTo(FileManager.replayDataFilePath, true);
             }
             if (repFileTemp.exists)
             {
@@ -8415,7 +7728,7 @@
         {
             if (!imageData)
             {
-                showLoadFaildMouseHint();
+                FileManager.showLoadFaildMouseHint();
                 return;
             }
             var maxLength:Number = (width > height) ? width : height;
@@ -8440,8 +7753,8 @@
             {
                 ImageViewWindow.updateCanvasWindowBGColor(CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
             }
-            // updateLastFilePathByRandomFileName();
-            isContinueSaveON = false; // 연속 세이브 플래그 취소
+            // FileManager.updateLastFilePathByRandomFileName();
+            FileManager.isContinueSaveON = false; // 연속 세이브 플래그 취소
             rMirrorON = false;
             isCanvasMirrored = false;
             mirrorCommandReady = false;
@@ -8549,374 +7862,29 @@
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
             CaptureController.resetCaptureCanvasChangeValue();
-            lastLoadedFile = null;
-            isLoadPendingAfterSaving = false;
-            closeLoadMenuBox();
+            FileManager.lastLoadedFile = null;
+            FileManager.isLoadPendingAfterSaving = false;
+            FileManager.closeLoadMenuBox();
         }
-        public function openLoadFileBrowser(toRefLayer:Boolean = false):void
-        {
-            if (isReplayStarted)
-            {
-                stopReplay();
-            }
-            if (isLassoToolStarted || isFileBrowserOpened || isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
-            {
-                return;
-            }
-            var windowTitle:String = "Open file";
-            if (toRefLayer === true)
-            {
-                windowTitle = "Open reference layer image";
-            }
-            const loadPath:String = getDirectoryOnly(getExistingParentDirectory(lastSaveFilePath));
-            const file:File = (lastSaveFilePath === lastSaveFileName) ? new File() : new File(loadPath);
-            function cleanUpEvents():void
-            {
-                file.removeEventListener(Event.SELECT, onFileSelected);
-                file.removeEventListener(Event.COMPLETE, onFileSelectComplete);
-                file.removeEventListener(Event.CANCEL, onFileSelectCancel);
-            }
-            function onFileSelectCancel(e:Event):void
-            {
-                setFileBrowserIsOpen(false);
-                cleanUpEvents();
-                addInputEventsDrawModeOrReplayMode();
-            }
-            function onFileSelected(e:Event):void
-            {
-                setFileBrowserIsOpen(false);
-                file.removeEventListener(Event.SELECT, onFileSelected);
-                file.load();
-            }
-            function onFileSelectComplete(e:Event):void
-            {
-                cleanUpEvents();
-                setFileBrowserIsOpen(false);
-                addInputEventsDrawModeOrReplayMode();
-                prepareLoadMenuBoxFromImageFile(file, toRefLayer);
-            }
-            setFileBrowserIsOpen(true);
-            MainUIController.showCanvasResizeButtonVisibleDelay(false);
-            removeInputEventsReplayMode();
-            removeInputEventsDrawMode();
-            file.browseForOpen(windowTitle, [new FileFilter("All supported formats", "*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")]);
-            file.addEventListener(Event.SELECT, onFileSelected);
-            file.addEventListener(Event.COMPLETE, onFileSelectComplete);
-            file.addEventListener(Event.CANCEL, onFileSelectCancel);
-        }
-        public function saveCaptureImage():void
-        {
-            if (isFileBrowserOpened)
-            {
-                return;
-            }
-            CaptureController.executeCaptureFlashEffect();
-            const replayMode:Boolean = isReplayModeON;
-            var name:String = lastSaveFileName;
-            var path:String = getExistingParentDirectory(lastSaveCaptureFilePath);
-            setFileBrowserIsOpen(true);
-            name = CaptureController.cutTimeStamp(name);
-            name = name.substr(0, name.lastIndexOf(".png")) + "_capture_" + CaptureController.getTimeStampTail() + ".png"; // 뒤에 프레임 번호 붙여줌
-            path = path.substr(0, path.lastIndexOf(lastSaveFileName)) + name;
-            var file:File = (name !== path) ? new File(path) : File.desktopDirectory.resolvePath(name);
-            const fs:FileStream = new FileStream();
-            const saveWindowTitle:String = "Save capture image";
-            file.addEventListener(IOErrorEvent.IO_ERROR, onCancelSaveCaptureImage);
-            file.addEventListener(Event.CANCEL, onCancelSaveCaptureImage);
-            file.addEventListener(Event.SELECT, onSelectSaveCaptureImage);
-            file.browseForSave(saveWindowTitle);
-            function onCancelSaveCaptureImage(e:Event):void
-            {
-                setFileBrowserIsOpen(false);
-                file.cancel();
-                file.removeEventListener(IOErrorEvent.IO_ERROR, onCancelSaveCaptureImage);
-                file.removeEventListener(Event.CANCEL, onCancelSaveCaptureImage);
-                file.removeEventListener(Event.SELECT, onSelectSaveCaptureImage);
-            }
-            function onSelectSaveCaptureImage(e:Event):void
-            {
-                setFileBrowserIsOpen(false);
-                file.cancel();
-                file.removeEventListener(IOErrorEvent.IO_ERROR, onCancelSaveCaptureImage);
-                file.removeEventListener(Event.CANCEL, onCancelSaveCaptureImage);
-                file.removeEventListener(Event.SELECT, onSelectSaveCaptureImage);
-                if (BackgroundWorkerCoordinator.receivedCaptureImageQueueFromWorker === null)
-                    BackgroundWorkerCoordinator.receivedCaptureImageQueueFromWorker = new Vector.<ByteArray>();
-                if (BackgroundWorkerCoordinator.captureImageDataQueue === null)
-                    BackgroundWorkerCoordinator.captureImageDataQueue = [];
-                lastSaveCaptureFilePath = getDirectoryOnly(e.target.nativePath) + File.separator + lastSaveFileName;
-                BackgroundWorkerCoordinator.captureImageDataQueue.push([file.name, e.target.nativePath]);
-                BackgroundWorkerCoordinator.startPngEncodingWorker(CaptureController.getCaptrueImageBitmapdata(false), 0, true, CaptureController.isCaptureTransparentBGShowing);
-                BackgroundWorkerCoordinator.pollTimerWaitWorkerForSaveCaptureImage();
-            }
-        }
-        public function checkSaveFailedFileName(saveFailed:Boolean):File
-        {
-            var _path:String = lastSaveFilePath;
-            var _name:String = lastSaveFileName;
-            // 파일 이름 빼고 경로만 추출
-            const nameStatIndex:int = _path.lastIndexOf(_name);
-            const pathonly:String = _path.substr(0, nameStatIndex);
-            // 파일 이름에 시간이 찍혀있으면 이름 그대로 반환하고 없으면 앞에 붙여줌
-            var fileName:String = _name;
-            var filePath:String = pathonly + fileName;
-            if (saveFailed)
-            {
-                // 파일 쓰기가 실패하면 뒤에 new 붙임
-                filePath = _path.substr(0, _path.lastIndexOf(".png")) + "_copy.png";
-                fileName = _name.substr(0, _name.lastIndexOf(".png")) + "_copy.png";
-            }
-            return (_name !== _path) ? new File(filePath) : File.desktopDirectory.resolvePath(fileName);
-        }
-        public function getFileNameFromPath(path:String):String
-        {
-            if (!path || path.length == 0)
-            {
-                return "";
-            }
-            var lastSlash:int = path.lastIndexOf(File.separator);
-            if (lastSlash >= 0)
-            {
-                return path.substring(lastSlash + 1);
-            }
-            return path;
-        }
-        public function convertToPNGFilePath(path:String):String
-        {
-            const extArr:Array = [".2020", ".jpg", ".jpeg", ".gif", "jfif"];
-            var pathOnly:String = getDirectoryOnly(path) + File.separator;
-            var name:String = getFileNameFromPath(path);
-            for (var i:uint = 0;i < 3;i++)
-            {
-                if (name.toLowerCase().lastIndexOf(extArr[i]) !== -1)
-                {
-                    return pathOnly + name.substr(0, name.lastIndexOf(extArr[i])) + ".png";
-                }
-            }
-            if (name.lastIndexOf(".png") === -1)
-            {
-                return pathOnly + name + ".png";
-            }
-            return path;
-        }
-        // 끝의 파일 구분자가 있으면 제거해줌
-        public function removeLastFileSeparator(path:String):String
-        {
-            if (path.charAt(path.length - 1) === File.separator)
-            {
-                return path.substring(0, path.length - 1);
-            }
-            return path;
-        }
-        public function getDirectoryOnly(path:String):String
-        {
-            if (!path || path.length == 0)
-            {
-                return "";
-            }
-            // 마지막 구분자 위치 찾기
-            var lastSlash:int = Math.max(path.lastIndexOf("\\"), path.lastIndexOf("/"));
-            if (lastSlash >= 0)
-            {
-                // 마지막 구분자 앞부분만 반환
-                return path.substring(0, lastSlash);
-            }
-            // 구분자가 없으면 경로가 아니라 파일명만 있는 경우 → 빈 문자열 반환
-            return "";
-        }
-        // 해당 디렉토리가 없으면 그 상위 디렉토리로 위치를 바꾸어줌
-        public function getExistingParentDirectory(path:String):String
-        {
-            try
-            {
-                const oldFild:File = new File(path);
-                if (oldFild.exists)
-                {
-                    return path;
-                }
-                var testPath:String = path;
-                var file:File = new File(testPath);
-                var lastSep:int;
-                while (true)
-                {
-                    if (file.exists && file.isDirectory)
-                    {
-                        return testPath + File.separator + lastSaveFileName;
-                    }
-                    // 마지막 separator 위치 찾기
-                    lastSep = testPath.lastIndexOf(File.separator);
-                    if (lastSep === -1)
-                    {
-                        break;
-                    }
-                    // 상위 경로로 이동
-                    testPath = testPath.substring(0, lastSep);
-                    file = new File(testPath);
-                }
-            }
-            catch (e:Error)
-            {
-                return File.desktopDirectory.nativePath + File.separator + lastSaveFileName;
-            }
-            return File.desktopDirectory.nativePath + File.separator + lastSaveFileName;
-        }
-        public function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):void
-        {
-            // 계속 저장하는거 방지 다른 이름으로 저장은 예외
-            if (isReplayStarted)
-            {
-                stopReplay();
-            }
-            const continueFlag:Boolean = (isContinueSaveON === true && asFlag === false);
-            const nextPath:String = getExistingParentDirectory(lastSaveFilePath);
-            const replayFilePath:String = getReplayFileNameFromPath(lastSaveFilePath);
-            const rawFile:File = new File(replayFilePath);
-            if (nextPath === lastSaveFilePath && isFileAlreadySaved && continueFlag && rawFile.exists)
-            {
-                if (AppUpdater.isUpdatePendingAfterSaving)
-                {
-                    AppUpdater.startUpdate();
-                }
-                else if (isLoadPendingAfterSaving)
-                {
-                    loadFileTo("canvas");
-                }
-                else
-                {
-                    MainUI.showMouseHintTemp("Already saved");
-                }
-                return;
-            }
-            if (isLassoToolStarted || isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
-            {
-                return;
-            }
-            const fs:FileStream = new FileStream();
-            const mergedImage:BitmapData = getMergedBitmapdtata(false, true, true, null);
-            if (nextPath !== lastSaveFilePath)
-            {
-                lastSaveFilePath = nextPath;
-            }
-            function onErrorSaveFileContinue(e:Event):void
-            {
-                fs.close();
-                fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
-                isFileAlreadySaved = false;
-                if (isLoadPendingAfterSaving)
-                {
-                    loadFileTo("canvas");
-                }
-                else
-                {
-                    openSaveFileBrowser(true, true);
-                }
-            }
-            function pollTimerWaitWorkerForImageSave(lastPath:String, isContinueSave:Boolean):void
-            {
-                if (isContinueSave)
-                {
-                    fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
-                }
-                FOFOTimer.addByName("workerPNGSaveTimer", BackgroundWorkerCoordinator.WORKER_WAIT_INTERVAL, true, function (_path:String):Boolean
-                    {
-                        if (BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker !== null)
-                        {
-                            fs.openAsync(new File(_path), FileMode.WRITE);
-                            fs.writeBytes(BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker);
-                            fs.close();
-                            if (isContinueSave)
-                            {
-                                fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
-                            }
-                            BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker.clear();
-                            BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
-                            return false;
-                        }
-                        return true;
-                    }, [lastPath]);
-            }
-            if (continueFlag)
-            {
-                if (rawFile.exists)
-                {
-                    disableFileOperationButtonsTopbar();
-                    BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
-                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), CANVAS_BG_COLOR, false, false);
-                    saveReplayFile();
-                    MainUIController.updateWindowTitle();
-                    clearKeyBuffer();
-                    isFileAlreadySaved = true;
-                    pollTimerWaitWorkerForImageSave(lastSaveFilePath, true);
-                }
-                else // 파일을 못찾으면 새로 저장
-                {
-                    isContinueSaveON = false;
-                    openSaveFileBrowser(true);
-                }
-            }
-            else
-            {
-                if (isFileBrowserOpened)
-                {
-                    return;
-                }
-                const file:File = checkSaveFailedFileName(saveFailed);
-                const saveWindowTitle:String = (saveFailed) ? "Failed to save file! save with new name"
-                    : (asFlag === true) ? "Save file As.."
-                    : (isLoadPendingAfterSaving) ? "Save file before load file"
-                    : (AppUpdater.isUpdatePendingAfterSaving) ? "Save file before update" : "Save file";
-                file.addEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
-                file.addEventListener(Event.CANCEL, onErrorEvent);
-                file.addEventListener(Event.SELECT, onSelectEvent);
-                file.browseForSave(saveWindowTitle);
-                setFileBrowserIsOpen(true);
-                function removeEvent():void
-                {
-                    file.removeEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
-                    file.removeEventListener(Event.CANCEL, onErrorEvent);
-                    file.removeEventListener(Event.SELECT, onSelectEvent);
-                }
-                function onErrorEvent(e:Event):void
-                {
-                    setFileBrowserIsOpen(false);
-                    file.cancel();
-                    removeEvent();
-                    if (isLoadPendingAfterSaving)
-                    {
-                        loadFileTo("canvas");
-                    }
-                    else if (AppUpdater.isUpdatePendingAfterSaving)
-                    {
-                        AppUpdater.startUpdate();
-                    }
-                }
-                function onSelectEvent(e:Event):void
-                {
-                    setFileBrowserIsOpen(false);
-                    disableFileOperationButtonsTopbar();
-                    removeEvent();
-                    isFileAlreadySaved = true;
-                    isContinueSaveON = true;
-                    lastSaveFilePath = convertToPNGFilePath(e.target.nativePath);
-                    lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
-                    BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
-                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), CANVAS_BG_COLOR, false, false);
-                    saveReplayFile();
-                    MainUIController.updateWindowTitle();
-                    pollTimerWaitWorkerForImageSave(lastSaveFilePath, false);
-                }
-            }
-        }
+
+
+
+
+
+
+
+
+
         public function saveReplayFrameData():void
         {
             const fs:FileStream = new FileStream();
-            fs.open(replayCacheImageFrameDataFilePath, FileMode.WRITE);
+            fs.open(FileManager.replayCacheImageFrameDataFilePath, FileMode.WRITE);
             fs.writeObject(rJumpImageFrameData);
             fs.close();
         }
         public function loadUndoData():void
         {
-            if (undoDataFilePath.exists === false)
+            if (FileManager.undoDataFilePath.exists === false)
             {
                 return;
             }
@@ -8924,7 +7892,7 @@
             isCanvasMirrored = false;
             canvasInfoBox.setMirror(false);
             const fs:FileStream = new FileStream();
-            fs.open(undoDataFilePath, FileMode.READ);
+            fs.open(FileManager.undoDataFilePath, FileMode.READ);
             const lastUndoIndex:int = fs.readInt();
             var arr:Array = fs.readObject() as Array; // undodata first
             const bmpdRect:Rectangle = new Rectangle(0, 0, arr[2], arr[3]);
@@ -8964,29 +7932,8 @@
                 isDeleteUndoDataPending = false;
             }
         }
-        public function loadScratchPadImage():void
-        {
-            const fs:FileStream = new FileStream();
-            const ba:ByteArray = new ByteArray();
-            const bmpd:BitmapData = ColorPickerController.colorPickerBox.scratchPad.getBitmapData();
-            fs.open(scratchPadDataFilePath, FileMode.READ);
-            var arr:Array = fs.readObject() as Array;
-            fs.close();
-            bmpd.lock();
-            bmpd.setPixels(new Rectangle(0, 0, arr[1], arr[2]), arr[0]);
-            bmpd.unlock();
-        }
-        public function saveScratchPadImage():void
-        {
-            const fs:FileStream = new FileStream();
-            const ba:ByteArray = new ByteArray();
-            const bmpd:BitmapData = ColorPickerController.colorPickerBox.scratchPad.getBitmapData();
-            const newRectangle:Rectangle = new Rectangle(0, 0, bmpd.width, bmpd.height);
-            bmpd.copyPixelsToByteArray(ColorPickerController.colorPickerBox.scratchPad.getBitmapData().rect, ba);
-            fs.open(scratchPadDataFilePath, FileMode.WRITE);
-            fs.writeObject([ba, newRectangle.width, newRectangle.height]);
-            fs.close();
-        }
+
+
         public function saveUndoData():void
         {
             const fs:FileStream = new FileStream();
@@ -9002,7 +7949,7 @@
             // ba1.compress();
             // 레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
             var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], undoManager.getRFileTotalFrame()];
-            fs.open(undoDataFilePath, FileMode.WRITE);
+            fs.open(FileManager.undoDataFilePath, FileMode.WRITE);
             fs.writeInt(undoDataIndex);
             fs.writeObject(newArr);
             fs.writeObject(rData);
@@ -9013,361 +7960,8 @@
             ba = null;
             ba = null;
         }
-        public function saveAppSatate():void
-        {
-            MainUIController.updateAppWindowSizeInfo();
-            const fs:FileStream = new FileStream();
-            fs.open(appStateFilePath, FileMode.WRITE);
-            fs.writeObject({"CANVAS_WIDTH": CANVAS_WIDTH,
-                        "CANVAS_HEIGHT": CANVAS_HEIGHT,
-                        "canvasZoomIndex": canvasZoomIndex,
-                        "canvasZoomedMultipler": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.z : canvasZoomMultipler,
-                        "canvasPanel.x": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.px : canvasPanel.x,
-                        "canvasPanel.y": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.py : canvasPanel.y,
-                        "canvasAnchorPoint.x": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.x : canvasAnchorPoint.x,
-                        "canvasAnchorPoint.y": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.y : canvasAnchorPoint.y,
-                        "canvasAnchorPoint.rotation": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.r : canvasAnchorPoint.rotation,
-                        "penSmoothValue": PenTool.penSmoothValue,
-                        "penSmoothSlideValue": PenTool.penSmoothSlideValue,
-                        "penSmoothButtonX": toolOptionsBox.penSmoothSliderCursor.x,
-                        "penSize": PenTool.penSize,
-                        "penSizeIndex": PenTool.penSizeIndex,
-                        "penColor": PenTool.penColor,
-                        "penAlpha": PenTool.penAlpha,
-                        "penIsSquare": PenTool.penIsSquare,
-                        "eraseSize": PenTool.eraserSize,
-                        "eraseSizeIndex": PenTool.eraserSizeIndex,
-                        "eraserIsSquare": PenTool.eraserIsSquare,
-                        "eraseAlpha": PenTool.eraserAlpha,
-                        "stage.nativeWindow.x": MainUIController.lastAppWindowSizeInfo[0],
-                        "stage.nativeWindow.y": MainUIController.lastAppWindowSizeInfo[1],
-                        "stage.nativeWindow.width": MainUIController.lastAppWindowSizeInfo[2],
-                        "stage.nativeWindow.height": MainUIController.lastAppWindowSizeInfo[3],
-                        "saveFileName": lastSaveFileName,
-                        "toolBox.scaleX": toolBox.scaleX,
-                        "lastWindowState": MainUIController.lastAppWindowState,
-                        "uiColorIndex": Global.getUIColorIndex(),
-                        "APP_RUNNING_TIME": realWorkingTimer.getRunningTime(),
-                        "refLayerLastAlpha": ReferenceLayerController.refLayerLastAlpha,
-                        "refOpacityCursor.x": ReferenceLayerController.refLayerMenuBox.refOpacityCursor.x,
-                        "refLayerMenuDragXMoveSum": ReferenceLayerController.refLayerMenuDragXMoveSum,
-                        "canvasRefLayerBitmap.x": ReferenceLayerController.canvasRefLayerBitmap.x,
-                        "canvasRefLayerBitmap.y": ReferenceLayerController.canvasRefLayerBitmap.y,
-                        "canvasRefLayer.rotation": ReferenceLayerController.canvasRefLayer.rotation,
-                        "canvasRefLayer.scaleX": ReferenceLayerController.canvasRefLayer.scaleX,
-                        "canvasRefLayer.scaleY": ReferenceLayerController.canvasRefLayer.scaleY,
-                        "canvasRefLayer.mirror": Boolean(ReferenceLayerController.canvasRefLayer.scaleX),
-                        "refLayerMenuBox[0]": ReferenceLayerController.refLayerMenuBox.x,
-                        "refLayerMenuBox[1]": ReferenceLayerController.refLayerMenuBox.y,
-                        "isCanvasMirrored": isCanvasMirrored,
-                        "gridValue": CanvasGridOverlay.gridGapMultiplier,
-                        "hsvColorData[0]": ColorPickerController.hsvColorData[0],
-                        "gridDrawOffsetX": CanvasGridOverlay.gridDrawOffsetX,
-                        "gridDrawOffsetY": CanvasGridOverlay.gridDrawOffsetY,
-                        "hueCursor.x": ColorPickerController.colorPickerBox.hueCursor.x,
-                        "svBaseColor": ColorPickerController.colorPickerBox.svBaseColor,
-                        "isHSVInfoTextMode": ColorPickerController.isHSVInfoTextMode,
-                        "rReplayImageCacheState": (isGeneratingCacheImages()) ? REPLAY_IMAGE_CAHCHE_READY : rReplayImageCacheState,
-                        "rLastCanvasBGColor": rLastCanvasBGColor,
-                        "isRightSidebar": SidebarController.isRightSidebar,
-                        "saveFilePath": lastSaveFilePath,
-                        "isSidebarVisible": SidebarController.isSidebarVisible,
-                        "uiScaleIndex": Global.getUIScaleIndex(),
-                        "canvasWindowON": ImageViewWindow.isCanvasWindowON,
-                        "ImageViewWindow.canvasWindowInfo[0]": ImageViewWindow.canvasWindowInfo[0],
-                        "ImageViewWindow.canvasWindowInfo[1]": ImageViewWindow.canvasWindowInfo[1],
-                        "ImageViewWindow.canvasWindowInfo[2]": ImageViewWindow.canvasWindowInfo[2],
-                        "ImageViewWindow.canvasWindowInfo[3]": ImageViewWindow.canvasWindowInfo[3],
-                        "getFirstRCursorPos.x": drawReplayByCommand.getFirstRCursorPos().x,
-                        "getFirstRCursorPos.y": drawReplayByCommand.getFirstRCursorPos().y,
-                        "isContinueSaveON": isContinueSaveON,
-                        "myPalettePresetType": PaletteController.myPalettePresetType,
-                        "isMyPaletteExpended": PaletteController.isMyPaletteExpended,
-                        "isColorPickerBoxPositionSwapped": ColorPickerController.isColorPickerBoxPositionSwapped,
-                        "topBar.captureInput.text": MainUI.topBar.captureInput.text,
-                        "isCaptureStampON": CaptureController.isCaptureStampEnabled,
-                        "captureStampFont": CaptureController.captureStampManager.getFontName(),
-                        "scrollSetMovedY": SidebarController.scrollSetMovedY,
-                        "isRefLayerMemoryTrainingON": ReferenceLayerController.isRefLayerMemoryTrainingON
-                    });
-            fs.close();
-        }
-        public function loadAppState():void
-        {
-            const fs:FileStream = new FileStream();
-            var arr:Array = [];
-            var newRectangle:Rectangle;
-            const firstCachedImage:File = replayCacheImageFolderPath.resolvePath("0");
-            // 앱 경로에 마지막 저장 파일이 있으면 끄기전의 상태로 세팅해줌
-            if (firstCachedImage.exists)
-            {
-                fs.open(firstCachedImage, FileMode.READ);
-                arr = fs.readObject() as Array;
-                fs.close();
-                if (arr[1] is ByteArray === false)
-                {
-                    arr[0].uncompress();
-                    newRectangle = new Rectangle(0, 0, arr[1], arr[2]);
-                    if (rFirstImageLayer1BitmapData)
-                        rFirstImageLayer1BitmapData.dispose();
-                    rFirstImageLayer1BitmapData = new BitmapData(arr[1], arr[2], true, 0);
-                    rFirstImageLayer1BitmapData.lock();
-                    rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
-                    rFirstImageLayer1BitmapData.unlock();
-                    if (rFirstImageLayer2BitmapData)
-                        rFirstImageLayer2BitmapData.dispose();
-                    rFirstImageLayer2BitmapData = new BitmapData(arr[1], arr[2], true, 0);
-                    rFirstImageBGColor = arr[3];
-                }
-                else
-                {
-                    arr[0].uncompress();
-                    newRectangle = new Rectangle(0, 0, arr[2], arr[3]);
-                    if (rFirstImageLayer1BitmapData)
-                        rFirstImageLayer1BitmapData.dispose();
-                    rFirstImageLayer1BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-                    rFirstImageLayer1BitmapData.lock();
-                    rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
-                    rFirstImageLayer1BitmapData.unlock();
-                    arr[1].uncompress();
-                    if (rFirstImageLayer2BitmapData)
-                        rFirstImageLayer2BitmapData.dispose();
-                    rFirstImageLayer2BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-                    rFirstImageLayer2BitmapData.lock();
-                    rFirstImageLayer2BitmapData.setPixels(newRectangle, arr[1]);
-                    rFirstImageLayer2BitmapData.unlock();
-                    rFirstImageBGColor = arr[4];
-                }
-            }
-            else
-            {
-                rFirstImageLayer1BitmapData.dispose();
-                rFirstImageLayer2BitmapData.dispose();
-                rFirstImageLayer1BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
-                rFirstImageLayer2BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
-            }
-            if (ReferenceLayerController.refLayerImageFilePath.exists)
-            {
-                fs.open(ReferenceLayerController.refLayerImageFilePath, FileMode.READ);
-                arr = fs.readObject() as Array;
-                fs.close();
-                // arr[0].uncompress();
-                newRectangle = new Rectangle(0, 0, arr[1], arr[2]);
-                var tmpbmpd:BitmapData = new BitmapData(arr[1], arr[2], true, 0);
-                tmpbmpd.lock();
-                tmpbmpd.setPixels(newRectangle, arr[0]);
-                tmpbmpd.unlock();
-                ReferenceLayerController.canvasRefLayerBitmapData = updateBitmapData(ReferenceLayerController.canvasRefLayerBitmapData, tmpbmpd, ReferenceLayerController.canvasRefLayerBitmap);
-                ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
-                tmpbmpd.dispose();
-                tmpbmpd = null;
-            }
-            if (replayCacheImageFrameDataFilePath.exists)
-            {
-                fs.open(replayCacheImageFrameDataFilePath, FileMode.READ);
-                arr = fs.readObject() as Array;
-                fs.close();
-                rJumpImageFrameData = arr.concat();
-            }
-            if (PaletteController.myPaletteDataFilePath.exists)
-            {
-                fs.open(PaletteController.myPaletteDataFilePath, FileMode.READ);
-                var list:Array = fs.readObject();
-                PaletteController.myPalettePreset = list.concat();
-                list.length = 0;
-                list = null;
-            }
-            if (undoDataFilePath.exists)
-            {
-                loadUndoData(); // undo data 복구 먼저 해줘야함
-            }
-            if (scratchPadDataFilePath.exists)
-            {
-                loadScratchPadImage();
-            }
-            if (appStateFilePath.exists)
-            {
-                fs.open(appStateFilePath, FileMode.READ);
-                var d:Object = fs.readObject();
-                fs.close();
-                // loadUndoData함수에서 canvaspanel이 호출되는데 이전에 reflayer 이미지 정보값을 넣어두어야함
-                // 그냥 해주면 창크기 적용이 안되서 타이머 걸어줌
-                FOFOTimer.addByName("loadAppDataDelayTimer", 0.2, false, function (d:Object):void
-                    {
-                        stage.nativeWindow.width = d["stage.nativeWindow.width"];
-                        stage.nativeWindow.height = d["stage.nativeWindow.height"];
-                        stage.nativeWindow.x = d["stage.nativeWindow.x"];
-                        stage.nativeWindow.y = d["stage.nativeWindow.y"];
-                        MainUIController.lastAppWindowSize.x = d["stage.nativeWindow.width"];
-                        MainUIController.lastAppWindowSize.y = d["stage.nativeWindow.height"];
-                        // 캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
-                        if (d["lastWindowState"] === 1)
-                            stage.nativeWindow.maximize();
-                        Global.setScaleIndex(d["uiScaleIndex"]);
-                        MainUIController.applyUIScale();
-                        Global.setUIColorIndex(d["uiColorIndex"]);
-                        MainUIController.applyUIColorSet();
-                        canvasZoomIndex = d["canvasZoomIndex"];
-                        updateCanvasScale(d["canvasZoomedMultipler"]);
-                        canvasPanel.x = d["canvasPanel.x"];
-                        canvasPanel.y = d["canvasPanel.y"];
-                        canvasAnchorPoint.x = d["canvasAnchorPoint.x"];
-                        canvasAnchorPoint.y = d["canvasAnchorPoint.y"];
-                        canvasAnchorPoint.rotation = d["canvasAnchorPoint.rotation"];
-                        setRcursorRotation(d["canvasAnchorPoint.rotation"]);
-                        MainUIController.updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
-                        MainUI.canvasRotateCursor.rotateArrow.rotation = d["canvasAnchorPoint.rotation"];
-                        PenTool.penSmoothValue = d["penSmoothValue"];
-                        PenTool.penSmoothSlideValue = d["penSmoothSlideValue"];
-                        toolOptionsBox.penSmoothSliderCursor.x = d["penSmoothButtonX"];
-                        PenTool.penSize = d["penSize"];
-                        PenTool.penColor = d["penColor"];
-                        ColorPickerController.hsvColorData[0] = d["hsvColorData[0]"]; // 순서 중요 이게 먼저오고 밑에 rgb info갱신해주어야함
-                        ColorPickerController.isHSVInfoTextMode = d["isHSVInfoTextMode"];
-                        ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
-                        ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
-                        ColorPickerController.colorPickerBox.updateHueColor(d["svBaseColor"]);
-                        ColorPickerController.colorPickerBox.hueCursor.x = d["hueCursor.x"];
-                        PenTool.penAlpha = d["penAlpha"];
-                        PenTool.penAlphaIndex = PenTool.penAlphaList.indexOf(d["eraseAlpha"]);
-                        updateDrawToolAlpha(d["penAlpha"]);
-                        PenTool.penIsSquare = d["penIsSquare"];
-                        PenTool.penListShapeIsSqare = d["penIsSquare"];
-                        toolOptionsBox.updatePenShapeSet(d["penIsSquare"]);
-                        PenTool.eraserSize = d["eraseSize"];
-                        PenTool.eraserIsSquare = d["eraserIsSquare"];
-                        PenTool.eraserAlpha = d["eraseAlpha"];
-                        PenTool.eraserAlphaIndex = PenTool.penAlphaList.indexOf(d["eraseAlpha"]);
-                        PenTool.eraserSizeIndex = d["eraseSizeIndex"];
-                        setDrawToolSize(d["penSizeIndex"]);
-                        lastSaveFilePath = d["saveFilePath"];
-                        lastSaveFileName = d["saveFileName"];
-                        if (lastSaveFilePath === lastSaveFileName)
-                        {
-                            lastSaveFilePath = File.desktopDirectory.nativePath + File.separator + lastSaveFileName;
-                        }
-                        realWorkingTimer.setRunningTime(d["APP_RUNNING_TIME"]);
-                        realWorkingTimer.update();
-                        ReferenceLayerController.refLayerLastAlpha = d["refLayerLastAlpha"];
-                        ReferenceLayerController.canvasRefLayer.alpha = d["refLayerLastAlpha"];
-                        ReferenceLayerController.refLayerMenuBox.refOpacityCursor.x = d["refOpacityCursor.x"];
-                        ReferenceLayerController.refLayerMenuBox.x = d["refLayerMenuBox[0]"];
-                        ReferenceLayerController.refLayerMenuBox.y = d["refLayerMenuBox[1]"];
-                        ReferenceLayerController.refLayerMenuDragXMoveSum = d["refLayerMenuDragXMoveSum"];
-                        if (d["isRefLayerMemoryTrainingON"])
-                        {
-                            ReferenceLayerController.isRefLayerMemoryTrainingON = false;
-                            ReferenceLayerController.toggleRefLayerMemoryTraining();
-                        }
-                        SidebarController.isRightSidebar = d["isRightSidebar"];
-                        SidebarController.isSidebarVisible = d["isSidebarVisible"];
-                        if (d["isRightSidebar"])
-                            SidebarController.moveSideBar("right", true);
-                        if (!d["isSidebarVisible"])
-                            SidebarController.hideSidebarPermanent();
-                        rReplayImageCacheState = d["rReplayImageCacheState"];
-                        rLastCanvasBGColor = d["rLastCanvasBGColor"];
-                        drawReplayByCommand.setFirstRCursorPos(d["getFirstRCursorPos.x"], d["getFirstRCursorPos.y"]);
-                        ReferenceLayerController.updateRefLayerImageTransform(d["canvasRefLayerBitmap.x"],
-                                d["canvasRefLayerBitmap.y"],
-                                d["canvasRefLayer.rotation"],
-                                d["canvasRefLayer.scaleX"],
-                                d["canvasRefLayer.scaleY"]);
-                        if (isCanvasMirrored !== d["isCanvasMirrored"])
-                            mirrorCanvas(true);
-                        CanvasGridOverlay.gridGapMultiplier = d["gridValue"];
-                        CanvasGridOverlay.gridDrawOffsetX = d["gridDrawOffsetX"];
-                        CanvasGridOverlay.gridDrawOffsetY = d["gridDrawOffsetY"];
-                        if (!CanvasGridOverlay.gridDrawOffsetX)
-                            CanvasGridOverlay.gridDrawOffsetX = 0.0;
-                        if (!CanvasGridOverlay.gridDrawOffsetY)
-                            CanvasGridOverlay.gridDrawOffsetY = 0.0;
-                        if (d["gridValue"] > 0)
-                            CanvasGridOverlay.drawGrid();
-                        if (d["canvasWindowON"])
-                        {
-                            ImageViewWindow.canvasWindowInfo = [
-                                    d["ImageViewWindow.canvasWindowInfo[0]"],
-                                    d["ImageViewWindow.canvasWindowInfo[1]"],
-                                    d["ImageViewWindow.canvasWindowInfo[2]"],
-                                    d["ImageViewWindow.canvasWindowInfo[3]"]
-                                ];
-                            ImageViewWindow.openImageViewWindow();
-                            stage.nativeWindow.activate();
-                        }
-                        isContinueSaveON = d["isContinueSaveON"];
-                        rDataIndex = undoDataIndex;
-                        rNowFrame = getNowFrameUntilUndoIndex(undoDataIndex);
-                        rPrevFrame = getNowFrameUntilUndoIndex(undoDataIndex - 1);
-                        // 혹시 몰라서 위치 체크 해줌
-                        canvasInfoBox.setRotate(canvasAnchorPoint.rotation);
-                        centerCanvas("replay");
-                        keepCanvasPanelInStage();
-                        keepCanvasPanelInStage(true);
-                        PaletteController.myPaletteSaveColorBeforeOtherType[0] = PenTool.penColor;
-                        if (d["myPalettePresetType"] > 0)
-                            ColorPickerController.activeColorPreset(d["myPalettePresetType"]);
-                        PaletteController.updateHistoryList();
-                        PaletteController.isMyPaletteExpended = d["isMyPaletteExpended"];
-                        if (PaletteController.myPalettePresetType === 0 && d["isMyPaletteExpended"])
-                        {
-                            PaletteController.switchMyPaletteToExpended();
-                        }
-                        else
-                        {
-                            PaletteController.updateMyPaletteList();
-                        }
-                        ColorPickerController.isColorPickerBoxPositionSwapped = d["isColorPickerBoxPositionSwapped"];
-                        if (d["isColorPickerBoxPositionSwapped"])
-                        {
-                            ColorPickerController.colorPickerBox.swapColorBoxPositions(d["isColorPickerBoxPositionSwapped"]);
-                        }
-                        SidebarController.sideBarScrollPanel.y = d["scrollSetMovedY"];
-                        MainUI.topBar.captureInput.text = d["topBar.captureInput.text"];
-                        CaptureController.isCaptureStampEnabled = d["isCaptureStampON"];
-                        if (d["captureStampFont"])
-                        {
-                            CaptureController.captureStampManager.changeFont(d["captureStampFont"], false);
-                        }
-                        MainUIController.updateCanvasNaigatorCursor();
-                        updatePenSizeCursor();
-                        MainUIController.updateWindowTitle();
-                        selectLayer1(false);
-                    }, [d]);
-            }
-            else // 복원파일이 없을때
-            {
-                if (lastSaveFilePath === lastSaveFileName)
-                {
-                    lastSaveFilePath = File.desktopDirectory.nativePath + File.separator + lastSaveFileName;
-                }
-                PaletteController.initializeMyPaletteList();
-                MainUIController.lastAppWindowSize.x = 1000;
-                MainUIController.lastAppWindowSize.y = 800;
-                FOFOTimer.add(0.3, true, function ():Boolean
-                    {
-                        if (stage.nativeWindow.width === 1000 && stage.nativeWindow.height === 800)
-                        {
-                            centerCanvas("draw");
-                            return false;
-                        }
-                        stage.nativeWindow.width = MainUIController.lastAppWindowSize.x;
-                        stage.nativeWindow.height = MainUIController.lastAppWindowSize.y;
-                        return true;
-                    });
-                updateCavnvasSizeDrawMode(CANVAS_WIDTH, CANVAS_HEIGHT, 0, 0, false);
-                MainUIController.updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
-                ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
-                ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
-                openAboutBox(true);
-                MainUIController.applyUIColorSet();
-                MainUIController.updateCanvasNaigatorCursor();
-                MainUIController.updateAppWindowSizeInfo();
-                canvasInfoBox.init(CANVAS_WIDTH, CANVAS_HEIGHT, Math.floor(canvasZoomMultipler * 100), canvasAnchorPoint.rotation, false);
-                selectLayer1(false);
-                PaletteController.initMyPaletteHistory();
-            }
-        }
+
+
         // size, size drag, zoom, rotate시 업데이트 해줌
         public function cUpdatePenSizeCursor():Function
         {
@@ -10130,7 +8724,7 @@
             // 창 절반을 기준점으로 앵커포인트 x축 이동.
             canvasAnchorPoint.x += Math.round((stageHalf - p.x) * 2);
             MainUIController.updateCanvasNaigatorCursor();
-            isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
+            FileManager.isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
             mirrorRCursorPos();
         }
         public function updateCanvasSizeReplayMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, movedFlag:Boolean = false):void
@@ -11079,7 +9673,7 @@
             }
             function isNotEyeDropperTool():Boolean
             {
-                return !isSelectedTool(TOOL_EYEDROPPER) || isReplayModeON || CaptureController.isCaptureModeON || isFileBrowserOpened || isMouseClickBlocked;
+                return !isSelectedTool(TOOL_EYEDROPPER) || isReplayModeON || CaptureController.isCaptureModeON || FileManager.isFileBrowserOpened || isMouseClickBlocked;
             }
             function confirmEyeDropperSelection():void
             {
@@ -11710,7 +10304,7 @@
             }
             keepCanvasPanelInStage(); // 사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
             MainUIController.updateCanvasNaigatorCursor();
-            enableNewFileButton();
+            FileManager.enableNewFileButton();
         }
         public function redo():void
         {
@@ -11730,13 +10324,13 @@
                 undoDataIndex++;
                 if (undoDataIndex > rData.length - 1)
                 {
-                    isFileAlreadySaved = false;
+                    FileManager.isFileAlreadySaved = false;
                     isDeleteUndoDataPending = false;
                     undoDataIndex = rData.length - 1;
                 }
                 else if (rData.length > 0)
                 {
-                    isFileAlreadySaved = false;
+                    FileManager.isFileAlreadySaved = false;
                     drawUndoData(true);
                     startAlphaFadeOut(rReplayFOFOCursor, 1.0, 0.3);
                 }
@@ -11763,7 +10357,7 @@
                 undoDataIndex--;
                 if (undoDataIndex < -1)
                 {
-                    isFileAlreadySaved = false;
+                    FileManager.isFileAlreadySaved = false;
                     undoDataIndex = -1;
                     if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY || (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE && undoManager.getRFileTotalFrame() > 0))
                     {
@@ -11773,7 +10367,7 @@
                 }
                 else if (rData.length > 0)
                 {
-                    isFileAlreadySaved = false;
+                    FileManager.isFileAlreadySaved = false;
                     isDeleteUndoDataPending = true;
                     drawUndoData();
                     startAlphaFadeOut(rReplayFOFOCursor, 1.0, 0.3);
@@ -11787,7 +10381,7 @@
             updateCavnvasSizeDrawMode(rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height, 0, 0, false);
             ColorPickerController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
             keepCanvasPanelInStage(false);
-            isFileAlreadySaved = false;
+            FileManager.isFileAlreadySaved = false;
             checkMirrorCanvasReplayMirror();
             canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, RCANVAS_BG_COLOR);
             if (ImageViewWindow.isCanvasWindowON)
@@ -11799,8 +10393,8 @@
         public function undoToIndex(index:int):void
         {
             undoDataIndex = index;
-            isFileAlreadySaved = false;
-            enableNewFileButton();
+            FileManager.isFileAlreadySaved = false;
+            FileManager.enableNewFileButton();
             drawUndoData();
         }
         public function cAddUndoData():Object
@@ -11997,7 +10591,7 @@
                     {
                         const fs:FileStream = new FileStream();
                         const c:uint = rDataFrame[0];
-                        const rf:File = replayDataFilePath;
+                        const rf:File = FileManager.replayDataFilePath;
                         fs.open(rf, FileMode.APPEND);
                         fs.writeObject(oldData);
                         fs.close();
@@ -12044,7 +10638,7 @@
                     rData.push(rDataBuffer);
                     rDataFrame.push(rDataBuffer.length);
                     rDataBuffer = [];
-                    isFileAlreadySaved = false;
+                    FileManager.isFileAlreadySaved = false;
                     rDataReadFlag = true;
                 }
                 undoDataIndex = rData.length - 1;
@@ -12055,7 +10649,7 @@
                 }
                 rPrevFrame = rNowFrame;
                 rNowFrame = getTotalFrame();
-                enableNewFileButton();
+                FileManager.enableNewFileButton();
             };
             return {
                     addNew: addNew,
@@ -12232,23 +10826,283 @@
             stage.setChildIndex(canvasAnchorPoint, 0);
             stage.setChildIndex(MainUI.stageBG, 0);
         }
-        public function deleteTempDirectory():void
+                public function loadAppState():void
         {
-            const file:File = File.applicationStorageDirectory.resolvePath("tmp");
-            if (file.exists)
+            const fs:FileStream = new FileStream();
+            var arr:Array = [];
+            var newRectangle:Rectangle;
+            const firstCachedImage:File = FileManager.replayCacheImageFolderPath.resolvePath("0");
+            // 앱 경로에 마지막 저장 파일이 있으면 끄기전의 상태로 세팅해줌
+            if (firstCachedImage.exists)
             {
-                file.deleteDirectory(true);
+                fs.open(firstCachedImage, FileMode.READ);
+                arr = fs.readObject() as Array;
+                fs.close();
+                if (arr[1] is ByteArray === false)
+                {
+                    arr[0].uncompress();
+                    newRectangle = new Rectangle(0, 0, arr[1], arr[2]);
+                    if (rFirstImageLayer1BitmapData)
+                        rFirstImageLayer1BitmapData.dispose();
+                    rFirstImageLayer1BitmapData = new BitmapData(arr[1], arr[2], true, 0);
+                    rFirstImageLayer1BitmapData.lock();
+                    rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
+                    rFirstImageLayer1BitmapData.unlock();
+                    if (rFirstImageLayer2BitmapData)
+                        rFirstImageLayer2BitmapData.dispose();
+                    rFirstImageLayer2BitmapData = new BitmapData(arr[1], arr[2], true, 0);
+                    rFirstImageBGColor = arr[3];
+                }
+                else
+                {
+                    arr[0].uncompress();
+                    newRectangle = new Rectangle(0, 0, arr[2], arr[3]);
+                    if (rFirstImageLayer1BitmapData)
+                        rFirstImageLayer1BitmapData.dispose();
+                    rFirstImageLayer1BitmapData = new BitmapData(arr[2], arr[3], true, 0);
+                    rFirstImageLayer1BitmapData.lock();
+                    rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
+                    rFirstImageLayer1BitmapData.unlock();
+                    arr[1].uncompress();
+                    if (rFirstImageLayer2BitmapData)
+                        rFirstImageLayer2BitmapData.dispose();
+                    rFirstImageLayer2BitmapData = new BitmapData(arr[2], arr[3], true, 0);
+                    rFirstImageLayer2BitmapData.lock();
+                    rFirstImageLayer2BitmapData.setPixels(newRectangle, arr[1]);
+                    rFirstImageLayer2BitmapData.unlock();
+                    rFirstImageBGColor = arr[4];
+                }
+            }
+            else
+            {
+                rFirstImageLayer1BitmapData.dispose();
+                rFirstImageLayer2BitmapData.dispose();
+                rFirstImageLayer1BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
+                rFirstImageLayer2BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
+            }
+            if (ReferenceLayerController.refLayerImageFilePath.exists)
+            {
+                fs.open(ReferenceLayerController.refLayerImageFilePath, FileMode.READ);
+                arr = fs.readObject() as Array;
+                fs.close();
+                // arr[0].uncompress();
+                newRectangle = new Rectangle(0, 0, arr[1], arr[2]);
+                var tmpbmpd:BitmapData = new BitmapData(arr[1], arr[2], true, 0);
+                tmpbmpd.lock();
+                tmpbmpd.setPixels(newRectangle, arr[0]);
+                tmpbmpd.unlock();
+                ReferenceLayerController.canvasRefLayerBitmapData = updateBitmapData(ReferenceLayerController.canvasRefLayerBitmapData, tmpbmpd, ReferenceLayerController.canvasRefLayerBitmap);
+                ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
+                tmpbmpd.dispose();
+                tmpbmpd = null;
+            }
+            if (FileManager.replayCacheImageFrameDataFilePath.exists)
+            {
+                fs.open(FileManager.replayCacheImageFrameDataFilePath, FileMode.READ);
+                arr = fs.readObject() as Array;
+                fs.close();
+                rJumpImageFrameData = arr.concat();
+            }
+            if (PaletteController.myPaletteDataFilePath.exists)
+            {
+                fs.open(PaletteController.myPaletteDataFilePath, FileMode.READ);
+                var list:Array = fs.readObject();
+                PaletteController.myPalettePreset = list.concat();
+                list.length = 0;
+                list = null;
+            }
+            if (FileManager.undoDataFilePath.exists)
+            {
+                loadUndoData(); // undo data 복구 먼저 해줘야함
+            }
+            if (FileManager.scratchPadDataFilePath.exists)
+            {
+                FileManager.loadScratchPadImage();
+            }
+            if (FileManager.appStateFilePath.exists)
+            {
+                fs.open(FileManager.appStateFilePath, FileMode.READ);
+                var d:Object = fs.readObject();
+                fs.close();
+                // loadUndoData함수에서 canvaspanel이 호출되는데 이전에 reflayer 이미지 정보값을 넣어두어야함
+                // 그냥 해주면 창크기 적용이 안되서 타이머 걸어줌
+                FOFOTimer.addByName("loadAppDataDelayTimer", 0.2, false, function (d:Object):void
+                    {
+                        stage.nativeWindow.width = d["stage.nativeWindow.width"];
+                        stage.nativeWindow.height = d["stage.nativeWindow.height"];
+                        stage.nativeWindow.x = d["stage.nativeWindow.x"];
+                        stage.nativeWindow.y = d["stage.nativeWindow.y"];
+                        MainUIController.lastAppWindowSize.x = d["stage.nativeWindow.width"];
+                        MainUIController.lastAppWindowSize.y = d["stage.nativeWindow.height"];
+                        // 캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
+                        if (d["lastWindowState"] === 1)
+                            stage.nativeWindow.maximize();
+                        Global.setScaleIndex(d["uiScaleIndex"]);
+                        MainUIController.applyUIScale();
+                        Global.setUIColorIndex(d["uiColorIndex"]);
+                        MainUIController.applyUIColorSet();
+                        canvasZoomIndex = d["canvasZoomIndex"];
+                        updateCanvasScale(d["canvasZoomedMultipler"]);
+                        canvasPanel.x = d["canvasPanel.x"];
+                        canvasPanel.y = d["canvasPanel.y"];
+                        canvasAnchorPoint.x = d["canvasAnchorPoint.x"];
+                        canvasAnchorPoint.y = d["canvasAnchorPoint.y"];
+                        canvasAnchorPoint.rotation = d["canvasAnchorPoint.rotation"];
+                        setRcursorRotation(d["canvasAnchorPoint.rotation"]);
+                        MainUIController.updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
+                        MainUI.canvasRotateCursor.rotateArrow.rotation = d["canvasAnchorPoint.rotation"];
+                        PenTool.penSmoothValue = d["penSmoothValue"];
+                        PenTool.penSmoothSlideValue = d["penSmoothSlideValue"];
+                        toolOptionsBox.penSmoothSliderCursor.x = d["penSmoothButtonX"];
+                        PenTool.penSize = d["penSize"];
+                        PenTool.penColor = d["penColor"];
+                        ColorPickerController.hsvColorData[0] = d["hsvColorData[0]"]; // 순서 중요 이게 먼저오고 밑에 rgb info갱신해주어야함
+                        ColorPickerController.isHSVInfoTextMode = d["isHSVInfoTextMode"];
+                        ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
+                        ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
+                        ColorPickerController.colorPickerBox.updateHueColor(d["svBaseColor"]);
+                        ColorPickerController.colorPickerBox.hueCursor.x = d["hueCursor.x"];
+                        PenTool.penAlpha = d["penAlpha"];
+                        PenTool.penAlphaIndex = PenTool.penAlphaList.indexOf(d["eraseAlpha"]);
+                        updateDrawToolAlpha(d["penAlpha"]);
+                        PenTool.penIsSquare = d["penIsSquare"];
+                        PenTool.penListShapeIsSqare = d["penIsSquare"];
+                        toolOptionsBox.updatePenShapeSet(d["penIsSquare"]);
+                        PenTool.eraserSize = d["eraseSize"];
+                        PenTool.eraserIsSquare = d["eraserIsSquare"];
+                        PenTool.eraserAlpha = d["eraseAlpha"];
+                        PenTool.eraserAlphaIndex = PenTool.penAlphaList.indexOf(d["eraseAlpha"]);
+                        PenTool.eraserSizeIndex = d["eraseSizeIndex"];
+                        setDrawToolSize(d["penSizeIndex"]);
+                        FileManager.lastSaveFilePath = d["saveFilePath"];
+                        FileManager.lastSaveFileName = d["saveFileName"];
+                        if (FileManager.lastSaveFilePath === FileManager.lastSaveFileName)
+                        {
+                            FileManager.lastSaveFilePath = File.desktopDirectory.nativePath + File.separator + FileManager.lastSaveFileName;
+                        }
+                        realWorkingTimer.setRunningTime(d["APP_RUNNING_TIME"]);
+                        realWorkingTimer.update();
+                        ReferenceLayerController.refLayerLastAlpha = d["refLayerLastAlpha"];
+                        ReferenceLayerController.canvasRefLayer.alpha = d["refLayerLastAlpha"];
+                        ReferenceLayerController.refLayerMenuBox.refOpacityCursor.x = d["refOpacityCursor.x"];
+                        ReferenceLayerController.refLayerMenuBox.x = d["refLayerMenuBox[0]"];
+                        ReferenceLayerController.refLayerMenuBox.y = d["refLayerMenuBox[1]"];
+                        ReferenceLayerController.refLayerMenuDragXMoveSum = d["refLayerMenuDragXMoveSum"];
+                        if (d["isRefLayerMemoryTrainingON"])
+                        {
+                            ReferenceLayerController.isRefLayerMemoryTrainingON = false;
+                            ReferenceLayerController.toggleRefLayerMemoryTraining();
+                        }
+                        SidebarController.isRightSidebar = d["isRightSidebar"];
+                        SidebarController.isSidebarVisible = d["isSidebarVisible"];
+                        if (d["isRightSidebar"])
+                            SidebarController.moveSideBar("right", true);
+                        if (!d["isSidebarVisible"])
+                            SidebarController.hideSidebarPermanent();
+                        rReplayImageCacheState = d["rReplayImageCacheState"];
+                        rLastCanvasBGColor = d["rLastCanvasBGColor"];
+                        drawReplayByCommand.setFirstRCursorPos(d["getFirstRCursorPos.x"], d["getFirstRCursorPos.y"]);
+                        ReferenceLayerController.updateRefLayerImageTransform(d["canvasRefLayerBitmap.x"],
+                                d["canvasRefLayerBitmap.y"],
+                                d["canvasRefLayer.rotation"],
+                                d["canvasRefLayer.scaleX"],
+                                d["canvasRefLayer.scaleY"]);
+                        if (isCanvasMirrored !== d["isCanvasMirrored"])
+                            mirrorCanvas(true);
+                        CanvasGridOverlay.gridGapMultiplier = d["gridValue"];
+                        CanvasGridOverlay.gridDrawOffsetX = d["gridDrawOffsetX"];
+                        CanvasGridOverlay.gridDrawOffsetY = d["gridDrawOffsetY"];
+                        if (!CanvasGridOverlay.gridDrawOffsetX)
+                            CanvasGridOverlay.gridDrawOffsetX = 0.0;
+                        if (!CanvasGridOverlay.gridDrawOffsetY)
+                            CanvasGridOverlay.gridDrawOffsetY = 0.0;
+                        if (d["gridValue"] > 0)
+                            CanvasGridOverlay.drawGrid();
+                        if (d["canvasWindowON"])
+                        {
+                            ImageViewWindow.canvasWindowInfo = [
+                                    d["ImageViewWindow.canvasWindowInfo[0]"],
+                                    d["ImageViewWindow.canvasWindowInfo[1]"],
+                                    d["ImageViewWindow.canvasWindowInfo[2]"],
+                                    d["ImageViewWindow.canvasWindowInfo[3]"]
+                                ];
+                            ImageViewWindow.openImageViewWindow();
+                            stage.nativeWindow.activate();
+                        }
+                        FileManager.isContinueSaveON = d["FileManager.isContinueSaveON"];
+                        rDataIndex = undoDataIndex;
+                        rNowFrame = getNowFrameUntilUndoIndex(undoDataIndex);
+                        rPrevFrame = getNowFrameUntilUndoIndex(undoDataIndex - 1);
+                        // 혹시 몰라서 위치 체크 해줌
+                        canvasInfoBox.setRotate(canvasAnchorPoint.rotation);
+                        centerCanvas("replay");
+                        keepCanvasPanelInStage();
+                        keepCanvasPanelInStage(true);
+                        PaletteController.myPaletteSaveColorBeforeOtherType[0] = PenTool.penColor;
+                        if (d["myPalettePresetType"] > 0)
+                            ColorPickerController.activeColorPreset(d["myPalettePresetType"]);
+                        PaletteController.updateHistoryList();
+                        PaletteController.isMyPaletteExpended = d["isMyPaletteExpended"];
+                        if (PaletteController.myPalettePresetType === 0 && d["isMyPaletteExpended"])
+                        {
+                            PaletteController.switchMyPaletteToExpended();
+                        }
+                        else
+                        {
+                            PaletteController.updateMyPaletteList();
+                        }
+                        ColorPickerController.isColorPickerBoxPositionSwapped = d["isColorPickerBoxPositionSwapped"];
+                        if (d["isColorPickerBoxPositionSwapped"])
+                        {
+                            ColorPickerController.colorPickerBox.swapColorBoxPositions(d["isColorPickerBoxPositionSwapped"]);
+                        }
+                        SidebarController.sideBarScrollPanel.y = d["scrollSetMovedY"];
+                        MainUI.topBar.captureInput.text = d["topBar.captureInput.text"];
+                        CaptureController.isCaptureStampEnabled = d["isCaptureStampON"];
+                        if (d["captureStampFont"])
+                        {
+                            CaptureController.captureStampManager.changeFont(d["captureStampFont"], false);
+                        }
+                        MainUIController.updateCanvasNaigatorCursor();
+                        updatePenSizeCursor();
+                        MainUIController.updateWindowTitle();
+                        selectLayer1(false);
+                    }, [d]);
+            }
+            else // 복원파일이 없을때
+            {
+                if (FileManager.lastSaveFilePath === FileManager.lastSaveFileName)
+                {
+                    FileManager.lastSaveFilePath = File.desktopDirectory.nativePath + File.separator + FileManager.lastSaveFileName;
+                }
+                PaletteController.initializeMyPaletteList();
+                MainUIController.lastAppWindowSize.x = 1000;
+                MainUIController.lastAppWindowSize.y = 800;
+                FOFOTimer.add(0.3, true, function ():Boolean
+                    {
+                        if (stage.nativeWindow.width === 1000 && stage.nativeWindow.height === 800)
+                        {
+                            centerCanvas("draw");
+                            return false;
+                        }
+                        stage.nativeWindow.width = MainUIController.lastAppWindowSize.x;
+                        stage.nativeWindow.height = MainUIController.lastAppWindowSize.y;
+                        return true;
+                    });
+                updateCavnvasSizeDrawMode(CANVAS_WIDTH, CANVAS_HEIGHT, 0, 0, false);
+                MainUIController.updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
+                ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
+                ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
+                openAboutBox(true);
+                MainUIController.applyUIColorSet();
+                MainUIController.updateCanvasNaigatorCursor();
+                MainUIController.updateAppWindowSizeInfo();
+                canvasInfoBox.init(CANVAS_WIDTH, CANVAS_HEIGHT, Math.floor(canvasZoomMultipler * 100), canvasAnchorPoint.rotation, false);
+                selectLayer1(false);
+                PaletteController.initMyPaletteHistory();
             }
         }
-        public function saveAllAppData():void
-        {
-            saveAppSatate();
-            saveUndoData();
-            saveReplayFrameData();
-            ReferenceLayerController.saveRefLayerImage();
-            PaletteController.saveMypPaletteList();
-            saveScratchPadImage();
-        }
+
         public function updateCanvasScale(zoomValue:Number, isReplayMode:Boolean = false):void
         {
             if (!zoomValue)
@@ -12286,21 +11140,7 @@
             }
             updateReplayCursorScale(zoomValue);
         }
-        public function checkWindowMaximizedAndSaveAllData():void
-        {
-            if (stage.nativeWindow.displayState === "maximized")
-            {
-                MainUIController.lastAppWindowState = 1;
-                stage.nativeWindow.restore();
-            }
-            else
-            {
-                MainUIController.lastAppWindowState = 0;
-                deleteTempDirectory();
-                saveAllAppData();
-                stage.nativeWindow.close();
-            }
-        }
+
         // check box position함수는 요소 전체가 창에서 넘어가만 않게 하는거고
         public function keepCanvasPanelInStage(replayMode:Boolean = false):void
         {
@@ -12507,7 +11347,7 @@
         public function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         {
             const firstKey:uint = getFirstPressedKey();
-            if (isMouseClicked || isRightMouseClicked || isLastKey(firstKey) || loadMenuBox.visible)
+            if (isMouseClicked || isRightMouseClicked || isLastKey(firstKey) || FileManager.loadMenuBox.visible)
             {
                 return;
             }
@@ -12737,7 +11577,7 @@
                     {
                         if (input === KEY.s)
                         {
-                            openSaveFileBrowser(true);
+                            FileManager.openSaveFileBrowser(true);
                         }
                     });
                 return;
@@ -12748,11 +11588,11 @@
                         {
                             if (input === KEY.s)
                                 {
-                                    openSaveFileBrowser(false);
+                                    FileManager.openSaveFileBrowser(false);
                         }
                         else if (input === KEY.o)
                             {
-                                openLoadFileBrowser();
+                                FileManager.openLoadFileBrowser();
                     }
                     else if (input === KEY.c || input === KEY.comma)
                         {
@@ -13114,7 +11954,7 @@
                     {
                         if (MainUI.topBar.newFileButton.alpha === 1.0 && !BackgroundWorkerCoordinator.isSaveInProgress)
                         {
-                            createNewFile(true);
+                            FileManager.createNewFile(true);
                         }
                     }
                     break;
@@ -13128,52 +11968,7 @@
                     isMouseClickBlocked = false;
                 });
         }
-        public function onWindowDeactivate(e:Event):void
-        {
-            isMouseClickBlocked = true;
-            resizeCanvas.exit(true);
-            clearKeyBuffer();
-            removeKeyRepeatEvents(null);
-            FOFOTimer.remove("pressholdtimer");
-            if (isToolBox2Showing)
-            {
-                isRightMouseClicked = false;
-                closeToolBox2();
-            }
-            if (!SidebarController.isSidebarVisible)
-            {
-                SidebarController.startHidingSidebarTemporary();
-            }
-            if (getTimer() - lastWindowDeactivateTime >= 3000
-                    && !BackgroundWorkerCoordinator.isSaveInProgress
-                    && !isFileBrowserOpened
-                    && !isLoadPendingAfterSaving
-                    && !AppUpdater.isUpdatePendingAfterSaving
-                    && !loadMenuBox.visible
-                    && !isGeneratingCacheImages())
-            {
-                saveAllAppData();
-            }
-            lastWindowDeactivateTime = getTimer();
-            if (SidebarController.isQuickSidebarActive && !isDeepUndoEnabled)
-            {
-                SidebarController.deactivateQuickSidebar();
-            }
-            if (numPadBox.visible)
-            {
-                ColorPickerController.closeNumpad();
-            }
-            if (numPadBox.isLCHSliderActive())
-            {
-                numPadBox.removeOKLCHMouseEvent();
-            }
-            if (ColorPickerController.colorPickerBox.scratchPad.isScratchStarted)
-            {
-                ColorPickerController.colorPickerBox.scratchPad.removeCheckMouseDistEvent();
-            }
-            MainUI.hideBottomHint();
-            selectLastUsedTool();
-        }
+
         public function updateToolBoxMousePos(target:SimpleButton):void
         {
             // 아이콘 중앙으로 맞추어줌
@@ -13560,17 +12355,7 @@
                 MainUI.seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
             }
         }
-        public function enterDrawModeOnLoadFile():void
-        {
-            if (CaptureController.isCaptureModeON)
-            {
-                CaptureController.exitCaptureMode();
-            }
-            if (isReplayModeON)
-            {
-                exitReplayMode();
-            }
-        }
+
         public function exitReplayMode():void
         {
             if (isGeneratingCacheImages())
@@ -13716,7 +12501,7 @@
         public function onMouseDownReplayMode(e:MouseEvent):void // repdown1
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if (!target || loadMenuBox.visible)
+            if (!target || FileManager.loadMenuBox.visible)
             {
                 return;
             }
@@ -13917,7 +12702,7 @@
         }
         public function onRightMouseDownReplayMode(e:MouseEvent):void
         {
-            if (isMouseClicked || isKeyPressed() || !e.target || loadMenuBox.visible)
+            if (isMouseClicked || isKeyPressed() || !e.target || FileManager.loadMenuBox.visible)
                 return;
             const targetName:String = e.target.name;
             switch (targetName)
@@ -14002,7 +12787,7 @@
         {
             if (isMouseClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
                     || isFillPenStarted || isSelectedTool(TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mouseX, mouseY))
-                    || loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || numPadBox.visible)
+                    || FileManager.loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || numPadBox.visible)
             {
                 return;
             }
@@ -14011,7 +12796,7 @@
             {
                 case "saveButton":
                     {
-                        openSaveFileBrowser(true);
+                        FileManager.openSaveFileBrowser(true);
                     }
                     break;
                 case "dpiButton":
@@ -14427,7 +13212,7 @@
         }
         public function onMouseDownDrawMode(e:MouseEvent):void
         {
-            if (isFillPenStarted || loadMenuBox.visible
+            if (isFillPenStarted || FileManager.loadMenuBox.visible
                     || MainUI.topBar.gridButtonWrapper.visible || numPadBox.visible)
             {
                 return;
@@ -14517,7 +13302,7 @@
                     {
                         if (MainUI.topBar.newFileButton.alpha === 1.0 && !BackgroundWorkerCoordinator.isSaveInProgress)
                         {
-                            createNewFile(false);
+                            FileManager.createNewFile(false);
                         }
                     }
                     return;

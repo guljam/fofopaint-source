@@ -59,7 +59,7 @@ package Modules
         {
             const main:Main = Main._instance;
 
-            return MainUI.topBar.gridButtonWrapper.visible || main.numPadBox.visible || main.loadMenuBox.visible || main.aboutBox.visible;
+            return MainUI.topBar.gridButtonWrapper.visible || main.numPadBox.visible || FileManager.loadMenuBox.visible || main.aboutBox.visible;
         }
 
         public static function updateStageOffset():void
@@ -208,7 +208,7 @@ package Modules
         {
             const main:Main = Main._instance;
 
-            main.stage.nativeWindow.title = main.lastSaveFileName + main.STRING_TITLE_FOFOPAINT;
+            main.stage.nativeWindow.title = FileManager.lastSaveFileName + main.STRING_TITLE_FOFOPAINT;
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.copyMainWindowTitleToCanvasWindow();
@@ -458,9 +458,9 @@ package Modules
                     SidebarController.updateScrollBarHeight();
                     updateCanvasNaigatorCursor();
 
-                    if (main.loadMenuBox.visible === true)
+                    if (FileManager.loadMenuBox.visible === true)
                     {
-                        main.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+                        FileManager.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
                     }
 
                     if (main.selectedToolViewBitmap.visible)
@@ -478,8 +478,8 @@ package Modules
                     {
                         if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
                         {
-                            main.deleteTempDirectory();
-                            main.saveAllAppData();
+                            FileManager.deleteTempDirectory();
+                            FileManager.saveAllAppData();
                             main.stage.nativeWindow.close();
                         }
                     }

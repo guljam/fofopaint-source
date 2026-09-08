@@ -150,16 +150,16 @@ package Modules
                     worker = null;
                 }
 
-                if (main.isLoadPendingAfterSaving)
+                if (FileManager.isLoadPendingAfterSaving)
                 {
-                    main.loadFileTo("canvas");
+                    FileManager.loadFileTo("canvas");
                 }
                 else if (AppUpdater.isUpdatePendingAfterSaving)
                 {
                     AppUpdater.startUpdate();
                 }
 
-                main.enableFileOperationButtonsTopbar();
+                FileManager.enableFileOperationButtonsTopbar();
                 return false;
             }
             return true;
@@ -383,7 +383,7 @@ package Modules
             main.isAppClosing = true;
 
             e.preventDefault();
-            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, main.onWindowDeactivate);
+            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
             CaptureController.removeInputEventCaptrueMode();
             main.removeInputEventsDrawMode();
             main.removeInputEventsReplayMode();
@@ -414,13 +414,13 @@ package Modules
                 if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
                 {
                     main.stage.nativeWindow.title = "Waiting for remaining tasks...";
-                    main.openLoadMenuBoxOnClosing();
+                    FileManager.openLoadMenuBoxOnClosing();
                     FOFOTimer.addByName("pollTimerWaitWorkerStop", WORKER_WAIT_INTERVAL, true, function ():Boolean
                         {
                             if (workerState === WORKER_STATE_STOPPED)
                             {
                                 FOFOTimer.remove("pollTimerWaitWorkerStop");
-                                main.checkWindowMaximizedAndSaveAllData();
+                                FileManager.checkWindowMaximizedAndSaveAllData();
                                 return false;
                             }
                             return true;
@@ -429,7 +429,7 @@ package Modules
             }
             else
             {
-                main.checkWindowMaximizedAndSaveAllData();
+                FileManager.checkWindowMaximizedAndSaveAllData();
             }
         }
     }

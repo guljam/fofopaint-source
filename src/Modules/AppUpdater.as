@@ -39,15 +39,15 @@ package Modules
         {
             const main:Main = Main._instance;
 
-            main.prepareOpenLoadBox(true, false, null, null, null);
+            FileManager.prepareOpenLoadBox(true, false, null, null, null);
             isUpdatePendingAfterSaving = true;
-            main.openSaveFileBrowser(false);
+            FileManager.openSaveFileBrowser(false);
         }
 
         public static function startUpdate():void
         {
             const main:Main = Main._instance;
-            main.closeLoadMenuBox();
+            FileManager.closeLoadMenuBox();
             isUpdatePendingAfterSaving = false;
             MainUI.topBar.hideUpdateButton();
 

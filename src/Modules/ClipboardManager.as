@@ -13,7 +13,7 @@ package Modules
         {
             const main:Main = Main._instance;
 
-            if (main.isFileLoadBlocked())
+            if (FileManager.isFileLoadBlocked())
             {
                 return;
             }
@@ -30,14 +30,14 @@ package Modules
             {
                 if (data is BitmapData)
                 {
-                    main.prepareOpenLoadBox(false, toRefLayer, null, data as BitmapData, "clipboard");
+                    FileManager.prepareOpenLoadBox(false, toRefLayer, null, data as BitmapData, "clipboard");
                 }
                 else if (data is Array && data.length > 0)
                 {
                     const file:File = data[0] as File;
-                    if (main.canDisplayLoadMenuBox(file))
+                    if (FileManager.canDisplayLoadMenuBox(file))
                     {
-                        main.prepareLoadMenuBoxFromImageFile(file, toRefLayer);
+                        FileManager.prepareLoadMenuBoxFromImageFile(file, toRefLayer);
                     }
                 }
             }
@@ -78,7 +78,7 @@ package Modules
 
             if (data is Array && data.length > 0)
             {
-                main.validateImageFile(data[0] as File,
+                FileManager.validateImageFile(data[0] as File,
                         function (type:String, file:File, bmpd:BitmapData):void
                         {
                             enableTopBarClipboardButton();

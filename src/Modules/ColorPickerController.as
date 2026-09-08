@@ -12,7 +12,7 @@ package Modules
 
     public class ColorPickerController
     {
-        // TODO : numpad 안나옴, numpad, hsv, 스크레치패드+drawr+tegaki로 클래스 나누기
+        // TODO : numpad 기능 안나옴, numpad, hsv, 스크레치패드+drawr+tegaki로 클래스 나누기
 
         public static const colorPickerBox:ColorPickerSet = new ColorPickerSet();
         public static const numPadBox:NumPadSet = new NumPadSet();
@@ -954,7 +954,7 @@ package Modules
         public static function updateCanvasBGColorDrawMode(color:uint):void
         {
             const main:Main = Main._instance;
-            main.isFileAlreadySaved = false;
+            FileManager.isFileAlreadySaved = false;
             main.CANVAS_BG_COLOR = color;
 
             main.canvasNavigatorBox.changeprevBitmapBGColor(color);

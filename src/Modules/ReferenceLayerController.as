@@ -167,7 +167,7 @@ package Modules
 					{
 						if (canvasRefLayer.rotation !== 0)
 						{
-							main.isFileAlreadySaved = false;
+							FileManager.isFileAlreadySaved = false;
 
 							canvasRefLayer.rotation = 0;
 						}
@@ -178,7 +178,7 @@ package Modules
 					{
 						if (canvasRefLayer.scaleY !== 1.0)
 						{
-							main.isFileAlreadySaved = false;
+							FileManager.isFileAlreadySaved = false;
 
 							canvasRefLayer.scaleX = (canvasRefLayer.scaleX < 0) ? -1.0 : 1.0;
 							canvasRefLayer.scaleY = 1.0;
@@ -191,7 +191,7 @@ package Modules
 						if (canvasRefLayerBitmap.x !== -canvasRefLayerBitmap.width / 2
 								&& canvasRefLayerBitmap.y !== -canvasRefLayerBitmap.height / 2)
 						{
-							main.isFileAlreadySaved = false;
+							FileManager.isFileAlreadySaved = false;
 
 							canvasRefLayer.x = main.CANVAS_WIDTH / 2;
 							canvasRefLayer.y = main.CANVAS_HEIGHT / 2;
@@ -360,7 +360,7 @@ package Modules
 			canvasRefLayerBitmap.x = canvasRefLayerBitmap.x + subX;
 			canvasRefLayer.rotation = deg; // 캔버스 전체가 회전해있을때 각도보정
 			canvasRefLayerBitmap.smoothing = true;
-			main.isFileAlreadySaved = false;
+			FileManager.isFileAlreadySaved = false;
 		}
 
 		public static function startRefLayerRotation():void
@@ -382,7 +382,7 @@ package Modules
 
 			function onMouseUp():void
 			{
-				main.isFileAlreadySaved = false;
+				FileManager.isFileAlreadySaved = false;
 				refLayerMenuBox.visible = true;
 				MainUI.hideCanvasRotateCursor();
 				canvasRefLayerBitmap.smoothing = true;
@@ -415,7 +415,7 @@ package Modules
 
 			function onMouseUp():void
 			{
-				main.isFileAlreadySaved = false;
+				FileManager.isFileAlreadySaved = false;
 				refLayerMenuBox.visible = true;
 				canvasRefLayerBitmap.smoothing = true;
 				MainUI.hideMouseHint();
@@ -448,7 +448,7 @@ package Modules
 
 			function onMouseUp():void
 			{
-				main.isFileAlreadySaved = false;
+				FileManager.isFileAlreadySaved = false;
 				refLayerMenuBox.visible = true;
 				canvasRefLayerBitmap.smoothing = true;
 			}
@@ -584,7 +584,7 @@ package Modules
 			}
 
 			canvasRefLayerBitmap.smoothing = true;
-			main.isFileAlreadySaved = false;
+			FileManager.isFileAlreadySaved = false;
 		}
 
 		private static function mergeCanvasImageToRefLayer():void

@@ -411,7 +411,7 @@ package Modules
 			main.selectedToolViewBitmap.name = "selectedToolViewBitmap";
 			main.selectedToolViewBitmap.visible = false;
 
-			main.stage.addChild(main.loadMenuBox);
+			main.stage.addChild(FileManager.loadMenuBox);
 			main.stage.addChild(ReferenceLayerController.refLayerMenuBox);
 			main.stage.addChild(main.aboutBox);
 			main.stage.addChild(SidebarController.sideBar);
