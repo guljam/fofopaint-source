@@ -22,6 +22,7 @@ package Modules
     import flash.utils.getTimer;
     import Modules.Tools.PenTool;
     import Modules.Tools.LassoTool;
+    import flash.net.registerClassAlias;
 
     public class FileManager
     {
@@ -35,6 +36,7 @@ package Modules
         public static const appStateFilePath:File = File.applicationStorageDirectory.resolvePath("appstate" + main.APP_STATE_VERSION);
         public static const scratchPadDataFilePath:File = File.applicationStorageDirectory.resolvePath("scratchdata");
         public static const undoDataFilePath:File = File.applicationStorageDirectory.resolvePath("undodata");
+        public static const myPaletteDataFilePath:File = File.applicationStorageDirectory.resolvePath("mypalettedata");
         public static const replayDataFilePath:File = File.applicationStorageDirectory.resolvePath("repdata");
         public static const replayCacheImageFolderPath:File = File.applicationStorageDirectory.resolvePath("imagecache");
         public static const replayCacheImageFrameDataFilePath:File = File.applicationStorageDirectory.resolvePath("jumpframedata");
@@ -1161,86 +1163,103 @@ package Modules
             fs.close();
         }
 
-        private static function getAppstateObject():object
-        {
-            const obj = {};
-        }
         private static function saveAppSatate():void
         {
-            const a:Object = {};
-            a.b =
-                MainUIController.updateAppWindowSizeInfo();
+            const appStateObject:AppStateManager = new AppStateManager();
+            appStateObject.canvasZoomIndex = CanvasController.canvasZoomIndex;
+            appStateObject.canvasZoomedMultiplier = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.z : CanvasController.canvasZoomMultipler;
+
+            appStateObject.canvasPanelX = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.px : CanvasController.canvasPanel.x;
+            appStateObject.canvasPanelY = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.py : CanvasController.canvasPanel.y;
+
+            appStateObject.canvasAnchorPointX = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.x : CanvasController.canvasAnchorPoint.x;
+            appStateObject.canvasAnchorPointY = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.y : CanvasController.canvasAnchorPoint.y;
+            appStateObject.canvasAnchorPointRotation = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.r : CanvasController.canvasAnchorPoint.rotation;
+
+            appStateObject.penSmoothValue = PenTool.penSmoothValue;
+            appStateObject.penSmoothSlideValue = PenTool.penSmoothSlideValue;
+            appStateObject.penSmoothButtonX = main.toolOptionsBox.penSmoothSliderCursor.x;
+
+            appStateObject.penSize = PenTool.penSize;
+            appStateObject.penSizeIndex = PenTool.penSizeIndex;
+            appStateObject.penColor = PenTool.penColor;
+            appStateObject.penAlpha = PenTool.penAlpha;
+            appStateObject.penIsSquare = PenTool.penIsSquare;
+
+            appStateObject.eraseSize = PenTool.eraserSize;
+            appStateObject.eraseSizeIndex = PenTool.eraserSizeIndex;
+            appStateObject.eraserIsSquare = PenTool.eraserIsSquare;
+            appStateObject.eraseAlpha = PenTool.eraserAlpha;
+
+            const windowBounds:Rectangle = main.stage.nativeWindow.bounds;
+            appStateObject.stageNativeWindowX = windowBounds.x;
+            appStateObject.stageNativeWindowY = windowBounds.y;
+            appStateObject.stageNativeWindowWidth = windowBounds.width;
+            appStateObject.stageNativeWindowHeight = windowBounds.height;
+
+            appStateObject.saveFileName = lastSaveFileName;
+            appStateObject.lastWindowState = MainUIController.lastAppWindowState;
+            appStateObject.uiColorIndex = Global.getUIColorIndex();
+            appStateObject.appRunningTime = main.realWorkingTimer.getRunningTime();
+
+            appStateObject.refLayerLastAlpha = ReferenceLayerController.refLayerLastAlpha;
+            appStateObject.refOpacityCursorX = ReferenceLayerController.refLayerMenuBox.refOpacityCursor.x;
+            appStateObject.refLayerMenuDragXMoveSum = ReferenceLayerController.refLayerMenuDragXMoveSum;
+
+            appStateObject.canvasRefLayerBitmapX = ReferenceLayerController.canvasRefLayerBitmap.x;
+            appStateObject.canvasRefLayerBitmapY = ReferenceLayerController.canvasRefLayerBitmap.y;
+            appStateObject.canvasRefLayerRotation = ReferenceLayerController.canvasRefLayer.rotation;
+            appStateObject.canvasRefLayerScaleX = ReferenceLayerController.canvasRefLayer.scaleX;
+            appStateObject.canvasRefLayerScaleY = ReferenceLayerController.canvasRefLayer.scaleY;
+
+            appStateObject.refLayerMenuBox0 = ReferenceLayerController.refLayerMenuBox.x;
+            appStateObject.refLayerMenuBox1 = ReferenceLayerController.refLayerMenuBox.y;
+
+            appStateObject.isCanvasMirrored = CanvasController.isCanvasMirrored;
+
+            appStateObject.gridValue = CanvasGridOverlay.gridGapMultiplier;
+            appStateObject.hsvColorData0 = ColorPickerController.hsvColorData[0];
+            appStateObject.gridDrawOffsetX = CanvasGridOverlay.gridDrawOffsetX;
+            appStateObject.gridDrawOffsetY = CanvasGridOverlay.gridDrawOffsetY;
+
+            appStateObject.hueCursorX = ColorPickerController.colorPickerBox.hueCursor.x;
+            appStateObject.svBaseColor = ColorPickerController.colorPickerBox.svBaseColor;
+            appStateObject.isHSVInfoTextMode = ColorPickerController.isHSVInfoTextMode;
+
+            appStateObject.rReplayImageCacheState = (main.isGeneratingCacheImages()) ? main.REPLAY_IMAGE_CAHCHE_READY : main.rReplayImageCacheState;
+            appStateObject.rLastCanvasBGColor = main.rLastCanvasBGColor;
+
+            appStateObject.isRightSidebar = SidebarController.isRightSidebar;
+            appStateObject.saveFilePath = lastSaveFilePath;
+            appStateObject.isSidebarVisible = SidebarController.isSidebarVisible;
+            appStateObject.uiScaleIndex = Global.getUIScaleIndex();
+
+            appStateObject.canvasWindowON = ImageViewWindow.isCanvasWindowON;
+
+            appStateObject.newWindowInfo0 = ImageViewWindow.canvasWindowInfo[0];
+            appStateObject.newWindowInfo1 = ImageViewWindow.canvasWindowInfo[1];
+            appStateObject.newWindowInfo2 = ImageViewWindow.canvasWindowInfo[2];
+            appStateObject.newWindowInfo3 = ImageViewWindow.canvasWindowInfo[3];
+
+            appStateObject.getFirstRCursorPosX = main.drawReplayByCommand.getFirstRCursorPos().x;
+            appStateObject.getFirstRCursorPosY = main.drawReplayByCommand.getFirstRCursorPos().y;
+
+            appStateObject.isContinueSaveON = isContinueSaveON;
+
+            appStateObject.myPalettePresetType = PaletteController.myPalettePresetType;
+            appStateObject.isMyPaletteExpended = PaletteController.isMyPaletteExpended;
+            appStateObject.isColorPickerBoxPositionSwapped = ColorPickerController.isColorPickerBoxPositionSwapped;
+
+            appStateObject.captureStampText = MainUI.topBar.captureInput.text;
+            appStateObject.isCaptureStampON = CaptureController.isCaptureStampEnabled;
+            appStateObject.captureStampFont = CaptureController.captureStampManager.getFontName();
+
+            appStateObject.scrollSetMovedY = SidebarController.scrollSetMovedY;
+            appStateObject.isRefLayerMemoryTrainingON = ReferenceLayerController.isRefLayerMemoryTrainingON;
+
             const fs:FileStream = new FileStream();
             fs.open(appStateFilePath, FileMode.WRITE);
-            fs.writeObject({
-                        "canvasZoomIndex": CanvasController.canvasZoomIndex,
-                        "canvasZoomedMultipler": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.z : CanvasController.canvasZoomMultipler,
-                        "canvasPanel.x": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.px : CanvasController.canvasPanel.x,
-                        "canvasPanel.y": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.py : CanvasController.canvasPanel.y,
-                        "canvasAnchorPoint.x": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.x : CanvasController.canvasAnchorPoint.x,
-                        "canvasAnchorPoint.y": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.y : CanvasController.canvasAnchorPoint.y,
-                        "canvasAnchorPoint.rotation": (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.r : CanvasController.canvasAnchorPoint.rotation,
-                        "penSmoothValue": PenTool.penSmoothValue,
-                        "penSmoothSlideValue": PenTool.penSmoothSlideValue,
-                        "penSmoothButtonX": main.toolOptionsBox.penSmoothSliderCursor.x,
-                        "penSize": PenTool.penSize,
-                        "penSizeIndex": PenTool.penSizeIndex,
-                        "penColor": PenTool.penColor,
-                        "penAlpha": PenTool.penAlpha,
-                        "penIsSquare": PenTool.penIsSquare,
-                        "eraseSize": PenTool.eraserSize,
-                        "eraseSizeIndex": PenTool.eraserSizeIndex,
-                        "eraserIsSquare": PenTool.eraserIsSquare,
-                        "eraseAlpha": PenTool.eraserAlpha,
-                        "stage.nativeWindow.x": MainUIController.lastAppWindowSizeInfo[0],
-                        "stage.nativeWindow.y": MainUIController.lastAppWindowSizeInfo[1],
-                        "stage.nativeWindow.width": MainUIController.lastAppWindowSizeInfo[2],
-                        "stage.nativeWindow.height": MainUIController.lastAppWindowSizeInfo[3],
-                        "saveFileName": lastSaveFileName,
-                        "lastWindowState": MainUIController.lastAppWindowState,
-                        "uiColorIndex": Global.getUIColorIndex(),
-                        "APP_RUNNING_TIME": main.realWorkingTimer.getRunningTime(),
-                        "refLayerLastAlpha": ReferenceLayerController.refLayerLastAlpha,
-                        "refOpacityCursor.x": ReferenceLayerController.refLayerMenuBox.refOpacityCursor.x,
-                        "refLayerMenuDragXMoveSum": ReferenceLayerController.refLayerMenuDragXMoveSum,
-                        "canvasRefLayerBitmap.x": ReferenceLayerController.canvasRefLayerBitmap.x,
-                        "canvasRefLayerBitmap.y": ReferenceLayerController.canvasRefLayerBitmap.y,
-                        "canvasRefLayer.rotation": ReferenceLayerController.canvasRefLayer.rotation,
-                        "canvasRefLayer.scaleX": ReferenceLayerController.canvasRefLayer.scaleX,
-                        "canvasRefLayer.scaleY": ReferenceLayerController.canvasRefLayer.scaleY,
-                        "refLayerMenuBox[0]": ReferenceLayerController.refLayerMenuBox.x,
-                        "refLayerMenuBox[1]": ReferenceLayerController.refLayerMenuBox.y,
-                        "isCanvasMirrored": CanvasController.isCanvasMirrored,
-                        "gridValue": CanvasGridOverlay.gridGapMultiplier,
-                        "hsvColorData[0]": ColorPickerController.hsvColorData[0],
-                        "gridDrawOffsetX": CanvasGridOverlay.gridDrawOffsetX,
-                        "gridDrawOffsetY": CanvasGridOverlay.gridDrawOffsetY,
-                        "hueCursor.x": ColorPickerController.colorPickerBox.hueCursor.x,
-                        "svBaseColor": ColorPickerController.colorPickerBox.svBaseColor,
-                        "isHSVInfoTextMode": ColorPickerController.isHSVInfoTextMode,
-                        "rReplayImageCacheState": (main.isGeneratingCacheImages()) ? main.REPLAY_IMAGE_CAHCHE_READY : main.rReplayImageCacheState,
-                        "rLastCanvasBGColor": main.rLastCanvasBGColor,
-                        "isRightSidebar": SidebarController.isRightSidebar,
-                        "saveFilePath": lastSaveFilePath,
-                        "isSidebarVisible": SidebarController.isSidebarVisible,
-                        "uiScaleIndex": Global.getUIScaleIndex(),
-                        "canvasWindowON": ImageViewWindow.isCanvasWindowON,
-                        "ImageViewWindow.canvasWindowInfo[0]": ImageViewWindow.canvasWindowInfo[0],
-                        "ImageViewWindow.canvasWindowInfo[1]": ImageViewWindow.canvasWindowInfo[1],
-                        "ImageViewWindow.canvasWindowInfo[2]": ImageViewWindow.canvasWindowInfo[2],
-                        "ImageViewWindow.canvasWindowInfo[3]": ImageViewWindow.canvasWindowInfo[3],
-                        "getFirstRCursorPos.x": main.drawReplayByCommand.getFirstRCursorPos().x,
-                        "getFirstRCursorPos.y": main.drawReplayByCommand.getFirstRCursorPos().y,
-                        "isContinueSaveON": isContinueSaveON,
-                        "myPalettePresetType": PaletteController.myPalettePresetType,
-                        "isMyPaletteExpended": PaletteController.isMyPaletteExpended,
-                        "isColorPickerBoxPositionSwapped": ColorPickerController.isColorPickerBoxPositionSwapped,
-                        "topBar.captureInput.text": MainUI.topBar.captureInput.text,
-                        "isCaptureStampON": CaptureController.isCaptureStampEnabled,
-                        "captureStampFont": CaptureController.captureStampManager.getFontName(),
-                        "scrollSetMovedY": SidebarController.scrollSetMovedY,
-                        "isRefLayerMemoryTrainingON": ReferenceLayerController.isRefLayerMemoryTrainingON
-                    });
+            fs.writeObject(appStateObject);
             fs.close();
         }
 

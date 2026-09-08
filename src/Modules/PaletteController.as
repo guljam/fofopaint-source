@@ -18,8 +18,6 @@ package Modules
             main = instance;
         }
 
-        public static const myPaletteDataFilePath:File = File.applicationStorageDirectory.resolvePath("mypalettedata");
-
         public static var isMyPaletteExpended:Boolean = false, // 전체로 보면 올려줌
             myPaletteColorBeforeAddColor:Array = [-1, 0], // index, hexcolor
             myPaletteColorLimit:int = 100,
@@ -273,7 +271,7 @@ package Modules
         {
             const fs:FileStream = new FileStream();
 
-            fs.open(myPaletteDataFilePath, FileMode.WRITE);
+            fs.open(FileManager.myPaletteDataFilePath, FileMode.WRITE);
             fs.writeObject(myPalettePreset);
             fs.close();
         }
@@ -283,7 +281,7 @@ package Modules
             updateHistoryList();
             updateMyPaletteList();
 
-            if (!myPaletteDataFilePath.exists)
+            if (!FileManager.myPaletteDataFilePath.exists)
             {
                 saveMypPaletteList();
             }

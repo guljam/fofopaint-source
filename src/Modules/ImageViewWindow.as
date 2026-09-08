@@ -25,7 +25,7 @@ package Modules
             main = instance;
         }
 
-        public static var canvasWindowInfo:Array = [null, null, 400, 400]; // x, y, 너비, 높이
+        public static var canvasWindowInfo:Array = [0, 0, 400, 400]; // x, y, 너비, 높이
         private static var _isCanvasWindowON:Boolean = false; // 캔버스 새창 켜졌을 때
         public static var canvasWindow:NativeWindow; // 참조된 새 창
         public static var canvasWindowLayer1Bitmap:Bitmap; // 새창 안에 들어갈 레이어 1
@@ -243,7 +243,7 @@ package Modules
             if (canvasWindow === null)
             {
                 initializeCanvasWindow();
-                if (canvasWindowInfo[0] === null)
+                if (canvasWindowInfo[0] === 0)
                 {
 
                     canvasWindowInfo[0] = main.stage.nativeWindow.x + MainUI.topBar.newWindowButton.x - canvasWindowInfo[2] / 2;

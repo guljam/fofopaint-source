@@ -1308,7 +1308,9 @@ package Modules
             var w:Number;
             var h:Number;
             var center:Point = MainUIController.getStageCenterPos(mode);
-            if (main.isReplayModeON)
+            // todo : 이거 원래 isreplaymode on 플래그로 검사하는데 리팩토링후에 캔버스 위치 적용이 안되서
+            // mode로 탐지하는걸로 고침 버그날수도있음
+            if (mode === "replay")
             {
                 xAnc = main.rCanvasAnchorPoint;
                 xCanvas = main.rCanvasPanel;

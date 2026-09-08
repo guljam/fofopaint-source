@@ -35,8 +35,7 @@ package Modules
             resizeButtonL:Sprite = new Sprite(),
             resizeButtonU:Sprite = new Sprite();
 
-        public static var lastAppWindowSize:Point = new Point(), // 창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
-            lastAppWindowSizeInfo:Array = [0, 0, 680, 768],
+        public static var lastAppWindowSize:Rectangle = new Rectangle(), // 창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
             lastAppWindowState:int = 0;
 
         public static function getViewportRect():Rectangle
@@ -315,16 +314,6 @@ package Modules
             CanvasController.canvasAnchorPoint.addChild(resizeButtonL);
         }
 
-        public static function updateAppWindowSizeInfo():void
-        {
-            const windowSizeInfo:Rectangle = main.stage.nativeWindow.bounds;
-
-            lastAppWindowSizeInfo[0] = windowSizeInfo.x;
-            lastAppWindowSizeInfo[1] = windowSizeInfo.y;
-            lastAppWindowSizeInfo[2] = windowSizeInfo.width;
-            lastAppWindowSizeInfo[3] = windowSizeInfo.height;
-        }
-
         public static function updateResizeButtonPos(width:Number, height:Number):void
         {
             function setpos(target:Sprite, x:Number, y:Number, w:Number, h:Number):void
@@ -353,10 +342,15 @@ package Modules
 
         public static function onWindowResize(e:Event):void
         {
+            if (FOFOTimer.hasTimer("loadAppDataDelayTimer"))
+            {
+                return;
+            }
+
             FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, function ():void
                 {
-                    const dx:Number = Math.round((main.stage.nativeWindow.width - lastAppWindowSize.x) / 1.75);
-                    const dy:Number = Math.round((main.stage.nativeWindow.height - lastAppWindowSize.y) / 1.75);
+                    const dx:Number = Math.round((main.stage.nativeWindow.width - lastAppWindowSize.width) / 1.75);
+                    const dy:Number = Math.round((main.stage.nativeWindow.height - lastAppWindowSize.height) / 1.75);
 
                     if (CaptureController.isCaptureModeON)
                     {
@@ -373,7 +367,6 @@ package Modules
                         if (main.isReplayRestartTimerON())
                         {
                             CanvasController.centerCanvas("replay");
-
                         }
                         else
                         {
@@ -445,7 +438,7 @@ package Modules
                     main.updateStageBGSize();
                     SidebarController.checkFOFOPosition();
                     updateBottomBarLayoutAndColor();
-                    lastAppWindowSize.setTo(main.stage.nativeWindow.width, main.stage.nativeWindow.height);
+                    lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
                     MainUI.hideBottomHint();
 
                     if (main.isAppClosing)
