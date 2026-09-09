@@ -119,7 +119,7 @@ package Modules
             LassoTool.lassoMenuBox.setScale(scale);
             ReferenceLayerController.refLayerMenuBox.setScale(scale);
             main.fillPenBox.setScale(scale);
-            main.toolBox2.setScale(scale);
+            ToolController.toolBox2.setScale(scale);
             main.aboutBox.setScale(scale);
             main.eyedropperLens.setScale(scale);
             main.numPadBox.setScale(scale);
@@ -247,7 +247,7 @@ package Modules
             if (flag)
             {
                 updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                main.toolBox2.startResizeButtonWaitBarAnimation(0.9);
+                ToolController.toolBox2.startResizeButtonWaitBarAnimation(0.9);
                 FOFOTimer.addByName("resizeButtonVisibleDelayTimer", 0.9, false, function ():void
                     {
                         showCanvasResizeButtons();
@@ -430,9 +430,9 @@ package Modules
                         FileManager.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
                     }
 
-                    if (main.selectedToolViewBitmap.visible)
+                    if (ToolController.selectedToolViewBitmap.visible)
                     {
-                        main.updateSelectedToolViewBoxPos();
+                        ToolController.updateSelectedToolViewBoxPos();
                     }
 
                     main.updateStageBGSize();
@@ -541,13 +541,13 @@ package Modules
             }
 
             SidebarController.sideBar.updateUIColor();
-            main.toolOptionsBox.updateUIColor();
+            ToolController.toolOptionsBox.updateUIColor();
             ColorPickerController.colorPickerBox.updateUIColor();
             CanvasController.canvasInfoBox.updateUIColor();
             CanvasController.canvasRotateCursor.changeUIColor();
             SidebarController.fofo.updateColor();
-            main.toolBox.changeUIColor();
-            main.toolBox2.changeUIColor();
+            ToolController.toolBox.changeUIColor();
+            ToolController.toolBox2.changeUIColor();
             main.fillPenBox.updateUIColor();
             LassoTool.lassoMenuBox.updateUIColor();
             main.numPadBox.updateUIColor();

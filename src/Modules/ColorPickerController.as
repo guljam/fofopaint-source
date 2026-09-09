@@ -570,7 +570,7 @@ package Modules
             if (isPenColorMode())
             {
                 PenTool.penColor = color;
-                main.updateOpacityCursorPos(PenTool.penAlphaIndex);
+                ToolController.updateOpacityCursorPos(PenTool.penAlphaIndex);
             }
             else if (isBackgroundColorMode())
             {
@@ -609,7 +609,7 @@ package Modules
                 {
 
                     colorPickerBox.restoreRGBInfoBackground();
-                    main.selectPenToolIfNotDrawingTool(false);
+                    ToolController.selectPenToolIfNotDrawingTool(false);
                     openNumPad();
                 }
             }
@@ -656,7 +656,7 @@ package Modules
             else
             {
                 PenTool.penColor = hexColor;
-                main.updateOpacityCursorPos(PenTool.penAlphaIndex);
+                ToolController.updateOpacityCursorPos(PenTool.penAlphaIndex);
                 updateColorPickerCursorPosAndRGBInfo(hexColor);
             }
         }
@@ -728,7 +728,7 @@ package Modules
         private static function updatePenColor(color:uint):void
         {
             PenTool.penColor = color;
-            main.updateOpacityCursorPos(PenTool.penAlphaIndex);
+            ToolController.updateOpacityCursorPos(PenTool.penAlphaIndex);
         }
 
         private static function isBackgroundColorMode():Boolean
@@ -818,7 +818,7 @@ package Modules
 
                 CanvasController.isPenSizeCursorInvisible = false;
                 colorPickerBox.setRGBInfoVisible(true);
-                main.selectPenToolIfNotDrawingTool(false);
+                ToolController.selectPenToolIfNotDrawingTool(false);
             }
 
             function onDragStart():void
@@ -902,7 +902,7 @@ package Modules
                 if (isPenColorMode())
                 {
                     PenTool.penColor = pickedColor;
-                    main.updateOpacityCursorPos(PenTool.penAlphaIndex);
+                    ToolController.updateOpacityCursorPos(PenTool.penAlphaIndex);
                 }
                 else if (isBackgroundColorMode())
                 {
@@ -919,7 +919,7 @@ package Modules
                 CanvasController.isPenSizeCursorInvisible = false;
                 colorPickerBox.setRGBInfoVisible(true);
 
-                main.selectPenToolIfNotDrawingTool(false);
+                ToolController.selectPenToolIfNotDrawingTool(false);
             }
 
             function onDragStart():void
@@ -989,7 +989,7 @@ package Modules
                     main.addUndoBGColorData(bgColor);
                 }
 
-                main.selectPenToolIfNotDrawingTool(false);
+                ToolController.selectPenToolIfNotDrawingTool(false);
             }
         }
 
@@ -1000,7 +1000,7 @@ package Modules
                 PenTool.penColor = pickedColor;
 
                 updateColorPickerCursorPosAndRGBInfo(pickedColor);
-                main.selectPenToolIfNotDrawingTool(false);
+                ToolController.selectPenToolIfNotDrawingTool(false);
             }
             else if (isBackgroundColorMode())
             {
@@ -1076,7 +1076,7 @@ package Modules
                     switch (upTargetName)
                     {
                         case "currentColor":
-                            main.selectPenToolIfNotDrawingTool(false);
+                            ToolController.selectPenToolIfNotDrawingTool(false);
                             selectCurrentColor(isColorPickerModeBG);
                             break;
 
@@ -1108,7 +1108,7 @@ package Modules
                         case "transColorButton":
                             if (colorPickerBox.transColorButton.alpha === 1.0 && PenTool.isTransparentPenColor === false)
                             {
-                                main.selectPenToolIfNotDrawingTool(false);
+                                ToolController.selectPenToolIfNotDrawingTool(false);
                                 selectTransparentColor();
                             }
                             break;
@@ -1136,10 +1136,10 @@ package Modules
 
         public static function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean
         {
-            if (main.isToolBox2Showing || (main.isKeyPressed()
-                        && !main.isSelectedToolPenOrLine()
-                        && !main.isSelectedTool(main.TOOL_ERASER)
-                        && !main.isSelectedTool(main.TOOL_FILLPEN)))
+            if (ToolController.isToolBox2Showing || (main.isKeyPressed()
+                        && !ToolController.isSelectedToolPenOrLine()
+                        && !ToolController.isSelectedTool(ToolController.TOOL_ERASER)
+                        && !ToolController.isSelectedTool(ToolController.TOOL_FILLPEN)))
             {
                 return false;
             }

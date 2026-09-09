@@ -224,7 +224,7 @@ package Modules
 
         public static function extandCanvasDrawLayerCliprect():void
         {
-            var airBrushOffset:Number = (main.airBrushSizeDrawMode > 0) ? main.getClipRectOffsetAirBrush(main.airBrushSizeDrawMode) : 1;
+            var airBrushOffset:Number = (PenTool.airBrushSizeDrawMode > 0) ? main.getClipRectOffsetAirBrush(PenTool.airBrushSizeDrawMode) : 1;
             canvasDrawLayerClipRect.x -= airBrushOffset;
             canvasDrawLayerClipRect.y -= airBrushOffset;
             canvasDrawLayerClipRect.width += (airBrushOffset * 2);
@@ -257,44 +257,44 @@ package Modules
 
         public static function toggleLayer1Check():void
         {
-            if (main.toolOptionsBox.layer1CheckedButton.visible === false)
+            if (ToolController.toolOptionsBox.layer1CheckedButton.visible === false)
             {
                 checkedLayer = 1;
-                main.toolOptionsBox.layer1CheckedButton.visible = true;
-                main.toolOptionsBox.layer1UncheckedButton.visible = false;
-                main.toolOptionsBox.layer2CheckedButton.visible = false;
-                main.toolOptionsBox.layer2UncheckedButton.visible = true;
-                main.toolBox.setToolButtonsForCheckedLayerON();
-                main.toolBox2.setToolButtonsForCheckedLayerON();
+                ToolController.toolOptionsBox.layer1CheckedButton.visible = true;
+                ToolController.toolOptionsBox.layer1UncheckedButton.visible = false;
+                ToolController.toolOptionsBox.layer2CheckedButton.visible = false;
+                ToolController.toolOptionsBox.layer2UncheckedButton.visible = true;
+                ToolController.toolBox.setToolButtonsForCheckedLayerON();
+                ToolController.toolBox2.setToolButtonsForCheckedLayerON();
             }
             else
             {
                 checkedLayer = 0;
-                main.toolOptionsBox.layer1CheckedButton.visible = false;
-                main.toolOptionsBox.layer1UncheckedButton.visible = true;
-                main.toolBox.setToolButtonsForCheckedLayerOFF();
-                main.toolBox2.setToolButtonsForCheckedLayerOFF();
+                ToolController.toolOptionsBox.layer1CheckedButton.visible = false;
+                ToolController.toolOptionsBox.layer1UncheckedButton.visible = true;
+                ToolController.toolBox.setToolButtonsForCheckedLayerOFF();
+                ToolController.toolBox2.setToolButtonsForCheckedLayerOFF();
             }
         }
         public static function toggleLayer2Check():void
         {
-            if (main.toolOptionsBox.layer2CheckedButton.visible === false)
+            if (ToolController.toolOptionsBox.layer2CheckedButton.visible === false)
             {
                 checkedLayer = 2;
-                main.toolOptionsBox.layer2CheckedButton.visible = true;
-                main.toolOptionsBox.layer2UncheckedButton.visible = false;
-                main.toolOptionsBox.layer1CheckedButton.visible = false;
-                main.toolOptionsBox.layer1UncheckedButton.visible = true;
-                main.toolBox.setToolButtonsForCheckedLayerON();
-                main.toolBox2.setToolButtonsForCheckedLayerON();
+                ToolController.toolOptionsBox.layer2CheckedButton.visible = true;
+                ToolController.toolOptionsBox.layer2UncheckedButton.visible = false;
+                ToolController.toolOptionsBox.layer1CheckedButton.visible = false;
+                ToolController.toolOptionsBox.layer1UncheckedButton.visible = true;
+                ToolController.toolBox.setToolButtonsForCheckedLayerON();
+                ToolController.toolBox2.setToolButtonsForCheckedLayerON();
             }
             else
             {
                 checkedLayer = 0;
-                main.toolOptionsBox.layer2CheckedButton.visible = false;
-                main.toolOptionsBox.layer2UncheckedButton.visible = true;
-                main.toolBox.setToolButtonsForCheckedLayerOFF();
-                main.toolBox2.setToolButtonsForCheckedLayerOFF();
+                ToolController.toolOptionsBox.layer2CheckedButton.visible = false;
+                ToolController.toolOptionsBox.layer2UncheckedButton.visible = true;
+                ToolController.toolBox.setToolButtonsForCheckedLayerOFF();
+                ToolController.toolBox2.setToolButtonsForCheckedLayerOFF();
             }
         }
 
@@ -315,12 +315,12 @@ package Modules
                 main.rDataBuffer.push(["merge"]);
                 main.undoManager.addNew();
             }
-            main.toolOptionsBox.layerMergeButton.alpha = Global.OFFALPHA;
+            ToolController.toolOptionsBox.layerMergeButton.alpha = Global.OFFALPHA;
         }
 
         public static function swapLayer():void
         {
-            if (main.toolOptionsBox.layerSwapButton.alpha < 1.0)
+            if (ToolController.toolOptionsBox.layerSwapButton.alpha < 1.0)
             {
                 return;
             }
@@ -349,7 +349,7 @@ package Modules
                 main.rDataBuffer.push(["swap"]);
                 main.undoManager.addNew();
             }
-            playLayerSwapEffect(main.toolOptionsBox.layerSwapButton);
+            playLayerSwapEffect(ToolController.toolOptionsBox.layerSwapButton);
         }
 
         public static function updateCanvasPanelMask(w:Number, h:Number):void
@@ -378,7 +378,7 @@ package Modules
         {
             mx = Math.round(mx * 100) / 100;
             my = Math.round(my * 100) / 100;
-            if (main.isSharpLineON)
+            if (ToolController.isSharpLineON)
             {
                 my = Math.floor(my);
                 mx = Math.floor(mx);
@@ -565,36 +565,36 @@ package Modules
         public static function selectLayer1(onlyViewFlag:Boolean):void
         {
             isLayer2Selected = false;
-            main.toolOptionsBox.setSelectLayerButtonActiveAlpha(1);
+            ToolController.toolOptionsBox.setSelectLayerButtonActiveAlpha(1);
             if (onlyViewFlag)
             {
                 canvasLayer1Bitmap.visible = true;
                 canvasLayer2Bitmap.visible = false;
-                main.toolOptionsBox.moveLayerInvisibleLineToLayer2();
+                ToolController.toolOptionsBox.moveLayerInvisibleLineToLayer2();
             }
             else
             {
                 canvasLayer1Bitmap.visible = true;
                 canvasLayer2Bitmap.visible = true;
-                main.toolOptionsBox.removeLayerInvisibleLine();
+                ToolController.toolOptionsBox.removeLayerInvisibleLine();
             }
             bringCanvasDrawLayerAboveLayer1();
         }
         public static function selectLayer2(onlyViewFlag:Boolean):void
         {
             isLayer2Selected = true;
-            main.toolOptionsBox.setSelectLayerButtonActiveAlpha(2);
+            ToolController.toolOptionsBox.setSelectLayerButtonActiveAlpha(2);
             if (onlyViewFlag)
             {
                 canvasLayer1Bitmap.visible = false;
                 canvasLayer2Bitmap.visible = true;
-                main.toolOptionsBox.moveLayerInvisibleLineToLayer1();
+                ToolController.toolOptionsBox.moveLayerInvisibleLineToLayer1();
             }
             else
             {
                 canvasLayer1Bitmap.visible = true;
                 canvasLayer2Bitmap.visible = true;
-                main.toolOptionsBox.removeLayerInvisibleLine();
+                ToolController.toolOptionsBox.removeLayerInvisibleLine();
             }
             bringCanvasDrawLayerAboveLayer2();
         }
@@ -1110,8 +1110,10 @@ package Modules
                 drawRatioSnapGuide(oldWidth, oldHeight, targetName);
                 updateRatioSnapGuidePos();
 
-                if (main.isToolBox2Showing)
-                    main.closeToolBox2();
+                if (ToolController.isToolBox2Showing)
+                {
+                    ToolController.closeToolBox2();
+                }
 
                 MainUIController.updateCanvasResizeButtonVisible(false);
                 main.stage.addEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent);

@@ -8,6 +8,7 @@
     import Modules.CaptureController;
     import Modules.Tools.PenTool;
     import Modules.Tools.LassoTool;
+    import Modules.ToolController;
 
     public class HintStrings
     {
@@ -184,7 +185,7 @@
 
         static private function getRedoButtonHint():String
         {
-            if (main === null || main.toolBox2.visible)
+            if (main === null || ToolController.toolBox2.visible)
             {
                 return "Redo [x / ,]";
             }
@@ -194,7 +195,7 @@
 
         static private function getUndoButtonHint():String
         {
-            if (main === null || main.toolBox2.visible)
+            if (main === null || ToolController.toolBox2.visible)
             {
                 return "Undo [z / .]";
             }

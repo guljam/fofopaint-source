@@ -232,9 +232,9 @@ package Modules
             {
                 MainUI.topBar.newFileButton.alpha = 1.0;
             }
-            if (main.toolOptionsBox.layerMergeButton.alpha < 1.0)
+            if (ToolController.toolOptionsBox.layerMergeButton.alpha < 1.0)
             {
-                main.toolOptionsBox.layerMergeButton.alpha = 1.0;
+                ToolController.toolOptionsBox.layerMergeButton.alpha = 1.0;
             }
             MainUIController.markWindowTitleAsDirty();
         }
@@ -406,7 +406,7 @@ package Modules
         public static function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, file:File, bmpd:BitmapData, filetype:String):void
         {
             main.clearKeyBuffer();
-            main.closeToolBox2();
+            ToolController.closeToolBox2();
             loadMenuBoxFileType = filetype;
             loadMenuBoxFile = file;
             loadMenuBoxBitmapData = bmpd;
@@ -414,8 +414,8 @@ package Modules
             {
                 LassoTool.cancelLassoTool();
                 LassoTool.resetLassoBox();
-                main.resetLastTool();
-                main.selectPenTool();
+                ToolController.resetLastTool();
+                ToolController.selectPenTool();
             }
             if (bmpd)
             {
@@ -1178,7 +1178,7 @@ package Modules
 
             appStateObject.penSmoothValue = PenTool.penSmoothValue;
             appStateObject.penSmoothSlideValue = PenTool.penSmoothSlideValue;
-            appStateObject.penSmoothButtonX = main.toolOptionsBox.penSmoothSliderCursor.x;
+            appStateObject.penSmoothButtonX = ToolController.toolOptionsBox.penSmoothSliderCursor.x;
 
             appStateObject.penSize = PenTool.penSize;
             appStateObject.penSizeIndex = PenTool.penSizeIndex;
@@ -1305,10 +1305,10 @@ package Modules
             main.clearKeyBuffer();
             main.removeKeyRepeatEvents(null);
             FOFOTimer.remove("pressholdtimer");
-            if (main.isToolBox2Showing)
+            if (ToolController.isToolBox2Showing)
             {
                 CanvasController.isRightMouseClicked = false;
-                main.closeToolBox2();
+                ToolController.closeToolBox2();
             }
             if (!SidebarController.isSidebarVisible)
             {
@@ -1342,7 +1342,7 @@ package Modules
                 ColorPickerController.colorPickerBox.scratchPad.removeCheckMouseDistEvent();
             }
             MainUI.hideBottomHint();
-            main.selectLastUsedTool();
+            ToolController.selectLastUsedTool();
         }
 
         // todo 이것은 mainui controller로 가야하지 않을까

@@ -85,7 +85,7 @@ package Modules
 
 		public static function isHintUnavailable():Boolean
 		{
-			return CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging || main.isToolBox2Showing
+			return CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging || ToolController.isToolBox2Showing
 				|| main.numPadBox.visible || main.isAboutBoxOpened || main.isGeneratingCacheImages();
 			// || isFillPenStarted
 			// || isLassoToolStarted
@@ -142,7 +142,7 @@ package Modules
 				return;
 			}
 
-			if (isSameWithLastBottomHintTargetRect(target) || main.isToolBox2Showing)
+			if (isSameWithLastBottomHintTargetRect(target) || ToolController.isToolBox2Showing)
 			{
 				return;
 			}
@@ -388,9 +388,9 @@ package Modules
 
 			SidebarController.sideBarScrollPanel.addChild(CanvasController.canvasNavigatorBox);
 			SidebarController.sideBarScrollPanel.addChild(CanvasController.canvasInfoBox);
-			main.toolBox.moveCanvasControlButtonsTo(CanvasController.canvasInfoBox);
-			SidebarController.sideBarScrollPanel.addChild(main.toolBox);
-			SidebarController.sideBarScrollPanel.addChild(main.toolOptionsBox);
+			ToolController.toolBox.moveCanvasControlButtonsTo(CanvasController.canvasInfoBox);
+			SidebarController.sideBarScrollPanel.addChild(ToolController.toolBox);
+			SidebarController.sideBarScrollPanel.addChild(ToolController.toolOptionsBox);
 			SidebarController.sideBarScrollPanel.addChild(ColorPickerController.colorPickerBox);
 
 			SidebarController.sideBar.addChild(SidebarController.sideBarScrollBar);
@@ -409,15 +409,15 @@ package Modules
 			bottomHint.x = 2;
 			bottomHint.y = 3;
 
-			main.selectedToolViewBitmap.name = "selectedToolViewBitmap";
-			main.selectedToolViewBitmap.visible = false;
+			ToolController.selectedToolViewBitmap.name = "selectedToolViewBitmap";
+			ToolController.selectedToolViewBitmap.visible = false;
 
 			main.stage.addChild(FileManager.loadMenuBox);
 			main.stage.addChild(ReferenceLayerController.refLayerMenuBox);
 			main.stage.addChild(main.aboutBox);
 			main.stage.addChild(SidebarController.sideBar);
 			main.stage.addChild(main.fillPenBox);
-			main.stage.addChild(main.toolBox2);
+			main.stage.addChild(ToolController.toolBox2);
 			main.stage.addChild(CanvasController.canvasRotateCursor);
 			main.stage.addChild(main.numPadBox);
 			main.stage.addChild(CaptureController.captureStampFontListBox);
@@ -425,7 +425,7 @@ package Modules
 			main.stage.addChild(hintHighlightBox);
 			main.stage.addChild(bottomBar);
 			main.stage.addChild(mouseHint);
-			main.stage.addChild(main.selectedToolViewBitmap);
+			main.stage.addChild(ToolController.selectedToolViewBitmap);
 		}
 
 		public static function hideCanvasRotateCursor():void

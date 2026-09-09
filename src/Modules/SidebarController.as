@@ -173,7 +173,7 @@ package Modules
 
             sideBar.resetBG();
 
-            if (main.toolBox.getLastTool() === "toolEyedropper")
+            if (ToolController.toolBox.getLastTool() === "toolEyedropper")
             {
                 main.eyeDropperTool();
             }
@@ -283,7 +283,7 @@ package Modules
             {
                 if (!main.isFillPenStarted)
                 {
-                    main.selectLastUsedTool();
+                    ToolController.selectLastUsedTool();
                 }
 
                 main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpQuickSidebar);
@@ -330,9 +330,9 @@ package Modules
                 MainUI.hideBottomHint();
             }
 
-            if (main.selectedToolViewBitmap.visible)
+            if (ToolController.selectedToolViewBitmap.visible)
             {
-                main.selectedToolViewBitmap.visible = false;
+                ToolController.selectedToolViewBitmap.visible = false;
             }
 
             sideBar.setTransparentBG();
@@ -473,7 +473,7 @@ package Modules
             return !sideBar.visible
                 && !main.isReplayModeON
                 && !CaptureController.isCaptureModeON
-                && !main.isToolBox2Showing
+                && !ToolController.isToolBox2Showing
                 && !CanvasController.isMouseClickBlocked
                 && !MainUIController.resizeButtonR.visible;
         }
@@ -543,9 +543,9 @@ package Modules
 
             checkFOFOPosition();
 
-            if (main.selectedToolViewBitmap.visible)
+            if (ToolController.selectedToolViewBitmap.visible)
             {
-                main.updateSelectedToolViewBoxPos();
+                ToolController.updateSelectedToolViewBoxPos();
             }
         }
 
@@ -642,18 +642,18 @@ package Modules
             CanvasController.canvasInfoBox.x = CanvasController.canvasNavigatorBox.x - 2;
             CanvasController.canvasInfoBox.y = Math.floor(CanvasController.canvasNavigatorBox.y + CanvasController.canvasNavigatorBox.BOX_HEIGHT + 6);
 
-            main.toolOptionsBox.x = isRight ? 39 : 0;
-            main.toolOptionsBox.y = Math.floor(CanvasController.canvasInfoBox.y + CanvasController.canvasInfoBox.height + 7);
+            ToolController.toolOptionsBox.x = isRight ? 39 : 0;
+            ToolController.toolOptionsBox.y = Math.floor(CanvasController.canvasInfoBox.y + CanvasController.canvasInfoBox.height + 7);
 
-            ColorPickerController.colorPickerBox.x = main.toolOptionsBox.x;
-            ColorPickerController.colorPickerBox.y = Math.floor(main.toolOptionsBox.y + main.toolOptionsBox.height + 10);
+            ColorPickerController.colorPickerBox.x = ToolController.toolOptionsBox.x;
+            ColorPickerController.colorPickerBox.y = Math.floor(ToolController.toolOptionsBox.y + ToolController.toolOptionsBox.height + 10);
 
-            main.toolBox.x = isRight ? -2 : 177;
-            main.toolBox.y = Math.floor(main.toolOptionsBox.y + 1);
+            ToolController.toolBox.x = isRight ? -2 : 177;
+            ToolController.toolBox.y = Math.floor(ToolController.toolOptionsBox.y + 1);
 
-            if (!isRight && main.toolBox.getDeafultY() === 0)
+            if (!isRight && ToolController.toolBox.getDeafultY() === 0)
             {
-                main.toolBox.setDeafultY(main.toolBox.y);
+                ToolController.toolBox.setDeafultY(ToolController.toolBox.y);
             }
 
             resetScrollBarX();
@@ -848,11 +848,11 @@ package Modules
                 {
                     return true;
                 }
-                else if (main.handlePenOptionsBoxMouseDown(target) && (main.isSelectedToolPenOrLine() || main.isSelectedTool(main.TOOL_ERASER)))
+                else if (ToolController.handlePenOptionsBoxMouseDown(target) && (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_ERASER)))
                 {
                     return true;
                 }
-                else if (main.toolBox.alpha === 1.0 && target.alpha === 1.0 && main.handleToolBoxMouseDown(target))
+                else if (ToolController.toolBox.alpha === 1.0 && target.alpha === 1.0 && ToolController.handleToolBoxMouseDown(target))
                 {
                     return true;
                 }

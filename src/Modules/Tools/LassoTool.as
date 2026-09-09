@@ -22,9 +22,11 @@ package Modules.Tools
     import Modules.ColorPickerController;
     import Modules.ImageViewWindow;
     import Modules.CanvasController;
+    import Modules.ToolController;
 
     public class LassoTool
     {
+        // todo : 나중에 이 컨트롤러도 분해해서 lasso, pen fillpen등 투명도 크기 색깔 조정하는 클래스로 분리
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -247,8 +249,8 @@ package Modules.Tools
 
             main.updateLastKey(keyCode);
             isLassoMenuHiddenTemp = true;
-            main.setSelectedTool(main.TOOL_HAND);
-            main.showNowToolIconToCursorTemp(main.TOOL_HAND);
+            ToolController.setSelectedTool(ToolController.TOOL_HAND);
+            ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
         }
         else if (main.isPressingShift())
         {
@@ -303,16 +305,16 @@ switch (keyCode)
     case main.KEY.i:
         isLassoMenuHiddenTemp = true;
         main.updateLastKey(keyCode);
-        main.setSelectedTool(main.TOOL_ZOOM);
-        main.showNowToolIconToCursorTemp(main.TOOL_ZOOM);
+        ToolController.setSelectedTool(ToolController.TOOL_ZOOM);
+        ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ZOOM);
         break;
 
     case main.KEY.s:
     case main.KEY.k:
         isLassoMenuHiddenTemp = true;
         main.updateLastKey(keyCode);
-        main.setSelectedTool(main.TOOL_ROTATE);
-        main.showNowToolIconToCursorTemp(main.TOOL_ROTATE);
+        ToolController.setSelectedTool(ToolController.TOOL_ROTATE);
+        ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ROTATE);
         break;
 
     case main.KEY.enter:
@@ -546,9 +548,9 @@ public static function applyLassoShapen(scale:Number):void
 
 public static function isHintAvailableWithLassoToolStarted(target:DisplayObject):Boolean
 {
-    if (target === main.toolBox.toolZoomIn
-            || target === main.toolBox.toolZoomOut
-            || target === main.toolBox.toolRotate
+    if (target === ToolController.toolBox.toolZoomIn
+            || target === ToolController.toolBox.toolZoomOut
+            || target === ToolController.toolBox.toolRotate
             || target === SidebarController.sideBarScrollBar)
     {
         return true;
@@ -697,9 +699,9 @@ public static function moveSelectedAreaToLassoBox(replayMode:Boolean, rectArr:Ve
 public static function setAlphaButtonsOnLassoTool(alpha:Number):void
 {
     ColorPickerController.colorPickerBox.alpha = alpha;
-    main.toolBox.alpha = alpha;
-    main.toolOptionsBox.alpha = alpha;
-    main.toolBox.toolMirror.alpha = alpha;
+    ToolController.toolBox.alpha = alpha;
+    ToolController.toolOptionsBox.alpha = alpha;
+    ToolController.toolBox.toolMirror.alpha = alpha;
 }
 
 public static function cLassoTool():Object
@@ -1083,17 +1085,17 @@ public static function resetLassoBox():void
     }
     if (ReferenceLayerController.isRefLayerMenuON === true)
         ReferenceLayerController.refLayerMenuBox.visible = true;
-    if (main.toolOptionsBox.layer1CheckedButton.visible || main.toolOptionsBox.layer2CheckedButton.visible)
+    if (ToolController.toolOptionsBox.layer1CheckedButton.visible || ToolController.toolOptionsBox.layer2CheckedButton.visible)
     {
-        main.toolBox.setToolButtonsForCheckedLayerON();
+        ToolController.toolBox.setToolButtonsForCheckedLayerON();
     }
-    main.toolBox.setIconAlphaOnLassoToolON(1.0);
-    main.toolOptionsBox.layerButtonWrapper.alpha = 1.0;
-    main.toolOptionsBox.airBrushButtonWrapper.alpha = 1.0;
-    main.toolOptionsBox.sharpLineButtonWrapper.alpha = 1.0;
-    main.toolOptionsBox.opaSizeButtonWrapper.alpha = 1.0;
+    ToolController.toolBox.setIconAlphaOnLassoToolON(1.0);
+    ToolController.toolOptionsBox.layerButtonWrapper.alpha = 1.0;
+    ToolController.toolOptionsBox.airBrushButtonWrapper.alpha = 1.0;
+    ToolController.toolOptionsBox.sharpLineButtonWrapper.alpha = 1.0;
+    ToolController.toolOptionsBox.opaSizeButtonWrapper.alpha = 1.0;
     ColorPickerController.colorPickerBox.alpha = 1.0;
-    main.selectLastUsedTool();
+    ToolController.selectLastUsedTool();
     setAlphaButtonsOnLassoTool(1.0);
 }
 
@@ -1188,8 +1190,8 @@ public static function onMouseUpLassoTool(e:MouseEvent):void
     {
         main.updateLastKey(main.KEY.space);
         isLassoMenuHiddenTemp = true;
-        main.setSelectedTool(main.TOOL_HAND);
-        main.showNowToolIconToCursorTemp(main.TOOL_HAND);
+        ToolController.setSelectedTool(ToolController.TOOL_HAND);
+        ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
     }
 }
 
@@ -1210,11 +1212,11 @@ public static function onMouseDownLassoTool(e:MouseEvent):void
         if (isLassoMenuHiddenTemp)
         {
             lassoMenuBox.visible = false;
-            if (main.isSelectedTool(main.TOOL_HAND))
+            if (ToolController.isSelectedTool(ToolController.TOOL_HAND))
                 main.handTool(false, false);
-            else if (main.isSelectedTool(main.TOOL_ZOOM))
+            else if (ToolController.isSelectedTool(ToolController.TOOL_ZOOM))
                 main.zoomTool();
-            else if (main.isSelectedTool(main.TOOL_ROTATE))
+            else if (ToolController.isSelectedTool(ToolController.TOOL_ROTATE))
                 main.rotateTool(false);
         }
         else
