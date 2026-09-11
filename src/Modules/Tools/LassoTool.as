@@ -23,10 +23,12 @@ package Modules.Tools
     import Modules.ImageViewWindow;
     import Modules.CanvasController;
     import Modules.ToolController;
+    import Modules.UndoManager;
 
     public class LassoTool
     {
         // todo : 나중에 이 컨트롤러도 분해해서 lasso, pen fillpen등 투명도 크기 색깔 조정하는 클래스로 분리
+        // todo: 포멧팅 필요, 라소툴 관련 메서드는 tool controller에 분할되어 이식되어야함
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -96,7 +98,7 @@ package Modules.Tools
             }
             else
             {
-                if (main.isDeepUndoEnabled)
+                if (UndoManager.isDeepUndoEnabled)
                 {
                     main.applyDeepUndo();
                 }
@@ -116,7 +118,7 @@ package Modules.Tools
                     l2 = true;
                 }
                 main.rDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
-                main.undoManager.addNew();
+                UndoManager.addUndoData.addNew();
                 disposeLassoBoxBitmapData();
                 resetLassoBox();
             }
@@ -963,7 +965,7 @@ public static function applyLassoImageToCanvas():void
     {
         if (hasLassoImageChanges() === true) // 사용후에 ok하면 처리해줌
         {
-            if (main.isDeepUndoEnabled)
+            if (UndoManager.isDeepUndoEnabled)
             {
                 main.applyDeepUndo();
             }
@@ -993,7 +995,7 @@ public static function applyLassoImageToCanvas():void
                         , checklayer1
                         , checklayer2
                         , command]);
-            main.undoManager.addNew();
+            UndoManager.addUndoData.addNew();
         }
         else
         {

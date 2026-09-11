@@ -18,6 +18,7 @@ package Modules
 
     public class ToolController
     {
+        // todo: 포멧팅 필요
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -576,7 +577,7 @@ package Modules
                         {
                             if (!FOFOTimer.hasTimer("keyHoldRepeatTimer"))
                             {
-                                main.redo();
+                                UndoManager.redo();
                             }
                         }
                         break;
@@ -1032,7 +1033,7 @@ package Modules
                     break;
                 case "toolRedo":
                     {
-                        main.redo();
+                        UndoManager.redo();
                         showNowToolIconToCursorTemp(TOOL_REDO);
                     }
                     break;
@@ -1106,7 +1107,7 @@ package Modules
                     return true;
                 case "toolRedo":
                     {
-                        main.startKeyRepeat(false, main.redo);
+                        main.startKeyRepeat(false, UndoManager.redo);
                         main.startKeyRepeatStopTimerOnMouseLeave(target);
                         handleToolBoxClick(targetName);
                     }

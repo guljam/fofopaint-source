@@ -12,6 +12,7 @@ package Modules.Tools
 	import Modules.ColorPickerController;
 	import Modules.CanvasController;
 	import Modules.ToolController;
+	import Modules.UndoManager;
 
 	public final class PenTool
 	{
@@ -88,18 +89,18 @@ package Modules.Tools
 		{
 			if (CanvasController.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
 			{
-				main.canAddUndoData = true;
+				UndoManager.canAddUndoData = true;
 			}
 			else if (penCursorShape)
 			{
 				if (canvasSizeRect.intersects(CanvasController.penSizePreviewCursor.getBounds(CanvasController.canvasPanel)))
 				{
-					main.canAddUndoData = true;
+					UndoManager.canAddUndoData = true;
 				}
 			}
 			else if (isCircleRectColliding(CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY, penCursorSize, 0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT))
 			{
-				main.canAddUndoData = true;
+				UndoManager.canAddUndoData = true;
 			}
 		}
 
@@ -159,7 +160,7 @@ package Modules.Tools
 
 		private static function handleMouseMove(mx:Number, my:Number):void
 		{
-			if (main.canAddUndoData === false)
+			if (UndoManager.canAddUndoData === false)
 			{
 				setCanUndoDataFlagON();
 			}
@@ -496,7 +497,7 @@ package Modules.Tools
 
 			lastMouseMoveDist = xSize / 5;
 
-			if (main.canAddUndoData === false)
+			if (UndoManager.canAddUndoData === false)
 			{
 				setCanUndoDataFlagON();
 			}

@@ -28,7 +28,7 @@ package Modules
         }
 
         // todo : mouse clicked right clicked, dragging은 마우스 관련 이벤트 변수로 옮기기,canvasNavigatorBox 분리하기
-        // todo : 캔버스 줌 로테이트 작동 이상함, 앵커포인트안잡히는듯
+        // todo : 포멧팅 필요
         public static const CANVAS_MIN_SIZE:Number = 100;
         public static const CANVAS_MAX_SIZE:Number = 2000;
         public static var CANVAS_WIDTH:Number = 600;
@@ -306,14 +306,14 @@ package Modules
             }
             else
             {
-                if (main.isDeepUndoEnabled)
+                if (UndoManager.isDeepUndoEnabled)
                 {
                     main.applyDeepUndo();
                 }
                 canvasLayer2BitmapData.draw(canvasLayer1BitmapData);
                 canvasLayer1BitmapData.fillRect(new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT), 0);
                 main.rDataBuffer.push(["merge"]);
-                main.undoManager.addNew();
+                UndoManager.addUndoData.addNew();
             }
             ToolController.toolOptionsBox.layerMergeButton.alpha = Global.OFFALPHA;
         }
@@ -324,7 +324,7 @@ package Modules
             {
                 return;
             }
-            if (main.isDeepUndoEnabled)
+            if (UndoManager.isDeepUndoEnabled)
             {
                 main.applyDeepUndo();
             }
@@ -347,7 +347,7 @@ package Modules
             else
             {
                 main.rDataBuffer.push(["swap"]);
-                main.undoManager.addNew();
+                UndoManager.addUndoData.addNew();
             }
             playLayerSwapEffect(ToolController.toolOptionsBox.layerSwapButton);
         }
@@ -937,7 +937,7 @@ package Modules
                     if (subX !== 0 || subY !== 0)
                     {
                         const centerMovedFlag:Boolean = (targetName === "resizeButtonL" || targetName === "resizeButtonU") ? true : false;
-                        if (main.isDeepUndoEnabled)
+                        if (UndoManager.isDeepUndoEnabled)
                         {
                             main.applyDeepUndo();
                         }
@@ -946,11 +946,11 @@ package Modules
                         main.rDataBuffer.push(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
                         if (main.hasLastRDataCommand("canvasSize"))
                         {
-                            main.undoManager.addContinue();
+                            UndoManager.addUndoData.addContinue();
                         }
                         else
                         {
-                            main.undoManager.addNew();
+                            UndoManager.addUndoData.addNew();
                             if (ImageViewWindow.isCanvasWindowON)
                             {
                                 ImageViewWindow.updateCanvasWindowBitmapSize();

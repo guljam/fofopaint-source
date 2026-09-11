@@ -83,6 +83,7 @@
     import Symbols.ToolOptionsSet;
     import Symbols.HintBoxSet;
     import flash.printing.PrintJobOrientation;
+    import Modules.UndoManager;
     // import
     public class Main extends Sprite
     {
@@ -213,10 +214,7 @@
         // 펜툴 줌툴 미러 에어브러시
         
         // 컨트롤 박스 투명도  todo : 임시임
-        // undo
-        public var undoDataIndex:int = -1, // undo redo 상태 인덱스임
-            isDeleteUndoDataPending:Boolean = false, // undo하고 나서 addundo가 되었을때 뒷부분 데이터 전부 날려주는 플래그
-            canAddUndoData:Boolean = false; // 선을 그어줄대 선전체가 캔버스 바깥쪽에 있을수도 있으니까 이걸 판단해줌
+
         // lasso
 
         // 키 오래누름 관련 변수
@@ -304,14 +302,10 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             drawCanvasFromReplayData:Function = cDrawReplayData(),
             rFollowMouse:Object = cReplayFollowMouse(),
             updatePenSizeCursor:Function = cUpdatePenSizeCursor(),
-            undoManager:Object = cAddUndoData(),
             penCursorManager:Object = cPenCursorUpdater(),
             replayHideCursor:Object = cReplayHideCursor(),
             resizeCanvas:Object = CanvasController.cResizeCanvas();
-        // 딥언도
-        public var isDeepUndoEnabled:Boolean = false,
-            lastDeepUndoEnabledFlag:Boolean = false, // 리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
-            lastReplayFrameOnDeepUndoStart:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
+     
         // 기타
         public var isAppClosing:Boolean = false, // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
             lastWindowDeactivateTime:int = 0, // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
@@ -339,6 +333,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
         }
         public function initializeModule():void
         {
+            trace('nit modu');
             //나중에 file load 클래스 초기화로 옮겨야함
             registerClassAlias("AppState", AppStateManager);
             //main ui가 호출되기전에 이것부터 stage 연결시켜주어야함 그냥 상단에 고정
@@ -361,6 +356,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             SidebarController.setMainInstance(this);
             ToolController.setMainInstance(this);
             Utils.setMainInstance(this);
+            UndoManager.setMainInstance(this);
             
             PenTool.setMainInstance(this);
             LassoTool.setMainInstance(this);
@@ -585,27 +581,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                     return true;
                 });
         }
-        public function showRCursorOnUndo(undoIndex:int):void
-        {
-            if (undoIndex < 0)
-            {
-                if (drawReplayByCommand.hasRCursorFirstPos())
-                {
-                    const p:Point = drawReplayByCommand.getFirstRCursorPos();
-                    drawReplayByCommand.setRCursorPos(p.x, p.y); // 커서 위치도 업에이트 해줘야함 대칭해줄띠 getRcursor로 하기 때문에
-                    drawReplayByCommand.updateRCursorPosToFirst();
-                }
-                else
-                {
-                    rReplayFOFOCursor.visible = false;
-                    MainUI.hideMouseHint();
-                }
-            }
-            else
-            {
-                drawReplayByCommand.updateRCursorPos();
-            }
-        }
+
         public function isLayer2SelectedReplayMode():Boolean
         {
             return rCanvasPanel.getChildIndex(rCanvasDrawLayer) < rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap);
@@ -665,16 +641,16 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             {
                 rDataBuffer.push(["bgColor", color]);
                 updateLastRDataCommand("bgColor");
-                undoManager.addContinue();
+                UndoManager.addUndoData.addContinue();
             }
             else
             {
-                if (isDeepUndoEnabled)
+                if (UndoManager.isDeepUndoEnabled)
                 {
                     applyDeepUndo();
                 }
                 rDataBuffer.push(["bgColor", color]);
-                undoManager.addNew();
+                UndoManager.addUndoData.addNew();
             }
         }
         public function updateLastRDataCommand(command:String):void
@@ -709,7 +685,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             {
                 return;
             }
-            const index:int = undoDataIndex;
+            const index:int = UndoManager.undoDataIndex;
             if (rData[index].length === 1)
             {
                 rData.splice(index);
@@ -729,13 +705,13 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 rData.splice(index + 1);
                 rDataFrame.splice(index + 1);
             }
-            isDeleteUndoDataPending = false;
-            undoManager.updateLastRDataMirror();
-            undoDataIndex = rData.length - 1;
+            UndoManager.isDeleteUndoDataPending = false;
+            UndoManager.addUndoData.updateLastRDataMirror();
+            UndoManager.undoDataIndex = rData.length - 1;
         }
         public function hasLastRDataCommand(command:String):Boolean
         {
-            const index:int = undoDataIndex;
+            const index:int = UndoManager.undoDataIndex;
             if (rData.length > 0 && index >= 0)
             {
                 const len:uint = rData[index].length;
@@ -1284,7 +1260,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             {
                 if (checkFillPenUndoReady() === true && command.length > 2)
                 {
-                    canAddUndoData = true;
+                    UndoManager.canAddUndoData = true;
                     command.push(2);
                     data.push(data[0]);
                     data.push(data[1]); // 마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
@@ -2311,7 +2287,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             CanvasController.isCanvasMirrored = false;
             mirrorCommandReady = false;
             rDataReadFlag = false;
-            undoManager.setRFileTotalFrame(0);
+            UndoManager.addUndoData.setRFileTotalFrame(0);
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             CanvasController.isLayerSwapped = false;
@@ -2320,7 +2296,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             initializeReplayDataFile(true);
             resetReplaySpeedBar();
             resetReplayTime();
-            resetUndoState();
+            UndoManager.resetUndoState();
             CaptureController.resetCaptureCanvasChangeValue();
             FileManager.updateLastFilePathByRandomFileName();
             CanvasController.canvasInfoBox.setMirror(false);
@@ -2799,12 +2775,12 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             if (rDataReadFlag)
             {
                 // repfile 초기화
-                undoManager.updateUndoBaseImageFromReplayMode();
+                UndoManager.addUndoData.updateUndoBaseImageFromReplayMode();
                 fs.open(FileManager.replayDataFilePath, FileMode.WRITE); // 파일 생성
                 fs.close();
                 FileManager.isFileAlreadySaved = false;
                 FileManager.enableNewFileButton();
-                undoManager.setRFileTotalFrame(0);
+                UndoManager.addUndoData.setRFileTotalFrame(0);
                 rData.splice(0, rDataIndex + 1);
                 rDataFrame.splice(0, rDataIndex + 1);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
@@ -2848,12 +2824,12 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             }
             resetReplaySpeedBar();
             isReplayFinished = true;
-            if (undoDataIndex > rData.length - 1)
+            if (UndoManager.undoDataIndex > rData.length - 1)
             {
-                undoDataIndex = rData.length - 1;
+                UndoManager.undoDataIndex = rData.length - 1;
             }
-            undoToIndex(undoDataIndex);
-            disableDeepUndo();
+            UndoManager.undoToIndex(UndoManager.undoDataIndex);
+            UndoManager.disableDeepUndo();
             updateReplayPrograssBarAndText();
             updateReplaySpeedSliderAlpha();
             drawReplayByCommand.setFirstRCursorPosCurrent();
@@ -2867,7 +2843,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             {
                 // 위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
                 // 실제 undo해줘야할 인덱스는 -1해줘야하는거임
-                undoToIndex(rDataIndex);
+                UndoManager.undoToIndex(rDataIndex);
                 rData.splice(rDataIndex + 1);
                 rDataFrame.splice(rDataIndex + 1);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
@@ -2895,7 +2871,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 }
                 // framedata도 인덱스 이후꺼 날려줌
                 rJumpImageFrameData.splice(index + 1);
-                undoManager.setRFileTotalFrame(rNowFrameSave);
+                UndoManager.addUndoData.setRFileTotalFrame(rNowFrameSave);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
                 CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
                 CanvasController.canvasLayer1Bitmap.bitmapData = CanvasController.canvasLayer1BitmapData;
@@ -2908,7 +2884,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 ColorPickerController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
                 resetReplayTime();
                 syncDrawCanvasWithReplayCanvas();
-                resetUndoState();
+                UndoManager.resetUndoState();
                 CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
                 if (ImageViewWindow.isCanvasWindowON)
                 {
@@ -2920,7 +2896,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             updateReplaySpeedSliderAlpha();
             updateDeleteReplayDataButtonsState();
             resetReplaySpeedBar();
-            disableDeepUndo();
+            UndoManager.disableDeepUndo();
             ReferenceLayerController.resetRefLayerImageTransform();
             if (SidebarController.isQuickSidebarActive)
             {
@@ -2935,7 +2911,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             clearDataAndResetVars();
             syncDrawCanvasWithReplayCanvas();
             exitReplayMode();
-            disableDeepUndo();
+            UndoManager.disableDeepUndo();
             resetReplayTime();
             ReferenceLayerController.resetRefLayerImageTransform();
         }
@@ -2962,10 +2938,10 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             }
             // framedata도 인덱스 이후꺼 날려줌
             rJumpImageFrameData.splice(index + 1);
-            undoManager.setRFileTotalFrame(rNowFrameSave);
+            UndoManager.addUndoData.setRFileTotalFrame(rNowFrameSave);
             updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
             resetReplayTime();
-            resetUndoState(true);
+            UndoManager.resetUndoState(true);
             rReplayFOFOCursor.visible = true; // 대칭된 커서 위치를 갱신해주려고 임시로 켜줌
             // checkMirrorCanvasReplayMirror();
             CanvasController.canvasInfoBox.setMirror(CanvasController.isCanvasMirrored);
@@ -2977,7 +2953,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 ImageViewWindow.updateCanvasWindowImage();
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
-            disableDeepUndo();
+            UndoManager.disableDeepUndo();
         }
         public function prepareDeleteReplayData(mode:String):Boolean
         {
@@ -3064,26 +3040,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             ba1.clear();
             ba2.clear();
         }
-        public function resetUndoState(fromReplayMode:Boolean = false):void
-        {
-            undoDataIndex = -1;
-            if (fromReplayMode)
-            {
-                undoManager.updateUndoBaseImageFromReplayMode();
-            }
-            else
-            {
-                undoManager.updateUndoBaseImageFromDrawMode();
-            }
-            undoManager.resetRJumpImageCount();
-            rData = [];
-            rDataFrame = [];
-            rDataBuffer = [];
-            canAddUndoData = false;
-            isDeleteUndoDataPending = false;
-            rReplayFOFOCursor.visible = false;
-            isDeepUndoEnabled = false;
-        }
+
         public function fitCanvasToViewportMargin(fitting:Boolean = false):void
         {
             if (!isReplayModeON && !CaptureController.isCaptureModeON)
@@ -4724,7 +4681,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
         }
         public function updateReplayPrograssText(finishFlag:Boolean = false, customFrame:Number = NaN):void
         {
-            const remainingTime:String = (isDeepUndoEnabled || finishFlag) ? "" : getReplayRemainingTimeString(rReplaySpeedMultipler, TOTAL_FRAME - rNowFrame);
+            const remainingTime:String = (UndoManager.isDeepUndoEnabled || finishFlag) ? "" : getReplayRemainingTimeString(rReplaySpeedMultipler, TOTAL_FRAME - rNowFrame);
             if (isNaN(customFrame))
             {
                 customFrame = rNowFrame;
@@ -4781,7 +4738,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                     {
                         lastCursorUpdateTime = nowTime;
                         drawReplayByCommand.updateRCursorPos();
-                        if (!isReplayCanvasFitToWindow && !CanvasController.isMouseClicked && !isDeepUndoEnabled)
+                        if (!isReplayCanvasFitToWindow && !CanvasController.isMouseClicked && !UndoManager.isDeepUndoEnabled)
                         {
                             rFollowMouse.check(isReplaySlideShowMode);
                         }
@@ -5187,13 +5144,10 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 MainUI.topBar.replayRepeatButton.alpha = Global.OFFALPHA;
             }
         }
-        public function getNowFrameUntilUndoIndex(index:int):Number
-        {
-            return undoManager.getRFileTotalFrame() + undoManager.getRDataTotalFrame(index);
-        }
+
         public function getTotalFrame():Number
         {
-            return getNowFrameUntilUndoIndex(rDataFrame.length - 1);
+            return UndoManager.getNowFrameUntilUndoIndex(rDataFrame.length - 1);
         }
 
         // targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
@@ -5464,7 +5418,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 rReplayFOFOCursor.visible = true;
             }
             drawReplayByCommand.updateRCursorPos();
-            if (!isReplaySlideShowMode && !isReplayCanvasFitToWindow && !isDeepUndoEnabled)
+            if (!isReplaySlideShowMode && !isReplayCanvasFitToWindow && !UndoManager.isDeepUndoEnabled)
             {
                 rFollowMouse.check(true);
             }
@@ -5727,7 +5681,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             const fs:FileStream = new FileStream();
             const fs2:FileStream = new FileStream();
             const totalSize:Number = FileManager.replayDataFilePath.size;
-            const deepUndoFlag:Boolean = isDeepUndoEnabled;
+            const deepUndoFlag:Boolean = UndoManager.isDeepUndoEnabled;
             var rect:Rectangle;
             var _frameSum:Number = 0;
             var _frameSumLast:Number = 0;
@@ -5736,7 +5690,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             CanvasController.canvasAnchorPoint.visible = false;
             rCanvasAnchorPoint.visible = false;
             CanvasController.canvasNavigatorBox.visible = false;
-            undoManager.resetRJumpImageCount();
+            UndoManager.addUndoData.resetRJumpImageCount();
             clearCanvasReplayMode(); // 리플레이 캔버스 먼저 깨끗하게
             // 첫 이미지 그려줌
             rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, rFirstImageLayer1BitmapData, rCanvasLayer1Bitmap);
@@ -5765,12 +5719,12 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                         stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
                         fs.close();
                         drawReplayByCommand.clearData();
-                        undoManager.setRFileTotalFrame(_frameSum);
+                        UndoManager.addUndoData.setRFileTotalFrame(_frameSum);
                         rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
                         resetReplayTime();
                         updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
                         rNowFrame = TOTAL_FRAME;
-                        lastReplayFrameOnDeepUndoStart = TOTAL_FRAME;
+                        UndoManager.lastReplayFrameOnDeepUndoStart = TOTAL_FRAME;
                         rPrevFrame = _frameSumLast;
                         isReplayFinished = true;
                         if (mirrorCommandReady)
@@ -5780,10 +5734,10 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                         }
                         CanvasController.isCanvasMirrored = rMirrorON;
                         rMirrorON = rMirrorON;
-                        undoManager.updateUndoBaseImageMirrorFlag(rMirrorON);
+                        UndoManager.addUndoData.updateUndoBaseImageMirrorFlag(rMirrorON);
                         CanvasController.canvasInfoBox.setMirror(rMirrorON);
                         CanvasController.canvasNavigatorBox.visible = true;
-                        if (!isReplayModeON && isDeepUndoEnabled)
+                        if (!isReplayModeON && UndoManager.isDeepUndoEnabled)
                         {
                             rDataReadFlag = false;
                             addInputEventsDrawMode();
@@ -5801,8 +5755,8 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                             rJumpImageIndexLast = -2;
                             rJumpImageNowFrameLast = -1;
                             rTempCachedLastImageIndex = -2;
-                            disableDeepUndo();
-                            undoToIndex(rData.length - 1);
+                            UndoManager.disableDeepUndo();
+                            UndoManager.undoToIndex(rData.length - 1);
                             CanvasController.centerCanvas("replay");
                             removeInputEventsDrawMode();
                             addInputEventsReplayMode();
@@ -6110,7 +6064,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
         public function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDrawable, layer2Image:IBitmapDrawable):void
         {
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
-            undoManager.setRFileTotalFrame(0);
+            UndoManager.addUndoData.setRFileTotalFrame(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReferenceLayerController.refLayerRawBitmapData = null;
             ReferenceLayerController.refLayerRawTransformData = null;
@@ -6201,7 +6155,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 CanvasGridOverlay.drawGrid();
             }
             // bitmapdata가 갱신된이후에 업데이트 해줘야함
-            resetUndoState();
+            UndoManager.resetUndoState();
             drawReplayByCommand.resetFirstRCursorPos();
             if (ReferenceLayerController.refLayerRawTransformData === null)
             {
@@ -6275,84 +6229,9 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             fs.writeObject(rJumpImageFrameData);
             fs.close();
         }
-        public function loadUndoData():void
-        {
-            if (FileManager.undoDataFilePath.exists === false)
-            {
-                return;
-            }
-            rMirrorON = false;
-            CanvasController.isCanvasMirrored = false;
-            CanvasController.canvasInfoBox.setMirror(false);
-            const fs:FileStream = new FileStream();
-            fs.open(FileManager.undoDataFilePath, FileMode.READ);
-            const lastUndoIndex:int = fs.readInt();
-            var arr:Array = fs.readObject() as Array; // undodata first
-            const bmpdRect:Rectangle = new Rectangle(0, 0, arr[2], arr[3]);
-            var bmpd:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-            var bmpd1:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-            if (arr[6] is Number)
-            {
-                undoManager.setRFileTotalFrame(arr[6]);
-            }
-            rData = (fs.readObject() as Array).concat();
-            rDataFrame = (fs.readObject() as Array).concat();
-            fs.close();
-            undoDataIndex = lastUndoIndex;
-            bmpd.lock();
-            bmpd.setPixels(bmpdRect, arr[0]);
-            bmpd.unlock();
-            bmpd1.lock();
-            bmpd1.setPixels(bmpdRect, arr[1]);
-            bmpd1.unlock();
-            undoManager.updateUndoBaseImage(bmpd.clone(), bmpd1.clone(), arr[2], arr[3], arr[4], arr[5]);
-            drawUndoData();
-            rReplayFOFOCursor.visible = false;
-            MainUI.hideMouseHint();
-            bmpd.dispose();
-            bmpd1.dispose();
-            bmpd = null;
-            bmpd1 = null;
-            arr.length = 0;
-            arr = null;
-            // undo index가 arr의 가장 마지막 부분이 아니면 undo를 하던 중이니까 isDeleteUndoDataPending 켜줌
-            if (lastUndoIndex < rData.length - 1)
-            {
-                isDeleteUndoDataPending = true;
-            }
-            else
-            {
-                isDeleteUndoDataPending = false;
-            }
-        }
 
 
-        public function saveUndoData():void
-        {
-            const fs:FileStream = new FileStream();
-            const arr:Array = undoManager.getUndoBaseImage();
-            const bmpd:BitmapData = arr[0];
-            const bmpd1:BitmapData = arr[1];
-            var ba:ByteArray = new ByteArray();
-            var ba1:ByteArray = new ByteArray();
-            var newRectangle:Rectangle = new Rectangle(0, 0, arr[2], arr[3]);
-            bmpd.copyPixelsToByteArray(newRectangle, ba);
-            bmpd1.copyPixelsToByteArray(newRectangle, ba1);
-            // ba.compress();
-            // ba1.compress();
-            // 레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
-            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], undoManager.getRFileTotalFrame()];
-            fs.open(FileManager.undoDataFilePath, FileMode.WRITE);
-            fs.writeInt(undoDataIndex);
-            fs.writeObject(newArr);
-            fs.writeObject(rData);
-            fs.writeObject(rDataFrame);
-            fs.close();
-            ba.clear();
-            ba1.clear();
-            ba = null;
-            ba = null;
-        }
+
 
 
         // size, size drag, zoom, rotate시 업데이트 해줌
@@ -6409,20 +6288,20 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             var drawLayerAlpha:ColorTransform = new ColorTransform();
             return function ():void
             {
-                if (canAddUndoData === false)
+                if (UndoManager.canAddUndoData === false)
                 {
                     rDataBuffer = [];
                     CanvasController.canvasDrawLayerChild.graphics.clear();
                     return;
                 }
-                if (isDeepUndoEnabled)
+                if (UndoManager.isDeepUndoEnabled)
                 {
                     var rDataBufferSave:Array = rDataBuffer.concat();
                     applyDeepUndo();
                     rDataBuffer = rDataBufferSave;
                     rDataBufferSave = null;
                 }
-                canAddUndoData = false;
+                UndoManager.canAddUndoData = false;
                 if (PenTool.airBrushSizeDrawMode > 0)
                 {
                     const blurSize:Number = CanvasController.getBlurSize(PenTool.airBrushSizeDrawMode, 1.0);
@@ -6460,7 +6339,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                     CanvasController.canvasLayer1Bitmap.bitmapData = CanvasController.canvasLayer1BitmapData;
                 CanvasController.canvasDrawLayerBitmapData.fillRect(CanvasController.canvasDrawLayerClipRect, 0); // 그려준 영역만
                 CanvasController.canvasDrawLayerChild.graphics.clear();
-                undoManager.addNew();
+                UndoManager.addUndoData.addNew();
             };
         }
         public function cLineTool():Function
@@ -6639,7 +6518,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 {
                     const mx:Number = CanvasController.canvasDrawLayerChild.mouseX;
                     const my:Number = CanvasController.canvasDrawLayerChild.mouseY;
-                    canAddUndoData = true;
+                    UndoManager.canAddUndoData = true;
                     if (mouseMovedFlag === false && oldX === mx && oldY === my)
                     {
                         rDataBuffer = [];
@@ -6802,7 +6681,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 const movex1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.x);
                 const movey1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.y);
                 var movedMat:Matrix = new Matrix();
-                if (isDeepUndoEnabled)
+                if (UndoManager.isDeepUndoEnabled)
                     applyDeepUndo();
                 // 최종적으로 움직인 거리를 실제로 비트맵 데이터 조작
                 if (CanvasController.checkedLayer === 0)
@@ -6873,9 +6752,9 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                         }
                     }
                     if (hasLastRDataCommand(command))
-                        undoManager.addContinue();
+                        UndoManager.addUndoData.addContinue();
                     else
-                        undoManager.addNew();
+                        UndoManager.addUndoData.addNew();
                 }
             }
             function onMouseMoveMovetool(e:MouseEvent):void
@@ -7483,36 +7362,15 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
 
 
 
-        public function getCanvasMovedUndo(index:int, redoFlag:Boolean):Point
-        {
-            const prevData:Array = (redoFlag) ? rData[index] : rData[index + 1];
-            if (!prevData)
-                return null;
-            var len:uint = prevData.length;
-            var xSum:Number = 0;
-            var ySum:Number = 0;
-            for (var i:uint = 0;i < len;i++)
-            {
-                if (prevData[i][0] === "canvasSize" && prevData[i][5] === true)
-                {
-                    xSum += prevData[i][3];
-                    ySum += prevData[i][4];
-                }
-            }
-            if (xSum === 0 && ySum === 0)
-                return null;
-            const movedXY:Point = (redoFlag) ? new Point(-xSum, -ySum)
-                : new Point(xSum, ySum);
-            return movedXY;
-        }
+
         public function drawUndoData(redoFlag:Boolean = false):void
         {
-            const undoRefData:Array = undoManager.getUndoBaseImage();
-            const undoIndexSave:int = undoDataIndex;
+            const undoRefData:Array = UndoManager.addUndoData.getUndoBaseImage();
+            const undoIndexSave:int = UndoManager.undoDataIndex;
             rDataReadFlag = true;
             rDataIndex = undoIndexSave;
             rPrevFrame = rNowFrame;
-            rNowFrame = getNowFrameUntilUndoIndex(undoIndexSave);
+            rNowFrame = UndoManager.getNowFrameUntilUndoIndex(undoIndexSave);
             rMirrorON = undoRefData[5];
             if (undoRefData[2] !== RCANVAS_WIDTH || undoRefData[3] !== RCANVAS_HEIGHT)
             {
@@ -7538,7 +7396,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             ColorPickerController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
             CanvasController.updateCavnvasSizeDrawMode(RCANVAS_WIDTH, RCANVAS_HEIGHT, 0, 0, false);
             // 앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
-            const movedRegPos:Point = getCanvasMovedUndo(undoIndexSave, redoFlag);
+            const movedRegPos:Point = UndoManager.getCanvasMovedUndo(undoIndexSave, redoFlag);
             if (movedRegPos)
             {
                 CanvasController.canvasAnchorPoint.x += movedRegPos.x * CanvasController.canvasZoomMultipler;
@@ -7547,7 +7405,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             }
             CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
             CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
-            showRCursorOnUndo(undoDataIndex);
+            UndoManager.showRCursorOnUndo(UndoManager.undoDataIndex);
             checkMirrorCanvasReplayMirror();
             CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             if (ImageViewWindow.isCanvasWindowON)
@@ -7559,36 +7417,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             MainUIController.updateCanvasNaigatorCursor();
             FileManager.enableNewFileButton();
         }
-        public function redo():void
-        {
-            if (isDeepUndoEnabled)
-            {
-                moveToNextStep();
-                applyReplayCanvasToDrawModeCanvas();
-                startAlphaFadeOut(rReplayFOFOCursor, 1.0, 0.3);
-                if (rNowFrame >= undoManager.getRFileTotalFrame())
-                {
-                    disableDeepUndo();
-                    undoDataIndex = -1;
-                }
-            }
-            else
-            {
-                undoDataIndex++;
-                if (undoDataIndex > rData.length - 1)
-                {
-                    FileManager.isFileAlreadySaved = false;
-                    isDeleteUndoDataPending = false;
-                    undoDataIndex = rData.length - 1;
-                }
-                else if (rData.length > 0)
-                {
-                    FileManager.isFileAlreadySaved = false;
-                    drawUndoData(true);
-                    startAlphaFadeOut(rReplayFOFOCursor, 1.0, 0.3);
-                }
-            }
-        }
+
         public function undo():void
         {
             if (isGeneratingCacheImages())
@@ -7596,7 +7425,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 removeKeyRepeatEvents(null);
                 return;
             }
-            if (isDeepUndoEnabled)
+            if (UndoManager.isDeepUndoEnabled)
             {
                 if (rNowFrame > 0)
                 {
@@ -7607,21 +7436,21 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             }
             else
             {
-                undoDataIndex--;
-                if (undoDataIndex < -1)
+                UndoManager.undoDataIndex--;
+                if (UndoManager.undoDataIndex < -1)
                 {
                     FileManager.isFileAlreadySaved = false;
-                    undoDataIndex = -1;
-                    if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY || (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE && undoManager.getRFileTotalFrame() > 0))
+                    UndoManager.undoDataIndex = -1;
+                    if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY || (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE && UndoManager.addUndoData.getRFileTotalFrame() > 0))
                     {
-                        enableDeepUndo();
+                        UndoManager.enableDeepUndo();
                         startAlphaFadeOut(rReplayFOFOCursor, 1.0, 0.3);
                     }
                 }
                 else if (rData.length > 0)
                 {
                     FileManager.isFileAlreadySaved = false;
-                    isDeleteUndoDataPending = true;
+                    UndoManager.isDeleteUndoDataPending = true;
                     drawUndoData();
                     startAlphaFadeOut(rReplayFOFOCursor, 1.0, 0.3);
                 }
@@ -7643,282 +7472,8 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
         }
-        public function undoToIndex(index:int):void
-        {
-            undoDataIndex = index;
-            FileManager.isFileAlreadySaved = false;
-            FileManager.enableNewFileButton();
-            drawUndoData();
-        }
-        public function cAddUndoData():Object
-        {
-            var dataWriteCount:uint = 0; // 데이터로 저장할때  rDataFrame 카운터 누적
-            var rFileTotalFrame:Number = 0; // file에저장된 프레임수 누적해서 저장
-            // undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
-            var undoBaseImage:Array = [rFirstImageLayer1BitmapData.clone()
-                    , rFirstImageLayer2BitmapData.clone()
-                    , CanvasController.CANVAS_WIDTH
-                    , CanvasController.CANVAS_HEIGHT
-                    , CanvasController.CANVAS_BG_COLOR
-                    , CanvasController.isCanvasMirrored];
-            function resetRJumpImageCount():void
-            {
-                dataWriteCount = 0;
-            }
-            function updateUndoBaseImageMirrorFlag(flag:Boolean):void
-            {
-                undoBaseImage[5] = flag;
-            }
-            function updateUndoBaseImageFromReplayMode():void
-            {
-                undoManager.updateUndoBaseImage(rCanvasLayer1BitmapData.clone(),
-                        rCanvasLayer2BitmapData.clone(),
-                        rCanvasLayer1BitmapData.width,
-                        rCanvasLayer1BitmapData.height,
-                        RCANVAS_BG_COLOR,
-                        rMirrorON);
-            }
-            function updateUndoBaseImageFromDrawMode():void
-            {
-                undoManager.updateUndoBaseImage(CanvasController.canvasLayer1BitmapData.clone(),
-                        CanvasController.canvasLayer2BitmapData.clone(),
-                        CanvasController.canvasLayer1BitmapData.width,
-                        CanvasController.canvasLayer1BitmapData.height,
-                        CanvasController.CANVAS_BG_COLOR,
-                        CanvasController.isCanvasMirrored);
-            }
-            function updateReplayCanvasFromUndoBaseInfo():void
-            {
-                var rMirrorSave:Boolean = rMirrorON;
-                if (undoBaseImage[2] !== RCANVAS_WIDTH || undoBaseImage[3] !== RCANVAS_HEIGHT)
-                {
-                    updateCanvasSizeReplayMode(undoBaseImage[2], undoBaseImage[3], 0, 0, false);
-                }
-                if (undoBaseImage[4] !== RCANVAS_BG_COLOR)
-                {
-                    updateCanvasBGColorReplayMode(undoBaseImage[4]);
-                }
-                rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoBaseImage[0], rCanvasLayer1Bitmap);
-                rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoBaseImage[1], rCanvasLayer2Bitmap);
-                drawReplayByCommand.setData(rData[0]);
-                drawReplayByCommand.drawAll();
-                if (undoBaseImage[0] && undoBaseImage[0] !== rCanvasLayer1BitmapData)
-                {
-                    undoBaseImage[0].dispose();
-                }
-                if (undoBaseImage[1] && undoBaseImage[1] !== rCanvasLayer2BitmapData)
-                {
-                    undoBaseImage[1].dispose();
-                }
-                undoBaseImage[0] = rCanvasLayer1BitmapData.clone();
-                undoBaseImage[1] = rCanvasLayer2BitmapData.clone();
-                undoBaseImage[2] = RCANVAS_WIDTH;
-                undoBaseImage[3] = RCANVAS_HEIGHT;
-                undoBaseImage[4] = RCANVAS_BG_COLOR;
-                if (rMirrorON !== rMirrorSave)
-                {
-                    undoBaseImage[5] = !undoBaseImage[5];
-                }
-                drawReplayByCommand.setFirstRCursorPosCurrent();
-            }
-            function getUndoBaseImage():Array
-            {
-                return undoBaseImage;
-            }
-            function updateUndoBaseImage(bmpd1:BitmapData, bmpd2:BitmapData, width:Number, height:Number, bgColor:uint, mirrorFlag:Boolean):void
-            {
-                if (undoBaseImage[0] && bmpd1 !== undoBaseImage[0])
-                {
-                    undoBaseImage[0].dispose();
-                }
-                if (undoBaseImage[1] && bmpd2 !== undoBaseImage[1])
-                {
-                    undoBaseImage[1].dispose();
-                }
-                undoBaseImage[0] = bmpd1;
-                undoBaseImage[1] = bmpd2;
-                undoBaseImage[2] = width;
-                undoBaseImage[3] = height;
-                undoBaseImage[4] = bgColor;
-                undoBaseImage[5] = mirrorFlag;
-            }
-            // undo index까지의 프레임 합을 구함
-            function getRDataTotalFrame(index:int):Number
-            {
-                if (index < 0)
-                {
-                    return 0;
-                }
-                var sum:Number = 0;
-                for (var i:int = 0;i <= index;i++)
-                {
-                    sum += rDataFrame[i];
-                }
-                return sum;
-            }
-            function getRFileTotalFrame():Number
-            {
-                return rFileTotalFrame;
-            }
-            function setRFileTotalFrame(frame:Number):void
-            {
-                rFileTotalFrame = frame;
-            }
-            // 미러가 되어있는지 확인해서 mirror커맨드를 무조건 앞으로 보냄
-            // 그게 아니면 미러 커맨드 지워줌
-            function updateLastRDataMirror():void
-            {
-                var popArr:Array;
-                if (mirrorCommandReady)
-                {
-                    // 마지막 데이터에 1개만의 미러 커맨드가 있으먼 미러를 무효로함 mirror mirror니까 원래대로임
-                    if (rData.length > 0 && rData[rData.length - 1].length === 1 && rData[rData.length - 1][0][0] === "mirror")
-                    {
-                        mirrorCommandReady = false;
-                        rData.pop();
-                        rDataFrame.pop();
-                    } // 그게 아니면 가장 앞에 미러커맨드를 넣어줌
-                    else if (rDataBuffer.length > 0 && rDataBuffer[0][0] !== "mirror")
-                    {
-                        mirrorCommandReady = false;
-                        rDataBuffer.unshift(["mirror"]);
-                    }
-                }
-                else
-                {
-                    // 미러 커맨드가 꺼져있는데 독립인 미러커맨드가 있으면 지워주고 미러 커맨드 플래그를 올려줘서 다음번에
-                    // 미러 커맨드가 가장 앞에 오도록함
-                    if (rData.length > 0 && rData[rData.length - 1].length === 1 && rData[rData.length - 1][0][0] === "mirror")
-                    {
-                        rData.pop();
-                        rDataFrame.pop();
-                        mirrorCommandReady = true;
-                    } // 그게 아니면 그냥 지워줌
-                    else if (rDataBuffer.length > 0 && rDataBuffer[0][0] === "mirror")
-                    {
-                        rDataBuffer.shift();
-                    }
-                }
-            }
-            // 끝 부분 중복처리 일때 넣어주는 거
-            function addContinue():void
-            {
-                if (rData.length === 0)
-                    return;
-                if (isDeleteUndoDataPending)
-                {
-                    isDeleteUndoDataPending = false;
-                    rData.splice(undoDataIndex + 1);
-                    rDataFrame.splice(undoDataIndex + 1);
-                }
-                updateLastRDataMirror();
-                // 버퍼에mirror가 있을수도 있기 때문에 요소를 하나씩 push해주어야함
-                const len:uint = rDataBuffer.length;
-                for (var i:uint = 0;i < len;i++)
-                {
-                    rData[rData.length - 1].push(rDataBuffer[i]); // 배열안에 배열이 들어있음
-                }
-                rDataFrame[rDataFrame.length - 1] = rData[rData.length - 1].length;
-                rDataBuffer = [];
-                rPrevFrame = rNowFrame;
-                rNowFrame = getTotalFrame();
-                CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
-                if (ImageViewWindow.isCanvasWindowON)
-                {
-                    ImageViewWindow.updateCanvasWindowImage();
-                    ImageViewWindow.updateCanvasWindowBitmapSize();
-                }
-            }
-            function addNew():void
-            {
-                if (isDeleteUndoDataPending === true)
-                {
-                    isDeleteUndoDataPending = false;
-                    rData.splice(undoDataIndex + 1);
-                    rDataFrame.splice(undoDataIndex + 1);
-                }
-                if (rData.length >= 10) // 첫번째 이미지는 빼야하니깐 -1로 계산해야함
-                {
-                    var oldData:Array = rData[0];
-                    if (oldData.length > 0)
-                    {
-                        const fs:FileStream = new FileStream();
-                        const c:uint = rDataFrame[0];
-                        const rf:File = FileManager.replayDataFilePath;
-                        fs.open(rf, FileMode.APPEND);
-                        fs.writeObject(oldData);
-                        fs.close();
-                        oldData = null;
-                        rFileTotalFrame += c;
-                        dataWriteCount += c;
-                        updateReplayCanvasFromUndoBaseInfo();
-                        if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_COMPLETE)
-                        {
-                            if (dataWriteCount > REPLAY_DISK_CACHE_FRAME_INTERVAL)
-                            {
-                                dataWriteCount = 0;
-                                const data:Array = undoBaseImage;
-                                const bmpd:BitmapData = data[0];
-                                const bmpd1:BitmapData = data[1];
-                                const w:int = data[2];
-                                const h:int = data[3];
-                                const bgColor:uint = data[4];
-                                var imgData:ByteArray = new ByteArray();
-                                var imgData1:ByteArray = new ByteArray();
-                                const newRectangle:Rectangle = new Rectangle(0, 0, w, h);
-                                bmpd.copyPixelsToByteArray(newRectangle, imgData);
-                                bmpd1.copyPixelsToByteArray(newRectangle, imgData1);
-                                // 위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
-                                if (BackgroundWorkerCoordinator.receivedUndoImageQueueFromWorker === null)
-                                    BackgroundWorkerCoordinator.receivedUndoImageQueueFromWorker = [];
-                                if (BackgroundWorkerCoordinator.undoDataQueue === null)
-                                    BackgroundWorkerCoordinator.undoDataQueue = [];
-                                BackgroundWorkerCoordinator.undoDataQueue.push([w, h, bgColor, rf.size, rFileTotalFrame, CanvasController.isCanvasMirrored]);
-                                BackgroundWorkerCoordinator.startUndoImageCompressionWorker(imgData, imgData1);
-                                BackgroundWorkerCoordinator.pollTimerWaitWorkerForCacheUndoData();
-                            }
-                        }
-                    }
-                    rData[0].length = 0;
-                    rData[0] = null;
-                    rDataFrame[0] = null;
-                    rData.shift();
-                    rDataFrame.shift();
-                }
-                updateLastRDataMirror();
-                if (rDataBuffer.length > 0)
-                {
-                    rData.push(rDataBuffer);
-                    rDataFrame.push(rDataBuffer.length);
-                    rDataBuffer = [];
-                    FileManager.isFileAlreadySaved = false;
-                    rDataReadFlag = true;
-                }
-                undoDataIndex = rData.length - 1;
-                CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
-                if (ImageViewWindow.isCanvasWindowON)
-                {
-                    ImageViewWindow.updateCanvasWindowImage();
-                }
-                rPrevFrame = rNowFrame;
-                rNowFrame = getTotalFrame();
-                FileManager.enableNewFileButton();
-            };
-            return {
-                    addNew: addNew,
-                    addContinue: addContinue,
-                    setRFileTotalFrame: setRFileTotalFrame,
-                    getRFileTotalFrame: getRFileTotalFrame,
-                    getRDataTotalFrame: getRDataTotalFrame,
-                    getUndoBaseImage: getUndoBaseImage,
-                    updateUndoBaseImage: updateUndoBaseImage,
-                    updateUndoBaseImageFromReplayMode: updateUndoBaseImageFromReplayMode,
-                    updateUndoBaseImageFromDrawMode: updateUndoBaseImageFromDrawMode,
-                    updateUndoBaseImageMirrorFlag: updateUndoBaseImageMirrorFlag,
-                    resetRJumpImageCount: resetRJumpImageCount,
-                    updateLastRDataMirror: updateLastRDataMirror
-                };
-        }
+
+
         public function handlePenOpacitySizeKeyDown(keyCode:uint):Boolean
         {
             switch (keyCode)
@@ -8111,7 +7666,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             }
             if (FileManager.undoDataFilePath.exists)
             {
-                loadUndoData(); // undo data 복구 먼저 해줘야함
+                UndoManager.loadUndoData(); // undo data 복구 먼저 해줘야함
             }
             if (FileManager.scratchPadDataFilePath.exists)
             {
@@ -8252,9 +7807,9 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                     }
 
                     FileManager.isContinueSaveON = appStateObject.isContinueSaveON;
-                    rDataIndex = undoDataIndex;
-                    rNowFrame = getNowFrameUntilUndoIndex(undoDataIndex);
-                    rPrevFrame = getNowFrameUntilUndoIndex(undoDataIndex - 1);
+                    rDataIndex = UndoManager.undoDataIndex;
+                    rNowFrame = UndoManager.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex);
+                    rPrevFrame = UndoManager.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex - 1);
 
                     // 혹시 몰라서 위치 체크 해줌
                     CanvasController.canvasInfoBox.setRotate(CanvasController.canvasAnchorPoint.rotation);
@@ -8906,7 +8461,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 case KEY.x:
                 case KEY.comma:
                     {
-                        startKeyRepeat(true, redo);
+                        startKeyRepeat(true, UndoManager.redo);
                         ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_REDO);
                     }
                     return true;
@@ -8974,35 +8529,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             rReplayFOFOCursor.scaleX = z;
             rReplayFOFOCursor.scaleY = z;
         }
-        public function disableDeepUndo():void
-        {
-            isDeepUndoEnabled = false;
-            lastDeepUndoEnabledFlag = false;
-            rDataReadFlag = true;
-            showRCursorOnUndo(-1);
-            clearRFrameTempCache();
-        }
-        public function enableDeepUndo():void
-        {
-            isDeepUndoEnabled = true;
-            rDataReadFlag = false;
-            if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY)
-            {
-                removeInputEventsDrawMode();
-                Utils.setAsTopChild(MainUI.seekBarBox);
-                MainUI.seekBarBox.updatePos(stage.stageWidth);
-                startGeneratingReplayCacheImage();
-            }
-            else
-            {
-                updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
-                // 이미지 캐시 해주고 rPrevFrame 갱신해주고
-                renderReplayFrame(undoManager.getRFileTotalFrame() - 1, JUMP_FRAME_MANUAL);
-                // 실제 rPrevFrame으로 점프
-                renderReplayFrame(rPrevFrame, JUMP_FRAME_MANUAL);
-                applyReplayCanvasToDrawModeCanvas();
-            }
-        }
+
         public function startGeneratingReplayCacheImage():void
         {
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_PROCESSING;
@@ -9112,11 +8639,11 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             MainUI.updateTopbarIconsDrawMode();
             CanvasController.canvasInfoBox.setZoom(CanvasController.canvasZoomMultipler);
             updateReplayCursorScale(CanvasController.canvasZoomMultipler);
-            isDeepUndoEnabled = lastDeepUndoEnabledFlag;
-            if (rNowFrame !== lastReplayFrameOnDeepUndoStart)
+            UndoManager.isDeepUndoEnabled = UndoManager.lastDeepUndoEnabledFlag;
+            if (rNowFrame !== UndoManager.lastReplayFrameOnDeepUndoStart)
             {
                 // after로 해주는 이유는 캐쉬 안만들어줄라고
-                renderReplayFrame(lastReplayFrameOnDeepUndoStart, JUMP_FRAME_NEXT);
+                renderReplayFrame(UndoManager.lastReplayFrameOnDeepUndoStart, JUMP_FRAME_NEXT);
             }
             clearRFrameTempCache();
             rReplayFOFOCursor.visible = false;
@@ -9156,9 +8683,9 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             MainUIController.updateStageOffset();
             FOFOTimer.remove("rCursorOffAlphaAnimTimer");
             MainUI.hideBottomHint();
-            lastDeepUndoEnabledFlag = isDeepUndoEnabled;
-            isDeepUndoEnabled = false;
-            lastReplayFrameOnDeepUndoStart = rNowFrame;
+            UndoManager.lastDeepUndoEnabledFlag = UndoManager.isDeepUndoEnabled;
+            UndoManager.isDeepUndoEnabled = false;
+            UndoManager.lastReplayFrameOnDeepUndoStart = rNowFrame;
             updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame()); // 최대 속도 계산
             updateReplayPrograssBarAndText();
             updateReplaySpeedSliderAlpha();
@@ -9185,9 +8712,9 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 // fitCanvasToViewportMargin();
                 // 이거 안해주고 리플레이틀고 프레임 조작 안하고 재생하면 중간부터 되서 데이터가 꼬임
                 isReplayFinished = true;
-                if (undoDataIndex >= 0)
+                if (UndoManager.undoDataIndex >= 0)
                 {
-                    rDataStartIndex = undoDataIndex + 1;
+                    rDataStartIndex = UndoManager.undoDataIndex + 1;
                     rDataReadFlag = true;
                 }
                 else
@@ -9514,7 +9041,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                     {
                         if (isCursorInDrawArea())
                         {
-                            if (ToolController.isToolBox2Showing && !isDeepUndoEnabled)
+                            if (ToolController.isToolBox2Showing && !UndoManager.isDeepUndoEnabled)
                             {
                                 ToolController.closeToolBox2();
                             }

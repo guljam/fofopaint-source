@@ -752,7 +752,7 @@ package Modules
                 fs.open(main.repFileTemp, FileMode.READ);
                 fs.position = 0;
                 // 딥 언도일때는 읽은 바이트 까지만 읽어줌
-                if (main.isDeepUndoEnabled)
+                if (UndoManager.isDeepUndoEnabled)
                 {
                     fs.readBytes(replayDataReadBytes, 0, main.rFileLastBytePosition);
                     fs.close();
@@ -763,7 +763,7 @@ package Modules
                     fs.readBytes(replayDataReadBytes, 0, fs.bytesAvailable);
                     fs.close();
                     replayDataReadBytes.position = replayDataReadBytes.length;
-                    for (var i:int = 0, len:int = main.undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
+                    for (var i:int = 0, len:int = UndoManager.undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
                     {
                         if (main.rData[i] && main.rData[i].length === 0)
                         {
@@ -1275,7 +1275,7 @@ package Modules
         public static function saveAllAppData():void
         {
             saveAppSatate();
-            main.saveUndoData();
+            UndoManager.saveUndoData();
             main.saveReplayFrameData();
             ReferenceLayerController.saveRefLayerImage();
             PaletteController.saveMypPaletteList();
@@ -1325,7 +1325,7 @@ package Modules
                 saveAllAppData();
             }
             main.lastWindowDeactivateTime = getTimer();
-            if (SidebarController.isQuickSidebarActive && !main.isDeepUndoEnabled)
+            if (SidebarController.isQuickSidebarActive && !UndoManager..isDeepUndoEnabled)
             {
                 SidebarController.deactivateQuickSidebar();
             }
