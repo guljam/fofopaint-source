@@ -499,7 +499,7 @@ package Modules
             function onMouseUpToolBox(e:MouseEvent):void
             {
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox);
-                if (main.isGeneratingCacheImages())
+                if (ReplayController.isGeneratingCacheImages())
                 {
                     return;
                 }
@@ -569,7 +569,7 @@ package Modules
                         {
                             if (!FOFOTimer.hasTimer("keyHoldRepeatTimer"))
                             {
-                                main.undo();
+                                UndoManager.undo();
                             }
                         }
                         break;
@@ -1027,7 +1027,7 @@ package Modules
                     break;
                 case "toolUndo":
                     {
-                        main.undo();
+                        UndoManager.undo();
                         showNowToolIconToCursorTemp(TOOL_UNDO);
                     }
                     break;
@@ -1100,7 +1100,7 @@ package Modules
                     return true;
                 case "toolUndo":
                     {
-                        main.startKeyRepeat(false, main.undo);
+                        main.startKeyRepeat(false, UndoManager.undo);
                         main.startKeyRepeatStopTimerOnMouseLeave(target);
                         handleToolBoxClick(targetName);
                     }

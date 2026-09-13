@@ -86,7 +86,7 @@ package Modules
 		public static function isHintUnavailable():Boolean
 		{
 			return CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging || ToolController.isToolBox2Showing
-				|| main.numPadBox.visible || main.isAboutBoxOpened || main.isGeneratingCacheImages();
+				|| ColorPickerController.numPadBox.visible || main.isAboutBoxOpened || ReplayController.isGeneratingCacheImages();
 			// || isFillPenStarted
 			// || isLassoToolStarted
 		}
@@ -110,10 +110,10 @@ package Modules
 				FOFOTimer.remove("bottomHintOffDelay");
 
 				const targetName:String = target.name;
-				const xCanvasPanel:Sprite = (main.isReplayModeON) ? main.rCanvasPanel : CanvasController.canvasPanel;
+				const xCanvasPanel:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasPanel : CanvasController.canvasPanel;
 				if (CaptureController.captureAreaManager.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
 				{
-					showHintHighlightBox((main.isReplayModeON) ? main.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
+					showHintHighlightBox((ReplayController.isReplayModeON) ? ReplayController.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
 					showBottomHint(hint);
 				}
 				else if (!(targetName === "rCanvasPanel"
@@ -419,7 +419,7 @@ package Modules
 			main.stage.addChild(main.fillPenBox);
 			main.stage.addChild(ToolController.toolBox2);
 			main.stage.addChild(CanvasController.canvasRotateCursor);
-			main.stage.addChild(main.numPadBox);
+			main.stage.addChild(ColorPickerController.numPadBox);
 			main.stage.addChild(CaptureController.captureStampFontListBox);
 			main.stage.addChild(topBar);
 			main.stage.addChild(hintHighlightBox);
@@ -571,7 +571,7 @@ package Modules
 			{
 
 				topBar.visible = true;
-				seekBarBox.y = main.lastReplayTimeBoxYPos;
+				seekBarBox.y = ReplayController.lastReplayTimeBoxYPos;
 				seekBarBox.setPlayButtonVisible(true);
 				seekBarBox.showReplayControlButton();
 				hideBottomHint();
@@ -582,7 +582,7 @@ package Modules
 
 		public static function activateCaptureUI():void
 		{
-			const replayMode:Boolean = main.isReplayModeON;
+			const replayMode:Boolean = ReplayController.isReplayModeON;
 			CaptureController.captureAreaManager.reset();
 			MainUIController.updateCanvasResizeButtonVisible(false);
 			FOFOTimer.remove("rCursorOffAlphaAnimTimer");
@@ -592,7 +592,7 @@ package Modules
 				showTopbarOnReplayEnd();
 				seekBarBox.setDeleteRangeBarVisible(false);
 				seekBarBox.visible = false;
-				main.removeInputEventsReplayMode();
+				ReplayController.removeInputEventsReplayMode();
 			}
 			else
 			{
@@ -615,7 +615,7 @@ package Modules
 			}
 
 			MainUI.updateTopbarIconsCaptureMode();
-			main.rReplayFOFOCursor.visible = false;
+			ReplayController.rReplayFOFOCursor.visible = false;
 
 			if (MainUI.mouseHint.isShowing())
 			{
@@ -628,14 +628,14 @@ package Modules
 
 		public static function deactivateCaptureUI():void
 		{
-			const replayMode:Boolean = main.isReplayModeON;
+			const replayMode:Boolean = ReplayController.isReplayModeON;
 			CaptureController.removeInputEventCaptrueMode();
 			ReferenceLayerController.canvasRefLayer.visible = true;
 
 			if (replayMode)
 			{
 				MainUI.updateTopbarIconsReplayMode();
-				main.addInputEventsReplayMode();
+				ReplayController.addInputEventsReplayMode();
 				seekBarBox.visible = true;
 			}
 			else

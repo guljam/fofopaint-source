@@ -16,8 +16,9 @@ package Modules
         {
             main = instance;
         }
-        // TODO : numpad 기능 안나옴, numpad, hsv, 스크레치패드+drawr+tegaki로 클래스 나누기
-
+        // TODO : numpad, hsv, 스크레치패드+drawr+tegaki로 클래스 나누기
+            // 메뉴 요소
+        
         public static const colorPickerBox:ColorPickerSet = new ColorPickerSet();
         public static const numPadBox:NumPadSet = new NumPadSet();
         public static const hsvColorData:Vector.<Number> = new Vector.<Number>(3, true); // h,s,v순서 hue컬러 다른 함수들이랑 통신하기 위해서 전역으로 만들어줌
@@ -581,7 +582,7 @@ package Modules
                     ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                 }
 
-                main.addUndoBGColorData(color);
+                ReplayController.addUndoBGColorData(color);
             }
         }
 
@@ -651,7 +652,7 @@ package Modules
                 }
 
                 updateColorPickerCursorPosAndRGBInfo(hexColor);
-                main.addUndoBGColorData(hexColor);
+                ReplayController.addUndoBGColorData(hexColor);
             }
             else
             {
@@ -813,7 +814,7 @@ package Modules
                         ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                     }
 
-                    main.addUndoBGColorData(pickedColor);
+                    ReplayController.addUndoBGColorData(pickedColor);
                 }
 
                 CanvasController.isPenSizeCursorInvisible = false;
@@ -913,7 +914,7 @@ package Modules
                         ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                     }
 
-                    main.addUndoBGColorData(pickedColor);
+                    ReplayController.addUndoBGColorData(pickedColor);
                 }
 
                 CanvasController.isPenSizeCursorInvisible = false;
@@ -986,7 +987,7 @@ package Modules
                         ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                     }
 
-                    main.addUndoBGColorData(bgColor);
+                    ReplayController.addUndoBGColorData(bgColor);
                 }
 
                 ToolController.selectPenToolIfNotDrawingTool(false);
@@ -1011,7 +1012,7 @@ package Modules
                     ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                 }
 
-                main.addUndoBGColorData(pickedColor);
+                ReplayController.addUndoBGColorData(pickedColor);
             }
         }
 

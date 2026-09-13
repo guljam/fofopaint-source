@@ -200,7 +200,7 @@ package Modules
 
         private static function onRightMouseDownQuickSidebar(e:MouseEvent):void
         {
-            if (!e.target || main.numPadBox.visible || MainUIController.isPopUpWindowOpened())
+            if (!e.target || ColorPickerController.numPadBox.visible || MainUIController.isPopUpWindowOpened())
             {
                 return;
             }
@@ -471,7 +471,7 @@ package Modules
         private static function canShowSidebarTemporarily():Boolean
         {
             return !sideBar.visible
-                && !main.isReplayModeON
+                && !ReplayController.isReplayModeON
                 && !CaptureController.isCaptureModeON
                 && !ToolController.isToolBox2Showing
                 && !CanvasController.isMouseClickBlocked

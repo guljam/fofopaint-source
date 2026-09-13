@@ -77,7 +77,7 @@ package Modules
             else if (command === "compress_ReplayDataDone")
             {
                 workerDataReceiveCount++;
-                main.writeReplayFile(backToMain.receive(true)
+                ReplayController.writeReplayFile(backToMain.receive(true)
                         , backToMain.receive(true)
                         , backToMain.receive(true)
                         , backToMain.receive(true)
@@ -216,9 +216,9 @@ package Modules
 
             if (replayMode)
             {
-                xPanel = main.rCanvasPanel;
-                w = main.RCANVAS_WIDTH;
-                h = main.RCANVAS_HEIGHT;
+                xPanel = ReplayController.rCanvasPanel;
+                w = ReplayController.RCANVAS_WIDTH;
+                h = ReplayController.RCANVAS_HEIGHT;
             }
             else
             {
@@ -356,7 +356,7 @@ package Modules
                     {
                         if (receivedUndoImageQueueFromWorker.length > 0)
                         {
-                            main.createCacheImage(receivedUndoImageQueueFromWorker[0][0],
+                            ReplayController.createCacheImage(receivedUndoImageQueueFromWorker[0][0],
                                     receivedUndoImageQueueFromWorker[0][1],
                                     undoDataQueue[0][0],
                                     undoDataQueue[0][1],

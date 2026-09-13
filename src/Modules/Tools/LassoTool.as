@@ -24,6 +24,7 @@ package Modules.Tools
     import Modules.CanvasController;
     import Modules.ToolController;
     import Modules.UndoManager;
+    import Modules.ReplayController;
 
     public class LassoTool
     {
@@ -100,7 +101,7 @@ package Modules.Tools
             {
                 if (UndoManager.isDeepUndoEnabled)
                 {
-                    main.applyDeepUndo();
+                    UndoManager.applyDeepUndo();
                 }
                 const lassoInfo:Array = applyLassoBoxImageToCanvas(true);
                 const point1:Vector.<Number> = lassoTransformData[0].concat();
@@ -117,7 +118,7 @@ package Modules.Tools
                     l1 = false;
                     l2 = true;
                 }
-                main.rDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
+                ReplayController.rDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
                 UndoManager.addUndoData.addNew();
                 disposeLassoBoxBitmapData();
                 resetLassoBox();
@@ -580,18 +581,18 @@ public static function moveSelectedAreaToLassoBox(replayMode:Boolean, rectArr:Ve
     // 에어브러시 켜줄때 필터 백업함
     if (replayMode)
     {
-        canvasDrawLayerFilterBackUp = main.rCanvasDrawShape.filters.concat();
-        main.rCanvasDrawShape.filters = [];
-        xCanvasDrawLayer = main.rCanvasDrawShape;
+        canvasDrawLayerFilterBackUp = ReplayController.rCanvasDrawShape.filters.concat();
+        ReplayController.rCanvasDrawShape.filters = [];
+        xCanvasDrawLayer = ReplayController.rCanvasDrawShape;
         if (layer1)
         {
-            canvasBitmapData = main.rCanvasLayer1BitmapData;
-            canvasBitmap = main.rCanvasLayer1Bitmap;
+            canvasBitmapData = ReplayController.rCanvasLayer1BitmapData;
+            canvasBitmap = ReplayController.rCanvasLayer1Bitmap;
         }
         if (layer2)
         {
-            canvasBitmapDataSub = main.rCanvasLayer2BitmapData;
-            canvasBitmapSub = main.rCanvasLayer2Bitmap;
+            canvasBitmapDataSub = ReplayController.rCanvasLayer2BitmapData;
+            canvasBitmapSub = ReplayController.rCanvasLayer2Bitmap;
         }
     }
     else
@@ -689,7 +690,7 @@ public static function moveSelectedAreaToLassoBox(replayMode:Boolean, rectArr:Ve
     lassoDraw.y = -lassoLayer1.y;
     if (replayMode)
     {
-        main.rCanvasDrawShape.filters = canvasDrawLayerFilterBackUp.concat();
+        ReplayController.rCanvasDrawShape.filters = canvasDrawLayerFilterBackUp.concat();
     }
     else
     {
@@ -967,7 +968,7 @@ public static function applyLassoImageToCanvas():void
         {
             if (UndoManager.isDeepUndoEnabled)
             {
-                main.applyDeepUndo();
+                UndoManager.applyDeepUndo();
             }
             const lassoInfo:Array = applyLassoBoxImageToCanvas(false);
             const point1:Vector.<Number> = lassoTransformData[0].concat();
@@ -989,7 +990,7 @@ public static function applyLassoImageToCanvas():void
                 checklayer1 = false;
                 checklayer2 = true;
             }
-            main.rDataBuffer.push(["lasso2", point1, point2
+            ReplayController.rDataBuffer.push(["lasso2", point1, point2
                         , lassoInfo
                         , isLassoImageCopied
                         , checklayer1

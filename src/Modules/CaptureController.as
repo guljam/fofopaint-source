@@ -79,7 +79,7 @@ package Modules
 
         public static function executeCaptureFlashEffect():void
         {
-            var xPanel:Sprite = (main.isReplayModeON) ? main.rCanvasPanel : CanvasController.canvasPanel;
+            var xPanel:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasPanel : CanvasController.canvasPanel;
             var posX:Number;
             var posY:Number;
             var canvasWidth:Number;
@@ -89,10 +89,10 @@ package Modules
             {
                 posX = 0;
                 posY = 0;
-                if (main.isReplayModeON)
+                if (ReplayController.isReplayModeON)
                 {
-                    canvasWidth = main.RCANVAS_WIDTH;
-                    canvasHeight = main.RCANVAS_HEIGHT;
+                    canvasWidth = ReplayController.RCANVAS_WIDTH;
+                    canvasHeight = ReplayController.RCANVAS_HEIGHT;
                 }
                 else
                 {
@@ -117,15 +117,15 @@ package Modules
 
         public static function getCaptrueImageBitmapdata(clipBoardCopyFlag:Boolean):BitmapData
         {
-            const isReplayMode:Boolean = main.isReplayModeON;
+            const isReplayMode:Boolean = ReplayController.isReplayModeON;
             var rect:Rectangle = (!captureAreaManager.isFullImageCapture()) ? captureAreaManager.getCaptureArea() : null;
             var layer1:Boolean;
             var layer2:Boolean;
 
             if (isReplayMode)
             {
-                layer1 = main.rCanvasLayer1Bitmap.visible;
-                layer2 = main.rCanvasLayer2Bitmap.visible;
+                layer1 = ReplayController.rCanvasLayer1Bitmap.visible;
+                layer2 = ReplayController.rCanvasLayer2Bitmap.visible;
             }
             else
             {
@@ -198,7 +198,7 @@ package Modules
 
         private static function updateCanvasFlipOnCaptureMode():void
         {
-            const xAnc:Sprite = (main.isReplayModeON) ? main.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
+            const xAnc:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
             if (captureCanvasRotationStep === 1)
             {
                 xAnc.rotation = 90;
@@ -212,8 +212,8 @@ package Modules
         public static function flipCaptureImage(flag:Boolean, initFlag:Boolean):void
         {
             isCaptureCanvasFlipped = flag;
-            main.fitCanvasToViewportMargin();
-            const xAnc:Sprite = (main.isReplayModeON) ? main.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
+            CanvasController.fitCanvasToViewportMargin();
+            const xAnc:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
 
             if (captureCanvasRotationStep === 1)
             {
@@ -269,11 +269,11 @@ package Modules
 
             if (isCaptureTransparentBGShowing)
             {
-                BackgroundWorkerCoordinator.applyTransparentCanvasBackground(main.isReplayModeON);
+                BackgroundWorkerCoordinator.applyTransparentCanvasBackground(ReplayController.isReplayModeON);
             }
             else
             {
-                main.restoreCanvasBackgroundColor(main.isReplayModeON);
+                main.restoreCanvasBackgroundColor(ReplayController.isReplayModeON);
             }
             MainUI.topBar.capClipBoard.alpha = 1.0;
         }
@@ -288,7 +288,7 @@ package Modules
             }
             captureCanvasRotationStep = rotateValue;
 
-            main.fitCanvasToViewportMargin();
+            CanvasController.fitCanvasToViewportMargin();
             MainUI.topBar.capClipBoard.alpha = 1.0;
             if (!initFlag)
             {
@@ -308,11 +308,11 @@ package Modules
             {
                 FOFOTimer.remove("bottomHintOffDelay");
                 const targetName:String = target.name;
-                const xCanvasPanel:Sprite = (main.isReplayModeON) ? main.rCanvasPanel : CanvasController.canvasPanel;
+                const xCanvasPanel:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasPanel : CanvasController.canvasPanel;
 
                 if (captureAreaManager.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
                 {
-                    MainUI.showHintHighlightBox((main.isReplayModeON) ? main.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
+                    MainUI.showHintHighlightBox((ReplayController) ? ReplayController.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
                     MainUI.showBottomHint(hint);
                 }
                 else if (!(targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "canvasPanel" || targetName === "canvasDrawLayer"))
@@ -498,14 +498,14 @@ package Modules
 
         public static function enterCaptureMode():void
         {
-            if (isCaptureModeON || main.isGeneratingCacheImages())
+            if (isCaptureModeON || ReplayController.isGeneratingCacheImages())
             {
                 return;
             }
 
-            if (main.isReplayStarted)
+            if (ReplayController.isReplayStarted)
             {
-                main.stopReplay();
+                ReplayController.stopReplay();
             }
 
             isCaptureModeON = true;
@@ -530,13 +530,13 @@ package Modules
             var layer1:Boolean;
             var layer2:Boolean;
 
-            if (main.isReplayModeON)
+            if (ReplayController.isReplayModeON)
             {
-                xAnc = main.rCanvasAnchorPoint;
-                xPanel = main.rCanvasPanel;
-                xZoomed = main.rCanvasZoomMultiplier;
-                main.rReplayFOFOCursor.visible = false;
-                main.rCanvasPanel.addChild(captureDragAreaOverlay);
+                xAnc = ReplayController.rCanvasAnchorPoint;
+                xPanel = ReplayController.rCanvasPanel;
+                xZoomed = ReplayController.rCanvasZoomMultiplier;
+                ReplayController.rReplayFOFOCursor.visible = false;
+                ReplayController.rCanvasPanel.addChild(captureDragAreaOverlay);
                 layer1 = true;
                 layer2 = true;
             }
@@ -578,7 +578,7 @@ package Modules
             MainUI.topBar.capClipBoard.alpha = 1.0;
             captureCanvasRotationStep = 0;
             isCaptureCanvasFlipped = false;
-            main.fitCanvasToViewportMargin();
+            CanvasController.fitCanvasToViewportMargin();
             applyTransparentCanvasBGCaptureMode(false);
             captureStampManager.init();
 
@@ -597,12 +597,12 @@ package Modules
 
         public static function exitCaptureMode():void
         {
-            const replayMode:Boolean = main.isReplayModeON;
+            const replayMode:Boolean = ReplayController.isReplayModeON;
             const data:Object = canvasStateBeforeCaptureMode;
-            const xBitmap1:Bitmap = (replayMode) ? main.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap;
-            const xBitmap11:Bitmap = (replayMode) ? main.rCanvasLayer2Bitmap : CanvasController.canvasLayer2Bitmap;
-            const xAnc:Sprite = (replayMode) ? main.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
-            const xPanel:Sprite = (replayMode) ? main.rCanvasPanel : CanvasController.canvasPanel;
+            const xBitmap1:Bitmap = (replayMode) ? ReplayController.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap;
+            const xBitmap11:Bitmap = (replayMode) ? ReplayController.rCanvasLayer2Bitmap : CanvasController.canvasLayer2Bitmap;
+            const xAnc:Sprite = (replayMode) ? ReplayController.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
+            const xPanel:Sprite = (replayMode) ? ReplayController.rCanvasPanel : CanvasController.canvasPanel;
 
             xBitmap1.smoothing = false;
             xBitmap11.smoothing = false;
@@ -622,9 +622,9 @@ package Modules
 
             if (replayMode)
             {
-                main.rCanvasLayer1Bitmap.visible = true;
-                main.rCanvasLayer2Bitmap.visible = true;
-                main.rCanvasDrawLayer.visible = true;
+                ReplayController.rCanvasLayer1Bitmap.visible = true;
+                ReplayController.rCanvasLayer2Bitmap.visible = true;
+                ReplayController.rCanvasDrawLayer.visible = true;
             }
             else
             {
@@ -632,7 +632,7 @@ package Modules
                 CanvasController.canvasLayer2Bitmap.visible = data.layer2;
             }
 
-            if (!main.isReplayCanvasFitToWindow)
+            if (!ReplayController.isReplayCanvasFitToWindow)
             {
                 CanvasController.updateCanvasScale(data.z, replayMode);
             }
@@ -649,7 +649,7 @@ package Modules
             if (replayMode)
             {
                 main.restoreCanvasBackgroundColor(true);
-                main.rReplayFOFOCursor.visible = true;
+                ReplayController.rReplayFOFOCursor.visible = true;
             }
             else if (!replayMode)
             {
@@ -924,8 +924,8 @@ package Modules
                 if (captureAreaManager.isFullImageCapture())
                 {
 
-                    offsetX = (main.isReplayModeON) ? main.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
-                    offsetY = (main.isReplayModeON) ? main.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
+                    offsetX = (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
+                    offsetY = (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
                 }
                 else
                 {
@@ -1002,7 +1002,7 @@ package Modules
                     if (captureAreaManager.isFullImageCapture())
                     {
 
-                        return (main.isReplayModeON) ? main.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
+                        return (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
                     }
                     else
                     {
@@ -1013,7 +1013,7 @@ package Modules
                 {
                     if (captureAreaManager.isFullImageCapture())
                     {
-                        return (main.isReplayModeON) ? main.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
+                        return (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
                     }
                     else
                     {
@@ -1052,8 +1052,8 @@ package Modules
                         return;
                     }
 
-                    const layer1Visible:Boolean = (main.isReplayModeON) ? main.rCanvasLayer1Bitmap.visible : CanvasController.canvasLayer1Bitmap.visible;
-                    const layer2Visible:Boolean = (main.isReplayModeON) ? main.rCanvasLayer2Bitmap.visible : CanvasController.canvasLayer2Bitmap.visible;
+                    const layer1Visible:Boolean = (ReplayController.isReplayModeON) ? ReplayController.rCanvasLayer1Bitmap.visible : CanvasController.canvasLayer1Bitmap.visible;
+                    const layer2Visible:Boolean = (ReplayController.isReplayModeON) ? ReplayController.rCanvasLayer2Bitmap.visible : CanvasController.canvasLayer2Bitmap.visible;
 
                     var bitmapVisibleFlag:int = 0;
 
@@ -1075,7 +1075,7 @@ package Modules
 
                     if (stampBGColor === null || !rect.equals(lastRectArea) || lastBitmapVisibleFlag !== bitmapVisibleFlag)
                     {
-                        const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((main.isReplayModeON) ? main.RCANVAS_BG_COLOR : CanvasController.CANVAS_BG_COLOR);
+                        const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((ReplayController.isReplayModeON) ? ReplayController.RCANVAS_BG_COLOR : CanvasController.CANVAS_BG_COLOR);
 
                         if (tegakiBGColorIndex >= 0)
                         {
@@ -1164,11 +1164,11 @@ package Modules
                         captureStampBitmap.visible = true;
                     }
 
-                    if (main.isReplayModeON)
+                    if (ReplayController.isReplayModeON)
                     {
-                        if (main.rCanvasPanel.getChildByName("captureStampBitmap") === null)
+                        if (ReplayController.rCanvasPanel.getChildByName("captureStampBitmap") === null)
                         {
-                            main.rCanvasPanel.addChild(captureStampBitmap);
+                            ReplayController.rCanvasPanel.addChild(captureStampBitmap);
                         }
                     }
                     else if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") === null)
@@ -1180,11 +1180,11 @@ package Modules
                 }
                 else if (captureStampBitmap.visible === true)
                 {
-                    if (main.isReplayModeON)
+                    if (ReplayController.isReplayModeON)
                     {
-                        if (main.rCanvasPanel.getChildByName("captureStampBitmap") !== null)
+                        if (ReplayController.rCanvasPanel.getChildByName("captureStampBitmap") !== null)
                         {
-                            main.rCanvasPanel.removeChild(captureStampBitmap);
+                            ReplayController.rCanvasPanel.removeChild(captureStampBitmap);
                         }
                     }
                     else if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") !== null)
@@ -1198,9 +1198,9 @@ package Modules
 
             function off():void
             {
-                if (main.isReplayModeON)
+                if (ReplayController.isReplayModeON)
                 {
-                    main.rCanvasPanel.scrollRect = new Rectangle(0, 0, main.RCANVAS_WIDTH, main.RCANVAS_HEIGHT);
+                    ReplayController.rCanvasPanel.scrollRect = new Rectangle(0, 0, ReplayController.RCANVAS_WIDTH, ReplayController.RCANVAS_HEIGHT);
                 }
                 else
                 {
@@ -1228,9 +1228,9 @@ package Modules
 
             function init():void
             {
-                if (main.isReplayModeON)
+                if (ReplayController.isReplayModeON)
                 {
-                    main.rCanvasPanel.scrollRect = null;
+                    ReplayController.rCanvasPanel.scrollRect = null;
                 }
                 else
                 {
@@ -1545,7 +1545,7 @@ package Modules
 
             function getCanvasScale():Number
             {
-                return (main.isReplayModeON) ? Math.abs(main.rCanvasAnchorPoint.scaleX) : Math.abs(CanvasController.canvasAnchorPoint.scaleX);
+                return (ReplayController.isReplayModeON) ? Math.abs(ReplayController.rCanvasAnchorPoint.scaleX) : Math.abs(CanvasController.canvasAnchorPoint.scaleX);
             }
 
             function drawResizeButton(scale:Number):void
@@ -1643,9 +1643,9 @@ package Modules
 
                 if (rectClamped.x === 0.0 && rectClamped.y === 0.0 && rectClamped.width === 0.0 && rectClamped.height === 0.0)
                 {
-                    if (main.isReplayModeON)
+                    if (ReplayController.isReplayModeON)
                     {
-                        return (captureCanvasRotationStep === 0 || captureCanvasRotationStep === 2) ? main.RCANVAS_WIDTH + " x " + main.RCANVAS_HEIGHT : main.RCANVAS_HEIGHT + " x " + main.RCANVAS_WIDTH;
+                        return (captureCanvasRotationStep === 0 || captureCanvasRotationStep === 2) ? ReplayController.RCANVAS_WIDTH + " x " + ReplayController.RCANVAS_HEIGHT : ReplayController.RCANVAS_HEIGHT + " x " + ReplayController.RCANVAS_WIDTH;
                     }
                     else
                     {
@@ -1763,11 +1763,11 @@ package Modules
             {
                 if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
                 {
-                    if (main.isReplayModeON) // 리플레이 변수로 변경
+                    if (ReplayController.isReplayModeON) // 리플레이 변수로 변경
                     {
-                        canvasWidth = main.RCANVAS_WIDTH;
-                        canvasHeight = main.RCANVAS_HEIGHT;
-                        xPanel = main.rCanvasPanel;
+                        canvasWidth = ReplayController.RCANVAS_WIDTH;
+                        canvasHeight = ReplayController.RCANVAS_HEIGHT;
+                        xPanel = ReplayController.rCanvasPanel;
                     }
                     else
                     {

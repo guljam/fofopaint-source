@@ -60,7 +60,7 @@ package Modules
 
         public static function isPopUpWindowOpened():Boolean
         {
-            return MainUI.topBar.gridButtonWrapper.visible || main.numPadBox.visible || FileManager.loadMenuBox.visible || main.aboutBox.visible;
+            return MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible || FileManager.loadMenuBox.visible || main.aboutBox.visible;
         }
 
         public static function updateStageOffset():void
@@ -82,7 +82,7 @@ package Modules
                 STAGE_TOP_OFFSET += MainUI.seekBarBox.BARSIZE * scale;
             }
 
-            if (CaptureController.isCaptureModeON || main.isReplayModeON)
+            if (CaptureController.isCaptureModeON || ReplayController.isReplayModeON)
             {
                 return;
             }
@@ -122,13 +122,13 @@ package Modules
             ToolController.toolBox2.setScale(scale);
             main.aboutBox.setScale(scale);
             main.eyedropperLens.setScale(scale);
-            main.numPadBox.setScale(scale);
+            ColorPickerController.numPadBox.setScale(scale);
             updateStageOffset();
             SidebarController.updateScrollBarHeight();
-            main.rReplayFOFOCursor.setScale(scale);
+            ReplayController.rReplayFOFOCursor.setScale(scale);
             SidebarController.fofo.setScale(scale);
             SidebarController.checkFOFOPosition();
-            main.rFollowMouse.updateScale(scale);
+            ReplayController.rFollowMouse.updateScale(scale);
 
             // 이거 위에서 뭔가 해주고 난후에 여기서 해줘야함
             SidebarController.sideBar.y = Math.round(STAGE_TOP_OFFSET);
@@ -355,7 +355,7 @@ package Modules
                     if (CaptureController.isCaptureModeON)
                     {
                         CaptureController.captureWindowMove.setTo(dx, dy);
-                        main.fitCanvasToViewportMargin();
+                        CanvasController.fitCanvasToViewportMargin();
 
                         if (!CaptureController.captureAreaManager.isFullImageCapture())
                         {
@@ -364,14 +364,14 @@ package Modules
                     }
                     else
                     {
-                        if (main.isReplayRestartTimerON())
+                        if (ReplayController.isReplayRestartTimerON())
                         {
                             CanvasController.centerCanvas("replay");
                         }
                         else
                         {
-                            main.rCanvasAnchorPoint.x = main.rCanvasAnchorPoint.x + dx;
-                            main.rCanvasAnchorPoint.y = main.rCanvasAnchorPoint.y + dy;
+                            ReplayController.rCanvasAnchorPoint.x = ReplayController.rCanvasAnchorPoint.x + dx;
+                            ReplayController.rCanvasAnchorPoint.y = ReplayController.rCanvasAnchorPoint.y + dy;
                         }
 
                         CanvasController.canvasAnchorPoint.x = CanvasController.canvasAnchorPoint.x + dx;
@@ -397,14 +397,14 @@ package Modules
                         main.updateAboutPanelCenterPos();
                     }
 
-                    if (main.isReplayModeON)
+                    if (ReplayController.isReplayModeON)
                     {
                         MainUI.seekBarBox.updatePos(main.stage.stageWidth);
-                        main.rFollowMouse.updateBounds();
+                        ReplayController.rFollowMouse.updateBounds();
 
-                        if (main.isReplayCanvasFitToWindow)
+                        if (ReplayController.isReplayCanvasFitToWindow)
                         {
-                            main.fitReplayCanvasToViewport();
+                            ReplayController.fitReplayCanvasToViewport();
                         }
                     }
 
@@ -550,7 +550,7 @@ package Modules
             ToolController.toolBox2.changeUIColor();
             main.fillPenBox.updateUIColor();
             LassoTool.lassoMenuBox.updateUIColor();
-            main.numPadBox.updateUIColor();
+            ColorPickerController.numPadBox.updateUIColor();
             ReferenceLayerController.refLayerMenuBox.updateUIColor();
             MainUI.topBar.updateUIColor();
             MainUI.seekBarBox.updateUIColor();

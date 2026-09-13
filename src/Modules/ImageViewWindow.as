@@ -165,7 +165,7 @@ package Modules
         {
             canvasWindow.visible = false;
             _isCanvasWindowON = false;
-            if (!main.isReplayModeON && !CaptureController.isCaptureModeON)
+            if (!ReplayController.isReplayModeON && !CaptureController.isCaptureModeON)
             {
                 MainUI.topBar.newWindowButton.visible = true;
                 MainUI.topBar.newWindowCloseButton.visible = false;
@@ -222,7 +222,7 @@ package Modules
         {
             _isCanvasWindowON = true;
 
-            if (!main.isReplayModeON && !CaptureController.isCaptureModeON)
+            if (!ReplayController.isReplayModeON && !CaptureController.isCaptureModeON)
             {
                 MainUI.topBar.newWindowButton.visible = false;
                 MainUI.topBar.newWindowCloseButton.visible = true;

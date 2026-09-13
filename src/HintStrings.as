@@ -9,6 +9,7 @@
     import Modules.Tools.PenTool;
     import Modules.Tools.LassoTool;
     import Modules.ToolController;
+    import Modules.ReplayController;
 
     public class HintStrings
     {
@@ -258,7 +259,7 @@
                 return "";
             }
 
-            if (main.isReplayRestartTimerON())
+            if (ReplayController.isReplayRestartTimerON())
             {
                 return "Seek bar _ Click to abort restart";
             }

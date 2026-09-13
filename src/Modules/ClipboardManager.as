@@ -22,10 +22,10 @@ package Modules
                 return;
             }
 
-            main.rFileStream.close();
-            if (main.isReplayRestartTimerON())
+            ReplayController.rFileStream.close();
+            if (ReplayController.isReplayRestartTimerON())
             {
-                main.cancelReplayRestartTimer();
+                ReplayController.cancelReplayRestartTimer();
             }
 
             const data:* = getSystemClipboardData();

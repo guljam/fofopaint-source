@@ -100,7 +100,7 @@ package Modules
 
         public static function initializeRepTempFile():void
         {
-            main.repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + Utils.getRandomString(32));
+            ReplayController.repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + Utils.getRandomString(32));
         }
 
         private static function handleLoadMenuBoxClick(oldTargetName:String):void
@@ -564,7 +564,7 @@ package Modules
         public static function isFileLoadBlocked():Boolean
         {
             return isFileBrowserOpened || BackgroundWorkerCoordinator.isSaveInProgress
-                || main.isGeneratingCacheImages();
+                || ReplayController.isGeneratingCacheImages();
         }
 
         // 운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
@@ -588,13 +588,13 @@ package Modules
                             return;
                         }
                         lastLoadedFile = file;
-                        if (main.isReplayStarted)
+                        if (ReplayController.isReplayStarted)
                         {
-                            main.stopReplay();
+                            ReplayController.stopReplay();
                         }
-                        if (main.isReplayRestartTimerON())
+                        if (ReplayController.isReplayRestartTimerON())
                         {
-                            main.cancelReplayRestartTimer();
+                            ReplayController.cancelReplayRestartTimer();
                         }
                         prepareLoadMenuBoxFromImageFile(file, false);
                     }
@@ -609,8 +609,8 @@ package Modules
             {
                 return;
             }
-            main.rFileStream.close();
-            main.cancelReplayRestartTimer();
+            ReplayController.rFileStream.close();
+            ReplayController.cancelReplayRestartTimer();
             const data:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
             if (data && data.length > 0)
             {
@@ -630,7 +630,7 @@ package Modules
                 if (loadMenuBoxBitmapData)
                 {
                     ReferenceLayerController.transferLoadedImageToRefLayer(loadMenuBoxBitmapData, loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height);
-                    if (!main.isReplayModeON && !CaptureController.isCaptureModeON)
+                    if (!ReplayController.isReplayModeON && !CaptureController.isCaptureModeON)
                     {
                         ReferenceLayerController.openRefLayerMenu();
                     }
@@ -655,7 +655,7 @@ package Modules
                             lastSaveFilePath = loadMenuBoxFile.nativePath;
                             enterDrawModeOnLoadFile();
                             // todo : load repllay file은 따로?
-                            main.loadReplayFile(loadMenuBoxFile);
+                            ReplayController.loadReplayFile(loadMenuBoxFile);
                             loadMenuBoxFile = null;
                         }
                         function onErrorFileStream(e:Event):void
@@ -676,7 +676,7 @@ package Modules
                         enterDrawModeOnLoadFile();
                         lastSaveFileName = loadMenuBoxFile.name;
                         lastSaveFilePath = loadMenuBoxFile.nativePath;
-                        main.loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
+                        ReplayController.loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
                     }
                 }
                 else
@@ -688,16 +688,16 @@ package Modules
             {
                 enterDrawModeOnLoadFile();
                 lastSaveFileName = getRandomFileName();
-                main.loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
+                ReplayController.loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
             }
         }
 
         public static function enableFileOperationButtonsTopbar():void
         {
             MainUI.topBar.enableFileOperationButtons(ClipboardManager.isClipBoardButtonActivated);
-            if (main.isReplayModeON)
+            if (ReplayController.isReplayModeON)
             {
-                main.updateDeleteReplayDataButtonsState();
+                ReplayController.updateDeleteReplayDataButtonsState();
             }
         }
         private static function disableFileOperationButtonsTopbar():void
@@ -729,11 +729,11 @@ package Modules
                 replayDataReadBytes.length = 0;
                 // 첫번째 이미지 레이어 1 2 저장
                 const fs:FileStream = new FileStream();
-                const rImgDataW:Number = main.rFirstImageLayer1BitmapData.width;
-                const rImgDataH:Number = main.rFirstImageLayer1BitmapData.height;
+                const rImgDataW:Number = ReplayController.rFirstImageLayer1BitmapData.width;
+                const rImgDataH:Number = ReplayController.rFirstImageLayer1BitmapData.height;
                 var newRectangle:Rectangle = new Rectangle(0, 0, rImgDataW, rImgDataH);
-                main.rFirstImageLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1FirstImageData);
-                main.rFirstImageLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2FirstImageData);
+                ReplayController.rFirstImageLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1FirstImageData);
+                ReplayController.rFirstImageLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2FirstImageData);
                 // 현재 캔버스 이미지 레이어 1 2 저장
                 newRectangle = new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
                 CanvasController.canvasLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1CurrentImageData);
@@ -747,14 +747,14 @@ package Modules
                     ReferenceLayerController.canvasRefLayerBitmapData.copyPixelsToByteArray(newRectangle, ReferenceLayerController.refLayerImageData);
                 }
                 // 리플레이 파일을 임시파일로 복사
-                replayDataFilePath.copyTo(main.repFileTemp, true);
+                replayDataFilePath.copyTo(ReplayController.repFileTemp, true);
                 // 임시파일전체를 바이트배열로 읽어서 압축해줌
-                fs.open(main.repFileTemp, FileMode.READ);
+                fs.open(ReplayController.repFileTemp, FileMode.READ);
                 fs.position = 0;
                 // 딥 언도일때는 읽은 바이트 까지만 읽어줌
                 if (UndoManager.isDeepUndoEnabled)
                 {
-                    fs.readBytes(replayDataReadBytes, 0, main.rFileLastBytePosition);
+                    fs.readBytes(replayDataReadBytes, 0, ReplayController.rFileLastBytePosition);
                     fs.close();
                 }
                 else
@@ -765,11 +765,11 @@ package Modules
                     replayDataReadBytes.position = replayDataReadBytes.length;
                     for (var i:int = 0, len:int = UndoManager.undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
                     {
-                        if (main.rData[i] && main.rData[i].length === 0)
+                        if (ReplayController.rData[i] && ReplayController.rData[i].length === 0)
                         {
                             continue;
                         }
-                        replayDataReadBytes.writeObject(main.rData[i]);
+                        replayDataReadBytes.writeObject(ReplayController.rData[i]);
                     }
                 }
                 BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, ReferenceLayerController.refLayerImageData, replayDataReadBytes);
@@ -778,9 +778,9 @@ package Modules
 
         public static function openLoadFileBrowser(toRefLayer:Boolean = false):void
         {
-            if (main.isReplayStarted)
+            if (ReplayController.isReplayStarted)
             {
-                main.stopReplay();
+                ReplayController.stopReplay();
             }
             if (LassoTool.isLassoToolStarted || isFileBrowserOpened || main.isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
             {
@@ -803,7 +803,7 @@ package Modules
             {
                 setFileBrowserIsOpen(false);
                 cleanUpEvents();
-                main.addInputEventsDrawModeOrReplayMode();
+                ReplayController.addInputEventsDrawModeOrReplayMode();
             }
             function onFileSelected(e:Event):void
             {
@@ -815,12 +815,12 @@ package Modules
             {
                 cleanUpEvents();
                 setFileBrowserIsOpen(false);
-                main.addInputEventsDrawModeOrReplayMode();
+                ReplayController.addInputEventsDrawModeOrReplayMode();
                 prepareLoadMenuBoxFromImageFile(file, toRefLayer);
             }
             setFileBrowserIsOpen(true);
             MainUIController.showCanvasResizeButtonVisibleDelay(false);
-            main.removeInputEventsReplayMode();
+            ReplayController.removeInputEventsReplayMode();
             main.removeInputEventsDrawMode();
             file.browseForOpen(windowTitle, [new FileFilter("All supported formats", "*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")]);
             file.addEventListener(Event.SELECT, onFileSelected);
@@ -835,7 +835,7 @@ package Modules
                 return;
             }
             CaptureController.executeCaptureFlashEffect();
-            const replayMode:Boolean = main.isReplayModeON;
+            const replayMode:Boolean = ReplayController.isReplayModeON;
             var name:String = lastSaveFileName;
             var path:String = getExistingParentDirectory(lastSaveCaptureFilePath);
             setFileBrowserIsOpen(true);
@@ -993,13 +993,13 @@ package Modules
         public static function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):void
         {
             // 계속 저장하는거 방지 다른 이름으로 저장은 예외
-            if (main.isReplayStarted)
+            if (ReplayController.isReplayStarted)
             {
-                main.stopReplay();
+                ReplayController.stopReplay();
             }
             const continueFlag:Boolean = (isContinueSaveON === true && asFlag === false);
             const nextPath:String = getExistingParentDirectory(lastSaveFilePath);
-            const replayFilePath:String = main.getReplayFileNameFromPath(lastSaveFilePath);
+            const replayFilePath:String = ReplayController.getReplayFileNameFromPath(lastSaveFilePath);
             const rawFile:File = new File(replayFilePath);
             if (nextPath === lastSaveFilePath && isFileAlreadySaved && continueFlag && rawFile.exists)
             {
@@ -1226,8 +1226,8 @@ package Modules
             appStateObject.svBaseColor = ColorPickerController.colorPickerBox.svBaseColor;
             appStateObject.isHSVInfoTextMode = ColorPickerController.isHSVInfoTextMode;
 
-            appStateObject.rReplayImageCacheState = (main.isGeneratingCacheImages()) ? main.REPLAY_IMAGE_CAHCHE_READY : main.rReplayImageCacheState;
-            appStateObject.rLastCanvasBGColor = main.rLastCanvasBGColor;
+            appStateObject.rReplayImageCacheState = (ReplayController.isGeneratingCacheImages()) ? ReplayController.REPLAY_IMAGE_CAHCHE_READY : ReplayController.rReplayImageCacheState;
+            appStateObject.rLastCanvasBGColor = ReplayController.rLastCanvasBGColor;
 
             appStateObject.isRightSidebar = SidebarController.isRightSidebar;
             appStateObject.saveFilePath = lastSaveFilePath;
@@ -1241,8 +1241,8 @@ package Modules
             appStateObject.newWindowInfo2 = ImageViewWindow.canvasWindowInfo[2];
             appStateObject.newWindowInfo3 = ImageViewWindow.canvasWindowInfo[3];
 
-            appStateObject.getFirstRCursorPosX = main.drawReplayByCommand.getFirstRCursorPos().x;
-            appStateObject.getFirstRCursorPosY = main.drawReplayByCommand.getFirstRCursorPos().y;
+            appStateObject.getFirstRCursorPosX = ReplayController.drawReplayByCommand.getFirstRCursorPos().x;
+            appStateObject.getFirstRCursorPosY = ReplayController.drawReplayByCommand.getFirstRCursorPos().y;
 
             appStateObject.isContinueSaveON = isContinueSaveON;
 
@@ -1276,7 +1276,7 @@ package Modules
         {
             saveAppSatate();
             UndoManager.saveUndoData();
-            main.saveReplayFrameData();
+            ReplayController.saveReplayFrameData();
             ReferenceLayerController.saveRefLayerImage();
             PaletteController.saveMypPaletteList();
             saveScratchPadImage();
@@ -1320,7 +1320,7 @@ package Modules
                     && !isLoadPendingAfterSaving
                     && !AppUpdater.isUpdatePendingAfterSaving
                     && !loadMenuBox.visible
-                    && !main.isGeneratingCacheImages())
+                    && !ReplayController.isGeneratingCacheImages())
             {
                 saveAllAppData();
             }
@@ -1329,13 +1329,13 @@ package Modules
             {
                 SidebarController.deactivateQuickSidebar();
             }
-            if (main.numPadBox.visible)
+            if (ColorPickerController.numPadBox.visible)
             {
                 ColorPickerController.closeNumpad();
             }
-            if (main.numPadBox.isLCHSliderActive())
+            if (ColorPickerController.numPadBox.isLCHSliderActive())
             {
-                main.numPadBox.removeOKLCHMouseEvent();
+                ColorPickerController.numPadBox.removeOKLCHMouseEvent();
             }
             if (ColorPickerController.colorPickerBox.scratchPad.isScratchStarted)
             {
@@ -1352,9 +1352,9 @@ package Modules
             {
                 CaptureController.exitCaptureMode();
             }
-            if (main.isReplayModeON)
+            if (ReplayController.isReplayModeON)
             {
-                main.exitReplayMode();
+                ReplayController.exitReplayMode();
             }
         }
 
@@ -1366,7 +1366,7 @@ package Modules
             main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
             CaptureController.removeInputEventCaptrueMode();
             main.removeInputEventsDrawMode();
-            main.removeInputEventsReplayMode();
+            ReplayController.removeInputEventsReplayMode();
             main.realWorkingTimer.stop();
 
             if (ImageViewWindow.canvasWindow !== null)
@@ -1379,9 +1379,9 @@ package Modules
                 CaptureController.handleExitCaptureMode();
             }
 
-            if (main.isReplayStarted === true)
+            if (ReplayController.isReplayStarted === true)
             {
-                main.stopReplay();
+                ReplayController.stopReplay();
             }
 
             if (LassoTool.isLassoToolStarted)

@@ -177,41 +177,41 @@ package Modules
 
         public static function resetRCanvasDrawLayerCliprect2():void
         {
-            main.rCanvasDrawLayerClipRect.x = 0;
-            main.rCanvasDrawLayerClipRect.y = 0;
-            main.rCanvasDrawLayerClipRect.width = 0;
-            main.rCanvasDrawLayerClipRect.height = 0;
+            ReplayController.rCanvasDrawLayerClipRect.x = 0;
+            ReplayController.rCanvasDrawLayerClipRect.y = 0;
+            ReplayController.rCanvasDrawLayerClipRect.width = 0;
+            ReplayController.rCanvasDrawLayerClipRect.height = 0;
         }
 
         public static function extandRCanvasDrawLayerCliprect2():void
         {
-            var rairBrushOffset:Number = (main.rAirBrushSize2 > 0) ? main.getClipRectOffsetAirBrush(main.rAirBrushSize2) : 1;
-            main.rCanvasDrawLayerClipRect.x -= rairBrushOffset;
-            main.rCanvasDrawLayerClipRect.y -= rairBrushOffset;
-            main.rCanvasDrawLayerClipRect.width += (rairBrushOffset * 2);
-            main.rCanvasDrawLayerClipRect.height += (rairBrushOffset * 2);
+            var rairBrushOffset:Number = (ReplayController.rAirBrushSize2 > 0) ? main.getClipRectOffsetAirBrush(ReplayController.rAirBrushSize2) : 1;
+            ReplayController.rCanvasDrawLayerClipRect.x -= rairBrushOffset;
+            ReplayController.rCanvasDrawLayerClipRect.y -= rairBrushOffset;
+            ReplayController.rCanvasDrawLayerClipRect.width += (rairBrushOffset * 2);
+            ReplayController.rCanvasDrawLayerClipRect.height += (rairBrushOffset * 2);
         }
 
         public static function extandRCanvasDrawLayerCliprect():void
         {
-            var rairBrushOffset:Number = (main.rAirBrushSize > 0) ? main.getClipRectOffsetAirBrush(main.rAirBrushSize) : 1;
-            main.rCanvasDrawLayerClipRectLegacy.x -= rairBrushOffset;
-            main.rCanvasDrawLayerClipRectLegacy.y -= rairBrushOffset;
-            main.rCanvasDrawLayerClipRectLegacy.width += (rairBrushOffset * 2);
-            main.rCanvasDrawLayerClipRectLegacy.height += (rairBrushOffset * 2);
+            var rairBrushOffset:Number = (ReplayController.rAirBrushSize > 0) ? main.getClipRectOffsetAirBrush(ReplayController.rAirBrushSize) : 1;
+            ReplayController.rCanvasDrawLayerClipRectLegacy.x -= rairBrushOffset;
+            ReplayController.rCanvasDrawLayerClipRectLegacy.y -= rairBrushOffset;
+            ReplayController.rCanvasDrawLayerClipRectLegacy.width += (rairBrushOffset * 2);
+            ReplayController.rCanvasDrawLayerClipRectLegacy.height += (rairBrushOffset * 2);
         }
 
         public static function resetRCanvasDrawLayerCliprect():void
         {
-            main.rCanvasDrawLayerClipRectLegacy.x = 0;
-            main.rCanvasDrawLayerClipRectLegacy.y = 0;
-            main.rCanvasDrawLayerClipRectLegacy.width = 0;
-            main.rCanvasDrawLayerClipRectLegacy.height = 0;
+            ReplayController.rCanvasDrawLayerClipRectLegacy.x = 0;
+            ReplayController.rCanvasDrawLayerClipRectLegacy.y = 0;
+            ReplayController.rCanvasDrawLayerClipRectLegacy.width = 0;
+            ReplayController.rCanvasDrawLayerClipRectLegacy.height = 0;
         }
 
         public static function updateRCanvasDrawLayerCliprect():void
         {
-            main.rCanvasDrawLayerClipRectLegacy = main.rCanvasDrawLayerClipRectLegacy.union(main.rCanvasDrawShape.getBounds(main.rCanvasPanel));
+            ReplayController.rCanvasDrawLayerClipRectLegacy = ReplayController.rCanvasDrawLayerClipRectLegacy.union(ReplayController.rCanvasDrawShape.getBounds(ReplayController.rCanvasPanel));
         }
 
         public static function resetCanvasDrawLayerCliprect():void
@@ -300,19 +300,19 @@ package Modules
 
         public static function mergeImageIntoLayer2():void
         {
-            if (main.hasLastRDataCommand("merge"))
+            if (ReplayController.hasLastRDataCommand("merge"))
             {
-                main.deleteLastRDataCommand("merge");
+                ReplayController.deleteLastRDataCommand("merge");
             }
             else
             {
                 if (UndoManager.isDeepUndoEnabled)
                 {
-                    main.applyDeepUndo();
+                    UndoManager.applyDeepUndo();
                 }
                 canvasLayer2BitmapData.draw(canvasLayer1BitmapData);
                 canvasLayer1BitmapData.fillRect(new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT), 0);
-                main.rDataBuffer.push(["merge"]);
+                ReplayController.rDataBuffer.push(["merge"]);
                 UndoManager.addUndoData.addNew();
             }
             ToolController.toolOptionsBox.layerMergeButton.alpha = Global.OFFALPHA;
@@ -326,7 +326,7 @@ package Modules
             }
             if (UndoManager.isDeepUndoEnabled)
             {
-                main.applyDeepUndo();
+                UndoManager.applyDeepUndo();
             }
             isLayerSwapped = !isLayerSwapped;
             var tempbmpd1:BitmapData = canvasLayer1BitmapData.clone();
@@ -340,13 +340,13 @@ package Modules
             tempbmpd11.dispose();
             tempbmpd1 = null;
             tempbmpd11 = null;
-            if (main.hasLastRDataCommand("swap"))
+            if (ReplayController.hasLastRDataCommand("swap"))
             {
-                main.deleteLastRDataCommand("swap");
+                ReplayController.deleteLastRDataCommand("swap");
             }
             else
             {
-                main.rDataBuffer.push(["swap"]);
+                ReplayController.rDataBuffer.push(["swap"]);
                 UndoManager.addUndoData.addNew();
             }
             playLayerSwapEffect(ToolController.toolOptionsBox.layerSwapButton);
@@ -411,10 +411,10 @@ package Modules
 
         public static function zoomInCanvas(zoomInFlag:Boolean, isReplayMode:Boolean):void
         {
-            const xAnc:Sprite = (isReplayMode) ? main.rCanvasAnchorPoint : canvasAnchorPoint;
+            const xAnc:Sprite = (isReplayMode) ? ReplayController.rCanvasAnchorPoint : canvasAnchorPoint;
             const zoomMax:int = canvasZoomMultiplerList.length - 1;
             var center:Point;
-            var newZoomIndex:int = (isReplayMode) ? main.rCanvasZoomIndex : canvasZoomIndex;
+            var newZoomIndex:int = (isReplayMode) ? ReplayController.rCanvasZoomIndex : canvasZoomIndex;
             if (zoomInFlag)
             {
                 newZoomIndex++;
@@ -435,12 +435,12 @@ package Modules
             if (isReplayMode)
             {
                 center = MainUIController.getStageCenterPos("replay");
-                main.rLastCanvasZoomMultiplier = newZoom;
-                main.setFitReplayCanvasToViewportOFF();
-                main.rCanvasZoomIndex = newZoomIndex;
+                ReplayController.rLastCanvasZoomMultiplier = newZoom;
+                ReplayController.setFitReplayCanvasToViewportOFF();
+                ReplayController.rCanvasZoomIndex = newZoomIndex;
                 moveCanvasAnchorPoint(center.x, center.y, true);
                 updateCanvasScale(newZoom, isReplayMode);
-                main.rFollowMouse.updateBounds();
+                ReplayController.rFollowMouse.updateBounds();
                 MainUI.showMouseHintTemp(String(Math.floor(newZoom * 100)) + "%");
             }
             else
@@ -608,13 +608,13 @@ package Modules
             var alpha:Number;
             var mat:Matrix;
             var bmpd:BitmapData;
-            if (main.isReplayModeON)
+            if (ReplayController.isReplayModeON)
             {
-                xBitmapData1 = main.rCanvasLayer1BitmapData;
-                xBitmapData11 = main.rCanvasLayer2BitmapData;
-                xDrawLayer = main.rCanvasDrawLayer;
-                xBGCOLOR = main.RCANVAS_BG_COLOR;
-                alpha = main.drawReplayByCommand.getLineStyleAlpha();
+                xBitmapData1 = ReplayController.rCanvasLayer1BitmapData;
+                xBitmapData11 = ReplayController.rCanvasLayer2BitmapData;
+                xDrawLayer = ReplayController.rCanvasDrawLayer;
+                xBGCOLOR = ReplayController.RCANVAS_BG_COLOR;
+                alpha = ReplayController.drawReplayByCommand.getLineStyleAlpha();
             }
             else
             {
@@ -638,7 +638,7 @@ package Modules
             {
                 bmpd.draw(xBitmapData11, mat); // 레이어 쌓기
             }
-            if (main.isLayer2SelectedReplayMode()) // 레이어 2번을 그리고 있을때
+            if (ReplayController.isLayer2SelectedReplayMode()) // 레이어 2번을 그리고 있을때
             {
                 if (layer2merge)
                     bmpd.draw(xDrawLayer, mat, new ColorTransform(1, 1, 1, alpha));
@@ -939,12 +939,12 @@ package Modules
                         const centerMovedFlag:Boolean = (targetName === "resizeButtonL" || targetName === "resizeButtonU") ? true : false;
                         if (UndoManager.isDeepUndoEnabled)
                         {
-                            main.applyDeepUndo();
+                            UndoManager.applyDeepUndo();
                         }
                         updateCavnvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
                         MainUIController.updateResizeButtonPos(finalWidth, finalHeight);
-                        main.rDataBuffer.push(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
-                        if (main.hasLastRDataCommand("canvasSize"))
+                        ReplayController.rDataBuffer.push(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
+                        if (ReplayController.hasLastRDataCommand("canvasSize"))
                         {
                             UndoManager.addUndoData.addContinue();
                         }
@@ -1150,9 +1150,9 @@ package Modules
             var xZoomed:Number;
             if (replayMode)
             {
-                xAnc = main.rCanvasAnchorPoint;
-                xCanvas = main.rCanvasPanel;
-                xZoomed = main.rCanvasZoomMultiplier;
+                xAnc = ReplayController.rCanvasAnchorPoint;
+                xCanvas = ReplayController.rCanvasPanel;
+                xZoomed = ReplayController.rCanvasZoomMultiplier;
             }
             else
             {
@@ -1205,7 +1205,7 @@ package Modules
             canvasDrawLayer.addChild(canvasDrawLayerBitmap);
             canvasDrawLayer.addChild(canvasDrawLayerChild);
             canvasDrawLayer.blendMode = "layer"; // 캔버스1이랑 알파 불투명도가 겹치지 않게 layer모드로 해줌
-            main.rReplayFOFOCursor.visible = false;
+            ReplayController.rReplayFOFOCursor.visible = false;
             canvasPanel.addChild(ReferenceLayerController.canvasRefLayer);
             canvasPanel.addChild(canvasLayer2Bitmap);
             canvasPanel.addChild(LassoTool.lassoLayer2);
@@ -1213,7 +1213,7 @@ package Modules
             canvasPanel.addChild(LassoTool.lassoLayer1);
             canvasPanel.addChild(canvasDrawLayer);
             canvasPanel.addChild(CanvasGridOverlay.canvasGrid);
-            canvasPanel.addChild(main.rReplayFOFOCursor);
+            canvasPanel.addChild(ReplayController.rReplayFOFOCursor);
             // canvasrotate가 중점으로 올수있게 위치를 절반으로세팅
             canvasPanel.x = Math.floor(-canvasPanel.width / 2);
             canvasPanel.y = Math.floor(-canvasPanel.height / 2);
@@ -1245,11 +1245,11 @@ package Modules
             }
             else
             {
-                main.rCanvasZoomMultiplier = zoomValue;
-                xAnc = main.rCanvasAnchorPoint;
-                if (main.rAirBrushSize > 0)
+                ReplayController.rCanvasZoomMultiplier = zoomValue;
+                xAnc = ReplayController.rCanvasAnchorPoint;
+                if (ReplayController.rAirBrushSize > 0)
                 {
-                    main.blurReplayCanvasByValue(main.rAirBrushSize);
+                    ReplayController.blurReplayCanvasByValue(ReplayController.rAirBrushSize);
                 }
             }
             xAnc.scaleX = zoomValue;
@@ -1262,7 +1262,7 @@ package Modules
             {
                 canvasInfoBox.setZoom(zoomValue);
             }
-            main.updateReplayCursorScale(zoomValue);
+            ReplayController.updateReplayCursorScale(zoomValue);
         }
 
         // check box position함수는 요소 전체가 창에서 넘어가만 않게 하는거고
@@ -1272,8 +1272,8 @@ package Modules
             var xCanvas:Bitmap;
             if (replayMode)
             {
-                xAnc = main.rCanvasAnchorPoint;
-                xCanvas = main.rCanvasLayer1Bitmap;
+                xAnc = ReplayController.rCanvasAnchorPoint;
+                xCanvas = ReplayController.rCanvasLayer1Bitmap;
             }
             else
             {
@@ -1314,10 +1314,10 @@ package Modules
             // mode로 탐지하는걸로 고침 버그날수도있음
             if (mode === "replay")
             {
-                xAnc = main.rCanvasAnchorPoint;
-                xCanvas = main.rCanvasPanel;
-                w = main.RCANVAS_WIDTH;
-                h = main.RCANVAS_HEIGHT;
+                xAnc = ReplayController.rCanvasAnchorPoint;
+                xCanvas = ReplayController.rCanvasPanel;
+                w = ReplayController.RCANVAS_WIDTH;
+                h = ReplayController.RCANVAS_HEIGHT;
             }
             else
             {
@@ -1330,7 +1330,7 @@ package Modules
             xAnc.y = Math.floor(center.y);
             xCanvas.x = Math.floor(-w / 2);
             xCanvas.y = Math.floor(-h / 2);
-            if (!main.isReplayModeON)
+            if (!ReplayController.isReplayModeON)
             {
                 MainUIController.updateCanvasNaigatorCursor();
             }
@@ -1353,6 +1353,90 @@ package Modules
             penSizePreviewCursor.visible = false;
             MainUI.showMouseHint(CANVAS_WIDTH + " x " + CANVAS_HEIGHT);
             main.resizeCanvas.start(targetName);
+        }
+
+                public static function fitCanvasToViewportMargin(fitting:Boolean = false):void
+        {
+            if (!ReplayController.isReplayModeON && !CaptureController.isCaptureModeON)
+            {
+                return;
+            }
+            const uiscale:Number = Global.getUIScale();
+            const offsetX:Number = 44 + MainUIController.STAGE_LEFT_OFFSET + MainUIController.STAGE_RIGHT_OFFSET;
+            const offsetY:Number = (CaptureController.isCaptureModeON) ? (MainUI.topBar.BARSIZE) * uiscale + 42 * uiscale : (MainUI.topBar.BARSIZE) * uiscale + 42 * uiscale;
+            const stw:int = main.stage.stageWidth - offsetX;
+            const sth:int = main.stage.stageHeight - offsetY - MainUIController.STAGE_BOTTOM_OFFSET;
+            var xBitmap1:Bitmap;
+            var xBitmap11:Bitmap;
+            var xAnc:Sprite;
+            var canvasWidth:Number;
+            var canvasHeight:Number;
+            if (ReplayController.isReplayModeON)
+            {
+                xBitmap1 = ReplayController.rCanvasLayer1Bitmap;
+                xBitmap11 = ReplayController.rCanvasLayer2Bitmap;
+                xAnc = ReplayController.rCanvasAnchorPoint;
+                if (fitting)
+                {
+                    xAnc.scaleX = 1.0;
+                    xAnc.scaleY = 1.0; // 크기를 원래대로 해놓고 해야 길이 측정이 됨
+                    const b:Rectangle = ReplayController.rCanvasLayer1Bitmap.getBounds(main.stage);
+                    canvasWidth = b.right - b.left;
+                    canvasHeight = b.bottom - b.top;
+                }
+                else
+                {
+                    canvasWidth = ReplayController.RCANVAS_WIDTH;
+                    canvasHeight = ReplayController.RCANVAS_HEIGHT;
+                }
+            }
+            else
+            {
+                xBitmap1 = CanvasController.canvasLayer1Bitmap;
+                xBitmap11 = CanvasController.canvasLayer2Bitmap;
+                xAnc = CanvasController.canvasAnchorPoint;
+                canvasWidth = CanvasController.CANVAS_WIDTH;
+                canvasHeight = CanvasController.CANVAS_HEIGHT;
+            }
+            if (CaptureController.isCaptureModeON)
+            {
+                if (CaptureController.captureCanvasRotationStep === 1 || CaptureController.captureCanvasRotationStep === 3)
+                {
+                    const widthSave:Number = canvasWidth;
+                    canvasWidth = canvasHeight;
+                    canvasHeight = widthSave;
+                }
+            }
+            const scaleW:Number = stw / canvasWidth;
+            const scaleH:Number = sth / canvasHeight;
+            var scale:Number = Math.min(scaleW, scaleH);
+            if (!fitting && scale > 1.0)
+            {
+                scale = 1.0;
+            }
+            if (CaptureController.isCaptureModeON)
+            {
+                xAnc.rotation = 90 * CaptureController.captureCanvasRotationStep;
+            }
+            if (ReplayController.isReplayModeON && !ReplayController.isReplayCanvasFitToWindow)
+            {
+                ReplayController.isReplayFinishedWithFiwWindow = true;
+            }
+            if (CaptureController.isCaptureModeON)
+            {
+                CanvasController.updateCanvasScale(scale, ReplayController.isReplayModeON);
+                CanvasController.centerCanvas("capture");
+            }
+            else if (ReplayController.isReplayModeON)
+            {
+                CanvasController.updateCanvasScale(scale, ReplayController.isReplayModeON);
+                CanvasController.centerCanvas("replay");
+            }
+            if (!fitting || ReplayController.isReplayFinished)
+            {
+                xBitmap1.smoothing = true;
+                xBitmap11.smoothing = true;
+            }
         }
     }
 }

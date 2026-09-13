@@ -572,7 +572,7 @@ package Modules
         {
             if (UndoManager..isDeepUndoEnabled)
             {
-                main.applyDeepUndo();
+                UndoManager.applyDeepUndo();
             }
 
             var layer1Flag:Boolean = CanvasController.canvasLayer1Bitmap.visible;
@@ -613,13 +613,13 @@ package Modules
                 command = "clear2";
             }
 
-            if (main.hasLastRDataCommand(command))
+            if (ReplayController.hasLastRDataCommand(command))
             {
                 UndoManager.addUndoData.addContinue();
             }
             else
             {
-                main.rDataBuffer = [[command]];
+                ReplayController.rDataBuffer = [[command]];
                 UndoManager.addUndoData.addNew();
             }
 
