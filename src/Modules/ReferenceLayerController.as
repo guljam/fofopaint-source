@@ -570,7 +570,7 @@ package Modules
 
         private static function mergeCanvasImageToRefLayer():void
         {
-            if (UndoManager..isDeepUndoEnabled)
+            if (UndoManager.isDeepUndoEnabled)
             {
                 UndoManager.applyDeepUndo();
             }

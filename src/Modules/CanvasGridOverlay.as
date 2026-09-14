@@ -208,7 +208,7 @@ package Modules
 
             function repeatGridMoveByValue(moveX:Number, moveY:Number):void
             {
-                main.startKeyRepeat(true, function ():void
+                InputController.startKeyRepeat(true, function ():void
                     {
                         gridDrawOffsetX += moveX * (CanvasController.isCanvasMirrored ? -1 : 1);
                         gridDrawOffsetY += moveY;
@@ -267,11 +267,11 @@ package Modules
 
             function onKeyUpGridButton(e:KeyboardEvent):void
             {
-                if (e.keyCode === main.KEY.f2 || e.keyCode === main.KEY.f8)
+                if (e.keyCode === InputController.KEY.f2 || e.keyCode === InputController.KEY.f8)
                 {
                     if (!(CanvasController.isMouseClicked || CanvasController.isMouseDragging))
                     {
-                        if (main.isPressingShift())
+                        if (InputController.isPressingShift())
                         {
                             if (gridGapMultiplier !== 0)
                             {
@@ -331,22 +331,22 @@ package Modules
             {
                 MainUI.hideBottomHint();
                 CanvasController.isMouseDragging = false;
-                main.removeKeyRepeatEvents(null);
+                InputController.removeKeyRepeatEvents(null);
                 main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
                 main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton);
                 MainUI.topBar.setReplaySpeedBarToGridSliderOFF(main.stage);
-                main.clearKeyBuffer();
-                main.addInputEventsDrawMode();
+                InputController.clearKeyBuffer();
+                InputController.addInputEventsDrawMode();
             }
 
             function start(shortcutKey:Boolean):void
             {
                 if (MainUI.topBar.gridButtonWrapper.visible === false)
                 {
-                    main.removeInputEventsDrawMode();
+                    InputController.removeInputEventsDrawMode();
                     MainUI.topBar.setGridMoveButtonAlpha(gridGapMultiplier > 0 ? 1.0 : Global.OFFALPHA);
                     MainUI.topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
                     setCursorPosByValue(gridGapMultiplier);

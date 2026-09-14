@@ -16,8 +16,9 @@ package Modules
         {
             main = instance;
         }
-        // TODO : numpad, hsv, 스크레치패드+drawr+tegaki로 클래스 나누기
-            // 메뉴 요소
+        // TODO : numpad, hsv, 스크레치패드+drawr+tegaki로 클래스 나누기, 마이팔레트 기능 다시 생각오른쪽 클릭으로 할까 그냥 버튼으로 기능 분리할까
+
+            // 메뉴 요소ㅇ
         
         public static const colorPickerBox:ColorPickerSet = new ColorPickerSet();
         public static const numPadBox:NumPadSet = new NumPadSet();
@@ -420,7 +421,7 @@ package Modules
 
                 Utils.setAsTopChild(numPadBox);
 
-                main.resetLastKey();
+                InputController.resetLastKey();
 
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, -2);
                 main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad, false, -2);
@@ -441,7 +442,7 @@ package Modules
 
             FOFOTimer.addByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function ():void
                 {
-                    main.addInputEventsDrawMode();
+                    InputController.addInputEventsDrawMode();
                 });
         }
 
@@ -510,11 +511,11 @@ package Modules
 
             if (targetName === "numInc")
             {
-                main.startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
+                InputController.startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
             }
             else if (targetName === "numDec")
             {
-                main.startKeyRepeat(true, rgbInfoNumPadIncKey, -1);
+                InputController.startKeyRepeat(true, rgbInfoNumPadIncKey, -1);
             }
             else if (targetName === "okLWrapper")
             {
@@ -1137,7 +1138,7 @@ package Modules
 
         public static function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean
         {
-            if (ToolController.isToolBox2Showing || (main.isKeyPressed()
+            if (ToolController.isToolBox2Showing || (InputController.isKeyPressed()
                         && !ToolController.isSelectedToolPenOrLine()
                         && !ToolController.isSelectedTool(ToolController.TOOL_ERASER)
                         && !ToolController.isSelectedTool(ToolController.TOOL_FILLPEN)))
@@ -1199,7 +1200,7 @@ package Modules
 
                 case "drawrPresetButton":
                 case "tegakiPresetButton":
-                    main.startScratchPadResetTimer(target);
+                    InputController.startScratchPadResetTimer(target);
                     handleColorPickerBoxClick(targetName);
                     return true;
 

@@ -26,7 +26,8 @@ package Modules
 		}
 		public static var mouseHint:HintBoxSet = new HintBoxSet(true);
 		public static var bottomHint:HintBoxSet = new HintBoxSet(false);
-		// todo main ui topbar stage bg 는 따로빼고 hint 클래스로 만들어버리기
+		// todo main ui topbar stage bg 는 따로빼고 hint 클래스로 만들어버리기, 타이머에서 앱전체 가동 시간 힌트로 표시하기 바로 밑에, 힌트은 예전처럼 툴 옆에 표시해보기, topbar힌트는 조금 고민임,
+		// todo 커스텀 마우스 커서랑 최종적으로 앱 상세 살정할수있는 작은 옵션 버튼들 창 만들어야함, 현재 계속 누르고 있는 확인은 실제 확인창 만들어서 그냥 쉽게 선택하게 하기
 		public static const stageBG:Sprite = new Sprite(); // 드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
 		public static const topBar:TopMenuSet = new TopMenuSet();
 		public static const seekBarBox:seekBarSet = new seekBarSet();
@@ -597,7 +598,7 @@ package Modules
 			else
 			{
 				CanvasGridOverlay.canvasGrid.visible = false;
-				main.removeInputEventsDrawMode();
+				InputController.removeInputEventsDrawMode();
 			}
 
 			if (SidebarController.isSidebarVisible)
@@ -650,7 +651,7 @@ package Modules
 				}
 				CanvasController.isPenSizeCursorInvisible = false;
 				MainUI.updateTopbarIconsDrawMode();
-				main.addInputEventsDrawMode();
+				InputController.addInputEventsDrawMode();
 			}
 
 			ColorPickerController.switchColorPickerModePen();

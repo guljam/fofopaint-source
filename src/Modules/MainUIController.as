@@ -500,7 +500,7 @@ package Modules
 
         public static function onWindowActive(e:Event):void
         {
-            main.tryDisableIME();
+            InputController.tryDisableIME();
             ClipboardManager.checkCanUseClipBoardButton();
 
             if (main.isAboutBoxOpened)
@@ -509,7 +509,7 @@ package Modules
             }
             else
             {
-                main.unblockMouseClickAfterDelay();
+                InputController.unblockMouseClickAfterDelay();
             }
         }
 

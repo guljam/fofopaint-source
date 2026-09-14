@@ -66,7 +66,7 @@ package Modules
 
             FOFOTimer.addByName("selectMyPaletteDelayTimer", 0.4, false, function ():void
                 {
-                    main.startPressHoldKey(ColorPickerController.colorPickerBox.myPaletteButton, "Clearing my palette..", null, clearMyPaletteList, null);
+                    InputController.startPressHoldKey(ColorPickerController.colorPickerBox.myPaletteButton, "Clearing my palette..", null, clearMyPaletteList, null);
                     main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
                 });
         }

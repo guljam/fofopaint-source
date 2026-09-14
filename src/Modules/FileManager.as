@@ -172,7 +172,7 @@ package Modules
         public static function setFileBrowserIsOpen(flag:Boolean):void
         {
             isFileBrowserOpened = flag;
-            main.clearKeyBuffer();
+            InputController.clearKeyBuffer();
         }
         private static function formatBytes(bytes:Number):String
         {
@@ -383,7 +383,7 @@ package Modules
         }
         public static function createNewFile(fromShortcut:Boolean):void
         {
-            main.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, main.clearDrawingData, null);
+            InputController.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, main.clearDrawingData, null);
         }
         public static function openLocalManualFolder():void
         {
@@ -397,15 +397,15 @@ package Modules
 
         private static function keyDownLoadMenuBox(e:KeyboardEvent):void
         {
-            const firstKey:uint = main.getFirstPressedKey();
-            if (firstKey === main.KEY.esc || firstKey === main.KEY.backspace)
+            const firstKey:uint = InputController.getFirstPressedKey();
+            if (firstKey === InputController.KEY.esc || firstKey === InputController.KEY.backspace)
             {
                 closeLoadMenuBox();
             }
         }
         public static function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, file:File, bmpd:BitmapData, filetype:String):void
         {
-            main.clearKeyBuffer();
+            InputController.clearKeyBuffer();
             ToolController.closeToolBox2();
             loadMenuBoxFileType = filetype;
             loadMenuBoxFile = file;
@@ -821,7 +821,7 @@ package Modules
             setFileBrowserIsOpen(true);
             MainUIController.showCanvasResizeButtonVisibleDelay(false);
             ReplayController.removeInputEventsReplayMode();
-            main.removeInputEventsDrawMode();
+            InputController.removeInputEventsDrawMode();
             file.browseForOpen(windowTitle, [new FileFilter("All supported formats", "*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")]);
             file.addEventListener(Event.SELECT, onFileSelected);
             file.addEventListener(Event.COMPLETE, onFileSelectComplete);
@@ -1074,7 +1074,7 @@ package Modules
                     BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), CanvasController.CANVAS_BG_COLOR, false, false);
                     saveReplayFile();
                     MainUIController.updateWindowTitle();
-                    main.clearKeyBuffer();
+                    InputController.clearKeyBuffer();
                     isFileAlreadySaved = true;
                     pollTimerWaitWorkerForImageSave(lastSaveFilePath, true);
                 }
@@ -1302,8 +1302,8 @@ package Modules
         {
             CanvasController.isMouseClickBlocked = true;
             main.resizeCanvas.exit(true);
-            main.clearKeyBuffer();
-            main.removeKeyRepeatEvents(null);
+            InputController.clearKeyBuffer();
+            InputController.removeKeyRepeatEvents(null);
             FOFOTimer.remove("pressholdtimer");
             if (ToolController.isToolBox2Showing)
             {
@@ -1325,7 +1325,7 @@ package Modules
                 saveAllAppData();
             }
             main.lastWindowDeactivateTime = getTimer();
-            if (SidebarController.isQuickSidebarActive && !UndoManager..isDeepUndoEnabled)
+            if (SidebarController.isQuickSidebarActive && !UndoManager.isDeepUndoEnabled)
             {
                 SidebarController.deactivateQuickSidebar();
             }
@@ -1365,7 +1365,7 @@ package Modules
             e.preventDefault();
             main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
             CaptureController.removeInputEventCaptrueMode();
-            main.removeInputEventsDrawMode();
+            InputController.removeInputEventsDrawMode();
             ReplayController.removeInputEventsReplayMode();
             main.realWorkingTimer.stop();
 

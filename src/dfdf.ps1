@@ -1,26 +1,104 @@
-$main   = Join-Path $PSScriptRoot "Main.as"
-$replay = Join-Path $PSScriptRoot "Modules\ReplayController.as"
+$path = ".\Main.as"
+$src = Get-Content $path -Raw
 
-$methodNames = Get-Content $replay |
-    Select-String -Pattern '^\s*public\s+static\s+function\s+([A-Za-z_]\w*)\s*\(' |
-    ForEach-Object {
-        $_.Matches[0].Groups[1].Value
+$names = @(
+    "startScratchPadResetTimer",
+    "startPressHoldKey",
+    "updateLastKey",
+    "resetLastKey",
+    "isLastKey",
+    "startKeyRepeatStopTimerOnMouseLeave",
+    "startKeyRepeat",
+    "checkPenOptionsKeyDown",
+    "isPressingControl",
+    "isPressingShift",
+    "isPressingControlShift",
+    "getCommandKey",
+    "onMouseDownStage",
+    "onRightMouseDownStage",
+    "onMiddleMouseDownStage",
+    "cRealWorkingTimer",
+    "checkGeneralKeyUp",
+    "checkInvalidKey",
+    "getPressedKeyCount",
+    "isKeyPressed",
+    "getLastKey",
+    "isTwoKeyPressed",
+    "isPressdKey",
+    "getFirstPressedKey",
+    "getSecondPressedKey",
+    "onKeyUpStage",
+    "onKeyDownStage",
+    "removeInputEventsDrawMode",
+    "addInputEventsDrawMode",
+    "removeInputEventsToolBox2",
+    "addInputEventsToolBox2",
+    "enableIME",
+    "tryDisableIME",
+    "addKeyRepeatEvents",
+    "removeKeyRepeatEvents",
+    "onKeyUpDrawMode",
+    "checkSubKey",
+    "onKeyDownDrawMode",
+    "unblockMouseClickAfterDelay",
+    "clearKeyBuffer"
+)
+
+$escaped = ($names | ForEach-Object {
+    [regex]::Escape($_)
+}) -join "|"
+
+$pattern = "(?m)^[ \t]*public\s+function\s+(?:$escaped)\s*\("
+
+$matches = [regex]::Matches($src, $pattern)
+
+# 뒤쪽 함수부터 삭제해야 인덱스가 안 깨짐
+$matches = $matches | Sort-Object Index -Descending
+
+foreach ($m in $matches) {
+
+    $start = $m.Index
+
+    $braceStart = $src.IndexOf("{", $start)
+    if ($braceStart -lt 0) {
+        continue
     }
 
-Write-Host "ReplayController public static 함수 수:" $methodNames.Count
-Write-Host ""
+    $depth = 0
+    $end = -1
 
-foreach ($name in $methodNames) {
-    $escaped = [regex]::Escape($name)
+    for ($i = $braceStart; $i -lt $src.Length; $i++) {
 
-    $matches = Select-String `
-        -Path $main `
-        -Pattern "\bfunction\s+$escaped\s*\("
+        if ($src[$i] -eq "{") {
+            $depth++
+        }
+        elseif ($src[$i] -eq "}") {
+            $depth--
 
-    if ($matches) {
-        foreach ($m in $matches) {
-            Write-Host "$name -> Main.as:$($m.LineNumber)"
-            Write-Host "    $($m.Line.Trim())"
+            if ($depth -eq 0) {
+                $end = $i + 1
+                break
+            }
         }
     }
+
+    if ($end -gt $start) {
+
+        # 함수 뒤 줄바꿈도 같이 제거
+        while (
+            $end -lt $src.Length -and
+            ($src[$end] -eq "`r" -or $src[$end] -eq "`n")
+        ) {
+            $end++
+        }
+
+        $src = $src.Remove(
+            $start,
+            $end - $start
+        )
+    }
 }
+
+Set-Content $path $src -Encoding UTF8
+
+Write-Host "삭제된 함수 수:" $matches.Count

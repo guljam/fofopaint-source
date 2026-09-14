@@ -25,6 +25,7 @@ package Modules.Tools
     import Modules.ToolController;
     import Modules.UndoManager;
     import Modules.ReplayController;
+    import Modules.InputController;
 
     public class LassoTool
     {
@@ -86,7 +87,7 @@ package Modules.Tools
         {
             lassoMenuBox.visible = true;
             isLassoMenuHiddenTemp = false;
-            main.resetLastKey();
+            InputController.resetLastKey();
         }
 
         public static function mergeLassoImageToRefLayer():void
@@ -141,7 +142,7 @@ package Modules.Tools
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool);
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool);
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool);
-            main.addInputEventsDrawMode();
+            InputController.addInputEventsDrawMode();
         }
 
         public static function addInputEventsLassoTool():void
@@ -153,7 +154,7 @@ package Modules.Tools
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool);
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool);
             main.stage.addEventListener(MouseEvent.MOUSE_OVER, lassoMenuHintONEvent);
-            main.removeInputEventsDrawMode();
+            InputController.removeInputEventsDrawMode();
         }
 
         // 1초정도 켜지지 않게함
@@ -202,7 +203,7 @@ package Modules.Tools
             {
                 isLassoMenuHiddenTemp = false;
             }
-            main.checkGeneralKeyUp(keyCode);
+            InputController.checkGeneralKeyUp(keyCode);
         }
 
         public static function onKeyDownLassoTool(e:KeyboardEvent):void
@@ -212,31 +213,31 @@ package Modules.Tools
                 return;
             }
 
-            const keyCode:uint = main.getFirstPressedKey();
+            const keyCode:uint = InputController.getFirstPressedKey();
 
-            if (keyCode === main.KEY.space)
+            if (keyCode === InputController.KEY.space)
             {
-                if (main.checkSubKey(2, true, function (input:int):void
+                if (InputController.checkSubKey(2, true, function (input:int):void
                         {
                             switch (input)
                                 {
-                                    case main.KEY.w:
-                                    case main.KEY.i:
+                                    case InputController.KEY.w:
+                                    case InputController.KEY.i:
                                     move1PxLassoTool(LASSO_1PX_MOVE_UP);
                             break;
 
-                        case main.KEY.a:
-                            case main.KEY.j:
+                        case InputController.KEY.a:
+                            case InputController.KEY.j:
                             move1PxLassoTool(LASSO_1PX_MOVE_LEFT);
                         break;
 
-                        case main.KEY.s:
-                            case main.KEY.k:
+                        case InputController.KEY.s:
+                            case InputController.KEY.k:
                             move1PxLassoTool(LASSO_1PX_MOVE_DOWN);
                         break;
 
-                        case main.KEY.d:
-                            case main.KEY.l:
+                        case InputController.KEY.d:
+                            case InputController.KEY.l:
                             move1PxLassoTool(LASSO_1PX_MOVE_RIGHT);
                         break;
                     }
@@ -245,32 +246,32 @@ package Modules.Tools
                 return;
             }
 
-            if (main.isLastKey(keyCode))
+            if (InputController.isLastKey(keyCode))
             {
                 return;
             }
 
-            main.updateLastKey(keyCode);
+            InputController.updateLastKey(keyCode);
             isLassoMenuHiddenTemp = true;
             ToolController.setSelectedTool(ToolController.TOOL_HAND);
             ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
         }
-        else if (main.isPressingShift())
+        else if (InputController.isPressingShift())
         {
-            if (main.checkSubKey(2, true, function (input:int):void
+            if (InputController.checkSubKey(2, true, function (input:int):void
                     {
                         switch (input)
                             {
-                                case main.KEY.s:
-                                case main.KEY.k:
+                                case InputController.KEY.s:
+                                case InputController.KEY.k:
                                 if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                                     {
                                         main.resetRotationDrawMode();
                             }
                             return;
 
-                    case main.KEY.w:
-                    case main.KEY.i:
+                    case InputController.KEY.w:
+                    case InputController.KEY.i:
                     if (CanvasController.canvasZoomMultipler !== 1.0)
                         {
                             CanvasController.resetZoomDrawMode();
@@ -283,17 +284,17 @@ package Modules.Tools
 }
 }
 
-if (main.isLastKey(keyCode))
+if (InputController.isLastKey(keyCode))
 {
     return;
 }
 
-main.updateLastKey(keyCode);
+InputController.updateLastKey(keyCode);
 
 switch (keyCode)
 {
-    case main.KEY.tab:
-    case main.KEY.backslash:
+    case InputController.KEY.tab:
+    case InputController.KEY.backslash:
         if (SidebarController.isSidebarVisible)
         {
             SidebarController.hideSidebarPermanent();
@@ -304,28 +305,28 @@ switch (keyCode)
         }
         break;
 
-    case main.KEY.w:
-    case main.KEY.i:
+    case InputController.KEY.w:
+    case InputController.KEY.i:
         isLassoMenuHiddenTemp = true;
-        main.updateLastKey(keyCode);
+        InputController.updateLastKey(keyCode);
         ToolController.setSelectedTool(ToolController.TOOL_ZOOM);
         ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ZOOM);
         break;
 
-    case main.KEY.s:
-    case main.KEY.k:
+    case InputController.KEY.s:
+    case InputController.KEY.k:
         isLassoMenuHiddenTemp = true;
-        main.updateLastKey(keyCode);
+        InputController.updateLastKey(keyCode);
         ToolController.setSelectedTool(ToolController.TOOL_ROTATE);
         ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ROTATE);
         break;
 
-    case main.KEY.enter:
+    case InputController.KEY.enter:
         applyLassoImageToCanvas();
         break;
 
-    case main.KEY.esc:
-    case main.KEY.backspace:
+    case InputController.KEY.esc:
+    case InputController.KEY.backspace:
         cancelLassoTool();
         break;
 }
@@ -1189,9 +1190,9 @@ public static function onRightMouseUpLassoTool(e:MouseEvent):void
 
 public static function onMouseUpLassoTool(e:MouseEvent):void
 {
-    if (main.getPressedKeyCount() === 1 && main.getFirstPressedKey() === main.KEY.space)
+    if (InputController.getPressedKeyCount() === 1 && InputController.getFirstPressedKey() === InputController.KEY.space)
     {
-        main.updateLastKey(main.KEY.space);
+        InputController.updateLastKey(InputController.KEY.space);
         isLassoMenuHiddenTemp = true;
         ToolController.setSelectedTool(ToolController.TOOL_HAND);
         ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);

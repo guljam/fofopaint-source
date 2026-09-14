@@ -175,7 +175,7 @@ package Modules
 
         private static function onKeyDownCanvasWindow(e:KeyboardEvent):void
         {
-            if (e.keyCode === main.KEY.esc)
+            if (e.keyCode === InputController.KEY.esc)
             {
                 closeCanvasWindow();
             }

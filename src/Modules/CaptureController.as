@@ -402,7 +402,7 @@ package Modules
                     main.handleMouseClick(targetName);
                     break;
                 case "timer":
-                    main.startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, main.realWorkingTimer.reset, null);
+                    InputController.startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, main.realWorkingTimer.reset, null);
                     break;
                 default:
                     if (!CanvasController.isMouseClickBlocked)
@@ -415,23 +415,23 @@ package Modules
 
         private static function onKeyUpCaptureMode(e:KeyboardEvent):void
         {
-            main.updateLastKey(main.getLastKey());
-            main.checkGeneralKeyUp(e.keyCode);
+            InputController.updateLastKey(InputController.getLastKey());
+            InputController.checkGeneralKeyUp(e.keyCode);
         }
 
         private static function onKeyDownCaptureMode(e:KeyboardEvent):void
         {
-            const firstKey:uint = main.getFirstPressedKey();
+            const firstKey:uint = InputController.getFirstPressedKey();
             if (captureStampFontListBox.visible)
             {
-                if (firstKey === main.KEY.esc)
+                if (firstKey === InputController.KEY.esc)
                 {
                     hideStampFontList();
                 }
                 return;
             }
 
-            if (firstKey === main.KEY.esc)
+            if (firstKey === InputController.KEY.esc)
             {
                 if (main.stage.focus === MainUI.topBar.captureInput)
                 {
@@ -445,20 +445,20 @@ package Modules
                 return;
             }
 
-            if (main.isPressingControl())
+            if (InputController.isPressingControl())
             {
-                const secondKey:uint = main.getSecondPressedKey();
-                if (main.isLastKey(secondKey))
+                const secondKey:uint = InputController.getSecondPressedKey();
+                if (InputController.isLastKey(secondKey))
                 {
                     return;
                 }
-                main.updateLastKey(secondKey);
+                InputController.updateLastKey(secondKey);
 
-                if (secondKey === main.KEY.s || secondKey === main.KEY.semicolon)
+                if (secondKey === InputController.KEY.s || secondKey === InputController.KEY.semicolon)
                 {
                     FileManager.saveCaptureImage();
                 }
-                else if (secondKey === main.KEY.c || secondKey === main.KEY.comma)
+                else if (secondKey === InputController.KEY.c || secondKey === InputController.KEY.comma)
                 {
                     executeCaptureFlashEffect();
                     if (MainUI.topBar.capClipBoard.alpha === 1.0)
@@ -466,7 +466,7 @@ package Modules
                         copyCaptureImageToCilpBoard();
                     }
                 }
-                else if (secondKey === main.KEY.v || secondKey === main.KEY.m)
+                else if (secondKey === InputController.KEY.v || secondKey === InputController.KEY.m)
                 {
                     if (ClipboardManager.isClipBoardButtonActivated)
                     {
@@ -476,19 +476,19 @@ package Modules
                 return;
             }
 
-            if (main.isLastKey(firstKey))
+            if (InputController.isLastKey(firstKey))
             {
                 return;
             }
 
-            main.updateLastKey(firstKey);
+            InputController.updateLastKey(firstKey);
 
             switch (firstKey)
             {
-                case main.KEY.esc:
-                case main.KEY.backspace:
-                case main.KEY.f1:
-                case main.KEY.f7:
+                case InputController.KEY.esc:
+                case InputController.KEY.backspace:
+                case InputController.KEY.f1:
+                case InputController.KEY.f7:
                     handleExitCaptureMode();
                     break;
                 default:
@@ -881,7 +881,7 @@ package Modules
             {
                 FOFOTimer.add(0.2, false, function ():void
                     {
-                        main.tryDisableIME();
+                        InputController.tryDisableIME();
                         isCaptureStampTextFieldFocused = false;
                     });
             }

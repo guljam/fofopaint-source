@@ -603,7 +603,7 @@ package Modules
 
             if (ReplayController.rReplayImageCacheState === ReplayController.REPLAY_IMAGE_CAHCHE_READY)
             {
-                main.removeInputEventsDrawMode();
+                InputController.removeInputEventsDrawMode();
                 Utils.setAsTopChild(MainUI.seekBarBox);
                 MainUI.seekBarBox.updatePos(main.stage.stageWidth);
                 ReplayController.startGeneratingReplayCacheImage();
@@ -664,7 +664,7 @@ package Modules
         {
             if (ReplayController.isGeneratingCacheImages())
             {
-                main.removeKeyRepeatEvents(null);
+                InputController.removeKeyRepeatEvents(null);
                 return;
             }
             if (UndoManager.isDeepUndoEnabled)

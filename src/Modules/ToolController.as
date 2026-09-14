@@ -747,7 +747,7 @@ package Modules
         {
             if (ReferenceLayerController.isRefLayerMenuON)
             {
-                if (keyCode === main.KEY.esc || keyCode === main.KEY.backspace)
+                if (keyCode === InputController.KEY.esc || keyCode === InputController.KEY.backspace)
                 {
                     ReferenceLayerController.closeRefLayerMenu();
                     return;
@@ -755,15 +755,15 @@ package Modules
             }
             switch (keyCode)
             {
-                case main.KEY.q:
-                case main.KEY.o:
+                case InputController.KEY.q:
+                case InputController.KEY.o:
                     {
                         setLastTool(TOOL_PEN);
                         selectFillPenTool();
                         showNowToolIconToCursorTemp(TOOL_FILLPEN);
                     }
                     break;
-                case main.KEY.t:
+                case InputController.KEY.t:
                     {
                         if (ReferenceLayerController.isRefLayerMenuON)
                         {
@@ -775,15 +775,15 @@ package Modules
                         }
                     }
                     break;
-                case main.KEY.a:
-                case main.KEY.l:
+                case InputController.KEY.a:
+                case InputController.KEY.l:
                     {
                         CanvasController.mirrorCanvas();
                         showNowToolIconToCursorTemp(TOOL_MIRROR);
                     }
                     break;
-                case main.KEY.c:
-                case main.KEY.m:
+                case InputController.KEY.c:
+                case InputController.KEY.m:
                     {
                         if (ColorPickerController.colorPickerBox.scratchPad.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                         {
@@ -799,8 +799,8 @@ package Modules
                         }
                     }
                     break;
-                case main.KEY.r:
-                case main.KEY.y:
+                case InputController.KEY.r:
+                case InputController.KEY.y:
                     {
                         if (!isSelectedTool(TOOL_LASSO))
                         {
@@ -810,7 +810,7 @@ package Modules
                         }
                     }
                     break;
-                case main.KEY.space:
+                case InputController.KEY.space:
                     {
                         if (!isSelectedTool(TOOL_HAND))
                         {
@@ -820,8 +820,8 @@ package Modules
                         }
                     }
                     break;
-                case main.KEY.d:
-                case main.KEY.j:
+                case InputController.KEY.d:
+                case InputController.KEY.j:
                     {
                         if (!isSelectedTool(TOOL_ERASER))
                         {
@@ -832,8 +832,8 @@ package Modules
                         }
                     }
                     break;
-                case main.KEY.s:
-                case main.KEY.k:
+                case InputController.KEY.s:
+                case InputController.KEY.k:
                     {
                         if (!isSelectedTool(TOOL_ROTATE))
                         {
@@ -843,8 +843,8 @@ package Modules
                         }
                     }
                     break;
-                case main.KEY.e:
-                case main.KEY.u:
+                case InputController.KEY.e:
+                case InputController.KEY.u:
                     {
                         if (!isSelectedTool(TOOL_MOVE))
                         {
@@ -854,8 +854,8 @@ package Modules
                         }
                     }
                     break;
-                case main.KEY.w:
-                case main.KEY.i:
+                case InputController.KEY.w:
+                case InputController.KEY.i:
                     {
                         if (!isSelectedTool(TOOL_ZOOM))
                         {
@@ -865,7 +865,7 @@ package Modules
                         }
                     }
                     break;
-                case main.KEY.shift:
+                case InputController.KEY.shift:
                     {
                         if (!isSelectedTool(TOOL_LINE))
                         {
@@ -875,9 +875,9 @@ package Modules
                         }
                     }
                     break;
-                case main.KEY.esc:
-                case main.KEY.del:
-                case main.KEY.backspace:
+                case InputController.KEY.esc:
+                case InputController.KEY.del:
+                case InputController.KEY.backspace:
                     {
                         if (MainUI.topBar.newFileButton.alpha === 1.0 && !BackgroundWorkerCoordinator.isSaveInProgress)
                         {
@@ -908,7 +908,7 @@ package Modules
             {
                 return;
             }
-            main.removeInputEventsToolBox2();
+            InputController.removeInputEventsToolBox2();
             isToolBox2Showing = false;
             toolBox2.visible = false;
             if (!ignoreResizeButtonVisible)
@@ -1066,7 +1066,7 @@ package Modules
         }
         public static function onKeyUpToolBox2(e:KeyboardEvent):void
         {
-            main.resetLastKey();
+            InputController.resetLastKey();
             handleToolBox2Closing(toolBox2.getMouseOverTarget());
         }
         public static function onRightMouseUpToolBox2(e:MouseEvent):void
@@ -1088,7 +1088,7 @@ package Modules
 
         public static function handleToolBoxMouseDown(target:DisplayObject):Boolean
         {
-            if (main.isKeyPressed() && !SidebarController.isQuickSidebarActive || !target)
+            if (InputController.isKeyPressed() && !SidebarController.isQuickSidebarActive || !target)
                 return true;
             const targetName:String = target.name;
             switch (targetName)
@@ -1100,15 +1100,15 @@ package Modules
                     return true;
                 case "toolUndo":
                     {
-                        main.startKeyRepeat(false, UndoManager.undo);
-                        main.startKeyRepeatStopTimerOnMouseLeave(target);
+                        InputController.startKeyRepeat(false, UndoManager.undo);
+                        InputController.startKeyRepeatStopTimerOnMouseLeave(target);
                         handleToolBoxClick(targetName);
                     }
                     return true;
                 case "toolRedo":
                     {
-                        main.startKeyRepeat(false, UndoManager.redo);
-                        main.startKeyRepeatStopTimerOnMouseLeave(target);
+                        InputController.startKeyRepeat(false, UndoManager.redo);
+                        InputController.startKeyRepeatStopTimerOnMouseLeave(target);
                         handleToolBoxClick(targetName);
                     }
                     return true;
@@ -1150,7 +1150,7 @@ package Modules
             isToolBox2Showing = true;
             MainUIController.showCanvasResizeButtonVisibleDelay(true);
             Utils.setAsTopChild(toolBox2);
-            main.addInputEventsToolBox2(fromShortcut);
+            InputController.addInputEventsToolBox2(fromShortcut);
             FOFOTimer.addByName("toolBox2HideCheckTimer", 0.1, true, function ():Boolean
                 {
                     if (!isToolBox2Showing)

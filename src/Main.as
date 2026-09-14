@@ -1,9 +1,6 @@
 ﻿package
 {
-    import flash.desktop.Clipboard;
-    import flash.desktop.ClipboardFormats;
     import flash.desktop.NativeApplication;
-    import flash.desktop.NativeDragManager;
     import flash.display.Shape;
     import flash.display.Sprite;
     import flash.display.Bitmap;
@@ -14,14 +11,11 @@
     import flash.display.CapsStyle;
     import flash.display.JointStyle;
     import flash.display.DisplayObject;
-    import flash.display.DisplayObjectContainer;
     import flash.display.IBitmapDrawable;
     import flash.display.StageScaleMode;
     import flash.display.StageAlign;
     import flash.display.StageQuality;
-    import flash.display.Loader;
     import flash.events.Event;
-    import flash.events.IOErrorEvent;
     import flash.events.MouseEvent;
     import flash.events.KeyboardEvent;
     import flash.events.NativeDragEvent;
@@ -33,23 +27,17 @@
     import flash.filesystem.FileStream;
     import flash.filesystem.FileMode;
     import flash.filters.BlurFilter;
-    import flash.filters.GlowFilter;
-    import flash.filters.ConvolutionFilter;
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.ColorTransform;
     import flash.geom.Rectangle;
     import flash.net.URLRequest;
-    import flash.net.FileFilter;
     import flash.net.navigateToURL;
     import flash.system.Capabilities;
-    import flash.system.IME;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import flash.utils.Timer;
-    import flash.ui.Mouse;
     import flash.net.registerClassAlias;
-    import flash.utils.describeType;
     import Modules.Tools.LassoTool;
     import Modules.Tools.PenTool;
     import Modules.Utils;
@@ -73,127 +61,30 @@
     import Symbols.FillPenMenuSet;
     import Symbols.EyedropperLensSet;
     import Symbols.AboutWindowSet;
-    import Symbols.NumPadSet;
     import Symbols.HintBoxSet;
     import Modules.UndoManager;
     import Modules.ReplayController;
+    import Modules.InputController;
     // import
     public class Main extends Sprite
     {
-        //todo: (중요) module 클래스는 정적 변수가 아니라 main에서 호출되어서 연결되어지는 클래스 인스턴스로 가는게맞는것같음
-        //현재 일단 컴파일만되게 분리하는작업임
+        // todo: (중요) module 클래스는 정적 변수가 아니라 main에서 호출되어서 연결되어지는 클래스 인스턴스로 가는게맞는것같음
+        // 현재 일단 컴파일만되게 분리하는작업임
         private const savepos:Array = [0, 0, 0, 0];
 
         public static var _instance:Main;
         public const APP_VERSION:String = "28.01";
         public const APP_STATE_VERSION:String = "2801";
 
-
-
-
-        public const KEY_REPEAT_START_DELAY:Number = 0.3,
-            KEY_REPEAT_INTERVAL:Number = 0.06;
-
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
-
-       
-
-        // 파일 저장 경로
-
-        // 키 누름 관련
-        public var LAST_KEY:int = -1; // 마지막 누른거 여기다가 저장 반복호출되는 keydown 함수에서 한번만 호출되게 하는변수
-        public const KEY_BUFFER:Array = []; // 정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
-        public const COMMAND_CTRL:int = (1 << 0),
-            COMMAND_SHIFT:int = (1 << 1),
-            COMMAND_CTRL_SHIFT:int = (1 << 2);
-        public const KEY:Object = {
-                a: 65,
-                b: 66,
-                c: 67,
-                d: 68,
-                e: 69,
-                f: 70,
-                g: 71,
-                h: 72,
-                i: 73,
-                j: 74,
-                k: 75,
-                l: 76,
-                m: 77,
-                n: 78,
-                o: 79,
-                p: 80,
-                q: 81,
-                r: 82,
-                s: 83,
-                t: 84,
-                u: 85,
-                v: 86,
-                w: 87,
-                x: 88,
-                y: 89,
-                z: 90,
-                dot: 190,
-                comma: 188,
-                semicolon: 186,
-                shift: 16,
-                ctrl: 17,
-                alt: 18,
-                rightAlt: 21, // as에서는 한글모드
-                rightCtrl: 25, // 한글 모드에서 오른쪽 컨트롤
-                space: 32,
-                backslash: 220,
-                backspace: 8,
-                enter: 13,
-                esc: 27,
-                del: 46,
-                tab: 9,
-                n0: 48,
-                n1: 49,
-                n2: 50,
-                n3: 51,
-                n4: 52,
-                n5: 53,
-                n6: 54,
-                n7: 55,
-                n8: 56,
-                n8: 56,
-                n9: 57,
-                minus: 189,
-                pgup: 33,
-                pgdn: 34,
-                home: 36,
-                end: 35,
-                left: 37,
-                up: 38,
-                right: 39,
-                down: 40,
-                f1: 112,
-                f2: 113,
-                f3: 114,
-                f4: 115,
-                f5: 116,
-                f6: 117,
-                f7: 118,
-                f8: 119,
-                f9: 120,
-                f10: 121,
-                f11: 122,
-                f12: 123,
-                window: 91
-            };
 
         // about
         public const aboutBox:AboutWindowSet = new AboutWindowSet();
         public var isAboutBoxOpened:Boolean = false; // 어바웃 창 떴을때 킴
 
-        // 키 오래누름 관련 변수
-        public var pressHoldCountDownTime:Number = 0.0,
-            pressHoldFrameCount:int = 0;
-
-public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
-            public var isFillPenON:Boolean = false; // 채우기 펜 플래그
-            public var isFillPenStarted:Boolean = false; // 채우기 펜 시작됨
+        public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
+        public var isFillPenON:Boolean = false; // 채우기 펜 플래그
+        public var isFillPenStarted:Boolean = false; // 채우기 펜 시작됨
         public const eyedropperLens:EyedropperLensSet = new EyedropperLensSet();
         public var mirrorCommandReady:Boolean = false; // 미러 커맨드를 넣어줄지 말지 결정
 
@@ -213,14 +104,12 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             updatePenSizeCursor:Function = cUpdatePenSizeCursor(),
             penCursorManager:Object = cPenCursorUpdater(),
             resizeCanvas:Object = CanvasController.cResizeCanvas();
-     
+
         // 기타
         public var isAppClosing:Boolean = false; // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
-         public var    lastWindowDeactivateTime:int = 0; // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
-         public var    lastEraserPosButton:SimpleButton = null; // 지우개 툴이 이동한 버튼 저장; 복원용
-         public var    isLayerCheckKeyPressed:Boolean = false;
-         public var    isDrawModeInputEventsAdded:Boolean = false;
-            
+        public var lastWindowDeactivateTime:int = 0; // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
+        public var lastEraserPosButton:SimpleButton = null; // 지우개 툴이 이동한 버튼 저장; 복원용
+
         public function Main():void
         {
             _instance = this;
@@ -241,9 +130,9 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
         public function initializeModule():void
         {
             trace('nit modu');
-            //나중에 file load 클래스 초기화로 옮겨야함
+            // 나중에 file load 클래스 초기화로 옮겨야함
             registerClassAlias("AppState", AppStateManager);
-            //main ui가 호출되기전에 이것부터 stage 연결시켜주어야함 그냥 상단에 고정
+            // main ui가 호출되기전에 이것부터 stage 연결시켜주어야함 그냥 상단에 고정
             HintBoxSet.setMainStage(this.stage);
 
             AppUpdater.setMainInstance(this);
@@ -265,7 +154,8 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             Utils.setMainInstance(this);
             UndoManager.setMainInstance(this);
             ReplayController.setMainInstance(this);
-            
+            InputController.setMainInstance(this);
+
             PenTool.setMainInstance(this);
             LassoTool.setMainInstance(this);
         }
@@ -286,12 +176,12 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             // 입력 이벤트는 loadappdstate보다느려야함
             addGlobalEvents();
             addGlobalEventsChild();
-            addInputEventsDrawMode();
+            InputController.addInputEventsDrawMode();
             ReplayController.initializeReplayDataFile();
             CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             realWorkingTimer.start();
             AppUpdater.checkUpdate();
-            tryDisableIME();
+            InputController.tryDisableIME();
             ColorPickerController.colorPickerBox.setActiveColorPreset(0);
             MainUI.mouseHint.updateBGColor();
             SidebarController.moveSideBar("left"); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름
@@ -303,94 +193,99 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             ClipboardManager.checkCanUseClipBoardButton();
         }
         // function
-        
 
-
-
-
-
-        public function startScratchPadResetTimer(target:DisplayObject):void
+        public function cRealWorkingTimer():Object
         {
-            FOFOTimer.addByName("clearScratchPadTimer", 0.4, false, function ():void
-                {
-                    startPressHoldKey(target, "Clearing scratch pad..", null, ColorPickerController.colorPickerBox.scratchPad.clearPad, null);
-                });
-        }
-
-        public function startPressHoldKey(button:DisplayObject, hintStr:String, readyFunc:Function, okFunc:Function, cancelFunc:Function):void
-        {
-            if (!FOFOTimer.hasTimer("pressholdtimer"))
+            var workingTimer:Timer = new Timer(1000);
+            var workingTime:int = 0;
+            var lastTime:int = 0; // 마지막 시간 저장해줌
+            // 시간 표시 관련 변수
+            var tt:int;
+            var hh:int;
+            var mm:int;
+            var ss:int;
+            var lastMousePosX:Number = 0;
+            var lastMousePosY:Number = 0;
+            function reset():void
             {
-                var keyBufferLenSave:uint = getPressedKeyCount();
-                var mouseClickONSave:Boolean = CanvasController.isMouseClicked;
-                var rightMouseClickONSave:Boolean = CanvasController.isRightMouseClicked;
-                const countDownTime:Number = 3;
-                const countDownTimeNow:Number = Math.ceil((stage.frameRate * 2.5) / countDownTime);
-                pressHoldCountDownTime = countDownTime;
-                pressHoldFrameCount = 0;
-                if (readyFunc !== null)
-                {
-                    if (readyFunc() === true)
-                    {
-                        return;
-                    }
-                }
-                function cancelHoldingKey():void
-                {
-                    pressHoldFrameCount = 0;
-                    pressHoldCountDownTime = countDownTime;
-                    MainUI.hideMouseHint();
-                }
-                if (hintStr !== "")
-                {
-                    MainUI.showMouseHint(hintStr + " " + pressHoldCountDownTime);
-                }
-                FOFOTimer.addByName("pressholdtimer", 0.0, true, function ():Boolean
-                    {
-                        if (CanvasController.isMouseClicked !== mouseClickONSave
-                                || CanvasController.isRightMouseClicked !== rightMouseClickONSave
-                                || keyBufferLenSave !== getPressedKeyCount()
-                                || (button && button.hitTestPoint(stage.mouseX, stage.mouseY) === false))
-                        {
-                            if (cancelFunc !== null)
-                            {
-                                cancelFunc();
-                            }
-                            cancelHoldingKey();
-                            return false;
-                        }
-                        pressHoldFrameCount++;
-                        if (pressHoldFrameCount >= countDownTimeNow)
-                        {
-                            pressHoldFrameCount = 0;
-                            pressHoldCountDownTime--;
-                        }
-                        MainUI.showMouseHint(hintStr + " " + pressHoldCountDownTime);
-                        if (pressHoldCountDownTime <= 0)
-                        {
-                            cancelHoldingKey();
-                            okFunc();
-                            return false;
-                        }
-                        return true;
-                    });
+                lastTime = getTimer();
+                workingTime = 0;
+                MainUI.topBar.timer.text = "00:00:00";
+                MainUI.topBar.updateTimerPos(stage.stageWidth);
             }
+            function setRunningTime(newTime:int):void
+            {
+                workingTime = newTime;
+            }
+            function getRunningTime():int
+            {
+                return workingTime;
+            }
+            function update():void
+            {
+                if (workingTime < 0)
+                {
+                    workingTime = 0;
+                }
+                tt = workingTime / 1000;
+                hh = Math.floor(tt / 3600);
+                mm = Math.floor((tt - hh * 3600) / 60);
+                ss = Math.floor(tt % 60);
+                MainUI.topBar.timer.text = ((hh < 10) ? "0" + hh : "" + hh)
+                    + ":" + ((mm < 10) ? "0" + mm : "" + mm)
+                    + ":" + ((ss < 10) ? "0" + ss : "" + ss);
+                MainUI.topBar.timerAFkDot.visible = false;
+                MainUI.topBar.updateTimerPos(stage.stageWidth);
+            }
+            function onTimer():Boolean
+            {
+                const nowTime:int = getTimer();
+                const subTime:int = nowTime - lastTime;
+                if (!stage.nativeWindow.active
+                        || (!CanvasController.isMouseClicked && !CanvasController.isRightMouseClicked && !InputController.isKeyPressed()
+                            && stage.mouseX === lastMousePosX && stage.mouseY === lastMousePosY))
+                {
+                    MainUI.topBar.timerAFkDot.visible = !MainUI.topBar.timerAFkDot.visible;
+                    MainUI.topBar.updateTimerPos(stage.stageWidth);
+                }
+                else
+                {
+                    workingTime += subTime;
+                    update();
+                }
+                lastMousePosX = stage.mouseX;
+                lastMousePosY = stage.mouseY;
+                lastTime = nowTime;
+                return true;
+            }
+            function stop():void
+            {
+                if (workingTimer !== null)
+                {
+                    workingTimer.stop();
+                    workingTimer.removeEventListener(TimerEvent.TIMER, onTimer);
+                    workingTimer = null;
+                }
+            }
+            function start():void
+            {
+                workingTimer.addEventListener(TimerEvent.TIMER, onTimer);
+                workingTimer.start();
+            }
+            return {
+                    start: start,
+                    stop: stop,
+                    reset: reset,
+                    update: update,
+                    getRunningTime: getRunningTime,
+                    setRunningTime: setRunningTime
+                };
         }
-
-
-
-
-
-
-
-
 
         public function setRcursorRotation(newAngle:Number):void
         {
             ReplayController.rReplayFOFOCursor.rotation = -newAngle;
         }
-
-
 
         public function getClipRectOffsetAirBrush(size:int):Number
         {
@@ -405,18 +300,10 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             return 0;
         }
 
-
-
-
-
         public function getCanvasLayerSwappedHintString():String
         {
             return "Layers has been swapped " + ((CanvasController.isLayerSwapped) ? "1 / 2" : "2 / 1");
         }
-
-
-
-
 
         public function mirrorRCursorPos():void
         {
@@ -451,18 +338,6 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                     return true;
                 });
         }
-
-
-
-
-
-
-
-
-
-
-
-
 
         public function cDottedLine():Object
         {
@@ -535,108 +410,6 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 };
         }
 
-        public function updateLastKey(key:int):void
-        {
-            LAST_KEY = getLastKey();
-        }
-        public function resetLastKey():void
-        {
-            LAST_KEY = -1;
-        }
-        public function isLastKey(key:uint):Boolean
-        {
-            return LAST_KEY === key;
-        }
-
-        public function startKeyRepeatStopTimerOnMouseLeave(target:DisplayObject):void
-        {
-            FOFOTimer.addByName("checkKeyRepeatStop", 0.0, true, function ():Boolean
-                {
-                    if (!target.hitTestPoint(stage.mouseX, stage.mouseY))
-                    {
-                        removeKeyRepeatEvents(null);
-                        return false;
-                    }
-                    return true;
-                });
-        }
-        public function startKeyRepeat(firstCall:Boolean, func:Function, ...args):Boolean
-        {
-            if (FOFOTimer.hasTimer("keyHoldWaitTimer") || FOFOTimer.hasTimer("keyHoldRepeatTimer"))
-            {
-                return false;
-            }
-            FOFOTimer.addByName("keyHoldWaitTimer", KEY_REPEAT_START_DELAY, false,
-                    function ():void
-                    {
-                        func.apply(Main, args);
-                        FOFOTimer.addByName("keyHoldRepeatTimer", KEY_REPEAT_INTERVAL, true, func, args);
-                    });
-            addKeyRepeatEvents();
-            if (firstCall)
-            {
-                func.apply(Main, args);
-            }
-            return true;
-        }
-        public function checkPenOptionsKeyDown(keyCode:uint):Boolean
-        {
-            const secondKey:int = getSecondPressedKey();
-            if (secondKey === KEY.n3 || secondKey === KEY.n8)
-            {
-                if (ToolController.toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
-                {
-                    ToolController.toggleSharpLineByShortcut();
-                }
-                return true;
-            }
-            else if (secondKey === KEY.n4 || secondKey === KEY.n7)
-            {
-                if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
-                {
-                    ToolController.togglePenAirBrushButtonShortCut();
-                    return true;
-                }
-                else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
-                {
-                    ToolController.toggleEraseAirBrushButtonShortCut();
-                    return true;
-                }
-            }
-            return false;
-        }
-        public function isPressingControl():Boolean
-        {
-            return getCommandKey() === COMMAND_CTRL;
-        }
-        public function isPressingShift():Boolean
-        {
-            return getCommandKey() === COMMAND_SHIFT;
-        }
-        public function isPressingControlShift():Boolean
-        {
-            return getCommandKey() === COMMAND_CTRL_SHIFT;
-        }
-        public function getCommandKey():int
-        {
-            const first:uint = getFirstPressedKey();
-            const second:uint = getSecondPressedKey();
-            if ((second === KEY.shift && (first === KEY.ctrl || first === KEY.rightCtrl))
-                    || (first === KEY.shift && (second === KEY.ctrl || second === KEY.rightCtrl)))
-            {
-                return COMMAND_CTRL_SHIFT;
-            }
-            if (first === KEY.shift)
-            {
-                return COMMAND_SHIFT;
-            }
-            if (first === KEY.ctrl || first === KEY.rightCtrl)
-            {
-                return COMMAND_CTRL;
-            }
-            return 0;
-        }
-
         public function isCursorInDrawArea():Boolean
         {
             return !(MainUI.topBar.hitTestPoint(stage.mouseX, stage.mouseY)
@@ -653,17 +426,9 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             NativeApplication.nativeApplication.autoExit = true;
         }
 
-
-        public function onMouseDownStage(e:MouseEvent):void
-        {
-            checkInvalidKey();
-            CanvasController.isMouseClicked = true;
-            MainUI.hideBottomHint();
-        }
-
         public function onMouseUpStage(e:MouseEvent):void
         {
-            checkInvalidKey();
+            InputController.checkInvalidKey();
             const mx:Number = stage.mouseX;
             const my:Number = stage.mouseY;
             CanvasController.isMouseClicked = false;
@@ -675,7 +440,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
 
         public function onRightMouseUpStage(e:MouseEvent):void
         {
-            checkInvalidKey();
+            InputController.checkInvalidKey();
             const mx:Number = stage.mouseX;
             const my:Number = stage.mouseY;
             CanvasController.isRightMouseClicked = false;
@@ -683,28 +448,6 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             {
                 CanvasController.isMouseDragging = false;
             }
-        }
-
-        public function onRightMouseDownStage(e:MouseEvent):void
-        {
-            checkInvalidKey();
-            CanvasController.isRightMouseClicked = true;
-        }
-        public function onMiddleMouseDownStage(e:MouseEvent):void
-        {
-            if (CaptureController.isCaptureModeON)
-                return;
-            if (FOFOTimer.hasTimer("toolTipTempONTimer"))
-            {
-                MainUI.hideMouseHint();
-            }
-            if (LassoTool.isLassoToolStarted)
-            {
-                LassoTool.lassoMenuBox.visible = false;
-                LassoTool.isLassoMenuHiddenTemp = true;
-            }
-            handTool(ReplayController.isReplayModeON, true);
-            ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
         }
 
         public function onMouseLeaveStage(e:Event):void
@@ -715,15 +458,15 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             CanvasController.penSizePreviewCursor.visible = false;
         }
 
-                public function onMouseWheelStage(e:MouseEvent):void
+        public function onMouseWheelStage(e:MouseEvent):void
         {
             if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging
                     || MainUIController.isPopUpWindowOpened()
-                    || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && isKeyPressed() || getCommandKey() !== 0)
-                    {
+                    || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && InputController.isKeyPressed() || InputController.getCommandKey() !== 0)
+            {
                 return;
 
-                    }
+            }
 
             if (!FOFOTimer.hasTimer("wheelZoomTimer"))
             {
@@ -760,7 +503,6 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             }
         }
 
-
         public function resetApp():void
         {
             stage.nativeWindow.removeEventListener(Event.CLOSING, FileManager.onWindowClosingEvent);
@@ -768,8 +510,6 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             const files:File = File.applicationStorageDirectory;
             files.deleteDirectory(true);
         }
-
-
 
         public function cFillPenTool():Object
         {
@@ -848,7 +588,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                     startFillColorUpdateTimer();
                 }
                 if (targetName === "fillPenOK")
-                    fillPenBox.hint("OK [q, o key up]");
+                    fillPenBox.hint("OK [q, o InputController.key up]");
                 if (targetName === "fillPenCancel")
                     fillPenBox.hint("Cancel\n[esc, backspace]");
                 else if (targetName === "fillPenUndo")
@@ -976,15 +716,15 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 {
                     return;
                 }
-                if (isLastKey(pressedKey))
+                if (InputController.isLastKey(pressedKey))
                 {
                     return;
                 }
-                const secondKey:int = getSecondPressedKey();
+                const secondKey:int = InputController.getSecondPressedKey();
                 if (SidebarController.isPressingQuickSidebarShortcut(pressedKey, secondKey)
-                        || pressedKey === KEY.n6)
+                        || pressedKey === InputController.KEY.n6)
                 {
-                    updateLastKey(pressedKey);
+                    InputController.updateLastKey(pressedKey);
                     if (SidebarController.isQuickSidebarActive === false)
                     {
                         SidebarController.activeQuickSideBar(true);
@@ -994,14 +734,14 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                         }
                     }
                 }
-                else if (pressedKey === KEY.g || pressedKey === KEY.b)
+                else if (pressedKey === InputController.KEY.g || pressedKey === InputController.KEY.b)
                 {
-                    updateLastKey(pressedKey);
-                    startKeyRepeat(true, function (increase:Boolean):void
+                    InputController.updateLastKey(pressedKey);
+                    InputController.startKeyRepeat(true, function (increase:Boolean):void
                         {
                             turnOffFillPenPreviewCount = stage.frameRate;
                             ToolController.adjustDrawToolAlphaByShortcut(increase);
-                        }, (pressedKey === KEY.g) ? true : false);
+                        }, (pressedKey === InputController.KEY.g) ? true : false);
                     if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
                     {
                         startFillColorUpdateTimer();
@@ -1011,24 +751,24 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             function onKeyUpFillPen(e:KeyboardEvent):void
             {
                 const keyCode:uint = e.keyCode;
-                resetLastKey();
+                InputController.resetLastKey();
                 if (CanvasController.isMouseClicked)
                 {
-                    if (keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter)
+                    if (keyCode === InputController.KEY.q || keyCode === InputController.KEY.o || keyCode === InputController.KEY.enter)
                     {
                         afterKeyUpOK = true;
                     }
                     return;
                 }
-                if (keyCode === KEY.w || keyCode === KEY.i || keyCode === KEY.z || keyCode === KEY.dot)
+                if (keyCode === InputController.KEY.w || keyCode === InputController.KEY.i || keyCode === InputController.KEY.z || keyCode === InputController.KEY.dot)
                 {
                     undoData();
                 }
-                else if (keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter)
+                else if (keyCode === InputController.KEY.q || keyCode === InputController.KEY.o || keyCode === InputController.KEY.enter)
                 {
                     applyFillPen();
                 }
-                else if (keyCode === KEY.esc || keyCode === KEY.backspace)
+                else if (keyCode === InputController.KEY.esc || keyCode === InputController.KEY.backspace)
                 {
                     exitFillPen();
                 }
@@ -1344,7 +1084,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             function start():void
             {
                 isFillPenStarted = true;
-                if (getFirstPressedKey() === KEY.q || getFirstPressedKey() === KEY.o)
+                if (InputController.getFirstPressedKey() === InputController.KEY.q || InputController.getFirstPressedKey() === InputController.KEY.o)
                 {
                     isStartedFromShortCut = true;
                 }
@@ -1404,7 +1144,6 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                     start: start
                 };
         }
-
 
         public function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
         {
@@ -1484,115 +1223,6 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                     checkCursorVisibility: checkCursorVisibility
                 };
         }
-        public function cRealWorkingTimer():Object
-        {
-            var workingTimer:Timer = new Timer(1000);
-            var workingTime:int = 0;
-            var lastTime:int = 0; // 마지막 시간 저장해줌
-            // 시간 표시 관련 변수
-            var tt:int;
-            var hh:int;
-            var mm:int;
-            var ss:int;
-            var lastMousePosX:Number = 0;
-            var lastMousePosY:Number = 0;
-            function reset():void
-            {
-                lastTime = getTimer();
-                workingTime = 0;
-                MainUI.topBar.timer.text = "00:00:00";
-                MainUI.topBar.updateTimerPos(stage.stageWidth);
-            }
-            function setRunningTime(newTime:int):void
-            {
-                workingTime = newTime;
-            }
-            function getRunningTime():int
-            {
-                return workingTime;
-            }
-            function update():void
-            {
-                if (workingTime < 0)
-                {
-                    workingTime = 0;
-                }
-                tt = workingTime / 1000;
-                hh = Math.floor(tt / 3600);
-                mm = Math.floor((tt - hh * 3600) / 60);
-                ss = Math.floor(tt % 60);
-                MainUI.topBar.timer.text = ((hh < 10) ? "0" + hh : "" + hh)
-                    + ":" + ((mm < 10) ? "0" + mm : "" + mm)
-                    + ":" + ((ss < 10) ? "0" + ss : "" + ss);
-                MainUI.topBar.timerAFkDot.visible = false;
-                MainUI.topBar.updateTimerPos(stage.stageWidth);
-            }
-            function onTimer():Boolean
-            {
-                const nowTime:int = getTimer();
-                const subTime:int = nowTime - lastTime;
-                if (!stage.nativeWindow.active
-                        || (!CanvasController.isMouseClicked && !CanvasController.isRightMouseClicked && !isKeyPressed()
-                            && stage.mouseX === lastMousePosX && stage.mouseY === lastMousePosY))
-                {
-                    MainUI.topBar.timerAFkDot.visible = !MainUI.topBar.timerAFkDot.visible;
-                    MainUI.topBar.updateTimerPos(stage.stageWidth);
-                }
-                else
-                {
-                    workingTime += subTime;
-                    update();
-                }
-                lastMousePosX = stage.mouseX;
-                lastMousePosY = stage.mouseY;
-                lastTime = nowTime;
-                return true;
-            }
-            function stop():void
-            {
-                if (workingTimer !== null)
-                {
-                    workingTimer.stop();
-                    workingTimer.removeEventListener(TimerEvent.TIMER, onTimer);
-                    workingTimer = null;
-                }
-            }
-            function start():void
-            {
-                workingTimer.addEventListener(TimerEvent.TIMER, onTimer);
-                workingTimer.start();
-            }
-            return {
-                    start: start,
-                    stop: stop,
-                    reset: reset,
-                    update: update,
-                    getRunningTime: getRunningTime,
-                    setRunningTime: setRunningTime
-                };
-        }
-
-
-        public function checkGeneralKeyUp(keyCode:uint):void
-        {
-            if (KEY_BUFFER.length === 0)
-            {
-                resetLastKey();
-            }
-            else if (!CaptureController.isCaptureModeON && !ReplayController.isReplayModeON && isLastKey(keyCode))
-            {
-                LassoTool.onKeyDownLassoTool(null);
-            }
-        }
-
-
-
-
-
-
-
-
-
         public function restoreCanvasBackgroundColor(replayMode:Boolean):void
         {
             var xPanel:Sprite;
@@ -1619,10 +1249,6 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             xPanel.graphics.endFill();
         }
 
-
-
-
-
         public function updateStageBGSize():void
         {
             MainUI.stageBG.graphics.clear();
@@ -1637,13 +1263,13 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
         public function addGlobalEvents():void
         {
             // 전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음
-            stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownStage, false, 1);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN, InputController.onMouseDownStage, false, 1);
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpStage, false, 1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpStage, false, 1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownStage, false, 1);
-            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onMiddleMouseDownStage, false, 1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownStage, false, 1);
-            stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpStage, false, 1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, InputController.onRightMouseDownStage, false, 1);
+            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, InputController.onMiddleMouseDownStage, false, 1);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN, InputController.onKeyDownStage, false, 1);
+            stage.addEventListener(KeyboardEvent.KEY_UP, InputController.onKeyUpStage, false, 1);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveUpdatePenPreviewCursor);
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseMoveUpdatePenPreviewCursor, false, -1);
             stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveStage, false);
@@ -1685,154 +1311,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             ToolController.toolBox2.addEventListener(MouseEvent.MOUSE_OVER, ToolController.onMouseOverToolBox2Hint);
         }
 
-
-
-
         // composing 키에대한 체크 잘모르겠음 한영 변환이 관련있는거 같음
-        public function checkInvalidKey():void
-        {
-            const len:uint = KEY_BUFFER.length;
-            for (var i:int = 0;i < len;i++)
-            {
-                if (KEY_BUFFER[i] === 229
-                        || KEY_BUFFER[i] === 241
-                        || KEY_BUFFER[i] === 242)
-                {
-                    clearKeyBuffer();
-                    return;
-                }
-            }
-            if (len >= 2)
-            {
-                if ((KEY_BUFFER[0] === 18 && KEY_BUFFER[1] === 32)
-                        || (KEY_BUFFER[0] === 32 && KEY_BUFFER[1] === 18))
-                {
-                    clearKeyBuffer();
-                }
-            }
-        }
-        public function getPressedKeyCount():int
-        {
-            return KEY_BUFFER.length;
-        }
-        public function isKeyPressed():Boolean
-        {
-            return KEY_BUFFER.length > 0;
-        }
-        public function getLastKey():int
-        {
-            return KEY_BUFFER[KEY_BUFFER.length - 1];
-        }
-        public function isTwoKeyPressed():Boolean
-        {
-            return KEY_BUFFER.length === 2;
-        }
-        public function isPressdKey(key:int):int
-        {
-            return KEY_BUFFER.lastIndexOf(key);
-        }
-        public function getFirstPressedKey():int
-        {
-            return KEY_BUFFER[0];
-        }
-        public function getSecondPressedKey():int
-        {
-            return KEY_BUFFER[1];
-        }
-        public function onKeyUpStage(e:KeyboardEvent):void
-        {
-            tryDisableIME();
-            checkInvalidKey();
-            const index:int = isPressdKey(e.keyCode);
-            if (index > -1)
-            {
-                KEY_BUFFER.splice(index, 1);
-            }
-        }
-        public function onKeyDownStage(e:KeyboardEvent):void
-        {
-            tryDisableIME();
-            checkInvalidKey();
-            const keyCode:uint = e.keyCode;
-            if (keyCode === KEY.window)
-            {
-                return;
-            }
-            if (keyCode === KEY.tab || keyCode === KEY.alt)
-            {
-                e.preventDefault();
-            }
-            if (KEY_BUFFER.lastIndexOf(keyCode) === -1)
-            {
-                KEY_BUFFER.push(keyCode);
-            }
-        }
-
-
-
-
-
-        public function removeInputEventsDrawMode():void
-        {
-            isDrawModeInputEventsAdded = false;
-            stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownDrawMode);
-            stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpDrawMode);
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownDrawMode);
-            stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpDrawMode, false);
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownDrawMode);
-            ColorPickerController.colorPickerBox.rgbInfoText.removeEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfoText);
-            // stage.removeEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
-        }
-        public function addInputEventsDrawMode():void
-        {
-            if (isDrawModeInputEventsAdded === false)
-            {
-                isDrawModeInputEventsAdded = true;
-                // resetKeyBuffer();
-                stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpDrawMode, false, -1);
-                stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownDrawMode, false, -1);
-                stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownDrawMode, false, -1);
-                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpDrawMode, false, -1);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownDrawMode, false, -1);
-                ColorPickerController.colorPickerBox.rgbInfoText.addEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfoText);
-            }
-        }
-
-        public function removeInputEventsToolBox2():void
-        {
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, ToolController.onRightMouseUpToolBox2);
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN, ToolController.onMouseDownToolBox2);
-            ToolController.toolBox2.removeEventListener(MouseEvent.MOUSE_OVER, ToolController.onMouseOverToolBox2);
-            stage.removeEventListener(KeyboardEvent.KEY_UP, ToolController.onKeyUpToolBox2);
-            addInputEventsDrawMode();
-        }
-        public function addInputEventsToolBox2(fromShortcut:Boolean):void
-        {
-            removeInputEventsDrawMode();
-            if (fromShortcut)
-            {
-                ToolController.toolBox2.addEventListener(MouseEvent.MOUSE_OVER, ToolController.onMouseOverToolBox2, false, -2);
-                stage.addEventListener(KeyboardEvent.KEY_UP, ToolController.onKeyUpToolBox2, false, -2);
-            }
-            else
-            {
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, ToolController.onRightMouseUpToolBox2, false, -2);
-            }
-            stage.addEventListener(MouseEvent.MOUSE_DOWN, ToolController.onMouseDownToolBox2, false, -2);
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
         // VERSION변수를 문자열로 변환, 변환할때 뒤에 .0이 붙었는지 까지 체크
         public function convertVersionString(version:Number):String
         {
@@ -1841,30 +1320,13 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
                 verStr = verStr + ".0";
             return verStr;
         }
-        public function enableIME():void
-        {
-            IME.enabled = true;
-        }
-        public function tryDisableIME():void
-        {
-            if (CaptureController.isCaptureStampTextFieldFocused)
-            {
-                IME.enabled = true;
-                return;
-            }
-            if (Capabilities.hasIME && IME.enabled) // 다른 언어로 하면 자판 안먹어서 그냥 ime자체를안씀
-            {
-                IME.compositionAbandoned();
-                IME.enabled = false;
-            }
-        }
         // 문자열을 소수 2번째 자리까지만 변환
         public function closeAboutBox():void
         {
             stage.removeEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
             CaptureController.removeInputEventCaptrueMode();
             ReplayController.removeInputEventsReplayMode();
-            addInputEventsDrawMode();
+            InputController.addInputEventsDrawMode();
             isAboutBoxOpened = false;
             aboutBox.visible = false;
             FOFOTimer.addByName("clickBlockTimer", 0.15, false, function ():void
@@ -1883,7 +1345,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             isAboutBoxOpened = true;
             CanvasController.isMouseClickBlocked = true;
             MainUI.hideBottomHint();
-            removeInputEventsDrawMode();
+            InputController.removeInputEventsDrawMode();
             if (welcome === true)
             {
                 aboutBox.resetAppButton.visible = false;
@@ -1894,7 +1356,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             }
             else
             {
-                removeInputEventsDrawMode();
+                InputController.removeInputEventsDrawMode();
                 aboutBox.resetAppButton.visible = true;
                 AppUpdater.checkUpdate();
                 stage.addEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
@@ -1905,7 +1367,7 @@ public const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
             aboutBox.visible = true;
         }
 
-public function clearDrawingData():void
+        public function clearDrawingData():void
         {
             CanvasController.clearCanvas();
             ReplayController.resetZoomReplayMode();
@@ -1924,7 +1386,7 @@ public function clearDrawingData():void
             MainUI.topBar.newFileButton.alpha = Global.OFFALPHA;
         }
 
-        //todo: 분야별로 분리해야
+        // todo: 분야별로 분리해야
         public function handleMouseClick(targetName:String):void
         {
             if (isAboutBoxOpened)
@@ -2317,58 +1779,14 @@ public function clearDrawingData():void
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-public function addKeyRepeatEvents():void
-        {
-            stage.nativeWindow.addEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
-            stage.addEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents);
-            stage.addEventListener(MouseEvent.MOUSE_UP, removeKeyRepeatEvents);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, removeKeyRepeatEvents);
-            stage.addEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents);
-        }
-        public function removeKeyRepeatEvents(e:Object):void
-        {
-            FOFOTimer.remove("checkKeyRepeatStop");
-            FOFOTimer.remove("keyHoldWaitTimer");
-            FOFOTimer.remove("keyHoldRepeatTimer");
-            stage.nativeWindow.removeEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents);
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents);
-            stage.removeEventListener(MouseEvent.MOUSE_UP, removeKeyRepeatEvents);
-            stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, removeKeyRepeatEvents);
-            stage.removeEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents);
-        }
-
-
-
-
-
-
-public function updateCanvasBGColor(xCanvas:Sprite, w:Number, h:Number, color:uint):void
+        public function updateCanvasBGColor(xCanvas:Sprite, w:Number, h:Number, color:uint):void
         {
             xCanvas.graphics.clear();
             xCanvas.graphics.beginFill(color);
             xCanvas.graphics.drawRect(0, 0, w, h);
             xCanvas.graphics.endFill();
         }
-public function isHintAvailableWithFillPen(target:DisplayObject):Boolean
+        public function isHintAvailableWithFillPen(target:DisplayObject):Boolean
         {
             const targetName:String = target.name;
             if (isFillPenStarted)
@@ -2402,7 +1820,7 @@ public function isHintAvailableWithFillPen(target:DisplayObject):Boolean
             return true;
         }
 
-public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawable, imageData1:IBitmapDrawable, imageOnlyFlag:Boolean, newBG:uint):void
+        public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawable, imageData1:IBitmapDrawable, imageOnlyFlag:Boolean, newBG:uint):void
         {
             if (!imageData)
             {
@@ -2523,7 +1941,7 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
                 CanvasController.toggleLayer2Check();
             }
             MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-            removeKeyRepeatEvents(null);
+            InputController.removeKeyRepeatEvents(null);
             CanvasController.canvasLayer1Bitmap.visible = true;
             CanvasController.canvasLayer2Bitmap.visible = true;
             MainUI.topBar.captureButton.alpha = 1.0;
@@ -2544,7 +1962,7 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
             FileManager.isLoadPendingAfterSaving = false;
             FileManager.closeLoadMenuBox();
         }
-// size, size drag, zoom, rotate시 업데이트 해줌
+        // size, size drag, zoom, rotate시 업데이트 해줌
         public function cUpdatePenSizeCursor():Function
         {
             var size:Number;
@@ -2896,7 +2314,7 @@ public function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawa
                 stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLineTool);
             };
         }
-public function resetRotationDrawMode():void
+        public function resetRotationDrawMode():void
         {
             const center:Point = MainUIController.getStageCenterPos("draw");
             updatePenSizeCursor();
@@ -2941,7 +2359,7 @@ public function resetRotationDrawMode():void
                     {
                         ReplayController.fitReplayCanvasToViewport();
                     }
-                    resetLastKey();
+                    InputController.resetLastKey();
                     ReplayController.rFollowMouse.updateBounds();
                 }
                 MainUI.hideCanvasRotateCursor();
@@ -3255,7 +2673,7 @@ public function resetRotationDrawMode():void
             }
         }
 
-public function cEyeDropperTool():Function
+        public function cEyeDropperTool():Function
         {
             // 일단 흰색으로 배경 깔아줌
             const magSize:Number = eyedropperLens.magSize;
@@ -3353,8 +2771,8 @@ public function cEyeDropperTool():Function
                     exitEyeDropperTool(false);
                     return;
                 }
-                if (e.keyCode === KEY.c || e.keyCode === KEY.m) {}
-                else if (e.keyCode === KEY.space)
+                if (e.keyCode === InputController.KEY.c || e.keyCode === InputController.KEY.m) {}
+                else if (e.keyCode === InputController.KEY.space)
                 {
                     if (PenTool.isTransparentPenColor)
                     {
@@ -3384,7 +2802,7 @@ public function cEyeDropperTool():Function
                     exitEyeDropperTool(false);
                     return;
                 }
-                if (e.keyCode === KEY.c || e.keyCode === KEY.m)
+                if (e.keyCode === InputController.KEY.c || e.keyCode === InputController.KEY.m)
                 {
                     confirmEyeDropperSelection();
                 }
@@ -3496,7 +2914,7 @@ public function cEyeDropperTool():Function
                     return;
                 }
                 ToolController.updateLastTool();
-                //todo: 이것도 그냥 setLastToolPen, setSeletedToolPen이런식으로 메서드로 호출
+                // todo: 이것도 그냥 setLastToolPen, setSeletedToolPen이런식으로 메서드로 호출
                 ToolController.setLastTool(ToolController.nowTool);
                 ToolController.setSelectedTool(ToolController.TOOL_EYEDROPPER);
                 penColorBackup = PenTool.penColor;
@@ -3553,7 +2971,7 @@ public function cEyeDropperTool():Function
                             LassoTool.hideLassoMenuBoxTemp();
                         }
                     } // tool box에서 클릭해서 핸드툴 들어갈때 필요함
-                    else if (!isLastKey(KEY.space))
+                    else if (!InputController.isLastKey(InputController.KEY.space))
                     {
                         ToolController.selectLastUsedTool();
                     }
@@ -3601,7 +3019,7 @@ public function cEyeDropperTool():Function
             };
         }
 
-public function applyReplayCanvasToDrawModeCanvas():void
+        public function applyReplayCanvasToDrawModeCanvas():void
         {
             CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
             CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, ReplayController.rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
@@ -3618,34 +3036,33 @@ public function applyReplayCanvasToDrawModeCanvas():void
             }
         }
 
-
         public function handlePenOpacitySizeKeyDown(keyCode:uint):Boolean
         {
             switch (keyCode)
             {
-                case KEY.f:
-                case KEY.h:
-                    startKeyRepeat(true, ToolController.adjustDrawToolSizeByShortcut, true);
+                case InputController.KEY.f:
+                case InputController.KEY.h:
+                    InputController.startKeyRepeat(true, ToolController.adjustDrawToolSizeByShortcut, true);
                     return true;
-                case KEY.v:
-                case KEY.n:
-                    startKeyRepeat(true, ToolController.adjustDrawToolSizeByShortcut, false);
+                case InputController.KEY.v:
+                case InputController.KEY.n:
+                    InputController.startKeyRepeat(true, ToolController.adjustDrawToolSizeByShortcut, false);
                     return true;
-                case KEY.g:
-                CanvasController.canvasPanel.x= savepos[0];
-                CanvasController.canvasPanel.y= savepos[1];
-                CanvasController.canvasAnchorPoint.x= savepos[2];
-                CanvasController.canvasAnchorPoint.y= savepos[3];
+                case InputController.KEY.g:
+                    CanvasController.canvasPanel.x = savepos[0];
+                    CanvasController.canvasPanel.y = savepos[1];
+                    CanvasController.canvasAnchorPoint.x = savepos[2];
+                    CanvasController.canvasAnchorPoint.y = savepos[3];
 
-                    startKeyRepeat(true, ToolController.adjustDrawToolAlphaByShortcut, true);
+                    InputController.startKeyRepeat(true, ToolController.adjustDrawToolAlphaByShortcut, true);
                     return true;
-                case KEY.b:
-                    startKeyRepeat(true, ToolController.adjustDrawToolAlphaByShortcut, false);
+                case InputController.KEY.b:
+                    InputController.startKeyRepeat(true, ToolController.adjustDrawToolAlphaByShortcut, false);
                     return true;
             }
             return false;
         }
-        
+
         public function selectOpacityButton(targetName:String):void
         {
             const number:String = targetName.substr(11, targetName.length);
@@ -3691,7 +3108,7 @@ public function applyReplayCanvasToDrawModeCanvas():void
                 CanvasController.canvasDrawLayerChild.graphics.endFill();
             };
         }
-public function loadAppState():void
+        public function loadAppState():void
         {
             const fs:FileStream = new FileStream();
             var arr:Array = [];
@@ -3792,177 +3209,177 @@ public function loadAppState():void
                 // loadUndoData함수에서 canvaspanel이 호출되는데 이전에 reflayer 이미지 정보값을 넣어두어야함
                 // 그냥 해주면 창크기 적용이 안되서 타이머 걸어줌
                 FOFOTimer.addByName("loadAppDataDelayTimer", 0.2, false, function ():void
-                {
-                    stage.nativeWindow.width = appStateObject.stageNativeWindowWidth;
-                    stage.nativeWindow.height = appStateObject.stageNativeWindowHeight;
-                    stage.nativeWindow.x = appStateObject.stageNativeWindowX;
-                    stage.nativeWindow.y = appStateObject.stageNativeWindowY;
-                    MainUIController.lastAppWindowSize.width = appStateObject.stageNativeWindowWidth;
-                    MainUIController.lastAppWindowSize.height = appStateObject.stageNativeWindowHeight;
-
-                    // 캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
-                    if (appStateObject.lastWindowState === 1)
-                        stage.nativeWindow.maximize();
-
-                    Global.setScaleIndex(appStateObject.uiScaleIndex);
-                    MainUIController.applyUIScale();
-                    Global.setUIColorIndex(appStateObject.uiColorIndex);
-                    MainUIController.applyUIColorSet();
-
-                    CanvasController.canvasZoomIndex = appStateObject.canvasZoomIndex;
-                    CanvasController.updateCanvasScale(appStateObject.canvasZoomedMultiplier);
-                    CanvasController.canvasPanel.x = appStateObject.canvasPanelX;
-                    CanvasController.canvasPanel.y = appStateObject.canvasPanelY;
-                    CanvasController.canvasAnchorPoint.x = appStateObject.canvasAnchorPointX;
-                    CanvasController.canvasAnchorPoint.y = appStateObject.canvasAnchorPointY;
-                    savepos[0] =appStateObject.canvasPanelX;
-                    savepos[1] =appStateObject.canvasPanelY;
-                    savepos[2] =appStateObject.canvasAnchorPointX;
-                    savepos[3] =appStateObject.canvasAnchorPointY;
-                    CanvasController.canvasAnchorPoint.rotation = appStateObject.canvasAnchorPointRotation;
-                    setRcursorRotation(appStateObject.canvasAnchorPointRotation);
-                    MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                    CanvasController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
-
-                    PenTool.penSmoothValue = appStateObject.penSmoothValue;
-                    PenTool.penSmoothSlideValue = appStateObject.penSmoothSlideValue;
-                    ToolController.toolOptionsBox.penSmoothSliderCursor.x = appStateObject.penSmoothButtonX;
-                    PenTool.penSize = appStateObject.penSize;
-                    PenTool.penColor = appStateObject.penColor;
-
-                    ColorPickerController.hsvColorData[0] = appStateObject.hsvColorData0; // 순서 중요 이게 먼저오고 밑에 rgb info갱신해주어야함
-                    ColorPickerController.isHSVInfoTextMode = appStateObject.isHSVInfoTextMode;
-                    ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
-                    ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
-                    ColorPickerController.colorPickerBox.updateHueColor(appStateObject.svBaseColor);
-                    ColorPickerController.colorPickerBox.hueCursor.x = appStateObject.hueCursorX;
-
-                    PenTool.penAlpha = appStateObject.penAlpha;
-                    PenTool.penAlphaIndex = PenTool.penAlphaList.indexOf(appStateObject.penAlpha);
-                    ToolController.updateDrawToolAlpha(appStateObject.penAlpha);
-                    PenTool.penIsSquare = appStateObject.penIsSquare;
-                    PenTool.penListShapeIsSqare = appStateObject.penIsSquare;
-                    ToolController.toolOptionsBox.updatePenShapeSet(appStateObject.penIsSquare);
-
-                    PenTool.eraserSize = appStateObject.eraseSize;
-                    PenTool.eraserIsSquare = appStateObject.eraserIsSquare;
-                    PenTool.eraserAlpha = appStateObject.eraseAlpha;
-                    PenTool.eraserAlphaIndex = PenTool.penAlphaList.indexOf(appStateObject.eraseAlpha);
-                    PenTool.eraserSizeIndex = appStateObject.eraseSizeIndex;
-                    ToolController.setDrawToolSize(appStateObject.penSizeIndex);
-
-                    FileManager.lastSaveFilePath = appStateObject.saveFilePath;
-                    FileManager.lastSaveFileName = appStateObject.saveFileName;
-                    if (FileManager.lastSaveFilePath === FileManager.lastSaveFileName)
                     {
-                        FileManager.lastSaveFilePath = File.desktopDirectory.nativePath + File.separator + FileManager.lastSaveFileName;
-                    }
+                        stage.nativeWindow.width = appStateObject.stageNativeWindowWidth;
+                        stage.nativeWindow.height = appStateObject.stageNativeWindowHeight;
+                        stage.nativeWindow.x = appStateObject.stageNativeWindowX;
+                        stage.nativeWindow.y = appStateObject.stageNativeWindowY;
+                        MainUIController.lastAppWindowSize.width = appStateObject.stageNativeWindowWidth;
+                        MainUIController.lastAppWindowSize.height = appStateObject.stageNativeWindowHeight;
 
-                    realWorkingTimer.setRunningTime(appStateObject.appRunningTime);
-                    realWorkingTimer.update();
+                        // 캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
+                        if (appStateObject.lastWindowState === 1)
+                            stage.nativeWindow.maximize();
 
-                    ReferenceLayerController.refLayerLastAlpha = appStateObject.refLayerLastAlpha;
-                    ReferenceLayerController.canvasRefLayer.alpha = appStateObject.refLayerLastAlpha;
-                    ReferenceLayerController.refLayerMenuBox.refOpacityCursor.x = appStateObject.refOpacityCursorX;
-                    ReferenceLayerController.refLayerMenuBox.x = appStateObject.refLayerMenuBox0;
-                    ReferenceLayerController.refLayerMenuBox.y = appStateObject.refLayerMenuBox1;
-                    ReferenceLayerController.refLayerMenuDragXMoveSum = appStateObject.refLayerMenuDragXMoveSum;
+                        Global.setScaleIndex(appStateObject.uiScaleIndex);
+                        MainUIController.applyUIScale();
+                        Global.setUIColorIndex(appStateObject.uiColorIndex);
+                        MainUIController.applyUIColorSet();
 
-                    if (appStateObject.isRefLayerMemoryTrainingON)
-                    {
-                        ReferenceLayerController.isRefLayerMemoryTrainingON = false;
-                        ReferenceLayerController.toggleRefLayerMemoryTraining();
-                    }
+                        CanvasController.canvasZoomIndex = appStateObject.canvasZoomIndex;
+                        CanvasController.updateCanvasScale(appStateObject.canvasZoomedMultiplier);
+                        CanvasController.canvasPanel.x = appStateObject.canvasPanelX;
+                        CanvasController.canvasPanel.y = appStateObject.canvasPanelY;
+                        CanvasController.canvasAnchorPoint.x = appStateObject.canvasAnchorPointX;
+                        CanvasController.canvasAnchorPoint.y = appStateObject.canvasAnchorPointY;
+                        savepos[0] = appStateObject.canvasPanelX;
+                        savepos[1] = appStateObject.canvasPanelY;
+                        savepos[2] = appStateObject.canvasAnchorPointX;
+                        savepos[3] = appStateObject.canvasAnchorPointY;
+                        CanvasController.canvasAnchorPoint.rotation = appStateObject.canvasAnchorPointRotation;
+                        setRcursorRotation(appStateObject.canvasAnchorPointRotation);
+                        MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                        CanvasController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
 
-                    SidebarController.isRightSidebar = appStateObject.isRightSidebar;
-                    SidebarController.isSidebarVisible = appStateObject.isSidebarVisible;
-                    if (appStateObject.isRightSidebar)
-                        SidebarController.moveSideBar("right", true);
-                    if (!appStateObject.isSidebarVisible)
-                        SidebarController.hideSidebarPermanent();
+                        PenTool.penSmoothValue = appStateObject.penSmoothValue;
+                        PenTool.penSmoothSlideValue = appStateObject.penSmoothSlideValue;
+                        ToolController.toolOptionsBox.penSmoothSliderCursor.x = appStateObject.penSmoothButtonX;
+                        PenTool.penSize = appStateObject.penSize;
+                        PenTool.penColor = appStateObject.penColor;
 
-                    ReplayController.rReplayImageCacheState = appStateObject.rReplayImageCacheState;
-                    ReplayController.rLastCanvasBGColor = appStateObject.rLastCanvasBGColor;
-                    ReplayController.drawReplayByCommand.setFirstRCursorPos(appStateObject.getFirstRCursorPosX, appStateObject.getFirstRCursorPosY);
+                        ColorPickerController.hsvColorData[0] = appStateObject.hsvColorData0; // 순서 중요 이게 먼저오고 밑에 rgb info갱신해주어야함
+                        ColorPickerController.isHSVInfoTextMode = appStateObject.isHSVInfoTextMode;
+                        ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
+                        ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
+                        ColorPickerController.colorPickerBox.updateHueColor(appStateObject.svBaseColor);
+                        ColorPickerController.colorPickerBox.hueCursor.x = appStateObject.hueCursorX;
 
-                    ReferenceLayerController.updateRefLayerImageTransform(
-                        appStateObject.canvasRefLayerBitmapX,
-                        appStateObject.canvasRefLayerBitmapY,
-                        appStateObject.canvasRefLayerRotation,
-                        appStateObject.canvasRefLayerScaleX,
-                        appStateObject.canvasRefLayerScaleY
-                    );
+                        PenTool.penAlpha = appStateObject.penAlpha;
+                        PenTool.penAlphaIndex = PenTool.penAlphaList.indexOf(appStateObject.penAlpha);
+                        ToolController.updateDrawToolAlpha(appStateObject.penAlpha);
+                        PenTool.penIsSquare = appStateObject.penIsSquare;
+                        PenTool.penListShapeIsSqare = appStateObject.penIsSquare;
+                        ToolController.toolOptionsBox.updatePenShapeSet(appStateObject.penIsSquare);
 
-                    if (CanvasController.isCanvasMirrored !== appStateObject.isCanvasMirrored)
-                        CanvasController.mirrorCanvas(true);
+                        PenTool.eraserSize = appStateObject.eraseSize;
+                        PenTool.eraserIsSquare = appStateObject.eraserIsSquare;
+                        PenTool.eraserAlpha = appStateObject.eraseAlpha;
+                        PenTool.eraserAlphaIndex = PenTool.penAlphaList.indexOf(appStateObject.eraseAlpha);
+                        PenTool.eraserSizeIndex = appStateObject.eraseSizeIndex;
+                        ToolController.setDrawToolSize(appStateObject.penSizeIndex);
 
-                    CanvasGridOverlay.gridGapMultiplier = appStateObject.gridValue;
-                    CanvasGridOverlay.gridDrawOffsetX = appStateObject.gridDrawOffsetX;
-                    CanvasGridOverlay.gridDrawOffsetY = appStateObject.gridDrawOffsetY;
-                    if (!CanvasGridOverlay.gridDrawOffsetX)
-                        CanvasGridOverlay.gridDrawOffsetX = 0.0;
-                    if (!CanvasGridOverlay.gridDrawOffsetY)
-                        CanvasGridOverlay.gridDrawOffsetY = 0.0;
-                    if (appStateObject.gridValue > 0)
-                        CanvasGridOverlay.drawGrid();
+                        FileManager.lastSaveFilePath = appStateObject.saveFilePath;
+                        FileManager.lastSaveFileName = appStateObject.saveFileName;
+                        if (FileManager.lastSaveFilePath === FileManager.lastSaveFileName)
+                        {
+                            FileManager.lastSaveFilePath = File.desktopDirectory.nativePath + File.separator + FileManager.lastSaveFileName;
+                        }
 
-                    if (appStateObject.canvasWindowON)
-                    {
-                        ImageViewWindow.canvasWindowInfo = [
-                            appStateObject.newWindowInfo0,
-                            appStateObject.newWindowInfo1,
-                            appStateObject.newWindowInfo2,
-                            appStateObject.newWindowInfo3
-                        ];
-                        ImageViewWindow.openImageViewWindow();
-                        stage.nativeWindow.activate();
-                    }
+                        realWorkingTimer.setRunningTime(appStateObject.appRunningTime);
+                        realWorkingTimer.update();
 
-                    FileManager.isContinueSaveON = appStateObject.isContinueSaveON;
-                    ReplayController.rDataIndex = UndoManager.undoDataIndex;
-                    ReplayController.rNowFrame = UndoManager.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex);
-                    ReplayController.rPrevFrame = UndoManager.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex - 1);
+                        ReferenceLayerController.refLayerLastAlpha = appStateObject.refLayerLastAlpha;
+                        ReferenceLayerController.canvasRefLayer.alpha = appStateObject.refLayerLastAlpha;
+                        ReferenceLayerController.refLayerMenuBox.refOpacityCursor.x = appStateObject.refOpacityCursorX;
+                        ReferenceLayerController.refLayerMenuBox.x = appStateObject.refLayerMenuBox0;
+                        ReferenceLayerController.refLayerMenuBox.y = appStateObject.refLayerMenuBox1;
+                        ReferenceLayerController.refLayerMenuDragXMoveSum = appStateObject.refLayerMenuDragXMoveSum;
 
-                    // 혹시 몰라서 위치 체크 해줌
-                    CanvasController.canvasInfoBox.setRotate(CanvasController.canvasAnchorPoint.rotation);
-                    CanvasController.centerCanvas("replay");
-                    CanvasController.keepCanvasPanelInStage();
-                    CanvasController.keepCanvasPanelInStage(true);
+                        if (appStateObject.isRefLayerMemoryTrainingON)
+                        {
+                            ReferenceLayerController.isRefLayerMemoryTrainingON = false;
+                            ReferenceLayerController.toggleRefLayerMemoryTraining();
+                        }
 
-                    PaletteController.myPaletteSaveColorBeforeOtherType[0] = PenTool.penColor;
-                    if (appStateObject.myPalettePresetType > 0)
-                        ColorPickerController.activeColorPreset(appStateObject.myPalettePresetType);
+                        SidebarController.isRightSidebar = appStateObject.isRightSidebar;
+                        SidebarController.isSidebarVisible = appStateObject.isSidebarVisible;
+                        if (appStateObject.isRightSidebar)
+                            SidebarController.moveSideBar("right", true);
+                        if (!appStateObject.isSidebarVisible)
+                            SidebarController.hideSidebarPermanent();
 
-                    PaletteController.updateHistoryList();
-                    PaletteController.isMyPaletteExpended = appStateObject.isMyPaletteExpended;
-                    if (PaletteController.myPalettePresetType === 0 && appStateObject.isMyPaletteExpended)
-                    {
-                        PaletteController.switchMyPaletteToExpended();
-                    }
-                    else
-                    {
-                        PaletteController.updateMyPaletteList();
-                    }
+                        ReplayController.rReplayImageCacheState = appStateObject.rReplayImageCacheState;
+                        ReplayController.rLastCanvasBGColor = appStateObject.rLastCanvasBGColor;
+                        ReplayController.drawReplayByCommand.setFirstRCursorPos(appStateObject.getFirstRCursorPosX, appStateObject.getFirstRCursorPosY);
 
-                    ColorPickerController.isColorPickerBoxPositionSwapped = appStateObject.isColorPickerBoxPositionSwapped;
-                    if (appStateObject.isColorPickerBoxPositionSwapped)
-                    {
-                        ColorPickerController.colorPickerBox.swapColorBoxPositions(appStateObject.isColorPickerBoxPositionSwapped);
-                    }
+                        ReferenceLayerController.updateRefLayerImageTransform(
+                                appStateObject.canvasRefLayerBitmapX,
+                                appStateObject.canvasRefLayerBitmapY,
+                                appStateObject.canvasRefLayerRotation,
+                                appStateObject.canvasRefLayerScaleX,
+                                appStateObject.canvasRefLayerScaleY
+                            );
 
-                    SidebarController.sideBarScrollPanel.y = appStateObject.scrollSetMovedY;
-                    MainUI.topBar.captureInput.text = appStateObject.captureStampText;
-                    CaptureController.isCaptureStampEnabled = appStateObject.isCaptureStampON;
-                    if (appStateObject.captureStampFont)
-                    {
-                        CaptureController.captureStampManager.changeFont(appStateObject.captureStampFont, false);
-                    }
+                        if (CanvasController.isCanvasMirrored !== appStateObject.isCanvasMirrored)
+                            CanvasController.mirrorCanvas(true);
 
-                    MainUIController.updateCanvasNaigatorCursor();
-                    updatePenSizeCursor();
-                    MainUIController.updateWindowTitle();
-                    CanvasController.selectLayer1(false);
-                });
+                        CanvasGridOverlay.gridGapMultiplier = appStateObject.gridValue;
+                        CanvasGridOverlay.gridDrawOffsetX = appStateObject.gridDrawOffsetX;
+                        CanvasGridOverlay.gridDrawOffsetY = appStateObject.gridDrawOffsetY;
+                        if (!CanvasGridOverlay.gridDrawOffsetX)
+                            CanvasGridOverlay.gridDrawOffsetX = 0.0;
+                        if (!CanvasGridOverlay.gridDrawOffsetY)
+                            CanvasGridOverlay.gridDrawOffsetY = 0.0;
+                        if (appStateObject.gridValue > 0)
+                            CanvasGridOverlay.drawGrid();
+
+                        if (appStateObject.canvasWindowON)
+                        {
+                            ImageViewWindow.canvasWindowInfo = [
+                                    appStateObject.newWindowInfo0,
+                                    appStateObject.newWindowInfo1,
+                                    appStateObject.newWindowInfo2,
+                                    appStateObject.newWindowInfo3
+                                ];
+                            ImageViewWindow.openImageViewWindow();
+                            stage.nativeWindow.activate();
+                        }
+
+                        FileManager.isContinueSaveON = appStateObject.isContinueSaveON;
+                        ReplayController.rDataIndex = UndoManager.undoDataIndex;
+                        ReplayController.rNowFrame = UndoManager.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex);
+                        ReplayController.rPrevFrame = UndoManager.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex - 1);
+
+                        // 혹시 몰라서 위치 체크 해줌
+                        CanvasController.canvasInfoBox.setRotate(CanvasController.canvasAnchorPoint.rotation);
+                        CanvasController.centerCanvas("replay");
+                        CanvasController.keepCanvasPanelInStage();
+                        CanvasController.keepCanvasPanelInStage(true);
+
+                        PaletteController.myPaletteSaveColorBeforeOtherType[0] = PenTool.penColor;
+                        if (appStateObject.myPalettePresetType > 0)
+                            ColorPickerController.activeColorPreset(appStateObject.myPalettePresetType);
+
+                        PaletteController.updateHistoryList();
+                        PaletteController.isMyPaletteExpended = appStateObject.isMyPaletteExpended;
+                        if (PaletteController.myPalettePresetType === 0 && appStateObject.isMyPaletteExpended)
+                        {
+                            PaletteController.switchMyPaletteToExpended();
+                        }
+                        else
+                        {
+                            PaletteController.updateMyPaletteList();
+                        }
+
+                        ColorPickerController.isColorPickerBoxPositionSwapped = appStateObject.isColorPickerBoxPositionSwapped;
+                        if (appStateObject.isColorPickerBoxPositionSwapped)
+                        {
+                            ColorPickerController.colorPickerBox.swapColorBoxPositions(appStateObject.isColorPickerBoxPositionSwapped);
+                        }
+
+                        SidebarController.sideBarScrollPanel.y = appStateObject.scrollSetMovedY;
+                        MainUI.topBar.captureInput.text = appStateObject.captureStampText;
+                        CaptureController.isCaptureStampEnabled = appStateObject.isCaptureStampON;
+                        if (appStateObject.captureStampFont)
+                        {
+                            CaptureController.captureStampManager.changeFont(appStateObject.captureStampFont, false);
+                        }
+
+                        MainUIController.updateCanvasNaigatorCursor();
+                        updatePenSizeCursor();
+                        MainUIController.updateWindowTitle();
+                        CanvasController.selectLayer1(false);
+                    });
             }
             else // 복원파일이 없을때
             {
@@ -3997,655 +3414,5 @@ public function loadAppState():void
             }
         }
 
-
-public function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
-{
-    if (CanvasController.isMouseClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
-            || isFillPenStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mouseX, mouseY))
-            || FileManager.loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
-    {
-        return;
-    }
-
-    const targetName:String = e.target.name;
-    switch (targetName)
-    {
-        case "saveButton":
-            {
-                FileManager.openSaveFileBrowser(true);
-            }
-            break;
-
-        case "dpiButton":
-            {
-                if (Global.getScaleIndex() !== 0)
-                {
-                    Global.resetScaleIndex();
-                    MainUIController.applyUIScale();
-                    MainUI.showMouseHintTemp(Global.getUIScaleString());
-                }
-            }
-            break;
-
-        case "toolZoomIn":
-        case "toolZoomOut":
-            {
-                if (CanvasController.canvasZoomMultipler !== 1.0)
-                    CanvasController.resetZoomDrawMode();
-            }
-            break;
-
-        case "gridButton":
-            {
-                if (CanvasGridOverlay.gridGapMultiplier !== 0)
-                {
-                    MainUI.hideBottomHint();
-                    CanvasGridOverlay.resetGrid();
-                }
-            }
-            break;
-
-        case "toolRotate":
-            {
-                if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
-                {
-                    resetRotationDrawMode();
-                }
-            }
-            break;
-
-        case "sideBarScrollBar":
-            {
-                SidebarController.resetSideBarPosition();
-            }
-            break;
-
-        default:
-            {
-                if (isCursorInDrawArea())
-                {
-                    if (ToolController.isToolBox2Showing && !UndoManager.isDeepUndoEnabled)
-                    {
-                        ToolController.closeToolBox2();
-                    }
-                    else
-                    {
-                        ToolController.openToolBox2(false);
-                    }
-                }
-            }
-            break;
-    }
-}
-
-public function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
-        {
-            const keyCode:uint = e.keyCode;
-            if (isLastKey(keyCode))
-            {
-                if (CanvasController.isMouseClicked === true)
-                {
-                    CanvasController.isKeyReleasedBeforeMouseUp = true;
-                }
-                else if (isKeyPressed())
-                {
-                    onKeyDownDrawMode(null);
-                }
-                else
-                {
-                    isLayerCheckKeyPressed = false;
-                    if (ToolController.lastTool > ToolController.TOOL_NONE)
-                    {
-                        ToolController.selectLastUsedTool();
-                        ToolController.showNowToolIconToCursorTemp(ToolController.nowTool);
-                    }
-                    penCursorManager.check();
-                }
-            }
-            if (!isKeyPressed())
-            {
-                resetLastKey();
-            }
-            if (!isPressingControl())
-            {
-                if (resizeCanvas.isResizing())
-                {
-                    resizeCanvas.exit(true);
-                }
-                if (MainUIController.resizeButtonR.visible)
-                {
-                    MainUIController.updateCanvasResizeButtonVisible(false);
-                }
-            }
-        }
-        public function checkSubKey(expectedLength:uint, updateFlag:Boolean, callback:Function):Boolean
-        {
-            if (getPressedKeyCount() !== expectedLength)
-            {
-                return false;
-            }
-            const subKey:uint = getLastKey();
-            if (updateFlag)
-            {
-                updateLastKey(subKey);
-            }
-            if (callback !== null)
-            {
-                callback(subKey);
-            }
-            return true;
-        }
-        public function onKeyDownDrawMode(e:KeyboardEvent):void
-        {
-            if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isKeyReleasedBeforeMouseUp || isFillPenStarted
-                    || MainUIController.isPopUpWindowOpened())
-            {
-                return;
-            }
-            const firstKey:uint = getFirstPressedKey();
-            const secondKey:int = getSecondPressedKey();
-            // 자툴이 nowkey를 쓰기 때문에 nowkey 리턴 이전에서 체크해야함
-            if (isPressingControlShift())
-            {
-                // shift 누르고 ctrl 순서로 누를때 이전툴로 복원
-                if (ToolController.isSelectedTool(ToolController.TOOL_LINE))
-                {
-                    ToolController.selectLastUsedTool();
-                }
-                checkSubKey(3, true, function (input:int):void
-                    {
-                        if (input === KEY.s)
-                        {
-                            FileManager.openSaveFileBrowser(true);
-                        }
-                    });
-                return;
-            }
-            if (isPressingControl())
-            {
-                if (!checkSubKey(2, true, function (input:int):void
-                        {
-                            if (input === KEY.s)
-                                {
-                                    FileManager.openSaveFileBrowser(false);
-                        }
-                        else if (input === KEY.o)
-                            {
-                                FileManager.openLoadFileBrowser();
-                    }
-                    else if (input === KEY.c || input === KEY.comma)
-                        {
-                            CaptureController.enterCaptureMode();
-                }
-                else if (input === KEY.v || input === KEY.m)
-                    {
-                        if (ClipboardManager.isClipBoardButtonActivated)
-                            {
-                                ClipboardManager.tryLoadClipboardImage(false);
-                    }
-                }
-            }))
-            {
-                if (resizeCanvas.isResizing() === false)
-                {
-                    MainUIController.updateCanvasResizeButtonVisible(true);
-                }
-                }
-                return;
-            }
-            if (isPressingShift())
-            {
-                if (handlePenOpacitySizeKeyDown(secondKey))
-                {
-                    return;
-                }
-                else if (checkPenOptionsKeyDown(secondKey))
-                {
-                    return;
-                }
-                else if (checkSubKey(2, true, function (input:int):void
-                        {
-                            switch (input)
-                                {
-                                    case KEY.s:
-                                    case KEY.k:
-                                    {
-                                        if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
-                                            {
-                                                resetRotationDrawMode();
-                                    }
-                                }
-                                return;
-                        case KEY.w:
-                        case KEY.i:
-                        {
-                            if (CanvasController.canvasZoomMultipler !== 1.0)
-                                {
-                                    CanvasController.resetZoomDrawMode();
-                        }
-                    }
-                    return;
-        }
-        }))
-        {
-            return;
-        }
-        }
-        if (isTwoKeyPressed())
-        {
-            // 지우개키 조합 따로 체크
-            if (firstKey === KEY.d || firstKey === KEY.j)
-            {
-                if (handlePenOpacitySizeKeyDown(secondKey))
-                {
-                    return;
-                }
-                else if (secondKey === KEY.s || secondKey === KEY.k)
-                {
-                    if (SidebarController.isQuickSidebarActive === false)
-                    {
-                        SidebarController.activeQuickSideBar(true);
-                    }
-                    return;
-                }
-                else if (checkPenOptionsKeyDown(secondKey))
-                {
-                    return;
-                }
-            }
-            else if (SidebarController.isPressingQuickSidebarShortcut(firstKey, secondKey))
-            {
-                if (SidebarController.isQuickSidebarActive === false)
-                {
-                    SidebarController.activeQuickSideBar(true);
-                }
-                return;
-            }
-            // 필펜 조합 체크
-            else if (firstKey === KEY.q || firstKey === KEY.o)
-            {
-                if (handlePenOpacitySizeKeyDown(secondKey))
-                {
-                    return;
-                }
-                else if (checkPenOptionsKeyDown(secondKey))
-                {
-                    return;
-                }
-            }
-        }
-        if (isLastKey(firstKey))
-        {
-            return;
-        }
-        updateLastKey(firstKey);
-        if (handlePenOpacitySizeKeyDown(firstKey))
-        {
-            return;
-        }
-        if (handleExtraKeyDown(firstKey))
-        {
-            return;
-        }
-        ToolController.handleToolKeyDown(firstKey);
-        }
-        public function handleExtraKeyDown(keyCode:int):Boolean
-        {
-            switch (keyCode)
-            {
-                case KEY.f1:
-                case KEY.f7:
-                    {
-                        ReplayController.enterReplayMode();
-                    }
-                    return true;
-                case KEY.n1:
-                case KEY.n9:
-                    {
-                        if (CanvasController.isLayer2Selected)
-                        {
-                            MainUI.showMouseHintTemp("Layer 1 selected");
-                            CanvasController.selectLayer1(false);
-                        }
-                        else
-                        {
-                            CanvasController.selectLayer1(CanvasController.canvasLayer2Bitmap.visible);
-                            MainUI.showMouseHintLayerVisible();
-                        }
-                        if (ToolController.toolOptionsBox.layer2CheckedButton.visible)
-                        {
-                            CanvasController.toggleLayer2Check();
-                        }
-                    }
-                    return true;
-                case KEY.n2:
-                case KEY.n0:
-                    {
-                        if (!CanvasController.isLayer2Selected)
-                        {
-                            MainUI.showMouseHintTemp("Layer 2 selected");
-                            CanvasController.selectLayer2(false);
-                        }
-                        else
-                        {
-                            CanvasController.selectLayer2(CanvasController.canvasLayer1Bitmap.visible);
-                            MainUI.showMouseHintLayerVisible();
-                        }
-                        if (ToolController.toolOptionsBox.layer1CheckedButton.visible)
-                        {
-                            CanvasController.toggleLayer1Check();
-                        }
-                    }
-                    return true;
-                case KEY.n3:
-                case KEY.n8:
-                    {
-                        if (ToolController.toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
-                        {
-                            ToolController.toggleSharpLineByShortcut();
-                        }
-                    }
-                    return true;
-                case KEY.n4:
-                case KEY.n7:
-                    {
-                        if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
-                        {
-                            ToolController.togglePenAirBrushButtonShortCut();
-                        }
-                        else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
-                        {
-                            ToolController.toggleEraseAirBrushButtonShortCut();
-                        }
-                    }
-                    return true;
-                case KEY.n6:
-                    {
-                        SidebarController.activeQuickSideBar(true);
-                    }
-                    break;
-                    return true;
-                case KEY.x:
-                case KEY.comma:
-                    {
-                        startKeyRepeat(true, UndoManager.redo);
-                        ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_REDO);
-                    }
-                    return true;
-                case KEY.z:
-                case KEY.dot:
-                    {
-                        startKeyRepeat(true, UndoManager.undo);
-                        ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_UNDO);
-                    }
-                    return true;
-                case KEY.tab:
-                case KEY.backslash:
-                    {
-                        if (SidebarController.isSidebarVisible)
-                        {
-                            SidebarController.hideSidebarPermanent();
-                        }
-                        else
-                        {
-                            SidebarController.showSidebarPermanent();
-                        }
-                    }
-                    return true;
-            }
-            return false;
-        }
-
-        public function unblockMouseClickAfterDelay():void
-        {
-            FOFOTimer.addByName("clickBlockTimer", 0.15, false, function ():void
-                {
-                    CanvasController.isMouseClickBlocked = false;
-                });
-        }
-
-public function clearKeyBuffer():void
-        {
-            KEY_BUFFER.length = 0;
-            resetLastKey();
-        }
-
-        // 키를 2개 이상 누르고 있을때 먼저 누른키를 떼면 다음키로 설정함
-        public function onMouseUpDrawMode(e:MouseEvent):void // mouseup1
-        {
-            if (CanvasController.isKeyReleasedBeforeMouseUp) // 단축키 떼고 마우스 땠을때 원래대로 돌림
-            {
-                CanvasController.isKeyReleasedBeforeMouseUp = false;
-                if (KEY_BUFFER.length > 0)
-                {
-                    onKeyDownDrawMode(null);
-                }
-                else
-                {
-                    resetLastKey();
-                    if (ToolController.lastTool > ToolController.TOOL_NONE)
-                    {
-                        ToolController.selectLastUsedTool();
-                    }
-                    penCursorManager.check();
-                }
-            }
-        }
-
-
-
-
-
-
-
-        public function onMouseDownDrawMode(e:MouseEvent):void
-        {
-            if (isFillPenStarted || FileManager.loadMenuBox.visible
-                    || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
-            {
-                return;
-            }
-            const target:DisplayObject = e.target as DisplayObject;
-            if (!target)
-            {
-                return;
-            }
-            const targetName:String = target.name;
-            if (SidebarController.sideBar.visible)
-            {
-                if (SidebarController.sideBarScrollPanel.hitTestPoint(stage.mouseX, stage.mouseY) && SidebarController.handleSidebarMouseDown(target))
-                {
-                    return;
-                }
-            }
-            if (SidebarController.isQuickSidebarActive)
-            {
-                if (targetName === "sideBarScrollBar")
-                {
-                    SidebarController.startScrollSidebarByDrag();
-                }
-                return;
-            }
-            switch (targetName)
-            {
-                case "saveButton": // 아래 3개는 WorkspaceView.topbar메뉴에 가면 안됨 mouseuphandler랑 같이 연동되서 여기서 해주어야함
-                case "loadButton":
-                case "replayModeButton":
-                case "captureButton":
-                case "repCaptureButton":
-                case "clipBoardButton":
-                case "topBarColorButton":
-                case "gridButton":
-                case "penOptionButton":
-                case "aboutButton":
-                case "updateButton":
-                case "sideBarPositionButton":
-                case "sideBarPositionButton2":
-                case "sideBarOFFButton":
-                case "sideBarOFFButton2":
-                case "sideBarONButton":
-                case "sideBarONButton2":
-                case "refMenuCloseButton":
-                case "refTransferCanvasImageButton":
-                case "refLoadImageButton":
-                case "refMirrorImageButton":
-                case "refMemoryTrainingOnButton":
-                case "refMemoryTrainingOffButton":
-                case "refClipBoardButton":
-                case "appResetButton":
-                case "dpiButton":
-                case "newWindowButton":
-                case "newWindowCloseButton":
-                    {
-                        if (ToolController.isToolBox2Showing || isKeyPressed() || e.target.alpha < 1.0)
-                        {
-                            return;
-                        }
-                        handleMouseClick(targetName);
-                    }
-                    return;
-                case "replaySpeedSliderWrapper":
-                    {
-                        // grid 에서 불러줬을때 캔버스에 안무것도 못하게
-                    }
-                    return;
-                case "refClearImageButton":
-                    {
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            startPressHoldKey(ReferenceLayerController.refLayerMenuBox.refClearImageButton, "Erasing reference image...", null, ReferenceLayerController.startReflayerClear, null);
-                        }
-                    }
-                    return;
-                case "timer":
-                    {
-                        startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, realWorkingTimer.reset, null);
-                    }
-                    return;
-                case "newFileButton":
-                    {
-                        if (MainUI.topBar.newFileButton.alpha === 1.0 && !BackgroundWorkerCoordinator.isSaveInProgress)
-                        {
-                            FileManager.createNewFile(false);
-                        }
-                    }
-                    return;
-                case "resizeButtonR":
-                case "resizeButtonD":
-                case "resizeButtonL":
-                case "resizeButtonU":
-                    {
-                        CanvasController.startCanvasResizing(targetName);
-                    }
-                    return;
-                case "sideBarScrollBar":
-                    {
-                        SidebarController.startScrollSidebarByDrag();
-                    }
-                    return;
-                case "refRotateImageButton":
-                    {
-                        Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.startRefLayerRotation();
-                        }
-                    }
-                    return;
-                case "refMoveImageButton":
-                    {
-                        Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.startRefLayerImageDrag();
-                        }
-                    }
-                    return;
-                case "refResizeImageButton":
-                    {
-                        Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.startRefLayerImageScale();
-                        }
-                    }
-                    return;
-                case "refOpacitySliderWrapper":
-                    {
-                        Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.startRefLayerOpacityDrag();
-                        }
-                    }
-                    return;
-                case "refLayerMenuMoveButton":
-                    {
-                        DragInteraction.startBoxDrag(ReferenceLayerController.refLayerMenuBox);
-                    }
-                    return;
-                case "dragDropFileBG":
-                    return;
-            }
-            // 캔버스 영역 밖에서는 해주지 않음
-            if (isCursorInDrawArea() && !CanvasController.isMouseClickBlocked)
-            {
-                switch (ToolController.nowTool)
-                {
-                    case ToolController.TOOL_PEN:
-                        if (CanvasController.isToolEnabledByLayerUnChecked())
-                            PenTool.start();
-                        break;
-                    case ToolController.TOOL_FILLPEN:
-                        if (CanvasController.isToolEnabledByLayerUnChecked())
-                            fillPenTool.start();
-                        break;
-                    case ToolController.TOOL_ERASER:
-                        if (CanvasController.isToolEnabledByLayerUnChecked())
-                            PenTool.startWithEraserMode();
-                        break;
-                    case ToolController.TOOL_LINE:
-                        if (CanvasController.isToolEnabledByLayerUnChecked())
-                            lineTool(true);
-                        break;
-                    case ToolController.TOOL_LASSO:
-                        LassoTool.lassoToolFunction.start();
-                        break;
-                    case ToolController.TOOL_MOVE:
-                        moveTool();
-                        break;
-                        // 캔버스 조작
-                    case ToolController.TOOL_ZOOM:
-                        zoomTool();
-                        break;
-                    case ToolController.TOOL_HAND:
-                        handTool(false, false);
-                        break;
-                    case ToolController.TOOL_ROTATE:
-                        rotateTool(false);
-                        break;
-                }
-            }
-        }
     }
 }

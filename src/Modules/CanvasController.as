@@ -364,7 +364,7 @@ package Modules
 
         public static function onMouseUpStage(e:MouseEvent):void
         {
-            main.checkInvalidKey();
+            InputController.checkInvalidKey();
             const mx:Number = main.stage.mouseX;
             const my:Number = main.stage.mouseY;
             isMouseClicked = false;
@@ -929,7 +929,7 @@ package Modules
                     }
                     canvasSizeChanging = false;
                     MainUI.hideMouseHint();
-                    MainUIController.updateCanvasResizeButtonVisible((isMouseCursorInStage() && isRightMouseClicked) || main.isPressingControl());
+                    MainUIController.updateCanvasResizeButtonVisible((isMouseCursorInStage() && isRightMouseClicked) || InputController.isPressingControl());
                     canvasAnchorPoint.removeChild(resizePreviewRect);
                     canvasAnchorPoint.removeChild(resizePreviewRatioRect);
                     resizePreviewRect.graphics.clear();
@@ -1355,7 +1355,7 @@ package Modules
             main.resizeCanvas.start(targetName);
         }
 
-                public static function fitCanvasToViewportMargin(fitting:Boolean = false):void
+        public static function fitCanvasToViewportMargin(fitting:Boolean = false):void
         {
             if (!ReplayController.isReplayModeON && !CaptureController.isCaptureModeON)
             {
