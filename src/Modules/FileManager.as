@@ -23,6 +23,7 @@ package Modules
     import Modules.Tools.PenTool;
     import Modules.Tools.LassoTool;
     import flash.net.registerClassAlias;
+    import flash.net.IDynamicPropertyOutput;
 
     public class FileManager
     {
@@ -820,7 +821,7 @@ package Modules
             }
             setFileBrowserIsOpen(true);
             MainUIController.showCanvasResizeButtonVisibleDelay(false);
-            ReplayController.removeInputEventsReplayMode();
+            InputController.removeInputEventsReplayMode();
             InputController.removeInputEventsDrawMode();
             file.browseForOpen(windowTitle, [new FileFilter("All supported formats", "*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")]);
             file.addEventListener(Event.SELECT, onFileSelected);
@@ -1364,9 +1365,9 @@ package Modules
 
             e.preventDefault();
             main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
-            CaptureController.removeInputEventCaptrueMode();
+            InputController.removeInputEventCaptrueMode();
             InputController.removeInputEventsDrawMode();
-            ReplayController.removeInputEventsReplayMode();
+            InputController.removeInputEventsReplayMode();
             main.realWorkingTimer.stop();
 
             if (ImageViewWindow.canvasWindow !== null)

@@ -14,6 +14,8 @@ package Modules
 
     public class InputController
     {
+        // todo 툴이나 기능별로 키보드 마우스 입력 분리하기
+        // todo 툴 전역 입력 이벤트 빼고 툴관련 이벤트 핸들러도 같이 들어가있는지 확인
                 public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -97,22 +99,26 @@ package Modules
                 window: 91
             };
 
-        public static const KEY_REPEAT_START_DELAY:Number = 0.3,
-            KEY_REPEAT_INTERVAL:Number = 0.06;
+        public static const KEY_REPEAT_START_DELAY:Number = 0.3;
+        public static const KEY_REPEAT_INTERVAL:Number = 0.06;
         // 키 누름 관련
         public static  var LAST_KEY:int = -1; // 마지막 누른거 여기다가 저장 반복호출되는 keydown 함수에서 한번만 호출되게 하는변수
         public static const KEY_BUFFER:Array = []; // 정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
-        public static const COMMAND_CTRL:int = (1 << 0),
-            COMMAND_SHIFT:int = (1 << 1),
-            COMMAND_CTRL_SHIFT:int = (1 << 2);
+        public static const COMMAND_CTRL:int = (1 << 0);
+         public static const    COMMAND_SHIFT:int = (1 << 1);
+            public static const  COMMAND_CTRL_SHIFT:int = (1 << 2);
 
         // 키 오래누름 관련 변수
-        public static  var pressHoldCountDownTime:Number = 0.0,
-            pressHoldFrameCount:int = 0;
+        public static  var pressHoldCountDownTime:Number = 0.0;
+        public static var pressHoldFrameCount:int = 0;
 
         // todo 이거 쓰나?
         public static  var isLayerCheckKeyPressed:Boolean = false;
         public static  var isDrawModeInputEventsAdded:Boolean = false;
+        public static var isCaptureModeInputEventsAdded:Boolean = false; // 이벤트 세트가 켜지거나 꺼지는거 보관 중복 이벤트 추가 피하려고
+        public static var isReplayModeInputEventsAdded:Boolean = false; // 리플레이 이벤트 추가되면 올려줌
+
+
 
 
         public static function startScratchPadResetTimer(target:DisplayObject):void
@@ -185,7 +191,7 @@ package Modules
 
         public static function updateLastKey(key:int):void
         {
-            LAST_KEY = getLastKey();
+            LAST_KEY = getLastPressedKey();
         }
 
         public static function resetLastKey():void
@@ -368,10 +374,6 @@ package Modules
             return KEY_BUFFER.length > 0;
         }
 
-        public static function getLastKey():int
-        {
-            return KEY_BUFFER[KEY_BUFFER.length - 1];
-        }
 
         public static function isTwoKeyPressed():Boolean
         {
@@ -391,6 +393,10 @@ package Modules
         public static function getSecondPressedKey():int
         {
             return KEY_BUFFER[1];
+        }
+        public static function getLastPressedKey():int
+        {
+            return KEY_BUFFER[KEY_BUFFER.length - 1];
         }
 
         public static function onKeyUpStage(e:KeyboardEvent):void
@@ -563,7 +569,7 @@ public static function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
             {
                 return false;
             }
-            const subKey:uint = getLastKey();
+            const subKey:uint = getLastPressedKey();
             if (updateFlag)
             {
                 updateLastKey(subKey);
@@ -1171,5 +1177,597 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
             break;
     }
 }
+
+        private static function onKeyDownCaptureMode(e:KeyboardEvent):void
+        {
+            const firstKey:uint = InputController.getFirstPressedKey();
+            if (CaptureController.captureStampFontListBox.visible)
+            {
+                if (firstKey === InputController.KEY.esc)
+                {
+                    CaptureController.hideStampFontList();
+                }
+                return;
+            }
+
+            if (firstKey === InputController.KEY.esc)
+            {
+                if (main.stage.focus === MainUI.topBar.captureInput)
+                {
+                    main.stage.focus = null;
+                    return;
+                }
+            }
+
+            if (main.stage.focus === MainUI.topBar.captureInput || CanvasController.isMouseClicked || CanvasController.isRightMouseClicked)
+            {
+                return;
+            }
+
+            if (InputController.isPressingControl())
+            {
+                const secondKey:uint = InputController.getSecondPressedKey();
+                if (InputController.isLastKey(secondKey))
+                {
+                    return;
+                }
+                InputController.updateLastKey(secondKey);
+
+                if (secondKey === InputController.KEY.s || secondKey === InputController.KEY.semicolon)
+                {
+                    FileManager.saveCaptureImage();
+                }
+                else if (secondKey === InputController.KEY.c || secondKey === InputController.KEY.comma)
+                {
+                    CaptureController.executeCaptureFlashEffect();
+                    if (MainUI.topBar.capClipBoard.alpha === 1.0)
+                    {
+                        CaptureController.copyCaptureImageToCilpBoard();
+                    }
+                }
+                else if (secondKey === InputController.KEY.v || secondKey === InputController.KEY.m)
+                {
+                    if (ClipboardManager.isClipBoardButtonActivated)
+                    {
+                        ClipboardManager.tryLoadClipboardImage(false);
+                    }
+                }
+                return;
+            }
+
+            if (InputController.isLastKey(firstKey))
+            {
+                return;
+            }
+
+            InputController.updateLastKey(firstKey);
+
+            switch (firstKey)
+            {
+                case InputController.KEY.esc:
+                case InputController.KEY.backspace:
+                case InputController.KEY.f1:
+                case InputController.KEY.f7:
+                    CaptureController.handleExitCaptureMode();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+                public static function removeInputEventCaptrueMode():void
+        {
+            isCaptureModeInputEventsAdded = false;
+            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode);
+            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCaptureMode);
+            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownCaptureMode);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownCaptureMode);
+        }
+
+        public static function addInputEventsCaptrueMode():void
+        {
+            if (isCaptureModeInputEventsAdded === false)
+            {
+
+                isCaptureModeInputEventsAdded = true;
+                // resetKeyBuffer();
+                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode, false, -1);
+                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCaptureMode, false, -1);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownCaptureMode, false, -1);
+                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownCaptureMode, false, -1);
+            }
+        }
+
+                private static function onKeyUpCaptureMode(e:KeyboardEvent):void
+        {
+            InputController.updateLastKey(InputController.getLastPressedKey());
+            InputController.checkGeneralKeyUp(e.keyCode);
+        }
+
+        private static function onMouseDownCaptureMode(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+            if (!target)
+            {
+                return;
+            }
+
+            const targetName:String = target.name;
+
+            if (targetName === "capLayer1VisibleButton" || targetName === "capLayer2VisibleButton" || targetName === "capStamp" || targetName === "capStampFont")
+            {
+                main.handleMouseClick(targetName);
+                return;
+            }
+
+            if (targetName === "capClipBoard")
+            {
+                CaptureController.executeCaptureFlashEffect();
+                if (target.alpha < 1.0 && MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                {
+                    return;
+                }
+                main.handleMouseClick(targetName);
+            }
+
+            if (target.alpha < 1.0 && MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            {
+                return;
+            }
+
+            if (CaptureController.captureStampFontListBox.visible)
+            {
+                if (targetName === "capFontListNext" || targetName === "capFontListPrev")
+                {
+                    main.handleMouseClick(targetName);
+                }
+                else if (targetName && targetName.indexOf(CaptureController.captureStampFontListBox.getStampFontButtonName()) !== -1)
+                {
+                    CaptureController.captureStampManager.changeFont(CaptureController.captureStampFontListBox.getFontName(targetName), true);
+                }
+                else if (target.parent)
+                {
+                    if (target.parent.name && target.parent.name.indexOf(CaptureController.captureStampFontListBox.getStampFontButtonName()) !== -1)
+                    {
+                        CaptureController.captureStampManager.changeFont(CaptureController.captureStampFontListBox.getFontName(target.parent.name), true);
+                    }
+                }
+                return;
+            }
+
+            switch (targetName)
+            {
+                case "capRotate":
+                case "capFlip":
+                case "capSave":
+                case "capOff":
+                case "capTrans":
+                    main.handleMouseClick(targetName);
+                    break;
+                case "timer":
+                    InputController.startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, main.realWorkingTimer.reset, null);
+                    break;
+                default:
+                    if (!CanvasController.isMouseClickBlocked)
+                    {
+                        CaptureController.captureAreaManager.start();
+                    }
+                    break;
+            }
+        }
+
+                private static function onRightMouseDownCaptureMode(e:MouseEvent):void
+        {
+            if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            {
+                if (!CaptureController.captureAreaManager.isFullImageCapture())
+                {
+                    CaptureController.captureAreaManager.resetCaptureArea();
+                }
+            }
+        }
+
+
+
+        public static function onKeyUpReplayMode(e:KeyboardEvent):void
+        {
+            InputController.checkGeneralKeyUp(e.keyCode);
+        }
+        public static function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
+        {
+            const firstKey:uint = InputController.getFirstPressedKey();
+            if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || InputController.isLastKey(firstKey) || FileManager.loadMenuBox.visible)
+            {
+                return;
+            }
+            if (ReplayController.isReplayStarted)
+            {
+                switch (firstKey)
+                {
+                    case InputController.KEY.backspace:
+                    case InputController.KEY.esc:
+                    case InputController.KEY.enter:
+                    case InputController.KEY.space:
+                        {
+                            InputController.updateLastKey(firstKey);
+                            FOFOTimer.remove("prograssBarUpdateTimer");
+                            ReplayController.handleReplayStopButton();
+                            ;
+                        }
+                        break;
+                }
+                return;
+            }
+            if (ReplayController.isReplayRestartTimerON())
+            {
+                switch (firstKey)
+                {
+                    case InputController.KEY.backspace:
+                    case InputController.KEY.esc:
+                    case InputController.KEY.enter:
+                    case InputController.KEY.space:
+                        {
+                            InputController.updateLastKey(firstKey);
+                            ReplayController.cancelReplayRestartTimer();
+                        }
+                        break;
+                }
+                return;
+            }
+            if (InputController.isPressingShift())
+            {
+                InputController.checkSubKey(2, false, function (input:int):void
+                    {
+                        switch (input)
+                        {
+                            case InputController.KEY.left:
+                            case InputController.KEY.z:
+                            case InputController.KEY.dot:
+                                {
+                                    if (!ReplayController.isReplayStarted)
+                                    {
+                                        InputController.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
+                                    }
+                                }
+                                break;
+                            case InputController.KEY.right:
+                            case InputController.KEY.x:
+                            case InputController.KEY.comma:
+                                {
+                                    if (!ReplayController.isReplayStarted)
+                                    {
+                                        InputController.startKeyRepeat(true, ReplayController.moveToNextFrame);
+                                    }
+                                }
+                                break;
+                        }
+                    });
+                return;
+            }
+            else if (InputController.isPressingControl())
+            {
+                InputController.checkSubKey(2, true, function (input:int):void
+                    {
+                        if (input === InputController.KEY.c || input === InputController.KEY.m)
+                        {
+                            CaptureController.enterCaptureMode();
+                        }
+                        else if (input === InputController.KEY.v || input === InputController.KEY.m)
+                        {
+                            if (ClipboardManager.isClipBoardButtonActivated)
+                            {
+                                ClipboardManager.tryLoadClipboardImage(false);
+                            }
+                        }
+                    });
+                return;
+            }
+            InputController.updateLastKey(firstKey);
+            switch (firstKey)
+            {
+                case InputController.KEY.left:
+                case InputController.KEY.z:
+                case InputController.KEY.dot:
+                    {
+                        if (!ReplayController.isReplayStarted)
+                        {
+                            InputController.startKeyRepeat(true, ReplayController.moveToPreviousStep);
+                        }
+                    }
+                    break;
+                case InputController.KEY.right:
+                case InputController.KEY.x:
+                case InputController.KEY.comma:
+                    {
+                        if (!ReplayController.isReplayStarted)
+                        {
+                            InputController.startKeyRepeat(true, ReplayController.moveToNextStep);
+                        }
+                    }
+                    break;
+                case InputController.KEY.up:
+                case InputController.KEY.f:
+                case InputController.KEY.h:
+                    {
+                        if (!ReplayController.isReplayStarted)
+                        {
+                            ReplayController.startAdjustPlayBackSpeedByShortcut(true);
+                        }
+                    }
+                    break;
+                case InputController.KEY.down:
+                case InputController.KEY.v:
+                case InputController.KEY.n:
+                    {
+                        if (!ReplayController.isReplayStarted)
+                        {
+                            ReplayController.startAdjustPlayBackSpeedByShortcut(false);
+                        }
+                    }
+                    break;
+                case InputController.KEY.backspace:
+                case InputController.KEY.esc:
+                case InputController.KEY.f1:
+                case InputController.KEY.f7:
+                    {
+                        ReplayController.exitReplayMode();
+                    }
+                    break;
+                case InputController.KEY.enter:
+                case InputController.KEY.space:
+                    {
+                        if (ReplayController.isReplayRestartTimerON())
+                        {
+                            ReplayController.cancelReplayRestartTimer();
+                        }
+                        else
+                        {
+                            ReplayController.handleReplayStartButton();
+                        }
+                    }
+                    break;
+            }
+        }
+
+        
+        // rotate hand zoom에서 쓰임
+        public static function addInputEventsReplayMode():void
+        {
+            if (InputController.isReplayModeInputEventsAdded === false)
+            {
+                InputController.isReplayModeInputEventsAdded = true;
+                // resetKeyBuffer();
+                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode, false, -1);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode, false, -1);
+                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, InputController.onKeyDownReplayMode, false, -1);
+                main.stage.addEventListener(KeyboardEvent.KEY_UP, InputController.onKeyUpReplayMode, false, -1);
+            }
+        }
+
+        public static function removeInputEventsReplayMode():void
+        {
+            InputController.isReplayModeInputEventsAdded = false;
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode);
+            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode);
+            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, InputController.onKeyDownReplayMode);
+            main.stage.removeEventListener(KeyboardEvent.KEY_UP, InputController.onKeyUpReplayMode);
+        }
+
+
+
+        public static function onRightMouseDownReplayMode(e:MouseEvent):void
+        {
+            if (CanvasController.isMouseClicked || InputController.isKeyPressed() || !e.target || FileManager.loadMenuBox.visible)
+                return;
+            const targetName:String = e.target.name;
+            switch (targetName)
+            {
+                case "replayPrev":
+                    {
+                        InputController.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
+                        InputController.startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
+                    }
+                    break;
+                case "replayNext":
+                    {
+                        InputController.startKeyRepeat(true, ReplayController.moveToNextFrame);
+                        InputController.startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
+                    }
+                    break;
+                case "replayRotateButton":
+                    {
+                        ReplayController.resetRotationReplayMode();
+                    }
+                    break;
+                case "replayZoomInButton":
+                case "replayZoomOutButton":
+                {
+                    ReplayController.resetZoomReplayMode();
+                    break;
+                }
+                case "rCanvasDrawLayer":
+                case "WorkspaceView.stageBG":
+                    {
+                        if (ReplayController.isReplayRestartTimerON())
+                        {
+                            ReplayController.cancelReplayRestartTimer();
+                        }
+                        else if (!ReplayController.isReplayStarted)
+                        {
+                            ReplayController.handleReplayStartButton();
+                        }
+                        else
+                        {
+                            ReplayController.handleReplayStopButton();
+                        }
+                    }
+                    break;
+            }
+        }
+
+        public static function onMouseDownReplayMode(e:MouseEvent):void // repdown1
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+            if (!target || FileManager.loadMenuBox.visible)
+            {
+                return;
+            }
+            const targetName:String = target.name;
+            if (ReplayController.isReplayRestartTimerON())
+            {
+                if (MainUI.seekBarBox.trackBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                {
+                    ReplayController.cancelReplayRestartTimer();
+                    return;
+                }
+            }
+            if (targetName && !ReplayController.isReplayRestartTimerON())
+            {
+                if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "WorkspaceView.stageBG")
+                {
+                    main.handTool(true, false);
+                    return;
+                }
+                else if (targetName === "replayRepeatButton" || targetName === "replayFitToWindowButton")
+                {
+                    if (InputController.isKeyPressed())
+                    {
+                        return;
+                    }
+                    main.handleMouseClick(targetName);
+                    return;
+                }
+            }
+            if (target.alpha < 1.0)
+            {
+                return;
+            }
+            switch (targetName)
+            {
+                case "repNewFileButton":
+                    {
+                        InputController.startPressHoldKey(MainUI.topBar.repNewFileButton, HintStrings.getNewFileHintString(),
+                                function ():Boolean
+                                {
+                                    return ReplayController.prepareDeleteReplayData("total");
+                                },
+                                ReplayController.createNewFileFromReplayCanvas,
+                                function ():void
+                                {
+                                    MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+                                });
+                    }
+                    break;
+                case "cutPrevDataButton":
+                    {
+                        if (MainUI.topBar.cutPrevDataButton.alpha === 1.0)
+                        {
+                            InputController.startPressHoldKey(MainUI.topBar.cutPrevDataButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
+                                {
+                                    return ReplayController.prepareDeleteReplayData("before");
+                                },
+                                    ReplayController.deleteReplayDataBeforeCurrentFrame,
+                                    function ():void
+                                    {
+                                        MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+                                    });
+                        }
+                    }
+                    break;
+                case "superUndoButton":
+                    {
+                        if (MainUI.topBar.superUndoButton.alpha === 1.0)
+                        {
+                            InputController.startPressHoldKey(MainUI.topBar.superUndoButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
+                                {
+                                    return ReplayController.prepareDeleteReplayData("after");
+                                },
+                                    ReplayController.deleteReplayDataAfterCurrentFrame, function ():void
+                                    {
+                                        MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+                                    });
+                        }
+                    }
+                    break;
+                case "replayRotateButton":
+                    {
+                        main.rotateTool(true);
+                    }
+                    break;
+                case "replaySpeedSliderWrapper":
+                    {
+                        ReplayController.adjutReplaySpeedByMouse();
+                    }
+                    break;
+                case "trackBar":
+                    {
+                        ReplayController.onSeekbarClick();
+                    }
+                    break;
+                case "replayPrev":
+                    {
+                        FOFOTimer.remove("prograssBarUpdateTimer");
+                        if (InputController.isPressingShift())
+                        {
+                            InputController.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
+                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
+                        }
+                        else
+                        {
+                            InputController.startKeyRepeat(true, ReplayController.moveToPreviousStep);
+                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
+                        }
+                    }
+                    break;
+                case "replayNext":
+                    {
+                        FOFOTimer.remove("prograssBarUpdateTimer");
+                        if (InputController.isPressingShift())
+                        {
+                            InputController.startKeyRepeat(true, ReplayController.moveToNextFrame);
+                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
+                        }
+                        else
+                        {
+                            InputController.startKeyRepeat(true, ReplayController.moveToNextStep);
+                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
+                        }
+                    }
+                    break;
+                case "timer":
+                    {
+                        InputController.startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, main.realWorkingTimer.reset, null);
+                    }
+                    break;
+                case "drawModeButton":
+                case "saveButton":
+                case "captureButton":
+                case "capOff":
+                case "capSave":
+                case "capClipBoard":
+                case "capTrans":
+                case "capFlip":
+                case "capRotate":
+                case "repCaptureButton":
+                case "clipBoardButton":
+                case "topBarColorButton":
+                case "playButton":
+                case "pauseButton":
+                case "replayZoomInButton":
+                case "replayZoomOutButton":
+                case "replayFitToWindowButton":
+                case "replayPrev":
+                case "replayNext":
+                    {
+                        if (InputController.isKeyPressed())
+                        {
+                            return;
+                        }
+                        main.handleMouseClick(targetName);
+                    }
+                    break;
+            }
+        }
+
     }
 }

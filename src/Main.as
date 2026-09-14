@@ -69,10 +69,12 @@
     public class Main extends Sprite
     {
         // todo: (중요) module 클래스는 정적 변수가 아니라 main에서 호출되어서 연결되어지는 클래스 인스턴스로 가는게맞는것같음
-        // 현재 일단 컴파일만되게 분리하는작업임
+        // todo 현재 일단 컴파일만되게 분리하는작업임
+        // todo layer (trace layer 포함) 좀더 쉽게 볼수있도록 ui 개편해야함
+        
         private const savepos:Array = [0, 0, 0, 0];
 
-        public static var _instance:Main;
+        public static var _instance:Main
         public const APP_VERSION:String = "28.01";
         public const APP_STATE_VERSION:String = "2801";
 
@@ -1324,8 +1326,8 @@
         public function closeAboutBox():void
         {
             stage.removeEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
-            CaptureController.removeInputEventCaptrueMode();
-            ReplayController.removeInputEventsReplayMode();
+            InputController.removeInputEventCaptrueMode();
+            InputController.removeInputEventsReplayMode();
             InputController.addInputEventsDrawMode();
             isAboutBoxOpened = false;
             aboutBox.visible = false;

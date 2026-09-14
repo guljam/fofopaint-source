@@ -33,8 +33,11 @@ package Modules
 
     public class ReplayController
     {
-        // todo r캔버스는 따로 분리해야함, r캔버스 줌 회전 툴등 조작하는것도 분리해야함, 접근자 외부에 안쓰는거는 private로 돌려야함
+        // todo r캔버스는 따로 분리해야함, r캔버스 줌 회전 툴등 조작하는것도 분리해야함
+        // 일부 접근자 private로 변경했는데 모듈 완전히 분리하고 나서 해야함 오류나는것들 점검
         // todo 리플레이 저장형식을 바이너리로 다시 대체, 실시간 입력 기반으로 각 프레임마다 그리지 말고 실제 시간 지연을 녹화
+        // todo 리플레이 실행중일때 탐색바만 나오는데 리플레이 속도 조절할수있게 같이 나오게 해야함 ui고민
+        // playback speed 키보드로 조정할때 힌트 박스를 topbar 아래쪽으로 직관적으로 보이게 조정
 
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
@@ -47,22 +50,22 @@ package Modules
         }
 
         public static var drawReplayByCommand:Object;
-        public static var drawCanvasFromReplayData:Function;
+        private static var drawCanvasFromReplayData:Function;
         public static var rFollowMouse:Object;
-        public static var replayHideCursor:Object;
+        private static var replayHideCursor:Object;
 
-        public static const JUMP_FRAME_PLAY:int = (1 << 0);
+        private static const JUMP_FRAME_PLAY:int = (1 << 0);
         public static const JUMP_FRAME_MANUAL:int = (1 << 1);
-        public static const JUMP_FRAME_PREV:int = (1 << 2);
-        public static const JUMP_FRAME_NEXT:int = (1 << 3);
+        private static const JUMP_FRAME_PREV:int = (1 << 2);
+        private static const JUMP_FRAME_NEXT:int = (1 << 3);
 
-        public static const REPLAY_FASTEST_TOTAL_TIME:Number = 10;
+        private static const REPLAY_FASTEST_TOTAL_TIME:Number = 10;
         public static const REPLAY_DISK_CACHE_FRAME_INTERVAL:Number = 10000;
-        public static const REPLAY_MEMORY_CACHE_FRAME_INTERVAL:Number = 700;
-        public static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
-        public static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 2; // 1/2초 = 0.5초마다 갱신
-        public static const REPLAY_SLIDESHOW_UPDATE_TIME:Number = 1000 / REPLAY_SLIDESHOW_FRAME_RATE;
-        public static var REPLAY_MAX_SPEED:Number = 0.0;
+        private static const REPLAY_MEMORY_CACHE_FRAME_INTERVAL:Number = 700;
+        private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
+        private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 2; // 1/2초 = 0.5초마다 갱신
+        private static const REPLAY_SLIDESHOW_UPDATE_TIME:Number = 1000 / REPLAY_SLIDESHOW_FRAME_RATE;
+        private static var REPLAY_MAX_SPEED:Number = 0.0;
 
         public static const REPLAY_IMAGE_CAHCHE_COMPLETE:int = (1 << 0);
         public static const REPLAY_IMAGE_CAHCHE_READY:int = (1 << 1);
@@ -70,7 +73,7 @@ package Modules
         public static var RCANVAS_WIDTH:Number = 600;
         public static var RCANVAS_HEIGHT:Number = 390;
         public static var RCANVAS_BG_COLOR:uint = 0xFFFFFF;
-        public static var TOTAL_FRAME:Number = 0; // rdata+file 프레임 전부 합친거
+        private static var TOTAL_FRAME:Number = 0; // rdata+file 프레임 전부 합친거
 
         // 리플레이
         public static var repFileTemp:File; // 파일을 저장하거나 불러올때 씀
@@ -79,34 +82,34 @@ package Modules
         public static var rCanvasPanel:Sprite = new Sprite();
         public static var rCanvasDrawLayer:Sprite = new Sprite();
         public static var rCanvasDrawShape:Shape = new Shape();
-        public static var rCanvasCompleteAnchorPoint:Sprite = new Sprite();
+        private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite();
         public static var rCanvasLayer1BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
         public static var rCanvasLayer2BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-        public static var rCanvasDrawLayerBitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+        private static var rCanvasDrawLayerBitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
         public static var rCanvasLayer1Bitmap:Bitmap = new Bitmap(rCanvasLayer1BitmapData, "auto", true);
         public static var rCanvasLayer2Bitmap:Bitmap = new Bitmap();
-        public static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
-        public static var rCanvasDrawLayerBitmap:Bitmap = new Bitmap(rCanvasDrawLayerBitmapData, "auto", true);
+        private static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
+        private static var rCanvasDrawLayerBitmap:Bitmap = new Bitmap(rCanvasDrawLayerBitmapData, "auto", true);
         public static var rReplayFOFOCursor:FOFOCursor = new FOFOCursor(); // 재생할때 틀어주는 작은 마우스
         public static var rCanvasDrawLayerClipRectLegacy:Rectangle = new Rectangle(); // 갱신된 부분만 그려주는 거 오래된 버전 지원때문에 남겨둠
         public static var rCanvasDrawLayerClipRect:Rectangle = new Rectangle(); // 갱신된 부분만 그려주는 거 이게 새거임
-        public static var updatePrograssBarStartTime:int = 0; // 리플레이 시작 시간저장 update prograss bar에서 프레임 오차 수정할때 참고하는 변수
+        private static var updatePrograssBarStartTime:int = 0; // 리플레이 시작 시간저장 update prograss bar에서 프레임 오차 수정할때 참고하는 변수
         public static var isReplayStarted:Boolean = false; // 리플레이 시작버튼 여러번 누르는거 방지
         public static var isReplayFinished:Boolean = true; // 리플레이가 자연히 끝났을때 올려주는 플래그 가장 처음에 캔버스 싹쓸이 하기 위해서 넣어줌.
         public static var isReplayFinishedWithFiwWindow:Boolean = false; // 리플레이가 follow cursor옵션으로 캔버스 작게 축소되서 끝났을때
         public static var isReplayModeON:Boolean = false; // 이건 모드 자체 껐다 켰다
-        public static var isReplayRepeatON:Boolean = true; // 리플레이 반복 켜기 끄기
+        private static var isReplayRepeatON:Boolean = true; // 리플레이 반복 켜기 끄기
         public static var rDataBuffer:Array = []; // draw layer에서 그려준 데이터를 이쪽으로 다모아줌
         public static var rData:Array = []; // rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
         public static var rDataFrame:Array = []; // rdata안에 몇프레임이 들어있는지 저장
         public static var rDataReadFlag:Boolean = true; // rData읽을때는 true, rfile 읽을때는 false
         public static var rFileLastBytePosition:Number = 0; // fs position 저장
-        public static var rFileCutBytePosition:Number = 0; // super undo에서 파일 잘라줄때 필요함
+        private static var rFileCutBytePosition:Number = 0; // super undo에서 파일 잘라줄때 필요함
         public static var rDataIndex:int = 0; // rData에서만씀 rData 스크로크 뭉치 인덱스
-        public static var rDataStartIndex:int = 0; // 리플레이에서 프레임 스캡을 앞부분으로 해줄때 rdata를 읽는 부분이면 현재 undoindex부분 부터 읽게 인덱스를 올려줌
-        public static var rLastLayer2Selcted:Boolean = false; // 리플레이 실행할때 이걸로 비교해서 캔버스 스왑해줌
+        private static var rDataStartIndex:int = 0; // 리플레이에서 프레임 스캡을 앞부분으로 해줄때 rdata를 읽는 부분이면 현재 undoindex부분 부터 읽게 인덱스를 올려줌
+        private static var rLastLayer2Selcted:Boolean = false; // 리플레이 실행할때 이걸로 비교해서 캔버스 스왑해줌
         public static var rLastCanvasBGColor:uint = RCANVAS_BG_COLOR; // load replay에서 씀
-        public static var rReplaySpeedMultipler:Number = 1; // 리플레이 속도 for루프로 2번씩혹은 3번씩 읽히게 만듬
+        private static var rReplaySpeedMultipler:Number = 1; // 리플레이 속도 for루프로 2번씩혹은 3번씩 읽히게 만듬
         public static var rAirBrushSize:int = 0; // 레거시지원 변수
         public static var rAirBrushSize2:int = 0; // 새로운거
         public static var rNowFrame:Number = 0; // dodraw에서 현재까지 플레이된 프레임수 누적, jump frame이 가동됐을때 프레임 누적갯수를 세서 썸네일 이미지 만들어줌
@@ -119,18 +122,17 @@ package Modules
         public static var rLastCanvasZoomMultiplier:Number = 1.0; // 리플레이에서 수동줌하면 여기다가 저장해줌
         public static var rCanvasZoomIndex:int = 4;
         public static var isReplayCanvasFitToWindow:Boolean = false; // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
-        public static var rJumpImageIndexLast:int = -2; // 썸네일 인덱스 바뀌면 여기다 저장
-        public static var rJumpImageNowFrameLast:Number = -1;
-        public static var rCachedImageLastIndex:int = -2; // 마지막에 그려준 캐쉬 이미지 번호를 저장
-        public static var rTempCachedLastImageIndex:int = -2; // 더 잘게 쪼개준 이미지 인덱스 바뀌면 여기다 저장
+        private static var rJumpImageIndexLast:int = -2; // 썸네일 인덱스 바뀌면 여기다 저장
+        private static var rJumpImageNowFrameLast:Number = -1;
+        private static var rCachedImageLastIndex:int = -2; // 마지막에 그려준 캐쉬 이미지 번호를 저장
+        private static var rTempCachedLastImageIndex:int = -2; // 더 잘게 쪼개준 이미지 인덱스 바뀌면 여기다 저장
         public static var rJumpImageFrameData:Array = [0]; // 스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
         public static var rReplayImageCacheState:int = REPLAY_IMAGE_CAHCHE_COMPLETE;
-        public static var rReplayRestartTimerCount:uint = 0; // 리스타트 타이머
-        public static var rSeekbarTextUpdateTime:int = 0; // 프레임 바 딜레이
-        public static var isReplaySlideShowMode:Boolean = false; // doDrawSlowEvent가 켜지면 올려줌
-        public static var rFrameTempCachedImages:Array = []; // 이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
+        private static var rReplayRestartTimerCount:uint = 0; // 리스타트 타이머
+        private static var rSeekbarTextUpdateTime:int = 0; // 프레임 바 딜레이
+        private static var isReplaySlideShowMode:Boolean = false; // doDrawSlowEvent가 켜지면 올려줌
+        private static var rFrameTempCachedImages:Array = []; // 이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
-        public static var isReplayModeInputEventsAdded:Boolean = false; // 리플레이 이벤트 추가되면 올려줌
 
         public static function isGeneratingCacheImages():Boolean
         {
@@ -141,7 +143,7 @@ package Modules
         {
             if (isReplayModeON)
             {
-                addInputEventsReplayMode();
+                InputController.addInputEventsReplayMode();
             }
             else
             {
@@ -240,7 +242,7 @@ package Modules
             }
         }
 
-        public static function updateLastRDataCommand(command:String):void
+        private static function updateLastRDataCommand(command:String):void
         {
             if (rData.length === 0)
                 return;
@@ -315,7 +317,7 @@ package Modules
             return false;
         }
 
-        public static function cReplayHideCursor():Object
+        private static function cReplayHideCursor():Object
         {
             var isMouseHided:Boolean = false;
             var count:int = 0;
@@ -375,7 +377,7 @@ package Modules
                 };
         }
 
-        public static function restoreZoomReplayMode():void
+        private static function restoreZoomReplayMode():void
         {
             rCanvasZoomIndex = CanvasController.getNearZoomIndex(rLastCanvasZoomMultiplier);
             CanvasController.updateCanvasScale(CanvasController.canvasZoomMultiplerList[rCanvasZoomIndex], true);
@@ -393,13 +395,13 @@ package Modules
         }
 
         // drawdone에서 줌된 blur사이즈가 아니 1배율 블러를 적용해야 제대로 되기 때문에 이거해줌
-        public static function blurReplayCanvasByDefaultValue():void
+        private static function blurReplayCanvasByDefaultValue():void
         {
             const blurSize:Number = CanvasController.getBlurSize(rAirBrushSize, 1.0);
             const blurf:BlurFilter = new BlurFilter(blurSize, blurSize, 3);
             rCanvasDrawShape.filters = [blurf];
         }
-        public static function resetBlurReplayCanvas():void
+        private static function resetBlurReplayCanvas():void
         {
             rAirBrushSize = 0;
             rCanvasDrawShape.filters = [];
@@ -411,29 +413,6 @@ package Modules
             const blurf:BlurFilter = new BlurFilter(blurSize, blurSize, 3);
             rAirBrushSize = size;
             rCanvasDrawShape.filters = [blurf];
-        }
-
-        // rotate hand zoom에서 쓰임
-        public static function addInputEventsReplayMode():void
-        {
-            if (isReplayModeInputEventsAdded === false)
-            {
-                isReplayModeInputEventsAdded = true;
-                // resetKeyBuffer();
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode, false, -1);
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode, false, -1);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownReplayMode, false, -1);
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode, false, -1);
-            }
-        }
-
-        public static function removeInputEventsReplayMode():void
-        {
-            isReplayModeInputEventsAdded = false;
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode);
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownReplayMode);
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode);
         }
 
         public static function clearDataAndResetVars():void
@@ -460,7 +439,7 @@ package Modules
             MainUIController.updateWindowTitle();
             InputController.removeKeyRepeatEvents(null);
         }
-        public static function copyReplayCanvasDataToDrawCanvas():void
+        private static function copyReplayCanvasDataToDrawCanvas():void
         {
             const lineStyleSave:Array = drawReplayByCommand.getrLineStyleSave();
             // if(!lineStyleSave) return;
@@ -489,7 +468,7 @@ package Modules
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
         }
-        public static function syncDrawCanvasWithReplayCanvas():void
+        private static function syncDrawCanvasWithReplayCanvas():void
         {
             CanvasController.canvasZoomMultipler = rCanvasZoomMultiplier;
             CanvasController.canvasZoomIndex = rCanvasZoomIndex;
@@ -502,7 +481,7 @@ package Modules
             CanvasController.canvasPanel.y = Math.floor(rCanvasPanel.y);
             main.setRcursorRotation(rCanvasAnchorPoint.rotation);
         }
-        public static function ensureReplayCanvasState():void
+        private static function ensureReplayCanvasState():void
         {
             const rNowFrameBackup:Number = rNowFrame;
             renderReplayFrame(0, JUMP_FRAME_MANUAL);
@@ -693,7 +672,7 @@ package Modules
                 createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             }
         }
-        public static function drawFirstJumpImage():void
+        private static function drawFirstJumpImage():void
         {
             const fs:FileStream = new FileStream();
             const file:File = FileManager.replayCacheImageFolderPath.resolvePath("0");
@@ -720,7 +699,7 @@ package Modules
             updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
             updateCanvasBGColorReplayMode(data[4]);
         }
-        public static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint):void
+        private static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint):void
         {
             if (FileManager.replayCacheImageFolderPath.exists)
             {
@@ -757,7 +736,7 @@ package Modules
             rCanvasCompleteBitmap.x = -rCanvasCompleteBitmap.width / 2;
             rCanvasCompleteBitmap.y = -rCanvasCompleteBitmap.height / 2;
         }
-        public static function hideCompleteImageToBGReplayMode():void
+        private static function hideCompleteImageToBGReplayMode():void
         {
             if (MainUI.stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
             {
@@ -770,7 +749,7 @@ package Modules
             rCanvasCompleteBitmap.filters = [];
             rCanvasPanel.filters = [];
         }
-        public static function showCompleteImageToBGReplayMode():void
+        private static function showCompleteImageToBGReplayMode():void
         {
             const mergedbmpd:BitmapData = CanvasController.getMergedBitmapdtata(false, true, true, null);
             const tmpbmpd:BitmapData = new BitmapData(mergedbmpd.width / 2, mergedbmpd.height / 2, false, 0);
@@ -791,7 +770,7 @@ package Modules
             rCanvasPanel.filters = [glow];
             MainUI.stageBG.addChild(rCanvasCompleteAnchorPoint);
         }
-        public static function replayCompleteEffect():void
+        private static function replayCompleteEffect():void
         {
             CanvasController.fitCanvasToViewportMargin(isReplayCanvasFitToWindow);
             CanvasController.applyCanvasFlashEffect(rCanvasPanel, 0, 0, RCANVAS_WIDTH, RCANVAS_HEIGHT, function ():Boolean
@@ -3319,7 +3298,7 @@ package Modules
                             UndoManager.undoToIndex(rData.length - 1);
                             CanvasController.centerCanvas("replay");
                             InputController.removeInputEventsDrawMode();
-                            addInputEventsReplayMode();
+                            InputController.addInputEventsReplayMode();
                             rCanvasAnchorPoint.visible = true;
                         }
                         FileManager.closeLoadMenuBox();
@@ -3912,165 +3891,7 @@ package Modules
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent);
         }
-        public static function onKeyUpReplayMode(e:KeyboardEvent):void
-        {
-            InputController.checkGeneralKeyUp(e.keyCode);
-        }
-        public static function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
-        {
-            const firstKey:uint = InputController.getFirstPressedKey();
-            if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || InputController.isLastKey(firstKey) || FileManager.loadMenuBox.visible)
-            {
-                return;
-            }
-            if (isReplayStarted)
-            {
-                switch (firstKey)
-                {
-                    case InputController.KEY.backspace:
-                    case InputController.KEY.esc:
-                    case InputController.KEY.enter:
-                    case InputController.KEY.space:
-                        {
-                            InputController.updateLastKey(firstKey);
-                            FOFOTimer.remove("prograssBarUpdateTimer");
-                            handleReplayStopButton();
-                            ;
-                        }
-                        break;
-                }
-                return;
-            }
-            if (isReplayRestartTimerON())
-            {
-                switch (firstKey)
-                {
-                    case InputController.KEY.backspace:
-                    case InputController.KEY.esc:
-                    case InputController.KEY.enter:
-                    case InputController.KEY.space:
-                        {
-                            InputController.updateLastKey(firstKey);
-                            cancelReplayRestartTimer();
-                        }
-                        break;
-                }
-                return;
-            }
-            if (InputController.isPressingShift())
-            {
-                InputController.checkSubKey(2, false, function (input:int):void
-                    {
-                        switch (input)
-                        {
-                            case InputController.KEY.left:
-                            case InputController.KEY.z:
-                            case InputController.KEY.dot:
-                                {
-                                    if (!isReplayStarted)
-                                    {
-                                        InputController.startKeyRepeat(true, moveToPreviousFrame);
-                                    }
-                                }
-                                break;
-                            case InputController.KEY.right:
-                            case InputController.KEY.x:
-                            case InputController.KEY.comma:
-                                {
-                                    if (!isReplayStarted)
-                                    {
-                                        InputController.startKeyRepeat(true, moveToNextFrame);
-                                    }
-                                }
-                                break;
-                        }
-                    });
-                return;
-            }
-            else if (InputController.isPressingControl())
-            {
-                InputController.checkSubKey(2, true, function (input:int):void
-                    {
-                        if (input === InputController.KEY.c || input === InputController.KEY.m)
-                        {
-                            CaptureController.enterCaptureMode();
-                        }
-                        else if (input === InputController.KEY.v || input === InputController.KEY.m)
-                        {
-                            if (ClipboardManager.isClipBoardButtonActivated)
-                            {
-                                ClipboardManager.tryLoadClipboardImage(false);
-                            }
-                        }
-                    });
-                return;
-            }
-            InputController.updateLastKey(firstKey);
-            switch (firstKey)
-            {
-                case InputController.KEY.left:
-                case InputController.KEY.z:
-                case InputController.KEY.dot:
-                    {
-                        if (!isReplayStarted)
-                        {
-                            InputController.startKeyRepeat(true, moveToPreviousStep);
-                        }
-                    }
-                    break;
-                case InputController.KEY.right:
-                case InputController.KEY.x:
-                case InputController.KEY.comma:
-                    {
-                        if (!isReplayStarted)
-                        {
-                            InputController.startKeyRepeat(true, moveToNextStep);
-                        }
-                    }
-                    break;
-                case InputController.KEY.up:
-                case InputController.KEY.f:
-                case InputController.KEY.h:
-                    {
-                        if (!isReplayStarted)
-                        {
-                            startAdjustPlayBackSpeedByShortcut(true);
-                        }
-                    }
-                    break;
-                case InputController.KEY.down:
-                case InputController.KEY.v:
-                case InputController.KEY.n:
-                    {
-                        if (!isReplayStarted)
-                        {
-                            startAdjustPlayBackSpeedByShortcut(false);
-                        }
-                    }
-                    break;
-                case InputController.KEY.backspace:
-                case InputController.KEY.esc:
-                case InputController.KEY.f1:
-                case InputController.KEY.f7:
-                    {
-                        exitReplayMode();
-                    }
-                    break;
-                case InputController.KEY.enter:
-                case InputController.KEY.space:
-                    {
-                        if (isReplayRestartTimerON())
-                        {
-                            cancelReplayRestartTimer();
-                        }
-                        else
-                        {
-                            handleReplayStartButton();
-                        }
-                    }
-                    break;
-            }
-        }
+
 
         public static function updateReplaySpeedSliderAlpha():void
         {
@@ -4166,7 +3987,7 @@ package Modules
             {
                 stopReplay();
             }
-            removeInputEventsReplayMode();
+            InputController.removeInputEventsReplayMode();
             cancelReplayRestartTimer();
             isReplayModeON = false;
             CanvasController.isPenSizeCursorInvisible = false;
@@ -4267,7 +4088,7 @@ package Modules
             if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY)
             {
                 InputController.removeKeyRepeatEvents(null);
-                removeInputEventsReplayMode();
+                InputController.removeInputEventsReplayMode();
                 SidebarController.hideSidebarTemporary();
                 MainUI.updateTopbarIconsReplayMode();
                 startGeneratingReplayCacheImage();
@@ -4295,7 +4116,7 @@ package Modules
                 CanvasController.keepCanvasPanelInStage(true);
                 SidebarController.hideSidebarTemporary();
                 MainUI.updateTopbarIconsReplayMode();
-                addInputEventsReplayMode();
+                InputController.addInputEventsReplayMode();
             }
         }
         public static function setFitReplayCanvasToViewportOFF():void
@@ -4317,219 +4138,7 @@ package Modules
                 });
         }
 
-        public static function onMouseDownReplayMode(e:MouseEvent):void // repdown1
-        {
-            const target:DisplayObject = e.target as DisplayObject;
-            if (!target || FileManager.loadMenuBox.visible)
-            {
-                return;
-            }
-            const targetName:String = target.name;
-            if (isReplayRestartTimerON())
-            {
-                if (MainUI.seekBarBox.trackBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-                {
-                    cancelReplayRestartTimer();
-                    return;
-                }
-            }
-            if (targetName && !isReplayRestartTimerON())
-            {
-                if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "WorkspaceView.stageBG")
-                {
-                    main.handTool(true, false);
-                    return;
-                }
-                else if (targetName === "replayRepeatButton" || targetName === "replayFitToWindowButton")
-                {
-                    if (InputController.isKeyPressed())
-                    {
-                        return;
-                    }
-                    main.handleMouseClick(targetName);
-                    return;
-                }
-            }
-            if (target.alpha < 1.0)
-            {
-                return;
-            }
-            switch (targetName)
-            {
-                case "repNewFileButton":
-                    {
-                        InputController.startPressHoldKey(MainUI.topBar.repNewFileButton, HintStrings.getNewFileHintString(),
-                                function ():Boolean
-                                {
-                                    return prepareDeleteReplayData("total");
-                                },
-                                createNewFileFromReplayCanvas,
-                                function ():void
-                                {
-                                    MainUI.seekBarBox.setDeleteRangeBarVisible(false);
-                                });
-                    }
-                    break;
-                case "cutPrevDataButton":
-                    {
-                        if (MainUI.topBar.cutPrevDataButton.alpha === 1.0)
-                        {
-                            InputController.startPressHoldKey(MainUI.topBar.cutPrevDataButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
-                                {
-                                    return prepareDeleteReplayData("before");
-                                },
-                                    deleteReplayDataBeforeCurrentFrame,
-                                    function ():void
-                                    {
-                                        MainUI.seekBarBox.setDeleteRangeBarVisible(false);
-                                    });
-                        }
-                    }
-                    break;
-                case "superUndoButton":
-                    {
-                        if (MainUI.topBar.superUndoButton.alpha === 1.0)
-                        {
-                            InputController.startPressHoldKey(MainUI.topBar.superUndoButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
-                                {
-                                    return prepareDeleteReplayData("after");
-                                },
-                                    deleteReplayDataAfterCurrentFrame, function ():void
-                                    {
-                                        MainUI.seekBarBox.setDeleteRangeBarVisible(false);
-                                    });
-                        }
-                    }
-                    break;
-                case "replayRotateButton":
-                    {
-                        main.rotateTool(true);
-                    }
-                    break;
-                case "replaySpeedSliderWrapper":
-                    {
-                        adjutReplaySpeedByMouse();
-                    }
-                    break;
-                case "trackBar":
-                    {
-                        onSeekbarClick();
-                    }
-                    break;
-                case "replayPrev":
-                    {
-                        FOFOTimer.remove("prograssBarUpdateTimer");
-                        if (InputController.isPressingShift())
-                        {
-                            InputController.startKeyRepeat(true, moveToPreviousFrame);
-                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
-                        }
-                        else
-                        {
-                            InputController.startKeyRepeat(true, moveToPreviousStep);
-                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
-                        }
-                    }
-                    break;
-                case "replayNext":
-                    {
-                        FOFOTimer.remove("prograssBarUpdateTimer");
-                        if (InputController.isPressingShift())
-                        {
-                            InputController.startKeyRepeat(true, moveToNextFrame);
-                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
-                        }
-                        else
-                        {
-                            InputController.startKeyRepeat(true, moveToNextStep);
-                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
-                        }
-                    }
-                    break;
-                case "timer":
-                    {
-                        InputController.startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, main.realWorkingTimer.reset, null);
-                    }
-                    break;
-                case "drawModeButton":
-                case "saveButton":
-                case "captureButton":
-                case "capOff":
-                case "capSave":
-                case "capClipBoard":
-                case "capTrans":
-                case "capFlip":
-                case "capRotate":
-                case "repCaptureButton":
-                case "clipBoardButton":
-                case "topBarColorButton":
-                case "playButton":
-                case "pauseButton":
-                case "replayZoomInButton":
-                case "replayZoomOutButton":
-                case "replayFitToWindowButton":
-                case "replayPrev":
-                case "replayNext":
-                    {
-                        if (InputController.isKeyPressed())
-                        {
-                            return;
-                        }
-                        main.handleMouseClick(targetName);
-                    }
-                    break;
-            }
-        }
 
-        public static function onRightMouseDownReplayMode(e:MouseEvent):void
-        {
-            if (CanvasController.isMouseClicked || InputController.isKeyPressed() || !e.target || FileManager.loadMenuBox.visible)
-                return;
-            const targetName:String = e.target.name;
-            switch (targetName)
-            {
-                case "replayPrev":
-                    {
-                        InputController.startKeyRepeat(true, moveToPreviousFrame);
-                        InputController.startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
-                    }
-                    break;
-                case "replayNext":
-                    {
-                        InputController.startKeyRepeat(true, moveToNextFrame);
-                        InputController.startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
-                    }
-                    break;
-                case "replayRotateButton":
-                    {
-                        resetRotationReplayMode();
-                    }
-                    break;
-                case "replayZoomInButton":
-                case "replayZoomOutButton":
-                {
-                    resetZoomReplayMode();
-                    break;
-                }
-                case "rCanvasDrawLayer":
-                case "WorkspaceView.stageBG":
-                    {
-                        if (isReplayRestartTimerON())
-                        {
-                            cancelReplayRestartTimer();
-                        }
-                        else if (!isReplayStarted)
-                        {
-                            handleReplayStartButton();
-                        }
-                        else
-                        {
-                            handleReplayStopButton();
-                        }
-                    }
-                    break;
-            }
-        }
 
         public static function updateRCanvasDrawLayerCliprect2():void
         {

@@ -213,6 +213,7 @@ package Modules.Tools
                 return;
             }
 
+            //todo wasd와 ijkl은 따로 세트로 묶어서 서로 따로 작동하지 않게 해야함
             const keyCode:uint = InputController.getFirstPressedKey();
 
             if (keyCode === InputController.KEY.space)

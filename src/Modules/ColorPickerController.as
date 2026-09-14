@@ -17,8 +17,8 @@ package Modules
             main = instance;
         }
         // TODO : numpad, hsv, 스크레치패드+drawr+tegaki로 클래스 나누기, 마이팔레트 기능 다시 생각오른쪽 클릭으로 할까 그냥 버튼으로 기능 분리할까
-
-            // 메뉴 요소ㅇ
+        // todo // todo fillpen툴에서 작동중에서 색갈바꿀때 슬라이더 변경하면 실시간으로 변경하게 바꾸고, numpad의 oklch관련 ui도 조작하게 쉽게 개편해야함
+            // 메뉴 요소
         
         public static const colorPickerBox:ColorPickerSet = new ColorPickerSet();
         public static const numPadBox:NumPadSet = new NumPadSet();

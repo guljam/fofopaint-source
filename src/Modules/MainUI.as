@@ -593,7 +593,7 @@ package Modules
 				showTopbarOnReplayEnd();
 				seekBarBox.setDeleteRangeBarVisible(false);
 				seekBarBox.visible = false;
-				ReplayController.removeInputEventsReplayMode();
+				InputController.removeInputEventsReplayMode();
 			}
 			else
 			{
@@ -623,20 +623,20 @@ package Modules
 				MainUI.hideMouseHint();
 			}
 
-			CaptureController.addInputEventsCaptrueMode();
+			InputController.addInputEventsCaptrueMode();
 			MainUIController.updateStageOffset();
 		}
 
 		public static function deactivateCaptureUI():void
 		{
 			const replayMode:Boolean = ReplayController.isReplayModeON;
-			CaptureController.removeInputEventCaptrueMode();
+			InputController.removeInputEventCaptrueMode();
 			ReferenceLayerController.canvasRefLayer.visible = true;
 
 			if (replayMode)
 			{
 				MainUI.updateTopbarIconsReplayMode();
-				ReplayController.addInputEventsReplayMode();
+				InputController.addInputEventsReplayMode();
 				seekBarBox.visible = true;
 			}
 			else

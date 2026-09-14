@@ -22,6 +22,8 @@ package Modules
 
     public class CaptureController
     {
+        // todo capture area와 stamp 기능 분리, 작은 입력 핸들 이벤트
+        // todo capture area선택 영역에서 1px 정도 오차가 있음
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -33,7 +35,6 @@ package Modules
         public static var isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
         public static var isCaptureStampTextFieldFocused:Boolean = false; // 포커스 되면 올려줌
         public static var isCaptureStampEnabled:Boolean = false;
-        private static var isCaptureModeInputEventsAdded:Boolean = false; // 이벤트 세트가 켜지거나 꺼지는거 보관 중복 이벤트 추가 피하려고
 
         public static var captureStampFontListBox:CapStampFontListSet = new CapStampFontListSet();
         private static var captureDragAreaOverlay:Shape = new Shape(); // 스크린샷 박스 미리보기 그려줌
@@ -47,7 +48,7 @@ package Modules
         public static const captureAreaManager:Object = cDrawCaptureArea();
         public static const captureStampManager:Object = cDrawCaptureStamp();
 
-        private static function hideStampFontList():void
+        public static function hideStampFontList():void
         {
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList);
             captureStampFontListBox.visible = false;
@@ -330,171 +331,10 @@ package Modules
             }
         }
 
-        private static function onRightMouseDownCaptureMode(e:MouseEvent):void
-        {
-            if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
-            {
-                if (!captureAreaManager.isFullImageCapture())
-                {
-                    captureAreaManager.resetCaptureArea();
-                }
-            }
-        }
 
-        private static function onMouseDownCaptureMode(e:MouseEvent):void
-        {
-            const target:DisplayObject = e.target as DisplayObject;
-            if (!target)
-            {
-                return;
-            }
 
-            const targetName:String = target.name;
 
-            if (targetName === "capLayer1VisibleButton" || targetName === "capLayer2VisibleButton" || targetName === "capStamp" || targetName === "capStampFont")
-            {
-                main.handleMouseClick(targetName);
-                return;
-            }
 
-            if (targetName === "capClipBoard")
-            {
-                executeCaptureFlashEffect();
-                if (target.alpha < 1.0 && MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-                {
-                    return;
-                }
-                main.handleMouseClick(targetName);
-            }
-
-            if (target.alpha < 1.0 && MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-            {
-                return;
-            }
-
-            if (captureStampFontListBox.visible)
-            {
-                if (targetName === "capFontListNext" || targetName === "capFontListPrev")
-                {
-                    main.handleMouseClick(targetName);
-                }
-                else if (targetName && targetName.indexOf(captureStampFontListBox.getStampFontButtonName()) !== -1)
-                {
-                    captureStampManager.changeFont(captureStampFontListBox.getFontName(targetName), true);
-                }
-                else if (target.parent)
-                {
-                    if (target.parent.name && target.parent.name.indexOf(captureStampFontListBox.getStampFontButtonName()) !== -1)
-                    {
-                        captureStampManager.changeFont(captureStampFontListBox.getFontName(target.parent.name), true);
-                    }
-                }
-                return;
-            }
-
-            switch (targetName)
-            {
-                case "capRotate":
-                case "capFlip":
-                case "capSave":
-                case "capOff":
-                case "capTrans":
-                    main.handleMouseClick(targetName);
-                    break;
-                case "timer":
-                    InputController.startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, main.realWorkingTimer.reset, null);
-                    break;
-                default:
-                    if (!CanvasController.isMouseClickBlocked)
-                    {
-                        captureAreaManager.start();
-                    }
-                    break;
-            }
-        }
-
-        private static function onKeyUpCaptureMode(e:KeyboardEvent):void
-        {
-            InputController.updateLastKey(InputController.getLastKey());
-            InputController.checkGeneralKeyUp(e.keyCode);
-        }
-
-        private static function onKeyDownCaptureMode(e:KeyboardEvent):void
-        {
-            const firstKey:uint = InputController.getFirstPressedKey();
-            if (captureStampFontListBox.visible)
-            {
-                if (firstKey === InputController.KEY.esc)
-                {
-                    hideStampFontList();
-                }
-                return;
-            }
-
-            if (firstKey === InputController.KEY.esc)
-            {
-                if (main.stage.focus === MainUI.topBar.captureInput)
-                {
-                    main.stage.focus = null;
-                    return;
-                }
-            }
-
-            if (main.stage.focus === MainUI.topBar.captureInput || CanvasController.isMouseClicked || CanvasController.isRightMouseClicked)
-            {
-                return;
-            }
-
-            if (InputController.isPressingControl())
-            {
-                const secondKey:uint = InputController.getSecondPressedKey();
-                if (InputController.isLastKey(secondKey))
-                {
-                    return;
-                }
-                InputController.updateLastKey(secondKey);
-
-                if (secondKey === InputController.KEY.s || secondKey === InputController.KEY.semicolon)
-                {
-                    FileManager.saveCaptureImage();
-                }
-                else if (secondKey === InputController.KEY.c || secondKey === InputController.KEY.comma)
-                {
-                    executeCaptureFlashEffect();
-                    if (MainUI.topBar.capClipBoard.alpha === 1.0)
-                    {
-                        copyCaptureImageToCilpBoard();
-                    }
-                }
-                else if (secondKey === InputController.KEY.v || secondKey === InputController.KEY.m)
-                {
-                    if (ClipboardManager.isClipBoardButtonActivated)
-                    {
-                        ClipboardManager.tryLoadClipboardImage(false);
-                    }
-                }
-                return;
-            }
-
-            if (InputController.isLastKey(firstKey))
-            {
-                return;
-            }
-
-            InputController.updateLastKey(firstKey);
-
-            switch (firstKey)
-            {
-                case InputController.KEY.esc:
-                case InputController.KEY.backspace:
-                case InputController.KEY.f1:
-                case InputController.KEY.f7:
-                    handleExitCaptureMode();
-                    break;
-                default:
-                    break;
-            }
-        }
 
         public static function enterCaptureMode():void
         {
@@ -1870,27 +1710,6 @@ package Modules
             return timeStr;
         }
 
-        public static function removeInputEventCaptrueMode():void
-        {
-            isCaptureModeInputEventsAdded = false;
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, CaptureController.onKeyUpCaptureMode);
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, CaptureController.onKeyDownCaptureMode);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, CaptureController.onMouseDownCaptureMode);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, CaptureController.onRightMouseDownCaptureMode);
-        }
 
-        public static function addInputEventsCaptrueMode():void
-        {
-            if (isCaptureModeInputEventsAdded === false)
-            {
-
-                isCaptureModeInputEventsAdded = true;
-                // resetKeyBuffer();
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, CaptureController.onKeyUpCaptureMode, false, -1);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, CaptureController.onKeyDownCaptureMode, false, -1);
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, CaptureController.onMouseDownCaptureMode, false, -1);
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, CaptureController.onRightMouseDownCaptureMode, false, -1);
-            }
-        }
     }
 }
