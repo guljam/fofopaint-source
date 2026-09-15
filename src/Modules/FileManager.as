@@ -1166,105 +1166,7 @@ package Modules
             fs.close();
         }
 
-        private static function saveAppSatate():void
-        {
-            const appStateObject:AppStateManager = new AppStateManager();
-            appStateObject.canvasZoomIndex = CanvasController.canvasZoomIndex;
-            appStateObject.canvasZoomedMultiplier = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.z : CanvasController.canvasZoomMultipler;
 
-            appStateObject.canvasPanelX = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.px : CanvasController.canvasPanel.x;
-            appStateObject.canvasPanelY = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.py : CanvasController.canvasPanel.y;
-
-            appStateObject.canvasAnchorPointX = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.x : CanvasController.canvasAnchorPoint.x;
-            appStateObject.canvasAnchorPointY = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.y : CanvasController.canvasAnchorPoint.y;
-            appStateObject.canvasAnchorPointRotation = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.r : CanvasController.canvasAnchorPoint.rotation;
-
-            appStateObject.penSmoothValue = PenTool.penSmoothValue;
-            appStateObject.penSmoothSlideValue = PenTool.penSmoothSlideValue;
-            appStateObject.penSmoothButtonX = ToolController.toolOptionsBox.penSmoothSliderCursor.x;
-
-            appStateObject.penSize = PenTool.penSize;
-            appStateObject.penSizeIndex = PenTool.penSizeIndex;
-            appStateObject.penColor = PenTool.penColor;
-            appStateObject.penAlpha = PenTool.penAlpha;
-            appStateObject.penIsSquare = PenTool.penIsSquare;
-
-            appStateObject.eraseSize = PenTool.eraserSize;
-            appStateObject.eraseSizeIndex = PenTool.eraserSizeIndex;
-            appStateObject.eraserIsSquare = PenTool.eraserIsSquare;
-            appStateObject.eraseAlpha = PenTool.eraserAlpha;
-
-            const windowBounds:Rectangle = main.stage.nativeWindow.bounds;
-            appStateObject.stageNativeWindowX = windowBounds.x;
-            appStateObject.stageNativeWindowY = windowBounds.y;
-            appStateObject.stageNativeWindowWidth = windowBounds.width;
-            appStateObject.stageNativeWindowHeight = windowBounds.height;
-
-            appStateObject.saveFileName = lastSaveFileName;
-            appStateObject.lastWindowState = MainUIController.lastAppWindowState;
-            appStateObject.uiColorIndex = Global.getUIColorIndex();
-            appStateObject.appRunningTime = main.realWorkingTimer.getRunningTime();
-
-            appStateObject.refLayerLastAlpha = ReferenceLayerController.refLayerLastAlpha;
-            appStateObject.refOpacityCursorX = ReferenceLayerController.refLayerMenuBox.refOpacityCursor.x;
-            appStateObject.refLayerMenuDragXMoveSum = ReferenceLayerController.refLayerMenuDragXMoveSum;
-
-            appStateObject.canvasRefLayerBitmapX = ReferenceLayerController.canvasRefLayerBitmap.x;
-            appStateObject.canvasRefLayerBitmapY = ReferenceLayerController.canvasRefLayerBitmap.y;
-            appStateObject.canvasRefLayerRotation = ReferenceLayerController.canvasRefLayer.rotation;
-            appStateObject.canvasRefLayerScaleX = ReferenceLayerController.canvasRefLayer.scaleX;
-            appStateObject.canvasRefLayerScaleY = ReferenceLayerController.canvasRefLayer.scaleY;
-
-            appStateObject.refLayerMenuBox0 = ReferenceLayerController.refLayerMenuBox.x;
-            appStateObject.refLayerMenuBox1 = ReferenceLayerController.refLayerMenuBox.y;
-
-            appStateObject.isCanvasMirrored = CanvasController.isCanvasMirrored;
-
-            appStateObject.gridValue = CanvasGridOverlay.gridGapMultiplier;
-            appStateObject.hsvColorData0 = ColorPickerController.hsvColorData[0];
-            appStateObject.gridDrawOffsetX = CanvasGridOverlay.gridDrawOffsetX;
-            appStateObject.gridDrawOffsetY = CanvasGridOverlay.gridDrawOffsetY;
-
-            appStateObject.hueCursorX = ColorPickerController.colorPickerBox.hueCursor.x;
-            appStateObject.svBaseColor = ColorPickerController.colorPickerBox.svBaseColor;
-            appStateObject.isHSVInfoTextMode = ColorPickerController.isHSVInfoTextMode;
-
-            appStateObject.rReplayImageCacheState = (ReplayController.isGeneratingCacheImages()) ? ReplayController.REPLAY_IMAGE_CAHCHE_READY : ReplayController.rReplayImageCacheState;
-            appStateObject.rLastCanvasBGColor = ReplayController.rLastCanvasBGColor;
-
-            appStateObject.isRightSidebar = SidebarController.isRightSidebar;
-            appStateObject.saveFilePath = lastSaveFilePath;
-            appStateObject.isSidebarVisible = SidebarController.isSidebarVisible;
-            appStateObject.uiScaleIndex = Global.getUIScaleIndex();
-
-            appStateObject.canvasWindowON = ImageViewWindow.isCanvasWindowON;
-
-            appStateObject.newWindowInfo0 = ImageViewWindow.canvasWindowInfo[0];
-            appStateObject.newWindowInfo1 = ImageViewWindow.canvasWindowInfo[1];
-            appStateObject.newWindowInfo2 = ImageViewWindow.canvasWindowInfo[2];
-            appStateObject.newWindowInfo3 = ImageViewWindow.canvasWindowInfo[3];
-
-            appStateObject.getFirstRCursorPosX = ReplayController.drawReplayByCommand.getFirstRCursorPos().x;
-            appStateObject.getFirstRCursorPosY = ReplayController.drawReplayByCommand.getFirstRCursorPos().y;
-
-            appStateObject.isContinueSaveON = isContinueSaveON;
-
-            appStateObject.myPalettePresetType = PaletteController.myPalettePresetType;
-            appStateObject.isMyPaletteExpended = PaletteController.isMyPaletteExpended;
-            appStateObject.isColorPickerBoxPositionSwapped = ColorPickerController.isColorPickerBoxPositionSwapped;
-
-            appStateObject.captureStampText = MainUI.topBar.captureInput.text;
-            appStateObject.isCaptureStampON = CaptureController.isCaptureStampEnabled;
-            appStateObject.captureStampFont = CaptureController.captureStampManager.getFontName();
-
-            appStateObject.scrollSetMovedY = SidebarController.scrollSetMovedY;
-            appStateObject.isRefLayerMemoryTrainingON = ReferenceLayerController.isRefLayerMemoryTrainingON;
-
-            const fs:FileStream = new FileStream();
-            fs.open(appStateFilePath, FileMode.WRITE);
-            fs.writeObject(appStateObject);
-            fs.close();
-        }
 
         public static function deleteTempDirectory():void
         {
@@ -1277,7 +1179,7 @@ package Modules
 
         public static function saveAllAppData():void
         {
-            saveAppSatate();
+            AppStateManager.saveAppSatate();
             UndoManager.saveUndoData();
             ReplayController.saveReplayFrameData();
             ReferenceLayerController.saveRefLayerImage();

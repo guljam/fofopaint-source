@@ -1,6 +1,6 @@
 ﻿package
 {
-    import Modules.AppStateManager;
+    import Modules.AppStateVars;
     import Modules.AppUpdater;
     import Modules.BackgroundWorkerCoordinator;
     import Modules.CanvasController;
@@ -64,14 +64,13 @@
     import flash.utils.ByteArray;
     import flash.utils.Timer;
     import flash.utils.getTimer;
+    import Modules.AppStateManager;
     // import
     public class Main extends Sprite
     {
         // todo: (중요) module 클래스는 정적 변수가 아니라 main에서 호출되어서 연결되어지는 클래스 인스턴스로 가는게맞는것같음
         // todo 현재 일단 컴파일만되게 분리하는작업임
         // todo layer (trace layer 포함) 좀더 쉽게 볼수있도록 ui 개편해야함
-
-        private const savepos:Array = [0, 0, 0, 0];
 
         public static var _instance:Main;
         public const APP_VERSION:String = "28.01";
@@ -127,11 +126,12 @@
         public function initializeModule():void
         {
             // 나중에 file load 클래스 초기화로 옮겨야함
-            registerClassAlias("AppState", AppStateManager);
+            registerClassAlias("AppState", AppStateVars);
             // main ui가 호출되기전에 이것부터 stage 연결시켜주어야함 그냥 상단에 고정
             HintBoxSet.setMainStage(this.stage);
 
             AppUpdater.setMainInstance(this);
+            AppStateManager.setMainInstance(this);
             BackgroundWorkerCoordinator.setMainInstance(this);
             CanvasGridOverlay.setMainInstance(this);
             CaptureController.setMainInstance(this);
@@ -173,7 +173,7 @@
             MainUIController.initializeResizeButtonFamily();
             CaptureController.initializeCaptureModeTransparentBG();
             BackgroundWorkerCoordinator.initializeWorker();
-            loadAppState();
+            AppStateManager.loadAppState();
             // 입력 이벤트는 loadappdstate보다느려야함
             addGlobalEvents();
             addGlobalEventsChild();
@@ -2680,10 +2680,6 @@
                     InputController.startKeyRepeat(true, ToolController.adjustDrawToolSizeByShortcut, false);
                     return true;
                 case InputController.KEY.g:
-                    CanvasController.canvasPanel.x = savepos[0];
-                    CanvasController.canvasPanel.y = savepos[1];
-                    CanvasController.canvasAnchorPoint.x = savepos[2];
-                    CanvasController.canvasAnchorPoint.y = savepos[3];
 
                     InputController.startKeyRepeat(true, ToolController.adjustDrawToolAlphaByShortcut, true);
                     return true;
@@ -2701,311 +2697,7 @@
             ToolController.updateDrawToolAlpha(PenTool.penAlphaList[index]);
         }
 
-        public function loadAppState():void
-        {
-            const fs:FileStream = new FileStream();
-            var arr:Array = [];
-            var newRectangle:Rectangle;
-            const firstCachedImage:File = FileManager.replayCacheImageFolderPath.resolvePath("0");
-            // 앱 경로에 마지막 저장 파일이 있으면 끄기전의 상태로 세팅해줌
-            if (firstCachedImage.exists)
-            {
-                fs.open(firstCachedImage, FileMode.READ);
-                arr = fs.readObject() as Array;
-                fs.close();
-                if (arr[1] is ByteArray === false)
-                {
-                    arr[0].uncompress();
-                    newRectangle = new Rectangle(0, 0, arr[1], arr[2]);
-                    if (ReplayController.rFirstImageLayer1BitmapData)
-                        ReplayController.rFirstImageLayer1BitmapData.dispose();
-                    ReplayController.rFirstImageLayer1BitmapData = new BitmapData(arr[1], arr[2], true, 0);
-                    ReplayController.rFirstImageLayer1BitmapData.lock();
-                    ReplayController.rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
-                    ReplayController.rFirstImageLayer1BitmapData.unlock();
-                    if (ReplayController.rFirstImageLayer2BitmapData)
-                        ReplayController.rFirstImageLayer2BitmapData.dispose();
-                    ReplayController.rFirstImageLayer2BitmapData = new BitmapData(arr[1], arr[2], true, 0);
-                    ReplayController.rFirstImageBGColor = arr[3];
-                }
-                else
-                {
-                    arr[0].uncompress();
-                    newRectangle = new Rectangle(0, 0, arr[2], arr[3]);
-                    if (ReplayController.rFirstImageLayer1BitmapData)
-                        ReplayController.rFirstImageLayer1BitmapData.dispose();
-                    ReplayController.rFirstImageLayer1BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-                    ReplayController.rFirstImageLayer1BitmapData.lock();
-                    ReplayController.rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
-                    ReplayController.rFirstImageLayer1BitmapData.unlock();
-                    arr[1].uncompress();
-                    if (ReplayController.rFirstImageLayer2BitmapData)
-                        ReplayController.rFirstImageLayer2BitmapData.dispose();
-                    ReplayController.rFirstImageLayer2BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-                    ReplayController.rFirstImageLayer2BitmapData.lock();
-                    ReplayController.rFirstImageLayer2BitmapData.setPixels(newRectangle, arr[1]);
-                    ReplayController.rFirstImageLayer2BitmapData.unlock();
-                    ReplayController.rFirstImageBGColor = arr[4];
-                }
-            }
-            else
-            {
-                ReplayController.rFirstImageLayer1BitmapData.dispose();
-                ReplayController.rFirstImageLayer2BitmapData.dispose();
-                ReplayController.rFirstImageLayer1BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-                ReplayController.rFirstImageLayer2BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-            }
-            if (ReferenceLayerController.refLayerImageFilePath.exists)
-            {
-                fs.open(ReferenceLayerController.refLayerImageFilePath, FileMode.READ);
-                arr = fs.readObject() as Array;
-                fs.close();
-                // arr[0].uncompress();
-                newRectangle = new Rectangle(0, 0, arr[1], arr[2]);
-                var tmpbmpd:BitmapData = new BitmapData(arr[1], arr[2], true, 0);
-                tmpbmpd.lock();
-                tmpbmpd.setPixels(newRectangle, arr[0]);
-                tmpbmpd.unlock();
-                ReferenceLayerController.canvasRefLayerBitmapData = CanvasController.updateBitmapData(ReferenceLayerController.canvasRefLayerBitmapData, tmpbmpd, ReferenceLayerController.canvasRefLayerBitmap);
-                ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
-                tmpbmpd.dispose();
-                tmpbmpd = null;
-            }
-            if (FileManager.replayCacheImageFrameDataFilePath.exists)
-            {
-                fs.open(FileManager.replayCacheImageFrameDataFilePath, FileMode.READ);
-                arr = fs.readObject() as Array;
-                fs.close();
-                ReplayController.rJumpImageFrameData = arr.concat();
-            }
-            if (FileManager.myPaletteDataFilePath.exists)
-            {
-                fs.open(FileManager.myPaletteDataFilePath, FileMode.READ);
-                var list:Array = fs.readObject();
-                PaletteController.myPalettePreset = list.concat();
-                list.length = 0;
-                list = null;
-            }
-            if (FileManager.undoDataFilePath.exists)
-            {
-                UndoManager.loadUndoData(); // ReplayController.undo data 복구 먼저 해줘야함
-            }
-            if (FileManager.scratchPadDataFilePath.exists)
-            {
-                FileManager.loadScratchPadImage();
-            }
-            if (FileManager.appStateFilePath.exists)
-            {
-                fs.open(FileManager.appStateFilePath, FileMode.READ);
-                const appStateObject:AppStateManager = fs.readObject() as AppStateManager;
-                fs.close();
-                // loadUndoData함수에서 canvaspanel이 호출되는데 이전에 reflayer 이미지 정보값을 넣어두어야함
-                // 그냥 해주면 창크기 적용이 안되서 타이머 걸어줌
-                FOFOTimer.addByName("loadAppDataDelayTimer", 0.2, false, function ():void
-                    {
-                        stage.nativeWindow.width = appStateObject.stageNativeWindowWidth;
-                        stage.nativeWindow.height = appStateObject.stageNativeWindowHeight;
-                        stage.nativeWindow.x = appStateObject.stageNativeWindowX;
-                        stage.nativeWindow.y = appStateObject.stageNativeWindowY;
-                        MainUIController.lastAppWindowSize.width = appStateObject.stageNativeWindowWidth;
-                        MainUIController.lastAppWindowSize.height = appStateObject.stageNativeWindowHeight;
 
-                        // 캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
-                        if (appStateObject.lastWindowState === 1)
-                            stage.nativeWindow.maximize();
-
-                        Global.setScaleIndex(appStateObject.uiScaleIndex);
-                        MainUIController.applyUIScale();
-                        Global.setUIColorIndex(appStateObject.uiColorIndex);
-                        MainUIController.applyUIColorSet();
-
-                        CanvasController.canvasZoomIndex = appStateObject.canvasZoomIndex;
-                        CanvasController.updateCanvasScale(appStateObject.canvasZoomedMultiplier);
-                        CanvasController.canvasPanel.x = appStateObject.canvasPanelX;
-                        CanvasController.canvasPanel.y = appStateObject.canvasPanelY;
-                        CanvasController.canvasAnchorPoint.x = appStateObject.canvasAnchorPointX;
-                        CanvasController.canvasAnchorPoint.y = appStateObject.canvasAnchorPointY;
-                        savepos[0] = appStateObject.canvasPanelX;
-                        savepos[1] = appStateObject.canvasPanelY;
-                        savepos[2] = appStateObject.canvasAnchorPointX;
-                        savepos[3] = appStateObject.canvasAnchorPointY;
-                        CanvasController.canvasAnchorPoint.rotation = appStateObject.canvasAnchorPointRotation;
-                        setRcursorRotation(appStateObject.canvasAnchorPointRotation);
-                        MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                        CanvasController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
-
-                        PenTool.penSmoothValue = appStateObject.penSmoothValue;
-                        PenTool.penSmoothSlideValue = appStateObject.penSmoothSlideValue;
-                        ToolController.toolOptionsBox.penSmoothSliderCursor.x = appStateObject.penSmoothButtonX;
-                        PenTool.penSize = appStateObject.penSize;
-                        PenTool.penColor = appStateObject.penColor;
-
-                        ColorPickerController.hsvColorData[0] = appStateObject.hsvColorData0; // 순서 중요 이게 먼저오고 밑에 rgb info갱신해주어야함
-                        ColorPickerController.isHSVInfoTextMode = appStateObject.isHSVInfoTextMode;
-                        ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
-                        ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
-                        ColorPickerController.colorPickerBox.updateHueColor(appStateObject.svBaseColor);
-                        ColorPickerController.colorPickerBox.hueCursor.x = appStateObject.hueCursorX;
-
-                        PenTool.penAlpha = appStateObject.penAlpha;
-                        PenTool.penAlphaIndex = PenTool.penAlphaList.indexOf(appStateObject.penAlpha);
-                        ToolController.updateDrawToolAlpha(appStateObject.penAlpha);
-                        PenTool.penIsSquare = appStateObject.penIsSquare;
-                        PenTool.penListShapeIsSqare = appStateObject.penIsSquare;
-                        ToolController.toolOptionsBox.updatePenShapeSet(appStateObject.penIsSquare);
-
-                        PenTool.eraserSize = appStateObject.eraseSize;
-                        PenTool.eraserIsSquare = appStateObject.eraserIsSquare;
-                        PenTool.eraserAlpha = appStateObject.eraseAlpha;
-                        PenTool.eraserAlphaIndex = PenTool.penAlphaList.indexOf(appStateObject.eraseAlpha);
-                        PenTool.eraserSizeIndex = appStateObject.eraseSizeIndex;
-                        ToolController.setDrawToolSize(appStateObject.penSizeIndex);
-
-                        FileManager.lastSaveFilePath = appStateObject.saveFilePath;
-                        FileManager.lastSaveFileName = appStateObject.saveFileName;
-                        if (FileManager.lastSaveFilePath === FileManager.lastSaveFileName)
-                        {
-                            FileManager.lastSaveFilePath = File.desktopDirectory.nativePath + File.separator + FileManager.lastSaveFileName;
-                        }
-
-                        realWorkingTimer.setRunningTime(appStateObject.appRunningTime);
-                        realWorkingTimer.update();
-
-                        ReferenceLayerController.refLayerLastAlpha = appStateObject.refLayerLastAlpha;
-                        ReferenceLayerController.canvasRefLayer.alpha = appStateObject.refLayerLastAlpha;
-                        ReferenceLayerController.refLayerMenuBox.refOpacityCursor.x = appStateObject.refOpacityCursorX;
-                        ReferenceLayerController.refLayerMenuBox.x = appStateObject.refLayerMenuBox0;
-                        ReferenceLayerController.refLayerMenuBox.y = appStateObject.refLayerMenuBox1;
-                        ReferenceLayerController.refLayerMenuDragXMoveSum = appStateObject.refLayerMenuDragXMoveSum;
-
-                        if (appStateObject.isRefLayerMemoryTrainingON)
-                        {
-                            ReferenceLayerController.isRefLayerMemoryTrainingON = false;
-                            ReferenceLayerController.toggleRefLayerMemoryTraining();
-                        }
-
-                        SidebarController.isRightSidebar = appStateObject.isRightSidebar;
-                        SidebarController.isSidebarVisible = appStateObject.isSidebarVisible;
-                        if (appStateObject.isRightSidebar)
-                            SidebarController.moveSideBar("right", true);
-                        if (!appStateObject.isSidebarVisible)
-                            SidebarController.hideSidebarPermanent();
-
-                        ReplayController.rReplayImageCacheState = appStateObject.rReplayImageCacheState;
-                        ReplayController.rLastCanvasBGColor = appStateObject.rLastCanvasBGColor;
-                        ReplayController.drawReplayByCommand.setFirstRCursorPos(appStateObject.getFirstRCursorPosX, appStateObject.getFirstRCursorPosY);
-
-                        ReferenceLayerController.updateRefLayerImageTransform(
-                                appStateObject.canvasRefLayerBitmapX,
-                                appStateObject.canvasRefLayerBitmapY,
-                                appStateObject.canvasRefLayerRotation,
-                                appStateObject.canvasRefLayerScaleX,
-                                appStateObject.canvasRefLayerScaleY
-                            );
-
-                        if (CanvasController.isCanvasMirrored !== appStateObject.isCanvasMirrored)
-                            CanvasController.mirrorCanvas(true);
-
-                        CanvasGridOverlay.gridGapMultiplier = appStateObject.gridValue;
-                        CanvasGridOverlay.gridDrawOffsetX = appStateObject.gridDrawOffsetX;
-                        CanvasGridOverlay.gridDrawOffsetY = appStateObject.gridDrawOffsetY;
-                        if (!CanvasGridOverlay.gridDrawOffsetX)
-                            CanvasGridOverlay.gridDrawOffsetX = 0.0;
-                        if (!CanvasGridOverlay.gridDrawOffsetY)
-                            CanvasGridOverlay.gridDrawOffsetY = 0.0;
-                        if (appStateObject.gridValue > 0)
-                            CanvasGridOverlay.drawGrid();
-
-                        if (appStateObject.canvasWindowON)
-                        {
-                            ImageViewWindow.canvasWindowInfo = [
-                                    appStateObject.newWindowInfo0,
-                                    appStateObject.newWindowInfo1,
-                                    appStateObject.newWindowInfo2,
-                                    appStateObject.newWindowInfo3
-                                ];
-                            ImageViewWindow.openImageViewWindow();
-                            stage.nativeWindow.activate();
-                        }
-
-                        FileManager.isContinueSaveON = appStateObject.isContinueSaveON;
-                        ReplayController.rDataIndex = UndoManager.undoDataIndex;
-                        ReplayController.rNowFrame = UndoManager.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex);
-                        ReplayController.rPrevFrame = UndoManager.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex - 1);
-
-                        // 혹시 몰라서 위치 체크 해줌
-                        CanvasController.canvasInfoBox.setRotate(CanvasController.canvasAnchorPoint.rotation);
-                        CanvasController.centerCanvas("replay");
-                        CanvasController.keepCanvasPanelInStage();
-                        CanvasController.keepCanvasPanelInStage(true);
-
-                        PaletteController.myPaletteSaveColorBeforeOtherType[0] = PenTool.penColor;
-                        if (appStateObject.myPalettePresetType > 0)
-                            ColorPickerController.activeColorPreset(appStateObject.myPalettePresetType);
-
-                        PaletteController.updateHistoryList();
-                        PaletteController.isMyPaletteExpended = appStateObject.isMyPaletteExpended;
-                        if (PaletteController.myPalettePresetType === 0 && appStateObject.isMyPaletteExpended)
-                        {
-                            PaletteController.switchMyPaletteToExpended();
-                        }
-                        else
-                        {
-                            PaletteController.updateMyPaletteList();
-                        }
-
-                        ColorPickerController.isColorPickerBoxPositionSwapped = appStateObject.isColorPickerBoxPositionSwapped;
-                        if (appStateObject.isColorPickerBoxPositionSwapped)
-                        {
-                            ColorPickerController.colorPickerBox.swapColorBoxPositions(appStateObject.isColorPickerBoxPositionSwapped);
-                        }
-
-                        SidebarController.sideBarScrollPanel.y = appStateObject.scrollSetMovedY;
-                        MainUI.topBar.captureInput.text = appStateObject.captureStampText;
-                        CaptureController.isCaptureStampEnabled = appStateObject.isCaptureStampON;
-                        if (appStateObject.captureStampFont)
-                        {
-                            CaptureController.captureStampManager.changeFont(appStateObject.captureStampFont, false);
-                        }
-
-                        MainUIController.updateCanvasNaigatorCursor();
-                        updatePenSizeCursor();
-                        MainUIController.updateWindowTitle();
-                        CanvasController.selectLayer1(false);
-                    });
-            }
-            else // 복원파일이 없을때
-            {
-                if (FileManager.lastSaveFilePath === FileManager.lastSaveFileName)
-                {
-                    FileManager.lastSaveFilePath = File.desktopDirectory.nativePath + File.separator + FileManager.lastSaveFileName;
-                }
-                PaletteController.initializeMyPaletteList();
-                MainUIController.lastAppWindowSize.width = 1000;
-                MainUIController.lastAppWindowSize.height = 800;
-                FOFOTimer.add(0.3, true, function ():Boolean
-                    {
-                        if (stage.nativeWindow.width === 1000 && stage.nativeWindow.height === 800)
-                        {
-                            CanvasController.centerCanvas("draw");
-                            return false;
-                        }
-                        stage.nativeWindow.width = MainUIController.lastAppWindowSize.width;
-                        stage.nativeWindow.height = MainUIController.lastAppWindowSize.height;
-                        return true;
-                    });
-                CanvasController.updateCavnvasSizeDrawMode(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, 0, 0, false);
-                MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
-                ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
-                openAboutBox(true);
-                MainUIController.applyUIColorSet();
-                MainUIController.updateCanvasNaigatorCursor();
-                CanvasController.canvasInfoBox.init(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, Math.floor(CanvasController.canvasZoomMultipler * 100), CanvasController.canvasAnchorPoint.rotation, false);
-                CanvasController.selectLayer1(false);
-                PaletteController.initMyPaletteHistory();
-            }
-        }
 
     }
 }
