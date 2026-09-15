@@ -39,7 +39,6 @@ package Modules
             var rFileTotalFrame:Number = 0; // file에저장된 프레임수 누적해서 저장
 
             // undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
-            trace('main', main);
             var undoBaseImage:Array = [
                     ReplayController.rFirstImageLayer1BitmapData.clone(),
                     ReplayController.rFirstImageLayer2BitmapData.clone(),
@@ -619,7 +618,7 @@ package Modules
             }
         }
 
-                // addundo data에서 캔버스 비트맵 데이터가 변경되기 전, rdatabuffer 비어있을때 넣어줘야함
+        // addundo data에서 캔버스 비트맵 데이터가 변경되기 전, rdatabuffer 비어있을때 넣어줘야함
         public static function applyDeepUndo():void
         {
             const fs:FileStream = new FileStream();
@@ -660,7 +659,7 @@ package Modules
             UndoManager.disableDeepUndo();
         }
 
-                public static function undo():void
+        public static function undo():void
         {
             if (ReplayController.isGeneratingCacheImages())
             {

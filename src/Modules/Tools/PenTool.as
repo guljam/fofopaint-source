@@ -408,7 +408,7 @@ package Modules.Tools
 			penCommand.length = 0;
 			penPoints.length = 0;
 
-			main.drawDone();
+			DrawingFinish.finish();
 		}
 
 		public static function start():void

@@ -737,12 +737,12 @@ public static function cLassoTool():Object
         {
             return;
         }
-        main.dottedLine.moveTo(lassoDraw.graphics, lassoPoints[0][0], lassoPoints[0][1]);
+        DottedLineTool.moveTo(lassoDraw.graphics, lassoPoints[0][0], lassoPoints[0][1]);
         for (var i:uint = 0;i < len;i++)
         {
-            main.dottedLine.lineTo(lassoPoints[i][0], lassoPoints[i][1]);
+            DottedLineTool.lineTo(lassoPoints[i][0], lassoPoints[i][1]);
         }
-        main.dottedLine.lineTo(lassoPoints[0][0], lassoPoints[0][1], true);
+        DottedLineTool.lineTo(lassoPoints[0][0], lassoPoints[0][1], true);
     }
     function setDeafultLassoMenuPos(lassoMenu:LassoMenuSet):void
     {
@@ -868,7 +868,7 @@ public static function cLassoTool():Object
         lassoDraw.graphics.clear();
         lassoPoints.push([clickPos.x, clickPos.y]);
         lassoLayer1.visible = true;
-        main.dottedLine.setLineScale(CanvasController.canvasZoomMultipler);
+        DottedLineTool.setLineScale(CanvasController.canvasZoomMultipler);
         if (CanvasController.canvasLayer1Bitmap.visible)
         {
             if (lassoLayer1LastBitmapdata != null)
@@ -1021,7 +1021,7 @@ public static function disposeLassoBoxBitmapData():void
     }
 }
 
-// todo cancel lasso bmpd 로 바꾸기
+// todo cancel lasso bmpd 로 바꾸기, lasso툴이적용되었을경우 리플레이나 undo성능 향상을 위해서 캐싱하고 파일저장에도 써주여야함 이는 나중에 .fofo 새로운 세이브파일 구현때 하기
 public static function lassoCancelBmpd():void
 {
     if (lassoLayer1LastBitmapdata)

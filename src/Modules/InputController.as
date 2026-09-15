@@ -11,6 +11,7 @@ package Modules
     import flash.system.Capabilities;
     import flash.events.Event;
     import Modules.Tools.PenTool;
+    import Modules.Tools.LineTool;
 
     public class InputController
     {
@@ -1075,7 +1076,7 @@ public static function clearKeyBuffer():void
                         break;
                     case ToolController.TOOL_LINE:
                         if (CanvasController.isToolEnabledByLayerUnChecked())
-                            main.lineTool(true);
+                            LineTool.start();
                         break;
                     case ToolController.TOOL_LASSO:
                         LassoTool.lassoToolFunction.start();
