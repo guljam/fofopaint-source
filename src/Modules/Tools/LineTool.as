@@ -232,7 +232,7 @@ package Modules.Tools
                 }
             }
             CanvasController.resetCanvasDrawLayerCliprect();
-            DrawingFinish.finish();
+            DrawingFinish.run();
         }
 
         public static function start():void

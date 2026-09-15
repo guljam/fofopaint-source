@@ -11,7 +11,7 @@ package Modules.Tools
     {
         private static var drawLayerAlpha:ColorTransform = new ColorTransform();
 
-        public static function finish():void
+        public static function run():void
         {
             if (UndoManager.canAddUndoData === false)
             {

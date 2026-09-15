@@ -624,7 +624,7 @@
                     showFillColor();
                 }
                 CanvasController.resetCanvasDrawLayerCliprect();
-                DrawingFinish.finish();
+                DrawingFinish.run();
                 exitFillPen();
             }
             function undoData():void
