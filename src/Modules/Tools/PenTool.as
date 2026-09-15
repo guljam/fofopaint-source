@@ -401,7 +401,7 @@ package Modules.Tools
 				ReplayController.rDataBuffer = [];
 				ReplayController.rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasController.isLayer2Selected, airBrushSizeDrawMode, CanvasController.canvasAnchorPoint.rotation]);
 
-				main.dotTool(xShape, xSize, xColor, clickPos.x, clickPos.y, CanvasController.canvasAnchorPoint.rotation);
+				DotTool.start(xShape, xSize, xColor, clickPos.x, clickPos.y, CanvasController.canvasAnchorPoint.rotation);
 				CanvasController.resetCanvasDrawLayerCliprect();
 			}
 

@@ -65,6 +65,7 @@
     import Modules.UndoManager;
     import Modules.ReplayController;
     import Modules.InputController;
+    import Modules.Tools.DotTool;
     // import
     public class Main extends Sprite
     {
@@ -92,20 +93,19 @@
 
         // 윈도우 크기변수
         // 툴 클로져 자주쓰는거는 클로져로 메모리에 미리 올려둬서 성능향상하려고 한건데 모르겠음
-        public const realWorkingTimer:Object = cRealWorkingTimer(),
-            dottedLine:Object = cDottedLine(), // 순서 먼저 와야함
-            dotTool:Function = cDrawDot(),
-            lineTool:Function = cLineTool(),
-            handTool:Function = cHandTool(),
-            rotateTool:Function = cCanvasRotateTool(),
-            zoomTool:Function = cZoomTool(),
-            moveTool:Function = cMoveTool(),
-            eyeDropperTool:Function = cEyeDropperTool(),
-            fillPenTool:Object = cFillPenTool(),
-            drawDone:Function = cDrawDone(),
-            updatePenSizeCursor:Function = cUpdatePenSizeCursor(),
-            penCursorManager:Object = cPenCursorUpdater(),
-            resizeCanvas:Object = CanvasController.cResizeCanvas();
+        public var realWorkingTimer:Object = cRealWorkingTimer();
+        public var dottedLine:Object = cDottedLine(); // 순서 먼저 와야함
+        public var lineTool:Function = cLineTool();
+        public var handTool:Function = cHandTool();
+        public var rotateTool:Function = cCanvasRotateTool();
+        public var zoomTool:Function = cZoomTool();
+        public var moveTool:Function = cMoveTool();
+        public var eyeDropperTool:Function = cEyeDropperTool();
+        public var fillPenTool:Object = cFillPenTool();
+        public var drawDone:Function = cDrawDone();
+        public var updatePenSizeCursor:Function = cUpdatePenSizeCursor();
+        public var penCursorManager:Object = cPenCursorUpdater();
+        public var resizeCanvas:Object = CanvasController.cResizeCanvas();
 
         // 기타
         public var isAppClosing:Boolean = false; // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
@@ -157,7 +157,10 @@
             UndoManager.setMainInstance(this);
             ReplayController.setMainInstance(this);
             InputController.setMainInstance(this);
+        }
 
+        public function initializeTools():void
+        {
             PenTool.setMainInstance(this);
             LassoTool.setMainInstance(this);
         }
@@ -165,6 +168,7 @@
         public function initializeStage():void
         {
             initializeModule();
+            initializeTools();
             MainUIController.updateWindowTitle();
             MainUIController.markWindowTitleAsDirty();
             initializeStageSettings();
@@ -2253,7 +2257,7 @@
                     {
                         ReplayController.rDataBuffer = [];
                         ReplayController.rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, subLayerFlag, xAirBrushON, CanvasController.canvasAnchorPoint.rotation]);
-                        dotTool(xShape, xSize, xColor, mx, my, CanvasController.canvasAnchorPoint.rotation);
+                        DotTool.start(xShape, xSize, xColor, mx, my, CanvasController.canvasAnchorPoint.rotation);
                     }
                     else
                     {
@@ -3072,44 +3076,7 @@
             ToolController.updateDrawToolAlpha(PenTool.penAlphaList[index]);
         }
 
-        public function cDrawDot():Function
-        {
-            const cmd:Vector.<int> = new Vector.<int>();
-            const pos:Vector.<Number> = new Vector.<Number>();
-            return function (shape:Boolean, size:uint, color:uint, posX:Number, posY:Number, rotation:Number):void
-            {
-                CanvasController.canvasDrawLayerChild.graphics.clear();
-                CanvasController.canvasDrawLayerChild.graphics.lineStyle(0, 0, 0);
-                CanvasController.canvasDrawLayerChild.graphics.beginFill(color);
-                if (shape === true)
-                {
-                    cmd.length = 0;
-                    pos.length = 0;
-                    const p0:Point = Utils.rotatePoint(-size / 2, -size / 2, rotation);
-                    cmd.push(1);
-                    pos.push(posX + p0.x);
-                    pos.push(posY + p0.y);
-                    const p1:Point = Utils.rotatePoint(+size / 2, -size / 2, rotation);
-                    cmd.push(2);
-                    pos.push(posX + p1.x);
-                    pos.push(posY + p1.y);
-                    const p2:Point = Utils.rotatePoint(+size / 2, +size / 2, rotation);
-                    cmd.push(2);
-                    pos.push(posX + p2.x);
-                    pos.push(posY + p2.y);
-                    const p3:Point = Utils.rotatePoint(-size / 2, +size / 2, rotation);
-                    cmd.push(2);
-                    pos.push(posX + p3.x);
-                    pos.push(posY + p3.y);
-                    CanvasController.canvasDrawLayerChild.graphics.drawPath(cmd, pos);
-                }
-                else
-                {
-                    CanvasController.canvasDrawLayerChild.graphics.drawCircle(posX, posY, size / 2);
-                }
-                CanvasController.canvasDrawLayerChild.graphics.endFill();
-            };
-        }
+
         public function loadAppState():void
         {
             const fs:FileStream = new FileStream();

@@ -33,6 +33,7 @@ package Modules
             main = instance;
         }
         // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
+        // todo 버전별로 저장하기
 
         public static const appStateFilePath:File = File.applicationStorageDirectory.resolvePath("appstate" + main.APP_STATE_VERSION);
         public static const scratchPadDataFilePath:File = File.applicationStorageDirectory.resolvePath("scratchdata");
