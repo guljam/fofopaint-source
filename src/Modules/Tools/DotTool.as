@@ -1,8 +1,9 @@
 package Modules.Tools
 {
-    import flash.geom.Point;
-    import Modules.Utils;
     import Modules.CanvasController;
+    import Modules.Utils;
+
+    import flash.geom.Point;
 
     public class DotTool
     {

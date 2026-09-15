@@ -1,21 +1,21 @@
 package Modules
 {
-	import Modules.SidebarController;
-
 	import Modules.MainUIController;
-	import flash.display.Sprite;
-	import flash.display.Shape;
-	import flash.geom.Rectangle;
-	import flash.display.DisplayObject;
-	import flash.events.MouseEvent;
-
-	import Symbols.TopMenuSet;
-	import Symbols.HintBoxSet;
-	import Symbols.seekBarSet;
-	import Symbols.CapStampFontListSet;
-	import flash.geom.Point;
-	import flash.display.BitmapData;
+	import Modules.SidebarController;
 	import Modules.Tools.LassoTool;
+
+	import Symbols.CapStampFontListSet;
+	import Symbols.HintBoxSet;
+	import Symbols.TopMenuSet;
+	import Symbols.seekBarSet;
+
+	import flash.display.BitmapData;
+	import flash.display.DisplayObject;
+	import flash.display.Shape;
+	import flash.display.Sprite;
+	import flash.events.MouseEvent;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 
 	public final class MainUI
 	{

@@ -1,20 +1,20 @@
 package Modules
 {
+    import Modules.Tools.LassoTool;
+    import Modules.Tools.PenTool;
+
     import Symbols.ToolMenuSet;
     import Symbols.ToolMenuSet2;
-    import Symbols.FillPenMenuSet;
     import Symbols.ToolOptionsSet;
-    import Symbols.EyedropperLensSet;
-    import flash.geom.Rectangle;
+
     import flash.display.Bitmap;
-    import flash.display.SimpleButton;
-    import flash.events.MouseEvent;
     import flash.display.DisplayObject;
-    import Modules.Tools.PenTool;
+    import flash.display.SimpleButton;
     import flash.display.Sprite;
-    import Modules.Tools.LassoTool;
     import flash.events.KeyboardEvent;
+    import flash.events.MouseEvent;
     import flash.geom.Point;
+    import flash.geom.Rectangle;
 
     public class ToolController
     {

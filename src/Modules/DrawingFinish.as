@@ -1,11 +1,13 @@
-package Modules.Tools
+package Modules
 {
+    import Modules.CanvasController;
     import Modules.ReplayController;
+    import Modules.ToolController;
+    import Modules.Tools.PenTool;
     import Modules.UndoManager;
+
     import flash.filters.BlurFilter;
     import flash.geom.ColorTransform;
-    import Modules.CanvasController;
-    import Modules.ToolController;
 
     public class DrawingFinish
     {

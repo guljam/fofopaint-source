@@ -1,35 +1,35 @@
 package Modules
 {
-    import flash.filesystem.File;
-    import flash.filesystem.FileStream;
-    import flash.display.Sprite;
-    import flash.display.Shape;
-    import flash.display.BitmapData;
-    import flash.display.Bitmap;
-    import flash.geom.Rectangle;
-    import flash.display.DisplayObject;
-    import flash.geom.Point;
-    import flash.filters.BlurFilter;
-    import flash.geom.ColorTransform;
-    import flash.utils.ByteArray;
-    import flash.geom.Matrix;
-    import flash.events.Event;
+    import Modules.Tools.LassoTool;
     import Modules.Tools.PenTool;
-    import flash.events.MouseEvent;
-    import flash.filesystem.FileMode;
-    import flash.display.IBitmapDrawable;
-    import flash.utils.getTimer;
-    import flash.desktop.NativeDragManager;
+
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
-    import flash.events.NativeDragEvent;
-    import Modules.Tools.LassoTool;
-    import flash.display.LineScaleMode;
+    import flash.desktop.NativeDragManager;
+    import flash.display.Bitmap;
+    import flash.display.BitmapData;
     import flash.display.CapsStyle;
+    import flash.display.DisplayObject;
+    import flash.display.IBitmapDrawable;
     import flash.display.JointStyle;
-    import flash.events.KeyboardEvent;
-    import flash.ui.Mouse;
+    import flash.display.LineScaleMode;
+    import flash.display.Shape;
+    import flash.display.Sprite;
+    import flash.events.Event;
+    import flash.events.MouseEvent;
+    import flash.events.NativeDragEvent;
+    import flash.filesystem.File;
+    import flash.filesystem.FileMode;
+    import flash.filesystem.FileStream;
+    import flash.filters.BlurFilter;
     import flash.filters.GlowFilter;
+    import flash.geom.ColorTransform;
+    import flash.geom.Matrix;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
+    import flash.ui.Mouse;
+    import flash.utils.ByteArray;
+    import flash.utils.getTimer;
 
     public class ReplayController
     {

@@ -1,22 +1,24 @@
 package Modules
 {
     import Modules.MainUIController;
-    import flash.display.Sprite;
+
+    import Symbols.RefLayerMenuSet;
+
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display.DisplayObject;
-    import flash.display.SimpleButton;
     import flash.display.IBitmapDrawable;
+    import flash.display.SimpleButton;
+    import flash.display.Sprite;
     import flash.events.MouseEvent;
     import flash.filesystem.File;
-    import flash.filesystem.FileStream;
     import flash.filesystem.FileMode;
-    import flash.geom.Point;
+    import flash.filesystem.FileStream;
     import flash.geom.Matrix;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
-    import Symbols.RefLayerMenuSet;
 
     public final class ReferenceLayerController
     {

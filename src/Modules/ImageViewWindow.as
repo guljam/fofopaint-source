@@ -1,21 +1,21 @@
 package Modules
 {
 
-    import flash.display.NativeWindow;
     import flash.display.Bitmap;
-    import flash.geom.Point;
-    import flash.display.Sprite;
     import flash.display.BitmapData;
-    import flash.geom.Rectangle;
-    import flash.events.KeyboardEvent;
-    import flash.events.Event;
+    import flash.display.NativeWindow;
     import flash.display.NativeWindowInitOptions;
     import flash.display.NativeWindowSystemChrome;
     import flash.display.NativeWindowType;
-    import flash.display.StageScaleMode;
+    import flash.display.Sprite;
     import flash.display.StageAlign;
+    import flash.display.StageScaleMode;
+    import flash.events.Event;
+    import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.events.NativeWindowBoundsEvent;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
 
     public final class ImageViewWindow
     {

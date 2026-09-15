@@ -1,19 +1,21 @@
 package Modules.Tools
 {
-    import flash.display.BitmapData;
-    import flash.display.CapsStyle;
-    import flash.display.JointStyle;
-    import flash.display.LineScaleMode;
-    import flash.events.MouseEvent;
-    import flash.geom.Point;
     import Modules.CanvasController;
     import Modules.ColorPickerController;
+    import Modules.DrawingFinish;
     import Modules.MainUI;
     import Modules.PaletteController;
     import Modules.ReferenceLayerController;
     import Modules.ReplayController;
     import Modules.ToolController;
     import Modules.UndoManager;
+
+    import flash.display.BitmapData;
+    import flash.display.CapsStyle;
+    import flash.display.JointStyle;
+    import flash.display.LineScaleMode;
+    import flash.events.MouseEvent;
+    import flash.geom.Point;
 
     public class LineTool
     {

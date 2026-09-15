@@ -1,17 +1,15 @@
 package Modules
 {
-    import flash.display.DisplayObject;
-    import flash.events.MouseEvent;
-    import flash.events.KeyboardEvent;
-    import flash.utils.Timer;
     import Modules.Tools.LassoTool;
-    import flash.utils.getTimer;
-    import flash.events.TimerEvent;
-    import flash.system.IME;
-    import flash.system.Capabilities;
-    import flash.events.Event;
-    import Modules.Tools.PenTool;
     import Modules.Tools.LineTool;
+    import Modules.Tools.PenTool;
+
+    import flash.display.DisplayObject;
+    import flash.events.Event;
+    import flash.events.KeyboardEvent;
+    import flash.events.MouseEvent;
+    import flash.system.Capabilities;
+    import flash.system.IME;
 
     public class InputController
     {

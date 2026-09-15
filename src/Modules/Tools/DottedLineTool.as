@@ -1,7 +1,7 @@
 package Modules.Tools
 {
-    import flash.geom.Point;
     import flash.display.Graphics;
+    import flash.geom.Point;
 
     public class DottedLineTool
     {

@@ -1,19 +1,21 @@
 package Modules.Tools
 {
+	import Modules.CanvasController;
+	import Modules.ColorPickerController;
+	import Modules.DrawingFinish;
 	import Modules.PaletteController;
 	import Modules.ReferenceLayerController;
+	import Modules.ReplayController;
+	import Modules.ToolController;
+	import Modules.UndoManager;
+
+	import flash.display.CapsStyle;
+	import flash.display.JointStyle;
+	import flash.display.LineScaleMode;
 	import flash.events.MouseEvent;
 	import flash.filters.BlurFilter;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.display.CapsStyle;
-	import flash.display.JointStyle;
-	import flash.display.LineScaleMode;
-	import Modules.ColorPickerController;
-	import Modules.CanvasController;
-	import Modules.ToolController;
-	import Modules.UndoManager;
-	import Modules.ReplayController;
 
 	public final class PenTool
 	{

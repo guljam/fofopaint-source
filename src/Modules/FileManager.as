@@ -1,29 +1,30 @@
 package Modules
 {
-    import flash.filesystem.File;
+    import Modules.Tools.LassoTool;
+    import Modules.Tools.PenTool;
+
     import Symbols.LoadBoxSet;
+
+    import flash.desktop.ClipboardFormats;
     import flash.display.BitmapData;
-    import flash.utils.ByteArray;
-    import flash.events.MouseEvent;
-    import flash.events.KeyboardEvent;
-    import flash.filesystem.FileStream;
-    import flash.geom.Rectangle;
-    import flash.filesystem.FileMode;
-    import flash.net.URLRequest;
-    import flash.net.navigateToURL;
     import flash.display.Loader;
     import flash.events.Event;
     import flash.events.IOErrorEvent;
-    import libwebp.DecodeWebp;
     import flash.events.InvokeEvent;
+    import flash.events.KeyboardEvent;
+    import flash.events.MouseEvent;
     import flash.events.NativeDragEvent;
-    import flash.desktop.ClipboardFormats;
+    import flash.filesystem.File;
+    import flash.filesystem.FileMode;
+    import flash.filesystem.FileStream;
+    import flash.geom.Rectangle;
     import flash.net.FileFilter;
+    import flash.net.URLRequest;
+    import flash.net.navigateToURL;
+    import flash.utils.ByteArray;
     import flash.utils.getTimer;
-    import Modules.Tools.PenTool;
-    import Modules.Tools.LassoTool;
-    import flash.net.registerClassAlias;
-    import flash.net.IDynamicPropertyOutput;
+
+    import libwebp.DecodeWebp;
 
     public class FileManager
     {

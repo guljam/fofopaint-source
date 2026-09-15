@@ -2,8 +2,8 @@ package Modules
 {
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
-    import flash.geom.Point;
     import flash.display.Stage;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
 
     public class Utils

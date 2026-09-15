@@ -1,7 +1,5 @@
 package Modules
 {
-    import flash.geom.Rectangle;
-
     public class AppStateManager
     {
         public function AppStageManager():void {}

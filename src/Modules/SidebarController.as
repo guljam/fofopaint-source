@@ -1,17 +1,19 @@
 package Modules
 {
+    import Modules.Tools.LassoTool;
+
+    import Symbols.FOFO;
+    import Symbols.SidePanelSet;
+
+    import flash.display.BitmapData;
     import flash.display.DisplayObject;
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
+    import flash.filesystem.File;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Symbols.SidePanelSet;
-    import Symbols.FOFO;
-    import flash.filesystem.File;
-    import flash.display.BitmapData;
-    import Modules.Tools.LassoTool;
 
     public final class SidebarController
     {

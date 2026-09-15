@@ -2,13 +2,13 @@ package Modules
 {
 
     import Modules.SidebarController;
-    import flash.events.MouseEvent;
-    import flash.filesystem.File;
-    import flash.filesystem.FileStream;
-    import flash.filesystem.FileMode;
-    import flash.geom.Point;
     import Modules.Tools.PenTool;
+
     import flash.display.Graphics;
+    import flash.events.MouseEvent;
+    import flash.filesystem.FileMode;
+    import flash.filesystem.FileStream;
+    import flash.geom.Point;
 
     public final class PaletteController
     {

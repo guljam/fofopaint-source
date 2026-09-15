@@ -1,31 +1,33 @@
 package Modules.Tools
 {
-    import flash.display.Shape;
-    import flash.display.Sprite;
-    import flash.display.Bitmap;
-    import flash.display.BitmapData;
-    import Symbols.LassoMenuSet;
-    import flash.geom.Point;
-    import flash.events.KeyboardEvent;
-    import flash.events.MouseEvent;
-    import flash.geom.Rectangle;
-    import flash.filters.ConvolutionFilter;
-    import flash.display.DisplayObject;
-    import flash.events.Event;
-    import flash.geom.Matrix;
-    import Modules.ReferenceLayerController;
-    import Modules.MainUIController;
-    import Modules.SidebarController;
-    import Modules.MainUI;
-    import Modules.DragInteraction;
-    import Modules.Utils;
-    import Modules.ColorPickerController;
-    import Modules.ImageViewWindow;
     import Modules.CanvasController;
+    import Modules.ColorPickerController;
+    import Modules.DragInteraction;
+    import Modules.ImageViewWindow;
+    import Modules.InputController;
+    import Modules.MainUI;
+    import Modules.MainUIController;
+    import Modules.ReferenceLayerController;
+    import Modules.ReplayController;
+    import Modules.SidebarController;
     import Modules.ToolController;
     import Modules.UndoManager;
-    import Modules.ReplayController;
-    import Modules.InputController;
+    import Modules.Utils;
+
+    import Symbols.LassoMenuSet;
+
+    import flash.display.Bitmap;
+    import flash.display.BitmapData;
+    import flash.display.DisplayObject;
+    import flash.display.Shape;
+    import flash.display.Sprite;
+    import flash.events.Event;
+    import flash.events.KeyboardEvent;
+    import flash.events.MouseEvent;
+    import flash.filters.ConvolutionFilter;
+    import flash.geom.Matrix;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
 
     public class LassoTool
     {

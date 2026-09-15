@@ -2,14 +2,14 @@ package Modules
 {
 
     import Modules.SidebarController;
-    import flash.display.Sprite;
+    import Modules.Tools.LassoTool;
+
     import flash.display.DisplayObject;
-    import flash.display.SimpleButton;
+    import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.Tools.LassoTool;
 
     // todo: 캔버스 리사이즈 버튼은 나중에 따로 분리 해야함
 
