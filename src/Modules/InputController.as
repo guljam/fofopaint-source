@@ -11,6 +11,8 @@ package Modules
     import flash.events.MouseEvent;
     import flash.system.Capabilities;
     import flash.system.IME;
+    import Modules.Tools.ZoomTool;
+    import Modules.Tools.MoveTool;
 
     public class InputController
     {
@@ -1093,11 +1095,11 @@ public static function clearKeyBuffer():void
                         LassoTool.lassoToolFunction.start();
                         break;
                     case ToolController.TOOL_MOVE:
-                        main.moveTool();
+                        MoveTool.start();
                         break;
                         // 캔버스 조작
                     case ToolController.TOOL_ZOOM:
-                        main.zoomTool();
+                        ZoomTool.start();
                         break;
                     case ToolController.TOOL_HAND:
                         HandTool.startInDrawMode();
@@ -1182,7 +1184,7 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
                     }
                     else
                     {
-                        ToolController.openToolBox2(false);
+                        ToolController.openToolBox2Delay(false);
                     }
                 }
             }

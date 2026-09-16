@@ -16,11 +16,14 @@ package Modules
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Modules.Tools.HandTool;
+    import Modules.Tools.ZoomTool;
+    import Modules.Tools.MoveTool;
 
     public class ToolController
     {
         // todo: 포멧팅 필요
         public static var main:Main;
+
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
@@ -45,9 +48,12 @@ package Modules
         public static const toolBox2:ToolMenuSet2 = new ToolMenuSet2();
         public static const toolOptionsBox:ToolOptionsSet = new ToolOptionsSet();
 
+        private static var toolBoxShowDelayTimer:int = 0;
+
         public static var isToolBox2Showing:Boolean = false; // 툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
         public static var nowTool:int = 1; // 현재 툴 번호
         public static var lastTool:int = TOOL_NONE; // 툴백업
+
         public static var selectedToolViewBitmap:Bitmap = new Bitmap();
 
         public static var isSharpLineON:Boolean = false; // 0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
@@ -56,9 +62,11 @@ package Modules
         public static function updateSelectedToolViewBoxPos():void
         {
             const viewportRect:Rectangle = MainUIController.getViewportRect();
+
             selectedToolViewBitmap.x = viewportRect.x + viewportRect.width / 2 - selectedToolViewBitmap.width / 2;
             selectedToolViewBitmap.y = viewportRect.y + 20 * Global.getUIScale();
         }
+
         public static function getToolButtonFromToolIndex(toolIndex:*):SimpleButton
         {
             switch (toolIndex)
@@ -90,19 +98,24 @@ package Modules
                 case TOOL_MIRROR:
                     return toolBox.toolMirror;
             }
+
             return null;
         }
+
         public static function showNowToolIconToCursorTemp(toolIndex:int):void
         {
             if (SidebarController.isQuickSidebarActive)
             {
                 return;
             }
+
             const toolButton:SimpleButton = getToolButtonFromToolIndex(toolIndex);
+
             if (toolButton === null)
             {
                 return;
             }
+
             selectedToolViewBitmap.bitmapData = toolBox.getToolSelectViewBmpd(toolIndex, toolButton);
             updateSelectedToolViewBoxPos();
             main.startAlphaFadeOut(selectedToolViewBitmap, 1.0, 1.0);
@@ -112,26 +125,32 @@ package Modules
         {
             return nowTool === TOOL_PEN || nowTool === TOOL_LINE;
         }
+
         public static function isSelectedTool(tool:int):Boolean
         {
             return nowTool === tool;
         }
+
         public static function setSelectedTool(tool:int):void
         {
             nowTool = tool;
         }
+
         public static function resetLastTool():void
         {
             lastTool = TOOL_NONE;
         }
+
         public static function isLastTool(tool:int):Boolean
         {
             return lastTool === tool;
         }
+
         public static function setLastTool(tool:int):void
         {
             lastTool = tool;
         }
+
         public static function updateLastTool():void
         {
             if (lastTool === TOOL_NONE)
@@ -154,11 +173,14 @@ package Modules
         public static function onMouseOverToolBox2Hint(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
+
             if (!target || target.alpha < 1.0)
             {
                 return;
             }
+
             const hintStr:String = HintStrings.getHintFromTargetName(target.name);
+
             toolBox2.hint((hintStr === null) ? "Tools" : hintStr);
         }
 
@@ -166,6 +188,7 @@ package Modules
         {
             var toolName:String = "Pen";
             const nt:uint = nowTool;
+
             if (isSelectedTool(TOOL_ERASER))
                 toolName = "Eraser";
             else if (isSelectedTool(TOOL_LINE))
@@ -180,6 +203,7 @@ package Modules
             var tooltype:String = "";
             var size:Number;
             var alpha:Number;
+
             if (isSelectedTool(TOOL_PEN))
             {
                 tooltype = "Pen ";
@@ -204,6 +228,7 @@ package Modules
                 size = PenTool.penSizeList[PenTool.eraserSizeIndex];
                 alpha = PenTool.penAlphaList[PenTool.eraserAlphaIndex];
             }
+
             MainUI.showMouseHintTemp(tooltype + size + "px, " + alpha * 100 + "%");
         }
 
@@ -213,6 +238,7 @@ package Modules
             if (index <= 0)
                 return;
             const curButton:Sprite = toolOptionsBox.opaBox.getChildByName("alphaButton" + index) as Sprite;
+
             if (!curButton)
                 return;
             toolOptionsBox.opaCursor.x = curButton.x;
@@ -223,7 +249,9 @@ package Modules
         {
             const index:int = PenTool.penAlphaList.indexOf(alpha);
             const eraseFlag:Boolean = isSelectedTool(TOOL_ERASER);
+
             updateOpacityCursorPos(index);
+
             if (eraseFlag === false)
             {
                 PenTool.penAlpha = alpha;
@@ -242,9 +270,11 @@ package Modules
             {
                 var index:Number = PenTool.penAlphaList.indexOf(alp);
                 const len:uint = PenTool.penAlphaList.length - 1;
+
                 if (increase)
                 {
                     index++;
+
                     if (index > len)
                     {
                         index = len;
@@ -253,15 +283,18 @@ package Modules
                 else
                 {
                     index--;
+
                     if (index < 1)
                     {
                         index = 1;
                     }
                 }
+
                 updateDrawToolAlpha(PenTool.penAlphaList[index]);
                 showDrawToolHintSizeOpacity();
             }
             selectPenToolIfNotDrawingTool(true);
+
             if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
             {
                 setAlpha(PenTool.penAlpha, PenTool.penSize);
@@ -278,12 +311,15 @@ package Modules
             {
                 return;
             }
+
             const len:uint = PenTool.penSizeList.length - 1;
+
             function setSize(index:uint, alpha:Number):void
             {
                 if (increase)
                 {
                     index++;
+
                     if (index > len)
                     {
                         index = len;
@@ -292,17 +328,20 @@ package Modules
                 else
                 {
                     index--;
+
                     if (index < 1)
                     {
                         index = 1;
                     }
                 }
+
                 setDrawToolSize(index);
                 main.updatePenSizeCursor();
                 showDrawToolHintSizeOpacity();
                 main.penCursorManager.checkCursorVisibility();
             }
             selectPenToolIfNotDrawingTool(true);
+
             if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
             {
                 setSize(PenTool.penSizeIndex, PenTool.penAlpha);
@@ -315,18 +354,22 @@ package Modules
             else if (isSelectedTool(TOOL_ERASER))
             {
                 setSize(PenTool.eraserSizeIndex, PenTool.eraserAlpha);
+
                 if (PenTool.isEraserAirBrushON && PenTool.eraserSize !== PenTool.airBrushSizeDrawMode)
                 {
                     PenTool.airBrushSizeDrawMode = PenTool.eraserSize;
                 }
             }
         }
+
         public static function selectPenSizeButton(targetName:String):void
         {
             const numberOnly:String = targetName.substr(11, targetName.length);
             const index:uint = parseInt(numberOnly);
+
             setDrawToolSize(index);
             main.updatePenSizeCursor();
+
             if (isSelectedTool(TOOL_FILLPEN))
             {
                 if (isPenAirBrushON && PenTool.penSize !== PenTool.airBrushSizeDrawMode)
@@ -349,28 +392,36 @@ package Modules
                 }
             }
         }
+
         public static function startPenSmootingAdjustment():void
         {
             const minDist:Number = toolOptionsBox.penSmoothSlider.x + 1; // 펜 리스트에 흰색 선 시작과 끝 x좌표임
             const maxDist:Number = minDist + toolOptionsBox.penSmoothSlider.width - 1;
             const step:Number = PenTool.penSmoothSlideTotal;
             const div:Number = (maxDist - minDist) / step;
+
             const maxValue:Number = 0.85;
             const minValue:Number = 0.02;
             const stepValue:Number = (maxValue - minValue) / step;
+
             const airBrushFlag:Boolean = isSelectedToolPenOrLine() && isPenAirBrushON;
             const eraseAirBrushFlag:Boolean = isSelectedTool(TOOL_ERASER) && PenTool.isEraserAirBrushON;
+
             var oldValue:int = PenTool.penSmoothSlideValue;
+
             CanvasController.isMouseDragging = true;
+
             function onMouseUpPenSmoothing(e:MouseEvent):void
             {
                 CanvasController.isMouseDragging = false;
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
             }
+
             function adjustPenSmoothingValue():void
             {
                 var mx:Number = toolOptionsBox.penSmoothSliderWapper.mouseX + toolOptionsBox.penSmoothSlider.x;
+
                 if (mx < minDist)
                 {
                     mx = minDist;
@@ -379,14 +430,18 @@ package Modules
                 {
                     mx = maxDist;
                 }
+
                 // 버튼을 기준으로 중간값으로
                 const value:Number = Math.floor((mx - minDist) / div);
+
                 if (oldValue !== value)
                 {
                     const xpos:Number = value * div + minDist;
+
                     if (toolOptionsBox.penSmoothSliderCursor.x === xpos)
                         return;
                     toolOptionsBox.penSmoothSliderCursor.x = xpos;
+
                     if (value === 0)
                     {
                         PenTool.penSmoothValue = 0;
@@ -395,11 +450,13 @@ package Modules
                     {
                         PenTool.penSmoothValue = maxValue - (value * stepValue);
                     }
+
                     PenTool.penSmoothSlideValue = value;
                     oldValue = value;
                     MainUI.showBottomHint(HintStrings.getHintFromTargetName("penSmoothSliderWapper"));
                 }
             }
+
             function onMouseMovePenSmoothing(e:MouseEvent):void
             {
                 adjustPenSmoothingValue();
@@ -412,6 +469,7 @@ package Modules
         public static function setDrawToolSize(index:uint):void
         {
             const size:uint = PenTool.penSizeList[index];
+
             if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
             {
                 PenTool.penSize = size;
@@ -424,12 +482,14 @@ package Modules
                 PenTool.eraserSizeIndex = index;
                 main.penCursorManager.updateCursorSize(PenTool.eraserSize);
             }
+
             toolOptionsBox.movePenSizeCursor(index);
         }
 
         public static function selectPenShapeButton(shapeFlag:Boolean):void
         {
             PenTool.penListShapeIsSqare = shapeFlag;
+
             if (isSelectedToolPenOrLine())
             {
                 if (PenTool.penIsSquare !== shapeFlag)
@@ -444,6 +504,7 @@ package Modules
                     PenTool.eraserIsSquare = shapeFlag;
                 }
             }
+
             toolOptionsBox.updatePenShapeSet(shapeFlag);
             main.updatePenSizeCursor();
         }
@@ -452,12 +513,14 @@ package Modules
         public static function selectLastUsedTool():void
         {
             const lastToolSave:int = lastTool;
+
             if (lastToolSave === TOOL_NONE)
             {
                 selectPenTool();
                 main.updatePenSizeCursor();
                 return;
             }
+
             switch (lastToolSave)
             {
                 case TOOL_PEN:
@@ -491,6 +554,7 @@ package Modules
                     selectZoomTool();
                     break;
             }
+
             nowTool = lastToolSave;
             resetLastTool();
         }
@@ -500,13 +564,17 @@ package Modules
             function onMouseUpToolBox(e:MouseEvent):void
             {
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox);
+
                 if (ReplayController.isGeneratingCacheImages())
                 {
                     return;
                 }
+
                 const upTargetName:String = e.target.name;
+
                 if (upTargetName !== targetName)
                     return;
+
                 switch (upTargetName)
                 {
                     case "toolPen":
@@ -606,6 +674,7 @@ package Modules
                         {
                             if (SidebarController.isQuickSidebarActive)
                                 SidebarController.deactivateQuickSidebar();
+
                             if (ReferenceLayerController.isRefLayerMenuON === false)
                             {
                                 ReferenceLayerController.openRefLayerMenu();
@@ -632,17 +701,21 @@ package Modules
             updateToolOptionsTextBySelectedTool();
             toolOptionsBox.updatePenShapeSet(PenTool.penIsSquare);
             main.penCursorManager.check();
+
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
                 toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
+
             toolOptionsBox.enablePenSmoothingSlider();
         }
+
         public static function selectLineTool():void
         {
             selectPenTool(true);
             toolOptionsBox.disablePenSmoothingSlider();
         }
+
         public static function selectEraseTool():void
         {
             setSelectedTool(TOOL_ERASER);
@@ -650,22 +723,27 @@ package Modules
             setDrawToolSize(PenTool.eraserSizeIndex);
             updateDrawToolAlpha(PenTool.eraserAlpha);
             updateOpacityCursorPos(PenTool.eraserAlphaIndex);
+
             if (main.lastEraserPosButton)
             {
                 main.lastEraserPosButton.visible = true;
             }
+
             main.lastEraserPosButton = null;
             toolBox2.toolEraser.visible = false;
             toolBox.moveToolCursor("toolEraser");
             updateToolOptionsTextBySelectedTool();
             toolOptionsBox.updatePenShapeSet(PenTool.eraserIsSquare);
             main.penCursorManager.check();
+
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
                 toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
+
             toolOptionsBox.disablePenSmoothingSlider();
         }
+
         public static function selectFillPenTool():void
         {
             setSelectedTool(TOOL_FILLPEN);
@@ -678,56 +756,71 @@ package Modules
             moveEraserButtonToOtherTool("toolFillPen");
             updateToolOptionsTextBySelectedTool();
         }
+
         public static function selectMoveTool():void
         {
             updateToolOptionsTextBySelectedTool();
             setSelectedTool(TOOL_MOVE);
             toolBox.moveToolCursor("toolMove");
+
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
                 toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
+
             toolOptionsBox.enablePenSmoothingSlider();
         }
+
         public static function selectZoomTool():void
         {
             updateToolOptionsTextBySelectedTool();
             setSelectedTool(TOOL_ZOOM);
             toolBox.moveToolCursor("toolZoomIn", CanvasController.canvasInfoBox);
+
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
                 toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
+
             toolOptionsBox.enablePenSmoothingSlider();
         }
+
         public static function selectRotateTool():void
         {
             updateToolOptionsTextBySelectedTool();
             setSelectedTool(TOOL_ROTATE);
             toolBox.moveToolCursor("toolRotate", CanvasController.canvasInfoBox);
+
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
                 toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
+
             toolOptionsBox.enablePenSmoothingSlider();
         }
+
         public static function selectLassoTool():void
         {
             updateToolOptionsTextBySelectedTool();
             setSelectedTool(TOOL_LASSO);
             toolBox.moveToolCursor("toolLasso");
             moveEraserButtonToOtherTool("toolLasso");
+
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
                 toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
+
             toolOptionsBox.enablePenSmoothingSlider();
         }
+
         public static function moveEraserButtonToOtherTool(toolName:String):void
         {
             const nowButton2:SimpleButton = toolBox2.getChildByName(toolName) as SimpleButton;
+
             if (!nowButton2)
                 return;
+
             if (main.lastEraserPosButton)
             {
                 if (main.lastEraserPosButton.x !== nowButton2.x
@@ -736,6 +829,7 @@ package Modules
                     main.lastEraserPosButton.visible = true;
                 }
             }
+
             main.lastEraserPosButton = nowButton2;
             nowButton2.visible = false;
             toolBox2.toolEraser.visible = true;
@@ -754,6 +848,7 @@ package Modules
                     return;
                 }
             }
+
             switch (keyCode)
             {
                 case InputController.KEY.q:
@@ -887,6 +982,7 @@ package Modules
                     }
                     break;
             }
+
             main.penCursorManager.check();
         }
 
@@ -897,6 +993,7 @@ package Modules
             {
                 return;
             }
+
             if (target.parent === toolBox2)
             {
                 toolBox2.updateLastUsedToolPos(target.name);
@@ -905,40 +1002,52 @@ package Modules
 
         public static function closeToolBox2(ignoreResizeButtonVisible:Boolean = false):void
         {
+            if (FOFOTimer.hasTimer("toolBoxShowDelayTimer"))
+            {
+                FOFOTimer.remove("toolBoxShowDelayTimer");
+                return;
+            }
+
             if (!isToolBox2Showing)
             {
                 return;
             }
+
             InputController.removeInputEventsToolBox2();
             isToolBox2Showing = false;
             toolBox2.visible = false;
+
             if (!ignoreResizeButtonVisible)
             {
                 MainUIController.showCanvasResizeButtonVisibleDelay(false);
             }
         }
+
         public static function onMouseDownToolBox2(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
+
             if (!target)
             {
                 return;
             }
+
             const targetName:String = target.name;
+
             switch (targetName)
             {
                 case "toolZoom":
                     {
                         updateToolBoxMousePos(target as SimpleButton);
                         closeToolBox2();
-                        main.zoomTool();
+                        ZoomTool.start();
                     }
                     break;
                 case "toolMove":
                     {
                         updateToolBoxMousePos(target as SimpleButton);
                         closeToolBox2();
-                        main.moveTool();
+                        MoveTool.start();
                     }
                     break;
                 case "toolRotate2":
@@ -964,18 +1073,22 @@ package Modules
                             updateLastTool();
                             HandTool.startInDrawMode();
                         }
+
                         closeToolBox2();
                     }
                     break;
             }
         }
+
         public static function handleToolBox2Closing(target:DisplayObject):void
         {
             const targetName:String = target.name;
+
             if (targetName !== null && targetName.indexOf("tool") !== -1)
             {
                 updateToolBoxMousePos(target as SimpleButton);
             }
+
             switch (targetName)
             {
                 case "toolQuickSidebar":
@@ -1050,40 +1163,51 @@ package Modules
                     }
                     break;
             }
+
             closeToolBox2();
         }
+
         public static function onMouseOverToolBox2(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
+
             if (!target)
             {
                 return;
             }
+
             const targetName:String = target.name;
+
             if (targetName && targetName.indexOf("tool") !== -1)
             {
                 toolBox2.setMouseOverTarget(target);
             }
         }
+
         public static function onKeyUpToolBox2(e:KeyboardEvent):void
         {
             InputController.resetLastKey();
             handleToolBox2Closing(toolBox2.getMouseOverTarget());
         }
+
         public static function onRightMouseUpToolBox2(e:MouseEvent):void
         {
             CanvasController.isPenSizeCursorInvisible = false;
+
             if (LassoTool.isLassoToolStarted === true)
             {
                 closeToolBox2();
                 return;
             }
+
             const target:SimpleButton = e.target as SimpleButton;
+
             if (!target || target.alpha < 1.0 || !main.isCursorInDrawArea())
             {
                 closeToolBox2();
                 return;
             }
+
             handleToolBox2Closing(target);
         }
 
@@ -1092,6 +1216,7 @@ package Modules
             if (InputController.isKeyPressed() && !SidebarController.isQuickSidebarActive || !target)
                 return true;
             const targetName:String = target.name;
+
             switch (targetName)
             {
                 case "toolRotate":
@@ -1135,7 +1260,18 @@ package Modules
                     }
                     return true;
             }
+
             return false;
+        }
+
+        public static function openToolBox2Delay(fromShortcut:Boolean):void
+        {
+            if (FOFOTimer.hasTimer("toolBoxShowDelayTimer"))
+            {
+                return;
+            }
+
+            FOFOTimer.addByName("toolBoxShowDelayTimer", 1.0, false, openToolBox2, [fromShortcut]);
         }
 
         public static function openToolBox2(fromShortcut:Boolean):void
@@ -1144,6 +1280,7 @@ package Modules
             CanvasController.penSizePreviewCursor.visible = false;
             var pos:Point = toolBox2.getLastUsedToolPos();
             const scale:Number = Global.getUIScale();
+
             toolBox2.x = Math.floor(main.stage.mouseX - pos.x * scale);
             toolBox2.y = Math.floor(main.stage.mouseY - pos.y * scale);
             toolBox2.alpha = 1.0;
@@ -1158,6 +1295,7 @@ package Modules
                     {
                         return false;
                     }
+
                     if (MainUIController.resizeButtonR.visible)
                     {
                         if (!toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
@@ -1169,6 +1307,7 @@ package Modules
                             toolBox2.alpha = 1.0;
                         }
                     }
+
                     return true;
                 });
         }
@@ -1179,11 +1318,14 @@ package Modules
             {
                 return true;
             }
+
             const targetName:String = target.name;
+
             if (target.alpha === Global.OFFALPHA)
             {
                 return true;
             }
+
             switch (targetName)
             {
                 case "penSmoothSliderWapper":
@@ -1192,6 +1334,7 @@ package Modules
                         {
                             return true;
                         }
+
                         selectPenToolIfNotDrawingTool(true);
                         startPenSmootingAdjustment();
                     }
@@ -1274,6 +1417,7 @@ package Modules
                             CanvasController.selectLayer1(CanvasController.canvasLayer2Bitmap.visible);
                             MainUI.showMouseHintLayerVisible();
                         }
+
                         if (toolOptionsBox.layer2CheckedButton.visible)
                         {
                             CanvasController.toggleLayer2Check();
@@ -1291,6 +1435,7 @@ package Modules
                             CanvasController.selectLayer2(CanvasController.canvasLayer1Bitmap.visible);
                             MainUI.showMouseHintLayerVisible();
                         }
+
                         if (toolOptionsBox.layer1CheckedButton.visible)
                         {
                             CanvasController.toggleLayer1Check();
@@ -1304,6 +1449,7 @@ package Modules
                         {
                             return true;
                         }
+
                         main.handleMouseClick(targetName);
                     }
                     return true;
@@ -1327,6 +1473,7 @@ package Modules
                         if (toolOptionsBox.airBrushButtonWrapper.alpha === 1.0)
                         {
                             selectPenToolIfNotDrawingTool(true);
+
                             if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
                             {
                                 togglePenAirBrushButton(!isPenAirBrushON);
@@ -1339,6 +1486,7 @@ package Modules
                     }
                     return true;
             }
+
             return false;
         }
 
@@ -1359,6 +1507,7 @@ package Modules
         public static function toggleSharpLineByShortcut():void
         {
             toggleSharpLine(!isSharpLineON);
+
             if (isSharpLineON)
             {
                 MainUI.showMouseHintTemp("Sharp line ON");
@@ -1378,6 +1527,7 @@ package Modules
             else
                 MainUI.showMouseHintTemp("Pen Air brush OFF");
         }
+
         public static function togglePenAirBrushButton(flag:Boolean):void
         {
             isPenAirBrushON = flag;
@@ -1388,6 +1538,7 @@ package Modules
         {
             toolOptionsBox.airBrushOFFButton.visible = flag;
             toolOptionsBox.airBrushONButton.visible = !flag;
+
             if (flag)
             {
                 PenTool.airBrushSizeDrawMode = (penFlag) ? PenTool.penSize : PenTool.eraserSize;
@@ -1400,6 +1551,7 @@ package Modules
                 toolOptionsBox.blurShapeSetOFF();
             }
         }
+
         public static function toggleEraseAirBrushButtonShortCut():void
         {
             PenTool.isEraserAirBrushON = !PenTool.isEraserAirBrushON;
@@ -1409,6 +1561,7 @@ package Modules
             else
                 MainUI.showMouseHintTemp("Eraser Air brush OFF");
         }
+
         public static function toggleEraseAirBrushButton(flag:Boolean):void
         {
             PenTool.isEraserAirBrushON = flag;

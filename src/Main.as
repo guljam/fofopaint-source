@@ -66,6 +66,8 @@
     import flash.utils.getTimer;
     import Modules.AppStateManager;
     import Modules.Tools.HandTool;
+    import Modules.Tools.ZoomTool;
+    import Modules.Tools.MoveTool;
     // import
     public class Main extends Sprite
     {
@@ -93,8 +95,6 @@
         // 툴 클로져 자주쓰는거는 클로져로 메모리에 미리 올려둬서 성능향상하려고 한건데 모르겠음
         public var realWorkingTimer:Object = cRealWorkingTimer();
         public var rotateTool:Function = cCanvasRotateTool();
-        public var zoomTool:Function = cZoomTool();
-        public var moveTool:Function = cMoveTool();
         public var eyeDropperTool:Function = cEyeDropperTool();
         public var fillPenTool:Object = cFillPenTool();
         public var updatePenSizeCursor:Function = cUpdatePenSizeCursor();
@@ -159,6 +159,8 @@
             LassoTool.setMainInstance(this);
             LineTool.setMainInstance(this);
             HandTool.setMainInstance(this);
+            ZoomTool.setMainInstance(this);
+            MoveTool.setMainInstance(this);
         }
 
         public function initializeStage():void
@@ -2017,137 +2019,7 @@
                 DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
             };
         }
-        public function cMoveTool():Function
-        {
-            var getMovedPos:Function;
-            function onMouseUpMoveTool(e:MouseEvent):void
-            {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
-                stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool);
-                CanvasController.isMouseDragging = false;
-                CanvasController.isPenSizeCursorInvisible = false;
-                getMovedPos = null;
-                var tmpbmpd:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-                const movex:Number = Math.floor(CanvasController.canvasLayer1Bitmap.x);
-                const movey:Number = Math.floor(CanvasController.canvasLayer1Bitmap.y);
-                const movex1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.x);
-                const movey1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.y);
-                var movedMat:Matrix = new Matrix();
-                if (UndoManager.isDeepUndoEnabled)
-                    UndoManager.applyDeepUndo();
-                // 최종적으로 움직인 거리를 실제로 비트맵 데이터 조작
-                if (CanvasController.checkedLayer === 0)
-                {
-                    if (CanvasController.canvasLayer1Bitmap.visible)
-                    {
-                        movedMat.translate(movex, movey);
-                        tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
-                        CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, tmpbmpd, CanvasController.canvasLayer1Bitmap);
-                    }
-                    if (CanvasController.canvasLayer2Bitmap.visible)
-                    {
-                        movedMat = new Matrix();
-                        movedMat.translate(movex1, movey1);
-                        tmpbmpd.fillRect(new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT), 0);
-                        tmpbmpd.draw(CanvasController.canvasLayer2BitmapData, movedMat);
-                        CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, tmpbmpd, CanvasController.canvasLayer2Bitmap);
-                    }
-                }
-                else if (CanvasController.checkedLayer === 1)
-                {
-                    movedMat.translate(movex, movey);
-                    tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
-                    CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, tmpbmpd, CanvasController.canvasLayer1Bitmap);
-                }
-                else if (CanvasController.checkedLayer === 2)
-                {
-                    movedMat = new Matrix();
-                    movedMat.translate(movex1, movey1);
-                    tmpbmpd.fillRect(new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT), 0);
-                    tmpbmpd.draw(CanvasController.canvasLayer2BitmapData, movedMat);
-                    CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, tmpbmpd, CanvasController.canvasLayer2Bitmap);
-                }
-                tmpbmpd.dispose();
-                tmpbmpd = null;
-                CanvasController.canvasLayer1Bitmap.x = 0;
-                CanvasController.canvasLayer1Bitmap.y = 0;
-                CanvasController.canvasLayer2Bitmap.x = 0;
-                CanvasController.canvasLayer2Bitmap.y = 0;
-                if (LassoTool.isLassoToolStarted === false)
-                {
-                    var command:String = "move";
-                    if (CanvasController.checkedLayer === 1)
-                    {
-                        command = "move1";
-                        ReplayController.rDataBuffer.push([command, movex, movey]);
-                    }
-                    else if (CanvasController.checkedLayer === 2)
-                    {
-                        command = "move2";
-                        ReplayController.rDataBuffer.push([command, movex1, movey1]);
-                    }
-                    else
-                    {
-                        if (!CanvasController.canvasLayer2Bitmap.visible)
-                        {
-                            command = "move1";
-                            ReplayController.rDataBuffer.push([command, movex, movey]);
-                        }
-                        else if (!CanvasController.canvasLayer1Bitmap.visible)
-                        {
-                            command = "move2";
-                            ReplayController.rDataBuffer.push([command, movex1, movey1]);
-                        }
-                        else
-                        {
-                            ReplayController.rDataBuffer.push([command, movex, movey]);
-                        }
-                    }
-                    if (ReplayController.hasLastRDataCommand(command))
-                        UndoManager.addUndoData.addContinue();
-                    else
-                        UndoManager.addUndoData.addNew();
-                }
-            }
-            function onMouseMoveMovetool(e:MouseEvent):void
-            {
-                const pos:Point = getMovedPos();
-                if (CanvasController.checkedLayer === 0)
-                {
-                    if (CanvasController.canvasLayer1Bitmap.visible)
-                    {
-                        CanvasController.canvasLayer1Bitmap.x = pos.x;
-                        CanvasController.canvasLayer1Bitmap.y = pos.y;
-                    }
-                    if (CanvasController.canvasLayer2Bitmap.visible)
-                    {
-                        CanvasController.canvasLayer2Bitmap.x = pos.x;
-                        CanvasController.canvasLayer2Bitmap.y = pos.y;
-                    }
-                }
-                else if (CanvasController.checkedLayer === 1)
-                {
-                    CanvasController.canvasLayer1Bitmap.x = pos.x;
-                    CanvasController.canvasLayer1Bitmap.y = pos.y;
-                }
-                else if (CanvasController.checkedLayer === 2)
-                {
-                    CanvasController.canvasLayer2Bitmap.x = pos.x;
-                    CanvasController.canvasLayer2Bitmap.y = pos.y;
-                }
-            }
-            return function ():void
-            {
-                if (CanvasController.isAllLayerInvisible())
-                    return;
-                getMovedPos = Utils.updateImagePosMouseDrag(CanvasController.canvasLayer1Bitmap, CanvasController.canvasAnchorPoint.rotation);
-                CanvasController.isPenSizeCursorInvisible = true;
-                stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool);
-                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool);
-            };
-        }
+
         public function getCanvasBoundLimitPoint(canvas:Sprite, px:Number, py:Number, width:Number, height:Number, zoom:Number, rotation:Number):Point
         {
             // 매개변수 rotation은 음수값으로 넣어야 됨
@@ -2163,129 +2035,7 @@
                 zoomClickY = height * zoom;
             return Utils.rotatePoint(zoomClickX, zoomClickY, rotation);
         }
-        public function cZoomTool():Function
-        {
-            const zoomMaxIndex:uint = CanvasController.canvasZoomMultiplerList.length - 1;
-            const clickPos:Point = new Point(0, 0);
-            const lastMousePos:Point = new Point(0, 0);
-            const mouseMoveStep:int = 26; // 이 픽셀이상움직일때만 zoomcanvas를 실행
-            var lastZoom:Number = 0.0;
-            var startZoomIndex:int = 0;
-            var dragDirection:int = 0; // 1이면 x축
-            function fixMouseHintPos():void
-            {
-                MainUI.mouseHint.x = clickPos.x - MainUI.mouseHint.width / 2;
-                MainUI.mouseHint.y = clickPos.y - 35 * Global.getUIScale();
-            }
-            function zoomToolMouseMoveEvent2(dist:Number):void
-            {
-                if (dist > mouseMoveStep)
-                {
-                    startZoomIndex--;
-                }
-                else
-                {
-                    startZoomIndex++;
-                }
-                if (startZoomIndex < 0)
-                {
-                    startZoomIndex = 0;
-                }
-                else if (startZoomIndex > zoomMaxIndex)
-                {
-                    startZoomIndex = zoomMaxIndex;
-                }
-                const zoomValue:Number = CanvasController.canvasZoomMultiplerList[startZoomIndex];
-                CanvasController.canvasZoomIndex = startZoomIndex;
-                CanvasController.updateCanvasScale(zoomValue, false);
-                MainUI.showMouseHint(Math.floor(zoomValue * 100) + "%");
-                fixMouseHintPos();
-            }
-            function onMouseMove():void
-            {
-                var abs:Function = Math.abs;
-                var mx:Number = stage.mouseX;
-                var my:Number = stage.mouseY;
-                if (dragDirection === 0)
-                {
-                    if (abs(mx - lastMousePos.x) > 20)
-                    {
-                        dragDirection = 1;
-                        lastMousePos.x = stage.mouseX;
-                    }
-                    else if (abs(my - lastMousePos.y) > 20)
-                    {
-                        dragDirection = 2;
-                        lastMousePos.y = stage.mouseY;
-                    }
-                }
-                else if (dragDirection === 1)
-                {
-                    const subX:Number = lastMousePos.x - mx;
-                    if (abs(subX) > mouseMoveStep)
-                    {
-                        lastMousePos.x = stage.mouseX;
-                        zoomToolMouseMoveEvent2(subX);
-                    }
-                }
-                else if (dragDirection === 2)
-                {
-                    const subY:Number = my - lastMousePos.y;
-                    if (abs(subY) > mouseMoveStep)
-                    {
-                        lastMousePos.y = stage.mouseY;
-                        zoomToolMouseMoveEvent2(subY);
-                    }
-                }
-            }
-            function onMouseUp():void
-            {
-                CanvasController.isMouseDragging = false;
-                CanvasController.isPenSizeCursorInvisible = false;
-                MainUI.hideMouseHint();
-                updatePenSizeCursor();
-                ReferenceLayerController.setRefLayerAndGridVisible(true);
-                if (LassoTool.isLassoMenuHiddenTemp === true)
-                {
-                    LassoTool.hideLassoMenuBoxTemp();
-                }
-                MainUIController.updateCanvasNaigatorCursor();
-                if (CanvasGridOverlay.gridGapMultiplier > 0 && lastZoom !== CanvasController.canvasZoomMultipler)
-                {
-                    CanvasGridOverlay.drawGrid();
-                }
-            }
-            return function ():void
-            {
-                function onDragStart():void
-                {
-                    lastZoom = CanvasController.canvasZoomMultipler;
-                    dragDirection = 0;
-                    // 클릭한 위치가 캔버스밖을 벗어날경우 줌 기준점을 캔버스 경계선에 닿도록 함
-                    var gp:Point;
-                    if (LassoTool.isLassoMenuHiddenTemp === true)
-                    {
-                        gp = LassoTool.lassoLayer1.localToGlobal(new Point(0, 0));
-                        CanvasController.moveCanvasAnchorPoint(gp.x, gp.y, false);
-                    }
-                    else
-                    {
-                        gp = CanvasController.canvasPanel.localToGlobal(new Point(0, 0));
-                        const panelLimitedPos:Point = getCanvasBoundLimitPoint(CanvasController.canvasPanel, CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, CanvasController.canvasZoomMultipler, -CanvasController.canvasAnchorPoint.rotation);
-                        // 캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
-                        CanvasController.moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
-                    }
-                    lastMousePos.setTo(stage.mouseX, stage.mouseY);
-                    startZoomIndex = CanvasController.canvasZoomIndex;
-                    CanvasController.isPenSizeCursorInvisible = true;
-                    ReferenceLayerController.setRefLayerAndGridVisible(false);
-                    clickPos.setTo(stage.mouseX, stage.mouseY);
-                    MainUI.showMouseHint(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
-                    fixMouseHintPos();
-                }
-                DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
-            };
-        }
+
         // 비트맵 데이터를 대칭으로 돌려줌
         public function mirrorDraw():void
         {
