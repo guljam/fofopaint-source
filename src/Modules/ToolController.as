@@ -15,6 +15,7 @@ package Modules
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import Modules.Tools.HandTool;
 
     public class ToolController
     {
@@ -961,7 +962,7 @@ package Modules
                         {
                             updateToolBoxMousePos(toolBox2.toolPen);
                             updateLastTool();
-                            main.handTool(false, false);
+                            HandTool.startInDrawMode();
                         }
                         closeToolBox2();
                     }

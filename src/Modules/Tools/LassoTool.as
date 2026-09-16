@@ -1220,7 +1220,7 @@ public static function onMouseDownLassoTool(e:MouseEvent):void
         {
             lassoMenuBox.visible = false;
             if (ToolController.isSelectedTool(ToolController.TOOL_HAND))
-                main.handTool(false, false);
+                HandTool.startInDrawMode();
             else if (ToolController.isSelectedTool(ToolController.TOOL_ZOOM))
                 main.zoomTool();
             else if (ToolController.isSelectedTool(ToolController.TOOL_ROTATE))

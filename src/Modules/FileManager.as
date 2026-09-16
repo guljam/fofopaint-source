@@ -36,13 +36,14 @@ package Modules
         // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
         // todo 버전별로 저장하기
 
-        public static const appStateFilePath:File = File.applicationStorageDirectory.resolvePath("appstate" + main.APP_STATE_VERSION);
-        public static const scratchPadDataFilePath:File = File.applicationStorageDirectory.resolvePath("scratchdata");
-        public static const undoDataFilePath:File = File.applicationStorageDirectory.resolvePath("undodata");
-        public static const myPaletteDataFilePath:File = File.applicationStorageDirectory.resolvePath("mypalettedata");
-        public static const replayDataFilePath:File = File.applicationStorageDirectory.resolvePath("repdata");
-        public static const replayCacheImageFolderPath:File = File.applicationStorageDirectory.resolvePath("imagecache");
-        public static const replayCacheImageFrameDataFilePath:File = File.applicationStorageDirectory.resolvePath("jumpframedata");
+        public static const dataFolderPath:File = File.applicationStorageDirectory.resolvePath(main.APP_STATE_VERSION);
+        public static const appStateFilePath:File = dataFolderPath.resolvePath("appstate" + main.APP_STATE_VERSION);
+        public static const scratchPadDataFilePath:File = dataFolderPath.resolvePath("scratchdata");
+        public static const undoDataFilePath:File = dataFolderPath.resolvePath("undodata");
+        public static const myPaletteDataFilePath:File = dataFolderPath.resolvePath("mypalettedata");
+        public static const replayDataFilePath:File = dataFolderPath.resolvePath("repdata");
+        public static const replayCacheImageFolderPath:File = dataFolderPath.resolvePath("imagecache");
+        public static const replayCacheImageFrameDataFilePath:File = dataFolderPath.resolvePath("jumpframedata");
 
         public static const loadMenuBox:LoadBoxSet = new LoadBoxSet();
 
@@ -1165,8 +1166,6 @@ package Modules
             fs.writeObject([ba, newRectangle.width, newRectangle.height]);
             fs.close();
         }
-
-
 
         public static function deleteTempDirectory():void
         {

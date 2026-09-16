@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.HandTool;
     import Modules.Tools.LassoTool;
     import Modules.Tools.LineTool;
     import Modules.Tools.PenTool;
@@ -315,16 +316,28 @@ package Modules
         {
             if (CaptureController.isCaptureModeON)
                 return;
+
+
             if (FOFOTimer.hasTimer("toolTipTempONTimer"))
             {
                 MainUI.hideMouseHint();
             }
+
             if (LassoTool.isLassoToolStarted)
             {
                 LassoTool.lassoMenuBox.visible = false;
                 LassoTool.isLassoMenuHiddenTemp = true;
             }
-            main.handTool(ReplayController.isReplayModeON, true);
+
+            if(ReplayController.isReplayModeON)
+            {
+                HandTool.startInReplayModeWithWheelClick();
+            }
+            else
+            {
+                HandTool.startInDrawModeWithWheelClick();
+            }
+
             ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
         }
 
@@ -1087,7 +1100,7 @@ public static function clearKeyBuffer():void
                         main.zoomTool();
                         break;
                     case ToolController.TOOL_HAND:
-                        main.handTool(false, false);
+                        HandTool.startInDrawMode();
                         break;
                     case ToolController.TOOL_ROTATE:
                         main.rotateTool(false);
@@ -1606,6 +1619,7 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
 
         public static function onMouseDownReplayMode(e:MouseEvent):void // repdown1
         {
+            var Handtool:Object;
             const target:DisplayObject = e.target as DisplayObject;
             if (!target || FileManager.loadMenuBox.visible)
             {
@@ -1624,7 +1638,7 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
             {
                 if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "WorkspaceView.stageBG")
                 {
-                    main.handTool(true, false);
+                    HandTool.startInReplayMode();
                     return;
                 }
                 else if (targetName === "replayRepeatButton" || targetName === "replayFitToWindowButton")

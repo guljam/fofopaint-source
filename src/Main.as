@@ -65,6 +65,7 @@
     import flash.utils.Timer;
     import flash.utils.getTimer;
     import Modules.AppStateManager;
+    import Modules.Tools.HandTool;
     // import
     public class Main extends Sprite
     {
@@ -91,7 +92,6 @@
         // 윈도우 크기변수
         // 툴 클로져 자주쓰는거는 클로져로 메모리에 미리 올려둬서 성능향상하려고 한건데 모르겠음
         public var realWorkingTimer:Object = cRealWorkingTimer();
-        public var handTool:Function = cHandTool();
         public var rotateTool:Function = cCanvasRotateTool();
         public var zoomTool:Function = cZoomTool();
         public var moveTool:Function = cMoveTool();
@@ -158,6 +158,7 @@
             PenTool.setMainInstance(this);
             LassoTool.setMainInstance(this);
             LineTool.setMainInstance(this);
+            HandTool.setMainInstance(this);
         }
 
         public function initializeStage():void
@@ -2576,79 +2577,7 @@
                 addEyedropperEvents();
             };
         }
-        public function cHandTool():Function
-        {
-            const old:Point = new Point(0, 0);
-            var isReplayMode:Boolean;
-            var isDrawMode:Boolean;
-            var xAnc:Sprite;
-            var xBitmap:Bitmap;
-            function onMouseUpHandTool(e:MouseEvent):void
-            {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHandTool);
-                stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpHandTool);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpHandTool);
-                stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
-                CanvasController.isMouseDragging = false;
-                CanvasController.isPenSizeCursorInvisible = false;
-                CanvasController.keepCanvasPanelInStage(isReplayMode);
-                if (isDrawMode)
-                {
-                    ReferenceLayerController.setRefLayerAndGridVisible(true);
-                    if (LassoTool.isLassoToolStarted)
-                    {
-                        if (LassoTool.isLassoMenuHiddenTemp === true)
-                        {
-                            LassoTool.hideLassoMenuBoxTemp();
-                        }
-                    } // tool box에서 클릭해서 핸드툴 들어갈때 필요함
-                    else if (!InputController.isLastKey(InputController.KEY.space))
-                    {
-                        ToolController.selectLastUsedTool();
-                    }
-                    ToolController.toolBox.setCursorVisible(true);
-                    MainUIController.updateCanvasNaigatorCursor();
-                }
-                else
-                {
-                    ReplayController.rFollowMouse.updateBounds();
-                }
-            }
-            function onMouseMoveHandTool(e:MouseEvent):void
-            {
-                if (isReplayMode && ReplayController.isReplayRestartTimerON())
-                {
-                    onMouseUpHandTool(null);
-                    return;
-                }
-                xAnc.x += (stage.mouseX - old.x);
-                xAnc.y += (mouseY - old.y);
-                old.setTo(stage.mouseX, stage.mouseY);
-            }
-            return function (fromReplayMode:Boolean, fromWheelClick:Boolean):void
-            {
-                CanvasController.isMouseDragging = true;
-                isReplayMode = fromReplayMode;
-                isDrawMode = !fromReplayMode;
-                xAnc = (isDrawMode) ? CanvasController.canvasAnchorPoint : ReplayController.rCanvasAnchorPoint;
-                xBitmap = (isDrawMode) ? CanvasController.canvasLayer1Bitmap : ReplayController.rCanvasLayer1Bitmap;
-                old.setTo(stage.mouseX, stage.mouseY);
-                CanvasController.isPenSizeCursorInvisible = true;
-                if (isDrawMode)
-                {
-                    ToolController.toolBox.setCursorVisible(false);
-                    ReferenceLayerController.setRefLayerAndGridVisible(false);
-                }
-                if (fromWheelClick)
-                {
-                    stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
-                }
-                stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHandTool);
-                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpHandTool);
-                // 윈도우 바깥에서 up을 하면 hand가 안꺼져서 오른쪽 마우스 뗄떼도 꺼주게함
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpHandTool);
-            };
-        }
+
 
         public function applyReplayCanvasToDrawModeCanvas():void
         {
