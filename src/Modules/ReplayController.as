@@ -37,8 +37,8 @@ package Modules
         // 일부 접근자 private로 변경했는데 모듈 완전히 분리하고 나서 해야함 오류나는것들 점검
         // todo 리플레이 저장형식을 바이너리로 다시 대체, 실시간 입력 기반으로 각 프레임마다 그리지 말고 실제 시간 지연을 녹화
         // todo 리플레이 실행중일때 탐색바만 나오는데 리플레이 속도 조절할수있게 같이 나오게 해야함 ui고민
-        // playback speed 키보드로 조정할때 힌트 박스를 topbar 아래쪽으로 직관적으로 보이게 조정
-
+        // todo playback speed 키보드로 조정할때 힌트 박스를 topbar 아래쪽으로 직관적으로 보이게 조정
+        // todo 탐색바 힌트를 표시한 채로 f1으로 드로우 모드에 진입하면 테두리랑 힌트가 남음 
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {

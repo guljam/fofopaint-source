@@ -13,6 +13,7 @@ package Modules
     import flash.system.IME;
     import Modules.Tools.ZoomTool;
     import Modules.Tools.MoveTool;
+    import Modules.Tools.RotateTool;
 
     public class InputController
     {
@@ -1105,7 +1106,7 @@ public static function clearKeyBuffer():void
                         HandTool.startInDrawMode();
                         break;
                     case ToolController.TOOL_ROTATE:
-                        main.rotateTool(false);
+                        RotateTool.startInDrawMode();
                         break;
                 }
             }
@@ -1706,7 +1707,7 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
                     break;
                 case "replayRotateButton":
                     {
-                        main.rotateTool(true);
+                        RotateTool.startInReplayMode();
                     }
                     break;
                 case "replaySpeedSliderWrapper":

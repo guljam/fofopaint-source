@@ -68,6 +68,7 @@
     import Modules.Tools.HandTool;
     import Modules.Tools.ZoomTool;
     import Modules.Tools.MoveTool;
+    import Modules.Tools.RotateTool;
     // import
     public class Main extends Sprite
     {
@@ -94,7 +95,6 @@
         // 윈도우 크기변수
         // 툴 클로져 자주쓰는거는 클로져로 메모리에 미리 올려둬서 성능향상하려고 한건데 모르겠음
         public var realWorkingTimer:Object = cRealWorkingTimer();
-        public var rotateTool:Function = cCanvasRotateTool();
         public var eyeDropperTool:Function = cEyeDropperTool();
         public var fillPenTool:Object = cFillPenTool();
         public var updatePenSizeCursor:Function = cUpdatePenSizeCursor();
@@ -161,6 +161,7 @@
             HandTool.setMainInstance(this);
             ZoomTool.setMainInstance(this);
             MoveTool.setMainInstance(this);
+            RotateTool.setMainInstance(this);
         }
 
         public function initializeStage():void
@@ -917,7 +918,7 @@
                     {
                         case "toolRotate":
                             {
-                                rotateTool(false);
+                                RotateTool.startInDrawMode();
                             }
                             return;
                         case "prevStageBG":
@@ -1957,67 +1958,6 @@
             setRcursorRotation(0);
             CanvasController.canvasInfoBox.setRotate(0);
             MainUIController.updateCanvasNaigatorCursor();
-        }
-        public function cCanvasRotateTool():Function
-        {
-            var isReplayMode:Boolean;
-            var xAnc:Sprite;
-            var getAngle:Function;
-            function onMouseMove():void
-            {
-                const ang:Number = getAngle(true);
-                xAnc.rotation = ang;
-                setRcursorRotation(xAnc.rotation);
-                CanvasController.canvasInfoBox.setRotate(Math.abs(xAnc.rotation));
-            }
-
-            function onMouseUp():void
-            {
-                CanvasController.isPenSizeCursorInvisible = false;
-                if (!isReplayMode)
-                {
-                    if (LassoTool.isLassoToolStarted)
-                    {
-                        if (LassoTool.isLassoMenuHiddenTemp === true)
-                        {
-                            LassoTool.hideLassoMenuBoxTemp();
-                        }
-                    }
-                    updatePenSizeCursor();
-                    ReferenceLayerController.setRefLayerAndGridVisible(true);
-                    MainUIController.updateCanvasNaigatorCursor();
-                }
-                else
-                {
-                    if (ReplayController.isReplayCanvasFitToWindow)
-                    {
-                        ReplayController.fitReplayCanvasToViewport();
-                    }
-                    InputController.resetLastKey();
-                    ReplayController.rFollowMouse.updateBounds();
-                }
-                MainUI.hideCanvasRotateCursor();
-                CanvasController.keepCanvasPanelInStage(isReplayMode);
-            }
-            function onDragStart():void
-            {
-                CanvasController.isPenSizeCursorInvisible = true;
-                if (!isReplayMode)
-                {
-                    ReferenceLayerController.setRefLayerAndGridVisible(false);
-                }
-                const center:Point = MainUIController.getStageCenterPos("replay");
-                CanvasController.moveCanvasAnchorPoint(center.x, center.y, isReplayMode);
-                // 캔버스 이동이 완료된후 함수를 초기화 시켜줌
-                MainUI.hideBottomHint();
-            }
-            return function (fromReplayMode:Boolean):void
-            {
-                isReplayMode = fromReplayMode;
-                xAnc = (isReplayMode) ? ReplayController.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
-                getAngle = MainUI.showCanvasRotateCursorMouseDrag(xAnc);
-                DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
-            };
         }
 
         public function getCanvasBoundLimitPoint(canvas:Sprite, px:Number, py:Number, width:Number, height:Number, zoom:Number, rotation:Number):Point

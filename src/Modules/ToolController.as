@@ -18,6 +18,7 @@ package Modules
     import Modules.Tools.HandTool;
     import Modules.Tools.ZoomTool;
     import Modules.Tools.MoveTool;
+    import Modules.Tools.RotateTool;
 
     public class ToolController
     {
@@ -1054,7 +1055,7 @@ package Modules
                     {
                         updateToolBoxMousePos(target as SimpleButton);
                         closeToolBox2();
-                        main.rotateTool(false);
+                        RotateTool.startInDrawMode();
                     }
                     break;
                 case "resizeButtonR":
@@ -1221,7 +1222,7 @@ package Modules
             {
                 case "toolRotate":
                     {
-                        main.rotateTool(false);
+                        RotateTool.startInDrawMode();
                     }
                     return true;
                 case "toolUndo":

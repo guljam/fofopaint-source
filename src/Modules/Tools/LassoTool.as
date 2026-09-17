@@ -28,11 +28,14 @@ package Modules.Tools
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import Symbols.RotateCursorSet;
 
     public class LassoTool
     {
         // todo : 나중에 이 컨트롤러도 분해해서 lasso, pen fillpen등 투명도 크기 색깔 조정하는 클래스로 분리
         // todo: 포멧팅 필요, 라소툴 관련 메서드는 tool controller에 분할되어 이식되어야함
+        // ane나 내부 구현으로 리사이즈시 뿌옇게되는거 란초스보간이나 average color 방식으로 바꾸어야함, 리플레이에도 적은것같은데 라소녹화 이미지는 비트맵 캐시되어야함 성능문제
+
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -1224,7 +1227,7 @@ public static function onMouseDownLassoTool(e:MouseEvent):void
             else if (ToolController.isSelectedTool(ToolController.TOOL_ZOOM))
                 ZoomTool.start();
             else if (ToolController.isSelectedTool(ToolController.TOOL_ROTATE))
-                main.rotateTool(false);
+                RotateTool.startInDrawMode();
         }
         else
         {
@@ -1288,7 +1291,7 @@ public static function onMouseDownLassoTool(e:MouseEvent):void
                 {
                     lassoMenuBox.visible = false;
                     isLassoMenuHiddenTemp = true;
-                    main.rotateTool(false);
+                    RotateTool.startInDrawMode();
                 }
                 break;
             case "lasso1pxUp":

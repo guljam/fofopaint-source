@@ -24,6 +24,8 @@ package Modules
     {
         // todo capture area와 stamp 기능 분리, 작은 입력 핸들 이벤트
         // todo capture area선택 영역에서 1px 정도 오차가 있음
+        // todo 텍스트 입력하는데 ctrl+s누르면 입력폰트 나옴 아마 ctrl눌렀을때 포커스를 나오던가 입력못하게 해야할것같음 하지만 세이브는 바로 되어야함
+        // todo 텍스트 입력하면 포커스 안되도 바로 입력시작?
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
