@@ -283,7 +283,7 @@ package Modules
 
             if (shortcut)
             {
-                if (!main.isFillPenStarted)
+                if (!FillPenTool.isStarted)
                 {
                     ToolController.selectLastUsedTool();
                 }

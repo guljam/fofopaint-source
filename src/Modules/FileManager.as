@@ -786,7 +786,7 @@ package Modules
             {
                 ReplayController.stopReplay();
             }
-            if (LassoTool.isLassoToolStarted || isFileBrowserOpened || main.isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
+            if (LassoTool.isLassoToolStarted || isFileBrowserOpened || FillPenTool.isStarted || BackgroundWorkerCoordinator.isSaveInProgress)
             {
                 return;
             }
@@ -1021,7 +1021,7 @@ package Modules
                 }
                 return;
             }
-            if (LassoTool.isLassoToolStarted || main.isFillPenStarted || BackgroundWorkerCoordinator.isSaveInProgress)
+            if (LassoTool.isLassoToolStarted || FillPenTool.isStarted || BackgroundWorkerCoordinator.isSaveInProgress)
             {
                 return;
             }

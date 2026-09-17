@@ -118,7 +118,7 @@ package Modules
             MainUI.bottomBar.scaleY = scale;
             LassoTool.lassoMenuBox.setScale(scale);
             ReferenceLayerController.refLayerMenuBox.setScale(scale);
-            main.fillPenBox.setScale(scale);
+            FillPenTool.fillPenBox.setScale(scale);
             ToolController.toolBox2.setScale(scale);
             main.aboutBox.setScale(scale);
             main.eyedropperLens.setScale(scale);
@@ -548,7 +548,7 @@ package Modules
             SidebarController.fofo.updateColor();
             ToolController.toolBox.changeUIColor();
             ToolController.toolBox2.changeUIColor();
-            main.fillPenBox.updateUIColor();
+            FillPenTool.fillPenBox.updateUIColor();
             LassoTool.lassoMenuBox.updateUIColor();
             ColorPickerController.numPadBox.updateUIColor();
             ReferenceLayerController.refLayerMenuBox.updateUIColor();

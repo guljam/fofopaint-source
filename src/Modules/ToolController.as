@@ -1,6 +1,5 @@
 package Modules
 {
-    import Modules.Tools.LassoTool;
     import Modules.Tools.PenTool;
 
     import Symbols.ToolMenuSet;
@@ -11,13 +10,9 @@ package Modules
     import flash.display.DisplayObject;
     import flash.display.SimpleButton;
     import flash.display.Sprite;
-    import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.Tools.HandTool;
-    import Modules.Tools.ZoomTool;
-    import Modules.Tools.MoveTool;
     import Modules.Tools.RotateTool;
 
     public class ToolController
@@ -44,6 +39,7 @@ package Modules
         public static const TOOL_UNDO:int = (1 << 10);
         public static const TOOL_REDO:int = (1 << 11);
         public static const TOOL_MIRROR:int = (1 << 12);
+        private static const TOOL_BOX_ON_DELAY_TIME:Number = 0.15;
 
         public static const toolBox:ToolMenuSet = new ToolMenuSet();
         public static const toolBox2:ToolMenuSet2 = new ToolMenuSet2();
@@ -59,6 +55,11 @@ package Modules
 
         public static var isSharpLineON:Boolean = false; // 0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
         public static var isPenAirBrushON:Boolean = false;
+
+        public static function get toolBox2ONDelayTime():Number
+        {
+            return TOOL_BOX_ON_DELAY_TIME;
+        }
 
         public static function updateSelectedToolViewBoxPos():void
         {
@@ -1003,12 +1004,6 @@ package Modules
 
         public static function closeToolBox2(ignoreResizeButtonVisible:Boolean = false):void
         {
-            if (FOFOTimer.hasTimer("toolBoxShowDelayTimer"))
-            {
-                FOFOTimer.remove("toolBoxShowDelayTimer");
-                return;
-            }
-
             if (!isToolBox2Showing)
             {
                 return;
@@ -1024,62 +1019,6 @@ package Modules
             }
         }
 
-        public static function onMouseDownToolBox2(e:MouseEvent):void
-        {
-            const target:DisplayObject = e.target as DisplayObject;
-
-            if (!target)
-            {
-                return;
-            }
-
-            const targetName:String = target.name;
-
-            switch (targetName)
-            {
-                case "toolZoom":
-                    {
-                        updateToolBoxMousePos(target as SimpleButton);
-                        closeToolBox2();
-                        ZoomTool.start();
-                    }
-                    break;
-                case "toolMove":
-                    {
-                        updateToolBoxMousePos(target as SimpleButton);
-                        closeToolBox2();
-                        MoveTool.start();
-                    }
-                    break;
-                case "toolRotate2":
-                    {
-                        updateToolBoxMousePos(target as SimpleButton);
-                        closeToolBox2();
-                        RotateTool.startInDrawMode();
-                    }
-                    break;
-                case "resizeButtonR":
-                case "resizeButtonD":
-                case "resizeButtonL":
-                case "resizeButtonU":
-                    {
-                        CanvasController.startCanvasResizing(targetName);
-                    }
-                    break;
-                default:
-                    {
-                        if (toolBox2.visible && toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-                        {
-                            updateToolBoxMousePos(toolBox2.toolPen);
-                            updateLastTool();
-                            HandTool.startInDrawMode();
-                        }
-
-                        closeToolBox2();
-                    }
-                    break;
-            }
-        }
 
         public static function handleToolBox2Closing(target:DisplayObject):void
         {
@@ -1185,32 +1124,7 @@ package Modules
             }
         }
 
-        public static function onKeyUpToolBox2(e:KeyboardEvent):void
-        {
-            InputController.resetLastKey();
-            handleToolBox2Closing(toolBox2.getMouseOverTarget());
-        }
 
-        public static function onRightMouseUpToolBox2(e:MouseEvent):void
-        {
-            CanvasController.isPenSizeCursorInvisible = false;
-
-            if (LassoTool.isLassoToolStarted === true)
-            {
-                closeToolBox2();
-                return;
-            }
-
-            const target:SimpleButton = e.target as SimpleButton;
-
-            if (!target || target.alpha < 1.0 || !main.isCursorInDrawArea())
-            {
-                closeToolBox2();
-                return;
-            }
-
-            handleToolBox2Closing(target);
-        }
 
         public static function handleToolBoxMouseDown(target:DisplayObject):Boolean
         {
@@ -1265,18 +1179,42 @@ package Modules
             return false;
         }
 
-        public static function openToolBox2Delay(fromShortcut:Boolean):void
+        public static function cancelToolMenuBox2Delay(event:MouseEvent):void
+        {
+            if (FOFOTimer.hasTimer("toolBoxShowDelayTimer"))
+            {
+                trace('call');
+                FOFOTimer.remove("toolBoxShowDelayTimer");
+                return;
+            }
+
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelToolMenuBox2Delay);
+        }
+
+        public static function openFillPenMenuBoxDelay():void
+        {
+            openToolMenuBox(FillPenTool.showFillPenMenuBox);
+        }
+
+        public static function openToolBox2Delay():void
+        {
+            openToolMenuBox(openToolBox2);
+        }
+
+        private static function openToolMenuBox(callback:Function):void
         {
             if (FOFOTimer.hasTimer("toolBoxShowDelayTimer"))
             {
                 return;
             }
 
-            FOFOTimer.addByName("toolBoxShowDelayTimer", 1.0, false, openToolBox2, [fromShortcut]);
+            FOFOTimer.addByName("toolBoxShowDelayTimer", TOOL_BOX_ON_DELAY_TIME, false, callback);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelToolMenuBox2Delay);
         }
 
-        public static function openToolBox2(fromShortcut:Boolean):void
+        public static function openToolBox2():void
         {
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelToolMenuBox2Delay);
             CanvasController.isPenSizeCursorInvisible = true;
             CanvasController.penSizePreviewCursor.visible = false;
             var pos:Point = toolBox2.getLastUsedToolPos();
@@ -1289,7 +1227,7 @@ package Modules
             isToolBox2Showing = true;
             MainUIController.showCanvasResizeButtonVisibleDelay(true);
             Utils.setAsTopChild(toolBox2);
-            InputController.addInputEventsToolBox2(fromShortcut);
+            InputController.addInputEventsToolBox2();
             FOFOTimer.addByName("toolBox2HideCheckTimer", 0.1, true, function ():Boolean
                 {
                     if (!isToolBox2Showing)

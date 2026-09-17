@@ -3,17 +3,20 @@ package Modules
     import Modules.Tools.HandTool;
     import Modules.Tools.LassoTool;
     import Modules.Tools.LineTool;
+    import Modules.Tools.MoveTool;
     import Modules.Tools.PenTool;
+    import Modules.Tools.RotateTool;
+    import Modules.Tools.ZoomTool;
 
     import flash.display.DisplayObject;
+    import flash.display.SimpleButton;
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.system.Capabilities;
     import flash.system.IME;
-    import Modules.Tools.ZoomTool;
-    import Modules.Tools.MoveTool;
-    import Modules.Tools.RotateTool;
+    import flash.geom.Point;
+    import Symbols.FillPenMenuSet;
 
     public class InputController
     {
@@ -473,26 +476,492 @@ package Modules
 
         public static function removeInputEventsToolBox2():void
         {
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, ToolController.onRightMouseUpToolBox2);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, ToolController.onMouseDownToolBox2);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2);
+            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2);
             ToolController.toolBox2.removeEventListener(MouseEvent.MOUSE_OVER, ToolController.onMouseOverToolBox2);
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, ToolController.onKeyUpToolBox2);
             addInputEventsDrawMode();
         }
 
-        public static function addInputEventsToolBox2(fromShortcut:Boolean):void
+        public static function addInputEventsToolBox2():void
         {
             removeInputEventsDrawMode();
-            if (fromShortcut)
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2, false, -2);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2, false, -2);
+        }
+
+        public static function onRightMouseUpToolBox2(e:MouseEvent):void
+        {
+            CanvasController.isPenSizeCursorInvisible = false;
+
+            if (LassoTool.isLassoToolStarted === true)
             {
-                ToolController.toolBox2.addEventListener(MouseEvent.MOUSE_OVER, ToolController.onMouseOverToolBox2, false, -2);
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, ToolController.onKeyUpToolBox2, false, -2);
+                ToolController.closeToolBox2();
+                return;
+            }
+
+
+            const target:SimpleButton = e.target as SimpleButton;
+
+            if (!target || target.alpha < 1.0 || !main.isCursorInDrawArea())
+            {
+                ToolController.closeToolBox2();
+                return;
+            }
+
+            ToolController.handleToolBox2Closing(target);
+        }
+
+        public static function onMouseMoveFillPen(e:MouseEvent):void
+        {
+            const filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
+            const mx:Number = filteredPos.x + FillPenTool.pos05Offset;
+            const my:Number = filteredPos.y + FillPenTool.pos05Offset;
+
+            if (FillPenTool.lastPosOnMouseMove.x === mx && FillPenTool.lastPosOnMouseMove.y === my)
+            {
+                return;
+            }
+
+            FillPenTool.lastPosOnMouseMove.setTo(mx, my);
+
+            if (FillPenTool.isInputDataEmpty())
+            {
+                FillPenTool.inputMoveToData(mx,my);
             }
             else
             {
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, ToolController.onRightMouseUpToolBox2, false, -2);
+                FillPenTool.inputLineToData(mx,my);
             }
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, ToolController.onMouseDownToolBox2, false, -2);
+
+            FillPenTool.increasetMoveCount();
+
+            FillPenTool.updateLastMousePos();
+            FillPenTool.resetPreviewOFFTimerCount();
+
+            if (!FOFOTimer.hasTimer("previewFilledColorUpdateTimer"))
+            {
+                FOFOTimer.addByName("previewFilledColorUpdateTimer", 0.1, false, FillPenTool.showFillColor);
+            }
+        }
+
+        private static function onMouseDownFillPen(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+
+            if (!target)
+            {
+                return;
+            }
+
+            const targetName:String = target.name;
+            FillPenTool.clickedButton = targetName;
+
+            if (FillPenTool.fillPenBox.visible)
+            {
+                return;
+            }
+
+            if (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            {
+                if (targetName === "penColorButton" || targetName === "paperColorButton" || targetName === "rgbInfoText")
+                {
+                    return;
+                }
+
+                if (ColorPickerController.handleColorPickerBoxMouseDown(target) || ColorPickerController.numPadBox.visible)
+                {
+                    return;
+                }
+
+                if (ColorPickerController.numPadBox.visible)
+                {
+                    return;
+                }
+
+                switch (targetName)
+                {
+                    case "toolRotate":
+                        {
+                            RotateTool.startInDrawMode();
+                        }
+                        return;
+
+                    case "prevStageBG":
+                    case "prevBitmapBG":
+                    case "prevBitmap":
+                        {
+                            CanvasController.startCanvasMoveByCanvasNavigator(false);
+                        }
+                        return;
+
+                    case "prevCursor":
+                        {
+                            CanvasController.startCanvasMoveByCanvasNavigator(true);
+                        }
+                        return;
+
+                    case "toolZoomIn":
+                    case "toolZoomOut":
+                        {
+                            ToolController.handleToolBoxClick(targetName);
+                        }
+                        return;
+
+                    case "alphaButton1":
+                    case "alphaButton2":
+                    case "alphaButton3":
+                    case "alphaButton4":
+                    case "alphaButton5":
+                    case "alphaButton6":
+                    case "alphaButton7":
+                    case "alphaButton8":
+                    case "alphaButton9":
+                    case "alphaButton10":
+                        {
+                            main.selectOpacityButton(targetName);
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            if (targetName === "sideBarScrollBar")
+            {
+                SidebarController.startScrollSidebarByDrag();
+            }
+            else if (main.isCursorInDrawArea() && SidebarController.isQuickSidebarActive === false)
+            {
+                CanvasController.isMouseDragging = true;
+                main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+
+                const filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
+                const mx:Number = filteredPos.x + FillPenTool.pos05Offset;
+                const my:Number = filteredPos.y + FillPenTool.pos05Offset;
+
+                if (CanvasController.isLayer2Selected)
+                {
+                    CanvasController.bringCanvasDrawLayerAboveLayer2();
+                }
+
+                if (FillPenTool.lastPosOnMouseMove.x === mx && FillPenTool.lastPosOnMouseMove.y === my)
+                {
+                    FOFOTimer.remove("previewFilledColorUpdateTimer");
+                    FillPenTool.showFillColor();
+
+                    return;
+                }
+
+                FillPenTool.lastPosOnMouseMove.setTo(mx, my);
+
+                if (FillPenTool.isInputDataEmpty())
+                {
+                    FillPenTool.inputMoveToData(mx,my);
+                }
+                else
+                {
+                    FillPenTool.inputLineToData(mx,my);
+                }
+
+                FOFOTimer.remove("previewFilledColorUpdateTimer");
+                FillPenTool.showFillColor();
+            }
+        }
+
+        public static function removeEventsFillPen():void
+        {
+            main.stage.removeEventListener(MouseEvent.MOUSE_OVER, FillPenTool.onMouseOverFillPenHint);
+            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen);
+            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpFillPen);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownFillPen);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpFillPen);
+            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpFillPen);
+            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeydownFillPen);
+        }
+
+        public static function addEventsFillPen():void
+        {
+            main.stage.addEventListener(MouseEvent.MOUSE_OVER, FillPenTool.onMouseOverFillPenHint);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen);
+            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpFillPen);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownFillPen);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpFillPen);
+            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpFillPen);
+            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeydownFillPen);
+        }
+
+        public static function onRightMouseDownFillPen(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+
+            if (CanvasController.isMouseClicked || SidebarController.isQuickSidebarActive || !target || ColorPickerController.numPadBox.visible)
+            {
+                return;
+            }
+
+            if (target === SidebarController.sideBarScrollBar)
+            {
+                SidebarController.resetSideBarPosition();
+                return;
+            }
+            else if (target.name === "toolZoomIn" || target.name === "toolZoomOut")
+            {
+                if (CanvasController.canvasZoomMultipler !== 1.0)
+                {
+                    CanvasController.resetZoomDrawMode();
+                }
+                return;
+            }
+            else if (target.name === "toolRotate")
+            {
+                if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                {
+                    main.resetRotationDrawMode();
+                }
+                return;
+            }
+
+            if (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            {
+                return;
+            }
+
+            ToolController.openFillPenMenuBoxDelay();
+        }
+
+        public static function onMouseUpFillPen(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+
+            if (!target)
+            {
+                return;
+            }
+
+            const targetName:String = e.target.name;
+
+            FOFOTimer.remove("previewFilledColorUpdateTimer");
+            CanvasController.isMouseDragging = false;
+            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+
+            if (FillPenTool.clickedButton === targetName)
+            {
+                if (targetName === "toolFillPenOK")
+                {
+                    FillPenTool.applyFillPen();
+                    return;
+                }
+                else if (targetName === "toolFillPenCancel")
+                {
+                    FillPenTool.cancel();
+                    return;
+                }
+                else if (targetName === "toolUndo")
+                {
+                    FillPenTool.undoData();
+                    return;
+                }
+            }
+
+            if (FillPenTool.fillPenBox.visible)
+            {
+                if (FillPenTool.clickedButton === targetName)
+                {
+                    if (targetName === "fillPenOK")
+                    {
+                        FillPenTool.applyFillPen();
+                    }
+                    else if (targetName === "fillPenCancel")
+                    {
+                        FillPenTool.cancel();
+                    }
+                    else if (targetName === "fillPenUndo")
+                    {
+                        FillPenTool.updateLastFillPenBoxButtonUsed(target as SimpleButton);
+                        FillPenTool.undoData();
+                    }
+                }
+            }
+            else
+            {
+                FillPenTool.handleOnMouseUp();
+            }
+
+            FillPenTool.afterKeyUpOK = false;
+        }
+
+        private static function onKeydownFillPen(e:KeyboardEvent):void
+        {
+            const pressedKey:uint = e.keyCode;
+
+            if (CanvasController.isMouseClicked)
+            {
+                return;
+            }
+
+            if (InputController.isLastKey(pressedKey))
+            {
+                return;
+            }
+
+            const secondKey:int = InputController.getSecondPressedKey();
+
+            if (SidebarController.isPressingQuickSidebarShortcut(pressedKey, secondKey) || pressedKey === InputController.KEY.n6)
+            {
+                InputController.updateLastKey(pressedKey);
+
+                if (SidebarController.isQuickSidebarActive === false)
+                {
+                    SidebarController.activeQuickSideBar(true);
+
+                    if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
+                    {
+                        FillPenTool.startFillColorUpdateTimer();
+                    }
+                }
+            }
+            else if (pressedKey === InputController.KEY.g || pressedKey === InputController.KEY.b)
+            {
+                InputController.updateLastKey(pressedKey);
+                InputController.startKeyRepeat(true, function (increase:Boolean):void
+                    {
+                        FillPenTool.setPreviewOFFTimerCount();
+                        ToolController.adjustDrawToolAlphaByShortcut(increase);
+                    }, (pressedKey === InputController.KEY.g) ? true : false);
+
+                if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
+                {
+                    FillPenTool.startFillColorUpdateTimer();
+                }
+            }
+        }
+
+        private static function onKeyUpFillPen(e:KeyboardEvent):void
+        {
+            const keyCode:uint = e.keyCode;
+            InputController.resetLastKey();
+
+            if (CanvasController.isMouseClicked)
+            {
+                if (keyCode === InputController.KEY.q || keyCode === InputController.KEY.o || keyCode === InputController.KEY.enter)
+                {
+                    FillPenTool.afterKeyUpOK = true;
+                }
+
+                return;
+            }
+
+            if (keyCode === InputController.KEY.w || keyCode === InputController.KEY.i || keyCode === InputController.KEY.z || keyCode === InputController.KEY.dot)
+            {
+                FillPenTool.undoData();
+            }
+            else if (keyCode === InputController.KEY.q || keyCode === InputController.KEY.o || keyCode === InputController.KEY.enter)
+            {
+                FillPenTool.applyFillPen();
+            }
+            else if (keyCode === InputController.KEY.esc || keyCode === InputController.KEY.backspace)
+            {
+                FillPenTool.cancel();
+            }
+        }
+
+        private static function onRightMouseUpFillPen(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+
+            if (!target as DisplayObject || target === SidebarController.sideBarScrollBar || SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            {
+                return;
+            }
+
+            const targetName:String = target.name;
+
+            if (targetName === "fillPenOK")
+            {
+                FillPenTool.applyFillPen();
+            }
+            else if (targetName === "fillPenCancel")
+            {
+                FillPenTool.cancel();
+            }
+            else if (targetName === "fillPenUndo")
+            {
+                FillPenTool.updateLastFillPenBoxButtonUsed(target as SimpleButton);
+                FillPenTool.undoData();
+            }
+            else if (targetName === "fillPenSidebar")
+            {
+                FillPenTool.updateLastFillPenBoxButtonUsed(target as SimpleButton);
+                SidebarController.activeQuickSideBar(false);
+
+                if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
+                {
+                    FillPenTool.startFillColorUpdateTimer();
+                }
+            }
+
+            FillPenTool.fillPenBox.visible = false;
+        }
+
+
+        public static function onMouseDownToolBox2(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+
+            if (!target)
+            {
+                return;
+            }
+
+            const targetName:String = target.name;
+
+            switch (targetName)
+            {
+                case "toolZoom":
+                    {
+                        ToolController.updateToolBoxMousePos(target as SimpleButton);
+                        ToolController.closeToolBox2();
+                        ZoomTool.start();
+                    }
+                    break;
+                case "toolMove":
+                    {
+                        ToolController.updateToolBoxMousePos(target as SimpleButton);
+                        ToolController.closeToolBox2();
+                        MoveTool.start();
+                    }
+                    break;
+                case "toolRotate2":
+                    {
+                        ToolController.updateToolBoxMousePos(target as SimpleButton);
+                        ToolController.closeToolBox2();
+                        RotateTool.startInDrawMode();
+                    }
+                    break;
+                case "resizeButtonR":
+                case "resizeButtonD":
+                case "resizeButtonL":
+                case "resizeButtonU":
+                    {
+                        CanvasController.startCanvasResizing(targetName);
+                    }
+                    break;
+                default:
+                    {
+                        if (ToolController.toolBox2.visible && ToolController.toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                        {
+                            ToolController.updateToolBoxMousePos(ToolController.toolBox2.toolPen);
+                            ToolController.updateLastTool();
+                            HandTool.startInDrawMode();
+                        }
+
+                        ToolController.closeToolBox2();
+                    }
+                    break;
+            }
         }
 
         public static function enableIME():void
@@ -598,7 +1067,7 @@ public static function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
 
         public static function onKeyDownDrawMode(e:KeyboardEvent):void
         {
-            if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isKeyReleasedBeforeMouseUp || main.isFillPenStarted
+            if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isKeyReleasedBeforeMouseUp || FillPenTool.isStarted
                     || MainUIController.isPopUpWindowOpened())
             {
                 return;
@@ -904,7 +1373,7 @@ public static function clearKeyBuffer():void
 
         public static function onMouseDownDrawMode(e:MouseEvent):void
         {
-            if (main.isFillPenStarted || FileManager.loadMenuBox.visible
+            if (FillPenTool.isStarted || FileManager.loadMenuBox.visible
                     || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
@@ -1082,7 +1551,7 @@ public static function clearKeyBuffer():void
                         break;
                     case ToolController.TOOL_FILLPEN:
                         if (CanvasController.isToolEnabledByLayerUnChecked())
-                            main.fillPenTool.start();
+                            FillPenTool.start();
                         break;
                     case ToolController.TOOL_ERASER:
                         if (CanvasController.isToolEnabledByLayerUnChecked())
@@ -1116,7 +1585,7 @@ public static function clearKeyBuffer():void
 public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
 {
     if (CanvasController.isMouseClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
-            || main.isFillPenStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
+            || FillPenTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
             || FileManager.loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
     {
         return;
@@ -1185,7 +1654,7 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
                     }
                     else
                     {
-                        ToolController.openToolBox2Delay(false);
+                        ToolController.openToolBox2Delay();
                     }
                 }
             }

@@ -382,8 +382,8 @@ package Modules
 			topBar.makeTopbarBG(Global.setDefaultUIColor());
 			updateTopbarIconsDrawMode();
 
-			main.fillPenBox.x = -main.fillPenBox.width - 3;
-			main.fillPenBox.y = -main.fillPenBox.height - 3;
+			FillPenTool.fillPenBox.x = -FillPenTool.fillPenBox.width - 3;
+			FillPenTool.fillPenBox.y = -FillPenTool.fillPenBox.height - 3;
 
 			CanvasController.canvasNavigatorBox.scrollRect = new Rectangle(0, 0, CanvasController.canvasNavigatorBox.width, CanvasController.canvasNavigatorBox.height);
 
@@ -417,7 +417,7 @@ package Modules
 			main.stage.addChild(ReferenceLayerController.refLayerMenuBox);
 			main.stage.addChild(main.aboutBox);
 			main.stage.addChild(SidebarController.sideBar);
-			main.stage.addChild(main.fillPenBox);
+			main.stage.addChild(FillPenTool.fillPenBox);
 			main.stage.addChild(ToolController.toolBox2);
 			main.stage.addChild(CanvasController.canvasRotateCursor);
 			main.stage.addChild(ColorPickerController.numPadBox);
