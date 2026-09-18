@@ -47,6 +47,7 @@ package Modules
 
         public static const loadMenuBox:LoadBoxSet = new LoadBoxSet();
 
+        //todo gpt한테 이 변수 곳곳에 쓰이는데 이를 최적화로  종합적으로 관리가 가능한지 묻기 아마 캔버스가 변경될때에만 내려주면 될것같은데 과연?
         public static var isFileAlreadySaved:Boolean = false; // 세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
         public static var isContinueSaveON:Boolean = false; // 한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
         public static var lastSaveFileName:String = getRandomFileName(); // 세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함

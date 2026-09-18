@@ -705,8 +705,8 @@ package Modules
             // canvaspanel로 하면 중점이 안맞아서 canvas1로함
             const p:Point = getCanvasPanelMidPos();
             isCanvasMirrored = !isCanvasMirrored;
-            main.mirrorCommandReady = !main.mirrorCommandReady;
-            main.mirrorDraw();
+            UndoManager.flipMirrorComandReadyFlag();
+            mirrorDrawModeBitmapData();
             canvasInfoBox.setMirror(isCanvasMirrored);
             // 회전각 부호를 바꿔야 제대로 mirror가됨
             moveCanvasAnchorPoint(p.x, p.y); // regpoint를 회전한 캔버스 중점으로 두고
@@ -727,6 +727,26 @@ package Modules
             FileManager.isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
             main.mirrorRCursorPos();
         }
+    
+        // 비트맵 데이터를 대칭으로 돌려줌
+        public static function mirrorDrawModeBitmapData():void
+        {
+            var tmpbmpd:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+            var flipMat:Matrix = new Matrix(-1, 0, 0, 1, CanvasController.CANVAS_WIDTH);
+            tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, flipMat);
+            CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, tmpbmpd, CanvasController.canvasLayer1Bitmap);
+            tmpbmpd.fillRect(new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT), 0);
+            tmpbmpd.draw(CanvasController.canvasLayer2BitmapData, flipMat);
+            CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, tmpbmpd, CanvasController.canvasLayer2Bitmap);
+            tmpbmpd.dispose();
+            tmpbmpd = null;
+            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            if (ImageViewWindow.isCanvasWindowON)
+            {
+                ImageViewWindow.updateCanvasWindowImage();
+            }
+        }
+
 
         public static function updateCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
         {
@@ -1448,6 +1468,7 @@ package Modules
             ReplayController.rCanvasPanel.graphics.endFill();
         }
 
+        //todo canvsabgcolor변수 업데이틔를 따로 해주는데 이것과 동기화 해주어야하는지 조사 
         public static function updateCanvasBGColorDrawMode(color:uint):void
         {
             canvasPanel.graphics.clear();

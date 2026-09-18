@@ -22,6 +22,7 @@ package Modules
         public static var isDeepUndoEnabled:Boolean = false;
         public static var lastDeepUndoEnabledFlag:Boolean = false; // 리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
         public static var lastReplayFrameOnDeepUndoStart:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
+        private static var _mirrorCommandReady:Boolean = false; // 미러 커맨드를 넣어줄지 말지 결정
 
         // Undo 매니저 클로저 객체
         public static var addUndoData:Object;
@@ -30,6 +31,21 @@ package Modules
         {
             main = instance;
             addUndoData = cAddUndoData();
+        }
+
+        public static function get mirrorCommandReady():Boolean
+        {
+            return _mirrorCommandReady;
+        }
+
+        public static function set mirrorCommandReady(flag:Boolean):void
+        {
+            _mirrorCommandReady = flag
+        }
+
+        public static function flipMirrorComandReadyFlag():void
+        {
+            _mirrorCommandReady = !_mirrorCommandReady;
         }
 
         // todo : undo 뿐만 아니고 나중에 인스턴스 객체로 바꾸어서 main에다가 서로 부품연결하듯이 깔아주는구조
@@ -181,23 +197,24 @@ package Modules
 
             // 미러가 되어있는지 확인해서 mirror커맨드를 무조건 앞으로 보냄
             // 그게 아니면 미러 커맨드 지워줌
+            //todo ReplayController가 자주 호출되므로 ReplayController에 함수를 하나 따로 만들어서 깔끔하게 하는게 나음
             function updateLastRDataMirror():void
             {
                 var popArr:Array;
 
-                if (main.mirrorCommandReady)
+                if (UndoManager.mirrorCommandReady)
                 {
                     // 마지막 데이터에 1개만의 미러 커맨드가 있으먼 미러를 무효로함 mirror mirror니까 원래대로임
                     if (ReplayController.rData.length > 0 && ReplayController.rData[ReplayController.rData.length - 1].length === 1 && ReplayController.rData[ReplayController.rData.length - 1][0][0] === "mirror")
                     {
-                        main.mirrorCommandReady = false;
+                        UndoManager.mirrorCommandReady = false;
                         ReplayController.rData.pop();
                         ReplayController.rDataFrame.pop();
                     }
                     // 그게 아니면 가장 앞에 미러커맨드를 넣어줌
                     else if (ReplayController.rDataBuffer.length > 0 && ReplayController.rDataBuffer[0][0] !== "mirror")
                     {
-                        main.mirrorCommandReady = false;
+                        UndoManager.mirrorCommandReady = false;
                         ReplayController.rDataBuffer.unshift(["mirror"]);
                     }
                 }
@@ -209,7 +226,7 @@ package Modules
                     {
                         ReplayController.rData.pop();
                         ReplayController.rDataFrame.pop();
-                        main.mirrorCommandReady = true;
+                        UndoManager.mirrorCommandReady = true;
                     }
                     // 그게 아니면 그냥 지워줌
                     else if (ReplayController.rDataBuffer.length > 0 && ReplayController.rDataBuffer[0][0] === "mirror")

@@ -943,8 +943,8 @@ package Modules
         public static function updateCanvasBGColorDrawMode(color:uint):void
         {
             FileManager.isFileAlreadySaved = false;
-            CanvasController.CANVAS_BG_COLOR = color;
 
+            CanvasController.CANVAS_BG_COLOR = color;
             CanvasController.canvasNavigatorBox.changeprevBitmapBGColor(color);
             CanvasController.updateCanvasBGColorDrawMode(color);
 

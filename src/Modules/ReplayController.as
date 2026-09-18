@@ -39,6 +39,8 @@ package Modules
         // todo 리플레이 실행중일때 탐색바만 나오는데 리플레이 속도 조절할수있게 같이 나오게 해야함 ui고민
         // todo playback speed 키보드로 조정할때 힌트 박스를 topbar 아래쪽으로 직관적으로 보이게 조정
         // todo 탐색바 힌트를 표시한 채로 f1으로 드로우 모드에 진입하면 테두리랑 힌트가 남음 
+        // todo 버그 발견, mirror가 된 상태에서 뒷프레임을 잘라주고 나서 재생하면 미러 적용이 안된 상태에서 다시 그려주는 버그가있음
+        // todo 그런데 컷 잘라주면 다시 0프레임부터 시작되는데 아까는 왜 중간부터 시작되었는지 모르겠음
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -161,14 +163,14 @@ package Modules
         {
             if (CanvasController.isCanvasMirrored !== rMirrorON)
             {
-                main.mirrorCommandReady = true;
-                main.mirrorDraw();
+                UndoManager.mirrorCommandReady = true;
+                CanvasController.mirrorDrawModeBitmapData();
                 CanvasGridOverlay.updateGridMirror(CanvasController.isCanvasMirrored);
                 main.mirrorRCursorPos();
             }
-            else if (main.mirrorCommandReady)
+            else if (UndoManager.mirrorCommandReady)
             {
-                main.mirrorCommandReady = false;
+                UndoManager.mirrorCommandReady = false;
             }
         }
 
@@ -421,8 +423,8 @@ package Modules
             rLastCanvasBGColor = CanvasController.CANVAS_BG_COLOR;
             rMirrorON = false;
             CanvasController.isCanvasMirrored = false;
-            main.mirrorCommandReady = false;
             rDataReadFlag = false;
+            UndoManager.mirrorCommandReady = false;
             UndoManager.addUndoData.setRFileTotalFrame(0);
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
@@ -487,7 +489,7 @@ package Modules
             renderReplayFrame(0, JUMP_FRAME_MANUAL);
             renderReplayFrame(rNowFrameBackup, JUMP_FRAME_MANUAL);
             CanvasController.isCanvasMirrored = rMirrorON;
-            main.mirrorCommandReady = false;
+            UndoManager.mirrorCommandReady = false;
             CanvasController.canvasInfoBox.setMirror(rMirrorON);
         }
         public static function deleteReplayDataBeforeCurrentFrame():void
@@ -603,7 +605,7 @@ package Modules
                 CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
                 CanvasController.canvasLayer2Bitmap.bitmapData = CanvasController.canvasLayer2BitmapData;
                 // mirrorON = rMirrorON;
-                // main.mirrorCommandReady = false;
+                // UndoManager.mirrorCommandReady = false;
                 // appInfoBox.setMirror(rMirrorON);
                 CanvasController.updateCavnvasSizeDrawMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height, 0, 0, false);
                 ColorPickerController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
@@ -3266,10 +3268,10 @@ package Modules
                         UndoManager.lastReplayFrameOnDeepUndoStart = TOTAL_FRAME;
                         rPrevFrame = _frameSumLast;
                         isReplayFinished = true;
-                        if (main.mirrorCommandReady)
+                        if (UndoManager.mirrorCommandReady)
                         {
                             rMirrorON = !rMirrorON;
-                            main.mirrorCommandReady = rMirrorON;
+                            UndoManager.mirrorCommandReady = rMirrorON;
                         }
                         CanvasController.isCanvasMirrored = rMirrorON;
                         rMirrorON = rMirrorON;
@@ -3365,7 +3367,7 @@ package Modules
             fs.writeUTFBytes("FOFOPAINT"); // 파일 헤더
             fs.writeUnsignedInt(dataD.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
             fs.writeBytes(dataD);
-            if (main.mirrorCommandReady) // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
+            if (UndoManager.mirrorCommandReady) // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
             {
                 const tempMirrorData:Array = [["mirror"]];
                 fs.writeObject(tempMirrorData);
@@ -3629,7 +3631,7 @@ package Modules
 
         public static function syncMirrorReplayModeWithDrawMode():void
         {
-            if (main.mirrorCommandReady)
+            if (UndoManager.mirrorCommandReady)
             {
                 mirrorCanvasReplayMode();
             }

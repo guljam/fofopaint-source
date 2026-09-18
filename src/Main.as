@@ -77,8 +77,6 @@
 
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
 
-        public var mirrorCommandReady:Boolean = false; // 미러 커맨드를 넣어줄지 말지 결정
-
         // 윈도우 크기변수
         // 툴 클로져 자주쓰는거는 클로져로 메모리에 미리 올려둬서 성능향상하려고 한건데 모르겠음
         public var realWorkingTimer:Object = cRealWorkingTimer();
@@ -1096,7 +1094,7 @@
             FileManager.isContinueSaveON = false; // 연속 세이브 플래그 취소
             ReplayController.rMirrorON = false;
             CanvasController.isCanvasMirrored = false;
-            mirrorCommandReady = false;
+            UndoManager.mirrorCommandReady = false;
             CanvasController.canvasInfoBox.setMirror(false);
             CanvasGridOverlay.updateGridMirror(false);
             if (LassoTool._isLassoToolStarted === true)
@@ -1280,25 +1278,6 @@
             else if (zoomClickY > height * zoom)
                 zoomClickY = height * zoom;
             return Utils.rotatePoint(zoomClickX, zoomClickY, rotation);
-        }
-
-        // 비트맵 데이터를 대칭으로 돌려줌
-        public function mirrorDraw():void
-        {
-            var tmpbmpd:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-            var flipMat:Matrix = new Matrix(-1, 0, 0, 1, CanvasController.CANVAS_WIDTH);
-            tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, flipMat);
-            CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, tmpbmpd, CanvasController.canvasLayer1Bitmap);
-            tmpbmpd.fillRect(new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT), 0);
-            tmpbmpd.draw(CanvasController.canvasLayer2BitmapData, flipMat);
-            CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, tmpbmpd, CanvasController.canvasLayer2Bitmap);
-            tmpbmpd.dispose();
-            tmpbmpd = null;
-            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
-            if (ImageViewWindow.isCanvasWindowON)
-            {
-                ImageViewWindow.updateCanvasWindowImage();
-            }
         }
 
         public function applyReplayCanvasToDrawModeCanvas():void
