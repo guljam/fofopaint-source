@@ -490,9 +490,9 @@ package Modules
                 keepCanvasPanelInStage();
                 MainUIController.updateCanvasNaigatorCursor();
                 isMouseDragging = false;
-                if (LassoTool.isLassoToolStarted)
+                if (LassoTool._isLassoToolStarted)
                 {
-                    if (LassoTool.isLassoMenuHiddenTemp === true)
+                    if (LassoTool._isLassoMenuHiddenTemp === true)
                     {
                         LassoTool.hideLassoMenuBoxTemp();
                     }
@@ -516,10 +516,10 @@ package Modules
                 MainUIController.updateCanvasNaigatorCursor();
             }
             moveCanvasAnchorPoint(0, 0);
-            if (LassoTool.isLassoToolStarted)
+            if (LassoTool._isLassoToolStarted)
             {
-                LassoTool.lassoMenuBox.visible = false;
-                LassoTool.isLassoMenuHiddenTemp = true;
+                LassoTool._lassoMenuBox.visible = false;
+                LassoTool._isLassoMenuHiddenTemp = true;
             }
             // 클릭한 지점이 커서 바깥부분일때 강제로 캔버스 중심으로 옮겨줌
             if (!navCursorClicked)
@@ -1221,7 +1221,7 @@ package Modules
             canvasAnchorPoint.addChild(canvasPanel);
             main.stage.addChild(MainUI.stageBG);
             main.stage.addChild(EyeDropperTool.eyedropperLens);
-            main.stage.addChild(LassoTool.lassoMenuBox);
+            main.stage.addChild(LassoTool._lassoMenuBox);
             main.stage.addChild(canvasAnchorPoint);
             main.stage.addChild(penSizePreviewCursor);
             main.stage.setChildIndex(canvasAnchorPoint, 0);

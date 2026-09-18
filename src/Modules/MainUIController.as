@@ -61,7 +61,7 @@ package Modules
 
         public static function isPopUpWindowOpened():Boolean
         {
-            return MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible || FileManager.loadMenuBox.visible || main.aboutBox.visible;
+            return MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible || FileManager.loadMenuBox.visible || AboutBoxController.aboutBox.visible;
         }
 
         public static function updateStageOffset():void
@@ -117,11 +117,11 @@ package Modules
             MainUI.mouseHint.setScale(scale);
             MainUI.bottomBar.scaleX = scale;
             MainUI.bottomBar.scaleY = scale;
-            LassoTool.lassoMenuBox.setScale(scale);
+            LassoTool._lassoMenuBox.setScale(scale);
             ReferenceLayerController.refLayerMenuBox.setScale(scale);
             FillPenTool.fillPenBox.setScale(scale);
             ToolController.toolBox2.setScale(scale);
-            main.aboutBox.setScale(scale);
+            AboutBoxController.setAboutBoxScale(scale);
             EyeDropperTool.eyedropperLens.setScale(scale);
             ColorPickerController.numPadBox.setScale(scale);
             updateStageOffset();
@@ -135,8 +135,8 @@ package Modules
             SidebarController.sideBar.y = Math.round(STAGE_TOP_OFFSET);
             SidebarController.sideBar.updateSideBGSize(SidebarController.getSideBarBGHeight());
 
-            if (LassoTool.isLassoToolStarted)
-                keepBoxInsideViewPort(LassoTool.lassoMenuBox);
+            if (LassoTool._isLassoToolStarted)
+                keepBoxInsideViewPort(LassoTool._lassoMenuBox);
             if (ReferenceLayerController.isRefLayerMenuON)
                 keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
 
@@ -284,7 +284,7 @@ package Modules
                     break;
 
                 default:
-                    main.closeAboutBox();
+                    AboutBoxController.closeAboutBox();
                     break;
             }
         }
@@ -379,11 +379,11 @@ package Modules
                         CanvasController.canvasAnchorPoint.y = CanvasController.canvasAnchorPoint.y + dy;
                     }
 
-                    if (LassoTool.isLassoToolStarted)
+                    if (LassoTool._isLassoToolStarted)
                     {
-                        LassoTool.lassoMenuBox.x += dx;
-                        LassoTool.lassoMenuBox.y += dy;
-                        keepBoxInsideViewPort(LassoTool.lassoMenuBox);
+                        LassoTool._lassoMenuBox.x += dx;
+                        LassoTool._lassoMenuBox.y += dy;
+                        keepBoxInsideViewPort(LassoTool._lassoMenuBox);
                     }
 
                     if (ReferenceLayerController.isRefLayerMenuON)
@@ -393,9 +393,9 @@ package Modules
                         keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
                     }
 
-                    if (main.isAboutBoxOpened)
+                    if (AboutBoxController.isAboutBoxOpened)
                     {
-                        main.updateAboutPanelCenterPos();
+                        AboutBoxController.updateAboutPanelCenterPos();
                     }
 
                     if (ReplayController.isReplayModeON)
@@ -504,7 +504,7 @@ package Modules
             InputController.tryDisableIME();
             ClipboardManager.checkCanUseClipBoardButton();
 
-            if (main.isAboutBoxOpened)
+            if (AboutBoxController.isAboutBoxOpened)
             {
                 CanvasController.isMouseClickBlocked = true;
             }
@@ -550,7 +550,7 @@ package Modules
             ToolController.toolBox.changeUIColor();
             ToolController.toolBox2.changeUIColor();
             FillPenTool.fillPenBox.updateUIColor();
-            LassoTool.lassoMenuBox.updateUIColor();
+            LassoTool._lassoMenuBox.updateUIColor();
             ColorPickerController.numPadBox.updateUIColor();
             ReferenceLayerController.refLayerMenuBox.updateUIColor();
             MainUI.topBar.updateUIColor();

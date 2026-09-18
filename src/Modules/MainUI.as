@@ -87,7 +87,7 @@ package Modules
 		public static function isHintUnavailable():Boolean
 		{
 			return CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging || ToolController.isToolBox2Showing
-				|| ColorPickerController.numPadBox.visible || main.isAboutBoxOpened || ReplayController.isGeneratingCacheImages();
+				|| ColorPickerController.numPadBox.visible || AboutBoxController.isAboutBoxOpened || ReplayController.isGeneratingCacheImages();
 			// || isFillPenStarted
 			// || isLassoToolStarted
 		}
@@ -155,7 +155,7 @@ package Modules
 			{
 				showBottomHintForTargetCaptureMode(target);
 			}
-			else if (LassoTool.isLassoToolStarted)
+			else if (LassoTool._isLassoToolStarted)
 			{
 				if (LassoTool.isHintAvailableWithLassoToolStarted(target))
 				{
@@ -375,8 +375,6 @@ package Modules
 
 		public static function initializeAppMenus():void
 		{
-			main.aboutBox.name = "aboutPanel";
-			main.aboutBox.setVersionInfo(main.APP_VERSION);
 			topBar.name = "topBar";
 			SidebarController.sideBarScrollBar.name = "sideBarScrollBar";
 			topBar.makeTopbarBG(Global.setDefaultUIColor());
@@ -415,7 +413,7 @@ package Modules
 
 			main.stage.addChild(FileManager.loadMenuBox);
 			main.stage.addChild(ReferenceLayerController.refLayerMenuBox);
-			main.stage.addChild(main.aboutBox);
+			main.stage.addChild(AboutBoxController.aboutBox);
 			main.stage.addChild(SidebarController.sideBar);
 			main.stage.addChild(FillPenTool.fillPenBox);
 			main.stage.addChild(ToolController.toolBox2);

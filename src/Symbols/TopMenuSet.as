@@ -22,6 +22,7 @@
 	import Modules.Tools.LassoTool;
 	import Modules.CanvasController;
 	import Modules.ReplayController;
+	import Modules.AboutBoxController;
 
 	public class TopMenuSet extends Sprite
 	{
@@ -590,7 +591,7 @@
 		{
 			//todo 나중에 리팩토링 다되면 분리되면 제거 main
 			const main:Main = Main._instance;
-			if (LassoTool.isLassoToolStarted === true || main.isAboutBoxOpened === true)
+			if (LassoTool._isLassoToolStarted === true || AboutBoxController.isAboutBoxOpened === true)
 			{
 				return;
 			}

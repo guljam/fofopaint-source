@@ -414,7 +414,7 @@ package Modules
             loadMenuBoxFileType = filetype;
             loadMenuBoxFile = file;
             loadMenuBoxBitmapData = bmpd;
-            if (LassoTool.isLassoToolStarted === true)
+            if (LassoTool._isLassoToolStarted === true)
             {
                 LassoTool.cancelLassoTool();
                 LassoTool.resetLassoBox();
@@ -786,7 +786,7 @@ package Modules
             {
                 ReplayController.stopReplay();
             }
-            if (LassoTool.isLassoToolStarted || isFileBrowserOpened || FillPenTool.isStarted || BackgroundWorkerCoordinator.isSaveInProgress)
+            if (LassoTool._isLassoToolStarted || isFileBrowserOpened || FillPenTool.isStarted || BackgroundWorkerCoordinator.isSaveInProgress)
             {
                 return;
             }
@@ -1021,7 +1021,7 @@ package Modules
                 }
                 return;
             }
-            if (LassoTool.isLassoToolStarted || FillPenTool.isStarted || BackgroundWorkerCoordinator.isSaveInProgress)
+            if (LassoTool._isLassoToolStarted || FillPenTool.isStarted || BackgroundWorkerCoordinator.isSaveInProgress)
             {
                 return;
             }
@@ -1288,7 +1288,7 @@ package Modules
                 ReplayController.stopReplay();
             }
 
-            if (LassoTool.isLassoToolStarted)
+            if (LassoTool._isLassoToolStarted)
             {
                 LassoTool.cancelLassoTool();
             }

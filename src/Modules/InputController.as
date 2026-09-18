@@ -13,21 +13,21 @@ package Modules
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
+    import flash.geom.Point;
     import flash.system.Capabilities;
     import flash.system.IME;
-    import flash.geom.Point;
-    import Symbols.FillPenMenuSet;
+    import flash.globalization.LastOperationStatus;
 
     public class InputController
     {
-        // todo 툴이나 기능별로 키보드 마우스 입력 분리하기
+        // todo 툴이나 기능별로 키보드 마우스 입력 분리하기, 이후에 코드 포맷팅해주기
         // todo 툴 전역 입력 이벤트 빼고 툴관련 이벤트 핸들러도 같이 들어가있는지 확인
-                public static var main:Main;
+        public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
         }
-        
+
         public static const KEY:Object = {
                 a: 65,
                 b: 66,
@@ -108,24 +108,21 @@ package Modules
         public static const KEY_REPEAT_START_DELAY:Number = 0.3;
         public static const KEY_REPEAT_INTERVAL:Number = 0.06;
         // 키 누름 관련
-        public static  var LAST_KEY:int = -1; // 마지막 누른거 여기다가 저장 반복호출되는 keydown 함수에서 한번만 호출되게 하는변수
-        public static const KEY_BUFFER:Array = []; // 정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
+        public static var lastPressedKey:int = -1; // 마지막 누른거 여기다가 저장 반복호출되는 keydown 함수에서 한번만 호출되게 하는변수
+        public static const keyBuffer:Array = []; // 정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
         public static const COMMAND_CTRL:int = (1 << 0);
-         public static const    COMMAND_SHIFT:int = (1 << 1);
-            public static const  COMMAND_CTRL_SHIFT:int = (1 << 2);
+        public static const COMMAND_SHIFT:int = (1 << 1);
+        public static const COMMAND_CTRL_SHIFT:int = (1 << 2);
 
         // 키 오래누름 관련 변수
-        public static  var pressHoldCountDownTime:Number = 0.0;
+        public static var pressHoldCountDownTime:Number = 0.0;
         public static var pressHoldFrameCount:int = 0;
 
         // todo 이거 쓰나?
-        public static  var isLayerCheckKeyPressed:Boolean = false;
-        public static  var isDrawModeInputEventsAdded:Boolean = false;
+        public static var isLayerCheckKeyPressed:Boolean = false;
+        public static var isDrawModeInputEventsAdded:Boolean = false;
         public static var isCaptureModeInputEventsAdded:Boolean = false; // 이벤트 세트가 켜지거나 꺼지는거 보관 중복 이벤트 추가 피하려고
         public static var isReplayModeInputEventsAdded:Boolean = false; // 리플레이 이벤트 추가되면 올려줌
-
-
-
 
         public static function startScratchPadResetTimer(target:DisplayObject):void
         {
@@ -197,17 +194,17 @@ package Modules
 
         public static function updateLastKey(key:int):void
         {
-            LAST_KEY = getLastPressedKey();
+            lastPressedKey = getLastPressedKey();
         }
 
         public static function resetLastKey():void
         {
-            LAST_KEY = -1;
+            lastPressedKey = -1;
         }
 
         public static function isLastKey(key:uint):Boolean
         {
-            return LAST_KEY === key;
+            return lastPressedKey === key;
         }
 
         public static function startKeyRepeatStopTimerOnMouseLeave(target:DisplayObject):void
@@ -323,19 +320,18 @@ package Modules
             if (CaptureController.isCaptureModeON)
                 return;
 
-
             if (FOFOTimer.hasTimer("toolTipTempONTimer"))
             {
                 MainUI.hideMouseHint();
             }
 
-            if (LassoTool.isLassoToolStarted)
+            if (LassoTool._isLassoToolStarted)
             {
-                LassoTool.lassoMenuBox.visible = false;
-                LassoTool.isLassoMenuHiddenTemp = true;
+                LassoTool._lassoMenuBox.visible = false;
+                LassoTool._isLassoMenuHiddenTemp = true;
             }
 
-            if(ReplayController.isReplayModeON)
+            if (ReplayController.isReplayModeON)
             {
                 HandTool.startInReplayModeWithWheelClick();
             }
@@ -349,24 +345,24 @@ package Modules
 
         public static function checkGeneralKeyUp(keyCode:uint):void
         {
-            if (KEY_BUFFER.length === 0)
+            if (keyBuffer.length === 0)
             {
                 resetLastKey();
             }
             else if (!CaptureController.isCaptureModeON && !ReplayController.isReplayModeON && isLastKey(keyCode))
             {
-                LassoTool.onKeyDownLassoTool(null);
+                onKeyDownLassoTool(null);
             }
         }
 
         public static function checkInvalidKey():void
         {
-            const len:uint = KEY_BUFFER.length;
+            const len:uint = keyBuffer.length;
             for (var i:int = 0;i < len;i++)
             {
-                if (KEY_BUFFER[i] === 229
-                        || KEY_BUFFER[i] === 241
-                        || KEY_BUFFER[i] === 242)
+                if (keyBuffer[i] === 229
+                        || keyBuffer[i] === 241
+                        || keyBuffer[i] === 242)
                 {
                     clearKeyBuffer();
                     return;
@@ -374,8 +370,8 @@ package Modules
             }
             if (len >= 2)
             {
-                if ((KEY_BUFFER[0] === 18 && KEY_BUFFER[1] === 32)
-                        || (KEY_BUFFER[0] === 32 && KEY_BUFFER[1] === 18))
+                if ((keyBuffer[0] === 18 && keyBuffer[1] === 32)
+                        || (keyBuffer[0] === 32 && keyBuffer[1] === 18))
                 {
                     clearKeyBuffer();
                 }
@@ -384,37 +380,36 @@ package Modules
 
         public static function getPressedKeyCount():int
         {
-            return KEY_BUFFER.length;
+            return keyBuffer.length;
         }
 
         public static function isKeyPressed():Boolean
         {
-            return KEY_BUFFER.length > 0;
+            return keyBuffer.length > 0;
         }
-
 
         public static function isTwoKeyPressed():Boolean
         {
-            return KEY_BUFFER.length === 2;
+            return keyBuffer.length === 2;
         }
 
         public static function isPressdKey(key:int):int
         {
-            return KEY_BUFFER.lastIndexOf(key);
+            return keyBuffer.lastIndexOf(key);
         }
 
         public static function getFirstPressedKey():int
         {
-            return KEY_BUFFER[0];
+            return keyBuffer[0];
         }
 
         public static function getSecondPressedKey():int
         {
-            return KEY_BUFFER[1];
+            return keyBuffer[1];
         }
         public static function getLastPressedKey():int
         {
-            return KEY_BUFFER[KEY_BUFFER.length - 1];
+            return keyBuffer[keyBuffer.length - 1];
         }
 
         public static function onKeyUpStage(e:KeyboardEvent):void
@@ -424,7 +419,8 @@ package Modules
             const index:int = isPressdKey(e.keyCode);
             if (index > -1)
             {
-                KEY_BUFFER.splice(index, 1);
+                keyBuffer.splice(index, 1);
+                trace('on key up =',keyBuffer);
             }
         }
 
@@ -441,9 +437,10 @@ package Modules
             {
                 e.preventDefault();
             }
-            if (KEY_BUFFER.lastIndexOf(keyCode) === -1)
+            if (keyBuffer.lastIndexOf(keyCode) === -1)
             {
-                KEY_BUFFER.push(keyCode);
+                keyBuffer.push(keyCode);
+                trace('keyBuffer',keyBuffer);
             }
         }
 
@@ -493,12 +490,11 @@ package Modules
         {
             CanvasController.isPenSizeCursorInvisible = false;
 
-            if (LassoTool.isLassoToolStarted === true)
+            if (LassoTool._isLassoToolStarted === true)
             {
                 ToolController.closeToolBox2();
                 return;
             }
-
 
             const target:SimpleButton = e.target as SimpleButton;
 
@@ -526,11 +522,11 @@ package Modules
 
             if (FillPenTool.isInputDataEmpty())
             {
-                FillPenTool.inputMoveToData(mx,my);
+                FillPenTool.inputMoveToData(mx, my);
             }
             else
             {
-                FillPenTool.inputLineToData(mx,my);
+                FillPenTool.inputLineToData(mx, my);
             }
 
             FillPenTool.increasetMoveCount();
@@ -657,11 +653,11 @@ package Modules
 
                 if (FillPenTool.isInputDataEmpty())
                 {
-                    FillPenTool.inputMoveToData(mx,my);
+                    FillPenTool.inputMoveToData(mx, my);
                 }
                 else
                 {
-                    FillPenTool.inputLineToData(mx,my);
+                    FillPenTool.inputLineToData(mx, my);
                 }
 
                 FOFOTimer.remove("previewFilledColorUpdateTimer");
@@ -906,7 +902,6 @@ package Modules
             FillPenTool.fillPenBox.visible = false;
         }
 
-
         public static function onMouseDownToolBox2(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
@@ -983,7 +978,7 @@ package Modules
             }
         }
 
-public static function addKeyRepeatEvents():void
+        public static function addKeyRepeatEvents():void
         {
             main.stage.nativeWindow.addEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
             main.stage.addEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents);
@@ -1006,7 +1001,7 @@ public static function addKeyRepeatEvents():void
             main.stage.removeEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents);
         }
 
-public static function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
+        public static function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
         {
             const keyCode:uint = e.keyCode;
             if (isLastKey(keyCode))
@@ -1082,44 +1077,17 @@ public static function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
                 {
                     ToolController.selectLastUsedTool();
                 }
-                checkSubKey(3, true, function (input:int):void
-                    {
-                        if (input === KEY.s)
-                        {
-                            FileManager.openSaveFileBrowser(true);
-                        }
-                    });
+                checkSubKey(3, true, handleControlShiftSubKeyDrawMode);
                 return;
             }
             if (isPressingControl())
             {
-                if (!checkSubKey(2, true, function (input:int):void
-                        {
-                            if (input === KEY.s)
-                                {
-                                    FileManager.openSaveFileBrowser(false);
-                        }
-                        else if (input === KEY.o)
-                            {
-                                FileManager.openLoadFileBrowser();
-                    }
-                    else if (input === KEY.c || input === KEY.comma)
-                        {
-                            CaptureController.enterCaptureMode();
-                }
-                else if (input === KEY.v || input === KEY.m)
-                    {
-                        if (ClipboardManager.isClipBoardButtonActivated)
-                            {
-                                ClipboardManager.tryLoadClipboardImage(false);
-                    }
-                }
-            }))
-            {
-                if (main.resizeCanvas.isResizing() === false)
+                if (!checkSubKey(2, true, handleControlSubKeyDrawMode))
                 {
-                    MainUIController.updateCanvasResizeButtonVisible(true);
-                }
+                    if (main.resizeCanvas.isResizing() === false)
+                    {
+                        MainUIController.updateCanvasResizeButtonVisible(true);
+                    }
                 }
                 return;
             }
@@ -1133,44 +1101,34 @@ public static function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
                 {
                     return;
                 }
-                else if (checkSubKey(2, true, function (input:int):void
-                        {
-                            switch (input)
-                                {
-                                    case KEY.s:
-                                    case KEY.k:
-                                    {
-                                        if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
-                                            {
-                                                main.resetRotationDrawMode();
-                                    }
-                                }
-                                return;
-                        case KEY.w:
-                        case KEY.i:
-                        {
-                            if (CanvasController.canvasZoomMultipler !== 1.0)
-                                {
-                                    CanvasController.resetZoomDrawMode();
-                        }
-                    }
-                    return;
-        }
-        }))
-        {
-            return;
-        }
-        }
-        if (isTwoKeyPressed())
-        {
-            // 지우개키 조합 따로 체크
-            if (firstKey === KEY.d || firstKey === KEY.j)
-            {
-                if (main.handlePenOpacitySizeKeyDown(secondKey))
+                else if (checkSubKey(2, true, handleShiftSubKeyDrawMode))
                 {
                     return;
                 }
-                else if (secondKey === KEY.s || secondKey === KEY.k)
+            }
+            if (isTwoKeyPressed())
+            {
+                // 지우개키 조합 따로 체크
+                if (firstKey === KEY.d || firstKey === KEY.j)
+                {
+                    if (main.handlePenOpacitySizeKeyDown(secondKey))
+                    {
+                        return;
+                    }
+                    else if (secondKey === KEY.s || secondKey === KEY.k)
+                    {
+                        if (SidebarController.isQuickSidebarActive === false)
+                        {
+                            SidebarController.activeQuickSideBar(true);
+                        }
+                        return;
+                    }
+                    else if (checkPenOptionsKeyDown(secondKey))
+                    {
+                        return;
+                    }
+                }
+                else if (SidebarController.isPressingQuickSidebarShortcut(firstKey, secondKey))
                 {
                     if (SidebarController.isQuickSidebarActive === false)
                     {
@@ -1178,46 +1136,33 @@ public static function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
                     }
                     return;
                 }
-                else if (checkPenOptionsKeyDown(secondKey))
+                // 필펜 조합 체크
+                else if (firstKey === KEY.q || firstKey === KEY.o)
                 {
-                    return;
+                    if (main.handlePenOpacitySizeKeyDown(secondKey))
+                    {
+                        return;
+                    }
+                    else if (checkPenOptionsKeyDown(secondKey))
+                    {
+                        return;
+                    }
                 }
             }
-            else if (SidebarController.isPressingQuickSidebarShortcut(firstKey, secondKey))
+            if (isLastKey(firstKey))
             {
-                if (SidebarController.isQuickSidebarActive === false)
-                {
-                    SidebarController.activeQuickSideBar(true);
-                }
                 return;
             }
-            // 필펜 조합 체크
-            else if (firstKey === KEY.q || firstKey === KEY.o)
+            updateLastKey(firstKey);
+            if (main.handlePenOpacitySizeKeyDown(firstKey))
             {
-                if (main.handlePenOpacitySizeKeyDown(secondKey))
-                {
-                    return;
-                }
-                else if (checkPenOptionsKeyDown(secondKey))
-                {
-                    return;
-                }
+                return;
             }
-        }
-        if (isLastKey(firstKey))
-        {
-            return;
-        }
-        updateLastKey(firstKey);
-        if (main.handlePenOpacitySizeKeyDown(firstKey))
-        {
-            return;
-        }
-        if (handleExtraKeyDown(firstKey))
-        {
-            return;
-        }
-        ToolController.handleToolKeyDown(firstKey);
+            if (handleExtraKeyDown(firstKey))
+            {
+                return;
+            }
+            ToolController.handleToolKeyDown(firstKey);
         }
 
         public static function unblockMouseClickAfterDelay():void
@@ -1228,13 +1173,453 @@ public static function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
                 });
         }
 
-public static function clearKeyBuffer():void
+        public static function onMouseUpLassoTool(e:MouseEvent):void
         {
-            KEY_BUFFER.length = 0;
-            resetLastKey();
+            if (InputController.getPressedKeyCount() === 1 && InputController.getFirstPressedKey() === InputController.KEY.space)
+            {
+                InputController.updateLastKey(InputController.KEY.space);
+                LassoTool.isLassoMenuHiddenTemp = true;
+                ToolController.setSelectedTool(ToolController.TOOL_HAND);
+                ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
+            }
         }
 
+        public static function onMouseDownLassoTool(e:MouseEvent):void
+        {
+            if (CanvasController.isRightMouseClicked)
+            {
+                return;
+            }
+            const target:DisplayObject = e.target as DisplayObject;
+            if (!target)
+            {
+                return;
+            }
+            const targetName:String = target.name;
+            if (main.isCursorInDrawArea() && LassoTool._lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            {
+                if (LassoTool.isLassoMenuHiddenTemp)
+                {
+                    LassoTool.lassoMenuBox.visible = false;
+                    if (ToolController.isSelectedTool(ToolController.TOOL_HAND))
+                        HandTool.startInDrawMode();
+                    else if (ToolController.isSelectedTool(ToolController.TOOL_ZOOM))
+                        ZoomTool.start();
+                    else if (ToolController.isSelectedTool(ToolController.TOOL_ROTATE))
+                        RotateTool.startInDrawMode();
+                }
+                else
+                {
+                    LassoTool.startLassoImageMove();
+                }
+            }
+            else
+            {
+                switch (targetName)
+                {
+                    case "lassoMove":
+                        {
+                            LassoTool.startLassoImageMove();
+                        }
+                        break;
+                    case "lassoResize":
+                        {
+                            LassoTool.startLassoImageResize();
+                        }
+                        break;
+                    case "lassoRotate":
+                        {
+                            LassoTool.startLassoImageRotation();
+                        }
+                        break;
+                    case "navStageBG":
+                    case "navBitmapBG":
+                    case "navLayer1Bitmap":
+                    case "navLayer2Bitmap":
+                        {
+                            CanvasController.startCanvasMoveByCanvasNavigator(false);
+                        }
+                        break;
+                    case "navCursor":
+                        {
+                            CanvasController.startCanvasMoveByCanvasNavigator(true);
+                        }
+                        break;
+                    case "lassoMenuMoveButton":
+                        {
+                            Utils.setAsTopChild(LassoTool.lassoMenuBox);
+                            DragInteraction.startBoxDrag(LassoTool.lassoMenuBox);
+                        }
+                        break;
+                    case "sideBarScrollBar":
+                        {
+                            SidebarController.startScrollSidebarByDrag();
+                        }
+                        break;
+                    case "toolZoomIn":
+                        {
+                            CanvasController.zoomInCanvas(true, false);
+                        }
+                        break;
+                    case "toolZoomOut":
+                        {
+                            CanvasController.zoomInCanvas(false, false);
+                        }
+                        break;
+                    case "toolRotate":
+                        {
+                            LassoTool.lassoMenuBox.visible = false;
+                            LassoTool.isLassoMenuHiddenTemp = true;
+                            RotateTool.startInDrawMode();
+                        }
+                        break;
+                    case "lasso1pxUp":
+                    case "lasso1pxDown":
+                    case "lasso1pxLeft":
+                    case "lasso1pxRight":
+                    case "lassoCopy":
+                    case "lassoOK":
+                    case "lassoCancel":
+                    case "lassoRefLayer":
+                    case "sideBarPositionButton":
+                    case "sideBarPositionButton2":
+                    case "sideBarOFFButton":
+                    case "sideBarOFFButton2":
+                    case "sideBarONButton":
+                    case "sideBarONButton2":
+                    case "lassoLayerMerge":
+                    case "lassoLayerSwap":
+                    case "lassoMirror":
+                        main.handleMouseClick(targetName);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
 
+        public static function onKeyUpLassoTool(e:KeyboardEvent):void
+        {
+            const keyCode:uint = e.keyCode;
+            if (LassoTool.isLassoMenuHiddenTemp && !CanvasController.isMouseClicked)
+            {
+                LassoTool.isLassoMenuHiddenTemp = false;
+            }
+            InputController.checkGeneralKeyUp(keyCode);
+        }
+
+        public static function onKeyDownLassoTool(e:KeyboardEvent):void
+        {
+            if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging)
+            {
+                return;
+            }
+
+            const keyCode:uint = InputController.getFirstPressedKey();
+
+            if (keyCode === InputController.KEY.space)
+            {
+                if (InputController.checkSubKey(2, true, handleSpaceSubKeyLassoTool))
+                {
+                    return;
+                }
+
+                if (InputController.isLastKey(keyCode))
+                {
+                    return;
+                }
+
+                InputController.updateLastKey(keyCode);
+                LassoTool.isLassoMenuHiddenTemp = true;
+                ToolController.setSelectedTool(ToolController.TOOL_HAND);
+                ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
+            }
+            else if (InputController.isPressingShift())
+            {
+                if (InputController.checkSubKey(2, true, handleShiftSubKeyLassoTool))
+                {
+                    return;
+                }
+            }
+
+            if (InputController.isLastKey(keyCode))
+            {
+                return;
+            }
+
+            InputController.updateLastKey(keyCode);
+
+            switch (keyCode)
+            {
+                case InputController.KEY.tab:
+                case InputController.KEY.backslash:
+                    if (SidebarController.isSidebarVisible)
+                    {
+                        SidebarController.hideSidebarPermanent();
+                    }
+                    else
+                    {
+                        SidebarController.showSidebarPermanent();
+                    }
+                    break;
+
+                case InputController.KEY.w:
+                case InputController.KEY.i:
+                    LassoTool.isLassoMenuHiddenTemp = true;
+                    InputController.updateLastKey(keyCode);
+                    ToolController.setSelectedTool(ToolController.TOOL_ZOOM);
+                    ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ZOOM);
+                    break;
+
+                case InputController.KEY.s:
+                case InputController.KEY.k:
+                    LassoTool.isLassoMenuHiddenTemp = true;
+                    InputController.updateLastKey(keyCode);
+                    ToolController.setSelectedTool(ToolController.TOOL_ROTATE);
+                    ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ROTATE);
+                    break;
+
+                case InputController.KEY.enter:
+                    LassoTool.applyLassoImageToCanvas();
+                    break;
+
+                case InputController.KEY.esc:
+                case InputController.KEY.backspace:
+                    LassoTool.cancelLassoTool();
+                    break;
+            }
+        }
+
+        public static function onRightMouseDownLassoTool(e:MouseEvent):void
+        {
+            if (!LassoTool.isLassoToolStarted)
+            {
+                return;
+            }
+            const target:DisplayObject = e.target as DisplayObject;
+            if (!target)
+                return;
+            const targetName:String = target.name;
+            if (targetName === "toolZoom"
+                    || targetName === "toolZoomIn"
+                    || targetName === "toolZoomOut")
+            {
+                if (CanvasController.canvasZoomMultipler !== 1.0)
+                    CanvasController.resetZoomDrawMode();
+            }
+            else if (targetName === "toolRotate")
+            {
+                if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                    main.resetRotationDrawMode();
+            }
+        }
+
+        public static function onRightMouseUpLassoTool(e:MouseEvent):void
+        {
+            if (!LassoTool._isLassoToolStarted || CanvasController.isMouseClicked)
+            {
+                return;
+            }
+            const target:DisplayObject = e.target as DisplayObject;
+            if (!target)
+                return;
+            const targetName:String = target.name;
+            if (targetName === "toolZoom"
+                    || targetName === "toolZoomIn"
+                    || targetName === "toolZoomOut"
+                    || targetName === "toolRotate")
+            {
+                return;
+            }
+            if (LassoTool.lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false || targetName === "lassoOK")
+            {
+                LassoTool.applyLassoImageToCanvas();
+                return;
+            }
+            if (targetName === "lassoRotate")
+            {
+                LassoTool.resetLassoLayerRotation();
+            }
+            else if (targetName === "lassoResize")
+            {
+                LassoTool.resetLassoLayerScale();
+            }
+        }
+
+        public static function removeInputEventsLassoTool():void
+        {
+            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool);
+            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool);
+            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool);
+            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool);
+            addInputEventsDrawMode();
+        }
+
+        public static function addInputEventsLassoTool():void
+        {
+            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool);
+            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool, false, -1);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool);
+            main.stage.addEventListener(MouseEvent.MOUSE_OVER, LassoTool.lassoMenuHintONEvent);
+            removeInputEventsDrawMode();
+        }
+
+        private static function handleShiftSubKeyLassoTool(input:int):void
+        {
+            switch (input)
+            {
+                case InputController.KEY.s:
+                case InputController.KEY.k:
+                    if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                    {
+                        main.resetRotationDrawMode();
+                    }
+                    return;
+
+                case InputController.KEY.w:
+                case InputController.KEY.i:
+                    if (CanvasController.canvasZoomMultipler !== 1.0)
+                    {
+                        CanvasController.resetZoomDrawMode();
+                    }
+                    return;
+            }
+        }
+        private static function handleSpaceSubKeyLassoTool(input:int):void
+        {
+            //키 2개 조합만 체크함
+            if (!isTwoKeyPressed())
+            {
+                return;
+            }
+
+            switch (input)
+            {
+                case InputController.KEY.w:
+                case InputController.KEY.i:
+                    LassoTool.move1PXUp();
+                    break;
+
+                case InputController.KEY.a:
+                case InputController.KEY.j:
+                    LassoTool.move1PXLeft();
+                    break;
+
+                case InputController.KEY.s:
+                case InputController.KEY.k:
+                    LassoTool.move1PXDown();
+                    break;
+
+                case InputController.KEY.d:
+                case InputController.KEY.l:
+                    LassoTool.move1PXRight();
+                    break;
+            }
+        }
+        private static function handleControlSubKeyReplayMode(input:int):void
+        {
+            if (input === InputController.KEY.c || input === InputController.KEY.m)
+            {
+                CaptureController.enterCaptureMode();
+            }
+            else if (input === InputController.KEY.v || input === InputController.KEY.m)
+            {
+                if (ClipboardManager.isClipBoardButtonActivated)
+                {
+                    ClipboardManager.tryLoadClipboardImage(false);
+                }
+            }
+        }
+        private static function handleShiftSubKeyReplayMode(input:int):void
+        {
+            switch (input)
+            {
+                case InputController.KEY.left:
+                case InputController.KEY.z:
+                case InputController.KEY.dot:
+                    {
+                        if (!ReplayController.isReplayStarted)
+                        {
+                            InputController.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
+                        }
+                    }
+                    break;
+                case InputController.KEY.right:
+                case InputController.KEY.x:
+                case InputController.KEY.comma:
+                    {
+                        if (!ReplayController.isReplayStarted)
+                        {
+                            InputController.startKeyRepeat(true, ReplayController.moveToNextFrame);
+                        }
+                    }
+                    break;
+            }
+        }
+        private static function handleShiftSubKeyDrawMode(input:int):void
+        {
+            switch (input)
+            {
+                case KEY.s:
+                case KEY.k:
+                    {
+                        if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                        {
+                            main.resetRotationDrawMode();
+                        }
+                    }
+                    return;
+                case KEY.w:
+                case KEY.i:
+                    {
+                        if (CanvasController.canvasZoomMultipler !== 1.0)
+                        {
+                            CanvasController.resetZoomDrawMode();
+                        }
+                    }
+                    return;
+            }
+        }
+        private static function handleControlShiftSubKeyDrawMode(input:int):void
+        {
+            if (input === KEY.s)
+            {
+                FileManager.openSaveFileBrowser(true);
+            }
+        }
+        private static function handleControlSubKeyDrawMode(input:int):void
+        {
+            if (input === KEY.s)
+            {
+                FileManager.openSaveFileBrowser(false);
+            }
+            else if (input === KEY.o)
+            {
+                FileManager.openLoadFileBrowser();
+            }
+            else if (input === KEY.c || input === KEY.comma)
+            {
+                CaptureController.enterCaptureMode();
+            }
+            else if (input === KEY.v || input === KEY.m)
+            {
+                if (ClipboardManager.isClipBoardButtonActivated)
+                {
+                    ClipboardManager.tryLoadClipboardImage(false);
+                }
+            }
+        }
+
+        public static function clearKeyBuffer():void
+        {
+            keyBuffer.length = 0;
+            resetLastKey();
+        }
 
         public static function handleExtraKeyDown(keyCode:int):Boolean
         {
@@ -1349,7 +1734,7 @@ public static function clearKeyBuffer():void
             if (CanvasController.isKeyReleasedBeforeMouseUp) // 단축키 떼고 마우스 땠을때 원래대로 돌림
             {
                 CanvasController.isKeyReleasedBeforeMouseUp = false;
-                if (KEY_BUFFER.length > 0)
+                if (keyBuffer.length > 0)
                 {
                     onKeyDownDrawMode(null);
                 }
@@ -1364,12 +1749,6 @@ public static function clearKeyBuffer():void
                 }
             }
         }
-
-
-
-
-
-
 
         public static function onMouseDownDrawMode(e:MouseEvent):void
         {
@@ -1581,86 +1960,86 @@ public static function clearKeyBuffer():void
             }
         }
 
-        //todo numpad켜져있을때 캔버스 바로 클릭하면 바로 다른 툴 적용되게 바꾸어야함
-public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
-{
-    if (CanvasController.isMouseClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
-            || FillPenTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
-            || FileManager.loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
-    {
-        return;
-    }
-
-    const targetName:String = e.target.name;
-    switch (targetName)
-    {
-        case "saveButton":
+        // todo numpad켜져있을때 캔버스 바로 클릭하면 바로 다른 툴 적용되게 바꾸어야함
+        public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
+        {
+            if (CanvasController.isMouseClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
+                    || FillPenTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
+                    || FileManager.loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
-                FileManager.openSaveFileBrowser(true);
+                return;
             }
-            break;
 
-        case "dpiButton":
+            const targetName:String = e.target.name;
+            switch (targetName)
             {
-                if (Global.getScaleIndex() !== 0)
-                {
-                    Global.resetScaleIndex();
-                    MainUIController.applyUIScale();
-                    MainUI.showMouseHintTemp(Global.getUIScaleString());
-                }
-            }
-            break;
-
-        case "toolZoomIn":
-        case "toolZoomOut":
-            {
-                if (CanvasController.canvasZoomMultipler !== 1.0)
-                    CanvasController.resetZoomDrawMode();
-            }
-            break;
-
-        case "gridButton":
-            {
-                if (CanvasGridOverlay.gridGapMultiplier !== 0)
-                {
-                    MainUI.hideBottomHint();
-                    CanvasGridOverlay.resetGrid();
-                }
-            }
-            break;
-
-        case "toolRotate":
-            {
-                if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
-                {
-                    main.resetRotationDrawMode();
-                }
-            }
-            break;
-
-        case "sideBarScrollBar":
-            {
-                SidebarController.resetSideBarPosition();
-            }
-            break;
-
-        default:
-            {
-                if (main.isCursorInDrawArea())
-                {
-                    if (ToolController.isToolBox2Showing && !UndoManager.isDeepUndoEnabled)
+                case "saveButton":
                     {
-                        ToolController.closeToolBox2();
+                        FileManager.openSaveFileBrowser(true);
                     }
-                    else
+                    break;
+
+                case "dpiButton":
                     {
-                        ToolController.openToolBox2Delay();
+                        if (Global.getScaleIndex() !== 0)
+                        {
+                            Global.resetScaleIndex();
+                            MainUIController.applyUIScale();
+                            MainUI.showMouseHintTemp(Global.getUIScaleString());
+                        }
                     }
-                }
+                    break;
+
+                case "toolZoomIn":
+                case "toolZoomOut":
+                    {
+                        if (CanvasController.canvasZoomMultipler !== 1.0)
+                            CanvasController.resetZoomDrawMode();
+                    }
+                    break;
+
+                case "gridButton":
+                    {
+                        if (CanvasGridOverlay.gridGapMultiplier !== 0)
+                        {
+                            MainUI.hideBottomHint();
+                            CanvasGridOverlay.resetGrid();
+                        }
+                    }
+                    break;
+
+                case "toolRotate":
+                    {
+                        if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                        {
+                            main.resetRotationDrawMode();
+                        }
+                    }
+                    break;
+
+                case "sideBarScrollBar":
+                    {
+                        SidebarController.resetSideBarPosition();
+                    }
+                    break;
+
+                default:
+                    {
+                        if (main.isCursorInDrawArea())
+                        {
+                            if (ToolController.isToolBox2Showing && !UndoManager.isDeepUndoEnabled)
+                            {
+                                ToolController.closeToolBox2();
+                            }
+                            else
+                            {
+                                ToolController.openToolBox2Delay();
+                            }
+                        }
+                    }
+                    break;
             }
-            break;
-    }
-}
+        }
 
         private static function onKeyDownCaptureMode(e:KeyboardEvent):void
         {
@@ -1739,7 +2118,7 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
             }
         }
 
-                public static function removeInputEventCaptrueMode():void
+        public static function removeInputEventCaptrueMode():void
         {
             isCaptureModeInputEventsAdded = false;
             main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode);
@@ -1762,7 +2141,7 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
             }
         }
 
-                private static function onKeyUpCaptureMode(e:KeyboardEvent):void
+        private static function onKeyUpCaptureMode(e:KeyboardEvent):void
         {
             InputController.updateLastKey(InputController.getLastPressedKey());
             InputController.checkGeneralKeyUp(e.keyCode);
@@ -1840,7 +2219,7 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
             }
         }
 
-                private static function onRightMouseDownCaptureMode(e:MouseEvent):void
+        private static function onRightMouseDownCaptureMode(e:MouseEvent):void
         {
             if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
@@ -1850,8 +2229,6 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
                 }
             }
         }
-
-
 
         public static function onKeyUpReplayMode(e:KeyboardEvent):void
         {
@@ -1900,50 +2277,12 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
             }
             if (InputController.isPressingShift())
             {
-                InputController.checkSubKey(2, false, function (input:int):void
-                    {
-                        switch (input)
-                        {
-                            case InputController.KEY.left:
-                            case InputController.KEY.z:
-                            case InputController.KEY.dot:
-                                {
-                                    if (!ReplayController.isReplayStarted)
-                                    {
-                                        InputController.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
-                                    }
-                                }
-                                break;
-                            case InputController.KEY.right:
-                            case InputController.KEY.x:
-                            case InputController.KEY.comma:
-                                {
-                                    if (!ReplayController.isReplayStarted)
-                                    {
-                                        InputController.startKeyRepeat(true, ReplayController.moveToNextFrame);
-                                    }
-                                }
-                                break;
-                        }
-                    });
+                InputController.checkSubKey(2, false, handleShiftSubKeyReplayMode);
                 return;
             }
             else if (InputController.isPressingControl())
             {
-                InputController.checkSubKey(2, true, function (input:int):void
-                    {
-                        if (input === InputController.KEY.c || input === InputController.KEY.m)
-                        {
-                            CaptureController.enterCaptureMode();
-                        }
-                        else if (input === InputController.KEY.v || input === InputController.KEY.m)
-                        {
-                            if (ClipboardManager.isClipBoardButtonActivated)
-                            {
-                                ClipboardManager.tryLoadClipboardImage(false);
-                            }
-                        }
-                    });
+                InputController.checkSubKey(2, true, handleControlSubKeyReplayMode);
                 return;
             }
             InputController.updateLastKey(firstKey);
@@ -2013,7 +2352,6 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
             }
         }
 
-        
         // rotate hand zoom에서 쓰임
         public static function addInputEventsReplayMode():void
         {
@@ -2036,8 +2374,6 @@ public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
             main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, InputController.onKeyDownReplayMode);
             main.stage.removeEventListener(KeyboardEvent.KEY_UP, InputController.onKeyUpReplayMode);
         }
-
-
 
         public static function onRightMouseDownReplayMode(e:MouseEvent):void
         {

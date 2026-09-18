@@ -85,7 +85,7 @@ package Modules.Tools
             CanvasController.canvasLayer2Bitmap.x = 0;
             CanvasController.canvasLayer2Bitmap.y = 0;
 
-            if (LassoTool.isLassoToolStarted === false)
+            if (LassoTool._isLassoToolStarted === false)
             {
                 var command:String = "move";
 

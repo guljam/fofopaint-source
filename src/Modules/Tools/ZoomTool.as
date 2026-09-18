@@ -110,7 +110,7 @@ package Modules.Tools
             main.updatePenSizeCursor();
             ReferenceLayerController.setRefLayerAndGridVisible(true);
 
-            if (LassoTool.isLassoMenuHiddenTemp === true)
+            if (LassoTool._isLassoMenuHiddenTemp === true)
             {
                 LassoTool.hideLassoMenuBoxTemp();
             }
@@ -133,7 +133,7 @@ package Modules.Tools
                 // 클릭한 위치가 캔버스밖을 벗어날경우 줌 기준점을 캔버스 경계선에 닿도록 함
                 var gp:Point;
 
-                if (LassoTool.isLassoMenuHiddenTemp === true)
+                if (LassoTool._isLassoMenuHiddenTemp === true)
                 {
                     gp = LassoTool.lassoLayer1.localToGlobal(new Point(0, 0));
                     CanvasController.moveCanvasAnchorPoint(gp.x, gp.y, false);

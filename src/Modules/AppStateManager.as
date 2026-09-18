@@ -477,7 +477,7 @@ package Modules
                 ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
                 ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
 
-                main.openAboutBox(true);
+                AboutBoxController.openAboutBox(true);
                 MainUIController.applyUIColorSet();
                 MainUIController.updateCanvasNaigatorCursor();
 

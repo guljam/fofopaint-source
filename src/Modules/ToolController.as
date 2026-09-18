@@ -1184,7 +1184,6 @@ package Modules
         {
             if (FOFOTimer.hasTimer("toolBoxShowDelayTimer"))
             {
-                trace('call');
                 FOFOTimer.remove("toolBoxShowDelayTimer");
                 return;
             }

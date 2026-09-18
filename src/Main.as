@@ -71,6 +71,7 @@
     import Modules.Tools.RotateTool;
     import Modules.FillPenTool;
     import Modules.Tools.EyeDropperTool;
+    import Modules.AboutBoxController;
     // import
     public class Main extends Sprite
     {
@@ -84,12 +85,6 @@
 
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
 
-        // about
-        public const aboutBox:AboutWindowSet = new AboutWindowSet();
-        public var isAboutBoxOpened:Boolean = false; // 어바웃 창 떴을때 킴
-
-
-        
         public var mirrorCommandReady:Boolean = false; // 미러 커맨드를 넣어줄지 말지 결정
 
         // 윈도우 크기변수
@@ -128,6 +123,7 @@
             // main ui가 호출되기전에 이것부터 stage 연결시켜주어야함 그냥 상단에 고정
             HintBoxSet.setMainStage(this.stage);
 
+            AboutBoxController.setMainInstance(this);
             AppUpdater.setMainInstance(this);
             AppStateManager.setMainInstance(this);
             BackgroundWorkerCoordinator.setMainInstance(this);
@@ -344,15 +340,13 @@
                 });
         }
 
-
-
         public function isCursorInDrawArea():Boolean
         {
             return !(MainUI.topBar.hitTestPoint(stage.mouseX, stage.mouseY)
                     || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
                     || (MainUI.seekBarBox.visible && MainUI.seekBarBox.hitTestPoint(stage.mouseX, stage.mouseY)));
         }
-    
+
         public function initializeStageSettings():void
         {
             stage.vsyncEnabled = true;
@@ -447,8 +441,6 @@
             const files:File = File.applicationStorageDirectory;
             files.deleteDirectory(true);
         }
-
-        
 
         public function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
         {
@@ -568,16 +560,18 @@
         public function addGlobalEvents():void
         {
             // 전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음
-            stage.addEventListener(MouseEvent.MOUSE_DOWN, InputController.onMouseDownStage, false, 1);
+            // todo gpt가 동일한 우선순위라도 capture 플래그가 true인것이 먼저 실행된다고함 capture - target  -bubble 순이라고함
+            // 그래서 마우스랑 키보드 입력 mouseleave이벤트를 캡쳐플래그를 true로해놓았음 나중에 기능 이상생기면 확인
+            stage.addEventListener(MouseEvent.MOUSE_DOWN, InputController.onMouseDownStage, true, 1);
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpStage, false, 1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpStage, false, 1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, InputController.onRightMouseDownStage, false, 1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, InputController.onRightMouseDownStage, true, 1);
             stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, InputController.onMiddleMouseDownStage, false, 1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN, InputController.onKeyDownStage, false, 1);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN, InputController.onKeyDownStage, true, 1);
             stage.addEventListener(KeyboardEvent.KEY_UP, InputController.onKeyUpStage, false, 1);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveUpdatePenPreviewCursor);
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseMoveUpdatePenPreviewCursor, false, -1);
-            stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveStage, false);
+            stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveStage, true);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, MainUI.onMouseMoveBottomHint);
             stage.nativeWindow.x = Capabilities.screenResolutionX / 2 - 680 / 2;
             stage.nativeWindow.y = Capabilities.screenResolutionY / 2 - 768 / 2 - 50;
@@ -625,52 +619,6 @@
                 verStr = verStr + ".0";
             return verStr;
         }
-        // 문자열을 소수 2번째 자리까지만 변환
-        public function closeAboutBox():void
-        {
-            stage.removeEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
-            InputController.removeInputEventCaptrueMode();
-            InputController.removeInputEventsReplayMode();
-            InputController.addInputEventsDrawMode();
-            isAboutBoxOpened = false;
-            aboutBox.visible = false;
-            FOFOTimer.addByName("clickBlockTimer", 0.15, false, function ():void
-                {
-                    CanvasController.isMouseClickBlocked = false;
-                });
-        }
-        public function updateAboutPanelCenterPos():void
-        {
-            aboutBox.x = Math.floor(stage.stageWidth / 2) + Math.floor(-aboutBox.width / 2);
-            aboutBox.y = Math.floor((stage.stageHeight - 39) / 2) + Math.floor(-aboutBox.height / 2);
-        }
-        public function openAboutBox(welcome:Boolean):void
-        {
-            Utils.setAsTopChild(aboutBox);
-            isAboutBoxOpened = true;
-            CanvasController.isMouseClickBlocked = true;
-            MainUI.hideBottomHint();
-            InputController.removeInputEventsDrawMode();
-            if (welcome === true)
-            {
-                aboutBox.resetAppButton.visible = false;
-                FOFOTimer.addByName("openAboutPanelOFFTimer", 1.0, false, function ():void
-                    {
-                        stage.addEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
-                    });
-            }
-            else
-            {
-                InputController.removeInputEventsDrawMode();
-                aboutBox.resetAppButton.visible = true;
-                AppUpdater.checkUpdate();
-                stage.addEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
-            }
-            aboutBox.randomLogo();
-            aboutBox.updateMemoryInfo(FileManager.getDriveUsageString());
-            updateAboutPanelCenterPos();
-            aboutBox.visible = true;
-        }
 
         public function clearDrawingData():void
         {
@@ -694,7 +642,7 @@
         // todo: 분야별로 분리해야
         public function handleMouseClick(targetName:String):void
         {
-            if (isAboutBoxOpened)
+            if (AboutBoxController.isAboutBoxOpened)
             {
                 function onMouseUpAboutBox(e:MouseEvent):void
                 {
@@ -715,7 +663,7 @@
                                 navigateToURL(new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt"));
                                 break;
                             case "aboutButton":
-                                closeAboutBox();
+                                AboutBoxController.closeAboutBox();
                                 break;
                             case "kor":
                                 navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%EC%84%A4%EB%AA%85%EC%84%9C"));
@@ -736,7 +684,7 @@
                                 // navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));
                                 // break;
                             default:
-                                closeAboutBox();
+                                AboutBoxController.closeAboutBox();
                                 break;
                         }
                     }
@@ -891,7 +839,7 @@
                             break;
                         case "aboutButton":
                             {
-                                openAboutBox(false);
+                                AboutBoxController.openAboutBox(false);
                             }
                             break;
                         case "newWindowCloseButton":
@@ -1007,7 +955,7 @@
                             break;
                         case "lassoCancel":
                             {
-                                if (LassoTool.isLassoToolStarted === true)
+                                if (LassoTool._isLassoToolStarted === true)
                                 {
                                     LassoTool.cancelLassoTool();
                                 }
@@ -1015,7 +963,7 @@
                             break;
                         case "lassoLayerMerge":
                             {
-                                if (LassoTool.lassoMenuBox.lassoLayerMerge.alpha === 1.0)
+                                if (LassoTool._lassoMenuBox.lassoLayerMerge.alpha === 1.0)
                                 {
                                     LassoTool.mergeLayerByLassoTool();
                                 }
@@ -1023,7 +971,7 @@
                             break;
                         case "lassoLayerSwap":
                             {
-                                if (LassoTool.lassoMenuBox.lassoLayerSwap.alpha === 1.0)
+                                if (LassoTool._lassoMenuBox.lassoLayerSwap.alpha === 1.0)
                                 {
                                     LassoTool.swapLayerByLassoTool();
                                 }
@@ -1031,22 +979,22 @@
                             break;
                         case "lasso1pxUp":
                             {
-                                LassoTool.move1PxLassoTool(LassoTool.LASSO_1PX_MOVE_UP);
+                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_UP);
                             }
                             break;
                         case "lasso1pxDown":
                             {
-                                LassoTool.move1PxLassoTool(LassoTool.LASSO_1PX_MOVE_DOWN);
+                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_DOWN);
                             }
                             break;
                         case "lasso1pxLeft":
                             {
-                                LassoTool.move1PxLassoTool(LassoTool.LASSO_1PX_MOVE_LEFT);
+                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_LEFT);
                             }
                             break;
                         case "lasso1pxRight":
                             {
-                                LassoTool.move1PxLassoTool(LassoTool.LASSO_1PX_MOVE_RIGHT);
+                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_RIGHT);
                             }
                             break;
                         case "lassoCopy":
@@ -1161,7 +1109,7 @@
             mirrorCommandReady = false;
             CanvasController.canvasInfoBox.setMirror(false);
             CanvasGridOverlay.updateGridMirror(false);
-            if (LassoTool.isLassoToolStarted === true)
+            if (LassoTool._isLassoToolStarted === true)
             {
                 LassoTool.cancelLassoTool();
                 LassoTool.resetLassoBox();
@@ -1317,7 +1265,6 @@
             };
         }
 
-
         public function resetRotationDrawMode():void
         {
             const center:Point = MainUIController.getStageCenterPos("draw");
@@ -1363,7 +1310,6 @@
                 ImageViewWindow.updateCanvasWindowImage();
             }
         }
-
 
         public function applyReplayCanvasToDrawModeCanvas():void
         {
@@ -1411,8 +1357,6 @@
             const index:int = parseInt(number);
             ToolController.updateDrawToolAlpha(PenTool.penAlphaList[index]);
         }
-
-
 
     }
 }

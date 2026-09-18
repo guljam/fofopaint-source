@@ -691,9 +691,9 @@ package Modules
 
             checkFOFOPosition();
 
-            if (LassoTool.isLassoToolStarted)
+            if (LassoTool._isLassoToolStarted)
             {
-                MainUIController.keepBoxInsideViewPort(LassoTool.lassoMenuBox);
+                MainUIController.keepBoxInsideViewPort(LassoTool._lassoMenuBox);
             }
 
             if (ReferenceLayerController.isRefLayerMenuON)
