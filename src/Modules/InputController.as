@@ -420,7 +420,6 @@ package Modules
             if (index > -1)
             {
                 keyBuffer.splice(index, 1);
-                trace('on key up =',keyBuffer);
             }
         }
 
@@ -440,7 +439,6 @@ package Modules
             if (keyBuffer.lastIndexOf(keyCode) === -1)
             {
                 keyBuffer.push(keyCode);
-                trace('keyBuffer',keyBuffer);
             }
         }
 
@@ -1492,7 +1490,7 @@ package Modules
         }
         private static function handleSpaceSubKeyLassoTool(input:int):void
         {
-            //키 2개 조합만 체크함
+            // 키 2개 조합만 체크함
             if (!isTwoKeyPressed())
             {
                 return;

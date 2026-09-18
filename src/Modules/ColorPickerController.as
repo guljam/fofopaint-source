@@ -946,7 +946,7 @@ package Modules
             CanvasController.CANVAS_BG_COLOR = color;
 
             CanvasController.canvasNavigatorBox.changeprevBitmapBGColor(color);
-            main.updateCanvasBGColor(CanvasController.canvasPanel, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, color);
+            CanvasController.updateCanvasBGColorDrawMode(color);
 
             if (colorPickerBox.scratchPad)
             {

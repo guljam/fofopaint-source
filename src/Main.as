@@ -1,5 +1,7 @@
 ﻿package
 {
+    import Modules.AboutBoxController;
+    import Modules.AppStateManager;
     import Modules.AppStateVars;
     import Modules.AppUpdater;
     import Modules.BackgroundWorkerCoordinator;
@@ -9,8 +11,8 @@
     import Modules.ClipboardManager;
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
-    import Modules.DrawingFinish;
     import Modules.FileManager;
+    import Modules.FillPenTool;
     import Modules.ImageViewWindow;
     import Modules.InputController;
     import Modules.MainUI;
@@ -20,24 +22,24 @@
     import Modules.ReplayController;
     import Modules.SidebarController;
     import Modules.ToolController;
-    import Modules.Tools.DottedLineTool;
+    import Modules.Tools.EyeDropperTool;
+    import Modules.Tools.HandTool;
     import Modules.Tools.LassoTool;
     import Modules.Tools.LineTool;
+    import Modules.Tools.MoveTool;
     import Modules.Tools.PenTool;
+    import Modules.Tools.RotateTool;
+    import Modules.Tools.ZoomTool;
     import Modules.UndoManager;
     import Modules.Utils;
 
-    import Symbols.AboutWindowSet;
-    import Symbols.EyedropperLensSet;
-    import Symbols.FillPenMenuSet;
+    //todo 힌트박스 컨트롤러 만들기, 지금 각툴에 힌트 관련 마우스 이벤트가 있음 이것을 전부 옮기기 mainui도아마 개편해야할듯싶음 힌트관련 메뉴가 많음
     import Symbols.HintBoxSet;
 
     import flash.desktop.NativeApplication;
-    import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display.DisplayObject;
     import flash.display.IBitmapDrawable;
-    import flash.display.Shape;
     import flash.display.SimpleButton;
     import flash.display.Sprite;
     import flash.display.StageAlign;
@@ -52,8 +54,6 @@
     import flash.events.TimerEvent;
     import flash.events.UncaughtErrorEvent;
     import flash.filesystem.File;
-    import flash.filesystem.FileMode;
-    import flash.filesystem.FileStream;
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
@@ -61,17 +61,9 @@
     import flash.net.navigateToURL;
     import flash.net.registerClassAlias;
     import flash.system.Capabilities;
-    import flash.utils.ByteArray;
     import flash.utils.Timer;
     import flash.utils.getTimer;
-    import Modules.AppStateManager;
-    import Modules.Tools.HandTool;
-    import Modules.Tools.ZoomTool;
-    import Modules.Tools.MoveTool;
-    import Modules.Tools.RotateTool;
-    import Modules.FillPenTool;
-    import Modules.Tools.EyeDropperTool;
-    import Modules.AboutBoxController;
+
     // import
     public class Main extends Sprite
     {
@@ -445,9 +437,13 @@
         public function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
         {
             if (ReplayController.isReplayModeON || CaptureController.isCaptureModeON)
+            {
                 return;
+            }
+
             penCursorManager.check();
         }
+
         public function cPenCursorUpdater():Object
         {
             var cursorSize:Number = 3.0;
@@ -520,6 +516,7 @@
                     checkCursorVisibility: checkCursorVisibility
                 };
         }
+
         public function restoreCanvasBackgroundColor(replayMode:Boolean):void
         {
             var xPanel:Sprite;
@@ -1032,13 +1029,6 @@
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
         }
 
-        public function updateCanvasBGColor(xCanvas:Sprite, w:Number, h:Number, color:uint):void
-        {
-            xCanvas.graphics.clear();
-            xCanvas.graphics.beginFill(color);
-            xCanvas.graphics.drawRect(0, 0, w, h);
-            xCanvas.graphics.endFill();
-        }
         public function isHintAvailableWithFillPen(target:DisplayObject):Boolean
         {
             const targetName:String = target.name;

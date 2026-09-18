@@ -3166,7 +3166,7 @@ package Modules
         public static function updateCanvasBGColorReplayMode(color:uint):void
         {
             RCANVAS_BG_COLOR = color;
-            main.updateCanvasBGColor(rCanvasPanel, RCANVAS_WIDTH, RCANVAS_HEIGHT, color);
+            CanvasController.updateCanvasBGColorReplayMode(color);
         }
 
         public static function onDragEnterStage(e:NativeDragEvent):void

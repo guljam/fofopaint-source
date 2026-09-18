@@ -739,7 +739,7 @@ package Modules
                 h = maxSize;
             else if (h < 1)
                 h = 1;
-            main.updateCanvasBGColor(canvasPanel, w, h, CANVAS_BG_COLOR);
+            CanvasController.updateCanvasBGColorDrawMode(CANVAS_BG_COLOR);
             updateCanvasPanelMask(w, h);
             canvasLayer1BitmapData = new BitmapData(w, h, true, 0);
             canvasLayer2BitmapData = new BitmapData(w, h, true, 0);
@@ -1438,6 +1438,22 @@ package Modules
                 xBitmap1.smoothing = true;
                 xBitmap11.smoothing = true;
             }
+        }
+
+        public static function updateCanvasBGColorReplayMode(color:uint):void
+        {
+            ReplayController.rCanvasPanel.graphics.clear();
+            ReplayController.rCanvasPanel.graphics.beginFill(color);
+            ReplayController.rCanvasPanel.graphics.drawRect(0, 0, ReplayController.RCANVAS_WIDTH, ReplayController.RCANVAS_HEIGHT);
+            ReplayController.rCanvasPanel.graphics.endFill();
+        }
+
+        public static function updateCanvasBGColorDrawMode(color:uint):void
+        {
+            canvasPanel.graphics.clear();
+            canvasPanel.graphics.beginFill(color);
+            canvasPanel.graphics.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            canvasPanel.graphics.endFill();
         }
     }
 }
