@@ -14,6 +14,7 @@ package Modules
     import flash.filesystem.File;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import Modules.Tools.EyeDropperTool;
 
     public final class SidebarController
     {
@@ -177,7 +178,7 @@ package Modules
 
             if (ToolController.toolBox.getLastTool() === "toolEyedropper")
             {
-                main.eyeDropperTool();
+                EyeDropperTool.start();
             }
 
             if (ReferenceLayerController.isRefLayerMenuON)

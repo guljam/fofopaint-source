@@ -8,9 +8,6 @@ package Modules
     import Symbols.FillPenMenuSet;
     import flash.geom.Rectangle;
     import Modules.Tools.DottedLineTool;
-    import flash.events.KeyboardEvent;
-    import Modules.Tools.RotateTool;
-    import flash.text.engine.BreakOpportunity;
 
     public class FillPenTool
     {

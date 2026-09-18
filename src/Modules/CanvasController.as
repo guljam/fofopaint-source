@@ -18,6 +18,7 @@ package Modules
     import flash.geom.Matrix;
     import flash.geom.ColorTransform;
     import flash.display.Graphics;
+    import Modules.Tools.EyeDropperTool;
 
     public class CanvasController
     {
@@ -1219,7 +1220,7 @@ package Modules
             canvasPanel.y = Math.floor(-canvasPanel.height / 2);
             canvasAnchorPoint.addChild(canvasPanel);
             main.stage.addChild(MainUI.stageBG);
-            main.stage.addChild(main.eyedropperLens);
+            main.stage.addChild(EyeDropperTool.eyedropperLens);
             main.stage.addChild(LassoTool.lassoMenuBox);
             main.stage.addChild(canvasAnchorPoint);
             main.stage.addChild(penSizePreviewCursor);

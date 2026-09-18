@@ -10,6 +10,7 @@ package Modules
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import Modules.Tools.EyeDropperTool;
 
     // todo: 캔버스 리사이즈 버튼은 나중에 따로 분리 해야함
 
@@ -121,7 +122,7 @@ package Modules
             FillPenTool.fillPenBox.setScale(scale);
             ToolController.toolBox2.setScale(scale);
             main.aboutBox.setScale(scale);
-            main.eyedropperLens.setScale(scale);
+            EyeDropperTool.eyedropperLens.setScale(scale);
             ColorPickerController.numPadBox.setScale(scale);
             updateStageOffset();
             SidebarController.updateScrollBarHeight();

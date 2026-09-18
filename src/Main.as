@@ -70,6 +70,7 @@
     import Modules.Tools.MoveTool;
     import Modules.Tools.RotateTool;
     import Modules.FillPenTool;
+    import Modules.Tools.EyeDropperTool;
     // import
     public class Main extends Sprite
     {
@@ -88,13 +89,12 @@
         public var isAboutBoxOpened:Boolean = false; // 어바웃 창 떴을때 킴
 
 
-        public const eyedropperLens:EyedropperLensSet = new EyedropperLensSet();
+        
         public var mirrorCommandReady:Boolean = false; // 미러 커맨드를 넣어줄지 말지 결정
 
         // 윈도우 크기변수
         // 툴 클로져 자주쓰는거는 클로져로 메모리에 미리 올려둬서 성능향상하려고 한건데 모르겠음
         public var realWorkingTimer:Object = cRealWorkingTimer();
-        public var eyeDropperTool:Function = cEyeDropperTool();
         public var updatePenSizeCursor:Function = cUpdatePenSizeCursor();
         public var penCursorManager:Object = cPenCursorUpdater();
         public var resizeCanvas:Object = CanvasController.cResizeCanvas();
@@ -161,6 +161,7 @@
             MoveTool.setMainInstance(this);
             RotateTool.setMainInstance(this);
             FillPenTool.setMainInstance(this);
+            EyeDropperTool.setMainInstance(this);
         }
 
         public function initializeStage():void
@@ -351,6 +352,7 @@
                     || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
                     || (MainUI.seekBarBox.visible && MainUI.seekBarBox.hitTestPoint(stage.mouseX, stage.mouseY)));
         }
+    
         public function initializeStageSettings():void
         {
             stage.vsyncEnabled = true;
@@ -1360,279 +1362,6 @@
             {
                 ImageViewWindow.updateCanvasWindowImage();
             }
-        }
-
-        public function cEyeDropperTool():Function
-        {
-            // 일단 흰색으로 배경 깔아줌
-            const magSize:Number = eyedropperLens.magSize;
-            const lensRect:Rectangle = new Rectangle(0, 0, magSize, magSize);
-            const lensMat:Matrix = new Matrix();
-            var penColorBackup:uint;
-            var canvasBGShape:Shape = new Shape();
-            function updateEyeDropperLensBitmap():void
-            {
-                const mid:Number = magSize / (4 * CanvasController.canvasZoomMultipler); // 4는 기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
-                const tx:Number = -CanvasController.canvasLayer1Bitmap.mouseX + mid;
-                const ty:Number = -CanvasController.canvasLayer1Bitmap.mouseY + mid;
-                lensMat.identity();
-                lensMat.translate(tx, ty);
-                lensMat.scale(2.0 * CanvasController.canvasZoomMultipler, 2.0 * CanvasController.canvasZoomMultipler);
-                eyedropperLens.bitmap.bitmapData.fillRect(lensRect, MainUIController.STAGE_BG_COLOR);
-                eyedropperLens.bitmap.bitmapData.draw(canvasBGShape, lensMat, null, null, lensRect);
-                if (CanvasController.canvasLayer2Bitmap.visible)
-                {
-                    eyedropperLens.bitmap.bitmapData.draw(CanvasController.canvasLayer2Bitmap.bitmapData, lensMat, null, null, lensRect);
-                }
-                if (CanvasController.canvasLayer1Bitmap.visible)
-                {
-                    eyedropperLens.bitmap.bitmapData.draw(CanvasController.canvasLayer1Bitmap.bitmapData, lensMat, null, null, lensRect);
-                }
-            }
-            function pickColor():uint
-            {
-                if (CanvasController.canvasLayer1Bitmap.hitTestPoint(stage.mouseX, stage.mouseY))
-                {
-                    // 배경색
-                    const r3:uint = (CanvasController.CANVAS_BG_COLOR & 0xFF0000) >> 16;
-                    const g3:uint = (CanvasController.CANVAS_BG_COLOR & 0x00FF00) >> 8;
-                    const b3:uint = (CanvasController.CANVAS_BG_COLOR & 0x0000FF);
-                    var aa:Number = 0;
-                    var rr:uint = 0;
-                    var gg:uint = 0;
-                    var bb:uint = 0;
-                    var a1:Number = 0;
-                    var r1:uint = 0;
-                    var g1:uint = 0;
-                    var b1:uint = 0;
-                    var a2:Number = 0;
-                    var r2:uint = 0;
-                    var g2:uint = 0;
-                    var b2:uint = 0;
-                    // 위 레이어
-                    if (CanvasController.canvasLayer1Bitmap.visible)
-                    {
-                        const c1:uint = CanvasController.canvasLayer1BitmapData.getPixel32(CanvasController.canvasLayer1Bitmap.mouseX, CanvasController.canvasLayer1Bitmap.mouseY);
-                        a1 = ((c1 & 0xFF000000) >>> 24) / 255;
-                        r1 = (c1 & 0x00FF0000) >>> 16;
-                        g1 = (c1 & 0x0000FF00) >>> 8;
-                        b1 = (c1 & 0x000000FF);
-                    }
-                    // 밑 레이어
-                    if (CanvasController.canvasLayer2Bitmap.visible)
-                    {
-                        const c2:uint = CanvasController.canvasLayer2BitmapData.getPixel32(CanvasController.canvasLayer1Bitmap.mouseX, CanvasController.canvasLayer1Bitmap.mouseY);
-                        a2 = ((c2 & 0xFF000000) >>> 24) / 255;
-                        r2 = (c2 & 0x00FF0000) >>> 16;
-                        g2 = (c2 & 0x0000FF00) >>> 8;
-                        b2 = (c2 & 0x000000FF);
-                    }
-                    // source over S 새로그린거 B는 원래 그려져 있던거
-                    // aR : the union alpha (as + ab * (1 - as)) //알파 혼합
-                    // r: ((S.r * S.a) + (B.r * B.a) * (1 - S.a)) / aR,
-                    // g: ((S.g * S.a) + (B.g * B.a) * (1 - S.a)) / aR,
-                    // b: ((S.b * S.a) + (B.b * B.a) * (1 - S.a)) / aR,
-                    // 아래 레이어 부터
-                    aa = 1.0 - a2;
-                    rr = Math.round(r2 * a2) + Math.round(r3 * aa);
-                    gg = Math.round(g2 * a2) + Math.round(g3 * aa);
-                    bb = Math.round(b2 * a2) + Math.round(b3 * aa);
-                    // 그 위에 위 레이어
-                    const aa1:Number = 1.0 - a1;
-                    const r:uint = Math.round(r1 * a1) + Math.round(rr * aa1);
-                    const g:uint = Math.round(g1 * a1) + Math.round(gg * aa1);
-                    const b:uint = Math.round(b1 * a1) + Math.round(bb * aa1);
-                    return Global.RGBtoHEX(r, g, b);
-                }
-                else
-                {
-                    return penColorBackup;
-                }
-            }
-            function onRightMouseDownEyeDropper(e:MouseEvent):void
-            {
-                exitEyeDropperTool(false);
-            }
-            function onKeyDownEyeDropper(e:KeyboardEvent):void
-            {
-                if (isNotEyeDropperTool())
-                {
-                    exitEyeDropperTool(false);
-                    return;
-                }
-                if (e.keyCode === InputController.KEY.c || e.keyCode === InputController.KEY.m) {}
-                else if (e.keyCode === InputController.KEY.space)
-                {
-                    if (PenTool.isTransparentPenColor)
-                    {
-                        ColorPickerController.selectCurrentColor(false);
-                        MainUI.showMouseHintTemp("Current color selected");
-                    }
-                    else
-                    {
-                        ColorPickerController.selectCurrentColor(false);
-                        if (PenTool.isTransparentPenColor === false)
-                        {
-                            ColorPickerController.selectTransparentColor();
-                        }
-                        MainUI.showMouseHintTemp("Transparent color selected");
-                    }
-                    exitEyeDropperTool(false);
-                }
-                else
-                {
-                    exitEyeDropperTool(false);
-                }
-            }
-            function onKeyUpEyeDropper(e:KeyboardEvent):void
-            {
-                if (isNotEyeDropperTool())
-                {
-                    exitEyeDropperTool(false);
-                    return;
-                }
-                if (e.keyCode === InputController.KEY.c || e.keyCode === InputController.KEY.m)
-                {
-                    confirmEyeDropperSelection();
-                }
-            }
-            function onMouseDownEyeDropper(e:MouseEvent):void
-            {
-                if (isNotEyeDropperTool())
-                {
-                    exitEyeDropperTool(false);
-                    return;
-                }
-                if (eyedropperLens.visible)
-                {
-                    confirmEyeDropperSelection();
-                }
-                else
-                {
-                    exitEyeDropperTool(false);
-                }
-            }
-            function exitEyeDropperTool(okFlag:Boolean):void
-            {
-                removeEyedropperEvents();
-                eyedropperLens.visible = false;
-                // canvasRefLayer.visible = true;
-                canvasBGShape.graphics.clear();
-                ReferenceLayerController.setRefLayerAndGridVisible(true);
-                if (okFlag)
-                {
-                    if (!(ToolController.isLastTool(ToolController.TOOL_FILLPEN)
-                                || ToolController.isLastTool(ToolController.TOOL_LINE)
-                                || ToolController.isLastTool(ToolController.TOOL_PEN)))
-                    {
-                        ToolController.setLastTool(ToolController.TOOL_PEN);
-                    }
-                }
-                ToolController.selectLastUsedTool();
-            }
-            function isNotEyeDropperTool():Boolean
-            {
-                return !ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || ReplayController.isReplayModeON || CaptureController.isCaptureModeON || FileManager.isFileBrowserOpened || CanvasController.isMouseClickBlocked;
-            }
-            function confirmEyeDropperSelection():void
-            {
-                var okFlag:Boolean = false;
-                if (eyedropperLens.visible === true)
-                {
-                    okFlag = true;
-                    const pickedColor:uint = pickColor();
-                    PenTool.penColor = pickedColor;
-                    ColorPickerController.pickerIgnoreHistoryColor = pickedColor;
-                    ColorPickerController.updateColorPickerCursorPosAndRGBInfo(pickedColor);
-                }
-                exitEyeDropperTool(okFlag);
-            }
-            function onMouseMoveEyeDropper(e:MouseEvent):void
-            {
-                if (isNotEyeDropperTool())
-                {
-                    exitEyeDropperTool(false);
-                    return;
-                }
-                eyedropperLens.x = stage.mouseX;
-                eyedropperLens.y = stage.mouseY;
-                if (canShowEyedropperLens())
-                {
-                    Global.setColorTransform(eyedropperLens.nowColor, pickColor());
-                    if (CanvasController.canvasZoomMultipler < 12.0)
-                    {
-                        updateEyeDropperLensBitmap();
-                    }
-                    eyedropperLens.visible = true;
-                }
-                else
-                {
-                    eyedropperLens.visible = false;
-                }
-            }
-            function removeEyedropperEvents():void
-            {
-                stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveEyeDropper);
-                stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper);
-                stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper);
-                stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper);
-                stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper);
-            }
-            function addEyedropperEvents():void
-            {
-                stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveEyeDropper);
-                stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper, false, -2);
-                stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper, false, -2);
-                stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper, false, 2);
-                stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper, false, 2);
-            }
-            function canShowEyedropperLens():Boolean
-            {
-                return isCursorInDrawArea() && CanvasController.canvasLayer1Bitmap.hitTestPoint(stage.mouseX, stage.mouseY, true)
-                    && !(ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(stage.mouseX, stage.mouseY));
-            }
-            return function ():void
-            {
-                ToolController.toolBox.moveToolCursor("toolEyedropper");
-                if (CanvasController.checkedLayer !== 0)
-                {
-                    return;
-                }
-                if (CanvasController.isAllLayerInvisible())
-                {
-                    return;
-                }
-                ToolController.updateLastTool();
-                // todo: 이것도 그냥 setLastToolPen, setSeletedToolPen이런식으로 메서드로 호출
-                ToolController.setLastTool(ToolController.nowTool);
-                ToolController.setSelectedTool(ToolController.TOOL_EYEDROPPER);
-                penColorBackup = PenTool.penColor;
-                Global.setColorTransform(eyedropperLens.oldColor, PenTool.penColor);
-                ToolController.moveEraserButtonToOtherTool("toolEyedropper");
-                eyedropperLens.rotateBitmap(CanvasController.canvasAnchorPoint.rotation);
-                ReferenceLayerController.setCanvasRefLayerInvisible();
-                canvasBGShape.graphics.clear();
-                canvasBGShape.graphics.beginFill(CanvasController.CANVAS_BG_COLOR);
-                canvasBGShape.graphics.drawRect(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                if (canShowEyedropperLens())
-                {
-                    eyedropperLens.x = stage.mouseX;
-                    eyedropperLens.y = stage.mouseY;
-                    Global.setColorTransform(eyedropperLens.nowColor, pickColor());
-                    Utils.setAsTopChild(eyedropperLens);
-                    if (CanvasController.canvasZoomMultipler < 12.0)
-                    {
-                        eyedropperLens.circleBox.visible = true;
-                        updateEyeDropperLensBitmap();
-                    }
-                    else
-                    {
-                        eyedropperLens.circleBox.visible = false;
-                    }
-                    eyedropperLens.visible = true;
-                }
-                addEyedropperEvents();
-            };
         }
 
 

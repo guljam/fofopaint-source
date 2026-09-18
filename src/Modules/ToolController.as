@@ -14,6 +14,7 @@ package Modules
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Modules.Tools.RotateTool;
+    import Modules.Tools.EyeDropperTool;
 
     public class ToolController
     {
@@ -541,7 +542,7 @@ package Modules
                     main.updatePenSizeCursor();
                     break;
                 case TOOL_EYEDROPPER:
-                    main.eyeDropperTool();
+                    EyeDropperTool.start();
                     break;
                 case TOOL_LASSO:
                     selectLassoTool();
@@ -632,7 +633,7 @@ package Modules
                             }
                             else if (!isSelectedTool(TOOL_EYEDROPPER))
                             {
-                                main.eyeDropperTool();
+                                EyeDropperTool.start();
                             }
                         }
                         break;
@@ -892,7 +893,7 @@ package Modules
                         }
                         else if (!isSelectedTool(TOOL_EYEDROPPER))
                         {
-                            main.eyeDropperTool();
+                            EyeDropperTool.start();
                             showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
                         }
                     }
@@ -1074,7 +1075,7 @@ package Modules
                     {
                         if (!isSelectedTool(TOOL_EYEDROPPER))
                         {
-                            main.eyeDropperTool();
+                            EyeDropperTool.start();
                             showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
                         }
                     }
