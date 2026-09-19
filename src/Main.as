@@ -186,8 +186,6 @@
         }
         // function
 
-
-
         public function getClipRectOffsetAirBrush(size:int):Number
         {
             const len:uint = PenTool.penSizeList.length;

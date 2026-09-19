@@ -5,6 +5,7 @@ package Modules
     import flash.display.Stage;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.utils.Dictionary;
 
     public class Utils
     {
@@ -226,5 +227,111 @@ package Modules
             return value;
         }
 
+        public static function traceArr(data:*):void
+        {
+            var visited:Dictionary = new Dictionary(true);
+
+            trace("--- PRINT START ---");
+            printValue(data, "", 0, visited);
+            trace("--- PRINT END ---");
+        }
+
+        private static function printValue(
+                value:*,
+                key:String,
+                level:int,
+                visited:Dictionary
+            ):void
+        {
+            var indent:String = new Array(level + 1).join("   ");
+
+            if (key !== "")
+            {
+                trace(indent + "> " + key);
+            }
+
+            if (value === null)
+            {
+                trace(indent + "| null");
+                return;
+            }
+
+            if (typeof value !== "object")
+            {
+                trace(indent + "| " + value);
+                return;
+            }
+
+            if (visited[value])
+            {
+                trace(indent + "| [Circular Reference]");
+                return;
+            }
+
+            visited[value] = true;
+
+            trace(indent + "{");
+
+            var childIndent:String = indent + "   ";
+            var keyValue:*;
+
+            if (value is Array)
+            {
+                var arr:Array = value as Array;
+
+                for (var i:int = 0;i < arr.length;i++)
+                {
+                    if (arr[i] !== null && typeof arr[i] === "object")
+                    {
+                        printValue(arr[i], "index[" + i + "]", level + 1, visited);
+                    }
+                    else
+                    {
+                        trace(childIndent + "| [" + i + "] : " + arr[i]);
+                    }
+                }
+            }
+            else if (value is Dictionary)
+            {
+                for (keyValue in value)
+                {
+                    if (value[keyValue] !== null &&
+                            typeof value[keyValue] === "object")
+                    {
+                        printValue(
+                                value[keyValue],
+                                String(keyValue),
+                                level + 1,
+                                visited
+                            );
+                    }
+                    else
+                    {
+                        trace(
+                                childIndent +
+                                "| " + keyValue +
+                                " : " + value[keyValue]
+                            );
+                    }
+                }
+            }
+            else
+            {
+                for (var name:String in value)
+                {
+                    if (value[name] !== null &&
+                            typeof value[name] === "object")
+                    {
+                        printValue(value[name], name, level + 1, visited);
+                    }
+                    else
+                    {
+                        trace(childIndent + "| " + name + " : " + value[name]);
+                    }
+                }
+            }
+
+            trace(indent + "}");
+        }
     }
 }

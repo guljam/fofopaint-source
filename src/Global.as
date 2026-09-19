@@ -7,6 +7,7 @@ package
 
     public class Global
     {
+        //todo ui 관련이 많아서 따로 정리하고 다른 범용은 utild로 옮겨야함
         static public const OFFALPHA:Number = Math.round(0.25 * 256) / 256;
 
         static public function setColorTransform(target:DisplayObject, color:uint, customAlpha:Number = NaN):void
@@ -420,84 +421,6 @@ package
             const i:Number = deltaLKlsl * deltaLKlsl + deltaCkcsc * deltaCkcsc + deltaHkhsh * deltaHkhsh;
 
             return i < 0 ? 0 : Math.sqrt(i);
-        }
-
-        private function traceArr(data:*):void
-        {
-            var stack:Array = [];
-            stack.push({value: data, key: "", level: 0});
-
-            trace("--- PRINT START ---");
-
-            while (stack.length > 0)
-            {
-                var current:Object = stack.pop();
-                var value:* = current.value;
-                var key:String = current.key;
-                var level:int = current.level;
-
-                var indent:String = new Array(level + 1).join("   ");
-                if (key !== "")
-                {
-                    trace(indent + "> index[" + key + "]");
-                }
-
-                if (value is Dictionary)
-                {
-                    trace(indent + "{");
-                    for (var dkey:* in value)
-                    {
-                        var dval:* = value[dkey];
-                        if (dval !== null && typeof dval === "object")
-                        {
-                            stack.push({value: dval, key: dkey.toString(), level: level + 1});
-                        }
-                        else
-                        {
-                            trace(indent + "   | " + dkey + " : " + dval);
-                        }
-                    }
-                    trace(indent + "}");
-                }
-                else if (value is Array)
-                {
-                    trace(indent + "{");
-                    for (var j:int = value.length - 1;j >= 0;j--)
-                    {
-                        var item:* = value[j];
-                        if (item !== null && typeof item === "object")
-                        {
-                            stack.push({value: item, key: "[" + j + "]", level: level + 1});
-                        }
-                        else
-                        {
-                            trace(indent + "   | [" + j + "] : " + item);
-                        }
-                    }
-                    trace(indent + "}");
-                }
-                else if (typeof value === "object")
-                {
-                    trace(indent + "{");
-                    for (var i:String in value)
-                    {
-                        var objVal:* = value[i];
-                        if (objVal !== null && typeof objVal === "object")
-                        {
-                            stack.push({value: objVal, key: i, level: level + 1});
-                        }
-                        else
-                        {
-                            trace(indent + "   | " + i + " : " + objVal);
-                        }
-                    }
-                    trace(indent + "}");
-                }
-                else
-                {
-                    trace(indent + "| " + key + " : " + value);
-                }
-            }
         }
     }
 }
