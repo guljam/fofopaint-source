@@ -713,7 +713,7 @@ package Modules
             if (canvasOnly === false) // 보통 미러할때, canvasonly가 true일때는 appdata에서 바꿔줄때 밖에 없음
             {
                 canvasAnchorPoint.rotation = -canvasAnchorPoint.rotation; // 반대각으로 세팅
-                main.setRcursorRotation(canvasAnchorPoint.rotation);
+                ReplayController.setRcursorRotation(canvasAnchorPoint.rotation);
                 ReferenceLayerController.mirrorRefLayerImage();
             }
             CanvasGridOverlay.updateGridMirror(isCanvasMirrored);

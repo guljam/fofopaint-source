@@ -121,7 +121,7 @@ package Modules
 
             selectedToolViewBitmap.bitmapData = toolBox.getToolSelectViewBmpd(toolIndex, toolButton);
             updateSelectedToolViewBoxPos();
-            main.startAlphaFadeOut(selectedToolViewBitmap, 1.0, 1.0);
+            main.showAndFadeOut(selectedToolViewBitmap, 1.0, 1.0);
         }
 
         public static function isSelectedToolPenOrLine():Boolean
@@ -198,6 +198,7 @@ package Modules
                 toolName = "Line";
             else if (isSelectedTool(TOOL_FILLPEN))
                 toolName = "FillPen";
+
             toolOptionsBox.hintText(toolName);
         }
 

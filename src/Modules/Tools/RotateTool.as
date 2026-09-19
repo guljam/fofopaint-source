@@ -28,7 +28,7 @@ package Modules.Tools
             const ang:Number = getAngle(true);
 
             xAnc.rotation = ang;
-            main.setRcursorRotation(xAnc.rotation);
+            ReplayController.setRcursorRotation(xAnc.rotation);
             CanvasController.canvasInfoBox.setRotate(Math.abs(xAnc.rotation));
         }
 

@@ -27,7 +27,6 @@ package Modules
                 const appUpTime:int = fs.readInt();
                 ActivityWorkTimer.updateAppUpTime(appUpTime);
                 fs.close();
-                trace('appUpTime',appUpTime);
             }
         }
 
@@ -295,7 +294,7 @@ package Modules
                         CanvasController.canvasAnchorPoint.y = appStateObject.canvasAnchorPointY;
                         CanvasController.canvasAnchorPoint.rotation = appStateObject.canvasAnchorPointRotation;
 
-                        main.setRcursorRotation(appStateObject.canvasAnchorPointRotation);
+                        ReplayController.setRcursorRotation(appStateObject.canvasAnchorPointRotation);
                         MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
                         CanvasController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
 

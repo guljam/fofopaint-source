@@ -1,6 +1,7 @@
 package assets
 {
     import flash.utils.describeType;
+    import flash.text.TextInteractionMode;
 
     public final class VisualFieldCollector
     {
@@ -17,7 +18,6 @@ package assets
                 var supported:Boolean =
                     fieldType == "flash.display::SimpleButton" ||
                     fieldType == "flash.text::TextField";
-
                 if (supported && target[fieldName] == null)
                 {
                     result.push(fieldName);

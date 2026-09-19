@@ -466,8 +466,6 @@
                 return hintStringSet[targetName];
             }
 
-            trace('targetName',targetName);
-
             switch (targetName)
             {
                 case "toolUndo":

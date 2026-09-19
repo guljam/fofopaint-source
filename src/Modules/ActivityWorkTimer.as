@@ -48,7 +48,6 @@ package Modules
         public static function updateAppUpTime(time:int):void
         {
             lastAppUpTime = time;
-            trace('update app up time ', lastAppUpTime);
         }
 
         public static function getAppUpTime():int

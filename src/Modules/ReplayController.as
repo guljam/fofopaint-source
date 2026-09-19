@@ -30,6 +30,7 @@ package Modules
     import flash.ui.Mouse;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
+    import Symbols.FOFOCursorSet;
 
     public class ReplayController
     {
@@ -92,7 +93,7 @@ package Modules
         public static var rCanvasLayer2Bitmap:Bitmap = new Bitmap();
         private static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
         private static var rCanvasDrawLayerBitmap:Bitmap = new Bitmap(rCanvasDrawLayerBitmapData, "auto", true);
-        public static var rReplayFOFOCursor:FOFOCursor = new FOFOCursor(); // 재생할때 틀어주는 작은 마우스
+        public static var rReplayFOFOCursor:FOFOCursorSet = new FOFOCursorSet(); // 재생할때 틀어주는 작은 마우스 커서
         public static var rCanvasDrawLayerClipRectLegacy:Rectangle = new Rectangle(); // 갱신된 부분만 그려주는 거 오래된 버전 지원때문에 남겨둠
         public static var rCanvasDrawLayerClipRect:Rectangle = new Rectangle(); // 갱신된 부분만 그려주는 거 이게 새거임
         private static var updatePrograssBarStartTime:int = 0; // 리플레이 시작 시간저장 update prograss bar에서 프레임 오차 수정할때 참고하는 변수
@@ -481,7 +482,7 @@ package Modules
             CanvasController.canvasAnchorPoint.rotation = rCanvasAnchorPoint.rotation;
             CanvasController.canvasPanel.x = Math.floor(rCanvasPanel.x);
             CanvasController.canvasPanel.y = Math.floor(rCanvasPanel.y);
-            main.setRcursorRotation(rCanvasAnchorPoint.rotation);
+            ReplayController.setRcursorRotation(rCanvasAnchorPoint.rotation);
         }
         private static function ensureReplayCanvasState():void
         {
@@ -982,6 +983,7 @@ package Modules
                 rReplayFOFOCursor.x = rCursorPos.x;
                 rReplayFOFOCursor.y = rCursorPos.y;
             }
+
             function setRCursorPosFromMoveTool(x:Number, y:Number):void
             {
                 setRCursorPos(rCursorPos.x + x, rCursorPos.y + y);
@@ -3626,7 +3628,7 @@ package Modules
             const center:Point = MainUIController.getStageCenterPos("replay");
             CanvasController.moveCanvasAnchorPoint(center.x, center.y, true);
             rCanvasAnchorPoint.rotation = 0;
-            main.setRcursorRotation(0);
+            ReplayController.setRcursorRotation(0);
         }
 
         public static function syncMirrorReplayModeWithDrawMode():void
@@ -3887,7 +3889,7 @@ package Modules
             CanvasController.canvasAnchorPoint.y = rCanvasAnchorPoint.y;
             rCanvasPanel.x = rCanvasPanel.x;
             rCanvasPanel.y = rCanvasPanel.y;
-            main.setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
+            ReplayController.setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
         }
         public static function syncReplayCanvasWithDrawMode():void
         {
@@ -3900,7 +3902,7 @@ package Modules
             rCanvasAnchorPoint.y = CanvasController.canvasAnchorPoint.y;
             rCanvasPanel.x = CanvasController.canvasPanel.x;
             rCanvasPanel.y = CanvasController.canvasPanel.y;
-            main.setRcursorRotation(rCanvasAnchorPoint.rotation);
+            ReplayController.setRcursorRotation(rCanvasAnchorPoint.rotation);
         }
         public static function syncReplayCanvasImageWithDrawMode():void
         {
@@ -3951,7 +3953,7 @@ package Modules
                 SidebarController.showSidebarPermanent();
             }
             CanvasController.canvasPanel.addChild(rReplayFOFOCursor);
-            main.setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
+            ReplayController.setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
             if (MainUI.mouseHint.isShowing())
             {
                 MainUI.hideMouseHint();
@@ -4014,7 +4016,7 @@ package Modules
             rReplayFOFOCursor.visible = false;
             rCanvasPanel.addChild(rReplayFOFOCursor);
             Utils.setAsTopChild(rReplayFOFOCursor);
-            main.setRcursorRotation(rCanvasAnchorPoint.rotation);
+            ReplayController.setRcursorRotation(rCanvasAnchorPoint.rotation);
             MainUIController.updateStageOffset();
             FOFOTimer.remove("rCursorOffAlphaAnimTimer");
             MainUI.hideBottomHint();
@@ -4126,5 +4128,9 @@ package Modules
             CanvasController.updateCavnvasSizeDrawMode(RCANVAS_WIDTH, RCANVAS_HEIGHT, 0, 0, false);
         }
 
+        public static function setRcursorRotation(newAngle:Number):void
+        {
+            ReplayController.rReplayFOFOCursor.rotation = -newAngle;
+        }
     }
 }

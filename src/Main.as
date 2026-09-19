@@ -187,10 +187,6 @@
         // function
 
 
-        public function setRcursorRotation(newAngle:Number):void
-        {
-            ReplayController.rReplayFOFOCursor.rotation = -newAngle;
-        }
 
         public function getClipRectOffsetAirBrush(size:int):Number
         {
@@ -218,7 +214,7 @@
             ReplayController.rReplayFOFOCursor.x = curcorX;
             ReplayController.drawReplayByCommand.setRCursorPos(curcorX, p.y);
         }
-        public function startAlphaFadeOut(target:DisplayObject, startAlpha:Number = 1.0, waitDuration:Number = 0.0):void
+        public function showAndFadeOut(target:DisplayObject, startAlpha:Number = 1.0, waitDuration:Number = 0.0):void
         {
             target.alpha = startAlpha;
             target.visible = true;
@@ -465,7 +461,6 @@
             {
                 ReplayController.setReplayCompleteCanvasCenter();
             }
-            trace('update stage bg',stage.stageWidth + 4, stage.stageHeight + 4);
         }
 
         public function addGlobalEvents():void
@@ -1034,7 +1029,7 @@
             updatePenSizeCursor();
             CanvasController.moveCanvasAnchorPoint(center.x, center.y, false);
             CanvasController.canvasAnchorPoint.rotation = 0;
-            setRcursorRotation(0);
+            ReplayController.setRcursorRotation(0);
             CanvasController.canvasInfoBox.setRotate(0);
             MainUIController.updateCanvasNaigatorCursor();
         }

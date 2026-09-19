@@ -60,7 +60,7 @@
 
 		public function AboutWindowSet()
 		{
-			const fields:Array = VisualFieldCollector.collectNullVisualFields(this)   ;
+			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
 			VisualBuilder.buildInto(this, EmbeddedClass, fields);
 			// constructor codef
 			imageIndex = Math.floor(Math.random() * 4);

@@ -140,7 +140,7 @@ package Modules
             tmpbmpd.dispose();
             tmpbmpd = null;
             CanvasController.canvasAnchorPoint.rotation = 0;
-            main.setRcursorRotation(0);
+            ReplayController.setRcursorRotation(0);
             CanvasController.canvasZoomIndex = 3;
             CanvasController.updateCanvasScale(1.0);
             CanvasController.updateCavnvasSizeDrawMode(scaledwidth, scaledheight, 0, 0, false);
@@ -1338,7 +1338,6 @@ package Modules
         {
             const fs:FileStream = new FileStream();
             
-            trace('save = ActivityWorkTimer.getAppUpTime()',ActivityWorkTimer.getAppUpTime());
             const appUpTime:int = ActivityWorkTimer.getAppUpTime();
             fs.open(appUpTimePath, FileMode.WRITE);
             fs.writeInt(appUpTime);

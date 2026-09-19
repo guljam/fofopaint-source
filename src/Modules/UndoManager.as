@@ -471,7 +471,7 @@ package Modules
             {
                 ReplayController.moveToNextStep();
                 main.applyReplayCanvasToDrawModeCanvas();
-                main.startAlphaFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
+                main.showAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
 
                 if (ReplayController.rNowFrame >= addUndoData.getRFileTotalFrame())
                 {
@@ -493,7 +493,7 @@ package Modules
                 {
                     FileManager.isFileAlreadySaved = false;
                     UndoManager.updateCanvasStateAfterRedo();
-                    main.startAlphaFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
+                    main.showAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
                 }
             }
         }
@@ -592,7 +592,7 @@ package Modules
                 {
                     ReplayController.moveToPreviousStep();
                     main.applyReplayCanvasToDrawModeCanvas();
-                    main.startAlphaFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
+                    main.showAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
                 }
             }
             else
@@ -605,7 +605,7 @@ package Modules
                     if (ReplayController.rReplayImageCacheState === ReplayController.REPLAY_IMAGE_CAHCHE_READY || (ReplayController.rReplayImageCacheState === ReplayController.REPLAY_IMAGE_CAHCHE_COMPLETE && UndoManager.addUndoData.getRFileTotalFrame() > 0))
                     {
                         UndoManager.enableDeepUndo();
-                        main.startAlphaFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
+                        main.showAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
                     }
                 }
                 else if (ReplayController.rData.length > 0)
@@ -613,7 +613,7 @@ package Modules
                     FileManager.isFileAlreadySaved = false;
                     UndoManager.isDeleteUndoDataPending = true;
                     updateCanvasStateAfterUndo();
-                    main.startAlphaFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
+                    main.showAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
                 }
             }
         }
