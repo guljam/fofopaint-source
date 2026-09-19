@@ -38,7 +38,7 @@ package Modules
         // todo 리플레이 저장형식을 바이너리로 다시 대체, 실시간 입력 기반으로 각 프레임마다 그리지 말고 실제 시간 지연을 녹화
         // todo 리플레이 실행중일때 탐색바만 나오는데 리플레이 속도 조절할수있게 같이 나오게 해야함 ui고민
         // todo playback speed 키보드로 조정할때 힌트 박스를 topbar 아래쪽으로 직관적으로 보이게 조정
-        // todo 탐색바 힌트를 표시한 채로 f1으로 드로우 모드에 진입하면 테두리랑 힌트가 남음 
+        // todo 탐색바 힌트를 표시한 채로 f1으로 드로우 모드에 진입하면 테두리랑 힌트가 남음
         // todo 버그 발견, mirror가 된 상태에서 뒷프레임을 잘라주고 나서 재생하면 미러 적용이 안된 상태에서 다시 그려주는 버그가있음
         // todo 그런데 컷 잘라주면 다시 0프레임부터 시작되는데 아까는 왜 중간부터 시작되었는지 모르겠음
         public static var main:Main;
@@ -3600,7 +3600,7 @@ package Modules
             replayData.clear();
             replayData = null;
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_READY;
-            main.finalizeLoadFile(imgW, imgH, finalIMGBMPD, finalIMGBMPD1, false, bg);
+            FileManager.finalizeLoadFile(imgW, imgH, finalIMGBMPD, finalIMGBMPD1, false, bg);
         }
         public static function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDrawable, layer2Image:IBitmapDrawable):void
         {
@@ -3609,7 +3609,7 @@ package Modules
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReferenceLayerController.refLayerRawBitmapData = null;
             ReferenceLayerController.refLayerRawTransformData = null;
-            main.finalizeLoadFile(width, height, layer1Image, layer2Image, true, 0xFFFFFF);
+            FileManager.finalizeLoadFile(width, height, layer1Image, layer2Image, true, 0xFFFFFF);
             initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소
         }
 
@@ -3680,61 +3680,6 @@ package Modules
             {
                 fitReplayCanvasToViewport();
             }
-        }
-
-        public static function drawUndoData(redoFlag:Boolean = false):void
-        {
-            const undoRefData:Array = UndoManager.addUndoData.getUndoBaseImage();
-            const undoIndexSave:int = UndoManager.undoDataIndex;
-            rDataReadFlag = true;
-            rDataIndex = undoIndexSave;
-            rPrevFrame = rNowFrame;
-            rNowFrame = UndoManager.getNowFrameUntilUndoIndex(undoIndexSave);
-            rMirrorON = undoRefData[5];
-            if (undoRefData[2] !== RCANVAS_WIDTH || undoRefData[3] !== RCANVAS_HEIGHT)
-            {
-                updateCanvasSizeReplayMode(undoRefData[2], undoRefData[3], 0, 0, false);
-            }
-            if (undoRefData[4] !== RCANVAS_BG_COLOR)
-            {
-                updateCanvasBGColorReplayMode(undoRefData[4]);
-            }
-            rCanvasDrawShape.graphics.clear();
-            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoRefData[0], rCanvasLayer1Bitmap);
-            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoRefData[1], rCanvasLayer2Bitmap);
-            if (rData.length > 0)
-            {
-                for (var i:int = 0;i <= undoIndexSave;i++)
-                {
-                    if (!rData[i])
-                        continue;
-                    drawReplayByCommand.setData(rData[i]);
-                    drawReplayByCommand.drawAll();
-                }
-            }
-            ColorPickerController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
-            CanvasController.updateCavnvasSizeDrawMode(RCANVAS_WIDTH, RCANVAS_HEIGHT, 0, 0, false);
-            // 앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
-            const movedRegPos:Point = UndoManager.getCanvasMovedUndo(undoIndexSave, redoFlag);
-            if (movedRegPos)
-            {
-                CanvasController.canvasAnchorPoint.x += movedRegPos.x * CanvasController.canvasZoomMultipler;
-                CanvasController.canvasAnchorPoint.y += movedRegPos.y * CanvasController.canvasZoomMultipler;
-                ReferenceLayerController.updateRefLayerBitmapPos(movedRegPos);
-            }
-            CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
-            CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
-            UndoManager.showRCursorOnUndo(UndoManager.undoDataIndex);
-            checkMirrorCanvasReplayMirror();
-            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
-            if (ImageViewWindow.isCanvasWindowON)
-            {
-                ImageViewWindow.updateCanvasWindowImage();
-                ImageViewWindow.updateCanvasWindowBitmapSize();
-            }
-            CanvasController.keepCanvasPanelInStage(); // 사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
-            MainUIController.updateCanvasNaigatorCursor();
-            FileManager.enableNewFileButton();
         }
 
         public static function initializeReplayCanvas():void
@@ -3893,7 +3838,6 @@ package Modules
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent);
         }
-
 
         public static function updateReplaySpeedSliderAlpha():void
         {
@@ -4140,11 +4084,46 @@ package Modules
                 });
         }
 
-
-
         public static function updateRCanvasDrawLayerCliprect2():void
         {
             rCanvasDrawLayerClipRect = rCanvasDrawLayerClipRect.union(rCanvasDrawShape.getBounds(rCanvasPanel));
+        }
+
+        public static function updateReplayCanvasFromUndoRefData(undoRefData:Array, undoIndexSave:int):void
+        {
+            rDataReadFlag = true;
+            rDataIndex = undoIndexSave;
+            rPrevFrame = rNowFrame;
+            rNowFrame = UndoManager.getNowFrameUntilUndoIndex(undoIndexSave);
+            rMirrorON = undoRefData[5];
+
+            if (undoRefData[2] !== RCANVAS_WIDTH || undoRefData[3] !== RCANVAS_HEIGHT)
+            {
+                updateCanvasSizeReplayMode(undoRefData[2], undoRefData[3], 0, 0, false);
+            }
+
+            if (undoRefData[4] !== RCANVAS_BG_COLOR)
+            {
+                updateCanvasBGColorReplayMode(undoRefData[4]);
+            }
+
+            rCanvasDrawShape.graphics.clear();
+            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoRefData[0], rCanvasLayer1Bitmap);
+            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoRefData[1], rCanvasLayer2Bitmap);
+
+            if (rData.length > 0)
+            {
+                for (var i:int = 0;i <= undoIndexSave;i++)
+                {
+                    if (!rData[i])
+                        continue;
+                    drawReplayByCommand.setData(rData[i]);
+                    drawReplayByCommand.drawAll();
+                }
+            }
+
+            ColorPickerController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
+            CanvasController.updateCavnvasSizeDrawMode(RCANVAS_WIDTH, RCANVAS_HEIGHT, 0, 0, false);
         }
 
     }

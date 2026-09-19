@@ -751,15 +751,27 @@ package Modules
         public static function updateCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
         {
             const maxSize:uint = CANVAS_MAX_SIZE;
+
             if (w > maxSize)
+            {
                 w = maxSize;
+            }
             else if (w < 1)
+            {
                 w = 1;
+            }
+
             if (h > maxSize)
+            {
                 h = maxSize;
+            }
             else if (h < 1)
+            {
                 h = 1;
-            CanvasController.updateCanvasBGColorDrawMode(CANVAS_BG_COLOR);
+            }
+
+
+
             updateCanvasPanelMask(w, h);
             canvasLayer1BitmapData = new BitmapData(w, h, true, 0);
             canvasLayer2BitmapData = new BitmapData(w, h, true, 0);
@@ -790,9 +802,12 @@ package Modules
             ReferenceLayerController.updateRefLayerImagePos(w, h, centerMovedFlag); // canvas width가 갱신되게 전에 체크해야함
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
+            CanvasController.updateCanvasBGColorDrawMode(CANVAS_BG_COLOR);
             keepCanvasPanelInStage();
             if (CanvasGridOverlay.gridGapMultiplier > 0)
+            {
                 CanvasGridOverlay.drawGrid();
+            }
             canvasInfoBox.setSize(w, h);
         }
 

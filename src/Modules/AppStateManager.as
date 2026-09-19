@@ -228,7 +228,7 @@ package Modules
 
             if (FileManager.undoDataFilePath.exists)
             {
-                UndoManager.loadUndoData(); // ReplayController.undo data 복구 먼저 해줘야함
+                FileManager.loadUndoData(); // ReplayController.undo data 복구 먼저 해줘야함
             }
 
             if (FileManager.scratchPadDataFilePath.exists)

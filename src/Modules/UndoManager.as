@@ -12,6 +12,11 @@ package Modules
     {
         // 메인 인스턴스 참조
         public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+            addUndoData = cAddUndoData();
+        }
 
         // Undo / Redo 상태 관리
         public static var undoDataIndex:int = -1; // undo redo 상태 인덱스임
@@ -27,12 +32,6 @@ package Modules
         // Undo 매니저 클로저 객체
         public static var addUndoData:Object;
 
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-            addUndoData = cAddUndoData();
-        }
-
         public static function get mirrorCommandReady():Boolean
         {
             return _mirrorCommandReady;
@@ -40,7 +39,7 @@ package Modules
 
         public static function set mirrorCommandReady(flag:Boolean):void
         {
-            _mirrorCommandReady = flag
+            _mirrorCommandReady = flag;
         }
 
         public static function flipMirrorComandReadyFlag():void
@@ -197,7 +196,7 @@ package Modules
 
             // 미러가 되어있는지 확인해서 mirror커맨드를 무조건 앞으로 보냄
             // 그게 아니면 미러 커맨드 지워줌
-            //todo ReplayController가 자주 호출되므로 ReplayController에 함수를 하나 따로 만들어서 깔끔하게 하는게 나음
+            // todo ReplayController가 자주 호출되므로 ReplayController에 함수를 하나 따로 만들어서 깔끔하게 하는게 나음
             function updateLastRDataMirror():void
             {
                 var popArr:Array;
@@ -438,104 +437,7 @@ package Modules
             return addUndoData.getRFileTotalFrame() + addUndoData.getRDataTotalFrame(index);
         }
 
-        public static function loadUndoData():void
-        {
-            if (FileManager.undoDataFilePath.exists === false)
-            {
-                return;
-            }
-
-            ReplayController.rMirrorON = false;
-            CanvasController.isCanvasMirrored = false;
-            CanvasController.canvasInfoBox.setMirror(false);
-
-            const fs:FileStream = new FileStream();
-            fs.open(FileManager.undoDataFilePath, FileMode.READ);
-
-            const lastUndoIndex:int = fs.readInt();
-            var arr:Array = fs.readObject() as Array; // undodata first
-
-            const bmpdRect:Rectangle = new Rectangle(0, 0, arr[2], arr[3]);
-            var bmpd:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-            var bmpd1:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-
-            if (arr[6] is Number)
-            {
-                addUndoData.setRFileTotalFrame(arr[6]);
-            }
-
-            ReplayController.rData = (fs.readObject() as Array).concat();
-            ReplayController.rDataFrame = (fs.readObject() as Array).concat();
-            fs.close();
-
-            undoDataIndex = lastUndoIndex;
-
-            bmpd.lock();
-            bmpd.setPixels(bmpdRect, arr[0]);
-            bmpd.unlock();
-
-            bmpd1.lock();
-            bmpd1.setPixels(bmpdRect, arr[1]);
-            bmpd1.unlock();
-
-            addUndoData.updateUndoBaseImage(bmpd.clone(), bmpd1.clone(), arr[2], arr[3], arr[4], arr[5]);
-            ReplayController.drawUndoData();
-
-            ReplayController.rReplayFOFOCursor.visible = false;
-            MainUI.hideMouseHint();
-
-            bmpd.dispose();
-            bmpd1.dispose();
-            bmpd = null;
-            bmpd1 = null;
-
-            arr.length = 0;
-            arr = null;
-
-            // undo index가 arr의 가장 마지막 부분이 아니면 undo를 하던 중이니까 isDeleteUndoDataPending 켜줌
-            if (lastUndoIndex < ReplayController.rData.length - 1)
-            {
-                isDeleteUndoDataPending = true;
-            }
-            else
-            {
-                isDeleteUndoDataPending = false;
-            }
-        }
-
-        public static function saveUndoData():void
-        {
-            const fs:FileStream = new FileStream();
-            const arr:Array = addUndoData.getUndoBaseImage();
-            const bmpd:BitmapData = arr[0];
-            const bmpd1:BitmapData = arr[1];
-
-            var ba:ByteArray = new ByteArray();
-            var ba1:ByteArray = new ByteArray();
-            var newRectangle:Rectangle = new Rectangle(0, 0, arr[2], arr[3]);
-
-            bmpd.copyPixelsToByteArray(newRectangle, ba);
-            bmpd1.copyPixelsToByteArray(newRectangle, ba1);
-
-            // ba.compress();
-            // ba1.compress();
-            // 레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
-            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], addUndoData.getRFileTotalFrame()];
-
-            fs.open(FileManager.undoDataFilePath, FileMode.WRITE);
-            fs.writeInt(undoDataIndex);
-            fs.writeObject(newArr);
-            fs.writeObject(ReplayController.rData);
-            fs.writeObject(ReplayController.rDataFrame);
-            fs.close();
-
-            ba.clear();
-            ba1.clear();
-            ba = null;
-            ba1 = null;
-        }
-
-        public static function getCanvasMovedUndo(index:int, redoFlag:Boolean):Point
+        public static function getHowCanvasMoveAfterUndoOrRedo(index:int, redoFlag:Boolean):Point
         {
             const prevData:Array = (redoFlag) ? ReplayController.rData[index] : ReplayController.rData[index + 1];
 
@@ -559,6 +461,7 @@ package Modules
                 return null;
 
             const movedXY:Point = (redoFlag) ? new Point(-xSum, -ySum) : new Point(xSum, ySum);
+
             return movedXY;
         }
 
@@ -589,7 +492,7 @@ package Modules
                 else if (ReplayController.rData.length > 0)
                 {
                     FileManager.isFileAlreadySaved = false;
-                    ReplayController.drawUndoData(true);
+                    UndoManager.updateCanvasStateAfterRedo();
                     main.startAlphaFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
                 }
             }
@@ -600,7 +503,7 @@ package Modules
             undoDataIndex = index;
             FileManager.isFileAlreadySaved = false;
             FileManager.enableNewFileButton();
-            ReplayController.drawUndoData();
+            UndoManager.updateCanvasStateAfterUndo();
         }
 
         public static function disableDeepUndo():void
@@ -709,10 +612,53 @@ package Modules
                 {
                     FileManager.isFileAlreadySaved = false;
                     UndoManager.isDeleteUndoDataPending = true;
-                    ReplayController.drawUndoData();
+                    updateCanvasStateAfterUndo();
                     main.startAlphaFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
                 }
             }
+        }
+
+        public static function updateCanvasStateAfterRedo():void
+        {
+            _updateCanvasState(true);
+        }
+
+        public static function updateCanvasStateAfterUndo():void
+        {
+            _updateCanvasState(false);
+        }
+
+        public static function _updateCanvasState(redoFlag:Boolean):void
+        {
+            const undoRefData:Array = UndoManager.addUndoData.getUndoBaseImage();
+            const undoIndexSave:int = UndoManager.undoDataIndex;
+
+            // 리플레이 캔버스 먼저 갱신
+            ReplayController.updateReplayCanvasFromUndoRefData(undoRefData, undoIndexSave);
+
+            // 앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
+            const movedRegPos:Point = UndoManager.getHowCanvasMoveAfterUndoOrRedo(undoIndexSave, redoFlag);
+            if (movedRegPos)
+            {
+                CanvasController.canvasAnchorPoint.x += movedRegPos.x * CanvasController.canvasZoomMultipler;
+                CanvasController.canvasAnchorPoint.y += movedRegPos.y * CanvasController.canvasZoomMultipler;
+                ReferenceLayerController.updateRefLayerBitmapPos(movedRegPos);
+            }
+            CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
+            CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, ReplayController.rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
+            UndoManager.showRCursorOnUndo(UndoManager.undoDataIndex);
+            ReplayController.checkMirrorCanvasReplayMirror();
+            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+
+            // canvas window 상태 갱신
+            if (ImageViewWindow.isCanvasWindowON)
+            {
+                ImageViewWindow.updateCanvasWindowImage();
+                ImageViewWindow.updateCanvasWindowBitmapSize();
+            }
+            CanvasController.keepCanvasPanelInStage(); // 사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
+            MainUIController.updateCanvasNaigatorCursor();
+            FileManager.enableNewFileButton();
         }
     }
 }

@@ -25,6 +25,8 @@ package Modules
     import flash.utils.getTimer;
 
     import libwebp.DecodeWebp;
+    import flash.display.IBitmapDrawable;
+    import flash.geom.Matrix;
 
     public class FileManager
     {
@@ -47,7 +49,7 @@ package Modules
 
         public static const loadMenuBox:LoadBoxSet = new LoadBoxSet();
 
-        //todo gpt한테 이 변수 곳곳에 쓰이는데 이를 최적화로  종합적으로 관리가 가능한지 묻기 아마 캔버스가 변경될때에만 내려주면 될것같은데 과연?
+        // todo gpt한테 이 변수 곳곳에 쓰이는데 이를 최적화로  종합적으로 관리가 가능한지 묻기 아마 캔버스가 변경될때에만 내려주면 될것같은데 과연?
         public static var isFileAlreadySaved:Boolean = false; // 세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
         public static var isContinueSaveON:Boolean = false; // 한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
         public static var lastSaveFileName:String = getRandomFileName(); // 세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
@@ -65,6 +67,149 @@ package Modules
         private static var loadMenuBoxBitmapData:BitmapData;
         private static var loadMenuBoxFileType:String;
         private static var loadMenuBoxFile:File;
+
+        public static function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawable, imageData1:IBitmapDrawable, imageOnlyFlag:Boolean, newBG:uint):void
+        {
+            if (!imageData)
+            {
+                FileManager.showLoadFaildMouseHint();
+                return;
+            }
+            var maxLength:Number = (width > height) ? width : height;
+            var scaleFix:Number = (maxLength > CanvasController.CANVAS_MAX_SIZE) ? CanvasController.CANVAS_MAX_SIZE / maxLength : 1.0;
+            const scaledwidth:Number = Math.floor(width * scaleFix);
+            const scaledheight:Number = Math.floor(height * scaleFix); // CANVAS_MAX_SIZE 값을 넘으면 리사이즈 해줌
+            var scaleMat:Matrix = new Matrix();
+            scaleMat.scale(scaleFix, scaleFix);
+            var tmpbmpd:BitmapData = new BitmapData(scaledwidth, scaledheight, true, 0);
+            if (CaptureController.isCaptureModeON)
+            {
+                CaptureController.handleExitCaptureMode();
+            }
+            ReplayController.resetReplaySpeedBar();
+            ReplayController.resetReplayTime();
+            ReplayController.clearCanvasReplayMode();
+            ReplayController.updateReplayPrograssText(true, 0);
+            MainUI.seekBarBox.resetReplayPrograssBarWidth();
+            ColorPickerController.updateCanvasBGColorDrawMode(newBG);
+            ReplayController.updateCanvasBGColorReplayMode(newBG);
+            if (ImageViewWindow.isCanvasWindowON)
+            {
+                ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
+            }
+            // FileManager.updateLastFilePathByRandomFileName();
+            FileManager.isContinueSaveON = false; // 연속 세이브 플래그 취소
+            ReplayController.rMirrorON = false;
+            CanvasController.isCanvasMirrored = false;
+            UndoManager.mirrorCommandReady = false;
+            CanvasController.canvasInfoBox.setMirror(false);
+            CanvasGridOverlay.updateGridMirror(false);
+            if (LassoTool._isLassoToolStarted === true)
+            {
+                LassoTool.cancelLassoTool();
+                LassoTool.resetLassoBox();
+            }
+            if (FillPenTool.isStarted)
+            {
+                FillPenTool.cancel();
+            }
+            tmpbmpd.draw(imageData, scaleMat, null, null, null, true);
+            CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, tmpbmpd, CanvasController.canvasLayer1Bitmap);
+            if (imageOnlyFlag)
+            {
+                if (ReplayController.rFirstImageLayer1BitmapData && tmpbmpd !== ReplayController.rFirstImageLayer1BitmapData)
+                    ReplayController.rFirstImageLayer1BitmapData.dispose();
+                ReplayController.rFirstImageLayer1BitmapData = tmpbmpd.clone(); // 이미지만 불러와주면 첫 이미지를 갱신해줌
+            }
+            if (imageData1 !== null)
+            {
+                tmpbmpd.fillRect(new Rectangle(0, 0, scaledwidth, scaledheight), 0);
+                tmpbmpd.draw(imageData1, scaleMat, null, null, null, true);
+                CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, tmpbmpd, CanvasController.canvasLayer2Bitmap);
+                if (imageOnlyFlag)
+                {
+                    ReplayController.rFirstImageLayer2BitmapData = tmpbmpd.clone();
+                }
+            }
+            else
+            {
+                CanvasController.canvasLayer2BitmapData = new BitmapData(CanvasController.canvasLayer1BitmapData.width, CanvasController.canvasLayer1BitmapData.height, true, 0);
+                CanvasController.canvasLayer2Bitmap.bitmapData = CanvasController.canvasLayer2BitmapData;
+            }
+            tmpbmpd.dispose();
+            tmpbmpd = null;
+            CanvasController.canvasAnchorPoint.rotation = 0;
+            main.setRcursorRotation(0);
+            CanvasController.canvasZoomIndex = 3;
+            CanvasController.updateCanvasScale(1.0);
+            CanvasController.updateCavnvasSizeDrawMode(scaledwidth, scaledheight, 0, 0, false);
+            ReplayController.syncReplayCanvasImageWithDrawMode();
+            ReplayController.syncReplayCanvasWithDrawMode();
+            CanvasController.centerCanvas("draw");
+            main.updatePenSizeCursor();
+            if (CanvasGridOverlay.gridGapMultiplier > 0)
+            {
+                CanvasGridOverlay.drawGrid();
+            }
+            // bitmapdata가 갱신된이후에 업데이트 해줘야함
+            UndoManager.resetUndoState();
+            ReplayController.drawReplayByCommand.resetFirstRCursorPos();
+            if (ReferenceLayerController.refLayerRawTransformData === null)
+            {
+                ReferenceLayerController.clearRefLayerImage();
+            }
+            else
+            {
+                ReferenceLayerController.canvasRefLayerBitmapData = ReferenceLayerController.refLayerRawBitmapData.clone();
+                ReferenceLayerController.canvasRefLayerBitmap.bitmapData = ReferenceLayerController.canvasRefLayerBitmapData;
+                ReferenceLayerController.updateRefLayerImageTransform(ReferenceLayerController.refLayerRawTransformData[4],
+                        ReferenceLayerController.refLayerRawTransformData[5],
+                        ReferenceLayerController.refLayerRawTransformData[6],
+                        ReferenceLayerController.refLayerRawTransformData[7],
+                        ReferenceLayerController.refLayerRawTransformData[8]);
+                ReferenceLayerController.refLayerMenuDragXMoveSum = ReferenceLayerController.refLayerRawTransformData[10];
+                ReferenceLayerController.refLayerLastAlpha = ReferenceLayerController.refLayerRawTransformData[11];
+                ReferenceLayerController.canvasRefLayer.visible = true;
+                ReferenceLayerController.canvasRefLayer.alpha = Utils.normalizeAlphaValue(ReferenceLayerController.refLayerRawTransformData[11]);
+                ReferenceLayerController.updateRefLayerOpacityCursorPosByValue(ReferenceLayerController.refLayerRawTransformData[11]);
+                ReferenceLayerController.refLayerRawBitmapData.dispose();
+                ReferenceLayerController.refLayerRawBitmapData = null;
+                ReferenceLayerController.refLayerRawTransformData = null;
+                ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
+            }
+            MainUIController.updateWindowTitle();
+            CanvasController.selectLayer1(false);
+            ReplayController.selectReplaySubLayer(false);
+            if (ToolController.toolOptionsBox.layer1CheckedButton.visible)
+            {
+                CanvasController.toggleLayer1Check();
+            }
+            if (ToolController.toolOptionsBox.layer2CheckedButton.visible)
+            {
+                CanvasController.toggleLayer2Check();
+            }
+            MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+            InputController.removeKeyRepeatEvents(null);
+            CanvasController.canvasLayer1Bitmap.visible = true;
+            CanvasController.canvasLayer2Bitmap.visible = true;
+            MainUI.topBar.captureButton.alpha = 1.0;
+            MainUI.topBar.newFileButton.alpha = 1.0;
+            ReferenceLayerController.refLayerMenuBox.refTransferCanvasImageButton.alpha = 1.0;
+            ColorPickerController.selectCurrentColor(false);
+            ToolController.selectPenToolIfNotDrawingTool(false);
+            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            MainUIController.updateCanvasNaigatorCursor();
+            if (ImageViewWindow.isCanvasWindowON)
+            {
+                ImageViewWindow.updateCanvasWindowImage();
+                ImageViewWindow.canvasWindowIgnoreResizeEventFlag = true;
+                ImageViewWindow.updateCanvasWindowBitmapSize();
+            }
+            CaptureController.resetCaptureCanvasChangeValue();
+            FileManager.lastLoadedFile = null;
+            FileManager.isLoadPendingAfterSaving = false;
+            FileManager.closeLoadMenuBox();
+        }
 
         public static function closeLoadMenuBox():void
         {
@@ -1180,7 +1325,7 @@ package Modules
         public static function saveAllAppData():void
         {
             AppStateManager.saveAppSatate();
-            UndoManager.saveUndoData();
+            FileManager.saveUndoData();
             ReplayController.saveReplayFrameData();
             ReferenceLayerController.saveRefLayerImage();
             PaletteController.saveMypPaletteList();
@@ -1317,6 +1462,103 @@ package Modules
                 FileManager.checkWindowMaximizedAndSaveAllData();
             }
         }
-    }
 
+        
+        public static function loadUndoData():void
+        {
+            if (FileManager.undoDataFilePath.exists === false)
+            {
+                return;
+            }
+
+            ReplayController.rMirrorON = false;
+            CanvasController.isCanvasMirrored = false;
+            CanvasController.canvasInfoBox.setMirror(false);
+
+            const fs:FileStream = new FileStream();
+            fs.open(FileManager.undoDataFilePath, FileMode.READ);
+
+            const lastUndoIndex:int = fs.readInt();
+            var arr:Array = fs.readObject() as Array; // undodata first
+
+            const bmpdRect:Rectangle = new Rectangle(0, 0, arr[2], arr[3]);
+            var bmpd:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
+            var bmpd1:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
+
+            if (arr[6] is Number)
+            {
+                UndoManager.addUndoData.setRFileTotalFrame(arr[6]);
+            }
+
+            ReplayController.rData = (fs.readObject() as Array).concat();
+            ReplayController.rDataFrame = (fs.readObject() as Array).concat();
+            fs.close();
+
+            UndoManager.undoDataIndex = lastUndoIndex;
+
+            bmpd.lock();
+            bmpd.setPixels(bmpdRect, arr[0]);
+            bmpd.unlock();
+
+            bmpd1.lock();
+            bmpd1.setPixels(bmpdRect, arr[1]);
+            bmpd1.unlock();
+
+            UndoManager.addUndoData.updateUndoBaseImage(bmpd.clone(), bmpd1.clone(), arr[2], arr[3], arr[4], arr[5]);
+            UndoManager.updateCanvasStateAfterUndo();
+
+            ReplayController.rReplayFOFOCursor.visible = false;
+            MainUI.hideMouseHint();
+
+            bmpd.dispose();
+            bmpd1.dispose();
+            bmpd = null;
+            bmpd1 = null;
+
+            arr.length = 0;
+            arr = null;
+
+            // undo index가 arr의 가장 마지막 부분이 아니면 undo를 하던 중이니까 isDeleteUndoDataPending 켜줌
+            if (lastUndoIndex < ReplayController.rData.length - 1)
+            {
+                UndoManager.isDeleteUndoDataPending = true;
+            }
+            else
+            {
+                UndoManager.isDeleteUndoDataPending = false;
+            }
+        }
+
+        public static function saveUndoData():void
+        {
+            const fs:FileStream = new FileStream();
+            const arr:Array = UndoManager.addUndoData.getUndoBaseImage();
+            const bmpd:BitmapData = arr[0];
+            const bmpd1:BitmapData = arr[1];
+
+            var ba:ByteArray = new ByteArray();
+            var ba1:ByteArray = new ByteArray();
+            var newRectangle:Rectangle = new Rectangle(0, 0, arr[2], arr[3]);
+
+            bmpd.copyPixelsToByteArray(newRectangle, ba);
+            bmpd1.copyPixelsToByteArray(newRectangle, ba1);
+
+            // ba.compress();
+            // ba1.compress();
+            // 레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
+            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], UndoManager.addUndoData.getRFileTotalFrame()];
+
+            fs.open(FileManager.undoDataFilePath, FileMode.WRITE);
+            fs.writeInt(UndoManager.undoDataIndex);
+            fs.writeObject(newArr);
+            fs.writeObject(ReplayController.rData);
+            fs.writeObject(ReplayController.rDataFrame);
+            fs.close();
+
+            ba.clear();
+            ba1.clear();
+            ba = null;
+            ba1 = null;
+        }
+    }
 }
