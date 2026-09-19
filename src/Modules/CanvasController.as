@@ -1222,7 +1222,7 @@ package Modules
             canvasDrawLayer.name = "canvasDrawLayer";
             canvasDrawLayerChild.name = "canvasDrawShape";
             penSizePreviewCursor.name = "penSizeCursor";
-            MainUI.stageBG.name = "WorkspaceView.stageBG";
+            MainUI.stageBG.name = "stageBG";
             ReferenceLayerController.canvasRefLayer.name = "canvasRefLayer";
             CanvasGridOverlay.canvasGrid.name = "canvasGrid";
             canvasFlashEffect.name = "canvasFlash";

@@ -2381,6 +2381,7 @@ package Modules
             }
 
             const targetName:String = e.target.name;
+
             switch (targetName)
             {
                 case "replayPrev":
@@ -2407,7 +2408,7 @@ package Modules
                     break;
                 }
                 case "rCanvasDrawLayer":
-                case "WorkspaceView.stageBG":
+                case "stageBG":
                     {
                         if (ReplayController.isReplayRestartTimerON())
                         {
@@ -2445,7 +2446,7 @@ package Modules
             }
             if (targetName && !ReplayController.isReplayRestartTimerON())
             {
-                if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "WorkspaceView.stageBG")
+                if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG")
                 {
                     HandTool.startInReplayMode();
                     return;

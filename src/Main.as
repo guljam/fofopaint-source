@@ -465,7 +465,9 @@
             {
                 ReplayController.setReplayCompleteCanvasCenter();
             }
+            trace('update stage bg',stage.stageWidth + 4, stage.stageHeight + 4);
         }
+
         public function addGlobalEvents():void
         {
             // 전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음

@@ -271,7 +271,12 @@ package Modules
 
                         // 캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
                         if (appStateObject.lastWindowState === 1)
+                        {
                             main.stage.nativeWindow.maximize();
+                        }
+
+                        //캔버스 bg를 한번 업데이트해춤 on window resize이벤트에서는 앱이 정보가 로드되고 있을때 차단되기 때문에
+                        main.updateStageBGSize();
 
                         // UI Scale & Color
                         Global.setScaleIndex(appStateObject.uiScaleIndex);

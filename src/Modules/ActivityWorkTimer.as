@@ -58,7 +58,7 @@ package Modules
 
         public static function getFormattedAppUpTimeString():String
         {
-            var appUpTime:int = lastAppUpTime + 3761+ getTimer() / 1000;
+            var appUpTime:int = lastAppUpTime + getTimer() / 1000;
 
             if (appUpTime < 0)
             {
