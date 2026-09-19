@@ -17,6 +17,20 @@ package Modules
             main = instance;
         }
 
+        private static function loadAppUpTimeFromAppData():void
+        {
+            const fs:FileStream = new FileStream();
+
+            if (FileManager.appUpTimePath.exists)
+            {
+                fs.open(FileManager.appUpTimePath, FileMode.READ);
+                const appUpTime:int = fs.readInt();
+                ActivityWorkTimer.updateAppUpTime(appUpTime);
+                fs.close();
+                trace('appUpTime',appUpTime);
+            }
+        }
+
         public static function saveAppSatate():void
         {
             const appStateObject:AppStateVars = new AppStateVars();
@@ -54,7 +68,7 @@ package Modules
             appStateObject.saveFileName = FileManager.lastSaveFileName;
             appStateObject.lastWindowState = MainUIController.lastAppWindowState;
             appStateObject.uiColorIndex = Global.getUIColorIndex();
-            appStateObject.appRunningTime = main.realWorkingTimer.getRunningTime();
+            appStateObject.appRunningTime = ActivityWorkTimer.getRunningTime();
 
             appStateObject.refLayerLastAlpha = ReferenceLayerController.refLayerLastAlpha;
             appStateObject.refOpacityCursorX = ReferenceLayerController.refLayerMenuBox.refOpacityCursor.x;
@@ -323,8 +337,8 @@ package Modules
                         }
 
                         // Timer
-                        main.realWorkingTimer.setRunningTime(appStateObject.appRunningTime);
-                        main.realWorkingTimer.update();
+                        ActivityWorkTimer.setRunningTime(appStateObject.appRunningTime);
+                        ActivityWorkTimer.update();
 
                         // Reference Layer
                         ReferenceLayerController.refLayerLastAlpha = appStateObject.refLayerLastAlpha;
@@ -486,6 +500,8 @@ package Modules
 
                 PaletteController.initMyPaletteHistory();
             }
+
+            loadAppUpTimeFromAppData();
         }
     }
 }

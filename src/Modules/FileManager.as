@@ -39,6 +39,7 @@ package Modules
         // todo 버전별로 저장하기
 
         public static const dataFolderPath:File = File.applicationStorageDirectory.resolvePath(main.APP_STATE_VERSION);
+        public static const appUpTimePath:File = File.applicationStorageDirectory.resolvePath("appuptime");
         public static const appStateFilePath:File = dataFolderPath.resolvePath("appstate" + main.APP_STATE_VERSION);
         public static const scratchPadDataFilePath:File = dataFolderPath.resolvePath("scratchdata");
         public static const undoDataFilePath:File = dataFolderPath.resolvePath("undodata");
@@ -72,7 +73,7 @@ package Modules
         {
             if (!imageData)
             {
-                FileManager.showLoadFaildMouseHint();
+                showLoadFaildMouseHint();
                 return;
             }
             var maxLength:Number = (width > height) ? width : height;
@@ -97,8 +98,8 @@ package Modules
             {
                 ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
             }
-            // FileManager.updateLastFilePathByRandomFileName();
-            FileManager.isContinueSaveON = false; // 연속 세이브 플래그 취소
+            // updateLastFilePathByRandomFileName();
+            isContinueSaveON = false; // 연속 세이브 플래그 취소
             ReplayController.rMirrorON = false;
             CanvasController.isCanvasMirrored = false;
             UndoManager.mirrorCommandReady = false;
@@ -206,9 +207,9 @@ package Modules
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
             CaptureController.resetCaptureCanvasChangeValue();
-            FileManager.lastLoadedFile = null;
-            FileManager.isLoadPendingAfterSaving = false;
-            FileManager.closeLoadMenuBox();
+            lastLoadedFile = null;
+            isLoadPendingAfterSaving = false;
+            closeLoadMenuBox();
         }
 
         public static function closeLoadMenuBox():void
@@ -1325,11 +1326,23 @@ package Modules
         public static function saveAllAppData():void
         {
             AppStateManager.saveAppSatate();
-            FileManager.saveUndoData();
+            saveUndoData();
             ReplayController.saveReplayFrameData();
             ReferenceLayerController.saveRefLayerImage();
             PaletteController.saveMypPaletteList();
             saveScratchPadImage();
+            saveAppUpTime();
+        }
+
+        private static function saveAppUpTime():void
+        {
+            const fs:FileStream = new FileStream();
+            
+            trace('save = ActivityWorkTimer.getAppUpTime()',ActivityWorkTimer.getAppUpTime());
+            const appUpTime:int = ActivityWorkTimer.getAppUpTime();
+            fs.open(appUpTimePath, FileMode.WRITE);
+            fs.writeInt(appUpTime);
+            fs.close();
         }
 
         public static function checkWindowMaximizedAndSaveAllData():void
@@ -1413,11 +1426,11 @@ package Modules
             main.isAppClosing = true;
 
             e.preventDefault();
-            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
+            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, onWindowDeactivate);
             InputController.removeInputEventCaptrueMode();
             InputController.removeInputEventsDrawMode();
             InputController.removeInputEventsReplayMode();
-            main.realWorkingTimer.stop();
+            ActivityWorkTimer.stop();
 
             if (ImageViewWindow.canvasWindow !== null)
             {
@@ -1444,13 +1457,13 @@ package Modules
                 if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
                 {
                     main.stage.nativeWindow.title = "Waiting for remaining tasks...";
-                    FileManager.openLoadMenuBoxOnClosing();
+                    openLoadMenuBoxOnClosing();
                     FOFOTimer.addByName("pollTimerWaitWorkerStop", BackgroundWorkerCoordinator.getWaitPollingInterval(), true, function ():Boolean
                         {
                             if (BackgroundWorkerCoordinator.isWorkerStopped())
                             {
                                 FOFOTimer.remove("pollTimerWaitWorkerStop");
-                                FileManager.checkWindowMaximizedAndSaveAllData();
+                                checkWindowMaximizedAndSaveAllData();
                                 return false;
                             }
                             return true;
@@ -1459,14 +1472,13 @@ package Modules
             }
             else
             {
-                FileManager.checkWindowMaximizedAndSaveAllData();
+                checkWindowMaximizedAndSaveAllData();
             }
         }
 
-        
         public static function loadUndoData():void
         {
-            if (FileManager.undoDataFilePath.exists === false)
+            if (undoDataFilePath.exists === false)
             {
                 return;
             }
@@ -1476,7 +1488,7 @@ package Modules
             CanvasController.canvasInfoBox.setMirror(false);
 
             const fs:FileStream = new FileStream();
-            fs.open(FileManager.undoDataFilePath, FileMode.READ);
+            fs.open(undoDataFilePath, FileMode.READ);
 
             const lastUndoIndex:int = fs.readInt();
             var arr:Array = fs.readObject() as Array; // undodata first
@@ -1548,7 +1560,7 @@ package Modules
             // 레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
             var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], UndoManager.addUndoData.getRFileTotalFrame()];
 
-            fs.open(FileManager.undoDataFilePath, FileMode.WRITE);
+            fs.open(undoDataFilePath, FileMode.WRITE);
             fs.writeInt(UndoManager.undoDataIndex);
             fs.writeObject(newArr);
             fs.writeObject(ReplayController.rData);

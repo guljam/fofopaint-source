@@ -86,7 +86,7 @@ package Modules
 
 		public static function isHintUnavailable():Boolean
 		{
-			return CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging || ToolController.isToolBox2Showing
+			return CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging || ToolController.isToolBox2Showing
 				|| ColorPickerController.numPadBox.visible || AboutBoxController.isAboutBoxOpened || ReplayController.isGeneratingCacheImages();
 			// || isFillPenStarted
 			// || isLassoToolStarted

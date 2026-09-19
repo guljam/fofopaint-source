@@ -327,7 +327,7 @@ package Modules
             const frameRate:Number = main.stage.frameRate;
             function isMouseMoved():Boolean
             {
-                return pos.x !== main.stage.mouseX || pos.y !== main.stage.mouseY || CanvasController.isMouseClicked || CanvasController.isRightMouseClicked;
+                return pos.x !== main.stage.mouseX || pos.y !== main.stage.mouseY || CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked;
             }
             function updateMousePos():void
             {
@@ -2329,7 +2329,7 @@ package Modules
                     {
                         lastCursorUpdateTime = nowTime;
                         drawReplayByCommand.updateRCursorPos();
-                        if (!isReplayCanvasFitToWindow && !CanvasController.isMouseClicked && !UndoManager.isDeepUndoEnabled)
+                        if (!isReplayCanvasFitToWindow && !CanvasController.isMouseLeftClicked && !UndoManager.isDeepUndoEnabled)
                         {
                             rFollowMouse.check(isReplaySlideShowMode);
                         }

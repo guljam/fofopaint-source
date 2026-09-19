@@ -137,7 +137,7 @@ package Modules
             if (!FOFOTimer.hasTimer("pressholdtimer"))
             {
                 var keyBufferLenSave:uint = getPressedKeyCount();
-                var mouseClickONSave:Boolean = CanvasController.isMouseClicked;
+                var mouseClickONSave:Boolean = CanvasController.isMouseLeftClicked;
                 var rightMouseClickONSave:Boolean = CanvasController.isRightMouseClicked;
                 const countDownTime:Number = 3;
                 const countDownTimeNow:Number = Math.ceil((main.stage.frameRate * 2.5) / countDownTime);
@@ -162,7 +162,7 @@ package Modules
                 }
                 FOFOTimer.addByName("pressholdtimer", 0.0, true, function ():Boolean
                     {
-                        if (CanvasController.isMouseClicked !== mouseClickONSave
+                        if (CanvasController.isMouseLeftClicked !== mouseClickONSave
                                 || CanvasController.isRightMouseClicked !== rightMouseClickONSave
                                 || keyBufferLenSave !== getPressedKeyCount()
                                 || (button && button.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false))
@@ -305,7 +305,7 @@ package Modules
         public static function onMouseDownStage(e:MouseEvent):void
         {
             checkInvalidKey();
-            CanvasController.isMouseClicked = true;
+            CanvasController.isMouseLeftClicked = true;
             MainUI.hideBottomHint();
         }
 
@@ -691,7 +691,7 @@ package Modules
         {
             const target:DisplayObject = e.target as DisplayObject;
 
-            if (CanvasController.isMouseClicked || SidebarController.isQuickSidebarActive || !target || ColorPickerController.numPadBox.visible)
+            if (CanvasController.isMouseLeftClicked || SidebarController.isQuickSidebarActive || !target || ColorPickerController.numPadBox.visible)
             {
                 return;
             }
@@ -791,21 +791,21 @@ package Modules
         {
             const pressedKey:uint = e.keyCode;
 
-            if (CanvasController.isMouseClicked)
+            if (CanvasController.isMouseLeftClicked)
             {
                 return;
             }
 
-            if (InputController.isLastKey(pressedKey))
+            if (isLastKey(pressedKey))
             {
                 return;
             }
 
-            const secondKey:int = InputController.getSecondPressedKey();
+            const secondKey:int = getSecondPressedKey();
 
-            if (SidebarController.isPressingQuickSidebarShortcut(pressedKey, secondKey) || pressedKey === InputController.KEY.n6)
+            if (SidebarController.isPressingQuickSidebarShortcut(pressedKey, secondKey) || pressedKey === KEY.n6)
             {
-                InputController.updateLastKey(pressedKey);
+                updateLastKey(pressedKey);
 
                 if (SidebarController.isQuickSidebarActive === false)
                 {
@@ -817,14 +817,14 @@ package Modules
                     }
                 }
             }
-            else if (pressedKey === InputController.KEY.g || pressedKey === InputController.KEY.b)
+            else if (pressedKey === KEY.g || pressedKey === KEY.b)
             {
-                InputController.updateLastKey(pressedKey);
-                InputController.startKeyRepeat(true, function (increase:Boolean):void
+                updateLastKey(pressedKey);
+                startKeyRepeat(true, function (increase:Boolean):void
                     {
                         FillPenTool.setPreviewOFFTimerCount();
                         ToolController.adjustDrawToolAlphaByShortcut(increase);
-                    }, (pressedKey === InputController.KEY.g) ? true : false);
+                    }, (pressedKey === KEY.g) ? true : false);
 
                 if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
                 {
@@ -836,11 +836,11 @@ package Modules
         private static function onKeyUpFillPen(e:KeyboardEvent):void
         {
             const keyCode:uint = e.keyCode;
-            InputController.resetLastKey();
+            resetLastKey();
 
-            if (CanvasController.isMouseClicked)
+            if (CanvasController.isMouseLeftClicked)
             {
-                if (keyCode === InputController.KEY.q || keyCode === InputController.KEY.o || keyCode === InputController.KEY.enter)
+                if (keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter)
                 {
                     FillPenTool.afterKeyUpOK = true;
                 }
@@ -848,15 +848,15 @@ package Modules
                 return;
             }
 
-            if (keyCode === InputController.KEY.w || keyCode === InputController.KEY.i || keyCode === InputController.KEY.z || keyCode === InputController.KEY.dot)
+            if (keyCode === KEY.w || keyCode === KEY.i || keyCode === KEY.z || keyCode === KEY.dot)
             {
                 FillPenTool.undoData();
             }
-            else if (keyCode === InputController.KEY.q || keyCode === InputController.KEY.o || keyCode === InputController.KEY.enter)
+            else if (keyCode === KEY.q || keyCode === KEY.o || keyCode === KEY.enter)
             {
                 FillPenTool.applyFillPen();
             }
-            else if (keyCode === InputController.KEY.esc || keyCode === InputController.KEY.backspace)
+            else if (keyCode === KEY.esc || keyCode === KEY.backspace)
             {
                 FillPenTool.cancel();
             }
@@ -1004,7 +1004,7 @@ package Modules
             const keyCode:uint = e.keyCode;
             if (isLastKey(keyCode))
             {
-                if (CanvasController.isMouseClicked === true)
+                if (CanvasController.isMouseLeftClicked === true)
                 {
                     CanvasController.isKeyReleasedBeforeMouseUp = true;
                 }
@@ -1060,7 +1060,7 @@ package Modules
 
         public static function onKeyDownDrawMode(e:KeyboardEvent):void
         {
-            if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isKeyReleasedBeforeMouseUp || FillPenTool.isStarted
+            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isKeyReleasedBeforeMouseUp || FillPenTool.isStarted
                     || MainUIController.isPopUpWindowOpened())
             {
                 return;
@@ -1173,9 +1173,9 @@ package Modules
 
         public static function onMouseUpLassoTool(e:MouseEvent):void
         {
-            if (InputController.getPressedKeyCount() === 1 && InputController.getFirstPressedKey() === InputController.KEY.space)
+            if (getPressedKeyCount() === 1 && getFirstPressedKey() === KEY.space)
             {
-                InputController.updateLastKey(InputController.KEY.space);
+                updateLastKey(KEY.space);
                 LassoTool.isLassoMenuHiddenTemp = true;
                 ToolController.setSelectedTool(ToolController.TOOL_HAND);
                 ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
@@ -1299,58 +1299,58 @@ package Modules
         public static function onKeyUpLassoTool(e:KeyboardEvent):void
         {
             const keyCode:uint = e.keyCode;
-            if (LassoTool.isLassoMenuHiddenTemp && !CanvasController.isMouseClicked)
+            if (LassoTool.isLassoMenuHiddenTemp && !CanvasController.isMouseLeftClicked)
             {
                 LassoTool.isLassoMenuHiddenTemp = false;
             }
-            InputController.checkGeneralKeyUp(keyCode);
+            checkGeneralKeyUp(keyCode);
         }
 
         public static function onKeyDownLassoTool(e:KeyboardEvent):void
         {
-            if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging)
+            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging)
             {
                 return;
             }
 
-            const keyCode:uint = InputController.getFirstPressedKey();
+            const keyCode:uint = getFirstPressedKey();
 
-            if (keyCode === InputController.KEY.space)
+            if (keyCode === KEY.space)
             {
-                if (InputController.checkSubKey(2, true, handleSpaceSubKeyLassoTool))
+                if (checkSubKey(2, true, handleSpaceSubKeyLassoTool))
                 {
                     return;
                 }
 
-                if (InputController.isLastKey(keyCode))
+                if (isLastKey(keyCode))
                 {
                     return;
                 }
 
-                InputController.updateLastKey(keyCode);
+                updateLastKey(keyCode);
                 LassoTool.isLassoMenuHiddenTemp = true;
                 ToolController.setSelectedTool(ToolController.TOOL_HAND);
                 ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
             }
-            else if (InputController.isPressingShift())
+            else if (isPressingShift())
             {
-                if (InputController.checkSubKey(2, true, handleShiftSubKeyLassoTool))
+                if (checkSubKey(2, true, handleShiftSubKeyLassoTool))
                 {
                     return;
                 }
             }
 
-            if (InputController.isLastKey(keyCode))
+            if (isLastKey(keyCode))
             {
                 return;
             }
 
-            InputController.updateLastKey(keyCode);
+            updateLastKey(keyCode);
 
             switch (keyCode)
             {
-                case InputController.KEY.tab:
-                case InputController.KEY.backslash:
+                case KEY.tab:
+                case KEY.backslash:
                     if (SidebarController.isSidebarVisible)
                     {
                         SidebarController.hideSidebarPermanent();
@@ -1361,28 +1361,28 @@ package Modules
                     }
                     break;
 
-                case InputController.KEY.w:
-                case InputController.KEY.i:
+                case KEY.w:
+                case KEY.i:
                     LassoTool.isLassoMenuHiddenTemp = true;
-                    InputController.updateLastKey(keyCode);
+                    updateLastKey(keyCode);
                     ToolController.setSelectedTool(ToolController.TOOL_ZOOM);
                     ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ZOOM);
                     break;
 
-                case InputController.KEY.s:
-                case InputController.KEY.k:
+                case KEY.s:
+                case KEY.k:
                     LassoTool.isLassoMenuHiddenTemp = true;
-                    InputController.updateLastKey(keyCode);
+                    updateLastKey(keyCode);
                     ToolController.setSelectedTool(ToolController.TOOL_ROTATE);
                     ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ROTATE);
                     break;
 
-                case InputController.KEY.enter:
+                case KEY.enter:
                     LassoTool.applyLassoImageToCanvas();
                     break;
 
-                case InputController.KEY.esc:
-                case InputController.KEY.backspace:
+                case KEY.esc:
+                case KEY.backspace:
                     LassoTool.cancelLassoTool();
                     break;
             }
@@ -1414,7 +1414,7 @@ package Modules
 
         public static function onRightMouseUpLassoTool(e:MouseEvent):void
         {
-            if (!LassoTool._isLassoToolStarted || CanvasController.isMouseClicked)
+            if (!LassoTool._isLassoToolStarted || CanvasController.isMouseLeftClicked)
             {
                 return;
             }
@@ -1471,16 +1471,16 @@ package Modules
         {
             switch (input)
             {
-                case InputController.KEY.s:
-                case InputController.KEY.k:
+                case KEY.s:
+                case KEY.k:
                     if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                     {
                         main.resetRotationDrawMode();
                     }
                     return;
 
-                case InputController.KEY.w:
-                case InputController.KEY.i:
+                case KEY.w:
+                case KEY.i:
                     if (CanvasController.canvasZoomMultipler !== 1.0)
                     {
                         CanvasController.resetZoomDrawMode();
@@ -1498,34 +1498,34 @@ package Modules
 
             switch (input)
             {
-                case InputController.KEY.w:
-                case InputController.KEY.i:
+                case KEY.w:
+                case KEY.i:
                     LassoTool.move1PXUp();
                     break;
 
-                case InputController.KEY.a:
-                case InputController.KEY.j:
+                case KEY.a:
+                case KEY.j:
                     LassoTool.move1PXLeft();
                     break;
 
-                case InputController.KEY.s:
-                case InputController.KEY.k:
+                case KEY.s:
+                case KEY.k:
                     LassoTool.move1PXDown();
                     break;
 
-                case InputController.KEY.d:
-                case InputController.KEY.l:
+                case KEY.d:
+                case KEY.l:
                     LassoTool.move1PXRight();
                     break;
             }
         }
         private static function handleControlSubKeyReplayMode(input:int):void
         {
-            if (input === InputController.KEY.c || input === InputController.KEY.m)
+            if (input === KEY.c || input === KEY.m)
             {
                 CaptureController.enterCaptureMode();
             }
-            else if (input === InputController.KEY.v || input === InputController.KEY.m)
+            else if (input === KEY.v || input === KEY.m)
             {
                 if (ClipboardManager.isClipBoardButtonActivated)
                 {
@@ -1537,23 +1537,23 @@ package Modules
         {
             switch (input)
             {
-                case InputController.KEY.left:
-                case InputController.KEY.z:
-                case InputController.KEY.dot:
+                case KEY.left:
+                case KEY.z:
+                case KEY.dot:
                     {
                         if (!ReplayController.isReplayStarted)
                         {
-                            InputController.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
+                            startKeyRepeat(true, ReplayController.moveToPreviousFrame);
                         }
                     }
                     break;
-                case InputController.KEY.right:
-                case InputController.KEY.x:
-                case InputController.KEY.comma:
+                case KEY.right:
+                case KEY.x:
+                case KEY.comma:
                     {
                         if (!ReplayController.isReplayStarted)
                         {
-                            InputController.startKeyRepeat(true, ReplayController.moveToNextFrame);
+                            startKeyRepeat(true, ReplayController.moveToNextFrame);
                         }
                     }
                     break;
@@ -1833,7 +1833,7 @@ package Modules
                     return;
                 case "timer":
                     {
-                        startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, main.realWorkingTimer.reset, null);
+                        startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
                     }
                     return;
                 case "newFileButton":
@@ -1961,7 +1961,7 @@ package Modules
         // todo numpad켜져있을때 캔버스 바로 클릭하면 바로 다른 툴 적용되게 바꾸어야함
         public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
         {
-            if (CanvasController.isMouseClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
+            if (CanvasController.isMouseLeftClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
                     || FillPenTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
                     || FileManager.loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
@@ -2041,17 +2041,17 @@ package Modules
 
         private static function onKeyDownCaptureMode(e:KeyboardEvent):void
         {
-            const firstKey:uint = InputController.getFirstPressedKey();
+            const firstKey:uint = getFirstPressedKey();
             if (CaptureController.captureStampFontListBox.visible)
             {
-                if (firstKey === InputController.KEY.esc)
+                if (firstKey === KEY.esc)
                 {
                     CaptureController.hideStampFontList();
                 }
                 return;
             }
 
-            if (firstKey === InputController.KEY.esc)
+            if (firstKey === KEY.esc)
             {
                 if (main.stage.focus === MainUI.topBar.captureInput)
                 {
@@ -2060,25 +2060,25 @@ package Modules
                 }
             }
 
-            if (main.stage.focus === MainUI.topBar.captureInput || CanvasController.isMouseClicked || CanvasController.isRightMouseClicked)
+            if (main.stage.focus === MainUI.topBar.captureInput || CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked)
             {
                 return;
             }
 
-            if (InputController.isPressingControl())
+            if (isPressingControl())
             {
-                const secondKey:uint = InputController.getSecondPressedKey();
-                if (InputController.isLastKey(secondKey))
+                const secondKey:uint = getSecondPressedKey();
+                if (isLastKey(secondKey))
                 {
                     return;
                 }
-                InputController.updateLastKey(secondKey);
+                updateLastKey(secondKey);
 
-                if (secondKey === InputController.KEY.s || secondKey === InputController.KEY.semicolon)
+                if (secondKey === KEY.s || secondKey === KEY.semicolon)
                 {
                     FileManager.saveCaptureImage();
                 }
-                else if (secondKey === InputController.KEY.c || secondKey === InputController.KEY.comma)
+                else if (secondKey === KEY.c || secondKey === KEY.comma)
                 {
                     CaptureController.executeCaptureFlashEffect();
                     if (MainUI.topBar.capClipBoard.alpha === 1.0)
@@ -2086,7 +2086,7 @@ package Modules
                         CaptureController.copyCaptureImageToCilpBoard();
                     }
                 }
-                else if (secondKey === InputController.KEY.v || secondKey === InputController.KEY.m)
+                else if (secondKey === KEY.v || secondKey === KEY.m)
                 {
                     if (ClipboardManager.isClipBoardButtonActivated)
                     {
@@ -2096,19 +2096,19 @@ package Modules
                 return;
             }
 
-            if (InputController.isLastKey(firstKey))
+            if (isLastKey(firstKey))
             {
                 return;
             }
 
-            InputController.updateLastKey(firstKey);
+            updateLastKey(firstKey);
 
             switch (firstKey)
             {
-                case InputController.KEY.esc:
-                case InputController.KEY.backspace:
-                case InputController.KEY.f1:
-                case InputController.KEY.f7:
+                case KEY.esc:
+                case KEY.backspace:
+                case KEY.f1:
+                case KEY.f7:
                     CaptureController.handleExitCaptureMode();
                     break;
                 default:
@@ -2141,8 +2141,8 @@ package Modules
 
         private static function onKeyUpCaptureMode(e:KeyboardEvent):void
         {
-            InputController.updateLastKey(InputController.getLastPressedKey());
-            InputController.checkGeneralKeyUp(e.keyCode);
+            updateLastKey(getLastPressedKey());
+            checkGeneralKeyUp(e.keyCode);
         }
 
         private static function onMouseDownCaptureMode(e:MouseEvent):void
@@ -2206,7 +2206,7 @@ package Modules
                     main.handleMouseClick(targetName);
                     break;
                 case "timer":
-                    InputController.startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, main.realWorkingTimer.reset, null);
+                    startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
                     break;
                 default:
                     if (!CanvasController.isMouseClickBlocked)
@@ -2230,12 +2230,12 @@ package Modules
 
         public static function onKeyUpReplayMode(e:KeyboardEvent):void
         {
-            InputController.checkGeneralKeyUp(e.keyCode);
+            checkGeneralKeyUp(e.keyCode);
         }
         public static function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         {
-            const firstKey:uint = InputController.getFirstPressedKey();
-            if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || InputController.isLastKey(firstKey) || FileManager.loadMenuBox.visible)
+            const firstKey:uint = getFirstPressedKey();
+            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || isLastKey(firstKey) || FileManager.loadMenuBox.visible)
             {
                 return;
             }
@@ -2243,12 +2243,12 @@ package Modules
             {
                 switch (firstKey)
                 {
-                    case InputController.KEY.backspace:
-                    case InputController.KEY.esc:
-                    case InputController.KEY.enter:
-                    case InputController.KEY.space:
+                    case KEY.backspace:
+                    case KEY.esc:
+                    case KEY.enter:
+                    case KEY.space:
                         {
-                            InputController.updateLastKey(firstKey);
+                            updateLastKey(firstKey);
                             FOFOTimer.remove("prograssBarUpdateTimer");
                             ReplayController.handleReplayStopButton();
                             ;
@@ -2261,54 +2261,54 @@ package Modules
             {
                 switch (firstKey)
                 {
-                    case InputController.KEY.backspace:
-                    case InputController.KEY.esc:
-                    case InputController.KEY.enter:
-                    case InputController.KEY.space:
+                    case KEY.backspace:
+                    case KEY.esc:
+                    case KEY.enter:
+                    case KEY.space:
                         {
-                            InputController.updateLastKey(firstKey);
+                            updateLastKey(firstKey);
                             ReplayController.cancelReplayRestartTimer();
                         }
                         break;
                 }
                 return;
             }
-            if (InputController.isPressingShift())
+            if (isPressingShift())
             {
-                InputController.checkSubKey(2, false, handleShiftSubKeyReplayMode);
+                checkSubKey(2, false, handleShiftSubKeyReplayMode);
                 return;
             }
-            else if (InputController.isPressingControl())
+            else if (isPressingControl())
             {
-                InputController.checkSubKey(2, true, handleControlSubKeyReplayMode);
+                checkSubKey(2, true, handleControlSubKeyReplayMode);
                 return;
             }
-            InputController.updateLastKey(firstKey);
+            updateLastKey(firstKey);
             switch (firstKey)
             {
-                case InputController.KEY.left:
-                case InputController.KEY.z:
-                case InputController.KEY.dot:
+                case KEY.left:
+                case KEY.z:
+                case KEY.dot:
                     {
                         if (!ReplayController.isReplayStarted)
                         {
-                            InputController.startKeyRepeat(true, ReplayController.moveToPreviousStep);
+                            startKeyRepeat(true, ReplayController.moveToPreviousStep);
                         }
                     }
                     break;
-                case InputController.KEY.right:
-                case InputController.KEY.x:
-                case InputController.KEY.comma:
+                case KEY.right:
+                case KEY.x:
+                case KEY.comma:
                     {
                         if (!ReplayController.isReplayStarted)
                         {
-                            InputController.startKeyRepeat(true, ReplayController.moveToNextStep);
+                            startKeyRepeat(true, ReplayController.moveToNextStep);
                         }
                     }
                     break;
-                case InputController.KEY.up:
-                case InputController.KEY.f:
-                case InputController.KEY.h:
+                case KEY.up:
+                case KEY.f:
+                case KEY.h:
                     {
                         if (!ReplayController.isReplayStarted)
                         {
@@ -2316,9 +2316,9 @@ package Modules
                         }
                     }
                     break;
-                case InputController.KEY.down:
-                case InputController.KEY.v:
-                case InputController.KEY.n:
+                case KEY.down:
+                case KEY.v:
+                case KEY.n:
                     {
                         if (!ReplayController.isReplayStarted)
                         {
@@ -2326,16 +2326,16 @@ package Modules
                         }
                     }
                     break;
-                case InputController.KEY.backspace:
-                case InputController.KEY.esc:
-                case InputController.KEY.f1:
-                case InputController.KEY.f7:
+                case KEY.backspace:
+                case KEY.esc:
+                case KEY.f1:
+                case KEY.f7:
                     {
                         ReplayController.exitReplayMode();
                     }
                     break;
-                case InputController.KEY.enter:
-                case InputController.KEY.space:
+                case KEY.enter:
+                case KEY.space:
                     {
                         if (ReplayController.isReplayRestartTimerON())
                         {
@@ -2353,43 +2353,46 @@ package Modules
         // rotate hand zoom에서 쓰임
         public static function addInputEventsReplayMode():void
         {
-            if (InputController.isReplayModeInputEventsAdded === false)
+            if (isReplayModeInputEventsAdded === false)
             {
-                InputController.isReplayModeInputEventsAdded = true;
+                isReplayModeInputEventsAdded = true;
                 // resetKeyBuffer();
                 main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode, false, -1);
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode, false, -1);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, InputController.onKeyDownReplayMode, false, -1);
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, InputController.onKeyUpReplayMode, false, -1);
+                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownReplayMode, false, -1);
+                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode, false, -1);
             }
         }
 
         public static function removeInputEventsReplayMode():void
         {
-            InputController.isReplayModeInputEventsAdded = false;
+            isReplayModeInputEventsAdded = false;
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode);
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode);
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, InputController.onKeyDownReplayMode);
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, InputController.onKeyUpReplayMode);
+            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownReplayMode);
+            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode);
         }
 
         public static function onRightMouseDownReplayMode(e:MouseEvent):void
         {
-            if (CanvasController.isMouseClicked || InputController.isKeyPressed() || !e.target || FileManager.loadMenuBox.visible)
+            if (CanvasController.isMouseLeftClicked || isKeyPressed() || !e.target || FileManager.loadMenuBox.visible)
+            {
                 return;
+            }
+
             const targetName:String = e.target.name;
             switch (targetName)
             {
                 case "replayPrev":
                     {
-                        InputController.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
-                        InputController.startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
+                        startKeyRepeat(true, ReplayController.moveToPreviousFrame);
+                        startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
                     }
                     break;
                 case "replayNext":
                     {
-                        InputController.startKeyRepeat(true, ReplayController.moveToNextFrame);
-                        InputController.startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
+                        startKeyRepeat(true, ReplayController.moveToNextFrame);
+                        startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
                     }
                     break;
                 case "replayRotateButton":
@@ -2449,7 +2452,7 @@ package Modules
                 }
                 else if (targetName === "replayRepeatButton" || targetName === "replayFitToWindowButton")
                 {
-                    if (InputController.isKeyPressed())
+                    if (isKeyPressed())
                     {
                         return;
                     }
@@ -2465,7 +2468,7 @@ package Modules
             {
                 case "repNewFileButton":
                     {
-                        InputController.startPressHoldKey(MainUI.topBar.repNewFileButton, HintStrings.getNewFileHintString(),
+                        startPressHoldKey(MainUI.topBar.repNewFileButton, HintStrings.getNewFileHintString(),
                                 function ():Boolean
                                 {
                                     return ReplayController.prepareDeleteReplayData("total");
@@ -2481,7 +2484,7 @@ package Modules
                     {
                         if (MainUI.topBar.cutPrevDataButton.alpha === 1.0)
                         {
-                            InputController.startPressHoldKey(MainUI.topBar.cutPrevDataButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
+                            startPressHoldKey(MainUI.topBar.cutPrevDataButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
                                 {
                                     return ReplayController.prepareDeleteReplayData("before");
                                 },
@@ -2497,7 +2500,7 @@ package Modules
                     {
                         if (MainUI.topBar.superUndoButton.alpha === 1.0)
                         {
-                            InputController.startPressHoldKey(MainUI.topBar.superUndoButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
+                            startPressHoldKey(MainUI.topBar.superUndoButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
                                 {
                                     return ReplayController.prepareDeleteReplayData("after");
                                 },
@@ -2526,36 +2529,36 @@ package Modules
                 case "replayPrev":
                     {
                         FOFOTimer.remove("prograssBarUpdateTimer");
-                        if (InputController.isPressingShift())
+                        if (isPressingShift())
                         {
-                            InputController.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
-                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
+                            startKeyRepeat(true, ReplayController.moveToPreviousFrame);
+                            startKeyRepeatStopTimerOnMouseLeave(target);
                         }
                         else
                         {
-                            InputController.startKeyRepeat(true, ReplayController.moveToPreviousStep);
-                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
+                            startKeyRepeat(true, ReplayController.moveToPreviousStep);
+                            startKeyRepeatStopTimerOnMouseLeave(target);
                         }
                     }
                     break;
                 case "replayNext":
                     {
                         FOFOTimer.remove("prograssBarUpdateTimer");
-                        if (InputController.isPressingShift())
+                        if (isPressingShift())
                         {
-                            InputController.startKeyRepeat(true, ReplayController.moveToNextFrame);
-                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
+                            startKeyRepeat(true, ReplayController.moveToNextFrame);
+                            startKeyRepeatStopTimerOnMouseLeave(target);
                         }
                         else
                         {
-                            InputController.startKeyRepeat(true, ReplayController.moveToNextStep);
-                            InputController.startKeyRepeatStopTimerOnMouseLeave(target);
+                            startKeyRepeat(true, ReplayController.moveToNextStep);
+                            startKeyRepeatStopTimerOnMouseLeave(target);
                         }
                     }
                     break;
                 case "timer":
                     {
-                        InputController.startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, main.realWorkingTimer.reset, null);
+                        startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
                     }
                     break;
                 case "drawModeButton":
@@ -2578,7 +2581,7 @@ package Modules
                 case "replayPrev":
                 case "replayNext":
                     {
-                        if (InputController.isKeyPressed())
+                        if (isKeyPressed())
                         {
                             return;
                         }

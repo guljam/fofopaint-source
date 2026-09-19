@@ -10,6 +10,7 @@
     import Modules.Tools.LassoTool;
     import Modules.ToolController;
     import Modules.ReplayController;
+    import Modules.ActivityWorkTimer;
 
     public class HintStrings
     {
@@ -49,7 +50,6 @@
                 "drawModeButton": "Enter draw mode [f1 / f7 / esc / backspace]",
                 "captureButton": "Enter capture mode [ctrl+c / ctrl+,]",
                 "saveButton": "Save [ctrl+s] _ Save as... [shift+ctrl+s / right-click]",
-                "timer": "Work time _ Hold to reset",
                 "loadButton": "Load image [ctrl+o]",
                 "clipBoardButton": "Load from clipboard [ctrl+v / ctrl+m] _ No image found",
                 "newFileButton": "New file [hold esc / backspace / delete]",
@@ -66,6 +66,7 @@
                 "newWindowButton": "Image view _ Drag to move _ Right-click to fit size",
                 "aboutButton": "About FOFO PAINT",
                 "updateButton": STRING_VARIBALE_HINT,
+                "timer" : STRING_VARIBALE_HINT,
 
                 // 리플레이 모드
                 "replayModeButton": "Enter replay mode [f1 / f7]",
@@ -161,6 +162,11 @@
                 "navLayer1Bitmap": "Canvas Navigator",
                 "navLayer2Bitmap": "Canvas Navigator"
             };
+
+        static public function getActivityWorkTimeHintString():String
+        {
+            return "Work time _ Hold to reset, Total app run time : " + ActivityWorkTimer.getFormattedAppUpTimeString();
+        }
 
         static private function initSizeAndAlphaButtonHintString():void
         {
@@ -453,69 +459,55 @@
             return getFinalHint(targetName, hintsCaptureMode);
         }
 
-        static private function getFinalHint(targetName:String, hintSet:Object):String
+        static private function getFinalHint(targetName:String,hintStringSet:Object):String
         {
-            if (hintSet[targetName] !== STRING_VARIBALE_HINT)
+            if (hintStringSet[targetName] !== STRING_VARIBALE_HINT)
             {
-                return hintSet[targetName];
+                return hintStringSet[targetName];
             }
 
-            if (targetName === "toolUndo")
-            {
-                return getUndoButtonHint();
-            }
+            trace('targetName',targetName);
 
-            if (targetName === "toolRedo")
+            switch (targetName)
             {
-                return getRedoButtonHint();
-            }
+                case "toolUndo":
+                    return getUndoButtonHint();
 
-            if (targetName === "capSave")
-            {
-                return "Save " + getCaptureSaveHintString() + " [ctrl+s / ctrl+;]";
-            }
+                case "toolRedo":
+                    return getRedoButtonHint();
 
-            if (targetName === "capClipBoard")
-            {
-                return "Copy " + getCaptureSaveHintString() + " to clipboard [ctrl+c / ctrl+,]";
-            }
+                case "capSave":
+                    return "Save " + getCaptureSaveHintString() + " [ctrl+s / ctrl+;]";
 
-            if (targetName === "dpiButton")
-            {
-                return "Change UI scale _ " + STRING_RIGHT_CLICK_TO_RESET + " (Current: " + getUIScaleString() + ")";
-            }
+                case "capClipBoard":
+                    return "Copy " + getCaptureSaveHintString() + " to clipboard [ctrl+c / ctrl+,]";
 
-            if (targetName === "trackBar")
-            {
-                return getTrackBarHintString();
-            }
+                case "dpiButton":
+                    return "Change UI scale _ " + STRING_RIGHT_CLICK_TO_RESET + " (Current: " + getUIScaleString() + ")";
 
-            if (targetName === "penSmoothSliderWapper")
-            {
-                return "Pen smoothing " + getPenSmoothingValueString();
-            }
+                case "trackBar":
+                    return getTrackBarHintString();
 
-            if (targetName === "rgbInfoText")
-            {
-                return "Adjust values _ Click " + getRGBorHSVString() + " to change color model";
-            }
+                case "penSmoothSliderWapper":
+                    return "Pen smoothing " + getPenSmoothingValueString();
 
-            if (targetName === "currentColor")
-            {
-                return getCurrentColorHintString();
-            }
+                case "rgbInfoText":
+                    return "Adjust values _ Click " + getRGBorHSVString() + " to change color model";
 
-            if (targetName === "updateButton")
-            {
-                return getNewVersionAvailableHintString();
-            }
+                case "currentColor":
+                    return getCurrentColorHintString();
 
-            if (targetName === "gridSliderWrapper")
-            {
-                return "Grid: " + getGridGapHintString() + " _ " + STRING_RIGHT_CLICK_TO_RESET;
-            }
+                case "updateButton":
+                    return getNewVersionAvailableHintString();
 
-            return "";
+                case "gridSliderWrapper":
+                    return "Grid: " + getGridGapHintString() + " _ " + STRING_RIGHT_CLICK_TO_RESET;
+
+                case "timer":
+                    return getActivityWorkTimeHintString();
+                default:
+                    return "";
+            }
         }
 
         static public function getHintFromTargetName(targetName:String):String
@@ -525,7 +517,7 @@
                 return null;
             }
 
-            return getFinalHint(targetName, hints);
+            return getFinalHint(targetName,hints);
         }
     }
 }

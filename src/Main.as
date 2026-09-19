@@ -63,6 +63,7 @@
     import flash.system.Capabilities;
     import flash.utils.Timer;
     import flash.utils.getTimer;
+    import Modules.ActivityWorkTimer;
 
     // import
     public class Main extends Sprite
@@ -79,7 +80,6 @@
 
         // 윈도우 크기변수
         // 툴 클로져 자주쓰는거는 클로져로 메모리에 미리 올려둬서 성능향상하려고 한건데 모르겠음
-        public var realWorkingTimer:Object = cRealWorkingTimer();
         public var updatePenSizeCursor:Function = cUpdatePenSizeCursor();
         public var penCursorManager:Object = cPenCursorUpdater();
         public var resizeCanvas:Object = CanvasController.cResizeCanvas();
@@ -116,6 +116,7 @@
             AboutBoxController.setMainInstance(this);
             AppUpdater.setMainInstance(this);
             AppStateManager.setMainInstance(this);
+            ActivityWorkTimer.setMainInstance(this);
             BackgroundWorkerCoordinator.setMainInstance(this);
             CanvasGridOverlay.setMainInstance(this);
             CaptureController.setMainInstance(this);
@@ -170,7 +171,7 @@
             InputController.addInputEventsDrawMode();
             ReplayController.initializeReplayDataFile();
             CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
-            realWorkingTimer.start();
+            ActivityWorkTimer.start();
             AppUpdater.checkUpdate();
             InputController.tryDisableIME();
             ColorPickerController.colorPickerBox.setActiveColorPreset(0);
@@ -185,93 +186,6 @@
         }
         // function
 
-        public function cRealWorkingTimer():Object
-        {
-            var workingTimer:Timer = new Timer(1000);
-            var workingTime:int = 0;
-            var lastTime:int = 0; // 마지막 시간 저장해줌
-            // 시간 표시 관련 변수
-            var tt:int;
-            var hh:int;
-            var mm:int;
-            var ss:int;
-            var lastMousePosX:Number = 0;
-            var lastMousePosY:Number = 0;
-            function reset():void
-            {
-                lastTime = getTimer();
-                workingTime = 0;
-                MainUI.topBar.timer.text = "00:00:00";
-                MainUI.topBar.updateTimerPos(stage.stageWidth);
-            }
-            function setRunningTime(newTime:int):void
-            {
-                workingTime = newTime;
-            }
-            function getRunningTime():int
-            {
-                return workingTime;
-            }
-            function update():void
-            {
-                if (workingTime < 0)
-                {
-                    workingTime = 0;
-                }
-                tt = workingTime / 1000;
-                hh = Math.floor(tt / 3600);
-                mm = Math.floor((tt - hh * 3600) / 60);
-                ss = Math.floor(tt % 60);
-                MainUI.topBar.timer.text = ((hh < 10) ? "0" + hh : "" + hh)
-                    + ":" + ((mm < 10) ? "0" + mm : "" + mm)
-                    + ":" + ((ss < 10) ? "0" + ss : "" + ss);
-                MainUI.topBar.timerAFkDot.visible = false;
-                MainUI.topBar.updateTimerPos(stage.stageWidth);
-            }
-            function onTimer():Boolean
-            {
-                const nowTime:int = getTimer();
-                const subTime:int = nowTime - lastTime;
-                if (!stage.nativeWindow.active
-                        || (!CanvasController.isMouseClicked && !CanvasController.isRightMouseClicked && !InputController.isKeyPressed()
-                            && stage.mouseX === lastMousePosX && stage.mouseY === lastMousePosY))
-                {
-                    MainUI.topBar.timerAFkDot.visible = !MainUI.topBar.timerAFkDot.visible;
-                    MainUI.topBar.updateTimerPos(stage.stageWidth);
-                }
-                else
-                {
-                    workingTime += subTime;
-                    update();
-                }
-                lastMousePosX = stage.mouseX;
-                lastMousePosY = stage.mouseY;
-                lastTime = nowTime;
-                return true;
-            }
-            function stop():void
-            {
-                if (workingTimer !== null)
-                {
-                    workingTimer.stop();
-                    workingTimer.removeEventListener(TimerEvent.TIMER, onTimer);
-                    workingTimer = null;
-                }
-            }
-            function start():void
-            {
-                workingTimer.addEventListener(TimerEvent.TIMER, onTimer);
-                workingTimer.start();
-            }
-            return {
-                    start: start,
-                    stop: stop,
-                    reset: reset,
-                    update: update,
-                    getRunningTime: getRunningTime,
-                    setRunningTime: setRunningTime
-                };
-        }
 
         public function setRcursorRotation(newAngle:Number):void
         {
@@ -352,8 +266,8 @@
             InputController.checkInvalidKey();
             const mx:Number = stage.mouseX;
             const my:Number = stage.mouseY;
-            CanvasController.isMouseClicked = false;
-            if (!CanvasController.isMouseClicked && CanvasController.isRightMouseClicked)
+            CanvasController.isMouseLeftClicked = false;
+            if (!CanvasController.isMouseLeftClicked && CanvasController.isRightMouseClicked)
             {
                 CanvasController.isMouseDragging = false;
             }
@@ -365,7 +279,7 @@
             const mx:Number = stage.mouseX;
             const my:Number = stage.mouseY;
             CanvasController.isRightMouseClicked = false;
-            if (!CanvasController.isMouseClicked && CanvasController.isRightMouseClicked)
+            if (!CanvasController.isMouseLeftClicked && CanvasController.isRightMouseClicked)
             {
                 CanvasController.isMouseDragging = false;
             }
@@ -373,7 +287,7 @@
 
         public function onMouseLeaveStage(e:Event):void
         {
-            CanvasController.isMouseClicked = false;
+            CanvasController.isMouseLeftClicked = false;
             CanvasController.isRightMouseClicked = false;
             CanvasController.isMouseDragging = false;
             CanvasController.penSizePreviewCursor.visible = false;
@@ -381,7 +295,7 @@
 
         public function onMouseWheelStage(e:MouseEvent):void
         {
-            if (CanvasController.isMouseClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging
+            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging
                     || MainUIController.isPopUpWindowOpened()
                     || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && InputController.isKeyPressed() || InputController.getCommandKey() !== 0)
             {
@@ -703,7 +617,7 @@
                         case "replayModeButton":
                             {
                                 ReplayController.enterReplayMode();
-                                CanvasController.isMouseClicked = false; // 리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
+                                CanvasController.isMouseLeftClicked = false; // 리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
                             }
                             break;
                         case "capLayer1VisibleButton":

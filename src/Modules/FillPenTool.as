@@ -207,7 +207,7 @@ package Modules
 
                         return false;
                     }
-                    else if (!CanvasController.isMouseClicked && !SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                    else if (!CanvasController.isMouseLeftClicked && !SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                     {
                         turnOffFillPenPreviewTimerCount--;
 

@@ -59,7 +59,7 @@ package Modules
         public static var canvasZoomIndex:int = 4;
 
         // todo 나중에 앱창 마우스 관련으로 분리
-        public static var isMouseClicked:Boolean = false; // 클릭하면 올려줌
+        public static var isMouseLeftClicked:Boolean = false; // 클릭하면 올려줌
         public static var isRightMouseClicked:Boolean = false; // 클릭하면 올려줌
         public static var isMouseDragging:Boolean = false; // 툴을 계속 클릭한채로 움직이면 topmenu의 힌트가 안켜지도록 함
         public static var isMouseClickBlocked:Boolean = false; // 알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
@@ -368,8 +368,8 @@ package Modules
             InputController.checkInvalidKey();
             const mx:Number = main.stage.mouseX;
             const my:Number = main.stage.mouseY;
-            isMouseClicked = false;
-            if (!isMouseClicked && isRightMouseClicked)
+            isMouseLeftClicked = false;
+            if (!isMouseLeftClicked && isRightMouseClicked)
             {
                 isMouseDragging = false;
             }
