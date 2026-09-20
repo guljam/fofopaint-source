@@ -2596,5 +2596,14 @@ package Modules
             }
         }
 
+public static function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
+        {
+            if (ReplayController.isReplayModeON || CaptureController.isCaptureModeON)
+            {
+                return;
+            }
+
+            PenSizePreviewCursor.updatePosAndVisibility();
+        }
     }
 }

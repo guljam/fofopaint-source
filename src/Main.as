@@ -184,39 +184,8 @@
         }
         // function
 
-        public function mirrorRCursorPos():void
-        {
-            const p:Point = ReplayController.drawReplayByCommand.getRCursorPos();
-            const half:Number = CanvasController.CANVAS_WIDTH / 2;
-            const curcorX:Number = ReplayController.rReplayFOFOCursor.x + (half - p.x) * 2;
-            ReplayController.rReplayFOFOCursor.x = curcorX;
-            ReplayController.drawReplayByCommand.setRCursorPos(curcorX, p.y);
-        }
-        public function showAndFadeOut(target:DisplayObject, startAlpha:Number = 1.0, waitDuration:Number = 0.0):void
-        {
-            target.alpha = startAlpha;
-            target.visible = true;
-            const startTime:int = getTimer() + waitDuration * 1000;
-            FOFOTimer.addByName("alphaFadeOutTimer_" + target.name, 0.0, true, function ():Boolean
-                {
-                    if (getTimer() < startTime)
-                    {
-                        return true;
-                    }
-                    if (target.visible === false)
-                    {
-                        return false;
-                    }
-                    target.alpha -= 0.1;
-                    if (target.alpha < 0.0)
-                    {
-                        target.visible = false;
-                        target.alpha = 1.0;
-                        return false;
-                    }
-                    return true;
-                });
-        }
+
+
 
         public function isCursorInDrawArea():Boolean
         {
@@ -313,15 +282,7 @@
         }
 
 
-        public function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
-        {
-            if (ReplayController.isReplayModeON || CaptureController.isCaptureModeON)
-            {
-                return;
-            }
-
-            PenSizePreviewCursor.updatePosAndVisibility();
-        }
+        
 
         //파일 드래그 드롭등 마우스 이벤트에서도 target이 null이 되는등
         //방지를 위해서 스테이지 전체 +2사이즈 여백으로 뒷부분 전체를 투명하게 깔아줌
@@ -349,8 +310,8 @@
             stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, InputController.onMiddleMouseDownStage, false, 1);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, InputController.onKeyDownStage, true, 1);
             stage.addEventListener(KeyboardEvent.KEY_UP, InputController.onKeyUpStage, false, 1);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveUpdatePenPreviewCursor);
-            stage.addEventListener(MouseEvent.MOUSE_UP, onMouseMoveUpdatePenPreviewCursor, false, -1);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE, InputController.onMouseMoveUpdatePenPreviewCursor);
+            stage.addEventListener(MouseEvent.MOUSE_UP, InputController.onMouseMoveUpdatePenPreviewCursor, false, -1);
             stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveStage, true);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, MainUI.onMouseMoveBottomHint);
             stage.nativeWindow.x = Capabilities.screenResolutionX / 2 - 680 / 2;
@@ -390,34 +351,7 @@
             ToolController.toolBox2.addEventListener(MouseEvent.MOUSE_OVER, ToolController.onMouseOverToolBox2Hint);
         }
 
-        // composing 키에대한 체크 잘모르겠음 한영 변환이 관련있는거 같음
-        // VERSION변수를 문자열로 변환, 변환할때 뒤에 .0이 붙었는지 까지 체크
-        public function convertVersionString(version:Number):String
-        {
-            var verStr:String = version.toString();
-            if (verStr && verStr.indexOf(".") === -1)
-                verStr = verStr + ".0";
-            return verStr;
-        }
 
-        public function clearDrawingData():void
-        {
-            CanvasController.clearCanvas();
-            ReplayController.resetZoomReplayMode();
-            ReplayController.resetRotationReplayMode();
-            CanvasController.centerCanvas("replay");
-            ReplayController.clearCanvasReplayMode();
-            CanvasController.resetZoomDrawMode();
-            CanvasController.resetRotationDrawMode();
-            CanvasController.centerCanvas("draw");
-            ReplayController.clearDataAndResetVars();
-            MainUIController.markWindowTitleAsDirty();
-            ReplayController.drawReplayByCommand.resetFirstRCursorPos();
-            ReplayController.clearRFrameTempCache();
-            // reset vars보다 뒤에 와야함
-            // addundo에서 활성화 해주고 있기 때문에
-            MainUI.topBar.newFileButton.alpha = Global.OFFALPHA;
-        }
 
         // todo: 분야별로 분리해야
         public function handleMouseClick(targetName:String):void

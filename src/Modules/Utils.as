@@ -6,6 +6,7 @@ package Modules
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.Dictionary;
+    import flash.utils.getTimer;
 
     public class Utils
     {
@@ -13,6 +14,33 @@ package Modules
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
+        }
+
+        //보여준후 천천히 알파값감소로 사라지게 하기
+        public static function showDisplayTargetAndFadeOut(target:DisplayObject, startAlpha:Number = 1.0, waitDuration:Number = 0.0):void
+        {
+            target.alpha = startAlpha;
+            target.visible = true;
+            const startTime:int = getTimer() + waitDuration * 1000;
+            FOFOTimer.addByName("alphaFadeOutTimer_" + target.name, 0.0, true, function ():Boolean
+                {
+                    if (getTimer() < startTime)
+                    {
+                        return true;
+                    }
+                    if (target.visible === false)
+                    {
+                        return false;
+                    }
+                    target.alpha -= 0.1;
+                    if (target.alpha < 0.0)
+                    {
+                        target.visible = false;
+                        target.alpha = 1.0;
+                        return false;
+                    }
+                    return true;
+                });
         }
 
         // stage를 기준으로 사각형 꼭지점들 구하기

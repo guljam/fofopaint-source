@@ -121,7 +121,7 @@ package Modules
 
             selectedToolViewBitmap.bitmapData = toolBox.getToolSelectViewBmpd(toolIndex, toolButton);
             updateSelectedToolViewBoxPos();
-            main.showAndFadeOut(selectedToolViewBitmap, 1.0, 1.0);
+            Utils.showDisplayTargetAndFadeOut(selectedToolViewBitmap, 1.0, 1.0);
         }
 
         public static function isSelectedToolPenOrLine():Boolean

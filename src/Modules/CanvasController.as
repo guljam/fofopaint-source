@@ -747,7 +747,7 @@ package Modules
             canvasAnchorPoint.x += Math.round((stageHalf - p.x) * 2);
             MainUIController.updateCanvasNaigatorCursor();
             FileManager.isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
-            main.mirrorRCursorPos();
+            ReplayController.mirrorRCursorPos();
         }
 
         // 비트맵 데이터를 대칭으로 돌려줌
@@ -1507,6 +1507,21 @@ package Modules
             canvasPanel.graphics.beginFill(color);
             canvasPanel.graphics.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             canvasPanel.graphics.endFill();
+        }
+
+        public static function resetAllCanvasAndReplayData():void
+        {
+            clearCanvas();
+            centerCanvas("replay");
+            centerCanvas("draw");
+            resetZoomDrawMode();
+            resetRotationDrawMode();
+            ReplayController.resetCanvasAndReplayData();
+
+            // reset vars보다 뒤에 와야함
+            // addundo에서 활성화 해주고 있기 때문에
+            MainUIController.markWindowTitleAsDirty();
+            MainUI.topBar.newFileButton.alpha = Global.OFFALPHA;
         }
     }
 }

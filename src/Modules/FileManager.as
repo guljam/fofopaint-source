@@ -34,19 +34,25 @@ package Modules
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
+            dataFolderPath = File.applicationStorageDirectory.resolvePath(main.APP_STATE_VERSION);
+            appStateFilePath = dataFolderPath.resolvePath("appstate" + main.APP_STATE_VERSION);
+            scratchPadDataFilePath = dataFolderPath.resolvePath("scratchdata");
+            undoDataFilePath = dataFolderPath.resolvePath("undodata");
+            myPaletteDataFilePath = dataFolderPath.resolvePath("mypalettedata");
+            replayDataFilePath = dataFolderPath.resolvePath("repdata");
+            replayCacheImageFolderPath = dataFolderPath.resolvePath("imagecache");
+            replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
         }
         // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
-        // todo 버전별로 저장하기
-
-        public static const dataFolderPath:File = File.applicationStorageDirectory.resolvePath(main.APP_STATE_VERSION);
+        private static var dataFolderPath:File;
+        public static var appStateFilePath:File;
+        public static var scratchPadDataFilePath:File;
+        public static var undoDataFilePath:File;
+        public static var myPaletteDataFilePath:File;
+        public static var replayDataFilePath:File;
+        public static var replayCacheImageFolderPath:File;
+        public static var replayCacheImageFrameDataFilePath:File;
         public static const appUpTimePath:File = File.applicationStorageDirectory.resolvePath("appuptime");
-        public static const appStateFilePath:File = dataFolderPath.resolvePath("appstate" + main.APP_STATE_VERSION);
-        public static const scratchPadDataFilePath:File = dataFolderPath.resolvePath("scratchdata");
-        public static const undoDataFilePath:File = dataFolderPath.resolvePath("undodata");
-        public static const myPaletteDataFilePath:File = dataFolderPath.resolvePath("mypalettedata");
-        public static const replayDataFilePath:File = dataFolderPath.resolvePath("repdata");
-        public static const replayCacheImageFolderPath:File = dataFolderPath.resolvePath("imagecache");
-        public static const replayCacheImageFrameDataFilePath:File = dataFolderPath.resolvePath("jumpframedata");
 
         public static const loadMenuBox:LoadBoxSet = new LoadBoxSet();
 
@@ -534,7 +540,7 @@ package Modules
         }
         public static function createNewFile(fromShortcut:Boolean):void
         {
-            InputController.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, main.clearDrawingData, null);
+            InputController.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, CanvasController.resetAllCanvasAndReplayData, null);
         }
         public static function openLocalManualFolder():void
         {

@@ -167,7 +167,7 @@ package Modules
                 UndoManager.mirrorCommandReady = true;
                 CanvasController.mirrorDrawModeBitmapData();
                 CanvasGridOverlay.updateGridMirror(CanvasController.isCanvasMirrored);
-                main.mirrorRCursorPos();
+                ReplayController.mirrorRCursorPos();
             }
             else if (UndoManager.mirrorCommandReady)
             {
@@ -4131,6 +4131,25 @@ package Modules
         public static function setRcursorRotation(newAngle:Number):void
         {
             ReplayController.rReplayFOFOCursor.rotation = -newAngle;
+        }
+        public static function mirrorRCursorPos():void
+        {
+            const p:Point = ReplayController.drawReplayByCommand.getRCursorPos();
+            const half:Number = CanvasController.CANVAS_WIDTH / 2;
+            const curcorX:Number = ReplayController.rReplayFOFOCursor.x + (half - p.x) * 2;
+            ReplayController.rReplayFOFOCursor.x = curcorX;
+            ReplayController.drawReplayByCommand.setRCursorPos(curcorX, p.y);
+        }
+
+        public static function resetCanvasAndReplayData():void
+        {
+
+            ReplayController.resetZoomReplayMode();
+            ReplayController.resetRotationReplayMode();
+            ReplayController.clearCanvasReplayMode();
+            ReplayController.clearDataAndResetVars();
+            ReplayController.drawReplayByCommand.resetFirstRCursorPos();
+            ReplayController.clearRFrameTempCache();
         }
     }
 }
