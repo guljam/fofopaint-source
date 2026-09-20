@@ -982,7 +982,7 @@ package Modules.Tools
             ToolController.toolOptionsBox.sharpLineButtonWrapper.alpha = 1.0;
             ToolController.toolOptionsBox.opaSizeButtonWrapper.alpha = 1.0;
             ColorPickerController.colorPickerBox.alpha = 1.0;
-            ToolController.selectLastUsedTool();
+            // ToolController.selectLastUsedTool();
             setAlphaButtonsOnLassoTool(1.0);
         }
 
