@@ -57,75 +57,81 @@ package Modules
         }
 
         public static function checkCursorVisibility():void
+        {
+            if (cursorSize <= 4 || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
             {
-                if (cursorSize <= 4 || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
-                {
-                    if (_cursor.visible)
-                    {
-                        _cursor.visible = false;
-                    }
-                }
-                else if (_cursor.visible === false)
-                {
-                    _cursor.visible = true;
-                }
-            }
-
-           public static function getCursorSize():Number
-            {
-                return cursorSize;
-            }
-
-           public static function updateCursorSize(size:Number):void
-            {
-                cursorSize = size * CanvasController.canvasZoomMultipler;
-            }
-
-           public static function updateZoom(z:Number):void
-            {
-                if (ToolController.isSelectedToolPenOrLine())
-                {
-                    cursorSize = PenTool.penSize * CanvasController.canvasZoomMultipler;
-                }
-                else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
-                {
-                    cursorSize = PenTool.eraserSize * CanvasController.canvasZoomMultipler;
-                }
-                else
-                {
-                    cursorSize = 0;
-                }
-            }
-
-        public static function updatePosAndVisibility():void
-            {
-                const mx:Number = main.stage.mouseX;
-                const my:Number = main.stage.mouseY;
-                // 아마 이거 preview커서 박스 커서가 커져서 sidebar 바운더리가 커졌을때
-                // 제대로 확인못해서 썼던걸거임
-                // || (!quickSidebarON && !isCursorInDrawArea())
-                // (sideBar.visible && (sideBarScrollBar.hitTestPoint(mouseX,mouseY) || sideBar.hitTestPoint(mouseX,mouseY)))
-                if (isPenSizeCursorInvisible
-                        || (ToolController.nowTool > ToolController.TOOL_LINE && ToolController.nowTool !== ToolController.TOOL_FILLPEN) // 1 2 3 4 펜 지우개 라인툴 라인-지우개툴
-                        || !main.isCursorInDrawArea()
-                        || main.resizeCanvas.isCanvasResizing()
-                        || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx,my))
-                        || FileManager.loadMenuBox.visible)
+                if (_cursor.visible)
                 {
                     _cursor.visible = false;
                 }
-                else
-                {
-                    // addundo플래그가 커서가 캔버스 안에 들어올때 해주기 때문에 위치를 계속 갱신해줘야함
-                    _cursor.x = mx;
-                    _cursor.y = my;
-                    checkCursorVisibility();
-                }
             }
+            else if (_cursor.visible === false)
+            {
+                _cursor.visible = true;
+            }
+        }
 
+        public static function getCursorSize():Number
+        {
+            return cursorSize;
+        }
+
+        public static function updateCursorSize(size:Number):void
+        {
+            cursorSize = size * CanvasController.canvasZoomMultipler;
+        }
+
+        public static function updateZoom(z:Number):void
+        {
+            if (ToolController.isSelectedToolPenOrLine())
+            {
+                cursorSize = PenTool.penSize * CanvasController.canvasZoomMultipler;
+            }
+            else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            {
+                cursorSize = PenTool.eraserSize * CanvasController.canvasZoomMultipler;
+            }
+            else
+            {
+                cursorSize = 0;
+            }
+        }
+
+        툴선택메서드(펜지우게 등)에서  updatePosAndVisibility updateSizeAndShape등 제거하고 툴선택이 완료된시점에  refreshCursorAfterToolSelection만 호출하기
+        public static function refreshCursorAfterToolSelection():void
+        {
+            PenSizePreviewCursor.updateSizeAndShape();
+            PenSizePreviewCursor.updatePosAndVisibility();
+        }
+
+        private static function updatePosAndVisibility():void
+        {
+            const mx:Number = main.stage.mouseX;
+            const my:Number = main.stage.mouseY;
+            // 아마 이거 preview커서 박스 커서가 커져서 sidebar 바운더리가 커졌을때
+            // 제대로 확인못해서 썼던걸거임
+            // || (!quickSidebarON && !isCursorInDrawArea())
+            // (sideBar.visible && (sideBarScrollBar.hitTestPoint(mouseX,mouseY) || sideBar.hitTestPoint(mouseX,mouseY)))
+            if (isPenSizeCursorInvisible
+                    || (ToolController.nowTool > ToolController.TOOL_LINE && ToolController.nowTool !== ToolController.TOOL_FILLPEN) // 1 2 3 4 펜 지우개 라인툴 라인-지우개툴
+                    || !main.isCursorInDrawArea()
+                    || main.resizeCanvas.isCanvasResizing()
+                    || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx, my))
+                    || FileManager.loadMenuBox.visible)
+            {
+                _cursor.visible = false;
+            }
+            else
+            {
+                // addundo플래그가 커서가 캔버스 안에 들어올때 해주기 때문에 위치를 계속 갱신해줘야함
+                _cursor.x = mx;
+                _cursor.y = my;
+                checkCursorVisibility();
+            }
+        }
 
         // size, size drag, zoom, rotate시 업데이트 해줌
-        public static function updateSizeAndShape():void
+        private static function updateSizeAndShape():void
         {
             const isPenTool:Boolean = ToolController.isSelectedToolPenOrLine();
             if (!isPenTool && !ToolController.isSelectedTool(ToolController.TOOL_ERASER))

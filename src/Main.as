@@ -34,12 +34,11 @@
     import Modules.Utils;
 
     //todo 힌트박스 컨트롤러 만들기, 지금 각툴에 힌트 관련 마우스 이벤트가 있음 이것을 전부 옮기기 mainui도아마 개편해야할듯싶음 힌트관련 메뉴가 많음
+    //todo if(켜졌으면) 꺼주기 형식 각 클래스마다 비슷한거 있는데 gpt한테 물어봐서 정리한다음 메서드 하나로 한줄로 호출되도록 바꾸기
+    //todo 함수 중복 처리되는거 잘 관찰한후 내부 값만 변경 - 최종 갱신순으로 해야겠음, 너무 툴마다 따로따로 생각했던것같음
     import Symbols.HintBoxSet;
 
     import flash.desktop.NativeApplication;
-    import flash.display.BitmapData;
-    import flash.display.DisplayObject;
-    import flash.display.IBitmapDrawable;
     import flash.display.SimpleButton;
     import flash.display.Sprite;
     import flash.display.StageAlign;
