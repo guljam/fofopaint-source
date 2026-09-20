@@ -270,7 +270,7 @@
 
 		private function isHexFormatColor(str:String):Boolean
 		{
-			const pattern:RegExp = /^#?[0-9a-fA-F]{6}$/g;
+			const pattern:RegExp = /^#?[0-9a-fA-F]{6}$/;
 			return pattern.test(str);
 		}
 

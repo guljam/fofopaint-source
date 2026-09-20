@@ -349,6 +349,8 @@
             xPanel.graphics.endFill();
         }
 
+        //파일 드래그 드롭등 마우스 이벤트에서도 target이 null이 되는등
+        //방지를 위해서 스테이지 전체 +2사이즈 여백으로 뒷부분 전체를 투명하게 깔아줌
         public function updateStageBGSize():void
         {
             MainUI.stageBG.graphics.clear();
