@@ -240,7 +240,6 @@ package Modules
             canvasDrawLayerClipRect.width += (airBrushOffset * 2);
             canvasDrawLayerClipRect.height += (airBrushOffset * 2);
         }
-        
 
         public static function updateCanvasDrawLayerCliprect():void
         {
@@ -259,7 +258,6 @@ package Modules
             }
             return 0;
         }
-
 
         public static function playLayerSwapEffect(target:DisplayObject):void
         {
@@ -751,7 +749,7 @@ package Modules
             FileManager.isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
             main.mirrorRCursorPos();
         }
-    
+
         // 비트맵 데이터를 대칭으로 돌려줌
         public static function mirrorDrawModeBitmapData():void
         {
@@ -770,7 +768,6 @@ package Modules
                 ImageViewWindow.updateCanvasWindowImage();
             }
         }
-
 
         public static function updateCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
         {
@@ -793,8 +790,6 @@ package Modules
             {
                 h = 1;
             }
-
-
 
             updateCanvasPanelMask(w, h);
             canvasLayer1BitmapData = new BitmapData(w, h, true, 0);
@@ -1505,7 +1500,7 @@ package Modules
             ReplayController.rCanvasPanel.graphics.endFill();
         }
 
-        //todo canvsabgcolor변수 업데이틔를 따로 해주는데 이것과 동기화 해주어야하는지 조사 
+        // todo canvsabgcolor변수 업데이틔를 따로 해주는데 이것과 동기화 해주어야하는지 조사
         public static function updateCanvasBGColorDrawMode(color:uint):void
         {
             canvasPanel.graphics.clear();

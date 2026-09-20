@@ -323,32 +323,6 @@
             PenSizePreviewCursor.updatePosAndVisibility();
         }
 
-        public function restoreCanvasBackgroundColor(replayMode:Boolean):void
-        {
-            var xPanel:Sprite;
-            var w:Number = CanvasController.CANVAS_WIDTH;
-            var h:Number = CanvasController.CANVAS_HEIGHT;
-            var color:uint;
-            if (replayMode)
-            {
-                xPanel = ReplayController.rCanvasPanel;
-                w = ReplayController.RCANVAS_WIDTH;
-                h = ReplayController.RCANVAS_HEIGHT;
-                color = ReplayController.RCANVAS_BG_COLOR;
-            }
-            else
-            {
-                xPanel = CanvasController.canvasPanel;
-                w = CanvasController.CANVAS_WIDTH;
-                h = CanvasController.CANVAS_HEIGHT;
-                color = CanvasController.CANVAS_BG_COLOR;
-            }
-            xPanel.graphics.clear();
-            xPanel.graphics.beginFill(color);
-            xPanel.graphics.drawRect(0, 0, w, h);
-            xPanel.graphics.endFill();
-        }
-
         //파일 드래그 드롭등 마우스 이벤트에서도 target이 null이 되는등
         //방지를 위해서 스테이지 전체 +2사이즈 여백으로 뒷부분 전체를 투명하게 깔아줌
         public function updateStageBGSize():void

@@ -266,6 +266,32 @@ package Modules
             exitCaptureMode();
         }
 
+        public static function restoreCanvasBackgroundColorDrawMode():void
+        {
+            var panel:Sprite = CanvasController.canvasPanel;
+            var w:Number = CanvasController.CANVAS_WIDTH;
+            var h:Number = CanvasController.CANVAS_HEIGHT;
+            var color:uint = CanvasController.CANVAS_BG_COLOR;
+
+            panel.graphics.clear();
+            panel.graphics.beginFill(color);
+            panel.graphics.drawRect(0, 0, w, h);
+            panel.graphics.endFill();
+        }
+
+        public static function restoreCanvasBackgroundColorReplayMode():void
+        {
+            var panel:Sprite = ReplayController.rCanvasPanel;
+            var w:Number = ReplayController.RCANVAS_WIDTH;
+            var h:Number = ReplayController.RCANVAS_HEIGHT;
+            var color:uint = ReplayController.RCANVAS_BG_COLOR;
+
+            panel.graphics.clear();
+            panel.graphics.beginFill(color);
+            panel.graphics.drawRect(0, 0, w, h);
+            panel.graphics.endFill();
+        }
+
         public static function applyTransparentCanvasBGCaptureMode(flag:Boolean):void
         {
             isCaptureTransparentBGShowing = flag;
@@ -274,9 +300,13 @@ package Modules
             {
                 BackgroundWorkerCoordinator.applyTransparentCanvasBackground(ReplayController.isReplayModeON);
             }
+            else if(ReplayController.isReplayModeON)
+            {
+                restoreCanvasBackgroundColorReplayMode();
+            }
             else
             {
-                main.restoreCanvasBackgroundColor(ReplayController.isReplayModeON);
+                restoreCanvasBackgroundColorDrawMode();
             }
             MainUI.topBar.capClipBoard.alpha = 1.0;
         }
@@ -332,11 +362,6 @@ package Modules
                 }
             }
         }
-
-
-
-
-
 
         public static function enterCaptureMode():void
         {
@@ -490,12 +515,12 @@ package Modules
 
             if (replayMode)
             {
-                main.restoreCanvasBackgroundColor(true);
+                restoreCanvasBackgroundColorReplayMode();
                 ReplayController.rReplayFOFOCursor.visible = true;
             }
             else if (!replayMode)
             {
-                main.restoreCanvasBackgroundColor(false);
+                restoreCanvasBackgroundColorDrawMode();
             }
 
             CanvasController.keepCanvasPanelInStage(replayMode);
@@ -1711,7 +1736,6 @@ package Modules
 
             return timeStr;
         }
-
 
     }
 }

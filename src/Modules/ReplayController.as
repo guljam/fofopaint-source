@@ -85,7 +85,7 @@ package Modules
         public static var rCanvasPanel:Sprite = new Sprite();
         public static var rCanvasDrawLayer:Sprite = new Sprite();
         public static var rCanvasDrawShape:Shape = new Shape();
-        private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); //리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
+        private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); // 리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
         public static var rCanvasLayer1BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
         public static var rCanvasLayer2BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
         private static var rCanvasDrawLayerBitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
