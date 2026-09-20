@@ -137,7 +137,7 @@ package Modules.Tools
             if (isLassoImageCopied)
             {
                 applyLassoBoxImageToCanvas(true);
-                disposeLassoBoxBitmapData();
+                disposeAllLayerBitmapData();
                 resetLassoBox();
             }
             else
@@ -163,7 +163,7 @@ package Modules.Tools
                 }
                 ReplayController.rDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
                 UndoManager.addUndoData.addNew();
-                disposeLassoBoxBitmapData();
+                disposeAllLayerBitmapData();
                 resetLassoBox();
             }
             if (ReferenceLayerController.canvasRefLayer.visible === false || ReferenceLayerController.refLayerLastAlpha === 0.0)
@@ -317,7 +317,7 @@ package Modules.Tools
             }
             isLassoImageCopied = true;
             _lassoMenuBox.lassoCopy.alpha = Global.OFFALPHA;
-            lassoCancelBmpd();
+            restoreToLastBmpd();
         }
 
         public static function startLassoImageRotation():void
@@ -884,14 +884,14 @@ package Modules.Tools
                 }
                 else
                 {
-                    lassoCancelBmpd();
+                    restoreToLastBmpd();
                 }
-                disposeLassoBoxBitmapData();
+                disposeAllLayerBitmapData();
             }
             resetLassoBox();
         }
 
-        public static function disposeLassoBoxBitmapData():void
+        public static function disposeAllLayerBitmapData():void
         {
             if (lassoLayer1Bitmap.bitmapData)
             {
@@ -904,7 +904,7 @@ package Modules.Tools
         }
 
         // todo cancel lasso bmpd 로 바꾸기, lasso툴이적용되었을경우 리플레이나 undo성능 향상을 위해서 캐싱하고 파일저장에도 써주여야함 이는 나중에 .fofo 새로운 세이브파일 구현때 하기
-        public static function lassoCancelBmpd():void
+        public static function restoreToLastBmpd():void
         {
             if (lassoLayer1LastBitmapdata)
             {
@@ -921,10 +921,20 @@ package Modules.Tools
             }
         }
 
+        public static function cancelIfActive():void
+        {
+            if (!_isLassoToolStarted)
+            {
+                return;
+            }
+
+            cancelLassoTool();
+        }
+
         public static function cancelLassoTool():void
         {
-            disposeLassoBoxBitmapData();
-            lassoCancelBmpd();
+            disposeAllLayerBitmapData();
+            restoreToLastBmpd();
             resetLassoBox();
         }
 

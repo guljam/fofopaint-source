@@ -634,10 +634,7 @@
                             break;
                         case "lassoCancel":
                             {
-                                if (LassoTool._isLassoToolStarted === true)
-                                {
-                                    LassoTool.cancelLassoTool();
-                                }
+                                LassoTool.cancelIfActive();
                             }
                             break;
                         case "lassoLayerMerge":

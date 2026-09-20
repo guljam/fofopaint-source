@@ -111,11 +111,7 @@ package Modules
             UndoManager.mirrorCommandReady = false;
             CanvasController.canvasInfoBox.setMirror(false);
             CanvasGridOverlay.updateGridMirror(false);
-            if (LassoTool._isLassoToolStarted === true)
-            {
-                LassoTool.cancelLassoTool();
-                LassoTool.resetLassoBox();
-            }
+            LassoTool.cancelIfActive();
             if (FillPenTool.isStarted)
             {
                 FillPenTool.cancel();
@@ -568,13 +564,14 @@ package Modules
             loadMenuBoxFileType = filetype;
             loadMenuBoxFile = file;
             loadMenuBoxBitmapData = bmpd;
+
             if (LassoTool._isLassoToolStarted === true)
             {
                 LassoTool.cancelLassoTool();
-                LassoTool.resetLassoBox();
                 ToolController.resetLastTool();
                 ToolController.selectPenTool();
             }
+
             if (bmpd)
             {
                 loadMenuBox.setPreviewImage(bmpd);
@@ -1453,10 +1450,7 @@ package Modules
                 ReplayController.stopReplay();
             }
 
-            if (LassoTool._isLassoToolStarted)
-            {
-                LassoTool.cancelLassoTool();
-            }
+            LassoTool.cancelLassoTool();
 
             if (BackgroundWorkerCoordinator.isWorkerRunning())
             {

@@ -1374,7 +1374,7 @@ package Modules
 
                 case KEY.esc:
                 case KEY.backspace:
-                    LassoTool.cancelLassoTool();
+                    LassoTool.cancelIfActive();
                     break;
             }
         }
