@@ -456,48 +456,13 @@
                     const upTargetName:String = e.target.name;
                     if (targetName === upTargetName)
                     {
-                        switch (targetName)
-                        {
-                            case "resetAppButton":
-                                {
-                                    AboutBoxController.resetApp();
-                                    stage.nativeWindow.close();
-                                }
-                                break;
-                            case "versionInfo":
-                            case "releaseNoteButton":
-                                navigateToURL(new URLRequest("https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt"));
-                                break;
-                            case "aboutButton":
-                                AboutBoxController.closeAboutBox();
-                                break;
-                            case "kor":
-                                navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%EC%84%A4%EB%AA%85%EC%84%9C"));
-                                break;
-                            case "jp":
-                                navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB"));
-                                break;
-                            case "eng":
-                                navigateToURL(new URLRequest("https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-manual"));
-                                break;
-                            case "aboutHomePageLink":
-                                navigateToURL(new URLRequest("https://guljam.github.io/2020FlashPaint/"));
-                                break;
-                            case "aboutManualFolder":
-                                FileManager.openLocalManualFolder();
-                                break;
-                                // case "aboutMeLink":
-                                // navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));
-                                // break;
-                            default:
-                                AboutBoxController.closeAboutBox();
-                                break;
-                        }
+                        AboutBoxController.handlerMouseUpAboutBox(targetName);
                     }
                 }
                 stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
                 return;
             }
+
             function onMouseUp(e:MouseEvent):void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);

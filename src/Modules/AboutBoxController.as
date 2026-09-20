@@ -5,6 +5,8 @@ package Modules
     import flash.events.MouseEvent;
     import flash.events.Event;
     import flash.filesystem.File;
+    import flash.net.navigateToURL;
+    import flash.net.URLRequest;
 
     public class AboutBoxController
     {
@@ -21,6 +23,52 @@ package Modules
 
         private static var _aboutBox:AboutWindowSet;
         private static var _isAboutBoxOpened:Boolean = false; // 어바웃 창 떴을때 킴
+        public static const FOFOPAINT_RELEASE_NOTE_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt";
+        public static const FOFOPAINT_MANUAL_KOR_URL:String = "https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%EC%84%A4%EB%AA%85%EC%84%9C";
+        public static const FOFOPAINT_MANUAL_JPN_URL:String = "https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB";
+        public static const FOFOPAINT_MANUAL_ENG_URL:String = "https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-manual";
+        public static const FOFOPAINT_GITHUB_URL:String = "https://github.com/guljam/2020FlashPaint";
+
+        public static function handlerMouseUpAboutBox(targetName:String):void
+        {
+            switch (targetName)
+            {
+                case "resetAppButton":
+                    {
+                        resetApp();
+                        main.stage.nativeWindow.close();
+                    }
+                    break;
+                case "versionInfo":
+                case "releaseNoteButton":
+                    navigateToURL(new URLRequest(FOFOPAINT_RELEASE_NOTE_URL));
+                    break;
+                case "aboutButton":
+                    closeAboutBox();
+                    break;
+                case "kor":
+                    navigateToURL(new URLRequest(FOFOPAINT_MANUAL_KOR_URL));
+                    break;
+                case "jp":
+                    navigateToURL(new URLRequest(FOFOPAINT_MANUAL_JPN_URL));
+                    break;
+                case "eng":
+                    navigateToURL(new URLRequest(FOFOPAINT_MANUAL_ENG_URL));
+                    break;
+                case "aboutHomePageLink":
+                    navigateToURL(new URLRequest(FOFOPAINT_GITHUB_URL));
+                    break;
+                case "aboutManualFolder":
+                    FileManager.openLocalManualFolder();
+                    break;
+                    // case "aboutMeLink":
+                    // navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));
+                    // break;
+                default:
+                    closeAboutBox();
+                    break;
+            }
+        }
 
         public static function get aboutBox():AboutWindowSet
         {

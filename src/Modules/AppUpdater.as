@@ -26,8 +26,6 @@ package Modules
         private static const FLAG_NEED_UPDATE_MANUAL:int = (1 << 2);
         private static const UPDATE_VERSION_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/master/versionInfo.txt";
         private static const UPDATE_FILE_URL:String = "https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air";
-        private static const FOFOPAINT_GITHUB_URL:String = "https://github.com/guljam/2020FlashPaint";
-        private static const FOFOPAINT_RELEASE_NOTE_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt";
         private static const UPDATE_MAX_DOWNLOAD_RETRY:int = 5;
         private static const UPDATE_RETRY_DELAY:Number = 3.0;
         private static var status:int = FLAG_NO_UPDATE; // 새버전 나왔을때 올려주는 플래그
@@ -63,9 +61,9 @@ package Modules
             }
             else if (status === FLAG_NEED_UPDATE_MANUAL)
             {
-                navigateToURL(new URLRequest(FOFOPAINT_GITHUB_URL));
+                navigateToURL(new URLRequest(AboutBoxController.FOFOPAINT_GITHUB_URL));
             }
-            navigateToURL(new URLRequest(FOFOPAINT_RELEASE_NOTE_URL));
+            navigateToURL(new URLRequest(AboutBoxController.FOFOPAINT_RELEASE_NOTE_URL));
         }
 
         private static function installNewVersion():void
@@ -153,9 +151,16 @@ package Modules
                 status = FLAG_NO_UPDATE;
 
                 // 최신 버전이면 이미 받아놓은 업데이트 파일 삭제
-                if (updateFilePath.exists)
+                try
                 {
-                    updateFilePath.deleteFile();
+                    if (updateFilePath.exists)
+                    {
+                        updateFilePath.deleteFile();
+                    }
+                }
+                catch(err)
+                {
+                    return;
                 }
                 return;
             }
@@ -183,9 +188,9 @@ package Modules
 
             function onDownloadFailed(e:Event):void
             {
-                if (tryCount < 5)
+                if (tryCount < UPDATE_MAX_DOWNLOAD_RETRY)
                 {
-                    FOFOTimer.addByName("updateRetryTimer", 2.0, false, function ():void
+                    FOFOTimer.addByName("updateRetryTimer", UPDATE_RETRY_DELAY, false, function ():void
                         {
                             tryCount++;
                             fileLoader.load(updateRequest);
