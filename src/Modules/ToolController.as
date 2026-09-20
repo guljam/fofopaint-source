@@ -678,13 +678,19 @@ package Modules
                     case "toolRefLayer":
                         {
                             if (SidebarController.isQuickSidebarActive)
+                            {
                                 SidebarController.deactivateQuickSidebar();
+                            }
 
                             if (ReferenceLayerController.isRefLayerMenuON === false)
                             {
                                 ReferenceLayerController.openRefLayerMenu();
                                 // mouseY에서 main.stage.mouseY로 바꾸었는데 동작 이상하면 체크해야함
                                 ReferenceLayerController.refLayerMenuBox.y = main.stage.mouseY - 60;
+                            }
+                            else
+                            {
+                                ReferenceLayerController.closeRefLayerMenu();
                             }
                         }
                         break;
