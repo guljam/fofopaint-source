@@ -272,7 +272,7 @@
 
 		public function movePenSizeCursor(index:uint):void
 		{
-			const btn:Sprite = penSizeBox.getChildByName("nSizeButton" + index) as Sprite;
+			const btn:Sprite = penSizeBox.getChildByName(Global.NSIZE_BUTTON_PREFIX + index) as Sprite;
 
 			if (btn)
 			{
@@ -488,7 +488,7 @@
 			{
 				const btn:Sprite = new Sprite();
 
-				btn.name = "alphaButton" + i;
+				btn.name = Global.ALPHA_BUTTON_PREFIX + i;
 				btn.graphics.beginFill(0xFF00FF, 0.0);
 				btn.graphics.drawRect(0, 0, 17, 24);
 				btn.graphics.endFill();
@@ -516,7 +516,7 @@
 			{
 				const btn:Sprite = new Sprite();
 
-				btn.name = "nSizeButton" + i;
+				btn.name = Global.NSIZE_BUTTON_PREFIX + i;
 				btn.graphics.beginFill(0xFFFF00, 0.0);
 				btn.graphics.drawRect(0, 0, 28, 28);
 				btn.graphics.endFill();

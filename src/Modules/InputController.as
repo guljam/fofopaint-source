@@ -572,6 +572,12 @@ package Modules
                     return;
                 }
 
+                if (targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) == 0)
+                {
+                    main.selectOpacityButton(targetName);
+                    return;
+                }
+
                 switch (targetName)
                 {
                     case "toolRotate":
@@ -600,21 +606,6 @@ package Modules
                             ToolController.handleToolBoxClick(targetName);
                         }
                         return;
-
-                    case "alphaButton1":
-                    case "alphaButton2":
-                    case "alphaButton3":
-                    case "alphaButton4":
-                    case "alphaButton5":
-                    case "alphaButton6":
-                    case "alphaButton7":
-                    case "alphaButton8":
-                    case "alphaButton9":
-                    case "alphaButton10":
-                        {
-                            main.selectOpacityButton(targetName);
-                        }
-                        break;
 
                     default:
                         break;

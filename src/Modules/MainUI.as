@@ -61,6 +61,7 @@ package Modules
 		private static function updateLastBottomHintTargetRect(target:DisplayObject):void
 		{
 			const rect:Rectangle = target.getBounds(main.stage);
+
 			lastBottomHintTargetRect.x = rect.x;
 			lastBottomHintTargetRect.y = rect.y;
 			lastBottomHintTargetRect.width = rect.width;
@@ -136,6 +137,40 @@ package Modules
 			}
 		}
 
+		public static function isHintAvailableWithFillPen(target:DisplayObject):Boolean
+		{
+			const targetName:String = target.name;
+			if (FillPenTool.isStarted)
+			{
+				if (target.alpha > 0.5
+						&&
+						(ToolController.toolBox.contains(target)
+							|| CanvasController.canvasInfoBox.contains(target)
+							|| ColorPickerController.colorPickerBox.contains(target))
+						|| target === SidebarController.sideBarScrollBar
+						|| (targetName && targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) !== -1))
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+			{
+				if ((targetName && targetName.indexOf(Global.NSIZE_BUTTON_PREFIX) !== -1) || target.alpha < 0.5)
+				{
+					return false;
+				}
+			}
+			else if (isHintUnavailable())
+			{
+				return false;
+			}
+			return true;
+		}
+
 		public static function onMouseMoveBottomHint(e:MouseEvent):void
 		{
 			const target:DisplayObject = e.target as DisplayObject;
@@ -163,7 +198,7 @@ package Modules
 					showBottomHintForTarget(target);
 				}
 			}
-			else if (main.isHintAvailableWithFillPen(target))
+			else if (isHintAvailableWithFillPen(target))
 			{
 				showBottomHintForTarget(target);
 			}
@@ -243,7 +278,7 @@ package Modules
 			const tbIndex:int = main.stage.getChildIndex(topBar);
 			const hIndex:int = main.stage.getChildIndex(hintHighlightBox);
 
-			if (topBar.contains(target) || MainUI.seekBarBox.contains(target))
+			if (topBar.contains(target) || seekBarBox.contains(target))
 			{
 				var desiredIndex:int = Math.min(tbIndex + 1, topIndex);
 				if (hIndex != desiredIndex)
@@ -614,12 +649,12 @@ package Modules
 				ReferenceLayerController.refLayerMenuBox.visible = false;
 			}
 
-			MainUI.updateTopbarIconsCaptureMode();
+			updateTopbarIconsCaptureMode();
 			ReplayController.rReplayFOFOCursor.visible = false;
 
-			if (MainUI.mouseHint.isShowing())
+			if (mouseHint.isShowing())
 			{
-				MainUI.hideMouseHint();
+				hideMouseHint();
 			}
 
 			InputController.addInputEventsCaptrueMode();
@@ -634,7 +669,7 @@ package Modules
 
 			if (replayMode)
 			{
-				MainUI.updateTopbarIconsReplayMode();
+				updateTopbarIconsReplayMode();
 				InputController.addInputEventsReplayMode();
 				seekBarBox.visible = true;
 			}
@@ -649,7 +684,7 @@ package Modules
 					ReferenceLayerController.refLayerMenuBox.visible = true;
 				}
 				PenSizePreviewCursor.setCursorInVisibleFlag(false);
-				MainUI.updateTopbarIconsDrawMode();
+				updateTopbarIconsDrawMode();
 				InputController.addInputEventsDrawMode();
 			}
 

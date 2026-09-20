@@ -177,14 +177,14 @@
             }
 
             var len:int = PenTool.penAlphaList.length;
-            var key:String = "alphaButton";
+            var key:String = Global.ALPHA_BUTTON_PREFIX;
             for (var i:int = 1;i <= len;i++)
             {
                 hints[key + i] = "Opacity " + (PenTool.penAlphaList[i] * 100) + "% [g / b]";
             }
 
             len = PenTool.penSizeList.length;
-            key = "nSizeButton";
+            key = Global.NSIZE_BUTTON_PREFIX;
             for (i = 1;i <= len;i++)
             {
                 hints[key + i] = "Size " + (PenTool.penSizeList[i]) + "px [f / v, h / n]";

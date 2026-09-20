@@ -711,40 +711,6 @@
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
         }
 
-        public function isHintAvailableWithFillPen(target:DisplayObject):Boolean
-        {
-            const targetName:String = target.name;
-            if (FillPenTool.isStarted)
-            {
-                if (target.alpha > 0.5
-                        &&
-                        (ToolController.toolBox.contains(target)
-                            || CanvasController.canvasInfoBox.contains(target)
-                            || ColorPickerController.colorPickerBox.contains(target))
-                        || target === SidebarController.sideBarScrollBar
-                        || (targetName && targetName.indexOf("alphaButton") !== -1))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
-            {
-                if ((targetName && targetName.indexOf("nSizeButton") !== -1) || target.alpha < 0.5)
-                {
-                    return false;
-                }
-            }
-            else if (MainUI.isHintUnavailable())
-            {
-                return false;
-            }
-            return true;
-        }
-
         public function getCanvasBoundLimitPoint(canvas:Sprite, px:Number, py:Number, width:Number, height:Number, zoom:Number, rotation:Number):Point
         {
             // 매개변수 rotation은 음수값으로 넣어야 됨

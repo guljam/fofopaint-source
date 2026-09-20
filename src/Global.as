@@ -24,6 +24,8 @@ package
             target.transform.colorTransform = c;
         }
 
+        public static const ALPHA_BUTTON_PREFIX:String = "alphaButton";
+        public static const NSIZE_BUTTON_PREFIX:String = "nSizeButton";
         static private const UI_COLOR_DARK:uint = 0x323232; // 어두운색
         static private const UI_COLOR_MID_DARK:uint = 0x535353; // 0x5B5B5B//중간 어두운색
         static private const UI_COLOR_MID_BRIGHT:uint = 0xB8B8B8; // 중간 밝은색

@@ -1022,7 +1022,6 @@ package Modules
             }
         }
 
-
         public static function handleToolBox2Closing(target:DisplayObject):void
         {
             const targetName:String = target.name;
@@ -1127,8 +1126,6 @@ package Modules
             }
         }
 
-
-
         public static function handleToolBoxMouseDown(target:DisplayObject):Boolean
         {
             if (InputController.isKeyPressed() && !SidebarController.isQuickSidebarActive || !target)
@@ -1190,7 +1187,7 @@ package Modules
                 return;
             }
 
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelToolMenuBox2Delay);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, cancelToolMenuBox2Delay);
         }
 
         public static function openFillPenMenuBoxDelay():void
@@ -1211,12 +1208,12 @@ package Modules
             }
 
             FOFOTimer.addByName("toolBoxShowDelayTimer", TOOL_BOX_ON_DELAY_TIME, false, callback);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelToolMenuBox2Delay);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, cancelToolMenuBox2Delay);
         }
 
         public static function openToolBox2():void
         {
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelToolMenuBox2Delay);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, cancelToolMenuBox2Delay);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
             var pos:Point = toolBox2.getLastUsedToolPos();
@@ -1267,6 +1264,23 @@ package Modules
                 return true;
             }
 
+            if (targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) == 0)
+            {
+                main.selectOpacityButton(targetName);
+                selectPenToolIfNotDrawingTool(true);
+                return true;
+            }
+
+            if (targetName.indexOf(Global.NSIZE_BUTTON_PREFIX) == 0)
+            {
+                if (!isSelectedTool(TOOL_FILLPEN))
+                {
+                    selectPenToolIfNotDrawingTool(true);
+                    selectPenSizeButton(targetName);
+                }
+                return true;
+            }
+
             switch (targetName)
             {
                 case "penSmoothSliderWapper":
@@ -1280,41 +1294,7 @@ package Modules
                         startPenSmootingAdjustment();
                     }
                     return true;
-                case "alphaButton1":
-                case "alphaButton2":
-                case "alphaButton3":
-                case "alphaButton4":
-                case "alphaButton5":
-                case "alphaButton6":
-                case "alphaButton7":
-                case "alphaButton8":
-                case "alphaButton9":
-                case "alphaButton10":
-                    {
-                        main.selectOpacityButton(targetName);
-                        selectPenToolIfNotDrawingTool(true);
-                    }
-                    return true;
-                case "nSizeButton1":
-                case "nSizeButton2":
-                case "nSizeButton3":
-                case "nSizeButton4":
-                case "nSizeButton5":
-                case "nSizeButton6":
-                case "nSizeButton7":
-                case "nSizeButton8":
-                case "nSizeButton9":
-                case "nSizeButton10":
-                case "nSizeButton11":
-                case "nSizeButton12":
-                    {
-                        if (!isSelectedTool(TOOL_FILLPEN))
-                        {
-                            selectPenToolIfNotDrawingTool(true);
-                            selectPenSizeButton(targetName);
-                        }
-                    }
-                    return true;
+
                 case "shapeRect":
                     {
                         if (!isSelectedTool(TOOL_FILLPEN))
