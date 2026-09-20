@@ -10,6 +10,7 @@ package Modules.Tools
     import Modules.ToolController;
     import Modules.MainUIController;
     import Modules.ReplayController;
+    import Modules.PenSizePreviewCursor;
 
     public class HandTool
     {
@@ -35,8 +36,8 @@ package Modules.Tools
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpHandTool);
             main.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
 
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
             CanvasController.isMouseDragging = false;
-            CanvasController.isPenSizeCursorInvisible = false;
             CanvasController.keepCanvasPanelInStage(isReplayMode);
 
             if (isDrawMode)
@@ -109,8 +110,8 @@ package Modules.Tools
             xBitmap = (isDrawMode) ? CanvasController.canvasLayer1Bitmap : ReplayController.rCanvasLayer1Bitmap;
 
             old.setTo(main.stage.mouseX, main.stage.mouseY);
-            CanvasController.isPenSizeCursorInvisible = true;
-
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
+            
             if (isDrawMode)
             {
                 ToolController.toolBox.setCursorVisible(false);

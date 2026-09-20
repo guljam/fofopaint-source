@@ -147,7 +147,7 @@ package Modules
             ReplayController.syncReplayCanvasImageWithDrawMode();
             ReplayController.syncReplayCanvasWithDrawMode();
             CanvasController.centerCanvas("draw");
-            main.updatePenSizeCursor();
+            PenSizePreviewCursor.updateSizeAndShape();
             if (CanvasGridOverlay.gridGapMultiplier > 0)
             {
                 CanvasGridOverlay.drawGrid();

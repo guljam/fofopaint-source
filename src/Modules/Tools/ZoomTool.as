@@ -7,6 +7,7 @@ package Modules.Tools
     import Modules.MainUIController;
     import Modules.CanvasGridOverlay;
     import Modules.DragInteraction;
+    import Modules.PenSizePreviewCursor;
 
     public class ZoomTool
     {
@@ -104,10 +105,10 @@ package Modules.Tools
         private static function onMouseUp():void
         {
             CanvasController.isMouseDragging = false;
-            CanvasController.isPenSizeCursorInvisible = false;
-
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
+            PenSizePreviewCursor.updateSizeAndShape();
             MainUI.hideMouseHint();
-            main.updatePenSizeCursor();
+            
             ReferenceLayerController.setRefLayerAndGridVisible(true);
 
             if (LassoTool._isLassoMenuHiddenTemp === true)
@@ -149,7 +150,7 @@ package Modules.Tools
                 lastMousePos.setTo(main.stage.mouseX, main.stage.mouseY);
                 startZoomIndex = CanvasController.canvasZoomIndex;
 
-                CanvasController.isPenSizeCursorInvisible = true;
+                PenSizePreviewCursor.setCursorInVisibleFlag(true);
                 ReferenceLayerController.setRefLayerAndGridVisible(false);
 
                 clickPos.setTo(main.stage.mouseX, main.stage.mouseY);

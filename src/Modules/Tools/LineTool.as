@@ -16,6 +16,7 @@ package Modules.Tools
     import flash.display.LineScaleMode;
     import flash.events.MouseEvent;
     import flash.geom.Point;
+    import Modules.PenSizePreviewCursor;
 
     public class LineTool
     {
@@ -198,7 +199,7 @@ package Modules.Tools
         {
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLineTool);
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLineTool);
-            CanvasController.isPenSizeCursorInvisible = false;
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
             if (!ReferenceLayerController.isRefLayerEmpty() && ReferenceLayerController.isRefLayerMemoryTrainingON && ReferenceLayerController.refLayerLastAlpha > 0.0)
             {
                 ReferenceLayerController.setCanvasRefLayerVisibleDelay();
@@ -239,7 +240,7 @@ package Modules.Tools
 
         public static function start():void
         {
-            CanvasController.isPenSizeCursorInvisible = true;
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
             xSize = PenTool.penSize;
             xAlpha = PenTool.penAlpha;
             xShape = PenTool.penIsSquare;

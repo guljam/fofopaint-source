@@ -221,7 +221,7 @@ package Modules
                 case "toolRotate":
                     if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                     {
-                        main.resetRotationDrawMode();
+                        CanvasController.resetRotationDrawMode();
                     }
                     break;
 

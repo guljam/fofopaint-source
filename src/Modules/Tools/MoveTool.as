@@ -9,6 +9,7 @@ package Modules.Tools
     import flash.geom.Rectangle;
     import Modules.ReplayController;
     import flash.geom.Point;
+    import Modules.PenSizePreviewCursor;
 
     public class MoveTool
     {
@@ -28,7 +29,8 @@ package Modules.Tools
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool);
 
             CanvasController.isMouseDragging = false;
-            CanvasController.isPenSizeCursorInvisible = false;
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
+
             getMovedPos = null;
 
             var tmpbmpd:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
@@ -157,10 +159,12 @@ package Modules.Tools
         public static function start():void
         {
             if (CanvasController.isAllLayerInvisible())
+            {
                 return;
+            }
 
             getMovedPos = Utils.updateImagePosMouseDrag(CanvasController.canvasLayer1Bitmap, CanvasController.canvasAnchorPoint.rotation);
-            CanvasController.isPenSizeCursorInvisible = true;
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
 
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool);

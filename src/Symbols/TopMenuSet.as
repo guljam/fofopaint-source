@@ -23,6 +23,7 @@
 	import Modules.CanvasController;
 	import Modules.ReplayController;
 	import Modules.AboutBoxController;
+	import Modules.PenSizePreviewCursor;
 
 	public class TopMenuSet extends Sprite
 	{
@@ -605,7 +606,7 @@
 				showModeIcons("draw", SidebarController.isRightSidebar, SidebarController.isSidebarVisible);
 				hideModeIcons("replay");
 				hideModeIcons("capture");
-				main.updatePenSizeCursor();
+				PenSizePreviewCursor.updateSizeAndShape();
 				if (AppUpdater.needUpdate())
 				{
 					showUpdateButton();

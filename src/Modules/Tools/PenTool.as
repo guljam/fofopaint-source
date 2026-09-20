@@ -16,6 +16,7 @@ package Modules.Tools
 	import flash.filters.BlurFilter;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import Modules.PenSizePreviewCursor;
 
 	public final class PenTool
 	{
@@ -60,8 +61,6 @@ package Modules.Tools
 		public static var isTransparentPenColor:Boolean = false; // 펜 컬러 투명 켜졌을때 올려줌
 		public static var penSizeList:Array = [0, 1, 2, 3, 4, 5, 7, 10, 13, 18, 30, 45, 80];
 		public static var penAlphaList:Array = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
-		public static var penCursorSize:Number = 3;
-		public static var penCursorShape:Boolean = false;
 		public static var penSizeIndex:uint = 3;
 		public static var penAlphaIndex:uint = 9;
 		public static var penSmoothValue:Number = 0; // 펜 손떨방 플래그
@@ -95,14 +94,14 @@ package Modules.Tools
 			{
 				UndoManager.canAddUndoData = true;
 			}
-			else if (penCursorShape)
+			else if (PenSizePreviewCursor.isSqure())
 			{
-				if (canvasSizeRect.intersects(CanvasController.penSizePreviewCursor.getBounds(CanvasController.canvasPanel)))
+				if (canvasSizeRect.intersects(PenSizePreviewCursor.getCursorBoundsWithCanvasPanel()))
 				{
 					UndoManager.canAddUndoData = true;
 				}
 			}
-			else if (isCircleRectColliding(CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY, penCursorSize, 0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT))
+			else if (isCircleRectColliding(CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY, PenSizePreviewCursor.getSize(), 0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT))
 			{
 				UndoManager.canAddUndoData = true;
 			}
@@ -288,7 +287,7 @@ package Modules.Tools
 					const rad:Number = Math.atan2(mx - sqPenCursorLast.x, my - sqPenCursorLast.y);
 					const deg:Number = -rad * (180 / Math.PI) + CanvasController.canvasAnchorPoint.rotation;
 
-					CanvasController.penSizePreviewCursor.rotation = deg;
+					PenSizePreviewCursor.setRotation(deg);
 
 					sqPenCursorLast.x = mx;
 					sqPenCursorLast.y = my;
@@ -382,7 +381,7 @@ package Modules.Tools
 
 			if (xShape === true)
 			{
-				CanvasController.penSizePreviewCursor.rotation = 0;
+				PenSizePreviewCursor.setRotation(0);
 
 				if (isMouseMoved === true)
 				{

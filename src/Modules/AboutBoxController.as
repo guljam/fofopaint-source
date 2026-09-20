@@ -3,6 +3,8 @@ package Modules
     import Symbols.AboutWindowSet;
 
     import flash.events.MouseEvent;
+    import flash.events.Event;
+    import flash.filesystem.File;
 
     public class AboutBoxController
     {
@@ -97,6 +99,14 @@ package Modules
                 {
                     CanvasController.isMouseClickBlocked = false;
                 });
+        }
+
+        public static function resetApp():void
+        {
+            main.stage.nativeWindow.removeEventListener(Event.CLOSING, FileManager.onWindowClosingEvent);
+            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
+            const files:File = File.applicationStorageDirectory;
+            files.deleteDirectory(true);
         }
 
         public static function updateAboutPanelCenterPos():void

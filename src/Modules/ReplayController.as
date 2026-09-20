@@ -3778,7 +3778,7 @@ package Modules
             const maxDist:Number = minDist + MainUI.topBar.replaySpeedSlider.width - 2.5;
             const maxSpeed:Number = REPLAY_MAX_SPEED;
             var oldSpeed:Number;
-            CanvasController.isPenSizeCursorInvisible = true;
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
             CanvasController.isMouseDragging = true;
             function setSpeed(mx:Number):void
             {
@@ -3938,12 +3938,12 @@ package Modules
             InputController.removeInputEventsReplayMode();
             cancelReplayRestartTimer();
             isReplayModeON = false;
-            CanvasController.isPenSizeCursorInvisible = false;
             rCanvasAnchorPoint.visible = false;
             rReplayFOFOCursor.visible = false;
             MainUI.seekBarBox.visible = false;
             CanvasController.canvasAnchorPoint.visible = true;
-            CanvasController.penSizePreviewCursor.visible = true;
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
+            PenSizePreviewCursor.setVisible(true);
             if (ReferenceLayerController.isRefLayerMenuON === true)
             {
                 ReferenceLayerController.refLayerMenuBox.visible = true;
@@ -3971,8 +3971,8 @@ package Modules
             {
                 ColorPickerController.switchColorPickerModePen();
             }
-            main.updatePenSizeCursor();
-            main.penCursorManager.check();
+            PenSizePreviewCursor.updateSizeAndShape();
+            PenSizePreviewCursor.updatePosAndVisibility();
             MainUI.updateTopbarIconsDrawMode();
             CanvasController.canvasInfoBox.setZoom(CanvasController.canvasZoomMultipler);
             updateReplayCursorScale(CanvasController.canvasZoomMultipler);
@@ -3994,11 +3994,11 @@ package Modules
             }
             InputController.removeInputEventsDrawMode();
             isReplayModeON = true;
-            CanvasController.isPenSizeCursorInvisible = true;
             CanvasController.canvasAnchorPoint.visible = false;
             rCanvasAnchorPoint.visible = true;
             MainUI.seekBarBox.visible = true;
-            CanvasController.penSizePreviewCursor.visible = false;
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
+            PenSizePreviewCursor.setVisible(false);
             MainUI.seekBarBox.pauseButton.visible = false;
             MainUI.seekBarBox.y = Math.floor(MainUI.topBar.BARSIZE * Global.getUIScale() - 4);
             lastReplayTimeBoxYPos = MainUI.seekBarBox.y;

@@ -9,6 +9,7 @@ package Modules.Tools
     import Modules.ReplayController;
     import Modules.DragInteraction;
     import Modules.InputController;
+    import Modules.PenSizePreviewCursor;
 
     public class RotateTool
     {
@@ -34,7 +35,7 @@ package Modules.Tools
 
         private static function onMouseUp():void
         {
-            CanvasController.isPenSizeCursorInvisible = false;
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
             if (!isReplayMode)
             {
@@ -46,7 +47,7 @@ package Modules.Tools
                     }
                 }
 
-                main.updatePenSizeCursor();
+                PenSizePreviewCursor.updateSizeAndShape();
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
                 MainUIController.updateCanvasNaigatorCursor();
             }
@@ -67,7 +68,7 @@ package Modules.Tools
 
         private static function onDragStart():void
         {
-            CanvasController.isPenSizeCursorInvisible = true;
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
 
             if (!isReplayMode)
             {

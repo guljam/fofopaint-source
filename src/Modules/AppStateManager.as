@@ -459,7 +459,7 @@ package Modules
                         }
 
                         MainUIController.updateCanvasNaigatorCursor();
-                        main.updatePenSizeCursor();
+                        PenSizePreviewCursor.updateSizeAndShape();
                         MainUIController.updateWindowTitle();
                         CanvasController.selectLayer1(false);
                     });

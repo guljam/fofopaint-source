@@ -351,7 +351,7 @@ package Modules
             }
 
             isCaptureModeON = true;
-            CanvasController.isPenSizeCursorInvisible = true;
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
 
             if (ColorPickerController.numPadBox.visible)
             {
@@ -449,7 +449,7 @@ package Modules
             xBitmap1.smoothing = false;
             xBitmap11.smoothing = false;
             isCaptureModeON = false;
-            CanvasController.isPenSizeCursorInvisible = false;
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
             captureDragAreaOverlay.graphics.clear();
             captureStampManager.off();
@@ -482,7 +482,7 @@ package Modules
             MainUI.resetLastBottomHintTargetRect();
             MainUI.hideMouseHint();
             captureWindowMove.setTo(0, 0);
-            main.updatePenSizeCursor();
+            PenSizePreviewCursor.updateSizeAndShape();
 
             // prev box 사각형 업데이트가 있기 때문에 xAnc위치가 갱신된 다음에 해주어야함
             MainUI.deactivateCaptureUI();

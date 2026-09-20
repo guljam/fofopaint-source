@@ -19,6 +19,7 @@ package Modules
     import flash.geom.ColorTransform;
     import flash.display.Graphics;
     import Modules.Tools.EyeDropperTool;
+    import flash.ui.MouseCursor;
 
     public class CanvasController
     {
@@ -39,7 +40,6 @@ package Modules
         public static const canvasNavigatorBox:CanvasNavigatorBoxSet = new CanvasNavigatorBoxSet();
         public static const canvasInfoBox:CanvasInfoSet = new CanvasInfoSet();
         public static const canvasFlashEffect:Sprite = new Sprite();
-        public static const penSizePreviewCursor:Shape = new Shape(); // 펜사이즈 미리 보기
 
         public static var canvasAnchorPoint:Sprite = new Sprite(); // 회전 스프라이트 부모
         public static var canvasPanel:Sprite = new Sprite(); // 회색 부분을 제외한 그리기 영역 추가
@@ -69,7 +69,16 @@ package Modules
         public static var checkedLayer:int = 0; // 레이어가 체크되면 저장해줌
         public static var isLayerSwapped:Boolean = false; // 1<->2 번호 바뀌는 힌트 써주려고 만듬
 
-        public static var isPenSizeCursorInvisible:Boolean = false; // 펜 커서가 보이지 않게 설정
+        public static function resetRotationDrawMode():void
+        {
+            const center:Point = MainUIController.getStageCenterPos("draw");
+            PenSizePreviewCursor.updateSizeAndShape();
+            moveCanvasAnchorPoint(center.x, center.y, false);
+            canvasAnchorPoint.rotation = 0;
+            ReplayController.setRcursorRotation(0);
+            canvasInfoBox.setRotate(0);
+            MainUIController.updateCanvasNaigatorCursor();
+        }
 
         public static function updateLayer1BitmapData(newbmpd:BitmapData):void
         {
@@ -418,7 +427,7 @@ package Modules
                 moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
                 canvasZoomIndex = canvasZoomMultiplerList.indexOf(1.0);
                 updateCanvasScale(1.0, false);
-                main.updatePenSizeCursor();
+                PenSizePreviewCursor.updateSizeAndShape();
                 MainUIController.updateCanvasNaigatorCursor();
                 CanvasGridOverlay.drawGrid();
             }
@@ -468,7 +477,7 @@ package Modules
                 canvasZoomIndex = newZoomIndex;
                 moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
                 updateCanvasScale(newZoom, isReplayMode);
-                main.updatePenSizeCursor();
+                PenSizePreviewCursor.updateSizeAndShape();
                 MainUIController.updateCanvasNaigatorCursor();
                 if (CanvasGridOverlay.gridGapMultiplier > 0)
                 {
@@ -1236,12 +1245,10 @@ package Modules
             canvasLayer2Bitmap.name = "canvasLayer2Bitmap";
             canvasDrawLayer.name = "canvasDrawLayer";
             canvasDrawLayerChild.name = "canvasDrawShape";
-            penSizePreviewCursor.name = "penSizeCursor";
             MainUI.stageBG.name = "stageBG";
             ReferenceLayerController.canvasRefLayer.name = "canvasRefLayer";
             CanvasGridOverlay.canvasGrid.name = "canvasGrid";
             canvasFlashEffect.name = "canvasFlash";
-            penSizePreviewCursor.visible = false;
             LassoTool.lassoLayer1.name = "lassoBox1";
             LassoTool.lassoLayer1.addChild(LassoTool.lassoLayer1Bitmap);
             LassoTool.lassoLayer1.addChild(LassoTool.lassoDraw);
@@ -1273,7 +1280,7 @@ package Modules
             main.stage.addChild(EyeDropperTool.eyedropperLens);
             main.stage.addChild(LassoTool._lassoMenuBox);
             main.stage.addChild(canvasAnchorPoint);
-            main.stage.addChild(penSizePreviewCursor);
+            main.stage.addChild(PenSizePreviewCursor.getCursorShape());
             main.stage.setChildIndex(canvasAnchorPoint, 0);
             main.stage.setChildIndex(MainUI.stageBG, 0);
         }
@@ -1291,7 +1298,7 @@ package Modules
                 canvasZoomMultipler = zoomValue;
                 if (!CaptureController.isCaptureModeON)
                 {
-                    main.penCursorManager.updateZoom(zoomValue);
+                    PenSizePreviewCursor.updateZoom(zoomValue);
                 }
             }
             else
@@ -1400,8 +1407,8 @@ package Modules
 
         public static function startCanvasResizing(targetName:String):void
         {
-            CanvasController.isPenSizeCursorInvisible = true;
-            penSizePreviewCursor.visible = false;
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
+            PenSizePreviewCursor.setVisible(false);
             MainUI.showMouseHint(CANVAS_WIDTH + " x " + CANVAS_HEIGHT);
             main.resizeCanvas.start(targetName);
         }

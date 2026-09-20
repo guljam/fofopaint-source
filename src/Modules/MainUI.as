@@ -605,8 +605,8 @@ package Modules
 				SidebarController.hideSidebarTemporary();
 			}
 
-			CanvasController.isPenSizeCursorInvisible = true;
-			CanvasController.penSizePreviewCursor.visible = false;
+			PenSizePreviewCursor.setCursorInVisibleFlag(true);
+			PenSizePreviewCursor.setVisible(false);
 			ReferenceLayerController.canvasRefLayer.visible = false;
 
 			if (ReferenceLayerController.isRefLayerMenuON)
@@ -648,7 +648,7 @@ package Modules
 				{
 					ReferenceLayerController.refLayerMenuBox.visible = true;
 				}
-				CanvasController.isPenSizeCursorInvisible = false;
+				PenSizePreviewCursor.setCursorInVisibleFlag(false);
 				MainUI.updateTopbarIconsDrawMode();
 				InputController.addInputEventsDrawMode();
 			}

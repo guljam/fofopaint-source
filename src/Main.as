@@ -64,6 +64,7 @@
     import flash.utils.Timer;
     import flash.utils.getTimer;
     import Modules.ActivityWorkTimer;
+    import Modules.PenSizePreviewCursor;
 
     // import
     public class Main extends Sprite
@@ -78,10 +79,6 @@
 
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
 
-        // 윈도우 크기변수
-        // 툴 클로져 자주쓰는거는 클로져로 메모리에 미리 올려둬서 성능향상하려고 한건데 모르겠음
-        public var updatePenSizeCursor:Function = cUpdatePenSizeCursor();
-        public var penCursorManager:Object = cPenCursorUpdater();
         public var resizeCanvas:Object = CanvasController.cResizeCanvas();
 
         // 기타
@@ -129,6 +126,7 @@
             MainUI.setMainInstance(this);
             MainUIController.setMainInstance(this);
             PaletteController.setMainInstance(this);
+            PenSizePreviewCursor.setMainInstance(this);
             ReferenceLayerController.setMainInstance(this);
             SidebarController.setMainInstance(this);
             ToolController.setMainInstance(this);
@@ -266,7 +264,7 @@
             CanvasController.isMouseLeftClicked = false;
             CanvasController.isRightMouseClicked = false;
             CanvasController.isMouseDragging = false;
-            CanvasController.penSizePreviewCursor.visible = false;
+            PenSizePreviewCursor.setVisible(false);
         }
 
         public function onMouseWheelStage(e:MouseEvent):void
@@ -314,13 +312,6 @@
             }
         }
 
-        public function resetApp():void
-        {
-            stage.nativeWindow.removeEventListener(Event.CLOSING, FileManager.onWindowClosingEvent);
-            stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
-            const files:File = File.applicationStorageDirectory;
-            files.deleteDirectory(true);
-        }
 
         public function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
         {
@@ -329,80 +320,7 @@
                 return;
             }
 
-            penCursorManager.check();
-        }
-
-        public function cPenCursorUpdater():Object
-        {
-            var cursorSize:Number = 3.0;
-            function getCursorSize():Number
-            {
-                return cursorSize;
-            }
-            function updateCursorSize(size:Number):void
-            {
-                cursorSize = size * CanvasController.canvasZoomMultipler;
-            }
-            function updateZoom(z:Number):void
-            {
-                if (ToolController.isSelectedToolPenOrLine())
-                {
-                    cursorSize = PenTool.penSize * CanvasController.canvasZoomMultipler;
-                }
-                else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
-                {
-                    cursorSize = PenTool.eraserSize * CanvasController.canvasZoomMultipler;
-                }
-                else
-                {
-                    cursorSize = 0;
-                }
-            }
-            function checkCursorVisibility():void
-            {
-                if (cursorSize <= 4 || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
-                {
-                    if (CanvasController.penSizePreviewCursor.visible)
-                    {
-                        CanvasController.penSizePreviewCursor.visible = false;
-                    }
-                }
-                else if (CanvasController.penSizePreviewCursor.visible === false)
-                {
-                    CanvasController.penSizePreviewCursor.visible = true;
-                }
-            }
-            function check():void
-            {
-                const mx:Number = stage.mouseX;
-                const my:Number = stage.mouseY;
-                // 아마 이거 preview커서 박스 커서가 커져서 sidebar 바운더리가 커졌을때
-                // 제대로 확인못해서 썼던걸거임
-                // || (!quickSidebarON && !isCursorInDrawArea())
-                // (sideBar.visible && (sideBarScrollBar.hitTestPoint(mouseX,mouseY) || sideBar.hitTestPoint(mouseX,mouseY)))
-                if (CanvasController.isPenSizeCursorInvisible
-                        || (ToolController.nowTool > ToolController.TOOL_LINE && ToolController.nowTool !== ToolController.TOOL_FILLPEN) // 1 2 3 4 펜 지우개 라인툴 라인-지우개툴
-                        || !isCursorInDrawArea()
-                        || resizeCanvas.isCanvasResizing()
-                        || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(stage.mouseX, stage.mouseY))
-                        || FileManager.loadMenuBox.visible)
-                {
-                    CanvasController.penSizePreviewCursor.visible = false;
-                }
-                else
-                {
-                    // addundo플래그가 커서가 캔버스 안에 들어올때 해주기 때문에 위치를 계속 갱신해줘야함
-                    CanvasController.penSizePreviewCursor.x = mx;
-                    CanvasController.penSizePreviewCursor.y = my;
-                    checkCursorVisibility();
-                }
-            }
-            return {
-                    check: check,
-                    updateZoom: updateZoom,
-                    updateCursorSize: updateCursorSize,
-                    checkCursorVisibility: checkCursorVisibility
-                };
+            PenSizePreviewCursor.updatePosAndVisibility();
         }
 
         public function restoreCanvasBackgroundColor(replayMode:Boolean):void
@@ -514,7 +432,7 @@
             CanvasController.centerCanvas("replay");
             ReplayController.clearCanvasReplayMode();
             CanvasController.resetZoomDrawMode();
-            resetRotationDrawMode();
+            CanvasController.resetRotationDrawMode();
             CanvasController.centerCanvas("draw");
             ReplayController.clearDataAndResetVars();
             MainUIController.markWindowTitleAsDirty();
@@ -540,7 +458,7 @@
                         {
                             case "resetAppButton":
                                 {
-                                    resetApp();
+                                    AboutBoxController.resetApp();
                                     stage.nativeWindow.close();
                                 }
                                 break;
@@ -950,68 +868,6 @@
                 return false;
             }
             return true;
-        }
-
-        
-        // size, size drag, zoom, rotate시 업데이트 해줌
-        public function cUpdatePenSizeCursor():Function
-        {
-            var size:Number;
-            var shape:Boolean;
-            return function ():void
-            {
-                const isPenTool:Boolean = ToolController.isSelectedToolPenOrLine();
-                if (!isPenTool && !ToolController.isSelectedTool(ToolController.TOOL_ERASER))
-                {
-                    return;
-                }
-                if (isPenTool)
-                {
-                    size = PenTool.penSize;
-                    shape = PenTool.penIsSquare;
-                }
-                else
-                {
-                    size = PenTool.eraserSize;
-                    shape = PenTool.eraserIsSquare;
-                }
-                const z:Number = CanvasController.canvasZoomMultipler;
-                if (size * z === PenTool.penLastSizeAndShape[0] && shape === PenTool.penLastSizeAndShape[1])
-                {
-                    return;
-                }
-                PenTool.penLastSizeAndShape[0] = size * z;
-                PenTool.penLastSizeAndShape[1] = shape;
-                CanvasController.penSizePreviewCursor.graphics.clear();
-                if (shape === false)
-                {
-                    CanvasController.penSizePreviewCursor.graphics.lineStyle(1, 0xFFFFFF);
-                    CanvasController.penSizePreviewCursor.graphics.drawCircle(0, 0, (size / 2 - 1 / z) * z);
-                    CanvasController.penSizePreviewCursor.graphics.lineStyle(1, 0);
-                    CanvasController.penSizePreviewCursor.graphics.drawCircle(0, 0, (size / 2) * z);
-                    CanvasController.penSizePreviewCursor.rotation = 0;
-                }
-                else if (shape === true)
-                {
-                    CanvasController.penSizePreviewCursor.graphics.lineStyle(1, 0xFFFFFF);
-                    CanvasController.penSizePreviewCursor.graphics.drawRect((-size / 2 + 1 / z) * z, (-size / 8 + 1 / z) * z, (size - 2 / z) * z, (size / 4 - 2 / z) * z);
-                    CanvasController.penSizePreviewCursor.graphics.lineStyle(1, 0);
-                    CanvasController.penSizePreviewCursor.graphics.drawRect(-size / 2 * z, -size / 8 * z, size * z, size * z / 4);
-                }
-                PenTool.penCursorShape = shape;
-                PenTool.penCursorSize = size;
-            };
-        }
-
-        public function resetRotationDrawMode():void
-        {
-            const center:Point = MainUIController.getStageCenterPos("draw");
-            updatePenSizeCursor();
-            CanvasController.moveCanvasAnchorPoint(center.x, center.y, false);
-            CanvasController.canvasAnchorPoint.rotation = 0;
-            ReplayController.setRcursorRotation(0);
-            CanvasController.canvasInfoBox.setRotate(0);
-            MainUIController.updateCanvasNaigatorCursor();
         }
 
         public function getCanvasBoundLimitPoint(canvas:Sprite, px:Number, py:Number, width:Number, height:Number, zoom:Number, rotation:Number):Point

@@ -169,7 +169,7 @@ package Modules
             {
                 resetLastTool();
                 selectPenTool();
-                main.updatePenSizeCursor();
+                PenSizePreviewCursor.updateSizeAndShape();
             }
         }
 
@@ -340,10 +340,11 @@ package Modules
                 }
 
                 setDrawToolSize(index);
-                main.updatePenSizeCursor();
                 showDrawToolHintSizeOpacity();
-                main.penCursorManager.checkCursorVisibility();
+                PenSizePreviewCursor.updateSizeAndShape();
+                PenSizePreviewCursor.updatePosAndVisibility();
             }
+
             selectPenToolIfNotDrawingTool(true);
 
             if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
@@ -372,7 +373,7 @@ package Modules
             const index:uint = parseInt(numberOnly);
 
             setDrawToolSize(index);
-            main.updatePenSizeCursor();
+            PenSizePreviewCursor.updateSizeAndShape();
 
             if (isSelectedTool(TOOL_FILLPEN))
             {
@@ -478,13 +479,13 @@ package Modules
             {
                 PenTool.penSize = size;
                 PenTool.penSizeIndex = index;
-                main.penCursorManager.updateCursorSize(PenTool.penSize);
+                PenSizePreviewCursor.updateCursorSize(PenTool.penSize);
             }
             else if (isSelectedTool(TOOL_ERASER))
             {
                 PenTool.eraserSize = size;
                 PenTool.eraserSizeIndex = index;
-                main.penCursorManager.updateCursorSize(PenTool.eraserSize);
+                PenSizePreviewCursor.updateCursorSize(PenTool.eraserSize);
             }
 
             toolOptionsBox.movePenSizeCursor(index);
@@ -510,7 +511,7 @@ package Modules
             }
 
             toolOptionsBox.updatePenShapeSet(shapeFlag);
-            main.updatePenSizeCursor();
+            PenSizePreviewCursor.updateSizeAndShape();
         }
 
         // 단축키를  after tool mouse up에서 이전툴을 복구해줌
@@ -521,7 +522,7 @@ package Modules
             if (lastToolSave === TOOL_NONE)
             {
                 selectPenTool();
-                main.updatePenSizeCursor();
+                PenSizePreviewCursor.updateSizeAndShape();
                 return;
             }
 
@@ -529,18 +530,18 @@ package Modules
             {
                 case TOOL_PEN:
                     selectPenTool();
-                    main.updatePenSizeCursor();
+                    PenSizePreviewCursor.updateSizeAndShape();
                     break;
                 case TOOL_FILLPEN:
                     selectFillPenTool();
                     break;
                 case TOOL_ERASER:
                     selectEraseTool();
-                    main.updatePenSizeCursor();
+                    PenSizePreviewCursor.updateSizeAndShape();
                     break;
                 case TOOL_LINE:
                     selectLineTool();
-                    main.updatePenSizeCursor();
+                    PenSizePreviewCursor.updateSizeAndShape();
                     break;
                 case TOOL_EYEDROPPER:
                     EyeDropperTool.start();
@@ -586,7 +587,7 @@ package Modules
                             if (!isSelectedTool(TOOL_PEN))
                             {
                                 selectPenTool();
-                                main.updatePenSizeCursor();
+                                PenSizePreviewCursor.updateSizeAndShape();
                             }
                         }
                         break;
@@ -595,7 +596,7 @@ package Modules
                             if (!isSelectedTool(TOOL_FILLPEN))
                             {
                                 selectFillPenTool();
-                                main.updatePenSizeCursor();
+                                PenSizePreviewCursor.updateSizeAndShape();
                             }
                         }
                         break;
@@ -604,7 +605,7 @@ package Modules
                             if (!isSelectedTool(TOOL_ERASER))
                             {
                                 selectEraseTool();
-                                main.updatePenSizeCursor();
+                                PenSizePreviewCursor.updateSizeAndShape();
                             }
                         }
                         break;
@@ -613,7 +614,7 @@ package Modules
                             if (!isSelectedTool(TOOL_LINE))
                             {
                                 selectLineTool();
-                                main.updatePenSizeCursor();
+                                PenSizePreviewCursor.updateSizeAndShape();
                             }
                         }
                         break;
@@ -704,7 +705,7 @@ package Modules
             toolBox.moveToolCursor((lineFlag) ? "toolLine" : "toolPen");
             updateToolOptionsTextBySelectedTool();
             toolOptionsBox.updatePenShapeSet(PenTool.penIsSquare);
-            main.penCursorManager.check();
+            PenSizePreviewCursor.updatePosAndVisibility();
 
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
@@ -738,7 +739,7 @@ package Modules
             toolBox.moveToolCursor("toolEraser");
             updateToolOptionsTextBySelectedTool();
             toolOptionsBox.updatePenShapeSet(PenTool.eraserIsSquare);
-            main.penCursorManager.check();
+            PenSizePreviewCursor.updatePosAndVisibility();
 
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
@@ -752,7 +753,7 @@ package Modules
         {
             setSelectedTool(TOOL_FILLPEN);
             toolBox.moveToolCursor("toolFillPen");
-            CanvasController.penSizePreviewCursor.visible = false;
+            PenSizePreviewCursor.setVisible(false);
             updateOpacityCursorPos(PenTool.penAlphaIndex);
             toggleAirBrushCheckBox(isPenAirBrushON, true);
             toolOptionsBox.movePenSizeCursor(1);
@@ -927,7 +928,7 @@ package Modules
                         {
                             updateLastTool();
                             selectEraseTool();
-                            main.updatePenSizeCursor();
+                            PenSizePreviewCursor.updateSizeAndShape();
                             showNowToolIconToCursorTemp(TOOL_ERASER);
                         }
                     }
@@ -971,7 +972,7 @@ package Modules
                         {
                             updateLastTool();
                             selectLineTool();
-                            main.updatePenSizeCursor();
+                            PenSizePreviewCursor.updateSizeAndShape();
                         }
                     }
                     break;
@@ -987,7 +988,7 @@ package Modules
                     break;
             }
 
-            main.penCursorManager.check();
+            PenSizePreviewCursor.updatePosAndVisibility();
         }
 
         public static function updateToolBoxMousePos(target:SimpleButton):void
@@ -1041,28 +1042,28 @@ package Modules
                 case "toolPen":
                     {
                         selectPenTool();
-                        main.updatePenSizeCursor();
+                        PenSizePreviewCursor.updateSizeAndShape();
                         showNowToolIconToCursorTemp(TOOL_PEN);
                     }
                     break;
                 case "toolFillPen":
                     {
                         selectFillPenTool();
-                        main.updatePenSizeCursor();
+                        PenSizePreviewCursor.updateSizeAndShape();
                         showNowToolIconToCursorTemp(TOOL_FILLPEN);
                     }
                     break;
                 case "toolEraser":
                     {
                         selectEraseTool();
-                        main.updatePenSizeCursor();
+                        PenSizePreviewCursor.updateSizeAndShape();
                         showNowToolIconToCursorTemp(TOOL_ERASER);
                     }
                     break;
                 case "toolLine":
                     {
                         selectLineTool();
-                        main.updatePenSizeCursor();
+                        PenSizePreviewCursor.updateSizeAndShape();
                         showNowToolIconToCursorTemp(TOOL_LINE);
                     }
                     break;
@@ -1216,8 +1217,8 @@ package Modules
         public static function openToolBox2():void
         {
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP,cancelToolMenuBox2Delay);
-            CanvasController.isPenSizeCursorInvisible = true;
-            CanvasController.penSizePreviewCursor.visible = false;
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
+            PenSizePreviewCursor.setVisible(false);
             var pos:Point = toolBox2.getLastUsedToolPos();
             const scale:Number = Global.getUIScale();
 
@@ -1435,7 +1436,7 @@ package Modules
             isSharpLineON = flag;
             toolOptionsBox.sharpLineOFFButton.visible = flag;
             toolOptionsBox.sharpLineONButton.visible = !flag;
-            main.updatePenSizeCursor();
+            PenSizePreviewCursor.updateSizeAndShape();
         }
 
         public static function getSharpLinePosOffset(size:Number):Number

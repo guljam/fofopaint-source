@@ -209,7 +209,7 @@ package Modules
 
         private static function hideCanvasResizeButtons():void
         {
-            CanvasController.isPenSizeCursorInvisible = false;
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
             resizeButtonR.visible = false;
             resizeButtonL.visible = false;
             resizeButtonD.visible = false;
@@ -218,7 +218,7 @@ package Modules
 
         private static function showCanvasResizeButtons():void
         {
-            CanvasController.isPenSizeCursorInvisible = true;
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
             resizeButtonR.visible = true;
             resizeButtonL.visible = true;
             resizeButtonD.visible = true;

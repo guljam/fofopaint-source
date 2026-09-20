@@ -486,7 +486,7 @@ package Modules
 
         public static function onRightMouseUpToolBox2(e:MouseEvent):void
         {
-            CanvasController.isPenSizeCursorInvisible = false;
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
             if (LassoTool._isLassoToolStarted === true)
             {
@@ -713,7 +713,7 @@ package Modules
             {
                 if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                 {
-                    main.resetRotationDrawMode();
+                    CanvasController.resetRotationDrawMode();                    
                 }
                 return;
             }
@@ -1020,7 +1020,7 @@ package Modules
                         ToolController.selectLastUsedTool();
                         ToolController.showNowToolIconToCursorTemp(ToolController.nowTool);
                     }
-                    main.penCursorManager.check();
+                    PenSizePreviewCursor.updatePosAndVisibility();
                 }
             }
             if (!isKeyPressed())
@@ -1403,12 +1403,16 @@ package Modules
                     || targetName === "toolZoomOut")
             {
                 if (CanvasController.canvasZoomMultipler !== 1.0)
+                {
                     CanvasController.resetZoomDrawMode();
+                }
             }
             else if (targetName === "toolRotate")
             {
                 if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
-                    main.resetRotationDrawMode();
+                {
+                    CanvasController.resetRotationDrawMode();
+                }
             }
         }
 
@@ -1475,7 +1479,7 @@ package Modules
                 case KEY.k:
                     if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                     {
-                        main.resetRotationDrawMode();
+                        CanvasController.resetRotationDrawMode();
                     }
                     return;
 
@@ -1568,7 +1572,7 @@ package Modules
                     {
                         if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                         {
-                            main.resetRotationDrawMode();
+                            CanvasController.resetRotationDrawMode();
                         }
                     }
                     return;
@@ -1743,7 +1747,7 @@ package Modules
                     {
                         ToolController.selectLastUsedTool();
                     }
-                    main.penCursorManager.check();
+                    PenSizePreviewCursor.updatePosAndVisibility();
                 }
             }
         }
@@ -2010,7 +2014,7 @@ package Modules
                     {
                         if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                         {
-                            main.resetRotationDrawMode();
+                            CanvasController.resetRotationDrawMode();
                         }
                     }
                     break;

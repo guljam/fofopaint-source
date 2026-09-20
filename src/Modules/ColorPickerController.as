@@ -819,7 +819,7 @@ package Modules
                     ReplayController.addUndoBGColorData(pickedColor);
                 }
 
-                CanvasController.isPenSizeCursorInvisible = false;
+                PenSizePreviewCursor.setCursorInVisibleFlag(false);
                 colorPickerBox.setRGBInfoVisible(true);
                 ToolController.selectPenToolIfNotDrawingTool(false);
             }
@@ -828,7 +828,7 @@ package Modules
             {
                 Utils.setAsTopChild(colorPickerBox.hueCursor);
 
-                CanvasController.isPenSizeCursorInvisible = true;
+                PenSizePreviewCursor.setCursorInVisibleFlag(true);
                 PenTool.isTransparentPenColor = false;
 
                 colorPickerBox.setRGBInfoVisible(false);
@@ -919,7 +919,7 @@ package Modules
                     ReplayController.addUndoBGColorData(pickedColor);
                 }
 
-                CanvasController.isPenSizeCursorInvisible = false;
+                PenSizePreviewCursor.setCursorInVisibleFlag(false);
                 colorPickerBox.setRGBInfoVisible(true);
 
                 ToolController.selectPenToolIfNotDrawingTool(false);
@@ -929,7 +929,7 @@ package Modules
             {
                 Utils.setAsTopChild(colorPickerBox.svCursor);
 
-                CanvasController.isPenSizeCursorInvisible = true;
+                PenSizePreviewCursor.setCursorInVisibleFlag(true);
                 PenTool.isTransparentPenColor = false;
 
                 colorPickerBox.setRGBInfoVisible(false);
