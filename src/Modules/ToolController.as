@@ -1272,7 +1272,7 @@ package Modules
 
             if (targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) == 0)
             {
-                main.selectOpacityButton(targetName);
+                ToolController.setDrawingToolOpacity(targetName);
                 selectPenToolIfNotDrawingTool(true);
                 return true;
             }
@@ -1495,5 +1495,11 @@ package Modules
             toggleAirBrushCheckBox(flag, false);
         }
 
+        public static function setDrawingToolOpacity(targetName:String):void
+        {
+            const number:String = targetName.substr(11, targetName.length);
+            const index:int = parseInt(number);
+            ToolController.updateDrawToolAlpha(PenTool.penAlphaList[index]);
+        }
     }
 }

@@ -8,6 +8,8 @@ package Modules.Tools
     import Modules.CanvasGridOverlay;
     import Modules.DragInteraction;
     import Modules.PenSizePreviewCursor;
+    import flash.display.Sprite;
+    import Modules.Utils;
 
     public class ZoomTool
     {
@@ -123,6 +125,34 @@ package Modules.Tools
                 CanvasGridOverlay.drawGrid();
             }
         }
+        
+        //캔버스 바깥에 줌 클릭시작해도 캔버스 경계면까지 점을 반환함
+        public static function getCanvasBoundLimitPoint(canvas:Sprite, px:Number, py:Number, width:Number, height:Number, zoom:Number, rotation:Number):Point
+        {
+            // 매개변수 rotation은 음수값으로 넣어야 됨
+            var zoomClickX:Number = px * zoom;
+            var zoomClickY:Number = py * zoom;
+
+            if (zoomClickX < 0)
+            {
+                zoomClickX = 0;
+            }
+            else if (zoomClickX > width * zoom)
+            {
+                zoomClickX = width * zoom;
+            }
+
+            if (zoomClickY < 0)
+            {
+                zoomClickY = 0;
+            }
+            else if (zoomClickY > height * zoom)
+            {
+                zoomClickY = height * zoom;
+            }
+
+            return Utils.rotatePoint(zoomClickX, zoomClickY, rotation);
+        }
 
         public static function start():void
         {
@@ -142,7 +172,7 @@ package Modules.Tools
                 else
                 {
                     gp = CanvasController.canvasPanel.localToGlobal(new Point(0, 0));
-                    const panelLimitedPos:Point = main.getCanvasBoundLimitPoint(CanvasController.canvasPanel, CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, CanvasController.canvasZoomMultipler, -CanvasController.canvasAnchorPoint.rotation);
+                    const panelLimitedPos:Point = getCanvasBoundLimitPoint(CanvasController.canvasPanel, CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, CanvasController.canvasZoomMultipler, -CanvasController.canvasAnchorPoint.rotation);
                     // 캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
                     CanvasController.moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
                 }

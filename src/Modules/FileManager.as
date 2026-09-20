@@ -98,7 +98,7 @@ package Modules
             ReplayController.clearCanvasReplayMode();
             ReplayController.updateReplayPrograssText(true, 0);
             MainUI.seekBarBox.resetReplayPrograssBarWidth();
-            ColorPickerController.updateCanvasBGColorDrawMode(newBG);
+            CanvasController.updateCanvasBGColorDrawMode(newBG);
             ReplayController.updateCanvasBGColorReplayMode(newBG);
             if (ImageViewWindow.isCanvasWindowON)
             {

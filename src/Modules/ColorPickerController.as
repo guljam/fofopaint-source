@@ -577,7 +577,7 @@ package Modules
             }
             else if (isBackgroundColorMode())
             {
-                updateCanvasBGColorDrawMode(color);
+                CanvasController.updateCanvasBGColorDrawMode(color);
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
@@ -646,7 +646,7 @@ package Modules
 
             if (bgmode)
             {
-                updateCanvasBGColorDrawMode(hexColor);
+                CanvasController.updateCanvasBGColorDrawMode(hexColor);
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
@@ -809,7 +809,7 @@ package Modules
                 }
                 else if (isBackgroundColorMode())
                 {
-                    updateCanvasBGColorDrawMode(pickedColor);
+                    CanvasController.updateCanvasBGColorDrawMode(pickedColor);
 
                     if (ImageViewWindow.isCanvasWindowON)
                     {
@@ -909,7 +909,7 @@ package Modules
                 }
                 else if (isBackgroundColorMode())
                 {
-                    updateCanvasBGColorDrawMode(pickedColor);
+                    CanvasController.updateCanvasBGColorDrawMode(pickedColor);
 
                     if (ImageViewWindow.isCanvasWindowON)
                     {
@@ -940,20 +940,6 @@ package Modules
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
         }
 
-        public static function updateCanvasBGColorDrawMode(color:uint):void
-        {
-            FileManager.isFileAlreadySaved = false;
-
-            CanvasController.CANVAS_BG_COLOR = color;
-            CanvasController.canvasNavigatorBox.changeprevBitmapBGColor(color);
-            CanvasController.updateCanvasBGColorDrawMode(color);
-
-            if (colorPickerBox.scratchPad)
-            {
-                colorPickerBox.scratchPad.updateBGColor(color);
-            }
-        }
-
         private static function getTegakiColorPresetIndex(index:int):int
         {
             if (index >= 10)
@@ -982,7 +968,7 @@ package Modules
 
                 if (bgColor !== CanvasController.CANVAS_BG_COLOR)
                 {
-                    updateCanvasBGColorDrawMode(bgColor);
+                    CanvasController.updateCanvasBGColorDrawMode(bgColor);
 
                     if (ImageViewWindow.isCanvasWindowON)
                     {
@@ -1007,7 +993,7 @@ package Modules
             }
             else if (isBackgroundColorMode())
             {
-                updateCanvasBGColorDrawMode(pickedColor);
+                CanvasController.updateCanvasBGColorDrawMode(pickedColor);
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {

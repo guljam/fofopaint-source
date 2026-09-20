@@ -463,7 +463,7 @@ package Modules
             CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
             CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
             CanvasController.updateCavnvasSizeDrawMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height);
-            ColorPickerController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
+            CanvasController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
             CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             if (ImageViewWindow.isCanvasWindowON)
             {
@@ -605,11 +605,8 @@ package Modules
                 CanvasController.canvasLayer1Bitmap.bitmapData = CanvasController.canvasLayer1BitmapData;
                 CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
                 CanvasController.canvasLayer2Bitmap.bitmapData = CanvasController.canvasLayer2BitmapData;
-                // mirrorON = rMirrorON;
-                // UndoManager.mirrorCommandReady = false;
-                // appInfoBox.setMirror(rMirrorON);
                 CanvasController.updateCavnvasSizeDrawMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height, 0, 0, false);
-                ColorPickerController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
+                CanvasController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
                 resetReplayTime();
                 syncDrawCanvasWithReplayCanvas();
                 UndoManager.resetUndoState();
@@ -3286,7 +3283,7 @@ package Modules
                             InputController.addInputEventsDrawMode();
                             // jumpFrame(undoData.getRFileTotalFrame()-1,JUMP_FRAME_ONCE);
                             renderReplayFrame(rPrevFrame, JUMP_FRAME_MANUAL);
-                            main.applyReplayCanvasToDrawModeCanvas();
+                            CanvasController.applyReplayCanvasToDrawModeCanvas();
                             CanvasController.canvasAnchorPoint.visible = true;
                         }
                         else if (isReplayModeON)
@@ -4124,7 +4121,7 @@ package Modules
                 }
             }
 
-            ColorPickerController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
+            CanvasController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
             CanvasController.updateCavnvasSizeDrawMode(RCANVAS_WIDTH, RCANVAS_HEIGHT, 0, 0, false);
         }
 

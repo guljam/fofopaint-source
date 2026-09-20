@@ -470,7 +470,7 @@ package Modules
             if (isDeepUndoEnabled)
             {
                 ReplayController.moveToNextStep();
-                main.applyReplayCanvasToDrawModeCanvas();
+                CanvasController.applyReplayCanvasToDrawModeCanvas();
                 Utils.showDisplayTargetAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
 
                 if (ReplayController.rNowFrame >= addUndoData.getRFileTotalFrame())
@@ -534,7 +534,7 @@ package Modules
                 ReplayController.renderReplayFrame(addUndoData.getRFileTotalFrame() - 1, ReplayController.JUMP_FRAME_MANUAL);
                 // 실제 rPrevFrame으로 점프
                 ReplayController.renderReplayFrame(ReplayController.rPrevFrame, ReplayController.JUMP_FRAME_MANUAL);
-                main.applyReplayCanvasToDrawModeCanvas();
+                CanvasController.applyReplayCanvasToDrawModeCanvas();
             }
         }
 
@@ -591,7 +591,7 @@ package Modules
                 if (ReplayController.rNowFrame > 0)
                 {
                     ReplayController.moveToPreviousStep();
-                    main.applyReplayCanvasToDrawModeCanvas();
+                    CanvasController.applyReplayCanvasToDrawModeCanvas();
                     Utils.showDisplayTargetAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
                 }
             }

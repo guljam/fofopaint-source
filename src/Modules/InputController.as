@@ -574,7 +574,7 @@ package Modules
 
                 if (targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) == 0)
                 {
-                    main.selectOpacityButton(targetName);
+                    ToolController.setDrawingToolOpacity(targetName);
                     return;
                 }
 
@@ -704,7 +704,7 @@ package Modules
             {
                 if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                 {
-                    CanvasController.resetRotationDrawMode();                    
+                    CanvasController.resetRotationDrawMode();
                 }
                 return;
             }
@@ -1082,7 +1082,7 @@ package Modules
             }
             if (isPressingShift())
             {
-                if (main.handlePenOpacitySizeKeyDown(secondKey))
+                if (handleKeyDownPenOpacitySize(secondKey))
                 {
                     return;
                 }
@@ -1100,7 +1100,7 @@ package Modules
                 // 지우개키 조합 따로 체크
                 if (firstKey === KEY.d || firstKey === KEY.j)
                 {
-                    if (main.handlePenOpacitySizeKeyDown(secondKey))
+                    if (handleKeyDownPenOpacitySize(secondKey))
                     {
                         return;
                     }
@@ -1128,7 +1128,7 @@ package Modules
                 // 필펜 조합 체크
                 else if (firstKey === KEY.q || firstKey === KEY.o)
                 {
-                    if (main.handlePenOpacitySizeKeyDown(secondKey))
+                    if (handleKeyDownPenOpacitySize(secondKey))
                     {
                         return;
                     }
@@ -1143,7 +1143,7 @@ package Modules
                 return;
             }
             updateLastKey(firstKey);
-            if (main.handlePenOpacitySizeKeyDown(firstKey))
+            if (handleKeyDownPenOpacitySize(firstKey))
             {
                 return;
             }
@@ -2587,7 +2587,7 @@ package Modules
             }
         }
 
-public static function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
+        public static function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
         {
             if (ReplayController.isReplayModeON || CaptureController.isCaptureModeON)
             {
@@ -2595,6 +2595,29 @@ public static function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
             }
 
             PenSizePreviewCursor.updatePosAndVisibility();
+        }
+
+        public static function handleKeyDownPenOpacitySize(keyCode:uint):Boolean
+        {
+            switch (keyCode)
+            {
+                case KEY.f:
+                case KEY.h:
+                    startKeyRepeat(true, ToolController.adjustDrawToolSizeByShortcut, true);
+                    return true;
+                case KEY.v:
+                case KEY.n:
+                    startKeyRepeat(true, ToolController.adjustDrawToolSizeByShortcut, false);
+                    return true;
+                case KEY.g:
+
+                    startKeyRepeat(true, ToolController.adjustDrawToolAlphaByShortcut, true);
+                    return true;
+                case KEY.b:
+                    startKeyRepeat(true, ToolController.adjustDrawToolAlphaByShortcut, false);
+                    return true;
+            }
+            return false;
         }
     }
 }
