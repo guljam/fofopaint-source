@@ -770,7 +770,13 @@ package Modules
             }
         }
 
-        public static function updateCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
+        public static function applyCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
+        {
+            setCavnvasSizeDrawMode(w, h, moveX, moveY, centerMovedFlag);
+            updateCanvasPanelColorAndSize();
+        }
+
+        public static function setCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
         {
             const maxSize:uint = CANVAS_MAX_SIZE;
 
@@ -825,7 +831,6 @@ package Modules
             ReferenceLayerController.updateRefLayerImagePos(w, h, centerMovedFlag); // canvas width가 갱신되게 전에 체크해야함
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
-            setCanvasPanelColor(CANVAS_BG_COLOR);
             keepCanvasPanelInStage();
             if (CanvasGridOverlay.gridGapMultiplier > 0)
             {
@@ -1000,7 +1005,7 @@ package Modules
                         {
                             UndoManager.applyDeepUndo();
                         }
-                        updateCavnvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
+                        applyCavnvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
                         MainUIController.updateResizeButtonPos(finalWidth, finalHeight);
                         ReplayController.rDataBuffer.push(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
                         if (ReplayController.hasLastRDataCommand("canvasSize"))
@@ -1255,7 +1260,7 @@ package Modules
             LassoTool.lassoLayer2.name = "lassoBox2";
             LassoTool.lassoLayer2.addChild(LassoTool.lassoLayer2Bitmap);
             LassoTool.lassoLayer2.visible = false;
-            CanvasController.updateCanvasBGColorDrawMode(CANVAS_BG_COLOR);
+            CanvasController.setCanvasBGColorDrawMode(CANVAS_BG_COLOR);
             updateCanvasPanelMask(CANVAS_WIDTH, CANVAS_HEIGHT);
             ReferenceLayerController.canvasRefLayer.alpha = ReferenceLayerController.refLayerLastAlpha;
             ReferenceLayerController.canvasRefLayer.addChild(ReferenceLayerController.canvasRefLayerBitmap);
@@ -1504,21 +1509,26 @@ package Modules
             ReplayController.rCanvasPanel.graphics.endFill();
         }
 
-        public static function setCanvasPanelColor(color:uint):void
+        public static function updateCanvasPanelColorAndSize():void
         {
             canvasPanel.graphics.clear();
-            canvasPanel.graphics.beginFill(color);
+            canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
             canvasPanel.graphics.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             canvasPanel.graphics.endFill();
         }
 
-        public static function updateCanvasBGColorDrawMode(color:uint):void
+        public static function applyCanvasBGColorDrawMode(color:uint):void
+        {
+            setCanvasBGColorDrawMode(color);
+            updateCanvasPanelColorAndSize();
+        }
+
+        public static function setCanvasBGColorDrawMode(color:uint):void
         {
             FileManager.isFileAlreadySaved = false;
 
             CANVAS_BG_COLOR = color;
             canvasNavigatorBox.changeprevBitmapBGColor(color);
-            setCanvasPanelColor(color);
 
             if (ColorPickerController.colorPickerBox.scratchPad)
             {
@@ -1546,8 +1556,9 @@ package Modules
         {
             canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, canvasLayer1Bitmap);
             canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, ReplayController.rCanvasLayer2BitmapData, canvasLayer2Bitmap);
-            updateCavnvasSizeDrawMode(ReplayController.rCanvasLayer1BitmapData.width, ReplayController.rCanvasLayer1BitmapData.height, 0, 0, false);
-            updateCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
+            setCavnvasSizeDrawMode(ReplayController.rCanvasLayer1BitmapData.width, ReplayController.rCanvasLayer1BitmapData.height, 0, 0, false);
+            setCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
+            updateCanvasPanelColorAndSize();
             keepCanvasPanelInStage(false);
             FileManager.isFileAlreadySaved = false;
             ReplayController.checkMirrorCanvasReplayMirror();

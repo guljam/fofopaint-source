@@ -98,7 +98,7 @@ package Modules
             ReplayController.clearCanvasReplayMode();
             ReplayController.updateReplayPrograssText(true, 0);
             MainUI.seekBarBox.resetReplayPrograssBarWidth();
-            CanvasController.updateCanvasBGColorDrawMode(newBG);
+            CanvasController.setCanvasBGColorDrawMode(newBG);
             ReplayController.updateCanvasBGColorReplayMode(newBG);
             if (ImageViewWindow.isCanvasWindowON)
             {
@@ -149,7 +149,8 @@ package Modules
             ReplayController.setRcursorRotation(0);
             CanvasController.canvasZoomIndex = 3;
             CanvasController.updateCanvasScale(1.0);
-            CanvasController.updateCavnvasSizeDrawMode(scaledwidth, scaledheight, 0, 0, false);
+            CanvasController.setCavnvasSizeDrawMode(scaledwidth, scaledheight, 0, 0, false);
+            CanvasController.updateCanvasPanelColorAndSize();
             ReplayController.syncReplayCanvasImageWithDrawMode();
             ReplayController.syncReplayCanvasWithDrawMode();
             CanvasController.centerCanvas("draw");

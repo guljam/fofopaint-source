@@ -462,11 +462,12 @@ package Modules
             rCanvasDrawLayerBitmapData.fillRect(new Rectangle(0, 0, rCanvasDrawLayerBitmapData.width, rCanvasDrawLayerBitmapData.height), 0);
             CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
             CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
-            CanvasController.updateCavnvasSizeDrawMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height);
-            CanvasController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
+            CanvasController.setCavnvasSizeDrawMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height);
+            CanvasController.setCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
+            CanvasController.updateCanvasPanelColorAndSize();
             CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             if (ImageViewWindow.isCanvasWindowON)
-            {
+            {   
                 ImageViewWindow.updateCanvasWindowImage();
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
@@ -605,8 +606,9 @@ package Modules
                 CanvasController.canvasLayer1Bitmap.bitmapData = CanvasController.canvasLayer1BitmapData;
                 CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
                 CanvasController.canvasLayer2Bitmap.bitmapData = CanvasController.canvasLayer2BitmapData;
-                CanvasController.updateCavnvasSizeDrawMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height, 0, 0, false);
-                CanvasController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
+                CanvasController.setCavnvasSizeDrawMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height, 0, 0, false);
+                CanvasController.setCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
+                CanvasController.updateCanvasPanelColorAndSize();
                 resetReplayTime();
                 syncDrawCanvasWithReplayCanvas();
                 UndoManager.resetUndoState();
@@ -4121,8 +4123,9 @@ package Modules
                 }
             }
 
-            CanvasController.updateCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
-            CanvasController.updateCavnvasSizeDrawMode(RCANVAS_WIDTH, RCANVAS_HEIGHT, 0, 0, false);
+            CanvasController.setCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
+            CanvasController.setCavnvasSizeDrawMode(RCANVAS_WIDTH, RCANVAS_HEIGHT, 0, 0, false);
+            CanvasController.updateCanvasPanelColorAndSize();
         }
 
         public static function setRcursorRotation(newAngle:Number):void

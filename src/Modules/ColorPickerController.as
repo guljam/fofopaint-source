@@ -577,7 +577,7 @@ package Modules
             }
             else if (isBackgroundColorMode())
             {
-                CanvasController.updateCanvasBGColorDrawMode(color);
+                CanvasController.applyCanvasBGColorDrawMode(color);
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
@@ -646,7 +646,7 @@ package Modules
 
             if (bgmode)
             {
-                CanvasController.updateCanvasBGColorDrawMode(hexColor);
+                CanvasController.applyCanvasBGColorDrawMode(hexColor);
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
@@ -809,7 +809,7 @@ package Modules
                 }
                 else if (isBackgroundColorMode())
                 {
-                    CanvasController.updateCanvasBGColorDrawMode(pickedColor);
+                    CanvasController.applyCanvasBGColorDrawMode(pickedColor);
 
                     if (ImageViewWindow.isCanvasWindowON)
                     {
@@ -909,7 +909,7 @@ package Modules
                 }
                 else if (isBackgroundColorMode())
                 {
-                    CanvasController.updateCanvasBGColorDrawMode(pickedColor);
+                    CanvasController.applyCanvasBGColorDrawMode(pickedColor);
 
                     if (ImageViewWindow.isCanvasWindowON)
                     {
@@ -968,7 +968,8 @@ package Modules
 
                 if (bgColor !== CanvasController.CANVAS_BG_COLOR)
                 {
-                    CanvasController.updateCanvasBGColorDrawMode(bgColor);
+                    CanvasController.applyCanvasBGColorDrawMode(bgColor);
+
 
                     if (ImageViewWindow.isCanvasWindowON)
                     {
@@ -993,7 +994,8 @@ package Modules
             }
             else if (isBackgroundColorMode())
             {
-                CanvasController.updateCanvasBGColorDrawMode(pickedColor);
+                CanvasController.applyCanvasBGColorDrawMode(pickedColor);
+
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {

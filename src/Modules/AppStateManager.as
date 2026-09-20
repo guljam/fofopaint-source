@@ -489,7 +489,7 @@ package Modules
                         return true;
                     });
 
-                CanvasController.updateCavnvasSizeDrawMode(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, 0, 0, false);
+                CanvasController.applyCavnvasSizeDrawMode(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, 0, 0, false);
                 MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
 
                 ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
