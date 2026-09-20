@@ -162,6 +162,11 @@ package Modules
             }
         }
 
+        private static function isDrawingToolSelected():Boolean
+        {
+            return isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN);
+        }
+    
         public static function selectPenToolIfNotDrawingTool(checkErase:Boolean):void
         {
             if (!(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)
@@ -237,19 +242,26 @@ package Modules
         }
 
         // opabox의 커서 위치와 색깔을 바꿈
-        public static function updateOpacityCursorPos(index:int):void
+        public static function updateOpacityCursorPos(index:uint):void
         {
-            if (index <= 0)
+            if (index === 0)
+            {
                 return;
+            }
+
             const curButton:Sprite = toolOptionsBox.opaBox.getChildByName("alphaButton" + index) as Sprite;
 
             if (!curButton)
+            {
                 return;
+            }
+
             toolOptionsBox.opaCursor.x = curButton.x;
             toolOptionsBox.opaCursor.y = curButton.y;
         }
 
-        public static function updateDrawToolAlpha(alpha:Number = 0.0):void
+
+        public static function applyDrawingToolAlpha(alpha:Number = 0.0):void
         {
             const index:int = PenTool.penAlphaList.indexOf(alpha);
             const eraseFlag:Boolean = isSelectedTool(TOOL_ERASER);
@@ -294,7 +306,7 @@ package Modules
                     }
                 }
 
-                updateDrawToolAlpha(PenTool.penAlphaList[index]);
+                applyDrawingToolAlpha(PenTool.penAlphaList[index]);
                 showDrawToolHintSizeOpacity();
             }
             selectPenToolIfNotDrawingTool(true);
@@ -705,8 +717,7 @@ package Modules
             setSelectedTool((lineFlag) ? TOOL_LINE : TOOL_PEN);
             toggleAirBrushCheckBox(isPenAirBrushON, true);
             setDrawToolSize(PenTool.penSizeIndex);
-            updateDrawToolAlpha(PenTool.penAlpha);
-            updateOpacityCursorPos(PenTool.penAlphaIndex);
+            applyDrawingToolAlpha(PenTool.penAlpha);
             moveEraserButtonToOtherTool((lineFlag) ? "toolLine" : "toolPen");
             toolBox.moveToolCursor((lineFlag) ? "toolLine" : "toolPen");
             updateToolOptionsTextBySelectedTool();
@@ -732,8 +743,7 @@ package Modules
             setSelectedTool(TOOL_ERASER);
             toggleAirBrushCheckBox(PenTool.isEraserAirBrushON, false);
             setDrawToolSize(PenTool.eraserSizeIndex);
-            updateDrawToolAlpha(PenTool.eraserAlpha);
-            updateOpacityCursorPos(PenTool.eraserAlphaIndex);
+            applyDrawingToolAlpha(PenTool.eraserAlpha);
 
             if (main.lastEraserPosButton)
             {
@@ -1499,7 +1509,7 @@ package Modules
         {
             const number:String = targetName.substr(11, targetName.length);
             const index:int = parseInt(number);
-            ToolController.updateDrawToolAlpha(PenTool.penAlphaList[index]);
+            ToolController.applyDrawingToolAlpha(PenTool.penAlphaList[index]);
         }
     }
 }

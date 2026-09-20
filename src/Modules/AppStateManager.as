@@ -317,7 +317,7 @@ package Modules
                         // Draw Tool Alpha & Shape
                         PenTool.penAlpha = appStateObject.penAlpha;
                         PenTool.penAlphaIndex = PenTool.penAlphaList.indexOf(appStateObject.penAlpha);
-                        ToolController.updateDrawToolAlpha(appStateObject.penAlpha);
+                        ToolController.applyDrawingToolAlpha(appStateObject.penAlpha);
 
                         PenTool.penIsSquare = appStateObject.penIsSquare;
                         PenTool.penListShapeIsSqare = appStateObject.penIsSquare;
