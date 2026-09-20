@@ -375,6 +375,7 @@
             toolFillPenCancel.visible = false;
 
             buttonArr = [
+                    toolRefLayer,
                     toolUndo,
                     toolRedo,
                     toolPen,
@@ -384,7 +385,6 @@
                     toolLine,
                     toolLasso,
                     toolMove,
-                    toolRefLayer,
                     toolZoomIn,
                     toolZoomOut,
                     toolRotate,
