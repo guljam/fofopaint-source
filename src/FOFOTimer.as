@@ -62,12 +62,12 @@
 			}
 		}
 
-		static public function hasTimer(name:String):Boolean
+		public static function hasTimer(name:String):Boolean
 		{
 			return timerList.hasOwnProperty(name) && timerList[name] !== null;
 		}
 
-		static public function remove(name:String):void
+		public static function remove(name:String):void
 		{
 			if (timerList.hasOwnProperty(name))
 			{
@@ -76,13 +76,13 @@
 			}
 		}
 
-		static public function add(time:Number, loopFlag:Boolean, func:Function, args:Array = null):void
+		public static function add(time:Number, loopFlag:Boolean, func:Function, args:Array = null):void
 		{
 			addByName("_timer_" + timerCount, time, loopFlag, func, args);
 			timerCount++;
 		}
 
-		static public function addByName(name:String, time:Number, loopFlag:Boolean, func:Function, args:Array = null):void
+		public static function addByName(name:String, time:Number, loopFlag:Boolean, func:Function, args:Array = null):void
 		{
 			if (!started)
 			{

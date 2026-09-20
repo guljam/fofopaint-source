@@ -186,24 +186,6 @@
         }
         // function
 
-        public function getClipRectOffsetAirBrush(size:int):Number
-        {
-            const len:uint = PenTool.penSizeList.length;
-            for (var i:uint = 1;i < len;i++)
-            {
-                if (PenTool.penSizeList[i] === size)
-                {
-                    return size + PenTool.airBrushClipRectOffsetData[i];
-                }
-            }
-            return 0;
-        }
-
-        public function getCanvasLayerSwappedHintString():String
-        {
-            return "Layers has been swapped " + ((CanvasController.isLayerSwapped) ? "1 / 2" : "2 / 1");
-        }
-
         public function mirrorRCursorPos():void
         {
             const p:Point = ReplayController.drawReplayByCommand.getRCursorPos();
@@ -925,7 +907,7 @@
                         case "layerSwapButton":
                             {
                                 CanvasController.swapLayer();
-                                MainUI.showMouseHintTemp(getCanvasLayerSwappedHintString());
+                                MainUI.showMouseHintTemp(HintStrings.getCanvasLayerSwappedHintString());
                             }
                             break;
                         default:

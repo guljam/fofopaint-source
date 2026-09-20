@@ -8,9 +8,9 @@ package
     public class Global
     {
         //todo ui 관련이 많아서 따로 정리하고 다른 범용은 utild로 옮겨야함
-        static public const OFFALPHA:Number = Math.round(0.25 * 256) / 256;
+        public static const OFFALPHA:Number = Math.round(0.25 * 256) / 256;
 
-        static public function setColorTransform(target:DisplayObject, color:uint, customAlpha:Number = NaN):void
+        public static function setColorTransform(target:DisplayObject, color:uint, customAlpha:Number = NaN):void
         {
             if (!target)
             {
@@ -51,17 +51,17 @@ package
         static private const hintBGColors:Array = [0xFF7943, 0xFF8A2C, 0xFFAF45, 0xFFCF46];
         static private const hintHighlightBoxColors:Array = [0x73B5E4, 0x7AC3F0, 0x6C9CDB, 0x609CFF];
 
-        static public function setDefaultUIColor():int
+        public static function setDefaultUIColor():int
         {
             return UI_COLOR_DARK;
         }
 
-        static public function setUIColorIndex(index:int):void
+        public static function setUIColorIndex(index:int):void
         {
             uiColorIndex = index;
         }
 
-        static public function setNextUIColor():void
+        public static function setNextUIColor():void
         {
             uiColorIndex++;
             if (uiColorIndex >= uiColorSets.length)
@@ -70,7 +70,7 @@ package
             }
         }
 
-        static public function setUIColorString():String
+        public static function setUIColorString():String
         {
             return (uiColorIndex === 0) ? "Black" :
                 (uiColorIndex === 1) ? "Dark Gray" :
@@ -78,118 +78,118 @@ package
                 (uiColorIndex === 3) ? "Light Gray" : "What color?";
         }
 
-        static public function applyUIBGColor(target:DisplayObject):void
+        public static function applyUIBGColor(target:DisplayObject):void
         {
             setColorTransform(target, uiColorSets[uiColorIndex][0]);
         }
 
-        static public function applyUIFGColor(target:DisplayObject):void
+        public static function applyUIFGColor(target:DisplayObject):void
         {
             setColorTransform(target, uiColorSets[uiColorIndex][1]);
         }
 
-        static public function getUIColorIndex():int
+        public static function getUIColorIndex():int
         {
             return uiColorIndex;
         }
 
-        static public function getUIBGColor():uint
+        public static function getUIBGColor():uint
         {
             return uiColorSets[uiColorIndex][0];
         }
 
-        static public function getUIFGColor():uint
+        public static function getUIFGColor():uint
         {
             return uiColorSets[uiColorIndex][1];
         }
 
-        static public function getUIStageColor():uint
+        public static function getUIStageColor():uint
         {
             return uiColorSets[uiColorIndex][2];
         }
 
-        static public function getUIResizeBarColor():uint
+        public static function getUIResizeBarColor():uint
         {
             return uiColorSets[uiColorIndex][3];
         }
 
-        static public function getUIReplayEndBarColor():uint
+        public static function getUIReplayEndBarColor():uint
         {
             return uiColorSets[uiColorIndex][4];
         }
 
-        static public function getUIReplayRestartBarColor():uint
+        public static function getUIReplayRestartBarColor():uint
         {
             return uiColorSets[uiColorIndex][5];
         }
 
-        static public function getHintHightlightColor():uint
+        public static function getHintHightlightColor():uint
         {
             return hintHighlightBoxColors[uiColorIndex];
         }
 
-        static public function getHintBGColor():uint
+        public static function getHintBGColor():uint
         {
             return hintBGColors[uiColorIndex];
         }
 
-        static public function setButtonColorWithBG(btn:DisplayObjectContainer, index1:int, index2:int, alpha:Number = 1.0):void
+        public static function setButtonColorWithBG(btn:DisplayObjectContainer, index1:int, index2:int, alpha:Number = 1.0):void
         {
             setColorTransform(btn.getChildAt(0) as DisplayObject, uiToolBoxColorSets[uiColorIndex][index1], alpha);
             setColorTransform(btn.getChildAt(1) as DisplayObject, uiToolBoxColorSets[uiColorIndex][index2]);
         }
 
-        static public function getToolBoxBGColor():uint
+        public static function getToolBoxBGColor():uint
         {
             return uiToolBoxColorSets[uiColorIndex][0];
         }
 
-        static public function getToolBoxBGTopColor():uint
+        public static function getToolBoxBGTopColor():uint
         {
             return uiToolBoxColorSets[uiColorIndex][1];
         }
 
-        static public function getToolBoxButtonUpBGColor():uint
+        public static function getToolBoxButtonUpBGColor():uint
         {
             return uiToolBoxColorSets[uiColorIndex][2];
         }
 
-        static public function getToolBoxButtonUpFGColor():uint
+        public static function getToolBoxButtonUpFGColor():uint
         {
             return uiToolBoxColorSets[uiColorIndex][3];
         }
 
-        static public function getToolBoxButtonOverBGColor():uint
+        public static function getToolBoxButtonOverBGColor():uint
         {
             return uiToolBoxColorSets[uiColorIndex][4];
         }
 
-        static public function getToolBoxButtonOverFGColor():uint
+        public static function getToolBoxButtonOverFGColor():uint
         {
             return uiToolBoxColorSets[uiColorIndex][5];
         }
 
-        static public function applyToolBoxBGColor(target:DisplayObject):void
+        public static function applyToolBoxBGColor(target:DisplayObject):void
         {
             setColorTransform(target, uiToolBoxColorSets[uiColorIndex][0]);
         }
 
-        static public function applyToolBoxBGTopColor(target:DisplayObject):void
+        public static function applyToolBoxBGTopColor(target:DisplayObject):void
         {
             setColorTransform(target, uiToolBoxColorSets[uiColorIndex][1]);
         }
 
-        static public function applyToolBoxButtonUpBGColor(target:DisplayObject):void
+        public static function applyToolBoxButtonUpBGColor(target:DisplayObject):void
         {
             setColorTransform(target, uiToolBoxColorSets[uiColorIndex][2]);
         }
 
-        static public function applyToolBoxButtonUpFGColor(target:DisplayObject):void
+        public static function applyToolBoxButtonUpFGColor(target:DisplayObject):void
         {
             setColorTransform(target, uiToolBoxColorSets[uiColorIndex][3]);
         }
 
-        static public function applyToolBoxButtonOverBGColor(target:DisplayObject):void
+        public static function applyToolBoxButtonOverBGColor(target:DisplayObject):void
         {
             setColorTransform(target, uiToolBoxColorSets[uiColorIndex][4]);
         }
@@ -204,28 +204,28 @@ package
             return hintHighlightBoxColors[uiColorIndex];
         }
 
-        static public function setScale(target:DisplayObjectContainer, scale:Number):void
+        public static function setScale(target:DisplayObjectContainer, scale:Number):void
         {
             target.scaleX = scale;
             target.scaleY = scale;
         }
 
-        static public function getScaleIndex():int
+        public static function getScaleIndex():int
         {
             return uiScaleIndex;
         }
 
-        static public function resetScaleIndex():void
+        public static function resetScaleIndex():void
         {
             uiScaleIndex = 0;
         }
 
-        static public function setScaleIndex(index:int):void
+        public static function setScaleIndex(index:int):void
         {
             uiScaleIndex = index;
         }
 
-        static public function setNextScaleIndex():void
+        public static function setNextScaleIndex():void
         {
             uiScaleIndex++;
             if (uiScaleIndex >= uiScales.length)
@@ -234,17 +234,17 @@ package
             }
         }
 
-        static public function getUIScaleIndex():int
+        public static function getUIScaleIndex():int
         {
             return uiScaleIndex;
         }
 
-        static public function getUIScale():Number
+        public static function getUIScale():Number
         {
             return uiScales[uiScaleIndex];
         }
 
-        static public function getUIScaleString():String
+        public static function getUIScaleString():String
         {
             return getUIScale() * 100 + "%";
         }
@@ -288,7 +288,7 @@ package
         }
 
         // hex에서 rgb vector 배열로 반환
-        static public function HEXtoRGB(hex:uint):Vector.<Number>
+        public static function HEXtoRGB(hex:uint):Vector.<Number>
         {
             const r:uint = (hex >> 16) & 0xFF;
             const g:uint = (hex >> 8) & 0xFF;
@@ -297,7 +297,7 @@ package
             return new <Number>[r, g, b];
         }
 
-        static public function HEXtoHSV(color:uint, baseHue:Number):Vector.<Number>
+        public static function HEXtoHSV(color:uint, baseHue:Number):Vector.<Number>
         {
             const r:uint = (color >> 16) & 0xFF;
             const g:uint = (color >> 8) & 0xFF;
@@ -307,19 +307,19 @@ package
         }
 
         // rgb값을 16진수로 hex값으로 만들어줌
-        static public function RGBtoHEX(r:uint, g:uint, b:uint):uint
+        public static function RGBtoHEX(r:uint, g:uint, b:uint):uint
         {
             return (r << 16 | g << 8 | b);
         }
 
-        static public function HSVtoHEX(h:Number, s:Number, v:Number):uint
+        public static function HSVtoHEX(h:Number, s:Number, v:Number):uint
         {
             const rgb:Vector.<uint> = HSVtoRGB(h, s, v);
             return RGBtoHEX(rgb[0], rgb[1], rgb[2]);
         }
 
         // h s v는 0~1.0 사이값 넣어줘야함
-        static public function HSVtoRGB(h:Number, s:Number, v:Number):Vector.<uint>
+        public static function HSVtoRGB(h:Number, s:Number, v:Number):Vector.<uint>
         {
             v = Math.round(v * 255);
 
@@ -363,7 +363,7 @@ package
         }
 
         // 주어진 컬러 알파값을 기반으로 반전 컬러를 구함
-        static public function getInvertedColor(color:uint):uint
+        public static function getInvertedColor(color:uint):uint
         {
             const dark:uint = (getUIColorIndex() >= 2) ? getUIFGColor() : getUIBGColor();
             const bright:uint = (getUIColorIndex() >= 2) ? getUIBGColor() : getUIFGColor();
@@ -377,7 +377,7 @@ package
         // 2 ~ 10	한눈에 알아볼 수 있음
         // 11-49	색상이 반대보다 비슷
         // 100	    색상이 정반대
-        static public function getColorDifferenceForHuman(rgbA:uint, rgbB:uint):Number
+        public static function getColorDifferenceForHuman(rgbA:uint, rgbB:uint):Number
         {
             function rgb2lab(rgb:uint):Vector.<Number>
             {

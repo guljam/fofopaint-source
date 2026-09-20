@@ -11,20 +11,21 @@
     import Modules.ToolController;
     import Modules.ReplayController;
     import Modules.ActivityWorkTimer;
+    import Modules.CanvasController;
 
     public class HintStrings
     {
         static private var main:Main;
-        static public function setMainInstance(mainclass:Main):void
+        public static function setMainInstance(mainclass:Main):void
         {
             main = mainclass;
             initSizeAndAlphaButtonHintString();
         }
 
-        static public const STRING_MERGE_INTO_REFLAYER:String = "Merge into reference layer";
-        static public const STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity ";
-        static public const STRING_RIGHT_CLICK_TO_RESET:String = "Right-click to reset";
-        static public const STRING_VARIBALE_HINT:String = "!";
+        public static const STRING_MERGE_INTO_REFLAYER:String = "Merge into reference layer";
+        public static const STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity ";
+        public static const STRING_RIGHT_CLICK_TO_RESET:String = "Right-click to reset";
+        public static const STRING_VARIBALE_HINT:String = "!";
 
         static private const hintsCaptureMode:Object =
             {
@@ -163,7 +164,7 @@
                 "navLayer2Bitmap": "Canvas Navigator"
             };
 
-        static public function getActivityWorkTimeHintString():String
+        public static function getActivityWorkTimeHintString():String
         {
             return "Work time _ Hold to reset, Total app run time : " + ActivityWorkTimer.getFormattedAppUpTimeString();
         }
@@ -210,17 +211,17 @@
             return "Undo [z / .] _ Hold to repeat";
         }
 
-        static public function getGridGapAdjustHintString(multi:uint, gap:uint):String
+        public static function getGridGapAdjustHintString(multi:uint, gap:uint):String
         {
             return "Grid " + (multi * gap) + "px (" + multi + "/20)";
         }
 
-        static public function getNewFileHintString():String
+        public static function getNewFileHintString():String
         {
             return "Creating new file...";
         }
 
-        static public function getResetTimerHintString():String
+        public static function getResetTimerHintString():String
         {
             return "Resetting the timer...";
         }
@@ -253,7 +254,7 @@
             return (CaptureController.captureAreaManager.isFullImageCapture()) ? "image" : "selected area";
         }
 
-        static public function getUIScaleString():String
+        public static function getUIScaleString():String
         {
             return Global.getUIScaleString();
         }
@@ -321,7 +322,7 @@
             return "Current color : " + mode + " " + arr[0] + "," + arr[1] + "," + arr[2];
         }
 
-        static public function getHintFromTargetNameRefLayer(targetName:String):String
+        public static function getHintFromTargetNameRefLayer(targetName:String):String
         {
             var str:String = "Reference layer";
 
@@ -368,7 +369,7 @@
             return str;
         }
 
-        static public function getLassoMenuHintSwapLayer():String
+        public static function getLassoMenuHintSwapLayer():String
         {
             if (main === null)
             {
@@ -378,7 +379,7 @@
             return "Swap layers " + ((LassoTool.isLassoLayerSwapButtonClicked) ? "*" : "");
         }
 
-        static public function getLayerVisibleHint(layer1:Boolean, layer2:Boolean):String
+        public static function getLayerVisibleHint(layer1:Boolean, layer2:Boolean):String
         {
             if (layer1)
             {
@@ -388,7 +389,7 @@
             return layer2 ? "Layer 2 only" : "No layers visible";
         }
 
-        static public function getHintFromTargetNameLassoTool(targetName:String):String
+        public static function getHintFromTargetNameLassoTool(targetName:String):String
         {
             var str:String = "Lasso tool";
 
@@ -434,22 +435,22 @@
             return str;
         }
 
-        static public function getDeleteReplayDataHintString():String
+        public static function getDeleteReplayDataHintString():String
         {
             return "Triming data..";
         }
 
-        static public function getReplayRestartHintString(count:Number):String
+        public static function getReplayRestartHintString(count:Number):String
         {
             return "Restarting in " + count + " sec";
         }
 
-        static public function getReplaySpeedHintString(speed:Number, timeStr:String):String
+        public static function getReplaySpeedHintString(speed:Number, timeStr:String):String
         {
             return "Playback speed x" + speed + timeStr;
         }
 
-        static public function getHintFromTargetNameCaptureMode(targetName:String):String
+        public static function getHintFromTargetNameCaptureMode(targetName:String):String
         {
             if (main === null || !hintsCaptureMode.hasOwnProperty(targetName))
             {
@@ -457,6 +458,11 @@
             }
 
             return getFinalHint(targetName, hintsCaptureMode);
+        }
+
+        public static function getCanvasLayerSwappedHintString():String
+        {
+            return "Layers has been swapped " + ((CanvasController.isLayerSwapped) ? "1 / 2" : "2 / 1");
         }
 
         static private function getFinalHint(targetName:String,hintStringSet:Object):String
@@ -508,7 +514,7 @@
             }
         }
 
-        static public function getHintFromTargetName(targetName:String):String
+        public static function getHintFromTargetName(targetName:String):String
         {
             if (main === null || !hints.hasOwnProperty(targetName))
             {

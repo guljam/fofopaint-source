@@ -9,7 +9,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
-	public class seekBarSet extends Sprite
+	public class SeekBarSet extends Sprite
 	{
 		private var replayBGBar:Sprite = new Sprite();
 		private var deleteRangeBar:Sprite = new Sprite();
@@ -272,7 +272,7 @@
 		[Embed(source="fofoPaint-animate-27.13.swf",symbol="seekBarSet")]
 		private static const EmbeddedClass:Class;
 
-		public function seekBarSet()
+		public function SeekBarSet()
 		{
 			const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
 			VisualBuilder.buildInto(this, EmbeddedClass, fields);

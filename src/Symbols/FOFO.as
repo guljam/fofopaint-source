@@ -7,7 +7,6 @@
 
     public class FOFO extends Sprite
     {
-        // todo fofo가 stage에 추가되었다가 삭제되는 버그있음 pickerbox나 sidebar 리팩토링 문제일수도 있음
         public var fofo:SimpleButton;
         private var constScale:Number = 0.65;
         private var topPos:Boolean = false;

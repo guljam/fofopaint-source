@@ -7,7 +7,7 @@ package Modules
 	import Symbols.CapStampFontListSet;
 	import Symbols.HintBoxSet;
 	import Symbols.TopMenuSet;
-	import Symbols.seekBarSet;
+	import Symbols.SeekBarSet;
 
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
@@ -31,7 +31,7 @@ package Modules
 		// todo ui색깔 변경 스케일 변경 등 클래스를더 쪼개야함
 		public static const stageBG:Sprite = new Sprite(); // 드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
 		public static const topBar:TopMenuSet = new TopMenuSet();
-		public static const seekBarBox:seekBarSet = new seekBarSet();
+		public static const seekBarBox:SeekBarSet = new SeekBarSet();
 		private static const BOTTOM_HINT_SCROLL_TIMER:String = "bottomHintScrollTimer";
 		private static var bottomHintScrollWaitFrames:int = 0;
 		private static var bottomHintScrollToLeft:Boolean = true;

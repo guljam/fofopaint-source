@@ -186,7 +186,7 @@ package Modules
 
         public static function extandRCanvasDrawLayerCliprect2():void
         {
-            var rairBrushOffset:Number = (ReplayController.rAirBrushSize2 > 0) ? main.getClipRectOffsetAirBrush(ReplayController.rAirBrushSize2) : 1;
+            var rairBrushOffset:Number = (ReplayController.rAirBrushSize2 > 0) ? getClipRectOffsetAirBrush(ReplayController.rAirBrushSize2) : 1;
             ReplayController.rCanvasDrawLayerClipRect.x -= rairBrushOffset;
             ReplayController.rCanvasDrawLayerClipRect.y -= rairBrushOffset;
             ReplayController.rCanvasDrawLayerClipRect.width += (rairBrushOffset * 2);
@@ -195,7 +195,7 @@ package Modules
 
         public static function extandRCanvasDrawLayerCliprect():void
         {
-            var rairBrushOffset:Number = (ReplayController.rAirBrushSize > 0) ? main.getClipRectOffsetAirBrush(ReplayController.rAirBrushSize) : 1;
+            var rairBrushOffset:Number = (ReplayController.rAirBrushSize > 0) ? getClipRectOffsetAirBrush(ReplayController.rAirBrushSize) : 1;
             ReplayController.rCanvasDrawLayerClipRectLegacy.x -= rairBrushOffset;
             ReplayController.rCanvasDrawLayerClipRectLegacy.y -= rairBrushOffset;
             ReplayController.rCanvasDrawLayerClipRectLegacy.width += (rairBrushOffset * 2);
@@ -225,17 +225,32 @@ package Modules
 
         public static function extandCanvasDrawLayerCliprect():void
         {
-            var airBrushOffset:Number = (PenTool.airBrushSizeDrawMode > 0) ? main.getClipRectOffsetAirBrush(PenTool.airBrushSizeDrawMode) : 1;
+            var airBrushOffset:Number = (PenTool.airBrushSizeDrawMode > 0) ? getClipRectOffsetAirBrush(PenTool.airBrushSizeDrawMode) : 1;
             canvasDrawLayerClipRect.x -= airBrushOffset;
             canvasDrawLayerClipRect.y -= airBrushOffset;
             canvasDrawLayerClipRect.width += (airBrushOffset * 2);
             canvasDrawLayerClipRect.height += (airBrushOffset * 2);
         }
+        
 
         public static function updateCanvasDrawLayerCliprect():void
         {
             canvasDrawLayerClipRect = canvasDrawLayerClipRect.union(canvasDrawLayerChild.getBounds(canvasPanel));
         }
+
+        public static function getClipRectOffsetAirBrush(size:int):Number
+        {
+            const len:uint = PenTool.penSizeList.length;
+            for (var i:uint = 1;i < len;i++)
+            {
+                if (PenTool.penSizeList[i] === size)
+                {
+                    return size + PenTool.airBrushClipRectOffsetData[i];
+                }
+            }
+            return 0;
+        }
+
 
         public static function playLayerSwapEffect(target:DisplayObject):void
         {
