@@ -3,6 +3,7 @@ package Modules
     import flash.display.DisplayObject;
     import flash.events.MouseEvent;
     import flash.geom.Point;
+    import flash.events.Event;
 
     public class DragInteraction
     {
@@ -12,29 +13,39 @@ package Modules
             main = instance;
         }
 
-        private static var dragInteractionFuncs:Object = {onDragStart: null, onMouseMove: null, onMouseUp: null};
+        private static var dragInteractionMouseMoveFunc:Function;
+        private static var dragInteractionMouseUpFunc:Function;
+        private static var dragInteractionMouseEventStarted:Boolean = false;
+
+        public static function handleMouseMoveDragInteraction(event:Event):void
+        {
+            dragInteractionMouseMoveFunc();
+        }
+        public static function handleMouseUpDragInteraction(event:Event):void
+        {
+            dragInteractionMouseEventStarted = false;
+            CanvasController.isMouseDragging = false;
+            main.stage.removeEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction);
+            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
+
+            dragInteractionMouseUpFunc();
+            dragInteractionMouseUpFunc = null;
+            dragInteractionMouseMoveFunc = null;
+        }
 
         public static function startDragInteraction(onDragStartFunc:Function, onMouseMoveFunc:Function, onMouseUpFunc:Function):void
         {
             CanvasController.isMouseDragging = true;
-            function onMouseUp(e:MouseEvent):void
-            {
-                CanvasController.isMouseDragging = false;
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-
-                onMouseUpFunc();
-            }
-
-            function onMouseMove(e:MouseEvent):void
-            {
-                onMouseMoveFunc();
-            }
-
+            dragInteractionMouseUpFunc = onMouseUpFunc;
+            dragInteractionMouseMoveFunc = onMouseMoveFunc;
             onDragStartFunc();
 
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+            if (dragInteractionMouseEventStarted === false)
+            {
+                dragInteractionMouseEventStarted = true;
+                main.stage.addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
+                main.stage.addEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction);
+            }
         }
 
         public static function startBoxDrag(target:DisplayObject):void

@@ -44,6 +44,7 @@ package Modules
         private static var workerState:int = WORKER_STATE_STOPPED;
         private static var workerWaitCount:int = 0; // 워커 시작하고나서 약간 대기 시켜줘야함,
         private static var workerFunctionsBeforeStart:Array = [];
+        private static var waitWorkerReadyEnterFrameEventStarted:Boolean = false; // 워커 대기 프레임 한번만 실행
 
         public static function getWaitPollingInterval():Number
         {
@@ -97,7 +98,7 @@ package Modules
             }
         }
 
-        private static function sendDataToWorker(func:Function):void
+        public static function sendDataToWorker(func:Function):void
         {
             if (workerState === WORKER_STATE_RUNNING)
             {
@@ -111,6 +112,7 @@ package Modules
                     if (worker === null)
                     {
                         main.stage.removeEventListener(Event.ENTER_FRAME, waitWorkerReady);
+                        waitWorkerReadyEnterFrameEventStarted = false;
                         workerWaitCount = 0;
                         workerState = WORKER_STATE_STOPPED;
                         return;
@@ -124,6 +126,7 @@ package Modules
                             workerWaitCount = 0;
                             workerState = WORKER_STATE_RUNNING;
                             main.stage.removeEventListener(Event.ENTER_FRAME, waitWorkerReady);
+                            waitWorkerReadyEnterFrameEventStarted = false;
                             while (workerFunctionsBeforeStart.length)
                             {
                                 workerFunctionsBeforeStart[0]();
@@ -137,7 +140,11 @@ package Modules
                         workerWaitCount = 0;
                     }
                 }
-                main.stage.addEventListener(Event.ENTER_FRAME, waitWorkerReady);
+                if (waitWorkerReadyEnterFrameEventStarted === false)
+                {
+                    waitWorkerReadyEnterFrameEventStarted = true;
+                    main.stage.addEventListener(Event.ENTER_FRAME, waitWorkerReady);
+                }
 
                 if (workerState === WORKER_STATE_STOPPED)
                 {

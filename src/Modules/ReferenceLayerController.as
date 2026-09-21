@@ -215,7 +215,6 @@ package Modules
             refLayerMenuBox.y = Math.floor(main.stage.mouseY - 8);
             refLayerMenuBox.visible = true;
 
-            Utils.setAsTopChild(refLayerMenuBox);
             MainUIController.keepBoxInsideViewPort(refLayerMenuBox);
 
             if (isRefLayerMenuON === false)

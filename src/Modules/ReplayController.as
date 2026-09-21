@@ -467,7 +467,7 @@ package Modules
             CanvasController.updateCanvasPanelColorAndSize();
             CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             if (ImageViewWindow.isCanvasWindowON)
-            {   
+            {
                 ImageViewWindow.updateCanvasWindowImage();
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }

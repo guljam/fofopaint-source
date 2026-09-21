@@ -118,7 +118,6 @@ package Modules
             }
             else
             {
-                InputController.removeInputEventsDrawMode();
                 _aboutBox.resetAppButton.visible = true;
 
                 AppUpdater.checkUpdate();

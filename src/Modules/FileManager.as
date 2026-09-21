@@ -597,7 +597,6 @@ package Modules
                     }
                 }
                 openLoadMenuBox();
-                Utils.setAsTopChild(loadMenuBox);
             }
         }
         private static function isWebpFile(file:File):Boolean

@@ -248,7 +248,7 @@ package Modules
             if (flag)
             {
                 updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                ToolController.toolBox2.startResizeButtonWaitBarAnimation(0.9);
+                ToolController.toolBox2.startResizeButtonWaitPrograssBarAnimation();
                 FOFOTimer.addByName("resizeButtonVisibleDelayTimer", 0.9, false, function ():void
                     {
                         showCanvasResizeButtons();

@@ -17,6 +17,7 @@ package Modules
     import flash.system.Capabilities;
     import flash.system.IME;
     import flash.globalization.LastOperationStatus;
+    import worker.BackgroundImageProcessor;
 
     public class InputController
     {

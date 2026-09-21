@@ -33,11 +33,16 @@
 		public var toolInfoText:TextField;
 		private var constScale:Number = 1.0;
 		private var infoDataBackup:Array = [];
-		private const resizeButtonWaitTimeBar:Shape = new Shape();
-		private var resizeButtonWaitTimeBarColor:uint = 0xFf0000;
-		private var WIDTH:Number = 0.0;
 		private var lastUsedToolPoint:Point = new Point(0, 0);
 		private var onMouseOverTarget:DisplayObject;
+
+		private const resizeButtonWaitPrograssBar:Shape = new Shape();
+		private const resizeButtonWaitPrograssBarDuration:Number = 0.9;
+		private var resizeButtonWaitPrograssBarColor:uint = 0xFF0000;
+		private var resizeButtonWaitPrograssBarWidth:Number = 0.0;
+		private var resizeButtonWaitPrograssBarElapsedTime:Number = 0.0;
+		private var resizeButtonWaitPrograssBarStartTime:int = 0;
+		private var resizeButtonWaitPrograssBarEventStarted:Boolean = false;
 
 		public function getMouseOverTarget():DisplayObject
 		{
@@ -161,7 +166,7 @@
 			}
 			// 텍스트
 			toolInfoText.textColor = Global.getToolBoxButtonUpBGColor();
-			resizeButtonWaitTimeBarColor = Global.getToolBoxButtonOverBGColor();
+			resizeButtonWaitPrograssBarColor = Global.getToolBoxButtonOverBGColor();
 
 			btn = null;
 			btnUp = null;
@@ -174,33 +179,38 @@
 			this.scaleY = newScale * constScale;
 		}
 
-		public function startResizeButtonWaitBarAnimation(duration:Number):void
+		public function handleOnEnterFrameResizeButtonWaitPrograssBarAnimation(event:Event):void
 		{
-			var totalWidth:Number = WIDTH;
-			var color:uint = resizeButtonWaitTimeBarColor;
-			var elapsed:Number = 0;
-			var startTime:int = getTimer();
-			var toolbox2:DisplayObjectContainer = this;
+			resizeButtonWaitPrograssBarElapsedTime = (getTimer() - resizeButtonWaitPrograssBarStartTime) / 1000; // 초 단위 경과 시간
+			var progress:Number = Math.min(resizeButtonWaitPrograssBarElapsedTime / resizeButtonWaitPrograssBarDuration, 1); // 0~1 사이 비율
+			var currentWidth:Number = resizeButtonWaitPrograssBarWidth * progress;
 
-			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+			resizeButtonWaitPrograssBar.graphics.clear();
+			resizeButtonWaitPrograssBar.graphics.lineStyle(4, resizeButtonWaitPrograssBarColor, 1.0, false, "normal", "none");
+			resizeButtonWaitPrograssBar.graphics.moveTo(0, 0);
+			resizeButtonWaitPrograssBar.graphics.lineTo(currentWidth, 0);
 
-			function onEnterFrame(e:Event):void
+			if (progress >= 1 || this.visible === false)
 			{
-				elapsed = (getTimer() - startTime) / 1000; // 초 단위 경과 시간
-				var progress:Number = Math.min(elapsed / duration, 1); // 0~1 사이 비율
-
-				var currentWidth:Number = totalWidth * progress;
-
-				resizeButtonWaitTimeBar.graphics.clear();
-				resizeButtonWaitTimeBar.graphics.lineStyle(4, color, 1.0, false, "normal", "none");
-				resizeButtonWaitTimeBar.graphics.moveTo(0, 0);
-				resizeButtonWaitTimeBar.graphics.lineTo(currentWidth, 0);
-
-				if (progress >= 1 || toolbox2.visible === false)
-				{
-					removeEventListener(Event.ENTER_FRAME, onEnterFrame);
-				}
+				resizeButtonWaitPrograssBarEventStarted = false;
+				this.removeEventListener(Event.ENTER_FRAME, handleOnEnterFrameResizeButtonWaitPrograssBarAnimation);
 			}
+		}
+
+		public function startResizeButtonWaitPrograssBarAnimation():void
+		{
+			if(resizeButtonWaitPrograssBarEventStarted)
+			{
+				return;
+			}
+
+			resizeButtonWaitPrograssBarEventStarted = true;
+
+			resizeButtonWaitPrograssBar.graphics.clear();
+			resizeButtonWaitPrograssBarElapsedTime = 0.0;
+			resizeButtonWaitPrograssBarStartTime = getTimer();
+
+			this.addEventListener(Event.ENTER_FRAME, handleOnEnterFrameResizeButtonWaitPrograssBarAnimation);
 		}
 
 		[Embed(source="fofoPaint-animate-27.13.swf",symbol="ToolMenuSet2")]
@@ -236,10 +246,10 @@
 
 			constScale = 34 / toolPen.width;
 			setScale(1.0);
-			WIDTH = this.width / constScale;
+			resizeButtonWaitPrograssBarWidth = this.width / constScale;
 
-			resizeButtonWaitTimeBar.y = 2;
-			addChild(resizeButtonWaitTimeBar);
+			resizeButtonWaitPrograssBar.y = 2;
+			addChild(resizeButtonWaitPrograssBar);
 		}
 	}
 

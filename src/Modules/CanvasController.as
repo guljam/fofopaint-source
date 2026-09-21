@@ -70,6 +70,9 @@ package Modules
         public static var checkedLayer:int = 0; // 레이어가 체크되면 저장해줌
         public static var isLayerSwapped:Boolean = false; // 1<->2 번호 바뀌는 힌트 써주려고 만듬
 
+        // 네비게이터로 캔버스 이동 이벤트 한번만 올려주기
+        private static var canvasMoveByCanvasNavigatorEventStarted:Boolean = false;
+
         public static function resetRotationDrawMode():void
         {
             const center:Point = MainUIController.getStageCenterPos("draw");
@@ -491,8 +494,10 @@ package Modules
             var sy:Number = canvasNavigatorBox.mouseY;
             const prevCursorScale:Number = canvasNavigatorBox.navCursorMultiply;
             const uiScale:Number = Global.getUIScale();
+
             ReferenceLayerController.setRefLayerAndGridVisible(false);
             MainUI.hideBottomHint();
+
             function centerCanvas(mx:Number, my:Number):void
             {
                 const b:Object = Utils.getBoundRect(canvasNavigatorBox.navCursor);
@@ -522,7 +527,9 @@ package Modules
                 }
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator);
+                canvasMoveByCanvasNavigatorEventStarted = false;
             }
+
             function onMouseMoveCanvasNavigator(e:MouseEvent):void
             {
                 const scale:Number = Global.getUIScale();
@@ -549,8 +556,13 @@ package Modules
             {
                 centerCanvas(main.stage.mouseX, main.stage.mouseY);
             }
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator);
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
+
+            if (canvasMoveByCanvasNavigatorEventStarted === false)
+            {
+                canvasMoveByCanvasNavigatorEventStarted = true;
+                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator);
+                main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
+            }
         }
 
         // 원점 penSmoothX oy로부터 dx쪽으로 dist 만큼 떨어진 거리 점을 리턴함
@@ -1551,7 +1563,7 @@ package Modules
             MainUI.topBar.newFileButton.alpha = Global.OFFALPHA;
         }
 
-        //드로우 모드 캔버스 상태를 리플레이캔버스 상태랑 똑같이 만들어줌
+        // 드로우 모드 캔버스 상태를 리플레이캔버스 상태랑 똑같이 만들어줌
         public static function applyReplayCanvasToDrawModeCanvas():void
         {
             canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, canvasLayer1Bitmap);

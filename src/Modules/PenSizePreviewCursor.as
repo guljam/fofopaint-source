@@ -97,14 +97,14 @@ package Modules
             }
         }
 
-        툴선택메서드(펜지우게 등)에서  updatePosAndVisibility updateSizeAndShape등 제거하고 툴선택이 완료된시점에  refreshCursorAfterToolSelection만 호출하기
-        public static function refreshCursorAfterToolSelection():void
+        //todo 툴선택메서드(펜지우게 등)에서  updatePosAndVisibility updateSizeAndShape등 제거하고 툴선택이 완료된시점에  refreshCursorAfterToolSelection만 호출하기
+        private static function refreshCursorAfterToolSelection():void
         {
             PenSizePreviewCursor.updateSizeAndShape();
             PenSizePreviewCursor.updatePosAndVisibility();
         }
 
-        private static function updatePosAndVisibility():void
+        public static function updatePosAndVisibility():void
         {
             const mx:Number = main.stage.mouseX;
             const my:Number = main.stage.mouseY;
@@ -131,7 +131,7 @@ package Modules
         }
 
         // size, size drag, zoom, rotate시 업데이트 해줌
-        private static function updateSizeAndShape():void
+        public static function updateSizeAndShape():void
         {
             const isPenTool:Boolean = ToolController.isSelectedToolPenOrLine();
             if (!isPenTool && !ToolController.isSelectedTool(ToolController.TOOL_ERASER))

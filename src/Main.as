@@ -85,6 +85,9 @@
         public var lastWindowDeactivateTime:int = 0; // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
         public var lastEraserPosButton:SimpleButton = null; // 지우개 툴이 이동한 버튼 저장; 복원용
 
+        // handle mouse click 이벤트에서 이벤트 한번만 추가되게 하기
+        public var handMouseClickEventStarted:Boolean = false;
+
         public function Main():void
         {
             _instance = this;
@@ -355,6 +358,12 @@
         // todo: 분야별로 분리해야
         public function handleMouseClick(targetName:String):void
         {
+            if(handMouseClickEventStarted === true)
+            {
+                return;
+            }
+
+            handMouseClickEventStarted = true;
             if (AboutBoxController.isAboutBoxOpened)
             {
                 function onMouseUpAboutBox(e:MouseEvent):void
@@ -365,6 +374,7 @@
                     {
                         AboutBoxController.handlerMouseUpAboutBox(targetName);
                     }
+                    handMouseClickEventStarted = false;
                 }
                 stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
                 return;
@@ -373,6 +383,7 @@
             function onMouseUp(e:MouseEvent):void
             {
                 stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+                handMouseClickEventStarted = false;
                 const upTargetName:String = e.target.name;
                 if (targetName === upTargetName)
                 {

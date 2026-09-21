@@ -40,7 +40,7 @@ package Modules
         public static const TOOL_UNDO:int = (1 << 10);
         public static const TOOL_REDO:int = (1 << 11);
         public static const TOOL_MIRROR:int = (1 << 12);
-        private static const TOOL_BOX_ON_DELAY_TIME:Number = 0.15;
+        private static const TOOL_BOX_ON_DELAY_TIME:Number = 0.12;
 
         public static const toolBox:ToolMenuSet = new ToolMenuSet();
         public static const toolBox2:ToolMenuSet2 = new ToolMenuSet2();
