@@ -4,6 +4,9 @@
 /.vscode/
 /.agents/
 /.as3mxml-unpackaged-anes/
+/native
+/tests
+/test-output
 
 # 개별 파일 제외
 /_make_air_file.ps1
