@@ -29,11 +29,6 @@
 			this.scaleY = newScale;
 		}
 
-		public function updateMemoryInfo(driveUseage:String):void
-		{
-			memoryInfo.text = "Drive usage : " + driveUseage;
-		}
-
 		public function randomLogo():void
 		{
 			const arr:Array = [logo1, logo2, logo3, logo4, logo5];
@@ -80,6 +75,7 @@
 			aboutMeLink.mouseEnabled = false;
 
 			memoryInfo.autoSize = TextFieldAutoSize.RIGHT;
+			memoryInfo.text = "Adobe air SDK " + Main.ADOBE_AIR_SDK_VERSION;
 		}
 	}
 }

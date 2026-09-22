@@ -75,6 +75,7 @@
         public static var _instance:Main;
         public const APP_VERSION:String = "28.01";
         public const APP_STATE_VERSION:String = "2801";
+        public static const ADOBE_AIR_SDK_VERSION:String = "51.3.4.2";
 
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
 

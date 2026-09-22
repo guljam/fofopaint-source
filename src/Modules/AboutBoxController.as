@@ -7,6 +7,7 @@ package Modules
     import flash.filesystem.File;
     import flash.net.navigateToURL;
     import flash.net.URLRequest;
+    import flash.utils.getTimer;
 
     public class AboutBoxController
     {
@@ -23,11 +24,14 @@ package Modules
 
         private static var _aboutBox:AboutWindowSet;
         private static var _isAboutBoxOpened:Boolean = false; // 어바웃 창 떴을때 킴
+        private static var driveUsageCalculationId:uint = 0;
         public static const FOFOPAINT_RELEASE_NOTE_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt";
         public static const FOFOPAINT_MANUAL_KOR_URL:String = "https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%EC%84%A4%EB%AA%85%EC%84%9C";
         public static const FOFOPAINT_MANUAL_JPN_URL:String = "https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB";
         public static const FOFOPAINT_MANUAL_ENG_URL:String = "https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-manual";
         public static const FOFOPAINT_GITHUB_URL:String = "https://github.com/guljam/2020FlashPaint";
+
+        private static const driveUsageCalculationTimerName:String = "driveUsageCalculationTimer";
 
         public static function handlerMouseUpAboutBox(targetName:String):void
         {
@@ -125,8 +129,6 @@ package Modules
             }
 
             _aboutBox.randomLogo();
-            _aboutBox.updateMemoryInfo(FileManager.getDriveUsageString());
-
             updateAboutPanelCenterPos();
             _aboutBox.visible = true;
         }
@@ -141,6 +143,7 @@ package Modules
 
             isAboutBoxOpened = false;
             aboutBox.visible = false;
+            FOFOTimer.remove(driveUsageCalculationTimerName);
 
             FOFOTimer.addByName("clickBlockTimer", 0.15, false, function ():void
                 {

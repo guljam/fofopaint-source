@@ -289,7 +289,7 @@ package Modules
                     if (oldData.length > 0)
                     {
                         const fs:FileStream = new FileStream();
-                        const c:uint = ReplayController.rDataFrame[0];
+                        const firstElementFrameCount:uint = ReplayController.rDataFrame[0];
                         const rf:File = FileManager.replayDataFilePath;
 
                         fs.open(rf, FileMode.APPEND);
@@ -297,8 +297,8 @@ package Modules
                         fs.close();
 
                         oldData = null;
-                        rFileTotalFrame += c;
-                        dataWriteCount += c;
+                        rFileTotalFrame += firstElementFrameCount;
+                        dataWriteCount += firstElementFrameCount;
 
                         updateReplayCanvasFromUndoBaseInfo();
 
@@ -322,7 +322,6 @@ package Modules
                                 bmpd.copyPixelsToByteArray(newRectangle, imgData);
                                 bmpd1.copyPixelsToByteArray(newRectangle, imgData1);
 
-                                // 위에서 쓰고나서 가능한 바이트랑 실제 바이트는 rf.size랑 다름, rf.size가 정확함
                                 if (BackgroundWorkerCoordinator.receivedUndoImageQueueFromWorker === null)
                                     BackgroundWorkerCoordinator.receivedUndoImageQueueFromWorker = [];
 

@@ -16,7 +16,7 @@ package Modules
             main = instance;
         }
 
-        //보여준후 천천히 알파값감소로 사라지게 하기
+        // 보여준후 천천히 알파값감소로 사라지게 하기
         public static function showDisplayTargetAndFadeOut(target:DisplayObject, startAlpha:Number = 1.0, waitDuration:Number = 0.0):void
         {
             target.alpha = startAlpha;
@@ -255,111 +255,142 @@ package Modules
             return value;
         }
 
-        public static function traceArr(data:*):void
+        public static function traceTree(data:*):void
         {
             var visited:Dictionary = new Dictionary(true);
-
-            trace("--- PRINT START ---");
-            printValue(data, "", 0, visited);
-            trace("--- PRINT END ---");
+            trace("--- TREE START ---");
+            if (data is Array)
+            {
+                visited[data] = true;
+                trace("[root] Array[" + (data as Array).length + "]");
+                printTreeChildren(data, "", visited, 0);
+            }
+            else
+            {
+                printTreeNode(data, "", "root", true, visited, 0);
+            }
+            trace("--- TREE END ---");
         }
 
-        private static function printValue(
-                value:*,
-                key:String,
-                level:int,
-                visited:Dictionary
-            ):void
+        private static var printTreeChildrenLinesLimit:int = 0;
+
+        private static function printTreeChildren(container:*, prefix:String, visited:Dictionary, depth:int):void
         {
-            var indent:String = new Array(level + 1).join("   ");
-
-            if (key !== "")
+            if (depth > 20 || printTreeChildrenLinesLimit > 5000)
             {
-                trace(indent + "> " + key);
-            }
-
-            if (value === null)
-            {
-                trace(indent + "| null");
+                trace(prefix + "... (생략)");
                 return;
             }
 
-            if (typeof value !== "object")
+            if (container is Array)
             {
-                trace(indent + "| " + value);
-                return;
-            }
-
-            if (visited[value])
-            {
-                trace(indent + "| [Circular Reference]");
-                return;
-            }
-
-            visited[value] = true;
-
-            trace(indent + "{");
-
-            var childIndent:String = indent + "   ";
-            var keyValue:*;
-
-            if (value is Array)
-            {
-                var arr:Array = value as Array;
-
+                var arr:Array = container as Array;
                 for (var i:int = 0;i < arr.length;i++)
                 {
-                    if (arr[i] !== null && typeof arr[i] === "object")
-                    {
-                        printValue(arr[i], "index[" + i + "]", level + 1, visited);
-                    }
-                    else
-                    {
-                        trace(childIndent + "| [" + i + "] : " + arr[i]);
-                    }
+                    var isLast:Boolean = (i == arr.length - 1);
+                    printTreeNode(arr[i], prefix, "[" + i + "]", isLast, visited, depth);
                 }
             }
-            else if (value is Dictionary)
+            else if (container is Dictionary)
             {
-                for (keyValue in value)
+                var keys:Array = [];
+                for (var k:* in container)
+                    keys.push(k);
+                for (var d:int = 0;d < keys.length;d++)
                 {
-                    if (value[keyValue] !== null &&
-                            typeof value[keyValue] === "object")
-                    {
-                        printValue(
-                                value[keyValue],
-                                String(keyValue),
-                                level + 1,
-                                visited
-                            );
-                    }
-                    else
-                    {
-                        trace(
-                                childIndent +
-                                "| " + keyValue +
-                                " : " + value[keyValue]
-                            );
-                    }
+                    var dLast:Boolean = (d == keys.length - 1);
+                    printTreeNode(container[keys[d]], prefix, String(keys[d]), dLast, visited, depth);
                 }
             }
             else
             {
-                for (var name:String in value)
+                // 일반 Object ({size} 등)
+                var names:Array = [];
+                for (var n:String in container)
+                    names.push(n);
+                // primitive만 있으면 한 줄로
+                var onlyPrimitive:Boolean = true;
+                for (var p:int = 0;p < names.length;p++)
                 {
-                    if (value[name] !== null &&
-                            typeof value[name] === "object")
+                    var v:* = container[names[p]];
+                    if (v !== null && typeof v == "object")
                     {
-                        printValue(value[name], name, level + 1, visited);
-                    }
-                    else
-                    {
-                        trace(childIndent + "| " + name + " : " + value[name]);
+                        onlyPrimitive = false;
+                        break;
                     }
                 }
+                if (onlyPrimitive)
+                    return; // 호출측에서 이미 한 줄 출력함
+                for (var q:int = 0;q < names.length;q++)
+                {
+                    var qLast:Boolean = (q == names.length - 1);
+                    printTreeNode(container[names[q]], prefix, names[q], qLast, visited, depth);
+                }
             }
+        }
 
-            trace(indent + "}");
+        private static function printTreeNode(value:*, prefix:String, label:String, isLast:Boolean, visited:Dictionary, depth:int):void
+        {
+            printTreeChildrenLinesLimit++;
+            if (printTreeChildrenLinesLimit > 5000)
+                return;
+            var branch:String = isLast ? "└─ " : "├─ ";
+            var childPrefix:String = prefix + (isLast ? "   " : "│  ");
+
+            if (value === null || value === undefined)
+            {
+                trace(prefix + branch + label + " : null");
+                return;
+            }
+            if (value is Array)
+            {
+                if (visited[value])
+                {
+                    trace(prefix + branch + label + " : [자기참조 Array]");
+                    return;
+                }
+                visited[value] = true;
+                trace(prefix + branch + label + " Array[" + (value as Array).length + "]");
+                printTreeChildren(value, childPrefix, visited, depth + 1);
+                return;
+            }
+            if (typeof value == "object")
+            {
+                if (visited[value])
+                {
+                    trace(prefix + branch + label + " : [자기참조 Object]");
+                    return;
+                }
+                visited[value] = true;
+                // {size:123} 같은 파일은 한 줄로
+                var parts:Array = [];
+                for (var f:String in value)
+                {
+                    var fv:* = value[f];
+                    if (fv === null || typeof fv != "object")
+                        parts.push(f + "=" + fv);
+                }
+                if (parts.length > 0)
+                {
+                    trace(prefix + branch + label + " {" + parts.join(", ") + "}");
+                    // object 안에 object가 섞여 있으면 하위로 전개
+                    for (var g:String in value)
+                    {
+                        var gv:* = value[g];
+                        if (gv !== null && typeof gv == "object" && !(gv is Array))
+                        {
+                            // 파일 객체 안의 중첩은 드묾, 필요시 전개
+                        }
+                    }
+                }
+                else
+                {
+                    trace(prefix + branch + label + " Object");
+                    printTreeChildren(value, childPrefix, visited, depth + 1);
+                }
+                return;
+            }
+            trace(prefix + branch + label + " : " + value);
         }
     }
 }

@@ -328,45 +328,6 @@ package Modules
             isFileBrowserOpened = flag;
             InputController.clearKeyBuffer();
         }
-        private static function formatBytes(bytes:Number):String
-        {
-            var sizes:Array = ["Bytes", "KB", "MB", "GB", "TB"];
-            // 음수 또는 유효하지 않은 입력 처리
-            if (isNaN(bytes) || bytes < 0)
-                return "Invalid";
-            if (bytes == 0)
-                return "0 Byte";
-            // 단위 계산 (최대 TB까지 제한)
-            var i:int = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
-            // 값 변환 및 소수점 첫째 자리 반올림
-            var value:Number = bytes / Math.pow(1024, i);
-            return Math.round(10 * value) / 10 + " " + sizes[i];
-        }
-
-        public static function getDriveUsageString():String
-        {
-            function getDirectorySize(dir:File):Number
-            {
-                var size:Number = 0;
-                if (dir.isDirectory)
-                {
-                    var files:Array = dir.getDirectoryListing();
-                    for each (var file:File in files)
-                    {
-                        if (file.isDirectory)
-                        {
-                            size += getDirectorySize(file);
-                        }
-                        else
-                        {
-                            size += file.size;
-                        }
-                    }
-                }
-                return size;
-            }
-            return formatBytes(getDirectorySize(File.applicationStorageDirectory));
-        }
 
         public static function updateLastFilePathByRandomFileName():void
         {
