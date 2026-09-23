@@ -635,8 +635,11 @@ trace('addnew');
 
             // 리플레이 캔버스 먼저 갱신
             ReplayController.updateReplayCanvasFromUndoRefData(undoRefData, undoIndexSave);
-            CanvasController.setCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
-            CanvasController.setCavnvasSizeDrawMode(ReplayController.RCANVAS_WIDTH, ReplayController.RCANVAS_HEIGHT, 0, 0, false);
+
+            //드로우 모드 캔버스 bmpd갱신하고 크기 정보 갱신
+            CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
+            CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, ReplayController.rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
+            CanvasController.setCavnvasSizeDrawModeAfterUndo(CanvasController.canvasLayer1BitmapData.width,CanvasController.canvasLayer1BitmapData.height);
 
             // 앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
             const movedRegPos:Point = UndoManager.getHowCanvasMoveAfterUndoOrRedo(undoIndexSave, redoFlag);
@@ -646,12 +649,13 @@ trace('addnew');
                 CanvasController.canvasAnchorPoint.y += movedRegPos.y * CanvasController.canvasZoomMultipler;
                 ReferenceLayerController.updateRefLayerBitmapPos(movedRegPos);
             }
-            CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
-            CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, ReplayController.rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
-            UndoManager.showRCursorOnUndo(UndoManager.undoDataIndex);
+
             ReplayController.updateMirrorStateDrawModeNotSameRreplayMirrorState();
             CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            CanvasController.setCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
+            CanvasController.updateCanvasPanelColorAndSize();
 
+            UndoManager.showRCursorOnUndo(UndoManager.undoDataIndex);
             // canvas window 상태 갱신
             if (ImageViewWindow.isCanvasWindowON)
             {
@@ -659,7 +663,6 @@ trace('addnew');
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
             
-            CanvasController.updateCanvasPanelColorAndSize();
             MainUIController.updateCanvasNaigatorCursor();
             FileManager.enableNewFileButton();
         }

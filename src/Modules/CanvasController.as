@@ -787,9 +787,38 @@ package Modules
             updateCanvasPanelColorAndSize();
         }
 
+        public static function setCavnvasSizeDrawModeAfterUndo(w:Number, h:Number):void
+        {
+            if (CANVAS_WIDTH === w && CANVAS_HEIGHT === h)
+            {
+                return;
+            }
+
+            updateCanvasPanelMask(w, h);
+
+            // 실제 레이어는 이미 리플레이 결과로 교체되었으므로
+            // 임시 그리기 버퍼만 새 크기로 준비.
+            const oldDrawBitmapData:BitmapData = canvasDrawLayerBitmapData;
+
+            canvasDrawLayerBitmapData = new BitmapData(w, h, true, 0);
+            canvasDrawLayerBitmap.bitmapData = canvasDrawLayerBitmapData;
+
+            if (oldDrawBitmapData !== null)
+            {
+                oldDrawBitmapData.dispose();
+            }
+
+            // 이 함수는 이전 CANVAS_WIDTH/HEIGHT와 새 크기의 차이를 사용.
+            // 따라서 크기 변수 갱신보다 먼저 호출해야 함.
+            ReferenceLayerController.updateRefLayerImagePos(w, h, false);
+
+            CANVAS_WIDTH = w;
+            CANVAS_HEIGHT = h;
+        }
+
         public static function setCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
         {
-            if(CANVAS_WIDTH === w && CANVAS_HEIGHT === h)
+            if (CANVAS_WIDTH === w && CANVAS_HEIGHT === h)
             {
                 return;
             }
@@ -850,9 +879,9 @@ package Modules
 
             canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
 
-            //todo applyCanvasBGColorDrawMode로 옮겨야 할것 같은데 centerMovedFlag를 전역 상태로 처리해주어야하나? 함수끼리 통신해야하니까
-            //canvas width가 갱신되게 전에 업데이트 해야함
-            ReferenceLayerController.updateRefLayerImagePos(w, h, centerMovedFlag); 
+            // todo applyCanvasBGColorDrawMode로 옮겨야 할것 같은데 centerMovedFlag를 전역 상태로 처리해주어야하나? 함수끼리 통신해야하니까
+            // canvas width가 갱신되게 전에 업데이트 해야함
+            ReferenceLayerController.updateRefLayerImagePos(w, h, centerMovedFlag);
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
         }
@@ -1548,7 +1577,7 @@ package Modules
 
         public static function setCanvasBGColorDrawMode(color:uint):void
         {
-            if(color === CANVAS_BG_COLOR)
+            if (color === CANVAS_BG_COLOR)
             {
                 return;
             }
