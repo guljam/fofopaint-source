@@ -97,13 +97,6 @@ package Modules
             }
         }
 
-        //todo 툴선택메서드(펜지우게 등)에서  updatePosAndVisibility updateSizeAndShape등 제거하고 툴선택이 완료된시점에  refreshCursorAfterToolSelection만 호출하기
-        private static function refreshCursorAfterToolSelection():void
-        {
-            PenSizePreviewCursor.updateSizeAndShape();
-            PenSizePreviewCursor.updatePosAndVisibility();
-        }
-
         public static function updatePosAndVisibility():void
         {
             const mx:Number = main.stage.mouseX;

@@ -81,7 +81,6 @@ package Modules
             canvasAnchorPoint.rotation = 0;
             ReplayController.setRcursorRotation(0);
             canvasInfoBox.setRotate(0);
-            MainUIController.updateCanvasNaigatorCursor();
         }
 
         public static function updateLayer1BitmapData(newbmpd:BitmapData):void
@@ -430,10 +429,8 @@ package Modules
                 canvasZoomIndex = canvasZoomMultiplerList.indexOf(1.0);
                 updateCanvasScale(1.0, false);
                 PenSizePreviewCursor.updateSizeAndShape();
-                MainUIController.updateCanvasNaigatorCursor();
                 CanvasGridOverlay.drawGrid();
             }
-
         }
 
         public static function zoomInCanvas(zoomInFlag:Boolean, isReplayMode:Boolean):void
@@ -512,12 +509,13 @@ package Modules
                 canvasAnchorPoint.y += Math.round(p.y);
                 MainUIController.updateCanvasNaigatorCursor();
             }
+
             function onMouseUpCanvasNavigator(e:MouseEvent):void
             {
+                isMouseDragging = false;
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
                 keepCanvasPanelInStage();
                 MainUIController.updateCanvasNaigatorCursor();
-                isMouseDragging = false;
                 if (LassoTool._isLassoToolStarted)
                 {
                     if (LassoTool._isLassoMenuHiddenTemp === true)
@@ -741,7 +739,7 @@ package Modules
             const p:Point = getCanvasPanelMidPos();
             isCanvasMirrored = !isCanvasMirrored;
             UndoManager.flipMirrorComandReadyFlag();
-            mirrorDrawModeBitmapData();
+            flipHorizontalBmpdDrawmode();
             canvasInfoBox.setMirror(isCanvasMirrored);
             // 회전각 부호를 바꿔야 제대로 mirror가됨
             moveCanvasAnchorPoint(p.x, p.y); // regpoint를 회전한 캔버스 중점으로 두고
@@ -761,10 +759,16 @@ package Modules
             MainUIController.updateCanvasNaigatorCursor();
             FileManager.isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
             ReplayController.mirrorRCursorPos();
+
+            canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
+            if (ImageViewWindow.isCanvasWindowON)
+            {
+                ImageViewWindow.updateCanvasWindowImage();
+            }
         }
 
         // 비트맵 데이터를 대칭으로 돌려줌
-        public static function mirrorDrawModeBitmapData():void
+        public static function flipHorizontalBmpdDrawmode():void
         {
             var tmpbmpd:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
             var flipMat:Matrix = new Matrix(-1, 0, 0, 1, CANVAS_WIDTH);
@@ -775,11 +779,6 @@ package Modules
             canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, tmpbmpd, canvasLayer2Bitmap);
             tmpbmpd.dispose();
             tmpbmpd = null;
-            canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
-            if (ImageViewWindow.isCanvasWindowON)
-            {
-                ImageViewWindow.updateCanvasWindowImage();
-            }
         }
 
         public static function applyCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
@@ -840,15 +839,13 @@ package Modules
             if (canvasLayer2Bitmap.bitmapData)
                 canvasLayer2Bitmap.bitmapData.dispose();
             canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
-            ReferenceLayerController.updateRefLayerImagePos(w, h, centerMovedFlag); // canvas width가 갱신되게 전에 체크해야함
+
+            //todo applyCanvasBGColorDrawMode로 옮겨야 할것 같은데 centerMovedFlag를 전역 상태로 처리해주어야하나? 함수끼리 통신해야하니까
+            //canvas width가 갱신되게 전에 업데이트 해야함
+            ReferenceLayerController.updateRefLayerImagePos(w, h, centerMovedFlag); 
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
-            keepCanvasPanelInStage();
-            if (CanvasGridOverlay.gridGapMultiplier > 0)
-            {
-                CanvasGridOverlay.drawGrid();
-            }
-            canvasInfoBox.setSize(w, h);
+            
         }
 
         public static function cResizeCanvas():Object
@@ -1404,10 +1401,6 @@ package Modules
             xAnc.y = Math.floor(center.y);
             xCanvas.x = Math.floor(-w / 2);
             xCanvas.y = Math.floor(-h / 2);
-            if (!ReplayController.isReplayModeON)
-            {
-                MainUIController.updateCanvasNaigatorCursor();
-            }
         }
 
         public static function clearCanvas():void
@@ -1527,6 +1520,15 @@ package Modules
             canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
             canvasPanel.graphics.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             canvasPanel.graphics.endFill();
+
+            keepCanvasPanelInStage();
+            canvasNavigatorBox.changeprevBitmapBGColor(CANVAS_BG_COLOR);
+            canvasInfoBox.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            if (CanvasGridOverlay.gridGapMultiplier > 0)
+            {
+                CanvasGridOverlay.drawGrid();
+            }
         }
 
         public static function applyCanvasBGColorDrawMode(color:uint):void
@@ -1540,7 +1542,6 @@ package Modules
             FileManager.isFileAlreadySaved = false;
 
             CANVAS_BG_COLOR = color;
-            canvasNavigatorBox.changeprevBitmapBGColor(color);
 
             if (ColorPickerController.colorPickerBox.scratchPad)
             {
@@ -1559,8 +1560,9 @@ package Modules
 
             // reset vars보다 뒤에 와야함
             // addundo에서 활성화 해주고 있기 때문에
-            MainUIController.markWindowTitleAsDirty();
             MainUI.topBar.newFileButton.alpha = Global.OFFALPHA;
+            MainUIController.markWindowTitleAsDirty();
+            MainUIController.updateCanvasNaigatorCursor();
         }
 
         // 드로우 모드 캔버스 상태를 리플레이캔버스 상태랑 똑같이 만들어줌
@@ -1571,9 +1573,8 @@ package Modules
             setCavnvasSizeDrawMode(ReplayController.rCanvasLayer1BitmapData.width, ReplayController.rCanvasLayer1BitmapData.height, 0, 0, false);
             setCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
             updateCanvasPanelColorAndSize();
-            keepCanvasPanelInStage(false);
             FileManager.isFileAlreadySaved = false;
-            ReplayController.checkMirrorCanvasReplayMirror();
+            ReplayController.updateMirrorStateDrawModeNotSameRreplayMirrorState();
             canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, ReplayController.RCANVAS_BG_COLOR);
             if (ImageViewWindow.isCanvasWindowON)
             {

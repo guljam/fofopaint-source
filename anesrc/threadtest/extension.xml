@@ -1,0 +1,13 @@
+<extension xmlns="http://ns.adobe.com/air/extension/3.1">
+  <id>com.fofo.threadtest</id>
+  <versionNumber>1.0</versionNumber>
+  <platforms>
+    <platform name="Windows-x86">
+      <applicationDeployment>
+        <nativeLibrary>threadtest.dll</nativeLibrary>
+        <initializer>extInitializer</initializer>
+        <finalizer>extFinalizer</finalizer>
+      </applicationDeployment>
+    </platform>
+  </platforms>
+</extension>

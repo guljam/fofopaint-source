@@ -215,6 +215,7 @@ package Modules
                     if (CanvasController.canvasZoomMultipler !== 1.0)
                     {
                         CanvasController.resetZoomDrawMode();
+                        MainUIController.updateCanvasNaigatorCursor();
                     }
                     break;
 
@@ -222,6 +223,7 @@ package Modules
                     if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                     {
                         CanvasController.resetRotationDrawMode();
+                        MainUIController.updateCanvasNaigatorCursor();
                     }
                     break;
 

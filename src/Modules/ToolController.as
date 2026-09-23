@@ -353,6 +353,7 @@ package Modules
 
                 setDrawToolSize(index);
                 showDrawToolHintSizeOpacity();
+
                 PenSizePreviewCursor.updateSizeAndShape();
                 PenSizePreviewCursor.updatePosAndVisibility();
             }
@@ -548,7 +549,7 @@ package Modules
                     selectFillPenTool();
                     break;
                 case TOOL_ERASER:
-                    selectEraseTool();
+                    selectEraserTool();
                     PenSizePreviewCursor.updateSizeAndShape();
                     break;
                 case TOOL_LINE:
@@ -616,7 +617,7 @@ package Modules
                         {
                             if (!isSelectedTool(TOOL_ERASER))
                             {
-                                selectEraseTool();
+                                selectEraserTool();
                                 PenSizePreviewCursor.updateSizeAndShape();
                             }
                         }
@@ -707,6 +708,7 @@ package Modules
                         }
                         break;
                 }
+                PenSizePreviewCursor.updatePosAndVisibility();
             }
             // main.undo키 반복이 있어서 우선순위 1로 약간 높여줌
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox, false, 1);
@@ -722,7 +724,6 @@ package Modules
             toolBox.moveToolCursor((lineFlag) ? "toolLine" : "toolPen");
             updateToolOptionsTextBySelectedTool();
             toolOptionsBox.updatePenShapeSet(PenTool.penIsSquare);
-            PenSizePreviewCursor.updatePosAndVisibility();
 
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
@@ -738,7 +739,7 @@ package Modules
             toolOptionsBox.disablePenSmoothingSlider();
         }
 
-        public static function selectEraseTool():void
+        public static function selectEraserTool():void
         {
             setSelectedTool(TOOL_ERASER);
             toggleAirBrushCheckBox(PenTool.isEraserAirBrushON, false);
@@ -755,7 +756,6 @@ package Modules
             toolBox.moveToolCursor("toolEraser");
             updateToolOptionsTextBySelectedTool();
             toolOptionsBox.updatePenShapeSet(PenTool.eraserIsSquare);
-            PenSizePreviewCursor.updatePosAndVisibility();
 
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
@@ -943,7 +943,7 @@ package Modules
                         if (!isSelectedTool(TOOL_ERASER))
                         {
                             updateLastTool();
-                            selectEraseTool();
+                            selectEraserTool();
                             PenSizePreviewCursor.updateSizeAndShape();
                             showNowToolIconToCursorTemp(TOOL_ERASER);
                         }
@@ -1070,7 +1070,7 @@ package Modules
                     break;
                 case "toolEraser":
                     {
-                        selectEraseTool();
+                        selectEraserTool();
                         PenSizePreviewCursor.updateSizeAndShape();
                         showNowToolIconToCursorTemp(TOOL_ERASER);
                     }

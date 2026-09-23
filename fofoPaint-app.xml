@@ -43,5 +43,8 @@
   </icon>
   <customUpdateUI>false</customUpdateUI>
   <allowBrowserInvocation>false</allowBrowserInvocation>
-  <supportedProfiles>desktop</supportedProfiles>
+  <supportedProfiles>extendedDesktop</supportedProfiles>
+  <!-- <extensions>
+    <extensionID>com.fofo.threadtest</extensionID>
+</extensions> -->
 </application>

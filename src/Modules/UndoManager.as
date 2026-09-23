@@ -253,7 +253,7 @@ package Modules
                 // 버퍼에mirror가 있을수도 있기 때문에 요소를 하나씩 push해주어야함
                 const len:uint = ReplayController.rDataBuffer.length;
 
-                for (var i:uint = 0;i < len;i++)
+                for (var i:uint = 0; i < len; i++)
                 {
                     ReplayController.rData[ReplayController.rData.length - 1].push(ReplayController.rDataBuffer[i]); // 배열안에 배열이 들어있음
                 }
@@ -357,6 +357,7 @@ package Modules
 
                 CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
 
+trace('addnew');
                 if (ImageViewWindow.isCanvasWindowON)
                 {
                     ImageViewWindow.updateCanvasWindowImage();
@@ -634,6 +635,8 @@ package Modules
 
             // 리플레이 캔버스 먼저 갱신
             ReplayController.updateReplayCanvasFromUndoRefData(undoRefData, undoIndexSave);
+            CanvasController.setCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
+            CanvasController.setCavnvasSizeDrawMode(ReplayController.RCANVAS_WIDTH, ReplayController.RCANVAS_HEIGHT, 0, 0, false);
 
             // 앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
             const movedRegPos:Point = UndoManager.getHowCanvasMoveAfterUndoOrRedo(undoIndexSave, redoFlag);
@@ -646,7 +649,7 @@ package Modules
             CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
             CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, ReplayController.rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
             UndoManager.showRCursorOnUndo(UndoManager.undoDataIndex);
-            ReplayController.checkMirrorCanvasReplayMirror();
+            ReplayController.updateMirrorStateDrawModeNotSameRreplayMirrorState();
             CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
 
             // canvas window 상태 갱신
@@ -655,7 +658,8 @@ package Modules
                 ImageViewWindow.updateCanvasWindowImage();
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
-            CanvasController.keepCanvasPanelInStage(); // 사이즈가 크가 줄었을때 캔버스가 창 밖으로 나가는거 체크
+            
+            CanvasController.updateCanvasPanelColorAndSize();
             MainUIController.updateCanvasNaigatorCursor();
             FileManager.enableNewFileButton();
         }

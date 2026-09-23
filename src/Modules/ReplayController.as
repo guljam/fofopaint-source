@@ -160,12 +160,12 @@ package Modules
         }
 
         // 드로우 모드와 리플레이 모드 캔버스 미러가 다를경우 undo 적용 이후에 mirror커맨드 넣어주도록 함
-        public static function checkMirrorCanvasReplayMirror():void
+        public static function updateMirrorStateDrawModeNotSameRreplayMirrorState():void
         {
             if (CanvasController.isCanvasMirrored !== rMirrorON)
             {
                 UndoManager.mirrorCommandReady = true;
-                CanvasController.mirrorDrawModeBitmapData();
+                CanvasController.flipHorizontalBmpdDrawmode();
                 CanvasGridOverlay.updateGridMirror(CanvasController.isCanvasMirrored);
                 ReplayController.mirrorRCursorPos();
             }
@@ -240,6 +240,7 @@ package Modules
                 {
                     UndoManager.applyDeepUndo();
                 }
+
                 rDataBuffer.push(["bgColor", color]);
                 UndoManager.addUndoData.addNew();
             }
@@ -248,7 +249,10 @@ package Modules
         private static function updateLastRDataCommand(command:String):void
         {
             if (rData.length === 0)
+            {
                 return;
+            }
+
             const arr:Array = rData[rData.length - 1];
             if (arr.length === 1)
             {
@@ -4122,10 +4126,6 @@ package Modules
                     drawReplayByCommand.drawAll();
                 }
             }
-
-            CanvasController.setCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
-            CanvasController.setCavnvasSizeDrawMode(RCANVAS_WIDTH, RCANVAS_HEIGHT, 0, 0, false);
-            CanvasController.updateCanvasPanelColorAndSize();
         }
 
         public static function setRcursorRotation(newAngle:Number):void

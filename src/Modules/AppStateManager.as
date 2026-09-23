@@ -481,6 +481,7 @@ package Modules
                         if (main.stage.nativeWindow.width === 1000 && main.stage.nativeWindow.height === 800)
                         {
                             CanvasController.centerCanvas("draw");
+                            MainUIController.updateCanvasNaigatorCursor();
                             return false;
                         }
 
@@ -497,7 +498,6 @@ package Modules
 
                 AboutBoxController.openAboutBox(true);
                 MainUIController.applyUIColorSet();
-                MainUIController.updateCanvasNaigatorCursor();
 
                 CanvasController.canvasInfoBox.init(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, Math.floor(CanvasController.canvasZoomMultipler * 100), CanvasController.canvasAnchorPoint.rotation, false);
                 CanvasController.selectLayer1(false);

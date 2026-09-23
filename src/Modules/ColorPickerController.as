@@ -653,8 +653,9 @@ package Modules
                     ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
                 }
 
-                updateColorPickerCursorPosAndRGBInfo(hexColor);
                 ReplayController.addUndoBGColorData(hexColor);
+
+                updateColorPickerCursorPosAndRGBInfo(hexColor);
             }
             else
             {
@@ -995,7 +996,6 @@ package Modules
             else if (isBackgroundColorMode())
             {
                 CanvasController.applyCanvasBGColorDrawMode(pickedColor);
-
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
