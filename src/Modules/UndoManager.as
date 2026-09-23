@@ -309,12 +309,14 @@ package Modules
                 ReferenceLayerController.updateRefLayerBitmapPos(movedRegPos);
             }
 
+            // updateMirrorStateDrawModeNotSameRreplayMirrorState 이 함수 직전에 해줘야 나중에 제대로 대칭된 좌표가 됨
+            UndoManager.showRCursorOnUndo(UndoManager.undoDataIndex);
+
             ReplayController.updateMirrorStateDrawModeNotSameRreplayMirrorState();
             CanvasController.canvasNavigatorBox.updateImage();
             CanvasController.setCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
             CanvasController.updateCanvasPanelColorAndSize();
 
-            UndoManager.showRCursorOnUndo(UndoManager.undoDataIndex);
             // canvas window 상태 갱신
             if (ImageViewWindow.isCanvasWindowON)
             {
