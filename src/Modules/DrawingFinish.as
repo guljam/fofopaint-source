@@ -90,7 +90,7 @@ package Modules
             CanvasController.canvasDrawLayerBitmapData.fillRect(CanvasController.canvasDrawLayerClipRect, 0); // 그려준 영역만
             CanvasController.canvasDrawLayerChild.graphics.clear();
 
-            UndoManager.addUndoData.addNew();
+            UndoController.addNew();
         }
     }
 }

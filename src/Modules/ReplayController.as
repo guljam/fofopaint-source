@@ -106,6 +106,7 @@ package Modules
         public static var rData:Array = []; // rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
         public static var rDataFrame:Array = []; // rdata안에 몇프레임이 들어있는지 저장
         public static var rDataReadFlag:Boolean = true; // rData읽을때는 true, rfile 읽을때는 false
+            private static var rFileTotalFrame:Number = 0; // file에저장된 프레임수 누적해서 저장
         public static var rFileLastBytePosition:Number = 0; // fs position 저장
         private static var rFileCutBytePosition:Number = 0; // super undo에서 파일 잘라줄때 필요함
         public static var rDataIndex:int = 0; // rData에서만씀 rData 스크로크 뭉치 인덱스
@@ -136,6 +137,22 @@ package Modules
         private static var isReplaySlideShowMode:Boolean = false; // doDrawSlowEvent가 켜지면 올려줌
         private static var rFrameTempCachedImages:Array = []; // 이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
+
+
+            public static  function increaseRFileTotalFrame(count:Number):void
+            {
+                rFileTotalFrame += count;
+            }
+            
+            public static  function getRFileTotalFrame():Number
+            {
+                return rFileTotalFrame;
+            }
+
+           public static  function setRFileTotalFrame(frame:Number):void
+            {
+                rFileTotalFrame = frame;
+            }
 
         public static function isGeneratingCacheImages():Boolean
         {
@@ -232,7 +249,7 @@ package Modules
             {
                 rDataBuffer.push(["bgColor", color]);
                 updateLastRDataCommand("bgColor");
-                UndoManager.addUndoData.addContinue();
+                UndoController.addContinue();
             }
             else
             {
@@ -242,7 +259,7 @@ package Modules
                 }
 
                 rDataBuffer.push(["bgColor", color]);
-                UndoManager.addUndoData.addNew();
+                UndoController.addNew();
             }
         }
 
@@ -303,7 +320,7 @@ package Modules
                 rDataFrame.splice(index + 1);
             }
             UndoManager.isDeleteUndoDataPending = false;
-            UndoManager.addUndoData.updateLastRDataMirror();
+            UndoController.updateLastRDataMirror();
             UndoManager.undoDataIndex = rData.length - 1;
         }
 
@@ -430,7 +447,7 @@ package Modules
             CanvasController.isCanvasMirrored = false;
             rDataReadFlag = false;
             UndoManager.mirrorCommandReady = false;
-            UndoManager.addUndoData.setRFileTotalFrame(0);
+            ReplayController.setRFileTotalFrame(0);
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             CanvasController.isLayerSwapped = false;
@@ -508,12 +525,12 @@ package Modules
             if (rDataReadFlag)
             {
                 // repfile 초기화
-                UndoManager.addUndoData.updateUndoBaseImageFromReplayMode();
+                UndoController.updateUndoBaseImageFromReplayMode();
                 fs.open(FileManager.replayDataFilePath, FileMode.WRITE); // 파일 생성
                 fs.close();
                 FileManager.isFileAlreadySaved = false;
                 FileManager.enableNewFileButton();
-                UndoManager.addUndoData.setRFileTotalFrame(0);
+                ReplayController.setRFileTotalFrame(0);
                 rData.splice(0, rDataIndex + 1);
                 rDataFrame.splice(0, rDataIndex + 1);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
@@ -604,7 +621,7 @@ package Modules
                 }
                 // framedata도 인덱스 이후꺼 날려줌
                 rJumpImageFrameData.splice(index + 1);
-                UndoManager.addUndoData.setRFileTotalFrame(rNowFrameSave);
+                ReplayController.setRFileTotalFrame(rNowFrameSave);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
                 CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
                 CanvasController.canvasLayer1Bitmap.bitmapData = CanvasController.canvasLayer1BitmapData;
@@ -3241,7 +3258,7 @@ package Modules
             CanvasController.canvasAnchorPoint.visible = false;
             rCanvasAnchorPoint.visible = false;
             CanvasController.canvasNavigatorBox.visible = false;
-            UndoManager.addUndoData.resetRJumpImageCount();
+            UndoController.resetRJumpImageCount();
             clearCanvasReplayMode(); // 리플레이 캔버스 먼저 깨끗하게
             // 첫 이미지 그려줌
             rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, rFirstImageLayer1BitmapData, rCanvasLayer1Bitmap);
@@ -3270,7 +3287,7 @@ package Modules
                         main.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
                         fs.close();
                         drawReplayByCommand.clearData();
-                        UndoManager.addUndoData.setRFileTotalFrame(_frameSum);
+                        ReplayController.setRFileTotalFrame(_frameSum);
                         rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
                         resetReplayTime();
                         updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
@@ -3285,7 +3302,7 @@ package Modules
                         }
                         CanvasController.isCanvasMirrored = rMirrorON;
                         rMirrorON = rMirrorON;
-                        UndoManager.addUndoData.updateUndoBaseImageMirrorFlag(rMirrorON);
+                        UndoController.updateUndoBaseImageMirrorFlag(rMirrorON);
                         CanvasController.canvasInfoBox.setMirror(rMirrorON);
                         CanvasController.canvasNavigatorBox.visible = true;
                         if (!isReplayModeON && UndoManager.isDeepUndoEnabled)
@@ -3615,7 +3632,7 @@ package Modules
         public static function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDrawable, layer2Image:IBitmapDrawable):void
         {
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
-            UndoManager.addUndoData.setRFileTotalFrame(0);
+            ReplayController.setRFileTotalFrame(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReferenceLayerController.refLayerRawBitmapData = null;
             ReferenceLayerController.refLayerRawTransformData = null;
@@ -4097,6 +4114,51 @@ package Modules
         public static function updateRCanvasDrawLayerCliprect2():void
         {
             rCanvasDrawLayerClipRect = rCanvasDrawLayerClipRect.union(rCanvasDrawShape.getBounds(rCanvasPanel));
+        }
+
+        public static function updateReplayCanvasFromUndoBaseInfo():void
+        {
+            var rMirrorSave:Boolean = ReplayController.rMirrorON;
+            const undoBaseImage:Array = UndoController.getUndoBaseImage();
+
+            if (undoBaseImage[2] !== ReplayController.RCANVAS_WIDTH || undoBaseImage[3] !== ReplayController.RCANVAS_HEIGHT)
+            {
+                ReplayController.updateCanvasSizeReplayMode(undoBaseImage[2], undoBaseImage[3], 0, 0, false);
+            }
+
+            if (undoBaseImage[4] !== ReplayController.RCANVAS_BG_COLOR)
+            {
+                ReplayController.updateCanvasBGColorReplayMode(undoBaseImage[4]);
+            }
+
+            ReplayController.rCanvasLayer1BitmapData = CanvasController.updateBitmapData(ReplayController.rCanvasLayer1BitmapData, undoBaseImage[0], ReplayController.rCanvasLayer1Bitmap);
+            ReplayController.rCanvasLayer2BitmapData = CanvasController.updateBitmapData(ReplayController.rCanvasLayer2BitmapData, undoBaseImage[1], ReplayController.rCanvasLayer2Bitmap);
+
+            ReplayController.drawReplayByCommand.setData(ReplayController.rData[0]);
+            ReplayController.drawReplayByCommand.drawAll();
+
+            if (undoBaseImage[0] && undoBaseImage[0] !== ReplayController.rCanvasLayer1BitmapData)
+            {
+                undoBaseImage[0].dispose();
+            }
+
+            if (undoBaseImage[1] && undoBaseImage[1] !== ReplayController.rCanvasLayer2BitmapData)
+            {
+                undoBaseImage[1].dispose();
+            }
+
+            undoBaseImage[0] = ReplayController.rCanvasLayer1BitmapData.clone();
+            undoBaseImage[1] = ReplayController.rCanvasLayer2BitmapData.clone();
+            undoBaseImage[2] = ReplayController.RCANVAS_WIDTH;
+            undoBaseImage[3] = ReplayController.RCANVAS_HEIGHT;
+            undoBaseImage[4] = ReplayController.RCANVAS_BG_COLOR;
+
+            if (ReplayController.rMirrorON !== rMirrorSave)
+            {
+                undoBaseImage[5] = !undoBaseImage[5];
+            }
+
+            ReplayController.drawReplayByCommand.setFirstRCursorPosCurrent();
         }
 
         public static function updateReplayCanvasFromUndoRefData(undoRefData:Array, undoIndexSave:int):void

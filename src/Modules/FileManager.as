@@ -1459,7 +1459,7 @@ package Modules
 
             if (arr[6] is Number)
             {
-                UndoManager.addUndoData.setRFileTotalFrame(arr[6]);
+                ReplayController.setRFileTotalFrame(arr[6]);
             }
 
             ReplayController.rData = (fs.readObject() as Array).concat();
@@ -1476,7 +1476,7 @@ package Modules
             bmpd1.setPixels(bmpdRect, arr[1]);
             bmpd1.unlock();
 
-            UndoManager.addUndoData.updateUndoBaseImage(bmpd.clone(), bmpd1.clone(), arr[2], arr[3], arr[4], arr[5]);
+            UndoController.updateUndoBaseImage(bmpd.clone(), bmpd1.clone(), arr[2], arr[3], arr[4], arr[5]);
             UndoManager.updateCanvasStateAfterUndo();
 
             ReplayController.rReplayFOFOCursor.visible = false;
@@ -1504,7 +1504,7 @@ package Modules
         public static function saveUndoData():void
         {
             const fs:FileStream = new FileStream();
-            const arr:Array = UndoManager.addUndoData.getUndoBaseImage();
+            const arr:Array = UndoController.getUndoBaseImage();
             const bmpd:BitmapData = arr[0];
             const bmpd1:BitmapData = arr[1];
 
@@ -1518,7 +1518,7 @@ package Modules
             // ba.compress();
             // ba1.compress();
             // 레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
-            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], UndoManager.addUndoData.getRFileTotalFrame()];
+            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayController.getRFileTotalFrame()];
 
             fs.open(undoDataFilePath, FileMode.WRITE);
             fs.writeInt(UndoManager.undoDataIndex);

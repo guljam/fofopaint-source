@@ -618,12 +618,12 @@ package Modules
 
             if (ReplayController.hasLastRDataCommand(command))
             {
-                UndoManager.addUndoData.addContinue();
+                UndoController.addContinue();
             }
             else
             {
                 ReplayController.rDataBuffer = [[command]];
-                UndoManager.addUndoData.addNew();
+                UndoController.addNew();
             }
 
             resetRefLayerImageTransform();

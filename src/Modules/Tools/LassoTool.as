@@ -29,6 +29,7 @@ package Modules.Tools
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Symbols.RotateCursorSet;
+    import Modules.UndoController;
 
     public class LassoTool
     {
@@ -162,7 +163,7 @@ package Modules.Tools
                     l2 = true;
                 }
                 ReplayController.rDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
-                UndoManager.addUndoData.addNew();
+                UndoController.addNew();
                 disposeAllLayerBitmapData();
                 resetLassoBox();
             }
@@ -880,7 +881,7 @@ package Modules.Tools
                                 , checklayer1
                                 , checklayer2
                                 , command]);
-                    UndoManager.addUndoData.addNew();
+                    UndoController.addNew();
                 }
                 else
                 {

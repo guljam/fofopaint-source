@@ -10,6 +10,7 @@ package Modules.Tools
     import Modules.ReplayController;
     import flash.geom.Point;
     import Modules.PenSizePreviewCursor;
+    import Modules.UndoController;
 
     public class MoveTool
     {
@@ -122,7 +123,7 @@ package Modules.Tools
                     }
                 }
 
-                UndoManager.addUndoData.addNew();
+                UndoController.addNew();
             }
         }
 

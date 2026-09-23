@@ -340,7 +340,7 @@ package Modules
                 canvasLayer2BitmapData.draw(canvasLayer1BitmapData);
                 canvasLayer1BitmapData.fillRect(new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT), 0);
                 ReplayController.rDataBuffer.push(["merge"]);
-                UndoManager.addUndoData.addNew();
+                UndoController.addNew();
             }
             ToolController.toolOptionsBox.layerMergeButton.alpha = Global.OFFALPHA;
         }
@@ -374,7 +374,7 @@ package Modules
             else
             {
                 ReplayController.rDataBuffer.push(["swap"]);
-                UndoManager.addUndoData.addNew();
+                UndoController.addNew();
             }
             playLayerSwapEffect(ToolController.toolOptionsBox.layerSwapButton);
         }
@@ -1075,7 +1075,7 @@ package Modules
                         applyCavnvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
                         MainUIController.updateResizeButtonPos(finalWidth, finalHeight);
                         ReplayController.rDataBuffer.push(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
-                        UndoManager.addUndoData.addNew();
+                        UndoController.addNew();
                         if (ImageViewWindow.isCanvasWindowON)
                         {
                             ImageViewWindow.updateCanvasWindowBitmapSize();
