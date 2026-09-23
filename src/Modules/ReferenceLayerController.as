@@ -339,10 +339,12 @@ package Modules
 
             tmpbmpd.draw(canvasRefLayerBitmapData, flipMat);
 
-            canvasRefLayerBitmapData = CanvasController.updateBitmapData(canvasRefLayerBitmapData, tmpbmpd, canvasRefLayerBitmap);
+            CanvasController.copyPixels(canvasRefLayerBitmapData, tmpbmpd,
+                    new Rectangle(0, 0, canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height));
 
             tmpbmpd.dispose();
             tmpbmpd = null;
+            trace('call');
 
             canvasRefLayer.rotation = -canvasRefLayer.rotation; // 일단 각도 대칭해주고
 
