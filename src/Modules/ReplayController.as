@@ -863,7 +863,8 @@ package Modules
         }
         public static function moveImageReplayMode(x:Number, y:Number, layer1:Boolean, layer2:Boolean):void
         {
-            var tmpbmpd:BitmapData = new BitmapData(RCANVAS_WIDTH, RCANVAS_HEIGHT, true, 0);
+            var tmpbmpd:BitmapData = new BitmapData(rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height, true, 0);
+            const rect:Rectangle = new Rectangle(0,0,rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
             var movedMat:Matrix = new Matrix();
             if (!layer1 && !layer2)
             {
@@ -874,14 +875,15 @@ package Modules
             if (layer1)
             {
                 tmpbmpd.draw(rCanvasLayer1BitmapData, movedMat);
-                rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, tmpbmpd, rCanvasLayer1Bitmap);
+                CanvasController.copyPixels(rCanvasLayer1BitmapData,tmpbmpd,rect);
             }
             if (layer2)
             {
-                tmpbmpd.fillRect(new Rectangle(0, 0, RCANVAS_WIDTH, RCANVAS_HEIGHT), 0);
+                tmpbmpd.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
                 tmpbmpd.draw(rCanvasLayer2BitmapData, movedMat);
-                rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, tmpbmpd, rCanvasLayer2Bitmap);
+                CanvasController.copyPixels(rCanvasLayer2BitmapData,tmpbmpd,rect);
             }
+
             tmpbmpd.dispose();
             tmpbmpd = null;
         }
