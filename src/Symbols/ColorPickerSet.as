@@ -200,7 +200,7 @@
 			firstRGBInfoColorText = rgbInfoText.text;
 		}
 
-		public function fillPenModeON():void
+		public function setFillPenModeON():void
 		{
 			penColorButton.alpha = 0.2;
 			paperColorButton.alpha = 0.2;

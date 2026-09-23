@@ -191,7 +191,7 @@ package Modules
                     {
                         xAlpha = newXAlpha;
 
-                        showFillColor();
+                        showAlphaChanged();
                     }
 
                     if (newXBlendMode !== xBlendMode)
@@ -268,6 +268,11 @@ package Modules
             }
 
             return false;
+        }
+
+        private static function showAlphaChanged():void
+        {
+            CanvasController.canvasDrawLayer.alpha = xAlpha;
         }
 
         public static function showFillColor():void
@@ -491,7 +496,7 @@ package Modules
 
             ToolController.toolBox.setFillPenModeON();
             ToolController.toolOptionsBox.disableButtonFillPenStarted();
-            ColorPickerController.colorPickerBox.fillPenModeON();
+            ColorPickerController.colorPickerBox.setFillPenModeON();
 
             InputController.addEventsFillPen();
         }

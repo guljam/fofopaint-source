@@ -116,8 +116,8 @@ package Modules
             appStateObject.isColorPickerBoxPositionSwapped = ColorPickerController.isColorPickerBoxPositionSwapped;
 
             appStateObject.captureStampText = MainUI.topBar.captureInput.text;
-            appStateObject.isCaptureStampON = CaptureController.isCaptureStampEnabled;
-            appStateObject.captureStampFont = CaptureController.captureStampManager.getFontName();
+            appStateObject.isCaptureStampON = CaptureStamp.isCaptureStampEnabled;
+            appStateObject.captureStampFont = CaptureStamp.getFontName();
 
             appStateObject.scrollSetMovedY = SidebarController.scrollSetMovedY;
             appStateObject.isRefLayerMemoryTrainingON = ReferenceLayerController.isRefLayerMemoryTrainingON;
@@ -451,11 +451,11 @@ package Modules
                         SidebarController.sideBarScrollPanel.y = appStateObject.scrollSetMovedY;
 
                         MainUI.topBar.captureInput.text = appStateObject.captureStampText;
-                        CaptureController.isCaptureStampEnabled = appStateObject.isCaptureStampON;
+                        CaptureStamp.isCaptureStampEnabled = appStateObject.isCaptureStampON;
 
                         if (appStateObject.captureStampFont)
                         {
-                            CaptureController.captureStampManager.changeFont(appStateObject.captureStampFont, false);
+                            CaptureStamp.changeFont(appStateObject.captureStampFont, false);
                         }
 
                         MainUIController.updateCanvasNaigatorCursor();

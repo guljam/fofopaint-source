@@ -239,7 +239,7 @@ package Modules
                     }
                 }
             }
-            CaptureController.captureAreaManager.updateDrawArea();
+            CaptureArea.updateDrawArea();
         }
 
         public static function addUndoBGColorData(color:uint):void

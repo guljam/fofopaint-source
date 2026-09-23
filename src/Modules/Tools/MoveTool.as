@@ -40,21 +40,35 @@ package Modules.Tools
             const movey:Number = Math.floor(CanvasController.canvasLayer1Bitmap.y);
             const movex1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.x);
             const movey1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.y);
-            const rect:Rectangle = new Rectangle(0,0,CanvasController.canvasLayer1BitmapData.width,CanvasController.canvasLayer1BitmapData.height);
 
+            if (CanvasController.checkedLayer <= 1 && movex === 0.0 && movey === 0.0)
+            {
+                trace('리턴1');
+                return;
+            }
+            else if (CanvasController.checkedLayer === 2 && movex1 === 0.0 && movey1 === 0.0)
+            {
+                trace('리턴2');
+                return;
+            }
+
+            const rect:Rectangle = new Rectangle(0, 0, CanvasController.canvasLayer1BitmapData.width, CanvasController.canvasLayer1BitmapData.height);
             var movedMat:Matrix = new Matrix();
 
             if (UndoManager.isDeepUndoEnabled)
+            {
                 UndoManager.applyDeepUndo();
+            }
 
             // 최종적으로 움직인 거리를 실제로 비트맵 데이터 조작
             if (CanvasController.checkedLayer === 0)
             {
+
                 if (CanvasController.canvasLayer1Bitmap.visible)
                 {
                     movedMat.translate(movex, movey);
                     tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
-                    CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData,tmpbmpd);
+                    CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData, tmpbmpd);
                 }
 
                 if (CanvasController.canvasLayer2Bitmap.visible)
@@ -63,23 +77,24 @@ package Modules.Tools
                     movedMat.translate(movex1, movey1);
                     tmpbmpd.fillRect(rect, 0);
                     tmpbmpd.draw(CanvasController.canvasLayer2BitmapData, movedMat);
-                    CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData,tmpbmpd);
+                    CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData, tmpbmpd);
                 }
             }
             else if (CanvasController.checkedLayer === 1)
             {
                 movedMat.translate(movex, movey);
                 tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
-                CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData,tmpbmpd);
+                CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData, tmpbmpd);
 
             }
             else if (CanvasController.checkedLayer === 2)
             {
+
                 movedMat = new Matrix();
                 movedMat.translate(movex1, movey1);
                 tmpbmpd.fillRect(new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT), 0);
                 tmpbmpd.draw(CanvasController.canvasLayer2BitmapData, movedMat);
-                CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData,tmpbmpd);
+                CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData, tmpbmpd);
             }
 
             tmpbmpd.dispose();

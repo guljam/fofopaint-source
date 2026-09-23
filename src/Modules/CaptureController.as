@@ -35,51 +35,13 @@ package Modules
         public static var isCaptureModeON:Boolean = false; // 스크린샷 켜지면 올려줌
         public static var isCaptureCanvasFlipped:Boolean = false; // 캡쳐 대칭한 변수 저장
         public static var isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
-        public static var isCaptureStampTextFieldFocused:Boolean = false; // 포커스 되면 올려줌
-        public static var isCaptureStampEnabled:Boolean = false;
-
-        public static var captureStampFontListBox:CapStampFontListSet = new CapStampFontListSet();
-        private static var captureDragAreaOverlay:Shape = new Shape(); // 스크린샷 박스 미리보기 그려줌
+        
         private static var canvasStateBeforeCaptureMode:Object = {}; // 캡쳐 키면 캔버스 이전 상태 저장함
         public static var drawModeCanvasStateForSaveAppState:Object = {}; // save app state에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
         public static var captureWindowMove:Point = new Point(0, 0); // 스크린샷이 켜져있는 상태에서 창을 조절했을때 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
         public static var captureCanvasRotationStep:uint = 0; // 캡쳐 회전한 변수 저장
         private static var capTransparentBGBMPDSize:Number = 32;
         public static var capTransparentBGBMPD:BitmapData;
-
-        public static const captureAreaManager:Object = cDrawCaptureArea();
-        public static const captureStampManager:Object = cDrawCaptureStamp();
-        private static var captureStampDominantColorRefBmpd:BitmapData = null;
-
-        public static function hideStampFontList():void
-        {
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList);
-            captureStampFontListBox.visible = false;
-        }
-
-        private static function onMouseDownShowStampFontList(e:MouseEvent):void
-        {
-            if (!(captureStampFontListBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || MainUI.topBar.capStampFont.hitTestPoint(main.stage.mouseX, main.stage.mouseY)))
-            {
-                hideStampFontList();
-            }
-        }
-
-        public static function showStampFontList():void
-        {
-            if (!captureStampFontListBox.visible)
-            {
-
-                const gp:Point = MainUI.topBar.capStampFont.localToGlobal(new Point(0, 0));
-                captureStampFontListBox.x = gp.x;
-                captureStampFontListBox.y = MainUI.topBar.BARSIZE * MainUI.topBar.scaleX;
-                captureStampFontListBox.updateSystemFontList();
-                captureStampFontListBox.setScale(Global.getUIScale());
-                Utils.setAsTopChild(captureStampFontListBox);
-                captureStampFontListBox.visible = true;
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList, false, -1);
-            }
-        }
 
         public static function executeCaptureFlashEffect():void
         {
@@ -89,7 +51,7 @@ package Modules
             var canvasWidth:Number;
             var canvasHeight:Number;
 
-            if (captureAreaManager.isFullImageCapture())
+            if (CaptureArea.isFullImageCapture())
             {
                 posX = 0;
                 posY = 0;
@@ -106,7 +68,7 @@ package Modules
             }
             else
             {
-                const nowCaptureArea:Rectangle = captureAreaManager.getCaptureArea();
+                const nowCaptureArea:Rectangle = CaptureArea.getCaptureArea();
                 posX = nowCaptureArea.x;
                 posY = nowCaptureArea.y;
                 canvasWidth = nowCaptureArea.width;
@@ -122,7 +84,7 @@ package Modules
         public static function getCaptrueImageBitmapdata(clipBoardCopyFlag:Boolean):BitmapData
         {
             const isReplayMode:Boolean = ReplayController.isReplayModeON;
-            var rect:Rectangle = (!captureAreaManager.isFullImageCapture()) ? captureAreaManager.getCaptureArea() : null;
+            var rect:Rectangle = (!CaptureArea.isFullImageCapture()) ? CaptureArea.getCaptureArea() : null;
             var layer1:Boolean;
             var layer2:Boolean;
 
@@ -176,9 +138,9 @@ package Modules
             const tmpbmpd:BitmapData = (swapWH) ? new BitmapData(bmpd.height, bmpd.width, true, 0) : new BitmapData(bmpd.width, bmpd.height, true, 0);
             tmpbmpd.draw(bmpd, mat);
 
-            if (isCaptureStampEnabled && tmpbmpd.width >= 300)
+            if (CaptureStamp.isCaptureStampEnabled && tmpbmpd.width >= 300)
             {
-                captureStampManager.kungFinal(tmpbmpd);
+                CaptureStamp.kungFinal(tmpbmpd);
             }
 
             bmpd.dispose();
@@ -233,13 +195,13 @@ package Modules
             MainUI.topBar.capClipBoard.alpha = 1.0;
             if (!initFlag)
             {
-                captureAreaManager.updateDrawArea();
+                CaptureArea.updateDrawArea();
             }
         }
 
         public static function updateCaptureStampButtonAlpha():void
         {
-            if (isCaptureStampEnabled)
+            if (CaptureStamp.isCaptureStampEnabled)
             {
                 MainUI.topBar.capStamp.alpha = 1.0;
                 MainUI.topBar.captureInputWarpper.visible = true;
@@ -256,9 +218,9 @@ package Modules
         public static function toggleCaptureStampButton():void
         {
             MainUI.topBar.capClipBoard.alpha = 1.0;
-            isCaptureStampEnabled = !isCaptureStampEnabled;
+            CaptureStamp.isCaptureStampEnabled = !CaptureStamp.isCaptureStampEnabled;
             updateCaptureStampButtonAlpha();
-            captureStampManager.update();
+            CaptureStamp.update();
         }
 
         public static function handleExitCaptureMode():void
@@ -301,7 +263,7 @@ package Modules
             {
                 BackgroundWorkerCoordinator.applyTransparentCanvasBackground(ReplayController.isReplayModeON);
             }
-            else if(ReplayController.isReplayModeON)
+            else if (ReplayController.isReplayModeON)
             {
                 restoreCanvasBackgroundColorReplayMode();
             }
@@ -326,7 +288,7 @@ package Modules
             MainUI.topBar.capClipBoard.alpha = 1.0;
             if (!initFlag)
             {
-                captureAreaManager.updateDrawArea();
+                CaptureArea.updateDrawArea();
             }
         }
 
@@ -344,7 +306,7 @@ package Modules
                 const targetName:String = target.name;
                 const xCanvasPanel:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasPanel : CanvasController.canvasPanel;
 
-                if (captureAreaManager.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
+                if (CaptureArea.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
                 {
                     MainUI.showHintHighlightBox((ReplayController) ? ReplayController.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
                     MainUI.showBottomHint(hint);
@@ -404,7 +366,7 @@ package Modules
                 xPanel = ReplayController.rCanvasPanel;
                 xZoomed = ReplayController.rCanvasZoomMultiplier;
                 ReplayController.rReplayFOFOCursor.visible = false;
-                ReplayController.rCanvasPanel.addChild(captureDragAreaOverlay);
+                ReplayController.rCanvasPanel.addChild(CaptureArea.captureDragAreaOverlay);
                 layer1 = true;
                 layer2 = true;
             }
@@ -413,14 +375,15 @@ package Modules
                 xAnc = CanvasController.canvasAnchorPoint;
                 xPanel = CanvasController.canvasPanel;
                 xZoomed = CanvasController.canvasZoomMultipler;
-                CanvasController.canvasPanel.addChild(captureDragAreaOverlay);
+                CanvasController.canvasPanel.addChild(CaptureArea.captureDragAreaOverlay);
                 if (CanvasController.canvasLayer1Bitmap.visible)
                     layer1 = true;
                 if (CanvasController.canvasLayer2Bitmap.visible)
                     layer2 = true;
             }
 
-            Utils.setAsTopChild(captureDragAreaOverlay);
+            Utils.setAsTopChild(CaptureArea.captureDragAreaOverlay);
+            CaptureArea.captureDragAreaOverlay.visible = true;
 
             drawModeCanvasStateForSaveAppState = {
                     "z": CanvasController.canvasZoomMultipler,
@@ -448,11 +411,11 @@ package Modules
             isCaptureCanvasFlipped = false;
             CanvasController.fitCanvasToViewportMargin();
             applyTransparentCanvasBGCaptureMode(false);
-            captureStampManager.init();
+            CaptureStamp.init();
 
-            if (isCaptureStampEnabled)
+            if (CaptureStamp.isCaptureStampEnabled)
             {
-                captureStampManager.update();
+                CaptureStamp.update();
             }
         }
 
@@ -477,9 +440,9 @@ package Modules
             isCaptureModeON = false;
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
-            captureDragAreaOverlay.graphics.clear();
-            captureStampManager.off();
-            captureStampFontListBox.visible = false;
+            CaptureArea.captureDragAreaOverlay.graphics.clear();
+            CaptureStamp.off();
+            CaptureArea.captureDragAreaOverlay.visible = false;
 
             // 캔버스 이전 모양 위치로 복원
             xAnc.rotation = data.r;
@@ -528,1152 +491,6 @@ package Modules
             canvasStateBeforeCaptureMode = {};
         }
 
-        private static function cDrawCaptureStamp():Object
-        {
-            var captrueStampBMPD:BitmapData = new BitmapData(1, 1, false, 0);
-            var captureStampBitmap:Bitmap = new Bitmap(captrueStampBMPD);
-            const stampAlpha:uint = 0xCB000000;
-            const textformat:TextFormat = new TextFormat();
-            const captureStampRect:Rectangle = new Rectangle();
-            const bmpdMat:Matrix = new Matrix();
-            const defaultFontSize:int = 13;
-            var defaultBmpdHeight:int = defaultFontSize + 2;
-            var inputUpdateTimer:int = 0;
-            var stampBGColor:* = null;
-            const lastRectArea:Rectangle = new Rectangle();
-            var lastBitmapVisibleFlag:int = 0;
-
-            captureStampBitmap.name = "captureStampBitmap";
-            captureStampBitmap.visible = false;
-
-            function updateLastRectArea(rect:Rectangle):void
-            {
-                lastRectArea.setTo(rect.x,rect.y,rect.width,rect.height);
-            }
-
-            function getFontName():String
-            {
-                return textformat.font;
-            }
-
-            function checkCaptrueStampBMPDHeight(twolineFlag:Boolean, mainTextWidth:Number):Number
-            {
-                var maxHeight:Number = kungDateStr(twolineFlag, true);
-                const lines1:int = MainUI.topBar.getCaptureInputFinalLines();
-
-                if (lines1 === 2)
-                    return maxHeight;
-
-                const height2:Number = kungMainStr(twolineFlag, mainTextWidth, true);
-                const lines2:int = MainUI.topBar.getCaptureInputFinalLines();
-
-                if (lines2 === 2)
-                    return height2;
-                else if (maxHeight < height2)
-                    maxHeight = height2;
-
-                return maxHeight;
-            }
-
-            function changeFont(newFont:String, updateFlag:Boolean):void
-            {
-                textformat.font = newFont;
-                captureStampFontListBox.setSelectFont(newFont);
-                captureStampFontListBox.updateFontListSelect(newFont);
-                MainUI.topBar.captureInputFinal.setTextFormat(textformat);
-
-                if (updateFlag)
-                {
-                    update();
-                }
-            }
-
-            function getCaptureStampDate(newLine:Boolean):String
-            {
-                const date:Date = new Date();
-                const y:Number = date.getFullYear();
-                const m:Number = date.getMonth() + 1;
-                const d:Number = date.getDate();
-                const hour:Number = date.getHours();
-                const min:Number = date.getMinutes();
-                const sec:Number = date.getSeconds();
-
-                const monthstr:String = (m < 10) ? "0" + m : "" + m;
-                const daystr:String = (d < 10) ? "0" + d : "" + d;
-                const hourstr:String = (hour < 10) ? "0" + hour : "" + hour;
-                const minstr:String = (min < 10) ? "0" + min : "" + min;
-                const secstr:String = (sec < 10) ? "0" + sec : "" + sec;
-
-                // return y+"-"+monthstr+"-"+daystr+" "+hourstr+":"+minstr+":"+secstr;
-                return y + "-" + monthstr + "-" + daystr
-                    + ((newLine) ? "\n" : " ")
-                    + hourstr + ":" + minstr + ":" + secstr;
-            }
-
-            function getAppNameString(newLine:Boolean):String
-            {
-                return "FOFO PAINT"
-                    + ((newLine) ? "\n" : " ")
-                    + main.APP_VERSION;
-            }
-
-            function getTextWidthText(text:String, offset:Number):Number
-            {
-                const backupStr:String = MainUI.topBar.captureInputFinal.text;
-                const backupWidth:Number = MainUI.topBar.getCaptureInputFinalWidth();
-
-                MainUI.topBar.setCaptureInputFinalWidth(CanvasController.CANVAS_MAX_SIZE);
-                MainUI.topBar.setCaptureInputFinalString(text);
-
-                const width:Number = MainUI.topBar.captureInputFinal.textWidth + offset;
-
-                MainUI.topBar.setCaptureInputFinalString(backupStr);
-                MainUI.topBar.setCaptureInputFinalWidth(backupWidth);
-
-                return width;
-            }
-
-            function getTextWidthAppName(newLine:Boolean):Number
-            {
-                return getTextWidthText(getAppNameString(newLine), 5);
-            }
-
-            function getTextWidthDate(newLine:Boolean):Number
-            {
-                return getTextWidthText(getCaptureStampDate(newLine), 10);
-            }
-
-            function getTextWidthMain():Number
-            {
-                return getTextWidthText(MainUI.topBar.getCaptureInputString(), 2);
-            }
-
-            function kungStamp(textStr:String, textWidth:Number, align:String, posX:Number, offsetX:Number, testHeightFlag:Boolean):Number
-            {
-                textformat.align = align;
-                MainUI.topBar.captureInputFinal.defaultTextFormat = textformat;
-                MainUI.topBar.setCaptureInputFinalWidth(textWidth);
-                MainUI.topBar.setCaptureInputFinalString(textStr);
-
-                if (testHeightFlag)
-                {
-                    return MainUI.topBar.captureInputFinal.textHeight;
-                }
-
-                bmpdMat.identity();
-                bmpdMat.translate(posX + offsetX, 0);
-                captrueStampBMPD.draw(MainUI.topBar.captureInputFinal, bmpdMat);
-
-                return 0;
-            }
-
-            function kungAppnameStr(newLine:Boolean, testHeightFlag:Boolean):Number
-            {
-                const textWidth:Number = getTextWidthAppName(newLine);
-
-                return kungStamp(getAppNameString(newLine), textWidth, "right", captrueStampBMPD.width - textWidth, 2, testHeightFlag);
-            }
-
-            function kungMainStr(newLine:Boolean, textWidth:Number, testHeightFlag:Boolean):Number
-            {
-                return kungStamp(MainUI.topBar.getCaptureInputString(), textWidth, "left", getTextWidthDate(newLine), 0, testHeightFlag);
-            }
-
-            function kungDateStr(newLine:Boolean, testHeightFlag:Boolean):Number
-            {
-                return kungStamp(getCaptureStampDate(newLine), getTextWidthDate(newLine), "left", 2, 0, testHeightFlag);
-            }
-
-            function kungFinal(inputBMPD:BitmapData):void
-            {
-                update(); // 미자막 시간 찍어줘야함
-
-                const mat:Matrix = new Matrix();
-                const ct:ColorTransform = new ColorTransform();
-
-                mat.translate(0, inputBMPD.height - captrueStampBMPD.height);
-                inputBMPD.draw(captureStampBitmap, mat, ct);
-            }
-
-            function getCaptureAreaBmpd(clipRect:Rectangle, layer1:Boolean, layer2:Boolean):BitmapData
-            {
-                var longEdge:Number;
-                var areaWidth:Number;
-                var areaHeight:Number;
-
-                const fullImageFlag:Boolean = clipRect.width === 0 && clipRect.height === 0;
-
-                if (fullImageFlag)
-                {
-                    longEdge = CanvasController.CANVAS_HEIGHT > CanvasController.CANVAS_WIDTH ? CanvasController.CANVAS_HEIGHT : CanvasController.CANVAS_WIDTH;
-                    areaWidth = CanvasController.CANVAS_WIDTH;
-                    areaHeight = CanvasController.CANVAS_HEIGHT;
-                }
-                else
-                {
-                    longEdge = clipRect.height > clipRect.width ? clipRect.height : clipRect.width;
-                    areaWidth = clipRect.width;
-                    areaHeight = clipRect.height;
-                }
-
-                if (areaWidth === 0 || areaHeight === 0)
-                {
-                    return null;
-                }
-
-                var scale:Number = 1.0;
-
-                if (longEdge > 100)
-                {
-                    scale = 100 / longEdge;
-                }
-
-                const scaledWidth:Number = areaWidth * scale;
-                const scaledHeight:Number = areaHeight * scale;
-
-                const mat:Matrix = new Matrix();
-                mat.scale(scale, scale);
-
-                const tmpbmpd:BitmapData = new BitmapData(scaledWidth, scaledHeight, true, 0);
-                const rawbmpd:BitmapData = CanvasController.getMergedBitmapdtata(false, layer1, layer2, (fullImageFlag) ? null : clipRect);
-
-                tmpbmpd.draw(rawbmpd, mat);
-                rawbmpd.dispose();
-
-                return tmpbmpd;
-            }
-
-            function onFocusOutCaptureInput(e:FocusEvent):void
-            {
-                FOFOTimer.add(0.2, false, function ():void
-                    {
-                        InputController.tryDisableIME();
-                        isCaptureStampTextFieldFocused = false;
-                    });
-            }
-
-            function onFocusInCaptureInput(e:FocusEvent):void
-            {
-                isCaptureStampTextFieldFocused = true;
-
-                FOFOTimer.add(0.0, false, function ():void
-                    {
-                        MainUI.topBar.captureInput.setSelection(0, MainUI.topBar.captureInput.text.length);
-                    });
-            }
-
-            function onChangeCaptureInput(e:Event):void
-            {
-                MainUI.topBar.capClipBoard.alpha = 1.0;
-
-                if (!FOFOTimer.hasTimer("inputUpdateTimer"))
-                {
-                    FOFOTimer.addByName("inputUpdateTimer", 0.2, false, update);
-                }
-            }
-
-            function setVisible(flag:Boolean):void
-            {
-                if (captureStampBitmap.visible !== flag)
-                {
-                    captureStampBitmap.visible = flag;
-                }
-            }
-
-            function checkPosition(bmpdHeight:Number):void
-            {
-                const rect:Rectangle = captureAreaManager.getCaptureArea();
-                const rotateFlag:uint = captureCanvasRotationStep;
-                var offsetX:Number;
-                var offsetY:Number;
-
-                if (captureAreaManager.isFullImageCapture())
-                {
-
-                    offsetX = (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
-                    offsetY = (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
-                }
-                else
-                {
-                    offsetX = rect.width;
-                    offsetY = rect.height;
-                }
-
-                if (isCaptureCanvasFlipped)
-                {
-                    captureStampBitmap.scaleX = -1.0;
-
-                    if (rotateFlag === 0)
-                    {
-                        captureStampBitmap.rotation = 0;
-                        captureStampBitmap.x = rect.x + offsetX;
-                        captureStampBitmap.y = rect.y + offsetY - bmpdHeight;
-                    }
-                    else if (rotateFlag === 1)
-                    {
-                        captureStampBitmap.rotation = 90;
-                        captureStampBitmap.x = rect.x + bmpdHeight;
-                        captureStampBitmap.y = rect.y + offsetY;
-                    }
-                    else if (rotateFlag === 2)
-                    {
-                        captureStampBitmap.rotation = 180;
-                        captureStampBitmap.x = rect.x;
-                        captureStampBitmap.y = rect.y + bmpdHeight;
-                    }
-                    else if (rotateFlag === 3)
-                    {
-                        captureStampBitmap.rotation = -90;
-                        captureStampBitmap.x = rect.x + offsetX - bmpdHeight;
-                        captureStampBitmap.y = rect.y;
-                    }
-                }
-                else
-                {
-                    captureStampBitmap.scaleX = 1.0;
-
-                    if (rotateFlag === 0)
-                    {
-                        captureStampBitmap.rotation = 0;
-                        captureStampBitmap.x = rect.x;
-                        captureStampBitmap.y = rect.y + offsetY - bmpdHeight;
-                    }
-                    else if (rotateFlag === 1)
-                    {
-                        captureStampBitmap.rotation = -90;
-                        captureStampBitmap.x = rect.x + offsetX - bmpdHeight;
-                        captureStampBitmap.y = rect.y + offsetY;
-                    }
-                    else if (rotateFlag === 2)
-                    {
-                        captureStampBitmap.rotation = 180;
-                        captureStampBitmap.x = rect.x + offsetX;
-                        captureStampBitmap.y = rect.y + bmpdHeight;
-                    }
-                    else if (rotateFlag === 3)
-                    {
-                        captureStampBitmap.rotation = 90;
-                        captureStampBitmap.x = rect.x + bmpdHeight;
-                        captureStampBitmap.y = rect.y;
-                    }
-                }
-            }
-
-            function getCaptureAreaWidth(rect:Rectangle):Number
-            {
-                const notRotatedFlag:Boolean = captureCanvasRotationStep % 2 === 0;
-
-                if (notRotatedFlag)
-                {
-                    if (captureAreaManager.isFullImageCapture())
-                    {
-
-                        return (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
-                    }
-                    else
-                    {
-                        return rect.width;
-                    }
-                }
-                else
-                {
-                    if (captureAreaManager.isFullImageCapture())
-                    {
-                        return (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
-                    }
-                    else
-                    {
-                        return rect.height;
-                    }
-                }
-
-                return 0;
-            }
-
-            function getColorBrightness(color:uint):Number
-            {
-                var red:int = (color >> 16) & 0xFF;
-                var green:int = (color >> 8) & 0xFF;
-                var blue:int = color & 0xFF;
-
-                // 밝기 계산
-                var brightness:Number = 0.299 * red + 0.587 * green + 0.114 * blue;
-
-                return brightness;
-            }
-
-            function update():void
-            {
-                if (isCaptureStampEnabled)
-                {
-                    const rect:Rectangle = captureAreaManager.getCaptureArea();
-                    const bmpdWidth:Number = getCaptureAreaWidth(rect);
-
-                    if (bmpdWidth < 300)
-                    {
-                        if (captureStampBitmap.visible === true)
-                        {
-                            captureStampBitmap.visible = false;
-                        }
-                        return;
-                    }
-
-                    const layer1Visible:Boolean = (ReplayController.isReplayModeON) ? ReplayController.rCanvasLayer1Bitmap.visible : CanvasController.canvasLayer1Bitmap.visible;
-                    const layer2Visible:Boolean = (ReplayController.isReplayModeON) ? ReplayController.rCanvasLayer2Bitmap.visible : CanvasController.canvasLayer2Bitmap.visible;
-
-                    var bitmapVisibleFlag:int = 0;
-
-                    if (layer1Visible)
-                    {
-                        bitmapVisibleFlag += 1;
-                    }
-                    if (layer2Visible)
-                    {
-                        bitmapVisibleFlag += 2;
-                    }
-
-                    if (stampBGColor === null || !rect.equals(lastRectArea) || lastBitmapVisibleFlag !== bitmapVisibleFlag)
-                    {
-                        const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((ReplayController.isReplayModeON) ? ReplayController.RCANVAS_BG_COLOR : CanvasController.CANVAS_BG_COLOR);
-
-                        if (tegakiBGColorIndex >= 0)
-                        {
-                            stampBGColor = PaletteController.myPaletteTegakiPreset[tegakiBGColorIndex - 10];
-                        }
-                        else
-                        {
-                            stampBGColor = ColorPickerController.getImageDominantColor(getCaptureAreaBmpd(rect, layer1Visible, layer2Visible));
-                        }
-
-                        updateLastRectArea(rect);
-                    }
-
-                    lastBitmapVisibleFlag = bitmapVisibleFlag;
-
-                    var dateStrWidth:Number = getTextWidthDate(false);
-                    var appStrWidth:Number = getTextWidthAppName(false);
-                    var mainTextWidth:Number = bmpdWidth - (dateStrWidth + appStrWidth) - 1;
-
-                    textformat.size = defaultFontSize;
-                    MainUI.topBar.captureInput.maxChars = 0;
-                    MainUI.topBar.captureInputFinal.defaultTextFormat = textformat;
-                    MainUI.topBar.setCaptureInputFinalWidth(mainTextWidth);
-                    MainUI.topBar.setCaptureInputFinalString(MainUI.topBar.getCaptureInputString());
-
-                    var twolineFlag:Boolean = false;
-
-                    if (MainUI.topBar.getCaptureInputFinalLines() >= 2)
-                    {
-                        twolineFlag = true;
-                        var loopcount:int = 0;
-
-                        do
-                        {
-                            textformat.size = defaultFontSize - loopcount;
-                            MainUI.topBar.captureInputFinal.defaultTextFormat = textformat;
-
-                            dateStrWidth = getTextWidthDate(true);
-                            appStrWidth = getTextWidthAppName(true);
-                            mainTextWidth = bmpdWidth - (dateStrWidth + appStrWidth) - 1;
-
-                            MainUI.topBar.setCaptureInputFinalWidth(mainTextWidth);
-                            MainUI.topBar.setCaptureInputFinalString(MainUI.topBar.getCaptureInputString());
-
-                            loopcount++;
-
-                            if (defaultFontSize - loopcount <= 13)
-                            {
-                                // 글씨크기를 한계까지 줄이고 칸이 꽉차면 더이상 입력 못하게함
-                                if (MainUI.topBar.captureInputFinal.numLines >= 3)
-                                {
-                                    MainUI.topBar.captureInput.maxChars = 1;
-                                    MainUI.topBar.captureInput.text = MainUI.topBar.captureInput.text.slice(0, -1);
-                                }
-                                break;
-                            }
-                        }
-                        while (MainUI.topBar.getCaptureInputFinalLines() >= 3);
-                    }
-
-                    if (captrueStampBMPD)
-                    {
-                        captrueStampBMPD.dispose();
-                    }
-
-                    var bmpdHeight:Number = checkCaptrueStampBMPDHeight(twolineFlag, mainTextWidth);
-
-                    captrueStampBMPD = new BitmapData(bmpdWidth, bmpdHeight, true, stampAlpha | stampBGColor);
-                    captureStampBitmap.bitmapData = captrueStampBMPD;
-
-                    if (getColorBrightness(stampBGColor) >= 150)
-                    {
-                        MainUI.topBar.captureInputFinal.textColor = 0x0;
-                    }
-                    else
-                    {
-                        MainUI.topBar.captureInputFinal.textColor = 0xFFFFFF;
-                    }
-
-                    kungDateStr(twolineFlag, false);
-                    kungMainStr(twolineFlag, mainTextWidth, false);
-                    kungAppnameStr(twolineFlag, false);
-
-                    if (captureStampBitmap.visible === false)
-                    {
-                        captureStampBitmap.visible = true;
-                    }
-
-                    if (ReplayController.isReplayModeON)
-                    {
-                        if (ReplayController.rCanvasPanel.getChildByName("captureStampBitmap") === null)
-                        {
-                            ReplayController.rCanvasPanel.addChild(captureStampBitmap);
-                        }
-                    }
-                    else if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") === null)
-                    {
-                        CanvasController.canvasPanel.addChild(captureStampBitmap);
-                    }
-
-                    checkPosition(bmpdHeight);
-                }
-                else if (captureStampBitmap.visible === true)
-                {
-                    if (ReplayController.isReplayModeON)
-                    {
-                        if (ReplayController.rCanvasPanel.getChildByName("captureStampBitmap") !== null)
-                        {
-                            ReplayController.rCanvasPanel.removeChild(captureStampBitmap);
-                        }
-                    }
-                    else if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") !== null)
-                    {
-                        CanvasController.canvasPanel.removeChild(captureStampBitmap);
-                    }
-
-                    captureStampBitmap.visible = false;
-                }
-            }
-
-            function off():void
-            {
-                if (ReplayController.isReplayModeON)
-                {
-                    ReplayController.rCanvasPanel.scrollRect = new Rectangle(0, 0, ReplayController.RCANVAS_WIDTH, ReplayController.RCANVAS_HEIGHT);
-                }
-                else
-                {
-                    CanvasController.canvasPanel.scrollRect = new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                }
-
-                if (captrueStampBMPD)
-                {
-                    captrueStampBMPD.dispose();
-                }
-
-                captrueStampBMPD = null;
-
-                MainUI.topBar.captureInput.removeEventListener(Event.CHANGE, onChangeCaptureInput);
-                MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureInput);
-                MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_OUT, onFocusOutCaptureInput);
-
-                captureStampBitmap.visible = false;
-
-                if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") !== null)
-                {
-                    CanvasController.canvasPanel.removeChild(captureStampBitmap);
-                }
-            }
-
-            function init():void
-            {
-                if (ReplayController.isReplayModeON)
-                {
-                    ReplayController.rCanvasPanel.scrollRect = null;
-                }
-                else
-                {
-                    CanvasController.canvasPanel.scrollRect = null;
-                }
-
-                textformat.font = null;
-                stampBGColor = null;
-
-                MainUI.topBar.captureInput.addEventListener(Event.CHANGE, onChangeCaptureInput);
-                MainUI.topBar.captureInput.addEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureInput);
-                MainUI.topBar.captureInput.addEventListener(FocusEvent.FOCUS_OUT, onFocusOutCaptureInput);
-            }
-
-            return {
-                    init: init,
-                    off: off,
-                    update: update,
-                    setVisible: setVisible,
-                    kungFinal: kungFinal,
-                    changeFont: changeFont,
-                    getFontName: getFontName
-                };
-        }
-
-        // 마우스 클릭하면 캡쳐 영역그리는 함수
-        private static function cDrawCaptureArea():Object
-        {
-            var xPanel:Sprite;
-            var mouseMoved:Boolean = false;
-            var canvasWidth:Number = 0;
-            var canvasHeight:Number = 0;
-            var clickPos:Point = new Point(0, 0);
-            var limitWidthSave:Number = 0;
-            var limitHeightSave:Number = 0;
-            const rectFull:Rectangle = new Rectangle();
-            const rectRaw:Rectangle = new Rectangle();
-            const rectClamped:Rectangle = new Rectangle();
-            var resizeFlag:Boolean = false;
-            const resizeButtonSize:Number = 14.0;
-            const resizeButtonPos:Point = new Point(0, 0);
-            var minSize:Number = 10.0;
-            const mouseMoveOffset:Number = 5.0;
-
-            function validateCaptureArea():void
-            {
-                var intersection:Rectangle = rectFull.intersection(rectClamped);
-                if (intersection.width >= minSize && intersection.height >= minSize)
-                {
-                    rectClamped.x = Math.round(intersection.x);
-                    rectClamped.y = Math.round(intersection.y);
-                    rectClamped.width = Math.round(intersection.width);
-                    rectClamped.height = Math.round(intersection.height);
-                }
-                else
-                {
-                    FOFOTimer.add(0.0, false, function ():void
-                        {
-                            resetCaptureArea();
-                        });
-                }
-            }
-
-            function normalizeRectClamped():void
-            {
-                if (rectClamped.width < 0)
-                {
-                    rectClamped.width = Math.abs(rectClamped.width);
-                    rectClamped.x = rectClamped.x - rectClamped.width;
-                }
-                if (rectClamped.height < 0)
-                {
-                    rectClamped.height = Math.abs(rectClamped.height);
-                    rectClamped.y = rectClamped.y - rectClamped.height;
-                }
-            }
-
-            function onMouseMoveCaptureAreaDrawed(e:MouseEvent):void
-            {
-                if (!isCaptureModeON)
-                {
-                    removeCaptureAreaEvents();
-                    return;
-                }
-
-                const mx:Number = xPanel.mouseX;
-                const my:Number = xPanel.mouseY;
-                var subX:Number = Math.round(mx - clickPos.x);
-                var subY:Number = Math.round(my - clickPos.y);
-
-                if (mouseMoved === true)
-                {
-                    if (resizeFlag)
-                    {
-                        if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 0 || isCaptureCanvasFlipped && captureCanvasRotationStep === 3)
-                        {
-                            rectRaw.width += subX;
-                            rectRaw.height += subY;
-                            rectClamped.width = rectRaw.width;
-                            rectClamped.height = rectRaw.height;
-
-                            if (rectClamped.width < minSize)
-                                rectClamped.width = minSize;
-                            else if (rectClamped.x + rectClamped.width > canvasWidth)
-                                rectClamped.width = canvasWidth - rectClamped.x;
-
-                            if (rectClamped.height < minSize)
-                                rectClamped.height = minSize;
-                            else if (rectClamped.y + rectClamped.height > canvasHeight)
-                                rectClamped.height = canvasHeight - rectClamped.y;
-                        }
-                        else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 1 || isCaptureCanvasFlipped && captureCanvasRotationStep === 2)
-                        {
-                            rectRaw.width += subX;
-                            rectRaw.height -= subY;
-                            rectRaw.y += subY;
-                            rectClamped.width = rectRaw.width;
-                            rectClamped.height = rectRaw.height;
-                            rectClamped.y = rectRaw.y;
-
-                            if (rectClamped.y < 0.0)
-                            {
-                                rectClamped.y = 0.0;
-                                rectClamped.height = limitHeightSave;
-                            }
-                            if (rectClamped.height < minSize)
-                            {
-                                rectClamped.height = minSize;
-                                rectClamped.y = limitHeightSave - rectClamped.height;
-                            }
-                            if (rectClamped.width < minSize)
-                                rectClamped.width = minSize;
-                            else if (rectClamped.x + rectClamped.width > canvasWidth)
-                                rectClamped.width = canvasWidth - rectClamped.x;
-                        }
-                        else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 2 || isCaptureCanvasFlipped && captureCanvasRotationStep === 1)
-                        {
-                            rectRaw.width -= subX;
-                            rectRaw.height -= subY;
-                            rectRaw.x += subX;
-                            rectRaw.y += subY;
-                            rectClamped.width = rectRaw.width;
-                            rectClamped.height = rectRaw.height;
-                            rectClamped.x = rectRaw.x;
-                            rectClamped.y = rectRaw.y;
-
-                            if (rectClamped.width < minSize)
-                            {
-                                rectClamped.width = minSize;
-                                rectClamped.x = limitWidthSave - rectClamped.width;
-                            }
-                            if (rectClamped.height < minSize)
-                            {
-                                rectClamped.height = minSize;
-                                rectClamped.y = limitHeightSave - rectClamped.height;
-                            }
-                            if (rectClamped.x < 0.0)
-                            {
-                                rectClamped.x = 0.0;
-                                rectClamped.width = limitWidthSave;
-                            }
-                            if (rectClamped.y < 0.0)
-                            {
-                                rectClamped.y = 0.0;
-                                rectClamped.height = limitHeightSave;
-                            }
-                        }
-                        else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 3 || isCaptureCanvasFlipped && captureCanvasRotationStep === 0)
-                        {
-                            rectRaw.width -= subX;
-                            rectRaw.height += subY;
-                            rectRaw.x += subX;
-                            rectClamped.width = rectRaw.width;
-                            rectClamped.height = rectRaw.height;
-                            rectClamped.x = rectRaw.x;
-
-                            if (rectClamped.x < 0.0)
-                            {
-                                rectClamped.x = 0.0;
-                                rectClamped.width = limitWidthSave;
-                            }
-                            if (rectClamped.width < minSize)
-                            {
-                                rectClamped.width = minSize;
-                                rectClamped.x = limitWidthSave - rectClamped.width;
-                            }
-                            if (rectClamped.height < minSize)
-                            {
-                                rectClamped.height = minSize;
-                            }
-                            else if (rectClamped.y + rectClamped.height > canvasHeight)
-                            {
-                                rectClamped.height = canvasHeight - rectClamped.y;
-                            }
-                        }
-                        MainUI.showBottomHint(getRotatedRectSizeString());
-                    }
-                    else
-                    {
-                        rectRaw.x += subX;
-                        rectRaw.y += subY;
-                        rectClamped.x = rectRaw.x;
-                        rectClamped.y = rectRaw.y;
-
-                        if (rectClamped.x < 0.0)
-                        {
-                            rectClamped.x = 0.0;
-                        }
-                        else if (rectClamped.x + rectClamped.width > canvasWidth)
-                        {
-                            rectClamped.x = canvasWidth - rectClamped.width;
-                        }
-
-                        if (rectClamped.y < 0.0)
-                        {
-                            rectClamped.y = 0.0;
-                        }
-                        else if (rectClamped.y + rectClamped.height > canvasHeight)
-                        {
-                            rectClamped.y = canvasHeight - rectClamped.height;
-                        }
-                    }
-                    rectClamped.x = Math.round(rectClamped.x);
-                    rectClamped.y = Math.round(rectClamped.y);
-                    rectClamped.width = Math.round(rectClamped.width);
-                    rectClamped.height = Math.round(rectClamped.height);
-                    clickPos.setTo(xPanel.mouseX, xPanel.mouseY);
-                    drawArea(false);
-                }
-                else if (Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
-                {
-                    mouseMoved = true;
-                    clickPos.setTo(mx, my);
-                    captureStampManager.setVisible(false);
-                }
-            }
-
-            function onMouseMoveDrawCaptureArea(e:MouseEvent):void
-            {
-                if (!isCaptureModeON)
-                {
-                    removeCaptureAreaEvents();
-                    return;
-                }
-
-                var mx:Number = xPanel.mouseX;
-                var my:Number = xPanel.mouseY;
-                var subX:Number = Math.round(mx - clickPos.x);
-                var subY:Number = Math.round(my - clickPos.y);
-
-                if (mouseMoved)
-                {
-                    rectRaw.width = subX;
-                    rectRaw.height = subY;
-                    rectClamped.x = rectRaw.x;
-                    rectClamped.y = rectRaw.y;
-                    rectClamped.width = rectRaw.width;
-                    rectClamped.height = rectRaw.height;
-                    normalizeRectClamped();
-                    MainUI.showBottomHint(getRotatedRectSizeString());
-                    drawArea(false);
-                }
-                else if (Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
-                {
-                    rectRaw.x = clickPos.x;
-                    rectRaw.y = clickPos.y;
-                    rectRaw.width = subX;
-                    rectRaw.height = subY;
-                    rectClamped.x = rectRaw.x;
-                    rectClamped.y = rectRaw.y;
-                    rectClamped.width = rectRaw.width;
-                    rectClamped.height = rectRaw.height;
-                    clickPos.setTo(mx, my);
-                    MainUI.showBottomHint(getRotatedRectSizeString());
-                    mouseMoved = true;
-                    captureStampManager.setVisible(false);
-                }
-            }
-
-            function onMouseUpCaptureArea(e:MouseEvent):void
-            {
-                CanvasController.isMouseDragging = false;
-                removeCaptureAreaEvents();
-
-                if (mouseMoved === true)
-                {
-                    // rect길이가 음수인경우 cx cy를 양수로 다시 맞추어줌
-                    normalizeRectClamped();
-                    validateCaptureArea();
-                    MainUI.topBar.capClipBoard.alpha = 1.0;
-                    drawArea(true);
-                    captureStampManager.update();
-                }
-                mouseMoved = false;
-            }
-
-            function removeCaptureAreaEvents():void
-            {
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCaptureAreaDrawed);
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
-            }
-
-            function updateDrawArea(forceFlag:Boolean = false):void
-            {
-                if (rectClamped.width > minSize && rectClamped.height > minSize || forceFlag)
-                {
-                    drawArea(true);
-                }
-                captureStampManager.update();
-            }
-
-            function getCanvasScale():Number
-            {
-                return (ReplayController.isReplayModeON) ? Math.abs(ReplayController.rCanvasAnchorPoint.scaleX) : Math.abs(CanvasController.canvasAnchorPoint.scaleX);
-            }
-
-            function drawResizeButton(scale:Number):void
-            {
-                if (isFullImageCapture())
-                {
-                    return;
-                }
-
-                captureDragAreaOverlay.graphics.lineStyle(1, 0xFFFFFF, 1.0, true);
-                captureDragAreaOverlay.graphics.beginFill(0xFF6600);
-
-                var posX:Number = rectClamped.x;
-                var posY:Number = rectClamped.y;
-                const offset:Number = 0;
-
-                if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 0 || isCaptureCanvasFlipped && captureCanvasRotationStep === 3)
-                {
-                    posX += rectClamped.width + offset;
-                    posY += rectClamped.height + offset;
-                }
-                else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 1 || isCaptureCanvasFlipped && captureCanvasRotationStep === 2)
-                {
-                    posX += rectClamped.width + offset;
-                    posY += -offset;
-                }
-                else if (!isCaptureCanvasFlipped && captureCanvasRotationStep === 3 || isCaptureCanvasFlipped && captureCanvasRotationStep === 0)
-                {
-                    posY += rectClamped.height + offset;
-                    posX += -offset;
-                }
-                else
-                {
-                    posX += -offset;
-                    posY += -offset;
-                }
-
-                resizeButtonPos.setTo(posX, posY);
-
-                const longEdge:Number = resizeButtonSize / scale;
-                const shortEdge:Number = (resizeButtonSize / 3) / scale;
-                const cmd:Vector.<int> = new <int>[1, 2, 2, 2, 2, 2, 2];
-                const pos:Vector.<Number> = new <Number>[
-                        0, 0,
-                        0, -longEdge,
-                        shortEdge, -longEdge,
-                        shortEdge, shortEdge,
-                        -longEdge, shortEdge,
-                        -longEdge, 0,
-                        0, 0
-                    ];
-                const len:uint = pos.length;
-                var p:Point;
-
-                for (var i:uint = 0;i < len;i += 2)
-                {
-                    p = Utils.rotatePoint(pos[i], pos[i + 1], captureCanvasRotationStep * 90.0);
-                    pos[i] = posX + p.x * ((isCaptureCanvasFlipped) ? -1.0 : 1.0);
-                    pos[i + 1] = posY + p.y;
-                }
-
-                captureDragAreaOverlay.graphics.drawPath(cmd, pos);
-                captureDragAreaOverlay.graphics.endFill();
-            }
-
-            function drawArea(resizeButtonON:Boolean):void
-            {
-                const zoomed:Number = getCanvasScale();
-                const lineSize:Number = Math.ceil(1 / zoomed);
-
-                captureDragAreaOverlay.graphics.clear();
-                // 배경색 약간 어둡게 해줌
-                captureDragAreaOverlay.graphics.lineStyle(0, 0, 0);
-                captureDragAreaOverlay.graphics.beginFill(0, 0.3);
-                captureDragAreaOverlay.graphics.drawRect(0, 0, canvasWidth, rectClamped.y); // 위
-                captureDragAreaOverlay.graphics.drawRect(0, rectClamped.y, rectClamped.x, rectClamped.height); // 왼쪽
-                captureDragAreaOverlay.graphics.drawRect(rectClamped.x + rectClamped.width, rectClamped.y, canvasWidth - (rectClamped.x + rectClamped.width), rectClamped.height); // 오른쪽
-                captureDragAreaOverlay.graphics.drawRect(0, rectClamped.y + rectClamped.height, canvasWidth, canvasHeight - (rectClamped.y + rectClamped.height)); // 아래
-                captureDragAreaOverlay.graphics.endFill();
-
-                captureDragAreaOverlay.graphics.lineStyle(lineSize, 0xFFFFFF, 1.0, true);
-                captureDragAreaOverlay.graphics.beginFill(0xFFFFFF, 0.0);
-                captureDragAreaOverlay.graphics.drawRect(rectClamped.x, rectClamped.y, rectClamped.width, rectClamped.height);
-
-                if (resizeButtonON)
-                {
-                    drawResizeButton(zoomed);
-                }
-            }
-
-            function getRotatedRectSizeString():String
-            {
-                const w:Number = Math.abs(rectClamped.width);
-                const h:Number = Math.abs(rectClamped.height);
-
-                if (rectClamped.x === 0.0 && rectClamped.y === 0.0 && rectClamped.width === 0.0 && rectClamped.height === 0.0)
-                {
-                    if (ReplayController.isReplayModeON)
-                    {
-                        return (captureCanvasRotationStep === 0 || captureCanvasRotationStep === 2) ? ReplayController.RCANVAS_WIDTH + " x " + ReplayController.RCANVAS_HEIGHT : ReplayController.RCANVAS_HEIGHT + " x " + ReplayController.RCANVAS_WIDTH;
-                    }
-                    else
-                    {
-                        return (captureCanvasRotationStep === 0 || captureCanvasRotationStep === 2) ? canvasWidth + " x " + canvasHeight : canvasHeight + " x " + canvasWidth;
-                    }
-                }
-
-                if (w < minSize || h < minSize)
-                {
-                    return "";
-                }
-
-                return (captureCanvasRotationStep === 0 || captureCanvasRotationStep === 2) ? w + " x " + h : h + " x " + w;
-            }
-
-            function resetCaptureArea():void
-            {
-                resizeButtonPos.setTo(0, 0);
-                resizeFlag = false;
-                clickPos.setTo(0, 0);
-                rectClamped.x = 0;
-                rectClamped.y = 0;
-                rectClamped.width = 0;
-                rectClamped.height = 0;
-                rectRaw.x = 0;
-                rectRaw.y = 0;
-                rectRaw.width = 0;
-                rectRaw.height = 0;
-                rectFull.x = 0;
-                rectFull.y = 0;
-                rectFull.width = 0;
-                rectFull.height = 0;
-                limitWidthSave = 0;
-                limitHeightSave = 0;
-                captureDragAreaOverlay.graphics.clear();
-                MainUI.topBar.capClipBoard.alpha = 1.0;
-                captureStampManager.update();
-            }
-
-            function reset():void
-            {
-                resizeButtonPos.setTo(0, 0);
-                resizeFlag = false;
-                clickPos.setTo(0, 0);
-                rectClamped.x = 0;
-                rectClamped.y = 0;
-                rectClamped.width = 0;
-                rectClamped.height = 0;
-                rectRaw.x = 0;
-                rectRaw.y = 0;
-                rectRaw.width = 0;
-                rectRaw.height = 0;
-                rectFull.x = 0;
-                rectFull.y = 0;
-                rectFull.width = 0;
-                rectFull.height = 0;
-                limitWidthSave = 0;
-                limitHeightSave = 0;
-                canvasWidth = 0;
-                canvasHeight = 0;
-                xPanel = null;
-                mouseMoved = false;
-                MainUI.topBar.capClipBoard.alpha = 1.0;
-            }
-
-            function isFullImageCapture():Boolean
-            {
-                return rectClamped.width === 0.0 || rectClamped.height === 0.0;
-            }
-
-            function getCaptureArea():Rectangle
-            {
-                return rectClamped;
-            }
-
-            function isCursorInCaptureDrea():Boolean
-            {
-                if (!xPanel)
-                {
-                    return false;
-                }
-                return rectClamped.contains(xPanel.mouseX, xPanel.mouseY);
-            }
-
-            function isCursorInResizeButton():Boolean
-            {
-                if (!xPanel)
-                {
-                    return false;
-                }
-                const p1:Point = new Point(xPanel.mouseX, xPanel.mouseY);
-                if (Point.distance(p1, resizeButtonPos) * getCanvasScale() < resizeButtonSize)
-                {
-                    return true;
-                }
-                return false;
-            }
-
-            function startUpdatingCaptureAreaPosSize(mx:Number, my:Number, flag:Boolean):void
-            {
-                CanvasController.isMouseDragging = true;
-                resizeFlag = flag;
-                rectRaw.x = rectClamped.x;
-                rectRaw.y = rectClamped.y;
-                rectRaw.width = rectClamped.width;
-                rectRaw.height = rectClamped.height;
-                limitWidthSave = rectClamped.x + rectClamped.width;
-                limitHeightSave = rectClamped.y + rectClamped.height;
-                clickPos.setTo(mx, my);
-                main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCaptureAreaDrawed);
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
-            }
-
-            function start():void
-            {
-                if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
-                {
-                    if (ReplayController.isReplayModeON) // 리플레이 변수로 변경
-                    {
-                        canvasWidth = ReplayController.RCANVAS_WIDTH;
-                        canvasHeight = ReplayController.RCANVAS_HEIGHT;
-                        xPanel = ReplayController.rCanvasPanel;
-                    }
-                    else
-                    {
-                        canvasWidth = CanvasController.CANVAS_WIDTH;
-                        canvasHeight = CanvasController.CANVAS_HEIGHT;
-                        xPanel = CanvasController.canvasPanel;
-                    }
-
-                    var mx:Number = xPanel.mouseX;
-                    var my:Number = xPanel.mouseY;
-
-                    rectFull.x = 0;
-                    rectFull.y = 0;
-                    rectFull.width = canvasWidth;
-                    rectFull.height = canvasHeight;
-                    resizeFlag = false;
-
-                    if (isCursorInResizeButton())
-                    {
-                        startUpdatingCaptureAreaPosSize(mx, my, true);
-                    }
-                    else if (isCursorInCaptureDrea())
-                    {
-                        startUpdatingCaptureAreaPosSize(mx, my, false);
-                    }
-                    else
-                    {
-                        clickPos.setTo(mx, my);
-                        CanvasController.isMouseDragging = true;
-                        main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
-                        main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
-                    }
-                }
-            }
-
-            return {
-                    start: start,
-                    reset: reset,
-                    resetCaptureArea: resetCaptureArea,
-                    getCaptureArea: getCaptureArea,
-                    isFullImageCapture: isFullImageCapture,
-                    getRotatedRectSizeString: getRotatedRectSizeString,
-                    updateDrawArea: updateDrawArea,
-                    isCursorInCaptureDrea: isCursorInCaptureDrea,
-                    isCursorInResizeButton: isCursorInResizeButton
-                };
-        }
 
         public static function cutTimeStamp(str:String):String
         {

@@ -958,7 +958,7 @@ package Modules
 
         public static function tryDisableIME():void
         {
-            if (CaptureController.isCaptureStampTextFieldFocused)
+            if (CaptureStamp.isCaptureStampTextFieldFocused)
             {
                 IME.enabled = true;
                 return;
@@ -2050,11 +2050,11 @@ package Modules
         private static function onKeyDownCaptureMode(e:KeyboardEvent):void
         {
             const firstKey:uint = getFirstPressedKey();
-            if (CaptureController.captureStampFontListBox.visible)
+            if (CaptureStamp.captureStampFontListBox.visible)
             {
                 if (firstKey === KEY.esc)
                 {
-                    CaptureController.hideStampFontList();
+                    CaptureStamp.hideStampFontList();
                 }
                 return;
             }
@@ -2184,21 +2184,21 @@ package Modules
                 return;
             }
 
-            if (CaptureController.captureStampFontListBox.visible)
+            if (CaptureStamp.captureStampFontListBox.visible)
             {
                 if (targetName === "capFontListNext" || targetName === "capFontListPrev")
                 {
                     main.handleMouseClick(targetName);
                 }
-                else if (targetName && targetName.indexOf(CaptureController.captureStampFontListBox.getStampFontButtonName()) !== -1)
+                else if (targetName && targetName.indexOf(CaptureStamp.captureStampFontListBox.getStampFontButtonName()) !== -1)
                 {
-                    CaptureController.captureStampManager.changeFont(CaptureController.captureStampFontListBox.getFontName(targetName), true);
+                    CaptureStamp.changeFont(CaptureStamp.captureStampFontListBox.getFontName(targetName), true);
                 }
                 else if (target.parent)
                 {
-                    if (target.parent.name && target.parent.name.indexOf(CaptureController.captureStampFontListBox.getStampFontButtonName()) !== -1)
+                    if (target.parent.name && target.parent.name.indexOf(CaptureStamp.captureStampFontListBox.getStampFontButtonName()) !== -1)
                     {
-                        CaptureController.captureStampManager.changeFont(CaptureController.captureStampFontListBox.getFontName(target.parent.name), true);
+                        CaptureStamp.changeFont(CaptureStamp.captureStampFontListBox.getFontName(target.parent.name), true);
                     }
                 }
                 return;
@@ -2219,7 +2219,7 @@ package Modules
                 default:
                     if (!CanvasController.isMouseClickBlocked)
                     {
-                        CaptureController.captureAreaManager.start();
+                        CaptureArea.start();
                     }
                     break;
             }
@@ -2229,9 +2229,9 @@ package Modules
         {
             if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
-                if (!CaptureController.captureAreaManager.isFullImageCapture())
+                if (!CaptureArea.isFullImageCapture())
                 {
-                    CaptureController.captureAreaManager.resetCaptureArea();
+                    CaptureArea.resetCaptureArea();
                 }
             }
         }

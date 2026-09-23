@@ -358,9 +358,9 @@ package Modules
                         CaptureController.captureWindowMove.setTo(dx, dy);
                         CanvasController.fitCanvasToViewportMargin();
 
-                        if (!CaptureController.captureAreaManager.isFullImageCapture())
+                        if (!CaptureArea.isFullImageCapture())
                         {
-                            CaptureController.captureAreaManager.updateDrawArea(true);
+                            CaptureArea.updateDrawArea(true);
                         }
                     }
                     else
@@ -555,7 +555,7 @@ package Modules
             ReferenceLayerController.refLayerMenuBox.updateUIColor();
             MainUI.topBar.updateUIColor();
             MainUI.seekBarBox.updateUIColor();
-            CaptureController.captureStampFontListBox.updateUIColor();
+            CaptureStamp.captureStampFontListBox.updateUIColor();
             MainUI.mouseHint.updateBGColor();
             MainUI.bottomHint.updateHintTextColor(0);
 

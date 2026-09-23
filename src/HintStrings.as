@@ -12,6 +12,7 @@
     import Modules.ReplayController;
     import Modules.ActivityWorkTimer;
     import Modules.CanvasController;
+    import Modules.CaptureArea;
 
     public class HintStrings
     {
@@ -251,7 +252,7 @@
             {
                 return "";
             }
-            return (CaptureController.captureAreaManager.isFullImageCapture()) ? "image" : "selected area";
+            return (CaptureArea.isFullImageCapture()) ? "image" : "selected area";
         }
 
         public static function getUIScaleString():String

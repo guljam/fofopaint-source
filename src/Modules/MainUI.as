@@ -114,7 +114,7 @@ package Modules
 
 				const targetName:String = target.name;
 				const xCanvasPanel:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasPanel : CanvasController.canvasPanel;
-				if (CaptureController.captureAreaManager.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
+				if (CaptureArea.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
 				{
 					showHintHighlightBox((ReplayController.isReplayModeON) ? ReplayController.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
 					showBottomHint(hint);
@@ -434,7 +434,7 @@ package Modules
 			SidebarController.sideBarScrollBar.alpha = 0.75;
 			MainUIController.STAGE_TOP_OFFSET = topBar.BARSIZE;
 
-			CaptureController.captureStampFontListBox.y = 100;
+			CaptureStamp.captureStampFontListBox.y = 100;
 
 			topBar.updateTimerPos(main.stage.stageWidth);
 			topBar.replayFitToWindowButton.alpha = Global.OFFALPHA;
@@ -455,7 +455,7 @@ package Modules
 			main.stage.addChild(ToolController.toolBox2);
 			main.stage.addChild(CanvasController.canvasRotateCursor);
 			main.stage.addChild(ColorPickerController.numPadBox);
-			main.stage.addChild(CaptureController.captureStampFontListBox);
+			main.stage.addChild(CaptureStamp.captureStampFontListBox);
 			main.stage.addChild(topBar);
 			main.stage.addChild(hintHighlightBox);
 			main.stage.addChild(bottomBar);
@@ -618,7 +618,7 @@ package Modules
 		public static function activateCaptureUI():void
 		{
 			const replayMode:Boolean = ReplayController.isReplayModeON;
-			CaptureController.captureAreaManager.reset();
+			CaptureArea.reset();
 			MainUIController.updateCanvasResizeButtonVisible(false);
 			FOFOTimer.remove("rCursorOffAlphaAnimTimer");
 

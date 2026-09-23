@@ -64,6 +64,8 @@
     import flash.utils.getTimer;
     import Modules.ActivityWorkTimer;
     import Modules.PenSizePreviewCursor;
+    import Modules.CaptureStamp;
+    import Modules.CaptureArea;
 
     // import
     public class Main extends Sprite
@@ -120,6 +122,9 @@
             BackgroundWorkerCoordinator.setMainInstance(this);
             CanvasGridOverlay.setMainInstance(this);
             CaptureController.setMainInstance(this);
+            CaptureStamp.setMainInstance(this);
+            CaptureArea.setMainInstance(this);
+
             CanvasController.setMainInstance(this);
             ClipboardManager.setMainInstance(this);
             ColorPickerController.setMainInstance(this);
@@ -504,17 +509,17 @@
                             break;
                         case "capStampFont":
                             {
-                                CaptureController.showStampFontList();
+                                CaptureStamp.showStampFontList();
                             }
                             break;
                         case "capFontListPrev":
                             {
-                                CaptureController.captureStampFontListBox.updateNextFontList(false);
+                                CaptureStamp.captureStampFontListBox.updateNextFontList(false);
                             }
                             break;
                         case "capFontListNext":
                             {
-                                CaptureController.captureStampFontListBox.updateNextFontList(true);
+                                CaptureStamp.captureStampFontListBox.updateNextFontList(true);
                             }
                             break;
                         case "topBarColorButton":
