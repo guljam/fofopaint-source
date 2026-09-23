@@ -1075,17 +1075,10 @@ package Modules
                         applyCavnvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
                         MainUIController.updateResizeButtonPos(finalWidth, finalHeight);
                         ReplayController.rDataBuffer.push(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
-                        if (ReplayController.hasLastRDataCommand("canvasSize"))
+                        UndoManager.addUndoData.addNew();
+                        if (ImageViewWindow.isCanvasWindowON)
                         {
-                            UndoManager.addUndoData.addContinue();
-                        }
-                        else
-                        {
-                            UndoManager.addUndoData.addNew();
-                            if (ImageViewWindow.isCanvasWindowON)
-                            {
-                                ImageViewWindow.updateCanvasWindowBitmapSize();
-                            }
+                            ImageViewWindow.updateCanvasWindowBitmapSize();
                         }
                     }
                     targetName = null;
