@@ -907,6 +907,11 @@ package Modules.Tools
         // todo cancel lasso bmpd 로 바꾸기, lasso툴이적용되었을경우 리플레이나 undo성능 향상을 위해서 캐싱하고 파일저장에도 써주여야함 이는 나중에 .fofo 새로운 세이브파일 구현때 하기
         public static function restoreToLastBmpd():void
         {
+            if(lassoLayer1LastBitmapdata === null)
+            {
+                return;
+            }
+
             const rect:Rectangle = new Rectangle(0,0,lassoLayer1LastBitmapdata.width,lassoLayer1LastBitmapdata.height);
             if (lassoLayer1LastBitmapdata)
             {
@@ -916,7 +921,7 @@ package Modules.Tools
             {
                 CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData,lassoLayer2LastBitmapdata,rect);
             }
-            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            CanvasController.canvasNavigatorBox.updateImage();
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();

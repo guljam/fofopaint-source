@@ -8,6 +8,7 @@
 	import flash.geom.Rectangle;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
+	import Modules.CanvasController;
 
 	public class CanvasNavigatorBoxSet extends Sprite
 	{
@@ -86,14 +87,13 @@
 			return new Rectangle(Math.round(bw / 2 - fw / 2), 0, Math.round(fw), Math.round(fh));
 		}
 
-		public function updateImage(bmpd:BitmapData, bmpd1:BitmapData, bg:uint):void
+		public function updateImage():void
 		{
-			const w:Number = bmpd.width;
-			const h:Number = bmpd.height;
-
-			navLayer1Bitmap.bitmapData = bmpd;
+			const w:Number = CanvasController.canvasLayer1BitmapData.width;
+			const h:Number = CanvasController.canvasLayer1BitmapData.height;
+			navLayer1Bitmap.bitmapData = CanvasController.canvasLayer1BitmapData;
 			navLayer1Bitmap.smoothing = true;
-			navLayer2Bitmap.bitmapData = bmpd1;
+			navLayer2Bitmap.bitmapData = CanvasController.canvasLayer2BitmapData;
 			navLayer2Bitmap.smoothing = true;
 
 			if (navBitmapLastWidth === w && navBitmapLastHeight === h)
@@ -118,7 +118,7 @@
 			navBitmapBG.height = navLayer1Bitmap.height;
 			navBitmapBG.x = navLayer1Bitmap.x;
 			navBitmapBG.y = navLayer1Bitmap.y;
-			changeprevBitmapBGColor(bg);
+			changeprevBitmapBGColor(CanvasController.CANVAS_BG_COLOR);
 		}
 
 		public function changeprevBitmapBGColor(color:uint):void

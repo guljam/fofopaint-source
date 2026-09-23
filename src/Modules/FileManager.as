@@ -201,7 +201,7 @@ package Modules
             ReferenceLayerController.refLayerMenuBox.refTransferCanvasImageButton.alpha = 1.0;
             ColorPickerController.selectCurrentColor(false);
             ToolController.selectPenToolIfNotDrawingTool(false);
-            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            CanvasController.canvasNavigatorBox.updateImage();
             MainUIController.updateCanvasNaigatorCursor();
             if (ImageViewWindow.isCanvasWindowON)
             {
@@ -1410,7 +1410,10 @@ package Modules
                 ReplayController.stopReplay();
             }
 
-            LassoTool.cancelLassoTool();
+            if(LassoTool.isLassoToolStarted)
+            {
+                LassoTool.cancelLassoTool();
+            }
 
             if (BackgroundWorkerCoordinator.isWorkerRunning())
             {

@@ -750,15 +750,20 @@ package Modules
             }
             else if (isBackgroundColorMode())
             {
-                CanvasController.applyCanvasBGColorDrawMode(color);
-
-                if (ImageViewWindow.isCanvasWindowON)
-                {
-                    ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
-                }
-
-                ReplayController.addUndoBGColorData(color);
+                applyBGColorCanvases(color);
             }
+        }
+
+        private static function applyBGColorCanvases(color:uint):void
+        {
+            CanvasController.applyCanvasBGColorDrawMode(color);
+
+            if (ImageViewWindow.isCanvasWindowON)
+            {
+                ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
+            }
+
+            ReplayController.addUndoBGColorData(color);
         }
 
         public static function onMouseDownRGBInfoText(e:MouseEvent):void
@@ -819,14 +824,7 @@ package Modules
 
             if (bgmode)
             {
-                CanvasController.applyCanvasBGColorDrawMode(hexColor);
-
-                if (ImageViewWindow.isCanvasWindowON)
-                {
-                    ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
-                }
-
-                ReplayController.addUndoBGColorData(hexColor);
+                applyBGColorCanvases(hexColor);
 
                 updateColorPickerCursorPosAndRGBInfo(hexColor);
             }
@@ -983,14 +981,7 @@ package Modules
                 }
                 else if (isBackgroundColorMode())
                 {
-                    CanvasController.applyCanvasBGColorDrawMode(pickedColor);
-
-                    if (ImageViewWindow.isCanvasWindowON)
-                    {
-                        ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
-                    }
-
-                    ReplayController.addUndoBGColorData(pickedColor);
+                    applyBGColorCanvases(pickedColor);
                 }
 
                 PenSizePreviewCursor.setCursorInVisibleFlag(false);
@@ -1083,14 +1074,7 @@ package Modules
                 }
                 else if (isBackgroundColorMode())
                 {
-                    CanvasController.applyCanvasBGColorDrawMode(pickedColor);
-
-                    if (ImageViewWindow.isCanvasWindowON)
-                    {
-                        ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
-                    }
-
-                    ReplayController.addUndoBGColorData(pickedColor);
+                    applyBGColorCanvases(pickedColor);
                 }
 
                 PenSizePreviewCursor.setCursorInVisibleFlag(false);
@@ -1142,14 +1126,7 @@ package Modules
 
                 if (bgColor !== CanvasController.CANVAS_BG_COLOR)
                 {
-                    CanvasController.applyCanvasBGColorDrawMode(bgColor);
-
-                    if (ImageViewWindow.isCanvasWindowON)
-                    {
-                        ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
-                    }
-
-                    ReplayController.addUndoBGColorData(bgColor);
+                    applyBGColorCanvases(bgColor);
                 }
 
                 ToolController.selectPenToolIfNotDrawingTool(false);
@@ -1167,14 +1144,7 @@ package Modules
             }
             else if (isBackgroundColorMode())
             {
-                CanvasController.applyCanvasBGColorDrawMode(pickedColor);
-
-                if (ImageViewWindow.isCanvasWindowON)
-                {
-                    ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
-                }
-
-                ReplayController.addUndoBGColorData(pickedColor);
+                applyBGColorCanvases(pickedColor);
             }
         }
 

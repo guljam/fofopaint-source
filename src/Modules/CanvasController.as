@@ -761,7 +761,7 @@ package Modules
             FileManager.isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
             ReplayController.mirrorRCursorPos();
 
-            canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, CANVAS_BG_COLOR);
+            CanvasController.canvasNavigatorBox.updateImage();
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();
@@ -1630,7 +1630,7 @@ package Modules
             updateCanvasPanelColorAndSize();
             FileManager.isFileAlreadySaved = false;
             ReplayController.updateMirrorStateDrawModeNotSameRreplayMirrorState();
-            canvasNavigatorBox.updateImage(canvasLayer1BitmapData, canvasLayer2BitmapData, ReplayController.RCANVAS_BG_COLOR);
+            CanvasController.canvasNavigatorBox.updateImage();
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();

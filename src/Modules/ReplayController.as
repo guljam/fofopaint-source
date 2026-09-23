@@ -485,7 +485,7 @@ package Modules
             CanvasController.setCavnvasSizeDrawMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height);
             CanvasController.setCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
             CanvasController.updateCanvasPanelColorAndSize();
-            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            CanvasController.canvasNavigatorBox.updateImage();
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();
@@ -632,7 +632,7 @@ package Modules
                 resetReplayTime();
                 syncDrawCanvasWithReplayCanvas();
                 UndoManager.resetUndoState();
-                CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+                CanvasController.canvasNavigatorBox.updateImage();
                 if (ImageViewWindow.isCanvasWindowON)
                 {
                     ImageViewWindow.updateCanvasWindowImage();

@@ -300,7 +300,7 @@ package Modules.Tools
 			}
 		}
 
-		private static function penToolMouseMoveLimit(mx:Number, my:Number):Boolean
+		private static function skipMouseMovePos(mx:Number, my:Number):Boolean
 		{
 			moveEventDistSave.setTo(mx, my);
 			const dist:Number = Point.distance(moveEventDistSave, moveEventLast);
@@ -335,7 +335,7 @@ package Modules.Tools
 			const mx:Number = filteredPos.x;
 			const my:Number = filteredPos.y;
 
-			if (penToolMouseMoveLimit(mx, my))
+			if (skipMouseMovePos(mx, my))
 			{
 				return;
 			}
@@ -358,7 +358,6 @@ package Modules.Tools
 			else
 			{
 				handleMouseMove(mx, my);
-
 				smoothPos.setTo(mx, my);
 			}
 		}
@@ -414,15 +413,15 @@ package Modules.Tools
 
 		public static function start():void
 		{
-			execute(true);
+			firstStart(true);
 		}
 
 		public static function startWithEraserMode():void
 		{
-			execute(false);
+			firstStart(false);
 		}
 
-		public static function execute(flag:Boolean):void
+		public static function firstStart(flag:Boolean):void
 		{
 			isPenTool = flag;
 

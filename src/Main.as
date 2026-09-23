@@ -171,7 +171,7 @@
             addGlobalEventsChild();
             InputController.addInputEventsDrawMode();
             ReplayController.initializeReplayDataFile();
-            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            CanvasController.canvasNavigatorBox.updateImage();
             ActivityWorkTimer.start();
             AppUpdater.checkUpdate();
             InputController.tryDisableIME();

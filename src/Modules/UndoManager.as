@@ -234,7 +234,7 @@ package Modules
             CanvasController.canvasInfoBox.setMirror(CanvasController.isCanvasMirrored);
             ReplayController.drawReplayByCommand.setFirstRCursorPosCurrent();
             ReplayController.rReplayFOFOCursor.visible = false;
-            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            CanvasController.canvasNavigatorBox.updateImage();
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();
@@ -315,7 +315,7 @@ package Modules
             }
 
             ReplayController.updateMirrorStateDrawModeNotSameRreplayMirrorState();
-            CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            CanvasController.canvasNavigatorBox.updateImage();
             CanvasController.setCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
             CanvasController.updateCanvasPanelColorAndSize();
 

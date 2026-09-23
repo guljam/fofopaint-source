@@ -168,7 +168,7 @@ package Modules
                 ReplayController.rPrevFrame = ReplayController.rNowFrame;
                 ReplayController.rNowFrame = ReplayController.getTotalFrame();
 
-                CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+                CanvasController.canvasNavigatorBox.updateImage();
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
@@ -259,7 +259,7 @@ package Modules
 
                 UndoManager.undoDataIndex = ReplayController.rData.length - 1;
 
-                CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+                CanvasController.canvasNavigatorBox.updateImage();
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
