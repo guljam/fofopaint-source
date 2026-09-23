@@ -789,6 +789,11 @@ package Modules
 
         public static function setCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
         {
+            if(CANVAS_WIDTH === w && CANVAS_HEIGHT === h)
+            {
+                return;
+            }
+
             const maxSize:uint = CANVAS_MAX_SIZE;
 
             if (w > maxSize)
@@ -832,12 +837,17 @@ package Modules
             }
 
             if (canvasLayer1Bitmap.bitmapData)
+            {
                 canvasLayer1Bitmap.bitmapData.dispose();
+            }
 
             canvasLayer1Bitmap.bitmapData = canvasLayer1BitmapData;
 
             if (canvasLayer2Bitmap.bitmapData)
+            {
                 canvasLayer2Bitmap.bitmapData.dispose();
+            }
+
             canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
 
             //todo applyCanvasBGColorDrawMode로 옮겨야 할것 같은데 centerMovedFlag를 전역 상태로 처리해주어야하나? 함수끼리 통신해야하니까
@@ -845,7 +855,6 @@ package Modules
             ReferenceLayerController.updateRefLayerImagePos(w, h, centerMovedFlag); 
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
-            
         }
 
         public static function cResizeCanvas():Object
@@ -1539,8 +1548,12 @@ package Modules
 
         public static function setCanvasBGColorDrawMode(color:uint):void
         {
-            FileManager.isFileAlreadySaved = false;
+            if(color === CANVAS_BG_COLOR)
+            {
+                return;
+            }
 
+            FileManager.isFileAlreadySaved = false;
             CANVAS_BG_COLOR = color;
 
             if (ColorPickerController.colorPickerBox.scratchPad)
