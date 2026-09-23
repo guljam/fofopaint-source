@@ -89,11 +89,11 @@ package Modules
             canvasLayer1Bitmap.bitmapData = canvasLayer1BitmapData;
         }
 
-        public static function updateBitmapData(currentbmpd:BitmapData, newbmpd:BitmapData, targetBitmap:Bitmap):BitmapData
+        public static function updateBitmapData(targetbmpd:BitmapData, newbmpd:BitmapData, targetBitmap:Bitmap):BitmapData
         {
-            if (currentbmpd !== null && currentbmpd === newbmpd)
+            if (targetbmpd !== null && targetbmpd === newbmpd)
             {
-                return currentbmpd;
+                return targetbmpd;
             }
             const clone:BitmapData = newbmpd.clone();
             // currentbmpd distpos를 해주고 싶지만 뭔가 이미지 적용이 안되는 현상이 있어서 안해줌
@@ -1623,6 +1623,11 @@ package Modules
                 ImageViewWindow.updateCanvasWindowImage();
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
+        }
+
+        public static function copyBitmapdata(target:BitmapData,source:BitmapData,rect:Rectangle):void
+        {
+            target.copyPixels(source,rect,new Point(),null,null,true);
         }
     }
 }
