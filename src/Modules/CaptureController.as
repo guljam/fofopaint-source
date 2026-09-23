@@ -49,6 +49,7 @@ package Modules
 
         public static const captureAreaManager:Object = cDrawCaptureArea();
         public static const captureStampManager:Object = cDrawCaptureStamp();
+        private static var captureStampDominantColorRefBmpd:BitmapData = null;
 
         public static function hideStampFontList():void
         {
@@ -547,10 +548,7 @@ package Modules
 
             function updateLastRectArea(rect:Rectangle):void
             {
-                lastRectArea.x = rect.x;
-                lastRectArea.y = rect.y;
-                lastRectArea.width = rect.width;
-                lastRectArea.height = rect.height;
+                lastRectArea.setTo(rect.x,rect.y,rect.width,rect.height);
             }
 
             function getFontName():String
@@ -730,13 +728,13 @@ package Modules
                     scale = 100 / longEdge;
                 }
 
-                const width:Number = areaWidth * scale;
-                const height:Number = areaHeight * scale;
+                const scaledWidth:Number = areaWidth * scale;
+                const scaledHeight:Number = areaHeight * scale;
 
                 const mat:Matrix = new Matrix();
                 mat.scale(scale, scale);
 
-                const tmpbmpd:BitmapData = new BitmapData(width, height, true, 0);
+                const tmpbmpd:BitmapData = new BitmapData(scaledWidth, scaledHeight, true, 0);
                 const rawbmpd:BitmapData = CanvasController.getMergedBitmapdtata(false, layer1, layer2, (fullImageFlag) ? null : clipRect);
 
                 tmpbmpd.draw(rawbmpd, mat);
@@ -933,15 +931,14 @@ package Modules
                         bitmapVisibleFlag += 2;
                     }
 
-                    const bmpd:BitmapData = getCaptureAreaBmpd(rect, layer1Visible, layer2Visible);
-
-                    if (!bmpd)
-                    {
-                        return;
-                    }
-
                     if (stampBGColor === null || !rect.equals(lastRectArea) || lastBitmapVisibleFlag !== bitmapVisibleFlag)
                     {
+                        captureStampDominantColorRefBmpd = getCaptureAreaBmpd(rect, layer1Visible, layer2Visible);
+                        if (!captureStampDominantColorRefBmpd)
+                        {
+                            return;
+                        }
+
                         const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((ReplayController.isReplayModeON) ? ReplayController.RCANVAS_BG_COLOR : CanvasController.CANVAS_BG_COLOR);
 
                         if (tegakiBGColorIndex >= 0)
@@ -950,7 +947,7 @@ package Modules
                         }
                         else
                         {
-                            stampBGColor = ColorPickerController.getImageDominantColor(bmpd);
+                            stampBGColor = ColorPickerController.getImageDominantColor(captureStampDominantColorRefBmpd);
                         }
 
                         updateLastRectArea(rect);
@@ -1080,6 +1077,11 @@ package Modules
                 }
 
                 captrueStampBMPD = null;
+                if(captureStampDominantColorRefBmpd)
+                {
+                    captureStampDominantColorRefBmpd.dispose();
+                    captureStampDominantColorRefBmpd = null;
+                }
 
                 MainUI.topBar.captureInput.removeEventListener(Event.CHANGE, onChangeCaptureInput);
                 MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureInput);
