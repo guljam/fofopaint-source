@@ -486,7 +486,7 @@ package Modules
             CanvasController.setCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
             CanvasController.updateCanvasPanelColorAndSize();
             CanvasController.canvasNavigatorBox.updateImage();
-            if (ImageViewWindow.isCanvasWindowON)
+            if (ImageViewWindow.isCanvasWindowON) 
             {
                 ImageViewWindow.updateCanvasWindowImage();
                 ImageViewWindow.updateCanvasWindowBitmapSize();
@@ -4135,25 +4135,14 @@ package Modules
             {
                 updateCanvasBGColorReplayMode(undoBaseImage[4]);
             }
-
-            CanvasController.copyPixels(rCanvasLayer1BitmapData,undoBaseImage[0]);
-            CanvasController.copyPixels(rCanvasLayer2BitmapData,undoBaseImage[1]);
+            ReplayController.rCanvasLayer1BitmapData = CanvasController.updateBitmapData(ReplayController.rCanvasLayer1BitmapData,undoBaseImage[0],ReplayController.rCanvasLayer1Bitmap)
+            ReplayController.rCanvasLayer2BitmapData = CanvasController.updateBitmapData(ReplayController.rCanvasLayer2BitmapData,undoBaseImage[1],ReplayController.rCanvasLayer2Bitmap)
 
             drawReplayByCommand.setData(rData[0]);
             drawReplayByCommand.drawAll();
 
-            if (undoBaseImage[0] && undoBaseImage[0] !== rCanvasLayer1BitmapData)
-            {
-                undoBaseImage[0].dispose();
-            }
-
-            if (undoBaseImage[1] && undoBaseImage[1] !== rCanvasLayer2BitmapData)
-            {
-                undoBaseImage[1].dispose();
-            }
-
-            undoBaseImage[0] = rCanvasLayer1BitmapData.clone();
-            undoBaseImage[1] = rCanvasLayer2BitmapData.clone();
+            CanvasController.copyPixels(undoBaseImage[0],rCanvasLayer1BitmapData);
+            CanvasController.copyPixels(undoBaseImage[1],rCanvasLayer2BitmapData);
             undoBaseImage[2] = RCANVAS_WIDTH;
             undoBaseImage[3] = RCANVAS_HEIGHT;
             undoBaseImage[4] = RCANVAS_BG_COLOR;
