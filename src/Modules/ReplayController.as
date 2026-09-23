@@ -922,15 +922,17 @@ package Modules
                 rCanvasDrawShape.graphics.lineStyle(size, color);
             }
         }
+
         public static function mirrorCanvasReplayMode():void
         {
-            var tmpbmpd:BitmapData = new BitmapData(RCANVAS_WIDTH, RCANVAS_HEIGHT, true, 0);
-            var flipMat:Matrix = new Matrix(-1, 0, 0, 1, RCANVAS_WIDTH);
+            var tmpbmpd:BitmapData = new BitmapData(rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height, true, 0);
+            var flipMat:Matrix = new Matrix(-1, 0, 0, 1, rCanvasLayer1BitmapData.width);
+            const rect:Rectangle = new Rectangle(0,0,rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
             tmpbmpd.draw(rCanvasLayer1BitmapData, flipMat);
-            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, tmpbmpd, rCanvasLayer1Bitmap);
-            tmpbmpd.fillRect(new Rectangle(0, 0, RCANVAS_WIDTH, RCANVAS_HEIGHT), 0);
+            CanvasController.copyPixels(rCanvasLayer1BitmapData,tmpbmpd,rect);
+            tmpbmpd.fillRect(rect, 0);
             tmpbmpd.draw(rCanvasLayer2BitmapData, flipMat);
-            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, tmpbmpd, rCanvasLayer2Bitmap);
+            CanvasController.copyPixels(rCanvasLayer2BitmapData,tmpbmpd,rect);
             tmpbmpd.dispose();
             tmpbmpd = null;
             rMirrorON = !rMirrorON;
@@ -939,6 +941,7 @@ package Modules
                 fitReplayCanvasToViewport();
             }
         }
+
         public static function cDrawReplayDataCommands():Object
         {
             const rCursorPos:Point = new Point(0, 0);
