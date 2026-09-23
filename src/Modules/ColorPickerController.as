@@ -37,7 +37,6 @@ package Modules
 
         public static function getImageDominantColor(bitmapData:BitmapData, k:int = 3, maxIter:int = 6, maxSamples:int = 3000):uint
         {
-            const nt:int = getTimer();
             if (bitmapData == null || bitmapData.width <= 0 || bitmapData.height <= 0)
                 return 0xFFFFFF;
             if (k <= 0)
@@ -201,118 +200,8 @@ package Modules
                 if (cnt[ci] > cnt[maxC])
                     maxC = ci;
 
-            trace('time', getTimer() - nt);
-
             return (cR[maxC] << 16) | (cG[maxC] << 8) | cB[maxC];
         }
-        // public static function getImageDominantColor(bitmapData:BitmapData, k:int = 3, maxIter:int = 10):uint
-        // {
-        // const nt:int = getTimer();
-        // var pixels:Vector.<uint> = bitmapData.getVector(bitmapData.rect);
-        // var totalPixels:int = pixels.length;
-
-        // // 초기 클러스터 중심을 무작위 픽셀에서 선택
-        // var centers:Array = [];
-
-        // for (var i:int = 0;i < k;i++)
-        // {
-        // var randPixel:uint = pixels[int(Math.random() * totalPixels)];
-
-        // centers.push([
-        // (randPixel >> 16) & 0xFF,
-        // (randPixel >> 8) & 0xFF,
-        // randPixel & 0xFF
-        // ]);
-        // }
-
-        // var assignments:Vector.<int> = new Vector.<int>(totalPixels, true);
-
-        // // 반복 학습
-        // for (var iter:int = 0;iter < maxIter;iter++)
-        // {
-        // // 1. 각 픽셀을 가장 가까운 클러스터에 할당
-        // for (var p:int = 0;p < totalPixels;p++)
-        // {
-        // var pixel:uint = pixels[p];
-
-        // var r:int = (pixel >> 16) & 0xFF;
-        // var g:int = (pixel >> 8) & 0xFF;
-        // var b:int = pixel & 0xFF;
-
-        // var bestCluster:int = 0;
-        // var bestDist:Number = Number.MAX_VALUE;
-
-        // for (var c:int = 0;c < k;c++)
-        // {
-        // var cr:int = centers[c][0];
-        // var cg:int = centers[c][1];
-        // var cb:int = centers[c][2];
-
-        // var dist:Number = (r - cr) * (r - cr) + (g - cg) * (g - cg) + (b - cb) * (b - cb);
-
-        // if (dist < bestDist)
-        // {
-        // bestDist = dist;
-        // bestCluster = c;
-        // }
-        // }
-
-        // assignments[p] = bestCluster;
-        // }
-
-        // // 2. 클러스터 중심 재계산
-        // var sum:Array = [];
-        // var count:Array = [];
-
-        // for (c = 0;c < k;c++)
-        // {
-        // sum[c] = [0, 0, 0];
-        // count[c] = 0;
-        // }
-
-        // for (p = 0;p < totalPixels;p++)
-        // {
-        // var cluster:int = assignments[p];
-        // pixel = pixels[p];
-
-        // sum[cluster][0] += (pixel >> 16) & 0xFF;
-        // sum[cluster][1] += (pixel >> 8) & 0xFF;
-        // sum[cluster][2] += pixel & 0xFF;
-
-        // count[cluster]++;
-        // }
-
-        // for (c = 0;c < k;c++)
-        // {
-        // if (count[c] > 0)
-        // {
-        // centers[c][0] = sum[c][0] / count[c];
-        // centers[c][1] = sum[c][1] / count[c];
-        // centers[c][2] = sum[c][2] / count[c];
-        // }
-        // }
-        // }
-
-        // // 가장 큰 클러스터 찾기
-        // var maxCluster:int = 0;
-        // var maxCount:int = 0;
-
-        // for (c = 0;c < k;c++)
-        // {
-        // if (count[c] > maxCount)
-        // {
-        // maxCount = count[c];
-        // maxCluster = c;
-        // }
-        // }
-
-        // var rFinal:int = centers[maxCluster][0];
-        // var gFinal:int = centers[maxCluster][1];
-        // var bFinal:int = centers[maxCluster][2];
-
-        // trace('time ',getTimer()-nt );
-        // return (rFinal << 16) | (gFinal << 8) | bFinal;
-        // }
 
         public static function showPickColorScratchPad():void
         {

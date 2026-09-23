@@ -344,7 +344,6 @@ package Modules
 
             tmpbmpd.dispose();
             tmpbmpd = null;
-            trace('call');
 
             canvasRefLayer.rotation = -canvasRefLayer.rotation; // 일단 각도 대칭해주고
 

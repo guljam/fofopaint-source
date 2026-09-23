@@ -768,26 +768,8 @@ package Modules
             }
         }
 
-        // 비트맵 데이터를 대칭으로 돌려줌
-        // public static function mirrorBmpdDrawmode():void
-        // {
-        //     const nt:int = getTimer();
-        //     var tmpbmpd:BitmapData = new BitmapData(canvasLayer1BitmapData.width, canvasLayer1BitmapData.height, true, 0);
-        //     var flipMat:Matrix = new Matrix(-1, 0, 0, 1, canvasLayer1BitmapData.width);
-        //     const rect:Rectangle = new Rectangle(0,0,canvasLayer1BitmapData.width, canvasLayer1BitmapData.height)
-        //     tmpbmpd.draw(canvasLayer1BitmapData, flipMat);
-        //     // copyPixels(canvasLayer1BitmapData,tmpbmpd,)
-        //     canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, tmpbmpd, canvasLayer1Bitmap);
-        //     tmpbmpd.fillRect(new Rectangle(0, 0, canvasLayer1BitmapData.width, canvasLayer1BitmapData.height), 0);
-        //     tmpbmpd.draw(canvasLayer2BitmapData, flipMat);
-        //     canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, tmpbmpd, canvasLayer2Bitmap);
-        //     tmpbmpd.dispose();
-        //     tmpbmpd = null;
-        //     trace("time = ",getTimer()-nt);
-        // }
         public static function mirrorBmpdDrawmode():void
         {
-            const nt:int = getTimer();
             var tmpbmpd:BitmapData = new BitmapData(canvasLayer1BitmapData.width, canvasLayer1BitmapData.height, true, 0);
             var flipMat:Matrix = new Matrix(-1, 0, 0, 1, canvasLayer1BitmapData.width);
             const rect:Rectangle = new Rectangle(0,0,canvasLayer1BitmapData.width, canvasLayer1BitmapData.height)
@@ -798,7 +780,6 @@ package Modules
             copyPixels(canvasLayer2BitmapData,tmpbmpd,rect);
             tmpbmpd.dispose();
             tmpbmpd = null;
-            trace("time = ",getTimer()-nt);
         }
 
         public static function applyCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void

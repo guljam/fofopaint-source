@@ -70,7 +70,6 @@ package Modules.Tools
             {
                 movedMat.translate(movex, movey);
                 tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
-                CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, tmpbmpd, CanvasController.canvasLayer1Bitmap);
                 CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData,tmpbmpd,rect);
 
             }
