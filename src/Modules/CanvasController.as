@@ -787,7 +787,7 @@ package Modules
             updateCanvasPanelColorAndSize();
         }
 
-        public static function setCavnvasSizeDrawModeAfterUndo(w:Number, h:Number):void
+        public static function syncDrawModeCanvasSizeToReplayMode(w:Number, h:Number):void
         {
             if (CANVAS_WIDTH === w && CANVAS_HEIGHT === h)
             {
@@ -1607,12 +1607,12 @@ package Modules
             MainUIController.updateCanvasNaigatorCursor();
         }
 
-        // 드로우 모드 캔버스 상태를 리플레이캔버스 상태랑 똑같이 만들어줌
+        // 드로우 모드 캔버스 상태를 리플레 캔버스 상태랑 똑같이 만들어줌
         public static function applyReplayCanvasToDrawModeCanvas():void
         {
             canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, canvasLayer1Bitmap);
             canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, ReplayController.rCanvasLayer2BitmapData, canvasLayer2Bitmap);
-            setCavnvasSizeDrawMode(ReplayController.rCanvasLayer1BitmapData.width, ReplayController.rCanvasLayer1BitmapData.height, 0, 0, false);
+            syncDrawModeCanvasSizeToReplayMode(ReplayController.rCanvasLayer1BitmapData.width, ReplayController.rCanvasLayer1BitmapData.height);
             setCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
             updateCanvasPanelColorAndSize();
             FileManager.isFileAlreadySaved = false;

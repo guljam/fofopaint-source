@@ -357,7 +357,6 @@ package Modules
 
                 CanvasController.canvasNavigatorBox.updateImage(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
 
-trace('addnew');
                 if (ImageViewWindow.isCanvasWindowON)
                 {
                     ImageViewWindow.updateCanvasWindowImage();
@@ -639,7 +638,7 @@ trace('addnew');
             //드로우 모드 캔버스 bmpd갱신하고 크기 정보 갱신
             CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
             CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, ReplayController.rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
-            CanvasController.setCavnvasSizeDrawModeAfterUndo(CanvasController.canvasLayer1BitmapData.width,CanvasController.canvasLayer1BitmapData.height);
+            CanvasController.syncDrawModeCanvasSizeToReplayMode(CanvasController.canvasLayer1BitmapData.width,CanvasController.canvasLayer1BitmapData.height);
 
             // 앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
             const movedRegPos:Point = UndoManager.getHowCanvasMoveAfterUndoOrRedo(undoIndexSave, redoFlag);

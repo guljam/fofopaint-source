@@ -64,7 +64,6 @@ package Modules
 
         public static function updateCanvasWindowBitmapSize():void
         {
-            trace('updateCanvasWindowBitmapSize',updateCanvasWindowBitmapSize);
             const bounds:Rectangle = CanvasController.canvasNavigatorBox.setFitBitmapforBox(CanvasController.canvasLayer1BitmapData.width,
                     CanvasController.canvasLayer1BitmapData.height,
                     canvasWindow.stage.stageWidth,
