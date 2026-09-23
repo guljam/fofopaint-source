@@ -173,7 +173,6 @@ package Modules
                 if (ImageViewWindow.isCanvasWindowON)
                 {
                     ImageViewWindow.updateCanvasWindowImage();
-                    ImageViewWindow.updateCanvasWindowBitmapSize();
                 }
             }
 

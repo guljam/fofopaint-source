@@ -235,11 +235,6 @@ package Modules
             ReplayController.drawReplayByCommand.setFirstRCursorPosCurrent();
             ReplayController.rReplayFOFOCursor.visible = false;
             CanvasController.canvasNavigatorBox.updateImage();
-            if (ImageViewWindow.isCanvasWindowON)
-            {
-                ImageViewWindow.updateCanvasWindowImage();
-                ImageViewWindow.updateCanvasWindowBitmapSize();
-            }
             UndoManager.disableDeepUndo();
         }
 
