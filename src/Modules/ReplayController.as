@@ -486,7 +486,7 @@ package Modules
             CanvasController.setCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
             CanvasController.updateCanvasPanelColorAndSize();
             CanvasController.canvasNavigatorBox.updateImage();
-            if (ImageViewWindow.isCanvasWindowON) 
+            if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();
                 ImageViewWindow.updateCanvasWindowBitmapSize();
@@ -3693,11 +3693,16 @@ package Modules
                 rCanvasLayer1BitmapData.draw(rCanvasLayer1Bitmap);
                 rCanvasLayer2BitmapData.draw(rCanvasLayer2Bitmap);
             }
+
             if (rCanvasLayer1Bitmap.bitmapData)
                 rCanvasLayer1Bitmap.bitmapData.dispose();
+
             rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
             if (rCanvasLayer2Bitmap.bitmapData)
                 rCanvasLayer2Bitmap.bitmapData.dispose();
+
+            trace('리플레이 캔버스 크기 변경', rCanvasLayer2BitmapData.width, rCanvasLayer2BitmapData.height);
+
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
             rFollowMouse.updateBounds();
             CanvasController.keepCanvasPanelInStage(true);
@@ -4090,7 +4095,7 @@ package Modules
                 MainUI.updateTopbarIconsReplayMode();
                 InputController.addInputEventsReplayMode();
 
-                if(isReplayCanvasFitToWindow)
+                if (isReplayCanvasFitToWindow)
                 {
                     fitReplayCanvasToViewport();
                 }
@@ -4119,30 +4124,37 @@ package Modules
         {
             rCanvasDrawLayerClipRect = rCanvasDrawLayerClipRect.union(rCanvasDrawShape.getBounds(rCanvasPanel));
         }
-
         public static function updateReplayCanvasFromUndoBaseInfo():void
         {
             var rMirrorSave:Boolean = rMirrorON;
             const undoBaseImage:Array = UndoController.getUndoBaseImage();
-            const rect:Rectangle = new Rectangle(0,0,undoBaseImage[2],undoBaseImage[3]);
 
             if (undoBaseImage[2] !== RCANVAS_WIDTH || undoBaseImage[3] !== RCANVAS_HEIGHT)
             {
                 updateCanvasSizeReplayMode(undoBaseImage[2], undoBaseImage[3], 0, 0, false);
             }
-
             if (undoBaseImage[4] !== RCANVAS_BG_COLOR)
             {
                 updateCanvasBGColorReplayMode(undoBaseImage[4]);
             }
-            ReplayController.rCanvasLayer1BitmapData = CanvasController.updateBitmapData(ReplayController.rCanvasLayer1BitmapData,undoBaseImage[0],ReplayController.rCanvasLayer1Bitmap)
-            ReplayController.rCanvasLayer2BitmapData = CanvasController.updateBitmapData(ReplayController.rCanvasLayer2BitmapData,undoBaseImage[1],ReplayController.rCanvasLayer2Bitmap)
+
+            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoBaseImage[0], rCanvasLayer1Bitmap);
+            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoBaseImage[1], rCanvasLayer2Bitmap);
 
             drawReplayByCommand.setData(rData[0]);
             drawReplayByCommand.drawAll();
 
-            CanvasController.copyPixels(undoBaseImage[0],rCanvasLayer1BitmapData);
-            CanvasController.copyPixels(undoBaseImage[1],rCanvasLayer2BitmapData);
+            if (undoBaseImage[0] && undoBaseImage[0] !== rCanvasLayer1BitmapData)
+            {
+                undoBaseImage[0].dispose();
+            }
+            if (undoBaseImage[1] && undoBaseImage[1] !== rCanvasLayer2BitmapData)
+            {
+                undoBaseImage[1].dispose();
+            }
+
+            undoBaseImage[0] = rCanvasLayer1BitmapData.clone();
+            undoBaseImage[1] = rCanvasLayer2BitmapData.clone();
             undoBaseImage[2] = RCANVAS_WIDTH;
             undoBaseImage[3] = RCANVAS_HEIGHT;
             undoBaseImage[4] = RCANVAS_BG_COLOR;
@@ -4154,6 +4166,7 @@ package Modules
 
             drawReplayByCommand.setFirstRCursorPosCurrent();
         }
+        
 
         public static function updateReplayCanvasFromUndoRefData(undoRefData:Array, undoIndexSave:int):void
         {
@@ -4162,7 +4175,7 @@ package Modules
             rPrevFrame = rNowFrame;
             rNowFrame = UndoManager.getNowFrameUntilUndoIndex(undoIndexSave);
             rMirrorON = undoRefData[5];
-            const rect:Rectangle = new Rectangle(0,0,undoRefData[2],undoRefData[3]);
+            const rect:Rectangle = new Rectangle(0, 0, undoRefData[2], undoRefData[3]);
 
             if (undoRefData[2] !== RCANVAS_WIDTH || undoRefData[3] !== RCANVAS_HEIGHT)
             {
@@ -4176,8 +4189,8 @@ package Modules
 
             rCanvasDrawShape.graphics.clear();
 
-            CanvasController.copyPixels(rCanvasLayer1BitmapData,undoRefData[0]);
-            CanvasController.copyPixels(rCanvasLayer2BitmapData,undoRefData[1]);
+            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoRefData[0], rCanvasLayer1Bitmap);
+            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoRefData[1], rCanvasLayer2Bitmap)
 
             if (rData.length > 0)
             {
