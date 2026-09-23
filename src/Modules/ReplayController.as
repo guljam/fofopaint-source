@@ -183,7 +183,7 @@ package Modules
                 UndoManager.mirrorCommandReady = true;
                 CanvasController.mirrorBmpdDrawmode();
                 CanvasGridOverlay.updateGridMirror(CanvasController.isCanvasMirrored);
-                ReplayController.mirrorRCursorPos();
+                mirrorRCursorPos();
             }
             else if (UndoManager.mirrorCommandReady)
             {
@@ -446,7 +446,7 @@ package Modules
             CanvasController.isCanvasMirrored = false;
             rDataReadFlag = false;
             UndoManager.mirrorCommandReady = false;
-            ReplayController.setRFileTotalFrame(0);
+            setRFileTotalFrame(0);
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             CanvasController.isLayerSwapped = false;
@@ -503,7 +503,7 @@ package Modules
             CanvasController.canvasAnchorPoint.rotation = rCanvasAnchorPoint.rotation;
             CanvasController.canvasPanel.x = Math.floor(rCanvasPanel.x);
             CanvasController.canvasPanel.y = Math.floor(rCanvasPanel.y);
-            ReplayController.setRcursorRotation(rCanvasAnchorPoint.rotation);
+            setRcursorRotation(rCanvasAnchorPoint.rotation);
         }
         private static function ensureReplayCanvasState():void
         {
@@ -529,7 +529,7 @@ package Modules
                 fs.close();
                 FileManager.isFileAlreadySaved = false;
                 FileManager.enableNewFileButton();
-                ReplayController.setRFileTotalFrame(0);
+                setRFileTotalFrame(0);
                 rData.splice(0, rDataIndex + 1);
                 rDataFrame.splice(0, rDataIndex + 1);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
@@ -620,7 +620,7 @@ package Modules
                 }
                 // framedata도 인덱스 이후꺼 날려줌
                 rJumpImageFrameData.splice(index + 1);
-                ReplayController.setRFileTotalFrame(rNowFrameSave);
+                setRFileTotalFrame(rNowFrameSave);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
                 CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
                 CanvasController.canvasLayer1Bitmap.bitmapData = CanvasController.canvasLayer1BitmapData;
@@ -3286,7 +3286,7 @@ package Modules
                         main.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
                         fs.close();
                         drawReplayByCommand.clearData();
-                        ReplayController.setRFileTotalFrame(_frameSum);
+                        setRFileTotalFrame(_frameSum);
                         rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
                         resetReplayTime();
                         updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
@@ -3631,7 +3631,7 @@ package Modules
         public static function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDrawable, layer2Image:IBitmapDrawable):void
         {
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
-            ReplayController.setRFileTotalFrame(0);
+            setRFileTotalFrame(0);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReferenceLayerController.refLayerRawBitmapData = null;
             ReferenceLayerController.refLayerRawTransformData = null;
@@ -3652,7 +3652,7 @@ package Modules
             const center:Point = MainUIController.getStageCenterPos("replay");
             CanvasController.moveCanvasAnchorPoint(center.x, center.y, true);
             rCanvasAnchorPoint.rotation = 0;
-            ReplayController.setRcursorRotation(0);
+            setRcursorRotation(0);
         }
 
         public static function syncMirrorReplayModeWithDrawMode():void
@@ -3913,7 +3913,7 @@ package Modules
             CanvasController.canvasAnchorPoint.y = rCanvasAnchorPoint.y;
             rCanvasPanel.x = rCanvasPanel.x;
             rCanvasPanel.y = rCanvasPanel.y;
-            ReplayController.setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
+            setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
         }
         public static function syncReplayCanvasWithDrawMode():void
         {
@@ -3926,7 +3926,7 @@ package Modules
             rCanvasAnchorPoint.y = CanvasController.canvasAnchorPoint.y;
             rCanvasPanel.x = CanvasController.canvasPanel.x;
             rCanvasPanel.y = CanvasController.canvasPanel.y;
-            ReplayController.setRcursorRotation(rCanvasAnchorPoint.rotation);
+            setRcursorRotation(rCanvasAnchorPoint.rotation);
         }
         public static function syncReplayCanvasImageWithDrawMode():void
         {
@@ -3977,7 +3977,7 @@ package Modules
                 SidebarController.showSidebarPermanent();
             }
             CanvasController.canvasPanel.addChild(rReplayFOFOCursor);
-            ReplayController.setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
+            setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
             if (MainUI.mouseHint.isShowing())
             {
                 MainUI.hideMouseHint();
@@ -4040,7 +4040,7 @@ package Modules
             rReplayFOFOCursor.visible = false;
             rCanvasPanel.addChild(rReplayFOFOCursor);
             Utils.setAsTopChild(rReplayFOFOCursor);
-            ReplayController.setRcursorRotation(rCanvasAnchorPoint.rotation);
+            setRcursorRotation(rCanvasAnchorPoint.rotation);
             MainUIController.updateStageOffset();
             FOFOTimer.remove("rCursorOffAlphaAnimTimer");
             MainUI.hideBottomHint();
@@ -4123,47 +4123,48 @@ package Modules
 
         public static function updateReplayCanvasFromUndoBaseInfo():void
         {
-            var rMirrorSave:Boolean = ReplayController.rMirrorON;
+            var rMirrorSave:Boolean = rMirrorON;
             const undoBaseImage:Array = UndoController.getUndoBaseImage();
+            const rect:Rectangle = new Rectangle(0,0,undoBaseImage[2],undoBaseImage[3]);
 
-            if (undoBaseImage[2] !== ReplayController.RCANVAS_WIDTH || undoBaseImage[3] !== ReplayController.RCANVAS_HEIGHT)
+            if (undoBaseImage[2] !== RCANVAS_WIDTH || undoBaseImage[3] !== RCANVAS_HEIGHT)
             {
-                ReplayController.updateCanvasSizeReplayMode(undoBaseImage[2], undoBaseImage[3], 0, 0, false);
+                updateCanvasSizeReplayMode(undoBaseImage[2], undoBaseImage[3], 0, 0, false);
             }
 
-            if (undoBaseImage[4] !== ReplayController.RCANVAS_BG_COLOR)
+            if (undoBaseImage[4] !== RCANVAS_BG_COLOR)
             {
-                ReplayController.updateCanvasBGColorReplayMode(undoBaseImage[4]);
+                updateCanvasBGColorReplayMode(undoBaseImage[4]);
             }
 
-            ReplayController.rCanvasLayer1BitmapData = CanvasController.updateBitmapData(ReplayController.rCanvasLayer1BitmapData, undoBaseImage[0], ReplayController.rCanvasLayer1Bitmap);
-            ReplayController.rCanvasLayer2BitmapData = CanvasController.updateBitmapData(ReplayController.rCanvasLayer2BitmapData, undoBaseImage[1], ReplayController.rCanvasLayer2Bitmap);
+            CanvasController.copyPixels(rCanvasLayer1BitmapData,undoBaseImage[0],rect);
+            CanvasController.copyPixels(rCanvasLayer2BitmapData,undoBaseImage[1],rect);
 
-            ReplayController.drawReplayByCommand.setData(ReplayController.rData[0]);
-            ReplayController.drawReplayByCommand.drawAll();
+            drawReplayByCommand.setData(rData[0]);
+            drawReplayByCommand.drawAll();
 
-            if (undoBaseImage[0] && undoBaseImage[0] !== ReplayController.rCanvasLayer1BitmapData)
+            if (undoBaseImage[0] && undoBaseImage[0] !== rCanvasLayer1BitmapData)
             {
                 undoBaseImage[0].dispose();
             }
 
-            if (undoBaseImage[1] && undoBaseImage[1] !== ReplayController.rCanvasLayer2BitmapData)
+            if (undoBaseImage[1] && undoBaseImage[1] !== rCanvasLayer2BitmapData)
             {
                 undoBaseImage[1].dispose();
             }
 
-            undoBaseImage[0] = ReplayController.rCanvasLayer1BitmapData.clone();
-            undoBaseImage[1] = ReplayController.rCanvasLayer2BitmapData.clone();
-            undoBaseImage[2] = ReplayController.RCANVAS_WIDTH;
-            undoBaseImage[3] = ReplayController.RCANVAS_HEIGHT;
-            undoBaseImage[4] = ReplayController.RCANVAS_BG_COLOR;
+            undoBaseImage[0] = rCanvasLayer1BitmapData.clone();
+            undoBaseImage[1] = rCanvasLayer2BitmapData.clone();
+            undoBaseImage[2] = RCANVAS_WIDTH;
+            undoBaseImage[3] = RCANVAS_HEIGHT;
+            undoBaseImage[4] = RCANVAS_BG_COLOR;
 
-            if (ReplayController.rMirrorON !== rMirrorSave)
+            if (rMirrorON !== rMirrorSave)
             {
                 undoBaseImage[5] = !undoBaseImage[5];
             }
 
-            ReplayController.drawReplayByCommand.setFirstRCursorPosCurrent();
+            drawReplayByCommand.setFirstRCursorPosCurrent();
         }
 
         public static function updateReplayCanvasFromUndoRefData(undoRefData:Array, undoIndexSave:int):void
@@ -4173,6 +4174,7 @@ package Modules
             rPrevFrame = rNowFrame;
             rNowFrame = UndoManager.getNowFrameUntilUndoIndex(undoIndexSave);
             rMirrorON = undoRefData[5];
+            const rect:Rectangle = new Rectangle(0,0,undoRefData[2],undoRefData[3]);
 
             if (undoRefData[2] !== RCANVAS_WIDTH || undoRefData[3] !== RCANVAS_HEIGHT)
             {
@@ -4185,8 +4187,9 @@ package Modules
             }
 
             rCanvasDrawShape.graphics.clear();
-            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoRefData[0], rCanvasLayer1Bitmap);
-            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoRefData[1], rCanvasLayer2Bitmap);
+
+            CanvasController.copyPixels(rCanvasLayer1BitmapData,undoRefData[0],rect);
+            CanvasController.copyPixels(rCanvasLayer2BitmapData,undoRefData[1],rect);
 
             if (rData.length > 0)
             {
@@ -4202,26 +4205,26 @@ package Modules
 
         public static function setRcursorRotation(newAngle:Number):void
         {
-            ReplayController.rReplayFOFOCursor.rotation = -newAngle;
+            rReplayFOFOCursor.rotation = -newAngle;
         }
         public static function mirrorRCursorPos():void
         {
-            const p:Point = ReplayController.drawReplayByCommand.getRCursorPos();
+            const p:Point = drawReplayByCommand.getRCursorPos();
             const half:Number = CanvasController.CANVAS_WIDTH / 2;
-            const curcorX:Number = ReplayController.rReplayFOFOCursor.x + (half - p.x) * 2;
-            ReplayController.rReplayFOFOCursor.x = curcorX;
-            ReplayController.drawReplayByCommand.setRCursorPos(curcorX, p.y);
+            const curcorX:Number = rReplayFOFOCursor.x + (half - p.x) * 2;
+            rReplayFOFOCursor.x = curcorX;
+            drawReplayByCommand.setRCursorPos(curcorX, p.y);
         }
 
         public static function resetCanvasAndReplayData():void
         {
 
-            ReplayController.resetZoomReplayMode();
-            ReplayController.resetRotationReplayMode();
-            ReplayController.clearCanvasReplayMode();
-            ReplayController.clearDataAndResetVars();
-            ReplayController.drawReplayByCommand.resetFirstRCursorPos();
-            ReplayController.clearRFrameTempCache();
+            resetZoomReplayMode();
+            resetRotationReplayMode();
+            clearCanvasReplayMode();
+            clearDataAndResetVars();
+            drawReplayByCommand.resetFirstRCursorPos();
+            clearRFrameTempCache();
         }
     }
 }
