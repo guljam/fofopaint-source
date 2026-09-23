@@ -4,11 +4,13 @@ package
     import flash.geom.ColorTransform;
     import flash.display.DisplayObjectContainer;
     import flash.utils.Dictionary;
+    import flash.geom.Point;
 
     public class Global
     {
         //todo ui 관련이 많아서 따로 정리하고 다른 범용은 utild로 옮겨야함
         public static const OFFALPHA:Number = Math.round(0.25 * 256) / 256;
+        public static const ZERO_POINT:Point = new Point(0,0);
 
         public static function setColorTransform(target:DisplayObject, color:uint, customAlpha:Number = NaN):void
         {

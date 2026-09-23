@@ -165,7 +165,7 @@ package Modules
             if (CanvasController.isCanvasMirrored !== rMirrorON)
             {
                 UndoManager.mirrorCommandReady = true;
-                CanvasController.flipHorizontalBmpdDrawmode();
+                CanvasController.mirrorBmpdDrawmode();
                 CanvasGridOverlay.updateGridMirror(CanvasController.isCanvasMirrored);
                 ReplayController.mirrorRCursorPos();
             }

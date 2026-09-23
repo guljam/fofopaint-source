@@ -21,6 +21,7 @@ package Modules
     import Modules.Tools.EyeDropperTool;
     import flash.ui.MouseCursor;
     import Modules.Tools.ZoomTool;
+    import flash.utils.getTimer;
 
     public class CanvasController
     {
@@ -739,7 +740,7 @@ package Modules
             const p:Point = getCanvasPanelMidPos();
             isCanvasMirrored = !isCanvasMirrored;
             UndoManager.flipMirrorComandReadyFlag();
-            flipHorizontalBmpdDrawmode();
+            mirrorBmpdDrawmode();
             canvasInfoBox.setMirror(isCanvasMirrored);
             // 회전각 부호를 바꿔야 제대로 mirror가됨
             moveCanvasAnchorPoint(p.x, p.y); // regpoint를 회전한 캔버스 중점으로 두고
@@ -768,17 +769,36 @@ package Modules
         }
 
         // 비트맵 데이터를 대칭으로 돌려줌
-        public static function flipHorizontalBmpdDrawmode():void
+        // public static function mirrorBmpdDrawmode():void
+        // {
+        //     const nt:int = getTimer();
+        //     var tmpbmpd:BitmapData = new BitmapData(canvasLayer1BitmapData.width, canvasLayer1BitmapData.height, true, 0);
+        //     var flipMat:Matrix = new Matrix(-1, 0, 0, 1, canvasLayer1BitmapData.width);
+        //     const rect:Rectangle = new Rectangle(0,0,canvasLayer1BitmapData.width, canvasLayer1BitmapData.height)
+        //     tmpbmpd.draw(canvasLayer1BitmapData, flipMat);
+        //     // copyPixels(canvasLayer1BitmapData,tmpbmpd,)
+        //     canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, tmpbmpd, canvasLayer1Bitmap);
+        //     tmpbmpd.fillRect(new Rectangle(0, 0, canvasLayer1BitmapData.width, canvasLayer1BitmapData.height), 0);
+        //     tmpbmpd.draw(canvasLayer2BitmapData, flipMat);
+        //     canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, tmpbmpd, canvasLayer2Bitmap);
+        //     tmpbmpd.dispose();
+        //     tmpbmpd = null;
+        //     trace("time = ",getTimer()-nt);
+        // }
+        public static function mirrorBmpdDrawmode():void
         {
-            var tmpbmpd:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
-            var flipMat:Matrix = new Matrix(-1, 0, 0, 1, CANVAS_WIDTH);
+            const nt:int = getTimer();
+            var tmpbmpd:BitmapData = new BitmapData(canvasLayer1BitmapData.width, canvasLayer1BitmapData.height, true, 0);
+            var flipMat:Matrix = new Matrix(-1, 0, 0, 1, canvasLayer1BitmapData.width);
+            const rect:Rectangle = new Rectangle(0,0,canvasLayer1BitmapData.width, canvasLayer1BitmapData.height)
             tmpbmpd.draw(canvasLayer1BitmapData, flipMat);
-            canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, tmpbmpd, canvasLayer1Bitmap);
-            tmpbmpd.fillRect(new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT), 0);
+            copyPixels(canvasLayer1BitmapData,tmpbmpd,rect);
+            tmpbmpd.fillRect(new Rectangle(0, 0, canvasLayer1BitmapData.width, canvasLayer1BitmapData.height), 0);
             tmpbmpd.draw(canvasLayer2BitmapData, flipMat);
-            canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, tmpbmpd, canvasLayer2Bitmap);
+            copyPixels(canvasLayer2BitmapData,tmpbmpd,rect);
             tmpbmpd.dispose();
             tmpbmpd = null;
+            trace("time = ",getTimer()-nt);
         }
 
         public static function applyCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
@@ -1625,9 +1645,11 @@ package Modules
             }
         }
 
-        public static function copyBitmapdata(target:BitmapData,source:BitmapData,rect:Rectangle):void
+        public static function copyPixels(target:BitmapData,source:BitmapData,rect:Rectangle):void
         {
-            target.copyPixels(source,rect,new Point(),null,null,true);
+            target.lock();
+            target.copyPixels(source,rect,Global.ZERO_POINT,null,null,false);
+            target.unlock();
         }
     }
 }
