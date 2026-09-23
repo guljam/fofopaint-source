@@ -24,6 +24,7 @@
 	import Modules.ReplayController;
 	import Modules.AboutBoxController;
 	import Modules.PenSizePreviewCursor;
+	import Modules.CaptureStamp;
 
 	public class TopMenuSet extends Sprite
 	{
@@ -648,7 +649,7 @@
 					capLayer2VisibleButton.alpha = Global.OFFALPHA;
 				}
 
-				CaptureController.updateCaptureStampButtonAlpha();
+				CaptureStamp.updateCaptureStampButtonAlpha();
 			}
 		}
 

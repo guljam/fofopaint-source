@@ -338,7 +338,7 @@ package Modules
 
         private static function getRandomFileName():String
         {
-            return CaptureController.getTimeStampTailHead() + "_" + Utils.getRandomString(8) + ".png";
+            return CaptureStamp.getTimeStampTailHead() + "_" + Utils.getRandomString(8) + ".png";
         }
 
         public static function enableNewFileButton():void
@@ -954,8 +954,8 @@ package Modules
             var name:String = lastSaveFileName;
             var path:String = getExistingParentDirectory(lastSaveCaptureFilePath);
             setFileBrowserIsOpen(true);
-            name = CaptureController.cutTimeStamp(name);
-            name = name.substr(0, name.lastIndexOf(".png")) + "_capture_" + CaptureController.getTimeStampTail() + ".png"; // 뒤에 프레임 번호 붙여줌
+            name = CaptureStamp.cutTimeStamp(name);
+            name = name.substr(0, name.lastIndexOf(".png")) + "_capture_" + CaptureStamp.getTimeStampTail() + ".png"; // 뒤에 프레임 번호 붙여줌
             path = path.substr(0, path.lastIndexOf(lastSaveFileName)) + name;
             var file:File = (name !== path) ? new File(path) : File.desktopDirectory.resolvePath(name);
             const fs:FileStream = new FileStream();

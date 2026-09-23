@@ -504,12 +504,19 @@
                             break;
                         case "capStamp":
                             {
-                                CaptureController.toggleCaptureStampButton();
+                                CaptureStamp.toggleCaptureStampButton();
                             }
                             break;
                         case "capStampFont":
                             {
-                                CaptureStamp.showStampFontList();
+                                if(CaptureStamp.captureStampFontListBox.visible)
+                                {
+                                    CaptureStamp.hideStampFontList();
+                                }
+                                else
+                                {
+                                    CaptureStamp.showStampFontList();
+                                }
                             }
                             break;
                         case "capFontListPrev":

@@ -2059,16 +2059,16 @@ package Modules
                 return;
             }
 
-            if (firstKey === KEY.esc)
+            if (main.stage.focus === MainUI.topBar.captureInput)
             {
-                if (main.stage.focus === MainUI.topBar.captureInput)
+                if (firstKey === KEY.esc || firstKey === KEY.enter || isPressingControl() || isPressingShift())
                 {
                     main.stage.focus = null;
-                    return;
                 }
+                return;
             }
 
-            if (main.stage.focus === MainUI.topBar.captureInput || CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked)
+            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked)
             {
                 return;
             }

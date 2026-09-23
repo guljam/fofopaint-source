@@ -1,24 +1,15 @@
 package Modules
 {
-    import flash.display.BitmapData;
-    import flash.display.Shape;
-    import flash.geom.Point;
-    import Symbols.CapStampFontListSet;
-    import flash.events.MouseEvent;
-    import flash.display.Sprite;
-    import flash.geom.Rectangle;
-    import flash.geom.Matrix;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
-    import flash.utils.getTimer;
-    import flash.display.DisplayObject;
     import flash.display.Bitmap;
-    import flash.text.TextFormat;
-    import flash.events.KeyboardEvent;
-    import flash.geom.ColorTransform;
-    import flash.events.FocusEvent;
-    import flash.events.Event;
-    import flash.ui.ContextMenu;
+    import flash.display.BitmapData;
+    import flash.display.DisplayObject;
+    import flash.display.Sprite;
+    import flash.geom.Matrix;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
+    import flash.utils.getTimer;
 
     public class CaptureController
     {
@@ -35,7 +26,7 @@ package Modules
         public static var isCaptureModeON:Boolean = false; // 스크린샷 켜지면 올려줌
         public static var isCaptureCanvasFlipped:Boolean = false; // 캡쳐 대칭한 변수 저장
         public static var isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
-        
+
         private static var canvasStateBeforeCaptureMode:Object = {}; // 캡쳐 키면 캔버스 이전 상태 저장함
         public static var drawModeCanvasStateForSaveAppState:Object = {}; // save app state에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
         public static var captureWindowMove:Point = new Point(0, 0); // 스크린샷이 켜져있는 상태에서 창을 조절했을때 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
@@ -197,30 +188,6 @@ package Modules
             {
                 CaptureArea.updateDrawArea();
             }
-        }
-
-        public static function updateCaptureStampButtonAlpha():void
-        {
-            if (CaptureStamp.isCaptureStampEnabled)
-            {
-                MainUI.topBar.capStamp.alpha = 1.0;
-                MainUI.topBar.captureInputWarpper.visible = true;
-                MainUI.topBar.capStampFont.visible = true;
-            }
-            else
-            {
-                MainUI.topBar.capStamp.alpha = Global.OFFALPHA;
-                MainUI.topBar.captureInputWarpper.visible = false;
-                MainUI.topBar.capStampFont.visible = false;
-            }
-        }
-
-        public static function toggleCaptureStampButton():void
-        {
-            MainUI.topBar.capClipBoard.alpha = 1.0;
-            CaptureStamp.isCaptureStampEnabled = !CaptureStamp.isCaptureStampEnabled;
-            updateCaptureStampButtonAlpha();
-            CaptureStamp.update();
         }
 
         public static function handleExitCaptureMode():void
@@ -490,61 +457,5 @@ package Modules
             CanvasController.keepCanvasPanelInStage(replayMode);
             canvasStateBeforeCaptureMode = {};
         }
-
-
-        public static function cutTimeStamp(str:String):String
-        {
-            const pattern:RegExp = /_\d\d\d\d\d\d\d\d\d/g;
-            const findTimeStamp:String = pattern.exec(str);
-
-            if (findTimeStamp === null)
-            {
-                return str;
-            }
-
-            const cutIndex:int = str.lastIndexOf(findTimeStamp);
-            const cutStr:String = str.substr(0, cutIndex);
-
-            return cutStr;
-        }
-
-        public static function getTimeStampTailHead():String
-        {
-            const date:Date = new Date();
-
-            const y:Number = date.getFullYear();
-            const m:Number = date.getMonth() + 1;
-            const d:Number = date.getDate();
-
-            const daystr:String = (d < 10) ? "0" + d : "" + d;
-            const monthstr:String = (m < 10) ? "0" + m : "" + m;
-
-            const timeStr:String = "[" + y + "-" + monthstr + "-" + daystr + "]";
-
-            return timeStr;
-        }
-
-        public static function getTimeStampTail():String
-        {
-            const date:Date = new Date();
-
-            const hour:Number = date.getHours();
-            const min:Number = date.getMinutes();
-            const sec:Number = date.getSeconds();
-
-            const hourstr:String = (hour < 10) ? "0" + hour : "" + hour;
-            const minstr:String = (min < 10) ? "0" + min : "" + min;
-            const secstr:String = (sec < 10) ? "0" + sec : "" + sec;
-
-            var milisecStr:String = new String(getTimer());
-
-            if (milisecStr.length > 3)
-                milisecStr = milisecStr.substr(milisecStr.length - 3);
-
-            const timeStr:String = hourstr + minstr + secstr + milisecStr;
-
-            return timeStr;
-        }
-
     }
 }

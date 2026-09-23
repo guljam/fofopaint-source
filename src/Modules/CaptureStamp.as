@@ -11,6 +11,8 @@ package Modules
     import flash.events.Event;
     import flash.events.MouseEvent;
     import flash.geom.Point;
+    import flash.utils.getTimer;
+    import flash.events.KeyboardEvent;
 
     public class CaptureStamp
     {
@@ -39,7 +41,85 @@ package Modules
         captureStampBitmap.name = "captureStampBitmap";
         captureStampBitmap.visible = false;
 
-                public static function hideStampFontList():void
+        public static function updateCaptureStampButtonAlpha():void
+        {
+            if (CaptureStamp.isCaptureStampEnabled)
+            {
+                MainUI.topBar.capStamp.alpha = 1.0;
+                MainUI.topBar.captureInputWarpper.visible = true;
+                MainUI.topBar.capStampFont.visible = true;
+            }
+            else
+            {
+                MainUI.topBar.capStamp.alpha = Global.OFFALPHA;
+                MainUI.topBar.captureInputWarpper.visible = false;
+                MainUI.topBar.capStampFont.visible = false;
+            }
+        }
+
+        public static function toggleCaptureStampButton():void
+        {
+            MainUI.topBar.capClipBoard.alpha = 1.0;
+            CaptureStamp.isCaptureStampEnabled = !CaptureStamp.isCaptureStampEnabled;
+            updateCaptureStampButtonAlpha();
+            CaptureStamp.update();
+        }
+
+        public static function cutTimeStamp(str:String):String
+        {
+            const pattern:RegExp = /_\d\d\d\d\d\d\d\d\d/g;
+            const findTimeStamp:String = pattern.exec(str);
+
+            if (findTimeStamp === null)
+            {
+                return str;
+            }
+
+            const cutIndex:int = str.lastIndexOf(findTimeStamp);
+            const cutStr:String = str.substr(0, cutIndex);
+
+            return cutStr;
+        }
+
+        public static function getTimeStampTailHead():String
+        {
+            const date:Date = new Date();
+
+            const y:Number = date.getFullYear();
+            const m:Number = date.getMonth() + 1;
+            const d:Number = date.getDate();
+
+            const daystr:String = (d < 10) ? "0" + d : "" + d;
+            const monthstr:String = (m < 10) ? "0" + m : "" + m;
+
+            const timeStr:String = "[" + y + "-" + monthstr + "-" + daystr + "]";
+
+            return timeStr;
+        }
+
+        public static function getTimeStampTail():String
+        {
+            const date:Date = new Date();
+
+            const hour:Number = date.getHours();
+            const min:Number = date.getMinutes();
+            const sec:Number = date.getSeconds();
+
+            const hourstr:String = (hour < 10) ? "0" + hour : "" + hour;
+            const minstr:String = (min < 10) ? "0" + min : "" + min;
+            const secstr:String = (sec < 10) ? "0" + sec : "" + sec;
+
+            var milisecStr:String = new String(getTimer());
+
+            if (milisecStr.length > 3)
+                milisecStr = milisecStr.substr(milisecStr.length - 3);
+
+            const timeStr:String = hourstr + minstr + secstr + milisecStr;
+
+            return timeStr;
+        }
+
+        public static function hideStampFontList():void
         {
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList);
             captureStampFontListBox.visible = false;
@@ -265,7 +345,7 @@ package Modules
             return tmpbmpd;
         }
 
-        private static function onFocusOutCaptureInput(e:FocusEvent):void
+        private static function onFocusOutCaptureStampInput(e:FocusEvent):void
         {
             FOFOTimer.add(0.2, false, function ():void
                 {
@@ -274,7 +354,7 @@ package Modules
                 });
         }
 
-        private static function onFocusInCaptureInput(e:FocusEvent):void
+        private static function onFocusInCaptureStampInput(e:FocusEvent):void
         {
             isCaptureStampTextFieldFocused = true;
 
@@ -284,7 +364,7 @@ package Modules
                 });
         }
 
-        private static function onChangeCaptureInput(e:Event):void
+        private static function onChangeCaptureStampInput(e:Event):void
         {
             MainUI.topBar.capClipBoard.alpha = 1.0;
 
@@ -916,9 +996,9 @@ package Modules
 
             captrueStampBMPD = null;
 
-            MainUI.topBar.captureInput.removeEventListener(Event.CHANGE, onChangeCaptureInput);
-            MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureInput);
-            MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_OUT, onFocusOutCaptureInput);
+            MainUI.topBar.captureInput.removeEventListener(Event.CHANGE, onChangeCaptureStampInput);
+            MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureStampInput);
+            MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_OUT, onFocusOutCaptureStampInput);
 
             captureStampBitmap.visible = false;
 
@@ -942,9 +1022,9 @@ package Modules
             textformat.font = null;
             stampBGColor = null;
 
-            MainUI.topBar.captureInput.addEventListener(Event.CHANGE, onChangeCaptureInput);
-            MainUI.topBar.captureInput.addEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureInput);
-            MainUI.topBar.captureInput.addEventListener(FocusEvent.FOCUS_OUT, onFocusOutCaptureInput);
+            MainUI.topBar.captureInput.addEventListener(Event.CHANGE, onChangeCaptureStampInput);
+            MainUI.topBar.captureInput.addEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureStampInput);
+            MainUI.topBar.captureInput.addEventListener(FocusEvent.FOCUS_OUT, onFocusOutCaptureStampInput);
         }
     }
 }
