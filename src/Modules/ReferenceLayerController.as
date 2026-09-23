@@ -339,8 +339,7 @@ package Modules
 
             tmpbmpd.draw(canvasRefLayerBitmapData, flipMat);
 
-            CanvasController.copyPixels(canvasRefLayerBitmapData, tmpbmpd,
-                    new Rectangle(0, 0, canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height));
+            CanvasController.copyPixels(canvasRefLayerBitmapData, tmpbmpd);
 
             tmpbmpd.dispose();
             tmpbmpd = null;

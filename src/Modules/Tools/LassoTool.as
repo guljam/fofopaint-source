@@ -916,12 +916,12 @@ package Modules.Tools
             if (lassoLayer1LastBitmapdata)
             {
                 rect.setTo(0,0,lassoLayer1LastBitmapdata.width,lassoLayer1LastBitmapdata.height);
-                CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData,lassoLayer1LastBitmapdata,rect);
+                CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData,lassoLayer1LastBitmapdata);
             }
             if (lassoLayer2LastBitmapdata)
             {
                 rect.setTo(0,0,lassoLayer2LastBitmapdata.width,lassoLayer2LastBitmapdata.height);
-                CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData,lassoLayer2LastBitmapdata,rect);
+                CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData,lassoLayer2LastBitmapdata);
             }
             CanvasController.canvasNavigatorBox.updateImage();
             if (ImageViewWindow.isCanvasWindowON)

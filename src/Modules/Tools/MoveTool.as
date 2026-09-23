@@ -54,7 +54,7 @@ package Modules.Tools
                 {
                     movedMat.translate(movex, movey);
                     tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
-                    CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData,tmpbmpd,rect);
+                    CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData,tmpbmpd);
                 }
 
                 if (CanvasController.canvasLayer2Bitmap.visible)
@@ -63,14 +63,14 @@ package Modules.Tools
                     movedMat.translate(movex1, movey1);
                     tmpbmpd.fillRect(rect, 0);
                     tmpbmpd.draw(CanvasController.canvasLayer2BitmapData, movedMat);
-                    CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData,tmpbmpd,rect);
+                    CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData,tmpbmpd);
                 }
             }
             else if (CanvasController.checkedLayer === 1)
             {
                 movedMat.translate(movex, movey);
                 tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
-                CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData,tmpbmpd,rect);
+                CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData,tmpbmpd);
 
             }
             else if (CanvasController.checkedLayer === 2)
@@ -79,7 +79,7 @@ package Modules.Tools
                 movedMat.translate(movex1, movey1);
                 tmpbmpd.fillRect(new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT), 0);
                 tmpbmpd.draw(CanvasController.canvasLayer2BitmapData, movedMat);
-                CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData,tmpbmpd,rect);
+                CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData,tmpbmpd);
             }
 
             tmpbmpd.dispose();

@@ -934,12 +934,6 @@ package Modules
 
                     if (stampBGColor === null || !rect.equals(lastRectArea) || lastBitmapVisibleFlag !== bitmapVisibleFlag)
                     {
-                        captureStampDominantColorRefBmpd = getCaptureAreaBmpd(rect, layer1Visible, layer2Visible);
-                        if (!captureStampDominantColorRefBmpd)
-                        {
-                            return;
-                        }
-
                         const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((ReplayController.isReplayModeON) ? ReplayController.RCANVAS_BG_COLOR : CanvasController.CANVAS_BG_COLOR);
 
                         if (tegakiBGColorIndex >= 0)
@@ -948,7 +942,7 @@ package Modules
                         }
                         else
                         {
-                            stampBGColor = ColorPickerController.getImageDominantColor(captureStampDominantColorRefBmpd);
+                            stampBGColor = ColorPickerController.getImageDominantColor(getCaptureAreaBmpd(rect, layer1Visible, layer2Visible));
                         }
 
                         updateLastRectArea(rect);
@@ -1078,11 +1072,6 @@ package Modules
                 }
 
                 captrueStampBMPD = null;
-                if(captureStampDominantColorRefBmpd)
-                {
-                    captureStampDominantColorRefBmpd.dispose();
-                    captureStampDominantColorRefBmpd = null;
-                }
 
                 MainUI.topBar.captureInput.removeEventListener(Event.CHANGE, onChangeCaptureInput);
                 MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureInput);

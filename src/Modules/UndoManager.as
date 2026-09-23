@@ -296,6 +296,8 @@ package Modules
             ReplayController.updateReplayCanvasFromUndoRefData(undoRefData, undoIndexSave);
 
             //드로우 모드 캔버스 bmpd갱신하고 크기 정보 갱신
+            CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData,ReplayController.rCanvasLayer1BitmapData) 
+            CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
             CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, ReplayController.rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
             CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, ReplayController.rCanvasLayer2BitmapData, CanvasController.canvasLayer2Bitmap);
             CanvasController.syncDrawModeCanvasSizeToReplayMode(CanvasController.canvasLayer1BitmapData.width,CanvasController.canvasLayer1BitmapData.height);

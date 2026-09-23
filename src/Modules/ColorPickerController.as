@@ -43,6 +43,7 @@ package Modules
                 return 0xFFFFFF;
 
             var pixels:Vector.<uint> = bitmapData.getVector(bitmapData.rect);
+            bitmapData.dispose();
             var total:int = pixels.length;
             if (total <= 0)
                 return 0xFFFFFF;

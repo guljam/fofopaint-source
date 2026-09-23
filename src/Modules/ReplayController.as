@@ -880,7 +880,6 @@ package Modules
         public static function moveImageReplayMode(x:Number, y:Number, layer1:Boolean, layer2:Boolean):void
         {
             var tmpbmpd:BitmapData = new BitmapData(rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height, true, 0);
-            const rect:Rectangle = new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
             var movedMat:Matrix = new Matrix();
             if (!layer1 && !layer2)
             {
@@ -891,13 +890,13 @@ package Modules
             if (layer1)
             {
                 tmpbmpd.draw(rCanvasLayer1BitmapData, movedMat);
-                CanvasController.copyPixels(rCanvasLayer1BitmapData, tmpbmpd, rect);
+                CanvasController.copyPixels(rCanvasLayer1BitmapData, tmpbmpd);
             }
             if (layer2)
             {
                 tmpbmpd.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
                 tmpbmpd.draw(rCanvasLayer2BitmapData, movedMat);
-                CanvasController.copyPixels(rCanvasLayer2BitmapData, tmpbmpd, rect);
+                CanvasController.copyPixels(rCanvasLayer2BitmapData, tmpbmpd);
             }
 
             tmpbmpd.dispose();
@@ -947,10 +946,10 @@ package Modules
             var flipMat:Matrix = new Matrix(-1, 0, 0, 1, rCanvasLayer1BitmapData.width);
             const rect:Rectangle = new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
             tmpbmpd.draw(rCanvasLayer1BitmapData, flipMat);
-            CanvasController.copyPixels(rCanvasLayer1BitmapData, tmpbmpd, rect);
+            CanvasController.copyPixels(rCanvasLayer1BitmapData, tmpbmpd);
             tmpbmpd.fillRect(rect, 0);
             tmpbmpd.draw(rCanvasLayer2BitmapData, flipMat);
-            CanvasController.copyPixels(rCanvasLayer2BitmapData, tmpbmpd, rect);
+            CanvasController.copyPixels(rCanvasLayer2BitmapData, tmpbmpd);
             tmpbmpd.dispose();
             tmpbmpd = null;
             rMirrorON = !rMirrorON;
@@ -4137,8 +4136,8 @@ package Modules
                 updateCanvasBGColorReplayMode(undoBaseImage[4]);
             }
 
-            CanvasController.copyPixels(rCanvasLayer1BitmapData,undoBaseImage[0],rect);
-            CanvasController.copyPixels(rCanvasLayer2BitmapData,undoBaseImage[1],rect);
+            CanvasController.copyPixels(rCanvasLayer1BitmapData,undoBaseImage[0]);
+            CanvasController.copyPixels(rCanvasLayer2BitmapData,undoBaseImage[1]);
 
             drawReplayByCommand.setData(rData[0]);
             drawReplayByCommand.drawAll();
@@ -4188,8 +4187,8 @@ package Modules
 
             rCanvasDrawShape.graphics.clear();
 
-            CanvasController.copyPixels(rCanvasLayer1BitmapData,undoRefData[0],rect);
-            CanvasController.copyPixels(rCanvasLayer2BitmapData,undoRefData[1],rect);
+            CanvasController.copyPixels(rCanvasLayer1BitmapData,undoRefData[0]);
+            CanvasController.copyPixels(rCanvasLayer2BitmapData,undoRefData[1]);
 
             if (rData.length > 0)
             {

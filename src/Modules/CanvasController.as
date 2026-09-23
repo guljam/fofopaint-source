@@ -71,6 +71,8 @@ package Modules
         public static var checkedLayer:int = 0; // 레이어가 체크되면 저장해줌
         public static var isLayerSwapped:Boolean = false; // 1<->2 번호 바뀌는 힌트 써주려고 만듬
 
+        private static const copyPixelRect:Rectangle = new Rectangle();
+
         // 네비게이터로 캔버스 이동 이벤트 한번만 올려주기
         private static var canvasMoveByCanvasNavigatorEventStarted:Boolean = false;
 
@@ -772,12 +774,11 @@ package Modules
         {
             var tmpbmpd:BitmapData = new BitmapData(canvasLayer1BitmapData.width, canvasLayer1BitmapData.height, true, 0);
             var flipMat:Matrix = new Matrix(-1, 0, 0, 1, canvasLayer1BitmapData.width);
-            const rect:Rectangle = new Rectangle(0,0,canvasLayer1BitmapData.width, canvasLayer1BitmapData.height)
             tmpbmpd.draw(canvasLayer1BitmapData, flipMat);
-            copyPixels(canvasLayer1BitmapData,tmpbmpd,rect);
+            copyPixels(canvasLayer1BitmapData,tmpbmpd);
             tmpbmpd.fillRect(new Rectangle(0, 0, canvasLayer1BitmapData.width, canvasLayer1BitmapData.height), 0);
             tmpbmpd.draw(canvasLayer2BitmapData, flipMat);
-            copyPixels(canvasLayer2BitmapData,tmpbmpd,rect);
+            copyPixels(canvasLayer2BitmapData,tmpbmpd);
             tmpbmpd.dispose();
             tmpbmpd = null;
         }
@@ -1619,10 +1620,17 @@ package Modules
             }
         }
 
-        public static function copyPixels(target:BitmapData,source:BitmapData,rect:Rectangle):void
+        public static function copyPixels(target:BitmapData,source:BitmapData):void
         {
+            if(target.width !== source.width || target.height !== source.height)
+            {
+                MainUI.showMouseHintTemp("CanvasController.copyPixels() failed : Not same size", 10.0);
+                return;
+            }
+
+            copyPixelRect.setTo(0,0,source.width,source.height);
             target.lock();
-            target.copyPixels(source,rect,Global.ZERO_POINT,null,null,false);
+            target.copyPixels(source,copyPixelRect,Global.ZERO_POINT,null,null,false);
             target.unlock();
         }
     }
