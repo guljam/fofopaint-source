@@ -209,10 +209,12 @@ package Modules
             var otherButton:DisplayObject = (layer == 1)
                 ? MainUI.topBar.capLayer2VisibleButton
                 : MainUI.topBar.capLayer1VisibleButton;
+
             if (bitmap.visible)
             {
                 bitmap.visible = false;
                 button.alpha = Global.OFFALPHA;
+
                 if (replayMode)
                 {
                     if ((layer == 1 && !isLayer2SelectedReplayMode())
@@ -221,6 +223,7 @@ package Modules
                         rCanvasDrawLayer.visible = false;
                     }
                 }
+
                 if (otherButton.alpha < 1.0)
                 {
                     toggleLayerCaptureMode((layer == 1) ? 2 : 1);
@@ -230,6 +233,7 @@ package Modules
             {
                 bitmap.visible = true;
                 button.alpha = 1.0;
+
                 if (replayMode)
                 {
                     if ((layer == 1 && !isLayer2SelectedReplayMode())
@@ -239,6 +243,7 @@ package Modules
                     }
                 }
             }
+
             CaptureArea.updateDrawArea();
         }
 
@@ -257,6 +262,7 @@ package Modules
                     UndoManager.applyDeepUndo();
                 }
 
+
                 rDataBuffer.push(["bgColor", color]);
                 UndoController.addNew();
             }
@@ -269,7 +275,9 @@ package Modules
                 return;
             }
 
+
             const arr:Array = rData[rData.length - 1];
+
             if (arr.length === 1)
             {
                 rData[rData.length - 1] = rDataBuffer.concat();
@@ -277,7 +285,7 @@ package Modules
             }
             else
             {
-                for (var i:uint = 0;i < arr.length;i++)
+                for (var i:uint = 0; i < arr.length; i++)
                 {
                     if (command === arr[i][0])
                     {
@@ -289,6 +297,7 @@ package Modules
                     }
                 }
             }
+
             rDataFrame[rDataFrame.length - 1] = rData[rData.length - 1].length;
         }
 
@@ -298,7 +307,9 @@ package Modules
             {
                 return;
             }
+
             const index:int = UndoManager.undoDataIndex;
+
             if (rData[index].length === 1)
             {
                 rData.splice(index);
@@ -307,7 +318,8 @@ package Modules
             else
             {
                 const len:uint = rData[index].length;
-                for (var i:uint = 0;i < len;i++)
+
+                for (var i:uint = 0; i < len; i++)
                 {
                     if (command === rData[index][i][0])
                     {
@@ -315,9 +327,11 @@ package Modules
                         --i;
                     }
                 }
+
                 rData.splice(index + 1);
                 rDataFrame.splice(index + 1);
             }
+
             UndoManager.isDeleteUndoDataPending = false;
             UndoController.updateLastRDataMirror();
             UndoManager.undoDataIndex = rData.length - 1;
@@ -326,10 +340,12 @@ package Modules
         public static function hasLastRDataCommand(command:String):Boolean
         {
             const index:int = UndoManager.undoDataIndex;
+
             if (rData.length > 0 && index >= 0)
             {
                 const len:uint = rData[index].length;
-                for (var i:uint = 0;i < len;i++)
+
+                for (var i:uint = 0; i < len; i++)
                 {
                     if (command === rData[index][i][0])
                     {
@@ -337,6 +353,7 @@ package Modules
                     }
                 }
             }
+
             return false;
         }
 
@@ -346,20 +363,24 @@ package Modules
             var count:int = 0;
             const pos:Point = new Point(0, 0);
             const frameRate:Number = main.stage.frameRate;
+
             function isMouseMoved():Boolean
             {
                 return pos.x !== main.stage.mouseX || pos.y !== main.stage.mouseY || CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked;
             }
+
             function updateMousePos():void
             {
                 pos.setTo(main.stage.mouseX, main.stage.mouseY);
             }
+
             function show():void
             {
                 Mouse.show();
                 isMouseHided = false;
                 count = 0;
             }
+
             function check():void
             {
                 if (isMouseHided)
@@ -375,6 +396,7 @@ package Modules
                     if (count > frameRate)
                     {
                         count = frameRate;
+
                         if (!MainUI.isHighlightBoxVisible())
                         {
                             Mouse.hide();
@@ -387,13 +409,16 @@ package Modules
                     {
                         count++;
                     }
+
                     if (isMouseMoved())
                     {
                         count = 0;
                     }
+
                     updateMousePos();
                 }
             }
+
             return {
                     check: check,
                     show: show
@@ -469,6 +494,7 @@ package Modules
             var newColorTransform:ColorTransform = new ColorTransform(1, 1, 1, lineStyleSave[0]);
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
             rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
+
             if (isLayer2SelectedReplayMode())
             {
                 rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, newColorTransform, lineStyleSave[1]);
@@ -477,6 +503,7 @@ package Modules
             {
                 rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, newColorTransform, lineStyleSave[1]);
             }
+
             // 캔버스 2번 지워줘야함
             rCanvasDrawShape.graphics.clear();
             rCanvasDrawLayerBitmapData.fillRect(new Rectangle(0, 0, rCanvasDrawLayerBitmapData.width, rCanvasDrawLayerBitmapData.height), 0);
@@ -486,6 +513,7 @@ package Modules
             CanvasController.setCanvasBGColorDrawMode(RCANVAS_BG_COLOR);
             CanvasController.updateCanvasPanelColorAndSize();
             CanvasController.canvasNavigatorBox.updateImage();
+
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();
@@ -521,6 +549,7 @@ package Modules
             MainUI.seekBarBox.setDeleteRangeBarVisible(false);
             createFirstImageCache(rCanvasLayer1BitmapData, rCanvasLayer2BitmapData, RCANVAS_BG_COLOR);
             const fs:FileStream = new FileStream();
+
             if (rDataReadFlag)
             {
                 // repfile 초기화
@@ -534,6 +563,7 @@ package Modules
                 rDataFrame.splice(0, rDataIndex + 1);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(getTotalFrame());
                 updateReplayPrograssText(true, TOTAL_FRAME);
+
                 if (TOTAL_FRAME === 0)
                 {
                     MainUI.seekBarBox.resetReplayPrograssBarWidth();
@@ -542,16 +572,19 @@ package Modules
                 {
                     MainUI.seekBarBox.setReplayPrograssBarMaxWidth();
                 }
+
                 MainUI.topBar.repNewFileButton.alpha = Global.OFFALPHA;
                 rReplayFOFOCursor.visible = false;
             }
             else
             {
                 // make jumpimage에서 변경해주기 때문에
+
                 if (repFileTemp.exists) // 이미 있으면 지워주고
                 {
                     repFileTemp.deleteFile();
                 }
+
                 var ba:ByteArray = new ByteArray();
                 var d:Array;
                 // 짤라서 ba에 넣어주기
@@ -571,12 +604,15 @@ package Modules
                 FileManager.isFileAlreadySaved = false;
                 startGeneratingReplayCacheImage();
             }
+
             resetReplaySpeedBar();
             isReplayFinished = true;
+
             if (UndoManager.undoDataIndex > rData.length - 1)
             {
                 UndoManager.undoDataIndex = rData.length - 1;
             }
+
             UndoManager.undoToIndex(UndoManager.undoDataIndex);
             UndoManager.disableDeepUndo();
             updateReplayPrograssBarAndText();
@@ -588,6 +624,7 @@ package Modules
         {
             ensureReplayCanvasState();
             MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+
             if (rDataReadFlag === true)
             {
                 // 위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
@@ -611,13 +648,15 @@ package Modules
                 const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
                 const index:Number = getCachedFrameImageIndex(rNowFrameSave);
                 // index번 이후 파일 삭제
-                for (var i:uint = 0, len:uint = list.length;i < len;i++)
+
+                for (var i:uint = 0, len:uint = list.length; i < len; i++)
                 {
                     if (parseInt(list[i].name) > index)
                     {
                         list[i].deleteFile();
                     }
                 }
+
                 // framedata도 인덱스 이후꺼 날려줌
                 rJumpImageFrameData.splice(index + 1);
                 setRFileTotalFrame(rNowFrameSave);
@@ -633,22 +672,26 @@ package Modules
                 syncDrawCanvasWithReplayCanvas();
                 UndoManager.resetUndoState();
                 CanvasController.canvasNavigatorBox.updateImage();
+
                 if (ImageViewWindow.isCanvasWindowON)
                 {
                     ImageViewWindow.updateCanvasWindowImage();
                     ImageViewWindow.updateCanvasWindowBitmapSize();
                 }
             }
+
             updateReplayPrograssBarAndText();
             updateReplaySpeedSliderAlpha();
             updateDeleteReplayDataButtonsState();
             resetReplaySpeedBar();
             UndoManager.disableDeepUndo();
             ReferenceLayerController.resetRefLayerImageTransform();
+
             if (SidebarController.isQuickSidebarActive)
             {
                 SidebarController.deactivateQuickSidebar();
             }
+
             FileManager.isContinueSaveON = false;
         }
         public static function createNewFileFromReplayCanvas():void
@@ -674,18 +717,21 @@ package Modules
                     MainUI.seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
                     updateDeleteReplayDataButtonsState();
                 }
+
                 if (rNowFrame >= TOTAL_FRAME)
                 {
                     MainUI.seekBarBox.setDeleteRangeBarVisible(false);
                     return true;
                 }
             }
+
             MainUI.seekBarBox.updateDeleteDangeBarPosWidth(mode);
             return false;
         }
         public static function initializeReplayDataFile(overWrite:Boolean = false):void // 기본 리플레이 파일 만들어줌
         {
             FileManager.initializeRepTempFile();
+
             if (FileManager.replayDataFilePath.exists === false || overWrite === true)
             {
                 const fs:FileStream = new FileStream();
@@ -727,6 +773,7 @@ package Modules
             {
                 FileManager.replayCacheImageFolderPath.deleteDirectory(true);
             }
+
             FileManager.replayCacheImageFolderPath.createDirectory();
             const fs:FileStream = new FileStream();
             var ba1:ByteArray = new ByteArray();
@@ -738,6 +785,7 @@ package Modules
             bmpd1.copyPixelsToByteArray(newRectangle, ba1);
             ba1.compress();
             rFirstImageLayer1BitmapData = CanvasController.updateBitmapData(rFirstImageLayer1BitmapData, bmpd1, null);
+
             if (bmpd2 === null)
                 bmpd2 = new BitmapData(w, h, true, 0);
             bmpd2.copyPixelsToByteArray(newRectangle, ba2);
@@ -764,10 +812,12 @@ package Modules
             {
                 MainUI.stageBG.removeChild(rCanvasCompleteAnchorPoint);
             }
+
             if (rCanvasCompleteBitmap.bitmapData)
             {
                 rCanvasCompleteBitmap.bitmapData.dispose();
             }
+
             rCanvasCompleteBitmap.filters = [];
             rCanvasPanel.filters = [];
         }
@@ -817,6 +867,7 @@ package Modules
         public static function startReplayRestartTimer():void
         {
             Global.setColorTransform(MainUI.seekBarBox.prograssBar, Global.getUIReplayRestartBarColor());
+
             if (isReplayRepeatON)
             {
                 rReplayRestartTimerCount = 20;
@@ -828,6 +879,7 @@ package Modules
                             handleReplayStartButton();
                             return false;
                         }
+
                         MainUI.seekBarBox.prograssInfo.text = HintStrings.getReplayRestartHintString(rReplayRestartTimerCount);
                         --rReplayRestartTimerCount;
                         return true;
@@ -865,6 +917,7 @@ package Modules
         public static function selectReplaySubLayer(flag:Boolean):void
         {
             rLastLayer2Selcted = flag;
+
             if (flag)
             {
                 if (rCanvasPanel.getChildIndex(rCanvasDrawLayer) > rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap))
@@ -881,17 +934,21 @@ package Modules
         {
             var tmpbmpd:BitmapData = new BitmapData(rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height, true, 0);
             var movedMat:Matrix = new Matrix();
+
             if (!layer1 && !layer2)
             {
                 layer1 = true;
                 layer2 = true;
             }
+
             movedMat.translate(x, y);
+
             if (layer1)
             {
                 tmpbmpd.draw(rCanvasLayer1BitmapData, movedMat);
                 CanvasController.copyPixels(rCanvasLayer1BitmapData, tmpbmpd);
             }
+
             if (layer2)
             {
                 tmpbmpd.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
@@ -899,12 +956,14 @@ package Modules
                 CanvasController.copyPixels(rCanvasLayer2BitmapData, tmpbmpd);
             }
 
+
             tmpbmpd.dispose();
             tmpbmpd = null;
         }
         public static function replayLineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void
         {
             rCanvasDrawLayer.alpha = alpha;
+
             if (shape)
             {
                 rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.ROUND);
@@ -918,6 +977,7 @@ package Modules
         public static function replayLineStyleReady2(shape:Boolean, size:uint, color:uint, alpha:Number):void
         {
             rCanvasDrawLayer.alpha = alpha;
+
             if (shape)
             {
                 rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.BEVEL);
@@ -930,6 +990,7 @@ package Modules
         public static function replayLineStyleReady3(shape:Boolean, size:uint, color:uint, alpha:Number):void
         {
             rCanvasDrawLayer.alpha = alpha;
+
             if (shape)
             {
                 rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.BEVEL);
@@ -953,6 +1014,7 @@ package Modules
             tmpbmpd.dispose();
             tmpbmpd = null;
             rMirrorON = !rMirrorON;
+
             if (isReplayCanvasFitToWindow)
             {
                 fitReplayCanvasToViewport();
@@ -971,120 +1033,145 @@ package Modules
             var data:Array = []; // 데이터 뭉치
             const cmd:Vector.<int> = new Vector.<int>();
             const pos:Vector.<Number> = new Vector.<Number>();
+
             function updateLineStyleBackup(alpha:Number, blendMode:String):void
             {
                 lineStyleBackup[0] = alpha;
                 lineStyleBackup[1] = blendMode;
             }
+
             function getFirstRCursorPos():Point
             {
                 return rCursorPosFirst;
             }
+
             function resetFirstRCursorPos():void
             {
                 rCursorPosFirst.setTo(-1, -1);
             }
+
             function setFirstRCursorPos(x:Number, y:Number):void
             {
                 rCursorPosFirst.setTo(x, y);
             }
+
             function setFirstRCursorPosCurrent():void
             {
                 rCursorPosFirst.setTo(rCursorPos.x, rCursorPos.y);
             }
+
             function hasRCursorFirstPos():Boolean
             {
                 return rCursorPosFirst.x > 0 && rCursorPosFirst.y > 0;
             }
+
             function updateRCursorPosToFirst():void
             {
                 rReplayFOFOCursor.x = rCursorPosFirst.x;
                 rReplayFOFOCursor.y = rCursorPosFirst.y;
             }
+
             function updateRCursorPos():void
             {
                 rReplayFOFOCursor.x = rCursorPos.x;
                 rReplayFOFOCursor.y = rCursorPos.y;
             }
 
+
             function setRCursorPosFromMoveTool(x:Number, y:Number):void
             {
                 setRCursorPos(rCursorPos.x + x, rCursorPos.y + y);
             }
+
             function setRCursorPosToCenter():void
             {
                 setRCursorPos(RCANVAS_WIDTH / 2, RCANVAS_HEIGHT / 2);
             }
+
             function setRCursorPos(x:Number, y:Number):void
             {
                 if (x < 0)
                     x = 0;
                 else if (x > RCANVAS_WIDTH)
                     x = RCANVAS_WIDTH;
+
                 if (y < 0)
                     y = 0;
                 else if (y > RCANVAS_HEIGHT)
                     y = RCANVAS_HEIGHT;
                 rCursorPos.setTo(x, y);
             }
+
             function getRCursorPos():Point
             {
                 return rCursorPos;
             }
+
             function clearData():void
             {
                 data = [];
                 index = 0;
             }
+
             function setData(refData:Array, startIndex:uint = 0):void
             {
                 data = refData;
                 index = startIndex;
             }
+
             function getRemainingData():uint
             {
                 if (!data)
                     return 0;
                 return data.length - index;
             }
+
             function isReadFinished():Boolean
             {
                 if (!data)
                     return true;
                 return index > data.length - 1;
             }
+
             function getDataLength():uint
             {
                 if (!data)
                     return 0;
                 return data.length;
             }
+
             function getCurrentPosition():uint
             {
                 return index;
             }
+
             function setIndex(newIndex:uint):void
             {
                 index = newIndex;
             }
+
             function getLineStyleAlpha():Number
             {
                 return lineStyleBackup[0];
             }
+
             function getrLineStyleSave():Array
             {
                 if (lineStyleBackup.length !== 2)
                     return [1.0, null];
                 return lineStyleBackup;
             }
+
             function drawAll():void
             {
                 var len:uint = data.length;
-                for (var i:uint = 0;i < len;i++)
+
+                for (var i:uint = 0; i < len; i++)
                 {
                     drawNext();
                 }
             }
+
             function checkAirBrush(airBrushFlag:Boolean, size:uint):void
             {
                 if (airBrushFlag === true)
@@ -1097,11 +1184,13 @@ package Modules
                     resetBlurReplayCanvas();
                 }
             }
+
             function checkSubLayer(subLayerFlag:Boolean):void
             {
                 if (subLayerFlag)
                 {
                     // if((replayStartON && subLayerFlag) !== false && rSubLayerSave !== subLayerFlag)
+
                     if (rLastLayer2Selcted !== subLayerFlag)
                     {
                         selectReplaySubLayer(subLayerFlag);
@@ -1112,6 +1201,7 @@ package Modules
                     selectReplaySubLayer(false);
                 }
             }
+
             function lineStyle5(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1127,6 +1217,7 @@ package Modules
                 updateLineStyleBackup(alpha, blendMode);
                 checkSubLayer(subLayer);
                 rAirBrushSize2 = airBrushSize;
+
                 if (fillpen)
                 {
                     rCanvasDrawShape.graphics.clear();
@@ -1140,6 +1231,7 @@ package Modules
                     replayLineStyleReady3(shape, size, color, alpha);
                     rCanvasDrawShape.graphics.moveTo(startX, startY);
                 }
+
                 if (index === 0)
                 {
                     CanvasController.resetRCanvasDrawLayerCliprect2();
@@ -1149,6 +1241,7 @@ package Modules
                     updateRCanvasDrawLayerCliprect2();
                 }
             }
+
             function lineStyle4(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1164,6 +1257,7 @@ package Modules
                 updateLineStyleBackup(alpha, blendMode);
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush, size);
+
                 if (fillpen)
                 {
                     rCanvasDrawShape.graphics.clear();
@@ -1177,6 +1271,7 @@ package Modules
                     replayLineStyleReady3(shape, size, color, alpha);
                     rCanvasDrawShape.graphics.moveTo(startX, startY);
                 }
+
                 if (index === 0)
                 {
                     CanvasController.resetRCanvasDrawLayerCliprect();
@@ -1186,6 +1281,7 @@ package Modules
                     CanvasController.updateRCanvasDrawLayerCliprect();
                 }
             }
+
             function lineStyle3(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1201,6 +1297,7 @@ package Modules
                 updateLineStyleBackup(alpha, blendMode);
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush, size);
+
                 if (!fillpen)
                 {
                     replayLineStyleReady3(shape, size, color, alpha);
@@ -1215,6 +1312,7 @@ package Modules
                     rCanvasDrawLayer.alpha = alpha;
                 }
             }
+
             function lineStyle2(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1230,6 +1328,7 @@ package Modules
                 updateLineStyleBackup(alpha, blendMode);
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush, size);
+
                 if (!fillpen)
                 {
                     replayLineStyleReady2(shape, size, color, alpha);
@@ -1244,6 +1343,7 @@ package Modules
                     rCanvasDrawLayer.alpha = alpha;
                 }
             }
+
             function lineStyle(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1259,6 +1359,7 @@ package Modules
                 updateLineStyleBackup(alpha, blendMode);
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush, size);
+
                 if (!fillpen)
                 {
                     replayLineStyleReady(shape, size, color, alpha);
@@ -1273,6 +1374,7 @@ package Modules
                     rCanvasDrawLayer.alpha = alpha;
                 }
             }
+
             function lineTo(data:Array):void
             {
                 const x:Number = data[1];
@@ -1280,6 +1382,7 @@ package Modules
                 rCanvasDrawShape.graphics.lineTo(x, y);
                 setRCursorPos(x, y);
             }
+
             function sqline(data:Array):void
             {
                 const size:Number = data[1];
@@ -1298,6 +1401,7 @@ package Modules
                 rCanvasDrawShape.graphics.drawPath(command, xyData);
                 setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
             }
+
             function fill5(data:Array):void
             {
                 const color:Number = data[1];
@@ -1317,6 +1421,7 @@ package Modules
                 setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
                 CanvasController.resetRCanvasDrawLayerCliprect2();
             }
+
             function fill4(data:Array):void
             {
                 const color:Number = data[1];
@@ -1336,6 +1441,7 @@ package Modules
                 setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
                 CanvasController.resetRCanvasDrawLayerCliprect();
             }
+
             function fill3(data:Array):void
             {
                 const color:Number = data[1];
@@ -1354,6 +1460,7 @@ package Modules
                 rCanvasDrawShape.graphics.drawPath(command, xyData);
                 setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
             }
+
             function fill2(data:Array):void
             {
                 const color:Number = data[1];
@@ -1368,13 +1475,16 @@ package Modules
                 rCanvasDrawShape.graphics.lineStyle(1, color);
                 rCanvasDrawShape.graphics.beginFill(color);
                 rCanvasDrawShape.graphics.moveTo(arr[0], arr[1]);
-                for (var i:uint = 2;i < len;i += 2)
+
+                for (var i:uint = 2; i < len; i += 2)
                 {
                     rCanvasDrawShape.graphics.lineTo(arr[i], arr[i + 1]);
                 }
+
                 rCanvasDrawShape.graphics.endFill();
                 setRCursorPos(arr[len - 2], arr[len - 1]);
             }
+
             function fill(data:Array):void
             {
                 const color:Number = data[1];
@@ -1391,6 +1501,7 @@ package Modules
                 rCanvasDrawShape.graphics.drawPath(command, xyData);
                 setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
             }
+
             function dot4(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1409,6 +1520,7 @@ package Modules
                 rCanvasDrawLayer.alpha = alpha;
                 rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
                 rCanvasDrawShape.graphics.beginFill(color);
+
                 if (shape)
                 {
                     cmd.length = 0;
@@ -1437,10 +1549,12 @@ package Modules
                 {
                     rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
                 }
+
                 rCanvasDrawShape.graphics.endFill();
                 CanvasController.resetRCanvasDrawLayerCliprect2();
                 setRCursorPos(startX, startY);
             }
+
             function dot3(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1459,6 +1573,7 @@ package Modules
                 rCanvasDrawLayer.alpha = alpha;
                 rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
                 rCanvasDrawShape.graphics.beginFill(color);
+
                 if (shape)
                 {
                     cmd.length = 0;
@@ -1485,10 +1600,12 @@ package Modules
                 {
                     rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
                 }
+
                 rCanvasDrawShape.graphics.endFill();
                 CanvasController.resetRCanvasDrawLayerCliprect();
                 setRCursorPos(startX, startY);
             }
+
             function dot2(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1506,6 +1623,7 @@ package Modules
                 rCanvasDrawLayer.alpha = alpha;
                 rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
                 rCanvasDrawShape.graphics.beginFill(color);
+
                 if (shape)
                     rCanvasDrawShape.graphics.drawRect(startX - size / 2, startY - size / 2, size, size);
                 else
@@ -1514,6 +1632,7 @@ package Modules
                 CanvasController.resetRCanvasDrawLayerCliprect();
                 setRCursorPos(startX, startY);
             }
+
             function dot(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1531,6 +1650,7 @@ package Modules
                 rCanvasDrawLayer.alpha = alpha;
                 rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
                 rCanvasDrawShape.graphics.beginFill(color);
+
                 if (shape)
                     rCanvasDrawShape.graphics.drawRect(startX - size / 2, startY - size / 2, size, size);
                 else
@@ -1538,6 +1658,7 @@ package Modules
                 rCanvasDrawShape.graphics.endFill();
                 setRCursorPos(startX, startY);
             }
+
             function line3(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1555,6 +1676,7 @@ package Modules
                 rCanvasDrawLayer.alpha = alpha;
                 checkSubLayer(subLayer);
                 rAirBrushSize2 = airBrushSize;
+
                 if (shape)
                     rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
                 else
@@ -1564,6 +1686,7 @@ package Modules
                 CanvasController.resetRCanvasDrawLayerCliprect2();
                 setRCursorPos(endX, endY);
             }
+
             function line2(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1581,6 +1704,7 @@ package Modules
                 rCanvasDrawLayer.alpha = alpha;
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush, size);
+
                 if (shape)
                     rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
                 else
@@ -1590,6 +1714,7 @@ package Modules
                 CanvasController.resetRCanvasDrawLayerCliprect();
                 setRCursorPos(endX, endY);
             }
+
             function line1(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1607,6 +1732,7 @@ package Modules
                 rCanvasDrawLayer.alpha = alpha;
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush, size);
+
                 if (shape)
                     rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
                 else
@@ -1615,6 +1741,7 @@ package Modules
                 rCanvasDrawShape.graphics.lineTo(endX, endY);
                 setRCursorPos(endX, endY);
             }
+
             function line(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -1632,6 +1759,7 @@ package Modules
                 rCanvasDrawLayer.alpha = alpha;
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush, size);
+
                 if (shape)
                     rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.ROUND);
                 else
@@ -1640,27 +1768,33 @@ package Modules
                 rCanvasDrawShape.graphics.lineTo(endX, endY);
                 setRCursorPos(endX, endY);
             }
+
             function move1(data:Array):void
             {
                 moveImageReplayMode(data[1], data[2], true, false);
                 setRCursorPosFromMoveTool(data[1], data[2]);
             }
+
             function move2(data:Array):void
             {
                 moveImageReplayMode(data[1], data[2], false, true);
                 setRCursorPosFromMoveTool(data[1], data[2]);
             }
+
             function move(data:Array):void
             {
                 moveImageReplayMode(data[1], data[2], true, true);
                 setRCursorPosFromMoveTool(data[1], data[2]);
             }
+
             function resetLassoVars():void
             {
                 LassoTool.lassoLayer1Bitmap.filters = [];
                 LassoTool.lassoLayer2Bitmap.filters = [];
+
                 if (LassoTool.lassoLayer1Bitmap.bitmapData)
                     LassoTool.lassoLayer1Bitmap.bitmapData.dispose();
+
                 if (LassoTool.lassoLayer2Bitmap.bitmapData)
                     LassoTool.lassoLayer2Bitmap.bitmapData.dispose();
                 LassoTool.lassoLayer1.x = 0;
@@ -1676,12 +1810,15 @@ package Modules
                 LassoTool.lassoLayer2.rotation = 0;
                 LassoTool.lassoLayer2.visible = false;
             }
+
             // 성능 문제로 샤픈 안해줌
+
             function lasso2(data:Array, clearOnly:Boolean):void
             {
                 if (data[1].length === 0 || data[2].length === 0)
                     return;
                 var imageMovedToLasso:Boolean;
+
                 if (data.length <= 5)
                 {
                     if (data[3] === null || (data[3] is Array && data[3].length === 0))
@@ -1703,6 +1840,7 @@ package Modules
                     // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
                     imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], data[5], data[6]);
                 }
+
                 if (imageMovedToLasso && !clearOnly)
                 {
                     var lassoInfo:Array = (data[3] is Array && data[3].length === 7) ? data[3] : data[4];
@@ -1721,6 +1859,7 @@ package Modules
                     setRCursorPos(boxX, boxY);
                     LassoTool.lassoLayer1Bitmap.smoothing = true;
                     LassoTool.lassoLayer2Bitmap.smoothing = true;
+
                     if (data[7] as Boolean)
                     {
                         if (data[7] === true)
@@ -1731,7 +1870,8 @@ package Modules
                     else if (data[7] as Array)
                     {
                         const len:uint = data[7].length;
-                        for (var i:uint = 0;i < len;i++)
+
+                        for (var i:uint = 0; i < len; i++)
                         {
                             if (data[7][i] === 0)
                             {
@@ -1743,24 +1883,29 @@ package Modules
                             }
                         }
                     }
+
                     if (data[5] || !data[5] && !data[6])
                     {
                         rCanvasLayer1BitmapData.draw(LassoTool.lassoLayer1Bitmap, mat);
                         rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
                     }
+
                     if (data[6])
                     {
                         rCanvasLayer2BitmapData.draw(LassoTool.lassoLayer2Bitmap, mat);
                         rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
                     }
                 }
+
                 resetLassoVars();
             }
+
             function lasso(data:Array, clearOnly:Boolean):void
             {
                 if (data[1].length === 0 || data[2].length === 0)
                     return;
                 var imageMovedToLasso:Boolean;
+
                 if (data.length <= 5)
                 {
                     if (data[3] === null || (data[3] is Array && data[3].length === 0))
@@ -1782,6 +1927,7 @@ package Modules
                     // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
                     imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], data[5], data[6]);
                 }
+
                 if (imageMovedToLasso && !clearOnly)
                 {
                     var lassoInfo:Array = (data[3] is Array && data[3].length === 7) ? data[3] : data[4];
@@ -1800,6 +1946,7 @@ package Modules
                     setRCursorPos(boxX, boxY);
                     LassoTool.lassoLayer1Bitmap.smoothing = true;
                     LassoTool.lassoLayer2Bitmap.smoothing = true;
+
                     if (data[7] as Boolean)
                     {
                         if (data[7] === true)
@@ -1810,7 +1957,8 @@ package Modules
                     else if (data[7] as Array)
                     {
                         const len:uint = data[7].length;
-                        for (var i:uint = 0;i < len;i++)
+
+                        for (var i:uint = 0; i < len; i++)
                         {
                             if (data[7][i] === 0)
                             {
@@ -1822,28 +1970,34 @@ package Modules
                             }
                         }
                     }
+
                     if (bmpScaleX !== 1 || bmpAngle !== 0)
                     {
                         LassoTool.applyLassoShapen(bmpScaleX);
                     }
+
                     if (data[5] || !data[5] && !data[6])
                     {
                         rCanvasLayer1BitmapData.draw(LassoTool.lassoLayer1Bitmap, mat);
                         rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
                     }
+
                     if (data[6])
                     {
                         rCanvasLayer2BitmapData.draw(LassoTool.lassoLayer2Bitmap, mat);
                         rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
                     }
                 }
+
                 resetLassoVars();
             }
+
             function mirror():void
             {
                 mirrorCanvasReplayMode();
                 setRCursorPosToCenter();
             }
+
             function bgColor(data:Array):void
             {
                 const color:uint = data[1];
@@ -1851,6 +2005,7 @@ package Modules
                 updateCanvasBGColorReplayMode(color);
                 setRCursorPosToCenter();
             }
+
             function canvasSize(data:Array):void
             {
                 const width:Number = data[1];
@@ -1861,6 +2016,7 @@ package Modules
                 updateCanvasSizeReplayMode(width, height, moveX, moveY, movedFlag);
                 setRCursorPos(width / 2, height / 2);
             }
+
             function tempDone4(data:Array):void
             {
                 if (rAirBrushSize2 > 0)
@@ -1874,10 +2030,12 @@ package Modules
                 {
                     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
                 }
+
                 rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
                 updateRCanvasDrawLayerCliprect2();
                 rCanvasDrawShape.graphics.clear();
             }
+
             function tempDone3(data:Array):void
             {
                 rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
@@ -1885,6 +2043,7 @@ package Modules
                 updateRCanvasDrawLayerCliprect2();
                 rCanvasDrawShape.graphics.clear();
             }
+
             function tempDone2(data:Array):void
             {
                 if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
@@ -1904,6 +2063,7 @@ package Modules
                     rCanvasDrawShape.graphics.clear();
                 }
             }
+
             function tempDone(data:Array):void
             {
                 if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
@@ -1921,11 +2081,13 @@ package Modules
                     rCanvasDrawShape.graphics.clear();
                 }
             }
+
             function drawDone5(data:Array):void
             {
                 const lineStyleData:Array = getrLineStyleSave();
                 const subLayer:Boolean = data[1];
                 const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
+
                 if (rAirBrushSize2 > 0)
                 {
                     const blurSize:Number = CanvasController.getBlurSize(rAirBrushSize2, 1.0);
@@ -1937,9 +2099,11 @@ package Modules
                 {
                     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
                 }
+
                 rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
                 updateRCanvasDrawLayerCliprect2();
                 CanvasController.extandRCanvasDrawLayerCliprect2();
+
                 if (subLayer)
                 {
                     rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
@@ -1950,9 +2114,11 @@ package Modules
                     rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
                     rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
                 }
+
                 rCanvasDrawLayerBitmapData.fillRect(rCanvasDrawLayerClipRect, 0);
                 rCanvasDrawShape.graphics.clear();
             }
+
             function drawDone4(data:Array):void
             {
                 const lineStyleData:Array = getrLineStyleSave();
@@ -1962,12 +2128,14 @@ package Modules
                 rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
                 updateRCanvasDrawLayerCliprect2();
                 CanvasController.extandRCanvasDrawLayerCliprect2();
+
                 if (rAirBrushSize2 > 0)
                 {
                     const blurSize:Number = CanvasController.getBlurSize(rAirBrushSize2, 1.0);
                     rCanvasDrawLayerBitmapData.applyFilter(rCanvasDrawLayerBitmapData, rCanvasDrawLayerClipRect, new Point(rCanvasDrawLayerClipRect.x, rCanvasDrawLayerClipRect.y), new BlurFilter(blurSize, blurSize, 3));
                     rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
                 }
+
                 if (subLayer)
                 {
                     rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
@@ -1978,14 +2146,17 @@ package Modules
                     rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
                     rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
                 }
+
                 rCanvasDrawLayerBitmapData.fillRect(rCanvasDrawLayerClipRect, 0);
                 rCanvasDrawShape.graphics.clear();
             }
+
             function drawDone3(data:Array):void
             {
                 const lineStyleData:Array = getrLineStyleSave();
                 const subLayer:Boolean = data[1];
                 const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
+
                 if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
                 {
                     blurReplayCanvasByDefaultValue();
@@ -1998,8 +2169,10 @@ package Modules
                     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
                     rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
                 }
+
                 CanvasController.updateRCanvasDrawLayerCliprect();
                 CanvasController.extandRCanvasDrawLayerCliprect();
+
                 if (subLayer)
                 {
                     rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRectLegacy);
@@ -2010,18 +2183,22 @@ package Modules
                     rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRectLegacy);
                     rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
                 }
+
                 rCanvasDrawLayerBitmapData.fillRect(rCanvasDrawLayerClipRectLegacy, 0);
                 rCanvasDrawShape.graphics.clear();
+
                 if (rAirBrushSize > 0)
                 {
                     resetBlurReplayCanvas();
                 }
             }
+
             function drawDone2(data:Array):void
             {
                 const lineStyleData:Array = getrLineStyleSave();
                 const subLayer:Boolean = data[1];
                 const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
+
                 if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
                 {
                     blurReplayCanvasByDefaultValue();
@@ -2034,6 +2211,7 @@ package Modules
                     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
                     rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
                 }
+
                 if (subLayer)
                 {
                     rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1]);
@@ -2044,19 +2222,23 @@ package Modules
                     rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1]);
                     rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
                 }
+
                 rCanvasDrawLayerBitmapData.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
                 rCanvasDrawShape.graphics.clear();
+
                 if (rAirBrushSize > 0)
                 {
                     resetBlurReplayCanvas();
                 }
             }
+
             function drawDone(data:Array):void
             {
                 const lineStyleData:Array = getrLineStyleSave();
                 // if(!lineStyleData) return;
                 const subLayer:Boolean = data[1];
                 const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
+
                 if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
                 {
                     blurReplayCanvasByDefaultValue();
@@ -2069,6 +2251,7 @@ package Modules
                     rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
                     rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
                 }
+
                 if (subLayer)
                 {
                     var tmpbmpd:BitmapData = new BitmapData(RCANVAS_WIDTH, RCANVAS_HEIGHT, true, 0);
@@ -2083,14 +2266,17 @@ package Modules
                     rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1]);
                     rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
                 }
+
                 rCanvasDrawLayerBitmap.bitmapData = null;
                 rCanvasDrawLayerBitmapData.fillRect(new Rectangle(0, 0, rCanvasDrawLayerBitmapData.width, rCanvasDrawLayerBitmapData.height), 0);
                 rCanvasDrawShape.graphics.clear();
+
                 if (rAirBrushSize > 0)
                 {
                     resetBlurReplayCanvas();
                 }
             }
+
             function clear(layer1:Boolean, layer2:Boolean):void
             {
                 if (!layer1 && !layer2)
@@ -2098,13 +2284,17 @@ package Modules
                     layer1 = true;
                     layer2 = true;
                 }
+
                 const rect:Rectangle = new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
+
                 if (layer1)
                     rCanvasLayer1BitmapData.fillRect(rect, 0);
+
                 if (layer2)
                     rCanvasLayer2BitmapData.fillRect(rect, 0);
                 setRCursorPosToCenter();
             }
+
             function swapLayer():void
             {
                 var tempbmpd1:BitmapData = rCanvasLayer1BitmapData.clone();
@@ -2120,19 +2310,23 @@ package Modules
                 tempbmpd11 = null;
                 setRCursorPosToCenter();
             }
+
             function mergeLayer():void
             {
                 rCanvasLayer2BitmapData.draw(rCanvasLayer1BitmapData);
                 rCanvasLayer1BitmapData.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
                 setRCursorPosToCenter();
             }
+
             function drawNext():void
             {
                 if (!data || data.length === 0)
                 {
                     return;
                 }
+
                 const d:Array = data[index];
+
                 switch (d[0])
                 {
                     case "lineStyle":
@@ -2270,8 +2464,10 @@ package Modules
                     default:
                         break;
                 }
+
                 index++;
             }
+
             return {
                     drawNext: drawNext,
                     drawAll: drawAll,
@@ -2301,11 +2497,14 @@ package Modules
         {
             TOTAL_FRAME = totalframe;
             var maxSpeed:Number = Math.floor(totalframe / 10 / main.stage.frameRate);
+
             if (maxSpeed < 1.0)
             {
                 maxSpeed = 1.0;
             }
+
             REPLAY_MAX_SPEED = maxSpeed;
+
             if (rReplaySpeedMultipler > maxSpeed)
             {
                 rReplaySpeedMultipler = maxSpeed;
@@ -2315,10 +2514,12 @@ package Modules
         public static function updateReplayPrograssText(finishFlag:Boolean = false, customFrame:Number = NaN):void
         {
             const remainingTime:String = (UndoManager.isDeepUndoEnabled || finishFlag) ? "" : getReplayRemainingTimeString(rReplaySpeedMultipler, TOTAL_FRAME - rNowFrame);
+
             if (isNaN(customFrame))
             {
                 customFrame = rNowFrame;
             }
+
             MainUI.seekBarBox.prograssInfo.text = customFrame + " / " + TOTAL_FRAME + remainingTime;
         }
         public static function startUpdatingPrograssBarTimer():void
@@ -2327,6 +2528,7 @@ package Modules
             {
                 return;
             }
+
             var lastCursorUpdateTime:int = getTimer();
             var lastTextUpdateTime:int = getTimer();
             const cursorUpdateTime:int = main.stage.frameRate * 2;
@@ -2339,6 +2541,7 @@ package Modules
                     {
                         return false;
                     }
+
                     if (rNowFrame >= TOTAL_FRAME)
                     {
                         MainUI.seekBarBox.setReplayPrograssBarMaxWidth();
@@ -2349,22 +2552,27 @@ package Modules
                         MainUI.hideBottomHint();
                         return false;
                     }
+
                     const nowTime:int = getTimer();
+
                     if (nowTime - lastCursorUpdateTime >= cursorUpdateTime)
                     {
                         lastCursorUpdateTime = nowTime;
                         drawReplayByCommand.updateRCursorPos();
+
                         if (!isReplayCanvasFitToWindow && !CanvasController.isMouseLeftClicked && !UndoManager.isDeepUndoEnabled)
                         {
                             rFollowMouse.check(isReplaySlideShowMode);
                         }
                     }
+
                     if (nowTime - lastTextUpdateTime >= textUpdateTime)
                     {
                         lastTextUpdateTime = nowTime;
                         updateReplayPrograssText();
                         MainUI.seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
                     }
+
                     updatePrograssBarStartTime = getTimer();
                     return true;
                 });
@@ -2372,11 +2580,13 @@ package Modules
         public static function drawCanvasFromReplayDataSlideShowMode():void
         {
             const nowTime:int = getTimer();
+
             if (nowTime - rSeekbarTextUpdateTime >= REPLAY_SLIDESHOW_UPDATE_TIME)
             {
                 rSeekbarTextUpdateTime = nowTime;
                 const nextFrame:Number = rReplaySpeedMultipler * main.stage.frameRate;
                 renderReplayFrame(rNowFrame + Math.floor(nextFrame / REPLAY_SLIDESHOW_FRAME_RATE), JUMP_FRAME_MANUAL);
+
                 if (rNowFrame >= TOTAL_FRAME)
                 {
                     isReplayFinished = true;
@@ -2394,6 +2604,7 @@ package Modules
                         {
                             isReplaySlideShowMode = false;
                             rFileStream.close();
+
                             if (!rDataReadFlag)
                             {
                                 rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
@@ -2404,8 +2615,10 @@ package Modules
                         {
                             drawCanvasFromReplayDataSlideShowMode();
                         }
+
                         return true;
                     }
+
                     if (shouldUseReplaySlideShowMode())
                     {
                         isReplaySlideShowMode = true;
@@ -2415,6 +2628,7 @@ package Modules
                     {
                         drawCanvasFromReplayData(rReplaySpeedMultipler, JUMP_FRAME_PLAY);
                     }
+
                     return true;
                 });
         }
@@ -2422,11 +2636,12 @@ package Modules
         {
             if (rFrameTempCachedImages.length > 0)
             {
-                for (var i:int = 0;i < rFrameTempCachedImages.length;i++)
+                for (var i:int = 0; i < rFrameTempCachedImages.length; i++)
                 {
                     rFrameTempCachedImages[i][0].dispose();
                     rFrameTempCachedImages[i][1].dispose();
                 }
+
                 rFrameTempCachedImages.length = 0;
                 rJumpImageIndexLast = -2;
                 rCachedImageLastIndex = -2;
@@ -2461,21 +2676,25 @@ package Modules
             var jumpImageGroupIndex:int;
             var nowJumpFlag:Boolean;
             const cursorUpdateTime:int = main.stage.frameRate * 2;
+
             function makeMemoryCacheImage():void
             {
                 createRFrameTempCache(rFrameTempCachedImages.length, rFileCutBytePosition);
             }
+
             function readyToReadMemoryData(jumpFlag:int):void
             {
                 rDataReadFlag = true;
                 rDataIndex = rDataStartIndex;
                 rDataStartIndex = 0;
                 rDataLen = rData.length;
+
                 if (jumpFlag === JUMP_FRAME_PLAY)
                 {
                     rFileStream.close();
                     rFileLastBytePosition = 0;
                 }
+
                 if (rData.length > 0)
                 {
                     rPrevFrame = rNowFrame;
@@ -2486,11 +2705,13 @@ package Modules
                     drawReplayByCommand.clearData();
                 }
             }
+
             function readNextFileData():Boolean
             {
                 if (rFileStream.bytesAvailable > 0)
                 {
                     const obj:Array = rFileStream.readObject() as Array;
+
                     if (!obj)
                         return true;
                     drawReplayByCommand.setData(obj);
@@ -2499,14 +2720,17 @@ package Modules
                     rPrevFrame = rNowFrame;
                     return true;
                 }
+
                 return false;
             }
+
             function checkFinish(jumpFlag:int):Boolean
             {
                 if (rDataIndex >= rDataLen || rDataLen === 0) // 자연적으로 끝났을때
                 {
                     rReplayFOFOCursor.visible = false;
                     isReplayFinished = true;
+
                     if (jumpFlag === JUMP_FRAME_PLAY || isReplaySlideShowMode === true) // 1프레임 이상일때만 재시작 타이머 가동
                     {
                         // reset replay time해주지 말고 그냥 end플래그만 올려줌
@@ -2515,29 +2739,35 @@ package Modules
                         return true;
                     }
                 }
+
                 return false;
             }
+
             function drawFromMemoryData(len:Number, jumpFlag:int):void
             {
-                for (var i:Number = 0;i < len;i++)
+                for (var i:Number = 0; i < len; i++)
                 {
                     if (drawReplayByCommand.isReadFinished())
                     {
                         rDataIndex++;
+
                         if (checkFinish(jumpFlag))
                         {
                             return;
                         }
+
                         rPrevFrame = rNowFrame;
                         drawReplayByCommand.setData(rData[rDataIndex]);
                     }
+
                     drawReplayByCommand.drawNext();
                     rNowFrame++;
                 }
             }
+
             function drawFromFileData(len:Number, jumpFlag:int):void
             {
-                for (var i:Number = 0;i < len;i++)
+                for (var i:Number = 0; i < len; i++)
                 {
                     if (drawReplayByCommand.isReadFinished())
                     {
@@ -2547,6 +2777,7 @@ package Modules
                             readyToReadMemoryData(jumpFlag);
                             return;
                         }
+
                         if (isReplayStarted === false && (jumpFlag === JUMP_FRAME_MANUAL || jumpFlag === JUMP_FRAME_PREV))
                         {
                             if (rNowFrame > getRFrameTempCacheLastFrame() + REPLAY_MEMORY_CACHE_FRAME_INTERVAL)
@@ -2555,43 +2786,51 @@ package Modules
                             }
                         }
                     }
+
                     drawReplayByCommand.drawNext();
                     rNowFrame++;
                     readCount--;
                 }
             }
+
             return function (jumpCount:Number, jumpFlag:int):void
             {
                 if (jumpCount > 0)
                 {
                     readCount = jumpCount;
+
                     if (!rDataReadFlag)
                     {
                         // readcount 감소
                         drawFromFileData(jumpCount, jumpFlag);
                     }
+
                     if (readCount > 0)
                     {
                         // readcount를 읽어줌
                         drawFromMemoryData(readCount, jumpFlag);
                     }
                 }
+
             };
         }
         public static function getReplayRemainingTimeString(speed:Number, totalFrame:Number, isSlideShowMode:Boolean = false):String
         {
             const fps:Number = (isSlideShowMode === true) ? 1.0 : main.stage.frameRate;
             const totalSec:Number = totalFrame / (fps * speed);
+
             if (totalSec === 0)
                 return "";
             const hour:int = totalSec / 3600;
             const min:int = totalSec % 3600 / 60;
             const sec:int = totalSec % 60;
             var timeStr:String = "";
+
             if (hour > 0)
             {
                 timeStr += hour + ":";
             }
+
             if (min > 0)
             {
                 timeStr += (min >= 10) ? min + ":" : "0" + min + ":";
@@ -2600,6 +2839,7 @@ package Modules
             {
                 timeStr = "00:";
             }
+
             if (sec > 0)
             {
                 timeStr += (sec >= 10) ? sec : "0" + sec;
@@ -2608,12 +2848,14 @@ package Modules
             {
                 timeStr += "00";
             }
+
             if (hour === 0 && min === 0 && sec === 0)
             {
                 const milisec:Number = totalSec - Math.floor(totalSec);
                 const milisecStr:String = milisec.toFixed(1);
                 return " (" + milisecStr + ")";
             }
+
             return " (" + timeStr + ")";
         }
         public static function cReplayFollowMouse():Object
@@ -2643,10 +2885,12 @@ package Modules
             const topLimit:Number = padding + MainUI.topBar.BARSIZE;
             var rightLimit:Number;
             var bottomLimit:Number;
+
             function updateScale(newScale:Number):void
             {
                 scale = newScale;
             }
+
             function updateBounds():void
             {
                 bounds = Utils.getBoundRect(rCanvasLayer1Bitmap);
@@ -2666,11 +2910,13 @@ package Modules
                 rightLimit = stw - padding;
                 bottomLimit = sth + MainUI.topBar.BARSIZE - padding;
             }
+
             function check(viewCenterFlag:Boolean):void
             {
                 cp = drawReplayByCommand.getRCursorPos();
                 globalChecked = false;
                 const div:Number = (viewCenterFlag) ? 1 : 3;
+
                 if (isCanvasWidthSmallerStage)
                 {
                     if (isNotCenterX)
@@ -2685,6 +2931,7 @@ package Modules
                     gp = rCanvasLayer1Bitmap.localToGlobal(new Point(0, 0));
                     rg = Utils.rotatePoint(cp.x, cp.y, -rCanvasAnchorPoint.rotation);
                     cursorPos.x = gp.x + (rg.x * zoom);
+
                     if (cursorPos.x < leftLimit)
                     {
                         rCanvasAnchorPoint.x += Math.floor(Math.abs((cursorPos.x - stw / 2) / div));
@@ -2696,6 +2943,7 @@ package Modules
                         updateBounds();
                     }
                 }
+
                 if (isCanvasHeightSmallerStage)
                 {
                     if (isNotCenterY)
@@ -2712,7 +2960,9 @@ package Modules
                         gp = rCanvasLayer1Bitmap.localToGlobal(new Point(0, 0));
                         rg = Utils.rotatePoint(cp.x, cp.y, -rCanvasAnchorPoint.rotation);
                     }
+
                     cursorPos.y = gp.y + (rg.y * zoom);
+
                     if (cursorPos.y < topLimit)
                     {
                         rCanvasAnchorPoint.y += Math.floor(Math.abs((cursorPos.y - sth / 2) / div));
@@ -2725,6 +2975,7 @@ package Modules
                     }
                 }
             }
+
             return {
                     check: check,
                     updateBounds: updateBounds,
@@ -2751,6 +3002,7 @@ package Modules
         public static function toggleReplayRepeat():void
         {
             isReplayRepeatON = !isReplayRepeatON;
+
             if (isReplayRepeatON)
             {
                 MainUI.topBar.replayRepeatButton.alpha = 1.0;
@@ -2793,6 +3045,7 @@ package Modules
             else
             {
                 MainUI.topBar.repNewFileButton.alpha = 1.0;
+
                 if (rNowFrame > 0 && rNowFrame < TOTAL_FRAME)
                 {
                     MainUI.topBar.superUndoButton.alpha = 1.0;
@@ -2808,6 +3061,7 @@ package Modules
         public static function readyForFrameJump():void
         {
             isReplayFinished = false;
+
             if (isReplayStarted)
             {
                 stopReplay();
@@ -2816,6 +3070,7 @@ package Modules
         public static function moveToPreviousStep():void
         {
             readyForFrameJump();
+
             if (rNowFrame > 0)
             {
                 renderReplayFrame(rPrevFrame, JUMP_FRAME_PREV);
@@ -2827,6 +3082,7 @@ package Modules
         public static function moveToNextStep():void
         {
             readyForFrameJump();
+
             if (rNowFrame <= TOTAL_FRAME)
             {
                 if (drawReplayByCommand.getRemainingData() === 0)
@@ -2840,6 +3096,7 @@ package Modules
                 {
                     renderReplayFrame(rNowFrame + drawReplayByCommand.getRemainingData(), JUMP_FRAME_NEXT);
                 }
+
                 updateDeleteReplayDataButtonsState();
                 MainUI.seekBarBox.updateReplayPrograssBarWidthByNowFame(rNowFrame / TOTAL_FRAME);
                 updateReplayPrograssText();
@@ -2848,6 +3105,7 @@ package Modules
         public static function moveToPreviousFrame():void
         {
             readyForFrameJump();
+
             if (rNowFrame > 0)
             {
                 renderReplayFrame(rNowFrame - 1, JUMP_FRAME_MANUAL);
@@ -2859,6 +3117,7 @@ package Modules
         public static function moveToNextFrame():void
         {
             readyForFrameJump();
+
             if (rNowFrame < TOTAL_FRAME)
             {
                 renderReplayFrame(rNowFrame + 1, JUMP_FRAME_MANUAL);
@@ -2877,6 +3136,7 @@ package Modules
             // slide show모드로 재생하게 되면 클리어 케시를 계속 호출해주고
             // 재생 완료시 rJumpImageIndexLast가 갱신되어있을때 다시 해주면 메모리 캐시가 없는데 캐시를 불러주는 버그가 생겨서
             // 아무생각없이 넣어본건데 버그 안나서 그대로 두려고함
+
             if (index !== rJumpImageIndexLast && isReplayStarted === false)
             {
                 clearRFrameTempCache();
@@ -2887,18 +3147,21 @@ package Modules
                 if (tragetFrame >= rFrameTempCachedImages[0][6])
                 {
                     cachedImageIndex = getCacheImageIndex(tragetFrame);
+
                     if (rCachedImageLastIndex !== cachedImageIndex || tragetFrame < rNowFrame)
                     {
                         loadCacheFlag = 2;
                     }
                 }
             }
+
             if (loadCacheFlag > 0 || tragetFrame < rNowFrame)
             {
                 var cachedImageData:Array;
                 var layer1bmpd:BitmapData;
                 var layer2bmpd:BitmapData;
                 var newrect:Rectangle;
+
                 if (loadCacheFlag === 2)
                 {
                     cachedImageData = rFrameTempCachedImages[cachedImageIndex];
@@ -2930,6 +3193,7 @@ package Modules
                     cachedImageData[1] = null;
                     rJumpImageNowFrameLast = cachedImageData[6];
                 }
+
                 rJumpImageIndexLast = index;
                 rFileLastBytePosition = cachedImageData[5]; // 마지막 바이트
                 rFileStream.position = cachedImageData[5];
@@ -2944,13 +3208,16 @@ package Modules
                 rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, layer2bmpd, rCanvasLayer2Bitmap);
                 updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
                 updateCanvasBGColorReplayMode(cachedImageData[4]);
+
                 if (loadCacheFlag === 1 && isReplayStarted === false)
                 {
                     createRFrameTempCache(0, rFileLastBytePosition);
                 }
+
                 cachedImageData = null;
                 rDataReadFlag = false;
                 rDataStartIndex = 0;
+
                 if (loadCacheFlag !== 2)
                 {
                     layer1bmpd.dispose();
@@ -2965,12 +3232,15 @@ package Modules
                 {
                     rFileStream.position = rFileLastBytePosition;
                 }
+
                 remainingFrameCount = tragetFrame - rNowFrame;
             }
+
             if (remainingFrameCount === 0.0)
             {
                 rPrevFrame = tragetFrame - 1;
             }
+
             return remainingFrameCount;
         }
         public static function renderReplayFrame(frame:Number, jumpflag:int):void // jumpp
@@ -2983,6 +3253,7 @@ package Modules
             {
                 frame = TOTAL_FRAME;
             }
+
             if (isReplayModeON)
             {
                 if (frame >= TOTAL_FRAME && isReplayFinished)
@@ -2990,11 +3261,13 @@ package Modules
                     return;
                 }
             }
+
             rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             drawCanvasFromReplayData(remainingFrameCount, jumpflag);
             rFileStream.close();
             // dodraw밑이기 때문에 rFrameSum이 갱신되서 위에 nowFrame은 쓸수가 없음
+
             if (rNowFrame >= TOTAL_FRAME)
             {
                 if (isReplayModeON) // deepundo도 있어서
@@ -3004,6 +3277,7 @@ package Modules
                         isReplayFinished = true;
                         // syncMirrorReplayModeWithDrawMode();
                     }
+
                     rReplayFOFOCursor.visible = false;
                 }
             }
@@ -3012,7 +3286,9 @@ package Modules
                 isReplayFinished = false;
                 rReplayFOFOCursor.visible = true;
             }
+
             drawReplayByCommand.updateRCursorPos();
+
             if (!isReplaySlideShowMode && !isReplayCanvasFitToWindow && !UndoManager.isDeepUndoEnabled)
             {
                 rFollowMouse.check(true);
@@ -3029,13 +3305,16 @@ package Modules
             {
                 return;
             }
+
             // 리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
             var wasReplayRunning:Boolean = false;
             var clickX:Number = MainUI.seekBarBox.trackBar.mouseX * MainUI.seekBarBox.trackBar.scaleX;
             var finalFrame:Number = Math.floor(TOTAL_FRAME * clickX / MainUI.seekBarBox.trackBar.width);
+
             function clampFrame():void
             {
                 var mx:Number = MainUI.seekBarBox.trackBar.mouseX * MainUI.seekBarBox.trackBar.scaleX;
+
                 if (mx < 0)
                 {
                     mx = 0;
@@ -3050,9 +3329,11 @@ package Modules
                 {
                     MainUI.seekBarBox.setReplayPrograssBarWidth(mx);
                 }
+
                 finalFrame = Math.floor(TOTAL_FRAME * mx / MainUI.seekBarBox.trackBar.width);
                 updateReplayPrograssText(false, finalFrame);
             }
+
             function onDragStart():void
             {
                 if (isReplayStarted)
@@ -3062,6 +3343,7 @@ package Modules
                     FOFOTimer.remove("replayDrawTimer");
                     rFileStream.close();
                 }
+
                 FOFOTimer.remove("prograssBarUpdateTimer");
                 MainUI.seekBarBox.setReplayPrograssBarWidth(clickX);
                 clampFrame();
@@ -3069,9 +3351,11 @@ package Modules
                 isReplayFinished = false;
                 MainUI.seekBarBox.resetPrograssBarColor();
             }
+
             function onMouseMove():void
             {
                 clampFrame();
+
                 if (!FOFOTimer.hasTimer("jumpFrameUpdateTimer"))
                 {
                     FOFOTimer.addByName("jumpFrameUpdateTimer", 0.25, false, function ():void
@@ -3080,6 +3364,7 @@ package Modules
                         });
                 }
             }
+
             function onMouseUp():void
             {
                 FOFOTimer.remove("jumpFrameUpdateTimer");
@@ -3088,6 +3373,7 @@ package Modules
                 // jumpframe함수 이후에 실행
                 updateDeleteReplayDataButtonsState();
                 // 재생중에 스킵하고 있었으면 다시 시작
+
                 if (wasReplayRunning && !isReplayFinished)
                 {
                     startReplay();
@@ -3099,6 +3385,7 @@ package Modules
                     stopReplay();
                 }
             }
+
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
         }
         public static function hideTopbarOnReplayStart():void
@@ -3120,10 +3407,12 @@ package Modules
         public static function stopReplay():void
         {
             FOFOTimer.remove("replayDrawTimer");
+
             if (!isReplayFinished)
             {
                 MainUI.seekBarBox.setPlayButtonVisible(true);
             }
+
             rFileStream.close();
             isReplayStarted = false;
             isReplaySlideShowMode = false;
@@ -3140,12 +3429,14 @@ package Modules
             {
                 return;
             }
+
             isReplayStarted = true;
             MainUI.seekBarBox.resetPrograssBarColor();
             MainUI.seekBarBox.playButton.visible = false;
             MainUI.seekBarBox.pauseButton.visible = true;
             rReplayFOFOCursor.visible = true;
             updateDeleteReplayDataButtonsState();
+
             if (isReplayFinished === true) // 리플레이 시간 등등 초기화 시키고 시작
             {
                 MainUI.seekBarBox.resetReplayPrograssBarWidth();
@@ -3158,15 +3449,18 @@ package Modules
                 rFollowMouse.updateBounds();
                 selectReplaySubLayer(false);
             }
+
             if (!rDataReadFlag)
             {
                 rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
                 rFileStream.position = rFileLastBytePosition;
             }
+
             if (isReplayCanvasFitToWindow)
             {
                 fitReplayCanvasToViewport();
             }
+
             clearRFrameTempCache();
             startReplayDrawTimer();
             startUpdatingPrograssBarTimer();
@@ -3179,6 +3473,7 @@ package Modules
             {
                 return;
             }
+
             FOFOTimer.addByName("replayHideCursorCheckTimer", 0.0, true, function ():Boolean
                 {
                     if (!isReplayModeON || MainUI.topBar.visible)
@@ -3186,6 +3481,7 @@ package Modules
                         replayHideCursor.show();
                         return false;
                     }
+
                     replayHideCursor.check();
                     return true;
                 });
@@ -3202,13 +3498,16 @@ package Modules
             {
                 return;
             }
+
             var c:Clipboard = e.clipboard;
+
             if (c.hasFormat("air:file list") === true)
             {
                 if (isReplayStarted)
                     stopReplay();
                 var files:Array = c.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
                 // 두개이상 선택하고 드래그 할수있기 때문에 하나만 선택되었을때 되도록 해줌
+
                 if (files && files.length == 1)
                 {
                     NativeDragManager.acceptDragDrop(main.stage);
@@ -3267,19 +3566,23 @@ package Modules
             fs.position = 0;
             rMirrorON = false;
             FileManager.loadMenuBox.visible = false;
+
             function printPrograssHint(bytes:Number):void
             {
                 const perc:Number = Math.round(((totalSize - bytes) / totalSize) * 100);
                 // const str:String = perc.toFixed(1)+"%";
                 FileManager.loadMenuBox.updatePlaseWaitPrograss(perc + "%");
             }
+
             FileManager.loadMenuBox.showPleaseWait("Reading replay file");
             FileManager.openLoadMenuBox();
+
             function onFrameEnter(e:Event):void
             {
                 while (true)
                 {
                     const namojiBytes:Number = fs.bytesAvailable;
+
                     if (namojiBytes === 0)
                     {
                         main.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
@@ -3293,16 +3596,19 @@ package Modules
                         UndoManager.lastReplayFrameOnDeepUndoStart = TOTAL_FRAME;
                         rPrevFrame = _frameSumLast;
                         isReplayFinished = true;
+
                         if (UndoManager.mirrorCommandReady)
                         {
                             rMirrorON = !rMirrorON;
                             UndoManager.mirrorCommandReady = rMirrorON;
                         }
+
                         CanvasController.isCanvasMirrored = rMirrorON;
                         rMirrorON = rMirrorON;
                         UndoController.updateUndoBaseImageMirrorFlag(rMirrorON);
                         CanvasController.canvasInfoBox.setMirror(rMirrorON);
                         CanvasController.canvasNavigatorBox.visible = true;
+
                         if (!isReplayModeON && UndoManager.isDeepUndoEnabled)
                         {
                             rDataReadFlag = false;
@@ -3328,22 +3634,26 @@ package Modules
                             InputController.addInputEventsReplayMode();
                             rCanvasAnchorPoint.visible = true;
                         }
+
                         FileManager.closeLoadMenuBox();
                         InputController.clearKeyBuffer();
                         return;
                     }
+
                     if (getTimer() - hintPrintTimeSave > 250)
                     {
                         hintPrintTimeSave = getTimer();
                         printPrograssHint(namojiBytes);
                         return;
                     }
+
                     const data:Array = fs.readObject() as Array;
                     drawReplayByCommand.setData(data);
                     _frameSumLast = _frameSum;
                     _frameSum += data.length; // _rJumpImageCount 변수보다 먼저 와야함
                     dataWriteCount += data.length;
                     drawReplayByCommand.drawAll();
+
                     if (dataWriteCount > REPLAY_DISK_CACHE_FRAME_INTERVAL)
                     {
                         var imgData1:ByteArray = new ByteArray();
@@ -3364,6 +3674,7 @@ package Modules
                                 rMirrorON);
                         imgData1.clear();
                         imgData2.clear();
+
                         if (MainUI.seekBarBox.prograssBar.width > 0)
                         {
                             MainUI.seekBarBox.resetReplayPrograssBarWidth();
@@ -3371,6 +3682,7 @@ package Modules
                     }
                 }
             }
+
             main.stage.addEventListener(Event.ENTER_FRAME, onFrameEnter);
         }
 
@@ -3392,13 +3704,16 @@ package Modules
             fs.writeUTFBytes("FOFOPAINT"); // 파일 헤더
             fs.writeUnsignedInt(dataD.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
             fs.writeBytes(dataD);
+
             if (UndoManager.mirrorCommandReady) // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
             {
                 const tempMirrorData:Array = [["mirror"]];
                 fs.writeObject(tempMirrorData);
             }
+
             fs.writeObject(["rFirstImage", dataA, dataA1, rImgDataW, rImgDataH, rFirstImageBGColor]);
             fs.writeObject(["rFinalImage", dataB, dataB1, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, CanvasController.CANVAS_BG_COLOR]);
+
             if (ReferenceLayerController.canvasRefLayerBitmapData)
             {
                 fs.writeObject(["refimage", dataC, // 1
@@ -3413,6 +3728,7 @@ package Modules
                             ReferenceLayerController.refLayerMenuDragXMoveSum, // 10
                             ReferenceLayerController.refLayerLastAlpha]); // 11
             }
+
             fs.close();
             dataA.clear();
             dataA1.clear();
@@ -3434,18 +3750,22 @@ package Modules
             catch (err:Error)
             {
                 // 파일 엑세스가 불가하므로 새로운 파일로 저장해줌
+
                 if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
                 {
                     BackgroundWorkerCoordinator.isSaveInProgress = 0;
                 }
+
                 FileManager.enableFileOperationButtonsTopbar();
                 FileManager.openSaveFileBrowser(true, true);
                 return;
             }
+
             if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
             {
                 BackgroundWorkerCoordinator.isSaveInProgress = 0;
             }
+
             FileManager.enableFileOperationButtonsTopbar();
         }
 
@@ -3456,6 +3776,7 @@ package Modules
                 FileManager.showLoadFaildMouseHint();
                 return;
             }
+
             const fs:FileStream = new FileStream();
             var imgStartByte:uint = 0;
             var finalIMGBMPD:BitmapData = new BitmapData(1, 1, true, 0);
@@ -3467,22 +3788,26 @@ package Modules
             var rect:Rectangle;
             initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소
             oldFile.copyTo(repFileTemp, true); // repdata.c3p를 복사 덮어씌우기
+
             if (ReferenceLayerController.refLayerRawTransformData)
             {
                 ReferenceLayerController.refLayerRawBitmapData.dispose();
                 ReferenceLayerController.refLayerRawBitmapData = null;
                 ReferenceLayerController.refLayerRawTransformData = null;
             }
+
             fs.open(repFileTemp, FileMode.READ);
             rJumpImageFrameData = [0];
             var d:Array;
             var ba:ByteArray;
             var replayData:ByteArray = new ByteArray();
             const isNew2020FileFlag:Boolean = FileManager.isNew2020File(oldFile);
+
             if (isNew2020FileFlag)
             {
                 const a:String = fs.readUTFBytes(9); // FOFOPAINT헤더 읽어줌
                 const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
+
                 if (compBytes > 0)
                 {
                     // 압축된 데이터 써주고 압축 풀어줌
@@ -3490,11 +3815,13 @@ package Modules
                     replayData.uncompress();
                 }
             }
+
             while (true)
             {
                 if (fs.bytesAvailable === 0)
                     break;
                 d = fs.readObject();
+
                 if (d[0] === "rFirstImage")
                 {
                     if (d[2] is ByteArray === false)
@@ -3536,6 +3863,7 @@ package Modules
                 else if (d[0] === "rFinalImage") // 최종 이미지
                 {
                     // 레이어1일때 구버전
+
                     if (d[2] is ByteArray === false)
                     {
                         ba = d[1] as ByteArray;
@@ -3601,7 +3929,9 @@ package Modules
                     imgStartByte = fs.position;
                 }
             }
+
             fs.close();
+
             if (isNew2020FileFlag)
             {
                 fs.open(FileManager.replayDataFilePath, FileMode.WRITE);
@@ -3618,10 +3948,12 @@ package Modules
                 fs.close();
                 repFileTemp.moveTo(FileManager.replayDataFilePath, true);
             }
+
             if (repFileTemp.exists)
             {
                 repFileTemp.deleteFile();
             }
+
             replayData.clear();
             replayData = null;
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_READY;
@@ -3668,6 +4000,7 @@ package Modules
             {
                 return;
             }
+
             const bgColor:uint = RCANVAS_BG_COLOR;
             // 캔버스가 회전되어있으면 회전된 방향으로 움직여줘야함
             rCanvasPanel.graphics.clear();
@@ -3680,6 +4013,7 @@ package Modules
             rCanvasDrawLayerBitmapData = new BitmapData(w, h, true, 0);
             RCANVAS_WIDTH = w;
             RCANVAS_HEIGHT = h;
+
             if (movedFlag)
             {
                 // movex y는 캔버스 사이즈 조절에서 원점이 움직였을경우 그만큼 bitmapdata를 움직여줘야 원래 이미지대로 나옴
@@ -3694,10 +4028,12 @@ package Modules
                 rCanvasLayer2BitmapData.draw(rCanvasLayer2Bitmap);
             }
 
+
             if (rCanvasLayer1Bitmap.bitmapData)
                 rCanvasLayer1Bitmap.bitmapData.dispose();
 
             rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
+
             if (rCanvasLayer2Bitmap.bitmapData)
                 rCanvasLayer2Bitmap.bitmapData.dispose();
 
@@ -3706,6 +4042,7 @@ package Modules
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
             rFollowMouse.updateBounds();
             CanvasController.keepCanvasPanelInStage(true);
+
             if (isReplayCanvasFitToWindow)
             {
                 fitReplayCanvasToViewport();
@@ -3764,15 +4101,19 @@ package Modules
         public static function adjustReplaySpeedByShortcut(increaseFlag:Boolean):void
         {
             const clacMax:Number = Math.floor(TOTAL_FRAME / (main.stage.frameRate * 3));
+
             if (clacMax <= 0)
             {
                 return;
             }
+
             const maxSpeed:Number = REPLAY_MAX_SPEED;
             var _rSpeed:Number = rReplaySpeedMultipler;
+
             if (increaseFlag)
             {
                 _rSpeed += 1;
+
                 if (_rSpeed > maxSpeed)
                 {
                     _rSpeed = maxSpeed;
@@ -3781,11 +4122,13 @@ package Modules
             else
             {
                 _rSpeed -= 1;
+
                 if (_rSpeed < 1)
                 {
                     _rSpeed = 1;
                 }
             }
+
             rReplaySpeedMultipler = _rSpeed;
             MainUI.topBar.setSpeedButtonPosByValue(_rSpeed, maxSpeed);
             showReplaySpeedMouseHint();
@@ -3797,10 +4140,12 @@ package Modules
         public static function adjutReplaySpeedByMouse():void
         {
             const totalF:Number = TOTAL_FRAME;
+
             if (totalF <= main.stage.frameRate * 3) // 3초 이내면 안함
             {
                 return;
             }
+
             // setSpeedButtonPosByValue도 오프셋 수정해주어야함
             const minDist:Number = MainUI.topBar.replaySpeedSlider.x + 1.5;
             const maxDist:Number = minDist + MainUI.topBar.replaySpeedSlider.width - 2.5;
@@ -3808,9 +4153,11 @@ package Modules
             var oldSpeed:Number;
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             CanvasController.isMouseDragging = true;
+
             function setSpeed(mx:Number):void
             {
                 var exp:Number = mx / maxDist;
+
                 if (exp < 0)
                 {
                     exp = 0;
@@ -3819,17 +4166,22 @@ package Modules
                 {
                     exp = 1;
                 }
+
                 var nowSpeed:Number = Math.floor(Math.pow(maxSpeed, exp));
+
                 if (oldSpeed !== nowSpeed)
                 {
                     oldSpeed = nowSpeed;
+
                     if (nowSpeed > maxSpeed)
                     {
                         nowSpeed = maxSpeed;
                     }
+
                     rReplaySpeedMultipler = nowSpeed;
                 }
             }
+
             function moveButton(mx:Number):void
             {
                 if (mx < minDist)
@@ -3840,28 +4192,35 @@ package Modules
                 {
                     mx = maxDist;
                 }
+
                 MainUI.topBar.replaySpeedSliderCursor.x = mx;
                 setSpeed(mx);
                 showReplaySpeedMouseHint();
+
                 if (isReplayFinished === false)
                 {
                     updateReplayPrograssText();
                 }
             }
+
             function replaySpeedButtomUpEvent(e:MouseEvent):void
             {
                 CanvasController.isMouseDragging = false;
+
                 if (isReplayFinished === false)
                 {
                     updateReplayPrograssText();
                 }
+
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent);
             }
+
             function replaySpeedButtomMoveEvent(e:MouseEvent):void
             {
                 moveButton(MainUI.topBar.replaySpeedSliderWrapper.mouseX);
             }
+
             moveButton(MainUI.topBar.replaySpeedSliderWrapper.mouseX);
             setSpeed(MainUI.topBar.replaySpeedSliderWrapper.mouseX);
             showReplaySpeedMouseHint();
@@ -3898,6 +4257,7 @@ package Modules
         public static function startGeneratingReplayCacheImage():void
         {
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_PROCESSING;
+
             if (!FOFOTimer.hasTimer("generatereplaycacheimagedelay"))
             {
                 FOFOTimer.addByName("generatereplaycacheimagedelay", 0.1, false, function ():void
@@ -3943,6 +4303,7 @@ package Modules
         public static function updateReplayTimeBarFromDrawMode():void
         {
             updateReplayPrograssText(true, rNowFrame);
+
             if (TOTAL_FRAME === 0)
             {
                 MainUI.seekBarBox.resetReplayPrograssBarWidth();
@@ -3959,10 +4320,12 @@ package Modules
             {
                 return;
             }
+
             if (isReplayStarted === true)
             {
                 stopReplay();
             }
+
             InputController.removeInputEventsReplayMode();
             cancelReplayRestartTimer();
             isReplayModeON = false;
@@ -3972,25 +4335,31 @@ package Modules
             CanvasController.canvasAnchorPoint.visible = true;
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
             PenSizePreviewCursor.setVisible(true);
+
             if (ReferenceLayerController.isRefLayerMenuON === true)
             {
                 ReferenceLayerController.refLayerMenuBox.visible = true;
             }
+
             if (SidebarController.isSidebarVisible === true)
             {
                 SidebarController.showSidebarPermanent();
             }
+
             CanvasController.canvasPanel.addChild(rReplayFOFOCursor);
             setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
+
             if (MainUI.mouseHint.isShowing())
             {
                 MainUI.hideMouseHint();
             }
+
             MainUI.seekBarBox.pauseButton.visible = false;
             Utils.setAsTopChild(MainUI.seekBarBox);
             MainUI.seekBarBox.setDeleteRangeBarVisible(false);
             MainUIController.updateStageOffset();
             MainUIController.updateCanvasNaigatorCursor();
+
             if (PenTool.isTransparentPenColor)
             {
                 ColorPickerController.selectTransparentColor();
@@ -3999,17 +4368,20 @@ package Modules
             {
                 ColorPickerController.switchColorPickerModePen();
             }
+
             PenSizePreviewCursor.updateSizeAndShape();
             PenSizePreviewCursor.updatePosAndVisibility();
             MainUI.updateTopbarIconsDrawMode();
             CanvasController.canvasInfoBox.setZoom(CanvasController.canvasZoomMultipler);
             updateReplayCursorScale(CanvasController.canvasZoomMultipler);
             UndoManager.isDeepUndoEnabled = UndoManager.lastDeepUndoEnabledFlag;
+
             if (rNowFrame !== UndoManager.lastReplayFrameOnDeepUndoStart)
             {
                 // after로 해주는 이유는 캐쉬 안만들어줄라고
                 renderReplayFrame(UndoManager.lastReplayFrameOnDeepUndoStart, JUMP_FRAME_NEXT);
             }
+
             clearRFrameTempCache();
             rReplayFOFOCursor.visible = false;
             InputController.addInputEventsDrawMode();
@@ -4020,6 +4392,7 @@ package Modules
             {
                 return;
             }
+
             InputController.removeInputEventsDrawMode();
             isReplayModeON = true;
             CanvasController.canvasAnchorPoint.visible = false;
@@ -4032,14 +4405,17 @@ package Modules
             lastReplayTimeBoxYPos = MainUI.seekBarBox.y;
             Utils.setAsTopChild(MainUI.seekBarBox);
             MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+
             if (ColorPickerController.numPadBox.visible)
             {
                 ColorPickerController.closeNumpad();
             }
+
             if (MainUI.mouseHint.isShowing())
             {
                 MainUI.hideMouseHint();
             }
+
             rReplayFOFOCursor.alpha = 1.0;
             rReplayFOFOCursor.visible = false;
             rCanvasPanel.addChild(rReplayFOFOCursor);
@@ -4057,10 +4433,12 @@ package Modules
             MainUI.seekBarBox.updatePos(main.stage.stageWidth);
             rFollowMouse.updateBounds();
             updateReplayCursorScale(rCanvasZoomMultiplier);
+
             if (ReferenceLayerController.isRefLayerMenuON === true)
             {
                 ReferenceLayerController.refLayerMenuBox.visible = false;
             }
+
             if (rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_READY)
             {
                 InputController.removeKeyRepeatEvents(null);
@@ -4088,6 +4466,7 @@ package Modules
                     rDataStartIndex = 0;
                     rDataReadFlag = false;
                 }
+
                 updateDeleteReplayDataButtonsState();
                 isReplaySlideShowMode = false;
                 CanvasController.keepCanvasPanelInStage(true);
@@ -4133,10 +4512,12 @@ package Modules
             {
                 updateCanvasSizeReplayMode(undoBaseImage[2], undoBaseImage[3], 0, 0, false);
             }
+
             if (undoBaseImage[4] !== RCANVAS_BG_COLOR)
             {
                 updateCanvasBGColorReplayMode(undoBaseImage[4]);
             }
+
 
             rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoBaseImage[0], rCanvasLayer1Bitmap);
             rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoBaseImage[1], rCanvasLayer2Bitmap);
@@ -4148,10 +4529,12 @@ package Modules
             {
                 undoBaseImage[0].dispose();
             }
+
             if (undoBaseImage[1] && undoBaseImage[1] !== rCanvasLayer2BitmapData)
             {
                 undoBaseImage[1].dispose();
             }
+
 
             undoBaseImage[0] = rCanvasLayer1BitmapData.clone();
             undoBaseImage[1] = rCanvasLayer2BitmapData.clone();
@@ -4163,6 +4546,7 @@ package Modules
             {
                 undoBaseImage[5] = !undoBaseImage[5];
             }
+
 
             drawReplayByCommand.setFirstRCursorPosCurrent();
         }
@@ -4182,10 +4566,12 @@ package Modules
                 updateCanvasSizeReplayMode(undoRefData[2], undoRefData[3], 0, 0, false);
             }
 
+
             if (undoRefData[4] !== RCANVAS_BG_COLOR)
             {
                 updateCanvasBGColorReplayMode(undoRefData[4]);
             }
+
 
             rCanvasDrawShape.graphics.clear();
 
@@ -4194,7 +4580,7 @@ package Modules
 
             if (rData.length > 0)
             {
-                for (var i:int = 0;i <= undoIndexSave;i++)
+                for (var i:int = 0; i <= undoIndexSave; i++)
                 {
                     if (!rData[i])
                         continue;
