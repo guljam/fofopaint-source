@@ -738,6 +738,7 @@ package Modules
                 const rawbmpd:BitmapData = CanvasController.getMergedBitmapdtata(false, layer1, layer2, (fullImageFlag) ? null : clipRect);
 
                 tmpbmpd.draw(rawbmpd, mat);
+                rawbmpd.dispose();
 
                 return tmpbmpd;
             }
