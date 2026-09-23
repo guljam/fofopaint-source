@@ -106,7 +106,7 @@ package Modules
         public static var rData:Array = []; // rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
         public static var rDataFrame:Array = []; // rdata안에 몇프레임이 들어있는지 저장
         public static var rDataReadFlag:Boolean = true; // rData읽을때는 true, rfile 읽을때는 false
-            private static var rFileTotalFrame:Number = 0; // file에저장된 프레임수 누적해서 저장
+        private static var rFileTotalFrame:Number = 0; // file에저장된 프레임수 누적해서 저장
         public static var rFileLastBytePosition:Number = 0; // fs position 저장
         private static var rFileCutBytePosition:Number = 0; // super undo에서 파일 잘라줄때 필요함
         public static var rDataIndex:int = 0; // rData에서만씀 rData 스크로크 뭉치 인덱스
@@ -138,21 +138,20 @@ package Modules
         private static var rFrameTempCachedImages:Array = []; // 이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
 
+        public static function increaseRFileTotalFrame(count:Number):void
+        {
+            rFileTotalFrame += count;
+        }
 
-            public static  function increaseRFileTotalFrame(count:Number):void
-            {
-                rFileTotalFrame += count;
-            }
-            
-            public static  function getRFileTotalFrame():Number
-            {
-                return rFileTotalFrame;
-            }
+        public static function getRFileTotalFrame():Number
+        {
+            return rFileTotalFrame;
+        }
 
-           public static  function setRFileTotalFrame(frame:Number):void
-            {
-                rFileTotalFrame = frame;
-            }
+        public static function setRFileTotalFrame(frame:Number):void
+        {
+            rFileTotalFrame = frame;
+        }
 
         public static function isGeneratingCacheImages():Boolean
         {
@@ -881,7 +880,7 @@ package Modules
         public static function moveImageReplayMode(x:Number, y:Number, layer1:Boolean, layer2:Boolean):void
         {
             var tmpbmpd:BitmapData = new BitmapData(rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height, true, 0);
-            const rect:Rectangle = new Rectangle(0,0,rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
+            const rect:Rectangle = new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
             var movedMat:Matrix = new Matrix();
             if (!layer1 && !layer2)
             {
@@ -892,13 +891,13 @@ package Modules
             if (layer1)
             {
                 tmpbmpd.draw(rCanvasLayer1BitmapData, movedMat);
-                CanvasController.copyPixels(rCanvasLayer1BitmapData,tmpbmpd,rect);
+                CanvasController.copyPixels(rCanvasLayer1BitmapData, tmpbmpd, rect);
             }
             if (layer2)
             {
                 tmpbmpd.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
                 tmpbmpd.draw(rCanvasLayer2BitmapData, movedMat);
-                CanvasController.copyPixels(rCanvasLayer2BitmapData,tmpbmpd,rect);
+                CanvasController.copyPixels(rCanvasLayer2BitmapData, tmpbmpd, rect);
             }
 
             tmpbmpd.dispose();
@@ -946,12 +945,12 @@ package Modules
         {
             var tmpbmpd:BitmapData = new BitmapData(rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height, true, 0);
             var flipMat:Matrix = new Matrix(-1, 0, 0, 1, rCanvasLayer1BitmapData.width);
-            const rect:Rectangle = new Rectangle(0,0,rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
+            const rect:Rectangle = new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
             tmpbmpd.draw(rCanvasLayer1BitmapData, flipMat);
-            CanvasController.copyPixels(rCanvasLayer1BitmapData,tmpbmpd,rect);
+            CanvasController.copyPixels(rCanvasLayer1BitmapData, tmpbmpd, rect);
             tmpbmpd.fillRect(rect, 0);
             tmpbmpd.draw(rCanvasLayer2BitmapData, flipMat);
-            CanvasController.copyPixels(rCanvasLayer2BitmapData,tmpbmpd,rect);
+            CanvasController.copyPixels(rCanvasLayer2BitmapData, tmpbmpd, rect);
             tmpbmpd.dispose();
             tmpbmpd = null;
             rMirrorON = !rMirrorON;
@@ -4071,9 +4070,10 @@ package Modules
                 rDataReadFlag = false;
                 updateReplayTimeBarFromDrawMode();
                 CanvasController.centerCanvas("replay");
-                // fitCanvasToViewportMargin();
+
                 // 이거 안해주고 리플레이틀고 프레임 조작 안하고 재생하면 중간부터 되서 데이터가 꼬임
                 isReplayFinished = true;
+
                 if (UndoManager.undoDataIndex >= 0)
                 {
                     rDataStartIndex = UndoManager.undoDataIndex + 1;
@@ -4090,6 +4090,11 @@ package Modules
                 SidebarController.hideSidebarTemporary();
                 MainUI.updateTopbarIconsReplayMode();
                 InputController.addInputEventsReplayMode();
+
+                if(isReplayCanvasFitToWindow)
+                {
+                    fitReplayCanvasToViewport();
+                }
             }
         }
         public static function setFitReplayCanvasToViewportOFF():void
