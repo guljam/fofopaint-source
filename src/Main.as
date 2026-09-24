@@ -175,8 +175,12 @@
             addGlobalEvents();
             addGlobalEventsChild();
             InputController.addInputEventsDrawMode();
+            const isNewReplayFile:Boolean = !FileManager.replayDataFilePath.exists;
             ReplayController.initializeReplayDataFile();
-            ReplayController.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            if (isNewReplayFile)
+            {
+                ReplayController.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            }
             CanvasController.canvasNavigatorBox.updateImage();
             ActivityWorkTimer.start();
             AppUpdater.checkUpdate();
