@@ -10,6 +10,7 @@ package Modules
     import Modules.Tools.PenTool;
     import Symbols.FillPenMenuSet;
     import flash.utils.getTimer;
+    import Modules.Tools.LineTool;
 
     public class ColorPickerController
     {
@@ -629,7 +630,7 @@ package Modules
 
         private static function isBackgroundColorMode():Boolean
         {
-            return isColorPickerModeBG === true && FillPenTool.isStarted === false;
+            return isColorPickerModeBG === true && FillPenTool.isStarted === false && LineTool.isStarted === false;
         }
 
         private static function isPenColorMode():Boolean
@@ -841,7 +842,7 @@ package Modules
                 updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
             }
 
-            if (!FillPenTool.isStarted)
+            if (!FillPenTool.isStarted && !LineTool.isStarted)
             {
                 const bgColor:uint = PaletteController.myPaletteTegakiPreset[index + 10];
 

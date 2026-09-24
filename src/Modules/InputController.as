@@ -704,13 +704,18 @@ package Modules
         {
             const target:DisplayObject = e.target as DisplayObject;
 
-            if (CanvasController.isMouseLeftClicked || SidebarController.isQuickSidebarActive || !target || ColorPickerController.numPadBox.visible)
+            if (CanvasController.isMouseLeftClicked
+            || SidebarController.isQuickSidebarActive
+            || !target
+            || ColorPickerController.numPadBox.visible)
             {
+                trace('리턴');
                 return;
             }
 
             if (target === SidebarController.sideBarScrollBar)
             {
+                trace('리2');
                 SidebarController.resetSideBarPosition();
                 return;
             }
@@ -735,6 +740,7 @@ package Modules
 
             if (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
             {
+                trace('re3');
                 return;
             }
 
@@ -1075,11 +1081,16 @@ package Modules
 
         public static function onKeyDownDrawMode(e:KeyboardEvent):void
         {
-            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isKeyReleasedBeforeMouseUp || FillPenTool.isStarted
-                    || MainUIController.isPopUpWindowOpened())
+            if (CanvasController.isMouseLeftClicked
+            || CanvasController.isRightMouseClicked 
+            || CanvasController.isKeyReleasedBeforeMouseUp 
+            || FillPenTool.isStarted
+            || LineTool.isStarted
+            || MainUIController.isPopUpWindowOpened())
             {
                 return;
             }
+
             const firstKey:uint = getFirstPressedKey();
             const secondKey:int = getSecondPressedKey();
             // 자툴이 nowkey를 쓰기 때문에 nowkey 리턴 이전에서 체크해야함
@@ -1775,8 +1786,8 @@ package Modules
 
         public static function onMouseDownDrawMode(e:MouseEvent):void
         {
-            if (FillPenTool.isStarted || FileManager.loadMenuBox.visible
-                    || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
+            if (FillPenTool.isStarted || LineTool.isStarted || FileManager.loadMenuBox.visible
+            || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
             }
@@ -1987,7 +1998,7 @@ package Modules
         public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
         {
             if (CanvasController.isMouseLeftClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
-                    || FillPenTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
+                    || FillPenTool.isStarted  || LineTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
                     || FileManager.loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
@@ -2280,7 +2291,6 @@ package Modules
                             updateLastKey(firstKey);
                             FOFOTimer.remove("prograssBarUpdateTimer");
                             ReplayController.handleReplayStopButton();
-                            ;
                         }
                         break;
                 }

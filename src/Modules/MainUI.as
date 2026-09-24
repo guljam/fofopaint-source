@@ -16,6 +16,7 @@ package Modules
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import Modules.Tools.LineTool;
 
 	public final class MainUI
 	{
@@ -140,15 +141,15 @@ package Modules
 		public static function isHintAvailableWithFillPen(target:DisplayObject):Boolean
 		{
 			const targetName:String = target.name;
-			if (FillPenTool.isStarted)
+			if (FillPenTool.isStarted || LineTool.isStarted)
 			{
 				if (target.alpha > 0.5
-						&&
-						(ToolController.toolBox.contains(target)
-							|| CanvasController.canvasInfoBox.contains(target)
-							|| ColorPickerController.colorPickerBox.contains(target))
-						|| target === SidebarController.sideBarScrollBar
-						|| (targetName && targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) !== -1))
+				&&
+				(ToolController.toolBox.contains(target)
+				|| CanvasController.canvasInfoBox.contains(target)
+				|| ColorPickerController.colorPickerBox.contains(target))
+				|| target === SidebarController.sideBarScrollBar
+				|| (targetName && targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) !== -1))
 				{
 					return true;
 				}

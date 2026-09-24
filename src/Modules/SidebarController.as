@@ -15,6 +15,7 @@ package Modules
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Modules.Tools.EyeDropperTool;
+    import Modules.Tools.LineTool;
 
     public final class SidebarController
     {
@@ -286,7 +287,7 @@ package Modules
 
             if (shortcut)
             {
-                if (!FillPenTool.isStarted)
+                if (!FillPenTool.isStarted && !LineTool.isStarted)
                 {
                     ToolController.selectLastUsedTool();
                 }

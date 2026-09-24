@@ -27,6 +27,7 @@ package Modules
     import libwebp.DecodeWebp;
     import flash.display.IBitmapDrawable;
     import flash.geom.Matrix;
+    import Modules.Tools.LineTool;
 
     public class FileManager
     {
@@ -301,9 +302,14 @@ package Modules
             CanvasController.canvasInfoBox.setMirror(false);
             CanvasGridOverlay.updateGridMirror(false);
             LassoTool.cancelIfActive();
+
             if (FillPenTool.isStarted)
             {
                 FillPenTool.cancel();
+            }
+            else if(LineTool.isStarted)            
+            {
+                LineTool.cancel();
             }
 
             if(width > 0 && height > 0 && (imageData || imageData1))
@@ -1109,7 +1115,9 @@ package Modules
             {
                 ReplayController.stopReplay();
             }
-            if (LassoTool._isLassoToolStarted || isFileBrowserOpened || FillPenTool.isStarted || BackgroundWorkerCoordinator.isSaveInProgress)
+            if (LassoTool._isLassoToolStarted || isFileBrowserOpened
+            || FillPenTool.isStarted || LineTool.isStarted
+            || BackgroundWorkerCoordinator.isSaveInProgress)
             {
                 return;
             }
@@ -1344,7 +1352,7 @@ package Modules
                 }
                 return;
             }
-            if (LassoTool._isLassoToolStarted || FillPenTool.isStarted || BackgroundWorkerCoordinator.isSaveInProgress)
+            if (LassoTool._isLassoToolStarted || FillPenTool.isStarted || LineTool.isStarted || BackgroundWorkerCoordinator.isSaveInProgress)
             {
                 return;
             }
