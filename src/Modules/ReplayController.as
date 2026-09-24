@@ -2340,7 +2340,6 @@ package Modules
                 if (jumpFlag === JUMP_FRAME_PLAY)
                 {
                     rFileStream.close();
-                    rFileLastBytePosition = 0;
                 }
 
                 if (rData.length > 0)
