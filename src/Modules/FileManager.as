@@ -100,7 +100,7 @@ package Modules
 
                 const logFolder:File = dataFolderPath.resolvePath("log");
                 logFolder.createDirectory();
-                const logFile:File = logFolder.resolvePath("crash_log_" + dateKey + ".txt");
+                const logFile:File = logFolder.resolvePath("fofo_crash_log_" + dateKey + ".txt");
                 var logText:String = "[" + now.toString() + "]\r\n";
 
                 if (errorObject is Error)

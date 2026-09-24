@@ -285,6 +285,7 @@ package Modules
                 const fillpen:Boolean = data[8];
                 const subLayer:Boolean = data[9];
                 const airBrush:Boolean = data[10];
+
                 updateLineStyleBackup(alpha, blendMode);
                 checkSubLayer(subLayer);
                 checkAirBrush(airBrush, size);
@@ -655,6 +656,34 @@ package Modules
                 setRCursorPos(startX, startY);
             }
 
+          public static function line4(data:Array):void
+          {
+                const shape:Boolean = data[1];
+                const size:uint = data[2];
+                const color:uint = data[3];
+                const alpha:Number = data[4];
+                const command:Vector.<int> = data[5];
+                const xydata:Vector.<Number> = data[6];
+                const blendMode:String = data[7];
+                const subLayer:Boolean = data[8];
+                const airBrushSize:Number = data[9];
+                trace('data',data,"blendMode",blendMode as String);
+
+                updateLineStyleBackup(alpha, blendMode);
+                ReplayController.rCanvasDrawLayer.alpha = alpha;
+                checkSubLayer(subLayer);
+                ReplayController.rAirBrushSize2 = airBrushSize;
+
+                if (shape)
+                    ReplayController.rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
+                else
+                    ReplayController.rCanvasDrawShape.graphics.lineStyle(size, color);
+
+                ReplayController.rCanvasDrawShape.graphics.drawPath(command,xydata);
+                CanvasController.resetRCanvasDrawLayerCliprect2();
+                setRCursorPos(xydata[xydata.length-2], xydata[xydata.length-1]);
+          }
+
           public static function line3(data:Array):void
             {
                 const shape:Boolean = data[1];
@@ -675,7 +704,6 @@ package Modules
 
                 if (shape)
                     ReplayController.rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
-
                 else
                     ReplayController.rCanvasDrawShape.graphics.lineStyle(size, color);
                 ReplayController.rCanvasDrawShape.graphics.moveTo(startX, startY);
@@ -1393,6 +1421,9 @@ package Modules
                         break;
                     case "line3":
                         line3(d);
+                        break;
+                    case "line4":
+                        line4(d);
                         break;
                     case "move":
                         move(d);

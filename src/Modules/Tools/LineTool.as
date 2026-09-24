@@ -66,8 +66,11 @@ package Modules.Tools
                 main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, updateLinePreview);
             }
 
+            command.length = 0;
+            data.length = 0;
             isPointInsideCanvas = false;
             _isStarted = false;
+            
         }
 
         public static function cancel():void
@@ -169,7 +172,7 @@ package Modules.Tools
                 drawLine();
                 isPointInsideCanvas = false;
                 UndoManager.canAddUndoData = true;
-                ReplayController.rDataBuffer.push(["line4", xShape, xSize, xColor, xAlpha, command, data, xBlendMode, subLayerFlag, PenTool.airBrushSizeDrawMode]);
+                ReplayController.rDataBuffer.push(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenTool.airBrushSizeDrawMode]);
             }
             else
             {
