@@ -434,6 +434,9 @@ package Modules
             //디버그 확인용
             if(isPressedKey(KEY.f12))
             {
+                const bmpd:BitmapData = new BitmapData(1,1);
+                bmpd.dispose();
+                bmpd.draw(main.stage);
             }
 
             tryDisableIME();

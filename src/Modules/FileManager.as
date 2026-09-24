@@ -8,6 +8,7 @@ package Modules
     import flash.desktop.ClipboardFormats;
     import flash.display.BitmapData;
     import flash.display.Loader;
+    import flash.events.ErrorEvent;
     import flash.events.Event;
     import flash.events.IOErrorEvent;
     import flash.events.InvokeEvent;
@@ -47,6 +48,7 @@ package Modules
         // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
         // todo 저장할때 rdata undo 되어있을때 데이터가 사라짐 deepundo쪽은 그대로 살아있음
         private static var dataFolderPath:File;
+        private static var isWritingCrashLog:Boolean = false;
         public static var appStateFilePath:File;
         public static var scratchPadDataFilePath:File;
         public static var undoDataFilePath:File;
@@ -77,6 +79,78 @@ package Modules
         private static var loadMenuBoxBitmapData:BitmapData;
         private static var loadMenuBoxFileType:String;
         private static var loadMenuBoxFile:File;
+
+        public static function writeCrashLog(errorObject:*):void
+        {
+            if (isWritingCrashLog || dataFolderPath === null)
+            {
+                return;
+            }
+
+            isWritingCrashLog = true;
+            var stream:FileStream;
+            try
+            {
+                const now:Date = new Date();
+                var dateKey:String = String(now.fullYear);
+                if (now.month + 1 < 10) dateKey += "0";
+                dateKey += String(now.month + 1);
+                if (now.date < 10) dateKey += "0";
+                dateKey += String(now.date);
+
+                const logFolder:File = dataFolderPath.resolvePath("log");
+                logFolder.createDirectory();
+                const logFile:File = logFolder.resolvePath("crash_log_" + dateKey + ".txt");
+                var logText:String = "[" + now.toString() + "]\r\n";
+
+                if (errorObject is Error)
+                {
+                    const runtimeError:Error = errorObject as Error;
+                    logText += runtimeError.toString() + "\r\n";
+                    logText += "Message: " + runtimeError.message + "\r\n";
+                    logText += "Error ID: " + runtimeError.errorID + "\r\n";
+                    const stack:String = runtimeError.getStackTrace();
+                    logText += "Stack trace:\r\n" + (stack ? stack : "(unavailable)") + "\r\n";
+                }
+                else if (errorObject is ErrorEvent)
+                {
+                    const errorEvent:ErrorEvent = errorObject as ErrorEvent;
+                    logText += errorEvent.toString() + "\r\n";
+                    logText += "Message: " + errorEvent.text + "\r\n";
+                    logText += "Error ID: " + errorEvent.errorID + "\r\n";
+                    logText += "Stack trace: (unavailable for ErrorEvent)\r\n";
+                }
+                else
+                {
+                    logText += "Thrown value: " + String(errorObject) + "\r\n";
+                    logText += "Stack trace: (unavailable)\r\n";
+                }
+                logText += "\r\n";
+
+                stream = new FileStream();
+                stream.open(logFile, FileMode.APPEND);
+                stream.writeUTFBytes(logText);
+            }
+            catch (writeError:Error)
+            {
+                trace("Crash log write failed: " + writeError);
+            }
+            finally
+            {
+                if (stream !== null)
+                {
+                    try
+                    {
+                        stream.close();
+                    }
+                    catch (closeError:Error)
+                    {
+                        trace("Crash log close failed: " + closeError);
+                    }
+                }
+                isWritingCrashLog = false;
+            }
+        }
 
         public static function saveReplayFrameData():void
         {

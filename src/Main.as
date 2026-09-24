@@ -334,23 +334,31 @@
             loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onGlobalError);
             function onGlobalError(e:UncaughtErrorEvent):void
             {
-                var msg:String = "An unknown error occurred.";
-                var errorObject:Object = e.error;
-                if (errorObject is Error)
-                {
-                    msg = (errorObject as Error).message;
-                }
-                else if (errorObject is ErrorEvent)
-                {
-                    msg = (errorObject as ErrorEvent).text;
-                }
-                else if (errorObject != null) // Error, ErrorEvent가 아닌 객체 처리
-                {
-                    msg = String(errorObject);
-                }
-                MainUI.showMouseHintTemp(msg, 10.0);
-                // 이 핸들러가 에러를 처리했음을 시스템에 알리고 기본 동작을 막습니다. (권장)
                 e.preventDefault();
+                const errorObject:* = e.error;
+                FileManager.writeCrashLog(errorObject);
+
+                try
+                {
+                    var msg:String = "An unknown error occurred.";
+                    if (errorObject is Error)
+                    {
+                        msg = (errorObject as Error).message;
+                    }
+                    else if (errorObject is ErrorEvent)
+                    {
+                        msg = (errorObject as ErrorEvent).text;
+                    }
+                    else if (errorObject != null) // Error, ErrorEvent가 아닌 객체 처리
+                    {
+                        msg = String(errorObject);
+                    }
+                    MainUI.showMouseHintTemp(msg, 10.0);
+                }
+                catch (hintError:Error)
+                {
+                    trace("Global error hint failed: " + hintError);
+                }
             }
         }
         public function addGlobalEventsChild():void
