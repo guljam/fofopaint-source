@@ -1350,13 +1350,6 @@ package Modules
         {
             if (!data || data.length === 0)
             {
-                index++;
-                return;
-            }
-
-            if (data[index] as Array === null)
-            {
-                index++;
                 return;
             }
 
