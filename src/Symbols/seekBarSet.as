@@ -8,6 +8,7 @@
 	import flash.display.Graphics;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
+	import Modules.Utils;
 
 	public class SeekBarSet extends Sprite
 	{
@@ -202,12 +203,12 @@
 			const index:int = Global.getUIColorIndex();
 			if (index === 2)
 			{
-				Global.setColorTransform(trackBar, 0xE7E7E7);
+				Utils.setColorTransform(trackBar, 0xE7E7E7);
 				prograssInfo.textColor = Global.getUIFGColor();
 			}
 			else if (index === 3)
 			{
-				Global.setColorTransform(trackBar, 0xFFFFFF);
+				Utils.setColorTransform(trackBar, 0xFFFFFF);
 				prograssInfo.textColor = Global.getUIFGColor();
 			}
 			else

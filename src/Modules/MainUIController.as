@@ -148,10 +148,10 @@ package Modules
         {
             const color:uint = Global.getUIResizeBarColor();
 
-            Global.setColorTransform(resizeButtonL, color);
-            Global.setColorTransform(resizeButtonR, color);
-            Global.setColorTransform(resizeButtonU, color);
-            Global.setColorTransform(resizeButtonD, color);
+            Utils.setColorTransform(resizeButtonL, color);
+            Utils.setColorTransform(resizeButtonR, color);
+            Utils.setColorTransform(resizeButtonU, color);
+            Utils.setColorTransform(resizeButtonD, color);
         }
 
         public static function markWindowTitleAsDirty():void

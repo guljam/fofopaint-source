@@ -7,6 +7,7 @@ package Modules
     import flash.geom.Rectangle;
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
+    import flash.geom.ColorTransform;
 
     public class Utils
     {
@@ -14,6 +15,21 @@ package Modules
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
+        }
+        
+        //요소 colortransform바꾸기
+        public static function setColorTransform(target:DisplayObject, color:uint, customAlpha:Number = NaN):void
+        {
+            if (!target)
+            {
+                return;
+            }
+
+            const alphaSave:Number = (isNaN(customAlpha)) ? target.alpha : customAlpha;
+            const c:ColorTransform = target.transform.colorTransform;
+            c.color = color;
+            c.alphaMultiplier = alphaSave;
+            target.transform.colorTransform = c;
         }
 
         // 보여준후 천천히 알파값감소로 사라지게 하기

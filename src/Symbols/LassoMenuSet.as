@@ -68,7 +68,7 @@
 			for (i = 0;i < rightButtonArr.length;i++)
 			{
 				btn = rightButtonArr[i];
-				// Global.setColorTransform(btn.upState as DisplayObject,0xFF0000);
+				// Utils.setColorTransform(btn.upState as DisplayObject,0xFF0000);
 				Global.applyToolBoxButtonUpFGColor(btn.upState as DisplayObject);
 				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3, 1.0);
 				btn.downState = btn.overState;

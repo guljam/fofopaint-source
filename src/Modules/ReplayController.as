@@ -1864,7 +1864,7 @@ package Modules
             MainUI.showTopbarOnReplayEnd();
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, TOTAL_FRAME);
-            Global.setColorTransform(MainUI.seekBarBox.prograssBar, Global.getUIReplayEndBarColor());
+            Utils.setColorTransform(MainUI.seekBarBox.prograssBar, Global.getUIReplayEndBarColor());
             CanvasController.updateCanvasScale(rLastCanvasZoomMultiplier, true);
         }
 
@@ -1875,7 +1875,7 @@ package Modules
 
         public static function startReplayRestartTimer():void
         {
-            Global.setColorTransform(MainUI.seekBarBox.prograssBar, Global.getUIReplayRestartBarColor());
+            Utils.setColorTransform(MainUI.seekBarBox.prograssBar, Global.getUIReplayRestartBarColor());
 
             if (isReplayRepeatON)
             {
@@ -2089,6 +2089,7 @@ package Modules
             lastReplayTimeBoxYPos = MainUI.seekBarBox.y;
             Utils.setAsTopChild(MainUI.seekBarBox);
             MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+            Global.applyToolBoxButtonOverBGColor(MainUI.seekBarBox.prograssBar);
 
             if (ColorPickerController.numPadBox.visible)
             {

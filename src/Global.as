@@ -5,26 +5,13 @@ package
     import flash.display.DisplayObjectContainer;
     import flash.utils.Dictionary;
     import flash.geom.Point;
+    import Modules.Utils;
 
     public class Global
     {
         //todo ui 관련이 많아서 따로 정리하고 다른 범용은 utild로 옮겨야함
         public static const OFFALPHA:Number = Math.round(0.25 * 256) / 256;
         public static const ZERO_POINT:Point = new Point(0,0);
-
-        public static function setColorTransform(target:DisplayObject, color:uint, customAlpha:Number = NaN):void
-        {
-            if (!target)
-            {
-                return;
-            }
-
-            const alphaSave:Number = (isNaN(customAlpha)) ? target.alpha : customAlpha;
-            const c:ColorTransform = target.transform.colorTransform;
-            c.color = color;
-            c.alphaMultiplier = alphaSave;
-            target.transform.colorTransform = c;
-        }
 
         public static const ALPHA_BUTTON_PREFIX:String = "alphaButton";
         public static const NSIZE_BUTTON_PREFIX:String = "nSizeButton";
@@ -84,12 +71,12 @@ package
 
         public static function applyUIBGColor(target:DisplayObject):void
         {
-            setColorTransform(target, uiColorSets[uiColorIndex][0]);
+            Utils.setColorTransform(target, uiColorSets[uiColorIndex][0]);
         }
 
         public static function applyUIFGColor(target:DisplayObject):void
         {
-            setColorTransform(target, uiColorSets[uiColorIndex][1]);
+            Utils.setColorTransform(target, uiColorSets[uiColorIndex][1]);
         }
 
         public static function getUIColorIndex():int
@@ -139,8 +126,8 @@ package
 
         public static function setButtonColorWithBG(btn:DisplayObjectContainer, index1:int, index2:int, alpha:Number = 1.0):void
         {
-            setColorTransform(btn.getChildAt(0) as DisplayObject, uiToolBoxColorSets[uiColorIndex][index1], alpha);
-            setColorTransform(btn.getChildAt(1) as DisplayObject, uiToolBoxColorSets[uiColorIndex][index2]);
+            Utils.setColorTransform(btn.getChildAt(0) as DisplayObject, uiToolBoxColorSets[uiColorIndex][index1], alpha);
+            Utils.setColorTransform(btn.getChildAt(1) as DisplayObject, uiToolBoxColorSets[uiColorIndex][index2]);
         }
 
         public static function getToolBoxBGColor():uint
@@ -175,32 +162,32 @@ package
 
         public static function applyToolBoxBGColor(target:DisplayObject):void
         {
-            setColorTransform(target, uiToolBoxColorSets[uiColorIndex][0]);
+            Utils.setColorTransform(target, uiToolBoxColorSets[uiColorIndex][0]);
         }
 
         public static function applyToolBoxBGTopColor(target:DisplayObject):void
         {
-            setColorTransform(target, uiToolBoxColorSets[uiColorIndex][1]);
+            Utils.setColorTransform(target, uiToolBoxColorSets[uiColorIndex][1]);
         }
 
         public static function applyToolBoxButtonUpBGColor(target:DisplayObject):void
         {
-            setColorTransform(target, uiToolBoxColorSets[uiColorIndex][2]);
+            Utils.setColorTransform(target, uiToolBoxColorSets[uiColorIndex][2]);
         }
 
         public static function applyToolBoxButtonUpFGColor(target:DisplayObject):void
         {
-            setColorTransform(target, uiToolBoxColorSets[uiColorIndex][3]);
+            Utils.setColorTransform(target, uiToolBoxColorSets[uiColorIndex][3]);
         }
 
         public static function applyToolBoxButtonOverBGColor(target:DisplayObject):void
         {
-            setColorTransform(target, uiToolBoxColorSets[uiColorIndex][4]);
+            Utils.setColorTransform(target, uiToolBoxColorSets[uiColorIndex][4]);
         }
 
         static private function applyToolBoxButtonOverFGColor(target:DisplayObject):void
         {
-            setColorTransform(target, uiToolBoxColorSets[uiColorIndex][5]);
+            Utils.setColorTransform(target, uiToolBoxColorSets[uiColorIndex][5]);
         }
 
         static private function getHintHighlightBoxColor():uint

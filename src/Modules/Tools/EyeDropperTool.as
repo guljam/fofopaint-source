@@ -263,7 +263,7 @@ package Modules.Tools
 
             if (canShowEyedropperLens())
             {
-                Global.setColorTransform(eyedropperLens.nowColor, pickColor());
+                Utils.setColorTransform(eyedropperLens.nowColor, pickColor());
 
                 if (CanvasController.canvasZoomMultipler < 12.0)
                 {
@@ -322,7 +322,7 @@ package Modules.Tools
             ToolController.setSelectedTool(ToolController.TOOL_EYEDROPPER);
 
             penColorBackup = PenTool.penColor;
-            Global.setColorTransform(eyedropperLens.oldColor, PenTool.penColor);
+            Utils.setColorTransform(eyedropperLens.oldColor, PenTool.penColor);
 
             ToolController.moveEraserButtonToOtherTool("toolEyedropper");
             eyedropperLens.rotateBitmap(CanvasController.canvasAnchorPoint.rotation);
@@ -338,7 +338,7 @@ package Modules.Tools
                 eyedropperLens.x = main.stage.mouseX;
                 eyedropperLens.y = main.stage.mouseY;
 
-                Global.setColorTransform(eyedropperLens.nowColor, pickColor());
+                Utils.setColorTransform(eyedropperLens.nowColor, pickColor());
                 Utils.setAsTopChild(eyedropperLens);
 
                 if (CanvasController.canvasZoomMultipler < 12.0)
