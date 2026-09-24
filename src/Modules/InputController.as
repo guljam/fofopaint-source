@@ -37,89 +37,6 @@ package Modules
             main = instance;
         }
 
-
-private static var container:Sprite;
-
-        public static function showDebugImages():void
-        {
-            const MAX_SIZE:Number = 200;
-            const stage:Stage = CanvasController.main.stage;
-
-            // UndoController.undoBaseImage 레이어1+2 merge
-            const u:Array = UndoController.getUndoBaseImage();
-            const undoMerged:BitmapData = new BitmapData(u[2], u[3], true, 0xFF000000 | u[4]);
-            if (u[1]) undoMerged.draw(u[1]);
-            if (u[0]) undoMerged.draw(u[0]);
-
-            // drawFirstJumpImage 에서 쓰는 "0" 번 캐시 이미지 merge
-            const fs:FileStream = new FileStream();
-            fs.open(FileManager.replayCacheImageFolderPath.resolvePath("0"), FileMode.READ);
-            const d:Array = fs.readObject() as Array;
-            fs.close();
-            (d[0] as ByteArray).uncompress();
-            (d[1] as ByteArray).uncompress();
-
-            const rect:Rectangle = new Rectangle(0, 0, d[2], d[3]);
-            const l1:BitmapData = new BitmapData(d[2], d[3], true, 0);
-            const l2:BitmapData = new BitmapData(d[2], d[3], true, 0);
-            l1.lock();
-            l1.setPixels(rect, d[0] as ByteArray);
-            l1.unlock();
-            l2.lock();
-            l2.setPixels(rect, d[1] as ByteArray);
-            l2.unlock();
-
-            const cacheMerged:BitmapData = new BitmapData(d[2], d[3], true, 0xFF000000 | d[4]);
-            cacheMerged.draw(l2);
-            cacheMerged.draw(l1);
-            l1.dispose();
-            l2.dispose();
-
-            const mergedList:Array = [[undoMerged, 0], [cacheMerged, MAX_SIZE]];
-
-            if (container === null || container.parent === null)
-            {
-                // 처음이거나 stage에서 벗어났을때만 새로 생성
-                container = new Sprite();
-                container.name = "debugImageDump";
-                container.mouseChildren = false;
-                container.buttonMode = true;
-                container.addEventListener(MouseEvent.MOUSE_DOWN, function(e:MouseEvent):void
-                {
-                    const maxX:Number = Math.max(0, stage.stageWidth - container.width);
-                    const maxY:Number = Math.max(0, stage.stageHeight - container.height);
-                    container.startDrag(false, new Rectangle(0, 0, maxX, maxY));
-                });
-                stage.addEventListener(MouseEvent.MOUSE_UP, function(e:MouseEvent):void
-                {
-                    container.stopDrag();
-                });
-                stage.addChild(container);
-            }
-            else
-            {
-                // 이미 있으면 내부 이미지만 제거 후 갱신
-                while (container.numChildren > 0)
-                {
-                    var oldBmp:Bitmap = container.removeChildAt(0) as Bitmap;
-                    if (oldBmp && oldBmp.bitmapData)
-                        oldBmp.bitmapData.dispose();
-                }
-            }
-
-            for each (var item:Array in mergedList)
-            {
-                var bmp:Bitmap = new Bitmap(item[0] as BitmapData, "auto", true);
-                bmp.smoothing = true;
-                var scale:Number = MAX_SIZE / Math.max(bmp.width, bmp.height);
-                bmp.width = Math.round(bmp.width * scale);
-                bmp.height = Math.round(bmp.height * scale);
-                bmp.x = item[1];
-                bmp.y = 0;
-                container.addChild(bmp);
-            }
-        }
-
         public static const KEY:Object = {
                 a: 65,
                 b: 66,
@@ -517,21 +434,6 @@ private static var container:Sprite;
             //디버그 확인용
             if(isPressedKey(KEY.f12))
             {
-                trace('-----------');
-                showDebugImages()
-                trace(
-    "SAVE_REPLAY_STATE",
-    "deep", UndoManager.isDeepUndoEnabled,
-    "lastDeep", UndoManager.lastDeepUndoEnabledFlag,
-    "replayMode", ReplayController.isReplayModeON,
-    "nowFrame", ReplayController.rNowFrame,
-    "prevFrame", ReplayController.rPrevFrame,
-    "lastByte", ReplayController.rFileLastBytePosition,
-    "fileSize", FileManager.replayDataFilePath.size,
-    "rDataRead", ReplayController.rDataReadFlag,
-    "undoIndex", UndoManager.undoDataIndex,
-    "rDataLength", ReplayController.rData.length
-);
             }
 
             tryDisableIME();

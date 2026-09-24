@@ -160,7 +160,6 @@ package Modules
         public static function undoToIndex(index:int):void
         {
             undoDataIndex = index;
-            trace('undo to index',undoDataIndex);
             FileManager.isFileAlreadySaved = false;
             FileManager.enableNewFileButton();
             UndoManager.updateCanvasStateAfterUndo();
@@ -179,24 +178,12 @@ package Modules
         {
             isDeepUndoEnabled = true;
             ReplayController.rDataReadFlag = false;
-
-            if (ReplayController.rReplayImageCacheState === ReplayController.REPLAY_IMAGE_CAHCHE_READY)
-            {
-                InputController.removeInputEventsDrawMode();
-                Utils.setAsTopChild(MainUI.seekBarBox);
-                MainUI.seekBarBox.updatePos(main.stage.stageWidth);
-                ReplayController.startGeneratingReplayCacheImage();
-            }
-            else
-            {
-                ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayController.getTotalFrame());
-                // 이미지 캐시 해주고 rPrevFrame 갱신해주고
-                ReplayController.renderReplayFrame(ReplayController.getRFileTotalFrame() - 1, ReplayController.JUMP_FRAME_MANUAL);
-                // 실제 rPrevFrame으로 점프
-                ReplayController.renderReplayFrame(ReplayController.rPrevFrame, ReplayController.JUMP_FRAME_MANUAL);
-                CanvasController.applyReplayCanvasToDrawModeCanvas();
-                trace('deepundo 진입 미러 플래그',ReplayController.rMirrorON);
-            }
+            ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayController.getTotalFrame());
+            // 이미지 캐시 해주고 rPrevFrame 갱신해주고
+            ReplayController.renderReplayFrame(ReplayController.getRFileTotalFrame() - 1, ReplayController.JUMP_FRAME_MANUAL);
+            // 실제 rPrevFrame으로 점프
+            ReplayController.renderReplayFrame(ReplayController.rPrevFrame, ReplayController.JUMP_FRAME_MANUAL);
+            CanvasController.applyReplayCanvasToDrawModeCanvas();
         }
 
         // addundo data에서 캔버스 비트맵 데이터가 변경되기 전, rdatabuffer 비어있을때 넣어줘야함
@@ -258,11 +245,8 @@ package Modules
                 {
                     FileManager.isFileAlreadySaved = false;
                     UndoManager.undoDataIndex = -1;
-                    if (ReplayController.rReplayImageCacheState === ReplayController.REPLAY_IMAGE_CAHCHE_READY || (ReplayController.rReplayImageCacheState === ReplayController.REPLAY_IMAGE_CAHCHE_COMPLETE && ReplayController.getRFileTotalFrame() > 0))
-                    {
-                        UndoManager.enableDeepUndo();
-                        Utils.showDisplayTargetAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
-                    }
+                    UndoManager.enableDeepUndo();
+                    Utils.showDisplayTargetAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
                 }
                 else if (ReplayController.rData.length > 0)
                 {

@@ -22,6 +22,7 @@ package Modules
     import flash.ui.MouseCursor;
     import Modules.Tools.ZoomTool;
     import flash.utils.getTimer;
+    import flash.trace.Trace;
 
     public class CanvasController
     {
@@ -1539,7 +1540,7 @@ package Modules
             }
         }
 
-        public static function updateCanvasBGColorReplayMode(color:uint):void
+        public static function updateCanvasBGPanelReplayMode(color:uint):void
         {
             ReplayController.rCanvasPanel.graphics.clear();
             ReplayController.rCanvasPanel.graphics.beginFill(color);

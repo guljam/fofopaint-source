@@ -94,7 +94,7 @@ package Modules
             appStateObject.svBaseColor = ColorPickerController.colorPickerBox.svBaseColor;
             appStateObject.isHSVInfoTextMode = ColorPickerController.isHSVInfoTextMode;
 
-            appStateObject.rReplayImageCacheState = (ReplayController.isGeneratingCacheImages()) ? ReplayController.REPLAY_IMAGE_CAHCHE_READY : ReplayController.rReplayImageCacheState;
+            appStateObject.rReplayImageCacheState = ReplayController.rReplayImageCacheState;
             appStateObject.rLastCanvasBGColor = ReplayController.rLastCanvasBGColor;
 
             appStateObject.isRightSidebar = SidebarController.isRightSidebar;
@@ -465,6 +465,16 @@ package Modules
                         PenSizePreviewCursor.updateSizeAndShape();
                         MainUIController.updateWindowTitle();
                         CanvasController.selectLayer1(false);
+
+                        if(ReplayController.isGeneratingCacheImages())
+                        {
+                            ReplayController.createFirstImageCache(
+                                ReplayController.rFirstImageLayer1BitmapData,
+                                ReplayController.rFirstImageLayer2BitmapData,
+                                ReplayController.rFirstImageBGColor,
+                                ReplayController.rFirstImageMirrorFlag);
+                            ReplayController.startGeneratingReplayCacheImage(true,null);
+                        }
                     });
             }
             else // 복원파일이 없을때
