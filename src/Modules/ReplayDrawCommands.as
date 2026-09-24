@@ -382,6 +382,9 @@ package Modules
                 const blendMode:String = data[4];
                 const command:Vector.<int> = data[5];
                 const xyData:Vector.<Number> = data[6];
+
+                //왜 재할당을 하는지 모르겠는데 일단 남겨둠 구버전 명령어라서 더이상 안씀
+                //예전에 직선툴에서 움직일때 뭔가 잔상이 남거나 해서 지워주었을수도 있음
                 ReplayController.rCanvasDrawLayerBitmap.bitmapData = null;
                 ReplayController.rCanvasDrawLayerBitmapData.dispose();
                 ReplayController.rCanvasDrawLayerBitmapData = new BitmapData(ReplayController.RCANVAS_WIDTH, ReplayController.RCANVAS_HEIGHT, true, 0);

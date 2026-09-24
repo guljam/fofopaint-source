@@ -270,10 +270,6 @@ package Modules.Tools
             {
                 ReferenceLayerController.setCanvasRefLayerInvisible();
             }
-            // 캔버스2번 지워주고, draw판넬 데이터도 지워줌
-            CanvasController.canvasDrawLayerBitmapData.dispose();
-            CanvasController.canvasDrawLayerBitmap.bitmapData = null;
-            CanvasController.canvasDrawLayerBitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
             // 선 관련 이벤트 함수 붙여줌
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLineTool);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLineTool);
