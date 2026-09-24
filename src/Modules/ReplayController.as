@@ -121,6 +121,7 @@ package Modules
         public static var rPrevFrame:Number = 0; // jump one frame 에서 이전 프레임 탐색할때 이 프레임으로 탐색해줌 tickdraw에서 data 끝의 프레임을 저장함
         public static var rFirstImageLayer1BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
         public static var rFirstImageLayer2BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+        public static var rFirstImageMirrorFlag:Boolean = false; //첫이미지 캔버스 미러 상태 저장
         public static var rFirstImageBGColor:uint = CanvasController.CANVAS_BG_COLOR;
         public static var rMirrorON:Boolean = false; // 대칭 켜지면 올려줌
         public static var rCanvasZoomMultiplier:Number = 1.0; // 리플레이 줌
@@ -255,7 +256,7 @@ package Modules
                 fs.writeObject(tempMirrorData);
             }
 
-            fs.writeObject(["rFirstImage", dataA, dataA1, rImgDataW, rImgDataH, rFirstImageBGColor]);
+            fs.writeObject(["rFirstImage", dataA, dataA1, rImgDataW, rImgDataH, rFirstImageBGColor,rFirstImageMirrorFlag]);
             fs.writeObject(["rFinalImage", dataB, dataB1, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, CanvasController.CANVAS_BG_COLOR]);
 
             if (ReferenceLayerController.canvasRefLayerBitmapData)
@@ -369,7 +370,7 @@ package Modules
 
                 if (d[0] === "rFirstImage")
                 {
-                    if (d[2] is ByteArray === false)
+                    if (d[2] is ByteArray === false) //구버전
                     {
                         ba = d[1] as ByteArray;
                         rect = new Rectangle(0, 0, d[2], d[3]);
@@ -383,7 +384,7 @@ package Modules
                         rLastCanvasBGColor = d[4];
                         createFirstImageCache(rFirstImageLayer1BitmapData, null, d[4]);
                     }
-                    else
+                    else //신버전
                     {
                         ba = d[1] as ByteArray;
                         rect = new Rectangle(0, 0, d[3], d[4]);
@@ -402,6 +403,11 @@ package Modules
                         ba.clear();
                         ba = null;
                         rLastCanvasBGColor = d[5];
+                        //air sdk 이전이후 첫 패치된거라서 값이 있으면 읽어주어야함 불리언 값
+                        if(d[6]) 
+                        {
+                            rMirrorON = d[6];
+                        }
                         createFirstImageCache(rFirstImageLayer1BitmapData, rFirstImageLayer2BitmapData, d[5]); // 0.cache 파일 갱신
                     }
                 }
@@ -626,10 +632,10 @@ package Modules
 
         public static function deleteReplayDataBeforeCurrentFrame():void
         {
-            // 미러 되어있을 수도 있기 때문에 워래 프레임 으로 점프해준뒤에 실행해줌
+            // 미러 되어있을 수도 있기 때문에 원래 프레임으로 점프해준뒤에 실행해줌
             ensureReplayCanvasState();
             MainUI.seekBarBox.setDeleteRangeBarVisible(false);
-            createFirstImageCache(rCanvasLayer1BitmapData, rCanvasLayer2BitmapData, RCANVAS_BG_COLOR);
+            createFirstImageCache(rCanvasLayer1BitmapData, rCanvasLayer2BitmapData, RCANVAS_BG_COLOR,rMirrorON);
             const fs:FileStream = new FileStream();
 
             if (rDataReadFlag)
@@ -2613,9 +2619,10 @@ package Modules
             layer2 = null;
             updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
             updateCanvasBGColorReplayMode(data[4]);
+            rMirrorON = data[7];
         }
 
-        private static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint):void
+        private static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint,mirrorFlag:Boolean =false):void
         {
             if (FileManager.replayCacheImageFolderPath.exists)
             {
@@ -2629,6 +2636,8 @@ package Modules
             const w:Number = bmpd1.width;
             const h:Number = bmpd1.height;
             const newRectangle:Rectangle = new Rectangle(0, 0, w, h);
+
+            rFirstImageMirrorFlag = mirrorFlag;
             rJumpImageFrameData.length = 0;
             bmpd1.copyPixelsToByteArray(newRectangle, ba1);
             ba1.compress();
@@ -2640,7 +2649,7 @@ package Modules
             ba2.compress();
             rFirstImageLayer2BitmapData = CanvasController.updateBitmapData(rFirstImageLayer2BitmapData, bmpd2, null);
             rFirstImageBGColor = bgColor;
-            createCacheImage(ba1, ba2, w, h, bgColor, 0, 0, false);
+            createCacheImage(ba1, ba2, w, h, bgColor, 0, 0, mirrorFlag);
             ba1.clear();
             ba2.clear();
         }
@@ -2676,6 +2685,7 @@ package Modules
                     , lastReadBytes
                     , rNowFrame
                     , rMirrorON];
+            trace('createRFrameTempCache rMirrorON =',rMirrorON,"index",index);
         }
 
         // targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
@@ -2779,7 +2789,6 @@ package Modules
             // slide show모드로 재생하게 되면 클리어 케시를 계속 호출해주고
             // 재생 완료시 rJumpImageIndexLast가 갱신되어있을때 다시 해주면 메모리 캐시가 없는데 캐시를 불러주는 버그가 생겨서
             // 아무생각없이 넣어본건데 버그 안나서 그대로 두려고함
-
             if (index !== rJumpImageIndexLast && isReplayStarted === false)
             {
                 clearRFrameTempCache();
@@ -2797,6 +2806,7 @@ package Modules
                     }
                 }
             }
+trace('index',index,"rJumpImageIndexLast",rJumpImageIndexLast,"loadCacheFlag",loadCacheFlag);
 
             if (loadCacheFlag > 0 || tragetFrame < rNowFrame)
             {
@@ -3078,7 +3088,7 @@ package Modules
             updateCanvasSizeReplayMode(rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
             fs.open(FileManager.replayDataFilePath, FileMode.READ);
             fs.position = 0;
-            rMirrorON = false;
+            rMirrorON = rFirstImageMirrorFlag;
             FileManager.loadMenuBox.visible = false;
 
             function printPrograssHint(bytes:Number):void
@@ -3118,7 +3128,6 @@ package Modules
                         }
 
                         CanvasController.isCanvasMirrored = rMirrorON;
-                        rMirrorON = rMirrorON;
                         UndoController.updateUndoBaseImageMirrorFlag(rMirrorON);
                         CanvasController.canvasInfoBox.setMirror(rMirrorON);
                         CanvasController.canvasNavigatorBox.visible = true;
@@ -3638,7 +3647,6 @@ package Modules
             if (isReplayFinished === true) // 리플레이 시간 등등 초기화 시키고 시작
             {
                 MainUI.seekBarBox.resetReplayPrograssBarWidth();
-                rMirrorON = false;
                 resetReplayTime();
                 clearCanvasReplayMode();
                 drawFirstJumpImage();

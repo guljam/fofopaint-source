@@ -422,6 +422,12 @@ package Modules
             {
                 keyBuffer.splice(index, 1);
             }
+
+            //디버그 확인용
+            if(isPressdKey(KEY.f12))
+            {
+                trace('리플 rMirrorON',ReplayController.rMirrorON," 드로우 모드 -",CanvasController.isCanvasMirrored);
+            }
         }
 
         public static function onKeyDownStage(e:KeyboardEvent):void
@@ -2623,7 +2629,6 @@ package Modules
                     startKeyRepeat(true, ToolController.adjustDrawToolSizeByShortcut, false);
                     return true;
                 case KEY.g:
-
                     startKeyRepeat(true, ToolController.adjustDrawToolAlphaByShortcut, true);
                     return true;
                 case KEY.b:

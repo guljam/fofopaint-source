@@ -43,12 +43,10 @@ package Modules.Tools
 
             if (CanvasController.checkedLayer <= 1 && movex === 0.0 && movey === 0.0)
             {
-                trace('리턴1');
                 return;
             }
             else if (CanvasController.checkedLayer === 2 && movex1 === 0.0 && movey1 === 0.0)
             {
-                trace('리턴2');
                 return;
             }
 

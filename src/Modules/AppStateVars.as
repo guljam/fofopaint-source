@@ -69,5 +69,6 @@ package Modules
         public var captureStampFont:String;
         public var scrollSetMovedY:Number;
         public var isRefLayerMemoryTrainingON:Boolean;
+        public var rFirstImageMirrorFlag:Boolean;
     }
 }

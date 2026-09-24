@@ -10,6 +10,7 @@ package Modules
     public class UndoController
     {
            private static var dataWriteCount:uint = 0; // 데이터로 저장할때  rDataFrame 카운터 누적
+           private static const NATIVE_UNDO_LIMIT_COUNT:int = 10;
 
             // undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
             private static var undoBaseImage:Array = [
@@ -185,7 +186,7 @@ package Modules
                     ReplayController.rDataFrame.splice(UndoManager.undoDataIndex + 1);
                 }
 
-                if (ReplayController.rData.length >= 10) // 첫번째 이미지는 빼야하니깐 -1로 계산해야함
+                if (ReplayController.rData.length >= NATIVE_UNDO_LIMIT_COUNT) // 첫번째 이미지는 빼야하니깐 -1로 계산해야함
                 {
                     var oldData:Array = ReplayController.rData[0];
 

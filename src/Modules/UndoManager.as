@@ -199,6 +199,7 @@ package Modules
                 // 실제 rPrevFrame으로 점프
                 ReplayController.renderReplayFrame(ReplayController.rPrevFrame, ReplayController.JUMP_FRAME_MANUAL);
                 CanvasController.applyReplayCanvasToDrawModeCanvas();
+                trace('deepundo 진입 미러 플래그',ReplayController.rMirrorON);
             }
         }
 
