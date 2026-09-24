@@ -44,6 +44,7 @@ package Modules
             replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
         }
         // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
+        // todo 저장할때 rdata undo 되어있을때 데이터가 사라짐 deepundo쪽은 그대로 살아있음
         private static var dataFolderPath:File;
         public static var appStateFilePath:File;
         public static var scratchPadDataFilePath:File;
@@ -843,7 +844,6 @@ package Modules
                 ReferenceLayerController.refLayerImageData.length = 0;
                 replayDataReadBytes.length = 0;
                 // 첫번째 이미지 레이어 1 2 저장
-                const fs:FileStream = new FileStream();
                 const rImgDataW:Number = ReplayController.rFirstImageLayer1BitmapData.width;
                 const rImgDataH:Number = ReplayController.rFirstImageLayer1BitmapData.height;
                 var newRectangle:Rectangle = new Rectangle(0, 0, rImgDataW, rImgDataH);
@@ -861,22 +861,32 @@ package Modules
                     newRectangle = new Rectangle(0, 0, refImgWidth, refImgHeight);
                     ReferenceLayerController.canvasRefLayerBitmapData.copyPixelsToByteArray(newRectangle, ReferenceLayerController.refLayerImageData);
                 }
-                // 리플레이 파일을 임시파일로 복사
+                // 리플레이 파일을 임시파일로 복사해서 이 내부의 바이트만 읽어서 워커에게 보냄
                 replayDataFilePath.copyTo(ReplayController.repFileTemp, true);
-                // 임시파일전체를 바이트배열로 읽어서 압축해줌
-                fs.open(ReplayController.repFileTemp, FileMode.READ);
-                fs.position = 0;
+
+                const fs:FileStream = new FileStream();
+
                 // 딥 언도일때는 읽은 바이트 까지만 읽어줌
                 if (UndoManager.isDeepUndoEnabled)
                 {
-                    fs.readBytes(replayDataReadBytes, 0, ReplayController.rFileLastBytePosition);
-                    fs.close();
+                    // 마지막 바이트가 0이상일때만 읽어주어야함
+                    // ReplayController.rFileLastBytePosition = 0이면 안읽는것이 아니고 전체 바이트를 읽음그래서 0이면 안읽게 해주어야함
+                    if (ReplayController.rFileLastBytePosition > 0)
+                    {
+                        fs.open(ReplayController.repFileTemp, FileMode.READ);
+                        fs.position = 0;
+                        fs.readBytes(replayDataReadBytes, 0, ReplayController.rFileLastBytePosition);
+                        fs.close();
+                    }
                 }
                 else
                 {
                     // 그게 아니면 전체 리플레이 데이터 끝까지 읽고 undo데이터까지 넣어줌
+                    fs.open(ReplayController.repFileTemp, FileMode.READ);
+                    fs.position = 0;
                     fs.readBytes(replayDataReadBytes, 0, fs.bytesAvailable);
                     fs.close();
+
                     replayDataReadBytes.position = replayDataReadBytes.length;
                     for (var i:int = 0, len:int = UndoManager.undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
                     {
@@ -1301,7 +1311,7 @@ package Modules
         private static function saveAppUpTime():void
         {
             const fs:FileStream = new FileStream();
-            
+
             const appUpTime:int = ActivityWorkTimer.getAppUpTime();
             fs.open(appUpTimePath, FileMode.WRITE);
             fs.writeInt(appUpTime);
@@ -1410,7 +1420,7 @@ package Modules
                 ReplayController.stopReplay();
             }
 
-            if(LassoTool.isLassoToolStarted)
+            if (LassoTool.isLassoToolStarted)
             {
                 LassoTool.cancelLassoTool();
             }

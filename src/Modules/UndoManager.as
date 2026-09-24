@@ -96,11 +96,6 @@ package Modules
             isDeepUndoEnabled = false;
         }
 
-        public static function getNowFrameUntilUndoIndex(index:int):Number
-        {
-            return ReplayController.getRFileTotalFrame() + UndoController.getRDataTotalFrame(index);
-        }
-
         public static function getHowCanvasMoveAfterUndoOrRedo(index:int, redoFlag:Boolean):Point
         {
             const prevData:Array = (redoFlag) ? ReplayController.rData[index] : ReplayController.rData[index + 1];
@@ -165,6 +160,7 @@ package Modules
         public static function undoToIndex(index:int):void
         {
             undoDataIndex = index;
+            trace('undo to index',undoDataIndex);
             FileManager.isFileAlreadySaved = false;
             FileManager.enableNewFileButton();
             UndoManager.updateCanvasStateAfterUndo();

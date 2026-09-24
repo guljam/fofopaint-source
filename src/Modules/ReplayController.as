@@ -201,9 +201,15 @@ package Modules
             }
         }
 
+        public static function getNowFrameUntilUndoIndex(index:int):Number
+        {
+            return ReplayController.getRFileTotalFrame() + UndoController.getRDataTotalFrame(index);
+        }
+
+
         public static function getTotalFrame():Number
         {
-            return UndoManager.getNowFrameUntilUndoIndex(rDataFrame.length - 1);
+            return getNowFrameUntilUndoIndex(rDataFrame.length - 1);
         }
 
         public static function onDragEnterStage(e:NativeDragEvent):void
@@ -2546,7 +2552,7 @@ package Modules
             rDataReadFlag = true;
             rDataIndex = undoIndexSave;
             rPrevFrame = rNowFrame;
-            rNowFrame = UndoManager.getNowFrameUntilUndoIndex(undoIndexSave);
+            rNowFrame = ReplayController.getNowFrameUntilUndoIndex(undoIndexSave);
             rMirrorON = undoRefData[5];
             const rect:Rectangle = new Rectangle(0, 0, undoRefData[2], undoRefData[3]);
 
@@ -2685,7 +2691,6 @@ package Modules
                     , lastReadBytes
                     , rNowFrame
                     , rMirrorON];
-            trace('createRFrameTempCache rMirrorON =',rMirrorON,"index",index);
         }
 
         // targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
@@ -2806,7 +2811,6 @@ package Modules
                     }
                 }
             }
-trace('index',index,"rJumpImageIndexLast",rJumpImageIndexLast,"loadCacheFlag",loadCacheFlag);
 
             if (loadCacheFlag > 0 || tragetFrame < rNowFrame)
             {
@@ -4479,8 +4483,6 @@ trace('index',index,"rJumpImageIndexLast",rJumpImageIndexLast,"loadCacheFlag",lo
 
             if (rCanvasLayer2Bitmap.bitmapData)
                 rCanvasLayer2Bitmap.bitmapData.dispose();
-
-            trace('리플레이 캔버스 크기 변경', rCanvasLayer2BitmapData.width, rCanvasLayer2BitmapData.height);
 
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
             rFollowMouse.updateBounds();

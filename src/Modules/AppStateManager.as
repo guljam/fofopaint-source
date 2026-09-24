@@ -416,8 +416,8 @@ package Modules
                         }
 
                         ReplayController.rDataIndex = UndoManager.undoDataIndex;
-                        ReplayController.rNowFrame = UndoManager.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex);
-                        ReplayController.rPrevFrame = UndoManager.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex - 1);
+                        ReplayController.rNowFrame = ReplayController.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex);
+                        ReplayController.rPrevFrame = ReplayController.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex - 1);
 
                         // 혹시 몰라서 위치 체크 해줌
                         CanvasController.canvasInfoBox.setRotate(CanvasController.canvasAnchorPoint.rotation);
