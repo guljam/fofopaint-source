@@ -40,7 +40,6 @@ package Modules
         // todo 리플레이 실행중일때 탐색바만 나오는데 리플레이 속도 조절할수있게 같이 나오게 해야함 ui고민
         // todo playback speed 키보드로 조정할때 힌트 박스를 topbar 아래쪽으로 직관적으로 보이게 조정
         // todo 탐색바 힌트를 표시한 채로 f1으로 드로우 모드에 진입하면 테두리랑 힌트가 남음
-        // todo 버그 발견, mirror가 된 상태에서 뒷프레임을 잘라주고 나서 재생하면 미러 적용이 안된 상태에서 다시 그려주는 버그가있음
         // todo 그런데 컷 잘라주면 다시 0프레임부터 시작되는데 아까는 왜 중간부터 시작되었는지 모르겠음
         public static var main:Main;
 
@@ -181,7 +180,6 @@ package Modules
                 const fs:FileStream = new FileStream();
                 fs.open(FileManager.replayDataFilePath, FileMode.WRITE);
                 fs.close();
-                createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             }
         }
 
@@ -332,7 +330,7 @@ package Modules
             var bg:uint = 0;
             var errorFlag:Boolean = true;
             var rect:Rectangle;
-            initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소
+            initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소\
             oldFile.copyTo(repFileTemp, true); // repdata.c3p를 복사 덮어씌우기
 
             if (ReferenceLayerController.refLayerRawTransformData)
@@ -404,11 +402,12 @@ package Modules
                         ba = null;
                         rLastCanvasBGColor = d[5];
                         //air sdk 이전이후 첫 패치된거라서 값이 있으면 읽어주어야함 불리언 값
+                        const firstMirrorFlag:Boolean = d.length > 6 && d[6] === true
                         if(d[6]) 
                         {
-                            rMirrorON = d[6];
+                            rMirrorON = firstMirrorFlag;
                         }
-                        createFirstImageCache(rFirstImageLayer1BitmapData, rFirstImageLayer2BitmapData, d[5]); // 0.cache 파일 갱신
+                        createFirstImageCache(rFirstImageLayer1BitmapData, rFirstImageLayer2BitmapData, d[5],firstMirrorFlag); // 0.cache 파일 갱신
                     }
                 }
                 else if (d[0] === "rFinalImage") // 최종 이미지
@@ -520,6 +519,7 @@ package Modules
             ReferenceLayerController.refLayerRawTransformData = null;
             FileManager.finalizeLoadFile(width, height, layer1Image, layer2Image, true, 0xFFFFFF);
             initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소
+            createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
         }
 
         public static function addUndoBGColorData(color:uint):void
@@ -2622,7 +2622,7 @@ package Modules
             rMirrorON = data[7];
         }
 
-        private static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint,mirrorFlag:Boolean =false):void
+        public static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint,mirrorFlag:Boolean=false):void
         {
             if (FileManager.replayCacheImageFolderPath.exists)
             {
@@ -4624,6 +4624,7 @@ trace('index',index,"rJumpImageIndexLast",rJumpImageIndexLast,"loadCacheFlag",lo
             ReferenceLayerController.resetRefLayerImageTransform();
             ReferenceLayerController.resetRefLayerMenuOpacity();
             initializeReplayDataFile(true);
+            createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             resetReplaySpeedBar();
             resetReplayTime();
             UndoManager.resetUndoState();
