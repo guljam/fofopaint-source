@@ -652,7 +652,7 @@ package Modules
                 xBitmapData11 = ReplayController.rCanvasLayer2BitmapData;
                 xDrawLayer = ReplayController.rCanvasDrawLayer;
                 xBGCOLOR = ReplayController.RCANVAS_BG_COLOR;
-                alpha = ReplayController.drawReplayByCommand.getLineStyleAlpha();
+                alpha = ReplayDrawCommands.getLineStyleAlpha();
             }
             else
             {

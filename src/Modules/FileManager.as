@@ -358,7 +358,7 @@ package Modules
                 CanvasGridOverlay.drawGrid();
             }
 
-            ReplayController.drawReplayByCommand.resetFirstRCursorPos();
+            ReplayDrawCommands.resetFirstRCursorPos();
             if (ReferenceLayerController.refLayerRawTransformData === null)
             {
                 ReferenceLayerController.clearRefLayerImage();

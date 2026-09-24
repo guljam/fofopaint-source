@@ -53,11 +53,11 @@ package Modules
         {
             if (undoIndex < 0)
             {
-                if (ReplayController.drawReplayByCommand.hasRCursorFirstPos())
+                if (ReplayDrawCommands.hasRCursorFirstPos())
                 {
-                    const p:Point = ReplayController.drawReplayByCommand.getFirstRCursorPos();
-                    ReplayController.drawReplayByCommand.setRCursorPos(p.x, p.y); // 커서 위치도 업에이트 해줘야함 대칭해줄띠 getRcursor로 하기 때문에
-                    ReplayController.drawReplayByCommand.updateRCursorPosToFirst();
+                    const p:Point = ReplayDrawCommands.getFirstRCursorPos();
+                    ReplayDrawCommands.setRCursorPos(p.x, p.y); // 커서 위치도 업에이트 해줘야함 대칭해줄띠 getRcursor로 하기 때문에
+                    ReplayDrawCommands.updateRCursorPosToFirst();
                 }
                 else
                 {
@@ -67,7 +67,7 @@ package Modules
             }
             else
             {
-                ReplayController.drawReplayByCommand.updateRCursorPos();
+                ReplayDrawCommands.updateRCursorPos();
             }
         }
 
@@ -134,7 +134,7 @@ package Modules
 
                 if (ReplayController.rNowFrame >= ReplayController.getRFileTotalFrame())
                 {
-                    disableDeepUndo();
+                    exitDeepUndo();
                     undoDataIndex = -1;
                 }
             }
@@ -165,7 +165,7 @@ package Modules
             UndoManager.updateCanvasStateAfterUndo();
         }
 
-        public static function disableDeepUndo():void
+        public static function exitDeepUndo():void
         {
             isDeepUndoEnabled = false;
             lastDeepUndoEnabledFlag = false;
@@ -174,7 +174,7 @@ package Modules
             ReplayController.clearRFrameTempCache();
         }
 
-        public static function enableDeepUndo():void
+        public static function enterDeepUndo():void
         {
             isDeepUndoEnabled = true;
             ReplayController.rDataReadFlag = false;
@@ -216,10 +216,10 @@ package Modules
             ReplayController.rReplayFOFOCursor.visible = true; // 대칭된 커서 위치를 갱신해주려고 임시로 켜줌
             // checkMirrorCanvasReplayMirror();
             CanvasController.canvasInfoBox.setMirror(CanvasController.isCanvasMirrored);
-            ReplayController.drawReplayByCommand.setFirstRCursorPosCurrent();
+            ReplayDrawCommands.setFirstRCursorPosCurrent();
             ReplayController.rReplayFOFOCursor.visible = false;
             CanvasController.canvasNavigatorBox.updateImage();
-            UndoManager.disableDeepUndo();
+            UndoManager.exitDeepUndo();
         }
 
         public static function undo():void
@@ -245,7 +245,7 @@ package Modules
                 {
                     FileManager.isFileAlreadySaved = false;
                     UndoManager.undoDataIndex = -1;
-                    UndoManager.enableDeepUndo();
+                    UndoManager.enterDeepUndo();
                     Utils.showDisplayTargetAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
                 }
                 else if (ReplayController.rData.length > 0)

@@ -109,8 +109,8 @@ package Modules
             appStateObject.newWindowInfo2 = ImageViewWindow.canvasWindowInfo[2];
             appStateObject.newWindowInfo3 = ImageViewWindow.canvasWindowInfo[3];
 
-            appStateObject.getFirstRCursorPosX = ReplayController.drawReplayByCommand.getFirstRCursorPos().x;
-            appStateObject.getFirstRCursorPosY = ReplayController.drawReplayByCommand.getFirstRCursorPos().y;
+            appStateObject.getFirstRCursorPosX = ReplayDrawCommands.getFirstRCursorPos().x;
+            appStateObject.getFirstRCursorPosY = ReplayDrawCommands.getFirstRCursorPos().y;
 
             appStateObject.myPalettePresetType = PaletteController.myPalettePresetType;
             appStateObject.isMyPaletteExpended = PaletteController.isMyPaletteExpended;
@@ -373,7 +373,7 @@ package Modules
                         // Replay Controller
                         ReplayController.rReplayImageCacheState = appStateObject.rReplayImageCacheState;
                         ReplayController.rLastCanvasBGColor = appStateObject.rLastCanvasBGColor;
-                        ReplayController.drawReplayByCommand.setFirstRCursorPos(appStateObject.getFirstRCursorPosX, appStateObject.getFirstRCursorPosY);
+                        ReplayDrawCommands.setFirstRCursorPos(appStateObject.getFirstRCursorPosX, appStateObject.getFirstRCursorPosY);
 
                         ReferenceLayerController.updateRefLayerImageTransform(
                                 appStateObject.canvasRefLayerBitmapX,

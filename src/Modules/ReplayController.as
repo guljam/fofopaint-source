@@ -47,13 +47,11 @@ package Modules
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
-            drawReplayByCommand = cDrawReplayDataCommands();
             drawCanvasFromReplayData = cDrawReplayData();
             rFollowMouse = cReplayFollowMouse();
             replayHideCursor = cReplayHideCursor();
         }
 
-        public static var drawReplayByCommand:Object;
         private static var drawCanvasFromReplayData:Function;
         public static var rFollowMouse:Object;
         private static var replayHideCursor:Object;
@@ -87,11 +85,11 @@ package Modules
         private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); // 리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
         public static var rCanvasLayer1BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
         public static var rCanvasLayer2BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-        private static var rCanvasDrawLayerBitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+        public static var rCanvasDrawLayerBitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
         public static var rCanvasLayer1Bitmap:Bitmap = new Bitmap(rCanvasLayer1BitmapData, "auto", true);
         public static var rCanvasLayer2Bitmap:Bitmap = new Bitmap(rCanvasLayer2BitmapData, "auto", true);
         private static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
-        private static var rCanvasDrawLayerBitmap:Bitmap = new Bitmap(rCanvasDrawLayerBitmapData, "auto", true);
+        public static var rCanvasDrawLayerBitmap:Bitmap = new Bitmap(rCanvasDrawLayerBitmapData, "auto", true);
         public static var rReplayFOFOCursor:FOFOCursorSet = new FOFOCursorSet(); // 재생할때 틀어주는 작은 마우스 커서
         public static var rCanvasDrawLayerClipRectLegacy:Rectangle = new Rectangle(); // 갱신된 부분만 그려주는 거 오래된 버전 지원때문에 남겨둠
         public static var rCanvasDrawLayerClipRect:Rectangle = new Rectangle(); // 갱신된 부분만 그려주는 거 이게 새거임
@@ -110,7 +108,7 @@ package Modules
         private static var rFileCutBytePosition:Number = 0; // super undo에서 파일 잘라줄때 필요함
         public static var rDataIndex:int = 0; // rData에서만씀 rData 스크로크 뭉치 인덱스
         private static var rDataStartIndex:int = 0; // 리플레이에서 프레임 스캡을 앞부분으로 해줄때 rdata를 읽는 부분이면 현재 undoindex부분 부터 읽게 인덱스를 올려줌
-        private static var rLastLayer2Selcted:Boolean = false; // 리플레이 실행할때 이걸로 비교해서 캔버스 스왑해줌
+        public static var rLastLayer2Selcted:Boolean = false; // 리플레이 실행할때 이걸로 비교해서 캔버스 스왑해줌
         public static var rLastCanvasBGColor:uint = RCANVAS_BG_COLOR; // load replay에서 씀
         private static var rReplaySpeedMultipler:Number = 1; // 리플레이 속도 for루프로 2번씩혹은 3번씩 읽히게 만듬
         public static var rAirBrushSize:int = 0; // 레거시지원 변수
@@ -166,7 +164,7 @@ package Modules
             clearDataAndResetVars();
             syncDrawCanvasWithReplayCanvas();
             exitReplayMode();
-            UndoManager.disableDeepUndo();
+            UndoManager.exitDeepUndo();
             resetReplayTime();
             ReferenceLayerController.resetRefLayerImageTransform();
         }
@@ -502,10 +500,10 @@ package Modules
                 }
 
                 UndoManager.undoToIndex(UndoManager.undoDataIndex);
-                UndoManager.disableDeepUndo();
+                UndoManager.exitDeepUndo();
                 updateReplayPrograssBarAndText();
                 updateReplaySpeedSliderAlpha();
-                drawReplayByCommand.setFirstRCursorPosCurrent();
+                ReplayDrawCommands.setFirstRCursorPosCurrent();
                 ReferenceLayerController.resetRefLayerImageTransform();
             }
         }
@@ -527,7 +525,7 @@ package Modules
             }
             else if (rDataReadFlag === false)
             {
-                drawReplayByCommand.setFirstRCursorPosCurrent();
+                ReplayDrawCommands.setFirstRCursorPosCurrent();
                 const fs:FileStream = new FileStream();
                 fs.open(FileManager.replayDataFilePath, FileMode.UPDATE);
                 fs.position = rFileLastBytePosition;
@@ -574,7 +572,7 @@ package Modules
             updateReplaySpeedSliderAlpha();
             updateDeleteReplayDataButtonsState();
             resetReplaySpeedBar();
-            UndoManager.disableDeepUndo();
+            UndoManager.exitDeepUndo();
             ReferenceLayerController.resetRefLayerImageTransform();
 
             if (SidebarController.isQuickSidebarActive)
@@ -589,7 +587,7 @@ package Modules
         {
             if (mode !== "total")
             {
-                if (drawReplayByCommand.getCurrentPosition() < drawReplayByCommand.getDataLength())
+                if (ReplayDrawCommands.getCurrentPosition() < ReplayDrawCommands.getDataLength())
                 {
                     finalizeRemainingReplayData();
                     updateReplayPrograssText();
@@ -606,1492 +604,6 @@ package Modules
 
             MainUI.seekBarBox.updateDeleteDangeBarPosWidth(mode);
             return false;
-        }
-
-        public static function cDrawReplayDataCommands():Object
-        {
-            const rCursorPos:Point = new Point(0, 0);
-            // undo인덱스가 처음일때 tickdraw가 아무것도 안해주니까 위치 갱신이 안되서
-            // undorefimage갱신 될때 마다 마지막 포인터 위치 저장해주는거
-            const rCursorPosFirst:Point = new Point(-1, -1);
-            var lineStyleBackup:Array = [1.0, null];
-            // tempdone에서 쓰는 플래그임
-            var index:uint = 0;
-            var data:Array = []; // 데이터 뭉치
-            const cmd:Vector.<int> = new Vector.<int>();
-            const pos:Vector.<Number> = new Vector.<Number>();
-
-            function updateLineStyleBackup(alpha:Number, blendMode:String):void
-            {
-                lineStyleBackup[0] = alpha;
-                lineStyleBackup[1] = blendMode;
-            }
-
-            function getFirstRCursorPos():Point
-            {
-                return rCursorPosFirst;
-            }
-
-            function resetFirstRCursorPos():void
-            {
-                rCursorPosFirst.setTo(-1, -1);
-            }
-
-            function setFirstRCursorPos(x:Number, y:Number):void
-            {
-                rCursorPosFirst.setTo(x, y);
-            }
-
-            function setFirstRCursorPosCurrent():void
-            {
-                rCursorPosFirst.setTo(rCursorPos.x, rCursorPos.y);
-            }
-
-            function hasRCursorFirstPos():Boolean
-            {
-                return rCursorPosFirst.x > 0 && rCursorPosFirst.y > 0;
-            }
-
-            function updateRCursorPosToFirst():void
-            {
-                rReplayFOFOCursor.x = rCursorPosFirst.x;
-                rReplayFOFOCursor.y = rCursorPosFirst.y;
-            }
-
-            function updateRCursorPos():void
-            {
-                rReplayFOFOCursor.x = rCursorPos.x;
-                rReplayFOFOCursor.y = rCursorPos.y;
-            }
-
-            function setRCursorPosFromMoveTool(x:Number, y:Number):void
-            {
-                setRCursorPos(rCursorPos.x + x, rCursorPos.y + y);
-            }
-
-            function setRCursorPosToCenter():void
-            {
-                setRCursorPos(RCANVAS_WIDTH / 2, RCANVAS_HEIGHT / 2);
-            }
-
-            function setRCursorPos(x:Number, y:Number):void
-            {
-                if (x < 0)
-                    x = 0;
-
-                else if (x > RCANVAS_WIDTH)
-                    x = RCANVAS_WIDTH;
-
-                if (y < 0)
-                    y = 0;
-
-                else if (y > RCANVAS_HEIGHT)
-                    y = RCANVAS_HEIGHT;
-                rCursorPos.setTo(x, y);
-            }
-
-            function getRCursorPos():Point
-            {
-                return rCursorPos;
-            }
-
-            function clearData():void
-            {
-                data = [];
-                index = 0;
-            }
-
-            function setData(refData:Array, startIndex:uint = 0):void
-            {
-                data = refData;
-                index = startIndex;
-            }
-
-            function getRemainingData():uint
-            {
-                if (!data)
-                    return 0;
-                return data.length - index;
-            }
-
-            function isReadFinished():Boolean
-            {
-                if (!data)
-                    return true;
-                return index > data.length - 1;
-            }
-
-            function getDataLength():uint
-            {
-                if (!data)
-                    return 0;
-                return data.length;
-            }
-
-            function getCurrentPosition():uint
-            {
-                return index;
-            }
-
-            function setIndex(newIndex:uint):void
-            {
-                index = newIndex;
-            }
-
-            function getLineStyleAlpha():Number
-            {
-                return lineStyleBackup[0];
-            }
-
-            function getrLineStyleSave():Array
-            {
-                if (lineStyleBackup.length !== 2)
-                    return [1.0, null];
-                return lineStyleBackup;
-            }
-
-            function drawAll():void
-            {
-                var len:uint = data.length;
-
-                for (var i:uint = 0;i < len;i++)
-                {
-                    drawNext();
-                }
-            }
-
-            function checkAirBrush(airBrushFlag:Boolean, size:uint):void
-            {
-                if (airBrushFlag === true)
-                {
-                    if (rAirBrushSize !== size)
-                        blurReplayCanvasByValue(size);
-                }
-                else if (rAirBrushSize > 0)
-                {
-                    resetBlurReplayCanvas();
-                }
-            }
-
-            function checkSubLayer(subLayerFlag:Boolean):void
-            {
-                if (subLayerFlag)
-                {
-                    // if((replayStartON && subLayerFlag) !== false && rSubLayerSave !== subLayerFlag)
-
-                    if (rLastLayer2Selcted !== subLayerFlag)
-                    {
-                        selectReplaySubLayer(subLayerFlag);
-                    }
-                }
-                else if (rLastLayer2Selcted)
-                {
-                    selectReplaySubLayer(false);
-                }
-            }
-
-            function lineStyle5(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const blendMode:String = data[7];
-                const fillpen:Boolean = data[8];
-                const subLayer:Boolean = data[9];
-                const airBrushSize:Number = data[10];
-                updateLineStyleBackup(alpha, blendMode);
-                checkSubLayer(subLayer);
-                rAirBrushSize2 = airBrushSize;
-
-                if (fillpen)
-                {
-                    rCanvasDrawShape.graphics.clear();
-                    replayLineStyleReady2(false, 1, color, 1.0);
-                    rCanvasDrawShape.graphics.beginFill(color);
-                    rCanvasDrawShape.graphics.moveTo(startX, startY);
-                    rCanvasDrawLayer.alpha = alpha;
-                }
-                else
-                {
-                    replayLineStyleReady3(shape, size, color, alpha);
-                    rCanvasDrawShape.graphics.moveTo(startX, startY);
-                }
-
-                if (index === 0)
-                {
-                    CanvasController.resetRCanvasDrawLayerCliprect2();
-                }
-                else
-                {
-                    updateRCanvasDrawLayerCliprect2();
-                }
-            }
-
-            function lineStyle4(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const blendMode:String = data[7];
-                const fillpen:Boolean = data[8];
-                const subLayer:Boolean = data[9];
-                const airBrush:Boolean = data[10];
-                updateLineStyleBackup(alpha, blendMode);
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush, size);
-
-                if (fillpen)
-                {
-                    rCanvasDrawShape.graphics.clear();
-                    replayLineStyleReady2(false, 1, color, 1.0);
-                    rCanvasDrawShape.graphics.beginFill(color);
-                    rCanvasDrawShape.graphics.moveTo(startX, startY);
-                    rCanvasDrawLayer.alpha = alpha;
-                }
-                else
-                {
-                    replayLineStyleReady3(shape, size, color, alpha);
-                    rCanvasDrawShape.graphics.moveTo(startX, startY);
-                }
-
-                if (index === 0)
-                {
-                    CanvasController.resetRCanvasDrawLayerCliprect();
-                }
-                else
-                {
-                    CanvasController.updateRCanvasDrawLayerCliprect();
-                }
-            }
-
-            function lineStyle3(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const blendMode:String = data[7];
-                const fillpen:Boolean = data[8];
-                const subLayer:Boolean = data[9];
-                const airBrush:Boolean = data[10];
-                updateLineStyleBackup(alpha, blendMode);
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush, size);
-
-                if (!fillpen)
-                {
-                    replayLineStyleReady3(shape, size, color, alpha);
-                    rCanvasDrawShape.graphics.moveTo(startX, startY);
-                }
-                else
-                {
-                    rCanvasDrawShape.graphics.clear();
-                    replayLineStyleReady2(false, 1, color, 1.0);
-                    rCanvasDrawShape.graphics.beginFill(color);
-                    rCanvasDrawShape.graphics.moveTo(startX, startY);
-                    rCanvasDrawLayer.alpha = alpha;
-                }
-            }
-
-            function lineStyle2(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const blendMode:String = data[7];
-                const fillpen:Boolean = data[8];
-                const subLayer:Boolean = data[9];
-                const airBrush:Boolean = data[10];
-                updateLineStyleBackup(alpha, blendMode);
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush, size);
-
-                if (!fillpen)
-                {
-                    replayLineStyleReady2(shape, size, color, alpha);
-                    rCanvasDrawShape.graphics.moveTo(startX, startY);
-                }
-                else
-                {
-                    rCanvasDrawShape.graphics.clear();
-                    replayLineStyleReady2(false, 1, color, 1.0);
-                    rCanvasDrawShape.graphics.beginFill(color);
-                    rCanvasDrawShape.graphics.moveTo(startX, startY);
-                    rCanvasDrawLayer.alpha = alpha;
-                }
-            }
-
-            function lineStyle(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const blendMode:String = data[7];
-                const fillpen:Boolean = data[8];
-                const subLayer:Boolean = data[9];
-                const airBrush:Boolean = data[10];
-                updateLineStyleBackup(alpha, blendMode);
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush, size);
-
-                if (!fillpen)
-                {
-                    replayLineStyleReady(shape, size, color, alpha);
-                    rCanvasDrawShape.graphics.moveTo(startX, startY);
-                }
-                else
-                {
-                    rCanvasDrawShape.graphics.clear();
-                    replayLineStyleReady(false, 1, color, 1.0);
-                    rCanvasDrawShape.graphics.beginFill(color);
-                    rCanvasDrawShape.graphics.moveTo(startX, startY);
-                    rCanvasDrawLayer.alpha = alpha;
-                }
-            }
-
-            function lineTo(data:Array):void
-            {
-                const x:Number = data[1];
-                const y:Number = data[2];
-                rCanvasDrawShape.graphics.lineTo(x, y);
-                setRCursorPos(x, y);
-            }
-
-            function sqline(data:Array):void
-            {
-                const size:Number = data[1];
-                const color:Number = data[2];
-                const alpha:Number = data[3];
-                const blendMode:String = data[4];
-                const command:Vector.<int> = data[5];
-                const xyData:Vector.<Number> = data[6];
-                rCanvasDrawLayerBitmap.bitmapData = null;
-                rCanvasDrawLayerBitmapData.dispose();
-                rCanvasDrawLayerBitmapData = new BitmapData(RCANVAS_WIDTH, RCANVAS_HEIGHT, true, 0);
-                rCanvasDrawShape.graphics.clear();
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.ROUND);
-                rCanvasDrawShape.graphics.drawPath(command, xyData);
-                setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
-            }
-
-            function fill5(data:Array):void
-            {
-                const color:Number = data[1];
-                const alpha:Number = data[2];
-                const blendMode:String = data[3];
-                const command:Vector.<int> = data[4];
-                const xyData:Vector.<Number> = data[5];
-                const airBrushFlag:Boolean = data[6];
-                const airBrushSize:uint = data[7];
-                rAirBrushSize2 = airBrushSize;
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                rCanvasDrawShape.graphics.clear();
-                rCanvasDrawShape.graphics.lineStyle(1, color);
-                rCanvasDrawShape.graphics.beginFill(color);
-                rCanvasDrawShape.graphics.drawPath(command, xyData);
-                setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
-                CanvasController.resetRCanvasDrawLayerCliprect2();
-            }
-
-            function fill4(data:Array):void
-            {
-                const color:Number = data[1];
-                const alpha:Number = data[2];
-                const blendMode:String = data[3];
-                const command:Vector.<int> = data[4];
-                const xyData:Vector.<Number> = data[5];
-                const airBrushFlag:Boolean = data[6];
-                const airBrushSize:uint = data[7];
-                checkAirBrush(airBrushFlag, airBrushSize);
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                rCanvasDrawShape.graphics.clear();
-                rCanvasDrawShape.graphics.lineStyle(1, color);
-                rCanvasDrawShape.graphics.beginFill(color);
-                rCanvasDrawShape.graphics.drawPath(command, xyData);
-                setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
-                CanvasController.resetRCanvasDrawLayerCliprect();
-            }
-
-            function fill3(data:Array):void
-            {
-                const color:Number = data[1];
-                const alpha:Number = data[2];
-                const blendMode:String = data[3];
-                const command:Vector.<int> = data[4];
-                const xyData:Vector.<Number> = data[5];
-                const airBrushFlag:Boolean = data[6];
-                const airBrushSize:uint = data[7];
-                checkAirBrush(airBrushFlag, airBrushSize);
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                rCanvasDrawShape.graphics.clear();
-                rCanvasDrawShape.graphics.lineStyle(1, color);
-                rCanvasDrawShape.graphics.beginFill(color);
-                rCanvasDrawShape.graphics.drawPath(command, xyData);
-                setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
-            }
-
-            function fill2(data:Array):void
-            {
-                const color:Number = data[1];
-                const alpha:Number = data[2];
-                const blendMode:String = data[3];
-                const arr:Vector.<Number> = data[4];
-                const len:uint = arr.length;
-                resetBlurReplayCanvas();
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                rCanvasDrawShape.graphics.clear();
-                rCanvasDrawShape.graphics.lineStyle(1, color);
-                rCanvasDrawShape.graphics.beginFill(color);
-                rCanvasDrawShape.graphics.moveTo(arr[0], arr[1]);
-
-                for (var i:uint = 2;i < len;i += 2)
-                {
-                    rCanvasDrawShape.graphics.lineTo(arr[i], arr[i + 1]);
-                }
-
-                rCanvasDrawShape.graphics.endFill();
-                setRCursorPos(arr[len - 2], arr[len - 1]);
-            }
-
-            function fill(data:Array):void
-            {
-                const color:Number = data[1];
-                const alpha:Number = data[2];
-                const blendMode:String = data[3];
-                const command:Vector.<int> = data[4];
-                const xyData:Vector.<Number> = data[5];
-                resetBlurReplayCanvas();
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                rCanvasDrawShape.graphics.clear();
-                rCanvasDrawShape.graphics.lineStyle(1, color);
-                rCanvasDrawShape.graphics.beginFill(color);
-                rCanvasDrawShape.graphics.drawPath(command, xyData);
-                setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
-            }
-
-            function dot4(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const blendMode:String = data[7];
-                const subLayer:Boolean = data[8];
-                const airBrushSize:Number = data[9];
-                const rotation:Number = data[10];
-                checkSubLayer(subLayer);
-                rAirBrushSize2 = airBrushSize;
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
-                rCanvasDrawShape.graphics.beginFill(color);
-
-                if (shape)
-                {
-                    cmd.length = 0;
-                    pos.length = 0;
-                    const halfSize:Number = size / 2;
-                    var point:Point = Utils.rotatePoint(-halfSize, -halfSize, rotation);
-                    cmd.push(1);
-                    pos.push(startX + point.x);
-                    pos.push(startY + point.y);
-                    point = Utils.rotatePoint(halfSize, -halfSize, rotation);
-                    cmd.push(2);
-                    pos.push(startX + point.x);
-                    pos.push(startY + point.y);
-                    point = Utils.rotatePoint(halfSize, halfSize, rotation);
-                    cmd.push(2);
-                    pos.push(startX + point.x);
-                    pos.push(startY + point.y);
-                    point = Utils.rotatePoint(-halfSize, halfSize, rotation);
-                    cmd.push(2);
-                    pos.push(startX + point.x);
-                    pos.push(startY + point.y);
-                    rCanvasDrawShape.graphics.drawPath(cmd, pos);
-                    point = null;
-                }
-                else
-                {
-                    rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
-                }
-
-                rCanvasDrawShape.graphics.endFill();
-                CanvasController.resetRCanvasDrawLayerCliprect2();
-                setRCursorPos(startX, startY);
-            }
-
-            function dot3(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const blendMode:String = data[7];
-                const subLayer:Boolean = data[8];
-                const airBrush:Boolean = data[9];
-                const rotation:Number = data[10];
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush, size);
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
-                rCanvasDrawShape.graphics.beginFill(color);
-
-                if (shape)
-                {
-                    cmd.length = 0;
-                    pos.length = 0;
-                    const p0:Point = Utils.rotatePoint(-size / 2, -size / 2, rotation);
-                    cmd.push(1);
-                    pos.push(startX + p0.x);
-                    pos.push(startY + p0.y);
-                    const p1:Point = Utils.rotatePoint(+size / 2, -size / 2, rotation);
-                    cmd.push(2);
-                    pos.push(startX + p1.x);
-                    pos.push(startY + p1.y);
-                    const p2:Point = Utils.rotatePoint(+size / 2, +size / 2, rotation);
-                    cmd.push(2);
-                    pos.push(startX + p2.x);
-                    pos.push(startY + p2.y);
-                    const p3:Point = Utils.rotatePoint(-size / 2, +size / 2, rotation);
-                    cmd.push(2);
-                    pos.push(startX + p3.x);
-                    pos.push(startY + p3.y);
-                    rCanvasDrawShape.graphics.drawPath(cmd, pos);
-                }
-                else
-                {
-                    rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
-                }
-
-                rCanvasDrawShape.graphics.endFill();
-                CanvasController.resetRCanvasDrawLayerCliprect();
-                setRCursorPos(startX, startY);
-            }
-
-            function dot2(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const blendMode:String = data[7];
-                const subLayer:Boolean = data[8];
-                const airBrush:Boolean = data[9];
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush, size);
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
-                rCanvasDrawShape.graphics.beginFill(color);
-
-                if (shape)
-                    rCanvasDrawShape.graphics.drawRect(startX - size / 2, startY - size / 2, size, size);
-
-                else
-                    rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
-                rCanvasDrawShape.graphics.endFill();
-                CanvasController.resetRCanvasDrawLayerCliprect();
-                setRCursorPos(startX, startY);
-            }
-
-            function dot(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const blendMode:String = data[7];
-                const subLayer:Boolean = data[8];
-                const airBrush:Boolean = data[9];
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush, size);
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
-                rCanvasDrawShape.graphics.beginFill(color);
-
-                if (shape)
-                    rCanvasDrawShape.graphics.drawRect(startX - size / 2, startY - size / 2, size, size);
-
-                else
-                    rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
-                rCanvasDrawShape.graphics.endFill();
-                setRCursorPos(startX, startY);
-            }
-
-            function line3(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const endX:Number = data[7];
-                const endY:Number = data[8];
-                const blendMode:String = data[9];
-                const subLayer:Boolean = data[10];
-                const airBrushSize:Number = data[11];
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                checkSubLayer(subLayer);
-                rAirBrushSize2 = airBrushSize;
-
-                if (shape)
-                    rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
-
-                else
-                    rCanvasDrawShape.graphics.lineStyle(size, color);
-                rCanvasDrawShape.graphics.moveTo(startX, startY);
-                rCanvasDrawShape.graphics.lineTo(endX, endY);
-                CanvasController.resetRCanvasDrawLayerCliprect2();
-                setRCursorPos(endX, endY);
-            }
-
-            function line2(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const endX:Number = data[7];
-                const endY:Number = data[8];
-                const blendMode:String = data[9];
-                const subLayer:Boolean = data[10];
-                const airBrush:Boolean = data[11];
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush, size);
-
-                if (shape)
-                    rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
-
-                else
-                    rCanvasDrawShape.graphics.lineStyle(size, color);
-                rCanvasDrawShape.graphics.moveTo(startX, startY);
-                rCanvasDrawShape.graphics.lineTo(endX, endY);
-                CanvasController.resetRCanvasDrawLayerCliprect();
-                setRCursorPos(endX, endY);
-            }
-
-            function line1(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const endX:Number = data[7];
-                const endY:Number = data[8];
-                const blendMode:String = data[9];
-                const subLayer:Boolean = data[10];
-                const airBrush:Boolean = data[11];
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush, size);
-
-                if (shape)
-                    rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
-
-                else
-                    rCanvasDrawShape.graphics.lineStyle(size, color);
-                rCanvasDrawShape.graphics.moveTo(startX, startY);
-                rCanvasDrawShape.graphics.lineTo(endX, endY);
-                setRCursorPos(endX, endY);
-            }
-
-            function line(data:Array):void
-            {
-                const shape:Boolean = data[1];
-                const size:uint = data[2];
-                const color:uint = data[3];
-                const alpha:Number = data[4];
-                const startX:Number = data[5];
-                const startY:Number = data[6];
-                const endX:Number = data[7];
-                const endY:Number = data[8];
-                const blendMode:String = data[9];
-                const subLayer:Boolean = data[10];
-                const airBrush:Boolean = data[11];
-                updateLineStyleBackup(alpha, blendMode);
-                rCanvasDrawLayer.alpha = alpha;
-                checkSubLayer(subLayer);
-                checkAirBrush(airBrush, size);
-
-                if (shape)
-                    rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.ROUND);
-
-                else
-                    rCanvasDrawShape.graphics.lineStyle(size, color);
-                rCanvasDrawShape.graphics.moveTo(startX, startY);
-                rCanvasDrawShape.graphics.lineTo(endX, endY);
-                setRCursorPos(endX, endY);
-            }
-
-            function move1(data:Array):void
-            {
-                moveImageReplayMode(data[1], data[2], true, false);
-                setRCursorPosFromMoveTool(data[1], data[2]);
-            }
-
-            function move2(data:Array):void
-            {
-                moveImageReplayMode(data[1], data[2], false, true);
-                setRCursorPosFromMoveTool(data[1], data[2]);
-            }
-
-            function move(data:Array):void
-            {
-                moveImageReplayMode(data[1], data[2], true, true);
-                setRCursorPosFromMoveTool(data[1], data[2]);
-            }
-
-            function resetLassoVars():void
-            {
-                LassoTool.lassoLayer1Bitmap.filters = [];
-                LassoTool.lassoLayer2Bitmap.filters = [];
-
-                if (LassoTool.lassoLayer1Bitmap.bitmapData)
-                    LassoTool.lassoLayer1Bitmap.bitmapData.dispose();
-
-                if (LassoTool.lassoLayer2Bitmap.bitmapData)
-                    LassoTool.lassoLayer2Bitmap.bitmapData.dispose();
-                LassoTool.lassoLayer1.x = 0;
-                LassoTool.lassoLayer1.y = 0;
-                LassoTool.lassoLayer1.scaleX = 1.0;
-                LassoTool.lassoLayer1.scaleY = 1.0;
-                LassoTool.lassoLayer1.rotation = 0;
-                LassoTool.lassoLayer1.visible = false;
-                LassoTool.lassoLayer2.x = 0;
-                LassoTool.lassoLayer2.y = 0;
-                LassoTool.lassoLayer2.scaleX = 1.0;
-                LassoTool.lassoLayer2.scaleY = 1.0;
-                LassoTool.lassoLayer2.rotation = 0;
-                LassoTool.lassoLayer2.visible = false;
-            }
-
-            // 성능 문제로 샤픈 안해줌
-
-            function lasso2(data:Array, clearOnly:Boolean):void
-            {
-                if (data[1].length === 0 || data[2].length === 0)
-                    return;
-                var imageMovedToLasso:Boolean;
-
-                if (data.length <= 5)
-                {
-                    if (data[3] === null || (data[3] is Array && data[3].length === 0))
-                    {
-                        // (["lasso",point1,point2,null,lassoInfo]); 초기 버전 데이터 구조 3번이 비어있음
-                        // (["lasso",point1,point2,[],lassoInfo]);
-                        imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], false, true, true);
-                    }
-                    else if (data[3].length === 7)
-                    {
-                        // (["lasso",point1,point2,lassoInfo]); 2019년판 구버전
-                        // (["lasso",point1,point2,lassoInfo,lassoCopyON])
-                        imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], true, true);
-                    }
-                }
-                else
-                {
-                    // (["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터 길이가 6이상임
-                    // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
-                    imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], data[5], data[6]);
-                }
-
-                if (imageMovedToLasso && !clearOnly)
-                {
-                    var lassoInfo:Array = (data[3] is Array && data[3].length === 7) ? data[3] : data[4];
-                    const bmpScaleX:Number = lassoInfo[0];
-                    const bmpScaleY:Number = lassoInfo[1];
-                    const bmpWidth:Number = lassoInfo[2];
-                    const bmpHeight:Number = lassoInfo[3];
-                    const bmpAngle:Number = lassoInfo[4];
-                    const boxX:Number = lassoInfo[5];
-                    const boxY:Number = lassoInfo[6];
-                    const mat:Matrix = new Matrix();
-                    mat.scale(bmpScaleX, bmpScaleY);
-                    mat.translate(-bmpWidth / 2, -bmpHeight / 2);
-                    mat.rotate(bmpAngle);
-                    mat.translate(boxX, boxY);
-                    setRCursorPos(boxX, boxY);
-                    LassoTool.lassoLayer1Bitmap.smoothing = true;
-                    LassoTool.lassoLayer2Bitmap.smoothing = true;
-
-                    if (data[7] as Boolean)
-                    {
-                        if (data[7] === true)
-                        {
-                            LassoTool.swapLassoImage();
-                        }
-                    }
-                    else if (data[7] as Array)
-                    {
-                        const len:uint = data[7].length;
-
-                        for (var i:uint = 0;i < len;i++)
-                        {
-                            if (data[7][i] === 0)
-                            {
-                                LassoTool.swapLassoImage();
-                            }
-                            else if (data[7][i] === 1)
-                            {
-                                LassoTool.mergeLassoImage();
-                            }
-                        }
-                    }
-
-                    if (data[5] || !data[5] && !data[6])
-                    {
-                        rCanvasLayer1BitmapData.draw(LassoTool.lassoLayer1Bitmap, mat);
-                        rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
-                    }
-
-                    if (data[6])
-                    {
-                        rCanvasLayer2BitmapData.draw(LassoTool.lassoLayer2Bitmap, mat);
-                        rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
-                    }
-                }
-
-                resetLassoVars();
-            }
-
-            function lasso(data:Array, clearOnly:Boolean):void
-            {
-                if (data[1].length === 0 || data[2].length === 0)
-                    return;
-                var imageMovedToLasso:Boolean;
-
-                if (data.length <= 5)
-                {
-                    if (data[3] === null || (data[3] is Array && data[3].length === 0))
-                    {
-                        // (["lasso",point1,point2,null,lassoInfo]); 초기 버전 데이터 구조 3번이 비어있음
-                        // (["lasso",point1,point2,[],lassoInfo]);
-                        imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], false, true, true);
-                    }
-                    else if (data[3].length === 7)
-                    {
-                        // (["lasso",point1,point2,lassoInfo]); 2019년판 구버전
-                        // (["lasso",point1,point2,lassoInfo,lassoCopyON])
-                        imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], true, true);
-                    }
-                }
-                else
-                {
-                    // (["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터 길이가 6이상임
-                    // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
-                    imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], data[5], data[6]);
-                }
-
-                if (imageMovedToLasso && !clearOnly)
-                {
-                    var lassoInfo:Array = (data[3] is Array && data[3].length === 7) ? data[3] : data[4];
-                    const bmpScaleX:Number = lassoInfo[0];
-                    const bmpScaleY:Number = lassoInfo[1];
-                    const bmpWidth:Number = lassoInfo[2];
-                    const bmpHeight:Number = lassoInfo[3];
-                    const bmpAngle:Number = lassoInfo[4];
-                    const boxX:Number = lassoInfo[5];
-                    const boxY:Number = lassoInfo[6];
-                    const mat:Matrix = new Matrix();
-                    mat.scale(bmpScaleX, bmpScaleY);
-                    mat.translate(-bmpWidth / 2, -bmpHeight / 2);
-                    mat.rotate(bmpAngle);
-                    mat.translate(boxX, boxY);
-                    setRCursorPos(boxX, boxY);
-                    LassoTool.lassoLayer1Bitmap.smoothing = true;
-                    LassoTool.lassoLayer2Bitmap.smoothing = true;
-
-                    if (data[7] as Boolean)
-                    {
-                        if (data[7] === true)
-                        {
-                            LassoTool.swapLassoImage();
-                        }
-                    }
-                    else if (data[7] as Array)
-                    {
-                        const len:uint = data[7].length;
-
-                        for (var i:uint = 0;i < len;i++)
-                        {
-                            if (data[7][i] === 0)
-                            {
-                                LassoTool.swapLassoImage();
-                            }
-                            else if (data[7][i] === 1)
-                            {
-                                LassoTool.mergeLassoImage();
-                            }
-                        }
-                    }
-
-                    if (bmpScaleX !== 1 || bmpAngle !== 0)
-                    {
-                        LassoTool.applyLassoShapen(bmpScaleX);
-                    }
-
-                    if (data[5] || !data[5] && !data[6])
-                    {
-                        rCanvasLayer1BitmapData.draw(LassoTool.lassoLayer1Bitmap, mat);
-                        rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
-                    }
-
-                    if (data[6])
-                    {
-                        rCanvasLayer2BitmapData.draw(LassoTool.lassoLayer2Bitmap, mat);
-                        rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
-                    }
-                }
-
-                resetLassoVars();
-            }
-
-            function mirror():void
-            {
-                mirrorCanvasReplayMode();
-                setRCursorPosToCenter();
-            }
-
-            function bgColor(data:Array):void
-            {
-                const color:uint = data[1];
-                rLastCanvasBGColor = color;
-                updateCanvasBGColorReplayMode(color);
-                setRCursorPosToCenter();
-            }
-
-            function canvasSize(data:Array):void
-            {
-                const width:Number = data[1];
-                const height:Number = data[2];
-                const moveX:Number = data[3];
-                const moveY:Number = data[4];
-                const movedFlag:Boolean = data[5];
-                updateCanvasSizeReplayMode(width, height, moveX, moveY, movedFlag);
-                setRCursorPos(width / 2, height / 2);
-            }
-
-            function tempDone4(data:Array):void
-            {
-                if (rAirBrushSize2 > 0)
-                {
-                    const blurSize:Number = CanvasController.getBlurSize(rAirBrushSize2, 1.0);
-                    rCanvasDrawShape.filters = [new BlurFilter(blurSize, blurSize, 3)];
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    CanvasController.canvasDrawLayerChild.filters = [];
-                }
-                else
-                {
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                }
-
-                rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                updateRCanvasDrawLayerCliprect2();
-                rCanvasDrawShape.graphics.clear();
-            }
-
-            function tempDone3(data:Array):void
-            {
-                rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                updateRCanvasDrawLayerCliprect2();
-                rCanvasDrawShape.graphics.clear();
-            }
-
-            function tempDone2(data:Array):void
-            {
-                if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
-                {
-                    blurReplayCanvasByDefaultValue();
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                    CanvasController.updateRCanvasDrawLayerCliprect();
-                    rCanvasDrawShape.graphics.clear();
-                    blurReplayCanvasByValue(rAirBrushSize);
-                }
-                else
-                {
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                    CanvasController.updateRCanvasDrawLayerCliprect();
-                    rCanvasDrawShape.graphics.clear();
-                }
-            }
-
-            function tempDone(data:Array):void
-            {
-                if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
-                {
-                    blurReplayCanvasByDefaultValue();
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                    rCanvasDrawShape.graphics.clear();
-                    blurReplayCanvasByValue(rAirBrushSize);
-                }
-                else
-                {
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                    rCanvasDrawShape.graphics.clear();
-                }
-            }
-
-            function drawDone5(data:Array):void
-            {
-                const lineStyleData:Array = getrLineStyleSave();
-                const subLayer:Boolean = data[1];
-                const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
-
-                if (rAirBrushSize2 > 0)
-                {
-                    const blurSize:Number = CanvasController.getBlurSize(rAirBrushSize2, 1.0);
-                    rCanvasDrawShape.filters = [new BlurFilter(blurSize, blurSize, 3)];
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawShape.filters = [];
-                }
-                else
-                {
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                }
-
-                rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                updateRCanvasDrawLayerCliprect2();
-                CanvasController.extandRCanvasDrawLayerCliprect2();
-
-                if (subLayer)
-                {
-                    rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
-                    rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
-                }
-                else
-                {
-                    rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
-                    rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
-                }
-
-                rCanvasDrawLayerBitmapData.fillRect(rCanvasDrawLayerClipRect, 0);
-                rCanvasDrawShape.graphics.clear();
-            }
-
-            function drawDone4(data:Array):void
-            {
-                const lineStyleData:Array = getrLineStyleSave();
-                const subLayer:Boolean = data[1];
-                const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
-                rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                updateRCanvasDrawLayerCliprect2();
-                CanvasController.extandRCanvasDrawLayerCliprect2();
-
-                if (rAirBrushSize2 > 0)
-                {
-                    const blurSize:Number = CanvasController.getBlurSize(rAirBrushSize2, 1.0);
-                    rCanvasDrawLayerBitmapData.applyFilter(rCanvasDrawLayerBitmapData, rCanvasDrawLayerClipRect, new Point(rCanvasDrawLayerClipRect.x, rCanvasDrawLayerClipRect.y), new BlurFilter(blurSize, blurSize, 3));
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                }
-
-                if (subLayer)
-                {
-                    rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
-                    rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
-                }
-                else
-                {
-                    rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRect);
-                    rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
-                }
-
-                rCanvasDrawLayerBitmapData.fillRect(rCanvasDrawLayerClipRect, 0);
-                rCanvasDrawShape.graphics.clear();
-            }
-
-            function drawDone3(data:Array):void
-            {
-                const lineStyleData:Array = getrLineStyleSave();
-                const subLayer:Boolean = data[1];
-                const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
-
-                if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
-                {
-                    blurReplayCanvasByDefaultValue();
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                    blurReplayCanvasByValue(rAirBrushSize);
-                }
-                else
-                {
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                }
-
-                CanvasController.updateRCanvasDrawLayerCliprect();
-                CanvasController.extandRCanvasDrawLayerCliprect();
-
-                if (subLayer)
-                {
-                    rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRectLegacy);
-                    rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
-                }
-                else
-                {
-                    rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1], rCanvasDrawLayerClipRectLegacy);
-                    rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
-                }
-
-                rCanvasDrawLayerBitmapData.fillRect(rCanvasDrawLayerClipRectLegacy, 0);
-                rCanvasDrawShape.graphics.clear();
-
-                if (rAirBrushSize > 0)
-                {
-                    resetBlurReplayCanvas();
-                }
-            }
-
-            function drawDone2(data:Array):void
-            {
-                const lineStyleData:Array = getrLineStyleSave();
-                const subLayer:Boolean = data[1];
-                const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
-
-                if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
-                {
-                    blurReplayCanvasByDefaultValue();
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                    blurReplayCanvasByValue(rAirBrushSize);
-                }
-                else
-                {
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                }
-
-                if (subLayer)
-                {
-                    rCanvasLayer2BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1]);
-                    rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
-                }
-                else
-                {
-                    rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1]);
-                    rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
-                }
-
-                rCanvasDrawLayerBitmapData.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
-                rCanvasDrawShape.graphics.clear();
-
-                if (rAirBrushSize > 0)
-                {
-                    resetBlurReplayCanvas();
-                }
-            }
-
-            function drawDone(data:Array):void
-            {
-                const lineStyleData:Array = getrLineStyleSave();
-                // if(!lineStyleData) return;
-                const subLayer:Boolean = data[1];
-                const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
-
-                if (rAirBrushSize > 0 && rCanvasZoomMultiplier !== 1.0)
-                {
-                    blurReplayCanvasByDefaultValue();
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                    blurReplayCanvasByValue(rAirBrushSize);
-                }
-                else
-                {
-                    rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
-                    rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
-                }
-
-                if (subLayer)
-                {
-                    var tmpbmpd:BitmapData = new BitmapData(RCANVAS_WIDTH, RCANVAS_HEIGHT, true, 0);
-                    tmpbmpd.draw(rCanvasDrawLayerBitmap, null, canvasAlpha);
-                    tmpbmpd.draw(rCanvasLayer1Bitmap);
-                    rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, tmpbmpd, rCanvasLayer1Bitmap);
-                    tmpbmpd.dispose();
-                    tmpbmpd = null;
-                }
-                else
-                {
-                    rCanvasLayer1BitmapData.draw(rCanvasDrawLayerBitmap, null, canvasAlpha, lineStyleData[1]);
-                    rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
-                }
-
-                rCanvasDrawLayerBitmap.bitmapData = null;
-                rCanvasDrawLayerBitmapData.fillRect(new Rectangle(0, 0, rCanvasDrawLayerBitmapData.width, rCanvasDrawLayerBitmapData.height), 0);
-                rCanvasDrawShape.graphics.clear();
-
-                if (rAirBrushSize > 0)
-                {
-                    resetBlurReplayCanvas();
-                }
-            }
-
-            function clear(layer1:Boolean, layer2:Boolean):void
-            {
-                if (!layer1 && !layer2)
-                {
-                    layer1 = true;
-                    layer2 = true;
-                }
-
-                const rect:Rectangle = new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
-
-                if (layer1)
-                    rCanvasLayer1BitmapData.fillRect(rect, 0);
-
-                if (layer2)
-                    rCanvasLayer2BitmapData.fillRect(rect, 0);
-                setRCursorPosToCenter();
-            }
-
-            function swapLayer():void
-            {
-                var tempbmpd1:BitmapData = rCanvasLayer1BitmapData.clone();
-                var tempbmpd11:BitmapData = rCanvasLayer2BitmapData.clone();
-                const rect:Rectangle = new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
-                rCanvasLayer1BitmapData.fillRect(rect, 0);
-                rCanvasLayer2BitmapData.fillRect(rect, 0);
-                rCanvasLayer1BitmapData.draw(tempbmpd11);
-                rCanvasLayer2BitmapData.draw(tempbmpd1);
-                tempbmpd1.dispose();
-                tempbmpd11.dispose();
-                tempbmpd1 = null;
-                tempbmpd11 = null;
-                setRCursorPosToCenter();
-            }
-
-            function mergeLayer():void
-            {
-                rCanvasLayer2BitmapData.draw(rCanvasLayer1BitmapData);
-                rCanvasLayer1BitmapData.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
-                setRCursorPosToCenter();
-            }
-
-            function drawNext():void
-            {
-                if (!data || data.length === 0)
-                {
-                    index++;
-                    return;
-                }
-
-                if(data[index] as Array === null)
-                {
-                    index++;
-                    return;
-                }
-
-                const d:Array = data[index];
-
-                switch (d[0])
-                {
-                    case "lineStyle":
-                        lineStyle(d);
-                        break;
-                    case "lineStyle2":
-                        lineStyle2(d);
-                        break;
-                    case "lineStyle3":
-                        lineStyle3(d);
-                        break;
-                    case "lineStyle4":
-                        lineStyle4(d);
-                        break;
-                    case "lineStyle5":
-                        lineStyle5(d);
-                        break;
-                    case "lineTo":
-                        lineTo(d);
-                        break;
-                    case "sqline":
-                        sqline(d);
-                        break;
-                    case "fill":
-                        fill(d);
-                        break;
-                    case "fill2":
-                        fill2(d);
-                        break;
-                    case "fill3":
-                        fill3(d);
-                        break;
-                    case "fill4":
-                        fill4(d);
-                        break;
-                    case "fill5":
-                        fill5(d);
-                        break;
-                    case "dot":
-                        dot(d);
-                        break;
-                    case "dot2":
-                        dot2(d);
-                        break;
-                    case "dot3":
-                        dot3(d);
-                        break;
-                    case "dot4":
-                        dot4(d);
-                        break;
-                    case "line":
-                        line(d);
-                        break;
-                    case "line1":
-                        line1(d);
-                        break;
-                    case "line2":
-                        line2(d);
-                        break;
-                    case "line3":
-                        line3(d);
-                        break;
-                    case "move":
-                        move(d);
-                        break;
-                    case "move1":
-                        move1(d);
-                        break;
-                    case "move2":
-                        move2(d);
-                        break;
-                    case "lasso":
-                        lasso(d, false);
-                        break;
-                    case "lasso2":
-                        lasso2(d, false);
-                        break;
-                    case "lassodel":
-                        lasso(d, true);
-                        break;
-                    case "lassodel2":
-                        lasso2(d, true);
-                        break;
-                    case "mirror":
-                        mirror();
-                        break;
-                    case "bgColor":
-                        bgColor(d);
-                        break;
-                    case "canvasSize":
-                        canvasSize(d);
-                        break;
-                    case "tempDone":
-                        tempDone(d);
-                        break;
-                    case "tempDone2":
-                        tempDone2(d);
-                        break;
-                    case "tempDone3":
-                        tempDone3(d);
-                        break;
-                    case "tempDone4":
-                        tempDone4(d);
-                        break;
-                    case "drawDone":
-                        drawDone(d);
-                        break;
-                    case "drawDone2":
-                        drawDone2(d);
-                        break;
-                    case "drawDone3":
-                        drawDone3(d);
-                        break;
-                    case "drawDone4":
-                        drawDone4(d);
-                        break;
-                    case "drawDone5":
-                        drawDone5(d);
-                        break;
-                    case "clear":
-                        clear(true, true);
-                        break;
-                    case "clear1":
-                        clear(true, false);
-                        break;
-                    case "clear2":
-                        clear(false, true);
-                        break;
-                    case "swap":
-                        swapLayer();
-                        break;
-                    case "merge":
-                        mergeLayer();
-                        break;
-                    default:
-                        break;
-                }
-
-                index++;
-            }
-
-            return {
-                    drawNext: drawNext,
-                    drawAll: drawAll,
-                    setData: setData,
-                    clearData: clearData,
-                    setIndex: setIndex,
-                    getCurrentPosition: getCurrentPosition,
-                    isReadFinished: isReadFinished,
-                    getDataLength: getDataLength,
-                    getRemainingData: getRemainingData,
-                    getrLineStyleSave: getrLineStyleSave,
-                    getLineStyleAlpha: getLineStyleAlpha,
-                    getRCursorPos: getRCursorPos,
-                    setRCursorPos: setRCursorPos,
-                    updateRCursorPos: updateRCursorPos,
-                    updateRCursorPosToFirst: updateRCursorPosToFirst,
-                    hasRCursorFirstPos: hasRCursorFirstPos,
-                    getFirstRCursorPos: getFirstRCursorPos,
-                    setFirstRCursorPos: setFirstRCursorPos,
-                    resetFirstRCursorPos: resetFirstRCursorPos,
-                    setFirstRCursorPosCurrent: setFirstRCursorPosCurrent,
-                    updateLineStyleBackup: updateLineStyleBackup
-                };
         }
 
         public static function drawCanvasFromReplayDataSlideShowMode():void
@@ -2147,11 +659,11 @@ package Modules
                 if (rData.length > 0)
                 {
                     rPrevFrame = rNowFrame;
-                    drawReplayByCommand.setData(rData[rDataIndex]);
+                    ReplayDrawCommands.setData(rData[rDataIndex]);
                 }
                 else
                 {
-                    drawReplayByCommand.clearData();
+                    ReplayDrawCommands.clearData();
                 }
             }
 
@@ -2163,7 +675,7 @@ package Modules
 
                     if (!obj)
                         return true;
-                    drawReplayByCommand.setData(obj);
+                    ReplayDrawCommands.setData(obj);
                     rFileCutBytePosition = rFileLastBytePosition;
                     rFileLastBytePosition = rFileStream.position;
                     rPrevFrame = rNowFrame;
@@ -2196,7 +708,7 @@ package Modules
             {
                 for (var i:Number = 0;i < len;i++)
                 {
-                    if (drawReplayByCommand.isReadFinished())
+                    if (ReplayDrawCommands.isReadFinished())
                     {
                         rDataIndex++;
 
@@ -2206,10 +718,10 @@ package Modules
                         }
 
                         rPrevFrame = rNowFrame;
-                        drawReplayByCommand.setData(rData[rDataIndex]);
+                        ReplayDrawCommands.setData(rData[rDataIndex]);
                     }
 
-                    drawReplayByCommand.drawNext();
+                    ReplayDrawCommands.drawNext();
                     rNowFrame++;
                 }
             }
@@ -2218,7 +730,7 @@ package Modules
             {
                 for (var i:Number = 0;i < len;i++)
                 {
-                    if (drawReplayByCommand.isReadFinished())
+                    if (ReplayDrawCommands.isReadFinished())
                     {
                         if (readNextFileData() === false)
                         {
@@ -2236,7 +748,7 @@ package Modules
                         }
                     }
 
-                    drawReplayByCommand.drawNext();
+                    ReplayDrawCommands.drawNext();
                     rNowFrame++;
                     readCount--;
                 }
@@ -2292,7 +804,7 @@ package Modules
         // 데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
         public static function finalizeRemainingReplayData():void
         {
-            renderReplayFrame(rNowFrame + drawReplayByCommand.getRemainingData(), JUMP_FRAME_MANUAL);
+            renderReplayFrame(rNowFrame + ReplayDrawCommands.getRemainingData(), JUMP_FRAME_MANUAL);
         }
 
 
@@ -2314,8 +826,8 @@ package Modules
             rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoBaseImage[0], rCanvasLayer1Bitmap);
             rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoBaseImage[1], rCanvasLayer2Bitmap);
 
-            drawReplayByCommand.setData(rData[0]);
-            drawReplayByCommand.drawAll();
+            ReplayDrawCommands.setData(rData[0]);
+            ReplayDrawCommands.drawAll();
 
             if (undoBaseImage[0] && undoBaseImage[0] !== rCanvasLayer1BitmapData)
             {
@@ -2338,7 +850,7 @@ package Modules
                 undoBaseImage[5] = !undoBaseImage[5];
             }
 
-            drawReplayByCommand.setFirstRCursorPosCurrent();
+            ReplayDrawCommands.setFirstRCursorPosCurrent();
         }
 
         public static function updateReplayCanvasFromUndoRefData(undoRefData:Array, undoIndexSave:int):void
@@ -2371,8 +883,8 @@ package Modules
                 {
                     if (!rData[i])
                         continue;
-                    drawReplayByCommand.setData(rData[i]);
-                    drawReplayByCommand.drawAll();
+                    ReplayDrawCommands.setData(rData[i]);
+                    ReplayDrawCommands.drawAll();
                 }
             }
         }
@@ -2383,7 +895,7 @@ package Modules
             resetRotationReplayMode();
             clearCanvasReplayMode();
             clearDataAndResetVars();
-            drawReplayByCommand.resetFirstRCursorPos();
+            ReplayDrawCommands.resetFirstRCursorPos();
             clearRFrameTempCache();
         }
 
@@ -2533,16 +1045,16 @@ package Modules
 
             if (rNowFrame <= TOTAL_FRAME)
             {
-                if (drawReplayByCommand.getRemainingData() === 0)
+                if (ReplayDrawCommands.getRemainingData() === 0)
                 {
                     // +1해줘서 다음 데이터 갱신해주고 나머지 끝까지 그려줌
                     renderReplayFrame(rNowFrame + 1, JUMP_FRAME_NEXT);
-                    renderReplayFrame(rNowFrame + drawReplayByCommand.getRemainingData(), JUMP_FRAME_NEXT);
+                    renderReplayFrame(rNowFrame + ReplayDrawCommands.getRemainingData(), JUMP_FRAME_NEXT);
                     // jumpframe함수 이후에 실행
                 }
                 else
                 {
-                    renderReplayFrame(rNowFrame + drawReplayByCommand.getRemainingData(), JUMP_FRAME_NEXT);
+                    renderReplayFrame(rNowFrame + ReplayDrawCommands.getRemainingData(), JUMP_FRAME_NEXT);
                 }
 
                 updateDeleteReplayDataButtonsState();
@@ -2651,7 +1163,7 @@ package Modules
                 // 원하는 프레임에서 썸네일 이미지 프레임을 빼줌 나머지 프레임만 그려주면 되니깐
                 remainingFrameCount = tragetFrame - cachedImageData[6];
                 rDataIndex = 0; // 이거 먼저 초기화 시켜주어야함
-                drawReplayByCommand.clearData();
+                ReplayDrawCommands.clearData();
                 clearCanvasReplayMode();
                 rMirrorON = cachedImageData[7];
                 rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, layer1bmpd, rCanvasLayer1Bitmap);
@@ -2738,7 +1250,7 @@ package Modules
                 rReplayFOFOCursor.visible = true;
             }
 
-            drawReplayByCommand.updateRCursorPos();
+            ReplayDrawCommands.updateRCursorPos();
 
             if (!isReplaySlideShowMode && !isReplayCanvasFitToWindow && !UndoManager.isDeepUndoEnabled)
             {
@@ -2866,7 +1378,7 @@ package Modules
         {
             main.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
             fs.close();
-            drawReplayByCommand.clearData();
+            ReplayDrawCommands.clearData();
             setRFileTotalFrame(_frameSum);
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_COMPLETE;
             resetReplayTime();
@@ -2980,11 +1492,11 @@ package Modules
                     }
 
                     const data:Array = fs.readObject() as Array;
-                    drawReplayByCommand.setData(data);
+                    ReplayDrawCommands.setData(data);
                     _frameSumLast = _frameSum;
                     _frameSum += data.length; // _rJumpImageCount 변수보다 먼저 와야함
                     dataWriteCount += data.length;
-                    drawReplayByCommand.drawAll();
+                    ReplayDrawCommands.drawAll();
 
                     if (dataWriteCount > REPLAY_DISK_CACHE_FRAME_INTERVAL)
                     {
@@ -3055,7 +1567,7 @@ package Modules
             rTempCachedLastImageIndex = -2;
             isReplayFinished = true;
             isReplaySlideShowMode = false;
-            drawReplayByCommand.clearData();
+            ReplayDrawCommands.clearData();
         }
 
         public static function updateReplayPrograssText(finishFlag:Boolean = false, customFrame:Number = NaN):void
@@ -3106,7 +1618,7 @@ package Modules
                     if (nowTime - lastCursorUpdateTime >= cursorUpdateTime)
                     {
                         lastCursorUpdateTime = nowTime;
-                        drawReplayByCommand.updateRCursorPos();
+                        ReplayDrawCommands.updateRCursorPos();
 
                         if (!isReplayCanvasFitToWindow && !CanvasController.isMouseLeftClicked && !UndoManager.isDeepUndoEnabled)
                         {
@@ -3768,7 +2280,7 @@ package Modules
 
             function check(viewCenterFlag:Boolean):void
             {
-                cp = drawReplayByCommand.getRCursorPos();
+                cp = ReplayDrawCommands.getRCursorPos();
                 globalChecked = false;
                 const div:Number = (viewCenterFlag) ? 1 : 3;
 
@@ -3872,11 +2384,11 @@ package Modules
 
         public static function mirrorRCursorPos():void
         {
-            const p:Point = drawReplayByCommand.getRCursorPos();
+            const p:Point = ReplayDrawCommands.getRCursorPos();
             const half:Number = CanvasController.CANVAS_WIDTH / 2;
             const curcorX:Number = rReplayFOFOCursor.x + (half - p.x) * 2;
             rReplayFOFOCursor.x = curcorX;
-            drawReplayByCommand.setRCursorPos(curcorX, p.y);
+            ReplayDrawCommands.setRCursorPos(curcorX, p.y);
         }
 
         // 드로우 모드와 리플레이 모드 캔버스 미러가 다를경우 undo 적용 이후에 mirror커맨드 넣어주도록 함
@@ -3970,14 +2482,14 @@ package Modules
         }
 
         // drawdone에서 줌된 blur사이즈가 아니 1배율 블러를 적용해야 제대로 되기 때문에 이거해줌
-        private static function blurReplayCanvasByDefaultValue():void
+        public static function blurReplayCanvasByDefaultValue():void
         {
             const blurSize:Number = CanvasController.getBlurSize(rAirBrushSize, 1.0);
             const blurf:BlurFilter = new BlurFilter(blurSize, blurSize, 3);
             rCanvasDrawShape.filters = [blurf];
         }
 
-        private static function resetBlurReplayCanvas():void
+        public static function resetBlurReplayCanvas():void
         {
             rAirBrushSize = 0;
             rCanvasDrawShape.filters = [];
@@ -3993,7 +2505,7 @@ package Modules
 
         private static function copyReplayCanvasDataToDrawCanvas():void
         {
-            const lineStyleSave:Array = drawReplayByCommand.getrLineStyleSave();
+            const lineStyleSave:Array = ReplayDrawCommands.getrLineStyleSave();
             // if(!lineStyleSave) return;
             var newColorTransform:ColorTransform = new ColorTransform(1, 1, 1, lineStyleSave[0]);
             rCanvasDrawLayerBitmapData.draw(rCanvasDrawShape);
