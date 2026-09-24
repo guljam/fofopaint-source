@@ -104,8 +104,6 @@ package Modules
             // todo ReplayController가 자주 호출되므로 ReplayController에 함수를 하나 따로 만들어서 깔끔하게 하는게 나음
            public static  function updateLastRDataMirror():void
             {
-                var popArr:Array;
-
                 if (UndoManager.mirrorCommandReady)
                 {
                     // 마지막 데이터에 1개만의 미러 커맨드가 있으먼 미러를 무효로함 mirror mirror니까 원래대로임

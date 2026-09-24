@@ -843,6 +843,8 @@ package Modules
                 rLayer2CurrentImageData.length = 0;
                 ReferenceLayerController.refLayerImageData.length = 0;
                 replayDataReadBytes.length = 0;
+                ReplayController.lastMirrorReadyFlag = UndoManager.mirrorCommandReady;
+
                 // 첫번째 이미지 레이어 1 2 저장
                 const rImgDataW:Number = ReplayController.rFirstImageLayer1BitmapData.width;
                 const rImgDataH:Number = ReplayController.rFirstImageLayer1BitmapData.height;

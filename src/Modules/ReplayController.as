@@ -138,6 +138,7 @@ package Modules
         private static var isReplaySlideShowMode:Boolean = false; // doDrawSlowEvent가 켜지면 올려줌
         private static var rFrameTempCachedImages:Array = []; // 이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
+        public static var lastMirrorReadyFlag:Boolean = false; //리플레이 저장해줄때 마지막 mirror플래그는 여기서 가져다 씀 저장중간에 기존 mirror ready플래그가 바뀔수도 있기 때문에
 
         public static function increaseRFileTotalFrame(count:Number):void
         {
@@ -253,8 +254,9 @@ package Modules
             fs.writeUTFBytes("FOFOPAINT"); // 파일 헤더
             fs.writeUnsignedInt(dataD.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
             fs.writeBytes(dataD);
-
-            if (UndoManager.mirrorCommandReady) // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
+            
+            //임시 미러 플래그임
+            if (lastMirrorReadyFlag) // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
             {
                 const tempMirrorData:Array = [["mirror"]];
                 fs.writeObject(tempMirrorData);
