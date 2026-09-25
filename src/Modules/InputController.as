@@ -712,13 +712,11 @@ package Modules
             || !target
             || ColorPickerController.numPadBox.visible)
             {
-                trace('리턴');
                 return;
             }
 
             if (target === SidebarController.sideBarScrollBar)
             {
-                trace('리2');
                 SidebarController.resetSideBarPosition();
                 return;
             }
@@ -743,7 +741,6 @@ package Modules
 
             if (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
             {
-                trace('re3');
                 return;
             }
 

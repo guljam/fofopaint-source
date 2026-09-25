@@ -667,7 +667,6 @@ package Modules
             const blendMode:String = data[7];
             const subLayer:Boolean = data[8];
             const airBrushSize:Number = data[9];
-            trace('data', data, "blendMode", blendMode as String);
 
             updateLineStyleBackup(alpha, blendMode);
             ReplayController.rCanvasDrawLayer.alpha = alpha;

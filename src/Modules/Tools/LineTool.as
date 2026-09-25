@@ -20,6 +20,7 @@ package Modules.Tools
     import flash.system.ApplicationDomain;
     import flash.events.KeyboardEvent;
     import Modules.InputController;
+    import flash.events.BrowserInvokeEvent;
 
     public class LineTool
     {
@@ -47,13 +48,95 @@ package Modules.Tools
         private static var data:Vector.<Number>;
         private static var _isStarted:Boolean = false;
         private static var startFromShortCut:Boolean = false;
-        private static var isPointInsideCanvas:Boolean = false;
+        private static var hasLineTouchedCanvas:Boolean = false;
         private static var lastClickedPos:Point = new Point(0, 0);
+
+        private static function thickLineTouchesCanvasBorder(x1:Number, y1:Number, x2:Number, y2:Number, thickness:Number, roundCaps:Boolean):Boolean
+        {
+            const w:Number = canvasWidth;
+            const h:Number = canvasHeight;
+            const r:Number = thickness > 0 ? thickness * 0.5 : 0;
+
+            const minX:Number = x1 < x2 ? x1 : x2;
+            const maxX:Number = x1 > x2 ? x1 : x2;
+            const minY:Number = y1 < y2 ? y1 : y2;
+            const maxY:Number = y1 > y2 ? y1 : y2;
+
+            // 굵은 선 전체가 캔버스 밖 또는 안에 있으면 즉시 판정한다.
+            if (maxX + r < 0 || minX - r > w ||
+                    maxY + r < 0 || minY - r > h)
+                return false;
+
+            if (minX - r > 0 && maxX + r < w &&
+                    minY - r > 0 && maxY + r < h)
+                return false;
+
+            const dx:Number = x2 - x1;
+            const dy:Number = y2 - y1;
+            const lengthSquared:Number = dx * dx + dy * dy;
+
+            if (lengthSquared == 0)
+                return roundCaps &&
+                    diskTouchesCanvasBorder(x1, y1, r * r, w, h);
+
+            const length:Number = Math.sqrt(lengthSquared);
+            const ux:Number = dx / length;
+            const uy:Number = dy / length;
+            const ax:Number = Math.abs(ux);
+            const ay:Number = Math.abs(uy);
+
+            const midX:Number = (x1 + x2) * 0.5;
+            const midY:Number = (y1 + y2) * 0.5;
+            const halfLength:Number = length * 0.5;
+
+            // 선분의 직사각형 부분을 캔버스와 SAT로 교차 검사한다.
+            const extentX:Number = halfLength * ax + r * ay;
+            const extentY:Number = halfLength * ay + r * ax;
+
+            const stripInside:Boolean =
+                midX - extentX > 0 && midX + extentX < w &&
+                midY - extentY > 0 && midY + extentY < h;
+
+            if (!stripInside)
+            {
+                const halfW:Number = w * 0.5;
+                const halfH:Number = h * 0.5;
+                const offsetX:Number = midX - halfW;
+                const offsetY:Number = midY - halfH;
+
+                if (Math.abs(offsetX) <= halfW + extentX &&
+                        Math.abs(offsetY) <= halfH + extentY &&
+                        Math.abs(offsetX * ux + offsetY * uy) <=
+                        halfLength + halfW * ax + halfH * ay &&
+                        Math.abs(-offsetX * uy + offsetY * ux) <=
+                        r + halfW * ay + halfH * ax)
+                {
+                    return true;
+                }
+            }
+
+            // 둥근 끝의 원형 부분을 검사한다.
+            return roundCaps &&
+                (diskTouchesCanvasBorder(x1, y1, r * r, w, h) ||
+                    diskTouchesCanvasBorder(x2, y2, r * r, w, h));
+        }
+
+        private static function diskTouchesCanvasBorder(x:Number, y:Number, radiusSquared:Number, w:Number, h:Number):Boolean
+        {
+            const outsideY:Number = y < 0 ? -y : (y > h ? y - h : 0);
+            if (x * x + outsideY * outsideY <= radiusSquared ||
+                    (x - w) * (x - w) + outsideY * outsideY <= radiusSquared)
+                return true;
+
+            const outsideX:Number = x < 0 ? -x : (x > w ? x - w : 0);
+            return y * y + outsideX * outsideX <= radiusSquared ||
+                (y - h) * (y - h) + outsideX * outsideX <= radiusSquared;
+        }
 
         public static function removeEventsAndResetVar():void
         {
             FOFOTimer.remove("updateLineToolTimer");
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, updateLinePreview);
+            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool);
             main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool);
 
             if (startFromShortCut)
@@ -63,14 +146,21 @@ package Modules.Tools
             }
             else
             {
-                main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, updateLinePreview);
+                main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool);
             }
 
             command.length = 0;
             data.length = 0;
-            isPointInsideCanvas = false;
+            hasLineTouchedCanvas = false;
             _isStarted = false;
-            
+
+            CanvasController.isMouseDragging = false;
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
+
+            if (!ReferenceLayerController.isRefLayerEmpty() && ReferenceLayerController.isRefLayerMemoryTrainingON && ReferenceLayerController.refLayerLastAlpha > 0.0)
+            {
+                ReferenceLayerController.setCanvasRefLayerVisibleDelay();
+            }
         }
 
         public static function cancel():void
@@ -93,6 +183,11 @@ package Modules.Tools
 
         public static function updateLastLineToData(posX:Number, posY:Number):void
         {
+            if (command.length < 2)
+            {
+                return;
+            }
+
             command[command.length - 1] = 2;
             data[data.length - 2] = posX;
             data[data.length - 1] = posY;
@@ -107,17 +202,12 @@ package Modules.Tools
             return false;
         }
 
-        private static function checkPointInsideCanvas(mx:Number, my:Number):void
-        {
-            if (mx >= 0 && mx <= canvasWidth && my >= 0 && my <= canvasHeight)
-            {
-                isPointInsideCanvas = true;
-            }
-        }
-
         public static function inputLineToData(posX:Number, posY:Number):void
         {
             lastClickedPos.setTo(posX, posY);
+            data[data.length - 2] = posX;
+            data[data.length - 1] = posY;
+
             command.push(2);
             data.push(posX);
             data.push(posY);
@@ -132,6 +222,11 @@ package Modules.Tools
 
         private static function drawLine():void // 지우개인가 펜인가 구분해서 lineto 실시
         {
+            if (command.length < 2)
+            {
+                return;
+            }
+
             CanvasController.canvasDrawLayerChild.graphics.clear();
             CanvasController.canvasDrawLayer.alpha = xAlpha;
 
@@ -158,25 +253,13 @@ package Modules.Tools
 
         private static function apply():void
         {
-            CanvasController.isMouseDragging = false;
-            PenSizePreviewCursor.setCursorInVisibleFlag(false);
-
-            if (!ReferenceLayerController.isRefLayerEmpty() && ReferenceLayerController.isRefLayerMemoryTrainingON && ReferenceLayerController.refLayerLastAlpha > 0.0)
-            {
-                ReferenceLayerController.setCanvasRefLayerVisibleDelay();
-            }
-
-            if (isPointInsideCanvas)
+            if (hasLineTouchedCanvas && command.length > 2)
             {
                 removeLastLineToData();
                 drawLine();
-                isPointInsideCanvas = false;
+                hasLineTouchedCanvas = false;
                 UndoManager.canAddUndoData = true;
                 ReplayController.rDataBuffer.push(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenTool.airBrushSizeDrawMode]);
-            }
-            else
-            {
-                trace('아예 안해줌');
             }
 
             CanvasController.resetCanvasDrawLayerCliprect();
@@ -198,7 +281,10 @@ package Modules.Tools
 
         private static function onKeyUpLineTool(e:KeyboardEvent):void
         {
-            apply();
+            if (e.keyCode === InputController.KEY.shift)
+            {
+                apply();
+            }
         }
 
         private static function onRightMouseDownLineTool(e:MouseEvent):void
@@ -213,51 +299,61 @@ package Modules.Tools
 
             if (!isSamePos(mx, my))
             {
+                if (hasLineTouchedCanvas === false)
+                {
+                    if (checkPointInsideCanvas(mx, my) || thickLineTouchesCanvasBorder(mx, my, data[data.length - 4], data[data.length - 3], xSize, !xShape))
+                    {
+                        hasLineTouchedCanvas = true;
+                    }
+                }
                 inputLineToData(mx, my);
             }
+        }
 
-            if (isPointInsideCanvas === false)
+        private static function checkPointInsideCanvas(mx:Number, my:Number):Boolean
+        {
+            if (mx >= 0 && mx <= canvasWidth && my >= 0 && my <= canvasHeight)
             {
-                checkPointInsideCanvas(mx, my);
+                return true;
             }
+            return false;
         }
 
         // private static function onMouseUpLineTool(e:MouseEvent):void
         // {
 
-            // if (isLineInsideCanvas() === true)
-            // {
-            // const mx:Number = CanvasController.canvasDrawLayerChild.mouseX;
-            // const my:Number = CanvasController.canvasDrawLayerChild.mouseY;
-            // UndoManager.canAddUndoData = true;
-            // if (mouseMovedFlag === false && oldX === mx && oldY === my)
-            // {
-            // ReplayController.rDataBuffer = [];
-            // ReplayController.rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, subLayerFlag, xAirBrushON, CanvasController.canvasAnchorPoint.rotation]);
-            // DotTool.start(xShape, xSize, xColor, mx, my, CanvasController.canvasAnchorPoint.rotation);
-            // }
-            // else
-            // {
-            // if (xShape === true)
-            // {
-            // const extPoints:Array = extendLineSegment(oldX, oldY, mx, my, xSize / 8);
-            // startPoint.setTo(extPoints[0], extPoints[1]);
-            // endPoint.setTo(extPoints[2], extPoints[3]);
-            // }
-            // else
-            // {
-            // startPoint.setTo(oldX, oldY);
-            // endPoint.setTo(mx, my);
-            // }
-            // }
-            // }
+        // if (isLineInsideCanvas() === true)
+        // {
+        // const mx:Number = CanvasController.canvasDrawLayerChild.mouseX;
+        // const my:Number = CanvasController.canvasDrawLayerChild.mouseY;
+        // UndoManager.canAddUndoData = true;
+        // if (mouseMovedFlag === false && oldX === mx && oldY === my)
+        // {
+        // ReplayController.rDataBuffer = [];
+        // ReplayController.rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, subLayerFlag, xAirBrushON, CanvasController.canvasAnchorPoint.rotation]);
+        // DotTool.start(xShape, xSize, xColor, mx, my, CanvasController.canvasAnchorPoint.rotation);
+        // }
+        // else
+        // {
+        // if (xShape === true)
+        // {
+        // const extPoints:Array = extendLineSegment(oldX, oldY, mx, my, xSize / 8);
+        // startPoint.setTo(extPoints[0], extPoints[1]);
+        // endPoint.setTo(extPoints[2], extPoints[3]);
+        // }
+        // else
+        // {
+        // startPoint.setTo(oldX, oldY);
+        // endPoint.setTo(mx, my);
+        // }
+        // }
+        // }
         // }
 
         public static function start():void
         {
             if (_isStarted === false)
             {
-                trace('start linetool');
                 _isStarted = true;
                 PenSizePreviewCursor.setCursorInVisibleFlag(true);
 
@@ -293,11 +389,6 @@ package Modules.Tools
                 inputMoveToData(mx, my);
                 inputLineToData(mx, my);
 
-                if (isPointInsideCanvas === false)
-                {
-                    checkPointInsideCanvas(mx, my);
-                }
-
                 subLayerFlag = CanvasController.isLayer2Selected;
 
                 if (!ReferenceLayerController.isRefLayerEmpty() && ReferenceLayerController.isRefLayerMemoryTrainingON)
@@ -309,6 +400,11 @@ package Modules.Tools
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool);
                 main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool);
 
+                if (hasLineTouchedCanvas === false)
+                {
+                    checkPointInsideCanvas(mx, my);
+                }
+
                 FOFOTimer.addByName("updateLineToolTimer", 0.1, true, function ():Boolean
                     {
                         updateLinePreview();
@@ -317,7 +413,6 @@ package Modules.Tools
 
                 if (InputController.isPressingShift())
                 {
-                    trace('단축키로 시작');
                     startFromShortCut = true;
                     main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool);
                 }
